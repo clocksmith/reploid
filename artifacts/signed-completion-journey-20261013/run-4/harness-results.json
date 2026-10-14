@@ -1,0 +1,376 @@
+{
+ "schema": "reploid.signed-completion-journey-run-4-results/v1",
+ "candidate": "browser export app-4 (Reploid 2d434709, bundle sha256:2890c961...), native final-3 install (tarball fcacf463..., descriptor 8595ba31... = final-4 descriptor), harness 2d434709, checkout 99a5f825",
+ "harnesses": {
+  "contributor-loss": {
+   "report": "reports/contributor-loss-2026-10-14T05-36-19-949Z.json",
+   "ok": false,
+   "startedAt": "2026-10-14T05:36:19.950Z",
+   "finishedAt": "2026-10-14T05:48:43.245Z",
+   "failure": "Error: Capacity return deadline",
+   "stepErrors": {},
+   "checks": {
+    "lossInjected": {
+     "pass": true,
+     "failures": []
+    },
+    "lossReported": {
+     "pass": false,
+     "failures": [
+      "Requester error does not report contributor loss (observed CLEANUP_FAILED: Partition attempt settlement failed. Contributor cleanup is not confirmed; its capacity remains unavailable.)",
+      "Rendered failure status does not report contributor loss (This answer could not finish.)"
+     ]
+    },
+    "ownershipExplicit": {
+     "pass": true,
+     "failures": []
+    },
+    "noSilentContinuation": {
+     "pass": true,
+     "failures": []
+    },
+    "explicitRetry": {
+     "pass": false,
+     "failures": [
+      "Capacity did not return before the deadline",
+      "Retry was requested before capacity returned",
+      "Explicit retry did not start exactly one new attempt linked to the failure",
+      "Retry changed earlier messages or the preserved partial answer",
+      "Retry not complete",
+      "Retry natural EOS unobserved",
+      "Retry ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+      "Retry ordered route identity unobserved",
+      "Retry route binds a different model or plan than the freeze",
+      "Retry distinct route contributors (0) differ from the frozen route (3)",
+      "Retry route stages differ from the frozen stage order",
+      "Retry requester was assigned a stage",
+      "Retry cleanup rows do not cover every stage exactly once",
+      "Retry cleanup not confirmed: a cleanup row is unsettled",
+      "Retry settlement phase not completed",
+      "Retry not every stage was admitted",
+      "Retry not every stage executed every step",
+      "Retry recipients were not approved by this attempt's Send or Retry",
+      "Retry approval does not cover ordered activations and tokens",
+      "Retry approved recipients differ from the frozen route",
+      "Retry approval is not addressed to the stage 0 coordinator",
+      "Retry approval binds another model or plan",
+      "Retry executed route differs from the approved route",
+      "Retry requester approved itself as a stage"
+     ]
+    },
+    "selectiveAcquisition": {
+     "pass": false,
+     "failures": [
+      "Requester received or retained weights, or custody evidence is missing"
+     ]
+    },
+    "timing": {
+     "pass": false,
+     "failures": [
+      "Retry timing record missing"
+     ]
+    }
+   }
+  },
+  "requester-journey": {
+   "report": "reports/requester-journey-2026-10-14T05-06-31-364Z.json",
+   "ok": true,
+   "startedAt": "2026-10-14T05:06:31.364Z",
+   "finishedAt": "2026-10-14T05:34:36.517Z",
+   "failure": null,
+   "stepErrors": {},
+   "checks": {
+    "open": {
+     "pass": true,
+     "failures": []
+    },
+    "modelChoice": {
+     "pass": true,
+     "failures": []
+    },
+    "recipientApproval": {
+     "pass": true,
+     "failures": []
+    },
+    "selectiveAcquisition": {
+     "pass": true,
+     "failures": []
+    },
+    "streaming": {
+     "pass": true,
+     "failures": []
+    },
+    "completion": {
+     "pass": true,
+     "failures": []
+    },
+    "followUp": {
+     "pass": true,
+     "failures": []
+    },
+    "copy": {
+     "pass": true,
+     "failures": []
+    },
+    "reload": {
+     "pass": true,
+     "failures": []
+    },
+    "concurrency": {
+     "pass": true,
+     "failures": []
+    },
+    "isolatedCancellation": {
+     "pass": true,
+     "failures": []
+    },
+    "explicitRetry": {
+     "pass": true,
+     "failures": []
+    },
+    "timing": {
+     "pass": true,
+     "failures": []
+    }
+   }
+  },
+  "storage-contribution": {
+   "report": "reports/storage-contribution-2026-10-14T05-54-52-706Z.json",
+   "ok": false,
+   "startedAt": "2026-10-14T05:54:52.706Z",
+   "finishedAt": "2026-10-14T06:19:34.950Z",
+   "failure": null,
+   "stepErrors": {
+    "sharedWhileChatting": "Error: Sharing and chat outcome deadline",
+    "peerAcquisition": "Error: Prerequisite sharing step did not share",
+    "cachedOnly": "Error: Prerequisite sharing step did not share",
+    "reloadPreserved": "Error: Prerequisite sharing step did not share",
+    "stopSettles": "Error: Request completion deadline; no automatic cancellation/retry or classification as model failure"
+   },
+   "checks": {
+    "sharedWhileChatting": {
+     "pass": false,
+     "failures": [
+      "Subset was not acquired in bounded-acquisition mode",
+      "File contribution is not sharing",
+      "No verified piece is offered",
+      "Offered subset exceeds the approved allowance or subset limit",
+      "Acquisition allowance missing, renewed or overspent",
+      "File contribution did not overlap an active conversation",
+      "Sharer conversation not complete",
+      "Sharer conversation natural EOS unobserved",
+      "Sharer conversation ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+      "Sharer conversation ordered route identity unobserved",
+      "Sharer conversation route binds a different model or plan than the freeze",
+      "Sharer conversation distinct route contributors (0) differ from the frozen route (3)",
+      "Sharer conversation route stages differ from the frozen stage order",
+      "Sharer conversation requester was assigned a stage",
+      "Sharer conversation cleanup rows do not cover every stage exactly once",
+      "Sharer conversation cleanup not confirmed: a cleanup row is unsettled",
+      "Sharer conversation settlement phase not completed",
+      "Sharer conversation not every stage was admitted",
+      "Sharer conversation not every stage executed every step"
+     ]
+    },
+    "peerAcquisition": {
+     "pass": false,
+     "failures": [
+      "Acquirer is not another computer",
+      "Sharer transport identity unobserved",
+      "Acquirer completed none of the shared pieces",
+      "Acquirer fetched weights over HTTP during peer acquisition",
+      "Sharer supply accounting does not cover the transferred pieces"
+     ]
+    },
+    "reloadPreserved": {
+     "pass": false,
+     "failures": [
+      "Reload was observed while another tab of the sharer profile was open",
+      "No verified inventory before reload",
+      "Consumed allowance unobserved before or after reload",
+      "Reload reset consumed allowance",
+      "Inventory was not rebuilt from the cache alone"
+     ]
+    },
+    "competingTabs": {
+     "pass": true,
+     "failures": []
+    },
+    "interruptedResume": {
+     "pass": true,
+     "failures": []
+    },
+    "cachedOnly": {
+     "pass": false,
+     "failures": [
+      "Cached-only tab was opened while another tab of the sharer profile was open",
+      "Next tab of the sharer profile did not connect normally; the single-owner lock was not released",
+      "Cached-only mode was not selected",
+      "Cached-only mode issued model-file acquisition requests",
+      "Cached-only observation window incomplete",
+      "Cached-only mode created a custody acquisition",
+      "Cached-only mode changed the acquisition ledger",
+      "Cached-only mode left a transfer pending",
+      "No verified sharer inventory was observed before the sharer tab closed",
+      "Cached-only inventory was not restored only from the verified local cache"
+     ]
+    },
+    "stopSettles": {
+     "pass": false,
+     "failures": [
+      "No acquisition was in flight when contribution stopped",
+      "Stopped contribution did not settle its transfers",
+      "Stopping refunded, renewed or lost incurred charges",
+      "Acquisition continued after contribution settled",
+      "Conversation was not active when contribution stopped",
+      "Conversation after stop not complete",
+      "Conversation after stop natural EOS unobserved",
+      "Conversation after stop ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+      "Conversation after stop ordered route identity unobserved",
+      "Conversation after stop route binds a different model or plan than the freeze",
+      "Conversation after stop distinct route contributors (0) differ from the frozen route (3)",
+      "Conversation after stop route stages differ from the frozen stage order",
+      "Conversation after stop requester was assigned a stage",
+      "Conversation after stop cleanup rows do not cover every stage exactly once",
+      "Conversation after stop cleanup not confirmed: a cleanup row is unsettled",
+      "Conversation after stop settlement phase not completed",
+      "Conversation after stop not every stage was admitted",
+      "Conversation after stop not every stage executed every step"
+     ]
+    }
+   }
+  }
+ },
+ "requesterTiming": [
+  {
+   "attempt": "e2e5ebd1",
+   "attemptMs": 396925,
+   "firstVisibleTextMs": 73633,
+   "steps": 100,
+   "msPerStepByStage": [
+    542,
+    472,
+    2945
+   ]
+  },
+  {
+   "attempt": "5bf2517a",
+   "attemptMs": 288319,
+   "firstVisibleTextMs": 249907,
+   "steps": 12,
+   "msPerStepByStage": [
+    4336,
+    1878,
+    17763
+   ]
+  },
+  {
+   "attempt": "32a3fa8e",
+   "attemptMs": 178724,
+   "firstVisibleTextMs": 178779,
+   "steps": 24,
+   "msPerStepByStage": [
+    659,
+    491,
+    3543
+   ]
+  },
+  {
+   "attempt": "c3849a6c",
+   "attemptMs": 265154,
+   "firstVisibleTextMs": 178719,
+   "steps": 51,
+   "msPerStepByStage": [
+    499,
+    417,
+    2917
+   ]
+  },
+  {
+   "attempt": "1bf9e77e",
+   "attemptMs": 597743,
+   "firstVisibleTextMs": 41586,
+   "steps": 171,
+   "msPerStepByStage": [
+    452,
+    413,
+    2622
+   ]
+  }
+ ],
+ "requesterAnswersForManualReview": {
+  "turn1": "```javascript\nfunction doubleEvens(numbers) {\n  // Filter keeps only even numbers, then doubles them\n  return numbers.filter(n => n % 2 === 0).map(n => n * 2);\n}\n\n// Result for [1, 2, 3, 4]\nconsole.log(doubleEvens([1, 2, 3, 4])); \n// Output: [2, 4, 6, 8]\n```",
+  "turn2": "[-6, 12, 18]"
+ },
+ "manualReviewObservations": "Against journey.json reviewCriteria (not an automated result): turn 1 code filters then doubles with filter/map (criterion 1 met) but states the [1,2,3,4] output as [2, 4, 6, 8] instead of [4, 8] (criterion 2 not met); turn 2 answers [-6, 12, 18] instead of [-4, 12] (criterion 4 not met). Counting answers were exact (survivor 1-20, retry 1-60). manualReview.answerUsefulness remains null for the independent reviewer.",
+ "applicationFindings": [
+  {
+   "id": "A2",
+   "check": "contributor-loss lossReported",
+   "observed": "After SIGKILL of the stage-1 native while streaming, the requester attempt failed with CLEANUP_FAILED (\"Partition attempt settlement failed. Contributor cleanup is not confirmed; its capacity remains unavailable.\") about 16 s after the stop, rendered as \"This answer could not finish.\"; accepted code is CONNECTION_LOST only. Coordinator receipt: phase cleanup-failed, cleanup rows [settled, unknown, settled], failure text is the CONNECTION_LOST message.",
+   "codePath": [
+    "packages/reploid/src/mesh/partitions/partition-ordered-peer.js:244-248 (closed channel without confirmed retirement rethrows)",
+    "packages/reploid/src/mesh/partitions/partition-route-execution.js:248-251 (finally: cleanup failure replaces the original CONNECTION_LOST with a CLEANUP_FAILED AggregateError)",
+    "packages/reploid/src/transport/partition-errors.json:9,11",
+    "self/ui/pool-home/message-list.js:10 (label matches only disconnect wording)"
+   ],
+   "note": "Predicted in the harness README \"Application gaps\" 1; now observed."
+  },
+  {
+   "id": "A3",
+   "check": "contributor-loss explicitRetry (and selectiveAcquisition, timing which depend on the retry)",
+   "observed": "The restored stage-1 native (new scope, same identity/state/config) reached ready, but no replacement route formed for 600 s: stage 0 error \"Ordered chat cleanup remains unsettled\", unsettledOwners 1, ready models none. The app's own \"Retry stopping\" control then ended in phase failed, \"Ordered chat settlement failed\", unsettledOwners 1; the main switch stays disabled (\"Cleanup not confirmed\"). Only closing the stage 0 browser released it.",
+   "codePath": [
+    "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js:142-145 (reconcile must close the broken route chat before selecting a new route)",
+    "packages/reploid/src/mesh/partitions/partition-ordered-chat.js:124-130 (close rethrows: Ordered chat cleanup remains unsettled)",
+    "packages/reploid/src/mesh/partitions/partition-route-execution.js:264-272 (runner close rethrows the unknown stage cleanup, CLEANUP_FAILED)",
+    "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js:183 (tick records the error; the route never re-forms)",
+    "self/ui/pool-home/network-controls.js:106-111,169 (switch disabled while unsettled; Retry stopping)"
+   ],
+   "note": "Predicted in the harness README \"Predicted risks\"; now observed. Per the standing decision this is a finding; it was not worked around inside the loss harness."
+  },
+  {
+   "id": "P1",
+   "kind": "throughput limit, not a correctness defect",
+   "observed": "Stage 2 on intel-host decodes at about 2.6-3.5 s per step versus 0.4-0.7 s for stages 0 and 1 (requesterTiming). The explicit-retry answer took 597.7 s against answerMs 600 s and settled 2 s before the native scopes hit their 30-minute runtime cap. The 200-count chats in contribution (a) and (f) cannot finish in 600 s at this rate.",
+   "consequence": "sharedWhileChatting and stopSettles fail on chat deadlines; peerAcquisition, cachedOnly and reloadPreserved fail on the (a) prerequisite. Needs a decision: longer answerMs and scope caps, shorter fixture prompts, or a faster stage-2 host."
+  }
+ ],
+ "harnessFindings": [
+  {
+   "id": "H5",
+   "what": "(a) sharedWhileChatting and (f) stopSettles write their file-sharing and stop-settlement observations to the report only after the chat completes, so a chat that overruns answerMs discards all of that evidence and every sub-assertion fails closed",
+   "where": "run-contribution.mjs:73-90 (report.share set after the joint wait at :80) and :161-180 (report.stop set after followAttempt at :177)"
+  }
+ ],
+ "operatorActionsBetweenHarnesses": [
+  "native-1 scopes reached their 30-minute cap at 05:34:38/05:34:43Z (requester answer had settled at 05:34:36.39Z); fresh native-2 scopes before the loss harness; route re-formed 05:36:12Z",
+  "after the loss harness, stage 0 could not settle (A3): stage 0 browser closed via CDP Browser.close at 05:52:53Z, natives refreshed (amd-native-4, intel-native-3), stage 0 relaunched on the same profile; route re-formed 05:54:27Z with a new stage 0 peer identity, so the contribution harness used config/journey-config-contribution.json (only route[0].participantId differs)"
+ ],
+ "passed": {
+  "requester": [
+   "open",
+   "modelChoice",
+   "recipientApproval",
+   "selectiveAcquisition",
+   "streaming",
+   "completion",
+   "followUp",
+   "copy",
+   "reload",
+   "concurrency",
+   "isolatedCancellation",
+   "explicitRetry",
+   "timing"
+  ],
+  "contributor-loss": [
+   "lossInjected",
+   "ownershipExplicit",
+   "noSilentContinuation"
+  ],
+  "contribution": [
+   "competingTabs",
+   "interruptedResume"
+  ]
+ }
+}

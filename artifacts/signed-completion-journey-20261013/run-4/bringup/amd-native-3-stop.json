@@ -1,0 +1,1 @@
+{"unit":"scj-run4-amd-native-3","pids":"810964 ","memoryPeakBytes":"652615680","sigtermAt":"2026-10-14T05:52:58.874792757Z","waitedSeconds":1,"activeAfter":"inactive","journal":"scj-run4-amd-native-3.scope: Consumed 17min 27.328s CPU time over 14min 19.943s wall clock time, 622.3M memory peak."}

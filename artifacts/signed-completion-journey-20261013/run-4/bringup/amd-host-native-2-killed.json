@@ -1,0 +1,363 @@
+{
+ "schema": "reploid.run-4-native-log-summary/v1",
+ "machine": "amd-host",
+ "log": "/var/tmp/reploid-signed-completion-journey-run4-20261013/scj-run4-amd-native-2.log",
+ "init": {
+  "event": "native-initialized",
+  "participantId": "peer:9af15d884eba51b0c0540e2a",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16"
+ },
+ "partitionTransitions": [
+  {
+   "line": 13,
+   "event": "partition-state",
+   "phase": "loading",
+   "error": null,
+   "offering": true,
+   "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+   "unsettledOwners": 0,
+   "progress": null,
+   "placement": [],
+   "placementOmitted": 0,
+   "descriptor": null,
+   "reservations": null,
+   "attempts": {
+    "count": 0,
+    "omitted": 0,
+    "records": []
+   },
+   "acquisition": null
+  },
+  {
+   "line": 21,
+   "event": "partition-state",
+   "phase": "loading",
+   "error": null,
+   "offering": true,
+   "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+   "unsettledOwners": 0,
+   "progress": {
+    "stage": "opening",
+    "message": "Opening native assigned partition"
+   },
+   "placement": [],
+   "placementOmitted": 0,
+   "descriptor": null,
+   "reservations": null,
+   "attempts": {
+    "count": 0,
+    "omitted": 0,
+    "records": []
+   },
+   "acquisition": null
+  },
+  {
+   "line": 63,
+   "event": "partition-state",
+   "phase": "ready",
+   "error": null,
+   "offering": true,
+   "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+   "unsettledOwners": 0,
+   "progress": null,
+   "placement": [],
+   "placementOmitted": 0,
+   "descriptor": {
+    "schema": "doppler.resident-partition/v2",
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+    "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+    "index": 1,
+    "ready": true,
+    "residentWeightBytes": 94953472,
+    "generationDigest": "sha256:8dc76cd41787bbdda87506913b74bf058ecdcd979c6cb04a9a5cfe7c476d257f",
+    "layerRange": [
+     8,
+     15
+    ]
+   },
+   "reservations": {
+    "active": 0,
+    "availableSlots": 2,
+    "closed": false,
+    "count": 0,
+    "omitted": 0,
+    "records": []
+   },
+   "attempts": {
+    "count": 0,
+    "omitted": 0,
+    "records": []
+   },
+   "acquisition": {
+    "openingMode": "signed-capsule",
+    "memory": {
+     "liveBytes": 97104144,
+     "maxBytes": 1420000000,
+     "peakBytes": 113881408,
+     "allocations": 129,
+     "rejected": 0
+    },
+    "preparation": {}
+   }
+  }
+ ],
+ "lastNetwork": {
+  "line": 296,
+  "peerCount": 3,
+  "connectionState": "connected",
+  "files": {
+   "sharing": false,
+   "offered": null,
+   "suppliedBytes": 1458219861,
+   "supplyBudget": null,
+   "supplyBudgetError": null,
+   "cache": {
+    "quarantined": []
+   }
+  }
+ },
+ "stderrLines": [
+  {
+   "line": 11,
+   "text": "[WebRTCSwarm] Cannot send to 416983e7-2704-4532-a2b1-cc1797186fb3: not connected"
+  },
+  {
+   "line": 14,
+   "text": "[WebRTCSwarm] Connection state with 416983e7-2704-4532-a2b1-cc1797186fb3: new"
+  },
+  {
+   "line": 15,
+   "text": "Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit."
+  },
+  {
+   "line": 16,
+   "text": "Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit."
+  },
+  {
+   "line": 17,
+   "text": "[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.7ms"
+  },
+  {
+   "line": 18,
+   "text": "[WebRTCSwarm] Connection state with 416983e7-2704-4532-a2b1-cc1797186fb3: connected"
+  },
+  {
+   "line": 19,
+   "text": "[WebRTCSwarm] Connection state with 416983e7-2704-4532-a2b1-cc1797186fb3: connected"
+  },
+  {
+   "line": 20,
+   "text": "[WebRTCSwarm] Data channel opened with 416983e7-2704-4532-a2b1-cc1797186fb3"
+  },
+  {
+   "line": 22,
+   "text": "[629.7ms][doppler] Resolving model"
+  },
+  {
+   "line": 23,
+   "text": "[WebRTCSwarm] Connection state with 416983e7-2704-4532-a2b1-cc1797186fb3: connected"
+  },
+  {
+   "line": 24,
+   "text": "[634.9ms][doppler] Fetching manifest"
+  },
+  {
+   "line": 25,
+   "text": "[WebRTCSwarm] Connection state with 416983e7-2704-4532-a2b1-cc1797186fb3: connected"
+  },
+  {
+   "line": 26,
+   "text": "[WebRTCSwarm] Connection state with 416983e7-2704-4532-a2b1-cc1797186fb3: connected"
+  },
+  {
+   "line": 27,
+   "text": "[WebRTCSwarm] Connection state with 416983e7-2704-4532-a2b1-cc1797186fb3: connected"
+  },
+  {
+   "line": 28,
+   "text": "[1019.8ms][doppler] Loading weights"
+  },
+  {
+   "line": 29,
+   "text": "[1027.7ms][Pipeline] Execution v1 enabled (steps=43, kernelPathInline=yes, pipelineInline=no)"
+  },
+  {
+   "line": 30,
+   "text": "[1027.8ms][Config] Using manifest-first config (source of truth)"
+  },
+  {
+   "line": 31,
+   "text": "[1030.6ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false"
+  },
+  {
+   "line": 32,
+   "text": "[1030.6ms][Pipeline] Vision capable: imageTokenId=248056"
+  },
+  {
+   "line": 33,
+   "text": "[1031.4ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (19 decode steps, 8 kernels, source=execution-v1)"
+  },
+  {
+   "line": 34,
+   "text": "[1031.6ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline"
+  },
+  {
+   "line": 35,
+   "text": "[1032.0ms][Tokenizer] Loading bundled tokenizer from tokenizer.json"
+  },
+  {
+   "line": 36,
+   "text": "[1127.6ms][Tokenizer] HuggingFace model.type=\"BPE\", using type=\"bpe\""
+  },
+  {
+   "line": 37,
+   "text": "[1256.6ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges"
+  },
+  {
+   "line": 38,
+   "text": "[1256.9ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size"
+  },
+  {
+   "line": 39,
+   "text": "[1258.7ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=4096"
+  },
+  {
+   "line": 40,
+   "text": "[1261.1ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline"
+  },
+  {
+   "line": 41,
+   "text": "[1619.1ms][ShardCache] Custom shard loader configured"
+  },
+  {
+   "line": 42,
+   "text": "[1619.4ms][Loader] Initializing..."
+  },
+  {
+   "line": 43,
+   "text": "[WebRTCSwarm] Connection state with 416983e7-2704-4532-a2b1-cc1797186fb3: connected"
+  },
+  {
+   "line": 44,
+   "text": "[1668.9ms][HeapManager] Allocated segment 0: 1024MB"
+  },
+  {
+   "line": 45,
+   "text": "[1669.0ms][HeapManager] Segmented heap: 1GB per segment"
+  },
+  {
+   "line": 46,
+   "text": "[1669.1ms][HeapManager] Initialized with strategy: SEGMENTED"
+  },
+  {
+   "line": 47,
+   "text": "[1669.2ms][Loader] Initialized (f16, subgroups)"
+  },
+  {
+   "line": 48,
+   "text": "[1669.8ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16"
+  },
+  {
+   "line": 49,
+   "text": "[1683.7ms][Loader] [0.0s] Memory (start): | RSS=338.55 MB (heap=69.23 MB/72.40 MB, external=2.02 GB, arrayBuffers=1.02 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+  },
+  {
+   "line": 50,
+   "text": "[1684.6ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model."
+  },
+  {
+   "line": 51,
+   "text": "[1686.4ms][Loader] Layers: 8-15"
+  },
+  {
+   "line": 58,
+   "text": "[4350.8ms][Loader] Layers: 8 complete (2.66s)"
+  },
+  {
+   "line": 59,
+   "text": "[4351.0ms][Loader] Complete: 89.58 MB in 2.67s (33.61 MB/s)"
+  },
+  {
+   "line": 60,
+   "text": "[4351.8ms][Loader] [2.7s] Memory (complete): | RSS=408.30 MB (heap=72.12 MB/105.65 MB, external=1.06 GB, arrayBuffers=1.05 GB) | GPU=90.55 MB (114 active, 0 pooled, peak=90.55 MB) | ShardCache=0 B (0 shards) | Layers=8, GPUBuffers=114"
+  },
+  {
+   "line": 61,
+   "text": "[4366.2ms][Pipeline] Model loaded successfully (3344ms)"
+  },
+  {
+   "line": 62,
+   "text": "[4368.7ms][doppler] Model ready"
+  },
+  {
+   "line": 66,
+   "text": "[WebRTCSwarm] Peer joined: b6f40937-a232-4c00-9ee3-1c40921b4ee0"
+  },
+  {
+   "line": 67,
+   "text": "[WebRTCSwarm] Received offer from: b6f40937-a232-4c00-9ee3-1c40921b4ee0"
+  },
+  {
+   "line": 68,
+   "text": "[WebRTCSwarm] Data channel opened with b6f40937-a232-4c00-9ee3-1c40921b4ee0"
+  },
+  {
+   "line": 87,
+   "text": "[WebRTCSwarm] Connection state with 416983e7-2704-4532-a2b1-cc1797186fb3: connected"
+  },
+  {
+   "line": 115,
+   "text": "[WebRTCSwarm] Peer joined: e4a24091-bcfd-454b-9e9e-9a217f9c0db0"
+  },
+  {
+   "line": 116,
+   "text": "[WebRTCSwarm] Received offer from: e4a24091-bcfd-454b-9e9e-9a217f9c0db0"
+  },
+  {
+   "line": 117,
+   "text": "[WebRTCSwarm] Data channel opened with e4a24091-bcfd-454b-9e9e-9a217f9c0db0"
+  },
+  {
+   "line": 133,
+   "text": "[45662.4ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1056, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=1056"
+  },
+  {
+   "line": 164,
+   "text": "[WebRTCSwarm] Latency to b6f40937-a232-4c00-9ee3-1c40921b4ee0: 10ms"
+  },
+  {
+   "line": 165,
+   "text": "[WebRTCSwarm] Latency to 416983e7-2704-4532-a2b1-cc1797186fb3: 14ms"
+  },
+  {
+   "line": 166,
+   "text": "[WebRTCSwarm] Latency to e4a24091-bcfd-454b-9e9e-9a217f9c0db0: 14ms"
+  },
+  {
+   "line": 212,
+   "text": "[WebRTCSwarm] Latency to b6f40937-a232-4c00-9ee3-1c40921b4ee0: 7ms"
+  },
+  {
+   "line": 213,
+   "text": "[WebRTCSwarm] Latency to 416983e7-2704-4532-a2b1-cc1797186fb3: 22ms"
+  },
+  {
+   "line": 214,
+   "text": "[WebRTCSwarm] Latency to e4a24091-bcfd-454b-9e9e-9a217f9c0db0: 22ms"
+  },
+  {
+   "line": 260,
+   "text": "[WebRTCSwarm] Latency to b6f40937-a232-4c00-9ee3-1c40921b4ee0: 7ms"
+  },
+  {
+   "line": 261,
+   "text": "[WebRTCSwarm] Latency to 416983e7-2704-4532-a2b1-cc1797186fb3: 14ms"
+  },
+  {
+   "line": 262,
+   "text": "[WebRTCSwarm] Latency to e4a24091-bcfd-454b-9e9e-9a217f9c0db0: 14ms"
+  }
+ ],
+ "stderrLineCount": 70
+}

@@ -1,0 +1,48 @@
+{
+ "current": {
+  "amd-host": "scj-run4-amd-native-4",
+  "intel-host": "scj-run4-intel-native-3"
+ },
+ "counter": {
+  "amd-host": 4,
+  "intel-host": 3
+ },
+ "share": {
+  "amd-host": "noshare",
+  "intel-host": "noshare"
+ },
+ "history": [
+  {
+   "action": "operator-refresh",
+   "units": {
+    "amd-host": "scj-run4-amd-native-2",
+    "intel-host": "scj-run4-intel-native-2"
+   },
+   "reason": "native-1 scopes reached their 30-minute runtime cap at the end of the requester journey; fresh scopes before the loss harness"
+  },
+  {
+   "action": "stop",
+   "machine": "amd-host",
+   "unit": "scj-run4-amd-native-2",
+   "stoppedAt": "2026-10-14T05:38:17.123968210Z",
+   "pids": "779467 ",
+   "scopeAfter": "inactive",
+   "at": "2026-10-14T05:38:18.123Z"
+  },
+  {
+   "action": "restore",
+   "machine": "amd-host",
+   "unit": "scj-run4-amd-native-3",
+   "restoredAt": "2026-10-14T05:38:43.110Z",
+   "share": "noshare"
+  },
+  {
+   "action": "operator-rebringup",
+   "units": {
+    "amd-host": "scj-run4-amd-native-4",
+    "intel-host": "scj-run4-intel-native-3"
+   },
+   "reason": "after the loss harness the stage 0 coordinator could not settle its route owner; stage 0 browser closed and relaunched, natives refreshed, before the contribution harness"
+  }
+ ]
+}
