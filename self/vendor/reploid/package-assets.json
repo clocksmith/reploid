@@ -326,8 +326,8 @@
     },
     {
       "path": "chat/index.d.ts",
-      "bytes": 10880,
-      "sha256": "1d09bffb3dbf5db04ca07db4916a4850ed47f99f2b1fafc0679d2aaf70b59b0d"
+      "bytes": 11042,
+      "sha256": "d89c1159797340d61b20ba6559c22764d4dcdc03fbfc046b8430bd9c5fa2ead9"
     },
     {
       "path": "chat/index.js",
@@ -346,13 +346,13 @@
     },
     {
       "path": "chat/remote-permission.d.ts",
-      "bytes": 1856,
-      "sha256": "83de8c65d6706685195bae3e269c94779af2fa572697750c7c83027e376bad2a"
+      "bytes": 2055,
+      "sha256": "c67aef0c53ce176c83d607c8c9f4908807089efe58599834e9d6c6204a491ca0"
     },
     {
       "path": "chat/remote-permission.js",
-      "bytes": 3786,
-      "sha256": "a1d7cf25e84f1bc797aa3caac63284430a108c620e14e0bacb940f04c5b9e7c8"
+      "bytes": 4246,
+      "sha256": "f3ad2024d7472fa11904fd2b6a0f1e0305b6094ebc389571c5923a9efcc6bf7e"
     },
     {
       "path": "chat/scheduler.js",
@@ -386,8 +386,8 @@
     },
     {
       "path": "chat/workspace.js",
-      "bytes": 32779,
-      "sha256": "3e090c95fef10bbb657531d9e2ad5ff5ab41550ca51bce5954d3a5e5f448d1a2"
+      "bytes": 32868,
+      "sha256": "3124108d7d30ea05f378eee72bd9c9bb81057638e4fc368339f975f6d7c7013d"
     },
     {
       "path": "config/defaults.json",

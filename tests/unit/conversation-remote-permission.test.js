@@ -91,7 +91,7 @@ describe('One-time remote contributor permission', () => {
     view.find('[data-remote-permission-allow]').click();
     const [first] = await completed(session, 1);
     const [permission] = session.getState().remotePermissions;
-    expect(permission).toMatchObject({ schema: 'reploid.remote-permission/v1', sharingScope: 'mesh',
+    expect(permission).toMatchObject({ schema: 'reploid.remote-permission/v2', networkId: session.getState().remoteNetworkId, sharingScope: 'mesh',
       disclosure: 'ordered-partition-activations-and-tokens', revokedAt: null });
     expect(permission.modelIdentities).toContain(model.identity);
     expect(first.authorization).toMatchObject({ kind: 'permission', source: 'permission', permissionId: permission.id, recipients: STAGES, route });
@@ -113,6 +113,20 @@ describe('One-time remote contributor permission', () => {
     await completed(reloaded.session, 3); // the two restored answers plus this one
     expect(again.dialog.open).toBe(false);
     expect(partitions.disclosed.at(-1).at(-1).content).toBe('After reload');
+  });
+
+  it('a permission granted on another network is not on here and the next request asks again', async () => {
+    const storage = memory(), partitions = orderedRoute();
+    const first = openSession({ storage, partitions, swarm: { getNetworkId: () => 'room-a', getState: () => ({}) } }), view = mount(first.session);
+    first.session.createThread({ model }); view.submit('On room A');
+    await vi.waitFor(() => expect(view.dialog.open).toBe(true));
+    view.find('[data-remote-permission-allow]').click(); await completed(first.session, 1);
+    expect(first.session.getState().remotePermissions[0].networkId).toBe('room-a');
+    const second = openSession({ storage, partitions, swarm: { getNetworkId: () => 'room-b', getState: () => ({}) } }), other = mount(second.session);
+    expect(other.find('[data-remote-permission-status]').textContent).toBe("Off. You are asked before a conversation is sent to contributors' computers.");
+    second.session.createThread({ model }); other.submit('On room B');
+    await vi.waitFor(() => expect(other.dialog.open).toBe(true));
+    expect(partitions.disclosed.map(messages => messages.at(-1).content)).toEqual(['On room A']);
   });
 
   it('settings show the permission scope; turning it off asks again before anything is sent and leaves a running answer alone', async () => {

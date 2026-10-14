@@ -65,7 +65,9 @@ export function renderRemotePermissionSettings() {
 
 /** Active permissions with their disclosure scope and a way to turn each off. Revoked ones are history only. */
 export function updateRemotePermissionSettings(root, state) {
-  const active = (state.remotePermissions || []).filter(permission => permission.revokedAt === null);
+  // Only permissions granted on the network this session is on apply here.
+  const active = (state.remotePermissions || []).filter(permission => permission.revokedAt === null
+    && permission.networkId === state.remoteNetworkId);
   const markup = active.map(permission => `<li><span>On: conversations are sent to contributors' computers on this network, ${escape(HOW[permission.disclosure] || permission.disclosure)}, for ${permission.modelIdentities.length} ${permission.modelIdentities.length === 1 ? 'model' : 'models'}.</span>
     <button class="pool-button" type="button" data-revoke-remote-permission="${escape(permission.id)}">Turn off</button></li>`).join('');
   const list = root.querySelector('[data-remote-permission-list]');

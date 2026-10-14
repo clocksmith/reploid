@@ -317,6 +317,8 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     },
     getIntroductions: () => consumerTransport?.getIntroductions?.() || null,
     getPartitionState: () => partitionMesh?.getState() || null,
+    /** The network (room) this swarm joins; remote permissions are bound to it. */
+    getNetworkId: () => options.config.value.mesh.roomId,
     getFileState: () => modelFiles?.getState() || { sharing: false, preparing: false, limits: getFileContributionLimits() },
     async shareFiles(model, approved, controls) {
       await connect({ automatic: true });

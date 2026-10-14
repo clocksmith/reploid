@@ -195,7 +195,7 @@ describe('explicit ordered automatic participation (injected discovery and numer
     f.entry.refresh.mockResolvedValueOnce({ ready: true, descriptor: { models: [planned] } })
       .mockResolvedValueOnce({ ready: true, descriptor: { models: [replaced] } })
       .mockResolvedValue({ ready: true, descriptor: { models: [replaced] } });
-    const permission = createRemotePermission({ id: 'remote', grantedAt: 1, need: remotePermissionNeed({ sharingScope: 'mesh',
+    const permission = createRemotePermission({ id: 'remote', grantedAt: 1, need: remotePermissionNeed({ networkId: 'mesh', sharingScope: 'mesh',
       disclosure: 'ordered-partition-activations-and-tokens', model: planned }) });
     let saved;
     const app = createChatWorkspace({ meshId: 'mesh', participantId: f.identity.peerId, remotePermissions: () => [permission],
