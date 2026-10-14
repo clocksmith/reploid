@@ -4,7 +4,7 @@ This is the sole detailed acceptance register linked from [ROADMAP](../../ROADMA
 
 Snapshot: [229a6e601adbd970de38c3315d069de4ba707cce](https://github.com/clocksmith/reploid/blob/229a6e601adbd970de38c3315d069de4ba707cce/TODO.md). The existing delivery coordinator retains execution ownership; this migration creates no coordinator or GPU reservation.
 
-[RD-CANON/1](rd-canon-1.md) retains mandatory contract and test fixtures. [Historical context](history.md) is not another queue. The [adopted product specification](../product-specification.md) adds everyday utility, earned/purchased access, owner controls and complete economics. New acceptance below is unchecked; existing IDs, receipts and completed outcomes retain their scope. Resource reservation/settlement is not financial accounting.
+[RD-CANON/1](rd-canon-1.md) retains mandatory contract and test fixtures. [Historical context](history.md) is not another queue. The [adopted product specification](../../ROADMAP.md#product-specification) adds everyday utility, earned/purchased access, owner controls and complete economics. New acceptance below is unchecked; existing IDs, receipts and completed outcomes retain their scope. Resource reservation/settlement is not financial accounting.
 
 ## 1. Correct execution
 
@@ -777,7 +777,7 @@ Acceptance and source/installed/physical evidence: the scoped entry below is aut
 
 ## 11. Initial consumer product
 
-These new IDs implement the [product specification](../product-specification.md). Existing storage and execution acceptance remains scoped to its recorded packages/configurations. Monetary credit settlement is distinct from resource cleanup. No implementation or runtime acceptance is established by adding these requirements.
+These new IDs implement the [product specification](../../ROADMAP.md#product-specification). Existing storage and execution acceptance remains scoped to its recorded packages/configurations. Monetary credit settlement is distinct from resource cleanup. No implementation or runtime acceptance is established by adding these requirements.
 
 ### REP-8
 
