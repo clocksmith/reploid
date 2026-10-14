@@ -1,0 +1,1307 @@
+{
+  "schema": "reploid.delivery-changed-file-check/v1",
+  "base": "95641fe7e5ad50e7ce8d8c427256a966344cd6a3",
+  "commit": "cec3ff6bbf7fdcd40ccddc06b9a0028f8889a033",
+  "changedFiles": [
+    "packages/change-passport/dist/index.js",
+    "packages/reploid/src/chat/CATSCAN.md",
+    "packages/reploid/src/chat/index.d.ts",
+    "packages/reploid/src/chat/index.js",
+    "packages/reploid/src/chat/remote-permission.d.ts",
+    "packages/reploid/src/chat/remote-permission.js",
+    "packages/reploid/src/chat/thread-grants.js",
+    "packages/reploid/src/chat/workspace-history.d.ts",
+    "packages/reploid/src/chat/workspace-history.js",
+    "packages/reploid/src/chat/workspace-publication.d.ts",
+    "packages/reploid/src/chat/workspace-publication.js",
+    "packages/reploid/src/chat/workspace.js",
+    "packages/reploid/src/mesh/partitions/CATSCAN.md",
+    "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js",
+    "packages/reploid/src/mesh/partitions/automatic-partitions.d.ts",
+    "packages/reploid/src/mesh/partitions/automatic-partitions.js",
+    "packages/reploid/src/mesh/partitions/partition-chat.js",
+    "packages/reploid/src/mesh/partitions/partition-device-admission.d.ts",
+    "packages/reploid/src/mesh/partitions/partition-device-admission.js",
+    "packages/reploid/src/mesh/partitions/partition-entry-publication.d.ts",
+    "packages/reploid/src/mesh/partitions/partition-entry-publication.js",
+    "packages/reploid/src/mesh/partitions/partition-entry.d.ts",
+    "packages/reploid/src/mesh/partitions/partition-entry.js",
+    "packages/reploid/src/mesh/partitions/partition-ordered-chat.d.ts",
+    "packages/reploid/src/mesh/partitions/partition-ordered-chat.js",
+    "packages/reploid/src/mesh/partitions/partition-ordered-publication.d.ts",
+    "packages/reploid/src/mesh/partitions/partition-ordered-publication.js",
+    "packages/reploid/src/mesh/partitions/partition-placement.d.ts",
+    "packages/reploid/src/mesh/partitions/partition-placement.js",
+    "packages/reploid/src/mesh/partitions/partition-route-execution.d.ts",
+    "packages/reploid/src/mesh/partitions/partition-route-execution.js",
+    "packages/reploid/src/mesh/partitions/partition-route-ranking.d.ts",
+    "packages/reploid/src/mesh/partitions/partition-route-ranking.js",
+    "packages/reploid/src/mesh/partitions/partition-stage-assignment.d.ts",
+    "packages/reploid/src/mesh/partitions/partition-stage-assignment.js",
+    "packages/reploid/src/mesh/partitions/partition-summary.js",
+    "packages/reploid/src/mesh/partitions/resident-partition.d.ts",
+    "packages/reploid/src/mesh/partitions/resident-partition.js",
+    "self/blueprints/0x000049-hitl-controller.md",
+    "self/blueprints/canonical-inventory.md",
+    "self/blueprints/deduplication-audit.md",
+    "self/blueprints/implementation-status.md",
+    "self/config/CATSCAN.md",
+    "self/config/browser-bundle-manifest.json",
+    "self/config/module-inventory.json",
+    "self/config/ordered-participation.json",
+    "self/config/vfs-manifest.json",
+    "self/host/CATSCAN.md",
+    "self/host/chat-execution.js",
+    "self/host/chat-history.js",
+    "self/host/chat-session.js",
+    "self/host/product-context.js",
+    "self/host/product-session.js",
+    "self/host/work-model-files.js",
+    "self/host/work-partition-plan.js",
+    "self/host/work-partitions.js",
+    "self/host/work-swarm.js",
+    "self/ui/pool-home/CATSCAN.md",
+    "self/ui/pool-home/conversation-workspace.js",
+    "self/ui/pool-home/execution-ribbon.js",
+    "self/ui/pool-home/network-controls.js",
+    "self/ui/pool-home/network-inspector.js",
+    "self/ui/pool-home/remote-permission.js",
+    "self/vendor/reploid/chat/index.d.ts",
+    "self/vendor/reploid/chat/index.js",
+    "self/vendor/reploid/chat/remote-permission.d.ts",
+    "self/vendor/reploid/chat/remote-permission.js",
+    "self/vendor/reploid/chat/thread-grants.js",
+    "self/vendor/reploid/chat/workspace-history.d.ts",
+    "self/vendor/reploid/chat/workspace-history.js",
+    "self/vendor/reploid/chat/workspace-publication.d.ts",
+    "self/vendor/reploid/chat/workspace-publication.js",
+    "self/vendor/reploid/chat/workspace.js",
+    "self/vendor/reploid/mesh/partitions/automatic-ordered-partitions.js",
+    "self/vendor/reploid/mesh/partitions/automatic-partitions.d.ts",
+    "self/vendor/reploid/mesh/partitions/automatic-partitions.js",
+    "self/vendor/reploid/mesh/partitions/partition-chat.js",
+    "self/vendor/reploid/mesh/partitions/partition-device-admission.d.ts",
+    "self/vendor/reploid/mesh/partitions/partition-device-admission.js",
+    "self/vendor/reploid/mesh/partitions/partition-entry-publication.d.ts",
+    "self/vendor/reploid/mesh/partitions/partition-entry-publication.js",
+    "self/vendor/reploid/mesh/partitions/partition-entry.d.ts",
+    "self/vendor/reploid/mesh/partitions/partition-entry.js",
+    "self/vendor/reploid/mesh/partitions/partition-ordered-chat.d.ts",
+    "self/vendor/reploid/mesh/partitions/partition-ordered-chat.js",
+    "self/vendor/reploid/mesh/partitions/partition-ordered-publication.d.ts",
+    "self/vendor/reploid/mesh/partitions/partition-ordered-publication.js",
+    "self/vendor/reploid/mesh/partitions/partition-placement.d.ts",
+    "self/vendor/reploid/mesh/partitions/partition-placement.js",
+    "self/vendor/reploid/mesh/partitions/partition-route-execution.d.ts",
+    "self/vendor/reploid/mesh/partitions/partition-route-execution.js",
+    "self/vendor/reploid/mesh/partitions/partition-route-ranking.d.ts",
+    "self/vendor/reploid/mesh/partitions/partition-route-ranking.js",
+    "self/vendor/reploid/mesh/partitions/partition-stage-assignment.d.ts",
+    "self/vendor/reploid/mesh/partitions/partition-stage-assignment.js",
+    "self/vendor/reploid/mesh/partitions/partition-summary.js",
+    "self/vendor/reploid/mesh/partitions/resident-partition.d.ts",
+    "self/vendor/reploid/mesh/partitions/resident-partition.js",
+    "self/vendor/reploid/package-assets.json",
+    "server/native-participant.js"
+  ],
+  "files": {
+    "packages/change-passport/dist/index.js": {
+      "commitSha256": "ca88bb8c77e7191a625b3663798035b52770e2fab7cf761664a87a9db8546586",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/chat/CATSCAN.md": {
+      "commitSha256": "86bcfdef8348ad07452bf410718a9985e0f122c35142eb43ffd133294c7ebb9b",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/chat/index.d.ts": {
+      "commitSha256": "d89c1159797340d61b20ba6559c22764d4dcdc03fbfc046b8430bd9c5fa2ead9",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/chat/index.js": {
+      "commitSha256": "d188d396047a91c505cdbbdfe3c4ca669f55cf176a9451347710b4a88e60e983",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/chat/remote-permission.d.ts": {
+      "commitSha256": "c67aef0c53ce176c83d607c8c9f4908807089efe58599834e9d6c6204a491ca0",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/chat/remote-permission.js": {
+      "commitSha256": "f3ad2024d7472fa11904fd2b6a0f1e0305b6094ebc389571c5923a9efcc6bf7e",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/chat/thread-grants.js": {
+      "commitSha256": "c667722c889c449e4866e4ca67172fdbad4e45f906925023d4bea2d626eb6488",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/chat/workspace-history.d.ts": {
+      "commitSha256": "53b6454d8db181cc32d5091dacb9bd3fa851d8d2e8327033d273495cb4cefbb3",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/chat/workspace-history.js": {
+      "commitSha256": "29a0406074b12dfd8ff46c51517a585a24f2599a9fa0b59c649d2ab180973526",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/chat/workspace-publication.d.ts": {
+      "commitSha256": "097f0428b1c848c34e7cf3271f2245b5e3ccbef0eb871f6b33e3b75a6ed47575",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/chat/workspace-publication.js": {
+      "commitSha256": "88c4ace78b0658265324649c1755c667a9915453c9baa9d86c04752ae12f3be9",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/chat/workspace.js": {
+      "commitSha256": "3124108d7d30ea05f378eee72bd9c9bb81057638e4fc368339f975f6d7c7013d",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/mesh/partitions/CATSCAN.md": {
+      "commitSha256": "53fd54484e2383c91fc3dd25c93cb18961948608f8023da288600706ebfbbdaa",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js": {
+      "commitSha256": "3204350fcbfc943dc045f25296f3b65faceade75efda443e7e8a0fafdf6ebb61",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "3204350fcbfc943dc045f25296f3b65faceade75efda443e7e8a0fafdf6ebb61",
+        "equalsCommit": true
+      }
+    },
+    "packages/reploid/src/mesh/partitions/automatic-partitions.d.ts": {
+      "commitSha256": "7631fdb0ad99001c9bee517b3160b9c36592d71fc7bf31ac4e4fcec44ba7aa5d",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/mesh/partitions/automatic-partitions.js": {
+      "commitSha256": "f9b19e3f34f9b41914115e9970f8070d51d76c81f53a4051ba7dd8a8b78e1ed1",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "f9b19e3f34f9b41914115e9970f8070d51d76c81f53a4051ba7dd8a8b78e1ed1",
+        "equalsCommit": true
+      }
+    },
+    "packages/reploid/src/mesh/partitions/partition-chat.js": {
+      "commitSha256": "9ba2b9b256a1b36f3963c51bde42848552e0d85d7af070f1a4b01cbfd8510a5c",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "9ba2b9b256a1b36f3963c51bde42848552e0d85d7af070f1a4b01cbfd8510a5c",
+        "equalsCommit": true
+      }
+    },
+    "packages/reploid/src/mesh/partitions/partition-device-admission.d.ts": {
+      "commitSha256": "2767f961c2f2c94bfbb3583238869cf6a6801eaf4f38ea28b15b3e99d72f32c8",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/mesh/partitions/partition-device-admission.js": {
+      "commitSha256": "f9d8c42f932e43df9f4c1011c1e6de85c7a02142e684d59d5d8ae374335f8582",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "f9d8c42f932e43df9f4c1011c1e6de85c7a02142e684d59d5d8ae374335f8582",
+        "equalsCommit": true
+      }
+    },
+    "packages/reploid/src/mesh/partitions/partition-entry-publication.d.ts": {
+      "commitSha256": "3c29683cb0a8bb4c210708a7cfb8fd552ff3b6f2b117eeca9728d3712464637b",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/mesh/partitions/partition-entry-publication.js": {
+      "commitSha256": "ed160e384d8a46124ba7a12c868694deecf58116c8af5132b3373c17dad69d31",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "ed160e384d8a46124ba7a12c868694deecf58116c8af5132b3373c17dad69d31",
+        "equalsCommit": true
+      }
+    },
+    "packages/reploid/src/mesh/partitions/partition-entry.d.ts": {
+      "commitSha256": "ee73420a9a1dd3426b389ae23f6f6025beb6872505c65fcde2e6de6d98e19112",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/mesh/partitions/partition-entry.js": {
+      "commitSha256": "376a3acfbc479f7ed7a73696c1acfc438fe26ee87671e2bf34fd054ee9c6ac86",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "376a3acfbc479f7ed7a73696c1acfc438fe26ee87671e2bf34fd054ee9c6ac86",
+        "equalsCommit": true
+      }
+    },
+    "packages/reploid/src/mesh/partitions/partition-ordered-chat.d.ts": {
+      "commitSha256": "91322ecad781a9ccc5d6cf61783d0a2cfe9f2070d81fdacbbc1666353d4be88d",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/mesh/partitions/partition-ordered-chat.js": {
+      "commitSha256": "9599caf86742a860cd3aa3dbc2b1cfeef3a0e799fb3c9eb3cbc4b62884b59f77",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "9599caf86742a860cd3aa3dbc2b1cfeef3a0e799fb3c9eb3cbc4b62884b59f77",
+        "equalsCommit": true
+      }
+    },
+    "packages/reploid/src/mesh/partitions/partition-ordered-publication.d.ts": {
+      "commitSha256": "1ab13d1804ba800981be715dfe593d45b7f0c62d6b65cb195afa5574a33c3e1f",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/mesh/partitions/partition-ordered-publication.js": {
+      "commitSha256": "c09c63b0acc86fac95891928691557fbea0c8333b0feca70c76625c1d61106c4",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "c09c63b0acc86fac95891928691557fbea0c8333b0feca70c76625c1d61106c4",
+        "equalsCommit": true
+      }
+    },
+    "packages/reploid/src/mesh/partitions/partition-placement.d.ts": {
+      "commitSha256": "d7bed861c102448f27db2d954538af931c94e500abf8355349c250198a101bfb",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/mesh/partitions/partition-placement.js": {
+      "commitSha256": "1c8a31141947833f5b271920c5c0baa75be28fa2cab2ef2eea36e70fe834baa8",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "1c8a31141947833f5b271920c5c0baa75be28fa2cab2ef2eea36e70fe834baa8",
+        "equalsCommit": true
+      }
+    },
+    "packages/reploid/src/mesh/partitions/partition-route-execution.d.ts": {
+      "commitSha256": "ffcc28cc338abaa2bc2eb0e2fcb1fb2f01c57bb93e50d06f921d6f16b0d09e8d",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/mesh/partitions/partition-route-execution.js": {
+      "commitSha256": "42c91ccc546ed5a00bea9646aa4e3ac053a8bf360ee685f466bb6088202c4cdc",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "42c91ccc546ed5a00bea9646aa4e3ac053a8bf360ee685f466bb6088202c4cdc",
+        "equalsCommit": true
+      }
+    },
+    "packages/reploid/src/mesh/partitions/partition-route-ranking.d.ts": {
+      "commitSha256": "f724e9ef445361eeaffb624787fe51d6b844a3add34348687bcc4f846ed91a98",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/mesh/partitions/partition-route-ranking.js": {
+      "commitSha256": "1ef417d05013f0c7fd38494b287524ec424cdbc9e3c99ea8ffcfd6f6d33e7917",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "1ef417d05013f0c7fd38494b287524ec424cdbc9e3c99ea8ffcfd6f6d33e7917",
+        "equalsCommit": true
+      }
+    },
+    "packages/reploid/src/mesh/partitions/partition-stage-assignment.d.ts": {
+      "commitSha256": "4af9ba7665363c8e0bac04c08511ff45d7ca59828297428a324c8923375bc60d",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/mesh/partitions/partition-stage-assignment.js": {
+      "commitSha256": "8c28386e3460113288100a3b21ab594329e1d779e1be2768e07d46536e9f1aed",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "8c28386e3460113288100a3b21ab594329e1d779e1be2768e07d46536e9f1aed",
+        "equalsCommit": true
+      }
+    },
+    "packages/reploid/src/mesh/partitions/partition-summary.js": {
+      "commitSha256": "cbfb528204ce79fee90ac8aa88737e9106470e97552683d69c79f12251de2906",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "cbfb528204ce79fee90ac8aa88737e9106470e97552683d69c79f12251de2906",
+        "equalsCommit": true
+      }
+    },
+    "packages/reploid/src/mesh/partitions/resident-partition.d.ts": {
+      "commitSha256": "18d48517fe3a8048810aebbde5b2f6c41adb8eb9276be6fb1fe00bb3c8828e32",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/mesh/partitions/resident-partition.js": {
+      "commitSha256": "a3ed9fc6743f593bceb418267317a835d76207ce350ee282cb98b3052180e8db",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "a3ed9fc6743f593bceb418267317a835d76207ce350ee282cb98b3052180e8db",
+        "equalsCommit": true
+      }
+    },
+    "self/blueprints/0x000049-hitl-controller.md": {
+      "commitSha256": "af6cd6bc5ce941485e2709e10da2b0a627ce4015047f49f19d9e3c47f10be367",
+      "served": {
+        "path": "blueprints/0x000049-hitl-controller.md",
+        "sha256": "af6cd6bc5ce941485e2709e10da2b0a627ce4015047f49f19d9e3c47f10be367",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/blueprints/canonical-inventory.md": {
+      "commitSha256": "d33c0ef1124c8912ae272b5d039a531cc926194e9a651184509f8c6fcf985497",
+      "served": {
+        "path": "blueprints/canonical-inventory.md",
+        "sha256": "d33c0ef1124c8912ae272b5d039a531cc926194e9a651184509f8c6fcf985497",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/blueprints/deduplication-audit.md": {
+      "commitSha256": "cfeea76d16d629147dde7b125415741b617aae0cfe3c1c9f02d64abf29090235",
+      "served": {
+        "path": "blueprints/deduplication-audit.md",
+        "sha256": "cfeea76d16d629147dde7b125415741b617aae0cfe3c1c9f02d64abf29090235",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/blueprints/implementation-status.md": {
+      "commitSha256": "5a872ab3492f0b21c8221bc0b8961ffad8c83a01cc26b72f20e84059f33b9d52",
+      "served": {
+        "path": "blueprints/implementation-status.md",
+        "sha256": "5a872ab3492f0b21c8221bc0b8961ffad8c83a01cc26b72f20e84059f33b9d52",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/config/CATSCAN.md": {
+      "commitSha256": "0b9426da9f0afbf37fda45f05457f1ca53a26ba19969268018e3f9b140a1ef3e",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/config/browser-bundle-manifest.json": {
+      "commitSha256": "6f179e79d9f86e0b0fc4b20c28da3e4752327e7b47b603b7be36f6a74ea16ceb",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/config/module-inventory.json": {
+      "commitSha256": "ed95faa98485af908deeee30169e2b246496a336bdbba6854e06803b2bfa4c38",
+      "comparedWith": "export regenerated copy",
+      "served": {
+        "path": "config/module-inventory.json",
+        "sha256": "ed95faa98485af908deeee30169e2b246496a336bdbba6854e06803b2bfa4c38",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/config/ordered-participation.json": {
+      "commitSha256": "a701b084313e0337b653fbfedc46b118309142cc5c8e91aad98163460ae8eca4",
+      "served": {
+        "path": "config/ordered-participation.json",
+        "sha256": "a701b084313e0337b653fbfedc46b118309142cc5c8e91aad98163460ae8eca4",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/config/vfs-manifest.json": {
+      "commitSha256": "36d31e366efe86673910d13e9e00ac272cf578e3cf28c0ade44e1792ef5291e4",
+      "comparedWith": "export regenerated copy",
+      "served": {
+        "path": "config/vfs-manifest.json",
+        "sha256": "36d31e366efe86673910d13e9e00ac272cf578e3cf28c0ade44e1792ef5291e4",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/host/CATSCAN.md": {
+      "commitSha256": "a334c89a873ef47522884cb45f394216625aacd28a0c6bd484ae6df44d4eb8cc",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/host/chat-execution.js": {
+      "commitSha256": "3982407ceaf960fec0968500eb8c5a4a82fe1b9424ffaf579f560828157b68f2",
+      "served": {
+        "path": "host/chat-execution.js",
+        "sha256": "3982407ceaf960fec0968500eb8c5a4a82fe1b9424ffaf579f560828157b68f2",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/host/chat-history.js": {
+      "commitSha256": "96b68694074befc516656ab022005725e8371391915259b054e7bd90c19360c9",
+      "served": {
+        "path": "host/chat-history.js",
+        "sha256": "96b68694074befc516656ab022005725e8371391915259b054e7bd90c19360c9",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/host/chat-session.js": {
+      "commitSha256": "c459f8486e41690f080ee852f9e12d46b449c0a5810935b1e7dbf08f1dd09bb0",
+      "served": {
+        "path": "host/chat-session.js",
+        "sha256": "c459f8486e41690f080ee852f9e12d46b449c0a5810935b1e7dbf08f1dd09bb0",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/host/product-context.js": {
+      "commitSha256": "4aa524454a6d80ed1be948d7bf417222c3a4b89deb1a1cb6f8e0daa24a39ca72",
+      "served": {
+        "path": "host/product-context.js",
+        "sha256": "4aa524454a6d80ed1be948d7bf417222c3a4b89deb1a1cb6f8e0daa24a39ca72",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/host/product-session.js": {
+      "commitSha256": "eeb0eb147353c634f52a25def632f93e315f94cbbc54886fc0ab742be6d1c8a5",
+      "served": {
+        "path": "host/product-session.js",
+        "sha256": "eeb0eb147353c634f52a25def632f93e315f94cbbc54886fc0ab742be6d1c8a5",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/host/work-model-files.js": {
+      "commitSha256": "d92547465e1f427f532c4d0cb1521b1f7c4bbdbd363f864987c6b5c57e3c1f45",
+      "served": {
+        "path": "host/work-model-files.js",
+        "sha256": "d92547465e1f427f532c4d0cb1521b1f7c4bbdbd363f864987c6b5c57e3c1f45",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/host/work-partition-plan.js": {
+      "commitSha256": "16a259d7e4f8861d73670657bfcc152af4dba44c0a46d9671b780dbd4161aea1",
+      "served": {
+        "path": "host/work-partition-plan.js",
+        "sha256": "16a259d7e4f8861d73670657bfcc152af4dba44c0a46d9671b780dbd4161aea1",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "16a259d7e4f8861d73670657bfcc152af4dba44c0a46d9671b780dbd4161aea1",
+        "equalsCommit": true
+      }
+    },
+    "self/host/work-partitions.js": {
+      "commitSha256": "1fb20c5e676bea6738b1a8a66e0641310a84dcbb58ff05f5fcaef6a8aa54bffa",
+      "served": {
+        "path": "host/work-partitions.js",
+        "sha256": "1fb20c5e676bea6738b1a8a66e0641310a84dcbb58ff05f5fcaef6a8aa54bffa",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/host/work-swarm.js": {
+      "commitSha256": "3604cf412b323266a4d76d0edb49db8af4c6801caeb8fc3cfe84a2ffeeba54a6",
+      "served": {
+        "path": "host/work-swarm.js",
+        "sha256": "3604cf412b323266a4d76d0edb49db8af4c6801caeb8fc3cfe84a2ffeeba54a6",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/ui/pool-home/CATSCAN.md": {
+      "commitSha256": "f539eef65f26408a6f3e244dcb91f7b2309d34d91fa4cc4d827ee8ca1a4e01fd",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/ui/pool-home/conversation-workspace.js": {
+      "commitSha256": "673a9da6204f351afcf7781867caaad7d79dd8eea991541a400d96d9d4634929",
+      "served": {
+        "path": "ui/pool-home/conversation-workspace.js",
+        "sha256": "673a9da6204f351afcf7781867caaad7d79dd8eea991541a400d96d9d4634929",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/ui/pool-home/execution-ribbon.js": {
+      "commitSha256": "c8899cff625223434af4a9615a645849587ade29dda87bb9ef6bfe11748b933d",
+      "served": {
+        "path": "ui/pool-home/execution-ribbon.js",
+        "sha256": "c8899cff625223434af4a9615a645849587ade29dda87bb9ef6bfe11748b933d",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/ui/pool-home/network-controls.js": {
+      "commitSha256": "c1aad2a52657f8e8fb9e980d492c5f6392f6fc10f8a7c128d7a844eff7a8d9fd",
+      "served": {
+        "path": "ui/pool-home/network-controls.js",
+        "sha256": "c1aad2a52657f8e8fb9e980d492c5f6392f6fc10f8a7c128d7a844eff7a8d9fd",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/ui/pool-home/network-inspector.js": {
+      "commitSha256": "40d7985650ab5e095d5b534a5cdb2a7606f6ac6effba69d3881da54b42e981fd",
+      "served": {
+        "path": "ui/pool-home/network-inspector.js",
+        "sha256": "40d7985650ab5e095d5b534a5cdb2a7606f6ac6effba69d3881da54b42e981fd",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/ui/pool-home/remote-permission.js": {
+      "commitSha256": "fde03e359765aa7dc44874ddfeb166c86e90bd771981468fcdb0d9dcdd0d5817",
+      "served": {
+        "path": "ui/pool-home/remote-permission.js",
+        "sha256": "fde03e359765aa7dc44874ddfeb166c86e90bd771981468fcdb0d9dcdd0d5817",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/chat/index.d.ts": {
+      "commitSha256": "d89c1159797340d61b20ba6559c22764d4dcdc03fbfc046b8430bd9c5fa2ead9",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/chat/index.js": {
+      "commitSha256": "d188d396047a91c505cdbbdfe3c4ca669f55cf176a9451347710b4a88e60e983",
+      "served": {
+        "path": "vendor/reploid/chat/index.js",
+        "sha256": "d188d396047a91c505cdbbdfe3c4ca669f55cf176a9451347710b4a88e60e983",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/chat/remote-permission.d.ts": {
+      "commitSha256": "c67aef0c53ce176c83d607c8c9f4908807089efe58599834e9d6c6204a491ca0",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/chat/remote-permission.js": {
+      "commitSha256": "f3ad2024d7472fa11904fd2b6a0f1e0305b6094ebc389571c5923a9efcc6bf7e",
+      "served": {
+        "path": "vendor/reploid/chat/remote-permission.js",
+        "sha256": "f3ad2024d7472fa11904fd2b6a0f1e0305b6094ebc389571c5923a9efcc6bf7e",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/chat/thread-grants.js": {
+      "commitSha256": "c667722c889c449e4866e4ca67172fdbad4e45f906925023d4bea2d626eb6488",
+      "served": {
+        "path": "vendor/reploid/chat/thread-grants.js",
+        "sha256": "c667722c889c449e4866e4ca67172fdbad4e45f906925023d4bea2d626eb6488",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/chat/workspace-history.d.ts": {
+      "commitSha256": "53b6454d8db181cc32d5091dacb9bd3fa851d8d2e8327033d273495cb4cefbb3",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/chat/workspace-history.js": {
+      "commitSha256": "29a0406074b12dfd8ff46c51517a585a24f2599a9fa0b59c649d2ab180973526",
+      "served": {
+        "path": "vendor/reploid/chat/workspace-history.js",
+        "sha256": "29a0406074b12dfd8ff46c51517a585a24f2599a9fa0b59c649d2ab180973526",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/chat/workspace-publication.d.ts": {
+      "commitSha256": "097f0428b1c848c34e7cf3271f2245b5e3ccbef0eb871f6b33e3b75a6ed47575",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/chat/workspace-publication.js": {
+      "commitSha256": "88c4ace78b0658265324649c1755c667a9915453c9baa9d86c04752ae12f3be9",
+      "served": {
+        "path": "vendor/reploid/chat/workspace-publication.js",
+        "sha256": "88c4ace78b0658265324649c1755c667a9915453c9baa9d86c04752ae12f3be9",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/chat/workspace.js": {
+      "commitSha256": "3124108d7d30ea05f378eee72bd9c9bb81057638e4fc368339f975f6d7c7013d",
+      "served": {
+        "path": "vendor/reploid/chat/workspace.js",
+        "sha256": "3124108d7d30ea05f378eee72bd9c9bb81057638e4fc368339f975f6d7c7013d",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/automatic-ordered-partitions.js": {
+      "commitSha256": "3204350fcbfc943dc045f25296f3b65faceade75efda443e7e8a0fafdf6ebb61",
+      "served": {
+        "path": "vendor/reploid/mesh/partitions/automatic-ordered-partitions.js",
+        "sha256": "3204350fcbfc943dc045f25296f3b65faceade75efda443e7e8a0fafdf6ebb61",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/automatic-partitions.d.ts": {
+      "commitSha256": "7631fdb0ad99001c9bee517b3160b9c36592d71fc7bf31ac4e4fcec44ba7aa5d",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/automatic-partitions.js": {
+      "commitSha256": "f9b19e3f34f9b41914115e9970f8070d51d76c81f53a4051ba7dd8a8b78e1ed1",
+      "served": {
+        "path": "vendor/reploid/mesh/partitions/automatic-partitions.js",
+        "sha256": "f9b19e3f34f9b41914115e9970f8070d51d76c81f53a4051ba7dd8a8b78e1ed1",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/partition-chat.js": {
+      "commitSha256": "9ba2b9b256a1b36f3963c51bde42848552e0d85d7af070f1a4b01cbfd8510a5c",
+      "served": {
+        "path": "vendor/reploid/mesh/partitions/partition-chat.js",
+        "sha256": "9ba2b9b256a1b36f3963c51bde42848552e0d85d7af070f1a4b01cbfd8510a5c",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/partition-device-admission.d.ts": {
+      "commitSha256": "2767f961c2f2c94bfbb3583238869cf6a6801eaf4f38ea28b15b3e99d72f32c8",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/partition-device-admission.js": {
+      "commitSha256": "f9d8c42f932e43df9f4c1011c1e6de85c7a02142e684d59d5d8ae374335f8582",
+      "served": {
+        "path": "vendor/reploid/mesh/partitions/partition-device-admission.js",
+        "sha256": "f9d8c42f932e43df9f4c1011c1e6de85c7a02142e684d59d5d8ae374335f8582",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/partition-entry-publication.d.ts": {
+      "commitSha256": "3c29683cb0a8bb4c210708a7cfb8fd552ff3b6f2b117eeca9728d3712464637b",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/partition-entry-publication.js": {
+      "commitSha256": "ed160e384d8a46124ba7a12c868694deecf58116c8af5132b3373c17dad69d31",
+      "served": {
+        "path": "vendor/reploid/mesh/partitions/partition-entry-publication.js",
+        "sha256": "ed160e384d8a46124ba7a12c868694deecf58116c8af5132b3373c17dad69d31",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/partition-entry.d.ts": {
+      "commitSha256": "ee73420a9a1dd3426b389ae23f6f6025beb6872505c65fcde2e6de6d98e19112",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/partition-entry.js": {
+      "commitSha256": "376a3acfbc479f7ed7a73696c1acfc438fe26ee87671e2bf34fd054ee9c6ac86",
+      "served": {
+        "path": "vendor/reploid/mesh/partitions/partition-entry.js",
+        "sha256": "376a3acfbc479f7ed7a73696c1acfc438fe26ee87671e2bf34fd054ee9c6ac86",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/partition-ordered-chat.d.ts": {
+      "commitSha256": "91322ecad781a9ccc5d6cf61783d0a2cfe9f2070d81fdacbbc1666353d4be88d",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/partition-ordered-chat.js": {
+      "commitSha256": "9599caf86742a860cd3aa3dbc2b1cfeef3a0e799fb3c9eb3cbc4b62884b59f77",
+      "served": {
+        "path": "vendor/reploid/mesh/partitions/partition-ordered-chat.js",
+        "sha256": "9599caf86742a860cd3aa3dbc2b1cfeef3a0e799fb3c9eb3cbc4b62884b59f77",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/partition-ordered-publication.d.ts": {
+      "commitSha256": "1ab13d1804ba800981be715dfe593d45b7f0c62d6b65cb195afa5574a33c3e1f",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/partition-ordered-publication.js": {
+      "commitSha256": "c09c63b0acc86fac95891928691557fbea0c8333b0feca70c76625c1d61106c4",
+      "served": {
+        "path": "vendor/reploid/mesh/partitions/partition-ordered-publication.js",
+        "sha256": "c09c63b0acc86fac95891928691557fbea0c8333b0feca70c76625c1d61106c4",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/partition-placement.d.ts": {
+      "commitSha256": "d7bed861c102448f27db2d954538af931c94e500abf8355349c250198a101bfb",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/partition-placement.js": {
+      "commitSha256": "1c8a31141947833f5b271920c5c0baa75be28fa2cab2ef2eea36e70fe834baa8",
+      "served": {
+        "path": "vendor/reploid/mesh/partitions/partition-placement.js",
+        "sha256": "1c8a31141947833f5b271920c5c0baa75be28fa2cab2ef2eea36e70fe834baa8",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/partition-route-execution.d.ts": {
+      "commitSha256": "ffcc28cc338abaa2bc2eb0e2fcb1fb2f01c57bb93e50d06f921d6f16b0d09e8d",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/partition-route-execution.js": {
+      "commitSha256": "42c91ccc546ed5a00bea9646aa4e3ac053a8bf360ee685f466bb6088202c4cdc",
+      "served": {
+        "path": "vendor/reploid/mesh/partitions/partition-route-execution.js",
+        "sha256": "42c91ccc546ed5a00bea9646aa4e3ac053a8bf360ee685f466bb6088202c4cdc",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/partition-route-ranking.d.ts": {
+      "commitSha256": "f724e9ef445361eeaffb624787fe51d6b844a3add34348687bcc4f846ed91a98",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/partition-route-ranking.js": {
+      "commitSha256": "1ef417d05013f0c7fd38494b287524ec424cdbc9e3c99ea8ffcfd6f6d33e7917",
+      "served": {
+        "path": "vendor/reploid/mesh/partitions/partition-route-ranking.js",
+        "sha256": "1ef417d05013f0c7fd38494b287524ec424cdbc9e3c99ea8ffcfd6f6d33e7917",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/partition-stage-assignment.d.ts": {
+      "commitSha256": "4af9ba7665363c8e0bac04c08511ff45d7ca59828297428a324c8923375bc60d",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/partition-stage-assignment.js": {
+      "commitSha256": "8c28386e3460113288100a3b21ab594329e1d779e1be2768e07d46536e9f1aed",
+      "served": {
+        "path": "vendor/reploid/mesh/partitions/partition-stage-assignment.js",
+        "sha256": "8c28386e3460113288100a3b21ab594329e1d779e1be2768e07d46536e9f1aed",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/partition-summary.js": {
+      "commitSha256": "cbfb528204ce79fee90ac8aa88737e9106470e97552683d69c79f12251de2906",
+      "served": {
+        "path": "vendor/reploid/mesh/partitions/partition-summary.js",
+        "sha256": "cbfb528204ce79fee90ac8aa88737e9106470e97552683d69c79f12251de2906",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/resident-partition.d.ts": {
+      "commitSha256": "18d48517fe3a8048810aebbde5b2f6c41adb8eb9276be6fb1fe00bb3c8828e32",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/resident-partition.js": {
+      "commitSha256": "a3ed9fc6743f593bceb418267317a835d76207ce350ee282cb98b3052180e8db",
+      "served": {
+        "path": "vendor/reploid/mesh/partitions/resident-partition.js",
+        "sha256": "a3ed9fc6743f593bceb418267317a835d76207ce350ee282cb98b3052180e8db",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/package-assets.json": {
+      "commitSha256": "114ded9dadc46a1be85eb3be8042df780a78d6fc1173af44b2e2e54449dd94e2",
+      "served": {
+        "path": "vendor/reploid/package-assets.json",
+        "sha256": "e0de41687c1d52851669f5dff0a3866e09c8367c5a1e194b083b52e413f956b8",
+        "equalsCommit": false,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "server/native-participant.js": {
+      "commitSha256": "8a13c67c8f9a8066bf39e7a28db9659b7d10936afbddf44a0da2a01434242b66",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "8a13c67c8f9a8066bf39e7a28db9659b7d10936afbddf44a0da2a01434242b66",
+        "equalsCommit": true
+      }
+    }
+  },
+  "packageAssets": {
+    "changedVendoredEntries": {
+      "chat/index.d.ts": {
+        "listedSha256": "d89c1159797340d61b20ba6559c22764d4dcdc03fbfc046b8430bd9c5fa2ead9",
+        "equalsCommit": true
+      },
+      "chat/index.js": {
+        "listedSha256": "d188d396047a91c505cdbbdfe3c4ca669f55cf176a9451347710b4a88e60e983",
+        "equalsCommit": true
+      },
+      "chat/remote-permission.d.ts": {
+        "listedSha256": "c67aef0c53ce176c83d607c8c9f4908807089efe58599834e9d6c6204a491ca0",
+        "equalsCommit": true
+      },
+      "chat/remote-permission.js": {
+        "listedSha256": "f3ad2024d7472fa11904fd2b6a0f1e0305b6094ebc389571c5923a9efcc6bf7e",
+        "equalsCommit": true
+      },
+      "chat/thread-grants.js": {
+        "listedSha256": "c667722c889c449e4866e4ca67172fdbad4e45f906925023d4bea2d626eb6488",
+        "equalsCommit": true
+      },
+      "chat/workspace-history.d.ts": {
+        "listedSha256": "53b6454d8db181cc32d5091dacb9bd3fa851d8d2e8327033d273495cb4cefbb3",
+        "equalsCommit": true
+      },
+      "chat/workspace-history.js": {
+        "listedSha256": "29a0406074b12dfd8ff46c51517a585a24f2599a9fa0b59c649d2ab180973526",
+        "equalsCommit": true
+      },
+      "chat/workspace-publication.d.ts": {
+        "listedSha256": "097f0428b1c848c34e7cf3271f2245b5e3ccbef0eb871f6b33e3b75a6ed47575",
+        "equalsCommit": true
+      },
+      "chat/workspace-publication.js": {
+        "listedSha256": "88c4ace78b0658265324649c1755c667a9915453c9baa9d86c04752ae12f3be9",
+        "equalsCommit": true
+      },
+      "chat/workspace.js": {
+        "listedSha256": "3124108d7d30ea05f378eee72bd9c9bb81057638e4fc368339f975f6d7c7013d",
+        "equalsCommit": true
+      },
+      "mesh/partitions/automatic-ordered-partitions.js": {
+        "listedSha256": "3204350fcbfc943dc045f25296f3b65faceade75efda443e7e8a0fafdf6ebb61",
+        "equalsCommit": true
+      },
+      "mesh/partitions/automatic-partitions.d.ts": {
+        "listedSha256": "7631fdb0ad99001c9bee517b3160b9c36592d71fc7bf31ac4e4fcec44ba7aa5d",
+        "equalsCommit": true
+      },
+      "mesh/partitions/automatic-partitions.js": {
+        "listedSha256": "f9b19e3f34f9b41914115e9970f8070d51d76c81f53a4051ba7dd8a8b78e1ed1",
+        "equalsCommit": true
+      },
+      "mesh/partitions/partition-chat.js": {
+        "listedSha256": "9ba2b9b256a1b36f3963c51bde42848552e0d85d7af070f1a4b01cbfd8510a5c",
+        "equalsCommit": true
+      },
+      "mesh/partitions/partition-device-admission.d.ts": {
+        "listedSha256": "2767f961c2f2c94bfbb3583238869cf6a6801eaf4f38ea28b15b3e99d72f32c8",
+        "equalsCommit": true
+      },
+      "mesh/partitions/partition-device-admission.js": {
+        "listedSha256": "f9d8c42f932e43df9f4c1011c1e6de85c7a02142e684d59d5d8ae374335f8582",
+        "equalsCommit": true
+      },
+      "mesh/partitions/partition-entry-publication.d.ts": {
+        "listedSha256": "3c29683cb0a8bb4c210708a7cfb8fd552ff3b6f2b117eeca9728d3712464637b",
+        "equalsCommit": true
+      },
+      "mesh/partitions/partition-entry-publication.js": {
+        "listedSha256": "ed160e384d8a46124ba7a12c868694deecf58116c8af5132b3373c17dad69d31",
+        "equalsCommit": true
+      },
+      "mesh/partitions/partition-entry.d.ts": {
+        "listedSha256": "ee73420a9a1dd3426b389ae23f6f6025beb6872505c65fcde2e6de6d98e19112",
+        "equalsCommit": true
+      },
+      "mesh/partitions/partition-entry.js": {
+        "listedSha256": "376a3acfbc479f7ed7a73696c1acfc438fe26ee87671e2bf34fd054ee9c6ac86",
+        "equalsCommit": true
+      },
+      "mesh/partitions/partition-ordered-chat.d.ts": {
+        "listedSha256": "91322ecad781a9ccc5d6cf61783d0a2cfe9f2070d81fdacbbc1666353d4be88d",
+        "equalsCommit": true
+      },
+      "mesh/partitions/partition-ordered-chat.js": {
+        "listedSha256": "9599caf86742a860cd3aa3dbc2b1cfeef3a0e799fb3c9eb3cbc4b62884b59f77",
+        "equalsCommit": true
+      },
+      "mesh/partitions/partition-ordered-publication.d.ts": {
+        "listedSha256": "1ab13d1804ba800981be715dfe593d45b7f0c62d6b65cb195afa5574a33c3e1f",
+        "equalsCommit": true
+      },
+      "mesh/partitions/partition-ordered-publication.js": {
+        "listedSha256": "c09c63b0acc86fac95891928691557fbea0c8333b0feca70c76625c1d61106c4",
+        "equalsCommit": true
+      },
+      "mesh/partitions/partition-placement.d.ts": {
+        "listedSha256": "d7bed861c102448f27db2d954538af931c94e500abf8355349c250198a101bfb",
+        "equalsCommit": true
+      },
+      "mesh/partitions/partition-placement.js": {
+        "listedSha256": "1c8a31141947833f5b271920c5c0baa75be28fa2cab2ef2eea36e70fe834baa8",
+        "equalsCommit": true
+      },
+      "mesh/partitions/partition-route-execution.d.ts": {
+        "listedSha256": "ffcc28cc338abaa2bc2eb0e2fcb1fb2f01c57bb93e50d06f921d6f16b0d09e8d",
+        "equalsCommit": true
+      },
+      "mesh/partitions/partition-route-execution.js": {
+        "listedSha256": "42c91ccc546ed5a00bea9646aa4e3ac053a8bf360ee685f466bb6088202c4cdc",
+        "equalsCommit": true
+      },
+      "mesh/partitions/partition-route-ranking.d.ts": {
+        "listedSha256": "f724e9ef445361eeaffb624787fe51d6b844a3add34348687bcc4f846ed91a98",
+        "equalsCommit": true
+      },
+      "mesh/partitions/partition-route-ranking.js": {
+        "listedSha256": "1ef417d05013f0c7fd38494b287524ec424cdbc9e3c99ea8ffcfd6f6d33e7917",
+        "equalsCommit": true
+      },
+      "mesh/partitions/partition-stage-assignment.d.ts": {
+        "listedSha256": "4af9ba7665363c8e0bac04c08511ff45d7ca59828297428a324c8923375bc60d",
+        "equalsCommit": true
+      },
+      "mesh/partitions/partition-stage-assignment.js": {
+        "listedSha256": "8c28386e3460113288100a3b21ab594329e1d779e1be2768e07d46536e9f1aed",
+        "equalsCommit": true
+      },
+      "mesh/partitions/partition-summary.js": {
+        "listedSha256": "cbfb528204ce79fee90ac8aa88737e9106470e97552683d69c79f12251de2906",
+        "equalsCommit": true
+      },
+      "mesh/partitions/resident-partition.d.ts": {
+        "listedSha256": "18d48517fe3a8048810aebbde5b2f6c41adb8eb9276be6fb1fe00bb3c8828e32",
+        "equalsCommit": true
+      },
+      "mesh/partitions/resident-partition.js": {
+        "listedSha256": "a3ed9fc6743f593bceb418267317a835d76207ce350ee282cb98b3052180e8db",
+        "equalsCommit": true
+      }
+    },
+    "entriesDifferingFromCommit": [
+      "contracts/config/doppler-generation-contract.d.ts",
+      "contracts/doppler-partitions.d.ts",
+      "contracts/doppler-partitions.provenance.json"
+    ]
+  },
+  "servedProductSessionPassesRequesterIdentity": true,
+  "requesterIdentityCall": "const requesterIdentity = () => swarm.partitions.requesterIdentity();",
+  "chatOpeningCalls": 5,
+  "canonicalConfigurationOpeningsExempt": 1,
+  "previousServedProductSessionPassedIt": true
+}
