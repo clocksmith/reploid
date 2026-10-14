@@ -150,7 +150,7 @@ One record per attempt (schema `reploid.signed-completion-answer-timing/v2`; run
 | `runtime.executionMs` (all stages), `logitsReadbackMs`, `samplingMs` (final stage) | measured from candidates whose summary carries phases; otherwise not-observable | sums of contributor Doppler metrics over prompt and decode; missing if any stage omitted a step |
 | `scheduler.queuedMs`, `loadMs`, `executionMs` | not-observable | ordered route bypasses the scheduler, `self/host/chat-execution.js:48-51`; observations discarded at `:29` |
 | `transport` | not-observable | the ordered summary carries no transport split; stage elapsed minus contributor `executionMs` bounds it from above |
-| `persistence` | not-observable | `workspace.js:63-94` saves ordinary history untimed |
+| `persistence` | not-observable | ordered steps commit through the requester transaction owner (`partition-ordered-chat.js:136`) and ordinary history saves in `workspace.js` `persist()`; neither is timed |
 
 ---
 
