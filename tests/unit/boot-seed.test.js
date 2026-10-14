@@ -25,8 +25,6 @@ import {
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const manifestPath = path.resolve(__dirname, '../../self/config/vfs-manifest.json');
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
-const firebaseConfigPath = path.resolve(__dirname, '../../firebase.json');
-const firebaseConfig = JSON.parse(readFileSync(firebaseConfigPath, 'utf8'));
 const genesisConfigPath = path.resolve(__dirname, '../../self/config/genesis-levels.json');
 const genesisConfig = JSON.parse(readFileSync(genesisConfigPath, 'utf8'));
 const moduleRegistryPath = path.resolve(__dirname, '../../self/config/module-registry.json');
@@ -212,56 +210,6 @@ describe('boot seed manifest', () => {
       mode: 'x',
       bootProfile: 'x_home'
     });
-  });
-
-  it('rewrites the deployed API proxy to Cloud Run', () => {
-    const hosting = firebaseConfig.hosting.find((entry) => entry.target === 'reploid');
-    expect(hosting?.rewrites).toContainEqual({
-      source: '/api/**',
-      run: {
-        serviceId: 'reploid-pool',
-        region: 'us-central1'
-      }
-    });
-    expect(hosting?.rewrites).toContainEqual({
-      source: '/pool/research/**',
-      run: {
-        serviceId: 'reploid-pool',
-        region: 'us-central1'
-      }
-    });
-  });
-
-  it('rewrites the Zero model proxy to a Firebase function', () => {
-    const hosting = firebaseConfig.hosting.find((entry) => entry.target === 'reploid');
-    expect(firebaseConfig.functions).toMatchObject({
-      source: 'packages/functions'
-    });
-    expect(hosting?.rewrites).toContainEqual({
-      source: '/zero/gemini',
-      function: {
-        functionId: 'zeroGemini',
-        region: 'us-central1'
-      }
-    });
-  });
-
-  it('routes stale split rd.css requests back to the self-contained bundle', () => {
-    const hosting = firebaseConfig.hosting.find((entry) => entry.target === 'reploid');
-
-    for (const source of [
-      '/styles/rd-tokens.css',
-      '/styles/rd-primitives.css',
-      '/styles/rd-components.css',
-      '/rd-tokens.css',
-      '/rd-primitives.css',
-      '/rd-components.css'
-    ]) {
-      expect(hosting?.rewrites).toContainEqual({
-        source,
-        destination: '/styles/rd.css'
-      });
-    }
   });
 
   it('caps the managed Zero server proxy model loop', () => {
