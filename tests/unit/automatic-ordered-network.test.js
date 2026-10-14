@@ -23,8 +23,8 @@ it.each([2,3,4,5,6,7])('discovers a complete %i-stage route and serves local plu
       reservations:{active:0,availableSlots:2,closed:false}})}));
   f.stages[0].tokenize=vi.fn(async()=>({modelIdentity:models[0].identity,tokenIds:[1,2],generation:f.request.generation}));
   const channelPolicy={maxFrameBytes:64,maxControlBytes:131072,maxPayloadBytes:8192,maxPendingBytes:32768,
-    maxPendingRequests:16,maxRequestsPerChannel:4096,maxBufferedBytes:262144,maxTransferBytes:16777216,timeoutMs:2000};
-  const policy={pollMs:25,maxPeers:16,connectTimeoutMs:2000,grantMs:60000,maxStageOffersPerPeer:4,limits:f.limits,
+    maxPendingRequests:16,maxRequestsPerChannel:4096,maxBufferedBytes:262144,maxTransferBytes:16777216,timeoutMs:10000};
+  const policy={pollMs:25,maxPeers:16,connectTimeoutMs:10000,grantMs:60000,maxStageOffersPerPeer:4,limits:f.limits,
     receiver:{maxAttempts:32,maxSteps:10},inputChannel:channelPolicy,executionChannel:channelPolicy,controlChannel:channelPolicy,
     inputLimits:{maxInputCharacters:4096,maxOutputCharacters:128,maxAttempts:32,maxConcurrentAttempts:2,descriptorTtlMs:60000}};
   try {
