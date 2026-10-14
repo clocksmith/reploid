@@ -1,0 +1,90 @@
+{
+  "sourceRevision": "f1b2fd7704c70f83bdf389495d0be8b6716a336c",
+  "capsuleRevision": "doppler e403ff3bf48086d80d1ebaec8b20d58e37698caf",
+  "stage": "final signed three-stage delivery staged, packaged and byte-verified locally; physical application journey pending",
+  "outputs": {
+    "sourceTar": {
+      "path": "/var/tmp/reploid-signed-completion-app-20261013/source.tar",
+      "sha256": "24811707dc5162032d59a4516e0c7941b3dcc46f5b10de12def2fb16de505513"
+    },
+    "runtimeArchive": {
+      "path": "/var/tmp/reploid-signed-completion-app-20261013/app/deploy/artifacts/doppler-gpu-0.6.28.tgz",
+      "sha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8"
+    },
+    "preparedCatalog": {
+      "path": "/var/tmp/reploid-signed-completion-app-20261013/signed-catalog/chat-models.json",
+      "sha256": "b0277a5f75e8780c6e233ab618a09bbfc4c572ae098f1ce0ceda178719820bbd"
+    },
+    "stagedCatalog": {
+      "path": "/var/tmp/reploid-signed-completion-app-20261013/app/self/config/chat-models.json",
+      "sha256": "59811b4af5f7b44387344fe38fdea155de4f27a487332a846c27fee9257481d5"
+    },
+    "browserManifest": {
+      "path": "/var/tmp/reploid-signed-completion-app-20261013/app/self/config/browser-bundle-manifest.json",
+      "sha256": "e7a28b3947d1c58dc1a4240d1a7cac265eaf1913821e28e40db8bb8e2a359c81",
+      "bundleHash": "sha256:c6de2012f2dcfb41b973246ed91a20c92a8596f54665d75088dd1039e31cd8df",
+      "files": 2045
+    },
+    "nativeTarball": {
+      "path": "/var/tmp/reploid-signed-completion-app-20261013/app/output/reploid-native-qHrdIJ/reploid-native-0.1.0.tgz",
+      "sha256": "a7462eb845f13c8ccd7ce227a0e584241a8a1ed6df2f6f4c9c7b69c2ccdf012a"
+    },
+    "nativeDescriptor": {
+      "path": "/var/tmp/reploid-signed-completion-app-20261013/app/output/reploid-native-qHrdIJ/reploid/native-delivery.json",
+      "sha256": "2dac55001ab23f21d2fcd297f907db1aeac5c71a1646039cbfd12c8f5da6ac82",
+      "files": 151
+    },
+    "capsuleReleaseEvents": {
+      "path": "/var/tmp/qwen35-capsule-completion-20261013-c/release-events.json",
+      "sha256": "19bdb63b8a496a71a654cc08d2a37e158d7ac548a241b70aeaddac0ca9a3b386"
+    },
+    "capsuleV3": {
+      "path": "/var/tmp/qwen35-capsule-completion-20261013-c/capsule-v3.json",
+      "sha256": "f277f488e40c4406764c4fe5411149bad47fb0ae4ef97b907b08bfb8c4cf94eb"
+    },
+    "supersededCatalog": {
+      "path": "/var/tmp/reploid-completion-chat-candidate-20261013/signed-catalog/chat-models.json",
+      "sha256": "9cefc0cc9715fa32881e060cff4c2cdf6662b03306ac206c72ce92c9b397e2af",
+      "superseded": true
+    }
+  },
+  "files": {
+    "README.md": "50976e5d50e317c0e635665f70fa6be903fcced8424490360b781d1246d47027",
+    "binding.json": "79ed82ef282250ed63a54dbee719dc782a0913841e6bf03919b92ecd65e1073d",
+    "catalog-preparation.json": "15a6bcffb5ee442c84e4e9794616197928224a42db17ac8048730c7e40639953",
+    "final/catalog-preparation.json": "6fcfcbb3483b94096876090f93a30662e33da454fbe8c00bc6eb1c7d1d24741d",
+    "final/catalog-preparation.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "final/delivery-verification.json": "53ed40e3b47730ced8cb7e3095bb93c66bc146f86c781e1b5527a04496f7279f",
+    "final/final-browser-manifest.txt": "9253f01f851408fc61dd721926855b6a1f39bcccdbb1b4298878fef003c26fb4",
+    "final/final-hosting.txt": "75484445ee6675219cc620a77e9edf260c909c4de8ee5697d37cb01613b0ea4a",
+    "final/final-inventory.txt": "eb10156c3402d35efdd3a29276b131a06ca20a533a12843dbbcc86add484fce1",
+    "final/final-native-package.txt": "b8ea0d74c2cc2e784b5d3db8186148b899158caa4d59ac3d69fdf208a355d673",
+    "final/final-runtime-sync.txt": "92401d8e60a27c96782d8fa3783a626e17f61f89f9941c77b49d68d5d012a973",
+    "final/final-vfs.txt": "3a62ed32d796ea4b2d2b3095c62759bef922602dfc541439153b2c07dd175f45",
+    "final/generation-sync.txt": "b64c1c448e101e4bdde88bbb57131335fca274965243c46ea806ae9c860e8ff8",
+    "final/install.txt": "7f818b30cf3cb6a5c5b175034ca1d3d1afbed56923694d07ae0c0afdc8b3eeb7",
+    "final/library-sync.txt": "9167f7969f293873fbc9c51e31a847aade9e52bd4431a5cce60fee406f9c6d92",
+    "final/metadata-staging.json": "9930ea1629fdf1e815dce43cda03e28eae21219c92ff309e0445dd32d535ca58",
+    "final/package-install.json": "e2de13e2a1fd36e2e4ec4c71ad88ece0973231582b5eeea6306826541c4c7187",
+    "final/partition-sync.txt": "00cafbd3678cb58810f063924d89cac7bba5efcd47d9a58db0db16c2513ca766",
+    "final/preflight.js": "f464b87f6f234f7a3c08273ea62e2f0b73c4ed4b95309f292bf63abbed3a55bb",
+    "final/preflight.json": "7d5cd7ae8a3d8f7dbdaf6364623c89092d0f5c9c607a7d82e5b5291a8de68b49",
+    "final/prepare-catalog.js": "c71a134728d943d79e5060fe18b52be8f5ebee9e16cf7eeb0fea919d90ae3e85",
+    "final/prepare-catalog.sh": "5ddd24ec4f019687dc9c21fb1500ab8a1e4425d6b8fa8f9426827e2584cdc81e",
+    "final/runtime-check-before-scope.txt": "cbda1835169617b39716ad5c82b146e4508b492c427691d3724940b9a95317c8",
+    "final/runtime-sync.txt": "1f882961042da6b4f3d6317739bc12816bc833a15967474d065ce269aa005593",
+    "final/scope-export.js": "593797355ead46da2704beecb1a18cbf5b75f78bfc7c20cf1372f786f9554626",
+    "final/scope.json": "5bd8f858456a8d05eb214dac7b9d066561a8b203104d305cbc0ac87b36a3d8ce",
+    "final/source-export.json": "8a1ba49c889719bbe2e3b9a4657113b1eda40440172335ecb92b8c7d19fafb9d",
+    "final/vendor.txt": "a572df68a4ef8614a3a1799b13059e6c01721e0e456018ba6b9f711efacf1d3b",
+    "final/verify-delivery.js": "87f76146cfd8766d2e08f4a8faebbf10a0f4795b5cc570d937aa2247817334db",
+    "final/verify-worker.js": "90db839689549d8f4d259e9acee8db0206f6bd12ce302e1e83463bd634ed3dd4",
+    "final/worker.json": "d2198dd42036fab35bcaf2a48c9a32578b14ea495a360349d15e813d6aac8398",
+    "preflight.js": "3f668f59c757b24cee8720c2d51ade5238714ca5f227ed2c45126147102921c5",
+    "preflight.json": "514fabcc90c487083028f950ab36906b80a925de5b7d96e7db13cf77cbfbae0c",
+    "prepare-catalog.js": "ba32f907684d6e9f93d0ca14fbd12ecdce2cf4915487140833146b759b08e0d3",
+    "prepare-catalog.sh": "af7633d51013ab91cceb22de3a05542abb06a072fcc86f272a2ff994aea5189b",
+    "verify-worker.js": "0c1b1cff387a7ea4a97e6312bd40b51b231f1981c553a3a7edc5290caaf6fd38",
+    "worker.json": "adf6df817b4d99b95e4266c93ee2546ec745eeab61153473d187fd50caf20997"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "sourceRevision": "5e0cb286739c50a2351064a15fa9b5ab038b5312",
+  "checkoutRevision": "2a5df272eb86d45991c3ff042483e5cbc5d1e7a8",
+  "stage": "catalog prepared; stopped before staging; no application package produced",
+  "runtimeArchiveSha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+  "catalog": {
+    "path": "/var/tmp/reploid-completion-chat-candidate-20261013/signed-catalog/chat-models.json",
+    "sha256": "9cefc0cc9715fa32881e060cff4c2cdf6662b03306ac206c72ce92c9b397e2af"
+  },
+  "inputs": {
+    "capsule-v3.json": "5a5e4030d987348294f7536321ec41a5d4532ed467e7378ff46e966635e44485",
+    "release-events.json": "e817fda7c2764f00483a76a0f8259ab044297b218dedf4b37dd208e00537aa3e",
+    "trusted-signers.json": "c274076be85045c86c1cb716cd5ad52a8bd8755538a57226ff59621923a799c2",
+    "reports/partition-0.json": "d70789b8cd8cbefb59c529b1329515b9a94d0874c755908203f814bb8b935d2d",
+    "reports/partition-1.json": "a824db8febc94159a8812a089876770ff45395b06272fa1832ca9af09bdba3e4",
+    "reports/partition-2.json": "ced77381c7c81e8b611fe5805087d2c6e13d4841414449301eb7e0f60404edd1",
+    "approved-reference.json": "ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+    "application chat-models.json (unchanged)": "1d5e76f1a2259ef8641b325f6422c9ab48a83dd28528dae45abdddb708aa97d5"
+  },
+  "files": {
+    "README.md": "4b86c3b365a435fc30771b963c8ae3565390f349beadba03cd5c648070f8f0be",
+    "catalog-preparation.json": "15a6bcffb5ee442c84e4e9794616197928224a42db17ac8048730c7e40639953",
+    "preflight.js": "3f668f59c757b24cee8720c2d51ade5238714ca5f227ed2c45126147102921c5",
+    "preflight.json": "514fabcc90c487083028f950ab36906b80a925de5b7d96e7db13cf77cbfbae0c",
+    "prepare-catalog.js": "ba32f907684d6e9f93d0ca14fbd12ecdce2cf4915487140833146b759b08e0d3",
+    "prepare-catalog.sh": "af7633d51013ab91cceb22de3a05542abb06a072fcc86f272a2ff994aea5189b",
+    "verify-worker.js": "0c1b1cff387a7ea4a97e6312bd40b51b231f1981c553a3a7edc5290caaf6fd38",
+    "worker.json": "adf6df817b4d99b95e4266c93ee2546ec745eeab61153473d187fd50caf20997"
+  }
+}
