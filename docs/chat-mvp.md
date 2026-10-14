@@ -57,6 +57,17 @@ digest. The shared receiver binding includes paired requester and placement
 fields when supplied; execution, duplicates, cancellation and settlement preserve
 that identity. Contributor replacement creates a new assignment and attempt.
 
+While Doppler creates the stage's GPU pipelines before readiness, browser and
+native hosts keep the contribution phase `loading` and report progress
+`{ stage: 'preparing', status, prepared, total, key, elapsedMs, startedAt,
+maxDurationMs, outstanding }`. The bound is `limits.maxPreparationMs` in the
+partition policy. A preparing stage advertises no ready model and no capacity.
+
+Doppler cannot interrupt a compilation that has already started. Cancellation
+or the bound is reported at once with `outstanding: true`, and the stage stays
+owned until Doppler's opening settles or the process exits. Stopping completes
+and resources are released only after that.
+
 `getRecoveryCapabilities()` declares `doppler.resident-recovery/v1` with
 `inputReplay`, `checkpointExport` and `checkpointImport` false. A live
 continuation cannot restore a lost process or device. Restart preserves previous

@@ -23,7 +23,8 @@
     "maxActivationBytes": 33554432,
     "maxOutputCharacters": 16000,
     "maxAttempts": 128,
-    "maxConcurrentAttempts": 2
+    "maxConcurrentAttempts": 2,
+    "maxPreparationMs": 1200000
   },
   "executionChannel": {
     "maxFrameBytes": 16384,

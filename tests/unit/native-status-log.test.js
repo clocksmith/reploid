@@ -37,6 +37,16 @@ it('has bounded strings and collections and explicitly reports omitted records',
   expect(Buffer.byteLength(JSON.stringify(log))).toBeLessThan(50_000);
 });
 
+it('logs GPU pipeline preparation progress, including outstanding compilation, while a stage is loading', () => {
+  const log = summarizeNativePartitionState({ phase: 'stopping', offering: false, unsettledOwners: 0,
+    progress: { stage: 'preparing', status: 'cancelling', prepared: 3, total: 22, key: 'attention_paired.wgsl#main',
+      elapsedMs: 812.5, startedAt: 1760000000000, maxDurationMs: 1200000, outstanding: true,
+      message: 'Stopping after the current GPU pipeline finishes compiling' } });
+  expect(log.progress).toEqual({ stage: 'preparing', status: 'cancelling', prepared: 3, total: 22, key: 'attention_paired.wgsl#main',
+    elapsedMs: 812.5, startedAt: 1760000000000, maxDurationMs: 1200000, outstanding: true,
+    message: 'Stopping after the current GPU pipeline finishes compiling' });
+});
+
 it('keeps unknown cleanup state unknown and safely summarizes idle status', () => {
   const log = summarizeNativePartitionState({ phase: 'idle', offering: false, unsettledOwners: 0 });
   expect(log).toMatchObject({ phase: 'idle', offering: false, unsettledOwners: 0, descriptor: null, acquisition: null, reservations: null });

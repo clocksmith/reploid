@@ -1,9 +1,11 @@
 /** Shared signed resident lifecycle. Hosts supply admission, release policy and Doppler. */
 export function createSignedResidentFactory({ createFactory, openCapsule, model, artifactStore,
-  release, assertSession, closeSources, trackSession, canonical = false, onVerification = () => {} }) {
+  release, assertSession, closeSources, trackSession, canonical = false, onVerification = () => {}, onLoadProgress = null }) {
   if (typeof canonical !== 'boolean') throw new Error('Explicit canonical signed factory mode required');
   if (typeof trackSession !== 'function') throw new Error('Signed resident requires an explicit session cleanup owner');
-  return createFactory({ capsuleOptions: { ...release.options, artifactStore },
+  if (onLoadProgress !== null && typeof onLoadProgress !== 'function') throw new Error('Signed resident load progress must be a function');
+  // Doppler reports byte acquisition and, before readiness, GPU pipeline preparation here.
+  return createFactory({ capsuleOptions: { ...release.options, artifactStore, ...(onLoadProgress ? { onLoadProgress } : {}) },
     async openCapsule(capsule, options) {
       const session = await openCapsule(capsule, options);
       const settled = trackSession(session);

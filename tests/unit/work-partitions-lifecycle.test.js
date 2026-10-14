@@ -258,6 +258,23 @@ it('honors cancellation after source acquisition before opening a resident', asy
   expect(source.storage.close).toHaveBeenCalledOnce();
 });
 
+it('reports GPU pipeline preparation until readiness and declares the preparation bound', async () => {
+  const onProgress = vi.fn(), ready = Promise.withResolvers(), entered = Promise.withResolvers();
+  resident.prepare.mockImplementation(async () => { entered.resolve(); await ready.promise; });
+  const opening = loadWorkPartition(files, selected, 0, { ...controls, onProgress });
+  await entered.promise;
+  const { maxPreparationMs } = ports.resident.mock.calls[0][0].limits;
+  expect(Number.isSafeInteger(maxPreparationMs) && maxPreparationMs > 0).toBe(true);
+  const { onLoadProgress } = ports.factory.mock.calls[0][0];
+  onLoadProgress({ phase: 'artifact', artifactId: 'a', loadedBytes: 1, totalBytes: 2 });
+  onLoadProgress({ phase: 'pipelines', status: 'preparing', prepared: 3, total: 22, key: 'k', elapsedMs: 5, startedAt: 1,
+    maxDurationMs: maxPreparationMs, outstanding: true, complete: true });
+  const reported = onProgress.mock.calls.map(([value]) => value).filter(value => value.stage === 'preparing');
+  expect(reported).toEqual([{ stage: 'preparing', status: 'preparing', prepared: 3, total: 22, key: 'k', elapsedMs: 5,
+    startedAt: 1, maxDurationMs: maxPreparationMs, outstanding: true, message: 'Preparing GPU pipelines: 3 of 22' }]);
+  ready.resolve(); await opening;
+});
+
 it('transfers successful storage ownership to the resident factory', async () => {
   const result = await loadWorkPartition(files, selected, 0, controls);
   expect(result.resident).toBe(resident);
@@ -278,11 +295,14 @@ function signedPorts() {
   return { release, partition, session };
 }
 it('uses signed opening only when explicitly configured and passes pinned custody without changing trust', async () => {
-  const { release, session } = signedPorts();
-  const result = await loadWorkPartition(files, signed(), 0, controls);
+  const { release, session } = signedPorts(), onProgress = vi.fn();
+  const result = await loadWorkPartition(files, signed(), 0, { ...controls, onProgress });
   expect(ports.factory).not.toHaveBeenCalled();
   const binding = ports.signedFactory.mock.calls[0][0];
-  expect(binding.capsuleOptions).toEqual({ ...release.options, artifactStore: source.artifactStore });
+  expect(binding.capsuleOptions).toEqual({ ...release.options, artifactStore: source.artifactStore, onLoadProgress: expect.any(Function) });
+  binding.capsuleOptions.onLoadProgress({ phase: 'pipelines', status: 'cancelling', prepared: 1, total: 2, key: 'k',
+    elapsedMs: 9, startedAt: 1, maxDurationMs: 10, outstanding: true, complete: true });
+  expect(onProgress).toHaveBeenLastCalledWith(expect.objectContaining({ stage: 'preparing', status: 'cancelling', outstanding: true }));
   const opened = await binding.openCapsule(signed().capsule, binding.capsuleOptions);
   expect(ports.openCapsule).toHaveBeenCalledWith(signed().capsule, binding.capsuleOptions);
   expect(release.assertCurrent).toHaveBeenCalledWith(session);

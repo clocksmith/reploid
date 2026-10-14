@@ -15,7 +15,7 @@ import { createHash } from 'node:crypto';
 import { EventEmitter } from 'node:events';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
-import { createAutomaticPartitions, createLegacyGenerationMesh, createPartitionNetwork, createResidentPartition, createSignedResidentFactory, createPartitionStageCommitAuthority } from '../packages/reploid/src/mesh/index.js';
+import { createAutomaticPartitions, createLegacyGenerationMesh, createPartitionNetwork, createResidentPartition, createSignedResidentFactory, createPartitionStageCommitAuthority, residentPreparationProgress } from '../packages/reploid/src/mesh/index.js';
 import { createSwarmTransport, createRoomIntroductionAdmission } from '../packages/reploid/src/transport/index.js';
 import { createSigningIdentity, createPeerIdFromPublicJwk } from '../packages/reploid/src/artifacts/identity.js';
 import { resolveConfig } from '../packages/reploid/src/config/index.js';
@@ -50,7 +50,8 @@ export function summarizeNativePartitionState(state) {
   const acquisition = state.acquisition;
   return { event: 'partition-state', phase: text(state.phase), error: text(state.error, 1024),
     offering: state.offering === true, modelId: text(state.modelId), unsettledOwners: scalar(state.unsettledOwners),
-    progress: state.progress ? pick(state.progress, ['stage', 'phase', 'message', 'loaded', 'total', 'progress']) : null,
+    progress: state.progress ? pick(state.progress, ['stage', 'phase', 'message', 'loaded', 'total', 'progress',
+      'status', 'prepared', 'key', 'elapsedMs', 'startedAt', 'maxDurationMs', 'outstanding']) : null,
     placement: placement.slice(0, 16).map(value => text(value)), placementOmitted: Math.max(0, placement.length - 16),
     descriptor: state.descriptor ? { ...pick(state.descriptor, ['schema', 'modelId', 'modelIdentity', 'planId', 'index',
       'participantId', 'ready', 'residentWeightBytes', 'generationDigest', 'canonicalGenerationId']),
@@ -306,6 +307,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
   } };
   const releaseCleanup = registerCleanup?.(cleanupOwner);
   const tokenizer = createPartitionTokenizerGuard(source.storage);
+  const onLoadProgress = event => { const progress = residentPreparationProgress(event); if (progress) onProgress(progress); };
   try {
     signal.throwIfAborted();
     const manifest = source.manifest;
@@ -335,8 +337,8 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
       factory = createSignedResidentFactory({ createFactory: runtime.createResidentPartitionFactory,
         openCapsule, model: configured, artifactStore: source.artifactStore, release,
         assertSession: assertWorkResidentCapsule, closeSources, trackSession, canonical: !!canonical,
-        onVerification: value => { capsuleVerification = value; } });
-    } else factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: selected.identity,
+        onVerification: value => { capsuleVerification = value; }, onLoadProgress });
+    } else factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: selected.identity, onLoadProgress,
       runtimeConfig: { shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: policy.profileGpu } } },
         inference: { session: { kvcache: { maxSeqLen: configured.generation.maxSeqLen },
           prefillChunkLayers: policy.prefillChunkLayers, prefillTokenChunkSize: policy.prefillTokenChunkSize } } },
