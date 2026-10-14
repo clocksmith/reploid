@@ -147,8 +147,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   };
   let askedFor = null;
   function resizeInput() {
-    input.style.height = 'auto';
-    input.style.height = Math.min(Math.max(48, input.scrollHeight), Math.max(72, (globalThis.visualViewport?.height || globalThis.innerHeight || 800) * 0.22)) + 'px';
+    input.style.removeProperty('--pool-param-composer-height');
+    input.style.setProperty('--pool-param-composer-height', Math.min(Math.max(48, input.scrollHeight), Math.max(72, (globalThis.visualViewport?.height || globalThis.innerHeight || 800) * 0.22)) + 'px');
   }
   // Rail changes alter the input width without a window resize.
   let inputWidth = input.getBoundingClientRect().width;

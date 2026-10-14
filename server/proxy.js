@@ -1697,6 +1697,11 @@ app.get('/design', (req, res) => {
   res.sendFile(path.join(selfRootDir, 'design.html'));
 });
 
+// Poolday tokens, primitives and live component specimens, read from styles/poolday.
+app.get(['/design/poolday', '/design/poolday/'], (req, res) => {
+  res.sendFile(path.join(selfRootDir, 'poolday-design.html'));
+});
+
 app.get('/SECURITY_AUDIT.md', (req, res) => {
   res.type('text/markdown; charset=utf-8');
   res.sendFile(path.join(__dirname, '..', 'docs', 'SECURITY_AUDIT.md'));

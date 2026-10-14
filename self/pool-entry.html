@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="pool-page">
   <head>
     <meta charset="UTF-8" />
     <meta
@@ -11,8 +11,6 @@
     <script>
       window.REPLOID_BUILD_VERSION = '2026091901';
     </script>
-    <link rel="stylesheet" href="/styles/rd.css" />
-    <link rel="stylesheet" href="/styles/boot.css" />
     <link rel="stylesheet" href="/styles/poolday/tokens.css" />
     <link rel="stylesheet" href="/styles/poolday/primitives.css" />
     <link rel="stylesheet" href="/styles/poolday/components/base.css" />
@@ -64,7 +62,7 @@
       const showProductBootFailure = () => {
         appRoot.replaceChildren();
         const failure = document.createElement('main');
-        failure.className = 'pool-boot-failure';
+        failure.className = 'pool-home pool-boot-failure';
         failure.setAttribute('role', 'alert');
         failure.textContent = 'Reploid could not load. Reload the page to try again.';
         appRoot.appendChild(failure);

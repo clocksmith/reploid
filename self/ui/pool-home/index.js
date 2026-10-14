@@ -65,7 +65,7 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
     const connectOperations = network => host.connectOperations(network);
     window.REPLOID_POOL_CONNECT_OPERATIONS = connectOperations;
     window.REPLOID_POOL_ATTACH_DOPPLER_HANDLE = (handle, model = null, runtimeInfo = null) => host.runtime.attachHandle(handle, model, runtimeInfo);
-    mount.style.display = 'block'; mount.replaceChildren();
+    document.documentElement.classList.add('pool-page'); mount.replaceChildren();
     const render = async (options = {}) => {
       const current = ++revision;
       detachView(); detachView = () => {};

@@ -122,18 +122,36 @@ Modules loaded via VFS blob imports must be single-file or use absolute URLs. Re
 ## Poolday design system
 
 Poolday is self-contained: tokens feed primitives, primitives feed components, and
-nothing else styles `.pool-home`. `rd.css` and `boot.css` exclude the Poolday subtree
-from every selector, and `npm run verify:pool:css` enforces both rules. Keep Zero and X
-independent. Controls carry no outline borders; depth comes from shadows. The ordered
-manifest in `self/styles/poolday/layers.json` owns the stylesheet list. Both
+nothing else styles the product. `self/pool-entry.html` loads only the Poolday layers,
+and its root carries `class="pool-page"`, so the page shell (rem base, page color,
+color scheme) composes the same primitives. `index.html` can host Poolday routes, so
+`rd.css` and `boot.css` exclude the `.pool-home` subtree from every selector. Keep Zero
+and X independent. Controls carry no outline borders; depth comes from shadows. The
+ordered manifest in `self/styles/poolday/layers.json` owns the stylesheet list. Both
 `self/pool-entry.html` and the synchronous fallback loader in `self/index.html`
 mirror it so browsers fetch styles in parallel without CSS imports.
+
+Each layer composes only the layer below it:
+
+- **Tokens** hold raw values and reference only other tokens. Theme variants carry
+  `-light-` in the name.
+- **Primitives** are compositions of token variables with no literal values. They
+  map tokens per theme.
+- **Components** compose primitives, component parameters (`--pool-param-*`) and the
+  runtime inputs listed in the `components.css` header. Colors, lengths, angles,
+  times, weights, line heights, opacities, stacking, scales and easings always come
+  from primitives. The only literals left are structural: `0`, `1`, grid and flex
+  counts and `fr`, `calc()` multipliers, and percentages or viewport units in
+  geometry properties.
+- **Scripts** in `self/ui/pool-home/` write only custom properties to inline styles.
+  A measured height or a share becomes a `--pool-param-*` that a component rule
+  consumes.
 
 | Layer | Ownership |
 |-------|-----------|
 | `tokens.css` | Raw colors, dimensions, shadows, gradients and motion values |
 | `primitives.css` | Semantic surface, spacing, typography and motion variables; light/dark mapping |
-| `components/base.css` | Element defaults inside `.pool-home`: resets, inherited type, fields, buttons |
+| `components/base.css` | Page shell (`html.pool-page`) and element defaults inside `.pool-home`: resets, inherited type, fields, buttons |
 | `components/materials.css` | Shared surfaces, buttons, inputs and interaction states |
 | `components/conversation.css` | Conversation layout and local component states |
 | `components/optical.css` | Glass edges on model choice and the composer; activity line |
@@ -171,9 +189,17 @@ cancellation and completion are idle. These attributes project host state; they
 never start execution or grant permission. Text remains the authoritative status.
 Reduced motion removes animation, and forced colors preserves control outlines.
 
-After changing a layer, the manifest, or either entry path, run
-`npm run verify:pool:css`; it checks all manifest modules, variable ownership,
-undefined references and both entry paths. `tests/e2e/chat-material.spec.js` is
+After changing a layer, the manifest, either entry path or a product script's
+inline styles, run `npm run verify:pool:css`. It checks all manifest modules,
+variable ownership, the literal rules above, undefined references, both entry paths
+and product inline styles.
+
+The design system page shows every token and primitive, plus live product
+components with the primitives and tokens each one uses. Run `npm start`, then
+open `http://localhost:8000/design/poolday`. Values are editable in place and apply
+to every specimen. The Changes panel lists the declarations to paste back into the
+layer files. When a layer file changes on disk, the page reloads that stylesheet
+without a refresh. `tests/e2e/chat-material.spec.js` is
 the browser coverage for themes, narrow layouts, focus and activity states; run it
 only for changes to those states.
 

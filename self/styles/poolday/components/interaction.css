@@ -27,7 +27,7 @@
   position: absolute; top: 50%; left: var(--pool-space-xs);
   width: var(--pool-px-32); height: var(--pool-px-32); transform: translateY(-50%);
   border: var(--pool-border-hairline) solid transparent;
-  border-radius: 50%; background: var(--pool-surface-marble); box-shadow: var(--pool-surface-shadow-raised);
+  border-radius: var(--pool-radius-round); background: var(--pool-surface-marble); box-shadow: var(--pool-surface-shadow-raised);
   pointer-events: none; transition: left var(--pool-motion-time-240) ease-in-out;
 }
 .network-switch[aria-checked="true"] > span { left: calc(100% - var(--pool-space-xs) - var(--pool-px-32)); }
@@ -97,7 +97,7 @@
 .execution-ribbon-route { display: flex; align-items: end; flex: 1; min-width: 0; gap: var(--pool-space-sm); }
 .execution-ribbon-node { display: grid; grid-template-rows: var(--pool-px-24) var(--pool-px-20); min-width: 0; }
 .execution-ribbon-participant { display: flex; align-items: center; gap: var(--pool-space-xs); white-space: nowrap; }
-.execution-ribbon-participant::before { content: ''; flex: none; width: var(--pool-px-6); height: var(--pool-px-6); border-radius: 50%; background: currentColor; }
+.execution-ribbon-participant::before { content: ''; flex: none; width: var(--pool-px-6); height: var(--pool-px-6); border-radius: var(--pool-radius-round); background: currentColor; }
 .execution-ribbon-node.is-unassigned .execution-ribbon-participant::before { background: transparent; border: var(--pool-border-hairline) solid currentColor; }
 .execution-ribbon-node small, .execution-ribbon-status { color: var(--pool-surface-muted); font-size: var(--pool-text-xs); }
 .execution-ribbon-node small { line-height: var(--pool-px-20); white-space: nowrap; }
@@ -111,7 +111,7 @@
 .execution-ribbon-machines { display: flex; align-items: end; gap: var(--pool-space-sm); }
 .execution-ribbon-status { max-width: var(--pool-px-r8); min-height: var(--pool-px-44); display: flex; align-items: center; }
 .execution-ribbon[data-output-observed] .execution-ribbon-route {
-  background-image: linear-gradient(90deg, transparent 45%, var(--pool-surface-ink) 50%, transparent 55%);
+  background-image: var(--pool-surface-execution-ribbon-route-image-output-observed);
   background-size: 200% var(--pool-px-2); background-repeat: no-repeat; background-position: 0% 100%;
 }
 .execution-inspector-facts header { display: flex; align-items: center; justify-content: space-between; gap: var(--pool-space-sm); }

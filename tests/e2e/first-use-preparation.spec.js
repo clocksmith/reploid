@@ -21,9 +21,9 @@ for (const theme of ['light', 'dark']) for (const width of [390, 1440]) {
     await page.setViewportSize({ width, height: 844 });
     // A static JSON document provides the origin without booting discovery or providers.
     await page.goto('/config/chat-files.json');
-    await page.setContent('<!doctype html><html><head><meta charset="utf-8"></head><body></body></html>');
+    await page.setContent('<!doctype html><html class="pool-page"><head><meta charset="utf-8"></head><body></body></html>');
     await page.evaluate(async theme => {
-      for (const file of ['rd.css', ...['tokens', 'primitives', 'components/base', 'components', 'components/materials', 'components/conversation', 'components/interaction', 'components/optical'].map(name => `poolday/${name}.css`)]) {
+      for (const file of ['tokens', 'primitives', 'components/base', 'components', 'components/materials', 'components/conversation', 'components/interaction', 'components/optical'].map(name => `poolday/${name}.css`)) {
         const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `/styles/${file}`; document.head.append(link);
       }
       const { createChatSession, CANONICAL_CHAT_MODELS } = await import('/host/chat-session.js');

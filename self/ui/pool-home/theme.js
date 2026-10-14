@@ -41,7 +41,6 @@ export function applyTheme(root, theme, media = systemMedia) {
   if (surface) surface.dataset.poolTheme = selected;
   if (globalThis.document?.documentElement) {
     globalThis.document.documentElement.dataset.reploidTheme = selected;
-    globalThis.document.documentElement.style.colorScheme = selected;
   }
   root?.querySelectorAll?.('[data-pool-theme-choice]').forEach(button => { button.setAttribute('aria-pressed', String(button.dataset.poolThemeChoice === choice)); });
   return selected;
