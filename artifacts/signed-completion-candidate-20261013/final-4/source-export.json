@@ -1,0 +1,18 @@
+{
+  "schema": "reploid.completion-chat-source-export/v1",
+  "sourceCommit": "2d4347090570872ebe4b89321b4b735f9999b663",
+  "command": "git archive --format=tar 2d434709 -- . :(exclude)artifacts :(exclude)reports :(exclude)doppler",
+  "sourceTarPath": "/var/tmp/reploid-signed-completion-app-4-20261013/source.tar",
+  "sourceTarSha256": "981bdbfce0014192f469149df60c89e29364f6c4703bd7993e2a42e8750eac80",
+  "sameMethodAs": "../final-3/source-export.json",
+  "runtimeArchiveSha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+  "runtimeArchiveSource": "/Users/xyz/deco/doppler/artifacts/kernel-completion-repair-20261013/doppler-gpu-0.6.28.tgz",
+  "excludedHistoricalDirectories": [
+    "artifacts",
+    "reports",
+    "doppler"
+  ],
+  "applicationDirectory": "/var/tmp/reploid-signed-completion-app-4-20261013/app",
+  "applicationQualified": false,
+  "publicPinChanged": false
+}

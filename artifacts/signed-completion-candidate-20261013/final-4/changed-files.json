@@ -1,0 +1,153 @@
+{
+  "schema": "reploid.delivery-changed-file-check/v1",
+  "base": "9b42f5eed4a92be4d990650ec9b832a2f1ab94af",
+  "commit": "2d4347090570872ebe4b89321b4b735f9999b663",
+  "changedFiles": [
+    "packages/reploid/src/chat/index.d.ts",
+    "packages/reploid/src/chat/thread-grants.js",
+    "packages/reploid/src/chat/workspace.js",
+    "self/host/chat-session.js",
+    "self/host/product-session.js",
+    "self/host/work-swarm.js",
+    "self/vendor/reploid/chat/index.d.ts",
+    "self/vendor/reploid/chat/thread-grants.js",
+    "self/vendor/reploid/chat/workspace.js",
+    "self/vendor/reploid/package-assets.json"
+  ],
+  "files": {
+    "packages/reploid/src/chat/index.d.ts": {
+      "commitSha256": "418099d189f136be7646ba25c1ebd9899f1e2d0c88c679ab36f09884399bdb1d",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/chat/thread-grants.js": {
+      "commitSha256": "f1273a14d14140d968220fa6f5ba9aed3e24f008fbc52858df7a19538ac58274",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/chat/workspace.js": {
+      "commitSha256": "bbaec65e090594acf3aa200337bb3388e2ce6e893b6b1d671d7cf0a01fc4d620",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/host/chat-session.js": {
+      "commitSha256": "33586f2585f5f81dfbf0f4b49fe1ef436768df26f4257f8ea1b7c1863495a3b4",
+      "served": {
+        "path": "host/chat-session.js",
+        "sha256": "33586f2585f5f81dfbf0f4b49fe1ef436768df26f4257f8ea1b7c1863495a3b4",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/host/product-session.js": {
+      "commitSha256": "c5adbd88e0246bcf07bb29f2ab7d51098c1643071adb3316e1fd86096845eac6",
+      "served": {
+        "path": "host/product-session.js",
+        "sha256": "c5adbd88e0246bcf07bb29f2ab7d51098c1643071adb3316e1fd86096845eac6",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/host/work-swarm.js": {
+      "commitSha256": "388055b1b7feca64a055b2674240357421eaf715e31a8232e8209ddd0fbffbb0",
+      "served": {
+        "path": "host/work-swarm.js",
+        "sha256": "388055b1b7feca64a055b2674240357421eaf715e31a8232e8209ddd0fbffbb0",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/chat/index.d.ts": {
+      "commitSha256": "418099d189f136be7646ba25c1ebd9899f1e2d0c88c679ab36f09884399bdb1d",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/chat/thread-grants.js": {
+      "commitSha256": "f1273a14d14140d968220fa6f5ba9aed3e24f008fbc52858df7a19538ac58274",
+      "served": {
+        "path": "vendor/reploid/chat/thread-grants.js",
+        "sha256": "f1273a14d14140d968220fa6f5ba9aed3e24f008fbc52858df7a19538ac58274",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/chat/workspace.js": {
+      "commitSha256": "bbaec65e090594acf3aa200337bb3388e2ce6e893b6b1d671d7cf0a01fc4d620",
+      "served": {
+        "path": "vendor/reploid/chat/workspace.js",
+        "sha256": "bbaec65e090594acf3aa200337bb3388e2ce6e893b6b1d671d7cf0a01fc4d620",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/package-assets.json": {
+      "commitSha256": "761e0ec594597d21f20aeb98ba82c491b5e64f7f49ae108e37c96e9a416b2c05",
+      "served": {
+        "path": "vendor/reploid/package-assets.json",
+        "sha256": "2e16bd9c1fc3185d7e7a535c51ce023766cf22e1c93f70ad5cd6fdf430b313b5",
+        "equalsCommit": false,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    }
+  },
+  "packageAssets": {
+    "changedVendoredEntries": {
+      "chat/index.d.ts": {
+        "listedSha256": "418099d189f136be7646ba25c1ebd9899f1e2d0c88c679ab36f09884399bdb1d",
+        "equalsCommit": true
+      },
+      "chat/thread-grants.js": {
+        "listedSha256": "f1273a14d14140d968220fa6f5ba9aed3e24f008fbc52858df7a19538ac58274",
+        "equalsCommit": true
+      },
+      "chat/workspace.js": {
+        "listedSha256": "bbaec65e090594acf3aa200337bb3388e2ce6e893b6b1d671d7cf0a01fc4d620",
+        "equalsCommit": true
+      }
+    },
+    "entriesDifferingFromCommit": [
+      "contracts/config/doppler-generation-contract.d.ts",
+      "contracts/doppler-partitions.d.ts",
+      "contracts/doppler-partitions.provenance.json"
+    ]
+  },
+  "servedProductSessionPassesRequesterIdentity": true,
+  "requesterIdentityCall": "createChatSession({ ...chatOptions, requesterIdentity: () => swarm.partitions.requesterIdentity() })",
+  "previousServedProductSessionPassedIt": false
+}

@@ -1,15 +1,77 @@
 # Signed completion candidate: staged and packaged
 
 Component: browser/native application delivery (preparation). Intent preserved.
-Acceptance evidence: `final-3/preflight.json`, `final-3/metadata-staging.json`,
-`final-3/delivery-verification.json`, `final-3/swarm-label.json`,
-`final-3/room-token-file.json`, `final-3/worker.json`, `final-3/binding.json`.
+Acceptance evidence: `final-4/preflight.json`, `final-4/metadata-staging.json`,
+`final-4/delivery-verification.json`, `final-4/swarm-label.json`,
+`final-4/room-token-file.json`, `final-4/changed-files.json`, `final-4/worker.json`,
+`final-4/binding.json`.
 Boundary effects: new isolated exports, catalogs and packages under `/var/tmp/`
 only. Both checkouts, the public Doppler 0.6.27 pin, public catalogs, deployment
 files, identities, release checkpoints and contribution ledgers are unchanged.
 Nothing was started, opened on a GPU, installed on another machine, committed or pushed.
 
-## Current: `final-3/` (Reploid `9b42f5ee`) supersedes `final-2/`
+## Current: `final-4/` (Reploid `2d434709`) supersedes `final-3/`
+
+Reploid `2d434709` makes the chat workspace and product session verify ordered
+disclosure against the authenticated requester identity. It changes
+`packages/reploid/src/chat/*`, `self/host/{chat-session,product-session,work-swarm}.js`
+and the vendored chat copy, so the browser payload changed. The `final-3/`
+pipeline was repeated into fresh directories with the same scripts, Capsule
+`-c` and minimum sequence 2. `final-3/` and its export
+(`/var/tmp/reploid-signed-completion-app-3-20261013`, marked `SUPERSEDED.json`)
+are kept unchanged.
+
+| Item | `final-4/` value |
+| --- | --- |
+| Export | `/var/tmp/reploid-signed-completion-app-4-20261013/app`, source `2d4347090570872ebe4b89321b4b735f9999b663`, tar `981bdbfce0014192f469149df60c89e29364f6c4703bd7993e2a42e8750eac80` |
+| Prepared catalog | `b0277a5f75e8780c6e233ab618a09bbfc4c572ae098f1ce0ceda178719820bbd`, byte-identical to `final-3/` |
+| Staged catalog | `59811b4af5f7b44387344fe38fdea155de4f27a487332a846c27fee9257481d5`, 42 metadata files; staging receipt identical to `final-3/` |
+| Browser payload | 2,045 files, bundle `sha256:2890c961afde518abde48107fa8d99c148d11dfaf5d6c9e546ae118ddde357a1` (changed) |
+| Native tarball | `/var/tmp/reploid-signed-completion-app-4-20261013/app/output/reploid-native-D3I54l/reploid-native-0.1.0.tgz`, `8f7b6a907e53c8fccd0de63073adbefab2e7dd44c8092d71cb1d6346fe2fe4f0` |
+| Native descriptor | `8595ba3150aa0499fd9f4b2e6bd5c75d04fcb31e3eade458877dbad0816520ad`, 151 files, identical to `final-3/` |
+
+### The native package did not change in content
+
+The descriptor is identical to `final-3/`, so all 151 members are byte-identical.
+The two tarballs have the same member names, modes and sizes and differ only in
+archive timestamps. None of the commit's ten changed files is in the native package.
+The native participant's module closure includes neither the chat workspace nor
+the product session. `final-4/changed-files.json` records, for each changed file:
+
+- **Served copies.** `host/chat-session.js`, `host/product-session.js`,
+  `host/work-swarm.js`, `vendor/reploid/chat/thread-grants.js` and
+  `vendor/reploid/chat/workspace.js` equal the commit's files and differ from `final-3/`.
+- **Not served.** `packages/reploid/src/chat/*` is not a served path; the
+  browser uses the vendored copy. Declaration files are not served.
+- **`vendor/reploid/package-assets.json`.** It lists the commit's hashes for all
+  three changed chat files. Like every export, it differs from the commit only in
+  the three Doppler contract entries the 0.6.28 sync regenerates.
+- **Native package.** Absent for all ten files, and absent from its descriptor.
+- **`requesterIdentity`.** The served `host/product-session.js` passes
+  `requesterIdentity: () => swarm.partitions.requesterIdentity()` to
+  `createChatSession`; the `final-3/` copy did not.
+
+Every step passed:
+
+- **Export.** 16 changed and 1,985 added files; 15 of the changed files and the
+  vendored runtime are byte-identical to `final-3/`.
+- **Preflight.** Runtime 1,984/1,984; plan admission for stages 0-2; zero address
+  matches; 8 of 8 release-history cases.
+- **Delivery verification.** All 151 native members; 1,984 installed runtime
+  files; 2,045 payload files; only metadata URLs changed by staging; 64
+  mappings; plan admission from the installed package; zero address matches.
+- **Swarm label check.** Served and packaged `swarm.js` `ae1d9239…` equal the
+  commit and admit `reploid-partitions-ordered`.
+- **`--room-token-file` check.** The packaged participant `a48bd76c…` equals the
+  commit and contains the flag; `--help` exits 0, lists it and changes no file.
+- **Verification Worker.** It passed `check-disclosure-files.js`, the only new script.
+
+`final-4/disclosure-files.json` is from a first run of that script. Its
+assertions were wrong for two expected cases (declaration files are not served;
+`package-assets.json` is regenerated), so it exits 1; its recorded data is
+unchanged and correct. The corrected script wrote `changed-files.json`.
+
+## `final-3/` (Reploid `9b42f5ee`, superseded by `final-4/`)
 
 Reploid `9b42f5ee` adds `--room-token-file` to `server/native-participant.js`.
 That changes the native package, so the `final-2/` pipeline was repeated into
@@ -196,12 +258,16 @@ own authority and application produce.
 - **Git status and host installs.** Upstream commits made outside these steps
   added the earlier passes:
   - `1c4be0ca` added `final/` and `install/`, which installed the `final/` tarball `a7462eb8…`;
-  - `bdcc4bd4` added `final-2/` and `install-2/`, which installed the `final-2/` tarball.
+  - `bdcc4bd4` added `final-2/` and `install-2/`, which installed the `final-2/` tarball;
+  - `81261b37` added `final-3/` and `install-3/`, which installed the `final-3/` tarball `fcacf463…`.
 
-  Neither host install covers the `final-3/` tarball `fcacf463…`. `final-3/` and
-  this README's latest edits are uncommitted. The checkout's local `info/exclude`
-  (line 22) lists this folder, so `git status` without `--ignored` hides the
-  untracked `final-3/`.
+  The `final-4/` native package has the same members as `fcacf463…`; only the
+  tarball bytes differ, through archive timestamps. Whether the hosts need the
+  new tarball depends on whether the release binds the tarball hash or the
+  descriptor. Hosts serving the browser need the new payload `2890c961…`.
+  `final-4/` and this README's latest edits are uncommitted. The checkout's
+  local `info/exclude` (line 22) lists this folder, so `git status` without
+  `--ignored` hides the untracked `final-4/`.
 
 ## Not established
 

@@ -1,0 +1,63 @@
+{
+  "scope": "/testing/ Node-only installed contract tooling; no production browser capability change",
+  "files": {
+    "check-disclosure-files.js": "44b1cd58bd2cb6e4bf186b26332c7b209c3d21104d9c9af3496dcd4a96d54069"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /testing/check-disclosure-files.js:19: Dynamic property write detected: [applicationRoot, installedRoot, previousApplicationRoot, checkout, base, commit, output] - verify input sanitization",
+      "Warning in /testing/check-disclosure-files.js:37: Dynamic property write detected: [name] - verify input sanitization",
+      "Warning in /testing/check-disclosure-files.js:46: Dynamic property write detected: [commitEntries, servedEntries] - verify input sanitization",
+      "Warning in /testing/check-disclosure-files.js:21: Suspicious variable name: exec - may indicate code execution"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791954103643,
+        "path": "/testing/check-disclosure-files.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [applicationRoot, installedRoot, previousApplicationRoot, checkout, base, commit, output] - verify input sanitization",
+        "line": 19,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791954103643,
+        "path": "/testing/check-disclosure-files.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 37,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791954103643,
+        "path": "/testing/check-disclosure-files.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [commitEntries, servedEntries] - verify input sanitization",
+        "line": 46,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791954103643,
+        "path": "/testing/check-disclosure-files.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: exec - may indicate code execution",
+        "line": 21,
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [],
+      "complexityWarnings": [],
+      "filesAnalyzed": 1
+    }
+  }
+}
