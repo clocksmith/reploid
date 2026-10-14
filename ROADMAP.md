@@ -6,6 +6,8 @@ Qwen3.8-Flash-Next is the flagship engineering target, not Reploid's identity. R
 
 **Product priority:** useful answers at interactive latency, available repeatedly through automatically selected capacity. More participating computers, larger model names and stronger contracts are not substitutes for that experience. Ordinary performance work proceeds alongside installed correctness and lifecycle acceptance; it does not wait for speculative execution.
 
+**Immediate performance question:** where does existing standalone Doppler speed go in the installed partition path? The [retained 0.8B browser receipt](https://github.com/clocksmith/doppler/blob/229e8b897d74fd09521f244050e36a75f9427b07/benchmarks/vendors/results/compare_20260707T153509.json) records 68.11 decode tokens/s in parity mode and 69.07 in throughput mode; the [installed placement-B journey](artifacts/signed-completion-journey-20261013/README.md) records about 2.5 seconds per token. These differ in hardware, runtime, arithmetic and workload and establish no slowdown ratio or engine ranking. First isolate ordinary execution → resident execution → local partitions → remote partitions on matched inputs and hardware. Recover lost batching, dispatch efficiency or placement where demonstrated before treating new acceleration features as the remedy. Preserve every numerical and lifecycle gate.
+
 ## Current milestone
 
 | Field | Current recorded evidence and action |
@@ -49,7 +51,7 @@ Within those launches, prioritize these outcomes through the existing task entri
 
 | Outcome | Next implementation and proof |
 | --- | --- |
-| Fast ordinary answers | DR-5 / DR-6: measure the installed path, separating queueing, prefill, decode, output head, transfers and durable publication. Doppler repairs the dominant compute/dispatch boundary; Reploid repairs the dominant placement/transport boundary. Compare batching, fewer synchronization points and reduced readback only where measurements justify them, under unchanged correctness gates. |
+| Fast ordinary answers | DR-5 / DR-6: first isolate the standalone-to-partition gap using the controls below. Separate queueing, prefill, decode, output head, transfers and durable publication. Doppler repairs the dominant compute/dispatch boundary; Reploid repairs the dominant placement/transport boundary. Restore existing optimizations where the path lost them before adding new ones, under unchanged correctness gates. |
 | Helpful placement | DR-6: compare eligible whole-request and uneven multistage routes, including the output head's device. Include preparation and queue costs; adding a slower device must not displace a faster feasible route without a recorded capacity, fairness or availability benefit. Never migrate an active attempt. |
 | Useful model access | REP-7 / ALL-7: score complete chat answers, follow-ups and later coding/API tasks against independent expected outcomes. Runtime parity alone cannot pass answer quality; larger models qualify through the same user journeys. |
 | Sustained shared service | REP-4 / DR-6: keep weights resident, isolate conversations, bound waiting and prepare replicas for measured bottlenecks. Demonstrate that another user can arrive or cancel without breaking existing work, and measure availability through contributor churn. |
