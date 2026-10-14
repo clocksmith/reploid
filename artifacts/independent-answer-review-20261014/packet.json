@@ -1,0 +1,1591 @@
+{
+  "schema": "reploid.blinded-answer-review-packet/v1",
+  "title": "Blinded whole-answer review packet, Reploid Launch 1 model",
+  "frozenOn": "2026-10-14",
+  "policies": {
+    "file": "evaluation-policies.md",
+    "version": "reploid-whole-answer-policies 1.0.0",
+    "sha256": "41550353a495f6268ae1a0dffdaf9619af1d0ae0edaab7c3b0241414b19abacb"
+  },
+  "gradingTemplate": "grading-template.json",
+  "presentation": {
+    "sides": "Each item shows two answers to the same prompt, Answer A and Answer B, from two variants of the same model. Which variant is A was assigned at random per item, and the item order was shuffled; the mapping is sealed until all reviews are complete.",
+    "pairing": "Grade each answer against its policy and its own evidence, never against the other answer.",
+    "answerText": "Each answer is the exact text the model delivered, including Markdown and LaTeX markup. Every answer ended on the model's own end-of-turn marker; none was cut off by a length limit.",
+    "model": "The model received each prompt with no system message, no tools and no retrieval.",
+    "twoTurn": "For a two-turn item, each side has two answers. Turn 2 was asked with the history [turn-1 prompt, that same side's own turn-1 answer, turn-2 prompt], given in the answer's context field.",
+    "answerIds": "Answer ids have the form <item>-<side>-t<turn>, for example R05-A-t2.",
+    "notIncluded": "Variant names, timings, token counts, file paths, generation order, reference answers, mechanical checks and earlier grades are not included."
+  },
+  "counts": {
+    "items": 40,
+    "singleTurnItems": 34,
+    "twoTurnItems": 6,
+    "answersPerSide": 46,
+    "answers": 92,
+    "byPolicy": {
+      "Q": {
+        "items": 35,
+        "answers": 82
+      },
+      "S": {
+        "items": 5,
+        "answers": 10
+      },
+      "R": {
+        "items": 0,
+        "answers": 0
+      }
+    }
+  },
+  "items": [
+    {
+      "id": "R01",
+      "policy": "S",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "Rewrite this message so it sounds more polite: \"Send me the report by Friday. I need it.\""
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R01-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Rewrite this message so it sounds more polite: \"Send me the report by Friday. I need it.\"",
+            "answer": "Here are a few ways to rewrite that message to sound more polite, depending on the level of formality you need:\n\n**Option 1: Professional & Direct (Best for most situations)**\n> \"Could you please send me the report by Friday? I would appreciate it if you could do so.\"\n\n**Option 2: Slightly softer & more polite**\n> \"I'm writing to request the report by Friday. Could you please send it to me?\"\n\n**Option 3: Short and clear**\n> \"Please send the report by Friday. Thanks!\"\n\n**Option 4: If you want to emphasize urgency politely**\n> \"I need the report by Friday. Could you please send it to me?\"\n\n**Key improvements made:**\n*   Changed \"Send me\" to \"Could you please send me\" or \"I'm writing to request,\" which frames the request as a polite inquiry rather than a command.\n*   Added \"I would appreciate it if\" or \"Could you please\" to soften the tone.\n*   Used \"I would appreciate it if\" or \"Could you please\" to show respect for the recipient's time.",
+            "answerSha256": "4fd907bdc73acda6a6750d63f6ccc779f7b8078e1083d36cfdce87137dfbeefd"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R01-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Rewrite this message so it sounds more polite: \"Send me the report by Friday. I need it.\"",
+            "answer": "Here are a few ways to phrase this more politely, depending on the level of formality you need:\n\n**Option 1: Standard & Professional (Best for most situations)**\n> \"Could you please send me the report by Friday? I would appreciate it.\"\n\n**Option 2: Slightly more formal (Best if you are a colleague or boss)**\n> \"I would greatly appreciate it if you could send me the report by Friday. Thank you.\"\n\n**Option 3: Soft & Collaborative (Best for a friend or close colleague)**\n> \"Could you send me the report by Friday? I'm really looking forward to seeing it.\"\n\n**Option 4: Short & Direct (If you want to keep it brief but polite)**\n> \"Please send the report by Friday. Thanks.\"\n\n**Key improvements made:**\n*   Changed \"Send me the report\" to \"Could you please send me the report\" (which softens the request).\n*   Added \"I would appreciate it\" or \"I would greatly appreciate it\" to acknowledge the effort involved in getting the report done.\n*   Used \"Could you\" instead of \"I need it\" to make the request sound less demanding.",
+            "answerSha256": "1ffa5b5b62cf59c9da59d6b20b66cd0c4738b1a073ec2cb399f6367e17f6f96a"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R02",
+      "policy": "Q",
+      "turnCount": 2,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "How do you say \"thank you\" in Spanish?"
+        },
+        {
+          "turn": 2,
+          "text": "And in French?"
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R02-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "How do you say \"thank you\" in Spanish?",
+            "answer": "In Spanish, the word for \"thank you\" is **\"Gracias\"**.\n\nDepending on the context, you can also say:\n*   **\"Dejame gracias\"** (I'm sorry)\n*   **\"Gracias por el servicio\"** (Thank you for the service)\n*   **\"Gracias por la ayuda\"** (Thank you for the help)\n\nIf you are referring to the specific word \"thank you\" in the context of the sentence \"Thank you for the service,\" the answer is simply **\"Gracias\"**.",
+            "answerSha256": "2f71624b190cff06aa5c2dd6807a1bcb3048a608484e15352f931cbfd8a1a906"
+          },
+          {
+            "answerId": "R02-A-t2",
+            "turn": 2,
+            "context": [
+              {
+                "role": "user",
+                "content": "How do you say \"thank you\" in Spanish?"
+              },
+              {
+                "role": "assistant",
+                "content": "In Spanish, the word for \"thank you\" is **\"Gracias\"**.\n\nDepending on the context, you can also say:\n*   **\"Dejame gracias\"** (I'm sorry)\n*   **\"Gracias por el servicio\"** (Thank you for the service)\n*   **\"Gracias por la ayuda\"** (Thank you for the help)\n\nIf you are referring to the specific word \"thank you\" in the context of the sentence \"Thank you for the service,\" the answer is simply **\"Gracias\"**."
+              }
+            ],
+            "prompt": "And in French?",
+            "answer": "In French, the word for \"thank you\" is **\"Merci\"**.\n\nDepending on the context, you can also say:\n*   **\"Merci beaucoup\"** (Very much)\n*   **\"Merci pour le service\"** (Thank you for the service)\n*   **\"Merci pour l'aide\"** (Thank you for the help)\n\nIf you are referring to the specific word \"thank you\" in the context of the sentence \"Thank you for the service,\" the answer is simply **\"Merci\"**.",
+            "answerSha256": "13028d90aa77a7b0115f540b2a2f9837051ce6f8cf768bf5fac80390cb25e981"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R02-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "How do you say \"thank you\" in Spanish?",
+            "answer": "The most common and natural way to say \"thank you\" in Spanish is **\"¡Gracias!\"**\n\nHere is a breakdown of the nuances:\n\n*   **¡Gracias!** (The standard, polite, and universal form)\n    *   **Gracias** is the direct translation of \"thank you.\"\n    *   Adding the exclamation mark indicates that you are expressing gratitude with enthusiasm.\n    *   This is the most widely understood and accepted phrase in everyday conversation.\n\n**Other variations:**\n*   **Muchas gracias** (More formal or polite)\n*   **Gracias por** (A bit more formal than \"Gracias\")\n*   **Gracias por** (A bit more formal than \"Gracias\")\n\n**Example usage:**\n*   \"¡Gracias!\" (Hello, thank you!)\n*   \"¡Muchas gracias!\" (Hello, thank you very much!)",
+            "answerSha256": "ad954d24c2d3a56b2422a0cfff33f8bffd5eceabdbb7d5552a9e826bc635bee5"
+          },
+          {
+            "answerId": "R02-B-t2",
+            "turn": 2,
+            "context": [
+              {
+                "role": "user",
+                "content": "How do you say \"thank you\" in Spanish?"
+              },
+              {
+                "role": "assistant",
+                "content": "The most common and natural way to say \"thank you\" in Spanish is **\"¡Gracias!\"**\n\nHere is a breakdown of the nuances:\n\n*   **¡Gracias!** (The standard, polite, and universal form)\n    *   **Gracias** is the direct translation of \"thank you.\"\n    *   Adding the exclamation mark indicates that you are expressing gratitude with enthusiasm.\n    *   This is the most widely understood and accepted phrase in everyday conversation.\n\n**Other variations:**\n*   **Muchas gracias** (More formal or polite)\n*   **Gracias por** (A bit more formal than \"Gracias\")\n*   **Gracias por** (A bit more formal than \"Gracias\")\n\n**Example usage:**\n*   \"¡Gracias!\" (Hello, thank you!)\n*   \"¡Muchas gracias!\" (Hello, thank you very much!)"
+              }
+            ],
+            "prompt": "And in French?",
+            "answer": "In French, the most common and natural way to say \"thank you\" is **\"Merci !\"**\n\nHere is a breakdown of the nuances:\n\n*   **Merci** is the direct translation of \"thank you.\"\n*   Adding the exclamation mark indicates that you are expressing gratitude with enthusiasm.\n*   This is the standard, polite, and universal form used in everyday conversation.\n\n**Other variations:**\n*   **Merci beaucoup** (More formal or polite)\n*   **Merci** (A bit more formal than \"Merci\")\n\n**Example usage:**\n*   \"Merci !\" (Hello, thank you!)\n*   \"Merci beaucoup !\" (Hello, thank you very much!)\n\n**Note on \"Gratitude\" vs. \"Thank you\":**\nWhile \"Merci\" is the direct translation, in French, the word **\"Gratitude\"** (meaning deep appreciation or thanks) is often used when you want to express a deeper feeling of gratitude, especially in a more formal or literary context.\n\n*   \"Merci\" = Thank you\n*   \"Gratitude\" = Gratitude / Appreciation",
+            "answerSha256": "d47364c5599608d4ca47d41281b87c6f47487e23ee25e55e266913e22e3f5027"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R03",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "How many bones are in the adult human body?"
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R03-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "How many bones are in the adult human body?",
+            "answer": "The adult human body contains approximately **206 bones**.\n\nThis number is derived from the International Classification of Osmia (ICOS), which is the standard for bone classification. While the exact count can vary slightly depending on the specific classification system used (such as the ICS 2018 or ICS 2020), the consensus in modern medical and anatomical literature is that there are **206 bones** in the adult human body.\n\nHere is a breakdown of the key facts:\n*   **Total Count**: 206 bones.\n*   **Femoral Bones**: There are 11 femoral bones (the ones that form the hip bones).\n*   **Fetal Bones**: There are 106 bones in the fetus, which are later replaced by the 206 adult bones.\n*   **Fetal Bones**: There are 106 bones in the fetus, which are later replaced by the 206 adult bones.\n*   **Fetal Bones**: There are 106 bones in the fetus, which are later replaced by the 206 adult bones.\n\nThis number is used to help distinguish between the bones of the fetus and the bones of the adult, as the adult bones are generally considered to be the majority of the body's bones.",
+            "answerSha256": "f555c701aefbecbc80218bb9fff2a0bbc32ef10ec036c1b63cf1e7cd39c13731"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R03-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "How many bones are in the adult human body?",
+            "answer": "The adult human body contains approximately **206 bones**.\n\nThis number is derived from the standard anatomical classification of the skeleton, which includes the 206 bones found in the skull, spine, and the 186 bones of the rest of the body. While the exact count can vary slightly depending on the specific anatomical system (such as the number of vertebrae in the spine), the widely accepted figure for the total count of bones in an adult human is **206**.",
+            "answerSha256": "8cda73a03bfc93c1bbb9b9ec098bc53afc2fde0d9113f718317d79e84fa80b40"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R04",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "What is the capital of Australia?"
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R04-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "What is the capital of Australia?",
+            "answer": "The capital of Australia is **Canberra**.\n\nLocated in the outback of the Australian outback, it is the second-largest city in Australia and the second-largest city in the world. It is also the capital of the Australian Capital Territory (ACT), which is a territory within the Australian federal government.",
+            "answerSha256": "d820f8c0686408b0278c585f18e00c56eb26c8d70000fea18ae0bf2b81c325f8"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R04-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "What is the capital of Australia?",
+            "answer": "The capital of Australia is **Canberra**.\n\nLocated in the outback of the Australian outback, Canberra was the site of the 1919 general election and was the first capital of the Australian colonies. It is situated on the banks of the Murray River, overlooking the Great Australian Outback.",
+            "answerSha256": "c60f1aea8e2c13d2d7bc2cc0a92fdf44778a1efdffdbbb243776453c56459600"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R05",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "Write a short JavaScript function doubleEvens(numbers) that returns a new array containing only even input numbers, doubled, using filter and map. Show its result for [1, 2, 3, 4]."
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R05-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Write a short JavaScript function doubleEvens(numbers) that returns a new array containing only even input numbers, doubled, using filter and map. Show its result for [1, 2, 3, 4].",
+            "answer": "```javascript\nfunction doubleEvens(numbers) {\n  // Filter keeps only even numbers, then doubles them\n  return numbers.filter(n => n % 2 === 0).map(n => n * 2);\n}\n\n// Result for [1, 2, 3, 4]\nconsole.log(doubleEvens([1, 2, 3, 4])); \n// Output: [2, 4, 6, 8]\n```",
+            "answerSha256": "e32a22d7ea2cdf7cc68163c4ded87328a00c7b9d89b5df0186e0d567ae48860b"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R05-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Write a short JavaScript function doubleEvens(numbers) that returns a new array containing only even input numbers, doubled, using filter and map. Show its result for [1, 2, 3, 4].",
+            "answer": "```js\nfunction doubleEvens(numbers) {\n  return numbers\n    .filter(n => n % 2 === 0)\n    .map(n => n * 2);\n}\n\nconsole.log(doubleEvens([1, 2, 3, 4])); // [4, 8]\n```",
+            "answerSha256": "edb8761ebe5bfbcab6cfd57edd978ae9c89994a36e492c42a106ed9d51846135"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R06",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "Write a haiku about autumn leaves. Reply with only the haiku."
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R06-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Write a haiku about autumn leaves. Reply with only the haiku.",
+            "answer": "Golden drops fall,\nSoft wind blows away,\nAutumn's quiet end.",
+            "answerSha256": "ddbf0d2e5386af3b8cda0f775099c4988b0a7cc5c1dc92f6586376c22477b183"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R06-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Write a haiku about autumn leaves. Reply with only the haiku.",
+            "answer": "Golden yellow falls,\nSoft and crisp,\nAutumn's quiet sigh.",
+            "answerSha256": "e7b4a043980b9321f1cf94f58426bf18b0346add827a6eafd2e1d62f1d43fc07"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R07",
+      "policy": "S",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "Shorten this email to under 30 words. Keep the meeting day, time and room.\n\nHi team, I hope everyone had a great weekend. I wanted to let you all know that our weekly planning meeting has been moved from its usual time. It will now take place on Thursday at 2 pm in Conference Room B. Please update your calendars. Thanks so much, Dana"
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R07-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Shorten this email to under 30 words. Keep the meeting day, time and room.\n\nHi team, I hope everyone had a great weekend. I wanted to let you all know that our weekly planning meeting has been moved from its usual time. It will now take place on Thursday at 2 pm in Conference Room B. Please update your calendars. Thanks so much, Dana",
+            "answer": "Hi team, hope you had a great weekend. Our weekly meeting has moved to Thursday at 2 pm in Conference Room B. Please update your calendars. Thanks, Dana.",
+            "answerSha256": "050193fe8d143ada7fcb98ceae1debbb1c297a89e04a9703ec087fa3aa82612d"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R07-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Shorten this email to under 30 words. Keep the meeting day, time and room.\n\nHi team, I hope everyone had a great weekend. I wanted to let you all know that our weekly planning meeting has been moved from its usual time. It will now take place on Thursday at 2 pm in Conference Room B. Please update your calendars. Thanks so much, Dana",
+            "answer": "Hi team, hope you had a great weekend. Our weekly meeting has moved to Thursday at 2 PM in Conference Room B. Please update your calendars. Thanks, Dana.",
+            "answerSha256": "62d59bf313722b9ddae1a488131a1be5a6f7622e5b2b4bc88356a15d0f6c26cd"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R08",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "What color is a ripe banana? Answer in one word."
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R08-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "What color is a ripe banana? Answer in one word.",
+            "answer": "Yellow",
+            "answerSha256": "19dd83f117525b931fccdafe808aaa6939af792ee549f359eff13fac0d622f5d"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R08-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "What color is a ripe banana? Answer in one word.",
+            "answer": "Yellow",
+            "answerSha256": "19dd83f117525b931fccdafe808aaa6939af792ee549f359eff13fac0d622f5d"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R09",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "What year did Apollo 11 land on the Moon?"
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R09-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "What year did Apollo 11 land on the Moon?",
+            "answer": "Apollo 11 landed on the Moon on **July 20, 1969**.\n\nThe mission was led by Neil Armstrong and Buzz Aldrin, and the historic first lunar landing occurred at the Cape Canoe Basin in the Pacific Ocean.",
+            "answerSha256": "0c0486ee65bda323632ee4afd4a92959739143f709876ab47816ad8a3116eb89"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R09-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "What year did Apollo 11 land on the Moon?",
+            "answer": "Apollo 11 landed on the Moon on **July 20, 1969**.\n\nThe mission was led by Neil Armstrong and Buzz Aldrin, who became the first humans to walk on the lunar surface. They successfully set up the lunar module and landed on the Moon's south pole, marking a historic milestone in human spaceflight.",
+            "answerSha256": "7a82916634512ac7c40da11a17b96af242e930d76ea67c6e4fdf2d9289cf8a07"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R10",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "Write a JavaScript function that reverses a string, and show what it returns for \"stressed\"."
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R10-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Write a JavaScript function that reverses a string, and show what it returns for \"stressed\".",
+            "answer": "```javascript\n/**\n * Reverses a string.\n * \n * @param {string} str - The string to reverse.\n * @returns {string} The reversed string.\n */\nfunction reverseString(str) {\n  return str.split('').reverse().join('');\n}\n\n// Example usage\nconsole.log(reverseString(\"stressed\")); \n// Output: \"edresst\"\n```",
+            "answerSha256": "cdf6f56ad4f825350fdf7529d684409b3ecba199ea4befdbfa52619c09a22d65"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R10-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Write a JavaScript function that reverses a string, and show what it returns for \"stressed\".",
+            "answer": "```js\nfunction reverseString(str) {\n  return str.split('').reverse().join('');\n}\n\nconsole.log(reverseString(\"stressed\"));\n// Output: \"edreessst\"\n```",
+            "answerSha256": "974095c9cdb6bb4e13ac814f409eb33e6a7d3d2f6ffe1c80ae197f0c6a6ceebb"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R11",
+      "policy": "S",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "Summarize this paragraph in one sentence:\n\nStarting March 3, the Oakridge Public Library will change its weekday hours. It will open at 8 am instead of 9 am and close at 9 pm instead of 8 pm, giving visitors two extra hours each day. Weekend hours will stay the same. The library says the change responds to a survey in which most residents asked for earlier mornings and later evenings."
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R11-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Summarize this paragraph in one sentence:\n\nStarting March 3, the Oakridge Public Library will change its weekday hours. It will open at 8 am instead of 9 am and close at 9 pm instead of 8 pm, giving visitors two extra hours each day. Weekend hours will stay the same. The library says the change responds to a survey in which most residents asked for earlier mornings and later evenings.",
+            "answer": "The Oakridge Public Library will extend its weekday hours by two hours (from 9 am to 11 pm and 8 pm to 10 pm) to accommodate residents' requests for earlier mornings and later evenings.",
+            "answerSha256": "c49ea0e78eb4811d5824f0bb2bcdda20af54f4bff6461f6df142d2cddbfea02b"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R11-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Summarize this paragraph in one sentence:\n\nStarting March 3, the Oakridge Public Library will change its weekday hours. It will open at 8 am instead of 9 am and close at 9 pm instead of 8 pm, giving visitors two extra hours each day. Weekend hours will stay the same. The library says the change responds to a survey in which most residents asked for earlier mornings and later evenings.",
+            "answer": "The Oakridge Public Library will adjust its weekday hours to open earlier and close later to accommodate resident requests for earlier mornings and later evenings.",
+            "answerSha256": "ae5881d06783b3310ccf4d3dad4368ad168232d411edb429be0980b99ed23d1d"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R12",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "Give me exactly 3 bullet points on the benefits of drinking water, with no other text."
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R12-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Give me exactly 3 bullet points on the benefits of drinking water, with no other text.",
+            "answer": "*   Essential for maintaining healthy skin and hair by preventing dehydration and maintaining optimal hydration levels.\n*   Crucial for regulating blood pressure and heart health by helping the body flush out excess sodium and excess water.\n*   Vital for energy production and brain function by providing the necessary water to support cellular processes and nerve transmission.",
+            "answerSha256": "8f2a9aa9c1c933bb363fb7f3e4fd9df32e08364dcad4b39fbddc9fb19f4f64e0"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R12-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Give me exactly 3 bullet points on the benefits of drinking water, with no other text.",
+            "answer": "- Reduces the risk of kidney stones and urinary tract infections.\n- Helps maintain healthy blood pressure and lowers the risk of heart disease.\n- Supports overall health by helping to flush out toxins and waste products from the body.",
+            "answerSha256": "d94967b56ebf2860a7c6b9979855e6559cf2c7bfd8fc97cdb1583532af4d8f44"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R13",
+      "policy": "Q",
+      "turnCount": 2,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "What are the three primary colors of light?"
+        },
+        {
+          "turn": 2,
+          "text": "Which of them has the longest wavelength? Answer in one word."
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R13-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "What are the three primary colors of light?",
+            "answer": "The three primary colors of light are **Red**, **Green**, and **Blue**.\n\nThese are the colors that can be combined to create all other colors of light when viewed through a prism or when light passes through a colored filter. When these three primary colors are mixed together, they create a spectrum of colors ranging from red to violet.\n\n*   **Red** is the longest wavelength of light.\n*   **Green** is the shortest wavelength of light.\n*   **Blue** is the shortest wavelength of light.\n\nWhen these three are mixed, they produce a wide range of colors, including white light (which is the result of mixing all three).",
+            "answerSha256": "80e776041724e774b3dd5a4d7576a196947fa377b15ebf901549e66d4590aed2"
+          },
+          {
+            "answerId": "R13-A-t2",
+            "turn": 2,
+            "context": [
+              {
+                "role": "user",
+                "content": "What are the three primary colors of light?"
+              },
+              {
+                "role": "assistant",
+                "content": "The three primary colors of light are **Red**, **Green**, and **Blue**.\n\nThese are the colors that can be combined to create all other colors of light when viewed through a prism or when light passes through a colored filter. When these three primary colors are mixed together, they create a spectrum of colors ranging from red to violet.\n\n*   **Red** is the longest wavelength of light.\n*   **Green** is the shortest wavelength of light.\n*   **Blue** is the shortest wavelength of light.\n\nWhen these three are mixed, they produce a wide range of colors, including white light (which is the result of mixing all three)."
+              }
+            ],
+            "prompt": "Which of them has the longest wavelength? Answer in one word.",
+            "answer": " Red",
+            "answerSha256": "76fe1ae05410febb7bac2b5538bdd254882c54574086d8cd07699b45a6bcdc6c"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R13-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "What are the three primary colors of light?",
+            "answer": "The three primary colors of light are **Red, Green, and Blue**.\n\nThese are the basic pigments or wavelengths of light that, when combined, create the full spectrum of colors we see in the rainbow. When these three colors are mixed in equal proportions, they produce white light. This principle is known as **additive color mixing**, which is used in technologies like screens and video games.",
+            "answerSha256": "810a32507ac5fc2c7293caf875edfdb12d4170a4cb3bc1d3ebb3437161448f3f"
+          },
+          {
+            "answerId": "R13-B-t2",
+            "turn": 2,
+            "context": [
+              {
+                "role": "user",
+                "content": "What are the three primary colors of light?"
+              },
+              {
+                "role": "assistant",
+                "content": "The three primary colors of light are **Red, Green, and Blue**.\n\nThese are the basic pigments or wavelengths of light that, when combined, create the full spectrum of colors we see in the rainbow. When these three colors are mixed in equal proportions, they produce white light. This principle is known as **additive color mixing**, which is used in technologies like screens and video games."
+              }
+            ],
+            "prompt": "Which of them has the longest wavelength? Answer in one word.",
+            "answer": " Red",
+            "answerSha256": "76fe1ae05410febb7bac2b5538bdd254882c54574086d8cd07699b45a6bcdc6c"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R14",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "Why do we have leap years?"
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R14-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Why do we have leap years?",
+            "answer": "The reason we have leap years lies in the **Gregorian calendar**, which was adopted in 1582 to solve a specific astronomical problem.\n\n### The Problem: The Inaccurate Solar Year\nFor centuries, astronomers and astronomers have been trying to find the \"solar year\" (the time it takes for the Earth to complete one orbit around the Sun). However, the Earth's orbit is not perfectly circular; it is slightly elliptical.\n\n*   **Perihelion**: The Earth is closest to the Sun (about 147.1 million km).\n*   **Aphelion**: The Earth is farthest from the Sun (about 152.1 million km).\n\nBecause the Earth travels a different distance in its orbit at different speeds, it takes **365.2422 days** to complete one solar year.\n\n### The Solution: The Leap Year\nTo make the calendar align with the actual solar year, we need to account for the extra 0.0422 days.\n\n*   **365 days** is the average year.\n*   **366 days** is the leap year.\n\nBy adding a day to the calendar every four years, we effectively add 0.0422 days to the average year. This ensures that the calendar aligns with the Earth's actual orbital period.\n\n### The Rule for Leap Years\nThe Gregorian calendar rules for leap years are:\n\n1.  **Every 4 years**: A year is a leap year.\n2.  **Every 100 years**: A year is **not** a leap year.\n3.  **Every 400 years**: A year **is** a leap year.\n\n### Why the 400-year rule?\nThe 400-year rule was introduced to fix the calendar's alignment with the Earth's orbit. If we only added a day every 4 years, the calendar would drift by about 10 minutes every 400 years. By adding a day every 400 years, we correct this drift.\n\n### Historical Context\nBefore the Gregorian calendar, the Julian calendar was used. The Julian calendar was designed to be a bit shorter than the solar year (365.25 days), which caused the calendar to drift by about 11 minutes every 128 years. The Gregorian calendar was adopted in 1582 to correct this drift.\n\n### Conclusion\nWe have leap years because the **Gregorian calendar** was created to align with the **solar year** (365.2422 days). By adding a day to the calendar every four years, we account for the extra 0.0422 days required to complete a solar year, and the specific rule of adding a day every 400 years ensures the calendar remains accurate over long periods.",
+            "answerSha256": "618a5d8792324e40638582441868a86c1d9b6425ba2cd2a94a04dffae87ac454"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R14-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Why do we have leap years?",
+            "answer": "The reason for having leap years lies in the astronomical cycle of the Earth's orbit around the Sun.\n\nFor centuries, astronomers and mathematicians have struggled to find a way to predict the exact position of the Sun relative to the stars. This difficulty led to the invention of the **Julian calendar** (used in the Middle Ages and Renaissance), which had a 12-year cycle. However, this system was too slow for accurate navigation.\n\nTo solve this, **Ptolemy** (c. 150–160 AD) and **Ptolemy II Philoponus** (c. 150–158 AD) independently developed the **Gregorian calendar**. They realized that the Earth's orbit around the Sun is not exactly 365.2425 days. Instead, it is approximately **365.2425 days**.\n\nIf the calendar were to run for exactly 365 days, the Earth would drift forward by about 1 degree of longitude every 12 years. This drift caused the Sun to move across the sky by roughly 1 degree every 100 years. Since the Earth rotates 360 degrees in 24 hours, this means the Sun would appear to move across the sky by about 15 degrees every 100 years.\n\nTo keep the Sun in the same position relative to the stars, astronomers needed to add a small amount of extra time every 100 years. They calculated that adding **1 day** to the calendar would make the Earth's orbit complete (365.2425 days), and the Sun would return to its correct position.\n\nHowever, the Gregorian calendar was not perfect. It had a 12-year cycle, but it was too slow. To fix this, they added **365 days** to the calendar every 4 years. This caused the Earth to drift forward by about 1 degree of longitude every 12 years. To correct this, they added **1 day** to the calendar every 8 years.\n\nThe result is the **leap year**: a year that has 366 days. This extra day accounts for the extra 1 degree of longitude the Earth moves in 12 years, bringing the total to the correct 365.2425 days. Without this leap year, the calendar would drift too far, making navigation impossible.\n\n**In summary:** Leap years exist because the Earth's orbit around the Sun is slightly longer than 365 days. By adjusting the calendar every 4 years, we account for the extra 1 degree of longitude the Earth moves in 12 years, ensuring the Sun stays in the same position relative to the stars.",
+            "answerSha256": "6b171687658aff4a796e990c99143b6202c5e39d18cbefaf88f49256b315592d"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R15",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "What's the difference between a list and a tuple in Python?"
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R15-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "What's the difference between a list and a tuple in Python?",
+            "answer": "In Python, the primary difference between a **list** and a **tuple** lies in **immutability** and **type safety**.\n\nHere is the breakdown of the key differences:\n\n### 1. Immutability\n*   **List**: Lists are **mutable** (mutable means they can change their contents). You can add, remove, or modify elements to a list, and the list itself will still be a list.\n    *   *Example:* `my_list = [1, 2, 3]`\n    *   *Example:* `my_list.append(4)` makes it `[1, 2, 3, 4]`.\n*   **Tuple**: Tuples are **immutable** (immutable means they cannot be changed once created). You cannot add, remove, or modify elements to a tuple.\n    *   *Example:* `my_tuple = (1, 2, 3)`\n    *   *Example:* `my_tuple = (1, 2, 3, 4)` (This is impossible because tuples are immutable).\n\n### 2. Type Safety\n*   **List**: Lists are **type-safe**. Python will automatically convert the elements of a list to the correct types (e.g., converting a list of strings to a list of numbers).\n    *   *Example:* `my_list = [1, \"two\", 3]` (Python knows this is a list of mixed types).\n*   **Tuple**: Tuples are **type-safe** by design. Python enforces that the order of elements in a tuple is fixed, and it ensures the types match exactly.\n    *   *Example:* `my_tuple = (1, \"two\", 3)` (Python enforces this is a tuple of mixed types).\n\n### 3. Access and Iteration\n*   **List**: Lists allow you to access elements by index (e.g., `my_list[0]`, `my_list[1]`). They also support iteration (e.g., `for item in my_list`).\n*   **Tuple**: Tuples do not support index access (e.g., `my_tuple[0]` raises a `TypeError`). They also do not support iteration (e.g., `for item in my_tuple` raises a `TypeError`).\n\n### 4. Comparison\n*   **List** is the standard data structure for storing collections of data where you expect the order to be important and you want to be able to add or modify elements later.\n*   **Tuple** is the standard data structure for storing data where you want to enforce a fixed order and you want to ensure the types match exactly.\n\n### Summary Table\n\n| Feature | List | Tuple |\n| :--- | :--- | :--- |\n| **Mutable?** | Yes | No |\n| **Immutability** | No | Yes |\n| **Type Safety** | Yes | Yes |\n| **Index Access** | Yes | No |\n| **Iteration** | Yes | No |\n| **Use Case** | Collections, dynamic data | Fixed order, specific types |\n\n**Conclusion:** Use a **list** when you need to add or remove elements, or when the order of elements matters. Use a **tuple** when you need a fixed order and specific types.",
+            "answerSha256": "5ab87c9689771310c4b0d8d42601c7b17998fac45abff5ba484507c90a5bd6f8"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R15-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "What's the difference between a list and a tuple in Python?",
+            "answer": "In Python, a **list** and a **tuple** are both ordered collections of items, but they differ in several key ways:\n\n### 1. **Mutability**\n- **Lists** are **mutable**: You can modify them after creation (e.g., `list.append(x)`, `list.pop()`).\n- **Tuples** are **immutable**: Once created, you cannot change their contents. You can only access or modify them by copying them (e.g., `tuple_copy = tuple(original)`).\n\n### 2. **Indexing**\n- **Lists** use 0-based indexing: `list[0]`, `list[1]`, etc.\n- **Tuples** use 0-based indexing: `tuple[0]`, `tuple[1]`, etc.\n\n### 3. **Comparison**\n- **Lists** are compared using the `==` operator (element-by-element equality).\n- **Tuples** are compared using the `==` operator (element-by-element equality).\n\n### 4. **Use Cases**\n- Use **lists** when you need to:\n  - Store mutable data (e.g., user inputs, arrays).\n  - Perform operations like appending, removing, or searching.\n  - Create dynamic collections.\n- Use **tuples** when you need:\n  - Immutable data (e.g., configuration settings, function arguments).\n  - Fixed-size collections.\n  - Avoid modifying the original data.\n\n### Example\n```python\n# List\nmy_list = [1, 2, 3]\nmy_list.append(4)  # my_list becomes [1, 2, 3, 4]\nmy_list.pop(1)    # my_list becomes [1, 3, 4]\n\n# Tuple\nmy_tuple = (1, 2, 3)\nmy_tuple_copy = tuple(my_tuple)  # my_tuple_copy is [1, 2, 3], but my_tuple is unchanged\n```\n\n### Summary\n- **Lists**: Mutable, dynamic, indexed.\n- **Tuples**: Immutable, fixed, indexed.\n\nChoose based on whether you need to modify data or need to preserve the original state.",
+            "answerSha256": "223308144156fcce5d0d0e27890a4e10758b9c0d46988e41166286ca75e1be9a"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R16",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "Why is the sky blue? Explain in two or three sentences."
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R16-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Why is the sky blue? Explain in two or three sentences.",
+            "answer": "The sky appears blue because the scattering of sunlight by air molecules is a result of the wavelength of light. Shorter wavelengths, such as blue, are scattered more effectively by the particles in the atmosphere than longer wavelengths like red or orange. This phenomenon is known as Rayleigh scattering, which explains why the sky is blue while the sun is red at sunrise or sunset.",
+            "answerSha256": "bdb84118d3e4a3bf67b0a8376f2824e655ea2122177f9ad91f7a33b800541951"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R16-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Why is the sky blue? Explain in two or three sentences.",
+            "answer": "The sky appears blue because sunlight hits the Earth's atmosphere, where the shorter wavelengths of blue light scatter more efficiently than longer wavelengths like red and orange. This scattering effect is most pronounced at the upper levels of the atmosphere, where the path length for blue light is greatest, giving us the familiar blue hue we see.",
+            "answerSha256": "19759071b6d7c1a50d08782009ac548ca8fef05b6553be3fd0095e5e70ffbb58"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R17",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "Write a Python function count_vowels(s) that counts the vowels a, e, i, o, u in a string. What does it return for \"education\"?"
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R17-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Write a Python function count_vowels(s) that counts the vowels a, e, i, o, u in a string. What does it return for \"education\"?",
+            "answer": "```python\ndef count_vowels(s):\n    \"\"\"\n    Count the number of vowels (a, e, i, o, u) in a string.\n    \n    Parameters:\n        s (str): The input string to count vowels in.\n    \n    Returns:\n        int: The total count of vowels.\n    \"\"\"\n    vowels = set(\"aeiouAEIOU\")\n    return len(s.lower().isalpha() and s.lower() in vowels)\n```\n\nFor the string `\"education\"`:\n\n- Lowercased: `\"education\"`\n- Vowels present: `e, u, d, i, o, n`\n- Count: 5\n\nSo `count_vowels(\"education\")` returns **5**.",
+            "answerSha256": "510e450bea01822e63336ea832df02209f863bc44631b9db67101538cff20097"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R17-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Write a Python function count_vowels(s) that counts the vowels a, e, i, o, u in a string. What does it return for \"education\"?",
+            "answer": "```python\ndef count_vowels(s):\n    \"\"\"\n    Counts the vowels 'a', 'e', 'i', 'o', 'u' in a string.\n    \n    Parameters:\n        s (str): The input string to analyze.\n    \n    Returns:\n        int: The count of vowels found in the string.\n    \"\"\"\n    vowels = {'a', 'e', 'i', 'o', 'u'}\n    return len(s.lower().is_vowel())\n\n# Example usage:\nprint(count_vowels(\"education\"))  # Output: 4\n```\n\nFor the string `\"education\"`, the function returns **4**.\n\n### Explanation:\nThe function converts the string to lowercase and checks if each character is a vowel. The vowels in `\"education\"` are:\n- **e** (at index 1)\n- **e** (at index 3)\n- **d** (at index 6)\n- **e** (at index 7)\n\nCounting these gives us **4** vowels.",
+            "answerSha256": "2b9c16da8621435e48df1b0b1ad9da87580db48284988bf381dc9c0812275d0c"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R18",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "Write a Python function sum_of_squares(nums) that returns the sum of the squares of a list of numbers. What does it return for [1, 2, 3]?"
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R18-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Write a Python function sum_of_squares(nums) that returns the sum of the squares of a list of numbers. What does it return for [1, 2, 3]?",
+            "answer": "```python\ndef sum_of_squares(nums):\n    \"\"\"\n    Returns the sum of the squares of the elements in the list.\n\n    Example:\n        sum_of_squares([1, 2, 3])  # returns 14\n    \"\"\"\n    return sum(x ** 2 for x in nums)\n\n\n# Example usage:\nprint(sum_of_squares([1, 2, 3]))  # Output: 14\n```",
+            "answerSha256": "8ca197ffd3fa0a0c00bce30ebccf31b64af0b2df0525aff231df7dea615706db"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R18-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Write a Python function sum_of_squares(nums) that returns the sum of the squares of a list of numbers. What does it return for [1, 2, 3]?",
+            "answer": "```python\ndef sum_of_squares(nums):\n    \"\"\"\n    Returns the sum of the squares of the numbers in the input list.\n    \n    Parameters:\n        nums (list): A list of numbers (integers or floats).\n    \n    Returns:\n        float: The sum of the squares of the numbers.\n    \"\"\"\n    return sum(x ** 2 for x in nums)\n```\n\nFor the list `[1, 2, 3]`, the function will return:\n\n```text\n1 + 4 + 9 = 14\n```",
+            "answerSha256": "ba69a4e3516da24703196875eb23d6e32e69c102b4a0bbc373bd1f43094471b4"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R19",
+      "policy": "Q",
+      "turnCount": 2,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "A rectangle is 8 cm long and 5 cm wide. What is its area?"
+        },
+        {
+          "turn": 2,
+          "text": "And what is its perimeter?"
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R19-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "A rectangle is 8 cm long and 5 cm wide. What is its area?",
+            "answer": "To find the area of the rectangle, we use the formula:\n\n$$ \\text{Area} = \\text{Length} \\times \\text{Width} $$\n\nGiven:\n*   Length = $8 \\text{ cm}$\n*   Width = $5 \\text{ cm}$\n\nSubstitute these values into the formula:\n\n$$ \\text{Area} = 8 \\times 5 = 40 \\text{ cm}^2 $$\n\n**Answer:**\nThe area of the rectangle is **40 cm²**.",
+            "answerSha256": "8612e81269cb87673e6a86e854fd0f2de701b6eef676440c31d667fe6a351761"
+          },
+          {
+            "answerId": "R19-A-t2",
+            "turn": 2,
+            "context": [
+              {
+                "role": "user",
+                "content": "A rectangle is 8 cm long and 5 cm wide. What is its area?"
+              },
+              {
+                "role": "assistant",
+                "content": "To find the area of the rectangle, we use the formula:\n\n$$ \\text{Area} = \\text{Length} \\times \\text{Width} $$\n\nGiven:\n*   Length = $8 \\text{ cm}$\n*   Width = $5 \\text{ cm}$\n\nSubstitute these values into the formula:\n\n$$ \\text{Area} = 8 \\times 5 = 40 \\text{ cm}^2 $$\n\n**Answer:**\nThe area of the rectangle is **40 cm²**."
+              }
+            ],
+            "prompt": "And what is its perimeter?",
+            "answer": "To find the perimeter of the rectangle, we use the formula:\n\n$$ \\text{Perimeter} = 2 \\times (\\text{Length} + \\text{Width}) $$\n\nGiven:\n*   Length = $8 \\text{ cm}$\n*   Width = $5 \\text{ cm}$\n\nSubstitute these values into the formula:\n\n$$ \\text{Perimeter} = 2 \\times (8 + 5) $$\n$$ \\text{Perimeter} = 2 \\times 13 $$\n$$ \\text{Perimeter} = 26 \\text{ cm} $$\n\n**Answer:**\nThe perimeter of the rectangle is **26 cm**.",
+            "answerSha256": "32f70afc5285388da4095af1597fd1c4698d52803a4186b67aec9bc67b284409"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R19-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "A rectangle is 8 cm long and 5 cm wide. What is its area?",
+            "answer": "To find the area of a rectangle, you multiply its length by its width.\n\nGiven:\n*   Length ($L$) = 8 cm\n*   Width ($W$) = 5 cm\n\nThe formula for the area is:\n$$ \\text{Area} = L \\times W $$\n\nSubstituting the given values:\n$$ \\text{Area} = 8 \\text{ cm} \\times 5 \\text{ cm} $$\n$$ \\text{Area} = 40 \\text{ cm}^2 $$\n\nThe area of the rectangle is **40 square centimeters**.",
+            "answerSha256": "9c5f07e381df293a7ea4533e059b9a815100caa39bf4c2ad63783e39f0d5043b"
+          },
+          {
+            "answerId": "R19-B-t2",
+            "turn": 2,
+            "context": [
+              {
+                "role": "user",
+                "content": "A rectangle is 8 cm long and 5 cm wide. What is its area?"
+              },
+              {
+                "role": "assistant",
+                "content": "To find the area of a rectangle, you multiply its length by its width.\n\nGiven:\n*   Length ($L$) = 8 cm\n*   Width ($W$) = 5 cm\n\nThe formula for the area is:\n$$ \\text{Area} = L \\times W $$\n\nSubstituting the given values:\n$$ \\text{Area} = 8 \\text{ cm} \\times 5 \\text{ cm} $$\n$$ \\text{Area} = 40 \\text{ cm}^2 $$\n\nThe area of the rectangle is **40 square centimeters**."
+              }
+            ],
+            "prompt": "And what is its perimeter?",
+            "answer": "To find the perimeter of a rectangle, you add the lengths of all four sides. Since opposite sides are equal in length, you can add the two lengths together and multiply by 2.\n\nGiven:\n*   Length ($L$) = 8 cm\n*   Width ($W$) = 5 cm\n\nThe formula for the perimeter is:\n$$ \\text{Perimeter} = 2 \\times (\\text{Length} + \\text{Width}) $$\n\nSubstituting the given values:\n$$ \\text{Perimeter} = 2 \\times (8 \\text{ cm} + 5 \\text{ cm}) $$\n$$ \\text{Perimeter} = 2 \\times (13 \\text{ cm}) $$\n$$ \\text{Perimeter} = 26 \\text{ cm} $$\n\nThe perimeter of the rectangle is **26 centimeters**.",
+            "answerSha256": "e267bbc3d5ec38522e70ab8aa02707c8b1287c9735c86395fd4ad940f22f8f2d"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R20",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "What is 15% of 80?"
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R20-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "What is 15% of 80?",
+            "answer": "To find 15% of 80, you can follow these simple steps:\n\n1.  **Convert the percentage to a decimal**: Divide 15 by 100.\n    $$15\\% = \\frac{15}{100} = 0.15$$\n\n2.  **Multiply the decimal by the number**:\n    $$0.15 \\times 80 = 12$$\n\nAlternatively, you can think of it as finding 15 parts out of 100, where 80 represents 100.\n$$80 \\times 0.15 = 12$$\n\n**Answer:**\n15% of 80 is **12**.",
+            "answerSha256": "449418342413c3f5012de99834f22be718e6adad7de7c5e4cb845a14ba4ac838"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R20-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "What is 15% of 80?",
+            "answer": "To find 15% of 80, you can follow these steps:\n\n1.  **Convert the percentage to a fraction or decimal:**\n    $15\\% = \\frac{15}{100} = 0.15$\n\n2.  **Multiply the number by the decimal:**\n    $80 \\times 0.15 = 80 \\times \\frac{15}{100} = \\frac{80 \\times 15}{100}$\n\n    First, multiply the numerator: $80 \\times 15 = 1200$\n    Then divide by 100: $\\frac{1200}{100} = 12$\n\n**Answer:**\n15% of 80 is **12**.",
+            "answerSha256": "31fd8b30b739d35899e550609693ee020e43cdb65d42c39900ce3eef97071d1b"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R21",
+      "policy": "Q",
+      "turnCount": 2,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "Write a short JavaScript function doubleEvens(numbers) that returns a new array containing only even input numbers, doubled, using filter and map. Show its result for [1, 2, 3, 4]."
+        },
+        {
+          "turn": 2,
+          "text": "Using that same function, what is returned for [-2, 3, 6]? Answer only with the array."
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R21-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Write a short JavaScript function doubleEvens(numbers) that returns a new array containing only even input numbers, doubled, using filter and map. Show its result for [1, 2, 3, 4].",
+            "answer": "```javascript\nfunction doubleEvens(numbers) {\n  // Filter keeps only even numbers, then doubles them\n  return numbers.filter(n => n % 2 === 0).map(n => n * 2);\n}\n\n// Result for [1, 2, 3, 4]\nconsole.log(doubleEvens([1, 2, 3, 4])); \n// Output: [2, 4, 6, 8]\n```",
+            "answerSha256": "e32a22d7ea2cdf7cc68163c4ded87328a00c7b9d89b5df0186e0d567ae48860b"
+          },
+          {
+            "answerId": "R21-A-t2",
+            "turn": 2,
+            "context": [
+              {
+                "role": "user",
+                "content": "Write a short JavaScript function doubleEvens(numbers) that returns a new array containing only even input numbers, doubled, using filter and map. Show its result for [1, 2, 3, 4]."
+              },
+              {
+                "role": "assistant",
+                "content": "```javascript\nfunction doubleEvens(numbers) {\n  // Filter keeps only even numbers, then doubles them\n  return numbers.filter(n => n % 2 === 0).map(n => n * 2);\n}\n\n// Result for [1, 2, 3, 4]\nconsole.log(doubleEvens([1, 2, 3, 4])); \n// Output: [2, 4, 6, 8]\n```"
+              }
+            ],
+            "prompt": "Using that same function, what is returned for [-2, 3, 6]? Answer only with the array.",
+            "answer": "[-6, 12, 18]",
+            "answerSha256": "579780520c84ee0e09d7add53c66d1ad0aff969c9fec0b43f0533d4912aa6399"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R21-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Write a short JavaScript function doubleEvens(numbers) that returns a new array containing only even input numbers, doubled, using filter and map. Show its result for [1, 2, 3, 4].",
+            "answer": "```js\nfunction doubleEvens(numbers) {\n  return numbers\n    .filter(n => n % 2 === 0)\n    .map(n => n * 2);\n}\n\nconsole.log(doubleEvens([1, 2, 3, 4])); // [4, 8]\n```",
+            "answerSha256": "edb8761ebe5bfbcab6cfd57edd978ae9c89994a36e492c42a106ed9d51846135"
+          },
+          {
+            "answerId": "R21-B-t2",
+            "turn": 2,
+            "context": [
+              {
+                "role": "user",
+                "content": "Write a short JavaScript function doubleEvens(numbers) that returns a new array containing only even input numbers, doubled, using filter and map. Show its result for [1, 2, 3, 4]."
+              },
+              {
+                "role": "assistant",
+                "content": "```js\nfunction doubleEvens(numbers) {\n  return numbers\n    .filter(n => n % 2 === 0)\n    .map(n => n * 2);\n}\n\nconsole.log(doubleEvens([1, 2, 3, 4])); // [4, 8]\n```"
+              }
+            ],
+            "prompt": "Using that same function, what is returned for [-2, 3, 6]? Answer only with the array.",
+            "answer": "[-4, 6]",
+            "answerSha256": "555e3e52c139213524027ce3bba44957a12d6ecc6480185e244339baf39eef6f"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R22",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "Is 17 a prime number? Reply with only yes or no."
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R22-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Is 17 a prime number? Reply with only yes or no.",
+            "answer": "Yes",
+            "answerSha256": "85a39ab345d672ff8ca9b9c6876f3adcacf45ee7c1e2dbd2408fd338bd55e07e"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R22-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Is 17 a prime number? Reply with only yes or no.",
+            "answer": "yes",
+            "answerSha256": "8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R23",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "What does this Python code print? Answer with just the output.\n\nx = [1, 2, 3, 4, 5]\nprint(x[1:4])"
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R23-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "What does this Python code print? Answer with just the output.\n\nx = [1, 2, 3, 4, 5]\nprint(x[1:4])",
+            "answer": "[2, 3, 4]",
+            "answerSha256": "d3404059a01f4426ac8962d8a2d07f4b82824293477b5c929e4303678cbf0359"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R23-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "What does this Python code print? Answer with just the output.\n\nx = [1, 2, 3, 4, 5]\nprint(x[1:4])",
+            "answer": "[2, 3, 4]",
+            "answerSha256": "d3404059a01f4426ac8962d8a2d07f4b82824293477b5c929e4303678cbf0359"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R24",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "What does a 404 error mean when I open a website?"
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R24-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "What does a 404 error mean when I open a website?",
+            "answer": "A **404 error** (often called a \"Not Found\" error) means that the browser has successfully loaded the page you are trying to access, but the server has determined that the requested URL does not exist.\n\nHere is a breakdown of what this typically indicates and how to handle it:\n\n### What it means\n*   **The URL is invalid:** The address bar shows a URL that points to a page that isn't on the website.\n*   **The page is gone:** The content of the page has been deleted, moved, or is simply not hosted on the server.\n*   **The page is cached:** The browser has cached the old version of the page, and the new version is not available.\n\n### Common Causes\n1.  **The page was deleted:** The website owner removed the page entirely.\n2.  **The page was moved:** The website moved its content to a different domain or location.\n3.  **The page was archived:** The website moved the content to a \"draft\" or \"archive\" version that is no longer live.\n4.  **The page was renamed:** The website changed its domain name (e.g., `example.com` became `example.com/new-site`).\n5.  **The page was moved to a different server:** The content was moved to a new server but the old URL is still pointing to the old server.\n\n### How to Fix It\nYou have a few options depending on your situation:\n\n*   **If you are on a website:**\n    *   **Check the URL:** Ensure the address bar shows the correct, current URL.\n    *   **Check the Domain:** Verify that the website hasn't been renamed or moved.\n    *   **Check the Server:** If you are on a local machine, try refreshing the page or checking the browser's developer tools (F12) to see if the page is actually loading.\n    *   **Contact the Website Owner:** If the page is deleted or moved, you may need to contact the website's support team to restore it.\n\n*   **If you are on a personal website:**\n    *   **Delete the Page:** You can delete the entire page from your website's content management system (CMS) or file manager.\n    *   **Use a Different URL:** If you are on a personal site, you can create a new URL for the page.\n    *   **Use a Different Domain:** If you are on a personal site, you can register a new domain name for the page.\n\n*   **If you are on a website:**\n    *   **Contact the Website Owner:** This is the most likely solution. They may have deleted the page or moved it.\n    *   **Check the URL:** Ensure the address bar shows the correct URL.\n    *   **Check the Domain:** Verify the website hasn't been renamed or moved.\n    *   **Check the Server:** If you are on a local machine, try refreshing the page or checking the browser's developer tools.\n\n### Summary\nA 404 error is a standard error code used by web servers to indicate that the requested resource is unavailable. It is generally a sign that the content has been removed, moved, or archived, and you should contact the website owner to restore the page.",
+            "answerSha256": "ea519019e32f5e6fb3aa3565aec873b9a25fc5f9bc99fda25fbbfc6dd1a27b3d"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R24-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "What does a 404 error mean when I open a website?",
+            "answer": "A **404 error** (also known as a \"Not Found\" or \"Not Found\" error) means that the website you are trying to access does not exist.\n\nHere is a breakdown of what this indicates and how to handle it:\n\n### What it means\nWhen a browser or web server encounters a 404 error, it means:\n1.  **The URL is incorrect:** You are likely trying to access a page that doesn't exist on the internet.\n2.  **The page is missing:** The content (HTML, CSS, JavaScript, images, etc.) is not hosted anywhere.\n3.  **The server is down:** The server responsible for hosting the site is currently unavailable.\n\n### Common Causes\n*   **The page is deleted:** The website was moved, deleted, or shut down.\n*   **The page is offline:** The site is currently down.\n*   **The page is behind a login:** If the site requires authentication to access, the user might be logged out.\n*   **The site is in a \"404 Not Found\" state:** This is a temporary state where the server is trying to load the page but cannot find it. It is usually transient and disappears after a few seconds.\n\n### How to Handle It\n*   **Don't try to \"fix\" it:** Simply do not try to access the site again. It is not a bug in your browser or internet connection.\n*   **Check your internet connection:** Ensure your computer or phone has a working internet connection.\n*   **Check the URL:** Verify that the URL you are entering is correct. If you are using a different domain than the one the site was originally hosted on, the site might not be accessible.\n*   **Check the site's status:** If the site is currently down, check the site's status page or contact support.\n\n### What to do next\nIf you are experiencing this:\n1.  **Check your internet connection.**\n2.  **Try a different browser.**\n3.  **Try a different device.**\n4.  **Check the site's status page** (if it has one).\n5.  **Contact the site's support team** if you are certain the site is down.\n\n**Summary:** A 404 error indicates that the website you are trying to visit is not accessible. It is not a problem with your computer or internet; it is a problem with the website itself.",
+            "answerSha256": "2ce8da1ebb6f69e0507892a470d4f7be1d61b7319bd16b8bc3a86b2c60f848fc"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R25",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "List four countries in South America as a numbered list, with no other text."
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R25-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "List four countries in South America as a numbered list, with no other text.",
+            "answer": "1. Brazil\n2. Argentina\n3. Chile\n4. Peru",
+            "answerSha256": "fca57324d73cc146d393fe28a647166ede5b3890c1859330440cabe110b96802"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R25-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "List four countries in South America as a numbered list, with no other text.",
+            "answer": "1. Brazil\n2. Argentina\n3. Chile\n4. Uruguay",
+            "answerSha256": "c2627d4930a987dc7109d6b026343c7027c0ae6e3834246f87a1c4163a2a2844"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R26",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "Return only a JSON object with the keys \"city\" and \"country\" for the location of the Eiffel Tower."
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R26-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Return only a JSON object with the keys \"city\" and \"country\" for the location of the Eiffel Tower.",
+            "answer": "{\"city\": \"Paris\", \"country\": \"France\"}",
+            "answerSha256": "5d6843b455df809255f97392dfb09e2f6bc5cbb4da40ee2b4e02a865b34d8c4b"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R26-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Return only a JSON object with the keys \"city\" and \"country\" for the location of the Eiffel Tower.",
+            "answer": "{\n  \"city\": \"Paris\",\n  \"country\": \"France\"\n}",
+            "answerSha256": "5116cc1d4c6a28e47e99eb1181015755719d13f9d450460e2a415efdda9590f2"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R27",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "What is 17 times 24?"
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R27-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "What is 17 times 24?",
+            "answer": "To find the product of 17 and 24, we can use the standard multiplication algorithm:\n\n1.  **Set up the multiplication**:\n    $$17 \\times 24$$\n\n2.  **Multiply the ones column**:\n    $$7 \\times 4 = 28$$\n    Write down the **8** and carry the **2** to the tens column.\n\n3.  **Multiply the tens column**:\n    $$7 \\times 2 = 14$$\n    Add the carried 2: $14 + 2 = 16$\n    Write down the **6** and carry the **1** to the hundreds column.\n\n4.  **Multiply the hundreds column**:\n    $$1 \\times 2 = 2$$\n    Add the carried 1: $2 + 1 = 3$\n    Write down the **3** in the hundreds place.\n\n5.  **Combine the results**:\n    $$368$$\n\n**Answer:**\n$$17 \\times 24 = 408$$",
+            "answerSha256": "7f00c8a186ab90522e893661f19be1eb27747e9bc8109d80aad272efbef585a1"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R27-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "What is 17 times 24?",
+            "answer": "To find the product of 17 and 24, you can multiply them directly or break it down into factors:\n\n1.  **Direct multiplication**:\n    $$17 \\times 24 = 17 \\times (20 + 4)$$\n    $$= 17 \\times 20 + 17 \\times 4$$\n    $$= 340 + 68$$\n    $$= 408$$\n\n2.  **Breakdown**:\n    $$17 \\times 24 = 17 \\times 24$$\n    $$= 408$$\n\n**Answer:** 17 times 24 equals **408**.",
+            "answerSha256": "849b990e7665ecb053a921f51d6dbeb53d641e058a3fbc0bb246ca4ccce73cfc"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R28",
+      "policy": "Q",
+      "turnCount": 2,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "I have 20 cookies and eat 4. How many are left?"
+        },
+        {
+          "turn": 2,
+          "text": "If I share the rest equally among 8 friends, how many does each friend get?"
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R28-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "I have 20 cookies and eat 4. How many are left?",
+            "answer": "If you start with 20 cookies and eat 4, you can subtract the amount eaten from the total count.\n\n$20 - 4 = 16$\n\nSo, there are **16** cookies left.",
+            "answerSha256": "544465d0b0488f84f1b74567ea93d2873b7889a5284e7f5b88d833cf7cecd074"
+          },
+          {
+            "answerId": "R28-A-t2",
+            "turn": 2,
+            "context": [
+              {
+                "role": "user",
+                "content": "I have 20 cookies and eat 4. How many are left?"
+              },
+              {
+                "role": "assistant",
+                "content": "If you start with 20 cookies and eat 4, you can subtract the amount eaten from the total count.\n\n$20 - 4 = 16$\n\nSo, there are **16** cookies left."
+              }
+            ],
+            "prompt": "If I share the rest equally among 8 friends, how many does each friend get?",
+            "answer": "To find out how many each friend gets, we first need to determine how many cookies are left after eating.\n\n1.  **Calculate the remaining cookies:**\n    $20 - 4 = 16$ cookies.\n\n2.  **Divide the remaining cookies among the friends:**\n    There are 16 cookies and 8 friends. To find the amount each friend gets, we divide 16 by 8.\n\n    $16 \\div 8 = 2$\n\nEach friend gets **2** cookies.",
+            "answerSha256": "9e086c9e093b508765701842030e2b98e73ad97993fae1a01c6e9c5003b76cc8"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R28-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "I have 20 cookies and eat 4. How many are left?",
+            "answer": "To find out how many cookies are left, we can subtract the number eaten from the total number of cookies.\n\nYou started with **20** cookies. You ate **4**.\n\n$$20 - 4 = 16$$\n\nThere are **16** cookies left.",
+            "answerSha256": "4f33fce37a82d497f36324924b9cc13bc3ab95645eb6c4cd23c34eb6302c82d8"
+          },
+          {
+            "answerId": "R28-B-t2",
+            "turn": 2,
+            "context": [
+              {
+                "role": "user",
+                "content": "I have 20 cookies and eat 4. How many are left?"
+              },
+              {
+                "role": "assistant",
+                "content": "To find out how many cookies are left, we can subtract the number eaten from the total number of cookies.\n\nYou started with **20** cookies. You ate **4**.\n\n$$20 - 4 = 16$$\n\nThere are **16** cookies left."
+              }
+            ],
+            "prompt": "If I share the rest equally among 8 friends, how many does each friend get?",
+            "answer": "To find out how many each friend gets, we first need to determine how many cookies are left after eating.\n\n1.  **Calculate the remaining cookies**:\n    You started with 20 cookies and ate 4.\n    $$20 - 4 = 16 \\text{ cookies left}$$\n\n2.  **Divide the remaining cookies among the friends**:\n    You have 16 cookies to share equally with 8 friends.\n    $$16 \\div 8 = 2$$\n\nEach friend gets **2** cookies.",
+            "answerSha256": "138e3280f5613129bbf14a00e6ec41090638f7c176d56a7942c248658ba416ee"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R29",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "How many kilometers is 5 miles?"
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R29-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "How many kilometers is 5 miles?",
+            "answer": "To convert miles to kilometers, you can use the standard conversion factor: **1 mile is approximately equal to 1.60934 kilometers**.\n\nHere is the step-by-step calculation:\n\n1.  Start with the given value: **5 miles**.\n2.  Multiply by the conversion factor: $5 \\times 1.60934$.\n3.  The result is approximately **8.0467 kilometers**.\n\nDepending on the required precision (e.g., 2 decimal places), this would be **8.05 km**.",
+            "answerSha256": "afc33c3b6f166cfc83247906c27447e85b0d0d588551b1877684b51e6f8c3f30"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R29-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "How many kilometers is 5 miles?",
+            "answer": "To convert miles to kilometers, we use the standard conversion factor:\n$$1 \\text{ mile} \\approx 1.60934 \\text{ kilometers}$$\n\nFor a quick estimate, you can multiply the number of miles by **1.6**.\n\n$$5 \\times 1.6 = 8.0$$\n\nTherefore, **5 miles is approximately 8 kilometers**.",
+            "answerSha256": "024374101e0fc8af74c5906acd539558e7a1d7fbbf57971530b5ea5e67e1e8ce"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R30",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "What does this JavaScript code log? Answer with just the output.\n\nconst nums = [5, 1, 10];\nnums.sort();\nconsole.log(nums);"
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R30-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "What does this JavaScript code log? Answer with just the output.\n\nconst nums = [5, 1, 10];\nnums.sort();\nconsole.log(nums);",
+            "answer": "[1, 5, 10]",
+            "answerSha256": "3b83a7d25b04fc785240fda4f1cc4b5fb4ced3b992d182eb4dc7362fdea0e8da"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R30-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "What does this JavaScript code log? Answer with just the output.\n\nconst nums = [5, 1, 10];\nnums.sort();\nconsole.log(nums);",
+            "answer": "[1, 5, 10]",
+            "answerSha256": "3b83a7d25b04fc785240fda4f1cc4b5fb4ced3b992d182eb4dc7362fdea0e8da"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R31",
+      "policy": "S",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "Summarize this in exactly two bullet points:\n\nBrightHome is recalling about 12,000 SmoothHeat space heaters sold between June and August. The heaters can overheat on the highest setting, creating a fire risk. No injuries have been reported. Owners should stop using the heaters right away and contact BrightHome for a free replacement."
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R31-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Summarize this in exactly two bullet points:\n\nBrightHome is recalling about 12,000 SmoothHeat space heaters sold between June and August. The heaters can overheat on the highest setting, creating a fire risk. No injuries have been reported. Owners should stop using the heaters right away and contact BrightHome for a free replacement.",
+            "answer": "- BrightHome is recalling 12,000 SmoothHeat space heaters sold between June and August due to overheating on the highest setting, which poses a fire risk.\n- No injuries have been reported, but owners should stop using the heaters immediately and contact BrightHome for a free replacement.",
+            "answerSha256": "45a59f52c59ae7b489350b481339c28b86638bbb966c64c2abbb0d8102ab6841"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R31-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Summarize this in exactly two bullet points:\n\nBrightHome is recalling about 12,000 SmoothHeat space heaters sold between June and August. The heaters can overheat on the highest setting, creating a fire risk. No injuries have been reported. Owners should stop using the heaters right away and contact BrightHome for a free replacement.",
+            "answer": "- BrightHome recalls 12,000 SmoothHeat space heaters sold between June and August due to overheating on the highest setting, which poses a fire risk; however, no injuries have been reported.\n- Owners should immediately stop using the heaters and contact BrightHome for a free replacement.",
+            "answerSha256": "ac6d8ad0ba3630939e03a65ef5ed029901dff89745333dc97c4016bcf7e51d50"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R32",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "Who wrote Pride and Prejudice?"
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R32-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Who wrote Pride and Prejudice?",
+            "answer": "*Pride and Prejudice* was written by **Jane Austen**.\n\nShe is a renowned English novelist and playwright who is best known for her novels, most notably *Pride and Prejudice* (1813), *Sense and Sensibility* (1811), and *Emma* (1805). Austen is considered one of the most influential writers of the 19th century, known for her witty dialogue, sharp social commentary, and intricate character development.",
+            "answerSha256": "8682301ecc51a5ac676f6405fbc4c087428761bb8106e14ae771c12dd01de149"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R32-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Who wrote Pride and Prejudice?",
+            "answer": "**Jane Austen** wrote *Pride and Prejudance*.\n\nShe is the author of the famous novel *Pride and Prejudance*, which was first published in 1813. Austen was born in 1775 and died in 1840. She was a prominent English novelist and essayist, and her work is considered one of the most influential novels in the English language.",
+            "answerSha256": "c2a1c96fe0fb9fb1dd1bb40d789f54461a421176753fca77422238978732e860"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R33",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "What does HTTP stand for?"
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R33-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "What does HTTP stand for?",
+            "answer": "**HTTP** stands for **HyperText Transfer Protocol**.\n\nIt is the standard protocol used for transferring data over the internet. Developed by Tim Berners-Lee in 1989, it is the foundation of the World Wide Web. HTTP defines how web pages are sent and received, including methods like GET (to retrieve data) and POST (to send data).",
+            "answerSha256": "88cad31839c9bb7b366e629e24f422d299eb673a1fdba5fc17a30a9bbe85dce5"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R33-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "What does HTTP stand for?",
+            "answer": "**HTTP** stands for **HyperText Transfer Protocol**.\n\nIt is the standard protocol used for transmitting data over the internet. Think of it as the \"language\" that computers use to talk to each other, much like the English language. It defines how data is structured, formatted, and sent between web servers, web browsers, and other applications.",
+            "answerSha256": "f2654cc8d55adff64225adc4709f03fae64b2b469a8f8ce96ddac009aeacd649"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R34",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "Convert 100 degrees Fahrenheit to Celsius."
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R34-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Convert 100 degrees Fahrenheit to Celsius.",
+            "answer": "To convert 100 degrees Fahrenheit to Celsius, you can use the standard formula:\n\n$$C = (F - 32) \\times \\frac{5}{9}$$\n\nSubstituting the given value:\n\n$$C = (100 - 32) \\times \\frac{5}{9}$$\n$$C = 68 \\times \\frac{5}{9}$$\n$$C = \\frac{340}{9}$$\n$$C \\approx 37.777...$$\n\nRounded to two decimal places, the result is **37.78°C**.",
+            "answerSha256": "0c69b867b8fa3c53bb9a9d054e982baa08671d18c2ac63241f3cc055d343f2b2"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R34-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Convert 100 degrees Fahrenheit to Celsius.",
+            "answer": "To convert 100 degrees Fahrenheit to Celsius, we use the standard conversion formula:\n\n$$C = (F - 32) \\times \\frac{5}{9}$$\n\n**Step-by-Step Calculation:**\n\n1.  **Subtract 32 from the Fahrenheit temperature:**\n    $$100 - 32 = 68$$\n\n2.  **Multiply the result by 5:**\n    $$68 \\times 5 = 340$$\n\n3.  **Divide by 9:**\n    $$340 \\div 9 \\approx 37.777...$$\n\nRounding to two decimal places, we get approximately **37.78°C**.\n\n*(Note: If you need an integer, 37.78°C is the precise answer.)*\n\n**Answer:**\n100°F is approximately **37.78°C**.",
+            "answerSha256": "15565df5904dad8209bd55f010663a5cf81378e95048a9809071cf77a427bbdc"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R35",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "How many seconds are in 2.5 hours?"
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R35-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "How many seconds are in 2.5 hours?",
+            "answer": "To convert hours into seconds, we use the standard conversion factor:\n$$1 \\text{ hour} = 3600 \\text{ seconds}$$\n\nHere is the step-by-step calculation:\n\n1.  Multiply the number of hours by the number of seconds in an hour:\n    $$2.5 \\times 3600$$\n\n2.  Perform the multiplication:\n    $$2.5 \\times 3600 = 9000$$\n\n**Answer:**\nThere are **9,000** seconds in 2.5 hours.",
+            "answerSha256": "9d12098d0fb0c8515f153bf9b74d33416c34a4dfc61c7988887e6b23632137a4"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R35-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "How many seconds are in 2.5 hours?",
+            "answer": "To convert hours to seconds, we use the standard conversion factor: there are 60 seconds in one minute, and there are 60 minutes in one hour.\n\nTherefore, the conversion factor is:\n$$1 \\text{ hour} = 60 \\times 60 = 3,600 \\text{ seconds}$$\n\nTo find the number of seconds in 2.5 hours, multiply 2.5 by 3,600:\n$$2.5 \\times 3,600 = 9,000$$\n\nThere are **9,000** seconds in 2.5 hours.",
+            "answerSha256": "834c12d983bf3df32f58d57854cd88f75425622347d328f38aa043fa67c96fa1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R36",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "What is the difference between weather and climate?"
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R36-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "What is the difference between weather and climate?",
+            "answer": "The difference between **weather** and **climate** lies in the scale of observation and the time period over which they are measured. Here is a breakdown of the distinctions:\n\n### 1. Weather vs. Climate\n\n| Feature | Weather | Climate |\n| :--- | :--- | :--- |\n| **Definition** | The short-term atmospheric conditions (temperature, precipitation, wind, etc.) at a specific location. | The statistical average of weather conditions over a long period. |\n| **Timeframe** | **Daily to seasonal** (e.g., \"It's raining now,\" \"It's hot today\"). | **Long-term** (e.g., \"The average temperature in London is 8°C,\" \"The average rainfall in the Pacific Northwest is 1000mm\"). |\n| **Frequency** | Changes rapidly; can vary from day to day or even from week to week. | Changes slowly; reflects the average over many years. |\n| **Examples** | \"It's 72°F (22°C) and windy today.\" | \"The average temperature in the Pacific Northwest is 10°C (50°F).\" |\n| **Key Characteristics** | Varies widely due to local geography, human activity, and weather systems. | Consistent and relatively stable over decades. |\n\n### 2. Key Differences in Detail\n\n*   **Scale**: Weather is the \"what\" and \"how\" of the immediate environment. Climate is the \"how much\" and \"how long\" of the environment.\n*   **Variability**: Weather is highly variable. It is influenced by local factors (topography, vegetation) and human actions (pollution, industry). Climate is more stable but still influenced by global factors like latitude, altitude, and ocean currents.\n*   **Measurement**: Weather is measured daily or weekly. Climate is measured over decades or centuries.\n*   **Impact**: Weather affects daily life, recreation, and immediate survival. Climate affects agriculture, tourism, and long-term planning.\n\n### 3. The Relationship Between Them\n\nWhile they are distinct, they are closely linked:\n*   **Local Weather** is the result of local climate and geography.\n*   **Climate** is the result of global climate patterns (like the greenhouse effect) and local weather patterns.\n*   **Climate Change** refers to the long-term shift in climate patterns, which can have immediate effects on weather (e.g., more extreme weather events) but also long-term impacts on agriculture and ecosystems.\n\n**In summary**: Weather is the **current** state of the atmosphere, while climate is the **average** state over many years.",
+            "answerSha256": "fa6d45096e0ddaee205c6b5681eae9061ec57dc0546cef9e7b41ae2b182cad54"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R36-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "What is the difference between weather and climate?",
+            "answer": "The primary difference between **weather** and **climate** lies in the **time scale** and the **scope** of the observations involved.\n\nHere is a breakdown of the distinctions:\n\n### 1. Time Scale\n*   **Weather** refers to the **short-term** state of the atmosphere. It describes what is happening *right now* or in the next few hours, days, or weeks. It is dynamic and changes rapidly.\n*   **Climate** refers to the **long-term** average conditions that a region experiences over a long period, typically **30 years or more**. It is static and represents the typical conditions over many years.\n\n### 2. Scope of Observation\n*   **Weather** is observed at a **specific location** at a specific moment in time. For example, \"It is raining in the city center right now.\"\n*   **Climate** is observed at a **specific location** over a **long period** (usually 30 years). For example, \"The average temperature in this region is 7°C.\"\n\n### 3. Examples\nTo make the difference clearer, consider these scenarios:\n*   **Weather:** \"The weather in London is changing rapidly today; it is getting hotter and the wind is stronger.\"\n*   **Climate:** \"London's average temperature is 12°C, and its average rainfall is 400mm per year.\"\n\n### Summary Table\n\n| Feature | Weather | Climate |\n| :--- | :--- | :--- |\n| **Time Scale** | Short-term (hours to years) | Long-term (30+ years) |\n| **Focus** | Current conditions | Average conditions |\n| **Observation** | At a specific point in time | Over a long period |\n| **Example** | \"It is raining in the rainforest.\" | \"The rainforest has a humid climate.\" |\n\nIn short, **weather** is the \"what is happening right now,\" while **climate** is the \"what the region is generally like over time.\"",
+            "answerSha256": "d3a8348a2dfd66f83eb12d8eecb72df5acc0b830ac9549bc8330cb82c05b4f62"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R37",
+      "policy": "Q",
+      "turnCount": 2,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "Write a short Python function is_palindrome(s) that checks if a string reads the same forwards and backwards, ignoring case. Just the code."
+        },
+        {
+          "turn": 2,
+          "text": "What does it return for \"Racecar\"?"
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R37-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Write a short Python function is_palindrome(s) that checks if a string reads the same forwards and backwards, ignoring case. Just the code.",
+            "answer": "def is_palindrome(s):\n    \"\"\"\n    Checks if a string reads the same forwards and backwards, ignoring case.\n    \n    Parameters:\n        s (str): The input string to check.\n    \n    Returns:\n        bool: True if the string is a palindrome, False otherwise.\n    \"\"\"\n    return s == s[::-1]",
+            "answerSha256": "ab478e610f75e1003dccdc2b960a6c1b1d47e36e3ae156bd1ca1ecd52aca4b40"
+          },
+          {
+            "answerId": "R37-A-t2",
+            "turn": 2,
+            "context": [
+              {
+                "role": "user",
+                "content": "Write a short Python function is_palindrome(s) that checks if a string reads the same forwards and backwards, ignoring case. Just the code."
+              },
+              {
+                "role": "assistant",
+                "content": "def is_palindrome(s):\n    \"\"\"\n    Checks if a string reads the same forwards and backwards, ignoring case.\n    \n    Parameters:\n        s (str): The input string to check.\n    \n    Returns:\n        bool: True if the string is a palindrome, False otherwise.\n    \"\"\"\n    return s == s[::-1]"
+              }
+            ],
+            "prompt": "What does it return for \"Racecar\"?",
+            "answer": "`True`",
+            "answerSha256": "0d4ce9a862a327ce5af34aa82b0a1cf3ce0bb1c90f0851d49fab0d12795ac540"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R37-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Write a short Python function is_palindrome(s) that checks if a string reads the same forwards and backwards, ignoring case. Just the code.",
+            "answer": "def is_palindrome(s):\n    \"\"\"\n    Checks if a string reads the same forwards and backwards, ignoring case.\n    Returns True if the string is a palindrome, False otherwise.\n    \"\"\"\n    # Convert to lowercase and remove non-alphanumeric characters to handle spaces and punctuation\n    cleaned = ''.join(c.lower() for c in s if c.isalnum())\n    \n    # Check if the cleaned string is the same forwards and backwards\n    return cleaned == cleaned[::-1]",
+            "answerSha256": "3bfb0e53e9f0bd36caf568625be279033a2f738fd681ce35a1c159c868f2df68"
+          },
+          {
+            "answerId": "R37-B-t2",
+            "turn": 2,
+            "context": [
+              {
+                "role": "user",
+                "content": "Write a short Python function is_palindrome(s) that checks if a string reads the same forwards and backwards, ignoring case. Just the code."
+              },
+              {
+                "role": "assistant",
+                "content": "def is_palindrome(s):\n    \"\"\"\n    Checks if a string reads the same forwards and backwards, ignoring case.\n    Returns True if the string is a palindrome, False otherwise.\n    \"\"\"\n    # Convert to lowercase and remove non-alphanumeric characters to handle spaces and punctuation\n    cleaned = ''.join(c.lower() for c in s if c.isalnum())\n    \n    # Check if the cleaned string is the same forwards and backwards\n    return cleaned == cleaned[::-1]"
+              }
+            ],
+            "prompt": "What does it return for \"Racecar\"?",
+            "answer": "`is_palindrome(\"Racecar\")` returns **False**.\n\nHere is the breakdown:\n1.  **Lowercase**: The string is converted to \"racecar\".\n2.  **Remove non-alphanumeric**: The string remains \"racecar\" (no spaces or punctuation to remove).\n3.  **Reverse**: The reversed string is \"carrecra\".\n4.  **Comparison**: \"racecar\" != \"carrecra\".\n\nTherefore, the function returns **False**.",
+            "answerSha256": "526c6d3d46538f4890eecb0e479c181e2d5c5bad39e50c698b033d77fce8d9b9"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R38",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "What is the chemical symbol for gold?"
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R38-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "What is the chemical symbol for gold?",
+            "answer": "The chemical symbol for gold is **Au**.\n\nThis symbol is derived from the Latin word *aurum*, which means \"gold.\" It is the standard abbreviation used in chemistry, metallurgy, and industry.",
+            "answerSha256": "5f64713b211ee4b6a6bfeff6a333cddd11fd2b40f87f19e14ca52f8f0713bcb3"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R38-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "What is the chemical symbol for gold?",
+            "answer": "The chemical symbol for gold is **Au**.\n\nThis symbol is derived from the Latin word *aurum*, which means \"gold.\" In the periodic table, gold is located in the transition metals group (Group 11) and is represented by the letter **A** (for aurum) followed by the letter **U** (for gold).",
+            "answerSha256": "6dbafa5f9fe4ef6b3ed433b9c28fcd309587e5cf15ff58bab5c805830871426d"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R39",
+      "policy": "Q",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "A jacket costs $80 and is 25% off. What is the sale price?"
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R39-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "A jacket costs $80 and is 25% off. What is the sale price?",
+            "answer": "To find the sale price, we need to calculate the amount that is **not** off the original price.\n\n1.  **Identify the original price:** $80.\n2.  **Identify the discount percentage:** 25%.\n3.  **Calculate the discount amount:**\n    $$80 \\times 0.25 = 20$$\n    So, the jacket is $20 off.\n4.  **Calculate the sale price:**\n    $$80 - 20 = 60$$\n\nThe sale price is **$60**.",
+            "answerSha256": "37a6d93f4d34ef8f908ebfb645ef2271aeb17a5d2cb03ee7e51ea72fa26837e4"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R39-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "A jacket costs $80 and is 25% off. What is the sale price?",
+            "answer": "To find the sale price, we need to calculate the amount that is being subtracted from the original price.\n\n1.  **Identify the original price:** The jacket costs **$80**.\n2.  **Identify the discount:** The jacket is **25% off**.\n3.  **Calculate the discount amount:** To find 25% of $80, you can multiply the price by 0.25 or divide by 4.\n    $$80 \\times 0.25 = 20$$\n    So, the discount is **$20**.\n4.  **Calculate the sale price:** Subtract the discount from the original price.\n    $$80 - 20 = 60$$\n\nThe sale price is **$60**.",
+            "answerSha256": "ccdec5d446c67b8d87e1ae03c4cee841714c8bc43f4cf95dee9cf310ffe40acc"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R40",
+      "policy": "S",
+      "turnCount": 1,
+      "prompts": [
+        {
+          "turn": 1,
+          "text": "Fix the spelling and grammar in this sentence and reply with only the corrected sentence:\n\nTheir going to the store tomorow to by some apple's."
+        }
+      ],
+      "answers": {
+        "A": [
+          {
+            "answerId": "R40-A-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Fix the spelling and grammar in this sentence and reply with only the corrected sentence:\n\nTheir going to the store tomorow to by some apple's.",
+            "answer": "They are going to the store tomorrow to buy some apples.",
+            "answerSha256": "8a6803b43955577145057f3df3ce4c58e93e393fe57485f2269ec389c9cfc35c"
+          }
+        ],
+        "B": [
+          {
+            "answerId": "R40-B-t1",
+            "turn": 1,
+            "context": [],
+            "prompt": "Fix the spelling and grammar in this sentence and reply with only the corrected sentence:\n\nTheir going to the store tomorow to by some apple's.",
+            "answer": "They are going to the store tomorrow to buy some apples.",
+            "answerSha256": "8a6803b43955577145057f3df3ce4c58e93e393fe57485f2269ec389c9cfc35c"
+          }
+        ]
+      }
+    }
+  ]
+}
