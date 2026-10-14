@@ -1,0 +1,6 @@
+{
+  "contract.json": "sha256:604da82c3efc876cfa4d33ec8d491d5a7bf3c0885975fc36786dd5898ce1db4a",
+  "partition-0.json": "sha256:862147b596b85b4e8a613c157c04e96f583f796171ea8a4064cd20ac011976c9",
+  "partition-1.json": "sha256:d84531ddcf4eea6afee2adef6a5ea9d3094992e496422a6f5078313864a818fb",
+  "partition-2.json": "sha256:185d5f07bd6c6dd26919b9da0012a752c982a663e079ed151c446d81d628f0c5"
+}

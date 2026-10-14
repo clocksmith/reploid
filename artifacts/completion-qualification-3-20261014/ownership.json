@@ -1,0 +1,123 @@
+{
+  "schema": "reploid.campaign-ownership/v1",
+  "scope": "Owned campaign processes only; public contributors (amd-host 4103868, 4121371; intel-host 297260, 299769) were never addressed and kept the same PIDs throughout",
+  "mac-host": {
+    "deliveryServer": {
+      "pid": 11458,
+      "ports": "127.0.0.1:29850, 29851",
+      "started": "2026-10-14T12:43:4xZ (attempt a)",
+      "stopped": "2026-10-14T13:19:44Z SIGTERM",
+      "reusedBy": [
+        "a2",
+        "b"
+      ]
+    },
+    "tunnels": {
+      "amd": {
+        "pid": 11339,
+        "local": "127.0.0.1:29994 to amd-host 127.0.0.1:29992"
+      },
+      "intel": {
+        "pid": 11342,
+        "local": "127.0.0.1:29995 to intel-host 127.0.0.1:29992"
+      },
+      "stopped": "2026-10-14T13:19:44Z SIGTERM"
+    },
+    "identityObservation": {
+      "tool": "observe-identity.js",
+      "browser": "own Chromium launch (pid 12236)",
+      "window": "2026-10-14T12:45:3xZ to 12:46Z",
+      "tokens": 0
+    },
+    "browserOwners": {
+      "a": "mac-owner.js, CDP 127.0.0.1:29993, closed by <attempt>/mac-preflight.json.stop",
+      "a2": "mac-owner.js, CDP 127.0.0.1:29993, closed by <attempt>/mac-preflight.json.stop",
+      "b": "mac-owner.js, CDP 127.0.0.1:29993, closed by <attempt>/mac-preflight.json.stop"
+    }
+  },
+  "attempts": {
+    "a2": {
+      "amd-host": {
+        "nativeUnit": "reploid-cold-reference-20261013.scope",
+        "serverUnit": "rq3a2-server.scope",
+        "supervisorPid": 1231621,
+        "providerPid": 1231661,
+        "providerStarted": "2026-10-14T12:46:25.518Z",
+        "providerExit": {
+          "at": "2026-10-14T13:02:30.925Z",
+          "code": 0,
+          "signal": null
+        },
+        "serverStopped": "after controller exit, systemctl --user stop",
+        "sampler": "observe-host.py, timeout 1800, stopped with the server"
+      },
+      "intel-host": {
+        "nativeUnit": "reploid-cold-reference-20261013.scope",
+        "serverUnit": "rq3a2-server.scope",
+        "supervisorPid": 1397095,
+        "providerPid": 1397114,
+        "providerStarted": "2026-10-14T12:46:29.931Z",
+        "providerExit": {
+          "at": "2026-10-14T13:02:36.950Z",
+          "code": 0,
+          "signal": null
+        },
+        "serverStopped": "after controller exit, systemctl --user stop",
+        "sampler": "observe-host.py, timeout 1800, stopped with the server"
+      }
+    },
+    "b": {
+      "amd-host": {
+        "nativeUnit": "reploid-cold-reference-20261013.scope",
+        "serverUnit": "rq3b-server.scope",
+        "supervisorPid": 1463873,
+        "providerPid": 1463913,
+        "providerStarted": "2026-10-14T13:03:58.952Z",
+        "providerExit": {
+          "at": "2026-10-14T13:19:08.439Z",
+          "code": 0,
+          "signal": null
+        },
+        "serverStopped": "after controller exit, systemctl --user stop",
+        "sampler": "observe-host.py, timeout 1800, stopped with the server"
+      },
+      "intel-host": {
+        "nativeUnit": "reploid-cold-reference-20261013.scope",
+        "serverUnit": "rq3b-server.scope",
+        "supervisorPid": 1421268,
+        "providerPid": 1421285,
+        "providerStarted": "2026-10-14T13:04:03.538Z",
+        "providerExit": {
+          "at": "2026-10-14T13:19:04.253Z",
+          "code": 0,
+          "signal": null
+        },
+        "serverStopped": "after controller exit, systemctl --user stop",
+        "sampler": "observe-host.py, timeout 1800, stopped with the server"
+      }
+    },
+    "a": {
+      "amd-host": {
+        "firstLaunch": "rq3a-native refused by observe-native.js (scope name pinned); server rq3a-server pid 1184057 stopped; logs kept as attempt1-*",
+        "secondLaunch": {
+          "supervisorPid": 1190189,
+          "providerPid": 1190227,
+          "serverPid": 1190188,
+          "started": "2026-10-14T12:43:23Z",
+          "stopped": "2026-10-14T12:45:1xZ systemctl stop after the fail-closed identity refusal"
+        }
+      },
+      "intel-host": {
+        "firstLaunch": "rq3a-native refused likewise; server pid 1390067 stopped; logs kept as attempt1-*",
+        "secondLaunch": {
+          "supervisorPid": 1390604,
+          "providerPid": 1390622,
+          "serverPid": 1390603,
+          "started": "2026-10-14T12:43:27Z",
+          "stopped": "2026-10-14T12:45:1xZ systemctl stop after the fail-closed identity refusal"
+        }
+      },
+      "outcome": "Controller refused stage 0 before any token: live execution identity sha256:c4819f17... differed from the hand-rebuilt sha256:d74228b3...; natives were never connected"
+    }
+  }
+}

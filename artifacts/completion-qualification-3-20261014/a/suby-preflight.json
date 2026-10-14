@@ -1,0 +1,12 @@
+{
+  "executorId": "suby-stage-2",
+  "platform": "intel-host:node-dawn",
+  "endpoint": "ws://127.0.0.1:29995/6c7fc5a3-e0f9-4d56-a838-a8d70ad00d1e",
+  "pid": 1390622,
+  "executableIdentity": {
+    "path": "/usr/bin/node",
+    "sha256": "29e9c28204d89d85cc426b518b4a7c6e32aafecd5e447d65301ffb2c1c15335a",
+    "sizeBytes": 123351032
+  },
+  "observedAt": "2026-10-14T12:43:58.079Z"
+}
