@@ -71,23 +71,25 @@ rejects('another model chosen', 'modelChoice', report => { report.modelChoice.se
 rejects('approved recipients that differ from the frozen route', 'recipientApproval', report => {
   last(report).authorization.route = routeOf([PEERS.mac, PEERS.amd, PEERS.tabA]);
 });
-rejects('an attempt not approved in its review', 'recipientApproval', report => { report.turns[0].attempts[0].authorization.source = 'send'; });
-// Informed consent: the stored authorization must equal what the person was shown before Approve.
-rejects('an approval with no recorded review', 'recipientApproval', report => { report.reviews = report.reviews.filter(row => row.attemptId !== 'a1'); },
-  /Turn1 has no recorded review/);
-rejects('approved recipients that differ from the displayed review', 'recipientApproval', report => {
+rejects('an attempt not sent under the stored permission', 'recipientApproval', report => { report.turns[0].attempts[0].authorization.source = 'send'; },
+  /not sent under the stored contributor permission/);
+// Informed consent: each authorization cites the one-time permission whose screen the harness recorded.
+rejects('an authorization citing no recorded permission', 'recipientApproval', report => { report.permissions = report.permissions.slice(1); },
+  /Turn1 cites no recorded contributor permission/);
+rejects('a permission screen that does not say earlier messages are sent', 'recipientApproval', report => {
+  report.permissions[0].what = "To answer, your message is sent to contributors' computers on this network.";
+}, /earlier messages and context prompt/);
+rejects('a permission screen that hides the token disclosure to later stages', 'recipientApproval', report => {
+  report.permissions[0].who = 'The first computer receives the text.';
+}, /who receives the text, tokens and intermediate results/);
+rejects('a permission stored for another disclosure kind', 'recipientApproval', report => { report.permissions[0].stored.disclosure = 'public'; },
+  /does not cover this ordered disclosure/);
+rejects('recorded recipients that differ from the dispatched route', 'recipientApproval', report => {
   report.turns[0].attempts[0].authorization.recipients = [PEERS.mac, PEERS.intel, PEERS.amd];
-}, /differ from the displayed review/);
-rejects('a displayed route that differs from the frozen route', 'recipientApproval', report => {
-  report.reviews[0].recipientIds = [PEERS.mac, PEERS.amd, PEERS.tabA]; report.turns[0].attempts[0].authorization.recipients = [PEERS.mac, PEERS.amd, PEERS.tabA];
-}, /displayed recipients differ from the frozen route/);
-rejects('a review showing raw peer identities', 'recipientApproval', report => { report.reviews[0].recipientsText += ` ${PEERS.amd}`; }, /raw identities/);
-rejects('a review without stage roles', 'recipientApproval', report => { report.reviews[0].recipientsText = 'Recipients: 3 computers'; }, /role/);
-rejects('a follow-up review that hides the earlier messages', 'recipientApproval', report => {
-  report.reviews[1].scopeText = report.reviews[0].scopeText;
-}, /earlier messages/);
-rejects('a retry approved without its own review', 'explicitRetry', report => { report.reviews = report.reviews.filter(row => row.attemptId !== 'ar'); },
-  /Retry has no recorded review/);
+}, /differ from the frozen route/);
+rejects('a retry citing no recorded permission', 'explicitRetry', report => {
+  report.permissions = report.permissions.filter(row => row.stored.id !== report.retry.final.attempts.at(-1).authorization.permissionId);
+}, /Retry cites no recorded contributor permission/);
 rejects('tabs that never executed simultaneously', 'concurrency', report => { report.concurrency.pairedSamples = [{ statuses: ['executing', 'queued'] }]; });
 // Independence was asserted through REPLOID_INSTANCE_ID, which the product route never sets (only
 // self/kernel/boot.js:160 does), so it could not pass for real independent requesters. One connected

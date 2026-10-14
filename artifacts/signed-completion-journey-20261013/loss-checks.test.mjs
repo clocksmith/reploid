@@ -72,8 +72,7 @@ rejects('a short post-failure observation', 'noSilentContinuation', report => { 
 rejects('capacity that never returned', 'explicitRetry', report => { report.capacityReturned = false; });
 rejects('a retry before capacity returned', 'explicitRetry', report => { report.retry.clickedAt = '2026-10-13T12:01:30.000Z'; });
 rejects('a retry not linked to the failure', 'explicitRetry', report => { report.retry.final.attempts[1].retryOf = null; });
-rejects('a retry approved without its own review', 'explicitRetry', report => { report.reviews = report.reviews.filter(row => row.attemptId !== 'ar2'); },
-  /Retry has no recorded review/);
+rejects('a retry citing no recorded permission', 'explicitRetry', report => { report.permissions = []; }, /Retry cites no recorded contributor permission/);
 rejects('a retry on a two-stage route', 'explicitRetry', report => {
   const execution = report.retry.final.attempts[1].execution;
   execution.identity.route.stages.pop(); execution.settlement.cleanup.pop();
