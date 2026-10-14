@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { planStageAssignment, STAGE_ASSIGNMENT_SCHEMA } from '../../packages/reploid/src/mesh/partitions/partition-stage-assignment.js';
+import { planStageAssignment, stageDemand, STAGE_ASSIGNMENT_SCHEMA, STAGE_COSTS_SCHEMA } from '../../packages/reploid/src/mesh/partitions/partition-stage-assignment.js';
 
 const model = { id: 'model', identity: 'sha256:' + 'a'.repeat(64) };
 const now = 1000;
@@ -51,5 +51,42 @@ describe('autonomous cold stage assignment policy', () => {
     const malformed = peer('y', { claim: 2 }); malformed.description.capacity = null;
     expect(plan('m', [peer('c', { ready: [0] }), bad, malformed])).toMatchObject({ index: 1, supply: [1, 0, 0] });
     expect(() => plan('m', [], 3)).toThrow('Explicit stage assignment input required');
+  });
+});
+
+describe('useful replica demand (opt-in)', () => {
+  const demand = (capabilities, bounds = {}) => stageDemand({ model, stageCount: 3, capabilities, now, maxOffersPerPeer: 4,
+    queueBound: 1, bottleneckRatio: 2, ...bounds });
+  const queued = (participantId, index, waiting) => { const row = peer(participantId, { ready: [index] });
+    row.description.capacity = { active: 2, availableSlots: 0, closed: false, queued: waiting, maxQueued: 8 }; return row; };
+  // Placement A decode per stage as measured on 2026-10-14 (artifacts/phase-timing-20261014): mac, amd, intel with the head.
+  const coordinator = (decodeMs = [559, 394, 2344]) => { const row = peer('coordinator', { ready: [0] });
+    row.description.stageCosts = { schema: STAGE_COSTS_SCHEMA, modelId: model.id, modelIdentity: model.identity, planId: 'plan', decodeMs }; return row; };
+
+  it('finds a stage whose advertised queue exceeds the bound, else the measured bottleneck', () => {
+    expect(demand([coordinator(), queued('b', 1, 3), peer('c', { ready: [2] })])).toMatchObject({ index: 1, reason: 'queue' });
+    expect(demand([coordinator(), queued('b', 1, 1), peer('c', { ready: [2] })])).toMatchObject({ index: 2, reason: 'bottleneck' });
+    expect(demand([coordinator([559, 394, 900]), peer('b', { ready: [1] })])).toMatchObject({ index: null });
+    expect(demand([coordinator([559, null, 2344])])).toMatchObject({ index: null }); // an unmeasured stage is not evidence
+  });
+
+  it('completes a missing stage before replicating, then sends the first joiner to the demanded stage', () => {
+    const wanted = { index: 2, reason: 'bottleneck' };
+    const full = [peer('coordinator', { ready: [0] }), peer('b', { ready: [1] }), peer('c', { ready: [2] })];
+    expect(plan('m', full)).toMatchObject({ index: 0, reason: 'cold-least-supplied' });
+    expect(planStageAssignment({ participantId: 'm', model, stageCount: 3, capabilities: full, now, maxOffersPerPeer: 4, demand: wanted }))
+      .toMatchObject({ index: 2, reason: 'replicate-bottleneck' });
+    const missing = [peer('coordinator', { ready: [0] }), peer('c', { ready: [2] })];
+    expect(planStageAssignment({ participantId: 'm', model, stageCount: 3, capabilities: missing, now, maxOffersPerPeer: 4, demand: wanted }))
+      .toMatchObject({ index: 1, reason: 'cold-least-supplied' });
+  });
+
+  it('moves an idle contributor to the demanded stage only while its own stage stays supplied', () => {
+    const wanted = { index: 2, reason: 'queue' }, decide = (participantId, capabilities) => planStageAssignment({ participantId, model,
+      stageCount: 3, capabilities, now, current: 1, maxOffersPerPeer: 4, demand: wanted });
+    const shared = [peer('coordinator', { ready: [0] }), peer('b', { ready: [1] }), peer('c', { ready: [2] })];
+    expect(decide('z', shared)).toMatchObject({ index: 2, move: true, reason: 'replicate-queue' });
+    expect(decide('a', shared)).toMatchObject({ index: 1, move: false }); // only the highest id leaves
+    expect(decide('z', [peer('coordinator', { ready: [0] }), peer('c', { ready: [2] })])).toMatchObject({ index: 1, move: false });
   });
 });
