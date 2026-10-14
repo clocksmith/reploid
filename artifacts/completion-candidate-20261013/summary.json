@@ -914,5 +914,8 @@
   "gpuLimitBytes": 1420000000,
   "publicPinChanged": false,
   "applicationQualified": false,
-  "performanceQualified": false
+  "performanceQualified": false,
+  "reportQualified": false,
+  "reportRejection": "report-binding-rejection.json",
+  "nextAction": "Fresh qualification with corrected pre-run graph-identity binding; original expectations and capture preserved"
 }

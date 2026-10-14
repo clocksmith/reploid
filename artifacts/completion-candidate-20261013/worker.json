@@ -1,7 +1,7 @@
 {
   "scope": "/testing/ Node-only installed contract tooling; no production browser capability change",
   "files": {
-    "freeze.js": "f1e5f6c98d5fdbccb21b5f232d8ac61dc729ff887d775535d07978207ad68a09",
+    "freeze.js": "1fb323a052a528a87cc330e03c4fdd932816579e9061381be8179f2b91e93ba4",
     "mac-owner.js": "856c8e890a7cc26f2abc4568f7ff482faf73426996e411d7ddf6af5c56e5a16f",
     "observe-native.js": "b46b38a53afb1e06de5e542e12b78044bff8e022307b06654ea959f88bf96add",
     "load-preflight/load-preflight.js": "a48e435a0f1e104b2178cf49b858bf7046b06f56f870924fdb64fb59e7358f3a"
@@ -28,7 +28,7 @@
     "events": [
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791935493447,
+        "timestamp": 1791936021593,
         "path": "/testing/freeze.js",
         "patternId": "path_traversal",
         "category": "filesystem",
@@ -37,7 +37,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791935493447,
+        "timestamp": 1791936021594,
         "path": "/testing/freeze.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -47,7 +47,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791935493447,
+        "timestamp": 1791936021594,
         "path": "/testing/freeze.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -57,7 +57,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791935493447,
+        "timestamp": 1791936021594,
         "path": "/testing/freeze.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -67,7 +67,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791935493447,
+        "timestamp": 1791936021594,
         "path": "/testing/freeze.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -77,7 +77,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791935493447,
+        "timestamp": 1791936021594,
         "path": "/testing/freeze.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -87,7 +87,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791935493447,
+        "timestamp": 1791936021594,
         "path": "/testing/freeze.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -97,7 +97,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791935493447,
+        "timestamp": 1791936021594,
         "path": "/testing/freeze.js",
         "patternId": "suspicious_variable_name",
         "category": "structural",
@@ -107,7 +107,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791935493450,
+        "timestamp": 1791936021596,
         "path": "/testing/observe-native.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -117,7 +117,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791935493453,
+        "timestamp": 1791936021600,
         "path": "/testing/load-preflight/load-preflight.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -127,7 +127,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791935493453,
+        "timestamp": 1791936021600,
         "path": "/testing/load-preflight/load-preflight.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -137,7 +137,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791935493453,
+        "timestamp": 1791936021600,
         "path": "/testing/load-preflight/load-preflight.js",
         "patternId": "suspicious_variable_name",
         "category": "structural",
@@ -147,7 +147,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791935493453,
+        "timestamp": 1791936021600,
         "path": "/testing/load-preflight/load-preflight.js",
         "patternId": "suspicious_variable_name",
         "category": "structural",
@@ -157,7 +157,7 @@
       },
       {
         "type": "complexity",
-        "timestamp": 1791935493454,
+        "timestamp": 1791936021600,
         "metric": "line_length",
         "value": 8,
         "threshold": 5,
