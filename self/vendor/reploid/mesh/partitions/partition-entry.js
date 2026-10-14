@@ -2,8 +2,9 @@ import { generationRequest, requireGenerationCapability, tokenUsage } from './pa
 import { createPartitionDataChannel } from '../../transport/partition-data-channel.js';
 import { assertPartition as assert, canonicalPartitionJson, canonicalRouteAttemptBinding, sameRouteAttemptIdentity } from './partition-contract.js';
 import { partitionActivity, summarizePartitionExecution } from './partition-summary.js';
-import { createEntryPublicationScope, entryPublicationEnvelope, matchingEntryPublication,
+import { createEntryPublicationScope, entryPublicationEnvelope, entryPublicationPort, matchingEntryPublication,
   validateEntryPublicationContext } from './partition-entry-publication.js';
+import { validateOrderedPublicationContext } from './partition-ordered-publication.js';
 
 /** Requester-to-A channel. This module imports no tokenizer, tensor codec or GPU runtime.
  * The host authenticates the channel and grants input disclosure to both stages.
@@ -32,6 +33,7 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
     if (orderedInput(m)) {
       try {
         return ordered && (m.disclosureExpiresAt === undefined || Number.isSafeInteger(m.disclosureExpiresAt) && m.disclosureExpiresAt > now()) && m.canonical === undefined && m.participantA === undefined && m.participantB === undefined
+          && (m.publication === undefined || !!validateOrderedPublicationContext(m.publication))
           && attempt(m).route.stages[0].participantId === m.coordinatorId
           && m.route.modelId === m.modelId && m.route.modelIdentity === m.modelIdentity && m.route.planId === m.planId;
       } catch { return false; }
@@ -54,7 +56,7 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
       if (metadata.operation === 'publication') {
         const sending = action === 'send' || action === 'accept';
         const request = (sending ? active : deliveries).get(metadata.attemptId)?.request;
-        return canonical && !!request && matchingEntryPublication(metadata, request)
+        return (canonical || ordered) && !!request && matchingEntryPublication(metadata, request)
           && request.requesterId === (sending ? remoteParticipantId : localParticipantId)
           && await authorize(structuredClone(request), { action }) === true;
       }
@@ -128,19 +130,19 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
           canonicalPartitionJson(model.canonical[key]) === canonicalPartitionJson(m.canonical[key])),
         'Canonical entry placement changed');
       }
+      // Ordered inputs carrying a requester context publish through the same requester-owned RPC.
+      const orderedPublished = orderedInput(m) && m.publication !== undefined;
       const publicationCall = (method, body) => endpoint.request(entryPublicationEnvelope(m, method, body),
         new Uint8Array(), { signal });
-      const publication = isCanonical ? Object.freeze({ requiresCommitEvidence: true,
-        reconcile: () => publicationCall('head', {}), admitAttempt: body => publicationCall('admit', body),
-        publish: (value, { evidence } = {}) => publicationCall('publish', { publication: value, evidence }),
-        cancel: (attemptId, coordinatorEpoch) => publicationCall('cancel', { attemptId, coordinatorEpoch }) }) : undefined;
+      const publication = isCanonical || orderedPublished ? entryPublicationPort(publicationCall) : undefined;
       retired.add(m.attemptId);
       const admission = { request: structuredClone(m), operation: null };
       active.set(m.attemptId, admission);
       let delivery = Promise.resolve(), sequence = 0, activity = null, acceptingCallbacks = true;
       const operation = Promise.resolve().then(() => service.generate({ meshId: m.meshId, participantId: m.requesterId,
         threadId: m.threadId, attemptId: m.attemptId, placementGeneration: m.placementGeneration,
-        model, ...(requested ? {generationRequest: requested} : {}), ...(orderedInput(m) && m.disclosureExpiresAt !== undefined ? {disclosureExpiresAt:m.disclosureExpiresAt} : {}), ...(isCanonical ? { canonical: structuredClone(m.canonical) } : {}), messages: structuredClone(m.messages), permissions: { sharingScope: 'approved-partition-path' } },
+        model, ...(requested ? {generationRequest: requested} : {}), ...(orderedInput(m) && m.disclosureExpiresAt !== undefined ? {disclosureExpiresAt:m.disclosureExpiresAt} : {}), ...(isCanonical ? { canonical: structuredClone(m.canonical) } : {}),
+        ...(orderedPublished ? { publication: structuredClone(m.publication) } : {}), messages: structuredClone(m.messages), permissions: { sharingScope: 'approved-partition-path' } },
       { signal, publication, requestApproval: async () => authorize(structuredClone(m), { action: 'execute' }),
         onState() {}, onActivity(value) {
           if (m.activity === undefined) return; // Older requesters did not opt in to this event.
@@ -156,7 +158,7 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
           delivery = delivery.then(() => endpoint.request(metadata, new Uint8Array(), {signal}));
           delivery.catch(() => {}); return delivery;
         }, onDelta({ text }) {
-          if (isCanonical) return; // Requester projects the durable publication RPC, never this raw callback.
+          if (isCanonical || orderedPublished) return; // Requester projects the durable publication RPC, never this raw callback.
           const delta = { operation: 'delta', requesterId: m.requesterId,
             ...(orderedInput(m) ? { coordinatorId: m.coordinatorId, identity: attempt(m) } : { participantA: m.participantA }),
             threadId: m.threadId, attemptId: m.attemptId, sequence: sequence++, text,
@@ -193,14 +195,15 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
       const isCanonical = request.canonical !== undefined, isOrdered = request.route !== undefined;
       assert(!isOrdered || ordered && !isCanonical, 'Ordered entry capability unavailable');
       assert(!isCanonical || canonical, 'Canonical entry capability unavailable');
-      assert(isCanonical || publication === undefined, 'Publication owner requires explicit canonical context');
+      assert((publication !== undefined) === (isCanonical || isOrdered && request.publication !== undefined),
+        'Publication owner requires its explicit canonical or ordered requester context');
       const metadata = { ...structuredClone(request), operation: 'generate',
         schema: isOrdered ? 'reploid.partition-input/v3' : isCanonical ? 'reploid.partition-input/v2' : 'reploid.partition-input/v1',
         ...(isOrdered && typeof onActivity === 'function' ? {activity:'reploid.partition-activity/v1'} : {}),
         requesterId: localParticipantId, ...(isOrdered ? { coordinatorId: remoteParticipantId } : { participantA: remoteParticipantId }) };
       assert(!deliveries.has(metadata.attemptId), 'Entry attempt already streaming');
       assert(valid(metadata), 'Invalid partition entry input');
-      const scope = isCanonical ? createEntryPublicationScope({ request: metadata, owner: publication, onPublished,
+      const scope = publication !== undefined ? createEntryPublicationScope({ request: metadata, owner: publication, onPublished,
         authorize: () => authorize(structuredClone(metadata), { action: 'publish' }),
         maxControlBytes: limits.maxControlBytes, maxOutputCharacters: policy.maxOutputCharacters }) : null;
       deliveries.set(metadata.attemptId, { request: metadata, sequence: 0, characters: 0, content: '', onDelta, onUsage, onActivity, activity:null, usage:null, publication: scope });
@@ -234,7 +237,7 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
           && canonicalPartitionJson(result.usage) === canonicalPartitionJson(tokenUsage(result.usage.inputTokens, result.usage.outputTokens, metadata.generationRequest)),
         'Final token usage differs from admitted observed input');
       }
-      if (isOrdered) assert(result.content === deliveries.get(metadata.attemptId).content, 'Ordered result differs from delivered text');
+      if (isOrdered && !scope) assert(result.content === deliveries.get(metadata.attemptId).content, 'Ordered result differs from delivered text');
       if (scope) {
         const projection = scope.getProjection();
         assert(projection.count > 0 && projection.terminal && result.content === projection.content, 'Entry result differs from durable publication');

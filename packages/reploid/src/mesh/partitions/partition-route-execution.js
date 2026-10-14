@@ -87,7 +87,7 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
     try { return await item.cleaning; } finally { item.cleaning = null; }
   }
 
-  async function execute({ identity, tokenIds, generation, grants, maxTokens, signal, onDelta = () => {}, onActivity = () => {} }) {
+  async function execute({ identity, tokenIds, generation, grants, maxTokens, signal, onDelta = () => {}, onActivity = () => {}, onStep = null }) {
     assert(!closed, 'Partition runner is closed');
     signal?.throwIfAborted();
     // Freeze caller-owned request data before asynchronous plan validation.
@@ -101,7 +101,8 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
       && tokenIds.every(id => Number.isSafeInteger(id) && id >= 0 && id < plan.vocabSize), 'Invalid ordered prompt allocation');
     assert(positive(maxTokens) && maxTokens <= policy.maxTokens && generation?.maxTokens === maxTokens,
       'Invalid ordered generation allocation');
-    assert(typeof onDelta === 'function' && typeof onActivity === 'function', 'Output delivery callback required');
+    assert(typeof onDelta === 'function' && typeof onActivity === 'function'
+      && (onStep === null || typeof onStep === 'function'), 'Output delivery callback required');
     assert(grants && ['execution', 'tokenContext'].every(key => Array.isArray(grants[key])
       && grants[key].length === devices.length && grants[key].every(value => value && typeof value === 'object'))
       && Array.isArray(grants.activation) && grants.activation.length === devices.length - 1
@@ -235,9 +236,14 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
           position += input.length;
           input = [final.tokenId];
           if (final.done) stopReason = final.stopReason;
-          return { delta: final.delta, done: final.done };
+          return { delta: final.delta, done: final.done, step: { sequence: index, tokenPosition: step.tokenPosition,
+            inputTokenCount: step.inputTokenCount, tokenId: final.tokenId, delta: final.delta, done: final.done,
+            stopReason: final.done ? final.stopReason : null } };
         })();
         combined.throwIfAborted();
+        // Durable requester publication precedes activity, delivery and the next
+        // step; it holds no stage lease, so other conversations keep advancing.
+        if (onStep) { await onStep(clone(delivery.step)); combined.throwIfAborted(); }
         for (const stage of steps.at(-1).stages) {
           const row = activityStages[stage.partitionIndex];
           row.steps++; row.stepMs.count++; row.stepMs.total += stage.elapsedMs;

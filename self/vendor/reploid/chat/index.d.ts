@@ -5,6 +5,7 @@ export { openCanonicalWorkspaceHistory } from './workspace-history.js';
 import type { CanonicalWorkspaceHistory } from './workspace-history.js';
 import type { CanonicalPublicationPort } from '../mesh/partitions/partition-canonical-execution.js';
 import type { EntryPublicationRecord } from '../mesh/partitions/partition-entry-publication.js';
+import type { OrderedPublicationPort } from '../mesh/partitions/partition-ordered-publication.js';
 export { createConversationPublication } from './workspace-publication.js';
 export type { TransactionalChatStore, PublicationReceipt } from './workspace-publication.js';
 export interface ChatModel {
@@ -61,6 +62,7 @@ export interface ChatResult extends ChatEnvelope {
   content: string; usage?:PartitionTokenUsage; execution?: Record<string, unknown>;
 }
 export interface ChatAttempt {
+  /** Text is authoritative only in requester-owned publication records (canonical or ordinary ordered). */
   publicationMode?: 'canonical';
   id: string;
   threadId: string;
@@ -96,7 +98,7 @@ export interface ChatState {
 export interface ChatControls {
   onActivity?(activity:ChatEnvelope & PartitionActivity):void|Promise<void>;
   onUsage?(usage:ChatEnvelope & PartitionTokenUsage):void|Promise<void>;
-  publication?:CanonicalPublicationPort;publisherEpoch?:string;onPublished?:(record:EntryPublicationRecord)=>Promise<void>;
+  publication?:CanonicalPublicationPort & OrderedPublicationPort;publisherEpoch?:string;onPublished?:(record:EntryPublicationRecord)=>Promise<void>;
   signal: AbortSignal;
   onDelta(envelope: ChatEnvelope & { text: string; sequence: number }): void;
   onState(envelope: ChatEnvelope & { status: string; execution?: Record<string, unknown> }): void;
@@ -118,7 +120,8 @@ export interface ChatWorkspaceOptions {
 }
 export interface ChatAttemptCompletion extends Promise<ChatAttempt> { readonly admitted?:Promise<void>; }
 export interface ChatWorkspace {
- authorizePublication(scope:{conversationId:string;writerEpoch:string;action:string;attempt: {attemptId:string;requesterId:string;stages?:readonly {participantId:string}[]} | null}):boolean;
+ authorizePublication(scope:{conversationId:string;writerEpoch:string;action:string;attempt: {attemptId:string;requesterId:string;
+  schema?:string;threadId?:string;route?:PartitionRoute;stages?:readonly {participantId:string}[]} | null}):boolean;
   getState(): ChatState;
   subscribe(listener: (state: ChatState) => void): () => void;
   createThread(options: { model: ChatModel; purpose?: string; members?: string[]; permissions?: Record<string, unknown>; systemContext?: ChatSystemContext | null }): string;

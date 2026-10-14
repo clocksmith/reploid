@@ -1,6 +1,7 @@
 import type { PartitionActivity } from './partition-summary.js';
 import type { OrderedPartitionPlan, OrderedPartitionRuntime, PartitionRoute, RouteAttemptBinding } from './partition-contract.js';
 import type { ActivationTensor, ActivationFrame } from './partition-runner.js';
+import type { OrderedPublicationStep } from './partition-ordered-publication.js';
 export interface OrderedExecutionPlan extends OrderedPartitionPlan {
   hiddenSize: number; vocabSize: number; totalLayers: number;
 }
@@ -35,6 +36,8 @@ export interface OrderedRouteRequest {
   identity: RouteAttemptBinding; tokenIds: number[]; generation: Record<string, unknown> & { maxTokens: number };
   grants: { execution: object[]; tokenContext: object[]; activation: object[]; output: object };
   maxTokens: number; signal?: AbortSignal; onActivity?: (activity:PartitionActivity)=>void|Promise<void>; onDelta?: (delta: string) => void | Promise<void>;
+  /** Awaited after each final-stage result and before activity, delivery or the next step; holds no stage lease. */
+  onStep?: ((step: OrderedPublicationStep) => void | Promise<void>) | null;
 }
 export interface OrderedRouteReceipt {
   identity: RouteAttemptBinding; phase: 'admitting' | 'executing' | 'settling' | 'cleanup-failed' | 'completed' | 'cancelled' | 'failed';

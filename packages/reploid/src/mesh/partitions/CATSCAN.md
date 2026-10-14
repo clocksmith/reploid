@@ -22,13 +22,14 @@ Subtree.
 Inputs: Doppler plans/codecs, authenticated executors, grants and resources.
 Outputs: tokens, costs and settlement.
 Legacy traverses A/B. Ordered routes traverse all stages; only the last samples.
+Requester writers commit unsigned ordered steps before delivery or next steps.
 Geometry determines stage count; attempts retain replicas.
-Session: [resident integration contract](../../../../../docs/chat-mvp.md#resident-integration-contract).
+Session: [contract](../../../../../docs/chat-mvp.md#resident-integration-contract).
 
 ## Invariants
 
-- Authorization precedes work; verify recipients, scope, expiration, revocation and budgets.
-- Bind model, plan, thread, attempt, participants and token position.
+- Authorization precedes work; verify recipients/scope/expiration/revocation/budgets.
+- Bind model/plan/thread/attempt/participants/token position.
 - Discovery grants no authority; advertise capacity, never conversation identities.
 - Signed reservations are authoritative. Release slots only after confirmed runtime cleanup.
 - Bound receipts by attempt budgets; distinguish cleanup failure, channel-lost unknowns, settlement.
@@ -43,7 +44,7 @@ Session: [resident integration contract](../../../../../docs/chat-mvp.md#residen
 
 ## Acceptance
 
-Evidence: [partition tests](../../../../../tests/unit/partition-api.test.js).
+Evidence: [partition](../../../../../tests/unit/partition-api.test.js), [publication](../../../../../tests/unit/ordered-publication.test.js).
 Physical evidence qualifies loading, WebRTC, answers, numerics; injected tests
 prove neither execution nor residency.
 

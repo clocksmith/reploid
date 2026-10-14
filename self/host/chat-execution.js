@@ -43,7 +43,9 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
     let sequence = 0;
     const state = (status, execution) => controls.onState({ threadId, attemptId, status, execution });
 
-    if (controls.publication) assert(model.partition && model.canonical, 'Canonical history requires a prepared canonical partition route');
+    // Requester-owned history publishes through prepared canonical two-stage or ordinary ordered routes.
+    if (controls.publication) assert(model.partition && (model.canonical || model.partition.schema === 'reploid.partition-selection/v2'),
+      'Canonical history requires a prepared canonical or ordered partition route');
 
     if (model.partition) {
       assert(partitions?.generate, 'Partition execution service is unavailable');

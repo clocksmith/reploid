@@ -52,19 +52,24 @@ export async function openCanonicalWorkspaceHistory({ store, key, meshId, partic
     return { state: bounded(state), result: null };
   });
   let closed = false, failure = null;
-  const pending = new Set(), owners = new Map();
+  const pending = new Set(), owners = new Map(), rejections = new WeakSet();
   const current = () => { assert(!closed, 'Workspace history is closed'); assert(!failure, 'Workspace history outcome is unknown; reopen and reconcile'); };
   const owned = value => { const state = check(value); assert(state.writerEpoch === writerEpoch, 'Stale workspace writer'); return state; };
+  // A reducer that throws aborts its transaction before any write: a known
+  // rejection (for example cancellation revoking publication). Only storage
+  // failures leave an unknown outcome that fences every later operation.
   const run = operation => {
     current();
     const promise = Promise.resolve().then(() => { current(); return operation(); }); pending.add(promise);
-    promise.then(() => pending.delete(promise), error => { pending.delete(promise); failure = error; });
+    promise.then(() => pending.delete(promise), error => { pending.delete(promise); if (!rejections.has(error)) failure = error; });
     return promise;
   };
   const read = () => run(async () => owned(await store.read(key)));
   const transact = reducer => run(() => store.transact(key, value => {
-    current(); const state = owned(value), result = reducer(state);
-    return { state: bounded(state), result: copy(result) };
+    try {
+      current(); const state = owned(value), result = reducer(state);
+      return { state: bounded(state), result: copy(result) };
+    } catch (error) { if (error && typeof error === 'object') rejections.add(error); throw error; }
   }));
   const find = (state, threadId) => {
     const thread = state.workspace.threads.find(item => item.id === threadId);

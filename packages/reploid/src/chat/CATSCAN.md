@@ -21,11 +21,11 @@ Compose custody/whole-request jobs; file possession grants no execution.
 - Selection/closure never cancels execution; cancellation affects one attempt.
 - Stream updates bind thread/attempt. Retries create new attempts, never append to old generations.
 - Restore history and mark unfinished attempts interrupted; never silently resend.
+- One requester-owned transactional writer commits canonical and ordered records; known rejections never fence.
 - Permissions precede placement. Model and adapter identity remain exact.
 - A synchronous host port may bind Send/Retry to its verified disclosure; otherwise
   approval records the displayed recipients, which must equal verified ones.
   Persist evidence, never live capability or future authority.
-- Prepared peer execution requires no requester weights; contribution preparation is separate.
 - Reusable disclosure grants bind verified recipient, mesh, thread, model,
   adapters and scope. Persist before use; revocation cancels affected attempts and
   prevents reuse. Grants authorize no contribution/supply/evaluation/adoption.
@@ -36,8 +36,9 @@ Compose custody/whole-request jobs; file possession grants no execution.
 - Files/adapters/whole-requests/Doppler-splits remain distinct.
 
 ## Acceptance
-Evidence: [workspace tests](../../../../tests/unit/chat-workspace.test.js),
-[scheduler tests](../../../../tests/unit/chat-scheduler.test.js), [three tabs](../../../../tests/e2e/chat-three-tab.spec.js).
+Evidence: [workspace](../../../../tests/unit/chat-workspace.test.js),
+[scheduler](../../../../tests/unit/chat-scheduler.test.js), [tabs](../../../../tests/e2e/chat-three-tab.spec.js),
+[publication](../../../../tests/unit/ordered-publication.test.js).
 Tab evidence covers concurrency/transfers/refresh/peer-loss; physical qualification is separate.
 
 ## Non-goals

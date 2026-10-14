@@ -1,11 +1,15 @@
 /** Conversation state only. Execution, trust and transport are explicit host ports. */
 import { partitionActivity } from '../mesh/partitions/partition-summary.js';
+import { canonicalPartitionJson } from '../mesh/partitions/partition-contract.js';
+import { ORDERED_PUBLICATION_ATTEMPT_SCHEMA } from '../mesh/partitions/partition-ordered-publication.js';
 import defaults from './policy.json' with { type: 'json' };
 import { disclosureRecipients, disclosureScope, matchingThreadGrant, validateThreadGrants } from './thread-grants.js';
 
 const copy = value => structuredClone(value);
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 const activeStatuses = new Set(['queued', 'loading', 'executing', 'approval', 'cancelling']);
+// Disclosures whose durable output the requester's transaction owner publishes.
+const publishedDisclosures = new Set(['partition-activations-and-tokens', 'ordered-partition-activations-and-tokens']);
 
 // participantId owns history. requesterIdentity is the host-authenticated peer identity that execution
 // binds into ordered requester disclosure; null until authenticated. Hosts whose participant is that peer keep the default.
@@ -175,7 +179,8 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
             response.content += envelope.text; response.status = 'streaming'; attempt.status = 'executing'; persist();
           },
           onActivity(envelope) {
-            assert(live() && matches(envelope) && !transactional && attempt.status === 'executing', 'Late or unbound execution activity');
+            // Ephemeral execution metadata only; never persisted and never output text.
+            assert(live() && matches(envelope) && attempt.status === 'executing', 'Late or unbound execution activity');
             const activity = partitionActivity(envelope, attempt.execution?.identity, run.activity, true);
             run.activity = activity;
             attempt.execution = { ...attempt.execution, stepSummary: copy(activity.stepSummary) };
@@ -193,7 +198,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
               && preview.expiresAt > now(), 'Invalid conversation disclosure');
             assert(!run.approval, 'An approval is already pending');
             const scope = disclosureScope(request, preview, requester()), grant = matchingThreadGrant(thread.grants, scope);
-            if (transactional) assert(scope?.disclosure === 'partition-activations-and-tokens', 'Canonical disclosure requires exact verified partition recipients');
+            if (transactional) assert(publishedDisclosures.has(scope?.disclosure), 'Canonical disclosure requires exact verified partition recipients');
             if (authorizeDisclosure) {
               assert(scope, 'Peer disclosure does not match the selected model and verified recipients');
               if (attempt.authorization?.source === 'send') {
@@ -250,6 +255,13 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
             const saved = await publication.reconcile();
             const durableAttempt = saved.attempts.find(item => item.identity.attemptId === attempt.id);
             cancelled = !durableAttempt || durableAttempt.status === 'cancelled';
+            // A commit can race cancellation before its projection: settle the
+            // live view to exactly the verified durable records of this attempt.
+            const records = saved.records.filter(record => record.publication.attemptId === attempt.id);
+            const content = records.map(record => record.publication.delta?.text ?? '').join('');
+            if (content.length <= limits.maxResponseCharacters) {
+              response.content = content; response.publicationDigests = records.map(record => record.publication.publicationDigest);
+            }
           } catch { cancelled = false; } // Unknown storage is not confirmed cancellation.
         }
         attempt.status = cancelled ? 'cancelled' : 'failed';
@@ -270,7 +282,8 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
     getState: snapshot,
     authorizePublication({ conversationId, writerEpoch, action, attempt: identity }) {
       if (!transactional || writerEpoch !== store.writerEpoch || !['admit', 'publish', 'cancel'].includes(action)
-        || !identity || identity.publisherEpoch !== writerEpoch || identity.requesterId !== participantId) return false;
+        || !identity || identity.publisherEpoch !== writerEpoch
+        || identity.schema !== ORDERED_PUBLICATION_ATTEMPT_SCHEMA && identity.requesterId !== participantId) return false;
       const thread = threads.find(item => item.id === conversationId), attempt = thread?.attempts.find(item => item.id === identity.attemptId);
       if (!attempt || attempt.publicationMode !== 'canonical') return false;
       // Stopping an admitted attempt remains permitted after disclosure expires.
@@ -279,8 +292,17 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       if (closed || storageError || !run || run.controller.signal.aborted || thread.attempts.at(-1) !== attempt) return false;
       const saved = durableThreads.find(item => item.id === conversationId)?.attempts.find(item => item.id === attempt.id);
       const auth = saved?.authorization;
-      if (!auth || auth.disclosure !== 'partition-activations-and-tokens' || auth.modelIdentity !== attempt.request.model.identity
-        || identity.stages?.[0]?.participantId !== auth.participantA || identity.stages?.[1]?.participantId !== auth.recipientIdentity) return false;
+      if (!auth || auth.modelIdentity !== attempt.request.model.identity) return false;
+      if (identity.schema === ORDERED_PUBLICATION_ATTEMPT_SCHEMA) {
+        // Ordered recipients are the complete approved route, bound to the
+        // authenticated requester identity saved with the authorization.
+        try {
+          if (auth.disclosure !== 'ordered-partition-activations-and-tokens' || identity.threadId !== conversationId
+            || identity.requesterId !== auth.requesterIdentity
+            || canonicalPartitionJson(identity.route) !== canonicalPartitionJson(auth.route)) return false;
+        } catch { return false; }
+      } else if (auth.disclosure !== 'partition-activations-and-tokens' || identity.stages?.[0]?.participantId !== auth.participantA
+        || identity.stages?.[1]?.participantId !== auth.recipientIdentity) return false;
       if (auth.kind === 'thread-grant') return thread.grants.some(grant => grant.id === auth.grantId && grant.revokedAt === null);
       return auth.kind === 'once' && auth.expiresAt > now();
     },

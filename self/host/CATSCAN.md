@@ -20,7 +20,7 @@ Subtree.
 
 ## Contracts
 
-Inputs: [boot seed](../config/boot-seed.js), [start-app.js](start-app.js).
+Inputs: [seed](../config/boot-seed.js), [start-app.js](start-app.js).
 
 Outputs: [VFS](seed-vfs.js), [startup](start-reploid.js).
 
@@ -30,11 +30,12 @@ Outputs: [VFS](seed-vfs.js), [startup](start-reploid.js).
 - Disconnect prevents rejoin. Discovery grants no compute/disclosure/files/improvement authority.
 - Partition network owners expose open/close; successful closure requires all channels settled.
 - Received files cannot grant permissions or prove correctness.
-- Viewing/stopping threads cannot change another's objective, grants or execution.
+- Viewing/stopping threads cannot change another's objective/grants/execution.
 - Candidate delivery grants no evaluation/adoption authority.
 - Peer operations require current authorization, exact identities and evidence.
   Send/Retry never self-authorizes; approval covers one live attempt only.
   Changed execution identities require a new user action.
+  Transactional history requires prepared canonical/ordered partitions.
 - File contribution requires separate bounded consent. Explicit compute may acquire
   selected files, not redistribute them. Discovery never downloads weights.
 - Doppler storage verifies files; inventories cannot select code.
@@ -45,7 +46,7 @@ Outputs: [VFS](seed-vfs.js), [startup](start-reploid.js).
 ## Acceptance
 - Seeded modules are complete; VFS round trips succeed.
 - Evidence: [boot](../../tests/unit/boot-seed.test.js), [VFS](../../tests/integration/vfs.test.js),
-  [real chat](../../tests/e2e/chat-real-adapter.spec.js), [races](../../tests/unit/work-swarm-lifecycle.test.js).
+  [chat](../../tests/e2e/chat-real-adapter.spec.js), [races](../../tests/unit/work-swarm-lifecycle.test.js).
 
 ## Non-goals
 - Scientific question/model policy/promotion.

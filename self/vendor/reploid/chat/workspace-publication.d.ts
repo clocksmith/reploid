@@ -1,5 +1,9 @@
 /** Model types are inferred from the explicitly injected doppler-gpu/partitions
- * module; this owner defines only conversation transaction requirements. */
+ * module; this owner defines only conversation transaction requirements.
+ * Canonical records need Doppler's validators; ordinary ordered records need only
+ * its metadataDigest. */
+import type { OrderedPublicationAttempt, OrderedGenerationBounds, OrderedCursor, OrderedPublication }
+  from '../mesh/partitions/partition-ordered-publication.js';
 export interface PublicationAttempt {
   attemptId: string; coordinatorEpoch: string; publisherEpoch: string; generationId: string;
   stages: readonly { stageId: string }[];
@@ -31,10 +35,11 @@ export function createConversationPublication<Attempt extends PublicationAttempt
     conversationId: string; writerEpoch: string; store: TransactionalChatStore;
     doppler: {
       metadataDigest(schema: string, body: unknown): string;
-      validateResidentAttemptIdentity(input: unknown): Attempt;
-      canonicalGenerationIdentity(policy: Policy, executionIdentity: string, vocabSize: number): { policy: Policy; generationId: string };
-      validateExecutionPublication(input: unknown, attempt: Attempt, policy: Policy, vocabSize: number, base: Cursor | null): Publication;
-      validateAdmissionPublication(input: unknown, attempt: Attempt, policy: Policy, vocabSize: number): Admission;
+      /** Required only when a canonical attempt or record is admitted or verified. */
+      validateResidentAttemptIdentity?(input: unknown): Attempt;
+      canonicalGenerationIdentity?(policy: Policy, executionIdentity: string, vocabSize: number): { policy: Policy; generationId: string };
+      validateExecutionPublication?(input: unknown, attempt: Attempt, policy: Policy, vocabSize: number, base: Cursor | null): Publication;
+      validateAdmissionPublication?(input: unknown, attempt: Attempt, policy: Policy, vocabSize: number): Admission;
     };
     authenticateCommit(ack: Ack, stage: Attempt['stages'][number], attempt: Attempt, evidence?: unknown): Promise<boolean>;
     /** Require exact signed stage evidence in the same transaction as output. Persisted admission prevents restart downgrade. */
@@ -45,9 +50,15 @@ export function createConversationPublication<Attempt extends PublicationAttempt
     readonly requiresCommitEvidence: boolean;
     claimWriter(expectedEpoch: string | null): Promise<{ writerEpoch: string; head: string | null }>;
     admitAttempt(input: { identity: Attempt; generationPolicy: Policy; executionIdentity: string; vocabSize: number; deadlineAt: number }):
-      Promise<PublicationHistory<Attempt, Policy, Cursor, Publication | Admission>['attempts'][number]>;
-    publish(input: Publication | Admission, options?: { evidence?: readonly unknown[] }): Promise<PublicationReceipt>;
+      Promise<WriterHistory<Attempt, Policy, Cursor, Publication | Admission>['attempts'][number]>;
+    /** Ordinary ordered route: executionIdentity is the attempt's Doppler generation digest. */
+    admitAttempt(input: { identity: OrderedPublicationAttempt; generationPolicy: OrderedGenerationBounds; executionIdentity: string;
+      vocabSize: number; deadlineAt: number }): Promise<WriterHistory<Attempt, Policy, Cursor, Publication | Admission>['attempts'][number]>;
+    publish(input: Publication | Admission | OrderedPublication, options?: { evidence?: readonly unknown[] }): Promise<PublicationReceipt>;
     cancel(attemptId: string, coordinatorEpoch: string): Promise<{ status: string; head: string | null }>;
-    reconcile(): Promise<PublicationHistory<Attempt, Policy, Cursor, Publication | Admission>>;
-    readPublished(afterIndex: number): Promise<PublicationHistory<Attempt, Policy, Cursor, Publication | Admission>['records']>;
+    reconcile(): Promise<WriterHistory<Attempt, Policy, Cursor, Publication | Admission>>;
+    readPublished(afterIndex: number): Promise<WriterHistory<Attempt, Policy, Cursor, Publication | Admission>['records']>;
   };
+/** One conversation's history holds canonical and ordinary ordered attempts. */
+export type WriterHistory<Attempt, Policy, Cursor, Publication> = PublicationHistory<Attempt | OrderedPublicationAttempt,
+  Policy | OrderedGenerationBounds, Cursor | OrderedCursor, Publication | OrderedPublication>;

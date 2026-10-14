@@ -1,4 +1,4 @@
-import type { PartitionInput } from './partition-entry.js';
+import type { PartitionInput, OrderedPartitionInput } from './partition-entry.js';
 import type { PublicationReceipt } from '../../chat/workspace-publication.js';
 export interface EntryPublicationContext {
  schema:'reploid.partition-publication-context/v1';publisherEpoch:string;coordinatorEpoch:string;routeId:string;
@@ -17,9 +17,12 @@ export interface EntryPublicationOwner {
 }
 export const ENTRY_PUBLICATION_SCHEMA:'reploid.partition-publication/v1';
 export function validateEntryPublicationContext(value:unknown,request:PartitionInput):EntryPublicationContext;
-export function entryPublicationEnvelope(request:PartitionInput,method:'head'|'admit'|'publish'|'cancel',body:unknown):Record<string,unknown>;
-export function matchingEntryPublication(message:Record<string,unknown>,request:PartitionInput):boolean;
-export function createEntryPublicationScope(options:{request:PartitionInput;owner:EntryPublicationOwner;
+/** Owner interface a coordinator calls; `call` reaches the requester's scope by RPC or directly. */
+export function entryPublicationPort(call:(method:'head'|'admit'|'publish'|'cancel',body:unknown)=>Promise<any>):EntryPublicationOwner;
+export function entryPublicationEnvelope(request:PartitionInput|OrderedPartitionInput,method:'head'|'admit'|'publish'|'cancel',body:unknown):Record<string,unknown>;
+export function matchingEntryPublication(message:Record<string,unknown>,request:PartitionInput|OrderedPartitionInput):boolean;
+/** Canonical inputs carry `canonical`; ordered inputs carry `publication`, and their coordinator chooses its epoch at admission. */
+export function createEntryPublicationScope(options:{request:PartitionInput|OrderedPartitionInput;owner:EntryPublicationOwner;
  authorize(method:string):boolean|Promise<boolean>;onPublished(record:EntryPublicationRecord):void|Promise<void>;
  maxControlBytes:number;maxOutputCharacters:number}):{
  call(method:'head'|'admit'|'publish'|'cancel',body:unknown):Promise<unknown>;
