@@ -89,7 +89,12 @@ These are ranked by the time they account for. Each one changes runtime or place
 its applicable qualification.
 
 - **Paired kernel efficiency (Doppler):** attention, RMSNorm, the recurrent gated delta and
-  linear-attention prepare, then the matmul. Changing the reduction structure can change the
+  linear-attention prepare, then the matmul. The attention source shows one cause:
+  `attention_paired.wgsl` runs one 256-lane workgroup per head and token. During decode that is
+  8 workgroups for each of the 6 full-attention layers. The kernel walks the keys 4 at a time.
+  At every step, lane 0 alone updates the online softmax with up to five paired exponentials
+  while the other 255 lanes wait at barriers. That serial chain grows with context length. The
+  other three kernels' dispatch shapes are not yet inspected. Changing the reduction structure can change the
   rounding of paired results, so a repaired kernel must requalify against the frozen reference
   (55 prefixes, 0.001).
 - **Whether Launch 1 must run the paired profile at all** is a numerical-contract decision for
