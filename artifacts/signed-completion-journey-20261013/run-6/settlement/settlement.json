@@ -1,0 +1,49 @@
+{
+ "schema": "reploid.signed-completion-journey-run-6-settlement/v1",
+ "mac-host": {
+  "stage0": "Stop through its own control at 07:50:50Z: ready -> idle, offering false, unsettledOwners 0 (unknownAttempts held e4eccdca); browser closed, pid 85091 exited",
+  "appServer": "pid 84962 SIGTERM, stopping logged 07:51:12Z",
+  "tunnels": "pids 85034, 85037 exited",
+  "sampler": "pid 85181 exited",
+  "ports29670to29674Listening": false,
+  "nonOwnedProcessesUnchanged": true,
+  "requesterProfiles": "none left"
+ },
+ "amd-host": {
+  "natives": [
+   "native-1 SIGKILL by the loss control 07:43:00Z (abrupt by design); scope inactive",
+   "native-2 SIGTERM 07:50:55Z, inactive 1 s, 696.6M peak"
+  ],
+  "ownedProcessesAfter": 0,
+  "port29670Listening": false,
+  "signedState": "identical to preflight: sequence 2 923ac7e6..., ledger 1458219861 of 4294967296, identity 871ad22c..., 602 cache entries"
+ },
+ "intel-host": {
+  "natives": [
+   "native-1 SIGTERM 07:50:56Z, inactive 1 s, 1.0G peak, 0B swap"
+  ],
+  "ownedProcessesAfter": 0,
+  "port29670Listening": false,
+  "signedState": "identical to preflight: sequence 2 923ac7e6..., ledger 0 of 4294967296, identity 3a3d2251..., 579 cache entries"
+ },
+ "publicContributors": {
+  "amd-host": {
+   "unchanged": true,
+   "pids": [
+    4103868,
+    4121371
+   ]
+  },
+  "intel-host": {
+   "unchanged": true,
+   "pids": [
+    297260,
+    299769
+   ]
+  }
+ },
+ "unconfirmedRemoteCleanup": "attempt e4eccdca stage 1 remains unknown (CONNECTION_LOST) in unknownAttempts, as designed; the killed process was released by the operating system",
+ "secretsRemoved": "room-token and room-id removed on both native hosts; private-room.json removed on mac-host",
+ "filesLeftOnHosts": "mac-host run-6 dir: control-state.json; stage 0 profile in the run-2 dir; native hosts run-6 dir: stage config and native logs",
+ "unchanged": "maxAcquisitionChunkBytes, both 4 GiB ledgers, every release sequence"
+}

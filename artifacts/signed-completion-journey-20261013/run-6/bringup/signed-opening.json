@@ -1,0 +1,38 @@
+{
+ "schema": "reploid.signed-completion-journey-run-6-bringup/v1",
+ "outcome": "passed: all three contributors opened the signed Capsule (sequence 2 923ac7e6...) and reached ready; route mac-host -> amd-host -> intel-host formed at 2026-10-14T07:40:54.089Z",
+ "verification": {
+  "servedBundle": "2044 served files verified as sha256:3c1fab71... (preflight/served-bundle-verification.txt)",
+  "partitionFiles": "served, payload and installed copies equal 95641fe7 (preflight/served-bytes.txt, preflight/native-install-bytes.txt)",
+  "nativeDescriptor": "1fecc004... on both hosts"
+ },
+ "roomToken": "--room-token-file only (0600, written over ssh stdin); 0 hits in owned native argv and user journals (logs/launch-natives-1.txt); no token on any command line",
+ "processesStarted": {
+  "mac-host": [
+   "app-server pid 84962 (127.0.0.1:29670)",
+   "tunnel-amd pid 85034",
+   "tunnel-intel pid 85037 (no inspector forward this run)",
+   "stage0-browser pid 85091 (reused run-2 profile, CDP 127.0.0.1:29671)",
+   "coordinator sampler pid 85181 (read-only)",
+   "harness requester profile (removed by the harness)"
+  ],
+  "amd-host": [
+   "scj-run6-amd-native-1 (loss target, SIGKILL by the harness control)",
+   "scj-run6-amd-native-2 (restored by the harness)"
+  ],
+  "intel-host": [
+   "scj-run6-intel-native-1"
+  ],
+  "scopeLimits": "MemoryHigh=10737418240 MemoryMax=12884901888 MemorySwapMax=0 RuntimeMaxSec=2700 (observed RuntimeMaxUSec=45min)",
+  "operatorSlip": "a duplicated amd-host tunnel command was started and killed in the same shell line; only the two intended tunnels were ever observed running"
+ },
+ "stage0": {
+  "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+  "openingMode": "signed-capsule",
+  "checkpoint": {
+   "sequence": 2,
+   "digest": "sha256:923ac7e602b3075a17f9e540eb0abfd436eaf1de41bebf8b6f15bdaee604b45f"
+  },
+  "peerBytes": 0
+ }
+}

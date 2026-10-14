@@ -1,0 +1,3590 @@
+{
+  "schema": "reploid.signed-completion-journey-report/v1",
+  "harness": "contributor-loss",
+  "startedAt": "2026-10-14T07:41:03.238Z",
+  "configSha256": "5624c91a028207d7ab725284cc100086af04bc568b6035c4e49bdd2393bdcc41",
+  "fixtureSha256": "658f35be1d2beab062a8d7e1a54303c0af5d0619201acb4347730a0d944d162f",
+  "freeze": {
+    "browserBundle": "sha256:3c1fab715e5074b0d573bb726f91b790229672ae9d27bef19c9c80935750fbc2",
+    "runtimeArchive": "sha256:2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+    "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+    "planSchema": "doppler.layer-partition-contract/v3",
+    "splitLayers": [
+      8,
+      16
+    ],
+    "nativeArtifacts": {
+      "amd-host": "sha256:d99a07e335617cdf4fb91cb401a9bf8a21823ebceb18c79b4c41bd049f46bc6e",
+      "intel-host": "sha256:d99a07e335617cdf4fb91cb401a9bf8a21823ebceb18c79b4c41bd049f46bc6e"
+    },
+    "route": [
+      {
+        "index": 0,
+        "machine": "mac-host",
+        "host": "browser",
+        "participantId": "peer:7cce6f3afaa1272f1eb74eb1"
+      },
+      {
+        "index": 1,
+        "machine": "amd-host",
+        "host": "native",
+        "participantId": "peer:9af15d884eba51b0c0540e2a",
+        "orderedConfig": "/var/tmp/reploid-signed-completion-journey-run6-20261013/amd-host-stage-1.json"
+      },
+      {
+        "index": 2,
+        "machine": "intel-host",
+        "host": "native",
+        "participantId": "peer:09610aefbd15a133d7af2b57",
+        "orderedConfig": "/var/tmp/reploid-signed-completion-journey-run6-20261013/intel-host-stage-2.json"
+      }
+    ]
+  },
+  "ok": true,
+  "errors": [],
+  "scope": "Stop one native stage contributor through the configured callback while an ordered answer streams; observe the requester report, ownership settlement, absence of continuation and an explicit retry after capacity returns.",
+  "lossTarget": {
+    "machine": "amd-host",
+    "stage": 1,
+    "participantId": "peer:9af15d884eba51b0c0540e2a"
+  },
+  "modelFileRequests": [],
+  "streamSamples": [],
+  "terminalSamples": [
+    {
+      "at": "2026-10-14T07:43:16.556Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    }
+  ],
+  "postFailureSamples": [
+    {
+      "at": "2026-10-14T07:43:16.561Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:16.831Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:17.099Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:17.367Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:17.630Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:17.895Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:18.163Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:18.423Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:18.694Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:18.951Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:19.212Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:19.474Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:19.730Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:19.990Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:20.251Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:20.521Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:20.790Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:21.051Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:21.320Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    }
+  ],
+  "preRetrySamples": [
+    {
+      "at": "2026-10-14T07:43:26.124Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:26.233Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:26.342Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:26.452Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:26.566Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:26.688Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:26.808Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:26.928Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:27.042Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:27.158Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:27.272Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:27.389Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:27.499Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:27.611Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:27.727Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:27.850Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:43:27.978Z",
+      "status": "failed",
+      "attemptIds": [
+        "e4eccdca-8b31-49c0-83dd-a6c44b20a32a"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    }
+  ],
+  "timing": [
+    {
+      "schema": "reploid.signed-completion-answer-timing/v1",
+      "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+      "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+      "status": "completed",
+      "requester": {
+        "attemptMs": {
+          "status": "measured",
+          "value": 400024,
+          "unit": "ms",
+          "clock": "requester-application",
+          "source": "packages/reploid/src/chat/workspace.js:248 minus packages/reploid/src/chat/workspace.js:116"
+        },
+        "firstVisibleTextMs": {
+          "status": "measured",
+          "value": 41349,
+          "unit": "ms",
+          "clock": "harness",
+          "source": "harness stream sample (Send click to first nonempty rendered response)",
+          "resolutionMs": 100
+        },
+        "outputCharacters": 110
+      },
+      "coordinator": {
+        "decodeSteps": 111,
+        "stages": [
+          {
+            "partitionIndex": 0,
+            "steps": 111,
+            "stepCount": 111,
+            "stepMsTotal": {
+              "status": "measured",
+              "value": 50357.200001716614,
+              "unit": "ms",
+              "clock": "coordinator",
+              "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+            }
+          },
+          {
+            "partitionIndex": 1,
+            "steps": 111,
+            "stepCount": 111,
+            "stepMsTotal": {
+              "status": "measured",
+              "value": 49313.099999666214,
+              "unit": "ms",
+              "clock": "coordinator",
+              "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+            }
+          },
+          {
+            "partitionIndex": 2,
+            "steps": 111,
+            "stepCount": 111,
+            "stepMsTotal": {
+              "status": "measured",
+              "value": 299412.1000006199,
+              "unit": "ms",
+              "clock": "coordinator",
+              "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+            }
+          }
+        ],
+        "activationBytes": {
+          "status": "measured",
+          "value": 2310144,
+          "unit": "bytes",
+          "clock": "coordinator",
+          "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:209"
+        }
+      },
+      "runtime": {
+        "executionMs": {
+          "status": "not-observable",
+          "reason": "Doppler per-stage metrics never reach an observable application boundary for ordered routes",
+          "source": "doppler src/inference/pipelines/text/resident-partition.js:173-202,230 produces metrics; partition-route-execution.js:182 keeps them per step on the coordinator; partition-summary.js:16-18 drops them from the requester summary; server/native-participant.js:51-63 state log omits them"
+        },
+        "logitsReadbackMs": {
+          "status": "not-observable",
+          "reason": "Doppler per-stage metrics never reach an observable application boundary for ordered routes",
+          "source": "doppler src/inference/pipelines/text/resident-partition.js:173-202,230 produces metrics; partition-route-execution.js:182 keeps them per step on the coordinator; partition-summary.js:16-18 drops them from the requester summary; server/native-participant.js:51-63 state log omits them"
+        },
+        "samplingMs": {
+          "status": "not-observable",
+          "reason": "Doppler per-stage metrics never reach an observable application boundary for ordered routes",
+          "source": "doppler src/inference/pipelines/text/resident-partition.js:173-202,230 produces metrics; partition-route-execution.js:182 keeps them per step on the coordinator; partition-summary.js:16-18 drops them from the requester summary; server/native-participant.js:51-63 state log omits them"
+        }
+      },
+      "scheduler": {
+        "queuedMs": {
+          "status": "not-observable",
+          "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+          "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+        },
+        "loadMs": {
+          "status": "not-observable",
+          "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+          "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+        },
+        "executionMs": {
+          "status": "not-observable",
+          "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+          "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+        }
+      },
+      "transport": {
+        "status": "not-observable",
+        "reason": "Ordered summaries carry no transport timing",
+        "source": "partition-summary.js:43-45 aggregates transportTiming for v1 two-device summaries only; the ordered v2 summary (partition-summary.js:16-18) carries none"
+      },
+      "persistence": {
+        "status": "not-observable",
+        "reason": "History persistence exposes no timing",
+        "source": "packages/reploid/src/chat/workspace.js:63-94 saves ordinary history synchronously inside persist() and exposes no timing; partition-ordered-chat.js:45-46 keeps ordered routes on ordinary history"
+      }
+    },
+    {
+      "schema": "reploid.signed-completion-answer-timing/v1",
+      "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+      "attemptId": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+      "status": "failed",
+      "requester": {
+        "attemptMs": {
+          "status": "measured",
+          "value": 130173,
+          "unit": "ms",
+          "clock": "requester-application",
+          "source": "packages/reploid/src/chat/workspace.js:248 minus packages/reploid/src/chat/workspace.js:116"
+        },
+        "firstVisibleTextMs": {
+          "status": "missing",
+          "unit": "ms",
+          "clock": "harness",
+          "source": "harness stream sample (Send click to first nonempty rendered response)",
+          "resolutionMs": 100
+        },
+        "outputCharacters": 24
+      },
+      "coordinator": {
+        "decodeSteps": 24,
+        "stages": [
+          {
+            "partitionIndex": 0,
+            "steps": 24,
+            "stepCount": 24,
+            "stepMsTotal": {
+              "status": "measured",
+              "value": 15669.400000572205,
+              "unit": "ms",
+              "clock": "coordinator",
+              "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+            }
+          },
+          {
+            "partitionIndex": 1,
+            "steps": 24,
+            "stepCount": 24,
+            "stepMsTotal": {
+              "status": "measured",
+              "value": 12234.500000715256,
+              "unit": "ms",
+              "clock": "coordinator",
+              "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+            }
+          },
+          {
+            "partitionIndex": 2,
+            "steps": 24,
+            "stepCount": 24,
+            "stepMsTotal": {
+              "status": "measured",
+              "value": 85488.2999997139,
+              "unit": "ms",
+              "clock": "coordinator",
+              "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+            }
+          }
+        ],
+        "activationBytes": {
+          "status": "missing",
+          "unit": "bytes",
+          "clock": "coordinator",
+          "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:209"
+        }
+      },
+      "runtime": {
+        "executionMs": {
+          "status": "not-observable",
+          "reason": "Doppler per-stage metrics never reach an observable application boundary for ordered routes",
+          "source": "doppler src/inference/pipelines/text/resident-partition.js:173-202,230 produces metrics; partition-route-execution.js:182 keeps them per step on the coordinator; partition-summary.js:16-18 drops them from the requester summary; server/native-participant.js:51-63 state log omits them"
+        },
+        "logitsReadbackMs": {
+          "status": "not-observable",
+          "reason": "Doppler per-stage metrics never reach an observable application boundary for ordered routes",
+          "source": "doppler src/inference/pipelines/text/resident-partition.js:173-202,230 produces metrics; partition-route-execution.js:182 keeps them per step on the coordinator; partition-summary.js:16-18 drops them from the requester summary; server/native-participant.js:51-63 state log omits them"
+        },
+        "samplingMs": {
+          "status": "not-observable",
+          "reason": "Doppler per-stage metrics never reach an observable application boundary for ordered routes",
+          "source": "doppler src/inference/pipelines/text/resident-partition.js:173-202,230 produces metrics; partition-route-execution.js:182 keeps them per step on the coordinator; partition-summary.js:16-18 drops them from the requester summary; server/native-participant.js:51-63 state log omits them"
+        }
+      },
+      "scheduler": {
+        "queuedMs": {
+          "status": "not-observable",
+          "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+          "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+        },
+        "loadMs": {
+          "status": "not-observable",
+          "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+          "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+        },
+        "executionMs": {
+          "status": "not-observable",
+          "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+          "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+        }
+      },
+      "transport": {
+        "status": "not-observable",
+        "reason": "Ordered summaries carry no transport timing",
+        "source": "partition-summary.js:43-45 aggregates transportTiming for v1 two-device summaries only; the ordered v2 summary (partition-summary.js:16-18) carries none"
+      },
+      "persistence": {
+        "status": "not-observable",
+        "reason": "History persistence exposes no timing",
+        "source": "packages/reploid/src/chat/workspace.js:63-94 saves ordinary history synchronously inside persist() and exposes no timing; partition-ordered-chat.js:45-46 keeps ordered routes on ordinary history"
+      }
+    }
+  ],
+  "servedDescriptor": "sha256:3c1fab715e5074b0d573bb726f91b790229672ae9d27bef19c9c80935750fbc2",
+  "modelChoice": {
+    "selectedValue": "qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf"
+  },
+  "custodyBefore": {
+    "state": {
+      "sharing": false,
+      "suppliedBytes": 0,
+      "pending": 0,
+      "peers": [
+        "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+        "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+        "df201392-00c5-4780-be19-5aa227e0e7e6"
+      ],
+      "model": null,
+      "mode": null,
+      "acquisitionBudget": null,
+      "acquisitionBudgetError": null,
+      "supplyBudgetError": null,
+      "preparing": false,
+      "stopping": false,
+      "error": "",
+      "progress": null,
+      "receivedBytes": 0,
+      "verifiedFiles": [],
+      "limits": {
+        "storedBytes": 3221225472,
+        "supplyBytes": 4294967296,
+        "downloadBytes": 67108864,
+        "maxDownloadBytes": 4294967296,
+        "subsetBytes": 67108864
+      }
+    },
+    "receipts": []
+  },
+  "failedAttemptId": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+  "beforeLoss": {
+    "id": "576b4203-600f-4e43-820c-b9d03894b780",
+    "model": {
+      "id": "qwen-3-5-0-8b-q4k-ehaf16",
+      "name": "Qwen 3.5 0.8B",
+      "identity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+      "index": 0,
+      "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+      "residentId": "scj-run6-stage-0-resident",
+      "executionId": "scj-run6-stage-0-ordinary",
+      "activation": {
+        "schema": "doppler.activation-tensor/v2",
+        "dtype": "f32",
+        "hiddenSize": 1024,
+        "precision": "two-f32",
+        "components": 2,
+        "elementStrideBytes": 8
+      },
+      "availability": "ready",
+      "adapters": [],
+      "selectionId": "qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+      "partition": {
+        "schema": "reploid.partition-selection/v2",
+        "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+        "coordinatorId": "peer:7cce6f3afaa1272f1eb74eb1",
+        "route": {
+          "schema": "reploid.partition-route/v1",
+          "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+          "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+          "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+          "stages": [
+            {
+              "index": 0,
+              "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+              "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+              "residentId": "scj-run6-stage-0-resident",
+              "executionId": "scj-run6-stage-0-ordinary"
+            },
+            {
+              "index": 1,
+              "participantId": "peer:9af15d884eba51b0c0540e2a",
+              "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+              "residentId": "scj-run6-stage-1-resident",
+              "executionId": "scj-run6-stage-1-ordinary"
+            },
+            {
+              "index": 2,
+              "participantId": "peer:09610aefbd15a133d7af2b57",
+              "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+              "residentId": "scj-run6-stage-2-resident",
+              "executionId": "scj-run6-stage-2-ordinary"
+            }
+          ],
+          "activation": {
+            "schema": "doppler.activation-tensor/v2",
+            "dtype": "f32",
+            "hiddenSize": 1024,
+            "precision": "two-f32",
+            "components": 2,
+            "elementStrideBytes": 8
+          }
+        }
+      },
+      "provider": "doppler",
+      "contextLength": 4096,
+      "quantization": "q4k",
+      "size": "Q4K",
+      "recommended": true,
+      "textGeneration": {
+        "schema": "reploid.text-generation/v1",
+        "usage": "raw-model-tokens/v1"
+      },
+      "providerIds": [
+        "peer:7cce6f3afaa1272f1eb74eb1",
+        "peer:9af15d884eba51b0c0540e2a",
+        "peer:09610aefbd15a133d7af2b57"
+      ],
+      "placement": "ordered-layer-partition"
+    },
+    "purpose": "",
+    "systemContext": {
+      "content": "",
+      "metadata": {
+        "policyId": "reploid.compact-context/v1",
+        "enabled": false,
+        "maxWords": 16,
+        "wordCount": 0,
+        "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+        "mode": null
+      }
+    },
+    "members": [
+      "local-user"
+    ],
+    "permissions": {
+      "sharingScope": "mesh"
+    },
+    "grants": [],
+    "messages": [
+      {
+        "id": "def86f9c-8ab4-47e0-bd75-1af98e951d6c",
+        "role": "user",
+        "content": "Count from 1 to 40 in order, one integer per line. No commentary.",
+        "status": "completed"
+      },
+      {
+        "id": "e129d9d1-cb65-431c-8521-a2d738d3840d",
+        "attemptId": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+        "role": "assistant",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n",
+        "status": "streaming"
+      }
+    ],
+    "attempts": [
+      {
+        "id": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+        "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+        "userMessageId": "def86f9c-8ab4-47e0-bd75-1af98e951d6c",
+        "responseId": "e129d9d1-cb65-431c-8521-a2d738d3840d",
+        "retryOf": null,
+        "status": "executing",
+        "createdAt": 1791963666341,
+        "finishedAt": null,
+        "error": null,
+        "approval": null,
+        "execution": {
+          "placement": "ordered-layer-partition",
+          "identity": {
+            "schema": "reploid.partition-attempt/v2",
+            "route": {
+              "schema": "reploid.partition-route/v1",
+              "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+              "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+              "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+              "stages": [
+                {
+                  "index": 0,
+                  "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+                  "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+                  "residentId": "scj-run6-stage-0-resident",
+                  "executionId": "scj-run6-stage-0-ordinary"
+                },
+                {
+                  "index": 1,
+                  "participantId": "peer:9af15d884eba51b0c0540e2a",
+                  "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+                  "residentId": "scj-run6-stage-1-resident",
+                  "executionId": "scj-run6-stage-1-ordinary"
+                },
+                {
+                  "index": 2,
+                  "participantId": "peer:09610aefbd15a133d7af2b57",
+                  "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+                  "residentId": "scj-run6-stage-2-resident",
+                  "executionId": "scj-run6-stage-2-ordinary"
+                }
+              ],
+              "activation": {
+                "schema": "doppler.activation-tensor/v2",
+                "dtype": "f32",
+                "hiddenSize": 1024,
+                "precision": "two-f32",
+                "components": 2,
+                "elementStrideBytes": 8
+              }
+            },
+            "requesterId": "peer:530b918abefd5d0577bfba65",
+            "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+            "attemptId": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+            "placementGeneration": 0
+          },
+          "stepSummary": {
+            "count": 24,
+            "stages": [
+              {
+                "partitionIndex": 0,
+                "steps": 24,
+                "stepMs": {
+                  "count": 24,
+                  "total": 15669.400000572205
+                }
+              },
+              {
+                "partitionIndex": 1,
+                "steps": 24,
+                "stepMs": {
+                  "count": 24,
+                  "total": 12234.500000715256
+                }
+              },
+              {
+                "partitionIndex": 2,
+                "steps": 24,
+                "stepMs": {
+                  "count": 24,
+                  "total": 85488.2999997139
+                }
+              }
+            ]
+          }
+        },
+        "authorization": {
+          "kind": "once",
+          "grantId": null,
+          "peerId": "peer:7cce6f3afaa1272f1eb74eb1",
+          "recipientIdentity": "peer:7cce6f3afaa1272f1eb74eb1",
+          "disclosure": "ordered-partition-activations-and-tokens",
+          "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+          "route": {
+            "schema": "reploid.partition-route/v1",
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+            "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+            "stages": [
+              {
+                "index": 0,
+                "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+                "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+                "residentId": "scj-run6-stage-0-resident",
+                "executionId": "scj-run6-stage-0-ordinary"
+              },
+              {
+                "index": 1,
+                "participantId": "peer:9af15d884eba51b0c0540e2a",
+                "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+                "residentId": "scj-run6-stage-1-resident",
+                "executionId": "scj-run6-stage-1-ordinary"
+              },
+              {
+                "index": 2,
+                "participantId": "peer:09610aefbd15a133d7af2b57",
+                "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+                "residentId": "scj-run6-stage-2-resident",
+                "executionId": "scj-run6-stage-2-ordinary"
+              }
+            ],
+            "activation": {
+              "schema": "doppler.activation-tensor/v2",
+              "dtype": "f32",
+              "hiddenSize": 1024,
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          },
+          "requesterIdentity": "peer:530b918abefd5d0577bfba65",
+          "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+          "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+          "adapterIdentities": [],
+          "sharingScope": "mesh",
+          "source": "send",
+          "expiresAt": 1791964566547
+        },
+        "request": {
+          "model": {
+            "id": "qwen-3-5-0-8b-q4k-ehaf16",
+            "name": "Qwen 3.5 0.8B",
+            "identity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+            "index": 0,
+            "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+            "residentId": "scj-run6-stage-0-resident",
+            "executionId": "scj-run6-stage-0-ordinary",
+            "activation": {
+              "schema": "doppler.activation-tensor/v2",
+              "dtype": "f32",
+              "hiddenSize": 1024,
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            },
+            "availability": "ready",
+            "adapters": [],
+            "selectionId": "qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+            "partition": {
+              "schema": "reploid.partition-selection/v2",
+              "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+              "coordinatorId": "peer:7cce6f3afaa1272f1eb74eb1",
+              "route": {
+                "schema": "reploid.partition-route/v1",
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+                "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+                "stages": [
+                  {
+                    "index": 0,
+                    "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+                    "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+                    "residentId": "scj-run6-stage-0-resident",
+                    "executionId": "scj-run6-stage-0-ordinary"
+                  },
+                  {
+                    "index": 1,
+                    "participantId": "peer:9af15d884eba51b0c0540e2a",
+                    "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+                    "residentId": "scj-run6-stage-1-resident",
+                    "executionId": "scj-run6-stage-1-ordinary"
+                  },
+                  {
+                    "index": 2,
+                    "participantId": "peer:09610aefbd15a133d7af2b57",
+                    "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+                    "residentId": "scj-run6-stage-2-resident",
+                    "executionId": "scj-run6-stage-2-ordinary"
+                  }
+                ],
+                "activation": {
+                  "schema": "doppler.activation-tensor/v2",
+                  "dtype": "f32",
+                  "hiddenSize": 1024,
+                  "precision": "two-f32",
+                  "components": 2,
+                  "elementStrideBytes": 8
+                }
+              }
+            },
+            "provider": "doppler",
+            "contextLength": 4096,
+            "quantization": "q4k",
+            "size": "Q4K",
+            "recommended": true,
+            "textGeneration": {
+              "schema": "reploid.text-generation/v1",
+              "usage": "raw-model-tokens/v1"
+            },
+            "providerIds": [
+              "peer:7cce6f3afaa1272f1eb74eb1",
+              "peer:9af15d884eba51b0c0540e2a",
+              "peer:09610aefbd15a133d7af2b57"
+            ],
+            "placement": "ordered-layer-partition"
+          },
+          "permissions": {
+            "sharingScope": "mesh"
+          },
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "role": "user",
+              "content": "Count from 1 to 40 in order, one integer per line. No commentary."
+            }
+          ]
+        },
+        "systemContext": {
+          "content": "",
+          "metadata": {
+            "policyId": "reploid.compact-context/v1",
+            "enabled": false,
+            "maxWords": 16,
+            "wordCount": 0,
+            "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+            "mode": null
+          }
+        }
+      }
+    ],
+    "closed": false,
+    "createdAt": 1791963666336
+  },
+  "sentAt": "2026-10-14T07:41:06.301Z",
+  "stop": {
+    "method": "SIGKILL to every process of the owned native systemd scope (abrupt, unannounced contributor loss)",
+    "stoppedAt": "2026-10-14T07:43:00.785485373Z",
+    "detail": {
+      "unit": "scj-run6-amd-native-1",
+      "pids": "2110524",
+      "scopeAfter": "inactive",
+      "participantId": "peer:9af15d884eba51b0c0540e2a",
+      "stage": 1
+    },
+    "calledAt": "2026-10-14T07:43:01.791Z"
+  },
+  "postFailureObservationMs": 5016,
+  "failed": {
+    "id": "576b4203-600f-4e43-820c-b9d03894b780",
+    "model": {
+      "id": "qwen-3-5-0-8b-q4k-ehaf16",
+      "name": "Qwen 3.5 0.8B",
+      "identity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+      "index": 0,
+      "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+      "residentId": "scj-run6-stage-0-resident",
+      "executionId": "scj-run6-stage-0-ordinary",
+      "activation": {
+        "schema": "doppler.activation-tensor/v2",
+        "dtype": "f32",
+        "hiddenSize": 1024,
+        "precision": "two-f32",
+        "components": 2,
+        "elementStrideBytes": 8
+      },
+      "availability": "ready",
+      "adapters": [],
+      "selectionId": "qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+      "partition": {
+        "schema": "reploid.partition-selection/v2",
+        "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+        "coordinatorId": "peer:7cce6f3afaa1272f1eb74eb1",
+        "route": {
+          "schema": "reploid.partition-route/v1",
+          "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+          "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+          "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+          "stages": [
+            {
+              "index": 0,
+              "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+              "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+              "residentId": "scj-run6-stage-0-resident",
+              "executionId": "scj-run6-stage-0-ordinary"
+            },
+            {
+              "index": 1,
+              "participantId": "peer:9af15d884eba51b0c0540e2a",
+              "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+              "residentId": "scj-run6-stage-1-resident",
+              "executionId": "scj-run6-stage-1-ordinary"
+            },
+            {
+              "index": 2,
+              "participantId": "peer:09610aefbd15a133d7af2b57",
+              "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+              "residentId": "scj-run6-stage-2-resident",
+              "executionId": "scj-run6-stage-2-ordinary"
+            }
+          ],
+          "activation": {
+            "schema": "doppler.activation-tensor/v2",
+            "dtype": "f32",
+            "hiddenSize": 1024,
+            "precision": "two-f32",
+            "components": 2,
+            "elementStrideBytes": 8
+          }
+        }
+      },
+      "provider": "doppler",
+      "contextLength": 4096,
+      "quantization": "q4k",
+      "size": "Q4K",
+      "recommended": true,
+      "textGeneration": {
+        "schema": "reploid.text-generation/v1",
+        "usage": "raw-model-tokens/v1"
+      },
+      "providerIds": [
+        "peer:7cce6f3afaa1272f1eb74eb1",
+        "peer:9af15d884eba51b0c0540e2a",
+        "peer:09610aefbd15a133d7af2b57"
+      ],
+      "placement": "ordered-layer-partition"
+    },
+    "purpose": "",
+    "systemContext": {
+      "content": "",
+      "metadata": {
+        "policyId": "reploid.compact-context/v1",
+        "enabled": false,
+        "maxWords": 16,
+        "wordCount": 0,
+        "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+        "mode": null
+      }
+    },
+    "members": [
+      "local-user"
+    ],
+    "permissions": {
+      "sharingScope": "mesh"
+    },
+    "grants": [],
+    "messages": [
+      {
+        "id": "def86f9c-8ab4-47e0-bd75-1af98e951d6c",
+        "role": "user",
+        "content": "Count from 1 to 40 in order, one integer per line. No commentary.",
+        "status": "completed"
+      },
+      {
+        "id": "e129d9d1-cb65-431c-8521-a2d738d3840d",
+        "attemptId": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+        "role": "assistant",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n",
+        "status": "failed"
+      }
+    ],
+    "attempts": [
+      {
+        "id": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+        "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+        "userMessageId": "def86f9c-8ab4-47e0-bd75-1af98e951d6c",
+        "responseId": "e129d9d1-cb65-431c-8521-a2d738d3840d",
+        "retryOf": null,
+        "status": "failed",
+        "createdAt": 1791963666341,
+        "finishedAt": 1791963796514,
+        "error": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.",
+        "approval": null,
+        "execution": {
+          "placement": "ordered-layer-partition",
+          "identity": {
+            "schema": "reploid.partition-attempt/v2",
+            "route": {
+              "schema": "reploid.partition-route/v1",
+              "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+              "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+              "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+              "stages": [
+                {
+                  "index": 0,
+                  "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+                  "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+                  "residentId": "scj-run6-stage-0-resident",
+                  "executionId": "scj-run6-stage-0-ordinary"
+                },
+                {
+                  "index": 1,
+                  "participantId": "peer:9af15d884eba51b0c0540e2a",
+                  "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+                  "residentId": "scj-run6-stage-1-resident",
+                  "executionId": "scj-run6-stage-1-ordinary"
+                },
+                {
+                  "index": 2,
+                  "participantId": "peer:09610aefbd15a133d7af2b57",
+                  "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+                  "residentId": "scj-run6-stage-2-resident",
+                  "executionId": "scj-run6-stage-2-ordinary"
+                }
+              ],
+              "activation": {
+                "schema": "doppler.activation-tensor/v2",
+                "dtype": "f32",
+                "hiddenSize": 1024,
+                "precision": "two-f32",
+                "components": 2,
+                "elementStrideBytes": 8
+              }
+            },
+            "requesterId": "peer:530b918abefd5d0577bfba65",
+            "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+            "attemptId": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+            "placementGeneration": 0
+          },
+          "stepSummary": {
+            "count": 24,
+            "stages": [
+              {
+                "partitionIndex": 0,
+                "steps": 24,
+                "stepMs": {
+                  "count": 24,
+                  "total": 15669.400000572205
+                }
+              },
+              {
+                "partitionIndex": 1,
+                "steps": 24,
+                "stepMs": {
+                  "count": 24,
+                  "total": 12234.500000715256
+                }
+              },
+              {
+                "partitionIndex": 2,
+                "steps": 24,
+                "stepMs": {
+                  "count": 24,
+                  "total": 85488.2999997139
+                }
+              }
+            ]
+          }
+        },
+        "authorization": {
+          "kind": "once",
+          "grantId": null,
+          "peerId": "peer:7cce6f3afaa1272f1eb74eb1",
+          "recipientIdentity": "peer:7cce6f3afaa1272f1eb74eb1",
+          "disclosure": "ordered-partition-activations-and-tokens",
+          "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+          "route": {
+            "schema": "reploid.partition-route/v1",
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+            "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+            "stages": [
+              {
+                "index": 0,
+                "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+                "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+                "residentId": "scj-run6-stage-0-resident",
+                "executionId": "scj-run6-stage-0-ordinary"
+              },
+              {
+                "index": 1,
+                "participantId": "peer:9af15d884eba51b0c0540e2a",
+                "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+                "residentId": "scj-run6-stage-1-resident",
+                "executionId": "scj-run6-stage-1-ordinary"
+              },
+              {
+                "index": 2,
+                "participantId": "peer:09610aefbd15a133d7af2b57",
+                "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+                "residentId": "scj-run6-stage-2-resident",
+                "executionId": "scj-run6-stage-2-ordinary"
+              }
+            ],
+            "activation": {
+              "schema": "doppler.activation-tensor/v2",
+              "dtype": "f32",
+              "hiddenSize": 1024,
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          },
+          "requesterIdentity": "peer:530b918abefd5d0577bfba65",
+          "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+          "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+          "adapterIdentities": [],
+          "sharingScope": "mesh",
+          "source": "send",
+          "expiresAt": 1791964566547
+        },
+        "request": {
+          "model": {
+            "id": "qwen-3-5-0-8b-q4k-ehaf16",
+            "name": "Qwen 3.5 0.8B",
+            "identity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+            "index": 0,
+            "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+            "residentId": "scj-run6-stage-0-resident",
+            "executionId": "scj-run6-stage-0-ordinary",
+            "activation": {
+              "schema": "doppler.activation-tensor/v2",
+              "dtype": "f32",
+              "hiddenSize": 1024,
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            },
+            "availability": "ready",
+            "adapters": [],
+            "selectionId": "qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+            "partition": {
+              "schema": "reploid.partition-selection/v2",
+              "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+              "coordinatorId": "peer:7cce6f3afaa1272f1eb74eb1",
+              "route": {
+                "schema": "reploid.partition-route/v1",
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+                "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+                "stages": [
+                  {
+                    "index": 0,
+                    "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+                    "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+                    "residentId": "scj-run6-stage-0-resident",
+                    "executionId": "scj-run6-stage-0-ordinary"
+                  },
+                  {
+                    "index": 1,
+                    "participantId": "peer:9af15d884eba51b0c0540e2a",
+                    "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+                    "residentId": "scj-run6-stage-1-resident",
+                    "executionId": "scj-run6-stage-1-ordinary"
+                  },
+                  {
+                    "index": 2,
+                    "participantId": "peer:09610aefbd15a133d7af2b57",
+                    "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+                    "residentId": "scj-run6-stage-2-resident",
+                    "executionId": "scj-run6-stage-2-ordinary"
+                  }
+                ],
+                "activation": {
+                  "schema": "doppler.activation-tensor/v2",
+                  "dtype": "f32",
+                  "hiddenSize": 1024,
+                  "precision": "two-f32",
+                  "components": 2,
+                  "elementStrideBytes": 8
+                }
+              }
+            },
+            "provider": "doppler",
+            "contextLength": 4096,
+            "quantization": "q4k",
+            "size": "Q4K",
+            "recommended": true,
+            "textGeneration": {
+              "schema": "reploid.text-generation/v1",
+              "usage": "raw-model-tokens/v1"
+            },
+            "providerIds": [
+              "peer:7cce6f3afaa1272f1eb74eb1",
+              "peer:9af15d884eba51b0c0540e2a",
+              "peer:09610aefbd15a133d7af2b57"
+            ],
+            "placement": "ordered-layer-partition"
+          },
+          "permissions": {
+            "sharingScope": "mesh"
+          },
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "role": "user",
+              "content": "Count from 1 to 40 in order, one integer per line. No commentary."
+            }
+          ]
+        },
+        "systemContext": {
+          "content": "",
+          "metadata": {
+            "policyId": "reploid.compact-context/v1",
+            "enabled": false,
+            "maxWords": 16,
+            "wordCount": 0,
+            "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+            "mode": null
+          }
+        }
+      }
+    ],
+    "closed": false,
+    "createdAt": 1791963666336
+  },
+  "renderedFailure": {
+    "status": "A computer disconnected. Retry this answer.",
+    "technical": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed."
+  },
+  "coordinatorReceiptSource": "unknownAttempts",
+  "coordinatorReceipt": {
+    "identity": {
+      "schema": "reploid.partition-attempt/v2",
+      "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+      "attemptId": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+      "requesterId": "peer:530b918abefd5d0577bfba65",
+      "placementGeneration": 0,
+      "route": {
+        "schema": "reploid.partition-route/v1",
+        "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+        "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+        "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+        "stages": [
+          {
+            "index": 0,
+            "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+            "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+            "residentId": "scj-run6-stage-0-resident",
+            "executionId": "scj-run6-stage-0-ordinary"
+          },
+          {
+            "index": 1,
+            "participantId": "peer:9af15d884eba51b0c0540e2a",
+            "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+            "residentId": "scj-run6-stage-1-resident",
+            "executionId": "scj-run6-stage-1-ordinary"
+          },
+          {
+            "index": 2,
+            "participantId": "peer:09610aefbd15a133d7af2b57",
+            "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+            "residentId": "scj-run6-stage-2-resident",
+            "executionId": "scj-run6-stage-2-ordinary"
+          }
+        ],
+        "activation": {
+          "schema": "doppler.activation-tensor/v2",
+          "dtype": "f32",
+          "hiddenSize": 1024,
+          "precision": "two-f32",
+          "components": 2,
+          "elementStrideBytes": 8
+        }
+      }
+    },
+    "phase": "cleanup-failed",
+    "reservations": [
+      {
+        "identity": {
+          "schema": "reploid.partition-attempt/v2",
+          "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+          "attemptId": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+          "requesterId": "peer:530b918abefd5d0577bfba65",
+          "placementGeneration": 0,
+          "route": {
+            "schema": "reploid.partition-route/v1",
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+            "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+            "stages": [
+              {
+                "index": 0,
+                "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+                "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+                "residentId": "scj-run6-stage-0-resident",
+                "executionId": "scj-run6-stage-0-ordinary"
+              },
+              {
+                "index": 1,
+                "participantId": "peer:9af15d884eba51b0c0540e2a",
+                "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+                "residentId": "scj-run6-stage-1-resident",
+                "executionId": "scj-run6-stage-1-ordinary"
+              },
+              {
+                "index": 2,
+                "participantId": "peer:09610aefbd15a133d7af2b57",
+                "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+                "residentId": "scj-run6-stage-2-resident",
+                "executionId": "scj-run6-stage-2-ordinary"
+              }
+            ],
+            "activation": {
+              "schema": "doppler.activation-tensor/v2",
+              "dtype": "f32",
+              "hiddenSize": 1024,
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          }
+        },
+        "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+        "index": 0,
+        "phase": "reserved",
+        "reservedAt": 1791963666662,
+        "settlingAt": null,
+        "settledAt": null,
+        "failure": null,
+        "resources": {
+          "attemptSlots": 1,
+          "maxPromptTokens": 4096,
+          "maxTokens": 4096,
+          "maxActivationBytes": 33554432,
+          "scope": "application-attempt-limits"
+        },
+        "partitionIndex": 0,
+        "status": "reserved"
+      },
+      {
+        "identity": {
+          "schema": "reploid.partition-attempt/v2",
+          "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+          "attemptId": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+          "requesterId": "peer:530b918abefd5d0577bfba65",
+          "placementGeneration": 0,
+          "route": {
+            "schema": "reploid.partition-route/v1",
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+            "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+            "stages": [
+              {
+                "index": 0,
+                "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+                "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+                "residentId": "scj-run6-stage-0-resident",
+                "executionId": "scj-run6-stage-0-ordinary"
+              },
+              {
+                "index": 1,
+                "participantId": "peer:9af15d884eba51b0c0540e2a",
+                "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+                "residentId": "scj-run6-stage-1-resident",
+                "executionId": "scj-run6-stage-1-ordinary"
+              },
+              {
+                "index": 2,
+                "participantId": "peer:09610aefbd15a133d7af2b57",
+                "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+                "residentId": "scj-run6-stage-2-resident",
+                "executionId": "scj-run6-stage-2-ordinary"
+              }
+            ],
+            "activation": {
+              "schema": "doppler.activation-tensor/v2",
+              "dtype": "f32",
+              "hiddenSize": 1024,
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          }
+        },
+        "participantId": "peer:9af15d884eba51b0c0540e2a",
+        "index": 1,
+        "phase": "reserved",
+        "reservedAt": 1791963666711,
+        "settlingAt": null,
+        "settledAt": null,
+        "failure": null,
+        "resources": {
+          "attemptSlots": 1,
+          "maxPromptTokens": 4096,
+          "maxTokens": 4096,
+          "maxActivationBytes": 33554432,
+          "scope": "application-attempt-limits"
+        },
+        "partitionIndex": 1,
+        "status": "reserved"
+      },
+      {
+        "identity": {
+          "schema": "reploid.partition-attempt/v2",
+          "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+          "attemptId": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+          "requesterId": "peer:530b918abefd5d0577bfba65",
+          "placementGeneration": 0,
+          "route": {
+            "schema": "reploid.partition-route/v1",
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+            "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+            "stages": [
+              {
+                "index": 0,
+                "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+                "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+                "residentId": "scj-run6-stage-0-resident",
+                "executionId": "scj-run6-stage-0-ordinary"
+              },
+              {
+                "index": 1,
+                "participantId": "peer:9af15d884eba51b0c0540e2a",
+                "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+                "residentId": "scj-run6-stage-1-resident",
+                "executionId": "scj-run6-stage-1-ordinary"
+              },
+              {
+                "index": 2,
+                "participantId": "peer:09610aefbd15a133d7af2b57",
+                "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+                "residentId": "scj-run6-stage-2-resident",
+                "executionId": "scj-run6-stage-2-ordinary"
+              }
+            ],
+            "activation": {
+              "schema": "doppler.activation-tensor/v2",
+              "dtype": "f32",
+              "hiddenSize": 1024,
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          }
+        },
+        "participantId": "peer:09610aefbd15a133d7af2b57",
+        "index": 2,
+        "phase": "reserved",
+        "reservedAt": 1791963666735,
+        "settlingAt": null,
+        "settledAt": null,
+        "failure": null,
+        "resources": {
+          "attemptSlots": 1,
+          "maxPromptTokens": 4096,
+          "maxTokens": 4096,
+          "maxActivationBytes": 33554432,
+          "scope": "application-attempt-limits"
+        },
+        "partitionIndex": 2,
+        "status": "reserved"
+      }
+    ],
+    "cleanup": [
+      {
+        "partitionIndex": 0,
+        "status": "settled",
+        "error": null
+      },
+      {
+        "partitionIndex": 1,
+        "status": "unknown",
+        "error": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.",
+        "code": "CONNECTION_LOST"
+      },
+      {
+        "partitionIndex": 2,
+        "status": "settled",
+        "error": null
+      }
+    ],
+    "cleanupSettledAt": null,
+    "failure": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed."
+  },
+  "restore": {
+    "method": "new owned bounded systemd scope with the same identity, cache, ledger, checkpoint store and ordered config",
+    "restoredAt": "2026-10-14T07:43:26.112Z",
+    "detail": {
+      "unit": "scj-run6-amd-native-2",
+      "share": "noshare",
+      "launch": [
+        "active=active",
+        "ActiveEnterTimestamp=Wed 2026-10-14 03:43:22 EDT",
+        "pids=2154979 "
+      ]
+    },
+    "calledAt": "2026-10-14T07:43:26.113Z"
+  },
+  "capacityReturned": true,
+  "capacityReturnedAt": "2026-10-14T07:43:27.980Z",
+  "retry": {
+    "clickedAt": "2026-10-14T07:43:27.980Z",
+    "samples": [
+      {
+        "at": "2026-10-14T07:43:28.027Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "queued",
+        "content": "",
+        "renderedText": ""
+      },
+      {
+        "at": "2026-10-14T07:43:28.245Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "",
+        "renderedText": ""
+      },
+      {
+        "at": "2026-10-14T07:44:09.329Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1",
+        "renderedText": "1"
+      },
+      {
+        "at": "2026-10-14T07:44:12.365Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n",
+        "renderedText": "1"
+      },
+      {
+        "at": "2026-10-14T07:44:15.512Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2",
+        "renderedText": "1\n2"
+      },
+      {
+        "at": "2026-10-14T07:44:18.510Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n",
+        "renderedText": "1\n2"
+      },
+      {
+        "at": "2026-10-14T07:44:21.632Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3",
+        "renderedText": "1\n2\n3"
+      },
+      {
+        "at": "2026-10-14T07:44:24.878Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n",
+        "renderedText": "1\n2\n3"
+      },
+      {
+        "at": "2026-10-14T07:44:27.944Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4",
+        "renderedText": "1\n2\n3\n4"
+      },
+      {
+        "at": "2026-10-14T07:44:31.065Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n",
+        "renderedText": "1\n2\n3\n4"
+      },
+      {
+        "at": "2026-10-14T07:44:34.211Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5",
+        "renderedText": "1\n2\n3\n4\n5"
+      },
+      {
+        "at": "2026-10-14T07:44:37.451Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n",
+        "renderedText": "1\n2\n3\n4\n5"
+      },
+      {
+        "at": "2026-10-14T07:44:40.572Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6",
+        "renderedText": "1\n2\n3\n4\n5\n6"
+      },
+      {
+        "at": "2026-10-14T07:44:43.632Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n",
+        "renderedText": "1\n2\n3\n4\n5\n6"
+      },
+      {
+        "at": "2026-10-14T07:44:46.676Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7"
+      },
+      {
+        "at": "2026-10-14T07:44:50.036Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7"
+      },
+      {
+        "at": "2026-10-14T07:44:53.148Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8"
+      },
+      {
+        "at": "2026-10-14T07:44:56.391Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8"
+      },
+      {
+        "at": "2026-10-14T07:44:59.735Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9"
+      },
+      {
+        "at": "2026-10-14T07:45:03.019Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9"
+      },
+      {
+        "at": "2026-10-14T07:45:06.166Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n1",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n1"
+      },
+      {
+        "at": "2026-10-14T07:45:09.292Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10"
+      },
+      {
+        "at": "2026-10-14T07:45:12.451Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10"
+      },
+      {
+        "at": "2026-10-14T07:45:15.588Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n1",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n1"
+      },
+      {
+        "at": "2026-10-14T07:45:18.758Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11"
+      },
+      {
+        "at": "2026-10-14T07:45:21.887Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11"
+      },
+      {
+        "at": "2026-10-14T07:45:25.254Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n1",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n1"
+      },
+      {
+        "at": "2026-10-14T07:45:29.002Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12"
+      },
+      {
+        "at": "2026-10-14T07:45:32.123Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12"
+      },
+      {
+        "at": "2026-10-14T07:45:35.153Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n1",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n1"
+      },
+      {
+        "at": "2026-10-14T07:45:38.190Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13"
+      },
+      {
+        "at": "2026-10-14T07:45:41.400Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13"
+      },
+      {
+        "at": "2026-10-14T07:45:44.554Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n1",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n1"
+      },
+      {
+        "at": "2026-10-14T07:45:48.149Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14"
+      },
+      {
+        "at": "2026-10-14T07:45:51.134Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14"
+      },
+      {
+        "at": "2026-10-14T07:45:54.200Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n1",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n1"
+      },
+      {
+        "at": "2026-10-14T07:45:57.436Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15"
+      },
+      {
+        "at": "2026-10-14T07:46:00.436Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15"
+      },
+      {
+        "at": "2026-10-14T07:46:03.557Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n1",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n1"
+      },
+      {
+        "at": "2026-10-14T07:46:06.690Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16"
+      },
+      {
+        "at": "2026-10-14T07:46:09.949Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16"
+      },
+      {
+        "at": "2026-10-14T07:46:12.992Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n1",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n1"
+      },
+      {
+        "at": "2026-10-14T07:46:16.300Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17"
+      },
+      {
+        "at": "2026-10-14T07:46:19.432Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17"
+      },
+      {
+        "at": "2026-10-14T07:46:22.565Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n1",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n1"
+      },
+      {
+        "at": "2026-10-14T07:46:25.786Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18"
+      },
+      {
+        "at": "2026-10-14T07:46:28.913Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18"
+      },
+      {
+        "at": "2026-10-14T07:46:32.403Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n1",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n1"
+      },
+      {
+        "at": "2026-10-14T07:46:35.525Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19"
+      },
+      {
+        "at": "2026-10-14T07:46:38.630Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19"
+      },
+      {
+        "at": "2026-10-14T07:46:41.844Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n2",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n2"
+      },
+      {
+        "at": "2026-10-14T07:46:44.985Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20"
+      },
+      {
+        "at": "2026-10-14T07:46:48.289Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20"
+      },
+      {
+        "at": "2026-10-14T07:46:51.408Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n2",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n2"
+      },
+      {
+        "at": "2026-10-14T07:46:54.538Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21"
+      },
+      {
+        "at": "2026-10-14T07:46:57.910Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21"
+      },
+      {
+        "at": "2026-10-14T07:47:01.065Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n2",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n2"
+      },
+      {
+        "at": "2026-10-14T07:47:04.427Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22"
+      },
+      {
+        "at": "2026-10-14T07:47:07.598Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22"
+      },
+      {
+        "at": "2026-10-14T07:47:10.732Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n2",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n2"
+      },
+      {
+        "at": "2026-10-14T07:47:14.528Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23"
+      },
+      {
+        "at": "2026-10-14T07:47:17.867Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23"
+      },
+      {
+        "at": "2026-10-14T07:47:20.995Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n2",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n2"
+      },
+      {
+        "at": "2026-10-14T07:47:24.358Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24"
+      },
+      {
+        "at": "2026-10-14T07:47:27.502Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24"
+      },
+      {
+        "at": "2026-10-14T07:47:30.855Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n2",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n2"
+      },
+      {
+        "at": "2026-10-14T07:47:34.663Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25"
+      },
+      {
+        "at": "2026-10-14T07:47:37.705Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25"
+      },
+      {
+        "at": "2026-10-14T07:47:40.960Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n2",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n2"
+      },
+      {
+        "at": "2026-10-14T07:47:44.191Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26"
+      },
+      {
+        "at": "2026-10-14T07:47:47.328Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26"
+      },
+      {
+        "at": "2026-10-14T07:47:50.956Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n2",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n2"
+      },
+      {
+        "at": "2026-10-14T07:47:54.092Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27"
+      },
+      {
+        "at": "2026-10-14T07:47:57.482Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27"
+      },
+      {
+        "at": "2026-10-14T07:48:00.636Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n2",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n2"
+      },
+      {
+        "at": "2026-10-14T07:48:04.088Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28"
+      },
+      {
+        "at": "2026-10-14T07:48:07.313Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28"
+      },
+      {
+        "at": "2026-10-14T07:48:10.429Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n2",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n2"
+      },
+      {
+        "at": "2026-10-14T07:48:13.703Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29"
+      },
+      {
+        "at": "2026-10-14T07:48:17.082Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29"
+      },
+      {
+        "at": "2026-10-14T07:48:20.317Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n3",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n3"
+      },
+      {
+        "at": "2026-10-14T07:48:23.686Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30"
+      },
+      {
+        "at": "2026-10-14T07:48:26.944Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30"
+      },
+      {
+        "at": "2026-10-14T07:48:30.427Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n3",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n3"
+      },
+      {
+        "at": "2026-10-14T07:48:33.774Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31"
+      },
+      {
+        "at": "2026-10-14T07:48:37.121Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31"
+      },
+      {
+        "at": "2026-10-14T07:48:40.532Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n3",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n3"
+      },
+      {
+        "at": "2026-10-14T07:48:43.647Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32"
+      },
+      {
+        "at": "2026-10-14T07:48:47.200Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32"
+      },
+      {
+        "at": "2026-10-14T07:48:50.707Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n3",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n3"
+      },
+      {
+        "at": "2026-10-14T07:48:53.830Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33"
+      },
+      {
+        "at": "2026-10-14T07:48:57.247Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33"
+      },
+      {
+        "at": "2026-10-14T07:49:00.455Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n3",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n3"
+      },
+      {
+        "at": "2026-10-14T07:49:03.684Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34"
+      },
+      {
+        "at": "2026-10-14T07:49:07.150Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34"
+      },
+      {
+        "at": "2026-10-14T07:49:10.501Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n3",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n3"
+      },
+      {
+        "at": "2026-10-14T07:49:13.847Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35"
+      },
+      {
+        "at": "2026-10-14T07:49:16.968Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35"
+      },
+      {
+        "at": "2026-10-14T07:49:20.212Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n3",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n3"
+      },
+      {
+        "at": "2026-10-14T07:49:23.578Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36"
+      },
+      {
+        "at": "2026-10-14T07:49:26.837Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36"
+      },
+      {
+        "at": "2026-10-14T07:49:30.190Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n3",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n3"
+      },
+      {
+        "at": "2026-10-14T07:49:33.371Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37"
+      },
+      {
+        "at": "2026-10-14T07:49:36.650Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37"
+      },
+      {
+        "at": "2026-10-14T07:49:40.327Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n3",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n3"
+      },
+      {
+        "at": "2026-10-14T07:49:43.687Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38"
+      },
+      {
+        "at": "2026-10-14T07:49:47.361Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38"
+      },
+      {
+        "at": "2026-10-14T07:49:50.802Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n3",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n3"
+      },
+      {
+        "at": "2026-10-14T07:49:54.412Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39"
+      },
+      {
+        "at": "2026-10-14T07:49:57.896Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39"
+      },
+      {
+        "at": "2026-10-14T07:50:01.334Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n4",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n4"
+      },
+      {
+        "at": "2026-10-14T07:50:04.698Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "executing",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n40",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n40"
+      },
+      {
+        "at": "2026-10-14T07:50:08.074Z",
+        "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+        "messageId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+        "status": "completed",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n40",
+        "renderedText": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n40"
+      }
+    ],
+    "final": {
+      "id": "576b4203-600f-4e43-820c-b9d03894b780",
+      "model": {
+        "id": "qwen-3-5-0-8b-q4k-ehaf16",
+        "name": "Qwen 3.5 0.8B",
+        "identity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+        "index": 0,
+        "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+        "residentId": "scj-run6-stage-0-resident",
+        "executionId": "scj-run6-stage-0-ordinary",
+        "activation": {
+          "schema": "doppler.activation-tensor/v2",
+          "dtype": "f32",
+          "hiddenSize": 1024,
+          "precision": "two-f32",
+          "components": 2,
+          "elementStrideBytes": 8
+        },
+        "availability": "ready",
+        "adapters": [],
+        "selectionId": "qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+        "partition": {
+          "schema": "reploid.partition-selection/v2",
+          "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+          "coordinatorId": "peer:7cce6f3afaa1272f1eb74eb1",
+          "route": {
+            "schema": "reploid.partition-route/v1",
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+            "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+            "stages": [
+              {
+                "index": 0,
+                "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+                "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+                "residentId": "scj-run6-stage-0-resident",
+                "executionId": "scj-run6-stage-0-ordinary"
+              },
+              {
+                "index": 1,
+                "participantId": "peer:9af15d884eba51b0c0540e2a",
+                "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+                "residentId": "scj-run6-stage-1-resident",
+                "executionId": "scj-run6-stage-1-ordinary"
+              },
+              {
+                "index": 2,
+                "participantId": "peer:09610aefbd15a133d7af2b57",
+                "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+                "residentId": "scj-run6-stage-2-resident",
+                "executionId": "scj-run6-stage-2-ordinary"
+              }
+            ],
+            "activation": {
+              "schema": "doppler.activation-tensor/v2",
+              "dtype": "f32",
+              "hiddenSize": 1024,
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          }
+        },
+        "provider": "doppler",
+        "contextLength": 4096,
+        "quantization": "q4k",
+        "size": "Q4K",
+        "recommended": true,
+        "textGeneration": {
+          "schema": "reploid.text-generation/v1",
+          "usage": "raw-model-tokens/v1"
+        },
+        "providerIds": [
+          "peer:7cce6f3afaa1272f1eb74eb1",
+          "peer:9af15d884eba51b0c0540e2a",
+          "peer:09610aefbd15a133d7af2b57"
+        ],
+        "placement": "ordered-layer-partition"
+      },
+      "purpose": "",
+      "systemContext": {
+        "content": "",
+        "metadata": {
+          "policyId": "reploid.compact-context/v1",
+          "enabled": false,
+          "maxWords": 16,
+          "wordCount": 0,
+          "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+          "mode": null
+        }
+      },
+      "members": [
+        "local-user"
+      ],
+      "permissions": {
+        "sharingScope": "mesh"
+      },
+      "grants": [],
+      "messages": [
+        {
+          "id": "def86f9c-8ab4-47e0-bd75-1af98e951d6c",
+          "role": "user",
+          "content": "Count from 1 to 40 in order, one integer per line. No commentary.",
+          "status": "completed"
+        },
+        {
+          "id": "e129d9d1-cb65-431c-8521-a2d738d3840d",
+          "attemptId": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+          "role": "assistant",
+          "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n",
+          "status": "failed"
+        },
+        {
+          "id": "12754445-cbae-425d-a0a7-9fb06d921c05",
+          "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+          "role": "assistant",
+          "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n40",
+          "status": "completed"
+        }
+      ],
+      "attempts": [
+        {
+          "id": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+          "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+          "userMessageId": "def86f9c-8ab4-47e0-bd75-1af98e951d6c",
+          "responseId": "e129d9d1-cb65-431c-8521-a2d738d3840d",
+          "retryOf": null,
+          "status": "failed",
+          "createdAt": 1791963666341,
+          "finishedAt": 1791963796514,
+          "error": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.",
+          "approval": null,
+          "execution": {
+            "placement": "ordered-layer-partition",
+            "identity": {
+              "schema": "reploid.partition-attempt/v2",
+              "route": {
+                "schema": "reploid.partition-route/v1",
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+                "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+                "stages": [
+                  {
+                    "index": 0,
+                    "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+                    "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+                    "residentId": "scj-run6-stage-0-resident",
+                    "executionId": "scj-run6-stage-0-ordinary"
+                  },
+                  {
+                    "index": 1,
+                    "participantId": "peer:9af15d884eba51b0c0540e2a",
+                    "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+                    "residentId": "scj-run6-stage-1-resident",
+                    "executionId": "scj-run6-stage-1-ordinary"
+                  },
+                  {
+                    "index": 2,
+                    "participantId": "peer:09610aefbd15a133d7af2b57",
+                    "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+                    "residentId": "scj-run6-stage-2-resident",
+                    "executionId": "scj-run6-stage-2-ordinary"
+                  }
+                ],
+                "activation": {
+                  "schema": "doppler.activation-tensor/v2",
+                  "dtype": "f32",
+                  "hiddenSize": 1024,
+                  "precision": "two-f32",
+                  "components": 2,
+                  "elementStrideBytes": 8
+                }
+              },
+              "requesterId": "peer:530b918abefd5d0577bfba65",
+              "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+              "attemptId": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+              "placementGeneration": 0
+            },
+            "stepSummary": {
+              "count": 24,
+              "stages": [
+                {
+                  "partitionIndex": 0,
+                  "steps": 24,
+                  "stepMs": {
+                    "count": 24,
+                    "total": 15669.400000572205
+                  }
+                },
+                {
+                  "partitionIndex": 1,
+                  "steps": 24,
+                  "stepMs": {
+                    "count": 24,
+                    "total": 12234.500000715256
+                  }
+                },
+                {
+                  "partitionIndex": 2,
+                  "steps": 24,
+                  "stepMs": {
+                    "count": 24,
+                    "total": 85488.2999997139
+                  }
+                }
+              ]
+            }
+          },
+          "authorization": {
+            "kind": "once",
+            "grantId": null,
+            "peerId": "peer:7cce6f3afaa1272f1eb74eb1",
+            "recipientIdentity": "peer:7cce6f3afaa1272f1eb74eb1",
+            "disclosure": "ordered-partition-activations-and-tokens",
+            "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+            "route": {
+              "schema": "reploid.partition-route/v1",
+              "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+              "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+              "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+              "stages": [
+                {
+                  "index": 0,
+                  "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+                  "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+                  "residentId": "scj-run6-stage-0-resident",
+                  "executionId": "scj-run6-stage-0-ordinary"
+                },
+                {
+                  "index": 1,
+                  "participantId": "peer:9af15d884eba51b0c0540e2a",
+                  "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+                  "residentId": "scj-run6-stage-1-resident",
+                  "executionId": "scj-run6-stage-1-ordinary"
+                },
+                {
+                  "index": 2,
+                  "participantId": "peer:09610aefbd15a133d7af2b57",
+                  "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+                  "residentId": "scj-run6-stage-2-resident",
+                  "executionId": "scj-run6-stage-2-ordinary"
+                }
+              ],
+              "activation": {
+                "schema": "doppler.activation-tensor/v2",
+                "dtype": "f32",
+                "hiddenSize": 1024,
+                "precision": "two-f32",
+                "components": 2,
+                "elementStrideBytes": 8
+              }
+            },
+            "requesterIdentity": "peer:530b918abefd5d0577bfba65",
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+            "adapterIdentities": [],
+            "sharingScope": "mesh",
+            "source": "send",
+            "expiresAt": 1791964566547
+          },
+          "request": {
+            "model": {
+              "id": "qwen-3-5-0-8b-q4k-ehaf16",
+              "name": "Qwen 3.5 0.8B",
+              "identity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+              "index": 0,
+              "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+              "residentId": "scj-run6-stage-0-resident",
+              "executionId": "scj-run6-stage-0-ordinary",
+              "activation": {
+                "schema": "doppler.activation-tensor/v2",
+                "dtype": "f32",
+                "hiddenSize": 1024,
+                "precision": "two-f32",
+                "components": 2,
+                "elementStrideBytes": 8
+              },
+              "availability": "ready",
+              "adapters": [],
+              "selectionId": "qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+              "partition": {
+                "schema": "reploid.partition-selection/v2",
+                "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+                "coordinatorId": "peer:7cce6f3afaa1272f1eb74eb1",
+                "route": {
+                  "schema": "reploid.partition-route/v1",
+                  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                  "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+                  "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+                  "stages": [
+                    {
+                      "index": 0,
+                      "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+                      "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+                      "residentId": "scj-run6-stage-0-resident",
+                      "executionId": "scj-run6-stage-0-ordinary"
+                    },
+                    {
+                      "index": 1,
+                      "participantId": "peer:9af15d884eba51b0c0540e2a",
+                      "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+                      "residentId": "scj-run6-stage-1-resident",
+                      "executionId": "scj-run6-stage-1-ordinary"
+                    },
+                    {
+                      "index": 2,
+                      "participantId": "peer:09610aefbd15a133d7af2b57",
+                      "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+                      "residentId": "scj-run6-stage-2-resident",
+                      "executionId": "scj-run6-stage-2-ordinary"
+                    }
+                  ],
+                  "activation": {
+                    "schema": "doppler.activation-tensor/v2",
+                    "dtype": "f32",
+                    "hiddenSize": 1024,
+                    "precision": "two-f32",
+                    "components": 2,
+                    "elementStrideBytes": 8
+                  }
+                }
+              },
+              "provider": "doppler",
+              "contextLength": 4096,
+              "quantization": "q4k",
+              "size": "Q4K",
+              "recommended": true,
+              "textGeneration": {
+                "schema": "reploid.text-generation/v1",
+                "usage": "raw-model-tokens/v1"
+              },
+              "providerIds": [
+                "peer:7cce6f3afaa1272f1eb74eb1",
+                "peer:9af15d884eba51b0c0540e2a",
+                "peer:09610aefbd15a133d7af2b57"
+              ],
+              "placement": "ordered-layer-partition"
+            },
+            "permissions": {
+              "sharingScope": "mesh"
+            },
+            "members": [
+              "local-user"
+            ],
+            "messages": [
+              {
+                "role": "user",
+                "content": "Count from 1 to 40 in order, one integer per line. No commentary."
+              }
+            ]
+          },
+          "systemContext": {
+            "content": "",
+            "metadata": {
+              "policyId": "reploid.compact-context/v1",
+              "enabled": false,
+              "maxWords": 16,
+              "wordCount": 0,
+              "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+              "mode": null
+            }
+          }
+        },
+        {
+          "id": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+          "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+          "userMessageId": "def86f9c-8ab4-47e0-bd75-1af98e951d6c",
+          "responseId": "12754445-cbae-425d-a0a7-9fb06d921c05",
+          "retryOf": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+          "status": "completed",
+          "createdAt": 1791963808013,
+          "finishedAt": 1791964208037,
+          "error": null,
+          "approval": null,
+          "execution": {
+            "schema": "reploid.mesh.partition-summary/v2",
+            "identity": {
+              "schema": "reploid.partition-attempt/v2",
+              "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+              "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+              "requesterId": "peer:530b918abefd5d0577bfba65",
+              "placementGeneration": 0,
+              "route": {
+                "schema": "reploid.partition-route/v1",
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+                "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+                "stages": [
+                  {
+                    "index": 0,
+                    "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+                    "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+                    "residentId": "scj-run6-stage-0-resident",
+                    "executionId": "scj-run6-stage-0-ordinary"
+                  },
+                  {
+                    "index": 1,
+                    "participantId": "peer:9af15d884eba51b0c0540e2a",
+                    "transportId": "1e79691d-92b0-49e2-9155-826f6745ccbf",
+                    "residentId": "scj-run6-stage-1-resident",
+                    "executionId": "scj-run6-stage-1-ordinary"
+                  },
+                  {
+                    "index": 2,
+                    "participantId": "peer:09610aefbd15a133d7af2b57",
+                    "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+                    "residentId": "scj-run6-stage-2-resident",
+                    "executionId": "scj-run6-stage-2-ordinary"
+                  }
+                ],
+                "activation": {
+                  "schema": "doppler.activation-tensor/v2",
+                  "dtype": "f32",
+                  "hiddenSize": 1024,
+                  "precision": "two-f32",
+                  "components": 2,
+                  "elementStrideBytes": 8
+                }
+              }
+            },
+            "activationBytes": 2310144,
+            "stopReason": "eos-token",
+            "settlement": {
+              "identity": {
+                "schema": "reploid.partition-attempt/v2",
+                "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+                "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+                "requesterId": "peer:530b918abefd5d0577bfba65",
+                "placementGeneration": 0,
+                "route": {
+                  "schema": "reploid.partition-route/v1",
+                  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                  "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+                  "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+                  "stages": [
+                    {
+                      "index": 0,
+                      "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+                      "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+                      "residentId": "scj-run6-stage-0-resident",
+                      "executionId": "scj-run6-stage-0-ordinary"
+                    },
+                    {
+                      "index": 1,
+                      "participantId": "peer:9af15d884eba51b0c0540e2a",
+                      "transportId": "1e79691d-92b0-49e2-9155-826f6745ccbf",
+                      "residentId": "scj-run6-stage-1-resident",
+                      "executionId": "scj-run6-stage-1-ordinary"
+                    },
+                    {
+                      "index": 2,
+                      "participantId": "peer:09610aefbd15a133d7af2b57",
+                      "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+                      "residentId": "scj-run6-stage-2-resident",
+                      "executionId": "scj-run6-stage-2-ordinary"
+                    }
+                  ],
+                  "activation": {
+                    "schema": "doppler.activation-tensor/v2",
+                    "dtype": "f32",
+                    "hiddenSize": 1024,
+                    "precision": "two-f32",
+                    "components": 2,
+                    "elementStrideBytes": 8
+                  }
+                }
+              },
+              "phase": "completed",
+              "reservations": [
+                {
+                  "identity": {
+                    "schema": "reploid.partition-attempt/v2",
+                    "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+                    "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+                    "requesterId": "peer:530b918abefd5d0577bfba65",
+                    "placementGeneration": 0,
+                    "route": {
+                      "schema": "reploid.partition-route/v1",
+                      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                      "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+                      "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+                      "stages": [
+                        {
+                          "index": 0,
+                          "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+                          "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+                          "residentId": "scj-run6-stage-0-resident",
+                          "executionId": "scj-run6-stage-0-ordinary"
+                        },
+                        {
+                          "index": 1,
+                          "participantId": "peer:9af15d884eba51b0c0540e2a",
+                          "transportId": "1e79691d-92b0-49e2-9155-826f6745ccbf",
+                          "residentId": "scj-run6-stage-1-resident",
+                          "executionId": "scj-run6-stage-1-ordinary"
+                        },
+                        {
+                          "index": 2,
+                          "participantId": "peer:09610aefbd15a133d7af2b57",
+                          "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+                          "residentId": "scj-run6-stage-2-resident",
+                          "executionId": "scj-run6-stage-2-ordinary"
+                        }
+                      ],
+                      "activation": {
+                        "schema": "doppler.activation-tensor/v2",
+                        "dtype": "f32",
+                        "hiddenSize": 1024,
+                        "precision": "two-f32",
+                        "components": 2,
+                        "elementStrideBytes": 8
+                      }
+                    }
+                  },
+                  "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+                  "index": 0,
+                  "phase": "reserved",
+                  "reservedAt": 1791963808161,
+                  "settlingAt": null,
+                  "settledAt": null,
+                  "failure": null,
+                  "resources": {
+                    "attemptSlots": 1,
+                    "maxPromptTokens": 4096,
+                    "maxTokens": 4096,
+                    "maxActivationBytes": 33554432,
+                    "scope": "application-attempt-limits"
+                  },
+                  "partitionIndex": 0,
+                  "status": "reserved"
+                },
+                {
+                  "identity": {
+                    "schema": "reploid.partition-attempt/v2",
+                    "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+                    "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+                    "requesterId": "peer:530b918abefd5d0577bfba65",
+                    "placementGeneration": 0,
+                    "route": {
+                      "schema": "reploid.partition-route/v1",
+                      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                      "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+                      "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+                      "stages": [
+                        {
+                          "index": 0,
+                          "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+                          "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+                          "residentId": "scj-run6-stage-0-resident",
+                          "executionId": "scj-run6-stage-0-ordinary"
+                        },
+                        {
+                          "index": 1,
+                          "participantId": "peer:9af15d884eba51b0c0540e2a",
+                          "transportId": "1e79691d-92b0-49e2-9155-826f6745ccbf",
+                          "residentId": "scj-run6-stage-1-resident",
+                          "executionId": "scj-run6-stage-1-ordinary"
+                        },
+                        {
+                          "index": 2,
+                          "participantId": "peer:09610aefbd15a133d7af2b57",
+                          "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+                          "residentId": "scj-run6-stage-2-resident",
+                          "executionId": "scj-run6-stage-2-ordinary"
+                        }
+                      ],
+                      "activation": {
+                        "schema": "doppler.activation-tensor/v2",
+                        "dtype": "f32",
+                        "hiddenSize": 1024,
+                        "precision": "two-f32",
+                        "components": 2,
+                        "elementStrideBytes": 8
+                      }
+                    }
+                  },
+                  "participantId": "peer:9af15d884eba51b0c0540e2a",
+                  "index": 1,
+                  "phase": "reserved",
+                  "reservedAt": 1791963808210,
+                  "settlingAt": null,
+                  "settledAt": null,
+                  "failure": null,
+                  "resources": {
+                    "attemptSlots": 1,
+                    "maxPromptTokens": 4096,
+                    "maxTokens": 4096,
+                    "maxActivationBytes": 33554432,
+                    "scope": "application-attempt-limits"
+                  },
+                  "partitionIndex": 1,
+                  "status": "reserved"
+                },
+                {
+                  "identity": {
+                    "schema": "reploid.partition-attempt/v2",
+                    "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+                    "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+                    "requesterId": "peer:530b918abefd5d0577bfba65",
+                    "placementGeneration": 0,
+                    "route": {
+                      "schema": "reploid.partition-route/v1",
+                      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                      "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+                      "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+                      "stages": [
+                        {
+                          "index": 0,
+                          "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+                          "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+                          "residentId": "scj-run6-stage-0-resident",
+                          "executionId": "scj-run6-stage-0-ordinary"
+                        },
+                        {
+                          "index": 1,
+                          "participantId": "peer:9af15d884eba51b0c0540e2a",
+                          "transportId": "1e79691d-92b0-49e2-9155-826f6745ccbf",
+                          "residentId": "scj-run6-stage-1-resident",
+                          "executionId": "scj-run6-stage-1-ordinary"
+                        },
+                        {
+                          "index": 2,
+                          "participantId": "peer:09610aefbd15a133d7af2b57",
+                          "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+                          "residentId": "scj-run6-stage-2-resident",
+                          "executionId": "scj-run6-stage-2-ordinary"
+                        }
+                      ],
+                      "activation": {
+                        "schema": "doppler.activation-tensor/v2",
+                        "dtype": "f32",
+                        "hiddenSize": 1024,
+                        "precision": "two-f32",
+                        "components": 2,
+                        "elementStrideBytes": 8
+                      }
+                    }
+                  },
+                  "participantId": "peer:09610aefbd15a133d7af2b57",
+                  "index": 2,
+                  "phase": "reserved",
+                  "reservedAt": 1791963808237,
+                  "settlingAt": null,
+                  "settledAt": null,
+                  "failure": null,
+                  "resources": {
+                    "attemptSlots": 1,
+                    "maxPromptTokens": 4096,
+                    "maxTokens": 4096,
+                    "maxActivationBytes": 33554432,
+                    "scope": "application-attempt-limits"
+                  },
+                  "partitionIndex": 2,
+                  "status": "reserved"
+                }
+              ],
+              "cleanup": [
+                {
+                  "partitionIndex": 0,
+                  "status": "settled",
+                  "error": null
+                },
+                {
+                  "partitionIndex": 1,
+                  "status": "settled",
+                  "error": null
+                },
+                {
+                  "partitionIndex": 2,
+                  "status": "settled",
+                  "error": null
+                }
+              ],
+              "cleanupSettledAt": 1791964208024,
+              "failure": null
+            },
+            "stepSummary": {
+              "count": 111,
+              "stages": [
+                {
+                  "partitionIndex": 0,
+                  "steps": 111,
+                  "stepMs": {
+                    "count": 111,
+                    "total": 50357.200001716614
+                  }
+                },
+                {
+                  "partitionIndex": 1,
+                  "steps": 111,
+                  "stepMs": {
+                    "count": 111,
+                    "total": 49313.099999666214
+                  }
+                },
+                {
+                  "partitionIndex": 2,
+                  "steps": 111,
+                  "stepMs": {
+                    "count": 111,
+                    "total": 299412.1000006199
+                  }
+                }
+              ],
+              "detail": "aggregate; no per-step trace transferred"
+            },
+            "selection": {
+              "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+              "eligibility": [
+                {
+                  "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+                  "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+                  "reason": "reservation-required",
+                  "eligible": true,
+                  "capacity": {
+                    "active": 0,
+                    "availableSlots": 2,
+                    "closed": false
+                  }
+                },
+                {
+                  "participantId": "peer:09610aefbd15a133d7af2b57",
+                  "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+                  "reason": "no-prepared-path",
+                  "eligible": false,
+                  "capacity": {
+                    "active": 0,
+                    "availableSlots": 2,
+                    "closed": false
+                  }
+                },
+                {
+                  "participantId": "peer:9af15d884eba51b0c0540e2a",
+                  "transportId": "1e79691d-92b0-49e2-9155-826f6745ccbf",
+                  "reason": "no-prepared-path",
+                  "eligible": false,
+                  "capacity": {
+                    "active": 0,
+                    "availableSlots": 2,
+                    "closed": false
+                  }
+                }
+              ]
+            }
+          },
+          "authorization": {
+            "kind": "once",
+            "grantId": null,
+            "peerId": "peer:7cce6f3afaa1272f1eb74eb1",
+            "recipientIdentity": "peer:7cce6f3afaa1272f1eb74eb1",
+            "disclosure": "ordered-partition-activations-and-tokens",
+            "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+            "route": {
+              "schema": "reploid.partition-route/v1",
+              "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+              "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+              "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+              "stages": [
+                {
+                  "index": 0,
+                  "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+                  "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+                  "residentId": "scj-run6-stage-0-resident",
+                  "executionId": "scj-run6-stage-0-ordinary"
+                },
+                {
+                  "index": 1,
+                  "participantId": "peer:9af15d884eba51b0c0540e2a",
+                  "transportId": "1e79691d-92b0-49e2-9155-826f6745ccbf",
+                  "residentId": "scj-run6-stage-1-resident",
+                  "executionId": "scj-run6-stage-1-ordinary"
+                },
+                {
+                  "index": 2,
+                  "participantId": "peer:09610aefbd15a133d7af2b57",
+                  "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+                  "residentId": "scj-run6-stage-2-resident",
+                  "executionId": "scj-run6-stage-2-ordinary"
+                }
+              ],
+              "activation": {
+                "schema": "doppler.activation-tensor/v2",
+                "dtype": "f32",
+                "hiddenSize": 1024,
+                "precision": "two-f32",
+                "components": 2,
+                "elementStrideBytes": 8
+              }
+            },
+            "requesterIdentity": "peer:530b918abefd5d0577bfba65",
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+            "adapterIdentities": [],
+            "sharingScope": "mesh",
+            "source": "send",
+            "expiresAt": 1791964708077
+          },
+          "request": {
+            "model": {
+              "id": "qwen-3-5-0-8b-q4k-ehaf16",
+              "name": "Qwen 3.5 0.8B",
+              "identity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+              "index": 0,
+              "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+              "residentId": "scj-run6-stage-0-resident",
+              "executionId": "scj-run6-stage-0-ordinary",
+              "activation": {
+                "schema": "doppler.activation-tensor/v2",
+                "dtype": "f32",
+                "hiddenSize": 1024,
+                "precision": "two-f32",
+                "components": 2,
+                "elementStrideBytes": 8
+              },
+              "availability": "ready",
+              "adapters": [],
+              "selectionId": "qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+              "partition": {
+                "schema": "reploid.partition-selection/v2",
+                "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+                "coordinatorId": "peer:7cce6f3afaa1272f1eb74eb1",
+                "route": {
+                  "schema": "reploid.partition-route/v1",
+                  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                  "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+                  "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+                  "stages": [
+                    {
+                      "index": 0,
+                      "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+                      "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+                      "residentId": "scj-run6-stage-0-resident",
+                      "executionId": "scj-run6-stage-0-ordinary"
+                    },
+                    {
+                      "index": 1,
+                      "participantId": "peer:9af15d884eba51b0c0540e2a",
+                      "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+                      "residentId": "scj-run6-stage-1-resident",
+                      "executionId": "scj-run6-stage-1-ordinary"
+                    },
+                    {
+                      "index": 2,
+                      "participantId": "peer:09610aefbd15a133d7af2b57",
+                      "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+                      "residentId": "scj-run6-stage-2-resident",
+                      "executionId": "scj-run6-stage-2-ordinary"
+                    }
+                  ],
+                  "activation": {
+                    "schema": "doppler.activation-tensor/v2",
+                    "dtype": "f32",
+                    "hiddenSize": 1024,
+                    "precision": "two-f32",
+                    "components": 2,
+                    "elementStrideBytes": 8
+                  }
+                }
+              },
+              "provider": "doppler",
+              "contextLength": 4096,
+              "quantization": "q4k",
+              "size": "Q4K",
+              "recommended": true,
+              "textGeneration": {
+                "schema": "reploid.text-generation/v1",
+                "usage": "raw-model-tokens/v1"
+              },
+              "providerIds": [
+                "peer:7cce6f3afaa1272f1eb74eb1",
+                "peer:9af15d884eba51b0c0540e2a",
+                "peer:09610aefbd15a133d7af2b57"
+              ],
+              "placement": "ordered-layer-partition"
+            },
+            "permissions": {
+              "sharingScope": "mesh"
+            },
+            "members": [
+              "local-user"
+            ],
+            "messages": [
+              {
+                "role": "user",
+                "content": "Count from 1 to 40 in order, one integer per line. No commentary."
+              }
+            ]
+          },
+          "systemContext": {
+            "content": "",
+            "metadata": {
+              "policyId": "reploid.compact-context/v1",
+              "enabled": false,
+              "maxWords": 16,
+              "wordCount": 0,
+              "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+              "mode": null
+            }
+          }
+        }
+      ],
+      "closed": false,
+      "createdAt": 1791963666336
+    }
+  },
+  "custodyAfter": {
+    "state": {
+      "sharing": false,
+      "suppliedBytes": 0,
+      "pending": 0,
+      "peers": [
+        "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+        "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+        "1e79691d-92b0-49e2-9155-826f6745ccbf"
+      ],
+      "model": null,
+      "mode": null,
+      "acquisitionBudget": null,
+      "acquisitionBudgetError": null,
+      "supplyBudgetError": null,
+      "preparing": false,
+      "stopping": false,
+      "error": "",
+      "progress": null,
+      "receivedBytes": 0,
+      "verifiedFiles": [],
+      "limits": {
+        "storedBytes": 3221225472,
+        "supplyBytes": 4294967296,
+        "downloadBytes": 67108864,
+        "maxDownloadBytes": 4294967296,
+        "subsetBytes": 67108864
+      }
+    },
+    "receipts": []
+  },
+  "weights": [],
+  "assessment": {
+    "automatedPass": true,
+    "failures": [],
+    "checks": {
+      "lossInjected": {
+        "pass": true,
+        "failures": [],
+        "requirements": [
+          "DR-5 docs/roadmap/requirements.md:190"
+        ]
+      },
+      "lossReported": {
+        "pass": true,
+        "failures": [],
+        "requirements": [
+          "DR-5 docs/roadmap/requirements.md:190",
+          "ROADMAP.md:28",
+          "REP-7 docs/roadmap/requirements.md:148"
+        ]
+      },
+      "ownershipExplicit": {
+        "pass": true,
+        "failures": [],
+        "requirements": [
+          "REP-6 docs/roadmap/requirements.md:406",
+          "REP-4 docs/roadmap/requirements.md:272",
+          "ROADMAP.md:28"
+        ]
+      },
+      "noSilentContinuation": {
+        "pass": true,
+        "failures": [],
+        "requirements": [
+          "REP-6 docs/roadmap/requirements.md:406",
+          "DR-5 docs/roadmap/requirements.md:190"
+        ]
+      },
+      "explicitRetry": {
+        "pass": true,
+        "failures": [],
+        "requirements": [
+          "DR-5 docs/roadmap/requirements.md:190",
+          "REP-6 docs/roadmap/requirements.md:406"
+        ]
+      },
+      "selectiveAcquisition": {
+        "pass": true,
+        "failures": [],
+        "requirements": [
+          "REP-7 docs/roadmap/requirements.md:133"
+        ]
+      },
+      "timing": {
+        "pass": true,
+        "failures": [],
+        "requirements": [
+          "ROADMAP.md:14"
+        ]
+      }
+    },
+    "observedErrorCode": "CONNECTION_LOST",
+    "manualReview": {
+      "answerUsefulness": null,
+      "criteria": [
+        "The retried answer completes the requested count; correctness of the count is reviewed separately from lifecycle acceptance.",
+        "The requester-visible report states that a contributor was lost, not only that the answer could not finish."
+      ],
+      "reviewer": null
+    }
+  },
+  "status": "automated checks passed; retried answer awaits manual review",
+  "requesterClosedWhileActive": false,
+  "finishedAt": "2026-10-14T07:50:08.088Z"
+}

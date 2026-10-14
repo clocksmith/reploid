@@ -1,0 +1,17 @@
+{"at":"2026-10-14T07:38:37.839Z","kind":"listening","address":{"address":"127.0.0.1","family":"IPv4","port":29670},"pid":84962}
+{"at":"2026-10-14T07:39:17.707Z","kind":"upgrade","path":"/swarm","origin":"http://127.0.0.1:29670"}
+{"at":"2026-10-14T07:39:24.594Z","kind":"upgrade","path":"/swarm","origin":"http://127.0.0.1:29670"}
+{"at":"2026-10-14T07:39:48.553Z","kind":"upgrade","path":"/swarm","origin":"http://127.0.0.1:29670"}
+{"at":"2026-10-14T07:39:48.839Z","kind":"upgrade","path":"/swarm","origin":"http://127.0.0.1:29670"}
+{"at":"2026-10-14T07:39:49.721Z","kind":"upgrade","path":"/swarm","origin":"http://127.0.0.1:29670"}
+{"at":"2026-10-14T07:39:49.721Z","kind":"upgrade","path":"/swarm","origin":"http://127.0.0.1:29670"}
+{"at":"2026-10-14T07:41:03.873Z","kind":"upgrade","path":"/swarm","origin":"http://127.0.0.1:29670"}
+{"at":"2026-10-14T07:43:17.453Z","kind":"upgrade","path":"/swarm","origin":"http://127.0.0.1:29670"}
+{"at":"2026-10-14T07:43:19.116Z","kind":"upgrade","path":"/swarm","origin":"http://127.0.0.1:29670"}
+{"at":"2026-10-14T07:43:19.385Z","kind":"upgrade","path":"/swarm","origin":"http://127.0.0.1:29670"}
+{"at":"2026-10-14T07:43:22.290Z","kind":"upgrade","path":"/swarm","origin":"http://127.0.0.1:29670"}
+{"at":"2026-10-14T07:50:09.152Z","kind":"upgrade","path":"/swarm","origin":"http://127.0.0.1:29670"}
+{"at":"2026-10-14T07:50:09.179Z","kind":"upgrade","path":"/swarm","origin":"http://127.0.0.1:29670"}
+{"at":"2026-10-14T07:50:09.180Z","kind":"upgrade","path":"/swarm","origin":"http://127.0.0.1:29670"}
+{"at":"2026-10-14T07:50:56.651Z","kind":"upgrade","path":"/swarm","origin":"http://127.0.0.1:29670"}
+{"at":"2026-10-14T07:51:12.188Z","kind":"stopping","pid":84962}
