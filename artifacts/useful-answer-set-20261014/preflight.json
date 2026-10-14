@@ -1,0 +1,282 @@
+{
+ "schema": "reploid.useful-answer-set.preflight/v1",
+ "machine": "mac-host",
+ "answerSetSha256": "ac174063024054b9ea048b2dd4c532119bea96ae4d330dab89dd2c3ea62dced5",
+ "promptTokenLimit": 250,
+ "textPath": {
+  "ok": true,
+  "ready": true,
+  "dopplerVersion": "0.6.28",
+  "chatTemplate": {
+   "type": "qwen",
+   "enabled": true,
+   "thinking": false
+  },
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16"
+ },
+ "items": [
+  {
+   "id": "fact-capital-australia",
+   "category": "factual",
+   "turns": 1,
+   "turn1PromptTokens": 19
+  },
+  {
+   "id": "fact-pride-prejudice-author",
+   "category": "factual",
+   "turns": 1,
+   "turn1PromptTokens": 20
+  },
+  {
+   "id": "fact-gold-symbol",
+   "category": "factual",
+   "turns": 1,
+   "turn1PromptTokens": 20
+  },
+  {
+   "id": "fact-apollo11-year",
+   "category": "factual",
+   "turns": 1,
+   "turn1PromptTokens": 24
+  },
+  {
+   "id": "fact-http-expansion",
+   "category": "factual",
+   "turns": 1,
+   "turn1PromptTokens": 18
+  },
+  {
+   "id": "fact-adult-bones",
+   "category": "factual",
+   "turns": 1,
+   "turn1PromptTokens": 22
+  },
+  {
+   "id": "expl-sky-blue",
+   "category": "explanation",
+   "turns": 1,
+   "turn1PromptTokens": 25
+  },
+  {
+   "id": "expl-list-tuple",
+   "category": "explanation",
+   "turns": 1,
+   "turn1PromptTokens": 25
+  },
+  {
+   "id": "expl-leap-year",
+   "category": "explanation",
+   "turns": 1,
+   "turn1PromptTokens": 19
+  },
+  {
+   "id": "expl-weather-climate",
+   "category": "explanation",
+   "turns": 1,
+   "turn1PromptTokens": 21
+  },
+  {
+   "id": "expl-http-404",
+   "category": "explanation",
+   "turns": 1,
+   "turn1PromptTokens": 27
+  },
+  {
+   "id": "code-double-evens",
+   "category": "code",
+   "turns": 1,
+   "turn1PromptTokens": 56
+  },
+  {
+   "id": "code-sum-squares",
+   "category": "code",
+   "turns": 1,
+   "turn1PromptTokens": 49
+  },
+  {
+   "id": "code-reverse-string",
+   "category": "code",
+   "turns": 1,
+   "turn1PromptTokens": 32
+  },
+  {
+   "id": "code-python-slice",
+   "category": "code",
+   "turns": 1,
+   "turn1PromptTokens": 51
+  },
+  {
+   "id": "code-js-default-sort",
+   "category": "code",
+   "turns": 1,
+   "turn1PromptTokens": 48
+  },
+  {
+   "id": "code-count-vowels",
+   "category": "code",
+   "turns": 1,
+   "turn1PromptTokens": 47
+  },
+  {
+   "id": "arith-multiply",
+   "category": "arithmetic",
+   "turns": 1,
+   "turn1PromptTokens": 22
+  },
+  {
+   "id": "arith-percent",
+   "category": "arithmetic",
+   "turns": 1,
+   "turn1PromptTokens": 23
+  },
+  {
+   "id": "arith-miles-km",
+   "category": "arithmetic",
+   "turns": 1,
+   "turn1PromptTokens": 20
+  },
+  {
+   "id": "arith-f-to-c",
+   "category": "arithmetic",
+   "turns": 1,
+   "turn1PromptTokens": 22
+  },
+  {
+   "id": "arith-discount",
+   "category": "arithmetic",
+   "turns": 1,
+   "turn1PromptTokens": 32
+  },
+  {
+   "id": "arith-hours-seconds",
+   "category": "arithmetic",
+   "turns": 1,
+   "turn1PromptTokens": 23
+  },
+  {
+   "id": "fu-double-evens",
+   "category": "follow-up",
+   "turns": 2,
+   "turn1PromptTokens": 56,
+   "turn2PromptTokensWithEmptyAnswer": 90,
+   "turn1AnswerTokenBudget": 160
+  },
+  {
+   "id": "fu-rectangle",
+   "category": "follow-up",
+   "turns": 2,
+   "turn1PromptTokens": 30,
+   "turn2PromptTokensWithEmptyAnswer": 46,
+   "turn1AnswerTokenBudget": 204
+  },
+  {
+   "id": "fu-translate",
+   "category": "follow-up",
+   "turns": 2,
+   "turn1PromptTokens": 23,
+   "turn2PromptTokensWithEmptyAnswer": 37,
+   "turn1AnswerTokenBudget": 213
+  },
+  {
+   "id": "fu-cookies",
+   "category": "follow-up",
+   "turns": 2,
+   "turn1PromptTokens": 28,
+   "turn2PromptTokensWithEmptyAnswer": 56,
+   "turn1AnswerTokenBudget": 194
+  },
+  {
+   "id": "fu-palindrome",
+   "category": "follow-up",
+   "turns": 2,
+   "turn1PromptTokens": 41,
+   "turn2PromptTokensWithEmptyAnswer": 60,
+   "turn1AnswerTokenBudget": 190
+  },
+  {
+   "id": "fu-primary-colors",
+   "category": "follow-up",
+   "turns": 2,
+   "turn1PromptTokens": 21,
+   "turn2PromptTokensWithEmptyAnswer": 44,
+   "turn1AnswerTokenBudget": 206
+  },
+  {
+   "id": "rw-grammar",
+   "category": "rewrite",
+   "turns": 1,
+   "turn1PromptTokens": 43
+  },
+  {
+   "id": "rw-polite",
+   "category": "rewrite",
+   "turns": 1,
+   "turn1PromptTokens": 34
+  },
+  {
+   "id": "rw-summary-library",
+   "category": "rewrite",
+   "turns": 1,
+   "turn1PromptTokens": 98
+  },
+  {
+   "id": "rw-recall-bullets",
+   "category": "rewrite",
+   "turns": 1,
+   "turn1PromptTokens": 83
+  },
+  {
+   "id": "rw-shorten-email",
+   "category": "rewrite",
+   "turns": 1,
+   "turn1PromptTokens": 90
+  },
+  {
+   "id": "fmt-one-word-banana",
+   "category": "format",
+   "turns": 1,
+   "turn1PromptTokens": 24
+  },
+  {
+   "id": "fmt-three-bullets",
+   "category": "format",
+   "turns": 1,
+   "turn1PromptTokens": 31
+  },
+  {
+   "id": "fmt-json-eiffel",
+   "category": "format",
+   "turns": 1,
+   "turn1PromptTokens": 36
+  },
+  {
+   "id": "fmt-yes-no-prime",
+   "category": "format",
+   "turns": 1,
+   "turn1PromptTokens": 27
+  },
+  {
+   "id": "fmt-numbered-countries",
+   "category": "format",
+   "turns": 1,
+   "turn1PromptTokens": 28
+  },
+  {
+   "id": "fmt-haiku-lines",
+   "category": "format",
+   "turns": 1,
+   "turn1PromptTokens": 27
+  }
+ ],
+ "problems": [],
+ "maxTurn1PromptTokens": 98,
+ "categories": {
+  "factual": 6,
+  "explanation": 5,
+  "code": 6,
+  "arithmetic": 6,
+  "follow-up": 6,
+  "rewrite": 5,
+  "format": 6
+ }
+}

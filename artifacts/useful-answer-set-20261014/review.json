@@ -1,0 +1,55 @@
+{
+ "schema": "reploid.useful-answer-set.review/v1",
+ "grader": "Claude Opus 5.5, the agent that wrote the set, after reading every output of both arms. Provisional; not a human judgment.",
+ "answerSetSha256": "ac174063024054b9ea048b2dd4c532119bea96ae4d330dab89dd2c3ea62dced5",
+ "humanItems": {
+  "expl-list-tuple": {
+   "q4k": {"pass": false, "reason": "States lists are mutable and tuples immutable, but also claims tuples do not support index access (my_tuple[0] raises TypeError) or iteration, and that lists are 'type-safe' and convert element types. These are false claims about basic syntax, which the rubric fails."},
+   "bf16": {"pass": false, "reason": "States lists are mutable and tuples immutable, but also says tuples can 'only be accessed or modified by copying them' and comments that tuple(my_tuple) 'is [1, 2, 3]'. Both are false claims about mutability and syntax, which the rubric fails. The main distinction is stated correctly; a less strict reader could pass it."}
+  },
+  "expl-weather-climate": {
+   "q4k": {"pass": true, "reason": "Weather is short-term atmospheric conditions; climate is the statistical average over a long period, measured over decades. No swapped or contradictory definition."},
+   "bf16": {"pass": true, "reason": "Weather is the short-term state; climate is the long-term average, typically 30 years or more. Its table gives weather as 'hours to years', which stretches the term but does not swap or contradict the definitions."}
+  }
+ },
+ "mechanicalVerdictReview": [
+  {"id": "rw-summary-library", "arm": "q4k", "mechanicalVerdict": "pass", "kind": "false pass",
+   "note": "The summary states the new hours as 'from 9 am to 11 pm and 8 pm to 10 pm'. The paragraph says opening moves from 9 am to 8 am and closing from 8 pm to 9 pm. The checks (one sentence, under 45 words, mentions the library and an extension) do not test the stated times."},
+  {"id": "code-count-vowels", "arm": "bf16", "mechanicalVerdict": "pass", "kind": "false pass",
+   "note": "States the right count, 5, but the function is broken: len(s.lower().isalpha() and s.lower() in vowels) evaluates len(False) and raises TypeError. Its listed vowels 'e, u, d, i, o, n' are also wrong. The check tests only the stated count."},
+  {"id": "fu-palindrome", "arm": "bf16", "mechanicalVerdict": "pass", "kind": "false pass",
+   "note": "Turn 1's function is return s == s[::-1], which does not ignore case as asked, so it returns False for 'Racecar'. Turn 2 answers True, which matches the requested behaviour but not its own code. The turn-1 check tests only that an is_palindrome function is defined."},
+  {"id": "arith-multiply", "arm": "bf16", "mechanicalVerdict": "pass", "kind": "pass with false side claims",
+   "note": "The column working ends at 368; the final line then states 17 x 24 = 408. The final answer is right and the working contradicts it."},
+  {"id": "fact-capital-australia", "arm": "q4k", "mechanicalVerdict": "pass", "kind": "pass with false side claims",
+   "note": "Canberra is right. It then says Canberra is in the outback, on the Murray River, and was the site of a 1919 general election and the first capital of the colonies."},
+  {"id": "fact-capital-australia", "arm": "bf16", "mechanicalVerdict": "pass", "kind": "pass with false side claims",
+   "note": "Canberra is right. It then says Canberra is in the outback and is the second-largest city in Australia and in the world."},
+  {"id": "fact-pride-prejudice-author", "arm": "q4k", "mechanicalVerdict": "pass", "kind": "pass with false side claims",
+   "note": "Jane Austen is right. The title is misspelt 'Pride and Prejudance' twice and Austen is said to have died in 1840 (she died in 1817)."},
+  {"id": "fact-gold-symbol", "arm": "bf16", "mechanicalVerdict": "pass", "kind": "pass with false side claims",
+   "note": "Au is right. It then says the symbol is 'A for aurum followed by U for gold'."},
+  {"id": "fact-apollo11-year", "arm": "q4k", "mechanicalVerdict": "pass", "kind": "pass with false side claims",
+   "note": "1969 is right. It says the landing occurred 'at the Cape Canoe Basin in the Pacific Ocean'."},
+  {"id": "fact-apollo11-year", "arm": "bf16", "mechanicalVerdict": "pass", "kind": "pass with false side claims",
+   "note": "1969 is right. It says the module landed at the Moon's south pole (Apollo 11 landed in the Sea of Tranquility)."},
+  {"id": "fact-adult-bones", "arm": "q4k", "mechanicalVerdict": "pass", "kind": "pass with false side claims",
+   "note": "206 is right. It cites an invented 'International Classification of Osmia', claims 11 femoral bones and 106 fetal bones, and repeats one bullet three times."},
+  {"id": "fact-adult-bones", "arm": "bf16", "mechanicalVerdict": "pass", "kind": "pass with false side claims",
+   "note": "206 is right. It then splits them as '206 bones in the skull, spine, and the 186 bones of the rest of the body'."},
+  {"id": "expl-leap-year", "arm": "q4k", "mechanicalVerdict": "pass", "kind": "pass with false side claims",
+   "note": "States the year is about 365.2425 days and the summary is right. Most of the explanation is invented: Ptolemy developing the Gregorian calendar, drift measured in degrees of longitude, '365 days added every 4 years'."},
+  {"id": "expl-leap-year", "arm": "bf16", "mechanicalVerdict": "pass", "kind": "pass with false side claims",
+   "note": "States 365.2422 days and the 4/100/400 rule correctly. It also says the extra is 0.0422 days per year and that the Julian year of 365.25 days is shorter than the solar year."},
+  {"id": "expl-http-404", "arm": "q4k", "mechanicalVerdict": "pass", "kind": "pass with false side claims",
+   "note": "Says 'Not Found', but also lists 'the server is down' as a meaning, calls 404 a transient state that disappears after a few seconds, and advises checking the internet connection."},
+  {"id": "expl-http-404", "arm": "bf16", "mechanicalVerdict": "pass", "kind": "pass with false side claims",
+   "note": "Says the requested URL does not exist, but opens with 'the browser has successfully loaded the page', suggests registering a new domain, and repeats a section."},
+  {"id": "fu-translate", "arm": "q4k", "mechanicalVerdict": "pass", "kind": "pass with false side claims",
+   "note": "Gracias and Merci are right. Turn 1 also offers 'Dejame gracias' as meaning 'I'm sorry'."},
+  {"id": "fu-translate", "arm": "bf16", "mechanicalVerdict": "pass", "kind": "pass with false side claims",
+   "note": "Gracias and Merci are right. The example glosses read 'Hello, thank you!', and turn 2 calls 'Merci' 'a bit more formal than Merci'."},
+  {"id": "fu-primary-colors", "arm": "bf16", "mechanicalVerdict": "pass", "kind": "pass with false side claims",
+   "note": "Red, green and blue are right, and turn 2 answers Red. Turn 1 also says green and blue are both 'the shortest wavelength'."}
+ ]
+}
