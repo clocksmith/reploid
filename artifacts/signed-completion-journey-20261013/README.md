@@ -121,6 +121,20 @@ Streams a long count, then calls the configured `stop` export for `contributorCo
 
 Offers from this run are withdrawn before (f), and every earlier tab is closed before `interruptedResume`, so their transfers are observable over HTTP. Peer transfers are also counted from custody receipts. A peer transfer before the interruption's reload ends with the page and is not observable, so that step requires no offering peer and treats any receipt as a failure.
 
+### Launch 2 full-model seeding (`run-seeding.mjs`)
+
+Explicit full-model seeding (REP-5 `requirements.md:322`) keeps its own acceptance, separate from the bounded sharing above. The expected file set is the served catalog entry plus its manifest's weight shards (`work-model-files.js:198-213`), fetched by the harness from the origin, outside any page, so it adds no tracked transfer. Allowances: `storage.seedingAllowanceMiB` must cover the whole model (Qwen 3.5 0.8B Q4K: 1,146,048,704 weight bytes plus metadata), `storage.seedingRefusalAllowanceMiB` must not; `timeouts.seedingMs` bounds a whole-model acquisition.
+
+| Step | Result | What is observed |
+|------|--------|------------------|
+| (r) | `refusedWithoutAllowance` | Fresh context, full-model start with the refusal allowance: refused with the preflight's exact text, nothing offered, no weight request, ledger cap unchanged and not overspent |
+| (v) | `scopeVisibleBeforeApproval` | Full-model mode and the allowance chosen, switch not yet pressed: the file controls must state the whole-model download and storage size (within 1 % or 0.01 GiB of the expected set). The final-5 controls show only the storage and send limits, so this is expected to fail until the controls show the size |
+| (s) | `seededWhole` | Seeding while the participant's own ordered answer streams: every expected file offered, weights retained as whole verified files, ledger cap equal to the allowance and charges equal to the observed transfers, overlap with the active answer, which completes uncancelled |
+| (b) | `peerAcquiresWholeModel` | Acquirer on another machine, full-model mode: holds every expected file, zero origin weight requests, every weight shard arrives through finished custody receipts, the seeder's supplied bytes cover the weights |
+| (c) | `reloadRebuildsWhole` | Seeder reload, cached-only restart: the whole inventory is rebuilt from verified cached bytes, zero model-file requests, ledger unchanged |
+| (n) | `boundedDoesNotImplySeeding` | Fresh bounded grant: offers pieces only; a later full-model start under the same ledger is refused, offers no whole weights, downloads none, and the cap is not renewed |
+| (f) | `stopSettlesSeeding` | Fresh context: answer streaming, whole-file acquisition in flight, Stop sharing; files settle, no later requests, charges retained and not refunded, answer completes uncancelled |
+
 ### Timing record (`timing.mjs`)
 
 One record per attempt (schema `reploid.signed-completion-answer-timing/v2`; runs 1 to 6 wrote v1); completed answers must be complete. Each measured value keeps its clock and source; unexposed boundaries are `not-observable` with a reason and source, never estimated. Only the boundaries listed below may be `not-observable`; any other absent boundary is `missing` and fails.
@@ -150,6 +164,7 @@ node --test artifacts/signed-completion-journey-20261013/*.test.mjs
 node artifacts/signed-completion-journey-20261013/run-requester.mjs /abs/journey-config.json
 node artifacts/signed-completion-journey-20261013/run-contributor-loss.mjs /abs/journey-config.json
 node artifacts/signed-completion-journey-20261013/run-contribution.mjs /abs/journey-config.json
+node artifacts/signed-completion-journey-20261013/run-seeding.mjs /abs/journey-config.json
 ```
 
 Prerequisites the harness does not create: the installed signed export served at each loopback origin; the operator's stage assignment (stage 0 in the Mac browser instance's `reploid.ordered-stage.v1`, natives with `--ordered-config`); natives launched with `--room-token-file` (below); a running stage 0 browser reachable over a loopback CDP endpoint; remote browsers forwarded to loopback ports; native file sharing off during (d) and (f).
@@ -188,11 +203,12 @@ All keys are required; unknown keys are rejected; `null` is accepted only for `a
 | `freeze.route[]` | `{index, machine, host, participantId[, orderedConfig]}` | Distinct machines and peers; stage 0 is the browser; natives carry an absolute `orderedConfig` passed to the control module |
 | `browsers.requester`, `coordinator`, `storageSupplier`, `storageAcquirer` | `{machine, origin, connect}` | `connect` is `{kind:'launch', channel, headless, remoteDebuggingPort}` or `{kind:'cdp', endpoint}`; requester must be `launch` (each independent requester is a new user data directory; only the first uses `remoteDebuggingPort`); coordinator must be `cdp` on the stage 0 machine; acquirer must be another machine than supplier; endpoints distinct |
 | `contributorControl` | `{module, stopExport, restoreExport, lossTarget}` | Absolute module; `lossTarget` is a native route machine |
-| `timeouts` | `readyMs, answerMs, lossReportMs, capacityReturnMs, transferMs, settlementMs` | Positive ms; `answerMs` replaces the precedent's fixed 180000 (`run.mjs:58`) |
+| `timeouts` | `readyMs, answerMs, lossReportMs, capacityReturnMs, transferMs, settlementMs, seedingMs` | Positive ms; `answerMs` replaces the precedent's fixed 180000 (`run.mjs:58`) |
 | `observation.pollMs` | int 1..1000 | Sampling interval |
 | `concurrency.tabs` | int 2..8 | Number of concurrent independent requester profiles; also checked against the served `limits.maxConcurrentAttempts` |
 | `modelFiles.pathPatterns` | path-only regex list | Adds model-file classes; the precedent weight regex always applies |
 | `storage.sharingAllowanceMiB`, `stopAllowanceMiB`, `contentionAllowanceMiB`, `interruptionAllowanceMiB` | int MiB | Ledgers are immutable per origin (`work-model-files.js:355`). Interruption must fit the metadata and small pieces before the first piece of at least 1 MiB plus that piece twice (charged when interrupted and again when resumed) to show a completed resume. Run 2's 0.8B index: 326,877 bytes before a 5,253,248-byte piece, 10,833,373 bytes in total, within 13 MiB |
+| `storage.seedingAllowanceMiB`, `seedingRefusalAllowanceMiB`; `timeouts.seedingMs` | int MiB; ms | Seeding must cover the whole expected file set within the 4 GiB maximum (`self/config/chat-files.json:24`); refusal must not. Example: 1200 MiB, 64 MiB, 1,800,000 ms |
 
 Control module contract: `stop(stage)` and `restore(stage)` receive `{machine, stage, participantId, orderedConfig, nativeArtifact}` and resolve `{method, stoppedAt|restoredAt, detail?}`. The harness records the method; it never contacts a machine itself.
 
@@ -295,11 +311,11 @@ Runs 1 to 6 used Send as the authorization. No route was shown before admission,
 
 ## What this harness cannot establish
 
-Answer usefulness or correctness beyond the frozen counts; numerical accuracy; signed Capsule opening and selective acquisition on the contributors; both browser/native placements of each stage; the 1,588-token long-prompt workload and the 1,420,000,000-byte allocation gate (DR-5 `requirements.md:190`); useful combined capacity (DR-6); embedding and scoring (DR-2); full-model seeding; arbitrary NAT or cable loss; cleanup of GPU memory beyond the reported receipts; first-use or phone behaviour; served-asset integrity beyond the descriptor hash (the bundle verifier owns that); installed native artifact identities on the remote machines (recorded from config, not verified).
+Answer usefulness or correctness beyond the frozen counts; numerical accuracy; signed Capsule opening and selective acquisition on the contributors; both browser/native placements of each stage; the 1,588-token long-prompt workload and the 1,420,000,000-byte allocation gate (DR-5 `requirements.md:190`); useful combined capacity (DR-6); embedding and scoring (DR-2); full-model seeding until `run-seeding.mjs` runs on an installed candidate; arbitrary NAT or cable loss; cleanup of GPU memory beyond the reported receipts; first-use or phone behaviour; served-asset integrity beyond the descriptor hash (the bundle verifier owns that); installed native artifact identities on the remote machines (recorded from config, not verified).
 
 ## Verification performed
 
-- `node --test` over the seven test files: see [unit-tests.txt](unit-tests.txt).
+- `node --test` over the test files: see [unit-tests.txt](unit-tests.txt).
 - Recipient review: application unit tests (Vitest, `--config tests/vitest.config.js`): `request-approval.test.js`, `ordered-review-disclosure.test.js`, `product-session-requester-identity.test.js`, `chat-workspace.test.js`, `automatic-ordered-partitions.test.js`, `execution-ribbon.test.js`, `conversation-permission.test.js`. Playwright `tests/e2e/chat-rails.spec.js` "direct chat" at 1440, 390 and 320 px in both themes on a local server. No runner, contributor or physical route.
 - `node --check` on every module.
 - `--room-token-file`: `tests/unit/native-room-token-file.test.js` (Vitest, `--config tests/vitest.config.js`).

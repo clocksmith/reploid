@@ -1,0 +1,15 @@
+{
+  "schema": "reploid.signed-completion-full-seeding/v1",
+  "scope": "Launch 2 explicit full-model seeding through the existing file controls: refusal without a sufficient separate allowance, the resource scope shown before approval, a complete verified seed charged exactly, reload rebuilding the whole inventory from cache, another computer acquiring every model file from the seeder with no origin weight downloads, no renewal of a bounded grant by changing modes, and stopping a seed in flight without cancelling the person's conversation.",
+  "chatPrompt": "Count from 1 to 20 in order, one integer per line. No commentary.",
+  "chatStartedAfterCharacters": 8,
+  "refusalText": "Full-model seeding requires a sufficient cumulative download allowance",
+  "renewalRefusalText": "Download allowance cannot be renewed by changing modes",
+  "cachedOnlyObservationMs": 3000,
+  "codeReferences": {
+    "modes": "self/ui/pool-home/network-controls.js:26-33,119-133; self/host/work-model-files.js:339-438",
+    "fullModel": "self/host/work-model-files.js:372-383 (storage and remaining-download preflight, whole-file acquisition)",
+    "ledger": "self/infrastructure/custody-supply-budget.js:4-49",
+    "receipts": "packages/reploid/src/artifacts/custody/runtime.js:367-375"
+  }
+}

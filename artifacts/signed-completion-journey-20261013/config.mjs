@@ -153,7 +153,7 @@ export function validateConfig(raw) {
     if (!native) fail(errors, 'config.contributorControl.lossTarget', 'must name a native stage machine in the frozen route');
   }
 
-  if (exact(errors, 'config.timeouts', raw.timeouts, ['readyMs', 'answerMs', 'lossReportMs', 'capacityReturnMs', 'transferMs', 'settlementMs'])) {
+  if (exact(errors, 'config.timeouts', raw.timeouts, ['readyMs', 'answerMs', 'lossReportMs', 'capacityReturnMs', 'transferMs', 'settlementMs', 'seedingMs'])) {
     for (const [key, value] of Object.entries(raw.timeouts)) positive(errors, `config.timeouts.${key}`, value);
   }
   if (exact(errors, 'config.observation', raw.observation, ['pollMs'])) {
@@ -174,7 +174,10 @@ export function validateConfig(raw) {
   // Each acquisition ledger is immutable once created (self/host/work-model-files.js:355), so every
   // step that opens a fresh ledger names its own allowance in whole MiB, as the UI input does
   // (self/ui/pool-home/network-controls.js:29-30,178).
-  const allowances = ['sharingAllowanceMiB', 'stopAllowanceMiB', 'contentionAllowanceMiB', 'interruptionAllowanceMiB'];
+  // Full-model seeding needs one allowance that covers the whole model and one that cannot
+  // (run-seeding.mjs); the configured maximum is 4 GiB (self/config/chat-files.json:24).
+  const allowances = ['sharingAllowanceMiB', 'stopAllowanceMiB', 'contentionAllowanceMiB', 'interruptionAllowanceMiB',
+    'seedingAllowanceMiB', 'seedingRefusalAllowanceMiB'];
   if (exact(errors, 'config.storage', raw.storage, allowances)) {
     for (const key of allowances) positive(errors, `config.storage.${key}`, raw.storage[key], 4096);
   }
