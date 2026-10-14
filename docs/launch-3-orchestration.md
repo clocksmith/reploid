@@ -63,12 +63,13 @@ load or answer quality.
 
 ## Physical acceptance (not run)
 
-Needs coordinated GPU time and the scoped campaign reservation. Fresh process checks, existing
-stop conditions, and public contributors are left untouched.
+It needs coordinated GPU time, the scoped campaign reservation, fresh process checks and the
+existing stop conditions. Public contributors stay untouched.
 
-1. **Delivery:** a test-signed delivery built from a commit containing these increments, with
-   the Intel prefill-chunk fix requalified first. The 267-token prompt reset the Intel GPU on
-   2026-10-14.
+1. **Delivery:** a test-signed delivery built from a commit containing these increments and the
+   16-token prefill chunk. That chunk passed numerical requalification in both placements
+   (`64afd281`) after a 256-token chunk reset the Intel GPU on 2026-10-14. The installed journey
+   with that chunk remains its own gate.
 2. **Devices:** four distinct GPUs: mac-host (coordinator, stage 0), amd-host, intel-host, plus
    a fourth device for a replica. Three hosts can test assignment, ranking, admission and queues,
    but not a replica on separate hardware.
@@ -78,7 +79,8 @@ stop conditions, and public contributors are left untouched.
    - cold joins in each order and simultaneously;
    - an idle rebalance;
    - a move refused during an active answer;
-   - placement A against placement B with ranking;
+   - placement A against placement B with ranking (diagnostic timing in `64afd281` shows the output
+     head on AMD more than halves the short-prompt decode step);
    - concurrent requesters above slots plus queue: `CAPACITY_UNAVAILABLE` within `maxWaitMs`
      and no hang;
    - two coordinators sharing one contributor: completion order and per-route admission counts;
