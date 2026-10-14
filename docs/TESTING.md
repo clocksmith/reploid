@@ -201,17 +201,16 @@ describe('AgentLoop Integration', () => {
 
 ## CI/CD
 
-GitHub Actions: `.github/workflows/test.yml`
+GitHub Actions: `.github/workflows/test.yml` is a smoke test on Node.js 22:
 
-**Matrix:**
-- Node.js 18.x and 20.x
-
-**Pipeline:**
 1. Install dependencies
-2. Run unit tests with coverage
-3. Run integration tests
-4. Upload coverage to Codecov
-5. Lint and security checks
+2. `npm run lint`
+3. `npm test`
+4. Installed package smoke (`node tests/library-package-acceptance.js`)
+5. Browser boot smoke (`npm run test:e2e:smoke`)
+
+Heavy tests, Playwright product flows, and `verify:*` config, mirror, and
+freshness checks are not CI gates; run them when a change edits what they check.
 
 **Coverage Thresholds:**
 
