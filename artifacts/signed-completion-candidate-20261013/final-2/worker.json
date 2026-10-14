@@ -1,0 +1,63 @@
+{
+  "scope": "/testing/ Node-only installed contract tooling; no production browser capability change",
+  "files": {
+    "check-swarm-label.js": "8f63b811a27a8e08ce11e31842d57ea9d6bde3b2b6fa3dffd300ef073604ddd1"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /testing/check-swarm-label.js:12: Dynamic property write detected: [applicationRoot, installedRoot, previousApplicationRoot, checkout, commit, output] - verify input sanitization",
+      "Warning in /testing/check-swarm-label.js:31: Dynamic property write detected: [label] - verify input sanitization",
+      "Warning in /testing/check-swarm-label.js:36: Dynamic property write detected: [name] - verify input sanitization",
+      "Warning in /testing/check-swarm-label.js:15: Suspicious variable name: exec - may indicate code execution"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791947870241,
+        "path": "/testing/check-swarm-label.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [applicationRoot, installedRoot, previousApplicationRoot, checkout, commit, output] - verify input sanitization",
+        "line": 12,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791947870241,
+        "path": "/testing/check-swarm-label.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [label] - verify input sanitization",
+        "line": 31,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791947870241,
+        "path": "/testing/check-swarm-label.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 36,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791947870241,
+        "path": "/testing/check-swarm-label.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: exec - may indicate code execution",
+        "line": 15,
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [],
+      "complexityWarnings": [],
+      "filesAnalyzed": 1
+    }
+  }
+}

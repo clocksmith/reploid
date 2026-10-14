@@ -1,15 +1,58 @@
 # Signed completion candidate: staged and packaged
 
 Component: browser/native application delivery (preparation). Intent preserved.
-Acceptance evidence: `final/preflight.json`, `final/metadata-staging.json`,
-`final/delivery-verification.json`, `final/worker.json`, `final/binding.json`.
-Boundary effects: new isolated export, catalog and packages under
-`/var/tmp/reploid-signed-completion-app-20261013/` only. Both checkouts, the public
-Doppler 0.6.27 pin, public catalogs, deployment files, identities, release
-checkpoints and contribution ledgers are unchanged. Nothing was started, opened
-on a GPU, installed on another machine, committed or pushed.
+Acceptance evidence: `final-2/preflight.json`, `final-2/metadata-staging.json`,
+`final-2/delivery-verification.json`, `final-2/swarm-label.json`,
+`final-2/worker.json`, `final-2/binding.json`.
+Boundary effects: new isolated exports, catalogs and packages under `/var/tmp/`
+only. Both checkouts, the public Doppler 0.6.27 pin, public catalogs, deployment
+files, identities, release checkpoints and contribution ledgers are unchanged.
+Nothing was started, opened on a GPU, installed on another machine, committed or pushed.
 
-## Final state
+## Current: `final-2/` (Reploid `d7931c57`) supersedes `final/`
+
+`final/` was built from Reploid `f1b2fd77`. In signed run 1, that build's swarm
+transport refused the ordered-route channel `reploid-partitions-ordered`, so
+contributors failed before ready. Reploid `d7931c57` adds the label to the
+transport's auxiliary channel list in `packages/reploid/src/transport/swarm.js`
+and in the vendored copy. Because the application bytes changed, the whole
+`final/` pipeline was repeated into fresh directories with the same scripts,
+Capsule `-c` and minimum sequence 2. `final/` and its export
+(`/var/tmp/reploid-signed-completion-app-20261013`, marked `SUPERSEDED.json`)
+are kept unchanged.
+
+| Item | `final-2/` value |
+| --- | --- |
+| Export | `/var/tmp/reploid-signed-completion-app-2-20261013/app`, source `d7931c571cdccef5acbdd803501e2226f40bf6e9`, tar `7b32760e4fa22eb59047a766ebc3c80eb2c5db27604ef57f13124bb8654a0cfc` |
+| Prepared catalog | `/var/tmp/reploid-signed-completion-app-2-20261013/signed-catalog/chat-models.json`, `b0277a5f75e8780c6e233ab618a09bbfc4c572ae098f1ce0ceda178719820bbd` (byte-identical to `final/`) |
+| Staged catalog | `59811b4af5f7b44387344fe38fdea155de4f27a487332a846c27fee9257481d5`, 42 metadata files (staging receipt identical to `final/`) |
+| Browser payload | 2,045 files, bundle `sha256:9f380ebf3daaad82f7476f2cd8c6ee30cacd3e0f055e28896211a14fd8bb0f1d` |
+| Native tarball | `/var/tmp/reploid-signed-completion-app-2-20261013/app/output/reploid-native-OVBheJ/reploid-native-0.1.0.tgz`, `845b84bbce4e7cb1beddd0b246329c89d662057f45895b47b4b1dd6452ee9314` |
+| Native descriptor | `90bc851af635d831059673c5c851484a593c6e8e8962c6ee17cebcb7824342a3`, 151 files |
+| Swarm transport | served and packaged `transport/swarm.js` both `ae1d9239…`, equal to the commit blobs; both list and the packaged module's exported `SWARM_AUXILIARY_CHANNELS` include `reploid-partitions-ordered`, which the `final/` served copy lacked |
+
+All steps passed as in `final/` (receipts in `final-2/`):
+
+- The export changed the same 16 files and added the same 1,985 as before. 15
+  of the changed files and the vendored runtime are byte-identical to `final/`;
+  `self/vendor/reploid/package-assets.json` differs because vendored library
+  files changed.
+- The preflight passed: runtime 1,984/1,984, plan admission for stages 0-2,
+  zero address matches, and every release-history case as expected.
+- `verify-delivery.js` passed:
+  - all 151 native members match;
+  - all 1,984 installed runtime files equal the archive;
+  - the payload's 2,045 files and 1,206 served runtime files match;
+  - the staged catalog differs from the prepared one only in metadata URLs;
+  - all 64 artifact mappings resolve, and plan admission passes for stages 0-2;
+  - zero address matches.
+- `check-swarm-label.js` is the only new script; it passed the Verification Worker.
+
+Signed run 1 reportedly advanced both native contributors' checkpoints to
+sequence 2; the preflight confirms a holder of sequence 2 accepts this history.
+The reviewer checks below still apply.
+
+## `final/` (superseded by `final-2/`)
 
 The signed three-stage catalog for Capsule `-c` was prepared, staged into a new
 export of Reploid `f1b2fd77`, and packaged for browser hosting and native
@@ -115,8 +158,11 @@ own authority and application produce.
   is from a first verification run that stopped on a bug in `final/verify-delivery.js`:
   it compared the whole archive with the partial runtime the payload serves.
   It is marked `NOT-EVIDENCE.json`; the corrected run used `native-verify-2`.
-- **Git status.** This folder is listed in the checkout's local `info/exclude` (line 22),
-  added outside this step, so `git status` no longer shows it. It is uncommitted.
+- **Git status.** The first pass, `final/` and an `install/` folder were committed
+  upstream in `1c4be0ca`, outside this step; `install/` records native installs of
+  the superseded `final/` tarball `a7462eb8…`. `final-2/` and this README's later
+  edits are uncommitted. The checkout's local `info/exclude` (line 22) still lists
+  this folder, so `git status` hides the untracked `final-2/`.
 
 ## Not established
 

@@ -1,0 +1,1 @@
+Partition types match the installed public Doppler API.
