@@ -1,0 +1,40 @@
+#0  0x00006ffc5c13e019 in read_load_const (header=..., ctx=<optimized out>) at ../src/compiler/nir/nir_serialize.c:1258
+#0  0x00006ffc5c13e019 in read_load_const (header=..., ctx=<optimized out>) at ../src/compiler/nir/nir_serialize.c:1258
+#1  read_instr (block=<optimized out>, ctx=0x6ffc527fae10) at ../src/compiler/nir/nir_serialize.c:1649
+#2  read_block (cf_list=<optimized out>, ctx=<optimized out>) at ../src/compiler/nir/nir_serialize.c:1711
+#3  read_cf_node (list=<optimized out>, ctx=<optimized out>) at ../src/compiler/nir/nir_serialize.c:1804
+#4  read_cf_list (ctx=ctx@entry=0x6ffc527fae10, cf_list=cf_list@entry=0x6ffc3f16bc68) at ../src/compiler/nir/nir_serialize.c:1831
+#5  0x00006ffc5c13df42 in read_if (cf_list=0x6ffc3f16b238, ctx=0x6ffc527fae10) at ../src/compiler/nir/nir_serialize.c:1741
+#6  read_cf_node (list=<optimized out>, ctx=0x6ffc527fae10) at ../src/compiler/nir/nir_serialize.c:1807
+#7  read_cf_list (ctx=ctx@entry=0x6ffc527fae10, cf_list=cf_list@entry=0x6ffc3f16b238) at ../src/compiler/nir/nir_serialize.c:1831
+#8  0x00006ffc5c13df42 in read_if (cf_list=0x6ffc3f169dd8, ctx=0x6ffc527fae10) at ../src/compiler/nir/nir_serialize.c:1741
+#9  read_cf_node (list=<optimized out>, ctx=0x6ffc527fae10) at ../src/compiler/nir/nir_serialize.c:1807
+#10 read_cf_list (ctx=ctx@entry=0x6ffc527fae10, cf_list=cf_list@entry=0x6ffc3f169dd8) at ../src/compiler/nir/nir_serialize.c:1831
+#11 0x00006ffc5c13df42 in read_if (cf_list=0x6ffc3f160978, ctx=0x6ffc527fae10) at ../src/compiler/nir/nir_serialize.c:1741
+#12 read_cf_node (list=<optimized out>, ctx=0x6ffc527fae10) at ../src/compiler/nir/nir_serialize.c:1807
+#13 read_cf_list (ctx=ctx@entry=0x6ffc527fae10, cf_list=cf_list@entry=0x6ffc3f160978) at ../src/compiler/nir/nir_serialize.c:1831
+#14 0x00006ffc5c13df42 in read_if (cf_list=0x6ffc3f15ff48, ctx=0x6ffc527fae10) at ../src/compiler/nir/nir_serialize.c:1741
+#15 read_cf_node (list=<optimized out>, ctx=0x6ffc527fae10) at ../src/compiler/nir/nir_serialize.c:1807
+#16 read_cf_list (ctx=ctx@entry=0x6ffc527fae10, cf_list=cf_list@entry=0x6ffc3f15ff48) at ../src/compiler/nir/nir_serialize.c:1831
+#17 0x00006ffc5c13df42 in read_if (cf_list=0x6ffc3f148f38, ctx=0x6ffc527fae10) at ../src/compiler/nir/nir_serialize.c:1741
+#18 read_cf_node (list=<optimized out>, ctx=0x6ffc527fae10) at ../src/compiler/nir/nir_serialize.c:1807
+#19 read_cf_list (ctx=ctx@entry=0x6ffc527fae10, cf_list=cf_list@entry=0x6ffc3f148f38) at ../src/compiler/nir/nir_serialize.c:1831
+#20 0x00006ffc5c13df42 in read_if (cf_list=0x6ffc3f147ad8, ctx=0x6ffc527fae10) at ../src/compiler/nir/nir_serialize.c:1741
+#21 read_cf_node (list=<optimized out>, ctx=0x6ffc527fae10) at ../src/compiler/nir/nir_serialize.c:1807
+#22 read_cf_list (ctx=ctx@entry=0x6ffc527fae10, cf_list=cf_list@entry=0x6ffc3f147ad8) at ../src/compiler/nir/nir_serialize.c:1831
+#44 0x00006ffc5c13efdc in read_function_impl (ctx=0x6ffc527fae10) at ../src/compiler/nir/nir_serialize.c:1862
+#45 nir_deserialize (mem_ctx=mem_ctx@entry=0x6ffc48205a70, options=options@entry=0x2f9ed0d0, blob=blob@entry=0x6ffc527fb020) at ../src/compiler/nir/nir_serialize.c:2078
+#46 0x00006ffc5bebfd13 in vk_pipeline_cache_lookup_nir (cache=0x6ffc481bb630, key_data=<optimized out>, key_size=<optimized out>, nir_options=0x2f9ed0d0, cache_hit=<optimized out>, mem_ctx=0x6ffc48205a70) at ../src/vulkan/runtime/vk_pipeline_cache.c:490
+#47 0x00006ffc5bc7750f in anv_pipeline_stage_get_nir (pipeline=pipeline@entry=0x6ffc4813e740, cache=cache@entry=0x6ffc481bb630, mem_ctx=mem_ctx@entry=0x6ffc48205a70, stage=stage@entry=0x6ffc527fb2f0) at ../src/intel/vulkan/anv_pipeline.c:799
+#48 0x00006ffc5bc7ad4a in anv_pipeline_compile_cs (pipeline=pipeline@entry=0x6ffc4813e740, cache=cache@entry=0x6ffc481bb630, info=info@entry=0x6ffc527fb9a0) at ../src/intel/vulkan/anv_pipeline.c:2664
+#49 0x00006ffc5bc7d6a2 in anv_compute_pipeline_create (pPipeline=<optimized out>, pAllocator=0x0, pCreateInfo=<optimized out>, cache=<optimized out>, device=<optimized out>) at ../src/intel/vulkan/anv_pipeline.c:2796
+#50 anv_CreateComputePipelines (_device=<optimized out>, pipelineCache=<optimized out>, count=<optimized out>, pCreateInfos=<optimized out>, pAllocator=0x0, pPipelines=<optimized out>) at ../src/intel/vulkan/anv_pipeline.c:2829
+#51 0x00006ffc9d0e282e in dawn::native::vulkan::ComputePipeline::InitializeImpl() () from /var/tmp/doppler-gate-phases-control-20261013/reploid/node_modules/webgpu/dist/linux-x64.dawn.node
+#52 0x00006ffc9cecdd13 in dawn::native::ComputePipelineBase::InitializeWithShaders() () from /var/tmp/doppler-gate-phases-control-20261013/reploid/node_modules/webgpu/dist/linux-x64.dawn.node
+#53 0x00006ffc9cf28b3f in dawn::native::PipelineBase::Initialize(std::optional<dawn::native::PerStage<dawn::native::APIRef<dawn::native::ShaderModuleBase> > >) () from /var/tmp/doppler-gate-phases-control-20261013/reploid/node_modules/webgpu/dist/linux-x64.dawn.node
+#54 0x00006ffc9d09b5d0 in dawn::native::CreatePipelineAsyncEvent<dawn::native::ComputePipelineBase, WGPUCreateComputePipelineAsyncCallbackInfo>::InitializeImpl(bool) () from /var/tmp/doppler-gate-phases-control-20261013/reploid/node_modules/webgpu/dist/linux-x64.dawn.node
+#55 0x00006ffc9d0669c6 in dawn::native::AsyncTask::Run() () from /var/tmp/doppler-gate-phases-control-20261013/reploid/node_modules/webgpu/dist/linux-x64.dawn.node
+#56 0x00006ffc9d066b87 in dawn::native::AsyncTaskManager::RunTask(void*) () from /var/tmp/doppler-gate-phases-control-20261013/reploid/node_modules/webgpu/dist/linux-x64.dawn.node
+#57 0x00006ffc9d78d76f in dawn::platform::AsyncWorkerThreadPool::TaskHandlingJobLoop() () from /var/tmp/doppler-gate-phases-control-20261013/reploid/node_modules/webgpu/dist/linux-x64.dawn.node
+#58 0x00006ffc9d78ccfa in dawn::platform::AsyncJobHandleImpl::JobThreadLoop(dawn::platform::JobStatus (*)(void*), void*) () from /var/tmp/doppler-gate-phases-control-20261013/reploid/node_modules/webgpu/dist/linux-x64.dawn.node
+#59 0x00006ffca0aecdb4 in ?? () from /lib/x86_64-linux-gnu/libstdc++.so.6
