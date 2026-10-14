@@ -1,0 +1,363 @@
+{
+ "schema": "reploid.run-5-native-log-summary/v1",
+ "machine": "intel-host",
+ "log": "/var/tmp/reploid-signed-completion-journey-run5-20261013/scj-run5-intel-native-2.log",
+ "init": {
+  "event": "native-initialized",
+  "participantId": "peer:09610aefbd15a133d7af2b57",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16"
+ },
+ "partitionTransitions": [
+  {
+   "line": 15,
+   "event": "partition-state",
+   "phase": "loading",
+   "error": null,
+   "offering": true,
+   "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+   "unsettledOwners": 0,
+   "progress": null,
+   "placement": [],
+   "placementOmitted": 0,
+   "descriptor": null,
+   "reservations": null,
+   "attempts": {
+    "count": 0,
+    "omitted": 0,
+    "records": []
+   },
+   "acquisition": null
+  },
+  {
+   "line": 27,
+   "event": "partition-state",
+   "phase": "loading",
+   "error": null,
+   "offering": true,
+   "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+   "unsettledOwners": 0,
+   "progress": {
+    "stage": "opening",
+    "message": "Opening native assigned partition"
+   },
+   "placement": [],
+   "placementOmitted": 0,
+   "descriptor": null,
+   "reservations": null,
+   "attempts": {
+    "count": 0,
+    "omitted": 0,
+    "records": []
+   },
+   "acquisition": null
+  },
+  {
+   "line": 88,
+   "event": "partition-state",
+   "phase": "ready",
+   "error": null,
+   "offering": true,
+   "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+   "unsettledOwners": 0,
+   "progress": null,
+   "placement": [],
+   "placementOmitted": 0,
+   "descriptor": {
+    "schema": "doppler.resident-partition/v2",
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+    "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+    "index": 2,
+    "ready": true,
+    "residentWeightBytes": 238020608,
+    "generationDigest": "sha256:8dc76cd41787bbdda87506913b74bf058ecdcd979c6cb04a9a5cfe7c476d257f",
+    "layerRange": [
+     16,
+     23
+    ]
+   },
+   "reservations": {
+    "active": 0,
+    "availableSlots": 2,
+    "closed": false,
+    "count": 0,
+    "omitted": 0,
+    "records": []
+   },
+   "attempts": {
+    "count": 0,
+    "omitted": 0,
+    "records": []
+   },
+   "acquisition": {
+    "openingMode": "signed-capsule",
+    "memory": {
+     "liveBytes": 240171328,
+     "maxBytes": 1420000000,
+     "peakBytes": 256948544,
+     "allocations": 131,
+     "rejected": 0
+    },
+    "preparation": {}
+   }
+  }
+ ],
+ "lastNetwork": {
+  "line": 645,
+  "peerCount": 2,
+  "connectionState": "connected",
+  "files": {
+   "sharing": false,
+   "offered": null,
+   "suppliedBytes": 0,
+   "supplyBudget": null,
+   "supplyBudgetError": null,
+   "cache": {
+    "quarantined": []
+   }
+  }
+ },
+ "stderrLines": [
+  {
+   "line": 52,
+   "text": "[2891.1ms][HeapManager] Initialized with strategy: SEGMENTED"
+  },
+  {
+   "line": 53,
+   "text": "[2891.3ms][Loader] Initialized (f16, subgroups)"
+  },
+  {
+   "line": 54,
+   "text": "[2892.3ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16"
+  },
+  {
+   "line": 55,
+   "text": "[2925.0ms][Loader] [0.0s] Memory (start): | RSS=273.16 MB (heap=69.57 MB/73.23 MB, external=2.02 GB, arrayBuffers=1.02 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+  },
+  {
+   "line": 56,
+   "text": "[2927.0ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model."
+  },
+  {
+   "line": 57,
+   "text": "[2931.5ms][Loader] Layers: 16-23"
+  },
+  {
+   "line": 67,
+   "text": "[10066.7ms][Loader] Layers: 8 complete (7.14s)"
+  },
+  {
+   "line": 77,
+   "text": "[WebRTCSwarm] Connection state with 685221ab-ef26-4c6b-9172-aa7e47aa0e76: connected"
+  },
+  {
+   "line": 84,
+   "text": "[18962.4ms][Loader] Complete: 225.99 MB in 16.03s (14.10 MB/s)"
+  },
+  {
+   "line": 85,
+   "text": "[18963.5ms][Loader] [16.1s] Memory (complete): | RSS=371.76 MB (heap=73.69 MB/108.48 MB, external=1.07 GB, arrayBuffers=1.07 GB) | GPU=226.99 MB (116 active, 0 pooled, peak=226.99 MB) | ShardCache=0 B (0 shards) | Layers=8, GPUBuffers=116"
+  },
+  {
+   "line": 86,
+   "text": "[18992.4ms][Pipeline] Model loaded successfully (17385ms)"
+  },
+  {
+   "line": 87,
+   "text": "[18996.5ms][doppler] Model ready"
+  },
+  {
+   "line": 106,
+   "text": "[WebRTCSwarm] Peer joined: 6ad5c68c-48b9-4461-adbe-ed536b440b90"
+  },
+  {
+   "line": 107,
+   "text": "[WebRTCSwarm] Received offer from: 6ad5c68c-48b9-4461-adbe-ed536b440b90"
+  },
+  {
+   "line": 108,
+   "text": "[WebRTCSwarm] Data channel opened with 6ad5c68c-48b9-4461-adbe-ed536b440b90"
+  },
+  {
+   "line": 127,
+   "text": "[42160.8ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1055, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=1055"
+  },
+  {
+   "line": 155,
+   "text": "[WebRTCSwarm] Latency to 474c1e44-b3bf-496a-8612-31381446c8a4: 9ms"
+  },
+  {
+   "line": 156,
+   "text": "[WebRTCSwarm] Latency to 685221ab-ef26-4c6b-9172-aa7e47aa0e76: 17ms"
+  },
+  {
+   "line": 157,
+   "text": "[WebRTCSwarm] Latency to 6ad5c68c-48b9-4461-adbe-ed536b440b90: 17ms"
+  },
+  {
+   "line": 200,
+   "text": "[WebRTCSwarm] Latency to 474c1e44-b3bf-496a-8612-31381446c8a4: 7ms"
+  },
+  {
+   "line": 201,
+   "text": "[WebRTCSwarm] Latency to 6ad5c68c-48b9-4461-adbe-ed536b440b90: 27ms"
+  },
+  {
+   "line": 202,
+   "text": "[WebRTCSwarm] Latency to 685221ab-ef26-4c6b-9172-aa7e47aa0e76: 27ms"
+  },
+  {
+   "line": 248,
+   "text": "[WebRTCSwarm] Latency to 685221ab-ef26-4c6b-9172-aa7e47aa0e76: 16ms"
+  },
+  {
+   "line": 249,
+   "text": "[WebRTCSwarm] Latency to 6ad5c68c-48b9-4461-adbe-ed536b440b90: 16ms"
+  },
+  {
+   "line": 250,
+   "text": "[WebRTCSwarm] Latency to 474c1e44-b3bf-496a-8612-31381446c8a4: 32ms"
+  },
+  {
+   "line": 278,
+   "text": "[WebRTCSwarm] Connection state with 474c1e44-b3bf-496a-8612-31381446c8a4: connected"
+  },
+  {
+   "line": 291,
+   "text": "[WebRTCSwarm] Peer left: 474c1e44-b3bf-496a-8612-31381446c8a4"
+  },
+  {
+   "line": 294,
+   "text": "[WebRTCSwarm] Latency to 685221ab-ef26-4c6b-9172-aa7e47aa0e76: 19ms"
+  },
+  {
+   "line": 295,
+   "text": "[WebRTCSwarm] Latency to 6ad5c68c-48b9-4461-adbe-ed536b440b90: 19ms"
+  },
+  {
+   "line": 298,
+   "text": "[WebRTCSwarm] Connection state with 474c1e44-b3bf-496a-8612-31381446c8a4: disconnected"
+  },
+  {
+   "line": 306,
+   "text": "[WebRTCSwarm] Connection state with 474c1e44-b3bf-496a-8612-31381446c8a4: failed"
+  },
+  {
+   "line": 307,
+   "text": "[WebRTCSwarm] Reconnecting in 1000ms (attempt 1)"
+  },
+  {
+   "line": 311,
+   "text": "[WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-scj-run5-74d1a94e2c93"
+  },
+  {
+   "line": 312,
+   "text": "[WebRTCSwarm] Received welcome from signaling server"
+  },
+  {
+   "line": 313,
+   "text": "[WebRTCSwarm] Joined room reploid-swarm-scj-run5-74d1a94e2c93, existing peers: 2"
+  },
+  {
+   "line": 314,
+   "text": "[WebRTCSwarm] Already connected to 685221ab-ef26-4c6b-9172-aa7e47aa0e76, skipping"
+  },
+  {
+   "line": 315,
+   "text": "[WebRTCSwarm] Already connected to 6ad5c68c-48b9-4461-adbe-ed536b440b90, skipping"
+  },
+  {
+   "line": 318,
+   "text": "[WebRTCSwarm] Peer left: 6ad5c68c-48b9-4461-adbe-ed536b440b90"
+  },
+  {
+   "line": 319,
+   "text": "[WebRTCSwarm] Peer joined: 6ad5c68c-48b9-4461-adbe-ed536b440b90"
+  },
+  {
+   "line": 321,
+   "text": "[WebRTCSwarm] Peer left: 685221ab-ef26-4c6b-9172-aa7e47aa0e76"
+  },
+  {
+   "line": 322,
+   "text": "[WebRTCSwarm] Peer joined: 685221ab-ef26-4c6b-9172-aa7e47aa0e76"
+  },
+  {
+   "line": 365,
+   "text": "[WebRTCSwarm] Latency to 685221ab-ef26-4c6b-9172-aa7e47aa0e76: 31ms"
+  },
+  {
+   "line": 366,
+   "text": "[WebRTCSwarm] Latency to 6ad5c68c-48b9-4461-adbe-ed536b440b90: 31ms"
+  },
+  {
+   "line": 412,
+   "text": "[WebRTCSwarm] Latency to 685221ab-ef26-4c6b-9172-aa7e47aa0e76: 28ms"
+  },
+  {
+   "line": 413,
+   "text": "[WebRTCSwarm] Latency to 6ad5c68c-48b9-4461-adbe-ed536b440b90: 28ms"
+  },
+  {
+   "line": 459,
+   "text": "[WebRTCSwarm] Latency to 685221ab-ef26-4c6b-9172-aa7e47aa0e76: 16ms"
+  },
+  {
+   "line": 460,
+   "text": "[WebRTCSwarm] Latency to 6ad5c68c-48b9-4461-adbe-ed536b440b90: 16ms"
+  },
+  {
+   "line": 506,
+   "text": "[WebRTCSwarm] Latency to 685221ab-ef26-4c6b-9172-aa7e47aa0e76: 14ms"
+  },
+  {
+   "line": 507,
+   "text": "[WebRTCSwarm] Latency to 6ad5c68c-48b9-4461-adbe-ed536b440b90: 14ms"
+  },
+  {
+   "line": 516,
+   "text": "[WebRTCSwarm] Peer left: 6ad5c68c-48b9-4461-adbe-ed536b440b90"
+  },
+  {
+   "line": 517,
+   "text": "[WebRTCSwarm] Data channel closed with 6ad5c68c-48b9-4461-adbe-ed536b440b90"
+  },
+  {
+   "line": 518,
+   "text": "[WebRTCSwarm] Reconnecting in 1000ms (attempt 1)"
+  },
+  {
+   "line": 520,
+   "text": "[WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-scj-run5-74d1a94e2c93"
+  },
+  {
+   "line": 522,
+   "text": "[WebRTCSwarm] Received welcome from signaling server"
+  },
+  {
+   "line": 523,
+   "text": "[WebRTCSwarm] Joined room reploid-swarm-scj-run5-74d1a94e2c93, existing peers: 1"
+  },
+  {
+   "line": 524,
+   "text": "[WebRTCSwarm] Already connected to 685221ab-ef26-4c6b-9172-aa7e47aa0e76, skipping"
+  },
+  {
+   "line": 570,
+   "text": "[WebRTCSwarm] Latency to 685221ab-ef26-4c6b-9172-aa7e47aa0e76: 14ms"
+  },
+  {
+   "line": 601,
+   "text": "[WebRTCSwarm] Peer joined: 0849bc21-7f70-49de-b53f-22c8c93fe7eb"
+  },
+  {
+   "line": 602,
+   "text": "[WebRTCSwarm] Received offer from: 0849bc21-7f70-49de-b53f-22c8c93fe7eb"
+  },
+  {
+   "line": 605,
+   "text": "[WebRTCSwarm] Data channel opened with 0849bc21-7f70-49de-b53f-22c8c93fe7eb"
+  }
+ ],
+ "stderrLineCount": 105
+}

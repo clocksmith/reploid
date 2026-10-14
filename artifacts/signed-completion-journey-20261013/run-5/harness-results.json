@@ -1,0 +1,558 @@
+{
+ "schema": "reploid.signed-completion-journey-run-5-results/v1",
+ "candidate": "final-5: export /var/tmp/reploid-signed-completion-app-5-20261013/app (Reploid 95641fe7, bundle sha256:3c1fab71..., 2044 served files verified), native descriptor 1fecc004... at /var/tmp/reploid-signed-completion-5-20261013/reploid; harness at HEAD 4dc200a7 (95641fe7 + 81a4d011 prompts)",
+ "settings": "run-5 coordinator decision: answerMs 900000, native RuntimeMaxSec 2700, fresh native scopes before each harness (preflight/run-settings.json)",
+ "harnesses": {
+  "contributor-loss": {
+   "report": "reports/contributor-loss-2026-10-14T07-18-27-055Z.json",
+   "ok": false,
+   "startedAt": "2026-10-14T07:18:27.055Z",
+   "finishedAt": "2026-10-14T07:22:47.598Z",
+   "failure": "Error: Coordinator failure receipt deadline",
+   "stepErrors": {},
+   "checks": {
+    "lossInjected": {
+     "pass": true,
+     "failures": []
+    },
+    "lossReported": {
+     "pass": true,
+     "failures": []
+    },
+    "ownershipExplicit": {
+     "pass": false,
+     "failures": [
+      "Coordinator receipt for the failed attempt unobserved",
+      "Coordinator cleanup rows do not cover every stage exactly once",
+      "Coordinator phase contradicts its cleanup rows",
+      "Coordinator receipt lacks the failure cause"
+     ]
+    },
+    "noSilentContinuation": {
+     "pass": true,
+     "failures": []
+    },
+    "explicitRetry": {
+     "pass": false,
+     "failures": [
+      "Capacity did not return before the deadline",
+      "Injected restore callback did not report its method",
+      "Retry was requested before capacity returned",
+      "Explicit retry did not start exactly one new attempt linked to the failure",
+      "Retry changed earlier messages or the preserved partial answer",
+      "Retry not complete",
+      "Retry natural EOS unobserved",
+      "Retry ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+      "Retry ordered route identity unobserved",
+      "Retry route binds a different model or plan than the freeze",
+      "Retry distinct route contributors (0) differ from the frozen route (3)",
+      "Retry route stages differ from the frozen stage order",
+      "Retry requester was assigned a stage",
+      "Retry cleanup rows do not cover every stage exactly once",
+      "Retry cleanup not confirmed: a cleanup row is unsettled",
+      "Retry settlement phase not completed",
+      "Retry not every stage was admitted",
+      "Retry not every stage executed every step",
+      "Retry recipients were not approved by this attempt's Send or Retry",
+      "Retry approval does not cover ordered activations and tokens",
+      "Retry approved recipients differ from the frozen route",
+      "Retry approval is not addressed to the stage 0 coordinator",
+      "Retry approval binds another model or plan",
+      "Retry executed route differs from the approved route",
+      "Retry requester approved itself as a stage"
+     ]
+    },
+    "selectiveAcquisition": {
+     "pass": true,
+     "failures": []
+    },
+    "timing": {
+     "pass": false,
+     "failures": [
+      "Retry timing record missing"
+     ]
+    }
+   }
+  },
+  "requester-journey": {
+   "report": "reports/requester-journey-2026-10-14T06-49-02-971Z.json",
+   "ok": true,
+   "startedAt": "2026-10-14T06:49:02.972Z",
+   "finishedAt": "2026-10-14T07:17:27.098Z",
+   "failure": null,
+   "stepErrors": {},
+   "checks": {
+    "open": {
+     "pass": true,
+     "failures": []
+    },
+    "modelChoice": {
+     "pass": true,
+     "failures": []
+    },
+    "recipientApproval": {
+     "pass": true,
+     "failures": []
+    },
+    "selectiveAcquisition": {
+     "pass": true,
+     "failures": []
+    },
+    "streaming": {
+     "pass": true,
+     "failures": []
+    },
+    "completion": {
+     "pass": true,
+     "failures": []
+    },
+    "followUp": {
+     "pass": true,
+     "failures": []
+    },
+    "copy": {
+     "pass": true,
+     "failures": []
+    },
+    "reload": {
+     "pass": true,
+     "failures": []
+    },
+    "concurrency": {
+     "pass": true,
+     "failures": []
+    },
+    "isolatedCancellation": {
+     "pass": true,
+     "failures": []
+    },
+    "explicitRetry": {
+     "pass": true,
+     "failures": []
+    },
+    "timing": {
+     "pass": true,
+     "failures": []
+    }
+   }
+  },
+  "storage-contribution": {
+   "report": "reports/storage-contribution-2026-10-14T07-24-52-808Z.json",
+   "ok": true,
+   "startedAt": "2026-10-14T07:24:52.809Z",
+   "finishedAt": "2026-10-14T07:34:26.227Z",
+   "failure": null,
+   "stepErrors": {},
+   "checks": {
+    "sharedWhileChatting": {
+     "pass": true,
+     "failures": []
+    },
+    "peerAcquisition": {
+     "pass": true,
+     "failures": []
+    },
+    "reloadPreserved": {
+     "pass": true,
+     "failures": []
+    },
+    "competingTabs": {
+     "pass": true,
+     "failures": []
+    },
+    "interruptedResume": {
+     "pass": true,
+     "failures": []
+    },
+    "cachedOnly": {
+     "pass": true,
+     "failures": []
+    },
+    "stopSettles": {
+     "pass": true,
+     "failures": []
+    }
+   }
+  }
+ },
+ "requesterTiming": [
+  {
+   "attempt": "51232f82",
+   "attemptMs": 398951,
+   "firstVisibleTextMs": 72205,
+   "steps": 100,
+   "msPerStepByStage": [
+    535,
+    479,
+    2965
+   ]
+  },
+  {
+   "attempt": "15360f6c",
+   "attemptMs": 293678,
+   "firstVisibleTextMs": 254149,
+   "steps": 12,
+   "msPerStepByStage": [
+    4342,
+    1942,
+    18155
+   ]
+  },
+  {
+   "attempt": "93aacc9c",
+   "attemptMs": 177286,
+   "firstVisibleTextMs": 177332,
+   "steps": 24,
+   "msPerStepByStage": [
+    659,
+    484,
+    3511
+   ]
+  },
+  {
+   "attempt": "cd305653",
+   "attemptMs": 265350,
+   "firstVisibleTextMs": 177281,
+   "steps": 51,
+   "msPerStepByStage": [
+    502,
+    436,
+    2923
+   ]
+  },
+  {
+   "attempt": "3e58c67e",
+   "attemptMs": 608036,
+   "firstVisibleTextMs": 41615,
+   "steps": 171,
+   "msPerStepByStage": [
+    454,
+    441,
+    2651
+   ]
+  }
+ ],
+ "loss": {
+  "injected": "SIGKILL to scj-run5-amd-native-2 at 2026-10-14T07:20:24.763985172Z while streaming (24 chars visible)",
+  "requesterVisible": {
+   "code": "CONNECTION_LOST",
+   "storedError": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.",
+   "renderedLabel": "A computer disconnected. Retry this answer.",
+   "renderedTechnical": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.",
+   "failedAt": "2026-10-14T07:20:42.364Z",
+   "secondsAfterKill": 17.6
+  },
+  "coordinatorTimeline": "route retired by the 07:20:44Z sample (unsettledOwners 0, decision missing-eligible-stage, unknownAttempts 1, contribution.attempts empty); logs/coordinator-samples-loss.jsonl",
+  "unknownAttempts": [
+   {
+    "identity": {
+     "schema": "reploid.partition-attempt/v2",
+     "threadId": "28e0dcf5-018d-46d0-b88f-8ca27b542714",
+     "attemptId": "47a76fa4-902c-4e4d-92b0-4a302bb72c6e",
+     "requesterId": "peer:62812118b9865326fafb5ad9",
+     "placementGeneration": 0,
+     "route": {
+      "schema": "reploid.partition-route/v1",
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+      "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+      "stages": [
+       {
+        "index": 0,
+        "participantId": "peer:926ad427d22d341af18d0ff1",
+        "transportId": "685221ab-ef26-4c6b-9172-aa7e47aa0e76",
+        "residentId": "scj-run5-stage-0-resident",
+        "executionId": "scj-run5-stage-0-ordinary"
+       },
+       {
+        "index": 1,
+        "participantId": "peer:9af15d884eba51b0c0540e2a",
+        "transportId": "474c1e44-b3bf-496a-8612-31381446c8a4",
+        "residentId": "scj-run5-stage-1-resident",
+        "executionId": "scj-run5-stage-1-ordinary"
+       },
+       {
+        "index": 2,
+        "participantId": "peer:09610aefbd15a133d7af2b57",
+        "transportId": "2723c9c5-1ce5-416a-a475-ce4249faab16",
+        "residentId": "scj-run5-stage-2-resident",
+        "executionId": "scj-run5-stage-2-ordinary"
+       }
+      ],
+      "activation": {
+       "schema": "doppler.activation-tensor/v2",
+       "dtype": "f32",
+       "hiddenSize": 1024,
+       "precision": "two-f32",
+       "components": 2,
+       "elementStrideBytes": 8
+      }
+     }
+    },
+    "phase": "cleanup-failed",
+    "reservations": [
+     {
+      "identity": {
+       "schema": "reploid.partition-attempt/v2",
+       "threadId": "28e0dcf5-018d-46d0-b88f-8ca27b542714",
+       "attemptId": "47a76fa4-902c-4e4d-92b0-4a302bb72c6e",
+       "requesterId": "peer:62812118b9865326fafb5ad9",
+       "placementGeneration": 0,
+       "route": {
+        "schema": "reploid.partition-route/v1",
+        "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+        "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+        "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+        "stages": [
+         {
+          "index": 0,
+          "participantId": "peer:926ad427d22d341af18d0ff1",
+          "transportId": "685221ab-ef26-4c6b-9172-aa7e47aa0e76",
+          "residentId": "scj-run5-stage-0-resident",
+          "executionId": "scj-run5-stage-0-ordinary"
+         },
+         {
+          "index": 1,
+          "participantId": "peer:9af15d884eba51b0c0540e2a",
+          "transportId": "474c1e44-b3bf-496a-8612-31381446c8a4",
+          "residentId": "scj-run5-stage-1-resident",
+          "executionId": "scj-run5-stage-1-ordinary"
+         },
+         {
+          "index": 2,
+          "participantId": "peer:09610aefbd15a133d7af2b57",
+          "transportId": "2723c9c5-1ce5-416a-a475-ce4249faab16",
+          "residentId": "scj-run5-stage-2-resident",
+          "executionId": "scj-run5-stage-2-ordinary"
+         }
+        ],
+        "activation": {
+         "schema": "doppler.activation-tensor/v2",
+         "dtype": "f32",
+         "hiddenSize": 1024,
+         "precision": "two-f32",
+         "components": 2,
+         "elementStrideBytes": 8
+        }
+       }
+      },
+      "participantId": "peer:926ad427d22d341af18d0ff1",
+      "index": 0,
+      "phase": "reserved",
+      "reservedAt": 1791962310323,
+      "settlingAt": null,
+      "settledAt": null,
+      "failure": null,
+      "resources": {
+       "attemptSlots": 1,
+       "maxPromptTokens": 4096,
+       "maxTokens": 4096,
+       "maxActivationBytes": 33554432,
+       "scope": "application-attempt-limits"
+      },
+      "partitionIndex": 0,
+      "status": "reserved"
+     },
+     {
+      "identity": {
+       "schema": "reploid.partition-attempt/v2",
+       "threadId": "28e0dcf5-018d-46d0-b88f-8ca27b542714",
+       "attemptId": "47a76fa4-902c-4e4d-92b0-4a302bb72c6e",
+       "requesterId": "peer:62812118b9865326fafb5ad9",
+       "placementGeneration": 0,
+       "route": {
+        "schema": "reploid.partition-route/v1",
+        "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+        "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+        "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+        "stages": [
+         {
+          "index": 0,
+          "participantId": "peer:926ad427d22d341af18d0ff1",
+          "transportId": "685221ab-ef26-4c6b-9172-aa7e47aa0e76",
+          "residentId": "scj-run5-stage-0-resident",
+          "executionId": "scj-run5-stage-0-ordinary"
+         },
+         {
+          "index": 1,
+          "participantId": "peer:9af15d884eba51b0c0540e2a",
+          "transportId": "474c1e44-b3bf-496a-8612-31381446c8a4",
+          "residentId": "scj-run5-stage-1-resident",
+          "executionId": "scj-run5-stage-1-ordinary"
+         },
+         {
+          "index": 2,
+          "participantId": "peer:09610aefbd15a133d7af2b57",
+          "transportId": "2723c9c5-1ce5-416a-a475-ce4249faab16",
+          "residentId": "scj-run5-stage-2-resident",
+          "executionId": "scj-run5-stage-2-ordinary"
+         }
+        ],
+        "activation": {
+         "schema": "doppler.activation-tensor/v2",
+         "dtype": "f32",
+         "hiddenSize": 1024,
+         "precision": "two-f32",
+         "components": 2,
+         "elementStrideBytes": 8
+        }
+       }
+      },
+      "participantId": "peer:9af15d884eba51b0c0540e2a",
+      "index": 1,
+      "phase": "reserved",
+      "reservedAt": 1791962310358,
+      "settlingAt": null,
+      "settledAt": null,
+      "failure": null,
+      "resources": {
+       "attemptSlots": 1,
+       "maxPromptTokens": 4096,
+       "maxTokens": 4096,
+       "maxActivationBytes": 33554432,
+       "scope": "application-attempt-limits"
+      },
+      "partitionIndex": 1,
+      "status": "reserved"
+     },
+     {
+      "identity": {
+       "schema": "reploid.partition-attempt/v2",
+       "threadId": "28e0dcf5-018d-46d0-b88f-8ca27b542714",
+       "attemptId": "47a76fa4-902c-4e4d-92b0-4a302bb72c6e",
+       "requesterId": "peer:62812118b9865326fafb5ad9",
+       "placementGeneration": 0,
+       "route": {
+        "schema": "reploid.partition-route/v1",
+        "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+        "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+        "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+        "stages": [
+         {
+          "index": 0,
+          "participantId": "peer:926ad427d22d341af18d0ff1",
+          "transportId": "685221ab-ef26-4c6b-9172-aa7e47aa0e76",
+          "residentId": "scj-run5-stage-0-resident",
+          "executionId": "scj-run5-stage-0-ordinary"
+         },
+         {
+          "index": 1,
+          "participantId": "peer:9af15d884eba51b0c0540e2a",
+          "transportId": "474c1e44-b3bf-496a-8612-31381446c8a4",
+          "residentId": "scj-run5-stage-1-resident",
+          "executionId": "scj-run5-stage-1-ordinary"
+         },
+         {
+          "index": 2,
+          "participantId": "peer:09610aefbd15a133d7af2b57",
+          "transportId": "2723c9c5-1ce5-416a-a475-ce4249faab16",
+          "residentId": "scj-run5-stage-2-resident",
+          "executionId": "scj-run5-stage-2-ordinary"
+         }
+        ],
+        "activation": {
+         "schema": "doppler.activation-tensor/v2",
+         "dtype": "f32",
+         "hiddenSize": 1024,
+         "precision": "two-f32",
+         "components": 2,
+         "elementStrideBytes": 8
+        }
+       }
+      },
+      "participantId": "peer:09610aefbd15a133d7af2b57",
+      "index": 2,
+      "phase": "reserved",
+      "reservedAt": 1791962310381,
+      "settlingAt": null,
+      "settledAt": null,
+      "failure": null,
+      "resources": {
+       "attemptSlots": 1,
+       "maxPromptTokens": 4096,
+       "maxTokens": 4096,
+       "maxActivationBytes": 33554432,
+       "scope": "application-attempt-limits"
+      },
+      "partitionIndex": 2,
+      "status": "reserved"
+     }
+    ],
+    "cleanup": [
+     {
+      "partitionIndex": 0,
+      "status": "settled",
+      "error": null
+     },
+     {
+      "partitionIndex": 1,
+      "status": "unknown",
+      "error": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.",
+      "code": "CONNECTION_LOST"
+     },
+     {
+      "partitionIndex": 2,
+      "status": "settled",
+      "error": null
+     }
+    ],
+    "cleanupSettledAt": null,
+    "failure": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed."
+   }
+  ],
+  "capacityReturn": {
+   "scope": "SUPPLEMENTARY observation outside the loss harness (the harness stopped before restore); same control module restoreContributor; no conversation, no Retry",
+   "restoredScope": "scj-run5-amd-native-3",
+   "scopeActiveAt": "2026-10-14T07:23:39Z",
+   "restoreReturnedAt": "2026-10-14T07:23:43.709Z",
+   "readyRouteAt": "2026-10-14T07:23:46.875Z",
+   "secondsFromScopeStart": 7.9,
+   "secondsFromRestoreReturn": 3.2,
+   "newRouteTransports": [
+    "685221ab-ef26-4c6b-9172-aa7e47aa0e76",
+    "0849bc21-7f70-49de-b53f-22c8c93fe7eb",
+    "2723c9c5-1ce5-416a-a475-ce4249faab16"
+   ],
+   "note": "the new route uses the restored native on its fresh transport session 0849bc21..."
+  },
+  "stopAfterLoss": "final stage 0 Stop at 07:34:55Z settled ready -> idle, unsettledOwners 0, with the lost receipt still in unknownAttempts (settlement/stage0-stop.json, settlement/coordinator-before-stop.json)"
+ },
+ "classification": {
+  "application": [
+   {
+    "id": "A2",
+    "status": "fixed (observed)",
+    "evidence": "loss reported as CONNECTION_LOST, rendered \"A computer disconnected. Retry this answer.\"; lossReported PASS"
+   },
+   {
+    "id": "A3",
+    "status": "fixed (observed, partly outside the harness)",
+    "evidence": "broken route retired with the receipt kept in unknownAttempts; restored native joined a new ready route about 8 s after its scope started; Stop settled afterwards"
+   },
+   {
+    "id": "none-new",
+    "evidence": "no new application defect observed"
+   }
+  ],
+  "harness": [
+   {
+    "id": "H6",
+    "what": "run-contributor-loss.mjs looks for the failed attempt receipt only in network.contribution.attempts; with 95641fe7 a retired route moves its unknown receipt to network.contribution.unknownAttempts, so the wait \"Coordinator failure receipt\" times out (settlementMs 120 s) and the runner throws before calling restore",
+    "where": "artifacts/signed-completion-journey-20261013/run-contributor-loss.mjs:83-86 (lookup at :84), restore at :90 never reached",
+    "consequence": "ownershipExplicit fails (\"Coordinator receipt for the failed attempt unobserved\", and the row/phase/cause assertions it gates); explicitRetry and timing are unobserved. The receipt itself exists and is recorded here (unknownAttempts) with rows settled/unknown(CONNECTION_LOST)/settled, phase cleanup-failed, cleanupSettledAt null."
+   }
+  ],
+  "throughput": [
+   {
+    "id": "P1",
+    "status": "unchanged",
+    "evidence": "stage 2 (intel-host) 2.65-3.51 s per decode step vs 0.45-0.66 s (stage 0) and 0.44-0.48 s (stage 1); prefill-heavy follow-up 18.2 s/step at stage 2. With answerMs 900000 and the shortened prompts every answer finished: the explicit retry answer took 608.0 s (over the old 600 s wait)"
+   }
+  ]
+ },
+ "requesterAnswersForManualReview": {
+  "turn1": "```javascript\nfunction doubleEvens(numbers) {\n  // Filter keeps only even numbers, then doubles them\n  return numbers.filter(n => n % 2 === 0).map(n => n * 2);\n}\n\n// Result for [1, 2, 3, 4]\nconsole.log(doubleEvens([1, 2, 3, 4])); \n// Output: [2, 4, 6, 8]\n```",
+  "turn2": "[-6, 12, 18]"
+ },
+ "manualReviewObservations": "Identical answers to run 4 (temperature 0): turn 1 code is correct filter/map but states [1,2,3,4] -> [2, 4, 6, 8] (expected [4, 8]); turn 2 answers [-6, 12, 18] (expected [-4, 12]). Counts were exact. answerUsefulness stays null for the independent reviewer."
+}

@@ -1,0 +1,55 @@
+{
+ "schema": "reploid.signed-completion-journey-run-5-settlement/v1",
+ "mac-host": {
+  "stage0": "Stop through its own control at 07:34:55Z: ready -> idle, offering false, unsettledOwners 0 (with unknownAttempts holding 47a76fa4); browser closed (pid 80872 exited)",
+  "supplierBrowser": "Browser.close; pid 82687 exited",
+  "appServer": "pid 80775 SIGTERM, stopping logged 07:35:44Z",
+  "tunnels": "pids 80846, 80847 exited",
+  "sampler": "pid 82319 exited",
+  "ports29670to29674Listening": false,
+  "nonOwnedProcessesUnchanged": true,
+  "requesterProfiles": "none left"
+ },
+ "amd-host": {
+  "natives": [
+   "native-1 SIGTERM 07:17:49Z, inactive 1 s, 731.8M peak",
+   "native-2 SIGKILL by the loss control 07:20:24Z (abrupt by design)",
+   "native-3 SIGTERM 07:24:09Z, inactive 1 s, 617.6M peak",
+   "native-4 SIGTERM 07:35:08Z, inactive 1 s, 700.5M peak"
+  ],
+  "ownedProcessesAfter": 0,
+  "port29670Listening": false,
+  "signedState": "identical to preflight: sequence 2 923ac7e6..., ledger 1458219861 of 4294967296, identity 871ad22c..., 602 cache entries"
+ },
+ "intel-host": {
+  "natives": [
+   "native-1 SIGTERM 07:17:51Z, inactive 1 s, 1.1G peak, 0B swap",
+   "native-2 SIGTERM 07:24:10Z, inactive 1 s, 1018.8M peak",
+   "native-3 SIGTERM 07:35:09Z, inactive 1 s, 1.0G peak"
+  ],
+  "acquirerBrowser": "SIGTERM, inactive 1 s, 385949696 bytes peak",
+  "ownedProcessesAfter": 0,
+  "ports29670and29674Listening": false,
+  "signedState": "identical to preflight: sequence 2 923ac7e6..., ledger 0 of 4294967296, identity 3a3d2251..., 579 cache entries"
+ },
+ "publicContributors": {
+  "amd-host": {
+   "unchanged": true,
+   "pids": [
+    4103868,
+    4121371
+   ]
+  },
+  "intel-host": {
+   "unchanged": true,
+   "pids": [
+    297260,
+    299769
+   ]
+  }
+ },
+ "unconfirmedRemoteCleanup": "attempt 47a76fa4 stage 1 stays unknown (CONNECTION_LOST) at the coordinator, as designed; the killed process was released by the operating system",
+ "secretsRemoved": "room-token and room-id removed on both native hosts; private-room.json removed on mac-host",
+ "filesLeftOnHosts": "mac-host run-5 dir: control-state.json, mac-supplier-profile; stage 0 profile in the run-2 dir; native hosts run-5 dir: stage config and native logs; intel-host also acquirer profile and log",
+ "unchanged": "maxAcquisitionChunkBytes, both 4 GiB ledgers, every release sequence"
+}

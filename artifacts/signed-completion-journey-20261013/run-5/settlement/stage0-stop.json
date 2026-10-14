@@ -1,0 +1,64 @@
+{
+ "schema": "reploid.run-5-stage0-stop/v1",
+ "machine": "mac-host",
+ "samples": [
+  {
+   "at": "2026-10-14T07:34:54.214Z",
+   "phase": "ready",
+   "error": null,
+   "offering": true,
+   "unsettledOwners": 0,
+   "descriptor": "present",
+   "attempts": [
+    {
+     "attemptId": "a9332a90-0f83-4273-ae06-264093409080",
+     "phase": "completed"
+    },
+    {
+     "attemptId": "de075f58-0e6f-467e-b445-252bb36018b1",
+     "phase": "completed"
+    }
+   ]
+  },
+  {
+   "at": "2026-10-14T07:34:55.379Z",
+   "phase": "idle",
+   "error": null,
+   "offering": false,
+   "unsettledOwners": 0,
+   "descriptor": null,
+   "attempts": []
+  }
+ ],
+ "before": {
+  "at": "2026-10-14T07:34:54.214Z",
+  "phase": "ready",
+  "error": null,
+  "offering": true,
+  "unsettledOwners": 0,
+  "descriptor": "present",
+  "attempts": [
+   {
+    "attemptId": "a9332a90-0f83-4273-ae06-264093409080",
+    "phase": "completed"
+   },
+   {
+    "attemptId": "de075f58-0e6f-467e-b445-252bb36018b1",
+    "phase": "completed"
+   }
+  ]
+ },
+ "toggleBefore": "true",
+ "clickedAt": "2026-10-14T07:34:54.267Z",
+ "after": {
+  "at": "2026-10-14T07:34:55.379Z",
+  "phase": "idle",
+  "error": null,
+  "offering": false,
+  "unsettledOwners": 0,
+  "descriptor": null,
+  "attempts": []
+ },
+ "settled": true,
+ "browserCloseAt": "2026-10-14T07:34:55.380Z"
+}

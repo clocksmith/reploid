@@ -1,0 +1,21 @@
+{
+ "schema": "reploid.run-2-signed-state/v1",
+ "machine": "amd-host",
+ "stateDirectory": "/var/tmp/reploid-signed-native-metadata-20261012",
+ "at": "2026-10-14T06:46:05.116329+00:00",
+ "releaseCheckpoints": [
+  {
+   "namespace": "sha256:ce08ba3fdaeac42b54c2b4f963f69519cd7b39cce14a66b682ed9f1583fe233b",
+   "sequence": 2,
+   "digest": "sha256:923ac7e602b3075a17f9e540eb0abfd436eaf1de41bebf8b6f15bdaee604b45f"
+  }
+ ],
+ "supplyLedger": {
+  "schema": "reploid.custody-supply-budget/v1",
+  "maxBytes": 4294967296,
+  "reservedBytes": 1458219861
+ },
+ "identityPeerId": "peer:9af15d884eba51b0c0540e2a",
+ "identitySha256": "871ad22c05ae95c8780707cf7cf4520d935d6696be6b380082c570e1aff94e30",
+ "cacheEntries": 602
+}
