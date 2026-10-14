@@ -1,0 +1,45 @@
+{
+  "schema": "reploid.signed-completion-journey-config/v1",
+  "reportDirectory": "REPLACE: absolute directory for new report files",
+  "application": {
+    "roomFile": "REPLACE: absolute path to the private room JSON {roomId, token}",
+    "descriptorPath": "/config/browser-bundle-manifest.json",
+    "partitionPolicyPath": "/config/partition-policy.json",
+    "signalingUrl": null
+  },
+  "freeze": {
+    "browserBundle": "REPLACE: sha256:<64 hex> served browser bundle",
+    "runtimeArchive": "REPLACE: sha256:<64 hex> runtime archive",
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "REPLACE: sha256:<64 hex> model manifest identity",
+    "planId": "REPLACE: sha256:<64 hex> ordered plan identity",
+    "planSchema": "doppler.layer-partition-contract/v3",
+    "splitLayers": [8, 16],
+    "nativeArtifacts": {
+      "amd-host": "REPLACE: sha256:<64 hex> native artifact",
+      "intel-host": "REPLACE: sha256:<64 hex> native artifact"
+    },
+    "route": [
+      { "index": 0, "machine": "mac-host", "host": "browser", "participantId": "REPLACE: peer:<24 hex>" },
+      { "index": 1, "machine": "amd-host", "host": "native", "participantId": "REPLACE: peer:<24 hex>", "orderedConfig": "REPLACE: absolute stage JSON path on amd-host" },
+      { "index": 2, "machine": "intel-host", "host": "native", "participantId": "REPLACE: peer:<24 hex>", "orderedConfig": "REPLACE: absolute stage JSON path on intel-host" }
+    ]
+  },
+  "browsers": {
+    "requester": { "machine": "mac-host", "origin": "REPLACE: http://127.0.0.1:<port>/", "connect": { "kind": "launch", "channel": "chrome", "headless": true, "remoteDebuggingPort": "REPLACE: port" } },
+    "coordinator": { "machine": "mac-host", "origin": "REPLACE: http://127.0.0.1:<port>/", "connect": { "kind": "cdp", "endpoint": "REPLACE: http://127.0.0.1:<port>" } },
+    "storageSupplier": { "machine": "mac-host", "origin": "REPLACE: http://127.0.0.1:<port>/", "connect": { "kind": "cdp", "endpoint": "REPLACE: http://127.0.0.1:<port>" } },
+    "storageAcquirer": { "machine": "intel-host", "origin": "REPLACE: http://127.0.0.1:<port>/", "connect": { "kind": "cdp", "endpoint": "REPLACE: http://127.0.0.1:<forwarded port>" } }
+  },
+  "contributorControl": {
+    "module": "REPLACE: absolute path to the operator's control module",
+    "stopExport": "stopContributor",
+    "restoreExport": "restoreContributor",
+    "lossTarget": "amd-host"
+  },
+  "timeouts": { "readyMs": 300000, "answerMs": 600000, "lossReportMs": 360000, "capacityReturnMs": 600000, "transferMs": 300000, "settlementMs": 120000 },
+  "observation": { "pollMs": 100 },
+  "concurrency": { "tabs": 2 },
+  "modelFiles": { "pathPatterns": ["REPLACE: path-only regular expression for model manifests, piece indexes and shards"] },
+  "storage": { "sharingAllowanceMiB": 5, "stopAllowanceMiB": 64, "contentionAllowanceMiB": 5, "interruptionAllowanceMiB": 13 }
+}
