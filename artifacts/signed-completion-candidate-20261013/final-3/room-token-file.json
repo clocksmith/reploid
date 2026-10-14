@@ -1,0 +1,30 @@
+{
+  "schema": "reploid.native-room-token-file-check/v1",
+  "flag": "--room-token-file",
+  "commit": "9b42f5eed4a92be4d990650ec9b832a2f1ab94af",
+  "commitBlobSha256": "a48bd76cde55a8d45f3c81ac2323eb6d998f1c8543075b7ef796dde31c293aac",
+  "copies": {
+    "installed": {
+      "sha256": "a48bd76cde55a8d45f3c81ac2323eb6d998f1c8543075b7ef796dde31c293aac",
+      "flagOccurrences": 12
+    },
+    "packaging directory": {
+      "sha256": "a48bd76cde55a8d45f3c81ac2323eb6d998f1c8543075b7ef796dde31c293aac",
+      "flagOccurrences": 12
+    }
+  },
+  "packagedMatchesCommit": true,
+  "help": {
+    "command": "node server/native-participant.js --help",
+    "cwd": "/var/tmp/reploid-signed-completion-app-3-20261013/native-verify/reploid",
+    "node": "v22.20.0",
+    "exitCode": 0,
+    "stdout": "Reploid native participant (Node 22.13 or newer)\nUsage: reploid-participant --connect-only|--share-files|--contribute\n  --model <catalog id> --model-directory <read-only weights directory>\n  --identity-file <private state/identity.json>\n  --rtc-module @roamhq/wrtc --ws-module ws [--gpu-module webgpu]\n  [--cache-directory <verified piece cache>] [--signaling-url <ws(s) URL>]\n  [--room <namespace>] [--room-token-file <absolute path>] [--origin <allowed origin>]\n  [--ordered-config <absolute JSON path>] (explicit stage assignment and ordered limits)\n  [--canonical] (requires explicit catalog generation and a capable installed runtime)\n\n--room-token-file reads the private room token once at startup from a regular\nfile owned by this user with mode 0600; one trailing newline is removed.\n--room-token <join marker> still works but exposes the token in process\narguments and prints a warning; it cannot be combined with --room-token-file.\n\nFile sharing and compute are separate explicit choices; both may be enabled.\nCompute requires --gpu-module. Missing assigned pieces use authenticated peers.\nSIGINT/SIGTERM stop admission, settle work and release owned resources.\nNative GPU execution is qualified on Linux/Vulkan only; --help opens no provider.\n",
+    "stderr": "",
+    "listsFlag": true
+  },
+  "installDirectoryUnchangedByHelp": true,
+  "installDirectoryFiles": 2297,
+  "GPUOpened": false,
+  "networkOpened": false
+}

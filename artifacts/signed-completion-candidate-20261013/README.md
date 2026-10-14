@@ -1,15 +1,50 @@
 # Signed completion candidate: staged and packaged
 
 Component: browser/native application delivery (preparation). Intent preserved.
-Acceptance evidence: `final-2/preflight.json`, `final-2/metadata-staging.json`,
-`final-2/delivery-verification.json`, `final-2/swarm-label.json`,
-`final-2/worker.json`, `final-2/binding.json`.
+Acceptance evidence: `final-3/preflight.json`, `final-3/metadata-staging.json`,
+`final-3/delivery-verification.json`, `final-3/swarm-label.json`,
+`final-3/room-token-file.json`, `final-3/worker.json`, `final-3/binding.json`.
 Boundary effects: new isolated exports, catalogs and packages under `/var/tmp/`
 only. Both checkouts, the public Doppler 0.6.27 pin, public catalogs, deployment
 files, identities, release checkpoints and contribution ledgers are unchanged.
 Nothing was started, opened on a GPU, installed on another machine, committed or pushed.
 
-## Current: `final-2/` (Reploid `d7931c57`) supersedes `final/`
+## Current: `final-3/` (Reploid `9b42f5ee`) supersedes `final-2/`
+
+Reploid `9b42f5ee` adds `--room-token-file` to `server/native-participant.js`.
+That changes the native package, so the `final-2/` pipeline was repeated into
+fresh directories with the same scripts, Capsule `-c` and minimum sequence 2.
+`final-2/` and its export (`/var/tmp/reploid-signed-completion-app-2-20261013`,
+marked `SUPERSEDED.json`) are kept unchanged.
+
+| Item | `final-3/` value |
+| --- | --- |
+| Export | `/var/tmp/reploid-signed-completion-app-3-20261013/app`, source `9b42f5eed4a92be4d990650ec9b832a2f1ab94af`, tar `837ab5930878c05089101de2f61d538ee7c35cc5f1683413f544d44a85c3771b` |
+| Prepared catalog | `b0277a5f75e8780c6e233ab618a09bbfc4c572ae098f1ce0ceda178719820bbd`, byte-identical to `final-2/` |
+| Staged catalog | `59811b4af5f7b44387344fe38fdea155de4f27a487332a846c27fee9257481d5`, 42 metadata files; staging receipt identical to `final-2/` |
+| Browser payload | 2,045 files, bundle `sha256:9f380ebf3daaad82f7476f2cd8c6ee30cacd3e0f055e28896211a14fd8bb0f1d`, unchanged from `final-2/` |
+| Native tarball | `/var/tmp/reploid-signed-completion-app-3-20261013/app/output/reploid-native-go13H9/reploid-native-0.1.0.tgz`, `fcacf463ede679feffaf7de9115e7d7bf02729e4ca85c9cab650500f0c6e2017` |
+| Native descriptor | `8595ba3150aa0499fd9f4b2e6bd5c75d04fcb31e3eade458877dbad0816520ad`, 151 files |
+| Native participant | packaged `server/native-participant.js` `a48bd76c…` equals the commit and contains `--room-token-file`; `node server/native-participant.js --help` from the local verification install exits 0 and lists it (`final-3/native-help.txt`) |
+| Swarm transport | served and packaged `swarm.js` `ae1d9239…` equal the commit and admit `reploid-partitions-ordered` |
+
+Every step passed:
+
+- **Export.** Same footprint as before (16 changed, 1,985 added). All 16 changed files
+  and the vendored runtime are byte-identical to `final-2/`.
+- **Preflight.** Runtime 1,984/1,984; plan admission for stages 0-2; zero
+  address matches; 8 of 8 release-history cases as expected.
+- **Delivery verification.** 151 native members; 1,984 installed runtime files;
+  2,045 payload files and 1,206 served runtime files; only metadata URLs changed
+  by staging; 64 mappings; plan admission from the installed package; zero
+  address matches.
+- **New script.** `check-room-token-file.js` is the only new script and passed
+  the Verification Worker.
+- **`--help` run.** It is the one process started from the installed package,
+  at the coordinator's request. The code returns before any identity, module,
+  network or GPU work, and the install directory's file list was unchanged afterwards.
+
+## `final-2/` (Reploid `d7931c57`, superseded by `final-3/`)
 
 `final/` was built from Reploid `f1b2fd77`. In signed run 1, that build's swarm
 transport refused the ordered-route channel `reploid-partitions-ordered`, so
@@ -152,17 +187,21 @@ own authority and application produce.
   served and not in the native package, but `module-inventory.json` lists its 943 modules.
 - **Inherited closure URL.** The catalog still points at `http://127.0.0.1:29670/qualification/capsule/`.
 - **Local-only install.** The native install was verified on this Mac (darwin arm64,
-  Node 22.20.0) without install scripts, not on the Linux hosts. `--help` was not
-  run because no application start is allowed in this step.
+  Node 22.20.0) without install scripts, not on the Linux hosts. `--help` was run
+  only in `final-3/`, at the coordinator's request; `final/` and `final-2/` did not run it.
 - **Abandoned verification directory.** `/var/tmp/reploid-signed-completion-app-20261013/native-verify`
   is from a first verification run that stopped on a bug in `final/verify-delivery.js`:
   it compared the whole archive with the partial runtime the payload serves.
   It is marked `NOT-EVIDENCE.json`; the corrected run used `native-verify-2`.
-- **Git status.** The first pass, `final/` and an `install/` folder were committed
-  upstream in `1c4be0ca`, outside this step; `install/` records native installs of
-  the superseded `final/` tarball `a7462eb8…`. `final-2/` and this README's later
-  edits are uncommitted. The checkout's local `info/exclude` (line 22) still lists
-  this folder, so `git status` hides the untracked `final-2/`.
+- **Git status and host installs.** Upstream commits made outside these steps
+  added the earlier passes:
+  - `1c4be0ca` added `final/` and `install/`, which installed the `final/` tarball `a7462eb8…`;
+  - `bdcc4bd4` added `final-2/` and `install-2/`, which installed the `final-2/` tarball.
+
+  Neither host install covers the `final-3/` tarball `fcacf463…`. `final-3/` and
+  this README's latest edits are uncommitted. The checkout's local `info/exclude`
+  (line 22) lists this folder, so `git status` without `--ignored` hides the
+  untracked `final-3/`.
 
 ## Not established
 
