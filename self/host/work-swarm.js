@@ -49,10 +49,12 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   };
   let partitionNetworks = null;
   let consumerTransport = null;
-  let modelFiles = null, partitionMesh = null, consumerIdentity = null;
+  let modelFiles = null, partitionMesh = null, consumerIdentity = null, partitionRequester = null;
   const partitionListeners = new Set();
   const partitions = Object.freeze({
     getModels: () => partitionMesh?.getModels() || [],
+    // The authenticated swarm identity this connection's partition owner binds into requester disclosure.
+    requesterIdentity: () => partitionMesh ? partitionRequester : null,
     subscribe(listener) { partitionListeners.add(listener); listener(this.getModels()); return () => partitionListeners.delete(listener); },
     generate(request, controls) {
       if (!partitionMesh) throw new Error('Partition discovery is unavailable');
@@ -176,6 +178,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
         if (canonical && (canonical.participantId !== consumerIdentity.peerId || canonical.meshId !== options.config.value.mesh.roomId)) {
           throw new Error('Canonical history identity differs from authenticated participant or mesh');
         }
+        partitionRequester = consumerIdentity.peerId;
         partitionMesh = createPartitions({ canonical: canonical ? { runtime: canonical.runtime,
           coordinatorEpoch: canonical.coordinatorEpoch, participantEpoch: canonical.participantEpoch } : null, identity: consumerIdentity, meshId: options.config.value.mesh.roomId,
           models: LOCAL_DOPPLER_MODELS.filter(model => model.source?.files.some(file => file.role === 'model-piece-index')),
@@ -204,7 +207,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     }
     catch (cause) {
       const owners = [partitionMesh, partitionNetworks, modelFiles, consumer];
-      partitionMesh = null; partitionNetworks = null; modelFiles = null; consumer = null; consumerTransport = null;
+      partitionMesh = null; partitionRequester = null; partitionNetworks = null; modelFiles = null; consumer = null; consumerTransport = null;
       peerOffers?.close();
       const results = await Promise.allSettled(owners.map(closeOwner));
       if (version === generation) error = cause.message;
@@ -277,7 +280,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     generation++;
     connectionFailure = null;
     const contributionStop = stopContribution();
-    const partitionStop = closeOwner(partitionMesh); partitionMesh = null;
+    const partitionStop = closeOwner(partitionMesh); partitionMesh = null; partitionRequester = null;
     const fileStop = closeOwner(modelFiles); modelFiles = null;
     const previousConsumer = consumer, previousTransport = consumerTransport;
     consumer = null; consumerTransport = null;

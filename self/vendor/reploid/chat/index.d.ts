@@ -105,6 +105,9 @@ export interface ChatSendOptions {
 }
 export interface ChatWorkspaceOptions {
   meshId: string; participantId: string;
+  /** Host-authenticated peer identity that execution binds into ordered requester disclosure; null until
+   * authenticated. Defaults to participantId for hosts whose history participant is that peer. */
+  requesterIdentity?: () => string | null;
   store: { load(): unknown; save(state: unknown): void };
   execute(request: ChatRequest & ChatEnvelope & { meshId: string; participantId: string }, controls: ChatControls): Promise<ChatResult>;
   policy?: ChatPolicy; now?: () => number; id?: () => string;

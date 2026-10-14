@@ -41,7 +41,9 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
       if (failures.length) throw new AggregateError([error, ...failures], 'Canonical application opening failed');
       throw error;
     });
-  return finish(createChatSession(chatOptions));
+  // Canonical participants are the authenticated swarm peer (work-swarm.js refuses another). Ordinary
+  // history stays local; its ordered disclosure binds the identity the swarm's partition owner uses.
+  return finish(createChatSession({ ...chatOptions, requesterIdentity: () => swarm.partitions.requesterIdentity() }));
   function finish(openedChat) {
     chat = openedChat;
     const autoconnect = startSwarmAutoconnect({ connect: options => swarm.connect(options),

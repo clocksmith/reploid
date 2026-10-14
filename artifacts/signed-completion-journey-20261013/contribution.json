@@ -4,11 +4,13 @@
   "chatPrompt": "Count from 1 to 200 in order, one integer per line. No commentary.",
   "chatStartedAfterCharacters": 8,
   "cachedOnlyObservationMs": 3000,
+  "supplierObservationMs": 3000,
   "interruption": "reload of the acquiring tab while a model-file transfer is in flight",
   "automaticRetries": 0,
   "codeReferences": {
     "modes": "self/ui/pool-home/network-controls.js:26-28; self/host/work-model-files.js:339-438",
     "ledger": "self/infrastructure/custody-supply-budget.js:4-49",
-    "receipts": "packages/reploid/src/artifacts/custody/runtime.js:367-375"
+    "receipts": "packages/reploid/src/artifacts/custody/runtime.js:367-375",
+    "supplierOffers": "packages/reploid/src/artifacts/custody/exchange.js:14,31-35,103-108,273-277"
   }
 }

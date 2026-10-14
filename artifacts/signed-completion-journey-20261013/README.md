@@ -39,6 +39,12 @@ Consequences for this harness:
 
 `cachedOnly` (decided after run 2, same contract): run 2's step opened a second tab of the connected sharer profile and was refused ("Custody owner deadline"). The step now closes the sharer tab, records its verified inventory, ledger and peer identity, opens one new tab of the same profile, waits until it connects with a custody owner and no refusal, and only then selects cached-only mode in it. It requires zero model-file requests over that tab's whole lifetime through a frozen quiet window after the outcome (`contribution.json` `cachedOnlyObservationMs`), and an inventory made only of, and restoring every one of, the pieces verified before the sharer tab closed. Same-profile evidence is the ledger: the new tab must read the closed sharer tab's ledger unchanged. Peer identities are recorded, not asserted.
 
+## Changes after run 3
+
+| Run-3 defect | Change |
+|--------------|--------|
+| H4: `interruptedResume` contaminated by the competing-tabs owner, which still offered its subset and served the metadata and small pieces before the reload, unobserved | Origin is the step's only intended supplier. `closeOtherTabs` (`harness.mjs`) closes every open tab of every context this run created and records each one's sharing state; the step stops if any stays open. From the interrupt tab, `observeSupplierOffers` (`observe.mjs`) samples which connected peers offer files for `contribution.json` `supplierObservationMs` before acquisition and again after the resume. Every model-file request of the interrupt context counts, including requests without a page. `interruptedResume` fails if a tab was left open, if a peer offered files, if any custody receipt appears, or if the supplier observation is missing. The no-double-charge and no-undercharge comparison is unchanged |
+
 ---
 
 ## Files
@@ -86,9 +92,9 @@ Streams a long count, then calls the configured `stop` export for `contributorCo
 | (c) | `reloadPreserved` | Reload of the sharer profile's only tab (the cached-only tab from (e)), cached-only restart: offered pieces are a superset of the pre-reload inventory; ledger cap equal, consumption not reset; zero requests; no other tab of the profile open |
 | (f) | `stopSettles` | Fresh context: answer streaming, bounded acquisition in flight, Stop sharing; files settle (not sharing/preparing/stopping, nothing pending), charges retained, no later requests, answer completes uncancelled |
 | (d) | `competingTabs` | Fresh context, two tabs of one profile press the file control at once: the second is refused by the single-owner lock (exact text recorded, never a consumer identity or custody owner, no transfer); the profile ledger keeps one cap, never exceeds it, charges exactly the observed transfers and completes none twice |
-| (d) | `interruptedResume` | Fresh context: reload issued from the request event of the first weight piece of at least 1 MiB; that piece must be aborted or unsettled by the reload; resume never re-downloads completed transfers; the interrupted transfer is re-acquired or excluded by the remaining allowance; the ledger charges exactly the observed transfers (no double charge) |
+| (d) | `interruptedResume` | Every earlier tab of the run closed; no connected peer offers files for the frozen window before acquisition or after the resume, and no custody receipt appears (origin is the only intended supplier). Fresh context: reload issued from the request event of the first weight piece of at least 1 MiB; that piece must be aborted or unsettled by the reload; resume never re-downloads completed transfers; the interrupted transfer is re-acquired or excluded by the remaining allowance; the ledger charges exactly the observed transfers (no double charge) |
 
-Offers from this run are withdrawn before (f) and (d) so their transfers are observable over HTTP. Peer transfers are also counted from custody receipts.
+Offers from this run are withdrawn before (f), and every earlier tab is closed before `interruptedResume`, so their transfers are observable over HTTP. Peer transfers are also counted from custody receipts. A peer transfer before the interruption's reload ends with the page and is not observable, so that step requires no offering peer and treats any receipt as a failure.
 
 ### Timing record (`timing.mjs`)
 

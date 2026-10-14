@@ -126,9 +126,21 @@ export function competingTabsFailures(contention) {
 }
 
 /** (d) A reload that catches a piece of at least 1 MiB in flight; the acquisition resumes without
- * re-downloading verified pieces, keeps every charge and charges nothing twice. */
-export function interruptedResumeFailures(interruption) {
+ * re-downloading verified pieces, keeps every charge and charges nothing twice. Origin is the only
+ * intended supplier: every other harness tab is closed, no connected peer offers files for the frozen
+ * window before the acquisition or after the resume, and no custody receipt (peer transfer) appears.
+ * A peer transfer before the reload ends with the page, so it could only show as a ledger excess. */
+export function interruptedResumeFailures(interruption, fixture) {
   const { failures, require } = checker(), i = interruption;
+  const isolation = i?.isolation, suppliers = i?.suppliers, minimum = fixture?.supplierObservationMs;
+  require(Array.isArray(isolation?.closed) && Array.isArray(isolation.remainingOpen) && isolation.remainingOpen.length === 0
+    && Array.isArray(isolation.keep) && isolation.keep.length === 0, 'A tab that could supply pieces was not closed before the interruption');
+  const samples = [...(suppliers?.before || []), ...(suppliers?.after || [])];
+  require(Number.isSafeInteger(minimum) && minimum > 0 && suppliers?.observationMs >= minimum
+    && suppliers.before?.length > 0 && suppliers.after?.length > 0, 'Supplier offers unobserved for the frozen window before the acquisition or after the resume');
+  require(samples.every(sample => Array.isArray(sample?.offering) && sample.offering.length === 0),
+    'Another supplier was offering model files to the interrupted acquisition');
+  require(Array.isArray(i?.peerTransfers) && i.peerTransfers.length === 0, 'An unintended supplier served pieces to the interrupted acquisition');
   const completed = new Set((i?.completedBefore || []).map(item => item.key));
   const resumed = i?.resumed || [], target = i?.inFlightAtReload;
   require(target?.weight === true && Number.isSafeInteger(target.bytes) && target.bytes >= MIN_INTERRUPTED_PIECE_BYTES
@@ -208,7 +220,7 @@ export function assessContribution(report, freeze, fixture) {
     peerAcquisition: run(() => peerAcquisitionFailures(report.peer, report.share)),
     reloadPreserved: run(() => reloadPreservedFailures(report.reload)),
     competingTabs: run(() => competingTabsFailures(report.contention)),
-    interruptedResume: run(() => interruptedResumeFailures(report.interruption)),
+    interruptedResume: run(() => interruptedResumeFailures(report.interruption, fixture)),
     cachedOnly: run(() => cachedOnlyFailures(report.cachedOnly, fixture)),
     stopSettles: run(() => stopSettlesFailures(report.stop, freeze))
   };

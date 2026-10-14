@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
-import { SELECTORS, chooseOrderedModel, trackRequests, classifyInterruption, transferBytes, withDeadline } from './harness.mjs';
+import { SELECTORS, chooseOrderedModel, trackRequests, classifyInterruption, closeOtherTabs, transferBytes, withDeadline } from './harness.mjs';
 import { interruptedResumeFailures, MIN_INTERRUPTED_PIECE_BYTES } from './contribution-checks.mjs';
 import { selectionId } from './test-fixtures.mjs';
 
@@ -90,8 +90,11 @@ function scenario({ reloadMs, largeEndMs, largeFailed }) {
 const charge = shape => [...shape.completedBefore, ...shape.completedDuringInterruption, ...shape.interrupted, ...shape.unattributed, ...shape.resumed]
   .reduce((total, item) => total + item.bytes, 0);
 const offered = [{ path: `piece-${'8'.repeat(64)}.bin`, hash: '8'.repeat(64), sizeBytes: 64, hashAlgorithm: 'sha256' }];
-const assessShape = (shape, extraCharge = 0) => interruptedResumeFailures({ minimumInFlightBytes: MIN_INTERRUPTED_PIECE_BYTES, ledgerBefore: null, ...shape,
-  ledgerFinal: { maxBytes: 13 * MiB, reservedBytes: charge(shape) + extraCharge }, final: { sharing: true, error: '', offered } });
+// Origin as the only supplier (run-contribution.mjs): earlier tabs closed, no offering peer, no custody receipt.
+const originOnly = { isolation: { keep: [], closed: [], remainingOpen: [] }, peerTransfers: [],
+  suppliers: { observationMs: 3000, before: [{ connected: [], offering: [] }], after: [{ connected: [], offering: [] }] } };
+const assessShape = (shape, extraCharge = 0) => interruptedResumeFailures({ minimumInFlightBytes: MIN_INTERRUPTED_PIECE_BYTES, ledgerBefore: null, ...originOnly, ...shape,
+  ledgerFinal: { maxBytes: 13 * MiB, reservedBytes: charge(shape) + extraCharge }, final: { sharing: true, error: '', offered } }, { supplierObservationMs: 3000 });
 
 test('a reload issued while the large piece transfers is caught, resumed and charged exactly once per transfer', () => {
   const { rows, ...options } = scenario({ reloadMs: 63, largeEndMs: 70, largeFailed: true });
@@ -123,6 +126,19 @@ test('an interruption whose reload lost the race fails instead of passing on sma
   const failures = assessShape(shape).join('\n');
   assert.match(failures, /never caught an in-flight piece of at least 1 MiB/);
   assert.match(failures, /No in-flight transfer was interrupted/);
+});
+test('every earlier tab except a kept supplier is closed before the interruption, even if unreadable', async () => {
+  const tab = (name, files, { closed = false, refuses = false } = {}) => ({ name, page: { files,
+    isClosed: () => closed, close: async () => { if (refuses) throw Error('Target page, context or browser has been closed'); closed = true; } } });
+  const observe = async page => { if (!page.files) throw Error('Host session listener unavailable'); return page.files; };
+  const tabs = [tab('supplier-main', { sharing: true }, { closed: true }), tab('contention-0', { sharing: true }),
+    tab('contention-1', null), tab('stop-main', { sharing: false }), tab('kept', { sharing: true })];
+  const isolated = await closeOtherTabs(tabs, { keep: ['kept'], observe });
+  assert.deepEqual(isolated.closed.map(row => [row.name, row.sharing]), [['contention-0', true], ['contention-1', null], ['stop-main', false]]);
+  assert.deepEqual(isolated.remainingOpen, []); assert.deepEqual(isolated.keep, ['kept']);
+  assert.equal(tabs[4].page.isClosed(), false);
+  const stuck = await closeOtherTabs([tab('contention-0', { sharing: true }, { refuses: true })], { observe });
+  assert.deepEqual(stuck.remainingOpen, ['contention-0']);
 });
 test('transfer size of an aborted range uses its declared bytes', () => {
   assert.equal(transferBytes({ declaredBytes: 5253248, responseBytes: null }), 5253248);

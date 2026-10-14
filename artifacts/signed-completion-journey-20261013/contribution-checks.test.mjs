@@ -152,6 +152,35 @@ rejects('a double charge after the resume', 'interruptedResume', report => {
 rejects('a transfer that completed during the interruption but was not charged', 'interruptedResume', report => {
   report.interruption.completedDuringInterruption = [{ key: 'other', bytes: 512 }];
 }, /not charged/);
+// Run 3 (H4): the competing-tabs owner still offered its subset. The interrupt tab acquired the metadata and
+// small pieces from it before the reload; those receipts ended with the page, so the ledger exceeded the
+// observed transfers. Origin is the step's only intended supplier; every such case fails closed.
+const unintended = { peer: 'transport-contention-0', files: 24, bytes: 5242877 };
+rejects('an unintended supplier that served pieces before the reload (run 3)', 'interruptedResume', report => {
+  const i = report.interruption;
+  i.isolation.closed = i.isolation.closed.filter(row => row.name !== 'contention-0'); i.isolation.remainingOpen = ['contention-0'];
+  i.suppliers.before[2].offering = [unintended]; i.suppliers.after[0].offering = [unintended];
+  i.completedBefore = []; // served by the peer, never seen over HTTP; the ledger still charged them
+}, /not closed before the interruption[\s\S]*Another supplier was offering[\s\S]*No transfer had completed[\s\S]*double charge/);
+rejects('an unintended supplier whose transfer was observed and charged exactly', 'interruptedResume', report => {
+  const i = report.interruption, receipt = { key: 'peer:t1', bytes: 32768, finished: true, hashes: ['sha256:' + 'c'.repeat(64)] };
+  i.peerTransfers = [receipt]; i.resumed.push(receipt); i.ledgerFinal.reservedBytes += receipt.bytes;
+}, /An unintended supplier served pieces/);
+rejects('an unintended supplier that evaded every offer sample and served a piece unobserved', 'interruptedResume', report => {
+  const i = report.interruption; i.completedBefore = i.completedBefore.filter(item => item.key !== 'index');
+}, /double charge/);
+rejects('a supplier tab kept open as intended', 'interruptedResume', report => { report.interruption.isolation.keep = ['contention-0']; }, /not closed/);
+rejects('a missing tab isolation record', 'interruptedResume', report => { delete report.interruption.isolation; }, /not closed/);
+rejects('supplier offers never observed', 'interruptedResume', report => { delete report.interruption.suppliers; }, /Supplier offers unobserved/);
+rejects('a supplier observation shorter than the frozen window', 'interruptedResume', report => { report.interruption.suppliers.observationMs = 100; },
+  /Supplier offers unobserved/);
+rejects('no supplier observation after the resume', 'interruptedResume', report => { report.interruption.suppliers.after = []; }, /Supplier offers unobserved/);
+rejects('unobserved custody receipts', 'interruptedResume', report => { delete report.interruption.peerTransfers; }, /unintended supplier served/);
+test('interrupted resume fails closed without the frozen supplier observation window', () => {
+  const result = assessContribution(contributionReport(), freeze);
+  assert.match(result.checks.interruptedResume.failures.join('\n'), /Supplier offers unobserved/);
+  assert.equal(result.checks.interruptedResume.pass, false);
+});
 rejects('a stop with nothing in flight', 'stopSettles', report => { report.stop.inFlightAtStop = { filesPreparing: false, pendingRequests: 0 }; });
 rejects('a stop that left a transfer pending', 'stopSettles', report => { report.stop.filesAfter.pending = 1; });
 rejects('a stop that refunded charges', 'stopSettles', report => { report.stop.budgetAfter.reservedBytes = 0; });

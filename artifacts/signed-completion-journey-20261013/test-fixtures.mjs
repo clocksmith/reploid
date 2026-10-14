@@ -176,8 +176,15 @@ export function contributionReport() {
         fileAttempt: { clickedAt: '2026-10-13T12:00:02.000Z', harnessError: null },
         samples: [{ phase: 'opened', error: null }, { phase: 'opened', error: REFUSAL }, { phase: 'after-start', error: REFUSAL }, { phase: 'after-acquisition', error: REFUSAL }]
           .map(row => ({ at: '2026-10-13T12:00:01.000Z', consumerPeerId: null, custodyOwner: false, filesSharing: false, filesPreparing: false, ...row })) } },
-    // A 4 MiB piece aborted by the reload, charged when interrupted and again when resumed.
+    // A 4 MiB piece aborted by the reload, charged when interrupted and again when resumed. Origin is the
+    // only supplier: earlier tabs closed, no connected peer offering, no custody receipt.
     interruption: { minimumInFlightBytes: MiB, ledgerBefore: null, ledgerFinal: budget(12831373, 13 * MiB), reloadAt: '2026-10-13T12:00:03.010Z',
+      isolation: { keep: [], remainingOpen: [], closed: ['supplier-cached', 'acquirer-main', 'stop-main', 'contention-0', 'contention-1']
+        .map((name, index) => ({ name, sharing: name === 'contention-0', closedAt: `2026-10-13T12:00:00.${index}00Z` })) },
+      suppliers: { observationMs: 3000,
+        before: [0, 1, 2].map(index => ({ at: `2026-10-13T12:00:0${index}.500Z`, connected: [], offering: [] })),
+        after: [{ at: '2026-10-13T12:00:09.000Z', connected: [], offering: [] }] },
+      peerTransfers: [],
       inFlightAtReload: { key: 'piece-1', bytes: 4194304, weight: true, startedAt: '2026-10-13T12:00:03.000Z', outcome: 'aborted',
         failure: 'net::ERR_ABORTED', finishedAt: '2026-10-13T12:00:03.020Z' },
       completedBefore: [{ key: 'manifest', bytes: 214203 }, { key: 'index', bytes: 34258 }, { key: 'piece-0', bytes: 4194304 }],

@@ -125,6 +125,24 @@ export function observeOffer(page) {
   });
 }
 
+/** Peers this tab's custody exchange could acquire from: each connected peer's latest offer
+ * (exchange.js:14 peers, :103-108 offers, :273-277 candidates; getState prunes disconnected peers, :31-35).
+ * `offering` lists the connected peers whose offer is not empty. */
+export function observeSupplierOffers(page) {
+  return withHost(page, async ({ session, methodScopeVar, read }) => {
+    const swarm = await methodScopeVar(session, 'swarm');
+    const files = swarm && await methodScopeVar(swarm, 'modelFiles');
+    const exchange = files && files.subtype !== 'null' && await methodScopeVar(files, 'exchange');
+    if (!exchange || exchange.subtype === 'null') throw Error('Custody exchange observation unavailable');
+    const connected = await read(exchange, 'function(){return this.getState().peers;}');
+    const peers = await methodScopeVar(exchange, 'peers');
+    if (!peers || !Array.isArray(connected)) throw Error('Supplier offer observation unavailable');
+    const offers = await read(peers, `function(){return [...this.entries()].map(([peer, files]) => ({ peer, files: files.length,
+      bytes: files.reduce((total, file) => total + file.sizeBytes, 0) }));}`);
+    return { connected, offering: offers.filter(row => connected.includes(row.peer) && row.files > 0) };
+  });
+}
+
 /** The app's own ordered-participation resolver (self/host/product-context.js:11-22) for this instance. */
 export async function observeOrderedParticipation(page) {
   return page.evaluate(async () => {

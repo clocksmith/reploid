@@ -33,7 +33,10 @@ export function createChatSession({
   scheduler = null,
   canonicalHistory = null,
   bindPublicationAuthorization = null,
+  // History owner. Ordered disclosure binds requesterIdentity, the host's authenticated swarm peer;
+  // omitted, the workspace uses participantId, so this placeholder can never verify one.
   participantId = 'local-user',
+  requesterIdentity,
   meshId = 'reploid-local-mesh',
   models = CANONICAL_CHAT_MODELS,
   now = Date.now,
@@ -71,6 +74,7 @@ export function createChatSession({
   const workspace = createChatWorkspace({
     meshId,
     participantId,
+    requesterIdentity,
     store,
     execute: execution.execute,
     now,
