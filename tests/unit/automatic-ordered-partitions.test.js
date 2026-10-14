@@ -7,6 +7,7 @@ import { fixture as stagesFixture } from '../fixtures/ordered-partition-ports.js
 import { createHash } from 'node:crypto';
 import { canonicalPartitionJson } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
 import { createConversationPublication } from '../../packages/reploid/src/chat/workspace-publication.js';
+import { residentPreparationProgress } from '../../packages/reploid/src/mesh/partitions/partition-preparation-progress.js';
 
 const discoveryOwners = vi.hoisted(() => []);
 vi.mock('../../packages/reploid/src/mesh/partitions/partition-discovery.js', () => ({
@@ -137,6 +138,32 @@ describe('explicit ordered automatic participation (injected discovery and numer
     f.loadProgram.mockImplementation((_model, _index, controls) => { controls.registerCleanup(owner); throw Error('loader rejected'); });
     await f.mesh.contribute('model', true); expect(f.mesh.getState()).toMatchObject({ phase: 'failed', unsettledOwners: 1 });
     await f.mesh.stop(); expect(owner.close).toHaveBeenCalledOnce();
+  });
+  it('keeps a preparing stage out of capacity and stops only after its outstanding compilation settles', async () => {
+    const f = await fixture(1), compiled = Promise.withResolvers();
+    const preparing = { phase: 'pipelines', status: 'preparing', prepared: 3, total: 22, key: 'attention_paired.wgsl#main',
+      elapsedMs: 5, startedAt: 1, maxDurationMs: 1200000, outstanding: true, complete: true };
+    f.loadProgram.mockImplementation(async (_model, _index, controls) => {
+      controls.onProgress(residentPreparationProgress(preparing));
+      controls.signal.addEventListener('abort', () => controls.onProgress(residentPreparationProgress({ ...preparing, status: 'cancelling' })), { once: true });
+      await compiled.promise; // A started provider compilation cannot be interrupted.
+      controls.onProgress(residentPreparationProgress({ ...preparing, status: 'cancelled', outstanding: false }));
+      throw controls.signal.reason;
+    });
+    const loading = f.mesh.contribute('model', true);
+    await vi.waitFor(() => expect(f.mesh.getState().progress?.status).toBe('preparing'));
+    expect(f.mesh.getState()).toMatchObject({ phase: 'loading', descriptor: null,
+      progress: { stage: 'preparing', prepared: 3, total: 22, key: preparing.key, outstanding: true } });
+    expect(f.discovery.options.describe()).toMatchObject({ phase: 'loading', models: [], capacity: { availableSlots: 0, closed: true } });
+    let stopped = false;
+    const stopping = f.mesh.stop().then(() => { stopped = true; });
+    await vi.waitFor(() => expect(f.mesh.getState().progress).toMatchObject({ status: 'cancelling', outstanding: true }));
+    await new Promise(resolve => setTimeout(resolve, 20));
+    expect(stopped).toBe(false);
+    expect(f.mesh.getState().phase).toBe('stopping');
+    expect(f.discovery.options.describe()).toMatchObject({ models: [], capacity: { availableSlots: 0, closed: true } });
+    compiled.resolve(); await stopping; await loading;
+    expect(f.mesh.getState()).toMatchObject({ phase: 'idle', unsettledOwners: 0, progress: null });
   });
   it('does not let a stopped late preparation close a new session', async () => {
     const f = await fixture(1), gate = Promise.withResolvers(), original = f.loadProgram.getMockImplementation();

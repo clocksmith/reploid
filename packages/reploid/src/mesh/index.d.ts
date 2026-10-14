@@ -28,6 +28,7 @@ export * from './partitions/partition-link.js';
 
 export * from './partitions/automatic-partitions.js';
 export * from './partitions/signed-resident-factory.js';
+export * from './partitions/partition-preparation-progress.js';
 
 export type { PartitionRoute, PartitionRouteStage, RouteAttemptBinding, OrderedPartitionPlan, OrderedPartitionRuntime, PartitionActivationContract } from './partitions/partition-contract.js';
 export type { OrderedPartitionOffer, OrderedPartitionCapability, PartitionRouteSelectionLimits } from './partitions/partition-placement.js';

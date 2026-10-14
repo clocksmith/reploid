@@ -2390,13 +2390,14 @@
     {
       "path": "self/host/work-partitions.js",
       "owner": "self",
-      "sha256": "sha256:1fb20c5e676bea6738b1a8a66e0641310a84dcbb58ff05f5fcaef6a8aa54bffa",
+      "sha256": "sha256:74c3a406e5ccbafcd778c4f102f542eaac716c352e3adb64f17316e805e29b60",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/partition-generation.js",
         "../config/partition-policy.json",
         "../pool/pack-release-policy.js",
         "../vendor/reploid/mesh/index.js",
+        "../vendor/reploid/mesh/partitions/partition-preparation-progress.js",
         "../vendor/reploid/mesh/partitions/signed-resident-factory.js",
         "./work-partition-capsule.js",
         "./work-partition-plan.js",
@@ -15132,7 +15133,7 @@
     {
       "path": "vendor/reploid/mesh/index.js",
       "owner": "vendor",
-      "sha256": "sha256:92227235a844a63437d86c68440b8bf65dc0229e0b05ae6a60422a0636f8bcc9",
+      "sha256": "sha256:51573a8f64f80ee6e17214d6098024352b8c71779be79cba501901cd2edd4d32",
       "imports": [
         "../config/index.js",
         "../rules/routing.rules.json",
@@ -15147,6 +15148,7 @@
         "./partitions/partition-network.js",
         "./partitions/partition-peer.js",
         "./partitions/partition-placement.js",
+        "./partitions/partition-preparation-progress.js",
         "./partitions/partition-runner.js",
         "./partitions/partition-stage-commit.js",
         "./partitions/partition-step-receiver.js",
@@ -15427,6 +15429,12 @@
       ]
     },
     {
+      "path": "vendor/reploid/mesh/partitions/partition-preparation-progress.js",
+      "owner": "vendor",
+      "sha256": "sha256:c490e21bed55390de9d590074a90f99977fe2c9f592f21bb73c524825342d521",
+      "imports": []
+    },
+    {
       "path": "vendor/reploid/mesh/partitions/partition-reservations.js",
       "owner": "vendor",
       "sha256": "sha256:b7e57178ea7922aa1aca6ed8fc17ab3fedac9ee089106838a76abb35a45432c0",
@@ -15528,7 +15536,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/signed-resident-factory.js",
       "owner": "vendor",
-      "sha256": "sha256:4920412a78a4e7558a221114a266e289885f3e49d49b672060c424b431c33baf",
+      "sha256": "sha256:c64a2817c4b3606bc1ad83420b91440577f4cc5cfeff3a3cebd0a23d80fc4ee5",
       "imports": []
     },
     {

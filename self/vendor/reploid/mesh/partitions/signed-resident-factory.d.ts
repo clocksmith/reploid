@@ -20,4 +20,6 @@ export function createSignedResidentFactory<T>(options: {
   closeSources(failures: unknown[]): Promise<void>;
   trackSession(session: SignedResidentSession): () => void;
   onVerification?(verification: unknown): void;
+  /** Capsule `onLoadProgress`; Doppler reports pipeline preparation through it before readiness. */
+  onLoadProgress?: ((event: unknown) => void) | null;
 }): T;

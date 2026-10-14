@@ -6,6 +6,7 @@ import policy from '../config/partition-policy.json' with { type: 'json' };
 import { prepareLocalPackRelease } from '../pool/pack-release-policy.js';
 import { assertWorkResidentCapsule } from './work-partition-capsule.js';
 import { createSignedResidentFactory } from '../vendor/reploid/mesh/partitions/signed-resident-factory.js';
+import { residentPreparationProgress } from '../vendor/reploid/mesh/partitions/partition-preparation-progress.js';
 import { snapshotWorkPartitionSelection, createWorkPartitionPlan,
   snapshotWorkPartitionStage, workOrderedResidentOptions } from './work-partition-plan.js';
 import { createPartitionTokenizerGuard } from './work-partition-tokenizer-guard.js';
@@ -55,6 +56,7 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
   } };
   const releaseCleanup = registerCleanup?.(cleanupOwner);
   const tokenizer = createPartitionTokenizerGuard(source.storage);
+  const onLoadProgress = event => { const progress = residentPreparationProgress(event); if (progress) onProgress?.(progress); };
   try {
     signal?.throwIfAborted();
     const plan = createWorkPartitionPlan(runtime, manifest, selected, index);
@@ -80,8 +82,8 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
       factory = createSignedResidentFactory({ createFactory: runtime.createResidentPartitionFactory,
         openCapsule, model, artifactStore: source.artifactStore, release,
         assertSession: assertWorkResidentCapsule, closeSources, trackSession,
-        canonical: !!canonical, onVerification: value => { capsuleVerification = value; } });
-    } else factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: model.identity,
+        canonical: !!canonical, onVerification: value => { capsuleVerification = value; }, onLoadProgress });
+    } else factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: model.identity, onLoadProgress,
       runtimeConfig: { shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: policy.profileGpu } } },
         inference: { session: { kvcache: { maxSeqLen: model.generation.maxSeqLen },
           prefillChunkLayers: policy.prefillChunkLayers, prefillTokenChunkSize: policy.prefillTokenChunkSize } } },

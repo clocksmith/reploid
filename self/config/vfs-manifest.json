@@ -1906,6 +1906,7 @@
     "vendor/reploid/mesh/partitions/partition-ordered-publication.js",
     "vendor/reploid/mesh/partitions/partition-peer.js",
     "vendor/reploid/mesh/partitions/partition-placement.js",
+    "vendor/reploid/mesh/partitions/partition-preparation-progress.js",
     "vendor/reploid/mesh/partitions/partition-receiver-policy.json",
     "vendor/reploid/mesh/partitions/partition-reservations.js",
     "vendor/reploid/mesh/partitions/partition-route-execution.js",
