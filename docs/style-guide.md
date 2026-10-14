@@ -2,7 +2,7 @@
 
 ## Monochrome/Terminal Symbol Mapping
 
-Use these Unicode symbols instead of emojis throughout the codebase for a consistent terminal aesthetic.
+Use these Unicode symbols instead of emojis for a consistent terminal aesthetic.
 
 ### Status & System Indicators
 
@@ -75,10 +75,8 @@ Use markdown checkboxes instead of emoji:
 
 ## General Rules
 
-1. **No emoji in source code** - Use Unicode symbols from this guide
-2. **No emoji in documentation** - Use symbols or plain text
-3. **No emoji in blueprints** - Keep technical documents clean
-4. **Consistency** - Use the same symbol for the same concept throughout
+1. **No emoji in source code, documentation, or blueprints** - Use Unicode symbols from this guide or plain text
+2. **Consistency** - Use the same symbol for the same concept throughout
 
 ## Browser Library Conventions
 
@@ -119,59 +117,6 @@ Modules loaded via VFS blob imports must be single-file or use absolute URLs. Re
 - Use `---` horizontal rules to separate major sections
 - End docs with `*Last updated: Month Year*`
 
-### Example Documentation Style
-
-```markdown
-## Feature Name
-
-Brief description of what this does.
-
-### Configuration
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| enabled | boolean | true | Enable the feature |
-| timeout | number | 30000 | Timeout in milliseconds |
-
-### Usage
-
-\`\`\`javascript
-const result = doThing(options);
-\`\`\`
-
-### Notes
-
-- Note one
-- Note two
-```
-
----
-
-## Code Examples
-
-```javascript
-// Toast notifications
-const TOAST_TYPES = {
-  success: { icon: '★' },
-  error: { icon: '☒' },
-  warning: { icon: '☡' },
-  info: { icon: '☛' }
-};
-
-// File type icons
-const fileIcons = {
-  'js': 'ƒ',
-  'json': '☷',
-  'md': '☐',
-  'css': '☲'
-};
-
-// Operation indicators
-console.log('★ Build complete');
-console.log('☒ Test failed');
-console.log('☡ Deprecated API');
-```
-
 ---
 
 ## Poolday design system
@@ -179,8 +124,7 @@ console.log('☡ Deprecated API');
 Poolday extends `self/styles/rd.css`. Keep Zero and X independent. The ordered
 manifest in `self/styles/poolday/layers.json` owns the stylesheet list. Both
 `self/pool-entry.html` and the synchronous fallback loader in `self/index.html`
-mirror it so browsers fetch styles in parallel without CSS imports. The CSS
-verifier rejects missing modules or entry lists that drift from the manifest.
+mirror it so browsers fetch styles in parallel without CSS imports.
 
 | Layer | Ownership |
 |-------|-----------|
@@ -224,9 +168,10 @@ cancellation and completion are idle. These attributes project host state; they
 never start execution or grant permission. Text remains the authoritative status.
 Reduced motion removes animation, and forced colors preserves control outlines.
 
-Run `npm run verify:pool:css` after changing any layer. It checks all manifest
-modules, variable ownership, undefined references and both entry paths. Browser
-coverage in `tests/e2e/chat-material.spec.js` checks themes, narrow layouts, focus
-and activity states using explicit presentation fixtures.
+After changing a layer, the manifest, or either entry path, run
+`npm run verify:pool:css`; it checks all manifest modules, variable ownership,
+undefined references and both entry paths. `tests/e2e/chat-material.spec.js` is
+the browser coverage for themes, narrow layouts, focus and activity states; run it
+only for changes to those states.
 
 *Last updated: October 2026*

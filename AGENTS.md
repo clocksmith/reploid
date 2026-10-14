@@ -7,20 +7,18 @@
 ## Current implementation work
 
 Follow [ROADMAP.md](ROADMAP.md), the single Doppler–Reploid implementation roadmap.
-Update acceptance evidence and checkboxes in the linked
-[canonical requirements](docs/roadmap/requirements.md) as complete acceptance passes.
-Historical plans cannot start a competing campaign. Preserve the GOALS and CATSCAN boundaries.
+Update acceptance evidence and checkboxes in the
+[canonical requirements](docs/roadmap/requirements.md) as acceptance passes.
+Historical plans cannot start a competing campaign.
 
 ## Git workflow: direct to main
 
-- Work and commit directly on the owning repository's `main` branch, then push
-  directly to its existing `origin/main` remote branch.
-- Do not create feature/task branches, branch-backed worktrees, or GitHub pull
-  requests. Do not use a branch/PR workflow unless the user explicitly requests it.
-- If the checkout is on another branch, preserve its work and move the task to
-  `main` safely; never discard changes to switch branches.
-- Stage only task-related changes, run the applicable checks, and integrate remote
-  updates without overwriting unrelated work. Never force-push `main`.
+- Commit on the owning repo's `main` and push to `origin/main`. No feature
+  branches, branch-backed worktrees, or PRs unless the user asks for them.
+- On another branch, preserve its work and move the task to `main` safely;
+  never discard changes to switch. Never force-push `main`.
+- Stage only task-related changes; integrate remote updates without
+  overwriting unrelated work.
 - Report the pushed commit or the concrete blocker. A local commit is not a push.
 
 ## Development verification
@@ -32,6 +30,9 @@ Historical plans cannot start a competing campaign. Preserve the GOALS and CATSC
   GPU/model campaigns, benchmarks, or full release qualification. Run them when
   explicitly requested or when a named correctness question cannot be answered by
   focused checks; state that reason before starting.
+- Config-contract, mirror, drift, and freshness checks run only when the change
+  edits what they check. Don't add tests that just restate another file or pin
+  config literals. Time-box long processes.
 - Once relevant checks pass, continue. Repeat or broaden verification only after
   another relevant change, a failure, or a concrete unresolved concern.
 - For documentation-only edits, inspect the diff and changed links. Do not run
@@ -47,13 +48,9 @@ Historical plans cannot start a competing campaign. Preserve the GOALS and CATSC
 
 Follow the canonical [workspace CATSCAN protocol](https://github.com/clocksmith/ouroboros/blob/main/deco/docs/catscan.md).
 
-Before modifying a file, read `GOALS.md` and every `CATSCAN.md` from the project root to the target directory, in order.
+Before modifying a file, read `GOALS.md` and every `CATSCAN.md` from the project root to the target directory, in order. Target, Authority, Invariants, Acceptance, and Non-goals are implementation constraints; a child CATSCAN may narrow its parent but not contradict it.
 
-Treat Target, Authority, Invariants, Acceptance, and Non-goals as implementation constraints. A child CATSCAN may narrow its parent but may not contradict it.
-
-If requested work changes a component boundary, identify the conflict and update the affected CATSCAN with the implementation. Do not silently work around it.
-
-Novel implementations are welcome. CATSCAN constrains outcomes and authority, not internal algorithms. AGENTS.md enforces discovery and precedence; it must not duplicate component goals.
+If requested work changes a component boundary, name the conflict and update the affected CATSCAN with the implementation instead of silently working around it. CATSCAN constrains outcomes and authority, not internal algorithms, so novel implementations are welcome. AGENTS.md enforces discovery and precedence; it must not duplicate component goals.
 
 Material-change handoffs must state:
 
@@ -67,13 +64,13 @@ Material-change handoffs must state:
 ```text
 reploid/
 ├── packages/reploid/src/     ← Reusable implementation and public contracts
-│   ├── chat/                 ← Conversations, attempts, grants and scheduling
+│   ├── chat/                 ← Threads, history, attempts, grants, scheduling
 │   ├── mesh/                 ← Discovery, placement, partitions and agent work
 │   ├── transport/            ← Authenticated, bounded peer delivery
 │   ├── artifacts/custody/    ← Authorized piece acquisition and retention
 │   └── agent/                ← Goal-directed agent execution
 ├── self/host/                ← Browser service composition and host ports
-├── self/ui/                  ← State presentation and user actions
+├── self/ui/                  ← Renders authoritative state and user actions
 ├── self/core/                ← Agent/VFS substrate and compatibility forwarding
 ├── self/config/              ← Browser profiles, catalog and package pins
 ├── server/                   ← Optional server/proxy adapters
@@ -82,21 +79,16 @@ reploid/
 ```
 
 ### Before Starting
-- Read `docs/INDEX.md` for documentation overview
-- Read `docs/style-guide.md` for complete style guidelines
-- Read `docs/EMOJI.md` for approved Unicode symbols
+- Read `docs/INDEX.md` (documentation overview), `docs/style-guide.md` (style), and `docs/EMOJI.md` (approved Unicode symbols)
 - Read [`docs/maverick-hunting.md`](docs/maverick-hunting.md) before diagnosing, containing, or repairing evidence-backed provider, mutation, or tool failures
-- Review `self/blueprints/` for architectural documentation
+- `self/blueprints/` holds architectural documentation
 
 ### Key Paths
 
-- `packages/reploid/src/chat/` owns threads, history, attempts and scheduling.
 - `packages/reploid/src/mesh/partitions/` owns discovery, placement, admission,
   sequencing and settlement through injected Doppler contracts.
-- `packages/reploid/src/transport/` and `artifacts/custody/` own bounded delivery
-  and authorized retention; they do not define model mathematics.
+- `transport/` and `artifacts/custody/` never define model mathematics.
 - `self/host/` supplies identity, catalog, policy, storage and runtime ports.
-- `self/ui/` renders the authoritative conversation/execution state and actions.
 - `self/core/`, `self/tools/`, and `self/infrastructure/` support the agent/VFS
   substrate. Check the nearest charter before modifying compatibility forwarding.
 - `self/config/doppler-package.json` pins one standard Doppler dependency.
@@ -131,13 +123,14 @@ User Input -> AgentLoop -> LLMClient -> Tool Selection
 ```
 
 ### Testing
+Reference only. Per Development verification, run the touched test file:
+`npx vitest run --config tests/vitest.config.js <file>`.
 ```bash
 npm test                    # Run Vitest suites; does not launch browsers
 npm test -- --full          # Vitest followed by Playwright E2E
 npm run test:unit           # Unit tests only
 npm run test:integration    # Integration tests
 npm run test:e2e            # Playwright E2E tests
-npm run test:watch          # Watch mode
 npm run test:coverage       # With coverage report
 ```
 
@@ -151,40 +144,41 @@ npm start                   # Start server
 ### Debugging
 - **Conversation attempts:** Inspect `packages/reploid/src/chat/workspace.js` and
   its host admission/session ports; retain the originating thread and attempt ID.
-- **Discovery or readiness:** Trace `packages/reploid/src/mesh/partitions/`
-  through discovery, placement, reservation and resident execution. File custody
-  alone does not establish readiness.
-- **Acquisition or connection:** Inspect `packages/reploid/src/artifacts/custody/`
-  and `packages/reploid/src/transport/` at their authenticated host boundaries.
+- **Discovery or readiness:** Trace `mesh/partitions/` through discovery,
+  placement, reservation and resident execution. File custody alone does not
+  establish readiness.
+- **Acquisition or connection:** Inspect `artifacts/custody/` and `transport/`
+  at their authenticated host boundaries.
 - **Model computation:** Reproduce through the pinned Doppler public interface;
-  patch the numerical owner in Doppler rather than duplicating arithmetic here.
+  patch the numerical owner in Doppler, not duplicated arithmetic here.
 - **Agent/VFS substrate:** Inspect `self/core/`, `self/tools/` and
-  `self/infrastructure/` under their charters. Genesis rollback, provider setup
+  `self/infrastructure/` under their charters; Genesis rollback, provider setup
   and HITL belong to their scoped agent workflow.
 
 ### Guardrails
 - Enforce `docs/EMOJI.md`; use only approved Unicode symbols, no emojis
-- All code changes must pass Verification Worker sandbox
+- Runtime: all agent-generated code changes must pass the Verification Worker sandbox
 - Preserve Genesis Kernel immutability for recovery
-- Test in browser environment; uses IndexedDB for VFS
+- Runtime target is the browser, with VFS in IndexedDB; Vitest emulates it with
+  happy-dom, so routine changes need no browser run
 
 ## Intent-First Operations
 
-- Treat Reploid intent as distinct surfaces with distinct authority: Poolday, Zero, and X must not be mentally merged.
-- Follow computation ownership: Doppler defines partitions, tensors, numerical contracts and model semantics; Reploid places eligible computation and orchestrates agents/improvement; Poolday moves authorized data. Scheduling never substitutes a different learned expert.
-- Separate targets from qualified capabilities. Declare numerical tolerances, application allocation budgets and cancellation settlement; do not promise universal determinism, physical-memory accounting or immediate GPU termination.
-- If the user asks what a route or UI does, inspect the actual route files, boot profile, VFS seed, and rendered state before proposing names or navigation changes.
-- The user controls public naming and product copy. Do not rename routes, labels, buttons, or trust language without direction.
-- For Poolday, claim only browser inference backed by signed records, audits, reputation, policy, and deterministic comparison. Do not imply trustless compute, hardware attestation, or guaranteed honest browser/GPU execution.
-- For Poolday relay or signaling work, describe delivery as bounded at-least-once; do not claim exactly-once delivery across browser reloads, restarts, or partitions. Verify source, deployed Firestore indexes, running revision and traffic, and the matching browser bundle as separate release evidence. A relay acknowledgement proves only recipient receipt of that relay record.
-- For Zero, operational questions require process parentage, provider status, VFS readability/writability, tool-call logs, and resume state before explanation.
-- For X, keep self-modification, swarm, validation, and promotion evidence separate from Poolday inference records.
-- If the user asks "deployed?", answer with deployed URL/build identifier, not general progress language.
-- If provider/API errors occur, verify the HTTP status, retry/backoff state, and parked/resumable state before describing behavior.
+- Poolday, Zero, and X are distinct surfaces with distinct authority; never merge them mentally.
+- Doppler defines partitions, tensors, numerical contracts and model semantics; Reploid places eligible computation and orchestrates agents/improvement; Poolday moves authorized data. Scheduling never substitutes a different learned expert.
+- Separate targets from qualified capabilities: declare numerical tolerances, application allocation budgets and cancellation settlement; never promise universal determinism, physical-memory accounting or immediate GPU termination.
+- Before proposing names or navigation changes for a route or UI, inspect its route files, boot profile, VFS seed, and rendered state.
+- The user controls public naming and product copy: no renaming routes, labels, buttons, or trust language without direction.
+- Poolday claims only browser inference backed by signed records, audits, reputation, policy, and deterministic comparison; never imply trustless compute, hardware attestation, or guaranteed honest browser/GPU execution.
+- Poolday relay or signaling delivery is bounded at-least-once, never exactly-once across browser reloads, restarts, or partitions. Source, deployed Firestore indexes, running revision and traffic, and the matching browser bundle are separate release evidence. A relay acknowledgement proves only recipient receipt of that relay record.
+- Zero operational answers need process parentage, provider status, VFS readability/writability, tool-call logs, and resume state first.
+- X keeps self-modification, swarm, validation, and promotion evidence separate from Poolday inference records.
+- Answer "deployed?" with the deployed URL/build identifier, not progress language.
+- On provider/API errors, verify HTTP status, retry/backoff state, and parked/resumable state before describing behavior.
 
 ### Capability Levels
 | Level | Name | Scope | Gate |
-|-------|------|-------|------|
+|---|---|---|---|
 | L0 | Basic Functions | CreateTool, Web APIs, new tools | Verification Worker |
 | L1 | Meta Tooling | Modify tool-writer, improve CreateTool | Protected independent evaluation and operator grant |
 | L2 | Self-Modification (Substrate) | Edit core modules, runtime patches | Independent evaluation, explicit activation grant and rollback |
@@ -193,9 +187,9 @@ npm start                   # Start server
 
 The table is navigation, not authority to activate a candidate. Governed
 improvement follows [INTENT.md](INTENT.md), [CATSCAN.md](CATSCAN.md) and
-[improvement episodes](docs/rsi-improvement-episodes.md). Arena consensus may
-be a configured mechanism; it cannot replace protected independent evaluation
-or operator adoption. Model scoring never grants permission.
+[improvement episodes](docs/rsi-improvement-episodes.md). Arena consensus cannot
+replace protected independent evaluation or operator adoption. Model scoring
+never grants permission.
 
 ### Key Concepts
 - **VFS:** Virtual file system in IndexedDB
@@ -205,14 +199,17 @@ or operator adoption. Model scoring never grants permission.
 
 ## No speculative engineering timelines
 
-- Do not predict how long a coding, software-engineering, product-implementation, refactor, migration, launch, or similar work item will take. Avoid speculative delivery statements such as "1-2 weeks", "four months", or "a quick fix".
-- Describe planned work through concrete deltas, dependencies, risks, and validation instead of calendar duration.
-- This restriction does not apply to factual status for an already-running command, script, benchmark, training run, skill, deployment, or algorithm. You may report elapsed time, measured runtime, progress, and a grounded ETA when the active process exposes enough evidence.
-- Do not invent an ETA for an active process. If it does not expose one, report its current phase, latest output, and whether it is still making progress.
+- Never predict how long engineering work will take ("1-2 weeks", "a quick
+  fix"). Describe concrete deltas, dependencies, risks, and validation instead.
+- For an already-running process, report measured elapsed time, progress, or a
+  grounded ETA only when the process exposes one; otherwise report its phase,
+  latest output, and whether it is still progressing.
 
 ## Pick the real fix
 
-- when you find a correctness bug, the default is to fix it, not to relabel it
-- do not use effort or scope framing ("non-trivial", "real engineering effort", "worth its own thread", "we'll address later") as cover for choosing a lesser fix
-- do not propose "mark experimental", "add a TODO", or "rewrite the misleading comment" as a substitute for the actual engineering work when the underlying behavior is wrong
-- if scope genuinely must be split, describe the concrete deltas and ask the user which path to take, do not pre-decide a smaller version
+- Fix correctness bugs; don't relabel them. Effort or scope framing
+  ("non-trivial", "worth its own thread", "later") is no reason for a lesser fix.
+- "Mark experimental", "add a TODO", or "reword the misleading comment" does not
+  substitute for fixing wrong behavior.
+- If scope must be split, list the concrete deltas and ask the user which path
+  to take; don't pre-decide a smaller version.
