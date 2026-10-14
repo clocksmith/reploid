@@ -1,0 +1,765 @@
+{
+ "schema": "reploid.answer-cause.comparison/v1",
+ "doppler": {
+  "gpu": {
+   "provider": "webgpu",
+   "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "apple-m3",
+    "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)"
+   },
+   "hasF16": true,
+   "hasSubgroups": true
+  },
+  "verification": {
+   "capsuleModelArtifacts": {
+    "count": 21,
+    "allMatch": true,
+    "rows": [
+     {
+      "path": "artifacts/model/manifest.json",
+      "role": "manifest",
+      "expected": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+      "actual": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+      "match": true
+     },
+     {
+      "path": "artifacts/model/tokenizer.json",
+      "role": "tokenizer",
+      "expected": "sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+      "actual": "sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+      "match": true
+     },
+     {
+      "path": "artifacts/model/shard_00000.bin",
+      "role": "weight-shard",
+      "expected": "sha256:96d19964c1444a98030586ba141b7b0c891fab95c52fb2c4429618a3ea711d1f",
+      "actual": "sha256:96d19964c1444a98030586ba141b7b0c891fab95c52fb2c4429618a3ea711d1f",
+      "match": true
+     },
+     {
+      "path": "artifacts/model/shard_00001.bin",
+      "role": "weight-shard",
+      "expected": "sha256:c6dbd495c64493cc0964d49f26a2b7f18319da95d6122c4f7a2d09d6a5d9459e",
+      "actual": "sha256:c6dbd495c64493cc0964d49f26a2b7f18319da95d6122c4f7a2d09d6a5d9459e",
+      "match": true
+     },
+     {
+      "path": "artifacts/model/shard_00002.bin",
+      "role": "weight-shard",
+      "expected": "sha256:8afc35b2a6dc0f6bbf5de2cea79f8f53f199cec03a66d8cf5a117b724ba00dec",
+      "actual": "sha256:8afc35b2a6dc0f6bbf5de2cea79f8f53f199cec03a66d8cf5a117b724ba00dec",
+      "match": true
+     },
+     {
+      "path": "artifacts/model/shard_00003.bin",
+      "role": "weight-shard",
+      "expected": "sha256:735461c9819224e8c3faf8cfd7f2069dab97ed824556184990f795a32c305b29",
+      "actual": "sha256:735461c9819224e8c3faf8cfd7f2069dab97ed824556184990f795a32c305b29",
+      "match": true
+     },
+     {
+      "path": "artifacts/model/shard_00004.bin",
+      "role": "weight-shard",
+      "expected": "sha256:3cbdeb4e0c2505038e4313c91580511f5175d9108ab05652f69040452b282f69",
+      "actual": "sha256:3cbdeb4e0c2505038e4313c91580511f5175d9108ab05652f69040452b282f69",
+      "match": true
+     },
+     {
+      "path": "artifacts/model/shard_00005.bin",
+      "role": "weight-shard",
+      "expected": "sha256:e34e6f23816d5cdaf1e16dfbf0d3f537d18fe673764d680d64245c84bfbf21b4",
+      "actual": "sha256:e34e6f23816d5cdaf1e16dfbf0d3f537d18fe673764d680d64245c84bfbf21b4",
+      "match": true
+     },
+     {
+      "path": "artifacts/model/shard_00006.bin",
+      "role": "weight-shard",
+      "expected": "sha256:70b3d422749e585719659b9e7627901d6aa1759851e717aec2abd8a96aab9313",
+      "actual": "sha256:70b3d422749e585719659b9e7627901d6aa1759851e717aec2abd8a96aab9313",
+      "match": true
+     },
+     {
+      "path": "artifacts/model/shard_00007.bin",
+      "role": "weight-shard",
+      "expected": "sha256:e564556babdfbb1baffab20a3778a434a0632047ff9347d203a19a9c818a89d4",
+      "actual": "sha256:e564556babdfbb1baffab20a3778a434a0632047ff9347d203a19a9c818a89d4",
+      "match": true
+     },
+     {
+      "path": "artifacts/model/shard_00008.bin",
+      "role": "weight-shard",
+      "expected": "sha256:82cd4797be5ab68f782ed7aae634ee38e472f4c4187c9b835df649e7aa79da55",
+      "actual": "sha256:82cd4797be5ab68f782ed7aae634ee38e472f4c4187c9b835df649e7aa79da55",
+      "match": true
+     },
+     {
+      "path": "artifacts/model/shard_00009.bin",
+      "role": "weight-shard",
+      "expected": "sha256:294432c344a641b36daca64e82f00c727c74fa131804e1430796b4c3b139ad7b",
+      "actual": "sha256:294432c344a641b36daca64e82f00c727c74fa131804e1430796b4c3b139ad7b",
+      "match": true
+     },
+     {
+      "path": "artifacts/model/shard_00010.bin",
+      "role": "weight-shard",
+      "expected": "sha256:1290c563dc8242a983122e16397c75fd3d700acbcec9d96ee94d5eb2f63c795e",
+      "actual": "sha256:1290c563dc8242a983122e16397c75fd3d700acbcec9d96ee94d5eb2f63c795e",
+      "match": true
+     },
+     {
+      "path": "artifacts/model/shard_00011.bin",
+      "role": "weight-shard",
+      "expected": "sha256:4f9be8b80afcb3b6780a6e450fe9b57827ceb227e197dcdb9343b8d3adab0387",
+      "actual": "sha256:4f9be8b80afcb3b6780a6e450fe9b57827ceb227e197dcdb9343b8d3adab0387",
+      "match": true
+     },
+     {
+      "path": "artifacts/model/shard_00012.bin",
+      "role": "weight-shard",
+      "expected": "sha256:93daf25bb1b1d4155b95f4b3969891220f66a66f71b00fe63a7f092967a7b668",
+      "actual": "sha256:93daf25bb1b1d4155b95f4b3969891220f66a66f71b00fe63a7f092967a7b668",
+      "match": true
+     },
+     {
+      "path": "artifacts/model/shard_00013.bin",
+      "role": "weight-shard",
+      "expected": "sha256:a9926de9af0b1bb05ac2b2a6b9bad1645b9a3fc3f740105b97e064959b12e690",
+      "actual": "sha256:a9926de9af0b1bb05ac2b2a6b9bad1645b9a3fc3f740105b97e064959b12e690",
+      "match": true
+     },
+     {
+      "path": "artifacts/model/shard_00014.bin",
+      "role": "weight-shard",
+      "expected": "sha256:b338167c0c6a7bb0c967c73b0730d212f1ad718a899a8db50fef8b332eed66a8",
+      "actual": "sha256:b338167c0c6a7bb0c967c73b0730d212f1ad718a899a8db50fef8b332eed66a8",
+      "match": true
+     },
+     {
+      "path": "artifacts/model/shard_00015.bin",
+      "role": "weight-shard",
+      "expected": "sha256:8bc98ed891947db766df770d7c52eb2afd6c8c3a827981ddae7e52d2caeae455",
+      "actual": "sha256:8bc98ed891947db766df770d7c52eb2afd6c8c3a827981ddae7e52d2caeae455",
+      "match": true
+     },
+     {
+      "path": "artifacts/model/shard_00016.bin",
+      "role": "weight-shard",
+      "expected": "sha256:914114c15d53702fedcd5bcbb153a4120b13fb45883ff76dabf9052fa8c9d266",
+      "actual": "sha256:914114c15d53702fedcd5bcbb153a4120b13fb45883ff76dabf9052fa8c9d266",
+      "match": true
+     },
+     {
+      "path": "artifacts/model/shard_00017.bin",
+      "role": "weight-shard",
+      "expected": "sha256:d8fb99646d5213b1b2609899a7d86cfb8a6b8d02b9aa934f1fade2a3f8f54c78",
+      "actual": "sha256:d8fb99646d5213b1b2609899a7d86cfb8a6b8d02b9aa934f1fade2a3f8f54c78",
+      "match": true
+     },
+     {
+      "path": "artifacts/model/pieces.json",
+      "role": "piece-index",
+      "expected": "sha256:e64afdf50d990992a8f7e8989693281b22bd7f695655669323f99ade2d0397bb",
+      "actual": "sha256:e64afdf50d990992a8f7e8989693281b22bd7f695655669323f99ade2d0397bb",
+      "match": true
+     }
+    ]
+   },
+   "plan": {
+    "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+    "frozenPlanId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+    "match": true,
+    "splitLayers": [
+     8,
+     16
+    ]
+   },
+   "orderedExecutionIdentity": [
+    {
+     "partitionIndex": 0,
+     "match": true,
+     "expected": "sha256:8f33ed2861cd950f65e9d62a3b78bd302c51e10548ad5c14edb20e2f6f44a50a",
+     "observed": "sha256:8f33ed2861cd950f65e9d62a3b78bd302c51e10548ad5c14edb20e2f6f44a50a",
+     "executionGraphHash": "sha256:9e28445d798247290e44150f244b87e5ee1f8d97754baf3ed434bf95440549cf"
+    },
+    {
+     "partitionIndex": 1,
+     "match": true,
+     "expected": "sha256:8f33ed2861cd950f65e9d62a3b78bd302c51e10548ad5c14edb20e2f6f44a50a",
+     "observed": "sha256:8f33ed2861cd950f65e9d62a3b78bd302c51e10548ad5c14edb20e2f6f44a50a",
+     "executionGraphHash": "sha256:9e28445d798247290e44150f244b87e5ee1f8d97754baf3ed434bf95440549cf"
+    },
+    {
+     "partitionIndex": 2,
+     "match": true,
+     "expected": "sha256:8f33ed2861cd950f65e9d62a3b78bd302c51e10548ad5c14edb20e2f6f44a50a",
+     "observed": "sha256:8f33ed2861cd950f65e9d62a3b78bd302c51e10548ad5c14edb20e2f6f44a50a",
+     "executionGraphHash": "sha256:9e28445d798247290e44150f244b87e5ee1f8d97754baf3ed434bf95440549cf"
+    }
+   ],
+   "unsplitExecutionIdentity": {
+    "match": true,
+    "expected": "sha256:8f33ed2861cd950f65e9d62a3b78bd302c51e10548ad5c14edb20e2f6f44a50a",
+    "observed": "sha256:8f33ed2861cd950f65e9d62a3b78bd302c51e10548ad5c14edb20e2f6f44a50a",
+    "executionGraphHash": "sha256:9e28445d798247290e44150f244b87e5ee1f8d97754baf3ed434bf95440549cf"
+   }
+  }
+ },
+ "hfCheckpoint": {
+  "repository": "Qwen/Qwen3.5-0.8B",
+  "path": "/Users/xyz/deco/valera/generated/hf-models/Qwen-Qwen3.5-0.8B-2fc0636",
+  "files": [
+   {
+    "file": "config.json",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "etag": "715f0448b9d38103211f0ad88bbb4d6e4f4be8c9",
+    "kind": "git-blob-sha1",
+    "actual": "715f0448b9d38103211f0ad88bbb4d6e4f4be8c9",
+    "match": true
+   },
+   {
+    "file": "model.safetensors-00001-of-00001.safetensors",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "etag": "04b1c301231dd422b8860db31311ab2721511346a32cb1e079c4c4e5f1fe4696",
+    "kind": "lfs-sha256",
+    "actual": "04b1c301231dd422b8860db31311ab2721511346a32cb1e079c4c4e5f1fe4696",
+    "match": true
+   },
+   {
+    "file": "model.safetensors.index.json",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "etag": "f691cefdb79d73270895ebd6d9594ddcecfc1838",
+    "kind": "git-blob-sha1",
+    "actual": "f691cefdb79d73270895ebd6d9594ddcecfc1838",
+    "match": true
+   },
+   {
+    "file": "tokenizer.json",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "etag": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+    "kind": "lfs-sha256",
+    "actual": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+    "match": true
+   },
+   {
+    "file": "tokenizer_config.json",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "etag": "fae3ce993e07c092ad024dde45e592379fde91bb",
+    "kind": "git-blob-sha1",
+    "actual": "fae3ce993e07c092ad024dde45e592379fde91bb",
+    "match": true
+   }
+  ]
+ },
+ "rows": [
+  {
+   "label": "turn-1",
+   "distributedOutput": "```javascript\nfunction doubleEvens(numbers) {\n  // Filter keeps only even numbers, then doubles them\n  return numbers.filter(n => n % 2 === 0).map(n => n * 2);\n}\n\n// Result for [1, 2, 3, 4]\nconsole.log(doubleEvens([1, 2, 3, 4])); \n// Output: [2, 4, 6, 8]\n```",
+   "distributedDecodeSteps": 100,
+   "promptTokenCount": {
+    "doppler": 56,
+    "impliedByDistributedActivationBytes": 56,
+    "match": true
+   },
+   "template": {
+    "officialEqualsDoppler": true,
+    "hfTokenIdsEqualDoppler": true
+   },
+   "dopplerOrderedThreeStage": {
+    "output": "```javascript\nfunction doubleEvens(numbers) {\n  // Filter keeps only even numbers, then doubles them\n  return numbers.filter(n => n % 2 === 0).map(n => n * 2);\n}\n\n// Result for [1, 2, 3, 4]\nconsole.log(doubleEvens([1, 2, 3, 4])); \n// Output: [2, 4, 6, 8]\n```",
+    "decodeSteps": 100,
+    "activationBytes": 2539520,
+    "activationBytesEqualDistributed": true,
+    "tokenIdsEqualDistributed": true,
+    "firstDivergence": null
+   },
+   "dopplerUnsplit": {
+    "output": "```javascript\nfunction doubleEvens(numbers) {\n  // Filter keeps only even numbers, then doubles them\n  return numbers.filter(n => n % 2 === 0).map(n => n * 2);\n}\n\n// Result for [1, 2, 3, 4]\nconsole.log(doubleEvens([1, 2, 3, 4])); \n// Output: [2, 4, 6, 8]\n```",
+    "decodeSteps": 100,
+    "tokenIdsEqualDistributed": true,
+    "firstDivergence": null
+   },
+   "q4kWeightsControl": {
+    "output": "```javascript\nfunction doubleEvens(numbers) {\n  // Filter keeps only even numbers, then doubles them\n  return numbers.filter(n => n % 2 === 0).map(n => n * 2);\n}\n\n// Result for [1, 2, 3, 4]\nconsole.log(doubleEvens([1, 2, 3, 4])); \n// Output: [2, 4, 6, 8]\n```",
+    "decodeSteps": 100,
+    "tokenIdsEqualDistributed": true,
+    "teacherForcedDisagreementSteps": [],
+    "maxAbsTop5LogitDifferenceVsDopplerOrdered": 0.001003265380859375,
+    "minMarginTop1Top2": 0.20749473571777344
+   },
+   "hf": {
+    "float32": {
+     "output": "```js\nfunction doubleEvens(numbers) {\n  return numbers\n    .filter(n => n % 2 === 0)\n    .map(n => n * 2);\n}\n\nconsole.log(doubleEvens([1, 2, 3, 4])); // [4, 8]\n```",
+     "decodeSteps": 69,
+     "tokenIdsEqualDistributed": false,
+     "firstTokenDivergence": 1,
+     "teacherForcedAgreesAtEveryStep": false,
+     "teacherForcedFirstDisagreement": 1
+    },
+    "bfloat16": {
+     "output": "```js\nfunction doubleEvens(numbers) {\n  return numbers\n    .filter(n => n % 2 === 0)\n    .map(n => n * 2);\n}\n\nconsole.log(doubleEvens([1, 2, 3, 4])); // [4, 8]\n```",
+     "decodeSteps": 69,
+     "tokenIdsEqualDistributed": false,
+     "firstTokenDivergence": 1,
+     "teacherForcedAgreesAtEveryStep": false,
+     "teacherForcedFirstDisagreement": 1
+    }
+   }
+  },
+  {
+   "label": "turn-2-follow-up",
+   "distributedOutput": "[-6, 12, 18]",
+   "distributedDecodeSteps": 12,
+   "promptTokenCount": {
+    "doppler": 189,
+    "impliedByDistributedActivationBytes": 189,
+    "match": true
+   },
+   "template": {
+    "officialEqualsDoppler": true,
+    "hfTokenIdsEqualDoppler": true
+   },
+   "dopplerOrderedThreeStage": {
+    "output": "[-6, 12, 18]",
+    "decodeSteps": 12,
+    "activationBytes": 3276800,
+    "activationBytesEqualDistributed": true,
+    "tokenIdsEqualDistributed": true,
+    "firstDivergence": null
+   },
+   "dopplerUnsplit": {
+    "output": "[-6, 12, 18]",
+    "decodeSteps": 12,
+    "tokenIdsEqualDistributed": true,
+    "firstDivergence": null
+   },
+   "q4kWeightsControl": {
+    "output": "[-6, 12, 18]",
+    "decodeSteps": 12,
+    "tokenIdsEqualDistributed": true,
+    "teacherForcedDisagreementSteps": [],
+    "maxAbsTop5LogitDifferenceVsDopplerOrdered": 0.00150299072265625,
+    "minMarginTop1Top2": 0.21480369567871094
+   },
+   "hf": {
+    "float32": {
+     "output": "[-4, 6, 12]",
+     "decodeSteps": 11,
+     "tokenIdsEqualDistributed": false,
+     "firstTokenDivergence": 1,
+     "teacherForcedAgreesAtEveryStep": false,
+     "teacherForcedFirstDisagreement": 1
+    },
+    "bfloat16": {
+     "output": "[-4, 6, 12]",
+     "decodeSteps": 11,
+     "tokenIdsEqualDistributed": false,
+     "firstTokenDivergence": 1,
+     "teacherForcedAgreesAtEveryStep": false,
+     "teacherForcedFirstDisagreement": 1
+    }
+   }
+  }
+ ],
+ "q4kWeightsControl": {
+  "versions": {
+   "torch": "2.11.0",
+   "transformers": "5.3.0",
+   "gguf": "0.17.1",
+   "ggufPath": "/private/tmp/claude-501/-Users-xyz-deco/22e82490-1b9a-4712-a891-83c7a29fe6ca/scratchpad/pylib-gguf/gguf/__init__.py",
+   "numpy": "2.4.3"
+  },
+  "precision": {
+   "arithmetic": "float32",
+   "kvStorage": "float16",
+   "weights": "deployed bytes decoded to float32"
+  },
+  "weights": {
+   "tensorDtypeCounts": {
+    "F32": 36,
+    "F16": 134,
+    "Q4_K_M": 151
+   },
+   "lmHeadDtype": "Q4_K_M",
+   "embedDtype": "F16",
+   "tensorCount": 321
+  }
+ },
+ "supplementary": {
+  "hfSourceCheckpoint": {
+   "note": "Not the application settings. Qwen-recommended non-thinking sampling and a corrected-history counterfactual, for context only.",
+   "sampledQwenRecommended": {
+    "turn-1": [
+     {
+      "seed": 0,
+      "output": "```js\nfunction doubleEvens(numbers) {\n  return numbers\n    .filter(n => n % 2 === 0)\n    .map(n => n * 2);\n}\n\n// Result for [1, 2, 3, 4]:\nconsole.log(doubleEvens([1, 2, 3, 4])); // [4, 4, 6, 8]\n```"
+     },
+     {
+      "seed": 1,
+      "output": "```js\nfunction doubleEvens(numbers) {\n  return numbers\n    .filter(num => num % 2 === 0)\n    .map(num => num * 2);\n}\n\nconsole.log(doubleEvens([1, 2, 3, 4])); // [4, 8]\n```"
+     },
+     {
+      "seed": 2,
+      "output": "```js\nfunction doubleEvens(numbers) {\n  return numbers\n    .filter(n => n % 2 === 0)\n    .map(n => n * 2);\n}\n\nconsole.log(doubleEvens([1, 2, 3, 4])); // [4, 8]\n```"
+     },
+     {
+      "seed": 3,
+      "output": "```js\nfunction doubleEvens(numbers) {\n  // Filter to keep only even numbers, then map to double them\n  return numbers\n    .filter(n => n % 2 === 0)\n    .map(n => n * 2);\n}\n\n// Test with [1, 2, 3, 4]\nconsole.log(doubleEvens([1, 2, 3, 4])); // Output: [2, 4, 6, 8]\n```"
+     },
+     {
+      "seed": 4,
+      "output": "```js\nfunction doubleEvens(numbers) {\n  return numbers.filter(n => n % 2 === 0).map(n => n * 2);\n}\n\n// Result for [1, 2, 3, 4]:\n// 1 is odd → excluded\n// 2 is even → doubled → 4\n// 3 is odd → excluded\n// 4 is even → doubled → 8\nconsole.log(doubleEvens([1, 2, 3, 4])); // [4, 8]\n```"
+     },
+     {
+      "seed": 5,
+      "output": "```js\nfunction doubleEvens(numbers) {\n  return numbers\n    .filter(n => n % 2 === 0)\n    .map(n => n * 2);\n}\n\nconsole.log(doubleEvens([1, 2, 3, 4])); // [4, 8]\n```"
+     },
+     {
+      "seed": 6,
+      "output": "```js\nfunction doubleEvens(numbers) {\n  return numbers.filter(n => n % 2 === 0).map(n => n * 2);\n}\n\nconsole.log(doubleEvens([1, 2, 3, 4])); // [4, 4, 6, 8]\n```"
+     },
+     {
+      "seed": 7,
+      "output": "```js\nfunction doubleEvens(numbers) {\n  // Use filter to keep only even numbers, then use map to double each one\n  return numbers.filter(num => num % 2 === 0).map(num => num * 2);\n}\n\nconsole.log(doubleEvens([1, 2, 3, 4])); // [4, 8]\n```"
+     }
+    ],
+    "turn-2-follow-up": [
+     {
+      "seed": 0,
+      "output": "[-4, 6, 12]"
+     },
+     {
+      "seed": 1,
+      "output": "[-4, 6, 12]"
+     },
+     {
+      "seed": 2,
+      "output": "[-4, 6, 12]"
+     },
+     {
+      "seed": 3,
+      "output": "[-4, 6, 12]"
+     },
+     {
+      "seed": 4,
+      "output": "[-4, 6, 12]"
+     },
+     {
+      "seed": 5,
+      "output": "[-4, 6, 12]"
+     },
+     {
+      "seed": 6,
+      "output": "[-4, 6, 12]"
+     },
+     {
+      "seed": 7,
+      "output": "[-4, 6]"
+     }
+    ]
+   },
+   "turn2CorrectedHistoryGreedy": {
+    "assistantHistory": "```javascript\nfunction doubleEvens(numbers) {\n  // Filter keeps only even numbers, then doubles them\n  return numbers.filter(n => n % 2 === 0).map(n => n * 2);\n}\n\n// Result for [1, 2, 3, 4]\nconsole.log(doubleEvens([1, 2, 3, 4])); \n// Output: [4, 8]\n```",
+    "result": {
+     "label": "turn-2 corrected-history bfloat16 greedy",
+     "tokenIds": [
+      7368,
+      19,
+      11,
+      220,
+      16,
+      17,
+      60,
+      248046
+     ],
+     "output": "[-4, 12]",
+     "decodeSteps": 8,
+     "stoppedOn": 248046,
+     "seconds": 20.9,
+     "steps": [
+      {
+       "step": 0,
+       "tokenId": 7368,
+       "text": "[-",
+       "top5": [
+        {
+         "tokenId": 7368,
+         "logit": 25.625,
+         "text": "[-"
+        },
+        {
+         "tokenId": 58,
+         "logit": 23.125,
+         "text": "["
+        },
+        {
+         "tokenId": 63,
+         "logit": 20.5,
+         "text": "`"
+        },
+        {
+         "tokenId": 1249,
+         "logit": 18.5,
+         "text": "[]"
+        },
+        {
+         "tokenId": 659,
+         "logit": 17.75,
+         "text": "['"
+        }
+       ],
+       "marginTop1Top2": 2.5
+      },
+      {
+       "step": 1,
+       "tokenId": 19,
+       "text": "4",
+       "top5": [
+        {
+         "tokenId": 19,
+         "logit": 23.875,
+         "text": "4"
+        },
+        {
+         "tokenId": 21,
+         "logit": 22.75,
+         "text": "6"
+        },
+        {
+         "tokenId": 23,
+         "logit": 22.5,
+         "text": "8"
+        },
+        {
+         "tokenId": 16,
+         "logit": 21.875,
+         "text": "1"
+        },
+        {
+         "tokenId": 17,
+         "logit": 21.5,
+         "text": "2"
+        }
+       ],
+       "marginTop1Top2": 1.125
+      },
+      {
+       "step": 2,
+       "tokenId": 11,
+       "text": ",",
+       "top5": [
+        {
+         "tokenId": 11,
+         "logit": 25.75,
+         "text": ","
+        },
+        {
+         "tokenId": 4838,
+         "logit": 19.5,
+         "text": ",-"
+        },
+        {
+         "tokenId": 23,
+         "logit": 18.875,
+         "text": "8"
+        },
+        {
+         "tokenId": 60,
+         "logit": 18.75,
+         "text": "]"
+        },
+        {
+         "tokenId": 15,
+         "logit": 18.25,
+         "text": "0"
+        }
+       ],
+       "marginTop1Top2": 6.25
+      },
+      {
+       "step": 3,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 24.375,
+         "text": " "
+        },
+        {
+         "tokenId": 471,
+         "logit": 22.125,
+         "text": " -"
+        },
+        {
+         "tokenId": 16,
+         "logit": 16.375,
+         "text": "1"
+        },
+        {
+         "tokenId": 373,
+         "logit": 14.875,
+         "text": "�"
+        },
+        {
+         "tokenId": 1317,
+         "logit": 14.8125,
+         "text": " –"
+        }
+       ],
+       "marginTop1Top2": 2.25
+      },
+      {
+       "step": 4,
+       "tokenId": 16,
+       "text": "1",
+       "top5": [
+        {
+         "tokenId": 16,
+         "logit": 23.75,
+         "text": "1"
+        },
+        {
+         "tokenId": 21,
+         "logit": 23.375,
+         "text": "6"
+        },
+        {
+         "tokenId": 23,
+         "logit": 21.25,
+         "text": "8"
+        },
+        {
+         "tokenId": 15,
+         "logit": 20.25,
+         "text": "0"
+        },
+        {
+         "tokenId": 17,
+         "logit": 19.875,
+         "text": "2"
+        }
+       ],
+       "marginTop1Top2": 0.375
+      },
+      {
+       "step": 5,
+       "tokenId": 17,
+       "text": "2",
+       "top5": [
+        {
+         "tokenId": 17,
+         "logit": 24.875,
+         "text": "2"
+        },
+        {
+         "tokenId": 23,
+         "logit": 23.375,
+         "text": "8"
+        },
+        {
+         "tokenId": 15,
+         "logit": 20.375,
+         "text": "0"
+        },
+        {
+         "tokenId": 19,
+         "logit": 19.625,
+         "text": "4"
+        },
+        {
+         "tokenId": 11,
+         "logit": 19.625,
+         "text": ","
+        }
+       ],
+       "marginTop1Top2": 1.5
+      },
+      {
+       "step": 6,
+       "tokenId": 60,
+       "text": "]",
+       "top5": [
+        {
+         "tokenId": 60,
+         "logit": 25.25,
+         "text": "]"
+        },
+        {
+         "tokenId": 11,
+         "logit": 24.125,
+         "text": ","
+        },
+        {
+         "tokenId": 21,
+         "logit": 17.25,
+         "text": "6"
+        },
+        {
+         "tokenId": 248046,
+         "logit": 17.125,
+         "text": "<|im_end|>"
+        },
+        {
+         "tokenId": 75654,
+         "logit": 16.75,
+         "text": "]**"
+        }
+       ],
+       "marginTop1Top2": 1.125
+      },
+      {
+       "step": 7,
+       "tokenId": 248046,
+       "text": "<|im_end|>",
+       "top5": [
+        {
+         "tokenId": 248046,
+         "logit": 26.5,
+         "text": "<|im_end|>"
+        },
+        {
+         "tokenId": 198,
+         "logit": 19.0,
+         "text": "\n"
+        },
+        {
+         "tokenId": 318,
+         "logit": 17.125,
+         "text": " ("
+        },
+        {
+         "tokenId": 220,
+         "logit": 15.75,
+         "text": " "
+        },
+        {
+         "tokenId": 189551,
+         "logit": 15.125,
+         "text": " ✅"
+        }
+       ],
+       "marginTop1Top2": 7.5
+      }
+     ]
+    }
+   }
+  },
+  "q4kWeightsControl": {
+   "deployedTurn2CorrectedHistory": "[-6, 12]",
+   "deployedBodyTiedF16Head": [
+    {
+     "label": "turn-1",
+     "output": "```javascript\nfunction doubleEvens(numbers) {\n  // Filter keeps only even numbers, then doubles them\n  return numbers.filter(n => n % 2 === 0).map(n => n * 2);\n}\n\n// Result for [1, 2, 3, 4]\nconsole.log(doubleEvens([1, 2, 3, 4])); \n// Output: [2, 4, 6, 8]\n```",
+     "firstTokenDivergenceFromDoppler": null
+    },
+    {
+     "label": "turn-2-follow-up",
+     "output": "[-6, 12, 18]",
+     "firstTokenDivergenceFromDoppler": null
+    }
+   ]
+  }
+ }
+}
