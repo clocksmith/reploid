@@ -26,7 +26,7 @@ export function projectRequestApproval(state) {
   const [first, ...rest] = nodes, others = rest.map(node => node.label);
   const sent = ['this message', earlier && counted(earlier, 'earlier message'), context && 'the context prompt'].filter(Boolean);
   const scope = `Sends ${joined(sent)}. ${first.id === view.requester ? 'The text stays on this device' : `${first.label} receives the text`}`
-    + (others.length ? `; ${joined(others)} ${others.length === 1 ? 'receives' : 'receive'} it as model tokens and intermediate results.` : '.')
+    + (others.length ? `; ${joined(others)} ${others.length === 1 ? 'receives' : 'receive'} the same content as model tokens, which read back as text, and intermediate results.` : '.')
     + ' Approval applies to this request only.';
   return { threadId: view.thread.id, attemptId: view.attempt.id, previewId: approval.id, recipientIds: nodes.map(node => node.id),
     recipients, scope, input,

@@ -70,7 +70,7 @@ export function review({ attemptId, threadId, messages = [{ role: 'user', conten
   return { threadId, attemptId, previewId: `preview-${attemptId}`, recipientIds: [...participants],
     recipientsText: `Recipients: ${participants.map((_, index) => `Computer ${index + 1} (stage ${index + 1} of ${n})`).join(', ')} \u00b7 Qwen 3.5 0.8B`,
     scopeText: `Sends this message${earlier ? ` and ${earlier} earlier message${earlier === 1 ? '' : 's'}` : ''}. Computer 1 receives the text; `
-      + 'Computer 2 and Computer 3 receive it as model tokens and intermediate results. Approval applies to this request only.',
+      + 'Computer 2 and Computer 3 receive the same content as model tokens, which read back as text, and intermediate results. Approval applies to this request only.',
     contentLabel: `Review ${messages.length} message${messages.length === 1 ? '' : 's'}`,
     contentText: messages.map(message => `${message.role}:\n${message.content}`).join(''),
     shownAt: '2026-10-13T11:59:59.000Z', approvedAt: '2026-10-13T11:59:59.500Z' };
