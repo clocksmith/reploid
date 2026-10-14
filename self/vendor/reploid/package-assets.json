@@ -816,13 +816,13 @@
     },
     {
       "path": "mesh/partitions/partition-ordered-peer.d.ts",
-      "bytes": 1704,
-      "sha256": "364ed585b5d705e715c9bf07887c2ba698ee9aee4d3673e4865694a13ecace6c"
+      "bytes": 2044,
+      "sha256": "2a81ceb3afb18777de71761a6307a505795c462707197885dec1cbee3ba49a43"
     },
     {
       "path": "mesh/partitions/partition-ordered-peer.js",
-      "bytes": 25677,
-      "sha256": "b591e6b63c0a55b9683257141b865ca3343bd517bf1b7a6d5d116a383007ce6f"
+      "bytes": 26245,
+      "sha256": "7227b0b64ea69a1b2e905a3adbac37983607aedfc3c95944ad59aeefb8a99793"
     },
     {
       "path": "mesh/partitions/partition-ordered-publication.d.ts",
