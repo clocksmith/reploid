@@ -1,7 +1,7 @@
 # Reploid product specification and economics contract
 
-**Reploid Product Economics Contract v1.1**, identity
-`reploid.product-economics/1.1.0` (2026-10-15; adds the owner's adopted decisions below; v1.0 is preserved in history at `970c80f7`). Normative product requirements merged into the
+**Reploid Product Economics Contract v1.2**, identity
+`reploid.product-economics/1.2.0` (2026-10-15; adds the owner's [business plan](#business-plan); v1.1 is preserved in history at `3891795e` and v1.0 at `970c80f7`). Normative product requirements merged into the
 seven-section definition below. MUST denotes a requirement, not implementation or
 economic proof. Credit quotes, rewards, redemption and solvency remain
 unimplemented/unproven unless separately evidenced in the canonical register.
@@ -23,6 +23,44 @@ here from the roadmap unchanged; they are existing requirements, not additions
 to `reploid.product-economics/1.0.0`.
 
 **Earn on your computer. Use AI anywhere.**
+
+## Business plan
+
+Adopted 2026-10-15 in the owner's words; v1.2 adds it. The sections below define
+it; where they are more specific, they govern.
+
+Reploid helps people ask questions, compare options, connect information, and develop ideas using open models and web sources. Its promise: earn on your computer, use AI anywhere.
+
+Consumer chat leads, with cited investigations, follow-ups, and persistent history. Attachments provide context. Search runs through authorized device-side tools or paid providers, with retrieval, verification, and fallback costs measured separately. Developer APIs and autonomous agents follow.
+
+Users receive funded Community Access, purchase top-ups, or earn nonexpiring credits through useful contributions. Credits represent service balances, without guaranteed immediate availability or cash redemption. Contributors supply validated computation, storage, delivery, or contracted readiness within approved schedules, memory, bandwidth, power, temperature, and foreground-use limits.
+
+Reploid coordinates capacity, permissions, queues, accounting, and recovery; Doppler executes models. Routing selects qualified supply using expected costs, including preparation, readiness, failures, refunds, and reserves. Accepted quotes bind model, disclosure, quality, deadline, and spending limits. Hosted fallback requires authorization. Otherwise, requests queue or fail explicitly.
+
+Revenue comes from delivered paid services and funded community usage. Reploid retains a margin after contributor rewards, retrieval, verification, infrastructure, payment fees, support, and reliability costs. Outstanding credits require realistic redemption funding. Reserved service, cash payouts, transfers, and trading follow proven demand and controls.
+
+Launch with one model community and supported hardware cohort, using founder machines with disclosed subsidies. The hypothesis is that pooled intermittent demand and otherwise-idle resources can deliver competitive service economically.
+
+Freeze quality, latency, surplus, margin, and advantage thresholds before testing. Measure overnight contribution and next-day redemption, then replay demand against task-equivalent alternatives. Count energy, hardware assumptions, idle time, failures, and rejected demand.
+
+Scale only when contributors earn worthwhile value, customers return and obtain competitive answers, and Reploid retains positive contribution margin. Report energy efficiency separately. Repeat purchases and sustained participation justify expansion; failed configurations are revised or rejected before spending or unsupported commercial promises.
+
+New in v1.2, each owned by an existing requirement:
+
+- Search through authorized device-side tools as well as paid providers, with
+  retrieval, verification and fallback costs measured separately
+  ([REP-8](roadmap/requirements.md#rep-8)).
+- Credits carry no guarantee of immediate availability or cash redemption;
+  outstanding credits require realistic redemption funding
+  ([REP-10](roadmap/requirements.md#rep-10), [REP-11](roadmap/requirements.md#rep-11)).
+- Routing selects qualified supply by expected cost, including preparation,
+  readiness, failures, refunds and reserves ([DR-6](roadmap/requirements.md#dr-6)).
+- Hosted fallback requires the requester's authorization; otherwise requests queue
+  or fail explicitly ([REP-7](roadmap/requirements.md#rep-7)).
+- Reploid's contribution margin after rewards, retrieval, verification,
+  infrastructure, payment fees, support and reliability costs, with quality,
+  latency, surplus, margin and advantage thresholds frozen before testing
+  ([REP-13](roadmap/requirements.md#rep-13), [REP-14](roadmap/requirements.md#rep-14)).
 
 ## 1. Product
 
