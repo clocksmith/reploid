@@ -6,6 +6,11 @@
 !.dockerignore
 !package.json
 !package-lock.json
+!packages/
+!packages/reploid/
+!packages/reploid/package.json
+!packages/reploid/src/
+!packages/reploid/src/**
 
 !server/
 !server/**

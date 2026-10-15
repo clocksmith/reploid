@@ -14,6 +14,8 @@ export const DEFAULT_COORDINATOR_RUNTIME_SCOPE = Object.freeze([
   'deploy/Dockerfile',
   'package.json',
   'package-lock.json',
+  'packages/reploid/package.json',
+  'packages/reploid/src',
   'server',
   'self'
 ]);
