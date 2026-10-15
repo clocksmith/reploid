@@ -281,7 +281,7 @@ Acceptance and source/installed/physical evidence: the scoped entry below is aut
 
 ### ALL-7
 
-Owner: Doppler model owner / Reploid integration. Status: Flash-Next target; checkpoint-specific qualification open.
+Owner: Doppler model owner / Reploid integration. Status: Flash-Next target; sigmoid gated-delta kernels verified on Apple, AMD and Intel GPUs (Doppler `bb3832e2`, `b2dc2e8c`); checkpoint-specific qualification open.
 
 Next action: Pin source/license/reference and prepare operator fixtures during repair. Dependencies: Installed flagship execution waits for repaired engine; no older-model port.
 
@@ -294,7 +294,7 @@ Acceptance and source/installed/physical evidence: the scoped entry below is aut
 
 ### REP-5
 
-Owner: Reploid custody / transport / host. Status: Scoped mechanisms complete; ordinary journey open.
+Owner: Reploid custody / transport / host. Status: Scoped mechanisms complete; full-model seeding passes installed on final-9 (run 7) and on final-10 pass 3, where the amd-host browser acquired 1,156,260,602 bytes from the mac-host seed in 14 min 47 s with no origin request ([run 8](../../artifacts/faster-candidate-20261015/journeys/README.md)); ordinary journey open.
 
 Next action: Exercise acquisition, introductions and the bounded storage modes below in installed chat. Dependencies: Actual disclosure grants and installed package.
 
@@ -783,9 +783,9 @@ These new IDs implement the [product specification](../product-specification.md)
 
 ### REP-8
 
-Owner: Reploid chat / retrieval / UI. Status: New requirement; acceptance open.
+Owner: Reploid chat / retrieval / UI. Status: Source retrieval and citation pipeline behind a provider interface, fixed test provider only (`13209c8c`); frozen whole-answer evaluation policies and a blinded review packet (`f16b5e49`); only an interim model review exists; acceptance open.
 
-Next action: Freeze everyday tasks, full-answer criteria and retrieval/citation checks. Dependencies: Launch 1 foundation; DR-3 disclosure; DR-5 installed execution.
+Next action: Obtain independent whole-answer review; qualify a real search provider and support checker; settle the permission wording for retrieved text and the search provider. Dependencies: Launch 1 foundation; DR-3 disclosure; DR-5 installed execution.
 
 <a id="rep-8"></a>
 - [ ] **REP-8 — Everyday utility and search.** Freeze representative questions, explanations, supplied-text summaries and search-backed answers with minimum complete-answer quality, response time and cost criteria. Validate every material claim/instruction/example; separate incorrect from unverified outcomes and disclose reviewer method. Retrieve sources for search, retain provenance, verify citations support the associated claims and report retrieval failure rather than inventing sources. Keep retrieval disclosure inside DR-3 permissions. Numerical parity and mechanical subquestion scores cannot pass this gate. Qualify ordinary summaries without requiring the deferred specialized document/indexing experiments.
@@ -796,9 +796,9 @@ Next action: Freeze everyday tasks, full-answer criteria and retrieval/citation 
 
 ### REP-9
 
-Owner: Reploid service accounting / host. Status: New requirement; acceptance open.
+Owner: Reploid service accounting / host. Status: Source payment reconciliation behind a processor interface with a test processor, purchase reversals and Community Access queueing (`78408a83`); funding commitment register with named authority (`8b5eb5bb`, `d3027861`, `6a2f6d1e`); acceptance open.
 
-Next action: Define funded-access admission and implement purchase/refund reconciliation. Dependencies: REP-10 ledger; DR-6 admitted capacity.
+Next action: Qualify a real processor; decide the access guarantee, spent-credit reversal treatment and deficit clearing; produce admitted-capacity evidence. Dependencies: REP-10 ledger; DR-6 admitted capacity.
 
 <a id="rep-9"></a>
 - [ ] **REP-9 — Community Access and top-ups.** Provide donor/operator-funded ongoing access under funded capacity, fair queues and abuse limits; offer purchased top-ups without a subscription. Guarantees require explicitly reserved funding and admitted supply; a balance alone promises no immediate capacity. Show unavailable/queued states; whether to reserve operator-funded basic capacity remains an open user decision. **Proposed default:** queue/retry without a guaranteed minimum or completion time until explicit funding/supply commitment; queue access does not promise an eventual answer. Do not treat this proposal as a funded-floor decision. Registration alone issues no transferable credit. Reconcile confirmed purchases, duplicate payment notifications, refunds and restart recovery without minting extra credit. Preserve source-of-funds records and disclose subsidy separately from earned work.
@@ -807,9 +807,9 @@ Next action: Define funded-access admission and implement purchase/refund reconc
 
 ### REP-10
 
-Owner: Reploid service accounting. Status: New requirement; acceptance open.
+Owner: Reploid service accounting. Status: Source ledger with quotes, reservations, settlement and reversals (`7ca3dae5`, `78408a83`); versioned conversion records (`8bda47c9`); accounts and devices with in-transaction revocation (`fc8e4913`, `49552405`, `3110c480`); authenticated routes with retry-safe idempotency (`b044adc5`, `c871492d`, `a6d17eea`); test providers only; acceptance open.
 
-Next action: Implement durable quoted reservations and idempotent settlement with concurrent-account controls. Dependencies: Authenticated account and work identities; DR-3 permissions remain independent.
+Next action: Prove crash and retry behavior end to end with actual execution and account-bound spending; set the accounting policy values; qualify a real sign-in provider. Dependencies: Authenticated account and work identities; DR-3 permissions remain independent.
 
 <a id="rep-10"></a>
 - [ ] **REP-10 — Credit ledger, quotes and settlement.** Earned and purchased balances never expire; keep quantity, purchase price, reward and service price distinct. Design transferable balances and issuance provenance from the start. Initial account transfers and marketplace trading are disabled. Direct transfers may activate before a marketplace once their controls qualify and activation is approved. Marketplace activation additionally requires credible supply/demand, settlement evidence, fraud controls and applicable legal review. Before acceptance, quote inference price basis, maximum charge, limits, validity and cancellation terms, and contribution work/reward/validation terms. Accepted terms bind the attempt; no silent extra charge or charged retry. Reserve funds, settle billable work exactly once and release unused reservations. Define partial delivery, cancellation, provider failure, compensation and refund rules. Prove crash/reload recovery, concurrent-device spending, duplicate/reordered delivery, replay rejection and no double spending. Resource allocation receipts and transfer allowances are inputs, not balances or authority to issue credit. Spending acceptance must not reintroduce per-request disclosure review.
@@ -828,9 +828,9 @@ Next action: Implement durable quoted reservations and idempotent settlement wit
 
 ### REP-11
 
-Owner: Reploid service accounting / contribution. Status: New requirement; acceptance open.
+Owner: Reploid service accounting / contribution. Status: Source rewards for all four adopted categories, an execution-based readiness probe and a funded issuance basis (`5610260a`, `bb17dc15`, `0c65e361`); durable scheduling of challenges and probes (`8bda47c9`); not qualified for real earning; acceptance open.
 
-Next action: Bind accepted work and validation to bounded issuance; reject duplicate, fabricated and collusive rewards. Dependencies: REP-10 ledger; REP-4 lifecycle; REP-5 custody; DR-6 execution.
+Next action: Integrate actual execution and delivery evidence with account-bound issuance; build the readiness-probe adapter and challenge transport; set reward policy values. Dependencies: REP-10 ledger; REP-4 lifecycle; REP-5 custody; DR-6 execution.
 
 <a id="rep-11"></a>
 - [ ] **REP-11 — Validated contribution rewards.** Define validation for demanded computation and explicitly contracted storage, delivery or readiness. Adopted reward eligibility includes demanded computation, useful verified delivery, explicitly contracted storage and prepared availability. Qualify each category before issuing its rewards; unused or unrequested presence earns nothing. Bind requested work, authorization, validator outcome and settlement identity; reject fabricated work, duplicate receipts/rewards and collusive self-generated demand. Test issuer/validator authority and bounded issuance; signatures and peer agreement alone do not prove useful work. Online time earns nothing unless measured service fulfills an explicit contracted readiness obligation. Small useful contributions qualify; unnecessary machines may sleep.
@@ -843,9 +843,9 @@ Next action: Bind accepted work and validation to bounded issuance; reject dupli
 
 ### REP-12
 
-Owner: Reploid native host / contribution. Status: New requirement; acceptance open.
+Owner: Reploid native host / contribution. Status: Source owner controls with per-platform declared unsupported controls (`abf8973f`); installed qualification open.
 
-Next action: Extend existing admission with schedules, temperature, rate and foreground controls. Dependencies: REP-4 lifecycle; existing REP-5 persisted byte/storage allowances.
+Next action: Qualify on installed hosts: a schedule closing mid-work, wire rates, real temperature crossings and foreground responsiveness. Dependencies: REP-4 lifecycle; existing REP-5 persisted byte/storage allowances.
 
 <a id="rep-12"></a>
 - [ ] **REP-12 — Native owner controls.** Enforce approved contribution schedules, power/temperature/memory bounds, bandwidth rates and cumulative transfer allowances where supported. Distinguish existing persisted byte/storage budgets from missing rate and host-impact controls. Declare unsupported sensors/controls; do not claim enforcement from a setting alone. Require equipment and network authorization, including workplace resources. Reduce new admission on foreground activity or a limit crossing, safely settle owned work and retain unknown cleanup ownership. Verify responsive foreground use, sleep/idling when capacity is unnecessary, stop without directly cancelling unrelated conversations, and restart-safe limits. Measure actual resource consumption alongside rewards; no wakefulness incentive or Doe dependency.
