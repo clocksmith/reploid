@@ -10,7 +10,7 @@ import { createDeviceRegistrationProof, createSessionBinding } from '../../packa
 import { sha256Hex } from '../../packages/reploid/src/artifacts/signatures.js';
 import { createCommunityAccess } from '../../server/community-access/engine.js';
 import { createMemoryCommunityAccessBackend } from '../../server/community-access/stores.js';
-import { createFirestoreRouteBackend, createMemoryRouteBackend } from '../../server/earning-routes/idempotency.js';
+import { createFirestoreRouteBackend, createMemoryRouteBackend, createRouteIdempotency } from '../../server/earning-routes/idempotency.js';
 import { mountEarningRoutes } from '../../server/earning-routes/mount.js';
 import { installJsonBodyMiddleware } from '../../server/json-body-middleware.js';
 import createPoolRouter from '../../server/pool/routes.js';
@@ -26,6 +26,7 @@ import {
 const LIMITS = Object.freeze({
   jsonBytes: 16 * 1024,
   evidenceJsonBytes: 256 * 1024,
+  idempotencyLeaseMs: 30_000,
   address: { max: 10_000, windowMs: MIN },
   signIn: { max: 100, windowMs: MIN },
   account: { max: 1000, windowMs: MIN },
@@ -55,7 +56,11 @@ const ENABLED = Object.freeze({ REPLOID_EARNING_ROUTES: 'enabled' });
 
 const servers = [];
 afterEach(async () => {
-  await Promise.all(servers.splice(0).map((server) => new Promise((resolve) => server.close(resolve))));
+  // A test may leave a request hanging to model a stopped process; drop its connection.
+  await Promise.all(servers.splice(0).map((server) => new Promise((resolve) => {
+    server.closeAllConnections();
+    server.close(resolve);
+  })));
 });
 
 const listen = async (app) => {
@@ -257,9 +262,9 @@ describe.each(['memory', 'firestore'])('earning routes over HTTP (%s store)', (k
       expect(quote.status).toBe(201);
       expect(quote.body).toMatchObject({ accountId: alice.account.accountId, status: 'offered', pricing: { maxCharge: 60 } });
       expect(quoteRequests).toEqual([{ accountId: alice.account.accountId, deviceId: alice.deviceId, request: { service: 'chat' } }]);
-      // A retried request returns the quote first issued under its key.
+      // A retried request replays the response first stored under its key.
       const retried = await call('POST', '/v1/quotes', { token: alice.session.token, key: 'quote:1', body: { request: { service: 'chat' } } });
-      expect([retried.status, retried.body.quoteId]).toEqual([200, quote.body.quoteId]);
+      expect([retried.status, retried.body, retried.headers.get('idempotent-replayed')]).toEqual([201, quote.body, 'true']);
 
       const accept = (who, key) => call('POST', `/v1/quotes/${quote.body.quoteId}/accept`, { token: who.session.token, key, body: { quoteHash: quote.body.quoteHash } });
       expect((await accept(bob, 'accept:bob')).body.error).toBe('quote_account_mismatch');
@@ -480,6 +485,204 @@ describe.each(['memory', 'firestore'])('earning routes over HTTP (%s store)', (k
       expect((await settle('operator-settlement', 40)).body).toEqual(settled.body);
       const replay = await settle('operator-settlement-2', 40);
       expect([replay.status, replay.body.error]).toEqual([409, 'reservation_already_settled']);
+    });
+  });
+
+  describe('retry safety', () => {
+    const SETTLE_ROUTE = 'POST /operator/reservations/:reservationId/settle';
+    const settlement = (attemptId, output = 40) => ({ billableEventId: `event_${attemptId}`, outcome: 'full', attemptId, metering: { output }, completedAt: clock() });
+    const bindings = () => createRouteIdempotency({ backend: idempotencyBackend(), leaseMs: LIMITS.idempotencyLeaseMs, nowMs: () => fx.nowMs });
+    const binding = (routeId, caller, key) => bindings().get({ routeId, caller, key });
+    const journalCount = async (accountId, type) => (await services.ledger.listJournal(accountId)).filter((entry) => entry.type === type).length;
+    /** A funded account with an accepted quote and a bound attempt, ready to settle. */
+    const readyToSettle = async (subject) => {
+      const who = await browserParticipant(subject);
+      await fund(services.ledger, who.account.accountId, 100);
+      const quote = (await call('POST', '/v1/quotes', { token: who.session.token, key: `quote:${subject}`, body: { request: {} } })).body;
+      const { reservationId } = (await call('POST', `/v1/quotes/${quote.quoteId}/accept`, {
+        token: who.session.token, key: `accept:${subject}`, body: { quoteHash: quote.quoteHash }
+      })).body;
+      await call('POST', `/v1/reservations/${reservationId}/attempts`, { token: who.session.token, key: `bind:${subject}`, body: { attemptId: `att_${subject}`, recipients: ['peer_c0'] } });
+      return { who, quote, reservationId, attemptId: `att_${subject}` };
+    };
+    const settleOn = (on, reservationId, body, key = 'settle-key') => request(on, 'POST', `/v1/operator/reservations/${reservationId}/settle`, { token: 'operator-settlement', key, body });
+
+    it('keeps an outcome ambiguous after the component commits and recovers that one committed result on retry', async () => {
+      const alice = await browserParticipant('alice');
+      await fund(services.ledger, alice.account.accountId, 100);
+      const quote = (await call('POST', '/v1/quotes', { token: alice.session.token, key: 'quote', body: { request: {} } })).body;
+      // The process fails after the ledger committed the reservation, before the route stored its response.
+      let crash = true;
+      const { base: crashing } = await start({ overrides: { faultHooks: { afterComponent: ({ routeId }) => {
+        if (routeId === 'POST /quotes/:quoteId/accept' && crash) { crash = false; throw new Error('process failed after commit'); }
+      } } } });
+      const accept = (quoteHash = quote.quoteHash) => request(crashing, 'POST', `/v1/quotes/${quote.quoteId}/accept`, { token: alice.session.token, key: 'accept-key', body: { quoteHash } });
+      expect((await accept()).status).toBe(500);
+      const caller = { accountId: alice.account.accountId, deviceId: alice.deviceId };
+      expect(await binding('POST /quotes/:quoteId/accept', caller, 'accept-key')).toMatchObject({ status: 'unknown' });
+      const reservations = await services.ledger.listAccountReservations(alice.account.accountId);
+      expect(reservations).toHaveLength(1);
+      // A changed request under the unresolved key is refused; the same request recovers the committed reservation.
+      expect((await accept('sha256:other-terms')).body.error).toBe('idempotency_conflict');
+      const recovered = await accept();
+      expect([recovered.status, recovered.body.reservationId]).toEqual([200, reservations[0].reservationId]);
+      const replayed = await accept();
+      expect([replayed.body, replayed.headers.get('idempotent-replayed')]).toEqual([recovered.body, 'true']);
+      expect(await services.ledger.listAccountReservations(alice.account.accountId)).toHaveLength(1);
+      expect(await journalCount(alice.account.accountId, 'reserve')).toBe(1);
+      expect((await call('GET', '/v1/balances', { token: alice.session.token })).body).toMatchObject({ available: 40, held: 60 });
+
+      // A component call that commits and then loses its connection is ambiguous too.
+      await call('POST', `/v1/reservations/${recovered.body.reservationId}/attempts`, { token: alice.session.token, key: 'bind', body: { attemptId: 'att_1', recipients: ['peer_c0'] } });
+      let lose = true;
+      const lossy = { ...services.ledger, async settleReservation(input) {
+        const result = await services.ledger.settleReservation(input);
+        if (lose) { lose = false; throw new Error('connection lost after commit'); }
+        return result;
+      } };
+      const { base: lossyBase } = await start({ overrides: { ledger: lossy } });
+      expect((await settleOn(lossyBase, recovered.body.reservationId, settlement('att_1'))).status).toBe(500);
+      expect(await binding(SETTLE_ROUTE, { operatorId: 'settlement_test' }, 'settle-key')).toMatchObject({ status: 'unknown' });
+      const settled = await settleOn(lossyBase, recovered.body.reservationId, settlement('att_1'));
+      expect(settled.body).toMatchObject({ outcome: 'full', charge: 30 });
+      expect(settled.body.settlementId).toBe((await services.ledger.getReservation(recovered.body.reservationId)).settlement.settlementId);
+      expect(await journalCount(alice.account.accountId, 'charge')).toBe(1);
+    });
+
+    it('lets two router processes sharing the stores settle one key once', async () => {
+      const { who, reservationId, attemptId } = await readyToSettle('alice');
+      let entered;
+      let open;
+      const reached = new Promise((resolve) => { entered = resolve; });
+      const gate = new Promise((resolve) => { open = resolve; });
+      const { base: first } = await start({ overrides: { faultHooks: { afterComponent: async ({ routeId }) => {
+        if (routeId === SETTLE_ROUTE) { entered(); await gate; }
+      } } } });
+      const { base: second } = await start();
+      const inFlight = settleOn(first, reservationId, settlement(attemptId));
+      await reached;
+      // The first process committed and still holds the key: the second neither settles again nor uses another key.
+      const busy = await settleOn(second, reservationId, settlement(attemptId));
+      expect([busy.status, busy.body.error, busy.headers.get('retry-after')]).toEqual([409, 'idempotency_in_progress', String(LIMITS.idempotencyLeaseMs / 1000)]);
+      expect((await settleOn(second, reservationId, settlement(attemptId, 80))).body.error).toBe('idempotency_conflict');
+      open();
+      const done = await inFlight;
+      expect(done.body).toMatchObject({ outcome: 'full', charge: 30 });
+      const retried = await settleOn(second, reservationId, settlement(attemptId));
+      expect([retried.status, retried.body]).toEqual([200, done.body]);
+      expect(await journalCount(who.account.accountId, 'charge')).toBe(1);
+
+      // Both processes at once on a fresh key: one reservation, and every retry returns it.
+      const quote = (await call('POST', '/v1/quotes', { token: who.session.token, key: 'quote-2', body: { request: {} } })).body;
+      const accept = (on) => request(on, 'POST', `/v1/quotes/${quote.quoteId}/accept`, { token: who.session.token, key: 'accept-2', body: { quoteHash: quote.quoteHash } });
+      const raced = await Promise.all([accept(first), accept(second)]);
+      for (const response of raced) expect([200, 409]).toContain(response.status);
+      const settledAccepts = await Promise.all([accept(first), accept(second)]);
+      expect(settledAccepts.map((response) => response.status)).toEqual([200, 200]);
+      expect(new Set(settledAccepts.map((response) => response.body.reservationId)).size).toBe(1);
+      expect(await services.ledger.listAccountReservations(who.account.accountId)).toHaveLength(2);
+      expect(await journalCount(who.account.accountId, 'reserve')).toBe(2);
+    });
+
+    it('recovers an unfinished request after a restart: one validated, issued reward', async () => {
+      const supplier = await browserParticipant('supplier');
+      const native = await newIdentity('Ed25519');
+      const nativeDevice = (await register(supplier.session, native, { host: 'native' })).body;
+      await call('PUT', `/v1/devices/${nativeDevice.deviceId}/owner-authorization`, { token: supplier.session.token, key: 'owner', body: { ownerAuthorization } });
+      const acquirer = await browserParticipant('acquirer');
+      const { reservationId, attemptId } = await readyToSettle('requester');
+      await settleOn(base, reservationId, settlement(attemptId), 'demand');
+      const offer = await services.rewards.createOffer({
+        offerId: 'offer_delivery', accountId: supplier.account.accountId,
+        work: { category: 'verified_delivery', participantId: native.peerId, pieces: [{ hash: await sha256Hex(PIECE_BYTES), sizeBytes: PIECE_BYTES.length }] },
+        reward: { basis: { kind: 'test_per_delivered_byte' }, formula: { kind: 'metered', base: 0, rates: [{ meter: 'deliveredBytes', numerator: 1, denominator: 1 }] }, maxReward: 50 },
+        resourceBounds: { transferBytes: { max: 1024, unit: 'byte' } },
+        duration: { startsAt: clock(), endsAt: at(40 * MIN) }, validUntil: at(5 * MIN),
+        paymentTiming: { trigger: 'on_validation', claimWindowMs: 30 * MIN }, failureCompensation: { kind: 'none' },
+        idempotencyKey: 'offer:delivery'
+      });
+      await call('POST', '/v1/offers/offer_delivery/accept', { token: supplier.session.token, key: 'accept-offer', body: { offerHash: offer.offerHash, ownerAuthorization } });
+      advance(MIN);
+      const transfer = await transferPiece([acquirer.identity, native]);
+      const { deliveryId } = (await call('POST', '/v1/deliveries', { token: acquirer.session.token, body: deliveryEvidenceFromRecord(transfer.record) })).body;
+
+      // The first process validates and issues the reward, then stops before storing its response.
+      let stopped;
+      const stopping = new Promise((resolve) => { stopped = resolve; });
+      const { base: doomed } = await start({ overrides: { faultHooks: { afterComponent: ({ routeId }) => {
+        if (routeId === 'POST /offers/:offerId/claims') { stopped(); return new Promise(() => {}); }
+      } } } });
+      const abandon = new AbortController();
+      const lost = fetch(`${doomed}/v1/offers/offer_delivery/claims`, {
+        method: 'POST', signal: abandon.signal, body: JSON.stringify({ deliveryId }),
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${supplier.session.token}`, 'idempotency-key': 'claim-key' }
+      }).catch(() => null);
+      await stopping;
+      abandon.abort();
+      await lost;
+      expect(await journalCount(supplier.account.accountId, 'issue')).toBe(1);
+
+      // A fresh router over the same stores: the key is held until the stopped holder's lease ends, then reconciles.
+      const { base: restarted } = await start();
+      const claim = () => request(restarted, 'POST', '/v1/offers/offer_delivery/claims', { token: supplier.session.token, key: 'claim-key', body: { deliveryId } });
+      expect((await claim()).body.error).toBe('idempotency_in_progress');
+      expect((await request(restarted, 'POST', '/v1/offers/offer_delivery/claims', {
+        token: supplier.session.token, key: 'claim-key', body: { deliveryId: 'dlv_' + '0'.repeat(32) }
+      })).body.error).toBe('idempotency_conflict');
+      advance(LIMITS.idempotencyLeaseMs);
+      const recovered = await claim();
+      expect(recovered.status).toBe(200);
+      expect(recovered.body.validation).toMatchObject({ outcome: 'accepted', issuanceStatus: 'issued' });
+      expect(recovered.body.issuance).toMatchObject({ status: 'issued', amount: PIECE_BYTES.length });
+      expect((await claim()).body).toEqual(recovered.body);
+      expect(await journalCount(supplier.account.accountId, 'issue')).toBe(1);
+      expect((await call('GET', '/v1/balances', { token: supplier.session.token })).body).toMatchObject({ available: PIECE_BYTES.length });
+    });
+
+    it('replays the stored settlement when the response fails after the settlement committed', async () => {
+      const { who, reservationId, attemptId } = await readyToSettle('alice');
+      let failResponse = true;
+      const { base: failing } = await start({ overrides: { faultHooks: { afterComplete: ({ routeId }) => {
+        if (routeId === SETTLE_ROUTE && failResponse) { failResponse = false; throw new Error('response write failed'); }
+      } } } });
+      expect((await settleOn(failing, reservationId, settlement(attemptId))).status).toBe(500);
+      expect(await binding(SETTLE_ROUTE, { operatorId: 'settlement_test' }, 'settle-key')).toMatchObject({ status: 'complete' });
+      const retried = await settleOn(failing, reservationId, settlement(attemptId));
+      expect([retried.status, retried.headers.get('idempotent-replayed')]).toEqual([200, 'true']);
+      expect(retried.body).toMatchObject({ outcome: 'full', charge: 30, settlementId: (await services.ledger.getReservation(reservationId)).settlement.settlementId });
+      expect((await settleOn(failing, reservationId, settlement(attemptId, 80))).body.error).toBe('idempotency_conflict');
+      expect(await journalCount(who.account.accountId, 'charge')).toBe(1);
+    });
+
+    it('frees a key only after a failure that definitely had no effect', async () => {
+      const { who } = await readyToSettle('alice');
+      await fund(services.ledger, who.account.accountId, 100, 'purchase:alice:second');
+      const caller = { accountId: who.account.accountId, deviceId: who.deviceId };
+      // A single-transaction component refusal commits nothing.
+      const second = (await call('POST', '/v1/quotes', { token: who.session.token, key: 'quote-free', body: { request: {} } })).body;
+      const accept = (quoteHash) => call('POST', `/v1/quotes/${second.quoteId}/accept`, { token: who.session.token, key: 'accept-free', body: { quoteHash } });
+      expect((await accept('sha256:wrong')).body.error).toBe('quote_terms_mismatch');
+      expect(await binding('POST /quotes/:quoteId/accept', caller, 'accept-free')).toMatchObject({ status: 'released' });
+      const accepted = await accept(second.quoteHash);
+      expect(accepted.status).toBe(200);
+      // A route refusal comes before the component acts.
+      const attempt = (id, body) => call('POST', `/v1/reservations/${id}/attempts`, { token: who.session.token, key: 'free-key', body });
+      expect((await attempt('res_missing', { attemptId: 'att_x', recipients: ['peer_c0'] })).body.error).toBe('reservation_not_found');
+      expect(await binding('POST /reservations/:reservationId/attempts', caller, 'free-key')).toMatchObject({ status: 'released' });
+      expect((await attempt(accepted.body.reservationId, { attemptId: 'att_2', recipients: ['peer_c1'] })).status).toBe(200);
+      expect(await services.ledger.listAccountReservations(who.account.accountId)).toHaveLength(2);
+
+      // A refusal from a multi-transaction operation may follow a commit, so its key stays held.
+      const reserve = (fundingId) => call('POST', '/v1/operator/funding/reward-reservations', {
+        token: 'operator-funding', key: 'reserve-key',
+        body: { fundingId, commitmentId: 'commitment_missing', amount: 5, categories: ['prepared_readiness'], decisionId: `decision:${fundingId}` }
+      });
+      expect((await reserve('funding_1')).body.error).toBe('commitment_not_found');
+      expect(await services.rewards.getFunding('funding_1')).toMatchObject({ status: 'refused' });
+      expect(await binding('POST /operator/funding/reward-reservations', { operatorId: FUNDING_ADMIN }, 'reserve-key')).toMatchObject({ status: 'unknown' });
+      expect((await reserve('funding_2')).body.error).toBe('idempotency_conflict');
+      expect((await reserve('funding_1')).body.error).toBe('commitment_not_found');
+      expect(await services.rewards.getFunding('funding_2')).toBeNull();
     });
   });
 

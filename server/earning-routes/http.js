@@ -34,14 +34,17 @@ const isPositiveInteger = (value) => Number.isSafeInteger(value) && value > 0;
  * rate limit is { max, windowMs } per client address (every route), per
  * address for sign-in and recovery, per account (session routes), per
  * device (device-bound routes) and per operator actor.
+ * idempotencyLeaseMs is how long an in-progress request holds its key before
+ * a retry may reconcile it.
  */
 export function validateRouteLimits(limits) {
   const errors = [];
   if (!limits || typeof limits !== 'object') throw new TypeError('earning routes need explicit limits');
   for (const key of Object.keys(limits)) {
-    if (!['jsonBytes', 'evidenceJsonBytes', ...RATE_KEYS].includes(key)) errors.push(`limits.${key} is not a recognized field`);
+    if (!['jsonBytes', 'evidenceJsonBytes', 'idempotencyLeaseMs', ...RATE_KEYS].includes(key)) errors.push(`limits.${key} is not a recognized field`);
   }
   for (const key of ['jsonBytes', 'evidenceJsonBytes']) if (!isPositiveInteger(limits[key])) errors.push(`limits.${key} must be a positive integer of bytes`);
+  if (!isPositiveInteger(limits.idempotencyLeaseMs)) errors.push('limits.idempotencyLeaseMs must be a positive integer of milliseconds');
   for (const key of RATE_KEYS) {
     const rate = limits[key];
     if (!rate || Object.keys(rate).some((field) => !['max', 'windowMs'].includes(field)) || !isPositiveInteger(rate.max) || !isPositiveInteger(rate.windowMs)) {
@@ -50,6 +53,7 @@ export function validateRouteLimits(limits) {
   }
   if (errors.length) throw new TypeError(`earning route limits are incomplete: ${errors.join('; ')}`);
   return Object.freeze(Object.fromEntries([['jsonBytes', limits.jsonBytes], ['evidenceJsonBytes', limits.evidenceJsonBytes],
+    ['idempotencyLeaseMs', limits.idempotencyLeaseMs],
     ...RATE_KEYS.map((key) => [key, Object.freeze({ max: limits[key].max, windowMs: limits[key].windowMs })])]));
 }
 
@@ -141,6 +145,13 @@ const STATUS = new Map(Object.entries({
   session_already_bound: 409, allocation_closed: 409, storage_conflict: 503, funding_authority_required: 503
 }));
 
+/**
+ * A coded refusal from a composed component. Refusals of single-transaction
+ * operations are thrown before their transaction commits, so they produced
+ * no effect; retryable storage conflicts and every other error may not have.
+ */
+export const isComponentRefusal = (error) => COMPONENT_ERRORS.has(error?.name) && typeof error.code === 'string' && error.retryable !== true;
+
 /** HTTP status for a component refusal code. */
 export function statusForCode(code) {
   if (STATUS.has(code)) return STATUS.get(code);
@@ -183,6 +194,7 @@ export function earningErrorHandler(log = console) {
     }
     if (status >= 500 && code === 'internal_error') log.error?.('[Earning routes] request failed:', error);
     if (res.headersSent) return;
+    if (Number.isSafeInteger(details?.retryAfter)) res.setHeader('Retry-After', String(details.retryAfter));
     res.status(status).json({ error: code, message, ...(details ? { details } : {}) });
   };
 }
