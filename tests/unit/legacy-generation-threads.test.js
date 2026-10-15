@@ -162,3 +162,15 @@ it('cancels and settles when a stream consumer throws, without retaining a dead 
   expect(f.sent[1].name).toBe('reploid:generation-cancel');
   f.update(f.sent[0], 'late'); await f.respond(f.sent[0]); expect(f.sent).toHaveLength(2); await f.mesh.close();
 });
+
+it('retains bounded preparation telemetry and executing state without publishing raw loader details', async () => {
+  const f = fixture(); await f.mesh.connect();
+  f.advertise('loading', 'qwen', { hasInference: false, readiness: 'loading', preparation: {
+    kind: 'downloading', receivedBytes: 30, totalBytes: 100, message: 'private loader path', path: '/private/model'
+  } });
+  expect(f.mesh.getSwarmSnapshot().peers.find(peer => peer.peerId === 'loading').preparation)
+    .toEqual({ kind: 'downloading', receivedBytes: 30, totalBytes: 100 });
+  f.advertise('loading', 'qwen', { hasInference: false, readiness: 'executing', availableSlots: 0, preparation: { kind: 'downloading' } });
+  expect(f.mesh.getSwarmSnapshot().peers.find(peer => peer.peerId === 'loading')).toMatchObject({ readiness: 'executing', preparation: null });
+  await f.mesh.close();
+});

@@ -724,8 +724,8 @@
     },
     {
       "path": "mesh/legacy-generation.js",
-      "bytes": 23416,
-      "sha256": "a0252a63227161514db7963ed0068da7fcbc3b877cce69dfafdbad653cd3712c"
+      "bytes": 23744,
+      "sha256": "2eff413b7ffa35b80bda01299d602f2db9a10c7e33fcf3bab696cefee09c2276"
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.d.ts",
@@ -734,8 +734,8 @@
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.js",
-      "bytes": 42632,
-      "sha256": "45cc0516c9a6a53003cb763aceb1e2cd57e555b6e1479a9003fc9ce50424be01"
+      "bytes": 42878,
+      "sha256": "ab48908425acf6c89ffd4dc1e9f8528a973836a03ba7eda424fabce484a4efd8"
     },
     {
       "path": "mesh/partitions/automatic-partitions.d.ts",
@@ -744,8 +744,8 @@
     },
     {
       "path": "mesh/partitions/automatic-partitions.js",
-      "bytes": 19827,
-      "sha256": "f9b19e3f34f9b41914115e9970f8070d51d76c81f53a4051ba7dd8a8b78e1ed1"
+      "bytes": 19978,
+      "sha256": "c951566571314cb4c59382962d9c915136e4207edef5adba8a1a47d47a12f5c8"
     },
     {
       "path": "mesh/partitions/partition-attempt-evidence.d.ts",
@@ -1111,6 +1111,11 @@
       "path": "mesh/placement-beliefs.js",
       "bytes": 6986,
       "sha256": "4e40796672e4569b8ddbfee1171a84c057cb87630286e77de026976050713efa"
+    },
+    {
+      "path": "mesh/preparation-progress.js",
+      "bytes": 1334,
+      "sha256": "0851f2d3d5d9e4692833534753ba63134b9f3934040a4655cef80cf58a64872a"
     },
     {
       "path": "mesh/remote-generation-requests.js",

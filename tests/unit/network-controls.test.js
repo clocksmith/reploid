@@ -57,8 +57,8 @@ describe('network model projection', () => {
       partitionPeers: [{ transportId: 'remote', available: true,
         description: { offer: { id: 'qwen' }, index: 1, phase: 'loading' } }]
     } };
-    expect(projectNetworkPeers(state)).toEqual([
-      { id: 'remote', model: 'Qwen', phase: 'loading', partitionIndex: 1, status: 'Partition 2 · loading' },
+    expect(projectNetworkPeers(state)).toMatchObject([
+      { id: 'remote', model: 'Qwen', phase: 'loading', partitionIndex: 1, status: 'Preparing' },
       { id: 'requester', model: 'No model offered', phase: null, partitionIndex: null, status: 'Connected' }
     ]);
     state.network.partitionPeers[0].available = false;
@@ -67,7 +67,7 @@ describe('network model projection', () => {
   it('never calls an unplaced offer ready or a whole-model offer a partition', () => {
     const state = { network: { consumer: { peers: [{ peerId: 'waiting' }, { peerId: 'whole', model: 'Whole model', role: 'provider' }] },
       partitionPeers: [{ transportId: 'waiting', available: true, description: { offer: { id: 'qwen' }, index: null, phase: 'waiting' } }] } };
-    expect(projectNetworkPeers(state).map(peer => peer.status)).toEqual(['Waiting for placement', 'Offered']);
+    expect(projectNetworkPeers(state).map(peer => peer.status)).toEqual(['Needs contributor', 'Status unknown']);
   });
 });
 
@@ -128,4 +128,24 @@ it('states the whole-model download and storage before full-model seeding is swi
     delete state.network.files.seedingBytes;mode.dispatchEvent(new Event('change'));
     expect(limits()).toContain('checked against your allowance when seeding starts');
   } finally {dispose();}
+});
+
+
+it('shows whole-model readiness even when the separate partition offer is idle', () => {
+  const state = { network: { consumer: { peers: [{ peerId: 'whole', model: 'qwen', readiness: 'ready', availableSlots: 1 }] },
+    partitionPeers: [{ transportId: 'whole', available: true, description: { phase: 'idle', models: [] } }] } };
+  expect(projectNetworkPeers(state)[0]).toMatchObject({ status: 'Ready', phase: 'ready', partitionIndex: null });
+  state.network.consumer.peers[0].availableSlots = 0;
+  expect(projectNetworkPeers(state)[0]).toMatchObject({ status: 'At capacity', phase: 'busy' });
+});
+
+it.each([
+  [{ kind: 'downloading', receivedBytes: 5, totalBytes: 10 }, 'Downloading', '50% of the current file'],
+  [{ kind: 'receiving' }, 'Receiving files', 'another computer'],
+  [{ kind: 'cached' }, 'Loading cache', 'already stored'],
+  [{ kind: 'pipelines', prepared: 3, total: 9 }, 'Preparing GPU', '3 of 9'],
+  [null, 'Preparing', 'has not reported the current step']
+])('shows the reported preparation step without guessing missing progress', (preparation, status, detail) => {
+  const state = { network: { consumer: { peers: [{ peerId: 'remote', model: 'qwen', readiness: 'loading', preparation }] } } };
+  expect(projectNetworkPeers(state)[0]).toMatchObject({ status, detail: expect.stringContaining(detail) });
 });
