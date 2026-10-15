@@ -29,11 +29,16 @@ const allocate = async (ledger, { commitmentId, funderKind, funderId, credits, .
     commitmentId, funderKind, funderId, externalRef: `external:${commitmentId}`, amount: credits,
     unit: { kind: 'credits' }, validFrom: clock(), validUntil: at(60 * MIN), idempotencyKey: `commit:${commitmentId}`
   });
-  return ledger.allocateFunding({ commitmentId, credits, funderKinds: [funderKind], idempotencyKey: `allocate:${commitmentId}`, ...allocation });
+  return ledger.allocateFunding({
+    commitmentId, credits, funderKinds: [funderKind], authority: { actorId: 'funding_admin_test', decisionId: `decision:${commitmentId}` },
+    idempotencyKey: `allocate:${commitmentId}`, ...allocation
+  });
 };
 
 const issuanceAuthority = async ({ provenance, amount }) => ({ allowed: true, decisionId: `test-capacity:${provenance}:${amount}` });
-const storeOptions = { policy: POLICY, clock, issuanceAuthority };
+// Test-only funding-authority double for donated-credit allocations; who holds the authority is policy.
+const fundingAuthority = async () => ({ allowed: true });
+const storeOptions = { policy: POLICY, clock, issuanceAuthority, fundingAuthority };
 
 // Each harness owns durable state; open() models a (re)started process over it.
 const harnesses = {

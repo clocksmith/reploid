@@ -15,14 +15,17 @@
  * issues subsidized lots up to its credits. Closing an allocation (release,
  * or expiry after the commitment's validity) returns the unconsumed share;
  * the consumed figure a use reports can never fall below what the ledger
- * issued, and later issuance can never exceed it. Reward reservations and
- * every release name an authority and decision; who may hold that authority
- * is decided outside the register. Status derives from validity at read time.
+ * issued, and later issuance can never exceed it. Every allocation and every
+ * release names an authority and decision; who may hold that authority is
+ * decided outside the register, by the owning use's funding-authority port
+ * (the ledger's own port for donated credit, which no other component owns).
+ * Status derives from validity at read time.
  */
 
 import {
   assertId,
   canonicalJson,
+  cloneJson,
   fail,
   hashCanonical,
   isIsoTime,
@@ -40,11 +43,14 @@ export const FUNDING_FUNDER_KINDS = Object.freeze(['operator', 'community', 'don
  * How each use's credit reaches the ledger. `whole` uses issue one lot of the
  * whole allocation into its named account; reward funding issues subsidized
  * lots against it. `ref` is the source field naming the use record.
+ * `ledgerDecided` uses have no owning component, so the ledger's
+ * funding-authority port decides their allocations and releases; rewards and
+ * Community Access ask their own ports before allocating.
  */
 const USE_RULES = Object.freeze({
-  reward_funding: Object.freeze({ provenance: 'subsidized', whole: false, ref: 'fundingId', authorityRequired: true }),
-  community_access_pool: Object.freeze({ provenance: 'community_access', whole: true, ref: 'fundingId', authorityRequired: false }),
-  donated_credit: Object.freeze({ provenance: 'donated', whole: true, ref: 'donationId', authorityRequired: false })
+  reward_funding: Object.freeze({ provenance: 'subsidized', whole: false, ref: 'fundingId', ledgerDecided: false }),
+  community_access_pool: Object.freeze({ provenance: 'community_access', whole: true, ref: 'fundingId', ledgerDecided: false }),
+  donated_credit: Object.freeze({ provenance: 'donated', whole: true, ref: 'donationId', ledgerDecided: true })
 });
 export const FUNDING_USES = Object.freeze(Object.keys(USE_RULES));
 // Lot provenance -> the register use its issuance draws on.
@@ -141,8 +147,20 @@ const returnedAmountFor = (allocation, returnedCredits) => (returnedCredits === 
 /**
  * Register operations for the ledger store, over its backend and its
  * idempotent `mutate`. `claimId(kind, key)` names uniqueness claims.
+ * `fundingAuthority(request) -> { allowed, reason? }` decides allocations and
+ * releases of ledger-decided uses; without it they fail closed.
  */
-export function createFundingRegisterOperations({ backend, policy, clock, mutate, claimId }) {
+export function createFundingRegisterOperations({ backend, policy, clock, mutate, claimId, fundingAuthority = null }) {
+  const decide = async (request) => {
+    if (typeof fundingAuthority !== 'function') {
+      fail('funding_authority_required', `${request.use} allocations and releases need the ledger's funding-authority decision port`);
+    }
+    const decision = await fundingAuthority(cloneJson(request));
+    if (decision?.allowed !== true) {
+      fail('funding_not_authorized', 'the funding authority did not allow this decision', { reason: decision?.reason ?? null });
+    }
+  };
+
   return {
     /** Record one external commitment; its external reference can be recorded only once. */
     async recordFundingCommitment(input = {}) {
@@ -183,8 +201,7 @@ export function createFundingRegisterOperations({ backend, policy, clock, mutate
      * Draw one allocation for a named use within the commitment's validity.
      * The check against the commitment's remaining total and both writes share
      * one transaction. One allocation per use record: a repeat converges.
-     * Reward funding names the authority and decision behind it; other uses
-     * record one when given.
+     * Every allocation names the authority and decision behind it.
      */
     async allocateFunding(input = {}) {
       assertKnownKeys(input, ['commitmentId', 'use', 'useRef', 'credits', 'amount', 'accountId', 'authority', 'funderKinds', 'idempotencyKey'], 'allocateFunding');
@@ -200,8 +217,14 @@ export function createFundingRegisterOperations({ backend, policy, clock, mutate
       if (!Array.isArray(funderKinds) || funderKinds.length === 0 || funderKinds.some((kind) => !FUNDING_FUNDER_KINDS.includes(kind))) {
         fail('invalid_input', `funderKinds must list the funder kinds this use accepts, from ${FUNDING_FUNDER_KINDS.join(', ')}`);
       }
-      const authority = readAuthority(suppliedAuthority, { required: rule.authorityRequired, what: `a ${fields.use} allocation` });
-      const request = { ...fields, ...(authority ? { authority } : {}) };
+      const authority = readAuthority(suppliedAuthority, { required: true, what: `a ${fields.use} allocation` });
+      const request = { ...fields, authority };
+      if (rule.ledgerDecided) {
+        await decide({
+          action: 'allocate', use: request.use, useRef: request.useRef, commitmentId: request.commitmentId,
+          credits: request.credits, amount: request.amount ?? null, accountId: request.accountId ?? null, authority
+        });
+      }
       const allocationId = allocationIdFor(request.use, request.useRef);
       const requestHash = hashCanonical(request);
       const now = clock();
@@ -292,6 +315,10 @@ export function createFundingRegisterOperations({ backend, policy, clock, mutate
       if (closure === 'expired' && input.authority !== undefined) fail('invalid_input', 'expiry follows the commitment\'s validity; it names no authority');
       const authority = readAuthority(input.authority, { required: closure === 'released', what: 'a release' });
       const request = { allocationId, consumedCredits, closure, ...(authority ? { authority } : {}) };
+      const target = authority ? await backend.get('allocations', allocationId) : null;
+      if (target && USE_RULES[target.use]?.ledgerDecided) {
+        await decide({ action: 'release', use: target.use, useRef: target.useRef, allocationId, consumedCredits, authority });
+      }
       const now = clock();
       return mutate({
         operation: 'releaseFundingAllocation', scopeId: allocationId, idempotencyKey, request, now,

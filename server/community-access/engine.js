@@ -18,6 +18,7 @@
 import {
   assertId,
   buildQuote,
+  cloneJson,
   hashCanonical,
   isNonEmptyString,
   lotIdForSource,
@@ -83,12 +84,17 @@ const emptyByFunder = () => Object.fromEntries(FUNDER_KINDS.map((kind) => [kind,
  * @param {Function} options.readCommunityCapacity admitted-capacity port: () -> evidence
  *   `{ schema, evidenceId, observedAt, admittedSlots, meanOccupancyMs? }` from the execution owners
  * @param {object} options.policy explicit Community Access policy; there is no default
+ * @param {Function} [options.fundingAuthority] funding-authority decision port:
+ *   ({ action: 'fund_pool', fundingId, commitmentId, quantity, poolAccountId,
+ *   authority: { actorId, decisionId } }) -> { allowed, reason? }. Which actors hold
+ *   that authority is policy outside this store; without the port pool funding fails closed
  */
-export function createCommunityAccess({ backend, ledger, accounts, readCommunityCapacity, policy, clock = defaultClock } = {}) {
+export function createCommunityAccess({ backend, ledger, accounts, readCommunityCapacity, policy, fundingAuthority = null, clock = defaultClock } = {}) {
   assertCommunityAccessBackend(backend);
   assertLedgerStoreContract(ledger);
   if (typeof accounts?.participantAccount !== 'function') throw new TypeError('Community Access requires an accounts port with participantAccount');
   if (typeof readCommunityCapacity !== 'function') throw new TypeError('Community Access requires a readCommunityCapacity port');
+  if (fundingAuthority !== null && typeof fundingAuthority !== 'function') throw new TypeError('fundingAuthority must be a function');
   const accessPolicy = validateCommunityAccessPolicy(policy);
   const pools = poolAccountIds(accessPolicy);
 
@@ -297,6 +303,17 @@ export function createCommunityAccess({ backend, ledger, accounts, readCommunity
     return index === -1 ? null : index + 1;
   };
 
+  /** The funding-authority port must allow the named authority's decision; it fails closed. */
+  const authorizeFunding = async (request) => {
+    if (typeof fundingAuthority !== 'function') {
+      fail('funding_authority_required', 'pool funding needs a funding-authority decision port');
+    }
+    const decision = await fundingAuthority(cloneJson(request));
+    if (decision?.allowed !== true) {
+      fail('funding_not_authorized', 'the funding authority did not allow this decision', { reason: decision?.reason ?? null });
+    }
+  };
+
   /** Move a funding record from one status to the next in one transaction; otherwise return it unchanged. */
   const advanceFunding = (fundingId, from, change) => backend.runTransaction(async (tx) => {
     const current = await tx.get('fundings', fundingId);
@@ -313,7 +330,8 @@ export function createCommunityAccess({ backend, ledger, accounts, readCommunity
       allocation = await ledger.allocateFunding({
         commitmentId: record.commitmentId, use: FUNDING_USE, useRef: record.fundingId, credits: record.quantity,
         ...(record.commitmentAmount === null ? {} : { amount: record.commitmentAmount }),
-        accountId: record.poolAccountId, funderKinds: [...FUNDER_KINDS], idempotencyKey: `community-allocation:${record.fundingId}`
+        accountId: record.poolAccountId, authority: record.authority, funderKinds: [...FUNDER_KINDS],
+        idempotencyKey: `community-allocation:${record.fundingId}`
       });
     } catch (error) {
       if (!FUNDING_REFUSAL_CODES.includes(error?.code)) throw error;
@@ -380,12 +398,14 @@ export function createCommunityAccess({ backend, ledger, accounts, readCommunity
     /**
      * Fund a declared pool account from a commitment in the ledger's funding
      * register (donor or operator; the commitment supplies the funder) and
-     * issue it as `community_access` credit there. Funding never credits a
-     * member account. The funding id is the idempotency identity; a repeat
-     * finishes an interrupted allocation or issuance.
+     * issue it as `community_access` credit there, under a named authority's
+     * decision allowed by the funding-authority port and recorded on the
+     * allocation. Funding never credits a member account. The funding id is
+     * the idempotency identity; a repeat finishes an interrupted allocation
+     * or issuance.
      */
     async recordFunding(input = {}) {
-      assertKnownKeys(input, ['fundingId', 'commitmentId', 'quantity', 'poolAccountId', 'commitmentAmount'], 'recordFunding');
+      assertKnownKeys(input, ['fundingId', 'commitmentId', 'quantity', 'poolAccountId', 'commitmentAmount', 'authority'], 'recordFunding');
       const { fundingId, commitmentId, quantity, poolAccountId, commitmentAmount } = input;
       assertId(fundingId, 'fundingId');
       assertId(commitmentId, 'commitmentId');
@@ -396,8 +416,18 @@ export function createCommunityAccess({ backend, ledger, accounts, readCommunity
       if (!pools.includes(poolAccountId)) {
         fail('not_a_pool_account', 'Community Access funding goes only to a declared pool account, never to a member account', { poolAccountId });
       }
-      const request = { fundingId, commitmentId, quantity, poolAccountId, ...(commitmentAmount === undefined ? {} : { commitmentAmount }) };
+      const named = input.authority;
+      if (!named || typeof named !== 'object' || Object.keys(named).some((key) => !['actorId', 'decisionId'].includes(key))
+        || !isNonEmptyString(named.actorId) || !isNonEmptyString(named.decisionId)) {
+        fail('invalid_input', 'pool funding needs authority { actorId, decisionId } naming the deciding authority and its decision');
+      }
+      const authority = { actorId: named.actorId, decisionId: named.decisionId };
+      const request = { fundingId, commitmentId, quantity, poolAccountId, ...(commitmentAmount === undefined ? {} : { commitmentAmount }), authority };
       const requestHash = hashCanonical(request);
+      // A recorded funding was already decided; a new one needs the port's decision first.
+      if (!await backend.get('fundings', fundingId)) {
+        await authorizeFunding({ action: 'fund_pool', fundingId, commitmentId, quantity, poolAccountId, authority });
+      }
       const now = clock();
       const record = await backend.runTransaction(async (tx) => {
         const existing = await tx.get('fundings', fundingId);

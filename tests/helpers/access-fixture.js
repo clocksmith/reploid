@@ -37,6 +37,13 @@ export const accounts = { participantAccount: async (participantId) => fx.partic
 
 export const rejectsWith = (promise, code) => expect(promise).rejects.toMatchObject({ code });
 
+// Funding-authority double: one test actor holds the authority. Who holds it in production is policy.
+export const FUNDING_ADMIN = 'funding_admin_test';
+export const fundingAuthority = async ({ authority }) => (authority.actorId === FUNDING_ADMIN
+  ? { allowed: true }
+  : { allowed: false, reason: 'not_a_funding_authority' });
+export const decidedBy = (decisionId, actorId = FUNDING_ADMIN) => ({ actorId, decisionId });
+
 // Ledger issuance authority composed from per-provenance decision ports;
 // provenance without a route stands in for its own owner and is allowed.
 export const composeIssuance = (routes) => async (request) => (routes[request.provenance]

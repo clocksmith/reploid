@@ -83,20 +83,24 @@ const harnesses = {
   }
 };
 
-/** One process: the ledger (and its funding register) with rewards and Community Access over their own stores. */
+/**
+ * One process: the ledger (and its funding register) with rewards and Community Access over their own stores.
+ * One funding-authority port (or none) serves rewards, Community Access and the ledger's donated credit.
+ */
 const openServices = (harness, overrides = {}) => {
+  const fundingAuthority = 'fundingAuthority' in overrides ? overrides.fundingAuthority : composition.fundingAuthority;
   const communityBackend = harness.community();
   const poolAuthority = createFundingIssuanceAuthority({ backend: communityBackend, policy: ACCESS_POLICY });
   const rewardBackend = harness.reward();
   const { ledger, rewards, issuanceAuthority } = composeContributionRewards({
     ...composition,
     backend: rewardBackend,
-    createLedger: ({ issuanceAuthority: authority }) => harness.ledger({ issuanceAuthority: authority }),
+    createLedger: ({ issuanceAuthority: authority }) => harness.ledger({ issuanceAuthority: authority, fundingAuthority }),
     otherProvenance: (request) => (request.provenance === 'community_access' ? poolAuthority(request) : otherProvenance(request)),
     ...overrides
   });
   const access = createCommunityAccess({
-    backend: communityBackend, ledger, policy: ACCESS_POLICY, clock,
+    backend: communityBackend, ledger, policy: ACCESS_POLICY, fundingAuthority, clock,
     accounts: { participantAccount: async () => null }, readCommunityCapacity: async () => null
   });
   return { ledger, rewards, access, rewardBackend, issuanceAuthority };
@@ -114,9 +118,9 @@ const reserve = (rewards, { fundingId, commitmentId = 'commitment_1', amount, ..
 });
 const release = (rewards, fundingId) => rewards.releaseFunding({ fundingId, authority: decidedBy(`decision:release:${fundingId}`) });
 // Donated credit into a member account, drawing a donated_credit allocation.
-const donate = async (ledger, { donationId, commitmentId = 'commitment_1', amount, accountId = 'acct_c1' }) => {
+const donate = async (ledger, { donationId, commitmentId = 'commitment_1', amount, accountId = 'acct_c1', authority = decidedBy(`decision:donate:${donationId}`) }) => {
   const allocation = await ledger.allocateFunding({
-    commitmentId, use: 'donated_credit', useRef: donationId, credits: amount, accountId, funderKinds: ['operator', 'donor'], idempotencyKey: `allocate:${donationId}`
+    commitmentId, use: 'donated_credit', useRef: donationId, credits: amount, accountId, authority, funderKinds: ['operator', 'donor'], idempotencyKey: `allocate:${donationId}`
   });
   const lot = await ledger.issueCredits({
     accountId, provenance: 'donated', amount, idempotencyKey: `donate:${donationId}`,
@@ -125,7 +129,7 @@ const donate = async (ledger, { donationId, commitmentId = 'commitment_1', amoun
   return { allocation, lot };
 };
 const pool = (access, { fundingId, commitmentId = 'commitment_1', quantity, ...rest }) => access.recordFunding({
-  fundingId, commitmentId, quantity, poolAccountId: 'pool_general', ...rest
+  fundingId, commitmentId, quantity, poolAccountId: 'pool_general', authority: decidedBy(`decision:pool:${fundingId}`), ...rest
 });
 // An accepted readiness validation awaiting issuance, with the fields allocation and issuance read.
 const pendingValidation = (backend, validationId, amount) => backend.runTransaction(async (tx) => {
@@ -166,8 +170,12 @@ describe.each(Object.keys(harnesses))('funding-commitment register (%s store)', 
     expect(await ledger.getLot(donated.lot.lotId)).toMatchObject({
       provenance: 'donated', accountId: 'acct_c1', quantity: 20, source: { donorId: 'operator_test', commitmentId: 'commitment_1', allocationId: donated.allocation.allocationId }
     });
-    expect(await ledger.getFundingAllocation(pooled.allocationId)).toMatchObject({ use: 'community_access_pool', status: 'consumed', issuedCredits: 60, lotId: pooled.lotId });
-    expect(await ledger.getFundingAllocation(donated.allocation.allocationId)).toMatchObject({ use: 'donated_credit', status: 'consumed', issuedCredits: 20, lotId: donated.lot.lotId });
+    expect(await ledger.getFundingAllocation(pooled.allocationId)).toMatchObject({
+      use: 'community_access_pool', status: 'consumed', issuedCredits: 60, lotId: pooled.lotId, authority: decidedBy('decision:pool:funding_pool')
+    });
+    expect(await ledger.getFundingAllocation(donated.allocation.allocationId)).toMatchObject({
+      use: 'donated_credit', status: 'consumed', issuedCredits: 20, lotId: donated.lot.lotId, authority: decidedBy('decision:donate:donation_1')
+    });
     expect(await ledger.getFundingAllocation(reserved.allocationId)).toMatchObject({
       use: 'reward_funding', status: 'active', credits: 40, issuedCredits: 0, authority: decidedBy('decision:reserve:funding_reward')
     });
@@ -223,8 +231,8 @@ describe.each(Object.keys(harnesses))('funding-commitment register (%s store)', 
     expect(snapshot.subsidy).toMatchObject({ communityAccessConsumed: 30, subsidizedRewardsIssued: 0 });
   });
 
-  it('requires a named authority, allowed by the funding-authority port, to reserve and release', async () => {
-    const { ledger, rewards } = services;
+  it('requires a named authority, allowed by the funding-authority port, for every allocation and release', async () => {
+    const { ledger, rewards, access } = services;
     await commitment(ledger, { amount: 100 });
     await expect(rewards.reserveFunding({ fundingId: 'f_unnamed', commitmentId: 'commitment_1', amount: 5, categories: ['prepared_readiness'], idempotencyKey: 'r:unnamed' }))
       .rejects.toMatchObject({ code: 'invalid_funding', details: { errors: expect.arrayContaining([expect.stringContaining('authority')]) } });
@@ -239,10 +247,21 @@ describe.each(Object.keys(harnesses))('funding-commitment register (%s store)', 
     await rejectsWith(rewards.releaseFunding({ fundingId: 'f_ok', authority: decidedBy('decision:stranger', 'stranger') }), 'funding_not_authorized');
     expect(await rewards.getFunding('f_ok')).toMatchObject({ status: 'active' });
 
-    // The register requires the authority itself, whoever calls it; expiry names none.
-    await rejectsWith(ledger.allocateFunding({
-      commitmentId: 'commitment_1', use: 'reward_funding', useRef: 'f_direct', credits: 1, funderKinds: ['operator'], idempotencyKey: 'direct'
-    }), 'funding_authority_required');
+    // Community Access pools and donated credit need the same named, allowed decision.
+    await rejectsWith(pool(access, { fundingId: 'p_unnamed', quantity: 5, authority: undefined }), 'invalid_input');
+    await expect(pool(access, { fundingId: 'p_stranger', quantity: 5, authority: decidedBy('decision:stranger', 'stranger') }))
+      .rejects.toMatchObject({ code: 'funding_not_authorized', details: { reason: 'not_a_funding_authority' } });
+    expect(await access.getFunding('p_stranger')).toBeNull();
+    await expect(donate(ledger, { donationId: 'd_stranger', amount: 5, authority: decidedBy('decision:stranger', 'stranger') }))
+      .rejects.toMatchObject({ code: 'funding_not_authorized', details: { reason: 'not_a_funding_authority' } });
+    expect(await ledger.getFundingCommitment('commitment_1')).toMatchObject({ allocated: 5 });
+
+    // The register requires the authority itself, for every use, whoever calls it; expiry names none.
+    for (const [use, accountId] of [['reward_funding', undefined], ['community_access_pool', 'pool_general'], ['donated_credit', 'acct_c1']]) {
+      await rejectsWith(ledger.allocateFunding({
+        commitmentId: 'commitment_1', use, useRef: `direct_${use}`, credits: 1, ...(accountId ? { accountId } : {}), funderKinds: ['operator'], idempotencyKey: `direct:${use}`
+      }), 'funding_authority_required');
+    }
     await rejectsWith(ledger.releaseFundingAllocation({
       allocationId: reserved.allocationId, consumedCredits: 0, closure: 'released', idempotencyKey: 'direct-release'
     }), 'funding_authority_required');
@@ -250,10 +269,13 @@ describe.each(Object.keys(harnesses))('funding-commitment register (%s store)', 
       allocationId: reserved.allocationId, consumedCredits: 0, closure: 'expired', authority: decidedBy('decision:expire'), idempotencyKey: 'direct-expire'
     }), 'invalid_input');
 
-    // Without the port nothing is reserved or released.
+    // Without the port nothing is reserved, pooled, donated or released.
     const unported = openServices(harness, { fundingAuthority: null });
     await rejectsWith(reserve(unported.rewards, { fundingId: 'f_unported', amount: 5 }), 'funding_authority_required');
+    await rejectsWith(pool(unported.access, { fundingId: 'p_unported', quantity: 5 }), 'funding_authority_required');
+    await rejectsWith(donate(unported.ledger, { donationId: 'd_unported', amount: 5 }), 'funding_authority_required');
     await rejectsWith(release(unported.rewards, 'f_ok'), 'funding_authority_required');
+    expect(await ledger.getFundingCommitment('commitment_1')).toMatchObject({ allocated: 5 });
 
     expect(await release(rewards, 'f_ok')).toMatchObject({ status: 'released', returned: 5, releaseAuthority: decidedBy('decision:release:f_ok') });
     expect(await ledger.getFundingAllocation(reserved.allocationId)).toMatchObject({
