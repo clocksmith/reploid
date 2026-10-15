@@ -1070,8 +1070,8 @@
     },
     {
       "path": "retrieval/index.d.ts",
-      "bytes": 16180,
-      "sha256": "2f40b6a14ada05f616971689cbf4b4fde05b6a82ba247c14590b82224a70a768"
+      "bytes": 16211,
+      "sha256": "4a6e6fad23d5f8bc6e4ee9cdb3cacb16ed060690008e9e984eb17701283e23c8"
     },
     {
       "path": "retrieval/index.js",
@@ -1100,8 +1100,8 @@
     },
     {
       "path": "retrieval/review-queue.js",
-      "bytes": 5035,
-      "sha256": "38c9cfefb8c60be676aa1d561de2abfed589c1dc6ee71531d95d6998a32ed366"
+      "bytes": 5042,
+      "sha256": "1fd12b5bff3763b66edee576dbaa04d7465f33df2d6b367225581a4fd9b31336"
     },
     {
       "path": "retrieval/sources.js",
@@ -1110,8 +1110,8 @@
     },
     {
       "path": "retrieval/support-review.js",
-      "bytes": 11880,
-      "sha256": "92420df7ae3725f830678c1fe6361d1296a7c4203dcaef775d57cc2cb9d149c5"
+      "bytes": 12388,
+      "sha256": "3d14f3507f8e3e00a668f63a1ae8fb6f1a76cf939803dca5d2f8e0176fd6ef15"
     },
     {
       "path": "retrieval/text.js",
