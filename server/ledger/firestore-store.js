@@ -13,14 +13,14 @@ import { cloneJson } from './domain.js';
 import { createLedgerStore } from './engine.js';
 import { LEDGER_COLLECTIONS, assertLedgerStoreContract } from './store-contract.js';
 
-export function createFirestoreLedgerBackend({ firestore, collectionPrefix = '' } = {}) {
+export function createFirestoreLedgerBackend({ firestore, collectionPrefix = '', collections = LEDGER_COLLECTIONS } = {}) {
   if (!firestore?.collection || typeof firestore.runTransaction !== 'function') {
     throw new Error('Firestore collection() and runTransaction() are required');
   }
   const prefix = String(collectionPrefix || '').trim();
   const collection = (name) => {
-    const physical = LEDGER_COLLECTIONS[name];
-    if (!physical) throw new TypeError(`Unknown ledger collection: ${name}`);
+    const physical = collections[name];
+    if (!physical) throw new TypeError(`Unknown collection: ${name}`);
     return firestore.collection(prefix ? `${prefix}_${physical}` : physical);
   };
   const ref = (name, id) => collection(name).doc(id);

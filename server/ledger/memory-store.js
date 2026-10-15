@@ -16,10 +16,11 @@ export const createMemoryLedgerState = () => ({ tables: new Map() });
  * @param {object} [options]
  * @param {object} [options.state] shared tables from createMemoryLedgerState()
  * @param {object} [options.hooks] test-only fault points: beforeCommit(writes), afterCommit(writes)
+ * @param {object} [options.collections] logical collection names this backend accepts
  */
-export function createMemoryLedgerBackend({ state = createMemoryLedgerState(), hooks = {} } = {}) {
+export function createMemoryLedgerBackend({ state = createMemoryLedgerState(), hooks = {}, collections = LEDGER_COLLECTIONS } = {}) {
   const table = (name) => {
-    if (!LEDGER_COLLECTIONS[name]) throw new TypeError(`Unknown ledger collection: ${name}`);
+    if (!collections[name]) throw new TypeError(`Unknown collection: ${name}`);
     if (!state.tables.has(name)) state.tables.set(name, new Map());
     return state.tables.get(name);
   };
