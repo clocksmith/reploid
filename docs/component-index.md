@@ -29,6 +29,7 @@ Recursive authority charters discovered from the repository root.
 | Agent Tools | [`self/tools/CATSCAN.md`](../self/tools/CATSCAN.md) | Browser Runtime | Expose bounded, schema-defined operations that agents can invoke without bypassing verification, staging, or promotion controls. |
 | Browser Interfaces | [`self/ui/CATSCAN.md`](../self/ui/CATSCAN.md) | Browser Runtime | Render each declared surface's authoritative state and actions without inventing new authority or widening claims. |
 | Generated Browser Library Assets | [`self/vendor/CATSCAN.md`](../self/vendor/CATSCAN.md) | Browser Runtime | Deliver reusable browser packages to the existing static application. |
+| Account Identity | [`server/accounts/CATSCAN.md`](../server/accounts/CATSCAN.md) | Hosted Services | One account per sign-in subject, usable from every registered device; keys count for it only while registered. |
 | Change Control Service | [`server/change-control/CATSCAN.md`](../server/change-control/CATSCAN.md) | Hosted Services | Persist Change Passports under tenant, role, idempotency, GitHub, trigger, and effect boundaries. |
 | Cloudflare Discovery and TURN | [`server/cloudflare/CATSCAN.md`](../server/cloudflare/CATSCAN.md) | Hosted Services | Provide bounded public/private peer discovery and authenticated temporary TURN credentials. |
 | Service Credit Ledger | [`server/ledger/CATSCAN.md`](../server/ledger/CATSCAN.md) | Hosted Services | Durable credit accounts, quotes, reservations and settlement giving each billable event exactly one economic effect. |

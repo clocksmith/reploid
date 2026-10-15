@@ -5,6 +5,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { createNativeArtifactCache, createNativeModelFiles } from '../../server/native-model-files.js';
+import { CUSTODY_CERTIFICATE_LIFETIME_MS, checkCustodyKeyCertificate, createCustodyKeyCertifier } from '../../server/accounts/custody-certificate.js';
+import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 const roots = [], hosts = [];
 afterEach(async () => { await Promise.allSettled(hosts.splice(0).map(host => host.close())); await Promise.all(roots.splice(0).map(root => fs.rm(root, { recursive: true, force: true }))); });
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -16,7 +18,7 @@ function channels() {
     close() { if (this.readyState === 'closed') return; this.readyState = 'closed'; this.dispatchEvent(new Event('close')); queueMicrotask(() => pair[1-index].close()); } }));
   return pair;
 }
-async function fixture(count = 2) {
+async function fixture(count = 2, { certify = null } = {}) {
   const stores = [], callbacks = [], owners = [], directories = [], cacheDirectories = [], writes = [];
   const chunks = [Buffer.from([1,2,3,4]), Buffer.from([5,6,7,8])], whole = Buffer.concat(chunks);
   const manifest = Buffer.from(JSON.stringify({ modelId: 'native-fixture', hashAlgorithm: 'sha256', shards: [{ filename: 'weights.bin', size: 8, hash: hash(whole) }] }));
@@ -36,7 +38,8 @@ async function fixture(count = 2) {
       sendToPeer(peer, type, payload) { const message = structuredClone(payload); writes.push({ from: i, peer, type, message }); network.intercept({ from: i, peer, type, message }); queueMicrotask(() => stores[Number(peer)].get(type)?.(String(i), message)); return true; },
       broadcast(type, payload) { for (const peer of this.getConnectedPeers()) this.sendToPeer(peer.id, type, payload); },
       openDataChannel(peer) { const [left,right] = channels(); callbacks[Number(peer)](String(i), right); return left; } };
-    const host = await createNativeModelFiles({ transport, modelDirectory: directory, cacheDirectory }); owners.push(host); hosts.push(host);
+    const host = await createNativeModelFiles({ transport, modelDirectory: directory, cacheDirectory, ...(certify ? { certifyCustodyKey: certify(i) } : {}) });
+    owners.push(host); hosts.push(host);
   }
   return { owners, model, chunks, directories, cacheDirectories, writes, network,
     async share() { for (const host of owners.slice(1)) await host.share(model, true); await new Promise(resolve => setTimeout(resolve, 10)); } };
@@ -61,6 +64,27 @@ it('persists only requested verified pieces and reopens them without a supplier'
     try { expect(new Uint8Array(await reopened.storage.loadShardRange(0, 0, 4))).toEqual(new Uint8Array(f.chunks[0])); }
     finally { await reopened.storage.close(); }
   } finally { await source.storage.close(); }
+});
+it('certifies the custody key its grants carry only when a participant identity certifier is supplied', async () => {
+  const identities = [await createSigningIdentity({ algorithm: 'Ed25519' }), await createSigningIdentity({ algorithm: 'ECDSA' })];
+  const issued = [];
+  const f = await fixture(2, { certify: i => createCustodyKeyCertifier({ identity: identities[i], onIssue: c => issued.push(c) }).certify });
+  const certificates = await Promise.all(f.owners.map(host => host.custodyCertificate()));
+  for (const [i, certificate] of certificates.entries()) {
+    expect(certificate).toMatchObject({ participantId: identities[i].peerId, custodyPeerId: String(i) });
+    expect(await checkCustodyKeyCertificate(certificate, { publicJwk: identities[i].publicJwk, atMs: Date.now(),
+      maxLifetimeMs: CUSTODY_CERTIFICATE_LIFETIME_MS, maxClockSkewMs: 0 })).toEqual([]);
+  }
+  expect(await f.owners[0].custodyCertificate()).toBe(certificates[0]); expect(issued).toEqual(certificates);
+  await f.share(); const source = await f.owners[0].preparePartitionSource(f.model);
+  try {
+    await source.storage.loadShardRange(0, 0, 4);
+    // The requester identity custody requests carry is exactly the certified key and custody peer id.
+    const requesters = f.writes.filter(row => row.type === 'reploid:custody-request' && row.message.requester).map(row => row.message.requester);
+    expect(requesters.length).toBeGreaterThan(0);
+    for (const requester of requesters) expect(requester).toEqual({ peerId: certificates[0].custodyPeerId, publicKey: certificates[0].custodyPublicKey });
+  } finally { await source.storage.close(); }
+  expect(await (await fixture(1)).owners[0].custodyCertificate()).toBeNull();
 });
 it('binds Capsule artifact reads to catalog identities and complete authenticated piece ranges', async () => {
   const f = await fixture(); await f.share();

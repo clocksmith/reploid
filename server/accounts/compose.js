@@ -1,0 +1,111 @@
+/**
+ * @fileoverview Compose accounts with the credit ledger and contribution
+ * rewards. The account store supplies their identity ports; quotes, spending
+ * and offer acceptance take their account and device from an authenticated
+ * session. No HTTP routes are defined here.
+ */
+
+import { composeContributionRewards } from '../rewards/engine.js';
+import { assertKnownKeys, fail } from './domain.js';
+import { createAccountStore } from './engine.js';
+
+/**
+ * Identity ports for the ledger and rewards. Each answer is read at call
+ * time, so a revocation committed earlier always applies.
+ *
+ *   participantAccount(participantId, { at }?) -> accountId | null
+ *   verifyCustodyKey({ certificate, at }) -> { participantId, custodyPeerId, publicKey } | null
+ *   accountLinks(accountA, accountB) -> [{ kind, evidenceId, linkId }]
+ *   accountOwner(accountId) -> ownerId | null
+ *   deviceOwnerAuthorization(participantId) -> owner record | null
+ *
+ * `at` (ISO) is the signature or work time; it narrows acceptance and never
+ * revives a revoked registration. Without it the check covers now.
+ */
+export function createAccountIdentityPorts(accounts) {
+  return Object.freeze({
+    async participantAccount(participantId, { at } = {}) {
+      return (await accounts.resolveParticipant(participantId, { at }))?.accountId ?? null;
+    },
+    async verifyCustodyKey({ certificate, at } = {}) {
+      const verified = await accounts.verifyCustodyKey({ certificate, at });
+      return verified.ok ? { participantId: verified.participantId, custodyPeerId: verified.custodyPeerId, publicKey: verified.publicKey } : null;
+    },
+    async accountLinks(accountA, accountB) {
+      return (await accounts.linksBetween(accountA, accountB)).map(({ kind, evidenceId, linkId }) => ({ kind, evidenceId, linkId }));
+    },
+    async accountOwner(accountId) {
+      return (await accounts.getAccount(accountId))?.ownerId ?? null;
+    },
+    async deviceOwnerAuthorization(participantId) {
+      const resolved = await accounts.resolveParticipant(participantId);
+      return resolved ? accounts.getOwnerRecord(resolved.deviceId) : null;
+    }
+  });
+}
+
+/**
+ * Session-derived entry points. A caller never names its own account or
+ * device: they come from the session, and a revoked device's sessions stop
+ * working when the revocation commits.
+ */
+export function createAccountGuards({ accounts, ledger, rewards }) {
+  return Object.freeze({
+    /** A quote for the session's account; needs a session acting as an active device. */
+    async createQuote({ sessionToken, ...input } = {}) {
+      const auth = await accounts.authorizeDevice(sessionToken);
+      if (input.accountId !== undefined && input.accountId !== auth.accountId) fail('account_mismatch', 'quotes are issued only to the session account');
+      return ledger.createQuote({ ...input, accountId: auth.accountId });
+    },
+
+    /** Spending: accept a quote as the session's active device. */
+    async acceptQuote({ sessionToken, ...input } = {}) {
+      assertKnownKeys(input, ['quoteId', 'quoteHash', 'idempotencyKey'], 'acceptQuote');
+      const auth = await accounts.authorizeDevice(sessionToken);
+      return ledger.acceptQuote({ ...input, accountId: auth.accountId, deviceId: auth.deviceId });
+    },
+
+    /**
+     * Accept a contribution offer for the session's account. A native
+     * contributor must run under the owner policy recorded for its device.
+     */
+    async acceptOffer({ sessionToken, ...input } = {}) {
+      assertKnownKeys(input, ['offerId', 'offerHash', 'ownerAuthorization', 'idempotencyKey'], 'acceptOffer');
+      const auth = await accounts.authenticate(sessionToken);
+      const offer = typeof input.offerId === 'string' ? await rewards.getOffer(input.offerId) : null;
+      const contributor = offer ? await accounts.resolveParticipant(offer.work.participantId) : null;
+      if (contributor?.host === 'native') {
+        const record = await accounts.getOwnerRecord(contributor.deviceId);
+        if (!record || record.ownerPolicyDigest !== input.ownerAuthorization?.digest) {
+          fail('owner_authorization_unrecorded', 'native contribution needs the owner policy recorded for this device');
+        }
+      }
+      return rewards.acceptOffer({ ...input, accountId: auth.accountId });
+    }
+  });
+}
+
+/**
+ * Build the account store, ledger and rewards over their backends. New
+ * accounts open their credit account with the account's owner id; rewards
+ * read identity through the account ports.
+ */
+export function composeAccountServices({
+  accountBackend, accountPolicy, providers, rewardBackend, createLedger, rewardPolicy, issuancePolicy,
+  readAdmittedCapacity, otherProvenance = null, readinessProber = null, clock, createId, random
+} = {}) {
+  let ledger = null;
+  const accounts = createAccountStore({
+    backend: accountBackend, policy: accountPolicy, providers, clock, createId,
+    openCreditAccount: (input) => ledger.openAccount(input)
+  });
+  const identity = createAccountIdentityPorts(accounts);
+  const composed = composeContributionRewards({
+    backend: rewardBackend, createLedger, rewardPolicy, issuancePolicy, identity, readAdmittedCapacity, otherProvenance, readinessProber,
+    clock, createId, random
+  });
+  ledger = composed.ledger;
+  return { accounts, identity, ...composed, guards: createAccountGuards({ accounts, ledger, rewards: composed.rewards }) };
+}
+
+export default composeAccountServices;
