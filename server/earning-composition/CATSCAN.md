@@ -7,7 +7,7 @@ Parent: [Hosted Services](../CATSCAN.md)
 Operators enable the earning routes from environment and one policy file kept outside the repository.
 
 ## Authority
-- Owns store selection, provider selection, policy-file reading, quote and offer templates, conversion publication from policy, operator-credential digests, evidence-file ports.
+- Owns store and provider selection, policy reading, quote and offer templates, conversion publication, operator digests, evidence files, scheduler hosting.
 - Excludes policy values, credentials, component rules, route behavior, capacity measurement.
 
 ## Scope
@@ -25,19 +25,20 @@ Outputs:
 ## Invariants
 - Files are absolute paths outside the repository; the repository ships no policy or credential.
 - No price, rate, budget, deadline or limit defaults; components validate their own sections.
-- Real providers only when their variables are set; test sign-in and processor only when switched on, never in production.
+- Real providers only when configured; test sign-in and processor only when switched on, never in production.
 - Production refuses memory stores; all stores share one database.
 - Quotes and offers come only from templates; clients name a model or category, never terms.
 - Templates the ledger or Community Access would refuse refuse to start.
 - A published conversion id never changes; conflicting policy refuses to start.
+- Deferred work runs through the scheduler, in-process or external; production with evidence terms or Community Access requires it.
 - Operator tokens are matched by SHA-256 digest; the file holds none.
 
 ## Acceptance
-- Evidence: [composition tests](../../tests/integration/earning-composition.test.js) on memory and Firestore.
-- Limits: capacity evidence is an operator file until execution owners publish it; live providers await acceptance.
+- Evidence: [composition](../../tests/integration/earning-composition.test.js) and [scheduler](../../tests/integration/earning-scheduler.test.js) tests.
+- Limits: operator-declared capacity evidence; live providers await acceptance.
 
 ## Non-goals
-- Choosing prices, rewards, budgets or providers; hosting triggers or scheduling.
+- Choosing prices, rewards, budgets, providers or intervals; cron triggers.
 
 ## Freedom
 Preserve boundaries; pass acceptance.

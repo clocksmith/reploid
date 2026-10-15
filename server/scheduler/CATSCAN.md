@@ -4,7 +4,7 @@ Parent: [Hosted Services](../CATSCAN.md)
 
 ## Target
 
-Due resume, expiry, challenge and probe work runs on an explicit schedule, once per item, across restarts and concurrent runners.
+Due resume, expiry, admission, challenge and probe work runs on an explicit schedule, once per item, across restarts and concurrent runners.
 
 ## Authority
 - Owns job leases, pass records, schedule validation, contract obligation slots and the [operator entry point](operator.js).

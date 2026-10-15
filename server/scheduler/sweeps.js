@@ -90,6 +90,19 @@ export function createSweepJobs({ ledger = null, rewards = null, access = null, 
         return { items: expired.map((requestId) => ({ ref: requestId, status: 'unavailable' })), backlog: backlog(expired.length, limit) };
       }
     };
+    // One admission pass: finished requests free their slots, interrupted admissions finish, and waiting
+    // requests are admitted in fair order while admitted capacity and pool funding allow. Admission
+    // re-derives from durable entries, so a repeated or overlapping pass admits nobody twice.
+    jobs['community-access.admitWaiting'] = {
+      async run({ limit }) {
+        const { released = [], expired = [], admitted, pending } = await access.admitWaiting({ limit });
+        return {
+          items: [...released.map((requestId) => ({ ref: requestId, status: 'released' })), ...expired.map((requestId) => ({ ref: requestId, status: 'unavailable' })),
+            ...admitted.map((requestId) => ({ ref: requestId, status: 'admitted' })), ...pending.map((requestId) => ({ ref: requestId, status: 'pending' }))],
+          backlog: backlog(admitted.length, limit)
+        };
+      }
+    };
   }
   if (payments) {
     // Payments still waiting on the processor or the ledger reconcile from authoritative status.
