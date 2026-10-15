@@ -8,6 +8,17 @@ const strip = (items) => `<div class="pool-row pool-gap-md">${items.join('')}</d
 // Every specimen names its class the same way: lowercase, monospace, as written in markup.
 const name = (text) => `<code class="pool-mono pool-caption pool-muted">${text}</code>`;
 const PRIMITIVES = [
+  { id: 'diamond', title: 'Diamond: idle, loading, measured progress and completion', render: async () => {
+    const { renderDiamond } = await import('../components/diamond.js');
+    return `<div class="pool-columns">${['idle', 'loading', 'progress', 'complete'].map(state => `<section class="pool-stack pool-gap-sm"><span class="pool-caption pool-muted">${state}</span>${renderDiamond({ id: `specimen-${state}`, state, progress: state === 'progress' ? 0.42 : null, label: state === 'loading' ? 'Loading' : 'Model download' })}</section>`).join('')}</div>`;
+  }, bind: async root => {
+    const { bindDiamond } = await import('../components/diamond.js');
+    const bindings = [...root.querySelectorAll('[data-diamond]')].map(element => bindDiamond(element, {
+      state: element.dataset.diamondState, progress: element.dataset.diamondState === 'progress' ? 0.42 : null,
+      label: 'Loading'
+    }, { enhance: true }));
+    window.addEventListener('pagehide', () => bindings.forEach(binding => binding.dispose()), { once: true });
+  } },
   { id: 'surfaces', title: 'Surfaces: pool-surface, pool-card, pool-well, pool-divider, pool-list, pool-edge-*', render: async () => `<div class="pool-columns">
     <section class="pool-surface pds-pad pool-stack pool-gap-sm">${name('pool-surface')}<p class="pool-small">Raised material. The composition owns padding.</p></section>
     <section class="pool-card pool-stack pool-gap-sm">${name('pool-card')}<p class="pool-small">Raised material with its own padding.</p></section>
@@ -110,11 +121,11 @@ export const SPECIMENS = [...PRIMITIVE_GROUPS, ...COMPOSITION_GROUPS].flatMap((g
 /** The conversation fixture from the chat-rail layout test: two threads, one completed split attempt. */
 async function bindConversation(root) {
   const { bindConversationWorkspace } = await import(UI + 'conversation-workspace.js');
-  const model = { id: 'qwen', name: 'Qwen 3.5 0.8B', availability: 'ready' };
+  const model = { id: 'qwen', identity: 'fixture:model', name: 'Qwen 3.5 0.8B', availability: 'ready', contextLength: 4096 };
   const thread = { id: 'thread', title: 'A conversation', model, permissions: { sharingScope: 'mesh' }, grants: [],
     messages: [{ id: 'q', role: 'user', content: 'Jump!' }, { id: 'r', role: 'assistant', attemptId: 'a', content: 'Ready for the challenge.' }],
     attempts: [{ id: 'a', status: 'completed', execution: { placement: 'two-device-layer-partition', participantA: 'c', participantB: 'a',
-      requesterId: 'requester', stepSummary: { metrics: { localStepMs: { count: 4, total: 1000 }, remoteStepMs: { count: 4, total: 3000 } } } },
+      requesterId: 'requester', completion: { promptTokenCount: 768, generatedTokenCount: 256 }, stepSummary: { metrics: { localStepMs: { count: 4, total: 1000 }, remoteStepMs: { count: 4, total: 3000 } } } },
       retrieval: { outcome: 'retrieved', sources: [{ number: 1, title: 'Doppler runs models with WebGPU', url: 'https://example.org/doppler' },
         { number: 2, title: 'Reploid shares browser capacity', url: 'https://example.org/reploid' }] } }] };
   const state = { participantId: 'requester', models: [model], defaultModel: model, threads: [thread, { ...thread, id: 'old', title: 'Earlier' }],

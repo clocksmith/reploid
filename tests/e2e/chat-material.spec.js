@@ -13,7 +13,7 @@ async function installConversation(page, theme) {
     fixture.innerHTML = renderNav('home')
       + '<div class="pool-route-content">' + renderConversationWorkspace() + '</div>';
     document.body.replaceChildren(fixture);
-    const model = { id: 'fixture-model', name: 'Presentation model', identity: 'sha256:' + 'a'.repeat(64), availability: 'ready' };
+    const model = { id: 'fixture-model', name: 'Presentation model', identity: 'sha256:' + 'a'.repeat(64), availability: 'ready', contextLength: 4096 };
     let state;
     const listeners = new Set();
     const drafts = new Map();
@@ -55,7 +55,7 @@ async function installConversation(page, theme) {
         permissions: { sharingScope: 'mesh' }, grants: [],
         messages: [{ id: 'question', role: 'user', content: 'Check the formatter against malformed JSON.' },
           { id: 'response', role: 'assistant', attemptId: 'attempt', content: mode === 'completed' ? 'Valid values are preserved. Two malformed inputs need a clearer error.' : 'Checking edge cases…' }],
-        attempts: [{ id: 'attempt', status: mode, execution: { placement: 'two-device-layer-partition', participantA: 'fixture-A', participantB: 'fixture-B', requesterId: 'requester', splitLayer: 12 },
+        attempts: [{ id: 'attempt', status: mode, execution: { placement: 'two-device-layer-partition', participantA: 'fixture-A', participantB: 'fixture-B', requesterId: 'requester', splitLayer: 12, ...(mode === 'completed' ? { completion: { promptTokenCount: 768, generatedTokenCount: 256 } } : {}) },
           approval: mode === 'approval' ? { id: 'approval', peerId: 'fixture-peer', modelId: model.id,
             input: 'Check these public JSON edge cases.', options: {}, limits: { maxOutputTokens: 1024 } } : null }] };
       state = { models: [{ ...model, availability: mode === 'preparing' ? 'preparing' : empty ? 'unavailable' : 'ready' }], defaultModel: model,
@@ -348,6 +348,8 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
       await page.locator('[data-toggle-thread-rail]').click();
       await expect(threads).toHaveCount(mode === 'empty' ? 0 : 6);
       await expect(page.locator('[data-rail-digest="conversation"]')).toBeVisible();
+      await expect(page.locator('[data-context-percent]')).toHaveText(mode === 'completed' ? '25%' : '—');
+      await expect(page.locator('[data-composer-area] [data-execution-location]')).toHaveCount(0);
       await expect(page.locator('[data-rail-digest="conversation"]')).toHaveText({ empty: 'No model ready', executing: 'Executing', interrupted: 'Interrupted', completed: 'Complete' }[mode]);
       await expect(page.locator('[data-contextual-inspector]')).not.toBeVisible();
       const expanded = await page.locator('[data-thread-sidebar]').boundingBox();

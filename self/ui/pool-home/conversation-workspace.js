@@ -1,3 +1,4 @@
+import { renderContextIndicator, updateContextIndicator } from './context-indicator.js';
 import { withComputerLabels } from './computer-labels.js';
 import { interfaceIcon } from '../components/interface-icons.js';
 import { createConversationList } from './conversation-list.js';
@@ -62,7 +63,7 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
             <button class="pool-button btn-primary pool-icon" type="button" data-composer-stop aria-label="Stop" title="Stop" hidden>${interfaceIcon('stop')}</button>
           </div>
         </div>
-        <div class="chat-composer-notices"><div class="chat-execution-location"><span class="pool-small pool-muted">Run on</span><div class="pool-segmented" data-execution-location role="group" aria-label="Execution location"><button class="pool-segment pool-caption" type="button" data-execution-choice="auto" aria-pressed="true">Automatic</button><button class="pool-segment pool-caption" type="button" data-execution-choice="local" aria-pressed="false">This device</button><button class="pool-segment pool-caption" type="button" data-execution-choice="network" aria-pressed="false">Network</button></div></div><p class="pool-small pool-muted" data-answer-limit hidden></p><span class="pool-chip" data-web-search-on hidden>Web search on</span><p class="chat-setup-hint pool-small pool-muted" id="chat-model-status" data-model-status role="status" hidden></p><button class="pool-button btn-ghost" type="button" data-retry-connection hidden>Retry connection</button></div>
+        <div class="chat-composer-notices">${renderContextIndicator()}<p class="pool-small pool-muted" data-answer-limit hidden></p><span class="pool-chip" data-web-search-on hidden>Web search on</span><p class="chat-setup-hint pool-small pool-muted" id="chat-model-status" data-model-status role="status" hidden></p><button class="pool-button btn-ghost" type="button" data-retry-connection hidden>Retry connection</button></div>
         <p class="chat-attachment-help pool-small pool-muted" data-attachment-help hidden>Text files: up to 8, 64 KB each, 128 KB total.</p>
       </form></footer>
       <dialog class="chat-model-setup pool-surface pool-small" data-rename-dialog aria-labelledby="chat-rename-title">
@@ -113,6 +114,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (!open) { actionsPanel.setOpen(false); container.removeAttribute('data-model-chooser-open'); }
   };
   const detachInspector = inspector.mountRail?.(find('[data-chat-inspector-slot]'), find('[data-network-trigger-slot]'), () => setThreads(false));
+  const executionSettings = find('[data-execution-settings]');
+  if (executionSettings) executionSettings.hidden = false;
   setThreads(viewState.threadsOpen ?? false);
   find('[data-open-model]').addEventListener('click', () => { setThreads(true); container.setAttribute('data-model-chooser-open', ''); (modelSelect.hidden ? find('[data-current-model]') : modelSelect).focus(); }, options);
   railToggle?.addEventListener('click', () => setThreads(!container.hasAttribute('data-threads-open')), options);
@@ -270,6 +273,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     find('[data-model-digest]').textContent = modelDigest;
     find('[data-open-model]').title = `Choose model: ${modelDigest}`;
     find('[data-open-model]').setAttribute('aria-label', `Choose model: ${modelDigest}`);
+    updateContextIndicator(container, state, session);
     threads.update(state.threads, state.selectedId, { archived });
     const busy = state.runningIds.includes(thread?.id) || !!state.comparisonPhase;
     const contextControls = find('[data-context-controls]');
@@ -376,6 +380,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       }); return;
     }
     const button = event.target.closest('[data-thread-item-id]'); if (button) { try { observe(after(saveDraft(), () => { session.select(button.dataset.threadItemId); inspector.close({ restoreFocus: false }); if (globalThis.innerWidth <= 760) setThreads(false); })); } catch (cause) { error(cause); } } });
+  on('[data-context-indicator]', 'click', event => inspector.open('conversation', event.currentTarget));
   on('[data-execution-location]', 'click', event => {
     const button = event.target.closest('[data-execution-choice]');
     if (!button || button.disabled || button.getAttribute('aria-pressed') === 'true') return;
@@ -479,6 +484,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   return () => {
     try { observe(saveDraft()); } catch (cause) { error(cause); }
     inputResize?.disconnect();
+    if (executionSettings) executionSettings.hidden = true;
     detachInspector?.();
     messages.dispose(); threads.dispose(); actionsPanel.dispose(); picker.dispose(); renameDialog.dispose(); permission.dispose(); searchPermission.dispose();
     const surface = container.closest('.pool-home');
