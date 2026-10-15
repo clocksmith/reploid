@@ -25,6 +25,7 @@ Outputs:
 
 ## Invariants
 - Balances never expire; quantity, purchase price, reward and service price stay distinct.
+- Subsidized reward lots keep their own provenance, never reported as earned.
 - Mutations are atomic and idempotent; duplicates and replays cause no second effect.
 - Charges follow accepted terms up to their maximum; further charges need a new acceptance.
 - Expired reservations release; failed quality awaits operational review.

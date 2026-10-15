@@ -3,48 +3,52 @@
  * readiness: obligations proven over the accepted interval by challenges the
  * reward store itself issues, times and records.
  *
- * - Custody challenges name an unpredictable committed chunk of a contracted
- *   piece; the answer is that chunk's bytes, signed by a key bound to the
- *   contributor.
+ * - Storage contracts are `accessible_delivery`. Custody challenges name an
+ *   unpredictable committed chunk of a contracted piece; the answer is that
+ *   chunk's bytes, signed by an identity-certified custody key of the
+ *   contributor. A timely byte response shows the bytes were delivered on
+ *   time from some source; it cannot establish local custody.
  * - Service challenges ask the custodian to serve a contracted piece to a
- *   designated acquirer; only that acquirer's attested, verified REP-5 receipt
- *   answers it.
- * - Readiness probes require the contracted stage declared ready with the
- *   promised admission slots, plus a committed chunk of the stage's pieces.
+ *   designated acquirer; only that acquirer's attested, verified REP-5
+ *   receipt answers it.
+ * - Readiness contracts are proven only by execution probes: the store runs a
+ *   bounded real admission, execution and settlement on the contracted stage
+ *   (see readiness-probe.js). Storage proofs never count for readiness.
  *
  * The duration divides into intervals. An interval verifies only when it holds
- * a passed custody or readiness challenge and no failed or missed obligation;
- * a failed or missed one makes it an outage. Storage alone never passes a
- * readiness probe, and online presence answers nothing.
+ * a passed custody challenge or execution probe and no failed or missed
+ * obligation; a failed or missed one makes it an outage. A probe the prober
+ * itself never finished is withdrawn and counts for neither side.
  */
 
 import { isNonEmptyString, toMs } from '../ledger/domain.js';
 import { checkCounterparty } from './counterparty.js';
-import { CHALLENGE_ANSWER_SCHEMA, verifyChunkBytes, verifyCustodyDelivery, verifySigned } from './custody-evidence.js';
+import { CHALLENGE_ANSWER_SCHEMA, certifiedCustodyKey, verifyChunkBytes, verifyCustodyDelivery, verifySigned } from './custody-evidence.js';
 import { computeReward, fail } from './domain.js';
 import { transferKey } from './verified-delivery.js';
 
 export const CHALLENGE_SCHEMA = 'reploid.reward-challenge/v1';
+/** Kinds callers may issue and answer; readiness uses store-run execution probes only. */
 export const CHALLENGE_KINDS = Object.freeze({
   contracted_storage: Object.freeze(['custody', 'service']),
-  prepared_readiness: Object.freeze(['readiness'])
+  prepared_readiness: Object.freeze([])
 });
 
 export const CONTRACTED_STORAGE_CONDITIONS = Object.freeze([
-  'custody_challenges: unpredictable chunk challenges over the contracted pieces, answered within the response window with the committed bytes and signed by a key bound to the contributor',
+  'accessible_delivery: unpredictable chunk challenges over the contracted pieces, answered within the response window with the committed bytes and signed by an identity-certified custody key of the contributor; any source that delivers on time satisfies them',
   'service_requests: a designated acquirer receives, verifies and attests a contracted piece from the contributor within the service window',
   'interval_accounting: an interval verifies only with a passed custody challenge and no failed or missed obligation; failed or missed obligations are outages',
   'reduce_or_void: the accepted deduction formula and void thresholds apply to missed and failed obligations',
-  'storage_is_not_readiness: custody proofs establish storage only',
+  'storage_is_not_readiness: custody proofs establish timely access to bytes only, never resident or prepared computation',
   'not_self_dealing: distinct contributor and contracting account, owner and link; service acquirers likewise',
   'single_reward: one reward per contract; a service transfer cannot also earn a delivery reward'
 ]);
 
 export const PREPARED_READINESS_CONDITIONS = Object.freeze([
-  'readiness_probes: unpredictable probes answered within the response window, signed by a key bound to the contributor, declaring the contracted stage ready with at least the promised admission slots and proving a committed chunk of its pieces',
-  'interval_accounting: an interval verifies only with a passed probe and no failed or missed probe; failed or missed probes are outages',
-  'reduce_or_void: the accepted deduction formula and void thresholds apply to missed and failed probes',
-  'presence_earns_nothing: reachability, heartbeats or stored bytes without the prepared state fail the probe',
+  'execution_probes: unpredictable probes reserve every promised admission slot on the contracted stage through its normal reservation ports, execute one bounded step whose output the reference comparison accepts, and settle every probe attempt within the response window',
+  'interval_accounting: an interval verifies only with a passed probe and no failed probe; failed probes, including refused admission, failed execution, rejected output or unconfirmed cleanup, are outages',
+  'reduce_or_void: the accepted deduction formula and void thresholds apply to failed probes',
+  'presence_earns_nothing: reachability, heartbeats, declared state or stored bytes never pass a probe',
   'not_self_dealing: distinct contributor and contracting account, owner and link',
   'single_reward: one reward per contract'
 ]);
@@ -67,8 +71,15 @@ export function selectChallengeTarget(offer, kind, random) {
   return { artifactId: piece.artifactId, pieceHash: piece.hash, chunkIndex: chunk.index, chunkOffset: chunk.offset, chunkSizeBytes: chunk.sizeBytes, chunkHash: chunk.hash };
 }
 
-/** Effective status: an unanswered challenge past its deadline is missed. */
-export const challengeStatus = (challenge, now) => (challenge.status === 'open' && toMs(now) > toMs(challenge.respondBy) ? 'missed' : challenge.status);
+/**
+ * Effective status. An unanswered custody or service challenge past its
+ * deadline is missed; an execution probe the prober never finished is
+ * withdrawn, because the contributor had no chance to answer it.
+ */
+export const challengeStatus = (challenge, now) => {
+  if (challenge.status !== 'open' || toMs(now) <= toMs(challenge.respondBy)) return challenge.status;
+  return challenge.kind === 'execution' ? 'withdrawn' : 'missed';
+};
 
 export function buildChallenge({ offer, kind, target, acquirer, challengeId, nonce, now }) {
   return {
@@ -89,49 +100,43 @@ export function buildChallenge({ offer, kind, target, acquirer, challengeId, non
   };
 }
 
-const readinessProblems = (offer, state) => {
-  const problems = [];
-  const { model, stageIndex } = offer.work.stage;
-  if (state?.phase !== 'ready') problems.push('the stage is not in the prepared ready phase');
-  if (state?.modelId !== model.modelId || state?.modelIdentity !== model.modelIdentity || state?.planId !== model.planId
-    || state?.stageIndex !== stageIndex) problems.push('the declared stage is not the contracted model, plan and stage');
-  if (!Number.isSafeInteger(state?.availableSlots) || state.availableSlots < offer.resourceBounds.attemptSlots.max) {
-    problems.push('fewer admission slots are available than the contract promises');
-  }
-  return problems;
-};
-
 /**
- * Verify an answer. Unauthenticated or unverifiable submissions throw and
- * leave the challenge open; an authenticated wrong answer fails it.
- * Returns `{ status, reasons, publicKey, transfer }`.
+ * Verify an answer to a custody or service challenge. Unauthenticated or
+ * unverifiable submissions throw and leave the challenge open; an
+ * authenticated wrong answer fails it. Returns `{ status, reasons, publicKey, transfer }`.
  */
-export async function verifyChallengeAnswer({ challenge, offer, answer, evidence, identity }) {
+export async function verifyChallengeAnswer({ challenge, offer, answer, certificate, evidence, identity }) {
+  const participantId = offer.work.participantId;
   if (challenge.kind === 'service') {
-    const { reasons, delivery } = await verifyCustodyDelivery({ ...evidence, artifactId: challenge.target.artifactId, supplierPeerId: offer.work.participantId });
+    const supplierKey = await certifiedCustodyKey(identity, { certificate: evidence?.supplierCertificate, at: evidence?.attestation?.attestedAt });
+    if (supplierKey?.participantId !== participantId) fail('invalid_answer', 'the supplier custody key is not certified for the contracted participant');
+    const { reasons, delivery } = await verifyCustodyDelivery({
+      authorization: evidence.authorization, index: evidence.index, receipt: evidence.receipt, attestation: evidence.attestation,
+      artifactId: challenge.target.artifactId, supplierPeerId: supplierKey.custodyPeerId
+    });
     if (reasons.length) fail('invalid_answer', 'service evidence is not a verified, attested delivery', { reasons });
-    const [acquirerAccount, supplierAccount] = await Promise.all([
-      identity.participantKeyAccount(delivery.acquirer.peerId, delivery.acquirer.publicKey),
-      identity.participantKeyAccount(offer.work.participantId, delivery.supplier.publicKey)
-    ]);
+    const acquirerKey = await certifiedCustodyKey(identity, { certificate: evidence.acquirerCertificate, at: delivery.attestedAt });
+    const acquirerAccount = acquirerKey && acquirerKey.custodyPeerId === delivery.acquirer.custodyPeerId && acquirerKey.publicKey === delivery.acquirer.publicKey
+      ? await identity.participantAccount(acquirerKey.participantId) : null;
     const attestedAt = toMs(delivery.attestedAt);
-    if (delivery.artifact.hash !== challenge.target.pieceHash || delivery.acquirer.peerId !== challenge.acquirer.participantId
-      || acquirerAccount !== challenge.acquirer.accountId || supplierAccount !== offer.accountId
+    if (delivery.artifact.hash !== challenge.target.pieceHash || delivery.supplier.publicKey !== supplierKey.publicKey
+      || acquirerKey?.participantId !== challenge.acquirer.participantId || acquirerAccount !== challenge.acquirer.accountId
       || attestedAt < toMs(challenge.issuedAt) || attestedAt > toMs(challenge.respondBy)) {
       fail('invalid_answer', 'service evidence is not the requested piece delivered by the contributor to the designated acquirer in the window');
     }
     return { status: 'passed', reasons: [], publicKey: delivery.supplier.publicKey,
       transfer: { key: transferKey(delivery.authorizationHash, delivery.artifact.artifactId), deliveredBytes: delivery.deliveredBytes } };
   }
+  if (challenge.kind !== 'custody') fail('invalid_challenge_kind', 'only custody and service challenges take answers');
+  const key = await certifiedCustodyKey(identity, { certificate, at: challenge.issuedAt });
   if (!isNonEmptyString(answer?.publicKey) || answer.challengeId !== challenge.challengeId || answer.nonce !== challenge.nonce
-    || answer.offerId !== offer.offerId || !await verifySigned(answer, answer.publicKey, CHALLENGE_ANSWER_SCHEMA)
-    || await identity.participantKeyAccount(offer.work.participantId, answer.publicKey) !== offer.accountId) {
-    fail('answer_not_authenticated', 'the answer is not signed for this challenge by a key bound to the contributor');
+    || answer.offerId !== offer.offerId || key?.participantId !== participantId || key.publicKey !== answer.publicKey
+    || await identity.participantAccount(participantId) !== offer.accountId
+    || !await verifySigned(answer, answer.publicKey, CHALLENGE_ANSWER_SCHEMA)) {
+    fail('answer_not_authenticated', 'the answer is not signed for this challenge by an identity-certified custody key of the contributor');
   }
   const chunk = { sizeBytes: challenge.target.chunkSizeBytes, hash: challenge.target.chunkHash };
-  const reasons = [];
-  if (!await verifyChunkBytes(answer.response?.bytes, chunk)) reasons.push('the chunk bytes do not match the committed hash');
-  if (challenge.kind === 'readiness') reasons.push(...readinessProblems(offer, answer.response?.state));
+  const reasons = await verifyChunkBytes(answer.response?.bytes, chunk) ? [] : ['the chunk bytes do not match the committed hash'];
   return { status: reasons.length ? 'failed' : 'passed', reasons, publicKey: answer.publicKey, transfer: null };
 }
 
@@ -142,7 +147,7 @@ export function contractMeters(offer, challenges, now) {
   const rows = Array.from({ length: intervals }, () => ({ proven: 0, outage: false }));
   const meters = {
     verifiedIntervals: 0, outageIntervals: 0, unverifiedIntervals: 0,
-    passedChallenges: 0, missedChallenges: 0, failedChallenges: 0,
+    passedChallenges: 0, missedChallenges: 0, failedChallenges: 0, withdrawnChallenges: 0,
     servedRequests: 0, failedServiceRequests: 0
   };
   for (const challenge of challenges) {
@@ -152,6 +157,9 @@ export function contractMeters(offer, challenges, now) {
     if (challenge.kind === 'service') {
       if (status === 'passed') meters.servedRequests += 1;
       else if (status !== 'open') meters.failedServiceRequests += 1;
+    } else if (status === 'withdrawn') {
+      meters.withdrawnChallenges += 1;
+      continue;
     } else if (status === 'passed') {
       meters.passedChallenges += 1;
       row.proven += 1;

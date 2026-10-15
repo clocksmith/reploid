@@ -12,7 +12,7 @@ const POLICY = Object.freeze({
   contract: { id: PRODUCT_ECONOMICS_CONTRACT_ID, documentRevision: 'test-document-revision' },
   unit: { name: 'credit', minorUnitsPerCredit: 1 },
   rounding: 'ceil',
-  lotConsumptionOrder: ['community_access', 'earned', 'donated', 'purchased'],
+  lotConsumptionOrder: ['community_access', 'earned', 'subsidized', 'donated', 'purchased'],
   transfers: { enabled: false }
 });
 
@@ -579,6 +579,36 @@ describe.each(Object.keys(harnesses))('credit ledger (%s store)', (kind) => {
         purchased: { issued: 40, spent: 0, available: 40 }
       }
     });
+  });
+
+  it('keeps subsidized rewards apart from earned credit in lots and solvency', async () => {
+    const work = (workId) => ({
+      category: 'storage', workId, offerId: `offer:${workId}`, validationId: `validation:${workId}`,
+      validatorId: 'validator_test', outcome: 'accepted', validatedAt: clock()
+    });
+    const funding = { fundingId: 'funding:operator', funderKind: 'operator', funderId: 'operator_test' };
+    await rejectsWith(ledger.issueCredits({
+      accountId: 'acct_bob', provenance: 'subsidized', amount: 5, source: work('work:unfunded'), idempotencyKey: 'issue:unfunded'
+    }), 'invalid_source_reference');
+    const withoutAuthority = harness.open({ policy: POLICY, clock });
+    await rejectsWith(withoutAuthority.issueCredits({
+      accountId: 'acct_bob', provenance: 'subsidized', amount: 5, source: { ...work('work:a'), ...funding }, idempotencyKey: 'issue:a'
+    }), 'issuance_authority_required');
+
+    const subsidized = await ledger.issueCredits({
+      accountId: 'acct_bob', provenance: 'subsidized', amount: 7, source: { ...work('work:a'), ...funding }, idempotencyKey: 'issue:a'
+    });
+    expect(await ledger.getLot(subsidized.lotId)).toMatchObject({ provenance: 'subsidized', source: { fundingId: 'funding:operator', funderKind: 'operator' } });
+    // The same work cannot also be paid as earned credit.
+    await rejectsWith(ledger.issueCredits({
+      accountId: 'acct_bob', provenance: 'earned', amount: 7, source: work('work:a'), idempotencyKey: 'issue:a:earned'
+    }), 'duplicate_issuance_source');
+    await earn(ledger, 'acct_bob', 3, 'work:b');
+    expect(await ledger.getSolvencySnapshot()).toMatchObject({
+      issued: { total: 10, byProvenance: { earned: 3, subsidized: 7 } },
+      outstanding: { byProvenance: { earned: 3, subsidized: 7 } }
+    });
+    expect(await ledger.auditAccount('acct_bob')).toMatchObject({ consistent: true });
   });
 
   it('keeps account transfers disabled', async () => {

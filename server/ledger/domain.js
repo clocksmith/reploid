@@ -20,7 +20,10 @@ export const REVIEW_SCHEMA = 'reploid.credit-quality-review/v1';
 export const JOURNAL_SCHEMA = 'reploid.credit-journal-entry/v1';
 export const SOLVENCY_SCHEMA = 'reploid.credit-solvency-inputs/v1';
 
-export const PROVENANCE_KINDS = Object.freeze(['earned', 'purchased', 'donated', 'community_access']);
+// `subsidized` is credit for validated contribution paid from an explicit operator or
+// community funding reservation instead of settled demand; it stays apart from `earned`.
+export const PROVENANCE_KINDS = Object.freeze(['earned', 'subsidized', 'purchased', 'donated', 'community_access']);
+export const REWARD_PROVENANCE = Object.freeze(['earned', 'subsidized']);
 export const REWARD_CATEGORIES = Object.freeze(['computation', 'delivery', 'storage', 'readiness']);
 export const ROUNDING_MODES = Object.freeze(['floor', 'ceil', 'half_up']);
 export const EXCEEDANCE_BEHAVIORS = Object.freeze(['reject', 'stop_and_report']);
@@ -144,16 +147,19 @@ export function validateAccountingPolicy(policy) {
   }));
 }
 
+const REWARD_SOURCE_FIELDS = ['category', 'workId', 'offerId', 'validationId', 'validatorId', 'validatedAt'];
 const SOURCE_FIELDS = Object.freeze({
-  earned: ['category', 'workId', 'offerId', 'validationId', 'validatorId', 'validatedAt'],
+  earned: REWARD_SOURCE_FIELDS,
+  subsidized: [...REWARD_SOURCE_FIELDS, 'fundingId', 'funderKind', 'funderId'],
   purchased: ['processor', 'purchaseId', 'confirmationId'],
   donated: ['donationId', 'donorId'],
   community_access: ['fundingId', 'funderId', 'funderKind']
 });
 
 /**
- * Every lot names its issuance source. Earned credit needs an explicit
- * validated-work reference; purchases keep their price apart from quantity.
+ * Every lot names its issuance source. Earned and subsidized credit need an
+ * explicit validated-work reference, and subsidized credit also names its
+ * funding reservation; purchases keep their price apart from quantity.
  */
 export function validateIssuanceSource(provenance, source) {
   if (!PROVENANCE_KINDS.includes(provenance)) {
@@ -164,7 +170,7 @@ export function validateIssuanceSource(provenance, source) {
   for (const field of SOURCE_FIELDS[provenance]) {
     if (!isNonEmptyString(source?.[field])) errors.push(`source.${field} is required`);
   }
-  if (provenance === 'earned') {
+  if (REWARD_PROVENANCE.includes(provenance)) {
     if (!REWARD_CATEGORIES.includes(source?.category)) errors.push(`source.category must be one of ${REWARD_CATEGORIES.join(', ')}`);
     if (source?.outcome !== 'accepted') errors.push('source.outcome must record an accepted validation');
     if (source?.validatedAt && !isIsoTime(source.validatedAt)) errors.push('source.validatedAt must be an ISO time');
@@ -179,7 +185,8 @@ export function validateIssuanceSource(provenance, source) {
 }
 
 export function sourceClaimKey(provenance, source) {
-  if (provenance === 'earned') return `earned:${source.category}:${source.workId}`;
+  // One lot per unit of validated work, whichever basis funds it.
+  if (REWARD_PROVENANCE.includes(provenance)) return `reward:${source.category}:${source.workId}`;
   if (provenance === 'purchased') return `purchased:${source.processor}:${source.purchaseId}`;
   if (provenance === 'donated') return `donated:${source.donationId}`;
   return `community_access:${source.fundingId}`;

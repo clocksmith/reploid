@@ -39,12 +39,14 @@ import {
 } from './demanded-inference.js';
 import { ISSUANCE_STATE_ID, createRewardIssuanceAuthority } from './issuance-authority.js';
 import {
+  FUNDING_SCHEMA,
   OFFER_INPUT_KEYS,
   REWARD_CATEGORIES,
   VALIDATION_SCHEMA,
   assertRewardCategory,
   buildOffer,
   fail,
+  validateFundingReservation,
   validateRewardPolicy
 } from './domain.js';
 import {
@@ -102,8 +104,8 @@ const VALIDATORS = Object.freeze({
   }
 });
 
-// Every lot names its validated work and the category's own references.
-const ledgerSource = (validation) => ({
+// Every lot names its validated work, its issuance basis and the category's own references.
+const ledgerSource = (validation, allowance) => ({
   category: validation.ledgerCategory,
   workId: validation.workId,
   offerId: validation.offer.offerId,
@@ -115,6 +117,9 @@ const ledgerSource = (validation) => ({
   rewardPolicyVersion: validation.rewardPolicyVersion,
   offerHash: validation.offer.offerHash,
   participantId: validation.offer.participantId,
+  basis: allowance.basis,
+  decisionId: allowance.decisionId,
+  ...(allowance.funding ? { fundingId: allowance.funding.fundingId, funderKind: allowance.funding.funderKind, funderId: allowance.funding.funderId } : {}),
   ...validation.workRefs
 });
 
@@ -130,7 +135,9 @@ const issuanceResult = (validation) => ({
   accountId: validation.offer.accountId,
   amount: validation.reward?.amount ?? 0,
   lotId: validation.issuance?.lotId ?? null,
-  decisionId: validation.issuance?.decisionId ?? null
+  decisionId: validation.issuance?.decisionId ?? null,
+  basis: validation.issuance?.basis ?? null,
+  provenance: validation.issuance?.provenance ?? null
 });
 
 /**
@@ -141,23 +148,32 @@ const issuanceResult = (validation) => ({
  * @param {object} options.identity authenticated identity port:
  *   participantAccount(participantId) -> accountId | null,
  *   accountLinks(accountA, accountB) -> [{ kind, evidenceId }], and, for
- *   categories other than demanded inference,
- *   participantKeyAccount(participantId, publicKey) -> accountId | null
+ *   delivery and storage, verifyCustodyKey({ certificate, at }) ->
+ *   { participantId, custodyPeerId, publicKey } | null, which attributes a
+ *   per-process custody key and its grant peer id to a persistent participant
+ *   only through a certificate from that participant's identity
+ * @param {Function} options.issuance this component's issuance authority (its `allocate` chooses the basis)
+ * @param {object} [options.readinessProber] connect/prepare/verify port for readiness execution probes
  * @param {Function} [options.random] random(n) -> integer in [0, n) for challenge targets
  */
 export function createRewardStore({
-  backend, ledger, policy, identity, clock = defaultClock, createId = defaultCreateId, random = defaultRandom
+  backend, ledger, policy, identity, issuance, readinessProber = null,
+  clock = defaultClock, createId = defaultCreateId, random = defaultRandom
 } = {}) {
   assertRewardBackend(backend);
   assertLedgerStoreContract(ledger);
   const rewardPolicy = validateRewardPolicy(policy);
+  const enabled = (category) => rewardPolicy.enabledCategories.includes(category);
   if (typeof identity?.participantAccount !== 'function' || typeof identity?.accountLinks !== 'function') {
     throw new TypeError('reward store requires an identity port with participantAccount and accountLinks');
   }
-  if (rewardPolicy.enabledCategories.some((category) => category !== 'demanded_inference')
-    && typeof identity.participantKeyAccount !== 'function') {
-    throw new TypeError('delivery, storage and readiness rewards require identity.participantKeyAccount to bind signing keys');
+  if ((enabled('verified_delivery') || enabled('contracted_storage')) && typeof identity.verifyCustodyKey !== 'function') {
+    throw new TypeError('delivery and storage rewards require identity.verifyCustodyKey to accept identity-certified custody keys');
   }
+  if (enabled('prepared_readiness') && !['connect', 'prepare', 'verify'].every((method) => typeof readinessProber?.[method] === 'function')) {
+    throw new TypeError('readiness rewards require a readinessProber with connect, prepare and verify');
+  }
+  if (typeof issuance?.allocate !== 'function') throw new TypeError('reward store requires its issuance authority');
   const idempotencyId = (operation, scopeId, key) => sha256Hex(`${operation}\u0000${scopeId}\u0000${key}`);
   const claimId = (kind, key) => sha256Hex(`${kind}\u0000${key}`);
 
@@ -200,8 +216,37 @@ export function createRewardStore({
     policy: rewardPolicy,
 
     ...createChallengeOperations({
-      backend, ledger, identity, rewardPolicy, mutate, lookupIdempotent, readOffer, claimId, clock, createId, random
+      backend, ledger, identity, rewardPolicy, mutate, lookupIdempotent, readOffer, claimId, clock, createId, random, prober: readinessProber
     }),
+
+    /**
+     * Reserve explicit operator or community funding for subsidized rewards.
+     * The reservation is an issuance budget backed by `sourceRef`; credit
+     * drawn from it is subsidized in provenance and solvency.
+     */
+    async reserveFunding(input = {}) {
+      const { idempotencyKey, ...request } = input;
+      const funding = validateFundingReservation(request);
+      assertId(funding.fundingId, 'fundingId');
+      assertIdempotencyKey(idempotencyKey);
+      const operation = 'reserveFunding';
+      const prior = await lookupIdempotent({ operation, scopeId: funding.fundingId, idempotencyKey, request });
+      if (prior) return prior.result;
+      const now = clock();
+      const record = { schema: FUNDING_SCHEMA, ...funding, authorized: 0, allowances: 0, reservedAt: now, updatedAt: now };
+      return mutate({
+        operation, scopeId: funding.fundingId, idempotencyKey, request, now,
+        body: async (tx) => {
+          if (await tx.get('fundings', funding.fundingId)) fail('funding_exists', 'funding id is already in use', { fundingId: funding.fundingId });
+          return { result: record, writes: [insert('fundings', funding.fundingId, record)] };
+        }
+      });
+    },
+
+    async getFunding(fundingId) {
+      return backend.get('fundings', fundingId);
+    },
+
 
     /** Disclose requested work, reward terms, validation conditions, bounds, duration and failure compensation. */
     async createOffer(input = {}) {
@@ -378,19 +423,21 @@ export function createRewardStore({
       if (validation.outcome === 'voided') return issuanceResult(validation);
       if (validation.outcome !== 'accepted') fail('validation_rejected', 'rejected work earns nothing', { reasons: validation.reasons });
       if (validation.issuanceStatus !== 'pending') return issuanceResult(validation);
-      const source = ledgerSource(validation);
+      // The allowance fixes the basis, provenance and any funding before the ledger call.
+      const allowance = await issuance.allocate(validationId);
+      const source = ledgerSource(validation, allowance);
       let issued;
       try {
         issued = await ledger.issueCredits({
           accountId: validation.offer.accountId,
-          provenance: 'earned',
+          provenance: allowance.provenance,
           amount: validation.reward.amount,
           source,
           idempotencyKey: `reward:${validationId}`
         });
       } catch (error) {
         // A lot for this work under another key counts only if it names this validation.
-        const lotId = lotIdForSource(sourceClaimKey('earned', source));
+        const lotId = lotIdForSource(sourceClaimKey(allowance.provenance, source));
         if (error?.code !== 'duplicate_issuance_source' || (await ledger.getLot(lotId))?.source?.validationId !== validationId) throw error;
         issued = { lotId };
       }
@@ -402,7 +449,10 @@ export function createRewardStore({
         const updated = {
           ...current,
           issuanceStatus: 'issued',
-          issuance: { lotId: lot.lotId, decisionId: lot.issuance?.decisionId ?? null, limitId: lot.issuance?.limitId ?? null, issuedAt: now }
+          issuance: {
+            lotId: lot.lotId, decisionId: allowance.decisionId, limitId: lot.issuance?.limitId ?? null,
+            basis: allowance.basis, provenance: allowance.provenance, fundingId: allowance.funding?.fundingId ?? null, issuedAt: now
+          }
         };
         tx.set('validations', validationId, updated);
         return issuanceResult(updated);
@@ -425,9 +475,15 @@ export function createRewardStore({
       return results;
     },
 
+    /** Allowed reward credit, in total and per basis; funded_reservation is subsidy. */
     async getIssuanceState() {
       const state = await backend.get('issuance', ISSUANCE_STATE_ID);
-      return { authorizedTotal: state?.authorizedTotal ?? 0, allowances: state?.allowances ?? 0, updatedAt: state?.updatedAt ?? null };
+      return {
+        authorizedTotal: state?.authorizedTotal ?? 0,
+        allowances: state?.allowances ?? 0,
+        byBasis: { settled_demand: state?.byBasis?.settled_demand ?? 0, funded_reservation: state?.byBasis?.funded_reservation ?? 0 },
+        updatedAt: state?.updatedAt ?? null
+      };
     },
 
     /** Every retained issuance decision: allowances and declines with their limit figures. */
@@ -446,7 +502,7 @@ export function createRewardStore({
  * `createLedger({ issuanceAuthority })` builds the ledger store.
  */
 export function composeContributionRewards({
-  backend, createLedger, rewardPolicy, issuancePolicy, identity, readAdmittedCapacity, otherProvenance = null,
+  backend, createLedger, rewardPolicy, issuancePolicy, identity, readAdmittedCapacity, otherProvenance = null, readinessProber = null,
   clock = defaultClock, createId = defaultCreateId, random = defaultRandom
 } = {}) {
   let ledger = null;
@@ -455,7 +511,9 @@ export function composeContributionRewards({
     readAdmittedCapacity, otherProvenance, clock, createId
   });
   ledger = createLedger({ issuanceAuthority });
-  const rewards = createRewardStore({ backend, ledger, policy: rewardPolicy, identity, clock, createId, random });
+  const rewards = createRewardStore({
+    backend, ledger, policy: rewardPolicy, identity, issuance: issuanceAuthority, readinessProber, clock, createId, random
+  });
   return { ledger, rewards, issuanceAuthority };
 }
 

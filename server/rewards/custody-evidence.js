@@ -33,6 +33,26 @@ export async function verifySigned(message, publicKey, schema) {
   }
 }
 
+/**
+ * The binding an identity certificate attests for a per-process custody key:
+ * `{ participantId, custodyPeerId, publicKey }`, or null. Custody keys and the
+ * peer ids grants name are created per process; only a certificate from the
+ * participant's persistent identity, checked by `identity.verifyCustodyKey`,
+ * attributes them to a participant. The certificate format belongs to the
+ * identity owner; this component reads only the returned binding.
+ */
+export async function certifiedCustodyKey(identity, { certificate, at }) {
+  if (certificate == null) return null;
+  try {
+    const binding = await identity.verifyCustodyKey({ certificate, at });
+    const { participantId, custodyPeerId, publicKey } = binding ?? {};
+    return [participantId, custodyPeerId, publicKey].every((value) => typeof value === 'string' && value.length > 0)
+      ? { participantId, custodyPeerId, publicKey } : null;
+  } catch {
+    return null;
+  }
+}
+
 /** The body an acquirer host signs, with its custody key, after a verified acquisition. */
 export async function deliveryAttestationBody({ receipt, attestedAt }) {
   return {
@@ -82,7 +102,7 @@ const verifyChunkAttempt = async ({ attempt, chunk, artifactId, authorization, a
 };
 
 /**
- * Verify that `supplierPeerId` delivered `artifactId` to the grant's
+ * Verify that the custody peer `supplierPeerId` delivered `artifactId` to the grant's
  * requester, that the requester completed and verified it, and that the
  * requester attested that receipt. Returns `{ reasons, delivery }`.
  */
@@ -145,8 +165,8 @@ export async function verifyCustodyDelivery({ authorization, index, receipt, att
       transferId: authorization.transferId,
       grantExpiresAt: authorization.expiresAt,
       artifact: { artifactId, hash: declared.hash, sizeBytes: declared.sizeBytes },
-      acquirer: { peerId: authorization.requester.peerId, publicKey: authorization.requester.publicKey },
-      supplier: { peerId: supplier.peerId, publicKey: supplier.publicKey },
+      acquirer: { custodyPeerId: authorization.requester.peerId, publicKey: authorization.requester.publicKey },
+      supplier: { custodyPeerId: supplier.peerId, publicKey: supplier.publicKey },
       deliveredBytes,
       deliveredChunks,
       totalChunks: entry.chunks.length,

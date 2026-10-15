@@ -169,29 +169,74 @@ const validateRatio = (ratio, path, errors) => {
   if (!isPositiveInteger(ratio?.denominator)) errors.push(`${path}.denominator must be a positive integer`);
 };
 
+/** Issuance bases and the lot provenance each produces. */
+export const ISSUANCE_BASES = Object.freeze(['settled_demand', 'funded_reservation']);
+export const BASIS_PROVENANCE = Object.freeze({ settled_demand: 'earned', funded_reservation: 'subsidized' });
+export const FUNDER_KINDS = Object.freeze(['operator', 'community']);
+export const FUNDING_SCHEMA = 'reploid.reward-funding/v1';
+
 /**
- * Explicit earned-issuance limits. Cumulative authorized earned credit stays
- * within `demand.share` of measured net settled spending by the listed
- * provenance; outstanding obligations after issuance stay within
- * `capacity.coverage` of fresh admitted-capacity evidence.
+ * Explicit issuance policy. `bases` declares each enabled basis:
+ * `settled_demand` admits earned credit within `share` of measured net
+ * settled spending by the listed provenance; `funded_reservation` admits
+ * subsidized credit from explicit funding reservations of the listed funder
+ * kinds. `categoryBases` lists, per category, the bases it may use in order.
+ * Every basis stays within `capacity.coverage` of fresh admitted capacity.
  */
 export function validateIssuancePolicy(policy) {
   const errors = [];
   if (!policy || typeof policy !== 'object') fail('invalid_policy', 'issuance policy is required', { errors: ['policy missing'] });
-  unknownKeys(policy, ['policyId', 'accountingVersion', 'demand', 'capacity'], 'policy', errors);
+  unknownKeys(policy, ['policyId', 'accountingVersion', 'bases', 'categoryBases', 'capacity'], 'policy', errors);
   requireString(policy.policyId, 'policy.policyId', errors);
   requireString(policy.accountingVersion, 'policy.accountingVersion', errors);
-  unknownKeys(policy.demand, ['provenance', 'share'], 'policy.demand', errors);
-  const provenance = policy.demand?.provenance;
-  if (!distinctStrings(provenance) || provenance.length === 0 || provenance.some((kind) => !PROVENANCE_KINDS.includes(kind))) {
-    errors.push(`policy.demand.provenance must list distinct spending provenance from ${PROVENANCE_KINDS.join(', ')}`);
+  unknownKeys(policy.bases, ISSUANCE_BASES, 'policy.bases', errors);
+  const declared = Object.keys(policy.bases || {}).filter((basis) => ISSUANCE_BASES.includes(basis));
+  if (!declared.length) errors.push(`policy.bases must declare at least one of ${ISSUANCE_BASES.join(', ')}`);
+  const demand = policy.bases?.settled_demand;
+  if (demand !== undefined) {
+    unknownKeys(demand, ['provenance', 'share'], 'policy.bases.settled_demand', errors);
+    const provenance = demand?.provenance;
+    // Subsidized spending is funded by subsidy, so it can never back earned credit.
+    if (!distinctStrings(provenance) || provenance.length === 0
+      || provenance.some((kind) => !PROVENANCE_KINDS.includes(kind) || kind === 'subsidized')) {
+      errors.push(`policy.bases.settled_demand.provenance must list distinct spending provenance from ${PROVENANCE_KINDS.filter((kind) => kind !== 'subsidized').join(', ')}`);
+    }
+    validateRatio(demand?.share, 'policy.bases.settled_demand.share', errors);
   }
-  validateRatio(policy.demand?.share, 'policy.demand.share', errors);
+  const funded = policy.bases?.funded_reservation;
+  if (funded !== undefined) {
+    unknownKeys(funded, ['funderKinds'], 'policy.bases.funded_reservation', errors);
+    if (!distinctStrings(funded?.funderKinds) || funded.funderKinds.length === 0 || funded.funderKinds.some((kind) => !FUNDER_KINDS.includes(kind))) {
+      errors.push(`policy.bases.funded_reservation.funderKinds must list distinct funder kinds from ${FUNDER_KINDS.join(', ')}`);
+    }
+  }
+  unknownKeys(policy.categoryBases, Object.keys(REWARD_CATEGORIES), 'policy.categoryBases', errors);
+  for (const [category, bases] of Object.entries(policy.categoryBases || {})) {
+    if (!distinctStrings(bases) || bases.length === 0 || bases.some((basis) => !declared.includes(basis))) {
+      errors.push(`policy.categoryBases.${category} must list distinct declared bases`);
+    }
+  }
+  if (!policy.categoryBases || typeof policy.categoryBases !== 'object') errors.push('policy.categoryBases is required');
   unknownKeys(policy.capacity, ['coverage', 'evidenceMaxAgeMs'], 'policy.capacity', errors);
   validateRatio(policy.capacity?.coverage, 'policy.capacity.coverage', errors);
   if (!isPositiveInteger(policy.capacity?.evidenceMaxAgeMs)) errors.push('policy.capacity.evidenceMaxAgeMs must be a positive integer');
   if (errors.length) fail('invalid_policy', 'issuance policy is incomplete', { errors });
   return deepFreeze(cloneJson(policy));
+}
+
+/** An explicit operator or community funding reservation for subsidized rewards. */
+export function validateFundingReservation(input) {
+  const errors = [];
+  unknownKeys(input, ['fundingId', 'funderKind', 'funderId', 'amount', 'categories', 'sourceRef'], 'funding', errors);
+  if (!FUNDER_KINDS.includes(input?.funderKind)) errors.push(`funding.funderKind must be one of ${FUNDER_KINDS.join(', ')}`);
+  requireString(input?.funderId, 'funding.funderId', errors);
+  requireString(input?.sourceRef, 'funding.sourceRef (the funding commitment record)', errors);
+  if (!isPositiveInteger(input?.amount)) errors.push('funding.amount must be a positive integer');
+  if (!distinctStrings(input?.categories) || input.categories.length === 0 || input.categories.some((category) => !REWARD_CATEGORIES[category])) {
+    errors.push(`funding.categories must list distinct reward categories from ${Object.keys(REWARD_CATEGORIES).join(', ')}`);
+  }
+  if (errors.length) fail('invalid_funding', 'funding reservation is incomplete', { errors });
+  return cloneJson(input);
 }
 
 const validateFormula = (formula, meters, path, errors) => {
@@ -262,8 +307,39 @@ const validatePieces = (pieces, { chunked }, errors) => {
 const WORK_KEYS = Object.freeze({
   demanded_inference: ['category', 'participantId', 'model'],
   verified_delivery: ['category', 'participantId', 'pieces'],
-  contracted_storage: ['category', 'participantId', 'contractedBy', 'pieces'],
-  prepared_readiness: ['category', 'participantId', 'contractedBy', 'stage', 'pieces']
+  contracted_storage: ['category', 'participantId', 'contractedBy', 'contractType', 'pieces'],
+  prepared_readiness: ['category', 'participantId', 'contractedBy', 'stage']
+});
+
+/**
+ * Storage contract types. Under `accessible_delivery` any source that returns
+ * the committed bytes on time satisfies a challenge. `local_retention` would
+ * need evidence that the contributor itself holds the bytes; a successful
+ * byte response alone cannot establish local custody, so it is unsupported.
+ */
+export const STORAGE_CONTRACT_TYPES = Object.freeze({
+  accessible_delivery: Object.freeze({ supported: true }),
+  local_retention: Object.freeze({ supported: false })
+});
+
+/** Limitations every offer discloses before acceptance. */
+export const DISCLOSED_LIMITATIONS = Object.freeze([
+  'collusion: rejecting the same account, owner or participant and policy-named account links is not complete collusion prevention; apparently separate accounts are not shown to be independent',
+  'failure_compensation: none is the only supported term; failures outside the contributor\'s control are disclosed as uncompensated, not compensated'
+]);
+export const CATEGORY_LIMITATIONS = Object.freeze({
+  demanded_inference: Object.freeze([
+    'stage_placement: route summaries and admission records are requester and contributor reports, checked only against the ledger settlement'
+  ]),
+  verified_delivery: Object.freeze([
+    'acquirer_independence: an identity-certified acquirer account is not shown to be independent of the contributor beyond the collusion rule'
+  ]),
+  contracted_storage: Object.freeze([
+    'accessible_delivery: a timely byte response proves the committed bytes were delivered on time from some source, not that the contributor retained them locally'
+  ]),
+  prepared_readiness: Object.freeze([
+    'probe_scope: a probe shows the stage admitted, executed and settled one bounded probe at that time, checked by the reference port; it does not show readiness between probes'
+  ])
 });
 
 const validateWork = (category, work, errors) => {
@@ -271,9 +347,10 @@ const validateWork = (category, work, errors) => {
   requireString(work?.participantId, 'work.participantId', errors);
   if (category === 'demanded_inference') validateModel(work?.model, 'work.model', errors);
   if (category === 'verified_delivery') validatePieces(work?.pieces, { chunked: false }, errors);
-  if (REWARD_CATEGORIES[category].contracted) {
-    requireString(work?.contractedBy, 'work.contractedBy', errors);
-    validatePieces(work?.pieces, { chunked: true }, errors);
+  if (REWARD_CATEGORIES[category].contracted) requireString(work?.contractedBy, 'work.contractedBy', errors);
+  if (category === 'contracted_storage') validatePieces(work?.pieces, { chunked: true }, errors);
+  if (category === 'contracted_storage' && !STORAGE_CONTRACT_TYPES[work?.contractType]) {
+    errors.push(`work.contractType must be one of ${Object.keys(STORAGE_CONTRACT_TYPES).join(', ')}`);
   }
   if (category === 'prepared_readiness') {
     unknownKeys(work?.stage, ['model', 'stageIndex'], 'work.stage', errors);
@@ -334,6 +411,11 @@ export function buildOffer(input, { ledgerPolicy, rewardPolicy, conditions, now 
     fail('failure_compensation_unsupported',
       'failureCompensation must be { kind: "none" }; compensating failures outside the contributor\'s control awaits a product decision and an adjudication owner');
   }
+  if (category === 'contracted_storage' && STORAGE_CONTRACT_TYPES[work?.contractType]?.supported === false) {
+    fail('contract_type_unsupported',
+      `${work.contractType} storage is not supported: a successful byte response alone cannot establish local custody, and this validator has no stronger evidence`,
+      { contractType: work.contractType });
+  }
   const terms = CATEGORY_TERMS[category];
   validateWork(category, work, errors);
   unknownKeys(reward, ['basis', 'formula', 'maxReward', ...(entry.contracted ? ['deductions', 'voidWhen'] : [])], 'reward', errors);
@@ -377,7 +459,8 @@ export function buildOffer(input, { ledgerPolicy, rewardPolicy, conditions, now 
       validatorId: rewardPolicy.validatorId,
       category,
       conditions: [...conditions],
-      collusion: { alwaysRejected: ['same_account', 'same_owner', 'same_participant'], rejectLinkKinds: rewardPolicy.collusion.rejectLinkKinds }
+      collusion: { alwaysRejected: ['same_account', 'same_owner', 'same_participant'], rejectLinkKinds: rewardPolicy.collusion.rejectLinkKinds },
+      limitations: [...DISCLOSED_LIMITATIONS, ...CATEGORY_LIMITATIONS[category]]
     },
     createdAt: now
   });
@@ -417,37 +500,52 @@ const capacityEvidenceProblem = (capacity, policy, now) => {
 };
 
 /**
- * Pure earned-issuance decision. `authorizedTotal` is every earned amount this
- * authority has already allowed, issued or still pending in the ledger.
- * Issuing credit creates no capacity, so both limits must hold.
+ * Checks every basis shares: the accounting version, that the ledger holds no
+ * earned or subsidized credit this authority did not allow, and that
+ * outstanding obligations after issuance stay within admitted-capacity
+ * coverage. `state` counts every allowance, issued or still pending.
  */
-export function evaluateIssuanceLimits({ policy, snapshot, capacity, authorizedTotal, amount, now }) {
+export function evaluateCapacity({ policy, snapshot, capacity, state, amount, now }) {
   const decline = (reason, figures = {}) => ({ allowed: false, reason, figures });
   if (snapshot?.accountingVersion !== policy.accountingVersion) return decline('accounting_version_mismatch');
   const earnedIssued = snapshot.issued.byProvenance.earned;
-  if (earnedIssued > authorizedTotal) {
-    return decline('unaccounted_earned_issuance', { earnedIssued, authorizedTotal });
+  const subsidizedIssued = snapshot.issued.byProvenance.subsidized;
+  const rewardIssued = earnedIssued + subsidizedIssued;
+  if (rewardIssued > state.authorizedTotal) {
+    return decline('unaccounted_reward_issuance', { earnedIssued, subsidizedIssued, authorizedTotal: state.authorizedTotal });
   }
-  const measuredDemand = policy.demand.provenance
-    .reduce((sum, kind) => sum + snapshot.spent.byProvenance[kind] - snapshot.refunded.byProvenance[kind], 0);
   const figures = {
     snapshotAt: snapshot.generatedAt,
-    measuredDemand,
-    demandLimit: scaleFloor(measuredDemand, policy.demand.share),
-    authorizedBefore: authorizedTotal,
-    authorizedAfter: authorizedTotal + amount,
-    earnedIssued
+    earnedIssued,
+    subsidizedIssued,
+    authorizedBefore: state.authorizedTotal,
+    authorizedAfter: state.authorizedTotal + amount
   };
-  if (figures.authorizedAfter > figures.demandLimit) return decline('demand_limit', figures);
   const evidence = capacityEvidenceProblem(capacity, policy, now);
   if (evidence) return decline(evidence, figures);
   figures.capacityEvidenceId = capacity.evidenceId;
   figures.admittedServiceCredits = capacity.serviceCredits;
   figures.capacityLimit = scaleFloor(capacity.serviceCredits, policy.capacity.coverage);
-  // Outstanding balances plus earned credit allowed but not yet visible in the ledger.
-  figures.obligationsAfter = snapshot.outstanding.total + (authorizedTotal - earnedIssued) + amount;
+  // Outstanding balances plus reward credit allowed but not yet visible in the ledger.
+  figures.obligationsAfter = snapshot.outstanding.total + (state.authorizedTotal - rewardIssued) + amount;
   if (figures.obligationsAfter > figures.capacityLimit) return decline('capacity_limit', figures);
   return { allowed: true, reason: null, figures };
+}
+
+/** Settled-demand basis: earned credit within a share of measured net settled spending. */
+export function evaluateDemandBasis({ policy, snapshot, state, amount }) {
+  const basis = policy.bases.settled_demand;
+  const measuredDemand = basis.provenance
+    .reduce((sum, kind) => sum + snapshot.spent.byProvenance[kind] - snapshot.refunded.byProvenance[kind], 0);
+  const figures = {
+    measuredDemand,
+    demandLimit: scaleFloor(measuredDemand, basis.share),
+    demandAuthorizedBefore: state.byBasis.settled_demand,
+    demandAuthorizedAfter: state.byBasis.settled_demand + amount
+  };
+  return figures.demandAuthorizedAfter > figures.demandLimit
+    ? { allowed: false, reason: 'demand_limit', figures }
+    : { allowed: true, reason: null, figures };
 }
 
 export default {
@@ -456,7 +554,9 @@ export default {
   assertRewardCategory,
   validateRewardPolicy,
   validateIssuancePolicy,
+  validateFundingReservation,
   buildOffer,
   computeReward,
-  evaluateIssuanceLimits
+  evaluateCapacity,
+  evaluateDemandBasis
 };

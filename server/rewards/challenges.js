@@ -1,13 +1,15 @@
 /**
  * @fileoverview Challenge operations for contracted storage and prepared
- * readiness. The reward store issues, times and records every challenge, so
- * contract evidence is the store's own record rather than a contributor claim.
+ * readiness. The reward store issues, times and records every challenge and
+ * runs every readiness probe, so contract evidence is the store's own record
+ * rather than a contributor claim.
  */
 
 import { assertId, assertIdempotencyKey, isNonEmptyString, toMs } from '../ledger/domain.js';
 import { CHALLENGE_KINDS, buildChallenge, selectChallengeTarget, verifyChallengeAnswer } from './contracted-obligations.js';
 import { checkCounterparty } from './counterparty.js';
 import { assertRewardCategory, fail } from './domain.js';
+import { probePassed, runReadinessProbe } from './readiness-probe.js';
 
 const pick = (input, keys) => Object.fromEntries(keys.filter((key) => input[key] !== undefined).map((key) => [key, input[key]]));
 const assertKnownKeys = (input, allowed, operation) => {
@@ -18,10 +20,10 @@ const assertKnownKeys = (input, allowed, operation) => {
 /**
  * @param {object} ports shared store internals: backend, ledger, identity,
  *   rewardPolicy, mutate, lookupIdempotent, readOffer, claimId, clock,
- *   createId and random(n) -> integer in [0, n)
+ *   createId, random(n) -> integer in [0, n) and the readiness prober
  */
 export function createChallengeOperations({
-  backend, ledger, identity, rewardPolicy, mutate, lookupIdempotent, readOffer, claimId, clock, createId, random
+  backend, ledger, identity, rewardPolicy, mutate, lookupIdempotent, readOffer, claimId, clock, createId, random, prober
 }) {
   return {
     /**
@@ -41,7 +43,9 @@ export function createChallengeOperations({
       const offer = await readOffer(offerId);
       assertRewardCategory(offer.category, rewardPolicy);
       if (!CHALLENGE_KINDS[offer.category]?.includes(kind)) {
-        fail('invalid_challenge_kind', `${offer.category} contracts take ${(CHALLENGE_KINDS[offer.category] || []).join(', ') || 'no'} challenges`, { kind });
+        fail('invalid_challenge_kind', offer.category === 'prepared_readiness'
+          ? 'readiness is proven only by execution probes the store runs; use probeReadiness'
+          : `${offer.category} contracts take ${(CHALLENGE_KINDS[offer.category] || []).join(', ') || 'no'} challenges`, { kind });
       }
       if (offer.status !== 'accepted') fail('offer_not_accepted', 'only an accepted contract can be challenged', { status: offer.status });
       const now = clock();
@@ -81,11 +85,11 @@ export function createChallengeOperations({
      * transfer cannot also earn a delivery reward.
      */
     async answerChallenge(input = {}) {
-      assertKnownKeys(input, ['challengeId', 'answer', 'evidence', 'idempotencyKey'], 'answerChallenge');
+      assertKnownKeys(input, ['challengeId', 'answer', 'certificate', 'evidence', 'idempotencyKey'], 'answerChallenge');
       const { challengeId, idempotencyKey } = input;
       assertId(challengeId, 'challengeId');
       assertIdempotencyKey(idempotencyKey);
-      const request = pick(input, ['challengeId', 'answer', 'evidence']);
+      const request = pick(input, ['challengeId', 'answer', 'certificate', 'evidence']);
       const operation = 'answerChallenge';
       const prior = await lookupIdempotent({ operation, scopeId: challengeId, idempotencyKey, request });
       if (prior) return prior.result;
@@ -95,7 +99,9 @@ export function createChallengeOperations({
       const offer = await readOffer(challenge.offerId);
       const now = clock();
       const late = toMs(now) > toMs(challenge.respondBy);
-      const verdict = late ? null : await verifyChallengeAnswer({ challenge, offer, answer: input.answer, evidence: input.evidence, identity });
+      const verdict = late ? null : await verifyChallengeAnswer({
+        challenge, offer, answer: input.answer, certificate: input.certificate, evidence: input.evidence, identity
+      });
       const transferClaimId = verdict?.transfer ? claimId('transfer', verdict.transfer.key) : null;
       return mutate({
         operation, scopeId: challengeId, idempotencyKey, request, now,
@@ -119,6 +125,52 @@ export function createChallengeOperations({
           }
           return { result: updated, writes };
         }
+      });
+    },
+
+    /**
+     * Run one bounded execution probe on a readiness contract's stage. The
+     * probe is recorded open before it runs; a probe the prober never
+     * finishes stays open and is withdrawn, never charged to the contributor.
+     */
+    async probeReadiness(input = {}) {
+      assertKnownKeys(input, ['offerId', 'idempotencyKey'], 'probeReadiness');
+      const { offerId, idempotencyKey } = input;
+      assertId(offerId, 'offerId');
+      assertIdempotencyKey(idempotencyKey);
+      const operation = 'probeReadiness';
+      const prior = await lookupIdempotent({ operation, scopeId: offerId, idempotencyKey, request: { offerId } });
+      if (prior) return backend.get('challenges', prior.result.challengeId);
+      const offer = await readOffer(offerId);
+      assertRewardCategory(offer.category, rewardPolicy);
+      if (offer.category !== 'prepared_readiness') fail('invalid_challenge_kind', 'only readiness contracts take execution probes');
+      if (offer.status !== 'accepted') fail('offer_not_accepted', 'only an accepted contract can be probed', { status: offer.status });
+      const now = clock();
+      if (toMs(now) < toMs(offer.acceptedAt) || toMs(now) < toMs(offer.duration.startsAt) || toMs(now) >= toMs(offer.duration.endsAt)) {
+        fail('challenge_outside_contract', 'probes run only inside the accepted contract duration');
+      }
+      const { model, stageIndex } = offer.work.stage;
+      const issued = await mutate({
+        operation, scopeId: offerId, idempotencyKey, request: { offerId }, now,
+        body: async () => {
+          const challenge = buildChallenge({
+            offer, kind: 'execution', target: { model, stageIndex, attemptSlots: offer.resourceBounds.attemptSlots.max },
+            acquirer: null, challengeId: createId('chl'), nonce: createId('nonce'), now
+          });
+          return { result: challenge, writes: [{ create: true, collection: 'challenges', id: challenge.challengeId, value: challenge }] };
+        }
+      });
+      const receipt = await runReadinessProbe({ challenge: issued, offer, prober, clock });
+      const status = receipt.withdrawn ? 'withdrawn' : probePassed(receipt, offer.resourceBounds.attemptSlots.max) ? 'passed' : 'failed';
+      return backend.runTransaction(async (tx) => {
+        const current = await tx.get('challenges', issued.challengeId);
+        if (current.status !== 'open') return current;
+        const updated = {
+          ...current, status, resolvedAt: clock(),
+          answer: { answeredAt: receipt.finishedAt, late: false, reasons: receipt.reasons, probe: JSON.parse(JSON.stringify(receipt)) }
+        };
+        tx.set('challenges', issued.challengeId, updated);
+        return updated;
       });
     },
 
