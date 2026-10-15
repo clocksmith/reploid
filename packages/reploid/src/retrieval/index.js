@@ -10,3 +10,11 @@ export { SUPPORT_REVIEW_PACKET_SCHEMA, SUPPORT_JUDGMENTS_SCHEMA, SUPPORT_RESULT_
   assertIndependentReviewer, validateGenerator, supportPacketHash, canonicalJson } from './support-review.js';
 export { REVIEW_QUEUE_SCHEMA, createHumanReviewQueue } from './review-queue.js';
 export { MODEL_REVIEWER_SYSTEM, createModelSupportReviewer, renderModelReviewPrompt } from './model-reviewer.js';
+export { RETRIEVAL_COSTS_SCHEMA, COST_BEARERS, NO_FALLBACK, sumMicroUsd, validTokenPrice, tokenCostMicroUsd, reviewCostEntry,
+  retrievalCostRecord, withVerification, withReviewCosts } from './costs.js';
+export { decodeEntities, htmlFragmentText, detectCharset, extractDocumentText } from './page-text.js';
+export { selectPassage } from './passage.js';
+export { sha256Text } from './text.js';
+import pageFetchPolicy from './page-fetch.json' with { type: 'json' };
+/** Page fetch limits shared by the server fetcher and device-side extractors. */
+export const PAGE_FETCH_POLICY = pageFetchPolicy;

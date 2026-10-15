@@ -5,7 +5,7 @@
  * deployment needs its own approved wording before the per-answer search flow can use it.
  */
 import { SearchProviderError, abortCode, readBounded } from './errors.js';
-import { htmlFragmentText } from './html-text.js';
+import { htmlFragmentText } from '../../packages/reploid/src/retrieval/page-text.js';
 
 const MAX_RESPONSE_BYTES = 2_000_000;
 const webUrl = value => { try { return typeof value === 'string' && value.length <= 2048 && ['http:', 'https:'].includes(new URL(value).protocol); } catch { return false; } };

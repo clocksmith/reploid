@@ -1,12 +1,13 @@
 // @vitest-environment node
-// Bounded server-side page fetch, HTML/plain-text extraction and passage offsets (server/search). A local
-// node:http server stands in for cited pages; address checks are exercised with injected lookups.
+// Bounded server-side page fetch (server/search) and the HTML/plain-text extraction and passage offsets it shares
+// with device-side extractors (retrieval library). A local node:http server stands in for cited pages; address checks
+// are exercised with injected lookups.
 import http from 'node:http';
 import zlib from 'node:zlib';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createPageFetcher, isBlockedAddress } from '../../server/search/page-fetch.js';
-import { decodeEntities, extractDocumentText } from '../../server/search/html-text.js';
-import { selectPassage } from '../../server/search/passage.js';
+import { decodeEntities, extractDocumentText } from '../../packages/reploid/src/retrieval/page-text.js';
+import { selectPassage } from '../../packages/reploid/src/retrieval/passage.js';
 
 const PAGE = `<!doctype html><HTML><head><title>Eiffel &amp; Paris</title><style>p{color:red}</style>
 <script>var x = "<p>not text</p>";</script></head>

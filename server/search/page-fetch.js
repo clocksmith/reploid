@@ -12,8 +12,11 @@ import https from 'node:https';
 import net from 'node:net';
 import zlib from 'node:zlib';
 import { PageFetchError } from './errors.js';
+// The limits device-side extractors share (packages/reploid/src/retrieval/page-fetch.json).
+import policy from '../../packages/reploid/src/retrieval/page-fetch.json' with { type: 'json' };
 
-export const DEFAULT_ALLOWED_TYPES = Object.freeze(['text/html', 'application/xhtml+xml', 'text/plain']);
+export const DEFAULT_ALLOWED_TYPES = Object.freeze([...policy.contentTypes]);
+const UNSUPPORTED_TYPES = new Set(policy.unsupportedContentTypes);
 const BLOCKED_LOOKUP = 'EREPLOIDBLOCKEDADDRESS';
 
 const IPV4_BLOCKS = [['0.0.0.0', 8], ['10.0.0.0', 8], ['100.64.0.0', 10], ['127.0.0.0', 8], ['169.254.0.0', 16], ['172.16.0.0', 12],
@@ -90,7 +93,8 @@ function decoder(encoding) {
   throw new PageFetchError('fetch-failed', { detail: `Unsupported content encoding ${name}` });
 }
 
-export function createPageFetcher({ maxBytes = 2_000_000, timeoutMs = 8000, maxRedirects = 3, allowedTypes = DEFAULT_ALLOWED_TYPES,
+export function createPageFetcher({ maxBytes = policy.maxBytes, timeoutMs = policy.timeoutMs, maxRedirects = policy.maxRedirects,
+  allowedTypes = DEFAULT_ALLOWED_TYPES,
   lookup = dns.lookup, allowPrivateAddresses = false, isBlocked = isBlockedAddress,
   userAgent = 'ReploidSourceFetcher/1 (+https://github.com/clocksmith/reploid)' } = {}) {
   // allowPrivateAddresses is for tests and local development only.
@@ -100,7 +104,7 @@ export function createPageFetcher({ maxBytes = 2_000_000, timeoutMs = 8000, maxR
   function target(value) {
     let url;
     try { url = new URL(value); } catch { throw new PageFetchError('invalid-url'); }
-    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.href.length > 2048) throw new PageFetchError('invalid-url');
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.href.length > policy.maxUrlCharacters) throw new PageFetchError('invalid-url');
     const host = url.hostname.replace(/^\[|\]$/g, '');
     if (net.isIP(host) && blocked(host)) throw new PageFetchError('blocked-address', { detail: host });
     return url;
@@ -165,7 +169,7 @@ export function createPageFetcher({ maxBytes = 2_000_000, timeoutMs = 8000, maxR
         }
         if (status < 200 || status >= 300) { response.resume(); throw new PageFetchError('http-error', { status }); }
         const contentType = String(response.headers['content-type'] || ''), mime = mimeOf(contentType);
-        if (mime === 'application/pdf') { response.destroy(); throw new PageFetchError('unsupported-content-type', { status, detail: 'PDF text extraction is not supported' }); }
+        if (UNSUPPORTED_TYPES.has(mime)) { response.destroy(); throw new PageFetchError('unsupported-content-type', { status, detail: 'PDF text extraction is not supported' }); }
         if (!allowed.has(mime)) { response.destroy(); throw new PageFetchError('unsupported-content-type', { status, detail: mime ? `${mime} is not supported` : 'The page has no content type' }); }
         let body;
         try { body = await readBody(response, controller.signal); }

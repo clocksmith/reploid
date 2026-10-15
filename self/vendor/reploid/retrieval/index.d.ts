@@ -21,23 +21,33 @@ export interface SearchResult {
 }
 /** Per-query usage a provider reports: billable requests and, when priced, the cost in micro-dollars (null when unpriced). */
 export interface SearchUsage { provider: string; requests: number; costMicroUsd: number | null }
+export type CostBearer = 'operator' | 'requester';
 /** A search provider. The host owns its credentials, terms and any disclosure of the query to it. */
 export interface SearchProvider {
   id: string; version: string;
   /** Names the search service a search-answer permission discloses the query to. */
   searchProvider?: string;
-  search(query: string, limits: RetrievalLimits, signal: AbortSignal): Promise<SearchResult[] | { results: SearchResult[]; usage?: SearchUsage }>;
+  /** Who pays this route's retrieval: the operator (a Reploid-paid provider) or the requester (their own device and tools). */
+  costBearer?: CostBearer;
+  /** `context.answer` is an opaque per-answer key a provider may record in its own usage log; it is not part of the query. */
+  search(query: string, limits: RetrievalLimits, signal: AbortSignal, context?: { answer?: string }):
+    Promise<SearchResult[] | { results: SearchResult[]; usage?: SearchUsage }>;
 }
 /** Where an extracted passage sits in the fetched document's extracted text, which `sha256` identifies. end - start is the passage length. */
 export interface PassageDocument { url: string; contentType: string; characters: number; sha256: string; start: number; end: number; bytes?: number; status?: number }
-export interface ExtractedPassage { sourceId: string; url?: string; text: string; retrievedAt: number; contentHash: string; document?: PassageDocument }
+export interface ExtractedPassage {
+  sourceId: string; url?: string; text: string; retrievedAt: number; contentHash: string; document?: PassageDocument;
+  /** This fetch's configured cost; null or absent when unpriced. */
+  costMicroUsd?: number | null;
+}
 /** Fetches a source and extracts the passage text relevant to the query. */
 export interface PassageExtractor {
   id: string; version: string;
-  extract(input: { source: SearchResult; query: string; limits: RetrievalLimits; signal: AbortSignal }): Promise<ExtractedPassage>;
+  extract(input: { source: SearchResult; query: string; limits: RetrievalLimits; signal: AbortSignal; answer?: string }): Promise<ExtractedPassage>;
 }
 export type SupportVerdict = 'supported' | 'unsupported' | 'unverified';
-export interface SupportJudgment { verdict: SupportVerdict; reason: string }
+/** A checker may report the check's cost; unreported costs are unknown. */
+export interface SupportJudgment { verdict: SupportVerdict; reason: string; costMicroUsd?: number | null }
 /** Judges whether one retrieved passage states or directly entails one claim. Its judgments need their own qualification. */
 export interface SupportChecker {
   id: string; version: string; qualified?: boolean;
@@ -73,6 +83,8 @@ export type CitationFlag =
 export interface CitationVerification {
   schema: 'reploid.citation-verification/v1';
   checker: { id: string; version: string } | null;
+  /** Support checks made and their summed reported cost (null when any check's cost is unknown). */
+  usage?: { checks: number; costMicroUsd: number | null };
   claims: CitationClaim[];
   references: Array<{ start: number; end: number; markers: number[]; text: string; unresolved: number[] }>;
   unrecordedUrls: string[];
@@ -107,10 +119,16 @@ export interface SupportReviewPacket {
     citations: Array<{ source: number; suggestedSpan: ClaimSpan }> }>;
 }
 export interface SupportReviewer { kind: 'human' | 'model'; id: string; model?: { provider: string; name: string; version?: string | null; identity?: string } }
+/** A model's configured token prices; null when unpriced. */
+export interface TokenPrice { inputMicroUsdPerMillionTokens: number; outputMicroUsdPerMillionTokens: number }
 export interface SupportJudgments {
   schema: 'reploid.claim-support-judgments/v1'; packet: { id: string; sha256: string }; reviewer: SupportReviewer;
   judgments: Array<{ claim: string; verdict: SupportVerdict; basis: string;
     spans?: Array<{ source: number; start?: number; end?: number; quote?: string }> }>;
+  /** Model reviews: reported tokens, configured price and cost (null when tokens or price are unknown). */
+  usage?: { inputTokens: number | null; outputTokens: number | null; price: TokenPrice | null; costMicroUsd: number | null };
+  /** Human reviews: a declared cost; absent means unpriced. */
+  declaredCostMicroUsd?: number;
 }
 export interface GeneratorIdentity { modelId: string; modelIdentity: string }
 export interface ClaimSupportResult {
@@ -141,6 +159,32 @@ export interface RetrievalRecord {
   /** Provider-reported search usage and extraction volume, for quotes and service economics; null before a search returns. */
   usage?: { search: SearchUsage | null; extraction: { documents: number; bytes: number } } | null;
   verification: CitationVerification | null;
+  /** Separate retrieval, verification and fallback costs for this answer; null while pending. Never part of conversation text. */
+  costs?: RetrievalCosts | null;
+}
+/** Integer micro-USD amounts; null means unpriced or unmeasured, never free. Zero means the work did not happen. */
+export interface RetrievalCostEntry {
+  bearer: CostBearer | null;
+  search: { service: string | null; requests: number | null; costMicroUsd: number | null };
+  extraction: { attempted: number | null; documents: number | null; failed: number | null; bytes: number | null; costMicroUsd: number | null };
+  costMicroUsd: number | null;
+}
+export type ReviewCost =
+  | { kind: 'model'; packet: string | null; reviewer: string; inputTokens: number | null; outputTokens: number | null; price: TokenPrice | null; costMicroUsd: number | null }
+  | { kind: 'human'; packet: string | null; reviewer: string; pricing: 'unpriced' | 'declared'; costMicroUsd: number | null };
+export interface VerificationCostEntry {
+  checker: { id: string; version: string; checks: number | null; costMicroUsd: number | null } | null;
+  reviews: ReviewCost[];
+  costMicroUsd: number | null;
+}
+export interface RetrievalCosts {
+  schema: 'reploid.retrieval-costs/v1'; unit: 'micro-usd';
+  retrieval: RetrievalCostEntry; verification: VerificationCostEntry;
+  /** No fallback route exists yet: `{ path: 'none', costMicroUsd: 0 }`. */
+  fallback: { path: string; costMicroUsd: number | null };
+  totalMicroUsd: number | null;
+  /** Components whose cost is unknown, for example 'retrieval.extraction'. */
+  unknown: string[];
 }
 export interface RetrievalPolicy {
   id: string; version: string; defaults: RetrievalLimits; maxima: RetrievalLimits; maxQueryCharacters: number; maxSupportChecks: number;
@@ -154,14 +198,14 @@ export const SUPPORT_VERDICTS: readonly SupportVerdict[];
 export function createRetrieval(options: RetrievalPorts & { policy?: RetrievalPolicy; now?: () => number }): {
   request(input: RetrievalRequestInput, content: string): RetrievalRequest;
   pending(request: RetrievalRequest, startedAt: number): RetrievalRecord;
-  retrieve(record: RetrievalRecord, signal: AbortSignal | null): Promise<RetrievalRecord>;
+  retrieve(record: RetrievalRecord, signal: AbortSignal | null, options?: { answer?: string | null }): Promise<RetrievalRecord>;
   dispatch<T extends { messages: Array<{ role: string; content: string }> }>(request: T, record: RetrievalRecord): Promise<Omit<T, 'retrieval'>>;
   verify(answer: string, record: RetrievalRecord, signal: AbortSignal | null): Promise<CitationVerification>;
 };
 export function normalizeRetrievalLimits(requested?: Partial<RetrievalLimits>, policy?: RetrievalPolicy): RetrievalLimits;
 export function normalizeRetrievalRequest(input: RetrievalRequestInput, content: string, policy?: RetrievalPolicy): RetrievalRequest;
 export function retrieveSources(options: { record: RetrievalRecord; provider: SearchProvider; extractor?: PassageExtractor | null;
-  signal?: AbortSignal | null; now?: () => number; policy?: RetrievalPolicy }): Promise<RetrievalRecord>;
+  signal?: AbortSignal | null; now?: () => number; policy?: RetrievalPolicy; answer?: string | null }): Promise<RetrievalRecord>;
 export function renderSourceContext(sources: RetrievedSource[], policy?: RetrievalPolicy): string;
 export function withSourceContext<T extends { messages: Array<{ role: string; content: string }> }>(request: T, record: RetrievalRecord,
   policy?: RetrievalPolicy): Promise<Omit<T, 'retrieval'>>;
@@ -211,5 +255,33 @@ export function createHumanReviewQueue(options?: { store?: { load(): unknown; sa
 export const MODEL_REVIEWER_SYSTEM: string;
 export function renderModelReviewPrompt(packet: SupportReviewPacket): string;
 export function createModelSupportReviewer(options: { identity: { provider: string; model: string; version?: string; identity?: string };
-  strongerThan: string[]; complete(input: { system: string; prompt: string; signal: AbortSignal | null }): Promise<string>; maxReplyCharacters?: number }):
+  strongerThan: string[];
+  complete(input: { system: string; prompt: string; signal: AbortSignal | null }):
+    Promise<string | { text: string; usage?: { inputTokens?: number | null; outputTokens?: number | null } }>;
+  price?: TokenPrice | null; maxReplyCharacters?: number }):
   EntailmentReviewer & { kind: 'model'; reviewer: SupportReviewer };
+export const RETRIEVAL_COSTS_SCHEMA: 'reploid.retrieval-costs/v1';
+export const COST_BEARERS: readonly CostBearer[];
+export const NO_FALLBACK: Readonly<{ path: 'none'; costMicroUsd: 0 }>;
+/** The sum, or null when any amount is unknown. */
+export function sumMicroUsd(values: Array<number | null>): number | null;
+export function validTokenPrice(price: unknown): boolean;
+export function tokenCostMicroUsd(input: { inputTokens: number | null; outputTokens: number | null; price: TokenPrice | null }): number | null;
+export function reviewCostEntry(judgments: SupportJudgments): ReviewCost;
+export function retrievalCostRecord(input: { retrieval: RetrievalCostEntry; verification?: VerificationCostEntry;
+  fallback?: { path: string; costMicroUsd: number | null } }): RetrievalCosts;
+/** Attaches a citation verification to its record and updates the verification cost entry. */
+export function withVerification(record: RetrievalRecord, verification: CitationVerification): RetrievalRecord;
+/** Adds entailment review costs from judgment files to the record's verification cost entry. */
+export function withReviewCosts(record: RetrievalRecord, judgments: SupportJudgments[]): RetrievalRecord;
+export function decodeEntities(text: string): string;
+export function htmlFragmentText(fragment: string): string;
+export function detectCharset(body: Uint8Array, contentType?: string, charset?: string | null): string;
+/** Document text and title from HTML or plain-text bytes; the same bytes give the same text on every route. */
+export function extractDocumentText(input: { body: Uint8Array | string; contentType?: string; charset?: string | null }):
+  { text: string; title: string; characters: number };
+/** An exact slice of `text` relevant to `query`, with its offsets. */
+export function selectPassage(input: { text: string; query?: string; maxCharacters: number }): { text: string; start: number; end: number };
+export function sha256Text(text: string): Promise<string>;
+export const PAGE_FETCH_POLICY: { id: string; version: string; maxBytes: number; timeoutMs: number; maxRedirects: number;
+  maxUrlCharacters: number; contentTypes: string[]; unsupportedContentTypes: string[] };

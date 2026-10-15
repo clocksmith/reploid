@@ -1,5 +1,7 @@
 /** Mechanical citation checks for one answer against its retrieval record. Parsing and mapping are exact;
  * whether a source supports a claim is delegated to a host support checker and is never inferred here. */
+import { sumMicroUsd } from './costs.js';
+
 export const CITATION_VERIFICATION_SCHEMA = 'reploid.citation-verification/v1';
 export const SUPPORT_VERDICTS = Object.freeze(['supported', 'unsupported', 'unverified']);
 
@@ -95,15 +97,22 @@ export async function verifyCitations({ answer, record, checker = null, signal =
   const parsed = parseCitations(answer), byNumber = new Map((record?.sources || []).map(source => [source.number, source]));
   const known = (record?.sources || []).map(source => source.url);
   let checks = 0;
+  // Each check's cost as the checker reports it; unreported, failed or stopped checks are unknown, not free.
+  const checkCosts = [];
   const support = async (claim, source) => {
     if (!checker) return unverified('No support checker is configured.');
     if (signal?.aborted) return unverified(STOPPED);
     if (checks >= maxSupportChecks) return unverified('The support check limit was reached.');
     checks++;
     try {
-      return judged(await untilStopped(() => checker.check({ claim, signal, source: { number: source.number,
-        sourceId: source.sourceId, title: source.title, url: source.url, passage: source.passage } }), signal));
-    } catch (error) { return unverified(`The support checker failed: ${String(error?.message || error).slice(0, 200)}`); }
+      const value = await untilStopped(() => checker.check({ claim, signal, source: { number: source.number,
+        sourceId: source.sourceId, title: source.title, url: source.url, passage: source.passage } }), signal);
+      checkCosts.push(Number.isSafeInteger(value?.costMicroUsd) && value.costMicroUsd >= 0 ? value.costMicroUsd : null);
+      return judged(value);
+    } catch (error) {
+      checkCosts.push(null);
+      return unverified(`The support checker failed: ${String(error?.message || error).slice(0, 200)}`);
+    }
   };
   const claims = [], flags = [];
   for (const claim of parsed.claims) {
@@ -137,6 +146,7 @@ export async function verifyCitations({ answer, record, checker = null, signal =
   return {
     schema: CITATION_VERIFICATION_SCHEMA,
     checker: checker ? { id: checker.id, version: checker.version } : null,
+    usage: { checks, costMicroUsd: sumMicroUsd(checkCosts) },
     claims, references, unrecordedUrls, flags,
     summary: { claims: claims.length, citedClaims: claims.filter(claim => claim.cited).length,
       uncitedClaims: claims.filter(claim => !claim.cited).length, citations: all.length,

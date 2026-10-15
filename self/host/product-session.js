@@ -5,9 +5,10 @@ import { createWorkSession } from './work-session.js';
 import { createWorkEvolution } from './work-evolution.js';
 import { createWorkSwarm } from './work-swarm.js';
 import { createWorkPeerJobs } from './work-peer-jobs.js';
-import { createChatSession, openCanonicalChatSession, LOCAL_HISTORY_IDENTITY, SEARCH_ROUTE } from './chat-session.js';
+import { createChatSession, openCanonicalChatSession, LOCAL_HISTORY_IDENTITY, SEARCH_ROUTE, DEVICE_SEARCH_ROUTE } from './chat-session.js';
 import { createWebSearch } from './web-search.js';
 import { createServerSearch } from './server-search.js';
+import { createDeviceSearch } from './device-search.js';
 import { acquireChatHistoryOwner, refusedChatHistory } from './chat-history.js';
 import { DOPPLER_PARTITIONS_MODULE_URL } from '../config/doppler-local-models.js';
 import orderedPolicy from '../config/ordered-participation.json' with { type: 'json' };
@@ -71,11 +72,16 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
   };
   // The person's MCP search server, used only for sends made while web search is on (Settings).
   const webSearch = createWebSearch({ storage });
+  // The same server as a device-side route: the query goes from this device to it and this device fetches the pages.
+  const deviceSearch = createDeviceSearch({ source: webSearch.provider, enabled: () => webSearch.enabled() });
   // `earning` (earning/attempts.js) is off unless the embedding host composes an explicitly configured client.
   const chatOptions = { service, storage, swarm, partitions: swarm.partitions, peers: createWorkPeerJobs({ getNetwork }),
-    // Search-backed answers use the server's Brave route, each under its own per-answer search permission.
+    // Search-backed answers use the server's Brave route or the device-side route, each answer under its own
+    // per-answer search permission. The device-side route is not offered until its wording is approved.
     retrieval: { routes: { default: { provider: webSearch.provider },
-      [SEARCH_ROUTE]: { provider: search.provider, extractor: search.extractor, permission: 'search-answer' } } }, earning };
+      [SEARCH_ROUTE]: { provider: search.provider, extractor: search.extractor, permission: 'search-answer' },
+      [DEVICE_SEARCH_ROUTE]: { provider: deviceSearch.provider, extractor: deviceSearch.extractor, permission: 'search-answer',
+        available: deviceSearch.available } } }, earning };
   const failOpening = async error => {
     const settled = await Promise.allSettled([() => swarm.close(), () => chat?.close()].map(close => Promise.resolve().then(close)));
     const failures = settled.filter(result => result.status === 'rejected').map(result => result.reason);
@@ -99,7 +105,7 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
       onError: error => console.warn('[Reploid Swarm] Discovery connection failed', error) });
     const assertOpen = () => { if (closed) throw new Error('Application session is closed'); };
     return {
-      chat, swarm, evolution, webSearch, search,
+      chat, swarm, evolution, webSearch, search, deviceSearch,
       get runtime() { assertOpen(); return runtime ??= globalThis.REPLOID_DOPPLER_RUNTIME || createDopplerRuntime(); },
       get work() { assertOpen(); return work ??= createWorkSession({ service, storage, swarm, evolution, peers: createWorkPeerJobs({ getNetwork }) }); },
       get documents() { assertOpen(); return documents ??= createDocumentAssistant({ executor: createLocalPackExecutor(), network: getNetwork(), onChange: onDocuments }); },

@@ -2165,7 +2165,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:bc0ea1398f9f27565e7a1507bdb5f2276084b2ae84d74c631cde86a30faa0787",
+      "sha256": "sha256:75afee7050b1bb06689f79d55a2b1a9fc44a058dd787eaac6b52a77c667c0358",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -2203,6 +2203,14 @@
       "owner": "self",
       "sha256": "sha256:9a7f900226aa91addf8a8f32feb6e5f94089f4097ac36f9ffe2465b62d337ad7",
       "imports": []
+    },
+    {
+      "path": "self/host/device-search.js",
+      "owner": "self",
+      "sha256": "sha256:731905b0213594f2ae89f656d512cd58fec0ed327f72a03c013b63ca87c05f09",
+      "imports": [
+        "../vendor/reploid/retrieval/index.js"
+      ]
     },
     {
       "path": "self/host/document-comparison.js",
@@ -2263,7 +2271,7 @@
     {
       "path": "self/host/product-session.js",
       "owner": "self",
-      "sha256": "sha256:9943ca03385667554a23379c23c4c23a0072022d48c131012cb818d71966708a",
+      "sha256": "sha256:6c9c8adfbfa4b95255c13e97a2433a5283af57abd17fc754282d5d5ffbf83caa",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/ordered-participation.json",
@@ -2279,6 +2287,7 @@
         "../pool/requester-client.js",
         "./chat-history.js",
         "./chat-session.js",
+        "./device-search.js",
         "./server-search.js",
         "./swarm-autoconnect.js",
         "./web-search.js",
@@ -2310,7 +2319,7 @@
     {
       "path": "self/host/server-search.js",
       "owner": "self",
-      "sha256": "sha256:841a38284470c12e2b5acb49c3ba9c9d38ca483b4c3cc9d79fdb8a845fdf969f",
+      "sha256": "sha256:82b3ad74005c022cbccad9e561bd0db9b903333bd87e1d477ddc6248f3f7f704",
       "imports": []
     },
     {
@@ -15226,11 +15235,12 @@
     {
       "path": "vendor/reploid/chat/workspace.js",
       "owner": "vendor",
-      "sha256": "sha256:ea4af34a7d868324a1d11088c09a91df841ad0e22bfa030b1746a081554eba41",
+      "sha256": "sha256:6b3025991ebd150bcbfd15de19d002253a47e31425824752aa7173b360693afb",
       "imports": [
         "../mesh/partitions/partition-contract.js",
         "../mesh/partitions/partition-ordered-publication.js",
         "../mesh/partitions/partition-summary.js",
+        "../retrieval/costs.js",
         "../retrieval/retrieval.js",
         "../retrieval/sources.js",
         "./policy.json",
@@ -15755,8 +15765,10 @@
     {
       "path": "vendor/reploid/retrieval/citations.js",
       "owner": "vendor",
-      "sha256": "sha256:d9e2d12decf403b3002555f5ae0273373d9e49debd66a1ac647edf6bbfe20486",
-      "imports": []
+      "sha256": "sha256:61da2b8d54bd682a315e322563eeeba4573c62e0319d4cc87b713ca36d04485a",
+      "imports": [
+        "./costs.js"
+      ]
     },
     {
       "path": "vendor/reploid/retrieval/claim-support.js",
@@ -15770,6 +15782,12 @@
       ]
     },
     {
+      "path": "vendor/reploid/retrieval/costs.js",
+      "owner": "vendor",
+      "sha256": "sha256:e0a07fdabddb86f68cf417c0b72b0856b7f2933998d0a647a231f59158d19395",
+      "imports": []
+    },
+    {
       "path": "vendor/reploid/retrieval/fixed-provider.js",
       "owner": "vendor",
       "sha256": "sha256:4c0f26d3047fa5625d551f564b751a7a0455a522810077d4167e21f2c56b2bb2",
@@ -15780,17 +15798,22 @@
     {
       "path": "vendor/reploid/retrieval/index.js",
       "owner": "vendor",
-      "sha256": "sha256:2c941f40a24b7e4fcd18d777c08452670a7a7f57ed89f0a85881813939401b7d",
+      "sha256": "sha256:e4ad493f258ecb984fa0917f78044d3b728d86fab3e279cb562787a73280b36a",
       "imports": [
         "./citations.js",
         "./claim-support.js",
+        "./costs.js",
         "./fixed-provider.js",
         "./lexical-support.js",
         "./model-reviewer.js",
+        "./page-fetch.json",
+        "./page-text.js",
+        "./passage.js",
         "./retrieval.js",
         "./review-queue.js",
         "./sources.js",
-        "./support-review.js"
+        "./support-review.js",
+        "./text.js"
       ]
     },
     {
@@ -15804,15 +15827,30 @@
     {
       "path": "vendor/reploid/retrieval/model-reviewer.js",
       "owner": "vendor",
-      "sha256": "sha256:9464911b5ffdcd1b38bfd962108a8d63d9cf1ee266ab8e67c9d3de9b58ee21b4",
+      "sha256": "sha256:a66188b67b091804c02427621492010aca0e325ec420eaa62f25b32cdf4dfd64",
       "imports": [
+        "./costs.js",
         "./support-review.js"
+      ]
+    },
+    {
+      "path": "vendor/reploid/retrieval/page-text.js",
+      "owner": "vendor",
+      "sha256": "sha256:ecd99c767324497149d86c226607fb34b6006b1f2ea4aae9ad963cb2dd3b5d73",
+      "imports": []
+    },
+    {
+      "path": "vendor/reploid/retrieval/passage.js",
+      "owner": "vendor",
+      "sha256": "sha256:5691cc6b8bd78959b90c2311feb71304773677352a141e72cf437631472d43bd",
+      "imports": [
+        "./text.js"
       ]
     },
     {
       "path": "vendor/reploid/retrieval/retrieval.js",
       "owner": "vendor",
-      "sha256": "sha256:2f844afb1d1f730819130dd5a5bd176d27bd17a044c040ce1d4a6bdf2cf2daa3",
+      "sha256": "sha256:cb87e8d45ee6cf273a15ec4b54df7ddc46ce700768104564fb077add811e9a30",
       "imports": [
         "./citations.js",
         "./claim-support.js",
@@ -15831,8 +15869,9 @@
     {
       "path": "vendor/reploid/retrieval/sources.js",
       "owner": "vendor",
-      "sha256": "sha256:39567bcda2b6e63c6d33933a5251c5bd71058411d3e35da09e875b8c6daacfe0",
+      "sha256": "sha256:c8fee6d50048417a8f2e408bd6c71a6bab85401b287d973de4877499562cb7be",
       "imports": [
+        "./costs.js",
         "./policy.json",
         "./text.js"
       ]

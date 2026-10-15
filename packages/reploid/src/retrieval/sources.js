@@ -2,6 +2,7 @@
  * and the provenance record kept with the conversation. Providers and extractors are host ports. */
 import defaults from './policy.json' with { type: 'json' };
 import { SHA256, sha256Text } from './text.js';
+import { COST_BEARERS, retrievalCostEntry, retrievalCostRecord, unknownRetrievalCosts } from './costs.js';
 
 export const RETRIEVAL_RECORD_SCHEMA = 'reploid.retrieval-record/v1';
 export const RETRIEVAL_OUTCOMES = Object.freeze(['pending', 'retrieved', 'empty', 'failed', 'cancelled', 'interrupted']);
@@ -65,17 +66,18 @@ export function pendingRetrievalRecord({ request, provider, extractor = null, po
     // Every source below came from the provider this request explicitly opted into.
     sourceUse: 'requester-opt-in', query: request.query, limits: copy(request.limits),
     outcome: 'pending', error: null, startedAt, finishedAt: null, providerResultCount: null,
-    sources: [], omitted: [], context: null, usage: null, verification: null };
+    sources: [], omitted: [], context: null, usage: null, verification: null, costs: null };
 }
 
 export function retrievalFailureMessage(record) {
   return `Could not retrieve sources: ${FAILURES[record?.error?.code] || 'retrieval did not complete'}.`;
 }
 
-/** Marks a record left pending by a reload. Nothing it would have retrieved was sent. */
+/** Marks a record left pending by a reload. Nothing it would have retrieved was sent; what it spent was not observed. */
 export function interruptRetrievalRecord(record, finishedAt) {
   if (record?.outcome !== 'pending') return record;
-  return { ...record, outcome: 'interrupted', error: { code: 'interrupted', message: FAILURES.interrupted }, finishedAt };
+  return { ...record, outcome: 'interrupted', error: { code: 'interrupted', message: FAILURES.interrupted }, finishedAt,
+    costs: retrievalCostRecord({ retrieval: unknownRetrievalCosts() }) };
 }
 
 const webUrl = value => {
@@ -98,7 +100,8 @@ const validDocument = (value, text) => value === undefined || value && typeof va
 const validPassage = (value, source) => value && typeof value === 'object' && value.sourceId === source.sourceId
   && (value.title === undefined || typeof value.title === 'string' && value.title.length <= 1000)
   && typeof value.text === 'string' && value.text.trim() && Number.isFinite(value.retrievedAt) && value.retrievedAt > 0
-  && typeof value.contentHash === 'string' && SHA256.test(value.contentHash) && validDocument(value.document, value.text);
+  && typeof value.contentHash === 'string' && SHA256.test(value.contentHash) && validDocument(value.document, value.text)
+  && (value.costMicroUsd === undefined || value.costMicroUsd === null || count(value.costMicroUsd));
 /** Provider-reported usage for one query: billable requests and, when priced, the cost in micro-dollars. */
 const validUsage = value => value === undefined || value && typeof value === 'object' && typeof value.provider === 'string'
   && /^[\x21-\x7e]{1,64}$/.test(value.provider) && count(value.requests) && (value.costMicroUsd === null || count(value.costMicroUsd));
@@ -139,23 +142,32 @@ function race(operation, signal) {
   });
 }
 
-/** Runs one retrieval and returns the finished record. Failures are recorded, never thrown and never filled with sources. */
-export async function retrieveSources({ record, provider, extractor = null, signal, now = Date.now, policy = defaults }) {
+/** Runs one retrieval and returns the finished record. Failures are recorded, never thrown and never filled with sources.
+ * `answer` is an opaque key for the answer this retrieval serves; providers may pass it to their own usage log so
+ * service economics can sum costs per answer. It is never part of the query. */
+export async function retrieveSources({ record, provider, extractor = null, signal, now = Date.now, policy = defaults, answer = null }) {
   const limits = record.limits, deadline = new AbortController();
   const timer = setTimeout(() => deadline.abort(new RetrievalError('timeout')), limits.timeoutMs);
   const forward = () => deadline.abort(new RetrievalError('cancelled'));
   if (signal?.aborted) forward(); else signal?.addEventListener('abort', forward, { once: true });
   let usage = null;
-  const finish = (fields) => ({ ...record, ...fields, usage, finishedAt: now() });
+  // What this retrieval spent, for its cost record: observed even when it fails.
+  const meter = { searched: false, usage: null, attempted: 0, documents: 0, failed: 0, bytes: 0, costs: [] };
+  const context = answer === null ? {} : { answer };
+  const finish = (fields) => ({ ...record, ...fields, usage, finishedAt: now(), costs: retrievalCostRecord({
+    retrieval: retrievalCostEntry({ bearer: provider.costBearer ?? null, service: provider.searchProvider ?? null, meter }) }) });
   try {
     let returned;
-    try { returned = providerResults(await race(() => provider.search(record.query, copy(limits), deadline.signal), deadline.signal)); }
-    catch (error) { throw error instanceof RetrievalError ? error : new RetrievalError('provider-error', error); }
+    try {
+      returned = providerResults(await race(() => { meter.searched = true; return provider.search(record.query, copy(limits), deadline.signal, copy(context)); },
+        deadline.signal));
+    } catch (error) { throw error instanceof RetrievalError ? error : new RetrievalError('provider-error', error); }
     if (!returned || !returned.results.every(validResult) || !validUsage(returned.usage)) throw new RetrievalError('invalid-provider-result');
     const results = returned.results;
     // Recorded before anything else can fail: a failed or empty search may still have been billed.
     const searchUsage = returned.usage ? { provider: returned.usage.provider, requests: returned.usage.requests,
       costMicroUsd: returned.usage.costMicroUsd } : null;
+    meter.usage = searchUsage;
     usage = { search: searchUsage, extraction: { documents: 0, bytes: 0 } };
     if (!results.length) return finish({ outcome: 'empty', error: { code: 'no-results', message: FAILURES['no-results'] }, providerResultCount: 0 });
     const omitted = [], seen = new Set(), kept = [];
@@ -164,11 +176,20 @@ export async function retrieveSources({ record, provider, extractor = null, sign
       seen.add(result.sourceId);
       if (kept.length < limits.maxResults) kept.push(result); else omitted.push({ sourceId: result.sourceId, reason: 'result-limit' });
     }
+    if (extractor) meter.attempted = kept.length;
     const passages = await Promise.allSettled(kept.map(source => extractor
-      ? race(() => extractor.extract({ source: copy(source), query: record.query, limits: copy(limits), signal: deadline.signal }), deadline.signal)
+      ? race(() => extractor.extract({ source: copy(source), query: record.query, limits: copy(limits), signal: deadline.signal, ...copy(context) }),
+        deadline.signal)
         .then(value => { if (!validPassage(value, source)) throw new Error('Invalid extracted passage'); return { ...value, origin: 'extract' }; })
       : Promise.resolve({ sourceId: source.sourceId, text: source.excerpt, retrievedAt: source.retrievedAt,
         contentHash: source.contentHash, origin: 'search-excerpt' })));
+    if (extractor) for (const passage of passages) {
+      if (passage.status === 'rejected') { meter.failed++; continue; }
+      const bytes = passage.value.document?.bytes;
+      meter.documents++;
+      meter.bytes = meter.bytes === null || bytes === undefined ? null : meter.bytes + bytes;
+      meter.costs.push(passage.value.costMicroUsd ?? null);
+    }
     if (deadline.signal.aborted) throw deadline.signal.reason;
     const candidates = [];
     kept.forEach((source, index) => {
@@ -222,6 +243,7 @@ export async function withSourceContext(request, record, policy = defaults) {
 
 export function validateRetrievalPorts({ provider, extractor = null, supportChecker = null }) {
   assert(port(provider) && typeof provider.search === 'function', 'Retrieval requires a search provider');
+  assert(provider.costBearer === undefined || COST_BEARERS.includes(provider.costBearer), 'Invalid search provider cost bearer');
   assert(extractor === null || port(extractor) && typeof extractor.extract === 'function', 'Invalid passage extractor');
   assert(supportChecker === null || port(supportChecker) && typeof supportChecker.check === 'function', 'Invalid citation support checker');
 }

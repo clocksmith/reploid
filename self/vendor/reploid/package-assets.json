@@ -420,8 +420,8 @@
     },
     {
       "path": "chat/workspace.js",
-      "bytes": 38653,
-      "sha256": "ea4af34a7d868324a1d11088c09a91df841ad0e22bfa030b1746a081554eba41"
+      "bytes": 38943,
+      "sha256": "6b3025991ebd150bcbfd15de19d002253a47e31425824752aa7173b360693afb"
     },
     {
       "path": "config/defaults.json",
@@ -1065,13 +1065,18 @@
     },
     {
       "path": "retrieval/citations.js",
-      "bytes": 9094,
-      "sha256": "d9e2d12decf403b3002555f5ae0273373d9e49debd66a1ac647edf6bbfe20486"
+      "bytes": 9521,
+      "sha256": "61da2b8d54bd682a315e322563eeeba4573c62e0319d4cc87b713ca36d04485a"
     },
     {
       "path": "retrieval/claim-support.js",
       "bytes": 7942,
       "sha256": "808bc0703d54727f80c7dc95dcd5ff78afe59538db3326d1064a8238bce2e675"
+    },
+    {
+      "path": "retrieval/costs.js",
+      "bytes": 7721,
+      "sha256": "e0a07fdabddb86f68cf417c0b72b0856b7f2933998d0a647a231f59158d19395"
     },
     {
       "path": "retrieval/fixed-provider.js",
@@ -1080,13 +1085,13 @@
     },
     {
       "path": "retrieval/index.d.ts",
-      "bytes": 16211,
-      "sha256": "4a6e6fad23d5f8bc6e4ee9cdb3cacb16ed060690008e9e984eb17701283e23c8"
+      "bytes": 21416,
+      "sha256": "36899f0a4f37bdaa8c8a1fa9d1a8bb55f9254b61f359a4cb2d0a00dcfcbff7b2"
     },
     {
       "path": "retrieval/index.js",
-      "bytes": 1243,
-      "sha256": "2c941f40a24b7e4fcd18d777c08452670a7a7f57ed89f0a85881813939401b7d"
+      "bytes": 1839,
+      "sha256": "e4ad493f258ecb984fa0917f78044d3b728d86fab3e279cb562787a73280b36a"
     },
     {
       "path": "retrieval/lexical-support.js",
@@ -1095,8 +1100,23 @@
     },
     {
       "path": "retrieval/model-reviewer.js",
-      "bytes": 4630,
-      "sha256": "9464911b5ffdcd1b38bfd962108a8d63d9cf1ee266ab8e67c9d3de9b58ee21b4"
+      "bytes": 5569,
+      "sha256": "a66188b67b091804c02427621492010aca0e325ec420eaa62f25b32cdf4dfd64"
+    },
+    {
+      "path": "retrieval/page-fetch.json",
+      "bytes": 277,
+      "sha256": "ebd43c3ad743538fdeb88601dad8d2f0c72145b55c7eb3ae544e7e0134ec399c"
+    },
+    {
+      "path": "retrieval/page-text.js",
+      "bytes": 10275,
+      "sha256": "ecd99c767324497149d86c226607fb34b6006b1f2ea4aae9ad963cb2dd3b5d73"
+    },
+    {
+      "path": "retrieval/passage.js",
+      "bytes": 2215,
+      "sha256": "5691cc6b8bd78959b90c2311feb71304773677352a141e72cf437631472d43bd"
     },
     {
       "path": "retrieval/policy.json",
@@ -1105,8 +1125,8 @@
     },
     {
       "path": "retrieval/retrieval.js",
-      "bytes": 1555,
-      "sha256": "2f844afb1d1f730819130dd5a5bd176d27bd17a044c040ce1d4a6bdf2cf2daa3"
+      "bytes": 1808,
+      "sha256": "cb87e8d45ee6cf273a15ec4b54df7ddc46ce700768104564fb077add811e9a30"
     },
     {
       "path": "retrieval/review-queue.js",
@@ -1115,8 +1135,8 @@
     },
     {
       "path": "retrieval/sources.js",
-      "bytes": 15707,
-      "sha256": "39567bcda2b6e63c6d33933a5251c5bd71058411d3e35da09e875b8c6daacfe0"
+      "bytes": 17302,
+      "sha256": "c8fee6d50048417a8f2e408bd6c71a6bab85401b287d973de4877499562cb7be"
     },
     {
       "path": "retrieval/support-review.js",
