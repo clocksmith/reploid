@@ -1,0 +1,69 @@
+{
+  "schema": "reploid.component-power-discovery/v1",
+  "scope": "uncontrolled component telemetry, not wall power or incremental service energy",
+  "baseline": null,
+  "workload_attribution": null,
+  "samples": [
+    {
+      "at": "2026-10-15T13:50:21.308714+00:00",
+      "sensors": [
+        {
+          "component": "amdgpu",
+          "readings_microwatts": {
+            "power1_average": 55028000,
+            "power1_input": 55028000
+          }
+        }
+      ]
+    },
+    {
+      "at": "2026-10-15T13:50:22.309737+00:00",
+      "sensors": [
+        {
+          "component": "amdgpu",
+          "readings_microwatts": {
+            "power1_average": 55009000,
+            "power1_input": 55009000
+          }
+        }
+      ]
+    },
+    {
+      "at": "2026-10-15T13:50:23.310947+00:00",
+      "sensors": [
+        {
+          "component": "amdgpu",
+          "readings_microwatts": {
+            "power1_average": 53030000,
+            "power1_input": 53030000
+          }
+        }
+      ]
+    },
+    {
+      "at": "2026-10-15T13:50:24.312146+00:00",
+      "sensors": [
+        {
+          "component": "amdgpu",
+          "readings_microwatts": {
+            "power1_average": 50062000,
+            "power1_input": 50062000
+          }
+        }
+      ]
+    },
+    {
+      "at": "2026-10-15T13:50:25.313305+00:00",
+      "sensors": [
+        {
+          "component": "amdgpu",
+          "readings_microwatts": {
+            "power1_average": 52050000,
+            "power1_input": 52050000
+          }
+        }
+      ]
+    }
+  ],
+  "host_alias": "amd-host"
+}
