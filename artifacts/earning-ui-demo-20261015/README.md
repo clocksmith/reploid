@@ -7,7 +7,8 @@ other session's uncommitted files).
 
 ## What ran
 
-[`demo.mjs`](demo.mjs) started, all on loopback:
+The harness started, all on loopback. It and the records carrying the pilot's
+prices and funding are kept with the private project records:
 
 - the Firestore emulator (firebase-tools, cloud-firestore-emulator v1.19.8);
 - `server/proxy.js` with `REPLOID_EARNING_ROUTES=enabled` and
@@ -19,7 +20,7 @@ other session's uncommitted files).
   the server runs the durable scheduler over the policy's schedule (every job
   every 5 s, demonstration values); the policy file, capacity files and
   operator file lived outside the checkout and are not committed;
-- [`contributor.mjs`](contributor.mjs): two native contributor devices of one
+- the harness's contributor host: two native contributor devices of one
   account (`carol`) opened through `server/native-earning.js` (the module the
   native CLI's `--earning-config` opens), hosting the two resident stages of
   `tests/helpers/resident-route.js` with signed stage receipts, reached over a
@@ -32,7 +33,7 @@ Four people, six devices:
 
 | Person | Devices | What happened |
 | --- | --- | --- |
-| alice (requester) | browser profile A | Signed in from the app's Settings → Credits, topped up $10 on the test checkout page (1,000 credits), set a 20-credit standing limit, sent three answers. Each was quoted (maximum 20), held 20, charged 10 and released 10. Balance 970. |
+| alice (requester) | browser profile A | Signed in from the app's Settings → Credits, made one top-up on the test checkout page (1,000 credits), set a 20-credit standing limit, sent three answers. Each was quoted (maximum 20), held 20, charged 10 and released 10. Balance 970. |
 | carol (contributor) | 2 native devices, browser profile B | The native devices accepted service-authored stage-share offers, submitted their signed receipts and claimed 8 stage shares (4 credits each: 6 from alice's answers, 2 from dave's); 2 claims for carol's own answer were rejected as self-demand. On browser profile B, carol saw 24 earned credits in the app and spent them on one answer (held 20, charged 10, released 10). Balance 22. |
 | erin (Community Access) | a scripted device | Took the pool's one admitted slot, then ended her answer before dispatch. |
 | dave (Community Access) | browser profile C | No credits. His request queued behind erin's while his client polled it. After erin's answer ended, the server's scheduler admission sweep (`community-access.admitWaiting~0000000003`, runner `local-demo-server`) released her slot and admitted his request, which his client was polling. The answer was charged to the pool; dave's own journal is empty. |
@@ -41,10 +42,9 @@ Every paid and Community Access quote carried evidence terms
 (`reploid.attempt-evidence-rules/1.1.0`, two unacknowledged outputs): the
 requester page signed charge bindings and acknowledged each output over the
 bridge, and each settlement records `rules` and an `evidenceIds` entry with no
-dispute (`evidence/accounts.json`). The founder's $100 weekly commitment
-(10,000 US cents) is recorded in the funding register and allocated in full to
-the pool as 10,000 credits (`evidence/founder-commitment.json`); the pool's
-journal audits as consistent.
+dispute (`evidence/accounts.json`). A founder Community Access commitment is
+recorded in the funding register and allocated in full to the pool (that record
+is private); the pool's journal audits as consistent.
 
 No step needed next-day timing; no clock was injected.
 
@@ -54,7 +54,7 @@ No step needed next-day timing; no clock was injected.
   balance, recent activity, top-up hand-off, spending limit and last quote
   (screenshots 01, 02, 05, 09, 10, 12, 13).
 - **The test checkout page** served by the provider routes (03, 04).
-- **A harness page** (`/__earning-demo`, [`requester-page.mjs`](requester-page.mjs))
+- **A harness page** (`/__earning-demo`, served by the harness)
   for sending answers: the shipped chat session, conversation workspace,
   remote-contributor permission dialog, network inspector and Credits panel,
   arranged as the app's home route, composed with the same credits
@@ -69,8 +69,6 @@ No step needed next-day timing; no clock was injected.
   repository's local exclude rule keeps `artifacts/**/*.png` out of git.
 - `evidence/accounts.json`: each person's account, devices, balance, journal
   and reservations as the service returned them.
-- `evidence/founder-commitment.json`: the commitment, its allocation and the
-  pool account's audit.
 - `evidence/contributor-log.jsonl`: native device registration, offers,
   attempts and claim outcomes.
 - `evidence/scheduler-admission-passes.json`: the admission sweep's recorded
@@ -81,7 +79,8 @@ No step needed next-day timing; no clock was injected.
   had just run it; this shows the shared job state, not a job run by the
   separate process (the tests cover that).
 - `evidence/server-log-excerpt.txt`, `evidence/page-errors.json` (only 404s
-  for the unconfigured search status route), `evidence/run.json` (timeline).
+  for the unconfigured search status route).
+- The run timeline and the funding commitment record are private.
 
 ## What this does not show
 
@@ -91,23 +90,12 @@ No step needed next-day timing; no clock was injected.
   `012` is fixture output, and the requester-to-coordinator hop is the bridge.
 - The native participant CLI end to end: its `--earning-config` path is
   unit-wired, but this run used the same module from a fixture host.
-- Measured costs: the reward rate is a placeholder marginal cost of 1 credit
-  per output token per stage plus the 20% pilot bonus; admitted capacity is
-  operator-declared, not measured.
+- Measured costs: the reward rate uses a placeholder marginal cost, not a
+  measured one; admitted capacity is operator-declared, not measured.
 - Production, installed apps, phones, multi-instance rate limiting.
 
 ## Reproduce
 
-```
-node artifacts/earning-ui-demo-20261015/demo.mjs --repo <clean checkout> \
-  --work <directory outside the checkout> --out <evidence directory> \
-  --server-port <free port> --bridge-port <free port> --emulator-port <free port> \
-  --java-home <JDK 21 or newer>
-```
-
-The demonstration's policy values are in `demo.mjs`; the owner's provisional
-pilot values used there are the $10 top-up, the 30 s first-output and 180 s
-complete-answer deadlines, the founder's $100 weekly Community Access
-commitment and the marginal-cost-plus-20% reward rule. All others (prices, the
-one-credit-per-cent conversion, queue and usage limits) are demonstration
-values, not adopted policy.
+The harness and its policy inputs are in the private project records; it runs
+against a clean checkout of this repository. Policy values in the run are
+demonstration values or the owner's provisional pilot values, not adopted policy.
