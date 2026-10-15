@@ -4,7 +4,7 @@ import { CAPACITY_EVIDENCE_SCHEMA, validateCommunityAccessPolicy } from '../../s
 import { createCommunityAccess, createFundingIssuanceAuthority } from '../../server/community-access/engine.js';
 import { COMMUNITY_ACCESS_OPERATIONS, validateCommunityAccessContract } from '../../server/community-access/store-contract.js';
 import {
-  MIN, accounts, advance, at, clock, composeIssuance, deliver, fx, harnesses, journalShape, quoteTerms, rejectsWith, resetFixture
+  MIN, accounts, advance, at, clock, composeIssuance, decidedBy, deliver, fundingAuthority, fx, harnesses, journalShape, quoteTerms, rejectsWith, resetFixture
 } from '../helpers/access-fixture.js';
 
 // Test-only limits. The guarantee mode, limits and funding are open product decisions.
@@ -46,7 +46,7 @@ describe.each(Object.keys(harnesses))('Community Access (%s store)', (kind) => {
   const open = (policy = POLICY) => {
     const backend = harness.openCommunityBackend();
     ledger = harness.openLedger({ issuanceAuthority: composeIssuance({ community_access: createFundingIssuanceAuthority({ backend, policy }) }) });
-    access = createCommunityAccess({ backend, ledger, accounts, readCommunityCapacity: async () => fx.capacity, policy, clock });
+    access = createCommunityAccess({ backend, ledger, accounts, readCommunityCapacity: async () => fx.capacity, policy, fundingAuthority, clock });
   };
   // Each funding draws its whole quantity from its own registered commitment.
   const fund = async (quantity, { fundingId = `funding:${quantity}`, funderKind = 'donor', poolAccountId = 'pool_general' } = {}) => {
@@ -57,7 +57,7 @@ describe.each(Object.keys(harnesses))('Community Access (%s store)', (kind) => {
         unit: { kind: 'credits' }, validFrom: clock(), validUntil: at(30 * 24 * 60 * MIN), idempotencyKey: `commit:${fundingId}`
       });
     }
-    return access.recordFunding({ fundingId, commitmentId, quantity, poolAccountId });
+    return access.recordFunding({ fundingId, commitmentId, quantity, poolAccountId, authority: decidedBy(`decision:${fundingId}`) });
   };
   const request = (member, { device = `${member}-phone`, requestId = `r${++seq}:${member}` } = {}) => access.requestAccess({
     requestId, participantId: `peer_${member}`, deviceId: device, quote: quoteTerms()

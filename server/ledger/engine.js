@@ -103,6 +103,9 @@ const readRequired = async (tx, collection, id, code) => {
  * @param {Function} [options.deviceAuthority] (tx, { accountId, deviceId }) -> true when the
  *   device may spend for the account; read inside the quote-acceptance transaction, so a
  *   revocation committed first refuses the acceptance
+ * @param {Function} [options.fundingAuthority] ({ action, use, authority, ... }) -> { allowed, reason? }
+ *   for funding-register uses no other component owns (donated credit); who holds that
+ *   authority is policy behind the port, and without it those allocations fail closed
  */
 export function createLedgerStore({
   backend,
@@ -110,12 +113,14 @@ export function createLedgerStore({
   clock = defaultClock,
   createId = defaultCreateId,
   deviceAuthority = null,
+  fundingAuthority = null,
   issuanceAuthority = null,
   // Explicit spent-credit treatment per reversal kind (see reversals.js); without it reversals fail closed.
   reversalPolicy = null
 } = {}) {
   assertLedgerBackend(backend);
   if (deviceAuthority !== null && typeof deviceAuthority !== 'function') throw new TypeError('deviceAuthority must be a function');
+  if (fundingAuthority !== null && typeof fundingAuthority !== 'function') throw new TypeError('fundingAuthority must be a function');
   const activePolicy = validateAccountingPolicy(policy);
   const activeReversalPolicy = validateReversalPolicy(reversalPolicy);
   const idempotencyId = (operation, scopeId, key) => sha256Hex(`${operation}\u0000${scopeId}\u0000${key}`);
@@ -225,7 +230,7 @@ export function createLedgerStore({
     kind: backend.kind,
     policy: activePolicy,
 
-    ...createFundingRegisterOperations({ backend, policy: activePolicy, clock, mutate, claimId }),
+    ...createFundingRegisterOperations({ backend, policy: activePolicy, clock, mutate, claimId, fundingAuthority }),
 
     async openAccount(input = {}) {
       assertKnownKeys(input, ['accountId', 'ownerId'], 'openAccount');
