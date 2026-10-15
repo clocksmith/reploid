@@ -29,4 +29,24 @@ describe('Conversation list', () => {
     view.update([thread], 'one');
     expect(button.textContent).not.toContain('New answer');
   });
+  it('orders recent activity without changing stored order or replacing a focused control', () => {
+    const root = document.createElement('div'); document.body.append(root);
+    const view = createConversationList(root);
+    const older = { id: 'older', purpose: 'Earlier question', createdAt: 1, messages: [], attempts: [] };
+    const newer = { id: 'newer', purpose: 'Later question', createdAt: 2, messages: [], attempts: [] };
+    const records = [older, newer]; view.update(records, 'older');
+    expect([...root.querySelectorAll('[data-thread-item-id]')].map(node => node.dataset.threadItemId)).toEqual(['newer', 'older']);
+    const button = root.querySelector('[data-thread-item-id="older"]'); button.focus();
+    older.attempts.push({ id: 'followup', createdAt: 3, status: 'executing' });
+    view.update(records, 'older');
+    expect(root.firstElementChild.firstElementChild).toBe(button);
+    expect(document.activeElement).toBe(button);
+    expect(records.map(record => record.id)).toEqual(['older', 'newer']);
+    expect(button.dataset.activity).toBe('executing');
+    expect(button.getAttribute('aria-label')).toContain('Generating');
+    older.attempts[0].status = 'interrupted'; view.update(records, 'older');
+    expect(button.dataset.activity).toBe('idle');
+    expect(button.getAttribute('aria-label')).toContain('Interrupted');
+    view.dispose(); root.remove();
+  });
 });

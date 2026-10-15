@@ -19,6 +19,7 @@ async function installConversation(page, theme) {
     const drafts = new Map();
     const session = {
       getState: () => state,
+      select(id) { state.selectedId = id; state.activeThread = state.threads.find(thread => thread.id === id) || null; listeners.forEach(callback => callback(state)); },
       subscribe(callback) { listeners.add(callback); callback(state); return () => listeners.delete(callback); },
       cancel() { window.setVisualState('cancelled'); },
       getDraft: id => drafts.get(id),
@@ -35,6 +36,16 @@ async function installConversation(page, theme) {
     };
     window.setVisualMetrics = metrics => {
       state.activeThread.attempts[0].execution.stepSummary = { metrics };
+      listeners.forEach(callback => callback(state));
+    };
+    window.setVisualThreads = () => {
+      const template = state.activeThread;
+      state.threads = ['Compare weekend plans', 'Review the formatter', 'Notes for the next meeting', 'Summarize the reading', 'Check the itinerary', 'Follow up on the proposal'].map((purpose, index) => ({
+        ...structuredClone(template), id: 'recent-' + index, purpose, createdAt: 10 - index,
+        attempts: template.attempts.map(attempt => ({ ...attempt, id: 'attempt-' + index, status: index === 0 ? attempt.status : 'completed' }))
+      }));
+      state.selectedId = state.threads[0].id; state.activeThread = state.threads[0];
+      state.runningIds = state.activeThread.attempts[0].status === 'executing' ? [state.selectedId] : [];
       listeners.forEach(callback => callback(state));
     };
     window.setVisualState = mode => {
@@ -317,3 +328,48 @@ test('answer activity shows observed shares and preserves its disclosure during 
   await expect(activity).toContainText('75% · 1.3 tok/s');
   await page.screenshot({ path: info.outputPath('activity.png'), fullPage: true });
 });
+
+for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
+  test(`recent thread rail and live digests ${theme} ${width}`, async ({ page, baseURL }, info) => {
+    const origin = new URL(baseURL).origin;
+    await page.route('**/*', route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto('/');
+    await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+    await installConversation(page, theme);
+    const threads = page.locator('[data-thread-item-id]:visible');
+    for (const mode of ['empty', 'executing', 'interrupted', 'completed']) {
+      await page.evaluate(mode => { window.setVisualState(mode); if (mode !== 'empty') window.setVisualThreads(); }, mode);
+      await expect(threads).toHaveCount(mode === 'empty' ? 0 : 3);
+      const rail = await page.locator('[data-thread-sidebar]').boundingBox();
+      const settings = await page.locator('[data-inspector-section="settings"]').boundingBox();
+      expect(rail.y + rail.height - settings.y - settings.height).toBeLessThanOrEqual(12);
+      await page.screenshot({ path: info.outputPath(`rail-${mode}-collapsed.png`) });
+      await page.locator('[data-toggle-thread-rail]').click();
+      await expect(threads).toHaveCount(mode === 'empty' ? 0 : 6);
+      await expect(page.locator('[data-rail-digest="conversation"]')).toBeVisible();
+      await expect(page.locator('[data-rail-digest="conversation"]')).toHaveText({ empty: 'No model ready', executing: 'Executing', interrupted: 'Interrupted', completed: 'Complete' }[mode]);
+      await expect(page.locator('[data-contextual-inspector]')).not.toBeVisible();
+      const expanded = await page.locator('[data-thread-sidebar]').boundingBox();
+      const create = await page.locator('[data-new-thread]').boundingBox();
+      expect(create.x + create.width).toBeLessThanOrEqual(expanded.x + expanded.width);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+      if (mode === 'executing') {
+        await expect(page.locator('[data-thread-item-id="recent-0"]')).toHaveAttribute('data-activity', 'executing');
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        expect(await animation(page.locator('[data-thread-item-id="recent-0"]'))).toBe('none');
+        await page.emulateMedia({ reducedMotion: 'no-preference' });
+      }
+      await page.screenshot({ path: info.outputPath(`rail-${mode}-expanded.png`) });
+      await page.locator('[data-toggle-thread-rail]').click();
+    }
+    await page.evaluate(() => { window.setVisualState('executing'); window.setVisualThreads(); });
+    await threads.nth(1).click();
+    await expect(page.locator('[data-thread-item-id="recent-1"]')).toHaveAttribute('aria-current', 'true');
+    await expect(page.locator('[data-thread-item-id="recent-0"]')).toHaveAttribute('data-activity', 'executing');
+    await page.locator('[data-inspector-section="participants"]').click();
+    await expect(page.locator('[data-inspector-pane="participants"]')).toBeVisible();
+    await page.locator('[data-close-inspector]').click();
+    await expect(page.locator('[data-thread-item-id="recent-1"]')).toHaveAttribute('aria-current', 'true');
+  });
+}

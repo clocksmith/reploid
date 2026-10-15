@@ -18,13 +18,16 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
   return `<section class="reploid-chat-workspace" data-chat-workspace aria-label="Conversation workspace">
     <aside id="chat-threads" class="chat-thread-sidebar pool-surface" data-thread-sidebar aria-label="Conversation controls">
       <div class="chat-rail-toolbar" data-chat-rail-toolbar>
+      <div class="chat-rail-heading">
       <span data-thread-rail-brand></span>
       <button class="pool-button chat-new-thread" type="button" data-new-thread aria-label="New thread" title="New thread">${interfaceIcon('newThread')}<span class="chat-rail-label">New thread</span></button>
-      <button class="pool-button chat-rail-icon" type="button" data-open-model aria-label="Choose model" title="Choose model">${interfaceIcon('device')}</button>
-      <span data-network-trigger-slot></span>
       </div>
       <section class="chat-thread-panel" data-thread-panel aria-labelledby="chat-threads-title">
       <h2 class="pool-subheading" id="chat-threads-title">Threads</h2>
+      <div class="chat-thread-list" data-thread-list></div>
+      </section>
+      <footer class="chat-rail-footer">
+      <button class="pool-button chat-rail-control" type="button" data-open-model aria-label="Choose model" title="Choose model">${interfaceIcon('device')}<span class="chat-rail-label">Model</span><small class="chat-rail-digest pool-muted" data-model-digest></small></button>
       <div class="chat-rail-controls" data-network-header><div class="chat-thread-info">
           <span class="chat-model-control pool-activity-edge" data-model-control><select class="pool-input pool-glass" id="chat-model" data-active-model-select aria-label="Model"></select><button class="pool-button" type="button" data-current-model aria-haspopup="dialog" hidden></button></span>
           </div>
@@ -39,8 +42,8 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
           </fieldset>
         </div></details>
       </div>
-      <div class="chat-thread-list" data-thread-list></div>
-      </section><div class="chat-inspector-slot" data-chat-inspector-slot></div>
+      <div data-network-trigger-slot></div>
+      </footer></div><div class="chat-inspector-slot" data-chat-inspector-slot></div>
     </aside>
     <section class="chat-conversation-area" data-conversation-area aria-label="Current conversation">
       <div class="chat-transcript chat-message-stream" data-chat-transcript data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
@@ -103,10 +106,12 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     viewState.threadsOpen = open; container.toggleAttribute('data-threads-open', open);
     surface?.toggleAttribute('data-left-rail-open', open);
     railToggle?.setAttribute('aria-expanded', String(open));
+    railToggle?.setAttribute('aria-controls', 'chat-threads');
+    if (!open) { actionsPanel.setOpen(false); container.removeAttribute('data-model-chooser-open'); }
   };
   const detachInspector = inspector.mountRail?.(find('[data-chat-inspector-slot]'), find('[data-network-trigger-slot]'), () => setThreads(false));
   setThreads(viewState.threadsOpen ?? false);
-  find('[data-open-model]').addEventListener('click', () => { setThreads(true); (modelSelect.hidden ? find('[data-current-model]') : modelSelect).focus(); }, options);
+  find('[data-open-model]').addEventListener('click', () => { setThreads(true); container.setAttribute('data-model-chooser-open', ''); (modelSelect.hidden ? find('[data-current-model]') : modelSelect).focus(); }, options);
   railToggle?.addEventListener('click', () => setThreads(!container.hasAttribute('data-threads-open')), options);
   surface?.addEventListener('keydown', event => {
     if (event.key === 'Escape' && container.hasAttribute('data-threads-open')) {
@@ -248,6 +253,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     answerLimit.hidden = !bounds.length;
     find('[data-model-control]').hidden = !models.length;
     find('[data-model-control]').dataset.activity = models.some(model => keyFor(model) === current && model.availability === 'ready') ? 'ready' : 'idle';
+    const modelDigest = requestedModel?.name || 'Unavailable';
+    find('[data-model-digest]').textContent = modelDigest;
+    find('[data-open-model]').title = `Choose model: ${modelDigest}`;
+    find('[data-open-model]').setAttribute('aria-label', `Choose model: ${modelDigest}`);
     threads.update(state.threads, state.selectedId, { archived });
     const busy = state.runningIds.includes(thread?.id) || !!state.comparisonPhase;
     const contextControls = find('[data-context-controls]');
