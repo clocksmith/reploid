@@ -15776,7 +15776,7 @@
     {
       "path": "vendor/reploid/retrieval/review-queue.js",
       "owner": "vendor",
-      "sha256": "sha256:38c9cfefb8c60be676aa1d561de2abfed589c1dc6ee71531d95d6998a32ed366",
+      "sha256": "sha256:1fd12b5bff3763b66edee576dbaa04d7465f33df2d6b367225581a4fd9b31336",
       "imports": [
         "./support-review.js"
       ]
@@ -15793,7 +15793,7 @@
     {
       "path": "vendor/reploid/retrieval/support-review.js",
       "owner": "vendor",
-      "sha256": "sha256:92420df7ae3725f830678c1fe6361d1296a7c4203dcaef775d57cc2cb9d149c5",
+      "sha256": "sha256:3d14f3507f8e3e00a668f63a1ae8fb6f1a76cf939803dca5d2f8e0176fd6ef15",
       "imports": [
         "./claim-support.js",
         "./text.js"

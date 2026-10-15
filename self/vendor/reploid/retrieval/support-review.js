@@ -102,8 +102,9 @@ export async function validateSupportJudgments({ packet, judgments, generator })
 
 /**
  * Per-claim outcome for one answer: deterministic results for claims no reviewer can decide, and for reviewable
- * claims the reviewers' verdicts. Reviewers that disagree leave the claim disputed and unverified; disagreement is
- * never settled by vote. A claim no reviewer judged stays unverified.
+ * claims the reviewers' verdicts. When reviewers disagree, a third review decides: a verdict held by a strict majority
+ * of at least three reviews settles the claim, and every review stays in the result. Without such a majority the claim
+ * stays disputed and unverified. A claim no reviewer judged stays unverified.
  */
 export async function applySupportJudgments({ packet, claimSupport, judgments = [], generator }) {
   assert(packet?.schema === SUPPORT_REVIEW_PACKET_SCHEMA && claimSupport?.schema === 'reploid.claim-support/v1', 'Invalid review inputs');
@@ -121,14 +122,20 @@ export async function applySupportJudgments({ packet, claimSupport, judgments = 
       ? [{ reviewer: { kind: file.reviewer.kind, id: file.reviewer.id }, ...file.decided.get(claim.id) }] : []);
     const verdicts = new Set(reviews.map(review => review.verdict));
     if (!reviews.length) return { ...base, verdict: 'unverified', reason: 'awaiting-review', reviews, disputed: false };
-    if (verdicts.size > 1) return { ...base, verdict: 'unverified', reason: 'disputed', reviews, disputed: true };
+    if (verdicts.size > 1) {
+      const majority = [...verdicts].find(verdict => reviews.filter(review => review.verdict === verdict).length * 2 > reviews.length);
+      return reviews.length >= 3 && majority
+        ? { ...base, verdict: majority, reason: 'third-review', reviews, disputed: false }
+        : { ...base, verdict: 'unverified', reason: 'disputed', reviews, disputed: true };
+    }
     return { ...base, verdict: reviews[0].verdict, reason: 'reviewed', reviews, disputed: false };
   });
   const tally = name => claims.filter(claim => claim.verdict === name).length;
   return { schema: SUPPORT_RESULT_SCHEMA, packet: { id: packet.id, sha256: await supportPacketHash(packet) },
     reviewers: files.map(file => structuredClone(file.reviewer)), claims,
     summary: { claims: claims.length, supported: tally('supported'), unsupported: tally('unsupported'), unverified: tally('unverified'),
-      disputed: claims.filter(claim => claim.disputed).length, awaitingReview: claims.filter(claim => claim.reason === 'awaiting-review').length,
+      disputed: claims.filter(claim => claim.disputed).length,
+      resolvedByThirdReview: claims.filter(claim => claim.reason === 'third-review').length, awaitingReview: claims.filter(claim => claim.reason === 'awaiting-review').length,
       // Supported share of all material claims; unverified and disputed claims count against it.
       supportRate: claims.length ? tally('supported') / claims.length : null } };
 }

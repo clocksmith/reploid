@@ -1,6 +1,6 @@
 /** A blinded human review queue for citation support. Each entry keeps the packet reviewers see apart from the
  * sealed generator identity, which only checks independence and is never shown. Two human reviewers judge every
- * claim; claims they disagree on are listed for a third reviewer and stay disputed in the result. */
+ * claim; claims they disagree on are listed for a third reviewer, whose review decides them by majority. */
 import { SUPPORT_JUDGMENTS_SCHEMA, applySupportJudgments, assertIndependentReviewer, supportPacketHash,
   validateGenerator, validateSupportJudgments } from './support-review.js';
 

@@ -119,7 +119,7 @@ export interface ClaimSupportResult {
     evidence: Array<{ source: number; url: string | null; passageHash?: string; span: ClaimSpan | null; document?: { sha256: string; start: number; end: number } }>;
     verdict: SupportVerdict; reason: string; disputed: boolean;
     reviews: Array<{ reviewer: { kind: 'human' | 'model'; id: string }; verdict: SupportVerdict; basis: string; spans: Array<ClaimSpan & { source: number }> }> }>;
-  summary: { claims: number; supported: number; unsupported: number; unverified: number; disputed: number; awaitingReview: number; supportRate: number | null };
+  summary: { claims: number; supported: number; unsupported: number; unverified: number; disputed: number; resolvedByThirdReview: number; awaitingReview: number; supportRate: number | null };
 }
 /** Entailment reviewer interface: a human queue returns null (judgments arrive later); a model reviewer returns judgments. */
 export interface EntailmentReviewer {
