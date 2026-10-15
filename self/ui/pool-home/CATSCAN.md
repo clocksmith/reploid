@@ -39,7 +39,7 @@ Outputs: [conversations](conversation-workspace.js), [markup](view.js), [Room-1]
 ## Acceptance
 
 - Measure benefit/cost against local/centralized baselines. Fixtures prove no inference.
-- Desktop/mobile, both themes: empty/active/interrupted/completed screenshots.
+- Desktop/mobile, light/dark: empty/active/interrupted/completed screenshots.
 - Evidence: [conversations](../../../tests/e2e/chat-material.spec.js), [CSS](../../../scripts/verify-poolday-css-layers.js), [visuals](../../../tests/e2e/workspace-material.spec.js), [navigation](../../../tests/unit/pool-home-nav.test.js), [requests](../../../tests/unit/pool-home-ask-controls.test.js), [records](../../../tests/unit/pool-home-record.test.js), [peers](../../../tests/e2e/p2p-mesh.spec.js), [search](../../../tests/unit/search-answer-permission.test.js).
 
 ## Non-goals
