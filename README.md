@@ -65,6 +65,8 @@ See [improvement episodes](docs/rsi-improvement-episodes.md).
 
 ## Read next
 
+- [Business plan and product contract](docs/product-specification.md) — customer promise, funding, economics and obligations.
+- [Roadmap and acceptance](ROADMAP.md) — launch order, current work and evidence.
 - [Architecture](docs/open-mesh-architecture.md) — coordination, custody, and recovery.
 - [Security](docs/SECURITY.md) — permission and trust boundaries.
 - [Zero and X](docs/zero-x-quick-start.md) — optional agent configurations.

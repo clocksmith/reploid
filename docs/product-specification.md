@@ -1,7 +1,87 @@
-# Reploid product specification and economics contract
+# Reploid business plan and product contract
 
-**Reploid Product Economics Contract v1.2**, identity
-`reploid.product-economics/1.2.0` (2026-10-15; adds the owner's [business plan](#business-plan); v1.1 is preserved in history at `3891795e` and v1.0 at `970c80f7`). Normative product requirements merged into the
+**Ask, explore and figure things out. Earn access on your computer, or pay as you go.**
+
+## Business plan
+
+Reploid is a consumer AI answer service powered by a network of independently
+owned computers. People ask questions, compare options, investigate current
+subjects, connect information and develop ideas using open models and web sources.
+Consumer chat leads, with cited investigations, follow-ups and persistent history.
+Search runs through authorized tools on users' devices or external providers;
+paid search is not mandatory, and not every interaction needs search.
+
+Supply comes from people offering approved spare storage, memory, bandwidth,
+computation or reserved readiness on Macs, AMD workstations and other qualified
+machines. Contributors choose schedules and limits for power, temperature,
+memory, bandwidth and foreground responsiveness. Reploid rewards demanded,
+validated work or maintained contracted readiness, never simple uptime.
+Founder-operated machines seed dependable capacity, with hardware, electricity
+and subsidy recorded transparently.
+
+Users choose funded Community Access, purchased top-ups or nonexpiring credits
+earned through useful contributions. Requesting and contributing are independent;
+no subscription is required. Credits are service balances, without guaranteed
+immediate availability, fixed purchasing power or cash redemption. Their quantity,
+purchase price, contribution reward and redemption price remain separate.
+Outstanding balances require realistic redemption funding.
+
+Reploid earns a margin on delivered answers after all service costs: contributor
+rewards, retrieval, verification, infrastructure, failures, refunds, support,
+payment fees and reliability reserves. Later offerings may include priority or
+reserved service, stronger availability, approved private pools, developer APIs
+and autonomous agents; cash payouts, transfers and trading wait for proven demand,
+funding and controls.
+
+Reploid coordinates capacity, permissions, queues, accounting and recovery;
+Doppler executes models. Routing selects qualified supply by expected complete
+cost. Accepted quotes bind model, disclosure, quality, deadline and spending.
+Hosted overflow requires authorization within those terms; otherwise requests
+queue or fail explicitly. Private browser sessions are not shared infrastructure
+by default. Measure retrieval, verification and fallback costs by execution route.
+
+The business works only when contributors receive worthwhile value above their
+incremental electricity, wear, bandwidth and disruption; customers obtain
+satisfactory, on-time answers at competitive cost against feasible alternatives
+at equivalent quality, responsiveness, availability and permissions; and Reploid
+retains positive contribution margin. Report underlying resource efficiency
+separately from prices and subsidies, without double-counting internal payments.
+
+Launch with one model community and a supported hardware cohort. Test whether
+pooled intermittent demand and otherwise-idle resources can deliver competitive
+service. Investigate feasibility, then freeze quality, latency, contributor-surplus,
+margin and advantage thresholds before confirmatory testing. The first technical
+proof is measured overnight contribution, settled credits and next-day answers
+from another device under a declared automated quality policy. Human judging of
+the whole experience follows technical integration; it is not a prerequisite for
+building or exercising the loop.
+
+Replay demand against task-equivalent alternatives, counting preparation, idle
+time, energy, hardware assumptions, failures and rejected demand. Scale only
+where repeat use, sustained participation and dependable supply demonstrate
+worthwhile contributor value, competitive customer outcomes and positive margins.
+Report energy efficiency separately. Revise or reject failed configurations
+before expansion spending or unsupported commercial promises.
+
+## Document authority
+
+Alongside the preserved [GOALS.md](../GOALS.md) and [INTENT.md](../INTENT.md),
+three documents own product and planning:
+
+| Document | Sole job |
+|---|---|
+| This business plan and product contract | Customer promise, business model, obligations and policy decisions |
+| [ROADMAP.md](../ROADMAP.md) | Launch order, current work, requirement IDs, checkboxes and acceptance evidence |
+| [Architecture](open-mesh-architecture.md) | Components, participation, execution and recovery mechanisms |
+
+Dated artifacts are evidence, calculations and assumptions, not competing plans.
+Specialist protocols remain scoped references. Historical strategies and inactive
+commercial alternatives retain their labels and do not select current work.
+
+## Contract authority
+
+**Reploid Product Economics Contract v1.2.1**, identity
+`reploid.product-economics/1.2.1` (2026-10-15; clarifies the owner-approved business narrative and consolidates document authority; earlier terms remain in Git history). Normative product requirements merged into the
 seven-section definition below. MUST denotes a requirement, not implementation or
 economic proof. Credit quotes, rewards, redemption and solvency remain
 unimplemented/unproven unless separately evidenced in the canonical register.
@@ -16,51 +96,11 @@ Explicitly labeled proposed defaults remain recommendations, not adopted policy.
 The existing requirements below own execution; this is not another work queue.
 
 This file is the canonical contract. [ROADMAP.md](../ROADMAP.md) selects the
-next work and records the current milestone; the
-[requirements register](roadmap/requirements.md) holds every acceptance checkbox
-and its evidence. The [execution outcome rules](#execution-outcome-rules) moved
+next work, records the current milestone and holds every acceptance checkbox
+and its evidence in the [detailed register](../ROADMAP.md#detailed-acceptance-register). The [execution outcome rules](#execution-outcome-rules) moved
 here from the roadmap unchanged; they are existing requirements, not additions
 to `reploid.product-economics/1.0.0`.
 
-**Earn on your computer. Use AI anywhere.**
-
-## Business plan
-
-Adopted 2026-10-15 in the owner's words; v1.2 adds it. The sections below define
-it; where they are more specific, they govern.
-
-Reploid helps people ask questions, compare options, connect information, and develop ideas using open models and web sources. Its promise: earn on your computer, use AI anywhere.
-
-Consumer chat leads, with cited investigations, follow-ups, and persistent history. Attachments provide context. Search runs through authorized device-side tools or paid providers, with retrieval, verification, and fallback costs measured separately. Developer APIs and autonomous agents follow.
-
-Users receive funded Community Access, purchase top-ups, or earn nonexpiring credits through useful contributions. Credits represent service balances, without guaranteed immediate availability or cash redemption. Contributors supply validated computation, storage, delivery, or contracted readiness within approved schedules, memory, bandwidth, power, temperature, and foreground-use limits.
-
-Reploid coordinates capacity, permissions, queues, accounting, and recovery; Doppler executes models. Routing selects qualified supply using expected costs, including preparation, readiness, failures, refunds, and reserves. Accepted quotes bind model, disclosure, quality, deadline, and spending limits. Hosted fallback requires authorization. Otherwise, requests queue or fail explicitly.
-
-Revenue comes from delivered paid services and funded community usage. Reploid retains a margin after contributor rewards, retrieval, verification, infrastructure, payment fees, support, and reliability costs. Outstanding credits require realistic redemption funding. Reserved service, cash payouts, transfers, and trading follow proven demand and controls.
-
-Launch with one model community and supported hardware cohort, using founder machines with disclosed subsidies. The hypothesis is that pooled intermittent demand and otherwise-idle resources can deliver competitive service economically.
-
-Freeze quality, latency, surplus, margin, and advantage thresholds before testing. Measure overnight contribution and next-day redemption, then replay demand against task-equivalent alternatives. Count energy, hardware assumptions, idle time, failures, and rejected demand.
-
-Scale only when contributors earn worthwhile value, customers return and obtain competitive answers, and Reploid retains positive contribution margin. Report energy efficiency separately. Repeat purchases and sustained participation justify expansion; failed configurations are revised or rejected before spending or unsupported commercial promises.
-
-New in v1.2, each owned by an existing requirement:
-
-- Search through authorized device-side tools as well as paid providers, with
-  retrieval, verification and fallback costs measured separately
-  ([REP-8](roadmap/requirements.md#rep-8)).
-- Credits carry no guarantee of immediate availability or cash redemption;
-  outstanding credits require realistic redemption funding
-  ([REP-10](roadmap/requirements.md#rep-10), [REP-11](roadmap/requirements.md#rep-11)).
-- Routing selects qualified supply by expected cost, including preparation,
-  readiness, failures, refunds and reserves ([DR-6](roadmap/requirements.md#dr-6)).
-- Hosted fallback requires the requester's authorization; otherwise requests queue
-  or fail explicitly ([REP-7](roadmap/requirements.md#rep-7)).
-- Reploid's contribution margin after rewards, retrieval, verification,
-  infrastructure, payment fees, support and reliability costs, with quality,
-  latency, surplus, margin and advantage thresholds frozen before testing
-  ([REP-13](roadmap/requirements.md#rep-13), [REP-14](roadmap/requirements.md#rep-14)).
 
 ## 1. Product
 
@@ -88,9 +128,9 @@ versions. No silent truncation or substituted service. Bind accepted quote/attem
 identity and actual recipients durably before dispatch. Changed service needs a
 new eligible record and authorization when outside existing grants.
 
-Acceptance: [REP-7](roadmap/requirements.md#rep-7),
-[REP-10](roadmap/requirements.md#rep-10),
-[DR-1](roadmap/requirements.md#dr-1), [DR-3](roadmap/requirements.md#dr-3).
+Acceptance: [REP-7](../ROADMAP.md#rep-7),
+[REP-10](../ROADMAP.md#rep-10),
+[DR-1](../ROADMAP.md#dr-1), [DR-3](../ROADMAP.md#dr-3).
 
 ## 2. Community Access
 
@@ -106,7 +146,7 @@ not promise an eventual answer. A funded floor requires declared allocation,
 funding source, admission limits, reliability coverage and shortfall behavior. A positive credit balance likewise does not guarantee
 immediate capacity. Requesting, earning and purchasing remain independently available.
 
-Acceptance: [REP-9](roadmap/requirements.md#rep-9).
+Acceptance: [REP-9](../ROADMAP.md#rep-9).
 
 ## 3. Credits and marketplace
 
@@ -147,13 +187,14 @@ commitments. Reward issuance MUST account for future service demand and availabl
 capacity. Issuing credits or observing low redemption does not establish solvency;
 nominal balances are not guaranteed dollar-redemption liabilities.
 
-Acceptance: [REP-10](roadmap/requirements.md#rep-10),
-[REP-11](roadmap/requirements.md#rep-11), [REP-14](roadmap/requirements.md#rep-14).
+Acceptance: [REP-10](../ROADMAP.md#rep-10),
+[REP-11](../ROADMAP.md#rep-11), [REP-14](../ROADMAP.md#rep-14).
 
 ## 4. Consumer utility
 
-The complete initial consumer product MUST provide everyday questions,
-explanations, summaries and retrieval-backed answers with supporting citations,
+The complete initial consumer product MUST support asking questions, comparing
+options, connecting information, developing ideas, explanations, supplied-material
+summaries and retrieval-backed investigations with supporting citations,
 plus persistent conversations and follow-ups. Consumer chat leads; developer APIs
 later use the same capacity and accounting. Coding and specialized vertical
 workflows follow proven general utility. The current dependable-chat technical
@@ -179,8 +220,8 @@ and arrive within their declared deadline count as successful. Failed attempts,
 retries and duplicate work stay in total costs. Numerical parity alone does not
 establish satisfactory answers.
 
-Acceptance: [REP-8](roadmap/requirements.md#rep-8),
-[REP-13](roadmap/requirements.md#rep-13), [REP-7](roadmap/requirements.md#rep-7).
+Acceptance: [REP-8](../ROADMAP.md#rep-8),
+[REP-13](../ROADMAP.md#rep-13), [REP-7](../ROADMAP.md#rep-7).
 
 ## 5. Contribution and execution
 
@@ -236,10 +277,10 @@ Stopping contribution MUST preserve history and MUST NOT directly cancel
 unrelated requests. Loss of indispensable capacity may require waiting or explicit
 retry. Saved history MUST NOT be represented as recovered inference state.
 
-Acceptance: [REP-11](roadmap/requirements.md#rep-11),
-[REP-12](roadmap/requirements.md#rep-12), [REP-4](roadmap/requirements.md#rep-4),
-[REP-5](roadmap/requirements.md#rep-5), [DR-3](roadmap/requirements.md#dr-3),
-[DR-5](roadmap/requirements.md#dr-5), [DR-6](roadmap/requirements.md#dr-6).
+Acceptance: [REP-11](../ROADMAP.md#rep-11),
+[REP-12](../ROADMAP.md#rep-12), [REP-4](../ROADMAP.md#rep-4),
+[REP-5](../ROADMAP.md#rep-5), [DR-3](../ROADMAP.md#dr-3),
+[DR-5](../ROADMAP.md#dr-5), [DR-6](../ROADMAP.md#dr-6).
 
 ## 6. Required economic advantage
 
@@ -283,8 +324,19 @@ never counted as mesh service. Measure mesh-only service against the strongest
 hosted alternative. If no meaningful workload wins on cost, energy, control,
 availability or otherwise unavailable model access, sharding is not the core product.
 
-Acceptance: [REP-14](roadmap/requirements.md#rep-14),
-[DR-6](roadmap/requirements.md#dr-6).
+Acceptance: [REP-14](../ROADMAP.md#rep-14),
+[DR-6](../ROADMAP.md#dr-6).
+
+### Economic evidence and estimates
+
+The [estimate register](../artifacts/economics-estimate-20261015/README.md) retains
+inputs, calculations, Lambda/Google/API comparisons and route-specific retrieval
+scenarios. The [efficiency evidence](../artifacts/efficiency-evidence-20261015/README.md)
+records measured gains, attribution limits and controlled proof obligations;
+its [Flash-Next note](../artifacts/efficiency-evidence-20261015/FLASH-NEXT.md) keeps
+large-model hypotheses separate from small-model results. These supporting
+artifacts establish no commercial price or economic pass. Current work and
+acceptance are maintained only in [REP-14](../ROADMAP.md#rep-14).
 
 ## 7. Bootstrap and proof
 
@@ -312,8 +364,8 @@ a complete-model remote redemption cannot substitute for partitioned inference.
 After reliability, pursue independent adoption and possible OpenRouter distribution.
 Neither marketplace launch nor external platform listing is required for this loop.
 
-Acceptance: [REP-13](roadmap/requirements.md#rep-13),
-[REP-14](roadmap/requirements.md#rep-14), [REP-7](roadmap/requirements.md#rep-7).
+Acceptance: [REP-13](../ROADMAP.md#rep-13),
+[REP-14](../ROADMAP.md#rep-14), [REP-7](../ROADMAP.md#rep-7).
 
 ## Decisions and execution boundary
 
@@ -326,9 +378,9 @@ Acceptance: [REP-13](roadmap/requirements.md#rep-13),
 | First distributed proof | Partitioned execution with no execution participant retaining the complete weights and no requester weights. DR-5/DR-6 require exact-run inventory and execution evidence. Separate REP-5 storage seeds may hold the complete model. |
 | Launch 1 model | Adopted 2026-10-15: Qwen 3.5 0.8B is an engineering vehicle and Community Preview, not the default consumer model. Human review for promotion follows the complete working experience; retain at least 80% whole-answer correctness with no critical unsupported claims for that later assessment. It does not block current technical work. REP-7 and REP-8 own the gate. |
 | Independent answer review | Deferred 2026-10-15 by user direction: human judging and reviewer recruitment follow the complete installed experience, not individual component implementation. Preserve the blinded packet for later end-to-end review of answers, citations, permissions and earning/spending. Automated checks continue now; no human review is required to complete the technical work. |
-| Search provider | Adopted 2026-10-15: Brave Search API first. The search-provider interface keeps a path to a self-hosted SearXNG JSON endpoint; public SearXNG instances may disable it. REP-8. |
+| Search routes | Adopted 2026-10-15: search is optional and runs through authorized tools on users' devices or external providers. Brave is the initial API adapter, not a mandatory paid-search dependency; SearXNG, requester extensions/native companions and permitted remote workers require their own qualification. Record route-specific costs and fallback. REP-8. |
 | Citation support | Adopted 2026-10-15: fetch pages, hash retained passages, map each material claim to its cited spans, require deterministic URL and span validity plus separate-model entailment checks during engineering; human review follows the complete experience. The generating model never certifies itself. REP-8. |
-| Retrieval permission wording | Adopted 2026-10-15, exact text: "Allow Reploid to send this search query to Brave and share retrieved passages with the listed execution contributors for this answer. Your files and unrelated conversation history are excluded." DR-3 and REP-8. |
+| Retrieval permission wording | Adopted 2026-10-15, exact text: "Allow Reploid to send this search query to Brave and share retrieved passages with the listed execution contributors for this answer. Your files and unrelated conversation history are excluded." This exact Brave-specific grant does not authorize other providers or broader context; route-specific disclosure must identify the actual fetch operator and approved synthesis context. DR-3 and REP-8. |
 | Sign-in and payments | Adopted 2026-10-15: Supabase Auth email magic links initially; Stripe Checkout with verified webhooks for one-time top-ups. Each needs provider-specific acceptance. REP-9 and REP-10. |
 | REP-13 pilot values | Adopted 2026-10-15, versioned and revisable: founder-funded Community Access of $100 per week; $10 top-up; first-token deadline 30 s; complete short answer 180 s; at least 80% whole-answer correctness and 95% citation-support accuracy; validated contribution rewarded at measured marginal cost plus a 20% pilot bonus. Rates are published as versioned records and never applied retroactively. |
 
@@ -348,37 +400,37 @@ campaign and declares no new acceptance.
 Detailed rules for the ten execution outcomes that the
 [roadmap acceptance conditions](../ROADMAP.md#acceptance-conditions) summarize.
 Each canonical ID keeps one entry, with its checkboxes and evidence, in the
-[requirements register](roadmap/requirements.md).
+[requirements register](../ROADMAP.md#detailed-acceptance-register).
 
 ### 1. Correct execution
 
 Repair numerical failures and qualify installed execution across supported physical devices against unchanged approved references and tolerances. Keep operator correctness, complete-model accuracy, answer usefulness and distribution parity separate. Completed rejected experiments remain completed; rejected configurations remain rejected.
 
-Canonical IDs: [DOP-1](roadmap/requirements.md#dop-1), [DOP-2](roadmap/requirements.md#dop-2), [DOP-3](roadmap/requirements.md#dop-3), [DOP-5](roadmap/requirements.md#dop-5), [DOP-6](roadmap/requirements.md#dop-6), [DOP-8](roadmap/requirements.md#dop-8), [DR-4](roadmap/requirements.md#dr-4), [ALL-4](roadmap/requirements.md#all-4). Changed-package repair is recorded once under [DR-6](roadmap/requirements.md#dr-6).
+Canonical IDs: [DOP-1](../ROADMAP.md#dop-1), [DOP-2](../ROADMAP.md#dop-2), [DOP-3](../ROADMAP.md#dop-3), [DOP-5](../ROADMAP.md#dop-5), [DOP-6](../ROADMAP.md#dop-6), [DOP-8](../ROADMAP.md#dop-8), [DR-4](../ROADMAP.md#dr-4), [ALL-4](../ROADMAP.md#all-4). Changed-package repair is recorded once under [DR-6](../ROADMAP.md#dr-6).
 
 ### 2. Complete conversations
 
 Deliver useful streamed answers, history-aware follow-ups, durable saved history and restoration after reload through the actual application. Qualify the requester-owned transactional writer using real installed signed execution. Consumer chat remains primary. Everyday summaries and retrieval-backed answers with supporting citations belong to the initial product under REP-8, integrated with REP-7. Specialized document calculations and durable indexing retain their separate scope; they do not substitute for ordinary search retrieval or block the technical chat foundation.
 
-Canonical IDs: [REP-7](roadmap/requirements.md#rep-7), [DR-5](roadmap/requirements.md#dr-5), [DR-2](roadmap/requirements.md#dr-2), [REP-2](roadmap/requirements.md#rep-2), [REP-3](roadmap/requirements.md#rep-3). CHAT-01, DEV-02 and JOB-06 stay within REP-7; ordinary release and later capabilities retain separate acceptance.
+Canonical IDs: [REP-7](../ROADMAP.md#rep-7), [DR-5](../ROADMAP.md#dr-5), [DR-2](../ROADMAP.md#dr-2), [REP-2](../ROADMAP.md#rep-2), [REP-3](../ROADMAP.md#rep-3). CHAT-01, DEV-02 and JOB-06 stay within REP-7; ordinary release and later capabilities retain separate acceptance.
 
 ### 3. Independent concurrency
 
 Share immutable resident weights while isolating each conversation's inference state, temporary buffers, grants and history. Enforce per-executor and shared-device budgets, admit fairly and bound queues. Cancel one request without corrupting its neighbor; retain unknown cleanup ownership until explicitly settled.
 
-Canonical ID: [REP-4](roadmap/requirements.md#rep-4). Its exact-package long-conversation dependency remains in DR-5; cross-route fairness and physical-device coverage remain in DR-6. Logical participants and injected computation do not establish physical concurrency.
+Canonical ID: [REP-4](../ROADMAP.md#rep-4). Its exact-package long-conversation dependency remains in DR-5; cross-route fairness and physical-device coverage remain in DR-6. Logical participants and injected computation do not establish physical concurrency.
 
 ### 4. Flagship support
 
 Prepare Flash-Next's checkpoint, tokenizer, license, independent reference, conversion checks and operator fixtures during repair. Then qualify its architecture and distributed execution. Model support remains reusable. Older-model ports are optional diagnostics; speculation and trillion-scale targets do not become prerequisites for this flagship.
 
-Canonical ID: [ALL-7](roadmap/requirements.md#all-7). Checkpoint-specific sparse attention, gated residuals, n-grams, experts, memory tiers and platform acceptance stay in DR-6's selected-model entry. No model compatibility is inferred from similar operator names.
+Canonical ID: [ALL-7](../ROADMAP.md#all-7). Checkpoint-specific sparse attention, gated residuals, n-grams, experts, memory tiers and platform acceptance stay in DR-6's selected-model entry. No model compatibility is inferred from similar operator names.
 
 ### 5. Efficient acquisition
 
 Discover verified pieces, acquire only missing authorized dependencies, resume transfers and retain data across sessions. Measure cold network acquisition separately from local loading, required compilation, prefill and decode. Prefer assignments whose preparation can produce useful service within the contributor's availability and allowances.
 
-Canonical ID: [REP-5](roadmap/requirements.md#rep-5). The progressive storage modes below extend this existing custody/accounting acceptance. Existing storage, acquisition and introduction evidence retains its original scope.
+Canonical ID: [REP-5](../ROADMAP.md#rep-5). The progressive storage modes below extend this existing custody/accounting acceptance. Existing storage, acquisition and introduction evidence retains its original scope.
 
 ### 6. Automatic prepared placement
 
@@ -386,28 +438,28 @@ Assign complete compatible routes using measured links, memory, residency, deman
 
 Optimize time to useful published output and complete-request cost, not peer count or equal layer counts. A slow device contributes compute when its capacity is needed or it improves the admitted workload; otherwise leave it idle or use separately authorized storage. Freeze placement for each attempt and reassess between attempts.
 
-Canonical ID: [DR-6](roadmap/requirements.md#dr-6), including MESH-01 and the retained 12/20/100 targets. Configured 2–7-stage source composition is complete in its declared scope; autonomous cold assignment, wider physical capacity and fair shared-device admission remain unqualified. Preparation stays separate from requesting.
+Canonical ID: [DR-6](../ROADMAP.md#dr-6), including MESH-01 and the retained 12/20/100 targets. Configured 2–7-stage source composition is complete in its declared scope; autonomous cold assignment, wider physical capacity and fair shared-device admission remain unqualified. Preparation stays separate from requesting.
 
 ### 7. Progressive contribution
 
 A participant may offer bounded introductions, bandwidth, small verified caches, compatible short jobs or prepared stages while also requesting service. Use existing owners. No minimum model download or mandatory compute contribution applies. Reward only requested, validated work or explicitly contracted readiness under REP-10/REP-11 accounting. Native schedules, power/temperature/memory/bandwidth limits and foreground responsiveness belong to REP-12 through REP-4. Require device/network authorization and let unnecessary machines sleep.
 
-Canonical foundation: [REP-1](roadmap/requirements.md#rep-1). Integration acceptance belongs to REP-4, REP-5 and DR-6; their historical completed foundations and newer [storage controls](../artifacts/storage-contribution-20261013/README.md) retain their separate acceptance scopes.
+Canonical foundation: [REP-1](../ROADMAP.md#rep-1). Integration acceptance belongs to REP-4, REP-5 and DR-6; their historical completed foundations and newer [storage controls](../artifacts/storage-contribution-20261013/README.md) retain their separate acceptance scopes.
 
-Storage modes and exact acceptance: [REP-5 progressive storage acceptance](roadmap/requirements.md#rep-5-progressive-storage-acceptance). Cached-only never fetches missing metadata or pieces; bounded acquisition persists and charges allowances across reloads, competing tabs, metadata and retries; full-model seeding requires explicit authorization. Inventory is rebuilt from verified metadata and cached bytes. Source/browser controls and the [final-9 installed contribution and full-seeding checks](../artifacts/signed-completion-journey-20261013/README.md) retain their scoped acceptance in REP-4/REP-5. They do not establish credits, rewards, new owner controls or public promotion.
+Storage modes and exact acceptance: [REP-5 progressive storage acceptance](../ROADMAP.md#rep-5-progressive-storage-acceptance). Cached-only never fetches missing metadata or pieces; bounded acquisition persists and charges allowances across reloads, competing tabs, metadata and retries; full-model seeding requires explicit authorization. Inventory is rebuilt from verified metadata and cached bytes. Source/browser controls and the [final-9 installed contribution and full-seeding checks](../artifacts/signed-completion-journey-20261013/README.md) retain their scoped acceptance in REP-4/REP-5. They do not establish credits, rewards, new owner controls or public promotion.
 Allowances must distinguish download, upload, retained storage, host/GPU memory, execution and expiry where applicable. Stopping contribution must not directly cancel personal conversations. Preserved history is not resumable inference state: loss of indispensable capacity may require waiting or a fresh approved retry.
 
 ### 8. Permission and recovery
 
 Bind actual recipients and complete input scope, enforce revocation and handle contributor departures through existing grants and attempt owners. Settle resources or keep unknown ownership charged. Replacements require explicit fresh attempts when valid continuation is unavailable. Discovery loss alone must not terminate healthy owned execution.
 
-Canonical IDs: [REP-6](roadmap/requirements.md#rep-6), [DR-3](roadmap/requirements.md#dr-3). Retained weights, saved text, local state reuse and transferable inference state are distinct capabilities. Signatures establish record identity, not honest or secret remote computation.
+Canonical IDs: [REP-6](../ROADMAP.md#rep-6), [DR-3](../ROADMAP.md#dr-3). Retained weights, saved text, local state reuse and transferable inference state are distinct capabilities. Signatures establish record identity, not honest or secret remote computation.
 
 ### 9. Physical release
 
 Qualify matching browser/native/runtime/model artifacts through the actual application on supported physical devices. Require useful complete answers, follow-ups, isolated concurrency, permission enforcement, settled cancellation and returning histories. Accept limited models/devices, bounded concurrency, visible queues and explicit retries; disclose limitations and unfamiliar-user evidence gaps.
 
-Canonical IDs: [DR-1](roadmap/requirements.md#dr-1), [ALL-1](roadmap/requirements.md#all-1), [ALL-2](roadmap/requirements.md#all-2), [ALL-3](roadmap/requirements.md#all-3), [ALL-5](roadmap/requirements.md#all-5), [ALL-6](roadmap/requirements.md#all-6). Existing history, controls and immutable receipts stay attached to their exact configurations.
+Canonical IDs: [DR-1](../ROADMAP.md#dr-1), [ALL-1](../ROADMAP.md#all-1), [ALL-2](../ROADMAP.md#all-2), [ALL-3](../ROADMAP.md#all-3), [ALL-5](../ROADMAP.md#all-5), [ALL-6](../ROADMAP.md#all-6). Existing history, controls and immutable receipts stay attached to their exact configurations.
 
 ### 10. Demonstrated advantage
 
@@ -419,12 +471,12 @@ Investigate achievable efficiency on representative AMD/Mac workloads before sel
 
 Keep one scorecard for the declared supported configuration: useful-answer pass rate, p50/p95 time to first durably published output, p95 visible output gap, accepted published tokens per second, completed requests within the latency budget, sustained availability, recovery and complete resource cost. Separate cold acquisition, warm loading and resident service. Compare the same model and machines where possible; separately compare task outcomes within equal resource budgets. Count failures and rejected demand. A claimed advantage needs a predeclared consequential gain with uncertainty reported and no breach of the quality, reliability or latency regression limits.
 
-Comparison acceptance stays in DR-6; [REP-14](roadmap/requirements.md#rep-14) adds service economics and dependable supply. [REP-13](roadmap/requirements.md#rep-13) owns the first overnight earn/use proof. The following canonical IDs remain explicitly optional or later, without becoming community-release dependencies:
+Comparison acceptance stays in DR-6; [REP-14](../ROADMAP.md#rep-14) adds service economics and dependable supply. [REP-13](../ROADMAP.md#rep-13) owns the first overnight earn/use proof. The following canonical IDs remain explicitly optional or later, without becoming community-release dependencies:
 
-- Quantization: [DOP-4](roadmap/requirements.md#dop-4), [DOP-7](roadmap/requirements.md#dop-7).
-- Optional compiler/provider work: [DOE-1](roadmap/requirements.md#doe-1), [DOE-2](roadmap/requirements.md#doe-2), [DOE-3](roadmap/requirements.md#doe-3), [DOE-4](roadmap/requirements.md#doe-4), [DOE-5](roadmap/requirements.md#doe-5), [DOE-6](roadmap/requirements.md#doe-6).
-- Optional integration comparisons: [DD-1](roadmap/requirements.md#dd-1), [DD-2](roadmap/requirements.md#dd-2), [DD-3](roadmap/requirements.md#dd-3), [DD-4](roadmap/requirements.md#dd-4), [DD-5](roadmap/requirements.md#dd-5), [DD-6](roadmap/requirements.md#dd-6).
-- Optional native provider: [ER-1](roadmap/requirements.md#er-1), [ER-2](roadmap/requirements.md#er-2), [ER-3](roadmap/requirements.md#er-3), [ER-4](roadmap/requirements.md#er-4), [ER-5](roadmap/requirements.md#er-5).
-- Later independently evaluated improvement: [ALL-8](roadmap/requirements.md#all-8), [ALL-9](roadmap/requirements.md#all-9). Persistent permissioned work and evaluated improvement remain the progression, not launch gates.
+- Quantization: [DOP-4](../ROADMAP.md#dop-4), [DOP-7](../ROADMAP.md#dop-7).
+- Optional compiler/provider work: [DOE-1](../ROADMAP.md#doe-1), [DOE-2](../ROADMAP.md#doe-2), [DOE-3](../ROADMAP.md#doe-3), [DOE-4](../ROADMAP.md#doe-4), [DOE-5](../ROADMAP.md#doe-5), [DOE-6](../ROADMAP.md#doe-6).
+- Optional integration comparisons: [DD-1](../ROADMAP.md#dd-1), [DD-2](../ROADMAP.md#dd-2), [DD-3](../ROADMAP.md#dd-3), [DD-4](../ROADMAP.md#dd-4), [DD-5](../ROADMAP.md#dd-5), [DD-6](../ROADMAP.md#dd-6).
+- Optional native provider: [ER-1](../ROADMAP.md#er-1), [ER-2](../ROADMAP.md#er-2), [ER-3](../ROADMAP.md#er-3), [ER-4](../ROADMAP.md#er-4), [ER-5](../ROADMAP.md#er-5).
+- Later independently evaluated improvement: [ALL-8](../ROADMAP.md#all-8), [ALL-9](../ROADMAP.md#all-9). Persistent permissioned work and evaluated improvement remain the progression, not launch gates.
 
 *Last updated: October 2026*
