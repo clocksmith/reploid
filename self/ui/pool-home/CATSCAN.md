@@ -25,11 +25,11 @@ Outputs: [conversations](conversation-workspace.js), [markup](view.js), [Room-1]
   accessible themes/responsive scrolling. Activities prescribe no hierarchy.
 - Link tasks/helpers/jobs/results/candidates; show observations and missing admission/evaluators.
 - Preserve execution in protein/document examples and request/execution/comparison/acceptance/receipt lifecycles. Recovery requires valid state.
-- Disclose execution location. Before the first remote request, explain once what is
+- Disclose execution location. Before remote requests, explain once what is
   sent to whom; Settings shows and revokes that permission. Only search-backed
   answers ask per request; local runs never ask. Viewing/restoring/selection grants nothing.
 - Keep failures and Stop visible; selection never stops background threads.
-- Model downloads require explicit contribution opt-in.
+- Model downloads require contribution opt-in.
 - Include compatible adapters in model selection. Separate compute/bounded file consent;
   discovery/thread grants imply neither.
 - Inspect Pack/runtime/provider/hardware/fallback/timing/output/agreement. Review grants no evaluation/promotion; receipts prove no hardware attestation; acceptance names policy.
