@@ -230,6 +230,21 @@ hybrid-memory alternatives with matched model/hardware where possible and label
 task-equivalent comparisons separately. Report both dollars and joules, tradeoffs
 and uncertainty even when only one improves.
 
+Adopted 2026-10-15: if hosted inference is cheaper at equivalent quality, latency,
+privacy, reliability and model choice, routing that workload to hosted providers is
+rational and the distributed-model thesis has failed for it. Credits cannot rescue
+bad economics. Sharding is justified only where it wins: a desired model cannot be
+rented conveniently or offered through an API; shared residency lowers complete
+cost for intermittent demand; local execution materially reduces disclosure or
+satisfies ownership constraints; participants need continued access to a pinned
+model independent of one provider; already-prepared capacity gives better
+availability or marginal economics; or collective memory enables a model no single
+participant can run. Hosted inference may serve as overflow, Community Access
+subsidy or comparison control, always visibly labeled and separately priced, and
+never counted as mesh service. Measure mesh-only service against the strongest
+hosted alternative. If no meaningful workload wins on cost, energy, control,
+availability or otherwise unavailable model access, sharding is not the core product.
+
 Acceptance: [REP-14](roadmap/requirements.md#rep-14),
 [DR-6](roadmap/requirements.md#dr-6).
 
