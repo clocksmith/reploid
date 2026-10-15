@@ -1320,8 +1320,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 543423,
-      "sha256": "sha256:4f2b43f70c326ab4fca6d24e3b66ce186cc9aeb6c8b0a4a4477063cc0d32f7aa"
+      "byteLength": 543718,
+      "sha256": "sha256:ac99777dd2e4ac9eb231920f7e24cc2bd53c31829fa63985b097e8d623b7d298"
     },
     {
       "path": "config/module-registry.json",
@@ -1345,8 +1345,8 @@
     },
     {
       "path": "config/partition-policy.json",
-      "byteLength": 1844,
-      "sha256": "sha256:ca9a7e266217039871c8b80e657e0128faac0dbba65c65259fd728ed0367e3e3"
+      "byteLength": 1875,
+      "sha256": "sha256:2642fdb597d35a771c29bbe72a69d66da8885f3517919fe0e5f211c844caaa21"
     },
     {
       "path": "config/reploid-environments.js",
@@ -1380,8 +1380,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 116409,
-      "sha256": "sha256:e4644a54e9935ef5a4d28a850883f98452da7c17bf838b3b14dd942ae86beb16"
+      "byteLength": 116443,
+      "sha256": "sha256:84e22bd7922437fc984618c9902faed5c33462ae82ce3020fb7c9d5e6a7f518e"
     },
     {
       "path": "config/vfs-policy.js",
@@ -3185,8 +3185,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2000204,
-      "sha256": "sha256:9c7add5353e3bd5391dba9935a58f6345ffcc51228dcd7637e00de96d6343c5b"
+      "byteLength": 2002653,
+      "sha256": "sha256:24eaa3c1392784388522ebf02b28c2d6f5f4a774d6fe475a14e3a5eee43861a9"
     },
     {
       "path": "ui/pool-home/computer-labels.js",
@@ -9979,5 +9979,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:f560816b2b05b79d0e640ee2f8dd62708afd7beab1c51ffd6b2930f227c2ea85"
+  "bundleHash": "sha256:17cb2a1adc1cead7cfe159fc88f539d2d1c6e921e304fb45c28025f3a14a436e"
 }

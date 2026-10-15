@@ -637,6 +637,7 @@
     "ui/pool-home/account-panel.js",
     "ui/pool-home/account-sign-in.js",
     "ui/pool-home/agent-network.js",
+    "ui/pool-home/app.bundle.js",
     "ui/pool-home/computer-labels.js",
     "ui/pool-home/constants.js",
     "ui/pool-home/contribution-state.js",
