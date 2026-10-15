@@ -1,0 +1,16 @@
+{
+ "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+ "stage": 1,
+ "runtime": "/var/tmp/intel-reliability-20261015/final10/rt/package",
+ "archiveIntegrity": "sha512-wNR6LbpiPxqgT5cib66fFGZrvlMPtOoKe6UY8jWE7Tdkgr089X95oH/9x+IluogDQRdPZ+J1ca6jNS3f0QBLrA==",
+ "provider": "/var/tmp/reploid-signed-completion-9-20261014/reploid/node_modules/webgpu",
+ "catalog": "/var/tmp/intel-reliability-20261015/final10/config/chat-models.json",
+ "policy": "/var/tmp/intel-reliability-20261015/final10/config/partition-policy.json",
+ "model": "/var/tmp/intel-reliability-20261015/final10/model",
+ "protocol": "/var/tmp/intel-reliability-20261015/tools/native-shader-cache.js",
+ "mode": "prepare",
+ "cache": {
+  "root": "/var/tmp/intel-reliability-20261015/roots/a"
+ },
+ "out": "/var/tmp/intel-reliability-20261015/runs/a-cold.json"
+}

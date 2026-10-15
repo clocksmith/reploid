@@ -275,6 +275,21 @@ it('reports GPU pipeline preparation until readiness and declares the preparatio
   ready.resolve(); await opening;
 });
 
+it.runIf(host === 'native')('offers the shader cache seal only the readiness-time pipeline preparation', async () => {
+  const ready = Promise.withResolvers(), entered = Promise.withResolvers(), shaderCache = { seal: vi.fn() };
+  const preparation = { schema: 'doppler.resident-pipeline-preparation/v1', complete: true, count: 22, durationMs: 41000,
+    pipelines: [{ key: 'gated_delta_state_paired_sliced_rolled.wgsl#main' }], lazy: [] };
+  resident.prepare.mockImplementation(async () => { entered.resolve(); await ready.promise; return { descriptor: { pipelinePreparation: preparation } }; });
+  const opening = loadWorkPartition(files, selected, 0, { ...controls, shaderCache });
+  await entered.promise;
+  expect(shaderCache.seal).not.toHaveBeenCalled();
+  ready.resolve(); await opening;
+  expect(shaderCache.seal.mock.calls).toEqual([[{ ...preparation, planId: 'plan', index: 0, modelIdentity: selected.identity }]]);
+  resident.prepare.mockRejectedValue(new Error('pipeline creation failed'));
+  await expect(loadWorkPartition(files, selected, 0, { ...controls, shaderCache })).rejects.toThrow('pipeline creation failed');
+  expect(shaderCache.seal).toHaveBeenCalledOnce();
+});
+
 it('transfers successful storage ownership to the resident factory', async () => {
   const result = await loadWorkPartition(files, selected, 0, controls);
   expect(result.resident).toBe(resident);

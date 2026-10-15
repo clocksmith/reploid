@@ -1,0 +1,125 @@
+{
+ "schema": "reploid.intel-stage-probe/v1",
+ "mode": "bind",
+ "config": {
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "stage": 1,
+  "runtime": "/var/tmp/intel-reliability-20261015/final10/rt/package",
+  "archiveIntegrity": "sha512-wNR6LbpiPxqgT5cib66fFGZrvlMPtOoKe6UY8jWE7Tdkgr089X95oH/9x+IluogDQRdPZ+J1ca6jNS3f0QBLrA==",
+  "provider": "/var/tmp/reploid-signed-completion-9-20261014/reploid/node_modules/webgpu",
+  "catalog": "/var/tmp/intel-reliability-20261015/final10/config/chat-models.json",
+  "policy": "/var/tmp/intel-reliability-20261015/final10/config/partition-policy.json",
+  "model": "/var/tmp/intel-reliability-20261015/final10/model",
+  "protocol": "/var/tmp/intel-reliability-20261015/tools/native-shader-cache.js",
+  "mode": "bind",
+  "cache": {
+   "root": "/var/tmp/intel-reliability-20261015/roots/a"
+  },
+  "out": "/var/tmp/intel-reliability-20261015/runs/a-bind-after-oomd.json"
+ },
+ "pid": 1896804,
+ "startedAt": "2026-10-15T14:01:13.926Z",
+ "cache": {
+  "mode": "protocol",
+  "identityMs": 499,
+  "identity": {
+   "schema": "reploid.native-shader-cache/v1",
+   "runtime": {
+    "name": "doppler-gpu",
+    "version": "0.6.28",
+    "archiveIntegrity": "sha512-wNR6LbpiPxqgT5cib66fFGZrvlMPtOoKe6UY8jWE7Tdkgr089X95oH/9x+IluogDQRdPZ+J1ca6jNS3f0QBLrA==",
+    "installedSha256": "28f110e0b0f3d104e605eda548e934f966b6c038ee66e4d56d27626cb9ebdd3d"
+   },
+   "provider": {
+    "module": "webgpu",
+    "name": "webgpu",
+    "version": "0.4.0",
+    "installedSha256": "cc3b8075d65654b92fe452bfc1f1b7fecd5a2b52e675af93c0612f2a6777217e"
+   },
+   "driver": {
+    "icds": [
+     {
+      "manifest": "/usr/share/vulkan/icd.d/intel_hasvk_icd.x86_64.json",
+      "manifestSha256": "b2b07f97e7769a8e03f69b987fd69e8bb967f49f2a31b69f81aeb470c3784495",
+      "library": "/usr/lib/x86_64-linux-gnu/libvulkan_intel_hasvk.so",
+      "librarySha256": "298f637acc5c62c538df8a42ac2e151d1b59bfc56a376c0928aee70cea9a9f92"
+     },
+     {
+      "manifest": "/usr/share/vulkan/icd.d/intel_icd.x86_64.json",
+      "manifestSha256": "b48840bdf571e62ce25a4472ac5b603e5a5b2d740b43e16e914fef54ef77304c",
+      "library": "/usr/lib/x86_64-linux-gnu/libvulkan_intel.so",
+      "librarySha256": "d32d5d41b25a8cbde112101ccd19d648403c8cf79c116c29cdef3c17dba26050"
+     },
+     {
+      "manifest": "/usr/share/vulkan/icd.d/lvp_icd.x86_64.json",
+      "manifestSha256": "d116d203c5a2cff48ee0ed9b1edae41909015e47be6984cdc62f9d274a07857b",
+      "library": "/usr/lib/x86_64-linux-gnu/libvulkan_lvp.so",
+      "librarySha256": "c5a76c07c264176aec984f9091f93df0e0e3af1a78046243c2d6c6be4b0d43ee"
+     },
+     {
+      "manifest": "/usr/share/vulkan/icd.d/nouveau_icd.x86_64.json",
+      "manifestSha256": "4289e30408b2990a5c533782ed6190fb779d93c0c9b15f941b19013c3e4ce1b0",
+      "library": "/usr/lib/x86_64-linux-gnu/libvulkan_nouveau.so",
+      "librarySha256": "195cc42b17dc46782a60b8fb6b966cb53d9a2a3565ec0e343f06b9000898ba7c"
+     },
+     {
+      "manifest": "/usr/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "manifestSha256": "81609b0d1a144d891b34bd03848572bdf7e226f76264522ae7960ecd2988683b",
+      "library": "/usr/lib/x86_64-linux-gnu/libvulkan_radeon.so",
+      "librarySha256": "8695e5e711383fa70ff2447bccd97ef3f6aad194305982cd73efd6e2e295344b"
+     },
+     {
+      "manifest": "/usr/share/vulkan/icd.d/virtio_icd.x86_64.json",
+      "manifestSha256": "e06019458e8a01a7b0757f1c1519fc70d78e89fda8c932e77f0eb9ba78e7ad8d",
+      "library": "/usr/lib/x86_64-linux-gnu/libvulkan_virtio.so",
+      "librarySha256": "6cd3b2071193485fd412b07df7632d5572ef159954991f7ed9f84648daca7341"
+     }
+    ],
+    "devices": [
+     {
+      "node": "renderD128",
+      "vendor": "0x8086",
+      "device": "0x9a78",
+      "revision": "0x01",
+      "driver": "i915"
+     }
+    ],
+    "environment": {}
+   },
+   "program": {
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+    "capsule": "sha256:b1527013b75971d9a301a71672cbccaa45ee59e87438c86fe52923ff51ad2de9",
+    "catalogEntrySha256": "0882fe68d58f397922646f4b0466ec6e61113dacb1645aa534a8d7e315b4a811",
+    "policySha256": "7575a4aa98bd670303256b19a716facc6beeafc2d60b1dcc40a68ba6ea7db939",
+    "stage": 1,
+    "canonical": false
+   }
+  },
+  "binding": {
+   "schema": "reploid.native-shader-cache/v1",
+   "root": "/var/tmp/intel-reliability-20261015/roots/a",
+   "key": "851a1a96e6c0b3baf82e5fbb6715546b05be55034ce9219531114df96f16629a",
+   "mode": "cold",
+   "session": "943c81e7db3a-1896804-647507406-691c0190",
+   "directory": "/var/tmp/intel-reliability-20261015/roots/a/v1/sessions/943c81e7db3a-1896804-647507406-691c0190/cache",
+   "sealed": false,
+   "loaded": null,
+   "discarded": [
+    {
+     "name": "943c81e7db3a-1893692-647452662-577c0845",
+     "reason": "owner process exited before sealing"
+    }
+   ],
+   "rejected": null,
+   "seal": null
+  }
+ },
+ "gpu": null,
+ "stages": [],
+ "seal": null,
+ "soak": null,
+ "completed": true,
+ "cacheFilesBefore": {},
+ "finishedAt": "2026-10-15T14:01:14.447Z"
+}

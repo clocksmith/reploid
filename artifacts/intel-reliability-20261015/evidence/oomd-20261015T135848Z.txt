@@ -1,0 +1,101 @@
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]: Considered 22 cgroups for killing, top candidates were:
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:         Path: /user.slice/user-1000.slice/user@1000.service/tmux-spawn-a80ef5df-35a3-4203-a5b8-45e77eaa6fc6.scope
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Pressure Limit: 0.00%
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Pressure: Avg10: 0.00 Avg60: 0.00 Avg300: 0.00 Total: 18s
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Current Memory Usage: 1.2G
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Min: 0B
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Low: 0B
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Pgscan: 60790919
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Last Pgscan: 0
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:         Path: /user.slice/user-1000.slice/user@1000.service/tmux-spawn-6ed56a4a-357c-4e96-828f-766288b56b76.scope
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Pressure Limit: 0.00%
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Pressure: Avg10: 0.00 Avg60: 0.00 Avg300: 0.00 Total: 12s
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Current Memory Usage: 5.6G
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Min: 0B
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Low: 0B
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Pgscan: 44104533
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Last Pgscan: 0
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:         Path: /user.slice/user-1000.slice/user@1000.service/app.slice/zero-supervisor.service
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Pressure Limit: 0.00%
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Pressure: Avg10: 0.00 Avg60: 0.00 Avg300: 0.00 Total: 18s
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Current Memory Usage: 5.7G
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Min: 0B
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Low: 0B
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Pgscan: 8748991
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Last Pgscan: 0
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:         Path: /user.slice/user-1000.slice/user@1000.service/app.slice/app-org.chromium.Chromium-299780.scope
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Pressure Limit: 0.00%
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Pressure: Avg10: 0.00 Avg60: 0.00 Avg300: 0.00 Total: 9s
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Current Memory Usage: 36.1M
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Min: 0B
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Low: 0B
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Pgscan: 226846
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Last Pgscan: 0
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:         Path: /user.slice/user-1000.slice/user@1000.service/app.slice/ir-a-cold.scope
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Pressure Limit: 0.00%
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Pressure: Avg10: 52.48 Avg60: 45.35 Avg300: 17.60 Total: 1min 3s
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Current Memory Usage: 10.2G
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Min: 0B
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Low: 0B
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Pgscan: 63284
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Last Pgscan: 0
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:         Path: /user.slice/user-1000.slice/user@1000.service/app.slice/appimagelauncherd.service
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Pressure Limit: 0.00%
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Pressure: Avg10: 0.00 Avg60: 0.00 Avg300: 0.00 Total: 12s
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Current Memory Usage: 1000.0K
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Min: 0B
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Low: 0B
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Pgscan: 25177
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Last Pgscan: 0
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:         Path: /user.slice/user-1000.slice/user@1000.service/app.slice/snap.snapd-desktop-integration.snapd-desktop-integration.service
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Pressure Limit: 0.00%
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Pressure: Avg10: 0.00 Avg60: 0.00 Avg300: 0.00 Total: 42ms
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Current Memory Usage: 1.9M
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Min: 0B
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Low: 0B
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Pgscan: 9749
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Last Pgscan: 0
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:         Path: /user.slice/user-1000.slice/user@1000.service/session.slice/wireplumber.service
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Pressure Limit: 0.00%
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Pressure: Avg10: 0.00 Avg60: 0.00 Avg300: 0.00 Total: 17ms
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Current Memory Usage: 852.0K
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Min: 0B
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Low: 0B
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Pgscan: 4709
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Last Pgscan: 0
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:         Path: /user.slice/user-1000.slice/user@1000.service/session.slice/pipewire-pulse.service
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Pressure Limit: 0.00%
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Pressure: Avg10: 0.00 Avg60: 0.00 Avg300: 0.00 Total: 402us
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Current Memory Usage: 368.0K
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Min: 0B
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Low: 0B
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Pgscan: 4555
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Last Pgscan: 0
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:         Path: /user.slice/user-1000.slice/user@1000.service/app.slice/gnome-keyring-daemon.service
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Pressure Limit: 0.00%
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Pressure: Avg10: 0.00 Avg60: 0.00 Avg300: 0.00 Total: 87ms
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Current Memory Usage: 1.1M
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Min: 0B
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Memory Low: 0B
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Pgscan: 3457
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]:                 Last Pgscan: 0
+2026-10-15T09:58:48-04:00 intel-host systemd-oomd[1148]: Killed /user.slice/user-1000.slice/user@1000.service/app.slice/appimagelauncherd.service due to memory pressure for /user.slice/user-1000.slice/user@1000.service being 64.04% > 50.00% for > 20s with reclaim activity
+2026-10-15T09:52:06-04:00 intel-host systemd[3613]: Started ir-a-cold.scope - /usr/bin/sh -c "ulimit -c unlimited; exec \"\$@\"" sh /usr/bin/node tools/stage-probe.mjs runs/a-cold.config.json.
+2026-10-15T09:58:48-04:00 intel-host systemd[3613]: appimagelauncherd.service: systemd-oomd killed 1 process(es) in this unit.
+2026-10-15T09:58:48-04:00 intel-host systemd[3613]: appimagelauncherd.service: Failed with result 'oom-kill'.
+2026-10-15T09:58:48-04:00 intel-host systemd[3613]: appimagelauncherd.service: Consumed 1h 10min 40.514s CPU time, 5.5M memory peak, 1.8M memory swap peak.
+2026-10-15T09:58:48-04:00 intel-host systemd[3613]: app-org.chromium.Chromium-299780.scope: systemd-oomd killed some process(es) in this unit.
+2026-10-15T09:58:48-04:00 intel-host systemd[3613]: app-org.chromium.Chromium-299780.scope: Failed with result 'oom-kill'.
+2026-10-15T09:58:48-04:00 intel-host systemd[3613]: app-org.chromium.Chromium-299780.scope: Consumed 4min 7.443s CPU time.
+2026-10-15T09:58:48-04:00 intel-host systemd[3613]: tmux-spawn-6ed56a4a-357c-4e96-828f-766288b56b76.scope: systemd-oomd killed some process(es) in this unit.
+2026-10-15T09:58:48-04:00 intel-host systemd[3613]: tmux-spawn-6ed56a4a-357c-4e96-828f-766288b56b76.scope: Failed with result 'oom-kill'.
+2026-10-15T09:58:48-04:00 intel-host systemd[3613]: tmux-spawn-6ed56a4a-357c-4e96-828f-766288b56b76.scope: Consumed 8h 19min 41.607s CPU time.
+2026-10-15T09:58:48-04:00 intel-host systemd[3613]: zero-supervisor.service: systemd-oomd killed some process(es) in this unit.
+2026-10-15T09:58:48-04:00 intel-host systemd[3613]: zero-supervisor.service: Failed with result 'oom-kill'.
+2026-10-15T09:58:48-04:00 intel-host systemd[3613]: zero-supervisor.service: Consumed 1d 19h 16min 27.231s CPU time, 9.2G memory peak, 282.6M memory swap peak.
+2026-10-15T09:58:48-04:00 intel-host systemd[3613]: tmux-spawn-a80ef5df-35a3-4203-a5b8-45e77eaa6fc6.scope: systemd-oomd killed some process(es) in this unit.
+2026-10-15T09:58:48-04:00 intel-host systemd[3613]: tmux-spawn-a80ef5df-35a3-4203-a5b8-45e77eaa6fc6.scope: Failed with result 'oom-kill'.
+2026-10-15T09:58:48-04:00 intel-host systemd[3613]: tmux-spawn-a80ef5df-35a3-4203-a5b8-45e77eaa6fc6.scope: Consumed 5d 3h 9min 24.284s CPU time, 25.1G memory peak, 371.8M memory swap peak.
+2026-10-15T09:58:49-04:00 intel-host systemd[3613]: ir-a-cold.scope: systemd-oomd killed some process(es) in this unit.
+2026-10-15T09:58:49-04:00 intel-host systemd[3613]: ir-a-cold.scope: Failed with result 'oom-kill'.
+2026-10-15T09:58:49-04:00 intel-host systemd[3613]: ir-a-cold.scope: Consumed 9min 41.694s CPU time.
