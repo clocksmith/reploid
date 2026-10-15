@@ -136,7 +136,8 @@ describe.each(['memory', 'firestore'])('earning composition (%s store)', (kind) 
     const alice = await device('alice', 'browser');
     const quote = await call(base, 'POST', '/v1/quotes', { token: alice.token, key: 'quote:1', body: { request: { ...QUOTE_REQUEST } } });
     expect(quote.status).toBe(201);
-    expect(quote.body).toMatchObject({ pricing: { maxCharge: 60 },
+    // The quote names the policy record its terms came from.
+    expect(quote.body).toMatchObject({ pricing: { maxCharge: 60, basis: { kind: 'test_per_output_token', policyVersion: 'test-earning-policy/1' } },
       service: { deadline: new Date(START + 3 * MIN).toISOString(), firstOutputDeadline: new Date(START + 30_000).toISOString() },
       terms: { validUntil: new Date(START + MIN).toISOString() } });
     expect((await call(base, 'POST', '/v1/quotes', { token: alice.token, key: 'quote:2', body: { request: { ...QUOTE_REQUEST, modelId: 'other' } } })).body.error)
@@ -146,6 +147,7 @@ describe.each(['memory', 'firestore'])('earning composition (%s store)', (kind) 
     const offered = await call(base, 'POST', '/v1/offers', { token: native.token, key: 'offer:1', body: { category: 'demanded_inference', model: { ...OFFER_MODEL } } });
     expect(offered.status).toBe(201);
     expect(offered.body).toMatchObject({ accountId: native.accountId, status: 'offered', work: { participantId: native.identity.peerId, model: { ...OFFER_MODEL } },
+      reward: { basis: { kind: 'test_share_of_settled_charge', policyVersion: 'test-earning-policy/1' } },
       duration: { startsAt: new Date(START).toISOString(), endsAt: new Date(START + 60 * MIN).toISOString() } });
     fx.nowMs += 1000;
     expect((await call(base, 'POST', '/v1/offers', { token: native.token, key: 'offer:1', body: { category: 'demanded_inference', model: { ...OFFER_MODEL } } })).body.offerId)
@@ -169,6 +171,22 @@ describe.each(['memory', 'firestore'])('earning composition (%s store)', (kind) 
     // A restarted process over the same stores converges on the published record.
     fx.nowMs += MIN;
     await expect(compose()).resolves.toBeTruthy();
+  });
+
+  it('serves a policy record only from its effective time and keeps its identity out of the templates', async () => {
+    const effectiveFrom = new Date(START + MIN).toISOString();
+    const file = await writeOutsideRepository('policy.json', earningPolicy({ effectiveFrom }));
+    await expect(compose({ REPLOID_EARNING_POLICY_FILE: file })).rejects.toMatchObject({ code: 'policy_not_yet_effective' });
+    fx.nowMs = START + MIN;
+    await expect(compose({ REPLOID_EARNING_POLICY_FILE: file })).resolves.toMatchObject({ policyVersion: 'test-earning-policy/1' });
+    // A date without a time and zone is read differently by different hosts.
+    await expect(compose({ REPLOID_EARNING_POLICY_FILE: await writeOutsideRepository('policy.json', earningPolicy({ effectiveFrom: '2026-10-14' })) }))
+      .rejects.toThrow('policy.effectiveFrom must be an absolute ISO time');
+    const named = earningPolicy();
+    named.services[0].pricing.basis.policyVersion = 'other-policy/1';
+    named.offers[0].reward.basis.policyVersion = 'other-policy/1';
+    await expect(compose({ REPLOID_EARNING_POLICY_FILE: await writeOutsideRepository('policy.json', named) }))
+      .rejects.toThrow(/pricing\.basis\.policyVersion comes from policy\.policyVersion.*reward\.basis\.policyVersion comes from policy\.policyVersion/);
   });
 
   it('refuses unsafe or incomplete configuration', async () => {

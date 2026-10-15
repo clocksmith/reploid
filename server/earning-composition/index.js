@@ -229,6 +229,10 @@ export async function createEarningComposition({ env = process.env, production =
     if (file && (!path.isAbsolute(file) || isInside(repositoryRoot, file))) refuse('file_path_invalid', `${name} must be an absolute path outside the repository`);
   }
   const policy = await readEarningPolicyFile(read(env, 'REPLOID_EARNING_POLICY_FILE'), { repositoryRoot });
+  // A policy record never applies before its effective time; the operator starts the composition once it is in force.
+  if (policy.effectiveFrom && Date.parse(clock()) < Date.parse(policy.effectiveFrom)) {
+    refuse('policy_not_yet_effective', `the earning policy ${policy.policyVersion} takes effect at ${policy.effectiveFrom}`);
+  }
   const hosting = readSchedulerHosting(env);
   checkSchedulerHosting({ policy, hosting, production, storeKind: kind });
   const operatorsFile = read(env, 'REPLOID_EARNING_OPERATORS_FILE');
@@ -279,7 +283,7 @@ export async function createEarningComposition({ env = process.env, production =
   await publishConversions({ ledger: services.ledger, conversions: policy.conversions, clock });
   // Every quote template must build a quote the ledger accepts (formulas within maxCharge, deadlines, evidence terms
   // and their unacknowledged-output bound), so a misconfigured policy refuses to start rather than refuse each quote.
-  const quoteTerms = createQuoteTerms({ services: policy.services, clock });
+  const quoteTerms = createQuoteTerms({ services: policy.services, clock, policyVersion: policy.policyVersion });
   for (const template of policy.services) {
     const offered = await quoteTerms({ request: template.request });
     try {
@@ -321,7 +325,7 @@ export async function createEarningComposition({ env = process.env, production =
     testCheckout: local && payments ? local.bind(payments) : null,
     communityAccess,
     quoteTerms,
-    offerTerms: policy.offers.length ? createOfferTerms({ offers: policy.offers, clock }) : null,
+    offerTerms: policy.offers.length ? createOfferTerms({ offers: policy.offers, clock, policyVersion: policy.policyVersion }) : null,
     operatorAuthority,
     idempotencyBackend: stores.binding(),
     limits: policy.routes,

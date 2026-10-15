@@ -8,7 +8,9 @@
  * rules or supplies a default.
  *
  * Sections:
- *   schema, policyVersion
+ *   schema, policyVersion   policyVersion names this record; quotes and offers carry it in pricing.basis and
+ *                           reward.basis, so the templates never name it themselves
+ *   effectiveFrom           optional absolute ISO time with a zone: the composition refuses to start before it
  *   accounts, ledger, reversals, rewards, issuance, routes   component policies
  *   conversions   { authority: { actorId, decisionId }, records: [conversion record] }
  *   payments      { policyVersion, topUps, polling } (the processor id comes from the configured processor)
@@ -26,8 +28,10 @@ import path from 'node:path';
 
 export const EARNING_POLICY_SCHEMA = 'reploid.earning-policy/v1';
 
-const SECTIONS = Object.freeze(['schema', 'policyVersion', 'accounts', 'ledger', 'reversals', 'rewards', 'issuance', 'routes',
+const SECTIONS = Object.freeze(['schema', 'policyVersion', 'effectiveFrom', 'accounts', 'ledger', 'reversals', 'rewards', 'issuance', 'routes',
   'conversions', 'payments', 'funding', 'services', 'offers', 'communityAccess', 'scheduler']);
+// An absolute time: date, time and an explicit zone, so no reader resolves it in its own local time.
+const ABSOLUTE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|[+-]\d{2}:\d{2})$/;
 const REQUIRED = Object.freeze(['accounts', 'ledger', 'rewards', 'issuance', 'routes', 'conversions', 'funding', 'services', 'offers']);
 const SERVICE_KEYS = Object.freeze(['request', 'service', 'deadlines', 'pricing', 'terms']);
 const OFFER_KEYS = Object.freeze(['category', 'model', 'hosts', 'reward', 'resourceBounds', 'durationMs', 'validForMs', 'paymentTiming', 'failureCompensation']);
@@ -84,6 +88,7 @@ function checkServices(services, errors) {
     }
     if (entry?.service && 'firstOutputDeadline' in entry.service) errors.push(`${label}.service.firstOutputDeadline comes from deadlines.firstOutputMs at quote time`);
     if (!isObject(entry?.pricing)) errors.push(`${label}.pricing is required`);
+    if (isObject(entry?.pricing?.basis) && 'policyVersion' in entry.pricing.basis) errors.push(`${label}.pricing.basis.policyVersion comes from policy.policyVersion at quote time`);
     if (!isObject(entry?.terms)) errors.push(`${label}.terms is required`);
     if (entry?.terms && 'validUntil' in entry.terms) errors.push(`${label}.terms.validUntil comes from terms.validForMs at quote time`);
     if (!isPositiveInteger(entry?.terms?.validForMs)) errors.push(`${label}.terms.validForMs must be a positive integer of milliseconds`);
@@ -112,6 +117,7 @@ function checkOffers(offers, errors) {
     for (const field of ['reward', 'resourceBounds', 'paymentTiming', 'failureCompensation']) {
       if (!isObject(entry?.[field])) errors.push(`${label}.${field} is required`);
     }
+    if (isObject(entry?.reward?.basis) && 'policyVersion' in entry.reward.basis) errors.push(`${label}.reward.basis.policyVersion comes from policy.policyVersion at offer time`);
     for (const field of ['durationMs', 'validForMs']) {
       if (!isPositiveInteger(entry?.[field])) errors.push(`${label}.${field} must be a positive integer of milliseconds`);
     }
@@ -134,6 +140,10 @@ export function validateEarningPolicy(policy) {
   unknown(policy, SECTIONS, 'policy', errors);
   if (policy.schema !== EARNING_POLICY_SCHEMA) errors.push(`policy.schema must be ${EARNING_POLICY_SCHEMA}`);
   if (!isText(policy.policyVersion)) errors.push('policy.policyVersion is required');
+  if (policy.effectiveFrom !== undefined && !(typeof policy.effectiveFrom === 'string' && ABSOLUTE_TIME.test(policy.effectiveFrom)
+    && Number.isFinite(Date.parse(policy.effectiveFrom)))) {
+    errors.push('policy.effectiveFrom must be an absolute ISO time with a zone (Z or an offset)');
+  }
   for (const section of REQUIRED) if (policy[section] === undefined) errors.push(`policy.${section} is required`);
   const conversions = policy.conversions;
   unknown(conversions, ['authority', 'records'], 'policy.conversions', errors);
