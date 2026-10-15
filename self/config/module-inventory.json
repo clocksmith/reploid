@@ -2289,7 +2289,7 @@
     {
       "path": "self/host/server-search.js",
       "owner": "self",
-      "sha256": "sha256:86395ce5ff5fca0d4a50e76cba1e210b9238ea837b6450c69568c012d45701bf",
+      "sha256": "sha256:841a38284470c12e2b5acb49c3ba9c9d38ca483b4c3cc9d79fdb8a845fdf969f",
       "imports": []
     },
     {
@@ -15784,7 +15784,7 @@
     {
       "path": "vendor/reploid/retrieval/sources.js",
       "owner": "vendor",
-      "sha256": "sha256:9ede697d7e4f5869d4c7422a0ac801eeac831c7b7931f9afc1b916e6967fd67e",
+      "sha256": "sha256:39567bcda2b6e63c6d33933a5251c5bd71058411d3e35da09e875b8c6daacfe0",
       "imports": [
         "./policy.json",
         "./text.js"

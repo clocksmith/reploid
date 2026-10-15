@@ -19,6 +19,7 @@ Outputs: `reploid.retrieval-record/v1`, `reploid.citation-verification/v1`, `rep
 ## Invariants
 - Requests narrow policy limits; count, characters and time stay bounded.
 - Records keep source id, URL, retrieval time, hashes, offsets, usage and exact passage before disclosure.
+- A source backed by a fetched page keeps that page's own address and title; search-response titles and snippets are used only transiently.
 - Failure or emptiness yields no source and dispatches nothing.
 - Valid citations resolve to fetched sources whose passage hash, context digest and exact span hold.
 - Support is supported, unsupported or unverified with a reason; only a reviewer independent of the generating model decides support.

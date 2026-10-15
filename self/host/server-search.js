@@ -45,7 +45,8 @@ export function createServerSearch({ fetch = (...input) => globalThis.fetch(...i
       assert(payload?.schema === 'reploid.server-passage/v1' && typeof payload.text === 'string' && payload.document,
         'The extraction route returned an unexpected response');
       const { url, contentType, characters, sha256, start, end, bytes, status: code } = payload.document;
-      return { sourceId: source.sourceId, url: payload.url, text: payload.text, retrievedAt: payload.retrievedAt, contentHash: payload.contentHash,
+      return { sourceId: source.sourceId, url: payload.url, title: typeof payload.title === 'string' ? payload.title : '', text: payload.text,
+        retrievedAt: payload.retrievedAt, contentHash: payload.contentHash,
         document: { url, contentType, characters, sha256, start, end, bytes, status: code } };
     } });
 

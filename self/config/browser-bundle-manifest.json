@@ -1321,7 +1321,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 538582,
-      "sha256": "sha256:036d2d72898a37bba796c58551e4577cbc1ab27190ff6688706a0cf09f70d077"
+      "sha256": "sha256:6489606d59328c23a13654cebdeccae421cc461fb920758c413cb550c3d018c1"
     },
     {
       "path": "config/module-registry.json",
@@ -1760,8 +1760,8 @@
     },
     {
       "path": "host/server-search.js",
-      "byteLength": 4529,
-      "sha256": "sha256:86395ce5ff5fca0d4a50e76cba1e210b9238ea837b6450c69568c012d45701bf"
+      "byteLength": 4600,
+      "sha256": "sha256:841a38284470c12e2b5acb49c3ba9c9d38ca483b4c3cc9d79fdb8a845fdf969f"
     },
     {
       "path": "host/start-app.js",
@@ -9741,7 +9741,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 41542,
-      "sha256": "sha256:bd5c8b3d7a01f02d04951bfaccd32f26f70657430813672293d4cb24e01898a4"
+      "sha256": "sha256:02460388aab3bf9b8bc4e91c1ec3dc38f7957809af69fd5b0ab7f8d38bc3f0f4"
     },
     {
       "path": "vendor/reploid/retrieval/citations.js",
@@ -9790,8 +9790,8 @@
     },
     {
       "path": "vendor/reploid/retrieval/sources.js",
-      "byteLength": 15251,
-      "sha256": "sha256:9ede697d7e4f5869d4c7422a0ac801eeac831c7b7931f9afc1b916e6967fd67e"
+      "byteLength": 15707,
+      "sha256": "sha256:39567bcda2b6e63c6d33933a5251c5bd71058411d3e35da09e875b8c6daacfe0"
     },
     {
       "path": "vendor/reploid/retrieval/support-review.js",
@@ -9889,5 +9889,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:09149b3b5dc1e4844428ed603e892970655860f47f3f496fb3f5885e6b563129"
+  "bundleHash": "sha256:402bc46b98a51d43b988f932cc62a6abc9f8adb41f928b471550e6fdc81caeff"
 }

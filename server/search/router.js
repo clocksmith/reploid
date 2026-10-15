@@ -127,7 +127,7 @@ export function createSearchRouter({ search, fetcher, extract = extractDocumentT
     const passage = selectPassage({ text: document.text, query: body.query ?? '', maxCharacters: body.maxCharacters });
     if (!passage.text) return send(res, 'no-text');
     const documentHash = 'sha256:' + sha256Hex(document.text);
-    res.json({ schema: SERVER_PASSAGE_SCHEMA, url: body.url, text: passage.text, retrievedAt: now(), contentHash: documentHash,
+    res.json({ schema: SERVER_PASSAGE_SCHEMA, url: body.url, title: document.title.slice(0, 1000), text: passage.text, retrievedAt: now(), contentHash: documentHash,
       document: { url: page.url, status: page.status, contentType: page.contentType, bytes: page.bytes, byteSha256: page.byteSha256,
         characters: document.text.length, sha256: documentHash, start: passage.start, end: passage.end } });
   });

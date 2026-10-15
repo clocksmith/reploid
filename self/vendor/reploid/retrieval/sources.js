@@ -96,6 +96,7 @@ const validDocument = (value, text) => value === undefined || value && typeof va
   && value.end <= value.characters && (value.bytes === undefined || count(value.bytes))
   && (value.status === undefined || Number.isSafeInteger(value.status) && value.status >= 200 && value.status < 300);
 const validPassage = (value, source) => value && typeof value === 'object' && value.sourceId === source.sourceId
+  && (value.title === undefined || typeof value.title === 'string' && value.title.length <= 1000)
   && typeof value.text === 'string' && value.text.trim() && Number.isFinite(value.retrievedAt) && value.retrievedAt > 0
   && typeof value.contentHash === 'string' && SHA256.test(value.contentHash) && validDocument(value.document, value.text);
 /** Provider-reported usage for one query: billable requests and, when priced, the cost in micro-dollars. */
@@ -176,7 +177,11 @@ export async function retrieveSources({ record, provider, extractor = null, sign
       const { text, truncated } = bounded(passage.value.text, limits.maxSourceCharacters);
       const document = retainedDocument(passage.value.document, passage.value.text, text);
       if (document) { usage.extraction.documents++; usage.extraction.bytes += document.bytes ?? 0; }
-      candidates.push({ sourceId: source.sourceId, url: source.url, title: line(source.title), retrievedAt: passage.value.retrievedAt,
+      // A fetched page supplies its own address and title, so retained and forwarded sources keep nothing from the
+      // search response beyond transient use: search terms (such as Brave's) forbid storing or redistributing results.
+      const page = passage.value.document;
+      candidates.push({ sourceId: source.sourceId, url: page ? page.url : source.url,
+        title: page ? line(passage.value.title ?? '') || page.url : line(source.title), retrievedAt: passage.value.retrievedAt,
         contentHash: passage.value.contentHash, passage: text, passageOrigin: passage.value.origin, truncated,
         ...(document ? { document } : {}) });
     });

@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 import { REMOTE_PERMISSION_SCHEMA, createRemotePermission, remotePermissionCovers, validateRemotePermission } from '../../packages/reploid/src/chat/remote-permission.js';
 import { SEARCH_RECIPIENTS_CHANGED, createSearchPermission, searchPermissionWording, validateSearchPermission } from '../../packages/reploid/src/chat/search-permission.js';
-import { createFixedSearchProvider, renderSourceContext } from '../../packages/reploid/src/retrieval/index.js';
+import { createFixedSearchProvider, createRetrieval, renderSourceContext } from '../../packages/reploid/src/retrieval/index.js';
 import { orderedPartitionDisclosure } from '../../packages/reploid/src/mesh/partitions/partition-grants.js';
 import { createChatSession, SEARCH_ROUTE } from '../../self/host/chat-session.js';
 import { createServerSearch } from '../../self/host/server-search.js';
@@ -254,5 +254,31 @@ describe('server search port', () => {
     expect(passage).toMatchObject({ sourceId: 'web-0123456789abcdef', text: 'tower text', document: { start: 10, end: 20, sha256: digest('d') } });
     const elsewhere = createServerSearch({ fetch: async () => ({ ok: true, json: async () => ({ enabled: true, provider: 'searxng' }) }) });
     expect(await elsewhere.refresh()).toMatchObject({ state: 'unavailable', provider: 'searxng' });
+  });
+
+  it('keeps and forwards only what the fetched pages supplied: their own address and title, not the search response', async () => {
+    const hit = (n, title) => ({ sourceId: `web-${String(n).repeat(16)}`, url: `https://search-result.example/${n}`, title, excerpt: `Search snippet ${n}`,
+      retrievedAt: 5, contentHash: digest('c'), fetchToken: `token.${n}` });
+    const page = (n, title) => ({ schema: 'reploid.server-passage/v1', url: `https://search-result.example/${n}`, title, text: `Fetched page text ${n} about the tower.`,
+      retrievedAt: 6, contentHash: digest('d'), document: { url: `https://publisher.example/final-${n}`, status: 200, contentType: 'text/html', bytes: 900,
+        byteSha256: digest('e'), characters: 400, sha256: digest('d'), start: 10, end: 10 + `Fetched page text ${n} about the tower.`.length } });
+    const fetch = async (url, init) => {
+      const body = init.body ? JSON.parse(init.body) : null;
+      const reply = url.endsWith('/status') ? { schema: 'reploid.server-search-status/v1', enabled: true, provider: 'brave' }
+        : url.endsWith('/search') ? { schema: 'reploid.server-search-results/v1', provider: { kind: 'brave', id: 'reploid.server-search/brave', version: '1' },
+          results: [hit(1, 'Search title 1'), hit(2, 'Search title 2')], usage: { provider: 'brave', requests: 1, billable: true, costMicroUsd: null, rateLimit: null } }
+        : body.fetchToken === 'token.1' ? page(1, '  Publisher page   one ') : page(2, '');
+      return { ok: true, status: 200, json: async () => reply };
+    };
+    const search = createServerSearch({ fetch });
+    await search.refresh();
+    const retrieval = createRetrieval({ provider: search.provider, extractor: search.extractor });
+    const request = retrieval.request({}, 'tower');
+    const record = await retrieval.retrieve(retrieval.pending(request, 1), new AbortController().signal);
+    expect(record.outcome).toBe('retrieved');
+    expect(record.sources.map(source => [source.url, source.title])).toEqual([
+      ['https://publisher.example/final-1', 'Publisher page one'], ['https://publisher.example/final-2', 'https://publisher.example/final-2']]);
+    const kept = JSON.stringify(record) + renderSourceContext(record.sources);
+    for (const fromSearch of ['Search title', 'Search snippet', 'search-result.example']) expect(kept).not.toContain(fromSearch);
   });
 });
