@@ -81,7 +81,7 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
       mount.querySelector('.pool-home').insertAdjacentHTML('afterbegin', renderNav(routeId));
       const inspectorRoot = document.createElement('div'); inspectorRoot.dataset.shellInspector = '';
       inspectorRoot.innerHTML = renderNetworkInspector(); mount.querySelector('.pool-home').append(inspectorRoot);
-      inspector = bindNetworkInspector(inspectorRoot, host.chat, { getInviteUrl: () => host.swarm.getInviteUrl(),
+      inspector = bindNetworkInspector(inspectorRoot, host.chat, { getInviteUrl: () => host.swarm.getInviteUrl(), webSearch: host.webSearch,
         loadSpecialized: async target => {
           const operations = await import('./operation-sharing.js'); sharingView = operations;
           target.innerHTML = operations.renderOperationSharing();
@@ -111,7 +111,7 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
       try {
         if (routeId === 'home' || routeId === 'network') {
           content.innerHTML = renderConversationWorkspace({ inspector: false });
-          detachView = bindConversationWorkspace(content, host.chat, { viewState, inspector });
+          detachView = bindConversationWorkspace(content, host.chat, { viewState, inspector, webSearch: host.webSearch });
           if (routeId === 'network') inspector.open();
         } else {
           content.innerHTML = '<p role="status">Loading…</p>';

@@ -2,20 +2,20 @@
 .pool-home .pool-glass,
 .pool-home .pool-glass-focus:focus {
   border: var(--pool-border-hairline) solid transparent;
-  background: linear-gradient(var(--pool-surface-inset), var(--pool-surface-inset)) padding-box, var(--pool-surface-optical-edge) border-box;
+  background: linear-gradient(var(--pool-color-inset), var(--pool-color-inset)) padding-box, var(--pool-surface-optical-edge) border-box;
 }
 .pool-home .pool-glass:focus,
 .pool-home .pool-glass-focus:focus {
-  background: linear-gradient(var(--pool-surface-inset), var(--pool-surface-inset)) padding-box, var(--pool-surface-optical-focus) border-box;
+  background: linear-gradient(var(--pool-color-inset), var(--pool-color-inset)) padding-box, var(--pool-surface-optical-focus) border-box;
 }
 .pool-activity-edge { position: relative; min-width: 0; display: grid; }
 .pool-activity-edge::after {
   content: '';
   position: absolute;
-  left: var(--pool-space-md);
-  right: var(--pool-space-md);
+  left: var(--pool-size-16);
+  right: var(--pool-size-16);
   bottom: 0;
-  height: var(--pool-px-2);
+  height: var(--pool-size-2);
   border-radius: var(--pool-radius-control);
   background: var(--pool-surface-optical-signal);
   background-size: 200% 100%;

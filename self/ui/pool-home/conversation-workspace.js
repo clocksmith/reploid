@@ -23,48 +23,48 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
       <span data-network-trigger-slot></span>
       </div>
       <section class="chat-thread-panel" data-thread-panel aria-labelledby="chat-threads-title">
-      <h2 id="chat-threads-title">Threads</h2>
+      <h2 class="pool-subheading" id="chat-threads-title">Threads</h2>
       <div class="chat-rail-controls" data-network-header><div class="chat-thread-info">
           <span class="chat-model-control pool-activity-edge" data-model-control><select class="pool-input pool-glass" id="chat-model" data-active-model-select aria-label="Model"></select><button class="pool-button" type="button" data-current-model aria-haspopup="dialog" hidden></button></span>
           </div>
 
         <details class="chat-conversation-actions" data-conversation-actions><summary class="pool-button" aria-label="Conversation actions" title="Conversation actions">${interfaceIcon('more')}<span class="chat-rail-label">Conversation</span></summary><div class="pool-surface">
           <button class="pool-button" type="button" data-show-archived aria-pressed="false">Archived threads</button>
-          <button class="btn pool-button btn-ghost" type="button" data-conversation-download hidden>Download conversation</button>
+          <button class="pool-button btn-ghost" type="button" data-conversation-download hidden>Download conversation</button>
           <fieldset data-context-controls><legend>Context prompt</legend>
             <label><input type="checkbox" data-context-enabled> Include app context</label>
             <label>Word cap <select class="pool-input" data-context-cap aria-label="Context prompt word cap"><option value="16">16</option><option value="32">32</option><option value="64">64</option></select></label>
-            <p class="chat-setup-hint" data-context-count></p><p class="chat-setup-hint" data-context-preview></p>
+            <p class="chat-setup-hint pool-small pool-muted" data-context-count></p><p class="chat-setup-hint pool-small pool-muted" data-context-preview></p>
           </fieldset>
         </div></details>
       </div>
       <div class="chat-thread-list" data-thread-list></div>
       </section><div class="chat-inspector-slot" data-chat-inspector-slot></div>
     </aside>
-    <section class="chat-conversation-area pool-surface" data-conversation-area aria-label="Current conversation">
+    <section class="chat-conversation-area" data-conversation-area aria-label="Current conversation">
       <div class="chat-transcript chat-message-stream" data-chat-transcript data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
-      <p class="chat-error" role="alert" data-chat-error hidden></p>
+      <p class="chat-error pool-well" role="alert" data-chat-error hidden></p>
       <footer class="chat-composer-area" data-composer-area><form data-composer-form>
         <label class="chat-visually-hidden" for="chat-message">Message</label>
-        <div class="chat-composer-field pool-input pool-glass pool-glass-focus pool-activity-edge" data-composer-field>
+        <div class="chat-composer-field pool-input pool-glass pool-glass-focus pool-activity-edge pool-focus-within" data-composer-field>
           <div class="chat-attachments" data-attachments-preview hidden></div>
-          <textarea id="chat-message" data-composer-input rows="1" required placeholder="Ask a question…"></textarea>
-          <label class="btn pool-button btn-ghost chat-file-label pool-focus-within" title="Attach files">${interfaceIcon('attach')}<span class="chat-visually-hidden">Attach files</span><input type="file" multiple data-composer-files accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
+          <textarea class="pool-bare pool-body" id="chat-message" data-composer-input rows="1" required placeholder="Ask a question…"></textarea>
+          <label class="pool-button btn-ghost pool-icon pool-file chat-file-label pool-focus-within" title="Attach files">${interfaceIcon('attach')}<span class="chat-visually-hidden">Attach files</span><input type="file" multiple data-composer-files accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
           <div class="chat-composer-submit">
-            <button class="btn pool-button btn-primary" type="submit" data-composer-send aria-label="Send" title="Send">${interfaceIcon('send')}</button>
-            <button class="btn pool-button btn-ghost" type="button" data-composer-stop aria-label="Stop" title="Stop" hidden>${interfaceIcon('stop')}</button>
+            <button class="pool-button btn-primary pool-icon" type="submit" data-composer-send aria-label="Send" title="Send">${interfaceIcon('send')}</button>
+            <button class="pool-button btn-primary pool-icon" type="button" data-composer-stop aria-label="Stop" title="Stop" hidden>${interfaceIcon('stop')}</button>
           </div>
         </div>
-        <div class="chat-composer-notices"><p class="chat-setup-hint" id="chat-model-status" data-model-status role="status" hidden></p><button class="pool-button btn-ghost" type="button" data-retry-connection hidden>Retry connection</button></div>
-        <p class="chat-attachment-help" data-attachment-help hidden>Text files: up to 8, 64 KB each, 128 KB total.</p>
+        <div class="chat-composer-notices"><span class="pool-chip" data-web-search-on hidden>Web search on</span><p class="chat-setup-hint pool-small pool-muted" id="chat-model-status" data-model-status role="status" hidden></p><button class="pool-button btn-ghost" type="button" data-retry-connection hidden>Retry connection</button></div>
+        <p class="chat-attachment-help pool-small pool-muted" data-attachment-help hidden>Text files: up to 8, 64 KB each, 128 KB total.</p>
       </form></footer>
-      <dialog class="chat-model-setup pool-surface" data-rename-dialog aria-labelledby="chat-rename-title">
-        <form data-rename-form><h2 id="chat-rename-title">Rename thread</h2><label>Name<input class="pool-input" data-thread-name required maxlength="256"></label>
+      <dialog class="chat-model-setup pool-surface pool-small" data-rename-dialog aria-labelledby="chat-rename-title">
+        <form data-rename-form><h2 class="pool-heading" id="chat-rename-title">Rename thread</h2><label>Name<input class="pool-input" data-thread-name required maxlength="256"></label>
           <div class="chat-network-actions"><button class="pool-button" type="button" data-rename-cancel>Cancel</button><button class="pool-button" type="submit">Save</button></div>
         </form>
       </dialog>
-      <dialog class="chat-model-setup pool-surface" data-model-picker aria-labelledby="chat-model-picker-title">
-        <h2 id="chat-model-picker-title">Conversation model</h2><p data-current-model-description></p>
+      <dialog class="chat-model-setup pool-surface pool-small" data-model-picker aria-labelledby="chat-model-picker-title">
+        <h2 class="pool-heading" id="chat-model-picker-title">Conversation model</h2><p data-current-model-description></p>
         <p>A new model starts a new thread.</p>
         <label>Model<select class="pool-input" data-next-model></select></label>
         <p data-next-model-status role="status" hidden></p>
@@ -76,13 +76,13 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
   </section>`;
 }
 
-export function bindConversationWorkspace(root, session, { getInviteUrl, viewState = {}, inspector: sharedInspector } = {}) {
+export function bindConversationWorkspace(root, session, { getInviteUrl, viewState = {}, inspector: sharedInspector, webSearch = null } = {}) {
   const container = root.querySelector('[data-chat-workspace]');
   if (!container || !session) return () => {};
   const find = selector => container.querySelector(selector);
   const controller = new AbortController(), options = { signal: controller.signal };
   const input = find('[data-composer-input]'), modelSelect = find('[data-active-model-select]');
-  const inspector = sharedInspector || bindNetworkInspector(container, session, { getInviteUrl });
+  const inspector = sharedInspector || bindNetworkInspector(container, session, { getInviteUrl, webSearch });
   let archived = false, renameId = null, chosenModel = viewState.chosenModel || null, pickerModel = null;
   let files = [], fileRevision = 0, composerRevision = 0, reading = false;
   let contextPrompt = viewState.contextPrompt || null;
@@ -258,6 +258,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
 
   };
   const unsubscribe = session.subscribe(render);
+  const webSearchOn = find('[data-web-search-on]');
+  const unsubscribeWebSearch = webSearch ? webSearch.subscribe(state => { if (webSearchOn) webSearchOn.hidden = !(state.enabled && state.url); }) : () => {};
   const changeContext = () => {
     const selection = { enabled: find('[data-context-enabled]').checked, maxWords: Number(find('[data-context-cap]').value) };
     try {
@@ -339,7 +341,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
           const current = composerRevision === revision ? { text: content, files: attachments } : drafts.get(origin);
           if (current) { input.value = current.text; files = current.files; showFiles(); }
         }
-        const completion = session.send(threadId, content, attachments);
+        // With web search on, the send opts into retrieval: the question goes to the search server first.
+        const completion = session.send(threadId, content, attachments, ...(webSearch?.enabled() ? [{ retrieval: {} }] : []));
         // A second call cannot begin while asynchronous admission is pending.
         completion.catch(() => {});
         if (completion.admitted) await completion.admitted;
@@ -408,7 +411,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     surface?.removeAttribute('data-chat-compact');
     surface?.removeAttribute('data-left-rail-open');
     if (railToggle && brandParent) brandParent.prepend(railToggle);
-    controller.abort(); fileRevision++; unsubscribe(); if (!sharedInspector) inspector.dispose();
+    controller.abort(); fileRevision++; unsubscribe(); unsubscribeWebSearch(); if (!sharedInspector) inspector.dispose();
     find('[data-composer-field]').dataset.activity = 'idle';
     find('[data-model-control]').dataset.activity = 'idle';
   };

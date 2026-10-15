@@ -1,0 +1,27 @@
+/* Text primitives. Compositions pick one per element instead of setting type themselves.
+   pool-title    page or panel title
+   pool-heading  section heading
+   pool-subheading  group heading at body size
+   pool-body     reading text
+   pool-small    secondary text one step below body
+   pool-caption  small supporting text
+   pool-label    small uppercase label
+   pool-muted    secondary color, combinable with any of the above
+   pool-mono     code and identifiers
+   pool-mark     the 7 to the 7 brand mark
+   pool-facts    definition list: muted terms, values below
+   pool-plain    a link that reads as text */
+.pool-home .pool-title { font-size: var(--pool-text-2xl); font-weight: var(--pool-weight-medium); line-height: var(--pool-leading-tight); letter-spacing: var(--pool-tracking-tight); }
+.pool-home .pool-heading { font-size: var(--pool-text-lg); font-weight: var(--pool-weight-medium); line-height: var(--pool-leading-snug); letter-spacing: var(--pool-tracking-tight); }
+.pool-home .pool-subheading { font-size: var(--pool-text-base); font-weight: var(--pool-weight-semibold); line-height: var(--pool-leading-snug); }
+.pool-home .pool-body { font-size: var(--pool-text-base); line-height: var(--pool-leading-read); }
+.pool-home .pool-small { font-size: var(--pool-text-sm); line-height: var(--pool-leading-snug); }
+.pool-home .pool-caption { font-size: var(--pool-text-xs); line-height: var(--pool-leading-snug); }
+.pool-home .pool-label { font-size: var(--pool-text-xs); font-weight: var(--pool-weight-semibold); letter-spacing: var(--pool-tracking-label); text-transform: uppercase; }
+.pool-home .pool-muted { color: var(--pool-color-muted); }
+.pool-home .pool-mono { font-family: var(--pool-font-mono); }
+.pool-home .pool-mark { font-family: var(--pool-font-mono); font-size: var(--pool-text-2xl); font-weight: var(--pool-weight-semibold); line-height: var(--pool-leading-solid); }
+.pool-home .pool-mark sup { font-size: var(--pool-text-p62); }
+.pool-home .pool-facts dt { color: var(--pool-color-muted); }
+.pool-home .pool-facts code { font-size: var(--pool-text-xs); }
+.pool-home .pool-plain { color: inherit; text-decoration: none; border-bottom: 0; }

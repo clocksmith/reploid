@@ -1,7 +1,7 @@
-// Poolday design system page: tokens -> primitives -> components, read live from the layer files.
+// Poolday design system page: tokens -> primitives -> compositions, read live from the layer files.
 // Edits apply to this page and every specimen frame; the Changes panel gives the CSS to keep them.
-import { TOKEN_GROUPS, PRIMITIVE_GROUPS, loadModel, groupOf, previewKind, composition } from './model.js';
-import { SPECIMEN_GROUPS, renderSpecimen } from './specimens.js';
+import { TOKEN_GROUPS, loadModel, groupOf, previewKind, composition } from './model.js';
+import { PRIMITIVE_GROUPS, COMPOSITION_GROUPS, renderSpecimen } from './specimens.js';
 
 const escape = (value) => String(value).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
 const store = {
@@ -11,7 +11,7 @@ const store = {
 
 async function loadLayerStylesheets(doc = document) {
   const manifest = await (await fetch('/styles/poolday/layers.json', { cache: 'no-store' })).json();
-  const files = [manifest.tokens, manifest.primitives, ...manifest.components].map((file) => `/styles/poolday/${file}`);
+  const files = [manifest.tokens, ...manifest.primitives, ...manifest.compositions].map((file) => `/styles/poolday/${file}`);
   const anchor = doc.querySelector('link[data-pds-own]');
   await Promise.all(files.map((href) => new Promise((resolve) => {
     const link = doc.createElement('link'); link.rel = 'stylesheet'; link.href = href; link.dataset.pdsLayer = '';
@@ -30,7 +30,7 @@ async function initPage() {
   const root = document.querySelector('.pool-home');
   const state = {
     theme: store.get('theme', matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'),
-    tab: ['tokens', 'primitives', 'components'].includes(location.hash.slice(1)) ? location.hash.slice(1) : store.get('tab', 'tokens'),
+    tab: ['tokens', 'primitives', 'compositions'].includes(location.hash.slice(1)) ? location.hash.slice(1) : store.get('tab', 'tokens'),
     width: store.get('width', 'wide'),
     overrides: new Map(Object.entries(store.get('overrides', {}))),
     model: await loadModel(),
@@ -70,13 +70,13 @@ async function initPage() {
     state.tab = tab; store.set('tab', tab); history.replaceState(null, '', `#${tab}`);
     root.querySelectorAll('[data-pds-tab]').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.pdsTab === tab)));
     root.querySelectorAll('[data-pds-panel]').forEach((panel) => { panel.hidden = panel.dataset.pdsPanel !== tab; });
-    $('[data-pds-width-group]').hidden = tab !== 'components';
+    $('[data-pds-width-group]').hidden = tab === 'tokens';
     if (!state.rendered.has(tab)) { state.rendered.add(tab); renderPanel(tab); }
     applyFilter();
   };
   const setWidth = (width) => {
     state.width = width; store.set('width', width);
-    $('[data-pds-panel="components"]').dataset.width = width;
+    for (const id of ['primitives', 'compositions']) $(`[data-pds-panel="${id}"]`).dataset.width = width;
     root.querySelectorAll('[data-pds-width]').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.pdsWidth === width)));
   };
 
@@ -95,9 +95,9 @@ async function initPage() {
       </div>
     </header>
     <section class="pds-layers" aria-label="Layers">
-      ${[['tokens', 'Tokens', 'Raw values: colors, sizes, type, motion. They reference only other tokens.'],
-        ['primitives', 'Primitives', 'Named compositions of tokens, mapped per theme. No literal values.'],
-        ['components', 'Components', 'Rules that compose primitives. Only structural literals remain.']]
+      ${[['tokens', 'Tokens', 'Every value: a gray ramp, alpha steps and scales, plus semantic tokens mapped per theme.'],
+        ['primitives', 'Primitives', 'Building blocks made of tokens: surfaces, cards, buttons, fields, stacks, rows, columns, text.'],
+        ['compositions', 'Compositions', 'Screens arranged from primitives. A converted screen sets no look of its own.']]
         .map(([id, title, text]) => `<button class="pool-surface pds-layer" type="button" data-pds-tab="${id}">
           <span class="pds-count" data-pds-count="${id}"></span><span class="type-h2">${title}</span><span class="pds-muted">${text}</span></button>`).join('<span class="pds-arrow" aria-hidden="true">→</span>')}
     </section>
@@ -118,45 +118,39 @@ async function initPage() {
         <button class="pool-button" type="button" data-pds-reset>Reset all</button>
       </div>
     </aside>
-    ${['tokens', 'primitives', 'components'].map((id) => `<section class="pds-panel" data-pds-panel="${id}" hidden></section>`).join('')}`;
+    ${['tokens', 'primitives', 'compositions'].map((id) => `<section class="pds-panel" data-pds-panel="${id}" hidden></section>`).join('')}`;
   }
 
   function counts() {
-    const { tokens, primitives, rules, manifest } = state.model;
+    const { tokens, primitiveClasses, compositionRules, manifest } = state.model;
+    const left = Object.values(manifest.legacy ?? {}).reduce((sum, count) => sum + count, 0);
     $('[data-pds-count="tokens"]').textContent = tokens.size;
-    $('[data-pds-count="primitives"]').textContent = primitives.size;
-    $('[data-pds-count="components"]').textContent = `${rules.length} rules`;
-    $('[data-pds-count="components"]').title = manifest.components.join(', ');
+    $('[data-pds-count="primitives"]').textContent = primitiveClasses.size;
+    $('[data-pds-count="compositions"]').textContent = `${COMPOSITION_GROUPS.flatMap((group) => group.specimens).length}`;
+    $('[data-pds-count="compositions"]').title = `${compositionRules.length} rules; ${left} legacy visual declarations left to convert`;
   }
 
   // Token and primitive tables.
-  const variableRow = (entry, kind) => {
+  const variableRow = (entry) => {
     const source = entry.values.base ?? entry.values.light ?? entry.values.media;
     const value = state.overrides.get(entry.name) ?? source;
-    const users = [...entry.usedBy];
-    const usage = kind === 'token'
-      ? `<button class="pds-link" type="button" data-pds-uses="${entry.name}">${users.length} use${users.length === 1 ? '' : 's'}</button>`
-      : `<button class="pds-link" type="button" data-pds-rules="${entry.name}">${users.length} rule${users.length === 1 ? '' : 's'}</button>`;
-    const definition = kind === 'primitive' ? Object.entries(entry.values).map(([block, text]) => `<span class="pds-def"><span class="pds-muted">${block === 'base' ? 'dark' : block}</span> ${
-      escape(text).replace(/var\((--pool-[\w-]+)\)/g, '<button class="pds-chip" type="button" data-pds-token="$1">$1</button>')}</span>`).join('') : '';
+    const users = entry.usedBy.size;
+    const definition = Object.entries(entry.values).filter(([block]) => block !== 'base' || entry.values.light).map(([block, text]) => `<span class="pds-def"><span class="pds-muted">${block === 'base' ? 'dark' : block}</span> ${
+      escape(text).replace(/var\((--pool-[\w-]+)\)/g, '<button class="pds-chip" type="button" data-pds-token="$1">$1</button>')}</span>`).join('');
     const picker = /^#[0-9a-f]{6}$/i.test(value) ? `<input class="pds-picker" type="color" value="${value}" aria-label="${entry.name} color" data-pds-picker="${entry.name}">` : '';
     return `<div class="pds-row" data-pds-var="${entry.name}" data-pds-text="${escape(`${entry.name} ${source}`.toLowerCase())}" data-pds-refs="${[...entry.refs].join(' ')}">
       <span class="pds-preview" data-kind="text" style="--pds-preview: var(${entry.name})"><span>Aa</span></span>
-      <span class="pds-cell">
-        <code class="pds-name">${entry.name}</code>
-        ${definition}
-        <span class="pds-resolved pds-muted" data-pds-resolved></span>
-      </span>
+      <span class="pds-cell"><code class="pds-name">${entry.name}</code>${definition}<span class="pds-resolved pds-muted" data-pds-resolved></span></span>
       <span class="pds-edit">${picker}<input class="pool-input pds-value" type="text" value="${escape(value)}" data-pds-input="${entry.name}" data-pds-source="${escape(source)}" aria-label="${entry.name} value"><button class="pds-link" type="button" data-pds-revert="${entry.name}" ${state.overrides.has(entry.name) ? '' : 'hidden'}>Revert</button></span>
-      <span class="pds-usage">${usage}</span>
+      <span class="pds-usage"><button class="pds-link" type="button" data-pds-rules="${entry.name}">${users} use${users === 1 ? '' : 's'}</button></span>
       <div class="pds-rule-list" data-pds-rule-list hidden></div>
     </div>`;
   };
-  const variablePanel = (entries, groups, kind) => groups.concat([['other', 'Other']]).map(([id, title]) => {
+  const variablePanel = (entries, groups) => groups.concat([['other', 'Other']]).map(([id, title]) => {
     const list = [...entries.values()].filter((entry) => groupOf(entry.name, groups) === id);
     if (!list.length) return '';
     return `<details class="pds-group" open data-pds-group><summary class="pds-group-title"><span class="type-h2">${title}</span><span class="pds-muted" data-pds-group-count>${list.length}</span></summary>
-      <div class="pds-rows">${list.map((entry) => variableRow(entry, kind)).join('')}</div></details>`;
+      <div class="pds-rows">${list.map(variableRow).join('')}</div></details>`;
   }).join('');
 
   function refreshResolved() {
@@ -173,14 +167,14 @@ async function initPage() {
     }
   }
 
-  // Component specimens, each in its own frame so page layouts render at their real size.
-  function componentPanel() {
+  // Specimens, each in its own frame so layouts render at their real size.
+  function specimenPanel(groups, kind) {
     const base = `${location.pathname}?specimen=`;
-    return SPECIMEN_GROUPS.map((group) => `<section class="pds-group" data-pds-group><h2 class="type-h2 pds-group-heading">${group.title}</h2>
-      <div class="pds-specimens">${group.specimens.map((specimen) => `<article class="pds-specimen" data-pds-specimen="${specimen.id}" data-pds-text="${escape(`${specimen.id} ${specimen.title}`.toLowerCase())}">
+    return groups.map((group) => `<section class="pds-group" data-pds-group><h2 class="type-h2 pds-group-heading">${group.title}</h2>
+      <div class="pds-specimens">${group.specimens.map((specimen) => `<article class="pds-specimen" data-pds-kind="${kind}" data-pds-specimen="${specimen.id}" data-pds-text="${escape(`${specimen.id} ${specimen.title}`.toLowerCase())}">
         <header class="pds-specimen-head"><span class="pds-specimen-title">${escape(specimen.title)}</span><span class="pds-muted" data-pds-made>Loading</span></header>
         <iframe class="pds-frame" ${specimen.page ? 'data-page' : ''} title="${escape(specimen.title)}" loading="lazy" src="${base}${specimen.id}&theme=${state.theme}"></iframe>
-        <details class="pds-made"><summary>Primitives and tokens</summary><div class="pds-chips" data-pds-made-list></div></details>
+        <details class="pds-made"><summary>${kind === 'primitives' ? 'Tokens used' : 'Primitives and tokens used'}</summary><div class="pds-chips" data-pds-made-list></div></details>
       </article>`).join('')}</div></section>`).join('');
   }
   function watchFrame(frame) {
@@ -195,21 +189,24 @@ async function initPage() {
   }
   function describeFrame(frame) {
     const card = frame.closest('[data-pds-specimen]');
-    const { matched, used } = composition(frame.contentDocument, state.model.rules);
-    const primitives = [...used.keys()].filter((name) => state.model.primitives.has(name)).sort();
-    const tokens = new Set(primitives.flatMap((name) => [...state.model.primitives.get(name).refs]));
-    card.dataset.pdsUses = primitives.join(' ');
-    card.querySelector('[data-pds-made]').textContent = `${matched} rules · ${primitives.length} primitives · ${tokens.size} tokens`;
-    card.querySelector('[data-pds-made-list]').innerHTML = primitives
-      .map((name) => `<button class="pds-chip" type="button" data-pds-primitive="${name}">${name}</button>`).join('');
+    const { tokens, primitives, bespoke } = composition(frame.contentDocument, state.model);
+    const tokenNames = [...tokens.keys()].sort(), classNames = [...primitives.keys()].sort();
+    card.dataset.pdsUses = [...tokenNames, ...classNames].join(' ');
+    const chips = (names, attr) => names.map((name) => `<button class="pds-chip" type="button" ${attr}="${name}">${name}</button>`).join('');
+    if (card.dataset.pdsKind === 'primitives') {
+      card.querySelector('[data-pds-made]').textContent = `${tokenNames.length} tokens`;
+      card.querySelector('[data-pds-made-list]').innerHTML = chips(tokenNames, 'data-pds-token');
+    } else {
+      card.querySelector('[data-pds-made]').textContent = `${classNames.length} primitives · ${tokenNames.length} tokens · ${bespoke ? `${bespoke} one-off visual declarations` : 'converted'}`;
+      card.querySelector('[data-pds-made-list]').innerHTML = `${chips(classNames, 'data-pds-class')}<span class="pds-muted">tokens</span>${chips(tokenNames, 'data-pds-token')}`;
+    }
   }
 
   function renderPanel(tab) {
     const panel = $(`[data-pds-panel="${tab}"]`);
-    if (tab === 'tokens') panel.innerHTML = variablePanel(state.model.tokens, TOKEN_GROUPS, 'token');
-    if (tab === 'primitives') panel.innerHTML = variablePanel(state.model.primitives, PRIMITIVE_GROUPS, 'primitive');
-    if (tab === 'components') {
-      panel.innerHTML = componentPanel();
+    if (tab === 'tokens') panel.innerHTML = variablePanel(state.model.tokens, TOKEN_GROUPS);
+    else {
+      panel.innerHTML = specimenPanel(tab === 'primitives' ? PRIMITIVE_GROUPS : COMPOSITION_GROUPS, tab);
       panel.querySelectorAll('iframe').forEach(watchFrame);
     }
     refreshResolved();
@@ -237,7 +234,7 @@ async function initPage() {
     $('[data-pds-change-count]').textContent = state.overrides.size;
     const byFile = new Map();
     for (const [name, value] of state.overrides) {
-      const entry = state.model.tokens.get(name) ?? state.model.primitives.get(name);
+      const entry = state.model.tokens.get(name);
       const file = `self/styles/poolday/${entry?.file ?? 'unknown'}`;
       const was = entry?.values.base ?? entry?.values.light ?? '';
       byFile.set(file, [...(byFile.get(file) ?? []), `  ${name}: ${value}; /* was ${was} */`]);
@@ -259,19 +256,18 @@ async function initPage() {
     if (data.pdsTheme) setTheme(data.pdsTheme);
     else if (data.pdsTab) setTab(data.pdsTab);
     else if (data.pdsWidth) setWidth(data.pdsWidth);
-    else if (data.pdsUses) showUses('primitives', data.pdsUses);
-    else if (data.pdsToken) showName(state.model.tokens.has(data.pdsToken) ? 'tokens' : 'primitives', data.pdsToken);
-    else if (data.pdsPrimitive) showName('primitives', data.pdsPrimitive);
+    else if (data.pdsToken) showName('tokens', data.pdsToken);
+    else if (data.pdsClass) showUses('compositions', data.pdsClass);
     else if (data.pdsRevert) setOverride(data.pdsRevert, '');
     else if (data.pdsRules) {
       const list = target.closest('[data-pds-var]').querySelector('[data-pds-rule-list]');
       if (list.hidden) {
-        const selectors = [...state.model.primitives.get(data.pdsRules).usedBy];
+        const selectors = [...state.model.tokens.get(data.pdsRules).usedBy];
         list.innerHTML = `${selectors.slice(0, 40).map((selector) => `<code>${escape(selector)}</code>`).join('')}${selectors.length > 40 ? `<span class="pds-muted">and ${selectors.length - 40} more</span>` : ''}
-          <button class="pds-link" type="button" data-pds-show-components="${data.pdsRules}">Show components that use it</button>`;
+          <button class="pds-link" type="button" data-pds-show-components="${data.pdsRules}">Show compositions that use it</button>`;
       }
       list.hidden = !list.hidden;
-    } else if (data.pdsShowComponents) showUses('components', data.pdsShowComponents);
+    } else if (data.pdsShowComponents) showUses('compositions', data.pdsShowComponents);
     else if ('pdsChangesToggle' in data) {
       const panel = $('[data-pds-changes]'); panel.hidden = !panel.hidden; target.setAttribute('aria-expanded', String(!panel.hidden));
     } else if ('pdsCopy' in data) {
@@ -294,7 +290,7 @@ async function initPage() {
 
   // Live reload: when a layer file changes on disk, swap the stylesheet everywhere and re-read the model.
   const stamps = new Map();
-  const layerFiles = () => [state.model.manifest.tokens, state.model.manifest.primitives, ...state.model.manifest.components].map((file) => `/styles/poolday/${file}`);
+  const layerFiles = () => [state.model.manifest.tokens, ...state.model.manifest.primitives, ...state.model.manifest.compositions].map((file) => `/styles/poolday/${file}`);
   async function poll() {
     if (document.visibilityState !== 'visible') return;
     const changed = [];
@@ -312,7 +308,7 @@ async function initPage() {
     await Promise.all([bust(document), ...state.frames.filter((frame) => frame.contentDocument?.querySelector('.pool-home')).map((frame) => bust(frame.contentDocument))]);
     state.model = await loadModel();
     counts();
-    for (const tab of state.rendered) if (tab !== 'components') renderPanel(tab);
+    if (state.rendered.has('tokens')) renderPanel('tokens');
     applyEverywhere(); applyFilter();
     for (const frame of state.frames) if (frame.contentDocument?.querySelector('.pool-home')) describeFrame(frame);
     $('[data-pds-status]').textContent = `Reloaded ${changed.map((href) => href.split('/').pop()).join(', ')} at ${new Date().toLocaleTimeString()}.`;
@@ -320,7 +316,7 @@ async function initPage() {
   setInterval(poll, 2000); poll();
   addEventListener('hashchange', () => {
     const tab = location.hash.slice(1);
-    if (tab !== state.tab && ['tokens', 'primitives', 'components'].includes(tab)) setTab(tab);
+    if (tab !== state.tab && ['tokens', 'primitives', 'compositions'].includes(tab)) setTab(tab);
   });
 
   counts();

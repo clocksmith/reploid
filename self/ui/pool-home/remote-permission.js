@@ -21,8 +21,8 @@ export function remotePermissionText(need) {
 }
 
 export function renderRemotePermissionDialog() {
-  return `<dialog class="chat-model-setup pool-surface" data-remote-permission aria-labelledby="chat-remote-permission-title" aria-describedby="chat-remote-permission-body">
-    <h2 id="chat-remote-permission-title" data-remote-permission-title></h2>
+  return `<dialog class="chat-model-setup pool-surface pool-small" data-remote-permission aria-labelledby="chat-remote-permission-title" aria-describedby="chat-remote-permission-body">
+    <h2 class="pool-heading" id="chat-remote-permission-title" data-remote-permission-title></h2>
     <div id="chat-remote-permission-body"><p data-remote-permission-what></p><p data-remote-permission-who></p><p data-remote-permission-scope></p></div>
     <div class="chat-network-actions"><button class="pool-button" type="button" data-remote-permission-local>Keep answers local</button>
       <button class="pool-button btn-primary" type="button" data-remote-permission-allow>Allow</button></div>
@@ -57,7 +57,7 @@ export function bindRemotePermissionDialog(dialog, session, { onError = () => {}
 }
 
 export function renderRemotePermissionSettings() {
-  return `<section class="chat-network-details" data-remote-permission-settings aria-labelledby="remote-permission-settings-title">
+  return `<section class="chat-network-details pool-well" data-remote-permission-settings aria-labelledby="remote-permission-settings-title">
     <h3 id="remote-permission-settings-title">Contributors' computers</h3>
     <p data-remote-permission-status role="status"></p><ul data-remote-permission-list></ul>
   </section>`;

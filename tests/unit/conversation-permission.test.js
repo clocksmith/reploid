@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { renderConversationWorkspace, bindConversationWorkspace } from '../../self/ui/pool-home/conversation-workspace.js';
 import { attachmentInput, comparisonSources } from '../../self/host/document-comparison.js';
 import { renderPermissionSummary, updatePermissionSummary } from '../../self/ui/components/permission-card.js';
+import { createWebSearch } from '../../self/host/web-search.js';
 
 describe('Conversation Send authorization', () => {
   it('renders attachment passages safely without hiding the exact approved payload', () => {
@@ -36,6 +37,22 @@ describe('Conversation Send authorization', () => {
     expect(approve).not.toHaveBeenCalled();
     expect(root.querySelector('[data-remote-permission]').open).toBe(false);
     expect(root.querySelector('[data-composer-area]').hidden).toBe(false);
+    dispose();
+  });
+  it('With web search on, Send opts the request into retrieval and shows that search is on', async () => {
+    const root = document.createElement('div'); root.innerHTML = renderConversationWorkspace();
+    const model = { id: 'model', name: 'Model', availability: 'ready' };
+    const thread = { id: 'thread', model, messages: [], attempts: [], grants: [] };
+    const state = { selectedId: thread.id, activeThread: thread, threads: [thread], models: [model], runningIds: [], network: {} };
+    const send = vi.fn(async () => ({ status: 'completed' }));
+    const values = new Map();
+    const webSearch = createWebSearch({ storage: { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) } });
+    webSearch.configure({ url: 'https://search.example/mcp' }); webSearch.setEnabled(true);
+    const dispose = bindConversationWorkspace(root, { getState: () => state, subscribe(fn) { fn(state); return () => {}; }, send }, { webSearch });
+    expect(root.querySelector('[data-web-search-on]').hidden).toBe(false);
+    root.querySelector('[data-composer-input]').value = 'Hello';
+    root.querySelector('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    await vi.waitFor(() => expect(send).toHaveBeenCalledWith('thread', 'Hello', [], { retrieval: {} }));
     dispose();
   });
 });

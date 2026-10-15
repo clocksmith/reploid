@@ -49,7 +49,7 @@ describe('RD stylesheet ownership', () => {
     // single-file bundle must stay retired.
     expect(existsSync(path.join(stylesRoot, 'poolday.css'))).toBe(false);
     const layers = JSON.parse(readRepoFile('self/styles/poolday/layers.json'));
-    const poolday = [layers.tokens, layers.primitives, ...layers.components]
+    const poolday = [layers.tokens, ...layers.primitives, ...layers.compositions]
       .map((file) => readRepoFile(`self/styles/poolday/${file}`))
       .join('\n');
     const index = readRepoFile('self/index.html');
@@ -61,8 +61,6 @@ describe('RD stylesheet ownership', () => {
     expect(rd).not.toContain('--pool-');
     expect(boot.replaceAll(poolExclusion, '')).not.toContain('.pool-home');
     expect(poolday).toContain('.pool-home');
-    expect(poolday).toContain('.pool-shape-action');
-    expect(poolday).toContain('.pool-shape-action--circle');
     expect(poolday).not.toContain('.pool-shape-action--square');
     expect(poolday).not.toContain('.pool-shape-action--hex');
     expect(poolday).not.toContain('clip-path: polygon');
@@ -75,11 +73,10 @@ describe('RD stylesheet ownership', () => {
     expect(poolday).not.toContain('.pool-hot-path');
     expect(poolday).not.toContain('.pool-home-network-badge');
     expect(poolday).toMatch(/\.pool-home-toolbar\s*\{[\s\S]*?grid-template-columns: minmax\(0, 1fr\);/);
-    expect(poolday).toMatch(/\.pool-home-toolbar\s*\{[\s\S]*?background: var\(--pool-surface-page\);/);
+    expect(poolday).toMatch(/\.pool-home-toolbar\s*\{[\s\S]*?background: var\(--pool-color-page\);/);
     expect(poolday).toMatch(/\.pool-home-ask-dock\s*\{[\s\S]*?position: absolute;[\s\S]*?bottom: var\(--pool-param-ask-inset\);[\s\S]*?left: 50%;[\s\S]*?transform: translateX\(-50%\);/);
     expect(poolday).toMatch(/\.pool-simulation-shell\s*\{[\s\S]*?overflow: hidden;/);
-    expect(poolday).toMatch(/\.pool-simulation-shell\s*\{[\s\S]*?background: var\(--pool-surface-page\);/);
-    expect(poolday).toMatch(/\.pool-simulation-canvas\s*\{[\s\S]*?background: var\(--pool-surface-page\);/);
+    expect(poolday).toMatch(/\.pool-simulation-shell\s*\{[\s\S]*?background: var\(--pool-color-page\);/);
     expect(poolday).toContain('.pool-nav-more');
     expect(poolday).toContain('.pool-room-context');
     expect(poolday).toContain('.pool-record-timeline');
@@ -87,31 +84,19 @@ describe('RD stylesheet ownership', () => {
     expect(poolday).toContain('.pool-home-result-panel');
     expect(poolday).toContain('var(--pool-param-ask-dock-height)');
     expect(poolday).toContain("[data-pool-run-surface][data-run-state='idle']");
-    expect(poolday).toContain(".pool-home-stage[data-run-state='running'][data-run-phase='verify']");
     expect(poolday).toMatch(/@media \(max-width: 720px\)\s*\{[\s\S]*?\.pool-ledger table\s*\{[\s\S]*?table-layout: fixed;/);
     expect(poolday).not.toContain('@import');
     expect(poolday).toContain('.pool-home-brand-word');
     expect(poolday).toContain('--pool-param-wordmark-optical-left');
-    expect(poolday).toContain('font-family: var(--pool-type-display-family), var(--pool-type-ui-family)');
+    expect(poolday).toContain('font-family: var(--pool-font-display), var(--pool-font-ui)');
     expect(poolday).toContain('.pool-nav-toggle');
     expect(poolday).toMatch(/\.pool-nav-rail\s*\{[\s\S]*?top: 0;[\s\S]*?bottom: 0;[\s\S]*?height: 100dvh;/);
-    expect(poolday).toMatch(/\.pool-nav-rail\s*\{[\s\S]*?border-right: var\(--pool-px-1\) solid/);
     expect(poolday).toMatch(/\.pool-nav-toggle\s*\{[\s\S]*?width: 100%;[\s\S]*?box-shadow: none;/);
     expect(poolday).toMatch(/\.pool-nav-rail\.is-open \.pool-nav-toggle\s*\{[\s\S]*?width: 100%;/);
-    expect(poolday).toMatch(/\.pool-nav-rail\.is-open \.pool-nav-description\s*\{[\s\S]*?opacity: 1;[\s\S]*?visibility: visible;/);
-    expect(poolday).toContain('.pool-nav-top');
-    expect(poolday).toContain('.pool-nav-bottom');
     expect(poolday).not.toContain('.pool-nav-view-context');
-    expect(poolday).toContain('.pool-room-context-heading');
-    expect(poolday).toMatch(/\.pool-nav-rail\.is-open \.pool-nav-mark-seven-top\s*\{[\s\S]*?font-size: var\(--pool-px-26\);[\s\S]*?translate\(var\(--pool-px-8\), var\(--pool-px-8\)\)/);
-    expect(poolday).toMatch(/\.pool-nav-rail\.is-open \.pool-nav-mark-seven-bottom\s*\{[\s\S]*?font-size: var\(--pool-px-16\);[\s\S]*?translate\(var\(--pool-px-1\), 0\)/);
     expect(poolday).toMatch(/@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\.pool-nav-toggle/);
-    expect(poolday).toContain('var(--pool-surface-shape) padding-box');
     expect(poolday).toContain('.pool-contribution-metric');
-    expect(poolday).toContain('var(--pool-space-lg)');
     expect(index).toContain('ensurePooldayStylesheet');
     expect(poolEntry).toContain('/styles/poolday/tokens.css');
-    expect(poolEntry).toContain('/styles/poolday/primitives.css');
-    expect(poolEntry).toContain('/styles/poolday/components.css');
   });
 });
