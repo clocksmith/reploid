@@ -1,5 +1,6 @@
 {
   "pollMs": 2000,
+  "statusHeartbeatMs": 300000,
   "maxPeers": 8,
   "connectTimeoutMs": 30000,
   "grantMs": 900000,
