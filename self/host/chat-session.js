@@ -144,8 +144,8 @@ export function createChatSession({
   };
   /** Contributors that may receive this answer: none when it runs here, else the verified route's stages or the
    * catalog's ready providers for this model. Execution must stay within them or the passages are not sent. */
-  const listedContributors = (model, sharingScope) => {
-    if (!execution.remoteDisclosure(model, sharingScope)) return [];
+  const listedContributors = (model, sharingScope, executionLocation) => {
+    if (!execution.remoteDisclosure(model, sharingScope, executionLocation)) return [];
     const key = item => item.selectionId || item.id;
     const known = getCatalogModels().find(item => key(item) === key(model) && item.identity === model.identity) || model;
     if (known.partition?.route) return [...new Set(known.partition.route.stages.map(stage => stage.participantId))];
@@ -166,6 +166,7 @@ export function createChatSession({
     models: [...models, ...peerModels], peers: swarm?.getState?.().consumer?.peers || [],
     partitionModels: partitions?.getModels() || []
   }).map(model => {
+    model = { ...model, networkAvailability: model.availability };
     const local = execution.getLocalState();
     if (canonicalHistory && !publishable(historyState.publication, model)) return { ...model, availability: 'unavailable', localReady: false };
     return local?.ready && local.modelIdentity === model.identity && !(model.adapters?.length)
@@ -292,16 +293,19 @@ export function createChatSession({
         return await workspace.send(threadId, COMPARISON_CHECK, { select: false });
       } finally { comparisons.delete(threadId); notifyAll(); } })();
     },
-    createThread({ model = getSessionState().defaultModel, purpose = '', sharingScope = 'mesh', contextPrompt } = {}) {
+    createThread({ model = getSessionState().defaultModel, purpose = '', sharingScope = 'mesh', executionLocation = 'auto', contextPrompt } = {}) {
       assertOpen();
       assert(model, 'Model required to create thread');
+      assert(['auto', 'local', 'network'].includes(executionLocation), 'Invalid execution location');
+      assert(executionLocation !== 'local' || !model.partition, 'This model requires network execution');
       return workspace.createThread({
         model,
         purpose,
         systemContext: createChatContext(contextPrompt, model, models),
-        permissions: { sharingScope }
+        permissions: { sharingScope: executionLocation === 'local' ? 'local' : executionLocation === 'network' ? 'mesh' : sharingScope, executionLocation }
       });
     },
+    setExecutionLocation(threadId, location) { assertOpen(); return workspace.setExecutionLocation(threadId, location); },
     select(threadId) {
       assertOpen();
       workspace.select(threadId);
@@ -336,13 +340,13 @@ export function createChatSession({
     },
     /** The approved wording and listed contributors to show before a search-backed answer on `route`; throws when
      * that route is unavailable (no approved wording, or its configuration consent is not in force). */
-    searchPermissionRequest({ model, sharingScope = 'mesh', route: name = SEARCH_ROUTE }) {
+    searchPermissionRequest({ model, sharingScope = 'mesh', executionLocation = 'auto', route: name = SEARCH_ROUTE }) {
       assertOpen();
       const route = searchRoute(name);
       assert(route, 'Search is not available');
       assert(model, 'Choose a model first');
-      const recipients = listedContributors(model, sharingScope);
-      assert(recipients.length || !execution.remoteDisclosure(model, sharingScope), 'No execution contributors are available for this answer');
+      const recipients = listedContributors(model, sharingScope, executionLocation);
+      assert(recipients.length || !execution.remoteDisclosure(model, sharingScope, executionLocation), 'No execution contributors are available for this answer');
       return { route: name, searchProvider: route.provider.searchProvider, searchServer: route.provider.searchServer ?? null,
         wording: searchPermissionWording(route.provider.searchProvider), recipients };
     },
@@ -376,8 +380,8 @@ export function createChatSession({
     },
     revokeGrant(threadId, grantId) { assertOpen(); return workspace.revokeGrant(threadId, grantId); },
     /** The permission a request for this model and sharing scope still needs, or null (runs here or already covered). */
-    remotePermissionNeeded({ model, sharingScope = 'mesh' }) {
-      const disclosure = model && execution.remoteDisclosure(model, sharingScope);
+    remotePermissionNeeded({ model, sharingScope = 'mesh', executionLocation = 'auto' }) {
+      const disclosure = model && execution.remoteDisclosure(model, sharingScope, executionLocation);
       if (!disclosure) return null;
       const need = remotePermissionNeed({ networkId: currentNetwork(), sharingScope, disclosure, model });
       return remotePermissions.some(permission => remotePermissionCovers(permission, need)) ? null : need;

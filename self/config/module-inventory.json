@@ -2143,7 +2143,7 @@
     {
       "path": "self/host/chat-execution.js",
       "owner": "self",
-      "sha256": "sha256:e39db92499144208d7746c6ea4ab0a7bcda7dab8b457532983ec988f3b154411",
+      "sha256": "sha256:10d9fe516a81fa83ac77587d0f8fc9ee66dd5ccdd8648fd74c45a5521a276cc1",
       "imports": [
         "../providers/work-adapter.js",
         "../providers/work-generation-completion.js",
@@ -2165,7 +2165,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:54d5f0491685bed1e4b0af6fc2f94a474bacb8e27c82713c5a55a0677c80df3d",
+      "sha256": "sha256:6111573adb791a2352d8506da89788a00cef5dd8f9782fc6bae32195368bbdc5",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -3226,7 +3226,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:d567595247d2dbcd251632f584f812e99c96b5959fb2f96f61f04808997f01e2",
+      "sha256": "sha256:5cb909e7f46ad307ed840d1a78ff464e2a2e5f6b3ebc75a21de43b9bcd2a8e48",
       "imports": []
     },
     {
@@ -3279,7 +3279,7 @@
     {
       "path": "ui/pool-home/conversation-list.js",
       "owner": "ui",
-      "sha256": "sha256:6a1fd46d20da86a7a284f7c3cb5801ff2b08f5c6f4c220e93d3d148dd1c671c5",
+      "sha256": "sha256:07d6b420c3f4f8194346c4b477072705d6315630ed889abeff359dacf2c76c0c",
       "imports": [
         "../components/disclosure.js"
       ]
@@ -3287,7 +3287,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:a4dd953063ad8fc657dda6ef6f8c4b5e7bd2db411f4df95f3df112b32908e25b",
+      "sha256": "sha256:d94e366254f35d8bc4ec2e459e9060af23ee0cebb32b0e78925f15cf737cf931",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -3387,7 +3387,7 @@
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:268b15ec3c68cc9864e622c2c4166990fed46abc2e9e4fd666645da6655a88b6",
+      "sha256": "sha256:b00c5d9fdfe45e2aa84a982190975e57e0d4e3506ee0731a257fe292af870d06",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -15263,7 +15263,7 @@
     {
       "path": "vendor/reploid/chat/workspace.js",
       "owner": "vendor",
-      "sha256": "sha256:1a6c1071940f6e955961230b0dafaf3b45b3ba24738002ad4857074fda480bf9",
+      "sha256": "sha256:10882ff1583df12d87d51ea69fb54028b97f8b1b4903a0059202adfeb3bb59bc",
       "imports": [
         "../mesh/partitions/partition-contract.js",
         "../mesh/partitions/partition-ordered-publication.js",

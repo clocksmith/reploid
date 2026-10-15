@@ -166,6 +166,7 @@ export interface ChatWorkspace {
   getState(): ChatState;
   subscribe(listener: (state: ChatState) => void): () => void;
   createThread(options: { model: ChatModel; purpose?: string; members?: string[]; permissions?: Record<string, unknown>; systemContext?: ChatSystemContext | null }): string;
+  setExecutionLocation(threadId: string, location: 'auto' | 'local' | 'network'): void;
   setSystemContext(threadId: string, value: ChatSystemContext | null): void;
   select(threadId: string | null): void;
   renameThread(threadId: string, title: string): void;
@@ -182,8 +183,9 @@ export interface ChatWorkspace {
   cancel(threadId: string): Promise<unknown>;
   close(): Promise<void>;
 }
-export type TransactionalChatWorkspace = Omit<ChatWorkspace,'createThread'|'setSystemContext'|'renameThread'|'closeThread'|'reopenThread'|'approve'|'revokeGrant'|'resumePermitted'> & {
+export type TransactionalChatWorkspace = Omit<ChatWorkspace,'createThread'|'setExecutionLocation'|'setSystemContext'|'renameThread'|'closeThread'|'reopenThread'|'approve'|'revokeGrant'|'resumePermitted'> & {
  createThread(input:Parameters<ChatWorkspace['createThread']>[0]):Promise<string>;
+ setExecutionLocation(...input:Parameters<ChatWorkspace['setExecutionLocation']>):Promise<void>;
  setSystemContext(...input:Parameters<ChatWorkspace['setSystemContext']>):Promise<void>;
  renameThread(...input:Parameters<ChatWorkspace['renameThread']>):Promise<void>;
  closeThread(...input:Parameters<ChatWorkspace['closeThread']>):Promise<void>;

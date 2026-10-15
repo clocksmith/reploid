@@ -10,7 +10,8 @@ const assert = (ok, message) => { if (!ok) throw new Error(message); };
 export function createChatExecution({ service, swarm, partitions, scheduler, models, getModels, profile, earning = null, resolveLocalSource, isCached = () => false, onChange = () => {} }) {
   let local = null;
   // The same routing execute() applies: partitions always leave this device; local scope or a ready local copy stays.
-  const runsHere = (model, sharingScope) => !model.partition && (sharingScope === 'local' || isCached(model) || (local?.ready && local.modelIdentity === model.identity));
+  const runsHere = (model, sharingScope, location = 'auto') => !model.partition && location !== 'network'
+    && (location === 'local' || sharingScope === 'local' || isCached(model) || (local?.ready && local.modelIdentity === model.identity));
   const resolveAdapter = createWorkAdapterResolver({ models });
 
   const sessionScheduler = scheduler || createChatScheduler({
@@ -34,6 +35,8 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
   // Reuse the existing network provider. No simulated production responses.
   const execute = async (request, controls) => {
     const { threadId, attemptId, model } = request;
+    assert(['auto', 'local', 'network'].includes(request.permissions?.executionLocation ?? 'auto'), 'Invalid execution location');
+    assert(!(model.partition && (request.permissions?.executionLocation === 'local' || request.permissions?.sharingScope === 'local')), 'This model requires network execution');
     assert(model.provider === 'doppler', 'Chat requires a Doppler participant');
     const catalogModel = getModels().find(m => m.id === model.id && m.identity === model.identity);
     assert(catalogModel, 'Selected model is not in the verified catalog');
@@ -55,7 +58,7 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
       return earning ? earning.run(request, controls, (req, ctl) => partitions.generate(req, ctl)) : partitions.generate(request, controls);
     }
 
-    if (runsHere(model, request.permissions?.sharingScope)) {
+    if (runsHere(model, request.permissions?.sharingScope, request.permissions?.executionLocation)) {
       const maxOutputTokens = Math.min(
         request.maxOutputTokens || profile.generation?.maxTokens || 1024,
         4096
@@ -125,7 +128,7 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
   return Object.freeze({
     execute,
     /** The disclosure a request for this model would make, or null when it runs on this device. */
-    remoteDisclosure: (model, sharingScope) => runsHere(model, sharingScope) ? null : remoteDisclosureKind(model),
+    remoteDisclosure: (model, sharingScope, location) => runsHere(model, sharingScope, location) ? null : remoteDisclosureKind(model),
     prepareLocal: model => sessionScheduler.prepare(model),
     getLocalState: () => local ? structuredClone(local) : null,
     getState: () => structuredClone(sessionScheduler.getState()),

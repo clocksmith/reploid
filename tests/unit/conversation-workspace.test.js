@@ -17,6 +17,23 @@ describe('Conversation workspace', () => {
   });
   afterEach(async () => { dispose(); await session.close(); root.remove(); });
 
+  it('shows no network capacity for cached weights and persists location changes in an existing thread', async () => {
+    const model = CANONICAL_CHAT_MODELS[1];
+    session.setCachedModels([model]);
+    const location = find('[data-execution-location]');
+    location.value = 'network'; location.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(find('[data-composer-send]').disabled).toBe(true);
+    expect(find('[data-model-status]').textContent).toContain('No network capacity');
+    const id = session.createThread({ model, sharingScope: 'local' });
+    location.value = 'network'; location.dispatchEvent(new Event('change', { bubbles: true }));
+    await vi.waitFor(() => expect(session.getState().activeThread.permissions.executionLocation).toBe('network'));
+    expect(session.getState().activeThread.id).toBe(id);
+    expect(service.calls).toHaveLength(0);
+    location.value = 'local'; location.dispatchEvent(new Event('change', { bubbles: true }));
+    await vi.waitFor(() => expect(session.getState().activeThread.permissions.executionLocation).toBe('local'));
+    expect(find('[data-model-status]').hidden).toBe(true);
+  });
+
   it('opens every section directly from the navigation rail with the correct heading', () => {
     const navigation = find('[data-chat-rail-toolbar] [data-inspector-navigation]');
     expect(navigation).not.toBeNull();
