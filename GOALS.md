@@ -1,6 +1,6 @@
 # Reploid Goals
 
-## Mission & Thesis
+## Operating mission
 
 Reploid helps people ask questions, compare options, connect information, and develop ideas using open models and web sources. Its promise: earn on your computer, use AI anywhere.
 
@@ -19,14 +19,6 @@ Freeze quality, latency, surplus, margin, and advantage thresholds before testin
 Scale only when contributors earn worthwhile value, customers return and obtain competitive answers, and Reploid retains positive contribution margin. Report energy efficiency separately. Repeat purchases and sustained participation justify expansion; failed configurations are revised or rejected before spending or unsupported commercial promises.
 
 The [product specification](docs/product-specification.md) is the canonical contract for this plan, including nonexpiring balances, quoted service, owner limits and separately qualified financial accounting. Complete-answer quality, latency and economics require their own evidence; numerical parity alone is insufficient.
-
-Reploid's goal is to coordinate and evolve distributed intelligence. Its
-peer-to-peer network of agents combines participating devices' model storage,
-GPU memory, WebGPU computation, and problem-solving capabilities to solve useful
-problems and improve how individual agents and the swarm operate.
-Self-improvement is part of the goal itself. Independent operation remains
-possible; the collaborating network remains the product. Browser and native
-participants use the same library contracts, with host support qualified separately.
 
 Reploid coordinates and learns; Poolday connects participants and transfers
 authorized data; Doppler defines and executes model computations. Participants
@@ -65,10 +57,6 @@ browser library without inheriting a particular interface or credential system.
    a complete model on every requesting device. Using an available prepared
    execution path requires no requester weight downloads; contribution preparation
    happens separately.
-5. Improve prompts, tools, planning, placement, caching, and the algorithms
-   governing those decisions. Demonstrate independently evaluated improvements
-   that transfer to unfamiliar subsequent tasks. Separately demonstrate causal
-   recursion: B improves on A, and B's changed machinery contributes to producing C.
 
 Model capabilities include generation, retrieval and decision/scoring operations
 through Doppler. A semantic score or model judgment cannot grant permission,
@@ -102,25 +90,41 @@ count as independent experience.
 Evaluate information-seeking decisions rather than assuming exploration helps.
 Specific distributions and scheduling experiments belong in the technical plan.
 
-Improvement proposes a candidate, compares it with an identified baseline under
-protected independent evaluation, then adopts or rejects within explicit,
-reversible operator grants. Retain failures and rollback paths. Model-weight
-changes require their own execution and evaluation contracts.
-
 ## Strategic Constraints
 
 Compare network outcomes against the strongest feasible local alternative and,
 separately, centralized coordination on equivalent resources. Count communication,
 verification, failed attempts, and human intervention. Report inconclusive results.
 
-The completion question is whether participating agents accomplish more, or
-accomplish it better, after accounting for communication, failures, evaluation,
-and resource limits.
-
 Custody, execution, intermediate disclosure, and adoption require distinct grants.
 Permissions and application-controlled allocation budgets are hard eligibility
 constraints. Cancellation requires explicit settlement; it does not promise
 immediate GPU termination. Authorized runtime operation does not depend on CI.
+
+## Long-term research
+
+This is a research direction, separate from the operating mission above and not a
+product commitment or claim. It does not change the consumer service's acceptance.
+
+Coordinate and evolve distributed intelligence: a peer-to-peer network of agents
+combines participating devices' model storage, GPU memory, WebGPU computation, and
+problem-solving capabilities to solve useful problems and improve how individual
+agents and the swarm operate. Independent operation remains possible. Browser and
+native participants use the same library contracts, with host support qualified
+separately.
+
+Self-improvement: improve prompts, tools, planning, placement, caching, and the
+algorithms governing those decisions. Demonstrate independently evaluated
+improvements that transfer to unfamiliar subsequent tasks. Separately demonstrate
+causal recursion: B improves on A, and B's changed machinery contributes to producing C.
+Improvement proposes a candidate, compares it with an identified baseline under
+protected independent evaluation, then adopts or rejects within explicit,
+reversible operator grants. Retain failures and rollback paths. Model-weight
+changes require their own execution and evaluation contracts.
+
+The research completion question is whether participating agents accomplish more,
+or accomplish it better, after accounting for communication, failures, evaluation,
+and resource limits.
 
 ## Explicit Exclusions
 

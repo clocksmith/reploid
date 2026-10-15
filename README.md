@@ -1,7 +1,15 @@
 # Reploid
 
-A network where people and agents combine models, tools, storage, and compute.
-Chat is the first interface; each participant controls contribution and disclosure.
+**Earn on your computer. Use AI anywhere.**
+
+Reploid is an answer service. Ask questions, compare options, and get cited answers
+from open models and web sources, with follow-ups and persistent history. Use it
+through funded Community Access, a top-up, or credits your own computer earns by
+contributing validated computation, storage or delivery within limits you set. Reploid coordinates
+the network; [Doppler](https://github.com/clocksmith/doppler) runs the models.
+
+Status: early. Conversations run on prepared contributors today; credits, Community
+Access and cited search exist in source and are tested locally, not yet in production.
 
 **[Try Reploid](https://replo.id/)** · [Get started](docs/QUICK-START.md) · [Documentation](docs/INDEX.md)
 
