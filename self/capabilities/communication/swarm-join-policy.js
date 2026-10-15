@@ -2,7 +2,7 @@
 export function resolveSwarmJoin({ location, storage, policy }) {
   const url = new URL(location.href);
   const mode = url.searchParams.get('swarm');
-  const disabled = ['off', 'false'].includes(mode) || storage?.getItem('REPLOID_SWARM_ENABLED') === 'false';
+  const disabled = ['off', 'false'].includes(mode) || storage?.getItem('REPLOID_NETWORK_ENABLED_V2') === 'false';
   const room = url.searchParams.get('room');
   // Application room links are not invitations. Preserve explicitly scoped legacy links.
   const legacyInvitation = room && (room.startsWith('reploid-swarm-') || url.searchParams.has('swarmToken'))

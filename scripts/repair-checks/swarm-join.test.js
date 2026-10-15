@@ -18,8 +18,9 @@ test('public defaults ignore saved private rooms and signaling alone; opt-out is
       scope: 'public', roomId: policy.publicRoomId, token: policy.publicJoinMarker, autoConnect: true
     });
   }
+  assert.equal(join('', { REPLOID_SWARM_ENABLED: 'false' }).autoConnect, true, 'new on-by-default policy replaces the legacy preference');
   for (const query of ['?swarm=off', '?swarm=false']) assert.equal(join(query).autoConnect, false);
-  assert.equal(join('', { REPLOID_SWARM_ENABLED: 'false' }).autoConnect, false);
+  assert.equal(join('', { REPLOID_NETWORK_ENABLED_V2: 'false' }).autoConnect, false);
   const publicUrl = resolveSwarmSignalingUrl({ location: location(''), policy, join: join(''), privateOverride: 'wss://evil.invalid' });
   assert.equal(publicUrl, policy.signalingUrl + '?scope=public&roomId=' + policy.publicRoomId);
 });

@@ -37,7 +37,10 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   const utils = Utils.factory({}), eventBus = EventBus.factory({ Utils: utils });
   const options = networkOptions({ Utils: utils, EventBus: eventBus }, { enabled: true });
   let consumer = null, supplier = null, closed = false, sharing = false, stopping = false, connecting = false, error = '';
-  let connection = null, introductionAssistance = false;
+  let connection = null, introductionAssistance = storage?.getItem('REPLOID_INTRODUCTIONS_ENABLED') !== 'false';
+  let computeEnabled = storage?.getItem('REPLOID_CACHED_COMPUTE_ENABLED') !== 'false';
+  let filesEnabled = storage?.getItem('REPLOID_CACHED_FILES_ENABLED') !== 'false';
+  let cachedSharing = null;
   let connectionFailure = null;
   let disconnecting = null, sharingConnection = null, generation = 0, paused = false;
   let automaticAllowed = options.autoConnect !== false;
@@ -85,7 +88,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   });
   let contributor = null, stoppingContribution = null, contributionEpoch = 0;
   let contribution = { phase: 'idle', completed: 0, modelId: null, modelIdentity: null, progress: null };
-  const getState = () => ({ introductionAssistance, sharing, stopping, connecting, paused,
+  const getState = () => ({ introductionAssistance, sharing, computeEnabled, filesEnabled, stopping, connecting, paused,
     error: error || connectionFailure?.message || '', unsettledOwners: cleanupDebt.size, models: LOCAL_DOPPLER_MODELS,
     discoveryScope: options.discoveryScope,
     partitionPeers: partitionMesh?.getState?.()?.capabilities || [],
@@ -262,7 +265,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     if (automatic && (!automaticAllowed || paused)) return getState();
     if (!automatic) {
       paused = false; automaticAllowed = true;
-      storage?.setItem('REPLOID_SWARM_ENABLED', 'true');
+      storage?.setItem('REPLOID_NETWORK_ENABLED_V2', 'true');
     }
     if (!connection) connection = connectOnce().finally(() => { connection = null; });
     return connection;
@@ -313,7 +316,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     notify(); return stoppingContribution;
   };
   const disconnect = ({ automatic = false } = {}) => {
-    if (!automatic) { paused = true; storage?.setItem('REPLOID_SWARM_ENABLED', 'false'); }
+    if (!automatic) { paused = true; storage?.setItem('REPLOID_NETWORK_ENABLED_V2', 'false'); }
     if (disconnecting) return disconnecting;
     generation++;
     connectionFailure = null;
@@ -345,10 +348,11 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       if (closed || paused || !partitionNetworks) throw new Error('Connect before opening partition channels');
       return partitionNetworks.open({ createEndpoint, maxPeers, timeoutMs, onPeer, label, ...(ordered ? { ordered } : {}) });
     }
-  return Object.freeze({ getState, connect, disconnect, partitions,
+  const api = Object.freeze({ getState, connect, disconnect, partitions,
     allowIntroductions(allowed) {
       if (closed) throw new Error('Network is closed');
       introductionAssistance = allowed === true;
+      storage?.setItem('REPLOID_INTRODUCTIONS_ENABLED', String(introductionAssistance));
       const introductions = consumerTransport?.getIntroductions?.();
       if (introductionAssistance && introductions) for (const peer of consumerTransport.getConnectedPeers()) {
         introductions.announce(peer.id).catch(cause => { error = cause.message; notify(); });
@@ -361,12 +365,15 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     exportReadiness: () => readinessStore?.export() ?? null,
     /** The network (room) this swarm joins; remote permissions are bound to it. */
     getNetworkId: () => options.config.value.mesh.roomId,
-    getFileState: () => modelFiles?.getState() || { sharing: false, preparing: false, limits: getFileContributionLimits() },
+    getFileState: () => ({ ...(modelFiles?.getState() || { sharing: false, preparing: false, limits: getFileContributionLimits() }), enabled: filesEnabled }),
     async shareFiles(model, approved, controls) {
+      if (approved !== true) throw new Error('Approve file contribution before sharing');
+      filesEnabled = true; storage?.setItem('REPLOID_CACHED_FILES_ENABLED', 'true'); notify();
       await connect({ automatic: true });
+      if (!filesEnabled || paused || closed) return;
       await modelFiles.share(model, approved, controls);
     },
-    stopFiles: () => modelFiles?.stop(),
+    stopFiles: () => { filesEnabled = false; storage?.setItem('REPLOID_CACHED_FILES_ENABLED', 'false'); notify(); return modelFiles?.stop(); },
     autoConnectEnabled: () => !closed && !paused && automaticAllowed,
     getInviteUrl: () => options.getInviteUrl(),
     generate,
@@ -377,11 +384,12 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     previewCandidate: transferId => peerOffers.preview(transferId),
     dismissCandidate: transferId => peerOffers.dismiss(transferId),
     createPartitionNetwork: openPartitionNetwork,
-    async share(modelId, approved, adapters = [], { mode = ordered || canonical ? 'partition' : 'whole-model' } = {}) {
+    async share(modelId, approved, adapters = [], { mode = ordered || canonical ? 'partition' : 'whole-model', cacheOnly = false } = {}) {
       if (!['partition', 'whole-model'].includes(mode)) throw new Error('Unknown contribution mode');
       if ((ordered || canonical) && mode !== 'partition') throw new Error('Configured stages require partition contribution');
       if (closed || supplier || stopping || sharingConnection) throw new Error('Stop existing sharing first');
       if (approved !== true) throw new Error('Approve public prompt execution before sharing');
+      computeEnabled = true; storage?.setItem('REPLOID_CACHED_COMPUTE_ENABLED', 'true');
       if (ordered && modelId !== ordered.stage?.modelId) throw new Error('Model differs from assigned ordered stage');
       const base = LOCAL_DOPPLER_MODELS.find(item => item.id === modelId);
       if (!base) throw new Error('Select an available local model');
@@ -417,7 +425,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
           if (closed || paused || version !== generation || epoch !== contributionEpoch) throw new Error('Contribution stopped');
           const files = modelFiles;
           execution = createWorkResidentProvider({ model, service, generation: profile.generation,
-            resolveSource: (selected, controls) => files.prepareSource(selected, controls),
+            resolveSource: (selected, controls) => files.prepareSource(selected, { ...controls, cacheOnly }),
             resolveAdapter: createWorkAdapterResolver({ models: [base], acquire: files.acquireAdapter }),
             maxOutcomeCharacters: profile.maxOutcomeCharacters, onChange(state) {
               if (contributor !== execution || version !== generation) return;
@@ -444,13 +452,33 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       });
       await sharingConnection;
     },
-    stop: stopContribution,
+    stop: () => { computeEnabled = false; storage?.setItem('REPLOID_CACHED_COMPUTE_ENABLED', 'false'); return stopContribution(); },
+    shareCachedModels(cachedModels) {
+      if (cachedSharing) return cachedSharing;
+      if (closed || paused || !automaticAllowed || ordered || canonical) return Promise.resolve();
+      const model = LOCAL_DOPPLER_MODELS.find(item => cachedModels.some(cached => cached.id === item.id && cached.identity === item.identity));
+      if (!model) return Promise.resolve();
+      cachedSharing = (async () => {
+        await connect({ automatic: true });
+        if (closed || paused) return;
+        if (filesEnabled && !modelFiles?.getState().sharing && !modelFiles?.getState().preparing) {
+          try { await api.shareFiles(model, true, { mode: 'cached-only' }); }
+          catch (cause) { error = cause.message; notify(); }
+        }
+        if (closed || paused) return;
+        if (computeEnabled && navigator.gpu && !sharing && !stopping && !sharingConnection) {
+          await api.share(model.id, true, [], { cacheOnly: true });
+        }
+      })().catch(cause => { error = cause.message; notify(); }).finally(() => { cachedSharing = null; });
+      return cachedSharing;
+    },
     async execute({ task }, controls) {
       if (typeof task !== 'string' || !task.trim() || new TextEncoder().encode(task).byteLength > profile.peers.maxPayloadBytes) throw new Error('Peer helper task exceeds the disclosure allowance');
         const result = await generate([{ role: 'user', content: task }], controls);
         return { output: String(result.content || '').slice(0, profile.peers.maxToolResultCharacters),
           model: result.model, claim: 'legacy-compatibility-result', authority: 'Untrusted peer response; not independently verified correctness or signed Pack qualification' };
     },
-    async close() { closed = true; await disconnect({ automatic: true }); }
+    async close() { closed = true; await disconnect({ automatic: true }); await cachedSharing; }
   });
+  return api;
 }

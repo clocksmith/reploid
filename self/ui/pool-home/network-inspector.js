@@ -12,15 +12,14 @@ import { renderAccountPanel, bindAccountPanel } from './account-panel.js';
 
 export function renderNetworkInspector() {
   return `<aside class="chat-network-rail pool-surface" data-network-rail aria-label="Network and settings">
-    <button class="pool-button chat-network-toggle" type="button" data-toggle-inspector aria-haspopup="dialog" aria-expanded="false" aria-label="Inspect network" title="Network">${interfaceIcon('peers')}<span class="chat-rail-label" data-mesh-peers>0 computers</span></button>
+    <nav class="pool-stack pool-gap-sm" data-inspector-navigation aria-label="Network sections">
+      <button class="pool-button chat-rail-icon" type="button" data-inspector-section="conversation" aria-label="This conversation" title="This conversation">${interfaceIcon('activity')}</button>
+      <button class="pool-button chat-network-toggle" type="button" data-inspector-section="participants" data-toggle-inspector aria-haspopup="dialog" aria-expanded="false" aria-label="Computers" title="Computers">${interfaceIcon('peers')}<span data-mesh-peers class="chat-visually-hidden"></span></button>
+      <button class="pool-button chat-rail-icon" type="button" data-inspector-section="device" aria-label="Sharing" title="Sharing">${interfaceIcon('device')}</button>
+      <button class="pool-button chat-rail-icon" type="button" data-inspector-section="settings" aria-label="Settings" title="Settings">${interfaceIcon('settings')}</button>
+    </nav>
     <dialog class="network-inspector pool-surface pool-small" data-contextual-inspector data-network-workspace aria-labelledby="network-inspector-title">
     <header class="chat-network-heading"><h2 class="pool-subheading" id="network-inspector-title">Network</h2><button class="pool-button" type="button" data-close-inspector aria-label="Close network and settings">${interfaceIcon('close')}</button></header>
-    <nav class="network-inspector-tabs pool-segmented" aria-label="Network sections">
-      <button class="pool-segment" type="button" data-inspector-section="conversation" aria-label="This conversation" title="This conversation">${interfaceIcon('activity')}</button>
-      <button class="pool-segment" type="button" data-inspector-section="participants" aria-label="Computers" title="Computers">${interfaceIcon('peers')}<span data-mesh-peers class="chat-visually-hidden"></span></button>
-      <button class="pool-segment" type="button" data-inspector-section="device" aria-label="This device" title="This device">${interfaceIcon('device')}</button>
-      <button class="pool-segment" type="button" data-inspector-section="settings" aria-label="Settings" title="Settings">${interfaceIcon('settings')}</button>
-    </nav>
     <section data-inspector-pane="conversation" aria-label="This conversation">
       <div class="execution-ribbon-route" data-inspector-route></div>
       <p data-inspector-status role="status"></p>
@@ -49,6 +48,7 @@ export function renderNetworkInspector() {
 
 export function bindNetworkInspector(root, session, { getInviteUrl, loadSpecialized, webSearch = null, earning = null } = {}) {
   const rail = root.querySelector('[data-network-rail]');
+  const navigation = rail.querySelector('[data-inspector-navigation]');
   const find = selector => rail.querySelector(selector) || root.querySelector(selector);
   const panel = find('[data-contextual-inspector]');
   const toggle = find('[data-toggle-inspector]');
@@ -85,10 +85,10 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   let grantsKey = '', executionKey = '', metadataController, disposed = false, specialized;
   const select = section => {
     for (const pane of panel.querySelectorAll('[data-inspector-pane]')) pane.hidden = pane.dataset.inspectorPane !== section;
-    for (const button of panel.querySelectorAll('[data-inspector-section]')) button.setAttribute('aria-pressed', String(button.dataset.inspectorSection === section));
+    find('#network-inspector-title').textContent = { conversation: 'This conversation', participants: 'Computers', device: 'Sharing', settings: 'Settings' }[section];
+    for (const button of navigation.querySelectorAll('[data-inspector-section]')) button.setAttribute('aria-pressed', String(button.dataset.inspectorSection === section));
   };
   panel.addEventListener('click', event => {
-    const tab = event.target.closest('[data-inspector-section]'); if (tab) select(tab.dataset.inspectorSection);
     const grant = event.target.closest('[data-revoke-grant]');
     if (grant) void act(() => session.revokeGrant(session.getState().selectedId, grant.dataset.revokeGrant));
     const remote = event.target.closest('[data-revoke-remote-permission]');
@@ -97,7 +97,14 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   const onEscape = event => { if (event.key === 'Escape' && panel.open) { event.preventDefault(); event.stopPropagation(); dialog.close(); } };
   rail.addEventListener('keydown', onEscape, options);
   toggle.addEventListener('keydown', onEscape, options);
-  toggle.addEventListener('click', event => { if (panel.open) dialog.close(); else { select('participants'); dialog.open(null, event.currentTarget); } }, options);
+  navigation.addEventListener('click', event => {
+    const button = event.target.closest('[data-inspector-section]');
+    if (!button) return;
+    const section = button.dataset.inspectorSection;
+    if (panel.open && !panel.querySelector(`[data-inspector-pane="${section}"]`).hidden) dialog.close();
+    else { select(section); dialog.open(button, button); }
+  }, options);
+  navigation.addEventListener('keydown', onEscape, options);
   on('[data-close-inspector]', 'click', () => dialog.close());
   const unsubscribe = session.subscribe(snapshot => {
     const state = withComputerLabels(snapshot, session);
@@ -163,8 +170,8 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     mountRail(panelSlot, triggerSlot, onOpen) {
       if (!panelSlot || !triggerSlot) return () => {};
       const railParent = rail.parentElement, railNext = rail.nextSibling;
-      const triggerParent = toggle.parentElement, triggerNext = toggle.nextSibling;
-      panelSlot.append(rail); triggerSlot.append(toggle); rail.dataset.mounted = '';
+      const triggerParent = navigation.parentElement, triggerNext = navigation.nextSibling;
+      panelSlot.append(rail); triggerSlot.append(navigation); rail.dataset.mounted = '';
       // Mounted in the conversation rail, the inspector shares the rail's surface instead of its own.
       const panels = [rail, rail.querySelector('[data-contextual-inspector]')];
       panels.forEach(panel => panel?.classList.remove('pool-surface'));
@@ -172,7 +179,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
       return () => {
         dialog.close({ restoreFocus: false }); onRailOpen = null; delete rail.dataset.mounted;
         panels.forEach(panel => panel?.classList.add('pool-surface'));
-        triggerParent.insertBefore(toggle, triggerNext?.parentNode === triggerParent ? triggerNext : null);
+        triggerParent.insertBefore(navigation, triggerNext?.parentNode === triggerParent ? triggerNext : null);
         railParent.insertBefore(rail, railNext?.parentNode === railParent ? railNext : null);
       };
     },
@@ -180,7 +187,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
       if (panel.open && !panel.querySelector(`[data-inspector-pane="${section}"]`).hidden) dialog.close();
       else { select(section); dialog.open(null, opener); }
     },
-    open(section = 'participants', opener) { select(section); dialog.open(panel.querySelector(`[data-inspector-section="${section}"]`), opener); },
+    open(section = 'participants', opener) { select(section); dialog.open(navigation.querySelector(`[data-inspector-section="${section}"]`), opener); },
     close: options => dialog.close(options),
     dispose() { disposed = true; disposeWebSearch(); disposeAccount(); metadataController?.abort(); controller.abort(); unsubscribe(); network(); modelDialog.dispose(); dialog.dispose(); if (typeof specialized === 'function') specialized(); }
   };

@@ -17,6 +17,18 @@ describe('Conversation workspace', () => {
   });
   afterEach(async () => { dispose(); await session.close(); root.remove(); });
 
+  it('opens every section directly from the navigation rail with the correct heading', () => {
+    const navigation = find('[data-chat-rail-toolbar] [data-inspector-navigation]');
+    expect(navigation).not.toBeNull();
+    expect(find('[data-contextual-inspector] nav')).toBeNull();
+    for (const [section, title] of [['conversation', 'This conversation'], ['participants', 'Computers'], ['device', 'Sharing'], ['settings', 'Settings']]) {
+      navigation.querySelector(`[data-inspector-section="${section}"]`).click();
+      expect(find('[data-contextual-inspector]').open).toBe(true);
+      expect(find('#network-inspector-title').textContent).toBe(title);
+      expect(find(`[data-inspector-pane="${section}"]`).hidden).toBe(false);
+    }
+  });
+
   it('keeps the composer and draft while network capacity is unavailable', () => {
     expect(find('[data-composer-send]').disabled).toBe(true);
     expect(find('[data-active-model-select]').textContent).toBe('No models available');

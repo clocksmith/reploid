@@ -150,8 +150,8 @@ export function bindNetworkControls(container, session, { getInviteUrl, requestC
     const cleanupPending = network.contribution?.unsettledOwners > 0;
     find('[data-contrib-label]').textContent = network.stopping ? 'Stopping' : cleanupPending ? 'Cleanup not confirmed' : network.sharing
       ? (network.contribution?.phase === 'loading' ? preparationStatus(network.contribution.progress).status
-        : ({ ready: 'Ready', executing: 'Working', failed: 'Failed', waiting: 'Waiting for another contributor' }[network.contribution?.phase] || 'Sharing')) : 'Not sharing';
-    find('[data-toggle-contribution]').setAttribute('aria-checked', String(!!network.sharing));
+        : ({ ready: 'Ready', executing: 'Working', failed: 'Failed', waiting: 'Waiting for another contributor' }[network.contribution?.phase] || 'Sharing')) : network.computeEnabled ? 'On · waiting for a downloaded model' : 'Not sharing';
+    find('[data-toggle-contribution]').setAttribute('aria-checked', String(network.computeEnabled ?? !!network.sharing));
     find('[data-toggle-contribution]').disabled = !!network.stopping || cleanupPending;
     find('[data-retry-contribution-stop]').hidden = !cleanupPending;
     find('[data-retry-contribution-stop]').disabled = !!network.stopping;
@@ -185,10 +185,10 @@ export function bindNetworkControls(container, session, { getInviteUrl, requestC
         find('[data-file-limits]').textContent += ` · Download allowance used ${gib(network.files.acquisitionBudget.reservedBytes)} of ${gib(network.files.acquisitionBudget.maxBytes)}`;
       }
     }
-    find('[data-file-contribution-label]').textContent = network.files?.error || (network.files?.stopping ? 'Stopping' : network.files?.preparing ? 'Preparing' : sharingFiles ? 'Sharing' : 'Not sharing');
+    find('[data-file-contribution-label]').textContent = network.files?.error || (network.files?.stopping ? 'Stopping' : network.files?.preparing ? 'Preparing' : sharingFiles ? 'Sharing' : network.files?.enabled ? 'On · waiting for cached files' : 'Not sharing');
     find('[data-file-progress]').textContent = network.files?.progress?.message || '';
     find('[data-file-progress]').hidden = !find('[data-file-progress]').textContent;
-    find('[data-toggle-file-contribution]').setAttribute('aria-checked', String(!!sharingFiles));
+    find('[data-toggle-file-contribution]').setAttribute('aria-checked', String(network.files?.enabled ?? !!sharingFiles));
     find('[data-toggle-file-contribution]').disabled = !!network.files?.stopping;
     const contribution = network.contribution || {};
     const sharedId = contribution.modelId || contribution.descriptor?.modelId;
@@ -213,7 +213,7 @@ export function bindNetworkControls(container, session, { getInviteUrl, requestC
   on('[data-toggle-introductions]', 'click', () => act(() =>
     session.setIntroductionAssistance(!session.getState().network?.introductionAssistance)));
   on('[data-toggle-contribution]', 'click', () => act(async () => {
-    const network = session.getState().network, enable = !network?.sharing;
+    const network = session.getState().network, enable = !(network?.computeEnabled ?? network?.sharing);
     if (enable) {
       if (!requestContribution) throw new Error('Review the model download before contributing');
       return requestContribution(contributionSelect.value, find('[data-toggle-contribution]'));
@@ -225,7 +225,7 @@ export function bindNetworkControls(container, session, { getInviteUrl, requestC
   on('[data-file-mode]', 'change', () => render(session.getState()));
   on('[data-toggle-file-contribution]', 'click', () => act(async () => {
     const network = session.getState().network, files = network?.files;
-    const enable = !(files?.sharing || files?.preparing);
+    const enable = !(files?.enabled ?? (files?.sharing || files?.preparing));
     if (enable && network?.paused) await session.connect();
     const mode = find('[data-file-mode]')?.value || 'cached-only';
     return session.setFileSharing(enable, contributionSelect.value, enable, {

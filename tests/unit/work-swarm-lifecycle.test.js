@@ -44,7 +44,7 @@ it('closes initialization before late identity resolution can open a transport',
   await stopping; await failed;
   expect(ports.createTransport).not.toHaveBeenCalled();
   expect(swarm.getState()).toMatchObject({ sharing: false, connecting: false, paused: true, consumer: null });
-  expect(values.get('REPLOID_SWARM_ENABLED')).toBe('false');
+  expect(values.get('REPLOID_NETWORK_ENABLED_V2')).toBe('false');
   await swarm.connect({ automatic: true });
   expect(ports.ensure).toHaveBeenCalledOnce();
   await swarm.close();
@@ -70,7 +70,7 @@ it('coalesces attempts and disconnect retires an already opening transport', asy
   transport.init.mockResolvedValue(true);
   await swarm.connect();
   expect(swarm.autoConnectEnabled()).toBe(true);
-  expect(values.get('REPLOID_SWARM_ENABLED')).toBe('true');
+  expect(values.get('REPLOID_NETWORK_ENABLED_V2')).toBe('true');
   expect(ports.createTransport).toHaveBeenCalledTimes(2);
   await swarm.close();
 });
@@ -210,6 +210,8 @@ it('binds introductions to the existing identity, public namespace and separate 
     const { introductions } = ports.createTransport.mock.calls[0][0];
     expect(introductions.getIdentity()).toBe(identity);
     const request = { roomId: 'reploid-swarm-public', action: 'forward' };
+    expect(await introductions.authorize(request)).toBe(true);
+    swarm.allowIntroductions(false);
     expect(await introductions.authorize(request)).toBe(false);
     swarm.allowIntroductions(true);
     expect(await introductions.authorize(request)).toBe(true);
@@ -298,4 +300,30 @@ it('storage modes and stopping remain independent of partition compute participa
     expect(contribute).not.toHaveBeenCalled();expect(computeStop).not.toHaveBeenCalled();
     expect(stop).toHaveBeenCalledTimes(3);expect(swarm.getState().sharing).toBe(false);
   } finally {await swarm.close();}
+});
+
+it('defaults to cached sharing, prepares without downloads, and persists separate off switches', async () => {
+  const { createSigningIdentity } = await import('../../packages/reploid/src/artifacts/identity.js');
+  ports.ensure.mockResolvedValue(await createSigningIdentity({ algorithm: 'Ed25519' }));
+  ports.createTransport.mockReturnValue({ init: async () => true, disconnect() {}, onMessage() {}, broadcast() {} });
+  vi.stubGlobal('navigator', { gpu: {} });
+  const model = LOCAL_DOPPLER_MODELS[0];
+  const service = { open: vi.fn(async () => ({ loaded: true, modelId: model.id, manifestHash: model.identity.slice(7),
+    resetGenerationState() {}, async *stream() {} })), close: vi.fn() };
+  const prepareSource = vi.fn(async () => model.id), share = vi.fn(), stop = vi.fn();
+  const swarm = fixture(service, {}, { prepareSource, share, stop });
+  expect(swarm.getState()).toMatchObject({ introductionAssistance: true, computeEnabled: true, filesEnabled: true });
+  await swarm.shareCachedModels([]);
+  expect(service.open).not.toHaveBeenCalled();
+  await swarm.shareCachedModels([{ id: model.id, identity: model.identity }]);
+  expect(prepareSource.mock.calls[0][1].cacheOnly).toBe(true);
+  expect(share.mock.calls[0][2]).toEqual({ mode: 'cached-only' });
+  expect(swarm.getState().sharing).toBe(true);
+  await swarm.stop(); await swarm.stopFiles(); swarm.allowIntroductions(false);
+  await swarm.shareCachedModels([{ id: model.id, identity: model.identity }]);
+  expect(service.open).toHaveBeenCalledOnce(); expect(share).toHaveBeenCalledOnce();
+  await swarm.close();
+  const restored = fixture();
+  expect(restored.getState()).toMatchObject({ introductionAssistance: false, computeEnabled: false, filesEnabled: false });
+  await restored.close();
 });

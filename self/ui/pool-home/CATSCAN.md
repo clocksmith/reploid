@@ -20,7 +20,7 @@ Outputs: [conversations](conversation-workspace.js), [markup](view.js), [Room-1]
 
 ## Invariants
 
-- Monochrome, shallow depth; prismatic navigation/model/focus accents. Animate observed events, never idle readiness; discovery implies no execution. Respect reduced motion; concise controls; no banners/slogans/preset-prompt grids.
+- Monochrome, shallow depth; prismatic accents. Animate observed events, never idle readiness; discovery implies no execution. Respect reduced motion; concise controls; no banners/slogans/preset-prompt grids.
 - Preserve Reploid/Poolday identities, shared components/tokens, gutters,
   accessible themes/responsive scrolling. Activities prescribe no hierarchy.
 - Link tasks/helpers/jobs/results/candidates; show observations and missing admission/evaluators.
@@ -29,8 +29,8 @@ Outputs: [conversations](conversation-workspace.js), [markup](view.js), [Room-1]
   sent to whom; Settings shows and revokes that permission. Only search-backed
   answers ask per request; local runs never ask. Viewing/restoring/selection grants nothing.
 - Keep failures and Stop visible; selection never stops background threads.
-- Model downloads require contribution opt-in.
-- Include compatible adapters in model selection. Separate compute/bounded file consent;
+- Connection/cached sharing default on; downloads require opt-in.
+- Include compatible adapters in model selection. Compute/file controls;
   discovery/thread grants imply neither.
 - Inspect Pack/runtime/provider/hardware/fallback/timing/output/agreement. Review grants no evaluation/promotion; receipts prove no hardware attestation; acceptance names policy.
 - Research administration stays in Room-1; generic Packs exclude research fields.
