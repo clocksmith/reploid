@@ -2207,7 +2207,7 @@
     {
       "path": "self/host/device-search.js",
       "owner": "self",
-      "sha256": "sha256:d278fdcdac25e8f4cee0629e1b74b879c7f216fd38f1e2ddf4c74127def77050",
+      "sha256": "sha256:4d340c773a1eedf7e66bbb83ac0b3615f512ec3ad6ac2a2c0a702a0b6646b797",
       "imports": [
         "../vendor/reploid/retrieval/index.js"
       ]
@@ -2319,7 +2319,7 @@
     {
       "path": "self/host/server-search.js",
       "owner": "self",
-      "sha256": "sha256:82b3ad74005c022cbccad9e561bd0db9b903333bd87e1d477ddc6248f3f7f704",
+      "sha256": "sha256:2f7282d034017ab0b4958b0e25ce9f9177686ca0d713b3f98fa9a43a09963378",
       "imports": []
     },
     {
@@ -2376,7 +2376,7 @@
     {
       "path": "self/host/web-search.js",
       "owner": "self",
-      "sha256": "sha256:26e257d9881e8f3cca88b48ecd2940175f07119b07cfa78aa8cf0331cfa08e0f",
+      "sha256": "sha256:57dc61698b864bf9ff703aa91ff1e10727c44c13ab605d40dd67a9f8a67550d9",
       "imports": [
         "./mcp-client.js"
       ]
@@ -3297,7 +3297,7 @@
     {
       "path": "ui/pool-home/execution-activity.js",
       "owner": "ui",
-      "sha256": "sha256:b65477cbef5adb7d6e773e724ed7fa1480b5fd4f2c2aba5916316614a907ccf8",
+      "sha256": "sha256:c960304f8f5f02d6248eea8f12ba11e1cf9656f947d37245ebb091e4e13475d8",
       "imports": [
         "../components/attachments.js",
         "./execution-ribbon.js"
@@ -15174,11 +15174,12 @@
     {
       "path": "vendor/reploid/chat/index.js",
       "owner": "vendor",
-      "sha256": "sha256:01a86bcaed84be23253c611ad6d070fd6d7e3163e2904e504f1870983ab8e962",
+      "sha256": "sha256:e90bd7bce013eeb4d88e303400a391273edcdd4abaae7c41251660e0898aa73a",
       "imports": [
         "./remote-permission.js",
         "./scheduler.js",
         "./search-permission.js",
+        "./supply-provenance.js",
         "./workspace-history.js",
         "./workspace-publication.js",
         "./workspace.js"
@@ -15206,6 +15207,12 @@
         "./remote-permission.js",
         "./search-permission.json"
       ]
+    },
+    {
+      "path": "vendor/reploid/chat/supply-provenance.js",
+      "owner": "vendor",
+      "sha256": "sha256:85aa151a9a08544389e629a92cdc766373c4a2869e98f32f2ef47201dfb761a3",
+      "imports": []
     },
     {
       "path": "vendor/reploid/chat/thread-grants.js",
@@ -15236,7 +15243,7 @@
     {
       "path": "vendor/reploid/chat/workspace.js",
       "owner": "vendor",
-      "sha256": "sha256:428626f03debe094d6b9a24a2ee9084ff70be24669210aab24c1012f00a77ebc",
+      "sha256": "sha256:1aceb51ad3c9452c776ad8454418d8a82fc06ea4549ca680fe56867d19f99ef8",
       "imports": [
         "../mesh/partitions/partition-contract.js",
         "../mesh/partitions/partition-ordered-publication.js",
@@ -15247,6 +15254,7 @@
         "./policy.json",
         "./remote-permission.js",
         "./search-permission.js",
+        "./supply-provenance.js",
         "./thread-grants.js"
       ]
     },
@@ -15299,6 +15307,20 @@
       "imports": [
         "./agent/index.js",
         "./agent/legacy-loop.js"
+      ]
+    },
+    {
+      "path": "vendor/reploid/measurement/capacity-utilization.js",
+      "owner": "vendor",
+      "sha256": "sha256:54cd7cebdd4d4524f0b2477cc38885d36ae10dc2255e89d3e7402393bdc1f595",
+      "imports": []
+    },
+    {
+      "path": "vendor/reploid/measurement/index.js",
+      "owner": "vendor",
+      "sha256": "sha256:f165ee61133178311e7d77bd690e80b80005f8f02121a1f3553cb05d6ef3673b",
+      "imports": [
+        "./capacity-utilization.js"
       ]
     },
     {
@@ -15799,7 +15821,7 @@
     {
       "path": "vendor/reploid/retrieval/index.js",
       "owner": "vendor",
-      "sha256": "sha256:e4ad493f258ecb984fa0917f78044d3b728d86fab3e279cb562787a73280b36a",
+      "sha256": "sha256:f34fddd2a5ff0dbb6e664e89dbbc442a84e6c7e3348ed31da65a739c12076f7f",
       "imports": [
         "./citations.js",
         "./claim-support.js",
@@ -15870,7 +15892,7 @@
     {
       "path": "vendor/reploid/retrieval/sources.js",
       "owner": "vendor",
-      "sha256": "sha256:c8fee6d50048417a8f2e408bd6c71a6bab85401b287d973de4877499562cb7be",
+      "sha256": "sha256:34de843cb101691b567efe085beb1b9aded3653194f2483c9b142201c1f0888c",
       "imports": [
         "./costs.js",
         "./policy.json",

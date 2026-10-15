@@ -1,5 +1,5 @@
-import { it, expect } from 'vitest';
-import { projectExecutionActivity, updateExecutionActivity } from '../../self/ui/pool-home/execution-activity.js';
+import { describe, it, expect } from 'vitest';
+import { projectExecutionActivity, projectSupplyLabel, updateExecutionActivity } from '../../self/ui/pool-home/execution-activity.js';
 
 it('uses only reported step counts and durations, never text length or peer count as throughput', () => {
   const execution = { placement: 'two-device-layer-partition', participantA: 'A', participantB: 'B' };
@@ -54,4 +54,43 @@ it('requires complete stage timing coverage in bounded summaries and preserves u
   expect(view.nodes.every(node => node.share === null)).toBe(true);
   execution.stepSummary.stages[1].stepMs = { count: 2, total: NaN };
   expect(projectExecutionActivity(state).nodes[1].speed).toBeNull();
+});
+
+describe('recorded supply provenance label', () => {
+  const provenance = (supply, classes, execution = { supply, classes }) => ({ schema: 'reploid.answer-provenance/v1', supply, classes,
+    execution: { participants: [], placement: null, ...execution }, earlierAttempts: [], retrieval: { supply: 'none' } });
+  const render = attempt => {
+    const root = document.createElement('details');
+    root.innerHTML = '<summary></summary><div data-activity-detail></div>';
+    updateExecutionActivity(root, { participantId: 'requester', activeThread: { id: 'thread', model: { name: 'Model' }, messages: [], attempts: [attempt] } });
+    return root;
+  };
+
+  it('appends the answer supply to the per-answer details summary', () => {
+    const root = render({ id: 'attempt', status: 'completed', execution: { provider: 'peer', placement: 'peer-whole-request', peerId: 'peer-1' },
+      provenance: provenance('mesh', ['mesh']) });
+    expect(root.hidden).toBe(false);
+    expect(root.querySelector('summary').textContent).toBe('Complete · 1 computer · Mesh');
+    expect(projectSupplyLabel({ provenance: provenance('local', ['local']) })).toEqual({ answer: 'This device', attempt: null });
+  });
+
+  it('shows a hosted answer that lists no computers, and an executor that reported nothing', () => {
+    const hosted = render({ id: 'attempt', status: 'failed', execution: { provider: 'hosted', placement: 'hosted-api', hostedProvider: 'example' },
+      provenance: provenance('hosted', ['hosted']) });
+    expect(hosted.hidden).toBe(false);
+    expect(hosted.querySelector('summary').textContent).toBe('Failed · Hosted');
+    expect(hosted.querySelector('li')).toBeNull();
+    expect(render({ id: 'attempt', status: 'completed', execution: null, provenance: provenance('unknown', []) })
+      .querySelector('summary').textContent).toBe('Complete · Executor not verified');
+    expect(render({ id: 'attempt', status: 'failed', execution: null, provenance: provenance('none', []) }).hidden).toBe(true);
+  });
+
+  it('names both classes of a mixed answer and this attempt\'s own supply when a retry changed it', () => {
+    const root = render({ id: 'attempt', status: 'completed', retryOf: 'earlier',
+      execution: { provider: 'peer', placement: 'peer-whole-request', peerId: 'peer-1' },
+      provenance: { ...provenance('mixed', ['local', 'mesh'], { supply: 'mesh', classes: ['mesh'] }),
+        earlierAttempts: [{ attemptId: 'earlier', status: 'failed', supply: 'local', classes: ['local'] }] } });
+    expect(root.querySelector('summary').textContent).toBe('Complete · 1 computer · Mixed: This device + Mesh');
+    expect(root.querySelector('[data-attempt-supply]').textContent).toBe('This attempt: Mesh');
+  });
 });

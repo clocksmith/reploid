@@ -11,6 +11,11 @@ export { REMOTE_PERMISSION_SCHEMA, PERMISSION_KINDS, REMOTE_DISCLOSURES, remoteD
   createRemotePermission, validateRemotePermission, validPermissionWording } from './remote-permission.js';
 export { SEARCH_PERMISSION_KIND, SEARCH_RECIPIENTS_CHANGED, searchPermissionWording, createSearchPermission,
   validateSearchPermission } from './search-permission.js';
+export { ANSWER_PROVENANCE_SCHEMA, SUPPLY_CLASSES, HOSTED_EXECUTION_REFUSED, UNRECOGNIZED_EXECUTION_REFUSED, supplyOf,
+  classifyExecutionSupply, executionRefusal, retrievalSupply, attemptExecutionSupply, answerProvenance } from './supply-provenance.js';
+export type { SupplyClass, SupplyLabel, ExecutionPlacement, SupplyParticipant, ExecutionSupply, RetrievalSupply, AnswerProvenance,
+  HostedExecutionRecord } from './supply-provenance.js';
+import type { AnswerProvenance } from './supply-provenance.js';
 import type { RemotePermission, RemotePermissionNeed } from './remote-permission.js';
 import type { SearchPermission } from './search-permission.js';
 import type { RetrievalPorts, RetrievalRecord, RetrievalRequest, RetrievalRequestInput } from '../retrieval/index.js';
@@ -100,6 +105,8 @@ export interface ChatAttempt {
   retrieval?: RetrievalRecord;
   /** The per-answer search permission this attempt was sent under; its passages reached only the listed recipients. */
   searchPermission?: SearchPermission;
+  /** Terminal attempts: execution supply (this attempt and its retry lineage) and retrieval supply, from execution and route records. */
+  provenance?: AnswerProvenance;
 }
 export interface ChatThread {
   id: string; model: ChatModel; purpose: string; title?: string; members: string[];

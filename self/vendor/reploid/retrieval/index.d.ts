@@ -22,6 +22,7 @@ export interface SearchResult {
 /** Per-query usage a provider reports: billable requests and, when priced, the cost in micro-dollars (null when unpriced). */
 export interface SearchUsage { provider: string; requests: number; costMicroUsd: number | null }
 export type CostBearer = 'operator' | 'requester';
+export type RetrievalSupplyKind = 'server' | 'device';
 /** A search provider. The host owns its credentials, terms and any disclosure of the query to it. */
 export interface SearchProvider {
   id: string; version: string;
@@ -29,6 +30,8 @@ export interface SearchProvider {
   searchProvider?: string;
   /** Who pays this route's retrieval: the operator (a Reploid-paid provider) or the requester (their own device and tools). */
   costBearer?: CostBearer;
+  /** Where the query is sent from and pages are fetched: an operator's server route, or this device. Recorded in the retrieval record. */
+  supply?: RetrievalSupplyKind;
   /** `context.answer` is an opaque per-answer key a provider may record in its own usage log; it is not part of the query. */
   search(query: string, limits: RetrievalLimits, signal: AbortSignal, context?: { answer?: string }):
     Promise<SearchResult[] | { results: SearchResult[]; usage?: SearchUsage }>;
@@ -147,7 +150,8 @@ export interface EntailmentReviewer {
 export interface RetrievalRecord {
   schema: 'reploid.retrieval-record/v1';
   policy: { id: string; version: string };
-  provider: { id: string; version: string };
+  /** `supply` is present when the provider declared where it runs; records without it are of unknown supply. */
+  provider: { id: string; version: string; supply?: RetrievalSupplyKind };
   extractor: { id: string; version: string } | null;
   sourceUse: 'requester-opt-in';
   query: string; limits: RetrievalLimits;
@@ -192,6 +196,7 @@ export interface RetrievalPolicy {
 }
 export interface RetrievalPorts { provider: SearchProvider; extractor?: PassageExtractor | null; supportChecker?: SupportChecker | null }
 export const RETRIEVAL_RECORD_SCHEMA: 'reploid.retrieval-record/v1';
+export const RETRIEVAL_SUPPLIES: readonly RetrievalSupplyKind[];
 export const RETRIEVAL_OUTCOMES: readonly RetrievalOutcome[];
 export const CITATION_VERIFICATION_SCHEMA: 'reploid.citation-verification/v1';
 export const SUPPORT_VERDICTS: readonly SupportVerdict[];

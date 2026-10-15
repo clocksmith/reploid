@@ -103,7 +103,8 @@ export function createWebSearch({ storage = globalThis.localStorage, fetch, now 
 
   const provider = Object.freeze({
     get id() { return `mcp-web-search:${host(settings.url) || 'unset'}`; },
-    version: '1',
+    // The query leaves this device for the person's own search server.
+    version: '1', supply: 'device',
     async search(query, limits, signal) {
       assert(settings.enabled && settings.url, 'Web search is off');
       const tool = await resolveTool(signal);

@@ -19,6 +19,10 @@
       "types": "./src/retrieval/index.d.ts",
       "import": "./src/retrieval/index.js"
     },
+    "./measurement": {
+      "types": "./src/measurement/index.d.ts",
+      "import": "./src/measurement/index.js"
+    },
     ".": {
       "types": "./src/index.d.ts",
       "import": "./src/index.js"

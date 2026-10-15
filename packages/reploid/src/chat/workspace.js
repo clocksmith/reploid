@@ -9,6 +9,7 @@ import { SEARCH_RECIPIENTS_CHANGED, validateSearchPermission } from './search-pe
 import { createRetrieval } from '../retrieval/retrieval.js';
 import { interruptRetrievalRecord, retrievalFailureMessage } from '../retrieval/sources.js';
 import { withVerification } from '../retrieval/costs.js';
+import { answerProvenance, classifyExecutionSupply, executionRefusal } from './supply-provenance.js';
 
 const copy = value => structuredClone(value);
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
@@ -62,6 +63,14 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
     assert(value === null || typeof value === 'string' && value, 'Invalid requester identity');
     return value;
   };
+  // This device's identities for supply provenance: the authenticated requester peer, then the history owner.
+  const localIds = () => {
+    let value = null;
+    try { value = requester(); } catch { /* An unavailable requester identity leaves the history owner. */ }
+    return [value, participantId].filter(Boolean);
+  };
+  // Hosted or unrecognized executors fail closed; a missing record is classified unknown, never mesh.
+  const refusalOf = execution => executionRefusal(classifyExecutionSupply(execution, { localIds: localIds() }));
   for (const name of ['maxThreads', 'maxThreadGrants', 'maxMessagesPerThread', 'maxMessageCharacters', 'maxResponseCharacters', 'maxConcurrentAttempts', 'attemptTimeoutMs']) {
     assert(Number.isSafeInteger(policy[name]) && policy[name] > 0, `Invalid ${name}`);
   }
@@ -100,6 +109,10 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       if (attempt.retrieval) attempt.retrieval = interruptRetrievalRecord(attempt.retrieval, attempt.finishedAt);
       const message = thread.messages.find(item => item.id === attempt.responseId);
       if (message) message.status = 'interrupted';
+    }
+    // Earlier histories gain provenance from their own saved execution records; stored provenance is kept.
+    for (const attempt of thread.attempts) if (attempt.provenance === undefined) {
+      attempt.provenance = answerProvenance(thread, attempt, { localIds: [loadedRequester, participantId].filter(Boolean) });
     }
   }
   const snapshot = () => copy({ schema: 'reploid.chat-workspace/v1', meshId, participantId,
@@ -247,7 +260,10 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
           onState(envelope) {
             if (!live() || !matches(envelope)) return;
             assert(['queued', 'loading', 'executing'].includes(envelope.status), 'Invalid execution state');
-            attempt.status = envelope.status; attempt.execution = copy(envelope.execution || null); notify();
+            attempt.status = envelope.status; attempt.execution = copy(envelope.execution || null);
+            const refusal = refusalOf(attempt.execution);
+            if (refusal) { run.refused = true; controller.abort(new Error(refusal)); return; }
+            notify();
           },
           async requestApproval(preview) {
             controller.signal.throwIfAborted();
@@ -324,8 +340,10 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         assert(transactional ? run.publicationTerminal === true && result.content === response.content
           : !response.content || result.content === response.content, 'Completed response differs from its stream');
         if (transactional) await store.assertCurrentWriter();
-        response.content = result.content;
         attempt.execution = copy(result.execution || attempt.execution);
+        const refusal = refusalOf(attempt.execution);
+        assert(!refusal, refusal);
+        response.content = result.content;
         assert(!['max-tokens', 'length', 'context-limit'].includes(attempt.execution?.stopReason),
           'The answer reached its generation limit and is incomplete. Its partial text is preserved; retry starts a new attempt.');
         assert(transactional || result.content.trim(), 'Invalid completed response');
@@ -350,12 +368,14 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
             }
           } catch { cancelled = false; } // Unknown storage is not confirmed cancellation.
         }
-        attempt.status = cancelled ? 'cancelled' : 'failed';
+        // A refused executor is stopped through cancellation, but the answer failed rather than being stopped.
+        attempt.status = cancelled && !run.refused ? 'cancelled' : 'failed';
         attempt.error = String((controller.signal.reason || error)?.message || error);
         response.status = attempt.status;
       } finally {
         clearTimeout(timer); controller.signal.removeEventListener('abort', aborted);
         run.approval?.(false); attempt.approval = null; attempt.finishedAt = now();
+        attempt.provenance = answerProvenance(thread, attempt, { localIds: localIds() });
         runs.delete(thread.id); await persist();
       }
       return copy(attempt);

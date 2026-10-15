@@ -22,6 +22,8 @@ class RetrievalError extends Error {
   constructor(code, detail = null) { super(FAILURES[code]); this.code = code; this.detail = detail; }
 }
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
+/** Where a provider's retrieval runs: an operator's server route, or this device. Recorded with the provider. */
+export const RETRIEVAL_SUPPLIES = Object.freeze(['server', 'device']);
 const copy = value => structuredClone(value);
 const port = value => value && typeof value.id === 'string' && value.id && typeof value.version === 'string' && value.version;
 const line = value => String(value).replace(/\s+/g, ' ').trim();
@@ -61,7 +63,7 @@ export function normalizeRetrievalRequest(input, content, policy = defaults) {
 
 export function pendingRetrievalRecord({ request, provider, extractor = null, policy = defaults, startedAt }) {
   return { schema: RETRIEVAL_RECORD_SCHEMA, policy: { id: policy.id, version: policy.version },
-    provider: { id: provider.id, version: provider.version },
+    provider: { id: provider.id, version: provider.version, ...(provider.supply === undefined ? {} : { supply: provider.supply }) },
     extractor: extractor ? { id: extractor.id, version: extractor.version } : null,
     // Every source below came from the provider this request explicitly opted into.
     sourceUse: 'requester-opt-in', query: request.query, limits: copy(request.limits),
@@ -244,6 +246,7 @@ export async function withSourceContext(request, record, policy = defaults) {
 export function validateRetrievalPorts({ provider, extractor = null, supportChecker = null }) {
   assert(port(provider) && typeof provider.search === 'function', 'Retrieval requires a search provider');
   assert(provider.costBearer === undefined || COST_BEARERS.includes(provider.costBearer), 'Invalid search provider cost bearer');
+  assert(provider.supply === undefined || RETRIEVAL_SUPPLIES.includes(provider.supply), 'Invalid search provider supply');
   assert(extractor === null || port(extractor) && typeof extractor.extract === 'function', 'Invalid passage extractor');
   assert(supportChecker === null || port(supportChecker) && typeof supportChecker.check === 'function', 'Invalid citation support checker');
 }

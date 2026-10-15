@@ -28,7 +28,7 @@ export function createServerSearch({ fetch = (...input) => globalThis.fetch(...i
   };
 
   const answerKey = answer => typeof answer === 'string' ? { answer } : {};
-  const provider = Object.freeze({ id: `reploid.server-search/${searchProvider}`, version: '1', searchProvider, costBearer: 'operator',
+  const provider = Object.freeze({ id: `reploid.server-search/${searchProvider}`, version: '1', searchProvider, costBearer: 'operator', supply: 'server',
     async search(query, limits, signal, { answer } = {}) {
       const payload = await request('/search', { query, count: Math.min(limits.maxResults, 20), expectProvider: searchProvider,
         ...answerKey(answer) }, signal);
