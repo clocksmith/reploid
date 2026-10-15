@@ -101,6 +101,12 @@ describe('browser earning composition', () => {
     expect(earning.account.setSpendingLimit('59')).toBe(59);
     expect(await earning.account.authorizeSpending({ quote })).toBe(false);
 
+    // A page reload keeps the device's session and last checkout while the provider loads.
+    const reloaded = await openBrowserEarning({ location: new URL(`${base}/`), storage, navigate: () => {} });
+    await until(() => reloaded.account.state().phase === 'ready', 'reloaded ready');
+    expect((await reloaded.client.ensureSession()).sessionId).toBe(session.sessionId);
+    expect(reloaded.account.state().checkout).toMatchObject({ phase: 'issued' });
+
     // Signing out ends the device's service session.
     const { token } = session;
     await earning.account.signOut();

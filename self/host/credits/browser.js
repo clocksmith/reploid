@@ -111,8 +111,10 @@ export function createEarningAccount({ client, signIn, service, storage, origin,
   function refresh() {
     if (refreshing) { again = true; return refreshing; }
     refreshing = (async () => {
-      if (signIn.state().phase !== 'signed_in') {
-        await endStoredSession();
+      const provider = signIn.state().phase;
+      if (provider !== 'signed_in') {
+        // Only a provider that has signed out ends this device's session; one still loading or sending a link keeps it.
+        if (provider === 'signed_out') await endStoredSession();
         set({ phase: 'signed_out', accountId: null, deviceId: null, balance: null, journal: [], checkout: null, lastQuote: null });
         return snapshot();
       }
