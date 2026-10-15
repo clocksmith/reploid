@@ -1,0 +1,2 @@
+# Session p1b: the F32 K/V manifest variant (the runtime-only override p1-kvf32 is refused at the first attention), new Mesa cache.
+p1b-kvf32m c-kvf32m /usr/bin/node precision-check.mjs pkg/node_modules/doppler-gpu model-kvf32 /var/tmp/plain-profile-reference-20261014/inputs/approved-reference.json /var/tmp/plain-profile-reference-20261014/inputs /var/tmp/speed-isolation-20261014/distributed-observed.json configs/kvf32m.json out/p1b-kvf32m

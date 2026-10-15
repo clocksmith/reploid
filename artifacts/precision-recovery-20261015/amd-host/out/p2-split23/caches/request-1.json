@@ -1,0 +1,67 @@
+{
+ "label": "paired layers 0-22 (faster kernels), plain layers 23-23 + head",
+ "request": 1,
+ "dataSha256": "sha256:a2a809bd17a17bc68ccf188be174da7cfb9cd79bbc3d89ffba331ac83c54898f",
+ "layers": [
+  {
+   "layer": 3,
+   "seqLen": 22,
+   "numHeads": 2,
+   "headDim": 256,
+   "kvDtype": "f16",
+   "partition": 0,
+   "keySha256": "f39920cfea50e37fae8271eea856c411993b09ef48eb6b4099bcb8755e24697a",
+   "valueSha256": "ab265f0c56945c77ea52d06397002fc62e1531e2529823b94918ebaad6be1dbe"
+  },
+  {
+   "layer": 7,
+   "seqLen": 22,
+   "numHeads": 2,
+   "headDim": 256,
+   "kvDtype": "f16",
+   "partition": 0,
+   "keySha256": "b909de3cbb718832ff4329a8863f3710c0804427f847ea2b084921fdb0181a0e",
+   "valueSha256": "2bdc8ad2d1605ddf73f7649801baa981bfd8f56045c7aa450370bd2ca3474774"
+  },
+  {
+   "layer": 11,
+   "seqLen": 22,
+   "numHeads": 2,
+   "headDim": 256,
+   "kvDtype": "f16",
+   "partition": 0,
+   "keySha256": "80dce0f705e459d38f9828954fb90405afd876c7ad5eb44ac58a89227fbc6db3",
+   "valueSha256": "32d013a5108e2a843a3aba31b2dd20edd82716125ea344ed7c09551d9101c32b"
+  },
+  {
+   "layer": 15,
+   "seqLen": 22,
+   "numHeads": 2,
+   "headDim": 256,
+   "kvDtype": "f16",
+   "partition": 0,
+   "keySha256": "d96667895a09e91e847bdcf178c9cda762cedfb4b8a19032a76b6ea811df8c00",
+   "valueSha256": "f454bdd69a5a3e488a87601ea53162c8993cc686bdf61cf7c9241e68b114534d"
+  },
+  {
+   "layer": 19,
+   "seqLen": 22,
+   "numHeads": 2,
+   "headDim": 256,
+   "kvDtype": "f16",
+   "partition": 0,
+   "keySha256": "ddf1f7608a0ccc0c6294224b8852df4e7f0dcfb09f2b840fc5a97e04a1f7550f",
+   "valueSha256": "fe612839f9e1f24dc85a858f77580bb841a85628204580db32ccfbd2af9dbc7d"
+  },
+  {
+   "layer": 23,
+   "seqLen": 22,
+   "numHeads": 2,
+   "headDim": 256,
+   "kvDtype": "f16",
+   "partition": 1,
+   "keySha256": "08581730553767457b7e811e02e2867604825937a020d1eb57ff549b262339df",
+   "valueSha256": "ff8d8c2a80c634f5591b7dcee92e93f25007224bc049ee1c16d505686750e283"
+  }
+ ]
+}

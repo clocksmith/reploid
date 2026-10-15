@@ -1,0 +1,4 @@
+# Session p1c: the F32 K/V candidate as an explicit lane: manifest variant (F32-KV attention programs) plus
+# runtime session kvcache.kvDtype f32. p1-kvf32 (runtime only) and p1b-kvf32m (manifest only) were each refused
+# by the attention precision contract. New Mesa cache (cold first use).
+p1c-kvf32m c-kvf32m2 /usr/bin/node precision-check.mjs pkg/node_modules/doppler-gpu model-kvf32 /var/tmp/plain-profile-reference-20261014/inputs/approved-reference.json /var/tmp/plain-profile-reference-20261014/inputs /var/tmp/speed-isolation-20261014/distributed-observed.json configs/kvf32m.json out/p1c-kvf32m

@@ -1,0 +1,414 @@
+{
+ "schema": "reploid.kv-producer-bound/v1",
+ "scope": "CPU diagnostic on retained captures; request 2 prefill (184 tokens)",
+ "evaluatorSha256": "90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7",
+ "sourceConfigSha256": "b90b86f35c8e6925ef74ee04d0e758f0a845c83a42089ad82bbaa948de9b4204",
+ "divergenceCompareSha256": "8f8650b96b17ec992da0e340c567be60a0025e3fc5bdfad5a33c141876fd8010",
+ "modelManifestSha256": "edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+ "plainCapture": "plain-manifest-defaults",
+ "referenceCapture": "paired-capsule",
+ "layers": [
+  {
+   "layer": 3,
+   "kind": "key",
+   "values": 94208,
+   "plainStoredDiffering": 343,
+   "producer": {
+    "storedDiffering": 311,
+    "plainDifferencesRemoved": 75,
+    "plainDifferencesRemaining": 268,
+    "newDifferences": 43
+   },
+   "normAndProducer": {
+    "storedDiffering": 319,
+    "plainDifferencesRemoved": 73,
+    "plainDifferencesRemaining": 270,
+    "newDifferences": 49
+   },
+   "validationFromReferenceInputsDiffering": 0
+  },
+  {
+   "layer": 3,
+   "kind": "value",
+   "values": 94208,
+   "plainStoredDiffering": 311,
+   "producer": {
+    "storedDiffering": 316,
+    "plainDifferencesRemoved": 44,
+    "plainDifferencesRemaining": 267,
+    "newDifferences": 49
+   },
+   "normAndProducer": {
+    "storedDiffering": 301,
+    "plainDifferencesRemoved": 56,
+    "plainDifferencesRemaining": 255,
+    "newDifferences": 46
+   },
+   "validationFromReferenceInputsDiffering": 0
+  },
+  {
+   "layer": 7,
+   "kind": "key",
+   "values": 94208,
+   "plainStoredDiffering": 3775,
+   "producer": {
+    "storedDiffering": 3751,
+    "plainDifferencesRemoved": 63,
+    "plainDifferencesRemaining": 3712,
+    "newDifferences": 39
+   },
+   "normAndProducer": {
+    "storedDiffering": 3758,
+    "plainDifferencesRemoved": 58,
+    "plainDifferencesRemaining": 3717,
+    "newDifferences": 41
+   },
+   "validationFromReferenceInputsDiffering": 0
+  },
+  {
+   "layer": 7,
+   "kind": "value",
+   "values": 94208,
+   "plainStoredDiffering": 3995,
+   "producer": {
+    "storedDiffering": 3998,
+    "plainDifferencesRemoved": 27,
+    "plainDifferencesRemaining": 3968,
+    "newDifferences": 30
+   },
+   "normAndProducer": {
+    "storedDiffering": 3995,
+    "plainDifferencesRemoved": 26,
+    "plainDifferencesRemaining": 3969,
+    "newDifferences": 26
+   },
+   "validationFromReferenceInputsDiffering": 0
+  },
+  {
+   "layer": 11,
+   "kind": "key",
+   "values": 94208,
+   "plainStoredDiffering": 11734,
+   "producer": {
+    "storedDiffering": 11732,
+    "plainDifferencesRemoved": 33,
+    "plainDifferencesRemaining": 11701,
+    "newDifferences": 31
+   },
+   "normAndProducer": {
+    "storedDiffering": 11733,
+    "plainDifferencesRemoved": 34,
+    "plainDifferencesRemaining": 11700,
+    "newDifferences": 33
+   }
+  },
+  {
+   "layer": 11,
+   "kind": "value",
+   "values": 94208,
+   "plainStoredDiffering": 13064,
+   "producer": {
+    "storedDiffering": 13055,
+    "plainDifferencesRemoved": 28,
+    "plainDifferencesRemaining": 13036,
+    "newDifferences": 19
+   },
+   "normAndProducer": {
+    "storedDiffering": 13060,
+    "plainDifferencesRemoved": 26,
+    "plainDifferencesRemaining": 13038,
+    "newDifferences": 22
+   }
+  },
+  {
+   "layer": 15,
+   "kind": "key",
+   "values": 94208,
+   "plainStoredDiffering": 10385,
+   "producer": {
+    "storedDiffering": 10390,
+    "plainDifferencesRemoved": 34,
+    "plainDifferencesRemaining": 10351,
+    "newDifferences": 39
+   },
+   "normAndProducer": {
+    "storedDiffering": 10388,
+    "plainDifferencesRemoved": 37,
+    "plainDifferencesRemaining": 10348,
+    "newDifferences": 40
+   }
+  },
+  {
+   "layer": 15,
+   "kind": "value",
+   "values": 94208,
+   "plainStoredDiffering": 10553,
+   "producer": {
+    "storedDiffering": 10552,
+    "plainDifferencesRemoved": 28,
+    "plainDifferencesRemaining": 10525,
+    "newDifferences": 27
+   },
+   "normAndProducer": {
+    "storedDiffering": 10550,
+    "plainDifferencesRemoved": 30,
+    "plainDifferencesRemaining": 10523,
+    "newDifferences": 27
+   }
+  },
+  {
+   "layer": 19,
+   "kind": "key",
+   "values": 94208,
+   "plainStoredDiffering": 7956,
+   "producer": {
+    "storedDiffering": 7954,
+    "plainDifferencesRemoved": 41,
+    "plainDifferencesRemaining": 7915,
+    "newDifferences": 39
+   },
+   "normAndProducer": {
+    "storedDiffering": 7953,
+    "plainDifferencesRemoved": 43,
+    "plainDifferencesRemaining": 7913,
+    "newDifferences": 40
+   }
+  },
+  {
+   "layer": 19,
+   "kind": "value",
+   "values": 94208,
+   "plainStoredDiffering": 8720,
+   "producer": {
+    "storedDiffering": 8728,
+    "plainDifferencesRemoved": 32,
+    "plainDifferencesRemaining": 8688,
+    "newDifferences": 40
+   },
+   "normAndProducer": {
+    "storedDiffering": 8727,
+    "plainDifferencesRemoved": 35,
+    "plainDifferencesRemaining": 8685,
+    "newDifferences": 42
+   }
+  },
+  {
+   "layer": 23,
+   "kind": "key",
+   "values": 94208,
+   "plainStoredDiffering": 6931,
+   "producer": {
+    "storedDiffering": 6921,
+    "plainDifferencesRemoved": 36,
+    "plainDifferencesRemaining": 6895,
+    "newDifferences": 26
+   },
+   "normAndProducer": {
+    "storedDiffering": 6925,
+    "plainDifferencesRemoved": 34,
+    "plainDifferencesRemaining": 6897,
+    "newDifferences": 28
+   }
+  },
+  {
+   "layer": 23,
+   "kind": "value",
+   "values": 94208,
+   "plainStoredDiffering": 5021,
+   "producer": {
+    "storedDiffering": 5019,
+    "plainDifferencesRemoved": 19,
+    "plainDifferencesRemaining": 5002,
+    "newDifferences": 17
+   },
+   "normAndProducer": {
+    "storedDiffering": 5020,
+    "plainDifferencesRemoved": 20,
+    "plainDifferencesRemaining": 5001,
+    "newDifferences": 19
+   }
+  }
+ ],
+ "tensors": {
+  "layers.3.input_layernorm.weight": {
+   "dtype": "F16",
+   "shape": [
+    1024
+   ],
+   "sha256": "10f8b3f7f277bf553b924d48eddcc912c105ce72e0d380123d03b690c83c6dd4"
+  },
+  "layers.3.self_attn.k_proj.weight": {
+   "dtype": "Q4_K_M",
+   "shape": [
+    512,
+    1024
+   ],
+   "sha256": "9a615de28feca60b8dfeee6c02c1c2748a2a7a85ca9a760f2d025e7d40f67478"
+  },
+  "layers.3.self_attn.k_norm.weight": {
+   "dtype": "F16",
+   "shape": [
+    256
+   ],
+   "sha256": "52ac5b7cc4945d69a1e4230a43370690be962d1b905469e6e287c528ec944e91"
+  },
+  "layers.3.self_attn.v_proj.weight": {
+   "dtype": "Q4_K_M",
+   "shape": [
+    512,
+    1024
+   ],
+   "sha256": "510d0159d805c406f999f3123e9ca56156082b1215f9d5db259655c4f223dccf"
+  },
+  "layers.7.input_layernorm.weight": {
+   "dtype": "F16",
+   "shape": [
+    1024
+   ],
+   "sha256": "a8e1e43215e5bdcb9f6eb454f1d5969f85437eebae165f4ec2fdb1f71b77fd3d"
+  },
+  "layers.7.self_attn.k_proj.weight": {
+   "dtype": "Q4_K_M",
+   "shape": [
+    512,
+    1024
+   ],
+   "sha256": "9d15c39d1da981fed4480e4733205bdf8c954323d87600e0d6b5e2dcf3de0df3"
+  },
+  "layers.7.self_attn.k_norm.weight": {
+   "dtype": "F16",
+   "shape": [
+    256
+   ],
+   "sha256": "9f311a9bbe311a4b5f360e0ad00a09d4adcd91febfe20e3519454dc31d756da4"
+  },
+  "layers.7.self_attn.v_proj.weight": {
+   "dtype": "Q4_K_M",
+   "shape": [
+    512,
+    1024
+   ],
+   "sha256": "d5add6845f13a037a57c71b42c38e9833e4b75e3d7b90f1f65e39741171e4d1a"
+  },
+  "layers.11.input_layernorm.weight": {
+   "dtype": "F16",
+   "shape": [
+    1024
+   ],
+   "sha256": "835405ecbd6cd0a7b1073ca7ba42b394a59f7774d791ccd11be15397352bf3fb"
+  },
+  "layers.11.self_attn.k_proj.weight": {
+   "dtype": "Q4_K_M",
+   "shape": [
+    512,
+    1024
+   ],
+   "sha256": "2892f926066cc15fc5e4391d4e18188e211b7fa302bde2467f2a865031936e70"
+  },
+  "layers.11.self_attn.k_norm.weight": {
+   "dtype": "F16",
+   "shape": [
+    256
+   ],
+   "sha256": "c565f958e3aa67f1caab9d7480581fb90bc45f3f1ca7fe308e63a49aa8f1c569"
+  },
+  "layers.11.self_attn.v_proj.weight": {
+   "dtype": "Q4_K_M",
+   "shape": [
+    512,
+    1024
+   ],
+   "sha256": "39e861c41c88f1a5d168ba0ce0503cbfe45e06015a35c3ad4ec24966402753dc"
+  },
+  "layers.15.input_layernorm.weight": {
+   "dtype": "F16",
+   "shape": [
+    1024
+   ],
+   "sha256": "2b471438de7aaea8088624de3e7dfe89c74b97915aedcac33764a276799aeb67"
+  },
+  "layers.15.self_attn.k_proj.weight": {
+   "dtype": "Q4_K_M",
+   "shape": [
+    512,
+    1024
+   ],
+   "sha256": "7b070fddb8d39961a55cd5be79e55dca1d91988ee8c82f594c97a4e232e1b0f4"
+  },
+  "layers.15.self_attn.k_norm.weight": {
+   "dtype": "F16",
+   "shape": [
+    256
+   ],
+   "sha256": "db8d1727e4c14fd559453ac016f236d162af5488151cc703b79076319172ead9"
+  },
+  "layers.15.self_attn.v_proj.weight": {
+   "dtype": "Q4_K_M",
+   "shape": [
+    512,
+    1024
+   ],
+   "sha256": "3ca9aa5f2358070d9bbdf5edc6b3c5e7666b853bd042d4771ece5920a42a39be"
+  },
+  "layers.19.input_layernorm.weight": {
+   "dtype": "F16",
+   "shape": [
+    1024
+   ],
+   "sha256": "e8e66585ddade0a9832017d5891c25bad527e30b15766562cfd163e3ff820232"
+  },
+  "layers.19.self_attn.k_proj.weight": {
+   "dtype": "Q4_K_M",
+   "shape": [
+    512,
+    1024
+   ],
+   "sha256": "e99acd1674baf100036a31775b0a8c753c71fdd81bec389418bd3a85f811b208"
+  },
+  "layers.19.self_attn.k_norm.weight": {
+   "dtype": "F16",
+   "shape": [
+    256
+   ],
+   "sha256": "a48e8930d12aeb769173be7773906c41f750c0bc13f1c602ca5d69cbb2d91272"
+  },
+  "layers.19.self_attn.v_proj.weight": {
+   "dtype": "Q4_K_M",
+   "shape": [
+    512,
+    1024
+   ],
+   "sha256": "2cfc521154c8ee8d7b4516ac8628fa8f88e331900416ad403d3f52ac130af9c6"
+  },
+  "layers.23.input_layernorm.weight": {
+   "dtype": "F16",
+   "shape": [
+    1024
+   ],
+   "sha256": "0c7e9c85d0e6f8b0e407254fd793e1db061a0982e6810a8ab1063ae482789494"
+  },
+  "layers.23.self_attn.k_proj.weight": {
+   "dtype": "Q4_K_M",
+   "shape": [
+    512,
+    1024
+   ],
+   "sha256": "e49ddd96329b2ebb2e46dbe1f12109df00485ba771c95807b90939cb08e39b6a"
+  },
+  "layers.23.self_attn.k_norm.weight": {
+   "dtype": "F16",
+   "shape": [
+    256
+   ],
+   "sha256": "1cafa5e34344401f2d352661661122b16fe68ccb0c18b64381ae14b52d9d4d94"
+  },
+  "layers.23.self_attn.v_proj.weight": {
+   "dtype": "Q4_K_M",
+   "shape": [
+    512,
+    1024
+   ],
+   "sha256": "3aa628014bcfd1457e858d60b3e98593d9c082a241168c5d7a8c8a9840c0c98c"
+  }
+ }
+}

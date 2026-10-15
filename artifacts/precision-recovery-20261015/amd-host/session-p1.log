@@ -1,0 +1,16 @@
+session p1 start 2026-10-15T18:55:49Z amdgpu-errors 50 oomd-lines-48h 0 avail-GiB 53 user.slice-some-avg10 0.00
+p1-plain pre avail-GiB 53 user.slice-some-avg10 0.00 public-native-cpu 130.0 mesa c-plain
+p1-plain exit=0 seconds=11 at 18:56:00 amdgpu-errors 50 oomd-lines-since-start 0 scope-peak-bytes=899108864 
+p1-paired pre avail-GiB 53 user.slice-some-avg10 0.00 public-native-cpu 120.0 mesa c-paired
+p1-paired exit=0 seconds=233 at 18:59:53 amdgpu-errors 50 oomd-lines-since-start 0 scope-peak-bytes=7868682240 
+p1-kvf32 pre avail-GiB 53 user.slice-some-avg10 0.00 public-native-cpu 100.0 mesa c-kvf32
+p1-kvf32 exit=1 seconds=2 at 18:59:56 amdgpu-errors 50 oomd-lines-since-start 0 scope-peak-bytes=0 
+p1-split16 pre avail-GiB 53 user.slice-some-avg10 0.00 public-native-cpu 120.0 mesa c-split16
+p1-split16 exit=0 seconds=193 at 19:03:09 amdgpu-errors 50 oomd-lines-since-start 0 scope-peak-bytes=8338923520 
+p1-split20 pre avail-GiB 53 user.slice-some-avg10 0.00 public-native-cpu 130.0 mesa c-split20
+p1-split20 exit=0 seconds=212 at 19:06:41 amdgpu-errors 50 oomd-lines-since-start 0 scope-peak-bytes=8519487488 
+p1-split23 pre avail-GiB 53 user.slice-some-avg10 0.00 public-native-cpu 160.0 mesa c-split23
+p1-split23 exit=0 seconds=225 at 19:10:26 amdgpu-errors 50 oomd-lines-since-start 0 scope-peak-bytes=7870119936 
+p1-split12 pre avail-GiB 53 user.slice-some-avg10 0.00 public-native-cpu 110.0 mesa c-split12
+p1-split12 exit=0 seconds=170 at 19:13:17 amdgpu-errors 50 oomd-lines-since-start 0 scope-peak-bytes=7892004864 
+session p1 done 2026-10-15T19:13:18Z amdgpu-errors 50 oomd-lines-since-start 0

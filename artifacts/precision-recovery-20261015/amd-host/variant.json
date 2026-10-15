@@ -1,0 +1,69 @@
+{
+ "schema": "reploid.precision-recovery-variant/v1",
+ "baseManifestSha256": "edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+ "variantManifestSha256": "5de90500eb4f94c8e8d428ba1cbea7f7c57f2155a39b7b370f1dd21a280c41cb",
+ "changes": [
+  {
+   "path": "inference.session.kvcache.kvDtype",
+   "from": "f16",
+   "to": "f32"
+  },
+  {
+   "path": "inference.execution.kernels.attn_decode",
+   "from": {
+    "kernel": "attention_decode_online_f16kv.wgsl",
+    "entry": "main",
+    "digest": "sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1",
+    "precision": {
+     "kvDtype": "f16"
+    }
+   },
+   "to": {
+    "kernel": "attention_streaming.wgsl",
+    "entry": "main",
+    "digest": "sha256:c0bb9cf1d6b6cedd2d2a8f46c1c0d1df2a09ad2602f10d52d6fe534775aa4a40",
+    "precision": {
+     "kvDtype": "f32"
+    }
+   }
+  },
+  {
+   "path": "inference.execution.kernels.attn_head256",
+   "from": {
+    "kernel": "attention_head256_f16kv.wgsl",
+    "entry": "main",
+    "digest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+    "precision": {
+     "kvDtype": "f16"
+    }
+   },
+   "to": {
+    "kernel": "attention_streaming.wgsl",
+    "entry": "main",
+    "digest": "sha256:c0bb9cf1d6b6cedd2d2a8f46c1c0d1df2a09ad2602f10d52d6fe534775aa4a40",
+    "precision": {
+     "kvDtype": "f32"
+    }
+   }
+  },
+  {
+   "path": "inference.execution.kernels.attn_stream",
+   "from": {
+    "kernel": "attention_streaming_f16kv.wgsl",
+    "entry": "main",
+    "digest": "sha256:c3ec920699a81ee6df04a64eb0ea2477bec168ebb809af29f2d4b0924a4bdf8f",
+    "precision": {
+     "kvDtype": "f16"
+    }
+   },
+   "to": {
+    "kernel": "attention_streaming.wgsl",
+    "entry": "main",
+    "digest": "sha256:c0bb9cf1d6b6cedd2d2a8f46c1c0d1df2a09ad2602f10d52d6fe534775aa4a40",
+    "precision": {
+     "kvDtype": "f32"
+    }
+   }
+  }
+ ]
+}
