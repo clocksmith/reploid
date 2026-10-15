@@ -35,7 +35,7 @@ export const REVIEW_AUTHORITY = 'operational_review';
 export const REFUND_AUTHORITIES = Object.freeze(['quality_review', 'dispute', 'operator_adjustment']);
 export const ATTEMPT_CLOSING_STATUSES = Object.freeze(['failed', 'abandoned']);
 // transfer_out/transfer_in are reserved for approved transfer activation; nothing emits them.
-export const ENTRY_TYPES = Object.freeze(['issue', 'reserve', 'charge', 'release', 'refund', 'transfer_out', 'transfer_in']);
+export const ENTRY_TYPES = Object.freeze(['issue', 'reserve', 'charge', 'release', 'refund', 'reverse', 'transfer_out', 'transfer_in']);
 
 // Quote settlement terms each outcome must name before acceptance. `reduced`
 // may be null, meaning the quote offers no reduced settlement.

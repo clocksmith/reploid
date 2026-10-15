@@ -32,7 +32,7 @@ import {
 // Firestore 1 MiB limit; issuance past it fails closed.
 export const MAX_OPEN_LOTS_PER_ACCOUNT = 1000;
 
-const TOTAL_FIELDS = Object.freeze(['available', 'held', 'issued', 'spent', 'refunded']);
+const TOTAL_FIELDS = Object.freeze(['available', 'held', 'issued', 'spent', 'refunded', 'reversed']);
 const DELIVERED_OUTCOMES = new Set(['full', 'reduced', 'partial_delivery', 'failed_quality']);
 // Outcomes that may settle a request that never dispatched an attempt.
 const QUEUED_OUTCOMES = new Set(['cancellation', 'timeout']);
@@ -69,7 +69,7 @@ export function newAccount({ accountId, ownerId, now }) {
   };
 }
 
-/** Per provenance: issued - spent + refunded = available + held, and lots match totals. */
+/** Per provenance: issued - spent + refunded - reversed = available + held, and lots match totals. */
 export function assertAccountConsistent(account) {
   const lotAvailable = emptyByProvenance();
   const lotHeld = emptyByProvenance();
@@ -84,10 +84,14 @@ export function assertAccountConsistent(account) {
   for (const kind of PROVENANCE_KINDS) {
     const consistent = totals.available[kind] === lotAvailable[kind]
       && totals.held[kind] === lotHeld[kind]
-      && totals.issued[kind] - totals.spent[kind] + totals.refunded[kind] === totals.available[kind] + totals.held[kind]
+      && totals.issued[kind] - totals.spent[kind] + totals.refunded[kind] - totals.reversed[kind] === totals.available[kind] + totals.held[kind]
       && totals.refunded[kind] <= totals.spent[kind]
       && TOTAL_FIELDS.every((field) => isAmount(totals[field][kind]));
     if (!consistent) fail('ledger_invariant_violation', 'account totals disagree with lots', { accountId: account.accountId, provenance: kind });
+  }
+  const shortfall = account.reversalShortfall;
+  if (shortfall && !(isAmount(shortfall.deficit) && isAmount(shortfall.absorbed))) {
+    fail('ledger_invariant_violation', 'reversal shortfall must be non-negative integers', { accountId: account.accountId });
   }
   return account;
 }
@@ -105,6 +109,7 @@ export function summarizeAccount(account) {
     sequence: account.sequence,
     ...balance,
     outstanding: balance.available + balance.held,
+    deficit: account.reversalShortfall?.deficit ?? 0,
     transfersEnabled: false,
     byProvenance: Object.fromEntries(PROVENANCE_KINDS.map((kind) => [
       kind, Object.fromEntries(TOTAL_FIELDS.map((field) => [field, account.totals[field][kind]]))
@@ -230,6 +235,20 @@ export function applyRefund(account, chargedDraws, refundedByLot, amount) {
     remaining -= take;
   }
   return restored;
+}
+
+/** Remove available credit from a reversed lot; credit held by a reservation stays bound to it. */
+export function applyReverse(account, lotId, amount) {
+  const lot = account.lots[lotId];
+  if (!lot || !Number.isSafeInteger(amount) || amount <= 0 || amount > lot.available) {
+    fail('ledger_invariant_violation', 'reversal exceeds the lot\'s available credit', { lotId, amount });
+  }
+  lot.available -= amount;
+  account.totals.available[lot.provenance] -= amount;
+  account.totals.reversed[lot.provenance] += amount;
+  const removed = [{ lotId, provenance: lot.provenance, issuedAt: lot.issuedAt, amount }];
+  pruneLot(account, lotId);
+  return removed;
 }
 
 export function newReservation({ quote, deviceId, draws, now }) {
@@ -467,7 +486,8 @@ const ENTRY_DELTAS = Object.freeze({
   reserve: { available: -1, held: 1 },
   charge: { held: -1, spent: 1 },
   release: { held: -1, available: 1 },
-  refund: { available: 1, refunded: 1 }
+  refund: { available: 1, refunded: 1 },
+  reverse: { available: -1, reversed: 1 }
 });
 
 /** Rebuild account totals and open lots from the append-only journal alone. */
@@ -512,6 +532,8 @@ export function summarizeSolvency({ accounts, reservations, policy, now }) {
   const open = reservations.filter((reservation) => reservation.status === 'open');
   const underReview = reservations.filter((reservation) => reservation.status === 'under_review');
   const heldBy = (list) => list.reduce((sum, reservation) => sum + reservation.authorizedMax, 0);
+  const shortfall = (field) => accounts.reduce((sum, account) => sum + (account.reversalShortfall?.[field] ?? 0), 0);
+  const netSpent = (kind) => fields.spent[kind] - fields.refunded[kind];
   return {
     schema: SOLVENCY_SCHEMA,
     generatedAt: now,
@@ -525,6 +547,17 @@ export function summarizeSolvency({ accounts, reservations, policy, now }) {
     issued: withTotal(fields.issued),
     spent: withTotal(fields.spent),
     refunded: withTotal(fields.refunded),
+    reversed: withTotal(fields.reversed),
+    // Spent credit a refund or chargeback could not remove, by its declared treatment.
+    reversalShortfall: { deficit: shortfall('deficit'), absorbed: shortfall('absorbed') },
+    // Disclosed apart from earned and purchased credit: service consumed under
+    // Community Access funding, reward credit issued from funding reservations,
+    // and spent credit operators absorbed after reversals.
+    subsidy: {
+      communityAccessConsumed: netSpent('community_access'),
+      subsidizedRewardsIssued: fields.issued.subsidized,
+      reversalAbsorbed: shortfall('absorbed')
+    },
     reservations: {
       open: { count: open.length, held: heldBy(open) },
       underReview: { count: underReview.length, held: heldBy(underReview) },
