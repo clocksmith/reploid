@@ -7,8 +7,8 @@ Parent: [Hosted Services](../CATSCAN.md)
 Earned credit only for validated, demanded contribution under accepted offers, within capacity-aware issuance limits.
 
 ## Authority
-- Owns contribution offers, reward validation, validation records and the ledger's earned `issuanceAuthority`.
-- Excludes balances, lots, prices, reward amounts, account identity, capacity admission and quality adjudication.
+- Owns offers, per-category validation, contract challenges and the ledger's earned `issuanceAuthority`.
+- Excludes balances, lots, prices, reward amounts, identity, capacity admission and quality adjudication.
 
 ## Scope
 
@@ -17,27 +17,29 @@ Earned credit only for validated, demanded contribution under accepted offers, w
 ## Contracts
 
 Inputs:
-- Explicit reward and issuance policy; offer reward formulas.
-- Settled [ledger](../ledger/CATSCAN.md) reservations, route attempt summaries, contributor admission records, owner policies, identity and admitted-capacity ports.
+- Explicit reward and issuance policy; offer formulas, obligations and thresholds.
+- [Ledger](../ledger/CATSCAN.md) settlements, route summaries, attested REP-5 custody receipts, challenge answers, owner policies, identity and capacity ports.
 
 Outputs:
 - Operations in [store-contract.js](store-contract.js) and earned-issuance decisions.
 
 ## Invariants
-- Only validator-qualified, policy-enabled categories earn. Delivery, contracted storage and prepared availability stay disabled; online time earns nothing.
-- Offers bind work, reward basis, validation conditions, bounds, duration, payment timing and failure compensation before admission.
-- Rewards need a requester's accepted quote and completed settlement binding the contributor's stage; signatures or peer agreement never suffice.
-- One reward per stage share of a settled attempt; replays have no second effect.
-- Same account, owner or participant, and policy-named account links, earn nothing.
-- Earned issuance stays within policy shares of measured settled demand and fresh admitted capacity.
-- Rejections and declines are retained.
+- Only policy-enabled categories earn; online time never does.
+- Offers bind work, reward basis, validation conditions, bounds, obligations, duration, payment timing and failure compensation.
+- Evidence roots: ledger settlement, recipient-attested custody receipts or self-issued, timed challenges; signatures or peer agreement alone never suffice.
+- Storage proofs never satisfy readiness.
+- Missed or failed obligations reduce or void rewards only per accepted terms.
+- One reward per unit of work; replays have no second effect.
+- Same account, owner, participant or policy-named link earns nothing.
+- Earned issuance stays within policy shares of settled demand and fresh admitted capacity.
+- Rejections, voids and declines persist.
 
 ## Acceptance
 - Memory and Firestore stores pass identical reward scenarios.
-- Evidence: [reward tests](../../tests/unit/contribution-rewards.test.js).
+- Evidence: [inference](../../tests/unit/contribution-rewards.test.js) and [category](../../tests/unit/contribution-reward-categories.test.js) tests.
 
 ## Non-goals
-- Reward amounts, account identity, payments, clawback or storage/readiness proof.
+- Reward amounts, account identity, payments, clawback or attested hardware.
 
 ## Freedom
 Any mechanism is permitted if it preserves these boundaries and passes the acceptance evidence.
