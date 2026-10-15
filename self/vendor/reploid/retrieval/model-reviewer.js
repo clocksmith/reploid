@@ -4,6 +4,7 @@
  * separate disclosure from search and from execution contributors, so hosts use it only for evaluation material
  * they may send there. It never reviews an answer from its own model or from a model it is not declared stronger than. */
 import { SUPPORT_JUDGMENTS_SCHEMA, assertIndependentReviewer, supportPacketHash, validateGenerator } from './support-review.js';
+import { tokenCostMicroUsd, validTokenPrice } from './costs.js';
 
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 const named = value => typeof value === 'string' && value.trim() && value.length <= 256;
@@ -30,16 +31,21 @@ function parseJudgments(reply) {
     spans: Array.isArray(item?.spans) ? item.spans.map(span => ({ source: span?.source, quote: span?.quote })) : [] }));
 }
 
+const tokens = value => Number.isSafeInteger(value) && value >= 0 ? value : null;
+
 /**
  * `identity`: `{ provider, model, version?, identity? }` of the reviewer. `strongerThan`: generating model ids or
  * content identities this reviewer is explicitly declared stronger than. `complete({ system, prompt, signal })`
- * returns the model's text reply.
+ * returns the model's text reply, or `{ text, usage: { inputTokens, outputTokens } }` when the endpoint reports tokens.
+ * `price`: the configured `{ inputMicroUsdPerMillionTokens, outputMicroUsdPerMillionTokens }`, or null when unpriced.
+ * Each judgment file carries the review's token usage and cost (null when tokens or price are unknown).
  */
-export function createModelSupportReviewer({ identity, strongerThan, complete, maxReplyCharacters = 200000 } = {}) {
+export function createModelSupportReviewer({ identity, strongerThan, complete, price = null, maxReplyCharacters = 200000 } = {}) {
   assert(identity && named(identity.provider) && named(identity.model), 'A model reviewer is off unless its provider and model are configured');
   assert(Array.isArray(strongerThan) && strongerThan.length && strongerThan.every(named),
     'A model reviewer must name the generating models it is stronger than');
   assert(typeof complete === 'function', 'A model reviewer needs a completion port');
+  assert(validTokenPrice(price), 'A model reviewer price is null or both token prices in micro-USD per million tokens');
   const reviewer = Object.freeze({ kind: 'model', id: `${identity.provider}/${identity.model}`,
     model: { provider: identity.provider, name: identity.model, version: identity.version ?? null, ...(identity.identity ? { identity: identity.identity } : {}) } });
   return Object.freeze({
@@ -49,10 +55,13 @@ export function createModelSupportReviewer({ identity, strongerThan, complete, m
       assertIndependentReviewer(reviewer, made);
       assert(strongerThan.some(value => value === made.modelIdentity || normalized(value) === normalized(made.modelId)),
         'This reviewer is not configured as stronger than the generating model');
-      const reply = await complete({ system: MODEL_REVIEWER_SYSTEM, prompt: renderModelReviewPrompt(packet), signal });
+      const returned = await complete({ system: MODEL_REVIEWER_SYSTEM, prompt: renderModelReviewPrompt(packet), signal });
+      const reply = typeof returned === 'string' ? returned : returned?.text;
       assert(typeof reply === 'string' && reply.length <= maxReplyCharacters, 'The reviewer model reply is missing or too long');
+      const inputTokens = tokens(returned?.usage?.inputTokens), outputTokens = tokens(returned?.usage?.outputTokens);
       return { schema: SUPPORT_JUDGMENTS_SCHEMA, packet: { id: packet.id, sha256: await supportPacketHash(packet) },
-        reviewer: structuredClone(reviewer), judgments: parseJudgments(reply) };
+        reviewer: structuredClone(reviewer), judgments: parseJudgments(reply),
+        usage: { inputTokens, outputTokens, price: price && { ...price }, costMicroUsd: tokenCostMicroUsd({ inputTokens, outputTokens, price }) } };
     }
   });
 }

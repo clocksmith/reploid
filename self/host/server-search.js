@@ -1,7 +1,8 @@
 /** Search-backed answers through Reploid's server search route (server/search). The server holds the search
  * service's key and fetches cited pages; this port only sends the query and asks for passages. Its route is
  * Brave only, because the approved per-answer permission names Brave: the server refuses the query rather than
- * send it to another configured service. */
+ * send it to another configured service. The operator pays this route; the answer's opaque key travels with each
+ * call so the server's usage log can attribute query and fetch costs to the answer. */
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 const ROUTE = '/api/retrieval';
 
@@ -26,9 +27,11 @@ export function createServerSearch({ fetch = (...input) => globalThis.fetch(...i
     return payload;
   };
 
-  const provider = Object.freeze({ id: `reploid.server-search/${searchProvider}`, version: '1', searchProvider,
-    async search(query, limits, signal) {
-      const payload = await request('/search', { query, count: Math.min(limits.maxResults, 20), expectProvider: searchProvider }, signal);
+  const answerKey = answer => typeof answer === 'string' ? { answer } : {};
+  const provider = Object.freeze({ id: `reploid.server-search/${searchProvider}`, version: '1', searchProvider, costBearer: 'operator',
+    async search(query, limits, signal, { answer } = {}) {
+      const payload = await request('/search', { query, count: Math.min(limits.maxResults, 20), expectProvider: searchProvider,
+        ...answerKey(answer) }, signal);
       assert(payload?.schema === 'reploid.server-search-results/v1' && payload.provider?.kind === searchProvider && Array.isArray(payload.results),
         'The search route returned an unexpected response');
       const usage = payload.usage;
@@ -39,15 +42,18 @@ export function createServerSearch({ fetch = (...input) => globalThis.fetch(...i
 
   // Fetches the source page on the server, bound to the search that returned it, and keeps the passage's offsets.
   const extractor = Object.freeze({ id: 'reploid.server-page-extract', version: '1',
-    async extract({ source, query, limits, signal }) {
+    async extract({ source, query, limits, signal, answer }) {
       const payload = await request('/extract', { url: source.url, fetchToken: source.fetchToken, query,
-        maxCharacters: limits.maxSourceCharacters }, signal);
+        maxCharacters: limits.maxSourceCharacters, ...answerKey(answer) }, signal);
       assert(payload?.schema === 'reploid.server-passage/v1' && typeof payload.text === 'string' && payload.document,
         'The extraction route returned an unexpected response');
       const { url, contentType, characters, sha256, start, end, bytes, status: code } = payload.document;
+      const cost = payload.usage?.costMicroUsd;
       return { sourceId: source.sourceId, url: payload.url, title: typeof payload.title === 'string' ? payload.title : '', text: payload.text,
         retrievedAt: payload.retrievedAt, contentHash: payload.contentHash,
-        document: { url, contentType, characters, sha256, start, end, bytes, status: code } };
+        document: { url, contentType, characters, sha256, start, end, bytes, status: code },
+        // The server's configured fetch price; unpriced when it reports none.
+        costMicroUsd: Number.isSafeInteger(cost) && cost >= 0 ? cost : null };
     } });
 
   return Object.freeze({

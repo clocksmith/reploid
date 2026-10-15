@@ -1,7 +1,9 @@
 /**
- * @fileoverview Text extraction from fetched pages. HTML is reduced to readable paragraphs without a DOM:
+ * @fileoverview Text extraction from fetched pages, shared by the server and device-side extractors so the same
+ * bytes yield the same document text and hash on every route. HTML is reduced to readable paragraphs without a DOM:
  * scripts, styles and page chrome are dropped, the main content region is preferred, and block elements
  * become paragraph breaks. Plain text is decoded as-is. PDF and other types are refused before this point.
+ * Environment-neutral: no Node or DOM APIs.
  */
 
 // A tag whose quoted attributes may contain '>'.
@@ -146,7 +148,7 @@ export function detectCharset(body, contentType = '', charset = null) {
   if (body[0] === 0xef && body[1] === 0xbb && body[2] === 0xbf) return 'utf-8';
   if (body[0] === 0xff && body[1] === 0xfe) return 'utf-16le';
   if (body[0] === 0xfe && body[1] === 0xff) return 'utf-16be';
-  const head = Buffer.from(body.subarray(0, 2048)).toString('latin1');
+  const head = Array.from(body.subarray(0, 2048), byte => String.fromCharCode(byte)).join('');
   for (const meta of head.matchAll(new RegExp(String.raw`<meta(?=[\s/])${ATTRS}>`, 'gi'))) {
     const direct = meta[0].match(/\bcharset\s*=\s*["']?([\w.:-]+)/i)?.[1];
     if (direct) return direct;
@@ -169,7 +171,7 @@ function decode(body, label) {
 
 /** { text, title, characters } for an HTML or plain-text body. */
 export function extractDocumentText({ body, contentType = '', charset = null }) {
-  const bytes = body instanceof Uint8Array ? body : Buffer.from(String(body ?? ''));
+  const bytes = body instanceof Uint8Array ? body : new TextEncoder().encode(String(body ?? ''));
   const source = decode(bytes, detectCharset(bytes, contentType, charset)).replace(/^﻿/, '');
   const mime = String(contentType).split(';')[0].trim().toLowerCase();
   if (mime === 'text/plain') {

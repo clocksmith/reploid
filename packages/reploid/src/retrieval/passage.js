@@ -1,9 +1,9 @@
 /**
- * @fileoverview Chooses the passage of an extracted document that is sent as a numbered source. The result is
- * always an exact slice of the document, text === document.slice(start, end), so its offsets and hashes can be
- * checked against the document later. Relevance is lexical: query content words per paragraph.
+ * @fileoverview Chooses the passage of an extracted document that is sent as a numbered source, for the server and
+ * device-side extractors alike. The result is always an exact slice of the document, text === document.slice(start, end),
+ * so its offsets and hashes can be checked against the document later. Relevance is lexical: query content words per paragraph.
  */
-import { contentWords, wordTokens } from '../../packages/reploid/src/retrieval/text.js';
+import { contentWords, wordTokens } from './text.js';
 
 const PARAGRAPH = /\S[\s\S]*?(?=\n[ \t]*\n|$)/g;
 

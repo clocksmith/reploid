@@ -41,6 +41,9 @@ function loadPermissions(storage) {
 export const CANONICAL_CHAT_MODELS = LOCAL_DOPPLER_MODELS;
 /** The retrieval route for search-backed answers under the per-answer search permission (product-session.js). */
 export const SEARCH_ROUTE = 'search';
+/** The device-side route (device-search.js): the person's own search tool and on-device page fetches, under the same
+ * per-answer permission. Not offered until its search service has approved wording. */
+export const DEVICE_SEARCH_ROUTE = 'device-search';
 
 export function createChatSession({
   storage = globalThis.localStorage,
@@ -127,10 +130,12 @@ export function createChatSession({
     maxCharacters: allowances.maxMessageCharacters, maxFiles: profile.files.maxInputs,
     maxFileBytes: profile.files.maxFileBytes, maxInputBytes: profile.files.maxInputBytes });
 
-  // The route for search-backed answers, offered only when its search service has approved permission wording.
-  const searchRoute = () => {
-    const route = retrieval?.routes?.[SEARCH_ROUTE];
-    return route?.permission === 'search-answer' && searchPermissionWording(route.provider?.searchProvider) ? route : null;
+  // A search-answer route, offered only when its search service has approved permission wording and any one-time
+  // configuration consent its host declares (`available`) is in force.
+  const isSearchRoute = name => retrieval?.routes?.[name]?.permission === 'search-answer';
+  const searchRoute = (name = SEARCH_ROUTE) => {
+    const route = isSearchRoute(name) ? retrieval.routes[name] : null;
+    return route && searchPermissionWording(route.provider?.searchProvider) && (route.available?.() ?? true) ? route : null;
   };
   /** Contributors that may receive this answer: none when it runs here, else the verified route's stages or the
    * catalog's ready providers for this model. Execution must stay within them or the passages are not sent. */
@@ -142,8 +147,8 @@ export function createChatSession({
     if (known.partition?.participantA) return [known.partition.participantA, known.partition.participantB].filter(Boolean);
     return [...new Set(known.providerIds || [])];
   };
-  const searchGrant = (threadId, query, search) => {
-    const route = searchRoute();
+  const searchGrant = (threadId, query, search, name = SEARCH_ROUTE) => {
+    const route = searchRoute(name);
     assert(route, 'Search is not available');
     assert(search && Array.isArray(search.recipients), 'Allow search for this answer first');
     return createSearchPermission({ id: id(), networkId: currentNetwork(), threadId, searchProvider: route.provider.searchProvider,
@@ -283,8 +288,9 @@ export function createChatSession({
     },
     // Remote disclosure waits in the workspace's 'approval' state until approve() records the displayed recipients.
     // `retrieval: { query?, limits? }` opts this request into retrieval; the query defaults to the typed text,
-    // never to attachment contents. `search: { wording, recipients }` is the per-answer search permission as shown
-    // and allowed: the typed text goes to the search service and nothing else from the conversation is sent.
+    // never to attachment contents. `search: { route?, wording, recipients }` is the per-answer search permission as
+    // shown and allowed (route defaults to SEARCH_ROUTE): the typed text goes to the search service and nothing else
+    // from the conversation is sent.
     send(threadId, content, attachments = [], { retrieval = null, search = null } = {}) {
       assertOpen();
       assert(threadId, 'threadId required');
@@ -301,24 +307,26 @@ export function createChatSession({
       if (search) {
         assert(retrieval === null, 'Choose search or web search for this answer, not both');
         assert(!attachments.length, "Search-backed answers don't include files. Remove the files or turn off search for this answer.");
-        return workspace.send(threadId, content, { retrieval: { route: SEARCH_ROUTE, query: content },
-          searchPermission: searchGrant(threadId, content, search) });
+        const route = search.route ?? SEARCH_ROUTE;
+        return workspace.send(threadId, content, { retrieval: { route, query: content },
+          searchPermission: searchGrant(threadId, content, search, route) });
       }
       return workspace.send(threadId, attachmentInput(content, attachments),
         retrieval ? { retrieval: { ...retrieval, query: retrieval.query ?? content } } : undefined);
     },
-    /** The approved wording and listed contributors to show before a search-backed answer; throws when search is unavailable. */
-    searchPermissionRequest({ model, sharingScope = 'mesh' }) {
+    /** The approved wording and listed contributors to show before a search-backed answer on `route`; throws when
+     * that route is unavailable (no approved wording, or its configuration consent is not in force). */
+    searchPermissionRequest({ model, sharingScope = 'mesh', route: name = SEARCH_ROUTE }) {
       assertOpen();
-      const route = searchRoute();
+      const route = searchRoute(name);
       assert(route, 'Search is not available');
       assert(model, 'Choose a model first');
       const recipients = listedContributors(model, sharingScope);
       assert(recipients.length || !execution.remoteDisclosure(model, sharingScope), 'No execution contributors are available for this answer');
-      return { searchProvider: route.provider.searchProvider, wording: searchPermissionWording(route.provider.searchProvider), recipients };
+      return { route: name, searchProvider: route.provider.searchProvider, wording: searchPermissionWording(route.provider.searchProvider), recipients };
     },
     /** Whether retrying this attempt needs a fresh per-answer search permission. */
-    searchRetryNeedsPermission: attempt => attempt?.request?.retrieval?.route === SEARCH_ROUTE,
+    searchRetryNeedsPermission: attempt => isSearchRoute(attempt?.request?.retrieval?.route),
     cancel(threadId) {
       assertOpen();
       comparisons.get(threadId)?.controller.abort();
@@ -335,8 +343,8 @@ export function createChatSession({
     retry(threadId, attemptId, { search = null } = {}) {
       assertOpen();
       const attempt = workspace.getState().threads.find(thread => thread.id === threadId)?.attempts.find(item => item.id === attemptId);
-      return workspace.retry(threadId, attemptId, search
-        ? { searchPermission: searchGrant(threadId, attempt?.request?.retrieval?.query ?? '', search) } : undefined);
+      return workspace.retry(threadId, attemptId, search ? { searchPermission: searchGrant(threadId, attempt?.request?.retrieval?.query ?? '',
+        search, attempt?.request?.retrieval?.route ?? SEARCH_ROUTE) } : undefined);
     },
     approve(threadId, attemptId, previewId, accepted, options) {
       assertOpen();

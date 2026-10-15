@@ -5,7 +5,7 @@
  * refused locally without calling Brave. Only successful (2xx) responses are billable.
  */
 import { SearchProviderError, abortCode, readBounded, sleep as defaultSleep } from './errors.js';
-import { htmlFragmentText } from './html-text.js';
+import { htmlFragmentText } from '../../packages/reploid/src/retrieval/page-text.js';
 
 export const BRAVE_WEB_SEARCH_ENDPOINT = 'https://api.search.brave.com/res/v1/web/search';
 export const BRAVE_MAX_COUNT = 20;

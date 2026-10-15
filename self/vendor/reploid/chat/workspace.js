@@ -8,6 +8,7 @@ import { remotePermissionCovers, remotePermissionNeed } from './remote-permissio
 import { SEARCH_RECIPIENTS_CHANGED, validateSearchPermission } from './search-permission.js';
 import { createRetrieval } from '../retrieval/retrieval.js';
 import { interruptRetrievalRecord, retrievalFailureMessage } from '../retrieval/sources.js';
+import { withVerification } from '../retrieval/costs.js';
 
 const copy = value => structuredClone(value);
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
@@ -198,7 +199,8 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         controller.signal.throwIfAborted();
         if (request.retrieval) {
           // Provenance is durable before any source text can be disclosed; failure dispatches nothing.
-          attempt.retrieval = await retriever.retrieve(attempt.retrieval, controller.signal);
+          // The attempt id keys this answer's costs in provider usage logs; it is never part of the query.
+          attempt.retrieval = await retriever.retrieve(attempt.retrieval, controller.signal, { answer: attempt.id });
           await persist(); controller.signal.throwIfAborted();
           assert(attempt.retrieval.outcome === 'retrieved', retrievalFailureMessage(attempt.retrieval));
           dispatched = await retriever.dispatch(request, attempt.retrieval);
@@ -326,9 +328,10 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         assert(!['max-tokens', 'length', 'context-limit'].includes(attempt.execution?.stopReason),
           'The answer reached its generation limit and is incomplete. Its partial text is preserved; retry starts a new attempt.');
         assert(transactional || result.content.trim(), 'Invalid completed response');
-        // Mechanical citation evidence for the finished answer. A stop during checking leaves the rest unverified.
-        if (attempt.retrieval) attempt.retrieval = { ...attempt.retrieval,
-          verification: await retriever.verify(result.content, attempt.retrieval, controller.signal) };
+        // Mechanical citation evidence for the finished answer, with its verification cost entry. A stop during
+        // checking leaves the rest unverified. Costs stay in the record, never in the conversation text.
+        if (attempt.retrieval) attempt.retrieval = withVerification(attempt.retrieval,
+          await retriever.verify(result.content, attempt.retrieval, controller.signal));
         response.status = 'completed'; attempt.status = 'completed';
       } catch (error) {
         let cancelled = controller.signal.aborted;

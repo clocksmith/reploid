@@ -25,9 +25,10 @@ export function mountSearchRoutes(app, { env = process.env, authorize, log = con
     : createSearxngSearch({ baseUrl: config.searxng.baseUrl, fetch, now });
   const usage = createSearchUsage({ now, maxQueriesPerDay: config.maxQueriesPerDay, logPath: config.usageLog, log });
   app.use(SEARCH_ROUTES_PREFIX, authorize, createSearchRouter({ search, fetcher: fetcher || createPageFetcher(), usage,
-    fetchSecret: config.fetchSecret, now }));
+    fetchSecret: config.fetchSecret, now, fetchMicroUsdPerGb: config.fetchMicroUsdPerGb }));
   const price = config.brave ? (config.brave.costMicroUsdPerQuery === null ? 'unpriced' : `${config.brave.costMicroUsdPerQuery} micro-USD per query`) : 'no per-query price';
-  log.log?.(`[Search] ${config.provider} mounted at ${SEARCH_ROUTES_PREFIX}; budget ${config.maxQueriesPerDay} queries per UTC day; ${price}`
+  const fetchPrice = config.fetchMicroUsdPerGb === null ? 'fetches unpriced' : `${config.fetchMicroUsdPerGb} micro-USD per GB fetched`;
+  log.log?.(`[Search] ${config.provider} mounted at ${SEARCH_ROUTES_PREFIX}; budget ${config.maxQueriesPerDay} queries per UTC day; ${price}; ${fetchPrice}`
     + (config.sharedFetchSecret ? '' : '; fetch tokens verify only on this instance (set REPLOID_SEARCH_FETCH_SECRET to share them)'));
   return { mounted: true, provider: config.provider, prefix: SEARCH_ROUTES_PREFIX, usage };
 }

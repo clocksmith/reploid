@@ -2,11 +2,14 @@
  * @fileoverview /api/retrieval routes. Search runs the configured provider under the daily budget and returns
  * results with fetch tokens; extraction fetches only URLs that a search on this server returned (an HMAC token
  * binds the URL and an expiry), so the route is not an open fetch proxy. Neither route returns credentials.
+ * Callers may name an opaque `answer` key; usage rows carry it so service economics can sum costs per answer.
+ * Fetch cost uses the configured price per GB fetched, else stays null.
  */
 import crypto from 'node:crypto';
 import express from 'express';
-import { extractDocumentText } from './html-text.js';
-import { selectPassage } from './passage.js';
+import { extractDocumentText } from '../../packages/reploid/src/retrieval/page-text.js';
+import { selectPassage } from '../../packages/reploid/src/retrieval/passage.js';
+import pageFetchPolicy from '../../packages/reploid/src/retrieval/page-fetch.json' with { type: 'json' };
 
 export const SERVER_SEARCH_STATUS_SCHEMA = 'reploid.server-search-status/v1';
 export const SERVER_SEARCH_RESULTS_SCHEMA = 'reploid.server-search-results/v1';
@@ -57,26 +60,33 @@ function routeSignal(res, timeoutMs) {
 }
 
 const plainObject = value => value && typeof value === 'object' && !Array.isArray(value);
+/** The caller's opaque answer key: absent, or 1 to 128 printable ASCII characters. */
+const answerKey = value => value === undefined ? null : typeof value === 'string' && /^[\x21-\x7e]{1,128}$/.test(value) ? value : false;
 
 export function createSearchRouter({ search, fetcher, extract = extractDocumentText, usage, fetchSecret, now = Date.now,
-  tokenTtlMs = 15 * 60 * 1000, searchDeadlineMs = SEARCH_DEADLINE_MS }) {
+  tokenTtlMs = 15 * 60 * 1000, searchDeadlineMs = SEARCH_DEADLINE_MS, fetchMicroUsdPerGb = null }) {
   if (!search?.kind || typeof search.search !== 'function') throw new Error('Search router needs a search provider');
   if (typeof fetcher?.fetchPage !== 'function') throw new Error('Search router needs a page fetcher');
   if (!usage || typeof fetchSecret !== 'string' || fetchSecret.length < 16) throw new Error('Search router needs usage counters and a fetch secret');
+  if (fetchMicroUsdPerGb !== null && !(Number.isSafeInteger(fetchMicroUsdPerGb) && fetchMicroUsdPerGb >= 0 && fetchMicroUsdPerGb <= 1e9)) {
+    throw new Error('Invalid fetch price');
+  }
+  // Decimal gigabytes, rounded to the nearest micro-USD per fetch; null when the deployment has not priced fetches.
+  const fetchCost = bytes => fetchMicroUsdPerGb === null ? null : Math.round(bytes * fetchMicroUsdPerGb / 1e9);
   const router = express.Router();
   router.use(express.json({ limit: '16kb' }));
   const provider = { kind: search.kind, id: `reploid.server-search/${search.kind}`, version: '1' };
 
   router.get('/status', (req, res) => res.json({ schema: SERVER_SEARCH_STATUS_SCHEMA, enabled: true, provider: search.kind,
-    providerId: provider.id, unsupportedContentTypes: ['application/pdf'] }));
+    providerId: provider.id, unsupportedContentTypes: [...pageFetchPolicy.unsupportedContentTypes] }));
   router.get('/usage', (req, res) => res.json(usage.snapshot()));
 
   router.post('/search', async (req, res) => {
     const body = req.body, query = typeof body?.query === 'string' ? body.query.trim() : '';
-    const count = body?.count ?? 10;
+    const count = body?.count ?? 10, answer = answerKey(body?.answer);
     if (!plainObject(body) || !query || query.length > MAX_QUERY || !Number.isSafeInteger(count) || count < 1 || count > MAX_COUNT
-      || (body.expectProvider !== undefined && typeof body.expectProvider !== 'string')) {
-      return send(res, 'invalid-request', { detail: `query (1 to ${MAX_QUERY} characters) and count (1 to ${MAX_COUNT}) are required` });
+      || (body.expectProvider !== undefined && typeof body.expectProvider !== 'string') || answer === false) {
+      return send(res, 'invalid-request', { detail: `query (1 to ${MAX_QUERY} characters) and count (1 to ${MAX_COUNT}) are required; answer is 1 to 128 printable characters` });
     }
     // The person allowed one named provider; a different configuration sends nothing.
     if (body.expectProvider !== undefined && body.expectProvider !== search.kind) return send(res, 'provider-mismatch');
@@ -86,12 +96,12 @@ export function createSearchRouter({ search, fetcher, extract = extractDocumentT
     try { found = await search.search({ query, count, signal }); }
     catch (error) {
       usage.record({ provider: search.kind, billable: error?.usage?.billable === true, costMicroUsd: error?.usage?.costMicroUsd ?? null,
-        rateLimit: error?.usage?.rateLimit ?? null, subject: req.reploidAccessSubject ?? null, outcome: error?.code || 'error' });
+        rateLimit: error?.usage?.rateLimit ?? null, subject: req.reploidAccessSubject ?? null, outcome: error?.code || 'error', answer });
       done(); return failure(res, error);
     }
     done();
     const snapshot = usage.record({ provider: search.kind, billable: found.usage.billable, costMicroUsd: found.usage.costMicroUsd,
-      rateLimit: found.usage.rateLimit, resultCount: found.results.length, subject: req.reploidAccessSubject ?? null });
+      rateLimit: found.usage.rateLimit, resultCount: found.results.length, subject: req.reploidAccessSubject ?? null, answer });
     const retrievedAt = now(), expiresAt = retrievedAt + tokenTtlMs, seen = new Set();
     const results = found.results.flatMap(result => {
       const sourceId = 'web-' + sha256Hex(result.url).slice(0, 16);
@@ -107,19 +117,21 @@ export function createSearchRouter({ search, fetcher, extract = extractDocumentT
   });
 
   router.post('/extract', async (req, res) => {
-    const body = req.body;
-    const valid = plainObject(body) && typeof body.url === 'string' && body.url.length <= 2048 && typeof body.fetchToken === 'string'
-      && typeof (body.query ?? '') === 'string' && (body.query ?? '').length <= MAX_QUERY
-      && Number.isSafeInteger(body.maxCharacters) && body.maxCharacters >= 1 && body.maxCharacters <= MAX_PASSAGE;
+    const body = req.body, answer = answerKey(body?.answer);
+    const valid = plainObject(body) && typeof body.url === 'string' && body.url.length <= pageFetchPolicy.maxUrlCharacters
+      && typeof body.fetchToken === 'string' && typeof (body.query ?? '') === 'string' && (body.query ?? '').length <= MAX_QUERY
+      && Number.isSafeInteger(body.maxCharacters) && body.maxCharacters >= 1 && body.maxCharacters <= MAX_PASSAGE && answer !== false;
     if (!valid) return send(res, 'invalid-request', { detail: `url, fetchToken, query and maxCharacters (1 to ${MAX_PASSAGE}) are required` });
     if (!verifyFetchToken(fetchSecret, body.url, body.fetchToken, now())) return send(res, 'invalid-fetch-token');
     // The fetcher's own deadline fires first and reports timeout; this one only backs it up.
     const { signal, done } = routeSignal(res, (fetcher.timeoutMs ?? SEARCH_DEADLINE_MS) + 1000);
     let page;
+    // A failed fetch may have transferred bytes the fetcher did not report, so its cost is unknown.
     try { page = await fetcher.fetchPage(body.url, { signal }); }
-    catch (error) { usage.recordFetch({ ok: false }); done(); return failure(res, error); }
+    catch (error) { usage.recordFetch({ ok: false, answer, costMicroUsd: null }); done(); return failure(res, error); }
     done();
-    usage.recordFetch({ bytes: page.bytes, ok: true });
+    const costMicroUsd = fetchCost(page.bytes);
+    usage.recordFetch({ bytes: page.bytes, ok: true, answer, costMicroUsd });
     let document;
     try { document = extract({ body: page.body, contentType: page.contentType, charset: page.charset }); }
     catch { return send(res, 'no-text'); }
@@ -129,7 +141,8 @@ export function createSearchRouter({ search, fetcher, extract = extractDocumentT
     const documentHash = 'sha256:' + sha256Hex(document.text);
     res.json({ schema: SERVER_PASSAGE_SCHEMA, url: body.url, title: document.title.slice(0, 1000), text: passage.text, retrievedAt: now(), contentHash: documentHash,
       document: { url: page.url, status: page.status, contentType: page.contentType, bytes: page.bytes, byteSha256: page.byteSha256,
-        characters: document.text.length, sha256: documentHash, start: passage.start, end: passage.end } });
+        characters: document.text.length, sha256: documentHash, start: passage.start, end: passage.end },
+      usage: { bytes: page.bytes, costMicroUsd } });
   });
   return router;
 }

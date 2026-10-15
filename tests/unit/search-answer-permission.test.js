@@ -184,7 +184,7 @@ describe('host session and conversation view', () => {
     const { session, partitions } = open();
     await grantContributors(session);
     const request = session.searchPermissionRequest({ model, sharingScope: 'mesh' });
-    expect(request).toEqual({ searchProvider: 'brave', wording: wording(), recipients: STAGES });
+    expect(request).toEqual({ route: SEARCH_ROUTE, searchProvider: 'brave', wording: wording(), recipients: STAGES });
     const thread = session.createThread({ model });
     expect(() => session.send(thread, QUESTION, [{ name: 'notes.txt', text: 'My private notes' }], { search: request }))
       .toThrow("Search-backed answers don't include files");

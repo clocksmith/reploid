@@ -35,7 +35,7 @@ function searxngUrl(value) {
   return url.href.replace(/\/+$/, '');
 }
 
-/** Returns { enabled, reason, provider, brave, searxng, maxQueriesPerDay, fetchSecret, usageLog }; never throws for absence, only for unsafe values. */
+/** Returns { enabled, reason, provider, brave, searxng, fetchMicroUsdPerGb, maxQueriesPerDay, fetchSecret, usageLog }; never throws for absence, only for unsafe values. */
 export function readSearchConfig(env = {}, { repoRoot = null, readFileSync = fs.readFileSync, randomBytes = crypto.randomBytes } = {}) {
   let apiKey, baseUrl;
   try { apiKey = readKey(env, { repoRoot, readFileSync }); baseUrl = searxngUrl(env.REPLOID_SEARXNG_BASE_URL); }
@@ -50,6 +50,10 @@ export function readSearchConfig(env = {}, { repoRoot = null, readFileSync = fs.
   if (!maxQueriesPerDay) return off('Search needs an explicit REPLOID_SEARCH_MAX_QUERIES_PER_DAY budget', provider);
   const usd = String(env.REPLOID_BRAVE_SEARCH_USD_PER_1000 ?? '').trim();
   if (usd && !(/^\d+(?:\.\d+)?$/.test(usd))) return off('REPLOID_BRAVE_SEARCH_USD_PER_1000 must be a decimal number', provider);
+  const fetchUsd = String(env.REPLOID_SEARCH_FETCH_USD_PER_GB ?? '').trim();
+  if (fetchUsd && !(/^\d+(?:\.\d+)?$/.test(fetchUsd) && Number(fetchUsd) <= 1000)) {
+    return off('REPLOID_SEARCH_FETCH_USD_PER_GB must be a decimal number up to 1000', provider);
+  }
   const qpsText = String(env.REPLOID_BRAVE_SEARCH_QPS ?? '').trim();
   const qps = qpsText ? Number(qpsText) : 1;
   if (!(Number.isFinite(qps) && qps > 0 && qps <= 1000)) return off('REPLOID_BRAVE_SEARCH_QPS must be a positive number', provider);
@@ -59,6 +63,8 @@ export function readSearchConfig(env = {}, { repoRoot = null, readFileSync = fs.
     // Micro-USD per query: $5 per 1,000 is 5000. Null means the deployment has not priced queries.
     brave: provider === 'brave' ? { apiKey, qps, costMicroUsdPerQuery: usd ? Math.round(Number(usd) * 1000) : null } : null,
     searxng: provider === 'searxng' ? { baseUrl } : null,
+    // Micro-USD per decimal GB of fetched pages: $0.09 per GB is 90000. Null means fetches are unpriced.
+    fetchMicroUsdPerGb: fetchUsd ? Math.round(Number(fetchUsd) * 1e6) : null,
     maxQueriesPerDay,
     // Per-process when unset: tokens then verify only on the instance that issued them.
     fetchSecret: secret || randomBytes(32).toString('base64url'),
