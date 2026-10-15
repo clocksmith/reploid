@@ -1,3 +1,4 @@
+import { publicPreparationProgress } from '../preparation-progress.js';
 import { generationRequest, requireGenerationCapability } from './partition-generation-request.js';
 import { createAutomaticOrderedPartitions } from './automatic-ordered-partitions.js';
 import { createPartitionDiscovery } from './partition-discovery.js';
@@ -72,7 +73,7 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
   const discovery = createPartitionDiscovery({ identity, catalog, policy: config, peers, createNetwork,
     onChange: notify,
     describe: () => ({ participantId: identity.peerId, offer: offer && { id: offer.id, identity: offer.identity },
-      phase, placement, index: program?.resident.index ?? placement?.indexOf(identity.peerId) ?? null,
+      phase, preparation: phase === 'loading' ? publicPreparationProgress(progress) : null, placement, index: program?.resident.index ?? placement?.indexOf(identity.peerId) ?? null,
       planId: program?.planId ?? null, models: chat?.getModels() || [],
       // Discovery advertises capacity only; attempt identities remain with their owners.
       capacity: program ? (({ active, availableSlots, closed }) => ({ active, availableSlots, closed }))(

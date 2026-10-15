@@ -146,7 +146,7 @@
   content: ''; position: absolute; inset-inline: 0; top: 50%; box-sizing: border-box;
   height: var(--pool-size-32); transform: translateY(-50%);
   border: var(--pool-size-2) solid var(--pool-color-muted);
-  border-radius: var(--pool-radius-round); background: var(--pool-color-inset);
+  border-radius: var(--pool-radius-pill); background: var(--pool-color-inset);
   box-shadow: var(--pool-shadow-switch-track); pointer-events: none;
   transition: background var(--pool-transition-fast), border-color var(--pool-transition-fast);
 }

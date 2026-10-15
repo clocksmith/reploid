@@ -1,3 +1,4 @@
+import { publicPreparationProgress } from '../preparation-progress.js';
 import { generationRequest, requireGenerationCapability } from './partition-generation-request.js';
 import { createPartitionDiscovery } from './partition-discovery.js';
 import { selectPartitionRoute, selectPartitionExecution, eligiblePartitionStages } from './partition-placement.js';
@@ -107,7 +108,8 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     // wait while its slots are full; the queue's own bounds still refuse explicitly.
     const coordinating = stage?.index === 0 && offer && phase === 'ready' && current(), waitingLine = attemptQueue.getState();
     return { schema: 'reploid.partition-capability/v2', participantId: identity.peerId,
-      phase, models: inventory, capacity: { ...residentCapacity(),
+      offer: offer && { id: offer.id, identity: offer.identity }, index: stage?.index ?? null,
+      phase, preparation: phase === 'loading' ? publicPreparationProgress(progress) : null, models: inventory, capacity: { ...residentCapacity(),
         ...(coordinating ? { attemptQueue: { queued: waitingLine.queued, maxQueued: waitingLine.maxQueuedAttempts } } : {}) },
       ...(auto && offer ? { assignment: { schema: STAGE_ASSIGNMENT_SCHEMA, modelId: offer.id, modelIdentity: offer.identity,
         index: stage?.index ?? null } } : {}),
