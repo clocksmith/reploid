@@ -61,7 +61,7 @@ runs establish cooperative execution under their exact model, package and
 allocation limits. They do not establish universal numerical parity, factual
 accuracy, independent operators or dependable public availability.
 
-See the [current integration and evidence](../ROADMAP.md),
+See the current integration and evidence (private roadmap),
 [technical conversation diagrams](open-mesh-architecture.md#technical-diagrams)
 and [acceptance contract](chat-mvp.md). Browser and native participants use the
 same library contracts; their host support is qualified separately.

@@ -650,4 +650,4 @@ const AppBridge = {
 **See Also:**
 - [Blueprint 0x000041: Module Widget Protocol](0x000041-module-widget-protocol.md)
 - [Blueprint 0x000040: Verification Manager](0x000040-verification-manager.md)
-- [Authority and permissions](../../docs/GOVERNANCE_DETAILS.md)
+- Authority and permissions (private planning history)

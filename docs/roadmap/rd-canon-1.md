@@ -6,7 +6,7 @@ Implementation contract, 12 October 2026. This section consolidates the former
 `docs/topology1.md`, `docs/topology2.md`, and `docs/topology3.md` under the user's
 RD-CANON/1 specification. It is a design and acceptance contract, not evidence of
 passing tests or permission to promote a runtime. MUST means required; MAY means
-an explicitly negotiated option. Implementation status remains in [the task register](requirements.md); source components do not close integration or physical qualification gates.
+an explicitly negotiated option. Implementation status remains in the task register (private roadmap); source components do not close integration or physical qualification gates.
 
 Build ordinary sampling consistency, then one local same-policy fork, then fixed
 two-stage target-replay blocks. The delivery gates below belong to this existing
@@ -443,7 +443,7 @@ A record’s own digest field is excluded from its digest input. Transport reque
 
 #### Philox algorithm and known-answer fixtures
 
-**RDI-05 — Random words.** The new generator is **Philox4x32-10**, with the constants and round function below, matching Random123 v1.14.0. This is a sampling generator, not an authentication primitive. The specified algorithm and published vectors are reference requirements; conformance evidence is recorded separately in [the task register](requirements.md). [GitHub](https://raw.githubusercontent.com/DEShawResearch/random123/v1.14.0/include/Random123/philox.h)
+**RDI-05 — Random words.** The new generator is **Philox4x32-10**, with the constants and round function below, matching Random123 v1.14.0. This is a sampling generator, not an authentication primitive. The specified algorithm and published vectors are reference requirements; conformance evidence is recorded separately in the task register (private roadmap). [GitHub](https://raw.githubusercontent.com/DEShawResearch/random123/v1.14.0/include/Random123/philox.h)
 
 ```text
 M0 = 0xD2511F53
@@ -530,7 +530,7 @@ Reconstruction installs the bound decision without repeating authoritative sampl
 | Browser/native composition       | Existing browser host and `server/native-participant.js`                                                                                                                           | Capability negotiation and exact installed-identity checks only                                                       |
 | UI                               | Existing conversation workspace and message rendering                                                                                                                              | Consume durable events; no new scheduler or governance dashboard                                                      |
 
-The generation declarations explicitly identify `generation-contract.json` as their source. The owner map defines required extension points; [the task register](requirements.md) records implementation and qualification status.
+The generation declarations explicitly identify `generation-contract.json` as their source. The owner map defines required extension points; the task register (private roadmap) records implementation and qualification status.
 
 ##### Migration rules
 
@@ -549,7 +549,7 @@ The generation declarations explicitly identify `generation-contract.json` as th
 
 **RDI-28 — Separate gates and evidence.**
 
-Every test below is required acceptance work. This contract alone does not report any as passed; consult the scoped evidence in [the task register](requirements.md).
+Every test below is required acceptance work. This contract alone does not report any as passed; consult the scoped evidence in the task register (private roadmap).
 
 | Gate                               | Required evidence                                                                                           | Does not establish                             |
 | ---------------------------------- | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |

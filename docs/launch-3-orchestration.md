@@ -1,6 +1,6 @@
 # Launch 3 orchestration: concurrent prepared service
 
-Design note for [Launch 3](../ROADMAP.md#cumulative-launches) source work. It defines one
+Design note for Launch 3 (private roadmap) source work. It defines one
 small supported arrangement, the authority model and how each mechanism is accepted. It is not
 evidence: source and injected-port tests prove orchestration only. Physical acceptance is listed
 at the end and has not run.

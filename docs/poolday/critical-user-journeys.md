@@ -45,6 +45,6 @@ one or more journeys. Architecture documents may explain a design, but they do n
 own completion status.
 
 `openWork` records describe journey acceptance gaps, not a second execution
-queue. [ROADMAP.md](../../ROADMAP.md) selects implementation; a selected item links
+queue. The owner's private roadmap selects implementation; a selected item links
 back to the existing journey and evidence IDs. Unselected gaps remain visible
 without authorizing another campaign.

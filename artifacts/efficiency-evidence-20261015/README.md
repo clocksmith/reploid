@@ -39,7 +39,7 @@ the read without launching workloads or changing hardware controls.
 
 No cloud instance was rented, no GPU benchmark was launched, and no existing
 campaign was stopped. No measured wall-power baseline is available in this packet.
-The power assumptions in the [estimate register](../economics-estimate-20261015/README.md)
+The power assumptions in the estimate register (moved to the private economics register)
 remain assumptions.
 
 ## Latency evidence and limits
@@ -83,7 +83,7 @@ failures. Placement C uses **two physical machines**, not three: the two AMD
 stages share a host. Neither process count nor GPU TDP establishes wall power.
 
 Compare both the actual paid service bill and the full resource accounts against
-feasible alternatives. The [rental comparison](../economics-estimate-20261015/RESULTS.md)
+feasible alternatives. The rental comparison (private economics register)
 records current Lambda/Google prices with hypothetical throughput clearly marked.
 Measure accepted answers per **billed hour**, including unused rented time.
 No cloud throughput has been measured for this exact workload and precision.

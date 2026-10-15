@@ -76,7 +76,7 @@ qualify execution or authorize adoption; those remain application/operator contr
 
 ## Current implementation sequence
 
-[ROADMAP.md](ROADMAP.md) owns the active cross-repository checklist: dependable
+The owner's private roadmap owns the active cross-repository checklist: dependable
 distributed chat as the technical foundation, then the complete initial consumer
 product with everyday utility, access, earning, owner control and measured costs.
 The existing five cumulative launches retain their numbers. Durable independent
@@ -131,7 +131,7 @@ system works today. Preserve separate scientific and commercial acceptance bound
 
 Execution contracts: [open mesh architecture](docs/open-mesh-architecture.md).
 Authority and qualification: [INTENT.md](INTENT.md), [CATSCAN.md](CATSCAN.md),
-[GOVERNANCE_DETAILS.md](docs/GOVERNANCE_DETAILS.md), and the
+the [product contract](docs/product-specification.md), and the
 [claim index](docs/status/surface-claim-index.json).
 
 *Last updated: October 2026*

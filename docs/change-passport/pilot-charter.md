@@ -2,7 +2,7 @@
 
 ## Product boundary
 
-The first external Reploid product governs whether one exact production-agent
+The external pilot governs whether one exact production-agent
 release is eligible to proceed and when that eligibility must reopen. The
 supported pilot change classes are MCP server versions, agent tool manifests,
 agent permission policies, and production-agent configuration. Generic source
@@ -67,7 +67,6 @@ reopening precision, invalidation-to-reopening time, and rollback-target
 completeness. At least 20 prospective paired cases must reach their declared
 observation boundary.
 
-Commercial continuation requires the operator to request and pay for another
-governed release. Internal dogfood, structural validation, installation, or a
-passing check proves none of customer value, incident reduction,
-qualification, adoption, deployment safety, or rollback success.
+Internal dogfood, structural validation, installation, or a passing check proves
+none of customer value, incident reduction, qualification, adoption, deployment
+safety, or rollback success.

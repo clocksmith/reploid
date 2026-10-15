@@ -4,8 +4,8 @@ Parent: [Documentation](../CATSCAN.md)
 
 ## Target
 
-Preserve Change Passport as an inactive commercial alternative with independent
-workflow, evidence, and decision-state contracts.
+Preserve Change Passport as an inactive alternative with independent workflow,
+evidence, and decision-state contracts.
 
 ## Authority
 

@@ -1,9 +1,7 @@
 # Reploid Agent Release Passport Product Intent
 
-Portfolio status: inactive alternative. Reploid's evolving problem-solving agent
-is primary; Poolday supplies optional collaboration. Zero and X are minimal and
-extended configurations of the same agent. Preserve this implementation and its
-independent proof criteria without treating it as Reploid's selected commercial priority.
+Status: inactive alternative. Zero and X are minimal and extended configurations
+of the same agent. Preserve this implementation and its independent proof criteria.
 
 ## Product statement
 
@@ -31,11 +29,9 @@ security operator. The first controlled actions are promotions of:
 - production configuration that changes agent behavior.
 
 Model, prompt, and ordinary source-code changes may use the contract later.
-They are not the first commercial wedge.
 
 The change is represented in GitHub and evaluated through CI. Ordinary code
-changes may use the same contract later, but generic pull-request review is not
-the first differentiation target.
+changes and generic pull-request review may use the same contract later.
 
 ## Frozen baseline workflow
 
@@ -154,7 +150,7 @@ scoped scientific proof of contradiction-preserving decision memory.
 
 ## First proof
 
-If the alternative is selected, its commercial claim requires a real operator to:
+An external proof requires a real operator to:
 
 1. Freeze its current change-control workflow and success rules.
 2. Run agent-generated model, prompt, tool, policy, or configuration changes
@@ -163,7 +159,6 @@ If the alternative is selected, its commercial claim requires a real operator to
 4. Preserve all failed, contested, rejected, and unresolved cases.
 5. Exercise at least one real or safely injected reopening trigger.
 6. Verify the exported passport independently.
-7. Ask to use Reploid for another real change.
 
 The evaluator must report reconstruction cost, prevented regressions, escaped
 regressions, false blocks, review effort, reopening correctness, and rollback

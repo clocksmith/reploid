@@ -1,6 +1,6 @@
 # Reploid architecture
 
-Mechanisms and ownership live here. The [business plan and product contract](product-specification.md) owns product/economic intent; [ROADMAP.md](../ROADMAP.md) alone owns active work, status and acceptance. [GOALS.md](../GOALS.md) and [INTENT.md](../INTENT.md) remain governing boundaries. Dated design snapshots below are not current implementation status.
+Mechanisms and ownership live here. The [product contract](product-specification.md) owns the public product terms; the owner's private roadmap alone owns active work, status and acceptance. [GOALS.md](../GOALS.md) and [INTENT.md](../INTENT.md) remain governing boundaries. Dated design snapshots below are not current implementation status.
 
 ## Technical diagrams
 
@@ -8,7 +8,7 @@ The README overview retains its two-contributor example. Its technical diagram
 shows the intended N-stage mesh: a route selected per attempt, a coordinator on
 the first contributor, final-stage sampling, and separate request state on shared
 residents. Five computers illustrate the route; they are not a fixed stage count
-or a claim of qualified capacity. [ROADMAP.md](../ROADMAP.md) owns implementation and
+or a claim of qualified capacity. The owner's private roadmap owns implementation and
 qualification status.
 
 The sequences and source map below trace the ordinary two-partition implementation
@@ -126,11 +126,11 @@ missing integration, and required proof. The governing boundaries remain
 
 ## 1. Product contract
 
-See the [canonical product contract](product-specification.md) and the [network participation and lifecycle contracts](#network-participation-and-lifecycle-contracts) below. The partitioned-model proof and whole-model service are separate; their exact acceptance stays in [DR-6](../ROADMAP.md#dr-6).
+See the [canonical product contract](product-specification.md) and the [network participation and lifecycle contracts](#network-participation-and-lifecycle-contracts) below. The partitioned-model proof and whole-model service are separate; their exact acceptance stays in DR-6.
 
 ## 2. What exists and what is missing
 
-Historical implementation snapshot at the design revision above. Use the [roadmap register](../ROADMAP.md#detailed-acceptance-register) for current status.
+Historical implementation snapshot at the design revision above. Use the roadmap register (private) for current status.
 
 | Boundary | Inspected implementation | Required delta |
 | --- | --- | --- |
@@ -562,7 +562,7 @@ These are interaction requirements, not final marketing copy. The user's promise
 
 ## 13. Work selection
 
-[ROADMAP.md](../ROADMAP.md) owns implementation selection and dependencies. This
+The owner's private roadmap owns implementation selection and dependencies. This
 architecture defines mechanics and acceptance, not a second ordered campaign.
 A selected change retains its failure reproduction, public contract identities,
 regression checks, resource limits, and failed outcomes.
@@ -603,7 +603,7 @@ resource or disclosure constraints and is introduced after this baseline works.
 ## 15. Evidence routing
 
 [Chat acceptance](chat-mvp.md), the [surface claim index](status/surface-claim-index.json),
-and [ROADMAP.md](../ROADMAP.md) own current qualification and selected work. The
+and the owner's private roadmap own current qualification and selected work. The
 [storage checkpoint](../artifacts/open-mesh/20261001/README.md) retains the original
 loading repair and subsequent generation failure; its scope is historical.
 Architecture diagrams and specifications do not establish current deployment.
@@ -785,7 +785,7 @@ It is not the whole network’s onboarding or acceptance contract.
 Partition code and retained physical execution establish their identified
 mechanisms, not full release acceptance. Keep implemented, tested under a named
 configuration, qualification open and planned distinct. See
-[current package and qualification gates](../ROADMAP.md)
+current package and qualification gates (private roadmap)
 and [conversation acceptance](chat-mvp.md).
 
 Compare useful outcomes against the strongest feasible local option and comparable
@@ -803,6 +803,6 @@ operation or authorize private scientific inputs.
 
 Detailed scientific procedures, experiment counts, old Pack recipes and their
 original conditions are preserved in the
-[research and legacy qualification checkpoint](poolday/product-intent-checkpoint-2026-10-09.md).
+research and legacy qualification checkpoint (private planning history).
 That checkpoint is history and scoped protocol detail, not the current default
 user journey. No scientific admission or permission has been broadened.

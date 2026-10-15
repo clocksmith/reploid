@@ -3,18 +3,16 @@
 Guide to all documentation in the REPLOID project.
 
 Keep [GOALS.md](../GOALS.md) and [INTENT.md](../INTENT.md) as durable direction.
-The three product/planning documents are:
+The public product documents are:
 
-1. [Business plan and product contract](product-specification.md) — customer promise, business model, obligations and policy decisions.
-2. [Roadmap and acceptance register](../ROADMAP.md) — launches, active work, stable IDs, checkboxes and evidence.
-3. [Architecture](open-mesh-architecture.md) — components, network participation, execution and recovery.
+1. [Product contract](product-specification.md) — the terms quotes and receipts bind: service records, Community Access, credits and settlement, answer quality, contribution and disclosure.
+2. [Architecture](open-mesh-architecture.md) — components, network participation, execution and recovery.
 
-The old requirements and network-intent paths contain compatibility links only.
-Economics calculations and retained receipts are supporting evidence, not another
-plan. Specialist protocols remain scoped references; dated history and inactive
-commercial alternatives do not select current work.
+The business plan, roadmap, acceptance register, economics and planning history
+are maintained privately by the owner. The old network-intent path contains
+compatibility links only. Retained receipts are supporting evidence, not another
+plan, and specialist protocols remain scoped references.
 
-Historical narrative: [roadmap history](roadmap/history.md).
 Topology requirements and inherited fixtures: [RD-CANON/1](roadmap/rd-canon-1.md).
 Launch 3 source design (off by default): [orchestration](launch-3-orchestration.md).
 
@@ -64,7 +62,6 @@ Typed model operations: [Doppler decisions in Reploid](doppler-choice-scoring.md
 - **[docs/change-passport/runtime-contract.md](./change-passport/runtime-contract.md)** - Hosted storage, authentication, GitHub App, endpoint, and deployment boundary
 - **[Ouroboros documentation authority](https://github.com/clocksmith/ouroboros/blob/main/docs/authority/README.md)** - Cross-project record routing; Reploid remains canonical for product and runtime behavior
 - **[Network participation and lifecycle](open-mesh-architecture.md#network-participation-and-lifecycle-contracts)** - Prepared execution, contribution, conversations and independently evaluated improvement under the product contract
-- **[Research and legacy qualification checkpoint](poolday/product-intent-checkpoint-2026-10-09.md)** - Original scientific procedures, Pack recipes and dated qualification scopes
 - **[docs/poolday/discovery-contract.md](./poolday/discovery-contract.md)** - Target atomic active-science object, action-value boundary, epistemic updates, replication, and closure
 
 ### Repository support files
@@ -72,7 +69,6 @@ Typed model operations: [Doppler decisions in Reploid](doppler-choice-scoring.md
 - [Development environment template](../examples/.env.example) and [configuration example](../examples/.reploidrc.json.example).
 - [Test configuration](../tests/vitest.config.js), [browser test configuration](../tests/playwright.config.js), and [browser type-check configuration](../tests/tsconfig.browser.json).
 - [Cloud Run container](../deploy/Dockerfile) — build from the repository root with `docker build -f deploy/Dockerfile .`.
-- [Governance details](GOVERNANCE_DETAILS.md) — supporting intent and acceptance constraints.
 - [Security audit policy](SECURITY_AUDIT.md) — cooperative self-audit scope and sanitized findings.
 - [Approved symbols](EMOJI.md) — presentation and documentation conventions.
 - [Primes example](../examples/primes.html) — standalone HTML example.
@@ -220,7 +216,7 @@ does not create Markdown blueprints unless a module introduces an architectural 
 - `./self/infrastructure/` - Support services
 - `./self/ui/` - Proto UI
 - `./self/blueprints/` - Architectural specifications
-- `docs/` - Human-facing documentation. Component ownership and invariants live in the applicable CATSCAN chain; [ROADMAP.md](../ROADMAP.md) owns active implementation work.
+- `docs/` - Human-facing documentation. Component ownership and invariants live in the applicable CATSCAN chain; the owner's private roadmap owns active implementation work.
 
 **External Links:**
 - [DOPPLER](https://github.com/clocksmith/doppler) - WebGPU inference engine (separate repo)
