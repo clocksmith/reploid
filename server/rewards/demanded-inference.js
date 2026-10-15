@@ -191,17 +191,21 @@ export async function evaluateDemandedInference({ claim, offer, ledger, identity
     }
   }
 
-  // 5. Self-generated or collusive demand.
-  const [requesterOwner, contributorOwner] = await Promise.all([
+  // 5. Self-generated or collusive demand. The route requester must be the reservation's accepting device; for a
+  //    Community Access reservation the paying account is the pool, and the counterparty is the requester's own account.
+  const [requesterOwner, contributorOwner, requesterDevice] = await Promise.all([
     identity.participantAccount(binding.requesterId),
-    identity.participantAccount(participantId)
+    identity.participantAccount(participantId),
+    typeof identity.participantDevice === 'function' ? identity.participantDevice(binding.requesterId) : undefined
   ]);
-  if (requesterOwner !== reservation.accountId) {
-    reject('requester_identity_mismatch', 'the route requester participant does not belong to the paying account');
+  const requesterBound = requesterDevice === undefined ? requesterOwner === reservation.accountId
+    : requesterOwner !== null && requesterDevice === reservation.deviceId;
+  if (!requesterBound) {
+    reject('requester_identity_mismatch', 'the route requester participant is not the device that accepted the paying reservation');
   }
   if (contributorOwner !== offer.accountId) reject('contributor_identity_mismatch', 'the offer participant no longer belongs to the contributor account');
   evidence.links = await checkCounterparty({
-    contributorAccountId: offer.accountId, counterpartyAccountId: reservation.accountId,
+    contributorAccountId: offer.accountId, counterpartyAccountId: requesterBound && requesterOwner ? requesterOwner : reservation.accountId,
     contributorParticipantId: participantId, counterpartyParticipantId: binding.requesterId,
     ledger, identity, rewardPolicy, reject
   });

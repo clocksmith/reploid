@@ -9,7 +9,10 @@
  * member nothing to hold or transfer. The issuance consumes the allocation. An admitted request reserves its quoted
  * maximum from a pool account and settles through the ledger like any other
  * quote; that charge is Community Access consumption, which the ledger's
- * solvency snapshot discloses as subsidy. Whether operators guarantee a
+ * solvency snapshot discloses as subsidy. Every Community Access quote carries
+ * the policy's evidence terms, so its contributors are paid from signed stage
+ * receipts and the requester's acknowledgments exactly as for a paid request;
+ * the charge still draws the pool's `community_access` lots. Whether operators guarantee a
  * basic-service floor is an explicit policy switch; under the proposed
  * default (`none`) a request is queued or told to retry, and neither a queue
  * position nor a balance promises completion.
@@ -491,11 +494,17 @@ export function createCommunityAccess({ backend, ledger, accounts, readCommunity
      */
     async requestAccess(input = {}) {
       assertKnownKeys(input, ['requestId', 'participantId', 'deviceId', 'quote'], 'requestAccess');
-      const { requestId, participantId, deviceId, quote } = input;
+      const { requestId, participantId, deviceId } = input;
+      let { quote } = input;
       assertId(requestId, 'requestId');
       if (!isNonEmptyString(deviceId)) fail('invalid_input', 'deviceId must name the authenticated device');
       // The requester supplies terms only; the pool account and quote id are never theirs to name.
       assertKnownKeys(quote, ['service', 'pricing', 'terms'], 'requestAccess.quote');
+      // Settlement from evidence is the pool's policy, not the requester's choice: its terms are stamped, never replaced.
+      if (quote?.terms?.evidence !== undefined && hashCanonical(quote.terms.evidence) !== hashCanonical(accessPolicy.evidence)) {
+        fail('evidence_terms_mismatch', 'Community Access quotes carry the pool policy\'s evidence terms');
+      }
+      quote = { ...quote, terms: { ...quote?.terms, evidence: cloneJson(accessPolicy.evidence) } };
       const now = clock();
       buildQuote({ ...quote, quoteId: 'probe', accountId: accessPolicy.poolAccountId }, { policy: ledger.policy, now });
       const accountId = await resolveAccount(participantId);

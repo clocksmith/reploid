@@ -4,10 +4,10 @@ Parent: [Hosted Services](../CATSCAN.md)
 
 ## Target
 
-Durable credit accounts, quotes, reservations and settlement giving each billable event one economic effect.
+Durable accounts, quotes, reservations and settlement giving each billable event one economic effect.
 
 ## Authority
-- Owns lots/provenance, quote terms, reservations, settlement outcomes, disputes, refunds, purchase reversals, append-only journal, [funding commitments](funding/CATSCAN.md), [conversion records](conversion/CATSCAN.md), solvency inputs.
+- Owns lots/provenance, quote terms, reservations, settlement outcomes/disputes, refunds, purchase reversals, append-only journal, [funding commitments](funding/CATSCAN.md), [conversion records](conversion/CATSCAN.md), solvency inputs.
 - Excludes prices, rates, reward amounts/validation, payments, capacity admission, disclosure grants, quality adjudication.
 
 ## Scope
@@ -30,7 +30,7 @@ Outputs:
 - Atomic, idempotent mutations; replays cause no second effect.
 - Charges follow accepted terms to their maximum; more needs new acceptance.
 - One acceptance's attempts share one billable event; reports never name outcomes or charges.
-- Acknowledgments override understated or missing reports; unacknowledged assertions stay disputed for review.
+- Acknowledgments override understated or missing reports; at most K + 1 unacknowledged outputs stay disputed.
 - Expired reservations release; failed quality awaits review.
 - Transfers stay disabled pending approval.
 - Separate from Poolday points, compute reservations and allowances.
@@ -42,7 +42,7 @@ Outputs:
 - Evidence: [ledger](../../tests/unit/credit-ledger.test.js), [reversal](../../tests/unit/credit-reversals.test.js), [execution](../../tests/integration/earning-execution.test.js), [evidence](../../tests/integration/earning-evidence.test.js) tests.
 
 ## Non-goals
-- Payment processing, reward policy, stress tests, marketplace trading, financial-accounting qualification.
+- Payment processing, reward policy, stress tests, trading, financial-accounting qualification.
 
 ## Freedom
 Preserve boundaries; pass acceptance.

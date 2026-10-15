@@ -24,7 +24,7 @@ Outputs: tokens, costs, settlement.
 Legacy traverses A/B. Ordered routes traverse all stages; only the last samples.
 Requester writers commit unsigned ordered steps before delivery or next steps.
 Geometry determines stage count; attempts retain replicas.
-Charged attempts carry signed receipts and acknowledgments.
+Charged stages sign receipts and refuse steps beyond K unacknowledged outputs.
 Session: [contract](../../../../../docs/chat-mvp.md#resident-integration-contract).
 
 ## Invariants
@@ -34,16 +34,16 @@ Session: [contract](../../../../../docs/chat-mvp.md#resident-integration-contrac
 - Discovery grants no authority; advertise capacity, never conversation identities.
 - Hosts assign stages; opt-in [Launch 3](../../../../../docs/launch-3-orchestration.md) `auto` lets the
   contributor's policy choose from observed offers, moving only idle residents.
-- Signed reservations are authoritative; release slots only after confirmed cleanup.
+- Signed reservations are authoritative; slots release after confirmed cleanup.
 - Bound receipts by attempt budgets; distinguish cleanup failure/channel-lost unknowns/settlement.
-  Admission limits aren't physical-memory measurements.
+  Admission limits aren't memory measurements.
 - Busy replicas never move conversations. Recovery requires fresh identities
-  unless Doppler supports continuation. Duplicates never advance state twice.
-- Cancellation settles named attempts, preserving shared weights/independent threads.
+  unless Doppler supports continuation. Duplicates never advance state.
+- Cancellation settles named attempts, preserving shared weights/threads.
 - FIFO execution leases share weights: legacy routes lease token traversals;
   ordered routes lease each stage. Weightless requesters bind requester
   identity/placement generation.
-- No import-time connections, downloads or Doppler imports.
+- No import-time connections, downloads, Doppler imports.
 
 ## Acceptance
 

@@ -9,6 +9,10 @@
  * also commits to its outputs as a hash chain over every step's delta. The
  * requester acknowledges each output it received by signing the cumulative
  * chain; it acknowledges only a receipt whose chain matches what it received.
+ * Under the receiver policy's bound K, no stage computes step s unless it holds
+ * the requester's verified acknowledgment of at least s - K outputs, so a
+ * requester that stops acknowledging leaves at most K + 1 outputs of work
+ * unacknowledged, whatever the coordinator does.
  * Signatures establish who asserted what; they do not prove honest or correct
  * computation, and verification against registered devices is the service's.
  * WebCrypto only, so browser and native hosts sign with the code the service
@@ -16,12 +20,22 @@
  */
 import { canonicalPartitionJson, canonicalRouteAttemptBinding } from './partition-contract.js';
 import { normalizeParticipantPublicKey, participantIdFor, signAsParticipant, verifyParticipantSignature } from '../../artifacts/participant-proofs.js';
+import receiverPolicy from './partition-receiver-policy.json' with { type: 'json' };
 
 export const STAGE_RECEIPT_SCHEMA = 'reploid.stage-receipt/v1';
 export const OUTPUT_ACKNOWLEDGMENT_SCHEMA = 'reploid.output-acknowledgment/v1';
 export const OUTPUT_CHAIN_SCHEMA = 'reploid.output-chain/v1';
 export const ATTEMPT_EVIDENCE_SCHEMA = 'reploid.attempt-evidence/v1';
 export const STAGE_RECEIPT_STATUSES = Object.freeze(['executing', 'settled', 'failed']);
+export const ACKNOWLEDGMENT_OVERDUE = 'ACKNOWLEDGMENT_OVERDUE';
+
+/** K: the most outputs a charged attempt may run ahead of the requester's verified acknowledgments. */
+export const MAX_UNACKNOWLEDGED_OUTPUTS = receiverPolicy.maxUnacknowledgedOutputs;
+if (!Number.isSafeInteger(MAX_UNACKNOWLEDGED_OUTPUTS) || MAX_UNACKNOWLEDGED_OUTPUTS < 0) {
+  throw new Error('partition-receiver-policy.json must declare maxUnacknowledgedOutputs as a non-negative integer');
+}
+/** A step refused or abandoned because the requester's acknowledgments fell more than K outputs behind. */
+export const acknowledgmentOverdue = (message = 'The requester\'s output acknowledgments are overdue') => Object.assign(new Error(message), { code: ACKNOWLEDGMENT_OVERDUE });
 
 const RECEIPT_KEYS = Object.freeze(['schema', 'reservationId', 'attemptId', 'routeHash', 'partitionIndex', 'participantId',
   'sequence', 'status', 'steps', 'tokens', 'timing', 'output', 'signedAt']);
@@ -136,7 +150,7 @@ async function checkChargeBinding(charge, binding, routeHash) {
   assert(checked.ok && body.count === 0 && body.attemptId === binding.attemptId && body.routeHash === routeHash
     && body.requesterId === binding.requesterId && body.chain === await outputChainGenesis({ reservationId: body.reservationId, routeHash }),
   'Attempt charge binding is not the requester\'s signed binding of this route');
-  return body.reservationId;
+  return { reservationId: body.reservationId, requesterKey: normalizeParticipantPublicKey(charge.publicJwk) };
 }
 
 /**
@@ -148,8 +162,9 @@ export async function openStageReceipts({ signer, identity, partitionIndex, char
   const stage = binding.route.stages[partitionIndex];
   assert(stage && typeof signer?.sign === 'function' && signer.participantId === stage.participantId, 'Stage receipts need this stage\'s own signing identity');
   const routeHash = await attemptRouteHash(binding);
-  const reservationId = await checkChargeBinding(charge, binding, routeHash);
-  const final = partitionIndex === binding.route.stages.length - 1;
+  const { reservationId, requesterKey } = await checkChargeBinding(charge, binding, routeHash);
+  const finalStage = binding.route.stages.at(-1);
+  const final = partitionIndex === finalStage.index;
   const state = { sequence: 0, steps: 0, prompt: null, processed: 0, timing: { reservedAt: iso(now()), firstStepAt: null, lastStepAt: null, closedAt: null },
     output: final ? { count: 0, chain: await outputChainGenesis({ reservationId, routeHash }), done: false, stopReason: null } : null,
     receipt: null, acknowledged: null, closed: false };
@@ -179,14 +194,28 @@ export async function openStageReceipts({ signer, identity, partitionIndex, char
       return sign('executing');
     }),
     /** Keep the latest requester acknowledgment and the final-stage receipt it acknowledged, as forwarded by the coordinator. */
-    acknowledge(pair) {
+    /**
+     * Keep a newer acknowledgment only when the requester's key from the charge
+     * binding signed it and the final stage signed the receipt it pairs with.
+     */
+    async acknowledge(pair) {
       const ack = pair?.acknowledgment, receipt = pair?.receipt;
-      if (acknowledgmentProblem(ack && (({ publicJwk: _key, signature: _signature, ...body }) => body)(ack))
-        || ack.reservationId !== reservationId || ack.attemptId !== binding.attemptId || ack.routeHash !== routeHash || ack.count < 1
-        || receipt?.output?.count !== ack.count || receipt.output.chain !== ack.chain
-        || ack.count <= (state.acknowledged?.acknowledgment.count ?? 0)) return false;
-      state.acknowledged = structuredClone({ acknowledgment: ack, receipt });
+      if (!ack || ack.count <= (state.acknowledged?.acknowledgment.count ?? 0)) return false;
+      const [signed, committed] = await Promise.all([verifyOutputAcknowledgment(ack, { publicJwk: requesterKey }), verifyStageReceipt(receipt)]);
+      if (!signed.ok || !committed.ok || ack.reservationId !== reservationId || ack.attemptId !== binding.attemptId || ack.routeHash !== routeHash
+        || ack.requesterId !== binding.requesterId || ack.count < 1 || committed.body.reservationId !== reservationId
+        || committed.body.attemptId !== binding.attemptId || committed.body.routeHash !== routeHash
+        || committed.body.partitionIndex !== finalStage.index || committed.body.participantId !== finalStage.participantId
+        || committed.body.output?.count !== ack.count || committed.body.output.chain !== ack.chain) return false;
+      if (ack.count > (state.acknowledged?.acknowledgment.count ?? 0)) state.acknowledged = structuredClone({ acknowledgment: ack, receipt });
       return true;
+    },
+    /** Refuse step `step` unless the verified acknowledgments cover at least step - K outputs. */
+    async authorizeStep({ step, acknowledged = null }) {
+      if (acknowledged) await this.acknowledge(acknowledged);
+      if ((state.acknowledged?.acknowledgment.count ?? 0) < step - MAX_UNACKNOWLEDGED_OUTPUTS) {
+        throw acknowledgmentOverdue(`Step ${step} needs the requester's acknowledgment of ${step - MAX_UNACKNOWLEDGED_OUTPUTS} outputs`);
+      }
     },
     /** Sign the closing receipt once: settled, or failed when the stage recorded a failure. */
     close: ({ failed = false } = {}) => serial(async () => {

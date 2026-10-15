@@ -53,10 +53,14 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     tallies.set(binding.attemptId, opening);
     try { await opening; } catch (cause) { tallies.delete(binding.attemptId); throw cause; }
   };
+  // Before computing a charged step: the requester's verified acknowledgments must be within K outputs of it.
+  const authorizeStep = async input => {
+    const tally = await tallies.get(input.identity?.attemptId);
+    if (tally) await tally.authorizeStep({ step: input.step, acknowledged: input.acknowledged ?? null });
+  };
   const recordStep = async (result, input) => {
     const tally = await tallies.get(result?.identity?.attemptId ?? input.identity?.attemptId);
     if (!tally) return result;
-    if (input.acknowledged) tally.acknowledge(input.acknowledged);
     // A receipt that cannot be signed leaves the step unreceipted; it never fails the computation.
     const receipt = await tally.step({ step: input.step, inputTokenCount: input.inputTokenCount,
       delta: result.delta, done: result.done, stopReason: result.stopReason }).catch(() => null);
@@ -66,7 +70,7 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
   const closeTally = async (identity, acknowledged) => {
     const tally = await tallies.get(identity?.attemptId)?.catch(() => null);
     if (!tally) return;
-    if (acknowledged) tally.acknowledge(acknowledged);
+    if (acknowledged) await tally.acknowledge(acknowledged);
     await tally.close({ failed: reservations.failureOf(identity) != null });
     reservations.attachEvidence(identity, tally.evidence());
   };
@@ -110,13 +114,14 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     const record = reservations.reserve(identity);
     attempts.add(identity.attemptId); notify(); return record;
   };
-  const invoke = (method, request, finish = result => result) => {
+  const invoke = (method, request, finish = result => result, before = null) => {
     reserve(request.identity);
     const { signal, ...input } = request;
     const snapshot = structuredClone(input);
     const combined = signal ? AbortSignal.any([signal, lifetime.signal]) : lifetime.signal;
     const operation = tail.then(async () => {
       combined.throwIfAborted(); check();
+      if (before) { await before(snapshot); combined.throwIfAborted(); }
       const result = await session[method]({ ...snapshot, signal: combined });
       combined.throwIfAborted(); check();
       const finished = await finish(result, snapshot);
@@ -255,7 +260,7 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     tokenize(request) { assert(index === 0, 'Only partition A tokenizes'); return invoke('tokenize', request); },
     executeStage(request) {
       assert(routeBinding, 'Ordered resident execution was not allocated');
-      return invoke('executeStage', request, evidence ? recordStep : undefined);
+      return invoke('executeStage', request, evidence ? recordStep : undefined, evidence ? authorizeStep : null);
     },
     executeGroup0(request) { assert(!ordered, 'Ordered resident requires executeStage'); assert(!canonical, 'Canonical resident requires canonical execution'); assert(index === 0, 'This contributor is partition B'); return invoke('executeGroup0', request); },
     executeGroup1(request) { assert(!ordered, 'Ordered resident requires executeStage'); assert(!canonical, 'Canonical resident requires canonical execution'); assert(index === 1, 'This contributor is partition A'); return invoke('executeGroup1', request); },

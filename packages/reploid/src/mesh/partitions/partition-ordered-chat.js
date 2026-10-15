@@ -127,7 +127,8 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
       // A charged attempt's signed binding reaches every stage; outputs return for acknowledgment.
       const operation = runner.execute({ identity, tokenIds: input.tokenIds, generation,
         maxTokens: generation.maxTokens, signal,
-        ...(request.charge ? { charge: request.charge, ...(typeof controls.onOutput === 'function' ? { onOutput: controls.onOutput } : {}) } : {}),
+        ...(request.charge ? { charge: request.charge, acknowledgmentDeadlineAt: expiresAt,
+          ...(typeof controls.onOutput === 'function' ? { onOutput: controls.onOutput } : {}) } : {}),
         grants: { execution: stages.map(() => grant), tokenContext: stages.map(() => grant),
           activation: stages.slice(1).map(() => grant), output: grant },
         onActivity: activity => controls.onActivity?.({threadId: identity.threadId, attemptId: identity.attemptId, ...activity}),

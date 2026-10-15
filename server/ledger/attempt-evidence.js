@@ -15,6 +15,7 @@
 
 import { canonicalRouteAttemptBinding } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
 import {
+  ACKNOWLEDGMENT_OVERDUE,
   ATTEMPT_EVIDENCE_SCHEMA,
   checkAttemptEvidenceBundle,
   verifyOutputAcknowledgment,
@@ -38,6 +39,7 @@ export const EVIDENCE_RULES = Object.freeze({
   paired: 'an acknowledgment proves the outputs it names only with the final-stage receipt committing the same count and chain',
   acknowledged: 'a route the final stage completed and the requester acknowledged in full settles as full by the deadline, else timeout; otherwise the report rule applies with its output raised to the acknowledged count; with no report, acknowledged outputs settle as partial delivery; failed attempts charge nothing unless completed and acknowledged',
   asserted: 'receipts beyond the acknowledged outputs are priced by the same rule as if acknowledged; the difference is held in dispute within the authorized maximum',
+  bounded: 'stages compute step s only with acknowledgments of s - K outputs (K, maxUnacknowledgedOutputs in the terms), so asserted work counts at most K + 1 outputs beyond the acknowledged count; an attempt ended because acknowledgments were overdue settles its acknowledged outputs as partial delivery',
   dispute: 'operational review charges the held difference (asserted) or releases it (acknowledged); nothing acknowledged and released settles as unacknowledged at zero charge',
   window: 'a report settles at once when it cancels before dispatch, or when every output of a completed route is acknowledged and nothing is disputed; otherwise the decision waits for the declared evidence window after the deadline',
   single: 'one decision per reservation across the report and evidence paths; later evidence is kept without economic effect'
@@ -193,7 +195,7 @@ export function mergeAttemptEvidence(existing, verified, { reservation, submitte
 }
 
 /** What one attempt's evidence proves: acknowledged count, asserted count and the route's completion. */
-function attemptFacts(attempt, record, limits) {
+function attemptFacts(attempt, record, limits, bound) {
   const cap = (value) => Math.min(value, limits.output.max);
   if (!record) return { attempt, acknowledged: 0, asserted: 0, done: null, context: null, evidenceId: null };
   const last = record.identity.route.stages.length - 1;
@@ -201,7 +203,8 @@ function attemptFacts(attempt, record, limits) {
   const finalStage = conflicted ? null : record.stages[String(last)];
   const pairBody = record.acknowledged?.receipt ?? null;
   const acknowledged = cap(record.acknowledged?.count ?? 0);
-  const asserted = cap(Math.max(finalStage?.output?.count ?? 0, acknowledged));
+  // Honest stages refuse to run more than K + 1 outputs past the acknowledgments; receipts claiming more assert no more.
+  const asserted = Math.min(cap(Math.max(finalStage?.output?.count ?? 0, acknowledged)), bound === null ? Infinity : acknowledged + bound + 1);
   // Completion is the final stage's own signed statement; its last step time is the route's completion time.
   const doneReceipt = [pairBody, finalStage].find((receipt) => receipt?.output?.done === true && receipt.output.count <= limits.output.max) ?? null;
   const prompt = pairBody?.tokens?.prompt ?? finalStage?.tokens?.prompt ?? null;
@@ -224,7 +227,9 @@ function outcomeFor(facts, outputs, report, reservation, now) {
       : { outcome: 'timeout', metering: {}, complete: true };
   }
   const reported = report?.settle?.metering?.output ?? 0;
-  switch (report?.rule ?? (facts.attempt.status === 'failed' ? 'execution_failed' : null)) {
+  // An attempt ended because the requester's acknowledgments were overdue charges what it acknowledged, as with no report.
+  const overdue = facts.attempt.status === 'failed' && facts.attempt.reason === `execution_failed:${ACKNOWLEDGMENT_OVERDUE}`;
+  switch (overdue ? null : report?.rule ?? (facts.attempt.status === 'failed' ? 'execution_failed' : null)) {
     case 'completed':
       return { outcome: 'full', metering: { ...report.settle.metering, output: Math.max(outputs, reported) }, completedAt: report.settle.completedAt };
     case 'cancelled_after_dispatch':
@@ -257,7 +262,8 @@ export const chargeFor = (reservation, settle) => {
  */
 export function decideFromEvidence({ reservation, records, now }) {
   const report = reservation.report ?? null;
-  const facts = reservation.attempts.map((attempt) => attemptFacts(attempt, records.get(attempt.attemptId) ?? null, reservation.service.limits));
+  const bound = Number.isSafeInteger(reservation.terms.evidence?.maxUnacknowledgedOutputs) ? reservation.terms.evidence.maxUnacknowledgedOutputs : null;
+  const facts = reservation.attempts.map((attempt) => attemptFacts(attempt, records.get(attempt.attemptId) ?? null, reservation.service.limits, bound));
   const reportFor = (attempt) => (report?.attemptId === attempt.attemptId ? report : null);
   const reportSettle = report?.settle ?? null;
   let chosen = reportSettle ? { settle: cloneJson(reportSettle), charge: chargeFor(reservation, reportSettle), basis: 'report', complete: false } : null;

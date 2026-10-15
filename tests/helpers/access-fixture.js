@@ -88,7 +88,8 @@ export const crash = (message) => () => { throw new Error(message); };
 const outputRate = (base, denominator) => ({ kind: 'metered', base, rates: [{ meter: 'output', numerator: 1, denominator }] });
 
 // Quote terms with a maximum charge of 60: full settlement charges 10 + output/2.
-export const quoteTerms = ({ maxCharge = 60, validForMs = 30 * MIN } = {}) => ({
+// Community Access quotes carry evidence terms, whose window must close inside the reservation period.
+export const quoteTerms = ({ maxCharge = 60, validForMs = 30 * MIN, reservationPeriodMs = 10 * MIN } = {}) => ({
   service: {
     serviceRecordId: 'svc_chat_test',
     model: { modelId: 'model_test', checkpoint: 'sha256:checkpoint', deployedRepresentation: 'q4k-test', tokenizer: 'tok_test', adapters: [] },
@@ -107,7 +108,7 @@ export const quoteTerms = ({ maxCharge = 60, validForMs = 30 * MIN } = {}) => ({
   pricing: { basis: { kind: 'test_per_output_token' }, maxCharge },
   terms: {
     validUntil: at(validForMs),
-    reservationPeriodMs: 10 * MIN,
+    reservationPeriodMs,
     queue: { behavior: 'fair_bounded', maxWaitMs: 10 * MIN },
     execution: { maxAttempts: 2, maxDurationMs: 120_000 },
     refund: { policyId: 'refund-terms-test' },

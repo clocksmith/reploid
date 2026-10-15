@@ -715,13 +715,13 @@
     },
     {
       "path": "mesh/partitions/partition-attempt-evidence.d.ts",
-      "bytes": 4746,
-      "sha256": "676ff51397723ab5b3dffd153678527db521790f7d444252734cf80a97824233"
+      "bytes": 5416,
+      "sha256": "5af9190d8baa9ad73a41c01ede85933307ecf32475ec4f5d217feae4ce24dabf"
     },
     {
       "path": "mesh/partitions/partition-attempt-evidence.js",
-      "bytes": 17746,
-      "sha256": "28147bb846149261147ee1ac5ba8cbec65657e4e4c603149286a14123ccee438"
+      "bytes": 20133,
+      "sha256": "7874511420ed359ae7db77225ed0824a731fa06077b95d778fde3125043b6f45"
     },
     {
       "path": "mesh/partitions/partition-canonical-contract.d.ts",
@@ -855,8 +855,8 @@
     },
     {
       "path": "mesh/partitions/partition-ordered-chat.js",
-      "bytes": 14777,
-      "sha256": "5d6da078a338e4c99993e4ff273741f3d8a064b3eba4d9d25d8579bae10d606e"
+      "bytes": 14824,
+      "sha256": "20b4c8cd904856f8a081d302068cfd01ee0e0133e3fd87bc74901f3bdd5f76e7"
     },
     {
       "path": "mesh/partitions/partition-ordered-peer.d.ts",
@@ -910,8 +910,8 @@
     },
     {
       "path": "mesh/partitions/partition-receiver-policy.json",
-      "bytes": 119,
-      "sha256": "03c8dbcd0badd7bf0bd27398e79f1a2d7d45693e5eb28b0d95879ec68964eac9"
+      "bytes": 152,
+      "sha256": "9812817d30a9193292e98c291a8b55db49b08c669fc284d5640ade26232b160e"
     },
     {
       "path": "mesh/partitions/partition-reservations.js",
@@ -920,13 +920,13 @@
     },
     {
       "path": "mesh/partitions/partition-route-execution.d.ts",
-      "bytes": 6058,
-      "sha256": "e0c660c9f3ad81629b24b466fc67a8d26500b5b8954d3c253cd3068daaaff370"
+      "bytes": 6400,
+      "sha256": "d6bc26b96161edea9557253dd87d0534ae7999ce99cb527e5c623ac0288a6e41"
     },
     {
       "path": "mesh/partitions/partition-route-execution.js",
-      "bytes": 22015,
-      "sha256": "9b85dbf126cb6ef9b4e89ac18dd06f08fdd958f218e37fcfc94ebdfb9887bca8"
+      "bytes": 23908,
+      "sha256": "10830aaba9caba51b9e3bce4f25c87fc8a49d689d8e793b6e6c8096dfe7c0ead"
     },
     {
       "path": "mesh/partitions/partition-route-network.d.ts",
@@ -1010,8 +1010,8 @@
     },
     {
       "path": "mesh/partitions/resident-partition.js",
-      "bytes": 21056,
-      "sha256": "a3c3c337726eac39c3f73a69a36be485d3ca428a20682980c11d9eced2c053ba"
+      "bytes": 21443,
+      "sha256": "b6325d5e2e1c382c23a22c1955122819e521c2bd71184fa98b121055a84695aa"
     },
     {
       "path": "mesh/partitions/resident-route.d.ts",

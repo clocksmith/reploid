@@ -9,6 +9,8 @@
 
 import { createHash } from 'node:crypto';
 
+import { MAX_UNACKNOWLEDGED_OUTPUTS } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
+
 export const PRODUCT_ECONOMICS_CONTRACT_ID = 'reploid.product-economics/1.0.0';
 export const ACCOUNT_SCHEMA = 'reploid.credit-account/v1';
 // v2: donated sources name funderId and funderKind (v1 named only donorId, the
@@ -23,7 +25,8 @@ export const REVIEW_SCHEMA = 'reploid.credit-quality-review/v1';
 export const JOURNAL_SCHEMA = 'reploid.credit-journal-entry/v1';
 export const SOLVENCY_SCHEMA = 'reploid.credit-solvency-inputs/v1';
 // The declared evidence rules (attempt-evidence.js) a quote's evidence terms name.
-export const EVIDENCE_RULES_ID = 'reploid.attempt-evidence-rules/1.0.0';
+// 1.1.0 adds the acknowledgment bound K that stages and coordinators enforce from the partitions receiver policy.
+export const EVIDENCE_RULES_ID = 'reploid.attempt-evidence-rules/1.1.0';
 
 // `subsidized` is credit for validated contribution paid from an explicit funding
 // reservation instead of settled demand; it stays apart from `earned`.
@@ -326,19 +329,25 @@ const validateService = (service, errors) => {
 };
 
 /**
- * Optional evidence terms: { rulesId, windowMs, clockSkewMs }. Present, they
- * let signed receipts and acknowledgments settle what a report omits, with
- * decisions waiting `windowMs` after the deadline and signing times compared
- * within `clockSkewMs`. Absent, the quote offers report-only settlement. The
- * reservation period must outlast the window so evidence decides before expiry.
+ * Optional evidence terms: { rulesId, windowMs, clockSkewMs, maxUnacknowledgedOutputs }.
+ * Present, they let signed receipts and acknowledgments settle what a report
+ * omits, with decisions waiting `windowMs` after the deadline and signing
+ * times compared within `clockSkewMs`. `maxUnacknowledgedOutputs` is the bound
+ * K every stage enforces from the partitions receiver policy; a quote naming
+ * another value is refused, so the ledger and stages agree. Absent, the quote
+ * offers report-only settlement. The reservation period must outlast the
+ * window so evidence decides before expiry.
  */
 function validateEvidenceTerms(terms, service, now, errors) {
   const evidence = terms.evidence;
   if (evidence === undefined) return;
   if (!evidence || typeof evidence !== 'object' || Array.isArray(evidence)
-    || Object.keys(evidence).some((key) => !['rulesId', 'windowMs', 'clockSkewMs'].includes(key))) {
-    errors.push('terms.evidence must be { rulesId, windowMs, clockSkewMs }');
+    || Object.keys(evidence).some((key) => !['rulesId', 'windowMs', 'clockSkewMs', 'maxUnacknowledgedOutputs'].includes(key))) {
+    errors.push('terms.evidence must be { rulesId, windowMs, clockSkewMs, maxUnacknowledgedOutputs }');
     return;
+  }
+  if (evidence.maxUnacknowledgedOutputs !== MAX_UNACKNOWLEDGED_OUTPUTS) {
+    errors.push(`terms.evidence.maxUnacknowledgedOutputs must be the stages' receiver-policy bound ${MAX_UNACKNOWLEDGED_OUTPUTS}`);
   }
   if (evidence.rulesId !== EVIDENCE_RULES_ID) errors.push(`terms.evidence.rulesId must be ${EVIDENCE_RULES_ID}`);
   if (!Number.isSafeInteger(evidence.windowMs) || evidence.windowMs <= 0) errors.push('terms.evidence.windowMs must be a positive integer');

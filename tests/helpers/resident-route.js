@@ -27,8 +27,10 @@ const lost = () => Object.assign(new Error('Partition stage channel closed'), { 
  * @param {string} requesterId the weightless requester's participant id
  * @param {object[]} [signers] each stage host's createAttemptEvidenceSigner, in stage order; stages sign receipts
  *   for attempts that carry the requester's charge binding
+ * @param {number} [steps] tokens each answer runs to before the final stage stops (the runner allows at most 10)
+ * @param {number} [acknowledgmentWaitMs] test-only bound on how long a charged attempt waits for acknowledgments
  */
-export async function residentRoute({ participants, requesterId, signers = [] }) {
+export async function residentRoute({ participants, requesterId, signers = [], steps = STEPS, acknowledgmentWaitMs = 60_000 }) {
   const count = participants.length;
   const plan = {
     schema: 'doppler.layer-partition-contract/v3', modelId: MODEL.modelId, totalLayers: count * 2, hiddenSize: HIDDEN, vocabSize: 128,
@@ -60,7 +62,7 @@ export async function residentRoute({ participants, requesterId, signers = [] })
       tokenize: async () => ({ tokenIds: [1, 2] }),
       async executeStage(request) {
         const result = { identity: request.identity, partitionIndex: index, step: request.step, tokenPosition: request.tokenPosition, continuation: { step: request.step } };
-        if (final) return { ...result, tokenId: 10 + request.step, delta: String(request.step), done: request.step === STEPS - 1, stopReason: 'eos' };
+        if (final) return { ...result, tokenId: 10 + request.step, delta: String(request.step), done: request.step === steps - 1, stopReason: 'eos' };
         const tokens = request.inputTokenIds.length;
         return { ...result, activationTensor: { shape: [1, tokens, HIDDEN], dtype: 'f32', data: new Float32Array(tokens * HIDDEN).fill(index + request.step), seqOffset: request.tokenPosition, step: request.step } };
       },
@@ -69,7 +71,7 @@ export async function residentRoute({ participants, requesterId, signers = [] })
     };
     const resident = createResidentPartition({
       runtime: { openResidentPartition: async () => session },
-      model: { id: MODEL.modelId, identity: MODEL.modelIdentity, generation: { maxTokens: STEPS } },
+      model: { id: MODEL.modelId, identity: MODEL.modelIdentity, generation: { maxTokens: steps } },
       plan, planId: MODEL.planId, index, participantId, limits: { maxAttempts: 100, maxConcurrentAttempts: 2 },
       ordered: { runtime, stage: route.stages[index] }, ...(signers[index] ? { evidence: signers[index] } : {})
     });
@@ -138,9 +140,10 @@ export async function residentRoute({ participants, requesterId, signers = [] })
       controls.onState?.({ threadId: request.threadId, attemptId: request.attemptId, status: 'executing', execution: { placement: 'ordered-layer-partition', identity } });
       let sequence = 0;
       const result = await runner.execute({
-        identity, tokenIds: [1, 2], generation: { maxTokens: STEPS }, maxTokens: STEPS, signal: controls.signal,
+        identity, tokenIds: [1, 2], generation: { maxTokens: steps }, maxTokens: steps, signal: controls.signal,
         // The requester's charge binding and acknowledgment port, as the coordinator's ordered chat forwards them.
-        ...(controls.charge ? { charge: controls.charge, ...(controls.onOutput ? { onOutput: controls.onOutput } : {}) } : {}),
+        ...(controls.charge ? { charge: controls.charge, acknowledgmentDeadlineAt: Date.now() + acknowledgmentWaitMs,
+          ...(controls.onOutput ? { onOutput: controls.onOutput } : {}) } : {}),
         grants: { execution: stages.map(() => grant), tokenContext: stages.map(() => grant), activation: stages.slice(1).map(() => grant), output: grant },
         onActivity: (activity) => controls.onActivity?.({ threadId: request.threadId, attemptId: request.attemptId, ...activity }),
         onDelta: (text) => controls.onDelta?.({ threadId: request.threadId, attemptId: request.attemptId, sequence: sequence++, text })
@@ -152,7 +155,7 @@ export async function residentRoute({ participants, requesterId, signers = [] })
     }
   };
   return {
-    plan, route, model, residents, stages, runner, requester,
+    plan, route, model, residents, stages, runner, requester, runtime,
     /** Hold stage `index` before `step` of the next attempt that reaches it, until released or aborted. */
     hold(index, step) {
       const gate = { index, step, used: false, entered: Promise.withResolvers(), release: Promise.withResolvers() };

@@ -21,14 +21,15 @@ export const ACCOUNT_LEDGER_COLLECTIONS = Object.freeze({ ...LEDGER_COLLECTIONS,
 
 /**
  * The ledger's deviceAuthority: inside the acceptance transaction, the device
- * must be active and registered to the accepting account. A revocation that
- * commits first refuses the acceptance; on Firestore one that commits during
- * it forces a retry that then refuses.
+ * must be active and registered to the accepting account, or the accepting
+ * account must be a declared Community Access pool admitting that device's
+ * request. A revocation that commits first refuses the acceptance; on
+ * Firestore one that commits during it forces a retry that then refuses.
  */
-export async function ledgerDeviceAuthority(tx, { accountId, deviceId }) {
+export async function ledgerDeviceAuthority(tx, { accountId, deviceId }, { poolAccountIds = [] } = {}) {
   if (typeof deviceId !== 'string' || !/^dev_[a-f0-9]{32}$/.test(deviceId)) return false;
   const device = await tx.get('identityDevices', deviceId);
-  return device?.status === 'active' && device.accountId === accountId;
+  return device?.status === 'active' && (device.accountId === accountId || poolAccountIds.includes(accountId));
 }
 
 /**
@@ -56,6 +57,7 @@ export function createLedgerSignerAuthority(accounts) {
  * time, so a revocation committed earlier always applies.
  *
  *   participantAccount(participantId, { at }?) -> accountId | null
+ *   participantDevice(participantId, { at }?) -> deviceId | null
  *   verifyCustodyKey({ certificate, at }) -> { participantId, custodyPeerId, publicKey } | null
  *   accountLinks(accountA, accountB) -> [{ kind, evidenceId, linkId }]
  *   accountOwner(accountId) -> ownerId | null
@@ -68,6 +70,9 @@ export function createAccountIdentityPorts(accounts) {
   return Object.freeze({
     async participantAccount(participantId, { at } = {}) {
       return (await accounts.resolveParticipant(participantId, { at }))?.accountId ?? null;
+    },
+    async participantDevice(participantId, { at } = {}) {
+      return (await accounts.resolveParticipant(participantId, { at }))?.deviceId ?? null;
     },
     async verifyCustodyKey({ certificate, at } = {}) {
       const verified = await accounts.verifyCustodyKey({ certificate, at });
@@ -137,7 +142,8 @@ export function createAccountGuards({ accounts, ledger, rewards }) {
  */
 export function composeAccountServices({
   accountBackend, accountPolicy, providers, rewardBackend, createLedger, rewardPolicy, issuancePolicy,
-  readAdmittedCapacity, otherProvenance = null, readinessProber = null, fundingAuthority = null, clock, createId, random
+  readAdmittedCapacity, otherProvenance = null, readinessProber = null, fundingAuthority = null, clock, createId, random,
+  communityPoolAccountIds = []
 } = {}) {
   let ledger = null;
   const accounts = createAccountStore({
@@ -147,7 +153,8 @@ export function composeAccountServices({
   const identity = createAccountIdentityPorts(accounts);
   const composed = composeContributionRewards({
     backend: rewardBackend,
-    createLedger: (ports) => createLedger({ ...ports, deviceAuthority: ledgerDeviceAuthority, signerAuthority: createLedgerSignerAuthority(accounts) }),
+    createLedger: (ports) => createLedger({ ...ports, signerAuthority: createLedgerSignerAuthority(accounts),
+      deviceAuthority: (tx, request) => ledgerDeviceAuthority(tx, request, { poolAccountIds: communityPoolAccountIds }) }),
     rewardPolicy, issuancePolicy, identity, readAdmittedCapacity, otherProvenance, readinessProber, fundingAuthority, clock, createId, random
   });
   ledger = composed.ledger;
