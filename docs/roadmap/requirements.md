@@ -784,7 +784,7 @@ These new IDs implement the [product specification](../product-specification.md)
 
 ### REP-8
 
-Owner: Reploid chat / retrieval / UI. Status: Source retrieval and citation pipeline behind a provider interface, fixed test provider only (`13209c8c`); frozen whole-answer evaluation policies and a blinded review packet (`f16b5e49`); only an interim model review exists; human review is deferred until the complete experience works; acceptance open.
+Owner: Reploid chat / retrieval / UI. Status: Source retrieval and citation pipeline behind a provider interface (`13209c8c`); server-side Brave and SearXNG adapters, bounded page fetch with hashed passage offsets, claim-to-span mapping with deterministic citation validity, a blinded human review queue, an off-by-default stronger-model reviewer, and the per-answer search permission recording the approved text (`af124bf0`), tested with documented-format fixtures only; no live Brave key, budget or terms check yet; frozen whole-answer evaluation policies and a blinded review packet (`f16b5e49`); only an interim model review exists; human review is deferred until the complete experience works; acceptance open.
 
 Next action: Qualify a real search provider, automated support checker and enforced retrieval permissions through the installed application. Continue automated whole-answer regressions; defer human judging until the complete experience works. Dependencies: Launch 1 foundation; DR-3 disclosure; DR-5 installed execution.
 
