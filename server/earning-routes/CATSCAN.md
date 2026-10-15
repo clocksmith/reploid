@@ -7,7 +7,7 @@ Parent: [Hosted Services](../CATSCAN.md)
 Authenticated HTTP access to accounts, devices, quotes, reservations, balances, reward claims and operator funding, settlement and link records.
 
 ## Authority
-- Owns route authentication and authorization, body bounds, rate limits, Idempotency-Key transport, refusal statuses and the off-by-default mount.
+- Owns route authentication and authorization, body bounds, rate limits, Idempotency-Key bindings, refusal statuses and the off-by-default mount.
 - Excludes identity, balances, prices, reward validation, funding decisions and who holds operator credentials.
 
 ## Scope
@@ -26,9 +26,10 @@ Outputs:
 - Account and device come from the session; operator actors from the credential; neither from a body.
 - Spending, attempt binding, claims and delivery evidence need a session bound to an active device.
 - Clients never author quote terms.
+- An Idempotency-Key binds to its route, caller and canonical request; a different request conflicts, and callers never share results or component keys.
 - Unauthenticated bodies are never parsed; bodies parsed upstream are refused.
 - No local-development or loopback bypass; never mounted under `/pool`.
-- Production refuses missing or test-only sign-in providers and memory stores.
+- Production refuses missing or test-only sign-in providers and memory stores, bindings included.
 
 ## Acceptance
 - Evidence: [HTTP route tests](../../tests/integration/earning-routes.test.js) over memory and Firestore stores.
