@@ -1,0 +1,2245 @@
+{
+  "requester-alice": {
+    "session": {
+      "accountId": "acct_fcc5546ff63d5fe04cf03e068b8bec13",
+      "deviceId": "dev_cbc61069d9a39bcac5b6ad907f04666a",
+      "participantId": "peer:0684f548568fde351b80a541"
+    },
+    "account": {
+      "session": {
+        "sessionId": "ses_f08b2e6c-e107-4108-9b4b-fd9e8d9ec021",
+        "accountId": "acct_fcc5546ff63d5fe04cf03e068b8bec13",
+        "deviceId": "dev_cbc61069d9a39bcac5b6ad907f04666a"
+      },
+      "account": {
+        "accountId": "acct_fcc5546ff63d5fe04cf03e068b8bec13",
+        "ownerId": "owner_cc05478798ee7a392daed0c44cc221ad",
+        "providerId": "local-test",
+        "status": "active",
+        "activeDeviceIds": [
+          "dev_cbc61069d9a39bcac5b6ad907f04666a"
+        ],
+        "createdAt": "2026-10-15T14:10:56.192Z",
+        "creditAccountOpenedAt": "2026-10-15T14:10:56.192Z",
+        "recoveredAt": null
+      }
+    },
+    "devices": {
+      "devices": [
+        {
+          "deviceId": "dev_cbc61069d9a39bcac5b6ad907f04666a",
+          "participantId": "peer:0684f548568fde351b80a541",
+          "publicJwk": {
+            "kty": "OKP",
+            "crv": "Ed25519",
+            "x": "VHHjKfvy5Vdgz3sJ4eYOCYU8QEGsQ0JTY75p10I5tBk"
+          },
+          "host": "browser",
+          "label": null,
+          "status": "active",
+          "accountId": "acct_fcc5546ff63d5fe04cf03e068b8bec13",
+          "registrationId": "reg_c0bc99dd-7997-4dcb-8953-22237b7c34f9",
+          "registeredAt": "2026-10-15T14:10:56.240Z",
+          "revokedAt": null,
+          "revocation": null,
+          "ownerRecordId": null
+        }
+      ]
+    },
+    "balance": {
+      "accountId": "acct_fcc5546ff63d5fe04cf03e068b8bec13",
+      "ownerId": "owner_cc05478798ee7a392daed0c44cc221ad",
+      "sequence": 10,
+      "available": 970,
+      "held": 0,
+      "outstanding": 970,
+      "deficit": 0,
+      "transfersEnabled": false,
+      "byProvenance": {
+        "earned": {
+          "available": 0,
+          "held": 0,
+          "issued": 0,
+          "spent": 0,
+          "refunded": 0,
+          "reversed": 0
+        },
+        "subsidized": {
+          "available": 0,
+          "held": 0,
+          "issued": 0,
+          "spent": 0,
+          "refunded": 0,
+          "reversed": 0
+        },
+        "purchased": {
+          "available": 970,
+          "held": 0,
+          "issued": 1000,
+          "spent": 30,
+          "refunded": 0,
+          "reversed": 0
+        },
+        "donated": {
+          "available": 0,
+          "held": 0,
+          "issued": 0,
+          "spent": 0,
+          "refunded": 0,
+          "reversed": 0
+        },
+        "community_access": {
+          "available": 0,
+          "held": 0,
+          "issued": 0,
+          "spent": 0,
+          "refunded": 0,
+          "reversed": 0
+        }
+      },
+      "openLots": [
+        {
+          "lotId": "lot_e3fad21b624f0069d1e5918042ed5c1d",
+          "provenance": "purchased",
+          "issuedAt": "2026-10-15T14:10:56.587Z",
+          "available": 970,
+          "held": 0
+        }
+      ]
+    },
+    "journal": {
+      "entries": [
+        {
+          "schema": "reploid.credit-journal-entry/v1",
+          "entryId": "acct_fcc5546ff63d5fe04cf03e068b8bec13~000000000001",
+          "accountId": "acct_fcc5546ff63d5fe04cf03e068b8bec13",
+          "seq": 1,
+          "type": "issue",
+          "amount": 1000,
+          "lots": [
+            {
+              "lotId": "lot_e3fad21b624f0069d1e5918042ed5c1d",
+              "provenance": "purchased",
+              "issuedAt": "2026-10-15T14:10:56.587Z",
+              "amount": 1000
+            }
+          ],
+          "refs": {
+            "lotId": "lot_e3fad21b624f0069d1e5918042ed5c1d",
+            "sourceKey": "purchased:test-processor:pay_000001"
+          },
+          "at": "2026-10-15T14:10:56.587Z",
+          "balanceAfter": {
+            "available": 1000,
+            "held": 0
+          }
+        },
+        {
+          "schema": "reploid.credit-journal-entry/v1",
+          "entryId": "acct_fcc5546ff63d5fe04cf03e068b8bec13~000000000002",
+          "accountId": "acct_fcc5546ff63d5fe04cf03e068b8bec13",
+          "seq": 2,
+          "type": "reserve",
+          "amount": 20,
+          "lots": [
+            {
+              "lotId": "lot_e3fad21b624f0069d1e5918042ed5c1d",
+              "provenance": "purchased",
+              "issuedAt": "2026-10-15T14:10:56.587Z",
+              "amount": 20
+            }
+          ],
+          "refs": {
+            "quoteId": "quote_6f5363dc1cb98448344f00ffda953546",
+            "reservationId": "rsv:quote_6f5363dc1cb98448344f00ffda953546"
+          },
+          "at": "2026-10-15T14:10:57.435Z",
+          "balanceAfter": {
+            "available": 980,
+            "held": 20
+          }
+        },
+        {
+          "schema": "reploid.credit-journal-entry/v1",
+          "entryId": "acct_fcc5546ff63d5fe04cf03e068b8bec13~000000000003",
+          "accountId": "acct_fcc5546ff63d5fe04cf03e068b8bec13",
+          "seq": 3,
+          "type": "charge",
+          "amount": 10,
+          "lots": [
+            {
+              "lotId": "lot_e3fad21b624f0069d1e5918042ed5c1d",
+              "provenance": "purchased",
+              "issuedAt": "2026-10-15T14:10:56.587Z",
+              "amount": 10
+            }
+          ],
+          "refs": {
+            "quoteId": "quote_6f5363dc1cb98448344f00ffda953546",
+            "reservationId": "rsv:quote_6f5363dc1cb98448344f00ffda953546",
+            "settlementId": "stl:rsv:quote_6f5363dc1cb98448344f00ffda953546",
+            "billableEventId": "bill_2dad165521891dc47d4798fcc0e2152f"
+          },
+          "at": "2026-10-15T14:10:57.523Z",
+          "balanceAfter": {
+            "available": 990,
+            "held": 0
+          }
+        },
+        {
+          "schema": "reploid.credit-journal-entry/v1",
+          "entryId": "acct_fcc5546ff63d5fe04cf03e068b8bec13~000000000004",
+          "accountId": "acct_fcc5546ff63d5fe04cf03e068b8bec13",
+          "seq": 4,
+          "type": "release",
+          "amount": 10,
+          "lots": [
+            {
+              "lotId": "lot_e3fad21b624f0069d1e5918042ed5c1d",
+              "provenance": "purchased",
+              "issuedAt": "2026-10-15T14:10:56.587Z",
+              "amount": 10
+            }
+          ],
+          "refs": {
+            "quoteId": "quote_6f5363dc1cb98448344f00ffda953546",
+            "reservationId": "rsv:quote_6f5363dc1cb98448344f00ffda953546",
+            "settlementId": "stl:rsv:quote_6f5363dc1cb98448344f00ffda953546",
+            "billableEventId": "bill_2dad165521891dc47d4798fcc0e2152f"
+          },
+          "at": "2026-10-15T14:10:57.523Z",
+          "balanceAfter": {
+            "available": 990,
+            "held": 0
+          }
+        },
+        {
+          "schema": "reploid.credit-journal-entry/v1",
+          "entryId": "acct_fcc5546ff63d5fe04cf03e068b8bec13~000000000005",
+          "accountId": "acct_fcc5546ff63d5fe04cf03e068b8bec13",
+          "seq": 5,
+          "type": "reserve",
+          "amount": 20,
+          "lots": [
+            {
+              "lotId": "lot_e3fad21b624f0069d1e5918042ed5c1d",
+              "provenance": "purchased",
+              "issuedAt": "2026-10-15T14:10:56.587Z",
+              "amount": 20
+            }
+          ],
+          "refs": {
+            "quoteId": "quote_b9fb3bb9fe63a04e6c549bb408df2063",
+            "reservationId": "rsv:quote_b9fb3bb9fe63a04e6c549bb408df2063"
+          },
+          "at": "2026-10-15T14:10:57.728Z",
+          "balanceAfter": {
+            "available": 970,
+            "held": 20
+          }
+        },
+        {
+          "schema": "reploid.credit-journal-entry/v1",
+          "entryId": "acct_fcc5546ff63d5fe04cf03e068b8bec13~000000000006",
+          "accountId": "acct_fcc5546ff63d5fe04cf03e068b8bec13",
+          "seq": 6,
+          "type": "charge",
+          "amount": 10,
+          "lots": [
+            {
+              "lotId": "lot_e3fad21b624f0069d1e5918042ed5c1d",
+              "provenance": "purchased",
+              "issuedAt": "2026-10-15T14:10:56.587Z",
+              "amount": 10
+            }
+          ],
+          "refs": {
+            "quoteId": "quote_b9fb3bb9fe63a04e6c549bb408df2063",
+            "reservationId": "rsv:quote_b9fb3bb9fe63a04e6c549bb408df2063",
+            "settlementId": "stl:rsv:quote_b9fb3bb9fe63a04e6c549bb408df2063",
+            "billableEventId": "bill_66dd1347e5c5ec5a6708e4b6d7284896"
+          },
+          "at": "2026-10-15T14:10:57.821Z",
+          "balanceAfter": {
+            "available": 980,
+            "held": 0
+          }
+        },
+        {
+          "schema": "reploid.credit-journal-entry/v1",
+          "entryId": "acct_fcc5546ff63d5fe04cf03e068b8bec13~000000000007",
+          "accountId": "acct_fcc5546ff63d5fe04cf03e068b8bec13",
+          "seq": 7,
+          "type": "release",
+          "amount": 10,
+          "lots": [
+            {
+              "lotId": "lot_e3fad21b624f0069d1e5918042ed5c1d",
+              "provenance": "purchased",
+              "issuedAt": "2026-10-15T14:10:56.587Z",
+              "amount": 10
+            }
+          ],
+          "refs": {
+            "quoteId": "quote_b9fb3bb9fe63a04e6c549bb408df2063",
+            "reservationId": "rsv:quote_b9fb3bb9fe63a04e6c549bb408df2063",
+            "settlementId": "stl:rsv:quote_b9fb3bb9fe63a04e6c549bb408df2063",
+            "billableEventId": "bill_66dd1347e5c5ec5a6708e4b6d7284896"
+          },
+          "at": "2026-10-15T14:10:57.821Z",
+          "balanceAfter": {
+            "available": 980,
+            "held": 0
+          }
+        },
+        {
+          "schema": "reploid.credit-journal-entry/v1",
+          "entryId": "acct_fcc5546ff63d5fe04cf03e068b8bec13~000000000008",
+          "accountId": "acct_fcc5546ff63d5fe04cf03e068b8bec13",
+          "seq": 8,
+          "type": "reserve",
+          "amount": 20,
+          "lots": [
+            {
+              "lotId": "lot_e3fad21b624f0069d1e5918042ed5c1d",
+              "provenance": "purchased",
+              "issuedAt": "2026-10-15T14:10:56.587Z",
+              "amount": 20
+            }
+          ],
+          "refs": {
+            "quoteId": "quote_085c307c95153e9334389dff8efa534c",
+            "reservationId": "rsv:quote_085c307c95153e9334389dff8efa534c"
+          },
+          "at": "2026-10-15T14:10:58.000Z",
+          "balanceAfter": {
+            "available": 960,
+            "held": 20
+          }
+        },
+        {
+          "schema": "reploid.credit-journal-entry/v1",
+          "entryId": "acct_fcc5546ff63d5fe04cf03e068b8bec13~000000000009",
+          "accountId": "acct_fcc5546ff63d5fe04cf03e068b8bec13",
+          "seq": 9,
+          "type": "charge",
+          "amount": 10,
+          "lots": [
+            {
+              "lotId": "lot_e3fad21b624f0069d1e5918042ed5c1d",
+              "provenance": "purchased",
+              "issuedAt": "2026-10-15T14:10:56.587Z",
+              "amount": 10
+            }
+          ],
+          "refs": {
+            "quoteId": "quote_085c307c95153e9334389dff8efa534c",
+            "reservationId": "rsv:quote_085c307c95153e9334389dff8efa534c",
+            "settlementId": "stl:rsv:quote_085c307c95153e9334389dff8efa534c",
+            "billableEventId": "bill_d4c324361747104a5dcdb15565dc41a1"
+          },
+          "at": "2026-10-15T14:10:58.085Z",
+          "balanceAfter": {
+            "available": 970,
+            "held": 0
+          }
+        },
+        {
+          "schema": "reploid.credit-journal-entry/v1",
+          "entryId": "acct_fcc5546ff63d5fe04cf03e068b8bec13~000000000010",
+          "accountId": "acct_fcc5546ff63d5fe04cf03e068b8bec13",
+          "seq": 10,
+          "type": "release",
+          "amount": 10,
+          "lots": [
+            {
+              "lotId": "lot_e3fad21b624f0069d1e5918042ed5c1d",
+              "provenance": "purchased",
+              "issuedAt": "2026-10-15T14:10:56.587Z",
+              "amount": 10
+            }
+          ],
+          "refs": {
+            "quoteId": "quote_085c307c95153e9334389dff8efa534c",
+            "reservationId": "rsv:quote_085c307c95153e9334389dff8efa534c",
+            "settlementId": "stl:rsv:quote_085c307c95153e9334389dff8efa534c",
+            "billableEventId": "bill_d4c324361747104a5dcdb15565dc41a1"
+          },
+          "at": "2026-10-15T14:10:58.085Z",
+          "balanceAfter": {
+            "available": 970,
+            "held": 0
+          }
+        }
+      ]
+    },
+    "reservations": {
+      "reservations": [
+        {
+          "schema": "reploid.credit-reservation/v1",
+          "reservationId": "rsv:quote_6f5363dc1cb98448344f00ffda953546",
+          "quoteId": "quote_6f5363dc1cb98448344f00ffda953546",
+          "quoteHash": "sha256:cee065ea9aec190d9058f1462c619d9bfae3a5c22db4a0a1c0125e12e5939acd",
+          "accountId": "acct_fcc5546ff63d5fe04cf03e068b8bec13",
+          "deviceId": "dev_cbc61069d9a39bcac5b6ad907f04666a",
+          "contract": {
+            "id": "reploid.product-economics/1.0.0",
+            "documentRevision": "local-demo"
+          },
+          "accountingVersion": "local-demo-accounting/1",
+          "unit": {
+            "name": "credit",
+            "minorUnitsPerCredit": 1
+          },
+          "rounding": "ceil",
+          "service": {
+            "serviceRecordId": "svc_local_demo_fixture",
+            "model": {
+              "modelId": "model_test",
+              "checkpoint": "fixture",
+              "deployedRepresentation": "fixture",
+              "tokenizer": "fixture",
+              "adapters": []
+            },
+            "runtime": {
+              "runtimeId": "resident-route-fixture"
+            },
+            "operation": "chat.completion",
+            "limits": {
+              "context": {
+                "max": 4096,
+                "unit": "token",
+                "exceedance": "reject"
+              },
+              "output": {
+                "max": 8,
+                "unit": "token",
+                "exceedance": "stop_and_report"
+              }
+            },
+            "qualityPolicyVersion": "local-demo-quality/1",
+            "recipientScope": {
+              "policyId": "remote-contributor-permission"
+            },
+            "disclosureScope": {
+              "scopeId": "ordered-partition-activations-and-tokens"
+            },
+            "queueClass": "standard",
+            "deadline": "2026-10-15T14:13:57.382Z",
+            "firstOutputDeadline": "2026-10-15T14:11:27.382Z"
+          },
+          "pricing": {
+            "basis": {
+              "kind": "local_demo_base_plus_per_output_token"
+            },
+            "maxCharge": 20
+          },
+          "terms": {
+            "reservationPeriodMs": 600000,
+            "queue": {
+              "behavior": "fifo_bounded",
+              "maxWaitMs": 30000
+            },
+            "execution": {
+              "maxAttempts": 2,
+              "maxDurationMs": 180000
+            },
+            "evidence": {
+              "rulesId": "reploid.attempt-evidence-rules/1.1.0",
+              "windowMs": 120000,
+              "clockSkewMs": 30000,
+              "maxUnacknowledgedOutputs": 2
+            },
+            "refund": {
+              "policyId": "local-demo-refunds"
+            },
+            "qualityReview": {
+              "procedureId": "local-demo-review"
+            },
+            "settlement": {
+              "full": {
+                "kind": "metered",
+                "base": 4,
+                "rates": [
+                  {
+                    "meter": "output",
+                    "numerator": 2,
+                    "denominator": 1
+                  }
+                ]
+              },
+              "reduced": null,
+              "partialDelivery": {
+                "kind": "metered",
+                "base": 0,
+                "rates": [
+                  {
+                    "meter": "output",
+                    "numerator": 2,
+                    "denominator": 1
+                  }
+                ]
+              },
+              "cancellationQueued": {
+                "kind": "fixed",
+                "amount": 0
+              },
+              "cancellationDispatched": {
+                "kind": "metered",
+                "base": 0,
+                "rates": [
+                  {
+                    "meter": "output",
+                    "numerator": 2,
+                    "denominator": 1
+                  }
+                ]
+              },
+              "timeout": {
+                "kind": "fixed",
+                "amount": 0
+              },
+              "providerFailure": {
+                "kind": "fixed",
+                "amount": 0
+              },
+              "failedQuality": {
+                "kind": "fixed",
+                "amount": 0
+              }
+            },
+            "validUntil": "2026-10-15T14:11:57.382Z"
+          },
+          "authorizedMax": 20,
+          "draws": [
+            {
+              "lotId": "lot_e3fad21b624f0069d1e5918042ed5c1d",
+              "provenance": "purchased",
+              "issuedAt": "2026-10-15T14:10:56.587Z",
+              "amount": 20
+            }
+          ],
+          "status": "settled",
+          "acceptedAt": "2026-10-15T14:10:57.435Z",
+          "expiresAt": "2026-10-15T14:20:57.435Z",
+          "attempts": [
+            {
+              "attemptId": "3aac1c46-2f58-45b3-a4e7-96d03accda41",
+              "attemptNumber": 1,
+              "recipients": [
+                "peer:1a6591f91957e60eeb5f834a",
+                "peer:79e035d0f6e89e5947b14cee",
+                "peer:0684f548568fde351b80a541"
+              ],
+              "status": "settled",
+              "boundAt": "2026-10-15T14:10:57.477Z",
+              "closedAt": "2026-10-15T14:10:57.523Z",
+              "reason": null
+            }
+          ],
+          "billableEventId": "bill_2dad165521891dc47d4798fcc0e2152f",
+          "reviewId": null,
+          "settlement": {
+            "schema": "reploid.credit-settlement/v1",
+            "settlementId": "stl:rsv:quote_6f5363dc1cb98448344f00ffda953546",
+            "billableEventId": "bill_2dad165521891dc47d4798fcc0e2152f",
+            "reservationId": "rsv:quote_6f5363dc1cb98448344f00ffda953546",
+            "quoteId": "quote_6f5363dc1cb98448344f00ffda953546",
+            "quoteHash": "sha256:cee065ea9aec190d9058f1462c619d9bfae3a5c22db4a0a1c0125e12e5939acd",
+            "accountId": "acct_fcc5546ff63d5fe04cf03e068b8bec13",
+            "contract": {
+              "id": "reploid.product-economics/1.0.0",
+              "documentRevision": "local-demo"
+            },
+            "accountingVersion": "local-demo-accounting/1",
+            "unit": {
+              "name": "credit",
+              "minorUnitsPerCredit": 1
+            },
+            "rounding": "ceil",
+            "service": {
+              "serviceRecordId": "svc_local_demo_fixture",
+              "model": {
+                "modelId": "model_test",
+                "checkpoint": "fixture",
+                "deployedRepresentation": "fixture",
+                "tokenizer": "fixture",
+                "adapters": []
+              },
+              "runtime": {
+                "runtimeId": "resident-route-fixture"
+              },
+              "operation": "chat.completion",
+              "limits": {
+                "context": {
+                  "max": 4096,
+                  "unit": "token",
+                  "exceedance": "reject"
+                },
+                "output": {
+                  "max": 8,
+                  "unit": "token",
+                  "exceedance": "stop_and_report"
+                }
+              },
+              "qualityPolicyVersion": "local-demo-quality/1",
+              "recipientScope": {
+                "policyId": "remote-contributor-permission"
+              },
+              "disclosureScope": {
+                "scopeId": "ordered-partition-activations-and-tokens"
+              },
+              "queueClass": "standard",
+              "deadline": "2026-10-15T14:13:57.382Z",
+              "firstOutputDeadline": "2026-10-15T14:11:27.382Z"
+            },
+            "attempt": {
+              "attemptId": "3aac1c46-2f58-45b3-a4e7-96d03accda41",
+              "attemptNumber": 1,
+              "recipients": [
+                "peer:1a6591f91957e60eeb5f834a",
+                "peer:79e035d0f6e89e5947b14cee",
+                "peer:0684f548568fde351b80a541"
+              ]
+            },
+            "outcome": "full",
+            "phase": null,
+            "termKey": "full",
+            "formula": {
+              "kind": "metered",
+              "base": 4,
+              "rates": [
+                {
+                  "meter": "output",
+                  "numerator": 2,
+                  "denominator": 1
+                }
+              ]
+            },
+            "metering": {
+              "output": 3,
+              "context": 2
+            },
+            "completedAt": "2026-10-15T14:10:57.505Z",
+            "reason": null,
+            "review": null,
+            "authorizedMax": 20,
+            "charge": 10,
+            "released": 10,
+            "chargedLots": [
+              {
+                "lotId": "lot_e3fad21b624f0069d1e5918042ed5c1d",
+                "provenance": "purchased",
+                "issuedAt": "2026-10-15T14:10:56.587Z",
+                "amount": 10
+              }
+            ],
+            "releasedLots": [
+              {
+                "lotId": "lot_e3fad21b624f0069d1e5918042ed5c1d",
+                "provenance": "purchased",
+                "issuedAt": "2026-10-15T14:10:56.587Z",
+                "amount": 10
+              }
+            ],
+            "settledAt": "2026-10-15T14:10:57.523Z",
+            "basis": "report",
+            "rules": "reploid.attempt-evidence-rules/1.1.0",
+            "evidenceIds": [
+              "aev_91823af4994b54ae49dbf70cadba042c"
+            ],
+            "dispute": null
+          },
+          "refunds": {
+            "total": 0,
+            "byLot": {},
+            "refundIds": []
+          },
+          "updatedAt": "2026-10-15T14:10:57.523Z",
+          "report": {
+            "rule": "completed",
+            "attemptId": "3aac1c46-2f58-45b3-a4e7-96d03accda41",
+            "settle": {
+              "outcome": "full",
+              "attemptId": "3aac1c46-2f58-45b3-a4e7-96d03accda41",
+              "metering": {
+                "output": 3,
+                "context": 2
+              },
+              "completedAt": "2026-10-15T14:10:57.505Z"
+            },
+            "recordId": "atr_c18935d885b1b1b33a25ad0951b56636",
+            "reportedAt": "2026-10-15T14:10:57.523Z"
+          },
+          "dispute": null
+        },
+        {
+          "schema": "reploid.credit-reservation/v1",
+          "reservationId": "rsv:quote_b9fb3bb9fe63a04e6c549bb408df2063",
+          "quoteId": "quote_b9fb3bb9fe63a04e6c549bb408df2063",
+          "quoteHash": "sha256:a6cb6db0c6ba47d69985bb73601090470f3b9e9f0282bdc489ffa1a67f7babd3",
+          "accountId": "acct_fcc5546ff63d5fe04cf03e068b8bec13",
+          "deviceId": "dev_cbc61069d9a39bcac5b6ad907f04666a",
+          "contract": {
+            "id": "reploid.product-economics/1.0.0",
+            "documentRevision": "local-demo"
+          },
+          "accountingVersion": "local-demo-accounting/1",
+          "unit": {
+            "name": "credit",
+            "minorUnitsPerCredit": 1
+          },
+          "rounding": "ceil",
+          "service": {
+            "serviceRecordId": "svc_local_demo_fixture",
+            "model": {
+              "modelId": "model_test",
+              "checkpoint": "fixture",
+              "deployedRepresentation": "fixture",
+              "tokenizer": "fixture",
+              "adapters": []
+            },
+            "runtime": {
+              "runtimeId": "resident-route-fixture"
+            },
+            "operation": "chat.completion",
+            "limits": {
+              "context": {
+                "max": 4096,
+                "unit": "token",
+                "exceedance": "reject"
+              },
+              "output": {
+                "max": 8,
+                "unit": "token",
+                "exceedance": "stop_and_report"
+              }
+            },
+            "qualityPolicyVersion": "local-demo-quality/1",
+            "recipientScope": {
+              "policyId": "remote-contributor-permission"
+            },
+            "disclosureScope": {
+              "scopeId": "ordered-partition-activations-and-tokens"
+            },
+            "queueClass": "standard",
+            "deadline": "2026-10-15T14:13:57.679Z",
+            "firstOutputDeadline": "2026-10-15T14:11:27.679Z"
+          },
+          "pricing": {
+            "basis": {
+              "kind": "local_demo_base_plus_per_output_token"
+            },
+            "maxCharge": 20
+          },
+          "terms": {
+            "reservationPeriodMs": 600000,
+            "queue": {
+              "behavior": "fifo_bounded",
+              "maxWaitMs": 30000
+            },
+            "execution": {
+              "maxAttempts": 2,
+              "maxDurationMs": 180000
+            },
+            "evidence": {
+              "rulesId": "reploid.attempt-evidence-rules/1.1.0",
+              "windowMs": 120000,
+              "clockSkewMs": 30000,
+              "maxUnacknowledgedOutputs": 2
+            },
+            "refund": {
+              "policyId": "local-demo-refunds"
+            },
+            "qualityReview": {
+              "procedureId": "local-demo-review"
+            },
+            "settlement": {
+              "full": {
+                "kind": "metered",
+                "base": 4,
+                "rates": [
+                  {
+                    "meter": "output",
+                    "numerator": 2,
+                    "denominator": 1
+                  }
+                ]
+              },
+              "reduced": null,
+              "partialDelivery": {
+                "kind": "metered",
+                "base": 0,
+                "rates": [
+                  {
+                    "meter": "output",
+                    "numerator": 2,
+                    "denominator": 1
+                  }
+                ]
+              },
+              "cancellationQueued": {
+                "kind": "fixed",
+                "amount": 0
+              },
+              "cancellationDispatched": {
+                "kind": "metered",
+                "base": 0,
+                "rates": [
+                  {
+                    "meter": "output",
+                    "numerator": 2,
+                    "denominator": 1
+                  }
+                ]
+              },
+              "timeout": {
+                "kind": "fixed",
+                "amount": 0
+              },
+              "providerFailure": {
+                "kind": "fixed",
+                "amount": 0
+              },
+              "failedQuality": {
+                "kind": "fixed",
+                "amount": 0
+              }
+            },
+            "validUntil": "2026-10-15T14:11:57.679Z"
+          },
+          "authorizedMax": 20,
+          "draws": [
+            {
+              "lotId": "lot_e3fad21b624f0069d1e5918042ed5c1d",
+              "provenance": "purchased",
+              "issuedAt": "2026-10-15T14:10:56.587Z",
+              "amount": 20
+            }
+          ],
+          "status": "settled",
+          "acceptedAt": "2026-10-15T14:10:57.728Z",
+          "expiresAt": "2026-10-15T14:20:57.728Z",
+          "attempts": [
+            {
+              "attemptId": "bc417c0f-b3f7-4faf-ab38-07d8bebef560",
+              "attemptNumber": 1,
+              "recipients": [
+                "peer:1a6591f91957e60eeb5f834a",
+                "peer:79e035d0f6e89e5947b14cee",
+                "peer:0684f548568fde351b80a541"
+              ],
+              "status": "settled",
+              "boundAt": "2026-10-15T14:10:57.766Z",
+              "closedAt": "2026-10-15T14:10:57.821Z",
+              "reason": null
+            }
+          ],
+          "billableEventId": "bill_66dd1347e5c5ec5a6708e4b6d7284896",
+          "reviewId": null,
+          "settlement": {
+            "schema": "reploid.credit-settlement/v1",
+            "settlementId": "stl:rsv:quote_b9fb3bb9fe63a04e6c549bb408df2063",
+            "billableEventId": "bill_66dd1347e5c5ec5a6708e4b6d7284896",
+            "reservationId": "rsv:quote_b9fb3bb9fe63a04e6c549bb408df2063",
+            "quoteId": "quote_b9fb3bb9fe63a04e6c549bb408df2063",
+            "quoteHash": "sha256:a6cb6db0c6ba47d69985bb73601090470f3b9e9f0282bdc489ffa1a67f7babd3",
+            "accountId": "acct_fcc5546ff63d5fe04cf03e068b8bec13",
+            "contract": {
+              "id": "reploid.product-economics/1.0.0",
+              "documentRevision": "local-demo"
+            },
+            "accountingVersion": "local-demo-accounting/1",
+            "unit": {
+              "name": "credit",
+              "minorUnitsPerCredit": 1
+            },
+            "rounding": "ceil",
+            "service": {
+              "serviceRecordId": "svc_local_demo_fixture",
+              "model": {
+                "modelId": "model_test",
+                "checkpoint": "fixture",
+                "deployedRepresentation": "fixture",
+                "tokenizer": "fixture",
+                "adapters": []
+              },
+              "runtime": {
+                "runtimeId": "resident-route-fixture"
+              },
+              "operation": "chat.completion",
+              "limits": {
+                "context": {
+                  "max": 4096,
+                  "unit": "token",
+                  "exceedance": "reject"
+                },
+                "output": {
+                  "max": 8,
+                  "unit": "token",
+                  "exceedance": "stop_and_report"
+                }
+              },
+              "qualityPolicyVersion": "local-demo-quality/1",
+              "recipientScope": {
+                "policyId": "remote-contributor-permission"
+              },
+              "disclosureScope": {
+                "scopeId": "ordered-partition-activations-and-tokens"
+              },
+              "queueClass": "standard",
+              "deadline": "2026-10-15T14:13:57.679Z",
+              "firstOutputDeadline": "2026-10-15T14:11:27.679Z"
+            },
+            "attempt": {
+              "attemptId": "bc417c0f-b3f7-4faf-ab38-07d8bebef560",
+              "attemptNumber": 1,
+              "recipients": [
+                "peer:1a6591f91957e60eeb5f834a",
+                "peer:79e035d0f6e89e5947b14cee",
+                "peer:0684f548568fde351b80a541"
+              ]
+            },
+            "outcome": "full",
+            "phase": null,
+            "termKey": "full",
+            "formula": {
+              "kind": "metered",
+              "base": 4,
+              "rates": [
+                {
+                  "meter": "output",
+                  "numerator": 2,
+                  "denominator": 1
+                }
+              ]
+            },
+            "metering": {
+              "output": 3,
+              "context": 2
+            },
+            "completedAt": "2026-10-15T14:10:57.804Z",
+            "reason": null,
+            "review": null,
+            "authorizedMax": 20,
+            "charge": 10,
+            "released": 10,
+            "chargedLots": [
+              {
+                "lotId": "lot_e3fad21b624f0069d1e5918042ed5c1d",
+                "provenance": "purchased",
+                "issuedAt": "2026-10-15T14:10:56.587Z",
+                "amount": 10
+              }
+            ],
+            "releasedLots": [
+              {
+                "lotId": "lot_e3fad21b624f0069d1e5918042ed5c1d",
+                "provenance": "purchased",
+                "issuedAt": "2026-10-15T14:10:56.587Z",
+                "amount": 10
+              }
+            ],
+            "settledAt": "2026-10-15T14:10:57.821Z",
+            "basis": "report",
+            "rules": "reploid.attempt-evidence-rules/1.1.0",
+            "evidenceIds": [
+              "aev_489cedcc941e697cd75f4a3f4ea26b95"
+            ],
+            "dispute": null
+          },
+          "refunds": {
+            "total": 0,
+            "byLot": {},
+            "refundIds": []
+          },
+          "updatedAt": "2026-10-15T14:10:57.821Z",
+          "report": {
+            "rule": "completed",
+            "attemptId": "bc417c0f-b3f7-4faf-ab38-07d8bebef560",
+            "settle": {
+              "outcome": "full",
+              "attemptId": "bc417c0f-b3f7-4faf-ab38-07d8bebef560",
+              "metering": {
+                "output": 3,
+                "context": 2
+              },
+              "completedAt": "2026-10-15T14:10:57.804Z"
+            },
+            "recordId": "atr_63145808f068a3d99d89cab40643a35a",
+            "reportedAt": "2026-10-15T14:10:57.821Z"
+          },
+          "dispute": null
+        },
+        {
+          "schema": "reploid.credit-reservation/v1",
+          "reservationId": "rsv:quote_085c307c95153e9334389dff8efa534c",
+          "quoteId": "quote_085c307c95153e9334389dff8efa534c",
+          "quoteHash": "sha256:e360b8b5837dfb527f301b2c1aaed7541fb9b1cbb350d021cb875c799907ccbe",
+          "accountId": "acct_fcc5546ff63d5fe04cf03e068b8bec13",
+          "deviceId": "dev_cbc61069d9a39bcac5b6ad907f04666a",
+          "contract": {
+            "id": "reploid.product-economics/1.0.0",
+            "documentRevision": "local-demo"
+          },
+          "accountingVersion": "local-demo-accounting/1",
+          "unit": {
+            "name": "credit",
+            "minorUnitsPerCredit": 1
+          },
+          "rounding": "ceil",
+          "service": {
+            "serviceRecordId": "svc_local_demo_fixture",
+            "model": {
+              "modelId": "model_test",
+              "checkpoint": "fixture",
+              "deployedRepresentation": "fixture",
+              "tokenizer": "fixture",
+              "adapters": []
+            },
+            "runtime": {
+              "runtimeId": "resident-route-fixture"
+            },
+            "operation": "chat.completion",
+            "limits": {
+              "context": {
+                "max": 4096,
+                "unit": "token",
+                "exceedance": "reject"
+              },
+              "output": {
+                "max": 8,
+                "unit": "token",
+                "exceedance": "stop_and_report"
+              }
+            },
+            "qualityPolicyVersion": "local-demo-quality/1",
+            "recipientScope": {
+              "policyId": "remote-contributor-permission"
+            },
+            "disclosureScope": {
+              "scopeId": "ordered-partition-activations-and-tokens"
+            },
+            "queueClass": "standard",
+            "deadline": "2026-10-15T14:13:57.943Z",
+            "firstOutputDeadline": "2026-10-15T14:11:27.943Z"
+          },
+          "pricing": {
+            "basis": {
+              "kind": "local_demo_base_plus_per_output_token"
+            },
+            "maxCharge": 20
+          },
+          "terms": {
+            "reservationPeriodMs": 600000,
+            "queue": {
+              "behavior": "fifo_bounded",
+              "maxWaitMs": 30000
+            },
+            "execution": {
+              "maxAttempts": 2,
+              "maxDurationMs": 180000
+            },
+            "evidence": {
+              "rulesId": "reploid.attempt-evidence-rules/1.1.0",
+              "windowMs": 120000,
+              "clockSkewMs": 30000,
+              "maxUnacknowledgedOutputs": 2
+            },
+            "refund": {
+              "policyId": "local-demo-refunds"
+            },
+            "qualityReview": {
+              "procedureId": "local-demo-review"
+            },
+            "settlement": {
+              "full": {
+                "kind": "metered",
+                "base": 4,
+                "rates": [
+                  {
+                    "meter": "output",
+                    "numerator": 2,
+                    "denominator": 1
+                  }
+                ]
+              },
+              "reduced": null,
+              "partialDelivery": {
+                "kind": "metered",
+                "base": 0,
+                "rates": [
+                  {
+                    "meter": "output",
+                    "numerator": 2,
+                    "denominator": 1
+                  }
+                ]
+              },
+              "cancellationQueued": {
+                "kind": "fixed",
+                "amount": 0
+              },
+              "cancellationDispatched": {
+                "kind": "metered",
+                "base": 0,
+                "rates": [
+                  {
+                    "meter": "output",
+                    "numerator": 2,
+                    "denominator": 1
+                  }
+                ]
+              },
+              "timeout": {
+                "kind": "fixed",
+                "amount": 0
+              },
+              "providerFailure": {
+                "kind": "fixed",
+                "amount": 0
+              },
+              "failedQuality": {
+                "kind": "fixed",
+                "amount": 0
+              }
+            },
+            "validUntil": "2026-10-15T14:11:57.943Z"
+          },
+          "authorizedMax": 20,
+          "draws": [
+            {
+              "lotId": "lot_e3fad21b624f0069d1e5918042ed5c1d",
+              "provenance": "purchased",
+              "issuedAt": "2026-10-15T14:10:56.587Z",
+              "amount": 20
+            }
+          ],
+          "status": "settled",
+          "acceptedAt": "2026-10-15T14:10:58.000Z",
+          "expiresAt": "2026-10-15T14:20:58.000Z",
+          "attempts": [
+            {
+              "attemptId": "aed91497-930f-4f7d-9f1f-a73a2485673a",
+              "attemptNumber": 1,
+              "recipients": [
+                "peer:1a6591f91957e60eeb5f834a",
+                "peer:79e035d0f6e89e5947b14cee",
+                "peer:0684f548568fde351b80a541"
+              ],
+              "status": "settled",
+              "boundAt": "2026-10-15T14:10:58.039Z",
+              "closedAt": "2026-10-15T14:10:58.085Z",
+              "reason": null
+            }
+          ],
+          "billableEventId": "bill_d4c324361747104a5dcdb15565dc41a1",
+          "reviewId": null,
+          "settlement": {
+            "schema": "reploid.credit-settlement/v1",
+            "settlementId": "stl:rsv:quote_085c307c95153e9334389dff8efa534c",
+            "billableEventId": "bill_d4c324361747104a5dcdb15565dc41a1",
+            "reservationId": "rsv:quote_085c307c95153e9334389dff8efa534c",
+            "quoteId": "quote_085c307c95153e9334389dff8efa534c",
+            "quoteHash": "sha256:e360b8b5837dfb527f301b2c1aaed7541fb9b1cbb350d021cb875c799907ccbe",
+            "accountId": "acct_fcc5546ff63d5fe04cf03e068b8bec13",
+            "contract": {
+              "id": "reploid.product-economics/1.0.0",
+              "documentRevision": "local-demo"
+            },
+            "accountingVersion": "local-demo-accounting/1",
+            "unit": {
+              "name": "credit",
+              "minorUnitsPerCredit": 1
+            },
+            "rounding": "ceil",
+            "service": {
+              "serviceRecordId": "svc_local_demo_fixture",
+              "model": {
+                "modelId": "model_test",
+                "checkpoint": "fixture",
+                "deployedRepresentation": "fixture",
+                "tokenizer": "fixture",
+                "adapters": []
+              },
+              "runtime": {
+                "runtimeId": "resident-route-fixture"
+              },
+              "operation": "chat.completion",
+              "limits": {
+                "context": {
+                  "max": 4096,
+                  "unit": "token",
+                  "exceedance": "reject"
+                },
+                "output": {
+                  "max": 8,
+                  "unit": "token",
+                  "exceedance": "stop_and_report"
+                }
+              },
+              "qualityPolicyVersion": "local-demo-quality/1",
+              "recipientScope": {
+                "policyId": "remote-contributor-permission"
+              },
+              "disclosureScope": {
+                "scopeId": "ordered-partition-activations-and-tokens"
+              },
+              "queueClass": "standard",
+              "deadline": "2026-10-15T14:13:57.943Z",
+              "firstOutputDeadline": "2026-10-15T14:11:27.943Z"
+            },
+            "attempt": {
+              "attemptId": "aed91497-930f-4f7d-9f1f-a73a2485673a",
+              "attemptNumber": 1,
+              "recipients": [
+                "peer:1a6591f91957e60eeb5f834a",
+                "peer:79e035d0f6e89e5947b14cee",
+                "peer:0684f548568fde351b80a541"
+              ]
+            },
+            "outcome": "full",
+            "phase": null,
+            "termKey": "full",
+            "formula": {
+              "kind": "metered",
+              "base": 4,
+              "rates": [
+                {
+                  "meter": "output",
+                  "numerator": 2,
+                  "denominator": 1
+                }
+              ]
+            },
+            "metering": {
+              "output": 3,
+              "context": 2
+            },
+            "completedAt": "2026-10-15T14:10:58.068Z",
+            "reason": null,
+            "review": null,
+            "authorizedMax": 20,
+            "charge": 10,
+            "released": 10,
+            "chargedLots": [
+              {
+                "lotId": "lot_e3fad21b624f0069d1e5918042ed5c1d",
+                "provenance": "purchased",
+                "issuedAt": "2026-10-15T14:10:56.587Z",
+                "amount": 10
+              }
+            ],
+            "releasedLots": [
+              {
+                "lotId": "lot_e3fad21b624f0069d1e5918042ed5c1d",
+                "provenance": "purchased",
+                "issuedAt": "2026-10-15T14:10:56.587Z",
+                "amount": 10
+              }
+            ],
+            "settledAt": "2026-10-15T14:10:58.085Z",
+            "basis": "report",
+            "rules": "reploid.attempt-evidence-rules/1.1.0",
+            "evidenceIds": [
+              "aev_786f5db46cd5f753c9cf8a235f498b61"
+            ],
+            "dispute": null
+          },
+          "refunds": {
+            "total": 0,
+            "byLot": {},
+            "refundIds": []
+          },
+          "updatedAt": "2026-10-15T14:10:58.085Z",
+          "report": {
+            "rule": "completed",
+            "attemptId": "aed91497-930f-4f7d-9f1f-a73a2485673a",
+            "settle": {
+              "outcome": "full",
+              "attemptId": "aed91497-930f-4f7d-9f1f-a73a2485673a",
+              "metering": {
+                "output": 3,
+                "context": 2
+              },
+              "completedAt": "2026-10-15T14:10:58.068Z"
+            },
+            "recordId": "atr_9016bb272668d0aef6fece321e57bd71",
+            "reportedAt": "2026-10-15T14:10:58.085Z"
+          },
+          "dispute": null
+        }
+      ]
+    }
+  },
+  "contributor-carol": {
+    "session": {
+      "accountId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7",
+      "deviceId": "dev_2c74da62039d5b920b1ebc7350f1e24c",
+      "participantId": "peer:68b01de29e913c3172ac0da0"
+    },
+    "account": {
+      "session": {
+        "sessionId": "ses_f87c6657-5c16-4402-bc94-902c2c58e64e",
+        "accountId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7",
+        "deviceId": "dev_2c74da62039d5b920b1ebc7350f1e24c"
+      },
+      "account": {
+        "accountId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7",
+        "ownerId": "owner_4d2ad8885d9cad66ef85ca158aa1fb87",
+        "providerId": "local-test",
+        "status": "active",
+        "activeDeviceIds": [
+          "dev_6b9e6b6caad6646a3935b4c61c560a96",
+          "dev_c373dd8457a49454856bc60fbf20976f",
+          "dev_2c74da62039d5b920b1ebc7350f1e24c"
+        ],
+        "createdAt": "2026-10-15T14:10:54.905Z",
+        "creditAccountOpenedAt": "2026-10-15T14:10:54.905Z",
+        "recoveredAt": null
+      }
+    },
+    "devices": {
+      "devices": [
+        {
+          "deviceId": "dev_6b9e6b6caad6646a3935b4c61c560a96",
+          "participantId": "peer:1a6591f91957e60eeb5f834a",
+          "publicJwk": {
+            "kty": "OKP",
+            "crv": "Ed25519",
+            "x": "tMH46UilO_H2WBBXSTYHTksHI2uqIDkOAp8MQTItrlw"
+          },
+          "host": "native",
+          "label": null,
+          "status": "active",
+          "accountId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7",
+          "registrationId": "reg_3b6a57ae-588a-47d9-8ecc-2c53ba247f4e",
+          "registeredAt": "2026-10-15T14:10:54.959Z",
+          "revokedAt": null,
+          "revocation": null,
+          "ownerRecordId": "own_d1012774-464f-41cd-aa87-a683aae0c942"
+        },
+        {
+          "deviceId": "dev_c373dd8457a49454856bc60fbf20976f",
+          "participantId": "peer:79e035d0f6e89e5947b14cee",
+          "publicJwk": {
+            "kty": "OKP",
+            "crv": "Ed25519",
+            "x": "e7in-wmhqgGwfSsofGLEXhpKwd1NCa-aGg93s42OjTc"
+          },
+          "host": "native",
+          "label": null,
+          "status": "active",
+          "accountId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7",
+          "registrationId": "reg_351d6a60-8185-42ee-954d-4b5095425d5b",
+          "registeredAt": "2026-10-15T14:10:55.080Z",
+          "revokedAt": null,
+          "revocation": null,
+          "ownerRecordId": "own_57aaa1fd-5855-49a0-b9c7-d6236ae698c2"
+        },
+        {
+          "deviceId": "dev_2c74da62039d5b920b1ebc7350f1e24c",
+          "participantId": "peer:68b01de29e913c3172ac0da0",
+          "publicJwk": {
+            "kty": "OKP",
+            "crv": "Ed25519",
+            "x": "KjQIOW95Iak1g_Oa6ZRHXj9e340rDZJHGX3nzXwBDyg"
+          },
+          "host": "browser",
+          "label": null,
+          "status": "active",
+          "accountId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7",
+          "registrationId": "reg_c1e17f6b-4e82-458d-89e1-62934ca24666",
+          "registeredAt": "2026-10-15T14:11:00.511Z",
+          "revokedAt": null,
+          "revocation": null,
+          "ownerRecordId": null
+        }
+      ]
+    },
+    "balance": {
+      "accountId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7",
+      "ownerId": "owner_4d2ad8885d9cad66ef85ca158aa1fb87",
+      "sequence": 11,
+      "available": 22,
+      "held": 0,
+      "outstanding": 22,
+      "deficit": 0,
+      "transfersEnabled": false,
+      "byProvenance": {
+        "earned": {
+          "available": 22,
+          "held": 0,
+          "issued": 32,
+          "spent": 10,
+          "refunded": 0,
+          "reversed": 0
+        },
+        "subsidized": {
+          "available": 0,
+          "held": 0,
+          "issued": 0,
+          "spent": 0,
+          "refunded": 0,
+          "reversed": 0
+        },
+        "purchased": {
+          "available": 0,
+          "held": 0,
+          "issued": 0,
+          "spent": 0,
+          "refunded": 0,
+          "reversed": 0
+        },
+        "donated": {
+          "available": 0,
+          "held": 0,
+          "issued": 0,
+          "spent": 0,
+          "refunded": 0,
+          "reversed": 0
+        },
+        "community_access": {
+          "available": 0,
+          "held": 0,
+          "issued": 0,
+          "spent": 0,
+          "refunded": 0,
+          "reversed": 0
+        }
+      },
+      "openLots": [
+        {
+          "lotId": "lot_06028a99492e8077e74c8a4c67bbf407",
+          "provenance": "earned",
+          "issuedAt": "2026-10-15T14:10:59.815Z",
+          "available": 4,
+          "held": 0
+        },
+        {
+          "lotId": "lot_2186e669fae1689b39f4b25dceed5b16",
+          "provenance": "earned",
+          "issuedAt": "2026-10-15T14:10:59.577Z",
+          "available": 2,
+          "held": 0
+        },
+        {
+          "lotId": "lot_228b9c02505e3caa16e552a5944df9c8",
+          "provenance": "earned",
+          "issuedAt": "2026-10-15T14:10:59.897Z",
+          "available": 4,
+          "held": 0
+        },
+        {
+          "lotId": "lot_ca08b2c3d72dc537150372e6cf60807e",
+          "provenance": "earned",
+          "issuedAt": "2026-10-15T14:10:59.978Z",
+          "available": 4,
+          "held": 0
+        },
+        {
+          "lotId": "lot_dba67063f347490bbf992bb7e5fe07ab",
+          "provenance": "earned",
+          "issuedAt": "2026-10-15T14:11:03.414Z",
+          "available": 4,
+          "held": 0
+        },
+        {
+          "lotId": "lot_e5b6a274b2817add26fc800ff3d9a446",
+          "provenance": "earned",
+          "issuedAt": "2026-10-15T14:11:03.279Z",
+          "available": 4,
+          "held": 0
+        }
+      ]
+    },
+    "journal": {
+      "entries": [
+        {
+          "schema": "reploid.credit-journal-entry/v1",
+          "entryId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7~000000000001",
+          "accountId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7",
+          "seq": 1,
+          "type": "issue",
+          "amount": 4,
+          "lots": [
+            {
+              "lotId": "lot_734ed08da89dff108e89986ae0e45bb1",
+              "provenance": "earned",
+              "issuedAt": "2026-10-15T14:10:59.406Z",
+              "amount": 4
+            }
+          ],
+          "refs": {
+            "lotId": "lot_734ed08da89dff108e89986ae0e45bb1",
+            "sourceKey": "reward:computation:dinf_6050fc4d431a6ccd7c7a66f19340c450"
+          },
+          "at": "2026-10-15T14:10:59.406Z",
+          "balanceAfter": {
+            "available": 4,
+            "held": 0
+          }
+        },
+        {
+          "schema": "reploid.credit-journal-entry/v1",
+          "entryId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7~000000000002",
+          "accountId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7",
+          "seq": 2,
+          "type": "issue",
+          "amount": 4,
+          "lots": [
+            {
+              "lotId": "lot_20314933c8a489e212920ca766bf3396",
+              "provenance": "earned",
+              "issuedAt": "2026-10-15T14:10:59.488Z",
+              "amount": 4
+            }
+          ],
+          "refs": {
+            "lotId": "lot_20314933c8a489e212920ca766bf3396",
+            "sourceKey": "reward:computation:dinf_0ec9f76bfd6f6403822ce70d3609aea0"
+          },
+          "at": "2026-10-15T14:10:59.488Z",
+          "balanceAfter": {
+            "available": 8,
+            "held": 0
+          }
+        },
+        {
+          "schema": "reploid.credit-journal-entry/v1",
+          "entryId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7~000000000003",
+          "accountId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7",
+          "seq": 3,
+          "type": "issue",
+          "amount": 4,
+          "lots": [
+            {
+              "lotId": "lot_2186e669fae1689b39f4b25dceed5b16",
+              "provenance": "earned",
+              "issuedAt": "2026-10-15T14:10:59.577Z",
+              "amount": 4
+            }
+          ],
+          "refs": {
+            "lotId": "lot_2186e669fae1689b39f4b25dceed5b16",
+            "sourceKey": "reward:computation:dinf_edee23322d8c7c4107b51b2175705019"
+          },
+          "at": "2026-10-15T14:10:59.577Z",
+          "balanceAfter": {
+            "available": 12,
+            "held": 0
+          }
+        },
+        {
+          "schema": "reploid.credit-journal-entry/v1",
+          "entryId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7~000000000004",
+          "accountId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7",
+          "seq": 4,
+          "type": "issue",
+          "amount": 4,
+          "lots": [
+            {
+              "lotId": "lot_06028a99492e8077e74c8a4c67bbf407",
+              "provenance": "earned",
+              "issuedAt": "2026-10-15T14:10:59.815Z",
+              "amount": 4
+            }
+          ],
+          "refs": {
+            "lotId": "lot_06028a99492e8077e74c8a4c67bbf407",
+            "sourceKey": "reward:computation:dinf_e6f66c6be886f992b9cb6f8c77cf5972"
+          },
+          "at": "2026-10-15T14:10:59.815Z",
+          "balanceAfter": {
+            "available": 16,
+            "held": 0
+          }
+        },
+        {
+          "schema": "reploid.credit-journal-entry/v1",
+          "entryId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7~000000000005",
+          "accountId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7",
+          "seq": 5,
+          "type": "issue",
+          "amount": 4,
+          "lots": [
+            {
+              "lotId": "lot_228b9c02505e3caa16e552a5944df9c8",
+              "provenance": "earned",
+              "issuedAt": "2026-10-15T14:10:59.897Z",
+              "amount": 4
+            }
+          ],
+          "refs": {
+            "lotId": "lot_228b9c02505e3caa16e552a5944df9c8",
+            "sourceKey": "reward:computation:dinf_c217d808b376078e755988371478c88e"
+          },
+          "at": "2026-10-15T14:10:59.897Z",
+          "balanceAfter": {
+            "available": 20,
+            "held": 0
+          }
+        },
+        {
+          "schema": "reploid.credit-journal-entry/v1",
+          "entryId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7~000000000006",
+          "accountId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7",
+          "seq": 6,
+          "type": "issue",
+          "amount": 4,
+          "lots": [
+            {
+              "lotId": "lot_ca08b2c3d72dc537150372e6cf60807e",
+              "provenance": "earned",
+              "issuedAt": "2026-10-15T14:10:59.978Z",
+              "amount": 4
+            }
+          ],
+          "refs": {
+            "lotId": "lot_ca08b2c3d72dc537150372e6cf60807e",
+            "sourceKey": "reward:computation:dinf_948135cd2b4dd383867bb97521b9d061"
+          },
+          "at": "2026-10-15T14:10:59.978Z",
+          "balanceAfter": {
+            "available": 24,
+            "held": 0
+          }
+        },
+        {
+          "schema": "reploid.credit-journal-entry/v1",
+          "entryId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7~000000000007",
+          "accountId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7",
+          "seq": 7,
+          "type": "reserve",
+          "amount": 20,
+          "lots": [
+            {
+              "lotId": "lot_734ed08da89dff108e89986ae0e45bb1",
+              "provenance": "earned",
+              "issuedAt": "2026-10-15T14:10:59.406Z",
+              "amount": 4
+            },
+            {
+              "lotId": "lot_20314933c8a489e212920ca766bf3396",
+              "provenance": "earned",
+              "issuedAt": "2026-10-15T14:10:59.488Z",
+              "amount": 4
+            },
+            {
+              "lotId": "lot_2186e669fae1689b39f4b25dceed5b16",
+              "provenance": "earned",
+              "issuedAt": "2026-10-15T14:10:59.577Z",
+              "amount": 4
+            },
+            {
+              "lotId": "lot_06028a99492e8077e74c8a4c67bbf407",
+              "provenance": "earned",
+              "issuedAt": "2026-10-15T14:10:59.815Z",
+              "amount": 4
+            },
+            {
+              "lotId": "lot_228b9c02505e3caa16e552a5944df9c8",
+              "provenance": "earned",
+              "issuedAt": "2026-10-15T14:10:59.897Z",
+              "amount": 4
+            }
+          ],
+          "refs": {
+            "quoteId": "quote_6f06234d62979e2c1775caebdc036e87",
+            "reservationId": "rsv:quote_6f06234d62979e2c1775caebdc036e87"
+          },
+          "at": "2026-10-15T14:11:00.960Z",
+          "balanceAfter": {
+            "available": 4,
+            "held": 20
+          }
+        },
+        {
+          "schema": "reploid.credit-journal-entry/v1",
+          "entryId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7~000000000008",
+          "accountId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7",
+          "seq": 8,
+          "type": "charge",
+          "amount": 10,
+          "lots": [
+            {
+              "lotId": "lot_734ed08da89dff108e89986ae0e45bb1",
+              "provenance": "earned",
+              "issuedAt": "2026-10-15T14:10:59.406Z",
+              "amount": 4
+            },
+            {
+              "lotId": "lot_20314933c8a489e212920ca766bf3396",
+              "provenance": "earned",
+              "issuedAt": "2026-10-15T14:10:59.488Z",
+              "amount": 4
+            },
+            {
+              "lotId": "lot_2186e669fae1689b39f4b25dceed5b16",
+              "provenance": "earned",
+              "issuedAt": "2026-10-15T14:10:59.577Z",
+              "amount": 2
+            }
+          ],
+          "refs": {
+            "quoteId": "quote_6f06234d62979e2c1775caebdc036e87",
+            "reservationId": "rsv:quote_6f06234d62979e2c1775caebdc036e87",
+            "settlementId": "stl:rsv:quote_6f06234d62979e2c1775caebdc036e87",
+            "billableEventId": "bill_87ffe0e8a806780cfc24cb308350d8b3"
+          },
+          "at": "2026-10-15T14:11:01.033Z",
+          "balanceAfter": {
+            "available": 14,
+            "held": 0
+          }
+        },
+        {
+          "schema": "reploid.credit-journal-entry/v1",
+          "entryId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7~000000000009",
+          "accountId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7",
+          "seq": 9,
+          "type": "release",
+          "amount": 10,
+          "lots": [
+            {
+              "lotId": "lot_2186e669fae1689b39f4b25dceed5b16",
+              "provenance": "earned",
+              "issuedAt": "2026-10-15T14:10:59.577Z",
+              "amount": 2
+            },
+            {
+              "lotId": "lot_06028a99492e8077e74c8a4c67bbf407",
+              "provenance": "earned",
+              "issuedAt": "2026-10-15T14:10:59.815Z",
+              "amount": 4
+            },
+            {
+              "lotId": "lot_228b9c02505e3caa16e552a5944df9c8",
+              "provenance": "earned",
+              "issuedAt": "2026-10-15T14:10:59.897Z",
+              "amount": 4
+            }
+          ],
+          "refs": {
+            "quoteId": "quote_6f06234d62979e2c1775caebdc036e87",
+            "reservationId": "rsv:quote_6f06234d62979e2c1775caebdc036e87",
+            "settlementId": "stl:rsv:quote_6f06234d62979e2c1775caebdc036e87",
+            "billableEventId": "bill_87ffe0e8a806780cfc24cb308350d8b3"
+          },
+          "at": "2026-10-15T14:11:01.033Z",
+          "balanceAfter": {
+            "available": 14,
+            "held": 0
+          }
+        },
+        {
+          "schema": "reploid.credit-journal-entry/v1",
+          "entryId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7~000000000010",
+          "accountId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7",
+          "seq": 10,
+          "type": "issue",
+          "amount": 4,
+          "lots": [
+            {
+              "lotId": "lot_e5b6a274b2817add26fc800ff3d9a446",
+              "provenance": "earned",
+              "issuedAt": "2026-10-15T14:11:03.279Z",
+              "amount": 4
+            }
+          ],
+          "refs": {
+            "lotId": "lot_e5b6a274b2817add26fc800ff3d9a446",
+            "sourceKey": "reward:computation:dinf_9a493f1bbeb470071c4ad28a1d79b6a3"
+          },
+          "at": "2026-10-15T14:11:03.279Z",
+          "balanceAfter": {
+            "available": 18,
+            "held": 0
+          }
+        },
+        {
+          "schema": "reploid.credit-journal-entry/v1",
+          "entryId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7~000000000011",
+          "accountId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7",
+          "seq": 11,
+          "type": "issue",
+          "amount": 4,
+          "lots": [
+            {
+              "lotId": "lot_dba67063f347490bbf992bb7e5fe07ab",
+              "provenance": "earned",
+              "issuedAt": "2026-10-15T14:11:03.414Z",
+              "amount": 4
+            }
+          ],
+          "refs": {
+            "lotId": "lot_dba67063f347490bbf992bb7e5fe07ab",
+            "sourceKey": "reward:computation:dinf_300ad4950c9a8ecdd51e47dbc6a78c27"
+          },
+          "at": "2026-10-15T14:11:03.414Z",
+          "balanceAfter": {
+            "available": 22,
+            "held": 0
+          }
+        }
+      ]
+    },
+    "reservations": {
+      "reservations": [
+        {
+          "schema": "reploid.credit-reservation/v1",
+          "reservationId": "rsv:quote_6f06234d62979e2c1775caebdc036e87",
+          "quoteId": "quote_6f06234d62979e2c1775caebdc036e87",
+          "quoteHash": "sha256:c1f7f6385681f451d0de5c6dc8c02eef049e077f05a8b2393a579678d32a90c5",
+          "accountId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7",
+          "deviceId": "dev_2c74da62039d5b920b1ebc7350f1e24c",
+          "contract": {
+            "id": "reploid.product-economics/1.0.0",
+            "documentRevision": "local-demo"
+          },
+          "accountingVersion": "local-demo-accounting/1",
+          "unit": {
+            "name": "credit",
+            "minorUnitsPerCredit": 1
+          },
+          "rounding": "ceil",
+          "service": {
+            "serviceRecordId": "svc_local_demo_fixture",
+            "model": {
+              "modelId": "model_test",
+              "checkpoint": "fixture",
+              "deployedRepresentation": "fixture",
+              "tokenizer": "fixture",
+              "adapters": []
+            },
+            "runtime": {
+              "runtimeId": "resident-route-fixture"
+            },
+            "operation": "chat.completion",
+            "limits": {
+              "context": {
+                "max": 4096,
+                "unit": "token",
+                "exceedance": "reject"
+              },
+              "output": {
+                "max": 8,
+                "unit": "token",
+                "exceedance": "stop_and_report"
+              }
+            },
+            "qualityPolicyVersion": "local-demo-quality/1",
+            "recipientScope": {
+              "policyId": "remote-contributor-permission"
+            },
+            "disclosureScope": {
+              "scopeId": "ordered-partition-activations-and-tokens"
+            },
+            "queueClass": "standard",
+            "deadline": "2026-10-15T14:14:00.913Z",
+            "firstOutputDeadline": "2026-10-15T14:11:30.913Z"
+          },
+          "pricing": {
+            "basis": {
+              "kind": "local_demo_base_plus_per_output_token"
+            },
+            "maxCharge": 20
+          },
+          "terms": {
+            "reservationPeriodMs": 600000,
+            "queue": {
+              "behavior": "fifo_bounded",
+              "maxWaitMs": 30000
+            },
+            "execution": {
+              "maxAttempts": 2,
+              "maxDurationMs": 180000
+            },
+            "evidence": {
+              "rulesId": "reploid.attempt-evidence-rules/1.1.0",
+              "windowMs": 120000,
+              "clockSkewMs": 30000,
+              "maxUnacknowledgedOutputs": 2
+            },
+            "refund": {
+              "policyId": "local-demo-refunds"
+            },
+            "qualityReview": {
+              "procedureId": "local-demo-review"
+            },
+            "settlement": {
+              "full": {
+                "kind": "metered",
+                "base": 4,
+                "rates": [
+                  {
+                    "meter": "output",
+                    "numerator": 2,
+                    "denominator": 1
+                  }
+                ]
+              },
+              "reduced": null,
+              "partialDelivery": {
+                "kind": "metered",
+                "base": 0,
+                "rates": [
+                  {
+                    "meter": "output",
+                    "numerator": 2,
+                    "denominator": 1
+                  }
+                ]
+              },
+              "cancellationQueued": {
+                "kind": "fixed",
+                "amount": 0
+              },
+              "cancellationDispatched": {
+                "kind": "metered",
+                "base": 0,
+                "rates": [
+                  {
+                    "meter": "output",
+                    "numerator": 2,
+                    "denominator": 1
+                  }
+                ]
+              },
+              "timeout": {
+                "kind": "fixed",
+                "amount": 0
+              },
+              "providerFailure": {
+                "kind": "fixed",
+                "amount": 0
+              },
+              "failedQuality": {
+                "kind": "fixed",
+                "amount": 0
+              }
+            },
+            "validUntil": "2026-10-15T14:12:00.913Z"
+          },
+          "authorizedMax": 20,
+          "draws": [
+            {
+              "lotId": "lot_734ed08da89dff108e89986ae0e45bb1",
+              "provenance": "earned",
+              "issuedAt": "2026-10-15T14:10:59.406Z",
+              "amount": 4
+            },
+            {
+              "lotId": "lot_20314933c8a489e212920ca766bf3396",
+              "provenance": "earned",
+              "issuedAt": "2026-10-15T14:10:59.488Z",
+              "amount": 4
+            },
+            {
+              "lotId": "lot_2186e669fae1689b39f4b25dceed5b16",
+              "provenance": "earned",
+              "issuedAt": "2026-10-15T14:10:59.577Z",
+              "amount": 4
+            },
+            {
+              "lotId": "lot_06028a99492e8077e74c8a4c67bbf407",
+              "provenance": "earned",
+              "issuedAt": "2026-10-15T14:10:59.815Z",
+              "amount": 4
+            },
+            {
+              "lotId": "lot_228b9c02505e3caa16e552a5944df9c8",
+              "provenance": "earned",
+              "issuedAt": "2026-10-15T14:10:59.897Z",
+              "amount": 4
+            }
+          ],
+          "status": "settled",
+          "acceptedAt": "2026-10-15T14:11:00.960Z",
+          "expiresAt": "2026-10-15T14:21:00.960Z",
+          "attempts": [
+            {
+              "attemptId": "dfd5fefd-31e1-4b9a-baf8-9ea0410b58b7",
+              "attemptNumber": 1,
+              "recipients": [
+                "peer:1a6591f91957e60eeb5f834a",
+                "peer:79e035d0f6e89e5947b14cee",
+                "peer:68b01de29e913c3172ac0da0"
+              ],
+              "status": "settled",
+              "boundAt": "2026-10-15T14:11:00.993Z",
+              "closedAt": "2026-10-15T14:11:01.033Z",
+              "reason": null
+            }
+          ],
+          "billableEventId": "bill_87ffe0e8a806780cfc24cb308350d8b3",
+          "reviewId": null,
+          "settlement": {
+            "schema": "reploid.credit-settlement/v1",
+            "settlementId": "stl:rsv:quote_6f06234d62979e2c1775caebdc036e87",
+            "billableEventId": "bill_87ffe0e8a806780cfc24cb308350d8b3",
+            "reservationId": "rsv:quote_6f06234d62979e2c1775caebdc036e87",
+            "quoteId": "quote_6f06234d62979e2c1775caebdc036e87",
+            "quoteHash": "sha256:c1f7f6385681f451d0de5c6dc8c02eef049e077f05a8b2393a579678d32a90c5",
+            "accountId": "acct_c2172be94bf87ecf2ac0b1affac9e1a7",
+            "contract": {
+              "id": "reploid.product-economics/1.0.0",
+              "documentRevision": "local-demo"
+            },
+            "accountingVersion": "local-demo-accounting/1",
+            "unit": {
+              "name": "credit",
+              "minorUnitsPerCredit": 1
+            },
+            "rounding": "ceil",
+            "service": {
+              "serviceRecordId": "svc_local_demo_fixture",
+              "model": {
+                "modelId": "model_test",
+                "checkpoint": "fixture",
+                "deployedRepresentation": "fixture",
+                "tokenizer": "fixture",
+                "adapters": []
+              },
+              "runtime": {
+                "runtimeId": "resident-route-fixture"
+              },
+              "operation": "chat.completion",
+              "limits": {
+                "context": {
+                  "max": 4096,
+                  "unit": "token",
+                  "exceedance": "reject"
+                },
+                "output": {
+                  "max": 8,
+                  "unit": "token",
+                  "exceedance": "stop_and_report"
+                }
+              },
+              "qualityPolicyVersion": "local-demo-quality/1",
+              "recipientScope": {
+                "policyId": "remote-contributor-permission"
+              },
+              "disclosureScope": {
+                "scopeId": "ordered-partition-activations-and-tokens"
+              },
+              "queueClass": "standard",
+              "deadline": "2026-10-15T14:14:00.913Z",
+              "firstOutputDeadline": "2026-10-15T14:11:30.913Z"
+            },
+            "attempt": {
+              "attemptId": "dfd5fefd-31e1-4b9a-baf8-9ea0410b58b7",
+              "attemptNumber": 1,
+              "recipients": [
+                "peer:1a6591f91957e60eeb5f834a",
+                "peer:79e035d0f6e89e5947b14cee",
+                "peer:68b01de29e913c3172ac0da0"
+              ]
+            },
+            "outcome": "full",
+            "phase": null,
+            "termKey": "full",
+            "formula": {
+              "kind": "metered",
+              "base": 4,
+              "rates": [
+                {
+                  "meter": "output",
+                  "numerator": 2,
+                  "denominator": 1
+                }
+              ]
+            },
+            "metering": {
+              "output": 3,
+              "context": 2
+            },
+            "completedAt": "2026-10-15T14:11:01.017Z",
+            "reason": null,
+            "review": null,
+            "authorizedMax": 20,
+            "charge": 10,
+            "released": 10,
+            "chargedLots": [
+              {
+                "lotId": "lot_734ed08da89dff108e89986ae0e45bb1",
+                "provenance": "earned",
+                "issuedAt": "2026-10-15T14:10:59.406Z",
+                "amount": 4
+              },
+              {
+                "lotId": "lot_20314933c8a489e212920ca766bf3396",
+                "provenance": "earned",
+                "issuedAt": "2026-10-15T14:10:59.488Z",
+                "amount": 4
+              },
+              {
+                "lotId": "lot_2186e669fae1689b39f4b25dceed5b16",
+                "provenance": "earned",
+                "issuedAt": "2026-10-15T14:10:59.577Z",
+                "amount": 2
+              }
+            ],
+            "releasedLots": [
+              {
+                "lotId": "lot_2186e669fae1689b39f4b25dceed5b16",
+                "provenance": "earned",
+                "issuedAt": "2026-10-15T14:10:59.577Z",
+                "amount": 2
+              },
+              {
+                "lotId": "lot_06028a99492e8077e74c8a4c67bbf407",
+                "provenance": "earned",
+                "issuedAt": "2026-10-15T14:10:59.815Z",
+                "amount": 4
+              },
+              {
+                "lotId": "lot_228b9c02505e3caa16e552a5944df9c8",
+                "provenance": "earned",
+                "issuedAt": "2026-10-15T14:10:59.897Z",
+                "amount": 4
+              }
+            ],
+            "settledAt": "2026-10-15T14:11:01.033Z",
+            "basis": "report",
+            "rules": "reploid.attempt-evidence-rules/1.1.0",
+            "evidenceIds": [
+              "aev_d28babc4fe017c57a1a82d75e15eda80"
+            ],
+            "dispute": null
+          },
+          "refunds": {
+            "total": 0,
+            "byLot": {},
+            "refundIds": []
+          },
+          "updatedAt": "2026-10-15T14:11:01.033Z",
+          "report": {
+            "rule": "completed",
+            "attemptId": "dfd5fefd-31e1-4b9a-baf8-9ea0410b58b7",
+            "settle": {
+              "outcome": "full",
+              "attemptId": "dfd5fefd-31e1-4b9a-baf8-9ea0410b58b7",
+              "metering": {
+                "output": 3,
+                "context": 2
+              },
+              "completedAt": "2026-10-15T14:11:01.017Z"
+            },
+            "recordId": "atr_f7c171b4f37c3c2c00a3227c65e03886",
+            "reportedAt": "2026-10-15T14:11:01.033Z"
+          },
+          "dispute": null
+        }
+      ]
+    }
+  },
+  "community-dave": {
+    "session": {
+      "accountId": "acct_8d831b4542615730146ecbc1da10454b",
+      "deviceId": "dev_cbabbfb582d84f5d194cdfd8bd473073",
+      "participantId": "peer:ebeff0bf65df475bfb1f39c5"
+    },
+    "account": {
+      "session": {
+        "sessionId": "ses_fabdd0a2-ec11-49c4-b931-d0fdebc972ac",
+        "accountId": "acct_8d831b4542615730146ecbc1da10454b",
+        "deviceId": "dev_cbabbfb582d84f5d194cdfd8bd473073"
+      },
+      "account": {
+        "accountId": "acct_8d831b4542615730146ecbc1da10454b",
+        "ownerId": "owner_baa2fc30f2c0e4a663269f76216b45f9",
+        "providerId": "local-test",
+        "status": "active",
+        "activeDeviceIds": [
+          "dev_cbabbfb582d84f5d194cdfd8bd473073"
+        ],
+        "createdAt": "2026-10-15T14:11:01.992Z",
+        "creditAccountOpenedAt": "2026-10-15T14:11:01.992Z",
+        "recoveredAt": null
+      }
+    },
+    "devices": {
+      "devices": [
+        {
+          "deviceId": "dev_cbabbfb582d84f5d194cdfd8bd473073",
+          "participantId": "peer:ebeff0bf65df475bfb1f39c5",
+          "publicJwk": {
+            "kty": "OKP",
+            "crv": "Ed25519",
+            "x": "TYvm49SS5ADBZRX8XnJWRRQbUqavY-GiQIDCwVNMafA"
+          },
+          "host": "browser",
+          "label": null,
+          "status": "active",
+          "accountId": "acct_8d831b4542615730146ecbc1da10454b",
+          "registrationId": "reg_34d9f00c-850a-4ff0-95f7-fd113f32d490",
+          "registeredAt": "2026-10-15T14:11:02.031Z",
+          "revokedAt": null,
+          "revocation": null,
+          "ownerRecordId": null
+        }
+      ]
+    },
+    "balance": {
+      "accountId": "acct_8d831b4542615730146ecbc1da10454b",
+      "ownerId": "owner_baa2fc30f2c0e4a663269f76216b45f9",
+      "sequence": 0,
+      "available": 0,
+      "held": 0,
+      "outstanding": 0,
+      "deficit": 0,
+      "transfersEnabled": false,
+      "byProvenance": {
+        "earned": {
+          "available": 0,
+          "held": 0,
+          "issued": 0,
+          "spent": 0,
+          "refunded": 0,
+          "reversed": 0
+        },
+        "subsidized": {
+          "available": 0,
+          "held": 0,
+          "issued": 0,
+          "spent": 0,
+          "refunded": 0,
+          "reversed": 0
+        },
+        "purchased": {
+          "available": 0,
+          "held": 0,
+          "issued": 0,
+          "spent": 0,
+          "refunded": 0,
+          "reversed": 0
+        },
+        "donated": {
+          "available": 0,
+          "held": 0,
+          "issued": 0,
+          "spent": 0,
+          "refunded": 0,
+          "reversed": 0
+        },
+        "community_access": {
+          "available": 0,
+          "held": 0,
+          "issued": 0,
+          "spent": 0,
+          "refunded": 0,
+          "reversed": 0
+        }
+      },
+      "openLots": []
+    },
+    "journal": {
+      "entries": []
+    },
+    "reservations": {
+      "reservations": []
+    }
+  }
+}

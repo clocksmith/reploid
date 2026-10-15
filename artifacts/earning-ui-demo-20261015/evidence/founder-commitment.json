@@ -1,0 +1,66 @@
+{
+  "commitment": {
+    "schema": "reploid.funding-commitment/v1",
+    "commitmentId": "founder_community_access_week_1",
+    "funderKind": "operator",
+    "funderId": "founder",
+    "externalRef": "local-demo:founder-weekly-community-access",
+    "unit": {
+      "kind": "currency",
+      "currency": "USD"
+    },
+    "amount": 10000,
+    "validFrom": "2026-10-15T14:10:54.575Z",
+    "validUntil": "2026-10-22T14:10:54.575Z",
+    "allocated": 10000,
+    "returned": 0,
+    "allocations": 1,
+    "recordedAt": "2026-10-15T14:10:54.592Z",
+    "updatedAt": "2026-10-15T14:10:54.628Z",
+    "status": "active",
+    "unallocated": 0
+  },
+  "allocations": [
+    {
+      "schema": "reploid.funding-allocation/v2",
+      "allocationId": "alloc_79c5032e97a4f5c08541c36ffdfb8681",
+      "commitmentId": "founder_community_access_week_1",
+      "use": "community_access_pool",
+      "useRef": "founder_pool_week_1",
+      "accountId": "pool_community_general",
+      "funderKind": "operator",
+      "funderId": "founder",
+      "unit": {
+        "kind": "currency",
+        "currency": "USD"
+      },
+      "amount": 10000,
+      "credits": 10000,
+      "conversion": {
+        "conversionId": "conv_local_demo_usd",
+        "recordHash": "sha256:207f921cf6ad7c8d2e21e1515b44a8d110f935fcc116e9efe111200e5a72c91d"
+      },
+      "validUntil": "2026-10-22T14:10:54.575Z",
+      "requestHash": "sha256:84c5a4e87a182c08b6d2428eee5b868c2c1966dabdc0731ec8352173ecee12eb",
+      "authority": {
+        "actorId": "founder",
+        "decisionId": "decision:local-demo-founder-pool-week-1"
+      },
+      "status": "consumed",
+      "issuedCredits": 10000,
+      "consumedCredits": 10000,
+      "returnedCredits": 0,
+      "returnedAmount": 0,
+      "releaseAuthority": null,
+      "lotId": "lot_97b23ba908c6fd5827176f24a1154835",
+      "allocatedAt": "2026-10-15T14:10:54.628Z",
+      "closedAt": "2026-10-15T14:10:54.693Z"
+    }
+  ],
+  "poolAccount": {
+    "accountId": "pool_community_general",
+    "sequence": 4,
+    "journalEntries": 4,
+    "consistent": true
+  }
+}
