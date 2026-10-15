@@ -49,7 +49,7 @@ export const earningPolicy = (overrides = {}) => ({
       disclosureScope: { scopeId: 'thread-disclosure-test' },
       queueClass: 'standard'
     },
-    deadlines: { completeMs: 3 * MIN },
+    deadlines: { firstOutputMs: 30_000, completeMs: 3 * MIN },
     pricing: { basis: { kind: 'test_per_output_token' }, maxCharge: 60 },
     terms: {
       validForMs: MIN,

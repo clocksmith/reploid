@@ -19,8 +19,12 @@ import { snapshotWorkOrderedParticipation, bindWorkOrderedParticipation } from '
 import { createWorkPartitionNetworks } from './work-partition-networks.js';
 import partitionPolicy from '../config/partition-policy.json' with { type: 'json' };
 
+/** `participantIdentity` (async () => signing identity | null) supplies the persistent identity this host
+ * registered for its account (host/credits/browser.js); requests, custody certificates and charged
+ * attempts then carry that registered participant. Without it, or when it resolves null, each
+ * connection keeps its own identity as before. */
 export function createWorkSwarm({ storage, evolution, onChange = () => {}, service = createReploidDopplerRuntimeService(), networkOptions = createLegacyNetworkOptions,
-  createModelFiles = createWorkModelFiles, createPartitions = createAutomaticPartitions, canonical = null, ordered = null }) {
+  createModelFiles = createWorkModelFiles, createPartitions = createAutomaticPartitions, canonical = null, ordered = null, participantIdentity = null }) {
   ordered = snapshotWorkOrderedParticipation(ordered, canonical, LOCAL_DOPPLER_MODELS);
   canonical = canonical ? Object.freeze({ runtime: canonical.runtime, meshId: canonical.meshId,
     participantId: canonical.participantId, participantEpoch: canonical.participantEpoch, coordinatorEpoch: canonical.coordinatorEpoch }) : null;
@@ -90,7 +94,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   });
   const build = (model, peerId, execution = null) => {
     const version = generation;
-    let signingIdentity = null;
+    let signingIdentity = null, registeredBuild = false;
     const instanceId = 'work-swarm:' + crypto.randomUUID();
     const events = EventBus.factory({ Utils: utils });
     events.on('swarm-state', notify);
@@ -120,12 +124,18 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
         return transport;
       },
       identity: { ensure: async input => {
-        const bundle = await ensureIdentityBundle({ ...input, storage });
+        // The registered participant is a copy: connection counters never change the stored identity.
+        const registered = !model && participantIdentity ? await participantIdentity() : null;
+        if (registered) registeredBuild = true;
+        const bundle = registered ? structuredClone(registered) : await ensureIdentityBundle({ ...input, storage });
         signingIdentity = bundle;
         if (!model) consumerIdentity = bundle; return bundle;
       },
-        save: bundle => saveIdentityBundle(bundle, storage, { instanceId }),
-        rotate: input => rotateIdentityBundle({ ...input, storage }), sync: async () => {} },
+        save: bundle => registeredBuild ? undefined : saveIdentityBundle(bundle, storage, { instanceId }),
+        rotate: input => {
+          if (registeredBuild) throw new Error('The participant identity registered for credits does not rotate here');
+          return rotateIdentityBundle({ ...input, storage });
+        }, sync: async () => {} },
       async authorize(request) {
         if (closed) return false;
         if (request.action === 'mesh.connect') return true;

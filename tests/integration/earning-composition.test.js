@@ -133,7 +133,8 @@ describe.each(['memory', 'firestore'])('earning composition (%s store)', (kind) 
     const alice = await device('alice', 'browser');
     const quote = await call(base, 'POST', '/v1/quotes', { token: alice.token, key: 'quote:1', body: { request: { ...QUOTE_REQUEST } } });
     expect(quote.status).toBe(201);
-    expect(quote.body).toMatchObject({ pricing: { maxCharge: 60 }, service: { deadline: new Date(START + 3 * MIN).toISOString() },
+    expect(quote.body).toMatchObject({ pricing: { maxCharge: 60 },
+      service: { deadline: new Date(START + 3 * MIN).toISOString(), firstOutputDeadline: new Date(START + 30_000).toISOString() },
       terms: { validUntil: new Date(START + MIN).toISOString() } });
     expect((await call(base, 'POST', '/v1/quotes', { token: alice.token, key: 'quote:2', body: { request: { ...QUOTE_REQUEST, modelId: 'other' } } })).body.error)
       .toBe('quote_not_offered');
@@ -176,6 +177,9 @@ describe.each(['memory', 'firestore'])('earning composition (%s store)', (kind) 
     await expect(compose({ REPLOID_EARNING_TEST_SIGN_IN: 'disabled' })).rejects.toMatchObject({ code: 'sign_in_provider_required' });
     await expect(compose({ REPLOID_EARNING_POLICY_FILE: await writeOutsideRepository('policy.json', earningPolicy({ services: [] })) }))
       .rejects.toMatchObject({ code: 'policy_invalid' });
+    const late = earningPolicy();
+    late.services[0].deadlines.firstOutputMs = late.services[0].deadlines.completeMs;
+    await expect(compose({ REPLOID_EARNING_POLICY_FILE: await writeOutsideRepository('policy.json', late) })).rejects.toThrow('firstOutputMs must be');
     const unpaid = earningPolicy();
     delete unpaid.payments;
     await expect(compose({ REPLOID_EARNING_POLICY_FILE: await writeOutsideRepository('policy.json', unpaid) })).rejects.toMatchObject({ code: 'payment_policy_required' });

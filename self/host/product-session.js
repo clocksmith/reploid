@@ -51,13 +51,15 @@ async function openOrderedRequesterChat({ chatOptions, requesterIdentity, ports 
 
 export function createProductSession({ storage, networkOptions, swarmNetworkOptions, operationNetwork = null,
   canonical = null, ordered = null, eventTarget = window, onChanges = () => {}, onDocuments = () => {}, onSharing = () => {},
-  historyPorts = {}, earning = null, search = createServerSearch() }) {
+  historyPorts = {}, earning = null, participantIdentity = null, search = createServerSearch() }) {
   let runtime, work, chat, documents, operationSharing, closed = false, closing, ownsNetwork = false;
   const service = createReploidDopplerRuntimeService();
   const evolution = createWorkEvolution({ storage, isBusy: () => work?.getState().anyBusy === true, onChange: onChanges });
   // Bootstrap and ICE belong to the swarm host, independently of signed job routing.
+  // A host with an earning account requests as its registered participant (credits/browser.js); canonical
+  // participation keeps its own configured identity.
   const swarm = createWorkSwarm({ storage, evolution, service, networkOptions: swarmNetworkOptions, canonical, ordered,
-    onChange: () => chat?.refreshNetwork() });
+    ...(participantIdentity && !canonical ? { participantIdentity } : {}), onChange: () => chat?.refreshNetwork() });
   const getNetwork = () => {
     if (!operationNetwork) {
       operationNetwork = createOperationRoomNetwork({ ...networkOptions(),

@@ -22,7 +22,8 @@ export function createQuoteTerms({ services, clock }) {
     const now = Date.parse(clock());
     const { validForMs, ...terms } = structuredClone(template.terms);
     return {
-      service: { ...structuredClone(template.service), deadline: iso(now + template.deadlines.completeMs) },
+      service: { ...structuredClone(template.service), deadline: iso(now + template.deadlines.completeMs),
+        ...(template.deadlines.firstOutputMs ? { firstOutputDeadline: iso(now + template.deadlines.firstOutputMs) } : {}) },
       pricing: structuredClone(template.pricing),
       terms: { ...terms, validUntil: iso(now + validForMs) }
     };
