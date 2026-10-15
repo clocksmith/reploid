@@ -12,8 +12,5 @@
     "compositions/screens.css",
     "compositions/conversation.css",
     "compositions/interaction.css"
-  ],
-  "legacy": {
-    "compositions/screens.css": 694
-  }
+  ]
 }

@@ -21,7 +21,7 @@ describe('Research Room requester controls', () => {
     expect(home).toContain('data-pool-sequence-consent-saved');
     expect(ask).toContain('id="pool-run-sequence-public"');
     expect(ask).toContain('id="pool-run-research-public"');
-    expect(ask).toContain('<span class="pool-consent-row">');
+    expect(ask).toContain('<span class="pool-consent-row pool-small">');
     expect(ask).not.toContain('<label class="pool-consent-row">');
     expect(ask).not.toContain('data-pool-sequence-consent-saved');
     expect(home.match(/Save the question and result to this room/g)).toHaveLength(1);

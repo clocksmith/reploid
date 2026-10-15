@@ -3,58 +3,58 @@ import { readTextAttachments } from '../components/attachments.js';
 import policy from '../../pool/document-search-policy.json' with { type: 'json' };
 
 export const renderDocumentSearch = () => `
-  <section class="pool-document-search pool-task-card" id="pool-document-search" data-document-search hidden aria-label="Document search">
-    <h2 class="type-h2">Search documents</h2>
-    <p class="type-caption">Files stay in this tab. Sharing a task requires your approval.</p>
-    <p class="type-caption" role="status" aria-live="polite" id="pool-document-status" data-document-status>Choose models to start.</p>
-    <details class="pool-advanced" data-document-setup open>
+  <section class="pool-document-search pool-task-card pool-surface" id="pool-document-search" data-document-search hidden aria-label="Document search">
+    <h2 class="pool-heading">Search documents</h2>
+    <p class="pool-caption">Files stay in this tab. Sharing a task requires your approval.</p>
+    <p class="pool-caption" role="status" aria-live="polite" id="pool-document-status" data-document-status>Choose models to start.</p>
+    <details class="pool-advanced pool-disclosure" data-document-setup open>
       <summary>Models</summary>
-      <label class="pool-field"><span>Model settings (.json)</span>
+      <label class="pool-field"><span class="pool-small pool-muted">Model settings (.json)</span>
         <input type="file" accept=".json" data-document-models></label>
-      <label class="pool-consent-row"><input type="checkbox" data-document-trust>
+      <label class="pool-consent-row pool-small"><input type="checkbox" data-document-trust>
         <span>I trust these publishers to supply model files.</span></label>
-      <button type="button" class="btn btn-primary pool-primary-action" data-document-configure>Use models</button>
-      <p class="type-caption" data-document-model-status>No models selected</p>
-      <p class="type-caption"><a href="https://github.com/clocksmith/reploid/blob/main/docs/poolday/document-search.md" target="_blank" rel="noopener">Where to get model settings</a></p>
+      <button type="button" class="btn btn-primary pool-primary-action pool-button" data-document-configure>Use models</button>
+      <p class="pool-caption" data-document-model-status>No models selected</p>
+      <p class="pool-caption"><a href="https://github.com/clocksmith/reploid/blob/main/docs/poolday/document-search.md" target="_blank" rel="noopener">Where to get model settings</a></p>
     </details>
     <form data-document-form>
-      <label class="pool-field"><span>Documents (.txt, .md)</span>
+      <label class="pool-field"><span class="pool-small pool-muted">Documents (.txt, .md)</span>
         <input type="file" accept=".txt,.md" multiple data-document-files></label>
-      <p class="type-caption" data-document-corpus>No documents</p>
-      <label class="pool-field"><span>Question</span>
+      <p class="pool-caption" data-document-corpus>No documents</p>
+      <label class="pool-field"><span class="pool-small pool-muted">Question</span>
         <input type="text" required maxlength="4096" autocomplete="off" data-document-query></label>
-      <label class="pool-consent-row"><input type="checkbox" data-document-rerank disabled>
+      <label class="pool-consent-row pool-small"><input type="checkbox" data-document-rerank disabled>
         <span>Improve result order</span></label>
-      <label class="pool-consent-row"><input type="checkbox" data-document-answer disabled>
+      <label class="pool-consent-row pool-small"><input type="checkbox" data-document-answer disabled>
         <span>Write an answer with references</span></label>
       <div class="pool-document-actions">
-        <button class="btn btn-primary pool-primary-action" type="submit" data-document-submit aria-describedby="pool-document-status">Search</button>
+        <button class="btn btn-primary pool-primary-action pool-button" type="submit" data-document-submit aria-describedby="pool-document-status">Search</button>
         <button class="btn btn-ghost" type="button" data-document-cancel hidden>Cancel</button>
         <button class="btn btn-ghost" type="button" data-document-clear>Clear documents</button>
       </div>
     </form>
-    <details class="pool-advanced" data-document-share>
+    <details class="pool-advanced pool-disclosure" data-document-share>
       <summary>Ask another computer</summary>
-      <label class="pool-field"><span>Where this task runs</span>
+      <label class="pool-field"><span class="pool-small pool-muted">Where this task runs</span>
         <select data-document-task-class>
           <option value="local-only">Local only</option>
           <option value="derived-remote">Share a derived task</option>
           <option value="public-remote">Share a public task</option>
         </select></label>
-      <p class="type-caption" role="status" aria-live="polite" data-document-share-status>Connect a compatible computer to share a task.</p>
-      <label class="pool-field"><span>Task to share</span>
+      <p class="pool-caption" role="status" aria-live="polite" data-document-share-status>Connect a compatible computer to share a task.</p>
+      <label class="pool-field"><span class="pool-small pool-muted">Task to share</span>
         <textarea rows="3" maxlength="16384" data-document-share-task placeholder="Write a task using only public information"></textarea></label>
       <button type="button" class="btn btn-ghost" data-document-review-share disabled>Review task</button>
       <section data-document-share-preview hidden aria-label="Review what will be shared">
         ${renderPermissionSummary()}
-        <label class="pool-consent-row"><input type="checkbox" data-document-share-consent>
+        <label class="pool-consent-row pool-small"><input type="checkbox" data-document-share-consent>
           <span>This text is public and can be sent to this computer.</span></label>
-        <button type="button" class="btn btn-primary pool-primary-action" data-document-send-share disabled>Send this task</button>
+        <button type="button" class="btn btn-primary pool-primary-action pool-button" data-document-send-share disabled>Send this task</button>
       </section>
     </details>
     <div class="pool-document-answer" data-document-answer-output hidden aria-label="Answer"></div>
     <ol class="pool-document-results" data-document-results aria-label="Relevant passages"></ol>
-    <details class="pool-advanced" data-document-evidence hidden><summary>Job details</summary><pre></pre></details>
+    <details class="pool-advanced pool-disclosure" data-document-evidence hidden><summary>Job details</summary><pre></pre></details>
   </section>`;
 
 const displayedResults = new WeakMap();

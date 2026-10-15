@@ -27,7 +27,7 @@ export function renderRequesterConsentRows({
   const safePrefix = escapeHtml(prefix);
   const safeRowElement = rowElement === 'span' ? 'span' : 'label';
   const row = (id, label, attributes = '') => `
-    <${safeRowElement} class="pool-consent-row"${attributes}>
+    <${safeRowElement} class="pool-consent-row pool-small"${attributes}>
       <input id="${safePrefix}-${id}" type="checkbox"${requestAttributes}>
       <span>${label}</span>
     </${safeRowElement}>
@@ -54,7 +54,7 @@ export function renderRequesterIntentFields({
     : `<input id="${safePrefix}-intent-text" maxlength="8000" placeholder="What do you want to learn?"${requestAttributes}>`;
   if (compact) {
     return `
-      <div class="pool-research-intent-fields pool-research-intent-fields--compact">
+      <div class="pool-research-intent-fields pool-caption pool-research-intent-fields--compact">
         <label><span>Question</span>${textControl}</label>
         <label><span>Conditions</span><textarea id="${safePrefix}-intent-conditions" rows="2" maxlength="2000" placeholder="System, environment, or assay"${requestAttributes}></textarea></label>
         <label><span>Useful result</span><textarea id="${safePrefix}-intent-observation" rows="2" maxlength="2000" placeholder="What result would answer the question?"${requestAttributes}></textarea></label>
@@ -66,13 +66,13 @@ export function renderRequesterIntentFields({
     `;
   }
   return `
-    <div class="pool-research-intent-fields">
+    <div class="pool-research-intent-fields pool-caption">
       <label><span>Intent</span><select id="${safePrefix}-intent-kind"${requestAttributes}>${intentOptionsMarkup}</select></label>
       <label><span>Short label</span><input id="${safePrefix}-intent-label" maxlength="240" placeholder="Signal peptide candidate"${requestAttributes}></label>
       <label><span>Question, hypothesis, or context <small>(required for public research)</small></span>${textControl}</label>
-      <details class="pool-advanced pool-question-contract">
+      <details class="pool-advanced pool-disclosure pool-question-contract">
         <summary>Bound the research question</summary>
-        <div class="pool-research-intent-fields">
+        <div class="pool-research-intent-fields pool-caption">
           <label><span>Conditions</span><textarea id="${safePrefix}-intent-conditions" rows="2" maxlength="2000" placeholder="Organism, system, environment, or assay conditions"${requestAttributes}></textarea></label>
           <label><span>Observation that would resolve it</span><textarea id="${safePrefix}-intent-observation" rows="2" maxlength="2000" placeholder="What observable result would distinguish the possibilities?"${requestAttributes}></textarea></label>
           <label><span>Decision context</span><input id="${safePrefix}-intent-decision" maxlength="2000" placeholder="Which human decision may this evidence inform?"${requestAttributes}></label>

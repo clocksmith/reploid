@@ -5,6 +5,6 @@ const escape = value => String(value).replace(/[&<>"']/g, character => ({
 
 export function renderWorkHeading(title) {
   return `<header class="pool-connected-heading">
-    <h1>${escape(title)}</h1>
+    <h1 class="pool-heading">${escape(title)}</h1>
   </header>`;
 }

@@ -123,7 +123,7 @@ const renderRecord = (record, {
   const isInvalidated = invalidated.has(record.recordHash);
   const authorIdentity = compactHash(record.author?.identityRootId || record.author?.userId || record.author?.roleId || 'unknown author');
   return `
-    <article class="pool-research-record" data-research-kind="${escapeHtml(record.kind)}"${isInvalidated ? ' data-research-invalidated="true"' : ''}>
+    <article class="pool-research-record pool-surface" data-research-kind="${escapeHtml(record.kind)}"${isInvalidated ? ' data-research-invalidated="true"' : ''}>
       <div><span>${escapeHtml(record.kind.replace(/_/g, ' '))}</span><b>${escapeHtml(recordLabel(record))}</b></div>
       <small>${escapeHtml(record.author?.role || record.author?.roleId || 'unknown role')} · ${escapeHtml(authorIdentity)} · ${escapeHtml(compactHash(record.recordHash))} · ${escapeHtml(isInvalidated ? 'revoked or downstream-invalidated' : recordReviewState)}</small>
       ${renderSequenceDisclosure(record)}
@@ -198,13 +198,13 @@ export function renderResearchWorkspace(roomId, records = loadResearchRecords(ro
     <section class="pool-research-workspace" data-pool-research-workspace data-room-id="${escapeHtml(roomId)}">
       <header class="pool-research-header">
         <div>
-          <p class="pool-dashboard-kicker">Public protein evidence network</p>
-          <h2 class="type-h2">Question lifecycle: predict, test, review, learn</h2>
+          <p class="pool-dashboard-kicker pool-label pool-muted">Public protein evidence network</p>
+          <h2 class="pool-heading">Question lifecycle: predict, test, review, learn</h2>
           <p>Competing hypotheses, condition-specific evidence, blinded work, failures, replications, and cohort effects remain separately signed and challengeable.</p>
         </div>
-        <span class="pool-research-sync" data-pool-research-sync>Verifying local evidence</span>
+        <span class="pool-research-sync pool-caption pool-chip" data-pool-research-sync>Verifying local evidence</span>
       </header>
-      <dl class="pool-research-stats">
+      <dl class="pool-research-stats pool-stats">
         <div><dt>Submissions</dt><dd>${submissions.length}</dd></div>
         <div><dt>Hypotheses</dt><dd>${hypotheses.length}</dd></div>
         <div><dt>Predictions</dt><dd>${predictions.length}</dd></div>
@@ -224,11 +224,11 @@ export function renderResearchWorkspace(roomId, records = loadResearchRecords(ro
         <div><dt>Question lifecycles</dt><dd>${lifecycles.length}</dd></div>
       </dl>
       <div class="pool-research-grid">
-        <section class="pool-research-panel pool-research-collection">
-          <div class="pool-section-heading"><div><p class="pool-dashboard-kicker">Connect</p><h3 class="type-h3">Evidence collection</h3></div></div>
-          <label class="pool-field"><span>Search sequences, intent, claims, models, or contributors</span><input data-research-search value="${escapeHtml(query)}" placeholder="signal peptide, sequence, model, reviewer"></label>
+        <section class="pool-research-panel pool-surface pool-research-collection">
+          <div class="pool-section-heading"><div><p class="pool-dashboard-kicker pool-label pool-muted">Connect</p><h3 class="type-h3">Evidence collection</h3></div></div>
+          <label class="pool-field"><span class="pool-small pool-muted">Search sequences, intent, claims, models, or contributors</span><input data-research-search value="${escapeHtml(query)}" placeholder="signal peptide, sequence, model, reviewer"></label>
           <div class="pool-research-records" data-research-records>
-            ${visible.length ? visible.map((record) => renderRecord(record, { invalidated, reviewStates, submissionsByHash })).join('') : '<p class="type-caption">No matching signed evidence yet.</p>'}
+            ${visible.length ? visible.map((record) => renderRecord(record, { invalidated, reviewStates, submissionsByHash })).join('') : '<p class="pool-caption">No matching signed evidence yet.</p>'}
           </div>
         </section>
         ${renderResultEvidencePanel({ lifecycles, submissionsByHash })}
@@ -1102,7 +1102,7 @@ export function bindResearchWorkspace(
     const target = workspace.querySelector('[data-research-records]');
     if (target) target.innerHTML = records.length
       ? records.map((record) => renderRecord(record, { invalidated, reviewStates, submissionsByHash })).join('')
-      : '<p class="type-caption">No matching signed evidence yet.</p>';
+      : '<p class="pool-caption">No matching signed evidence yet.</p>';
   });
   workspace.querySelector('[data-research-similarity-target]')?.addEventListener('change', (event) => {
     replaceWorkspace(workspace, { similarityTarget: event.target.value });

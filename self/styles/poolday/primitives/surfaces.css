@@ -4,6 +4,7 @@
    pool-well     inset area for grouped or quoted content
    pool-divider  hairline separator
    pool-list     children separated by hairlines
+   pool-edge-top, pool-edge-bottom  a hairline on one edge, separating a block from its neighbor
    pool-prose    rendered markdown: headings, links, code blocks, tables
    pool-bar      proportional bar; each child span sets --pool-param-share
    pool-dot      leading status dot (pool-dot-open: hollow)
@@ -48,3 +49,5 @@
 .pool-home .pool-dot.pool-dot-open::before { background: transparent; border: var(--pool-border-hairline) solid currentColor; }
 .pool-home .pool-reveal-host .pool-reveal { opacity: 0; }
 .pool-home .pool-reveal-host:is(:hover, :focus-within) .pool-reveal { opacity: 1; }
+.pool-home .pool-edge-top { border-top: var(--pool-border-hairline) solid var(--pool-color-line); }
+.pool-home .pool-edge-bottom { border-bottom: var(--pool-border-hairline) solid var(--pool-color-line); }

@@ -4,7 +4,7 @@
 export function renderActivityList() {
   return [
     '<div class="pool-work-activity" data-work-activity hidden>',
-    '  <details class="pool-work-progress" data-work-progress open>',
+    '  <details class="pool-work-progress pool-small pool-edge-top" data-work-progress open>',
     '    <summary>Activity &amp; checks</summary>',
     '    <ol data-work-events></ol>',
     '    <pre data-work-draft></pre>',

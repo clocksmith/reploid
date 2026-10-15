@@ -44,7 +44,7 @@ export function refreshAgentNetwork(root, work, swarm = {}) {
   if (list.dataset.projection === identity) return;
   list.dataset.projection = identity;
   list.replaceChildren(...rows.map(row => {
-    const item = document.createElement('li'); item.className = 'pool-agent-row'; item.dataset.agentId = row.id;
+    const item = document.createElement('li'); item.className = 'pool-agent-row pool-small'; item.dataset.agentId = row.id;
     const name = document.createElement('strong'); name.textContent = row.name;
     const model = document.createElement('span'); model.textContent = row.model + ' · ' + row.location;
     const status = document.createElement('small'); status.textContent = row.state;
@@ -54,27 +54,27 @@ export function refreshAgentNetwork(root, work, swarm = {}) {
 
 export const renderAgentNetwork = ({ footer = '' } = {}) => `
   <section class="pool-agent-network" id="reploid-agents" aria-label="Agents and models">
-    <div class="pool-network-heading"><h2 class="type-h2">Agents</h2>
+    <div class="pool-network-heading"><h2 class="pool-heading">Agents</h2>
       <button class="btn btn-ghost" type="button" data-swarm-invite>Invite</button></div>
     <ul class="pool-agent-list" data-agent-list></ul>
     <div data-swarm-peers hidden></div>
     <div class="pool-network-heading">
-      <p class="pool-control-help" data-swarm-status role="status">No peers connected.</p>
+      <p class="pool-control-help pool-small pool-muted" data-swarm-status role="status">No peers connected.</p>
       <button class="btn btn-ghost" type="button" data-swarm-connect>Connect peers</button>
     </div>
     <p data-swarm-invitation hidden></p>
-    <details class="pool-contribution pool-work-secondary" data-contribution-panel>
-      <summary>Contribution <span class="type-caption" data-contribution-status>Not sharing</span></summary>
+    <details class="pool-contribution pool-edge-top pool-work-secondary" data-contribution-panel>
+      <summary>Contribution <span class="pool-caption" data-contribution-status>Not sharing</span></summary>
       <div class="pool-work-drawer-body">
-        <p class="pool-control-help" data-contribution-model></p>
-        <p class="pool-control-help" data-contribution-limits></p>
+        <p class="pool-control-help pool-small pool-muted" data-contribution-model></p>
+        <p class="pool-control-help pool-small pool-muted" data-contribution-limits></p>
         <button class="btn btn-ghost" type="button" data-swarm-stop hidden>Stop sharing</button>
         <div data-contribution-settings>
         <div class="pool-work-drawer-body">
-          <label class="pool-consent-row"><input type="checkbox" data-swarm-consent>
+          <label class="pool-consent-row pool-small"><input type="checkbox" data-swarm-consent>
             <span>Run other agents’ public prompts on this device.</span></label>
           <button class="btn btn-primary" type="button" data-swarm-share>Start sharing</button>
-          <p class="pool-control-help">Model loads on request. Each peer runs a whole request; models are not split across GPUs.</p>
+          <p class="pool-control-help pool-small pool-muted">Model loads on request. Each peer runs a whole request; models are not split across GPUs.</p>
         </div>
         </div>
       </div>
