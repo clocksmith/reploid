@@ -7,7 +7,7 @@ Parent: [Browser Runtime](../CATSCAN.md)
 Boot surfaces from trusted seeds.
 
 ## Authority
-- Owns seeding/startup/tools and independent threads.
+- Owns seeding/startup/tools, independent threads, opt-in [earning client](earning/CATSCAN.md).
 - Remote disclosure needs stored, revocable contributor permissions
   (sharing-scope/disclosure-kind/model-catalog), thread grants or per-server search settings.
 - Separates helpers/swarms/previews/isolation/evaluation/activation from Packs.
@@ -28,14 +28,14 @@ Outputs: [VFS](seed-vfs.js), [startup](start-reploid.js).
 - Explicit seed identity/destination.
 - Never substitute missing/unverified modules.
 - Disconnect prevents rejoin. Discovery grants no compute/disclosure/files/improvement/stage authority;
-  only operator configuration assigns stages or chooses `auto` (own-policy choice).
+  only operator configuration assigns stages or chooses own-policy `auto`.
 - Partition network owners expose open/close; closure requires settled channels.
 - Received files cannot grant permissions or prove correctness.
 - Viewing/stopping threads cannot change another's objective/grants/execution.
 - Candidate delivery grants no evaluation/adoption authority.
 - Peer operations require current authorization/exact identities/evidence.
   Uncovered requests send nothing until granted; revocation spares admitted
-  answers, which never change route.
+  answers, which never reroute.
   Ordered catalogs with metadataDigest open one tab's transactional history, else report ordinary.
 - File contribution requires separate bounded consent. Explicit compute may acquire
   selected files, not redistribute. Discovery never downloads weights.
