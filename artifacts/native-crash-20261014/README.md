@@ -118,3 +118,14 @@ does not explain native 16's crash, which left no core. Either no such entry exi
 or one existed and is gone, or the crash happened outside pipeline creation. With full
 preparation, an entry like the reproduced one would now stop a stage at startup instead of
 mid-answer.
+
+## Sealed shader cache and stopped verification (2026-10-15)
+
+The native participant now compiles into a private staging cache and promotes it to a sealed cache,
+keyed by runtime, provider, driver and program identity, only after complete stage preparation. A
+start never inherits a staging directory left by an exited process. Verification on `intel-host`
+stopped after its first step: the final-10 stage 1 cold preparation reached the 10 GiB soft limit
+with 3 of 21 pipelines prepared, and systemd-oomd killed it together with other user-manager
+workloads, including the public browser contributor. See
+[intel-reliability-20261015](../intel-reliability-20261015/README.md). Native 16's crash site
+remains unconfirmed.

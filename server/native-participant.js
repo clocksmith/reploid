@@ -12,6 +12,7 @@ import { createCustodyKeyCertifier } from '../packages/reploid/src/artifacts/cus
 import { openNativeOwnerControls, nativeOwnerStatus, NO_OWNER_POLICY } from './native-owner/controls.js';
 import { openNativeCanonicalEpochs } from './native-canonical-epochs.js';
 import { openNativeReleaseCheckpoints } from './native-release-storage.js';
+import { installedPackageDirectory, nativeShaderCacheIdentity, openNativeShaderCache } from './native-shader-cache.js';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { EventEmitter } from 'node:events';
@@ -27,6 +28,7 @@ import custodyPolicy from '../self/config/chat-files.json' with { type: 'json' }
 import policy from '../self/config/partition-policy.json' with { type: 'json' };
 import profile from '../self/config/reploid-library.json' with { type: 'json' };
 import bootstrap from '../self/config/swarm-bootstrap.json' with { type: 'json' };
+import dopplerPin from '../self/config/doppler-package.json' with { type: 'json' };
 import { resolvePartitionGeneration } from '../self/config/partition-generation.js';
 import { prepareLocalPackRelease } from '../self/pool/pack-release-policy.js';
 import { snapshotWorkPartitionSelection, createWorkPartitionPlan,
@@ -263,7 +265,7 @@ export function createNativeGpuHost(loadProvider) {
 
 export async function openNativePartition({ model: selected, modelDirectory, nativeGpu, index, signal, participantId,
   files, releaseDirectory, registerCleanup, canonical = null, ordered = null, device = null, attemptBytes, onProgress = () => {},
-  gpuBufferBytes = policy.maxGpuBufferBytes, evidenceSigner = null }) {
+  gpuBufferBytes = policy.maxGpuBufferBytes, evidenceSigner = null, shaderCache = null }) {
   selected = snapshotWorkPartitionSelection(selected);
   const stageBinding = snapshotWorkPartitionStage(selected, index, participantId, ordered, canonical);
   if (selected.capsule !== undefined) requireValue(files && selected.packOpenOptions && selected.executablePack && releaseDirectory,
@@ -354,8 +356,10 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
       ...(orderedOptions.ordered && evidenceSigner?.participantId === participantId ? { evidence: evidenceSigner } : {}) });
     onProgress({ stage: 'opening', message: 'Opening native assigned partition' });
     if (canonical) { canonical.epochs.begin(ownerId); ownershipRecorded = true; }
-    await resident.prepare({ approved: true, signal });
+    const prepared = await resident.prepare({ approved: true, signal });
     tokenizer.assertAvailable();
+    // A complete preparation lets the process seal its shader cache; the outcome is reported, never thrown.
+    shaderCache?.seal({ ...prepared?.descriptor?.pipelinePreparation, planId, index, modelIdentity: selected.identity });
     return { runtime, model: configured, plan, planId, resident: canonical ? Object.freeze(Object.fromEntries(
       Object.entries(resident).map(([name, value]) => [name, typeof value !== 'function' ? value : name === 'close'
         ? () => cleanupOwner.close() : name === 'closeAttempt' ? (...args) => value(...args) : (...args) => {
@@ -385,7 +389,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
  * Claim failures are reported to the logger and never stop contribution. */
 export async function createNativeParticipant({ model, modelDirectory, identity, rtc, WebSocket,
   signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
-  owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null }) {
+  owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null }) {
   requireValue(earning === null || ownerGate && typeof earning.observe === 'function', 'Native earning requires the owner policy and an earning contribution port');
   if (ordered !== null) model = structuredClone(model);
   ordered = snapshotWorkOrderedParticipation(ordered, canonical, [model]);
@@ -492,7 +496,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
       loadProgram: async (selected, index, controls) => {
         const program = await openNativePartition({ model: selected, index, modelDirectory,
           releaseDirectory: cacheDirectory && path.join(path.dirname(cacheDirectory), 'release-checkpoints'),
-          nativeGpu: () => gpuPromise ||= nativeGpu().catch(error => { gpuPromise = null; throw error; }), files, ...controls, evidenceSigner,
+          nativeGpu: () => gpuPromise ||= nativeGpu().catch(error => { gpuPromise = null; throw error; }), files, ...controls, evidenceSigner, shaderCache,
           ...(epochs ? { canonical: { ...controls.canonical, epochs } } : {}),
           ...(ownerGate ? { gpuBufferBytes: ownerGate.gpuBufferBytes(policy.maxGpuBufferBytes) } : {}) });
         return ownerGate ? { ...program, resident: ownerGate.gateResident(program.resident) } : program;
@@ -572,7 +576,7 @@ export async function resolveNativeRoomToken(values, { warn = message => console
 async function main() {
   const { values } = parseArgs({ options: Object.fromEntries(['model', 'model-directory', 'identity-file', 'rtc-module',
     'ws-module', 'gpu-module', 'ordered-config', 'signaling-url', 'room', 'room-token', 'room-token-file', 'origin', 'cache-directory',
-    'owner-policy'].map(key => [key, { type: 'string' }]).concat([
+    'owner-policy', 'shader-cache-root'].map(key => [key, { type: 'string' }]).concat([
       ['help', { type: 'boolean', default: false }], ['canonical', { type: 'boolean', default: false }], ['share-files', { type: 'boolean', default: false }], ['contribute', { type: 'boolean', default: false }], ['connect-only', { type: 'boolean', default: false }]])) });
   if (values.help) {
     console.log(`Reploid native participant (Node 22.13 or newer)
@@ -585,6 +589,7 @@ Usage: reploid-participant --connect-only|--share-files|--contribute
   [--ordered-config <absolute JSON path>] (explicit stage assignment and ordered limits)
   [--canonical] (requires explicit catalog generation and a capable installed runtime)
   [--owner-policy <absolute JSON path>] (owner schedule, memory, rate, power, temperature and foreground limits)
+  [--shader-cache-root <absolute directory>] (sealed Mesa shader cache; default: shader-cache beside the identity file)
 
 --room-token-file reads the private room token once at startup from a regular
 file owned by this user with mode 0600; one trailing newline is removed.
@@ -594,6 +599,9 @@ arguments and prints a warning; it cannot be combined with --room-token-file.
 File sharing and compute are separate explicit choices; both may be enabled.
 Compute requires --gpu-module. Missing assigned pieces use authenticated peers.
 SIGINT/SIGTERM stop admission, settle work and release owned resources.
+On Linux, --contribute compiles GPU pipelines into a private Mesa shader cache that is
+sealed only after a complete stage preparation and reused only for the same runtime,
+provider, driver and program; MESA_SHADER_CACHE_DIR must not be set by the caller.
 Native GPU execution is qualified on Linux/Vulkan only; --help opens no provider.`);
     return;
   }
@@ -615,22 +623,37 @@ Native GPU execution is qualified on Linux/Vulkan only; --help opens no provider
     snapshotWorkOrderedParticipation(ordered, null, models);
   }
   const identityFile = path.resolve(values['identity-file']);
+  const model = models.find(row => row.id === values.model); requireValue(model, 'Model is absent from the application catalog');
+  const moduleSpecifier = value => {
+    requireValue(path.isAbsolute(value) || ['@roamhq/wrtc', 'ws', 'webgpu'].includes(value),
+      'Native modules require an operator-selected absolute local path or supported package name');
+    return path.isAbsolute(value) ? pathToFileURL(value).href : value;
+  };
+  requireValue(values['shader-cache-root'] === undefined || values.contribute, '--shader-cache-root requires --contribute');
+  // Bound before any native module loads, so MESA_SHADER_CACHE_DIR is set before the Vulkan driver initializes.
+  let shaderCache = null;
+  if (values.contribute && (process.platform === 'linux' || values['shader-cache-root'] !== undefined)) {
+    const gpuModule = values['gpu-module'];
+    const { key, identity: cacheIdentity } = await nativeShaderCacheIdentity({
+      runtime: { directory: await installedPackageDirectory(fileURLToPath(import.meta.resolve('doppler-gpu/partitions')), 'doppler-gpu'),
+        archiveIntegrity: dopplerPin.integrity },
+      provider: { module: gpuModule, directory: await installedPackageDirectory(fileURLToPath(import.meta.resolve(moduleSpecifier(gpuModule))),
+        path.isAbsolute(gpuModule) ? null : gpuModule) },
+      program: { model, policy, stage: Number.isSafeInteger(ordered?.stage?.index) ? ordered.stage.index : null, canonical: values.canonical } });
+    shaderCache = await openNativeShaderCache({ root: values['shader-cache-root'] ?? path.join(path.dirname(identityFile), 'shader-cache'),
+      key, identity: cacheIdentity, onEvent: event => console.log(JSON.stringify({ event: 'shader-cache', ...event })) });
+  }
   let identity;
   try { identity = JSON.parse(await fs.readFile(identityFile, 'utf8')); }
   catch (error) { if (error.code !== 'ENOENT') throw error;
     identity = await createSigningIdentity({ algorithm: 'Ed25519' });
     await fs.mkdir(path.dirname(identityFile), { recursive: true, mode: 0o700 });
     await fs.writeFile(identityFile, JSON.stringify(identity), { flag: 'wx', mode: 0o600 }); }
-  const importModule = value => {
-    requireValue(path.isAbsolute(value) || ['@roamhq/wrtc', 'ws', 'webgpu'].includes(value),
-      'Native modules require an operator-selected absolute local path or supported package name');
-    return import(path.isAbsolute(value) ? pathToFileURL(value).href : value);
-  };
+  const importModule = value => { moduleSpecifier(value); return import(path.isAbsolute(value) ? pathToFileURL(value).href : value); };
   const [rtcModule, wsModule] = await Promise.all([importModule(values['rtc-module']), importModule(values['ws-module'])]);
   const rtc = createNativeRtcAdapter(rtcModule.default || rtcModule);
   const Socket = wsModule.default || wsModule.WebSocket;
   class HostWebSocket extends Socket { constructor(url) { super(url, { origin: values.origin || 'http://localhost:8000' }); } }
-  const model = models.find(row => row.id === values.model); requireValue(model, 'Model is absent from the application catalog');
   const gpuHost = createNativeGpuHost(() => importModule(values['gpu-module']));
   const participant = await createNativeParticipant({ model, modelDirectory: values['model-directory'], identity, rtc,
     WebSocket: HostWebSocket, signalingUrl: values['signaling-url'] || bootstrap.signalingUrl,
@@ -638,23 +661,24 @@ Native GPU execution is qualified on Linux/Vulkan only; --help opens no provider
     cacheDirectory: values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
     ordered, canonical: values.canonical ? { epochDirectory: path.join(path.dirname(identityFile), 'canonical-epochs',
       createHash('sha256').update(values.room || bootstrap.publicRoomId).digest('hex')) } : null,
-    nativeGpu: () => gpuHost.open(), owner,
+    nativeGpu: () => gpuHost.open(), owner, shaderCache,
     onCustodyCertificate: certificate => console.log(JSON.stringify({ event: 'custody-certificate', certificate })),
     onChange: state => console.log(JSON.stringify({ ...summarizeNativePartitionState(state), owner: nativeOwnerStatus(owner) })) })
-    .catch(error => { owner?.close(); throw error; });
+    .catch(async error => { owner?.close(); await shaderCache?.close(); throw error; });
   logNetwork = () => console.log(JSON.stringify({ event: 'network', ...participant.getNetworkState(),
     files: participant.getFileState({ includeReceipts: false }), owner: participant.getOwnerState() }));
   // Polling also renews the custody certificate before it expires.
   const timer = setInterval(() => { participant.announceFiles(); logNetwork();
     participant.getCustodyCertificate().catch(error => console.error('Custody certificate renewal failed:', error.message)); }, policy.pollMs);
   const shutdown = createNativeShutdown(participant, gpuHost);
-  const stop = () => { clearInterval(timer); logNetwork = () => {}; return shutdown().finally(() => owner?.close()); };
+  const stop = () => { clearInterval(timer); logNetwork = () => {}; return shutdown().finally(async () => { owner?.close(); await shaderCache?.close(); }); };
   const completion = new Promise((resolve, reject) => {
     const signalStop = () => stop().then(resolve, reject);
     process.once('SIGINT', signalStop); process.once('SIGTERM', signalStop);
   });
   console.log(JSON.stringify({ event: 'native-initialized', participantId: identity.peerId, modelId: model.id,
-    owner: owner ? owner.declaration() : NO_OWNER_POLICY }));
+    owner: owner ? owner.declaration() : NO_OWNER_POLICY, shaderCache: shaderCache ? shaderCache.status()
+      : values.contribute ? { status: 'not-applicable', platform: process.platform } : null }));
   try {
     await Promise.all([completion, (async () => {
       if (values['share-files']) await participant.shareFiles(true);

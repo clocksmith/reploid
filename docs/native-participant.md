@@ -70,6 +70,33 @@ installation uses the named packages above. Installing or connecting alone
 does not establish useful distributed answers, numerical accuracy or release
 qualification. No package publication or deployment occurs during packaging.
 
+## GPU shader cache
+
+On Linux, `--contribute` gives the Vulkan driver a private Mesa shader cache and
+never reuses one that an unfinished preparation wrote. Mesa ANV 24.2.8 stores a
+shader's intermediate form before its compiled binary; a process stopped
+mid-compile leaves an entry that can crash every later process needing that
+pipeline ([investigation](https://github.com/clocksmith/reploid/tree/main/artifacts/native-crash-20261014)).
+
+- The cache is keyed by the installed Doppler runtime and its pinned archive, the
+  WebGPU provider, the Vulkan driver files and render devices, driver environment
+  variables, and the model, Capsule, catalog entry, partition policy and stage.
+- Without a sealed cache for its key, a start compiles into its own new staging
+  directory. Once the stage reports complete pipeline preparation and Mesa's cache
+  writers are idle, a hashed, read-only snapshot becomes the sealed cache.
+- With a sealed cache, a start verifies every file and works on a private copy;
+  the sealed directory is never given to the driver. A sealed cache that fails
+  verification is removed and the start compiles cold.
+- Each start removes staging left by a process that has exited.
+
+The root defaults to `shader-cache` beside the identity file; choose another with
+`--shader-cache-root <absolute directory>`. Startup fails if
+`MESA_SHADER_CACHE_DIR` or `MESA_SHADER_CACHE_DISABLE` is already set.
+`shader-cache` status lines report the binding, discarded or rejected caches and
+the seal outcome. A driver that does not use `MESA_SHADER_CACHE_DIR` is reported
+and never sealed. A cold start always compiles every pipeline the stage needs;
+the protocol does not reduce that cost.
+
 ## Owner limits
 
 `--owner-policy <absolute JSON path>` applies the owner's approved contribution
