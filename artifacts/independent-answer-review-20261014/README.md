@@ -105,3 +105,11 @@ Limits of the blind:
 Component: Reploid Launch 1 answer-quality evidence for REP-8 (artifact only). Intent: preserved. Acceptance evidence: this folder's files and hashes; no review exists yet. Boundary effects: none. No existing artifact, application or Doppler file was modified.
 
 *Last updated: October 2026*
+
+## Reviewer protocol (adopted 2026-10-15)
+
+- Two blinded human reviewers who did not author the tasks grade every answer independently, using only this folder.
+- A third reviewer grades only the elements where the two disagree.
+- Results are published as element-level judgments with each reviewer's basis, not as one aggregate score.
+- Promotion of the Launch 1 model requires at least 80% whole-answer correctness with no critical unsupported claims ([contract decisions](../../docs/product-specification.md#decisions-and-execution-boundary)).
+- The sealed key is revealed only after all reviews are complete.
