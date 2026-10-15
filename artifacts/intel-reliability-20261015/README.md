@@ -90,7 +90,7 @@ only the readiness-time `pipelinePreparation`, and nothing when opening fails.
   MemoryMax 12 GiB, no swap, runtime cap, `ulimit -c unlimited`) and reads the i915 count before
   and after. The baseline was 54.
 
-**(a) Cold start into an empty root** ([evidence/a-cold.log](evidence/a-cold.log),
+**(a) Cold start into an empty root** ([evidence/a-cold.stdout.txt](evidence/a-cold.stdout.txt),
 [a-cold.json](evidence/a-cold.json), [runner](evidence/a-cold.runner.json)):
 
 | t (s) | Event |
@@ -119,7 +119,7 @@ was no longer running. The public native contributor 297260 runs in `session-140
 outside the user manager, and kept running. I did not restart, signal or inspect either one. All
 GPU work stopped here.
 
-**After the kill, CPU only** ([evidence/a-bind-after-oomd.log](evidence/a-bind-after-oomd.log),
+**After the kill, CPU only** ([evidence/a-bind-after-oomd.stdout.txt](evidence/a-bind-after-oomd.stdout.txt),
 [json](evidence/a-bind-after-oomd.json)). A binding with the same identity, without loading the
 provider:
 - derived the same key `851a1a96...`;
