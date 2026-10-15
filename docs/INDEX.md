@@ -102,6 +102,7 @@ Typed model operations: [Doppler decisions in Reploid](doppler-choice-scoring.md
 - **[docs/intent-bundle-lora.md](./intent-bundle-lora.md)** - Intent bundle LoRA workflow
 - **[docs/trained-adapter-promotion.md](./trained-adapter-promotion.md)** - Tinker adapter evidence, Shadow staging, and human-only promotion
 - **[docs/archive/reploid-descriptor-peer-orchestration.md](./archive/reploid-descriptor-peer-orchestration.md)** - Archived layer-pipelining research; not the current Poolday execution contract
+- **[docs/archive/open-mesh-gap-table-2026-10-01.md](./archive/open-mesh-gap-table-2026-10-01.md)** - Archived 2026-10-01 open-mesh gap table; history, not current status
 - **[docs/CONFIGURATION.md](./CONFIGURATION.md)** - Boot UI settings and localStorage keys
 - **[docs/local-models.md](./local-models.md)** - WebLLM and Ollama setup
 - **[docs/style-guide.md](./style-guide.md)** - Code and UI conventions
