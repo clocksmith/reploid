@@ -1,7 +1,7 @@
 /** Ordinary ordered-stage execution. Doppler owns every numerical operation. */
 import { canonicalPartitionJson, partitionActivationContract,
   matchingPartitionActivation, validatePartitionRoute, canonicalRouteAttemptBinding,
-  sameRouteAttemptIdentity, assertCapacity } from './partition-contract.js';
+  sameRouteAttemptIdentity, assertCapacity, partitionFailure } from './partition-contract.js';
 import failureMessages from '../../transport/partition-errors.json' with { type: 'json' };
 import { MAX_UNACKNOWLEDGED_OUTPUTS, acknowledgmentOverdue } from './partition-attempt-evidence.js';
 
@@ -29,6 +29,8 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
   assert(limits && ['maxTokens', 'maxPromptTokens', 'maxActivationBytes', 'maxOutputCharacters',
     'maxAttempts', 'maxConcurrentAttempts', 'maxStages'].every(key => positive(limits[key])),
   'Explicit ordered route allocation limits required');
+  // The declared stage execution bound applies to every stage, the coordinator's own included.
+  assert(positive(limits.stageTimeoutMs) && limits.stageTimeoutMs <= 2147483647, 'Explicit stage execution bound required');
   const policy = Object.freeze({ ...limits });
   const plan = freeze(clone(suppliedPlan));
   const route = freeze(clone(suppliedRoute));
@@ -59,6 +61,17 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
     try { return await task(); } finally { release(); }
   }
 
+  // A stage call the runner stopped waiting for (cancelled, past its bound or past the deadline)
+  // settles before that stage's cleanup, as a remote stage's own settlement waits for its
+  // execution. A call still running after another stage bound leaves that cleanup unsettled.
+  const settledCall = async (item, index) => {
+    const call = item.calls.get(index);
+    if (!call) return;
+    let timer;
+    const bound = new Promise((_, reject) => { timer = setTimeout(() => reject(partitionFailure('REQUEST_TIMEOUT')), policy.stageTimeoutMs); });
+    try { await Promise.race([call, bound]); } finally { clearTimeout(timer); }
+    item.calls.delete(index);
+  };
   async function cleanup(item) {
     if (item.cleaning) return item.cleaning;
     item.cleaning = (async () => {
@@ -68,6 +81,7 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
       const acknowledged = item.acknowledged;
       const results = await Promise.allSettled([...item.owned].map(async index => {
         try {
+          await settledCall(item, index);
           await devices[index].closeAttempt({ identity: item.binding, partitionIndex: index, ...(acknowledged ? { acknowledged } : {}) });
           item.owned.delete(index);
           item.receipt.cleanup[index] = { partitionIndex: index, status: 'settled', error: null };
@@ -103,13 +117,18 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
    * the attempt's own deadline) and never past cancellation; then the attempt
    * ends as ACKNOWLEDGMENT_OVERDUE and its stages close.
    */
+  /**
+   * `deadlineAt` (ms epoch) is the attempt's answer deadline: reaching it fails the attempt as
+   * ANSWER_DEADLINE_EXCEEDED and settles every stage, before any grant could expire.
+   */
   async function execute({ identity, tokenIds, generation, grants, maxTokens, signal, onDelta = () => {}, onActivity = () => {}, onStep = null,
-    charge = null, onOutput = null, acknowledgmentDeadlineAt = null }) {
+    charge = null, onOutput = null, acknowledgmentDeadlineAt = null, deadlineAt = null }) {
     assert(!closed, 'Partition runner is closed');
     signal?.throwIfAborted();
     assert((charge === null || charge && typeof charge === 'object' && !Array.isArray(charge))
       && (onOutput === null || typeof onOutput === 'function' && charge !== null), 'Output acknowledgments need the attempt charge binding');
     assert(charge === null || Number.isFinite(acknowledgmentDeadlineAt), 'A charged attempt needs its acknowledgment deadline');
+    assert(deadlineAt === null || Number.isFinite(deadlineAt), 'Invalid answer deadline');
     // Freeze caller-owned request data before asynchronous plan validation.
     ({ identity, tokenIds, generation, grants, charge } = clone({ identity, tokenIds, generation, grants, charge }));
     await validatePartitionRoute(runtime, plan, route);
@@ -135,11 +154,13 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
     const authority = freeze(clone(grants)), settings = freeze(clone(generation));
     const coordinatorId = route.stages[0].participantId;
     const recipients = (...ids) => [...new Set(ids)];
-    const controller = new AbortController();
-    const combined = signal ? AbortSignal.any([signal, controller.signal]) : controller.signal;
+    const controller = new AbortController(), deadline = new AbortController();
+    const combined = AbortSignal.any([...(signal ? [signal] : []), controller.signal, deadline.signal]);
+    const deadlineTimer = deadlineAt === null ? null
+      : setTimeout(() => deadline.abort(partitionFailure('ANSWER_DEADLINE_EXCEEDED')), Math.max(0, deadlineAt - Date.now()));
     const receipt = { identity: binding, phase: 'admitting', reservations: [], cleanup: [], cleanupSettledAt: null, failure: null };
     const completion = Promise.withResolvers();
-    const item = { binding, controller, receipt, owned: new Set(), lost: new Set(), running: true, settled: completion.promise,
+    const item = { binding, controller, receipt, owned: new Set(), lost: new Set(), calls: new Map(), running: true, settled: completion.promise,
       outcome: 'completed', cleaning: null, acknowledging: Promise.resolve(), acknowledged: null, waiters: new Set() };
     if (charge) receipt.acknowledgments = { bound: MAX_UNACKNOWLEDGED_OUTPUTS, waits: 0, waitedMs: 0 };
     const acknowledgedCount = () => item.acknowledged?.acknowledgment.count ?? 0;
@@ -179,6 +200,21 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
         'Ordered route authorization declined: ' + action);
       combined.throwIfAborted();
     };
+    // One stage call, bounded by the declared stage execution time and stopped by cancellation or
+    // the deadline, whether or not the stage port honors its signal. The call itself is retained
+    // so the stage's cleanup waits for it to settle.
+    async function bounded(stage, call) {
+      const limit = new AbortController(), stageSignal = AbortSignal.any([combined, limit.signal]);
+      const timer = setTimeout(() => limit.abort(partitionFailure('REQUEST_TIMEOUT')), policy.stageTimeoutMs);
+      let stop;
+      const stopped = new Promise((_, reject) => { stop = () => reject(stageSignal.reason); });
+      stageSignal.addEventListener('abort', stop, { once: true });
+      const work = Promise.resolve().then(() => call(stageSignal));
+      item.calls.set(stage, work.then(() => {}, () => {}));
+      try { return await Promise.race([work, stopped]); }
+      catch (error) { throw stageSignal.aborted ? stageSignal.reason : error; }
+      finally { clearTimeout(timer); stageSignal.removeEventListener('abort', stop); }
+    }
     async function permitRoute(step) {
       for (let index = 0; index < devices.length; index++) {
         await permit('mesh.execute_partition_stage', authority.execution[index], { ...step, partitionIndex: index });
@@ -226,14 +262,14 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
               await permit('mesh.transfer_token_context', authority.tokenContext[stage], { ...step, partitionIndex: stage,
                 recipients: recipients(coordinatorId, devices[stage].id) });
               const started = performance.now();
-              const output = clone(await devices[stage].executeStage({ identity: binding, partitionIndex: stage, ...step,
+              const output = clone(await bounded(stage, stageSignal => devices[stage].executeStage({ identity: binding, partitionIndex: stage, ...step,
                 inputTokenIds: [...input], generation: settings, continuation: continuations[stage], activation,
                 executionGrant: authority.execution[stage], tokenContextGrant: authority.tokenContext[stage],
                 ...(stage > 0 ? { incomingActivationGrant: authority.activation[stage - 1] } : {}),
                 ...(stage < devices.length - 1 ? { outgoingActivationGrant: authority.activation[stage] } : {}),
                 ...(stage === devices.length - 1 ? { outputGrant: authority.output } : {}),
                 ...(item.acknowledged ? { acknowledged: item.acknowledged } : {}),
-                signal: combined }));
+                signal: stageSignal })));
               elapsedMs = performance.now() - started;
               return output;
             });
@@ -310,10 +346,12 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
         execution: { schema: 'reploid.mesh.partition-execution/v3', identity: binding, activationBytes, steps, stopReason, settlement: receipt } };
     } catch (error) {
       failure = error;
-      item.outcome = combined.aborted ? 'cancelled' : 'failed';
+      // Reaching the deadline or a stage bound fails the attempt; only a caller's stop cancels it.
+      item.outcome = combined.aborted && !deadline.signal.aborted && error?.code !== 'REQUEST_TIMEOUT' ? 'cancelled' : 'failed';
       receipt.failure = String(error?.message || error);
       throw error;
     } finally {
+      clearTimeout(deadlineTimer);
       try { await cleanup(item); }
       catch (error) {
         // Report a disconnected contributor as such when loss is the only reason

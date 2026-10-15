@@ -116,7 +116,7 @@ export async function residentRoute({ participants, requesterId, signers = [], s
   const runner = createLayerPartitionRunner({
     runtime, plan, route, stages, authorize: async () => true,
     transport: { transferActivation: async (frame) => structuredClone(frame) },
-    limits: { maxTokens: 10, maxPromptTokens: 32, maxActivationBytes: 4096, maxOutputCharacters: 100, maxAttempts: 100, maxConcurrentAttempts: 2, maxStages: 8 }
+    limits: { maxTokens: 10, maxPromptTokens: 32, maxActivationBytes: 4096, maxOutputCharacters: 100, maxAttempts: 100, maxConcurrentAttempts: 2, maxStages: 8, stageTimeoutMs: 1000 }
   });
   const grant = { id: 'grant' };
   const model = {

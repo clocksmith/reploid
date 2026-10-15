@@ -376,7 +376,10 @@ describe('ordered automatic requester with the requester-owned transactional wri
     const result = await f.mesh.generate({ model: f.mesh.getModels()[0], messages: [{ role: 'user', content: 'hello' }], threadId: 'local', attemptId: 'local' },
       { requestApproval: async () => true, publication: w.owner, publisherEpoch: writerEpoch,
         onPublished: async record => { projected.push(record.publication.delta.text); }, onDelta: event => deltas.push(event.text) });
-    expect(result.content).toBe('012'); expect(deltas).toEqual([]); expect(projected).toEqual(['0', '1', '2']);
+    // Under the requester's declared persistence window steps commit in batches, each projected once
+    // from its last durable record; the terminal step is always committed before the result returns.
+    expect(result.content).toBe('012'); expect(deltas).toEqual([]); expect(projected.at(-1)).toBe('2');
+    expect(projected.length).toBeLessThanOrEqual(3);
     expect(w.store.records().map(row => row.publication.sequence)).toEqual([0, 1, 2]);
     expect((await w.owner.reconcile()).attempts[0]).toMatchObject({ status: 'completed',
       identity: { schema: 'reploid.ordered-publication-attempt/v1', requesterId: f.identity.peerId, route: f.route } });

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createPartitionGrantAuthority, orderedPartitionDisclosure } from '../../packages/reploid/src/mesh/partitions/partition-grants.js';
 import { createPartitionPeer } from '../../packages/reploid/src/mesh/partitions/partition-peer.js';
@@ -12,11 +12,12 @@ function channels() {
     close() { if (this.readyState === 'closed') return; this.readyState = 'closed'; this.dispatchEvent(new Event('close')); queueMicrotask(() => pair[1-index].close()); } }));
   return pair;
 }
-async function fixture() {
+async function fixture({ stageClockOffsetMs = 0 } = {}) {
   const f = routeFixture(3), identities = await Promise.all([0,1,2].map(() => createSigningIdentity({ algorithm: 'ECDSA' })));
   for (let index=0;index<3;index++) { f.route.stages[index].participantId = identities[index].peerId;
     f.stages[index].id = identities[index].peerId; f.plan.partitions[index].layerRange = [index*2,index*2+1]; }
-  const authorities = identities.map(identity => createPartitionGrantAuthority({ identity, meshId: 'mesh', maxGrants: 10, maxTtlMs: 10000 }));
+  const authorities = identities.map((identity, index) => createPartitionGrantAuthority({ identity, meshId: 'mesh', maxGrants: 10, maxTtlMs: 10000,
+    ...(index && stageClockOffsetMs ? { now: () => Date.now() + stageClockOffsetMs } : {}) }));
   const limits = { maxFrameBytes: 64, maxControlBytes: 131072, maxPayloadBytes: 4096, maxPendingBytes: 16384,
     maxPendingRequests: 8, maxRequestsPerChannel: 256, maxBufferedBytes: 262144, maxTransferBytes: 4194304, timeoutMs: 1000 };
   const peers = [], pairs = [];
@@ -47,7 +48,9 @@ describe('ordered authenticated peer (in-process channels, injected computation)
       expect(result.content).toBe('012'); expect(f.f.stages[1].executeStage).toHaveBeenCalledTimes(3);
       expect(f.f.stages[2].executeStage).toHaveBeenCalledTimes(3);
       expect(f.peers.every(p=>p.client.getState().unsettled === 0 && p.server.getState().unsettled === 0)).toBe(true);
-      expect(f.peers[0].server.getState().receipt.completedRequests).toBeGreaterThan(0);
+      // The middle stage's activation returns on its step reply; it issues no request of its own.
+      expect(f.peers[0].client.getState().receipt.completedRequests).toBeGreaterThan(0);
+      expect(f.peers[0].server.getState().receipt.completedRequests).toBe(0);
     } finally { await f.close(); }
   });
 });
@@ -96,7 +99,7 @@ it('rejects reverse binary corruption instead of returning a fabricated activati
 it('cancels after reverse output and before final acknowledgment without rerunning computation', async () => {
   const f = await fixture(), controller = new AbortController();
   try {
-    const request = await directStep(f, controller.signal), channel = f.pairs[0][0], send = channel.send;
+    const request = await directStep(f, controller.signal), channel = f.pairs[0][1], send = channel.send;
     let cancelled = false;
     channel.send = function(data) { if (typeof data === 'string') { const value = JSON.parse(data);
       if (value.type === 'result' && value.result?.outputDigest) { cancelled = true; controller.abort(Error('cancel after binary')); } }
@@ -138,7 +141,7 @@ it('retries explicit failed remote cleanup without clearing debt or recomputing'
     expect(f.peers[0].server.getState().unsettled).toBe(1);
     f.f.stages[1].closeAttempt.mockResolvedValue();
     await f.peers[0].client.closeAttempt({ identity: f.request.identity });
-    expect(f.peers[0].client.getState()).toMatchObject({ unsettled: 0, retainedOutputBytes: 0 });
+    expect(f.peers[0].client.getState()).toMatchObject({ unsettled: 0, receipt: { reservedBytes: 0 } });
     expect(f.peers[0].server.getState().unsettled).toBe(0);
     expect(f.f.stages[1].executeStage).toHaveBeenCalledTimes(1);
   } finally { await f.close(); }
@@ -357,4 +360,91 @@ it('carries a contributor CAPACITY_UNAVAILABLE refusal to the coordinator as tha
     expect(f.f.stages[1].executeStage).not.toHaveBeenCalled();
     expect(f.runner.getState()).toMatchObject({ active: 0, unsettled: 0 });
   } finally { await f.close(); }
+});
+
+describe('per-token wire cost on a three-stage route (in-process channels; not physical timing)', () => {
+  // A one-way crossing is a run of frames in one direction on one stage channel; a reply ends it.
+  function instrument(f) {
+    const log = [], last = new Map();
+    f.pairs.forEach((pair, hop) => pair.forEach((channel, side) => {
+      const send = channel.send;
+      channel.send = function(data) {
+        if (last.get(hop) !== side) { last.set(hop, side); log.push({ hop, side, frames: [] }); }
+        log.at(-1).frames.push(data);
+        return send.call(this, data);
+      };
+    }));
+    const local = f.f.stages[0].executeStage, run = local.getMockImplementation();
+    local.mockImplementation(async args => { log.push({ step: args.step }); last.clear(); return run(args); });
+    return log;
+  }
+  const decodeStep = (log, step) => {
+    const start = log.findIndex(row => row.step === step), end = log.findIndex(row => row.step === step + 1);
+    return log.slice(start + 1, end < 0 ? undefined : end).filter(row => row.hop !== undefined);
+  };
+  it('makes four one-way crossings per generated token and carries no signed grant after the first step', async () => {
+    const f = await fixture(), log = instrument(f);
+    try {
+      expect((await f.runner.execute(f.request)).content).toBe('012');
+      const step = decodeStep(log, 1);
+      expect(step.map(row => [row.hop, row.side])).toEqual([[0, 0], [0, 1], [1, 0], [1, 1]]);
+      const text = step.flatMap(row => row.frames).filter(frame => typeof frame === 'string').join('');
+      expect(text).not.toContain('"signature"');
+      expect(text).toContain('reploid.partition-grant-reference/v1');
+    } finally { await f.close(); }
+  });
+  it('verifies each attempt grant signature once per participant across all steps and settlement', async () => {
+    const verify = vi.spyOn(crypto.subtle, 'verify');
+    const f = await fixture();
+    try {
+      verify.mockClear();
+      expect((await f.runner.execute(f.request)).content).toBe('012');
+      // Coordinator, middle stage and final stage: one verification each.
+      expect(verify).toHaveBeenCalledTimes(3);
+    } finally { verify.mockRestore(); await f.close(); }
+  });
+  it('refuses a step whose grant reference names a grant the stage never verified for that attempt', async () => {
+    const f = await fixture();
+    try {
+      const request = await directStep(f), channel = f.pairs[0][0], send = channel.send;
+      await f.peers[0].client.executeStage(request);
+      channel.send = function(data) { if (typeof data === 'string') { const value = JSON.parse(data);
+        if (value.type === 'request' && value.metadata?.operation === 'step' && value.metadata.executionGrant?.digest) {
+          value.metadata.executionGrant.digest = 'sha256:' + '0'.repeat(64); data = JSON.stringify(value); } }
+        return send.call(this, data); };
+      await expect(f.peers[0].client.executeStage({ ...request, step: 1, tokenPosition: 2, inputTokenIds: [3], inputTokenCount: 1,
+        activation: { ...request.activation, shape: [1, 1, 8], tensorData: new Float32Array(8), seqOffset: 2, step: 1 } }))
+        .rejects.toMatchObject({ code: 'AUTHORIZATION_DENIED' });
+      expect(f.f.stages[1].executeStage).toHaveBeenCalledTimes(1);
+    } finally { await f.close(); }
+  });
+});
+
+describe('one deadline outcome in either order (in-process channels, injected computation)', () => {
+  const grantFor = async (f, ttlMs) => f.authorities[0].issueOrdered(f.f.request.identity, f.f.limits, { approved: true, ttlMs,
+    generationDigest: await f.f.runtime.hashPartitionGeneration(f.request.generation), disclosure: orderedPartitionDisclosure(f.f.request.identity) });
+  const grants = grant => ({ execution: Array(3).fill(grant), tokenContext: Array(3).fill(grant), activation: Array(2).fill(grant), output: grant });
+  const deadline = { code: 'ANSWER_DEADLINE_EXCEEDED', message: 'Response timed out. Retry starts a new attempt.' };
+  it('the coordinator deadline reached before any grant expiry fails as the deadline and settles every stage', async () => {
+    const f = await fixture(), grant = await grantFor(f, 10000), gate = Promise.withResolvers();
+    const run = f.f.stages[2].executeStage.getMockImplementation();
+    f.f.stages[2].executeStage.mockImplementation(async args => { if (args.step === 1) await gate.promise; return run(args); });
+    try {
+      const pending = f.runner.execute({ ...f.request, grants: grants(grant), deadlineAt: Date.now() + 60 });
+      // The final stage's in-flight step finishes after the deadline; its settlement waits for it.
+      setTimeout(() => gate.resolve(), 120);
+      await expect(pending).rejects.toMatchObject(deadline);
+      await vi.waitFor(() => expect(f.peers.every(peer => peer.client.getState().unsettled === 0)).toBe(true));
+      expect(f.runner.getState()).toMatchObject({ active: 0, unsettled: 0 });
+    } finally { gate.resolve(); await f.close(); }
+  });
+  it('a stage whose clock passes the grant expiry first refuses as the deadline, never as declined authorization', async () => {
+    // The stage clock runs 2.04 s ahead of the coordinator, as measured on the physical route.
+    const f = await fixture({ stageClockOffsetMs: 2040 }), grant = await grantFor(f, 1500);
+    try {
+      await expect(f.runner.execute({ ...f.request, grants: grants(grant) })).rejects.toMatchObject(deadline);
+      expect(f.f.stages[1].executeStage).not.toHaveBeenCalled();
+      expect(f.peers.every(peer => peer.client.getState().unsettled === 0)).toBe(true);
+    } finally { await f.close(); }
+  });
 });

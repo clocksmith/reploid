@@ -1,15 +1,20 @@
 import { TEXT_GENERATION_CAPABILITY, requireGenerationCapability, boundedGeneration, tokenUsage } from './partition-generation-request.js';
 import { createLayerPartitionRunner } from './partition-runner.js';
 import { orderedPartitionDisclosure } from './partition-grants.js';
-import { assertPartition as assert, assertCapacity, canonicalPartitionJson, canonicalRouteAttemptBinding,
+import { assertPartition as assert, assertCapacity, partitionFailure, canonicalPartitionJson, canonicalRouteAttemptBinding,
   validatePartitionRoute } from './partition-contract.js';
 import { validateOrderedPublicationContext, orderedPublicationAttempt, orderedGenerationBounds,
   orderedPublicationRecord } from './partition-ordered-publication.js';
 import { ATTEMPT_QUEUE_POLICY, createPartitionAttemptQueue } from './partition-attempt-queue.js';
+import { ROUTE_ENVELOPE_POLICY, createRouteEnvelope } from './partition-route-envelope.js';
 
 /** Existing chat composition for an explicitly prepared, coordinator-mediated route.
- * With a requester publication port, every final-stage step is durably committed
- * by the requester's transaction owner before delivery or the next step.
+ * With a requester publication port, final-stage steps are durably committed by the
+ * requester's transaction owner before delivery, in batches bounded by the window the
+ * requester declares when it admits the attempt (none declared: every step, before the next).
+ * Requests are checked against the route's declared envelope (`ordered.envelope`, otherwise the
+ * partitions component's policy) after tokenization and before any stage reservation or grant.
+ * The attempt's answer deadline is its grant lifetime less the declared clock allowance.
  * An authorized attempt that finds the route's slots or this coordinator's own stage full waits
  * in `ordered.queue` (shared by a coordinator's routes; otherwise this route's own queue under the
  * partitions component's policy) and reports `queued`. Waiting tokenizes, reserves, grants and
@@ -19,6 +24,8 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
   grantTtlMs, ordered, authorizeRequester, now = Date.now }) {
   const route = structuredClone(ordered.route), policy = structuredClone(limits), stages = [...ordered.stages];
   const queue = ordered.queue ?? createPartitionAttemptQueue({ policy: ATTEMPT_QUEUE_POLICY });
+  const envelope = createRouteEnvelope({ policy: ordered.envelope ?? ROUTE_ENVELOPE_POLICY, route });
+  assert(Number.isSafeInteger(authority.maxClockSkewMs) && authority.maxClockSkewMs >= 0, 'Ordered chat requires the declared clock allowance');
   assert(['admit', 'pump'].every(method => typeof queue?.[method] === 'function'), 'Ordered admission queue required');
   // Distinguishes this coordinator incarnation's admissions in requester history.
   const coordinatorEpoch = Array.from(crypto.getRandomValues(new Uint8Array(16)), byte => byte.toString(16).padStart(2, '0')).join('');
@@ -43,7 +50,12 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
     // The coordinator holds this frame between stage ports. The authenticated
     // peer owns its actual outgoing binary transfer in executeStage.
     transport: { transferActivation: async frame => structuredClone(frame) },
-    authorize: request => authority.verify(request.grant, request) });
+    // A grant expires with its attempt's answer window: expiry is the deadline, not a refusal.
+    authorize: async request => {
+      const { ok, reason } = await authority.check(request.grant, request);
+      if (reason === 'expired') throw partitionFailure('ANSWER_DEADLINE_EXCEEDED');
+      return ok;
+    } });
   const models = () => [{ ...structuredClone(selection), textGeneration: TEXT_GENERATION_CAPABILITY,
     availability: !closed && validated && stages.every(stage => stage.getState().ready) ? 'ready' : 'unavailable',
     providerIds: stages.map(stage => stage.id), placement: 'ordered-layer-partition' }];
@@ -65,6 +77,60 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
   async function refresh(options) { await preparation; await Promise.all(stages.slice(1).map(stage => stage.refresh(options))); notify(); return models(); }
   async function releaseOpening(identity) {
     await local.closeAttempt({ identity, partitionIndex: 0 }); openingDebt.delete(identity.attemptId);
+  }
+  // The requester's declared persistence window, or none: then each step commits before the next.
+  const persistenceWindow = value => {
+    if (value === undefined || value === null) return null;
+    assert(value && Number.isSafeInteger(value.maxUnsavedSteps) && value.maxUnsavedSteps > 0
+      && Number.isSafeInteger(value.maxUnsavedMs) && value.maxUnsavedMs >= 0 && value.maxUnsavedMs <= 2147483647,
+    'Invalid requester persistence window');
+    return { maxUnsavedSteps: value.maxUnsavedSteps, maxUnsavedMs: value.maxUnsavedMs };
+  };
+  /** Chains each step's record to the conversation head as it is computed and commits records in
+   * order off the step path: a commit starts `maxUnsavedMs` after the first uncommitted step, and
+   * steps computed during a commit form the next batch. The terminal step waits for its commit, and
+   * a step that would leave more than `maxUnsavedSteps` uncommitted waits for the commit before it. */
+  function createPublisher({ owner, attempt, bounds, head, window }) {
+    let previous = head, base = null, durable = null, error = null, timer = null, uncommitted = 0, draining = null;
+    let unsaved = [];
+    const commit = async batch => {
+      const receipts = batch.length > 1 && typeof owner.publishBatch === 'function'
+        ? await owner.publishBatch(batch, { evidence: batch.map(() => []) })
+        : await batch.reduce((chain, record) => chain.then(async list => [...list, await owner.publish(record, { evidence: [] })]), Promise.resolve([]));
+      assert(Array.isArray(receipts) && receipts.length === batch.length && batch.every((record, index) => {
+        const receipt = receipts[index];
+        return receipt?.attemptId === record.attemptId && receipt.coordinatorEpoch === record.coordinatorEpoch
+          && receipt.sequence === record.sequence && receipt.publicationDigest === record.publicationDigest;
+      }), 'Durable ordered publication receipt mismatch');
+      durable = batch.at(-1).successor; uncommitted -= batch.length;
+    };
+    const flush = () => {
+      clearTimeout(timer); timer = null;
+      draining ??= (async () => {
+        try {
+          while (unsaved.length) {
+            if (error) throw error;
+            const batch = unsaved; unsaved = [];
+            await commit(batch);
+          }
+        } catch (cause) { error ??= cause; throw error; }
+        finally { draining = null; }
+      })();
+      return draining;
+    };
+    return {
+      durable: () => durable,
+      flush: () => error ? Promise.reject(error) : flush(),
+      async step(step) {
+        if (error) throw error;
+        const record = orderedPublicationRecord({ attempt, bounds, vocabSize: plan.vocabSize, base,
+          previousPublicationDigest: previous, metadataDigest: runtime.metadataDigest, step });
+        previous = record.publicationDigest; base = record.successor;
+        unsaved.push(record); uncommitted++;
+        if (step.done || !window || uncommitted > window.maxUnsavedSteps) await flush();
+        else if (!draining && !timer) timer = setTimeout(() => { flush().catch(() => {}); }, window.maxUnsavedMs);
+      }
+    };
   }
   async function generate(request, controls) {
     request = structuredClone(request);
@@ -90,7 +156,7 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
       placementGeneration: request.placementGeneration ?? 0 });
     assert(!pending.has(identity.attemptId) && !openingDebt.has(identity.attemptId), 'Ordered chat attempt already pending');
     const completion = Promise.withResolvers(); pending.set(identity.attemptId, completion.promise);
-    let grant = null, delegatedToRunner = false, failure, admitted = null, cancellation = null, ticket = null;
+    let grant = null, delegatedToRunner = false, failure, admitted = null, cancellation = null, ticket = null, workload = null, publisher = null;
     // The requester's writer records cancellation of an admitted attempt; a
     // committed terminal record stays completed (the writer never rewrites it).
     const settlePublication = () => {
@@ -130,7 +196,11 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
       signal.throwIfAborted();
       assert(input.modelIdentity === selection.identity && Number.isSafeInteger(input.generation?.maxTokens)
         && input.generation.maxTokens > 0 && input.generation.maxTokens <= policy.maxTokens, 'Doppler tokenization contract mismatch');
-      const generation = boundedGeneration(input.generation, requested);
+      let generation = boundedGeneration(input.generation, requested);
+      // Outside the route's declared envelope nothing is reserved, granted or sent to another stage.
+      workload = envelope.admit({ attemptId: identity.attemptId, promptTokens: input.tokenIds.length,
+        answerTokens: generation.maxTokens, explicit: !!requested });
+      if (workload.answerTokens !== generation.maxTokens) generation = { ...generation, maxTokens: workload.answerTokens };
       if (requested) {
         await controls.onUsage?.({threadId: identity.threadId, attemptId: identity.attemptId, ...tokenUsage(input.tokenIds.length, 0, requested)});
         signal.throwIfAborted();
@@ -141,7 +211,6 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
       grant = await authority.issueOrdered(identity, policy, { approved: true, ttlMs: Math.min(grantTtlMs, remainingMs), disclosure, generationDigest, expiresAt });
       signal.throwIfAborted();
       assert(now() < expiresAt && grant.claim.expiresAt <= expiresAt, 'Ordered disclosure expired during grant signing');
-      let publisher = null;
       if (published) {
         // Admit before any reservation or input disclosure to stages.
         const attempt = orderedPublicationAttempt({ binding: identity, coordinatorEpoch,
@@ -150,10 +219,10 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
         const state = await owner.reconcile(); signal.throwIfAborted();
         assert(Array.isArray(state?.attempts) && !state.attempts.some(item => item.identity?.attemptId === attempt.attemptId),
           'Ordered attempt was already admitted; retries require a fresh identity');
-        await owner.admitAttempt({ identity: attempt, generationPolicy: bounds, executionIdentity: generationDigest,
+        const record = await owner.admitAttempt({ identity: attempt, generationPolicy: bounds, executionIdentity: generationDigest,
           vocabSize: plan.vocabSize, deadlineAt: context.deadlineAt });
         admitted = attempt; signal.addEventListener('abort', settlePublication, { once: true }); signal.throwIfAborted();
-        publisher = { attempt, bounds, previous: state.head ?? null, base: null };
+        publisher = createPublisher({ owner, attempt, bounds, head: state.head ?? null, window: persistenceWindow(record?.persistence) });
       }
       controls.onState?.({ threadId: identity.threadId, attemptId: identity.attemptId, status: 'executing',
         execution: { placement: 'ordered-layer-partition', identity } });
@@ -163,27 +232,23 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
         maxTokens: generation.maxTokens, signal,
         ...(request.charge ? { charge: request.charge, acknowledgmentDeadlineAt: expiresAt,
           ...(typeof controls.onOutput === 'function' ? { onOutput: controls.onOutput } : {}) } : {}),
+        // Fail at the deadline before any participant within the declared clock allowance sees the grant expire.
+        deadlineAt: grant.claim.expiresAt - authority.maxClockSkewMs,
         grants: { execution: stages.map(() => grant), tokenContext: stages.map(() => grant),
           activation: stages.slice(1).map(() => grant), output: grant },
         onActivity: activity => controls.onActivity?.({threadId: identity.threadId, attemptId: identity.attemptId, ...activity}),
         // Published text reaches the requester only as its own durable projection.
-        ...(publisher ? { onStep: async step => {
-          const record = orderedPublicationRecord({ attempt: publisher.attempt, bounds: publisher.bounds, vocabSize: plan.vocabSize,
-            base: publisher.base, previousPublicationDigest: publisher.previous, metadataDigest: runtime.metadataDigest, step });
-          const receipt = await owner.publish(record, { evidence: [] });
-          assert(receipt?.attemptId === record.attemptId && receipt.coordinatorEpoch === record.coordinatorEpoch
-            && receipt.sequence === record.sequence && receipt.publicationDigest === record.publicationDigest,
-          'Durable ordered publication receipt mismatch');
-          publisher.previous = record.publicationDigest; publisher.base = record.successor;
-        } } : { onDelta: text => controls.onDelta?.({ threadId: identity.threadId, attemptId: identity.attemptId, sequence: sequence++, text }) }) });
+        ...(publisher ? { onStep: step => publisher.step(step) }
+          : { onDelta: text => controls.onDelta?.({ threadId: identity.threadId, attemptId: identity.attemptId, sequence: sequence++, text }) }) });
       try {
         const result = await operation;
-        assert(!publisher || publisher.base?.terminal === true, 'Ordered generation ended without its durable terminal publication');
+        assert(!publisher || publisher.durable()?.terminal === true, 'Ordered generation ended without its durable terminal publication');
         return { threadId: identity.threadId, attemptId: identity.attemptId, modelId: selection.id,
           modelIdentity: selection.identity, adapterIdentities: [], content: result.content,
           ...(requested ? {usage: tokenUsage(input.tokenIds.length, result.tokenIds.length, requested)} : {}),
           // Coordinator admission wait for this attempt (0 when a slot was free on arrival).
-          execution: { ...result.execution, provider: 'peer', admission: { queuedMs: ticket.queuedMs } } };
+          execution: { ...result.execution, provider: 'peer', admission: { queuedMs: ticket.queuedMs },
+            ...(workload.envelope ? { envelope: workload.envelope } : {}) } };
       } finally {
         // An accepted runner attempt owns cleanup, including failed cleanup and
         // retries. Pre-admission rejection leaves tokenizer ownership here.
@@ -192,6 +257,9 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
       }
     } catch (error) {
       failure = error;
+      // A failed attempt keeps every step it computed: the unsaved window is committed before the
+      // writer records the attempt's end. A requester that stopped refuses further publication.
+      await publisher?.flush().catch(() => {});
       const cancellationError = await settlePublication();
       if (cancellationError) throw new AggregateError([error, cancellationError], 'Ordered execution and publication settlement failed');
       throw error;
@@ -200,7 +268,7 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
       if (grant) authority.revoke(grant);
       try { if (!delegatedToRunner && openingDebt.has(identity.attemptId)) await releaseOpening(identity); }
       catch (error) { throw new AggregateError(failure ? [failure, error] : [error], 'Ordered chat opening cleanup failed'); }
-      finally { pending.delete(identity.attemptId); completion.resolve(); ticket?.release(); }
+      finally { pending.delete(identity.attemptId); completion.resolve(); ticket?.release(); if (workload) envelope.release(identity.attemptId); }
     }
   }
   return Object.freeze({ getModels: models,

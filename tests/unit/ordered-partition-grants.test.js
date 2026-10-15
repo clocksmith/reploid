@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createPartitionGrantAuthority, orderedPartitionDisclosure } from '../../packages/reploid/src/mesh/partitions/partition-grants.js';
 import { fixture as runnerFixture } from '../fixtures/ordered-partition-ports.js';
@@ -82,4 +82,42 @@ it('snapshots approved identity, recipient closure and limits before asynchronou
   const grant = await pending;
   expect(grant.claim.identity).toEqual(expected.identity); expect(grant.claim.disclosure).toEqual(expected.disclosure);
   expect(grant.claim.limits).toEqual(expected.limits);
+});
+
+describe('verified grant binding cache', () => {
+  it('verifies a signature once, then refuses binding changes, expiry and revocation from the cached binding', async () => {
+    const f = await fixture(), verify = vi.spyOn(crypto.subtle, 'verify');
+    try {
+      for (let step = 0; step < 4; step++) expect(await f.authority.check(f.grant, { ...f.request, step, inputTokenCount: step ? 1 : 2 })).toEqual({ ok: true, reason: null });
+      expect(verify).toHaveBeenCalledTimes(1);
+      const identity = structuredClone(f.identity); identity.attemptId = 'other';
+      expect(await f.authority.check(f.grant, { ...f.request, identity })).toMatchObject({ ok: false, reason: 'declined' });
+      expect(await f.authority.check(f.grant, { ...f.request, recipients: ['middle', 'final'] })).toMatchObject({ ok: false });
+      expect(await f.authority.check(f.grant, { ...f.request, step: 4 })).toMatchObject({ ok: false });
+      // A changed claim reusing the verified signature is verified afresh, and fails.
+      const changed = structuredClone(f.grant); changed.claim.limits.maxActivationBytes++;
+      expect(await f.authority.check(changed, f.request)).toMatchObject({ ok: false, reason: 'declined' });
+      expect(verify).toHaveBeenCalledTimes(2);
+      f.expire();
+      expect(await f.authority.check(f.grant, f.request)).toEqual({ ok: false, reason: 'expired' });
+      expect(await f.authority.verify(f.grant, f.request)).toBe(false);
+    } finally { verify.mockRestore(); }
+  });
+  it('reports revocation on every later check of a cached grant', async () => {
+    const f = await fixture();
+    expect(await f.authority.verify(f.grant, f.request)).toBe(true);
+    f.authority.revoke(f.grant);
+    expect(await f.authority.check(f.grant, f.request)).toEqual({ ok: false, reason: 'revoked' });
+  });
+  it('a stage verifying a remote coordinator grant runs one signature verification per attempt grant', async () => {
+    const f = await fixture(), stage = createPartitionGrantAuthority({ identity: await createSigningIdentity({ algorithm: 'ECDSA' }),
+      meshId: 'mesh', maxGrants: 2, maxTtlMs: 1000, now: () => 150 });
+    const verify = vi.spyOn(crypto.subtle, 'verify');
+    try {
+      for (let step = 0; step < 3; step++) expect(await stage.verify(f.grant, { ...f.request, step, inputTokenCount: step ? 1 : 2 })).toBe(true);
+      expect(verify).toHaveBeenCalledTimes(1);
+      stage.close();
+      expect(await stage.verify(f.grant, f.request)).toBe(false);
+    } finally { verify.mockRestore(); }
+  });
 });

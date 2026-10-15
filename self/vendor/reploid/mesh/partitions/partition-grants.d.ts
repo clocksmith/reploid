@@ -19,6 +19,8 @@ export interface PartitionGrant {
 }
 export interface PartitionGrantAuthority {
   readonly participantId: string; readonly meshId: string;
+  /** The declared clock allowance between participants that check this authority's grants. */
+  readonly maxClockSkewMs: number;
   issue(identity: PartitionBinding, limits: PartitionLimits, controls: { approved: true; ttlMs: number;
     disclosure: PartitionGrant['claim']['disclosure']; generationDigest: string }): Promise<PartitionGrant>;
   issueOrdered(identity: RouteAttemptBinding, limits: OrderedPartitionGrant['claim']['limits'], controls: {
@@ -34,6 +36,10 @@ export interface PartitionGrantAuthority {
   verify(grant: unknown, request: { identity: PartitionBinding; action: string;
     step?: number; inputTokenCount?: number; activationBytes?: number; generationDigest?: string;
     canonicalAttempt?: PartitionCommitAttempt; generationId?: string; phase?: 'admit' | 'step' }, controls?: { settlement?: boolean }): Promise<boolean>;
+  /** The same checks as verify, naming why a grant was refused. A signature is verified once per
+   * grant record; binding, scope, expiry and revocation are evaluated on every call. */
+  check(grant: unknown, request: OrderedPartitionGrantRequest | Parameters<PartitionGrantAuthority['verify']>[1],
+    controls?: { settlement?: boolean }): Promise<{ ok: true; reason: null } | { ok: false; reason: 'expired' | 'revoked' | 'declined' }>;
   /** Denies subsequent local use. Settling the remote attempt propagates revocation to its replay guard. */
   revoke(grant: PartitionGrant | CanonicalPartitionGrant | OrderedPartitionGrant): void;
   close(): void;

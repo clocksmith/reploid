@@ -22,9 +22,9 @@ Subtree.
 Inputs: Doppler plans/codecs, authenticated executors, grants, resources.
 Outputs: tokens, costs, settlement.
 Legacy traverses A/B. Ordered routes traverse all stages; only the last samples.
-Requester writers commit unsigned ordered steps before delivery or next steps.
+Requester writers commit ordered steps before delivery, within their recorded window of computation.
 Geometry determines stage count; attempts retain replicas.
-Charged stages sign receipts and refuse steps beyond K unacknowledged outputs.
+Charged stages sign receipts, refusing steps beyond K unacknowledged outputs.
 Session: [contract](../../../../../docs/chat-mvp.md#resident-integration-contract).
 
 ## Invariants
@@ -32,17 +32,17 @@ Session: [contract](../../../../../docs/chat-mvp.md#resident-integration-contrac
 - Authorization precedes work; verify recipients/scope/expiration/revocation/budgets.
 - Bind model/plan/thread/attempt/participants/token position.
 - Discovery grants no authority; advertise capacity, never conversation identities.
-- Hosts assign stages; opt-in [Launch 3](../../../../../docs/launch-3-orchestration.md) `auto` lets the
-  contributor's policy choose from observed offers, moving only idle residents.
+- Hosts assign stages; opt-in [Launch 3](../../../../../docs/launch-3-orchestration.md) `auto`
+  moves idle residents by contributor policy.
 - Signed reservations are authoritative; slots release after confirmed cleanup.
 - Bound receipts by attempt budgets; distinguish cleanup failure/channel-lost unknowns/settlement.
   Admission limits aren't memory measurements.
-- Busy replicas never move conversations. Recovery requires fresh identities
-  unless Doppler supports continuation. Duplicates never advance state.
-- Cancellation settles named attempts, preserving shared weights/threads.
-- FIFO execution leases share weights: legacy routes lease token traversals;
-  ordered routes lease each stage. Weightless requesters bind requester
-  identity/placement generation.
+- Busy replicas never move conversations; recovery needs fresh identities absent
+  Doppler continuation; duplicates never advance state.
+- Cancellation settles named attempts, preserving weights/threads.
+- FIFO leases share weights: legacy per traversal, ordered per stage.
+  Weightless requesters bind identity/placement generation.
+- Bound every stage call; deadlines precede grant expiry; envelopes refuse before disclosure.
 - No import-time connections, downloads, Doppler imports.
 
 ## Acceptance

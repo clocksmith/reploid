@@ -25,7 +25,9 @@ export interface OrderedPartitionChatOptions {
   runtime:OrderedExecutionRuntime;model:ChatModel;authority:PartitionGrantAuthority;plan:OrderedExecutionPlan;planId:string;
   limits:OrderedRouteLimits;grantTtlMs:number;ordered:{route:PartitionRoute;stages:OrderedChatStage[];
     /** Shared by a coordinator's routes; without it this route admits through its own queue under the component policy. */
-    queue?:import('./partition-attempt-queue.js').AttemptQueue};canonical?:null;
+    queue?:import('./partition-attempt-queue.js').AttemptQueue;
+    /** This route's declared workload envelope; without it the partitions component's policy applies. */
+    envelope?:import('./partition-route-envelope.js').RouteEnvelopePolicy};canonical?:null;
   authorizeRequester?:(request:ChatRequest & {participantId:string},signal:AbortSignal)=>Promise<boolean>;now?:()=>number;
 }
 export function createOrderedPartitionChat(options:OrderedPartitionChatOptions):OrderedPartitionChat;

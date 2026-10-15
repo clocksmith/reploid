@@ -29,8 +29,13 @@ export function createConversationPublication({ conversationId, writerEpoch, sto
   assert(typeof authenticateCommit === 'function' && typeof authorize === 'function', 'Current authorization and authenticated commit ports required');
   assert(typeof requireCommitEvidence === 'boolean', 'Invalid commit evidence policy');
   const limits = copy(policy);
-  assert(Object.keys(limits).length === 2 && ['maxAttempts', 'maxPublications'].every(key =>
+  assert(Object.keys(limits).length === 3 && ['maxAttempts', 'maxPublications'].every(key =>
     Number.isSafeInteger(limits[key]) && limits[key] > 0), 'Invalid publication retention bounds');
+  // An ordered attempt's declared persistence window: the most computed steps, and the longest
+  // delay before their commit starts, that may be uncommitted when this writer stops.
+  assert(Object.keys(limits.persistence ?? {}).length === 2 && Number.isSafeInteger(limits.persistence.maxUnsavedSteps)
+    && limits.persistence.maxUnsavedSteps >= 0 && Number.isSafeInteger(limits.persistence.maxUnsavedMs)
+    && limits.persistence.maxUnsavedMs >= 0, 'Invalid publication persistence window');
   let fenced = false;
   const read = async () => {
     try { return await store.read(conversationId); }
@@ -131,6 +136,84 @@ export function createConversationPublication({ conversationId, writerEpoch, sto
       permission('replay', attempt.identity);
     }
   };
+  // Each record is checked exactly as a single publication, in order, against the chain it extends.
+  async function publishAll(inputs, suppliedEvidence) {
+    assert(!fenced, 'Publication storage is fenced; reconcile its durable head');
+    const prepared = [];
+    for (const [index, input] of inputs.entries()) {
+      // Bound and fingerprint before copying the message or authenticating it.
+      doppler.metadataDigest('reploid.publication-input/v1', input);
+      fingerprint(input);
+      const supplied = suppliedEvidence?.[index];
+      if (supplied !== undefined) {
+        assert(Array.isArray(supplied), 'Stage evidence must be an array');
+        doppler.metadataDigest('reploid.publication-evidence/v1', supplied);
+      }
+      prepared.push({ publication: copy(input), evidenceSnapshot: copy(supplied) });
+    }
+    const first = prepared[0].publication;
+    assert(prepared.every(({ publication }, index) => publication.attemptId === first.attemptId
+      && publication.coordinatorEpoch === first.coordinatorEpoch && publication.sequence === first.sequence + index
+      && (index === 0 || publication.previousPublicationDigest === prepared[index - 1].publication.publicationDigest)),
+    'A publication batch extends one attempt in sequence');
+    const saved = historyFor(await read());
+    writer(saved);
+    const admitted = findAttempt(saved, first.attemptId, first.coordinatorEpoch);
+    permission('publish', admitted.identity);
+    let cursor = admitted.cursor, nextSequence = admitted.nextSequence;
+    for (const item of prepared) {
+      const { publication, evidenceSnapshot } = item;
+      const prior = saved.records.find(record => key(record.publication) === key(publication));
+      if (prior) {
+        assert(prior.publication.publicationDigest === publication.publicationDigest, 'Publication key collision');
+        if (!admissionOnly(prior.publication)) cursor = prior.publication.successor;
+      } else {
+        const validated = validatePublication(publication, { ...admitted, cursor, nextSequence });
+        if (!admissionOnly(validated)) cursor = validated.successor;
+      }
+      nextSequence = publication.sequence + 1;
+      item.evidence = boundEvidence(publication, admitted, evidenceSnapshot === undefined ? prior?.evidence : evidenceSnapshot);
+      item.evidenceDigest = item.evidence === undefined ? undefined : doppler.metadataDigest('reploid.publication-evidence/v1', item.evidence);
+      if (prior) {
+        assert(prior.evidenceDigest === item.evidenceDigest, 'Publication evidence collision');
+        await checkRetained(saved, [prior]);
+      }
+      await authenticate(publication, admitted, item.evidence);
+    }
+    return write(history => {
+      writer(history);
+      const current = findAttempt(history, first.attemptId, first.coordinatorEpoch);
+      permission('publish', current.identity);
+      return prepared.map(({ publication, evidence, evidenceDigest }) => {
+        const publicationDigest = publication.publicationDigest;
+        const duplicate = history.records.find(record => key(record.publication) === key(publication));
+        if (duplicate) {
+          assert(duplicate.publication.publicationDigest === publicationDigest, 'Publication key collision');
+          assert(duplicate.evidenceDigest === evidenceDigest, 'Publication evidence collision');
+          return copy(duplicate.receipt);
+        }
+        assert(current.status === 'live' && now() <= current.deadlineAt, 'Publication attempt is cancelled, retired or expired');
+        assert(publication.sequence === current.nextSequence && publication.previousPublicationDigest === history.head,
+          'Publication sequence or durable head mismatch');
+        const validated = validatePublication(publication, current);
+        assert(history.records.length < limits.maxPublications, 'Publication history is full');
+        const receipt = { schema: 'reploid.publication-receipt/v1', conversationId, writerEpoch,
+          index: history.records.length, coordinatorEpoch: publication.coordinatorEpoch, attemptId: publication.attemptId,
+          sequence: publication.sequence, publicationDigest };
+        receipt.receiptDigest = doppler.metadataDigest(receipt.schema, receipt);
+        history.records.push({ publication: validated, receipt,
+          ...(evidence === undefined ? {} : { evidence, evidenceDigest }) });
+        history.head = publicationDigest;
+        current.nextSequence++;
+        if (admissionOnly(validated)) current.status = 'completed';
+        else {
+          current.cursor = validated.successor;
+          if (validated.successor.terminal) current.status = 'completed';
+        }
+        return copy(receipt);
+      });
+    });
+  }
   return Object.freeze({
     requiresCommitEvidence: requireCommitEvidence,
     async claimWriter(expectedEpoch) {
@@ -160,8 +243,10 @@ export function createConversationPublication({ conversationId, writerEpoch, sto
         admittedPolicy = generation.policy;
       }
       assert(Number.isSafeInteger(deadlineAt) && deadlineAt > now(), 'Finite future attempt deadline required');
+      // The attempt record marks the window under which its steps were committed; zero steps is per-step commit.
+      const window = orderedAttempt(attempt) && limits.persistence.maxUnsavedSteps > 0 ? copy(limits.persistence) : null;
       const binding = { identity: attempt, generationPolicy: admittedPolicy, executionIdentity, vocabSize, deadlineAt,
-        ...(requireCommitEvidence ? { requireCommitEvidence: true } : {}) };
+        ...(requireCommitEvidence ? { requireCommitEvidence: true } : {}), ...(window ? { persistence: window } : {}) };
       const digest = doppler.metadataDigest('reploid.publication-admission/v1', binding);
       return write(history => {
         writer(history); permission('admit', attempt);
@@ -176,60 +261,14 @@ export function createConversationPublication({ conversationId, writerEpoch, sto
       });
     },
     async publish(input, { evidence: suppliedEvidence } = {}) {
-      assert(!fenced, 'Publication storage is fenced; reconcile its durable head');
-      // Bound and fingerprint before copying the message or authenticating it.
-      doppler.metadataDigest('reploid.publication-input/v1', input);
-      fingerprint(input);
-      const publication = copy(input), publicationDigest = publication.publicationDigest;
-      if (suppliedEvidence !== undefined) {
-        assert(Array.isArray(suppliedEvidence), 'Stage evidence must be an array');
-        doppler.metadataDigest('reploid.publication-evidence/v1', suppliedEvidence);
-      }
-      const evidenceSnapshot = copy(suppliedEvidence);
-      const saved = historyFor(await read());
-      writer(saved);
-      const admitted = findAttempt(saved, publication.attemptId, publication.coordinatorEpoch);
-      permission('publish', admitted.identity);
-      const prior = saved.records.find(record => key(record.publication) === key(publication));
-      if (prior) assert(prior.publication.publicationDigest === publicationDigest, 'Publication key collision');
-      else validatePublication(publication, admitted);
-      const evidence = boundEvidence(publication, admitted, evidenceSnapshot === undefined ? prior?.evidence : evidenceSnapshot);
-      const evidenceDigest = evidence === undefined ? undefined : doppler.metadataDigest('reploid.publication-evidence/v1', evidence);
-      if (prior) {
-        assert(prior.evidenceDigest === evidenceDigest, 'Publication evidence collision');
-        await checkRetained(saved, [prior]);
-      }
-      await authenticate(publication, admitted, evidence);
-      return write(history => {
-        writer(history);
-        const current = findAttempt(history, publication.attemptId, publication.coordinatorEpoch);
-        permission('publish', current.identity);
-        const duplicate = history.records.find(record => key(record.publication) === key(publication));
-        if (duplicate) {
-          assert(duplicate.publication.publicationDigest === publicationDigest, 'Publication key collision');
-          assert(duplicate.evidenceDigest === evidenceDigest, 'Publication evidence collision');
-          return copy(duplicate.receipt);
-        }
-        assert(current.status === 'live' && now() <= current.deadlineAt, 'Publication attempt is cancelled, retired or expired');
-        assert(publication.sequence === current.nextSequence && publication.previousPublicationDigest === history.head,
-          'Publication sequence or durable head mismatch');
-        const validated = validatePublication(publication, current);
-        assert(history.records.length < limits.maxPublications, 'Publication history is full');
-        const receipt = { schema: 'reploid.publication-receipt/v1', conversationId, writerEpoch,
-          index: history.records.length, coordinatorEpoch: publication.coordinatorEpoch, attemptId: publication.attemptId,
-          sequence: publication.sequence, publicationDigest };
-        receipt.receiptDigest = doppler.metadataDigest(receipt.schema, receipt);
-        history.records.push({ publication: validated, receipt,
-          ...(evidence === undefined ? {} : { evidence, evidenceDigest }) });
-        history.head = publicationDigest;
-        current.nextSequence++;
-        if (admissionOnly(validated)) current.status = 'completed';
-        else {
-          current.cursor = validated.successor;
-          if (validated.successor.terminal) current.status = 'completed';
-        }
-        return copy(receipt);
-      });
+      const [receipt] = await publishAll([input], suppliedEvidence === undefined ? undefined : [suppliedEvidence]);
+      return receipt;
+    },
+    /** Commits consecutive records of one attempt in a single transaction: all or none. */
+    async publishBatch(inputs, { evidence } = {}) {
+      assert(Array.isArray(inputs) && inputs.length > 0 && inputs.length <= limits.maxPublications
+        && (evidence === undefined || Array.isArray(evidence) && evidence.length === inputs.length), 'Invalid publication batch');
+      return publishAll(inputs, evidence);
     },
     async cancel(attemptId, coordinatorEpoch) {
       return write(history => {

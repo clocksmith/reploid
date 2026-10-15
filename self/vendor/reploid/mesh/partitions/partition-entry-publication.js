@@ -6,7 +6,7 @@ export const ENTRY_PUBLICATION_SCHEMA = 'reploid.partition-publication/v1';
 const same = (a, b) => canonicalPartitionJson(a) === canonicalPartitionJson(b);
 const epoch = value => typeof value === 'string' && /^[a-f0-9]{32}$/.test(value);
 const digest = value => typeof value === 'string' && /^sha256:[a-f0-9]{64}$/.test(value);
-const methods = ['head', 'admit', 'publish', 'cancel'];
+const methods = ['head', 'admit', 'publish', 'publish-batch', 'cancel'];
 const orderedInput = request => request?.schema === 'reploid.partition-input/v3';
 const orderedKeys = ['meshId', 'requesterId', 'coordinatorId', 'modelId', 'modelIdentity', 'planId', 'threadId',
   'attemptId', 'placementGeneration'];
@@ -16,6 +16,8 @@ export function entryPublicationPort(call) {
   return Object.freeze({ requiresCommitEvidence: true,
     reconcile: () => call('head', {}), admitAttempt: body => call('admit', body),
     publish: (value, { evidence } = {}) => call('publish', { publication: value, evidence }),
+    // Consecutive records committed by the requester in one transaction and projected once.
+    publishBatch: async (values, { evidence } = {}) => (await call('publish-batch', { publications: values, evidence }))?.receipts,
     cancel: (attemptId, coordinatorEpoch) => call('cancel', { attemptId, coordinatorEpoch }) });
 }
 export function validateEntryPublicationContext(value, request) {
@@ -126,33 +128,41 @@ export function createEntryPublicationScope({ request, owner, authorize, onPubli
         const result = await owner.cancel(value.attemptId, value.coordinatorEpoch);
         await permit(method); return copy(result);
       }
-      const publication = value.publication;
-      assert(publication?.attemptId === selected.attemptId && publication.coordinatorEpoch === coordinatorEpoch()
-        && Number.isSafeInteger(publication.sequence) && publication.sequence >= 0
-        && publication.sequence < sequenceLimit() && Array.isArray(value.evidence), 'Publication differs from admitted attempt');
-      const receipt = copy(await owner.publish(publication, { evidence: value.evidence }));
-      assert(receipt.conversationId === selected.threadId && receipt.writerEpoch === context.publisherEpoch
+      const batch = method === 'publish-batch';
+      const publications = batch ? value.publications : [value.publication], evidence = batch ? value.evidence : [value.evidence];
+      assert(Array.isArray(publications) && publications.length > 0 && Array.isArray(evidence) && evidence.length === publications.length
+        && publications.every((publication, index) => publication?.attemptId === selected.attemptId && publication.coordinatorEpoch === coordinatorEpoch()
+          && Number.isSafeInteger(publication.sequence) && publication.sequence >= 0
+          && publication.sequence < sequenceLimit() && Array.isArray(evidence[index])), 'Publication differs from admitted attempt');
+      const receipts = copy(batch ? await owner.publishBatch(publications, { evidence })
+        : [await owner.publish(publications[0], { evidence: evidence[0] })]);
+      assert(Array.isArray(receipts) && receipts.length === publications.length && receipts.every((receipt, index) =>
+        receipt.conversationId === selected.threadId && receipt.writerEpoch === context.publisherEpoch
         && receipt.attemptId === selected.attemptId && receipt.coordinatorEpoch === coordinatorEpoch()
-        && receipt.sequence === publication.sequence && receipt.publicationDigest === publication.publicationDigest,
+        && receipt.sequence === publications[index].sequence && receipt.publicationDigest === publications[index].publicationDigest),
       'Durable publication receipt identity mismatch');
       await permit(method);
       // Duplicate delivery reuses the same projection promise. A failed projection
       // cannot be acknowledged or regenerated; the host reconciles saved history.
-      let projected = projections.get(receipt.publicationDigest);
+      // A batch is projected once, from its last durable record.
+      const last = receipts.length - 1;
+      let projected = projections.get(receipts[last].publicationDigest);
       if (!projected) {
-        const text = publication.delta?.text ?? '';
-        assert(typeof text === 'string' && content.length + text.length <= maxOutputCharacters,
-          'Published output exceeds entry budget');
-        assert(publication.sequence === count, 'Published projection sequence mismatch');
+        const fresh = publications.filter(publication => publication.sequence >= count);
+        const text = fresh.map(publication => publication.delta?.text ?? '').join('');
+        assert(fresh.every(publication => typeof (publication.delta?.text ?? '') === 'string')
+          && content.length + text.length <= maxOutputCharacters, 'Published output exceeds entry budget');
+        assert(fresh.length > 0 && fresh[0].sequence === count, 'Published projection sequence mismatch');
+        const publication = publications[last];
         projected = Promise.resolve().then(async () => {
           await permit(method);
-          await onPublished(copy({ publication, receipt, evidence: value.evidence }));
-          content += text; count++;
+          await onPublished(copy({ publication, receipt: receipts[last], evidence: evidence[last] }));
+          content += text; count += fresh.length;
           terminal = publication.schema === 'doppler.admission-publication/v1' || publication.successor?.terminal === true;
         });
-        projections.set(receipt.publicationDigest, projected);
+        projections.set(receipts[last].publicationDigest, projected);
       }
-      await projected; await permit(method); return receipt;
+      await projected; await permit(method); return batch ? { receipts } : receipts[0];
   };
   return Object.freeze({
     async close({ cancel = false } = {}) {

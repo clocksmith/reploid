@@ -1,14 +1,29 @@
 import { createBoundedChannelWriter } from './bounded-channel-writer.js';
 import failureMessages from './partition-errors.json' with { type: 'json' };
 
-const SCHEMA = 'reploid.partition-channel/v1';
-const HEADER_BYTES = 12;
+const SCHEMA = 'reploid.partition-channel/v2';
+// Fragment header: kind (request or response payload), request id, offset, length.
+const HEADER_BYTES = 13;
+const REQUEST_PAYLOAD = 0, RESPONSE_PAYLOAD = 1;
 const encoder = new TextEncoder();
 const positive = value => Number.isSafeInteger(value) && value > 0;
+const count = value => Number.isSafeInteger(value) && value >= 0;
 const assert = (condition, message) => { if (!condition) throw new Error(`Partition channel: ${message}`); };
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+const binaryResults = new WeakSet();
 
-/** Binary activation requests and bounded JSON replies on an owned, dedicated RTC channel.
+/** A serve result that returns bytes on the direct reply path, bounded by the
+ * request's declared `maxResponseBytes`. */
+export function partitionBinaryResult(result, bytes) {
+  assert(object(result) && bytes instanceof Uint8Array, 'binary result requires a JSON object and bytes');
+  const value = Object.freeze({ result, bytes });
+  binaryResults.add(value);
+  return value;
+}
+
+/** Binary requests and bounded JSON (optionally binary) replies on an owned, dedicated RTC channel.
+ * Pipelined: a request's header and payload leave together, under credit that the receiver's
+ * declared window grants and its terminal reply (result, error or released) returns.
  * Host ports bind grants to authenticated peers. Receipt/abort is not GPU settlement.
  */
 export function createPartitionDataChannel({ channel, localParticipantId, remoteParticipantId, authorize, serve, limits }) {
@@ -27,17 +42,27 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
     && policy.maxPayloadBytes <= policy.maxPendingBytes && policy.maxRequestsPerChannel <= 0xffffffff
     && policy.timeoutMs <= 2147483647, 'invalid limits');
   const fragmentBytes = policy.maxFrameBytes - HEADER_BYTES;
+  // Requests this endpoint sent, and the peer's requests it holds. Each direction is bounded by
+  // the declared window (maxPendingRequests, maxPendingBytes): both endpoints of a channel declare
+  // the same channel policy, and a peer that exceeds this endpoint's window closes the channel.
   const outgoing = new Map();
   const incoming = new Map();
   const receivedIds = new Set();
+  // Credit: the peer's window less what its terminal replies have not yet returned.
+  const held = new Map();
+  const waiting = [];
+  // Response fragments of requests that already ended here are skipped, never buffered.
+  const skipping = new Map();
   const lifecycle = new AbortController();
   const counters = { sentFrameBytes: 0, receivedFrameBytes: 0, sentFrames: 0, receivedFrames: 0,
     completedRequests: 0, cancelledRequests: 0, discardedFrames: 0 };
   let nextId = 0;
-  let reservedBytes = 0;
+  let outgoingBytes = 0;
+  let incomingBytes = 0;
   let closed = false;
   let lastFailure = null;
   const failureCode = error => Object.hasOwn(failureMessages, error?.code) ? error.code : 'EXECUTION_FAILED';
+  const coded = code => Object.assign(new Error(failureMessages[code]), { code });
   const recordFailure = (entry, phase, error) => {
     lastFailure = { requestId: entry.id, phase, code: failureCode(error),
       message: String(error?.message || error).slice(0, policy.maxControlBytes),
@@ -54,30 +79,68 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
     return text;
   }
   const control = (frame, signal) => send(encodeControl(frame), signal);
-  function reserve(size) {
-    assert(outgoing.size + incoming.size < policy.maxPendingRequests, 'pending request limit');
-    assert(reservedBytes + size <= policy.maxPendingBytes, 'pending byte limit');
-    reservedBytes += size;
+  async function sendPayload(kind, id, bytes, signal) {
+    for (let offset = 0; offset < bytes.length; offset += fragmentBytes) {
+      const part = bytes.subarray(offset, offset + fragmentBytes);
+      const frame = new Uint8Array(HEADER_BYTES + part.length);
+      const view = new DataView(frame.buffer);
+      view.setUint8(0, kind);
+      view.setUint32(1, id);
+      view.setUint32(5, offset);
+      view.setUint32(9, part.length);
+      frame.set(part, HEADER_BYTES);
+      await send(frame.buffer, signal);
+    }
   }
-  async function permit(action, entry) {
+  async function permit(action, entry, responseByteLength) {
     entry.controller.signal.throwIfAborted();
     const allowed = await authorize({ action, localParticipantId, remoteParticipantId,
-      metadata: structuredClone(entry.metadata), byteLength: entry.size }, { signal: entry.controller.signal });
+      metadata: structuredClone(entry.metadata), byteLength: entry.size,
+      ...(responseByteLength === undefined ? {} : { responseByteLength }) },
+    { signal: entry.controller.signal });
     entry.controller.signal.throwIfAborted();
     if (allowed !== true) throw Object.assign(new Error('Partition channel: authorization declined'),
       { code: 'AUTHORIZATION_DENIED' });
   }
-  function release(map, id, entry) {
+
+  // Credit is taken in request order; a request never overtakes an earlier waiting one.
+  const heldBytes = () => { let total = 0; for (const size of held.values()) total += size; return total; };
+  const fits = entry => held.size < policy.maxPendingRequests && heldBytes() + entry.size <= policy.maxPendingBytes;
+  function pump() {
+    while (waiting.length && fits(waiting[0].entry)) {
+      const next = waiting.shift();
+      next.entry.controller.signal.removeEventListener('abort', next.cancel);
+      held.set(next.entry.id, next.entry.size);
+      next.resolve();
+    }
+  }
+  function acquireCredit(entry) {
+    entry.controller.signal.throwIfAborted();
+    if (!waiting.length && fits(entry)) { held.set(entry.id, entry.size); return Promise.resolve(); }
+    return new Promise((resolve, reject) => {
+      const item = { entry, resolve, cancel: () => {
+        const index = waiting.indexOf(item);
+        if (index >= 0) waiting.splice(index, 1);
+        reject(entry.controller.signal.reason);
+        pump();
+      } };
+      entry.controller.signal.addEventListener('abort', item.cancel, { once: true });
+      waiting.push(item);
+    });
+  }
+  function returnCredit(id) {
+    assert(held.delete(id), 'unexpected terminal reply');
+    pump();
+  }
+
+  function releaseOutgoing(entry) {
     clearTimeout(entry.timer);
     entry.signal?.removeEventListener('abort', entry.abort);
-    if (map.delete(id)) reservedBytes -= entry.size;
-    if (map === incoming && lastFailure?.requestId === id) lastFailure.settledAt = Date.now();
-  }
-  function cancelIncoming(entry) {
-    clearTimeout(entry.timer);
-    entry.controller.abort(new Error('Partition request cancelled or timed out'));
-    // A host callback may ignore abort. Keep its slot charged until it settles.
-    if (!entry.busy) release(incoming, entry.id, entry);
+    if (outgoing.delete(entry.id)) outgoingBytes -= entry.reserved;
+    // A reply still arriving for an ended request is skipped, never buffered.
+    const remaining = entry.response && !entry.complete ? entry.response.length - entry.responseOffset : 0;
+    if (remaining > 0) skipping.set(entry.id, remaining);
+    entry.bytes = null; entry.response = null;
   }
   function finish(entry, error, value) {
     if (entry.finished) return;
@@ -86,7 +149,8 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
     entry.signal?.removeEventListener('abort', entry.abort);
     if (!error && entry.onTiming) {
       const completedAt = performance.now();
-      // Response waiting includes remote authorization and computation.
+      // Response waiting includes remote authorization and computation. Credit
+      // waiting replaces the former ready round trip and is zero with free credit.
       try { entry.onTiming({ authorizationMs: entry.authorizedAt - entry.startedAt,
         readyWaitMs: entry.uploadStartedAt - entry.authorizedAt,
         payloadUploadMs: entry.uploadFinishedAt - entry.uploadStartedAt,
@@ -96,7 +160,30 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
     }
     error ? entry.reject(error) : entry.resolve(value);
     entry.controller.abort(error ?? new Error('Partition request complete'));
-    if (!entry.busy) release(outgoing, entry.id, entry);
+    if (!entry.busy) releaseOutgoing(entry);
+  }
+  // The receiver releases its window before any terminal reply, so returned credit is exact.
+  function releaseIncoming(entry) {
+    clearTimeout(entry.timer);
+    if (!incoming.delete(entry.id)) return;
+    incomingBytes -= entry.size;
+    entry.bytes = null;
+    if (lastFailure?.requestId === entry.id) lastFailure.settledAt = Date.now();
+    if (closed) return;
+    const terminal = entry.terminal ?? (entry.timedOut ? { type: 'error', code: 'REQUEST_TIMEOUT' }
+      : entry.failure ? { type: 'error', code: entry.failure } : { type: 'released' });
+    const response = entry.responsePayload;
+    entry.responsePayload = null;
+    (async () => {
+      await control({ ...terminal, id: entry.id });
+      if (response?.length) await sendPayload(RESPONSE_PAYLOAD, entry.id, response);
+    })().catch(failDelivery);
+  }
+  function cancelIncoming(entry) {
+    clearTimeout(entry.timer);
+    entry.controller.abort(new Error('Partition request cancelled or timed out'));
+    // A host callback may ignore abort. Keep its window charged until it settles.
+    if (!entry.busy) releaseIncoming(entry);
   }
   function close(reason = 'channel closed') {
     if (closed) return;
@@ -113,33 +200,33 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
   }
   const failDelivery = () => close('control delivery failed');
 
-  async function accept(frame) {
+  function accept(frame) {
     assert(!receivedIds.has(frame.id), 'duplicate request');
     assert(frame.id <= policy.maxRequestsPerChannel && receivedIds.size < policy.maxRequestsPerChannel, 'request identity budget exhausted');
     receivedIds.add(frame.id);
-    assert(object(frame.metadata) && Number.isSafeInteger(frame.size) && frame.size >= 0
-      && frame.size <= policy.maxPayloadBytes, 'request geometry');
-    reserve(frame.size);
-    const entry = { id: frame.id, metadata: frame.metadata, size: frame.size, offset: 0,
-      controller: new AbortController(), busy: true, bytes: null };
+    assert(object(frame.metadata) && count(frame.size) && frame.size <= policy.maxPayloadBytes
+      && count(frame.responseBytes) && frame.responseBytes <= policy.maxPayloadBytes, 'request geometry');
+    // Credit the peer took: its request and payload must fit the window this endpoint declares.
+    assert(incoming.size < policy.maxPendingRequests && incomingBytes + frame.size <= policy.maxPendingBytes, 'receive window exceeded');
+    incomingBytes += frame.size;
+    const entry = { id: frame.id, metadata: frame.metadata, size: frame.size, responseBytes: frame.responseBytes,
+      offset: 0, controller: new AbortController(), busy: true, permitted: false, bytes: new Uint8Array(frame.size) };
     incoming.set(frame.id, entry);
-    entry.timer = setTimeout(() => {
-      cancelIncoming(entry);
-      if (!closed) control({ type: 'error', id: entry.id }).catch(failDelivery);
-    }, policy.timeoutMs);
+    entry.timer = setTimeout(() => { entry.timedOut = true; cancelIncoming(entry); }, policy.timeoutMs);
+    admit(entry);
+  }
+  // Authorization runs while payload fragments arrive; refused bytes are discarded unexecuted.
+  async function admit(entry) {
     try {
       await permit('receive', entry);
-      entry.bytes = new Uint8Array(entry.size);
-      // Mark ready before sending: a local test port may deliver synchronously.
-      entry.ready = true;
-      await control({ type: 'ready', id: entry.id }, entry.controller.signal);
+      entry.permitted = true;
     } catch (error) {
       recordFailure(entry, 'admission', error);
-      cancelIncoming(entry);
-      if (!closed) await control({ type: 'error', id: entry.id, code: failureCode(error) }).catch(failDelivery);
+      if (!entry.controller.signal.aborted) entry.failure = failureCode(error);
+      entry.controller.abort(error);
     } finally {
       entry.busy = false;
-      if (entry.controller.signal.aborted) release(incoming, entry.id, entry);
+      if (entry.controller.signal.aborted) releaseIncoming(entry);
       else if (entry.offset === entry.size) execute(entry);
     }
   }
@@ -151,96 +238,120 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
     try {
       // Permission may change during a fragmented upload.
       await permit('receive', entry);
-      const result = await serve(structuredClone(entry.metadata), entry.bytes, { signal: entry.controller.signal });
-      await permit('respond', entry);
+      const returned = await serve(structuredClone(entry.metadata), entry.bytes, { signal: entry.controller.signal });
+      const binary = binaryResults.has(returned);
+      const result = binary ? returned.result : returned;
+      const payload = binary ? returned.bytes : null;
+      await permit('respond', entry, payload?.length ?? 0);
       assert(object(result), 'JSON result object required');
-      await control({ type: 'result', id: entry.id, result }, entry.controller.signal);
+      assert(!payload || payload.length <= entry.responseBytes, 'response exceeds the declared allocation');
+      // Bound the reply before releasing the window that carries it.
+      encodeControl({ type: 'result', id: entry.id, result, size: payload?.length ?? 0 });
+      entry.terminal = { type: 'result', result, size: payload?.length ?? 0 };
+      entry.responsePayload = payload?.slice() ?? null;
     } catch (error) {
       recordFailure(entry, 'execution', error);
-      if (!closed && !entry.controller.signal.aborted) await control({ type: 'error', id: entry.id, code: failureCode(error) }).catch(failDelivery);
+      if (!entry.controller.signal.aborted) entry.failure = failureCode(error);
     } finally {
       entry.busy = false;
-      release(incoming, entry.id, entry);
+      releaseIncoming(entry);
     }
   }
 
-  async function upload(entry) {
-    entry.busy = true;
-    entry.uploadStartedAt = performance.now();
+  async function start(entry, text) {
     try {
       await permit('send', entry);
-      for (let offset = 0; offset < entry.size; offset += fragmentBytes) {
-        const part = entry.bytes.subarray(offset, offset + fragmentBytes);
-        const frame = new Uint8Array(HEADER_BYTES + part.length);
-        const view = new DataView(frame.buffer);
-        view.setUint32(0, entry.id);
-        view.setUint32(4, offset);
-        view.setUint32(8, part.length);
-        frame.set(part, HEADER_BYTES);
-        await send(frame.buffer, entry.controller.signal);
-      }
+      entry.authorizedAt = performance.now();
+      await acquireCredit(entry);
+      entry.uploadStartedAt = performance.now();
+      try { await send(text, entry.controller.signal); }
+      catch (error) { held.delete(entry.id); pump(); throw error; }
+      entry.sent = true;
+      // The payload follows its header without waiting for a reply.
+      await sendPayload(REQUEST_PAYLOAD, entry.id, entry.bytes, entry.controller.signal);
+      entry.bytes = null;
     } catch (error) { entry.abort(error); }
     finally {
       entry.uploadFinishedAt = performance.now();
       entry.busy = false;
-      if (entry.finished) release(outgoing, entry.id, entry);
-      else if (entry.result) disclose(entry);
+      if (entry.finished) { if (entry.sent) cancelRemote(entry); releaseOutgoing(entry); }
+      else if (entry.complete) disclose(entry);
     }
   }
   async function disclose(entry) {
     entry.busy = true;
     try {
-      await permit('accept', entry);
+      await permit('accept', entry, entry.response.length);
       counters.completedRequests++;
-      finish(entry, null, entry.result);
+      finish(entry, null, entry.binary ? { result: entry.result, bytes: entry.response } : entry.result);
     } catch (error) { finish(entry, error); }
-    finally { entry.busy = false; release(outgoing, entry.id, entry); }
+    finally { entry.busy = false; releaseOutgoing(entry); }
+  }
+  function responseComplete(entry) {
+    entry.complete = true;
+    if (!entry.busy) disclose(entry);
   }
 
   function receiveControl(text) {
     const frame = JSON.parse(text);
     assert(frame?.schema === SCHEMA && positive(frame.id) && frame.id <= 0xffffffff, 'invalid control');
-    if (frame.type === 'request') { accept(frame).catch(error => close(error.message)); return; }
+    if (frame.type === 'request') { accept(frame); return; }
     if (frame.type === 'cancel') {
       assert(receivedIds.has(frame.id), 'cancellation before request');
       const entry = incoming.get(frame.id);
       if (entry) cancelIncoming(entry);
       return;
     }
-    assert(['ready', 'error', 'result'].includes(frame.type) && frame.id <= nextId, 'unexpected response');
+    assert(['result', 'error', 'released'].includes(frame.type) && frame.id <= nextId, 'unexpected response');
+    returnCredit(frame.id);
+    const size = frame.type === 'result' ? frame.size : 0;
+    assert(count(size) && size <= policy.maxPayloadBytes, 'response geometry');
     const entry = outgoing.get(frame.id);
-    if (!entry || entry.finished) { counters.discardedFrames++; return; }
-    if (frame.type === 'error') {
-      const code = failureCode(frame);
-      finish(entry, Object.assign(new Error(failureMessages[code]), { code })); return;
-    }
-    if (frame.type === 'ready') {
-      assert(!entry.ready, 'duplicate ready');
-      entry.ready = true;
-      // Header write completion can race its acknowledgement.
-      if (!entry.busy) upload(entry);
+    if (!entry || entry.finished) {
+      counters.discardedFrames++;
+      if (size) skipping.set(frame.id, size);
       return;
     }
-    assert(entry.ready && !entry.result && object(frame.result), 'unexpected result');
+    if (frame.type === 'released') { finish(entry, coded('REQUEST_TIMEOUT')); return; }
+    if (frame.type === 'error') {
+      const code = failureCode(frame);
+      finish(entry, coded(code)); return;
+    }
+    assert(!entry.result && object(frame.result) && size <= entry.responseBytes, 'unexpected result');
     entry.resultAt = performance.now();
     entry.result = frame.result;
-    if (!entry.busy) disclose(entry);
+    entry.response = new Uint8Array(size);
+    entry.responseOffset = 0;
+    if (size === 0) responseComplete(entry);
   }
   function receiveBinary(buffer) {
     assert(buffer.byteLength > HEADER_BYTES, 'empty activation fragment');
     const view = new DataView(buffer);
-    const id = view.getUint32(0);
-    assert(receivedIds.has(id), 'fragment before request');
+    const kind = view.getUint8(0), id = view.getUint32(1), offset = view.getUint32(5), size = view.getUint32(9);
+    assert(size === buffer.byteLength - HEADER_BYTES, 'activation fragment geometry');
+    if (kind === RESPONSE_PAYLOAD) {
+      const skipped = skipping.get(id);
+      if (skipped !== undefined) {
+        counters.discardedFrames++;
+        if (skipped - size > 0) skipping.set(id, skipped - size); else skipping.delete(id);
+        return;
+      }
+      const entry = outgoing.get(id);
+      assert(entry?.response && !entry.complete && offset === entry.responseOffset
+        && size === Math.min(fragmentBytes, entry.response.length - offset), 'response fragment geometry');
+      entry.response.set(new Uint8Array(buffer, HEADER_BYTES), offset);
+      entry.responseOffset += size;
+      if (entry.responseOffset === entry.response.length) responseComplete(entry);
+      return;
+    }
+    assert(kind === REQUEST_PAYLOAD && receivedIds.has(id), 'fragment before request');
     const entry = incoming.get(id);
     if (!entry || entry.controller.signal.aborted) { counters.discardedFrames++; return; }
-    const offset = view.getUint32(4);
-    const size = view.getUint32(8);
-    assert(entry.ready && !entry.executing && offset === entry.offset
-      && size === Math.min(fragmentBytes, entry.size - offset)
-      && size === buffer.byteLength - HEADER_BYTES, 'activation fragment geometry');
+    assert(!entry.executing && offset === entry.offset
+      && size === Math.min(fragmentBytes, entry.size - offset), 'activation fragment geometry');
     entry.bytes.set(new Uint8Array(buffer, HEADER_BYTES), offset);
     entry.offset += size;
-    if (entry.offset === entry.size && !entry.busy) execute(entry);
+    if (entry.offset === entry.size && entry.permitted && !entry.busy) execute(entry);
   }
   function onMessage({ data }) {
     try {
@@ -260,18 +371,25 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
   channel.addEventListener('error', onClose);
 
   return Object.freeze({
-    request(metadata, bytes, { signal, onTiming } = {}) {
+    request(metadata, bytes, { signal, onTiming, maxResponseBytes } = {}) {
       const startedAt = performance.now();
       if (closed || channel.readyState !== 'open') {
         throw Object.assign(new Error(failureMessages.CONNECTION_LOST), { code: 'CONNECTION_LOST' });
       }
       signal?.throwIfAborted();
+      const binary = maxResponseBytes !== undefined;
       assert(object(metadata) && bytes instanceof Uint8Array && bytes.length <= policy.maxPayloadBytes, 'request geometry');
+      assert(!binary || count(maxResponseBytes) && maxResponseBytes <= policy.maxPayloadBytes, 'response geometry');
       assert(nextId < policy.maxRequestsPerChannel, 'request identity budget exhausted');
       // Bound metadata before copying or invoking any asynchronous host port.
-      const text = encodeControl({ type: 'request', id: nextId + 1, metadata, size: bytes.length });
-      reserve(bytes.length);
-      const entry = { metadata: JSON.parse(text).metadata, bytes: bytes.slice(), size: bytes.length,
+      const responseBytes = binary ? maxResponseBytes : 0;
+      const text = encodeControl({ type: 'request', id: nextId + 1, metadata, size: bytes.length, responseBytes });
+      // Local memory: the payload copy until written, and the reply allocation it may receive.
+      const reserved = bytes.length + responseBytes;
+      assert(outgoing.size < policy.maxPendingRequests, 'pending request limit');
+      assert(outgoingBytes + reserved <= policy.maxPendingBytes, 'pending byte limit');
+      outgoingBytes += reserved;
+      const entry = { metadata: JSON.parse(text).metadata, bytes: bytes.slice(), size: bytes.length, responseBytes, reserved, binary,
         controller: new AbortController(), busy: true, finished: false, signal, onTiming, startedAt, id: ++nextId };
       outgoing.set(entry.id, entry);
       const result = new Promise((resolve, reject) => { entry.resolve = resolve; entry.reject = reject; });
@@ -282,35 +400,22 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
         cancelRemote(entry);
       };
       signal?.addEventListener('abort', entry.abort, { once: true });
-      entry.timer = setTimeout(() => entry.abort(Object.assign(new Error(failureMessages.REQUEST_TIMEOUT),
-        { code: 'REQUEST_TIMEOUT' })), policy.timeoutMs);
+      entry.timer = setTimeout(() => entry.abort(coded('REQUEST_TIMEOUT')), policy.timeoutMs);
       start(entry, text);
       return result;
     },
     close,
     getReceipt: () => ({ schema: SCHEMA, ...counters, pendingRequests: outgoing.size,
-      inboundRequests: incoming.size, reservedBytes, closed, wireBytes: null, relayBytes: null,
-      lastFailure: structuredClone(lastFailure) }),
+      inboundRequests: incoming.size, reservedBytes: outgoingBytes + incomingBytes,
+      creditHeld: { requests: held.size, bytes: heldBytes() }, creditWaiting: waiting.length,
+      closed, wireBytes: null, relayBytes: null, lastFailure: structuredClone(lastFailure) }),
   });
 
   function cancelRemote(entry) {
-    if (entry.sent && !entry.cancelSent && !closed) {
+    // Only a request whose header left needs the peer to release its window.
+    if (entry.sent && !entry.cancelSent && !closed && held.has(entry.id)) {
       entry.cancelSent = true;
       control({ type: 'cancel', id: entry.id }).catch(failDelivery);
-    }
-  }
-  async function start(entry, text) {
-    try {
-      await permit('send', entry);
-      entry.authorizedAt = performance.now();
-      await send(text, entry.controller.signal);
-      entry.sent = true;
-      if (entry.finished) cancelRemote(entry);
-    } catch (error) { finish(entry, error); }
-    finally {
-      entry.busy = false;
-      if (entry.finished) release(outgoing, entry.id, entry);
-      else if (entry.ready) upload(entry);
     }
   }
 }

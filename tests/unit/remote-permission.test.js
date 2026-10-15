@@ -125,7 +125,8 @@ describe('workspace under a remote permission', () => {
       await vi.advanceTimersByTimeAsync(900); stored.push(granted()); app.resumePermitted();
       await vi.advanceTimersByTimeAsync(900); expect(signal.aborted).toBe(false); expect(deadline).toBeGreaterThan(Date.now());
       await vi.advanceTimersByTimeAsync(101); expect(signal.aborted).toBe(true); release();
-      expect((await pending).status).toBe('cancelled');
+      // Reaching the answer deadline fails the attempt; it is not the person's stop.
+      expect(await pending).toMatchObject({ status: 'failed', error: 'Response timed out. Retry starts a new attempt.' });
     } finally { release(); await app.close(); vi.useRealTimers(); }
   });
 

@@ -35,6 +35,9 @@ export interface OrderedStageDevice {
 export interface OrderedRouteLimits {
   maxTokens: number; maxPromptTokens: number; maxActivationBytes: number; maxOutputCharacters: number;
   maxAttempts: number; maxConcurrentAttempts: number; maxStages: number;
+  /** The declared execution bound of every stage call, the coordinator's own stage included: a call past it
+   * fails the attempt as REQUEST_TIMEOUT, and that stage's cleanup first waits (within one more bound) for the call. */
+  stageTimeoutMs: number;
 }
 export interface OrderedRouteRequest {
   identity: RouteAttemptBinding; tokenIds: number[]; generation: Record<string, unknown> & { maxTokens: number };
@@ -46,6 +49,8 @@ export interface OrderedRouteRequest {
   charge?: OutputAcknowledgment | null;
   /** A charged step s waits, until this ms-epoch deadline at most, for acknowledgments of s - K outputs; then ACKNOWLEDGMENT_OVERDUE. */
   acknowledgmentDeadlineAt?: number | null;
+  /** The attempt's answer deadline (ms epoch): reaching it fails the attempt as ANSWER_DEADLINE_EXCEEDED and settles every stage. */
+  deadlineAt?: number | null;
   /** Each final-stage output with its receipt; the answer, if any, is the requester's acknowledgment. Not awaited before the next step. */
   onOutput?: ((output: { step: number; delta: string; done: boolean; receipt: StageReceipt | null }) => AcknowledgedOutput | null | Promise<AcknowledgedOutput | null>) | null;
 }

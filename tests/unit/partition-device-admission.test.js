@@ -122,7 +122,7 @@ describe('automatic owner with shared device admission (opt-in)', () => {
     });
     const mesh = createAutomaticPartitions({ identity: peer, meshId: 'mesh', models: [{ id: 'm', identity: sha }], loadProgram, peers: () => [],
       policy: { pollMs: 3600000, maxPeers: 8, connectTimeoutMs: 1000, grantMs: 60000, maxStageOffersPerPeer: 4,
-        limits: { maxTokens: 10, maxPromptTokens: 32, maxActivationBytes: 4096, maxOutputCharacters: 100, maxAttempts: 100, maxConcurrentAttempts: 2, maxStages: 8 },
+        limits: { maxTokens: 10, maxPromptTokens: 32, maxActivationBytes: 4096, maxOutputCharacters: 100, maxAttempts: 100, maxConcurrentAttempts: 2, maxStages: 8, stageTimeoutMs: 1000 },
         receiver: { maxAttempts: 32, maxSteps: 10 }, inputChannel: {}, inputLimits: { descriptorTtlMs: 60000 } },
       createNetwork: () => ({ close: vi.fn(async () => {}), retire: vi.fn(async () => {}), connect: vi.fn() }),
       ordered: { stage, maxRouteBytes: 32768, maxRoutes: 4, maxSelectionSteps: 256,

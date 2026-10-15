@@ -149,7 +149,7 @@ describe('signed attempt evidence over the ordered route\'s channels', () => {
 describe('acknowledgment backpressure at the stages', () => {
   const STEPS = 8;
   const grant = { id: 'grant' };
-  const LIMITS = { maxTokens: 10, maxPromptTokens: 32, maxActivationBytes: 4096, maxOutputCharacters: 100, maxAttempts: 100, maxConcurrentAttempts: 2, maxStages: 8 };
+  const LIMITS = { maxTokens: 10, maxPromptTokens: 32, maxActivationBytes: 4096, maxOutputCharacters: 100, maxAttempts: 100, maxConcurrentAttempts: 2, maxStages: 8, stageTimeoutMs: 1000 };
   /**
    * A coordinator whose own stage keeps no receipts and whose runner is its own, and an honest second
    * stage that signs receipts and checks every acknowledgment against the requester's charge binding.

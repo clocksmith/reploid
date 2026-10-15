@@ -10,6 +10,7 @@ import { createRetrieval } from '../retrieval/retrieval.js';
 import { interruptRetrievalRecord, retrievalFailureMessage } from '../retrieval/sources.js';
 import { withVerification } from '../retrieval/costs.js';
 import { answerProvenance, classifyExecutionSupply, executionRefusal } from './supply-provenance.js';
+import failureMessages from '../transport/partition-errors.json' with { type: 'json' };
 
 const copy = value => structuredClone(value);
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
@@ -199,7 +200,9 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
     catch (error) { runs.delete(thread.id); thread.attempts.pop(); thread.messages.pop(); throw error; }
     const matches = envelope => envelope?.threadId === thread.id && envelope?.attemptId === attempt.id;
     const live = () => !controller.signal.aborted && runs.get(thread.id) === run;
-    const startTimer = () => setTimeout(() => controller.abort(new Error('Response timed out. Retry starts a new attempt.')), limits.attemptTimeoutMs);
+    // The answer deadline is the same failure whether this timer or an execution owner reaches it first.
+    const startTimer = () => setTimeout(() => controller.abort(Object.assign(new Error(failureMessages.ANSWER_DEADLINE_EXCEEDED),
+      { code: 'ANSWER_DEADLINE_EXCEEDED' })), limits.attemptTimeoutMs);
     let timer = startTimer();
     const aborted = () => {
       attempt.status = 'cancelling'; response.status = 'cancelling'; attempt.approval = null;
@@ -368,9 +371,10 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
             }
           } catch { cancelled = false; } // Unknown storage is not confirmed cancellation.
         }
-        // A refused executor is stopped through cancellation, but the answer failed rather than being stopped.
-        attempt.status = cancelled && !run.refused ? 'cancelled' : 'failed';
-        attempt.error = String((controller.signal.reason || error)?.message || error);
+        const reason = controller.signal.reason || error;
+        // A refused executor is stopped through cancellation, and a deadline aborts it; neither is a stop.
+        attempt.status = cancelled && !run.refused && reason?.code !== 'ANSWER_DEADLINE_EXCEEDED' ? 'cancelled' : 'failed';
+        attempt.error = String(reason?.message || error);
         response.status = attempt.status;
       } finally {
         clearTimeout(timer); controller.signal.removeEventListener('abort', aborted);

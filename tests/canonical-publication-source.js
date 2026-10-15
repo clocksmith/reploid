@@ -114,7 +114,7 @@ for (const failure of ['before', 'after']) {
   const state = await secondOwner.reconcile(); assert.equal(state.attempts[0].status, 'interrupted');
 }
 {
-  const f = fixture({ policy: { maxAttempts: 1, maxPublications: 1 } }); await f.start();
+  const f = fixture({ policy: { maxAttempts: 1, maxPublications: 1, persistence: { maxUnsavedSteps: 0, maxUnsavedMs: 0 } } }); await f.start();
   await f.owner.publish(publication());
   await assert.rejects(f.owner.publish(publication(identity, publication())), /full/);
   await f.owner.cancel('a', epoch);

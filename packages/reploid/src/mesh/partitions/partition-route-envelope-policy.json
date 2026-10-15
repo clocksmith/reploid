@@ -1,0 +1,16 @@
+{
+  "schema": "reploid.route-envelope-policy/v1",
+  "undeclaredRoutes": "existing-limits",
+  "routes": [
+    {
+      "modelIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+      "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+      "evidence": "artifacts/placement-c-envelope-20261015/README.md",
+      "cells": [
+        { "maxConcurrency": 1, "maxPromptTokens": 512, "maxAnswerTokens": 255 },
+        { "maxConcurrency": 1, "maxPromptTokens": 1024, "maxAnswerTokens": 63 },
+        { "maxConcurrency": 2, "maxPromptTokens": 512, "maxAnswerTokens": 255 }
+      ]
+    }
+  ]
+}
