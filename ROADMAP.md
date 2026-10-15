@@ -86,6 +86,16 @@ Historical archive `9264d265…` remains failed.
 
 Status comes from the snapshot and linked receipts. Historical reviews are not evidence of a later run. Package archive prefixes above are not Git commits. See [DR-6](docs/roadmap/requirements.md#dr-6) for current candidate qualification and source integration, [DR-4](docs/roadmap/requirements.md#dr-4) for historical numerical qualification, and [DR-1](docs/roadmap/requirements.md#dr-1) for package boundaries.
 
+## Economics estimates
+
+[Tracked estimate register](artifacts/economics-estimate-20261015/README.md)
+([calculated scenarios](artifacts/economics-estimate-20261015/RESULTS.md)) binds
+final-10 placement C timing to dated price references and explicit low/base/stress
+assumptions for power, utilization, quality, failures, hardware, operations and
+reward/redemption. It separates resource cost, operator funding and contributor
+value; no economics gate is passed and no price or funding is authorized. REP-14
+replaces assumptions with measurements; REP-13 proves actual earn/use redemption.
+
 ## Later experience review
 
 Human judging, reviewer recruitment and blinded adjudication are deferred until

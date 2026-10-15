@@ -1,0 +1,18 @@
+{
+  "captured": "2026-10-15",
+  "purpose": "Local evidence identities used by this estimate; content is not modified",
+  "files": [
+    {
+      "path": "artifacts/faster-candidate-20261015/README.md",
+      "sha256": "624bf64c66dc002b6e7c749875a1f0c9a2bf96f7237fdb72377de8ff867338d6"
+    },
+    {
+      "path": "artifacts/faster-candidate-20261015/journeys/README.md",
+      "sha256": "8eb995f8123274f0efcd32edf7c87b94bacad5cc1e4137b3f82b4cf10ce00f12"
+    },
+    {
+      "path": "artifacts/useful-answer-set-20261014/README.md",
+      "sha256": "d5df40b44dd8e4b5839ca3c29381339a69ee56d3c0842d8d475da42b0924aeec"
+    }
+  ]
+}
