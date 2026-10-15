@@ -19,7 +19,6 @@ if (!values.url || !values.profile || !values.model || !['compute', 'files'].inc
 }
 const url = new URL(values.url);
 if (url.protocol !== 'https:' && !['localhost', '127.0.0.1'].includes(url.hostname)) throw Error('Hosted contribution requires HTTPS');
-if (values['model-directory'] && values.contribute !== 'files') throw Error('Local seed bytes require explicit file contribution');
 if (!['chrome', 'chromium'].includes(values.browser)) throw Error('--browser must be chrome or chromium');
 const profile = path.resolve(values.profile);
 await mkdir(profile, { recursive: true });
@@ -82,9 +81,12 @@ try {
   }
   await page.goto(url.href);
   await page.locator('[data-chat-workspace]').waitFor();
-  await page.locator('[data-toggle-inspector]').click();
   await page.locator('[data-inspector-section="device"]').click();
-  await page.locator('[data-contribution-model]').selectOption(selected.id);
+  const modelSelect = page.locator('[data-contribution-model]');
+  if (await modelSelect.inputValue() !== selected.id) {
+    await page.getByText('Model and limits', { exact: true }).click();
+    await modelSelect.selectOption(selected.id);
+  }
   const files = values.contribute === 'files';
   const toggle = files ? '[data-toggle-file-contribution]' : '[data-toggle-contribution]';
   const label = files ? '[data-file-contribution-label]' : '[data-contrib-label]';
@@ -92,6 +94,19 @@ try {
   // Current controls have no separate disclosure or consent checkbox.
   if (await page.locator(toggle).getAttribute('aria-checked') !== 'true') {
     await page.locator(toggle).click();
+  }
+  // An explicit local directory permits importing those existing bytes. Without
+  // it, the launcher leaves cached-only defaults alone: no download confirmation.
+  if (!files && values['model-directory']) {
+    if (!await page.locator('[data-download-confirm]').isVisible()
+      && (await page.locator(label).textContent()).includes('waiting for a downloaded model')) {
+      await page.locator(toggle).click();
+      await page.locator(toggle).click();
+    }
+    if (await page.locator('[data-download-confirm]').isVisible()) {
+      await page.locator('[data-download-model]').selectOption(selected.id);
+      await page.locator('[data-download-confirm]').click();
+    }
   }
   console.log(JSON.stringify({ event: 'contribution-authorized', url: url.href, model: selected.id,
     modelIdentity: selected.identity, contribution: values.contribute, profile }));
