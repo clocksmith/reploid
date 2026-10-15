@@ -2316,6 +2316,12 @@
       ]
     },
     {
+      "path": "self/host/supabase-sign-in.js",
+      "owner": "self",
+      "sha256": "sha256:790aa6a8d38b017b167e28135cd3a8326817098aa01a6b9e047870ee0c9db5a9",
+      "imports": []
+    },
+    {
       "path": "self/host/sw-module-loader.js",
       "owner": "self",
       "sha256": "sha256:9a844989f0f2da99a35b3d4246ab921f2272c74362aee265293a65fd856cc0f0",
@@ -3149,6 +3155,12 @@
       "path": "ui/panels/cognition-panel.js",
       "owner": "ui",
       "sha256": "sha256:de6508f0755f40d8828d5273f4fd99afcde82f503b3f5087d2062a5907d33ab3",
+      "imports": []
+    },
+    {
+      "path": "ui/pool-home/account-sign-in.js",
+      "owner": "ui",
+      "sha256": "sha256:e1f9b6959ace9c2567c174db004001efd97d93409bdad6a0678347366256250e",
       "imports": []
     },
     {

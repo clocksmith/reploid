@@ -1320,8 +1320,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 538194,
-      "sha256": "sha256:c88d7a6115f86fc8fea28ca0041aec5fac73b7d3e742bd76e0ddbab6c0d7f7b9"
+      "byteLength": 538582,
+      "sha256": "sha256:036d2d72898a37bba796c58551e4577cbc1ab27190ff6688706a0cf09f70d077"
     },
     {
       "path": "config/module-registry.json",
@@ -1380,8 +1380,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 115455,
-      "sha256": "sha256:b8f42db14d5bbcd069b28832feafa4c2bb215aad1dd83140dfdb81f4039f9261"
+      "byteLength": 115531,
+      "sha256": "sha256:12c558fe70676bb35c1e5ac365c7b711a68abbec8493060d7d8655fd0c9e5159"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1772,6 +1772,11 @@
       "path": "host/start-reploid.js",
       "byteLength": 8968,
       "sha256": "sha256:b76e45f285d3092356e6080004c55ac1a496bb759cca8eeb203dbd34cdcbaa38"
+    },
+    {
+      "path": "host/supabase-sign-in.js",
+      "byteLength": 7540,
+      "sha256": "sha256:790aa6a8d38b017b167e28135cd3a8326817098aa01a6b9e047870ee0c9db5a9"
     },
     {
       "path": "host/sw-module-loader.js",
@@ -3147,6 +3152,11 @@
       "path": "ui/panels/cognition-panel.js",
       "byteLength": 16119,
       "sha256": "sha256:de6508f0755f40d8828d5273f4fd99afcde82f503b3f5087d2062a5907d33ab3"
+    },
+    {
+      "path": "ui/pool-home/account-sign-in.js",
+      "byteLength": 2842,
+      "sha256": "sha256:e1f9b6959ace9c2567c174db004001efd97d93409bdad6a0678347366256250e"
     },
     {
       "path": "ui/pool-home/agent-network.js",
@@ -9879,5 +9889,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:a21b6eec1af10ef0a77ad5dcbc48f7486cc1d188419f3a69320e48300b56364d"
+  "bundleHash": "sha256:59ae47cd0f5f46d58cc3739f9ab711dbb3e5cbcd925e73d4decc7e54f79bcf69"
 }

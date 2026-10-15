@@ -4,7 +4,7 @@ Parent: [Hosted Services](../CATSCAN.md)
 
 ## Target
 
-Authenticated HTTP for accounts, devices, quotes, reservations, attempt reports, balances, reward claims and operator funding, settlement and links.
+Authenticated HTTP for accounts, devices, quotes, reservations, attempt reports, balances, reward claims, payment notifications and operator funding, settlement and links.
 
 ## Authority
 - Owns route authentication/authorization, body bounds, rate limits, Idempotency-Key bindings, refusal statuses, the off-by-default mount.
@@ -17,10 +17,10 @@ Authenticated HTTP for accounts, devices, quotes, reservations, attempt reports,
 ## Contracts
 
 Inputs:
-- Operations of [accounts](../accounts/CATSCAN.md), the [ledger](../ledger/CATSCAN.md), [rewards](../rewards/CATSCAN.md) and [Community Access](../community-access/CATSCAN.md); explicit limits; quote-terms and operator-authority ports.
+- Operations of [accounts](../accounts/CATSCAN.md), [ledger](../ledger/CATSCAN.md), [rewards](../rewards/CATSCAN.md), [payments](../payments/CATSCAN.md) and [Community Access](../community-access/CATSCAN.md); explicit limits; quote-terms and operator-authority ports.
 
 Outputs:
-- `/v1` routes from [router.js](router.js), mounted by [mount.js](mount.js) when `REPLOID_EARNING_ROUTES=enabled`.
+- `/v1` routes from [router.js](router.js) and [provider-routes.js](provider-routes.js), mounted by [mount.js](mount.js) when `REPLOID_EARNING_ROUTES=enabled`.
 
 ## Invariants
 - Account and device come from the session, operator actors from the credential, neither from bodies.
@@ -29,14 +29,14 @@ Outputs:
 - An Idempotency-Key binds route, caller and canonical request; a different request conflicts, even in progress; callers share no results. Only definite no-effect failures free it; ambiguous ones reconcile under the same component key.
 - Unauthenticated bodies are never parsed; upstream-parsed ones are refused.
 - No local-development or loopback bypass; never mounted under `/pool`.
-- Production refuses missing/test-only sign-in providers and memory stores.
+- Production refuses missing/test-only sign-in providers, test-only processors, memory stores.
 
 ## Acceptance
-- Evidence: [route](../../tests/integration/earning-routes.test.js) and [execution](../../tests/integration/earning-execution.test.js) tests on memory and Firestore.
-- Limits: real sign-in, payment and search providers, shared rate limiting and installed hosts need separate acceptance.
+- Evidence: [route](../../tests/integration/earning-routes.test.js), [execution](../../tests/integration/earning-execution.test.js) and [provider](../../tests/integration/provider-routes.test.js) tests on memory and Firestore.
+- Limits: live providers, shared rate limiting, installed hosts await acceptance.
 
 ## Non-goals
-- UI, real providers, credential issuance, pricing.
+- UI, provider adapters, credential issuance, pricing.
 
 ## Freedom
 Preserve boundaries; pass acceptance.

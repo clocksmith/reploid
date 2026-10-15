@@ -24,7 +24,7 @@ Outputs:
 - Operations in [store-contract.js](store-contract.js); purchased issuance and reversals in the [ledger](../ledger/CATSCAN.md).
 
 ## Invariants
-- Only port-verified notifications count; they only name a purchase.
+- Only port-verified notifications count; they only name a purchase its processor reconciles.
 - Effects follow fetched authoritative status, so repeated, reordered and replayed notifications converge.
 - Checkouts quote and stamp credits under the conversion record in effect; later records never change them.
 - One purchased lot per purchase, minted after confirmation at the checkout's amount and stamped credits.
@@ -34,8 +34,8 @@ Outputs:
 
 ## Acceptance
 - Memory and Firestore stores pass identical scenarios.
-- Evidence: [reconciliation tests](../../tests/unit/payment-reconciliation.test.js).
-- A real processor needs its own authenticity, refund, chargeback, tax and terms acceptance.
+- Evidence: [reconciliation](../../tests/unit/payment-reconciliation.test.js), [Stripe](../../tests/unit/stripe-processor.test.js) tests.
+- Real processors need live authenticity, refund, chargeback, tax and terms acceptance.
 
 ## Non-goals
 - Moving money, card data, tax calculation, pricing or dispute representation.

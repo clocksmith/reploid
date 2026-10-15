@@ -51,6 +51,8 @@ export function createTestPaymentProcessor({ id, clock, signatureToleranceMs, ch
 
   return {
     id,
+    // Hosted compositions refuse this processor in production.
+    testOnly: true,
 
     async createCheckout({ checkoutId, accountId, credits, amount, idempotencyKey }) {
       if (byCheckout.has(idempotencyKey)) {

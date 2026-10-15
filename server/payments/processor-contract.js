@@ -3,15 +3,19 @@
  *
  * A processor adapter supplies exactly three operations:
  *
- * - `createCheckout({ checkoutId, accountId, credits, amount, idempotencyKey })`
- *   starts a one-time top-up checkout and returns
- *   `{ purchaseId, checkout }`, where `checkout` is the opaque hand-off the
- *   client completes with the processor. Repeating the same idempotency key
- *   returns the same purchase. There is no subscription operation.
+ * - `createCheckout({ checkoutId, accountId, credits, amount, idempotencyKey,
+ *   topUpId, paymentPolicyVersion, conversion })` starts a one-time top-up
+ *   checkout at `amount` (the policy price) for `credits` (stamped under the
+ *   `conversion` record) and returns `{ purchaseId, checkout }`, where
+ *   `checkout` is the opaque hand-off the client completes with the
+ *   processor. Repeating the same idempotency key returns the same purchase.
+ *   There is no subscription operation.
  * - `verifyNotification({ headers, rawBody })` checks the notification's
- *   authenticity (signature, timestamp tolerance) and returns
- *   `{ eventId, purchaseId, type, createdAt }`, or throws / returns null when
- *   it is not authentic.
+ *   authenticity (signature over the raw body, timestamp tolerance) and
+ *   returns `{ eventId, purchaseId, type, createdAt }`, with `purchaseId`
+ *   null for an authentic event that names no purchase. It throws (or
+ *   returns null) when the notification is not authentic, and throws a
+ *   PaymentError when a lookup it needs fails.
  * - `fetchPayment(purchaseId)` returns the processor's authoritative status:
  *   `{ purchaseId, status, amount, confirmationId, paidAt, reversals }` with
  *   status one of open, paid, failed or expired, and reversals listing
@@ -33,6 +37,7 @@ export function assertPaymentProcessor(processor) {
   const missing = PAYMENT_PROCESSOR_OPERATIONS.filter((operation) => typeof processor?.[operation] !== 'function');
   if (missing.length) throw new TypeError(`Payment processor port is incomplete: ${missing.join(', ')}`);
   if (!isIdentifier(processor.id)) throw new TypeError('Payment processor port requires an identifier `id`');
+  if (processor.testOnly !== undefined && typeof processor.testOnly !== 'boolean') throw new TypeError('Payment processor testOnly must be a boolean');
   return processor;
 }
 
@@ -46,9 +51,9 @@ export function validateCheckoutResponse(response) {
   return { purchaseId: response.purchaseId, checkout: JSON.parse(JSON.stringify(response.checkout)) };
 }
 
-/** Null when the notification is not a well-formed authentic event. */
+/** Null when the notification is not a well-formed authentic event; `purchaseId` may be null. */
 export function validateNotificationEvent(event) {
-  if (!event || !isNonEmptyString(event.eventId) || event.eventId.length > 256 || !isIdentifier(event.purchaseId)
+  if (!event || !isNonEmptyString(event.eventId) || event.eventId.length > 256 || !(event.purchaseId === null || isIdentifier(event.purchaseId))
     || !isNonEmptyString(event.type) || !isIsoTime(event.createdAt)) {
     return null;
   }
