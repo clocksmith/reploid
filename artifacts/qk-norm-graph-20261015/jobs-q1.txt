@@ -1,0 +1,16 @@
+# Session q1: Q/K head normalization declared as execution-graph steps (Doppler local commit, archive in
+# pkg-new) against the frozen candidate (archive 3b132ee7, pkg-control) with its unchanged Capsule manifest
+# 548e6559 (model-legacy). One process per job, run in order; the second control/sliced pair repeats the
+# speed rows in reverse order.
+#   kernel   head-norm shape, both paired RMSNorm programs, identical inputs, F64 reference
+#   ctl      frozen candidate + 548e6559: the control (and the stored-value comparison baseline)
+#   sliced   new runtime + steps declaring the sliced program (norm key); rmsnorm_paired.wgsl undeclared
+#   legacy   new runtime + 548e6559 unchanged: the interim path for existing Capsules
+#   shipped  new runtime + steps declaring the shipped program (paired_qk_head_norm key)
+q1-kernel /usr/bin/node qk-norm-kernel-check.mjs /var/tmp/reploid-signed-completion-9-20261014/reploid/node_modules/webgpu pkg-new/node_modules/doppler-gpu/src/gpu/kernels/rmsnorm_paired.wgsl pkg-new/node_modules/doppler-gpu/src/gpu/kernels/rmsnorm_paired_sliced.wgsl /var/tmp/doppler-cold-compile-model-20261013 out/q1-kernel.json 7
+q1-ctl-check /usr/bin/node substitution-check.mjs pkg-control/node_modules/doppler-gpu model-legacy /var/tmp/plain-profile-reference-20261014/inputs/approved-reference.json /var/tmp/plain-profile-reference-20261014/inputs /var/tmp/speed-isolation-20261014/distributed-observed.json configs/paired-final.json out/q1-ctl-check
+q1-sliced-check /usr/bin/node substitution-check.mjs pkg-new/node_modules/doppler-gpu model-sliced /var/tmp/plain-profile-reference-20261014/inputs/approved-reference.json /var/tmp/plain-profile-reference-20261014/inputs /var/tmp/speed-isolation-20261014/distributed-observed.json configs/paired-final.json out/q1-sliced-check
+q1-legacy-check /usr/bin/node substitution-check.mjs pkg-new/node_modules/doppler-gpu model-legacy /var/tmp/plain-profile-reference-20261014/inputs/approved-reference.json /var/tmp/plain-profile-reference-20261014/inputs /var/tmp/speed-isolation-20261014/distributed-observed.json configs/paired-final.json out/q1-legacy-check
+q1-shipped-check /usr/bin/node substitution-check.mjs pkg-new/node_modules/doppler-gpu model-shipped /var/tmp/plain-profile-reference-20261014/inputs/approved-reference.json /var/tmp/plain-profile-reference-20261014/inputs /var/tmp/speed-isolation-20261014/distributed-observed.json configs/paired-final.json out/q1-shipped-check
+q1-sliced2-check /usr/bin/node substitution-check.mjs pkg-new/node_modules/doppler-gpu model-sliced /var/tmp/plain-profile-reference-20261014/inputs/approved-reference.json /var/tmp/plain-profile-reference-20261014/inputs /var/tmp/speed-isolation-20261014/distributed-observed.json configs/paired-final.json out/q1-sliced2-check
+q1-ctl2-check /usr/bin/node substitution-check.mjs pkg-control/node_modules/doppler-gpu model-legacy /var/tmp/plain-profile-reference-20261014/inputs/approved-reference.json /var/tmp/plain-profile-reference-20261014/inputs /var/tmp/speed-isolation-20261014/distributed-observed.json configs/paired-final.json out/q1-ctl2-check

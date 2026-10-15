@@ -1,0 +1,614 @@
+{
+ "session": "q2",
+ "checks": {},
+ "ladder": {
+  "q2-ctl-profile": {
+   "mode": "paired-profile",
+   "dopplerVersion": "0.6.28",
+   "kernelSubstitution": {
+    "norm": {
+     "before": {
+      "kernel": "rmsnorm_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:c0268aa06ac8962379dd811f5d256b0aceaa8300542e80619e3c088d683af61e",
+      "constants": null
+     },
+     "after": {
+      "kernel": "rmsnorm_paired_sliced.wgsl",
+      "entry": "main",
+      "digest": "sha256:92760258450f504f4707b4fcb98148967b11c9a8e27e95d3f1242191c88bf1cc",
+      "constants": {
+       "WORKGROUP_SIZE": 256
+      }
+     }
+    },
+    "projection_q4": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": false
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": false
+      }
+     }
+    },
+    "projection_f16": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": true,
+       "WEIGHT_Q4K": false,
+       "SCALAR_OUTPUT": false
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": true,
+       "WEIGHT_Q4K": false,
+       "SCALAR_OUTPUT": false
+      }
+     }
+    },
+    "head": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": true
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": true
+      }
+     }
+    },
+    "attention": {
+     "before": {
+      "kernel": "attention_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:95e862b22362590cb3a24b4184222b94b4a942e8c331bfb8520ad5d418ddf1f1",
+      "constants": null
+     },
+     "after": {
+      "kernel": "attention_paired_tiled.wgsl",
+      "entry": "main",
+      "digest": "sha256:70a0a584eb26e3eb9aa14ea1082b9f3801bf730c43577874c1c4257a69b6ea16",
+      "constants": {
+       "WORKGROUP_SIZE": 256,
+       "DOT_LANES": 4
+      }
+     }
+    },
+    "paired_state_sliced_rolled": {
+     "added": {
+      "kernel": "gated_delta_state_paired_sliced_rolled.wgsl",
+      "entry": "main",
+      "digest": "sha256:66ead3035467220fda5c807096055a1377c1d8711f1d1d0106bc02d242e95d2b",
+      "constants": {
+       "WORKGROUP_SIZE": 256,
+       "K_SLICES": 16
+      }
+     }
+    },
+    "paired_qk_parallel": {
+     "added": {
+      "kernel": "gated_delta_qk_paired_parallel.wgsl",
+      "entry": "main",
+      "digest": "sha256:75b6c97cea545f81e384a8d5254b8c97c5063b02a9e827c877383401eed92daa",
+      "constants": {
+       "WORKGROUP_SIZE": 256
+      }
+     }
+    },
+    "paired_qk_head_norm": {
+     "added": {
+      "kernel": "rmsnorm_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:c0268aa06ac8962379dd811f5d256b0aceaa8300542e80619e3c088d683af61e",
+      "constants": {}
+     }
+    }
+   },
+   "executionIdentity": null,
+   "turns": [
+    {
+     "label": "turn-1",
+     "promptTokens": 56,
+     "profiledSteps": 16,
+     "gpuPerStepMs": 215.076864,
+     "wallMedianMs": 362.44813599999907,
+     "kernels": {
+      "matmul": 87.38815999999994,
+      "qwen_linear_attention_prepare": 43.761664,
+      "gated_delta_recurrent": 27.598848000000007,
+      "paired_pointwise": 20.08678400000001,
+      "rmsnorm": 13.398015999999993,
+      "gated_delta_conv": 12.472319999999998,
+      "attention": 9.285632000000001,
+      "rope_qk": 0.970752,
+      "split_qg": 0.06553600000000001,
+      "cast": 0.049152
+     }
+    }
+   ]
+  },
+  "q2-ctl2-profile": {
+   "mode": "paired-profile",
+   "dopplerVersion": "0.6.28",
+   "kernelSubstitution": {
+    "norm": {
+     "before": {
+      "kernel": "rmsnorm_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:c0268aa06ac8962379dd811f5d256b0aceaa8300542e80619e3c088d683af61e",
+      "constants": null
+     },
+     "after": {
+      "kernel": "rmsnorm_paired_sliced.wgsl",
+      "entry": "main",
+      "digest": "sha256:92760258450f504f4707b4fcb98148967b11c9a8e27e95d3f1242191c88bf1cc",
+      "constants": {
+       "WORKGROUP_SIZE": 256
+      }
+     }
+    },
+    "projection_q4": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": false
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": false
+      }
+     }
+    },
+    "projection_f16": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": true,
+       "WEIGHT_Q4K": false,
+       "SCALAR_OUTPUT": false
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": true,
+       "WEIGHT_Q4K": false,
+       "SCALAR_OUTPUT": false
+      }
+     }
+    },
+    "head": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": true
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": true
+      }
+     }
+    },
+    "attention": {
+     "before": {
+      "kernel": "attention_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:95e862b22362590cb3a24b4184222b94b4a942e8c331bfb8520ad5d418ddf1f1",
+      "constants": null
+     },
+     "after": {
+      "kernel": "attention_paired_tiled.wgsl",
+      "entry": "main",
+      "digest": "sha256:70a0a584eb26e3eb9aa14ea1082b9f3801bf730c43577874c1c4257a69b6ea16",
+      "constants": {
+       "WORKGROUP_SIZE": 256,
+       "DOT_LANES": 4
+      }
+     }
+    },
+    "paired_state_sliced_rolled": {
+     "added": {
+      "kernel": "gated_delta_state_paired_sliced_rolled.wgsl",
+      "entry": "main",
+      "digest": "sha256:66ead3035467220fda5c807096055a1377c1d8711f1d1d0106bc02d242e95d2b",
+      "constants": {
+       "WORKGROUP_SIZE": 256,
+       "K_SLICES": 16
+      }
+     }
+    },
+    "paired_qk_parallel": {
+     "added": {
+      "kernel": "gated_delta_qk_paired_parallel.wgsl",
+      "entry": "main",
+      "digest": "sha256:75b6c97cea545f81e384a8d5254b8c97c5063b02a9e827c877383401eed92daa",
+      "constants": {
+       "WORKGROUP_SIZE": 256
+      }
+     }
+    },
+    "paired_qk_head_norm": {
+     "added": {
+      "kernel": "rmsnorm_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:c0268aa06ac8962379dd811f5d256b0aceaa8300542e80619e3c088d683af61e",
+      "constants": {}
+     }
+    }
+   },
+   "executionIdentity": null,
+   "turns": [
+    {
+     "label": "turn-1",
+     "promptTokens": 56,
+     "profiledSteps": 16,
+     "gpuPerStepMs": 215.6994560000001,
+     "wallMedianMs": 297.06857500000115,
+     "kernels": {
+      "matmul": 87.49465599999995,
+      "qwen_linear_attention_prepare": 44.060672000000004,
+      "gated_delta_recurrent": 27.676672000000007,
+      "paired_pointwise": 20.16051200000001,
+      "rmsnorm": 13.385727999999991,
+      "gated_delta_conv": 12.562432,
+      "attention": 9.261056,
+      "rope_qk": 0.9502719999999999,
+      "split_qg": 0.077824,
+      "cast": 0.069632
+     }
+    }
+   ]
+  },
+  "q2-sliced-profile": {
+   "mode": "paired-profile",
+   "dopplerVersion": "0.6.28",
+   "kernelSubstitution": {
+    "norm": {
+     "before": {
+      "kernel": "rmsnorm_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:c0268aa06ac8962379dd811f5d256b0aceaa8300542e80619e3c088d683af61e",
+      "constants": null
+     },
+     "after": {
+      "kernel": "rmsnorm_paired_sliced.wgsl",
+      "entry": "main",
+      "digest": "sha256:92760258450f504f4707b4fcb98148967b11c9a8e27e95d3f1242191c88bf1cc",
+      "constants": {
+       "WORKGROUP_SIZE": 256
+      }
+     }
+    },
+    "projection_q4": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": false
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": false
+      }
+     }
+    },
+    "projection_f16": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": true,
+       "WEIGHT_Q4K": false,
+       "SCALAR_OUTPUT": false
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": true,
+       "WEIGHT_Q4K": false,
+       "SCALAR_OUTPUT": false
+      }
+     }
+    },
+    "head": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": true
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": true
+      }
+     }
+    },
+    "attention": {
+     "before": {
+      "kernel": "attention_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:95e862b22362590cb3a24b4184222b94b4a942e8c331bfb8520ad5d418ddf1f1",
+      "constants": null
+     },
+     "after": {
+      "kernel": "attention_paired_tiled.wgsl",
+      "entry": "main",
+      "digest": "sha256:70a0a584eb26e3eb9aa14ea1082b9f3801bf730c43577874c1c4257a69b6ea16",
+      "constants": {
+       "WORKGROUP_SIZE": 256,
+       "DOT_LANES": 4
+      }
+     }
+    },
+    "paired_state_sliced_rolled": {
+     "added": {
+      "kernel": "gated_delta_state_paired_sliced_rolled.wgsl",
+      "entry": "main",
+      "digest": "sha256:66ead3035467220fda5c807096055a1377c1d8711f1d1d0106bc02d242e95d2b",
+      "constants": {
+       "WORKGROUP_SIZE": 256,
+       "K_SLICES": 16
+      }
+     }
+    },
+    "paired_qk_parallel": {
+     "added": {
+      "kernel": "gated_delta_qk_paired_parallel.wgsl",
+      "entry": "main",
+      "digest": "sha256:75b6c97cea545f81e384a8d5254b8c97c5063b02a9e827c877383401eed92daa",
+      "constants": {
+       "WORKGROUP_SIZE": 256
+      }
+     }
+    }
+   },
+   "executionIdentity": null,
+   "turns": [
+    {
+     "label": "turn-1",
+     "promptTokens": 56,
+     "profiledSteps": 16,
+     "gpuPerStepMs": 212.10726400000001,
+     "wallMedianMs": 297.12739599999986,
+     "kernels": {
+      "matmul": 86.96627199999993,
+      "qwen_linear_attention_prepare": 43.323392,
+      "gated_delta_recurrent": 27.488256000000014,
+      "paired_pointwise": 19.890176000000007,
+      "gated_delta_conv": 12.398591999999999,
+      "rmsnorm": 11.61215999999999,
+      "attention": 9.375744,
+      "rope_qk": 0.9338879999999997,
+      "split_qg": 0.09011200000000001,
+      "cast": 0.028671999999999996
+     }
+    }
+   ]
+  },
+  "q2-sliced2-profile": {
+   "mode": "paired-profile",
+   "dopplerVersion": "0.6.28",
+   "kernelSubstitution": {
+    "norm": {
+     "before": {
+      "kernel": "rmsnorm_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:c0268aa06ac8962379dd811f5d256b0aceaa8300542e80619e3c088d683af61e",
+      "constants": null
+     },
+     "after": {
+      "kernel": "rmsnorm_paired_sliced.wgsl",
+      "entry": "main",
+      "digest": "sha256:92760258450f504f4707b4fcb98148967b11c9a8e27e95d3f1242191c88bf1cc",
+      "constants": {
+       "WORKGROUP_SIZE": 256
+      }
+     }
+    },
+    "projection_q4": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": false
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": false
+      }
+     }
+    },
+    "projection_f16": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": true,
+       "WEIGHT_Q4K": false,
+       "SCALAR_OUTPUT": false
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": true,
+       "WEIGHT_Q4K": false,
+       "SCALAR_OUTPUT": false
+      }
+     }
+    },
+    "head": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": true
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": true
+      }
+     }
+    },
+    "attention": {
+     "before": {
+      "kernel": "attention_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:95e862b22362590cb3a24b4184222b94b4a942e8c331bfb8520ad5d418ddf1f1",
+      "constants": null
+     },
+     "after": {
+      "kernel": "attention_paired_tiled.wgsl",
+      "entry": "main",
+      "digest": "sha256:70a0a584eb26e3eb9aa14ea1082b9f3801bf730c43577874c1c4257a69b6ea16",
+      "constants": {
+       "WORKGROUP_SIZE": 256,
+       "DOT_LANES": 4
+      }
+     }
+    },
+    "paired_state_sliced_rolled": {
+     "added": {
+      "kernel": "gated_delta_state_paired_sliced_rolled.wgsl",
+      "entry": "main",
+      "digest": "sha256:66ead3035467220fda5c807096055a1377c1d8711f1d1d0106bc02d242e95d2b",
+      "constants": {
+       "WORKGROUP_SIZE": 256,
+       "K_SLICES": 16
+      }
+     }
+    },
+    "paired_qk_parallel": {
+     "added": {
+      "kernel": "gated_delta_qk_paired_parallel.wgsl",
+      "entry": "main",
+      "digest": "sha256:75b6c97cea545f81e384a8d5254b8c97c5063b02a9e827c877383401eed92daa",
+      "constants": {
+       "WORKGROUP_SIZE": 256
+      }
+     }
+    }
+   },
+   "executionIdentity": null,
+   "turns": [
+    {
+     "label": "turn-1",
+     "promptTokens": 56,
+     "profiledSteps": 16,
+     "gpuPerStepMs": 212.97152000000003,
+     "wallMedianMs": 356.1296020000009,
+     "kernels": {
+      "matmul": 87.15468799999995,
+      "qwen_linear_attention_prepare": 43.560959999999994,
+      "gated_delta_recurrent": 27.602944000000004,
+      "paired_pointwise": 20.054016000000008,
+      "gated_delta_conv": 12.472319999999998,
+      "rmsnorm": 11.554815999999992,
+      "attention": 9.519103999999999,
+      "rope_qk": 0.9748479999999998,
+      "split_qg": 0.057344000000000006,
+      "cast": 0.020479999999999998
+     }
+    }
+   ]
+  }
+ }
+}

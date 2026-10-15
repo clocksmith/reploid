@@ -1,0 +1,50 @@
+{
+ "mode": "sliced",
+ "baseManifestSha256": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+ "variantManifestSha256": "sha256:69dfcc4abc4e8e651681da1a21a880d5ca4f2737405a8fd695e0243348879fe6",
+ "changes": [
+  {
+   "phase": "decode",
+   "insertedAt": 4,
+   "steps": [
+    [
+     "q_norm",
+     "norm"
+    ],
+    [
+     "k_norm",
+     "norm"
+    ]
+   ]
+  },
+  {
+   "phase": "prefill",
+   "insertedAt": 4,
+   "steps": [
+    [
+     "q_norm",
+     "norm"
+    ],
+    [
+     "k_norm",
+     "norm"
+    ]
+   ]
+  },
+  {
+   "mechanismKernelsRemoved": [
+    "paired_qk_head_norm"
+   ]
+  },
+  {
+   "kernelsRemoved": {
+    "paired_qk_head_norm": {
+     "kernel": "rmsnorm_paired.wgsl",
+     "entry": "main",
+     "digest": "sha256:c0268aa06ac8962379dd811f5d256b0aceaa8300542e80619e3c088d683af61e",
+     "constants": {}
+    }
+   }
+  }
+ ]
+}
