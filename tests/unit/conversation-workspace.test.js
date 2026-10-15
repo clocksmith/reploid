@@ -20,18 +20,21 @@ describe('Conversation workspace', () => {
   it('shows no network capacity for cached weights and persists location changes in an existing thread', async () => {
     const model = CANONICAL_CHAT_MODELS[1];
     session.setCachedModels([model]);
-    const location = find('[data-execution-location]');
-    location.value = 'network'; location.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(find('[data-execution-choice=auto]').getAttribute('aria-pressed')).toBe('true');
+    find('[data-execution-choice=network]').click();
     expect(find('[data-composer-send]').disabled).toBe(true);
     expect(find('[data-model-status]').textContent).toContain('No network capacity');
     const id = session.createThread({ model, sharingScope: 'local' });
-    location.value = 'network'; location.dispatchEvent(new Event('change', { bubbles: true }));
+    find('[data-execution-choice=network]').click();
     await vi.waitFor(() => expect(session.getState().activeThread.permissions.executionLocation).toBe('network'));
     expect(session.getState().activeThread.id).toBe(id);
     expect(service.calls).toHaveLength(0);
-    location.value = 'local'; location.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(find('[data-execution-choice=network]').getAttribute('aria-pressed')).toBe('true');
+    find('[data-execution-choice=local]').click();
     await vi.waitFor(() => expect(session.getState().activeThread.permissions.executionLocation).toBe('local'));
     expect(find('[data-model-status]').hidden).toBe(true);
+    expect(find('[data-execution-choice=local]').getAttribute('aria-pressed')).toBe('true');
+    expect(find('[data-execution-choice=network]').getAttribute('aria-pressed')).toBe('false');
   });
 
   it('opens every section directly from the navigation rail with the correct heading', () => {

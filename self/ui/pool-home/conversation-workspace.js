@@ -16,8 +16,9 @@ const selectable = model => ['ready', 'busy', 'cached', 'loading', 'preparing'].
 
 export function renderConversationWorkspace({ inspector = true } = {}) {
   return `<section class="reploid-chat-workspace" data-chat-workspace aria-label="Conversation workspace">
-    <aside id="chat-threads" class="chat-thread-sidebar pool-surface" data-thread-sidebar aria-label="Conversation controls">
+    <aside id="chat-threads" class="chat-thread-sidebar" data-thread-sidebar aria-label="Conversation controls">
       <div class="chat-rail-toolbar" data-chat-rail-toolbar>
+      <div class="chat-rail-primary pool-surface">
       <div class="chat-rail-heading">
       <span data-thread-rail-brand></span>
       <button class="pool-button chat-new-thread" type="button" data-new-thread aria-label="New thread" title="New thread">${interfaceIcon('newThread')}<span class="chat-rail-label">New thread</span></button>
@@ -26,7 +27,7 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
       <h2 class="pool-subheading" id="chat-threads-title">Threads</h2>
       <div class="chat-thread-list" data-thread-list></div>
       </section>
-      <footer class="chat-rail-footer">
+      </div><footer class="chat-rail-footer pool-surface">
       <button class="pool-button chat-rail-control" type="button" data-open-model aria-label="Choose model" title="Choose model">${interfaceIcon('device')}<span class="chat-rail-label">Model</span><small class="chat-rail-digest pool-muted" data-model-digest></small></button>
       <div class="chat-rail-controls" data-network-header><div class="chat-thread-info">
           <span class="chat-model-control pool-activity-edge" data-model-control><select class="pool-input pool-glass" id="chat-model" data-active-model-select aria-label="Model"></select><button class="pool-button" type="button" data-current-model aria-haspopup="dialog" hidden></button></span>
@@ -43,8 +44,9 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
         </div></details>
       </div>
       <div data-network-trigger-slot></div>
-      </footer></div><div class="chat-inspector-slot" data-chat-inspector-slot></div>
+      </footer></div>
     </aside>
+    <aside class="chat-inspector-slot pool-surface" data-chat-inspector-slot aria-label="Selected controls"></aside>
     <section class="chat-conversation-area" data-conversation-area aria-label="Current conversation">
       <div class="chat-transcript chat-message-stream" data-chat-transcript data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
       <p class="chat-error pool-well" role="alert" data-chat-error hidden></p>
@@ -60,7 +62,7 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
             <button class="pool-button btn-primary pool-icon" type="button" data-composer-stop aria-label="Stop" title="Stop" hidden>${interfaceIcon('stop')}</button>
           </div>
         </div>
-        <div class="chat-composer-notices"><label class="pool-small pool-muted">Run on <select class="pool-input" data-execution-location aria-label="Execution location"><option value="auto">Automatic</option><option value="local">This device</option><option value="network">Network</option></select></label><p class="pool-small pool-muted" data-answer-limit hidden></p><span class="pool-chip" data-web-search-on hidden>Web search on</span><p class="chat-setup-hint pool-small pool-muted" id="chat-model-status" data-model-status role="status" hidden></p><button class="pool-button btn-ghost" type="button" data-retry-connection hidden>Retry connection</button></div>
+        <div class="chat-composer-notices"><div class="chat-execution-location"><span class="pool-small pool-muted">Run on</span><div class="pool-segmented" data-execution-location role="group" aria-label="Execution location"><button class="pool-segment pool-caption" type="button" data-execution-choice="auto" aria-pressed="true">Automatic</button><button class="pool-segment pool-caption" type="button" data-execution-choice="local" aria-pressed="false">This device</button><button class="pool-segment pool-caption" type="button" data-execution-choice="network" aria-pressed="false">Network</button></div></div><p class="pool-small pool-muted" data-answer-limit hidden></p><span class="pool-chip" data-web-search-on hidden>Web search on</span><p class="chat-setup-hint pool-small pool-muted" id="chat-model-status" data-model-status role="status" hidden></p><button class="pool-button btn-ghost" type="button" data-retry-connection hidden>Retry connection</button></div>
         <p class="chat-attachment-help pool-small pool-muted" data-attachment-help hidden>Text files: up to 8, 64 KB each, 128 KB total.</p>
       </form></footer>
       <dialog class="chat-model-setup pool-surface pool-small" data-rename-dialog aria-labelledby="chat-rename-title">
@@ -221,8 +223,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const peerCount = projectNetworkPeers(state).length;
     for (const node of surface?.querySelectorAll('[data-mesh-peers]') || []) node.textContent = `${peerCount} ${peerCount === 1 ? 'computer' : 'computers'}`;
     const location = thread?.permissions?.executionLocation ?? (thread?.permissions?.sharingScope === 'local' ? 'local' : executionLocation);
-    find('[data-execution-location]').value = location;
-    find('[data-execution-location]').disabled = !!thread?.closed || state.runningIds.includes(state.selectedId) || submitting;
+    for (const button of container.querySelectorAll('[data-execution-choice]')) {
+      button.setAttribute('aria-pressed', String(button.dataset.executionChoice === location));
+      button.disabled = !!thread?.closed || state.runningIds.includes(state.selectedId) || submitting;
+    }
     const selectedModel = catalogModels.find(model => keyFor(model) === current);
     const usable = location === 'network' ? ['ready', 'busy'].includes(selectedModel?.networkAvailability ?? selectedModel?.availability)
       : location === 'local' ? !!selectedModel && !selectedModel.partition && !!(selectedModel.localReady || selectedModel.localCached)
@@ -371,9 +375,11 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         (find('[data-thread-item-id][aria-current="true"]') || find('[data-new-thread]')).focus();
       }); return;
     }
-    const button = event.target.closest('[data-thread-item-id]'); if (button) { try { observe(after(saveDraft(), () => { session.select(button.dataset.threadItemId); if (globalThis.innerWidth <= 760) setThreads(false); })); } catch (cause) { error(cause); } } });
-  on('[data-execution-location]', 'change', () => {
-    const location = find('[data-execution-location]').value;
+    const button = event.target.closest('[data-thread-item-id]'); if (button) { try { observe(after(saveDraft(), () => { session.select(button.dataset.threadItemId); inspector.close({ restoreFocus: false }); if (globalThis.innerWidth <= 760) setThreads(false); })); } catch (cause) { error(cause); } } });
+  on('[data-execution-location]', 'click', event => {
+    const button = event.target.closest('[data-execution-choice]');
+    if (!button || button.disabled || button.getAttribute('aria-pressed') === 'true') return;
+    const location = button.dataset.executionChoice;
     const thread = session.getState().activeThread;
     if (thread) { void act(() => session.setExecutionLocation(thread.id, location)); }
     else { executionLocation = location; viewState.executionLocation = location; render(session.getState()); }

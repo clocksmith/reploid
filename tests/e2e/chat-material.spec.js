@@ -256,7 +256,7 @@ test('bounded inspector and reduced viewport preserve a long conversation and co
     await page.locator('[data-toggle-inspector]').click();
     await page.locator('[data-inspector-section=conversation]').click();
     await expect(page.locator('[data-inspector-route]')).toContainText('Computer 1');
-    await page.keyboard.press('Escape'); await expect(page.locator('[data-toggle-inspector]')).toBeFocused();
+    await page.keyboard.press('Escape'); await expect(page.locator('[data-inspector-section=conversation]')).toBeFocused();
   }
   expect(await page.locator('[data-composer-area]').boundingBox()).toEqual(before);
   expect(await page.locator('[data-chat-transcript]').evaluate(node => node.scrollTop)).toBe(100);
@@ -367,9 +367,28 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
     await threads.nth(1).click();
     await expect(page.locator('[data-thread-item-id="recent-1"]')).toHaveAttribute('aria-current', 'true');
     await expect(page.locator('[data-thread-item-id="recent-0"]')).toHaveAttribute('data-activity', 'executing');
-    await page.locator('[data-inspector-section="participants"]').click();
-    await expect(page.locator('[data-inspector-pane="participants"]')).toBeVisible();
-    await page.locator('[data-close-inspector]').click();
+    await page.locator('[data-composer-input]').fill('Keep this draft');
+    const compactRail = await page.locator('[data-thread-sidebar]').boundingBox();
+    for (const section of ['participants', 'device', 'settings']) {
+      const destination = page.locator(`[data-inspector-section="${section}"]`);
+      await destination.click();
+      await expect(page.locator(`[data-inspector-pane="${section}"]`)).toBeVisible();
+      await expect(destination).toHaveAttribute('aria-current', 'true');
+      await expect(page.locator('#network-inspector-title')).toBeFocused();
+      await expect(page.locator('[data-conversation-area]')).toBeHidden();
+      expect(await page.locator('[data-thread-sidebar]').boundingBox()).toEqual(compactRail);
+      const content = await page.locator('[data-chat-inspector-slot]').boundingBox();
+      expect(content.x).toBeGreaterThanOrEqual(compactRail.x + compactRail.width);
+      expect(content.x + content.width).toBeLessThanOrEqual(width);
+      await expect(page.locator('[data-thread-item-id="recent-0"]')).toHaveAttribute('data-activity', 'executing');
+      await destination.click();
+      await expect(page.locator(`[data-inspector-pane="${section}"]`)).toBeVisible();
+      await page.screenshot({ path: info.outputPath(`destination-${section}.png`) });
+    }
+    await threads.nth(1).click();
+    await expect(page.locator('[data-conversation-area]')).toBeVisible();
+    await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft');
+    await expect(page.locator('[data-contextual-inspector]')).not.toBeVisible();
     await expect(page.locator('[data-thread-item-id="recent-1"]')).toHaveAttribute('aria-current', 'true');
   });
 }

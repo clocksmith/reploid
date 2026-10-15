@@ -98,7 +98,7 @@
 .network-status { padding: 0; white-space: nowrap; }
 @media (max-width: 760px) { .network-inspector { width: min(calc(100vw - var(--pool-param-chat-gutter, var(--pool-size-16)) * 2), calc(var(--pool-size-480) * 0.75)); } }
 
-/* Mounted chat inspection occupies the same left aside as the four controls. */
+/* Destination content fills the main workspace while its controls stay in the rail. */
 .pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network']) .chat-network-rail:not([data-mounted]) { display: none; }
 .pool-home .chat-network-rail[data-mounted] {
   display: flex; width: 100%; min-width: 0; min-height: 0; position: static; margin: 0; padding: 0;
