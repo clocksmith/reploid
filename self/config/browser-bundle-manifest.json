@@ -1380,8 +1380,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 114916,
-      "sha256": "sha256:9352c4f3fa94845d0d2fcf28ddfe7d9a6c66417946da432a88cd46caad4b5e6c"
+      "byteLength": 114972,
+      "sha256": "sha256:020fe97374f9a0fb7532a26dfdabeaaca37f02fff820a6a8726cee068f794bdd"
     },
     {
       "path": "config/vfs-policy.js",
@@ -9824,5 +9824,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:4047c8bb2c209794760c2fd01ad6fdfa18031b419e0ff5e2e8d0f4c0860fc247"
+  "bundleHash": "sha256:5b45407b157c7925fecf00ac3562320aa10771ce4e5f4d0380714e4b9a6fea89"
 }
