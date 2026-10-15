@@ -165,7 +165,7 @@
     {
       "path": "capabilities/communication/swarm-join-policy.js",
       "owner": "capabilities",
-      "sha256": "sha256:658f858e5b985d2a6f4401b8446b17c79f7218d51c45596187615d870fa7a35a",
+      "sha256": "sha256:04480cd9b0c50bc0c3a9b6b5831aaebe4193c9d572ea16faa7f370426469308c",
       "imports": []
     },
     {
@@ -2020,7 +2020,7 @@
     {
       "path": "providers/work-generation-completion.js",
       "owner": "providers",
-      "sha256": "sha256:5ee1cbc4f107878416e60f8fca2bb50d76ce86b1f051be40ab4a58b3d6b2a82a",
+      "sha256": "sha256:44e01ec14343197058efbc11906fff4baa56d81984fbe6a37190763d45f69299",
       "imports": [
         "../config/doppler-generation-contract.js"
       ]
@@ -2037,7 +2037,7 @@
     {
       "path": "providers/work-provider.js",
       "owner": "providers",
-      "sha256": "sha256:6addbd9b47c25ad9ffe482efbcf60c3ed375653176617c9d9b99e94c47dd2f5a",
+      "sha256": "sha256:bad40bdb79c128184e59b370affb1cc1f834c233564fe8ba125ccd60e2cb6b03",
       "imports": [
         "../config/work-profile.json",
         "./work-generation-completion.js"
@@ -2143,7 +2143,7 @@
     {
       "path": "self/host/chat-execution.js",
       "owner": "self",
-      "sha256": "sha256:58637d40ef62e69b7f25179edd851229835e8c76dbe05d9c1da50db064a4d5dd",
+      "sha256": "sha256:e39db92499144208d7746c6ea4ab0a7bcda7dab8b457532983ec988f3b154411",
       "imports": [
         "../providers/work-adapter.js",
         "../providers/work-generation-completion.js",
@@ -2272,7 +2272,7 @@
     {
       "path": "self/host/product-session.js",
       "owner": "self",
-      "sha256": "sha256:22f6ae0b7da77174e925eb24601a6dd8969c788c5d4235b4a01627df3f964463",
+      "sha256": "sha256:bc0a12a1825bd671104936b3e016e8278247fb8cedcd99833ff3f67380467c84",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/ordered-participation.json",
@@ -2557,7 +2557,7 @@
     {
       "path": "self/host/work-swarm.js",
       "owner": "self",
-      "sha256": "sha256:b8c45672a2c0c561a6fb1c8e7c83420b2b47f1f92ca3a8640f874abcbd059302",
+      "sha256": "sha256:c7f3c9428e0fa5da281cf82bb791a1a84035f7eff57da21672a094ba894830ff",
       "imports": [
         "../capabilities/communication/library-adapter.js",
         "../config/doppler-local-models.js",
@@ -3226,7 +3226,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:a876dabc329d56461f846ab341ddb20001762302dc70a04ef41ceee16b8c7c54",
+      "sha256": "sha256:d567595247d2dbcd251632f584f812e99c96b5959fb2f96f61f04808997f01e2",
       "imports": []
     },
     {
@@ -3316,7 +3316,7 @@
     {
       "path": "ui/pool-home/execution-activity.js",
       "owner": "ui",
-      "sha256": "sha256:c960304f8f5f02d6248eea8f12ba11e1cf9656f947d37245ebb091e4e13475d8",
+      "sha256": "sha256:2a6a561912c8b8e795ebf9f962889a7defb7195b4c5484513b6e4eb4fa5e007a",
       "imports": [
         "../components/attachments.js",
         "./execution-ribbon.js"
@@ -3377,7 +3377,7 @@
     {
       "path": "ui/pool-home/network-controls.js",
       "owner": "ui",
-      "sha256": "sha256:1904d98f36c3a6a4707448f386f99fa7bd28fc9128a73dad2ffb9a66a27c1331",
+      "sha256": "sha256:cf7d195aa248af6a45f082c97997735e88813e2786269ffe0992bd91e96ab90d",
       "imports": [
         "../../vendor/reploid/mesh/preparation-progress.js",
         "../components/model-select.js",
@@ -3387,7 +3387,7 @@
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:163955c12a17be7e93b0100088a13e21847c05e250df3249beda7f044f7751c3",
+      "sha256": "sha256:268b15ec3c68cc9864e622c2c4166990fed46abc2e9e4fd666645da6655a88b6",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
