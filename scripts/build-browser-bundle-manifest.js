@@ -6,6 +6,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { buildProductEntry } from './build-product-entry.js';
 import { buildHostingFileSet } from './hosting-file-set.js';
 
 import {
@@ -22,6 +23,7 @@ const OUTPUT_PATH = path.join(SELF_DIR, BROWSER_BUNDLE_DESCRIPTOR_PATH);
 const checkOnly = process.argv.includes('--check');
 
 async function main() {
+  await buildProductEntry({ checkOnly });
   const files = await buildHostingFileSet({ selfDir: SELF_DIR });
   const entries = await Promise.all(files.filter(file => file !== BROWSER_BUNDLE_DESCRIPTOR_PATH)
     .map(async file => ({ path: file, bytes: new Uint8Array(await fs.readFile(path.join(SELF_DIR, file))) })));

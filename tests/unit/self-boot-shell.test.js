@@ -28,7 +28,7 @@ describe('self-first boot shell', () => {
     expect(selfKernelHtml).toContain('href="/"');
     expect(selfKernelHtml).toMatch(/src="\/kernel\/boot\.js\?v=\d+"/);
     expect(sourceIndexHtml).toContain('href="/"');
-    expect(sourceIndexHtml).toContain("import('/ui/pool-home/index.js')");
+    expect(sourceIndexHtml).toContain("import('/ui/pool-home/app.bundle.js')");
     expect(sourceIndexHtml).toContain('REPLOID_PRODUCT_BOOT_RECOVERY');
     expect(sourceIndexHtml).toContain('PRODUCT_BOOT_TIMEOUT_MS = 10000');
     expect(sourceIndexHtml).toContain('Promise.race([');
@@ -36,7 +36,7 @@ describe('self-first boot shell', () => {
     expect(sourceIndexHtml).toContain('window.location.replace(retryUrl.toString())');
     expect(sourceIndexHtml).toContain("failure.setAttribute('role', 'alert')");
     expect(poolEntryHtml).toContain('REPLOID_PRODUCT_BOOT_RECOVERY');
-    expect(poolEntryHtml).toContain("import('/ui/pool-home/index.js')");
+    expect(poolEntryHtml).toContain("import('/ui/pool-home/app.bundle.js')");
     expect(poolEntryHtml).toContain('window.location.replace(retryUrl.toString())');
     expect(sourceIndexHtml).toContain('const bootPath = `/kernel/boot.js?v=${window.REPLOID_BUILD_VERSION}`;');
     expect(sourceIndexHtml).toContain('await import(bootPath);');

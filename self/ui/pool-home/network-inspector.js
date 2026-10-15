@@ -135,11 +135,12 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
       find('[data-download-size]').textContent = Math.ceil(info.sizeBytes / 1e6) + ' MB download'; find('[data-download-confirm]').disabled = false;
     } catch (cause) { if (!request.signal.aborted && !disposed) find('[data-download-size]').textContent = cause.message; }
   };
-  on('[data-model-setup]', 'click', () => {
+  const openModelSetup = (opener = find('[data-model-setup]')) => {
     const models = session.getState().models.filter(model => !model.partition && !model.adapters?.length);
     updateModelSelect(find('[data-download-model]'), models);
-    modelDialog.open(find('[data-download-model]'), find('[data-model-setup]')); void checkDownload();
-  });
+    modelDialog.open(find('[data-download-model]'), opener); void checkDownload();
+  };
+  on('[data-model-setup]', 'click', event => openModelSetup(event.currentTarget));
   on('[data-download-model]', 'change', () => void checkDownload());
   on('[data-download-cancel]', 'click', () => modelDialog.close());
   on('[data-model-dialog]', 'close', () => metadataController?.abort());
@@ -157,6 +158,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   // Credits appear only when the page's server publishes an earning service (host/credits/browser.js).
   const disposeAccount = bindAccountPanel(rail, earning);
   return {
+    openModelSetup,
     mountRail(panelSlot, triggerSlot, onOpen) {
       if (!panelSlot || !triggerSlot) return () => {};
       const railParent = rail.parentElement, railNext = rail.nextSibling;
