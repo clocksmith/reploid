@@ -7,6 +7,10 @@
       "types": "./src/chat/index.d.ts",
       "import": "./src/chat/index.js"
     },
+    "./retrieval": {
+      "types": "./src/retrieval/index.d.ts",
+      "import": "./src/retrieval/index.js"
+    },
     ".": {
       "types": "./src/index.d.ts",
       "import": "./src/index.js"
@@ -326,8 +330,8 @@
     },
     {
       "path": "chat/index.d.ts",
-      "bytes": 11042,
-      "sha256": "d89c1159797340d61b20ba6559c22764d4dcdc03fbfc046b8430bd9c5fa2ead9"
+      "bytes": 12115,
+      "sha256": "110ffd5ab3e3e899b21b622694d084951ed3dc906d04622e0c644c88f25cd2f6"
     },
     {
       "path": "chat/index.js",
@@ -386,8 +390,8 @@
     },
     {
       "path": "chat/workspace.js",
-      "bytes": 32868,
-      "sha256": "3124108d7d30ea05f378eee72bd9c9bb81057638e4fc368339f975f6d7c7013d"
+      "bytes": 35232,
+      "sha256": "aea1141e376ed72d4c047c1e0fa63b94ff099865dc7d27c3f7c0a611469f8323"
     },
     {
       "path": "config/defaults.json",
@@ -1018,6 +1022,51 @@
       "path": "mesh/swarm-coordination.js",
       "bytes": 4290,
       "sha256": "35cd997e4f20ed6ba78bc8de4788b5cc172d34639aaf4b973f18f91a123db334"
+    },
+    {
+      "path": "retrieval/citations.js",
+      "bytes": 9094,
+      "sha256": "d9e2d12decf403b3002555f5ae0273373d9e49debd66a1ac647edf6bbfe20486"
+    },
+    {
+      "path": "retrieval/fixed-provider.js",
+      "bytes": 2335,
+      "sha256": "4c0f26d3047fa5625d551f564b751a7a0455a522810077d4167e21f2c56b2bb2"
+    },
+    {
+      "path": "retrieval/index.d.ts",
+      "bytes": 7882,
+      "sha256": "d833b37134b2ea65c6af02b9e4b14b82123a6b420bf5953e36f95454e1181e8e"
+    },
+    {
+      "path": "retrieval/index.js",
+      "bytes": 536,
+      "sha256": "88c626fa2df06bb79418549a22c2d8ba85d7cf77ed2cf56100b8d0986a792073"
+    },
+    {
+      "path": "retrieval/lexical-support.js",
+      "bytes": 1932,
+      "sha256": "333f8772a5a13d911e7293b287ba2014ec450740327ba2561608d54f0aaa5c3e"
+    },
+    {
+      "path": "retrieval/policy.json",
+      "bytes": 779,
+      "sha256": "4abc2bef4babe9181c815d31afa003c4a23bb45ddf71660f89d65f016bf26ae6"
+    },
+    {
+      "path": "retrieval/retrieval.js",
+      "bytes": 1288,
+      "sha256": "e26f13e5b5cc3d1714c349d76ccaededc1f12c888ecd499920ed3486cd15bf43"
+    },
+    {
+      "path": "retrieval/sources.js",
+      "bytes": 12529,
+      "sha256": "51054b990916ebaf529d29ccecc5142e03b2e030ff4de5092d76f08850621fbb"
+    },
+    {
+      "path": "retrieval/text.js",
+      "bytes": 1440,
+      "sha256": "7ea3e1f8271525f0792d025a363fe63f2a7f8bd6d3445072d76c4053df977d19"
     },
     {
       "path": "rules/contribution.rules.json",

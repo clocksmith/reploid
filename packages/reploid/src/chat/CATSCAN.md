@@ -7,7 +7,7 @@ Concurrent conversations from authorized peers, without a global objective.
 
 ## Authority
 Owns history/membership/permissions/attempts/streams/scheduling.
-Hosts supply authenticated identity/persistence/admission/disclosure and Doppler sessions.
+Hosts supply authenticated identity/persistence/admission/disclosure/retrieval and Doppler sessions.
 
 ## Scope
 This directory.
@@ -15,7 +15,7 @@ This directory.
 ## Contracts
 Inputs: explicit policy, model identities and host ports.
 Outputs: isolated conversations, bounded attempts, provenance-bound observations.
-Compose custody/whole-request jobs; file possession grants no execution.
+Compose custody/whole-request jobs/[retrieval](../retrieval/CATSCAN.md); file possession grants no execution.
 
 ## Invariants
 - Selection/closure never cancels execution; cancellation affects one attempt.
@@ -23,7 +23,7 @@ Compose custody/whole-request jobs; file possession grants no execution.
 - Restore history and mark unfinished attempts interrupted; never silently resend.
 - One requester-owned transactional writer commits canonical and ordered records; known rejections never fence.
 - Permissions precede placement. Model and adapter identity remain exact.
-- Host ports authorize remote disclosure: per-send, or stored permissions whose
+- Host ports authorize remote disclosure, retrieved sources included: per-send, or stored permissions whose
   exact scope covers it; otherwise nothing is sent. Records cite the permission
   and dispatched recipients, never live capability.
 - Reusable disclosure grants bind verified recipient, mesh, thread, model,
@@ -38,8 +38,8 @@ Compose custody/whole-request jobs; file possession grants no execution.
 ## Acceptance
 Evidence: [workspace](../../../../tests/unit/chat-workspace.test.js),
 [scheduler](../../../../tests/unit/chat-scheduler.test.js), [tabs](../../../../tests/e2e/chat-three-tab.spec.js),
-[publication](../../../../tests/unit/ordered-publication.test.js).
-Tab evidence covers concurrency/transfers/refresh/peer-loss; physical qualification is separate.
+[publication](../../../../tests/unit/ordered-publication.test.js), [retrieval](../../../../tests/unit/chat-retrieval.test.js).
+Tabs cover concurrency/transfers/refresh/peer-loss; physical qualification separate.
 
 ## Non-goals
 Agent loops, model mathematics, transport reimplementation, admission or qualification by UI.
