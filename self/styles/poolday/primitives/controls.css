@@ -136,32 +136,47 @@
 .pool-home .pool-disclosure > :not(summary) { box-sizing: border-box; max-width: calc(100% - (var(--pool-size-16) * 2)); margin: var(--pool-size-16); }
 .pool-home .pool-disclosure > summary span { font-weight: var(--pool-weight-regular); color: var(--pool-color-muted); }
 
-/* Compact inset track and softly raised thumb; the full button remains a 44px target. */
+/* Material 3 proportions, with shallow inset depth rather than a sculpted knob. */
 .pool-home .pool-switch {
-  position: relative; flex: none; width: var(--pool-size-48); height: var(--pool-size-44);
+  position: relative; flex: none; width: calc(var(--pool-size-48) + var(--pool-size-4)); height: var(--pool-size-48);
   padding: 0; border: 0; border-radius: var(--pool-radius-control);
   background: transparent; box-shadow: none; cursor: pointer;
 }
 .pool-home .pool-switch::before {
-  content: ''; position: absolute; inset-inline: 0; top: 50%;
-  height: calc(var(--pool-size-24) + var(--pool-size-4)); transform: translateY(-50%);
+  content: ''; position: absolute; inset-inline: 0; top: 50%; box-sizing: border-box;
+  height: var(--pool-size-32); transform: translateY(-50%);
+  border: var(--pool-size-2) solid var(--pool-color-muted);
   border-radius: var(--pool-radius-round); background: var(--pool-color-inset);
   box-shadow: var(--pool-shadow-switch-track); pointer-events: none;
+  transition: background var(--pool-transition-fast), border-color var(--pool-transition-fast);
 }
 .pool-home .pool-switch > span {
-  position: absolute; top: 50%; left: var(--pool-size-4);
-  width: var(--pool-size-20); height: var(--pool-size-20); transform: translateY(-50%);
-  border: var(--pool-border-hairline) solid var(--pool-color-line);
-  border-radius: var(--pool-radius-round); background: var(--pool-color-raised);
+  position: absolute; top: 50%; left: var(--pool-size-8);
+  width: var(--pool-size-16); height: var(--pool-size-16); transform: translateY(-50%);
+  border: 0; border-radius: var(--pool-radius-round); background: var(--pool-color-muted);
   box-shadow: var(--pool-shadow-switch-thumb); pointer-events: none;
-  transition: left var(--pool-motion-time-240) ease-in-out, background var(--pool-transition-fast);
+  transition: left var(--pool-motion-time-240) ease-in-out, width var(--pool-motion-time-240) ease-in-out,
+    height var(--pool-motion-time-240) ease-in-out, background var(--pool-transition-fast);
 }
-.pool-home .pool-switch[aria-checked='true']::before { background: var(--pool-color-ink-12); }
+.pool-home .pool-switch[aria-checked='true']::before {
+  background: var(--pool-color-ink); border-color: var(--pool-color-ink);
+}
 .pool-home .pool-switch[aria-checked='true'] > span {
-  left: calc(100% - var(--pool-size-4) - var(--pool-size-20)); background: var(--pool-color-ink);
+  left: calc(100% - var(--pool-size-4) - var(--pool-size-24));
+  width: var(--pool-size-24); height: var(--pool-size-24); background: var(--pool-color-page);
 }
-.pool-home .pool-switch:disabled { opacity: var(--pool-alpha-48); cursor: wait; }
-@media (prefers-reduced-motion: reduce) { .pool-home .pool-switch > span { transition: none; } }
+.pool-home .pool-switch:not(:disabled):active > span {
+  width: calc(var(--pool-size-24) + var(--pool-size-4)); height: calc(var(--pool-size-24) + var(--pool-size-4));
+  left: var(--pool-size-2);
+}
+.pool-home .pool-switch[aria-checked='true']:not(:disabled):active > span {
+  left: calc(100% - var(--pool-size-2) - var(--pool-size-24) - var(--pool-size-4));
+}
+.pool-home .pool-switch:focus-visible { outline: var(--pool-size-2) solid var(--pool-color-ink); outline-offset: var(--pool-size-2); }
+.pool-home .pool-switch:disabled { opacity: var(--pool-alpha-48); cursor: not-allowed; }
+@media (prefers-reduced-motion: reduce) {
+  .pool-home .pool-switch::before, .pool-home .pool-switch > span { transition: none; }
+}
 @media (forced-colors: active) {
   .pool-home .pool-segment:is([aria-current='page'], [aria-pressed='true']) { outline: var(--pool-border-thick) solid Highlight; }
 }

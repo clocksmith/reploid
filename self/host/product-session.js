@@ -1,6 +1,7 @@
 import { createDopplerRuntime } from '../pool/doppler-runtime.js';
 /** Application lifetime. Detaching a route never stops an owned conversation or document task. */
 import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
+import { watchModelCache } from './work-model-cache.js';
 import { createWorkModelFiles } from './work-model-files.js';
 import { createWorkSession } from './work-session.js';
 import { createWorkEvolution } from './work-evolution.js';
@@ -54,7 +55,7 @@ async function openOrderedRequesterChat({ chatOptions, requesterIdentity, ports 
 export function createProductSession({ storage, networkOptions, swarmNetworkOptions, operationNetwork = null,
   canonical = null, ordered = null, eventTarget = window, onChanges = () => {}, onDocuments = () => {}, onSharing = () => {},
   historyPorts = {}, earning = null, participantIdentity = null, search = createServerSearch() }) {
-  let runtime, work, chat, documents, operationSharing, closed = false, closing, ownsNetwork = false;
+  let runtime, work, chat, modelCache, documents, operationSharing, closed = false, closing, ownsNetwork = false;
   const service = createReploidDopplerRuntimeService();
   // Local execution uses the same pinned, verified artifacts as contribution.
   // This owner never attaches a transport or offers cached files to peers.
@@ -81,7 +82,7 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
     server: () => webSearch.state().recipient });
   // `earning` (earning/attempts.js) is off unless the embedding host composes an explicitly configured client.
   const chatOptions = { service, storage, swarm,
-    resolveLocalSource: (model, controls) => localFiles.prepareSource(model, controls),
+    resolveLocalSource: (model, controls) => localFiles.prepareSource(model, { ...controls, cacheOnly: true }),
     partitions: swarm.partitions, peers: createWorkPeerJobs({ getNetwork }),
     // Search-backed answers use the server's Brave route or the device-side route, each answer under its own
     // per-answer search permission; the device-side route's permission names the person's search server.
@@ -90,6 +91,7 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
       [DEVICE_SEARCH_ROUTE]: { provider: deviceSearch.provider, extractor: deviceSearch.extractor, permission: 'search-answer',
         available: deviceSearch.available } } }, earning };
   const failOpening = async error => {
+    modelCache?.close();
     const settled = await Promise.allSettled([() => swarm.close(), () => chat?.close(), () => localFiles.close()].map(close => Promise.resolve().then(close)));
     const failures = settled.filter(result => result.status === 'rejected').map(result => result.reason);
     if (failures.length) throw new AggregateError([error, ...failures], 'Canonical application opening failed');
@@ -104,6 +106,7 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
   return finish(createChatSession({ ...chatOptions, requesterIdentity }));
   function finish(openedChat) {
     chat = openedChat;
+    modelCache = watchModelCache({ eventTarget, onChange: models => chat.setCachedModels(globalThis.navigator?.gpu ? models : []) });
     const autoconnect = startSwarmAutoconnect({ connect: options => swarm.connect(options),
       enabled: () => swarm.autoConnectEnabled(), isConnected: () => {
         const state = swarm.getState();
@@ -125,7 +128,7 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
       },
       close() {
         if (closing) return closing;
-        closed = true; autoconnect.close();
+        closed = true; autoconnect.close(); modelCache.close();
         // Requester-owned history must report unsettled cleanup; ordinary history never did.
         const requesterOwned = !!canonical || chat.getState?.().history?.mode === 'transactional';
         const owners = [() => localFiles.close(), () => swarm.close(), () => work?.close(), () => chat.close(), () => documents?.close(),

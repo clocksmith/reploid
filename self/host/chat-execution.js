@@ -7,10 +7,10 @@ import { readWorkGenerationCompletion } from '../providers/work-generation-compl
 
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 
-export function createChatExecution({ service, swarm, partitions, scheduler, models, getModels, profile, earning = null, resolveLocalSource, onChange = () => {} }) {
+export function createChatExecution({ service, swarm, partitions, scheduler, models, getModels, profile, earning = null, resolveLocalSource, isCached = () => false, onChange = () => {} }) {
   let local = null;
   // The same routing execute() applies: partitions always leave this device; local scope or a ready local copy stays.
-  const runsHere = (model, sharingScope) => !model.partition && (sharingScope === 'local' || (local?.ready && local.modelIdentity === model.identity));
+  const runsHere = (model, sharingScope) => !model.partition && (sharingScope === 'local' || isCached(model) || (local?.ready && local.modelIdentity === model.identity));
   const resolveAdapter = createWorkAdapterResolver({ models });
 
   const sessionScheduler = scheduler || createChatScheduler({

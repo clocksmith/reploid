@@ -1,3 +1,4 @@
+import { announceModelCacheChange } from './work-model-cache.js';
 import { resolvePartitionArtifactSource } from './work-partition-artifact-source.js';
 /** Host grants and pinned catalog composition for the library's signed artifact custody. */
 import { createCustodyExchange } from '../vendor/reploid/artifacts/custody/exchange.js';
@@ -160,7 +161,7 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
       let writer;
       try {
         writer = await handle.createWritable(); await writer.write(bytes); signal.throwIfAborted(); await writer.close();
-        lastUsed.set(key, Date.now()); return;
+        lastUsed.set(key, Date.now()); announceModelCacheChange(); return;
       } catch (cause) {
         await writer?.abort().catch(() => {});
         // The quota is an estimate and can shrink after reservation.
@@ -200,7 +201,7 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
     signal = AbortSignal.any([lifetime.signal, ...(signal ? [signal] : [])]); signal.throwIfAborted();
     assert(Number.isSafeInteger(file.sizeBytes) && file.sizeBytes > 0 && file.sizeBytes <= policy.maxArtifactBytes, 'Invalid model file allowance');
     const key = fileKey(file);
-    if (!cacheOnly && !reserve && lastFile?.key === key) { lastUsed.set(key, Date.now()); return lastFile.bytes; }
+    if (!reserve && lastFile?.key === key) { lastUsed.set(key, Date.now()); return lastFile.bytes; }
     // Each loader owns its cancellation; it never borrows an unrelated transfer's signal.
     const existing = await cached(file);
     assert(existing || !cacheOnly, 'Verified cached model file unavailable');
@@ -329,11 +330,11 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
       });
       return { manifest, storage: { ...opened.storage, async close() { sourceClosed = true; await opened.storage.close(); } }, artifactStore, getReceipt: () => ({ ...opened.getReceipt(), custody: { ...custody } }) };
     },
-    async prepareSource(model, { signal, onProgress }) {
+    async prepareSource(model, { signal, onProgress, cacheOnly = false } = {}) {
       const acquisition = new AbortController();
-      signal = AbortSignal.any([signal, acquisition.signal]);
+      signal = AbortSignal.any([lifetime.signal, acquisition.signal, ...(signal ? [signal] : [])]);
       const reads = new Map();
-      const { manifest, manifestText, files } = await modelFiles(model, signal, onProgress);
+      const { manifest, manifestText, files } = await modelFiles(model, signal, onProgress, { cacheOnly });
       storageFactory ||= (await import(new URL('./storage/artifact-storage-context.js', new URL(globalThis.REPLOID_DOPPLER_MODULE_URL || DOPPLER_MODULE_URL, location.href)).href)).createArtifactStorageContext;
       const get = path => {
         const file = files.find(file => file.path === path); assert(file, 'Model requested an undeclared file'); return file;
@@ -341,7 +342,7 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
       const readFile = path => {
         const file = get(path), key = fileKey(file);
         if (!reads.has(key)) {
-          const operation = read(file, { signal, onProgress }).catch(cause => { acquisition.abort(cause); throw cause; }); reads.set(key, operation);
+          const operation = read(file, { signal, onProgress, cacheOnly }).catch(cause => { acquisition.abort(cause); throw cause; }); reads.set(key, operation);
           operation.finally(() => reads.delete(key)).catch(() => {});
         }
         return reads.get(key);

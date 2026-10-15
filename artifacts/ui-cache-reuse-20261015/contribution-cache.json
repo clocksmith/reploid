@@ -1,0 +1,19 @@
+{
+  "requests": [],
+  "errors": [],
+  "cacheMiss": "Verified cached model file unavailable",
+  "contribution": {
+    "phase": "ready",
+    "error": null,
+    "progress": {
+      "phase": "ready",
+      "percent": 100,
+      "message": "Model ready"
+    },
+    "completed": 0,
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+    "adapterIdentities": [],
+    "ready": true
+  }
+}

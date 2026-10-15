@@ -1690,8 +1690,8 @@
     },
     {
       "path": "host/chat-execution.js",
-      "byteLength": 7485,
-      "sha256": "sha256:86bd221fc09c0a1a6021476a2203c5ac21d7c9c444abd3e36ddffd03d00bd0c5"
+      "byteLength": 7528,
+      "sha256": "sha256:58637d40ef62e69b7f25179edd851229835e8c76dbe05d9c1da50db064a4d5dd"
     },
     {
       "path": "host/chat-history.js",
@@ -1700,8 +1700,8 @@
     },
     {
       "path": "host/chat-session.js",
-      "byteLength": 27001,
-      "sha256": "sha256:4968b9e12452237672569a7748c3cab62d95eddd895e0f0d3ce8287fc15145c4"
+      "byteLength": 27628,
+      "sha256": "sha256:54d5f0491685bed1e4b0af6fc2f94a474bacb8e27c82713c5a55a0677c80df3d"
     },
     {
       "path": "host/chat-view.js",
@@ -1760,8 +1760,8 @@
     },
     {
       "path": "host/product-session.js",
-      "byteLength": 10922,
-      "sha256": "sha256:61ea24189e29ca2141a37efb2ca57ba4f46706128f386fcfc3f796af90ea22e1"
+      "byteLength": 11194,
+      "sha256": "sha256:22f6ae0b7da77174e925eb24601a6dd8969c788c5d4235b4a01627df3f964463"
     },
     {
       "path": "host/readonly-view.js",
@@ -1829,9 +1829,14 @@
       "sha256": "sha256:7ee257c0cf1e7d41726b52313c664c28134180a909ca2f3909e3bbc64c933307"
     },
     {
+      "path": "host/work-model-cache.js",
+      "byteLength": 3768,
+      "sha256": "sha256:ec683ed37b57dd2a4ae1e24cdb688307e70b0ce410f475d172a05c304a98cef4"
+    },
+    {
       "path": "host/work-model-files.js",
-      "byteLength": 32074,
-      "sha256": "sha256:da621f028b726481f2d96ce7878f49288943187ee1b223d6caf4c97b4bf8dafb"
+      "byteLength": 32242,
+      "sha256": "sha256:052db70d215abe96f1e897123f393e9b8756c03d35507849e7244e3d96eaa473"
     },
     {
       "path": "host/work-partition-artifact-source.js",
@@ -1885,8 +1890,8 @@
     },
     {
       "path": "host/work-swarm.js",
-      "byteLength": 29771,
-      "sha256": "sha256:659c669bd15f526ecf3875ceef1bdbfcdb72d440b70ce225c085ef23524b70f5"
+      "byteLength": 30116,
+      "sha256": "sha256:b8c45672a2c0c561a6fb1c8e7c83420b2b47f1f92ca3a8640f874abcbd059302"
     },
     {
       "path": "host/work-task.js",
@@ -2765,8 +2770,8 @@
     },
     {
       "path": "styles/poolday/primitives/controls.css",
-      "byteLength": 8631,
-      "sha256": "sha256:ece7b589656bd6f7be4f417b9ecc96aea1c5bebf2fea86d505c9013c3d656525"
+      "byteLength": 9479,
+      "sha256": "sha256:1b28be29a35841bbc6beb229a03355804ed852ee31be3d5a7d83392ecb85a2e0"
     },
     {
       "path": "styles/poolday/primitives/layout.css",
@@ -3155,8 +3160,8 @@
     },
     {
       "path": "ui/components/model-select.js",
-      "byteLength": 1084,
-      "sha256": "sha256:ce86fbbd6b5543238f36f2e97670c2e3edc98d108ad05fa318e2e77b73b99d10"
+      "byteLength": 1110,
+      "sha256": "sha256:293322c31aaa14e8f1350d5dea39898dbfe9d25bb6ee655ee1d209ee53755d26"
     },
     {
       "path": "ui/components/permission-card.js",
@@ -3185,8 +3190,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2000204,
-      "sha256": "sha256:9c7add5353e3bd5391dba9935a58f6345ffcc51228dcd7637e00de96d6343c5b"
+      "byteLength": 2003018,
+      "sha256": "sha256:4ea5a64ebe95f2bbb139cf885e52f326edc7dd63bb31290380e72d2813e9ce53"
     },
     {
       "path": "ui/pool-home/computer-labels.js",
@@ -3215,8 +3220,8 @@
     },
     {
       "path": "ui/pool-home/conversation-workspace.js",
-      "byteLength": 35213,
-      "sha256": "sha256:c067fabe10dc4a65b9bd0bce67d95f6dab5a236b879f4149ea4ad857ca091121"
+      "byteLength": 35276,
+      "sha256": "sha256:a4dd953063ad8fc657dda6ef6f8c4b5e7bd2db411f4df95f3df112b32908e25b"
     },
     {
       "path": "ui/pool-home/document-search.js",
@@ -9979,5 +9984,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:f560816b2b05b79d0e640ee2f8dd62708afd7beab1c51ffd6b2930f227c2ea85"
+  "bundleHash": "sha256:46f13f6bb1e6a86825c59b3055e1e9ddb1723cb818cac18c346a1bb976394680"
 }

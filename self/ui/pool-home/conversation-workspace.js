@@ -12,7 +12,7 @@ import { createMessageList } from './message-list.js';
 import { renderRemotePermissionDialog, bindRemotePermissionDialog } from './remote-permission.js';
 import { renderSearchPermissionDialog, bindSearchPermissionDialog } from './search-permission.js';
 
-const selectable = model => ['ready', 'busy', 'loading', 'preparing'].includes(model.availability);
+const selectable = model => ['ready', 'busy', 'cached', 'loading', 'preparing'].includes(model.availability);
 
 export function renderConversationWorkspace({ inspector = true } = {}) {
   return `<section class="reploid-chat-workspace" data-chat-workspace aria-label="Conversation workspace">
@@ -215,7 +215,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const peerCount = projectNetworkPeers(state).length;
     for (const node of surface?.querySelectorAll('[data-mesh-peers]') || []) node.textContent = `${peerCount} ${peerCount === 1 ? 'computer' : 'computers'}`;
     const usable = thread?.permissions?.sharingScope === 'local'
-      || models.some(model => keyFor(model) === current && ['ready', 'busy'].includes(model.availability));
+      || models.some(model => keyFor(model) === current && ['ready', 'busy', 'cached'].includes(model.availability));
     const modelStatus = find('[data-model-status]');
     const networkState = state.network?.consumer?.connectionState;
     const localPreparing = state.localModel?.phase === 'loading';
@@ -232,8 +232,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     // The collapsed rails hide the header status. Explain a disabled composer
     // here, including before the first attempt, without adding another panel.
     modelStatus.textContent = thread?.closed ? 'Restore this thread to continue.'
-      : state.localModel?.error && !usable ? 'Download failed: ' + state.localModel.error
-      : !usable && current && !preparing && catalogModels.some(model => ['ready', 'busy'].includes(model.availability))
+      : state.localModel?.error && !usable ? 'Model preparation failed: ' + state.localModel.error
+      : !usable && current && !preparing && catalogModels.some(model => ['ready', 'busy', 'cached'].includes(model.availability))
         ? 'Choose an available model.'
       : !usable ? preparing ? state.localModel?.progress?.message || 'Model preparing…' : state.network?.paused ? 'Reconnect to continue.'
         : state.network?.connecting || ['connecting', 'retrying'].includes(networkState) ? 'Finding capacity…' : 'Model unavailable.' : '';
@@ -366,7 +366,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     act(async () => {
       try {
         const model = state.models.find(item => (item.selectionId || item.id) === modelSelect.value);
-        const sharingScope = model?.localReady ? 'local' : 'mesh';
+        const sharingScope = (model?.localReady || model?.localCached) ? 'local' : 'mesh';
         const target = state.activeThread || { model, permissions: { sharingScope } };
         // Keep answers local sends nothing and leaves the draft in place.
         if (!await permitted(target)) return;
