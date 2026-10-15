@@ -1,83 +1,160 @@
 # Reploid
 
-**Earn on your computer. Use AI anywhere.**
+Reploid answers questions with open models that run on the requester's device, on another
+participant's computer, or split by layers across several participants' computers. Model
+computation is done by [Doppler](https://github.com/clocksmith/doppler), a WebGPU inference
+library; Reploid does discovery, placement, admission, permissions, transport, conversation
+history and accounting. The same repository also hosts two agent workspaces, Zero and X.
 
-Reploid is an answer service. Ask questions, compare options, and get cited answers
-from open models and web sources, with follow-ups and persistent history. Use it
-through funded Community Access, a top-up, or credits your own computer earns by
-contributing validated computation, storage or delivery within limits you set. Reploid coordinates
-the network; [Doppler](https://github.com/clocksmith/doppler) runs the models.
+**Status:** early and not production. Conversations run today on a small engineering model
+(Qwen 3.5 0.8B) through test-signed packages on a few machines. Credits, Community Access and
+cited web search exist in source and are tested locally only. Per-surface status is in the
+[claim index](docs/status/surface-claim-index.json).
 
-Status: early. Conversations run on prepared contributors today; credits, Community
-Access and cited search exist in source and are tested locally, not yet in production.
+[Try it](https://replo.id/) · [Quick start](docs/QUICK-START.md) · [Documentation](docs/INDEX.md) · [Product contract](docs/product-specification.md)
 
-**[Try Reploid](https://replo.id/)** · [Get started](docs/QUICK-START.md) · [Documentation](docs/INDEX.md)
+## Components
 
-<picture>
-  <source media="(max-width: 640px)" srcset="docs/diagrams/readme-architecture-mobile.svg" />
-  <img src="docs/diagrams/readme-architecture.svg" alt="A requester without model weights receives an answer from two Doppler contributors; a separate storage participant supplies their assigned pieces." />
-</picture>
+| Component | What it is | Where |
+| --- | --- | --- |
+| **Reploid library** | Conversations, discovery, placement, admission, partition coordination, transport, piece custody, retrieval, accounting clients | [`packages/reploid/src/`](packages/reploid/src) (`chat/`, `mesh/partitions/`, `transport/`, `artifacts/custody/`, `retrieval/`, `measurement/`) |
+| **Poolday** | The network application and peer layer built on the library: the browser app at `/` (conversations, contribution settings, network inspector), rooms, signaling, WebRTC data channels, relays and authorized piece transfer | [`self/pool/`](self/pool), [`self/ui/pool-home/`](self/ui/pool-home), [`self/host/`](self/host) |
+| **Doppler** | Separate repository. Loads signed model packages (Capsules), opens whole models or layer ranges as residents, runs WebGPU kernels, samples tokens | [clocksmith/doppler](https://github.com/clocksmith/doppler), pinned in [`self/config/doppler-package.json`](self/config/doppler-package.json) |
+| **Native participant** | Node host that contributes storage and computation from a desktop GPU (Linux/Vulkan is the qualified path) | [`server/native-participant.js`](server/native-participant.js), [guide](docs/native-participant.md) |
+| **Server** | `npm start` serves the app, proxies cloud model APIs for Zero/X, and optionally mounts search and earning routes | [`server/proxy.js`](server/proxy.js), [`server/`](server) |
+| **Zero and X** | Agent workspaces at `/zero` and `/x` on a separate agent/VFS substrate (below) | [`self/core/`](self/core), [`self/tools/`](self/tools), [`self/ui/zero/`](self/ui/zero) |
 
-## Get started
-
-From a repository checkout, install and start the browser application:
-
-```sh
-npm install
-npm start
-```
-
-Open `http://localhost:8000`. Choose an available model, ask a question, and review
-recipients before sharing inputs. A prepared peer can execute without requester
-weight downloads. Local execution separately requires WebGPU and model files.
-
-Conversations remain independent. After interruption, keep the partial answer
-and explicitly retry. Storage and compute contribution are optional, with their
-own permissions and limits. See the [conversation contract](docs/chat-mvp.md).
-
-## Technical architecture
+Reploid coordinates, Doppler computes, Poolday carries the bytes. Reploid never implements
+model mathematics; Doppler never decides who may run what.
 
 ### Component ownership
 
-![The blue N-stage architecture shows durable conversations, route admission, independent piece custody, and five contributor computers along a variable-length route. The first computer coordinates; the last samples and decodes. Shared residents retain separate request state.](docs/diagrams/technical-architecture.svg)
+![N-stage route: durable conversations, route admission, independent piece custody, and contributor computers along a variable-length route. The first computer coordinates; the last samples and decodes.](docs/diagrams/technical-architecture.svg)
 
-The technical view shows the intended N-stage architecture, with five computers
-illustrating a variable-length route. Discovery supplies candidates; placement
-and admission select a compatible route within grants and capacity. The route
-stays fixed for its attempt. Independent custody supplies verified pieces.
-The first contributor coordinates ordered steps; activations and token context
-travel forward, and the final contributor samples and decodes. Selected tokens
-return to the coordinator; identified output returns to the conversation owner.
-Computers can contribute to multiple admitted questions, with separate attempt
-state and reusable resident weights. Cancellation settles an attempt without
-implying that its computer stops contributing. Storage, compute, and disclosure
-permissions remain distinct.
+The diagram shows the general N-stage design with five computers; the measured route below has
+three stages. It does not by itself establish package, route, concurrency or deployment
+qualification.
 
-Reploid coordinates, Doppler computes, and Poolday transports. The overview keeps
-its two-contributor example; the technical view describes the broader multistage
-target. Neither diagram establishes package, route, concurrency, or deployment
-qualification; the owner's implementation checklist owns those gates.
+## How a model is stored and split
 
-[Architecture and source owners](docs/open-mesh-architecture.md) · [Attempt recovery](docs/open-mesh-architecture.md#attempt-failure-and-recovery)
+A model is a signed Doppler **Capsule**: a manifest, the kernels it is allowed to run, and its
+weights as content-addressed **pieces**.
 
-## Evidence
+- **Storage (pieces).** Custody acquires the pieces a participant is assigned from authorized
+  suppliers, verifies each against its pinned hash, and keeps it in OPFS (browser) or on disk
+  (native). Holding pieces is storage contribution; it is not execution.
+- **Execution placements.** One conversation turn runs in one of three ways:
+  - **local:** the whole model on the requester's device (needs WebGPU and the pieces);
+  - **whole model on one peer:** a contributor that holds the complete model runs the request;
+  - **ordered partition route:** the model's layers are split into contiguous ranges, one per
+    stage, on different contributors. Each stage holds only its own range's pieces.
 
-Partition execution is implemented; complete numerical and application
-qualification remains open. The [surface claim index](docs/status/surface-claim-index.json)
-records supported scopes and unresolved gates. Cross-host rendezvous still
-requires signaling; a receipt alone does not prove honest execution.
+A measured three-stage route on two physical machines (placement C):
 
-Improvement is a separate workflow: independently evaluate changes, authorize
-reversible adoption, then measure results. Model confidence never grants authority.
-See [improvement episodes](docs/rsi-improvement-episodes.md).
+| Stage | Host | Layers |
+| --- | --- | --- |
+| 0 (coordinator) | browser on mac-host | embeddings, layers 0–7 |
+| 1 | native on amd-host | layers 8–15 |
+| 2 | native on amd-host | layers 16–23, final norm, LM head, sampling |
+
+Per token, stage 0 tokenizes (first step only) and runs its layers, then sends the hidden-state
+activations forward over a data channel. Each stage runs its layers and forwards the result;
+the last stage samples and decodes the token, which returns to the coordinator and streams to
+the requester. Every stage keeps its own KV cache and recurrent state for each attempt. A
+prepared stage (a **resident**) can serve several attempts at once, each with separate state,
+up to its admitted slots.
+
+**Numerics.** Every package must match a frozen F64 reference within `0.001` on all 55 reference
+prefixes. Today the shipped kernels meet that only with a compensated two-F32 ("paired")
+arithmetic profile, which costs about 21x the ordinary F32 profile on one GPU before any
+networking. Recovering ordinary speed under the same tolerance is open work. On a quiet link
+the route above averages about 1.05 s per token; the
+[measured breakdown](artifacts/placement-c-envelope-20261015/README.md) attributes each part
+(GPU execution in the paired profile, network transfer, authorization, history writes).
+
+## Lifecycle of one request
+
+1. **Discovery.** Contributors advertise prepared residents: model identity, plan, layer range,
+   free slots and queue room.
+2. **Permission.** The first request that would leave the device asks once for permission to
+   use remote contributors; it is revocable and recorded with the exact wording shown. A
+   search-backed answer also asks per answer, naming the search service (or the person's own
+   search server) and the contributors who will receive retrieved passages.
+3. **Placement.** The requester chooses among complete, compatible, prepared routes. An opt-in
+   coordinator ranking orders them by expected cost (latency, queueing, transfer, route
+   opening, refusal and failure history, reserve); peer id only breaks ties. An attempt's route
+   never changes once dispatched.
+4. **Admission.** Each stage reserves a slot. If the route is full, the attempt waits in a
+   bounded first-come queue at the coordinator (total and per-requester limits, a maximum
+   wait) and shows as queued; nothing is sent to other stages until admission. Requests outside
+   the route's declared prompt × answer × concurrency envelope are refused explicitly.
+5. **Grants.** The coordinator issues signed, per-attempt grants bound to the route, model and
+   expiry. Each stage verifies a grant once per attempt and rechecks binding, expiry and
+   revocation on every step.
+6. **Execution.** Steps pipeline under receiver credit (four one-way crossings per token on a
+   three-stage route). Every stage call is bounded; the answer deadline ends an attempt with one
+   explicit timeout.
+7. **Evidence.** Stages sign cumulative receipts of the work done; the requester signs an
+   acknowledgment for each output it received. For charged attempts, stages stop if more than
+   two outputs go unacknowledged.
+8. **Settlement.** Reservations release on completion, failure or cancellation. Retry always
+   starts a new attempt; the history keeps the partial answer. Lost contributors and unknown
+   remote cleanup are recorded as such, not assumed.
+
+Each finished answer records its supply (local, mesh, hosted or mixed) and, for search,
+whether retrieval ran on Reploid's server or on the device. No conversation is answered by a
+hosted model; the code refuses an unrecognized or hosted executor.
+
+## Credits and accounting (source only)
+
+The [product contract](docs/product-specification.md) defines nonexpiring credits, funded
+Community Access, quotes that bind model, disclosure, quality policy, deadline and spending
+limit, and settlement with one economic effect per billable event. The ledger, rewards,
+Community Access queue, receipts-based settlement, Supabase sign-in, Stripe Checkout and a
+scheduler exist under [`server/`](server) and have run end to end only in a
+[local demonstration](artifacts/earning-ui-demo-20261015/README.md) with test providers and a
+fixture model.
+
+## Zero and X
+
+Zero and X run on a separate agent/VFS substrate, not the conversation path above. Files live in
+an IndexedDB virtual file system; a Genesis snapshot allows rollback; inference uses a
+cloud model through the server proxy, a direct API key, or local Doppler.
+
+- **Zero** (`/zero`) is a minimal research agent. It starts with exactly one tool, `CreateTool`.
+  Each cycle the model can write a new tool; activation runs the tool's declared fixtures,
+  re-imports it in a fresh harness and replays them before installing. A created `self:write`
+  tool can patch live tools, UI or mirrored core code with rollback evidence. The operator sets
+  an objective and cycle interval and sees model input/output, tool runs, state and failures.
+  [Journeys and status](docs/zero/critical-user-journeys.md).
+- **X** (`/x`) is a governed superset of Zero with prebuilt file, promotion, optimization,
+  cognition, worker and swarm tools. Changes are adopted only after independent evaluation
+  under explicit, reversible operator grants; a model's own judgment never grants permission.
+  [Journeys and status](docs/x/critical-user-journeys.md).
+
+Setup for both: [Zero/X substrate and provider setup](docs/zero-x-quick-start.md).
+
+## Run it
+
+```sh
+npm install
+npm start          # server/proxy.js on http://localhost:8000
+```
+
+- `/` is the Poolday app (conversations, contribution, network); `/zero` and `/x` are the agent
+  workspaces.
+- Local execution needs a WebGPU browser and model files; using a prepared peer needs neither.
+- Contribute from a desktop GPU with the native participant; flags, owner limits and readiness
+  logging are in [docs/native-participant.md](docs/native-participant.md).
+- Tests: `npx vitest run --config tests/vitest.config.js <file>`; see [docs/TESTING.md](docs/TESTING.md).
 
 ## Read next
 
-- [Product contract](docs/product-specification.md) — public terms: service records, Community Access, credits and settlement, answer quality, contribution and disclosure.
-- [Architecture](docs/open-mesh-architecture.md) — coordination, custody, and recovery.
-- [Security](docs/SECURITY.md) — permission and trust boundaries.
-- [Zero and X](docs/zero-x-quick-start.md) — optional agent configurations.
-- [Goals](GOALS.md) · [Contributing](AGENTS.md) — priorities and component ownership.
+- [Architecture](docs/open-mesh-architecture.md): component ownership, preparation, recovery.
+- [Product contract](docs/product-specification.md): the public terms quotes and receipts bind.
+- [Security](docs/SECURITY.md): permission and trust boundaries; signatures and receipts do not
+  prove honest or confidential execution.
+- [Goals](GOALS.md) · [Contributing](AGENTS.md).
 
 ## License
 
