@@ -377,13 +377,16 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     previewCandidate: transferId => peerOffers.preview(transferId),
     dismissCandidate: transferId => peerOffers.dismiss(transferId),
     createPartitionNetwork: openPartitionNetwork,
-    async share(modelId, approved, adapters = []) {
+    async share(modelId, approved, adapters = [], { mode = ordered || canonical ? 'partition' : 'whole-model' } = {}) {
+      if (!['partition', 'whole-model'].includes(mode)) throw new Error('Unknown contribution mode');
+      if ((ordered || canonical) && mode !== 'partition') throw new Error('Configured stages require partition contribution');
       if (closed || supplier || stopping || sharingConnection) throw new Error('Stop existing sharing first');
       if (approved !== true) throw new Error('Approve public prompt execution before sharing');
       if (ordered && modelId !== ordered.stage?.modelId) throw new Error('Model differs from assigned ordered stage');
       const base = LOCAL_DOPPLER_MODELS.find(item => item.id === modelId);
       if (!base) throw new Error('Select an available local model');
-      if (base.source?.files.some(file => file.role === 'model-piece-index')) {
+      // A piece index describes available artifacts; it does not assign this device a stage.
+      if (mode === 'partition') {
         if (adapters.length) throw new Error('This partition plan does not support adapters');
         if (!navigator.gpu) throw new Error('This browser does not support WebGPU');
         const version = generation, epoch = contributionEpoch;

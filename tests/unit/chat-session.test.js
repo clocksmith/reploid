@@ -405,3 +405,18 @@ it('passes the host-resolved pinned source into local execution and refuses reso
   expect(service.open).not.toHaveBeenCalled();
   await refused.close();
 });
+
+
+it('uses another tab’s cached model locally without marking it GPU-ready or asking for remote permission', async () => {
+  const service = createChatTestService(), session = createChatSession({ storage: null, service });
+  const model = CANONICAL_CHAT_MODELS[0];
+  session.setCachedModels([{ id: model.id, identity: 'wrong' }]);
+  expect(session.getState().models.find(row => row.id === model.id).availability).toBe('unavailable');
+  session.setCachedModels([model]);
+  expect(session.getState().defaultModel).toMatchObject({ id: model.id, availability: 'cached', localCached: true });
+  expect(session.getState().localModel).toBeNull();
+  const thread = session.createThread({ model, sharingScope: 'local' });
+  expect((await session.send(thread, 'hello')).status).toBe('completed');
+  expect(service.calls).toHaveLength(1);
+  await session.close();
+});

@@ -99,6 +99,9 @@ export function createChatSession({
   const assertOpen = () => assert(!closed, 'Chat session is closed');
 
   let peerModels = [];
+  let cachedModels = [];
+  const isCached = model => !model.partition && !model.adapters?.length
+    && cachedModels.some(item => item.id === model.id && item.identity === model.identity);
   let discovering = false;
   let remotePermissions = loadPermissions(storage);
   // The room this session's swarm joins; without a swarm, the history mesh.
@@ -108,7 +111,7 @@ export function createChatSession({
     remotePermissions = next;
   };
 
-  const execution = createChatExecution({ service, swarm, partitions, scheduler, models, earning, resolveLocalSource,
+  const execution = createChatExecution({ service, swarm, partitions, scheduler, models, earning, resolveLocalSource, isCached,
     getModels: () => [...models, ...peerModels, ...(partitions?.getModels() || [])], profile, onChange: () => notifyAll() });
 
   const workspace = createChatWorkspace({
@@ -166,7 +169,8 @@ export function createChatSession({
     const local = execution.getLocalState();
     if (canonicalHistory && !publishable(historyState.publication, model)) return { ...model, availability: 'unavailable', localReady: false };
     return local?.ready && local.modelIdentity === model.identity && !(model.adapters?.length)
-      ? { ...model, availability: 'ready', localReady: true } : model;
+      ? { ...model, availability: 'ready', localReady: true }
+      : isCached(model) ? { ...model, availability: 'cached', localCached: true } : model;
   }));
 
   const notifyAll = () => {
@@ -201,6 +205,7 @@ export function createChatSession({
           && row.planId === model.partition.planId)?.cells || []
       })).filter(entry => entry.cells.length),
       defaultModel: preferred(catalog.filter(model => model.availability === 'ready'))
+        || preferred(catalog.filter(model => model.availability === 'cached'))
         || preferred(catalog.filter(model => model.availability === 'busy')) || preferred(catalog) || null,
       discovering,
       localModel: execution.getLocalState(),
@@ -228,6 +233,12 @@ export function createChatSession({
       return () => listeners.delete(listener);
     },
     refreshNetwork: notifyAll,
+    setCachedModels(available) {
+      if (closed) return;
+      cachedModels = models.filter(model => available.some(item => item.id === model.id && item.identity === model.identity))
+        .map(({ id, identity }) => ({ id, identity }));
+      notifyAll();
+    },
     previewContextPrompt(selection, model = getSessionState().defaultModel) {
       return createChatContext(selection, model, models);
     },

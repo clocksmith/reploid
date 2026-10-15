@@ -85,7 +85,7 @@ it.each(['qwen-3-5-0-8b-q4k-ehaf16', 'qwen-3-5-2b-q4k-ehaf16'])(
       onMessage: vi.fn(), broadcast: vi.fn() });
     const service = { open: vi.fn(), close: vi.fn() }, contribute = vi.fn();
     const swarm = fixture(service, { contribute });
-    await swarm.share(modelId, true);
+    await swarm.share(modelId, true, [], { mode: 'partition' });
     expect(contribute).toHaveBeenCalledExactlyOnceWith(modelId, true);
     expect(service.open).not.toHaveBeenCalled();
     await swarm.close();
@@ -117,13 +117,13 @@ it('disconnect immediately after share cannot deadlock or create a late contribu
   await swarm.close();
 });
 
-async function supplierFixture() {
+async function supplierFixture(modelId = 'whole-model-lifecycle-fixture') {
   const { createSigningIdentity } = await import('../../packages/reploid/src/artifacts/identity.js');
   const identity = await createSigningIdentity({ algorithm: 'Ed25519' });
   ports.ensure.mockResolvedValue(identity);
   vi.stubGlobal('navigator', { gpu: {} });
   const handlers = new Map(), ads = [], sent = [], load = deferred(), settlement = deferred();
-  const session = { loaded: true, modelId: 'whole-model-lifecycle-fixture', manifestHash: wholeModelIdentity.slice(7),
+  const session = { loaded: true, modelId, manifestHash: wholeModelIdentity.slice(7),
     resetGenerationState: vi.fn(), async *stream(messages) {
       yield { type: 'text-delta', text: messages.at(-1).content };
       if (messages.at(-1).content === 'hold') await settlement.promise;
@@ -141,7 +141,7 @@ async function supplierFixture() {
 }
 
 it('advertises loading without slots, prepares once and reuses reset resident weights', async () => {
-  const f = await supplierFixture();
+  const f = await supplierFixture('qwen-3-5-2b-q4k-ehaf16');
   expect(f.ads.at(-1)).toMatchObject({ hasInference: false, readiness: 'loading', availableSlots: 0 });
   expect(f.swarm.getState().contribution.phase).toBe('loading');
   await f.request('too-early', 'not executed');
@@ -189,7 +189,7 @@ it('stop during partition connection prevents a late contribution', async () => 
   vi.stubGlobal('navigator', { gpu: {} });
   const identity = deferred(); ports.ensure.mockReturnValue(identity.promise);
   const swarm = fixture();
-  const pending = swarm.share('qwen-3-5-0-8b-q4k-ehaf16', true);
+  const pending = swarm.share('qwen-3-5-0-8b-q4k-ehaf16', true, [], { mode: 'partition' });
   const failure = expect(pending).rejects.toThrow('stopped');
   await vi.waitFor(() => expect(ports.ensure).toHaveBeenCalledOnce());
   const stopping = swarm.disconnect(); identity.resolve({ peerId: 'fixture', contribution: {} });
