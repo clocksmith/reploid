@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { validateConfig, validateRoom, privateAddressReason, redactPrivateAddresses, orderedSelectionId } from './config.mjs';
+import { validateConfig, validateRoom, privateAddressReason, redactPrivateAddresses, orderedSelectionId, resolveLossTarget } from './config.mjs';
 import { classifyRequest, compilePatterns, rangeBytes } from './observe.mjs';
 import { freeze } from './test-fixtures.mjs';
 
@@ -52,7 +52,26 @@ rejects('a tailnet domain anywhere', config => { config.contributorControl.modul
 rejects('a login address anywhere', config => { config.freeze.route[1].orderedConfig = `/srv/${login}/stage.json`; }, /login address/);
 rejects('a machine outside the three aliases', config => { config.browsers.storageAcquirer.machine = 'other-host'; }, /must be one of mac-host, amd-host, intel-host/);
 rejects('a route that does not match the split layers', config => { config.freeze.route.pop(); delete config.freeze.nativeArtifacts['intel-host']; }, /stage count must equal splitLayers \+ 1/);
-rejects('two stages on one machine', config => { config.freeze.route[2].machine = 'amd-host'; }, /distinct machine/);
+rejects('a browser stage sharing a machine with a native stage', config => { config.freeze.route[1].machine = config.freeze.route[0].machine; }, /must all be native/);
+rejects('two native stages on one machine with one ordered config', config => {
+  config.freeze.route[2].machine = config.freeze.route[1].machine; config.freeze.route[2].orderedConfig = config.freeze.route[1].orderedConfig;
+}, /each with its own ordered config/);
+function twoNativesOnOneMachine(lossTarget) {
+  const config = filled(), [, first, second] = config.freeze.route;
+  delete config.freeze.nativeArtifacts[second.machine];
+  second.machine = first.machine;
+  config.contributorControl.lossTarget = lossTarget(second);
+  return config;
+}
+test('H12: two native stages may share a machine; the loss target names the stage', () => {
+  const { errors, config } = validateConfig(twoNativesOnOneMachine(stage => `${stage.machine}#${stage.index}`));
+  assert.deepEqual(errors, []);
+  assert.equal(resolveLossTarget(config.freeze.route, config.contributorControl.lossTarget), config.freeze.route[2]);
+});
+test('H12: an ambiguous machine-only loss target is rejected', () => {
+  const { errors } = validateConfig(twoNativesOnOneMachine(stage => stage.machine));
+  assert.match(errors.join('\n'), /contributorControl.lossTarget/);
+});
 rejects('a native stage 0', config => { config.freeze.route[0] = { ...config.freeze.route[1], index: 0, machine: 'mac-host', participantId: 'peer:' + '0'.repeat(24) }; }, /stage 0 coordinator/);
 rejects('a CDP requester that cannot create separate profiles', config => {
   config.browsers.requester.connect = { kind: 'cdp', endpoint: 'http://127.0.0.1:29691' };

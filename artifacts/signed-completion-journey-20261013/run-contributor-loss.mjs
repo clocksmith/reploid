@@ -3,7 +3,7 @@
 // The harness never reaches a machine itself: it calls the configured stop/restore exports
 // with the frozen stage description and records what they report.
 import { pathToFileURL } from 'node:url';
-import { orderedSelectionId } from './config.mjs';
+import { orderedSelectionId, resolveLossTarget } from './config.mjs';
 import { compilePatterns, observeChat, observeCustody, observeNetwork } from './observe.mjs';
 import { assessContributorLoss } from './loss-checks.mjs';
 import { buildTimingRecord } from './timing.mjs';
@@ -13,7 +13,7 @@ import { SELECTORS, TERMINAL, startRun, openBrowser, findPage, appUrl, servedDes
 const { config, room, fixture, report, save } = await startRun('contributor-loss', './contributor-loss.json');
 const { freeze, timeouts } = config, poll = config.observation.pollMs, selectionId = orderedSelectionId(freeze);
 const origin = config.browsers.requester.origin, url = appUrl(origin, room, config.application.signalingUrl);
-const target = freeze.route.find(stage => stage.machine === config.contributorControl.lossTarget);
+const target = resolveLossTarget(freeze.route, config.contributorControl.lossTarget);
 const control = await import(pathToFileURL(config.contributorControl.module).href);
 const stopContributor = control[config.contributorControl.stopExport], restoreContributor = control[config.contributorControl.restoreExport];
 if (typeof stopContributor !== 'function' || typeof restoreContributor !== 'function') throw Error('Configured contributor control exports are not functions');

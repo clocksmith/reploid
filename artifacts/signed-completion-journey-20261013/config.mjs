@@ -26,6 +26,14 @@ export function redactPrivateAddresses(text) {
   return String(text).replace(new RegExp(TAILNET_SOURCE, 'gi'), 'tailnet.invalid').replace(new RegExp(LOGIN_SOURCE, 'gi'), 'login-redacted');
 }
 
+/** H12: the native stage a loss targets: `<machine>` when that machine runs exactly one native stage,
+ * or `<machine>#<stage index>`. Returns null when nothing or more than one stage matches. */
+export function resolveLossTarget(route, lossTarget) {
+  const [machine, indexText] = String(lossTarget ?? '').split('#');
+  const matches = (Array.isArray(route) ? route : []).filter(stage => stage?.host === 'native' && stage.machine === machine
+    && (indexText === undefined || stage.index === Number(indexText)));
+  return matches.length === 1 ? matches[0] : null;
+}
 const fail = (errors, where, message) => { errors.push(`${where}: ${message}`); };
 const isObject = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 function exact(errors, where, value, keys) {
@@ -86,7 +94,15 @@ function route(errors, where, value, splitLayers) {
     if (stage.host === 'native') absolute(errors, at + '.orderedConfig', stage.orderedConfig);
   });
   if (value[0]?.host !== 'browser') fail(errors, where + '[0].host', 'stage 0 coordinator must be the browser contributor this harness observes');
-  if (new Set(value.map(stage => stage?.machine)).size !== value.length) fail(errors, where, 'each stage must run on a distinct machine');
+  // H12 (run 8, placement C): two native stages may share one machine (each its own process, scope,
+  // identity and ordered config); a browser stage still needs a machine of its own.
+  const byMachine = new Map();
+  for (const stage of value) byMachine.set(stage?.machine, [...(byMachine.get(stage?.machine) || []), stage]);
+  for (const stages of byMachine.values()) {
+    if (stages.length > 1 && (stages.some(stage => stage?.host !== 'native') || new Set(stages.map(stage => stage?.orderedConfig)).size !== stages.length)) {
+      fail(errors, where, 'stages sharing a machine must all be native, each with its own ordered config');
+    }
+  }
   if (new Set(value.map(stage => stage?.participantId)).size !== value.length) fail(errors, where, 'each stage must have a distinct participant');
 }
 
@@ -126,7 +142,7 @@ export function validateConfig(raw) {
       fail(errors, 'config.freeze.splitLayers', 'must be strictly increasing positive layer indexes');
     }
     route(errors, 'config.freeze.route', freeze.route, freeze.splitLayers);
-    const natives = Array.isArray(freeze.route) ? freeze.route.filter(stage => stage?.host === 'native').map(stage => stage.machine) : [];
+    const natives = Array.isArray(freeze.route) ? [...new Set(freeze.route.filter(stage => stage?.host === 'native').map(stage => stage.machine))] : [];
     if (exact(errors, 'config.freeze.nativeArtifacts', freeze.nativeArtifacts, natives)) {
       for (const name of natives) if (!SHA256.test(freeze.nativeArtifacts[name] || '')) fail(errors, `config.freeze.nativeArtifacts.${name}`, 'must be an exact native artifact identity');
     }
@@ -149,8 +165,8 @@ export function validateConfig(raw) {
   if (exact(errors, 'config.contributorControl', control, ['module', 'stopExport', 'restoreExport', 'lossTarget'])) {
     absolute(errors, 'config.contributorControl.module', control.module);
     for (const key of ['stopExport', 'restoreExport']) if (!IDENTIFIER.test(control[key] || '')) fail(errors, `config.contributorControl.${key}`, 'must be an export name');
-    const native = Array.isArray(freeze?.route) && freeze.route.some(stage => stage?.host === 'native' && stage.machine === control.lossTarget);
-    if (!native) fail(errors, 'config.contributorControl.lossTarget', 'must name a native stage machine in the frozen route');
+    const native = Array.isArray(freeze?.route) && resolveLossTarget(freeze.route, control.lossTarget);
+    if (!native) fail(errors, 'config.contributorControl.lossTarget', 'must name a native stage machine in the frozen route, as <machine> or <machine>#<stage index> when the machine runs several stages');
   }
 
   if (exact(errors, 'config.timeouts', raw.timeouts, ['readyMs', 'answerMs', 'lossReportMs', 'capacityReturnMs', 'transferMs', 'settlementMs', 'seedingMs'])) {

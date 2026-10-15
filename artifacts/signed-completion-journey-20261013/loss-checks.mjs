@@ -27,7 +27,7 @@ export const LOSS_REQUIREMENTS = Object.freeze({
 export function assessContributorLoss(report, fixture, freeze) {
   const failedAttempt = report.failed?.attempts?.find(item => item.id === report.failedAttemptId);
   const failedResponse = responseOf(report.failed, failedAttempt);
-  const target = freeze.route.find(stage => stage.machine === report.lossTarget?.machine);
+  const target = freeze.route.find(stage => stage.machine === report.lossTarget?.machine && stage.index === report.lossTarget?.stage);
 
   const lossInjected = run(() => {
     const { failures, require } = checker();
