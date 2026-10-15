@@ -458,6 +458,13 @@ export function createLedgerStore({
       return backend.list('reservations', { field: 'status', value: status });
     },
 
+    /** One account's reservations in every status, oldest acceptance first. */
+    async listAccountReservations(accountId) {
+      assertId(accountId, 'accountId');
+      return (await backend.list('reservations', { field: 'accountId', value: accountId }))
+        .sort((left, right) => toMs(left.acceptedAt) - toMs(right.acceptedAt) || left.reservationId.localeCompare(right.reservationId));
+    },
+
     /** Apply the one economic effect of a billable event under accepted terms. */
     async settleReservation(input = {}) {
       const fields = ['reservationId', 'billableEventId', 'outcome', 'attemptId', 'metering', 'completedAt', 'reason', 'evidenceRef'];

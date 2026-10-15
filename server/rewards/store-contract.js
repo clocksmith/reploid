@@ -12,6 +12,7 @@ export const REWARD_STORE_OPERATIONS = Object.freeze([
   'createOffer', 'getOffer', 'acceptOffer',
   'issueChallenge', 'answerChallenge', 'probeReadiness', 'listChallenges',
   'reserveFunding', 'getFunding', 'releaseFunding', 'resumeFunding',
+  'recordDeliveryEvidence', 'getDeliveryEvidence',
   'validateWork', 'getValidation', 'issueReward', 'resumeIssuance',
   'getIssuanceState', 'listIssuanceDecisions'
 ]);
@@ -21,6 +22,7 @@ export const REWARD_COLLECTIONS = Object.freeze({
   offers: 'reward_offers',
   validations: 'reward_validations',
   challenges: 'reward_challenges',
+  deliveries: 'reward_delivery_evidence',
   fundings: 'reward_fundings',
   claims: 'reward_claims',
   idempotency: 'reward_idempotency',

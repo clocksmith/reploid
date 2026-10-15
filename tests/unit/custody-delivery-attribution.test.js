@@ -1,70 +1,17 @@
 // @vitest-environment node
 // A real custody transfer between a browser identity and a native identity: the exchange
-// carries each party's certificate, and the requester's delivery evidence becomes a
-// verified-delivery claim that rewards attribute through the account ports.
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+// carries each party's certificate and the certified acquirer's attestation of its receipt,
+// and that delivery evidence becomes a verified-delivery claim that rewards attribute
+// through the account ports.
+import { beforeEach, describe, expect, it } from 'vitest';
 
-import { createCustodyKeyCertifier } from '../../packages/reploid/src/artifacts/custody-certificate.js';
-import { createCustodyExchange } from '../../packages/reploid/src/artifacts/custody/exchange.js';
-import { createCustodyContracts } from '../../packages/reploid/src/artifacts/custody/runtime.js';
-import { createSigningKeyPair, exportPublicKey, sha256Hex, signCanonical, verifyCanonicalSignature } from '../../packages/reploid/src/artifacts/signatures.js';
+import { deliveryEvidenceFromRecord, deliveryEvidenceId } from '../../packages/reploid/src/artifacts/delivery-attestation.js';
+import { sha256Hex, signCanonical } from '../../packages/reploid/src/artifacts/signatures.js';
 import { DELIVERY_ATTESTATION_SCHEMA, deliveryAttestationBody } from '../../server/rewards/custody-evidence.js';
-import { createPeerPackDataChannel } from '../../self/pool/peer-pack-data-channel.js';
-import { executablePacksMatch, hashDopplerEvidence, validateExecutablePack } from '../../self/pool/executable-pack.js';
+import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
 import { newIdentity, openAccountFixture, registerDevice, signInAs } from '../helpers/account-fixture.js';
-import { MIN, advance, at, clock, codes, fx, ownerAuthorization, rejectsWith } from '../helpers/reward-fixture.js';
-
-const contracts = createCustodyContracts({ hashDopplerEvidence, validateExecutablePack, executablePacksMatch, sha256Hex, signCanonical, verifyCanonicalSignature });
-const BYTES = new Uint8Array([1, 2, 3, 4, 5]);
-
-function channelPair() {
-  const channels = [new EventTarget(), new EventTarget()];
-  for (const [i, channel] of channels.entries()) Object.assign(channel, {
-    ordered: true, maxRetransmits: null, maxPacketLifeTime: null, readyState: 'open', bufferedAmount: 0,
-    send(data) { queueMicrotask(() => channels[1 - i].dispatchEvent(new MessageEvent('message', { data: structuredClone(data) }))); },
-    close() { if (this.readyState === 'closed') return; this.readyState = 'closed'; this.dispatchEvent(new Event('close')); }
-  });
-  return channels;
-}
-
-/** Two exchanges on one fake transport: 0 acquires from 1. `identities[i]` null leaves that key uncertified. */
-async function transferPiece(identities) {
-  const file = { path: 'piece.bin', role: 'model-weights', sizeBytes: BYTES.length, hash: (await sha256Hex(BYTES)).slice(7), hashAlgorithm: 'sha256' };
-  const policy = { maxTransfers: 2, maxPeers: 4, maxAcquisitionAttempts: 2, maxSupplyBytes: 100, maxArtifactBytes: 20, maxInventoryFiles: 8, grantMs: 5 * MIN,
-    channel: { maxFrameBytes: 128, maxControlBytes: 4096, maxChunkBytes: 2, maxBufferedBytes: 8192, maxPendingRequests: 2, maxTransferBytes: 1 << 20, timeoutMs: 1000 } };
-  const handlers = [new Map(), new Map()], callbacks = [], keys = [], deliveries = [], owners = [];
-  for (const i of [0, 1]) {
-    const pair = await createSigningKeyPair();
-    keys[i] = { peerId: `transport-${i}`, publicKey: await exportPublicKey(pair.publicKey), privateKey: pair.privateKey };
-    const certifier = identities[i] && createCustodyKeyCertifier({ identity: identities[i], now: () => fx.nowMs });
-    let reserved = 0;
-    const transport = {
-      _getPeerId: () => keys[i].peerId,
-      getConnectedPeers: () => [{ id: `transport-${1 - i}` }],
-      onMessage: (type, handler) => handlers[i].set(type, handler),
-      sendToPeer: (peer, type, payload) => { queueMicrotask(() => handlers[1 - i].get(type)?.(keys[i].peerId, structuredClone(payload))); return true; },
-      broadcast(type, payload) { this.sendToPeer(`transport-${1 - i}`, type, payload); },
-      onDataChannel: (_, callback) => { callbacks[i] = callback; return () => {}; },
-      openDataChannel() { const [left, right] = channelPair(); callbacks[1 - i](keys[i].peerId, right); return left; }
-    };
-    owners.push(createCustodyExchange({ transport, identity: keys[i], policy, ports: {
-      now: () => fx.nowMs,
-      supplyBudget: { getState: () => ({ reservedBytes: reserved, maxBytes: 100 }), async reserve(bytes) { reserved += bytes; return this.getState(); } },
-      createSupplier: contracts.createPeerPackSupplier, createStore: contracts.createPeerPackArtifactStore, createChannel: createPeerPackDataChannel,
-      readArtifact: async () => BYTES.slice(),
-      async verifyArtifact(descriptor, data) { if (await sha256Hex(data) !== 'sha256:' + descriptor.hash) throw new Error('integrity'); },
-      hash: hashDopplerEvidence, hashBytes: sha256Hex,
-      observeDelivery: (record) => deliveries.push(record),
-      ...(certifier ? { certificate: () => certifier.certify({ custodyPeerId: keys[i].peerId, custodyPublicKey: keys[i].publicKey }) } : {})
-    } }));
-  }
-  try {
-    owners[1].offer([file]);
-    await vi.waitFor(() => expect(owners[0].has(file)).toBe(true));
-    await owners[0].acquire(file, { signal: new AbortController().signal });
-  } finally { await Promise.all(owners.map((owner) => owner.close())); }
-  return { record: deliveries.find((row) => row.role === 'requester'), acquirerKey: keys[0] };
-}
+import { PIECE_BYTES as BYTES, transferPiece } from '../helpers/custody-transfer.js';
+import { MIN, advance, at, clock, codes, ownerAuthorization, rejectsWith } from '../helpers/reward-fixture.js';
 
 describe.each(['memory', 'firestore'])('custody delivery attribution (%s store)', (kind) => {
   let accounts;
@@ -102,13 +49,19 @@ describe.each(['memory', 'firestore'])('custody delivery attribution (%s store)'
     return offer;
   }
 
-  /** The claim the acquirer submits: its delivery evidence plus its attestation of the receipt. */
+  /**
+   * The claim for a transfer: the acquirer's evidence with the attestation the exchange signed.
+   * An uncertified acquirer's exchange signs none, so the test signs one by hand with its key.
+   */
   async function claimFrom({ record, acquirerKey }, offerId, overrides = {}) {
-    const body = await deliveryAttestationBody({ receipt: record.receipt, attestedAt: clock() });
+    let attestation = record.attestation;
+    if (!attestation) {
+      const body = await deliveryAttestationBody({ receipt: record.receipt, attestedAt: clock() });
+      attestation = { ...body, signature: await signCanonical(body, acquirerKey.privateKey, { domain: DELIVERY_ATTESTATION_SCHEMA }) };
+    }
     return {
       offerId, artifactId: record.authorization.artifactSet.artifacts[0].artifactId,
-      authorization: record.authorization, index: record.index, receipt: record.receipt,
-      attestation: { ...body, signature: await signCanonical(body, acquirerKey.privateKey, { domain: DELIVERY_ATTESTATION_SCHEMA }) },
+      authorization: record.authorization, index: record.index, receipt: record.receipt, attestation,
       supplierCertificate: record.certificates.supplier, acquirerCertificate: record.certificates.requester,
       idempotencyKey: `claim:${offerId}`, ...overrides
     };
@@ -122,6 +75,12 @@ describe.each(['memory', 'firestore'])('custody delivery attribution (%s store)'
     const transfer = await transferPiece([acquirer.identity, supplier.identity]);
     expect(transfer.record.certificates.requester.participantId).toBe(acquirer.identity.peerId);
     expect(transfer.record.certificates.supplier.participantId).toBe(supplier.identity.peerId);
+    // The certified acquirer's exchange attested the exact receipt; the supplier's record carries no attestation.
+    expect(transfer.record.attestation).toMatchObject({
+      schema: DELIVERY_ATTESTATION_SCHEMA, transferId: transfer.record.transferId, attestedAt: clock(),
+      receiptDigest: await hashDopplerEvidence(transfer.record.receipt)
+    });
+    expect(transfer.supplierRecord.attestation).toBeNull();
     const validation = await rewards.validateWork(await claimFrom(transfer, 'offer_delivery'));
     expect(validation).toMatchObject({
       outcome: 'accepted', reasons: [],
@@ -137,6 +96,9 @@ describe.each(['memory', 'firestore'])('custody delivery attribution (%s store)'
     // An acquirer that never certified its custody key cannot be named as the counterparty.
     const uncertified = await transferPiece([null, supplier.identity]);
     expect(uncertified.record.certificates.requester).toBeNull();
+    // Without an identity the acquirer's exchange signs no attestation and has no evidence to submit.
+    expect(uncertified.record.attestation).toBeNull();
+    expect(deliveryEvidenceFromRecord(uncertified.record)).toBeNull();
     await rejectsWith(rewards.validateWork(await claimFrom(uncertified, 'offer_delivery')), 'invalid_input');
     const borrowed = await rewards.validateWork(await claimFrom(uncertified, 'offer_delivery', {
       acquirerCertificate: uncertified.record.certificates.supplier, idempotencyKey: 'claim:borrowed'
@@ -147,5 +109,43 @@ describe.each(['memory', 'firestore'])('custody delivery attribution (%s store)'
     await accounts.revokeDevice({ sessionToken: supplier.session.token, deviceId: supplier.registration.deviceId, reason: 'retired', idempotencyKey: 'revoke:supplier' });
     const refused = await rewards.validateWork(await claimFrom(certified, 'offer_delivery', { idempotencyKey: 'claim:revoked' }));
     expect(codes(refused)).toEqual(['contributor_identity_mismatch']);
+  });
+
+  it('keeps a certified acquirer device\'s delivery evidence once and validates the supplier\'s claim from it', async () => {
+    const supplier = await participant('supplier', 'native');
+    const acquirer = await participant('acquirer', 'browser');
+    await acceptedOffer(supplier, 'offer_delivery');
+    advance(MIN);
+    const transfer = await transferPiece([acquirer.identity, supplier.identity]);
+    const evidence = deliveryEvidenceFromRecord(transfer.record);
+    const asDevice = (who) => ({ accountId: who.account.accountId, participantId: who.identity.peerId });
+
+    // Only the device whose certificate attests the receipt may submit it.
+    await rejectsWith(rewards.recordDeliveryEvidence({ submitter: asDevice(supplier), evidence }), 'acquirer_device_mismatch');
+    const tampered = structuredClone(evidence);
+    tampered.receipt.completed = [];
+    await rejectsWith(rewards.recordDeliveryEvidence({ submitter: asDevice(acquirer), evidence: tampered }), 'delivery_evidence_invalid');
+    await rejectsWith(rewards.recordDeliveryEvidence({ submitter: asDevice(acquirer), evidence: { ...evidence, supplierCertificate: evidence.acquirerCertificate } }), 'delivery_evidence_invalid');
+
+    const kept = await rewards.recordDeliveryEvidence({ submitter: asDevice(acquirer), evidence });
+    const authorizationHash = await hashDopplerEvidence(transfer.supplierRecord.authorization);
+    // The supplier derives the same id from its own grant.
+    expect(kept).toMatchObject({
+      deliveryId: await deliveryEvidenceId({ authorizationHash, artifactId: evidence.artifactId }), authorizationHash,
+      transferId: transfer.record.transferId, pieceHash: await sha256Hex(BYTES), deliveredBytes: BYTES.length,
+      submittedBy: asDevice(acquirer), recordedAt: clock()
+    });
+    expect(await rewards.recordDeliveryEvidence({ submitter: asDevice(acquirer), evidence })).toEqual(kept);
+    // A second attestation of the same receipt is different evidence for the same delivery.
+    advance(1000);
+    const body = await deliveryAttestationBody({ receipt: evidence.receipt, attestedAt: clock() });
+    const resigned = { ...evidence, attestation: { ...body, signature: await signCanonical(body, transfer.acquirerKey.privateKey, { domain: DELIVERY_ATTESTATION_SCHEMA }) } };
+    await rejectsWith(rewards.recordDeliveryEvidence({ submitter: asDevice(acquirer), evidence: resigned }), 'delivery_evidence_exists');
+
+    const stored = await rewards.getDeliveryEvidence(kept.deliveryId);
+    expect(stored.evidence).toEqual(evidence);
+    const validation = await rewards.validateWork({ offerId: 'offer_delivery', ...stored.evidence, idempotencyKey: 'claim:stored' });
+    expect(validation).toMatchObject({ outcome: 'accepted', evidence: { acquirerAccountId: acquirer.account.accountId } });
+    expect(await rewards.getDeliveryEvidence('dlv_missing')).toBeNull();
   });
 });

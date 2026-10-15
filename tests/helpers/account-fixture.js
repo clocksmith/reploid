@@ -1,14 +1,14 @@
 // Shared account test fixture. Test-only provider, policy and keys; no product
 // decisions and no secrets: the provider's HMAC key is generated per instance
 // and never stored.
-import { createHmac, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createSigningKeyPair, exportPublicKey } from '../../packages/reploid/src/artifacts/signatures.js';
 import { ACCOUNT_LEDGER_COLLECTIONS, composeAccountServices } from '../../server/accounts/compose.js';
-import { createDeviceRegistrationProof } from '../../packages/reploid/src/artifacts/participant-proofs.js';
+import { createDeviceRegistrationProof, createSessionBinding } from '../../packages/reploid/src/artifacts/participant-proofs.js';
 import { createFirestoreAccountBackend, createMemoryAccountBackend, createMemoryAccountState } from '../../server/accounts/stores.js';
-import { canonicalJson } from '../../server/ledger/domain.js';
+import { createTestSignInProvider as createProvider } from '../../server/accounts/test-sign-in.js';
 import { createLedgerStore } from '../../server/ledger/engine.js';
 import { createFirestoreLedgerBackend } from '../../server/ledger/firestore-store.js';
 import { createMemoryLedgerBackend } from '../../server/ledger/memory-store.js';
@@ -27,36 +27,8 @@ export const ACCOUNT_POLICY = Object.freeze({
   custodyCertificateMaxLifetimeMs: 2 * 60 * MIN
 });
 
-/**
- * Test sign-in provider: `<claims>.<hmac>` assertions. It checks its own MAC,
- * issuer and audience; the provider registry enforces expiry.
- */
-export function createTestSignInProvider({ providerId = 'test-provider' } = {}) {
-  const key = randomBytes(32);
-  const mac = (encoded) => createHmac('sha256', key).update(encoded).digest('base64url');
-  return {
-    providerId,
-    issue({ subject, audience = ACCOUNT_POLICY.audience, authenticatedAt = clock(), expiresInMs = 5 * MIN, assertionId = randomUUID() } = {}) {
-      const claims = {
-        iss: providerId, sub: subject, aud: audience, jti: assertionId, auth_time: authenticatedAt,
-        exp: new Date(fx.nowMs + expiresInMs).toISOString()
-      };
-      const encoded = Buffer.from(canonicalJson(claims)).toString('base64url');
-      return `${encoded}.${mac(encoded)}`;
-    },
-    async verifyAssertion(assertion, { audience }) {
-      const [encoded, signature, extra] = String(assertion).split('.');
-      if (!encoded || !signature || extra !== undefined) throw new Error('malformed assertion');
-      const expected = Buffer.from(mac(encoded));
-      const given = Buffer.from(signature);
-      if (expected.length !== given.length || !timingSafeEqual(expected, given)) throw new Error('assertion signature mismatch');
-      const claims = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8'));
-      if (claims.iss !== providerId) throw new Error('wrong issuer');
-      if (claims.aud !== audience) throw new Error('wrong audience');
-      return { subject: claims.sub, assertionId: claims.jti, authenticatedAt: claims.auth_time, expiresAt: claims.exp };
-    }
-  };
-}
+/** The local-run sign-in provider (server/accounts/test-sign-in.js) on the fixture clock and audience. */
+export const createTestSignInProvider = ({ providerId = 'test-provider' } = {}) => createProvider({ providerId, audience: ACCOUNT_POLICY.audience, clock });
 
 const baseComposition = (provider) => ({
   accountPolicy: ACCOUNT_POLICY, providers: [provider], rewardPolicy: REWARD_POLICY, issuancePolicy: ISSUANCE_POLICY,
@@ -124,10 +96,13 @@ export async function newCustodyKey() {
   return { publicKey: await exportPublicKey(pair.publicKey), privateKey: pair.privateKey };
 }
 
-/** Challenge, device-signed proof and registration through `session`. */
+/** Challenge, device-signed proof (and session binding when binding) and registration through `session`. */
 export async function registerDevice(accounts, session, identity, { host = 'browser', bindSession = false, idempotencyKey = `register:${randomUUID()}` } = {}) {
   const challenge = await accounts.createRegistrationChallenge({ sessionToken: session.token });
   const proof = await createDeviceRegistrationProof({ identity, challenge, host });
-  const registration = await accounts.registerDevice({ sessionToken: session.token, proof, bindSession, idempotencyKey });
-  return { challenge, proof, registration };
+  const sessionBinding = bindSession ? await createSessionBinding({ identity, challenge }) : null;
+  const registration = await accounts.registerDevice({
+    sessionToken: session.token, proof, bindSession, ...(sessionBinding ? { sessionBinding } : {}), idempotencyKey
+  });
+  return { challenge, proof, sessionBinding, registration };
 }

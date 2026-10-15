@@ -2,7 +2,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { createAccountGuards, ledgerDeviceAuthority } from '../../server/accounts/compose.js';
-import { createDeviceRegistrationProof, registrationProofBody, signAsParticipant, REGISTRATION_PROOF_SCHEMA } from '../../packages/reploid/src/artifacts/participant-proofs.js';
+import {
+  createDeviceRegistrationProof, createSessionBinding, registrationProofBody, signAsParticipant, REGISTRATION_PROOF_SCHEMA
+} from '../../packages/reploid/src/artifacts/participant-proofs.js';
 import { ACCOUNT_STORE_OPERATIONS, validateAccountStoreContract } from '../../server/accounts/store-contract.js';
 import { validateAccountPolicy } from '../../server/accounts/domain.js';
 import { createLedgerStore } from '../../server/ledger/engine.js';
@@ -100,14 +102,17 @@ describe.each(['memory', 'firestore'])('account identity (%s store)', (kind) => 
       const phone = await newIdentity('Ed25519');
       const laptop = await newIdentity('ECDSA');
       const idempotencyKey = 'register:phone';
-      const { challenge, proof, registration } = await registerDevice(accounts, session, phone, { bindSession: true, idempotencyKey });
-      expect(challenge).toMatchObject({ accountId: account.accountId, audience: ACCOUNT_POLICY.audience, expiresAt: new Date(Date.parse(clock()) + ACCOUNT_POLICY.challengeTtlMs).toISOString() });
+      const { challenge, proof, sessionBinding, registration } = await registerDevice(accounts, session, phone, { bindSession: true, idempotencyKey });
+      expect(challenge).toMatchObject({
+        accountId: account.accountId, audience: ACCOUNT_POLICY.audience, sessionId: session.sessionId,
+        expiresAt: new Date(Date.parse(clock()) + ACCOUNT_POLICY.challengeTtlMs).toISOString()
+      });
       expect(registration).toMatchObject({
         deviceId: expect.stringMatching(/^dev_[a-f0-9]{32}$/), participantId: phone.peerId, accountId: account.accountId,
         host: 'browser', registeredAt: clock(), sessionBound: true, sharedDeviceLinks: []
       });
       // A retried request returns the stored registration.
-      expect(await accounts.registerDevice({ sessionToken: session.token, proof, bindSession: true, idempotencyKey })).toEqual(registration);
+      expect(await accounts.registerDevice({ sessionToken: session.token, proof, bindSession: true, sessionBinding, idempotencyKey })).toEqual(registration);
       expect(await accounts.authorizeDevice(session.token)).toMatchObject({ accountId: account.accountId, deviceId: registration.deviceId });
 
       const native = (await registerDevice(accounts, session, laptop, { host: 'native' })).registration;
@@ -165,6 +170,28 @@ describe.each(['memory', 'firestore'])('account identity (%s store)', (kind) => 
       advance(ACCOUNT_POLICY.challengeTtlMs);
       await rejectsWith(accounts.registerDevice({ sessionToken: alice.session.token, proof: answer, idempotencyKey: 'late' }), 'challenge_expired');
       expect(await identity.participantAccount(other.peerId)).toBeNull();
+    });
+
+    it('binds a session only with the registering device\'s own signed binding for that session', async () => {
+      const { session } = await signIn('alice');
+      const desk = (await signIn('alice')).session;
+      const native = await newIdentity();
+      const browser = await newIdentity('ECDSA');
+      const challenge = await accounts.createRegistrationChallenge({ sessionToken: session.token });
+      const proof = await createDeviceRegistrationProof({ identity: native, challenge, host: 'native' });
+      const register = (input, idempotencyKey) => accounts.registerDevice({ sessionToken: session.token, proof, bindSession: true, idempotencyKey, ...input });
+      // A native host answering another session's challenge signs no binding, so that session cannot act as it.
+      await rejectsWith(register({}, 'bind:none'), 'session_binding_invalid');
+      // Another key's binding, a binding for another session and an altered binding all fail.
+      await rejectsWith(register({ sessionBinding: await createSessionBinding({ identity: browser, challenge }) }, 'bind:other-key'), 'session_binding_invalid');
+      await rejectsWith(register({ sessionBinding: await createSessionBinding({ identity: native, challenge: { ...challenge, sessionId: desk.sessionId } }) }, 'bind:other-session'), 'session_binding_invalid');
+      const genuine = await createSessionBinding({ identity: native, challenge });
+      await rejectsWith(register({ sessionBinding: { ...genuine, nonce: 'another-nonce' } }, 'bind:altered'), 'session_binding_invalid');
+      await rejectsWith(accounts.registerDevice({ sessionToken: session.token, proof, sessionBinding: genuine, idempotencyKey: 'bind:unrequested' }), 'invalid_input');
+      // The refusals left the challenge open; the device's own binding works and the session acts as it.
+      expect(await register({ sessionBinding: genuine }, 'bind:genuine')).toMatchObject({ participantId: native.peerId, sessionBound: true });
+      expect((await accounts.authorizeDevice(session.token)).deviceId).toBe((await accounts.listDevices((await accounts.authenticate(session.token)).accountId))[0].deviceId);
+      await rejectsWith(accounts.authorizeDevice(desk.token), 'device_session_required');
     });
   });
 

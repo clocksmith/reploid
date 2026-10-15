@@ -15,15 +15,15 @@ This directory and unchartered descendants.
 Inputs: immutable policy and explicit host ports.
 Outputs: bounded operations, state, failures and retained evidence.
 The exchange composition discovers bounded file inventories and binds per-file
-v2 grants to the actual requester and supplier. Host ports pin expected file
+v2 grants to actual requesters and suppliers. Host ports pin expected file
 identity and verify final bytes; inventory possession grants no redistribution.
 
 ## Invariants
 - Imports are inert and application independent.
 - Candidates cannot expand permissions or approve their own output.
-- Cancellation does not claim termination of borrowed work.
+- Cancellation never claims termination of borrowed work.
 - Preserve record identities and recovery compatibility.
-- Identity certificates travel beside grants, never inside; unbound ones are dropped.
+- Certificates travel beside grants, never inside; unbound ones are dropped; certified requesters attest exact receipts.
 - Storage shards do not establish computational partitions. Retention and redistribution remain bounded by participant grants; placement cannot infer execution permission from possession.
 - Advertisements do not acquire bytes. Explicit offers bound supply budgets and
   simultaneous transfers. Dedicated byte channels reuse signed chunk custody and

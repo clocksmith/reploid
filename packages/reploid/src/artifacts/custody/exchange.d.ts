@@ -21,12 +21,20 @@ export interface CustodyKeyCertificate {
   schema: 'reploid.custody-key-certificate/v1'; certificateId: string; participantId: string;
   custodyPeerId: string; custodyPublicKey: string; issuedAt: string; expiresAt: string; signature: string;
 }
+/** `reploid.custody-delivery-attestation/v1` (../delivery-attestation.js): the requester's
+ * signature, with its granted custody key, over the exact completed receipt. */
+export interface CustodyDeliveryAttestation {
+  schema: 'reploid.custody-delivery-attestation/v1'; authorizationHash: string; transferId: string;
+  receiptDigest: string; completed: unknown[]; attestedAt: string; signature: string;
+}
 /** One granted (supplier) or completed (requester) transfer. A certificate is null unless that
- * party sent one bound to its grant key and peer id; the signer is not verified here. */
+ * party sent one bound to its grant key and peer id; the signer is not verified here. A certified
+ * requester attests its receipt; supplier records and uncertified requesters carry null. */
 export interface CustodyDeliveryRecord {
   role: 'supplier' | 'requester'; transferId: string; peerId: string;
   authorization: unknown; index: unknown; receipt: ReturnType<Store['getReceipt']> | null;
   certificates: { requester: CustodyKeyCertificate | null; supplier: CustodyKeyCertificate | null };
+  attestation: CustodyDeliveryAttestation | null;
 }
 export interface CustodyExchangePorts {
   /** Required for supply, not acquisition. Durable atomic reservations never refund uncertainty. */
@@ -56,7 +64,8 @@ export interface CustodyExchangePorts {
   /** This participant's certificate for its custody key, sent beside requests and grants.
    * Without it, or when it does not bind this key and peer id, nothing is sent. */
   certificate?(): Promise<CustodyKeyCertificate | null>;
-  /** Evidence for each granted or completed transfer, with both parties' bound certificates. */
+  /** Evidence for each granted or completed transfer, with both parties' bound certificates
+   * and, for a certified requester, its delivery attestation. */
   observeDelivery?(record: CustodyDeliveryRecord): void;
   onChange?(): void;
   onError?(error: Error): void;

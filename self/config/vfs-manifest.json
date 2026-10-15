@@ -1857,6 +1857,7 @@
     "vendor/reploid/artifacts/custody/piece-acquisition.js",
     "vendor/reploid/artifacts/custody/runtime.js",
     "vendor/reploid/artifacts/custody/supply-budget.js",
+    "vendor/reploid/artifacts/delivery-attestation.js",
     "vendor/reploid/artifacts/identity.js",
     "vendor/reploid/artifacts/independent-unit-journal.js",
     "vendor/reploid/artifacts/job-journal.js",

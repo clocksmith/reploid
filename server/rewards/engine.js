@@ -27,6 +27,7 @@ import { FUNDING_REFUSAL_CODES } from '../ledger/funding/register.js';
 import { assertLedgerStoreContract } from '../ledger/store-contract.js';
 import { nativeOwnerPolicyDigest, validateNativeOwnerPolicy } from '../native-owner/policy.js';
 import { createChallengeOperations } from './challenges.js';
+import { createDeliveryEvidenceOperations } from './delivery-evidence.js';
 import {
   CONTRACTED_STORAGE_CONDITIONS,
   PREPARED_READINESS_CONDITIONS,
@@ -324,6 +325,8 @@ export function createRewardStore({
     ...createChallengeOperations({
       backend, ledger, identity, rewardPolicy, mutate, lookupIdempotent, readOffer, claimId, clock, createId, random, prober: readinessProber
     }),
+
+    ...createDeliveryEvidenceOperations({ backend, identity, rewardPolicy, clock }),
 
     /**
      * Reserve operator or community funding for subsidized rewards as an

@@ -15,6 +15,7 @@ import AgentBridge from './agent-bridge.js';
 import fetch from 'node-fetch';
 import createPoolRouter from './pool/routes.js';
 import { installJsonBodyMiddleware } from './json-body-middleware.js';
+import { mountEarningRoutes } from './earning-routes/mount.js';
 import { createFirebaseStore } from './pool/firebase-store.js';
 import { createGcsAdapterOriginSigner } from './pool/adapter-origin-signer.js';
 import { createChangeControlAuthenticator, parseChangeControlTokenConfig } from './change-control/auth.js';
@@ -648,6 +649,19 @@ if (!POOL_BACKEND_ONLY) {
 
   // Start GPU monitoring
   startGPUMonitoring();
+}
+
+// Earning-loop routes (/v1) stay unmounted unless REPLOID_EARNING_ROUTES=enabled. They parse
+// their own bounded bodies, so they mount before the general JSON parser, and no loopback or
+// local-development bypass applies to them. An invalid or unsafe configuration stops startup.
+try {
+  const earningRoutes = await mountEarningRoutes(app, { env: process.env });
+  if (earningRoutes.mounted) {
+    console.log(`[Earning routes] Mounted at ${earningRoutes.prefix} (production: ${earningRoutes.production})`);
+  }
+} catch (error) {
+  console.error(`[Earning routes] Refusing to start: ${error.message}`);
+  process.exit(1);
 }
 
 // Middleware to parse JSON bodies
