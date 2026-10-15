@@ -1,0 +1,1629 @@
+{
+ "schema": "reploid.placement-c-degradation/v1",
+ "label": "d2-outage-45s",
+ "mode": "mid",
+ "condition": {
+  "delayMs": 0,
+  "jitterMs": 0,
+  "sendLossPercent": 0,
+  "receiveLossPercent": 0,
+  "outageMs": 45000,
+  "tunnelStalled": true
+ },
+ "promptFile": "p56-n24.txt",
+ "mechanism": "netshape.so LD_PRELOAD in both owned natives (non-loopback UDP only); SIGSTOP/SIGCONT of the owned mac-host ssh signaling tunnel for the outage",
+ "startedAt": "2026-10-15T17:44:13.534Z",
+ "events": [
+  {
+   "at": "2026-10-15T17:44:19.966Z",
+   "kind": "sent",
+   "permissionShown": true
+  },
+  {
+   "at": "2026-10-15T17:45:19.322Z",
+   "kind": "condition-applied",
+   "outageUntilAmdEpochMs": 1792086318770656800
+  },
+  {
+   "at": "2026-10-15T17:45:19.323Z",
+   "kind": "tunnel-stopped"
+  },
+  {
+   "at": "2026-10-15T17:45:36.489Z",
+   "kind": "first-attempt-terminal",
+   "status": "failed"
+  },
+  {
+   "at": "2026-10-15T17:46:04.309Z",
+   "kind": "tunnel-continued"
+  },
+  {
+   "at": "2026-10-15T17:46:05.389Z",
+   "kind": "condition-removed"
+  },
+  {
+   "at": "2026-10-15T17:49:09.108Z",
+   "kind": "retry-pressed"
+  },
+  {
+   "at": "2026-10-15T17:50:46.959Z",
+   "kind": "retry-terminal",
+   "status": "completed"
+  }
+ ],
+ "nativesBefore": [
+  ""
+ ],
+ "coordinatorBefore": {
+  "at": "2026-10-15T17:44:16.042Z",
+  "phase": "ready",
+  "error": null,
+  "unsettledOwners": 0,
+  "reservations": {
+   "active": 0,
+   "availableSlots": 2,
+   "closed": false
+  },
+  "unknownAttempts": [],
+  "placement": [
+   "peer:5e3cff2498adff93c48d80e4",
+   "peer:9af15d884eba51b0c0540e2a",
+   "peer:5f288f6f0259c251a1915c11"
+  ],
+  "attempts": []
+ },
+ "first": {
+  "attemptId": "36edef93-f578-4514-a624-6302c0d74fce",
+  "status": "failed",
+  "error": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.",
+  "stopReason": null,
+  "coordinatorTokens": null,
+  "publishedRecords": 11,
+  "answerCharacters": 11,
+  "answerTail": "1 2 3 4 5 6",
+  "createdAt": 1792086259974,
+  "finishedAt": 1792086336438,
+  "timing": {
+   "schema": "reploid.signed-completion-answer-timing/v2",
+   "threadId": "3827b783-6306-4d4f-9a67-0aae3a2de23b",
+   "attemptId": "36edef93-f578-4514-a624-6302c0d74fce",
+   "status": "failed",
+   "requester": {
+    "attemptMs": {
+     "status": "measured",
+     "value": 76464,
+     "unit": "ms",
+     "clock": "requester-application",
+     "source": "packages/reploid/src/chat/workspace.js:248 minus packages/reploid/src/chat/workspace.js:116"
+    },
+    "firstVisibleTextMs": {
+     "status": "measured",
+     "value": 39452,
+     "unit": "ms",
+     "clock": "harness",
+     "source": "harness stream sample (Send click to first nonempty rendered response)",
+     "resolutionMs": 250
+    },
+    "outputCharacters": 11
+   },
+   "coordinator": {
+    "generatedTokens": null,
+    "promptTokens": {
+     "status": "not-observable",
+     "reason": "Ordered summaries before phase timing carry no prompt length",
+     "source": "doppler src/inference/pipelines/text/resident-partition.js:173-202,230 produces metrics; partition-route-execution.js:182 keeps them per step on the coordinator; partition-summary.js:16-18 drops them from the requester summary; server/native-participant.js:51-63 state log omits them"
+    },
+    "phases": null,
+    "stages": [
+     {
+      "partitionIndex": 0,
+      "steps": null,
+      "stepCount": null,
+      "stepMsTotal": {
+       "status": "missing",
+       "unit": "ms",
+       "clock": "coordinator",
+       "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+      }
+     },
+     {
+      "partitionIndex": 1,
+      "steps": null,
+      "stepCount": null,
+      "stepMsTotal": {
+       "status": "missing",
+       "unit": "ms",
+       "clock": "coordinator",
+       "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+      }
+     },
+     {
+      "partitionIndex": 2,
+      "steps": null,
+      "stepCount": null,
+      "stepMsTotal": {
+       "status": "missing",
+       "unit": "ms",
+       "clock": "coordinator",
+       "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+      }
+     }
+    ],
+    "activationBytes": {
+     "status": "missing",
+     "unit": "bytes",
+     "clock": "coordinator",
+     "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:209"
+    }
+   },
+   "runtime": {
+    "executionMs": {
+     "status": "not-observable",
+     "reason": "Doppler per-stage metrics never reach an observable application boundary for ordered routes",
+     "source": "doppler src/inference/pipelines/text/resident-partition.js:173-202,230 produces metrics; partition-route-execution.js:182 keeps them per step on the coordinator; partition-summary.js:16-18 drops them from the requester summary; server/native-participant.js:51-63 state log omits them"
+    },
+    "logitsReadbackMs": {
+     "status": "not-observable",
+     "reason": "Doppler per-stage metrics never reach an observable application boundary for ordered routes",
+     "source": "doppler src/inference/pipelines/text/resident-partition.js:173-202,230 produces metrics; partition-route-execution.js:182 keeps them per step on the coordinator; partition-summary.js:16-18 drops them from the requester summary; server/native-participant.js:51-63 state log omits them"
+    },
+    "samplingMs": {
+     "status": "not-observable",
+     "reason": "Doppler per-stage metrics never reach an observable application boundary for ordered routes",
+     "source": "doppler src/inference/pipelines/text/resident-partition.js:173-202,230 produces metrics; partition-route-execution.js:182 keeps them per step on the coordinator; partition-summary.js:16-18 drops them from the requester summary; server/native-participant.js:51-63 state log omits them"
+    }
+   },
+   "scheduler": {
+    "queuedMs": {
+     "status": "not-observable",
+     "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+     "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+    },
+    "loadMs": {
+     "status": "not-observable",
+     "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+     "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+    },
+    "executionMs": {
+     "status": "not-observable",
+     "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+     "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+    }
+   },
+   "transport": {
+    "status": "not-observable",
+    "reason": "Ordered summaries carry no transport timing",
+    "source": "partition-summary.js:43-45 aggregates transportTiming for v1 two-device summaries only; the ordered v2 summary (partition-summary.js:16-18) carries none"
+   },
+   "persistence": {
+    "status": "not-observable",
+    "reason": "History persistence exposes no timing",
+    "source": "ordered routes commit each step through the requester transaction owner (packages/reploid/src/mesh/partitions/partition-ordered-chat.js:136, owner.publish) before delivery or the next step; neither that commit nor ordinary history (packages/reploid/src/chat/workspace.js persist()) exposes timing"
+   }
+  },
+  "samples": [
+   {
+    "at": "2026-10-15T17:44:20.240Z",
+    "status": "queued",
+    "characters": 0
+   },
+   {
+    "at": "2026-10-15T17:44:32.658Z",
+    "status": "executing",
+    "characters": 0
+   },
+   {
+    "at": "2026-10-15T17:44:59.330Z",
+    "status": "executing",
+    "characters": 1
+   },
+   {
+    "at": "2026-10-15T17:45:00.373Z",
+    "status": "executing",
+    "characters": 2
+   },
+   {
+    "at": "2026-10-15T17:45:01.942Z",
+    "status": "executing",
+    "characters": 3
+   },
+   {
+    "at": "2026-10-15T17:45:03.498Z",
+    "status": "executing",
+    "characters": 4
+   },
+   {
+    "at": "2026-10-15T17:45:06.125Z",
+    "status": "executing",
+    "characters": 5
+   },
+   {
+    "at": "2026-10-15T17:45:12.677Z",
+    "status": "executing",
+    "characters": 6
+   },
+   {
+    "at": "2026-10-15T17:45:14.516Z",
+    "status": "executing",
+    "characters": 7
+   },
+   {
+    "at": "2026-10-15T17:45:16.081Z",
+    "status": "executing",
+    "characters": 8
+   },
+   {
+    "at": "2026-10-15T17:45:17.122Z",
+    "status": "executing",
+    "characters": 9
+   },
+   {
+    "at": "2026-10-15T17:45:18.184Z",
+    "status": "executing",
+    "characters": 10
+   },
+   {
+    "at": "2026-10-15T17:45:19.591Z",
+    "status": "executing",
+    "characters": 11
+   },
+   {
+    "at": "2026-10-15T17:45:36.488Z",
+    "status": "failed",
+    "characters": 11
+   }
+  ],
+  "shown": {
+   "status": "A computer disconnected. Retry this answer.",
+   "technical": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed."
+  },
+  "settlement": {
+   "coordinator": {
+    "at": "2026-10-15T17:49:03.373Z",
+    "phase": "ready",
+    "error": null,
+    "unsettledOwners": 0,
+    "reservations": {
+     "active": 0,
+     "availableSlots": 2,
+     "closed": false
+    },
+    "unknownAttempts": [
+     {
+      "identity": {
+       "schema": "reploid.partition-attempt/v2",
+       "threadId": "3827b783-6306-4d4f-9a67-0aae3a2de23b",
+       "attemptId": "36edef93-f578-4514-a624-6302c0d74fce",
+       "requesterId": "peer:012c29491e37aaf8cbd41765",
+       "placementGeneration": 0,
+       "route": {
+        "schema": "reploid.partition-route/v1",
+        "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+        "modelIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+        "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+        "stages": [
+         {
+          "index": 0,
+          "participantId": "peer:5e3cff2498adff93c48d80e4",
+          "transportId": "fb23376a-99ee-416a-b59f-55548b8846e8",
+          "residentId": "fc-run8-stage-0-resident",
+          "executionId": "fc-run8-stage-0-ordinary"
+         },
+         {
+          "index": 1,
+          "participantId": "peer:9af15d884eba51b0c0540e2a",
+          "transportId": "86adf8a5-b119-48a5-b42e-9bddf4d8896f",
+          "residentId": "fc-run8-stage-1-resident",
+          "executionId": "fc-run8-stage-1-ordinary"
+         },
+         {
+          "index": 2,
+          "participantId": "peer:5f288f6f0259c251a1915c11",
+          "transportId": "e53703e6-5924-433c-84f5-2ac22ae00442",
+          "residentId": "fc-run8-stage-2-resident",
+          "executionId": "fc-run8-stage-2-ordinary"
+         }
+        ],
+        "activation": {
+         "schema": "doppler.activation-tensor/v2",
+         "dtype": "f32",
+         "hiddenSize": 1024,
+         "precision": "two-f32",
+         "components": 2,
+         "elementStrideBytes": 8
+        }
+       }
+      },
+      "phase": "cleanup-failed",
+      "reservations": [
+       {
+        "identity": {
+         "schema": "reploid.partition-attempt/v2",
+         "threadId": "3827b783-6306-4d4f-9a67-0aae3a2de23b",
+         "attemptId": "36edef93-f578-4514-a624-6302c0d74fce",
+         "requesterId": "peer:012c29491e37aaf8cbd41765",
+         "placementGeneration": 0,
+         "route": {
+          "schema": "reploid.partition-route/v1",
+          "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+          "modelIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+          "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+          "stages": [
+           {
+            "index": 0,
+            "participantId": "peer:5e3cff2498adff93c48d80e4",
+            "transportId": "fb23376a-99ee-416a-b59f-55548b8846e8",
+            "residentId": "fc-run8-stage-0-resident",
+            "executionId": "fc-run8-stage-0-ordinary"
+           },
+           {
+            "index": 1,
+            "participantId": "peer:9af15d884eba51b0c0540e2a",
+            "transportId": "86adf8a5-b119-48a5-b42e-9bddf4d8896f",
+            "residentId": "fc-run8-stage-1-resident",
+            "executionId": "fc-run8-stage-1-ordinary"
+           },
+           {
+            "index": 2,
+            "participantId": "peer:5f288f6f0259c251a1915c11",
+            "transportId": "e53703e6-5924-433c-84f5-2ac22ae00442",
+            "residentId": "fc-run8-stage-2-resident",
+            "executionId": "fc-run8-stage-2-ordinary"
+           }
+          ],
+          "activation": {
+           "schema": "doppler.activation-tensor/v2",
+           "dtype": "f32",
+           "hiddenSize": 1024,
+           "precision": "two-f32",
+           "components": 2,
+           "elementStrideBytes": 8
+          }
+         }
+        },
+        "participantId": "peer:5e3cff2498adff93c48d80e4",
+        "index": 0,
+        "phase": "reserved",
+        "reservedAt": 1792086274561,
+        "settlingAt": null,
+        "settledAt": null,
+        "failure": null,
+        "resources": {
+         "attemptSlots": 1,
+         "maxPromptTokens": 4096,
+         "maxTokens": 4096,
+         "maxActivationBytes": 33554432,
+         "scope": "application-attempt-limits"
+        },
+        "partitionIndex": 0,
+        "status": "reserved"
+       },
+       {
+        "identity": {
+         "schema": "reploid.partition-attempt/v2",
+         "threadId": "3827b783-6306-4d4f-9a67-0aae3a2de23b",
+         "attemptId": "36edef93-f578-4514-a624-6302c0d74fce",
+         "requesterId": "peer:012c29491e37aaf8cbd41765",
+         "placementGeneration": 0,
+         "route": {
+          "schema": "reploid.partition-route/v1",
+          "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+          "modelIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+          "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+          "stages": [
+           {
+            "index": 0,
+            "participantId": "peer:5e3cff2498adff93c48d80e4",
+            "transportId": "fb23376a-99ee-416a-b59f-55548b8846e8",
+            "residentId": "fc-run8-stage-0-resident",
+            "executionId": "fc-run8-stage-0-ordinary"
+           },
+           {
+            "index": 1,
+            "participantId": "peer:9af15d884eba51b0c0540e2a",
+            "transportId": "86adf8a5-b119-48a5-b42e-9bddf4d8896f",
+            "residentId": "fc-run8-stage-1-resident",
+            "executionId": "fc-run8-stage-1-ordinary"
+           },
+           {
+            "index": 2,
+            "participantId": "peer:5f288f6f0259c251a1915c11",
+            "transportId": "e53703e6-5924-433c-84f5-2ac22ae00442",
+            "residentId": "fc-run8-stage-2-resident",
+            "executionId": "fc-run8-stage-2-ordinary"
+           }
+          ],
+          "activation": {
+           "schema": "doppler.activation-tensor/v2",
+           "dtype": "f32",
+           "hiddenSize": 1024,
+           "precision": "two-f32",
+           "components": 2,
+           "elementStrideBytes": 8
+          }
+         }
+        },
+        "participantId": "peer:9af15d884eba51b0c0540e2a",
+        "index": 1,
+        "phase": "reserved",
+        "reservedAt": 1792086274790,
+        "settlingAt": null,
+        "settledAt": null,
+        "failure": null,
+        "resources": {
+         "attemptSlots": 1,
+         "maxPromptTokens": 4096,
+         "maxTokens": 4096,
+         "maxActivationBytes": 33554432,
+         "scope": "application-attempt-limits"
+        },
+        "partitionIndex": 1,
+        "status": "reserved"
+       },
+       {
+        "identity": {
+         "schema": "reploid.partition-attempt/v2",
+         "threadId": "3827b783-6306-4d4f-9a67-0aae3a2de23b",
+         "attemptId": "36edef93-f578-4514-a624-6302c0d74fce",
+         "requesterId": "peer:012c29491e37aaf8cbd41765",
+         "placementGeneration": 0,
+         "route": {
+          "schema": "reploid.partition-route/v1",
+          "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+          "modelIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+          "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+          "stages": [
+           {
+            "index": 0,
+            "participantId": "peer:5e3cff2498adff93c48d80e4",
+            "transportId": "fb23376a-99ee-416a-b59f-55548b8846e8",
+            "residentId": "fc-run8-stage-0-resident",
+            "executionId": "fc-run8-stage-0-ordinary"
+           },
+           {
+            "index": 1,
+            "participantId": "peer:9af15d884eba51b0c0540e2a",
+            "transportId": "86adf8a5-b119-48a5-b42e-9bddf4d8896f",
+            "residentId": "fc-run8-stage-1-resident",
+            "executionId": "fc-run8-stage-1-ordinary"
+           },
+           {
+            "index": 2,
+            "participantId": "peer:5f288f6f0259c251a1915c11",
+            "transportId": "e53703e6-5924-433c-84f5-2ac22ae00442",
+            "residentId": "fc-run8-stage-2-resident",
+            "executionId": "fc-run8-stage-2-ordinary"
+           }
+          ],
+          "activation": {
+           "schema": "doppler.activation-tensor/v2",
+           "dtype": "f32",
+           "hiddenSize": 1024,
+           "precision": "two-f32",
+           "components": 2,
+           "elementStrideBytes": 8
+          }
+         }
+        },
+        "participantId": "peer:5f288f6f0259c251a1915c11",
+        "index": 2,
+        "phase": "reserved",
+        "reservedAt": 1792086275012,
+        "settlingAt": null,
+        "settledAt": null,
+        "failure": null,
+        "resources": {
+         "attemptSlots": 1,
+         "maxPromptTokens": 4096,
+         "maxTokens": 4096,
+         "maxActivationBytes": 33554432,
+         "scope": "application-attempt-limits"
+        },
+        "partitionIndex": 2,
+        "status": "reserved"
+       }
+      ],
+      "cleanup": [
+       {
+        "partitionIndex": 0,
+        "status": "settled",
+        "error": null
+       },
+       {
+        "partitionIndex": 1,
+        "status": "unknown",
+        "error": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.",
+        "code": "CONNECTION_LOST"
+       },
+       {
+        "partitionIndex": 2,
+        "status": "unknown",
+        "error": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.",
+        "code": "CONNECTION_LOST"
+       }
+      ],
+      "cleanupSettledAt": null,
+      "failure": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed."
+     }
+    ],
+    "placement": [
+     "peer:5e3cff2498adff93c48d80e4",
+     "peer:9af15d884eba51b0c0540e2a",
+     "peer:5f288f6f0259c251a1915c11"
+    ],
+    "attempts": []
+   },
+   "polls": 36,
+   "natives": [
+    ""
+   ]
+  }
+ },
+ "retryPermission": null,
+ "retry": {
+  "attemptId": "c9f110b1-9d78-427d-bb23-0ffa8f885a39",
+  "status": "completed",
+  "error": null,
+  "stopReason": "eos-token",
+  "coordinatorTokens": 63,
+  "publishedRecords": 63,
+  "answerCharacters": 62,
+  "answerTail": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24",
+  "createdAt": 1792086549143,
+  "finishedAt": 1792086646799,
+  "timing": {
+   "schema": "reploid.signed-completion-answer-timing/v2",
+   "threadId": "3827b783-6306-4d4f-9a67-0aae3a2de23b",
+   "attemptId": "c9f110b1-9d78-427d-bb23-0ffa8f885a39",
+   "status": "completed",
+   "requester": {
+    "attemptMs": {
+     "status": "measured",
+     "value": 97656,
+     "unit": "ms",
+     "clock": "requester-application",
+     "source": "packages/reploid/src/chat/workspace.js:248 minus packages/reploid/src/chat/workspace.js:116"
+    },
+    "firstVisibleTextMs": {
+     "status": "measured",
+     "value": 19599,
+     "unit": "ms",
+     "clock": "harness",
+     "source": "harness stream sample (Send click to first nonempty rendered response)",
+     "resolutionMs": 250
+    },
+    "outputCharacters": 62
+   },
+   "coordinator": {
+    "generatedTokens": 63,
+    "promptTokens": {
+     "status": "measured",
+     "value": 56,
+     "unit": "tokens",
+     "clock": "coordinator",
+     "source": "packages/reploid/src/mesh/partitions/partition-summary.js summarizeOrderedPhases: step 0 carries the whole prompt (prefill plus the first sampled token), later steps decode one token each; per-stage runtime fields are each contributor's Doppler resident metrics (doppler resident-partition.js:173-202,230), elapsed is the coordinator stage call"
+    },
+    "phases": {
+     "source": "packages/reploid/src/mesh/partitions/partition-summary.js summarizeOrderedPhases: step 0 carries the whole prompt (prefill plus the first sampled token), later steps decode one token each; per-stage runtime fields are each contributor's Doppler resident metrics (doppler resident-partition.js:173-202,230), elapsed is the coordinator stage call",
+     "prompt": {
+      "inputTokens": 56,
+      "stages": [
+       {
+        "partitionIndex": 0,
+        "elapsedMs": 8995.200000047684,
+        "runtime": {
+         "executionMs": 8979.699999809265,
+         "inputUploadMs": 0,
+         "encodeMs": 8964.900000095367,
+         "submitWaitMs": 11.599999904632568,
+         "activationReadbackMs": 2,
+         "logitsMs": 0,
+         "gpuKernelsMs": null,
+         "logitsReadbackMs": 0,
+         "samplingMs": 0
+        }
+       },
+       {
+        "partitionIndex": 1,
+        "elapsedMs": 4954.699999809265,
+        "runtime": {
+         "executionMs": 2926.181142000016,
+         "inputUploadMs": 0.11126899998635054,
+         "encodeMs": 2919.9864149994683,
+         "submitWaitMs": 4.179549000575207,
+         "activationReadbackMs": 0.7463269999716431,
+         "logitsMs": 0,
+         "gpuKernelsMs": null,
+         "logitsReadbackMs": 0,
+         "samplingMs": 0
+        }
+       },
+       {
+        "partitionIndex": 2,
+        "elapsedMs": 4421,
+        "runtime": {
+         "executionMs": 2956.0776019999757,
+         "inputUploadMs": 0.117911999928765,
+         "encodeMs": 2898.0605560005642,
+         "submitWaitMs": 4.411377999349497,
+         "activationReadbackMs": 0,
+         "logitsMs": 52.306400000001304,
+         "gpuKernelsMs": null,
+         "logitsReadbackMs": 0.2964180000126362,
+         "samplingMs": 2.105316999950446
+        }
+       }
+      ]
+     },
+     "decode": {
+      "steps": 62,
+      "stages": [
+       {
+        "partitionIndex": 0,
+        "elapsedMs": {
+         "count": 62,
+         "total": 12996.699998617172,
+         "min": 192.20000004768372,
+         "max": 227.79999995231628
+        },
+        "runtime": {
+         "executionMs": {
+          "count": 62,
+          "total": 12218.299998998642,
+          "min": 183.29999995231628,
+          "max": 217.79999995231628
+         },
+         "inputUploadMs": {
+          "count": 62,
+          "total": 0,
+          "min": 0,
+          "max": 0
+         },
+         "encodeMs": {
+          "count": 62,
+          "total": 171.79999995231628,
+          "min": 2.200000047683716,
+          "max": 3.8000001907348633
+         },
+         "submitWaitMs": {
+          "count": 62,
+          "total": 12006.70000052452,
+          "min": 180.60000014305115,
+          "max": 214.70000004768372
+         },
+         "activationReadbackMs": {
+          "count": 62,
+          "total": 32.60000038146973,
+          "min": 0.2999999523162842,
+          "max": 1
+         },
+         "logitsMs": {
+          "count": 62,
+          "total": 0,
+          "min": 0,
+          "max": 0
+         },
+         "gpuKernelsMs": {
+          "count": 0,
+          "total": 0,
+          "min": null,
+          "max": null
+         },
+         "logitsReadbackMs": {
+          "count": 62,
+          "total": 0,
+          "min": 0,
+          "max": 0
+         },
+         "samplingMs": {
+          "count": 62,
+          "total": 0,
+          "min": 0,
+          "max": 0
+         }
+        }
+       },
+       {
+        "partitionIndex": 1,
+        "elapsedMs": {
+         "count": 62,
+         "total": 38310.09999990463,
+         "min": 352,
+         "max": 1251.7000000476837
+        },
+        "runtime": {
+         "executionMs": {
+          "count": 62,
+          "total": 5402.012159999809,
+          "min": 80.17771800002083,
+          "max": 292.57130099995993
+         },
+         "inputUploadMs": {
+          "count": 62,
+          "total": 3.332632000092417,
+          "min": 0.049211999983526766,
+          "max": 0.11511700006667525
+         },
+         "encodeMs": {
+          "count": 62,
+          "total": 544.4461260007229,
+          "min": 6.640832000062801,
+          "max": 14.306624999968335
+         },
+         "submitWaitMs": {
+          "count": 62,
+          "total": 4794.161576000159,
+          "min": 72.1267049999442,
+          "max": 279.5681110000005
+         },
+         "activationReadbackMs": {
+          "count": 62,
+          "total": 41.49731099989731,
+          "min": 0.49942100001499057,
+          "max": 3.695674000075087
+         },
+         "logitsMs": {
+          "count": 62,
+          "total": 0,
+          "min": 0,
+          "max": 0
+         },
+         "gpuKernelsMs": {
+          "count": 0,
+          "total": 0,
+          "min": null,
+          "max": null
+         },
+         "logitsReadbackMs": {
+          "count": 62,
+          "total": 0,
+          "min": 0,
+          "max": 0
+         },
+         "samplingMs": {
+          "count": 62,
+          "total": 0,
+          "min": 0,
+          "max": 0
+         }
+        }
+       },
+       {
+        "partitionIndex": 2,
+        "elapsedMs": {
+         "count": 62,
+         "total": 24365.39999938011,
+         "min": 265.7999999523163,
+         "max": 778.7999999523163
+        },
+        "runtime": {
+         "executionMs": {
+          "count": 62,
+          "total": 8299.557134999777,
+          "min": 127.54131700005382,
+          "max": 288.9466919999104
+         },
+         "inputUploadMs": {
+          "count": 62,
+          "total": 3.23651800036896,
+          "min": 0.04402300005313009,
+          "max": 0.0639009999576956
+         },
+         "encodeMs": {
+          "count": 62,
+          "total": 517.5675310001243,
+          "min": 6.876665999996476,
+          "max": 11.922737000044435
+         },
+         "submitWaitMs": {
+          "count": 62,
+          "total": 4729.536260000314,
+          "min": 71.52393200004008,
+          "max": 229.2076769999694
+         },
+         "activationReadbackMs": {
+          "count": 62,
+          "total": 0,
+          "min": 0,
+          "max": 0
+         },
+         "logitsMs": {
+          "count": 62,
+          "total": 3027.732380000758,
+          "min": 47.09387900005095,
+          "max": 52.09386999998242
+         },
+         "gpuKernelsMs": {
+          "count": 0,
+          "total": 0,
+          "min": null,
+          "max": null
+         },
+         "logitsReadbackMs": {
+          "count": 62,
+          "total": 18.34702499990817,
+          "min": 0.2194340000860393,
+          "max": 0.5538139999844134
+         },
+         "samplingMs": {
+          "count": 62,
+          "total": 74.81734300008975,
+          "min": 1.1494360000360757,
+          "max": 1.620593999978155
+         }
+        }
+       }
+      ]
+     }
+    },
+    "stages": [
+     {
+      "partitionIndex": 0,
+      "steps": 63,
+      "stepCount": 63,
+      "stepMsTotal": {
+       "status": "measured",
+       "value": 21991.899998664856,
+       "unit": "ms",
+       "clock": "coordinator",
+       "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+      }
+     },
+     {
+      "partitionIndex": 1,
+      "steps": 63,
+      "stepCount": 63,
+      "stepMsTotal": {
+       "status": "measured",
+       "value": 43264.7999997139,
+       "unit": "ms",
+       "clock": "coordinator",
+       "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+      }
+     },
+     {
+      "partitionIndex": 2,
+      "steps": 63,
+      "stepCount": 63,
+      "stepMsTotal": {
+       "status": "measured",
+       "value": 28786.39999938011,
+       "unit": "ms",
+       "clock": "coordinator",
+       "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+      }
+     }
+    ],
+    "activationBytes": {
+     "status": "measured",
+     "value": 1933312,
+     "unit": "bytes",
+     "clock": "coordinator",
+     "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:209"
+    }
+   },
+   "runtime": {
+    "executionMs": {
+     "status": "measured",
+     "value": 40781.828037807485,
+     "unit": "ms",
+     "clock": "contributor-runtime",
+     "source": "packages/reploid/src/mesh/partitions/partition-summary.js summarizeOrderedPhases: step 0 carries the whole prompt (prefill plus the first sampled token), later steps decode one token each; per-stage runtime fields are each contributor's Doppler resident metrics (doppler resident-partition.js:173-202,230), elapsed is the coordinator stage call"
+    },
+    "logitsReadbackMs": {
+     "status": "measured",
+     "value": 18.643442999920808,
+     "unit": "ms",
+     "clock": "contributor-runtime",
+     "source": "packages/reploid/src/mesh/partitions/partition-summary.js summarizeOrderedPhases: step 0 carries the whole prompt (prefill plus the first sampled token), later steps decode one token each; per-stage runtime fields are each contributor's Doppler resident metrics (doppler resident-partition.js:173-202,230), elapsed is the coordinator stage call"
+    },
+    "samplingMs": {
+     "status": "measured",
+     "value": 76.9226600000402,
+     "unit": "ms",
+     "clock": "contributor-runtime",
+     "source": "packages/reploid/src/mesh/partitions/partition-summary.js summarizeOrderedPhases: step 0 carries the whole prompt (prefill plus the first sampled token), later steps decode one token each; per-stage runtime fields are each contributor's Doppler resident metrics (doppler resident-partition.js:173-202,230), elapsed is the coordinator stage call"
+    }
+   },
+   "scheduler": {
+    "queuedMs": {
+     "status": "not-observable",
+     "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+     "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+    },
+    "loadMs": {
+     "status": "not-observable",
+     "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+     "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+    },
+    "executionMs": {
+     "status": "not-observable",
+     "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+     "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+    }
+   },
+   "transport": {
+    "status": "not-observable",
+    "reason": "Ordered summaries carry no transport timing",
+    "source": "partition-summary.js:43-45 aggregates transportTiming for v1 two-device summaries only; the ordered v2 summary (partition-summary.js:16-18) carries none"
+   },
+   "persistence": {
+    "status": "not-observable",
+    "reason": "History persistence exposes no timing",
+    "source": "ordered routes commit each step through the requester transaction owner (packages/reploid/src/mesh/partitions/partition-ordered-chat.js:136, owner.publish) before delivery or the next step; neither that commit nor ordinary history (packages/reploid/src/chat/workspace.js persist()) exposes timing"
+   }
+  },
+  "samples": [
+   {
+    "at": "2026-10-15T17:49:10.172Z",
+    "status": "executing",
+    "characters": 0
+   },
+   {
+    "at": "2026-10-15T17:49:28.707Z",
+    "status": "executing",
+    "characters": 1
+   },
+   {
+    "at": "2026-10-15T17:49:30.021Z",
+    "status": "executing",
+    "characters": 2
+   },
+   {
+    "at": "2026-10-15T17:49:31.882Z",
+    "status": "executing",
+    "characters": 3
+   },
+   {
+    "at": "2026-10-15T17:49:33.196Z",
+    "status": "executing",
+    "characters": 4
+   },
+   {
+    "at": "2026-10-15T17:49:34.248Z",
+    "status": "executing",
+    "characters": 5
+   },
+   {
+    "at": "2026-10-15T17:49:35.341Z",
+    "status": "executing",
+    "characters": 6
+   },
+   {
+    "at": "2026-10-15T17:49:36.408Z",
+    "status": "executing",
+    "characters": 7
+   },
+   {
+    "at": "2026-10-15T17:49:37.459Z",
+    "status": "executing",
+    "characters": 8
+   },
+   {
+    "at": "2026-10-15T17:49:38.528Z",
+    "status": "executing",
+    "characters": 9
+   },
+   {
+    "at": "2026-10-15T17:49:39.578Z",
+    "status": "executing",
+    "characters": 10
+   },
+   {
+    "at": "2026-10-15T17:49:40.637Z",
+    "status": "executing",
+    "characters": 11
+   },
+   {
+    "at": "2026-10-15T17:49:41.926Z",
+    "status": "executing",
+    "characters": 12
+   },
+   {
+    "at": "2026-10-15T17:49:43.215Z",
+    "status": "executing",
+    "characters": 13
+   },
+   {
+    "at": "2026-10-15T17:49:44.502Z",
+    "status": "executing",
+    "characters": 14
+   },
+   {
+    "at": "2026-10-15T17:49:45.281Z",
+    "status": "executing",
+    "characters": 15
+   },
+   {
+    "at": "2026-10-15T17:49:46.313Z",
+    "status": "executing",
+    "characters": 16
+   },
+   {
+    "at": "2026-10-15T17:49:47.341Z",
+    "status": "executing",
+    "characters": 17
+   },
+   {
+    "at": "2026-10-15T17:49:48.368Z",
+    "status": "executing",
+    "characters": 18
+   },
+   {
+    "at": "2026-10-15T17:49:49.397Z",
+    "status": "executing",
+    "characters": 19
+   },
+   {
+    "at": "2026-10-15T17:49:50.685Z",
+    "status": "executing",
+    "characters": 20
+   },
+   {
+    "at": "2026-10-15T17:49:52.767Z",
+    "status": "executing",
+    "characters": 21
+   },
+   {
+    "at": "2026-10-15T17:49:53.814Z",
+    "status": "executing",
+    "characters": 22
+   },
+   {
+    "at": "2026-10-15T17:49:54.852Z",
+    "status": "executing",
+    "characters": 23
+   },
+   {
+    "at": "2026-10-15T17:49:56.671Z",
+    "status": "executing",
+    "characters": 24
+   },
+   {
+    "at": "2026-10-15T17:49:57.705Z",
+    "status": "executing",
+    "characters": 25
+   },
+   {
+    "at": "2026-10-15T17:49:58.738Z",
+    "status": "executing",
+    "characters": 26
+   },
+   {
+    "at": "2026-10-15T17:49:59.772Z",
+    "status": "executing",
+    "characters": 27
+   },
+   {
+    "at": "2026-10-15T17:50:00.806Z",
+    "status": "executing",
+    "characters": 28
+   },
+   {
+    "at": "2026-10-15T17:50:02.096Z",
+    "status": "executing",
+    "characters": 29
+   },
+   {
+    "at": "2026-10-15T17:50:02.874Z",
+    "status": "executing",
+    "characters": 30
+   },
+   {
+    "at": "2026-10-15T17:50:04.168Z",
+    "status": "executing",
+    "characters": 31
+   },
+   {
+    "at": "2026-10-15T17:50:05.724Z",
+    "status": "executing",
+    "characters": 32
+   },
+   {
+    "at": "2026-10-15T17:50:07.030Z",
+    "status": "executing",
+    "characters": 33
+   },
+   {
+    "at": "2026-10-15T17:50:08.064Z",
+    "status": "executing",
+    "characters": 34
+   },
+   {
+    "at": "2026-10-15T17:50:09.100Z",
+    "status": "executing",
+    "characters": 35
+   },
+   {
+    "at": "2026-10-15T17:50:10.704Z",
+    "status": "executing",
+    "characters": 36
+   },
+   {
+    "at": "2026-10-15T17:50:12.805Z",
+    "status": "executing",
+    "characters": 37
+   },
+   {
+    "at": "2026-10-15T17:50:14.657Z",
+    "status": "executing",
+    "characters": 38
+   },
+   {
+    "at": "2026-10-15T17:50:15.987Z",
+    "status": "executing",
+    "characters": 39
+   },
+   {
+    "at": "2026-10-15T17:50:17.042Z",
+    "status": "executing",
+    "characters": 40
+   },
+   {
+    "at": "2026-10-15T17:50:18.083Z",
+    "status": "executing",
+    "characters": 41
+   },
+   {
+    "at": "2026-10-15T17:50:19.156Z",
+    "status": "executing",
+    "characters": 42
+   },
+   {
+    "at": "2026-10-15T17:50:21.001Z",
+    "status": "executing",
+    "characters": 43
+   },
+   {
+    "at": "2026-10-15T17:50:22.311Z",
+    "status": "executing",
+    "characters": 44
+   },
+   {
+    "at": "2026-10-15T17:50:23.374Z",
+    "status": "executing",
+    "characters": 45
+   },
+   {
+    "at": "2026-10-15T17:50:24.698Z",
+    "status": "executing",
+    "characters": 46
+   },
+   {
+    "at": "2026-10-15T17:50:25.487Z",
+    "status": "executing",
+    "characters": 47
+   },
+   {
+    "at": "2026-10-15T17:50:26.812Z",
+    "status": "executing",
+    "characters": 48
+   },
+   {
+    "at": "2026-10-15T17:50:27.877Z",
+    "status": "executing",
+    "characters": 49
+   },
+   {
+    "at": "2026-10-15T17:50:28.951Z",
+    "status": "executing",
+    "characters": 50
+   },
+   {
+    "at": "2026-10-15T17:50:30.004Z",
+    "status": "executing",
+    "characters": 51
+   },
+   {
+    "at": "2026-10-15T17:50:32.128Z",
+    "status": "executing",
+    "characters": 52
+   },
+   {
+    "at": "2026-10-15T17:50:33.451Z",
+    "status": "executing",
+    "characters": 53
+   },
+   {
+    "at": "2026-10-15T17:50:34.527Z",
+    "status": "executing",
+    "characters": 54
+   },
+   {
+    "at": "2026-10-15T17:50:35.605Z",
+    "status": "executing",
+    "characters": 55
+   },
+   {
+    "at": "2026-10-15T17:50:36.915Z",
+    "status": "executing",
+    "characters": 56
+   },
+   {
+    "at": "2026-10-15T17:50:37.695Z",
+    "status": "executing",
+    "characters": 57
+   },
+   {
+    "at": "2026-10-15T17:50:38.767Z",
+    "status": "executing",
+    "characters": 58
+   },
+   {
+    "at": "2026-10-15T17:50:39.822Z",
+    "status": "executing",
+    "characters": 59
+   },
+   {
+    "at": "2026-10-15T17:50:40.873Z",
+    "status": "executing",
+    "characters": 60
+   },
+   {
+    "at": "2026-10-15T17:50:42.988Z",
+    "status": "executing",
+    "characters": 61
+   },
+   {
+    "at": "2026-10-15T17:50:45.097Z",
+    "status": "executing",
+    "characters": 62
+   },
+   {
+    "at": "2026-10-15T17:50:46.958Z",
+    "status": "completed",
+    "characters": 62
+   }
+  ],
+  "retryOf": "36edef93-f578-4514-a624-6302c0d74fce",
+  "settlement": {
+   "coordinator": {
+    "at": "2026-10-15T17:53:45.048Z",
+    "phase": "ready",
+    "error": null,
+    "unsettledOwners": 0,
+    "reservations": {
+     "active": 0,
+     "availableSlots": 2,
+     "closed": false
+    },
+    "unknownAttempts": [
+     {
+      "identity": {
+       "schema": "reploid.partition-attempt/v2",
+       "threadId": "3827b783-6306-4d4f-9a67-0aae3a2de23b",
+       "attemptId": "36edef93-f578-4514-a624-6302c0d74fce",
+       "requesterId": "peer:012c29491e37aaf8cbd41765",
+       "placementGeneration": 0,
+       "route": {
+        "schema": "reploid.partition-route/v1",
+        "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+        "modelIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+        "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+        "stages": [
+         {
+          "index": 0,
+          "participantId": "peer:5e3cff2498adff93c48d80e4",
+          "transportId": "fb23376a-99ee-416a-b59f-55548b8846e8",
+          "residentId": "fc-run8-stage-0-resident",
+          "executionId": "fc-run8-stage-0-ordinary"
+         },
+         {
+          "index": 1,
+          "participantId": "peer:9af15d884eba51b0c0540e2a",
+          "transportId": "86adf8a5-b119-48a5-b42e-9bddf4d8896f",
+          "residentId": "fc-run8-stage-1-resident",
+          "executionId": "fc-run8-stage-1-ordinary"
+         },
+         {
+          "index": 2,
+          "participantId": "peer:5f288f6f0259c251a1915c11",
+          "transportId": "e53703e6-5924-433c-84f5-2ac22ae00442",
+          "residentId": "fc-run8-stage-2-resident",
+          "executionId": "fc-run8-stage-2-ordinary"
+         }
+        ],
+        "activation": {
+         "schema": "doppler.activation-tensor/v2",
+         "dtype": "f32",
+         "hiddenSize": 1024,
+         "precision": "two-f32",
+         "components": 2,
+         "elementStrideBytes": 8
+        }
+       }
+      },
+      "phase": "cleanup-failed",
+      "reservations": [
+       {
+        "identity": {
+         "schema": "reploid.partition-attempt/v2",
+         "threadId": "3827b783-6306-4d4f-9a67-0aae3a2de23b",
+         "attemptId": "36edef93-f578-4514-a624-6302c0d74fce",
+         "requesterId": "peer:012c29491e37aaf8cbd41765",
+         "placementGeneration": 0,
+         "route": {
+          "schema": "reploid.partition-route/v1",
+          "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+          "modelIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+          "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+          "stages": [
+           {
+            "index": 0,
+            "participantId": "peer:5e3cff2498adff93c48d80e4",
+            "transportId": "fb23376a-99ee-416a-b59f-55548b8846e8",
+            "residentId": "fc-run8-stage-0-resident",
+            "executionId": "fc-run8-stage-0-ordinary"
+           },
+           {
+            "index": 1,
+            "participantId": "peer:9af15d884eba51b0c0540e2a",
+            "transportId": "86adf8a5-b119-48a5-b42e-9bddf4d8896f",
+            "residentId": "fc-run8-stage-1-resident",
+            "executionId": "fc-run8-stage-1-ordinary"
+           },
+           {
+            "index": 2,
+            "participantId": "peer:5f288f6f0259c251a1915c11",
+            "transportId": "e53703e6-5924-433c-84f5-2ac22ae00442",
+            "residentId": "fc-run8-stage-2-resident",
+            "executionId": "fc-run8-stage-2-ordinary"
+           }
+          ],
+          "activation": {
+           "schema": "doppler.activation-tensor/v2",
+           "dtype": "f32",
+           "hiddenSize": 1024,
+           "precision": "two-f32",
+           "components": 2,
+           "elementStrideBytes": 8
+          }
+         }
+        },
+        "participantId": "peer:5e3cff2498adff93c48d80e4",
+        "index": 0,
+        "phase": "reserved",
+        "reservedAt": 1792086274561,
+        "settlingAt": null,
+        "settledAt": null,
+        "failure": null,
+        "resources": {
+         "attemptSlots": 1,
+         "maxPromptTokens": 4096,
+         "maxTokens": 4096,
+         "maxActivationBytes": 33554432,
+         "scope": "application-attempt-limits"
+        },
+        "partitionIndex": 0,
+        "status": "reserved"
+       },
+       {
+        "identity": {
+         "schema": "reploid.partition-attempt/v2",
+         "threadId": "3827b783-6306-4d4f-9a67-0aae3a2de23b",
+         "attemptId": "36edef93-f578-4514-a624-6302c0d74fce",
+         "requesterId": "peer:012c29491e37aaf8cbd41765",
+         "placementGeneration": 0,
+         "route": {
+          "schema": "reploid.partition-route/v1",
+          "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+          "modelIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+          "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+          "stages": [
+           {
+            "index": 0,
+            "participantId": "peer:5e3cff2498adff93c48d80e4",
+            "transportId": "fb23376a-99ee-416a-b59f-55548b8846e8",
+            "residentId": "fc-run8-stage-0-resident",
+            "executionId": "fc-run8-stage-0-ordinary"
+           },
+           {
+            "index": 1,
+            "participantId": "peer:9af15d884eba51b0c0540e2a",
+            "transportId": "86adf8a5-b119-48a5-b42e-9bddf4d8896f",
+            "residentId": "fc-run8-stage-1-resident",
+            "executionId": "fc-run8-stage-1-ordinary"
+           },
+           {
+            "index": 2,
+            "participantId": "peer:5f288f6f0259c251a1915c11",
+            "transportId": "e53703e6-5924-433c-84f5-2ac22ae00442",
+            "residentId": "fc-run8-stage-2-resident",
+            "executionId": "fc-run8-stage-2-ordinary"
+           }
+          ],
+          "activation": {
+           "schema": "doppler.activation-tensor/v2",
+           "dtype": "f32",
+           "hiddenSize": 1024,
+           "precision": "two-f32",
+           "components": 2,
+           "elementStrideBytes": 8
+          }
+         }
+        },
+        "participantId": "peer:9af15d884eba51b0c0540e2a",
+        "index": 1,
+        "phase": "reserved",
+        "reservedAt": 1792086274790,
+        "settlingAt": null,
+        "settledAt": null,
+        "failure": null,
+        "resources": {
+         "attemptSlots": 1,
+         "maxPromptTokens": 4096,
+         "maxTokens": 4096,
+         "maxActivationBytes": 33554432,
+         "scope": "application-attempt-limits"
+        },
+        "partitionIndex": 1,
+        "status": "reserved"
+       },
+       {
+        "identity": {
+         "schema": "reploid.partition-attempt/v2",
+         "threadId": "3827b783-6306-4d4f-9a67-0aae3a2de23b",
+         "attemptId": "36edef93-f578-4514-a624-6302c0d74fce",
+         "requesterId": "peer:012c29491e37aaf8cbd41765",
+         "placementGeneration": 0,
+         "route": {
+          "schema": "reploid.partition-route/v1",
+          "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+          "modelIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+          "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+          "stages": [
+           {
+            "index": 0,
+            "participantId": "peer:5e3cff2498adff93c48d80e4",
+            "transportId": "fb23376a-99ee-416a-b59f-55548b8846e8",
+            "residentId": "fc-run8-stage-0-resident",
+            "executionId": "fc-run8-stage-0-ordinary"
+           },
+           {
+            "index": 1,
+            "participantId": "peer:9af15d884eba51b0c0540e2a",
+            "transportId": "86adf8a5-b119-48a5-b42e-9bddf4d8896f",
+            "residentId": "fc-run8-stage-1-resident",
+            "executionId": "fc-run8-stage-1-ordinary"
+           },
+           {
+            "index": 2,
+            "participantId": "peer:5f288f6f0259c251a1915c11",
+            "transportId": "e53703e6-5924-433c-84f5-2ac22ae00442",
+            "residentId": "fc-run8-stage-2-resident",
+            "executionId": "fc-run8-stage-2-ordinary"
+           }
+          ],
+          "activation": {
+           "schema": "doppler.activation-tensor/v2",
+           "dtype": "f32",
+           "hiddenSize": 1024,
+           "precision": "two-f32",
+           "components": 2,
+           "elementStrideBytes": 8
+          }
+         }
+        },
+        "participantId": "peer:5f288f6f0259c251a1915c11",
+        "index": 2,
+        "phase": "reserved",
+        "reservedAt": 1792086275012,
+        "settlingAt": null,
+        "settledAt": null,
+        "failure": null,
+        "resources": {
+         "attemptSlots": 1,
+         "maxPromptTokens": 4096,
+         "maxTokens": 4096,
+         "maxActivationBytes": 33554432,
+         "scope": "application-attempt-limits"
+        },
+        "partitionIndex": 2,
+        "status": "reserved"
+       }
+      ],
+      "cleanup": [
+       {
+        "partitionIndex": 0,
+        "status": "settled",
+        "error": null
+       },
+       {
+        "partitionIndex": 1,
+        "status": "unknown",
+        "error": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.",
+        "code": "CONNECTION_LOST"
+       },
+       {
+        "partitionIndex": 2,
+        "status": "unknown",
+        "error": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.",
+        "code": "CONNECTION_LOST"
+       }
+      ],
+      "cleanupSettledAt": null,
+      "failure": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed."
+     }
+    ],
+    "placement": [
+     "peer:5e3cff2498adff93c48d80e4",
+     "peer:9af15d884eba51b0c0540e2a",
+     "peer:5f288f6f0259c251a1915c11"
+    ],
+    "attempts": [
+     {
+      "attemptId": "c9f110b1-9d78-427d-bb23-0ffa8f885a39",
+      "phase": "completed",
+      "cleanup": [
+       {
+        "partitionIndex": 0,
+        "status": "settled",
+        "error": null
+       },
+       {
+        "partitionIndex": 1,
+        "status": "settled",
+        "error": null
+       },
+       {
+        "partitionIndex": 2,
+        "status": "settled",
+        "error": null
+       }
+      ],
+      "cleanupSettledAt": 1792086646784,
+      "failure": null
+     }
+    ]
+   },
+   "polls": 36,
+   "natives": [
+    ""
+   ]
+  }
+ },
+ "history": {
+  "storageMode": "transactional",
+  "runningIds": [],
+  "attempts": [
+   {
+    "id": "36edef93-f578-4514-a624-6302c0d74fce",
+    "status": "failed",
+    "retryOf": null,
+    "error": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed."
+   },
+   {
+    "id": "c9f110b1-9d78-427d-bb23-0ffa8f885a39",
+    "status": "completed",
+    "retryOf": "36edef93-f578-4514-a624-6302c0d74fce",
+    "error": null
+   }
+  ],
+  "messages": [
+   {
+    "id": "6ef585ed-6c1d-4fc3-b71b-f54dc362703c",
+    "role": "user",
+    "status": "completed",
+    "characters": 141,
+    "publicationRecords": null
+   },
+   {
+    "id": "982b1a96-cbe4-493f-9a7c-93dcff61dbe1",
+    "role": "assistant",
+    "status": "failed",
+    "characters": 11,
+    "publicationRecords": 11
+   },
+   {
+    "id": "52135341-ad2c-4b45-bceb-19e65e3a0ccf",
+    "role": "assistant",
+    "status": "completed",
+    "characters": 62,
+    "publicationRecords": 63
+   }
+  ],
+  "firstAnswerPreserved": true
+ },
+ "ok": true,
+ "finishedAt": "2026-10-15T17:53:50.774Z"
+}

@@ -1,0 +1,15 @@
+{"design":"repeat","target":56,"promptTokens":56,"characters":141,"countTo":24,"expectedAnswerTokens":63}
+{"design":"repeat","target":56,"promptTokens":56,"characters":141,"countTo":88,"expectedAnswerTokens":255}
+{"design":"repeat","target":56,"promptTokens":56,"characters":139,"countTo":283,"expectedAnswerTokens":1024}
+{"design":"repeat","target":256,"promptTokens":256,"characters":801,"countTo":24,"expectedAnswerTokens":63}
+{"design":"repeat","target":256,"promptTokens":256,"characters":801,"countTo":88,"expectedAnswerTokens":255}
+{"design":"repeat","target":256,"promptTokens":256,"characters":764,"countTo":283,"expectedAnswerTokens":1024}
+{"design":"repeat","target":512,"promptTokens":512,"characters":1651,"countTo":24,"expectedAnswerTokens":63}
+{"design":"repeat","target":512,"promptTokens":512,"characters":1651,"countTo":88,"expectedAnswerTokens":255}
+{"design":"repeat","target":512,"promptTokens":512,"characters":1576,"countTo":283,"expectedAnswerTokens":1024}
+{"design":"repeat","target":1024,"promptTokens":1024,"characters":3325,"countTo":24,"expectedAnswerTokens":63}
+{"design":"repeat","target":1024,"promptTokens":1024,"characters":3325,"countTo":88,"expectedAnswerTokens":255}
+{"design":"repeat","target":1024,"promptTokens":1024,"characters":3225,"countTo":283,"expectedAnswerTokens":1024}
+{"design":"repeat","target":1588,"promptTokens":1588,"characters":5181,"countTo":24,"expectedAnswerTokens":63}
+{"design":"repeat","target":1588,"promptTokens":1588,"characters":5181,"countTo":88,"expectedAnswerTokens":255}
+{"design":"repeat","target":1588,"promptTokens":1588,"characters":5028,"countTo":283,"expectedAnswerTokens":1024}

@@ -1,0 +1,8 @@
+2026-10-15T13:22:12Z start c1-p56-n24 p56-n24.txt 1 natives=1
+{"label":"c1-p56-n24","ok":false,"runs":[{"status":"failed","error":"A contributor declined authorization for this request.","tokens":255,"answerMs":900950}],"settled":true}
+2026-10-15T13:37:17Z end c1-p56-n24
+2026-10-15T13:37:17Z start c1-p56-n88 p56-n88.txt 1 natives=1
+{"label":"c1-p56-n88","ok":false,"runs":[{"status":"cancelled","error":"Response timed out. Retry starts a new attempt.","tokens":570,"answerMs":900158}],"settled":true}
+2026-10-15T13:52:26Z end c1-p56-n88
+stop file present before c1-p256-n24
+2026-10-15T13:52:26Z matrix done

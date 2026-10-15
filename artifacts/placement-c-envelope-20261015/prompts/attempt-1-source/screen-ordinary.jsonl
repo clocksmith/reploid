@@ -1,0 +1,16 @@
+some avg10=0.00 avg60=0.00 avg300=0.00 total=1604706613
+{"file":"p56-n24.txt","promptTokens":56,"tokens":858,"head":"","tail":"","sample":"number"}
+{"file":"p56-n88.txt","promptTokens":56,"tokens":1100,"head":"","tail":"","sample":"number"}
+{"file":"p56-n283.txt","promptTokens":56,"tokens":1100,"head":"","tail":"","sample":"number"}
+{"file":"p256-n24.txt","promptTokens":256,"tokens":437,"head":"","tail":"","sample":"number"}
+{"file":"p256-n88.txt","promptTokens":256,"tokens":1100,"head":"","tail":"","sample":"number"}
+{"file":"p256-n283.txt","promptTokens":257,"tokens":1100,"head":"","tail":"","sample":"number"}
+{"file":"p512-n24.txt","promptTokens":512,"tokens":1100,"head":"","tail":"","sample":"number"}
+{"file":"p512-n88.txt","promptTokens":512,"tokens":1100,"head":"","tail":"","sample":"number"}
+{"file":"p512-n283.txt","promptTokens":512,"tokens":1100,"head":"","tail":"","sample":"number"}
+{"file":"p1024-n24.txt","promptTokens":1024,"tokens":438,"head":"","tail":"","sample":"number"}
+{"file":"p1024-n88.txt","promptTokens":1024,"tokens":1100,"head":"","tail":"","sample":"number"}
+{"file":"p1024-n283.txt","promptTokens":1024,"tokens":1100,"head":"","tail":"","sample":"number"}
+{"file":"p1588-n24.txt","promptTokens":1588,"tokens":553,"head":"","tail":"","sample":"number"}
+{"file":"p1588-n88.txt","promptTokens":1588,"tokens":695,"head":"","tail":"","sample":"number"}
+{"file":"p1588-n283.txt","promptTokens":1588,"tokens":1100,"head":"","tail":"","sample":"number"}

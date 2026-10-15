@@ -1,0 +1,4 @@
+# trimmed by the parent session after c2-p56-n88 (c2-p256-n24 was already running and completed)
+c2-p1588-n24 p1588-n24.txt 2
+c2-p512-n88 p512-n88.txt 2
+c3-p56-n24 p56-n24.txt 3

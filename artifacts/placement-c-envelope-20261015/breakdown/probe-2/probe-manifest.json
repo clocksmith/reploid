@@ -1,0 +1,2400 @@
+{
+ "schema": "reploid.placement-c-latency-probe/v1",
+ "startedAt": "2026-10-15T13:04:21.415Z",
+ "targets": [
+  {
+   "name": "page",
+   "type": "page",
+   "title": "stage 0 coordinator page",
+   "clockAtArm": [
+    1792067428620.9,
+    2033119.5,
+    1792069461739
+   ],
+   "breakpoints": [
+    {
+     "tag": "r-perm-begin",
+     "line": 130,
+     "locations": [
+      {
+       "line": 130,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "r-perm-end",
+     "line": 133,
+     "locations": [
+      {
+       "line": 133,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "r-step-begin",
+     "line": 167,
+     "locations": [
+      {
+       "line": 167,
+       "column": 10
+      }
+     ]
+    },
+    {
+     "tag": "r-permits-done",
+     "line": 171,
+     "locations": [
+      {
+       "line": 171,
+       "column": 31
+      }
+     ]
+    },
+    {
+     "tag": "r-stage-begin",
+     "line": 174,
+     "locations": [
+      {
+       "line": 174,
+       "column": 27
+      }
+     ]
+    },
+    {
+     "tag": "r-call-start",
+     "line": 179,
+     "locations": [
+      {
+       "line": 179,
+       "column": 30
+      }
+     ]
+    },
+    {
+     "tag": "r-call-end",
+     "line": 187,
+     "locations": [
+      {
+       "line": 187,
+       "column": 14
+      }
+     ]
+    },
+    {
+     "tag": "r-lease-out",
+     "line": 190,
+     "locations": [
+      {
+       "line": 190,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "r-calibrate",
+     "line": 191,
+     "locations": [
+      {
+       "line": 191,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "r-ser-begin",
+     "line": 204,
+     "locations": [
+      {
+       "line": 204,
+       "column": 26
+      }
+     ]
+    },
+    {
+     "tag": "r-ser-end",
+     "line": 205,
+     "locations": [
+      {
+       "line": 205,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "r-val-end",
+     "line": 207,
+     "locations": [
+      {
+       "line": 207,
+       "column": 25
+      }
+     ]
+    },
+    {
+     "tag": "r-clone-end",
+     "line": 208,
+     "locations": [
+      {
+       "line": 208,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "r-xfer-begin",
+     "line": 209,
+     "locations": [
+      {
+       "line": 209,
+       "column": 29
+      }
+     ]
+    },
+    {
+     "tag": "r-xfer-end",
+     "line": 212,
+     "locations": [
+      {
+       "line": 212,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "r-cmp-begin",
+     "line": 217,
+     "locations": [
+      {
+       "line": 217,
+       "column": 34
+      }
+     ]
+    },
+    {
+     "tag": "r-cmp-end",
+     "line": 220,
+     "locations": [
+      {
+       "line": 220,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "r-edge-end",
+     "line": 221,
+     "locations": [
+      {
+       "line": 221,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "r-final-begin",
+     "line": 223,
+     "locations": [
+      {
+       "line": 223,
+       "column": 10
+      }
+     ]
+    },
+    {
+     "tag": "r-outperm-begin",
+     "line": 230,
+     "locations": [
+      {
+       "line": 230,
+       "column": 10
+      }
+     ]
+    },
+    {
+     "tag": "r-outperm-end",
+     "line": 232,
+     "locations": [
+      {
+       "line": 232,
+       "column": 10
+      }
+     ]
+    },
+    {
+     "tag": "r-delivery-end",
+     "line": 243,
+     "locations": [
+      {
+       "line": 243,
+       "column": 8
+      }
+     ]
+    },
+    {
+     "tag": "r-pub-begin",
+     "line": 246,
+     "locations": [
+      {
+       "line": 246,
+       "column": 8
+      }
+     ]
+    },
+    {
+     "tag": "r-pub-end",
+     "line": 247,
+     "locations": [
+      {
+       "line": 247,
+       "column": 40
+      }
+     ]
+    },
+    {
+     "tag": "r-act-begin",
+     "line": 251,
+     "locations": [
+      {
+       "line": 251,
+       "column": 8
+      }
+     ]
+    },
+    {
+     "tag": "r-act-end",
+     "line": 253,
+     "locations": [
+      {
+       "line": 253,
+       "column": 8
+      }
+     ]
+    },
+    {
+     "tag": "r-step-end",
+     "line": 256,
+     "locations": [
+      {
+       "line": 256,
+       "column": 21
+      }
+     ]
+    },
+    {
+     "tag": "p-ex-begin",
+     "line": 85,
+     "locations": [
+      {
+       "line": 85,
+       "column": 33
+      }
+     ]
+    },
+    {
+     "tag": "p-ex-doppler-begin",
+     "line": 87,
+     "locations": [
+      {
+       "line": 87,
+       "column": 21
+      }
+     ]
+    },
+    {
+     "tag": "p-ex-doppler-end",
+     "line": 88,
+     "locations": [
+      {
+       "line": 88,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "p-so-begin",
+     "line": 168,
+     "locations": [
+      {
+       "line": 168,
+       "column": 24
+      }
+     ]
+    },
+    {
+     "tag": "p-so-ret",
+     "line": 178,
+     "locations": [
+      {
+       "line": 178,
+       "column": 8
+      }
+     ]
+    },
+    {
+     "tag": "p-sv-recv-begin",
+     "line": 207,
+     "locations": [
+      {
+       "line": 207,
+       "column": 21
+      }
+     ]
+    },
+    {
+     "tag": "p-sv-recv-end",
+     "line": 208,
+     "locations": [
+      {
+       "line": 208,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "p-sv-final-ret",
+     "line": 214,
+     "locations": [
+      {
+       "line": 214,
+       "column": 49
+      }
+     ]
+    },
+    {
+     "tag": "p-sv-ser-begin",
+     "line": 217,
+     "locations": [
+      {
+       "line": 217,
+       "column": 20
+      }
+     ]
+    },
+    {
+     "tag": "p-sv-fp-begin",
+     "line": 220,
+     "locations": [
+      {
+       "line": 220,
+       "column": 27
+      }
+     ]
+    },
+    {
+     "tag": "p-sv-so-begin",
+     "line": 221,
+     "locations": [
+      {
+       "line": 221,
+       "column": 23
+      }
+     ]
+    },
+    {
+     "tag": "p-sv-so-end",
+     "line": 222,
+     "locations": [
+      {
+       "line": 222,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "p-sv-ret",
+     "line": 223,
+     "locations": [
+      {
+       "line": 223,
+       "column": 70
+      }
+     ]
+    },
+    {
+     "tag": "p-pe-begin",
+     "line": 328,
+     "locations": [
+      {
+       "line": 328,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "p-pe-ser-begin",
+     "line": 333,
+     "locations": [
+      {
+       "line": 333,
+       "column": 20
+      }
+     ]
+    },
+    {
+     "tag": "p-pe-ser-end",
+     "line": 336,
+     "locations": [
+      {
+       "line": 336,
+       "column": 18
+      }
+     ]
+    },
+    {
+     "tag": "p-pe-req",
+     "line": 340,
+     "locations": [
+      {
+       "line": 340,
+       "column": 25
+      }
+     ]
+    },
+    {
+     "tag": "p-pe-resp",
+     "line": 341,
+     "locations": [
+      {
+       "line": 341,
+       "column": 8
+      }
+     ]
+    },
+    {
+     "tag": "p-pe-dec-begin",
+     "line": 345,
+     "locations": [
+      {
+       "line": 345,
+       "column": 24
+      }
+     ]
+    },
+    {
+     "tag": "p-pe-dec-end",
+     "line": 346,
+     "locations": [
+      {
+       "line": 346,
+       "column": 50
+      }
+     ]
+    },
+    {
+     "tag": "s-perm1-begin",
+     "line": 196,
+     "locations": [
+      {
+       "line": 196,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "s-perm1-end",
+     "line": 197,
+     "locations": [
+      {
+       "line": 197,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "s-fp-end",
+     "line": 200,
+     "locations": [
+      {
+       "line": 200,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "s-perm2-begin",
+     "line": 224,
+     "locations": [
+      {
+       "line": 224,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "s-exec-begin",
+     "line": 226,
+     "locations": [
+      {
+       "line": 226,
+       "column": 27
+      }
+     ]
+    },
+    {
+     "tag": "s-exec-end",
+     "line": 227,
+     "locations": [
+      {
+       "line": 227,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "s-await-end",
+     "line": 239,
+     "locations": [
+      {
+       "line": 239,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "s-perm3-end",
+     "line": 242,
+     "locations": [
+      {
+       "line": 242,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-perm-begin",
+     "line": 63,
+     "locations": [
+      {
+       "line": 63,
+       "column": 10
+      }
+     ]
+    },
+    {
+     "tag": "d-perm-end",
+     "line": 66,
+     "locations": [
+      {
+       "line": 66,
+       "column": 10
+      }
+     ]
+    },
+    {
+     "tag": "d-finish",
+     "line": 97,
+     "locations": [
+      {
+       "line": 97,
+       "column": 4
+      }
+     ]
+    },
+    {
+     "tag": "d-acc-begin",
+     "line": 117,
+     "locations": [
+      {
+       "line": 117,
+       "column": 4
+      }
+     ]
+    },
+    {
+     "tag": "d-ready-send",
+     "line": 135,
+     "locations": [
+      {
+       "line": 135,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-acc-end",
+     "line": 141,
+     "locations": [
+      {
+       "line": 141,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-exec-begin",
+     "line": 150,
+     "locations": [
+      {
+       "line": 150,
+       "column": 4
+      }
+     ]
+    },
+    {
+     "tag": "d-serve-begin",
+     "line": 154,
+     "locations": [
+      {
+       "line": 154,
+       "column": 21
+      }
+     ]
+    },
+    {
+     "tag": "d-serve-end",
+     "line": 155,
+     "locations": [
+      {
+       "line": 155,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-result-send",
+     "line": 157,
+     "locations": [
+      {
+       "line": 157,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-exec-end",
+     "line": 162,
+     "locations": [
+      {
+       "line": 162,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-up-begin",
+     "line": 169,
+     "locations": [
+      {
+       "line": 169,
+       "column": 28
+      }
+     ]
+    },
+    {
+     "tag": "d-up-end",
+     "line": 184,
+     "locations": [
+      {
+       "line": 184,
+       "column": 31
+      }
+     ]
+    },
+    {
+     "tag": "d-disc-begin",
+     "line": 193,
+     "locations": [
+      {
+       "line": 193,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-disc-end",
+     "line": 194,
+     "locations": [
+      {
+       "line": 194,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-ctrl-recv",
+     "line": 202,
+     "locations": [
+      {
+       "line": 202,
+       "column": 4
+      }
+     ]
+    },
+    {
+     "tag": "d-ready-recv",
+     "line": 218,
+     "locations": [
+      {
+       "line": 218,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-result-recv",
+     "line": 225,
+     "locations": [
+      {
+       "line": 225,
+       "column": 21
+      }
+     ]
+    },
+    {
+     "tag": "d-bin-complete",
+     "line": 243,
+     "locations": [
+      {
+       "line": 243,
+       "column": 14
+      }
+     ]
+    },
+    {
+     "tag": "d-req-new",
+     "line": 264,
+     "locations": [
+      {
+       "line": 264,
+       "column": 24
+      }
+     ]
+    },
+    {
+     "tag": "d-ctrl-send",
+     "line": 306,
+     "locations": [
+      {
+       "line": 306,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-ctrl-sent",
+     "line": 307,
+     "locations": [
+      {
+       "line": 307,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "w-send",
+     "line": 39,
+     "locations": [
+      {
+       "line": 39,
+       "column": 6
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "native1",
+   "type": "node",
+   "title": "native inspector",
+   "clockAtArm": [
+    1792067385228.015,
+    2110509.296766,
+    1792069495737
+   ],
+   "breakpoints": [
+    {
+     "tag": "r-perm-begin",
+     "line": 130,
+     "locations": [
+      {
+       "line": 130,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "r-perm-end",
+     "line": 133,
+     "locations": [
+      {
+       "line": 133,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "r-step-begin",
+     "line": 167,
+     "locations": [
+      {
+       "line": 167,
+       "column": 10
+      }
+     ]
+    },
+    {
+     "tag": "r-permits-done",
+     "line": 171,
+     "locations": [
+      {
+       "line": 171,
+       "column": 31
+      }
+     ]
+    },
+    {
+     "tag": "r-stage-begin",
+     "line": 174,
+     "locations": [
+      {
+       "line": 174,
+       "column": 27
+      }
+     ]
+    },
+    {
+     "tag": "r-call-start",
+     "line": 179,
+     "locations": [
+      {
+       "line": 179,
+       "column": 30
+      }
+     ]
+    },
+    {
+     "tag": "r-call-end",
+     "line": 187,
+     "locations": [
+      {
+       "line": 187,
+       "column": 14
+      }
+     ]
+    },
+    {
+     "tag": "r-lease-out",
+     "line": 190,
+     "locations": [
+      {
+       "line": 190,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "r-calibrate",
+     "line": 191,
+     "locations": [
+      {
+       "line": 191,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "r-ser-begin",
+     "line": 204,
+     "locations": [
+      {
+       "line": 204,
+       "column": 26
+      }
+     ]
+    },
+    {
+     "tag": "r-ser-end",
+     "line": 205,
+     "locations": [
+      {
+       "line": 205,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "r-val-end",
+     "line": 207,
+     "locations": [
+      {
+       "line": 207,
+       "column": 25
+      }
+     ]
+    },
+    {
+     "tag": "r-clone-end",
+     "line": 208,
+     "locations": [
+      {
+       "line": 208,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "r-xfer-begin",
+     "line": 209,
+     "locations": [
+      {
+       "line": 209,
+       "column": 29
+      }
+     ]
+    },
+    {
+     "tag": "r-xfer-end",
+     "line": 212,
+     "locations": [
+      {
+       "line": 212,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "r-cmp-begin",
+     "line": 217,
+     "locations": [
+      {
+       "line": 217,
+       "column": 34
+      }
+     ]
+    },
+    {
+     "tag": "r-cmp-end",
+     "line": 220,
+     "locations": [
+      {
+       "line": 220,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "r-edge-end",
+     "line": 221,
+     "locations": [
+      {
+       "line": 221,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "r-final-begin",
+     "line": 223,
+     "locations": [
+      {
+       "line": 223,
+       "column": 10
+      }
+     ]
+    },
+    {
+     "tag": "r-outperm-begin",
+     "line": 230,
+     "locations": [
+      {
+       "line": 230,
+       "column": 10
+      }
+     ]
+    },
+    {
+     "tag": "r-outperm-end",
+     "line": 232,
+     "locations": [
+      {
+       "line": 232,
+       "column": 10
+      }
+     ]
+    },
+    {
+     "tag": "r-delivery-end",
+     "line": 243,
+     "locations": [
+      {
+       "line": 243,
+       "column": 8
+      }
+     ]
+    },
+    {
+     "tag": "r-pub-begin",
+     "line": 246,
+     "locations": [
+      {
+       "line": 246,
+       "column": 8
+      }
+     ]
+    },
+    {
+     "tag": "r-pub-end",
+     "line": 247,
+     "locations": [
+      {
+       "line": 247,
+       "column": 40
+      }
+     ]
+    },
+    {
+     "tag": "r-act-begin",
+     "line": 251,
+     "locations": [
+      {
+       "line": 251,
+       "column": 8
+      }
+     ]
+    },
+    {
+     "tag": "r-act-end",
+     "line": 253,
+     "locations": [
+      {
+       "line": 253,
+       "column": 8
+      }
+     ]
+    },
+    {
+     "tag": "r-step-end",
+     "line": 256,
+     "locations": [
+      {
+       "line": 256,
+       "column": 21
+      }
+     ]
+    },
+    {
+     "tag": "p-ex-begin",
+     "line": 85,
+     "locations": [
+      {
+       "line": 85,
+       "column": 33
+      }
+     ]
+    },
+    {
+     "tag": "p-ex-doppler-begin",
+     "line": 87,
+     "locations": [
+      {
+       "line": 87,
+       "column": 21
+      }
+     ]
+    },
+    {
+     "tag": "p-ex-doppler-end",
+     "line": 88,
+     "locations": [
+      {
+       "line": 88,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "p-so-begin",
+     "line": 168,
+     "locations": [
+      {
+       "line": 168,
+       "column": 24
+      }
+     ]
+    },
+    {
+     "tag": "p-so-ret",
+     "line": 178,
+     "locations": [
+      {
+       "line": 178,
+       "column": 8
+      }
+     ]
+    },
+    {
+     "tag": "p-sv-recv-begin",
+     "line": 207,
+     "locations": [
+      {
+       "line": 207,
+       "column": 21
+      }
+     ]
+    },
+    {
+     "tag": "p-sv-recv-end",
+     "line": 208,
+     "locations": [
+      {
+       "line": 208,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "p-sv-final-ret",
+     "line": 214,
+     "locations": [
+      {
+       "line": 214,
+       "column": 49
+      }
+     ]
+    },
+    {
+     "tag": "p-sv-ser-begin",
+     "line": 217,
+     "locations": [
+      {
+       "line": 217,
+       "column": 20
+      }
+     ]
+    },
+    {
+     "tag": "p-sv-fp-begin",
+     "line": 220,
+     "locations": [
+      {
+       "line": 220,
+       "column": 27
+      }
+     ]
+    },
+    {
+     "tag": "p-sv-so-begin",
+     "line": 221,
+     "locations": [
+      {
+       "line": 221,
+       "column": 23
+      }
+     ]
+    },
+    {
+     "tag": "p-sv-so-end",
+     "line": 222,
+     "locations": [
+      {
+       "line": 222,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "p-sv-ret",
+     "line": 223,
+     "locations": [
+      {
+       "line": 223,
+       "column": 70
+      }
+     ]
+    },
+    {
+     "tag": "p-pe-begin",
+     "line": 328,
+     "locations": [
+      {
+       "line": 328,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "p-pe-ser-begin",
+     "line": 333,
+     "locations": [
+      {
+       "line": 333,
+       "column": 20
+      }
+     ]
+    },
+    {
+     "tag": "p-pe-ser-end",
+     "line": 336,
+     "locations": [
+      {
+       "line": 336,
+       "column": 18
+      }
+     ]
+    },
+    {
+     "tag": "p-pe-req",
+     "line": 340,
+     "locations": [
+      {
+       "line": 340,
+       "column": 25
+      }
+     ]
+    },
+    {
+     "tag": "p-pe-resp",
+     "line": 341,
+     "locations": [
+      {
+       "line": 341,
+       "column": 8
+      }
+     ]
+    },
+    {
+     "tag": "p-pe-dec-begin",
+     "line": 345,
+     "locations": [
+      {
+       "line": 345,
+       "column": 24
+      }
+     ]
+    },
+    {
+     "tag": "p-pe-dec-end",
+     "line": 346,
+     "locations": [
+      {
+       "line": 346,
+       "column": 50
+      }
+     ]
+    },
+    {
+     "tag": "s-perm1-begin",
+     "line": 196,
+     "locations": [
+      {
+       "line": 196,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "s-perm1-end",
+     "line": 197,
+     "locations": [
+      {
+       "line": 197,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "s-fp-end",
+     "line": 200,
+     "locations": [
+      {
+       "line": 200,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "s-perm2-begin",
+     "line": 224,
+     "locations": [
+      {
+       "line": 224,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "s-exec-begin",
+     "line": 226,
+     "locations": [
+      {
+       "line": 226,
+       "column": 27
+      }
+     ]
+    },
+    {
+     "tag": "s-exec-end",
+     "line": 227,
+     "locations": [
+      {
+       "line": 227,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "s-await-end",
+     "line": 239,
+     "locations": [
+      {
+       "line": 239,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "s-perm3-end",
+     "line": 242,
+     "locations": [
+      {
+       "line": 242,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-perm-begin",
+     "line": 63,
+     "locations": [
+      {
+       "line": 63,
+       "column": 10
+      }
+     ]
+    },
+    {
+     "tag": "d-perm-end",
+     "line": 66,
+     "locations": [
+      {
+       "line": 66,
+       "column": 10
+      }
+     ]
+    },
+    {
+     "tag": "d-finish",
+     "line": 97,
+     "locations": [
+      {
+       "line": 97,
+       "column": 4
+      }
+     ]
+    },
+    {
+     "tag": "d-acc-begin",
+     "line": 117,
+     "locations": [
+      {
+       "line": 117,
+       "column": 4
+      }
+     ]
+    },
+    {
+     "tag": "d-ready-send",
+     "line": 135,
+     "locations": [
+      {
+       "line": 135,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-acc-end",
+     "line": 141,
+     "locations": [
+      {
+       "line": 141,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-exec-begin",
+     "line": 150,
+     "locations": [
+      {
+       "line": 150,
+       "column": 4
+      }
+     ]
+    },
+    {
+     "tag": "d-serve-begin",
+     "line": 154,
+     "locations": [
+      {
+       "line": 154,
+       "column": 21
+      }
+     ]
+    },
+    {
+     "tag": "d-serve-end",
+     "line": 155,
+     "locations": [
+      {
+       "line": 155,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-result-send",
+     "line": 157,
+     "locations": [
+      {
+       "line": 157,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-exec-end",
+     "line": 162,
+     "locations": [
+      {
+       "line": 162,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-up-begin",
+     "line": 169,
+     "locations": [
+      {
+       "line": 169,
+       "column": 28
+      }
+     ]
+    },
+    {
+     "tag": "d-up-end",
+     "line": 184,
+     "locations": [
+      {
+       "line": 184,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-disc-begin",
+     "line": 193,
+     "locations": [
+      {
+       "line": 193,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-disc-end",
+     "line": 194,
+     "locations": [
+      {
+       "line": 194,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-ctrl-recv",
+     "line": 202,
+     "locations": [
+      {
+       "line": 202,
+       "column": 4
+      }
+     ]
+    },
+    {
+     "tag": "d-ready-recv",
+     "line": 218,
+     "locations": [
+      {
+       "line": 218,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-result-recv",
+     "line": 225,
+     "locations": [
+      {
+       "line": 225,
+       "column": 21
+      }
+     ]
+    },
+    {
+     "tag": "d-bin-complete",
+     "line": 243,
+     "locations": [
+      {
+       "line": 243,
+       "column": 14
+      }
+     ]
+    },
+    {
+     "tag": "d-req-new",
+     "line": 264,
+     "locations": [
+      {
+       "line": 264,
+       "column": 24
+      }
+     ]
+    },
+    {
+     "tag": "d-ctrl-send",
+     "line": 306,
+     "locations": [
+      {
+       "line": 306,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-ctrl-sent",
+     "line": 307,
+     "locations": [
+      {
+       "line": 307,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "w-send",
+     "line": 39,
+     "locations": [
+      {
+       "line": 39,
+       "column": 6
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "native2",
+   "type": "node",
+   "title": "native inspector",
+   "clockAtArm": [
+    1792067395755.553,
+    2174931.953993,
+    1792069570687
+   ],
+   "breakpoints": [
+    {
+     "tag": "r-perm-begin",
+     "line": 130,
+     "locations": [
+      {
+       "line": 130,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "r-perm-end",
+     "line": 133,
+     "locations": [
+      {
+       "line": 133,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "r-step-begin",
+     "line": 167,
+     "locations": [
+      {
+       "line": 167,
+       "column": 10
+      }
+     ]
+    },
+    {
+     "tag": "r-permits-done",
+     "line": 171,
+     "locations": [
+      {
+       "line": 171,
+       "column": 31
+      }
+     ]
+    },
+    {
+     "tag": "r-stage-begin",
+     "line": 174,
+     "locations": [
+      {
+       "line": 174,
+       "column": 27
+      }
+     ]
+    },
+    {
+     "tag": "r-call-start",
+     "line": 179,
+     "locations": [
+      {
+       "line": 179,
+       "column": 30
+      }
+     ]
+    },
+    {
+     "tag": "r-call-end",
+     "line": 187,
+     "locations": [
+      {
+       "line": 187,
+       "column": 14
+      }
+     ]
+    },
+    {
+     "tag": "r-lease-out",
+     "line": 190,
+     "locations": [
+      {
+       "line": 190,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "r-calibrate",
+     "line": 191,
+     "locations": [
+      {
+       "line": 191,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "r-ser-begin",
+     "line": 204,
+     "locations": [
+      {
+       "line": 204,
+       "column": 26
+      }
+     ]
+    },
+    {
+     "tag": "r-ser-end",
+     "line": 205,
+     "locations": [
+      {
+       "line": 205,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "r-val-end",
+     "line": 207,
+     "locations": [
+      {
+       "line": 207,
+       "column": 25
+      }
+     ]
+    },
+    {
+     "tag": "r-clone-end",
+     "line": 208,
+     "locations": [
+      {
+       "line": 208,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "r-xfer-begin",
+     "line": 209,
+     "locations": [
+      {
+       "line": 209,
+       "column": 29
+      }
+     ]
+    },
+    {
+     "tag": "r-xfer-end",
+     "line": 212,
+     "locations": [
+      {
+       "line": 212,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "r-cmp-begin",
+     "line": 217,
+     "locations": [
+      {
+       "line": 217,
+       "column": 34
+      }
+     ]
+    },
+    {
+     "tag": "r-cmp-end",
+     "line": 220,
+     "locations": [
+      {
+       "line": 220,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "r-edge-end",
+     "line": 221,
+     "locations": [
+      {
+       "line": 221,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "r-final-begin",
+     "line": 223,
+     "locations": [
+      {
+       "line": 223,
+       "column": 10
+      }
+     ]
+    },
+    {
+     "tag": "r-outperm-begin",
+     "line": 230,
+     "locations": [
+      {
+       "line": 230,
+       "column": 10
+      }
+     ]
+    },
+    {
+     "tag": "r-outperm-end",
+     "line": 232,
+     "locations": [
+      {
+       "line": 232,
+       "column": 10
+      }
+     ]
+    },
+    {
+     "tag": "r-delivery-end",
+     "line": 243,
+     "locations": [
+      {
+       "line": 243,
+       "column": 8
+      }
+     ]
+    },
+    {
+     "tag": "r-pub-begin",
+     "line": 246,
+     "locations": [
+      {
+       "line": 246,
+       "column": 8
+      }
+     ]
+    },
+    {
+     "tag": "r-pub-end",
+     "line": 247,
+     "locations": [
+      {
+       "line": 247,
+       "column": 40
+      }
+     ]
+    },
+    {
+     "tag": "r-act-begin",
+     "line": 251,
+     "locations": [
+      {
+       "line": 251,
+       "column": 8
+      }
+     ]
+    },
+    {
+     "tag": "r-act-end",
+     "line": 253,
+     "locations": [
+      {
+       "line": 253,
+       "column": 8
+      }
+     ]
+    },
+    {
+     "tag": "r-step-end",
+     "line": 256,
+     "locations": [
+      {
+       "line": 256,
+       "column": 21
+      }
+     ]
+    },
+    {
+     "tag": "p-ex-begin",
+     "line": 85,
+     "locations": [
+      {
+       "line": 85,
+       "column": 33
+      }
+     ]
+    },
+    {
+     "tag": "p-ex-doppler-begin",
+     "line": 87,
+     "locations": [
+      {
+       "line": 87,
+       "column": 21
+      }
+     ]
+    },
+    {
+     "tag": "p-ex-doppler-end",
+     "line": 88,
+     "locations": [
+      {
+       "line": 88,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "p-so-begin",
+     "line": 168,
+     "locations": [
+      {
+       "line": 168,
+       "column": 24
+      }
+     ]
+    },
+    {
+     "tag": "p-so-ret",
+     "line": 178,
+     "locations": [
+      {
+       "line": 178,
+       "column": 8
+      }
+     ]
+    },
+    {
+     "tag": "p-sv-recv-begin",
+     "line": 207,
+     "locations": [
+      {
+       "line": 207,
+       "column": 21
+      }
+     ]
+    },
+    {
+     "tag": "p-sv-recv-end",
+     "line": 208,
+     "locations": [
+      {
+       "line": 208,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "p-sv-final-ret",
+     "line": 214,
+     "locations": [
+      {
+       "line": 214,
+       "column": 49
+      }
+     ]
+    },
+    {
+     "tag": "p-sv-ser-begin",
+     "line": 217,
+     "locations": [
+      {
+       "line": 217,
+       "column": 20
+      }
+     ]
+    },
+    {
+     "tag": "p-sv-fp-begin",
+     "line": 220,
+     "locations": [
+      {
+       "line": 220,
+       "column": 27
+      }
+     ]
+    },
+    {
+     "tag": "p-sv-so-begin",
+     "line": 221,
+     "locations": [
+      {
+       "line": 221,
+       "column": 23
+      }
+     ]
+    },
+    {
+     "tag": "p-sv-so-end",
+     "line": 222,
+     "locations": [
+      {
+       "line": 222,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "p-sv-ret",
+     "line": 223,
+     "locations": [
+      {
+       "line": 223,
+       "column": 70
+      }
+     ]
+    },
+    {
+     "tag": "p-pe-begin",
+     "line": 328,
+     "locations": [
+      {
+       "line": 328,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "p-pe-ser-begin",
+     "line": 333,
+     "locations": [
+      {
+       "line": 333,
+       "column": 20
+      }
+     ]
+    },
+    {
+     "tag": "p-pe-ser-end",
+     "line": 336,
+     "locations": [
+      {
+       "line": 336,
+       "column": 18
+      }
+     ]
+    },
+    {
+     "tag": "p-pe-req",
+     "line": 340,
+     "locations": [
+      {
+       "line": 340,
+       "column": 25
+      }
+     ]
+    },
+    {
+     "tag": "p-pe-resp",
+     "line": 341,
+     "locations": [
+      {
+       "line": 341,
+       "column": 8
+      }
+     ]
+    },
+    {
+     "tag": "p-pe-dec-begin",
+     "line": 345,
+     "locations": [
+      {
+       "line": 345,
+       "column": 24
+      }
+     ]
+    },
+    {
+     "tag": "p-pe-dec-end",
+     "line": 346,
+     "locations": [
+      {
+       "line": 346,
+       "column": 50
+      }
+     ]
+    },
+    {
+     "tag": "s-perm1-begin",
+     "line": 196,
+     "locations": [
+      {
+       "line": 196,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "s-perm1-end",
+     "line": 197,
+     "locations": [
+      {
+       "line": 197,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "s-fp-end",
+     "line": 200,
+     "locations": [
+      {
+       "line": 200,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "s-perm2-begin",
+     "line": 224,
+     "locations": [
+      {
+       "line": 224,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "s-exec-begin",
+     "line": 226,
+     "locations": [
+      {
+       "line": 226,
+       "column": 27
+      }
+     ]
+    },
+    {
+     "tag": "s-exec-end",
+     "line": 227,
+     "locations": [
+      {
+       "line": 227,
+       "column": 12
+      }
+     ]
+    },
+    {
+     "tag": "s-await-end",
+     "line": 239,
+     "locations": [
+      {
+       "line": 239,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "s-perm3-end",
+     "line": 242,
+     "locations": [
+      {
+       "line": 242,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-perm-begin",
+     "line": 63,
+     "locations": [
+      {
+       "line": 63,
+       "column": 10
+      }
+     ]
+    },
+    {
+     "tag": "d-perm-end",
+     "line": 66,
+     "locations": [
+      {
+       "line": 66,
+       "column": 10
+      }
+     ]
+    },
+    {
+     "tag": "d-finish",
+     "line": 97,
+     "locations": [
+      {
+       "line": 97,
+       "column": 4
+      }
+     ]
+    },
+    {
+     "tag": "d-acc-begin",
+     "line": 117,
+     "locations": [
+      {
+       "line": 117,
+       "column": 4
+      }
+     ]
+    },
+    {
+     "tag": "d-ready-send",
+     "line": 135,
+     "locations": [
+      {
+       "line": 135,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-acc-end",
+     "line": 141,
+     "locations": [
+      {
+       "line": 141,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-exec-begin",
+     "line": 150,
+     "locations": [
+      {
+       "line": 150,
+       "column": 4
+      }
+     ]
+    },
+    {
+     "tag": "d-serve-begin",
+     "line": 154,
+     "locations": [
+      {
+       "line": 154,
+       "column": 21
+      }
+     ]
+    },
+    {
+     "tag": "d-serve-end",
+     "line": 155,
+     "locations": [
+      {
+       "line": 155,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-result-send",
+     "line": 157,
+     "locations": [
+      {
+       "line": 157,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-exec-end",
+     "line": 162,
+     "locations": [
+      {
+       "line": 162,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-up-begin",
+     "line": 169,
+     "locations": [
+      {
+       "line": 169,
+       "column": 28
+      }
+     ]
+    },
+    {
+     "tag": "d-up-end",
+     "line": 184,
+     "locations": [
+      {
+       "line": 184,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-disc-begin",
+     "line": 193,
+     "locations": [
+      {
+       "line": 193,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-disc-end",
+     "line": 194,
+     "locations": [
+      {
+       "line": 194,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-ctrl-recv",
+     "line": 202,
+     "locations": [
+      {
+       "line": 202,
+       "column": 4
+      }
+     ]
+    },
+    {
+     "tag": "d-ready-recv",
+     "line": 218,
+     "locations": [
+      {
+       "line": 218,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-result-recv",
+     "line": 225,
+     "locations": [
+      {
+       "line": 225,
+       "column": 21
+      }
+     ]
+    },
+    {
+     "tag": "d-bin-complete",
+     "line": 243,
+     "locations": [
+      {
+       "line": 243,
+       "column": 14
+      }
+     ]
+    },
+    {
+     "tag": "d-req-new",
+     "line": 264,
+     "locations": [
+      {
+       "line": 264,
+       "column": 24
+      }
+     ]
+    },
+    {
+     "tag": "d-ctrl-send",
+     "line": 306,
+     "locations": [
+      {
+       "line": 306,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "d-ctrl-sent",
+     "line": 307,
+     "locations": [
+      {
+       "line": 307,
+       "column": 6
+      }
+     ]
+    },
+    {
+     "tag": "w-send",
+     "line": 39,
+     "locations": [
+      {
+       "line": 39,
+       "column": 6
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "stoppedAt": "2026-10-15T13:22:11.483Z",
+ "summary": [
+  {
+   "name": "page",
+   "rows": 106804,
+   "removed": 78
+  },
+  {
+   "name": "native1",
+   "rows": 72136,
+   "removed": 78
+  },
+  {
+   "name": "native2",
+   "rows": 63937,
+   "removed": 78
+  }
+ ]
+}

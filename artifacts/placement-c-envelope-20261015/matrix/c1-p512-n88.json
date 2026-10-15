@@ -1,0 +1,1759 @@
+{
+ "schema": "reploid.placement-c-envelope-cell/v1",
+ "label": "c1-p512-n88",
+ "startedAt": "2026-10-15T15:56:31.669Z",
+ "promptFile": "p512-n88.txt",
+ "promptSha256": "sha256:a662ab9a68aa2475c93bb3d5fb554ba698588d99ef427cd85fc82239881b3d54",
+ "promptCharacters": 1651,
+ "requesters": 1,
+ "runs": [
+  {
+   "index": 0,
+   "attemptId": "510d8e3f-1475-4060-bafe-78b374fc64da",
+   "threadId": "4323aaf8-2f5a-4458-a144-2863d77c9e60",
+   "status": "completed",
+   "error": null,
+   "stopReason": "eos-token",
+   "coordinatorTokens": 255,
+   "publishedRecords": 255,
+   "answerCharacters": 254,
+   "answerHead": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70",
+   "answerTail": " 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88",
+   "attemptCreatedAt": 1792079795142,
+   "attemptFinishedAt": 1792080268987,
+   "firstTextAt": "2026-10-15T15:59:12.930Z",
+   "lastTextAt": "2026-10-15T16:04:29.192Z",
+   "lastTextCharacters": 254,
+   "timing": {
+    "schema": "reploid.signed-completion-answer-timing/v2",
+    "threadId": "4323aaf8-2f5a-4458-a144-2863d77c9e60",
+    "attemptId": "510d8e3f-1475-4060-bafe-78b374fc64da",
+    "status": "completed",
+    "requester": {
+     "attemptMs": {
+      "status": "measured",
+      "value": 473845,
+      "unit": "ms",
+      "clock": "requester-application",
+      "source": "packages/reploid/src/chat/workspace.js:248 minus packages/reploid/src/chat/workspace.js:116"
+     },
+     "firstVisibleTextMs": {
+      "status": "measured",
+      "value": 157884,
+      "unit": "ms",
+      "clock": "harness",
+      "source": "harness stream sample (Send click to first nonempty rendered response)",
+      "resolutionMs": 250
+     },
+     "outputCharacters": 254
+    },
+    "coordinator": {
+     "generatedTokens": 255,
+     "promptTokens": {
+      "status": "measured",
+      "value": 512,
+      "unit": "tokens",
+      "clock": "coordinator",
+      "source": "packages/reploid/src/mesh/partitions/partition-summary.js summarizeOrderedPhases: step 0 carries the whole prompt (prefill plus the first sampled token), later steps decode one token each; per-stage runtime fields are each contributor's Doppler resident metrics (doppler resident-partition.js:173-202,230), elapsed is the coordinator stage call"
+     },
+     "phases": {
+      "source": "packages/reploid/src/mesh/partitions/partition-summary.js summarizeOrderedPhases: step 0 carries the whole prompt (prefill plus the first sampled token), later steps decode one token each; per-stage runtime fields are each contributor's Doppler resident metrics (doppler resident-partition.js:173-202,230), elapsed is the coordinator stage call",
+      "prompt": {
+       "inputTokens": 512,
+       "stages": [
+        {
+         "partitionIndex": 0,
+         "elapsedMs": 82360.5,
+         "runtime": {
+          "executionMs": 82344.79999995232,
+          "inputUploadMs": 0,
+          "encodeMs": 82180.9000005722,
+          "submitWaitMs": 140.69999933242798,
+          "activationReadbackMs": 14.40000033378601,
+          "logitsMs": 0,
+          "gpuKernelsMs": null,
+          "logitsReadbackMs": 0,
+          "samplingMs": 0
+         }
+        },
+        {
+         "partitionIndex": 1,
+         "elapsedMs": 32156.199999809265,
+         "runtime": {
+          "executionMs": 26041.8811939999,
+          "inputUploadMs": 0.7605739999562502,
+          "encodeMs": 25986.83492900082,
+          "submitWaitMs": 41.618351998506114,
+          "activationReadbackMs": 6.45427899970673,
+          "logitsMs": 0,
+          "gpuKernelsMs": null,
+          "logitsReadbackMs": 0,
+          "samplingMs": 0
+         }
+        },
+        {
+         "partitionIndex": 2,
+         "elapsedMs": 29326.700000047684,
+         "runtime": {
+          "executionMs": 25890.67665300006,
+          "inputUploadMs": 0.9055029996670783,
+          "encodeMs": 25799.538540000794,
+          "submitWaitMs": 40.576037999475375,
+          "activationReadbackMs": 0,
+          "logitsMs": 43.72290199995041,
+          "gpuKernelsMs": null,
+          "logitsReadbackMs": 0.3874729999806732,
+          "samplingMs": 3.680049999849871
+         }
+        }
+       ]
+      },
+      "decode": {
+       "steps": 254,
+       "stages": [
+        {
+         "partitionIndex": 0,
+         "elapsedMs": {
+          "count": 254,
+          "total": 61651.5,
+          "min": 210.79999995231628,
+          "max": 323.60000014305115
+         },
+         "runtime": {
+          "executionMs": {
+           "count": 254,
+           "total": 58222.19999957085,
+           "min": 198.10000014305115,
+           "max": 313.09999990463257
+          },
+          "inputUploadMs": {
+           "count": 254,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          },
+          "encodeMs": {
+           "count": 254,
+           "total": 674.2999994754791,
+           "min": 2.200000047683716,
+           "max": 3.6999998092651367
+          },
+          "submitWaitMs": {
+           "count": 254,
+           "total": 57314.0999982357,
+           "min": 193.09999990463257,
+           "max": 309.7999999523163
+          },
+          "activationReadbackMs": {
+           "count": 254,
+           "total": 200.0999994277954,
+           "min": 0.2999999523162842,
+           "max": 6.099999904632568
+          },
+          "logitsMs": {
+           "count": 254,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          },
+          "gpuKernelsMs": {
+           "count": 0,
+           "total": 0,
+           "min": null,
+           "max": null
+          },
+          "logitsReadbackMs": {
+           "count": 254,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          },
+          "samplingMs": {
+           "count": 254,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          }
+         }
+        },
+        {
+         "partitionIndex": 1,
+         "elapsedMs": {
+          "count": 254,
+          "total": 129571.79999780655,
+          "min": 306.2000000476837,
+          "max": 3311.300000190735
+         },
+         "runtime": {
+          "executionMs": {
+           "count": 254,
+           "total": 26687.97929299972,
+           "min": 90.54279699991457,
+           "max": 336.793227000162
+          },
+          "inputUploadMs": {
+           "count": 254,
+           "total": 13.411591998767108,
+           "min": 0.047181000001728535,
+           "max": 0.11375600006431341
+          },
+          "encodeMs": {
+           "count": 254,
+           "total": 2061.9157239992637,
+           "min": 6.2036979999393225,
+           "max": 18.89746899995953
+          },
+          "submitWaitMs": {
+           "count": 254,
+           "total": 24339.17076299968,
+           "min": 83.01937399990857,
+           "max": 328.16274199984036
+          },
+          "activationReadbackMs": {
+           "count": 254,
+           "total": 181.5205609977711,
+           "min": 0.41932399990037084,
+           "max": 4.168820000020787
+          },
+          "logitsMs": {
+           "count": 254,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          },
+          "gpuKernelsMs": {
+           "count": 0,
+           "total": 0,
+           "min": null,
+           "max": null
+          },
+          "logitsReadbackMs": {
+           "count": 254,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          },
+          "samplingMs": {
+           "count": 254,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          }
+         }
+        },
+        {
+         "partitionIndex": 2,
+         "elapsedMs": {
+          "count": 254,
+          "total": 110938.99999928474,
+          "min": 253,
+          "max": 3696.7999999523163
+         },
+         "runtime": {
+          "executionMs": {
+           "count": 254,
+           "total": 39862.2496019993,
+           "min": 139.68855499988422,
+           "max": 371.5837560000364
+          },
+          "inputUploadMs": {
+           "count": 254,
+           "total": 13.528803998837247,
+           "min": 0.04406400001607835,
+           "max": 0.1033570000436157
+          },
+          "encodeMs": {
+           "count": 254,
+           "total": 2062.30244400003,
+           "min": 6.1585999999661,
+           "max": 20.60731599992141
+          },
+          "submitWaitMs": {
+           "count": 254,
+           "total": 24413.876196000492,
+           "min": 83.46684899996035,
+           "max": 299.1122580000665
+          },
+          "activationReadbackMs": {
+           "count": 254,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          },
+          "logitsMs": {
+           "count": 254,
+           "total": 13281.139187999535,
+           "min": 46.64734399993904,
+           "max": 278.13841000013053
+          },
+          "gpuKernelsMs": {
+           "count": 0,
+           "total": 0,
+           "min": null,
+           "max": null
+          },
+          "logitsReadbackMs": {
+           "count": 254,
+           "total": 88.13633300480433,
+           "min": 0.2198300000745803,
+           "max": 3.634305000072345
+          },
+          "samplingMs": {
+           "count": 254,
+           "total": 307.1992680008989,
+           "min": 1.1450189999304712,
+           "max": 1.7952570000197738
+          }
+         }
+        }
+       ]
+      }
+     },
+     "stages": [
+      {
+       "partitionIndex": 0,
+       "steps": 255,
+       "stepCount": 255,
+       "stepMsTotal": {
+        "status": "measured",
+        "value": 144012,
+        "unit": "ms",
+        "clock": "coordinator",
+        "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+       }
+      },
+      {
+       "partitionIndex": 1,
+       "steps": 255,
+       "stepCount": 255,
+       "stepMsTotal": {
+        "status": "measured",
+        "value": 161727.9999976158,
+        "unit": "ms",
+        "clock": "coordinator",
+        "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+       }
+      },
+      {
+       "partitionIndex": 2,
+       "steps": 255,
+       "stepCount": 255,
+       "stepMsTotal": {
+        "status": "measured",
+        "value": 140265.69999933243,
+        "unit": "ms",
+        "clock": "coordinator",
+        "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+       }
+      }
+     ],
+     "activationBytes": {
+      "status": "measured",
+      "value": 12550144,
+      "unit": "bytes",
+      "clock": "coordinator",
+      "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:209"
+     }
+    },
+    "runtime": {
+     "executionMs": {
+      "status": "measured",
+      "value": 259049.78674152214,
+      "unit": "ms",
+      "clock": "contributor-runtime",
+      "source": "packages/reploid/src/mesh/partitions/partition-summary.js summarizeOrderedPhases: step 0 carries the whole prompt (prefill plus the first sampled token), later steps decode one token each; per-stage runtime fields are each contributor's Doppler resident metrics (doppler resident-partition.js:173-202,230), elapsed is the coordinator stage call"
+     },
+     "logitsReadbackMs": {
+      "status": "measured",
+      "value": 88.523806004785,
+      "unit": "ms",
+      "clock": "contributor-runtime",
+      "source": "packages/reploid/src/mesh/partitions/partition-summary.js summarizeOrderedPhases: step 0 carries the whole prompt (prefill plus the first sampled token), later steps decode one token each; per-stage runtime fields are each contributor's Doppler resident metrics (doppler resident-partition.js:173-202,230), elapsed is the coordinator stage call"
+     },
+     "samplingMs": {
+      "status": "measured",
+      "value": 310.87931800074875,
+      "unit": "ms",
+      "clock": "contributor-runtime",
+      "source": "packages/reploid/src/mesh/partitions/partition-summary.js summarizeOrderedPhases: step 0 carries the whole prompt (prefill plus the first sampled token), later steps decode one token each; per-stage runtime fields are each contributor's Doppler resident metrics (doppler resident-partition.js:173-202,230), elapsed is the coordinator stage call"
+     }
+    },
+    "scheduler": {
+     "queuedMs": {
+      "status": "not-observable",
+      "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+      "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+     },
+     "loadMs": {
+      "status": "not-observable",
+      "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+      "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+     },
+     "executionMs": {
+      "status": "not-observable",
+      "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+      "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+     }
+    },
+    "transport": {
+     "status": "not-observable",
+     "reason": "Ordered summaries carry no transport timing",
+     "source": "partition-summary.js:43-45 aggregates transportTiming for v1 two-device summaries only; the ordered v2 summary (partition-summary.js:16-18) carries none"
+    },
+    "persistence": {
+     "status": "not-observable",
+     "reason": "History persistence exposes no timing",
+     "source": "ordered routes commit each step through the requester transaction owner (packages/reploid/src/mesh/partitions/partition-ordered-chat.js:136, owner.publish) before delivery or the next step; neither that commit nor ordinary history (packages/reploid/src/chat/workspace.js persist()) exposes timing"
+    }
+   },
+   "samples": [
+    {
+     "at": "2026-10-15T15:56:35.158Z",
+     "status": "queued",
+     "characters": 0
+    },
+    {
+     "at": "2026-10-15T15:56:48.608Z",
+     "status": "executing",
+     "characters": 0
+    },
+    {
+     "at": "2026-10-15T15:59:12.930Z",
+     "status": "executing",
+     "characters": 1
+    },
+    {
+     "at": "2026-10-15T15:59:13.716Z",
+     "status": "executing",
+     "characters": 2
+    },
+    {
+     "at": "2026-10-15T15:59:14.780Z",
+     "status": "executing",
+     "characters": 3
+    },
+    {
+     "at": "2026-10-15T15:59:15.870Z",
+     "status": "executing",
+     "characters": 4
+    },
+    {
+     "at": "2026-10-15T15:59:17.200Z",
+     "status": "executing",
+     "characters": 5
+    },
+    {
+     "at": "2026-10-15T15:59:18.262Z",
+     "status": "executing",
+     "characters": 6
+    },
+    {
+     "at": "2026-10-15T15:59:19.336Z",
+     "status": "executing",
+     "characters": 7
+    },
+    {
+     "at": "2026-10-15T15:59:20.422Z",
+     "status": "executing",
+     "characters": 8
+    },
+    {
+     "at": "2026-10-15T15:59:21.740Z",
+     "status": "executing",
+     "characters": 9
+    },
+    {
+     "at": "2026-10-15T15:59:22.798Z",
+     "status": "executing",
+     "characters": 10
+    },
+    {
+     "at": "2026-10-15T15:59:24.114Z",
+     "status": "executing",
+     "characters": 11
+    },
+    {
+     "at": "2026-10-15T15:59:25.209Z",
+     "status": "executing",
+     "characters": 12
+    },
+    {
+     "at": "2026-10-15T15:59:26.274Z",
+     "status": "executing",
+     "characters": 13
+    },
+    {
+     "at": "2026-10-15T15:59:27.330Z",
+     "status": "executing",
+     "characters": 14
+    },
+    {
+     "at": "2026-10-15T15:59:29.210Z",
+     "status": "executing",
+     "characters": 15
+    },
+    {
+     "at": "2026-10-15T15:59:30.545Z",
+     "status": "executing",
+     "characters": 16
+    },
+    {
+     "at": "2026-10-15T15:59:31.880Z",
+     "status": "executing",
+     "characters": 17
+    },
+    {
+     "at": "2026-10-15T15:59:32.946Z",
+     "status": "executing",
+     "characters": 18
+    },
+    {
+     "at": "2026-10-15T15:59:34.000Z",
+     "status": "executing",
+     "characters": 19
+    },
+    {
+     "at": "2026-10-15T15:59:35.335Z",
+     "status": "executing",
+     "characters": 20
+    },
+    {
+     "at": "2026-10-15T15:59:36.415Z",
+     "status": "executing",
+     "characters": 21
+    },
+    {
+     "at": "2026-10-15T15:59:37.478Z",
+     "status": "executing",
+     "characters": 22
+    },
+    {
+     "at": "2026-10-15T15:59:38.540Z",
+     "status": "executing",
+     "characters": 23
+    },
+    {
+     "at": "2026-10-15T15:59:39.864Z",
+     "status": "executing",
+     "characters": 24
+    },
+    {
+     "at": "2026-10-15T15:59:40.915Z",
+     "status": "executing",
+     "characters": 25
+    },
+    {
+     "at": "2026-10-15T15:59:41.979Z",
+     "status": "executing",
+     "characters": 26
+    },
+    {
+     "at": "2026-10-15T15:59:43.325Z",
+     "status": "executing",
+     "characters": 27
+    },
+    {
+     "at": "2026-10-15T15:59:44.380Z",
+     "status": "executing",
+     "characters": 28
+    },
+    {
+     "at": "2026-10-15T15:59:45.464Z",
+     "status": "executing",
+     "characters": 29
+    },
+    {
+     "at": "2026-10-15T15:59:46.815Z",
+     "status": "executing",
+     "characters": 30
+    },
+    {
+     "at": "2026-10-15T15:59:47.875Z",
+     "status": "executing",
+     "characters": 31
+    },
+    {
+     "at": "2026-10-15T15:59:48.949Z",
+     "status": "executing",
+     "characters": 32
+    },
+    {
+     "at": "2026-10-15T15:59:50.289Z",
+     "status": "executing",
+     "characters": 33
+    },
+    {
+     "at": "2026-10-15T15:59:51.352Z",
+     "status": "executing",
+     "characters": 34
+    },
+    {
+     "at": "2026-10-15T15:59:52.411Z",
+     "status": "executing",
+     "characters": 35
+    },
+    {
+     "at": "2026-10-15T15:59:53.748Z",
+     "status": "executing",
+     "characters": 36
+    },
+    {
+     "at": "2026-10-15T15:59:54.822Z",
+     "status": "executing",
+     "characters": 37
+    },
+    {
+     "at": "2026-10-15T15:59:55.865Z",
+     "status": "executing",
+     "characters": 38
+    },
+    {
+     "at": "2026-10-15T15:59:57.211Z",
+     "status": "executing",
+     "characters": 39
+    },
+    {
+     "at": "2026-10-15T15:59:58.263Z",
+     "status": "executing",
+     "characters": 40
+    },
+    {
+     "at": "2026-10-15T15:59:59.321Z",
+     "status": "executing",
+     "characters": 41
+    },
+    {
+     "at": "2026-10-15T16:00:00.679Z",
+     "status": "executing",
+     "characters": 42
+    },
+    {
+     "at": "2026-10-15T16:00:01.747Z",
+     "status": "executing",
+     "characters": 43
+    },
+    {
+     "at": "2026-10-15T16:00:02.821Z",
+     "status": "executing",
+     "characters": 44
+    },
+    {
+     "at": "2026-10-15T16:00:03.887Z",
+     "status": "executing",
+     "characters": 45
+    },
+    {
+     "at": "2026-10-15T16:00:05.222Z",
+     "status": "executing",
+     "characters": 46
+    },
+    {
+     "at": "2026-10-15T16:00:06.281Z",
+     "status": "executing",
+     "characters": 47
+    },
+    {
+     "at": "2026-10-15T16:00:07.351Z",
+     "status": "executing",
+     "characters": 48
+    },
+    {
+     "at": "2026-10-15T16:00:08.421Z",
+     "status": "executing",
+     "characters": 49
+    },
+    {
+     "at": "2026-10-15T16:00:09.749Z",
+     "status": "executing",
+     "characters": 50
+    },
+    {
+     "at": "2026-10-15T16:00:10.794Z",
+     "status": "executing",
+     "characters": 51
+    },
+    {
+     "at": "2026-10-15T16:00:11.853Z",
+     "status": "executing",
+     "characters": 52
+    },
+    {
+     "at": "2026-10-15T16:00:13.188Z",
+     "status": "executing",
+     "characters": 53
+    },
+    {
+     "at": "2026-10-15T16:00:14.255Z",
+     "status": "executing",
+     "characters": 54
+    },
+    {
+     "at": "2026-10-15T16:00:15.580Z",
+     "status": "executing",
+     "characters": 55
+    },
+    {
+     "at": "2026-10-15T16:00:16.639Z",
+     "status": "executing",
+     "characters": 56
+    },
+    {
+     "at": "2026-10-15T16:00:17.971Z",
+     "status": "executing",
+     "characters": 57
+    },
+    {
+     "at": "2026-10-15T16:00:18.789Z",
+     "status": "executing",
+     "characters": 58
+    },
+    {
+     "at": "2026-10-15T16:00:20.117Z",
+     "status": "executing",
+     "characters": 59
+    },
+    {
+     "at": "2026-10-15T16:00:21.167Z",
+     "status": "executing",
+     "characters": 60
+    },
+    {
+     "at": "2026-10-15T16:00:22.506Z",
+     "status": "executing",
+     "characters": 61
+    },
+    {
+     "at": "2026-10-15T16:00:23.568Z",
+     "status": "executing",
+     "characters": 62
+    },
+    {
+     "at": "2026-10-15T16:00:24.618Z",
+     "status": "executing",
+     "characters": 63
+    },
+    {
+     "at": "2026-10-15T16:00:25.949Z",
+     "status": "executing",
+     "characters": 64
+    },
+    {
+     "at": "2026-10-15T16:00:27.025Z",
+     "status": "executing",
+     "characters": 65
+    },
+    {
+     "at": "2026-10-15T16:00:28.360Z",
+     "status": "executing",
+     "characters": 66
+    },
+    {
+     "at": "2026-10-15T16:00:29.407Z",
+     "status": "executing",
+     "characters": 67
+    },
+    {
+     "at": "2026-10-15T16:00:30.466Z",
+     "status": "executing",
+     "characters": 68
+    },
+    {
+     "at": "2026-10-15T16:00:31.542Z",
+     "status": "executing",
+     "characters": 69
+    },
+    {
+     "at": "2026-10-15T16:00:32.860Z",
+     "status": "executing",
+     "characters": 70
+    },
+    {
+     "at": "2026-10-15T16:00:33.656Z",
+     "status": "executing",
+     "characters": 71
+    },
+    {
+     "at": "2026-10-15T16:00:34.731Z",
+     "status": "executing",
+     "characters": 72
+    },
+    {
+     "at": "2026-10-15T16:00:35.787Z",
+     "status": "executing",
+     "characters": 73
+    },
+    {
+     "at": "2026-10-15T16:00:37.385Z",
+     "status": "executing",
+     "characters": 74
+    },
+    {
+     "at": "2026-10-15T16:00:38.458Z",
+     "status": "executing",
+     "characters": 75
+    },
+    {
+     "at": "2026-10-15T16:00:39.771Z",
+     "status": "executing",
+     "characters": 76
+    },
+    {
+     "at": "2026-10-15T16:00:40.832Z",
+     "status": "executing",
+     "characters": 77
+    },
+    {
+     "at": "2026-10-15T16:00:42.151Z",
+     "status": "executing",
+     "characters": 78
+    },
+    {
+     "at": "2026-10-15T16:00:43.216Z",
+     "status": "executing",
+     "characters": 79
+    },
+    {
+     "at": "2026-10-15T16:00:44.280Z",
+     "status": "executing",
+     "characters": 80
+    },
+    {
+     "at": "2026-10-15T16:00:45.349Z",
+     "status": "executing",
+     "characters": 81
+    },
+    {
+     "at": "2026-10-15T16:00:46.430Z",
+     "status": "executing",
+     "characters": 82
+    },
+    {
+     "at": "2026-10-15T16:00:47.764Z",
+     "status": "executing",
+     "characters": 83
+    },
+    {
+     "at": "2026-10-15T16:00:48.824Z",
+     "status": "executing",
+     "characters": 84
+    },
+    {
+     "at": "2026-10-15T16:00:50.146Z",
+     "status": "executing",
+     "characters": 85
+    },
+    {
+     "at": "2026-10-15T16:00:51.204Z",
+     "status": "executing",
+     "characters": 86
+    },
+    {
+     "at": "2026-10-15T16:00:51.998Z",
+     "status": "executing",
+     "characters": 87
+    },
+    {
+     "at": "2026-10-15T16:00:53.048Z",
+     "status": "executing",
+     "characters": 88
+    },
+    {
+     "at": "2026-10-15T16:00:54.103Z",
+     "status": "executing",
+     "characters": 89
+    },
+    {
+     "at": "2026-10-15T16:00:55.167Z",
+     "status": "executing",
+     "characters": 90
+    },
+    {
+     "at": "2026-10-15T16:00:56.494Z",
+     "status": "executing",
+     "characters": 91
+    },
+    {
+     "at": "2026-10-15T16:00:57.551Z",
+     "status": "executing",
+     "characters": 92
+    },
+    {
+     "at": "2026-10-15T16:00:58.907Z",
+     "status": "executing",
+     "characters": 93
+    },
+    {
+     "at": "2026-10-15T16:00:59.982Z",
+     "status": "executing",
+     "characters": 94
+    },
+    {
+     "at": "2026-10-15T16:01:01.054Z",
+     "status": "executing",
+     "characters": 95
+    },
+    {
+     "at": "2026-10-15T16:01:02.118Z",
+     "status": "executing",
+     "characters": 96
+    },
+    {
+     "at": "2026-10-15T16:01:03.177Z",
+     "status": "executing",
+     "characters": 97
+    },
+    {
+     "at": "2026-10-15T16:01:04.257Z",
+     "status": "executing",
+     "characters": 98
+    },
+    {
+     "at": "2026-10-15T16:01:05.574Z",
+     "status": "executing",
+     "characters": 99
+    },
+    {
+     "at": "2026-10-15T16:01:06.646Z",
+     "status": "executing",
+     "characters": 100
+    },
+    {
+     "at": "2026-10-15T16:01:07.967Z",
+     "status": "executing",
+     "characters": 101
+    },
+    {
+     "at": "2026-10-15T16:01:09.285Z",
+     "status": "executing",
+     "characters": 102
+    },
+    {
+     "at": "2026-10-15T16:01:10.348Z",
+     "status": "executing",
+     "characters": 103
+    },
+    {
+     "at": "2026-10-15T16:01:11.401Z",
+     "status": "executing",
+     "characters": 104
+    },
+    {
+     "at": "2026-10-15T16:01:12.467Z",
+     "status": "executing",
+     "characters": 105
+    },
+    {
+     "at": "2026-10-15T16:01:13.536Z",
+     "status": "executing",
+     "characters": 106
+    },
+    {
+     "at": "2026-10-15T16:01:14.894Z",
+     "status": "executing",
+     "characters": 107
+    },
+    {
+     "at": "2026-10-15T16:01:15.944Z",
+     "status": "executing",
+     "characters": 108
+    },
+    {
+     "at": "2026-10-15T16:01:16.999Z",
+     "status": "executing",
+     "characters": 109
+    },
+    {
+     "at": "2026-10-15T16:01:18.319Z",
+     "status": "executing",
+     "characters": 110
+    },
+    {
+     "at": "2026-10-15T16:01:19.917Z",
+     "status": "executing",
+     "characters": 111
+    },
+    {
+     "at": "2026-10-15T16:01:20.971Z",
+     "status": "executing",
+     "characters": 112
+    },
+    {
+     "at": "2026-10-15T16:01:21.755Z",
+     "status": "executing",
+     "characters": 113
+    },
+    {
+     "at": "2026-10-15T16:01:22.844Z",
+     "status": "executing",
+     "characters": 114
+    },
+    {
+     "at": "2026-10-15T16:01:24.169Z",
+     "status": "executing",
+     "characters": 115
+    },
+    {
+     "at": "2026-10-15T16:01:25.230Z",
+     "status": "executing",
+     "characters": 116
+    },
+    {
+     "at": "2026-10-15T16:01:26.283Z",
+     "status": "executing",
+     "characters": 117
+    },
+    {
+     "at": "2026-10-15T16:01:27.592Z",
+     "status": "executing",
+     "characters": 118
+    },
+    {
+     "at": "2026-10-15T16:01:28.661Z",
+     "status": "executing",
+     "characters": 119
+    },
+    {
+     "at": "2026-10-15T16:01:30.023Z",
+     "status": "executing",
+     "characters": 120
+    },
+    {
+     "at": "2026-10-15T16:01:31.082Z",
+     "status": "executing",
+     "characters": 121
+    },
+    {
+     "at": "2026-10-15T16:01:32.132Z",
+     "status": "executing",
+     "characters": 122
+    },
+    {
+     "at": "2026-10-15T16:01:33.203Z",
+     "status": "executing",
+     "characters": 123
+    },
+    {
+     "at": "2026-10-15T16:01:34.524Z",
+     "status": "executing",
+     "characters": 124
+    },
+    {
+     "at": "2026-10-15T16:01:35.583Z",
+     "status": "executing",
+     "characters": 125
+    },
+    {
+     "at": "2026-10-15T16:01:36.903Z",
+     "status": "executing",
+     "characters": 126
+    },
+    {
+     "at": "2026-10-15T16:01:37.954Z",
+     "status": "executing",
+     "characters": 127
+    },
+    {
+     "at": "2026-10-15T16:01:39.305Z",
+     "status": "executing",
+     "characters": 128
+    },
+    {
+     "at": "2026-10-15T16:01:40.358Z",
+     "status": "executing",
+     "characters": 129
+    },
+    {
+     "at": "2026-10-15T16:01:41.685Z",
+     "status": "executing",
+     "characters": 130
+    },
+    {
+     "at": "2026-10-15T16:01:42.775Z",
+     "status": "executing",
+     "characters": 131
+    },
+    {
+     "at": "2026-10-15T16:01:43.842Z",
+     "status": "executing",
+     "characters": 132
+    },
+    {
+     "at": "2026-10-15T16:01:44.888Z",
+     "status": "executing",
+     "characters": 133
+    },
+    {
+     "at": "2026-10-15T16:01:46.217Z",
+     "status": "executing",
+     "characters": 134
+    },
+    {
+     "at": "2026-10-15T16:01:47.547Z",
+     "status": "executing",
+     "characters": 135
+    },
+    {
+     "at": "2026-10-15T16:01:48.614Z",
+     "status": "executing",
+     "characters": 136
+    },
+    {
+     "at": "2026-10-15T16:01:49.935Z",
+     "status": "executing",
+     "characters": 137
+    },
+    {
+     "at": "2026-10-15T16:01:50.736Z",
+     "status": "executing",
+     "characters": 138
+    },
+    {
+     "at": "2026-10-15T16:01:52.095Z",
+     "status": "executing",
+     "characters": 139
+    },
+    {
+     "at": "2026-10-15T16:01:53.161Z",
+     "status": "executing",
+     "characters": 140
+    },
+    {
+     "at": "2026-10-15T16:01:54.224Z",
+     "status": "executing",
+     "characters": 141
+    },
+    {
+     "at": "2026-10-15T16:01:55.278Z",
+     "status": "executing",
+     "characters": 142
+    },
+    {
+     "at": "2026-10-15T16:01:56.611Z",
+     "status": "executing",
+     "characters": 143
+    },
+    {
+     "at": "2026-10-15T16:01:57.664Z",
+     "status": "executing",
+     "characters": 144
+    },
+    {
+     "at": "2026-10-15T16:01:58.728Z",
+     "status": "executing",
+     "characters": 145
+    },
+    {
+     "at": "2026-10-15T16:02:00.036Z",
+     "status": "executing",
+     "characters": 146
+    },
+    {
+     "at": "2026-10-15T16:02:01.070Z",
+     "status": "executing",
+     "characters": 147
+    },
+    {
+     "at": "2026-10-15T16:02:02.403Z",
+     "status": "executing",
+     "characters": 148
+    },
+    {
+     "at": "2026-10-15T16:02:03.739Z",
+     "status": "executing",
+     "characters": 149
+    },
+    {
+     "at": "2026-10-15T16:02:04.538Z",
+     "status": "executing",
+     "characters": 150
+    },
+    {
+     "at": "2026-10-15T16:02:05.878Z",
+     "status": "executing",
+     "characters": 151
+    },
+    {
+     "at": "2026-10-15T16:02:06.938Z",
+     "status": "executing",
+     "characters": 152
+    },
+    {
+     "at": "2026-10-15T16:02:07.997Z",
+     "status": "executing",
+     "characters": 153
+    },
+    {
+     "at": "2026-10-15T16:02:09.326Z",
+     "status": "executing",
+     "characters": 154
+    },
+    {
+     "at": "2026-10-15T16:02:10.379Z",
+     "status": "executing",
+     "characters": 155
+    },
+    {
+     "at": "2026-10-15T16:02:11.702Z",
+     "status": "executing",
+     "characters": 156
+    },
+    {
+     "at": "2026-10-15T16:02:12.760Z",
+     "status": "executing",
+     "characters": 157
+    },
+    {
+     "at": "2026-10-15T16:02:14.080Z",
+     "status": "executing",
+     "characters": 158
+    },
+    {
+     "at": "2026-10-15T16:02:15.136Z",
+     "status": "executing",
+     "characters": 159
+    },
+    {
+     "at": "2026-10-15T16:02:16.190Z",
+     "status": "executing",
+     "characters": 160
+    },
+    {
+     "at": "2026-10-15T16:02:17.238Z",
+     "status": "executing",
+     "characters": 161
+    },
+    {
+     "at": "2026-10-15T16:02:18.599Z",
+     "status": "executing",
+     "characters": 162
+    },
+    {
+     "at": "2026-10-15T16:02:19.647Z",
+     "status": "executing",
+     "characters": 163
+    },
+    {
+     "at": "2026-10-15T16:02:20.702Z",
+     "status": "executing",
+     "characters": 164
+    },
+    {
+     "at": "2026-10-15T16:02:22.025Z",
+     "status": "executing",
+     "characters": 165
+    },
+    {
+     "at": "2026-10-15T16:02:23.091Z",
+     "status": "executing",
+     "characters": 166
+    },
+    {
+     "at": "2026-10-15T16:02:24.153Z",
+     "status": "executing",
+     "characters": 167
+    },
+    {
+     "at": "2026-10-15T16:02:25.736Z",
+     "status": "executing",
+     "characters": 168
+    },
+    {
+     "at": "2026-10-15T16:02:27.061Z",
+     "status": "executing",
+     "characters": 169
+    },
+    {
+     "at": "2026-10-15T16:02:28.381Z",
+     "status": "executing",
+     "characters": 170
+    },
+    {
+     "at": "2026-10-15T16:02:30.024Z",
+     "status": "executing",
+     "characters": 171
+    },
+    {
+     "at": "2026-10-15T16:02:31.619Z",
+     "status": "executing",
+     "characters": 172
+    },
+    {
+     "at": "2026-10-15T16:02:32.690Z",
+     "status": "executing",
+     "characters": 173
+    },
+    {
+     "at": "2026-10-15T16:02:34.278Z",
+     "status": "executing",
+     "characters": 174
+    },
+    {
+     "at": "2026-10-15T16:02:35.858Z",
+     "status": "executing",
+     "characters": 175
+    },
+    {
+     "at": "2026-10-15T16:02:37.167Z",
+     "status": "executing",
+     "characters": 176
+    },
+    {
+     "at": "2026-10-15T16:02:38.500Z",
+     "status": "executing",
+     "characters": 177
+    },
+    {
+     "at": "2026-10-15T16:02:39.562Z",
+     "status": "executing",
+     "characters": 178
+    },
+    {
+     "at": "2026-10-15T16:02:40.641Z",
+     "status": "executing",
+     "characters": 179
+    },
+    {
+     "at": "2026-10-15T16:02:41.964Z",
+     "status": "executing",
+     "characters": 180
+    },
+    {
+     "at": "2026-10-15T16:02:43.029Z",
+     "status": "executing",
+     "characters": 181
+    },
+    {
+     "at": "2026-10-15T16:02:44.107Z",
+     "status": "executing",
+     "characters": 182
+    },
+    {
+     "at": "2026-10-15T16:02:45.434Z",
+     "status": "executing",
+     "characters": 183
+    },
+    {
+     "at": "2026-10-15T16:02:46.785Z",
+     "status": "executing",
+     "characters": 184
+    },
+    {
+     "at": "2026-10-15T16:02:47.841Z",
+     "status": "executing",
+     "characters": 185
+    },
+    {
+     "at": "2026-10-15T16:02:48.893Z",
+     "status": "executing",
+     "characters": 186
+    },
+    {
+     "at": "2026-10-15T16:02:50.234Z",
+     "status": "executing",
+     "characters": 187
+    },
+    {
+     "at": "2026-10-15T16:02:51.298Z",
+     "status": "executing",
+     "characters": 188
+    },
+    {
+     "at": "2026-10-15T16:02:52.622Z",
+     "status": "executing",
+     "characters": 189
+    },
+    {
+     "at": "2026-10-15T16:02:53.676Z",
+     "status": "executing",
+     "characters": 190
+    },
+    {
+     "at": "2026-10-15T16:02:54.735Z",
+     "status": "executing",
+     "characters": 191
+    },
+    {
+     "at": "2026-10-15T16:02:56.051Z",
+     "status": "executing",
+     "characters": 192
+    },
+    {
+     "at": "2026-10-15T16:02:57.369Z",
+     "status": "executing",
+     "characters": 193
+    },
+    {
+     "at": "2026-10-15T16:02:58.429Z",
+     "status": "executing",
+     "characters": 194
+    },
+    {
+     "at": "2026-10-15T16:02:59.512Z",
+     "status": "executing",
+     "characters": 195
+    },
+    {
+     "at": "2026-10-15T16:03:00.592Z",
+     "status": "executing",
+     "characters": 196
+    },
+    {
+     "at": "2026-10-15T16:03:01.916Z",
+     "status": "executing",
+     "characters": 197
+    },
+    {
+     "at": "2026-10-15T16:03:02.979Z",
+     "status": "executing",
+     "characters": 198
+    },
+    {
+     "at": "2026-10-15T16:03:04.325Z",
+     "status": "executing",
+     "characters": 199
+    },
+    {
+     "at": "2026-10-15T16:03:05.381Z",
+     "status": "executing",
+     "characters": 200
+    },
+    {
+     "at": "2026-10-15T16:03:06.746Z",
+     "status": "executing",
+     "characters": 201
+    },
+    {
+     "at": "2026-10-15T16:03:08.103Z",
+     "status": "executing",
+     "characters": 202
+    },
+    {
+     "at": "2026-10-15T16:03:08.896Z",
+     "status": "executing",
+     "characters": 203
+    },
+    {
+     "at": "2026-10-15T16:03:10.217Z",
+     "status": "executing",
+     "characters": 204
+    },
+    {
+     "at": "2026-10-15T16:03:11.277Z",
+     "status": "executing",
+     "characters": 205
+    },
+    {
+     "at": "2026-10-15T16:03:12.618Z",
+     "status": "executing",
+     "characters": 206
+    },
+    {
+     "at": "2026-10-15T16:03:13.676Z",
+     "status": "executing",
+     "characters": 207
+    },
+    {
+     "at": "2026-10-15T16:03:14.746Z",
+     "status": "executing",
+     "characters": 208
+    },
+    {
+     "at": "2026-10-15T16:03:16.067Z",
+     "status": "executing",
+     "characters": 209
+    },
+    {
+     "at": "2026-10-15T16:03:17.165Z",
+     "status": "executing",
+     "characters": 210
+    },
+    {
+     "at": "2026-10-15T16:03:18.503Z",
+     "status": "executing",
+     "characters": 211
+    },
+    {
+     "at": "2026-10-15T16:03:19.563Z",
+     "status": "executing",
+     "characters": 212
+    },
+    {
+     "at": "2026-10-15T16:03:20.633Z",
+     "status": "executing",
+     "characters": 213
+    },
+    {
+     "at": "2026-10-15T16:03:21.703Z",
+     "status": "executing",
+     "characters": 214
+    },
+    {
+     "at": "2026-10-15T16:03:23.045Z",
+     "status": "executing",
+     "characters": 215
+    },
+    {
+     "at": "2026-10-15T16:03:24.106Z",
+     "status": "executing",
+     "characters": 216
+    },
+    {
+     "at": "2026-10-15T16:03:25.166Z",
+     "status": "executing",
+     "characters": 217
+    },
+    {
+     "at": "2026-10-15T16:03:26.532Z",
+     "status": "executing",
+     "characters": 218
+    },
+    {
+     "at": "2026-10-15T16:03:27.613Z",
+     "status": "executing",
+     "characters": 219
+    },
+    {
+     "at": "2026-10-15T16:03:28.678Z",
+     "status": "executing",
+     "characters": 220
+    },
+    {
+     "at": "2026-10-15T16:03:30.005Z",
+     "status": "executing",
+     "characters": 221
+    },
+    {
+     "at": "2026-10-15T16:03:31.371Z",
+     "status": "executing",
+     "characters": 222
+    },
+    {
+     "at": "2026-10-15T16:03:32.430Z",
+     "status": "executing",
+     "characters": 223
+    },
+    {
+     "at": "2026-10-15T16:03:33.478Z",
+     "status": "executing",
+     "characters": 224
+    },
+    {
+     "at": "2026-10-15T16:03:34.805Z",
+     "status": "executing",
+     "characters": 225
+    },
+    {
+     "at": "2026-10-15T16:03:35.857Z",
+     "status": "executing",
+     "characters": 226
+    },
+    {
+     "at": "2026-10-15T16:03:37.179Z",
+     "status": "executing",
+     "characters": 227
+    },
+    {
+     "at": "2026-10-15T16:03:38.235Z",
+     "status": "executing",
+     "characters": 228
+    },
+    {
+     "at": "2026-10-15T16:03:39.542Z",
+     "status": "executing",
+     "characters": 229
+    },
+    {
+     "at": "2026-10-15T16:03:41.418Z",
+     "status": "executing",
+     "characters": 230
+    },
+    {
+     "at": "2026-10-15T16:03:42.483Z",
+     "status": "executing",
+     "characters": 231
+    },
+    {
+     "at": "2026-10-15T16:03:44.062Z",
+     "status": "executing",
+     "characters": 232
+    },
+    {
+     "at": "2026-10-15T16:03:45.153Z",
+     "status": "executing",
+     "characters": 233
+    },
+    {
+     "at": "2026-10-15T16:03:46.460Z",
+     "status": "executing",
+     "characters": 234
+    },
+    {
+     "at": "2026-10-15T16:03:49.631Z",
+     "status": "executing",
+     "characters": 235
+    },
+    {
+     "at": "2026-10-15T16:03:52.017Z",
+     "status": "executing",
+     "characters": 236
+    },
+    {
+     "at": "2026-10-15T16:03:59.200Z",
+     "status": "executing",
+     "characters": 237
+    },
+    {
+     "at": "2026-10-15T16:04:03.150Z",
+     "status": "executing",
+     "characters": 238
+    },
+    {
+     "at": "2026-10-15T16:04:04.223Z",
+     "status": "executing",
+     "characters": 239
+    },
+    {
+     "at": "2026-10-15T16:04:05.297Z",
+     "status": "executing",
+     "characters": 240
+    },
+    {
+     "at": "2026-10-15T16:04:06.621Z",
+     "status": "executing",
+     "characters": 241
+    },
+    {
+     "at": "2026-10-15T16:04:08.712Z",
+     "status": "executing",
+     "characters": 242
+    },
+    {
+     "at": "2026-10-15T16:04:10.025Z",
+     "status": "executing",
+     "characters": 243
+    },
+    {
+     "at": "2026-10-15T16:04:11.068Z",
+     "status": "executing",
+     "characters": 244
+    },
+    {
+     "at": "2026-10-15T16:04:12.918Z",
+     "status": "executing",
+     "characters": 245
+    },
+    {
+     "at": "2026-10-15T16:04:14.263Z",
+     "status": "executing",
+     "characters": 246
+    },
+    {
+     "at": "2026-10-15T16:04:15.306Z",
+     "status": "executing",
+     "characters": 247
+    },
+    {
+     "at": "2026-10-15T16:04:16.618Z",
+     "status": "executing",
+     "characters": 248
+    },
+    {
+     "at": "2026-10-15T16:04:18.237Z",
+     "status": "executing",
+     "characters": 249
+    },
+    {
+     "at": "2026-10-15T16:04:19.328Z",
+     "status": "executing",
+     "characters": 250
+    },
+    {
+     "at": "2026-10-15T16:04:20.920Z",
+     "status": "executing",
+     "characters": 251
+    },
+    {
+     "at": "2026-10-15T16:04:23.050Z",
+     "status": "executing",
+     "characters": 252
+    },
+    {
+     "at": "2026-10-15T16:04:24.648Z",
+     "status": "executing",
+     "characters": 253
+    },
+    {
+     "at": "2026-10-15T16:04:27.086Z",
+     "status": "executing",
+     "characters": 254
+    },
+    {
+     "at": "2026-10-15T16:04:29.192Z",
+     "status": "completed",
+     "characters": 254
+    }
+   ]
+  }
+ ],
+ "before": {
+  "at": "2026-10-15T15:56:35.025Z",
+  "phase": "ready",
+  "error": null,
+  "unsettledOwners": 0,
+  "reservations": {
+   "active": 0,
+   "availableSlots": 2,
+   "closed": false
+  },
+  "unknownAttempts": [],
+  "attempts": []
+ },
+ "sentAt": "2026-10-15T15:56:35.028Z",
+ "sends": [
+  {
+   "sentAt": "2026-10-15T15:56:35.046Z",
+   "permissionShown": true
+  }
+ ],
+ "ok": true,
+ "settlement": [
+  {
+   "at": "2026-10-15T16:04:29.281Z",
+   "phase": "ready",
+   "error": null,
+   "unsettledOwners": 0,
+   "reservations": {
+    "active": 0,
+    "availableSlots": 2,
+    "closed": false
+   },
+   "unknownAttempts": [],
+   "attempts": [
+    {
+     "attemptId": "510d8e3f-1475-4060-bafe-78b374fc64da",
+     "phase": "completed",
+     "cleanup": [
+      {
+       "partitionIndex": 0,
+       "status": "settled",
+       "error": null
+      },
+      {
+       "partitionIndex": 1,
+       "status": "settled",
+       "error": null
+      },
+      {
+       "partitionIndex": 2,
+       "status": "settled",
+       "error": null
+      }
+     ],
+     "cleanupSettledAt": 1792080268964,
+     "failure": null
+    }
+   ]
+  }
+ ],
+ "finishedAt": "2026-10-15T16:04:29.282Z"
+}

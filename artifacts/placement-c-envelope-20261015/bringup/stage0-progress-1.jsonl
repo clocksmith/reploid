@@ -1,0 +1,3 @@
+{"at":"2026-10-15T12:30:29.186Z","phase":"loading","error":null,"progress":null,"unsettledOwners":0,"placement":null}
+{"at":"2026-10-15T12:30:31.262Z","phase":"loading","error":null,"progress":{"stage":"acquiring","path":"artifacts/program-bundle.json","message":"Reusing artifacts/program-bundle.json"},"unsettledOwners":0,"placement":null}
+{"at":"2026-10-15T12:31:36.537Z","phase":"ready","error":null,"progress":null,"unsettledOwners":0,"placement":["peer:5e3cff2498adff93c48d80e4","peer:9af15d884eba51b0c0540e2a","peer:5f288f6f0259c251a1915c11"]}

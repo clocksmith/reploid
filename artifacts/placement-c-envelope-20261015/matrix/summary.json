@@ -1,0 +1,1433 @@
+{
+ "schema": "reploid.placement-c-envelope-matrix/v1",
+ "cells": [
+  {
+   "label": "c1-p56-n24",
+   "requesters": 1,
+   "promptTokens": 56,
+   "countTo": 24,
+   "requestedAnswerTokens": 63,
+   "ok": true,
+   "failure": null,
+   "network": {
+    "icmpRttMs": {
+     "median": 53.1,
+     "p90": 123.7,
+     "max": 138.5,
+     "n": 12
+    },
+    "icmpTimeouts": 4,
+    "stunRttMs": {
+     "median": 45.0,
+     "p90": 211.0,
+     "max": 1537.0,
+     "n": 74
+    }
+   },
+   "amd": {
+    "scopesMaxBytes": 1456009216,
+    "largestScopeMaxBytes": 746700800,
+    "memAvailableMinBytes": 52856778752,
+    "gttMaxBytes": 2521632768
+   },
+   "runs": [
+    {
+     "index": 0,
+     "status": "completed",
+     "error": null,
+     "failure": null,
+     "tokens": 63,
+     "stopReason": "eos-token",
+     "answerMs": 155808,
+     "firstTextMs": 21954,
+     "answerCharacters": 62,
+     "answerTail": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24",
+     "decodeMsPerToken": 2158.935483870968,
+     "promptStageCallsMs": [
+      9001.799999952316,
+      7137.099999904633,
+      4705.599999904633
+     ],
+     "largestStageCallMs": 9001.799999952316,
+     "decodeStages": [
+      {
+       "index": 0,
+       "elapsedMs": 224.64032257756878,
+       "executionMs": 211.92580645699655
+      },
+      {
+       "index": 1,
+       "elapsedMs": 1002.6145161198032,
+       "executionMs": 90.6201091935483
+      },
+      {
+       "index": 2,
+       "elapsedMs": 900.8338709531292,
+       "executionMs": 161.0419883870967
+      }
+     ]
+    }
+   ],
+   "margins": {
+    "deadlineS": 744.2,
+    "stageBoundS": 291.0,
+    "deadlineUsed": 0.173,
+    "stageBoundUsed": 0.03
+   },
+   "binding": "nearest: answer deadline (17% used)"
+  },
+  {
+   "label": "c1-p56-n88",
+   "requesters": 1,
+   "promptTokens": 56,
+   "countTo": 88,
+   "requestedAnswerTokens": 255,
+   "ok": true,
+   "failure": null,
+   "network": {
+    "icmpRttMs": {
+     "median": 31.5,
+     "p90": 94.7,
+     "max": 190.6,
+     "n": 34
+    },
+    "icmpTimeouts": 1,
+    "stunRttMs": {
+     "median": 36.0,
+     "p90": 116.0,
+     "max": 1075.0,
+     "n": 145
+    }
+   },
+   "amd": {
+    "scopesMaxBytes": 1536774144,
+    "largestScopeMaxBytes": 792502272,
+    "memAvailableMinBytes": 41441710080,
+    "gttMaxBytes": 2538409984
+   },
+   "runs": [
+    {
+     "index": 0,
+     "status": "completed",
+     "error": null,
+     "failure": null,
+     "tokens": 255,
+     "stopReason": "eos-token",
+     "answerMs": 351918,
+     "firstTextMs": 18647,
+     "answerCharacters": 254,
+     "answerTail": " 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88",
+     "decodeMsPerToken": 1312.0905511811025,
+     "promptStageCallsMs": [
+      8868.099999904633,
+      4771.100000143051,
+      3757.2999999523163
+     ],
+     "largestStageCallMs": 8868.099999904633,
+     "decodeStages": [
+      {
+       "index": 0,
+       "elapsedMs": 218.73346457425066,
+       "executionMs": 206.07992125965478
+      },
+      {
+       "index": 1,
+       "elapsedMs": 646.4342519720708,
+       "executionMs": 92.55113302362238
+      },
+      {
+       "index": 2,
+       "elapsedMs": 395.87047244432404,
+       "executionMs": 141.36684300787573
+      }
+     ]
+    }
+   ],
+   "margins": {
+    "deadlineS": 548.1,
+    "stageBoundS": 291.1,
+    "deadlineUsed": 0.391,
+    "stageBoundUsed": 0.03
+   },
+   "binding": "nearest: answer deadline (39% used)"
+  },
+  {
+   "label": "c1-p256-n24",
+   "requesters": 1,
+   "promptTokens": 256,
+   "countTo": 24,
+   "requestedAnswerTokens": 63,
+   "ok": true,
+   "failure": null,
+   "network": {
+    "icmpRttMs": {
+     "median": 32.7,
+     "p90": 66.0,
+     "max": 71.3,
+     "n": 18
+    },
+    "icmpTimeouts": 0,
+    "stunRttMs": {
+     "median": 45.0,
+     "p90": 147.0,
+     "max": 373.0,
+     "n": 76
+    }
+   },
+   "amd": {
+    "scopesMaxBytes": 1578213376,
+    "largestScopeMaxBytes": 803778560,
+    "memAvailableMinBytes": 53061918720,
+    "gttMaxBytes": 2538409984
+   },
+   "runs": [
+    {
+     "index": 0,
+     "status": "completed",
+     "error": null,
+     "failure": null,
+     "tokens": 63,
+     "stopReason": "eos-token",
+     "answerMs": 181857,
+     "firstTextMs": 96977,
+     "answerCharacters": 62,
+     "answerTail": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24",
+     "decodeMsPerToken": 1369.032258064516,
+     "promptStageCallsMs": [
+      40821.5,
+      27258.89999985695,
+      16573.60000014305
+     ],
+     "largestStageCallMs": 40821.5,
+     "decodeStages": [
+      {
+       "index": 0,
+       "elapsedMs": 228.251612913224,
+       "executionMs": 212.78064518205582
+      },
+      {
+       "index": 1,
+       "elapsedMs": 685.1370967972663,
+       "executionMs": 90.89266696774528
+      },
+      {
+       "index": 2,
+       "elapsedMs": 418.2048386989101,
+       "executionMs": 148.22618537096892
+      }
+     ]
+    }
+   ],
+   "margins": {
+    "deadlineS": 718.1,
+    "stageBoundS": 259.2,
+    "deadlineUsed": 0.202,
+    "stageBoundUsed": 0.136
+   },
+   "binding": "nearest: answer deadline (20% used)"
+  },
+  {
+   "label": "c1-p256-n88",
+   "requesters": 1,
+   "promptTokens": 256,
+   "countTo": 88,
+   "requestedAnswerTokens": 255,
+   "ok": true,
+   "failure": null,
+   "network": {
+    "icmpRttMs": {
+     "median": 23.0,
+     "p90": 55.0,
+     "max": 179.2,
+     "n": 37
+    },
+    "icmpTimeouts": 0,
+    "stunRttMs": {
+     "median": 25.0,
+     "p90": 76.0,
+     "max": 273.0,
+     "n": 150
+    }
+   },
+   "amd": {
+    "scopesMaxBytes": 1605394432,
+    "largestScopeMaxBytes": 815132672,
+    "memAvailableMinBytes": 53015453696,
+    "gttMaxBytes": 2538409984
+   },
+   "runs": [
+    {
+     "index": 0,
+     "status": "completed",
+     "error": null,
+     "failure": null,
+     "tokens": 255,
+     "stopReason": "eos-token",
+     "answerMs": 372471,
+     "firstTextMs": 85732,
+     "answerCharacters": 254,
+     "answerTail": " 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88",
+     "decodeMsPerToken": 1128.8937007874015,
+     "promptStageCallsMs": [
+      40676.200000047684,
+      17739.199999809265,
+      14858.299999952316
+     ],
+     "largestStageCallMs": 40676.200000047684,
+     "decodeStages": [
+      {
+       "index": 0,
+       "elapsedMs": 222.12047244150807,
+       "executionMs": 208.27440945933185
+      },
+      {
+       "index": 1,
+       "elapsedMs": 522.5492125918546,
+       "executionMs": 100.9029103189035
+      },
+      {
+       "index": 2,
+       "elapsedMs": 329.2204724381289,
+       "executionMs": 148.1470478976404
+      }
+     ]
+    }
+   ],
+   "margins": {
+    "deadlineS": 527.5,
+    "stageBoundS": 259.3,
+    "deadlineUsed": 0.414,
+    "stageBoundUsed": 0.136
+   },
+   "binding": "nearest: answer deadline (41% used)"
+  },
+  {
+   "label": "c1-p512-n24",
+   "requesters": 1,
+   "promptTokens": 512,
+   "countTo": 24,
+   "requestedAnswerTokens": 63,
+   "ok": true,
+   "failure": null,
+   "network": {
+    "icmpRttMs": {
+     "median": 23.7,
+     "p90": 48.3,
+     "max": 90.8,
+     "n": 23
+    },
+    "icmpTimeouts": 0,
+    "stunRttMs": {
+     "median": 26.0,
+     "p90": 59.0,
+     "max": 121.0,
+     "n": 94
+    }
+   },
+   "amd": {
+    "scopesMaxBytes": 1650679808,
+    "largestScopeMaxBytes": 858755072,
+    "memAvailableMinBytes": 52985270272,
+    "gttMaxBytes": 2538409984
+   },
+   "runs": [
+    {
+     "index": 0,
+     "status": "completed",
+     "error": null,
+     "failure": null,
+     "tokens": 63,
+     "stopReason": "eos-token",
+     "answerMs": 225581,
+     "firstTextMs": 153429,
+     "answerCharacters": 62,
+     "answerTail": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24",
+     "decodeMsPerToken": 1163.741935483871,
+     "promptStageCallsMs": [
+      82486.80000019073,
+      30317.900000095367,
+      28562.800000190735
+     ],
+     "largestStageCallMs": 82486.80000019073,
+     "decodeStages": [
+      {
+       "index": 0,
+       "elapsedMs": 229.21451612826317,
+       "executionMs": 213.5822580668234
+      },
+      {
+       "index": 1,
+       "elapsedMs": 563.0274193556078,
+       "executionMs": 136.4322193871072
+      },
+      {
+       "index": 2,
+       "elapsedMs": 340.1838709885074,
+       "executionMs": 155.75116720966875
+      }
+     ]
+    }
+   ],
+   "margins": {
+    "deadlineS": 674.4,
+    "stageBoundS": 217.5,
+    "deadlineUsed": 0.251,
+    "stageBoundUsed": 0.275
+   },
+   "binding": "nearest: per-stage bound, Mac prefill (27% used)"
+  },
+  {
+   "label": "c1-p512-n88",
+   "requesters": 1,
+   "promptTokens": 512,
+   "countTo": 88,
+   "requestedAnswerTokens": 255,
+   "ok": true,
+   "failure": null,
+   "network": {
+    "icmpRttMs": {
+     "median": 23.8,
+     "p90": 58.7,
+     "max": 975.1,
+     "n": 48
+    },
+    "icmpTimeouts": 0,
+    "stunRttMs": {
+     "median": 25.0,
+     "p90": 73.0,
+     "max": 629.0,
+     "n": 190
+    }
+   },
+   "amd": {
+    "scopesMaxBytes": 1693306880,
+    "largestScopeMaxBytes": 866914304,
+    "memAvailableMinBytes": 53001912320,
+    "gttMaxBytes": 2538409984
+   },
+   "runs": [
+    {
+     "index": 0,
+     "status": "completed",
+     "error": null,
+     "failure": null,
+     "tokens": 255,
+     "stopReason": "eos-token",
+     "answerMs": 473845,
+     "firstTextMs": 157884,
+     "answerCharacters": 254,
+     "answerTail": " 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88",
+     "decodeMsPerToken": 1243.9409448818897,
+     "promptStageCallsMs": [
+      82360.5,
+      32156.199999809265,
+      29326.700000047684
+     ],
+     "largestStageCallMs": 82360.5,
+     "decodeStages": [
+      {
+       "index": 0,
+       "elapsedMs": 242.7224409448819,
+       "executionMs": 229.2212598408301
+      },
+      {
+       "index": 1,
+       "elapsedMs": 510.12519684175805,
+       "executionMs": 105.07078461810913
+      },
+      {
+       "index": 2,
+       "elapsedMs": 436.7677165326171,
+       "executionMs": 156.93799055905237
+      }
+     ]
+    }
+   ],
+   "margins": {
+    "deadlineS": 426.2,
+    "stageBoundS": 217.6,
+    "deadlineUsed": 0.526,
+    "stageBoundUsed": 0.275
+   },
+   "binding": "nearest: answer deadline (53% used)"
+  },
+  {
+   "label": "c1-p1024-n24",
+   "requesters": 1,
+   "promptTokens": 1024,
+   "countTo": 24,
+   "requestedAnswerTokens": 63,
+   "ok": true,
+   "failure": null,
+   "network": {
+    "icmpRttMs": {
+     "median": 35.0,
+     "p90": 137.1,
+     "max": 388.3,
+     "n": 43
+    },
+    "icmpTimeouts": 0,
+    "stunRttMs": {
+     "median": 43.5,
+     "p90": 178.0,
+     "max": 888.0,
+     "n": 176
+    }
+   },
+   "amd": {
+    "scopesMaxBytes": 1790808064,
+    "largestScopeMaxBytes": 922439680,
+    "memAvailableMinBytes": 52816216064,
+    "gttMaxBytes": 2538409984
+   },
+   "runs": [
+    {
+     "index": 0,
+     "status": "completed",
+     "error": null,
+     "failure": null,
+     "tokens": 63,
+     "stopReason": "eos-token",
+     "answerMs": 427398,
+     "firstTextMs": 339380,
+     "answerCharacters": 62,
+     "answerTail": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24",
+     "decodeMsPerToken": 1419.6451612903227,
+     "promptStageCallsMs": [
+      184391.20000004768,
+      86925.70000004768,
+      56610.200000047684
+     ],
+     "largestStageCallMs": 184391.20000004768,
+     "decodeStages": [
+      {
+       "index": 0,
+       "elapsedMs": 242.21451614749046,
+       "executionMs": 228.5338709700492
+      },
+      {
+       "index": 1,
+       "elapsedMs": 706.0483871160015,
+       "executionMs": 119.70696624194933
+      },
+      {
+       "index": 2,
+       "elapsedMs": 439.9258064185419,
+       "executionMs": 168.2170927096834
+      }
+     ]
+    }
+   ],
+   "margins": {
+    "deadlineS": 472.6,
+    "stageBoundS": 115.6,
+    "deadlineUsed": 0.475,
+    "stageBoundUsed": 0.615
+   },
+   "binding": "nearest: per-stage bound, Mac prefill (61% used)"
+  },
+  {
+   "label": "c1-p1024-n88",
+   "requesters": 1,
+   "promptTokens": 1024,
+   "countTo": 88,
+   "requestedAnswerTokens": 255,
+   "ok": true,
+   "failure": null,
+   "network": {
+    "icmpRttMs": {
+     "median": 31.0,
+     "p90": 176.0,
+     "max": 717.1,
+     "n": 72
+    },
+    "icmpTimeouts": 0,
+    "stunRttMs": {
+     "median": 38.0,
+     "p90": 158.0,
+     "max": 947.0,
+     "n": 288
+    }
+   },
+   "amd": {
+    "scopesMaxBytes": 1792962560,
+    "largestScopeMaxBytes": 923152384,
+    "memAvailableMinBytes": 52769996800,
+    "gttMaxBytes": 2538409984
+   },
+   "runs": [
+    {
+     "index": 0,
+     "status": "completed",
+     "error": null,
+     "failure": null,
+     "tokens": 255,
+     "stopReason": "eos-token",
+     "answerMs": 710696,
+     "firstTextMs": 339304,
+     "answerCharacters": 254,
+     "answerTail": " 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88",
+     "decodeMsPerToken": 1462.1732283464567,
+     "promptStageCallsMs": [
+      197914.60000014305,
+      74273.59999990463,
+      55947.299999952316
+     ],
+     "largestStageCallMs": 197914.60000014305,
+     "decodeStages": [
+      {
+       "index": 0,
+       "elapsedMs": 247.64488187643488,
+       "executionMs": 233.9185039443294
+      },
+      {
+       "index": 1,
+       "elapsedMs": 714.6850393653855,
+       "executionMs": 113.93715588583457
+      },
+      {
+       "index": 2,
+       "elapsedMs": 445.7070866100431,
+       "executionMs": 168.47336449212483
+      }
+     ]
+    }
+   ],
+   "margins": {
+    "deadlineS": 189.3,
+    "stageBoundS": 102.1,
+    "deadlineUsed": 0.79,
+    "stageBoundUsed": 0.66
+   },
+   "binding": "nearest: answer deadline (79% used)"
+  },
+  {
+   "label": "c1-p1588-n24",
+   "requesters": 1,
+   "promptTokens": 1588,
+   "countTo": 24,
+   "requestedAnswerTokens": 63,
+   "ok": true,
+   "failure": null,
+   "network": {
+    "icmpRttMs": {
+     "median": 24.0,
+     "p90": 99.3,
+     "max": 1970.0,
+     "n": 54
+    },
+    "icmpTimeouts": 2,
+    "stunRttMs": {
+     "median": 28.0,
+     "p90": 75.0,
+     "max": 3110.0,
+     "n": 230
+    }
+   },
+   "amd": {
+    "scopesMaxBytes": 1916416000,
+    "largestScopeMaxBytes": 1007722496,
+    "memAvailableMinBytes": 52681207808,
+    "gttMaxBytes": 2555219968
+   },
+   "runs": [
+    {
+     "index": 0,
+     "status": "completed",
+     "error": null,
+     "failure": null,
+     "tokens": 63,
+     "stopReason": "eos-token",
+     "answerMs": 566818,
+     "firstTextMs": 487585,
+     "answerCharacters": 62,
+     "answerTail": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24",
+     "decodeMsPerToken": 1277.9516129032259,
+     "promptStageCallsMs": [
+      282141.90000009537,
+      99666.79999995232,
+      93305.20000004768
+     ],
+     "largestStageCallMs": 282141.90000009537,
+     "decodeStages": [
+      {
+       "index": 0,
+       "elapsedMs": 247.312903238881,
+       "executionMs": 234.30645158983046
+      },
+      {
+       "index": 1,
+       "elapsedMs": 602.9854838578932,
+       "executionMs": 131.48883008061637
+      },
+      {
+       "index": 2,
+       "elapsedMs": 398.01935483178784,
+       "executionMs": 170.28112329034164
+      }
+     ]
+    }
+   ],
+   "margins": {
+    "deadlineS": 333.2,
+    "stageBoundS": 17.9,
+    "deadlineUsed": 0.63,
+    "stageBoundUsed": 0.94
+   },
+   "binding": "nearest: per-stage bound, Mac prefill (94% used)"
+  },
+  {
+   "label": "c1-p1588-n88",
+   "requesters": 1,
+   "promptTokens": 1588,
+   "countTo": 88,
+   "requestedAnswerTokens": 255,
+   "ok": true,
+   "failure": null,
+   "network": {
+    "icmpRttMs": {
+     "median": 24.0,
+     "p90": 69.9,
+     "max": 900.8,
+     "n": 80
+    },
+    "icmpTimeouts": 2,
+    "stunRttMs": {
+     "median": 26.0,
+     "p90": 67.0,
+     "max": 1655.0,
+     "n": 334
+    }
+   },
+   "amd": {
+    "scopesMaxBytes": 1960472576,
+    "largestScopeMaxBytes": 1022640128,
+    "memAvailableMinBytes": 52656603136,
+    "gttMaxBytes": 2571997184
+   },
+   "runs": [
+    {
+     "index": 0,
+     "status": "completed",
+     "error": null,
+     "failure": null,
+     "tokens": 255,
+     "stopReason": "eos-token",
+     "answerMs": 825366,
+     "firstTextMs": 487984,
+     "answerCharacters": 254,
+     "answerTail": " 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88",
+     "decodeMsPerToken": 1328.275590551181,
+     "promptStageCallsMs": [
+      275601.2999999523,
+      108493.20000004768,
+      92747.5
+     ],
+     "largestStageCallMs": 275601.2999999523,
+     "decodeStages": [
+      {
+       "index": 0,
+       "elapsedMs": 249.3716535427439,
+       "executionMs": 236.4543307043436
+      },
+      {
+       "index": 1,
+       "elapsedMs": 631.502362204349,
+       "executionMs": 133.62885824410156
+      },
+      {
+       "index": 2,
+       "elapsedMs": 396.46771653993864,
+       "executionMs": 182.67098621262136
+      }
+     ]
+    }
+   ],
+   "margins": {
+    "deadlineS": 74.6,
+    "stageBoundS": 24.4,
+    "deadlineUsed": 0.917,
+    "stageBoundUsed": 0.919
+   },
+   "binding": "nearest: per-stage bound, Mac prefill (92% used)"
+  },
+  {
+   "label": "c2-p56-n24",
+   "requesters": 2,
+   "promptTokens": 56,
+   "countTo": 24,
+   "requestedAnswerTokens": 63,
+   "ok": true,
+   "failure": null,
+   "network": {
+    "icmpRttMs": {
+     "median": 22.6,
+     "p90": 44.5,
+     "max": 110.6,
+     "n": 12
+    },
+    "icmpTimeouts": 0,
+    "stunRttMs": {
+     "median": 22.5,
+     "p90": 34.0,
+     "max": 97.0,
+     "n": 50
+    }
+   },
+   "amd": {
+    "scopesMaxBytes": 1896312832,
+    "largestScopeMaxBytes": 1023004672,
+    "memAvailableMinBytes": 52744105984,
+    "gttMaxBytes": 2571997184
+   },
+   "runs": [
+    {
+     "index": 0,
+     "status": "completed",
+     "error": null,
+     "failure": null,
+     "tokens": 63,
+     "stopReason": "eos-token",
+     "answerMs": 110298,
+     "firstTextMs": 24563,
+     "answerCharacters": 62,
+     "answerTail": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24",
+     "decodeMsPerToken": 1382.8225806451612,
+     "promptStageCallsMs": [
+      9010.799999952316,
+      3604.2000000476837,
+      3616.2999999523163
+     ],
+     "largestStageCallMs": 9010.799999952316,
+     "decodeStages": [
+      {
+       "index": 0,
+       "elapsedMs": 193.869354824866,
+       "executionMs": 181.36935484024787
+      },
+      {
+       "index": 1,
+       "elapsedMs": 409.73064514513936,
+       "executionMs": 98.98939743543404
+      },
+      {
+       "index": 2,
+       "elapsedMs": 286.1677419524039,
+       "executionMs": 131.00088474193527
+      }
+     ]
+    },
+    {
+     "index": 1,
+     "status": "completed",
+     "error": null,
+     "failure": null,
+     "tokens": 63,
+     "stopReason": "eos-token",
+     "answerMs": 111153,
+     "firstTextMs": 33610,
+     "answerCharacters": 62,
+     "answerTail": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24",
+     "decodeMsPerToken": 1250.6935483870968,
+     "promptStageCallsMs": [
+      8905.799999952316,
+      3929,
+      3592
+     ],
+     "largestStageCallMs": 8905.799999952316,
+     "decodeStages": [
+      {
+       "index": 0,
+       "elapsedMs": 206.73225805836339,
+       "executionMs": 193.92096774424277
+      },
+      {
+       "index": 1,
+       "elapsedMs": 547.4999999923091,
+       "executionMs": 103.41091695154506
+      },
+      {
+       "index": 2,
+       "elapsedMs": 458.2016129109167,
+       "executionMs": 163.04089096766867
+      }
+     ]
+    }
+   ],
+   "margins": {
+    "deadlineS": 788.8,
+    "stageBoundS": 291.0,
+    "deadlineUsed": 0.124,
+    "stageBoundUsed": 0.03
+   },
+   "firstTextSpreadS": 9.0,
+   "binding": "nearest: answer deadline (12% used)"
+  },
+  {
+   "label": "c2-p56-n88",
+   "requesters": 2,
+   "promptTokens": 56,
+   "countTo": 88,
+   "requestedAnswerTokens": 255,
+   "ok": true,
+   "failure": null,
+   "network": {
+    "icmpRttMs": {
+     "median": 25.2,
+     "p90": 304.3,
+     "max": 975.9,
+     "n": 39
+    },
+    "icmpTimeouts": 3,
+    "stunRttMs": {
+     "median": 23.0,
+     "p90": 72.0,
+     "max": 4131.0,
+     "n": 204
+    }
+   },
+   "amd": {
+    "scopesMaxBytes": 1865019392,
+    "largestScopeMaxBytes": 980627456,
+    "memAvailableMinBytes": 52610297856,
+    "gttMaxBytes": 2571997184
+   },
+   "runs": [
+    {
+     "index": 0,
+     "status": "completed",
+     "error": null,
+     "failure": null,
+     "tokens": 255,
+     "stopReason": "eos-token",
+     "answerMs": 410685,
+     "firstTextMs": 18742,
+     "answerCharacters": 254,
+     "answerTail": " 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88",
+     "decodeMsPerToken": 1543.0826771653544,
+     "promptStageCallsMs": [
+      9291.700000047684,
+      4853.700000047684,
+      3697.2999999523163
+     ],
+     "largestStageCallMs": 9291.700000047684,
+     "decodeStages": [
+      {
+       "index": 0,
+       "elapsedMs": 202.86771654801106,
+       "executionMs": 190.7677165307398
+      },
+      {
+       "index": 1,
+       "elapsedMs": 654.1555118025757,
+       "executionMs": 125.74523161814776
+      },
+      {
+       "index": 2,
+       "elapsedMs": 417.99763779565103,
+       "executionMs": 159.90278622445717
+      }
+     ]
+    },
+    {
+     "index": 1,
+     "status": "completed",
+     "error": null,
+     "failure": null,
+     "tokens": 255,
+     "stopReason": "eos-token",
+     "answerMs": 410944,
+     "firstTextMs": 27481,
+     "answerCharacters": 254,
+     "answerTail": " 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88",
+     "decodeMsPerToken": 1509.6968503937007,
+     "promptStageCallsMs": [
+      9089.900000095367,
+      4147.900000095367,
+      3992.7000000476837
+     ],
+     "largestStageCallMs": 9089.900000095367,
+     "decodeStages": [
+      {
+       "index": 0,
+       "elapsedMs": 204.4251968541483,
+       "executionMs": 192.39685039351306
+      },
+      {
+       "index": 1,
+       "elapsedMs": 598.3826771739899,
+       "executionMs": 109.09350357870902
+      },
+      {
+       "index": 2,
+       "elapsedMs": 444.6692913385827,
+       "executionMs": 173.4731544606153
+      }
+     ]
+    }
+   ],
+   "margins": {
+    "deadlineS": 489.1,
+    "stageBoundS": 290.7,
+    "deadlineUsed": 0.457,
+    "stageBoundUsed": 0.031
+   },
+   "firstTextSpreadS": 8.7,
+   "binding": "nearest: answer deadline (46% used)"
+  },
+  {
+   "label": "c2-p256-n24",
+   "requesters": 2,
+   "promptTokens": 256,
+   "countTo": 24,
+   "requestedAnswerTokens": 63,
+   "ok": true,
+   "failure": null,
+   "network": {
+    "icmpRttMs": {
+     "median": 21.8,
+     "p90": 50.7,
+     "max": 73.3,
+     "n": 18
+    },
+    "icmpTimeouts": 3,
+    "stunRttMs": {
+     "median": 24.0,
+     "p90": 94.0,
+     "max": 809.0,
+     "n": 96
+    }
+   },
+   "amd": {
+    "scopesMaxBytes": 1881964544,
+    "largestScopeMaxBytes": 982843392,
+    "memAvailableMinBytes": 52758929408,
+    "gttMaxBytes": 2580385792
+   },
+   "runs": [
+    {
+     "index": 0,
+     "status": "completed",
+     "error": null,
+     "failure": null,
+     "tokens": 63,
+     "stopReason": "eos-token",
+     "answerMs": 210266,
+     "firstTextMs": 121234,
+     "answerCharacters": 62,
+     "answerTail": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24",
+     "decodeMsPerToken": 1436.0,
+     "promptStageCallsMs": [
+      40256.40000009537,
+      17606.599999904633,
+      15858.199999809265
+     ],
+     "largestStageCallMs": 40256.40000009537,
+     "decodeStages": [
+      {
+       "index": 0,
+       "elapsedMs": 200.5387096558848,
+       "executionMs": 189.69838708062326
+      },
+      {
+       "index": 1,
+       "elapsedMs": 631.1016128870749,
+       "executionMs": 143.95669269360482
+      },
+      {
+       "index": 2,
+       "elapsedMs": 346.07903227883,
+       "executionMs": 170.39696440327492
+      }
+     ]
+    },
+    {
+     "index": 1,
+     "status": "completed",
+     "error": null,
+     "failure": null,
+     "tokens": 63,
+     "stopReason": "eos-token",
+     "answerMs": 210010,
+     "firstTextMs": 79974,
+     "answerCharacters": 62,
+     "answerTail": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24",
+     "decodeMsPerToken": 2097.3548387096776,
+     "promptStageCallsMs": [
+      41084.89999985695,
+      17069.699999809265,
+      15416.799999952316
+     ],
+     "largestStageCallMs": 41084.89999985695,
+     "decodeStages": [
+      {
+       "index": 0,
+       "elapsedMs": 205.49354838940405,
+       "executionMs": 194.19838711907786
+      },
+      {
+       "index": 1,
+       "elapsedMs": 622.938709682034,
+       "executionMs": 116.798866064483
+      },
+      {
+       "index": 2,
+       "elapsedMs": 530.9241935437725,
+       "executionMs": 194.22712285489203
+      }
+     ]
+    }
+   ],
+   "margins": {
+    "deadlineS": 689.7,
+    "stageBoundS": 258.9,
+    "deadlineUsed": 0.234,
+    "stageBoundUsed": 0.137
+   },
+   "firstTextSpreadS": 41.3,
+   "binding": "nearest: answer deadline (23% used)"
+  },
+  {
+   "label": "c2-p512-n88",
+   "requesters": 2,
+   "promptTokens": 512,
+   "countTo": 88,
+   "requestedAnswerTokens": 255,
+   "ok": true,
+   "failure": null,
+   "network": {
+    "icmpRttMs": {
+     "median": 22.4,
+     "p90": 52.7,
+     "max": 145.6,
+     "n": 57
+    },
+    "icmpTimeouts": 0,
+    "stunRttMs": {
+     "median": 25.0,
+     "p90": 84.0,
+     "max": 190.0,
+     "n": 114
+    }
+   },
+   "amd": {
+    "scopesMaxBytes": 1666273280,
+    "largestScopeMaxBytes": 857960448,
+    "memAvailableMinBytes": 52982054912,
+    "gttMaxBytes": 2555187200
+   },
+   "runs": [
+    {
+     "index": 0,
+     "status": "completed",
+     "error": null,
+     "failure": null,
+     "tokens": 255,
+     "stopReason": "eos-token",
+     "answerMs": 549555,
+     "firstTextMs": 150350,
+     "answerCharacters": 254,
+     "answerTail": " 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88",
+     "decodeMsPerToken": 1571.6732283464567,
+     "promptStageCallsMs": [
+      81399.70000004768,
+      36878.700000047684,
+      31003.900000095367
+     ],
+     "largestStageCallMs": 81399.70000004768,
+     "decodeStages": [
+      {
+       "index": 0,
+       "elapsedMs": 210.38464566947906,
+       "executionMs": 197.95236220322255
+      },
+      {
+       "index": 1,
+       "elapsedMs": 488.0311023607029,
+       "executionMs": 131.58714711023737
+      },
+      {
+       "index": 2,
+       "elapsedMs": 361.34527559637087,
+       "executionMs": 171.69385888189052
+      }
+     ]
+    },
+    {
+     "index": 1,
+     "status": "completed",
+     "error": null,
+     "failure": null,
+     "tokens": 255,
+     "stopReason": "eos-token",
+     "answerMs": 549964,
+     "firstTextMs": 235907,
+     "answerCharacters": 254,
+     "answerTail": " 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88",
+     "decodeMsPerToken": 1236.4448818897638,
+     "promptStageCallsMs": [
+      89063.40000009537,
+      34084.59999990463,
+      30355
+     ],
+     "largestStageCallMs": 89063.40000009537,
+     "decodeStages": [
+      {
+       "index": 0,
+       "elapsedMs": 213.211811021557,
+       "executionMs": 200.58858267153343
+      },
+      {
+       "index": 1,
+       "elapsedMs": 494.89763780278486,
+       "executionMs": 130.3336097480304
+      },
+      {
+       "index": 2,
+       "elapsedMs": 386.6480314919329,
+       "executionMs": 178.01845534251797
+      }
+     ]
+    }
+   ],
+   "margins": {
+    "deadlineS": 350.0,
+    "stageBoundS": 210.9,
+    "deadlineUsed": 0.611,
+    "stageBoundUsed": 0.297
+   },
+   "firstTextSpreadS": 85.6,
+   "binding": "nearest: answer deadline (61% used)"
+  },
+  {
+   "label": "c2-p1588-n24",
+   "requesters": 2,
+   "promptTokens": 1588,
+   "countTo": 24,
+   "requestedAnswerTokens": 63,
+   "ok": true,
+   "failure": null,
+   "network": {
+    "icmpRttMs": {
+     "median": 26.1,
+     "p90": 95.4,
+     "max": 379.9,
+     "n": 92
+    },
+    "icmpTimeouts": 0,
+    "stunRttMs": {
+     "median": 26.0,
+     "p90": 109.0,
+     "max": 977.0,
+     "n": 376
+    }
+   },
+   "amd": {
+    "scopesMaxBytes": 2019770368,
+    "largestScopeMaxBytes": 1068044288,
+    "memAvailableMinBytes": 52640337920,
+    "gttMaxBytes": 2605551616
+   },
+   "runs": [
+    {
+     "index": 0,
+     "status": "completed",
+     "error": null,
+     "failure": null,
+     "tokens": 63,
+     "stopReason": "eos-token",
+     "answerMs": 898707,
+     "firstTextMs": 502214,
+     "answerCharacters": 62,
+     "answerTail": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24",
+     "decodeMsPerToken": 6395.048387096775,
+     "promptStageCallsMs": [
+      301869.89999985695,
+      104214.40000009537,
+      94702.59999990463
+     ],
+     "largestStageCallMs": 301869.89999985695,
+     "decodeStages": [
+      {
+       "index": 0,
+       "elapsedMs": 243.09032257141607,
+       "executionMs": 230.46129031335153
+      },
+      {
+       "index": 1,
+       "elapsedMs": 558.8467741935484,
+       "executionMs": 181.4043877258326
+      },
+      {
+       "index": 2,
+       "elapsedMs": 429.6241935491562,
+       "executionMs": 202.7603638387105
+      }
+     ]
+    },
+    {
+     "index": 1,
+     "status": "completed",
+     "error": null,
+     "failure": null,
+     "tokens": 63,
+     "stopReason": "eos-token",
+     "answerMs": 899842,
+     "firstTextMs": 813725,
+     "answerCharacters": 62,
+     "answerTail": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24",
+     "decodeMsPerToken": 1388.983870967742,
+     "promptStageCallsMs": [
+      300895.7999999523,
+      110127.60000014305,
+      99382.20000004768
+     ],
+     "largestStageCallMs": 300895.7999999523,
+     "decodeStages": [
+      {
+       "index": 0,
+       "elapsedMs": 243.1112903279643,
+       "executionMs": 231.04838707370143
+      },
+      {
+       "index": 1,
+       "elapsedMs": 554.2854838678913,
+       "executionMs": 172.86806924198004
+      },
+      {
+       "index": 2,
+       "elapsedMs": 430.9403225683397,
+       "executionMs": 223.38003056464837
+      }
+     ]
+    }
+   ],
+   "margins": {
+    "deadlineS": 0.2,
+    "stageBoundS": -1.9,
+    "deadlineUsed": 1.0,
+    "stageBoundUsed": 1.006
+   },
+   "firstTextSpreadS": 311.5,
+   "binding": "nearest: per-stage bound, Mac prefill (101% used)"
+  },
+  {
+   "label": "c3-p56-n24",
+   "requesters": 3,
+   "promptTokens": 56,
+   "countTo": 24,
+   "requestedAnswerTokens": 63,
+   "ok": false,
+   "failure": null,
+   "network": {
+    "icmpRttMs": {
+     "median": 23.1,
+     "p90": 36.5,
+     "max": 63.9,
+     "n": 12
+    },
+    "icmpTimeouts": 0,
+    "stunRttMs": {
+     "median": 23.0,
+     "p90": 60.0,
+     "max": 75.0,
+     "n": 25
+    }
+   },
+   "amd": {
+    "scopesMaxBytes": 1653424128,
+    "largestScopeMaxBytes": 860774400,
+    "memAvailableMinBytes": 52912828416,
+    "gttMaxBytes": 2571964416
+   },
+   "runs": [
+    {
+     "index": 0,
+     "status": "completed",
+     "error": null,
+     "failure": null,
+     "tokens": 63,
+     "stopReason": "eos-token",
+     "answerMs": 107232,
+     "firstTextMs": 23663,
+     "answerCharacters": 62,
+     "answerTail": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24",
+     "decodeMsPerToken": 1347.8870967741937,
+     "promptStageCallsMs": [
+      8988.799999952316,
+      3872.899999856949,
+      3702
+     ],
+     "largestStageCallMs": 8988.799999952316,
+     "decodeStages": [
+      {
+       "index": 0,
+       "elapsedMs": 206.06129031412064,
+       "executionMs": 192.99354838171314
+      },
+      {
+       "index": 1,
+       "elapsedMs": 504.3387096735739,
+       "executionMs": 83.15780180645731
+      },
+      {
+       "index": 2,
+       "elapsedMs": 467.4967742120066,
+       "executionMs": 157.61228029031096
+      }
+     ]
+    },
+    {
+     "index": 1,
+     "status": "failed",
+     "error": "Partition peer declined or failed request",
+     "failure": null,
+     "tokens": null,
+     "stopReason": null,
+     "answerMs": 6550,
+     "firstTextMs": null,
+     "answerCharacters": 0,
+     "answerTail": ""
+    },
+    {
+     "index": 2,
+     "status": "completed",
+     "error": null,
+     "failure": null,
+     "tokens": 63,
+     "stopReason": "eos-token",
+     "answerMs": 107324,
+     "firstTextMs": 32969,
+     "answerCharacters": 62,
+     "answerTail": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24",
+     "decodeMsPerToken": 1199.274193548387,
+     "promptStageCallsMs": [
+      8889.5,
+      4408.799999952316,
+      3460.899999856949
+     ],
+     "largestStageCallMs": 8889.5,
+     "decodeStages": [
+      {
+       "index": 0,
+       "elapsedMs": 195.82580646007293,
+       "executionMs": 182.9241935591544
+      },
+      {
+       "index": 1,
+       "elapsedMs": 375.9532257972225,
+       "executionMs": 97.06527825807702
+      },
+      {
+       "index": 2,
+       "elapsedMs": 277.6177419347148,
+       "executionMs": 130.68480095161397
+      }
+     ]
+    }
+   ],
+   "firstTextSpreadS": 9.3,
+   "binding": "admission: Partition peer declined or failed request"
+  }
+ ]
+}

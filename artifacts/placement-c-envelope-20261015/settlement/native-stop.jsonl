@@ -1,0 +1,4 @@
+{"unit":"fc-env-native-1-4","pids":"3811815 ","memoryPeakBytes":"763932672","sigtermAt":"2026-10-15T17:55:27.955596436Z","waitedSeconds":1,"activeAfter":"inactive","lastLog":"phase:idle,error:null,offering:false,modelId:null,unsettledOwners:0"}
+
+{"unit":"fc-env-native-2-4","pids":"3812741 ","memoryPeakBytes":"776089600","sigtermAt":"2026-10-15T17:55:29.687826284Z","waitedSeconds":1,"activeAfter":"inactive","lastLog":"phase:idle,error:null,offering:false,modelId:null,unsettledOwners:0"}
+

@@ -1,0 +1,1275 @@
+{
+ "schema": "reploid.placement-c-latency-turns/v1",
+ "startedAt": "2026-10-15T12:43:05.658Z",
+ "turns": [
+  {
+   "label": "first-answer",
+   "sentAt": "2026-10-15T12:43:12.278Z",
+   "permissionShown": true,
+   "attemptId": "1e6d6160-1305-445a-9949-9024f200c29a",
+   "threadId": "dd45bae2-25ea-45c3-903a-7b16066cfcd1",
+   "status": "completed",
+   "error": null,
+   "generatedTokens": 100,
+   "stopReason": "eos-token",
+   "answerCharacters": 258,
+   "answer": "```javascript\nfunction doubleEvens(numbers) {\n  // Filter keeps only even numbers, then doubles them\n  return numbers.filter(n => n % 2 === 0).map(n => n * 2);\n}\n\n// Result for [1, 2, 3, 4]\nconsole.log(doubleEvens([1, 2, 3, 4])); \n// Output: [2, 4, 6, 8]\n```",
+   "finishedObservedAt": "2026-10-15T12:45:16.343Z",
+   "timing": {
+    "schema": "reploid.signed-completion-answer-timing/v2",
+    "threadId": "dd45bae2-25ea-45c3-903a-7b16066cfcd1",
+    "attemptId": "1e6d6160-1305-445a-9949-9024f200c29a",
+    "status": "completed",
+    "requester": {
+     "attemptMs": {
+      "status": "measured",
+      "value": 123779,
+      "unit": "ms",
+      "clock": "requester-application",
+      "source": "packages/reploid/src/chat/workspace.js:248 minus packages/reploid/src/chat/workspace.js:116"
+     },
+     "firstVisibleTextMs": {
+      "status": "measured",
+      "value": 20342,
+      "unit": "ms",
+      "clock": "harness",
+      "source": "harness stream sample (Send click to first nonempty rendered response)",
+      "resolutionMs": 250
+     },
+     "outputCharacters": 258
+    },
+    "coordinator": {
+     "generatedTokens": 100,
+     "promptTokens": {
+      "status": "measured",
+      "value": 56,
+      "unit": "tokens",
+      "clock": "coordinator",
+      "source": "packages/reploid/src/mesh/partitions/partition-summary.js summarizeOrderedPhases: step 0 carries the whole prompt (prefill plus the first sampled token), later steps decode one token each; per-stage runtime fields are each contributor's Doppler resident metrics (doppler resident-partition.js:173-202,230), elapsed is the coordinator stage call"
+     },
+     "phases": {
+      "source": "packages/reploid/src/mesh/partitions/partition-summary.js summarizeOrderedPhases: step 0 carries the whole prompt (prefill plus the first sampled token), later steps decode one token each; per-stage runtime fields are each contributor's Doppler resident metrics (doppler resident-partition.js:173-202,230), elapsed is the coordinator stage call",
+      "prompt": {
+       "inputTokens": 56,
+       "stages": [
+        {
+         "partitionIndex": 0,
+         "elapsedMs": 9047.700000047684,
+         "runtime": {
+          "executionMs": 9037.400000095367,
+          "inputUploadMs": 0,
+          "encodeMs": 9024.399999380112,
+          "submitWaitMs": 10.500000953674316,
+          "activationReadbackMs": 1.5999996662139893,
+          "logitsMs": 0,
+          "gpuKernelsMs": null,
+          "logitsReadbackMs": 0,
+          "samplingMs": 0
+         }
+        },
+        {
+         "partitionIndex": 1,
+         "elapsedMs": 5356.400000095367,
+         "runtime": {
+          "executionMs": 4905.416162000038,
+          "inputUploadMs": 0.22921199991833419,
+          "encodeMs": 4845.2177059996175,
+          "submitWaitMs": 36.17514400044456,
+          "activationReadbackMs": 21.81405399995856,
+          "logitsMs": 0,
+          "gpuKernelsMs": null,
+          "logitsReadbackMs": 0,
+          "samplingMs": 0
+         }
+        },
+        {
+         "partitionIndex": 2,
+         "elapsedMs": 5174.299999952316,
+         "runtime": {
+          "executionMs": 4968.522744000074,
+          "inputUploadMs": 0.19186999998055398,
+          "encodeMs": 4872.112011999823,
+          "submitWaitMs": 28.988881000201218,
+          "activationReadbackMs": 0,
+          "logitsMs": 57.08268599992152,
+          "gpuKernelsMs": null,
+          "logitsReadbackMs": 0.5139280000003055,
+          "samplingMs": 5.168118000030518
+         }
+        }
+       ]
+      },
+      "decode": {
+       "steps": 99,
+       "stages": [
+        {
+         "partitionIndex": 0,
+         "elapsedMs": {
+          "count": 99,
+          "total": 21197.199998378754,
+          "min": 188.69999980926514,
+          "max": 300.90000009536743
+         },
+         "runtime": {
+          "executionMs": {
+           "count": 99,
+           "total": 19913.099999666214,
+           "min": 178.5,
+           "max": 242.40000009536743
+          },
+          "inputUploadMs": {
+           "count": 99,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          },
+          "encodeMs": {
+           "count": 99,
+           "total": 286.9999990463257,
+           "min": 2.299999952316284,
+           "max": 7
+          },
+          "submitWaitMs": {
+           "count": 99,
+           "total": 19546.20000076294,
+           "min": 175,
+           "max": 239.20000004768372
+          },
+          "activationReadbackMs": {
+           "count": 99,
+           "total": 65.89999961853027,
+           "min": 0.2999999523162842,
+           "max": 11.700000047683716
+          },
+          "logitsMs": {
+           "count": 99,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          },
+          "gpuKernelsMs": {
+           "count": 0,
+           "total": 0,
+           "min": null,
+           "max": null
+          },
+          "logitsReadbackMs": {
+           "count": 99,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          },
+          "samplingMs": {
+           "count": 99,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          }
+         }
+        },
+        {
+         "partitionIndex": 1,
+         "elapsedMs": {
+          "count": 99,
+          "total": 40000.800000190735,
+          "min": 225.29999995231628,
+          "max": 779.5
+         },
+         "runtime": {
+          "executionMs": {
+           "count": 99,
+           "total": 16194.237728998996,
+           "min": 85.3735990000423,
+           "max": 580.2181059999857
+          },
+          "inputUploadMs": {
+           "count": 99,
+           "total": 5.94474799989257,
+           "min": 0.039303999976255,
+           "max": 0.08356699999421835
+          },
+          "encodeMs": {
+           "count": 99,
+           "total": 1306.8403339993674,
+           "min": 7.191598000004888,
+           "max": 25.733333000098355
+          },
+          "submitWaitMs": {
+           "count": 99,
+           "total": 13275.053992000292,
+           "min": 71.77728799998295,
+           "max": 453.2002360000042
+          },
+          "activationReadbackMs": {
+           "count": 99,
+           "total": 1557.3262479996774,
+           "min": 0.40447100007440895,
+           "max": 259.533548999927
+          },
+          "logitsMs": {
+           "count": 99,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          },
+          "gpuKernelsMs": {
+           "count": 0,
+           "total": 0,
+           "min": null,
+           "max": null
+          },
+          "logitsReadbackMs": {
+           "count": 99,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          },
+          "samplingMs": {
+           "count": 99,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          }
+         }
+        },
+        {
+         "partitionIndex": 2,
+         "elapsedMs": {
+          "count": 99,
+          "total": 38148.29999899864,
+          "min": 229.89999985694885,
+          "max": 785.2999999523163
+         },
+         "runtime": {
+          "executionMs": {
+           "count": 99,
+           "total": 21299.52638099948,
+           "min": 132.85397399996873,
+           "max": 569.0187620000215
+          },
+          "inputUploadMs": {
+           "count": 99,
+           "total": 6.1416630001040176,
+           "min": 0.0371199999935925,
+           "max": 0.11240199999883771
+          },
+          "encodeMs": {
+           "count": 99,
+           "total": 1416.3640959993936,
+           "min": 7.239348000031896,
+           "max": 28.907969999941997
+          },
+          "submitWaitMs": {
+           "count": 99,
+           "total": 11916.997667000163,
+           "min": 71.0375570000615,
+           "max": 430.3870239999378
+          },
+          "activationReadbackMs": {
+           "count": 99,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          },
+          "logitsMs": {
+           "count": 99,
+           "total": 7908.044136000215,
+           "min": 45.45468800002709,
+           "max": 443.00130200001877
+          },
+          "gpuKernelsMs": {
+           "count": 0,
+           "total": 0,
+           "min": null,
+           "max": null
+          },
+          "logitsReadbackMs": {
+           "count": 99,
+           "total": 736.3990749996156,
+           "min": 0.2855279999785125,
+           "max": 215.69654000003356
+          },
+          "samplingMs": {
+           "count": 99,
+           "total": 321.882800999796,
+           "min": 1.2547719998983666,
+           "max": 5.433669000049122
+          }
+         }
+        }
+       ]
+      }
+     },
+     "stages": [
+      {
+       "partitionIndex": 0,
+       "steps": 100,
+       "stepCount": 100,
+       "stepMsTotal": {
+        "status": "measured",
+        "value": 30244.899998426437,
+        "unit": "ms",
+        "clock": "coordinator",
+        "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+       }
+      },
+      {
+       "partitionIndex": 1,
+       "steps": 100,
+       "stepCount": 100,
+       "stepMsTotal": {
+        "status": "measured",
+        "value": 45357.2000002861,
+        "unit": "ms",
+        "clock": "coordinator",
+        "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+       }
+      },
+      {
+       "partitionIndex": 2,
+       "steps": 100,
+       "stepCount": 100,
+       "stepMsTotal": {
+        "status": "measured",
+        "value": 43322.59999895096,
+        "unit": "ms",
+        "clock": "coordinator",
+        "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+       }
+      }
+     ],
+     "activationBytes": {
+      "status": "measured",
+      "value": 2539520,
+      "unit": "bytes",
+      "clock": "coordinator",
+      "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:209"
+     }
+    },
+    "runtime": {
+     "executionMs": {
+      "status": "measured",
+      "value": 76318.20301576017,
+      "unit": "ms",
+      "clock": "contributor-runtime",
+      "source": "packages/reploid/src/mesh/partitions/partition-summary.js summarizeOrderedPhases: step 0 carries the whole prompt (prefill plus the first sampled token), later steps decode one token each; per-stage runtime fields are each contributor's Doppler resident metrics (doppler resident-partition.js:173-202,230), elapsed is the coordinator stage call"
+     },
+     "logitsReadbackMs": {
+      "status": "measured",
+      "value": 736.9130029996159,
+      "unit": "ms",
+      "clock": "contributor-runtime",
+      "source": "packages/reploid/src/mesh/partitions/partition-summary.js summarizeOrderedPhases: step 0 carries the whole prompt (prefill plus the first sampled token), later steps decode one token each; per-stage runtime fields are each contributor's Doppler resident metrics (doppler resident-partition.js:173-202,230), elapsed is the coordinator stage call"
+     },
+     "samplingMs": {
+      "status": "measured",
+      "value": 327.05091899982654,
+      "unit": "ms",
+      "clock": "contributor-runtime",
+      "source": "packages/reploid/src/mesh/partitions/partition-summary.js summarizeOrderedPhases: step 0 carries the whole prompt (prefill plus the first sampled token), later steps decode one token each; per-stage runtime fields are each contributor's Doppler resident metrics (doppler resident-partition.js:173-202,230), elapsed is the coordinator stage call"
+     }
+    },
+    "scheduler": {
+     "queuedMs": {
+      "status": "not-observable",
+      "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+      "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+     },
+     "loadMs": {
+      "status": "not-observable",
+      "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+      "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+     },
+     "executionMs": {
+      "status": "not-observable",
+      "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+      "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+     }
+    },
+    "transport": {
+     "status": "not-observable",
+     "reason": "Ordered summaries carry no transport timing",
+     "source": "partition-summary.js:43-45 aggregates transportTiming for v1 two-device summaries only; the ordered v2 summary (partition-summary.js:16-18) carries none"
+    },
+    "persistence": {
+     "status": "not-observable",
+     "reason": "History persistence exposes no timing",
+     "source": "ordered routes commit each step through the requester transaction owner (packages/reploid/src/mesh/partitions/partition-ordered-chat.js:136, owner.publish) before delivery or the next step; neither that commit nor ordinary history (packages/reploid/src/chat/workspace.js persist()) exposes timing"
+    }
+   }
+  },
+  {
+   "label": "follow-up",
+   "sentAt": "2026-10-15T12:45:16.362Z",
+   "permissionShown": false,
+   "attemptId": "1ea9b7e2-6e0a-4c59-a591-cf36782d5d02",
+   "threadId": "dd45bae2-25ea-45c3-903a-7b16066cfcd1",
+   "status": "completed",
+   "error": null,
+   "generatedTokens": 12,
+   "stopReason": "eos-token",
+   "answerCharacters": 12,
+   "answer": "[-6, 12, 18]",
+   "finishedObservedAt": "2026-10-15T12:46:37.660Z",
+   "timing": {
+    "schema": "reploid.signed-completion-answer-timing/v2",
+    "threadId": "dd45bae2-25ea-45c3-903a-7b16066cfcd1",
+    "attemptId": "1ea9b7e2-6e0a-4c59-a591-cf36782d5d02",
+    "status": "completed",
+    "requester": {
+     "attemptMs": {
+      "status": "measured",
+      "value": 81239,
+      "unit": "ms",
+      "clock": "requester-application",
+      "source": "packages/reploid/src/chat/workspace.js:248 minus packages/reploid/src/chat/workspace.js:116"
+     },
+     "firstVisibleTextMs": {
+      "status": "measured",
+      "value": 66633,
+      "unit": "ms",
+      "clock": "harness",
+      "source": "harness stream sample (Send click to first nonempty rendered response)",
+      "resolutionMs": 250
+     },
+     "outputCharacters": 12
+    },
+    "coordinator": {
+     "generatedTokens": 12,
+     "promptTokens": {
+      "status": "measured",
+      "value": 189,
+      "unit": "tokens",
+      "clock": "coordinator",
+      "source": "packages/reploid/src/mesh/partitions/partition-summary.js summarizeOrderedPhases: step 0 carries the whole prompt (prefill plus the first sampled token), later steps decode one token each; per-stage runtime fields are each contributor's Doppler resident metrics (doppler resident-partition.js:173-202,230), elapsed is the coordinator stage call"
+     },
+     "phases": {
+      "source": "packages/reploid/src/mesh/partitions/partition-summary.js summarizeOrderedPhases: step 0 carries the whole prompt (prefill plus the first sampled token), later steps decode one token each; per-stage runtime fields are each contributor's Doppler resident metrics (doppler resident-partition.js:173-202,230), elapsed is the coordinator stage call",
+      "prompt": {
+       "inputTokens": 189,
+       "stages": [
+        {
+         "partitionIndex": 0,
+         "elapsedMs": 29850.799999952316,
+         "runtime": {
+          "executionMs": 29831.699999809265,
+          "inputUploadMs": 0,
+          "encodeMs": 29787.900000095367,
+          "submitWaitMs": 36.600000619888306,
+          "activationReadbackMs": 4.3999998569488525,
+          "logitsMs": 0,
+          "gpuKernelsMs": null,
+          "logitsReadbackMs": 0,
+          "samplingMs": 0
+         }
+        },
+        {
+         "partitionIndex": 1,
+         "elapsedMs": 20054.60000014305,
+         "runtime": {
+          "executionMs": 18897.257566999993,
+          "inputUploadMs": 0.5148690000642091,
+          "encodeMs": 18809.502849000623,
+          "submitWaitMs": 51.74159799935296,
+          "activationReadbackMs": 31.687153999810107,
+          "logitsMs": 0,
+          "gpuKernelsMs": null,
+          "logitsReadbackMs": 0,
+          "samplingMs": 0
+         }
+        },
+        {
+         "partitionIndex": 2,
+         "elapsedMs": 16094.799999952316,
+         "runtime": {
+          "executionMs": 15731.108069999958,
+          "inputUploadMs": 0.5790010001510382,
+          "encodeMs": 15524.386177999433,
+          "submitWaitMs": 131.99606200051494,
+          "activationReadbackMs": 0,
+          "logitsMs": 65.2590069998987,
+          "gpuKernelsMs": null,
+          "logitsReadbackMs": 0.5208000000566244,
+          "samplingMs": 5.365531000075862
+         }
+        }
+       ]
+      },
+      "decode": {
+       "steps": 11,
+       "stages": [
+        {
+         "partitionIndex": 0,
+         "elapsedMs": {
+          "count": 11,
+          "total": 2456.000000476837,
+          "min": 200.40000009536743,
+          "max": 275.7000000476837
+         },
+         "runtime": {
+          "executionMs": {
+           "count": 11,
+           "total": 2307.800000667572,
+           "min": 188.30000019073486,
+           "max": 239.79999995231628
+          },
+          "inputUploadMs": {
+           "count": 11,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          },
+          "encodeMs": {
+           "count": 11,
+           "total": 31.40000033378601,
+           "min": 2.5,
+           "max": 3.299999952316284
+          },
+          "submitWaitMs": {
+           "count": 11,
+           "total": 2269.899999856949,
+           "min": 184.89999985694885,
+           "max": 235.90000009536743
+          },
+          "activationReadbackMs": {
+           "count": 11,
+           "total": 5,
+           "min": 0.2999999523162842,
+           "max": 0.5
+          },
+          "logitsMs": {
+           "count": 11,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          },
+          "gpuKernelsMs": {
+           "count": 0,
+           "total": 0,
+           "min": null,
+           "max": null
+          },
+          "logitsReadbackMs": {
+           "count": 11,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          },
+          "samplingMs": {
+           "count": 11,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          }
+         }
+        },
+        {
+         "partitionIndex": 1,
+         "elapsedMs": {
+          "count": 11,
+          "total": 7207.60000038147,
+          "min": 271.90000009536743,
+          "max": 1293.8000001907349
+         },
+         "runtime": {
+          "executionMs": {
+           "count": 11,
+           "total": 1009.6540120001882,
+           "min": 84.86594899999909,
+           "max": 104.85888799990062
+          },
+          "inputUploadMs": {
+           "count": 11,
+           "total": 0.6221610000357032,
+           "min": 0.04285000008530915,
+           "max": 0.07634400005917996
+          },
+          "encodeMs": {
+           "count": 11,
+           "total": 143.56398500013165,
+           "min": 6.617679000017233,
+           "max": 27.71119900001213
+          },
+          "submitWaitMs": {
+           "count": 11,
+           "total": 850.5030340000521,
+           "min": 75.05859499995131,
+           "max": 79.63708599994425
+          },
+          "activationReadbackMs": {
+           "count": 11,
+           "total": 10.3354770001024,
+           "min": 0.45304299995768815,
+           "max": 2.6572820000583306
+          },
+          "logitsMs": {
+           "count": 11,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          },
+          "gpuKernelsMs": {
+           "count": 0,
+           "total": 0,
+           "min": null,
+           "max": null
+          },
+          "logitsReadbackMs": {
+           "count": 11,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          },
+          "samplingMs": {
+           "count": 11,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          }
+         }
+        },
+        {
+         "partitionIndex": 2,
+         "elapsedMs": {
+          "count": 11,
+          "total": 4376.200000047684,
+          "min": 243.59999990463257,
+          "max": 598.6000001430511
+         },
+         "runtime": {
+          "executionMs": {
+           "count": 11,
+           "total": 1657.9225080001634,
+           "min": 136.6276170000201,
+           "max": 170.19906799995806
+          },
+          "inputUploadMs": {
+           "count": 11,
+           "total": 0.6281610000878572,
+           "min": 0.04399300005752593,
+           "max": 0.08735399995930493
+          },
+          "encodeMs": {
+           "count": 11,
+           "total": 160.63242699974217,
+           "min": 7.1345519999740645,
+           "max": 26.51148099999409
+          },
+          "submitWaitMs": {
+           "count": 11,
+           "total": 883.2123039998114,
+           "min": 75.11729599989485,
+           "max": 91.89471099991351
+          },
+          "activationReadbackMs": {
+           "count": 11,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          },
+          "logitsMs": {
+           "count": 11,
+           "total": 608.4819410000928,
+           "min": 49.908458000048995,
+           "max": 65.18020800000522
+          },
+          "gpuKernelsMs": {
+           "count": 0,
+           "total": 0,
+           "min": null,
+           "max": null
+          },
+          "logitsReadbackMs": {
+           "count": 11,
+           "total": 45.062745999894105,
+           "min": 0.26358600007370114,
+           "max": 11.898621000000276
+          },
+          "samplingMs": {
+           "count": 11,
+           "total": 22.490612999885343,
+           "min": 1.181704999995418,
+           "max": 3.782662000041455
+          }
+         }
+        }
+       ]
+      }
+     },
+     "stages": [
+      {
+       "partitionIndex": 0,
+       "steps": 12,
+       "stepCount": 12,
+       "stepMsTotal": {
+        "status": "measured",
+        "value": 32306.800000429153,
+        "unit": "ms",
+        "clock": "coordinator",
+        "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+       }
+      },
+      {
+       "partitionIndex": 1,
+       "steps": 12,
+       "stepCount": 12,
+       "stepMsTotal": {
+        "status": "measured",
+        "value": 27262.20000052452,
+        "unit": "ms",
+        "clock": "coordinator",
+        "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+       }
+      },
+      {
+       "partitionIndex": 2,
+       "steps": 12,
+       "stepCount": 12,
+       "stepMsTotal": {
+        "status": "measured",
+        "value": 20471,
+        "unit": "ms",
+        "clock": "coordinator",
+        "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+       }
+      }
+     ],
+     "activationBytes": {
+      "status": "measured",
+      "value": 3276800,
+      "unit": "bytes",
+      "clock": "coordinator",
+      "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:209"
+     }
+    },
+    "runtime": {
+     "executionMs": {
+      "status": "measured",
+      "value": 69435.44215747714,
+      "unit": "ms",
+      "clock": "contributor-runtime",
+      "source": "packages/reploid/src/mesh/partitions/partition-summary.js summarizeOrderedPhases: step 0 carries the whole prompt (prefill plus the first sampled token), later steps decode one token each; per-stage runtime fields are each contributor's Doppler resident metrics (doppler resident-partition.js:173-202,230), elapsed is the coordinator stage call"
+     },
+     "logitsReadbackMs": {
+      "status": "measured",
+      "value": 45.58354599995073,
+      "unit": "ms",
+      "clock": "contributor-runtime",
+      "source": "packages/reploid/src/mesh/partitions/partition-summary.js summarizeOrderedPhases: step 0 carries the whole prompt (prefill plus the first sampled token), later steps decode one token each; per-stage runtime fields are each contributor's Doppler resident metrics (doppler resident-partition.js:173-202,230), elapsed is the coordinator stage call"
+     },
+     "samplingMs": {
+      "status": "measured",
+      "value": 27.856143999961205,
+      "unit": "ms",
+      "clock": "contributor-runtime",
+      "source": "packages/reploid/src/mesh/partitions/partition-summary.js summarizeOrderedPhases: step 0 carries the whole prompt (prefill plus the first sampled token), later steps decode one token each; per-stage runtime fields are each contributor's Doppler resident metrics (doppler resident-partition.js:173-202,230), elapsed is the coordinator stage call"
+     }
+    },
+    "scheduler": {
+     "queuedMs": {
+      "status": "not-observable",
+      "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+      "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+     },
+     "loadMs": {
+      "status": "not-observable",
+      "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+      "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+     },
+     "executionMs": {
+      "status": "not-observable",
+      "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+      "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+     }
+    },
+    "transport": {
+     "status": "not-observable",
+     "reason": "Ordered summaries carry no transport timing",
+     "source": "partition-summary.js:43-45 aggregates transportTiming for v1 two-device summaries only; the ordered v2 summary (partition-summary.js:16-18) carries none"
+    },
+    "persistence": {
+     "status": "not-observable",
+     "reason": "History persistence exposes no timing",
+     "source": "ordered routes commit each step through the requester transaction owner (packages/reploid/src/mesh/partitions/partition-ordered-chat.js:136, owner.publish) before delivery or the next step; neither that commit nor ordinary history (packages/reploid/src/chat/workspace.js persist()) exposes timing"
+    }
+   }
+  },
+  {
+   "label": "longest-answer",
+   "sentAt": "2026-10-15T12:46:41.644Z",
+   "permissionShown": true,
+   "attemptId": "ebc790ba-393d-4ece-98d1-1bf671b9121c",
+   "threadId": "e28fae6f-de3e-46a6-8655-0ee4bb567eae",
+   "status": "completed",
+   "error": null,
+   "generatedTokens": 171,
+   "stopReason": "eos-token",
+   "answerCharacters": 170,
+   "answer": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n40\n41\n42\n43\n44\n45\n46\n47\n48\n49\n50\n51\n52\n53\n54\n55\n56\n57\n58\n59\n60",
+   "finishedObservedAt": "2026-10-15T12:50:56.292Z",
+   "timing": {
+    "schema": "reploid.signed-completion-answer-timing/v2",
+    "threadId": "e28fae6f-de3e-46a6-8655-0ee4bb567eae",
+    "attemptId": "ebc790ba-393d-4ece-98d1-1bf671b9121c",
+    "status": "completed",
+    "requester": {
+     "attemptMs": {
+      "status": "measured",
+      "value": 254508,
+      "unit": "ms",
+      "clock": "requester-application",
+      "source": "packages/reploid/src/chat/workspace.js:248 minus packages/reploid/src/chat/workspace.js:116"
+     },
+     "firstVisibleTextMs": {
+      "status": "measured",
+      "value": 21715,
+      "unit": "ms",
+      "clock": "harness",
+      "source": "harness stream sample (Send click to first nonempty rendered response)",
+      "resolutionMs": 250
+     },
+     "outputCharacters": 170
+    },
+    "coordinator": {
+     "generatedTokens": 171,
+     "promptTokens": {
+      "status": "measured",
+      "value": 31,
+      "unit": "tokens",
+      "clock": "coordinator",
+      "source": "packages/reploid/src/mesh/partitions/partition-summary.js summarizeOrderedPhases: step 0 carries the whole prompt (prefill plus the first sampled token), later steps decode one token each; per-stage runtime fields are each contributor's Doppler resident metrics (doppler resident-partition.js:173-202,230), elapsed is the coordinator stage call"
+     },
+     "phases": {
+      "source": "packages/reploid/src/mesh/partitions/partition-summary.js summarizeOrderedPhases: step 0 carries the whole prompt (prefill plus the first sampled token), later steps decode one token each; per-stage runtime fields are each contributor's Doppler resident metrics (doppler resident-partition.js:173-202,230), elapsed is the coordinator stage call",
+      "prompt": {
+       "inputTokens": 31,
+       "stages": [
+        {
+         "partitionIndex": 0,
+         "elapsedMs": 4993.100000143051,
+         "runtime": {
+          "executionMs": 4980.700000047684,
+          "inputUploadMs": 0,
+          "encodeMs": 4974.599999904633,
+          "submitWaitMs": 5.000000238418579,
+          "activationReadbackMs": 0.7000000476837158,
+          "logitsMs": 0,
+          "gpuKernelsMs": null,
+          "logitsReadbackMs": 0,
+          "samplingMs": 0
+         }
+        },
+        {
+         "partitionIndex": 1,
+         "elapsedMs": 8190.299999952316,
+         "runtime": {
+          "executionMs": 7486.28093899996,
+          "inputUploadMs": 0.10219200002029538,
+          "encodeMs": 7481.410610999912,
+          "submitWaitMs": 3.5315760001540184,
+          "activationReadbackMs": 0.452441000030376,
+          "logitsMs": 0,
+          "gpuKernelsMs": null,
+          "logitsReadbackMs": 0,
+          "samplingMs": 0
+         }
+        },
+        {
+         "partitionIndex": 2,
+         "elapsedMs": 7534.299999952316,
+         "runtime": {
+          "executionMs": 7278.870282000047,
+          "inputUploadMs": 0.08876700000837445,
+          "encodeMs": 7016.821469999966,
+          "submitWaitMs": 3.4011930000269786,
+          "activationReadbackMs": 0,
+          "logitsMs": 45.92130299995188,
+          "gpuKernelsMs": null,
+          "logitsReadbackMs": 0.46191900002304465,
+          "samplingMs": 2.3781769999768585
+         }
+        }
+       ]
+      },
+      "decode": {
+       "steps": 170,
+       "stages": [
+        {
+         "partitionIndex": 0,
+         "elapsedMs": {
+          "count": 170,
+          "total": 37797.10000061989,
+          "min": 195.29999995231628,
+          "max": 326.09999990463257
+         },
+         "runtime": {
+          "executionMs": {
+           "count": 170,
+           "total": 35760.00000047684,
+           "min": 184.59999990463257,
+           "max": 302.40000009536743
+          },
+          "inputUploadMs": {
+           "count": 170,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          },
+          "encodeMs": {
+           "count": 170,
+           "total": 478.00000262260437,
+           "min": 2.3000001907348633,
+           "max": 5
+          },
+          "submitWaitMs": {
+           "count": 170,
+           "total": 35116.39999914169,
+           "min": 181,
+           "max": 259.2000000476837
+          },
+          "activationReadbackMs": {
+           "count": 170,
+           "total": 144.2000014781952,
+           "min": 0.2999999523162842,
+           "max": 40.700000047683716
+          },
+          "logitsMs": {
+           "count": 170,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          },
+          "gpuKernelsMs": {
+           "count": 0,
+           "total": 0,
+           "min": null,
+           "max": null
+          },
+          "logitsReadbackMs": {
+           "count": 170,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          },
+          "samplingMs": {
+           "count": 170,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          }
+         }
+        },
+        {
+         "partitionIndex": 1,
+         "elapsedMs": {
+          "count": 170,
+          "total": 102748.90000104904,
+          "min": 246.60000014305115,
+          "max": 2358.5
+         },
+         "runtime": {
+          "executionMs": {
+           "count": 170,
+           "total": 25631.335809998447,
+           "min": 81.10037300002296,
+           "max": 514.4326730000321
+          },
+          "inputUploadMs": {
+           "count": 170,
+           "total": 10.317842000978999,
+           "min": 0.03763099992647767,
+           "max": 0.09517899993807077
+          },
+          "encodeMs": {
+           "count": 170,
+           "total": 2385.1855250009103,
+           "min": 6.8545250000897795,
+           "max": 34.15692500001751
+          },
+          "submitWaitMs": {
+           "count": 170,
+           "total": 21010.632148999255,
+           "min": 71.47255800012499,
+           "max": 483.9852589999791
+          },
+          "activationReadbackMs": {
+           "count": 170,
+           "total": 2146.012454999378,
+           "min": 0.48226799978874624,
+           "max": 211.6120270001702
+          },
+          "logitsMs": {
+           "count": 170,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          },
+          "gpuKernelsMs": {
+           "count": 0,
+           "total": 0,
+           "min": null,
+           "max": null
+          },
+          "logitsReadbackMs": {
+           "count": 170,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          },
+          "samplingMs": {
+           "count": 170,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          }
+         }
+        },
+        {
+         "partitionIndex": 2,
+         "elapsedMs": {
+          "count": 170,
+          "total": 84453.5999994278,
+          "min": 241.79999995231628,
+          "max": 5553.299999952316
+         },
+         "runtime": {
+          "executionMs": {
+           "count": 170,
+           "total": 34075.666312000016,
+           "min": 130.64857499999925,
+           "max": 647.8632839999627
+          },
+          "inputUploadMs": {
+           "count": 170,
+           "total": 10.190838000620715,
+           "min": 0.041277999989688396,
+           "max": 0.12824099999852479
+          },
+          "encodeMs": {
+           "count": 170,
+           "total": 2276.988395999535,
+           "min": 6.7175569999963045,
+           "max": 26.283795000053942
+          },
+          "submitWaitMs": {
+           "count": 170,
+           "total": 19164.345879998524,
+           "min": 70.9002900000196,
+           "max": 552.0616929999087
+          },
+          "activationReadbackMs": {
+           "count": 170,
+           "total": 0,
+           "min": 0,
+           "max": 0
+          },
+          "logitsMs": {
+           "count": 170,
+           "total": 12538.397737001302,
+           "min": 45.23888799990527,
+           "max": 351.29109600000083
+          },
+          "gpuKernelsMs": {
+           "count": 0,
+           "total": 0,
+           "min": null,
+           "max": null
+          },
+          "logitsReadbackMs": {
+           "count": 170,
+           "total": 1135.2810480013723,
+           "min": 0.24531199992634356,
+           "max": 206.89628300000913
+          },
+          "samplingMs": {
+           "count": 170,
+           "total": 513.5007959997747,
+           "min": 1.1854520000051707,
+           "max": 6.026637000031769
+          }
+         }
+        }
+       ]
+      }
+     },
+     "stages": [
+      {
+       "partitionIndex": 0,
+       "steps": 171,
+       "stepCount": 171,
+       "stepMsTotal": {
+        "status": "measured",
+        "value": 42790.20000076294,
+        "unit": "ms",
+        "clock": "coordinator",
+        "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+       }
+      },
+      {
+       "partitionIndex": 1,
+       "steps": 171,
+       "stepCount": 171,
+       "stepMsTotal": {
+        "status": "measured",
+        "value": 110939.20000100136,
+        "unit": "ms",
+        "clock": "coordinator",
+        "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+       }
+      },
+      {
+       "partitionIndex": 2,
+       "steps": 171,
+       "stepCount": 171,
+       "stepMsTotal": {
+        "status": "measured",
+        "value": 91987.89999938011,
+        "unit": "ms",
+        "clock": "coordinator",
+        "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+       }
+      }
+     ],
+     "activationBytes": {
+      "status": "measured",
+      "value": 3293184,
+      "unit": "bytes",
+      "clock": "coordinator",
+      "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:209"
+     }
+    },
+    "runtime": {
+     "executionMs": {
+      "status": "measured",
+      "value": 115212.85334352299,
+      "unit": "ms",
+      "clock": "contributor-runtime",
+      "source": "packages/reploid/src/mesh/partitions/partition-summary.js summarizeOrderedPhases: step 0 carries the whole prompt (prefill plus the first sampled token), later steps decode one token each; per-stage runtime fields are each contributor's Doppler resident metrics (doppler resident-partition.js:173-202,230), elapsed is the coordinator stage call"
+     },
+     "logitsReadbackMs": {
+      "status": "measured",
+      "value": 1135.7429670013953,
+      "unit": "ms",
+      "clock": "contributor-runtime",
+      "source": "packages/reploid/src/mesh/partitions/partition-summary.js summarizeOrderedPhases: step 0 carries the whole prompt (prefill plus the first sampled token), later steps decode one token each; per-stage runtime fields are each contributor's Doppler resident metrics (doppler resident-partition.js:173-202,230), elapsed is the coordinator stage call"
+     },
+     "samplingMs": {
+      "status": "measured",
+      "value": 515.8789729997516,
+      "unit": "ms",
+      "clock": "contributor-runtime",
+      "source": "packages/reploid/src/mesh/partitions/partition-summary.js summarizeOrderedPhases: step 0 carries the whole prompt (prefill plus the first sampled token), later steps decode one token each; per-stage runtime fields are each contributor's Doppler resident metrics (doppler resident-partition.js:173-202,230), elapsed is the coordinator stage call"
+     }
+    },
+    "scheduler": {
+     "queuedMs": {
+      "status": "not-observable",
+      "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+      "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+     },
+     "loadMs": {
+      "status": "not-observable",
+      "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+      "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+     },
+     "executionMs": {
+      "status": "not-observable",
+      "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+      "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+     }
+    },
+    "transport": {
+     "status": "not-observable",
+     "reason": "Ordered summaries carry no transport timing",
+     "source": "partition-summary.js:43-45 aggregates transportTiming for v1 two-device summaries only; the ordered v2 summary (partition-summary.js:16-18) carries none"
+    },
+    "persistence": {
+     "status": "not-observable",
+     "reason": "History persistence exposes no timing",
+     "source": "ordered routes commit each step through the requester transaction owner (packages/reploid/src/mesh/partitions/partition-ordered-chat.js:136, owner.publish) before delivery or the next step; neither that commit nor ordinary history (packages/reploid/src/chat/workspace.js persist()) exposes timing"
+    }
+   }
+  }
+ ],
+ "settlement": {
+  "unsettledOwners": 0,
+  "reservations": {
+   "active": 0,
+   "availableSlots": 2
+  },
+  "unknownAttempts": [],
+  "attempts": [
+   {
+    "attemptId": "1e6d6160-1305-445a-9949-9024f200c29a",
+    "phase": "completed",
+    "cleanup": [
+     {
+      "partitionIndex": 0,
+      "status": "settled",
+      "error": null
+     },
+     {
+      "partitionIndex": 1,
+      "status": "settled",
+      "error": null
+     },
+     {
+      "partitionIndex": 2,
+      "status": "settled",
+      "error": null
+     }
+    ],
+    "cleanupSettledAt": 1792068316141,
+    "failure": null
+   },
+   {
+    "attemptId": "1ea9b7e2-6e0a-4c59-a591-cf36782d5d02",
+    "phase": "completed",
+    "cleanup": [
+     {
+      "partitionIndex": 0,
+      "status": "settled",
+      "error": null
+     },
+     {
+      "partitionIndex": 1,
+      "status": "settled",
+      "error": null
+     },
+     {
+      "partitionIndex": 2,
+      "status": "settled",
+      "error": null
+     }
+    ],
+    "cleanupSettledAt": 1792068397625,
+    "failure": null
+   },
+   {
+    "attemptId": "ebc790ba-393d-4ece-98d1-1bf671b9121c",
+    "phase": "completed",
+    "cleanup": [
+     {
+      "partitionIndex": 0,
+      "status": "settled",
+      "error": null
+     },
+     {
+      "partitionIndex": 1,
+      "status": "settled",
+      "error": null
+     },
+     {
+      "partitionIndex": 2,
+      "status": "settled",
+      "error": null
+     }
+    ],
+    "cleanupSettledAt": 1792068656235,
+    "failure": null
+   }
+  ]
+ },
+ "ok": true,
+ "finishedAt": "2026-10-15T12:50:59.620Z"
+}
