@@ -7,7 +7,7 @@
  *   GET  /payments/checkouts/:checkoutId  the account's checkout and its reconciliation phase
  *   POST /offers                          a contribution offer for this device (body: { category, model })
  *   POST /community-access/requests       ask for funded Community Access for one answer (body: { request })
- *   GET  /community-access/requests/:requestId  that request's state, after an admission pass
+ *   GET  /community-access/requests/:requestId  that request's state (read only; the scheduler admits queued requests)
  *
  * Each needs a session acting as an active registered device; the account,
  * device and participant come from that session, never from the body. A
@@ -79,7 +79,8 @@ export function createSessionRouter({
   if (offerTerms !== null && (typeof offerTerms !== 'function' || typeof rewards?.createOffer !== 'function')) {
     throw new TypeError('offers need the offer-terms port and the reward store');
   }
-  if (communityAccess !== null && (typeof communityAccess.requestAccess !== 'function' || typeof ledger?.getQuote !== 'function')) {
+  if (communityAccess !== null && (typeof communityAccess.requestAccess !== 'function' || typeof communityAccess.getRequest !== 'function'
+    || typeof ledger?.getQuote !== 'function')) {
     throw new TypeError('Community Access routes need the Community Access store and the ledger');
   }
   const bounds = validateRouteLimits(limits);
@@ -227,11 +228,10 @@ export function createSessionRouter({
     }, { atomic: false });
   });
   define('get', '/community-access/requests/:requestId', { device: true, ...noAccess }, async (req, ctx) => {
+    // A read only: queued requests advance through the scheduler's admission sweep, never through this route.
     const known = /^car_[a-f0-9]{32}$/.test(req.params.requestId) ? await communityAccess.getRequest(req.params.requestId) : null;
     if (!known || known.accountId !== ctx.accountId) refuse(404, 'community_access_request_not_found', 'no Community Access request with this id belongs to the account');
-    // Waiting requests advance on every admission pass; a scheduler runs the same pass.
-    if (known.state === 'queued') await communityAccess.admitWaiting();
-    return { body: await withQuote(await communityAccess.getRequest(req.params.requestId)) };
+    return { body: await withQuote(known) };
   });
 
   router.use(earningErrorHandler(log));

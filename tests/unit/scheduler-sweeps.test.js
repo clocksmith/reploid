@@ -44,7 +44,7 @@ const PAYMENT_POLICY = Object.freeze({
   polling: { minAgeMs: MIN, reversalWatchMs: DAY }
 });
 const SWEEPS = ['ledger.settleDueEvidence', 'ledger.expireReservations', 'ledger.expireAllocations', 'rewards.resumeFunding', 'rewards.resumeIssuance',
-  'community-access.resumeFunding', 'community-access.expireQueue', 'payments.pollPending'];
+  'community-access.resumeFunding', 'community-access.expireQueue', 'payments.pollPending', 'community-access.admitWaiting'];
 const schedule = ({ batchLimit = 10, intervalMs = 5 * MIN, only = SWEEPS } = {}) => ({
   scheduleVersion: 'test-schedule/1',
   leaseMs: 2 * MIN,

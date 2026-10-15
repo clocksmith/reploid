@@ -17,6 +17,8 @@
  *                                    optional first-output deadline (both relative to quote time)
  *   offers        [offer template]   what a contribution offer pays per category and model
  *   communityAccess   optional Community Access policy
+ *   scheduler     optional durable schedule { scheduleVersion, leaseMs, jobs: { jobId: { intervalMs, batchLimit } } }
+ *                 (server/scheduler validates it against the jobs this composition registers)
  */
 
 import fs from 'node:fs/promises';
@@ -25,7 +27,7 @@ import path from 'node:path';
 export const EARNING_POLICY_SCHEMA = 'reploid.earning-policy/v1';
 
 const SECTIONS = Object.freeze(['schema', 'policyVersion', 'accounts', 'ledger', 'reversals', 'rewards', 'issuance', 'routes',
-  'conversions', 'payments', 'funding', 'services', 'offers', 'communityAccess']);
+  'conversions', 'payments', 'funding', 'services', 'offers', 'communityAccess', 'scheduler']);
 const REQUIRED = Object.freeze(['accounts', 'ledger', 'rewards', 'issuance', 'routes', 'conversions', 'funding', 'services', 'offers']);
 const SERVICE_KEYS = Object.freeze(['request', 'service', 'deadlines', 'pricing', 'terms']);
 const OFFER_KEYS = Object.freeze(['category', 'model', 'hosts', 'reward', 'resourceBounds', 'durationMs', 'validForMs', 'paymentTiming', 'failureCompensation']);

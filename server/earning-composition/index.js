@@ -21,6 +21,9 @@
  *                                      issuance limits read (reploid.admitted-capacity-evidence/v1); without
  *                                      it reward issuance declines as capacity_evidence_unavailable
  *   REPLOID_EARNING_COMMUNITY_CAPACITY_FILE  optional, with policy.communityAccess: its capacity evidence
+ *   REPLOID_EARNING_SCHEDULER          in-process or external: who runs the durable scheduler over
+ *                                      policy.scheduler (scheduler.js); required in production with
+ *                                      evidence terms or Community Access
  *   Supabase and Stripe variables      see ../providers/env.js; each provider is composed only when set
  *
  * Production (NODE_ENV=production or K_SERVICE) refuses memory stores, the
@@ -50,6 +53,8 @@ import { createFirestorePaymentBackend, createMemoryPaymentBackend } from '../pa
 import { createTestPaymentProcessor } from '../payments/test-processor.js';
 import { createStripeProcessorFromEnv, createSupabaseSignInFromEnv } from '../providers/env.js';
 import { createFirestoreRewardBackend, createMemoryRewardBackend } from '../rewards/stores.js';
+import { createFirestoreSchedulerBackend, createMemorySchedulerBackend } from '../scheduler/stores.js';
+import { checkSchedulerHosting, composeEarningScheduler, hostSchedulerLoop, readSchedulerHosting } from './scheduler.js';
 import { EarningPolicyError, isInside, readEarningPolicyFile, readOperatorJsonFile } from './policy.js';
 import { createOfferTerms, createQuoteTerms } from './terms.js';
 
@@ -123,7 +128,8 @@ function openStores({ kind, firestore, prefix }) {
       reward: () => createMemoryRewardBackend({ state }),
       payment: () => createMemoryPaymentBackend({ state }),
       binding: () => createMemoryRouteBackend({ state }),
-      community: () => createMemoryCommunityAccessBackend({ state })
+      community: () => createMemoryCommunityAccessBackend({ state }),
+      scheduler: () => createMemorySchedulerBackend({ state })
     };
   }
   const options = { firestore, collectionPrefix: prefix };
@@ -133,7 +139,8 @@ function openStores({ kind, firestore, prefix }) {
     reward: () => createFirestoreRewardBackend(options),
     payment: () => createFirestorePaymentBackend(options),
     binding: () => createFirestoreRouteBackend(options),
-    community: () => createFirestoreCommunityAccessBackend(options)
+    community: () => createFirestoreCommunityAccessBackend(options),
+    scheduler: () => createFirestoreSchedulerBackend(options)
   };
 }
 
@@ -204,7 +211,8 @@ async function publishConversions({ ledger, conversions, clock }) {
  * @param {object} options
  * @param {object} options.env environment
  * @param {boolean} options.production production mode, from mount.js
- * @param {object} [options.ports] injected { firestore, fetch, clock, repositoryRoot } for tests and local runs
+ * @param {object} [options.ports] injected { firestore, fetch, clock, repositoryRoot, wait, log } for tests and local
+ *   runs; `hostScheduler: false` composes the scheduler without running it here (run-scheduler.js)
  */
 export async function createEarningComposition({ env = process.env, production = false, ports = {} } = {}) {
   const repositoryRoot = ports.repositoryRoot ?? REPOSITORY_ROOT;
@@ -221,6 +229,8 @@ export async function createEarningComposition({ env = process.env, production =
     if (file && (!path.isAbsolute(file) || isInside(repositoryRoot, file))) refuse('file_path_invalid', `${name} must be an absolute path outside the repository`);
   }
   const policy = await readEarningPolicyFile(read(env, 'REPLOID_EARNING_POLICY_FILE'), { repositoryRoot });
+  const hosting = readSchedulerHosting(env);
+  checkSchedulerHosting({ policy, hosting, production, storeKind: kind });
   const operatorsFile = read(env, 'REPLOID_EARNING_OPERATORS_FILE');
   const operatorAuthority = operatorsFile
     ? createOperatorAuthority(await readOperatorJsonFile(operatorsFile, { variable: 'REPLOID_EARNING_OPERATORS_FILE', repositoryRoot }))
@@ -294,8 +304,18 @@ export async function createEarningComposition({ env = process.env, production =
     readCommunityCapacity: evidenceFile(read(env, 'REPLOID_EARNING_COMMUNITY_CAPACITY_FILE')), policy: policy.communityAccess, fundingAuthority, clock
   }) : null;
 
+  // Deferred work (window decisions, expiries, admissions, polling) runs only through the durable scheduler.
+  const scheduler = composeEarningScheduler({ policy, backend: stores.scheduler(), services: { ...services, payments, communityAccess }, clock,
+    runnerId: read(env, 'REPLOID_EARNING_SCHEDULER_RUNNER_ID'), wait: ports.wait ?? null });
+  const log = ports.log ?? console;
+  if (!hosting && !production) log.warn?.('[Earning] No scheduler hosting declared (REPLOID_EARNING_SCHEDULER): expiries, window decisions and Community Access admission will not run');
+  const host = scheduler && hosting === 'in-process' && ports.hostScheduler !== false ? hostSchedulerLoop(scheduler, { log, wait: ports.wait ?? null }) : null;
+
   return {
     ...services,
+    scheduler,
+    schedulerHosting: hosting,
+    stopScheduler: () => (host ? host.stop() : Promise.resolve()),
     signInFlows,
     payments,
     testCheckout: local && payments ? local.bind(payments) : null,
