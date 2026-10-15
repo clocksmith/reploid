@@ -1,0 +1,18 @@
+session n1 start 2026-10-15T00:10:19Z amdgpu-errors 50
+public-native cpu 110.0
+n1-c-installed-check exit=0 seconds=277 at 00:14:57 amdgpu-errors 50
+public-native cpu 120.0
+n1-cand-check exit=0 seconds=137 at 00:17:14 amdgpu-errors 50
+public-native cpu 150.0
+n1-c-installed-unsplit exit=0 seconds=147 at 00:19:41 amdgpu-errors 50
+public-native cpu 110.0
+n1-cand-unsplit exit=0 seconds=73 at 00:20:54 amdgpu-errors 50
+public-native cpu 110.0
+n1-c-installed-profile exit=0 seconds=29 at 00:21:23 amdgpu-errors 50
+public-native cpu 110.0
+n1-cand-profile exit=0 seconds=16 at 00:21:39 amdgpu-errors 50
+public-native cpu 120.0
+n1-c-installed-memory exit=0 seconds=173 at 00:24:33 amdgpu-errors 50
+public-native cpu 120.0
+n1-cand-memory exit=0 seconds=80 at 00:25:53 amdgpu-errors 50
+session n1 done 2026-10-15T00:25:53Z amdgpu-errors 50

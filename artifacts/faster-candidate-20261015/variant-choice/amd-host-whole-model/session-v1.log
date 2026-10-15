@@ -1,0 +1,14 @@
+session v1 start 2026-10-15T02:21:28Z amdgpu-errors 50
+public-native cpu 120.0
+v1-u-check exit=0 seconds=138 at 02:23:46 amdgpu-errors 50 scope-peak=1.9G memory peak
+public-native cpu 120.0
+v1-r-check exit=0 seconds=135 at 02:26:01 amdgpu-errors 50 scope-peak=1.3G memory peak
+public-native cpu 120.0
+v1-u-unsplit exit=0 seconds=76 at 02:27:17 amdgpu-errors 50 scope-peak=893.8M memory peak
+public-native cpu 120.0
+v1-r-unsplit exit=0 seconds=74 at 02:28:31 amdgpu-errors 50 scope-peak=1005.2M memory peak
+public-native cpu 110.0
+v1-u-memory exit=0 seconds=80 at 02:29:51 amdgpu-errors 50 scope-peak=1.7G memory peak
+public-native cpu 120.0
+v1-r-memory exit=0 seconds=79 at 02:31:10 amdgpu-errors 50 scope-peak=1.7G memory peak
+session v1 done 2026-10-15T02:31:10Z amdgpu-errors 50

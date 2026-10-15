@@ -1,0 +1,4 @@
+start 2026-10-15T02:32:23Z i915=54
+state-rolled-cold exit=0 seconds=39 peak= at 02:33:03 i915=54
+state-rolled-warm exit=0 seconds=0 peak= at 02:33:04 i915=54
+done 2026-10-15T02:33:04Z i915=54

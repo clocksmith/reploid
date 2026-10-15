@@ -1,0 +1,8 @@
+{"phase":"device","gpu":{"adapter":{"vendor":"apple","architecture":"metal-3","device":"unknown","description":""},"hasF16":true,"userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"}}
+{"label":"paired candidate final (Capsule TargetPlan runtime config)","speedPass":0,"prefillMs":28522,"decodeMedianMs":740}
+{"label":"paired candidate final (Capsule TargetPlan runtime config)","speedPass":1,"prefillMs":26767.5,"decodeMedianMs":738.4000000953674}
+{"label":"paired candidate final (Capsule TargetPlan runtime config)","attempt":0,"promptTokens":19,"maxDifference":8.399647413170896e-7,"failedSteps":0}
+{"label":"paired candidate final (Capsule TargetPlan runtime config)","attempt":1,"promptTokens":21,"maxDifference":8.902515347131157e-7,"failedSteps":0}
+{"label":"paired candidate final (Capsule TargetPlan runtime config)","attempt":2,"promptTokens":184,"maxDifference":9.520044947919359e-7,"failedSteps":0}
+{"label":"paired candidate final (Capsule TargetPlan runtime config)","comparedSteps":55,"withinTolerance":55,"tokenMatches":55,"maxDifference":9.520044947919359e-7,"valuesOverTolerance":0,"passed":true,"prompt56Ms":26767.5,"prompt184Ms":90127.20000004768,"decodeMedianMs":738.4000000953674}
+{"label":"paired candidate final (Capsule TargetPlan runtime config)","ok":true,"comparedSteps":55,"withinTolerance":55,"tokenMatches":55,"maxDifference":9.520044947919359e-7,"valuesOverTolerance":0,"passed":true,"prompt56Ms":26767.5,"prompt184Ms":90127.20000004768,"decodeMedianMs":738.4000000953674,"failure":null}

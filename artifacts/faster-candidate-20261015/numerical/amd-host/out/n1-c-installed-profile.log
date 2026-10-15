@@ -1,0 +1,52 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.7ms
+[1306.6ms][Pipeline] Execution v1 enabled (steps=43, kernelPathInline=yes, pipelineInline=no)
+[1306.7ms][Config] Using manifest-first config (source of truth)
+[1311.1ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+[1311.1ms][Pipeline] Vision capable: imageTokenId=248056
+[1312.2ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (19 decode steps, 8 kernels, source=execution-v1)
+[1312.5ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[1313.1ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[1463.6ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[1586.2ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges
+[1586.6ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[1589.8ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=4096
+[1592.6ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[1624.5ms][ShardCache] Custom shard loader configured
+[1624.7ms][Loader] Initializing...
+[1669.4ms][HeapManager] Allocated segment 0: 1024MB
+[1669.6ms][HeapManager] Segmented heap: 1GB per segment
+[1669.6ms][HeapManager] Initialized with strategy: SEGMENTED
+[1669.7ms][Loader] Initialized (f16, subgroups)
+[1670.2ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16
+[1683.1ms][Loader] [0.0s] Memory (start): | RSS=221.43 MB (heap=58.84 MB/61.18 MB, external=2.00 GB, arrayBuffers=1.00 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[1683.6ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[1859.8ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,1024], isWeightBuffer=true
+[1860.2ms][Loader] Layers: 0-23
+[2079.4ms][Loader] Layers: 24 complete (0.22s)
+[2126.9ms][Loader] Complete: 890.16 MB in 0.44s (1.97 GB/s)
+[2128.3ms][Loader] [0.5s] Memory (complete): | RSS=279.82 MB (heap=59.96 MB/69.43 MB, external=1.04 GB, arrayBuffers=1.04 GB) | GPU=893.10 MB (345 active, 0 pooled, peak=893.10 MB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=345
+[2148.0ms][Pipeline] Model loaded successfully (848ms)
+[19374.4ms][CommandRecorder] maxQuerySetSize unavailable; using fallback 4096
+[19857.1ms][Profile] Decode step 1 (layers only):
+[19857.3ms][Profile] GPU Profile Report
+──────────────────────────────────────────────────
+Kernel                      Time (ms)       %
+──────────────────────────────────────────────────
+gated_delta_recurrent          132.78    30.0
+matmul                         115.80    26.1
+attention                       83.10    18.8
+qwen_linear_attention_prepare       42.60     9.6
+rmsnorm                         35.59     8.0
+paired_pointwise                19.66     4.4
+gated_delta_conv                12.39     2.8
+rope_qk                          1.05     0.2
+cast                             0.07     0.0
+split_qg                         0.00     0.0
+──────────────────────────────────────────────────
+TOTAL                          443.02   100.0
+
+{"mode":"paired-profile","profiledSteps":16,"wallMedianMs":552.1660220000012,"gpuPerStepMs":453.3985280000001,"top":[["gated_delta_recurrent",132.6],["matmul",115.88],["attention",93.66],["qwen_linear_attention_prepare",42.33],["rmsnorm",35.83],["paired_pointwise",19.92],["gated_delta_conv",12.08],["rope_qk",1.01],["split_qg",0.05],["cast",0.04]]}
+[28504.5ms][ExpertCache] Cache cleared
+[28505.9ms][Pipeline] Unloaded

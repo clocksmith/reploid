@@ -1,0 +1,2 @@
+[46343:32760207:1015/005915.252878:ERROR:chrome/browser/process_singleton_posix.cc:347] Failed to create /private/var/tmp/reploid-faster-journey-20261015/mac-supplier-profile/SingletonLock: File exists (17)
+[46343:32760207:1015/005915.254293:ERROR:chrome/app/chrome_main_delegate.cc:569] Failed to create a ProcessSingleton for your profile directory. This means that running multiple instances would start multiple browser processes rather than opening a new window in the existing process. Aborting now to avoid profile corruption.

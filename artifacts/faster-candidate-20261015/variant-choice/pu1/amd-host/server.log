@@ -1,0 +1,3 @@
+Running as unit: fc-pu1-server.scope; invocation ID: 569ae6db660244dd9e72826f580b4dbd
+{"app":"http://127.0.0.1:29850","model":"http://127.0.0.1:29851","pid":2174266}
+Diagnostic model server on loopback port 29851

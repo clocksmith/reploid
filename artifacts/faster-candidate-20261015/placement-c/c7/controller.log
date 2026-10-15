@@ -1,0 +1,20 @@
+Running as unit: fc-c7-controller.scope; invocation ID: aabcc7a392354cfe812b2302e596898b
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Connected browser differs from observed process
+
+32929 !== 36308
+
+    at runOrderedPartitionReference (file:///var/tmp/reploid-faster-candidate-20261015-3/tests/fixtures/ordered-partition-reference.js:190:18)
+    at async file:///var/tmp/reploid-faster-candidate-20261015-3/tests/fixtures/browser-partition-memory-completion.js:23:3 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 32929,
+  expected: 36308,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.1

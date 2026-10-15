@@ -1,0 +1,38 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.8ms
+[664.0ms][Pipeline] Execution v1 enabled (steps=43, kernelPathInline=yes, pipelineInline=no)
+[664.2ms][Config] Using manifest-first config (source of truth)
+[667.9ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+[668.0ms][Pipeline] Vision capable: imageTokenId=248056
+[668.8ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (19 decode steps, 8 kernels, source=execution-v1)
+[669.1ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[669.5ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[792.8ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[945.9ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges
+[946.3ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[949.7ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=4096
+[953.8ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[1008.5ms][ShardCache] Custom shard loader configured
+[1008.8ms][Loader] Initializing...
+[1066.8ms][HeapManager] Allocated segment 0: 1024MB
+[1066.9ms][HeapManager] Segmented heap: 1GB per segment
+[1067.0ms][HeapManager] Initialized with strategy: SEGMENTED
+[1067.1ms][Loader] Initialized (f16, subgroups)
+[1067.6ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16
+[1080.3ms][Loader] [0.0s] Memory (start): | RSS=359.78 MB (heap=197.91 MB/200.90 MB, external=2.00 GB, arrayBuffers=1.00 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[1081.0ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[1270.1ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,1024], isWeightBuffer=true
+[1270.4ms][Loader] Layers: 0-23
+[1467.7ms][Loader] Layers: 24 complete (0.20s)
+[1625.4ms][Loader] Complete: 890.16 MB in 0.54s (1.60 GB/s)
+[1626.5ms][Loader] [0.6s] Memory (complete): | RSS=470.25 MB (heap=217.46 MB/253.15 MB, external=1.04 GB, arrayBuffers=1.04 GB) | GPU=893.10 MB (345 active, 0 pooled, peak=893.10 MB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=345
+[1642.5ms][Pipeline] Model loaded successfully (984ms)
+{"phase":"loaded","currentBytesAllocated":938584320,"peakBytesAllocated":938584320,"peakBytesRequested":935504128,"activeBuffers":347,"pooledBuffers":1,"processVmHWMBytes":602353664}
+{"phase":"request-2 prefill (184 tokens)","currentBytesAllocated":994663936,"peakBytesAllocated":994663936,"peakBytesRequested":981299968,"activeBuffers":455,"pooledBuffers":48,"processVmHWMBytes":1693679616}
+{"phase":"request-2 after 50 decode steps","currentBytesAllocated":994856960,"peakBytesAllocated":1001209600,"peakBytesRequested":984787968,"activeBuffers":455,"pooledBuffers":64,"processVmHWMBytes":1723977728}
+{"phase":"answer-cause-follow-up prefill (189 tokens)","currentBytesAllocated":996558336,"peakBytesAllocated":1001209600,"peakBytesRequested":984787968,"activeBuffers":455,"pooledBuffers":60,"processVmHWMBytes":1746141184}
+{"phase":"answer-cause-follow-up after 16 decode steps","currentBytesAllocated":996413440,"peakBytesAllocated":1002913536,"peakBytesRequested":984787968,"activeBuffers":455,"pooledBuffers":64,"processVmHWMBytes":1782353920}
+{"peakBytesAllocated":1002913536,"limitBytes":1420000000,"withinLimit":true,"headroomBytes":417086464}
+[78505.9ms][ExpertCache] Cache cleared
+[78507.8ms][Pipeline] Unloaded
