@@ -44,6 +44,8 @@ export interface OrderedRouteRequest {
   onStep?: ((step: OrderedPublicationStep) => void | Promise<void>) | null;
   /** The requester's signed binding of this attempt to its reservation, given to every stage's reservation. */
   charge?: OutputAcknowledgment | null;
+  /** A charged step s waits, until this ms-epoch deadline at most, for acknowledgments of s - K outputs; then ACKNOWLEDGMENT_OVERDUE. */
+  acknowledgmentDeadlineAt?: number | null;
   /** Each final-stage output with its receipt; the answer, if any, is the requester's acknowledgment. Not awaited before the next step. */
   onOutput?: ((output: { step: number; delta: string; done: boolean; receipt: StageReceipt | null }) => AcknowledgedOutput | null | Promise<AcknowledgedOutput | null>) | null;
 }
@@ -51,6 +53,8 @@ export interface OrderedRouteReceipt {
   identity: RouteAttemptBinding; phase: 'admitting' | 'executing' | 'settling' | 'cleanup-failed' | 'completed' | 'cancelled' | 'failed';
   reservations: OrderedReservation[]; cleanup: Array<{ partitionIndex: number; status: 'settled' | 'unknown'; error: string | null; code?: 'CONNECTION_LOST' }>;
   cleanupSettledAt: number | null; failure: string | null;
+  /** Charged attempts only: the bound K and the measured waits for acknowledgments. */
+  acknowledgments?: { bound: number; waits: number; waitedMs: number };
 }
 export interface OrderedRouteResult {
   content: string; tokenIds: number[]; logits: Float32Array | number[] | null; stopReason: string;

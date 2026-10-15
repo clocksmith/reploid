@@ -9,7 +9,7 @@ import { expect } from 'vitest';
 
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 import { createRemotePermission, remotePermissionNeed } from '../../packages/reploid/src/chat/remote-permission.js';
-import { createAttemptEvidenceSigner } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
+import { MAX_UNACKNOWLEDGED_OUTPUTS, createAttemptEvidenceSigner } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { createFirestoreRouteBackend, createMemoryRouteBackend, createRouteIdempotency } from '../../server/earning-routes/idempotency.js';
 import { mountEarningRoutes } from '../../server/earning-routes/mount.js';
 import { installJsonBodyMiddleware } from '../../server/json-body-middleware.js';
@@ -34,7 +34,9 @@ export const OPERATORS = Object.freeze({
   'operator-settlement': { actorId: 'settlement_test', roles: ['settlement'] }
 });
 // Test-only evidence terms: decisions wait five minutes after the quoted deadline.
-export const EVIDENCE_TERMS = Object.freeze({ rulesId: EVIDENCE_RULES_ID, windowMs: 5 * MIN, clockSkewMs: 30_000 });
+export const EVIDENCE_TERMS = Object.freeze({ rulesId: EVIDENCE_RULES_ID, windowMs: 5 * MIN, clockSkewMs: 30_000,
+  // The stages' receiver-policy bound; the ledger refuses any other value.
+  maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS });
 export const REPORT_SCHEMA = 'reploid.attempt-report/v1';
 // The fixture quote charges 10 + ceil(output / 2) in full; offers pay a third of the settled charge.
 export const FULL_CHARGE = 10 + Math.ceil(STEPS / 2);
@@ -142,12 +144,12 @@ export function createEarningHarness(kind, { evidence = EVIDENCE_TERMS } = {}) {
   };
 
   /** Two native contributors whose residents sign receipts, a funded browser requester and their route. */
-  h.network = async ({ on = h.base, fetch: fetchPort, generate = null, signers = null } = {}) => {
+  h.network = async ({ on = h.base, fetch: fetchPort, generate = null, signers = null, steps, acknowledgmentWaitMs } = {}) => {
     const c0 = await h.contributor('contributor-0');
     const c1 = await h.contributor('contributor-1');
     const requesterIdentity = await newIdentity('ECDSA');
     const route = await residentRoute({ participants: [c0.identity.peerId, c1.identity.peerId], requesterId: requesterIdentity.peerId,
-      signers: signers ?? [c0.signer, c1.signer] });
+      signers: signers ?? [c0.signer, c1.signer], ...(steps ? { steps } : {}), ...(acknowledgmentWaitMs ? { acknowledgmentWaitMs } : {}) });
     cleanups.push(() => route.close());
     const stageOffers = [await h.offer(c0, { offerId: 'offer_stage_0' }), await h.offer(c1, { offerId: 'offer_stage_1' })];
     const requester = h.requesterHost({ route, identity: requesterIdentity, on, fetch: fetchPort,
@@ -183,11 +185,12 @@ export function createEarningHarness(kind, { evidence = EVIDENCE_TERMS } = {}) {
     return solvency;
   };
 
-  h.open = async () => {
+  /** `communityPoolAccountIds` names Community Access pools that accept quotes for the requester devices they admit. */
+  h.open = async ({ communityPoolAccountIds = [] } = {}) => {
     ({ harness: h.harness, provider: h.provider } = openAccountFixture(kind));
     // Stage receipts and route receipts carry the hosts' wall clocks; the fixture clock starts from it.
     fx.nowMs = Date.now();
-    h.services = h.harness.open({ fundingAuthority, issuancePolicy: ISSUANCE_POLICY });
+    h.services = h.harness.open({ fundingAuthority, issuancePolicy: ISSUANCE_POLICY, communityPoolAccountIds });
     h.base = await h.start();
     return h;
   };

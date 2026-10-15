@@ -3,6 +3,7 @@ import { canonicalPartitionJson, partitionActivationContract,
   matchingPartitionActivation, validatePartitionRoute, canonicalRouteAttemptBinding,
   sameRouteAttemptIdentity } from './partition-contract.js';
 import failureMessages from '../../transport/partition-errors.json' with { type: 'json' };
+import { MAX_UNACKNOWLEDGED_OUTPUTS, acknowledgmentOverdue } from './partition-attempt-evidence.js';
 
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 // A stage port reports CONNECTION_LOST only after its authenticated channel has
@@ -97,13 +98,18 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
    * its signed receipt to the requester side, which may answer with its signed
    * acknowledgment pair. Acknowledgments are requested without holding the
    * next step; the latest one travels with later stage requests and closing.
+   * A charged step s waits until acknowledgments cover s - K outputs (K from
+   * the receiver policy), at most until `acknowledgmentDeadlineAt` (ms epoch,
+   * the attempt's own deadline) and never past cancellation; then the attempt
+   * ends as ACKNOWLEDGMENT_OVERDUE and its stages close.
    */
   async function execute({ identity, tokenIds, generation, grants, maxTokens, signal, onDelta = () => {}, onActivity = () => {}, onStep = null,
-    charge = null, onOutput = null }) {
+    charge = null, onOutput = null, acknowledgmentDeadlineAt = null }) {
     assert(!closed, 'Partition runner is closed');
     signal?.throwIfAborted();
     assert((charge === null || charge && typeof charge === 'object' && !Array.isArray(charge))
       && (onOutput === null || typeof onOutput === 'function' && charge !== null), 'Output acknowledgments need the attempt charge binding');
+    assert(charge === null || Number.isFinite(acknowledgmentDeadlineAt), 'A charged attempt needs its acknowledgment deadline');
     // Freeze caller-owned request data before asynchronous plan validation.
     ({ identity, tokenIds, generation, grants, charge } = clone({ identity, tokenIds, generation, grants, charge }));
     await validatePartitionRoute(runtime, plan, route);
@@ -134,13 +140,30 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
     const receipt = { identity: binding, phase: 'admitting', reservations: [], cleanup: [], cleanupSettledAt: null, failure: null };
     const completion = Promise.withResolvers();
     const item = { binding, controller, receipt, owned: new Set(), lost: new Set(), running: true, settled: completion.promise,
-      outcome: 'completed', cleaning: null, acknowledging: Promise.resolve(), acknowledged: null };
+      outcome: 'completed', cleaning: null, acknowledging: Promise.resolve(), acknowledged: null, waiters: new Set() };
+    if (charge) receipt.acknowledgments = { bound: MAX_UNACKNOWLEDGED_OUTPUTS, waits: 0, waitedMs: 0 };
+    const acknowledgedCount = () => item.acknowledged?.acknowledgment.count ?? 0;
     // Keep only a newer acknowledgment of this attempt's outputs; stages and the service verify signatures.
     const accept = pair => {
       const ack = pair?.acknowledgment;
-      if (ack?.attemptId === binding.attemptId && Number.isSafeInteger(ack.count) && ack.count > (item.acknowledged?.acknowledgment.count ?? 0)
+      if (ack?.attemptId === binding.attemptId && Number.isSafeInteger(ack.count) && ack.count > acknowledgedCount()
         && pair.receipt?.output?.count === ack.count) item.acknowledged = clone(pair);
+      for (const waiter of item.waiters) if (acknowledgedCount() >= waiter.target) waiter.done(null);
     };
+    // Backpressure: the next step waits for the requester, bounded by the deadline and cancellation.
+    const awaitAcknowledged = target => new Promise((resolve, reject) => {
+      if (acknowledgedCount() >= target) { resolve(); return; }
+      const started = performance.now();
+      const waiter = { target, done: error => {
+        clearTimeout(timer); combined.removeEventListener('abort', aborted); item.waiters.delete(waiter);
+        receipt.acknowledgments.waits += 1; receipt.acknowledgments.waitedMs += performance.now() - started;
+        if (error) reject(error); else resolve();
+      } };
+      const aborted = () => waiter.done(combined.reason ?? new Error('Ordered attempt cancelled'));
+      const timer = setTimeout(() => waiter.done(acknowledgmentOverdue()), Math.max(0, acknowledgmentDeadlineAt - Date.now()));
+      item.waiters.add(waiter); combined.addEventListener('abort', aborted, { once: true });
+      if (combined.aborted) aborted();
+    });
     const requestAcknowledgment = record => {
       if (!onOutput) return;
       item.acknowledging = item.acknowledging.then(() => onOutput(clone(record))).then(accept, () => {});
@@ -188,6 +211,7 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
       }
       receipt.phase = 'executing';
       for (let index = 0; index < maxTokens; index++) {
+        if (charge) await awaitAcknowledged(index - MAX_UNACKNOWLEDGED_OUTPUTS);
         const delivery = await (async () => {
           combined.throwIfAborted();
           const step = { step: index, tokenPosition: position, inputTokenCount: input.length, maxTokens, generationDigest };

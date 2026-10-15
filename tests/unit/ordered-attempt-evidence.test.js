@@ -7,8 +7,11 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import {
+  ACKNOWLEDGMENT_OVERDUE, MAX_UNACKNOWLEDGED_OUTPUTS, OUTPUT_ACKNOWLEDGMENT_SCHEMA,
   createAttemptEvidenceSigner, openOutputAcknowledgments, openStageReceipts, verifyStageReceipt
 } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
+import { createLayerPartitionRunner } from '../../packages/reploid/src/mesh/partitions/partition-runner.js';
+import { residentRoute } from '../helpers/resident-route.js';
 import { createPartitionChat } from '../../packages/reploid/src/mesh/partitions/partition-chat.js';
 import { createPartitionEntry } from '../../packages/reploid/src/mesh/partitions/partition-entry.js';
 import { createPartitionGrantAuthority } from '../../packages/reploid/src/mesh/partitions/partition-grants.js';
@@ -140,6 +143,75 @@ describe('signed attempt evidence over the ordered route\'s channels', () => {
       expect(tampered).toEqual([null, null, null]);
       expect(acknowledgments.evidence().acknowledged).toBeNull();
     } finally { await n.close(); }
+  });
+});
+
+describe('acknowledgment backpressure at the stages', () => {
+  const STEPS = 8;
+  const grant = { id: 'grant' };
+  const LIMITS = { maxTokens: 10, maxPromptTokens: 32, maxActivationBytes: 4096, maxOutputCharacters: 100, maxAttempts: 100, maxConcurrentAttempts: 2, maxStages: 8 };
+  /**
+   * A coordinator whose own stage keeps no receipts and whose runner is its own, and an honest second
+   * stage that signs receipts and checks every acknowledgment against the requester's charge binding.
+   */
+  async function colludingRoute() {
+    const [coordinator, contributor, requester] = await Promise.all([createSigningIdentity({ algorithm: 'Ed25519' }),
+      createSigningIdentity({ algorithm: 'Ed25519' }), createSigningIdentity({ algorithm: 'ECDSA' })]);
+    const route = await residentRoute({ participants: [coordinator.peerId, contributor.peerId], requesterId: requester.peerId, steps: STEPS,
+      signers: [null, createAttemptEvidenceSigner({ identity: contributor })] });
+    const run = async (attemptId, { onOutput, stages = route.stages }) => {
+      const identity = { schema: 'reploid.partition-attempt/v2', route: route.route, requesterId: requester.peerId, threadId: attemptId, attemptId, placementGeneration: 0 };
+      const acknowledgments = await openOutputAcknowledgments({ signer: createAttemptEvidenceSigner({ identity: requester }), identity, reservationId: `rsv:${attemptId}` });
+      const runner = createLayerPartitionRunner({ runtime: route.runtime, plan: route.plan, route: route.route, stages, authorize: async () => true,
+        transport: { transferActivation: async (frame) => structuredClone(frame) }, limits: LIMITS });
+      const execution = runner.execute({ identity, tokenIds: [1, 2], generation: { maxTokens: STEPS }, maxTokens: STEPS, charge: acknowledgments.charge,
+        onOutput: (record) => onOutput(record, acknowledgments), acknowledgmentDeadlineAt: Date.now() + 60_000,
+        grants: { execution: stages.map(() => grant), tokenContext: stages.map(() => grant), activation: stages.slice(1).map(() => grant), output: grant } });
+      return { execution, runner, acknowledgments, identity };
+    };
+    return { route, coordinator, requester, run, close: () => route.close() };
+  }
+  const contributorRecord = (route, attemptId) => route.admissions(1).find((record) => record.identity.attemptId === attemptId);
+
+  it('runs an honestly acknowledged answer to completion without waiting', async () => {
+    const r = await colludingRoute();
+    try {
+      const { execution, runner } = await r.run('honest', { onOutput: (record, acknowledgments) => acknowledgments.observe(record) });
+      expect((await execution).content).toBe('01234567');
+      // In-process stages decode in microseconds, so an honest requester's signing can trail by a few milliseconds; it never runs overdue.
+      const { acknowledgments: measured } = runner.getState().attempts[0];
+      if (process.env.REPLOID_REPORT_ACK_WAITS) console.log('honest unit acknowledgment waits', JSON.stringify(measured));
+      expect(measured).toMatchObject({ bound: MAX_UNACKNOWLEDGED_OUTPUTS });
+      expect(measured.waitedMs).toBeLessThan(1000);
+      expect(contributorRecord(r.route, 'honest').evidence).toMatchObject({ receipts: [{ steps: STEPS, status: 'settled' }], acknowledged: { acknowledgment: { count: STEPS } } });
+    } finally { await r.close(); }
+  });
+
+  it('refuses a colluding coordinator\'s forged acknowledgments beyond K + 1 unacknowledged outputs', async () => {
+    const r = await colludingRoute();
+    try {
+      // The coordinator signs acknowledgments in the requester's name so its own runner never waits.
+      const forger = createAttemptEvidenceSigner({ identity: r.coordinator });
+      const { execution, identity, acknowledgments } = await r.run('forged', { onOutput: async (record) => ({ receipt: record.receipt,
+        acknowledgment: await forger.sign(OUTPUT_ACKNOWLEDGMENT_SCHEMA, { schema: OUTPUT_ACKNOWLEDGMENT_SCHEMA, reservationId: 'rsv:forged',
+          attemptId: identity.attemptId, routeHash: acknowledgments.routeHash, requesterId: r.requester.peerId, count: record.step + 1,
+          chain: record.receipt.output.chain, signedAt: new Date().toISOString() }) }) });
+      await expect(execution).rejects.toMatchObject({ code: ACKNOWLEDGMENT_OVERDUE });
+      // The honest stage computed at most K + 1 outputs with no verified acknowledgment, kept none, and closed as failed.
+      expect(contributorRecord(r.route, 'forged').evidence).toMatchObject({ receipts: [{ steps: MAX_UNACKNOWLEDGED_OUTPUTS + 1, status: 'failed' }], acknowledged: null });
+    } finally { await r.close(); }
+  });
+
+  it('refuses steps when a coordinator withholds the requester\'s genuine acknowledgments from the other stage', async () => {
+    const r = await colludingRoute();
+    try {
+      const [own, other] = r.route.stages;
+      const stripping = { ...other, executeStage: ({ acknowledged: _acknowledged, ...request }) => other.executeStage(request),
+        closeAttempt: ({ acknowledged: _acknowledged, ...request }) => other.closeAttempt(request) };
+      const { execution } = await r.run('stripped', { stages: [own, stripping], onOutput: (record, acknowledgments) => acknowledgments.observe(record) });
+      await expect(execution).rejects.toMatchObject({ code: ACKNOWLEDGMENT_OVERDUE });
+      expect(contributorRecord(r.route, 'stripped').evidence.receipts[0]).toMatchObject({ steps: MAX_UNACKNOWLEDGED_OUTPUTS + 1, status: 'failed' });
+    } finally { await r.close(); }
   });
 });
 

@@ -1,3 +1,5 @@
+import { MAX_UNACKNOWLEDGED_OUTPUTS } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
+import { EVIDENCE_RULES_ID } from '../../server/ledger/domain.js';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { CAPACITY_EVIDENCE_SCHEMA, validateCommunityAccessPolicy } from '../../server/community-access/domain.js';
@@ -15,7 +17,9 @@ const POLICY = Object.freeze({
   queue: { maxLength: 4, maxPerAccount: 2, maxWaitMs: 10 * MIN },
   usage: { windowMs: 60 * MIN, maxAdmissions: 3, maxAuthorizedCredits: 200 },
   rateLimits: { account: { windowMs: MIN, maxRequests: 5 }, device: { windowMs: MIN, maxRequests: 4 } },
-  capacity: { evidenceMaxAgeMs: 5 * MIN }
+  capacity: { evidenceMaxAgeMs: 5 * MIN },
+  // Test-only evidence terms Community Access quotes carry.
+  evidence: { rulesId: EVIDENCE_RULES_ID, windowMs: 5 * MIN, clockSkewMs: 30_000, maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS }
 });
 const FLOOR_POLICY = Object.freeze({
   ...POLICY,
@@ -60,7 +64,7 @@ describe.each(Object.keys(harnesses))('Community Access (%s store)', (kind) => {
     return access.recordFunding({ fundingId, commitmentId, quantity, poolAccountId, authority: decidedBy(`decision:${fundingId}`) });
   };
   const request = (member, { device = `${member}-phone`, requestId = `r${++seq}:${member}` } = {}) => access.requestAccess({
-    requestId, participantId: `peer_${member}`, deviceId: device, quote: quoteTerms()
+    requestId, participantId: `peer_${member}`, deviceId: device, quote: quoteTerms({ reservationPeriodMs: 60 * MIN })
   });
   const finish = async (view) => {
     await deliver(ledger, view.reservationId);

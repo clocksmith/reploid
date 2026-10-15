@@ -1,3 +1,5 @@
+import { MAX_UNACKNOWLEDGED_OUTPUTS } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
+import { EVIDENCE_RULES_ID } from '../../server/ledger/domain.js';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { POOL_FUNDER_KINDS } from '../../server/community-access/domain.js';
@@ -25,7 +27,9 @@ const ACCESS_POLICY = Object.freeze({
   queue: { maxLength: 4, maxPerAccount: 2, maxWaitMs: 10 * MIN },
   usage: { windowMs: 60 * MIN, maxAdmissions: 3, maxAuthorizedCredits: 200 },
   rateLimits: { account: { windowMs: MIN, maxRequests: 5 }, device: { windowMs: MIN, maxRequests: 4 } },
-  capacity: { evidenceMaxAgeMs: 5 * MIN }
+  capacity: { evidenceMaxAgeMs: 5 * MIN },
+  // Test-only evidence terms Community Access quotes carry.
+  evidence: { rulesId: EVIDENCE_RULES_ID, windowMs: 5 * MIN, clockSkewMs: 30_000, maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS }
 });
 const COMPONENTS = ['ledger', 'reward', 'community'];
 const NO_USE = { reward_funding: 0, community_access_pool: 0, donated_credit: 0 };

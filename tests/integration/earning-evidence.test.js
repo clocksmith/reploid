@@ -8,12 +8,26 @@
 // Firestore stores; test-only provider, policies, windows and amounts.
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { createAttemptEvidenceSigner } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
+import { MAX_UNACKNOWLEDGED_OUTPUTS, createAttemptEvidenceSigner, openOutputAcknowledgments } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
+import { CAPACITY_EVIDENCE_SCHEMA as COMMUNITY_CAPACITY_SCHEMA } from '../../server/community-access/domain.js';
+import { createCommunityAccess } from '../../server/community-access/engine.js';
+import { createMemoryCommunityAccessBackend } from '../../server/community-access/stores.js';
 import { EVIDENCE_TERMS, FULL_CHARGE, REPORT_SCHEMA, SHARE, createEarningHarness } from '../helpers/earning-harness.js';
 import { newIdentity } from '../helpers/account-fixture.js';
-import { STEPS } from '../helpers/resident-route.js';
-import { MIN, advance, fund, fx } from '../helpers/reward-fixture.js';
+import { STEPS, residentRoute } from '../helpers/resident-route.js';
+import { MIN, advance, clock, commit, decidedBy, fund, fundingAuthority, fx, quoteInput } from '../helpers/reward-fixture.js';
 
+// Test-only Community Access policy: no guarantee, one pool, and the evidence terms its quotes carry.
+const COMMUNITY_POLICY = Object.freeze({
+  policyVersion: 'test-community/1',
+  poolAccountId: 'pool_general',
+  guarantee: { mode: 'none' },
+  queue: { maxLength: 4, maxPerAccount: 2, maxWaitMs: 10 * MIN },
+  usage: { windowMs: 60 * MIN, maxAdmissions: 3, maxAuthorizedCredits: 200 },
+  rateLimits: { account: { windowMs: MIN, maxRequests: 5 }, device: { windowMs: MIN, maxRequests: 4 } },
+  capacity: { evidenceMaxAgeMs: 5 * MIN },
+  evidence: EVIDENCE_TERMS
+});
 // Past the quoted deadline (three minutes) plus the evidence window (five), before the reservation period ends (ten).
 const PAST_WINDOW = 3 * MIN + EVIDENCE_TERMS.windowMs + MIN;
 const withheld = (url, init) => (url.endsWith('/reports') ? Promise.reject(new Error('the requester withholds its report')) : fetch(url, init));
@@ -188,6 +202,125 @@ describe.each(['memory', 'firestore'])('settlement from signed evidence (%s stor
     await h.reconcileBooks([requesterAccount, c0.accountId, c1.accountId]);
   });
 
+  it('bounds unacknowledged work: an honest answer never waits, and one left unacknowledged stops within K + 1 outputs', async () => {
+    const K = MAX_UNACKNOWLEDGED_OUTPUTS;
+    const steps = 8;
+    // An honest requester acknowledges every output; with K outputs of slack the route never waits for it.
+    const honest = await h.network({ steps });
+    const thread = honest.requester.thread();
+    const answer = await honest.requester.app.send(thread, 'Question');
+    expect(answer.status).toBe('completed');
+    expect(honest.requester.app.getState().threads[0].messages.at(-1).content).toBe('01234567');
+    const [receipt] = honest.route.runner.getState().attempts;
+    // In-process stages decode in microseconds, so the requester's signing can trail by a few milliseconds; it never runs overdue.
+    if (process.env.REPLOID_REPORT_ACK_WAITS) console.log('honest integration acknowledgment waits', JSON.stringify(receipt.acknowledgments));
+    expect(receipt.acknowledgments).toMatchObject({ bound: K });
+    expect(receipt.acknowledgments.waitedMs).toBeLessThan(1000);
+    expect(await reservationOf(honest.requester, thread)).toMatchObject({ status: 'settled', settlement: { outcome: 'full', charge: 10 + steps / 2 } });
+    await h.reconcileBooks([honest.requesterAccount]);
+  });
+
+  it('stops a route whose requester stops acknowledging, settles what it acknowledged and keeps the dispute within the bound', async () => {
+    const K = MAX_UNACKNOWLEDGED_OUTPUTS;
+    const steps = 8;
+    const waitMs = 150;
+    const firstOnly = (generate) => (request, controls) => {
+      const view = Object.create(controls);
+      Object.defineProperty(view, 'onOutput', { get: () => controls.onOutput && ((record) => (record.step === 0 ? controls.onOutput(record) : null)) });
+      return generate(request, view);
+    };
+    const net = await h.network({ steps, acknowledgmentWaitMs: waitMs, generate: firstOnly });
+    const { c0, c1, route, requester, requesterAccount } = net;
+    const thread = requester.thread();
+    const attempt = await requester.app.send(thread, 'Question');
+    // The coordinator waited for the acknowledgment of output 2 before step 3, up to the attempt's deadline, then ended it.
+    expect(attempt).toMatchObject({ status: 'failed' });
+    const [receipt] = route.runner.getState().attempts;
+    expect(receipt).toMatchObject({ phase: 'failed', acknowledgments: { bound: K, waits: 1 } });
+    expect(receipt.acknowledgments.waitedMs).toBeGreaterThanOrEqual(waitMs - 20);
+    // Every stage stopped within K + 1 outputs of the one acknowledged output, and closed its receipt.
+    const acknowledged = 1;
+    for (const index of [0, 1]) {
+      expect(route.admissions(index)[0].evidence.receipts[0]).toMatchObject({ steps: acknowledged + K + 1, status: 'settled' });
+    }
+    const reservation = await reservationOf(requester, thread);
+    expect(reservation).toMatchObject({ status: 'open', attempts: [expect.objectContaining({ status: 'failed', reason: 'execution_failed:ACKNOWLEDGMENT_OVERDUE' })] });
+    await submitAll(net);
+    advance(PAST_WINDOW);
+    // Acknowledged work is charged as partial delivery; what the stages ran beyond it is disputed, never more than K + 1 outputs.
+    const partial = Math.ceil(acknowledged / 2);
+    const assertedOutputs = acknowledged + K + 1;
+    const held = Math.ceil(assertedOutputs / 2) - partial;
+    const [decided] = await settleDue();
+    expect(decided).toMatchObject({ status: 'disputed', basis: 'evidence', dispute: { held },
+      settlement: { outcome: 'partial_delivery', metering: { output: acknowledged }, charge: partial } });
+    const dispute = await h.services.ledger.getDispute(`dsp:${reservation.reservationId}`);
+    expect(dispute.asserted.metering.output).toBe(assertedOutputs);
+    expect(dispute.asserted.metering.output - dispute.acknowledged.metering.output).toBeLessThanOrEqual(K + 1);
+    expect(await h.journal(requesterAccount)).toEqual([['issue', 100], ['reserve', 60], ['charge', partial], ['release', 60 - partial - held]]);
+    await h.reconcileBooks([requesterAccount, c0.accountId, c1.accountId]);
+  });
+
+  it('pays contributors serving a founder-funded Community Access request from receipts, charging the pool', async () => {
+    // A process whose ledger lets the Community Access pool accept quotes for the requester devices it admits.
+    await h.close();
+    h = await createEarningHarness(kind).open({ communityPoolAccountIds: [COMMUNITY_POLICY.poolAccountId] });
+    const access = createCommunityAccess({
+      backend: createMemoryCommunityAccessBackend(), ledger: h.services.ledger, policy: COMMUNITY_POLICY, fundingAuthority, clock,
+      accounts: { participantAccount: h.services.identity.participantAccount },
+      readCommunityCapacity: async () => ({ schema: COMMUNITY_CAPACITY_SCHEMA, evidenceId: 'community-capacity:test', observedAt: clock(), admittedSlots: 1 })
+    });
+    await commit(h.services.ledger, { commitmentId: 'founder_commitment', funderKind: 'operator', amount: 100 });
+    expect(await access.recordFunding({ fundingId: 'founder_pool', commitmentId: 'founder_commitment', quantity: 100,
+      poolAccountId: COMMUNITY_POLICY.poolAccountId, authority: decidedBy('decision:founder_pool') })).toMatchObject({ status: 'issued' });
+    const c0 = await h.contributor('contributor-0');
+    const c1 = await h.contributor('contributor-1');
+    const requesterIdentity = await newIdentity('ECDSA');
+    const requester = h.clientFor({ identity: requesterIdentity, host: 'browser', subject: 'community-member' });
+    const session = await requester.ensureSession();
+    const route = await residentRoute({ participants: [c0.identity.peerId, c1.identity.peerId], requesterId: requesterIdentity.peerId,
+      signers: [c0.signer, c1.signer] });
+    try {
+      const stageOffers = [await h.offer(c0, { offerId: 'offer_stage_0' }), await h.offer(c1, { offerId: 'offer_stage_1' })];
+      // The member asks for access with service terms; the pool's policy stamps its evidence terms on the quote.
+      const { service, pricing, terms } = quoteInput({ quoteId: 'unused', accountId: COMMUNITY_POLICY.poolAccountId });
+      const admitted = await access.requestAccess({ requestId: 'community:1', participantId: requesterIdentity.peerId, deviceId: session.deviceId,
+        quote: { service, pricing, terms } });
+      expect(admitted).toMatchObject({ state: 'available', reservationId: expect.any(String) });
+      const reservation = await h.services.ledger.getReservation(admitted.reservationId);
+      expect(reservation).toMatchObject({ accountId: COMMUNITY_POLICY.poolAccountId, deviceId: session.deviceId, terms: { evidence: COMMUNITY_POLICY.evidence } });
+      await expect(access.requestAccess({ requestId: 'community:other-terms', participantId: requesterIdentity.peerId, deviceId: session.deviceId,
+        quote: { service, pricing, terms: { ...terms, evidence: { ...COMMUNITY_POLICY.evidence, windowMs: MIN } } } })).rejects.toMatchObject({ code: 'evidence_terms_mismatch' });
+
+      // The requester's device binds its attempt to the pool reservation it was admitted under, then runs the route acknowledging outputs.
+      const attemptId = 'community-attempt';
+      expect((await h.http(h.base, 'POST', `/reservations/${admitted.reservationId}/attempts`, { token: session.token, key: 'community-bind',
+        body: { attemptId, recipients: [c0.identity.peerId, c1.identity.peerId] } })).status).toBe(200);
+      const identity = { schema: 'reploid.partition-attempt/v2', threadId: 'community-thread', attemptId, requesterId: requesterIdentity.peerId,
+        placementGeneration: 0, route: route.route };
+      const acknowledgments = await openOutputAcknowledgments({ signer: createAttemptEvidenceSigner({ identity: requesterIdentity, now: () => fx.nowMs }),
+        identity, reservationId: admitted.reservationId });
+      const result = await route.requester.generate({ threadId: identity.threadId, attemptId, messages: [{ role: 'user', content: 'Question' }] },
+        { requestApproval: async () => true, charge: acknowledgments.charge, onOutput: (record) => acknowledgments.observe(record) });
+      expect(result.content).toBe('012');
+      // Without the requester's report, the contributors' receipts and forwarded acknowledgments settle it from the pool.
+      await c0.claims().submitEvidence(route.admissions(0));
+      await c1.claims().submitEvidence(route.admissions(1));
+      advance(PAST_WINDOW);
+      expect(await settleDue()).toEqual([expect.objectContaining({ status: 'settled', basis: 'evidence',
+        settlement: expect.objectContaining({ outcome: 'full', charge: FULL_CHARGE }) })]);
+      const pool = await h.services.ledger.listJournal(COMMUNITY_POLICY.poolAccountId);
+      expect(pool.map((entry) => [entry.type, entry.amount, entry.lots[0].provenance])).toEqual([
+        ['issue', 100, 'community_access'], ['reserve', 60, 'community_access'], ['charge', FULL_CHARGE, 'community_access'], ['release', 60 - FULL_CHARGE, 'community_access']
+      ]);
+      // Stage shares are paid as for a paid request; the counterparty is the member's own account, not the pool.
+      expect((await c0.claims({ stageShare: stageOffers[0] }).claimStageShares(route.admissions(0)))[0]).toMatchObject({ outcome: 'accepted', issuance: 'issued' });
+      expect(await h.journal(c0.accountId)).toEqual([['issue', SHARE]]);
+      expect(await h.journal(session.accountId)).toEqual([]);
+      await h.reconcileBooks([COMMUNITY_POLICY.poolAccountId, session.accountId, c0.accountId, c1.accountId]);
+    } finally { await route.close(); }
+  });
+
   it('rejects forged, impersonated, revoked-device, cross-attempt and outsider evidence', async () => {
     const net = await h.network({ fetch: withheld });
     const { c0, c1, route, requester, requesterAccount } = net;
@@ -262,7 +395,8 @@ describe.each(['memory', 'firestore'])('settlement from signed evidence (%s stor
     expect((await requester.app.send(thread, 'Question')).status).toBe('completed');
     const { reservationId } = await reservationOf(requester, thread);
     await submitAll(net);
-    // A fabricated later receipt claiming more outputs than the route produced only raises what is asserted.
+    // Honest stages refuse to run more than K + 1 outputs past the acknowledgments; a fabricated later receipt
+    // claiming more outputs than the route produced asserts no more than that bound.
     const { publicJwk: _key, signature: _signature, ...body } = route.admissions(1)[0].evidence.receipts[0];
     const inflated = await c1.signer.sign('reploid.stage-receipt/v1', { ...body, sequence: body.sequence + 1, steps: STEPS + 2,
       output: { ...body.output, count: STEPS + 2 }, tokens: { ...body.tokens, processed: body.tokens.processed + 2 } });
@@ -270,9 +404,12 @@ describe.each(['memory', 'firestore'])('settlement from signed evidence (%s stor
       body: { evidence: { ...route.admissions(1)[0].evidence, receipts: [inflated], acknowledged: null } } })).toMatchObject({ changed: true, rejected: [] });
 
     advance(PAST_WINDOW);
-    const asserted = 10 + Math.ceil((STEPS + 2) / 2);
+    const bound = MAX_UNACKNOWLEDGED_OUTPUTS + 1;
+    // The capped count no longer matches the inflated completion, so it is asserted as partial delivery of the bound.
+    const asserted = Math.ceil(bound / 2);
     const [decided] = await settleDue();
     expect(decided).toMatchObject({ status: 'disputed', settlement: null, dispute: { held: asserted } });
+    expect((await h.services.ledger.getDispute(`dsp:${reservationId}`)).asserted).toMatchObject({ outcome: 'partial_delivery', metering: { output: bound } });
     expect(await h.journal(requesterAccount)).toEqual([['issue', 100], ['reserve', 60], ['release', 60 - asserted]]);
     expect((await c1.claims({ stageShare: stageOffers[1] }).claimStageShares(route.admissions(1)))[0]).toMatchObject({ status: 'open' });
 

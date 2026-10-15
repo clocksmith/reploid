@@ -8,7 +8,7 @@ Donor- and operator-funded service under funded, admitted capacity with fair que
 
 ## Authority
 - Owns funding records, queue entries, usage and rate windows, admission against pool funding and capacity evidence, and the ledger's `community_access` `issuanceAuthority`.
-- Excludes balances, settlement, prices, quote terms, capacity production, identity and the guarantee decision.
+- Excludes balances, settlement, prices, service terms, capacity production, identity and the guarantee decision.
 
 ## Scope
 
@@ -29,14 +29,14 @@ Outputs:
 - Accounts take fair turns; per-account usage, queue, account and device rate limits apply.
 - Under `none`, requests queue or need explicit retry; neither position nor balance promises completion; overdue entries expire, balances never.
 - `funded_floor` declares allocation, funding, admission limits, reserved slots, coverage evidence and shortfall behavior.
-- Consumption is disclosed as subsidy in solvency.
+- Quotes carry policy evidence terms; consumption is disclosed as solvency subsidy.
 
 ## Acceptance
-- Memory and Firestore stores pass identical scenarios.
+- Memory and Firestore pass identical scenarios.
 - Evidence: [Community Access tests](../../tests/unit/community-access.test.js).
 
 ## Non-goals
 - Deciding the guarantee, funding or limits; producing capacity; trial or promotional credit.
 
 ## Freedom
-Preserve these boundaries and pass acceptance.
+Preserve boundaries; pass acceptance.

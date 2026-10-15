@@ -2,5 +2,6 @@
   "maxControlBytes": 65536,
   "maxCompletedSequences": 2,
   "maxRetentionMs": 60000,
-  "maxRetainedBytes": 1048576
+  "maxRetainedBytes": 1048576,
+  "maxUnacknowledgedOutputs": 2
 }

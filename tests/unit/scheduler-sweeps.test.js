@@ -1,3 +1,5 @@
+import { MAX_UNACKNOWLEDGED_OUTPUTS } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
+import { EVIDENCE_RULES_ID } from '../../server/ledger/domain.js';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { CAPACITY_EVIDENCE_SCHEMA as COMMUNITY_CAPACITY_SCHEMA } from '../../server/community-access/domain.js';
@@ -31,7 +33,9 @@ const ACCESS_POLICY = Object.freeze({
   queue: { maxLength: 4, maxPerAccount: 2, maxWaitMs: 10 * MIN },
   usage: { windowMs: 60 * MIN, maxAdmissions: 3, maxAuthorizedCredits: 200 },
   rateLimits: { account: { windowMs: MIN, maxRequests: 5 }, device: { windowMs: MIN, maxRequests: 4 } },
-  capacity: { evidenceMaxAgeMs: 5 * MIN }
+  capacity: { evidenceMaxAgeMs: 5 * MIN },
+  // Test-only evidence terms Community Access quotes carry.
+  evidence: { rulesId: EVIDENCE_RULES_ID, windowMs: 5 * MIN, clockSkewMs: 30_000, maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS }
 });
 const PAYMENT_POLICY = Object.freeze({
   policyVersion: 'test-payments/1',
@@ -215,7 +219,9 @@ describe.each(Object.keys(harnesses))('durable scheduler sweeps (%s store)', (ki
 
     advance(15 * MIN);
     const second = byJob(await runner.runOnce());
-    expect(second['ledger.expireReservations']).toMatchObject({ status: 'completed', counts: { processed: 2 } });
+    // The Community Access hold carries evidence terms: with no evidence kept, its window decision releases it before expiry would.
+    expect(second['ledger.settleDueEvidence']).toMatchObject({ status: 'completed', counts: { processed: 1 } });
+    expect(second['ledger.expireReservations']).toMatchObject({ status: 'completed', counts: { processed: 1 } });
     expect(second['ledger.expireAllocations']).toMatchObject({ counts: { processed: 1 } });
     expect(second['rewards.resumeFunding']).toMatchObject({ counts: { processed: 1 } });
     expect(second['community-access.expireQueue']).toMatchObject({ counts: { processed: 1 } });
@@ -242,10 +248,10 @@ describe.each(Object.keys(harnesses))('durable scheduler sweeps (%s store)', (ki
 
     // Every pass is recorded with its runner, schedule version, items and next due time.
     const passes = await runner.listPasses({ jobId: 'ledger.expireReservations' });
-    expect(passes.map((pass) => [pass.seq, pass.status, pass.counts.processed])).toEqual([[3, 'completed', 0], [2, 'completed', 2], [1, 'completed', 0]]);
+    expect(passes.map((pass) => [pass.seq, pass.status, pass.counts.processed])).toEqual([[3, 'completed', 0], [2, 'completed', 1], [1, 'completed', 0]]);
     expect(passes[1]).toMatchObject({
       runnerId: 'runner_a', scheduleVersion: 'test-schedule/1', backlog: false, batchLimit: 10,
-      items: [expect.objectContaining({ status: 'expired' }), expect.objectContaining({ status: 'expired' })],
+      items: [expect.objectContaining({ status: 'expired' })],
       nextDueAt: new Date(Date.parse(passes[1].startedAt) + 5 * MIN).toISOString()
     });
     expect(await runner.getJob('ledger.expireReservations')).toMatchObject({ passes: 3, lease: null, lastPass: { status: 'completed' }, consecutiveFailures: 0 });

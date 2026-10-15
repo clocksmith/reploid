@@ -75,7 +75,7 @@ const requirePositive = (value, path, errors) => {
 export function validateCommunityAccessPolicy(policy) {
   const errors = [];
   if (!policy || typeof policy !== 'object') fail('invalid_policy', 'Community Access policy is required', { errors: ['policy missing'] });
-  unknownKeys(policy, ['policyVersion', 'poolAccountId', 'guarantee', 'queue', 'usage', 'rateLimits', 'capacity'], 'policy', errors);
+  unknownKeys(policy, ['policyVersion', 'poolAccountId', 'guarantee', 'queue', 'usage', 'rateLimits', 'capacity', 'evidence'], 'policy', errors);
   if (!isNonEmptyString(policy.policyVersion)) errors.push('policy.policyVersion is required');
   if (!validId(policy.poolAccountId)) errors.push('policy.poolAccountId must name the general funding pool account');
 
@@ -118,6 +118,18 @@ export function validateCommunityAccessPolicy(policy) {
   }
   unknownKeys(policy.capacity, ['evidenceMaxAgeMs'], 'policy.capacity', errors);
   requirePositive(policy.capacity?.evidenceMaxAgeMs, 'policy.capacity.evidenceMaxAgeMs', errors);
+  // The evidence terms every Community Access quote carries, so contributors are paid from receipts as for paid
+  // requests; the ledger checks the values (rules, window, skew and the stages' acknowledgment bound) when quoting.
+  if (!policy.evidence || typeof policy.evidence !== 'object' || Array.isArray(policy.evidence)) {
+    errors.push('policy.evidence must name the evidence terms Community Access quotes carry');
+  } else {
+    unknownKeys(policy.evidence, ['rulesId', 'windowMs', 'clockSkewMs', 'maxUnacknowledgedOutputs'], 'policy.evidence', errors);
+    if (!isNonEmptyString(policy.evidence.rulesId)) errors.push('policy.evidence.rulesId is required');
+    requirePositive(policy.evidence.windowMs, 'policy.evidence.windowMs', errors);
+    for (const key of ['clockSkewMs', 'maxUnacknowledgedOutputs']) {
+      if (!Number.isSafeInteger(policy.evidence[key]) || policy.evidence[key] < 0) errors.push(`policy.evidence.${key} must be a non-negative integer`);
+    }
+  }
   if (errors.length) fail('invalid_policy', 'Community Access policy is incomplete or inconsistent', { errors });
   return Object.freeze(JSON.parse(JSON.stringify(policy)));
 }

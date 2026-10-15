@@ -36,6 +36,7 @@ import { fileURLToPath } from 'node:url';
 import { ACCOUNT_LEDGER_COLLECTIONS, composeAccountServices } from '../accounts/compose.js';
 import { createFirestoreAccountBackend, createMemoryAccountBackend } from '../accounts/stores.js';
 import { createTestSignInFlow, createTestSignInProvider } from '../accounts/test-sign-in.js';
+import { poolAccountIds } from '../community-access/domain.js';
 import { createCommunityAccess, createFundingIssuanceAuthority } from '../community-access/engine.js';
 import { createFirestoreCommunityAccessBackend, createMemoryCommunityAccessBackend } from '../community-access/stores.js';
 import { EARNING_ROUTES_PREFIX } from '../earning-routes/mount.js';
@@ -246,7 +247,9 @@ export async function createEarningComposition({ env = process.env, production =
     }),
     rewardPolicy: policy.rewards, issuancePolicy: policy.issuance,
     readAdmittedCapacity: evidenceFile(read(env, 'REPLOID_EARNING_CAPACITY_FILE')),
-    otherProvenance, fundingAuthority, clock
+    otherProvenance, fundingAuthority, clock,
+    // Community Access pools accept quotes for the requester devices they admit.
+    communityPoolAccountIds: policy.communityAccess ? poolAccountIds(policy.communityAccess) : []
   });
   await publishConversions({ ledger: services.ledger, conversions: policy.conversions, clock });
 

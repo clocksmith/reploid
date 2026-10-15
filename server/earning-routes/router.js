@@ -195,9 +195,11 @@ export function createEarningRouter({
     if (!reservation || reservation.accountId !== accountId) notFound('reservation_not_found', 'reservation');
     return reservation;
   };
-  // Attempts bind and report only from the device whose session accepted the reservation.
+  // Attempts bind and report only from the device whose session accepted the reservation; a Community Access
+  // pool reservation is reached through the requester device it was accepted for.
   const acceptingDevice = async (reservationId, ctx) => {
-    const reservation = await ownReservation(reservationId, ctx.accountId);
+    const reservation = await ledger.getReservation(reservationId);
+    if (!reservation || (reservation.accountId !== ctx.accountId && reservation.deviceId !== ctx.deviceId)) notFound('reservation_not_found', 'reservation');
     if (reservation.deviceId !== ctx.deviceId) refuse(403, 'reservation_device_mismatch', 'only the device that accepted this reservation binds and reports its attempts');
     return reservation;
   };

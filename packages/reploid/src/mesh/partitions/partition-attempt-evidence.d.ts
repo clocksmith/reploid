@@ -7,6 +7,10 @@ export const OUTPUT_ACKNOWLEDGMENT_SCHEMA: 'reploid.output-acknowledgment/v1';
 export const OUTPUT_CHAIN_SCHEMA: 'reploid.output-chain/v1';
 export const ATTEMPT_EVIDENCE_SCHEMA: 'reploid.attempt-evidence/v1';
 export const STAGE_RECEIPT_STATUSES: readonly ['executing', 'settled', 'failed'];
+export const ACKNOWLEDGMENT_OVERDUE: 'ACKNOWLEDGMENT_OVERDUE';
+/** K from partition-receiver-policy.json: the most outputs a charged attempt may run ahead of verified acknowledgments. */
+export const MAX_UNACKNOWLEDGED_OUTPUTS: number;
+export function acknowledgmentOverdue(message?: string): Error & { code: 'ACKNOWLEDGMENT_OVERDUE' };
 
 /** One stage's cumulative statement about one charged attempt, signed with its participant identity. */
 export interface StageReceiptBody {
@@ -49,7 +53,10 @@ export function checkAttemptEvidenceBundle(bundle: unknown): string | null;
 export interface StageReceiptTally {
   readonly reservationId: string; readonly routeHash: string;
   step(step: { step: number; inputTokenCount: number; delta?: string; done?: boolean; stopReason?: string | null }): Promise<StageReceipt | null>;
-  acknowledge(pair: AcknowledgedOutput): boolean;
+  /** Keeps a newer pair only when the requester's key from the charge binding and the final stage signed it. */
+  acknowledge(pair: AcknowledgedOutput): Promise<boolean>;
+  /** Rejects with ACKNOWLEDGMENT_OVERDUE when verified acknowledgments cover fewer than step - K outputs. */
+  authorizeStep(request: { step: number; acknowledged?: AcknowledgedOutput | null }): Promise<void>;
   close(options?: { failed?: boolean }): Promise<StageReceipt | null>;
   evidence(): AttemptEvidenceBundle;
 }

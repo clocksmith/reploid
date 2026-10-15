@@ -3197,7 +3197,7 @@
     {
       "path": "ui/pool-home/agent-network.js",
       "owner": "ui",
-      "sha256": "sha256:76bd83d3b772b8696dd0499b39bef3b84d1f43c0205d78ac7843b12c1aeacf5a",
+      "sha256": "sha256:7014351433d57283ebdf81f87f691b315c529a89d669f2a2e3d1c1accb95c637",
       "imports": []
     },
     {
@@ -3277,7 +3277,7 @@
     {
       "path": "ui/pool-home/document-search.js",
       "owner": "ui",
-      "sha256": "sha256:a0764e4c72b2b19798737dcc73c18263a9c9fa9ac3e12e253da03495e36f293a",
+      "sha256": "sha256:2d95dca62a59357672010ae257b03a48a50c5e036db9b4f15984bf3dac5a9767",
       "imports": [
         "../../pool/document-search-policy.json",
         "../components/attachments.js",
@@ -3382,7 +3382,7 @@
     {
       "path": "ui/pool-home/operation-sharing.js",
       "owner": "ui",
-      "sha256": "sha256:c7edeec2c412f27fcade3b357e3971485bfaffdf234c4598ff246e067d2089fd",
+      "sha256": "sha256:bccabadc200bb3de81be23406b5f9c23f1b22d004db7c2a146faeec1636d2e7f",
       "imports": [
         "../../pool/model-contract.js",
         "../../pool/operation-model.js",
@@ -3418,13 +3418,13 @@
     {
       "path": "ui/pool-home/requester-controls.js",
       "owner": "ui",
-      "sha256": "sha256:50b76937d5b946c839b2a2f98ddbded8fe5bc4baa8e8b50f6b2c2a546e110fcc",
+      "sha256": "sha256:b1e638a2f6c857b2a4dab7f7b04f191dfac6222757a2efa6fe59e4711d920f7b",
       "imports": []
     },
     {
       "path": "ui/pool-home/research-adjudication-panel.js",
       "owner": "ui",
-      "sha256": "sha256:a9af29ddc145ccafda32316e3c4deec267958fdbd2ed91d0830b094274e3f0d3",
+      "sha256": "sha256:6bc4de2e15033466247561ea4a6d8caaf90e85174a1345a37a47d0d73693666a",
       "imports": [
         "./research-panels.js"
       ]
@@ -3432,7 +3432,7 @@
     {
       "path": "ui/pool-home/research-lifecycle-panel.js",
       "owner": "ui",
-      "sha256": "sha256:ccac53ff50e209ce61a97f71cf2fdefaae97db12de76ed2e40b82d7bd4a41445",
+      "sha256": "sha256:868664bc0ec22bd16a4da53fcab5221d172e55343a7919958358c3747292c617",
       "imports": [
         "./research-adjudication-panel.js",
         "./research-panels.js"
@@ -3441,7 +3441,7 @@
     {
       "path": "ui/pool-home/research-panels.js",
       "owner": "ui",
-      "sha256": "sha256:19b341e5d5291e45f38ba3e45416987feca74c6cc67ece67a208116459da0adf",
+      "sha256": "sha256:b6abbe4af5b4e0c54ab5dec12a09beb6ddc9a895759b192772372882892eed12",
       "imports": []
     },
     {
@@ -3459,7 +3459,7 @@
     {
       "path": "ui/pool-home/research-technical-panel.js",
       "owner": "ui",
-      "sha256": "sha256:b6195c1c223d260558018eaa5c0e2c5dbefe814f574bd9fe4305d80f4a22f77e",
+      "sha256": "sha256:1a39913b9930c124e54ded49ad8117f5c5aa0c225e90598dfd55aa0b0b1a0fa2",
       "imports": [
         "./research-panels.js"
       ]
@@ -3467,7 +3467,7 @@
     {
       "path": "ui/pool-home/research-view.js",
       "owner": "ui",
-      "sha256": "sha256:f729016438e5fa8b68356cc029ae59307347946b8e6ca97e5c6ad91fd1214a3d",
+      "sha256": "sha256:c4373f31a713ea32a116a947f9870401cb188a13e9a860f87f9f108ee68fe3d9",
       "imports": [
         "../../pool/discovery-contract.js",
         "../../pool/evidence-network.js",
@@ -3501,7 +3501,7 @@
     {
       "path": "ui/pool-home/room-view.js",
       "owner": "ui",
-      "sha256": "sha256:4e8c4231fc045b17d349e1a00515d34b18493d40dfa52e440d41d99150ebf52e",
+      "sha256": "sha256:e180a9861b30b407b07d760b6ae10a7d9fa5f3d5264d2791fc0e010366bb9c3c",
       "imports": [
         "./room-projection.js"
       ]
@@ -3517,7 +3517,7 @@
     {
       "path": "ui/pool-home/shell-view.js",
       "owner": "ui",
-      "sha256": "sha256:77eb5cc4170c5c792e54d96c3e9c91317aeaca605f9578fa8d53bde8cf589e2a",
+      "sha256": "sha256:a3008b2561fbf911f242104db401b666da525e8d6970dcfbcdcefde061604422",
       "imports": [
         "../../host/product-context.js",
         "../../pool/peer-room.js",
@@ -3615,7 +3615,7 @@
     {
       "path": "ui/pool-home/view.js",
       "owner": "ui",
-      "sha256": "sha256:4704d8bedcdbd5d702c5fe2781b933f4ea17ec71376390fec432ce7deab54469",
+      "sha256": "sha256:d18abd457afd4fad199bb3b2bf52d6a0abc992c15d0d48e5972e7106d4d1810c",
       "imports": [
         "../../config/surface-intents.js",
         "../../host/product-context.js",
@@ -3652,13 +3652,13 @@
     {
       "path": "ui/pool-home/work-activity-list.js",
       "owner": "ui",
-      "sha256": "sha256:86bd18633b82c9ac311c0999eac1ae3d3575b631568fa89d3cf82e8708511ddc",
+      "sha256": "sha256:d86f798c614dad896881a1f7ef4d6a644624987f7028c68834cda9854eb3a0a5",
       "imports": []
     },
     {
       "path": "ui/pool-home/work-approval-panel.js",
       "owner": "ui",
-      "sha256": "sha256:43777823734dcd0167a91bba4dc40f42014ea53ea7b4128b7cebadf3d09c033f",
+      "sha256": "sha256:71a99a01b266c5b9598332f4e980d3510448138e5650717de1dbf48abdfbf2a1",
       "imports": [
         "../components/permission-card.js"
       ]
@@ -3666,7 +3666,7 @@
     {
       "path": "ui/pool-home/work-capabilities.js",
       "owner": "ui",
-      "sha256": "sha256:5c931b3a82ccf727f08a8e737903d99735f9501faeab36fcb60225fed7b43380",
+      "sha256": "sha256:eeecc5af2a420fdfc8ce464126dc4ccb31b442f987cf4048fb6eddad7a3efb2b",
       "imports": [
         "./agent-network.js",
         "./work-tool-offers.js"
@@ -3675,7 +3675,7 @@
     {
       "path": "ui/pool-home/work-goal-composer.js",
       "owner": "ui",
-      "sha256": "sha256:01042be81c52ae7146794cebd6a61615d104780ffeb439686f993646cae330fb",
+      "sha256": "sha256:37d1068951965239292e9dbfb4cba971e57f71bc3880531944c07c347550ef22",
       "imports": [
         "../../config/work-profile.json",
         "../../host/work-session.js",
@@ -3685,37 +3685,37 @@
     {
       "path": "ui/pool-home/work-layout.js",
       "owner": "ui",
-      "sha256": "sha256:492cc1586e92a49d641fc8fc09d34844b97748463c093d27e19d1f9d1985408c",
+      "sha256": "sha256:a7de1f13410db048a10e73bc8b0b2b7719144671363dbdc495fb3b62c210218b",
       "imports": []
     },
     {
       "path": "ui/pool-home/work-result-view.js",
       "owner": "ui",
-      "sha256": "sha256:46a4d027c070ad1bbde7420823ebc83213a99c0672c37931d319a2e4c32eaaac",
+      "sha256": "sha256:a6d8023ad4251b72862c257ed7feecc08a1f07706701135408819c4ed93b55a1",
       "imports": []
     },
     {
       "path": "ui/pool-home/work-task-header.js",
       "owner": "ui",
-      "sha256": "sha256:d3512216b510ea20d4b73790e9f7b22252a2d4b8e6a4e5a15eac4f54f1ffefa4",
+      "sha256": "sha256:a85d2e3944434d11b2d3761ae392857174fd06a861b633c4c4c332cf812727bb",
       "imports": []
     },
     {
       "path": "ui/pool-home/work-task-history.js",
       "owner": "ui",
-      "sha256": "sha256:f066c49404f17ea5c69b59a6a5a0c0637c74c7a3a825cad5626194b4cf6f3468",
+      "sha256": "sha256:33507bc3f0d37500b903ae19104045c30402c17f76364abfb4a397721e583763",
       "imports": []
     },
     {
       "path": "ui/pool-home/work-tool-offers.js",
       "owner": "ui",
-      "sha256": "sha256:69b904cb1bf1b54637c23fa4eaafac6cdb6e78ab32fa525770f7ef3324d5801b",
+      "sha256": "sha256:ddd086b106b0ac451f74f14ee1f2d2fe7dc204e3b800ec5ef7251ba9e85d1ca7",
       "imports": []
     },
     {
       "path": "ui/pool-home/work.js",
       "owner": "ui",
-      "sha256": "sha256:de7fad9e0c1913bcb265c37168b2485bbabb1fd1eadddac90e754d6de3abe5e4",
+      "sha256": "sha256:1a89cce84d06087fc0f897eee320288ca84634852419cc7717633fc3e2db97b4",
       "imports": [
         "../../config/work-profile.json",
         "../../host/work-session.js",
@@ -3734,7 +3734,7 @@
     {
       "path": "ui/poolday-design/index.js",
       "owner": "ui",
-      "sha256": "sha256:43fa4a59fd2a5267f5b8de9b4f30ced9dca9f5d6dfb63b5736b44b9771c0a3e0",
+      "sha256": "sha256:3dcd494ccefa0a7fba5c9a29751f477e57dab24134a33fcf21008e3cdc243adf",
       "imports": [
         "./model.js",
         "./specimens.js"
@@ -3749,7 +3749,7 @@
     {
       "path": "ui/poolday-design/specimens.js",
       "owner": "ui",
-      "sha256": "sha256:90ce88cd723d753898fbe8e70faa0f6861e239a3889d84a251b249274b9e8386",
+      "sha256": "sha256:911ed629ec410ee1efdbf3c3e8f2019b1ae1c8cfe72c43f73b8f861e7ec39823",
       "imports": []
     },
     {
@@ -15427,10 +15427,11 @@
     {
       "path": "vendor/reploid/mesh/partitions/partition-attempt-evidence.js",
       "owner": "vendor",
-      "sha256": "sha256:28147bb846149261147ee1ac5ba8cbec65657e4e4c603149286a14123ccee438",
+      "sha256": "sha256:7874511420ed359ae7db77225ed0824a731fa06077b95d778fde3125043b6f45",
       "imports": [
         "../../artifacts/participant-proofs.js",
-        "./partition-contract.js"
+        "./partition-contract.js",
+        "./partition-receiver-policy.json"
       ]
     },
     {
@@ -15559,7 +15560,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/partition-ordered-chat.js",
       "owner": "vendor",
-      "sha256": "sha256:5d6da078a338e4c99993e4ff273741f3d8a064b3eba4d9d25d8579bae10d606e",
+      "sha256": "sha256:20b4c8cd904856f8a081d302068cfd01ee0e0133e3fd87bc74901f3bdd5f76e7",
       "imports": [
         "./partition-contract.js",
         "./partition-generation-request.js",
@@ -15624,9 +15625,10 @@
     {
       "path": "vendor/reploid/mesh/partitions/partition-route-execution.js",
       "owner": "vendor",
-      "sha256": "sha256:9b85dbf126cb6ef9b4e89ac18dd06f08fdd958f218e37fcfc94ebdfb9887bca8",
+      "sha256": "sha256:10830aaba9caba51b9e3bce4f25c87fc8a49d689d8e793b6e6c8096dfe7c0ead",
       "imports": [
         "../../transport/partition-errors.json",
+        "./partition-attempt-evidence.js",
         "./partition-contract.js"
       ]
     },
@@ -15694,7 +15696,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/resident-partition.js",
       "owner": "vendor",
-      "sha256": "sha256:a3c3c337726eac39c3f73a69a36be485d3ca428a20682980c11d9eced2c053ba",
+      "sha256": "sha256:b6325d5e2e1c382c23a22c1955122819e521c2bd71184fa98b121055a84695aa",
       "imports": [
         "../../transport/partition-errors.json",
         "./partition-attempt-evidence.js",
