@@ -7,12 +7,12 @@ Parent: [Reploid](../CATSCAN.md)
 Bounded authentication, discovery, relay, proxy and native participation without authority over browser claims.
 
 ## Authority
-- Owns server validation, signaling, relay, external adapters, native composition, credit accounting and contribution rewards.
+- Owns server validation, signaling, relay, external adapters, native composition, accounts, credit accounting and contribution rewards.
 - Excludes browser execution claims, exactly-once delivery, scientific validity and Research Room decisions.
 
 ## Scope
 
-- Includes this directory and unchartered descendants.
+- This directory and unchartered descendants.
 
 ## Contracts
 

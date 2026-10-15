@@ -8,6 +8,7 @@ export { createMessages } from './messages.js';
 
 import fs from 'node:fs/promises';
 import { createNativeModelFiles } from './native-model-files.js';
+import { createCustodyKeyCertifier } from './accounts/custody-certificate.js';
 import { openNativeOwnerControls, nativeOwnerStatus, NO_OWNER_POLICY } from './native-owner/controls.js';
 import { openNativeCanonicalEpochs } from './native-canonical-epochs.js';
 import { openNativeReleaseCheckpoints } from './native-release-storage.js';
@@ -372,10 +373,12 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
 }
 
 /** `owner` is the optional owner gate from openNativeOwnerControls. It defers or reduces
- * new contribution, stage attempts and piece supply; it never cancels admitted work. */
+ * new contribution, stage attempts and piece supply; it never cancels admitted work.
+ * The persistent identity certifies the per-process custody key at startup and on
+ * renewal; `onCustodyCertificate` observes each certificate (public, no secrets). */
 export async function createNativeParticipant({ model, modelDirectory, identity, rtc, WebSocket,
   signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
-  owner: ownerGate = null }) {
+  owner: ownerGate = null, onCustodyCertificate = () => {} }) {
   if (ordered !== null) model = structuredClone(model);
   ordered = snapshotWorkOrderedParticipation(ordered, canonical, [model]);
   requireValue(identity?.privateJwk && await createPeerIdFromPublicJwk(identity.publicJwk) === identity.peerId,
@@ -455,7 +458,11 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   try {
     if (canonical) epochs = await openNativeCanonicalEpochs({ directory: canonical.epochDirectory, participantId: identity.peerId, meshId: roomId });
     await mesh.connect();
-    if (cacheDirectory) files = await createNativeModelFiles({ transport, modelDirectory, cacheDirectory, onChange: onFileChange, owner: ownerGate });
+    if (cacheDirectory) {
+      files = await createNativeModelFiles({ transport, modelDirectory, cacheDirectory, onChange: onFileChange, owner: ownerGate,
+        certifyCustodyKey: createCustodyKeyCertifier({ identity, onIssue: onCustodyCertificate }).certify });
+      await files.custodyCertificate();
+    }
     partitions = createAutomaticPartitions({ identity, meshId: roomId, models: [model], ...bindWorkOrderedParticipation(ordered, identity.peerId, ordered ? transport._getPeerId() : null, policy),
       canonical: epochs ? { runtime: canonicalRuntime, participantEpoch: epochs.participantEpoch, coordinatorEpoch: epochs.coordinatorEpoch } : null,
       peers: () => transport.getConnectedPeers().map(peer => ({ ...peer, localTransportId: transport._getPeerId() })),
@@ -494,7 +501,8 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
         return files.share(model, approved);
       } : approved => { requireValue(files, 'Native cache directory required'); return files.share(model, approved); },
       stopSharing: ownerGate ? () => { endOwnerWait('share', 'Native file contribution stopped'); return files?.stopSupply(); } : () => files?.stopSupply(),
-      announceFiles: () => files?.announce(), getOwnerState: () => ownerGate ? ownerGate.summary() : NO_OWNER_POLICY });
+      announceFiles: () => files?.announce(), getOwnerState: () => ownerGate ? ownerGate.summary() : NO_OWNER_POLICY,
+      getCustodyCertificate: async () => files ? files.custodyCertificate() : null });
   } catch (error) { try { await close(); } catch (cleanup) { throw new AggregateError([error, cleanup], 'Native startup and cleanup failed'); } throw error; }
 }
 
@@ -616,11 +624,14 @@ Native GPU execution is qualified on Linux/Vulkan only; --help opens no provider
     ordered, canonical: values.canonical ? { epochDirectory: path.join(path.dirname(identityFile), 'canonical-epochs',
       createHash('sha256').update(values.room || bootstrap.publicRoomId).digest('hex')) } : null,
     nativeGpu: () => gpuHost.open(), owner,
+    onCustodyCertificate: certificate => console.log(JSON.stringify({ event: 'custody-certificate', certificate })),
     onChange: state => console.log(JSON.stringify({ ...summarizeNativePartitionState(state), owner: nativeOwnerStatus(owner) })) })
     .catch(error => { owner?.close(); throw error; });
   logNetwork = () => console.log(JSON.stringify({ event: 'network', ...participant.getNetworkState(),
     files: participant.getFileState({ includeReceipts: false }), owner: participant.getOwnerState() }));
-  const timer = setInterval(() => { participant.announceFiles(); logNetwork(); }, policy.pollMs);
+  // Polling also renews the custody certificate before it expires.
+  const timer = setInterval(() => { participant.announceFiles(); logNetwork();
+    participant.getCustodyCertificate().catch(error => console.error('Custody certificate renewal failed:', error.message)); }, policy.pollMs);
   const shutdown = createNativeShutdown(participant, gpuHost);
   const stop = () => { clearInterval(timer); logNetwork = () => {}; return shutdown().finally(() => owner?.close()); };
   const completion = new Promise((resolve, reject) => {

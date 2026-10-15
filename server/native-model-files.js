@@ -68,8 +68,11 @@ export async function createNativeArtifactCache({ directory, maxBytes = policy.m
 }
 
 /** `owner` is the optional native owner gate (server/native-owner/controls.js). Without
- * it, channels, supply admission and acquisition deadlines are exactly as before. */
-export async function createNativeModelFiles({ transport, modelDirectory, cacheDirectory, onChange = () => {}, owner = null }) {
+ * it, channels, supply admission and acquisition deadlines are exactly as before.
+ * `certifyCustodyKey` (server/accounts/custody-certificate.js) lets the persistent
+ * participant identity certify this process's custody key; without it the key stays
+ * unattributable to any device. */
+export async function createNativeModelFiles({ transport, modelDirectory, cacheDirectory, onChange = () => {}, owner = null, certifyCustodyKey = null }) {
   const root = await fs.realpath(modelDirectory), cache = await createNativeArtifactCache({ directory: cacheDirectory });
   let budget = null, budgetError = null;
   try { budget = await openNativeSupplyBudget({ directory: cacheDirectory, maxBytes: policy.maxSupplyBytes }); }
@@ -77,6 +80,9 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
   const supplyBudget = { getState: () => budget?.getState() || null,
     reserve: bytes => { if (!budget) throw budgetError; return budget.reserve(bytes); } };
   const pair = await createSigningKeyPair(), lifetime = new AbortController(), sources = new Set();
+  const custodyKey = { peerId: transport._getPeerId(), publicKey: await exportPublicKey(pair.publicKey), privateKey: pair.privateKey };
+  const custodyCertificate = async () => certifyCustodyKey
+    ? certifyCustodyKey({ custodyPeerId: custodyKey.peerId, custodyPublicKey: custodyKey.publicKey }) : null;
   const receipts = [], retained = new Map(), operations = new Set(), offeredFiles = new Map();
   let closed = false, shareController = null, closing = null, suppliedModel = null;
   const own = operation => { operations.add(operation); operation.finally(() => operations.delete(operation)).catch(() => {}); return operation; };
@@ -100,8 +106,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
   };
   const observe = receipt => { receipts.push(receipt); if (receipts.length > policy.maxReceipts) receipts.shift(); onChange(); };
   const contracts = createCustodyContracts({ hashDopplerEvidence, validateExecutablePack, executablePacksMatch, sha256Hex, signCanonical, verifyCanonicalSignature });
-  const exchange = createCustodyExchange({ transport, identity: { peerId: transport._getPeerId(),
-    publicKey: await exportPublicKey(pair.publicKey), privateKey: pair.privateKey }, policy, ports: { supplyBudget,
+  const exchange = createCustodyExchange({ transport, identity: custodyKey, policy, ports: { supplyBudget,
     createSupplier: contracts.createPeerPackSupplier, createStore: contracts.createPeerPackArtifactStore,
     createChannel: owner ? owner.paceChannel(createPeerPackDataChannel) : createPeerPackDataChannel,
     ...(owner ? { admitSupply: request => owner.admitSupply(request) } : {}), hash: hashDopplerEvidence, hashBytes: sha256Hex,
@@ -142,7 +147,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
     retainedFiles: retained.size, receiptCount: receipts.length,
     ...(includeReceipts ? { receipts: structuredClone(receipts) } : {}) });
   exchange.announce();
-  return Object.freeze({ getState, announce: () => exchange.announce(),
+  return Object.freeze({ getState, announce: () => exchange.announce(), custodyCertificate,
     preparePartitionSource(model, { signal } = {}) { return own((async () => {
       signal = AbortSignal.any([lifetime.signal, ...(signal ? [signal] : [])]);
       const data = await metadata(model, signal), descriptors = new Map(); signal.throwIfAborted();
