@@ -83,7 +83,7 @@ async function initPage() {
   function renderShell() {
     return `<header class="pds-header">
       <div class="pds-title">
-        <h1 class="type-h1">Poolday design system</h1>
+        <h1 class="pool-title">Poolday design system</h1>
         <p class="pds-muted">Tokens hold raw values. Primitives compose tokens. Components compose primitives.</p>
       </div>
       <div class="pds-strip">
@@ -99,7 +99,7 @@ async function initPage() {
         ['primitives', 'Primitives', 'Building blocks made of tokens: surfaces, cards, buttons, fields, stacks, rows, columns, text.'],
         ['compositions', 'Compositions', 'Screens arranged from primitives. A converted screen sets no look of its own.']]
         .map(([id, title, text]) => `<button class="pool-surface pds-layer" type="button" data-pds-tab="${id}">
-          <span class="pds-count" data-pds-count="${id}"></span><span class="type-h2">${title}</span><span class="pds-muted">${text}</span></button>`).join('<span class="pds-arrow" aria-hidden="true">→</span>')}
+          <span class="pds-count" data-pds-count="${id}"></span><span class="pool-heading">${title}</span><span class="pds-muted">${text}</span></button>`).join('<span class="pds-arrow" aria-hidden="true">→</span>')}
     </section>
     <p class="pds-muted pds-note"><code>npm run verify:pool:css</code> enforces the layering. Edits here apply live and persist in this browser until you reset them. <span data-pds-status></span></p>
     <div class="pds-toolbar">
@@ -110,7 +110,7 @@ async function initPage() {
       </div>
     </div>
     <aside class="pool-surface pds-changes" data-pds-changes hidden aria-label="Changes">
-      <h2 class="type-h2">Changes</h2>
+      <h2 class="pool-heading">Changes</h2>
       <p class="pds-muted">Each line replaces the declaration of that name in the named file.</p>
       <pre data-pds-changes-text></pre>
       <div class="pds-strip">
@@ -149,7 +149,7 @@ async function initPage() {
   const variablePanel = (entries, groups) => groups.concat([['other', 'Other']]).map(([id, title]) => {
     const list = [...entries.values()].filter((entry) => groupOf(entry.name, groups) === id);
     if (!list.length) return '';
-    return `<details class="pds-group" open data-pds-group><summary class="pds-group-title"><span class="type-h2">${title}</span><span class="pds-muted" data-pds-group-count>${list.length}</span></summary>
+    return `<details class="pds-group" open data-pds-group><summary class="pds-group-title"><span class="pool-heading">${title}</span><span class="pds-muted" data-pds-group-count>${list.length}</span></summary>
       <div class="pds-rows">${list.map(variableRow).join('')}</div></details>`;
   }).join('');
 
@@ -170,7 +170,7 @@ async function initPage() {
   // Specimens, each in its own frame so layouts render at their real size.
   function specimenPanel(groups, kind) {
     const base = `${location.pathname}?specimen=`;
-    return groups.map((group) => `<section class="pds-group" data-pds-group><h2 class="type-h2 pds-group-heading">${group.title}</h2>
+    return groups.map((group) => `<section class="pds-group" data-pds-group><h2 class="pool-heading pds-group-heading">${group.title}</h2>
       <div class="pds-specimens">${group.specimens.map((specimen) => `<article class="pds-specimen" data-pds-kind="${kind}" data-pds-specimen="${specimen.id}" data-pds-text="${escape(`${specimen.id} ${specimen.title}`.toLowerCase())}">
         <header class="pds-specimen-head"><span class="pds-specimen-title">${escape(specimen.title)}</span><span class="pds-muted" data-pds-made>Loading</span></header>
         <iframe class="pds-frame" ${specimen.page ? 'data-page' : ''} title="${escape(specimen.title)}" loading="lazy" src="${base}${specimen.id}&theme=${state.theme}"></iframe>

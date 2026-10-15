@@ -5,7 +5,7 @@
 .pool-home.pds-page > * { width: 100%; max-width: var(--pool-metric-nav-width); margin-inline: auto; }
 .pool-home .pds-header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--pool-size-16); }
 .pool-home .pds-title { display: grid; gap: var(--pool-size-4); }
-.pool-home .pds-title .type-h1 { margin: 0; }
+.pool-home .pds-title .pool-title { margin: 0; }
 .pool-home .pds-muted { color: var(--pool-color-muted); font-size: var(--pool-text-sm); }
 .pool-home .pds-strip { display: flex; flex-wrap: wrap; align-items: center; gap: var(--pool-size-8); }
 .pool-home .pds-link-button { display: inline-flex; align-items: center; border-bottom: 0; }

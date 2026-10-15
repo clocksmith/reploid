@@ -79,25 +79,6 @@
 }
 :where(.pool-home) pre { padding: var(--pool-size-16); overflow-x: auto; white-space: pre; }
 :where(.pool-home) code { padding: var(--pool-size-2) var(--pool-size-4); }
-:where(.pool-home) .type-h1 {
-  margin-bottom: var(--pool-size-16);
-  font-size: var(--pool-text-2xl);
-  font-weight: var(--pool-weight-medium);
-  line-height: var(--pool-leading-set);
-  letter-spacing: var(--pool-tracking-tight);
-}
-:where(.pool-home) .type-h2 {
-  font-size: var(--pool-text-lg);
-  font-weight: var(--pool-weight-medium);
-  line-height: var(--pool-leading-snug);
-  letter-spacing: var(--pool-tracking-tight);
-}
-:where(.pool-home) .type-caption {
-  font-size: var(--pool-text-xs);
-  font-weight: var(--pool-weight-regular);
-  line-height: var(--pool-leading-snug);
-  letter-spacing: var(--pool-tracking-none);
-}
 
 /* Fields */
 :where(.pool-home) :is(input, textarea, select) {
@@ -286,3 +267,17 @@
   outline-offset: var(--pool-border-thick);
 }
 @media (forced-colors: active) { .pool-home { background-image: none; } }
+/* Checkboxes and radios keep their native look; file pickers get a raised button. */
+.pool-home input:is([type='checkbox'], [type='radio']) { box-shadow: none; }
+.pool-home input::file-selector-button {
+  min-height: var(--pool-size-44);
+  margin-inline-end: var(--pool-size-8);
+  padding: var(--pool-size-4) var(--pool-size-8);
+  border: var(--pool-border-thin) solid transparent;
+  border-radius: var(--pool-radius-xs);
+  background: var(--pool-color-raised);
+  color: var(--pool-color-ink);
+  box-shadow: var(--pool-shadow-raised);
+  font: inherit;
+  cursor: pointer;
+}

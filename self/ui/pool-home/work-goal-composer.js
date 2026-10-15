@@ -36,7 +36,7 @@ export function renderGoalComposer({ models = DEFAULT_WORK_MODELS, defaultModelI
     <div class="pool-work-composer-shell">
       <form class="pool-work-composer${embedded ? ' pool-work-embedded' : ''}" data-work-form>
         <div class="pool-work-field">
-          <label for="work-goal" class="pool-work-label">New thread</label>
+          <label for="work-goal" class="pool-work-label pool-subheading">New thread</label>
           <textarea id="work-goal" data-work-goal rows="3" maxlength="${policy.maxGoalCharacters}" required
             placeholder="${escapeHtml(pickGoalPlaceholder())}"></textarea>
         </div>
@@ -44,9 +44,9 @@ export function renderGoalComposer({ models = DEFAULT_WORK_MODELS, defaultModelI
           <button class="btn btn-primary" type="submit" data-work-start>Start thread</button>
           <button class="btn btn-ghost" type="button" data-work-cancel hidden>Stop</button>
         </div>
-        <p class="pool-work-status" role="status" aria-live="polite" data-work-start-status hidden></p>
-        <details class="pool-work-options pool-work-attachments pool-work-settings" data-work-attachments>
-          <summary>Options <span class="type-caption" data-work-file-count></span></summary>
+        <p class="pool-work-status pool-muted" role="status" aria-live="polite" data-work-start-status hidden></p>
+        <details class="pool-work-options pool-work-attachments pool-edge-top pool-work-settings" data-work-attachments>
+          <summary class="pool-subheading">Options <span class="pool-caption" data-work-file-count></span></summary>
           <div class="pool-work-drawer-body">
           <div class="pool-work-model-group">
             <div class="pool-work-model-row">
@@ -55,9 +55,9 @@ export function renderGoalComposer({ models = DEFAULT_WORK_MODELS, defaultModelI
                 ${models.map(model => `<option value="${escapeHtml(model.id)}"${model.id === defaultModel.id ? ' selected' : ''}>${escapeHtml(model.name)}</option>`).join('')}
               </select>
             </div>
-            <p id="work-execution-location" class="pool-control-help" data-work-location></p>
+            <p id="work-execution-location" class="pool-control-help pool-small pool-muted" data-work-location></p>
           </div>
-            <fieldset class="pool-work-capabilities"><legend>Agents</legend>
+            <fieldset class="pool-work-capabilities pool-small"><legend>Agents</legend>
               <label><input type="checkbox" data-work-helpers checked> Delegate subtasks</label>
               <label><input type="checkbox" data-work-peers checked> Propose peer jobs</label>
             </fieldset>
@@ -66,11 +66,11 @@ export function renderGoalComposer({ models = DEFAULT_WORK_MODELS, defaultModelI
             <ul data-work-input-list></ul>
             <button class="btn btn-ghost" type="button" data-work-clear-inputs hidden>Remove files</button>
 
-            <label for="work-criteria">A useful result must... <span class="type-caption">optional</span></label>
+            <label for="work-criteria">A useful result must... <span class="pool-caption">optional</span></label>
             <textarea id="work-criteria" data-work-criteria rows="2" maxlength="${policy.maxCriteriaCharacters}"
               placeholder="Add checks that matter, or let Reploid propose them."></textarea>
-            <label class="pool-consent-row"><input type="checkbox" data-work-recall><span>Use earlier results I accepted on this device.</span></label>
-            <label class="pool-consent-row"><input type="checkbox" data-work-improvement><span>Test tool improvements. Adoption requires separate approval.</span></label>
+            <label class="pool-consent-row pool-small"><input type="checkbox" data-work-recall><span>Use earlier results I accepted on this device.</span></label>
+            <label class="pool-consent-row pool-small"><input type="checkbox" data-work-improvement><span>Test tool improvements. Adoption requires separate approval.</span></label>
           </div>
         </details>
         <div data-work-revision hidden>

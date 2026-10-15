@@ -9,7 +9,10 @@
    pool-muted    secondary color, combinable with any of the above
    pool-mono     code and identifiers
    pool-mark     the 7 to the 7 brand mark
+   pool-wordmark the REPLOID wordmark
    pool-facts    definition list: muted terms, values below
+   pool-table    data table: small text, label headers, hairline rows
+   pool-stats    metric tiles: inset tiles with a caption and a large value
    pool-plain    a link that reads as text */
 .pool-home .pool-title { font-size: var(--pool-text-2xl); font-weight: var(--pool-weight-medium); line-height: var(--pool-leading-tight); letter-spacing: var(--pool-tracking-tight); }
 .pool-home .pool-heading { font-size: var(--pool-text-lg); font-weight: var(--pool-weight-medium); line-height: var(--pool-leading-snug); letter-spacing: var(--pool-tracking-tight); }
@@ -25,3 +28,10 @@
 .pool-home .pool-facts dt { color: var(--pool-color-muted); }
 .pool-home .pool-facts code { font-size: var(--pool-text-xs); }
 .pool-home .pool-plain { color: inherit; text-decoration: none; border-bottom: 0; }
+.pool-home .pool-wordmark { font-family: var(--pool-font-display), var(--pool-font-ui); font-size: var(--pool-text-display); font-weight: var(--pool-weight-medium); line-height: var(--pool-leading-solid); letter-spacing: var(--pool-tracking-none); text-transform: uppercase; }
+.pool-home .pool-table table { width: 100%; border-collapse: collapse; font-size: var(--pool-text-sm); }
+.pool-home .pool-table :is(th, td) { padding: var(--pool-size-8); border-bottom: var(--pool-border-hairline) solid var(--pool-color-line); text-align: start; }
+.pool-home .pool-table th { color: var(--pool-color-muted); font-size: var(--pool-text-xs); font-weight: var(--pool-weight-semibold); letter-spacing: var(--pool-tracking-label); text-transform: uppercase; }
+.pool-home .pool-stats > div { padding: var(--pool-size-12); border-radius: var(--pool-radius-control); background: var(--pool-color-inset); box-shadow: var(--pool-shadow-inset); }
+.pool-home .pool-stats dt { color: var(--pool-color-muted); font-size: var(--pool-text-xs); }
+.pool-home .pool-stats dd { font-size: var(--pool-text-xl); font-weight: var(--pool-weight-bold); }

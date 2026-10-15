@@ -22,7 +22,7 @@ export const renderSequenceDisclosure = (record = {}) => {
   if (record.consent?.publicSequence === true) {
     return `<code data-research-sequence>${escapeHtml(record.sequence?.value || '')}</code>`;
   }
-  return `<p class="type-caption" data-research-sequence-withheld>Sequence value withheld. Hash ${escapeHtml(compactHash(record.sequence?.hash))} remains available for provenance.</p>`;
+  return `<p class="pool-caption" data-research-sequence-withheld>Sequence value withheld. Hash ${escapeHtml(compactHash(record.sequence?.hash))} remains available for provenance.</p>`;
 };
 
 export const renderTechnicalEvidencePanel = ({
@@ -44,7 +44,7 @@ export const renderTechnicalEvidencePanel = ({
         ${isSubmission ? `<div><dt>Sequence hash</dt><dd>${escapeHtml(record.sequence?.hash || 'unknown')}</dd></div><div><dt>Sequence publication</dt><dd>${escapeHtml(publicationState(publication.publicSequence === true))}</dd></div><div><dt>Sequence length</dt><dd>${escapeHtml(record.sequence?.length || 'not published')}</dd></div>` : ''}
         ${isResult ? `<div><dt>Source submission</dt><dd>${escapeHtml(compactHash(record.submissionHash))}</dd></div><div><dt>Receipt</dt><dd>${escapeHtml(record.compute?.receiptHash || 'unknown')}</dd></div><div><dt>Model</dt><dd>${escapeHtml(record.modelContract?.id || 'unknown')}</dd></div><div><dt>Model hash</dt><dd>${escapeHtml(record.modelContract?.hash || 'unknown')}</dd></div><div><dt>Manifest</dt><dd>${escapeHtml(record.modelContract?.manifestHash || 'unknown')}</dd></div><div><dt>Runtime</dt><dd>${escapeHtml(record.modelContract?.runtime || 'unknown')} / ${escapeHtml(record.modelContract?.backend || 'unknown')}</dd></div><div><dt>Route decision</dt><dd>${escapeHtml(record.compute?.routeDecisionHash || 'none')}</dd></div><div><dt>Runtime profile</dt><dd>${escapeHtml(record.compute?.runtimeProfileHash || 'none')}</dd></div><div><dt>Assignment</dt><dd>${escapeHtml(record.compute?.assignmentId || 'none')}</dd></div><div><dt>Embedding publication</dt><dd>${escapeHtml(publicationState(publication.publishEmbedding === true))}</dd></div><div><dt>Residue evidence</dt><dd>${escapeHtml(publicationState(publication.publishResidueEvidence === true))}</dd></div>` : ''}
       </dl>
-      ${isResult ? '<p class="type-caption">Raw vectors, residue values, and unpublished sequence values remain outside this disclosure unless their signed publication consent exists.</p>' : ''}
+      ${isResult ? '<p class="pool-caption">Raw vectors, residue values, and unpublished sequence values remain outside this disclosure unless their signed publication consent exists.</p>' : ''}
     </details>
   `;
 };

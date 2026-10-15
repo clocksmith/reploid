@@ -8,11 +8,12 @@ const strip = (items) => `<div class="pool-row pool-gap-md">${items.join('')}</d
 // Every specimen names its class the same way: lowercase, monospace, as written in markup.
 const name = (text) => `<code class="pool-mono pool-caption pool-muted">${text}</code>`;
 const PRIMITIVES = [
-  { id: 'surfaces', title: 'Surfaces: pool-surface, pool-card, pool-well, pool-divider, pool-list', render: async () => `<div class="pool-columns">
+  { id: 'surfaces', title: 'Surfaces: pool-surface, pool-card, pool-well, pool-divider, pool-list, pool-edge-*', render: async () => `<div class="pool-columns">
     <section class="pool-surface pds-pad pool-stack pool-gap-sm">${name('pool-surface')}<p class="pool-small">Raised material. The composition owns padding.</p></section>
     <section class="pool-card pool-stack pool-gap-sm">${name('pool-card')}<p class="pool-small">Raised material with its own padding.</p></section>
     <div class="pool-well pool-stack pool-gap-sm">${name('pool-well')}<p class="pool-small">Inset area for grouped or quoted content.</p></div>
     <div class="pool-stack pool-gap-sm">${name('pool-list')}<ul class="pool-list pool-small"><li>First</li><li>Second</li><li>Third</li></ul>${name('pool-divider')}<hr class="pool-divider"></div>
+    <div class="pool-stack pool-gap-sm"><p class="pool-edge-top pool-small">${name('pool-edge-top')} A hairline above.</p><p class="pool-edge-bottom pool-small">${name('pool-edge-bottom')} A hairline below.</p></div>
   </div>` },
   { id: 'buttons', title: 'Buttons: pool-button + btn-primary, btn-ghost, pool-icon', render: async () => strip([
     '<button class="pool-button" type="button">Button</button>',
@@ -43,14 +44,16 @@ const PRIMITIVES = [
     <div class="pool-stack pool-gap-xs pds-outline"><span class="pool-chip">pool-stack</span><span class="pool-chip">pool-gap-xs</span></div>
     <div class="pool-columns pds-outline">${['One', 'Two', 'Three'].map((label) => `<span class="pool-well pool-small">pool-columns: ${label}</span>`).join('')}</div>
   </div>` },
-  { id: 'text', title: 'Text: pool-title, pool-heading, pool-subheading, pool-body, pool-small, pool-caption, pool-label, pool-muted, pool-mono, pool-mark', render: async () => `<div class="pool-stack pool-gap-sm">
-    <span class="pool-mark">7<sup>7</sup></span>
+  { id: 'text', title: 'Text: pool-title, pool-heading, pool-subheading, pool-body, pool-small, pool-caption, pool-label, pool-muted, pool-mono, pool-mark, pool-wordmark', render: async () => `<div class="pool-stack pool-gap-sm">
+    <span class="pool-mark">7<sup>7</sup></span><span class="pool-wordmark">Reploid</span>
     <h1 class="pool-title">pool-title</h1><h2 class="pool-heading">pool-heading</h2><h3 class="pool-subheading">pool-subheading</h3>
     <p class="pool-body">pool-body reads at the page size.</p><p class="pool-small">pool-small one step below.</p>
     <p class="pool-caption pool-muted">pool-caption pool-muted</p><span class="pool-label">pool-label</span><code class="pool-mono">pool-mono</code>
   </div>` },
-  { id: 'facts', title: 'Facts and prose: pool-facts, pool-prose', render: async () => `<div class="pool-columns">
+  { id: 'facts', title: 'Facts, data and prose: pool-facts, pool-table, pool-stats, pool-prose', render: async () => `<div class="pool-columns">
     <dl class="pool-facts pool-small"><dt>Model</dt><dd>Qwen 3.5 0.8B</dd><dt>Attempt</dt><dd><code>a1b2c3</code></dd></dl>
+    <div class="pool-table"><table><thead><tr><th>Room</th><th>Messages</th></tr></thead><tbody><tr><td>server</td><td>12</td></tr><tr><td>room-1</td><td>3</td></tr></tbody></table></div>
+    <dl class="pool-stats pool-row"><div><dt>Runs</dt><dd>24</dd></div><div><dt>Peers</dt><dd>3</dd></div></dl>
     <div class="pool-prose pool-body"><h3>Heading</h3><p>A paragraph with <a href="#facts">a link</a>.</p><pre>code block</pre></div>
   </div>` },
   { id: 'feedback', title: 'Feedback: pool-bar, pool-reveal, pool-glass, pool-activity-edge', render: async () => `<div class="pool-stack pool-gap-md">

@@ -25,8 +25,8 @@ export {
 };
 
 const route = (path, label) => '<a href="' + path + '" data-pool-route-link="' + path + '">' + label + '</a>';
-const links = () => '<details class="pool-work-more"><summary>More</summary>'
-  + '<nav class="pool-work-links" aria-label="More in Reploid">'
+const links = () => '<details class="pool-work-more pool-small pool-muted"><summary>More</summary>'
+  + '<nav class="pool-work-links pool-small pool-muted pool-edge-top" aria-label="More in Reploid">'
   + route('/network', 'Network settings') + route('/improve', 'Improvement history') + route('/examples', 'Model examples') + route('/records', 'Peer job records')
   + '<span class="pool-work-experiment-links">Experiments: <a href="/zero" data-pool-substrate-route="zero">Zero</a>'
   + ' <a href="/x" data-pool-substrate-route="x">X</a></span></nav></details>';
@@ -34,7 +34,7 @@ const links = () => '<details class="pool-work-more"><summary>More</summary>'
 export function renderWorkSurface() {
   return [
     '<section class="pool-work-shell pool-connected-shell" data-work-surface aria-label="Agent network">',
-    '  <p class="pool-work-error" role="alert" data-work-error hidden></p>',
+    '  <p class="pool-work-error pool-subheading" role="alert" data-work-error hidden></p>',
     '<details class="pool-network-disclosure" data-network-disclosure><summary>Network <span data-network-summary>0 peers</span></summary>',
     renderTextSwarm(),
     '</details>',
@@ -57,12 +57,12 @@ export const renderNetworkSurface = renderNetworkInspector;
 
 export function renderImproveSurface() {
   return '<section class="pool-work-shell changes-workspace" data-work-surface aria-label="Changes">'
-    + '<p class="pool-work-error" role="alert" data-work-error hidden></p>'
+    + '<p class="pool-work-error pool-subheading" role="alert" data-work-error hidden></p>'
     + renderWorkHeading('Changes')
     + renderToolExperiments()
     + renderTaskHistory()
     + '<details class="pool-disclosure" data-change-inspection hidden><summary>Selected attempt</summary><div class="pool-disclosure-body">'
-    + '<section class="pool-work-comparison" data-work-comparison hidden><h2 class="type-h2">Earlier attempt</h2>'
+    + '<section class="pool-work-comparison pool-edge-top" data-work-comparison hidden><h2 class="pool-heading">Earlier attempt</h2>'
     + '<p data-work-parent-feedback></p><pre data-work-parent-output></pre></section>'
     + renderResultView({ embedded: true }) + '</div></details>'
     + '</section>';
@@ -254,11 +254,11 @@ export function bindWorkSurface(root, application, services = {}) {
           const tags = row?.outcomeTags || deriveOutcomeTags(row);
           for (const tag of tags) {
             const badge = document.createElement('span');
-            badge.className = 'pool-work-badge ' + (
+            badge.className = 'pool-work-badge pool-caption pool-mono ' + (
               tag === 'JSON validated' ? 'pool-work-badge--json' :
               tag === 'Patch drafted' ? 'pool-work-badge--patch' :
-              tag === 'Needs execution' ? 'pool-work-badge--execution' :
-              'pool-work-badge--status'
+              tag === 'Needs execution' ? 'pool-work-badge--execution pool-well pool-muted' :
+              'pool-work-badge--status pool-muted'
             );
             badge.textContent = tag;
             tagsContainer.append(badge);
@@ -270,10 +270,10 @@ export function bindWorkSurface(root, application, services = {}) {
         artifacts.replaceChildren();
         for (const artifact of row?.artifacts || []) {
           const item = document.createElement('div'), button = document.createElement('button'), meta = document.createElement('p');
-          item.className = 'pool-work-artifact-item';
+          item.className = 'pool-work-artifact-item pool-edge-top';
           button.type = 'button'; button.className = 'btn btn-ghost';
           button.textContent = 'Download ' + artifact.name; button.dataset.workArtifact = artifact.id;
-          meta.className = 'type-caption';
+          meta.className = 'pool-caption';
           meta.textContent = artifact.bytes + ' bytes / ' + (artifact.inspection
             ? artifact.inspection.checks.map(check => check.name + ': ' + (check.passed ? 'pass' : 'fail')).join(', ') : 'not inspected');
           if (artifact.inspection) meta.title = artifact.inspection.scope + ' SHA-256: ' + artifact.inspection.sha256;
@@ -287,12 +287,12 @@ export function bindWorkSurface(root, application, services = {}) {
           if (row) {
             const metaContainer = document.createElement('div');
             metaContainer.className = 'pool-work-meta-list';
-            const pId = document.createElement('p'); pId.className = 'type-caption';
+            const pId = document.createElement('p'); pId.className = 'pool-caption';
             pId.textContent = 'Attempt ID: ' + row.id + ' | Model: ' + row.modelName + ' (' + row.modelId + ')';
             metaContainer.append(pId);
             for (const artifact of row.artifacts || []) {
               if (artifact.inspection?.sha256) {
-                const pDigest = document.createElement('p'); pDigest.className = 'type-caption pool-work-hash';
+                const pDigest = document.createElement('p'); pDigest.className = 'pool-caption pool-work-hash pool-mono';
                 pDigest.textContent = artifact.name + ' SHA-256: ' + artifact.inspection.sha256;
                 metaContainer.append(pDigest);
               }
@@ -339,23 +339,23 @@ export function bindWorkSurface(root, application, services = {}) {
     if (signature === historyIdentity) return;
     historyIdentity = signature; list.replaceChildren();
     if (!state.records.length) {
-      const empty = document.createElement('p'); empty.className = 'type-caption';
+      const empty = document.createElement('p'); empty.className = 'pool-caption';
       empty.textContent = 'No threads yet'; list.append(empty);
     }
     for (const attempt of [...state.records].reverse()) {
       const item = document.createElement('article'), title = document.createElement('button');
-      item.className = 'pool-work-attempt';
+      item.className = 'pool-work-attempt pool-edge-top';
       if (root.querySelector('.changes-workspace')) item.classList.add('pool-surface', 'change-card');
-      title.type = 'button'; title.className = 'pool-work-attempt-title';
+      title.type = 'button'; title.className = 'pool-work-attempt-title pool-subheading';
       title.textContent = attempt.goal; title.dataset.workSelect = attempt.id;
       title.setAttribute('aria-pressed', String(showSelected && attempt.id === state.selectedId));
       if (root.querySelector('.pool-thread-list')) {
-        const status = document.createElement('span'); status.className = 'type-caption';
+        const status = document.createElement('span'); status.className = 'pool-caption';
         status.textContent = state.approvalThreadIds?.includes(attempt.id) ? 'Approval needed' : attempt.status;
         title.append(status); item.append(title); list.append(item); continue;
       }
       const metadata = document.createElement('p'), button = document.createElement('button');
-      metadata.className = 'type-caption';
+      metadata.className = 'pool-caption';
       metadata.textContent = [attempt.modelName, new Date(attempt.createdAt).toLocaleDateString()].filter(Boolean).join(' · ');
       const badge = document.createElement('span'); badge.className = 'network-status';
       badge.textContent = attempt.status === 'review' ? 'Ready to review' : attempt.status;
@@ -364,7 +364,7 @@ export function bindWorkSurface(root, application, services = {}) {
       button.dataset.workRevise = attempt.id; button.disabled = state.runningIds?.includes(attempt.id) || !state.available;
       item.append(title, metadata, button);
       if (attempt.error) {
-        const failure = document.createElement('p'); failure.className = 'pool-work-error';
+        const failure = document.createElement('p'); failure.className = 'pool-work-error pool-subheading';
         failure.textContent = attempt.error; item.append(failure);
       }
       list.append(item);

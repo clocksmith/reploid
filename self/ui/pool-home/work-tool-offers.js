@@ -1,15 +1,15 @@
 /** Explicit file handoff. Only the host evaluates and activates imported code. */
 export const renderToolOfferImport = () => `
   <details class="pool-work-settings pool-disclosure" data-tool-offer-panel hidden>
-    <summary>Import a tool</summary>
+    <summary class="pool-subheading">Import a tool</summary>
     <div class="pool-work-drawer-body">
-      <label class="pool-consent-row"><input type="checkbox" data-tool-offer-receive disabled> Receive tool offers from connected peers</label>
+      <label class="pool-consent-row pool-small"><input type="checkbox" data-tool-offer-receive disabled> Receive tool offers from connected peers</label>
       <label>Candidate file <input type="file" accept=".json,application/json" data-tool-offer-file></label>
       <div data-tool-offer-preview hidden>
         <strong data-tool-offer-target></strong><p data-tool-offer-reason></p>
-        <p class="pool-control-help" data-tool-offer-source></p>
+        <p class="pool-control-help pool-small pool-muted" data-tool-offer-source></p>
         <details class="pool-disclosure"><summary>Inspect code</summary><pre data-tool-offer-code></pre></details>
-        <p class="pool-control-help">Test against this device’s current tool. Adoption requires your separate approval.</p>
+        <p class="pool-control-help pool-small pool-muted">Test against this device’s current tool. Adoption requires your separate approval.</p>
         <button type="button" class="btn btn-primary" data-tool-offer-evaluate disabled>Evaluate on this device</button>
       </div>
     </div>
@@ -55,13 +55,13 @@ export function bindToolOffers(root, application, evolution, onUpdated, swarm) {
       for (const record of offers?.inbox || []) {
         if (record.status !== 'received' || record.dismissed) continue;
         const row = document.createElement('div'), text = document.createElement('p');
-        text.className = 'pool-control-help'; text.textContent = record.envelope.targetId + ' offered by Peer ' + record.sender.slice(0, 8);
+        text.className = 'pool-control-help pool-small pool-muted'; text.textContent = record.envelope.targetId + ' offered by Peer ' + record.sender.slice(0, 8);
         row.append(text, action('Preview candidate', 'data-tool-offer-preview-peer', record.transferId), action('Dismiss', 'data-tool-offer-dismiss', record.transferId));
         inbox.append(row);
       }
       for (const record of offers?.outbox || []) {
         const expired = record.envelope.expiresAt <= Date.now();
-        const row = document.createElement('div'), text = document.createElement('p'); text.className = 'pool-control-help';
+        const row = document.createElement('div'), text = document.createElement('p'); text.className = 'pool-control-help pool-small pool-muted';
         text.textContent = record.envelope.targetId + ' to Peer ' + record.envelope.recipient.slice(0, 8) + ' · '
           + (record.status === 'received' ? 'Received for preview' : record.status === 'refused' ? 'Refused: ' + record.reason : expired ? 'Delivery expired' : 'Delivery not confirmed');
         row.append(text);

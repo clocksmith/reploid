@@ -86,13 +86,13 @@ const renderReviewTargetContext = (record, { submissionsByHash = new Map(), revi
     : '';
   return `<article class="pool-research-review-context" data-research-review-context="${escapeHtml(record.recordHash)}">
     <div><strong>${escapeHtml(recordLabel(record))}</strong><span>${escapeHtml(record.kind.replace(/_/g, ' '))} · ${escapeHtml(compactHash(record.recordHash))}</span></div>
-    <dl class="pool-room-facts">
+    <dl class="pool-room-facts pool-facts pool-small">
       ${question ? `<div><dt>Question</dt><dd>${escapeHtml(question.question)}${question.questionDetail ? ` · ${escapeHtml(question.questionDetail)}` : ''}</dd></div><div><dt>Sequence</dt><dd>${escapeHtml(question.sequence)} · ${escapeHtml(question.publication)}</dd></div>` : ''}
       ${resultEvidence}
       ${contextEvidence}
       <div><dt>Current review</dt><dd>${escapeHtml(reviewState.replace(/_/g, ' '))}</dd></div>
     </dl>
-    <p class="type-caption">Choose a signed decision below. Similarity and retrieval ranking do not establish agreement.${reuseContext ? ' Cross-room acceptance also requires an explicit determination that the origin evidence is relevant to this current decision context.' : ''}</p>
+    <p class="pool-caption">Choose a signed decision below. Similarity and retrieval ranking do not establish agreement.${reuseContext ? ' Cross-room acceptance also requires an explicit determination that the origin evidence is relevant to this current decision context.' : ''}</p>
   </article>`;
 };
 
@@ -112,7 +112,7 @@ const renderModelEvidenceView = (view, submissionsByHash) => {
         <small>${escapeHtml(source.claimBoundaries.join(' '))}</small>
       </article>
     `).join('')
-    : '<p class="type-caption">No receipt-backed model output is linked yet.</p>';
+    : '<p class="pool-caption">No receipt-backed model output is linked yet.</p>';
   return `
     <article class="pool-research-model-evidence">
       <div>
@@ -132,13 +132,13 @@ const renderModelEvidenceView = (view, submissionsByHash) => {
 };
 
 export const renderResultEvidencePanel = ({ lifecycles = [], submissionsByHash = new Map() } = {}) => `
-  <section class="pool-research-panel">
-    <p class="pool-dashboard-kicker">Model evidence</p>
+  <section class="pool-research-panel pool-surface">
+    <p class="pool-dashboard-kicker pool-label pool-muted">Model evidence</p>
     <h3 class="type-h3">Exact-model evidence, not vector averaging</h3>
     <div class="pool-research-similar">
-      ${lifecycles.length ? lifecycles.map((lifecycle) => renderModelEvidenceView(lifecycle.modelEvidence, submissionsByHash)).join('') : '<p class="type-caption">Submit a public protein sequence and bounded question to start an inspectable model-evidence record.</p>'}
+      ${lifecycles.length ? lifecycles.map((lifecycle) => renderModelEvidenceView(lifecycle.modelEvidence, submissionsByHash)).join('') : '<p class="pool-caption">Submit a public protein sequence and bounded question to start an inspectable model-evidence record.</p>'}
     </div>
-    <p class="type-caption">Only shared sequence and residue identities join model records. Model vectors and tokenizer-local logits remain isolated by exact contract.</p>
+    <p class="pool-caption">Only shared sequence and residue identities join model records. Model vectors and tokenizer-local logits remain isolated by exact contract.</p>
   </section>
 `;
 
@@ -158,19 +158,19 @@ export const renderReviewPanel = ({
   const selectedRecord = reviewTargets.find((record) => record.recordHash === selectedTarget) || null;
   const selectedRequiresContext = Boolean(selectedRecord?.evidence?.reuseContext);
   return `
-  <section class="pool-research-panel" id="pool-room-review" data-pool-room-panel-target="review">
-    <p class="pool-dashboard-kicker">Review</p>
+  <section class="pool-research-panel pool-surface" id="pool-room-review" data-pool-room-panel-target="review">
+    <p class="pool-dashboard-kicker pool-label pool-muted">Review</p>
     <h3 class="type-h3">Review this evidence</h3>
     <form data-research-review-form>
-      <label class="pool-field"><span>Evidence to review</span><select name="targetHash" required>${reviewTargets.map((record) => `<option value="${escapeHtml(record.recordHash)}"${record.recordHash === selectedTarget ? ' selected' : ''}>${escapeHtml(recordLabel(record))}</option>`).join('')}</select></label>
+      <label class="pool-field"><span class="pool-small pool-muted">Evidence to review</span><select name="targetHash" required>${reviewTargets.map((record) => `<option value="${escapeHtml(record.recordHash)}"${record.recordHash === selectedTarget ? ' selected' : ''}>${escapeHtml(recordLabel(record))}</option>`).join('')}</select></label>
       <div class="pool-research-review-contexts" data-research-review-contexts aria-live="polite">
-        ${reviewTargets.length ? reviewTargets.map((record) => `<div data-research-review-context-shell="${escapeHtml(record.recordHash)}"${record.recordHash === selectedTarget ? '' : ' hidden'}>${renderReviewTargetContext(record, { submissionsByHash, reviewStates })}</div>`).join('') : '<p class="type-caption">No active evidence is available to review.</p>'}
+        ${reviewTargets.length ? reviewTargets.map((record) => `<div data-research-review-context-shell="${escapeHtml(record.recordHash)}"${record.recordHash === selectedTarget ? '' : ' hidden'}>${renderReviewTargetContext(record, { submissionsByHash, reviewStates })}</div>`).join('') : '<p class="pool-caption">No active evidence is available to review.</p>'}
       </div>
-      <label class="pool-field" data-research-context-assessment-fields${selectedRequiresContext ? '' : ' hidden'}><span>Cross-room contextual relevance</span><select name="contextDetermination"${selectedRequiresContext ? ' required' : ' disabled'}><option value="" selected disabled>Choose a determination</option><option value="relevant">Relevant to this decision context</option><option value="not_relevant">Not relevant to this decision context</option><option value="uncertain">Contextual relevance remains uncertain</option></select></label>
-      <label class="pool-field"><span>Reason or correction</span><textarea name="text" rows="4" required placeholder="Explain the decision, state the correction, or define what an independent replication should check."></textarea></label>
+      <label class="pool-field" data-research-context-assessment-fields${selectedRequiresContext ? '' : ' hidden'}><span class="pool-small pool-muted">Cross-room contextual relevance</span><select name="contextDetermination"${selectedRequiresContext ? ' required' : ' disabled'}><option value="" selected disabled>Choose a determination</option><option value="relevant">Relevant to this decision context</option><option value="not_relevant">Not relevant to this decision context</option><option value="uncertain">Contextual relevance remains uncertain</option></select></label>
+      <label class="pool-field"><span class="pool-small pool-muted">Reason or correction</span><textarea name="text" rows="4" required placeholder="Explain the decision, state the correction, or define what an independent replication should check."></textarea></label>
       <div class="pool-research-form-row">
-        <label class="pool-field"><span>Confidence</span><input name="confidence" type="number" min="0" max="1" step="0.05" value="0.75" required></label>
-        <label class="pool-field"><span>Evidence URL</span><input name="evidenceUrl" type="url" placeholder="https://"></label>
+        <label class="pool-field"><span class="pool-small pool-muted">Confidence</span><input name="confidence" type="number" min="0" max="1" step="0.05" value="0.75" required></label>
+        <label class="pool-field"><span class="pool-small pool-muted">Evidence URL</span><input name="evidenceUrl" type="url" placeholder="https://"></label>
       </div>
       <div class="pool-research-review-actions" aria-label="Signed review actions">
         ${reviewActionButton('accept', 'Accept evidence', 'btn btn-primary', !selectedTarget)}
@@ -178,23 +178,23 @@ export const renderReviewPanel = ({
         ${reviewActionButton('correct', 'Attach correction', 'btn btn-ghost', !selectedTarget)}
         ${reviewActionButton('replicate', 'Request replication', 'btn btn-ghost', !selectedTarget)}
       </div>
-      <p class="type-caption">Each action creates a separate attributable signed record. A replication request keeps the target out of room memory until independent evidence resolves it.</p>
-      <p class="type-caption" data-research-review-status aria-live="polite"></p>
+      <p class="pool-caption">Each action creates a separate attributable signed record. A replication request keeps the target out of room memory until independent evidence resolves it.</p>
+      <p class="pool-caption" data-research-review-status aria-live="polite"></p>
     </form>
   </section>
   `;
 };
 
 export const renderDiscoveryPanel = ({ results = [], target = '', similar = [], clusters = [] } = {}) => `
-  <section class="pool-research-panel" id="pool-room-discovery" data-pool-room-panel-target="discovery">
-    <p class="pool-dashboard-kicker">Discover</p>
+  <section class="pool-research-panel pool-surface" id="pool-room-discovery" data-pool-room-panel-target="discovery">
+    <p class="pool-dashboard-kicker pool-label pool-muted">Discover</p>
     <h3 class="type-h3">Compatible sequence similarity</h3>
-    <label class="pool-field"><span>Receipt-backed embedding</span><select data-research-similarity-target>${results.map((record) => `<option value="${escapeHtml(record.recordHash)}"${record.recordHash === target ? ' selected' : ''}>${escapeHtml(recordLabel(record))}</option>`).join('')}</select></label>
+    <label class="pool-field"><span class="pool-small pool-muted">Receipt-backed embedding</span><select data-research-similarity-target>${results.map((record) => `<option value="${escapeHtml(record.recordHash)}"${record.recordHash === target ? ' selected' : ''}>${escapeHtml(recordLabel(record))}</option>`).join('')}</select></label>
     <div class="pool-research-similar">
-      ${similar.length ? similar.map((entry) => `<article><b>${escapeHtml(recordLabel(entry.record))}</b><span>${(entry.similarity * 100).toFixed(2)}% similar · ${entry.supportingAnnotations.length} accepted annotations</span><small>Model ${escapeHtml(entry.record.modelContract.id)} · receipt ${escapeHtml(compactHash(entry.record.compute.receiptHash))}</small></article>`).join('') : '<p class="type-caption">No other exact-contract compatible embeddings are available.</p>'}
+      ${similar.length ? similar.map((entry) => `<article><b>${escapeHtml(recordLabel(entry.record))}</b><span>${(entry.similarity * 100).toFixed(2)}% similar · ${entry.supportingAnnotations.length} accepted annotations</span><small>Model ${escapeHtml(entry.record.modelContract.id)} · receipt ${escapeHtml(compactHash(entry.record.compute.receiptHash))}</small></article>`).join('') : '<p class="pool-caption">No other exact-contract compatible embeddings are available.</p>'}
     </div>
-    <details class="pool-advanced"><summary>${clusters.length} deterministic similarity clusters</summary><div class="pool-research-similar">${clusters.map((cluster) => `<article><b>${escapeHtml(cluster.clusterId)}</b><span>${cluster.members.length} exact-contract compatible result${cluster.members.length === 1 ? '' : 's'}</span><small>${cluster.members.map((record) => escapeHtml(compactHash(record.recordHash))).join(' · ')}</small></article>`).join('') || '<p class="type-caption">No published embeddings to cluster.</p>'}</div></details>
-    <p class="type-caption">Reranking uses compatible cosine similarity plus independently accepted evidence. Raw vectors are never presented as biological meaning.</p>
+    <details class="pool-advanced pool-disclosure"><summary>${clusters.length} deterministic similarity clusters</summary><div class="pool-research-similar">${clusters.map((cluster) => `<article><b>${escapeHtml(cluster.clusterId)}</b><span>${cluster.members.length} exact-contract compatible result${cluster.members.length === 1 ? '' : 's'}</span><small>${cluster.members.map((record) => escapeHtml(compactHash(record.recordHash))).join(' · ')}</small></article>`).join('') || '<p class="pool-caption">No published embeddings to cluster.</p>'}</div></details>
+    <p class="pool-caption">Reranking uses compatible cosine similarity plus independently accepted evidence. Raw vectors are never presented as biological meaning.</p>
   </section>
 `;
 
@@ -218,7 +218,7 @@ const renderCandidateAction = (candidate, selectedAction) => `
       : `<button class="btn btn-ghost" type="button" data-research-approve-candidate="${escapeHtml(candidate.recordHash)}" data-research-candidate-contract="${escapeHtml(candidate.actionId)}">Approve exact contract</button>`}
     <details>
       <summary>Raw value, cost, uncertainty, and contract evidence</summary>
-      <dl class="pool-room-facts">
+      <dl class="pool-room-facts pool-facts pool-small">
         <div><dt>Uncertainty reduction</dt><dd>${escapeHtml(candidate.rawValueComponents.uncertaintyReduction)}/5</dd></div>
         <div><dt>Decision relevance</dt><dd>${escapeHtml(candidate.rawValueComponents.decisionRelevance)}/5</dd></div>
         <div><dt>Duplicate-work avoidance</dt><dd>${escapeHtml(candidate.rawValueComponents.duplicateWorkAvoidance)}/5</dd></div>
@@ -233,7 +233,7 @@ const renderCandidateAction = (candidate, selectedAction) => `
       </dl>
       <p><strong>Predicted:</strong> ${candidate.predictedObservations.map((entry) => escapeHtml(entry.observation)).join(' · ')}</p>
       <p><strong>Falsified by:</strong> ${candidate.falsifiers.map((entry) => escapeHtml(entry.observation)).join(' · ')}</p>
-      <p class="type-caption">Cost assumptions: ${candidate.scientificCost.assumptions.map(escapeHtml).join(' · ')}</p>
+      <p class="pool-caption">Cost assumptions: ${candidate.scientificCost.assumptions.map(escapeHtml).join(' · ')}</p>
     </details>
   </article>
 `;
@@ -248,41 +248,41 @@ export const renderNextWorkPanel = ({
     selectedAction: null
   }
 } = {}) => `
-  <section class="pool-research-panel">
-    <p class="pool-dashboard-kicker">Next work</p>
+  <section class="pool-research-panel pool-surface">
+    <p class="pool-dashboard-kicker pool-label pool-muted">Next work</p>
     <h3 class="type-h3">Governed candidate-action queue</h3>
     <div class="pool-research-tasks" data-research-candidate-actions>
       ${candidateRanking.admittedCandidates.length
         ? candidateRanking.admittedCandidates.map((candidate) => renderCandidateAction(candidate, candidateRanking.selectedAction)).join('')
-        : '<p class="type-caption">No signed candidate action is currently admitted.</p>'}
+        : '<p class="pool-caption">No signed candidate action is currently admitted.</p>'}
     </div>
     ${candidateRanking.rejectedActions.length ? `<details><summary>${candidateRanking.rejectedActions.length} rejected or invalidated candidate action${candidateRanking.rejectedActions.length === 1 ? '' : 's'}</summary><div class="pool-research-tasks" data-research-rejected-candidate-actions>${candidateRanking.rejectedActions.map((candidate) => `<article><div><b>${escapeHtml(candidate.title)}</b><span>${candidate.reasons.map((reason) => escapeHtml(reason.replace(/_/g, ' '))).join(' · ')}</span><small>${escapeHtml(compactHash(candidate.recordHash))}</small></div><strong>Rejected</strong></article>`).join('')}</div></details>` : ''}
-    <details class="pool-advanced"><summary>Projection policy and raw assumptions</summary>
-      <dl class="pool-room-facts">
+    <details class="pool-advanced pool-disclosure"><summary>Projection policy and raw assumptions</summary>
+      <dl class="pool-room-facts pool-facts pool-small">
         <div><dt>Policy</dt><dd>${escapeHtml(candidateRanking.policy.policyId)} @ ${escapeHtml(candidateRanking.policy.version)}</dd></div>
         <div><dt>Method</dt><dd>${escapeHtml(candidateRanking.policy.method)} · ${escapeHtml(candidateRanking.policy.status.replace(/_/g, ' '))}</dd></div>
         <div><dt>Parameters</dt><dd>${escapeHtml(JSON.stringify(candidateRanking.policy.parameters))}</dd></div>
         <div><dt>Cost assumptions</dt><dd>${escapeHtml(JSON.stringify(candidateRanking.policy.costAssumptions))}</dd></div>
         <div><dt>Calibration evidence</dt><dd>${candidateRanking.policy.calibrationEvidenceHashes.length ? candidateRanking.policy.calibrationEvidenceHashes.map((hash) => escapeHtml(compactHash(hash))).join(' · ') : 'None; ranking is explicitly not calibrated.'}</dd></div>
       </dl>
-      <p class="type-caption">Selection is a deterministic projection over exact input record and candidate contract hashes. It cannot allocate or execute work.</p>
+      <p class="pool-caption">Selection is a deterministic projection over exact input record and candidate contract hashes. It cannot allocate or execute work.</p>
     </details>
     <h4>System-projected governance suggestions</h4>
     <div class="pool-research-tasks">
-      ${rankedTasks.length ? rankedTasks.map((task) => `<article><div><b>${escapeHtml(task.actionKind.replace(/_/g, ' '))}</b><span>${escapeHtml(task.reason)}</span><small>Basis: ${escapeHtml(task.basis === 'accepted_memory' ? `${task.basisHashes?.length || 0} accepted memory record${task.basisHashes?.length === 1 ? '' : 's'}` : 'question or governance boundary')} · heuristic priority ${escapeHtml(task.heuristicPriority)} · ordinal uncertainty reduction ${escapeHtml(task.expectedInformationGain.estimate)} · planning cost ${escapeHtml(task.valueComponents.totalCost)}.</small></div>${task.status === 'approved' ? '<strong>Approved</strong>' : `<button class="btn btn-ghost" type="button" data-research-approve-task="${escapeHtml(task.actionId)}" data-research-task-target="${escapeHtml(task.targetHash)}">Approve</button>`}</article>`).join('') : '<p class="type-caption">No bounded follow-up is currently proposed.</p>'}
+      ${rankedTasks.length ? rankedTasks.map((task) => `<article><div><b>${escapeHtml(task.actionKind.replace(/_/g, ' '))}</b><span>${escapeHtml(task.reason)}</span><small>Basis: ${escapeHtml(task.basis === 'accepted_memory' ? `${task.basisHashes?.length || 0} accepted memory record${task.basisHashes?.length === 1 ? '' : 's'}` : 'question or governance boundary')} · heuristic priority ${escapeHtml(task.heuristicPriority)} · ordinal uncertainty reduction ${escapeHtml(task.expectedInformationGain.estimate)} · planning cost ${escapeHtml(task.valueComponents.totalCost)}.</small></div>${task.status === 'approved' ? '<strong>Approved</strong>' : `<button class="btn btn-ghost" type="button" data-research-approve-task="${escapeHtml(task.actionId)}" data-research-task-target="${escapeHtml(task.targetHash)}">Approve</button>`}</article>`).join('') : '<p class="pool-caption">No bounded follow-up is currently proposed.</p>'}
     </div>
-    <p class="type-caption">Legacy projected-task policy ${escapeHtml(actionRanking.policy.policyId)} is also an inspectable, non-calibrated heuristic. The ranking does not estimate biological truth, mutation fitness, or a decision-change probability, and neither queue can allocate work.</p>
+    <p class="pool-caption">Legacy projected-task policy ${escapeHtml(actionRanking.policy.policyId)} is also an inspectable, non-calibrated heuristic. The ranking does not estimate biological truth, mutation fitness, or a decision-change probability, and neither queue can allocate work.</p>
   </section>
 `;
 
 export const renderParticipationQualityPanel = ({ rewards = [] } = {}) => `
-  <section class="pool-research-panel">
-    <p class="pool-dashboard-kicker">Participation quality</p>
+  <section class="pool-research-panel pool-surface">
+    <p class="pool-dashboard-kicker pool-label pool-muted">Participation quality</p>
     <h3 class="type-h3">Verified and durable contributions</h3>
     <div class="pool-research-rewards">
-      ${rewards.length ? rewards.map((reward) => `<article><b>${escapeHtml(compactHash(reward.authorId))}</b><span>${reward.points} points · ${reward.realizedUsefulnessCredits || 0} realized usefulness credits · ${reward.verifiedCompute} verified compute · ${reward.acceptedEvidence} accepted evidence · ${reward.acceptedReviews} accepted reviews · ${Math.round(reward.quality * 100)}% durable</span></article>`).join('') : '<p class="type-caption">Credit appears after verified compute or independently accepted evidence.</p>'}
+      ${rewards.length ? rewards.map((reward) => `<article><b>${escapeHtml(compactHash(reward.authorId))}</b><span>${reward.points} points · ${reward.realizedUsefulnessCredits || 0} realized usefulness credits · ${reward.verifiedCompute} verified compute · ${reward.acceptedEvidence} accepted evidence · ${reward.acceptedReviews} accepted reviews · ${Math.round(reward.quality * 100)}% durable</span></article>`).join('') : '<p class="pool-caption">Credit appears after verified compute or independently accepted evidence.</p>'}
     </div>
-    <p class="type-caption">Realized usefulness credit requires a frozen evaluation, reviewed outcomes, exact causal records, and independent acceptance. Activity counters remain operational. Later corrections, contradictions, or revocations invalidate downstream credit.</p>
+    <p class="pool-caption">Realized usefulness credit requires a frozen evaluation, reviewed outcomes, exact causal records, and independent acceptance. Activity counters remain operational. Later corrections, contradictions, or revocations invalidate downstream credit.</p>
   </section>
 `;
 

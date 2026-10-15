@@ -390,10 +390,10 @@ export const findReceiptLedgerRecord = (receiptHash = '') => {
 export const renderReceiptLedger = (rows = ledgerStore.receipts) => {
   if (rows === ledgerStore.receipts) ensureReceiptLedgerLoaded();
   if (!rows.length) {
-    return '<p class="type-caption pool-receipt-empty">No answers saved yet.</p>';
+    return '<p class="pool-caption pool-receipt-empty">No answers saved yet.</p>';
   }
   return `
-    <div class="pool-ledger" role="table" aria-label="Saved answer receipts">
+    <div class="pool-ledger pool-table" role="table" aria-label="Saved answer receipts">
       <table>
         <thead>
           <tr>
@@ -446,10 +446,10 @@ export const renderPeerLedgerState = () => {
   const pointRows = Object.entries(reduced.points || {}).sort(([left], [right]) => left.localeCompare(right));
   const reputationRows = Object.values(reduced.reputation || {}).sort((left, right) => String(left.providerId).localeCompare(String(right.providerId)));
   if (pointRows.length === 0 && reputationRows.length === 0) {
-    return '<p class="type-caption pool-receipt-empty">No local scores yet.</p>';
+    return '<p class="pool-caption pool-receipt-empty">No local scores yet.</p>';
   }
   return `
-    <div class="pool-ledger" role="group" aria-label="Local contributor scores">
+    <div class="pool-ledger pool-table" role="group" aria-label="Local contributor scores">
       <table aria-label="Local contributor scores">
         <thead>
           <tr>
@@ -492,17 +492,17 @@ export const refreshPeerLedgerState = () => {
 
 export const renderRoomActivity = (summary = null) => {
   if (getPeerRelayMode() === 'local') {
-    return '<p class="type-caption pool-receipt-empty">This room is local to this browser profile. Use a server relay link to share across devices.</p>';
+    return '<p class="pool-caption pool-receipt-empty">This room is local to this browser profile. Use a server relay link to share across devices.</p>';
   }
   if (!summary) {
-    return '<p class="type-caption pool-receipt-empty">Checking room activity...</p>';
+    return '<p class="pool-caption pool-receipt-empty">Checking room activity...</p>';
   }
   if (summary.error) {
-    return `<p class="type-caption pool-receipt-empty">Room activity unavailable: ${escapeHtml(summary.error)}</p>`;
+    return `<p class="pool-caption pool-receipt-empty">Room activity unavailable: ${escapeHtml(summary.error)}</p>`;
   }
   const recent = Array.isArray(summary.recent) ? summary.recent : [];
   return `
-    <div class="pool-ledger" role="table" aria-label="Shared room activity">
+    <div class="pool-ledger pool-table" role="table" aria-label="Shared room activity">
       <table>
         <thead>
           <tr>
@@ -522,7 +522,7 @@ export const renderRoomActivity = (summary = null) => {
         </tbody>
       </table>
     </div>
-    <p class="type-caption pool-room-recent">
+    <p class="pool-caption pool-room-recent">
       ${recent.length
         ? escapeHtml(recent.map((entry) => `${entry.type}:${compactHash(entry.fromPeerId || 'unknown')}`).join(' / '))
         : 'No shared-room messages yet.'}
@@ -560,26 +560,26 @@ const RECORD_FACETS = Object.freeze([
 const renderRecordFacetChips = (rows, facetId) => RECORD_FACETS.map((facet) => {
   const count = facet.id === 'all' ? rows.length : rows.filter((row) => row.type === facet.id).length;
   const active = facet.id === facetId ? ' is-active' : '';
-  return `<button type="button" class="pool-lane-chip pool-record-facet-chip${active}"
+  return `<button type="button" class="pool-lane-chip pool-button btn-ghost pool-record-facet-chip${active}"
     data-pool-record-facet="${escapeHtml(facet.id)}" aria-pressed="${facet.id === facetId ? 'true' : 'false'}">${escapeHtml(facet.label)} (${count})</button>`;
 }).join('');
 
 export const renderRecordLedger = (facetId = getPoolRecordFacet()) => {
   const rows = unifiedRecordRows();
   if (!rows.length) {
-    return '<p class="pool-record-empty">No records yet. Requests, completed runs, and contributions will appear here.</p>';
+    return '<p class="pool-record-empty pool-muted pool-edge-top">No records yet. Requests, completed runs, and contributions will appear here.</p>';
   }
   const visible = facetId === 'all' ? rows : rows.filter((row) => row.type === facetId);
   const chips = `<div class="pool-record-facets" role="group" aria-label="Record types">${renderRecordFacetChips(rows, facetId)}</div>`;
   if (!visible.length) {
-    return `${chips}<p class="pool-record-empty">No records of this type yet.</p>`;
+    return `${chips}<p class="pool-record-empty pool-muted pool-edge-top">No records of this type yet.</p>`;
   }
   return `
     ${chips}
-    <ol class="pool-record-timeline" aria-label="Reploid records">
+    <ol class="pool-record-timeline pool-list pool-edge-top" aria-label="Reploid records">
       ${visible.map((row) => `
         <li data-record-type="${escapeHtml(row.type)}">
-          <details class="pool-record-event" data-pool-record-disclosure="record:${escapeHtml(row.id)}"${readRecordViewState().open[`record:${row.id}`] ? ' open' : ''}>
+          <details class="pool-record-event pool-small" data-pool-record-disclosure="record:${escapeHtml(row.id)}"${readRecordViewState().open[`record:${row.id}`] ? ' open' : ''}>
             <summary>
               <time datetime="${escapeHtml(row.occurredAt || '')}">${escapeHtml(formatRecordTime(row.occurredAt))}</time>
               <strong>${escapeHtml(row.title)}</strong>
@@ -596,10 +596,10 @@ export const renderRecordLedger = (facetId = getPoolRecordFacet()) => {
 const renderDashboardActivity = (allRows = unifiedRecordRows()) => {
   const rows = allRows.slice(0, 5);
   if (!rows.length) {
-    return '<p class="pool-record-empty">No recent work. Requests, contributions, and room events appear here.</p>';
+    return '<p class="pool-record-empty pool-muted pool-edge-top">No recent work. Requests, contributions, and room events appear here.</p>';
   }
   return `
-    <ol class="pool-record-timeline pool-record-timeline-compact" aria-label="Recent network activity">
+    <ol class="pool-record-timeline pool-list pool-edge-top pool-record-timeline-compact pool-caption" aria-label="Recent network activity">
       ${rows.map((row) => `
         <li data-record-type="${escapeHtml(row.type)}">
           <span>
@@ -610,7 +610,7 @@ const renderDashboardActivity = (allRows = unifiedRecordRows()) => {
         </li>
       `).join('')}
     </ol>
-    <a class="link-secondary pool-drawer-link" href="${escapeHtml(roomHref('/records', getPeerRoomId()))}" data-pool-route-link="${escapeHtml(roomHref('/records', getPeerRoomId()))}">View all records</a>
+    <a class="link-secondary pool-drawer-link pool-small" href="${escapeHtml(roomHref('/records', getPeerRoomId()))}" data-pool-route-link="${escapeHtml(roomHref('/records', getPeerRoomId()))}">View all records</a>
   `;
 };
 
@@ -800,11 +800,11 @@ const renderProviderHealth = (state = POOLDAY_PROVIDER_HEALTH) => {
     const formatted = label === 'GPU buffer' ? formatBytes(value) : formatHealthValue(value);
     const isValLoading = formatted.toLowerCase() === 'loading';
     const valueHtml = isValLoading
-      ? `<span class="pool-health-loading-text">${escapeHtml(formatted)}</span>`
+      ? `<span class="pool-health-loading-text pool-subheading pool-muted">${escapeHtml(formatted)}</span>`
       : escapeHtml(compactHash(formatted));
     return `
       <span class="pool-summary-item"${isValLoading ? ' data-loading="true"' : ''}>
-        <span class="rgr-status-label">${escapeHtml(label)}</span>
+        <span class="rgr-status-label pool-label pool-muted">${escapeHtml(label)}</span>
         <span class="rgr-status-value">${valueHtml}</span>
       </span>
     `;
@@ -814,7 +814,7 @@ const renderProviderHealth = (state = POOLDAY_PROVIDER_HEALTH) => {
       <div class="boot-status-strip pool-summary" aria-label="Contributor readiness">
         ${renderRows(primaryRows)}
       </div>
-      <details class="pool-advanced pool-provider-health-details">
+      <details class="pool-advanced pool-disclosure pool-provider-health-details">
         <summary>Device and receipt details</summary>
         <div class="boot-status-strip pool-summary" aria-label="Contributor device details">
           ${renderRows(detailRows)}
@@ -940,15 +940,15 @@ const extractResultSummary = (value = {}) => {
 
 const renderSummaryRows = (summary) => summary.map(([label, value]) => `
   <span class="pool-summary-item">
-    <span class="rgr-status-label">${escapeHtml(label)}</span>
+    <span class="rgr-status-label pool-label pool-muted">${escapeHtml(label)}</span>
     <span class="rgr-status-value">${escapeHtml(label === 'Status' ? value : compactHash(value))}</span>
   </span>
 `).join('');
 
 const renderRawDetails = (id, label = 'Full result', options = {}) => `
-  <details class="pool-raw-details${options.full ? ' pool-raw-details-full' : ''}">
+  <details class="pool-raw-details pool-disclosure${options.full ? ' pool-raw-details-full' : ''}">
     <summary>${escapeHtml(label)}</summary>
-    <pre class="pool-result pool-result-raw" id="${id}-raw" aria-live="polite"></pre>
+    <pre class="pool-result pool-mono pool-surface pool-result-raw" id="${id}-raw" aria-live="polite"></pre>
   </details>
 `;
 
@@ -972,8 +972,8 @@ const formatContributionPolicy = (policyId) => ({
 const renderRunContributionLayer = (value = {}) => {
   if (value.transport === 'local_capsule') return `
     <div class="pool-contributor-layer">
-      <div class="pool-contributor-summary"><span><b>Execution</b>This device</span><span><b>Sharing</b>Unchanged</span></div>
-      <p class="type-caption">Signed model and local execution receipt verified. No independent contributor comparison.</p>
+      <div class="pool-contributor-summary pool-small pool-muted"><span><b>Execution</b>This device</span><span><b>Sharing</b>Unchanged</span></div>
+      <p class="pool-caption">Signed model and local execution receipt verified. No independent contributor comparison.</p>
     </div>
   `;
   const payloads = Array.isArray(value.receiptPayloads) ? value.receiptPayloads : [];
@@ -1028,13 +1028,13 @@ const renderRunContributionLayer = (value = {}) => {
   const rejectedRoutes = routeCandidates.filter((candidate) => !candidate.eligible);
   return `
     <div class="pool-contributor-layer">
-      <div class="pool-contributor-summary">
+      <div class="pool-contributor-summary pool-small pool-muted">
         <span><b>Shared</b>${escapeHtml(sharedCount)} contributor tab${sharedCount === 1 ? '' : 's'}</span>
         <span><b>Match</b>${escapeHtml(checkStatus)}</span>
         <span><b>Policy</b>${escapeHtml(formatContributionPolicy(policyId))}</span>
       </div>
       ${routeDecision ? `
-        <div class="pool-contributor-summary pool-route-summary">
+        <div class="pool-contributor-summary pool-small pool-muted pool-route-summary pool-edge-top">
           <span><b>Artifact</b>${escapeHtml(String(selectedRoute?.artifactSourcePlan || 'provider_loaded_model').replace(/_/g, ' '))}</span>
           <span><b>Eligible</b>${escapeHtml(routeCandidates.filter((candidate) => candidate.eligible).length)}</span>
           <span><b>Excluded</b>${escapeHtml(rejectedRoutes.length)}</span>
@@ -1051,7 +1051,7 @@ const renderRunContributionLayer = (value = {}) => {
         ` : ''}
       ` : ''}
       ${assignmentRows.length ? `
-        <div class="pool-ledger pool-contributor-table" role="table" aria-label="Answer contributors">
+        <div class="pool-ledger pool-table pool-contributor-table" role="table" aria-label="Answer contributors">
           <table>
             <thead>
               <tr>
@@ -1073,13 +1073,13 @@ const renderRunContributionLayer = (value = {}) => {
             </tbody>
           </table>
         </div>
-      ` : '<p class="type-caption pool-receipt-empty">Contributor evidence appears after matching tabs answer.</p>'}
+      ` : '<p class="pool-caption pool-receipt-empty">Contributor evidence appears after matching tabs answer.</p>'}
     </div>
   `;
 };
 
 const renderContributionDetails = (id, label = 'Contributors') => `
-  <details class="pool-raw-details pool-contributor-details">
+  <details class="pool-raw-details pool-disclosure pool-contributor-details">
     <summary>${escapeHtml(label)}</summary>
     <div class="pool-contributor-content" id="${id}-evidence" aria-live="polite">
       ${renderRunContributionLayer({ status: 'finding_peer_provider' })}
@@ -1088,26 +1088,26 @@ const renderContributionDetails = (id, label = 'Contributors') => `
 `;
 
 const renderProteinEmbeddingDetails = (id) => `
-  <details class="pool-raw-details pool-protein-embedding-details" id="${id}-embedding-details" hidden>
+  <details class="pool-raw-details pool-disclosure pool-protein-embedding-details" id="${id}-embedding-details" hidden>
     <summary>View embedding vector</summary>
-    <p class="type-caption" id="${id}-embedding-meta"></p>
+    <p class="pool-caption" id="${id}-embedding-meta"></p>
     <pre id="${id}-embedding" aria-label="Pooled protein embedding"></pre>
   </details>
 `;
 
 const renderProteinEmbeddingOutcome = (id) => `
-  <section class="pool-embedding-outcome" id="${id}-embedding-outcome" aria-live="polite" hidden>
-    <p class="pool-embedding-outcome-kicker">Protein representation</p>
+  <section class="pool-embedding-outcome pool-surface" id="${id}-embedding-outcome" aria-live="polite" hidden>
+    <p class="pool-embedding-outcome-kicker pool-label pool-muted">Protein representation</p>
     <h3 class="type-h3">Embedding ready</h3>
-    <p class="pool-embedding-outcome-meta" id="${id}-embedding-outcome-meta"></p>
-    <p class="pool-embedding-outcome-copy">480 values for comparing sequences from this exact ESM-2 model and contract.</p>
-    <p class="pool-embedding-outcome-copy">Not a biological interpretation or diagnosis.</p>
+    <p class="pool-embedding-outcome-meta pool-caption pool-muted pool-mono" id="${id}-embedding-outcome-meta"></p>
+    <p class="pool-embedding-outcome-copy pool-small">480 values for comparing sequences from this exact ESM-2 model and contract.</p>
+    <p class="pool-embedding-outcome-copy pool-small">Not a biological interpretation or diagnosis.</p>
     <div class="pool-embedding-outcome-actions">
       <button class="btn btn-ghost" type="button" data-pool-copy-embedding data-pool-embedding-result-id="${id}" disabled>Copy vector</button>
       <a class="btn btn-ghost" href="${escapeHtml(roomHref('/records', getPeerRoomId()))}">Recent jobs</a>
-      <p class="pool-embedding-copy-status" data-pool-embedding-copy-status aria-live="polite"></p>
+      <p class="pool-embedding-copy-status pool-caption pool-muted" data-pool-embedding-copy-status aria-live="polite"></p>
     </div>
-    <p class="pool-embedding-copy-status" id="${id}-research-status" aria-live="polite"></p>
+    <p class="pool-embedding-copy-status pool-caption pool-muted" id="${id}-research-status" aria-live="polite"></p>
   </section>
 `;
 
@@ -1123,9 +1123,9 @@ const renderResultBox = (id, options = {}) => {
       ${options.proteinEmbedding ? renderProteinEmbeddingOutcome(id) : ''}
       <div class="pool-stream-box pool-answer-box">
         <label class="pool-result-label" for="${id}-stream">${escapeHtml(options.streamLabel || 'Output stream')}</label>
-        <div class="pool-stream-shell">
-          <pre class="pool-stream-output" id="${id}-stream" aria-live="polite"></pre>
-          <span class="pool-stream-cursor" id="${id}-stream-cursor" aria-hidden="true">▍</span>
+        <div class="pool-stream-shell pool-surface">
+          <pre class="pool-stream-output pool-mono" id="${id}-stream" aria-live="polite"></pre>
+          <span class="pool-stream-cursor pool-muted" id="${id}-stream-cursor" aria-hidden="true">▍</span>
         </div>
       </div>
       <div class="pool-run-recovery" id="${id}-recovery" aria-live="polite" hidden></div>
@@ -1137,7 +1137,7 @@ const renderResultBox = (id, options = {}) => {
   const placeholder = options.placeholder || 'No local activity yet.';
   return `
   <div class="boot-status-strip pool-summary" id="${id}-summary" aria-live="polite"></div>
-  <p class="pool-result-message" id="${id}" aria-live="polite">${escapeHtml(placeholder)}</p>
+  <p class="pool-result-message pool-surface" id="${id}" aria-live="polite">${escapeHtml(placeholder)}</p>
   <div class="pool-run-recovery" id="${id}-recovery" aria-live="polite" hidden></div>
   ${renderRawDetails(id, options.rawLabel || 'Full result', { full: options.rawFull === true })}
   `;
@@ -1402,7 +1402,7 @@ const renderRunRecovery = (recovery = null) => {
     : '';
   if (!recovery.title && !recovery.message && !actions && !details) return '';
   return `
-    <section class="pool-run-recovery-card" data-pool-run-recovery-kind="${escapeHtml(recovery.kind || 'attention')}">
+    <section class="pool-run-recovery-card pool-small pool-surface" data-pool-run-recovery-kind="${escapeHtml(recovery.kind || 'attention')}">
       ${recovery.title ? `<h2 class="type-h3">${escapeHtml(recovery.title)}</h2>` : ''}
       ${recovery.message ? `<p>${escapeHtml(recovery.message)}</p>` : ''}
       ${details ? `<ul>${details}</ul>` : ''}
@@ -1546,10 +1546,10 @@ export const refreshResearchRoomState = (routeId = getRouteId()) => {
 };
 
 const renderRouteShell = (copy, content, { routeId = 'records' } = {}) => `
-  <section class="panel pool-panel pool-route-shell pool-task-card" data-pool-route-shell="${escapeHtml(routeId)}">
+  <section class="panel pool-panel pool-route-shell pool-task-card pool-surface" data-pool-route-shell="${escapeHtml(routeId)}">
     <div class="pool-page-heading">
-      <h1 class="type-h1">${escapeHtml(copy.title)}</h1>
-      <p class="type-caption pool-hero-body">${escapeHtml(copy.body)}</p>
+      <h1 class="pool-title">${escapeHtml(copy.title)}</h1>
+      <p class="pool-caption pool-hero-body">${escapeHtml(copy.body)}</p>
     </div>
     ${content}
   </section>
@@ -1565,10 +1565,10 @@ const formatContributionLast = (snapshot = {}) => {
 const renderRecentContributionRows = (snapshot = {}) => {
   const recent = snapshot.recent || [];
   if (!recent.length) {
-    return '<p class="type-caption pool-receipt-empty">No completed work from this tab yet.</p>';
+    return '<p class="pool-caption pool-receipt-empty">No completed work from this tab yet.</p>';
   }
   return `
-    <div class="pool-ledger pool-contribution-table" role="table" aria-label="Recent compute work">
+    <div class="pool-ledger pool-table pool-contribution-table" role="table" aria-label="Recent compute work">
       <table>
         <thead>
           <tr>
@@ -1594,7 +1594,7 @@ const renderRecentContributionRows = (snapshot = {}) => {
 };
 
 export const renderComputeNodeStats = (snapshot = getContributionSnapshot()) => `
-  <div class="pool-node-stats" aria-label="This contributor tab status">
+  <div class="pool-node-stats pool-small" aria-label="This contributor tab status">
     <span><b>Status</b>${escapeHtml(snapshot.label || 'Not active')}</span>
     <span><b>Model</b>${escapeHtml(formatContributionModel(snapshot.modelId))}</span>
     <span><b>24h receipts</b>${escapeHtml(snapshot.contributions24h || 0)}</span>
@@ -1634,15 +1634,15 @@ export const renderContributionStatusBar = (snapshot = getContributionSnapshot()
   const hasRecent = Boolean(snapshot.recent?.length);
   return `
     <aside
-      class="pool-contribution-status"
+      class="pool-contribution-status pool-caption"
       id="pool-contribution-status"
       data-contribution-state="${escapeHtml(snapshot.state || 'inactive')}"
       aria-label="Contribution status"
     >
-      <span class="pool-contribution-state">${escapeHtml(snapshot.label || 'Not active')}</span>
-      ${hasDayTokens ? `<span class="pool-contribution-metric"><b>24h</b> ${escapeHtml(formatContributionTokens(snapshot.tokens24h))}</span>` : ''}
-      ${hasHourTokens ? `<span class="pool-contribution-metric"><b>1h</b> ${escapeHtml(formatContributionTokens(snapshot.tokensHour))}/hr</span>` : ''}
-      ${hasRecent ? `<span class="pool-contribution-metric pool-contribution-last"><b>Last</b> ${escapeHtml(formatContributionLast(snapshot))}</span>` : ''}
+      <span class="pool-contribution-state pool-label">${escapeHtml(snapshot.label || 'Not active')}</span>
+      ${hasDayTokens ? `<span class="pool-contribution-metric pool-caption pool-surface"><b>24h</b> ${escapeHtml(formatContributionTokens(snapshot.tokens24h))}</span>` : ''}
+      ${hasHourTokens ? `<span class="pool-contribution-metric pool-caption pool-surface"><b>1h</b> ${escapeHtml(formatContributionTokens(snapshot.tokensHour))}/hr</span>` : ''}
+      ${hasRecent ? `<span class="pool-contribution-metric pool-caption pool-surface pool-contribution-last"><b>Last</b> ${escapeHtml(formatContributionLast(snapshot))}</span>` : ''}
     </aside>
   `;
 };
@@ -1740,8 +1740,8 @@ const renderPackSummary = (model = LAUNCH_MODEL, { disclosure = true } = {}) => 
     ? 'Full model · one sequence'
     : `${model.runtime || 'Doppler'} · ${model.backend || 'qualified provider'}`;
   return `
-    ${disclosure ? '<details class="pool-advanced pool-model-details"><summary>Model details</summary>' : ''}
-    <dl class="pool-pack-summary" data-pool-pack-summary>
+    ${disclosure ? '<details class="pool-advanced pool-disclosure pool-model-details"><summary>Model details</summary>' : ''}
+    <dl class="pool-pack-summary pool-facts pool-small pool-surface" data-pool-pack-summary>
       <div><dt>Model identity</dt><dd title="${escapeHtml(identity.weightPackId || model.modelHash || model.modelId)}">${escapeHtml(compactHash(identity.weightPackId || model.modelHash || model.modelId))}</dd></div>
       <div><dt>Capability</dt><dd>${escapeHtml(dimensions ? `Sequence embedding · ${dimensions} dimensions` : getPoolModelWorkload(model).replace(/[._-]/g, ' '))}</dd></div>
       <div><dt>Input</dt><dd>${escapeHtml(maxInput ? `Public protein sequence · up to ${maxInput} residues` : 'Public protein sequence')}</dd></div>
@@ -1753,9 +1753,9 @@ const renderPackSummary = (model = LAUNCH_MODEL, { disclosure = true } = {}) => 
 };
 
 const renderSharingLimits = (preferences = readParticipationPreferences()) => `
-  <details class="pool-advanced pool-sharing-limits">
+  <details class="pool-advanced pool-disclosure pool-sharing-limits">
     <summary>Sharing limits</summary>
-    <div class="pool-sharing-limit-grid">
+    <div class="pool-sharing-limit-grid pool-small">
       <label><input type="checkbox" data-pool-permission="relayArtifacts"${preferences.permissions.relayArtifacts ? ' checked' : ''}> Share checked model and adapter files</label>
       <label><input type="checkbox" data-pool-permission="verifyResults"${preferences.permissions.verifyResults ? ' checked' : ''}> Check peer results</label>
       <label><span>Concurrent runs</span><input type="number" min="1" max="4" step="1" value="${preferences.limits.maxConcurrentJobs}" data-pool-limit="maxConcurrentJobs"></label>
@@ -1764,13 +1764,13 @@ const renderSharingLimits = (preferences = readParticipationPreferences()) => `
       <label><span>Available network Mbps</span><input type="number" min="1" max="10000" step="1" value="${preferences.limits.bandwidthBudgetMbps}" data-pool-limit="bandwidthBudgetMbps"></label>
     </div>
     <button class="btn btn-ghost" type="button" data-pool-passkey>Protect identity with passkey</button>
-    <p class="type-caption" data-pool-passkey-status></p>
+    <p class="pool-caption" data-pool-passkey-status></p>
   </details>
 `;
 
 const renderSharingBoundary = (preferences = readParticipationPreferences(), model = LAUNCH_MODEL) => `
-  <section class="pool-sharing-boundary" aria-label="Current sharing limits">
-    <h2 class="type-h2">Before you share</h2>
+  <section class="pool-sharing-boundary pool-surface" aria-label="Current sharing limits">
+    <h2 class="pool-heading">Before you share</h2>
     <ul>
       <li><strong>${escapeHtml(model.label || model.modelId)}</strong> only</li>
       <li><strong>${escapeHtml(preferences.limits.maxConcurrentJobs)}</strong> run${preferences.limits.maxConcurrentJobs === 1 ? '' : 's'} at a time</li>
@@ -1791,7 +1791,7 @@ const renderParticipationControl = ({
   const modeButton = (mode, label) => `
     <button
       type="button"
-      class="pool-participation-mode${preferences.mode === mode ? ' is-active' : ''}${mode === 'both' ? ' is-primary' : ''}"
+      class="pool-participation-mode pool-button btn-ghost${preferences.mode === mode ? ' is-active' : ''}${mode === 'both' ? ' is-primary' : ''}"
       data-pool-participation-mode="${mode}"
       aria-pressed="${preferences.mode === mode}"
     >${label}</button>
@@ -1800,15 +1800,15 @@ const renderParticipationControl = ({
   return `
     <section class="pool-participation" data-pool-participation data-pool-participation-surface="${surface}" data-participation-mode="${preferences.mode}" aria-label="Network participation">
       ${showModeSwitcher ? `
-        <div class="pool-participation-modes" role="group" aria-label="Network mode">
+        <div class="pool-participation-modes pool-surface" role="group" aria-label="Network mode">
           ${modeButton('request', 'Request')}
           ${modeButton('contribute', 'Contribute')}
           ${modeButton('both', 'Both')}
         </div>
       ` : ''}
-      ${showIdentity ? '<span class="pool-device-identity" data-pool-device-identity title="This device signs its network roles">Identity</span>' : ''}
+      ${showIdentity ? '<span class="pool-device-identity pool-caption pool-muted pool-mono" data-pool-device-identity title="This device signs its network roles">Identity</span>' : ''}
       ${shareAction ? `
-        <button class="btn btn-primary pool-home-share-toggle" id="pool-home-provider-toggle" type="button" aria-pressed="false">Start sharing</button>
+        <button class="btn btn-primary pool-home-share-toggle pool-caption" id="pool-home-provider-toggle" type="button" aria-pressed="false">Start sharing</button>
       ` : ''}
       ${advanced ? renderSharingLimits(preferences) : ''}
     </section>
@@ -1823,9 +1823,9 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
       <div class="pool-home-toolbar" aria-label="${escapeHtml(POOLDAY_NAME)}">
         <div class="pool-home-toolbar-leading pool-home-overlay" aria-label="${escapeHtml(POOLDAY_NAME)} overview">
           <div class="pool-home-title-lockup">
-            <h1 class="type-h1 pool-home-brand-word">${escapeHtml(POOLDAY_NAME)}${renderPowerTower()}</h1>
-            <p class="type-caption pool-hero-body pool-home-brand-promise">${escapeHtml(ROUTE_COPY.examples.body)}</p>
-            <p class="type-caption pool-home-brand-status" data-pool-brand-status hidden></p>
+            <h1 class="pool-home-brand-word pool-wordmark">${escapeHtml(POOLDAY_NAME)}${renderPowerTower()}</h1>
+            <p class="pool-caption pool-hero-body pool-home-brand-promise">${escapeHtml(ROUTE_COPY.examples.body)}</p>
+            <p class="pool-caption pool-home-brand-status" data-pool-brand-status hidden></p>
           </div>
           <div class="pool-prism" data-pool-prism aria-hidden="true">
             <svg class="pool-prism-still" viewBox="0 0 480 420" focusable="false">
@@ -1856,28 +1856,28 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
         </div>
       </div>
       <div class="pool-home-task">
-        <h2 class="type-h2">Explore examples</h2>
-        <p class="type-caption">These are application examples, not the limits of Reploid. <a href="/" data-pool-route-link="/">Start with a goal instead</a>.</p>
+        <h2 class="pool-heading">Explore examples</h2>
+        <p class="pool-caption">These are application examples, not the limits of Reploid. <a href="/" data-pool-route-link="/">Start with a goal instead</a>.</p>
         <div class="pool-workflow-switcher pool-segmented" role="group" aria-label="Choose an example">
           <button type="button" class="pool-segment" data-pool-workflow="sequence" aria-pressed="true" aria-controls="pool-home-ask-form">Protein sequences</button>
           <button type="button" class="pool-segment" data-pool-workflow="documents" aria-pressed="false" aria-controls="pool-document-search">Document search</button>
         </div>
         ${renderDocumentSearch()}
-        <form class="pool-home-ask-dock pool-home-cta-row pool-home-ask-form pool-task-card" id="pool-home-ask-form" aria-label="Run a model">
+        <form class="pool-home-ask-dock pool-home-cta-row pool-home-ask-form pool-task-card pool-surface" id="pool-home-ask-form" aria-label="Run a model">
           <header class="pool-home-task-heading">
-            <h2 class="type-h2">Run a model</h2>
+            <h2 class="pool-heading">Run a model</h2>
           </header>
           <label class="pool-field">
-            <span>Model</span>
+            <span class="pool-small pool-muted">Model</span>
             <select id="pool-home-request-model" data-pool-request-control>
               ${renderModelOptions({ workload: POOLDAY_MODEL_WORKLOADS.sequenceEmbedding })}
             </select>
           </label>
           <label class="pool-home-sequence-field" for="pool-home-ask-prompt">
-            <span class="pool-sequence-heading"><span>Public protein sequence</span><output id="pool-sequence-count" for="pool-home-ask-prompt">0 / ${Number(LAUNCH_MODEL.sequence?.maxLength || 1024)}</output></span>
+            <span class="pool-sequence-heading pool-small pool-muted"><span>Public protein sequence</span><output id="pool-sequence-count" for="pool-home-ask-prompt">0 / ${Number(LAUNCH_MODEL.sequence?.maxLength || 1024)}</output></span>
             <textarea
               id="pool-home-ask-prompt"
-              class="pool-home-ask-input"
+              class="pool-home-ask-input pool-mono pool-small"
               name="sequence"
               rows="4"
               aria-label="Public protein sequence"
@@ -1891,26 +1891,26 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
             ></textarea>
           </label>
           <div class="pool-sequence-help">
-            <p class="pool-sequence-feedback" id="pool-sequence-feedback" aria-live="polite"></p>
+            <p class="pool-sequence-feedback pool-small pool-muted" id="pool-sequence-feedback" aria-live="polite"></p>
             <button class="btn btn-ghost" type="button" data-pool-use-example data-pool-request-control>Use example</button>
           </div>
-          <div class="pool-sequence-options" data-pool-sequence-options>
-            <label class="pool-consent-row" data-pool-sequence-consent-row>
+          <div class="pool-sequence-options pool-caption pool-muted pool-surface" data-pool-sequence-options>
+            <label class="pool-consent-row pool-small" data-pool-sequence-consent-row>
               <input id="pool-home-sequence-public" type="checkbox" data-pool-request-control>
               <span>This input may be sent to selected peers</span>
             </label>
             <strong data-pool-sequence-consent-saved hidden>Saved</strong>
           </div>
-          <details class="pool-advanced pool-home-request-details">
+          <details class="pool-advanced pool-disclosure pool-home-request-details">
             <summary>Options</summary>
             ${renderPackSummary(LAUNCH_MODEL, { disclosure: false })}
             <div class="pool-advanced-grid">
               <label class="pool-field">
-                <span>Verification</span>
+                <span class="pool-small pool-muted">Verification</span>
                 <select id="pool-home-request-policy" data-pool-request-control>${renderPolicyOptions()}</select>
               </label>
-              <label class="pool-home-adapter-picker" data-pool-home-adapter-picker hidden>
-                <span>Model adapter</span>
+              <label class="pool-home-adapter-picker pool-caption pool-surface" data-pool-home-adapter-picker hidden>
+                <span class="pool-label">Model adapter</span>
                 <select id="pool-home-adapter" data-pool-run-adapter data-pool-request-control disabled>
                   <option value="">Loading published adapters…</option>
                 </select>
@@ -1919,11 +1919,11 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
             </div>
           </details>
           <div class="pool-home-submit-row">
-            <button class="btn btn-primary pool-home-run-button pool-primary-action" id="pool-home-run-submit" type="submit" data-pool-request-control aria-label="Run model">Run model</button>
-            <p class="pool-home-run-status" data-pool-run-status aria-live="polite">Ready</p>
+            <button class="btn btn-primary pool-home-run-button pool-primary-action pool-button" id="pool-home-run-submit" type="submit" data-pool-request-control aria-label="Run model">Run model</button>
+            <p class="pool-home-run-status pool-caption pool-muted" data-pool-run-status aria-live="polite">Ready</p>
           </div>
         </form>
-        <section class="pool-home-result-panel" data-pool-run-output hidden aria-label="Run result">
+        <section class="pool-home-result-panel pool-surface" data-pool-run-output hidden aria-label="Run result">
           ${renderResultBox('pool-home-run-result', {
             stream: true,
             streamLabel: 'Result',
@@ -1935,7 +1935,7 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
           })}
         </section>
       </div>
-      <footer class="pool-experiments-footer">
+      <footer class="pool-experiments-footer pool-small pool-muted">
         <nav aria-label="Experiments">
           <span>Experiments</span>
           ${LAB_SURFACE_IDS.map((id) => {
@@ -1966,38 +1966,38 @@ export const renderRouteDetail = (routeId) => {
         <div class="pool-form pool-route-grid pool-run-layout" data-pool-run data-pool-run-surface="run" data-run-state="idle" data-run-phase="">
           <div class="pool-run-compose">
             <label class="pool-field">
-              <span data-pool-run-prompt-label>Protein sequence</span>
+              <span data-pool-run-prompt-label class="pool-small pool-muted">Protein sequence</span>
               <textarea id="pool-run-prompt" rows="6">MAPLALLLLGLVAGA</textarea>
             </label>
             <div class="pool-run-model-row">
               <label class="pool-field pool-run-model-field">
-                <span>Model</span>
+                <span class="pool-small pool-muted">Model</span>
                 <select id="pool-run-model">${renderModelOptions()}</select>
               </label>
-              <span class="pool-workload-badge" data-pool-run-workload>protein embedding</span>
+              <span class="pool-workload-badge pool-label pool-chip" data-pool-run-workload>protein embedding</span>
             </div>
             ${renderPackSummary(LAUNCH_MODEL)}
             <label class="pool-field">
-              <span>Input disclosure</span>
+              <span class="pool-small pool-muted">Input disclosure</span>
               ${renderRequesterConsentRows({ prefix: 'pool-run', rowElement: 'span', includeResearch: false })}
               <small>The peer job sends the sequence only to selected contributors.</small>
             </label>
-            <details class="pool-advanced">
+            <details class="pool-advanced pool-disclosure">
               <summary>Settings</summary>
               <div class="pool-advanced-grid">
                 <label class="pool-field">
-                  <span>Verification</span>
+                  <span class="pool-small pool-muted">Verification</span>
                   <select id="pool-run-policy">${renderPolicyOptions()}</select>
                 </label>
               </div>
             </details>
-            <p class="pool-run-status" data-pool-run-status aria-live="polite">Ready</p>
+            <p class="pool-run-status pool-small pool-muted" data-pool-run-status aria-live="polite">Ready</p>
             <div class="pool-control-row pool-primary-actions" aria-label="Run controls">
-              <button class="btn btn-primary pool-primary-action" id="pool-run-submit" type="button">Run</button>
+              <button class="btn btn-primary pool-primary-action pool-button" id="pool-run-submit" type="button">Run</button>
             </div>
           </div>
           <section class="pool-run-output" data-pool-run-output hidden>
-            <h2 class="type-h2">Protein embedding</h2>
+            <h2 class="pool-heading">Protein embedding</h2>
             ${renderResultBox('pool-run-result', {
               stream: true,
               streamLabel: 'Result',
@@ -2016,35 +2016,35 @@ export const renderRouteDetail = (routeId) => {
         <div class="pool-form pool-route-grid pool-provider-layout" data-pool-provider>
           <div class="pool-provider-main">
             <div class="pool-section-heading pool-provider-heading">
-              <p class="pool-provider-status" data-pool-provider-status>Idle</p>
+              <p class="pool-provider-status pool-label pool-dot" data-pool-provider-status>Idle</p>
             </div>
             <div id="pool-provider-node-stats" class="pool-node-status-line" aria-live="polite" hidden></div>
             <label class="pool-field">
-              <span>Model</span>
+              <span class="pool-small pool-muted">Model</span>
               <select id="pool-provider-model">${renderModelOptions()}</select>
             </label>
             ${renderPackSummary(LAUNCH_MODEL)}
             ${renderSharingBoundary(readParticipationPreferences(), LAUNCH_MODEL)}
             ${renderSharingLimits(readParticipationPreferences())}
-            <div class="pool-provider-notice" data-pool-provider-notice aria-live="assertive" hidden></div>
+            <div class="pool-provider-notice pool-small" data-pool-provider-notice aria-live="assertive" hidden></div>
             <div class="pool-control-row pool-primary-actions" aria-label="Contribution controls">
-              <button class="btn btn-primary pool-primary-action" id="pool-provider-worker-toggle" type="button" aria-pressed="false">Start sharing</button>
+              <button class="btn btn-primary pool-primary-action pool-button" id="pool-provider-worker-toggle" type="button" aria-pressed="false">Start sharing</button>
             </div>
             ${renderOperationSharing()}
           </div>
           <section class="pool-inspector-shell" data-pool-contribution-history hidden>
-            <h2 class="type-h2">Recent receipts</h2>
-            <div id="pool-provider-node-history" class="pool-ledger-shell" aria-live="polite">${renderRecentContributionHistory()}</div>
+            <h2 class="pool-heading">Recent receipts</h2>
+            <div id="pool-provider-node-history" class="pool-ledger-shell pool-surface" aria-live="polite">${renderRecentContributionHistory()}</div>
           </section>
-          <details class="pool-advanced pool-provider-details" id="pool-provider-details">
+          <details class="pool-advanced pool-disclosure pool-provider-details" id="pool-provider-details">
             <summary>Advanced details</summary>
             <div class="pool-provider-detail-grid">
               ${renderParticipationControl({ surface: 'compute' })}
               <section aria-label="Contributor readiness">
-                <h2 class="type-h2">Readiness</h2>
-                <div id="pool-provider-health" class="pool-ledger-shell" aria-live="polite">${renderProviderHealth()}</div>
+                <h2 class="pool-heading">Readiness</h2>
+                <div id="pool-provider-health" class="pool-ledger-shell pool-surface" aria-live="polite">${renderProviderHealth()}</div>
               </section>
-              <details class="pool-advanced">
+              <details class="pool-advanced pool-disclosure">
                 <summary>Debug event</summary>
               ${renderResultBox('pool-provider-result', { placeholder: 'No activity yet.', rawLabel: 'Full event' })}
               </details>
@@ -2058,25 +2058,25 @@ export const renderRouteDetail = (routeId) => {
     return renderRouteShell(copy, `
         <div class="pool-form pool-route-grid pool-record-layout" data-pool-receipts data-pool-reputation>
           <div id="pool-record-ledger" aria-live="polite" data-record-facet="${escapeHtml(recordFacet)}">${renderRecordLedger(recordFacet)}</div>
-          <details class="pool-advanced pool-record-tools" data-pool-record-disclosure="technical-tools"${readRecordViewState().open['technical-tools'] ? ' open' : ''}>
+          <details class="pool-advanced pool-disclosure pool-record-tools" data-pool-record-disclosure="technical-tools"${readRecordViewState().open['technical-tools'] ? ' open' : ''}>
             <summary>Advanced details</summary>
             <div class="pool-record-tool-grid">
               <section data-pool-room-activity>
-                <h2 class="type-h2">Peer activity and retries</h2>
-                <div id="pool-room-activity" class="pool-ledger-shell" aria-live="polite">${renderRoomActivity()}</div>
+                <h2 class="pool-heading">Peer activity and retries</h2>
+                <div id="pool-room-activity" class="pool-ledger-shell pool-surface" aria-live="polite">${renderRoomActivity()}</div>
               </section>
               <section>
-                <h2 class="type-h2">Peer identities</h2>
-                <div id="pool-peer-ledger" class="pool-ledger-shell" aria-live="polite">${renderPeerLedgerState()}</div>
+                <h2 class="pool-heading">Peer identities</h2>
+                <div id="pool-peer-ledger" class="pool-ledger-shell pool-surface" aria-live="polite">${renderPeerLedgerState()}</div>
               </section>
               <section>
-                <h2 class="type-h2">Saved answer receipts</h2>
-                <div id="pool-receipt-ledger" class="pool-ledger-shell" aria-live="polite">${renderReceiptLedger()}</div>
+                <h2 class="pool-heading">Saved answer receipts</h2>
+                <div id="pool-receipt-ledger" class="pool-ledger-shell pool-surface" aria-live="polite">${renderReceiptLedger()}</div>
               </section>
-              <details class="pool-advanced pool-record-lookup" data-pool-record-disclosure="receipt-lookup"${readRecordViewState().open['receipt-lookup'] ? ' open' : ''}>
+              <details class="pool-advanced pool-disclosure pool-record-lookup" data-pool-record-disclosure="receipt-lookup"${readRecordViewState().open['receipt-lookup'] ? ' open' : ''}>
                 <summary>Find by receipt hash</summary>
                 <label class="pool-field">
-                  <span>Hash</span>
+                  <span class="pool-small pool-muted">Hash</span>
                   <input id="pool-receipt-hash" placeholder="sha256:..." />
                 </label>
                 <div class="pool-control-row pool-primary-actions">
@@ -2085,11 +2085,11 @@ export const renderRouteDetail = (routeId) => {
                 ${renderResultBox('pool-receipt-result', { placeholder: 'No lookup yet.' })}
               </details>
               <section class="pool-record-recovery">
-                <h2 class="type-h2">Recovery</h2>
+                <h2 class="pool-heading">Recovery</h2>
                 <p>Submitted, interrupted, and failed jobs stay in the timeline. Open a job to inspect its valid retry, resume, cancel, or receipt actions.</p>
               </section>
             </div>
-            <p class="type-caption pool-protocol-version" aria-label="protocol identifier">Protocol ${POOLDAY_VERSION_TAG}</p>
+            <p class="pool-caption pool-protocol-version" aria-label="protocol identifier">Protocol ${POOLDAY_VERSION_TAG}</p>
           </details>
         </div>
     `, { routeId: normalizedRouteId });
@@ -2113,29 +2113,29 @@ export const renderRouteDetail = (routeId) => {
     return renderRouteShell(copy, `
       <div class="pool-form pool-route-grid pool-room-1-layout" data-pool-receipts data-pool-reputation>
         <section id="pool-room-1-request" class="pool-room-1-request" data-pool-run data-pool-run-surface="run" data-run-state="idle" data-run-phase="">
-          <h2 class="type-h2">Start a research question</h2>
+          <h2 class="pool-heading">Start a research question</h2>
           <label class="pool-field">
-            <span>Public protein sequence</span>
+            <span class="pool-small pool-muted">Public protein sequence</span>
             <textarea id="pool-run-prompt" rows="6">MAPLALLLLGLVAGA</textarea>
           </label>
           <label class="pool-field">
-            <span>Model</span>
+            <span class="pool-small pool-muted">Model</span>
             <select id="pool-run-model">${renderModelOptions()}</select>
           </label>
           ${renderPackSummary(LAUNCH_MODEL)}
           <label class="pool-field">
-            <span>Publication</span>
+            <span class="pool-small pool-muted">Publication</span>
             ${renderRequesterConsentRows({ prefix: 'pool-run', rowElement: 'span' })}
             <small>Research publication is explicit and separate from ordinary model runs.</small>
           </label>
           ${renderRequesterIntentFields({ prefix: 'pool-run', textTag: 'textarea' })}
           <label class="pool-field">
-            <span>Verification</span>
+            <span class="pool-small pool-muted">Verification</span>
             <select id="pool-run-policy">${renderPolicyOptions()}</select>
           </label>
-          <p class="pool-run-status" data-pool-run-status aria-live="polite">Ready</p>
+          <p class="pool-run-status pool-small pool-muted" data-pool-run-status aria-live="polite">Ready</p>
           <div class="pool-control-row pool-primary-actions">
-            <button class="btn btn-primary pool-primary-action" id="pool-run-submit" type="button">Run and publish</button>
+            <button class="btn btn-primary pool-primary-action pool-button" id="pool-run-submit" type="button">Run and publish</button>
           </div>
           <section class="pool-run-output" data-pool-run-output hidden>
             ${renderResultBox('pool-run-result', {
@@ -2150,9 +2150,9 @@ export const renderRouteDetail = (routeId) => {
           </section>
         </section>
         ${renderActiveResearchRoom(normalizedRouteId)}
-        ${contextualPanel ? `<section class="pool-room-contextual-panel" data-pool-room-contextual-panel="${escapeHtml(roomPanel)}"><h2 class="type-h2">${escapeHtml(contextualPanel.title)}</h2><p>${escapeHtml(contextualPanel.body)}</p><a class="btn btn-ghost" href="#${escapeHtml(contextualPanel.target)}">Open panel controls</a></section>` : ''}
+        ${contextualPanel ? `<section class="pool-room-contextual-panel pool-surface" data-pool-room-contextual-panel="${escapeHtml(roomPanel)}"><h2 class="pool-heading">${escapeHtml(contextualPanel.title)}</h2><p>${escapeHtml(contextualPanel.body)}</p><a class="btn btn-ghost" href="#${escapeHtml(contextualPanel.target)}">Open panel controls</a></section>` : ''}
         <section class="pool-room-secondary-workspace" data-pool-room-panel="research"${secondaryWorkspaceOpen ? ' data-pool-room-panel-open="true"' : ''}>
-          <h2 class="type-h2">Research workspace</h2>
+          <h2 class="pool-heading">Research workspace</h2>
           <div id="pool-research-workspace-host">${renderResearchWorkspace(getPeerRoomId(), loadResearchRecords(getPeerRoomId()), { reviewTarget: getPoolReviewTarget() })}</div>
         </section>
       </div>
