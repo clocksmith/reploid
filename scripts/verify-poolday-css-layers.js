@@ -1,19 +1,20 @@
 #!/usr/bin/env node
 /**
  * Verifies the Poolday design-system layering contract:
- *   tokens -> primitives -> components
+ *   tokens -> primitives -> compositions
  *
- * - styles/poolday/tokens.css      raw values; references only other tokens.
- * - styles/poolday/primitives.css  compositions of token vars only: no numeric
- *                                  literal other than 0, no color literal.
- * - styles/poolday/components*.css rules consuming only primitive vars, component
- *                                  parameters (--pool-param-*) and the runtime
- *                                  JS-contract vars. Colors, lengths, angles, times,
- *                                  weights, line heights, opacities, stacking,
- *                                  scales and easings come from primitives. The only
- *                                  literals left are structural: 0, 1, grid/flex
- *                                  counts and fr, calc multipliers, and percentages
- *                                  or viewport units in geometry properties.
+ * - tokens.css          every Poolday custom property: raw palette and scales, and
+ *                        semantic tokens mapped per theme. Tokens reference only tokens.
+ * - primitives/*.css     classes that are the building blocks (surface, card, button,
+ *                        input, stack, row, columns, text styles...). They consume
+ *                        tokens, parameters (--pool-param-*) and runtime inputs only.
+ * - compositions/*.css   screens arranged from primitives. A converted composition
+ *                        sets no visual property (color, background, border, shadow,
+ *                        radius, type, opacity, filter): the look comes from primitive
+ *                        classes in the markup. Compositions listed under "legacy" in
+ *                        layers.json may only lower their remaining visual count.
+ * - Literals in primitives and compositions are structural only: 0, 1, grid/flex
+ *   counts and fr, calc multipliers, and percentages or viewport units in geometry.
  * - pool-entry.html loads only the Poolday layers. index.html can host Poolday
  *   routes, so every stylesheet it links excludes .pool-home from each selector.
  * - Product UI scripts write only custom properties to inline styles.
@@ -32,8 +33,6 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const STYLES = path.join(ROOT, 'self', 'styles');
 const WARN_ONLY = process.argv.includes('--warn');
 
-const TOKEN_CATEGORY = /^--pool-(color|gradient|dim|size|motion-duration|motion-easing|font|layer|alpha|ratio)(-|$)/;
-const PRIMITIVE_CATEGORY = /^--pool-(surface|frame|border|space|px|radius|z|transition|motion|text|type|opacity|metric|hue|tint|angle|scale)(-|$)/;
 const JS_CONTRACT_VARS = new Set(['--tooltip-x', '--tooltip-y', '--pool-label-x', '--pool-label-y',
   '--pool-param-share', '--pool-param-composer-height', '--pool-param-capability-score']);
 /* Component parameter vars: set by component rules (incl. media overrides),
@@ -109,8 +108,6 @@ const literalViolations = (property, value) => {
   }).map((match) => match[0]);
 };
 
-const isTokenName = (name) => TOKEN_CATEGORY.test(name);
-const isPrimitiveName = (name) => !isTokenName(name) && PRIMITIVE_CATEGORY.test(name);
 
 const stripComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
 
@@ -184,8 +181,10 @@ const checkIsolated = (file) => {
   }
 };
 
-/* Tokens and primitives attach to every .pool-home and to the Poolday page root. */
-const ROOT_BLOCK = ':root.pool-page, .pool-home';
+/* Tokens attach to every .pool-home and to the Poolday page root, with a light-theme block. */
+const TOKEN_BLOCKS = new Set([':root.pool-page, .pool-home', ":root.pool-page[data-reploid-theme='light'], .pool-home[data-pool-theme='light']"]);
+/* In a converted composition these come from primitive classes in the markup. */
+const VISUAL_PROPERTY = /^(color|background(-color|-image)?|border(-(top|bottom|left|right|block|inline))?(-color|-style)?|border-radius|box-shadow|font(-size|-weight|-family)?|line-height|letter-spacing|text-transform|opacity|filter|backdrop-filter|-webkit-backdrop-filter|outline(-color)?|text-decoration|text-shadow|mask-image|-webkit-mask-image)$/;
 
 /* Product UI scripts, and the shared components they import, may write only custom
    properties inline; component rules decide how those values render. */
@@ -223,7 +222,7 @@ const varRefs = (value) => [...value.matchAll(/var\(\s*(--[\w-]+)/g)].map((m) =>
 
 const main = () => {
   const manifest = JSON.parse(readFileSync(path.join(STYLES, 'poolday/layers.json'), 'utf8'));
-  const files = [manifest.tokens, manifest.primitives, ...manifest.components];
+  const files = [manifest.tokens, ...manifest.primitives, ...manifest.compositions];
   if (new Set(files).size !== files.length || files.some(file => !/^[a-z][a-z/-]*\.css$/.test(file))) {
     throw new Error('Poolday layer manifest must contain unique local CSS paths');
   }
@@ -245,99 +244,53 @@ const main = () => {
   if (!/<html[^>]*\bclass=["'][^"']*\bpool-page\b/.test(entry)) report('pool-entry.html', 1, 'the page root must carry class="pool-page"');
   for (const file of stylesheets(fallback)) checkIsolated(file);
   checkInlineStyles();
+
+  // Tokens: every Poolday custom property, in the root or light-theme block, referencing only tokens.
   const tokens = readLayer(manifest.tokens);
-  const primitives = readLayer(manifest.primitives);
-  const componentLayers = manifest.components.map(readLayer);
-
-  walkDeclarations(tokens.clean, ({ property, value, line, context }) => {
-    if (context[0].replace(/\s+/g, ' ') !== ROOT_BLOCK) {
-      report(tokens.file, line, `declaration outside the ${ROOT_BLOCK} token block (${context.join(' > ')})`);
-    }
-    if (!property.startsWith('--')) {
-      report(tokens.file, line, `non-custom-property rule in token layer: ${property}`);
-      return;
-    }
-    if (!isTokenName(property)) {
-      report(tokens.file, line, `token name outside token categories: ${property}`);
-    }
-    for (const ref of varRefs(value)) {
-      if (ref.startsWith('--pool-') && !isTokenName(ref)) {
-        report(tokens.file, line, `token ${property} references non-token pool var ${ref}`);
-      } else if (!ref.startsWith('--pool-')) {
-        report(tokens.file, line, `token ${property} references non-Poolday var ${ref}`);
-      }
-    }
+  const tokenNames = new Set();
+  walkDeclarations(tokens.clean, ({ property, line, context }) => {
+    const blocks = context.filter((entry) => !entry.startsWith('@media')).map((entry) => entry.replace(/\s+/g, ' '));
+    if (blocks.length !== 1 || !TOKEN_BLOCKS.has(blocks[0])) report(tokens.file, line, `declaration outside the token blocks (${context.join(' > ')})`);
+    if (!property.startsWith('--pool-') || PARAMETER_VAR.test(property)) report(tokens.file, line, `${property} is not a token`);
+    else tokenNames.add(property);
+  });
+  walkDeclarations(tokens.clean, ({ property, value, line }) => {
+    for (const ref of varRefs(value)) if (!tokenNames.has(ref)) report(tokens.file, line, `token ${property} references ${ref}, which is not a token`);
   });
 
-  walkDeclarations(primitives.clean, ({ property, value, line, context }) => {
-    if (inKeyframes(context)) return;
-    if (!property.startsWith('--')) {
-      report(primitives.file, line, `style rule in primitive layer: ${context.join(' > ')} { ${property} }`);
-      return;
-    }
-    if (!isPrimitiveName(property)) {
-      report(primitives.file, line, `primitive name outside primitive categories: ${property}`);
-    }
-    if (COLOR_LITERAL.test(value) || namedColors(value, context).length) {
-      report(primitives.file, line, `color literal in primitive ${property}: ${value}`);
-    }
-    if ([...opaqueValue(value).matchAll(NUMERIC_LITERAL)].some((match) => Number(match[1]) !== 0)) {
-      report(primitives.file, line, `primitive ${property} holds a literal; move the raw value to a token: ${value}`);
-    }
-    for (const ref of varRefs(value)) {
-      if (ref.startsWith('--pool-') && !isTokenName(ref)) {
-        report(primitives.file, line, `primitive ${property} references non-token pool var ${ref}`);
-      } else if (!ref.startsWith('--pool-')) {
-        report(primitives.file, line, `primitive ${property} references non-Poolday var ${ref}`);
+  // Primitives and compositions consume tokens, parameters and runtime inputs, with structural literals only.
+  // A converted composition only arranges: its look comes from primitive classes in the markup.
+  // A legacy composition may not grow its remaining visual declarations.
+  const legacy = manifest.legacy ?? {};
+  for (const file of [...manifest.primitives, ...manifest.compositions]) {
+    const layer = readLayer(file);
+    const converted = manifest.compositions.includes(file) && !(file in legacy);
+    let visuals = 0;
+    walkDeclarations(layer.clean, ({ property, value, line, context }) => {
+      if (property.startsWith('--') && !JS_CONTRACT_VARS.has(property) && !PARAMETER_VAR.test(property)) {
+        report(layer.file, line, `custom property defined outside tokens: ${property}`);
       }
-    }
-  });
-
-  for (const components of componentLayers) walkDeclarations(components.clean, ({ property, value, line, context }) => {
-    if (property.startsWith('--') && !JS_CONTRACT_VARS.has(property) && !PARAMETER_VAR.test(property)) {
-      report(components.file, line, `custom property defined in component layer: ${property}`);
-    }
-    if (COLOR_LITERAL.test(value) || namedColors(value, context).length) {
-      report(components.file, line, `color literal in component rule (${property}): ${value}`);
-    }
-    for (const ref of varRefs(value)) {
-      if (JS_CONTRACT_VARS.has(ref) || PARAMETER_VAR.test(ref)) continue;
-      if (ref.startsWith('--pool-')) {
-        if (!isPrimitiveName(ref)) {
-          report(components.file, line, `component consumes non-primitive pool var ${ref} (${property})`);
-        }
-      } else {
-        report(components.file, line, `component consumes non-pool var ${ref} directly (${property})`);
+      if (COLOR_LITERAL.test(value) || namedColors(value, context).length) report(layer.file, line, `color literal (${property}): ${value}`);
+      for (const ref of varRefs(value)) {
+        if (!JS_CONTRACT_VARS.has(ref) && !PARAMETER_VAR.test(ref) && !tokenNames.has(ref)) report(layer.file, line, `${ref} is not a token (${property})`);
       }
-    }
-    if (!property.startsWith('--') || PARAMETER_VAR.test(property)) {
-      const literals = literalViolations(property, value);
-      if (literals.length) {
-        report(components.file, line, `literal ${literals.join(', ')} in component rule; use a primitive (${property}: ${value})`);
+      if (!property.startsWith('--') || PARAMETER_VAR.test(property)) {
+        const literals = literalViolations(property, value);
+        if (literals.length) report(layer.file, line, `literal ${literals.join(', ')}; use a token (${property}: ${value})`);
       }
-    }
-  });
-
-  /* Existence check: every --pool-* reference must be defined in some layer.
-     Category checks alone cannot catch a well-named but undefined var. */
-  const definedPool = new Set();
-  for (const layer of [tokens, primitives, ...componentLayers]) {
-    for (const match of layer.clean.matchAll(/(--pool-[\w-]+)\s*:/g)) definedPool.add(match[1]);
-  }
-  for (const layer of [primitives, ...componentLayers]) {
-    const lines = layer.clean.split('\n');
-    lines.forEach((text, index) => {
-      for (const match of text.matchAll(/var\(\s*(--pool-[\w-]+)/g)) {
-        const ref = match[1];
-        if (!definedPool.has(ref) && !JS_CONTRACT_VARS.has(ref)) {
-          report(layer.file, index + 1, `reference to undefined pool var ${ref}`);
-        }
+      if (VISUAL_PROPERTY.test(property) && !inKeyframes(context)) {
+        visuals += 1;
+        if (converted) report(layer.file, line, `composition sets ${property}; take it from a primitive class in the markup`);
       }
     });
+    if (file in legacy && visuals > legacy[file]) {
+      report(layer.file, 1, `${visuals} visual declarations exceed the ${legacy[file]} left to convert; move looks to primitives instead`);
+    }
+    if (file in legacy && visuals < legacy[file]) console.log(`[poolday-css-layers] ${file}: ${visuals} visual declarations left (lower "legacy" in layers.json to ${visuals})`);
   }
 
   if (violations.length === 0) {
-    console.log('[poolday-css-layers] OK: layering contract holds across tokens/primitives/components');
+    console.log('[poolday-css-layers] OK: tokens -> primitives -> compositions');
     return 0;
   }
   console.error(`[poolday-css-layers] ${violations.length} violation(s):`);

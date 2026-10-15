@@ -37,9 +37,9 @@ if (!allowLocal && /^https?:\/\/(localhost|127\.0\.0\.1)/.test(baseUrl)) {
 
 const STYLE_FILES = [
   'styles/poolday/tokens.css',
-  'styles/poolday/primitives.css',
-  'styles/poolday/components/base.css',
-  'styles/poolday/components.css',
+  'styles/poolday/primitives/base.css',
+  'styles/poolday/primitives/controls.css',
+  'styles/poolday/compositions/screens.css',
   'styles/rd.css'
 ];
 // These modules make up the requester, provider, relay, and visible result

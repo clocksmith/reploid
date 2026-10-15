@@ -1,18 +1,14 @@
-// Reads the Poolday layers as written on disk: tokens, primitives and the component rules that
-// consume them. The design page renders this model; nothing here is a second copy of a value.
+// Reads the Poolday layers as written on disk: tokens, primitive classes and the compositions
+// that arrange them. The design page renders this model; nothing here copies a value.
 
-export const TOKEN_PATTERN = /^--pool-(color|gradient|dim|size|motion-duration|motion-easing|font|layer|alpha|ratio)(-|$)/;
 export const TOKEN_GROUPS = [
-  ['color', 'Colors'], ['gradient', 'Gradients'], ['dim', 'Dimensions, shadows, angles'], ['size', 'Sizes'],
-  ['font', 'Type'], ['motion-duration', 'Durations'], ['motion-easing', 'Easings'], ['layer', 'Stacking'],
-  ['alpha', 'Opacity'], ['ratio', 'Ratios']
+  ['gray', 'Palette: grays'], ['alpha', 'Palette: alpha'], ['color', 'Semantic colors'], ['size', 'Sizes'],
+  ['radius', 'Radii'], ['border', 'Borders'], ['text', 'Text sizes'], ['leading', 'Line heights'], ['weight', 'Weights'],
+  ['tracking', 'Tracking'], ['font', 'Font families'], ['shadow', 'Shadows'], ['depth', 'Depth'], ['surface', 'Surfaces and gradients'],
+  ['frame', 'Frames'], ['metric', 'Layout metrics'], ['space', 'Page spacing'], ['transition', 'Transitions'], ['motion', 'Motion'],
+  ['z', 'Stacking'], ['angle', 'Angles'], ['scale', 'Scales']
 ];
-export const PRIMITIVE_GROUPS = [
-  ['surface', 'Surfaces'], ['frame', 'Frames'], ['hue', 'Hues and mixes'], ['tint', 'Tints'], ['border', 'Borders'],
-  ['space', 'Spacing'], ['px', 'Dimensions'], ['radius', 'Radii'], ['angle', 'Angles'], ['metric', 'Metrics'],
-  ['text', 'Text sizes'], ['type', 'Type'], ['opacity', 'Opacity'], ['scale', 'Scales'], ['z', 'Stacking'],
-  ['transition', 'Transitions'], ['motion', 'Motion']
-];
+export const VISUAL_PROPERTY = /^(color|background(-color|-image)?|border(-(top|bottom|left|right|block|inline))?(-color|-style)?|border-radius|box-shadow|font(-size|-weight|-family)?|line-height|letter-spacing|text-transform|opacity|filter|backdrop-filter|-webkit-backdrop-filter|outline(-color)?|text-decoration|text-shadow|mask-image|-webkit-mask-image)$/;
 
 const stripComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
 
@@ -43,28 +39,17 @@ export const groupOf = (name, groups) => {
   return groups.find(([prefix]) => rest === prefix || rest.startsWith(`${prefix}-`))?.[0] ?? 'other';
 };
 
-/** One entry per variable: source values by block, references and reverse references. */
-function collect(declarations, file) {
-  const entries = new Map();
-  for (const { name, value, block } of declarations) {
-    const entry = entries.get(name) ?? { name, file, values: {}, refs: new Set(), usedBy: new Set() };
-    entry.values[block] ??= value;
-    for (const ref of varRefs(value)) entry.refs.add(ref);
-    entries.set(name, entry);
-  }
-  return entries;
-}
-
-/** Style rules of the component layers, read from the loaded stylesheets. */
-export function componentRules(doc, componentFiles) {
+/** Style rules of the given layer files, read from the loaded stylesheets. */
+export function layerRules(doc, files) {
   const rules = [];
-  const visit = (rule, sheetFile) => {
-    if (rule.cssRules && !rule.selectorText) { for (const child of rule.cssRules) visit(child, sheetFile); return; }
+  const visit = (rule, file) => {
+    if (rule.cssRules && !rule.selectorText) { for (const child of rule.cssRules) visit(child, file); return; }
     if (!rule.selectorText) return;
-    rules.push({ file: sheetFile, selector: rule.selectorText, refs: varRefs(rule.style.cssText) });
+    const declarations = rule.style.cssText.split(';').map((text) => text.split(':')[0].trim()).filter(Boolean);
+    rules.push({ file, selector: rule.selectorText, refs: varRefs(rule.style.cssText), visuals: declarations.filter((p) => VISUAL_PROPERTY.test(p)).length });
   };
   for (const sheet of doc.styleSheets) {
-    const file = componentFiles.find((name) => sheet.href?.split('?')[0].endsWith(`/styles/poolday/${name}`));
+    const file = files.find((name) => sheet.href?.split('?')[0].endsWith(`/styles/poolday/${name}`));
     if (!file) continue;
     try { for (const rule of sheet.cssRules) visit(rule, file); } catch { /* cross-origin sheets are not Poolday layers */ }
   }
@@ -73,16 +58,21 @@ export function componentRules(doc, componentFiles) {
 
 export async function loadModel(doc = document) {
   const manifest = await (await fetch('/styles/poolday/layers.json', { cache: 'no-store' })).json();
-  const read = async (file) => (await fetch(`/styles/poolday/${file}`, { cache: 'no-store' })).text();
-  const [tokenCss, primitiveCss] = await Promise.all([read(manifest.tokens), read(manifest.primitives)]);
-  const tokens = collect(parseDeclarations(tokenCss).filter((d) => TOKEN_PATTERN.test(d.name)), manifest.tokens);
-  const primitives = collect(parseDeclarations(primitiveCss).filter((d) => !TOKEN_PATTERN.test(d.name)), manifest.primitives);
-  const rules = componentRules(doc, manifest.components);
-  for (const entry of [...tokens.values(), ...primitives.values()]) {
-    for (const ref of entry.refs) (tokens.get(ref) ?? primitives.get(ref))?.usedBy.add(entry.name);
+  const css = await (await fetch(`/styles/poolday/${manifest.tokens}`, { cache: 'no-store' })).text();
+  const tokens = new Map();
+  for (const { name, value, block } of parseDeclarations(css)) {
+    const entry = tokens.get(name) ?? { name, file: manifest.tokens, values: {}, refs: new Set(), usedBy: new Set() };
+    entry.values[block] ??= value;
+    for (const ref of varRefs(value)) entry.refs.add(ref);
+    tokens.set(name, entry);
   }
-  for (const rule of rules) for (const ref of new Set(rule.refs)) primitives.get(ref)?.usedBy.add(rule.selector);
-  return { manifest, tokens, primitives, rules };
+  const primitiveRules = layerRules(doc, manifest.primitives);
+  const compositionRules = layerRules(doc, manifest.compositions);
+  for (const entry of tokens.values()) for (const ref of entry.refs) tokens.get(ref)?.usedBy.add(entry.name);
+  for (const rule of [...primitiveRules, ...compositionRules]) for (const ref of new Set(rule.refs)) tokens.get(ref)?.usedBy.add(rule.selector);
+  const primitiveClasses = new Set(primitiveRules.flatMap((rule) => [...rule.selector.matchAll(/\.((?:pool|btn)-[\w-]+)/g)].map((m) => m[1]))
+    .filter((name) => !['pool-home', 'pool-page', 'pool-work-shell'].includes(name) && !/^pool-(work|thread|control|agent)-/.test(name)));
+  return { manifest, tokens, primitiveRules, compositionRules, primitiveClasses };
 }
 
 /** How to preview a resolved value. */
@@ -91,25 +81,30 @@ export function previewKind(name, resolved) {
   if (/gradient\(|url\(/.test(value)) return 'image';
   if (/shadow/.test(name)) return 'shadow';
   if (/^(#|rgba?\(|hsla?\(|color\(|color-mix\(|oklch\(|lab\(|transparent$)/i.test(value)) return 'color';
-  if (/family|font-(sans|display|mono)$/.test(name)) return 'family';
-  if (/weight/.test(name)) return 'weight';
+  if (/^--pool-font-/.test(name)) return 'family';
+  if (/^--pool-weight-/.test(name)) return 'weight';
   if (/^-?[\d.]+(px|rem|em)$/.test(value) || /^(min|max|clamp|calc)\(/.test(value)) return /(leading|tracking)/.test(name) ? 'text' : 'length';
   return 'text';
 }
 
-/** The rules and primitives a rendered specimen is made of. Dynamic states count as matched. */
-export function composition(doc, rules) {
+const matches = (elements, selector) => {
+  const live = selector.replace(/::?(before|after|placeholder|selection|marker|backdrop|-webkit-[\w-]+)\b/g, '')
+    .replace(/:(hover|focus-visible|focus-within|focus|active|visited)\b/g, ':is(*)');
+  try { return elements.some((element) => element.matches(live)); } catch { return false; }
+};
+
+/** What a rendered specimen is made of: tokens used, primitive classes present, and the
+    visual declarations its composition rules still carry instead of taking them from primitives. */
+export function composition(doc, model) {
   const elements = [...doc.querySelectorAll('.pool-home, .pool-home *')];
-  const used = new Map(); let matched = 0;
-  for (const rule of rules) {
-    const selector = rule.selector
-      .replace(/::?(before|after|placeholder|selection|marker|backdrop|-webkit-[\w-]+)\b/g, '')
-      .replace(/:(hover|focus-visible|focus-within|focus|active|visited)\b/g, ':is(*)');
-    let hit = false;
-    try { hit = elements.some((element) => element.matches(selector)); } catch { hit = false; }
-    if (!hit) continue;
-    matched++;
-    for (const ref of rule.refs) used.set(ref, (used.get(ref) ?? 0) + 1);
+  const tokens = new Map(); const primitives = new Map(); let bespoke = 0;
+  for (const rule of [...model.primitiveRules, ...model.compositionRules]) {
+    if (!matches(elements, rule.selector)) continue;
+    for (const ref of rule.refs) if (model.tokens.has(ref)) tokens.set(ref, (tokens.get(ref) ?? 0) + 1);
+    if (model.compositionRules.includes(rule)) bespoke += rule.visuals;
   }
-  return { matched, used };
+  for (const element of elements) for (const name of element.classList) {
+    if (model.primitiveClasses.has(name)) primitives.set(name, (primitives.get(name) ?? 0) + 1);
+  }
+  return { tokens, primitives, bespoke };
 }

@@ -9,11 +9,11 @@ export function createConversationList(list, seen = new Map(), { getSources } = 
         let row = rows.get(thread.id), button = row?.querySelector('[data-thread-item-id]');
         if (!button) {
           button = list.ownerDocument.createElement('button'); button.type = 'button';
-          button.className = 'chat-thread-item'; button.dataset.threadItemId = thread.id;
-          button.append(list.ownerDocument.createElement('span'), list.ownerDocument.createElement('small'));
+          button.className = 'chat-thread-item pool-button btn-ghost'; button.dataset.threadItemId = thread.id;
+          button.append(list.ownerDocument.createElement('span'), Object.assign(list.ownerDocument.createElement('small'), { className: 'pool-muted' }));
           row = list.ownerDocument.createElement('div'); row.className = 'chat-thread-row'; row.append(button);
           const menu = list.ownerDocument.createElement('details'); menu.className = 'chat-thread-menu';
-          menu.innerHTML = '<summary class="pool-button" aria-label="Thread actions">…</summary><div><button class="pool-button" type="button" data-rename-thread>Rename</button><button class="pool-button" type="button" data-archive-thread></button></div>';
+          menu.innerHTML = '<summary class="pool-button btn-ghost" aria-label="Thread actions">…</summary><div class="pool-surface"><button class="pool-button" type="button" data-rename-thread>Rename</button><button class="pool-button" type="button" data-archive-thread></button></div>';
           for (const action of menu.querySelectorAll('button')) action.dataset.threadId = thread.id;
           menus.set(thread.id, bindDisclosure({ root: menu, trigger: menu.querySelector('summary'), panel: menu.querySelector('div'), native: true }));
           row.append(menu); rows.set(thread.id, row);

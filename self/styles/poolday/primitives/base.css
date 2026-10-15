@@ -1,0 +1,288 @@
+/* Element defaults for everything inside .pool-home. rd.css and boot.css never match inside
+   .pool-home, so Poolday owns its resets, inherited type and native-control defaults here.
+   :where(.pool-home) keeps each rule at the specificity of the element default it replaces,
+   so every later component rule still wins. Controls carry no outline; depth is shadow only. */
+
+/* The Poolday page root owns the rem base, page material and color scheme, so the Poolday
+   entry loads no stylesheet outside these layers. */
+:root.pool-page {
+  font-size: var(--pool-text-base);
+  background: var(--pool-color-page);
+  color: var(--pool-color-ink);
+  color-scheme: dark;
+  font-family: var(--pool-font-ui);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+:root.pool-page[data-reploid-theme='light'] { color-scheme: light; }
+:root.pool-page body { margin: 0; }
+:root.pool-page #app { display: block; }
+:where(.pool-home).pool-boot-failure { justify-content: center; align-items: center; text-align: center; }
+.pool-home {
+  background-color: var(--pool-color-page);
+  background-image: var(--pool-surface-ambient-mesh), var(--pool-surface-pattern);
+  background-repeat: no-repeat, repeat;
+  background-attachment: fixed, scroll;
+  color: var(--pool-color-ink);
+  font-family: var(--pool-font-ui);
+}
+:where(.pool-home) {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  color-scheme: dark;
+  font-family: var(--pool-font-ui);
+  font-size: var(--pool-text-lg);
+  font-weight: var(--pool-weight-regular);
+  line-height: var(--pool-leading-read);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+}
+:where(.pool-home[data-pool-theme='light']) { color-scheme: light; }
+:where(.pool-home) *,
+:where(.pool-home) *::before,
+:where(.pool-home) *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  -webkit-tap-highlight-color: transparent;
+}
+:where(.pool-home) [hidden] { display: none !important; }
+:where(.pool-home)::selection,
+:where(.pool-home) ::selection {
+  background: var(--pool-color-ink);
+  color: var(--pool-color-page);
+}
+:where(.pool-home)::-webkit-scrollbar,
+:where(.pool-home) ::-webkit-scrollbar { width: var(--pool-size-8); height: var(--pool-size-8); }
+:where(.pool-home)::-webkit-scrollbar-track,
+:where(.pool-home) ::-webkit-scrollbar-track { background: var(--pool-color-page); }
+:where(.pool-home)::-webkit-scrollbar-thumb,
+:where(.pool-home) ::-webkit-scrollbar-thumb { background: var(--pool-color-muted); }
+
+/* Text */
+:where(.pool-home) a {
+  color: var(--pool-color-ink);
+  text-decoration: none;
+  border-bottom: var(--pool-border-hairline) dotted currentColor;
+}
+:where(.pool-home) :is(strong, b) { font-weight: var(--pool-weight-bold); }
+:where(.pool-home) small { font-size: var(--pool-text-xs); }
+:where(.pool-home) :is(pre, code) {
+  font-family: var(--pool-font-mono);
+  font-size: var(--pool-text-base);
+  letter-spacing: var(--pool-tracking-tight);
+}
+:where(.pool-home) pre { padding: var(--pool-size-16); overflow-x: auto; white-space: pre; }
+:where(.pool-home) code { padding: var(--pool-size-2) var(--pool-size-4); }
+:where(.pool-home) .type-h1 {
+  margin-bottom: var(--pool-size-16);
+  font-size: var(--pool-text-2xl);
+  font-weight: var(--pool-weight-medium);
+  line-height: var(--pool-leading-set);
+  letter-spacing: var(--pool-tracking-tight);
+}
+:where(.pool-home) .type-h2 {
+  font-size: var(--pool-text-lg);
+  font-weight: var(--pool-weight-medium);
+  line-height: var(--pool-leading-snug);
+  letter-spacing: var(--pool-tracking-tight);
+}
+:where(.pool-home) .type-caption {
+  font-size: var(--pool-text-xs);
+  font-weight: var(--pool-weight-regular);
+  line-height: var(--pool-leading-snug);
+  letter-spacing: var(--pool-tracking-none);
+}
+
+/* Fields */
+:where(.pool-home) :is(input, textarea, select) {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  padding: var(--pool-size-12);
+  border: var(--pool-border-thin) solid transparent;
+  border-radius: var(--pool-radius-control);
+  background: var(--pool-color-inset);
+  color: var(--pool-color-ink);
+  box-shadow: var(--pool-shadow-inset);
+  font-size: var(--pool-text-lg);
+  letter-spacing: var(--pool-tracking-none);
+}
+:where(.pool-home) :is(input, textarea, select):-webkit-autofill {
+  -webkit-text-fill-color: var(--pool-color-ink);
+  box-shadow: 0 0 0 var(--pool-size-960) var(--pool-color-inset) inset;
+}
+:where(.pool-home) :is(input, textarea, select):disabled {
+  opacity: var(--pool-alpha-48);
+  cursor: not-allowed;
+}
+:where(.pool-home) textarea { resize: vertical; min-height: var(--pool-size-80); }
+:where(.pool-home) ::placeholder { color: var(--pool-color-muted); opacity: 1; }
+:where(.pool-home) dialog { border: 0; color: var(--pool-color-ink); }
+:where(.pool-home) dialog::backdrop { background: color-mix(in srgb, var(--pool-gray-0) var(--pool-alpha-48), transparent); }
+:where(.pool-home) select { cursor: pointer; padding-right: var(--pool-size-24); }
+:where(.pool-home) input:is([type='checkbox'], [type='radio']) {
+  appearance: auto;
+  -webkit-appearance: auto;
+  width: var(--pool-size-16);
+  height: var(--pool-size-16);
+  padding: 0;
+  margin: 0;
+  accent-color: var(--pool-color-ink);
+}
+
+/* Groups carry no outline either. */
+:where(.pool-home) fieldset { min-width: 0; border: 0; }
+
+/* Buttons */
+:where(.pool-home) button {
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+:where(.pool-home) .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--pool-size-8);
+  min-height: var(--pool-size-44);
+  padding: var(--pool-size-12) var(--pool-size-20);
+  border: var(--pool-border-thin) solid transparent;
+  border-radius: var(--pool-radius-control);
+  background: var(--pool-color-raised);
+  color: var(--pool-color-ink);
+  box-shadow: var(--pool-shadow-raised);
+  font: inherit;
+  font-size: var(--pool-text-base);
+  font-weight: var(--pool-weight-medium);
+  letter-spacing: 0;
+  text-transform: none;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--pool-transition-fast), box-shadow var(--pool-transition-fast), transform var(--pool-transition-fast);
+}
+:where(.pool-home) .btn:hover:not(:disabled) { background: var(--pool-color-line); }
+:where(.pool-home) .btn:active:not(:disabled) { transform: translateY(var(--pool-size-1)); box-shadow: var(--pool-shadow-inset); }
+:where(.pool-home) .btn-primary { background: var(--pool-color-ink); color: var(--pool-color-page); }
+:where(.pool-home) .btn-primary:hover:not(:disabled) { background: var(--pool-color-ink); }
+:where(.pool-home) .btn-ghost { opacity: var(--pool-alpha-80); }
+:where(.pool-home) .btn-ghost:hover { opacity: 1; }
+:where(.pool-home) .btn:disabled { opacity: var(--pool-alpha-48); cursor: not-allowed; }
+/* An operation button carries its symbol in a leading cell and fills an underline on hover. */
+:where(.pool-home) .btn-op {
+  --pool-param-op-progress: 0;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: var(--pool-size-40);
+  padding-left: calc(var(--pool-metric-op-cell) + var(--pool-size-8));
+  transition: background var(--pool-transition-fast), color var(--pool-transition-fast),
+    box-shadow var(--pool-transition-fast), transform var(--pool-transition-fast);
+}
+:where(.pool-home) .btn-op::before {
+  content: attr(data-op);
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: var(--pool-metric-op-cell);
+  background: var(--pool-color-ink-12);
+  font-weight: var(--pool-weight-bold);
+  letter-spacing: 0;
+}
+:where(.pool-home) .btn-op::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--pool-size-1);
+  background: currentColor;
+  opacity: var(--pool-alpha-64);
+  transform: scaleX(var(--pool-param-op-progress));
+  transform-origin: left center;
+  transition: transform var(--pool-transition-normal);
+}
+:where(.pool-home) .btn-op:hover { --pool-param-op-progress: 1; transform: translateY(calc(-1 * var(--pool-size-1))); }
+:where(.pool-home) .btn-op:active { transform: translateY(0); }
+
+/* Panels and status strips */
+:where(.pool-home) .panel {
+  padding: var(--pool-size-24);
+  border: var(--pool-border-thin) solid var(--pool-color-line);
+  border-radius: var(--pool-radius-panel);
+  background: var(--pool-color-raised);
+}
+:where(.pool-home) .boot-status-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--pool-size-128), 1fr));
+  gap: var(--pool-size-4);
+  padding: var(--pool-size-4) var(--pool-size-16) var(--pool-size-8);
+}
+:where(.pool-home) .rgr-status-label { font-size: var(--pool-text-micro); opacity: var(--pool-alpha-48); }
+:where(.pool-home) .rgr-status-value {
+  overflow: hidden;
+  font-size: var(--pool-text-micro);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(.pool-home),
+  :where(.pool-home) *,
+  :where(.pool-home) *::before,
+  :where(.pool-home) *::after {
+    animation-duration: var(--pool-motion-time-instant) !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: var(--pool-motion-time-instant) !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Field and code defaults every screen shares. */
+.pool-home :is(button, input, select, textarea) { font-family: var(--pool-font-ui); }
+.pool-home :is(pre, code) { font-family: var(--pool-font-mono); }
+.pool-home input,
+.pool-home select,
+.pool-home textarea {
+  border-color: transparent;
+  border-radius: var(--pool-radius-xs);
+  background: var(--pool-color-inset);
+  box-shadow: var(--pool-shadow-inset);
+}
+
+.pool-home input:not([type='checkbox']):not([type='radio']),
+.pool-home select {
+  min-height: var(--pool-size-48);
+  padding: var(--pool-size-16);
+  border: var(--pool-border-thin) solid transparent;
+  border-radius: var(--pool-radius-control);
+  background: var(--pool-color-inset);
+  color: var(--pool-color-ink);
+  font-size: var(--pool-text-base);
+  font-weight: var(--pool-weight-regular);
+  box-shadow: var(--pool-shadow-inset);
+}
+
+.pool-home input:focus,
+.pool-home select:focus,
+.pool-home textarea:focus {
+  outline: var(--pool-border-thick) solid color-mix(in srgb, var(--pool-gray-44) var(--pool-alpha-32), transparent);
+  outline-offset: var(--pool-border-thick);
+}
+
+.pool-home input:focus-visible,
+.pool-home select:focus-visible,
+.pool-home textarea:focus-visible {
+  outline: var(--pool-border-thick) solid var(--pool-color-focus);
+  outline-offset: var(--pool-border-thick);
+}
+@media (forced-colors: active) { .pool-home { background-image: none; } }

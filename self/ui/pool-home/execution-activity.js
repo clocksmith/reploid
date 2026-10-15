@@ -26,7 +26,7 @@ export function updateExecutionActivity(root, state) {
   if (root.hidden) return;
   root.querySelector('summary').textContent = `${view.status === 'executing' ? 'Generating' : view.statusLabel} · ${view.nodes.length} computer${view.nodes.length === 1 ? '' : 's'}`;
   const measured = view.nodes.every(node => node.share !== null);
-  const markup = (measured ? `<div class="chat-distribution" role="img" aria-label="Recorded step time share: ${escape(view.nodes.map(node => `${node.label} ${Math.round(node.share * 100)}%`).join(', '))}">${view.nodes.map(node => `<span style="--pool-param-share: ${node.share}"></span>`).join('')}</div>` : '')
+  const markup = (measured ? `<div class="chat-distribution pool-bar" role="img" aria-label="Recorded step time share: ${escape(view.nodes.map(node => `${node.label} ${Math.round(node.share * 100)}%`).join(', '))}">${view.nodes.map(node => `<span style="--pool-param-share: ${node.share}"></span>`).join('')}</div>` : '')
     + `<ul>${view.nodes.map(node => `<li><span>${escape(node.label)}</span><span>${measured ? `${Math.round(node.share * 100)}% · ` : ''}${node.speed === null ? escape(node.layers) : `${node.speed.toFixed(1)} tok/s`}</span></li>`).join('')}</ul>`
     + (measured ? '<small title="Includes runtime and transport overhead, not GPU-only speed or completion progress.">Step-time share · includes overhead</small>' : '<small>Timing pending</small>');
   const detail = root.querySelector('[data-activity-detail]');

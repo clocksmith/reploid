@@ -1,0 +1,21 @@
+/* Layout primitives arrange children with token gaps and carry no material.
+   pool-stack    vertical flow
+   pool-row      horizontal flow that wraps; pool-row-between and pool-row-end align it
+   pool-columns  equal responsive columns at least --pool-param-column wide
+   pool-gap-*    xs 4, sm 8, md 16, lg 24, xl 32
+   pool-grow     takes the remaining space in a row */
+.pool-home .pool-stack { display: flex; flex-direction: column; gap: var(--pool-param-gap, var(--pool-size-16)); min-width: 0; }
+.pool-home .pool-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--pool-param-gap, var(--pool-size-8)); min-width: 0; }
+.pool-home .pool-row-between { justify-content: space-between; }
+.pool-home .pool-row-end { justify-content: flex-end; }
+.pool-home .pool-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--pool-param-column, var(--pool-size-240))), 1fr));
+  gap: var(--pool-param-gap, var(--pool-size-16));
+}
+.pool-home .pool-gap-xs { --pool-param-gap: var(--pool-size-4); }
+.pool-home .pool-gap-sm { --pool-param-gap: var(--pool-size-8); }
+.pool-home .pool-gap-md { --pool-param-gap: var(--pool-size-16); }
+.pool-home .pool-gap-lg { --pool-param-gap: var(--pool-size-24); }
+.pool-home .pool-gap-xl { --pool-param-gap: var(--pool-size-32); }
+.pool-home .pool-grow { flex: 1 1 auto; min-width: 0; }

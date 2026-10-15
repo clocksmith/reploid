@@ -6,6 +6,7 @@ import { createWorkEvolution } from './work-evolution.js';
 import { createWorkSwarm } from './work-swarm.js';
 import { createWorkPeerJobs } from './work-peer-jobs.js';
 import { createChatSession, openCanonicalChatSession, LOCAL_HISTORY_IDENTITY } from './chat-session.js';
+import { createWebSearch } from './web-search.js';
 import { acquireChatHistoryOwner, refusedChatHistory } from './chat-history.js';
 import { DOPPLER_PARTITIONS_MODULE_URL } from '../config/doppler-local-models.js';
 import orderedPolicy from '../config/ordered-participation.json' with { type: 'json' };
@@ -65,7 +66,10 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
     }
     return operationNetwork;
   };
-  const chatOptions = { service, storage, swarm, partitions: swarm.partitions, peers: createWorkPeerJobs({ getNetwork }) };
+  // The person's MCP search server, used only for sends made while web search is on (Settings).
+  const webSearch = createWebSearch({ storage });
+  const chatOptions = { service, storage, swarm, partitions: swarm.partitions, peers: createWorkPeerJobs({ getNetwork }),
+    retrieval: { provider: webSearch.provider } };
   const failOpening = async error => {
     const settled = await Promise.allSettled([() => swarm.close(), () => chat?.close()].map(close => Promise.resolve().then(close)));
     const failures = settled.filter(result => result.status === 'rejected').map(result => result.reason);
@@ -89,7 +93,7 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
       onError: error => console.warn('[Reploid Swarm] Discovery connection failed', error) });
     const assertOpen = () => { if (closed) throw new Error('Application session is closed'); };
     return {
-      chat, swarm, evolution,
+      chat, swarm, evolution, webSearch,
       get runtime() { assertOpen(); return runtime ??= globalThis.REPLOID_DOPPLER_RUNTIME || createDopplerRuntime(); },
       get work() { assertOpen(); return work ??= createWorkSession({ service, storage, swarm, evolution, peers: createWorkPeerJobs({ getNetwork }) }); },
       get documents() { assertOpen(); return documents ??= createDocumentAssistant({ executor: createLocalPackExecutor(), network: getNetwork(), onChange: onDocuments }); },

@@ -1,0 +1,157 @@
+/* Control primitives: buttons, fields, choices and disclosures.
+   pool-button (+ btn-primary, btn-ghost, pool-icon), pool-input, pool-segmented + pool-segment,
+   pool-chip, pool-badge, pool-disclosure. Focus rings are shared. */
+.pool-home :is(.pool-button, :where(.pool-work-shell .btn)) {
+  min-height: var(--pool-size-44);
+  padding: var(--pool-size-8) var(--pool-size-16);
+  border: var(--pool-border-hairline) solid transparent;
+  border-radius: var(--pool-radius-control);
+  background: var(--pool-color-raised);
+  color: var(--pool-color-ink);
+  box-shadow: var(--pool-shadow-raised);
+  font: inherit;
+  font-size: var(--pool-text-sm);
+  cursor: pointer;
+  transition: background var(--pool-transition-fast), box-shadow var(--pool-transition-fast);
+}
+.pool-home :is(.pool-button, :where(.pool-work-shell .btn)).btn-primary {
+  background: var(--pool-color-ink);
+  color: var(--pool-color-page);
+}
+/* Controls carry no outline; hover lifts the surface tone instead. */
+.pool-home :is(.pool-button, :where(.pool-work-shell .btn)):hover:not(:disabled, .btn-primary) { background: var(--pool-color-line); }
+.pool-home :is(.pool-button, :where(.pool-work-shell .btn)):is(:active, [aria-pressed='true'], [aria-current='true'], [aria-expanded='true']):not(:disabled) { box-shadow: var(--pool-shadow-inset); }
+.pool-home :is(.pool-button, :where(.pool-work-shell .btn)):disabled { opacity: var(--pool-alpha-48); cursor: not-allowed; }
+.pool-home :is(.pool-input, :where(.pool-work-shell select, .pool-work-shell input[type='file'], .pool-work-composer textarea)) {
+  background: var(--pool-color-inset);
+  color: var(--pool-color-ink);
+  border: var(--pool-border-hairline) solid transparent;
+  border-radius: var(--pool-radius-control);
+  box-shadow: var(--pool-shadow-inset);
+  font: inherit;
+}
+.pool-home :focus-visible,
+.pool-home .pool-focus-within:focus-within {
+  outline: var(--pool-border-thick) solid var(--pool-color-focus);
+  outline-offset: var(--pool-border-thick);
+}
+/* Containers that receive focus programmatically (dialogs, panels) show no ring; their controls do. */
+.pool-home :is(dialog, [tabindex='-1']):focus-visible { outline: none; }
+@media (prefers-reduced-motion: reduce) {
+  .pool-home :is(.pool-button, :where(.pool-work-shell .btn)) { transition: none; }
+}
+/* A square icon button at the touch-target size. */
+.pool-home .pool-button.pool-icon { display: inline-grid; place-items: center; width: var(--pool-size-44); padding: 0; }
+.pool-home .pool-button.btn-ghost { background: transparent; box-shadow: none; }
+.pool-home .pool-button.btn-ghost:hover:not(:disabled) { background: var(--pool-color-inset); }
+.pool-home .pool-button.btn-ghost:is([aria-pressed='true'], [aria-current='true']) { background: var(--pool-color-inset); box-shadow: var(--pool-shadow-inset); }
+/* A field inside another field's material (the composer) carries no material of its own;
+   the container shows focus with pool-focus-within. */
+.pool-home .pool-bare { border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.pool-home .pool-bare:focus-visible { outline: none; }
+/* A label that opens a file picker: the native input covers it invisibly. */
+.pool-home .pool-file { position: relative; overflow: hidden; cursor: pointer; }
+.pool-home .pool-file input[type='file'] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+
+.pool-home .pool-segmented {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  gap: var(--pool-size-4);
+  margin: 0;
+  padding: var(--pool-size-4);
+  border-radius: var(--pool-radius-control);
+  background: var(--pool-color-inset);
+  box-shadow: var(--pool-shadow-inset);
+}
+
+.pool-home .pool-segment {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-height: var(--pool-size-44);
+  padding: var(--pool-size-4) var(--pool-size-16);
+  border: 0;
+  border-radius: var(--pool-radius-control);
+  background: transparent;
+  color: var(--pool-color-muted);
+  font-size: var(--pool-text-sm);
+  font-weight: var(--pool-weight-semibold);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background var(--pool-transition-fast), color var(--pool-transition-fast);
+}
+
+.pool-home .pool-segment:hover {
+  color: var(--pool-color-ink);
+  background: var(--pool-color-inset);
+}
+
+.pool-home .pool-segment:where([aria-current='page'], [aria-pressed='true']) {
+  color: var(--pool-color-ink);
+  background: var(--pool-color-raised);
+  box-shadow: var(--pool-shadow-raised);
+}
+
+.pool-home .pool-segment:focus-visible { outline: var(--pool-border-thick) solid var(--pool-color-focus); outline-offset: var(--pool-border-thick); }
+
+/* Chips and badges: small inline labels. A chip is an inset choice; a badge is raised status. */
+.pool-home .pool-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pool-size-4);
+  min-height: var(--pool-size-24);
+  padding: 0 var(--pool-size-8);
+  border-radius: var(--pool-radius-pill);
+  background: var(--pool-color-inset);
+  color: var(--pool-color-ink);
+  box-shadow: var(--pool-shadow-inset);
+  font-size: var(--pool-text-xs);
+}
+.pool-home .pool-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--pool-size-20);
+  padding: 0 var(--pool-size-8);
+  border-radius: var(--pool-radius-pill);
+  background: var(--pool-color-raised);
+  color: var(--pool-color-muted);
+  box-shadow: var(--pool-shadow-raised);
+  font-size: var(--pool-text-micro);
+  font-weight: var(--pool-weight-semibold);
+  letter-spacing: var(--pool-tracking-wide);
+}
+
+.pool-home .pool-disclosure { margin: 0; min-width: 0; border: var(--pool-border-hairline) solid var(--pool-color-line); border-radius: var(--pool-radius-control); background: var(--pool-color-raised); }
+.pool-home .pool-disclosure > summary { display: flex; align-items: center; gap: var(--pool-size-8); min-height: var(--pool-size-48); padding: var(--pool-size-8) var(--pool-size-16); cursor: pointer; list-style: none; font-size: var(--pool-text-sm); font-weight: var(--pool-weight-semibold); }
+.pool-home .pool-disclosure > summary::-webkit-details-marker { display: none; }
+.pool-home .pool-disclosure > summary::before { content: none; }
+.pool-home .pool-disclosure > summary::after { content: '+'; margin-left: auto; font-size: var(--pool-text-lg); color: var(--pool-color-muted); }
+.pool-home .pool-disclosure[open] > summary::after { content: '−'; }
+.pool-home .pool-disclosure[open] > summary { border-bottom: var(--pool-border-hairline) solid var(--pool-color-line); }
+.pool-home .pool-disclosure > :not(summary) { margin: var(--pool-size-16); }
+.pool-home .pool-disclosure > summary span { font-weight: var(--pool-weight-regular); color: var(--pool-color-muted); }
+
+/* On/off switch: inset track, raised marble knob; aria-checked moves the knob. */
+.pool-home .pool-switch {
+  position: relative; flex: none; width: var(--pool-size-64); height: var(--pool-size-44);
+  padding: var(--pool-size-4); border: var(--pool-border-hairline) solid transparent;
+  border-radius: var(--pool-radius-panel); background: var(--pool-color-inset);
+  box-shadow: var(--pool-shadow-inset); cursor: pointer;
+}
+.pool-home .pool-switch > span {
+  position: absolute; top: 50%; left: var(--pool-size-4);
+  width: var(--pool-size-32); height: var(--pool-size-32); transform: translateY(-50%);
+  border: var(--pool-border-hairline) solid transparent;
+  border-radius: var(--pool-radius-round); background: var(--pool-surface-marble); box-shadow: var(--pool-shadow-raised);
+  pointer-events: none; transition: left var(--pool-motion-time-240) ease-in-out;
+}
+.pool-home .pool-switch[aria-checked='true'] > span { left: calc(100% - var(--pool-size-4) - var(--pool-size-32)); }
+.pool-home .pool-switch:disabled { opacity: var(--pool-alpha-48); cursor: wait; }
+@media (prefers-reduced-motion: reduce) { .pool-home .pool-switch > span { transition: none; } }
+@media (forced-colors: active) {
+  .pool-home .pool-segment:is([aria-current='page'], [aria-pressed='true']) { outline: var(--pool-border-thick) solid Highlight; }
+}

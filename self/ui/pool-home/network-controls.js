@@ -4,25 +4,25 @@ import { updateModelSelect } from '../components/model-select.js';
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
 export const renderConnectionControl = () => `<div class="network-sharing-row">
-  <div><strong>Network connection</strong><span data-connection-label>Disconnected</span></div>
-  <button class="network-switch" type="button" role="switch" aria-label="Connect to network" aria-checked="false" data-mesh-connect><span></span></button>
+  <div><strong class="pool-small">Network connection</strong><span class="pool-small pool-muted" data-connection-label>Disconnected</span></div>
+  <button class="network-switch pool-switch" type="button" role="switch" aria-label="Connect to network" aria-checked="false" data-mesh-connect><span></span></button>
 </div>`;
 
 export const renderSharingControls = () => `<div class="network-sharing-row">
-          <div><strong>Help peers connect</strong><p>Forward invitations without sharing conversations, model files, or compute.</p></div>
-          <button class="network-switch" type="button" role="switch" aria-label="Help peers connect" aria-checked="false" data-toggle-introductions><span></span></button>
-        </div><p class="network-sharing-summary" data-tab-sharing-summary role="status" hidden></p>
+          <div class="pool-small"><strong>Help peers connect</strong><p class="pool-muted">Forward invitations without sharing conversations, model files, or compute.</p></div>
+          <button class="network-switch pool-switch" type="button" role="switch" aria-label="Help peers connect" aria-checked="false" data-toggle-introductions><span></span></button>
+        </div><p class="network-sharing-summary pool-body" data-tab-sharing-summary role="status" hidden></p>
         <label>Model to share <select class="pool-input" data-contribution-model aria-label="Model to share"></select></label>
         <div class="network-sharing-row">
-          <div><strong>Help answer requests <span data-contrib-label>Not sharing</span></strong>
-            <p>Run peers’ public prompts on this device.</p><p data-contribution-limits></p>
+          <div class="pool-small"><strong>Help answer requests <span class="pool-muted" data-contrib-label>Not sharing</span></strong>
+            <p class="pool-muted">Run peers’ public prompts on this device.</p><p data-contribution-limits></p>
             <p data-contribution-progress role="status" hidden></p>
             <button type="button" class="pool-button" data-retry-contribution-stop hidden>Retry stopping</button></div>
-          <button class="network-switch" type="button" role="switch" aria-label="Help answer requests" aria-checked="false" data-toggle-contribution><span></span></button>
+          <button class="network-switch pool-switch" type="button" role="switch" aria-label="Help answer requests" aria-checked="false" data-toggle-contribution><span></span></button>
         </div>
         <div class="network-sharing-row">
-          <div><strong>Store and share model files <span data-file-contribution-label>Not sharing</span></strong>
-            <p>Share verified model files independently of answering requests.</p>
+          <div class="pool-small"><strong>Store and share model files <span class="pool-muted" data-file-contribution-label>Not sharing</span></strong>
+            <p class="pool-muted">Share verified model files independently of answering requests.</p>
             <label>File participation <select class="pool-input" data-file-mode aria-label="File participation">
               <option value="cached-only">Cached only</option><option value="bounded-acquisition">Bounded acquisition</option>
               <option value="full-model">Full-model seeding</option></select></label>
@@ -30,7 +30,7 @@ export const renderSharingControls = () => `<div class="network-sharing-row">
               <input class="pool-input" data-file-download type="number" min="1" step="1" aria-label="Total download allowance in MiB"></label>
             <p data-file-download-policy>No downloads in cached-only mode. Acquiring modes charge metadata and failed attempts; restarting does not renew the allowance.</p><p data-file-limits></p>
             <p data-file-progress role="status" hidden></p></div>
-          <button class="network-switch" type="button" role="switch" aria-label="Store and share model files" aria-checked="false" data-toggle-file-contribution><span></span></button>
+          <button class="network-switch pool-switch" type="button" role="switch" aria-label="Store and share model files" aria-checked="false" data-toggle-file-contribution><span></span></button>
         </div>`;
 
 export function projectNetworkPeers(state) {
@@ -58,9 +58,9 @@ function renderPeerRows(list, state) {
   const expanded = new Set([...list.querySelectorAll('details[open]')].map(node => node.dataset.peerIdentity));
   list.innerHTML = rows.length ? rows.map(peer => {
     const status = ({ loading: 'Preparing', ready: 'Ready', executing: 'Working', failed: 'Unavailable', waiting: 'Waiting', stopping: 'Stopping' })[peer.phase] || peer.status;
-    return `<li class="network-peer-row" data-peer-phase="${escape(peer.phase || 'connected')}"><div><strong>${escape(computerLabel(state, peer.id))}</strong><span>${escape(peer.model)}</span>
-      <details data-peer-identity="${escape(peer.id)}"${expanded.has(peer.id) ? ' open' : ''}><summary>Details</summary><p>${escape(peer.status)}</p><code>${escape(peer.id)}</code></details></div><span class="network-status">${escape(status)}</span></li>`;
-  }).join('') : '<li class="network-empty">No computers connected yet</li>';
+    return `<li class="network-peer-row" data-peer-phase="${escape(peer.phase || 'connected')}"><div><strong class="pool-small">${escape(computerLabel(state, peer.id))}</strong><span class="pool-small pool-muted">${escape(peer.model)}</span>
+      <details data-peer-identity="${escape(peer.id)}"${expanded.has(peer.id) ? ' open' : ''}><summary>Details</summary><p>${escape(peer.status)}</p><code>${escape(peer.id)}</code></details></div><span class="network-status pool-chip${peer.phase === 'ready' ? ' pool-dot' : ''}${peer.phase === 'failed' ? ' pool-muted' : ''}">${escape(status)}</span></li>`;
+  }).join('') : '<li class="network-empty pool-small pool-muted">No computers connected yet</li>';
   const summary = list.parentElement.querySelector('[data-peer-readiness]');
   if (summary) summary.textContent = `${rows.filter(peer => peer.phase === 'ready').length} ready · ${rows.filter(peer => peer.phase === 'executing').length} working · ${rows.filter(peer => peer.phase === 'failed').length} unavailable`;
 

@@ -22,8 +22,10 @@ for (const theme of ['light', 'dark']) for (const width of [390, 1440]) {
     // A static JSON document provides the origin without booting discovery or providers.
     await page.goto('/config/chat-files.json');
     await page.setContent('<!doctype html><html class="pool-page"><head><meta charset="utf-8"></head><body></body></html>');
-    await page.evaluate(async theme => {
-      for (const file of ['tokens', 'primitives', 'components/base', 'components', 'components/materials', 'components/conversation', 'components/interaction', 'components/optical'].map(name => `poolday/${name}.css`)) {
+    const manifest = JSON.parse(await readFile('self/styles/poolday/layers.json', 'utf8'));
+    const layerFiles = [manifest.tokens, ...manifest.primitives, ...manifest.compositions];
+    await page.evaluate(async ({ theme, layerFiles }) => {
+      for (const file of layerFiles.map(name => `poolday/${name}`)) {
         const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `/styles/${file}`; document.head.append(link);
       }
       const { createChatSession, CANONICAL_CHAT_MODELS } = await import('/host/chat-session.js');
@@ -45,7 +47,7 @@ for (const theme of ['light', 'dark']) for (const width of [390, 1440]) {
         phase(value) { peer.readiness = value; peer.hasInference = value === 'ready'; peer.availableSlots = value === 'ready' ? 1 : 0; session.refreshNetwork(); },
         async close() { unsubscribe(); dispose(); ribbon.dispose(); await session.close(); }
       };
-    }, theme);
+    }, { theme, layerFiles });
     const draft = 'Can you explain a closure?';
     await page.locator('[data-composer-input]').fill(draft);
     await expect(page.locator('[data-ribbon-status]')).toHaveText('Preparing model');

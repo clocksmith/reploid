@@ -7,27 +7,28 @@ import { updateModelSelect } from '../components/model-select.js';
 import { escapeHtml as escape } from '../components/attachments.js';
 import { projectExecutionRibbon, routeMarkup, detailMarkup } from './execution-ribbon.js';
 import { renderRemotePermissionSettings, updateRemotePermissionSettings } from './remote-permission.js';
+import { renderWebSearchSettings, bindWebSearchSettings } from './web-search-settings.js';
 
 export function renderNetworkInspector() {
   return `<aside class="chat-network-rail pool-surface" data-network-rail aria-label="Network and settings">
     <button class="pool-button chat-network-toggle" type="button" data-toggle-inspector aria-haspopup="dialog" aria-expanded="false" aria-label="Inspect network" title="Network">${interfaceIcon('peers')}<span class="chat-rail-label" data-mesh-peers>0 computers</span></button>
-    <dialog class="network-inspector pool-surface" data-contextual-inspector data-network-workspace aria-labelledby="network-inspector-title">
-    <header class="chat-network-heading"><h2 id="network-inspector-title">Network</h2><button class="pool-button" type="button" data-close-inspector aria-label="Close network and settings">${interfaceIcon('close')}</button></header>
-    <nav class="network-inspector-tabs" aria-label="Network sections">
-      <button class="pool-button" type="button" data-inspector-section="conversation" aria-label="This conversation" title="This conversation">${interfaceIcon('activity')}</button>
-      <button class="pool-button" type="button" data-inspector-section="participants" aria-label="Computers" title="Computers">${interfaceIcon('peers')}<span data-mesh-peers class="chat-visually-hidden"></span></button>
-      <button class="pool-button" type="button" data-inspector-section="device" aria-label="This device" title="This device">${interfaceIcon('device')}</button>
-      <button class="pool-button" type="button" data-inspector-section="settings" aria-label="Settings" title="Settings">${interfaceIcon('settings')}</button>
+    <dialog class="network-inspector pool-surface pool-small" data-contextual-inspector data-network-workspace aria-labelledby="network-inspector-title">
+    <header class="chat-network-heading"><h2 class="pool-subheading" id="network-inspector-title">Network</h2><button class="pool-button" type="button" data-close-inspector aria-label="Close network and settings">${interfaceIcon('close')}</button></header>
+    <nav class="network-inspector-tabs pool-segmented" aria-label="Network sections">
+      <button class="pool-segment" type="button" data-inspector-section="conversation" aria-label="This conversation" title="This conversation">${interfaceIcon('activity')}</button>
+      <button class="pool-segment" type="button" data-inspector-section="participants" aria-label="Computers" title="Computers">${interfaceIcon('peers')}<span data-mesh-peers class="chat-visually-hidden"></span></button>
+      <button class="pool-segment" type="button" data-inspector-section="device" aria-label="This device" title="This device">${interfaceIcon('device')}</button>
+      <button class="pool-segment" type="button" data-inspector-section="settings" aria-label="Settings" title="Settings">${interfaceIcon('settings')}</button>
     </nav>
     <section data-inspector-pane="conversation" aria-label="This conversation">
       <div class="execution-ribbon-route" data-inspector-route></div>
       <p data-inspector-status role="status"></p>
-      <details><summary>Execution details</summary><div class="execution-inspector-facts" data-ribbon-facts></div><details><summary>Timeline</summary><ol data-ribbon-timeline></ol></details></details>
+      <details><summary>Execution details</summary><div class="execution-inspector-facts pool-facts" data-ribbon-facts></div><details><summary>Timeline</summary><ol data-ribbon-timeline></ol></details></details>
       <section data-thread-permissions hidden><h4>Current permissions</h4>
         <p>Revoking stops this thread’s sharing. It cannot recall data already sent.</p><ul data-thread-grants></ul></section>
     </section>
     <section data-inspector-pane="participants" aria-label="Available computers" hidden>
-      ${renderConnectionControl()}<p class="network-readiness" data-peer-readiness></p><ul class="network-peer-list" data-insp-device-list></ul>
+      ${renderConnectionControl()}<p class="network-readiness pool-small pool-muted" data-peer-readiness></p><ul class="network-peer-list pool-list" data-insp-device-list></ul>
       <button class="pool-button" type="button" data-mesh-invite hidden>Copy private invitation</button>
     </section>
     <section data-inspector-pane="device" aria-label="This device" hidden>
@@ -35,18 +36,18 @@ export function renderNetworkInspector() {
       <button class="pool-button" type="button" data-model-setup>Run on this device</button>
       <details data-specialized-jobs><summary>Specialized model jobs</summary><div data-specialized-content></div></details>
     </section>
-    <section data-inspector-pane="settings" aria-label="Settings" hidden>${renderRemotePermissionSettings()}</section>
+    <section class="pool-stack pool-gap-lg" data-inspector-pane="settings" aria-label="Settings" hidden>${renderRemotePermissionSettings()}${renderWebSearchSettings()}</section>
     <p data-network-message role="status" hidden></p><p data-inspector-error role="alert" hidden></p>
   </dialog></aside>
-  <dialog class="chat-model-setup pool-surface" data-model-dialog aria-labelledby="model-setup-title">
-    <h2 id="model-setup-title">Run on this device</h2>
+  <dialog class="chat-model-setup pool-surface pool-small" data-model-dialog aria-labelledby="model-setup-title">
+    <h2 class="pool-heading" id="model-setup-title">Run on this device</h2>
     <label>Model<select class="pool-input" data-download-model aria-label="Model to download"></select></label>
     <p data-download-size role="status">Checking download size…</p><p>Stored on this device. Sharing stays optional.</p>
     <div class="chat-network-actions"><button class="pool-button" type="button" data-download-cancel>Cancel</button><button class="pool-button btn-primary" type="button" data-download-confirm disabled>Download model</button></div>
   </dialog>`;
 }
 
-export function bindNetworkInspector(root, session, { getInviteUrl, loadSpecialized } = {}) {
+export function bindNetworkInspector(root, session, { getInviteUrl, loadSpecialized, webSearch = null } = {}) {
   const rail = root.querySelector('[data-network-rail]');
   const find = selector => rail.querySelector(selector) || root.querySelector(selector);
   const panel = find('[data-contextual-inspector]');
@@ -151,15 +152,20 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
       }).catch(cause => { if (!disposed) { specialized = null; error(cause); } });
     }
   });
+  const disposeWebSearch = bindWebSearchSettings(rail, webSearch);
   return {
     mountRail(panelSlot, triggerSlot, onOpen) {
       if (!panelSlot || !triggerSlot) return () => {};
       const railParent = rail.parentElement, railNext = rail.nextSibling;
       const triggerParent = toggle.parentElement, triggerNext = toggle.nextSibling;
       panelSlot.append(rail); triggerSlot.append(toggle); rail.dataset.mounted = '';
+      // Mounted in the conversation rail, the inspector shares the rail's surface instead of its own.
+      const panels = [rail, rail.querySelector('[data-contextual-inspector]')];
+      panels.forEach(panel => panel?.classList.remove('pool-surface'));
       onRailOpen = onOpen;
       return () => {
         dialog.close({ restoreFocus: false }); onRailOpen = null; delete rail.dataset.mounted;
+        panels.forEach(panel => panel?.classList.add('pool-surface'));
         triggerParent.insertBefore(toggle, triggerNext?.parentNode === triggerParent ? triggerNext : null);
         railParent.insertBefore(rail, railNext?.parentNode === railParent ? railNext : null);
       };
@@ -170,6 +176,6 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     },
     open(section = 'participants', opener) { select(section); dialog.open(panel.querySelector(`[data-inspector-section="${section}"]`), opener); },
     close: options => dialog.close(options),
-    dispose() { disposed = true; metadataController?.abort(); controller.abort(); unsubscribe(); network(); modelDialog.dispose(); dialog.dispose(); if (typeof specialized === 'function') specialized(); }
+    dispose() { disposed = true; disposeWebSearch(); metadataController?.abort(); controller.abort(); unsubscribe(); network(); modelDialog.dispose(); dialog.dispose(); if (typeof specialized === 'function') specialized(); }
   };
 }

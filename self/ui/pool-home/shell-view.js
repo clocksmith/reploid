@@ -29,7 +29,7 @@ export const normalizeProductPath = (path = window.location.pathname) => {
 export const getRouteId = () => PRODUCT_ROUTES[normalizeProductPath()] || 'home';
 export const isProductPath = (path) => Object.prototype.hasOwnProperty.call(PRODUCT_ROUTES, normalizeProductPath(path));
 
-export const renderPowerTower = (inverse = false) => `<span class="pool-power-tower"${inverse ? ' data-inverse' : ''} aria-hidden="true"><span class="pool-seven-main">7</span><sup class="pool-seven-small">7</sup></span>`;
+export const renderPowerTower = (inverse = false) => `<span class="pool-power-tower pool-mark"${inverse ? ' data-inverse' : ''} aria-hidden="true"><span class="pool-seven-main">7</span><sup class="pool-seven-small">7</sup></span>`;
 
 export const renderNav = (activeRoute) => {
   const home = escapeHtml(roomHref('/', getPeerRoomId()));
@@ -37,8 +37,8 @@ export const renderNav = (activeRoute) => {
   const changesPath = escapeHtml(roomHref(changes.path, getPeerRoomId()));
   const networkAction = ['home', 'network'].includes(activeRoute) ? '' : '<button class="pool-button" type="button" data-open-network>Network</button>';
   return `
-    <nav class="pool-nav-rail pool-primary-nav pool-surface" aria-label="${escapeHtml(POOLDAY_NAME)}">
-      ${['home', 'network'].includes(activeRoute) ? `<button class="pool-primary-brand pool-button" type="button" data-toggle-thread-rail aria-label="Toggle threads" aria-expanded="false">${renderPowerTower()}</button>` : `<a class="pool-primary-brand" aria-label="${escapeHtml(POOLDAY_NAME)} home"${activeRoute === 'home' ? ' aria-current="page"' : ''} href="${home}" data-pool-route-link="${home}">${renderPowerTower()}<span class="pool-primary-wordmark">${escapeHtml(POOLDAY_NAME)}</span></a>`}
+    <nav class="pool-nav-rail pool-primary-nav${['home', 'network'].includes(activeRoute) ? '' : ' pool-surface'}" aria-label="${escapeHtml(POOLDAY_NAME)}">
+      ${['home', 'network'].includes(activeRoute) ? `<button class="pool-primary-brand pool-button" type="button" data-toggle-thread-rail aria-label="Toggle threads" aria-expanded="false">${renderPowerTower()}</button>` : `<a class="pool-primary-brand pool-heading pool-plain" aria-label="${escapeHtml(POOLDAY_NAME)} home"${activeRoute === 'home' ? ' aria-current="page"' : ''} href="${home}" data-pool-route-link="${home}">${renderPowerTower()}<span class="pool-primary-wordmark">${escapeHtml(POOLDAY_NAME)}</span></a>`}
       ${renderExecutionRibbon()}
       <div class="pool-primary-actions">
         ${renderSettings(renderPowerTower(true), `<a class="pool-nav-link pool-button" href="${changesPath}" data-pool-route-link="${changesPath}" data-pool-nav-id="improve" data-pool-changes aria-label="Changes"${activeRoute === 'improve' ? ' aria-current="page"' : ''}>Changes<span class="pool-change-count" data-pool-change-count aria-hidden="true" hidden></span></a>${networkAction}<a class="pool-button" href="/examples" data-pool-route-link="/examples">Examples</a>`)}

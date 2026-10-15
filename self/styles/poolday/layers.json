@@ -1,12 +1,19 @@
 {
   "tokens": "tokens.css",
-  "primitives": "primitives.css",
-  "components": [
-    "components/base.css",
-    "components.css",
-    "components/materials.css",
-    "components/conversation.css",
-    "components/interaction.css",
-    "components/optical.css"
-  ]
+  "primitives": [
+    "primitives/base.css",
+    "primitives/surfaces.css",
+    "primitives/controls.css",
+    "primitives/layout.css",
+    "primitives/text.css",
+    "primitives/optical.css"
+  ],
+  "compositions": [
+    "compositions/screens.css",
+    "compositions/conversation.css",
+    "compositions/interaction.css"
+  ],
+  "legacy": {
+    "compositions/screens.css": 694
+  }
 }

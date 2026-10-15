@@ -34,8 +34,8 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
         let row = rows.get(id);
         if (!row) {
           row = stream.ownerDocument.createElement('article'); row.dataset.messageId = messageId;
-          row.className = `chat-message-row is-${message.role === 'user' ? 'user' : 'assistant'}`;
-          row.innerHTML = '<details class="chat-execution-activity" data-execution-activity hidden><summary></summary><div data-activity-detail></div></details><span class="chat-message-author"></span><div class="chat-message-content"></div><div class="chat-message-actions"></div>';
+          row.className = message.role === 'user' ? 'chat-message-row is-user pool-well pool-reveal-host' : 'chat-message-row is-assistant';
+          row.innerHTML = '<details class="chat-execution-activity pool-small pool-muted" data-execution-activity hidden><summary></summary><div data-activity-detail></div></details><span class="chat-message-author pool-small pool-muted"></span><div class="chat-message-content pool-body pool-prose"></div><div class="chat-message-actions"></div>';
           row.querySelector('.chat-message-author').textContent = message.role === 'user' ? 'You' : 'Assistant'; rows.set(id, row);
         }
         const body = row.querySelector('.chat-message-content');
@@ -57,13 +57,15 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
         const failed = message.role === 'assistant' && attempt && ['failed', 'cancelled', 'interrupted'].includes(attempt.status);
         const retryable = failed && attempt.id === thread.attempts.at(-1)?.id && !busy;
         const actions = row.querySelector('.chat-message-actions');
-        const actionKey = JSON.stringify([failed && attempt.status, attempt?.error, attempt?.retryOf, retryable, usable, !!message.content]);
+        const sources = message.role === 'assistant' && attempt?.retrieval?.outcome === 'retrieved' ? attempt.retrieval.sources : [];
+        const actionKey = JSON.stringify([failed && attempt.status, attempt?.error, attempt?.retryOf, retryable, usable, !!message.content, sources.map(item => item.url)]);
         if (actions.dataset.key !== actionKey) {
           actions.dataset.key = actionKey;
           actions.innerHTML = `${failed ? `<p role="status">${escape(failureLabel(attempt))}</p>${attempt.error ? `<details><summary>Technical details</summary><pre>${escape(attempt.error)}</pre></details>` : ''}` : ''}
+            ${sources.length ? `<details class="pool-small"><summary>Sources searched (${sources.length})</summary><ol class="pool-list">${sources.map(item => `<li><a href="${escape(item.url)}" target="_blank" rel="noopener noreferrer">[${item.number}] ${escape(item.title)}</a></li>`).join('')}</ol></details>` : ''}
             ${attempt?.retryOf ? '<small>New attempt</small>' : ''}
             ${retryable ? `<button type="button" class="pool-button" data-retry-attempt="${escape(attempt.id)}"${usable ? '' : ' disabled'}>Retry response</button><small>Starts a new attempt; keeps this response.</small>` : ''}
-            ${message.content ? `<button type="button" class="pool-button" data-copy-message aria-label="Copy response" title="Copy response">${interfaceIcon('copy')}</button>` : ''}`;
+            ${message.content ? `<button type="button" class="pool-button btn-ghost pool-icon pool-muted pool-reveal" data-copy-message aria-label="Copy response" title="Copy response">${interfaceIcon('copy')}</button>` : ''}`;
         }
         if (row.parentElement !== stream) stream.append(row);
       }

@@ -130,8 +130,8 @@ describe('boot seed manifest', () => {
 
     for (const layerFile of [
       'styles/poolday/tokens.css',
-      'styles/poolday/primitives.css',
-      'styles/poolday/components.css'
+      'styles/poolday/primitives/base.css',
+      'styles/poolday/compositions/screens.css'
     ]) {
       expect(poolBootFiles).toContain(layerFile);
       expect(reploidHomeFiles).toContain(layerFile);

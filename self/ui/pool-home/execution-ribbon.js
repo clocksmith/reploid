@@ -59,22 +59,22 @@ export function projectExecutionRibbon(state) {
 }
 
 export function renderExecutionRibbon() {
-  return `<div class="execution-ribbon" data-execution-ribbon>
-    <button class="execution-ribbon-trigger" type="button" aria-label="Inspect execution" aria-haspopup="dialog" data-ribbon-trigger>
-      <span class="execution-ribbon-status" data-ribbon-status role="status"></span>
+  return `<div class="execution-ribbon pool-activity-edge" data-execution-ribbon data-activity="idle">
+    <button class="execution-ribbon-trigger pool-button btn-ghost" type="button" aria-label="Inspect execution" aria-haspopup="dialog" data-ribbon-trigger>
+      <span class="execution-ribbon-status pool-caption pool-muted pool-dot" data-ribbon-status role="status"></span>
     </button>
   </div>`;
 }
 
 export function routeMarkup(view) {
-  const nodeMarkup = (label, caption = '', pending = false) => `<span class="execution-ribbon-node${pending ? ' is-unassigned' : ''}"><span class="execution-ribbon-participant">${escape(label)}</span><small>${escape(caption)}</small></span>`;
+  const nodeMarkup = (label, caption = '', pending = false) => `<span class="execution-ribbon-node${pending ? ' is-unassigned' : ''}"><span class="execution-ribbon-participant pool-dot${pending ? ' pool-dot-open' : ''}">${escape(label)}</span><small class="pool-caption pool-muted">${escape(caption)}</small></span>`;
   const requester = nodeMarkup('You', 'Request / output');
   if (!view.executors.length) return ''; // No invented route before admission.
-  const nodes = view.executors.map(node => nodeMarkup(node.label, node.id === view.requester ? 'Request / output' : '')).join('<span class="execution-ribbon-wire" aria-hidden="true"></span>');
-  const group = `<span class="execution-ribbon-executors"><small class="execution-ribbon-model">${escape(view.model)}</small><span class="execution-ribbon-machines">${nodes}</span></span>`;
+  const nodes = view.executors.map(node => nodeMarkup(node.label, node.id === view.requester ? 'Request / output' : '')).join('<span class="execution-ribbon-wire pool-divider" aria-hidden="true"></span>');
+  const group = `<span class="execution-ribbon-executors"><small class="execution-ribbon-model pool-caption pool-muted">${escape(view.model)}</small><span class="execution-ribbon-machines">${nodes}</span></span>`;
   // In a split, output returns B → A → requester through the same participants.
   return view.requesterExecutes ? group
-    : `${requester}<span class="execution-ribbon-wire" aria-hidden="true"></span>${group}`;
+    : `${requester}<span class="execution-ribbon-wire pool-divider" aria-hidden="true"></span>${group}`;
 }
 
 export function detailMarkup(view) {
@@ -99,9 +99,9 @@ export function bindExecutionRibbon(root, { onInspect = () => {}, labelSession =
   const controller = new AbortController(), options = { signal: controller.signal };
   let key = null, lastResponse = '', pulse = null, timer = null;
   trigger.addEventListener('click', () => onInspect('conversation', trigger), options);
-  const stopPulse = () => { pulse?.cancel(); pulse = null; clearTimeout(timer); timer = null; ribbon.removeAttribute('data-output-observed'); };
+  const stopPulse = () => { pulse?.cancel(); pulse = null; clearTimeout(timer); timer = null; ribbon.removeAttribute('data-output-observed'); ribbon.dataset.activity = 'idle'; };
   const drawPulse = () => {
-    stopPulse(); ribbon.dataset.outputObserved = 'true';
+    stopPulse(); ribbon.dataset.outputObserved = 'true'; ribbon.dataset.activity = 'ready';
     const path = find('[data-ribbon-status]');
     if (!globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches && typeof path.animate === 'function') {
       // One restrained acknowledgement of observed output, never an idle loop.

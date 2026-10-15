@@ -121,86 +121,65 @@ Modules loaded via VFS blob imports must be single-file or use absolute URLs. Re
 
 ## Poolday design system
 
-Poolday is self-contained: tokens feed primitives, primitives feed components, and
-nothing else styles the product. `self/pool-entry.html` loads only the Poolday layers,
-and its root carries `class="pool-page"`, so the page shell (rem base, page color,
-color scheme) composes the same primitives. `index.html` can host Poolday routes, so
-`rd.css` and `boot.css` exclude the `.pool-home` subtree from every selector. Keep Zero
-and X independent. Controls carry no outline borders; depth comes from shadows. The
-ordered manifest in `self/styles/poolday/layers.json` owns the stylesheet list. Both
-`self/pool-entry.html` and the synchronous fallback loader in `self/index.html`
-mirror it so browsers fetch styles in parallel without CSS imports.
+Poolday is built in three layers, and each layer uses only the one below it:
 
-Each layer composes only the layer below it:
+- **Tokens** (`self/styles/poolday/tokens.css`) are every value: one neutral gray
+  ramp named by lightness (`--pool-gray-13` is `#202020`), alpha steps, and scales for
+  size, radius, border, text, line height, weight and tracking. Semantic tokens
+  (`--pool-color-page`, `--pool-color-ink-48`, `--pool-shadow-raised`) map them per
+  theme. Every Poolday custom property is a token.
+- **Primitives** (`primitives/*.css`) are the building blocks, written as classes
+  that consume tokens: surfaces, cards, wells, dividers, buttons, fields, switches,
+  segmented controls, chips, badges, disclosures, stacks, rows, columns, text styles,
+  prose, bars and the brand mark.
+- **Compositions** (`compositions/*.css`) are screens made of primitives. A converted
+  composition only arranges (grid, flex, position, size, gaps); every look comes from
+  primitive classes in the markup.
 
-- **Tokens** hold raw values and reference only other tokens. Theme variants carry
-  `-light-` in the name.
-- **Primitives** are compositions of token variables with no literal values. They
-  map tokens per theme.
-- **Components** compose primitives, component parameters (`--pool-param-*`) and the
-  runtime inputs listed in the `components.css` header. Colors, lengths, angles,
-  times, weights, line heights, opacities, stacking, scales and easings always come
-  from primitives. The only literals left are structural: `0`, `1`, grid and flex
-  counts and `fr`, `calc()` multipliers, and percentages or viewport units in
-  geometry properties.
-- **Scripts** in `self/ui/pool-home/` write only custom properties to inline styles.
-  A measured height or a share becomes a `--pool-param-*` that a component rule
-  consumes.
+`self/pool-entry.html` loads only these layers, in the order `layers.json` lists, and
+its root carries `class="pool-page"` so the page shell uses the same tokens.
+`index.html` can host Poolday routes, so `rd.css` and `boot.css` exclude the
+`.pool-home` subtree from every selector. Keep Zero and X independent.
 
-| Layer | Ownership |
-|-------|-----------|
-| `tokens.css` | Raw colors, dimensions, shadows, gradients and motion values |
-| `primitives.css` | Semantic surface, spacing, typography and motion variables; light/dark mapping |
-| `components/base.css` | Page shell (`html.pool-page`) and element defaults inside `.pool-home`: resets, inherited type, fields, buttons |
-| `components/materials.css` | Shared surfaces, buttons, inputs and interaction states |
-| `components/conversation.css` | Conversation layout and local component states |
-| `components/optical.css` | Glass edges on model choice and the composer; activity line |
-| `components.css` | Existing navigation, work, network and other route layouts |
-
-Compose material classes with local layout classes. Do not copy border, shadow,
-background and focus recipes into individual components. Existing work selectors
-alias the shared materials so older views use the same recipe. New markup uses
-the explicit classes. Keep component values semantic (`--pool-surface-*`,
-`--pool-space-*`, etc.); component-local parameters use `--pool-param-*`.
-
-| Class | Contract |
-|-------|----------|
-| `pool-surface` | Opaque raised panel; component owns padding and layout |
-| `pool-button` | Shared control, 44px minimum height, hover/pressed/focus states; `btn-primary` inverts contrast |
-| `pool-focus-within` | Focus ring for a label wrapping a native control |
-| `pool-input` | Inset field material and keyboard focus; component owns dimensions |
-| `pool-glass` | Restrained prismatic fill and edge |
-| `pool-glass-focus` | Applies glass only while focused |
-| `pool-activity-edge` | Noninteractive light on a positioned wrapper; `data-activity` selects its state |
+| Primitive | Classes |
+|-----------|---------|
+| Surfaces | `pool-surface` (material only), `pool-card` (with padding), `pool-well` (inset), `pool-divider`, `pool-list` |
+| Controls | `pool-button` with `btn-primary`, `btn-ghost`, `pool-icon`; `pool-input`, `pool-bare`, `pool-file`, `pool-switch`, `pool-segmented` + `pool-segment`, `pool-chip`, `pool-badge`, `pool-disclosure` |
+| Layout | `pool-stack`, `pool-row` (`pool-row-between`, `pool-row-end`), `pool-columns`, `pool-gap-xs` to `pool-gap-xl`, `pool-grow` |
+| Text | `pool-title`, `pool-heading`, `pool-subheading`, `pool-body`, `pool-small`, `pool-caption`, `pool-label`, `pool-muted`, `pool-mono`, `pool-mark`, `pool-facts`, `pool-plain`, `pool-prose` |
+| Feedback | `pool-bar`, `pool-dot`, `pool-reveal` with `pool-reveal-host`, `pool-glass`, `pool-glass-focus`, `pool-activity-edge` |
 
 ```html
-<section class="chat-conversation-area pool-surface">
-  <div class="chat-composer-field pool-activity-edge" data-activity="idle">
-    <textarea class="pool-input pool-glass-focus" aria-label="Message"></textarea>
+<section class="pool-card pool-stack pool-gap-sm">
+  <h2 class="pool-heading">Model</h2>
+  <p class="pool-small pool-muted">A new model starts a new thread.</p>
+  <div class="pool-row pool-row-end">
+    <button class="pool-button" type="button">Cancel</button>
+    <button class="pool-button btn-primary" type="button">Start</button>
   </div>
-  <button class="pool-button btn-primary" type="submit">Send</button>
 </section>
 ```
 
-Large reading surfaces stay opaque. Glass accents belong on model choice and
-composer focus. `ready` gives one brief glint; `executing` moves
-only while the selected thread is actually executing. Queuing, loading, approval,
-cancellation and completion are idle. These attributes project host state; they
-never start execution or grant permission. Text remains the authoritative status.
-Reduced motion removes animation, and forced colors preserves control outlines.
+When a screen needs a look no primitive has, use the nearest primitive. Add a
+primitive or variant only when several screens need the same new look. Scripts write
+only custom properties to inline styles; a measured height or a share becomes a
+`--pool-param-*` that a rule consumes.
 
-After changing a layer, the manifest, either entry path or a product script's
-inline styles, run `npm run verify:pool:css`. It checks all manifest modules,
-variable ownership, the literal rules above, undefined references, both entry paths
-and product inline styles.
+The conversation screen (`compositions/conversation.css` and `interaction.css`) is
+converted. `compositions/screens.css` still carries one-off visual declarations;
+`layers.json` records how many remain under `legacy`, and that number may only go
+down as screens move to primitives.
 
-The design system page shows every token and primitive, plus live product
-components with the primitives and tokens each one uses. Run `npm start`, then
-open `http://localhost:8000/design/poolday`. Values are editable in place and apply
-to every specimen. The Changes panel lists the declarations to paste back into the
-layer files. When a layer file changes on disk, the page reloads that stylesheet
-without a refresh. `tests/e2e/chat-material.spec.js` is
-the browser coverage for themes, narrow layouts, focus and activity states; run it
-only for changes to those states.
+`npm run verify:pool:css` checks the layer manifest and both entry paths. It also
+checks token references, structural-only literals, converted compositions, the
+legacy count and product inline styles. `tests/e2e/chat-rail-layout.spec.js` covers
+the conversation screen in both themes and at narrow widths.
+
+The design system page shows every token, every primitive and every composition live.
+Each composition lists the primitives and tokens it uses and any one-off declarations
+left. Run `npm start`, then open `http://localhost:8000/design/poolday`. Token values
+are editable in place and apply to every specimen. The Changes panel lists the lines
+to paste back into `tokens.css`. When a layer file changes on disk, the page reloads
+it without a refresh.
 
 *Last updated: October 2026*

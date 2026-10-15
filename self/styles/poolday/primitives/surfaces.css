@@ -1,0 +1,50 @@
+/* Surface primitives: the material a composition places content on.
+   pool-surface  raised panel material; the composition owns padding and layout
+   pool-card     raised panel with its own padding
+   pool-well     inset area for grouped or quoted content
+   pool-divider  hairline separator
+   pool-list     children separated by hairlines
+   pool-prose    rendered markdown: headings, links, code blocks, tables
+   pool-bar      proportional bar; each child span sets --pool-param-share
+   pool-dot      leading status dot (pool-dot-open: hollow)
+   pool-reveal   hidden until its pool-reveal-host is hovered or focused
+   Work selectors in :where() still alias the surface recipe until that screen is converted. */
+.pool-home :is(.pool-surface, :where(
+  .pool-work-composer:not(.pool-work-embedded), .pool-work-output:not(.pool-work-embedded),
+  .pool-work-task-header:not(.pool-work-embedded), .pool-work-task, .pool-thread-list,
+  .pool-work-approval, .pool-control-panel, .pool-agent-network)) {
+  border: var(--pool-border-hairline) solid var(--pool-color-line);
+  border-radius: var(--pool-radius-panel);
+  background: var(--pool-color-raised);
+  color: var(--pool-color-ink);
+  box-shadow: var(--pool-shadow-raised);
+}
+.pool-home .pool-card {
+  padding: var(--pool-size-24);
+  border: var(--pool-border-hairline) solid var(--pool-color-line);
+  border-radius: var(--pool-radius-panel);
+  background: var(--pool-color-raised);
+  color: var(--pool-color-ink);
+  box-shadow: var(--pool-shadow-raised);
+}
+.pool-home .pool-well {
+  padding: var(--pool-size-16);
+  border-radius: var(--pool-radius-control);
+  background: var(--pool-color-inset);
+  color: var(--pool-color-ink);
+  box-shadow: var(--pool-shadow-inset);
+}
+.pool-home .pool-divider { height: 0; margin: 0; border: 0; border-top: var(--pool-border-hairline) solid var(--pool-color-line); }
+.pool-home .pool-list > * + * { border-top: var(--pool-border-hairline) solid var(--pool-color-line); }
+.pool-home .pool-prose :is(h1, h2, h3, h4, h5, h6) { font-size: var(--pool-text-lg); font-weight: var(--pool-weight-medium); }
+.pool-home .pool-prose a { color: inherit; text-decoration: underline; border-bottom: 0; }
+.pool-home .pool-prose pre { border-radius: var(--pool-radius-control); background: var(--pool-color-inset); box-shadow: var(--pool-shadow-inset); }
+.pool-home .pool-prose :is(th, td) { border: var(--pool-border-hairline) solid var(--pool-color-line); }
+.pool-home .pool-bar { display: flex; gap: var(--pool-size-2); height: var(--pool-size-4); overflow: hidden; border-radius: var(--pool-radius-control); }
+.pool-home .pool-bar > span { flex: var(--pool-param-share) 1 0; background: var(--pool-color-ink); }
+.pool-home .pool-bar > span:nth-child(even) { background: var(--pool-color-muted); }
+.pool-home .pool-dot { display: inline-flex; align-items: center; gap: var(--pool-size-4); }
+.pool-home .pool-dot::before { content: ''; flex: none; width: var(--pool-size-8); height: var(--pool-size-8); border-radius: var(--pool-radius-round); background: currentColor; }
+.pool-home .pool-dot.pool-dot-open::before { background: transparent; border: var(--pool-border-hairline) solid currentColor; }
+.pool-home .pool-reveal-host .pool-reveal { opacity: 0; }
+.pool-home .pool-reveal-host:is(:hover, :focus-within) .pool-reveal { opacity: 1; }
