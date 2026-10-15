@@ -19,7 +19,8 @@ export const POOL_FUNDER_KINDS = Object.freeze(['donor', 'operator']);
 for (const kind of POOL_FUNDER_KINDS) {
   if (!FUNDER_KINDS.includes(kind)) throw new Error(`ledger has no ${kind} funder kind`);
 }
-// `none` is the proposed default: queue or explicit retry, no guaranteed minimum or completion.
+// `none` implements the adopted terms (contract 1.4): fair eligibility when funded, bounded queueing, explicit
+// refusal when funding is used up, and no guaranteed minimum or completion. `funded_floor` adds a funded minimum.
 export const GUARANTEE_MODES = Object.freeze(['none', 'funded_floor']);
 export const FLOOR_SHORTFALL_BEHAVIORS = Object.freeze(['queue', 'unavailable']);
 export const ENTRY_STATES = Object.freeze(['waiting', 'admitting', 'admitted', 'completed', 'unavailable']);

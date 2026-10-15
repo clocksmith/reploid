@@ -2,13 +2,14 @@
 
 **Ask, explore and figure things out. Earn access on your computer, or pay as you go.**
 
-**Reploid Product Economics Contract v1.3**, identity `reploid.product-economics/1.3.0`
+**Reploid Product Economics Contract v1.4**, identity `reploid.product-economics/1.4.0`
 (2026-10-15). These are the public terms that every quote and receipt binds: the
 service record, Community Access, credits and settlement, answer quality, and
-contribution and disclosure. Version 1.3 keeps the user-facing rights and
-obligations of v1.2.1 unchanged and moves the business plan, funding decisions,
-economic tests and roadmap into the owner's private planning documents; earlier
-versions remain in Git history. [GOALS.md](../GOALS.md) and [INTENT.md](../INTENT.md)
+contribution and disclosure. Version 1.4 adopts the owner's Community Access and
+sensitive-work defaults and states search disclosure as requirements met by approved
+provider templates; v1.3 (`42344207`) and earlier versions remain in Git history.
+Prices, deadlines, bonuses and provider choices are operational policy: they live
+in versioned policy records that quotes and offers bind, not in this contract. [GOALS.md](../GOALS.md) and [INTENT.md](../INTENT.md)
 hold Reploid's direction and invariants, and the [architecture](open-mesh-architecture.md)
 describes the mechanisms.
 
@@ -56,12 +57,29 @@ operators and reserved community resources, not a signup trial or promotional
 credit allocation. It MUST have fair queues, usage limits, abuse controls and
 visible availability. Registration MUST NOT automatically issue transferable credits.
 
-An operator-funded guaranteed basic-service minimum remains an open decision.
-**Proposed default:** until funding and supply are committed, disclose queuing or
-explicit retry without a guaranteed minimum or completion time; queue access does
-not promise an eventual answer. A funded floor requires declared allocation,
-funding source, admission limits, reliability coverage and shortfall behavior. A positive credit balance likewise does not guarantee
-immediate capacity. Requesting, earning and purchasing remain independently available.
+**Guarantee (adopted 2026-10-15): fair eligibility when funded, not immediate
+completion.** While the pool has funding and admitted capacity for the period, every
+eligible request MUST be admitted fairly: accounts take turns and each account's
+requests keep their order, subject only to the published per-account and per-device
+usage, rate and abuse limits. Community Access never
+promises immediate completion or a completion time.
+
+- **Queueing:** a request that cannot be admitted at once waits in a bounded
+  first-come queue whose maximum length and wait are declared in the policy record in
+  force. A waiting request shows that it is queued, sends nothing until admitted and
+  may be cancelled. Leaving the queue (cancelled, full, or past its wait) MUST end
+  explicitly, at no charge.
+- **Exhaustion:** when the pool's remaining funding, including funds held by admitted
+  requests, cannot cover a request, or the account's usage allowance is used up, the
+  request MUST be refused explicitly rather than queued. Funds only held by admitted
+  requests still fund a place in the bounded queue. Admitted requests complete or settle under their accepted terms;
+  exhaustion never revokes them.
+- **No donor capacity:** with no funded pool or no admitted capacity, Community Access
+  MUST show as unavailable and refuse requests explicitly. It never falls back to
+  hosted supply implicitly. Earned and purchased credits stay usable.
+
+A positive credit balance likewise does not guarantee immediate capacity. Requesting,
+earning and purchasing remain independently available.
 
 ## 3. Credits and marketplace
 
@@ -161,20 +179,28 @@ scope explicitly covers the selected recipients, model and disclosure. Record ac
 recipients and never silently switch an active attempt's route. Revocation stops
 new disclosures; it cannot erase information already delivered.
 
-Arbitrary-peer eligibility versus approved operators for sensitive work remains
-an open policy decision. **Proposed default:** fail closed when recipient eligibility
-or disclosure scope is unspecified; participation, payment and signatures confer
-no trusted status. Existing grants remain mandatory regardless. Any approved-operator
-class needs defined admission criteria, identity and scope; it does not prove secrecy.
+**Sensitive work (adopted 2026-10-15).** Community executors receive private inputs
+only through the requester's explicit authorization: the explained one-time permission
+whose recorded scope covers them, or a per-answer grant. Otherwise a request MUST use
+local execution, a private pool the requester joined by invitation, or separately
+approved hosted supply that is labeled and priced separately. Fail closed when
+recipient eligibility or disclosure scope is unspecified; participation, payment and
+signatures confer no trusted status. Existing grants remain mandatory regardless. Any
+approved-operator class needs defined admission criteria, identity and scope; it does
+not prove secrecy.
 Stopping contribution MUST preserve history and MUST NOT directly cancel
 unrelated requests. Loss of indispensable capacity may require waiting or explicit
 retry. Saved history MUST NOT be represented as recovered inference state.
 
-**Retrieval permission.** The current search grant reads exactly: "Allow Reploid to
-send this search query to Brave and share retrieved passages with the listed
-execution contributors for this answer. Your files and unrelated conversation
-history are excluded." This Brave-specific grant does not authorize other providers
-or broader context; route-specific disclosure must identify the actual fetch
-operator and approved synthesis context.
+**Retrieval permission.** A search-backed answer MUST have its own per-answer
+permission that discloses, before anything is sent: which search service, or which
+person-chosen search server, receives the query; who fetches the result pages (this
+device or Reploid's server); which execution contributors receive the retrieved
+passages; and that files and unrelated conversation history are excluded. Each
+provider's exact wording is an owner-approved, versioned template. The permission
+record binds the shown template's identity, version and text, and for a person-chosen
+server its host. A template for one provider never authorizes another; adding or
+changing a provider needs an approved template, not a contract revision. Retrieved
+context sent for synthesis is limited to the current question and those passages.
 
 *Last updated: October 2026*

@@ -126,8 +126,11 @@ export function createCommunityAccess({ backend, ledger, accounts, readCommunity
     const capacity = await loadCapacity(now);
     if (!capacity.ok) return { capacity, problem: { reason: capacity.reason } };
     const balances = await Promise.all(pools.map((poolId) => ledger.getAccount(poolId)));
-    const funded = balances.some((pool) => (pool?.available ?? 0) >= maxCharge);
-    return { capacity, problem: funded ? null : { reason: 'unfunded' } };
+    // Funds held by admitted requests return as they settle, so they still fund a place in the queue; a pool whose
+    // whole remaining funding cannot cover the quote is used up for this request.
+    const funded = balances.some((pool) => (pool?.outstanding ?? 0) >= maxCharge);
+    const remaining = balances.some((pool) => (pool?.outstanding ?? 0) > 0);
+    return { capacity, problem: funded ? null : { reason: remaining ? 'pool_exhausted' : 'unfunded' } };
   };
 
   /** Change one request and its queue counters atomically. */
@@ -232,6 +235,15 @@ export function createCommunityAccess({ backend, ledger, accounts, readCommunity
     if (code === 'insufficient_balance') {
       if (entry.lane === 'floor' && accessPolicy.guarantee.floor.shortfall === 'unavailable') {
         await releaseClaim(entry.requestId, { state: 'unavailable', reason: 'floor_shortfall', reasonDetails: { cause: 'floor_unfunded' } });
+        return { status: 'unavailable', lane: entry.lane };
+      }
+      // Funds held by admitted requests return as they settle, so the request waits in the bounded queue. When even
+      // the held funds could not cover it, the period's funding is used up: refuse explicitly rather than queue.
+      const required = attempt.error.details?.required;
+      const pool = Number.isSafeInteger(required) ? await ledger.getAccount(entry.poolAccountId) : null;
+      if (pool && pool.outstanding < required) {
+        await releaseClaim(entry.requestId, { state: 'unavailable', reason: 'pool_exhausted',
+          reasonDetails: { outstanding: pool.outstanding, required } });
         return { status: 'unavailable', lane: entry.lane };
       }
       await releaseClaim(entry.requestId, { state: 'waiting' });
