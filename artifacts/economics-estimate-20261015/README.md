@@ -12,6 +12,7 @@ funding authority, production prices or public release.
 
 ## Read and reproduce
 
+- [Question-synthesis scenario](question-synthesis-scenario.json): the clarified consumer focus and illustrative $10 top-up arithmetic for model-only, one-search and three-search answers. Current provider prices; no approved tariff or proven quality equivalence.
 - [Efficiency investigation](../efficiency-evidence-20261015/README.md): retained kernel gains, provisional latency breakdowns, fresh component-power observations and controlled proof obligations; no wall-power or economic acceptance claim.
 - [Calculated tables](RESULTS.md): costs, contributor redemption, sensitivity and break-even rates.
 - [Inputs](inputs.json): exact values, scenario names, price sources, dates and package identity.
