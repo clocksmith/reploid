@@ -86,7 +86,7 @@
   transition: background var(--pool-transition-fast), color var(--pool-transition-fast);
 }
 
-.pool-home .pool-segment:hover {
+.pool-home .pool-segment:hover:not(:disabled) {
   color: var(--pool-color-ink);
   background: var(--pool-color-inset);
 }
@@ -98,6 +98,7 @@
 }
 
 .pool-home .pool-segment:focus-visible { outline: var(--pool-border-thick) solid var(--pool-color-focus); outline-offset: var(--pool-border-thick); }
+.pool-home .pool-segment:disabled { opacity: var(--pool-alpha-48); cursor: not-allowed; }
 
 /* Chips and badges: small inline labels. A chip is an inset choice; a badge is raised status. */
 .pool-home .pool-chip {

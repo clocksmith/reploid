@@ -19,7 +19,7 @@ export function renderNetworkInspector() {
       <button class="pool-button chat-rail-icon" type="button" data-inspector-section="settings" aria-label="Settings" title="Settings">${interfaceIcon('settings')}<span class="chat-rail-label">Settings</span></button>
     </nav>
     <dialog class="network-inspector pool-surface pool-small" data-contextual-inspector data-network-workspace aria-labelledby="network-inspector-title">
-    <header class="chat-network-heading"><h2 class="pool-subheading" id="network-inspector-title">Network</h2><button class="pool-button" type="button" data-close-inspector aria-label="Close network and settings">${interfaceIcon('close')}</button></header>
+    <header class="chat-network-heading"><h2 class="pool-subheading" id="network-inspector-title" tabindex="-1">Network</h2><button class="pool-button" type="button" data-close-inspector aria-label="Back to chat" title="Back to chat">${interfaceIcon('close')}</button></header>
     <section data-inspector-pane="conversation" aria-label="This conversation">
       <div class="execution-ribbon-route" data-inspector-route></div>
       <p data-inspector-status role="status"></p>
@@ -64,15 +64,19 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   let onRailOpen = null;
   let opener;
   const dialog = {
-    open(focus, trigger) {
+    open(trigger) {
       onRailOpen?.(); opener = trigger || toggle;
       opener.setAttribute('aria-expanded', 'true');
       surface?.setAttribute('data-network-panel-open', ''); rail.dataset.expanded = '';
-      toggle.setAttribute('aria-expanded', 'true');
       if (!panel.open) panel.show();
-      (focus || opener).focus({ preventScroll: true });
+      for (const button of navigation.querySelectorAll('[data-inspector-section]')) {
+        const selected = !panel.querySelector(`[data-inspector-pane="${button.dataset.inspectorSection}"]`).hidden;
+        button.setAttribute('aria-current', String(selected));
+        button.setAttribute('aria-expanded', String(selected));
+      }
+      find('#network-inspector-title').focus({ preventScroll: true });
     },
-    close({ restoreFocus = true } = {}) { const wasOpen = panel.open; opener?.setAttribute?.('aria-expanded', 'false'); panel.close(); surface?.removeAttribute('data-network-panel-open'); delete rail.dataset.expanded; toggle.setAttribute('aria-expanded', 'false'); if (wasOpen && restoreFocus) opener?.focus?.({ preventScroll: true }); },
+    close({ restoreFocus = true } = {}) { const wasOpen = panel.open; opener?.setAttribute?.('aria-expanded', 'false'); panel.close(); surface?.removeAttribute('data-network-panel-open'); delete rail.dataset.expanded; for (const button of navigation.querySelectorAll('[data-inspector-section]')) { button.setAttribute('aria-expanded', 'false'); button.setAttribute('aria-current', 'false'); button.setAttribute('aria-pressed', 'false'); } if (wasOpen && restoreFocus) opener?.focus?.({ preventScroll: true }); },
     dispose() { if (panel.open) panel.close(); surface?.removeAttribute('data-network-panel-open'); if (settingsSection) { settingsSection.append(...settingsChildren); settingsSection.hidden = false; } }
   };
   const controller = new AbortController(), options = { signal: controller.signal };
@@ -96,13 +100,12 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   }, options);
   const onEscape = event => { if (event.key === 'Escape' && panel.open) { event.preventDefault(); event.stopPropagation(); dialog.close(); } };
   rail.addEventListener('keydown', onEscape, options);
-  toggle.addEventListener('keydown', onEscape, options);
+  panel.addEventListener('keydown', onEscape, options);
   navigation.addEventListener('click', event => {
     const button = event.target.closest('[data-inspector-section]');
     if (!button) return;
     const section = button.dataset.inspectorSection;
-    if (panel.open && !panel.querySelector(`[data-inspector-pane="${section}"]`).hidden) dialog.close();
-    else { select(section); dialog.open(button, button); }
+    select(section); dialog.open(button);
   }, options);
   navigation.addEventListener('keydown', onEscape, options);
   on('[data-close-inspector]', 'click', () => dialog.close());
@@ -189,7 +192,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
       const railParent = rail.parentElement, railNext = rail.nextSibling;
       const triggerParent = navigation.parentElement, triggerNext = navigation.nextSibling;
       panelSlot.append(rail); triggerSlot.append(navigation); rail.dataset.mounted = '';
-      // Mounted in the conversation rail, the inspector shares the rail's surface instead of its own.
+      // The main workspace supplies the surface; keep its contents on one material.
       const panels = [rail, rail.querySelector('[data-contextual-inspector]')];
       panels.forEach(panel => panel?.classList.remove('pool-surface'));
       onRailOpen = onOpen;
@@ -202,9 +205,9 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     },
     toggle(section = 'settings', opener) {
       if (panel.open && !panel.querySelector(`[data-inspector-pane="${section}"]`).hidden) dialog.close();
-      else { select(section); dialog.open(null, opener); }
+      else { select(section); dialog.open(opener); }
     },
-    open(section = 'participants', opener) { select(section); dialog.open(navigation.querySelector(`[data-inspector-section="${section}"]`), opener); },
+    open(section = 'participants', opener) { select(section); dialog.open(opener || navigation.querySelector(`[data-inspector-section="${section}"]`)); },
     close: options => dialog.close(options),
     dispose() { disposed = true; disposeWebSearch(); disposeAccount(); metadataController?.abort(); controller.abort(); unsubscribe(); network(); modelDialog.dispose(); dialog.dispose(); if (typeof specialized === 'function') specialized(); }
   };
