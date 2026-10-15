@@ -6,6 +6,8 @@ import { createPeerPackSupplier, createPeerPackArtifactStore } from '../../self/
 import { createPeerPackDataChannel } from '../../self/pool/peer-pack-data-channel.js';
 import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../../self/pool/inference-receipt.js';
 import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
+import { DELIVERY_ATTESTATION_SCHEMA } from '../../packages/reploid/src/artifacts/delivery-attestation.js';
+import { verifyCanonicalSignature } from '../../packages/reploid/src/artifacts/signatures.js';
 
 function channelPair() {
   const channels = [new EventTarget(), new EventTarget()];
@@ -526,6 +528,15 @@ describe('identity certificates beside custody grants', () => {
       expect(supplierRecord.authorization).toEqual(requesterRecord.authorization);
       expect(JSON.stringify(requesterRecord.authorization)).not.toContain('certificate');
       expect(f.requests.at(-1).requesterCertificate).toEqual(requester);
+      // The certified requester attests its exact completed receipt with the custody key the grant names.
+      const { signature, ...attested } = requesterRecord.attestation;
+      expect(attested).toEqual({ schema: DELIVERY_ATTESTATION_SCHEMA, authorizationHash: requesterRecord.receipt.authorizationHash,
+        transferId: requesterRecord.transferId, receiptDigest: await hashDopplerEvidence(requesterRecord.receipt),
+        completed: requesterRecord.receipt.completed, attestedAt: expect.any(String) });
+      expect(requesterRecord.receipt.completed).toEqual([expect.objectContaining({ artifactId: f.file.path })]);
+      expect(await verifyCanonicalSignature(attested, requesterRecord.authorization.requester.publicKey, signature,
+        { domain: DELIVERY_ATTESTATION_SCHEMA })).toBe(true);
+      expect(supplierRecord.attestation).toBeNull();
     } finally { f.close(); }
   });
 
@@ -536,6 +547,8 @@ describe('identity certificates beside custody grants', () => {
       const { requesterRecord, supplierRecord } = await transfer(f);
       expect(requesterRecord.certificates).toMatchObject({ requester: null, supplier: { participantId: identity.peerId } });
       expect(supplierRecord.certificates.requester).toBeNull();
+      // An uncertified requester's key names no one, so it attests nothing.
+      expect(requesterRecord.attestation).toBeNull();
       expect(f.requests.at(-1)).not.toHaveProperty('requesterCertificate');
     } finally { f.close(); }
 

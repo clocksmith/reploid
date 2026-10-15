@@ -155,6 +155,8 @@ export function createAccountStore({
     kind: backend.kind,
     policy: activePolicy,
     providerIds: signInProviders.providerIds,
+    /** Configured providers and whether each serves local runs and tests only. */
+    signInProviders: signInProviders.providers,
 
     /**
      * Verify a provider assertion and open a session for its subject's

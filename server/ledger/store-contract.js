@@ -8,7 +8,7 @@
 export const LEDGER_STORE_OPERATIONS = Object.freeze([
   'openAccount', 'getAccount', 'issueCredits', 'getLot',
   'createQuote', 'getQuote', 'acceptQuote',
-  'bindAttempt', 'recordAttemptOutcome', 'getReservation', 'listReservations',
+  'bindAttempt', 'recordAttemptOutcome', 'getReservation', 'listReservations', 'listAccountReservations',
   'settleReservation', 'resolveQualityReview', 'getQualityReview', 'refundSettlement',
   'reverseIssuance', 'getReversal',
   'recordFundingCommitment', 'getFundingCommitment', 'allocateFunding', 'releaseFundingAllocation',

@@ -1320,8 +1320,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 534449,
-      "sha256": "sha256:db56c953464e4acb9b68eff018b5aa0dda69629df72525026b3e2b1ac8c2e7a3"
+      "byteLength": 534741,
+      "sha256": "sha256:9fa25c8751d94b842cc0714fafba40777581f72bb5a88c0a1e75f2ae8485080d"
     },
     {
       "path": "config/module-registry.json",
@@ -1380,8 +1380,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 114703,
-      "sha256": "sha256:c0cf843ade09479ab1cfcd9865c4186c1df0a41eb9b1f39fa0236a25cefcf963"
+      "byteLength": 114759,
+      "sha256": "sha256:cce7d5b35a7b38e21b38b474d20b26a261b3b3392b05efd04bbb20cc6c6a9371"
     },
     {
       "path": "config/vfs-policy.js",
@@ -9265,8 +9265,8 @@
     },
     {
       "path": "vendor/reploid/artifacts/custody/exchange.js",
-      "byteLength": 25398,
-      "sha256": "sha256:8af6962250f25a754d956d8edb77e0e7e22daa82cbb4277769a6ead289973a29"
+      "byteLength": 26130,
+      "sha256": "sha256:833cbbf46e913352d507e9d69685d3126ba4ff45c9ca89963149c5de28df465d"
     },
     {
       "path": "vendor/reploid/artifacts/custody/piece-acquisition.js",
@@ -9282,6 +9282,11 @@
       "path": "vendor/reploid/artifacts/custody/supply-budget.js",
       "byteLength": 1429,
       "sha256": "sha256:9b59ab5aacbf1f55e3188d0c7fdfdd24c752df92f7140e43e675eaecd0f62a64"
+    },
+    {
+      "path": "vendor/reploid/artifacts/delivery-attestation.js",
+      "byteLength": 2707,
+      "sha256": "sha256:842a01c08e31a147ec961e9902b851973359c6125eb4f7fd3c068b135e657aac"
     },
     {
       "path": "vendor/reploid/artifacts/identity.js",
@@ -9300,8 +9305,8 @@
     },
     {
       "path": "vendor/reploid/artifacts/participant-proofs.js",
-      "byteLength": 5666,
-      "sha256": "sha256:dd1c93242af58f2910c7db1ea3a83cdea7b3278df245391b68e8d614e0b63a37"
+      "byteLength": 7809,
+      "sha256": "sha256:af3e7303b3a513f584b70180e27dbaf72c52e58adf1af538d66adcad41fae985"
     },
     {
       "path": "vendor/reploid/artifacts/receipt.js",
@@ -9665,8 +9670,8 @@
     },
     {
       "path": "vendor/reploid/package-assets.json",
-      "byteLength": 40243,
-      "sha256": "sha256:e3063967f87a23870bb801e4e18f6f52d4b25a1b204fc942455d559d903d8bc7"
+      "byteLength": 40411,
+      "sha256": "sha256:bc851d8b5f00d1fc8dc9e1ceae255875ab728f65d2d9a756e6efd06dec579624"
     },
     {
       "path": "vendor/reploid/retrieval/citations.js",
@@ -9794,5 +9799,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:73c4582ae4ebb1e6cb336471e0215d4d87a39d34bfe04fb1501af750ad5da42a"
+  "bundleHash": "sha256:5b6a141b8caece466674a55afdea93888b42fe5201f473e526a83287a5072ca5"
 }

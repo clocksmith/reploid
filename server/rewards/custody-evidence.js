@@ -12,12 +12,13 @@
  * chunk's bytes, checked against the committed hash.
  */
 
+import { DELIVERY_ATTESTATION_SCHEMA, deliveryAttestationBody as attestationBody } from '../../packages/reploid/src/artifacts/delivery-attestation.js';
 import { sha256Hex, verifyCanonicalSignature } from '../../packages/reploid/src/artifacts/signatures.js';
 import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
 import { isIsoTime } from '../ledger/domain.js';
 
 const PREFIX = 'reploid.pool.pack-custody';
-export const DELIVERY_ATTESTATION_SCHEMA = 'reploid.custody-delivery-attestation/v1';
+export { DELIVERY_ATTESTATION_SCHEMA };
 export const CHALLENGE_ANSWER_SCHEMA = 'reploid.reward-challenge-answer/v1';
 
 const unsigned = ({ signature: _signature, ...body }) => body;
@@ -53,17 +54,12 @@ export async function certifiedCustodyKey(identity, { certificate, at }) {
   }
 }
 
-/** The body an acquirer host signs, with its custody key, after a verified acquisition. */
-export async function deliveryAttestationBody({ receipt, attestedAt }) {
-  return {
-    schema: DELIVERY_ATTESTATION_SCHEMA,
-    authorizationHash: receipt.authorizationHash,
-    transferId: receipt.transferId,
-    receiptDigest: await hashDopplerEvidence(receipt),
-    completed: receipt.completed,
-    attestedAt
-  };
-}
+/**
+ * The body an acquirer host signs, with its custody key, after a verified
+ * acquisition: the library format the custody exchange signs, over the same
+ * evidence digest.
+ */
+export const deliveryAttestationBody = ({ receipt, attestedAt }) => attestationBody({ receipt, attestedAt, hash: hashDopplerEvidence });
 
 /** A chunk proof is the chunk itself: base64 bytes matching the committed size and hash. */
 export async function verifyChunkBytes(base64, chunk) {

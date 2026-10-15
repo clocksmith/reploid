@@ -1,3 +1,5 @@
+import { signDeliveryAttestation } from '../delivery-attestation.js';
+
 /** Discovery composition for the existing signed custody store and bounded byte channel. */
 export function createCustodyExchange({ transport, identity, policy, ports }) {
   policy = structuredClone(policy);
@@ -52,6 +54,13 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
       const certificate = await ports.certificate();
       return bound(certificate, identity) ? structuredClone(certificate) : null;
     } catch (error) { ports.onError?.(error); return null; }
+  };
+  // A certified requester signs the exact completed receipt with the custody key its grant names,
+  // for whoever claims the delivery. An uncertified host's key names no one, so it signs nothing.
+  const attest = async (receipt, certificate) => {
+    if (!certificate) return null;
+    try { return await signDeliveryAttestation({ receipt, attestedAt: new Date(now()).toISOString(), privateKey: identity.privateKey, hash }); }
+    catch (error) { ports.onError?.(error); return null; }
   };
   // Optional host admission: it withholds new supply and its advertisement; granted transfers continue.
   const admitted = (active, advertise) => !ports.admitSupply || ports.admitSupply({ active, advertise }) === true;
@@ -216,7 +225,7 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
           throw error;
         }
         ports.observeDelivery?.({ role: 'supplier', transferId: authorization.transferId, peerId: peer,
-          authorization: structuredClone(authorization), index: structuredClone(index), receipt: null, certificates });
+          authorization: structuredClone(authorization), index: structuredClone(index), receipt: null, certificates, attestation: null });
       } finally { preparing--; notify(); }
     })().catch(error => {
       if (!closed) transport.sendToPeer(peer, 'reploid:custody-response', { id: message?.id, error: error.message });
@@ -293,10 +302,14 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
           combined.throwIfAborted();
         }
         ports.observe?.(store.getReceipt());
-        ports.observeDelivery?.({ role: 'requester', transferId: grant.transferId, peerId: peer,
-          authorization: structuredClone(grant), index: structuredClone(result.index), receipt: structuredClone(store.getReceipt()),
-          certificates: { requester: requesterCertificate,
-            supplier: bound(result.supplierCertificate, grant.suppliers[0]) ? structuredClone(result.supplierCertificate) : null } });
+        if (ports.observeDelivery) {
+          const receipt = structuredClone(store.getReceipt());
+          ports.observeDelivery({ role: 'requester', transferId: grant.transferId, peerId: peer,
+            authorization: structuredClone(grant), index: structuredClone(result.index), receipt,
+            certificates: { requester: requesterCertificate,
+              supplier: bound(result.supplierCertificate, grant.suppliers[0]) ? structuredClone(result.supplierCertificate) : null },
+            attestation: await attest(receipt, requesterCertificate) });
+        }
         return bytes;
       } catch (error) {
         if (store) ports.observe?.({ ...store.getReceipt(), failure: error.message }); throw reservationFailure || error;

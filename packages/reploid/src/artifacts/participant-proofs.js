@@ -3,7 +3,7 @@
  *
  * A device's persistent participant identity (the Ed25519 or ECDSA P-256
  * bundle browser and native hosts already keep) signs domain-separated
- * canonical statements: device registration proofs here, custody-key
+ * canonical statements: device registration proofs and session bindings here, custody-key
  * certificates in custody-certificate.js. WebCrypto only, so browser and
  * native hosts can sign with the same code the server verifies with.
  */
@@ -20,9 +20,11 @@ import {
 } from './identity.js';
 
 export const REGISTRATION_PROOF_SCHEMA = 'reploid.device-registration-proof/v1';
+export const SESSION_BINDING_SCHEMA = 'reploid.device-session-binding/v1';
 export const DEVICE_HOSTS = Object.freeze(['browser', 'native']);
 
 const PROOF_KEYS = Object.freeze(['schema', 'challengeId', 'nonce', 'accountId', 'audience', 'participantId', 'publicJwk', 'host', 'signature']);
+const SESSION_BINDING_KEYS = Object.freeze(['schema', 'challengeId', 'nonce', 'accountId', 'sessionId', 'participantId', 'signature']);
 const COORDINATE = /^[A-Za-z0-9_-]{16,128}$/;
 
 const sameKeys = (value, keys) => Boolean(value) && typeof value === 'object' && !Array.isArray(value)
@@ -88,6 +90,39 @@ export async function createDeviceRegistrationProof({ identity, challenge, host 
 }
 
 /**
+ * The statement a device signs to make the session that asked for
+ * `challenge` act as that device. Only a host holding that session signs it;
+ * a device registered from another session's challenge signs only the proof.
+ */
+export const sessionBindingBody = ({ challenge, participantId }) => ({
+  schema: SESSION_BINDING_SCHEMA,
+  challengeId: challenge.challengeId,
+  nonce: challenge.nonce,
+  accountId: challenge.accountId,
+  sessionId: challenge.sessionId,
+  participantId
+});
+
+/** Device side: bind the challenge's session to this persistent participant identity. */
+export async function createSessionBinding({ identity, challenge }) {
+  const publicJwk = normalizeParticipantPublicKey(identity?.publicJwk);
+  if (!publicJwk || !identity.privateJwk) throw new TypeError('A persistent participant signing identity is required');
+  if (typeof challenge?.sessionId !== 'string' || challenge.sessionId.length === 0) throw new TypeError('The challenge must name its session');
+  const body = sessionBindingBody({ challenge, participantId: await participantIdFor(publicJwk) });
+  return { ...body, signature: await signAsParticipant(identity, SESSION_BINDING_SCHEMA, body) };
+}
+
+/** Whether `binding` is `publicJwk`'s signed statement binding `challenge.sessionId` to it. */
+export async function checkSessionBinding(binding, { publicJwk, challenge }) {
+  if (!sameKeys(binding, SESSION_BINDING_KEYS) || binding.schema !== SESSION_BINDING_SCHEMA) return false;
+  const participantId = await participantIdFor(publicJwk);
+  const { signature, ...body } = binding;
+  const expected = sessionBindingBody({ challenge, participantId });
+  if (Object.keys(expected).some((key) => body[key] !== expected[key])) return false;
+  return verifyParticipantSignature(publicJwk, SESSION_BINDING_SCHEMA, body, signature);
+}
+
+/**
  * Check a registration proof's form, key-to-participant binding and
  * signature. Challenge freshness and ownership are the store's checks.
  * Returns { problem, publicJwk, participantId }; problem is null when valid.
@@ -109,6 +144,7 @@ export async function checkDeviceRegistrationProof(proof) {
 
 export default {
   REGISTRATION_PROOF_SCHEMA,
+  SESSION_BINDING_SCHEMA,
   DEVICE_HOSTS,
   normalizeParticipantPublicKey,
   participantIdFor,
@@ -116,5 +152,8 @@ export default {
   verifyParticipantSignature,
   registrationProofBody,
   createDeviceRegistrationProof,
-  checkDeviceRegistrationProof
+  checkDeviceRegistrationProof,
+  sessionBindingBody,
+  createSessionBinding,
+  checkSessionBinding
 };

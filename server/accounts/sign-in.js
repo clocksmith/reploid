@@ -15,6 +15,8 @@
  *   }>
  *   It throws (or rejects) when the assertion is not genuine, not issued for
  *   `audience`, or expired.
+ *   testOnly: true marks a provider for local runs and tests only
+ *   (test-sign-in.js); hosted compositions refuse it in production.
  *
  * No real provider ships here. Real providers need their own acceptance.
  */
@@ -27,7 +29,7 @@ const text = (value, maxLength) => isNonEmptyString(value) && value.length <= ma
 
 /**
  * @param {Array<object>} providers sign-in providers satisfying the contract above
- * @returns {{ providerIds: string[], verify(input): Promise<object> }}
+ * @returns {{ providerIds: string[], providers: Array<{providerId: string, testOnly: boolean}>, verify(input): Promise<object> }}
  */
 export function createSignInProviders(providers = []) {
   const byId = new Map();
@@ -35,11 +37,13 @@ export function createSignInProviders(providers = []) {
     if (!PROVIDER_ID.test(String(provider?.providerId)) || typeof provider.verifyAssertion !== 'function') {
       throw new TypeError('each sign-in provider needs a providerId and verifyAssertion(assertion, context)');
     }
+    if (provider.testOnly !== undefined && typeof provider.testOnly !== 'boolean') throw new TypeError('provider testOnly must be a boolean');
     if (byId.has(provider.providerId)) throw new TypeError(`duplicate sign-in provider ${provider.providerId}`);
     byId.set(provider.providerId, provider);
   }
   return Object.freeze({
     providerIds: [...byId.keys()],
+    providers: Object.freeze([...byId.values()].map((provider) => Object.freeze({ providerId: provider.providerId, testOnly: provider.testOnly === true }))),
 
     /** Verify one assertion and normalize the provider's answer; every failure is explicit. */
     async verify({ providerId, assertion, audience, now, maxClockSkewMs }) {

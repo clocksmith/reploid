@@ -35,7 +35,7 @@ import {
   put,
   toMs
 } from './domain.js';
-import { checkDeviceRegistrationProof } from '../../packages/reploid/src/artifacts/participant-proofs.js';
+import { checkDeviceRegistrationProof, checkSessionBinding } from '../../packages/reploid/src/artifacts/participant-proofs.js';
 
 const challengeView = (challenge) => ({
   schema: challenge.schema,
@@ -43,6 +43,7 @@ const challengeView = (challenge) => ({
   nonce: challenge.nonce,
   accountId: challenge.accountId,
   audience: challenge.audience,
+  sessionId: challenge.sessionId,
   issuedAt: challenge.issuedAt,
   expiresAt: challenge.expiresAt
 });
@@ -92,25 +93,35 @@ export function createDeviceOperations({ backend, policy, clock, createId, trans
 
     /**
      * Bind the proving device key to the session's account. `bindSession`
-     * makes the calling session act as that device (for spending); a session
+     * makes the calling session act as that device (for spending); it needs
+     * the device's signed session binding for this challenge and session, so
+     * only the host holding both the key and the session binds. A session
      * registering another device, such as a native host, leaves it false.
      */
     async registerDevice(input = {}) {
-      assertKnownKeys(input, ['sessionToken', 'proof', 'label', 'bindSession', 'idempotencyKey'], 'registerDevice');
-      const { sessionToken, proof, label = null, bindSession = false, idempotencyKey } = input;
+      assertKnownKeys(input, ['sessionToken', 'proof', 'label', 'bindSession', 'sessionBinding', 'idempotencyKey'], 'registerDevice');
+      const { sessionToken, proof, label = null, bindSession = false, sessionBinding = null, idempotencyKey } = input;
       if (label !== null) assertText(label, 'label', 64);
       if (typeof bindSession !== 'boolean') fail('invalid_input', 'bindSession must be a boolean');
+      if (!bindSession && sessionBinding !== null) fail('invalid_input', 'a session binding is submitted only with bindSession');
       assertIdempotencyKey(idempotencyKey);
       const now = clock();
-      const { account: caller } = await readSession(backend, sessionToken, now);
+      const { session: callerSession, account: caller } = await readSession(backend, sessionToken, now);
       const accountId = caller.accountId;
-      const request = { proof, label, bindSession };
+      const request = { proof, label, bindSession, sessionBinding };
       const operation = 'registerDevice';
       const prior = await lookupIdempotent({ operation, scopeId: accountId, idempotencyKey, request });
       if (prior) return prior.result;
       const checked = await checkDeviceRegistrationProof(proof);
       if (checked.problem) fail(checked.problem, 'the device did not prove possession of its participant identity key');
       const { publicJwk, participantId } = checked;
+      // The binding must name this proof's challenge and the calling session; the
+      // transaction below checks that the challenge was issued to that session.
+      if (bindSession && !await checkSessionBinding(sessionBinding, {
+        publicJwk, challenge: { challengeId: proof.challengeId, nonce: proof.nonce, accountId: proof.accountId, sessionId: callerSession.sessionId }
+      })) {
+        fail('session_binding_invalid', 'binding a session needs the device\'s signed binding for this challenge and session');
+      }
       const deviceId = deviceIdFor(publicJwk);
       const participantIndexId = indexId('participant', participantId);
       return mutate({

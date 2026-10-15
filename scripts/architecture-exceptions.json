@@ -233,6 +233,12 @@
       "expression": "path.isAbsolute(value) ? pathToFileURL(value).href : value",
       "owner": "server/CATSCAN.md",
       "contract": "Explicit operator-selected local WebRTC, WebSocket and WebGPU modules; absolute filesystem paths or the named native packages only. No peer-supplied code or network module URLs. See artifacts/native-participant-20261012/README.md#run."
+    },
+    {
+      "source": "server/earning-routes/mount.js",
+      "expression": "pathToFileURL(path.resolve(specifier)).href",
+      "owner": "server/earning-routes/CATSCAN.md",
+      "contract": "The operator-selected earning composition module named by REPLOID_EARNING_COMPOSITION, resolved from the local filesystem at startup and only when REPLOID_EARNING_ROUTES=enabled. No request-supplied code or network module URLs."
     }
   ],
   "cycles": []
