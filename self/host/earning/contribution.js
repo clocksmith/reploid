@@ -10,6 +10,11 @@
  * host neither loses nor doubles them. A claim refused only because its
  * evidence is not reported yet is tried again later under a new key; the
  * service still pays each unit of work once.
+ *
+ * A charged attempt this resident closed carries its signed receipt and the
+ * latest requester acknowledgment it was forwarded; that evidence is submitted
+ * once per closed receipt, so the requester's report is not the only record
+ * of the work.
  */
 import { deliveryEvidenceFromRecord, deliveryEvidenceId } from '../../vendor/reploid/artifacts/delivery-attestation.js';
 
@@ -52,6 +57,28 @@ export function createEarningContribution({ client, offers = {}, ownerPolicyDige
     }
   }
 
+  /** Signed evidence of charged attempts this resident closed, from its admission records. */
+  async function submitEvidence(records = []) {
+    const results = [];
+    for (const record of records) {
+      const bundle = record?.evidence;
+      const receipt = bundle?.receipts?.[0];
+      if (record?.participantId !== client.participantId || !receipt || receipt.status === 'executing') continue;
+      const unitKey = `attempt-evidence:${bundle.reservationId}:${bundle.attemptId}:${record.index}:${receipt.sequence}:${bundle.acknowledged?.acknowledgment.count ?? 0}`;
+      const state = await storage.get(claimState(unitKey));
+      if (state?.status === DONE) continue;
+      try {
+        const kept = await client.send({ opId: unitKey, path: '/attempt-evidence', body: { evidence: structuredClone(bundle) } });
+        await storage.set(claimState(unitKey), { status: DONE, evidenceId: kept.evidenceId });
+        results.push({ unitKey, status: DONE, evidenceId: kept.evidenceId, rejected: kept.rejected ?? [] });
+      } catch (error) {
+        if (!error.pending) await storage.set(claimState(unitKey), { status: DONE, refused: error.code });
+        results.push({ unitKey, status: error.pending ? 'pending' : DONE, code: error.code });
+      }
+    }
+    return results;
+  }
+
   /** Stage shares from this participant's settled admission records. */
   async function claimStageShares(records = []) {
     if (!offers.stageShare) return [];
@@ -59,8 +86,10 @@ export function createEarningContribution({ client, offers = {}, ownerPolicyDige
     for (const record of records) {
       if (record?.participantId !== client.participantId || record.phase !== 'settled' || record.failure != null || !record.identity) continue;
       const unitKey = `stage:${record.identity.attemptId}:${record.index}`;
+      // The signed evidence travels separately (submitEvidence); the claim carries the admission record.
+      const { evidence: _evidence, ...admission } = record;
       results.push({ unitKey, ...await claim(unitKey, offers.stageShare, {
-        stageIndex: record.index, contribution: { admission: structuredClone(record), ownerPolicyDigest }
+        stageIndex: record.index, contribution: { admission: structuredClone(admission), ownerPolicyDigest }
       }) });
     }
     return results;
@@ -109,11 +138,13 @@ export function createEarningContribution({ client, offers = {}, ownerPolicyDige
       return client.send({ opId: `owner:${deviceId}:${ownerPolicyDigest}`, method: 'PUT',
         path: `/devices/${encodeURIComponent(deviceId)}/owner-authorization`, body: { ownerAuthorization }, durable: false });
     },
+    submitEvidence,
     claimStageShares,
     settleDeliveries,
-    /** Claim everything new in the host's current records; calls run one at a time. */
+    /** Submit evidence, then claim everything new in the host's current records; calls run one at a time. */
     observe({ admissions = [], deliveries = [] } = {}) {
-      const run = flushing.then(async () => ({ stages: await claimStageShares(admissions), deliveries: await settleDeliveries(deliveries) }));
+      const run = flushing.then(async () => ({ evidence: await submitEvidence(admissions), stages: await claimStageShares(admissions),
+        deliveries: await settleDeliveries(deliveries) }));
       flushing = run.catch(() => {});
       return run;
     },

@@ -7,7 +7,7 @@ Parent: [Hosted Services](../CATSCAN.md)
 Credit only for validated, demanded contribution under accepted offers, within capacity-bounded issuance bases.
 
 ## Authority
-- Owns offers, per-category validation, contract challenges, readiness probes, funding reservations, delivery evidence and the ledger's reward `issuanceAuthority`.
+- Owns offers, per-category validation, contract challenges, readiness probes, funding reservations, delivery evidence and the ledger's `issuanceAuthority`.
 - Excludes balances, prices, reward amounts, identity, capacity admission and quality adjudication.
 
 ## Scope
@@ -18,20 +18,21 @@ Credit only for validated, demanded contribution under accepted offers, within c
 
 Inputs:
 - Explicit reward and issuance policy; offer terms.
-- [Ledger](../ledger/CATSCAN.md) settlements, route summaries, attested REP-5 receipts, identity-certified custody keys, stage probe ports and capacity evidence.
+- [Ledger](../ledger/CATSCAN.md) settlements, route summaries or kept stage receipts, attested REP-5 receipts, certified custody keys, probe ports, capacity evidence.
 
 Outputs:
-- Operations in [store-contract.js](store-contract.js); earned or subsidized issuance decisions.
+- [Store operations](store-contract.js); earned or subsidized issuance decisions.
 
 ## Invariants
 - Only policy-enabled categories earn, never online time.
 - Evidence roots: ledger settlement, recipient-attested receipts (kept only from attesting devices), or store-run challenges and probes; signatures alone never suffice.
-- Readiness requires real admission, execution and settlement probes, never stored bytes.
+- Readiness requires real admission, execution, settlement probes, never stored bytes.
 - Storage is accessible delivery; byte responses cannot establish local custody.
-- Missed or failed obligations reduce or void rewards per accepted terms.
+- Missed or failed obligations reduce or void rewards.
 - Funded-reservation credit is subsidized, never earned, from open, authority-approved [register](../ledger/funding/CATSCAN.md) allocations; bases stay within admitted capacity.
 - One reward per unit of work; same account, owner, participant or named link earns nothing.
-- Rejections, voids and declines persist.
+- Rejections, voids, declines persist.
+- Disputes earn after review.
 
 ## Acceptance
 - Evidence: memory and Firestore pass identical [inference](../../tests/unit/contribution-rewards.test.js), [category](../../tests/unit/contribution-reward-categories.test.js) and [delivery](../../tests/unit/custody-delivery-attribution.test.js) scenarios.

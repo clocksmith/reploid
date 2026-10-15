@@ -25,8 +25,10 @@ const lost = () => Object.assign(new Error('Partition stage channel closed'), { 
 /**
  * @param {string[]} participants stage participant ids, coordinator first
  * @param {string} requesterId the weightless requester's participant id
+ * @param {object[]} [signers] each stage host's createAttemptEvidenceSigner, in stage order; stages sign receipts
+ *   for attempts that carry the requester's charge binding
  */
-export async function residentRoute({ participants, requesterId }) {
+export async function residentRoute({ participants, requesterId, signers = [] }) {
   const count = participants.length;
   const plan = {
     schema: 'doppler.layer-partition-contract/v3', modelId: MODEL.modelId, totalLayers: count * 2, hiddenSize: HIDDEN, vocabSize: 128,
@@ -69,7 +71,7 @@ export async function residentRoute({ participants, requesterId }) {
       runtime: { openResidentPartition: async () => session },
       model: { id: MODEL.modelId, identity: MODEL.modelIdentity, generation: { maxTokens: STEPS } },
       plan, planId: MODEL.planId, index, participantId, limits: { maxAttempts: 100, maxConcurrentAttempts: 2 },
-      ordered: { runtime, stage: route.stages[index] }
+      ordered: { runtime, stage: route.stages[index] }, ...(signers[index] ? { evidence: signers[index] } : {})
     });
     await resident.prepare({ approved: true });
     residents.push(resident);
@@ -137,6 +139,8 @@ export async function residentRoute({ participants, requesterId }) {
       let sequence = 0;
       const result = await runner.execute({
         identity, tokenIds: [1, 2], generation: { maxTokens: STEPS }, maxTokens: STEPS, signal: controls.signal,
+        // The requester's charge binding and acknowledgment port, as the coordinator's ordered chat forwards them.
+        ...(controls.charge ? { charge: controls.charge, ...(controls.onOutput ? { onOutput: controls.onOutput } : {}) } : {}),
         grants: { execution: stages.map(() => grant), tokenContext: stages.map(() => grant), activation: stages.slice(1).map(() => grant), output: grant },
         onActivity: (activity) => controls.onActivity?.({ threadId: request.threadId, attemptId: request.attemptId, ...activity }),
         onDelta: (text) => controls.onDelta?.({ threadId: request.threadId, attemptId: request.attemptId, sequence: sequence++, text })

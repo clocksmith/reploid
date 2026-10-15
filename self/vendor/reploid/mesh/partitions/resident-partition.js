@@ -4,12 +4,17 @@ import failureMessages from '../../transport/partition-errors.json' with { type:
 import { createPartitionReservations } from './partition-reservations.js';
 import { assertPartition as assert, canonicalPartitionJson } from './partition-contract.js';
 import { verifyPartitionStageCommit } from './partition-stage-commit.js';
+import { openStageReceipts } from './partition-attempt-evidence.js';
 
 /** Owns an explicitly contributed runtime session; never implements model computation. An optional
  * shared `device` admission (Launch 3, ordered only) charges this resident's weights once and every
- * admitted attempt's `attemptBytes` and slot against one budget for the whole device. */
+ * admitted attempt's `attemptBytes` and slot against one budget for the whole device. An optional
+ * `evidence` signer (createAttemptEvidenceSigner over the host's participant identity, ordered only)
+ * signs cumulative receipts for attempts that arrive with the requester's charge binding. */
 export function createResidentPartition({ runtime, model, plan, planId, index, participantId, limits,
-  canonicalGeneration, canonicalRuntime, canonicalCommitAuthority, ordered = null, device = null, attemptBytes, onChange = () => {} }) {
+  canonicalGeneration, canonicalRuntime, canonicalCommitAuthority, ordered = null, device = null, attemptBytes, evidence = null, onChange = () => {} }) {
+  assert(evidence === null || ordered && typeof evidence.sign === 'function' && evidence.participantId === participantId,
+    'Stage receipts need an ordered resident and this participant\'s signing identity');
   assert(typeof runtime?.openResidentPartition === 'function', 'Doppler resident partition API is unavailable');
   assert((ordered ? Number.isSafeInteger(index) && index >= 0 && index < plan?.stageCount : [0, 1].includes(index)) && plan?.partitions?.[index] && model?.id === plan.modelId
     && /^sha256:[a-f0-9]{64}$/.test(model.identity) && typeof planId === 'string' && planId
@@ -37,6 +42,34 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
   const lifetime = new AbortController(), operations = new Set(), listeners = new Set([onChange]);
   const attempts = new Set();
   const reservations = createPartitionReservations({ limits, participantId, index });
+  // Charged attempts' receipt tallies, bounded like reservation history.
+  const tallies = new Map();
+  const bound = identity => routeBinding ? routeBinding.identity(identity) : identity;
+  const openTally = async request => {
+    if (!evidence || request.charge === undefined || request.charge === null) return;
+    const binding = routeBinding.identity(request.identity);
+    if (tallies.has(binding.attemptId)) return;
+    const opening = openStageReceipts({ signer: evidence, identity: binding, partitionIndex: index, charge: request.charge });
+    tallies.set(binding.attemptId, opening);
+    try { await opening; } catch (cause) { tallies.delete(binding.attemptId); throw cause; }
+  };
+  const recordStep = async (result, input) => {
+    const tally = await tallies.get(result?.identity?.attemptId ?? input.identity?.attemptId);
+    if (!tally) return result;
+    if (input.acknowledged) tally.acknowledge(input.acknowledged);
+    // A receipt that cannot be signed leaves the step unreceipted; it never fails the computation.
+    const receipt = await tally.step({ step: input.step, inputTokenCount: input.inputTokenCount,
+      delta: result.delta, done: result.done, stopReason: result.stopReason }).catch(() => null);
+    reservations.attachEvidence(bound(input.identity), tally.evidence());
+    return receipt ? { ...result, receipt } : result;
+  };
+  const closeTally = async (identity, acknowledged) => {
+    const tally = await tallies.get(identity?.attemptId)?.catch(() => null);
+    if (!tally) return;
+    if (acknowledged) tally.acknowledge(acknowledged);
+    await tally.close({ failed: reservations.failureOf(identity) != null });
+    reservations.attachEvidence(identity, tally.evidence());
+  };
   let draining = null, finishDrain = null;
   let phase = 'idle', error = null, session = null, preparing = null, closing = null, disposal = null, descriptor = null;
   let tail = Promise.resolve(), generationDigest = null, recovery = null;
@@ -99,6 +132,7 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
           reservations.settled(snapshot.identity);
           attempts.delete(snapshot.identity.attemptId); device?.release(deviceOwner, snapshot.identity.attemptId);
           if (!attempts.size) finishDrain?.();
+          await closeTally(bound(snapshot.identity)).catch(() => {});
         } catch {
           phase = 'failed'; error = String(cause.message || cause);
           lifetime.abort(cause); notify(); await dispose();
@@ -150,6 +184,8 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     reserve: routeBinding ? async request => {
       request.signal?.throwIfAborted();
       assert(request.partitionIndex === index, 'Ordered reservation stage mismatch');
+      await openTally(request);
+      request.signal?.throwIfAborted();
       if (device && !attempts.has(request.identity?.attemptId)) {
         assert(phase === 'ready' && !lifetime.signal.aborted, 'Partition contributor is not ready');
         const binding = routeBinding.identity(request.identity);
@@ -217,7 +253,10 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
       return preparing;
     },
     tokenize(request) { assert(index === 0, 'Only partition A tokenizes'); return invoke('tokenize', request); },
-    executeStage(request) { assert(routeBinding, 'Ordered resident execution was not allocated'); return invoke('executeStage', request); },
+    executeStage(request) {
+      assert(routeBinding, 'Ordered resident execution was not allocated');
+      return invoke('executeStage', request, evidence ? recordStep : undefined);
+    },
     executeGroup0(request) { assert(!ordered, 'Ordered resident requires executeStage'); assert(!canonical, 'Canonical resident requires canonical execution'); assert(index === 0, 'This contributor is partition B'); return invoke('executeGroup0', request); },
     executeGroup1(request) { assert(!ordered, 'Ordered resident requires executeStage'); assert(!canonical, 'Canonical resident requires canonical execution'); assert(index === 1, 'This contributor is partition A'); return invoke('executeGroup1', request); },
     admitCanonicalPrompt(request) { return canonicalInvoke('admitCanonicalPrompt', request); },
@@ -236,18 +275,20 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
       }
       return committed('commitCanonicalTransition', request);
     },
-    async closeAttempt({ identity }) {
+    async closeAttempt({ identity, acknowledged = null }) {
       if (routeBinding) identity = routeBinding.identity(identity);
       // Never free admission capacity before the runtime confirms cleanup.
       reservations.settling(identity);
       try {
         if (session) await session.closeAttempt({ identity: structuredClone(identity) });
         reservations.settled(identity); attempts.delete(identity.attemptId); device?.release(deviceOwner, identity.attemptId);
-        if (!attempts.size) finishDrain?.(); notify();
+        if (!attempts.size) finishDrain?.();
       } catch (cause) {
         reservations.fail(identity, cause);
         throw Object.assign(new Error(failureMessages.CLEANUP_FAILED, { cause }), { code: 'CLEANUP_FAILED' });
       }
+      // The closing receipt is signed only after the runtime confirmed cleanup; signing never unsettles it.
+      try { await closeTally(identity, acknowledged); } catch {} finally { notify(); }
     },
     drain() {
       if (draining) return draining;

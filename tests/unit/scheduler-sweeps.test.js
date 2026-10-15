@@ -39,7 +39,7 @@ const PAYMENT_POLICY = Object.freeze({
   topUps: [{ topUpId: 'test-topup', price: { amountMinor: 500, currency: 'USD' } }],
   polling: { minAgeMs: MIN, reversalWatchMs: DAY }
 });
-const SWEEPS = ['ledger.expireReservations', 'ledger.expireAllocations', 'rewards.resumeFunding', 'rewards.resumeIssuance',
+const SWEEPS = ['ledger.settleDueEvidence', 'ledger.expireReservations', 'ledger.expireAllocations', 'rewards.resumeFunding', 'rewards.resumeIssuance',
   'community-access.resumeFunding', 'community-access.expireQueue', 'payments.pollPending'];
 const schedule = ({ batchLimit = 10, intervalMs = 5 * MIN, only = SWEEPS } = {}) => ({
   scheduleVersion: 'test-schedule/1',

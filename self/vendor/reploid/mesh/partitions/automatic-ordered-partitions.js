@@ -319,7 +319,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       await service.refresh({ signal });
       return { ready: !!offer && !stopping && !moving && phase === 'ready', descriptor: { models: service.getModels() } };
     },
-    async generate(input, { signal, onDelta, onUsage, onActivity, publication, onPublished }) {
+    async generate(input, { signal, onDelta, onUsage, onActivity, onOutput, publication, onPublished }) {
       assert(equal(admissions.get(input.attemptId), input), 'Local ordered input is not approved');
       assert((publication !== undefined) === (input.publication !== undefined), 'Local ordered publication requires its requester context');
       const model = service.getModels().find(row => equal(row.partition?.route, input.route) && row.availability === 'ready');
@@ -332,7 +332,8 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       try {
         result = await service.generate({ meshId, participantId: identity.peerId, threadId: input.threadId,
           attemptId: input.attemptId, placementGeneration: input.placementGeneration, disclosureExpiresAt: input.disclosureExpiresAt, model, messages: structuredClone(input.messages), ...(input.generationRequest ? {generationRequest: input.generationRequest} : {}),
-          ...(scope ? { publication: structuredClone(input.publication) } : {}), permissions: { sharingScope: 'approved-partition-path' } }, { signal,
+          ...(scope ? { publication: structuredClone(input.publication) } : {}), ...(input.charge !== undefined ? { charge: structuredClone(input.charge) } : {}),
+          permissions: { sharingScope: 'approved-partition-path' } }, { signal, ...(input.charge !== undefined && onOutput ? { onOutput } : {}),
           ...(scope ? { publication: entryPublicationPort((method, body) => scope.call(method, body)) } : {}),
           requestApproval: async () => equal(admissions.get(input.attemptId), input), onActivity: value => onActivity?.(value), onUsage: value => onUsage?.({schema:value.schema,inputTokens:value.inputTokens,outputTokens:value.outputTokens}), onDelta: event => onDelta?.(event.text) });
         if (scope) {
@@ -426,12 +427,15 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
         coordinatorId: route.stages[0].participantId, route, modelId: model.id, modelIdentity: model.identity, planId: route.planId,
         ...(controls.onActivity ? {activity:'reploid.partition-activity/v1'} : {}),
         threadId: request.threadId, attemptId: request.attemptId, placementGeneration: identityBinding.placementGeneration, disclosureExpiresAt: expiresAt, messages: request.messages, ...(requested ? {generationRequest: requested} : {}),
-        ...(published ? { publication: { schema: ORDERED_PUBLICATION_CONTEXT_SCHEMA, publisherEpoch: controls.publisherEpoch, deadlineAt: expiresAt } } : {}) };
+        ...(published ? { publication: { schema: ORDERED_PUBLICATION_CONTEXT_SCHEMA, publisherEpoch: controls.publisherEpoch, deadlineAt: expiresAt } } : {}),
+        // A charged attempt's signed binding, made after its spending binding; outputs return for acknowledgment.
+        ...(controls.charge && typeof controls.onOutput === 'function' ? { charge: structuredClone(controls.charge) } : {}) };
       assert(!admissions.has(input.attemptId), 'Ordered requester attempt already admitted'); admissions.set(input.attemptId, structuredClone(input));
       let sequence = 0;
       try {
         controls.onState?.({ threadId: request.threadId, attemptId: request.attemptId, status: 'executing', execution: { placement: 'ordered-layer-partition', identity: identityBinding } });
         const result = await entry.generate(input, { signal, ...(published ? { publication: controls.publication, onPublished: controls.onPublished } : {}),
+          ...(input.charge ? { onOutput: controls.onOutput } : {}),
           ...(controls.onActivity ? {onActivity: activity => controls.onActivity({threadId:request.threadId,attemptId:request.attemptId,...activity})} : {}), onUsage: usage => controls.onUsage?.({threadId: request.threadId, attemptId: request.attemptId, ...usage}), onDelta: text => controls.onDelta?.({ threadId: request.threadId,
           attemptId: request.attemptId, sequence: sequence++, text }) });
         return { ...result, threadId: request.threadId, attemptId: request.attemptId, modelId: model.id, modelIdentity: model.identity,

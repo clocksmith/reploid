@@ -20,6 +20,7 @@ import { parseArgs } from 'node:util';
 import { createAutomaticPartitions, createLegacyGenerationMesh, createPartitionNetwork, createResidentPartition, createSignedResidentFactory, createPartitionStageCommitAuthority, residentPreparationProgress } from '../packages/reploid/src/mesh/index.js';
 import { createSwarmTransport, createRoomIntroductionAdmission } from '../packages/reploid/src/transport/index.js';
 import { createSigningIdentity, createPeerIdFromPublicJwk } from '../packages/reploid/src/artifacts/identity.js';
+import { createAttemptEvidenceSigner } from '../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { resolveConfig } from '../packages/reploid/src/config/index.js';
 import models from '../self/config/chat-models.json' with { type: 'json' };
 import custodyPolicy from '../self/config/chat-files.json' with { type: 'json' };
@@ -262,7 +263,7 @@ export function createNativeGpuHost(loadProvider) {
 
 export async function openNativePartition({ model: selected, modelDirectory, nativeGpu, index, signal, participantId,
   files, releaseDirectory, registerCleanup, canonical = null, ordered = null, device = null, attemptBytes, onProgress = () => {},
-  gpuBufferBytes = policy.maxGpuBufferBytes }) {
+  gpuBufferBytes = policy.maxGpuBufferBytes, evidenceSigner = null }) {
   selected = snapshotWorkPartitionSelection(selected);
   const stageBinding = snapshotWorkPartitionStage(selected, index, participantId, ordered, canonical);
   if (selected.capsule !== undefined) requireValue(files && selected.packOpenOptions && selected.executablePack && releaseDirectory,
@@ -348,7 +349,9 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
           prefillChunkLayers: policy.prefillChunkLayers, prefillTokenChunkSize: policy.prefillTokenChunkSize } } },
       createStorage: async () => tokenizer.storage });
     resident = createResidentPartition({ runtime: factory, model: configured, plan, planId, index, participantId,
-      limits: policy.limits, ...canonicalOptions, ...orderedOptions, ...(device ? { device, attemptBytes } : {}) });
+      limits: policy.limits, ...canonicalOptions, ...orderedOptions, ...(device ? { device, attemptBytes } : {}),
+      // Ordered stages sign receipts for charged attempts with this host's participant identity.
+      ...(orderedOptions.ordered && evidenceSigner?.participantId === participantId ? { evidence: evidenceSigner } : {}) });
     onProgress({ stage: 'opening', message: 'Opening native assigned partition' });
     if (canonical) { canonical.epochs.begin(ownerId); ownershipRecorded = true; }
     await resident.prepare({ approved: true, signal });
@@ -388,6 +391,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   ordered = snapshotWorkOrderedParticipation(ordered, canonical, [model]);
   requireValue(identity?.privateJwk && await createPeerIdFromPublicJwk(identity.publicJwk) === identity.peerId,
     'Native participant requires its own valid signing identity');
+  const evidenceSigner = createAttemptEvidenceSigner({ identity });
   requireValue(typeof rtc?.RTCPeerConnection === 'function' && typeof WebSocket === 'function', 'Native WebRTC and WebSocket required');
   requireValue(model && modelDirectory && typeof nativeGpu === 'function', 'Explicit native model, directory and GPU provider required');
   let canonicalRuntime = null, epochs = null;
@@ -488,7 +492,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
       loadProgram: async (selected, index, controls) => {
         const program = await openNativePartition({ model: selected, index, modelDirectory,
           releaseDirectory: cacheDirectory && path.join(path.dirname(cacheDirectory), 'release-checkpoints'),
-          nativeGpu: () => gpuPromise ||= nativeGpu().catch(error => { gpuPromise = null; throw error; }), files, ...controls,
+          nativeGpu: () => gpuPromise ||= nativeGpu().catch(error => { gpuPromise = null; throw error; }), files, ...controls, evidenceSigner,
           ...(epochs ? { canonical: { ...controls.canonical, epochs } } : {}),
           ...(ownerGate ? { gpuBufferBytes: ownerGate.gpuBufferBytes(policy.maxGpuBufferBytes) } : {}) });
         return ownerGate ? { ...program, resident: ownerGate.gateResident(program.resident) } : program;

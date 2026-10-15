@@ -10,7 +10,7 @@ Coordinate partitioned conversations.
 
 Discovery observes capabilities/channels; placement selects; residents admit;
 runners sequence attempts/grants/settlement. Doppler owns computation/positions/generation/stopping.
-Hosts own sessions. Shared validators live in `partition-contract.js`;
+Hosts own sessions. `partition-contract.js` holds shared validators;
 discovery/placement/reservations stay independent.
 
 ## Scope
@@ -24,6 +24,7 @@ Outputs: tokens, costs, settlement.
 Legacy traverses A/B. Ordered routes traverse all stages; only the last samples.
 Requester writers commit unsigned ordered steps before delivery or next steps.
 Geometry determines stage count; attempts retain replicas.
+Charged attempts carry signed receipts and acknowledgments.
 Session: [contract](../../../../../docs/chat-mvp.md#resident-integration-contract).
 
 ## Invariants
@@ -31,9 +32,9 @@ Session: [contract](../../../../../docs/chat-mvp.md#resident-integration-contrac
 - Authorization precedes work; verify recipients/scope/expiration/revocation/budgets.
 - Bind model/plan/thread/attempt/participants/token position.
 - Discovery grants no authority; advertise capacity, never conversation identities.
-- Hosts assign stages; opt-in [Launch 3](../../../../../docs/launch-3-orchestration.md) `auto` lets that
-  contributor's own policy choose from observed offers, moving only idle residents.
-- Signed reservations are authoritative. Release slots only after confirmed runtime cleanup.
+- Hosts assign stages; opt-in [Launch 3](../../../../../docs/launch-3-orchestration.md) `auto` lets the
+  contributor's policy choose from observed offers, moving only idle residents.
+- Signed reservations are authoritative; release slots only after confirmed cleanup.
 - Bound receipts by attempt budgets; distinguish cleanup failure/channel-lost unknowns/settlement.
   Admission limits aren't physical-memory measurements.
 - Busy replicas never move conversations. Recovery requires fresh identities
@@ -46,7 +47,7 @@ Session: [contract](../../../../../docs/chat-mvp.md#resident-integration-contrac
 
 ## Acceptance
 
-Evidence: [partition](../../../../../tests/unit/partition-api.test.js), [publication](../../../../../tests/unit/ordered-publication.test.js).
+Evidence: [partition](../../../../../tests/unit/partition-api.test.js), [publication](../../../../../tests/unit/ordered-publication.test.js), [evidence](../../../../../tests/unit/ordered-attempt-evidence.test.js).
 Physical evidence qualifies loading/WebRTC/answers/numerics; injected tests
 prove neither execution nor residency.
 
@@ -56,4 +57,4 @@ Math, UI, fabricated inference, disguised whole-model execution.
 
 ## Freedom
 
-Preserve these boundaries.
+Preserve boundaries.

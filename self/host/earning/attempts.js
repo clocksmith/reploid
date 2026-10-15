@@ -10,7 +10,13 @@
  * to the reservation with the exact route recipients; a refused binding sends
  * nothing. The route's own records become the attempt report, stored before it
  * is sent; the service's declared rules decide outcome and charge.
+ *
+ * When the accepted terms offer evidence settlement, this device signs the
+ * attempt's charge binding before dispatch and acknowledges each output whose
+ * final-stage receipt commits to exactly the deltas it received; the report
+ * carries the latest acknowledgment with its receipt.
  */
+import { openOutputAcknowledgments } from '../../vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
 
 const REPORT_SCHEMA = 'reploid.attempt-report/v1';
 // The outcome rules read ordered route records; other partition paths are not charged through them.
@@ -51,7 +57,8 @@ export function createEarningAttempts({ client, quoteRequest, authorizeSpending,
     const accepted = await client.send({ opId: `accept:${quote.quoteId}`, path: `/quotes/${encodeURIComponent(quote.quoteId)}/accept`,
       body: { quoteHash: quote.quoteHash }, durable: false });
     return { threadId: request.threadId, reservationId: accepted.reservationId, quoteId: quote.quoteId, authorizedMax: accepted.authorizedMax,
-      deadline: quote.service.deadline, maxAttempts: quote.terms.execution.maxAttempts, attempts: [], lastAttemptId: null, status: 'open', retryable: false };
+      deadline: quote.service.deadline, maxAttempts: quote.terms.execution.maxAttempts, evidence: quote.terms.evidence !== undefined,
+      attempts: [], lastAttemptId: null, status: 'open', retryable: false };
   }
 
   /** The route summary fields the outcome rules read; selection and provider details stay here. */
@@ -73,7 +80,9 @@ export function createEarningAttempts({ client, quoteRequest, authorizeSpending,
   async function settleThread(threadId, thread, attemptId, outcome) {
     const answer = outcome.answer;
     const attempts = thread.attempts.map(row => row.attemptId === attemptId ? { ...row, reported: outcome.delivered, code: outcome.code ?? null } : row);
-    const next = { ...thread, attempts, status: answer?.reservationStatus ?? (outcome.pending ? 'reporting' : thread.status),
+    // A final report under evidence terms may wait for the evidence window before its decision.
+    const status = answer?.evidence?.awaitingUntil ? 'awaiting_evidence' : answer?.reservationStatus;
+    const next = { ...thread, attempts, status: status ?? (outcome.pending ? 'reporting' : thread.status),
       retryable: answer ? answer.reservationStatus === 'open' && answer.closed === true && attempts.length < thread.maxAttempts : false };
     await writeThread(threadId, next);
     return next;
@@ -92,7 +101,7 @@ export function createEarningAttempts({ client, quoteRequest, authorizeSpending,
     const retry = request.retryOf && prior?.retryable === true && prior.lastAttemptId === request.retryOf;
     const thread = { ...(retry ? prior : await acceptNew(request)), lastAttemptId: attemptId, retryable: false };
     await writeThread(threadId, thread);
-    let bound = false, identity = null, activity = null, previewRoute = null;
+    let bound = false, identity = null, activity = null, previewRoute = null, acknowledgments = null;
     const deadline = new AbortController();
     const cancelTimer = setTimer(() => deadline.abort(Object.assign(new Error('The quoted deadline passed'), { code: 'QUOTE_DEADLINE' })),
       Date.parse(thread.deadline) - now());
@@ -105,6 +114,14 @@ export function createEarningAttempts({ client, quoteRequest, authorizeSpending,
         if (approved !== true) return approved;
         const recipients = Array.isArray(preview?.input?.recipients) ? preview.input.recipients : null;
         if (!recipients?.length || signal.aborted) return false;
+        if (thread.evidence) {
+          // The charge binding is signed before binding; a route this device cannot bind sends nothing.
+          try {
+            acknowledgments = await openOutputAcknowledgments({ signer: client.evidenceSigner, reservationId: thread.reservationId, now,
+              identity: { schema: 'reploid.partition-attempt/v2', threadId, attemptId, requesterId: client.participantId,
+                placementGeneration: request.placementGeneration ?? 0, route: preview.route } });
+          } catch { return false; }
+        }
         try {
           await client.send({ opId: `bind:${thread.reservationId}:${attemptId}`, path: `/reservations/${encodeURIComponent(thread.reservationId)}/attempts`,
             body: { attemptId, recipients }, durable: false });
@@ -112,6 +129,10 @@ export function createEarningAttempts({ client, quoteRequest, authorizeSpending,
         bound = true; previewRoute = preview.route ?? null;
         thread.attempts.push({ attemptId, recipients, reported: false });
         await writeThread(threadId, thread);
+        if (acknowledgments) {
+          wrapped.charge = acknowledgments.charge;
+          wrapped.onOutput = record => acknowledgments.observe(record);
+        }
         return !signal.aborted;
       },
       onState(envelope) {
@@ -126,11 +147,16 @@ export function createEarningAttempts({ client, quoteRequest, authorizeSpending,
       }
     };
     if (!controls.onActivity) delete wrapped.onActivity;
+    // This device's latest acknowledgment and the receipt it acknowledged travel with its report.
+    const evidenceOf = () => {
+      const bundle = acknowledgments?.evidence();
+      return bundle?.acknowledged ? { evidence: bundle } : {};
+    };
     try {
       const result = await execute(request, wrapped);
       const execution = summaryOf(result.execution);
       const outcome = await report(thread, attemptId, { schema: REPORT_SCHEMA, result: 'completed', attemptId,
-        identity: execution.identity, execution });
+        identity: execution.identity, execution, ...evidenceOf() });
       await settleThread(threadId, thread, attemptId, outcome);
       return result;
     } catch (error) {
@@ -145,7 +171,7 @@ export function createEarningAttempts({ client, quoteRequest, authorizeSpending,
       const body = deadline.signal.aborted ? { result: 'cancelled', cancellation: { cause: 'deadline' }, ...(activity ? { activity } : {}) }
         : controls.signal?.aborted ? { result: 'cancelled', cancellation: { cause: 'requester' }, ...(activity ? { activity } : {}) }
           : { result: 'failed', failure: { code: typeof error?.code === 'string' && /^[A-Za-z][A-Za-z0-9_.-]{0,63}$/.test(error.code) ? error.code : 'EXECUTION_FAILED' } };
-      await settleThread(threadId, thread, attemptId, await report(thread, attemptId, { schema: REPORT_SCHEMA, attemptId, identity, ...body }));
+      await settleThread(threadId, thread, attemptId, await report(thread, attemptId, { schema: REPORT_SCHEMA, attemptId, identity, ...body, ...evidenceOf() }));
       throw error;
     } finally { cancelTimer(); }
   }

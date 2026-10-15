@@ -15,6 +15,8 @@ export interface OrderedPartitionInput {
  generationRequest?:PartitionGenerationRequest;
  meshId:string;requesterId?:string;coordinatorId:string;route:PartitionRoute;modelId:string;modelIdentity:string;planId:string;
  threadId:string;attemptId:string;placementGeneration:number;disclosureExpiresAt?:number;messages:Array<{role:string;content:string}>;
+ /** The requester's signed binding of a charged attempt to its reservation; the coordinator gives it to every stage. */
+ charge?:import('./partition-attempt-evidence.js').OutputAcknowledgment;
  /** Requester-owned publication: text reaches the requester only through its committed records. */
  publication?:OrderedPublicationContext;
 }
@@ -23,6 +25,8 @@ export interface PartitionEntry {
  getState():{ready:boolean;descriptor:{models:any[];accepting:boolean;slots:number}|null;observedAt:number;receipt:object};
  refresh(options?:{signal?:AbortSignal}):Promise<ReturnType<PartitionEntry['getState']>>;
  generate(input:OrderedPartitionInput,options?:{signal?:AbortSignal;onActivity?:(activity:PartitionActivity)=>void|Promise<void>;onUsage?:(usage:PartitionTokenUsage)=>void|Promise<void>;onDelta?:(text:string)=>void;
+  /** Required with a charged input: each output and its final-stage receipt; the answer is this requester's acknowledgment. */
+  onOutput?:(output:{step:number;delta:string;done:boolean;receipt:import('./partition-attempt-evidence.js').StageReceipt|null})=>import('./partition-attempt-evidence.js').AcknowledgedOutput|null|Promise<import('./partition-attempt-evidence.js').AcknowledgedOutput|null>;
   publication?:EntryPublicationOwner;onPublished?:(record:EntryPublicationRecord)=>void|Promise<void>}):Promise<{content:string;usage?:PartitionTokenUsage;execution:{identity:RouteAttemptBinding}&Record<string,unknown>}>;
  generate(input:PartitionInput,options?:{signal?:AbortSignal;onActivity?:(activity:PartitionActivity)=>void|Promise<void>;onUsage?:(usage:PartitionTokenUsage)=>void|Promise<void>;onDelta?:(text:string)=>void;publication?:EntryPublicationOwner;onPublished?:(record:EntryPublicationRecord)=>void|Promise<void>}):Promise<{content:string;usage?:PartitionTokenUsage;execution:PartitionBinding & Record<string,unknown>}>;
  drain():Promise<void>;close():Promise<void>;

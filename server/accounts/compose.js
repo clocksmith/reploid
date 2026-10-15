@@ -32,6 +32,26 @@ export async function ledgerDeviceAuthority(tx, { accountId, deviceId }) {
 }
 
 /**
+ * The ledger's signerAuthority for attempt evidence: the registration of a
+ * participant key in force at its signing time (attribution, so a revocation
+ * after signing keeps the receipt's provenance while one before refuses it)
+ * and that device's public key.
+ */
+export function createLedgerSignerAuthority(accounts) {
+  return async ({ participantId, at } = {}) => {
+    let provenance = null;
+    try {
+      provenance = await accounts.attributeParticipant({ participantId, at });
+    } catch {
+      return null;
+    }
+    const device = provenance ? await accounts.getDevice(provenance.deviceId) : null;
+    if (!device?.publicJwk || device.participantId !== participantId) return null;
+    return { accountId: provenance.accountId, deviceId: provenance.deviceId, registrationId: provenance.registrationId, publicJwk: device.publicJwk };
+  };
+}
+
+/**
  * Identity ports for the ledger and rewards. Each answer is read at call
  * time, so a revocation committed earlier always applies.
  *
@@ -126,7 +146,8 @@ export function composeAccountServices({
   });
   const identity = createAccountIdentityPorts(accounts);
   const composed = composeContributionRewards({
-    backend: rewardBackend, createLedger: (ports) => createLedger({ ...ports, deviceAuthority: ledgerDeviceAuthority }),
+    backend: rewardBackend,
+    createLedger: (ports) => createLedger({ ...ports, deviceAuthority: ledgerDeviceAuthority, signerAuthority: createLedgerSignerAuthority(accounts) }),
     rewardPolicy, issuancePolicy, identity, readAdmittedCapacity, otherProvenance, readinessProber, fundingAuthority, clock, createId, random
   });
   ledger = composed.ledger;

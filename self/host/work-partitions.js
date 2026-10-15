@@ -12,7 +12,7 @@ import { snapshotWorkPartitionSelection, createWorkPartitionPlan,
 import { createPartitionTokenizerGuard } from './work-partition-tokenizer-guard.js';
 
 export async function loadWorkPartition(files, selected, index, { signal, participantId, onProgress, registerCleanup, canonical = null, ordered = null,
-  device = null, attemptBytes }) {
+  device = null, attemptBytes, evidenceSigner = null }) {
   canonical = canonical ? Object.freeze({ identity: canonical.identity, participantEpoch: canonical.participantEpoch }) : null;
   selected = snapshotWorkPartitionSelection(selected);
   const stage = snapshotWorkPartitionStage(selected, index, participantId, ordered, canonical);
@@ -89,7 +89,9 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
           prefillChunkLayers: policy.prefillChunkLayers, prefillTokenChunkSize: policy.prefillTokenChunkSize } } },
       createStorage: async () => tokenizer.storage });
     resident = createResidentPartition({ runtime: factory, model, plan, planId, index,
-      participantId, limits: policy.limits, ...canonicalOptions, ...orderedOptions, ...(device ? { device, attemptBytes } : {}) });
+      participantId, limits: policy.limits, ...canonicalOptions, ...orderedOptions, ...(device ? { device, attemptBytes } : {}),
+      // Ordered stages sign receipts for charged attempts with this host's participant identity.
+      ...(orderedOptions.ordered && evidenceSigner?.participantId === participantId ? { evidence: evidenceSigner } : {}) });
     await resident.prepare({ approved: true, signal });
     tokenizer.assertAvailable();
     const preparation = { openMs: performance.now() - openedAt,

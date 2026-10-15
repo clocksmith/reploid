@@ -1911,6 +1911,7 @@
     "vendor/reploid/mesh/legacy-generation.js",
     "vendor/reploid/mesh/partitions/automatic-ordered-partitions.js",
     "vendor/reploid/mesh/partitions/automatic-partitions.js",
+    "vendor/reploid/mesh/partitions/partition-attempt-evidence.js",
     "vendor/reploid/mesh/partitions/partition-canonical-contract.js",
     "vendor/reploid/mesh/partitions/partition-canonical-execution.js",
     "vendor/reploid/mesh/partitions/partition-chat-canonical.js",

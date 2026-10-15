@@ -13,6 +13,9 @@
  * The route records are unsigned requester-held observations. These rules
  * check their identity and internal consistency against the bound attempt;
  * they cannot prove the requester did not withhold or misstate a record.
+ * Under a quote's evidence terms, signed stage receipts and requester
+ * acknowledgments (attempt-evidence.js) settle what a withheld report leaves
+ * open and raise what an understated one omits.
  */
 
 import { canonicalRouteAttemptBinding, sameRouteAttemptIdentity } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
@@ -40,7 +43,8 @@ export const ATTEMPT_OUTCOME_RULES = Object.freeze({
 });
 
 const SUMMARY_SCHEMA = 'reploid.mesh.partition-summary/v2';
-const REPORT_KEYS = Object.freeze(['schema', 'result', 'attemptId', 'identity', 'execution', 'activity', 'failure', 'cancellation']);
+// `evidence` carries the requester's signed acknowledgments under evidence terms (attempt-evidence.js).
+const REPORT_KEYS = Object.freeze(['schema', 'result', 'attemptId', 'identity', 'execution', 'activity', 'failure', 'cancellation', 'evidence']);
 const FAILURE_CODE = /^[A-Za-z][A-Za-z0-9_.-]{0,63}$/;
 
 /** All attempts under one acceptance are one billable event. */

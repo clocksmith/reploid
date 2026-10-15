@@ -56,6 +56,7 @@ export { partitionFingerprint, PARTITION_ROUTE_SCHEMA, ROUTE_ATTEMPT_SCHEMA, val
 export { selectPartitionRoute, validateOrderedPartitionCapability } from './partitions/partition-placement.js';
 
 export * from './partitions/partition-entry.js';
+export * from './partitions/partition-attempt-evidence.js';
 export * from './partitions/partition-link.js';
 
 export * from './partitions/automatic-partitions.js';

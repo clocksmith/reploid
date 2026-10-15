@@ -14,6 +14,7 @@ import { createWorkAdapterResolver } from '../providers/work-adapter.js';
 import { createWorkPeerOffers } from './work-peer-offers.js';
 import { createWorkModelFiles, getFileContributionLimits } from './work-model-files.js';
 import { loadWorkPartition } from './work-partitions.js';
+import { createAttemptEvidenceSigner } from '../vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
 import { snapshotWorkOrderedParticipation, bindWorkOrderedParticipation } from './work-partition-plan.js';
 import { createWorkPartitionNetworks } from './work-partition-networks.js';
 import partitionPolicy from '../config/partition-policy.json' with { type: 'json' };
@@ -187,7 +188,9 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
           createNetwork: openPartitionNetwork,
           loadProgram: (model, index, controls) => {
             if (ordered && model.id !== ordered.stage?.modelId) throw new Error('Model differs from assigned ordered stage');
-            return loadWorkPartition(modelFiles, model, index, controls);
+            // Charged attempts' receipts are signed with this participant's persistent identity.
+            return loadWorkPartition(modelFiles, model, index, { ...controls,
+              evidenceSigner: consumerIdentity?.privateJwk ? createAttemptEvidenceSigner({ identity: consumerIdentity }) : null });
           },
           onChange(state) {
             if (state.offering || contribution.partition) {

@@ -187,33 +187,51 @@ export function applyReserve(account, amount, order) {
   return draws;
 }
 
-/** Charge from held draws in order; release the remainder to the same lots. */
-export function applySettle(account, draws, charge) {
-  const held = sumAmounts(draws);
-  if (!isAmount(charge) || charge > held) {
-    fail('charge_exceeds_authorization', 'charge exceeds the reserved authorized maximum', { charge, authorized: held });
+/**
+ * Charge from held draws in order, keep `hold` of the rest held (a disputed
+ * remainder awaiting review) and release the remainder to the same lots.
+ */
+export function applySettle(account, draws, charge, hold = 0) {
+  const authorized = sumAmounts(draws);
+  if (!isAmount(charge) || !isAmount(hold) || charge + hold > authorized) {
+    fail('charge_exceeds_authorization', 'charge exceeds the reserved authorized maximum', { charge, hold, authorized });
   }
   let remaining = charge;
+  let keep = hold;
   const charged = [];
   const released = [];
+  const held = [];
   for (const draw of draws) {
     const lot = account.lots[draw.lotId];
     if (!lot || lot.held < draw.amount) {
       fail('ledger_invariant_violation', 'reservation draw is not held by its lot', { lotId: draw.lotId });
     }
     const take = Math.min(draw.amount, remaining);
-    const back = draw.amount - take;
+    const kept = Math.min(draw.amount - take, keep);
+    const back = draw.amount - take - kept;
     remaining -= take;
-    lot.held -= draw.amount;
+    keep -= kept;
+    lot.held -= take + back;
     lot.available += back;
-    account.totals.held[draw.provenance] -= draw.amount;
+    account.totals.held[draw.provenance] -= take + back;
     account.totals.spent[draw.provenance] += take;
     account.totals.available[draw.provenance] += back;
     if (take > 0) charged.push({ ...draw, amount: take });
+    if (kept > 0) held.push({ ...draw, amount: kept });
     if (back > 0) released.push({ ...draw, amount: back });
     pruneLot(account, draw.lotId);
   }
-  return { charged, released };
+  return { charged, released, held };
+}
+
+/** Sum draws per lot, keeping the first draw's provenance and issue time. */
+export function mergeDraws(...lists) {
+  const merged = new Map();
+  for (const draw of lists.flat()) {
+    const current = merged.get(draw.lotId);
+    merged.set(draw.lotId, current ? { ...current, amount: current.amount + draw.amount } : { ...draw });
+  }
+  return [...merged.values()];
 }
 
 /** Restore refunded credit to the lots it was charged from, newest draw first. */
@@ -284,11 +302,15 @@ export function newReservation({ quote, deviceId, draws, now }) {
 export const isReservationExpired = (reservation, now) => reservation.status === 'open'
   && toMs(now) >= toMs(reservation.expiresAt);
 
-export function assertOpenReservation(reservation, now) {
+/** `pastPeriod` admits an open reservation whose period ended, for the evidence decision that replaces its expiry. */
+export function assertOpenReservation(reservation, now, { pastPeriod = false } = {}) {
   if (reservation.status === 'under_review') {
     fail('reservation_under_review', 'reservation awaits operational quality review', { reviewId: reservation.reviewId });
   }
-  if (reservation.status === 'expired' || isReservationExpired(reservation, now)) {
+  if (reservation.status === 'disputed') {
+    fail('reservation_disputed', 'reservation holds a disputed remainder awaiting operational review', { disputeId: reservation.dispute?.disputeId ?? null });
+  }
+  if (reservation.status === 'expired' || (!pastPeriod && isReservationExpired(reservation, now))) {
     fail('reservation_expired', 'reservation period ended; its hold is released, not charged', { expiresAt: reservation.expiresAt });
   }
   if (reservation.status !== 'open') {
@@ -304,6 +326,9 @@ export function assertOpenReservation(reservation, now) {
  */
 export function bindAttemptTransition(reservation, { attemptId, recipients, now }) {
   assertOpenReservation(reservation, now);
+  if (reservation.report) {
+    fail('attempt_already_reported', 'a final report awaits its evidence window; no further attempt binds', { attemptId: reservation.report.attemptId });
+  }
   if (!Array.isArray(recipients) || recipients.length === 0 || recipients.some((entry) => !isNonEmptyString(entry))) {
     fail('invalid_input', 'recipients must list the actual recipient identities');
   }
@@ -358,16 +383,20 @@ const validateMetering = (metering, limits) => {
   return result;
 };
 
-/** Decide which accepted term governs an outcome; the charge never comes from the caller. */
-export function decideSettlement(reservation, input, now) {
-  assertOpenReservation(reservation, now);
+/**
+ * Decide which accepted term governs an outcome; the charge never comes from the caller.
+ * `evidence` settles delivered work the requester acknowledged on an attempt its report closed;
+ * `pastPeriod` lets an evidence-terms decision replace the expiry release.
+ */
+export function decideSettlement(reservation, input, now, { evidence = false, pastPeriod = false } = {}) {
+  assertOpenReservation(reservation, now, { pastPeriod });
   const { outcome } = input;
   if (!SETTLEMENT_OUTCOMES.includes(outcome)) fail('invalid_outcome', `outcome must be one of ${SETTLEMENT_OUTCOMES.join(', ')}`);
   const metering = validateMetering(input.metering, reservation.service.limits);
   const attempt = input.attemptId ? reservation.attempts.find((entry) => entry.attemptId === input.attemptId) : null;
   if (input.attemptId && !attempt) fail('attempt_not_bound', 'settlement names an attempt that is not bound yet', { attemptId: input.attemptId });
   if (!QUEUED_OUTCOMES.has(outcome) && !attempt) fail('attempt_required', `${outcome} settlement requires a bound attempt`);
-  if (DELIVERED_OUTCOMES.has(outcome) && attempt.status !== 'bound') {
+  if (DELIVERED_OUTCOMES.has(outcome) && !evidence && attempt.status !== 'bound') {
     fail('attempt_closed', 'delivered outcomes require the active attempt', { attemptId: attempt.attemptId, status: attempt.status });
   }
   if (ON_TIME_OUTCOMES.has(outcome)) {
@@ -531,6 +560,7 @@ export function summarizeSolvency({ accounts, reservations, policy, now }) {
   const outstanding = Object.fromEntries(PROVENANCE_KINDS.map((kind) => [kind, fields.available[kind] + fields.held[kind]]));
   const open = reservations.filter((reservation) => reservation.status === 'open');
   const underReview = reservations.filter((reservation) => reservation.status === 'under_review');
+  const disputed = reservations.filter((reservation) => reservation.status === 'disputed');
   const heldBy = (list) => list.reduce((sum, reservation) => sum + reservation.authorizedMax, 0);
   const shortfall = (field) => accounts.reduce((sum, account) => sum + (account.reversalShortfall?.[field] ?? 0), 0);
   const netSpent = (kind) => fields.spent[kind] - fields.refunded[kind];
@@ -561,6 +591,8 @@ export function summarizeSolvency({ accounts, reservations, policy, now }) {
     reservations: {
       open: { count: open.length, held: heldBy(open) },
       underReview: { count: underReview.length, held: heldBy(underReview) },
+      // Only the disputed remainder stays held; the acknowledged part is charged and the rest released.
+      disputed: { count: disputed.length, held: disputed.reduce((sum, reservation) => sum + (reservation.dispute?.held ?? 0), 0) },
       awaitingExpiryRelease: open.filter((reservation) => isReservationExpired(reservation, now)).length
     },
     notTracked: {

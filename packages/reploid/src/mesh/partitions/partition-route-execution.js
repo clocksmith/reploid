@@ -62,9 +62,12 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
     if (item.cleaning) return item.cleaning;
     item.cleaning = (async () => {
       item.receipt.phase = 'settling';
+      // Acknowledgments already requested reach the stages with their closing request.
+      await item.acknowledging;
+      const acknowledged = item.acknowledged;
       const results = await Promise.allSettled([...item.owned].map(async index => {
         try {
-          await devices[index].closeAttempt({ identity: item.binding, partitionIndex: index });
+          await devices[index].closeAttempt({ identity: item.binding, partitionIndex: index, ...(acknowledged ? { acknowledged } : {}) });
           item.owned.delete(index);
           item.receipt.cleanup[index] = { partitionIndex: index, status: 'settled', error: null };
         } catch (error) {
@@ -87,11 +90,22 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
     try { return await item.cleaning; } finally { item.cleaning = null; }
   }
 
-  async function execute({ identity, tokenIds, generation, grants, maxTokens, signal, onDelta = () => {}, onActivity = () => {}, onStep = null }) {
+  /**
+   * `charge` is the requester's signed binding of this attempt to its
+   * reservation; stages that sign receipts receive it with their reservation.
+   * `onOutput({ step, delta, done, receipt })` hands each final-stage output and
+   * its signed receipt to the requester side, which may answer with its signed
+   * acknowledgment pair. Acknowledgments are requested without holding the
+   * next step; the latest one travels with later stage requests and closing.
+   */
+  async function execute({ identity, tokenIds, generation, grants, maxTokens, signal, onDelta = () => {}, onActivity = () => {}, onStep = null,
+    charge = null, onOutput = null }) {
     assert(!closed, 'Partition runner is closed');
     signal?.throwIfAborted();
+    assert((charge === null || charge && typeof charge === 'object' && !Array.isArray(charge))
+      && (onOutput === null || typeof onOutput === 'function' && charge !== null), 'Output acknowledgments need the attempt charge binding');
     // Freeze caller-owned request data before asynchronous plan validation.
-    ({ identity, tokenIds, generation, grants } = clone({ identity, tokenIds, generation, grants }));
+    ({ identity, tokenIds, generation, grants, charge } = clone({ identity, tokenIds, generation, grants, charge }));
     await validatePartitionRoute(runtime, plan, route);
     assert(!closed, 'Partition runner is closed');
     signal?.throwIfAborted();
@@ -120,7 +134,17 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
     const receipt = { identity: binding, phase: 'admitting', reservations: [], cleanup: [], cleanupSettledAt: null, failure: null };
     const completion = Promise.withResolvers();
     const item = { binding, controller, receipt, owned: new Set(), lost: new Set(), running: true, settled: completion.promise,
-      outcome: 'completed', cleaning: null };
+      outcome: 'completed', cleaning: null, acknowledging: Promise.resolve(), acknowledged: null };
+    // Keep only a newer acknowledgment of this attempt's outputs; stages and the service verify signatures.
+    const accept = pair => {
+      const ack = pair?.acknowledgment;
+      if (ack?.attemptId === binding.attemptId && Number.isSafeInteger(ack.count) && ack.count > (item.acknowledged?.acknowledgment.count ?? 0)
+        && pair.receipt?.output?.count === ack.count) item.acknowledged = clone(pair);
+    };
+    const requestAcknowledgment = record => {
+      if (!onOutput) return;
+      item.acknowledging = item.acknowledging.then(() => onOutput(clone(record))).then(accept, () => {});
+    };
     attempts.set(binding.attemptId, item);
     let input = [...tokenIds], position = 0, content = '', logits = null, stopReason = 'length', activationBytes = 0;
     const continuations = devices.map(() => null), outputTokens = [], steps = [];
@@ -156,7 +180,8 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
         await permit('mesh.execute_partition_stage', authority.execution[index], { ...initial, partitionIndex: index });
         item.owned.add(index);
         const admission = await devices[index].reserve({ identity: binding, partitionIndex: index,
-          inputTokenCount: input.length, maxTokens, generationDigest, generation: settings, executionGrant: authority.execution[index], signal: combined });
+          inputTokenCount: input.length, maxTokens, generationDigest, generation: settings, executionGrant: authority.execution[index],
+          ...(charge ? { charge } : {}), signal: combined });
         assert(sameRouteAttemptIdentity(admission?.identity, binding) && admission.partitionIndex === index
           && admission.status === 'reserved', 'Ordered reservation acknowledgment mismatch');
         receipt.reservations.push(clone(admission));
@@ -183,6 +208,7 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
                 ...(stage > 0 ? { incomingActivationGrant: authority.activation[stage - 1] } : {}),
                 ...(stage < devices.length - 1 ? { outgoingActivationGrant: authority.activation[stage] } : {}),
                 ...(stage === devices.length - 1 ? { outputGrant: authority.output } : {}),
+                ...(item.acknowledged ? { acknowledged: item.acknowledged } : {}),
                 signal: combined }));
               elapsedMs = performance.now() - started;
               return output;
@@ -236,11 +262,12 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
           position += input.length;
           input = [final.tokenId];
           if (final.done) stopReason = final.stopReason;
-          return { delta: final.delta, done: final.done, step: { sequence: index, tokenPosition: step.tokenPosition,
+          return { delta: final.delta, done: final.done, receipt: final.receipt ?? null, step: { sequence: index, tokenPosition: step.tokenPosition,
             inputTokenCount: step.inputTokenCount, tokenId: final.tokenId, delta: final.delta, done: final.done,
             stopReason: final.done ? final.stopReason : null } };
         })();
         combined.throwIfAborted();
+        requestAcknowledgment({ step: index, delta: delivery.delta, done: delivery.done, receipt: delivery.receipt });
         // Durable requester publication precedes activity, delivery and the next
         // step; it holds no stage lease, so other conversations keep advancing.
         if (onStep) { await onStep(clone(delivery.step)); combined.throwIfAborted(); }

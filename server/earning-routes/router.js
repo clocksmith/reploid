@@ -1,8 +1,8 @@
 /**
  * @fileoverview Authenticated HTTP routes for the earning loop: accounts,
  * devices, quotes, reservations, balances, reward offers and claims, acquirer
- * delivery evidence, and operator funding, settlement, issuance and link
- * records.
+ * delivery evidence, signed attempt evidence, and operator funding,
+ * settlement, dispute, issuance and link records.
  *
  * Every route names its authentication: none (sign-in and recovery, which
  * present a provider assertion), a session token, a session bound to an
@@ -380,6 +380,27 @@ export function createEarningRouter({
       return { body: { validation: validationView(current), issuance } };
     });
   });
+  /**
+   * A party's signed evidence of one bound attempt: stage receipts and the
+   * requester's acknowledgments, from the accepting device or a bound
+   * recipient's device. The ledger verifies every signature against the
+   * signer's registration at its signing time and keeps what verifies; the
+   * submission itself has no economic effect.
+   */
+  define('post', '/attempt-evidence', { auth: 'device', body: 'evidence' }, async (req, ctx) => {
+    const body = bodyOf(req, ['evidence']);
+    return keyed(req, ctx, body, async (idempotencyKey) => {
+      const device = await accounts.getDevice(ctx.deviceId);
+      if (device?.status !== 'active' || device.accountId !== ctx.accountId) refuse(401, 'session_device_revoked', 'the session device is not active');
+      return {
+        status: 201,
+        body: await ledger.recordAttemptEvidence({
+          evidence: body.evidence, submitter: { accountId: ctx.accountId, deviceId: ctx.deviceId, participantId: device.participantId }, idempotencyKey
+        })
+      };
+    });
+  });
+
   /** A certified acquirer's evidence of a completed delivery, from the acquiring device's session. */
   define('post', '/deliveries', { auth: 'device', body: 'evidence' }, async (req, ctx) => {
     const evidence = bodyOf(req, DELIVERY_EVIDENCE_KEYS);
@@ -429,6 +450,30 @@ export function createEarningRouter({
     return keyed(req, ctx, body, async (idempotencyKey) => ({
       body: await ledger.settleReservation({ ...body, reservationId: req.params.reservationId, idempotencyKey })
     }));
+  });
+  // Disputed remainders: operational review charges them or releases them; the actor comes from the credential.
+  define('get', '/operator/disputes', { auth: { operator: ['settlement', 'audit'] } }, async (req) => ({
+    body: { disputes: await ledger.listDisputes(typeof req.query.status === 'string' ? { status: req.query.status } : {}) }
+  }));
+  define('get', '/operator/disputes/:disputeId', { auth: { operator: ['settlement', 'audit'] } }, async (req) => {
+    const dispute = await ledger.getDispute(req.params.disputeId);
+    if (!dispute) refuse(404, 'dispute_not_found', 'no dispute has this id');
+    return { body: dispute };
+  });
+  define('post', '/operator/disputes/:disputeId/resolve', { auth: { operator: ['settlement'] }, body: 'json' }, async (req, ctx) => {
+    const body = bodyOf(req, ['disposition', 'decisionId']);
+    return keyed(req, ctx, body, async (idempotencyKey) => ({
+      body: await ledger.resolveDispute({
+        disputeId: req.params.disputeId, disposition: body.disposition, idempotencyKey,
+        reviewer: { authority: 'operational_review', reviewerId: ctx.operator.actorId, decisionId: body.decisionId }
+      })
+    }));
+  });
+  // The declared evidence-window rule, for operators without the durable scheduler.
+  define('post', '/operator/evidence/settle-due', { auth: { operator: ['settlement'] }, body: 'json' }, async (req) => {
+    const { limit } = bodyOf(req, ['limit']);
+    if (limit !== undefined && !(Number.isSafeInteger(limit) && limit > 0 && limit <= 1000)) refuse(400, 'invalid_body', 'limit must be an integer from 1 to 1000');
+    return { body: { results: await ledger.settleDueEvidence(limit === undefined ? {} : { limit }) } };
   });
   define('post', '/operator/rewards/issuance/resume', { auth: { operator: ['issuance'] }, body: 'json' }, async (req) => {
     const { limit } = bodyOf(req, ['limit']);
