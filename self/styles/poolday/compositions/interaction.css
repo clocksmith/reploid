@@ -96,7 +96,6 @@
 .network-peer-row { align-items: start; gap: var(--pool-size-8); padding-block: var(--pool-size-16); }
 .network-peer-row details code { display: block; margin-top: var(--pool-size-8); }
 .network-status { padding: 0; white-space: nowrap; }
-.network-peer-row[data-peer-phase='ready'] .network-status::before { content: '●'; }
 @media (max-width: 760px) { .network-inspector { width: min(calc(100vw - var(--pool-param-chat-gutter, var(--pool-size-16)) * 2), calc(var(--pool-size-480) * 0.75)); } }
 
 /* Mounted chat inspection occupies the same left aside as the four controls. */
