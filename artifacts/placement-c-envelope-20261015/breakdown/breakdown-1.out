@@ -1,0 +1,76 @@
+first-answer 100 attempt 123779 route steps 123185 errors 0
+  decode steps 99 mean 1046.1 median 1009.9 residual max 0.0
+    amd2.doppler                     mean    243.3  median    190.6
+    mac.gpuWait                      mean    197.4  median    195.7
+    amd1.doppler                     mean    179.4  median    126.5
+    transfer.hop1                    mean    151.3  median    128.5
+    transfer.hop2                    mean     88.2  median     64.4
+    amd1.authorization               mean     38.0  median     24.0
+    amd2.authorization               mean     37.3  median     19.0
+    publication                      mean     30.7  median     28.5
+    amd1.hostOther                   mean     24.5  median      7.6
+    mac.browserHost                  mean     16.7  median     14.8
+    coordinator.authorization        mean     12.2  median     12.2
+    amd2.hostOther                   mean     10.2  median      5.1
+    coordinator.callOther            mean      5.3  median      5.2
+    serialization.coordinator        mean      4.3  median      4.1
+    coordinator.gaps                 mean      3.8  median      3.6
+    amd1.fingerprint                 mean      1.2  median      0.9
+    amd2.fingerprint                 mean      0.9  median      0.6
+    serialization.amd1               mean      0.7  median      0.6
+    coordinator.leaseWait            mean      0.6  median      0.6
+    serialization.amd2               mean      0.3  median      0.2
+  transfer per crossing (median) {'hop1': 16.1, 'hop2': 16.1}
+  one-way crossings (median/p90 ms) {'hop1 request control C->N': (22.9, 91.2), 'hop1 ready N->C': (9.0, 12.9), 'hop1 activation payload C->N': (19.9, 33.2), 'hop1 result N->C': (8.9, 11.9), 'hop1 stage-output request control N->C': (27.2, 34.2), 'hop1 stage-output ready C->N': (4.7, 8.0), 'hop1 stage-output payload N->C': (24.7, 31.4), 'hop1 stage-output result C->N': (4.4, 7.5), 'hop2 request control C->N': (22.0, 111.3), 'hop2 ready N->C': (9.7, 14.9), 'hop2 activation payload C->N': (18.6, 24.7), 'hop2 result N->C': (10.3, 15.7)}
+  prompt step 19620 {'mac.browserHost': 9037, 'amd2.doppler': 5001, 'amd1.doppler': 4940, 'transfer.hop1': 348, 'transfer.hop2': 122, 'amd1.authorization': 49, 'amd2.authorization': 37, 'publication': 26, 'coordinator.authorization': 11, 'mac.gpuWait': 11, 'serialization.coordinator': 9, 'amd1.hostOther': 8, 'amd2.hostOther': 6, 'coordinator.callOther': 5, 'coordinator.gaps': 4, 'amd1.fingerprint': 3, 'amd2.fingerprint': 1, 'serialization.amd1': 1, 'coordinator.leaseWait': 1, 'serialization.amd2': 1}
+follow-up 12 attempt 81239 route steps 80672 errors 0
+  decode steps 11 mean 1326.1 median 1202.2 residual max 0.0
+    transfer.hop1                    mean    433.1  median    316.6
+    mac.gpuWait                      mean    206.4  median    203.6
+    transfer.hop2                    mean    180.2  median    192.0
+    amd2.doppler                     mean    171.6  median    163.2
+    amd1.doppler                     mean    106.2  median     99.6
+    amd1.hostOther                   mean     67.8  median      7.8
+    publication                      mean     38.7  median     38.1
+    amd1.authorization               mean     37.8  median     20.1
+    amd2.hostOther                   mean     22.6  median      6.7
+    amd2.authorization               mean     17.8  median     14.9
+    mac.browserHost                  mean     16.9  median     15.0
+    coordinator.authorization        mean     11.4  median     11.4
+    coordinator.callOther            mean      4.9  median      4.8
+    serialization.coordinator        mean      4.2  median      4.3
+    coordinator.gaps                 mean      3.4  median      3.3
+    amd1.fingerprint                 mean      1.1  median      0.7
+    coordinator.leaseWait            mean      0.7  median      0.6
+    amd2.fingerprint                 mean      0.6  median      0.4
+    serialization.amd1               mean      0.6  median      0.5
+    serialization.amd2               mean      0.3  median      0.2
+  transfer per crossing (median) {'hop1': 39.6, 'hop2': 48.0}
+  one-way crossings (median/p90 ms) {'hop1 request control C->N': (66.2, 148.5), 'hop1 ready N->C': (16.6, 24.3), 'hop1 activation payload C->N': (34.3, 136.5), 'hop1 result N->C': (14.0, 29.9), 'hop1 stage-output request control N->C': (40.7, 184.7), 'hop1 stage-output ready C->N': (7.9, 75.4), 'hop1 stage-output payload N->C': (57.2, 152.3), 'hop1 stage-output result C->N': (9.5, 120.7), 'hop2 request control C->N': (36.7, 98.1), 'hop2 ready N->C': (12.8, 44.6), 'hop2 activation payload C->N': (94.4, 156.0), 'hop2 result N->C': (15.2, 28.6)}
+  prompt step 66085 {'mac.browserHost': 29814, 'amd1.doppler': 18921, 'amd2.doppler': 15768, 'transfer.hop1': 1072, 'transfer.hop2': 276, 'amd1.authorization': 54, 'amd2.authorization': 53, 'publication': 46, 'mac.gpuWait': 37, 'serialization.coordinator': 34, 'coordinator.authorization': 13, 'amd1.fingerprint': 8, 'coordinator.callOther': 6, 'amd2.fingerprint': 4, 'coordinator.gaps': 3, 'serialization.amd1': 1, 'coordinator.leaseWait': 1, 'serialization.amd2': 1, 'amd1.hostOther': -12, 'amd2.hostOther': -13}
+longest-answer 171 attempt 254508 route steps 253661 errors 0
+  decode steps 170 mean 1370.1 median 1328.5 residual max 0.0
+    transfer.hop1                    mean    342.1  median    288.6
+    amd2.doppler                     mean    226.5  median    183.7
+    mac.gpuWait                      mean    206.6  median    206.0
+    transfer.hop2                    mean    202.3  median    154.5
+    amd1.doppler                     mean    166.3  median    127.1
+    amd1.authorization               mean     46.5  median     24.0
+    amd1.hostOther                   mean     38.5  median      8.3
+    publication                      mean     35.0  median     34.9
+    amd2.authorization               mean     32.1  median     18.5
+    amd2.hostOther                   mean     29.8  median      5.1
+    mac.browserHost                  mean     15.8  median     14.7
+    coordinator.authorization        mean     12.1  median     12.0
+    coordinator.callOther            mean      5.3  median      5.2
+    serialization.coordinator        mean      4.2  median      4.2
+    coordinator.gaps                 mean      3.6  median      3.6
+    amd1.fingerprint                 mean      1.2  median      0.9
+    amd2.fingerprint                 mean      0.8  median      0.5
+    serialization.amd1               mean      0.7  median      0.6
+    coordinator.leaseWait            mean      0.6  median      0.6
+    serialization.amd2               mean      0.3  median      0.2
+  transfer per crossing (median) {'hop1': 36.1, 'hop2': 38.6}
+  one-way crossings (median/p90 ms) {'hop1 request control C->N': (53.8, 175.5), 'hop1 ready N->C': (18.6, 46.1), 'hop1 activation payload C->N': (39.2, 85.6), 'hop1 result N->C': (15.9, 33.3), 'hop1 stage-output request control N->C': (50.4, 109.3), 'hop1 stage-output ready C->N': (8.5, 53.6), 'hop1 stage-output payload N->C': (45.4, 99.6), 'hop1 stage-output result C->N': (8.5, 40.2), 'hop2 request control C->N': (48.7, 167.7), 'hop2 ready N->C': (16.7, 42.4), 'hop2 activation payload C->N': (42.2, 104.3), 'hop2 result N->C': (16.8, 38.4)}
+  prompt step 20752 {'amd1.doppler': 7504, 'amd2.doppler': 7299, 'mac.browserHost': 4988, 'transfer.hop1': 650, 'transfer.hop2': 206, 'amd2.authorization': 27, 'amd1.authorization': 25, 'publication': 18, 'coordinator.authorization': 13, 'serialization.coordinator': 9, 'coordinator.callOther': 5, 'mac.gpuWait': 5, 'coordinator.gaps': 3, 'amd1.fingerprint': 1, 'serialization.amd1': 1, 'amd2.fingerprint': 1, 'coordinator.leaseWait': 0, 'serialization.amd2': 0, 'amd1.hostOther': -2, 'amd2.hostOther': -3}
+offsets {1: {'offsetMs': 2036.32373046875, 'minRoundTripMs': 14.96435546875}, 2: {'offsetMs': 2036.5894775390625, 'minRoundTripMs': 16.772216796875}}

@@ -1,0 +1,7 @@
+unit=fc-env-native-2-1 active=active inspect=29992 shape=none
+ActiveEnterTimestamp=Thu 2026-10-15 08:29:55 EDT
+RuntimeMaxUSec=2h
+MemoryHigh=10737418240
+MemoryMax=12884901888
+MemorySwapMax=0
+pids=352578 

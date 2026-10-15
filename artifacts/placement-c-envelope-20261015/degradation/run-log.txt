@@ -1,0 +1,19 @@
+2026-10-15T17:39:18Z start d1-delay-150-jitter-50 whole delay=150 jitter=50 loss=0/0 outage=0 stall=no guard=avg10=0.00 control-absent 
+{"at":"2026-10-15T17:39:24.043Z","kind":"condition-applied","outageUntilAmdEpochMs":null}
+{"at":"2026-10-15T17:39:24.138Z","kind":"sent","permissionShown":true}
+{"at":"2026-10-15T17:44:08.629Z","kind":"first-attempt-terminal","status":"completed"}
+{"at":"2026-10-15T17:44:10.572Z","kind":"condition-removed"}
+{"label":"d1-delay-150-jitter-50","first":"completed","retry":null}
+2026-10-15T17:44:12Z end d1-delay-150-jitter-50 control-absent 1792086250789 control removed: pass-through 1792086252336 counters sentPass=685 sentDelayed=5525 sentDropped=0 sentOutage=0 recvPass=4866 recvDropped=0 recvOutage=0 
+2026-10-15T17:44:13Z start d2-outage-45s mid delay=0 jitter=0 loss=0/0 outage=45000 stall=yes guard=avg10=0.00 control-absent 
+{"at":"2026-10-15T17:44:19.966Z","kind":"sent","permissionShown":true}
+{"at":"2026-10-15T17:45:19.322Z","kind":"condition-applied","outageUntilAmdEpochMs":1792086318770656800}
+{"at":"2026-10-15T17:45:19.323Z","kind":"tunnel-stopped"}
+{"at":"2026-10-15T17:45:36.489Z","kind":"first-attempt-terminal","status":"failed"}
+{"at":"2026-10-15T17:46:04.309Z","kind":"tunnel-continued"}
+{"at":"2026-10-15T17:46:05.389Z","kind":"condition-removed"}
+{"at":"2026-10-15T17:49:09.108Z","kind":"retry-pressed"}
+{"at":"2026-10-15T17:50:46.959Z","kind":"retry-terminal","status":"completed"}
+{"label":"d2-outage-45s","first":"failed","firstError":"A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.","retry":"completed"}
+2026-10-15T17:53:52Z end d2-outage-45s control-absent 1792086827843 counters sentPass=10885 sentDelayed=7176 sentDropped=0 sentOutage=723 recvPass=13996 recvDropped=0 recvOutage=513 1792086832367 counters sentPass=8900 sentDelayed=5525 sentDropped=0 sentOutage=725 recvPass=11726 recvDropped=0 recvOutage=509 
+2026-10-15T17:53:52Z degradation done

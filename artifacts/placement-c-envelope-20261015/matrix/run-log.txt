@@ -1,0 +1,69 @@
+2026-10-15T15:34:05Z guard userSlicePressureAvg10=0.00 largestNativeScopeBytes=676495360
+2026-10-15T15:34:05Z start c1-p56-n24 p56-n24.txt 1 natives=2
+{"label":"c1-p56-n24","ok":true,"runs":[{"status":"completed","tokens":63,"answerMs":155808}],"settled":true}
+2026-10-15T15:36:51Z end c1-p56-n24
+2026-10-15T15:36:51Z matrix done
+skip c1-p56-n24 (exists)
+2026-10-15T15:37:04Z guard userSlicePressureAvg10=0.00 largestNativeScopeBytes=724410368
+2026-10-15T15:37:04Z start c1-p56-n88 p56-n88.txt 1 natives=2
+{"label":"c1-p56-n88","ok":true,"runs":[{"status":"completed","tokens":255,"answerMs":351918}],"settled":true}
+2026-10-15T15:43:05Z end c1-p56-n88
+2026-10-15T15:43:06Z guard userSlicePressureAvg10=0.00 largestNativeScopeBytes=751575040
+2026-10-15T15:43:06Z start c1-p256-n24 p256-n24.txt 1 natives=2
+{"label":"c1-p256-n24","ok":true,"runs":[{"status":"completed","tokens":63,"answerMs":181857}],"settled":true}
+2026-10-15T15:46:17Z end c1-p256-n24
+2026-10-15T15:46:18Z guard userSlicePressureAvg10=0.00 largestNativeScopeBytes=754757632
+2026-10-15T15:46:18Z start c1-p256-n88 p256-n88.txt 1 natives=2
+{"label":"c1-p256-n88","ok":true,"runs":[{"status":"completed","tokens":255,"answerMs":372471}],"settled":true}
+2026-10-15T15:52:35Z end c1-p256-n88
+2026-10-15T15:52:36Z guard userSlicePressureAvg10=0.00 largestNativeScopeBytes=734855168
+2026-10-15T15:52:36Z start c1-p512-n24 p512-n24.txt 1 natives=2
+{"label":"c1-p512-n24","ok":true,"runs":[{"status":"completed","tokens":63,"answerMs":225581}],"settled":true}
+2026-10-15T15:56:30Z end c1-p512-n24
+2026-10-15T15:56:31Z guard userSlicePressureAvg10=0.00 largestNativeScopeBytes=773140480
+2026-10-15T15:56:31Z start c1-p512-n88 p512-n88.txt 1 natives=2
+{"label":"c1-p512-n88","ok":true,"runs":[{"status":"completed","tokens":255,"answerMs":473845}],"settled":true}
+2026-10-15T16:04:29Z end c1-p512-n88
+2026-10-15T16:04:30Z guard userSlicePressureAvg10=0.00 largestNativeScopeBytes=776568832
+2026-10-15T16:04:30Z start c1-p1024-n24 p1024-n24.txt 1 natives=2
+{"label":"c1-p1024-n24","ok":true,"runs":[{"status":"completed","tokens":63,"answerMs":427398}],"settled":true}
+2026-10-15T16:11:47Z end c1-p1024-n24
+2026-10-15T16:11:48Z guard userSlicePressureAvg10=0.00 largestNativeScopeBytes=783716352
+2026-10-15T16:11:48Z start c1-p1024-n88 p1024-n88.txt 1 natives=2
+{"label":"c1-p1024-n88","ok":true,"runs":[{"status":"completed","tokens":255,"answerMs":710696}],"settled":true}
+2026-10-15T16:23:50Z end c1-p1024-n88
+2026-10-15T16:23:51Z guard userSlicePressureAvg10=0.00 largestNativeScopeBytes=803176448
+2026-10-15T16:23:51Z start c1-p1588-n24 p1588-n24.txt 1 natives=2
+{"label":"c1-p1588-n24","ok":true,"runs":[{"status":"completed","tokens":63,"answerMs":566818}],"settled":true}
+2026-10-15T16:33:28Z end c1-p1588-n24
+2026-10-15T16:33:29Z guard userSlicePressureAvg10=0.00 largestNativeScopeBytes=803614720
+2026-10-15T16:33:29Z start c1-p1588-n88 p1588-n88.txt 1 natives=2
+{"label":"c1-p1588-n88","ok":true,"runs":[{"status":"completed","tokens":255,"answerMs":825366}],"settled":true}
+2026-10-15T16:47:24Z end c1-p1588-n88
+2026-10-15T16:47:24Z guard userSlicePressureAvg10=0.00 largestNativeScopeBytes=1020788736
+2026-10-15T16:47:24Z start c2-p56-n24 p56-n24.txt 2 natives=2
+{"label":"c2-p56-n24","ok":true,"runs":[{"status":"completed","tokens":63,"answerMs":110298},{"status":"completed","tokens":63,"answerMs":111153}],"settled":true}
+2026-10-15T16:52:59Z end c2-p56-n24
+2026-10-15T16:53:00Z guard userSlicePressureAvg10=0.00 largestNativeScopeBytes=968859648
+2026-10-15T16:53:00Z start c2-p56-n88 p56-n88.txt 2 natives=2
+{"label":"c2-p56-n88","ok":true,"runs":[{"status":"completed","tokens":255,"answerMs":410685},{"status":"completed","tokens":255,"answerMs":410944}],"settled":true}
+2026-10-15T17:00:06Z end c2-p56-n88
+2026-10-15T17:00:07Z guard userSlicePressureAvg10=0.00 largestNativeScopeBytes=978714624
+2026-10-15T17:00:07Z start c2-p256-n24 p256-n24.txt 2 natives=2
+{"label":"c2-p256-n24","ok":true,"runs":[{"status":"completed","tokens":63,"answerMs":210266},{"status":"completed","tokens":63,"answerMs":210010}],"settled":true}
+2026-10-15T17:06:23Z end c2-p256-n24
+stop file present before c2-p256-n88
+2026-10-15T17:06:23Z matrix done
+2026-10-15T17:06:29Z guard userSlicePressureAvg10=0.00 largestNativeScopeBytes=853929984
+2026-10-15T17:06:29Z start c2-p1588-n24 p1588-n24.txt 2 natives=2
+{"label":"c2-p1588-n24","ok":true,"runs":[{"status":"completed","tokens":63,"answerMs":898707},{"status":"completed","tokens":63,"answerMs":899842}],"settled":true}
+2026-10-15T17:22:08Z end c2-p1588-n24
+2026-10-15T17:22:39Z guard userSlicePressureAvg10=0.00 largestNativeScopeBytes=669437952
+2026-10-15T17:22:39Z start c2-p512-n88 p512-n88.txt 2 natives=3
+{"label":"c2-p512-n88","ok":true,"runs":[{"status":"completed","tokens":255,"answerMs":549555},{"status":"completed","tokens":255,"answerMs":549964}],"settled":true}
+2026-10-15T17:32:08Z end c2-p512-n88
+2026-10-15T17:32:08Z guard userSlicePressureAvg10=0.00 largestNativeScopeBytes=856027136
+2026-10-15T17:32:08Z start c3-p56-n24 p56-n24.txt 3 natives=3
+{"label":"c3-p56-n24","ok":false,"runs":[{"status":"completed","tokens":63,"answerMs":107232},{"status":"failed","error":"Partition peer declined or failed request","tokens":null,"answerMs":6550},{"status":"completed","tokens":63,"answerMs":107324}],"settled":true}
+2026-10-15T17:38:26Z end c3-p56-n24
+2026-10-15T17:38:26Z matrix done

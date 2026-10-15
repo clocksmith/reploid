@@ -1,0 +1,1500 @@
+{
+ "schema": "reploid.placement-c-envelope-cell/v1",
+ "label": "c1-p56-n24",
+ "startedAt": "2026-10-15T13:22:12.457Z",
+ "promptFile": "p56-n24.txt",
+ "promptSha256": "sha256:fab1a3999bd390440857d26728716d2be05bfe55b1a762085d849a95d1a3a421",
+ "promptCharacters": 178,
+ "requesters": 1,
+ "runs": [
+  {
+   "index": 0,
+   "attemptId": "73ec05dd-2a4b-4b09-ac54-24b40ca8294f",
+   "threadId": "b2adb4ae-c366-4cf9-b815-de00dbe44804",
+   "status": "failed",
+   "error": "A contributor declined authorization for this request.",
+   "stopReason": null,
+   "coordinatorTokens": null,
+   "publishedRecords": 255,
+   "answerCharacters": 925,
+   "answerHead": "1\nThe first contractor offers a 10-year warranty with a 24-hour response time.\n2\nThe second contractor provides a 20-year warranty with a 48-hour response time.\n3\nThe third contractor offers a 15-year",
+   "answerTail": "e.\n11\nThe eleventh contractor offers a 20-year warranty with a 48-hour response time.\n12\nThe twelfth contractor provides",
+   "attemptCreatedAt": 1792070535889,
+   "attemptFinishedAt": 1792071436839,
+   "firstTextAt": "2026-10-15T13:22:46.734Z",
+   "lastTextAt": "2026-10-15T13:37:17.091Z",
+   "lastTextCharacters": 925,
+   "timing": {
+    "schema": "reploid.signed-completion-answer-timing/v2",
+    "threadId": "b2adb4ae-c366-4cf9-b815-de00dbe44804",
+    "attemptId": "73ec05dd-2a4b-4b09-ac54-24b40ca8294f",
+    "status": "failed",
+    "requester": {
+     "attemptMs": {
+      "status": "measured",
+      "value": 900950,
+      "unit": "ms",
+      "clock": "requester-application",
+      "source": "packages/reploid/src/chat/workspace.js:248 minus packages/reploid/src/chat/workspace.js:116"
+     },
+     "firstVisibleTextMs": {
+      "status": "measured",
+      "value": 30945,
+      "unit": "ms",
+      "clock": "harness",
+      "source": "harness stream sample (Send click to first nonempty rendered response)",
+      "resolutionMs": 250
+     },
+     "outputCharacters": 925
+    },
+    "coordinator": {
+     "generatedTokens": null,
+     "promptTokens": {
+      "status": "not-observable",
+      "reason": "Ordered summaries before phase timing carry no prompt length",
+      "source": "doppler src/inference/pipelines/text/resident-partition.js:173-202,230 produces metrics; partition-route-execution.js:182 keeps them per step on the coordinator; partition-summary.js:16-18 drops them from the requester summary; server/native-participant.js:51-63 state log omits them"
+     },
+     "phases": null,
+     "stages": [
+      {
+       "partitionIndex": 0,
+       "steps": null,
+       "stepCount": null,
+       "stepMsTotal": {
+        "status": "missing",
+        "unit": "ms",
+        "clock": "coordinator",
+        "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+       }
+      },
+      {
+       "partitionIndex": 1,
+       "steps": null,
+       "stepCount": null,
+       "stepMsTotal": {
+        "status": "missing",
+        "unit": "ms",
+        "clock": "coordinator",
+        "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+       }
+      },
+      {
+       "partitionIndex": 2,
+       "steps": null,
+       "stepCount": null,
+       "stepMsTotal": {
+        "status": "missing",
+        "unit": "ms",
+        "clock": "coordinator",
+        "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+       }
+      }
+     ],
+     "activationBytes": {
+      "status": "missing",
+      "unit": "bytes",
+      "clock": "coordinator",
+      "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:209"
+     }
+    },
+    "runtime": {
+     "executionMs": {
+      "status": "not-observable",
+      "reason": "Doppler per-stage metrics never reach an observable application boundary for ordered routes",
+      "source": "doppler src/inference/pipelines/text/resident-partition.js:173-202,230 produces metrics; partition-route-execution.js:182 keeps them per step on the coordinator; partition-summary.js:16-18 drops them from the requester summary; server/native-participant.js:51-63 state log omits them"
+     },
+     "logitsReadbackMs": {
+      "status": "not-observable",
+      "reason": "Doppler per-stage metrics never reach an observable application boundary for ordered routes",
+      "source": "doppler src/inference/pipelines/text/resident-partition.js:173-202,230 produces metrics; partition-route-execution.js:182 keeps them per step on the coordinator; partition-summary.js:16-18 drops them from the requester summary; server/native-participant.js:51-63 state log omits them"
+     },
+     "samplingMs": {
+      "status": "not-observable",
+      "reason": "Doppler per-stage metrics never reach an observable application boundary for ordered routes",
+      "source": "doppler src/inference/pipelines/text/resident-partition.js:173-202,230 produces metrics; partition-route-execution.js:182 keeps them per step on the coordinator; partition-summary.js:16-18 drops them from the requester summary; server/native-participant.js:51-63 state log omits them"
+     }
+    },
+    "scheduler": {
+     "queuedMs": {
+      "status": "not-observable",
+      "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+      "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+     },
+     "loadMs": {
+      "status": "not-observable",
+      "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+      "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+     },
+     "executionMs": {
+      "status": "not-observable",
+      "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+      "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+     }
+    },
+    "transport": {
+     "status": "not-observable",
+     "reason": "Ordered summaries carry no transport timing",
+     "source": "partition-summary.js:43-45 aggregates transportTiming for v1 two-device summaries only; the ordered v2 summary (partition-summary.js:16-18) carries none"
+    },
+    "persistence": {
+     "status": "not-observable",
+     "reason": "History persistence exposes no timing",
+     "source": "ordered routes commit each step through the requester transaction owner (packages/reploid/src/mesh/partitions/partition-ordered-chat.js:136, owner.publish) before delivery or the next step; neither that commit nor ordinary history (packages/reploid/src/chat/workspace.js persist()) exposes timing"
+    }
+   },
+   "samples": [
+    {
+     "at": "2026-10-15T13:22:15.906Z",
+     "status": "queued",
+     "characters": 0
+    },
+    {
+     "at": "2026-10-15T13:22:16.684Z",
+     "status": "executing",
+     "characters": 0
+    },
+    {
+     "at": "2026-10-15T13:22:46.734Z",
+     "status": "executing",
+     "characters": 1
+    },
+    {
+     "at": "2026-10-15T13:22:52.472Z",
+     "status": "executing",
+     "characters": 2
+    },
+    {
+     "at": "2026-10-15T13:23:02.144Z",
+     "status": "executing",
+     "characters": 5
+    },
+    {
+     "at": "2026-10-15T13:23:04.491Z",
+     "status": "executing",
+     "characters": 11
+    },
+    {
+     "at": "2026-10-15T13:23:05.529Z",
+     "status": "executing",
+     "characters": 22
+    },
+    {
+     "at": "2026-10-15T13:23:06.857Z",
+     "status": "executing",
+     "characters": 29
+    },
+    {
+     "at": "2026-10-15T13:23:07.894Z",
+     "status": "executing",
+     "characters": 31
+    },
+    {
+     "at": "2026-10-15T13:23:09.450Z",
+     "status": "executing",
+     "characters": 32
+    },
+    {
+     "at": "2026-10-15T13:23:10.224Z",
+     "status": "executing",
+     "characters": 33
+    },
+    {
+     "at": "2026-10-15T13:23:13.607Z",
+     "status": "executing",
+     "characters": 34
+    },
+    {
+     "at": "2026-10-15T13:23:14.384Z",
+     "status": "executing",
+     "characters": 39
+    },
+    {
+     "at": "2026-10-15T13:23:15.418Z",
+     "status": "executing",
+     "characters": 48
+    },
+    {
+     "at": "2026-10-15T13:23:16.195Z",
+     "status": "executing",
+     "characters": 53
+    },
+    {
+     "at": "2026-10-15T13:23:17.239Z",
+     "status": "executing",
+     "characters": 55
+    },
+    {
+     "at": "2026-10-15T13:23:18.020Z",
+     "status": "executing",
+     "characters": 56
+    },
+    {
+     "at": "2026-10-15T13:23:18.801Z",
+     "status": "executing",
+     "characters": 57
+    },
+    {
+     "at": "2026-10-15T13:23:19.844Z",
+     "status": "executing",
+     "characters": 58
+    },
+    {
+     "at": "2026-10-15T13:23:21.140Z",
+     "status": "executing",
+     "characters": 63
+    },
+    {
+     "at": "2026-10-15T13:23:21.915Z",
+     "status": "executing",
+     "characters": 72
+    },
+    {
+     "at": "2026-10-15T13:23:23.484Z",
+     "status": "executing",
+     "characters": 77
+    },
+    {
+     "at": "2026-10-15T13:23:25.303Z",
+     "status": "executing",
+     "characters": 78
+    },
+    {
+     "at": "2026-10-15T13:23:26.081Z",
+     "status": "executing",
+     "characters": 79
+    },
+    {
+     "at": "2026-10-15T13:23:27.118Z",
+     "status": "executing",
+     "characters": 80
+    },
+    {
+     "at": "2026-10-15T13:23:28.426Z",
+     "status": "executing",
+     "characters": 81
+    },
+    {
+     "at": "2026-10-15T13:23:29.734Z",
+     "status": "executing",
+     "characters": 84
+    },
+    {
+     "at": "2026-10-15T13:23:31.030Z",
+     "status": "executing",
+     "characters": 91
+    },
+    {
+     "at": "2026-10-15T13:23:31.810Z",
+     "status": "executing",
+     "characters": 102
+    },
+    {
+     "at": "2026-10-15T13:23:32.590Z",
+     "status": "executing",
+     "characters": 111
+    },
+    {
+     "at": "2026-10-15T13:23:33.629Z",
+     "status": "executing",
+     "characters": 113
+    },
+    {
+     "at": "2026-10-15T13:23:35.182Z",
+     "status": "executing",
+     "characters": 114
+    },
+    {
+     "at": "2026-10-15T13:23:36.224Z",
+     "status": "executing",
+     "characters": 115
+    },
+    {
+     "at": "2026-10-15T13:23:37.007Z",
+     "status": "executing",
+     "characters": 116
+    },
+    {
+     "at": "2026-10-15T13:23:38.042Z",
+     "status": "executing",
+     "characters": 121
+    },
+    {
+     "at": "2026-10-15T13:23:39.076Z",
+     "status": "executing",
+     "characters": 130
+    },
+    {
+     "at": "2026-10-15T13:23:40.120Z",
+     "status": "executing",
+     "characters": 135
+    },
+    {
+     "at": "2026-10-15T13:23:40.897Z",
+     "status": "executing",
+     "characters": 137
+    },
+    {
+     "at": "2026-10-15T13:23:41.674Z",
+     "status": "executing",
+     "characters": 138
+    },
+    {
+     "at": "2026-10-15T13:23:42.720Z",
+     "status": "executing",
+     "characters": 139
+    },
+    {
+     "at": "2026-10-15T13:23:43.505Z",
+     "status": "executing",
+     "characters": 140
+    },
+    {
+     "at": "2026-10-15T13:23:44.541Z",
+     "status": "executing",
+     "characters": 145
+    },
+    {
+     "at": "2026-10-15T13:23:47.389Z",
+     "status": "executing",
+     "characters": 154
+    },
+    {
+     "at": "2026-10-15T13:23:49.471Z",
+     "status": "executing",
+     "characters": 159
+    },
+    {
+     "at": "2026-10-15T13:23:51.821Z",
+     "status": "executing",
+     "characters": 160
+    },
+    {
+     "at": "2026-10-15T13:23:54.160Z",
+     "status": "executing",
+     "characters": 161
+    },
+    {
+     "at": "2026-10-15T13:23:59.646Z",
+     "status": "executing",
+     "characters": 162
+    },
+    {
+     "at": "2026-10-15T13:24:00.944Z",
+     "status": "executing",
+     "characters": 163
+    },
+    {
+     "at": "2026-10-15T13:24:02.251Z",
+     "status": "executing",
+     "characters": 166
+    },
+    {
+     "at": "2026-10-15T13:24:03.552Z",
+     "status": "executing",
+     "characters": 172
+    },
+    {
+     "at": "2026-10-15T13:24:04.855Z",
+     "status": "executing",
+     "characters": 183
+    },
+    {
+     "at": "2026-10-15T13:24:06.147Z",
+     "status": "executing",
+     "characters": 190
+    },
+    {
+     "at": "2026-10-15T13:24:07.176Z",
+     "status": "executing",
+     "characters": 192
+    },
+    {
+     "at": "2026-10-15T13:24:08.731Z",
+     "status": "executing",
+     "characters": 193
+    },
+    {
+     "at": "2026-10-15T13:24:09.511Z",
+     "status": "executing",
+     "characters": 194
+    },
+    {
+     "at": "2026-10-15T13:24:10.545Z",
+     "status": "executing",
+     "characters": 195
+    },
+    {
+     "at": "2026-10-15T13:24:11.338Z",
+     "status": "executing",
+     "characters": 200
+    },
+    {
+     "at": "2026-10-15T13:24:12.117Z",
+     "status": "executing",
+     "characters": 209
+    },
+    {
+     "at": "2026-10-15T13:24:13.154Z",
+     "status": "executing",
+     "characters": 214
+    },
+    {
+     "at": "2026-10-15T13:24:14.188Z",
+     "status": "executing",
+     "characters": 216
+    },
+    {
+     "at": "2026-10-15T13:24:15.234Z",
+     "status": "executing",
+     "characters": 217
+    },
+    {
+     "at": "2026-10-15T13:24:16.277Z",
+     "status": "executing",
+     "characters": 218
+    },
+    {
+     "at": "2026-10-15T13:24:17.835Z",
+     "status": "executing",
+     "characters": 219
+    },
+    {
+     "at": "2026-10-15T13:24:19.651Z",
+     "status": "executing",
+     "characters": 224
+    },
+    {
+     "at": "2026-10-15T13:24:21.214Z",
+     "status": "executing",
+     "characters": 233
+    },
+    {
+     "at": "2026-10-15T13:24:22.013Z",
+     "status": "executing",
+     "characters": 238
+    },
+    {
+     "at": "2026-10-15T13:24:23.313Z",
+     "status": "executing",
+     "characters": 239
+    },
+    {
+     "at": "2026-10-15T13:24:24.355Z",
+     "status": "executing",
+     "characters": 240
+    },
+    {
+     "at": "2026-10-15T13:24:25.653Z",
+     "status": "executing",
+     "characters": 241
+    },
+    {
+     "at": "2026-10-15T13:24:26.955Z",
+     "status": "executing",
+     "characters": 242
+    },
+    {
+     "at": "2026-10-15T13:24:27.731Z",
+     "status": "executing",
+     "characters": 245
+    },
+    {
+     "at": "2026-10-15T13:24:29.547Z",
+     "status": "executing",
+     "characters": 252
+    },
+    {
+     "at": "2026-10-15T13:24:30.325Z",
+     "status": "executing",
+     "characters": 263
+    },
+    {
+     "at": "2026-10-15T13:24:31.630Z",
+     "status": "executing",
+     "characters": 272
+    },
+    {
+     "at": "2026-10-15T13:24:32.412Z",
+     "status": "executing",
+     "characters": 274
+    },
+    {
+     "at": "2026-10-15T13:24:33.720Z",
+     "status": "executing",
+     "characters": 275
+    },
+    {
+     "at": "2026-10-15T13:24:45.702Z",
+     "status": "executing",
+     "characters": 276
+    },
+    {
+     "at": "2026-10-15T13:24:52.206Z",
+     "status": "executing",
+     "characters": 277
+    },
+    {
+     "at": "2026-10-15T13:24:58.991Z",
+     "status": "executing",
+     "characters": 282
+    },
+    {
+     "at": "2026-10-15T13:25:01.069Z",
+     "status": "executing",
+     "characters": 291
+    },
+    {
+     "at": "2026-10-15T13:25:02.901Z",
+     "status": "executing",
+     "characters": 296
+    },
+    {
+     "at": "2026-10-15T13:25:04.461Z",
+     "status": "executing",
+     "characters": 298
+    },
+    {
+     "at": "2026-10-15T13:25:09.162Z",
+     "status": "executing",
+     "characters": 299
+    },
+    {
+     "at": "2026-10-15T13:25:11.248Z",
+     "status": "executing",
+     "characters": 300
+    },
+    {
+     "at": "2026-10-15T13:25:12.289Z",
+     "status": "executing",
+     "characters": 301
+    },
+    {
+     "at": "2026-10-15T13:25:14.683Z",
+     "status": "executing",
+     "characters": 306
+    },
+    {
+     "at": "2026-10-15T13:25:17.796Z",
+     "status": "executing",
+     "characters": 315
+    },
+    {
+     "at": "2026-10-15T13:25:20.183Z",
+     "status": "executing",
+     "characters": 320
+    },
+    {
+     "at": "2026-10-15T13:25:21.762Z",
+     "status": "executing",
+     "characters": 321
+    },
+    {
+     "at": "2026-10-15T13:25:23.331Z",
+     "status": "executing",
+     "characters": 322
+    },
+    {
+     "at": "2026-10-15T13:25:24.404Z",
+     "status": "executing",
+     "characters": 323
+    },
+    {
+     "at": "2026-10-15T13:25:27.277Z",
+     "status": "executing",
+     "characters": 324
+    },
+    {
+     "at": "2026-10-15T13:25:28.584Z",
+     "status": "executing",
+     "characters": 327
+    },
+    {
+     "at": "2026-10-15T13:25:29.393Z",
+     "status": "executing",
+     "characters": 333
+    },
+    {
+     "at": "2026-10-15T13:25:30.171Z",
+     "status": "executing",
+     "characters": 344
+    },
+    {
+     "at": "2026-10-15T13:25:31.242Z",
+     "status": "executing",
+     "characters": 351
+    },
+    {
+     "at": "2026-10-15T13:25:32.304Z",
+     "status": "executing",
+     "characters": 353
+    },
+    {
+     "at": "2026-10-15T13:25:35.427Z",
+     "status": "executing",
+     "characters": 354
+    },
+    {
+     "at": "2026-10-15T13:25:38.295Z",
+     "status": "executing",
+     "characters": 355
+    },
+    {
+     "at": "2026-10-15T13:25:39.465Z",
+     "status": "executing",
+     "characters": 356
+    },
+    {
+     "at": "2026-10-15T13:25:40.501Z",
+     "status": "executing",
+     "characters": 361
+    },
+    {
+     "at": "2026-10-15T13:25:44.419Z",
+     "status": "executing",
+     "characters": 370
+    },
+    {
+     "at": "2026-10-15T13:25:45.981Z",
+     "status": "executing",
+     "characters": 375
+    },
+    {
+     "at": "2026-10-15T13:25:47.020Z",
+     "status": "executing",
+     "characters": 377
+    },
+    {
+     "at": "2026-10-15T13:25:48.582Z",
+     "status": "executing",
+     "characters": 378
+    },
+    {
+     "at": "2026-10-15T13:25:50.135Z",
+     "status": "executing",
+     "characters": 379
+    },
+    {
+     "at": "2026-10-15T13:25:51.433Z",
+     "status": "executing",
+     "characters": 380
+    },
+    {
+     "at": "2026-10-15T13:25:53.254Z",
+     "status": "executing",
+     "characters": 381
+    },
+    {
+     "at": "2026-10-15T13:25:54.551Z",
+     "status": "executing",
+     "characters": 386
+    },
+    {
+     "at": "2026-10-15T13:25:56.141Z",
+     "status": "executing",
+     "characters": 395
+    },
+    {
+     "at": "2026-10-15T13:25:57.180Z",
+     "status": "executing",
+     "characters": 400
+    },
+    {
+     "at": "2026-10-15T13:25:58.478Z",
+     "status": "executing",
+     "characters": 401
+    },
+    {
+     "at": "2026-10-15T13:26:01.613Z",
+     "status": "executing",
+     "characters": 402
+    },
+    {
+     "at": "2026-10-15T13:26:02.943Z",
+     "status": "executing",
+     "characters": 403
+    },
+    {
+     "at": "2026-10-15T13:26:04.762Z",
+     "status": "executing",
+     "characters": 404
+    },
+    {
+     "at": "2026-10-15T13:26:08.932Z",
+     "status": "executing",
+     "characters": 407
+    },
+    {
+     "at": "2026-10-15T13:26:11.264Z",
+     "status": "executing",
+     "characters": 413
+    },
+    {
+     "at": "2026-10-15T13:26:15.443Z",
+     "status": "executing",
+     "characters": 424
+    },
+    {
+     "at": "2026-10-15T13:26:25.412Z",
+     "status": "executing",
+     "characters": 433
+    },
+    {
+     "at": "2026-10-15T13:26:37.474Z",
+     "status": "executing",
+     "characters": 435
+    },
+    {
+     "at": "2026-10-15T13:26:51.843Z",
+     "status": "executing",
+     "characters": 436
+    },
+    {
+     "at": "2026-10-15T13:27:09.673Z",
+     "status": "executing",
+     "characters": 437
+    },
+    {
+     "at": "2026-10-15T13:27:21.609Z",
+     "status": "executing",
+     "characters": 438
+    },
+    {
+     "at": "2026-10-15T13:27:33.179Z",
+     "status": "executing",
+     "characters": 443
+    },
+    {
+     "at": "2026-10-15T13:27:56.693Z",
+     "status": "executing",
+     "characters": 452
+    },
+    {
+     "at": "2026-10-15T13:28:11.608Z",
+     "status": "executing",
+     "characters": 457
+    },
+    {
+     "at": "2026-10-15T13:28:18.679Z",
+     "status": "executing",
+     "characters": 459
+    },
+    {
+     "at": "2026-10-15T13:28:22.018Z",
+     "status": "executing",
+     "characters": 460
+    },
+    {
+     "at": "2026-10-15T13:28:23.317Z",
+     "status": "executing",
+     "characters": 461
+    },
+    {
+     "at": "2026-10-15T13:28:24.882Z",
+     "status": "executing",
+     "characters": 462
+    },
+    {
+     "at": "2026-10-15T13:28:26.189Z",
+     "status": "executing",
+     "characters": 467
+    },
+    {
+     "at": "2026-10-15T13:28:30.378Z",
+     "status": "executing",
+     "characters": 476
+    },
+    {
+     "at": "2026-10-15T13:28:48.824Z",
+     "status": "executing",
+     "characters": 481
+    },
+    {
+     "at": "2026-10-15T13:28:54.089Z",
+     "status": "executing",
+     "characters": 482
+    },
+    {
+     "at": "2026-10-15T13:29:02.301Z",
+     "status": "executing",
+     "characters": 483
+    },
+    {
+     "at": "2026-10-15T13:29:06.480Z",
+     "status": "executing",
+     "characters": 484
+    },
+    {
+     "at": "2026-10-15T13:29:11.189Z",
+     "status": "executing",
+     "characters": 485
+    },
+    {
+     "at": "2026-10-15T13:29:16.423Z",
+     "status": "executing",
+     "characters": 488
+    },
+    {
+     "at": "2026-10-15T13:29:20.868Z",
+     "status": "executing",
+     "characters": 496
+    },
+    {
+     "at": "2026-10-15T13:29:27.222Z",
+     "status": "executing",
+     "characters": 507
+    },
+    {
+     "at": "2026-10-15T13:29:28.795Z",
+     "status": "executing",
+     "characters": 514
+    },
+    {
+     "at": "2026-10-15T13:29:31.159Z",
+     "status": "executing",
+     "characters": 516
+    },
+    {
+     "at": "2026-10-15T13:29:32.755Z",
+     "status": "executing",
+     "characters": 517
+    },
+    {
+     "at": "2026-10-15T13:29:34.864Z",
+     "status": "executing",
+     "characters": 518
+    },
+    {
+     "at": "2026-10-15T13:29:36.725Z",
+     "status": "executing",
+     "characters": 519
+    },
+    {
+     "at": "2026-10-15T13:29:38.045Z",
+     "status": "executing",
+     "characters": 524
+    },
+    {
+     "at": "2026-10-15T13:29:39.632Z",
+     "status": "executing",
+     "characters": 533
+    },
+    {
+     "at": "2026-10-15T13:29:41.214Z",
+     "status": "executing",
+     "characters": 538
+    },
+    {
+     "at": "2026-10-15T13:29:44.410Z",
+     "status": "executing",
+     "characters": 540
+    },
+    {
+     "at": "2026-10-15T13:29:53.316Z",
+     "status": "executing",
+     "characters": 541
+    },
+    {
+     "at": "2026-10-15T13:30:07.002Z",
+     "status": "executing",
+     "characters": 542
+    },
+    {
+     "at": "2026-10-15T13:30:10.940Z",
+     "status": "executing",
+     "characters": 543
+    },
+    {
+     "at": "2026-10-15T13:30:15.920Z",
+     "status": "executing",
+     "characters": 548
+    },
+    {
+     "at": "2026-10-15T13:30:21.463Z",
+     "status": "executing",
+     "characters": 557
+    },
+    {
+     "at": "2026-10-15T13:30:57.527Z",
+     "status": "executing",
+     "characters": 562
+    },
+    {
+     "at": "2026-10-15T13:31:19.159Z",
+     "status": "executing",
+     "characters": 563
+    },
+    {
+     "at": "2026-10-15T13:31:26.316Z",
+     "status": "executing",
+     "characters": 564
+    },
+    {
+     "at": "2026-10-15T13:31:29.488Z",
+     "status": "executing",
+     "characters": 565
+    },
+    {
+     "at": "2026-10-15T13:31:36.793Z",
+     "status": "executing",
+     "characters": 566
+    },
+    {
+     "at": "2026-10-15T13:31:43.235Z",
+     "status": "executing",
+     "characters": 569
+    },
+    {
+     "at": "2026-10-15T13:31:49.160Z",
+     "status": "executing",
+     "characters": 576
+    },
+    {
+     "at": "2026-10-15T13:31:57.153Z",
+     "status": "executing",
+     "characters": 587
+    },
+    {
+     "at": "2026-10-15T13:32:12.909Z",
+     "status": "executing",
+     "characters": 596
+    },
+    {
+     "at": "2026-10-15T13:32:38.664Z",
+     "status": "executing",
+     "characters": 598
+    },
+    {
+     "at": "2026-10-15T13:32:50.226Z",
+     "status": "executing",
+     "characters": 599
+    },
+    {
+     "at": "2026-10-15T13:32:55.989Z",
+     "status": "executing",
+     "characters": 600
+    },
+    {
+     "at": "2026-10-15T13:32:59.944Z",
+     "status": "executing",
+     "characters": 601
+    },
+    {
+     "at": "2026-10-15T13:33:16.703Z",
+     "status": "executing",
+     "characters": 606
+    },
+    {
+     "at": "2026-10-15T13:33:22.720Z",
+     "status": "executing",
+     "characters": 615
+    },
+    {
+     "at": "2026-10-15T13:33:28.520Z",
+     "status": "executing",
+     "characters": 620
+    },
+    {
+     "at": "2026-10-15T13:33:35.362Z",
+     "status": "executing",
+     "characters": 622
+    },
+    {
+     "at": "2026-10-15T13:33:45.700Z",
+     "status": "executing",
+     "characters": 623
+    },
+    {
+     "at": "2026-10-15T13:33:49.374Z",
+     "status": "executing",
+     "characters": 624
+    },
+    {
+     "at": "2026-10-15T13:33:53.851Z",
+     "status": "executing",
+     "characters": 625
+    },
+    {
+     "at": "2026-10-15T13:33:56.761Z",
+     "status": "executing",
+     "characters": 630
+    },
+    {
+     "at": "2026-10-15T13:34:00.186Z",
+     "status": "executing",
+     "characters": 639
+    },
+    {
+     "at": "2026-10-15T13:34:08.607Z",
+     "status": "executing",
+     "characters": 644
+    },
+    {
+     "at": "2026-10-15T13:34:13.088Z",
+     "status": "executing",
+     "characters": 645
+    },
+    {
+     "at": "2026-10-15T13:34:15.701Z",
+     "status": "executing",
+     "characters": 646
+    },
+    {
+     "at": "2026-10-15T13:34:18.090Z",
+     "status": "executing",
+     "characters": 647
+    },
+    {
+     "at": "2026-10-15T13:34:19.932Z",
+     "status": "executing",
+     "characters": 648
+    },
+    {
+     "at": "2026-10-15T13:34:22.838Z",
+     "status": "executing",
+     "characters": 651
+    },
+    {
+     "at": "2026-10-15T13:34:26.050Z",
+     "status": "executing",
+     "characters": 657
+    },
+    {
+     "at": "2026-10-15T13:34:34.964Z",
+     "status": "executing",
+     "characters": 668
+    },
+    {
+     "at": "2026-10-15T13:34:45.862Z",
+     "status": "executing",
+     "characters": 675
+    },
+    {
+     "at": "2026-10-15T13:34:50.320Z",
+     "status": "executing",
+     "characters": 677
+    },
+    {
+     "at": "2026-10-15T13:34:53.715Z",
+     "status": "executing",
+     "characters": 678
+    },
+    {
+     "at": "2026-10-15T13:34:56.081Z",
+     "status": "executing",
+     "characters": 679
+    },
+    {
+     "at": "2026-10-15T13:34:58.956Z",
+     "status": "executing",
+     "characters": 680
+    },
+    {
+     "at": "2026-10-15T13:35:02.337Z",
+     "status": "executing",
+     "characters": 685
+    },
+    {
+     "at": "2026-10-15T13:35:04.944Z",
+     "status": "executing",
+     "characters": 694
+    },
+    {
+     "at": "2026-10-15T13:35:08.611Z",
+     "status": "executing",
+     "characters": 699
+    },
+    {
+     "at": "2026-10-15T13:35:14.140Z",
+     "status": "executing",
+     "characters": 701
+    },
+    {
+     "at": "2026-10-15T13:35:27.300Z",
+     "status": "executing",
+     "characters": 702
+    },
+    {
+     "at": "2026-10-15T13:35:30.402Z",
+     "status": "executing",
+     "characters": 703
+    },
+    {
+     "at": "2026-10-15T13:35:34.061Z",
+     "status": "executing",
+     "characters": 704
+    },
+    {
+     "at": "2026-10-15T13:35:39.805Z",
+     "status": "executing",
+     "characters": 705
+    },
+    {
+     "at": "2026-10-15T13:35:42.417Z",
+     "status": "executing",
+     "characters": 710
+    },
+    {
+     "at": "2026-10-15T13:35:45.035Z",
+     "status": "executing",
+     "characters": 719
+    },
+    {
+     "at": "2026-10-15T13:35:46.325Z",
+     "status": "executing",
+     "characters": 724
+    },
+    {
+     "at": "2026-10-15T13:35:47.098Z",
+     "status": "executing",
+     "characters": 725
+    },
+    {
+     "at": "2026-10-15T13:35:47.886Z",
+     "status": "executing",
+     "characters": 726
+    },
+    {
+     "at": "2026-10-15T13:35:48.934Z",
+     "status": "executing",
+     "characters": 727
+    },
+    {
+     "at": "2026-10-15T13:35:50.264Z",
+     "status": "executing",
+     "characters": 728
+    },
+    {
+     "at": "2026-10-15T13:35:51.596Z",
+     "status": "executing",
+     "characters": 729
+    },
+    {
+     "at": "2026-10-15T13:35:52.707Z",
+     "status": "executing",
+     "characters": 732
+    },
+    {
+     "at": "2026-10-15T13:35:54.055Z",
+     "status": "executing",
+     "characters": 738
+    },
+    {
+     "at": "2026-10-15T13:35:55.401Z",
+     "status": "executing",
+     "characters": 749
+    },
+    {
+     "at": "2026-10-15T13:35:56.703Z",
+     "status": "executing",
+     "characters": 758
+    },
+    {
+     "at": "2026-10-15T13:35:57.764Z",
+     "status": "executing",
+     "characters": 760
+    },
+    {
+     "at": "2026-10-15T13:35:58.799Z",
+     "status": "executing",
+     "characters": 761
+    },
+    {
+     "at": "2026-10-15T13:36:03.228Z",
+     "status": "executing",
+     "characters": 762
+    },
+    {
+     "at": "2026-10-15T13:36:06.383Z",
+     "status": "executing",
+     "characters": 763
+    },
+    {
+     "at": "2026-10-15T13:36:07.442Z",
+     "status": "executing",
+     "characters": 768
+    },
+    {
+     "at": "2026-10-15T13:36:08.475Z",
+     "status": "executing",
+     "characters": 777
+    },
+    {
+     "at": "2026-10-15T13:36:10.022Z",
+     "status": "executing",
+     "characters": 782
+    },
+    {
+     "at": "2026-10-15T13:36:11.057Z",
+     "status": "executing",
+     "characters": 784
+    },
+    {
+     "at": "2026-10-15T13:36:12.349Z",
+     "status": "executing",
+     "characters": 785
+    },
+    {
+     "at": "2026-10-15T13:36:13.643Z",
+     "status": "executing",
+     "characters": 786
+    },
+    {
+     "at": "2026-10-15T13:36:14.420Z",
+     "status": "executing",
+     "characters": 787
+    },
+    {
+     "at": "2026-10-15T13:36:15.468Z",
+     "status": "executing",
+     "characters": 792
+    },
+    {
+     "at": "2026-10-15T13:36:16.776Z",
+     "status": "executing",
+     "characters": 801
+    },
+    {
+     "at": "2026-10-15T13:36:18.081Z",
+     "status": "executing",
+     "characters": 806
+    },
+    {
+     "at": "2026-10-15T13:36:19.149Z",
+     "status": "executing",
+     "characters": 807
+    },
+    {
+     "at": "2026-10-15T13:36:20.462Z",
+     "status": "executing",
+     "characters": 808
+    },
+    {
+     "at": "2026-10-15T13:36:21.509Z",
+     "status": "executing",
+     "characters": 809
+    },
+    {
+     "at": "2026-10-15T13:36:23.594Z",
+     "status": "executing",
+     "characters": 810
+    },
+    {
+     "at": "2026-10-15T13:36:25.421Z",
+     "status": "executing",
+     "characters": 811
+    },
+    {
+     "at": "2026-10-15T13:36:26.986Z",
+     "status": "executing",
+     "characters": 814
+    },
+    {
+     "at": "2026-10-15T13:36:28.548Z",
+     "status": "executing",
+     "characters": 818
+    },
+    {
+     "at": "2026-10-15T13:36:29.345Z",
+     "status": "executing",
+     "characters": 823
+    },
+    {
+     "at": "2026-10-15T13:36:30.648Z",
+     "status": "executing",
+     "characters": 834
+    },
+    {
+     "at": "2026-10-15T13:36:31.431Z",
+     "status": "executing",
+     "characters": 841
+    },
+    {
+     "at": "2026-10-15T13:36:32.736Z",
+     "status": "executing",
+     "characters": 843
+    },
+    {
+     "at": "2026-10-15T13:36:34.038Z",
+     "status": "executing",
+     "characters": 844
+    },
+    {
+     "at": "2026-10-15T13:36:35.079Z",
+     "status": "executing",
+     "characters": 845
+    },
+    {
+     "at": "2026-10-15T13:36:37.167Z",
+     "status": "executing",
+     "characters": 846
+    },
+    {
+     "at": "2026-10-15T13:36:39.261Z",
+     "status": "executing",
+     "characters": 851
+    },
+    {
+     "at": "2026-10-15T13:36:41.100Z",
+     "status": "executing",
+     "characters": 860
+    },
+    {
+     "at": "2026-10-15T13:36:41.882Z",
+     "status": "executing",
+     "characters": 865
+    },
+    {
+     "at": "2026-10-15T13:36:42.924Z",
+     "status": "executing",
+     "characters": 867
+    },
+    {
+     "at": "2026-10-15T13:36:43.961Z",
+     "status": "executing",
+     "characters": 868
+    },
+    {
+     "at": "2026-10-15T13:36:45.010Z",
+     "status": "executing",
+     "characters": 869
+    },
+    {
+     "at": "2026-10-15T13:36:46.583Z",
+     "status": "executing",
+     "characters": 870
+    },
+    {
+     "at": "2026-10-15T13:36:47.620Z",
+     "status": "executing",
+     "characters": 875
+    },
+    {
+     "at": "2026-10-15T13:36:49.716Z",
+     "status": "executing",
+     "characters": 884
+    },
+    {
+     "at": "2026-10-15T13:36:51.819Z",
+     "status": "executing",
+     "characters": 889
+    },
+    {
+     "at": "2026-10-15T13:36:53.920Z",
+     "status": "executing",
+     "characters": 890
+    },
+    {
+     "at": "2026-10-15T13:37:00.776Z",
+     "status": "executing",
+     "characters": 891
+    },
+    {
+     "at": "2026-10-15T13:37:03.650Z",
+     "status": "executing",
+     "characters": 892
+    },
+    {
+     "at": "2026-10-15T13:37:06.017Z",
+     "status": "executing",
+     "characters": 893
+    },
+    {
+     "at": "2026-10-15T13:37:07.338Z",
+     "status": "executing",
+     "characters": 894
+    },
+    {
+     "at": "2026-10-15T13:37:09.481Z",
+     "status": "executing",
+     "characters": 897
+    },
+    {
+     "at": "2026-10-15T13:37:11.070Z",
+     "status": "executing",
+     "characters": 900
+    },
+    {
+     "at": "2026-10-15T13:37:12.114Z",
+     "status": "executing",
+     "characters": 905
+    },
+    {
+     "at": "2026-10-15T13:37:13.682Z",
+     "status": "executing",
+     "characters": 916
+    },
+    {
+     "at": "2026-10-15T13:37:15.777Z",
+     "status": "executing",
+     "characters": 925
+    },
+    {
+     "at": "2026-10-15T13:37:17.091Z",
+     "status": "failed",
+     "characters": 925
+    }
+   ]
+  }
+ ],
+ "before": {
+  "at": "2026-10-15T13:22:15.769Z",
+  "phase": "ready",
+  "error": null,
+  "unsettledOwners": 0,
+  "reservations": {
+   "active": 0,
+   "availableSlots": 2,
+   "closed": false
+  },
+  "unknownAttempts": [],
+  "attempts": []
+ },
+ "sentAt": "2026-10-15T13:22:15.771Z",
+ "sends": [
+  {
+   "sentAt": "2026-10-15T13:22:15.789Z",
+   "permissionShown": true
+  }
+ ],
+ "ok": false,
+ "settlement": [
+  {
+   "at": "2026-10-15T13:37:17.187Z",
+   "phase": "ready",
+   "error": null,
+   "unsettledOwners": 0,
+   "reservations": {
+    "active": 0,
+    "availableSlots": 2,
+    "closed": false
+   },
+   "unknownAttempts": [],
+   "attempts": [
+    {
+     "attemptId": "73ec05dd-2a4b-4b09-ac54-24b40ca8294f",
+     "phase": "failed",
+     "cleanup": [
+      {
+       "partitionIndex": 0,
+       "status": "settled",
+       "error": null
+      },
+      {
+       "partitionIndex": 1,
+       "status": "settled",
+       "error": null
+      },
+      {
+       "partitionIndex": 2,
+       "status": "settled",
+       "error": null
+      }
+     ],
+     "cleanupSettledAt": 1792071436808,
+     "failure": "A contributor declined authorization for this request."
+    }
+   ]
+  }
+ ],
+ "finishedAt": "2026-10-15T13:37:17.188Z"
+}

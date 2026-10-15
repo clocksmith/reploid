@@ -1,0 +1,21 @@
+{
+ "schema": "reploid.run-2-signed-state/v1",
+ "machine": "amd-host",
+ "stateDirectory": "/var/tmp/reploid-faster-journey-20261015/amd-stage-2-state",
+ "at": "2026-10-15T17:55:33.127465+00:00",
+ "releaseCheckpoints": [
+  {
+   "namespace": "sha256:ce08ba3fdaeac42b54c2b4f963f69519cd7b39cce14a66b682ed9f1583fe233b",
+   "sequence": 9,
+   "digest": "sha256:dd83799625519d431d5e1f5c9b04b06bce0a0091ece922891d7d965a906c55bf"
+  }
+ ],
+ "supplyLedger": {
+  "schema": "reploid.custody-supply-budget/v1",
+  "maxBytes": 4294967296,
+  "reservedBytes": 0
+ },
+ "identityPeerId": "peer:5f288f6f0259c251a1915c11",
+ "identitySha256": "34c3b3b2ec6276f60cf4feab05e7a0bb11a91d04da1fac0e16ef9978a0c9ea31",
+ "cacheEntries": 431
+}
