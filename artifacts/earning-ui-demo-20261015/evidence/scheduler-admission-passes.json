@@ -1,0 +1,34 @@
+[
+  {
+    "schema": "reploid.scheduler-pass/v1",
+    "passId": "community-access.admitWaiting~0000000003",
+    "jobId": "community-access.admitWaiting",
+    "seq": 3,
+    "runnerId": "local-demo-server",
+    "leaseId": "lease_63e8f7ff-cfb9-484b-863d-e5cd1628b68b",
+    "scheduleVersion": "local-demo-schedule/1",
+    "batchLimit": 20,
+    "status": "completed",
+    "startedAt": "2026-10-15T14:21:36.490Z",
+    "finishedAt": "2026-10-15T14:21:36.558Z",
+    "recovered": null,
+    "counts": {
+      "processed": 2,
+      "succeeded": 2,
+      "failed": 0
+    },
+    "items": [
+      {
+        "ref": "car_9542728930d68ec3395368001ec8d7d2",
+        "status": "released"
+      },
+      {
+        "ref": "car_3a9f5f59eab614f4f452f6bed5a8d1fd",
+        "status": "admitted"
+      }
+    ],
+    "backlog": false,
+    "error": null,
+    "nextDueAt": "2026-10-15T14:21:41.490Z"
+  }
+]

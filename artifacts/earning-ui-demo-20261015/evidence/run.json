@@ -5,12 +5,12 @@
   "contributorEarnedText": "Balance: 24 credits · earned 24, bought 0",
   "timeline": [
     {
-      "at": "2026-10-15T14:10:53.808Z",
+      "at": "2026-10-15T14:21:25.696Z",
       "step": "firestore-emulator-ready",
       "port": 8147
     },
     {
-      "at": "2026-10-15T14:10:54.575Z",
+      "at": "2026-10-15T14:21:26.462Z",
       "step": "server-ready",
       "service": {
         "schema": "reploid.earning-service/v1",
@@ -34,7 +34,7 @@
       }
     },
     {
-      "at": "2026-10-15T14:10:54.617Z",
+      "at": "2026-10-15T14:21:26.495Z",
       "step": "founder-commitment-recorded",
       "status": 201,
       "commitment": {
@@ -48,19 +48,19 @@
           "currency": "USD"
         },
         "amount": 10000,
-        "validFrom": "2026-10-15T14:10:54.575Z",
-        "validUntil": "2026-10-22T14:10:54.575Z",
+        "validFrom": "2026-10-15T14:21:26.462Z",
+        "validUntil": "2026-10-22T14:21:26.462Z",
         "allocated": 0,
         "returned": 0,
         "allocations": 0,
-        "recordedAt": "2026-10-15T14:10:54.592Z",
-        "updatedAt": "2026-10-15T14:10:54.592Z",
+        "recordedAt": "2026-10-15T14:21:26.474Z",
+        "updatedAt": "2026-10-15T14:21:26.474Z",
         "status": "active",
         "unallocated": 10000
       }
     },
     {
-      "at": "2026-10-15T14:10:54.722Z",
+      "at": "2026-10-15T14:21:26.570Z",
       "step": "community-pool-funded",
       "status": 201,
       "funding": {
@@ -80,145 +80,168 @@
         "allocationId": "alloc_79c5032e97a4f5c08541c36ffdfb8681",
         "funderId": "founder",
         "funderKind": "operator",
-        "validUntil": "2026-10-22T14:10:54.575Z",
+        "validUntil": "2026-10-22T14:21:26.462Z",
         "refusal": null,
         "lotId": "lot_97b23ba908c6fd5827176f24a1154835",
-        "recordedAt": "2026-10-15T14:10:54.621Z",
-        "allocatedAt": "2026-10-15T14:10:54.678Z",
-        "issuedAt": "2026-10-15T14:10:54.693Z",
+        "recordedAt": "2026-10-15T14:21:26.498Z",
+        "allocatedAt": "2026-10-15T14:21:26.536Z",
+        "issuedAt": "2026-10-15T14:21:26.548Z",
         "closedAt": null
       }
     },
     {
-      "at": "2026-10-15T14:10:55.226Z",
+      "at": "2026-10-15T14:21:27.074Z",
       "step": "contributor-ready"
     },
     {
-      "at": "2026-10-15T14:10:56.133Z",
+      "at": "2026-10-15T14:21:27.952Z",
       "step": "screenshot",
       "device": "requester-alice",
       "file": "01-requester-app-credits-signed-out.png"
     },
     {
-      "at": "2026-10-15T14:10:56.398Z",
+      "at": "2026-10-15T14:21:28.218Z",
       "step": "screenshot",
       "device": "requester-alice",
       "file": "02-requester-app-signed-in.png"
     },
     {
-      "at": "2026-10-15T14:10:56.527Z",
+      "at": "2026-10-15T14:21:28.338Z",
       "step": "screenshot",
       "device": "requester-alice",
       "file": "03-test-checkout-page.png"
     },
     {
-      "at": "2026-10-15T14:10:56.638Z",
+      "at": "2026-10-15T14:21:28.455Z",
       "step": "screenshot",
       "device": "requester-alice",
       "file": "04-test-checkout-recorded.png"
     },
     {
-      "at": "2026-10-15T14:10:56.963Z",
+      "at": "2026-10-15T14:21:28.781Z",
       "step": "screenshot",
       "device": "requester-alice",
       "file": "05-requester-app-funded-limit-set.png"
     },
     {
-      "at": "2026-10-15T14:10:57.291Z",
+      "at": "2026-10-15T14:21:29.090Z",
       "step": "screenshot",
       "device": "requester-alice",
       "file": "06-requester-harness-before-send.png"
     },
     {
-      "at": "2026-10-15T14:10:57.592Z",
+      "at": "2026-10-15T14:21:29.395Z",
       "step": "answer",
       "device": "requester-alice",
       "status": "completed",
       "error": null
     },
     {
-      "at": "2026-10-15T14:10:57.624Z",
+      "at": "2026-10-15T14:21:29.426Z",
       "step": "screenshot",
       "device": "requester-alice",
       "file": "07-requester-harness-first-answer.png"
     },
     {
-      "at": "2026-10-15T14:10:57.896Z",
+      "at": "2026-10-15T14:21:29.694Z",
       "step": "answer",
       "device": "requester-alice",
       "status": "completed",
       "error": null
     },
     {
-      "at": "2026-10-15T14:10:58.161Z",
+      "at": "2026-10-15T14:21:29.944Z",
       "step": "answer",
       "device": "requester-alice",
       "status": "completed",
       "error": null
     },
     {
-      "at": "2026-10-15T14:10:58.303Z",
+      "at": "2026-10-15T14:21:30.086Z",
       "step": "screenshot",
       "device": "requester-alice",
       "file": "08-requester-harness-three-answers-credits.png"
     },
     {
-      "at": "2026-10-15T14:10:58.602Z",
+      "at": "2026-10-15T14:21:30.382Z",
       "step": "screenshot",
       "device": "requester-alice",
       "file": "09-requester-app-journal.png"
     },
     {
-      "at": "2026-10-15T14:11:00.113Z",
+      "at": "2026-10-15T14:21:31.896Z",
       "step": "contributor-claims-issued"
     },
     {
-      "at": "2026-10-15T14:11:00.702Z",
+      "at": "2026-10-15T14:21:32.456Z",
       "step": "screenshot",
       "device": "contributor-carol",
       "file": "10-contributor-app-earned.png"
     },
     {
-      "at": "2026-10-15T14:11:01.094Z",
+      "at": "2026-10-15T14:21:32.861Z",
       "step": "answer",
       "device": "contributor-carol",
       "status": "completed",
       "error": null
     },
     {
-      "at": "2026-10-15T14:11:01.232Z",
+      "at": "2026-10-15T14:21:33.002Z",
       "step": "screenshot",
       "device": "contributor-carol",
       "file": "11-contributor-harness-spent-credits.png"
     },
     {
-      "at": "2026-10-15T14:11:01.619Z",
+      "at": "2026-10-15T14:21:33.363Z",
       "step": "screenshot",
       "device": "contributor-carol",
       "file": "12-contributor-app-journal.png"
     },
     {
-      "at": "2026-10-15T14:11:02.221Z",
+      "at": "2026-10-15T14:21:33.931Z",
       "step": "screenshot",
       "device": "community-dave",
       "file": "13-community-member-app-no-credits.png"
     },
     {
-      "at": "2026-10-15T14:11:02.643Z",
+      "at": "2026-10-15T14:21:34.180Z",
+      "step": "community-access-slot-held",
+      "requester": "erin",
+      "state": "available"
+    },
+    {
+      "at": "2026-10-15T14:21:34.644Z",
+      "step": "community-access-queued",
+      "requester": "dave",
+      "requestId": "car_3a9f5f59eab614f4f452f6bed5a8d1fd"
+    },
+    {
+      "at": "2026-10-15T14:21:36.711Z",
       "step": "answer",
       "device": "community-dave",
       "status": "completed",
       "error": null
     },
     {
-      "at": "2026-10-15T14:11:02.782Z",
+      "at": "2026-10-15T14:21:36.850Z",
       "step": "screenshot",
       "device": "community-dave",
       "file": "14-community-member-harness-answer.png"
     },
     {
-      "at": "2026-10-15T14:11:03.538Z",
+      "at": "2026-10-15T14:21:36.855Z",
+      "step": "community-access-admitted-by-sweep",
+      "requestId": "car_3a9f5f59eab614f4f452f6bed5a8d1fd",
+      "pass": "community-access.admitWaiting~0000000003"
+    },
+    {
+      "at": "2026-10-15T14:21:37.359Z",
       "step": "community-access-stage-shares-issued"
+    },
+    {
+      "at": "2026-10-15T14:21:42.629Z",
+      "step": "scheduler-cli-round",
+      "exitCode": 0
     }
   ]
 }
