@@ -67,7 +67,9 @@ export async function createNativeArtifactCache({ directory, maxBytes = policy.m
   return Object.freeze({ get, put, getState: () => ({ quarantined: structuredClone(quarantined) }), close: () => writing });
 }
 
-export async function createNativeModelFiles({ transport, modelDirectory, cacheDirectory, onChange = () => {} }) {
+/** `owner` is the optional native owner gate (server/native-owner/controls.js). Without
+ * it, channels, supply admission and acquisition deadlines are exactly as before. */
+export async function createNativeModelFiles({ transport, modelDirectory, cacheDirectory, onChange = () => {}, owner = null }) {
   const root = await fs.realpath(modelDirectory), cache = await createNativeArtifactCache({ directory: cacheDirectory });
   let budget = null, budgetError = null;
   try { budget = await openNativeSupplyBudget({ directory: cacheDirectory, maxBytes: policy.maxSupplyBytes }); }
@@ -101,7 +103,8 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
   const exchange = createCustodyExchange({ transport, identity: { peerId: transport._getPeerId(),
     publicKey: await exportPublicKey(pair.publicKey), privateKey: pair.privateKey }, policy, ports: { supplyBudget,
     createSupplier: contracts.createPeerPackSupplier, createStore: contracts.createPeerPackArtifactStore,
-    createChannel: createPeerPackDataChannel, hash: hashDopplerEvidence, hashBytes: sha256Hex,
+    createChannel: owner ? owner.paceChannel(createPeerPackDataChannel) : createPeerPackDataChannel,
+    ...(owner ? { admitSupply: request => owner.admitSupply(request) } : {}), hash: hashDopplerEvidence, hashBytes: sha256Hex,
     readArtifact: async file => { const bytes = await cache.get(file); assert(bytes, 'Advertised native bytes are unavailable'); return bytes; },
     verifyArtifact: verify, commitArtifact: (file, bytes, controls) => cache.put(file, bytes, controls), observe, onChange
   } });
@@ -146,7 +149,8 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
       for (const file of data.index.files) for (const piece of file.pieces) descriptors.set(piece.identity, { ...piece, path: file.path });
       const acquisition = createPieceAcquisition({
         limits: { maxConcurrent: policy.maxPieceAcquisitions, maxQueued: policy.maxQueuedPieceAcquisitions,
-          maxPieceBytes: policy.maxArtifactBytes, timeoutMs: policy.channel.timeoutMs },
+          maxPieceBytes: policy.maxArtifactBytes,
+          timeoutMs: owner ? owner.pieceTimeoutMs(policy.channel.timeoutMs, policy.maxArtifactBytes) : policy.channel.timeoutMs },
         cache: { get: id => cache.get(pieceFile(descriptors.get(id))),
           put: async (id, bytes) => {
             const file = pieceFile(descriptors.get(id)); await cache.put(file, bytes, { signal }); retained.set(key(file), file);
