@@ -130,6 +130,16 @@ Consequences for this harness:
 | H8: `timeouts.seedingMs` 1,800,000 was shorter than the measured whole-model transfer from `mac-host` to `intel-host` (about 1 MB/s, roughly 19 minutes for 1.16 GB), and the 45-minute native and 75-minute acquirer caps could end before the harness | `seedingMs` 3,600,000 in the run-7 config; `native-launch.sh`, `launch-natives.sh` and `acquirer-launch.sh` take an optional cap (at most 2 hours), used only for the seeding harness (90-minute natives, 2-hour acquirer) |
 | H9: `run-7/tools/history-check.mjs` observed the host session immediately after the reload, before the reloaded page exposed it ("Host session observation unavailable"; `reports/history-check.json`, whose IndexedDB summary is complete) | It waits for the host session to be observable again (`reports/history-check-2.json`) |
 
+## Changes for run 8 (placement C, faster candidate)
+
+Run 8 ([faster-candidate-20261015/journeys](../faster-candidate-20261015/journeys/README.md)) puts two native stages on one machine: `amd-host` stage 1 and `amd-host` stage 2. The harness assumed one stage per machine.
+
+| Change | What it does |
+|--------|--------------|
+| H12: two native stages on one machine | `config.mjs` `route()` now admits a machine running several stages when they are all native and each has its own ordered config; a browser stage still needs a machine of its own. `freeze.nativeArtifacts` is keyed by distinct native machines. `contributorControl.lossTarget` is `<machine>` when that machine runs exactly one native stage, or `<machine>#<stage index>` (`resolveLossTarget`). `run-contributor-loss.mjs` and `loss-checks.mjs` resolve the target by machine and stage index. `config.test.mjs`: the old "two stages on one machine" rejection becomes a browser-sharing rejection, a shared-ordered-config rejection, a two-native acceptance with `amd-host#2`, and an ambiguous machine-only target rejection |
+
+Run 7's recorded results do not depend on these edits. Every run-7 config has one stage per machine and a machine-only loss target that resolves to the same stage as before, and no run-7 report was regenerated. `node --test` over this folder passes 213 tests after the change.
+
 ---
 
 ## Files
