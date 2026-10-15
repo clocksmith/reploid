@@ -116,6 +116,17 @@ losing a connection cannot prove that the remote GPU stopped. See
 
 ## Original open-mesh design
 
+The mechanisms below are retained design, not authority to expand the current
+bounded validation cell. Architecture qualification compares whole-model,
+same-machine partitioned and network-partitioned execution with the same model,
+prompts, quality requirements, hardware budget and deadlines. Whole-model service
+is preferred whenever one participant can satisfy the request. Isolate local
+partition overhead from network/coordination costs and retain infeasible arms,
+timeouts, failures and complete-request costs. This is an acceptance requirement;
+the implemented partition path above does not establish that comparison or a
+partitioning advantage. Broad model support and self-improving placement remain
+paused under [GOALS.md](../GOALS.md).
+
 Design date: 2026-10-01. Inspected baseline: `7f3f91d7`.
 
 This is the implementation design for the requested open mesh experience. It is

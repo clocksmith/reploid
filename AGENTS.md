@@ -8,8 +8,11 @@
 
 Follow the owner's private roadmap, `../ouroboros/docs/projects/reploid/roadmap.md`
 in the deco workspace: the single Doppler–Reploid implementation roadmap and its
-detailed acceptance register. Update acceptance evidence and checkboxes there as
-acceptance passes. Historical plans cannot start a competing campaign.
+detailed acceptance register. Its capped validation sequence supersedes the
+retained launch queue: no new physical campaign, pilot recruitment or spending
+with an unset contract or exposure cap. Non-pilot discovery and existing-product
+fixes retain their own authority. Update evidence and checkboxes only as acceptance
+passes. Historical plans cannot start a competing or adjacent campaign.
 
 Public product authority stays in two documents alongside `GOALS.md` and
 `INTENT.md`: the [product contract](docs/product-specification.md) (the terms quotes

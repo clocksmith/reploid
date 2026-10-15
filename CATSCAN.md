@@ -4,9 +4,7 @@ Parent: none
 
 ## Target
 
-Coordinate/evolve distributed intelligence improving capability, results,
-reliability or total resource cost.
-Initial product: [contributed capacity earns everyday AI access](docs/product-specification.md).
+Qualify bounded AI service; retain distributed-intelligence research.
 
 ## Authority
 
@@ -42,6 +40,7 @@ Outputs: [README](README.md) navigation, [component index](docs/component-index.
 
 ## Acceptance
 
+- Prefer feasible whole-model service; require scoped demand, supply and complete-request economics.
 - Compare strongest feasible local and equivalent centralized resources, counting
   communication, evaluation, verification, failures, human intervention.
 - Evidence: [validator tests](tests/unit/catscan.test.js).
