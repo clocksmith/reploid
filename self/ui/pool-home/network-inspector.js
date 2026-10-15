@@ -1,7 +1,7 @@
 import { withComputerLabels } from './computer-labels.js';
 import { interfaceIcon } from '../components/interface-icons.js';
 /** One projection of conversation execution, participant availability, and device contribution. */
-import { renderSharingControls, renderConnectionControl, bindNetworkControls } from './network-controls.js';
+import { renderSharingControls, renderConnectionControl, bindNetworkControls, projectNetworkPeers } from './network-controls.js';
 import { bindDialog } from '../components/dialog.js';
 import { updateModelSelect } from '../components/model-select.js';
 import { escapeHtml as escape } from '../components/attachments.js';
@@ -13,10 +13,10 @@ import { renderAccountPanel, bindAccountPanel } from './account-panel.js';
 export function renderNetworkInspector() {
   return `<aside class="chat-network-rail pool-surface" data-network-rail aria-label="Network and settings">
     <nav class="pool-stack pool-gap-sm" data-inspector-navigation aria-label="Network sections">
-      <button class="pool-button chat-rail-icon" type="button" data-inspector-section="conversation" aria-label="This conversation" title="This conversation">${interfaceIcon('activity')}</button>
-      <button class="pool-button chat-network-toggle" type="button" data-inspector-section="participants" data-toggle-inspector aria-haspopup="dialog" aria-expanded="false" aria-label="Computers" title="Computers">${interfaceIcon('peers')}<span data-mesh-peers class="chat-visually-hidden"></span></button>
-      <button class="pool-button chat-rail-icon" type="button" data-inspector-section="device" aria-label="Sharing" title="Sharing">${interfaceIcon('device')}</button>
-      <button class="pool-button chat-rail-icon" type="button" data-inspector-section="settings" aria-label="Settings" title="Settings">${interfaceIcon('settings')}</button>
+      <button class="pool-button chat-rail-icon" type="button" data-inspector-section="conversation" aria-label="This conversation" title="This conversation">${interfaceIcon('activity')}<span class="chat-rail-label">This conversation</span><small class="chat-rail-digest pool-muted" data-rail-digest="conversation"></small></button>
+      <button class="pool-button chat-network-toggle" type="button" data-inspector-section="participants" data-toggle-inspector aria-haspopup="dialog" aria-expanded="false" aria-label="Computers" title="Computers">${interfaceIcon('peers')}<span class="chat-rail-label">Computers</span><small class="chat-rail-digest pool-muted" data-rail-digest="participants"></small></button>
+      <button class="pool-button chat-rail-icon" type="button" data-inspector-section="device" aria-label="Sharing" title="Sharing">${interfaceIcon('device')}<span class="chat-rail-label">Sharing</span><small class="chat-rail-digest pool-muted" data-rail-digest="device"></small></button>
+      <button class="pool-button chat-rail-icon" type="button" data-inspector-section="settings" aria-label="Settings" title="Settings">${interfaceIcon('settings')}<span class="chat-rail-label">Settings</span></button>
     </nav>
     <dialog class="network-inspector pool-surface pool-small" data-contextual-inspector data-network-workspace aria-labelledby="network-inspector-title">
     <header class="chat-network-heading"><h2 class="pool-subheading" id="network-inspector-title">Network</h2><button class="pool-button" type="button" data-close-inspector aria-label="Close network and settings">${interfaceIcon('close')}</button></header>
@@ -118,6 +118,23 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
       find('[data-ribbon-timeline]').innerHTML = events.map(event => `<li>${escape(event)}</li>`).join('') || '<li>No recorded attempt events.</li>';
     }
     find('[data-inspector-status]').textContent = view.statusLabel;
+    const peers = projectNetworkPeers(state);
+    const connection = find('[data-connection-label]').textContent;
+    const summaries = {
+      conversation: view.statusLabel,
+      participants: connection === 'Connected' ? `${peers.length} connected` : connection,
+      device: [find('[data-contrib-label]').textContent, state.network?.files?.sharing ? 'Files on' : ''].filter(Boolean).join(' · ')
+    };
+    for (const [section, summary] of Object.entries(summaries)) {
+      const button = navigation.querySelector(`[data-inspector-section="${section}"]`);
+      const digest = button.querySelector('[data-rail-digest]');
+      if (digest.textContent !== summary) digest.textContent = summary;
+      const label = button.querySelector('.chat-rail-label').textContent;
+      button.setAttribute('aria-label', `${label}: ${summary}`); button.title = `${label}: ${summary}`;
+      button.classList.add('pool-activity-edge');
+      button.dataset.activity = (section === 'conversation' && view.status === 'executing')
+        || (section === 'device' && state.network?.contribution?.phase === 'executing' && state.network?.sharing) ? 'executing' : 'idle';
+    }
     updateRemotePermissionSettings(panel, state);
     const grants = (state.activeThread?.grants || []).filter(grant => grant.revokedAt === null);
     find('[data-thread-permissions]').hidden = !grants.length;

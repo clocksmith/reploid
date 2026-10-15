@@ -4,13 +4,15 @@ export function createConversationList(list, seen = new Map(), { getSources } = 
   const rows = new Map(), menus = new Map();
   return {
     update(threads, selectedId, { archived = false } = {}) {
-      const visible = threads.filter(thread => !!thread.closed === archived);
+      const focused = list.contains(list.ownerDocument.activeElement) ? list.ownerDocument.activeElement : null;
+      const recent = thread => thread.attempts.at(-1)?.createdAt ?? thread.createdAt ?? 0;
+      const visible = threads.filter(thread => !!thread.closed === archived).sort((a, b) => recent(b) - recent(a));
       for (const [index, thread] of visible.entries()) {
         let row = rows.get(thread.id), button = row?.querySelector('[data-thread-item-id]');
         if (!button) {
           button = list.ownerDocument.createElement('button'); button.type = 'button';
-          button.className = 'chat-thread-item pool-button btn-ghost'; button.dataset.threadItemId = thread.id;
-          button.append(list.ownerDocument.createElement('span'), Object.assign(list.ownerDocument.createElement('small'), { className: 'pool-muted' }));
+          button.className = 'chat-thread-item pool-button btn-ghost pool-activity-edge'; button.dataset.threadItemId = thread.id;
+          button.innerHTML = '<span class="chat-thread-title"></span><small class="chat-thread-digest pool-muted"></small><span class="chat-thread-shortcut" aria-hidden="true"></span>';
           row = list.ownerDocument.createElement('div'); row.className = 'chat-thread-row'; row.append(button);
           const menu = list.ownerDocument.createElement('details'); menu.className = 'chat-thread-menu';
           menu.innerHTML = '<summary class="pool-button btn-ghost" aria-label="Thread actions">…</summary><div class="pool-surface"><button class="pool-button" type="button" data-rename-thread>Rename</button><button class="pool-button" type="button" data-archive-thread></button></div>';
@@ -21,13 +23,21 @@ export function createConversationList(list, seen = new Map(), { getSources } = 
         const attempt = thread.attempts.at(-1), status = attempt?.status || '';
         const completion = `${attempt?.id || ''}:${status}`;
         if (thread.id === selectedId) seen.set(thread.id, completion);
-        const label = status === 'completed' ? seen.get(thread.id) === completion ? 'Complete' : 'New answer' : status;
+        const label = status === 'completed' ? seen.get(thread.id) === completion ? 'Complete' : 'New answer'
+          : ({ queued: 'Queued', loading: 'Loading', executing: 'Generating', approval: 'Permission needed',
+            cancelled: 'Stopped', cancelling: 'Stopping', failed: 'Failed', interrupted: 'Interrupted',
+            disconnected: 'Disconnected', recovering: 'Recovering' }[status] || status);
         const firstInput = thread.messages.find(message => message.role === 'user')?.content;
         const sources = firstInput && getSources?.(firstInput);
         const title = thread.title || thread.purpose || (sources ? sources.question.split('\n')[0] : firstInput) || 'New thread';
         if (button.firstElementChild.textContent !== title) button.firstElementChild.textContent = title;
-        if (button.lastElementChild.textContent !== label) button.lastElementChild.textContent = label;
-        button.lastElementChild.hidden = !label;
+        const digest = button.querySelector('.chat-thread-digest');
+        const summary = label || thread.model?.name || 'New thread';
+        if (digest.textContent !== summary) digest.textContent = summary;
+        button.querySelector('.chat-thread-shortcut').textContent = title.trim().slice(0, 1).toUpperCase() || String(index + 1);
+        button.setAttribute('aria-label', `${title}: ${summary}`);
+        button.title = [title, summary, thread.model?.name].filter(Boolean).join(' · ');
+        button.dataset.activity = status === 'executing' ? 'executing' : 'idle';
         button.setAttribute('aria-current', String(thread.id === selectedId));
         row.querySelector('summary').setAttribute('aria-label', `Actions for ${title}`);
         row.querySelector('[data-archive-thread]').textContent = archived ? 'Restore' : 'Archive';
@@ -35,6 +45,7 @@ export function createConversationList(list, seen = new Map(), { getSources } = 
       }
       const ids = new Set(visible.map(thread => thread.id));
       for (const [id, row] of rows) if (!ids.has(id)) { row.remove(); rows.delete(id); menus.get(id)?.dispose(); menus.delete(id); }
+      if (focused?.isConnected && list.ownerDocument.activeElement !== focused) focused.focus({ preventScroll: true });
     },
     dispose() { menus.forEach(menu => menu.dispose()); menus.clear(); rows.clear(); }
   };
