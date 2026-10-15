@@ -15,6 +15,7 @@ import {
   LOT_SCHEMA,
   MAX_QUOTE_ID_LENGTH,
   REFUND_AUTHORITIES,
+  REWARD_PROVENANCE,
   REFUND_SCHEMA,
   assertId,
   assertIdempotencyKey,
@@ -87,7 +88,7 @@ const readRequired = async (tx, collection, id, code) => {
  * @param {object} options.backend transactional document backend (see store-contract.js)
  * @param {object} options.policy explicit accounting policy; there is no default
  * @param {Function} [options.issuanceAuthority] capacity-aware issuance decision port;
- *   required for earned credit, consulted for every issuance when supplied
+ *   required for earned and subsidized credit, consulted for every issuance when supplied
  */
 export function createLedgerStore({
   backend,
@@ -131,8 +132,8 @@ export function createLedgerStore({
 
   const authorizeIssuance = async (request) => {
     if (typeof issuanceAuthority !== 'function') {
-      if (request.provenance === 'earned') {
-        fail('issuance_authority_required', 'earned credit requires a capacity-aware issuance authority');
+      if (REWARD_PROVENANCE.includes(request.provenance)) {
+        fail('issuance_authority_required', 'earned and subsidized credit require a capacity-aware issuance authority');
       }
       return null;
     }

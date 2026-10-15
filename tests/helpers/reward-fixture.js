@@ -19,7 +19,7 @@ export const LEDGER_POLICY = Object.freeze({
   contract: { id: PRODUCT_ECONOMICS_CONTRACT_ID, documentRevision: 'test-document-revision' },
   unit: { name: 'credit', minorUnitsPerCredit: 1 },
   rounding: 'ceil',
-  lotConsumptionOrder: ['community_access', 'earned', 'donated', 'purchased'],
+  lotConsumptionOrder: ['community_access', 'earned', 'subsidized', 'donated', 'purchased'],
   transfers: { enabled: false }
 });
 export const REWARD_POLICY = Object.freeze({
@@ -31,7 +31,16 @@ export const REWARD_POLICY = Object.freeze({
 export const ISSUANCE_POLICY = Object.freeze({
   policyId: 'test-issuance-limits/1',
   accountingVersion: 'test-accounting/1',
-  demand: { provenance: ['purchased', 'donated', 'community_access', 'earned'], share: { numerator: 1, denominator: 2 } },
+  bases: {
+    settled_demand: { provenance: ['purchased', 'donated', 'community_access', 'earned'], share: { numerator: 1, denominator: 2 } },
+    funded_reservation: { funderKinds: ['operator', 'community'] }
+  },
+  categoryBases: {
+    demanded_inference: ['settled_demand'],
+    verified_delivery: ['settled_demand'],
+    contracted_storage: ['settled_demand', 'funded_reservation'],
+    prepared_readiness: ['funded_reservation', 'settled_demand']
+  },
   capacity: { coverage: { numerator: 1, denominator: 1 }, evidenceMaxAgeMs: 10 * 60_000 }
 });
 export const OWNER_GRANT = { granted: true, ownership: 'personal', grantedBy: 'owner_test' };
@@ -47,15 +56,18 @@ export const MODEL = Object.freeze({ modelId: 'model_test', modelIdentity: `sha2
 export const START = Date.parse('2026-10-14T00:00:00.000Z');
 export const MIN = 60_000;
 // Mutable fixture state, reset before every test by openFixture().
-export const fx = { nowMs: START, keySeq: 0, participants: new Map(), keys: new Map(), links: [], capacity: null, randoms: [] };
+export const fx = {
+  nowMs: START, keySeq: 0, participants: new Map(), certificates: new Map(), links: [], capacity: null, randoms: [], prober: null
+};
 export const clock = () => new Date(fx.nowMs).toISOString();
 export const at = (offsetMs) => new Date(fx.nowMs + offsetMs).toISOString();
 export const advance = (ms) => { fx.nowMs += ms; };
 
-// Authenticated identity port double: participant -> account, signing key -> account, account links.
+// Authenticated identity port double: participant -> account, account links, and a stand-in
+// for certificates in which a participant's persistent identity certifies a custody key.
 export const identity = {
   participantAccount: async (participantId) => fx.participants.get(participantId) ?? null,
-  participantKeyAccount: async (participantId, publicKey) => fx.keys.get(`${participantId}|${publicKey}`) ?? null,
+  verifyCustodyKey: async ({ certificate }) => fx.certificates.get(certificate?.certificateId) ?? null,
   accountLinks: async (left, right) => fx.links
     .filter((link) => (link.a === left && link.b === right) || (link.a === right && link.b === left))
     .map(({ kind, evidenceId }) => ({ kind, evidenceId }))
@@ -70,9 +82,17 @@ export const readAdmittedCapacity = async () => fx.capacity && {
 };
 // Challenge targets: queued choices, else the first candidate.
 export const random = (bound) => (fx.randoms.length ? fx.randoms.shift() : 0) % bound;
+// Readiness prober seam; each test installs fx.prober.
+export const readinessProber = {
+  connect: (input) => fx.prober.connect(input),
+  prepare: (input) => fx.prober.prepare(input),
+  verify: (input) => fx.prober.verify(input)
+};
 // Purchases are outside reward policy; this double stands in for their decision owner.
 export const otherProvenance = async ({ provenance }) => ({ allowed: true, decisionId: `test-funding:${provenance}` });
-export const composition = { rewardPolicy: REWARD_POLICY, issuancePolicy: ISSUANCE_POLICY, identity, readAdmittedCapacity, otherProvenance, clock, random };
+export const composition = {
+  rewardPolicy: REWARD_POLICY, issuancePolicy: ISSUANCE_POLICY, identity, readAdmittedCapacity, otherProvenance, readinessProber, clock, random
+};
 
 export const once = (faults, point) => () => {
   const fault = faults[point];
@@ -318,7 +338,8 @@ export async function openFixture(kind) {
     ['peer_req', 'acct_req'], ['peer_c0', 'acct_c0'], ['peer_c1', 'acct_c1'], ['peer_c1_phone', 'acct_c1'],
     ['peer_alt', 'acct_alt'], ['peer_linked', 'acct_linked'], ['peer_acq', 'acct_acq'], ['peer_acq2', 'acct_acq2']
   ]);
-  fx.keys = new Map();
+  fx.certificates = new Map();
+  fx.prober = { connect: async () => { throw new Error('no prober installed'); } };
   fx.links = [];
   fx.capacity = { evidenceId: 'capacity:test', serviceCredits: 100_000, observedAt: null };
   fx.randoms = [];

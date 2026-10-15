@@ -10,7 +10,8 @@ import { assertLedgerBackend } from '../ledger/store-contract.js';
 
 export const REWARD_STORE_OPERATIONS = Object.freeze([
   'createOffer', 'getOffer', 'acceptOffer',
-  'issueChallenge', 'answerChallenge', 'listChallenges',
+  'issueChallenge', 'answerChallenge', 'probeReadiness', 'listChallenges',
+  'reserveFunding', 'getFunding',
   'validateWork', 'getValidation', 'issueReward', 'resumeIssuance',
   'getIssuanceState', 'listIssuanceDecisions'
 ]);
@@ -20,6 +21,7 @@ export const REWARD_COLLECTIONS = Object.freeze({
   offers: 'reward_offers',
   validations: 'reward_validations',
   challenges: 'reward_challenges',
+  fundings: 'reward_fundings',
   claims: 'reward_claims',
   idempotency: 'reward_idempotency',
   issuance: 'reward_issuance_state',
