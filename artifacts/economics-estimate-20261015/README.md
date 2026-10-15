@@ -12,6 +12,7 @@ funding authority, production prices or public release.
 
 ## Read and reproduce
 
+- [Efficiency investigation](../efficiency-evidence-20261015/README.md): retained kernel gains, provisional latency breakdowns, fresh component-power observations and controlled proof obligations; no wall-power or economic acceptance claim.
 - [Calculated tables](RESULTS.md): costs, contributor redemption, sensitivity and break-even rates.
 - [Inputs](inputs.json): exact values, scenario names, price sources, dates and package identity.
 - [Results](results.json): unrounded calculations, input SHA-256 and all sensitivity outputs.

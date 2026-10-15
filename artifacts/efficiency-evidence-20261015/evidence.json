@@ -1,0 +1,17 @@
+{
+  "scope": "retained controls and price assumptions; hashes at analysis time",
+  "sources": [
+    {
+      "path": "artifacts/faster-candidate-20261015/README.md",
+      "sha256": "624bf64c66dc002b6e7c749875a1f0c9a2bf96f7237fdb72377de8ff867338d6"
+    },
+    {
+      "path": "artifacts/faster-candidate-20261015/variant-choice/README.md",
+      "sha256": "207cf981c8187af8576659ad84aa5a4b876e5ff6772eaf841b64771ad381caf7"
+    },
+    {
+      "path": "artifacts/economics-estimate-20261015/inputs.json",
+      "sha256": "a09f373c80d829b2c68afeae7c9e93321df7c371b2d240b44991bc73d6897a4b"
+    }
+  ]
+}
