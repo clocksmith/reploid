@@ -3,6 +3,7 @@ import { createSigningIdentity } from '../../packages/reploid/src/artifacts/iden
 import { createAutomaticPartitions } from '../../packages/reploid/src/mesh/partitions/automatic-partitions.js';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 import { createRemotePermission, remotePermissionNeed } from '../../packages/reploid/src/chat/remote-permission.js';
+import { remotePermissionWording } from '../../self/ui/pool-home/remote-permission.js';
 import { fixture as stagesFixture } from '../fixtures/ordered-partition-ports.js';
 import { createHash } from 'node:crypto';
 import { canonicalPartitionJson } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
@@ -222,8 +223,8 @@ describe('explicit ordered automatic participation (injected discovery and numer
     f.entry.refresh.mockResolvedValueOnce({ ready: true, descriptor: { models: [planned] } })
       .mockResolvedValueOnce({ ready: true, descriptor: { models: [replaced] } })
       .mockResolvedValue({ ready: true, descriptor: { models: [replaced] } });
-    const permission = createRemotePermission({ id: 'remote', grantedAt: 1, need: remotePermissionNeed({ networkId: 'mesh', sharingScope: 'mesh',
-      disclosure: 'ordered-partition-activations-and-tokens', model: planned }) });
+    const need = remotePermissionNeed({ networkId: 'mesh', sharingScope: 'mesh', disclosure: 'ordered-partition-activations-and-tokens', model: planned });
+    const permission = createRemotePermission({ id: 'remote', grantedAt: 1, need, wording: remotePermissionWording(need) });
     let saved;
     const app = createChatWorkspace({ meshId: 'mesh', participantId: f.identity.peerId, remotePermissions: () => [permission],
       store: { load: () => structuredClone(saved), save: value => { saved = structuredClone(value); } },
