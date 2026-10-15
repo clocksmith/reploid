@@ -21,6 +21,7 @@
 /* Controls carry no outline; hover lifts the surface tone instead. */
 .pool-home :is(.pool-button, :where(.pool-work-shell .btn)):hover:not(:disabled, .btn-primary) { background: var(--pool-color-line); }
 .pool-home :is(.pool-button, :where(.pool-work-shell .btn)):is(:active, [aria-pressed='true'], [aria-current='true'], [aria-expanded='true']):not(:disabled) { box-shadow: var(--pool-shadow-inset); }
+.pool-home details[open] > summary.pool-button { box-shadow: var(--pool-shadow-inset); }
 .pool-home :is(.pool-button, :where(.pool-work-shell .btn)):disabled { opacity: var(--pool-alpha-48); cursor: not-allowed; }
 .pool-home :is(.pool-input, :where(.pool-work-shell select, .pool-work-shell input[type='file'], .pool-work-composer textarea)) {
   background: var(--pool-color-inset);
