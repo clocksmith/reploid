@@ -125,7 +125,7 @@ describe('entailment review', () => {
     await expect(applySupportJudgments({ packet, claimSupport, generator: null, judgments: [] })).rejects.toThrow('generating model identity is required');
   });
 
-  it('queues the packet for two blinded human reviewers, lists disagreements for a third and never settles them by vote', async () => {
+  it('queues the packet for two blinded human reviewers, and lets a third reviewer decide their disagreements', async () => {
     const { packet, claimSupport, sha256 } = await packetFor();
     const queue = createHumanReviewQueue({ now: () => AT });
     expect(await queue.review(packet, { generator: GENERATOR, claimSupport })).toBeNull();
@@ -143,14 +143,30 @@ describe('entailment review', () => {
     expect(status).toMatchObject({ reviews: 2, disagreements: ['claim-2'], needsThirdReview: true, complete: false });
     expect((await queue.pending())[0].thirdReviewClaims).toEqual(['claim-2']);
 
+    // Before the third review the two disagreeing verdicts leave claim-2 disputed.
+    expect((await queue.result(packet.id)).claims[1]).toMatchObject({ verdict: 'unverified', reason: 'disputed', disputed: true });
     await queue.submit(judgment(packet, sha256, human('reviewer-c'), { 'claim-2': ['unsupported'] }));
     const result = await queue.result(packet.id);
     expect(result.claims.map(claim => [claim.id, claim.verdict, claim.reason])).toEqual([['claim-1', 'supported', 'reviewed'],
-      ['claim-2', 'unverified', 'disputed'], ['claim-3', 'unsupported', 'uncited'], ['claim-4', 'unsupported', 'unresolved-citation']]);
+      ['claim-2', 'unsupported', 'third-review'], ['claim-3', 'unsupported', 'uncited'], ['claim-4', 'unsupported', 'unresolved-citation']]);
+    expect(result.claims[1].reviews.map(review => [review.reviewer.id, review.verdict]))
+      .toEqual([['reviewer-a', 'supported'], ['reviewer-b', 'unsupported'], ['reviewer-c', 'unsupported']]);
     expect(result.claims[0].reviews[0].spans[0]).toMatchObject({ source: 1, text: 'The Eiffel Tower was completed in 1889' });
     expect(result.claims[0].evidence[0]).toMatchObject({ source: 1, url: 'https://fixed.example/eiffel', passageHash: claimSupport.claims[0].citations[0].passageHash });
-    expect(result.summary).toMatchObject({ claims: 4, supported: 1, unsupported: 2, unverified: 1, disputed: 1, supportRate: 0.25 });
+    expect(result.summary).toMatchObject({ claims: 4, supported: 1, unsupported: 3, unverified: 0, disputed: 0, resolvedByThirdReview: 1,
+      supportRate: 0.25 });
     await expect(queue.submit(judgment(packet, sha256, human('reviewer-d'), {}))).rejects.toThrow('needs no further review');
+  });
+
+  it('keeps a claim disputed when three reviews hold no majority verdict', async () => {
+    const { packet, claimSupport, sha256 } = await packetFor();
+    const span = [{ source: 1, quote: 'The Eiffel Tower was completed in 1889' }];
+    const result = await applySupportJudgments({ packet, claimSupport, generator: GENERATOR, judgments: [
+      judgment(packet, sha256, human('reviewer-a'), { 'claim-1': ['supported', span] }),
+      judgment(packet, sha256, human('reviewer-b'), { 'claim-1': ['unsupported'] }),
+      judgment(packet, sha256, human('reviewer-c'), { 'claim-1': ['unverified'] })] });
+    expect(result.claims[0]).toMatchObject({ verdict: 'unverified', reason: 'disputed', disputed: true });
+    expect(result.summary).toMatchObject({ disputed: 1, resolvedByThirdReview: 0 });
   });
 
   it('downgrades support that cites no exact span of a cited passage', async () => {
