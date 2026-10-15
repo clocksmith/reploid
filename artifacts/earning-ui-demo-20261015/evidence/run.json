@@ -1,0 +1,224 @@
+{
+  "origin": "http://127.0.0.1:8137",
+  "emulatorPort": 8147,
+  "bridgePort": 8157,
+  "contributorEarnedText": "Balance: 24 credits · earned 24, bought 0",
+  "timeline": [
+    {
+      "at": "2026-10-15T14:10:53.808Z",
+      "step": "firestore-emulator-ready",
+      "port": 8147
+    },
+    {
+      "at": "2026-10-15T14:10:54.575Z",
+      "step": "server-ready",
+      "service": {
+        "schema": "reploid.earning-service/v1",
+        "signIn": [
+          {
+            "providerId": "local-test",
+            "flow": "local_test_subject",
+            "testOnly": true
+          }
+        ],
+        "topUps": [
+          {
+            "topUpId": "top-up-10-usd",
+            "price": {
+              "amountMinor": 1000,
+              "currency": "USD"
+            }
+          }
+        ],
+        "communityAccess": true
+      }
+    },
+    {
+      "at": "2026-10-15T14:10:54.617Z",
+      "step": "founder-commitment-recorded",
+      "status": 201,
+      "commitment": {
+        "schema": "reploid.funding-commitment/v1",
+        "commitmentId": "founder_community_access_week_1",
+        "funderKind": "operator",
+        "funderId": "founder",
+        "externalRef": "local-demo:founder-weekly-community-access",
+        "unit": {
+          "kind": "currency",
+          "currency": "USD"
+        },
+        "amount": 10000,
+        "validFrom": "2026-10-15T14:10:54.575Z",
+        "validUntil": "2026-10-22T14:10:54.575Z",
+        "allocated": 0,
+        "returned": 0,
+        "allocations": 0,
+        "recordedAt": "2026-10-15T14:10:54.592Z",
+        "updatedAt": "2026-10-15T14:10:54.592Z",
+        "status": "active",
+        "unallocated": 10000
+      }
+    },
+    {
+      "at": "2026-10-15T14:10:54.722Z",
+      "step": "community-pool-funded",
+      "status": 201,
+      "funding": {
+        "schema": "reploid.community-access-funding/v2",
+        "fundingId": "founder_pool_week_1",
+        "commitmentId": "founder_community_access_week_1",
+        "quantity": 10000,
+        "poolAccountId": "pool_community_general",
+        "commitmentAmount": 10000,
+        "authority": {
+          "actorId": "founder",
+          "decisionId": "decision:local-demo-founder-pool-week-1"
+        },
+        "policyVersion": "local-demo-community/1",
+        "requestHash": "sha256:83556f2ffedab96623baf24b6454fc70925b4610420e2fd69783f55f12645191",
+        "status": "issued",
+        "allocationId": "alloc_79c5032e97a4f5c08541c36ffdfb8681",
+        "funderId": "founder",
+        "funderKind": "operator",
+        "validUntil": "2026-10-22T14:10:54.575Z",
+        "refusal": null,
+        "lotId": "lot_97b23ba908c6fd5827176f24a1154835",
+        "recordedAt": "2026-10-15T14:10:54.621Z",
+        "allocatedAt": "2026-10-15T14:10:54.678Z",
+        "issuedAt": "2026-10-15T14:10:54.693Z",
+        "closedAt": null
+      }
+    },
+    {
+      "at": "2026-10-15T14:10:55.226Z",
+      "step": "contributor-ready"
+    },
+    {
+      "at": "2026-10-15T14:10:56.133Z",
+      "step": "screenshot",
+      "device": "requester-alice",
+      "file": "01-requester-app-credits-signed-out.png"
+    },
+    {
+      "at": "2026-10-15T14:10:56.398Z",
+      "step": "screenshot",
+      "device": "requester-alice",
+      "file": "02-requester-app-signed-in.png"
+    },
+    {
+      "at": "2026-10-15T14:10:56.527Z",
+      "step": "screenshot",
+      "device": "requester-alice",
+      "file": "03-test-checkout-page.png"
+    },
+    {
+      "at": "2026-10-15T14:10:56.638Z",
+      "step": "screenshot",
+      "device": "requester-alice",
+      "file": "04-test-checkout-recorded.png"
+    },
+    {
+      "at": "2026-10-15T14:10:56.963Z",
+      "step": "screenshot",
+      "device": "requester-alice",
+      "file": "05-requester-app-funded-limit-set.png"
+    },
+    {
+      "at": "2026-10-15T14:10:57.291Z",
+      "step": "screenshot",
+      "device": "requester-alice",
+      "file": "06-requester-harness-before-send.png"
+    },
+    {
+      "at": "2026-10-15T14:10:57.592Z",
+      "step": "answer",
+      "device": "requester-alice",
+      "status": "completed",
+      "error": null
+    },
+    {
+      "at": "2026-10-15T14:10:57.624Z",
+      "step": "screenshot",
+      "device": "requester-alice",
+      "file": "07-requester-harness-first-answer.png"
+    },
+    {
+      "at": "2026-10-15T14:10:57.896Z",
+      "step": "answer",
+      "device": "requester-alice",
+      "status": "completed",
+      "error": null
+    },
+    {
+      "at": "2026-10-15T14:10:58.161Z",
+      "step": "answer",
+      "device": "requester-alice",
+      "status": "completed",
+      "error": null
+    },
+    {
+      "at": "2026-10-15T14:10:58.303Z",
+      "step": "screenshot",
+      "device": "requester-alice",
+      "file": "08-requester-harness-three-answers-credits.png"
+    },
+    {
+      "at": "2026-10-15T14:10:58.602Z",
+      "step": "screenshot",
+      "device": "requester-alice",
+      "file": "09-requester-app-journal.png"
+    },
+    {
+      "at": "2026-10-15T14:11:00.113Z",
+      "step": "contributor-claims-issued"
+    },
+    {
+      "at": "2026-10-15T14:11:00.702Z",
+      "step": "screenshot",
+      "device": "contributor-carol",
+      "file": "10-contributor-app-earned.png"
+    },
+    {
+      "at": "2026-10-15T14:11:01.094Z",
+      "step": "answer",
+      "device": "contributor-carol",
+      "status": "completed",
+      "error": null
+    },
+    {
+      "at": "2026-10-15T14:11:01.232Z",
+      "step": "screenshot",
+      "device": "contributor-carol",
+      "file": "11-contributor-harness-spent-credits.png"
+    },
+    {
+      "at": "2026-10-15T14:11:01.619Z",
+      "step": "screenshot",
+      "device": "contributor-carol",
+      "file": "12-contributor-app-journal.png"
+    },
+    {
+      "at": "2026-10-15T14:11:02.221Z",
+      "step": "screenshot",
+      "device": "community-dave",
+      "file": "13-community-member-app-no-credits.png"
+    },
+    {
+      "at": "2026-10-15T14:11:02.643Z",
+      "step": "answer",
+      "device": "community-dave",
+      "status": "completed",
+      "error": null
+    },
+    {
+      "at": "2026-10-15T14:11:02.782Z",
+      "step": "screenshot",
+      "device": "community-dave",
+      "file": "14-community-member-harness-answer.png"
+    },
+    {
+      "at": "2026-10-15T14:11:03.538Z",
+      "step": "community-access-stage-shares-issued"
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+[Earning routes] Mounted at /v1 (production: false)
+║   HTTP API: http://localhost:8137                      ║
