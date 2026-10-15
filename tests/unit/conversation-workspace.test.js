@@ -23,7 +23,7 @@ describe('Conversation workspace', () => {
     expect(find('[data-model-status]').hidden).toBe(false);
     expect(find('[data-model-status]').textContent).toBe('Model unavailable.');
     expect(find('[data-model-control]').hidden).toBe(true);
-    expect(find('[data-model-setup]').disabled).toBe(false);
+    expect(find('[data-toggle-contribution]').disabled).toBe(false);
     expect(find('[data-composer-send]').hidden).toBe(false);
     expect(find('[data-retry-connection]').hidden).toBe(false);
     expect(find('[data-contribution-model]').value).toBe(CANONICAL_CHAT_MODELS[1].id);
@@ -32,15 +32,16 @@ describe('Conversation workspace', () => {
     expect(root.textContent).not.toMatch(/Mesh Active|Distributed Intelligence|Contributing|Scope:|Recent Improvements|LoRA/);
   });
 
-  it('offers local setup from the unavailable composer without starting a download', async () => {
-    expect(find('[data-composer-model-setup]').hidden).toBe(false);
-    find('[data-composer-model-setup]').click();
+  it('offers downloads only after contribution opt-in and does nothing on cancel', async () => {
+    expect(find('[data-composer-model-setup]')).toBeNull();
+    find('[data-toggle-contribution]').click();
     await vi.waitFor(() => expect(find('[data-download-confirm]').disabled).toBe(false));
     expect(find('[data-model-dialog]').open).toBe(true);
     expect(find('[data-download-size]').textContent).toBe('123 MB download');
     expect(service.calls).toHaveLength(0);
     find('[data-download-cancel]').click();
     expect(find('[data-model-dialog]').open).toBe(false);
+    expect(service.calls).toHaveLength(0);
   });
 
   it('shows declared answer limits before sending, including the history allowance', () => {
@@ -154,24 +155,20 @@ describe('Conversation workspace', () => {
     expect(service.calls).toHaveLength(0);
   });
 
-  it('shows download size, preserves the draft, and enables local chat without sharing', async () => {
+  it('starts contribution only after the download confirmation, preserving the chat draft', async () => {
+    dispose();
+    const setSharing = vi.fn();
+    dispose = bindConversationWorkspace(root, { ...session, setSharing,
+      getModelDownload: async id => ({ id, sizeBytes: 123000000 }) });
     find('[data-composer-input]').value = 'Keep this question';
-    find('[data-model-setup]').click();
+    find('[data-toggle-contribution]').click();
     await vi.waitFor(() => expect(find('[data-download-confirm]').disabled).toBe(false));
-    expect(find('[data-model-dialog]').open).toBe(true);
-    expect(find('[data-download-size]').textContent).toBe('123 MB download');
-    expect(find('[data-download-model]').value).toBe(CANONICAL_CHAT_MODELS[1].id);
+    expect(setSharing).not.toHaveBeenCalled();
     expect(service.calls).toHaveLength(0);
     find('[data-download-confirm]').click();
-    await vi.waitFor(() => expect(session.getState().localModel?.ready).toBe(true));
+    await vi.waitFor(() => expect(setSharing).toHaveBeenCalledWith(true, CANONICAL_CHAT_MODELS[1].id, true));
     expect(find('[data-composer-input]').value).toBe('Keep this question');
-    expect(find('[data-composer-send]').hidden).toBe(false);
-    expect(find('[data-composer-send]').disabled).toBe(false);
-    expect(session.getState().network.sharing).toBe(false);
-    find('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-    await vi.waitFor(() => expect(session.getState().activeThread?.attempts[0]?.status).toBe('completed'));
-    expect(session.getState().activeThread.permissions.sharingScope).toBe('local');
-    expect(service.calls).toHaveLength(1);
+    expect(service.calls).toHaveLength(0);
   });
 
   it('starts directly, appends followups and pins the conversation model', async () => {

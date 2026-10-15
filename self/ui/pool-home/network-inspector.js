@@ -34,17 +34,16 @@ export function renderNetworkInspector() {
     </section>
     <section data-inspector-pane="device" aria-label="This device" hidden>
       ${renderSharingControls()}
-      <button class="pool-button" type="button" data-model-setup>Run on this device</button>
-      <details data-specialized-jobs><summary>Specialized model jobs</summary><div data-specialized-content></div></details>
+      <details class="pool-disclosure" data-specialized-jobs><summary>Specialized model jobs</summary><div data-specialized-content></div></details>
     </section>
     <section class="pool-stack pool-gap-lg" data-inspector-pane="settings" aria-label="Settings" hidden>${renderAccountPanel()}${renderRemotePermissionSettings()}${renderWebSearchSettings()}</section>
     <p data-network-message role="status" hidden></p><p data-inspector-error role="alert" hidden></p>
   </dialog></aside>
   <dialog class="chat-model-setup pool-surface pool-small" data-model-dialog aria-labelledby="model-setup-title">
-    <h2 class="pool-heading" id="model-setup-title">Run on this device</h2>
+    <h2 class="pool-heading" id="model-setup-title">Contribute answers</h2>
     <label>Model<select class="pool-input" data-download-model aria-label="Model to download"></select></label>
-    <p data-download-size role="status">Checking download size…</p><p>Stored on this device. Sharing stays optional.</p>
-    <div class="chat-network-actions"><button class="pool-button" type="button" data-download-cancel>Cancel</button><button class="pool-button btn-primary" type="button" data-download-confirm disabled>Download model</button></div>
+    <p data-download-size role="status">Checking download size…</p><p class="pool-muted">This downloads the model and lets this device answer others’ public prompts. File sharing is controlled separately. You can stop contributing at any time.</p><p data-download-compute-limits></p>
+    <div class="chat-network-actions"><button class="pool-button" type="button" data-download-cancel>Cancel</button><button class="pool-button btn-primary" type="button" data-download-confirm disabled>Download and contribute</button></div>
   </dialog>`;
 }
 
@@ -77,7 +76,8 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     dispose() { if (panel.open) panel.close(); surface?.removeAttribute('data-network-panel-open'); if (settingsSection) { settingsSection.append(...settingsChildren); settingsSection.hidden = false; } }
   };
   const controller = new AbortController(), options = { signal: controller.signal };
-  const network = bindNetworkControls(panel, session, { getInviteUrl });
+  const network = bindNetworkControls(panel, session, { getInviteUrl,
+    requestContribution: (modelId, opener) => openModelSetup(opener, modelId) });
   const modelDialog = bindDialog(find('[data-model-dialog]'));
   const on = (selector, event, fn) => find(selector)?.addEventListener(event, fn, options);
   const error = cause => { const node = find('[data-inspector-error]'); node.textContent = cause?.message || ''; node.hidden = !cause; };
@@ -121,9 +121,6 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
         <details><summary>Permission details</summary><pre>${escape(JSON.stringify(grant, null, 2))}</pre></details>
         <button class="pool-button" type="button" data-revoke-grant="${escape(grant.id)}">Revoke</button></li>`).join('');
     }
-    const loading = state.localModel?.phase === 'loading';
-    find('[data-model-setup]').disabled = loading;
-    find('[data-model-setup]').textContent = loading ? 'Preparing local model…' : 'Run on this device';
   });
   const checkDownload = async () => {
     metadataController?.abort(); const request = metadataController = new AbortController();
@@ -135,17 +132,22 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
       find('[data-download-size]').textContent = Math.ceil(info.sizeBytes / 1e6) + ' MB download'; find('[data-download-confirm]').disabled = false;
     } catch (cause) { if (!request.signal.aborted && !disposed) find('[data-download-size]').textContent = cause.message; }
   };
-  const openModelSetup = (opener = find('[data-model-setup]')) => {
+  const openModelSetup = (opener, modelId) => {
     const models = session.getState().models.filter(model => !model.partition && !model.adapters?.length);
-    updateModelSelect(find('[data-download-model]'), models);
+    updateModelSelect(find('[data-download-model]'), models, { value: modelId });
+    find('[data-download-compute-limits]').textContent = find('[data-contribution-limits]').textContent;
     modelDialog.open(find('[data-download-model]'), opener); void checkDownload();
   };
-  on('[data-model-setup]', 'click', event => openModelSetup(event.currentTarget));
   on('[data-download-model]', 'change', () => void checkDownload());
   on('[data-download-cancel]', 'click', () => modelDialog.close());
   on('[data-model-dialog]', 'close', () => metadataController?.abort());
   on('[data-download-confirm]', 'click', () => {
-    const modelId = find('[data-download-model]').value; modelDialog.close(); void act(() => session.prepareLocalModel(modelId));
+    const modelId = find('[data-download-model]').value; modelDialog.close();
+    find('[data-contribution-model]').value = modelId;
+    void act(async () => {
+      if (session.getState().network?.paused) await session.connect();
+      await session.setSharing(true, modelId, true);
+    });
   });
   on('[data-specialized-jobs]', 'toggle', () => {
     if (find('[data-specialized-jobs]').open && !specialized && loadSpecialized) {
@@ -158,7 +160,6 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   // Credits appear only when the page's server publishes an earning service (host/credits/browser.js).
   const disposeAccount = bindAccountPanel(rail, earning);
   return {
-    openModelSetup,
     mountRail(panelSlot, triggerSlot, onOpen) {
       if (!panelSlot || !triggerSlot) return () => {};
       const railParent = rail.parentElement, railNext = rail.nextSibling;
