@@ -545,8 +545,8 @@
     },
     {
       "path": "blueprints/0x000069-app-mounting-system.md",
-      "byteLength": 17901,
-      "sha256": "sha256:773a635dc8a72db672a6f84a50f4c0acd5da865dfb94aef33625dea6744b3b94"
+      "byteLength": 17892,
+      "sha256": "sha256:ffcb7c6c524540bc6fd813f939f13130a0cb8cd476188911914c39f1939a2e9e"
     },
     {
       "path": "blueprints/0x00006A-response-parser.md",
@@ -925,8 +925,8 @@
     },
     {
       "path": "blueprints/README.md",
-      "byteLength": 3380,
-      "sha256": "sha256:222dacee41b04510df9d2ba2db8c8523f64d5472a1a86a9e5c8ad1122099e6f4"
+      "byteLength": 3377,
+      "sha256": "sha256:3cff8c7f638943c7b0e7269ff435a6fce9ed3d9da8a7e7bb5dbde7889ab057ae"
     },
     {
       "path": "blueprints/rgr-dream-instance-manifest.md",
@@ -9909,5 +9909,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:2cfa469eb7eba85da5a5b9219a9578af52332f6ee05bac276dd99a19c5887a53"
+  "bundleHash": "sha256:1f07865e217d9d5645c0b19e37b66307cd0e8d498932b11bbfe2e34c85502077"
 }
