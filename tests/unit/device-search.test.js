@@ -1,7 +1,7 @@
 // REP-8 device-side search: the person's Settings MCP search tool runs the query from the requester's device, and the
 // device fetches result pages under the shared page fetch policy, then extracts, slices and hashes them with the same
-// library code as the server route. The route is not offered until its per-answer wording is approved. The MCP server
-// and every page are injected fakes; no network.
+// library code as the server route. Each answer needs the owner-approved per-answer wording, and the permission names
+// the person's search server. The MCP server and every page are injected fakes; no network.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createRetrieval, extractDocumentText, selectPassage, sha256Text, PAGE_FETCH_POLICY } from '../../packages/reploid/src/retrieval/index.js';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
@@ -55,7 +55,8 @@ function deviceRoute({ pages, urls } = {}) {
   const server = mcpServer(urls), web = createWebSearch({ storage: memory(), fetch: server.fetch, now: () => AT });
   web.configure({ url: 'https://search.example.net/mcp' }); web.setEnabled(true);
   const browser = pageFetch(pages);
-  const device = createDeviceSearch({ source: web.provider, enabled: () => web.enabled(), fetch: browser.fetch, now: () => AT });
+  const device = createDeviceSearch({ source: web.provider, enabled: () => web.enabled(), server: () => web.state().recipient,
+    fetch: browser.fetch, now: () => AT });
   return { server, web, browser, device };
 }
 async function retrieved(device, { answer = null, limits = {} } = {}) {
@@ -129,40 +130,78 @@ describe('device-side retrieval', () => {
 });
 
 describe('authorization', () => {
-  it('needs its Settings consent, and is not offered until the per-answer wording is approved; nothing is sent', async () => {
-    expect(searchPermissionWording(DEVICE_SEARCH_PROVIDER)).toBeNull();
-    expect(() => createSearchPermission({ id: 'g', networkId: 'mesh', threadId: 't', searchProvider: DEVICE_SEARCH_PROVIDER, query: QUESTION,
-      recipients: [], wording: searchPermissionWording('brave'), grantedAt: AT })).toThrow('not the approved text');
+  it('needs its Settings consent and a per-answer permission naming the chosen search server', async () => {
+    const shown = searchPermissionWording(DEVICE_SEARCH_PROVIDER);
+    expect(shown.text).toContain('to the search server you set up in Settings, fetch the result pages on this device without your sign-ins');
+    const base = { id: 'g', networkId: 'mesh', threadId: 't', searchProvider: DEVICE_SEARCH_PROVIDER, query: QUESTION, recipients: [], wording: shown, grantedAt: AT };
+    expect(() => createSearchPermission(base)).toThrow('Invalid search permission');
+    expect(createSearchPermission({ ...base, searchServer: 'search.example.net' })).toMatchObject({ searchServer: 'search.example.net' });
+    expect(() => createSearchPermission({ ...base, searchProvider: 'brave', wording: searchPermissionWording('brave'), searchServer: 'search.example.net' }))
+      .toThrow('Invalid search permission');
 
     const { server, web, browser, device } = deviceRoute();
+    expect(device.provider.searchServer).toBe('search.example.net');
     web.setEnabled(false);
     expect(device.available()).toBe(false);
     await expect(device.provider.search(QUESTION, { maxResults: 2 }, null)).rejects.toThrow('Device search is off');
     web.setEnabled(true);
     expect(device.available()).toBe(true);
 
-    // The session offers the Brave route and refuses the device route while its wording is unapproved.
+    // The session prefers the person's own server while it is on, shows its host and refuses a changed server.
     const model = LOCAL_DOPPLER_MODELS[0];
     const fixed = { provider: { id: 'test.brave', version: '1', searchProvider: 'brave', search: async () => [] }, permission: 'search-answer' };
     const session = createChatSession({ storage: memory(), service: createChatTestService(), retrieval: { routes: { [SEARCH_ROUTE]: fixed,
       [DEVICE_SEARCH_ROUTE]: { provider: device.provider, extractor: device.extractor, permission: 'search-answer', available: device.available } } } });
     cleanups.push(() => session.close());
-    expect(session.searchPermissionRequest({ model, sharingScope: 'local' })).toMatchObject({ route: SEARCH_ROUTE, searchProvider: 'brave', recipients: [] });
-    expect(() => session.searchPermissionRequest({ model, sharingScope: 'local', route: DEVICE_SEARCH_ROUTE })).toThrow('Search is not available');
+    expect(session.preferredSearchRoute()).toBe(DEVICE_SEARCH_ROUTE);
+    const request = session.searchPermissionRequest({ model, sharingScope: 'local', route: DEVICE_SEARCH_ROUTE });
+    expect(request).toMatchObject({ route: DEVICE_SEARCH_ROUTE, searchProvider: DEVICE_SEARCH_PROVIDER, searchServer: 'search.example.net', recipients: [] });
     const thread = session.createThread({ model, sharingScope: 'local' });
-    expect(() => session.send(thread, QUESTION, [], { search: { route: DEVICE_SEARCH_ROUTE, wording: searchPermissionWording('brave'), recipients: [] } }))
-      .toThrow('Search is not available');
+    expect(() => session.send(thread, QUESTION, [], { search: { ...request, searchServer: 'elsewhere.example.org' } }))
+      .toThrow('The search server changed after search was allowed');
+    // Changing the server in Settings turns the route off until the person turns it on again.
+    web.configure({ url: 'https://other.example.org/mcp' });
+    expect(session.preferredSearchRoute()).toBe(SEARCH_ROUTE);
+    expect(() => session.searchPermissionRequest({ model, sharingScope: 'local', route: DEVICE_SEARCH_ROUTE })).toThrow('Search is not available');
+    web.configure({ url: 'https://search.example.net/mcp' }); web.setEnabled(true);
 
-    // The workspace refuses the route without a grant for its own search service.
+    // The workspace accepts only a grant for this route's service and its current server.
     const app = createChatWorkspace({ meshId: 'mesh', participantId: 'alice', store: { load: () => null, save() {} }, execute: vi.fn(),
       retrieval: { routes: { [DEVICE_SEARCH_ROUTE]: { provider: device.provider, extractor: device.extractor, permission: 'search-answer' } } } });
     cleanups.push(() => app.close());
     const other = app.createThread({ model: { id: 'm', name: 'M', identity: 'sha256:' + 'a'.repeat(64) } });
     expect(() => app.send(other, QUESTION, { retrieval: { route: DEVICE_SEARCH_ROUTE } })).toThrow('need the per-answer search permission');
-    const brave = createSearchPermission({ id: 'g1', networkId: 'mesh', threadId: other, searchProvider: 'brave', query: QUESTION, recipients: [],
-      wording: searchPermissionWording('brave'), grantedAt: AT });
-    expect(() => app.send(other, QUESTION, { retrieval: { route: DEVICE_SEARCH_ROUTE }, searchPermission: brave })).toThrow('does not cover');
+    const grant = overrides => createSearchPermission({ ...base, id: crypto.randomUUID(), threadId: other, searchServer: 'search.example.net', ...overrides });
+    expect(() => app.send(other, QUESTION, { retrieval: { route: DEVICE_SEARCH_ROUTE },
+      searchPermission: grant({ searchProvider: 'brave', wording: searchPermissionWording('brave'), searchServer: null }) })).toThrow('does not cover');
+    expect(() => app.send(other, QUESTION, { retrieval: { route: DEVICE_SEARCH_ROUTE }, searchPermission: grant({ searchServer: 'elsewhere.example.org' }) }))
+      .toThrow('does not cover');
     expect(server.calls).toEqual([]);
     expect(browser.requests).toEqual([]);
+    await app.send(other, QUESTION, { retrieval: { route: DEVICE_SEARCH_ROUTE }, searchPermission: grant() });
+    expect(server.calls.length).toBeGreaterThan(0);
+  });
+});
+
+describe('search permission dialog', () => {
+  it('names the person-chosen search server with the approved text, and shows no server for Brave', async () => {
+    const { renderSearchPermissionDialog, bindSearchPermissionDialog } = await import('../../self/ui/pool-home/search-permission.js');
+    document.body.innerHTML = renderSearchPermissionDialog();
+    const dialog = document.querySelector('[data-search-permission]');
+    dialog.showModal ??= function () { this.open = true; };
+    dialog.close ??= function () { this.open = false; this.dispatchEvent(new Event('close')); };
+    const view = bindSearchPermissionDialog(dialog, { getState: () => ({ peers: [] }) });
+    cleanups.push(() => { view.dispose(); document.body.replaceChildren(); });
+    const host = dialog.querySelector('[data-search-permission-server]');
+    let answer = view.ask({ wording: searchPermissionWording(DEVICE_SEARCH_PROVIDER), recipients: [], searchServer: 'search.example.net' });
+    expect(host.hidden).toBe(false);
+    expect(host.textContent).toBe('Search server: search.example.net');
+    expect(dialog.querySelector('[data-search-permission-text]').textContent).toBe(searchPermissionWording(DEVICE_SEARCH_PROVIDER).text);
+    dialog.querySelector('[data-search-permission-allow]').click();
+    expect(await answer).toBe(true);
+    answer = view.ask({ wording: searchPermissionWording('brave'), recipients: [] });
+    expect(host.hidden).toBe(true);
+    dialog.querySelector('[data-search-permission-decline]').click();
+    expect(await answer).toBe(false);
   });
 });

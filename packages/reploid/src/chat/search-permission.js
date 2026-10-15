@@ -17,9 +17,16 @@ export function searchPermissionWording(searchProvider) {
 
 const sameWording = (a, b) => !!a && !!b && a.id === b.id && a.version === b.version && a.text === b.text;
 
-export function validateSearchPermission(permission) {
-  const keys = ['schema', 'kind', 'id', 'networkId', 'threadId', 'searchProvider', 'query', 'recipients', 'wording', 'grantedAt', 'revokedAt'];
+/** Search services whose query goes to a server the person chose; their permissions name that server's host. */
+const PERSON_CHOSEN_SERVERS = new Set(policy.personChosenServer);
+
+export function validateSearchPermission(input) {
+  const keys = ['schema', 'kind', 'id', 'networkId', 'threadId', 'searchProvider', 'searchServer', 'query', 'recipients', 'wording', 'grantedAt', 'revokedAt'];
+  // Records written before searchServer existed named only fixed services; they read as naming no server.
+  const permission = input && typeof input === 'object' && !Object.hasOwn(input, 'searchServer') ? { ...input, searchServer: null } : input;
+  const server = permission?.searchServer;
   if (!permission || typeof permission !== 'object' || Object.keys(permission).length !== keys.length || !keys.every(key => Object.hasOwn(permission, key))
+    || (PERSON_CHOSEN_SERVERS.has(permission.searchProvider) ? !label(server) || !/^[a-z0-9.-]+(:\d{1,5})?$/i.test(server) : server !== null)
     || permission.schema !== REMOTE_PERMISSION_SCHEMA || permission.kind !== SEARCH_PERMISSION_KIND
     || !label(permission.id) || !label(permission.networkId) || !label(permission.threadId) || !label(permission.searchProvider)
     || typeof permission.query !== 'string' || !permission.query.trim()
@@ -33,9 +40,10 @@ export function validateSearchPermission(permission) {
 }
 
 /** A grant for one answer. `wording` must be the approved wording that was shown, character for character;
- * `recipients` are the execution contributors listed with it (empty when the answer runs on this device). */
-export function createSearchPermission({ id, networkId, threadId, searchProvider, query, recipients, wording, grantedAt }) {
+ * `recipients` are the execution contributors listed with it (empty when the answer runs on this device);
+ * `searchServer` is the host of the person-chosen search server shown with it, null for fixed services. */
+export function createSearchPermission({ id, networkId, threadId, searchProvider, searchServer = null, query, recipients, wording, grantedAt }) {
   if (!sameWording(wording, searchPermissionWording(searchProvider))) throw new Error('The shown search permission wording is not the approved text');
   return validateSearchPermission({ schema: REMOTE_PERMISSION_SCHEMA, kind: SEARCH_PERMISSION_KIND, id, networkId, threadId, searchProvider,
-    query, recipients: [...recipients], wording: { id: wording.id, version: wording.version, text: wording.text }, grantedAt, revokedAt: null });
+    searchServer, query, recipients: [...recipients], wording: { id: wording.id, version: wording.version, text: wording.text }, grantedAt, revokedAt: null });
 }

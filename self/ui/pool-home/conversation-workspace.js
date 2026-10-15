@@ -154,9 +154,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const searchToggle = find('[data-search-toggle]');
   const setSearch = on => { searchToggle.setAttribute('aria-pressed', String(on && !searchToggle.hidden)); };
   const searching = () => searchToggle.getAttribute('aria-pressed') === 'true';
-  const allowSearch = async (model, sharingScope) => {
-    const request = session.searchPermissionRequest({ model, sharingScope });
-    return await searchPermission.ask(request) ? { wording: request.wording, recipients: request.recipients } : null;
+  // The person's own search server when it is set up and on, otherwise the server's Brave route.
+  const searchRouteNow = () => session.preferredSearchRoute?.() ?? undefined;
+  const deviceSearchOn = () => session.preferredSearchRoute?.() === 'device-search';
+  const allowSearch = async (model, sharingScope, route = searchRouteNow()) => {
+    const request = session.searchPermissionRequest({ model, sharingScope, ...(route ? { route } : {}) });
+    return await searchPermission.ask(request)
+      ? { route: request.route, wording: request.wording, recipients: request.recipients, searchServer: request.searchServer ?? null } : null;
   };
   function resizeInput() {
     input.style.removeProperty('--pool-param-composer-height');
@@ -270,12 +274,15 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
 
   };
   const unsubscribe = session.subscribe(render);
-  const unsubscribeSearch = search && session.searchPermissionRequest
-    ? search.subscribe(() => { searchToggle.hidden = !search.available(); if (searchToggle.hidden) setSearch(false); }) : () => {};
+  const refreshSearchToggle = () => { searchToggle.hidden = !(search?.available() || deviceSearchOn()); if (searchToggle.hidden) setSearch(false); };
+  const unsubscribeSearch = search && session.searchPermissionRequest ? search.subscribe(refreshSearchToggle) : () => {};
   if (search && search.state().state === 'unknown') void search.refresh();
   on('[data-search-toggle]', 'click', () => setSearch(!searching()));
   const webSearchOn = find('[data-web-search-on]');
-  const unsubscribeWebSearch = webSearch ? webSearch.subscribe(state => { if (webSearchOn) webSearchOn.hidden = !(state.enabled && state.url); }) : () => {};
+  const unsubscribeWebSearch = webSearch ? webSearch.subscribe(state => {
+    if (webSearchOn) webSearchOn.hidden = !(state.enabled && state.url);
+    if (session.searchPermissionRequest) refreshSearchToggle();
+  }) : () => {};
   const changeContext = () => {
     const selection = { enabled: find('[data-context-enabled]').checked, maxWords: Number(find('[data-context-cap]').value) };
     try {
@@ -399,7 +406,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       // A search-backed retry searches and shares passages again, so it asks again.
       const failed = thread.attempts.find(item => item.id === button.dataset.retryAttempt);
       if (!session.searchRetryNeedsPermission?.(failed)) return session.retry(thread.id, button.dataset.retryAttempt);
-      const allowed = await allowSearch(thread.model, thread.permissions?.sharingScope);
+      const allowed = await allowSearch(thread.model, thread.permissions?.sharingScope, failed.request?.retrieval?.route);
       if (allowed) return session.retry(thread.id, button.dataset.retryAttempt, { search: allowed });
     });
   });

@@ -61,7 +61,7 @@ describe('permission records, schema v3', () => {
     const grant = createSearchPermission({ id: 'g1', networkId: 'mesh', threadId: 't1', searchProvider: 'brave', query: 'q', recipients: STAGES,
       wording: wording(), grantedAt: 1 });
     expect(grant).toEqual({ schema: 'reploid.remote-permission/v3', kind: 'search-answer', id: 'g1', networkId: 'mesh', threadId: 't1',
-      searchProvider: 'brave', query: 'q', recipients: STAGES, wording: { id: 'reploid.search-answer-permission', version: '2026-10-15', text: APPROVED },
+      searchProvider: 'brave', searchServer: null, query: 'q', recipients: STAGES, wording: { id: 'reploid.search-answer-permission', version: '2026-10-15', text: APPROVED },
       grantedAt: 1, revokedAt: null });
     for (const text of [APPROVED.replace('Brave', 'brave'), APPROVED + ' ', APPROVED.slice(0, -1)]) {
       expect(() => createSearchPermission({ ...grant, wording: { ...wording(), text } })).toThrow('not the approved text');
@@ -184,7 +184,7 @@ describe('host session and conversation view', () => {
     const { session, partitions } = open();
     await grantContributors(session);
     const request = session.searchPermissionRequest({ model, sharingScope: 'mesh' });
-    expect(request).toEqual({ route: SEARCH_ROUTE, searchProvider: 'brave', wording: wording(), recipients: STAGES });
+    expect(request).toEqual({ route: SEARCH_ROUTE, searchProvider: 'brave', searchServer: null, wording: wording(), recipients: STAGES });
     const thread = session.createThread({ model });
     expect(() => session.send(thread, QUESTION, [{ name: 'notes.txt', text: 'My private notes' }], { search: request }))
       .toThrow("Search-backed answers don't include files");
