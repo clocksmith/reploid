@@ -54,10 +54,15 @@ function admissionRecord(record) {
   const participants = Array.isArray(route?.stages) ? route.stages.map(row => row?.participantId)
     : [identity.participantA, identity.participantB];
   if (!participants.every(text)) fail('an admission record needs its route participants');
-  if (record.reservedAt !== null && !time(record.reservedAt) || record.settledAt != null && !time(record.settledAt)) {
+  if (record.reservedAt !== null && !time(record.reservedAt) || record.settledAt != null && !time(record.settledAt)
+    || record.observedUntil != null && !time(record.observedUntil) || record.releasedBy != null
+      && (!time(record.releasedBy) || record.observedUntil == null || record.releasedBy < record.observedUntil)) {
     fail('admission times must be epoch milliseconds or null');
   }
+  // An unsettled admission was observed held until observedUntil; after it, whether it was held is unknown until
+  // releasedBy (its host session had ended by then), or indefinitely without one.
   return { ...stage, attemptId: identity.attemptId, reservedAt: record.reservedAt ?? null, settledAt: record.settledAt ?? null,
+    observedUntil: record.observedUntil ?? null, releasedBy: record.releasedBy ?? null,
     failed: record.failure != null || record.phase === 'failed', resources: record.resources ?? null,
     route: { modelIdentity: stage.modelIdentity, planId: stage.planId, participants } };
 }
@@ -71,7 +76,11 @@ function mergeAdmissions(records) {
     if (previous.reservedAt !== row.reservedAt || previous.settledAt !== null && row.settledAt !== null && previous.settledAt !== row.settledAt) {
       fail(`conflicting admission records for attempt ${row.attemptId}`);
     }
-    rows.set(key, { ...previous, settledAt: previous.settledAt ?? row.settledAt, failed: previous.failed || row.failed });
+    // A copy without its own horizon was observed at export, which bounds it no earlier than any recorded copy.
+    const latest = previous.observedUntil === null || row.observedUntil === null ? null
+      : row.observedUntil > previous.observedUntil ? row : previous;
+    rows.set(key, { ...previous, settledAt: previous.settledAt ?? row.settledAt, failed: previous.failed || row.failed,
+      observedUntil: latest?.observedUntil ?? null, releasedBy: latest?.releasedBy ?? null });
   }
   return [...rows.values()];
 }
@@ -203,7 +212,6 @@ export function summarizeCapacityUtilization({ interval, observedUntil, readines
     if (!routes.has(key)) routes.set(key, { route: admission.route, admissions: [] });
     routes.get(key).admissions.push(admission);
   }
-  const incompleteAt = Math.min(to, until);
   const rows = new Map();
   for (const [key, entry] of stages) {
     entry.spans.sort((a, b) => a.from - b.from);
@@ -214,15 +222,20 @@ export function summarizeCapacityUtilization({ interval, observedUntil, readines
       paidCapacity: row.paid ? row.capacity ?? 0 : 0, paidAny: row.paid }, row.to - row.from);
     const consumed = emptyConsumed();
     // An admission holds its slot from reservation until cleanup settles; one still open when the records were
-    // exported is counted to that time, and the rest of the interval is unknown. Tombstones never held a slot.
+    // exported (or at its own last observation, when earlier) is counted to that time, and the rest of the interval
+    // is unknown until it is known released. Tombstones never held a slot.
     const measured = entry.admissions.flatMap(admission => {
       if (admission.reservedAt === null) return [];
-      const open = admission.settledAt === null, end = open ? incompleteAt : admission.settledAt;
-      if (admission.reservedAt >= to || end <= from && !(open && admission.reservedAt < to)) return [];
+      const open = admission.settledAt === null;
+      const horizon = open && admission.observedUntil !== null ? Math.min(until, admission.observedUntil) : until;
+      const released = open ? admission.releasedBy ?? Infinity : admission.settledAt;
+      const end = open ? Math.min(to, horizon) : admission.settledAt;
+      if (admission.reservedAt >= to || released <= from) return [];
       const field = CAPACITY_UNITS[unit], amount = time(admission.resources?.[field]) ? admission.resources[field] : null;
       const heldMs = overlap(admission.reservedAt, end, from, to);
       const paidMs = segments.filter(row => row.paid).reduce((sum, row) => sum + overlap(admission.reservedAt, end, row.from, row.to), 0);
-      return [{ admission, outcome: outcomeOf(admission, outcomes.get(admission.attemptId)), amount, open, incomplete: open && until < to,
+      return [{ admission, outcome: outcomeOf(admission, outcomes.get(admission.attemptId)), amount, open,
+        incomplete: open && Math.max(from, horizon) < Math.min(to, released),
         capacitySeconds: amount === null ? null : amount * seconds(heldMs), paidCapacitySeconds: amount === null ? null : amount * seconds(paidMs) }];
     });
     for (const row of measured) addConsumed(consumed, row);

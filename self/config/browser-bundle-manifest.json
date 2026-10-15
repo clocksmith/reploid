@@ -1320,8 +1320,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 542679,
-      "sha256": "sha256:f9a2c6443f0e52c1b67dec6e5769792f8e63776699738ef41c9fe70914b4c825"
+      "byteLength": 543020,
+      "sha256": "sha256:be467884045ce0a0bcba7341351ee2367f1a1fb5bb5555dabde14c987ebbce5a"
     },
     {
       "path": "config/module-registry.json",
@@ -1380,8 +1380,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 116213,
-      "sha256": "sha256:f2d69dabad90049716612e289b107613685258ed549425c8550509324937a91d"
+      "byteLength": 116268,
+      "sha256": "sha256:3913cf13979edfc0c6a1696714a141363e3b05b9b3437190d51baecc3b5d094e"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1885,8 +1885,8 @@
     },
     {
       "path": "host/work-swarm.js",
-      "byteLength": 27692,
-      "sha256": "sha256:10861e68d77636ae618119297f53ae368875b829a19dca04a1c65cbae24a1545"
+      "byteLength": 29771,
+      "sha256": "sha256:659c669bd15f526ecf3875ceef1bdbfcdb72d440b70ce225c085ef23524b70f5"
     },
     {
       "path": "host/work-task.js",
@@ -9525,13 +9525,18 @@
     },
     {
       "path": "vendor/reploid/measurement/capacity-utilization.js",
-      "byteLength": 20166,
-      "sha256": "sha256:54cd7cebdd4d4524f0b2477cc38885d36ae10dc2255e89d3e7402393bdc1f595"
+      "byteLength": 21291,
+      "sha256": "sha256:2f79267007e00b4d2f0de4e463a32a9445835333812bfaa9d1819b42c1392f6e"
     },
     {
       "path": "vendor/reploid/measurement/index.js",
-      "byteLength": 224,
-      "sha256": "sha256:f165ee61133178311e7d77bd690e80b80005f8f02121a1f3553cb05d6ef3673b"
+      "byteLength": 504,
+      "sha256": "sha256:c9fdec9159f3dcbb06068f03ca3569a62fda50ddc1ee382c2d41b34851d23d06"
+    },
+    {
+      "path": "vendor/reploid/measurement/readiness-records.js",
+      "byteLength": 19740,
+      "sha256": "sha256:4b8156c8861260a3f4bc61fd1fb6a51fe4580758166e1fb558c5dbeda28264eb"
     },
     {
       "path": "vendor/reploid/mesh/contribution.js",
@@ -9790,8 +9795,8 @@
     },
     {
       "path": "vendor/reploid/package-assets.json",
-      "byteLength": 43999,
-      "sha256": "sha256:433a15efa738455a898d82bcb56b326d680651f8199c0ce8845879045ae885a3"
+      "byteLength": 44167,
+      "sha256": "sha256:98f1f4d892db06c1004572338444c019fd85f323d7326dc7bd698b90178aee43"
     },
     {
       "path": "vendor/reploid/retrieval/citations.js",
@@ -9959,5 +9964,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:c564ee4f443a61c7ac838ae12ad75366a7164780f08448d383b22a35a84da418"
+  "bundleHash": "sha256:23c627c0e86ffd6464de168a11f430db734e228e40b6794858003ddd4b9a6167"
 }

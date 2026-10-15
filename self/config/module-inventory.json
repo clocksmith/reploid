@@ -2545,7 +2545,7 @@
     {
       "path": "self/host/work-swarm.js",
       "owner": "self",
-      "sha256": "sha256:10861e68d77636ae618119297f53ae368875b829a19dca04a1c65cbae24a1545",
+      "sha256": "sha256:659c669bd15f526ecf3875ceef1bdbfcdb72d440b70ce225c085ef23524b70f5",
       "imports": [
         "../capabilities/communication/library-adapter.js",
         "../config/doppler-local-models.js",
@@ -2558,6 +2558,7 @@
         "../providers/work-adapter.js",
         "../providers/work-resident-provider.js",
         "../vendor/reploid/config/index.js",
+        "../vendor/reploid/measurement/index.js",
         "../vendor/reploid/mesh/index.js",
         "../vendor/reploid/mesh/partitions/partition-attempt-evidence.js",
         "../vendor/reploid/transport/index.js",
@@ -15312,13 +15313,22 @@
     {
       "path": "vendor/reploid/measurement/capacity-utilization.js",
       "owner": "vendor",
-      "sha256": "sha256:54cd7cebdd4d4524f0b2477cc38885d36ae10dc2255e89d3e7402393bdc1f595",
+      "sha256": "sha256:2f79267007e00b4d2f0de4e463a32a9445835333812bfaa9d1819b42c1392f6e",
       "imports": []
     },
     {
       "path": "vendor/reploid/measurement/index.js",
       "owner": "vendor",
-      "sha256": "sha256:f165ee61133178311e7d77bd690e80b80005f8f02121a1f3553cb05d6ef3673b",
+      "sha256": "sha256:c9fdec9159f3dcbb06068f03ca3569a62fda50ddc1ee382c2d41b34851d23d06",
+      "imports": [
+        "./capacity-utilization.js",
+        "./readiness-records.js"
+      ]
+    },
+    {
+      "path": "vendor/reploid/measurement/readiness-records.js",
+      "owner": "vendor",
+      "sha256": "sha256:4b8156c8861260a3f4bc61fd1fb6a51fe4580758166e1fb558c5dbeda28264eb",
       "imports": [
         "./capacity-utilization.js"
       ]

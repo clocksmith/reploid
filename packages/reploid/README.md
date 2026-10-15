@@ -22,7 +22,7 @@ these software contract checks.
 | reploid/doppler | Optional public Doppler Capsule-session integration |
 | reploid/improve | Existing signed improvement episode ledger and promotion-readiness checks |
 | reploid/retrieval | Search provider, passage extractor and support checker interfaces; bounded provenance records, numbered source context and mechanical citation checks |
-| reploid/measurement | Capacity-weighted readiness utilization from exported readiness spans, admission records, attempt outcomes and readiness contracts; unknown stays unknown |
+| reploid/measurement | Capacity-weighted readiness utilization from exported readiness spans, admission records, attempt outcomes and readiness contracts; a host readiness recorder, its record fold and a bounded record store; unknown stays unknown |
 
 `reploid/retrieval` includes no search provider. Its fixed-document provider and
 lexical-overlap checker are deterministic test doubles. Whether a cited source

@@ -47,6 +47,11 @@ it('logs GPU pipeline preparation progress, including outstanding compilation, w
     message: 'Stopping after the current GPU pipeline finishes compiling' });
 });
 
+it('stamps each status line with its observation time in ISO 8601 UTC', () => {
+  expect(summarizeNativePartitionState({ phase: 'ready' }, { at: Date.UTC(2026, 9, 15, 22, 0, 1, 250) }).at).toBe('2026-10-15T22:00:01.250Z');
+  expect(Date.parse(summarizeNativePartitionState({ phase: 'ready' }).at)).toBeGreaterThan(0);
+});
+
 it('keeps unknown cleanup state unknown and safely summarizes idle status', () => {
   const log = summarizeNativePartitionState({ phase: 'idle', offering: false, unsettledOwners: 0 });
   expect(log).toMatchObject({ phase: 'idle', offering: false, unsettledOwners: 0, descriptor: null, acquisition: null, reservations: null });

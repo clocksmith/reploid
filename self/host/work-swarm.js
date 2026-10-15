@@ -17,7 +17,13 @@ import { loadWorkPartition } from './work-partitions.js';
 import { createAttemptEvidenceSigner } from '../vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
 import { snapshotWorkOrderedParticipation, bindWorkOrderedParticipation } from './work-partition-plan.js';
 import { createWorkPartitionNetworks } from './work-partition-networks.js';
+import { createReadinessRecorder, createReadinessRecordStore } from '../vendor/reploid/measurement/index.js';
 import partitionPolicy from '../config/partition-policy.json' with { type: 'json' };
+
+/** Storage key of this browser's readiness records. Its value is a reploid.capacity-utilization-input/v1
+ * document (bounded, latest copy per span or admission) that scripts/capacity-utilization.js reads as is;
+ * `exportReadiness()` returns the same document. Records stay on this device. */
+export const READINESS_RECORDS_KEY = 'REPLOID_READINESS_RECORDS';
 
 /** `participantIdentity` (async () => signing identity | null) supplies the persistent identity this host
  * registered for its account (host/credits/browser.js); requests, custody certificates and charged
@@ -54,6 +60,17 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   };
   let partitionNetworks = null;
   let consumerTransport = null;
+  // Readiness spans and admissions of the stages this connection's partition owner prepares.
+  const readinessStore = typeof storage?.getItem === 'function' && typeof storage.setItem === 'function'
+    ? createReadinessRecordStore({ storage, key: READINESS_RECORDS_KEY }) : null;
+  let readiness = null, readinessTimer = null;
+  // Readiness ends at once; admissions settled by the owners' close are recorded until the returned finish.
+  const retireReadiness = reason => {
+    const recorder = readiness; readiness = null;
+    clearInterval(readinessTimer); readinessTimer = null;
+    recorder?.end(reason);
+    return () => { recorder?.close(reason); readinessStore?.flush(); };
+  };
   let modelFiles = null, partitionMesh = null, consumerIdentity = null, partitionRequester = null;
   const partitionListeners = new Set();
   const partitions = Object.freeze({
@@ -190,7 +207,9 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
           throw new Error('Canonical history identity differs from authenticated participant or mesh');
         }
         partitionRequester = consumerIdentity.peerId;
-        partitionMesh = createPartitions({ canonical: canonical ? { runtime: canonical.runtime,
+        const recorder = readiness = readinessStore && createReadinessRecorder({ participantId: consumerIdentity.peerId,
+          host: 'browser', write: readinessStore.write });
+        const mesh = partitionMesh = createPartitions({ canonical: canonical ? { runtime: canonical.runtime,
           coordinatorEpoch: canonical.coordinatorEpoch, participantEpoch: canonical.participantEpoch } : null, identity: consumerIdentity, meshId: options.config.value.mesh.roomId,
           models: LOCAL_DOPPLER_MODELS.filter(model => model.source?.files.some(file => file.role === 'model-piece-index')),
           ...bindWorkOrderedParticipation(ordered, consumerIdentity.peerId, ordered ? consumerTransport._getPeerId() : null, partitionPolicy),
@@ -200,9 +219,11 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
             if (ordered && model.id !== ordered.stage?.modelId) throw new Error('Model differs from assigned ordered stage');
             // Charged attempts' receipts are signed with this participant's persistent identity.
             return loadWorkPartition(modelFiles, model, index, { ...controls,
-              evidenceSigner: consumerIdentity?.privateJwk ? createAttemptEvidenceSigner({ identity: consumerIdentity }) : null });
+              evidenceSigner: consumerIdentity?.privateJwk ? createAttemptEvidenceSigner({ identity: consumerIdentity }) : null })
+              .then(program => { recorder?.watchResident(program.resident); return program; });
           },
           onChange(state) {
+            recorder?.observe(state);
             if (state.offering || contribution.partition) {
               sharing = state.offering;
               const previousError = contribution.error;
@@ -214,6 +235,8 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
             notify();
           }
         });
+        // Owner ticks can wait on peers; this keeps an open span observed at the policy's poll interval.
+        if (recorder) readinessTimer = setInterval(() => { if (recorder.getState().open) recorder.observe(mesh.getState?.()); }, partitionPolicy.pollMs);
         if (closed || paused || version !== generation) { await modelFiles.close(); throw new Error('File exchange connection stopped'); }
       } else await consumer.connect();
       return getState();
@@ -222,7 +245,9 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       const owners = [partitionMesh, partitionNetworks, modelFiles, consumer];
       partitionMesh = null; partitionRequester = null; partitionNetworks = null; modelFiles = null; consumer = null; consumerTransport = null;
       peerOffers?.close();
+      const finishReadiness = retireReadiness('connection-failed');
       const results = await Promise.allSettled(owners.map(closeOwner));
+      finishReadiness();
       if (version === generation) error = cause.message;
       const failures = results.filter(result => result.status === 'rejected').map(result => result.reason);
       if (failures.length) throw new AggregateError([cause, ...failures], cause.message + '; connection cleanup failed');
@@ -292,6 +317,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     if (disconnecting) return disconnecting;
     generation++;
     connectionFailure = null;
+    const finishReadiness = retireReadiness('disconnected');
     const contributionStop = stopContribution();
     const partitionStop = closeOwner(partitionMesh); partitionMesh = null; partitionRequester = null;
     const fileStop = closeOwner(modelFiles); modelFiles = null;
@@ -304,6 +330,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       ...[...cleanupDebt].map(closeOwner)];
     disconnecting = (async () => {
       const results = await Promise.allSettled(pending);
+      finishReadiness();
       peerOffers?.close();
       if (results[1].status === 'rejected') throw results[1].reason;
       if (results[2].status === 'rejected') throw results[2].reason;
@@ -330,6 +357,8 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     },
     getIntroductions: () => consumerTransport?.getIntroductions?.() || null,
     getPartitionState: () => partitionMesh?.getState() || null,
+    /** This browser's readiness records as a CLI input document, or null without storage. */
+    exportReadiness: () => readinessStore?.export() ?? null,
     /** The network (room) this swarm joins; remote permissions are bound to it. */
     getNetworkId: () => options.config.value.mesh.roomId,
     getFileState: () => modelFiles?.getState() || { sharing: false, preparing: false, limits: getFileContributionLimits() },

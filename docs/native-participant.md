@@ -154,8 +154,40 @@ restart with the same file restores the same limits.
 
 `native-initialized` declares the policy and every control. `network` lines
 report the decision, readings and measured CPU, memory, transfer and GPU energy;
-`partition-state` lines carry the current decision. These are source controls;
-installed and physical qualification are separate.
+`partition-state` lines carry the current decision and `at`, the observation
+time in ISO 8601 UTC. These are source controls; installed and physical
+qualification are separate.
+
+## Readiness records
+
+`--readiness-log <absolute JSONL path>` (with `--contribute`) appends the
+records `scripts/capacity-utilization.js` measures. There is no default path;
+without the flag nothing is written. The file is created owner-only (`0600`).
+
+- `reploid.readiness-span/v1`: one stage of this participant (`participantId`,
+  `modelIdentity`, `planId`, `stageIndex`) was `ready` with `capacity`
+  (`attempt-slots` it holds or admits, after any owner limit) or `unready` from
+  `from` to `to` (epoch ms). A span is written when it opens (`to: null`),
+  re-written every 60 s while open and closed with `end` (for example `stopped`,
+  `failed`, `capacity-changed`, `observation-gap`, `shutdown`). A stage is ready
+  only while offered, Doppler reports it ready and it admits at least one slot.
+- `reploid.stage-admission/v1`: one admitted attempt's identities, reservation
+  and settlement times and slot count, written when reserved, while held and
+  when settled.
+
+Records hold no conversation text, thread or requester identities, or error
+text. SIGINT/SIGTERM closes every span when shutdown starts. After a crash the
+last span stays open: the CLI counts it only through its last observation, lists
+it, and treats the time until the next start as unknown. A start writes nothing
+for a stage until it is prepared; the stage is then recorded unready back to the
+start. More than 60 s without an observation ends a ready span (a suspended
+machine serves nothing). Pass the log and the requester's exports to the CLI
+with an explicit interval:
+
+```sh
+node scripts/capacity-utilization.js readiness.jsonl attempts.json \
+  --from 2026-10-15T22:00:00Z --to 2026-10-16T07:00:00Z
+```
 
 ## Opt-in text HTTP APIs
 
