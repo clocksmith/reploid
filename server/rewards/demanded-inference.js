@@ -10,8 +10,9 @@
 
 import { canonicalRouteAttemptBinding, sameRouteAttemptIdentity } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
 import { summarizePartitionExecution } from '../../packages/reploid/src/mesh/partitions/partition-summary.js';
-import { hashCanonical, isNonEmptyString, sha256Hex, toMs } from '../ledger/domain.js';
-import { CATEGORY_METERS, computeReward } from './domain.js';
+import { hashCanonical, isNonEmptyString, toMs } from '../ledger/domain.js';
+import { checkCounterparty } from './counterparty.js';
+import { CATEGORY_TERMS, computeReward } from './domain.js';
 
 /** Conditions disclosed in every demanded-inference offer and checked for every claim. */
 export const DEMANDED_INFERENCE_CONDITIONS = Object.freeze([
@@ -33,7 +34,6 @@ const EXECUTION_SCHEMA = 'reploid.mesh.partition-execution/v3';
 export const stageShareKey = ({ reservationId, attemptId, stageIndex }) => `${reservationId}|${attemptId}|${stageIndex}`;
 export const participantShareKey = ({ reservationId, attemptId }, participantId) => `${reservationId}|${attemptId}|${participantId}`;
 export const routeKey = ({ reservationId, attemptId }) => `${reservationId}|${attemptId}`;
-export const workIdForStageShare = (key) => `dinf_${sha256Hex(key).slice(0, 32)}`;
 
 const completedSettlement = (settlement) => COMPLETED_OUTCOMES.has(settlement?.outcome)
   || (settlement?.outcome === 'failed_quality' && COMPLETED_OUTCOMES.has(settlement.review?.disposition));
@@ -47,10 +47,6 @@ const routeSummary = (execution) => {
     return null;
   }
 };
-
-const normalizeLinks = (links) => (Array.isArray(links) ? links : [])
-  .filter((link) => isNonEmptyString(link?.kind))
-  .map((link) => ({ kind: link.kind, evidenceId: isNonEmptyString(link.evidenceId) ? link.evidenceId : null }));
 
 /**
  * Evaluate one claim against ledger records and the identity port. Returns
@@ -173,32 +169,23 @@ export async function evaluateDemandedInference({ claim, offer, ledger, identity
   }
 
   // 5. Self-generated or collusive demand.
-  const [contributorAccount, requesterAccount, requesterOwner, contributorOwner, links] = await Promise.all([
-    ledger.getAccount(offer.accountId),
-    ledger.getAccount(reservation.accountId),
+  const [requesterOwner, contributorOwner] = await Promise.all([
     identity.participantAccount(binding.requesterId),
-    identity.participantAccount(participantId),
-    identity.accountLinks(offer.accountId, reservation.accountId)
+    identity.participantAccount(participantId)
   ]);
   if (requesterOwner !== reservation.accountId) {
     reject('requester_identity_mismatch', 'the route requester participant does not belong to the paying account');
   }
   if (contributorOwner !== offer.accountId) reject('contributor_identity_mismatch', 'the offer participant no longer belongs to the contributor account');
-  if (offer.accountId === reservation.accountId) reject('self_dealing', 'requester and contributor are the same account');
-  else if (!contributorAccount || !requesterAccount || contributorAccount.ownerId === requesterAccount.ownerId) {
-    reject('self_dealing', 'requester and contributor accounts share an owner or cannot be distinguished');
-  }
-  if (binding.requesterId === participantId) reject('self_dealing', 'the contributor participant requested this work');
-  evidence.links = normalizeLinks(links);
-  const disqualifying = [...new Set(evidence.links.map((link) => link.kind)
-    .filter((kind) => rewardPolicy.collusion.rejectLinkKinds.includes(kind)))];
-  if (disqualifying.length) {
-    reject('collusive_demand', 'requester and contributor accounts are linked by a disqualifying relation', { kinds: disqualifying });
-  }
+  evidence.links = await checkCounterparty({
+    contributorAccountId: offer.accountId, counterpartyAccountId: reservation.accountId,
+    contributorParticipantId: participantId, counterpartyParticipantId: binding.requesterId,
+    ledger, identity, rewardPolicy, reject
+  });
 
   // 6. Reward from the accepted formula over settled ledger meters only.
   const meters = { settledCharge: settlement.charge };
-  for (const meter of CATEGORY_METERS.demanded_inference) {
+  for (const meter of CATEGORY_TERMS.demanded_inference.meters) {
     if (meter !== 'settledCharge' && settlement.metering?.[meter] !== undefined) meters[meter] = settlement.metering[meter];
   }
   let reward = null;
@@ -207,7 +194,33 @@ export async function evaluateDemandedInference({ claim, offer, ledger, identity
   } catch (error) {
     reject('metering_incomplete', error.message);
   }
-  return result({ reward, routeHash });
+  const share = { reservationId: claim.reservationId, attemptId: claim.attemptId, stageIndex: claim.stageIndex };
+  return result({
+    reward,
+    workKey: `demanded_inference|${stageShareKey(share)}`,
+    unitKeys: [
+      { kind: 'stage_share', key: stageShareKey(share) },
+      { kind: 'participant_share', key: participantShareKey(share, participantId) }
+    ],
+    pins: [{ kind: 'route', key: routeKey(share), value: routeHash }],
+    workRefs: {
+      reservationId: claim.reservationId,
+      settlementId: settlement.settlementId,
+      billableEventId: settlement.billableEventId,
+      attemptId: claim.attemptId,
+      stageIndex: claim.stageIndex,
+      ownerPolicyDigest: evidence.contribution.ownerPolicyDigest
+    }
+  });
+}
+
+/** Claim fields a demanded-inference validation accepts besides offerId. */
+export const DEMANDED_INFERENCE_CLAIM_KEYS = Object.freeze(['reservationId', 'attemptId', 'stageIndex', 'execution', 'contribution']);
+
+export function assertDemandedInferenceClaim(claim, { assertId, fail }) {
+  assertId(claim.reservationId, 'reservationId');
+  assertId(claim.attemptId, 'attemptId');
+  if (!Number.isSafeInteger(claim.stageIndex) || claim.stageIndex < 0) fail('invalid_input', 'stageIndex must be a non-negative integer');
 }
 
 export default { DEMANDED_INFERENCE_CONDITIONS, evaluateDemandedInference };
