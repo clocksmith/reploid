@@ -1,0 +1,5474 @@
+{
+ "schema": "reploid.qk-norm-kernel-check/v1",
+ "startedAt": "2026-10-15T12:41:10.583Z",
+ "sources": {
+  "shipped": {
+   "path": "pkg-new/node_modules/doppler-gpu/src/gpu/kernels/rmsnorm_paired.wgsl",
+   "sha256": "0402e449b9ff69a5b1a60ad617ea1156f2083d2b80aa4880ceb364c09a8b1239"
+  },
+  "sliced": {
+   "path": "pkg-new/node_modules/doppler-gpu/src/gpu/kernels/rmsnorm_paired_sliced.wgsl",
+   "sha256": "70c79461d2203d22e7672b65b0b9f6bba297de38b73b476f20bb7afaf05df3f3"
+  }
+ },
+ "kernels": {
+  "shipped": {
+   "constants": {
+    "WORKGROUP_SIZE": 64
+   },
+   "sliceWidth": null
+  },
+  "sliced": {
+   "constants": {
+    "WORKGROUP_SIZE": 256
+   },
+   "sliceWidth": 256
+  }
+ },
+ "repeats": 7,
+ "eps": 0.000001,
+ "headDim": 256,
+ "modelManifestSha256": "6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+ "modelWeights": [
+  {
+   "name": "model.language_model.layers.3.self_attn.q_norm.weight",
+   "layer": 3,
+   "role": "q",
+   "sha256": "1610ecd6254e00bb594d53c95e2c8a6d436f4b655c994020b4e2d6caf498a4bc"
+  },
+  {
+   "name": "model.language_model.layers.3.self_attn.k_norm.weight",
+   "layer": 3,
+   "role": "k",
+   "sha256": "52ac5b7cc4945d69a1e4230a43370690be962d1b905469e6e287c528ec944e91"
+  },
+  {
+   "name": "model.language_model.layers.7.self_attn.q_norm.weight",
+   "layer": 7,
+   "role": "q",
+   "sha256": "9e2c412d028cb1a0627305b9d81d5ef7f30bc9204c9e0e5520c45f54bd611975"
+  },
+  {
+   "name": "model.language_model.layers.7.self_attn.k_norm.weight",
+   "layer": 7,
+   "role": "k",
+   "sha256": "9f311a9bbe311a4b5f360e0ad00a09d4adcd91febfe20e3519454dc31d756da4"
+  },
+  {
+   "name": "model.language_model.layers.11.self_attn.q_norm.weight",
+   "layer": 11,
+   "role": "q",
+   "sha256": "0c45d7b9597caca2909df66a596be21a304de3c125f3ce82bf717141e0d9a6da"
+  },
+  {
+   "name": "model.language_model.layers.11.self_attn.k_norm.weight",
+   "layer": 11,
+   "role": "k",
+   "sha256": "c565f958e3aa67f1caab9d7480581fb90bc45f3f1ca7fe308e63a49aa8f1c569"
+  },
+  {
+   "name": "model.language_model.layers.15.self_attn.q_norm.weight",
+   "layer": 15,
+   "role": "q",
+   "sha256": "3bc74bbe463b56783346d8261c216039e4155b1459ae0ccac8fcf5f5238d306e"
+  },
+  {
+   "name": "model.language_model.layers.15.self_attn.k_norm.weight",
+   "layer": 15,
+   "role": "k",
+   "sha256": "db8d1727e4c14fd559453ac016f236d162af5488151cc703b79076319172ead9"
+  },
+  {
+   "name": "model.language_model.layers.19.self_attn.q_norm.weight",
+   "layer": 19,
+   "role": "q",
+   "sha256": "51f1cd3188514ce4ba63a8edc8ff0a137e47804df42e1ef02fa260dd35f45b47"
+  },
+  {
+   "name": "model.language_model.layers.19.self_attn.k_norm.weight",
+   "layer": 19,
+   "role": "k",
+   "sha256": "a48e8930d12aeb769173be7773906c41f750c0bc13f1c602ca5d69cbb2d91272"
+  },
+  {
+   "name": "model.language_model.layers.23.self_attn.q_norm.weight",
+   "layer": 23,
+   "role": "q",
+   "sha256": "6522b6925a01f519d71413624043ddfc0d7559a4eded57314a74f8fba5bb3943"
+  },
+  {
+   "name": "model.language_model.layers.23.self_attn.k_norm.weight",
+   "layer": 23,
+   "role": "k",
+   "sha256": "1cafa5e34344401f2d352661661122b16fe68ccb0c18b64381ae14b52d9d4d94"
+  }
+ ],
+ "cases": [
+  {
+   "name": "L3-q_norm-uniform-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.3.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.454569021730368e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.5903202208643135e-15,
+     "finite": true,
+     "medianMs": 0.251342999999963,
+     "minMs": 0.2363950000000159,
+     "maxMs": 1.5416620000000307
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.454569021730368e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.5903202208643135e-15,
+     "finite": true,
+     "medianMs": 0.1780650000000037,
+     "minMs": 0.15670500000004495,
+     "maxMs": 0.6995469999999955
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 2048,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L3-q_norm-uniform-tokens3",
+   "role": "q",
+   "rows": 24,
+   "tokens": 3,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.3.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.053018943708368e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.053018943708368e-15,
+     "finite": true,
+     "medianMs": 0.24182500000000573,
+     "minMs": 0.23385999999999285,
+     "maxMs": 0.9366329999999721
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.053018943708368e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.053018943708368e-15,
+     "finite": true,
+     "medianMs": 0.1470359999999573,
+     "minMs": 0.14258799999998928,
+     "maxMs": 0.4742620000000102
+    }
+   },
+   "between": {
+    "elements": 6144,
+    "bitIdenticalPairs": 5807,
+    "maxDifference": 7.105427357601002e-15,
+    "maxRelativeDifference": 4.3951976557538865e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L3-q_norm-uniform-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.3.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.549586040329799e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.424767379693036e-15,
+     "finite": true,
+     "medianMs": 0.23846800000001167,
+     "minMs": 0.23442199999999502,
+     "maxMs": 1.1627189999999814
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.549586040329799e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.424767379693036e-15,
+     "finite": true,
+     "medianMs": 0.1706609999999955,
+     "minMs": 0.14827900000000227,
+     "maxMs": 0.6428999999999974
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 31003,
+    "maxDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 7.276053731657594e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L3-q_norm-wide-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.3.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.606235373259726e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.4983492515571326e-15,
+     "finite": true,
+     "medianMs": 0.24583200000000716,
+     "minMs": 0.2358939999999734,
+     "maxMs": 1.1572390000000041
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.606235373259726e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.4983492515571326e-15,
+     "finite": true,
+     "medianMs": 0.15354999999999563,
+     "minMs": 0.1510839999999689,
+     "maxMs": 0.261683000000005
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 1839,
+    "maxDifference": 2.842170943040401e-14,
+    "maxRelativeDifference": 4.905007152496059e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L3-q_norm-wide-tokens3",
+   "role": "q",
+   "rows": 24,
+   "tokens": 3,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.3.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.554314282379921e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.944541565958812e-15,
+     "finite": true,
+     "medianMs": 0.26728300000002037,
+     "minMs": 0.23707699999999932,
+     "maxMs": 1.1158209999999826
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.554314282379921e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.944541565958812e-15,
+     "finite": true,
+     "medianMs": 0.15411000000000286,
+     "minMs": 0.14842000000004418,
+     "maxMs": 0.2354530000000068
+    }
+   },
+   "between": {
+    "elements": 6144,
+    "bitIdenticalPairs": 5914,
+    "maxDifference": 2.842170943040401e-14,
+    "maxRelativeDifference": 6.536661701614034e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L3-q_norm-wide-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.3.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.6827780641078014e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.808774279111054e-15,
+     "finite": true,
+     "medianMs": 0.7297340000000077,
+     "minMs": 0.26449800000000323,
+     "maxMs": 3.4556240000000003
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.6827780641078014e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.808774279111054e-15,
+     "finite": true,
+     "medianMs": 0.18689200000000028,
+     "minMs": 0.18209300000000894,
+     "maxMs": 0.6671559999999772
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 30552,
+    "maxDifference": 5.684341886080802e-14,
+    "maxRelativeDifference": 7.406193119935783e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L3-q_norm-outlier-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.3.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.348806736666823e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.672140782432202e-15,
+     "finite": true,
+     "medianMs": 0.23966100000001234,
+     "minMs": 0.22986300000002302,
+     "maxMs": 1.264220000000023
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.348806736666823e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.672140782432202e-15,
+     "finite": true,
+     "medianMs": 0.14712699999995493,
+     "minMs": 0.14297900000008212,
+     "maxMs": 0.22617600000000948
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 1852,
+    "maxDifference": 4.263256414560601e-14,
+    "maxRelativeDifference": 5.18534340503892e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L3-q_norm-outlier-tokens3",
+   "role": "q",
+   "rows": 24,
+   "tokens": 3,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.3.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.484912320783564e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.76586273725438e-15,
+     "finite": true,
+     "medianMs": 0.24444000000005417,
+     "minMs": 0.23176599999999326,
+     "maxMs": 0.6134250000000065
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.796386562843412e-15,
+     "maxMagnitudeRelativeErrorVsF64": 7.436722432403783e-15,
+     "finite": true,
+     "medianMs": 0.15482199999996737,
+     "minMs": 0.14860000000010132,
+     "maxMs": 0.22511400000007598
+    }
+   },
+   "between": {
+    "elements": 6144,
+    "bitIdenticalPairs": 4733,
+    "maxDifference": 7.460698725481052e-14,
+    "maxRelativeDifference": 6.629494737952054e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L3-q_norm-outlier-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.3.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.199828122659249e-15,
+     "maxMagnitudeRelativeErrorVsF64": 7.71356635916707e-15,
+     "finite": true,
+     "medianMs": 0.23133600000005572,
+     "minMs": 0.22734800000000632,
+     "maxMs": 1.0195390000000089
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 6.7564201652503405e-15,
+     "maxMagnitudeRelativeErrorVsF64": 7.71356635916707e-15,
+     "finite": true,
+     "medianMs": 0.14919099999997343,
+     "minMs": 0.14259900000001835,
+     "maxMs": 0.22743800000000647
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 27426,
+    "maxDifference": 1.1368683772161603e-13,
+    "maxRelativeDifference": 1.0084376563596714e-14,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L3-q_norm-tiny-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.3.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.315803009404563e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.315803009404563e-15,
+     "finite": true,
+     "medianMs": 0.24239599999998518,
+     "minMs": 0.2366660000000138,
+     "maxMs": 1.1837379999999484
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.315803009404563e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.315803009404563e-15,
+     "finite": true,
+     "medianMs": 0.14755700000000616,
+     "minMs": 0.14408100000002833,
+     "maxMs": 1.2420680000000175
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 2048,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L3-q_norm-tiny-tokens3",
+   "role": "q",
+   "rows": 24,
+   "tokens": 3,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.3.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 6.455701133885618e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.455701133885618e-15,
+     "finite": true,
+     "medianMs": 0.2390100000000075,
+     "minMs": 0.2374969999999621,
+     "maxMs": 0.990413999999987
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 6.455701133885618e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.455701133885618e-15,
+     "finite": true,
+     "medianMs": 0.15039300000000821,
+     "minMs": 0.14725799999996525,
+     "maxMs": 0.21509500000001935
+    }
+   },
+   "between": {
+    "elements": 6144,
+    "bitIdenticalPairs": 5922,
+    "maxDifference": 7.105427357601002e-15,
+    "maxRelativeDifference": 5.4814189865468766e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L3-q_norm-tiny-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.3.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.542838970483101e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.122137661767802e-15,
+     "finite": true,
+     "medianMs": 0.25873699999999644,
+     "minMs": 0.23287900000002537,
+     "maxMs": 1.1765149999999949
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.542838970483101e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.122137661767802e-15,
+     "finite": true,
+     "medianMs": 0.15056300000003375,
+     "minMs": 0.14757800000006682,
+     "maxMs": 0.248997999999915
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 31787,
+    "maxDifference": 8.881784197001252e-15,
+    "maxRelativeDifference": 6.5696122999081145e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L3-k_norm-uniform-tokens1",
+   "role": "k",
+   "rows": 2,
+   "tokens": 1,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.3.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.9454244277731625e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.951393410580976e-15,
+     "finite": true,
+     "medianMs": 0.27133100000003196,
+     "minMs": 0.2424869999999828,
+     "maxMs": 1.145836999999915
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.926677950217603e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.4335501276711205e-15,
+     "finite": true,
+     "medianMs": 0.15332899999998517,
+     "minMs": 0.15030300000000807,
+     "maxMs": 0.23094500000001972
+    }
+   },
+   "between": {
+    "elements": 512,
+    "bitIdenticalPairs": 279,
+    "maxDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 6.1953831434433506e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L3-k_norm-uniform-tokens3",
+   "role": "k",
+   "rows": 6,
+   "tokens": 3,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.3.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.054651303381581e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.054651303381581e-15,
+     "finite": true,
+     "medianMs": 0.24643399999990834,
+     "minMs": 0.23981100000003153,
+     "maxMs": 0.2954059999999572
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.054651303381581e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.054651303381581e-15,
+     "finite": true,
+     "medianMs": 0.15081399999996847,
+     "minMs": 0.1480179999999791,
+     "maxMs": 0.21695899999997437
+    }
+   },
+   "between": {
+    "elements": 1536,
+    "bitIdenticalPairs": 1283,
+    "maxDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 6.534701655135201e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L3-k_norm-uniform-tokens16",
+   "role": "k",
+   "rows": 32,
+   "tokens": 16,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.3.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.934504408506094e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.374042707095433e-15,
+     "finite": true,
+     "medianMs": 0.26840500000002976,
+     "minMs": 0.24534200000005058,
+     "maxMs": 0.3039420000000064
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.8939956953910654e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.8939956953910654e-15,
+     "finite": true,
+     "medianMs": 0.18275400000004538,
+     "minMs": 0.16779600000006667,
+     "maxMs": 0.23695599999996375
+    }
+   },
+   "between": {
+    "elements": 8192,
+    "bitIdenticalPairs": 7573,
+    "maxDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 6.617034618725023e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L3-k_norm-wide-tokens1",
+   "role": "k",
+   "rows": 2,
+   "tokens": 1,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.3.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.095007136292264e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.023582414950959e-15,
+     "finite": true,
+     "medianMs": 0.26860599999997703,
+     "minMs": 0.24246600000003582,
+     "maxMs": 0.7461039999999457
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.095007136292264e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.023582414950959e-15,
+     "finite": true,
+     "medianMs": 0.16585300000008374,
+     "minMs": 0.15669500000001335,
+     "maxMs": 1.644775999999979
+    }
+   },
+   "between": {
+    "elements": 512,
+    "bitIdenticalPairs": 512,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L3-k_norm-wide-tokens3",
+   "role": "k",
+   "rows": 6,
+   "tokens": 3,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.3.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.110681208707731e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.455115334939096e-15,
+     "finite": true,
+     "medianMs": 0.2441199999999526,
+     "minMs": 0.2392099999999573,
+     "maxMs": 0.3369040000000041
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.110681208707731e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.455115334939096e-15,
+     "finite": true,
+     "medianMs": 0.1504929999999831,
+     "minMs": 0.14695700000004308,
+     "maxMs": 0.20179000000007363
+    }
+   },
+   "between": {
+    "elements": 1536,
+    "bitIdenticalPairs": 1536,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L3-k_norm-wide-tokens16",
+   "role": "k",
+   "rows": 32,
+   "tokens": 16,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.3.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.372363020081632e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.525031305234597e-15,
+     "finite": true,
+     "medianMs": 0.26519900000005237,
+     "minMs": 0.2376969999999119,
+     "maxMs": 0.966399000000024
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.706355226479637e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.525031305234597e-15,
+     "finite": true,
+     "medianMs": 0.14780799999994088,
+     "minMs": 0.14499299999999948,
+     "maxMs": 0.2165669999999409
+    }
+   },
+   "between": {
+    "elements": 8192,
+    "bitIdenticalPairs": 7467,
+    "maxDifference": 2.842170943040401e-14,
+    "maxRelativeDifference": 5.4424064983785404e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L3-k_norm-outlier-tokens1",
+   "role": "k",
+   "rows": 2,
+   "tokens": 1,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.3.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.83841066074116e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.449059628839767e-15,
+     "finite": true,
+     "medianMs": 0.24598299999991013,
+     "minMs": 0.24047300000006544,
+     "maxMs": 1.0220539999999119
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.83841066074116e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.229760241570521e-15,
+     "finite": true,
+     "medianMs": 0.15599399999996422,
+     "minMs": 0.15272800000002462,
+     "maxMs": 0.19068900000002031
+    }
+   },
+   "between": {
+    "elements": 512,
+    "bitIdenticalPairs": 258,
+    "maxDifference": 4.263256414560601e-14,
+    "maxRelativeDifference": 6.328750069868009e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L3-k_norm-outlier-tokens3",
+   "role": "k",
+   "rows": 6,
+   "tokens": 3,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.3.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.204730073696878e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.113008234603044e-15,
+     "finite": true,
+     "medianMs": 0.24330800000007002,
+     "minMs": 0.2343509999999469,
+     "maxMs": 0.2960969999999179
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 2.1728681190651924e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.732451185395838e-15,
+     "finite": true,
+     "medianMs": 0.15268700000001445,
+     "minMs": 0.14658600000007027,
+     "maxMs": 0.22266899999999623
+    }
+   },
+   "between": {
+    "elements": 1536,
+    "bitIdenticalPairs": 1209,
+    "maxDifference": 2.842170943040401e-14,
+    "maxRelativeDifference": 5.2770544972314785e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L3-k_norm-outlier-tokens16",
+   "role": "k",
+   "rows": 32,
+   "tokens": 16,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.3.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.222021511729556e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.25681026556253e-15,
+     "finite": true,
+     "medianMs": 0.2342909999999847,
+     "minMs": 0.22988200000008874,
+     "maxMs": 0.29425400000002355
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.4883053333273862e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.25681026556253e-15,
+     "finite": true,
+     "medianMs": 0.21826099999998405,
+     "minMs": 0.15332899999998517,
+     "maxMs": 0.5345559999999523
+    }
+   },
+   "between": {
+    "elements": 8192,
+    "bitIdenticalPairs": 7479,
+    "maxDifference": 4.263256414560601e-14,
+    "maxRelativeDifference": 7.76199087324238e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L3-k_norm-tiny-tokens1",
+   "role": "k",
+   "rows": 2,
+   "tokens": 1,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.3.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.042334549116359e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.906717830376677e-15,
+     "finite": true,
+     "medianMs": 0.2528149999999414,
+     "minMs": 0.23402099999998427,
+     "maxMs": 7.4777050000000145
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.042334549116359e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.906717830376677e-15,
+     "finite": true,
+     "medianMs": 0.1551520000000437,
+     "minMs": 0.14837999999997464,
+     "maxMs": 0.22998299999994742
+    }
+   },
+   "between": {
+    "elements": 512,
+    "bitIdenticalPairs": 512,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L3-k_norm-tiny-tokens3",
+   "role": "k",
+   "rows": 6,
+   "tokens": 3,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.3.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.159739953201069e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.087196095276599e-15,
+     "finite": true,
+     "medianMs": 0.24330799999995634,
+     "minMs": 0.23732700000005025,
+     "maxMs": 0.3148629999999457
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.159739953201069e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.087196095276599e-15,
+     "finite": true,
+     "medianMs": 0.1535790000000361,
+     "minMs": 0.14551399999993464,
+     "maxMs": 0.21816999999998643
+    }
+   },
+   "between": {
+    "elements": 1536,
+    "bitIdenticalPairs": 1536,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L3-k_norm-tiny-tokens16",
+   "role": "k",
+   "rows": 32,
+   "tokens": 16,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.3.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.105604382553558e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.732210469480132e-15,
+     "finite": true,
+     "medianMs": 0.2687459999999646,
+     "minMs": 0.250411999999983,
+     "maxMs": 0.3355309999999463
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.105604382553558e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.732210469480132e-15,
+     "finite": true,
+     "medianMs": 0.1592599999999038,
+     "minMs": 0.1569050000000516,
+     "maxMs": 0.23317899999995007
+    }
+   },
+   "between": {
+    "elements": 8192,
+    "bitIdenticalPairs": 7855,
+    "maxDifference": 7.105427357601002e-15,
+    "maxRelativeDifference": 5.2279399467309875e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L7-q_norm-uniform-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.7.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.020742472924394e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.020742472924394e-15,
+     "finite": true,
+     "medianMs": 0.30795899999998255,
+     "minMs": 0.2631049999999959,
+     "maxMs": 1.148492000000033
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.020742472924394e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.020742472924394e-15,
+     "finite": true,
+     "medianMs": 0.15790799999990668,
+     "minMs": 0.14828899999997702,
+     "maxMs": 0.25930799999991905
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 1805,
+    "maxDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 6.4120728984308306e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L7-q_norm-uniform-tokens3",
+   "role": "q",
+   "rows": 24,
+   "tokens": 3,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.7.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.897182988520778e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.897182988520778e-15,
+     "finite": true,
+     "medianMs": 0.25165400000003046,
+     "minMs": 0.23887899999999718,
+     "maxMs": 0.3834719999999834
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.897182988520778e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.897182988520778e-15,
+     "finite": true,
+     "medianMs": 0.14271900000005644,
+     "minMs": 0.14148599999998623,
+     "maxMs": 0.20622900000000755
+    }
+   },
+   "between": {
+    "elements": 6144,
+    "bitIdenticalPairs": 6144,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L7-q_norm-uniform-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.7.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 6.059078079663002e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.470303364504899e-15,
+     "finite": true,
+     "medianMs": 0.2410340000000133,
+     "minMs": 0.23534300000005715,
+     "maxMs": 1.113224999999943
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 6.553920020011156e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.944360745978341e-15,
+     "finite": true,
+     "medianMs": 0.15127400000005764,
+     "minMs": 0.14346999999997934,
+     "maxMs": 0.3275770000000193
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 31198,
+    "maxDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 6.457808427994917e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L7-q_norm-wide-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.7.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 6.612817369334259e-15,
+     "maxMagnitudeRelativeErrorVsF64": 7.25052468906758e-15,
+     "finite": true,
+     "medianMs": 0.243528000000083,
+     "minMs": 0.23301900000001297,
+     "maxMs": 1.1419090000000551
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.093648847683112e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.785055280806385e-15,
+     "finite": true,
+     "medianMs": 0.15213600000004135,
+     "minMs": 0.1499029999999948,
+     "maxMs": 0.23879999999996926
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 1798,
+    "maxDifference": 3.552713678800501e-14,
+    "maxRelativeDifference": 7.454116039070414e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L7-q_norm-wide-tokens3",
+   "role": "q",
+   "rows": 24,
+   "tokens": 3,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.7.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.0670227391727535e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.447025732102005e-15,
+     "finite": true,
+     "medianMs": 0.24323699999990822,
+     "minMs": 0.23721599999998944,
+     "maxMs": 1.4496689999999717
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.0670227391727535e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.447025732102005e-15,
+     "finite": true,
+     "medianMs": 0.15230700000006436,
+     "minMs": 0.14789900000005218,
+     "maxMs": 0.2327579999999898
+    }
+   },
+   "between": {
+    "elements": 6144,
+    "bitIdenticalPairs": 6144,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L7-q_norm-wide-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.7.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 6.46962180251716e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.46962180251716e-15,
+     "finite": true,
+     "medianMs": 0.23860899999999674,
+     "minMs": 0.23383000000001175,
+     "maxMs": 1.0056429999999636
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 6.46962180251716e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.46962180251716e-15,
+     "finite": true,
+     "medianMs": 0.14935100000002421,
+     "minMs": 0.14820899999995163,
+     "maxMs": 0.2388500000000704
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 31631,
+    "maxDifference": 5.684341886080802e-14,
+    "maxRelativeDifference": 7.648939856283972e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L7-q_norm-outlier-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.7.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.432244925783586e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.0676246058835744e-15,
+     "finite": true,
+     "medianMs": 0.2401919999999791,
+     "minMs": 0.22940199999993638,
+     "maxMs": 1.1853810000000067
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.432244925783586e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.0676246058835744e-15,
+     "finite": true,
+     "medianMs": 0.14459199999998873,
+     "minMs": 0.14196700000002238,
+     "maxMs": 0.20957399999997506
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 1804,
+    "maxDifference": 5.684341886080802e-14,
+    "maxRelativeDifference": 6.839699929216398e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L7-q_norm-outlier-tokens3",
+   "role": "q",
+   "rows": 24,
+   "tokens": 3,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.7.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.42105202555482e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.079790528431487e-15,
+     "finite": true,
+     "medianMs": 0.2330890000000636,
+     "minMs": 0.23103500000001986,
+     "maxMs": 0.2907470000000103
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.42105202555482e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.079790528431487e-15,
+     "finite": true,
+     "medianMs": 0.14995200000009845,
+     "minMs": 0.14746800000000349,
+     "maxMs": 0.2155559999999923
+    }
+   },
+   "between": {
+    "elements": 6144,
+    "bitIdenticalPairs": 6144,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L7-q_norm-outlier-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.7.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.85915868110357e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.215648766350626e-15,
+     "finite": true,
+     "medianMs": 0.4407690000000457,
+     "minMs": 0.26498900000001413,
+     "maxMs": 71.54399699999999
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.85915868110357e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.215648766350626e-15,
+     "finite": true,
+     "medianMs": 0.18703199999993103,
+     "minMs": 0.16929900000002363,
+     "maxMs": 0.3797550000000456
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 31096,
+    "maxDifference": 8.526512829121202e-14,
+    "maxRelativeDifference": 6.961390172956604e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L7-q_norm-tiny-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.7.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.934103453869195e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.97223265163787e-15,
+     "finite": true,
+     "medianMs": 0.2583359999999857,
+     "minMs": 0.2364949999999908,
+     "maxMs": 0.9368029999999408
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.934103453869195e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.97223265163787e-15,
+     "finite": true,
+     "medianMs": 0.16056299999991097,
+     "minMs": 0.1504730000000336,
+     "maxMs": 0.22584499999993568
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 2048,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L7-q_norm-tiny-tokens3",
+   "role": "q",
+   "rows": 24,
+   "tokens": 3,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.7.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.423593054346736e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.1671305549342215e-15,
+     "finite": true,
+     "medianMs": 0.2705500000000711,
+     "minMs": 0.23717599999997674,
+     "maxMs": 0.9868169999999736
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.423593054346736e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.1671305549342215e-15,
+     "finite": true,
+     "medianMs": 0.15924899999993158,
+     "minMs": 0.155371999999943,
+     "maxMs": 0.22156699999993634
+    }
+   },
+   "between": {
+    "elements": 6144,
+    "bitIdenticalPairs": 5929,
+    "maxDifference": 7.105427357601002e-15,
+    "maxRelativeDifference": 4.8153293342596645e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L7-q_norm-tiny-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.7.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 6.810380101767973e-15,
+     "maxMagnitudeRelativeErrorVsF64": 7.286975416921335e-15,
+     "finite": true,
+     "medianMs": 0.24623299999996107,
+     "minMs": 0.2396009999999933,
+     "maxMs": 1.0629409999999098
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 6.810380101767973e-15,
+     "maxMagnitudeRelativeErrorVsF64": 7.286975416921335e-15,
+     "finite": true,
+     "medianMs": 0.1585890000000063,
+     "minMs": 0.15299800000002506,
+     "maxMs": 0.22435199999995348
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 32303,
+    "maxDifference": 7.105427357601002e-15,
+    "maxRelativeDifference": 6.481574972904458e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L7-k_norm-uniform-tokens1",
+   "role": "k",
+   "rows": 2,
+   "tokens": 1,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.7.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.235765722335934e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.235765722335934e-15,
+     "finite": true,
+     "medianMs": 0.7648189999999886,
+     "minMs": 0.28017700000009427,
+     "maxMs": 11.93794099999991
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.235765722335934e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.235765722335934e-15,
+     "finite": true,
+     "medianMs": 0.16147399999999834,
+     "minMs": 0.1535989999999856,
+     "maxMs": 0.23315900000000056
+    }
+   },
+   "between": {
+    "elements": 512,
+    "bitIdenticalPairs": 512,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L7-k_norm-uniform-tokens3",
+   "role": "k",
+   "rows": 6,
+   "tokens": 3,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.7.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 6.709106176063094e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.709106176063094e-15,
+     "finite": true,
+     "medianMs": 0.24189499999999953,
+     "minMs": 0.2344509999999218,
+     "maxMs": 0.3185999999999467
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 6.709106176063094e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.709106176063094e-15,
+     "finite": true,
+     "medianMs": 0.15885900000000674,
+     "minMs": 0.1536590000000615,
+     "maxMs": 0.23816800000008698
+    }
+   },
+   "between": {
+    "elements": 1536,
+    "bitIdenticalPairs": 1437,
+    "maxDifference": 7.105427357601002e-15,
+    "maxRelativeDifference": 5.783933269962138e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L7-k_norm-uniform-tokens16",
+   "role": "k",
+   "rows": 32,
+   "tokens": 16,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.7.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.45301031793928e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.185300562705398e-15,
+     "finite": true,
+     "medianMs": 0.2437289999999166,
+     "minMs": 0.2339600000000246,
+     "maxMs": 0.3206329999999298
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.45301031793928e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.185300562705398e-15,
+     "finite": true,
+     "medianMs": 0.14727700000003097,
+     "minMs": 0.14364000000000487,
+     "maxMs": 0.21497500000009495
+    }
+   },
+   "between": {
+    "elements": 8192,
+    "bitIdenticalPairs": 7788,
+    "maxDifference": 7.105427357601002e-15,
+    "maxRelativeDifference": 5.260597108027214e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L7-k_norm-wide-tokens1",
+   "role": "k",
+   "rows": 2,
+   "tokens": 1,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.7.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.2639654783024965e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.867401538886339e-15,
+     "finite": true,
+     "medianMs": 0.2561719999999923,
+     "minMs": 0.24692400000003545,
+     "maxMs": 0.7623049999999694
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.2639654783024965e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.867401538886339e-15,
+     "finite": true,
+     "medianMs": 0.16690399999993133,
+     "minMs": 0.15530300000000352,
+     "maxMs": 0.22631599999999708
+    }
+   },
+   "between": {
+    "elements": 512,
+    "bitIdenticalPairs": 512,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L7-k_norm-wide-tokens3",
+   "role": "k",
+   "rows": 6,
+   "tokens": 3,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.7.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.1005924869012697e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.469094501856097e-15,
+     "finite": true,
+     "medianMs": 0.24537200000008852,
+     "minMs": 0.2365750000000162,
+     "maxMs": 0.3120370000000321
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.5106655929559005e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.475340595341555e-15,
+     "finite": true,
+     "medianMs": 0.15432099999998172,
+     "minMs": 0.14889000000005126,
+     "maxMs": 0.2543190000000095
+    }
+   },
+   "between": {
+    "elements": 1536,
+    "bitIdenticalPairs": 1282,
+    "maxDifference": 4.618527782440651e-14,
+    "maxRelativeDifference": 7.25042927052751e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L7-k_norm-wide-tokens16",
+   "role": "k",
+   "rows": 32,
+   "tokens": 16,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.7.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.1234647868814404e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.487408366781762e-15,
+     "finite": true,
+     "medianMs": 0.23864000000003216,
+     "minMs": 0.23341000000004897,
+     "maxMs": 0.3088109999999915
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.1234647868814404e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.487408366781762e-15,
+     "finite": true,
+     "medianMs": 0.16262600000004568,
+     "minMs": 0.1458949999999959,
+     "maxMs": 0.3049240000000282
+    }
+   },
+   "between": {
+    "elements": 8192,
+    "bitIdenticalPairs": 7836,
+    "maxDifference": 2.842170943040401e-14,
+    "maxRelativeDifference": 5.815987044125232e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L7-k_norm-outlier-tokens1",
+   "role": "k",
+   "rows": 2,
+   "tokens": 1,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.7.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.858304997546944e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.396402687989287e-15,
+     "finite": true,
+     "medianMs": 0.2649989999999889,
+     "minMs": 0.23583399999995436,
+     "maxMs": 1.2259179999999787
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.858304997546944e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.396402687989287e-15,
+     "finite": true,
+     "medianMs": 0.18385599999999158,
+     "minMs": 0.1541499999999587,
+     "maxMs": 0.27001799999993636
+    }
+   },
+   "between": {
+    "elements": 512,
+    "bitIdenticalPairs": 512,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L7-k_norm-outlier-tokens3",
+   "role": "k",
+   "rows": 6,
+   "tokens": 3,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.7.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 2.6102670814061014e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.1576171648504095e-15,
+     "finite": true,
+     "medianMs": 0.2380679999999984,
+     "minMs": 0.22619599999995899,
+     "maxMs": 0.31977199999994355
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.1041866662552318e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.7099208609503514e-15,
+     "finite": true,
+     "medianMs": 0.15101500000002943,
+     "minMs": 0.14627500000005966,
+     "maxMs": 0.22259900000005928
+    }
+   },
+   "between": {
+    "elements": 1536,
+    "bitIdenticalPairs": 1340,
+    "maxDifference": 5.684341886080802e-14,
+    "maxRelativeDifference": 4.138915555006972e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L7-k_norm-outlier-tokens16",
+   "role": "k",
+   "rows": 32,
+   "tokens": 16,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.7.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.151120402182531e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.2557645677898e-15,
+     "finite": true,
+     "medianMs": 0.23213699999996606,
+     "minMs": 0.22909100000003946,
+     "maxMs": 0.3690749999999525
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.151120402182531e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.2557645677898e-15,
+     "finite": true,
+     "medianMs": 0.14848899999992682,
+     "minMs": 0.14639599999998154,
+     "maxMs": 0.33575199999995675
+    }
+   },
+   "between": {
+    "elements": 8192,
+    "bitIdenticalPairs": 7739,
+    "maxDifference": 5.684341886080802e-14,
+    "maxRelativeDifference": 6.56597135908155e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L7-k_norm-tiny-tokens1",
+   "role": "k",
+   "rows": 2,
+   "tokens": 1,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.7.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 2.3959421828153152e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.0209654460407713e-15,
+     "finite": true,
+     "medianMs": 0.2564029999999775,
+     "minMs": 0.239161000000081,
+     "maxMs": 1.1700230000000147
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 2.3959421828153152e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.0209654460407713e-15,
+     "finite": true,
+     "medianMs": 0.15908999999999196,
+     "minMs": 0.14823899999998957,
+     "maxMs": 0.2353729999999814
+    }
+   },
+   "between": {
+    "elements": 512,
+    "bitIdenticalPairs": 512,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L7-k_norm-tiny-tokens3",
+   "role": "k",
+   "rows": 6,
+   "tokens": 3,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.7.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.3298697960381105e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.446731097505974e-15,
+     "finite": true,
+     "medianMs": 0.24346800000000712,
+     "minMs": 0.23571300000003248,
+     "maxMs": 0.300946999999951
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.3298697960381105e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.446731097505974e-15,
+     "finite": true,
+     "medianMs": 0.151595000000043,
+     "minMs": 0.148138999999901,
+     "maxMs": 0.22400099999993017
+    }
+   },
+   "between": {
+    "elements": 1536,
+    "bitIdenticalPairs": 1536,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L7-k_norm-tiny-tokens16",
+   "role": "k",
+   "rows": 32,
+   "tokens": 16,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.7.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.023605032215231e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.0462049562087145e-15,
+     "finite": true,
+     "medianMs": 0.23683600000003935,
+     "minMs": 0.22557499999993524,
+     "maxMs": 0.3034109999999828
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.023605032215231e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.0462049562087145e-15,
+     "finite": true,
+     "medianMs": 0.1799989999999525,
+     "minMs": 0.15459099999998216,
+     "maxMs": 0.22952200000008816
+    }
+   },
+   "between": {
+    "elements": 8192,
+    "bitIdenticalPairs": 8051,
+    "maxDifference": 7.105427357601002e-15,
+    "maxRelativeDifference": 6.333791166551253e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L11-q_norm-uniform-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.11.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.155132364811229e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.569135332662145e-15,
+     "finite": true,
+     "medianMs": 0.2478569999999536,
+     "minMs": 0.2364949999999908,
+     "maxMs": 0.967251000000033
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.155132364811229e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.569135332662145e-15,
+     "finite": true,
+     "medianMs": 0.14963199999999688,
+     "minMs": 0.14799900000002708,
+     "maxMs": 0.22470299999997678
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 2048,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L11-q_norm-uniform-tokens3",
+   "role": "q",
+   "rows": 24,
+   "tokens": 3,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.11.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.504070608851589e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.504070608851589e-15,
+     "finite": true,
+     "medianMs": 0.23568299999999454,
+     "minMs": 0.23129600000004302,
+     "maxMs": 0.32002299999999195
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.504070608851589e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.504070608851589e-15,
+     "finite": true,
+     "medianMs": 0.15845899999999347,
+     "minMs": 0.15066300000000865,
+     "maxMs": 0.1956680000000688
+    }
+   },
+   "between": {
+    "elements": 6144,
+    "bitIdenticalPairs": 5656,
+    "maxDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 6.60222105497305e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L11-q_norm-uniform-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.11.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 6.616871545196754e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.616871545196754e-15,
+     "finite": true,
+     "medianMs": 0.2383989999999585,
+     "minMs": 0.22985299999993458,
+     "maxMs": 0.8624740000000202
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 6.616871545196754e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.616871545196754e-15,
+     "finite": true,
+     "medianMs": 0.15240700000003926,
+     "minMs": 0.14636499999994612,
+     "maxMs": 2.1085690000001023
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 31880,
+    "maxDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 6.869389535024929e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L11-q_norm-wide-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.11.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.742751426988194e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.681818720981069e-15,
+     "finite": true,
+     "medianMs": 0.24159499999996115,
+     "minMs": 0.23720600000001468,
+     "maxMs": 1.1177940000000035
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.742751426988194e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.681818720981069e-15,
+     "finite": true,
+     "medianMs": 0.15444000000002234,
+     "minMs": 0.14368000000001757,
+     "maxMs": 0.20931399999994937
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 2048,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L11-q_norm-wide-tokens3",
+   "role": "q",
+   "rows": 24,
+   "tokens": 3,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.11.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.5160059605225664e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.317113635584226e-15,
+     "finite": true,
+     "medianMs": 0.23775699999998778,
+     "minMs": 0.2306140000000596,
+     "maxMs": 0.33205499999996846
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.223173290848967e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.907082511425736e-15,
+     "finite": true,
+     "medianMs": 0.15042300000004616,
+     "minMs": 0.147096999999917,
+     "maxMs": 0.20808099999999286
+    }
+   },
+   "between": {
+    "elements": 6144,
+    "bitIdenticalPairs": 5946,
+    "maxDifference": 2.842170943040401e-14,
+    "maxRelativeDifference": 4.235575010000523e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L11-q_norm-wide-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.11.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 6.296533451983127e-15,
+     "maxMagnitudeRelativeErrorVsF64": 7.024078200081744e-15,
+     "finite": true,
+     "medianMs": 0.24025299999993877,
+     "minMs": 0.22978299999999763,
+     "maxMs": 1.1616669999999658
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 6.296533451983127e-15,
+     "maxMagnitudeRelativeErrorVsF64": 7.024078200081744e-15,
+     "finite": true,
+     "medianMs": 0.15072299999997085,
+     "minMs": 0.14564399999994748,
+     "maxMs": 0.2110969999999952
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 29967,
+    "maxDifference": 5.684341886080802e-14,
+    "maxRelativeDifference": 7.74099065227714e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L11-q_norm-outlier-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.11.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.087887213066817e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.729492128272762e-15,
+     "finite": true,
+     "medianMs": 0.24094400000001315,
+     "minMs": 0.22948199999996177,
+     "maxMs": 0.9095820000000003
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.087887213066817e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.729492128272762e-15,
+     "finite": true,
+     "medianMs": 0.1617949999999837,
+     "minMs": 0.15808800000002066,
+     "maxMs": 0.2187619999999697
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 2048,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L11-q_norm-outlier-tokens3",
+   "role": "q",
+   "rows": 24,
+   "tokens": 3,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.11.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.249633192680129e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.6028065387936296e-15,
+     "finite": true,
+     "medianMs": 0.23350999999991018,
+     "minMs": 0.22856100000001334,
+     "maxMs": 0.32437100000004193
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.249633192680129e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.6028065387936296e-15,
+     "finite": true,
+     "medianMs": 0.14849899999990157,
+     "minMs": 0.14252799999997023,
+     "maxMs": 0.19907399999999598
+    }
+   },
+   "between": {
+    "elements": 6144,
+    "bitIdenticalPairs": 5913,
+    "maxDifference": 2.842170943040401e-14,
+    "maxRelativeDifference": 4.640778575919589e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L11-q_norm-outlier-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.11.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.889851368931187e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.865160989713578e-15,
+     "finite": true,
+     "medianMs": 0.23658599999998842,
+     "minMs": 0.23035299999992276,
+     "maxMs": 1.0283050000000458
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.653782202567978e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.586530373901834e-15,
+     "finite": true,
+     "medianMs": 0.1489800000000514,
+     "minMs": 0.1444819999999254,
+     "maxMs": 0.23359899999991285
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 29536,
+    "maxDifference": 1.1368683772161603e-13,
+    "maxRelativeDifference": 8.748650142321655e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L11-q_norm-tiny-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.11.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.581011188027926e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.177159015042944e-15,
+     "finite": true,
+     "medianMs": 0.24403000000006614,
+     "minMs": 0.23051399999997102,
+     "maxMs": 1.083690000000047
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.803897190949568e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.645735441299814e-15,
+     "finite": true,
+     "medianMs": 0.14669599999990623,
+     "minMs": 0.14414099999999053,
+     "maxMs": 0.20576699999992343
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 1829,
+    "maxDifference": 7.105427357601002e-15,
+    "maxRelativeDifference": 4.975149291546379e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L11-q_norm-tiny-tokens3",
+   "role": "q",
+   "rows": 24,
+   "tokens": 3,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.11.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.242263663894127e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.2862229527519275e-15,
+     "finite": true,
+     "medianMs": 0.24214499999993677,
+     "minMs": 0.22767899999996644,
+     "maxMs": 0.3432660000000851
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.242263663894127e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.2862229527519275e-15,
+     "finite": true,
+     "medianMs": 0.14699599999994462,
+     "minMs": 0.14126599999997325,
+     "maxMs": 0.19986600000004273
+    }
+   },
+   "between": {
+    "elements": 6144,
+    "bitIdenticalPairs": 5596,
+    "maxDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 8.247128160958908e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L11-q_norm-tiny-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.11.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.7706739852347615e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.7706739852347615e-15,
+     "finite": true,
+     "medianMs": 0.2689460000000281,
+     "minMs": 0.232778000000053,
+     "maxMs": 9.125627000000009
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.7706739852347615e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.7706739852347615e-15,
+     "finite": true,
+     "medianMs": 0.14885100000003604,
+     "minMs": 0.14746800000000349,
+     "maxMs": 0.2567629999999781
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 32493,
+    "maxDifference": 7.105427357601002e-15,
+    "maxRelativeDifference": 4.369351796886729e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L11-k_norm-uniform-tokens1",
+   "role": "k",
+   "rows": 2,
+   "tokens": 1,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.11.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.253873101962502e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.4815497410733206e-15,
+     "finite": true,
+     "medianMs": 0.24659399999995912,
+     "minMs": 0.23709600000006503,
+     "maxMs": 1.1820350000000417
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.253873101962502e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.4815497410733206e-15,
+     "finite": true,
+     "medianMs": 0.1579269999999724,
+     "minMs": 0.1523859999999786,
+     "maxMs": 0.2797370000000683
+    }
+   },
+   "between": {
+    "elements": 512,
+    "bitIdenticalPairs": 512,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L11-k_norm-uniform-tokens3",
+   "role": "k",
+   "rows": 6,
+   "tokens": 3,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.11.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.424724861868626e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.852009560251571e-15,
+     "finite": true,
+     "medianMs": 0.23993200000018078,
+     "minMs": 0.23307899999986148,
+     "maxMs": 0.43814400000019305
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.424724861868626e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.852009560251571e-15,
+     "finite": true,
+     "medianMs": 0.14930099999992308,
+     "minMs": 0.148249000000078,
+     "maxMs": 0.20163899999988644
+    }
+   },
+   "between": {
+    "elements": 1536,
+    "bitIdenticalPairs": 1536,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L11-k_norm-uniform-tokens16",
+   "role": "k",
+   "rows": 32,
+   "tokens": 16,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.11.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.255379174387299e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.530755758994455e-15,
+     "finite": true,
+     "medianMs": 0.2384380000000874,
+     "minMs": 0.23438099999998485,
+     "maxMs": 0.31570400000009613
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.255379174387299e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.530755758994455e-15,
+     "finite": true,
+     "medianMs": 0.14723699999990458,
+     "minMs": 0.14261899999996785,
+     "maxMs": 0.20808200000010402
+    }
+   },
+   "between": {
+    "elements": 8192,
+    "bitIdenticalPairs": 7578,
+    "maxDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 7.02138803800218e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L11-k_norm-wide-tokens1",
+   "role": "k",
+   "rows": 2,
+   "tokens": 1,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.11.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.305238023068181e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.305238023068181e-15,
+     "finite": true,
+     "medianMs": 0.25620200000003024,
+     "minMs": 0.2397519999999531,
+     "maxMs": 0.3573630000000776
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.305238023068181e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.305238023068181e-15,
+     "finite": true,
+     "medianMs": 0.1630169999998543,
+     "minMs": 0.1507840000001579,
+     "maxMs": 0.23086399999988316
+    }
+   },
+   "between": {
+    "elements": 512,
+    "bitIdenticalPairs": 512,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L11-k_norm-wide-tokens3",
+   "role": "k",
+   "rows": 6,
+   "tokens": 3,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.11.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.877184711156763e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.4105204284931925e-15,
+     "finite": true,
+     "medianMs": 0.25442900000007285,
+     "minMs": 0.23530299999993076,
+     "maxMs": 0.321976000000177
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.877184711156763e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.4105204284931925e-15,
+     "finite": true,
+     "medianMs": 0.15238700000008976,
+     "minMs": 0.14524299999993673,
+     "maxMs": 0.22055500000010397
+    }
+   },
+   "between": {
+    "elements": 1536,
+    "bitIdenticalPairs": 1536,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L11-k_norm-wide-tokens16",
+   "role": "k",
+   "rows": 32,
+   "tokens": 16,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.11.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.096228007751591e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.292984098051047e-15,
+     "finite": true,
+     "medianMs": 0.2368859999999131,
+     "minMs": 0.23432100000013634,
+     "maxMs": 0.30937199999993936
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.096228007751591e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.292984098051047e-15,
+     "finite": true,
+     "medianMs": 0.14807900000005247,
+     "minMs": 0.14024400000016612,
+     "maxMs": 0.21997400000009293
+    }
+   },
+   "between": {
+    "elements": 8192,
+    "bitIdenticalPairs": 7826,
+    "maxDifference": 2.842170943040401e-14,
+    "maxRelativeDifference": 5.2442520302351086e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L11-k_norm-outlier-tokens1",
+   "role": "k",
+   "rows": 2,
+   "tokens": 1,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.11.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.3371116331802647e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.339572451066113e-15,
+     "finite": true,
+     "medianMs": 0.2727230000000418,
+     "minMs": 0.25638200000003053,
+     "maxMs": 1.1891890000001695
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.3371116331802647e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.339572451066113e-15,
+     "finite": true,
+     "medianMs": 0.15411000000017339,
+     "minMs": 0.14950099999987287,
+     "maxMs": 0.2303439999998318
+    }
+   },
+   "between": {
+    "elements": 512,
+    "bitIdenticalPairs": 512,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L11-k_norm-outlier-tokens3",
+   "role": "k",
+   "rows": 6,
+   "tokens": 3,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.11.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.1616159869995654e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.7734242921653355e-15,
+     "finite": true,
+     "medianMs": 0.2326180000000022,
+     "minMs": 0.22695800000019517,
+     "maxMs": 0.29633799999987787
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.1616159869995654e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.7734242921653355e-15,
+     "finite": true,
+     "medianMs": 0.14745699999980388,
+     "minMs": 0.1447920000000522,
+     "maxMs": 0.21506499999986772
+    }
+   },
+   "between": {
+    "elements": 1536,
+    "bitIdenticalPairs": 1536,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L11-k_norm-outlier-tokens16",
+   "role": "k",
+   "rows": 32,
+   "tokens": 16,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.11.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.278262586448856e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.73431659123728e-15,
+     "finite": true,
+     "medianMs": 0.23392100000000937,
+     "minMs": 0.22886099999982434,
+     "maxMs": 0.3059760000001006
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.278262586448856e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.73431659123728e-15,
+     "finite": true,
+     "medianMs": 0.145383000000038,
+     "minMs": 0.1423979999999574,
+     "maxMs": 0.2183310000000347
+    }
+   },
+   "between": {
+    "elements": 8192,
+    "bitIdenticalPairs": 7554,
+    "maxDifference": 9.947598300641403e-14,
+    "maxRelativeDifference": 7.098433933284686e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L11-k_norm-tiny-tokens1",
+   "role": "k",
+   "rows": 2,
+   "tokens": 1,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.11.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.3203548956868583e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.468600566127187e-15,
+     "finite": true,
+     "medianMs": 0.24955999999997402,
+     "minMs": 0.24234599999999773,
+     "maxMs": 0.9804249999999683
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.3203548956868583e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.468600566127187e-15,
+     "finite": true,
+     "medianMs": 0.15724599999998645,
+     "minMs": 0.15176499999984117,
+     "maxMs": 0.20786100000009355
+    }
+   },
+   "between": {
+    "elements": 512,
+    "bitIdenticalPairs": 512,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L11-k_norm-tiny-tokens3",
+   "role": "k",
+   "rows": 6,
+   "tokens": 3,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.11.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.746935449981826e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.257385491529618e-15,
+     "finite": true,
+     "medianMs": 0.24345799999991868,
+     "minMs": 0.23744700000020202,
+     "maxMs": 0.3202729999998155
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.746935449981826e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.257385491529618e-15,
+     "finite": true,
+     "medianMs": 0.14810899999997673,
+     "minMs": 0.1434799999999541,
+     "maxMs": 0.21696799999995164
+    }
+   },
+   "between": {
+    "elements": 1536,
+    "bitIdenticalPairs": 1536,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L11-k_norm-tiny-tokens16",
+   "role": "k",
+   "rows": 32,
+   "tokens": 16,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.11.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.773959005888173e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.3986012860491e-15,
+     "finite": true,
+     "medianMs": 0.24330800000007002,
+     "minMs": 0.23402000000010048,
+     "maxMs": 0.3274659999999585
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.773959005888173e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.390722661439805e-15,
+     "finite": true,
+     "medianMs": 0.15193599999997787,
+     "minMs": 0.14692700000000514,
+     "maxMs": 0.20741999999995642
+    }
+   },
+   "between": {
+    "elements": 8192,
+    "bitIdenticalPairs": 7936,
+    "maxDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 7.81334001345191e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L15-q_norm-uniform-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.15.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.919293301128074e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.919293301128074e-15,
+     "finite": true,
+     "medianMs": 0.23778700000002573,
+     "minMs": 0.22588500000006206,
+     "maxMs": 0.33181500000000597
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.919293301128074e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.919293301128074e-15,
+     "finite": true,
+     "medianMs": 0.15113500000006752,
+     "minMs": 0.1432800000000043,
+     "maxMs": 0.21257999999988897
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 1921,
+    "maxDifference": 7.105427357601002e-15,
+    "maxRelativeDifference": 4.072398488440011e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L15-q_norm-uniform-tokens3",
+   "role": "q",
+   "rows": 24,
+   "tokens": 3,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.15.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.876958640142725e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.876958640142725e-15,
+     "finite": true,
+     "medianMs": 0.2355330000000322,
+     "minMs": 0.23464199999989432,
+     "maxMs": 0.31821899999999914
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.876958640142725e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.876958640142725e-15,
+     "finite": true,
+     "medianMs": 0.1495310000000245,
+     "minMs": 0.14474300000006224,
+     "maxMs": 0.238638999999921
+    }
+   },
+   "between": {
+    "elements": 6144,
+    "bitIdenticalPairs": 5893,
+    "maxDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 6.878738571605008e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L15-q_norm-uniform-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.15.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 6.7319948911332514e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.7319948911332514e-15,
+     "finite": true,
+     "medianMs": 0.5180250000000797,
+     "minMs": 0.24157500000001164,
+     "maxMs": 2.306732000000011
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 6.7319948911332514e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.7319948911332514e-15,
+     "finite": true,
+     "medianMs": 0.154461000000083,
+     "minMs": 0.15055299999994531,
+     "maxMs": 0.25492000000008375
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 31535,
+    "maxDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 6.045450039304499e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L15-q_norm-wide-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.15.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.5283489886687374e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.5283489886687374e-15,
+     "finite": true,
+     "medianMs": 0.2511930000000575,
+     "minMs": 0.23424100000011094,
+     "maxMs": 1.0845010000000457
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.5283489886687374e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.5283489886687374e-15,
+     "finite": true,
+     "medianMs": 0.14898100000004888,
+     "minMs": 0.14355099999988852,
+     "maxMs": 0.2316960000000563
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 2048,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L15-q_norm-wide-tokens3",
+   "role": "q",
+   "rows": 24,
+   "tokens": 3,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.15.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.61587784266274e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.165523379636929e-15,
+     "finite": true,
+     "medianMs": 0.23461199999997007,
+     "minMs": 0.22911100000010265,
+     "maxMs": 0.3012269999999262
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.61587784266274e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.165523379636929e-15,
+     "finite": true,
+     "medianMs": 0.1465659999998934,
+     "minMs": 0.13932299999987663,
+     "maxMs": 0.19125999999982923
+    }
+   },
+   "between": {
+    "elements": 6144,
+    "bitIdenticalPairs": 6144,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L15-q_norm-wide-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.15.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.9730133732317665e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.479431004420879e-15,
+     "finite": true,
+     "medianMs": 0.23928000000000793,
+     "minMs": 0.2352330000001075,
+     "maxMs": 1.0721379999999954
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.9730133732317665e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.479431004420879e-15,
+     "finite": true,
+     "medianMs": 0.14792799999986528,
+     "minMs": 0.1459549999999581,
+     "maxMs": 0.21650799999997616
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 30790,
+    "maxDifference": 4.973799150320701e-14,
+    "maxRelativeDifference": 1.0149731334488009e-14,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L15-q_norm-outlier-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.15.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.6404049930287685e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.653352851885728e-15,
+     "finite": true,
+     "medianMs": 0.23611400000004323,
+     "minMs": 0.23167599999987942,
+     "maxMs": 1.1954699999998866
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.022595098079551e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.653352851885728e-15,
+     "finite": true,
+     "medianMs": 0.1514550000001691,
+     "minMs": 0.14587399999982154,
+     "maxMs": 0.22437200000013036
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 1794,
+    "maxDifference": 1.1368683772161603e-13,
+    "maxRelativeDifference": 7.743103083026184e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L15-q_norm-outlier-tokens3",
+   "role": "q",
+   "rows": 24,
+   "tokens": 3,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.15.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.675515787379634e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.675515787379634e-15,
+     "finite": true,
+     "medianMs": 0.23327900000003865,
+     "minMs": 0.2307050000001709,
+     "maxMs": 0.2923000000000684
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.675515787379634e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.675515787379634e-15,
+     "finite": true,
+     "medianMs": 0.1459939999999733,
+     "minMs": 0.14251899999999296,
+     "maxMs": 0.2015390000001389
+    }
+   },
+   "between": {
+    "elements": 6144,
+    "bitIdenticalPairs": 5081,
+    "maxDifference": 5.684341886080802e-14,
+    "maxRelativeDifference": 6.89876348723206e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L15-q_norm-outlier-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.15.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.196168018899656e-15,
+     "maxMagnitudeRelativeErrorVsF64": 7.601964465557882e-15,
+     "finite": true,
+     "medianMs": 0.23459100000013677,
+     "minMs": 0.23119500000007065,
+     "maxMs": 1.0352989999998954
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.0267173804173084e-15,
+     "maxMagnitudeRelativeErrorVsF64": 7.601964465557882e-15,
+     "finite": true,
+     "medianMs": 0.18557899999996152,
+     "minMs": 0.15087399999993067,
+     "maxMs": 0.39965200000006007
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 30153,
+    "maxDifference": 1.7053025658242404e-13,
+    "maxRelativeDifference": 6.961030089386902e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L15-q_norm-tiny-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.15.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.4057803085620686e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.851088930168232e-15,
+     "finite": true,
+     "medianMs": 0.25381799999991017,
+     "minMs": 0.24267699999995784,
+     "maxMs": 72.60648700000002
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.4057803085620686e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.851088930168232e-15,
+     "finite": true,
+     "medianMs": 0.17184299999985342,
+     "minMs": 0.14920099999994818,
+     "maxMs": 0.30469399999992675
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 1829,
+    "maxDifference": 7.105427357601002e-15,
+    "maxRelativeDifference": 5.13132838540918e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L15-q_norm-tiny-tokens3",
+   "role": "q",
+   "rows": 24,
+   "tokens": 3,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.15.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.728545130116225e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.9256853245420366e-15,
+     "finite": true,
+     "medianMs": 0.24791700000014316,
+     "minMs": 0.23701600000003964,
+     "maxMs": 2.1443870000000516
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.728545130116225e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.9256853245420366e-15,
+     "finite": true,
+     "medianMs": 0.14959199999998418,
+     "minMs": 0.14351000000010572,
+     "maxMs": 0.21358199999986027
+    }
+   },
+   "between": {
+    "elements": 6144,
+    "bitIdenticalPairs": 6144,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L15-q_norm-tiny-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.15.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.8201023132195074e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.550849382400635e-15,
+     "finite": true,
+     "medianMs": 0.32420999999999367,
+     "minMs": 0.2432579999999689,
+     "maxMs": 1.096915000000081
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.8201023132195074e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.550849382400635e-15,
+     "finite": true,
+     "medianMs": 0.1598109999999906,
+     "minMs": 0.1474279999999908,
+     "maxMs": 0.23096499999996922
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 32405,
+    "maxDifference": 7.105427357601002e-15,
+    "maxRelativeDifference": 5.0772696403192455e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L15-k_norm-uniform-tokens1",
+   "role": "k",
+   "rows": 2,
+   "tokens": 1,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.15.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.3534200847599035e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.659274905428915e-15,
+     "finite": true,
+     "medianMs": 0.25218400000017027,
+     "minMs": 0.24739500000009684,
+     "maxMs": 1.1216609999999037
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.3534200847599035e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.659274905428915e-15,
+     "finite": true,
+     "medianMs": 0.1892569999999978,
+     "minMs": 0.16465999999991254,
+     "maxMs": 0.25448899999992136
+    }
+   },
+   "between": {
+    "elements": 512,
+    "bitIdenticalPairs": 512,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L15-k_norm-uniform-tokens3",
+   "role": "k",
+   "rows": 6,
+   "tokens": 3,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.15.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.774758283725532e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.169984887045175e-15,
+     "finite": true,
+     "medianMs": 0.24212499999998727,
+     "minMs": 0.23613399999999274,
+     "maxMs": 0.3107950000000983
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.893340051681091e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.893340051681091e-15,
+     "finite": true,
+     "medianMs": 0.14932100000009996,
+     "minMs": 0.14559400000007372,
+     "maxMs": 0.21626699999978882
+    }
+   },
+   "between": {
+    "elements": 1536,
+    "bitIdenticalPairs": 1284,
+    "maxDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 6.7352457733498125e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L15-k_norm-uniform-tokens16",
+   "role": "k",
+   "rows": 32,
+   "tokens": 16,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.15.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.338075105596115e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.348449838623808e-15,
+     "finite": true,
+     "medianMs": 0.2393609999999171,
+     "minMs": 0.23600400000009358,
+     "maxMs": 0.295165999999881
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.338075105596115e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.348449838623808e-15,
+     "finite": true,
+     "medianMs": 0.14669600000001992,
+     "minMs": 0.13998399999991307,
+     "maxMs": 0.20735000000013315
+    }
+   },
+   "between": {
+    "elements": 8192,
+    "bitIdenticalPairs": 8192,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L15-k_norm-wide-tokens1",
+   "role": "k",
+   "rows": 2,
+   "tokens": 1,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.15.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.5439363047294933e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.089983714056085e-15,
+     "finite": true,
+     "medianMs": 0.23973100000011982,
+     "minMs": 0.23162600000000566,
+     "maxMs": 0.3477739999998448
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.5439363047294933e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.089983714056085e-15,
+     "finite": true,
+     "medianMs": 0.15019199999983357,
+     "minMs": 0.14556400000014946,
+     "maxMs": 0.22572500000001128
+    }
+   },
+   "between": {
+    "elements": 512,
+    "bitIdenticalPairs": 512,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L15-k_norm-wide-tokens3",
+   "role": "k",
+   "rows": 6,
+   "tokens": 3,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.15.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.8081978106088846e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.6945491947247455e-15,
+     "finite": true,
+     "medianMs": 0.24482100000000173,
+     "minMs": 0.23595499999987624,
+     "maxMs": 0.3113260000000082
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.8081978106088846e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.6945491947247455e-15,
+     "finite": true,
+     "medianMs": 0.15001299999994444,
+     "minMs": 0.1455540000001747,
+     "maxMs": 0.17828499999995984
+    }
+   },
+   "between": {
+    "elements": 1536,
+    "bitIdenticalPairs": 1536,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L15-k_norm-wide-tokens16",
+   "role": "k",
+   "rows": 32,
+   "tokens": 16,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.15.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.6478203358715614e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.243272617579552e-15,
+     "finite": true,
+     "medianMs": 0.2714410000000953,
+     "minMs": 0.2353729999999814,
+     "maxMs": 0.7179409999998825
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.6478203358715614e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.243272617579552e-15,
+     "finite": true,
+     "medianMs": 0.14661599999999453,
+     "minMs": 0.14349100000004,
+     "maxMs": 0.20669900000007146
+    }
+   },
+   "between": {
+    "elements": 8192,
+    "bitIdenticalPairs": 7838,
+    "maxDifference": 2.842170943040401e-14,
+    "maxRelativeDifference": 5.605016289569599e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L15-k_norm-outlier-tokens1",
+   "role": "k",
+   "rows": 2,
+   "tokens": 1,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.15.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 2.000757457848542e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.886692300392525e-15,
+     "finite": true,
+     "medianMs": 0.2431970000000092,
+     "minMs": 0.2322870000000421,
+     "maxMs": 1.0190580000000864
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 2.000757457848542e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.886692300392525e-15,
+     "finite": true,
+     "medianMs": 0.15601399999991372,
+     "minMs": 0.14552299999991192,
+     "maxMs": 0.23349000000007436
+    }
+   },
+   "between": {
+    "elements": 512,
+    "bitIdenticalPairs": 512,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L15-k_norm-outlier-tokens3",
+   "role": "k",
+   "rows": 6,
+   "tokens": 3,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.15.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.159496932264781e-15,
+     "maxMagnitudeRelativeErrorVsF64": 7.161105833977958e-15,
+     "finite": true,
+     "medianMs": 0.36818300000004456,
+     "minMs": 0.24505199999998695,
+     "maxMs": 10.809516999999914
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.159496932264781e-15,
+     "maxMagnitudeRelativeErrorVsF64": 7.161105833977958e-15,
+     "finite": true,
+     "medianMs": 0.14889999999991232,
+     "minMs": 0.14384100000006583,
+     "maxMs": 0.2454819999998108
+    }
+   },
+   "between": {
+    "elements": 1536,
+    "bitIdenticalPairs": 1290,
+    "maxDifference": 8.526512829121202e-14,
+    "maxRelativeDifference": 6.989240584373238e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L15-k_norm-outlier-tokens16",
+   "role": "k",
+   "rows": 32,
+   "tokens": 16,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.15.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.076252055449714e-15,
+     "maxMagnitudeRelativeErrorVsF64": 7.035066299555791e-15,
+     "finite": true,
+     "medianMs": 0.23076399999990826,
+     "minMs": 0.2281599999998889,
+     "maxMs": 0.3226870000000872
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.076252055449714e-15,
+     "maxMagnitudeRelativeErrorVsF64": 7.035066299555791e-15,
+     "finite": true,
+     "medianMs": 0.14543299999991177,
+     "minMs": 0.14276899999981651,
+     "maxMs": 0.24760599999990518
+    }
+   },
+   "between": {
+    "elements": 8192,
+    "bitIdenticalPairs": 7349,
+    "maxDifference": 5.684341886080802e-14,
+    "maxRelativeDifference": 7.170036164915958e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L15-k_norm-tiny-tokens1",
+   "role": "k",
+   "rows": 2,
+   "tokens": 1,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.15.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.661100667951508e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.922902789266438e-15,
+     "finite": true,
+     "medianMs": 0.24936999999999898,
+     "minMs": 0.23771799999985888,
+     "maxMs": 1.1224919999999656
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.661100667951508e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.922902789266438e-15,
+     "finite": true,
+     "medianMs": 0.15874900000017078,
+     "minMs": 0.15281800000002477,
+     "maxMs": 0.1865010000001348
+    }
+   },
+   "between": {
+    "elements": 512,
+    "bitIdenticalPairs": 512,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L15-k_norm-tiny-tokens3",
+   "role": "k",
+   "rows": 6,
+   "tokens": 3,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.15.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.776498302648597e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.776498302648597e-15,
+     "finite": true,
+     "medianMs": 0.24165500000003703,
+     "minMs": 0.23511200000007193,
+     "maxMs": 0.27420600000004924
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.776498302648597e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.776498302648597e-15,
+     "finite": true,
+     "medianMs": 0.1482389999998759,
+     "minMs": 0.14543400000002293,
+     "maxMs": 0.22331999999983054
+    }
+   },
+   "between": {
+    "elements": 1536,
+    "bitIdenticalPairs": 1536,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L15-k_norm-tiny-tokens16",
+   "role": "k",
+   "rows": 32,
+   "tokens": 16,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.15.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.384950579298122e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.8735156545920425e-15,
+     "finite": true,
+     "medianMs": 0.23707699999999932,
+     "minMs": 0.2355529999999817,
+     "maxMs": 0.3000640000000203
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.384950579298122e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.8735156545920425e-15,
+     "finite": true,
+     "medianMs": 0.1471769999998287,
+     "minMs": 0.13928200000009383,
+     "maxMs": 0.2079119999998511
+    }
+   },
+   "between": {
+    "elements": 8192,
+    "bitIdenticalPairs": 8192,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L19-q_norm-uniform-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.19.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.885823852624793e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.885823852624793e-15,
+     "finite": true,
+     "medianMs": 0.24340800000004492,
+     "minMs": 0.23436100000003535,
+     "maxMs": 0.32519200000001547
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.885823852624793e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.885823852624793e-15,
+     "finite": true,
+     "medianMs": 0.1530880000000252,
+     "minMs": 0.1488000000001648,
+     "maxMs": 0.21331099999997605
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 2048,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L19-q_norm-uniform-tokens3",
+   "role": "q",
+   "rows": 24,
+   "tokens": 3,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.19.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.191105420508706e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.228939017767308e-15,
+     "finite": true,
+     "medianMs": 0.26748399999996764,
+     "minMs": 0.23668599999996331,
+     "maxMs": 0.4476830000000973
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.191105420508706e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.228939017767308e-15,
+     "finite": true,
+     "medianMs": 0.1493920000000344,
+     "minMs": 0.14521300000001247,
+     "maxMs": 0.2157159999999294
+    }
+   },
+   "between": {
+    "elements": 6144,
+    "bitIdenticalPairs": 5907,
+    "maxDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 6.409935148439987e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L19-q_norm-uniform-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.19.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.959528921558634e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.974639036031637e-15,
+     "finite": true,
+     "medianMs": 0.23937000000000808,
+     "minMs": 0.23035300000015013,
+     "maxMs": 1.1359689999999318
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.959528921558634e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.974639036031637e-15,
+     "finite": true,
+     "medianMs": 0.15048300000012205,
+     "minMs": 0.14818800000011834,
+     "maxMs": 0.22180800000001
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 31291,
+    "maxDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 7.018994436954733e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L19-q_norm-wide-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.19.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.529588698669942e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.485453428250269e-15,
+     "finite": true,
+     "medianMs": 0.24455999999986489,
+     "minMs": 0.23209700000006706,
+     "maxMs": 1.1800810000002002
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.529588698669942e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.485453428250269e-15,
+     "finite": true,
+     "medianMs": 0.14698599999996986,
+     "minMs": 0.14157599999998638,
+     "maxMs": 0.21485499999994317
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 2048,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L19-q_norm-wide-tokens3",
+   "role": "q",
+   "rows": 24,
+   "tokens": 3,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.19.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.637297543651127e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.22745388508592e-15,
+     "finite": true,
+     "medianMs": 0.23699699999997392,
+     "minMs": 0.23572399999989102,
+     "maxMs": 0.4699239999999918
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.637297543651127e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.22745388508592e-15,
+     "finite": true,
+     "medianMs": 0.1477580000000671,
+     "minMs": 0.14312900000004447,
+     "maxMs": 0.2116990000001806
+    }
+   },
+   "between": {
+    "elements": 6144,
+    "bitIdenticalPairs": 5937,
+    "maxDifference": 2.1316282072803006e-14,
+    "maxRelativeDifference": 4.9356164650822744e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L19-q_norm-wide-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.19.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.592737672013896e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.431020690332047e-15,
+     "finite": true,
+     "medianMs": 0.2377369999999246,
+     "minMs": 0.23668599999996331,
+     "maxMs": 1.0725089999998545
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.959782228874564e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.431020690332047e-15,
+     "finite": true,
+     "medianMs": 0.15979099999981372,
+     "minMs": 0.15110500000014326,
+     "maxMs": 0.2427869999999075
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 29614,
+    "maxDifference": 5.684341886080802e-14,
+    "maxRelativeDifference": 7.064938738551779e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L19-q_norm-outlier-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.19.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.049062014502708e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.080071487087432e-15,
+     "finite": true,
+     "medianMs": 0.24049300000001494,
+     "minMs": 0.22890099999995073,
+     "maxMs": 1.0798529999999573
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.049062014502708e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.667368855595645e-15,
+     "finite": true,
+     "medianMs": 0.14531399999987116,
+     "minMs": 0.14346000000000458,
+     "maxMs": 0.20803200000000288
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 1824,
+    "maxDifference": 2.842170943040401e-14,
+    "maxRelativeDifference": 6.267877282577305e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L19-q_norm-outlier-tokens3",
+   "role": "q",
+   "rows": 24,
+   "tokens": 3,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.19.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.7755514798075386e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.112317007477031e-15,
+     "finite": true,
+     "medianMs": 0.2326180000000022,
+     "minMs": 0.22830999999996493,
+     "maxMs": 0.33443899999997484
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.7755514798075386e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.805098178413625e-15,
+     "finite": true,
+     "medianMs": 0.14654499999983273,
+     "minMs": 0.14331900000001951,
+     "maxMs": 0.19160099999999147
+    }
+   },
+   "between": {
+    "elements": 6144,
+    "bitIdenticalPairs": 5388,
+    "maxDifference": 5.684341886080802e-14,
+    "maxRelativeDifference": 4.814629650855142e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L19-q_norm-outlier-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.19.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.057850512079606e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.7501345463022554e-15,
+     "finite": true,
+     "medianMs": 0.24214600000004793,
+     "minMs": 0.23070499999994354,
+     "maxMs": 2.710262000000057
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.6335108312523555e-15,
+     "maxMagnitudeRelativeErrorVsF64": 7.458499752642784e-15,
+     "finite": true,
+     "medianMs": 0.1520269999998618,
+     "minMs": 0.14693599999986873,
+     "maxMs": 0.22372199999995246
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 30573,
+    "maxDifference": 8.526512829121202e-14,
+    "maxRelativeDifference": 8.142242839105606e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L19-q_norm-tiny-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.19.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 6.849803696810354e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.849803696810354e-15,
+     "finite": true,
+     "medianMs": 0.4480740000001333,
+     "minMs": 0.2687660000001415,
+     "maxMs": 66.24092500000006
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 6.849803696810354e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.849803696810354e-15,
+     "finite": true,
+     "medianMs": 0.18680099999983213,
+     "minMs": 0.16384900000002744,
+     "maxMs": 0.3739829999999529
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 2048,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L19-q_norm-tiny-tokens3",
+   "role": "q",
+   "rows": 24,
+   "tokens": 3,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.19.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.079361257016489e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.079361257016489e-15,
+     "finite": true,
+     "medianMs": 0.25413800000001174,
+     "minMs": 0.23759799999993447,
+     "maxMs": 1.8193949999999859
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.079361257016489e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.079361257016489e-15,
+     "finite": true,
+     "medianMs": 0.15486100000020997,
+     "minMs": 0.14743699999985438,
+     "maxMs": 0.2177400000000489
+    }
+   },
+   "between": {
+    "elements": 6144,
+    "bitIdenticalPairs": 6144,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L19-q_norm-tiny-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.19.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.29676852003951e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.971441399943466e-15,
+     "finite": true,
+     "medianMs": 0.2414049999999861,
+     "minMs": 0.23619499999995242,
+     "maxMs": 1.0984980000000633
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.29676852003951e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.971441399943466e-15,
+     "finite": true,
+     "medianMs": 0.15227600000002894,
+     "minMs": 0.14895099999989725,
+     "maxMs": 0.24979099999995924
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 32480,
+    "maxDifference": 7.105427357601002e-15,
+    "maxRelativeDifference": 4.4381923147461146e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L19-k_norm-uniform-tokens1",
+   "role": "k",
+   "rows": 2,
+   "tokens": 1,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.19.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.891675072808094e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.976062145330913e-15,
+     "finite": true,
+     "medianMs": 0.24946999999997388,
+     "minMs": 0.24340799999981755,
+     "maxMs": 1.2198860000000877
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.891675072808094e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.976062145330913e-15,
+     "finite": true,
+     "medianMs": 0.16235599999981787,
+     "minMs": 0.15677500000015243,
+     "maxMs": 0.2556810000000951
+    }
+   },
+   "between": {
+    "elements": 512,
+    "bitIdenticalPairs": 512,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L19-k_norm-uniform-tokens3",
+   "role": "k",
+   "rows": 6,
+   "tokens": 3,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.19.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.969524052589454e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.969524052589454e-15,
+     "finite": true,
+     "medianMs": 0.24367800000004536,
+     "minMs": 0.2364150000000791,
+     "maxMs": 0.3029309999999441
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.969524052589454e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.969524052589454e-15,
+     "finite": true,
+     "medianMs": 0.15215599999987717,
+     "minMs": 0.14531299999998737,
+     "maxMs": 0.2186220000000958
+    }
+   },
+   "between": {
+    "elements": 1536,
+    "bitIdenticalPairs": 1536,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L19-k_norm-uniform-tokens16",
+   "role": "k",
+   "rows": 32,
+   "tokens": 16,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.19.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.885897822549253e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.6563676020162856e-15,
+     "finite": true,
+     "medianMs": 0.23869899999999689,
+     "minMs": 0.23642499999982647,
+     "maxMs": 0.334440000000086
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.885897822549253e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.6563676020162856e-15,
+     "finite": true,
+     "medianMs": 0.14702699999998003,
+     "minMs": 0.14373000000000502,
+     "maxMs": 0.20786099999986618
+    }
+   },
+   "between": {
+    "elements": 8192,
+    "bitIdenticalPairs": 8192,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L19-k_norm-wide-tokens1",
+   "role": "k",
+   "rows": 2,
+   "tokens": 1,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.19.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 2.7925448908079136e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.834145067944438e-15,
+     "finite": true,
+     "medianMs": 0.24660500000004504,
+     "minMs": 0.2317160000000058,
+     "maxMs": 0.6905300000000807
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 2.7925448908079136e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.834145067944438e-15,
+     "finite": true,
+     "medianMs": 0.15044299999999566,
+     "minMs": 0.14295900000001893,
+     "maxMs": 0.2273280000001705
+    }
+   },
+   "between": {
+    "elements": 512,
+    "bitIdenticalPairs": 512,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L19-k_norm-wide-tokens3",
+   "role": "k",
+   "rows": 6,
+   "tokens": 3,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.19.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.222927386488196e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.130992166132502e-15,
+     "finite": true,
+     "medianMs": 0.2675440000000435,
+     "minMs": 0.2467149999999947,
+     "maxMs": 0.32763699999986784
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.222927386488196e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.130992166132502e-15,
+     "finite": true,
+     "medianMs": 0.15579400000001442,
+     "minMs": 0.15195599999992737,
+     "maxMs": 0.20674899999994523
+    }
+   },
+   "between": {
+    "elements": 1536,
+    "bitIdenticalPairs": 1536,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L19-k_norm-wide-tokens16",
+   "role": "k",
+   "rows": 32,
+   "tokens": 16,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.19.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.1070571198845505e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.339800331487234e-15,
+     "finite": true,
+     "medianMs": 0.48213699999996606,
+     "minMs": 0.23834900000019843,
+     "maxMs": 2.8302970000002006
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.1070571198845505e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.339800331487234e-15,
+     "finite": true,
+     "medianMs": 0.2875819999999294,
+     "minMs": 0.14449200000012752,
+     "maxMs": 8.547538999999915
+    }
+   },
+   "between": {
+    "elements": 8192,
+    "bitIdenticalPairs": 7846,
+    "maxDifference": 2.842170943040401e-14,
+    "maxRelativeDifference": 5.29385971687711e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L19-k_norm-outlier-tokens1",
+   "role": "k",
+   "rows": 2,
+   "tokens": 1,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.19.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 2.542242220590345e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.044752850750987e-15,
+     "finite": true,
+     "medianMs": 0.2498399999999492,
+     "minMs": 0.24193500000001222,
+     "maxMs": 0.8225589999999556
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 2.542242220590345e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.044752850750987e-15,
+     "finite": true,
+     "medianMs": 0.16007199999990007,
+     "minMs": 0.1550919999999678,
+     "maxMs": 0.2256039999999757
+    }
+   },
+   "between": {
+    "elements": 512,
+    "bitIdenticalPairs": 512,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L19-k_norm-outlier-tokens3",
+   "role": "k",
+   "rows": 6,
+   "tokens": 3,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.19.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.2337188248491195e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.18473728955308e-15,
+     "finite": true,
+     "medianMs": 0.24037299999986317,
+     "minMs": 0.23621499999990192,
+     "maxMs": 0.2905069999999341
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.2337188248491195e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.18473728955308e-15,
+     "finite": true,
+     "medianMs": 0.18309399999998277,
+     "minMs": 0.16490999999996347,
+     "maxMs": 0.21818100000018603
+    }
+   },
+   "between": {
+    "elements": 1536,
+    "bitIdenticalPairs": 1536,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L19-k_norm-outlier-tokens16",
+   "role": "k",
+   "rows": 32,
+   "tokens": 16,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.19.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.378618692871254e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.345690743871455e-15,
+     "finite": true,
+     "medianMs": 0.23301900000001297,
+     "minMs": 0.2286699999999655,
+     "maxMs": 0.30980300000010175
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.378618692871254e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.3303526080986065e-15,
+     "finite": true,
+     "medianMs": 0.1478789999998753,
+     "minMs": 0.14355000000000473,
+     "maxMs": 0.22136700000010023
+    }
+   },
+   "between": {
+    "elements": 8192,
+    "bitIdenticalPairs": 7747,
+    "maxDifference": 5.684341886080802e-14,
+    "maxRelativeDifference": 6.6585779927677695e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L19-k_norm-tiny-tokens1",
+   "role": "k",
+   "rows": 2,
+   "tokens": 1,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.19.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.375880884563762e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.596848177329348e-15,
+     "finite": true,
+     "medianMs": 0.27357499999993706,
+     "minMs": 0.24712600000020757,
+     "maxMs": 1.114217999999937
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.375880884563762e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.596848177329348e-15,
+     "finite": true,
+     "medianMs": 0.15544299999987743,
+     "minMs": 0.15067399999998088,
+     "maxMs": 0.22461300000009032
+    }
+   },
+   "between": {
+    "elements": 512,
+    "bitIdenticalPairs": 512,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L19-k_norm-tiny-tokens3",
+   "role": "k",
+   "rows": 6,
+   "tokens": 3,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.19.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.086221254992286e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.086221254992286e-15,
+     "finite": true,
+     "medianMs": 0.24426900000003116,
+     "minMs": 0.2334490000000642,
+     "maxMs": 0.39696699999990415
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.086221254992286e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.086221254992286e-15,
+     "finite": true,
+     "medianMs": 0.18250399999988076,
+     "minMs": 0.16331700000000637,
+     "maxMs": 0.23221699999999146
+    }
+   },
+   "between": {
+    "elements": 1536,
+    "bitIdenticalPairs": 1536,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L19-k_norm-tiny-tokens16",
+   "role": "k",
+   "rows": 32,
+   "tokens": 16,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.19.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.974452153063363e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.974452153063363e-15,
+     "finite": true,
+     "medianMs": 0.2652889999999388,
+     "minMs": 0.24373900000000503,
+     "maxMs": 0.34952799999996387
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.974452153063363e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.974452153063363e-15,
+     "finite": true,
+     "medianMs": 0.15807799999993222,
+     "minMs": 0.1564850000002025,
+     "maxMs": 0.20996500000001106
+    }
+   },
+   "between": {
+    "elements": 8192,
+    "bitIdenticalPairs": 8192,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L23-q_norm-uniform-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.23.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.336592646215405e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.740743451940041e-15,
+     "finite": true,
+     "medianMs": 0.27367500000013933,
+     "minMs": 0.2694169999999758,
+     "maxMs": 0.7735459999998966
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.336592646215405e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.740743451940041e-15,
+     "finite": true,
+     "medianMs": 0.16245599999979277,
+     "minMs": 0.15520200000014484,
+     "maxMs": 0.21962399999983973
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 2048,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L23-q_norm-uniform-tokens3",
+   "role": "q",
+   "rows": 24,
+   "tokens": 3,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.23.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.3083125120469284e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.3083125120469284e-15,
+     "finite": true,
+     "medianMs": 0.24000200000000405,
+     "minMs": 0.2339710000001105,
+     "maxMs": 0.3228479999997944
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.3083125120469284e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.3083125120469284e-15,
+     "finite": true,
+     "medianMs": 0.1760420000000522,
+     "minMs": 0.1555119999998169,
+     "maxMs": 0.2185410000001866
+    }
+   },
+   "between": {
+    "elements": 6144,
+    "bitIdenticalPairs": 5645,
+    "maxDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 6.567005919018588e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L23-q_norm-uniform-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.23.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.575696044845534e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.650651163599469e-15,
+     "finite": true,
+     "medianMs": 0.2417249999998603,
+     "minMs": 0.2364549999999781,
+     "maxMs": 1.1042379999998957
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.575696044845534e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.650651163599469e-15,
+     "finite": true,
+     "medianMs": 0.14898999999991247,
+     "minMs": 0.14878999999996267,
+     "maxMs": 0.2519640000000436
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 30761,
+    "maxDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 6.857285943276412e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L23-q_norm-wide-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.23.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.711907749589828e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.679877822861387e-15,
+     "finite": true,
+     "medianMs": 0.24575300000014977,
+     "minMs": 0.2307140000000345,
+     "maxMs": 1.148531999999932
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.711907749589828e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.679877822861387e-15,
+     "finite": true,
+     "medianMs": 0.1556630000000041,
+     "minMs": 0.14875000000006366,
+     "maxMs": 0.24432000000001608
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 2048,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L23-q_norm-wide-tokens3",
+   "role": "q",
+   "rows": 24,
+   "tokens": 3,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.23.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.838947123977478e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.348396254097548e-15,
+     "finite": true,
+     "medianMs": 0.24289700000008452,
+     "minMs": 0.23705600000016602,
+     "maxMs": 0.3048540000002049
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.838947123977478e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.348396254097548e-15,
+     "finite": true,
+     "medianMs": 0.15421100000003207,
+     "minMs": 0.1421379999999317,
+     "maxMs": 0.24387899999987894
+    }
+   },
+   "between": {
+    "elements": 6144,
+    "bitIdenticalPairs": 6144,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L23-q_norm-wide-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.23.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.082849957688842e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.780204684471804e-15,
+     "finite": true,
+     "medianMs": 0.2451419999999871,
+     "minMs": 0.23342900000011468,
+     "maxMs": 1.176725000000033
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.5971139830178355e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.320671420145569e-15,
+     "finite": true,
+     "medianMs": 0.1616750000000593,
+     "minMs": 0.1521860000000288,
+     "maxMs": 0.29120799999986957
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 30570,
+    "maxDifference": 4.263256414560601e-14,
+    "maxRelativeDifference": 7.980909596927985e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L23-q_norm-outlier-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.23.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.65420290401191e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.751737296199338e-15,
+     "finite": true,
+     "medianMs": 0.24161499999991065,
+     "minMs": 0.2315560000001824,
+     "maxMs": 1.1860920000001443
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 2.633630829982499e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.5069027596890775e-15,
+     "finite": true,
+     "medianMs": 0.15042399999992995,
+     "minMs": 0.1448729999999614,
+     "maxMs": 0.2829220000000987
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 1584,
+    "maxDifference": 5.684341886080802e-14,
+    "maxRelativeDifference": 5.560333283045988e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L23-q_norm-outlier-tokens3",
+   "role": "q",
+   "rows": 24,
+   "tokens": 3,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.23.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 6.3553989423119755e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.3553989423119755e-15,
+     "finite": true,
+     "medianMs": 0.23464100000001054,
+     "minMs": 0.23184600000013234,
+     "maxMs": 2.266495999999961
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 6.3553989423119755e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.3553989423119755e-15,
+     "finite": true,
+     "medianMs": 0.14965100000017628,
+     "minMs": 0.14592500000003383,
+     "maxMs": 0.23736699999994926
+    }
+   },
+   "between": {
+    "elements": 6144,
+    "bitIdenticalPairs": 5947,
+    "maxDifference": 3.552713678800501e-14,
+    "maxRelativeDifference": 4.909697617820585e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L23-q_norm-outlier-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.23.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.951866898333795e-15,
+     "maxMagnitudeRelativeErrorVsF64": 7.667765192789291e-15,
+     "finite": true,
+     "medianMs": 0.23181700000009187,
+     "minMs": 0.22798899999997957,
+     "maxMs": 1.0243880000000445
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.951866898333795e-15,
+     "maxMagnitudeRelativeErrorVsF64": 7.667765192789291e-15,
+     "finite": true,
+     "medianMs": 0.14996199999995952,
+     "minMs": 0.14714699999990444,
+     "maxMs": 0.2336600000000999
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 30643,
+    "maxDifference": 8.526512829121202e-14,
+    "maxRelativeDifference": 7.537278326436734e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L23-q_norm-tiny-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.23.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.442694328718899e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.675337381019469e-15,
+     "finite": true,
+     "medianMs": 0.24355900000000474,
+     "minMs": 0.23661599999991267,
+     "maxMs": 1.2099869999999555
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.642782441446315e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.675337381019469e-15,
+     "finite": true,
+     "medianMs": 0.1514150000000427,
+     "minMs": 0.14362099999993916,
+     "maxMs": 0.20459499999992659
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 1998,
+    "maxDifference": 7.105427357601002e-15,
+    "maxRelativeDifference": 4.502092064432792e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L23-q_norm-tiny-tokens3",
+   "role": "q",
+   "rows": 24,
+   "tokens": 3,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.23.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.868153647021532e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.255631284206916e-15,
+     "finite": true,
+     "medianMs": 0.23853900000017347,
+     "minMs": 0.23086400000011054,
+     "maxMs": 0.3109549999999217
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.868153647021532e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.255631284206916e-15,
+     "finite": true,
+     "medianMs": 0.1521660000000793,
+     "minMs": 0.14514299999996183,
+     "maxMs": 0.2149939999999333
+    }
+   },
+   "between": {
+    "elements": 6144,
+    "bitIdenticalPairs": 5854,
+    "maxDifference": 7.105427357601002e-15,
+    "maxRelativeDifference": 5.9473484242091474e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L23-q_norm-tiny-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.23.self_attn.q_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.676405064260159e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.736576504780693e-15,
+     "finite": true,
+     "medianMs": 0.23742700000002515,
+     "minMs": 0.23418100000003506,
+     "maxMs": 1.014699999999948
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.613064891341022e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.736576504780693e-15,
+     "finite": true,
+     "medianMs": 0.1504139999999552,
+     "minMs": 0.14510299999983545,
+     "maxMs": 0.2330890000000636
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 32153,
+    "maxDifference": 1.0658141036401503e-14,
+    "maxRelativeDifference": 8.013748326014297e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L23-k_norm-uniform-tokens1",
+   "role": "k",
+   "rows": 2,
+   "tokens": 1,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.23.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.6786013029866006e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.7047447202553656e-15,
+     "finite": true,
+     "medianMs": 0.2627740000000358,
+     "minMs": 0.24282700000003388,
+     "maxMs": 1.1058009999999285
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.6786013029866006e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.7047447202553656e-15,
+     "finite": true,
+     "medianMs": 0.1579070000000229,
+     "minMs": 0.1533990000000358,
+     "maxMs": 0.24604299999987234
+    }
+   },
+   "between": {
+    "elements": 512,
+    "bitIdenticalPairs": 512,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L23-k_norm-uniform-tokens3",
+   "role": "k",
+   "rows": 6,
+   "tokens": 3,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.23.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.168780186172551e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.749156760371767e-15,
+     "finite": true,
+     "medianMs": 0.24432999999999083,
+     "minMs": 0.23497199999997065,
+     "maxMs": 0.2983209999999872
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.252303529191434e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.749156760371767e-15,
+     "finite": true,
+     "medianMs": 0.15073300000017298,
+     "minMs": 0.14686600000004546,
+     "maxMs": 0.22150699999997414
+    }
+   },
+   "between": {
+    "elements": 1536,
+    "bitIdenticalPairs": 1289,
+    "maxDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 6.064819550697033e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L23-k_norm-uniform-tokens16",
+   "role": "k",
+   "rows": 32,
+   "tokens": 16,
+   "profile": "uniform",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.23.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.721978204789235e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.721978204789235e-15,
+     "finite": true,
+     "medianMs": 0.2685959999998886,
+     "minMs": 0.2499000000000251,
+     "maxMs": 0.3337789999998222
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.721978204789235e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.721978204789235e-15,
+     "finite": true,
+     "medianMs": 0.1589089999999942,
+     "minMs": 0.1491209999999228,
+     "maxMs": 0.22455300000001444
+    }
+   },
+   "between": {
+    "elements": 8192,
+    "bitIdenticalPairs": 7758,
+    "maxDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 6.903043711168632e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L23-k_norm-wide-tokens1",
+   "role": "k",
+   "rows": 2,
+   "tokens": 1,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.23.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.918109325805118e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.713669431818016e-15,
+     "finite": true,
+     "medianMs": 0.2769710000000032,
+     "minMs": 0.25837700000010955,
+     "maxMs": 1.1606039999999211
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.918109325805118e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.713669431818016e-15,
+     "finite": true,
+     "medianMs": 0.1719740000000911,
+     "minMs": 0.16669400000000678,
+     "maxMs": 0.24076300000001538
+    }
+   },
+   "between": {
+    "elements": 512,
+    "bitIdenticalPairs": 512,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L23-k_norm-wide-tokens3",
+   "role": "k",
+   "rows": 6,
+   "tokens": 3,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.23.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.497491989560097e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.767885465155333e-15,
+     "finite": true,
+     "medianMs": 0.26926700000012715,
+     "minMs": 0.2518439999998918,
+     "maxMs": 0.3255619999999908
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.497491989560097e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.767885465155333e-15,
+     "finite": true,
+     "medianMs": 0.15058399999998073,
+     "minMs": 0.13940200000001823,
+     "maxMs": 0.21615699999983917
+    }
+   },
+   "between": {
+    "elements": 1536,
+    "bitIdenticalPairs": 1536,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L23-k_norm-wide-tokens16",
+   "role": "k",
+   "rows": 32,
+   "tokens": 16,
+   "profile": "wide",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.23.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.096005864316315e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.387599623095783e-15,
+     "finite": true,
+     "medianMs": 0.23995100000001912,
+     "minMs": 0.23550399999999172,
+     "maxMs": 0.2919999999999163
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.096005864316315e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.387599623095783e-15,
+     "finite": true,
+     "medianMs": 0.15231699999981174,
+     "minMs": 0.15029299999991963,
+     "maxMs": 0.20226999999999862
+    }
+   },
+   "between": {
+    "elements": 8192,
+    "bitIdenticalPairs": 8192,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L23-k_norm-outlier-tokens1",
+   "role": "k",
+   "rows": 2,
+   "tokens": 1,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.23.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.809570784133461e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.991654162181372e-15,
+     "finite": true,
+     "medianMs": 0.37019599999985076,
+     "minMs": 0.32482100000015635,
+     "maxMs": 10.782486000000063
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 1.809570784133461e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.991654162181372e-15,
+     "finite": true,
+     "medianMs": 0.16201500000011038,
+     "minMs": 0.156545000000051,
+     "maxMs": 0.6549930000001041
+    }
+   },
+   "between": {
+    "elements": 512,
+    "bitIdenticalPairs": 512,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L23-k_norm-outlier-tokens3",
+   "role": "k",
+   "rows": 6,
+   "tokens": 3,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.23.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.344131131389389e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.384953886657305e-15,
+     "finite": true,
+     "medianMs": 0.25476899999989655,
+     "minMs": 0.23471100000006118,
+     "maxMs": 0.33382800000003954
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.344131131389389e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.384953886657305e-15,
+     "finite": true,
+     "medianMs": 0.18210299999987,
+     "minMs": 0.15776700000014898,
+     "maxMs": 0.22839999999996508
+    }
+   },
+   "between": {
+    "elements": 1536,
+    "bitIdenticalPairs": 1411,
+    "maxDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 4.65558012093467e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L23-k_norm-outlier-tokens16",
+   "role": "k",
+   "rows": 32,
+   "tokens": 16,
+   "profile": "outlier",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.23.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.729645730573815e-15,
+     "maxMagnitudeRelativeErrorVsF64": 7.003108805888043e-15,
+     "finite": true,
+     "medianMs": 0.24462000000016815,
+     "minMs": 0.23209700000006706,
+     "maxMs": 0.3304120000000239
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.967597667156254e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.654330710030031e-15,
+     "finite": true,
+     "medianMs": 0.15108499999996639,
+     "minMs": 0.14578400000004876,
+     "maxMs": 0.3366639999999279
+    }
+   },
+   "between": {
+    "elements": 8192,
+    "bitIdenticalPairs": 7309,
+    "maxDifference": 1.1368683772161603e-13,
+    "maxRelativeDifference": 1.0614581594029447e-14,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L23-k_norm-tiny-tokens1",
+   "role": "k",
+   "rows": 2,
+   "tokens": 1,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.23.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.287806337135428e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.9830576529799096e-15,
+     "finite": true,
+     "medianMs": 0.2652700000001005,
+     "minMs": 0.24689499999999498,
+     "maxMs": 0.9706069999999727
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.287806337135428e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.9830576529799096e-15,
+     "finite": true,
+     "medianMs": 0.16471000000001368,
+     "minMs": 0.15628400000014153,
+     "maxMs": 0.2286699999999655
+    }
+   },
+   "between": {
+    "elements": 512,
+    "bitIdenticalPairs": 512,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L23-k_norm-tiny-tokens3",
+   "role": "k",
+   "rows": 6,
+   "tokens": 3,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.23.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.584778601929859e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.013077115206589e-15,
+     "finite": true,
+     "medianMs": 0.24658500000009553,
+     "minMs": 0.23659599999996317,
+     "maxMs": 0.2978809999999612
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.584778601929859e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.013077115206589e-15,
+     "finite": true,
+     "medianMs": 0.15384999999992033,
+     "minMs": 0.15222700000003897,
+     "maxMs": 0.21962299999995594
+    }
+   },
+   "between": {
+    "elements": 1536,
+    "bitIdenticalPairs": 1536,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "L23-k_norm-tiny-tokens16",
+   "role": "k",
+   "rows": 32,
+   "tokens": 16,
+   "profile": "tiny",
+   "weight": "model-f16",
+   "weightTensor": "model.language_model.layers.23.self_attn.k_norm.weight",
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.8097007545928535e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.8097007545928535e-15,
+     "finite": true,
+     "medianMs": 0.23943099999996775,
+     "minMs": 0.23617400000011912,
+     "maxMs": 0.31460199999992255
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.8097007545928535e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.8097007545928535e-15,
+     "finite": true,
+     "medianMs": 0.14669600000001992,
+     "minMs": 0.14095500000007632,
+     "maxMs": 0.22232900000017253
+    }
+   },
+   "between": {
+    "elements": 8192,
+    "bitIdenticalPairs": 8192,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "synthetic-f32w-plain-uniform-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "uniform",
+   "weight": "synthetic-f32",
+   "weightTensor": null,
+   "offset": false,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.355390829689124e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.999225831092485e-15,
+     "finite": true,
+     "medianMs": 0.2718210000000454,
+     "minMs": 0.2627350000000206,
+     "maxMs": 1.1180950000000394
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.355390829689124e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.999225831092485e-15,
+     "finite": true,
+     "medianMs": 0.18083000000001448,
+     "minMs": 0.17684300000018993,
+     "maxMs": 0.8840040000000045
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 2048,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "synthetic-f32w-plain-uniform-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "uniform",
+   "weight": "synthetic-f32",
+   "weightTensor": null,
+   "offset": false,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 6.707072607061081e-15,
+     "maxMagnitudeRelativeErrorVsF64": 7.451572555630553e-15,
+     "finite": true,
+     "medianMs": 0.238990000000058,
+     "minMs": 0.23314899999991212,
+     "maxMs": 1.2252370000001065
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 6.707072607061081e-15,
+     "maxMagnitudeRelativeErrorVsF64": 7.451572555630553e-15,
+     "finite": true,
+     "medianMs": 0.1607329999999365,
+     "minMs": 0.15398899999991045,
+     "maxMs": 0.8430869999999686
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 31079,
+    "maxDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 7.048048349918976e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "synthetic-f32w-offset-uniform-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "uniform",
+   "weight": "synthetic-f32",
+   "weightTensor": null,
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 4.0965047801608765e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.230763906095952e-15,
+     "finite": true,
+     "medianMs": 0.32590299999992567,
+     "minMs": 0.28937500000006366,
+     "maxMs": 1.3013499999999567
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.0965047801608765e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.230763906095952e-15,
+     "finite": true,
+     "medianMs": 0.19756200000006174,
+     "minMs": 0.18678100000011,
+     "maxMs": 0.5661660000000666
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 2001,
+    "maxDifference": 7.993605777301127e-15,
+    "maxRelativeDifference": 4.616325208033678e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "synthetic-f32w-offset-uniform-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "uniform",
+   "weight": "synthetic-f32",
+   "weightTensor": null,
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 6.541377160887075e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.541377160887075e-15,
+     "finite": true,
+     "medianMs": 0.27941599999985556,
+     "minMs": 0.2609010000001035,
+     "maxMs": 1.281932000000097
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 6.541377160887075e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.541377160887075e-15,
+     "finite": true,
+     "medianMs": 0.20764099999996688,
+     "minMs": 0.192162000000053,
+     "maxMs": 0.8385490000000573
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 30315,
+    "maxDifference": 2.1316282072803006e-14,
+    "maxRelativeDifference": 7.101538824368245e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "synthetic-f32w-plain-wide-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "wide",
+   "weight": "synthetic-f32",
+   "weightTensor": null,
+   "offset": false,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.077390861785755e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.038753091249695e-15,
+     "finite": true,
+     "medianMs": 0.24382900000000518,
+     "minMs": 0.23088400000006004,
+     "maxMs": 0.9910449999999855
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 3.077390861785755e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.038753091249695e-15,
+     "finite": true,
+     "medianMs": 0.1506329999999707,
+     "minMs": 0.14798800000016854,
+     "maxMs": 0.24203600000009828
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 2048,
+    "maxDifference": 0,
+    "maxRelativeDifference": 0,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "synthetic-f32w-plain-wide-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "wide",
+   "weight": "synthetic-f32",
+   "weightTensor": null,
+   "offset": false,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.406723077825997e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.9892761900943005e-15,
+     "finite": true,
+     "medianMs": 0.23689600000011524,
+     "minMs": 0.23352999999997337,
+     "maxMs": 1.1328919999998561
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.406723077825997e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.9892761900943005e-15,
+     "finite": true,
+     "medianMs": 0.15374999999994543,
+     "minMs": 0.145774000000074,
+     "maxMs": 0.22682700000018485
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 31517,
+    "maxDifference": 3.197442310920451e-14,
+    "maxRelativeDifference": 6.9790307612126796e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "synthetic-f32w-offset-wide-tokens1",
+   "role": "q",
+   "rows": 8,
+   "tokens": 1,
+   "profile": "wide",
+   "weight": "synthetic-f32",
+   "weightTensor": null,
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 6.5426442081450545e-15,
+     "maxMagnitudeRelativeErrorVsF64": 8.113456262670284e-15,
+     "finite": true,
+     "medianMs": 0.2713810000000194,
+     "minMs": 0.25539099999991777,
+     "maxMs": 1.1793400000001384
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 4.234258472915126e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.540537718502502e-15,
+     "finite": true,
+     "medianMs": 0.16471999999998843,
+     "minMs": 0.15636399999993955,
+     "maxMs": 0.30382200000008197
+    }
+   },
+   "between": {
+    "elements": 2048,
+    "bitIdenticalPairs": 1709,
+    "maxDifference": 4.263256414560601e-14,
+    "maxRelativeDifference": 7.89674755931745e-15,
+    "nearestF16Differs": 0
+   }
+  },
+  {
+   "name": "synthetic-f32w-offset-wide-tokens16",
+   "role": "q",
+   "rows": 128,
+   "tokens": 16,
+   "profile": "wide",
+   "weight": "synthetic-f32",
+   "weightTensor": null,
+   "offset": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.547875010847651e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.71346423718132e-15,
+     "finite": true,
+     "medianMs": 0.26192300000002433,
+     "minMs": 0.25232500000015534,
+     "maxMs": 1.214055000000144
+    },
+    "sliced": {
+     "maxRelativeErrorVsF64": 5.783725109508292e-15,
+     "maxMagnitudeRelativeErrorVsF64": 7.0315253961297176e-15,
+     "finite": true,
+     "medianMs": 0.16045200000007753,
+     "minMs": 0.1585489999999936,
+     "maxMs": 0.26630199999999604
+    }
+   },
+   "between": {
+    "elements": 32768,
+    "bitIdenticalPairs": 29753,
+    "maxDifference": 5.684341886080802e-14,
+    "maxRelativeDifference": 8.366790431697271e-15,
+    "nearestF16Differs": 0
+   }
+  }
+ ],
+ "errors": [],
+ "adapter": {
+  "vendor": "amd",
+  "architecture": "rdna-3",
+  "description": "radv: Mesa 26.0.3-1ubuntu1"
+ },
+ "summary": {
+  "cases": 152,
+  "elements": 1368064,
+  "allFinite": true,
+  "maxRelativeErrorVsF64": {
+   "shipped": 6.849803696810354e-15,
+   "sliced": 6.849803696810354e-15
+  },
+  "maxMagnitudeRelativeErrorVsF64": {
+   "shipped": 8.113456262670284e-15,
+   "sliced": 7.71356635916707e-15
+  },
+  "bitIdenticalPairs": 1295186,
+  "casesFullyIdentical": 64,
+  "maxRelativeDifferenceBetweenKernels": 1.0614581594029447e-14,
+  "nearestF16Differs": {
+   "all": 0,
+   "kRows": 0
+  },
+  "medianMs": {
+   "shipped": {
+    "qRows-tokens1": 0.24403000000006614,
+    "qRows-tokens3": 0.24000200000000405,
+    "qRows-tokens16": 0.2410340000000133,
+    "kRows-tokens1": 0.25620200000003024,
+    "kRows-tokens3": 0.2441199999999526,
+    "kRows-tokens16": 0.23943099999996775
+   },
+   "sliced": {
+    "qRows-tokens1": 0.15213600000004135,
+    "qRows-tokens3": 0.14995200000009845,
+    "qRows-tokens16": 0.1520269999998618,
+    "kRows-tokens1": 0.15908999999999196,
+    "kRows-tokens3": 0.151595000000043,
+    "kRows-tokens16": 0.14848899999992682
+   }
+  }
+ },
+ "passed": true,
+ "finishedAt": "2026-10-15T12:41:12.142Z"
+}

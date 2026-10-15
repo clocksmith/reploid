@@ -1,0 +1,40 @@
+{
+ "mode": "shipped",
+ "baseManifestSha256": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+ "variantManifestSha256": "sha256:b696fb91a2d5388dca8e8114562a0845c9da68a7f5524f2ed12eca2e1b791568",
+ "changes": [
+  {
+   "phase": "decode",
+   "insertedAt": 4,
+   "steps": [
+    [
+     "q_norm",
+     "paired_qk_head_norm"
+    ],
+    [
+     "k_norm",
+     "paired_qk_head_norm"
+    ]
+   ]
+  },
+  {
+   "phase": "prefill",
+   "insertedAt": 4,
+   "steps": [
+    [
+     "q_norm",
+     "paired_qk_head_norm"
+    ],
+    [
+     "k_norm",
+     "paired_qk_head_norm"
+    ]
+   ]
+  },
+  {
+   "mechanismKernelsRemoved": [
+    "paired_qk_head_norm"
+   ]
+  }
+ ]
+}
