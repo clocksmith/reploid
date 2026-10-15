@@ -111,6 +111,8 @@
   --pool-font-display: 'Avenir Next', Inter, 'Segoe UI', system-ui, -apple-system, sans-serif;
   --pool-font-mono: 'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
   --pool-font-ui: Inter, 'Avenir Next', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --pool-shadow-switch-track: inset 2px 2px 4px var(--pool-color-ink-12), inset -2px -2px 4px var(--pool-color-raised);
+  --pool-shadow-switch-thumb: 0 2px 4px var(--pool-color-ink-12), inset 0 1px 0 var(--pool-color-page);
   --pool-metric-action: var(--pool-size-48);
   --pool-metric-hero-width: var(--pool-size-1120);
   --pool-metric-menu-square: var(--pool-size-48);

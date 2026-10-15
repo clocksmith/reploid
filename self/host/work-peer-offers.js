@@ -2,10 +2,11 @@ import { createToolOfferChannel, TOOL_OFFER_MESSAGE, TOOL_OFFER_ACK } from '../v
 import policy from '../config/work-evolution.json' with { type: 'json' };
 
 /** Application custody and consent; transport never gets an evaluation or adoption port. */
-export function createWorkPeerOffers({ storage, evolution, roomId, getTransport, onChange, locks = navigator.locks }) {
+export function createWorkPeerOffers({ storage, evolution, roomId, getTransport, onChange, locks = navigator.locks, tabStorage = globalThis.sessionStorage }) {
   const key = policy.peerOffers.storageKey + ':' + roomId;
   let channel = null, snapshot = { inbox: [], outbox: [] }, accepting = false, permission = null;
   let peerId = null, releaseIdentity = null, error = '', sending = false;
+  let historyKey = key, acquiring = null, epoch = 0;
   const notify = () => onChange?.();
   const requireChannel = () => { if (!channel) throw new Error('Connect peers before exchanging candidates'); return channel; };
   const getState = () => ({ ...JSON.parse(JSON.stringify(snapshot)), accepting, error, peerId,
@@ -13,27 +14,47 @@ export function createWorkPeerOffers({ storage, evolution, roomId, getTransport,
     maxBytes: policy.peerOffers.maxBytes, maxAttempts: policy.peerOffers.maxAttempts });
   const isConnected = remote => getTransport()?.getConnectedPeers().some(peer => peer.id === remote && peer.metadata?.transport !== 'signaling-relay');
   return Object.freeze({ getState,
-    async acquire() {
-      peerId = storage.getItem(key + ':identity');
-      if (!peerId) { peerId = crypto.randomUUID(); storage.setItem(key + ':identity', peerId); }
-      await new Promise((resolve, reject) => {
-        locks.request('reploid:tool-peer:' + peerId, { ifAvailable: true }, async lock => {
-          if (!lock) { reject(new Error('Another tab owns this peer connection')); return; }
-          await new Promise(release => { releaseIdentity = release; resolve(); });
-        }).catch(reject);
-      });
-      return peerId;
+    acquire() {
+      if (releaseIdentity) return Promise.resolve(peerId);
+      if (acquiring) return acquiring;
+      const version = epoch;
+      acquiring = (async () => {
+        const primary = await locks.request(key + ':registry', () => {
+          let identity = storage.getItem(key + ':identity');
+          if (!identity) { identity = crypto.randomUUID(); storage.setItem(key + ':identity', identity); }
+          return identity;
+        });
+        const claim = identity => new Promise((resolve, reject) => {
+          locks.request('reploid:tool-peer:' + identity, { ifAvailable: true }, async lock => {
+            if (!lock) { resolve(false); return; }
+            if (version !== epoch) { reject(new Error('Peer connection stopped')); return; }
+            peerId = identity;
+            await new Promise(release => { releaseIdentity = release; resolve(true); });
+          }).catch(reject);
+        });
+        // Duplicated tabs may inherit sessionStorage. The lease detects that copy;
+        // a second live tab gets its own identity, permissions and transfer journal.
+        const preferred = tabStorage?.getItem(key + ':tab-identity') || primary;
+        if (!await claim(preferred)) {
+          if (!await claim(crypto.randomUUID())) throw new Error('Could not allocate a peer identity');
+        }
+        if (version !== epoch) { releaseIdentity?.(); releaseIdentity = null; throw new Error('Peer connection stopped'); }
+        tabStorage?.setItem(key + ':tab-identity', peerId);
+        historyKey = peerId === primary ? key : key + ':peer:' + peerId;
+        return peerId;
+      })().finally(() => { acquiring = null; });
+      return acquiring;
     },
     async attach() {
       const transport = getTransport();
       channel = createToolOfferChannel({ peerId, roomId, policy: policy.peerOffers, ports: {
-        load: async () => { const text = storage.getItem(key); return text ? JSON.parse(text) : null; },
+        load: async () => { const text = storage.getItem(historyKey); return text ? JSON.parse(text) : null; },
         save: async value => {
           const text = JSON.stringify(value);
           if (new TextEncoder().encode(text).byteLength > policy.peerOffers.maxStoredBytes) throw new Error('Candidate transfer history is full');
-          storage.setItem(key, text);
+          storage.setItem(historyKey, text);
         },
-        lock: operation => locks.request(key, operation),
+        lock: operation => locks.request(historyKey, operation),
         onChange: state => { snapshot = state; notify(); },
         authorize: async ({ action, envelope }) => action === 'offer.receive' ? accepting && isConnected(envelope.sender)
           : permission?.recipient === envelope.recipient && permission?.text === envelope.text && isConnected(envelope.recipient),
@@ -82,6 +103,6 @@ export function createWorkPeerOffers({ storage, evolution, roomId, getTransport,
         roomId, envelopeHash: record.envelopeHash, receivedAt: record.receivedAt, targetContract: envelope.targetContract } };
     },
     dismiss(transferId) { return requireChannel().dismiss(transferId); },
-    close() { channel?.close(); channel = null; accepting = false; permission = null; releaseIdentity?.(); releaseIdentity = null; notify(); }
+    close() { epoch++; channel?.close(); channel = null; accepting = false; permission = null; releaseIdentity?.(); releaseIdentity = null; notify(); }
   });
 }

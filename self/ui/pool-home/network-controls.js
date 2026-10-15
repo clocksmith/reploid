@@ -8,30 +8,41 @@ export const renderConnectionControl = () => `<div class="network-sharing-row">
   <button class="network-switch pool-switch" type="button" role="switch" aria-label="Connect to network" aria-checked="false" data-mesh-connect><span></span></button>
 </div>`;
 
-export const renderSharingControls = () => `<div class="network-sharing-row">
-          <div class="pool-small"><strong>Help peers connect</strong><p class="pool-muted">Forward invitations without sharing conversations, model files, or compute.</p></div>
-          <button class="network-switch pool-switch" type="button" role="switch" aria-label="Help peers connect" aria-checked="false" data-toggle-introductions><span></span></button>
-        </div><p class="network-sharing-summary pool-body" data-tab-sharing-summary role="status" hidden></p>
-        <label>Model to share <select class="pool-input" data-contribution-model aria-label="Model to share"></select></label>
-        <div class="network-sharing-row">
-          <div class="pool-small"><strong>Help answer requests <span class="pool-muted" data-contrib-label>Not sharing</span></strong>
-            <p class="pool-muted">Run peers’ public prompts on this device.</p><p data-contribution-limits></p>
-            <p data-contribution-progress role="status" hidden></p>
-            <button type="button" class="pool-button" data-retry-contribution-stop hidden>Retry stopping</button></div>
-          <button class="network-switch pool-switch" type="button" role="switch" aria-label="Help answer requests" aria-checked="false" data-toggle-contribution><span></span></button>
-        </div>
-        <div class="network-sharing-row">
-          <div class="pool-small"><strong>Store and share model files <span class="pool-muted" data-file-contribution-label>Not sharing</span></strong>
-            <p class="pool-muted">Share verified model files independently of answering requests.</p>
-            <label>File participation <select class="pool-input" data-file-mode aria-label="File participation">
-              <option value="cached-only">Cached only</option><option value="bounded-acquisition">Bounded acquisition</option>
-              <option value="full-model">Full-model seeding</option></select></label>
-            <label data-file-download-label hidden>Total download allowance (MiB)
-              <input class="pool-input" data-file-download type="number" min="1" step="1" aria-label="Total download allowance in MiB"></label>
-            <p data-file-download-policy>No downloads in cached-only mode. Acquiring modes charge metadata and failed attempts; restarting does not renew the allowance.</p><p data-file-limits></p>
-            <p data-file-progress role="status" hidden></p></div>
-          <button class="network-switch pool-switch" type="button" role="switch" aria-label="Store and share model files" aria-checked="false" data-toggle-file-contribution><span></span></button>
-        </div>`;
+export const renderSharingControls = () => `<div class="pool-stack pool-gap-lg">
+  <div class="pool-stack pool-gap-xs"><h3 class="pool-subheading">Contribute</h3>
+    <p class="pool-small pool-muted">Choose what this device shares. You don’t need to download a model to ask questions.</p></div>
+  <p class="pool-small" data-tab-sharing-summary role="status" hidden></p>
+  <div class="network-sharing-row">
+    <div class="pool-stack pool-gap-xs"><strong>Answer requests</strong>
+      <p class="pool-muted">Download a model and run others’ public prompts.</p>
+      <span class="pool-small pool-muted" data-contrib-label>Not sharing</span>
+      <p data-contribution-progress role="status" hidden></p>
+      <button type="button" class="pool-button" data-retry-contribution-stop hidden>Retry stopping</button></div>
+    <button class="network-switch pool-switch" type="button" role="switch" aria-label="Help answer requests" aria-checked="false" data-toggle-contribution><span></span></button>
+  </div>
+  <div class="network-sharing-row">
+    <div class="pool-stack pool-gap-xs"><strong>Share model files</strong>
+      <p class="pool-muted">Let others download files stored on this device.</p>
+      <span class="pool-small pool-muted" data-file-contribution-label>Not sharing</span>
+      <p data-file-progress role="status" hidden></p></div>
+    <button class="network-switch pool-switch" type="button" role="switch" aria-label="Store and share model files" aria-checked="false" data-toggle-file-contribution><span></span></button>
+  </div>
+  <details class="pool-disclosure"><summary>Model and limits</summary><div class="pool-stack pool-gap-md">
+    <label>Model<select class="pool-input" data-contribution-model aria-label="Model to share"></select></label>
+    <p data-contribution-limits></p>
+    <label>Files to share<select class="pool-input" data-file-mode aria-label="File participation">
+      <option value="cached-only">Already downloaded</option><option value="bounded-acquisition">Download within a limit</option>
+      <option value="full-model">Download the full model</option></select></label>
+    <label data-file-download-label hidden>Total download allowance (MiB)
+      <input class="pool-input" data-file-download type="number" min="1" step="1" aria-label="Total download allowance in MiB"></label>
+    <p class="pool-muted" data-file-download-policy>No downloads in cached-only mode. Acquiring modes charge metadata and failed attempts; restarting does not renew the allowance.</p>
+    <p data-file-limits></p>
+  </div></details>
+  <details class="pool-disclosure"><summary>Connection assistance</summary><div class="network-sharing-row">
+    <div><strong>Help peers connect</strong><p class="pool-muted">Forward invitations without sharing conversations, model files, or compute.</p></div>
+    <button class="network-switch pool-switch" type="button" role="switch" aria-label="Help peers connect" aria-checked="false" data-toggle-introductions><span></span></button>
+  </div></details>
+</div>`;
 
 export function projectNetworkPeers(state) {
   const network = state.network || {};
@@ -66,7 +77,7 @@ function renderPeerRows(list, state) {
 
 }
 
-export function bindNetworkControls(container, session, { getInviteUrl } = {}) {
+export function bindNetworkControls(container, session, { getInviteUrl, requestContribution } = {}) {
   const find = selector => container.querySelector(selector);
   const controller = new AbortController(), options = { signal: controller.signal };
   const contributionSelect = find('[data-contribution-model]');
@@ -169,9 +180,11 @@ export function bindNetworkControls(container, session, { getInviteUrl } = {}) {
     session.setIntroductionAssistance(!session.getState().network?.introductionAssistance)));
   on('[data-toggle-contribution]', 'click', () => act(async () => {
     const network = session.getState().network, enable = !network?.sharing;
-    if (enable && network?.paused) await session.connect();
-    // Switching on explicitly grants this resource; render and discovery never do.
-    return session.setSharing(enable, contributionSelect.value, enable);
+    if (enable) {
+      if (!requestContribution) throw new Error('Review the model download before contributing');
+      return requestContribution(contributionSelect.value, find('[data-toggle-contribution]'));
+    }
+    return session.setSharing(false, contributionSelect.value, false);
   }));
   on('[data-retry-contribution-stop]', 'click', () => act(() =>
     session.setSharing(false, contributionSelect.value, false)));
