@@ -175,7 +175,7 @@ A copy of that interrupted staging (7.1 MB of Mesa-DB) is retained on intel-host
      oomd then selects only the experiment (admin for system-wide oomd policy);
    - schedule the step when the owner has paused the other workloads.
    The incident's disruption and recovery belong in the cost record
-   ([Flash-Next register](../efficiency-evidence-20261015/FLASH-NEXT.md#intel-incident-and-read-only-recovery-observation)).
+   (Flash-Next register (moved to the private economics evidence)).
 3. **Mesa upgrade.** Ubuntu 24.04 ships `mesa-vulkan-drivers` 25.2.8-0ubuntu0.24.04.4. Installing
    it needs administrator access (`apt`) and requalification of the Intel stage, numerically and
    for compile cost. A compiler change can change both the crash and the cold-compile footprint
