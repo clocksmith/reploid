@@ -34,7 +34,7 @@ async function fixture() {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'native-owner-retry-')); roots.push(directory);
   const identity = await createSigningIdentity({ algorithm: 'Ed25519' });
   ports.networks = []; ports.mesh = { connect: vi.fn(async () => {}), close: vi.fn(async () => {}) };
-  ports.files = { close: vi.fn(async () => {}), preparePartitionSource: async () => ({
+  ports.files = { close: vi.fn(async () => {}), custodyCertificate: async () => null, preparePartitionSource: async () => ({
     manifest: { modelId: 'fixture', architecture: {}, inference: { session: { compute: { defaults: { activationDtype: 'f32' } } } } },
     storage: { close: vi.fn(async () => {}) }, getReceipt: () => ({}) }) };
   ports.resident = { index: 1, prepare: vi.fn(async () => {}), close: vi.fn(async () => {}),
