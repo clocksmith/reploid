@@ -1,0 +1,2 @@
+{"unit":"fc-run8-amd-native-1-2","alreadyInactive":true}
+{"unit":"fc-run8-amd-native-2-3","pids":"1920984 ","memoryPeakBytes":"852475904","sigtermAt":"2026-10-15T02:43:53.296690038Z","waitedSeconds":1,"activeAfter":"inactive","journal":"fc-run8-amd-native-2-3.scope: Consumed 40min 39.261s CPU time over 33min 23.682s wall clock time, 812.9M memory peak."}

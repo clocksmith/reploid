@@ -1,0 +1,5 @@
+{"at":"2026-10-15T00:50:56.355Z","kind":"listening","address":{"address":"127.0.0.1","family":"IPv4","port":29670},"pid":19948}
+{"at":"2026-10-15T00:51:07.559Z","kind":"upgrade","path":"/swarm","origin":"http://127.0.0.1:29670"}
+{"at":"2026-10-15T00:51:11.993Z","kind":"upgrade","path":"/swarm","origin":"http://127.0.0.1:29670"}
+{"at":"2026-10-15T00:55:32.822Z","kind":"upgrade","path":"/swarm","origin":"http://127.0.0.1:29670"}
+{"at":"2026-10-15T01:54:38.693Z","kind":"stopping","pid":19948}

@@ -1,0 +1,46 @@
+{
+ "schema": "reploid.run-7-stage0-stop/v1",
+ "machine": "mac-host",
+ "samples": [
+  {
+   "at": "2026-10-15T02:43:50.544Z",
+   "phase": "ready",
+   "error": null,
+   "offering": true,
+   "unsettledOwners": 0,
+   "descriptor": "present",
+   "attempts": []
+  },
+  {
+   "at": "2026-10-15T02:43:51.699Z",
+   "phase": "idle",
+   "error": null,
+   "offering": false,
+   "unsettledOwners": 0,
+   "descriptor": null,
+   "attempts": []
+  }
+ ],
+ "before": {
+  "at": "2026-10-15T02:43:50.544Z",
+  "phase": "ready",
+  "error": null,
+  "offering": true,
+  "unsettledOwners": 0,
+  "descriptor": "present",
+  "attempts": []
+ },
+ "toggleBefore": "true",
+ "clickedAt": "2026-10-15T02:43:50.606Z",
+ "after": {
+  "at": "2026-10-15T02:43:51.699Z",
+  "phase": "idle",
+  "error": null,
+  "offering": false,
+  "unsettledOwners": 0,
+  "descriptor": null,
+  "attempts": []
+ },
+ "settled": true,
+ "browserCloseAt": "2026-10-15T02:43:51.700Z"
+}

@@ -1,0 +1,38 @@
+{
+  "schema": "reploid.held-release-checkpoints/v1",
+  "source": "Read-only: native hosts through signed-completion-journey-20261013/run-7/tools/signed-state.py (node:sqlite readOnly); mac-host stage 0 browser profile through read-stage0-checkpoint.mjs (blank page on the app origin; the app was not served). The amd-host states hold sequence 7 because attempt 1 (Capsule e84a2024) opened there before its pipeline preparation failed. Nothing was advanced by these reads.",
+  "checkpoints": [
+    {
+      "machine": "amd-host",
+      "host": "native (state directory)",
+      "readAt": "2026-10-15T01:54:32.890223+00:00",
+      "namespace": "sha256:ce08ba3fdaeac42b54c2b4f963f69519cd7b39cce14a66b682ed9f1583fe233b",
+      "sequence": 7,
+      "digest": "sha256:2486b1e7aa76d38415e23d145d97265ce1faecc5eec1086c9e5b54d9b6c82cb0"
+    },
+    {
+      "machine": "amd-host",
+      "host": "native (state directory, stage 2)",
+      "readAt": "2026-10-15T01:54:33.429911+00:00",
+      "namespace": "sha256:ce08ba3fdaeac42b54c2b4f963f69519cd7b39cce14a66b682ed9f1583fe233b",
+      "sequence": 7,
+      "digest": "sha256:2486b1e7aa76d38415e23d145d97265ce1faecc5eec1086c9e5b54d9b6c82cb0"
+    },
+    {
+      "machine": "intel-host",
+      "host": "native (state directory)",
+      "readAt": "2026-10-15T01:54:33.998534+00:00",
+      "namespace": "sha256:ce08ba3fdaeac42b54c2b4f963f69519cd7b39cce14a66b682ed9f1583fe233b",
+      "sequence": 5,
+      "digest": "sha256:70f24c979f6b08c25827de341f5b08ab441b1c30fdca6bcec019a596c3ed71d2"
+    },
+    {
+      "machine": "mac-host",
+      "host": "browser (stage 0 profile)",
+      "readAt": "2026-10-15T01:54:41.391Z",
+      "namespace": "sha256:ce08ba3fdaeac42b54c2b4f963f69519cd7b39cce14a66b682ed9f1583fe233b",
+      "sequence": 5,
+      "digest": "sha256:70f24c979f6b08c25827de341f5b08ab441b1c30fdca6bcec019a596c3ed71d2"
+    }
+  ]
+}

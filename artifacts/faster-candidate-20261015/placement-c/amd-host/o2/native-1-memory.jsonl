@@ -1,0 +1,30 @@
+{"at":"2026-10-15T01:01:17.956Z","phase":"provider-started","providerPid":1163812,"supervisorPid":1163769,"cgroup":"/user.slice/user-1000.slice/user@1000.service/app.slice/fc-o2-native-1.scope","inspectorPort":29992}
+{"at":"2026-10-15T01:01:18.958Z","phase":"memory","memory.current":"206848000","memory.peak":"226451456","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:19.959Z","phase":"memory","memory.current":"206667776","memory.peak":"226451456","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:20.961Z","phase":"memory","memory.current":"206311424","memory.peak":"226451456","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:21.961Z","phase":"memory","memory.current":"206295040","memory.peak":"226451456","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:22.963Z","phase":"memory","memory.current":"205869056","memory.peak":"226451456","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:23.964Z","phase":"memory","memory.current":"205758464","memory.peak":"226451456","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:24.965Z","phase":"memory","memory.current":"205447168","memory.peak":"226451456","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:25.966Z","phase":"memory","memory.current":"205361152","memory.peak":"226451456","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:26.967Z","phase":"memory","memory.current":"204189696","memory.peak":"226451456","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:27.967Z","phase":"memory","memory.current":"203771904","memory.peak":"226451456","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:28.968Z","phase":"memory","memory.current":"203522048","memory.peak":"226451456","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:29.969Z","phase":"memory","memory.current":"203522048","memory.peak":"226451456","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:30.970Z","phase":"memory","memory.current":"203284480","memory.peak":"226451456","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:31.971Z","phase":"memory","memory.current":"203546624","memory.peak":"226451456","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:32.972Z","phase":"memory","memory.current":"203329536","memory.peak":"226451456","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:33.973Z","phase":"memory","memory.current":"204124160","memory.peak":"226451456","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:34.974Z","phase":"memory","memory.current":"50737152","memory.peak":"226451456","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:35.975Z","phase":"memory","memory.current":"50737152","memory.peak":"226451456","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:36.976Z","phase":"memory","memory.current":"50495488","memory.peak":"226451456","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:37.978Z","phase":"memory","memory.current":"50495488","memory.peak":"226451456","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:38.979Z","phase":"memory","memory.current":"50495488","memory.peak":"226451456","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:39.980Z","phase":"memory","memory.current":"50044928","memory.peak":"226451456","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:40.981Z","phase":"memory","memory.current":"50044928","memory.peak":"226451456","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:41.982Z","phase":"memory","memory.current":"52023296","memory.peak":"226451456","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:42.983Z","phase":"memory","memory.current":"219807744","memory.peak":"248082432","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:43.984Z","phase":"memory","memory.current":"229752832","memory.peak":"249995264","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:44.985Z","phase":"memory","memory.current":"264216576","memory.peak":"273256448","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:45.986Z","phase":"memory","memory.current":"561954816","memory.peak":"561954816","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T01:01:46.282Z","phase":"provider-exit","code":0,"signal":null,"memory.current":"19107840","memory.peak":"594194432","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0","cleanup":"Read provider events; exit alone does not establish GPU settlement."}

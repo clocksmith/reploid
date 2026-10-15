@@ -1,0 +1,34 @@
+{
+  "schema": "reploid.functional-gpu-reservation/v1",
+  "approved": true,
+  "authority": "User direction for the faster candidate: qualify one improved installed package; run the 55-prefix physical qualification on placement C (mac-host browser stage 0, amd-host native stage 1, a second amd-host native stage 2 with the output head), as campaign 3 did",
+  "id": "faster-candidate-placement-c2-20261015",
+  "observedAt": "2026-10-15T01:12:12.858068+00:00",
+  "sharedMachineNotes": "Public co-tenants remain on amd-host (4103868, 4121371) and are not addressed. intel-host is not used by this placement. Functional numerical route with retained driver caches; not cold-start, isolation or throughput acceptance.",
+  "scope": "Three logical stages on two physical hosts, 55 unchanged independent F64 prefixes; stop on first numerical failure. Same reference, tolerance, deadlines and limits as campaign 3; the runtime archive (21d054ee, Doppler 1c9ec3db), the combined kernel manifest with the declared Q/K head-norm program (c6220c6a), the placement and the declared preparation bound (limits.maxPreparationMs 1200000) change.",
+  "order": [
+    "Mac-stage0",
+    "AMD-stage1",
+    "AMD-stage2"
+  ],
+  "maxGpuBufferBytes": 1420000000,
+  "deadlines": {
+    "stageMs": 300000,
+    "cleanupMs": 10000,
+    "observationMs": 2000
+  },
+  "nativeHostLimits": {
+    "memoryHighBytes": 10737418240,
+    "memoryMaxBytes": 12884901888,
+    "swapBytes": 0,
+    "supervisorDeadlineMs": 1740000,
+    "scopeDeadlineSeconds": 1800,
+    "coreDumps": "ulimit -c unlimited"
+  },
+  "runtimeArchiveSha256": "21d054eeb70212a7434c9eccfe467fe0accbb8685e9358f2b72341500978cd5f",
+  "preparation": "Generation 2: attempt c (manifest 64d74719) passed numerically, but its signed Capsule omitted rmsnorm_paired.wgsl, which the Q/K head norms run, so the installed stage refused it during pipeline preparation (final-10 attempt 1). Expected identities are fresh load-only observations of all three stages under manifest c6220c6a (observation-2/*.json; no token executed). The capture natives are fresh processes started after the observation natives exited.",
+  "ownershipCheck": {
+    "mac-host": "Delivery server for the new fixture root on loopback 29850/29851; tunnels 29994/29995 to amd-host 29992/29996; owned Chromium on 29993",
+    "amd-host": "public contributors 4103868 and 4121371 running unchanged; observation scopes exited; capture scopes fc-c-native-1, fc-c-native-2, fc-c-server; amdgpu error count 50"
+  }
+}

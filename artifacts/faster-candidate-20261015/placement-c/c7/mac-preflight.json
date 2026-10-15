@@ -1,0 +1,13 @@
+{
+  "executorId": "mac-stage-0",
+  "platform": "mac.lan",
+  "endpoint": "http://127.0.0.1:29993",
+  "pid": 36308,
+  "browserVersion": "155.0.8059.40",
+  "executableIdentity": {
+    "path": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "sha256": "428dccc1a45819d23c5db4fb37388883f8d9ba64611cbd6c42395eac4a18b6a4",
+    "sizeBytes": 367696
+  },
+  "observedAt": "2026-10-15T04:03:40.541Z"
+}

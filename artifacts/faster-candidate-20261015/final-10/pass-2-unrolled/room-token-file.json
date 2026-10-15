@@ -1,0 +1,30 @@
+{
+  "schema": "reploid.native-room-token-file-check/v1",
+  "flag": "--room-token-file",
+  "commit": "5610260a",
+  "commitBlobSha256": "3b8fc92d907b0107c9f84c0b3296fd78a044cc32a8da78a658e8869745613474",
+  "copies": {
+    "installed": {
+      "sha256": "3b8fc92d907b0107c9f84c0b3296fd78a044cc32a8da78a658e8869745613474",
+      "flagOccurrences": 12
+    },
+    "packaging directory": {
+      "sha256": "3b8fc92d907b0107c9f84c0b3296fd78a044cc32a8da78a658e8869745613474",
+      "flagOccurrences": 12
+    }
+  },
+  "packagedMatchesCommit": true,
+  "help": {
+    "command": "node server/native-participant.js --help",
+    "cwd": "/var/tmp/reploid-signed-completion-app-10-20261015-2/native-verify/reploid",
+    "node": "v22.20.0",
+    "exitCode": 0,
+    "stdout": "Reploid native participant (Node 22.13 or newer)\nUsage: reploid-participant --connect-only|--share-files|--contribute\n  --model <catalog id> --model-directory <read-only weights directory>\n  --identity-file <private state/identity.json>\n  --rtc-module @roamhq/wrtc --ws-module ws [--gpu-module webgpu]\n  [--cache-directory <verified piece cache>] [--signaling-url <ws(s) URL>]\n  [--room <namespace>] [--room-token-file <absolute path>] [--origin <allowed origin>]\n  [--ordered-config <absolute JSON path>] (explicit stage assignment and ordered limits)\n  [--canonical] (requires explicit catalog generation and a capable installed runtime)\n  [--owner-policy <absolute JSON path>] (owner schedule, memory, rate, power, temperature and foreground limits)\n\n--room-token-file reads the private room token once at startup from a regular\nfile owned by this user with mode 0600; one trailing newline is removed.\n--room-token <join marker> still works but exposes the token in process\narguments and prints a warning; it cannot be combined with --room-token-file.\n\nFile sharing and compute are separate explicit choices; both may be enabled.\nCompute requires --gpu-module. Missing assigned pieces use authenticated peers.\nSIGINT/SIGTERM stop admission, settle work and release owned resources.\nNative GPU execution is qualified on Linux/Vulkan only; --help opens no provider.\n",
+    "stderr": "",
+    "listsFlag": true
+  },
+  "installDirectoryUnchangedByHelp": true,
+  "installDirectoryFiles": 2323,
+  "GPUOpened": false,
+  "networkOpened": false
+}

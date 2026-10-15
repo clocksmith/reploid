@@ -1,0 +1,180 @@
+{
+  "schema": "reploid.ordered-qualification-capture/v1",
+  "launchReady": true,
+  "expectations": {
+    "path": "/var/tmp/faster-candidate-20261015-mac/placement-c/c2/expectations.json",
+    "hash": "sha256:77a74e7834b74db8c5fe315e3aad59f4b884265d58ad827a88725312fa1cbb6c"
+  },
+  "root": "/var/tmp/reploid-faster-candidate-20261015-2",
+  "runtimeDirectory": "/var/tmp/reploid-faster-candidate-20261015-2/vendor/doppler/0.6.28",
+  "packageVersion": "0.6.28",
+  "model": {
+    "id": "qwen-3-5-0-8b-q4k-ehaf16",
+    "name": "Qwen 3.5 0.8B",
+    "identity": "sha256:c6220c6aefef7006aa2b3bc3c89932d61788340597c9abf055d27e8cdd1767fd",
+    "source": {
+      "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16/",
+      "files": [
+        {
+          "path": "manifest.json",
+          "role": "model-manifest",
+          "sizeBytes": 214138,
+          "hashAlgorithm": "sha256",
+          "hash": "edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9"
+        },
+        {
+          "path": "tokenizer.json",
+          "role": "tokenizer",
+          "sizeBytes": 9088480,
+          "hashAlgorithm": "sha256",
+          "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4"
+        },
+        {
+          "path": "qwen-0-8b-pieces.json",
+          "role": "model-piece-index",
+          "sizeBytes": 34259,
+          "hashAlgorithm": "sha256",
+          "hash": "02e7f90a322ed4c395e0d33f49ceae9f190f5a9dca7e9ca6f58f75c12b03ad94",
+          "url": "/config/model-pieces/qwen-0-8b-pieces.json"
+        }
+      ]
+    },
+    "provider": "doppler",
+    "contextLength": 262144,
+    "quantization": "q4k",
+    "size": "Q4K",
+    "adapters": [],
+    "packageName": "doppler-gpu",
+    "packageVersion": "0.6.28",
+    "generation": {
+      "maxTokens": 1024,
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1,
+      "stopSequences": [],
+      "useChatTemplate": true,
+      "repetitionPenalty": 1,
+      "repetitionPenaltyWindow": 0,
+      "maxSeqLen": 4096
+    }
+  },
+  "outputPath": "/var/tmp/faster-candidate-20261015-mac/placement-c/c2/output/reference.json",
+  "gpuReservation": {
+    "schema": "reploid.functional-gpu-reservation/v1",
+    "approved": true,
+    "authority": "User direction for the faster candidate: qualify one improved installed package; run the 55-prefix physical qualification on placement C (mac-host browser stage 0, amd-host native stage 1, a second amd-host native stage 2 with the output head), as campaign 3 did",
+    "id": "faster-candidate-placement-c2-20261015",
+    "observedAt": "2026-10-15T01:12:12.858068+00:00",
+    "sharedMachineNotes": "Public co-tenants remain on amd-host (4103868, 4121371) and are not addressed. intel-host is not used by this placement. Functional numerical route with retained driver caches; not cold-start, isolation or throughput acceptance.",
+    "scope": "Three logical stages on two physical hosts, 55 unchanged independent F64 prefixes; stop on first numerical failure. Same reference, tolerance, deadlines and limits as campaign 3; the runtime archive (21d054ee, Doppler 1c9ec3db), the combined kernel manifest with the declared Q/K head-norm program (c6220c6a), the placement and the declared preparation bound (limits.maxPreparationMs 1200000) change.",
+    "order": [
+      "Mac-stage0",
+      "AMD-stage1",
+      "AMD-stage2"
+    ],
+    "maxGpuBufferBytes": 1420000000,
+    "deadlines": {
+      "stageMs": 300000,
+      "cleanupMs": 10000,
+      "observationMs": 2000
+    },
+    "nativeHostLimits": {
+      "memoryHighBytes": 10737418240,
+      "memoryMaxBytes": 12884901888,
+      "swapBytes": 0,
+      "supervisorDeadlineMs": 1740000,
+      "scopeDeadlineSeconds": 1800,
+      "coreDumps": "ulimit -c unlimited"
+    },
+    "runtimeArchiveSha256": "21d054eeb70212a7434c9eccfe467fe0accbb8685e9358f2b72341500978cd5f",
+    "preparation": "Generation 2: attempt c (manifest 64d74719) passed numerically, but its signed Capsule omitted rmsnorm_paired.wgsl, which the Q/K head norms run, so the installed stage refused it during pipeline preparation (final-10 attempt 1). Expected identities are fresh load-only observations of all three stages under manifest c6220c6a (observation-2/*.json; no token executed). The capture natives are fresh processes started after the observation natives exited.",
+    "ownershipCheck": {
+      "mac-host": "Delivery server for the new fixture root on loopback 29850/29851; tunnels 29994/29995 to amd-host 29992/29996; owned Chromium on 29993",
+      "amd-host": "public contributors 4103868 and 4121371 running unchanged; observation scopes exited; capture scopes fc-c-native-1, fc-c-native-2, fc-c-server; amdgpu error count 50"
+    }
+  },
+  "executors": [
+    {
+      "executorId": "mac-stage-0",
+      "kind": "browser-cdp",
+      "endpoint": "http://127.0.0.1:29993",
+      "baseUrl": "http://127.0.0.1:29850/config/partition-policy.json",
+      "runtimeBaseUrl": "http://127.0.0.1:29850/vendor/doppler/0.6.28/src/",
+      "modelSource": "http://127.0.0.1:29851/",
+      "preflight": {
+        "path": "/var/tmp/faster-candidate-20261015-mac/placement-c/c2/mac-preflight.json",
+        "hash": "sha256:dd11f4ddfc15b69a5934293422f33b4dedc87deeccf98c5fb837c6d71b19665d"
+      }
+    },
+    {
+      "executorId": "amd-stage-1",
+      "kind": "native-inspector",
+      "endpoint": "ws://127.0.0.1:29994/eb7bac78-1318-4657-aa74-e0ce2e46cb35",
+      "baseUrl": "http://127.0.0.1:29850/config/partition-policy.json",
+      "runtimeBaseUrl": "file:///var/tmp/reploid-faster-candidate-20261015-2/installed/reploid/node_modules/doppler-gpu/src/",
+      "modelSource": "http://127.0.0.1:29851/",
+      "preflight": {
+        "path": "/var/tmp/faster-candidate-20261015-mac/placement-c/c2/amd-1-preflight.json",
+        "hash": "sha256:fe18973e443c426501c7d45191c42be2eaf8e8f256a74b850495d00f1433f470"
+      }
+    },
+    {
+      "executorId": "amd-stage-2",
+      "kind": "native-inspector",
+      "endpoint": "ws://127.0.0.1:29995/2bcd6a3d-9081-47a8-b832-83e96034d7a0",
+      "baseUrl": "http://127.0.0.1:29850/config/partition-policy.json",
+      "runtimeBaseUrl": "file:///var/tmp/reploid-faster-candidate-20261015-2/installed/reploid/node_modules/doppler-gpu/src/",
+      "modelSource": "http://127.0.0.1:29851/",
+      "preflight": {
+        "path": "/var/tmp/faster-candidate-20261015-mac/placement-c/c2/amd-2-preflight.json",
+        "hash": "sha256:7b6bfc0dc849a1b42237dfc28a79b4d695e8d232cb37bce8addfc5c3e22f8d70"
+      }
+    }
+  ],
+  "reference": {
+    "path": "/var/tmp/reploid-faster-candidate-20261015-2/approved-reference.json",
+    "hash": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6"
+  },
+  "manifest": {
+    "path": "/var/tmp/reploid-faster-candidate-20261015-2/manifest.json",
+    "hash": "sha256:c6220c6aefef7006aa2b3bc3c89932d61788340597c9abf055d27e8cdd1767fd"
+  },
+  "graph": {
+    "path": "/var/tmp/reploid-faster-candidate-20261015-2/execution.json",
+    "hash": "sha256:027967090660ce49551b2bc9bec98b3e55b60bd247c15a570e6696197fd8efff"
+  },
+  "archive": {
+    "path": "/var/tmp/reploid-faster-candidate-20261015-2/archive.tgz",
+    "hash": "sha256:21d054eeb70212a7434c9eccfe467fe0accbb8685e9358f2b72341500978cd5f"
+  },
+  "policy": {
+    "path": "/var/tmp/faster-candidate-20261015-mac/placement-c/c2/partition-policy.json",
+    "hash": "sha256:fd0e3e512c86c66b9303662b61a7eb4b8321b84c967250781a512df9c3853f53"
+  },
+  "pairedBinding": {
+    "path": "/var/tmp/reploid-faster-candidate-20261015-2/paired-binding.json",
+    "hash": "sha256:b03c77a4990865b7626f91786c2a553d5ba7c4b852551f06a73a03240f862338"
+  },
+  "requests": {
+    "path": "/var/tmp/reploid-faster-candidate-20261015-2/original-requests.json",
+    "hash": "sha256:794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e"
+  },
+  "delivery": {
+    "path": "/var/tmp/reploid-faster-candidate-20261015-2/snapshot-binding.json",
+    "hash": "sha256:d5d1a1df954656489c14ea104e512e4f42fa65cb3996df586b540dd16bf93981"
+  },
+  "requestContracts": [
+    {
+      "path": "/var/tmp/reploid-faster-candidate-20261015-2/request-0-contract.json",
+      "hash": "sha256:ba2a4668d6affb85faf05221d6263a5b29b55d26c8f89a4f107cbacb717599a9"
+    },
+    {
+      "path": "/var/tmp/reploid-faster-candidate-20261015-2/request-1-contract.json",
+      "hash": "sha256:3cc051de10f77e945c6a62b66cccb22f0c15e55bf11196c6f71aeda4174ba5a2"
+    },
+    {
+      "path": "/var/tmp/reploid-faster-candidate-20261015-2/request-2-contract.json",
+      "hash": "sha256:8b21b154357efa8c9d1c853ffe36c5ce9d9e32e684b496db9031bc59fa6fe836"
+    }
+  ]
+}

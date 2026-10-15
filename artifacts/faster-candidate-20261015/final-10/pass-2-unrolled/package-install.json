@@ -1,0 +1,19 @@
+{
+  "schema": "reploid.completion-chat-package-install/v1",
+  "runtimeArchiveSha256": "21d054eeb70212a7434c9eccfe467fe0accbb8685e9358f2b72341500978cd5f",
+  "commands": [
+    "build-export.sh prepare",
+    "cp doppler/artifacts/faster-candidate-20261015/doppler-gpu-0.6.28.tgz deploy/artifacts/doppler-gpu-0.6.28.tgz",
+    "npm install --save-exact --ignore-scripts --no-audit --no-fund file:deploy/artifacts/doppler-gpu-0.6.28.tgz",
+    "node scripts/vendor-doppler.js deploy/artifacts/doppler-gpu-0.6.28.tgz",
+    "node scripts/sync-doppler-generation-contract.js",
+    "node scripts/sync-doppler-partition-contract.js",
+    "node scripts/sync-reploid-library.js",
+    "node scripts/sync-runtime-config.js (rejected the unrelated 0.6.27 Pool model)",
+    "node ../../signed-completion-candidate-20261013/final/scope-export.js",
+    "node scripts/sync-runtime-config.js --write"
+  ],
+  "filesPerCopy": 1998,
+  "verifiedBy": "preflight.json runtime section",
+  "applicationQualified": false
+}

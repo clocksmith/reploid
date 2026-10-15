@@ -1,0 +1,100 @@
+{
+  "schema": "reploid.run-7-history-check/v1",
+  "startedAt": "2026-10-15T04:54:57.272Z",
+  "send": {
+    "sentAt": "2026-10-15T04:55:00.478Z",
+    "permission": {
+      "need": {
+        "networkId": "reploid-swarm-fc-run8-c19c585f99ce",
+        "sharingScope": "mesh",
+        "disclosure": "ordered-partition-activations-and-tokens",
+        "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+        "modelIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+        "adapterIdentities": []
+      },
+      "title": "Answer with contributors' computers?",
+      "what": "To answer, this conversation is sent to contributors' computers on this network: your message, earlier messages in the thread, and the context prompt when it is on.",
+      "who": "The first computer receives the text. The other computers receive the same content as model tokens, which read back as text, plus intermediate results.",
+      "scope": "You are asked once. Later questions and follow-ups are sent the same way until you turn this off in Settings.",
+      "shownAt": "2026-10-15T04:55:00.526Z",
+      "allowedAt": "2026-10-15T04:55:00.561Z",
+      "stored": {
+        "schema": "reploid.remote-permission/v2",
+        "id": "c2f0df46-7a0c-46b8-a476-7db26402ecfc",
+        "networkId": "reploid-swarm-fc-run8-c19c585f99ce",
+        "sharingScope": "mesh",
+        "disclosure": "ordered-partition-activations-and-tokens",
+        "modelIdentities": [
+          "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db"
+        ],
+        "adapterIdentities": [],
+        "grantedAt": 1792040100555,
+        "revokedAt": null
+      }
+    }
+  },
+  "attempt": {
+    "id": "00ee0c18-8328-4c0c-8b23-c1cacd4c43cb",
+    "status": "completed",
+    "publicationMode": "canonical",
+    "authorization": {
+      "kind": "permission",
+      "source": "permission",
+      "permissionId": "c2f0df46-7a0c-46b8-a476-7db26402ecfc",
+      "recipients": [
+        "peer:6faa6b9ff4ba0747db59a5e7",
+        "peer:9af15d884eba51b0c0540e2a",
+        "peer:5f288f6f0259c251a1915c11"
+      ]
+    },
+    "answer": "OK",
+    "generatedTokens": 2
+  },
+  "indexedDB": {
+    "databases": [
+      "reploid-requester-history"
+    ],
+    "stores": [
+      {
+        "store": "conversations",
+        "rows": 1
+      }
+    ],
+    "schemas": {
+      "reploid.canonical-workspace-history/v1": 1,
+      "reploid.publication-history/v1": 1,
+      "reploid.ordered-cursor/v1": 3,
+      "reploid.ordered-generation-bounds/v1": 1,
+      "reploid.ordered-publication-attempt/v1": 1,
+      "reploid.partition-route/v1": 9,
+      "doppler.activation-tensor/v2": 8,
+      "reploid.ordered-publication/v1": 2,
+      "reploid.publication-receipt/v1": 2,
+      "reploid.chat-workspace/v1": 1,
+      "reploid.mesh.partition-summary/v2": 1,
+      "reploid.partition-attempt/v2": 5,
+      "reploid.partition-selection/v2": 2,
+      "reploid.text-generation/v1": 2
+    },
+    "orderedRecords": 2,
+    "sequences": [
+      0,
+      1
+    ],
+    "chained": true,
+    "terminal": {
+      "terminal": true,
+      "stopReason": "eos-token"
+    },
+    "text": "OK",
+    "acknowledgments": [
+      0
+    ]
+  },
+  "afterReload": {
+    "restoredAnswer": "OK",
+    "storageMode": "transactional"
+  },
+  "ok": true,
+  "finishedAt": "2026-10-15T04:55:10.706Z"
+}

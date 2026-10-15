@@ -1,0 +1,851 @@
+{
+  "schema": "reploid.delivery-changed-file-check/v1",
+  "base": "1473eda7",
+  "commit": "5610260a",
+  "changedFiles": [
+    "packages/reploid/src/artifacts/custody/exchange.d.ts",
+    "packages/reploid/src/artifacts/custody/exchange.js",
+    "packages/reploid/src/mesh/index.d.ts",
+    "packages/reploid/src/mesh/index.js",
+    "packages/reploid/src/mesh/partitions/partition-preparation-progress.d.ts",
+    "packages/reploid/src/mesh/partitions/partition-preparation-progress.js",
+    "packages/reploid/src/mesh/partitions/signed-resident-factory.d.ts",
+    "packages/reploid/src/mesh/partitions/signed-resident-factory.js",
+    "self/config/browser-bundle-manifest.json",
+    "self/config/module-inventory.json",
+    "self/config/partition-policy.json",
+    "self/config/vfs-manifest.json",
+    "self/host/work-partitions.js",
+    "self/index.html",
+    "self/pool-entry.html",
+    "self/poolday-design.html",
+    "self/styles/boot.css",
+    "self/styles/poolday-design.css",
+    "self/styles/poolday/components.css",
+    "self/styles/poolday/components/base.css",
+    "self/styles/poolday/components/conversation.css",
+    "self/styles/poolday/components/interaction.css",
+    "self/styles/poolday/components/materials.css",
+    "self/styles/poolday/components/optical.css",
+    "self/styles/poolday/layers.json",
+    "self/styles/poolday/primitives.css",
+    "self/styles/poolday/tokens.css",
+    "self/styles/rd.css",
+    "self/ui/pool-home/controls.js",
+    "self/ui/pool-home/conversation-workspace.js",
+    "self/ui/pool-home/execution-activity.js",
+    "self/ui/pool-home/index.js",
+    "self/ui/pool-home/theme.js",
+    "self/ui/poolday-design/index.js",
+    "self/ui/poolday-design/model.js",
+    "self/ui/poolday-design/specimens.js",
+    "self/vendor/reploid/artifacts/custody/exchange.d.ts",
+    "self/vendor/reploid/artifacts/custody/exchange.js",
+    "self/vendor/reploid/mesh/index.d.ts",
+    "self/vendor/reploid/mesh/index.js",
+    "self/vendor/reploid/mesh/partitions/partition-preparation-progress.d.ts",
+    "self/vendor/reploid/mesh/partitions/partition-preparation-progress.js",
+    "self/vendor/reploid/mesh/partitions/signed-resident-factory.d.ts",
+    "self/vendor/reploid/mesh/partitions/signed-resident-factory.js",
+    "self/vendor/reploid/package-assets.json",
+    "server/CATSCAN.md",
+    "server/ledger/CATSCAN.md",
+    "server/ledger/domain.js",
+    "server/ledger/engine.js",
+    "server/ledger/firestore-store.js",
+    "server/ledger/memory-store.js",
+    "server/ledger/store-contract.js",
+    "server/ledger/transitions.js",
+    "server/native-model-files.js",
+    "server/native-owner/CATSCAN.md",
+    "server/native-owner/controls.js",
+    "server/native-owner/monitor.js",
+    "server/native-owner/policy.js",
+    "server/native-owner/rate.js",
+    "server/native-participant.js",
+    "server/proxy.js",
+    "server/rewards/CATSCAN.md",
+    "server/rewards/demanded-inference.js",
+    "server/rewards/domain.js",
+    "server/rewards/engine.js",
+    "server/rewards/issuance-authority.js",
+    "server/rewards/store-contract.js",
+    "server/rewards/stores.js"
+  ],
+  "files": {
+    "packages/reploid/src/artifacts/custody/exchange.d.ts": {
+      "commitSha256": "2c761491f9eb11c78f8bdd1c41e4a9876a3c22964a0e22fe56e9bfa1c875c98b",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/artifacts/custody/exchange.js": {
+      "commitSha256": "08cd3da9eaea0c1c8ed859dec289589239623cd636270664f80874837370553f",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "08cd3da9eaea0c1c8ed859dec289589239623cd636270664f80874837370553f",
+        "equalsCommit": true
+      }
+    },
+    "packages/reploid/src/mesh/index.d.ts": {
+      "commitSha256": "076a91f046310739ebb92a82bca47b5ed612a26a9c51e2bd474fe05a04495f2b",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/mesh/index.js": {
+      "commitSha256": "51573a8f64f80ee6e17214d6098024352b8c71779be79cba501901cd2edd4d32",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "51573a8f64f80ee6e17214d6098024352b8c71779be79cba501901cd2edd4d32",
+        "equalsCommit": true
+      }
+    },
+    "packages/reploid/src/mesh/partitions/partition-preparation-progress.d.ts": {
+      "commitSha256": "0b5724f2a385d5340644b24ca1b1a41b4cfa5002eb7a6b53e8495479cfde7301",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/mesh/partitions/partition-preparation-progress.js": {
+      "commitSha256": "c490e21bed55390de9d590074a90f99977fe2c9f592f21bb73c524825342d521",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "c490e21bed55390de9d590074a90f99977fe2c9f592f21bb73c524825342d521",
+        "equalsCommit": true
+      }
+    },
+    "packages/reploid/src/mesh/partitions/signed-resident-factory.d.ts": {
+      "commitSha256": "fd27dced9ba87159a0acd3d0abad93623082f630043caf46d8d2a88b51ba5afe",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/mesh/partitions/signed-resident-factory.js": {
+      "commitSha256": "c64a2817c4b3606bc1ad83420b91440577f4cc5cfeff3a3cebd0a23d80fc4ee5",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "c64a2817c4b3606bc1ad83420b91440577f4cc5cfeff3a3cebd0a23d80fc4ee5",
+        "equalsCommit": true
+      }
+    },
+    "self/config/browser-bundle-manifest.json": {
+      "commitSha256": "5e21fde5d3c9e16178d027b53e4b704145dae8c77a7905a263f9ec3af4d082aa",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/config/module-inventory.json": {
+      "commitSha256": "221b2005a62b6fbb92042ce5155fae5c28f4e830339a27527cb5aeaa16ff39b3",
+      "comparedWith": "export regenerated copy",
+      "served": {
+        "path": "config/module-inventory.json",
+        "sha256": "221b2005a62b6fbb92042ce5155fae5c28f4e830339a27527cb5aeaa16ff39b3",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/config/partition-policy.json": {
+      "commitSha256": "ca9a7e266217039871c8b80e657e0128faac0dbba65c65259fd728ed0367e3e3",
+      "served": {
+        "path": "config/partition-policy.json",
+        "sha256": "ca9a7e266217039871c8b80e657e0128faac0dbba65c65259fd728ed0367e3e3",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "ca9a7e266217039871c8b80e657e0128faac0dbba65c65259fd728ed0367e3e3",
+        "equalsCommit": true
+      }
+    },
+    "self/config/vfs-manifest.json": {
+      "commitSha256": "97032692dd42e4a38b33eef2c1bb6e6eb0775b599d7b7a7a6e66e76cde26acdb",
+      "comparedWith": "export regenerated copy",
+      "served": {
+        "path": "config/vfs-manifest.json",
+        "sha256": "97032692dd42e4a38b33eef2c1bb6e6eb0775b599d7b7a7a6e66e76cde26acdb",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/host/work-partitions.js": {
+      "commitSha256": "74c3a406e5ccbafcd778c4f102f542eaac716c352e3adb64f17316e805e29b60",
+      "served": {
+        "path": "host/work-partitions.js",
+        "sha256": "74c3a406e5ccbafcd778c4f102f542eaac716c352e3adb64f17316e805e29b60",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/index.html": {
+      "commitSha256": "5a0d30047b4df101a2306da12659c8a8ca267e884d3c3aa378fd5c3e3e343363",
+      "served": {
+        "path": "index.html",
+        "sha256": "5a0d30047b4df101a2306da12659c8a8ca267e884d3c3aa378fd5c3e3e343363",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/pool-entry.html": {
+      "commitSha256": "86706139268a1988a11f83c4d68005b8720db66ac018341c037cde683fdaadd5",
+      "served": {
+        "path": "pool-entry.html",
+        "sha256": "86706139268a1988a11f83c4d68005b8720db66ac018341c037cde683fdaadd5",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/poolday-design.html": {
+      "commitSha256": "14d59b9c782a380a5677df02532099f2c339f6ff748cb31ef909133643b335d1",
+      "served": {
+        "path": "poolday-design.html",
+        "sha256": "14d59b9c782a380a5677df02532099f2c339f6ff748cb31ef909133643b335d1",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/styles/boot.css": {
+      "commitSha256": "853d434c630836528fdf8523f8a167bb26cde53e51dd69658535262f32c738ca",
+      "served": {
+        "path": "styles/boot.css",
+        "sha256": "853d434c630836528fdf8523f8a167bb26cde53e51dd69658535262f32c738ca",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/styles/poolday-design.css": {
+      "commitSha256": "732e64169dc21a3d3a4ce042dd2d46c589b97bcc5ffaad4a4f1477c2d60abbeb",
+      "served": {
+        "path": "styles/poolday-design.css",
+        "sha256": "732e64169dc21a3d3a4ce042dd2d46c589b97bcc5ffaad4a4f1477c2d60abbeb",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/styles/poolday/components.css": {
+      "commitSha256": "d4fa46081cfbf9244a7d1edab001ba974a55813c48313e83a48531624c36da19",
+      "served": {
+        "path": "styles/poolday/components.css",
+        "sha256": "d4fa46081cfbf9244a7d1edab001ba974a55813c48313e83a48531624c36da19",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/styles/poolday/components/base.css": {
+      "commitSha256": "24ef0e85b47c3f429a53be7d4a49e8426424c8c43d10254c995be78caa712f09",
+      "served": {
+        "path": "styles/poolday/components/base.css",
+        "sha256": "24ef0e85b47c3f429a53be7d4a49e8426424c8c43d10254c995be78caa712f09",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/styles/poolday/components/conversation.css": {
+      "commitSha256": "9ea0712f10e09974571b2db359e49f52b12ad5d7b9ab6bce343dd4e7b0e1f64c",
+      "served": {
+        "path": "styles/poolday/components/conversation.css",
+        "sha256": "9ea0712f10e09974571b2db359e49f52b12ad5d7b9ab6bce343dd4e7b0e1f64c",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/styles/poolday/components/interaction.css": {
+      "commitSha256": "6a45e1e822cd2acd198136ce418098030ba0630cbf205f521902f0946eb53a58",
+      "served": {
+        "path": "styles/poolday/components/interaction.css",
+        "sha256": "6a45e1e822cd2acd198136ce418098030ba0630cbf205f521902f0946eb53a58",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/styles/poolday/components/materials.css": {
+      "commitSha256": "052094ec25caa4d4d1b38a4cc17c119d0a2cd3b3b7885049f39556acde25b91d",
+      "served": {
+        "path": "styles/poolday/components/materials.css",
+        "sha256": "052094ec25caa4d4d1b38a4cc17c119d0a2cd3b3b7885049f39556acde25b91d",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/styles/poolday/components/optical.css": {
+      "commitSha256": "b5363ee09d43cc1397561b5e10bdd4acbf17d6810a8b4f663053f4ff7a67a7ee",
+      "served": {
+        "path": "styles/poolday/components/optical.css",
+        "sha256": "b5363ee09d43cc1397561b5e10bdd4acbf17d6810a8b4f663053f4ff7a67a7ee",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/styles/poolday/layers.json": {
+      "commitSha256": "d9041048b2fa72db19d4841b0d16b44d7821004943952bcc76c1ac30ca8d183d",
+      "served": {
+        "path": "styles/poolday/layers.json",
+        "sha256": "d9041048b2fa72db19d4841b0d16b44d7821004943952bcc76c1ac30ca8d183d",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/styles/poolday/primitives.css": {
+      "commitSha256": "84e7ae98541415c3acaeb7789ebd291067ba5dcccb1d0f842356fc9f4b2ab545",
+      "served": {
+        "path": "styles/poolday/primitives.css",
+        "sha256": "84e7ae98541415c3acaeb7789ebd291067ba5dcccb1d0f842356fc9f4b2ab545",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/styles/poolday/tokens.css": {
+      "commitSha256": "9a312ecd2bec3bdc66ec76dc2dad42e50be6ef6cb03710a4a2e365939ab6c813",
+      "served": {
+        "path": "styles/poolday/tokens.css",
+        "sha256": "9a312ecd2bec3bdc66ec76dc2dad42e50be6ef6cb03710a4a2e365939ab6c813",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/styles/rd.css": {
+      "commitSha256": "a870c45e86b3cbae5666c91100bec14eb6f581b1eed33f4d55b10800d53610d0",
+      "served": {
+        "path": "styles/rd.css",
+        "sha256": "a870c45e86b3cbae5666c91100bec14eb6f581b1eed33f4d55b10800d53610d0",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/ui/pool-home/controls.js": {
+      "commitSha256": "6e2b99530f52cd436d3ee4d9e74a92f71381e12ded2fb1b4b30317c5bcaf2880",
+      "served": {
+        "path": "ui/pool-home/controls.js",
+        "sha256": "6e2b99530f52cd436d3ee4d9e74a92f71381e12ded2fb1b4b30317c5bcaf2880",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/ui/pool-home/conversation-workspace.js": {
+      "commitSha256": "96c2fbcc10cbf2cce840c16a367dccb54487bb9e37e98cb6ef2159f593c262e5",
+      "served": {
+        "path": "ui/pool-home/conversation-workspace.js",
+        "sha256": "96c2fbcc10cbf2cce840c16a367dccb54487bb9e37e98cb6ef2159f593c262e5",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/ui/pool-home/execution-activity.js": {
+      "commitSha256": "f2843a88a521285560871e6fbc408691cbbfcb8561a61d5962346f5124d30a8d",
+      "served": {
+        "path": "ui/pool-home/execution-activity.js",
+        "sha256": "f2843a88a521285560871e6fbc408691cbbfcb8561a61d5962346f5124d30a8d",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/ui/pool-home/index.js": {
+      "commitSha256": "cdf907bef20e445e16b3e238080e6583e0579f38704875c2df480ab7414cf6b1",
+      "served": {
+        "path": "ui/pool-home/index.js",
+        "sha256": "cdf907bef20e445e16b3e238080e6583e0579f38704875c2df480ab7414cf6b1",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/ui/pool-home/theme.js": {
+      "commitSha256": "88030ffd805766deeaca7d694eaa20b6b2546c7a59c4f32b1fd6ea1b47803c02",
+      "served": {
+        "path": "ui/pool-home/theme.js",
+        "sha256": "88030ffd805766deeaca7d694eaa20b6b2546c7a59c4f32b1fd6ea1b47803c02",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/ui/poolday-design/index.js": {
+      "commitSha256": "31400ad5ea579bbffd73f8cbcf397b98a900463940abeecac19de0a2dbf9ba9a",
+      "served": {
+        "path": "ui/poolday-design/index.js",
+        "sha256": "31400ad5ea579bbffd73f8cbcf397b98a900463940abeecac19de0a2dbf9ba9a",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/ui/poolday-design/model.js": {
+      "commitSha256": "4a46302aa7cfe9390e4934f1ed97eb4119e943e00cf67fc57b9017a86abafca7",
+      "served": {
+        "path": "ui/poolday-design/model.js",
+        "sha256": "4a46302aa7cfe9390e4934f1ed97eb4119e943e00cf67fc57b9017a86abafca7",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/ui/poolday-design/specimens.js": {
+      "commitSha256": "71c9534b748f3b176c00a58bd86524eb14d81e07efb465c07e67d2b1fefb227f",
+      "served": {
+        "path": "ui/poolday-design/specimens.js",
+        "sha256": "71c9534b748f3b176c00a58bd86524eb14d81e07efb465c07e67d2b1fefb227f",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/artifacts/custody/exchange.d.ts": {
+      "commitSha256": "2c761491f9eb11c78f8bdd1c41e4a9876a3c22964a0e22fe56e9bfa1c875c98b",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/artifacts/custody/exchange.js": {
+      "commitSha256": "08cd3da9eaea0c1c8ed859dec289589239623cd636270664f80874837370553f",
+      "served": {
+        "path": "vendor/reploid/artifacts/custody/exchange.js",
+        "sha256": "08cd3da9eaea0c1c8ed859dec289589239623cd636270664f80874837370553f",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/index.d.ts": {
+      "commitSha256": "076a91f046310739ebb92a82bca47b5ed612a26a9c51e2bd474fe05a04495f2b",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/index.js": {
+      "commitSha256": "51573a8f64f80ee6e17214d6098024352b8c71779be79cba501901cd2edd4d32",
+      "served": {
+        "path": "vendor/reploid/mesh/index.js",
+        "sha256": "51573a8f64f80ee6e17214d6098024352b8c71779be79cba501901cd2edd4d32",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/partition-preparation-progress.d.ts": {
+      "commitSha256": "0b5724f2a385d5340644b24ca1b1a41b4cfa5002eb7a6b53e8495479cfde7301",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/partition-preparation-progress.js": {
+      "commitSha256": "c490e21bed55390de9d590074a90f99977fe2c9f592f21bb73c524825342d521",
+      "served": {
+        "path": "vendor/reploid/mesh/partitions/partition-preparation-progress.js",
+        "sha256": "c490e21bed55390de9d590074a90f99977fe2c9f592f21bb73c524825342d521",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/signed-resident-factory.d.ts": {
+      "commitSha256": "fd27dced9ba87159a0acd3d0abad93623082f630043caf46d8d2a88b51ba5afe",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/signed-resident-factory.js": {
+      "commitSha256": "c64a2817c4b3606bc1ad83420b91440577f4cc5cfeff3a3cebd0a23d80fc4ee5",
+      "served": {
+        "path": "vendor/reploid/mesh/partitions/signed-resident-factory.js",
+        "sha256": "c64a2817c4b3606bc1ad83420b91440577f4cc5cfeff3a3cebd0a23d80fc4ee5",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/package-assets.json": {
+      "commitSha256": "00f44edd0d5610d2624cce1ecddd0aa3f80d69d2075bd24e0cc42ba86fcc3089",
+      "served": {
+        "path": "vendor/reploid/package-assets.json",
+        "sha256": "a83cf44770ec21804b86356955fc71db7e52b2fbef625b81542cc4aecf742e5c",
+        "equalsCommit": false,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "server/CATSCAN.md": {
+      "commitSha256": "dd983af0f97d7991be6250e666e94f64a27baffbfd509774ff311b0067ed8b57",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "server/ledger/CATSCAN.md": {
+      "commitSha256": "71441ac8b73a318bf1cb59cfba32194bc499a6213d57bd5c4442b343d41b711e",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "server/ledger/domain.js": {
+      "commitSha256": "e310a227c275a60dcb68c13d44dadae072c8bb1fcf7b54eeaef8e77ce45efb7b",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "server/ledger/engine.js": {
+      "commitSha256": "5e7b0760154bd0c9bcc0c4816dd8ade73b096c1685082df2faa2f07b4b01d13b",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "server/ledger/firestore-store.js": {
+      "commitSha256": "cb5c0db1486d7462b82c99cfd78e2eb0facdcb5c7119c2ad8bd5490622f9efe0",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "server/ledger/memory-store.js": {
+      "commitSha256": "5830015d9bdea17a3d6d6104440c4d23a86e1191a1c74f0695d077eb2360bb18",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "server/ledger/store-contract.js": {
+      "commitSha256": "5e93e28bbec7524755a293e7cc1831335456244d53188b973bfcc6d31ddf9e11",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "server/ledger/transitions.js": {
+      "commitSha256": "051ecd691ced07d9a4568d560f67ec8c2ac3d18cac04ee1ee49a5e5b0cc9f452",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "server/native-model-files.js": {
+      "commitSha256": "dcb273b0ef72ac2806057a8c4d35b1aebab0180b0fde20f70facd82cbadbbba5",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "dcb273b0ef72ac2806057a8c4d35b1aebab0180b0fde20f70facd82cbadbbba5",
+        "equalsCommit": true
+      }
+    },
+    "server/native-owner/CATSCAN.md": {
+      "commitSha256": "9b51cc285bb0168c7933c86e8b5cfa50e18446948348506d930e3ac638e8dc87",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "server/native-owner/controls.js": {
+      "commitSha256": "e9db558d1e2ecf49687eee2dac672b6b91b2f6b9389a9016b22e3b33c1a51e86",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "e9db558d1e2ecf49687eee2dac672b6b91b2f6b9389a9016b22e3b33c1a51e86",
+        "equalsCommit": true
+      }
+    },
+    "server/native-owner/monitor.js": {
+      "commitSha256": "cb7fe4596ba32c426f866682fde8680e6173c5aad6676a16055fc713469823f2",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "cb7fe4596ba32c426f866682fde8680e6173c5aad6676a16055fc713469823f2",
+        "equalsCommit": true
+      }
+    },
+    "server/native-owner/policy.js": {
+      "commitSha256": "2d245d5438df3a0785d24d06778e3d13947097d2c69ffc9afc2b0f98f02546b2",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "2d245d5438df3a0785d24d06778e3d13947097d2c69ffc9afc2b0f98f02546b2",
+        "equalsCommit": true
+      }
+    },
+    "server/native-owner/rate.js": {
+      "commitSha256": "999b62b1c033a6908d6623c99c95c9f9e621092fb0dbd14485d3dcbf10ccac78",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "999b62b1c033a6908d6623c99c95c9f9e621092fb0dbd14485d3dcbf10ccac78",
+        "equalsCommit": true
+      }
+    },
+    "server/native-participant.js": {
+      "commitSha256": "3b8fc92d907b0107c9f84c0b3296fd78a044cc32a8da78a658e8869745613474",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "3b8fc92d907b0107c9f84c0b3296fd78a044cc32a8da78a658e8869745613474",
+        "equalsCommit": true
+      }
+    },
+    "server/proxy.js": {
+      "commitSha256": "c3df06fad239dc372aca259b2a38e7571dcc5216293cc7f653de42435a817661",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "server/rewards/CATSCAN.md": {
+      "commitSha256": "8a88390eae65c536cfca5f7ca6204201caceb4dc74fea095773f6de140306c2f",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "server/rewards/demanded-inference.js": {
+      "commitSha256": "c21553384ae5e745fa70254e4a380d4bf638d8aa364a435e1a0f31ef56506a7f",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "server/rewards/domain.js": {
+      "commitSha256": "a6fbbaa4a6fa6822f341385673e201fe6d728f672b7dbdb76197914bd5278249",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "server/rewards/engine.js": {
+      "commitSha256": "01b01cee70b87301544c6be6c4a2ae714110adc00233810343cf1780571b1fd6",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "server/rewards/issuance-authority.js": {
+      "commitSha256": "f7d486879bf99fd30d86de80834777b68f3df1bbb95297d0be4e787ec7417399",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "server/rewards/store-contract.js": {
+      "commitSha256": "3eb2576329faf68bf2fe01088bf2fe7247e932aa314699d4f7c3b535b0b26a70",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "server/rewards/stores.js": {
+      "commitSha256": "43d13c11c14beb0885e12d8deed96e53f2d332e9f8a7f464d7fbabe0f87683e8",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    }
+  },
+  "packageAssets": {
+    "changedVendoredEntries": {
+      "artifacts/custody/exchange.d.ts": {
+        "listedSha256": "2c761491f9eb11c78f8bdd1c41e4a9876a3c22964a0e22fe56e9bfa1c875c98b",
+        "equalsCommit": true
+      },
+      "artifacts/custody/exchange.js": {
+        "listedSha256": "08cd3da9eaea0c1c8ed859dec289589239623cd636270664f80874837370553f",
+        "equalsCommit": true
+      },
+      "mesh/index.d.ts": {
+        "listedSha256": "076a91f046310739ebb92a82bca47b5ed612a26a9c51e2bd474fe05a04495f2b",
+        "equalsCommit": true
+      },
+      "mesh/index.js": {
+        "listedSha256": "51573a8f64f80ee6e17214d6098024352b8c71779be79cba501901cd2edd4d32",
+        "equalsCommit": true
+      },
+      "mesh/partitions/partition-preparation-progress.d.ts": {
+        "listedSha256": "0b5724f2a385d5340644b24ca1b1a41b4cfa5002eb7a6b53e8495479cfde7301",
+        "equalsCommit": true
+      },
+      "mesh/partitions/partition-preparation-progress.js": {
+        "listedSha256": "c490e21bed55390de9d590074a90f99977fe2c9f592f21bb73c524825342d521",
+        "equalsCommit": true
+      },
+      "mesh/partitions/signed-resident-factory.d.ts": {
+        "listedSha256": "fd27dced9ba87159a0acd3d0abad93623082f630043caf46d8d2a88b51ba5afe",
+        "equalsCommit": true
+      },
+      "mesh/partitions/signed-resident-factory.js": {
+        "listedSha256": "c64a2817c4b3606bc1ad83420b91440577f4cc5cfeff3a3cebd0a23d80fc4ee5",
+        "equalsCommit": true
+      }
+    },
+    "entriesDifferingFromCommit": [
+      "contracts/config/doppler-generation-contract.d.ts",
+      "contracts/doppler-partitions.d.ts",
+      "contracts/doppler-partitions.provenance.json"
+    ]
+  },
+  "servedProductSessionPassesRequesterIdentity": true,
+  "requesterIdentityCall": "const requesterIdentity = () => swarm.partitions.requesterIdentity();",
+  "chatOpeningCalls": 5,
+  "canonicalConfigurationOpeningsExempt": 1,
+  "previousServedProductSessionPassedIt": false
+}

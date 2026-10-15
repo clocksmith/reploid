@@ -1,0 +1,232 @@
+{
+  "inputCatalogSha256": "8d7e5b94a12b94643ea9911a4befdc78c05c28d4891700024303a7398c29a95c",
+  "outputCatalogSha256": "da43213a0e00bd69d88f0f0c5da60561773704c35b18979ad238bb48d82d2b03",
+  "scope": "Metadata byte preparation only; supplied qualification is not independently recomputed here",
+  "metadata": [
+    {
+      "path": "self/config/model-artifacts/d7abaa224ec64128fb195e238b5ce3b0fabfc00b46406e5d4a0195ff1a03da15.js",
+      "bytes": 1096,
+      "sha256": "d7abaa224ec64128fb195e238b5ce3b0fabfc00b46406e5d4a0195ff1a03da15"
+    },
+    {
+      "path": "self/config/model-manifests/548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db.json",
+      "bytes": 223469,
+      "sha256": "548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db"
+    },
+    {
+      "path": "self/config/model-artifacts/3b27bbd3dc3e51f9d8e11fea6ba306cceaf446242fa5455c08dedeaf96d345f2.json",
+      "bytes": 5405,
+      "sha256": "3b27bbd3dc3e51f9d8e11fea6ba306cceaf446242fa5455c08dedeaf96d345f2"
+    },
+    {
+      "path": "self/config/model-artifacts/8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4.json",
+      "bytes": 9088480,
+      "sha256": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4"
+    },
+    {
+      "path": "self/config/model-artifacts/4404ea6b1516f7ff2e619d50133faefddd20c6298c4987f7e29ac4fcdb3a61d2.wgsl",
+      "bytes": 12757,
+      "sha256": "4404ea6b1516f7ff2e619d50133faefddd20c6298c4987f7e29ac4fcdb3a61d2"
+    },
+    {
+      "path": "self/config/model-artifacts/909aae38aefc27ce6aa1b389756df1ee639310b0936ae121b82b32e19c97c45a.wgsl",
+      "bytes": 18168,
+      "sha256": "909aae38aefc27ce6aa1b389756df1ee639310b0936ae121b82b32e19c97c45a"
+    },
+    {
+      "path": "self/config/model-artifacts/059179f0bb62747bda43dec235fb1f873d22cd068bda37bf478b944e02297ebc.wgsl",
+      "bytes": 622,
+      "sha256": "059179f0bb62747bda43dec235fb1f873d22cd068bda37bf478b944e02297ebc"
+    },
+    {
+      "path": "self/config/model-artifacts/e13bbba70e0c7b9363b5ecf0d38e1f665dff7791d73283f4a6037879a2d33983.wgsl",
+      "bytes": 2428,
+      "sha256": "e13bbba70e0c7b9363b5ecf0d38e1f665dff7791d73283f4a6037879a2d33983"
+    },
+    {
+      "path": "self/config/model-artifacts/838e3c69451d02fee30839fd30621d28d8a0f5861c862a568ca4de72870b0b15.wgsl",
+      "bytes": 2538,
+      "sha256": "838e3c69451d02fee30839fd30621d28d8a0f5861c862a568ca4de72870b0b15"
+    },
+    {
+      "path": "self/config/model-artifacts/8c42f6e7309576313b00fbbd9981ba7551925ff6fee526081c2d393e02e8513d.wgsl",
+      "bytes": 13586,
+      "sha256": "8c42f6e7309576313b00fbbd9981ba7551925ff6fee526081c2d393e02e8513d"
+    },
+    {
+      "path": "self/config/model-artifacts/c7bd9b2d678deec41dee6822d85cb9e3629b0d8d6f95c85874bcfb44caf8651f.wgsl",
+      "bytes": 16479,
+      "sha256": "c7bd9b2d678deec41dee6822d85cb9e3629b0d8d6f95c85874bcfb44caf8651f"
+    },
+    {
+      "path": "self/config/model-artifacts/a500eb8ca2a1ff7d6f19344a4d3ec0c9619ca15455f029aa601921d1917971f3.wgsl",
+      "bytes": 2810,
+      "sha256": "a500eb8ca2a1ff7d6f19344a4d3ec0c9619ca15455f029aa601921d1917971f3"
+    },
+    {
+      "path": "self/config/model-artifacts/57d5326f08951af3389f266fb4ca6f50fc501eb3d6bdb1187fb7f2f3b10b51db.wgsl",
+      "bytes": 6176,
+      "sha256": "57d5326f08951af3389f266fb4ca6f50fc501eb3d6bdb1187fb7f2f3b10b51db"
+    },
+    {
+      "path": "self/config/model-artifacts/ae5a3c159814a141e17100c83061e00b817f00df6a497bf3d6d15496d821e1e7.wgsl",
+      "bytes": 16187,
+      "sha256": "ae5a3c159814a141e17100c83061e00b817f00df6a497bf3d6d15496d821e1e7"
+    },
+    {
+      "path": "self/config/model-artifacts/b20df676b5813f258a5e32eb11cb34ce4e5c2aafc7e4b1e469c07bb861e7522f.wgsl",
+      "bytes": 1139,
+      "sha256": "b20df676b5813f258a5e32eb11cb34ce4e5c2aafc7e4b1e469c07bb861e7522f"
+    },
+    {
+      "path": "self/config/model-artifacts/70c79461d2203d22e7672b65b0b9f6bba297de38b73b476f20bb7afaf05df3f3.wgsl",
+      "bytes": 15446,
+      "sha256": "70c79461d2203d22e7672b65b0b9f6bba297de38b73b476f20bb7afaf05df3f3"
+    },
+    {
+      "path": "self/config/model-artifacts/269fdb694f6e206b6ea77582b29e4b98051f34dbad822a40e22032597fbfbe33.wgsl",
+      "bytes": 12989,
+      "sha256": "269fdb694f6e206b6ea77582b29e4b98051f34dbad822a40e22032597fbfbe33"
+    },
+    {
+      "path": "self/config/model-artifacts/9340014c13ba79ae7d2bebe4ea14f1935e5cb4a9d0df08a3b2cc063b32271e2f.wgsl",
+      "bytes": 13616,
+      "sha256": "9340014c13ba79ae7d2bebe4ea14f1935e5cb4a9d0df08a3b2cc063b32271e2f"
+    },
+    {
+      "path": "self/config/model-artifacts/93af9d61d9ca7e4ddc2d8a6a0152763e7b6d8dc90397543ea33142c99c43744c.wgsl",
+      "bytes": 12893,
+      "sha256": "93af9d61d9ca7e4ddc2d8a6a0152763e7b6d8dc90397543ea33142c99c43744c"
+    },
+    {
+      "path": "self/config/model-artifacts/240cda5577bc57edd48185717ee6a92106053b5c9a6bf48ed691381bae1c816f.wgsl",
+      "bytes": 13107,
+      "sha256": "240cda5577bc57edd48185717ee6a92106053b5c9a6bf48ed691381bae1c816f"
+    },
+    {
+      "path": "self/config/model-artifacts/39c3a1fa41c039c555e3cb7d04648e9d96d3f464bed512e54117a91182478ec4.wgsl",
+      "bytes": 13303,
+      "sha256": "39c3a1fa41c039c555e3cb7d04648e9d96d3f464bed512e54117a91182478ec4"
+    },
+    {
+      "path": "self/config/model-artifacts/f8b06edca9b891aa6759567f0e134a76e6abfae7f9f53464ea767ae9244a9aaa.wgsl",
+      "bytes": 13964,
+      "sha256": "f8b06edca9b891aa6759567f0e134a76e6abfae7f9f53464ea767ae9244a9aaa"
+    },
+    {
+      "path": "self/config/model-artifacts/03555fdcf4d40579145ba174b21da504c50244a1784bcdc6a152e7be5d45d35d.wgsl",
+      "bytes": 12712,
+      "sha256": "03555fdcf4d40579145ba174b21da504c50244a1784bcdc6a152e7be5d45d35d"
+    },
+    {
+      "path": "self/config/model-artifacts/b4e45349165af1de16780482b82500a027c665b07831cdd750296c57202fd2d6.wgsl",
+      "bytes": 12621,
+      "sha256": "b4e45349165af1de16780482b82500a027c665b07831cdd750296c57202fd2d6"
+    },
+    {
+      "path": "self/config/model-artifacts/b99563bbbd7b7a80173990212b2c7907d779bbd37756a7cbd97f2ee8306f7370.wgsl",
+      "bytes": 12679,
+      "sha256": "b99563bbbd7b7a80173990212b2c7907d779bbd37756a7cbd97f2ee8306f7370"
+    },
+    {
+      "path": "self/config/model-artifacts/94ca066eb753a3c48c92ee4530e3f867a59cac4c4b94cf6ce3419daacefe1fcc.wgsl",
+      "bytes": 12921,
+      "sha256": "94ca066eb753a3c48c92ee4530e3f867a59cac4c4b94cf6ce3419daacefe1fcc"
+    },
+    {
+      "path": "self/config/model-artifacts/5d0ab4563118fc92cc701cb8ae8021c630fdd342316d4f31cc0359fab2ed3b43.wgsl",
+      "bytes": 12645,
+      "sha256": "5d0ab4563118fc92cc701cb8ae8021c630fdd342316d4f31cc0359fab2ed3b43"
+    },
+    {
+      "path": "self/config/model-artifacts/e53e0a99d1c793b42ca9e081b793085fca5943b011535fc30b50a28b2fa4c1f2.wgsl",
+      "bytes": 12918,
+      "sha256": "e53e0a99d1c793b42ca9e081b793085fca5943b011535fc30b50a28b2fa4c1f2"
+    },
+    {
+      "path": "self/config/model-artifacts/0402e449b9ff69a5b1a60ad617ea1156f2083d2b80aa4880ceb364c09a8b1239.wgsl",
+      "bytes": 15101,
+      "sha256": "0402e449b9ff69a5b1a60ad617ea1156f2083d2b80aa4880ceb364c09a8b1239"
+    },
+    {
+      "path": "self/config/model-artifacts/a70a7992410f877c0cf795a79eab5e554303790b0b9792c3053d6ba00e795d7d.wgsl",
+      "bytes": 14390,
+      "sha256": "a70a7992410f877c0cf795a79eab5e554303790b0b9792c3053d6ba00e795d7d"
+    },
+    {
+      "path": "self/config/model-artifacts/20623d93648c0216dfc4d122bf8637594d3b5d858f32d023cd9b015e92fea6ae.wgsl",
+      "bytes": 14097,
+      "sha256": "20623d93648c0216dfc4d122bf8637594d3b5d858f32d023cd9b015e92fea6ae"
+    },
+    {
+      "path": "self/config/model-artifacts/af717d6f29a9878af1fa6fcab8dcb647f78101a3ba4873147496cfc4d47577d3.wgsl",
+      "bytes": 16925,
+      "sha256": "af717d6f29a9878af1fa6fcab8dcb647f78101a3ba4873147496cfc4d47577d3"
+    },
+    {
+      "path": "self/config/model-artifacts/36dc4fe9f21e1daedbd0df276a8b139d7119dd9a3129ce8c8c5cc0717ae12fd7.wgsl",
+      "bytes": 14724,
+      "sha256": "36dc4fe9f21e1daedbd0df276a8b139d7119dd9a3129ce8c8c5cc0717ae12fd7"
+    },
+    {
+      "path": "self/config/model-artifacts/f78f0d247fa6a376255b334a4255513f2c8cfd2d8cfecb085caccb9196fbafa5.wgsl",
+      "bytes": 13408,
+      "sha256": "f78f0d247fa6a376255b334a4255513f2c8cfd2d8cfecb085caccb9196fbafa5"
+    },
+    {
+      "path": "self/config/model-artifacts/247997005c27c52f2327c46716c3bb87bac6b5b01e27acce93f3791c56e5b5d8.wgsl",
+      "bytes": 15451,
+      "sha256": "247997005c27c52f2327c46716c3bb87bac6b5b01e27acce93f3791c56e5b5d8"
+    },
+    {
+      "path": "self/config/model-artifacts/634764ad775708050071fc9113a5ecf5efd1c0da99b6e15ccd9f0c4116b65366.wgsl",
+      "bytes": 12654,
+      "sha256": "634764ad775708050071fc9113a5ecf5efd1c0da99b6e15ccd9f0c4116b65366"
+    },
+    {
+      "path": "self/config/model-artifacts/e5c945262f0badc9ae0ce4fdce4f9ac007a1a244dc49f5692d0a4b52490c765f.wgsl",
+      "bytes": 2172,
+      "sha256": "e5c945262f0badc9ae0ce4fdce4f9ac007a1a244dc49f5692d0a4b52490c765f"
+    },
+    {
+      "path": "self/config/model-artifacts/8b1e90e4e34643b523f331e82ae6cc90f4c37e7404a9cb8e1993dbd841e5c733.wgsl",
+      "bytes": 2158,
+      "sha256": "8b1e90e4e34643b523f331e82ae6cc90f4c37e7404a9cb8e1993dbd841e5c733"
+    },
+    {
+      "path": "self/config/model-artifacts/79ea67b45e5793eae28638196fa65dae64c68d2c8fce966602d4adbaa5b1282c.json",
+      "bytes": 52040,
+      "sha256": "79ea67b45e5793eae28638196fa65dae64c68d2c8fce966602d4adbaa5b1282c"
+    },
+    {
+      "path": "self/config/model-artifacts/cc181ca74ffa5858beffd44c5d30f6e9d5afd1438a69b4f69448a8b3bb19ff82.json",
+      "bytes": 63117,
+      "sha256": "cc181ca74ffa5858beffd44c5d30f6e9d5afd1438a69b4f69448a8b3bb19ff82"
+    },
+    {
+      "path": "self/config/model-artifacts/d4a1af868c9369c2b78ffc980f213fe1e5011fbc31258332fa402572273ec4c9.json",
+      "bytes": 63117,
+      "sha256": "d4a1af868c9369c2b78ffc980f213fe1e5011fbc31258332fa402572273ec4c9"
+    },
+    {
+      "path": "self/config/model-artifacts/15df63a85f44bb80d892f21accc393286c59b9cf5611b044a250519110c4e2d2.json",
+      "bytes": 3709,
+      "sha256": "15df63a85f44bb80d892f21accc393286c59b9cf5611b044a250519110c4e2d2"
+    },
+    {
+      "path": "self/config/model-pieces/1fa9d9edc8f978b8c6d1996b944f9dfc897db42fe1c4ae4106f1ca5dc7827bfa.json",
+      "bytes": 94223,
+      "sha256": "1fa9d9edc8f978b8c6d1996b944f9dfc897db42fe1c4ae4106f1ca5dc7827bfa"
+    },
+    {
+      "path": "self/config/model-artifacts/074ad8ac8e847fa960ccf3e06e9d24243348e892f7a7cc78d5879a3662090a77.json",
+      "bytes": 63809,
+      "sha256": "074ad8ac8e847fa960ccf3e06e9d24243348e892f7a7cc78d5879a3662090a77"
+    },
+    {
+      "path": "self/config/model-artifacts/ff29b3204ac0db63ba7ff0f079961c89ab0d4be186049b3fd635606d5505fb80.json",
+      "bytes": 167649,
+      "sha256": "ff29b3204ac0db63ba7ff0f079961c89ab0d4be186049b3fd635606d5505fb80"
+    }
+  ]
+}

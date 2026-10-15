@@ -1,0 +1,260 @@
+{
+ "at": "2026-10-15T05:26:56.702Z",
+ "attemptId": "96a1dcd3-438a-4af7-b8e3-58c7f1787bee",
+ "receipts": [
+  {
+   "identity": {
+    "schema": "reploid.partition-attempt/v2",
+    "threadId": "8b30c60d-595d-417c-a897-9926e94123a7",
+    "attemptId": "96a1dcd3-438a-4af7-b8e3-58c7f1787bee",
+    "requesterId": "peer:ee977034c76c09b97b2539d0",
+    "placementGeneration": 0,
+    "route": {
+     "schema": "reploid.partition-route/v1",
+     "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+     "modelIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+     "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+     "stages": [
+      {
+       "index": 0,
+       "participantId": "peer:6faa6b9ff4ba0747db59a5e7",
+       "transportId": "fb23376a-99ee-416a-b59f-55548b8846e8",
+       "residentId": "fc-run8-stage-0-resident",
+       "executionId": "fc-run8-stage-0-ordinary"
+      },
+      {
+       "index": 1,
+       "participantId": "peer:9af15d884eba51b0c0540e2a",
+       "transportId": "80b63e1d-48d1-4f0c-a146-eeb0d85cef33",
+       "residentId": "fc-run8-stage-1-resident",
+       "executionId": "fc-run8-stage-1-ordinary"
+      },
+      {
+       "index": 2,
+       "participantId": "peer:5f288f6f0259c251a1915c11",
+       "transportId": "3865d3f4-1f90-421b-84df-de25066c858b",
+       "residentId": "fc-run8-stage-2-resident",
+       "executionId": "fc-run8-stage-2-ordinary"
+      }
+     ],
+     "activation": {
+      "schema": "doppler.activation-tensor/v2",
+      "dtype": "f32",
+      "hiddenSize": 1024,
+      "precision": "two-f32",
+      "components": 2,
+      "elementStrideBytes": 8
+     }
+    }
+   },
+   "phase": "cancelled",
+   "reservations": [
+    {
+     "identity": {
+      "schema": "reploid.partition-attempt/v2",
+      "threadId": "8b30c60d-595d-417c-a897-9926e94123a7",
+      "attemptId": "96a1dcd3-438a-4af7-b8e3-58c7f1787bee",
+      "requesterId": "peer:ee977034c76c09b97b2539d0",
+      "placementGeneration": 0,
+      "route": {
+       "schema": "reploid.partition-route/v1",
+       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+       "modelIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+       "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+       "stages": [
+        {
+         "index": 0,
+         "participantId": "peer:6faa6b9ff4ba0747db59a5e7",
+         "transportId": "fb23376a-99ee-416a-b59f-55548b8846e8",
+         "residentId": "fc-run8-stage-0-resident",
+         "executionId": "fc-run8-stage-0-ordinary"
+        },
+        {
+         "index": 1,
+         "participantId": "peer:9af15d884eba51b0c0540e2a",
+         "transportId": "80b63e1d-48d1-4f0c-a146-eeb0d85cef33",
+         "residentId": "fc-run8-stage-1-resident",
+         "executionId": "fc-run8-stage-1-ordinary"
+        },
+        {
+         "index": 2,
+         "participantId": "peer:5f288f6f0259c251a1915c11",
+         "transportId": "3865d3f4-1f90-421b-84df-de25066c858b",
+         "residentId": "fc-run8-stage-2-resident",
+         "executionId": "fc-run8-stage-2-ordinary"
+        }
+       ],
+       "activation": {
+        "schema": "doppler.activation-tensor/v2",
+        "dtype": "f32",
+        "hiddenSize": 1024,
+        "precision": "two-f32",
+        "components": 2,
+        "elementStrideBytes": 8
+       }
+      }
+     },
+     "participantId": "peer:6faa6b9ff4ba0747db59a5e7",
+     "index": 0,
+     "phase": "reserved",
+     "reservedAt": 1792040754195,
+     "settlingAt": null,
+     "settledAt": null,
+     "failure": null,
+     "resources": {
+      "attemptSlots": 1,
+      "maxPromptTokens": 4096,
+      "maxTokens": 4096,
+      "maxActivationBytes": 33554432,
+      "scope": "application-attempt-limits"
+     },
+     "partitionIndex": 0,
+     "status": "reserved"
+    },
+    {
+     "identity": {
+      "schema": "reploid.partition-attempt/v2",
+      "threadId": "8b30c60d-595d-417c-a897-9926e94123a7",
+      "attemptId": "96a1dcd3-438a-4af7-b8e3-58c7f1787bee",
+      "requesterId": "peer:ee977034c76c09b97b2539d0",
+      "placementGeneration": 0,
+      "route": {
+       "schema": "reploid.partition-route/v1",
+       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+       "modelIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+       "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+       "stages": [
+        {
+         "index": 0,
+         "participantId": "peer:6faa6b9ff4ba0747db59a5e7",
+         "transportId": "fb23376a-99ee-416a-b59f-55548b8846e8",
+         "residentId": "fc-run8-stage-0-resident",
+         "executionId": "fc-run8-stage-0-ordinary"
+        },
+        {
+         "index": 1,
+         "participantId": "peer:9af15d884eba51b0c0540e2a",
+         "transportId": "80b63e1d-48d1-4f0c-a146-eeb0d85cef33",
+         "residentId": "fc-run8-stage-1-resident",
+         "executionId": "fc-run8-stage-1-ordinary"
+        },
+        {
+         "index": 2,
+         "participantId": "peer:5f288f6f0259c251a1915c11",
+         "transportId": "3865d3f4-1f90-421b-84df-de25066c858b",
+         "residentId": "fc-run8-stage-2-resident",
+         "executionId": "fc-run8-stage-2-ordinary"
+        }
+       ],
+       "activation": {
+        "schema": "doppler.activation-tensor/v2",
+        "dtype": "f32",
+        "hiddenSize": 1024,
+        "precision": "two-f32",
+        "components": 2,
+        "elementStrideBytes": 8
+       }
+      }
+     },
+     "participantId": "peer:9af15d884eba51b0c0540e2a",
+     "index": 1,
+     "phase": "reserved",
+     "reservedAt": 1792040754450,
+     "settlingAt": null,
+     "settledAt": null,
+     "failure": null,
+     "resources": {
+      "attemptSlots": 1,
+      "maxPromptTokens": 4096,
+      "maxTokens": 4096,
+      "maxActivationBytes": 33554432,
+      "scope": "application-attempt-limits"
+     },
+     "partitionIndex": 1,
+     "status": "reserved"
+    },
+    {
+     "identity": {
+      "schema": "reploid.partition-attempt/v2",
+      "threadId": "8b30c60d-595d-417c-a897-9926e94123a7",
+      "attemptId": "96a1dcd3-438a-4af7-b8e3-58c7f1787bee",
+      "requesterId": "peer:ee977034c76c09b97b2539d0",
+      "placementGeneration": 0,
+      "route": {
+       "schema": "reploid.partition-route/v1",
+       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+       "modelIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+       "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+       "stages": [
+        {
+         "index": 0,
+         "participantId": "peer:6faa6b9ff4ba0747db59a5e7",
+         "transportId": "fb23376a-99ee-416a-b59f-55548b8846e8",
+         "residentId": "fc-run8-stage-0-resident",
+         "executionId": "fc-run8-stage-0-ordinary"
+        },
+        {
+         "index": 1,
+         "participantId": "peer:9af15d884eba51b0c0540e2a",
+         "transportId": "80b63e1d-48d1-4f0c-a146-eeb0d85cef33",
+         "residentId": "fc-run8-stage-1-resident",
+         "executionId": "fc-run8-stage-1-ordinary"
+        },
+        {
+         "index": 2,
+         "participantId": "peer:5f288f6f0259c251a1915c11",
+         "transportId": "3865d3f4-1f90-421b-84df-de25066c858b",
+         "residentId": "fc-run8-stage-2-resident",
+         "executionId": "fc-run8-stage-2-ordinary"
+        }
+       ],
+       "activation": {
+        "schema": "doppler.activation-tensor/v2",
+        "dtype": "f32",
+        "hiddenSize": 1024,
+        "precision": "two-f32",
+        "components": 2,
+        "elementStrideBytes": 8
+       }
+      }
+     },
+     "participantId": "peer:5f288f6f0259c251a1915c11",
+     "index": 2,
+     "phase": "reserved",
+     "reservedAt": 1792040754674,
+     "settlingAt": null,
+     "settledAt": null,
+     "failure": null,
+     "resources": {
+      "attemptSlots": 1,
+      "maxPromptTokens": 4096,
+      "maxTokens": 4096,
+      "maxActivationBytes": 33554432,
+      "scope": "application-attempt-limits"
+     },
+     "partitionIndex": 2,
+     "status": "reserved"
+    }
+   ],
+   "cleanup": [
+    {
+     "partitionIndex": 0,
+     "status": "settled",
+     "error": null
+    },
+    {
+     "partitionIndex": 1,
+     "status": "settled",
+     "error": null
+    },
+    {
+     "partitionIndex": 2,
+     "status": "settled",
+     "error": null
+    }
+   ],
+   "cleanupSettledAt": 1792041669875,
+   "failure": "Partition request cancelled or timed out"
+  }
+ ]
+}

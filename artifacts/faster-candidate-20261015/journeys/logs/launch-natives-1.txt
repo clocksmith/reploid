@@ -1,0 +1,16 @@
+== amd-host-1 fc-run8-amd-native-1-1
+active=active cache=cold
+ActiveEnterTimestamp=Wed 2026-10-14 20:51:07 EDT
+RuntimeMaxUSec=45min
+pids=1050088 
+== amd-host-2 fc-run8-amd-native-2-1
+active=active cache=cold
+ActiveEnterTimestamp=Wed 2026-10-14 20:51:11 EDT
+RuntimeMaxUSec=45min
+pids=1050987 
+{"event":"partition-state","phase":"failed","error":"Resident stage 1 could not create GPU pipeline rmsnorm/paired (rmsnorm_paired.wgsl#main {\"OUTPUT_PRENORM\"
+journal-token-hits 0
+pid 1050088 argv-token-hits 0
+{"event":"partition-state","phase":"failed","error":"Model file escapes approved directory","offering":true,"modelId":"qwen-3-5-0-8b-q4k-ehaf16","unsettledOwner
+journal-token-hits 0
+pid 1050987 argv-token-hits 0

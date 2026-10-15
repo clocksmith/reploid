@@ -1,0 +1,83 @@
+{
+  "schema": "reploid.swarm-ordered-channel-check/v1",
+  "label": "reploid-partitions-ordered",
+  "commit": "5610260a",
+  "copies": {
+    "export packages/reploid/src/transport/swarm.js": {
+      "sha256": "ae1d9239e6b3ef5753aae822ae9fe9be4b888d425b20efd871e0b618f8847579",
+      "channels": [
+        "reploid-custody",
+        "reploid-partitions",
+        "reploid-partitions-input",
+        "reploid-partitions-control",
+        "reploid-jobs",
+        "reploid-partitions-ordered"
+      ],
+      "admitsOrdered": true,
+      "exportsAdmittedLabels": true
+    },
+    "export self/vendor/reploid/transport/swarm.js": {
+      "sha256": "ae1d9239e6b3ef5753aae822ae9fe9be4b888d425b20efd871e0b618f8847579",
+      "channels": [
+        "reploid-custody",
+        "reploid-partitions",
+        "reploid-partitions-input",
+        "reploid-partitions-control",
+        "reploid-jobs",
+        "reploid-partitions-ordered"
+      ],
+      "admitsOrdered": true,
+      "exportsAdmittedLabels": true
+    },
+    "served vendor/reploid/transport/swarm.js": {
+      "sha256": "ae1d9239e6b3ef5753aae822ae9fe9be4b888d425b20efd871e0b618f8847579",
+      "channels": [
+        "reploid-custody",
+        "reploid-partitions",
+        "reploid-partitions-input",
+        "reploid-partitions-control",
+        "reploid-jobs",
+        "reploid-partitions-ordered"
+      ],
+      "admitsOrdered": true,
+      "exportsAdmittedLabels": true
+    },
+    "packaged packages/reploid/src/transport/swarm.js": {
+      "sha256": "ae1d9239e6b3ef5753aae822ae9fe9be4b888d425b20efd871e0b618f8847579",
+      "channels": [
+        "reploid-custody",
+        "reploid-partitions",
+        "reploid-partitions-input",
+        "reploid-partitions-control",
+        "reploid-jobs",
+        "reploid-partitions-ordered"
+      ],
+      "admitsOrdered": true,
+      "exportsAdmittedLabels": true
+    }
+  },
+  "commitBlobs": {
+    "packages/reploid/src/transport/swarm.js": "ae1d9239e6b3ef5753aae822ae9fe9be4b888d425b20efd871e0b618f8847579",
+    "self/vendor/reploid/transport/swarm.js": "ae1d9239e6b3ef5753aae822ae9fe9be4b888d425b20efd871e0b618f8847579"
+  },
+  "packagedModuleExport": [
+    "reploid-custody",
+    "reploid-partitions",
+    "reploid-partitions-input",
+    "reploid-partitions-control",
+    "reploid-jobs",
+    "reploid-partitions-ordered"
+  ],
+  "packagedModuleAdmitsOrdered": true,
+  "servedMatchesCommit": true,
+  "packagedMatchesCommit": true,
+  "previousServedAdmitsOrdered": true,
+  "servedFilesUsingLabel": [
+    "vendor/reploid/mesh/partitions/partition-route-network.js",
+    "vendor/reploid/transport/swarm.js"
+  ],
+  "packagedFilesUsingLabel": [
+    "packages/reploid/src/mesh/partitions/partition-route-network.js",
+    "packages/reploid/src/transport/swarm.js"
+  ]
+}
