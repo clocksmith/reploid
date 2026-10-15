@@ -19,10 +19,14 @@
  * release names an authority and decision; who may hold that authority is
  * decided outside the register, by the owning use's funding-authority port
  * (the ledger's own port for donated credit, which no other component owns).
- * Status derives from validity at read time.
+ * Status derives from validity at read time. A currency commitment's
+ * allocation converts its minor units to credits under the conversion record
+ * in effect and stamps it. Funders use the ledger's one FUNDER_KINDS vocabulary.
  */
 
+import { CONVERSION_REFUSAL_CODES, conversionStamp, convertMinorUnits } from '../conversion/records.js';
 import {
+  FUNDER_KINDS,
   assertId,
   canonicalJson,
   cloneJson,
@@ -30,15 +34,15 @@ import {
   hashCanonical,
   isIsoTime,
   isNonEmptyString,
+  lotFunder,
   sha256Hex,
   toMs
 } from '../domain.js';
 
+export { FUNDER_KINDS };
 export const COMMITMENT_SCHEMA = 'reploid.funding-commitment/v1';
-export const ALLOCATION_SCHEMA = 'reploid.funding-allocation/v1';
-
-// Funder kinds across uses; each use names the kinds it accepts when it allocates.
-export const FUNDING_FUNDER_KINDS = Object.freeze(['operator', 'community', 'donor']);
+// v2 adds `conversion`: the stamped record a currency allocation converted under (null for credits).
+export const ALLOCATION_SCHEMA = 'reploid.funding-allocation/v2';
 /**
  * How each use's credit reaches the ledger. `whole` uses issue one lot of the
  * whole allocation into its named account; reward funding issues subsidized
@@ -59,8 +63,10 @@ export const ALLOCATION_CLOSURES = Object.freeze(['released', 'expired']);
 // Register refusals that are final for the use record that asked.
 export const FUNDING_REFUSAL_CODES = Object.freeze([
   'commitment_not_found', 'commitment_not_yet_valid', 'commitment_expired', 'funder_kind_not_accepted',
-  'allocation_exceeds_commitment', 'allocation_exists', 'invalid_input'
+  'allocation_exceeds_commitment', 'allocation_exists', 'invalid_input', ...CONVERSION_REFUSAL_CODES
 ]);
+// Uses whose allocations the register itself expires; the others expire through their owning component.
+export const REGISTER_EXPIRED_USES = Object.freeze(Object.keys(USE_RULES).filter((use) => USE_RULES[use].ledgerDecided));
 
 const CURRENCY_CODE = /^[A-Z]{3}$/;
 const insert = (collection, id, value) => ({ create: true, collection, id, value });
@@ -112,7 +118,7 @@ const unitKey = (unit) => canonicalJson(unit);
 function validateCommitment(input, { unitName, now }) {
   const errors = [];
   const { commitmentId, funderKind, funderId, externalRef, amount, unit, validFrom, validUntil } = input;
-  if (!FUNDING_FUNDER_KINDS.includes(funderKind)) errors.push(`funderKind must be one of ${FUNDING_FUNDER_KINDS.join(', ')}`);
+  if (!FUNDER_KINDS.includes(funderKind)) errors.push(`funderKind must be one of ${FUNDER_KINDS.join(', ')}`);
   if (!isNonEmptyString(funderId)) errors.push('funderId is required');
   if (!isNonEmptyString(externalRef) || externalRef.length > 512) errors.push('externalRef must name the external commitment (at most 512 characters)');
   if (!isPositiveInteger(amount)) errors.push('amount must be a positive integer in the commitment unit');
@@ -149,8 +155,9 @@ const returnedAmountFor = (allocation, returnedCredits) => (returnedCredits === 
  * idempotent `mutate`. `claimId(kind, key)` names uniqueness claims.
  * `fundingAuthority(request) -> { allowed, reason? }` decides allocations and
  * releases of ledger-decided uses; without it they fail closed.
+ * `conversionInEffect(currency, at)` finds the conversion record in effect.
  */
-export function createFundingRegisterOperations({ backend, policy, clock, mutate, claimId, fundingAuthority = null }) {
+export function createFundingRegisterOperations({ backend, policy, clock, mutate, claimId, conversionInEffect, fundingAuthority = null }) {
   const decide = async (request) => {
     if (typeof fundingAuthority !== 'function') {
       fail('funding_authority_required', `${request.use} allocations and releases need the ledger's funding-authority decision port`);
@@ -161,7 +168,7 @@ export function createFundingRegisterOperations({ backend, policy, clock, mutate
     }
   };
 
-  return {
+  const operations = {
     /** Record one external commitment; its external reference can be recorded only once. */
     async recordFundingCommitment(input = {}) {
       const fields = ['commitmentId', 'funderKind', 'funderId', 'externalRef', 'amount', 'unit', 'validFrom', 'validUntil'];
@@ -214,8 +221,8 @@ export function createFundingRegisterOperations({ backend, policy, clock, mutate
       if (fields.amount !== undefined && !isPositiveInteger(fields.amount)) fail('invalid_input', 'amount must be a positive integer in the commitment unit');
       if (rule.whole) assertId(fields.accountId, 'accountId');
       else if (fields.accountId !== undefined) fail('invalid_input', 'accountId names the issuance account of a whole-issuance allocation only');
-      if (!Array.isArray(funderKinds) || funderKinds.length === 0 || funderKinds.some((kind) => !FUNDING_FUNDER_KINDS.includes(kind))) {
-        fail('invalid_input', `funderKinds must list the funder kinds this use accepts, from ${FUNDING_FUNDER_KINDS.join(', ')}`);
+      if (!Array.isArray(funderKinds) || funderKinds.length === 0 || funderKinds.some((kind) => !FUNDER_KINDS.includes(kind))) {
+        fail('invalid_input', `funderKinds must list the funder kinds this use accepts, from ${FUNDER_KINDS.join(', ')}`);
       }
       const authority = readAuthority(suppliedAuthority, { required: true, what: `a ${fields.use} allocation` });
       const request = { ...fields, authority };
@@ -228,11 +235,15 @@ export function createFundingRegisterOperations({ backend, policy, clock, mutate
       const allocationId = allocationIdFor(request.use, request.useRef);
       const requestHash = hashCanonical(request);
       const now = clock();
+      // A commitment's unit never changes; a currency commitment converts under the record in effect now.
+      const target = await backend.get('commitments', request.commitmentId);
+      const conversion = target?.unit?.kind === 'currency' ? await conversionInEffect(target.unit.currency, now) : null;
       return mutate({
         operation: 'allocateFunding', scopeId: allocationId, idempotencyKey, request: { ...request, funderKinds }, now,
         body: async (tx) => {
           const existing = await tx.get('allocations', allocationId);
           const commitment = await tx.get('commitments', request.commitmentId);
+          const record = conversion ? await tx.get('conversions', conversion.conversionId) : null;
           if (existing) {
             if (existing.requestHash !== requestHash) fail('allocation_exists', 'this use record already holds a different allocation', { allocationId });
             return { result: existing, writes: [] };
@@ -252,6 +263,15 @@ export function createFundingRegisterOperations({ backend, policy, clock, mutate
             fail('invalid_input', 'a currency commitment needs the amount drawn, in its minor units, stated with the credits');
           }
           const amount = credited ? request.credits : request.amount;
+          if (!credited) {
+            if (!record) fail('conversion_unavailable', `no ${commitment.unit.currency} conversion is in effect`, { currency: commitment.unit.currency });
+            const expected = convertMinorUnits(record, amount);
+            if (expected !== request.credits) {
+              fail('conversion_mismatch', `${amount} ${commitment.unit.currency} minor units convert to ${expected} credits under ${record.conversionId}`, {
+                conversionId: record.conversionId, expected, credits: request.credits
+              });
+            }
+          }
           const remaining = commitment.amount - commitment.allocated;
           if (amount > remaining) {
             fail('allocation_exceeds_commitment', 'allocations would exceed the commitment', {
@@ -270,6 +290,7 @@ export function createFundingRegisterOperations({ backend, policy, clock, mutate
             unit: commitment.unit,
             amount,
             credits: request.credits,
+            conversion: credited ? null : conversionStamp(record),
             validUntil: commitment.validUntil,
             requestHash,
             authority,
@@ -368,14 +389,38 @@ export function createFundingRegisterOperations({ backend, policy, clock, mutate
         ? await backend.list('allocations')
         : await backend.list('allocations', { field: 'commitmentId', value: commitmentId });
       return allocations.sort((left, right) => toMs(left.allocatedAt) - toMs(right.allocatedAt) || left.allocationId.localeCompare(right.allocationId));
+    },
+
+    /**
+     * Expire active allocations of ledger-decided uses (donated credit) whose
+     * commitment validity ended, returning what they never issued. Other uses
+     * expire through their owning component, which keeps its own record in
+     * step. Nothing issued is touched; a repeat converges.
+     */
+    async expireAllocations({ limit = 100 } = {}) {
+      if (!Number.isSafeInteger(limit) || limit <= 0) fail('invalid_input', 'limit must be a positive integer');
+      const now = clock();
+      const due = (await backend.list('allocations', { field: 'status', value: 'active' }))
+        .filter((allocation) => REGISTER_EXPIRED_USES.includes(allocation.use) && toMs(now) >= toMs(allocation.validUntil))
+        .sort((left, right) => toMs(left.validUntil) - toMs(right.validUntil) || left.allocationId.localeCompare(right.allocationId))
+        .slice(0, limit);
+      const results = [];
+      for (const { allocationId, issuedCredits } of due) {
+        try {
+          const closed = await operations.releaseFundingAllocation({
+            allocationId, consumedCredits: issuedCredits, closure: 'expired', idempotencyKey: `register-expiry:${allocationId}`
+          });
+          results.push({ allocationId, status: closed.status, returnedCredits: closed.returnedCredits });
+        } catch (error) {
+          results.push({ allocationId, status: 'active', code: error?.code ?? 'expiry_failed' });
+        }
+      }
+      return results;
     }
   };
+  return operations;
 }
 
-// The funder a lot's source names, per provenance; donated sources name only the donor.
-const sourceFunder = (provenance, source) => (provenance === 'donated'
-  ? { funderId: source.donorId, funderKind: null }
-  : { funderId: source.funderId, funderKind: source.funderKind });
 
 /**
  * Inside the issuance transaction of a lot whose provenance draws on the
@@ -392,11 +437,11 @@ export async function drawIssuanceAllocation(tx, { provenance, accountId, amount
   const rule = USE_RULES[use];
   const allocation = await tx.get('allocations', source.allocationId);
   if (!allocation || allocation.use !== use) fail('allocation_not_found', `issuance names no ${use} allocation`, { allocationId: source.allocationId });
-  const funder = sourceFunder(provenance, source);
+  const funder = lotFunder({ provenance, source });
   const matches = allocation.commitmentId === source.commitmentId
     && allocation.useRef === source[rule.ref]
     && allocation.funderId === funder.funderId
-    && (funder.funderKind === null || allocation.funderKind === funder.funderKind)
+    && allocation.funderKind === funder.funderKind
     && (!rule.whole || (allocation.accountId === accountId && allocation.credits === amount));
   if (!matches) fail('allocation_mismatch', 'issuance differs from the allocation it names', { allocationId: allocation.allocationId });
   if (rule.whole) {
@@ -418,20 +463,21 @@ export async function drawIssuanceAllocation(tx, { provenance, accountId, amount
 /**
  * Solvency view of the register. Per commitment unit: committed totals,
  * allocations by use net of returns, and unallocated funding that is
- * available, not yet valid or lapsed. In credits: allocations by use and
- * what the ledger issued against them by use, which equals issued
+ * available, not yet valid or lapsed. In credits, by use and by funder kind:
+ * allocations, and what the ledger issued against them, which equals issued
  * `subsidized`, `community_access` and `donated` credit (the subsidy block's
  * Community Access consumption and subsidized issuance are drawn from them).
  */
 export function summarizeFunding({ commitments, allocations, now }) {
   const byUse = () => Object.fromEntries(FUNDING_USES.map((use) => [use, 0]));
+  const byFunderKind = () => Object.fromEntries(FUNDER_KINDS.map((kind) => [kind, 0]));
   const units = new Map();
   const entryFor = (unit) => {
     const key = unitKey(unit);
     if (!units.has(key)) {
       units.set(key, {
         unit,
-        committed: { total: 0, byFunderKind: Object.fromEntries(FUNDING_FUNDER_KINDS.map((kind) => [kind, 0])) },
+        committed: { total: 0, byFunderKind: byFunderKind() },
         allocated: { total: 0, byUse: byUse() },
         returned: 0,
         unallocated: { available: 0, notYetValid: 0, lapsed: 0 }
@@ -450,18 +496,21 @@ export function summarizeFunding({ commitments, allocations, now }) {
     entry.returned += commitment.returned;
     entry.unallocated[field[status]] += commitment.amount - commitment.allocated;
   }
-  const credits = { total: 0, byUse: byUse() };
-  const issued = { total: 0, byUse: byUse() };
+  const credits = { total: 0, byUse: byUse(), byFunderKind: byFunderKind() };
+  const issued = { total: 0, byUse: byUse(), byFunderKind: byFunderKind() };
   const allocationStatuses = { active: 0, consumed: 0, released: 0, expired: 0 };
   for (const allocation of allocations) {
     const entry = entryFor(allocation.unit);
     const net = allocation.amount - allocation.returnedAmount;
     entry.allocated.total += net;
     entry.allocated.byUse[allocation.use] += net;
-    credits.total += allocation.credits - allocation.returnedCredits;
-    credits.byUse[allocation.use] += allocation.credits - allocation.returnedCredits;
+    const netCredits = allocation.credits - allocation.returnedCredits;
+    credits.total += netCredits;
+    credits.byUse[allocation.use] += netCredits;
+    credits.byFunderKind[allocation.funderKind] += netCredits;
     issued.total += allocation.issuedCredits;
     issued.byUse[allocation.use] += allocation.issuedCredits;
+    issued.byFunderKind[allocation.funderKind] += allocation.issuedCredits;
     allocationStatuses[allocation.status] += 1;
   }
   return {
@@ -474,7 +523,7 @@ export function summarizeFunding({ commitments, allocations, now }) {
 }
 
 export default {
-  FUNDING_FUNDER_KINDS,
+  FUNDER_KINDS,
   FUNDING_USES,
   FUNDING_REFUSAL_CODES,
   createFundingRegisterOperations,

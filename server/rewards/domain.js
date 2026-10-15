@@ -8,6 +8,7 @@
  */
 
 import {
+  FUNDER_KINDS,
   PROVENANCE_KINDS,
   REWARD_CATEGORIES as LEDGER_REWARD_CATEGORIES,
   cloneJson,
@@ -172,8 +173,11 @@ const validateRatio = (ratio, path, errors) => {
 /** Issuance bases and the lot provenance each produces. */
 export const ISSUANCE_BASES = Object.freeze(['settled_demand', 'funded_reservation']);
 export const BASIS_PROVENANCE = Object.freeze({ settled_demand: 'earned', funded_reservation: 'subsidized' });
-// Funder kinds whose commitments may fund subsidized rewards.
-export const FUNDER_KINDS = Object.freeze(['operator', 'community']);
+// Funder kinds, from the ledger's one vocabulary, whose commitments may fund subsidized rewards.
+export const REWARD_FUNDER_KINDS = Object.freeze(['operator', 'community']);
+for (const kind of REWARD_FUNDER_KINDS) {
+  if (!FUNDER_KINDS.includes(kind)) throw new Error(`ledger has no ${kind} funder kind`);
+}
 export const FUNDING_SCHEMA = 'reploid.reward-funding/v2';
 export const FUNDING_USE = 'reward_funding';
 
@@ -208,8 +212,8 @@ export function validateIssuancePolicy(policy) {
   const funded = policy.bases?.funded_reservation;
   if (funded !== undefined) {
     unknownKeys(funded, ['funderKinds'], 'policy.bases.funded_reservation', errors);
-    if (!distinctStrings(funded?.funderKinds) || funded.funderKinds.length === 0 || funded.funderKinds.some((kind) => !FUNDER_KINDS.includes(kind))) {
-      errors.push(`policy.bases.funded_reservation.funderKinds must list distinct funder kinds from ${FUNDER_KINDS.join(', ')}`);
+    if (!distinctStrings(funded?.funderKinds) || funded.funderKinds.length === 0 || funded.funderKinds.some((kind) => !REWARD_FUNDER_KINDS.includes(kind))) {
+      errors.push(`policy.bases.funded_reservation.funderKinds must list distinct funder kinds from ${REWARD_FUNDER_KINDS.join(', ')}`);
     }
   }
   unknownKeys(policy.categoryBases, Object.keys(REWARD_CATEGORIES), 'policy.categoryBases', errors);

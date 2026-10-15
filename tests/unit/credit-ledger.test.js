@@ -4,6 +4,7 @@ import { PRODUCT_ECONOMICS_CONTRACT_ID, validateAccountingPolicy } from '../../s
 import { createFirestoreLedgerStore } from '../../server/ledger/firestore-store.js';
 import { createMemoryLedgerState, createMemoryLedgerStore } from '../../server/ledger/memory-store.js';
 import { LEDGER_STORE_OPERATIONS, validateLedgerStoreContract } from '../../server/ledger/store-contract.js';
+import { conversionAuthority, purchaseSource, unitStamp } from '../helpers/conversion-fixture.js';
 import { createFakeFirestore } from '../helpers/fake-firestore.js';
 
 // Test-only accounting fixture. It is not a product pricing or reward decision.
@@ -38,7 +39,7 @@ const allocate = async (ledger, { commitmentId, funderKind, funderId, credits, .
 const issuanceAuthority = async ({ provenance, amount }) => ({ allowed: true, decisionId: `test-capacity:${provenance}:${amount}` });
 // Test-only funding-authority double for donated-credit allocations; who holds the authority is policy.
 const fundingAuthority = async () => ({ allowed: true });
-const storeOptions = { policy: POLICY, clock, issuanceAuthority, fundingAuthority };
+const storeOptions = { policy: POLICY, clock, issuanceAuthority, fundingAuthority, conversionAuthority };
 
 // Each harness owns durable state; open() models a (re)started process over it.
 const harnesses = {
@@ -119,11 +120,11 @@ const throwsWith = (operation, code) => {
   expect(thrown).toMatchObject({ code });
 };
 
-const fund = (ledger, accountId, amount, purchaseId = `purchase:${accountId}:${amount}`) => ledger.issueCredits({
+const fund = async (ledger, accountId, amount, purchaseId = `purchase:${accountId}:${amount}`) => ledger.issueCredits({
   accountId,
   provenance: 'purchased',
   amount,
-  source: { processor: 'test-processor', purchaseId, confirmationId: `confirm:${purchaseId}`, price: { amountMinor: 1999, currency: 'USD' } },
+  source: await purchaseSource(ledger, clock, { purchaseId, amount }),
   idempotencyKey: `issue:${purchaseId}`
 });
 
@@ -461,12 +462,12 @@ describe.each(Object.keys(harnesses))('credit ledger (%s store)', (kind) => {
     await fund(ledger, 'acct_alice', 200);
     await rejectsWith(ledger.issueCredits({
       accountId: 'acct_alice', provenance: 'purchased', amount: 200,
-      source: { processor: 'test-processor', purchaseId: 'purchase:acct_alice:200', confirmationId: 'confirm:replayed', price: { amountMinor: 1999, currency: 'USD' } },
+      source: { ...await purchaseSource(ledger, clock, { purchaseId: 'purchase:acct_alice:200', amount: 200 }), confirmationId: 'confirm:replayed' },
       idempotencyKey: 'issue:replayed-payment'
     }), 'duplicate_issuance_source');
     await rejectsWith(ledger.issueCredits({
       accountId: 'acct_alice', provenance: 'purchased', amount: 999,
-      source: { processor: 'test-processor', purchaseId: 'purchase:acct_alice:200', confirmationId: 'confirm:x', price: { amountMinor: 1, currency: 'USD' } },
+      source: { ...await purchaseSource(ledger, clock, { purchaseId: 'purchase:acct_alice:200', amount: 1 }), confirmationId: 'confirm:x' },
       idempotencyKey: 'issue:purchase:acct_alice:200'
     }), 'idempotency_conflict');
 
@@ -520,7 +521,7 @@ describe.each(Object.keys(harnesses))('credit ledger (%s store)', (kind) => {
     await earn(ledger, 'acct_alice', 50, 'work:old');
     await rejectsWith(ledger.issueCredits({
       accountId: 'acct_alice', provenance: 'purchased', amount: 10, expiresAt: at(MIN),
-      source: { processor: 'p', purchaseId: 'expiring', confirmationId: 'c', price: { amountMinor: 1, currency: 'USD' } },
+      source: { processor: 'p', purchaseId: 'expiring', confirmationId: 'c', price: { amountMinor: 10, currency: 'USD' }, conversion: await unitStamp(ledger, clock) },
       idempotencyKey: 'issue:expiring'
     }), 'expiry_not_permitted');
     throwsWith(() => validateAccountingPolicy({ ...POLICY, expiry: { days: 365 } }), 'invalid_policy');
@@ -543,7 +544,7 @@ describe.each(Object.keys(harnesses))('credit ledger (%s store)', (kind) => {
     });
     const donated = await ledger.issueCredits({
       accountId: 'acct_alice', provenance: 'donated', amount: 20,
-      source: { donationId: 'donation:1', donorId: 'donor_test', commitmentId: 'commitment:donation:1', allocationId: donation.allocationId },
+      source: { donationId: 'donation:1', funderId: 'donor_test', funderKind: 'donor', commitmentId: 'commitment:donation:1', allocationId: donation.allocationId },
       idempotencyKey: 'issue:donation:1'
     });
     const allocation = await allocate(ledger, {
@@ -556,7 +557,7 @@ describe.each(Object.keys(harnesses))('credit ledger (%s store)', (kind) => {
     });
 
     expect(await ledger.getLot(purchased.lotId)).toMatchObject({
-      provenance: 'purchased', quantity: 40, source: { price: { amountMinor: 1999, currency: 'USD' } }, parentLotId: null
+      provenance: 'purchased', quantity: 40, source: { price: { amountMinor: 40, currency: 'USD' }, conversion: { conversionId: 'conv_test_usd_unit' } }, parentLotId: null
     });
     expect(await ledger.getLot(earned.lotId)).toMatchObject({
       provenance: 'earned', quantity: 30, source: { workId: 'work:1', validationId: 'validation:work:1', outcome: 'accepted' },

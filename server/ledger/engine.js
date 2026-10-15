@@ -9,6 +9,8 @@
  * source, one record per refund id and one reversal per purchased lot. The
  * funding-commitment register (funding/register.js) shares these guarantees:
  * one commitment per external reference and allocations within its total.
+ * Conversion records (conversion/records.js) are append-only; purchased lots
+ * and currency allocations recompute their credits from the record they stamp.
  */
 
 import { randomUUID } from 'node:crypto';
@@ -65,6 +67,7 @@ import {
   sweepReversedLots,
   validateReversalPolicy
 } from './reversals.js';
+import { checkStampedConversion, createConversionOperations } from './conversion/records.js';
 import { ALLOCATED_PROVENANCE, createFundingRegisterOperations, drawIssuanceAllocation, summarizeFunding } from './funding/register.js';
 import { assertLedgerBackend } from './store-contract.js';
 
@@ -106,12 +109,16 @@ const readRequired = async (tx, collection, id, code) => {
  * @param {Function} [options.fundingAuthority] ({ action, use, authority, ... }) -> { allowed, reason? }
  *   for funding-register uses no other component owns (donated credit); who holds that
  *   authority is policy behind the port, and without it those allocations fail closed
+ * @param {Function} [options.conversionAuthority] ({ action: 'publish_conversion', conversionId, currency,
+ *   policyVersion, authority }) -> { allowed, reason? }; who may publish conversion records is policy
+ *   behind the port, and without it publishing fails closed
  */
 export function createLedgerStore({
   backend,
   policy,
   clock = defaultClock,
   createId = defaultCreateId,
+  conversionAuthority = null,
   deviceAuthority = null,
   fundingAuthority = null,
   issuanceAuthority = null,
@@ -121,6 +128,7 @@ export function createLedgerStore({
   assertLedgerBackend(backend);
   if (deviceAuthority !== null && typeof deviceAuthority !== 'function') throw new TypeError('deviceAuthority must be a function');
   if (fundingAuthority !== null && typeof fundingAuthority !== 'function') throw new TypeError('fundingAuthority must be a function');
+  if (conversionAuthority !== null && typeof conversionAuthority !== 'function') throw new TypeError('conversionAuthority must be a function');
   const activePolicy = validateAccountingPolicy(policy);
   const activeReversalPolicy = validateReversalPolicy(reversalPolicy);
   const idempotencyId = (operation, scopeId, key) => sha256Hex(`${operation}\u0000${scopeId}\u0000${key}`);
@@ -226,11 +234,16 @@ export function createLedgerStore({
     };
   };
 
+  const conversions = createConversionOperations({ backend, policy: activePolicy, clock, mutate, conversionAuthority });
+
   const store = {
     kind: backend.kind,
     policy: activePolicy,
 
-    ...createFundingRegisterOperations({ backend, policy: activePolicy, clock, mutate, claimId, fundingAuthority }),
+    ...conversions.operations,
+    ...createFundingRegisterOperations({
+      backend, policy: activePolicy, clock, mutate, claimId, fundingAuthority, conversionInEffect: conversions.conversionInEffect
+    }),
 
     async openAccount(input = {}) {
       assertKnownKeys(input, ['accountId', 'ownerId'], 'openAccount');
@@ -260,7 +273,8 @@ export function createLedgerStore({
      * validated-work reference plus an issuance-authority decision.
      * Subsidized, Community Access and donated credit draw the funding
      * allocation their source names in the same transaction, so the register
-     * counts what each allocation issued. Balances carry no expiry.
+     * counts what each allocation issued. Purchased credit must equal its
+     * price under the conversion record its source stamps. Balances carry no expiry.
      */
     async issueCredits(input = {}) {
       if ('expiresAt' in input || 'expiry' in input) {
@@ -289,6 +303,9 @@ export function createLedgerStore({
           const claim = await tx.get('claims', sourceClaimId);
           if (claim) fail('duplicate_issuance_source', 'this source reference already issued credit', { lotId: claim.lotId, sourceKey });
           const allocationWrite = await drawIssuanceAllocation(tx, { provenance, accountId, amount, source, lotId, now });
+          if (provenance === 'purchased') {
+            await checkStampedConversion(tx, source.conversion, { currency: source.price.currency, amountMinor: source.price.amountMinor, credits: amount, now });
+          }
           const lots = applyIssue(account, { lotId, provenance, amount, now });
           const entry = appendEntry(account, { type: 'issue', amount, lots, refs: { lotId, sourceKey }, now });
           account.updatedAt = now;

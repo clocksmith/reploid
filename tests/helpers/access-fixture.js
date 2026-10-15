@@ -7,6 +7,7 @@ import { createFirestoreLedgerStore } from '../../server/ledger/firestore-store.
 import { createMemoryLedgerState, createMemoryLedgerStore } from '../../server/ledger/memory-store.js';
 import { createFirestoreCommunityAccessBackend, createMemoryCommunityAccessBackend } from '../../server/community-access/stores.js';
 import { createFirestorePaymentBackend, createMemoryPaymentBackend } from '../../server/payments/stores.js';
+import { conversionAuthority } from './conversion-fixture.js';
 import { createFakeFirestore } from './fake-firestore.js';
 
 export const LEDGER_POLICY = Object.freeze({
@@ -66,7 +67,7 @@ export const harnesses = {
     const faults = Object.fromEntries(Object.keys(states).map((name) => [name, { beforeCommit: null, afterCommit: null }]));
     return {
       faults,
-      openLedger: (options) => createMemoryLedgerStore({ state: states.ledger, hooks: memoryHooks(faults.ledger), policy: LEDGER_POLICY, clock, ...options }),
+      openLedger: (options) => createMemoryLedgerStore({ state: states.ledger, hooks: memoryHooks(faults.ledger), policy: LEDGER_POLICY, clock, conversionAuthority, ...options }),
       openPaymentBackend: () => createMemoryPaymentBackend({ state: states.payments, hooks: memoryHooks(faults.payments) }),
       openCommunityBackend: () => createMemoryCommunityAccessBackend({ state: states.community, hooks: memoryHooks(faults.community) })
     };
@@ -75,7 +76,7 @@ export const harnesses = {
     const stores = { ledger: createFakeFirestore(), payments: createFakeFirestore(), community: createFakeFirestore() };
     return {
       faults: Object.fromEntries(Object.entries(stores).map(([name, firestore]) => [name, firestore.faults])),
-      openLedger: (options) => createFirestoreLedgerStore({ firestore: stores.ledger, collectionPrefix: 'test', policy: LEDGER_POLICY, clock, ...options }),
+      openLedger: (options) => createFirestoreLedgerStore({ firestore: stores.ledger, collectionPrefix: 'test', policy: LEDGER_POLICY, clock, conversionAuthority, ...options }),
       openPaymentBackend: () => createFirestorePaymentBackend({ firestore: stores.payments, collectionPrefix: 'test' }),
       openCommunityBackend: () => createFirestoreCommunityAccessBackend({ firestore: stores.community, collectionPrefix: 'test' })
     };

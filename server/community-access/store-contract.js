@@ -9,7 +9,8 @@
 import { assertLedgerBackend } from '../ledger/store-contract.js';
 
 export const COMMUNITY_ACCESS_OPERATIONS = Object.freeze([
-  'recordFunding', 'getFunding', 'resumeFunding', 'requestAccess', 'getRequest', 'describeAvailability', 'admitWaiting', 'getSubsidyReport'
+  'recordFunding', 'getFunding', 'resumeFunding', 'expireQueue', 'requestAccess', 'getRequest', 'describeAvailability', 'admitWaiting',
+  'getSubsidyReport'
 ]);
 
 // Logical collection -> physical collection.

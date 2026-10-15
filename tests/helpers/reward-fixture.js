@@ -11,6 +11,7 @@ import { composeContributionRewards } from '../../server/rewards/engine.js';
 import { REWARD_STORE_OPERATIONS, validateRewardStoreContract } from '../../server/rewards/store-contract.js';
 import { createFirestoreRewardBackend, createMemoryRewardBackend, createMemoryRewardState } from '../../server/rewards/stores.js';
 import { createFakeFirestore } from '../helpers/fake-firestore.js';
+import { conversionAuthority, purchaseSource } from './conversion-fixture.js';
 
 // Test-only fixtures. None of these values is a product price, reward amount,
 // demand share, capacity coverage or eligibility decision.
@@ -119,7 +120,7 @@ export const harnesses = {
         ...composition,
         backend: createMemoryRewardBackend({ state: rewardState, hooks: hooks(faults.reward) }),
         createLedger: ({ issuanceAuthority }) => createMemoryLedgerStore({
-          state: ledgerState, hooks: hooks(faults.ledger), policy: LEDGER_POLICY, clock, issuanceAuthority
+          state: ledgerState, hooks: hooks(faults.ledger), policy: LEDGER_POLICY, clock, issuanceAuthority, conversionAuthority
         }),
         ...overrides
       })
@@ -134,7 +135,7 @@ export const harnesses = {
         ...composition,
         backend: createFirestoreRewardBackend({ firestore: rewardDb, collectionPrefix: 'test' }),
         createLedger: ({ issuanceAuthority }) => createFirestoreLedgerStore({
-          firestore: ledgerDb, collectionPrefix: 'test', policy: LEDGER_POLICY, clock, issuanceAuthority
+          firestore: ledgerDb, collectionPrefix: 'test', policy: LEDGER_POLICY, clock, issuanceAuthority, conversionAuthority
         }),
         ...overrides
       })
@@ -142,11 +143,11 @@ export const harnesses = {
   }
 };
 
-export const fund = (ledger, accountId, amount, purchaseId = `purchase:${accountId}:${amount}`) => ledger.issueCredits({
+export const fund = async (ledger, accountId, amount, purchaseId = `purchase:${accountId}:${amount}`) => ledger.issueCredits({
   accountId,
   provenance: 'purchased',
   amount,
-  source: { processor: 'test-processor', purchaseId, confirmationId: `confirm:${purchaseId}`, price: { amountMinor: 1999, currency: 'USD' } },
+  source: await purchaseSource(ledger, clock, { purchaseId, amount }),
   idempotencyKey: `issue:${purchaseId}`
 });
 

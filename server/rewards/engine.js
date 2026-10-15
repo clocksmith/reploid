@@ -41,8 +41,8 @@ import {
 } from './demanded-inference.js';
 import { ISSUANCE_STATE_ID, createRewardIssuanceAuthority } from './issuance-authority.js';
 import {
-  FUNDER_KINDS,
   FUNDING_SCHEMA,
+  REWARD_FUNDER_KINDS,
   FUNDING_USE,
   OFFER_INPUT_KEYS,
   REWARD_CATEGORIES,
@@ -264,7 +264,7 @@ export function createRewardStore({
       allocation = await ledger.allocateFunding({
         commitmentId: funding.commitmentId, use: FUNDING_USE, useRef: fundingId, credits: funding.amount,
         ...(funding.commitmentAmount === null ? {} : { amount: funding.commitmentAmount }),
-        authority: funding.authority, funderKinds: [...FUNDER_KINDS], idempotencyKey: `reward-funding:${fundingId}`
+        authority: funding.authority, funderKinds: [...REWARD_FUNDER_KINDS], idempotencyKey: `reward-funding:${fundingId}`
       });
     } catch (error) {
       if (!FUNDING_REFUSAL_CODES.includes(error?.code)) throw error;
@@ -329,7 +329,7 @@ export function createRewardStore({
     ...createDeliveryEvidenceOperations({ backend, identity, rewardPolicy, clock }),
 
     /**
-     * Reserve operator or community funding for subsidized rewards as an
+     * Reserve funding of an accepted funder kind for subsidized rewards as an
      * allocation from a commitment in the ledger's funding register; the
      * commitment supplies the funder. A named authority's decision, allowed
      * by the funding-authority port, is recorded on the reservation and its
@@ -454,6 +454,13 @@ export function createRewardStore({
 
     async getOffer(offerId) {
       return backend.get('offers', offerId);
+    },
+
+    /** Accepted contracted-storage and prepared-readiness offers, whose obligations run on a schedule. */
+    async listContracts() {
+      return (await backend.list('offers', { field: 'status', value: 'accepted' }))
+        .filter((offer) => REWARD_CATEGORIES[offer.category]?.contracted)
+        .sort((left, right) => toMs(left.acceptedAt) - toMs(right.acceptedAt) || left.offerId.localeCompare(right.offerId));
     },
 
     /**

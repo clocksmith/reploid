@@ -16,6 +16,7 @@
  */
 
 import {
+  FUNDER_KINDS,
   assertId,
   buildQuote,
   cloneJson,
@@ -30,10 +31,10 @@ import { FUNDING_REFUSAL_CODES } from '../ledger/funding/register.js';
 import { assertLedgerStoreContract } from '../ledger/store-contract.js';
 import {
   ENTRY_SCHEMA,
-  FUNDER_KINDS,
   FUNDING_SCHEMA,
   FUNDING_USE,
   OCCUPANCY_ID,
+  POOL_FUNDER_KINDS,
   POOL_OWNER_ID,
   SUBSIDY_REPORT_SCHEMA,
   entryView,
@@ -72,6 +73,7 @@ const validId = (value) => {
 };
 
 const withTotal = (byKind) => ({ total: Object.values(byKind).reduce((sum, value) => sum + value, 0), byFunderKind: byKind });
+// Reported over the ledger's whole funder vocabulary, whichever kinds pools accept.
 const emptyByFunder = () => Object.fromEntries(FUNDER_KINDS.map((kind) => [kind, 0]));
 
 /**
@@ -280,10 +282,13 @@ export function createCommunityAccess({ backend, ledger, accounts, readCommunity
     return released;
   };
 
-  const expireWaiting = async (now) => {
+  const expireWaiting = async (now, limit = Infinity) => {
+    const due = (await backend.list('entries', { field: 'state', value: 'waiting' }))
+      .filter((entry) => toMs(entry.enqueuedAt) + accessPolicy.queue.maxWaitMs <= toMs(now))
+      .sort((left, right) => toMs(left.enqueuedAt) - toMs(right.enqueuedAt) || left.requestId.localeCompare(right.requestId))
+      .slice(0, limit);
     const expired = [];
-    for (const entry of await backend.list('entries', { field: 'state', value: 'waiting' })) {
-      if (toMs(entry.enqueuedAt) + accessPolicy.queue.maxWaitMs > toMs(now)) continue;
+    for (const entry of due) {
       const { status } = await markUnavailable(entry.requestId, 'queue_wait_exceeded');
       if (status === 'unavailable') expired.push(entry.requestId);
     }
@@ -330,7 +335,7 @@ export function createCommunityAccess({ backend, ledger, accounts, readCommunity
       allocation = await ledger.allocateFunding({
         commitmentId: record.commitmentId, use: FUNDING_USE, useRef: record.fundingId, credits: record.quantity,
         ...(record.commitmentAmount === null ? {} : { amount: record.commitmentAmount }),
-        accountId: record.poolAccountId, authority: record.authority, funderKinds: [...FUNDER_KINDS],
+        accountId: record.poolAccountId, authority: record.authority, funderKinds: [...POOL_FUNDER_KINDS],
         idempotencyKey: `community-allocation:${record.fundingId}`
       });
     } catch (error) {
@@ -397,7 +402,7 @@ export function createCommunityAccess({ backend, ledger, accounts, readCommunity
 
     /**
      * Fund a declared pool account from a commitment in the ledger's funding
-     * register (donor or operator; the commitment supplies the funder) and
+     * register (a POOL_FUNDER_KINDS funder; the commitment supplies it) and
      * issue it as `community_access` credit there, under a named authority's
      * decision allowed by the funding-authority port and recorded on the
      * allocation. Funding never credits a member account. The funding id is
@@ -466,6 +471,16 @@ export function createCommunityAccess({ backend, ledger, accounts, readCommunity
         }
       }
       return results;
+    },
+
+    /**
+     * Queue-wait expiry on its own: waiting requests past the declared wait
+     * leave the queue as unavailable (explicit retry), oldest first, at most
+     * `limit` per call. Only queue entries expire; no balance changes.
+     */
+    async expireQueue({ limit = 100 } = {}) {
+      if (!Number.isSafeInteger(limit) || limit <= 0) fail('invalid_input', 'limit must be a positive integer');
+      return { expired: await expireWaiting(clock(), limit) };
     },
 
     /**

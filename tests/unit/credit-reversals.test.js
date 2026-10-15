@@ -5,16 +5,17 @@ import { LEDGER_STORE_OPERATIONS } from '../../server/ledger/store-contract.js';
 import {
   DAY, MIN, advance, at, clock, composeIssuance, crash, deliver, harnesses, journalShape, rejectsWith, reserve, resetFixture, spend
 } from '../helpers/access-fixture.js';
+import { purchaseSource } from '../helpers/conversion-fixture.js';
 
 // Test-only treatments. Which treatment applies to which kind is an open product decision.
 const DEFICIT_ON_CHARGEBACK = { refund: { spentCredit: 'operator_absorbs' }, chargeback: { spentCredit: 'account_deficit' } };
 const issuanceAuthority = composeIssuance({});
 
-const buy = (ledger, accountId, amount, purchaseId) => ledger.issueCredits({
+const buy = async (ledger, accountId, amount, purchaseId) => ledger.issueCredits({
   accountId,
   provenance: 'purchased',
   amount,
-  source: { processor: 'test-processor', purchaseId, confirmationId: `confirm:${purchaseId}`, price: { amountMinor: 999, currency: 'USD' } },
+  source: await purchaseSource(ledger, clock, { purchaseId, amount }),
   idempotencyKey: `issue:${purchaseId}`
 });
 

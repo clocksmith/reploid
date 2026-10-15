@@ -7,14 +7,15 @@ import { createTestPaymentProcessor } from '../../server/payments/test-processor
 import {
   DAY, MIN, accounts, advance, composeIssuance, crash, fx, harnesses, journalShape, rejectsWith, reserve, resetFixture, spend
 } from '../helpers/access-fixture.js';
+import { publishConversion } from '../helpers/conversion-fixture.js';
 
-// Test-only purchase terms and treatments; not product prices or adopted policy.
+// Test-only purchase terms, rate and treatments; not product prices, rates or adopted policy.
 const PAYMENT_POLICY = Object.freeze({
   policyVersion: 'test-payments/1',
   processorId: 'test-processor',
   topUps: [
-    { topUpId: 'test-topup-a', credits: 100, price: { amountMinor: 999, currency: 'USD' } },
-    { topUpId: 'test-topup-b', credits: 250, price: { amountMinor: 1999, currency: 'USD' } }
+    { topUpId: 'test-topup-a', price: { amountMinor: 999, currency: 'USD' } },
+    { topUpId: 'test-topup-b', price: { amountMinor: 1999, currency: 'USD' } }
   ],
   polling: { minAgeMs: MIN, reversalWatchMs: 30 * DAY }
 });
@@ -46,6 +47,8 @@ describe.each(Object.keys(harnesses))('purchase reconciliation (%s store)', (kin
     open();
     fx.participants.set('peer_alice', 'acct_alice');
     await ledger.openAccount({ accountId: 'acct_alice', ownerId: 'uid_alice' });
+    // 100 credits per 999 minor units, rounded down: top-up a buys 100, top-up b buys 200.
+    await publishConversion(ledger, { conversionId: 'conv_test_usd_a', rate: { credits: 100, perMinorUnits: 999 }, clock: () => new Date(fx.nowMs).toISOString() });
   });
 
   it('implements the payment store contract over explicit one-time top-up policy', () => {
@@ -53,6 +56,9 @@ describe.each(Object.keys(harnesses))('purchase reconciliation (%s store)', (kin
     expect(PAYMENT_STORE_OPERATIONS).toContain('pollPending');
     const withInterval = { ...PAYMENT_POLICY, topUps: [{ ...PAYMENT_POLICY.topUps[0], interval: 'month' }] };
     expect(() => validatePaymentPolicy(withInterval)).toThrow(expect.objectContaining({ code: 'invalid_policy' }));
+    // A top-up names its price; the credits it buys come from the published conversion record.
+    const withCredits = { ...PAYMENT_POLICY, topUps: [{ ...PAYMENT_POLICY.topUps[0], credits: 100 }] };
+    expect(() => validatePaymentPolicy(withCredits)).toThrow(expect.objectContaining({ code: 'invalid_policy' }));
     expect(() => validatePaymentPolicy({ ...PAYMENT_POLICY, polling: undefined })).toThrow(expect.objectContaining({ code: 'invalid_policy' }));
   });
 
@@ -60,7 +66,9 @@ describe.each(Object.keys(harnesses))('purchase reconciliation (%s store)', (kin
     const started = await checkout('buy:1');
     expect(started).toMatchObject({
       phase: 'open', accountId: 'acct_alice', processor: 'test-processor',
-      topUp: { topUpId: 'test-topup-a', credits: 100, price: { amountMinor: 999, currency: 'USD' } },
+      topUp: { topUpId: 'test-topup-a', price: { amountMinor: 999, currency: 'USD' } },
+      credits: 100,
+      quote: { conversionId: 'conv_test_usd_a', currency: 'USD', amountMinor: 999, credits: 100 },
       checkout: { mode: 'one_time' }
     });
     expect(await checkout('buy:1')).toMatchObject({ checkoutId: started.checkoutId, purchaseId: started.purchaseId });
@@ -88,7 +96,10 @@ describe.each(Object.keys(harnesses))('purchase reconciliation (%s store)', (kin
     const unpaid = await checkout('buy:2');
     await rejectsWith(ledger.issueCredits({
       accountId: 'acct_alice', provenance: 'purchased', amount: 100, idempotencyKey: 'mint:unpaid',
-      source: { processor: 'test-processor', purchaseId: unpaid.purchaseId, confirmationId: 'forged', checkoutId: unpaid.checkoutId, price: { amountMinor: 999, currency: 'USD' } }
+      source: {
+        processor: 'test-processor', purchaseId: unpaid.purchaseId, confirmationId: 'forged', checkoutId: unpaid.checkoutId, price: { amountMinor: 999, currency: 'USD' },
+        conversion: { conversionId: unpaid.quote.conversionId, recordHash: unpaid.quote.recordHash }
+      }
     }), 'issuance_not_authorized');
     expect(await purchasedLots()).toMatchObject({ issued: 100, available: 100 });
   });
