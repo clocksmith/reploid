@@ -46,6 +46,44 @@ and the strongest feasible rental/API alternatives on the same frozen arrival
 trace, task quality, context, deadline and permission constraints. The current
 0.8B result neither proves nor disproves Flash-Next economics.
 
+## Strongest hosted alternative and component sizes (added 2026-10-15)
+
+**Hosted API price, unverified against the provider.** A third-party aggregator
+([anotherwrapper](https://anotherwrapper.com/llm-pricing/qwen3.8-flash-next)) lists
+Qwen3.8-Flash-Next at $0.15 per million input tokens and $0.47 per million output
+tokens, attributed to Qwen Cloud; the official page was not opened. If confirmed, a
+100-token answer costs about $0.00005 in output tokens. This is the price to beat,
+not a provider energy measurement.
+
+**Illustrative electricity-only break-even (assumptions, nothing measured).** A host
+drawing P watts at tariff T dollars/kWh and producing R output tokens/s at full
+utilization spends P x T / (3.6 x R) dollars per million output tokens on
+electricity alone. At an assumed 150 W and $0.15/kWh that is 6.25 / R, so matching
+$0.47 needs about 13 tokens/s per host before hardware, idle residency, preparation,
+networking, failures and compensation. The current partitioned 0.8B route decodes at
+about 0.8 tokens/s.
+
+**Where the bytes are (from the pinned `config.json` and safetensors index, 360.0 GB
+bf16 total).** Routed experts: 48 layers x 512 experts x 3 matrices x 2560 x 640 =
+120.8B parameters (about 242 GB bf16, about 60 GB at four bits); 10 experts per token
+per layer, so roughly 2% of them are read per token. The n-gram embedding (layer 1
+PLE, 128 shards; the model card's 51B parameters, about 102 GB bf16) is a row
+lookup: a token reads kilobytes of it. The dense remainder (attention, shared
+experts, embeddings, LM head, MTP) is about 16 GB bf16. Weights-only arithmetic; no
+package exists.
+
+**One large-memory host.** amd-host is a Strix Halo APU with 128 GB unified memory;
+its GPU currently addresses a 0.5 GB VRAM carve-out plus 65.9 GB GTT. Four-bit
+experts plus the dense part fit near that GTT limit if the n-gram table stays in
+host memory, as NVIDIA's recipe does. Raising GTT needs administrator kernel
+settings. Whether one such host serves Flash-Next alone, without collective memory,
+is the first question to answer before claiming the collective-memory cell.
+
+**License.** Qwen Community License 1.0, clause 2: a licensee conducting a Model as
+a Service or AI Work Assistant business needs a separate Qwen license for commercial
+use ([Doppler preparation notes](https://github.com/clocksmith/doppler/blob/main/artifacts/qwen38-flash-next-20261013/README.md)).
+This applies to a Reploid service as much as to a hosted competitor.
+
 ## Intel incident and read-only recovery observation
 
 The retained [incident report](../intel-reliability-20261015/README.md) and its oomd
