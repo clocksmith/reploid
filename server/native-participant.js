@@ -33,6 +33,7 @@ import bootstrap from '../self/config/swarm-bootstrap.json' with { type: 'json' 
 import dopplerPin from '../self/config/doppler-package.json' with { type: 'json' };
 import { resolvePartitionGeneration } from '../self/config/partition-generation.js';
 import { prepareLocalPackRelease } from '../self/pool/pack-release-policy.js';
+import { createChangeOnlyLog } from './native-change-log.js';
 import { snapshotWorkPartitionSelection, createWorkPartitionPlan,
   snapshotWorkPartitionStage, workOrderedResidentOptions, snapshotWorkOrderedParticipation, bindWorkOrderedParticipation } from '../self/host/work-partition-plan.js';
 import { assertWorkResidentCapsule } from '../self/host/work-partition-capsule.js';
@@ -682,6 +683,8 @@ Native GPU execution is qualified on Linux/Vulkan only; --help opens no provider
     settings: await native.readNativeEarningFile(values['earning-config']), identity, ownerAuthorization: { policy: owner.policy, digest: owner.digest },
     storage: native.createNativeEarningStorage(path.join(path.dirname(identityFile), 'earning-state.json')) }))
     .catch(async error => { owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); throw error; }) : null;
+  // Status lines only when their content changes, plus a periodic heartbeat (policy.statusHeartbeatMs).
+  const statusLog = createChangeOnlyLog({ heartbeatMs: policy.statusHeartbeatMs, write: line => console.log(line) });
   const participant = await createNativeParticipant({ model, modelDirectory: values['model-directory'], identity, rtc,
     WebSocket: HostWebSocket, signalingUrl: values['signaling-url'] || bootstrap.signalingUrl,
     roomId: values.room || bootstrap.publicRoomId, roomToken: roomToken || bootstrap.publicJoinMarker,
@@ -691,13 +694,13 @@ Native GPU execution is qualified on Linux/Vulkan only; --help opens no provider
     nativeGpu: () => gpuHost.open(), owner, shaderCache, earning, readiness,
     onCustodyCertificate: certificate => console.log(JSON.stringify({ event: 'custody-certificate', certificate })),
     onChange: state => {
-      console.log(JSON.stringify({ ...summarizeNativePartitionState(state), owner: nativeOwnerStatus(owner) }));
+      statusLog('partition-state', { ...summarizeNativePartitionState(state), owner: nativeOwnerStatus(owner) });
       // A prepared stage is offered for before any route admits it.
       if (earning && state.descriptor?.planId) earning.ensureOffer(state.descriptor).catch(error => console.error('Earning offer deferred:', error.code || error.message));
     } })
     .catch(async error => { owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); throw error; });
-  logNetwork = () => console.log(JSON.stringify({ event: 'network', ...participant.getNetworkState(),
-    files: participant.getFileState({ includeReceipts: false }), owner: participant.getOwnerState() }));
+  logNetwork = () => statusLog('network', { event: 'network', at: new Date().toISOString(), ...participant.getNetworkState(),
+    files: participant.getFileState({ includeReceipts: false }), owner: participant.getOwnerState() });
   if (readiness) observeReadiness = () => readiness.observe(participant.getState());
   // Polling also renews the custody certificate before it expires, and observes readiness even while a partition tick waits.
   const timer = setInterval(() => { participant.announceFiles(); logNetwork(); observeReadiness();
