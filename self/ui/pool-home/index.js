@@ -1,5 +1,6 @@
 /** Shell lifecycle. Sessions belong to the host and outlive individual route views. */
 import { createProductSession } from '../../host/product-session.js';
+import { openBrowserEarning, deferredEarning } from '../../host/credits/browser.js';
 import { getPeerRoomId, getPeerRoomBusFactory, getOrderedParticipation } from '../../host/product-context.js';
 import { getCurrentReploidStorage } from '../../instance.js';
 import { resolveRtcConfig } from '../../pool/p2p-transport.js';
@@ -33,7 +34,13 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
       console.warn('[Reploid] Could not read changes awaiting review', error);
     }
   };
-  const openedHost = createProductSession({ storage, operationNetwork, canonical, ordered,
+  // The earning loop opens beside the session: off unless this page's server publishes it.
+  const earningOpening = openBrowserEarning({ storage }).catch(error => {
+    console.warn('[Reploid] Credits are unavailable', error);
+    return null;
+  });
+  const openedHost = createProductSession({ storage, operationNetwork, canonical, ordered, earning: deferredEarning(earningOpening),
+    participantIdentity: async () => (await earningOpening)?.identity ?? null,
     networkOptions: () => ({ roomId: getPeerRoomId(), roomBusFactory: getPeerRoomBusFactory(), rtcConfig: resolveRtcConfig() }),
     onChanges: refreshChanges,
     onDocuments: state => { if (!disposed) specialists?.updateDocumentView(mount, state); },
@@ -81,7 +88,7 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
       mount.querySelector('.pool-home').insertAdjacentHTML('afterbegin', renderNav(routeId));
       const inspectorRoot = document.createElement('div'); inspectorRoot.dataset.shellInspector = '';
       inspectorRoot.innerHTML = renderNetworkInspector(); mount.querySelector('.pool-home').append(inspectorRoot);
-      inspector = bindNetworkInspector(inspectorRoot, host.chat, { getInviteUrl: () => host.swarm.getInviteUrl(), webSearch: host.webSearch,
+      inspector = bindNetworkInspector(inspectorRoot, host.chat, { getInviteUrl: () => host.swarm.getInviteUrl(), webSearch: host.webSearch, earning: earningOpening,
         loadSpecialized: async target => {
           const operations = await import('./operation-sharing.js'); sharingView = operations;
           target.innerHTML = operations.renderOperationSharing();

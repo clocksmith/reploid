@@ -57,7 +57,8 @@ export function createEarningAttempts({ client, quoteRequest, authorizeSpending,
     const accepted = await client.send({ opId: `accept:${quote.quoteId}`, path: `/quotes/${encodeURIComponent(quote.quoteId)}/accept`,
       body: { quoteHash: quote.quoteHash }, durable: false });
     return { threadId: request.threadId, reservationId: accepted.reservationId, quoteId: quote.quoteId, authorizedMax: accepted.authorizedMax,
-      deadline: quote.service.deadline, maxAttempts: quote.terms.execution.maxAttempts, evidence: quote.terms.evidence !== undefined,
+      deadline: quote.service.deadline, firstOutputDeadline: quote.service.firstOutputDeadline ?? null,
+      maxAttempts: quote.terms.execution.maxAttempts, evidence: quote.terms.evidence !== undefined,
       attempts: [], lastAttemptId: null, status: 'open', retryable: false };
   }
 
@@ -105,6 +106,10 @@ export function createEarningAttempts({ client, quoteRequest, authorizeSpending,
     const deadline = new AbortController();
     const cancelTimer = setTimer(() => deadline.abort(Object.assign(new Error('The quoted deadline passed'), { code: 'QUOTE_DEADLINE' })),
       Date.parse(thread.deadline) - now());
+    // A quote may also promise the first output by a time; no output by then stops the attempt at that quoted deadline.
+    let cancelFirstOutput = thread.firstOutputDeadline ? setTimer(() => deadline.abort(Object.assign(new Error('The quoted first-output deadline passed'),
+      { code: 'QUOTE_FIRST_OUTPUT_DEADLINE' })), Date.parse(thread.firstOutputDeadline) - now()) : () => {};
+    const firstOutput = () => { cancelFirstOutput(); cancelFirstOutput = () => {}; };
     const signal = controls.signal ? AbortSignal.any([controls.signal, deadline.signal]) : deadline.signal;
     const wrapped = {
       ...controls,
@@ -138,6 +143,10 @@ export function createEarningAttempts({ client, quoteRequest, authorizeSpending,
       onState(envelope) {
         if (envelope?.execution?.identity) identity = structuredClone(envelope.execution.identity);
         return controls.onState?.(envelope);
+      },
+      onDelta(envelope) {
+        firstOutput();
+        return controls.onDelta?.(envelope);
       },
       onActivity(envelope) {
         if (envelope?.schema === 'reploid.partition-activity/v1') {
@@ -173,7 +182,7 @@ export function createEarningAttempts({ client, quoteRequest, authorizeSpending,
           : { result: 'failed', failure: { code: typeof error?.code === 'string' && /^[A-Za-z][A-Za-z0-9_.-]{0,63}$/.test(error.code) ? error.code : 'EXECUTION_FAILED' } };
       await settleThread(threadId, thread, attemptId, await report(thread, attemptId, { schema: REPORT_SCHEMA, attemptId, identity, ...body, ...evidenceOf() }));
       throw error;
-    } finally { cancelTimer(); }
+    } finally { cancelTimer(); firstOutput(); }
   }
 
   return Object.freeze({

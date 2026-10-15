@@ -8,6 +8,7 @@ import { escapeHtml as escape } from '../components/attachments.js';
 import { projectExecutionRibbon, routeMarkup, detailMarkup } from './execution-ribbon.js';
 import { renderRemotePermissionSettings, updateRemotePermissionSettings } from './remote-permission.js';
 import { renderWebSearchSettings, bindWebSearchSettings } from './web-search-settings.js';
+import { renderAccountPanel, bindAccountPanel } from './account-panel.js';
 
 export function renderNetworkInspector() {
   return `<aside class="chat-network-rail pool-surface" data-network-rail aria-label="Network and settings">
@@ -36,7 +37,7 @@ export function renderNetworkInspector() {
       <button class="pool-button" type="button" data-model-setup>Run on this device</button>
       <details data-specialized-jobs><summary>Specialized model jobs</summary><div data-specialized-content></div></details>
     </section>
-    <section class="pool-stack pool-gap-lg" data-inspector-pane="settings" aria-label="Settings" hidden>${renderRemotePermissionSettings()}${renderWebSearchSettings()}</section>
+    <section class="pool-stack pool-gap-lg" data-inspector-pane="settings" aria-label="Settings" hidden>${renderAccountPanel()}${renderRemotePermissionSettings()}${renderWebSearchSettings()}</section>
     <p data-network-message role="status" hidden></p><p data-inspector-error role="alert" hidden></p>
   </dialog></aside>
   <dialog class="chat-model-setup pool-surface pool-small" data-model-dialog aria-labelledby="model-setup-title">
@@ -47,7 +48,7 @@ export function renderNetworkInspector() {
   </dialog>`;
 }
 
-export function bindNetworkInspector(root, session, { getInviteUrl, loadSpecialized, webSearch = null } = {}) {
+export function bindNetworkInspector(root, session, { getInviteUrl, loadSpecialized, webSearch = null, earning = null } = {}) {
   const rail = root.querySelector('[data-network-rail]');
   const find = selector => rail.querySelector(selector) || root.querySelector(selector);
   const panel = find('[data-contextual-inspector]');
@@ -153,6 +154,8 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     }
   });
   const disposeWebSearch = bindWebSearchSettings(rail, webSearch);
+  // Credits appear only when the page's server publishes an earning service (host/credits/browser.js).
+  const disposeAccount = bindAccountPanel(rail, earning);
   return {
     mountRail(panelSlot, triggerSlot, onOpen) {
       if (!panelSlot || !triggerSlot) return () => {};
@@ -176,6 +179,6 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     },
     open(section = 'participants', opener) { select(section); dialog.open(panel.querySelector(`[data-inspector-section="${section}"]`), opener); },
     close: options => dialog.close(options),
-    dispose() { disposed = true; disposeWebSearch(); metadataController?.abort(); controller.abort(); unsubscribe(); network(); modelDialog.dispose(); dialog.dispose(); if (typeof specialized === 'function') specialized(); }
+    dispose() { disposed = true; disposeWebSearch(); disposeAccount(); metadataController?.abort(); controller.abort(); unsubscribe(); network(); modelDialog.dispose(); dialog.dispose(); if (typeof specialized === 'function') specialized(); }
   };
 }

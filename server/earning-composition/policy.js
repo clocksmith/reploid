@@ -13,7 +13,8 @@
  *   conversions   { authority: { actorId, decisionId }, records: [conversion record] }
  *   payments      { policyVersion, topUps, polling } (the processor id comes from the configured processor)
  *   funding       { authorities: [actorId] }   who may allocate registered funding
- *   services      [quote template]   what a quote offers per model, and its deadline
+ *   services      [quote template]   what a quote offers per model, its complete-answer deadline and an
+ *                                    optional first-output deadline (both relative to quote time)
  *   offers        [offer template]   what a contribution offer pays per category and model
  *   communityAccess   optional Community Access policy
  */
@@ -73,8 +74,13 @@ function checkServices(services, errors) {
     if (entry?.service?.model?.modelId !== undefined && entry.service.model.modelId !== request?.modelId) {
       errors.push(`${label}.service.model.modelId must equal the request's modelId`);
     }
-    unknown(entry?.deadlines, ['completeMs'], `${label}.deadlines`, errors);
+    unknown(entry?.deadlines, ['firstOutputMs', 'completeMs'], `${label}.deadlines`, errors);
     if (!isPositiveInteger(entry?.deadlines?.completeMs)) errors.push(`${label}.deadlines.completeMs must be a positive integer of milliseconds`);
+    const firstOutputMs = entry?.deadlines?.firstOutputMs;
+    if (firstOutputMs !== undefined && (!isPositiveInteger(firstOutputMs) || !(firstOutputMs < entry.deadlines.completeMs))) {
+      errors.push(`${label}.deadlines.firstOutputMs must be a positive integer of milliseconds below completeMs`);
+    }
+    if (entry?.service && 'firstOutputDeadline' in entry.service) errors.push(`${label}.service.firstOutputDeadline comes from deadlines.firstOutputMs at quote time`);
     if (!isObject(entry?.pricing)) errors.push(`${label}.pricing is required`);
     if (!isObject(entry?.terms)) errors.push(`${label}.terms is required`);
     if (entry?.terms && 'validUntil' in entry.terms) errors.push(`${label}.terms.validUntil comes from terms.validForMs at quote time`);
