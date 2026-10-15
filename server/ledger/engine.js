@@ -1,0 +1,625 @@
+/**
+ * @fileoverview Credit-ledger operations over a transactional document backend.
+ *
+ * Each mutation commits its idempotency record, balance change, journal
+ * entries and uniqueness claims in one backend transaction, or nothing.
+ * A duplicate delivery returns the stored result. A replay under a new key is
+ * rejected by canonical identity: one acceptance per quote, one settlement per
+ * reservation, one economic effect per billable event, one lot per issuance
+ * source and one record per refund id.
+ */
+
+import { randomUUID } from 'node:crypto';
+
+import {
+  LOT_SCHEMA,
+  MAX_QUOTE_ID_LENGTH,
+  REFUND_AUTHORITIES,
+  REFUND_SCHEMA,
+  assertId,
+  assertIdempotencyKey,
+  buildQuote,
+  canonicalJson,
+  cloneJson,
+  evaluateFormula,
+  fail,
+  hashCanonical,
+  isNonEmptyString,
+  lotIdForSource,
+  sha256Hex,
+  sourceClaimKey,
+  toMs,
+  validateAccountingPolicy,
+  validateIssuanceSource
+} from './domain.js';
+import {
+  appendEntry,
+  applyIssue,
+  applyRefund,
+  applyReserve,
+  applySettle,
+  assertAccountConsistent,
+  bindAttemptTransition,
+  buildSettlementRecord,
+  closeAttemptTransition,
+  decideReview,
+  decideSettlement,
+  isReservationExpired,
+  newAccount,
+  newReservation,
+  newReview,
+  replayJournal,
+  settlementIdForReservation,
+  summarizeAccount,
+  summarizeBalance,
+  summarizeSolvency
+} from './transitions.js';
+import { assertLedgerBackend } from './store-contract.js';
+
+const defaultClock = () => new Date().toISOString();
+const defaultCreateId = (prefix) => `${prefix}_${randomUUID()}`;
+const insert = (collection, id, value) => ({ create: true, collection, id, value });
+const put = (collection, id, value) => ({ create: false, collection, id, value });
+
+const assertKnownKeys = (input, allowed, operation) => {
+  const unknown = Object.keys(input || {}).filter((key) => !allowed.includes(key));
+  if (unknown.length) fail('invalid_input', `${operation} does not accept: ${unknown.join(', ')}`, { unknown });
+};
+
+const pick = (input, keys) => Object.fromEntries(keys.filter((key) => input[key] !== undefined).map((key) => [key, input[key]]));
+
+const applyWrites = (tx, writes) => {
+  for (const write of writes) {
+    if (write.collection === 'accounts') assertAccountConsistent(write.value);
+    if (write.create) tx.create(write.collection, write.id, write.value);
+    else tx.set(write.collection, write.id, write.value);
+  }
+};
+
+const readRequired = async (tx, collection, id, code) => {
+  const record = await tx.get(collection, id);
+  if (!record) fail(code, `${collection} record ${id} was not found`, { id });
+  return record;
+};
+
+/**
+ * @param {object} options
+ * @param {object} options.backend transactional document backend (see store-contract.js)
+ * @param {object} options.policy explicit accounting policy; there is no default
+ * @param {Function} [options.issuanceAuthority] capacity-aware issuance decision port;
+ *   required for earned credit, consulted for every issuance when supplied
+ */
+export function createLedgerStore({
+  backend,
+  policy,
+  clock = defaultClock,
+  createId = defaultCreateId,
+  issuanceAuthority = null
+} = {}) {
+  assertLedgerBackend(backend);
+  const activePolicy = validateAccountingPolicy(policy);
+  const idempotencyId = (operation, scopeId, key) => sha256Hex(`${operation}\u0000${scopeId}\u0000${key}`);
+  const claimId = (kind, key) => sha256Hex(`${kind}\u0000${key}`);
+
+  const priorResult = (record, requestHash, operation) => {
+    if (!record) return null;
+    if (record.requestHash !== requestHash) {
+      fail('idempotency_conflict', 'idempotency key was already used with a different request', { operation });
+    }
+    return { result: cloneJson(record.result) };
+  };
+
+  const lookupIdempotent = async ({ operation, scopeId, idempotencyKey, request }) => priorResult(
+    await backend.get('idempotency', idempotencyId(operation, scopeId, idempotencyKey)),
+    hashCanonical({ operation, request }),
+    operation
+  );
+
+  const mutate = ({ operation, scopeId, idempotencyKey, request, now, body }) => {
+    assertIdempotencyKey(idempotencyKey);
+    const requestHash = hashCanonical({ operation, request });
+    const recordId = idempotencyId(operation, scopeId, idempotencyKey);
+    return backend.runTransaction(async (tx) => {
+      const prior = priorResult(await tx.get('idempotency', recordId), requestHash, operation);
+      if (prior) return prior.result;
+      const { result, writes } = await body(tx);
+      applyWrites(tx, writes);
+      tx.create('idempotency', recordId, { operation, scopeId, idempotencyKey, requestHash, result, recordedAt: now });
+      return cloneJson(result);
+    });
+  };
+
+  const authorizeIssuance = async (request) => {
+    if (typeof issuanceAuthority !== 'function') {
+      if (request.provenance === 'earned') {
+        fail('issuance_authority_required', 'earned credit requires a capacity-aware issuance authority');
+      }
+      return null;
+    }
+    const decision = await issuanceAuthority(cloneJson(request));
+    if (decision?.allowed !== true || !isNonEmptyString(decision.decisionId)) {
+      fail('issuance_not_authorized', 'issuance authority declined this issuance', { reason: decision?.reason ?? null });
+    }
+    return { decisionId: decision.decisionId, limitId: decision.limitId ?? null };
+  };
+
+  // Charge per accepted terms, release the rest, and close the reservation.
+  const finalize = ({ account, reservation, decision, charge, input, review, now }) => {
+    const { charged, released } = applySettle(account, reservation.draws, charge);
+    const settlementId = settlementIdForReservation(reservation.reservationId);
+    const refs = {
+      quoteId: reservation.quoteId,
+      reservationId: reservation.reservationId,
+      settlementId,
+      billableEventId: input?.billableEventId ?? null
+    };
+    const entries = [];
+    if (charge > 0) entries.push(appendEntry(account, { type: 'charge', amount: charge, lots: charged, refs, now }));
+    const releasedAmount = reservation.authorizedMax - charge;
+    if (releasedAmount > 0) entries.push(appendEntry(account, { type: 'release', amount: releasedAmount, lots: released, refs, now }));
+    const record = buildSettlementRecord({ reservation, ...decision, charge, charged, released, input, review, now });
+    const attempt = decision.attempt
+      ? reservation.attempts.find((entry) => entry.attemptId === decision.attempt.attemptId)
+      : null;
+    if (attempt?.status === 'bound') Object.assign(attempt, { status: 'settled', closedAt: now });
+    reservation.status = decision.outcome === 'expired' ? 'expired' : 'settled';
+    reservation.settlement = record;
+    reservation.updatedAt = now;
+    account.updatedAt = now;
+    return {
+      record,
+      writes: [
+        ...entries.map((entry) => insert('journal', entry.entryId, entry)),
+        put('accounts', account.accountId, account),
+        put('reservations', reservation.reservationId, reservation)
+      ]
+    };
+  };
+
+  const store = {
+    kind: backend.kind,
+    policy: activePolicy,
+
+    async openAccount(input = {}) {
+      assertKnownKeys(input, ['accountId', 'ownerId'], 'openAccount');
+      const { accountId, ownerId } = input;
+      assertId(accountId, 'accountId');
+      if (!isNonEmptyString(ownerId)) fail('invalid_input', 'ownerId must name the authenticated account owner');
+      const now = clock();
+      return backend.runTransaction(async (tx) => {
+        const existing = await tx.get('accounts', accountId);
+        if (existing) {
+          if (existing.ownerId !== ownerId) fail('account_exists', 'account belongs to a different owner', { accountId });
+          return summarizeAccount(existing);
+        }
+        const account = newAccount({ accountId, ownerId, now });
+        tx.create('accounts', accountId, account);
+        return summarizeAccount(account);
+      });
+    },
+
+    async getAccount(accountId) {
+      const account = await backend.get('accounts', accountId);
+      return account ? summarizeAccount(account) : null;
+    },
+
+    /**
+     * Mint a lot from an explicit source reference. Earned credit needs a
+     * validated-work reference plus an issuance-authority decision; balances
+     * carry no expiry.
+     */
+    async issueCredits(input = {}) {
+      if ('expiresAt' in input || 'expiry' in input) {
+        fail('expiry_not_permitted', 'earned and purchased balances never expire');
+      }
+      assertKnownKeys(input, ['accountId', 'provenance', 'amount', 'source', 'idempotencyKey'], 'issueCredits');
+      const { accountId, provenance, amount, idempotencyKey } = input;
+      assertId(accountId, 'accountId');
+      if (!Number.isSafeInteger(amount) || amount <= 0) fail('invalid_input', 'amount must be a positive integer quantity');
+      const source = validateIssuanceSource(provenance, input.source);
+      assertIdempotencyKey(idempotencyKey);
+      const request = { accountId, provenance, amount, source };
+      const operation = 'issueCredits';
+      const prior = await lookupIdempotent({ operation, scopeId: accountId, idempotencyKey, request });
+      if (prior) return prior.result;
+      const issuance = await authorizeIssuance(request);
+      const sourceKey = sourceClaimKey(provenance, source);
+      const lotId = lotIdForSource(sourceKey);
+      const sourceClaimId = claimId('issuance_source', sourceKey);
+      const now = clock();
+      return mutate({
+        operation, scopeId: accountId, idempotencyKey, request, now,
+        body: async (tx) => {
+          const account = await readRequired(tx, 'accounts', accountId, 'account_not_found');
+          const claim = await tx.get('claims', sourceClaimId);
+          if (claim) fail('duplicate_issuance_source', 'this source reference already issued credit', { lotId: claim.lotId, sourceKey });
+          const lots = applyIssue(account, { lotId, provenance, amount, now });
+          const entry = appendEntry(account, { type: 'issue', amount, lots, refs: { lotId, sourceKey }, now });
+          account.updatedAt = now;
+          const lot = {
+            schema: LOT_SCHEMA,
+            lotId,
+            accountId,
+            originAccountId: accountId,
+            parentLotId: null,
+            provenance,
+            quantity: amount,
+            source,
+            sourceKey,
+            issuance,
+            issuedAt: now
+          };
+          return {
+            result: { lotId, accountId, provenance, quantity: amount, sourceKey, entrySeq: entry.seq, balance: summarizeBalance(account) },
+            writes: [
+              insert('claims', sourceClaimId, { kind: 'issuance_source', key: sourceKey, lotId, accountId, recordedAt: now }),
+              insert('lots', lotId, lot),
+              insert('journal', entry.entryId, entry),
+              put('accounts', accountId, account)
+            ]
+          };
+        }
+      });
+    },
+
+    async getLot(lotId) {
+      return backend.get('lots', lotId);
+    },
+
+    async createQuote(input = {}) {
+      const { idempotencyKey, ...request } = input;
+      assertId(request.accountId, 'accountId');
+      assertIdempotencyKey(idempotencyKey);
+      const operation = 'createQuote';
+      const prior = await lookupIdempotent({ operation, scopeId: request.accountId, idempotencyKey, request });
+      if (prior) return prior.result;
+      const quoteId = request.quoteId ?? createId('quote');
+      assertId(quoteId, 'quoteId', MAX_QUOTE_ID_LENGTH);
+      const now = clock();
+      const quote = { ...buildQuote({ ...request, quoteId }, { policy: activePolicy, now }), status: 'offered', reservationId: null, acceptedAt: null };
+      return mutate({
+        operation, scopeId: request.accountId, idempotencyKey, request, now,
+        body: async (tx) => {
+          await readRequired(tx, 'accounts', request.accountId, 'account_not_found');
+          if (await tx.get('quotes', quoteId)) fail('quote_exists', 'quote id is already in use', { quoteId });
+          return { result: quote, writes: [insert('quotes', quoteId, quote)] };
+        }
+      });
+    },
+
+    async getQuote(quoteId) {
+      return backend.get('quotes', quoteId);
+    },
+
+    /**
+     * Accept exactly the stored terms and hold the authorized maximum. Spending
+     * authorization never adds a per-request disclosure review.
+     */
+    async acceptQuote(input = {}) {
+      assertKnownKeys(input, ['quoteId', 'accountId', 'quoteHash', 'deviceId', 'idempotencyKey'], 'acceptQuote');
+      const { quoteId, accountId, quoteHash, deviceId, idempotencyKey } = input;
+      assertId(quoteId, 'quoteId', MAX_QUOTE_ID_LENGTH);
+      assertId(accountId, 'accountId');
+      if (!isNonEmptyString(quoteHash)) fail('invalid_input', 'quoteHash must name the accepted terms');
+      if (!isNonEmptyString(deviceId)) fail('invalid_input', 'deviceId is required');
+      const request = { quoteId, accountId, quoteHash, deviceId };
+      const now = clock();
+      return mutate({
+        operation: 'acceptQuote', scopeId: accountId, idempotencyKey, request, now,
+        body: async (tx) => {
+          const quote = await readRequired(tx, 'quotes', quoteId, 'quote_not_found');
+          const account = await readRequired(tx, 'accounts', accountId, 'account_not_found');
+          if (quote.accountId !== accountId) fail('quote_account_mismatch', 'quote was issued to a different account');
+          if (quote.status !== 'offered') {
+            fail('quote_already_accepted', 'quote was already accepted; a replacement needs a new quote', { reservationId: quote.reservationId });
+          }
+          if (quote.quoteHash !== quoteHash) fail('quote_terms_mismatch', 'accepted terms differ from the stored quote');
+          if (toMs(now) >= toMs(quote.terms.validUntil)) fail('quote_expired', 'quote validity window has ended', { validUntil: quote.terms.validUntil });
+          if (quote.accountingVersion !== activePolicy.accountingVersion) {
+            fail('accounting_version_changed', 'quote was issued under a different accounting version; request a new quote');
+          }
+          const draws = applyReserve(account, quote.pricing.maxCharge, activePolicy.lotConsumptionOrder);
+          const reservation = newReservation({ quote, deviceId, draws, now });
+          const writes = [];
+          if (draws.length) {
+            const entry = appendEntry(account, {
+              type: 'reserve', amount: quote.pricing.maxCharge, lots: draws,
+              refs: { quoteId, reservationId: reservation.reservationId }, now
+            });
+            writes.push(insert('journal', entry.entryId, entry));
+          }
+          account.updatedAt = now;
+          Object.assign(quote, { status: 'accepted', reservationId: reservation.reservationId, acceptedAt: now, acceptedByDeviceId: deviceId });
+          writes.push(
+            put('quotes', quoteId, quote),
+            insert('reservations', reservation.reservationId, reservation),
+            put('accounts', accountId, account)
+          );
+          return {
+            result: {
+              reservationId: reservation.reservationId,
+              quoteId,
+              quoteHash,
+              authorizedMax: reservation.authorizedMax,
+              acceptedAt: now,
+              expiresAt: reservation.expiresAt,
+              deviceId,
+              balance: summarizeBalance(account)
+            },
+            writes
+          };
+        }
+      });
+    },
+
+    async bindAttempt(input = {}) {
+      assertKnownKeys(input, ['reservationId', 'attemptId', 'recipients', 'idempotencyKey'], 'bindAttempt');
+      const { reservationId, attemptId, recipients, idempotencyKey } = input;
+      assertId(reservationId, 'reservationId');
+      assertId(attemptId, 'attemptId');
+      const request = { reservationId, attemptId, recipients };
+      const now = clock();
+      return mutate({
+        operation: 'bindAttempt', scopeId: reservationId, idempotencyKey, request, now,
+        body: async (tx) => {
+          const reservation = await readRequired(tx, 'reservations', reservationId, 'reservation_not_found');
+          const attempt = bindAttemptTransition(reservation, { attemptId, recipients, now });
+          return { result: { reservationId, ...attempt }, writes: [put('reservations', reservationId, reservation)] };
+        }
+      });
+    },
+
+    async recordAttemptOutcome(input = {}) {
+      assertKnownKeys(input, ['reservationId', 'attemptId', 'status', 'reason', 'idempotencyKey'], 'recordAttemptOutcome');
+      const { reservationId, attemptId, idempotencyKey } = input;
+      assertId(reservationId, 'reservationId');
+      assertId(attemptId, 'attemptId');
+      const request = pick(input, ['reservationId', 'attemptId', 'status', 'reason']);
+      const now = clock();
+      return mutate({
+        operation: 'recordAttemptOutcome', scopeId: reservationId, idempotencyKey, request, now,
+        body: async (tx) => {
+          const reservation = await readRequired(tx, 'reservations', reservationId, 'reservation_not_found');
+          const attempt = closeAttemptTransition(reservation, { ...request, now });
+          return { result: { reservationId, ...attempt }, writes: [put('reservations', reservationId, reservation)] };
+        }
+      });
+    },
+
+    async getReservation(reservationId) {
+      return backend.get('reservations', reservationId);
+    },
+
+    async listReservations({ status } = {}) {
+      if (!isNonEmptyString(status)) fail('invalid_input', 'status is required');
+      return backend.list('reservations', { field: 'status', value: status });
+    },
+
+    /** Apply the one economic effect of a billable event under accepted terms. */
+    async settleReservation(input = {}) {
+      const fields = ['reservationId', 'billableEventId', 'outcome', 'attemptId', 'metering', 'completedAt', 'reason', 'evidenceRef'];
+      assertKnownKeys(input, [...fields, 'idempotencyKey'], 'settleReservation');
+      const { reservationId, billableEventId, idempotencyKey } = input;
+      assertId(reservationId, 'reservationId');
+      assertId(billableEventId, 'billableEventId');
+      if (input.attemptId !== undefined) assertId(input.attemptId, 'attemptId');
+      const request = pick(input, fields);
+      const now = clock();
+      return mutate({
+        operation: 'settleReservation', scopeId: reservationId, idempotencyKey, request, now,
+        body: async (tx) => {
+          const reservation = await readRequired(tx, 'reservations', reservationId, 'reservation_not_found');
+          const eventClaimId = claimId('billable_event', billableEventId);
+          const claim = await tx.get('claims', eventClaimId);
+          const account = await readRequired(tx, 'accounts', reservation.accountId, 'account_not_found');
+          const decision = decideSettlement(reservation, request, now);
+          if (claim) {
+            fail('billable_event_already_settled', 'billable event already has its economic effect', {
+              reservationId: claim.reservationId, settlementId: claim.settlementId
+            });
+          }
+          reservation.billableEventId = billableEventId;
+          const eventClaim = insert('claims', eventClaimId, {
+            kind: 'billable_event', key: billableEventId, reservationId,
+            settlementId: settlementIdForReservation(reservationId), recordedAt: now
+          });
+          if (decision.outcome === 'failed_quality') {
+            const review = newReview({ reservation, decision, input: request, now });
+            Object.assign(reservation, { status: 'under_review', reviewId: review.reviewId, updatedAt: now });
+            return {
+              result: {
+                status: 'under_review',
+                reservationId,
+                reviewId: review.reviewId,
+                billableEventId,
+                held: reservation.authorizedMax,
+                dispositionCharges: review.dispositionCharges
+              },
+              writes: [eventClaim, insert('reviews', review.reviewId, review), put('reservations', reservationId, reservation)]
+            };
+          }
+          const charge = evaluateFormula(decision.formula, decision.metering, reservation.rounding);
+          const { record, writes } = finalize({ account, reservation, decision, charge, input: request, review: null, now });
+          return { result: record, writes: [eventClaim, ...writes] };
+        }
+      });
+    },
+
+    /** Record an operational review disposition; charges come from terms fixed at acceptance. */
+    async resolveQualityReview(input = {}) {
+      assertKnownKeys(input, ['reviewId', 'disposition', 'reviewer', 'idempotencyKey'], 'resolveQualityReview');
+      const { reviewId, idempotencyKey } = input;
+      assertId(reviewId, 'reviewId');
+      const request = pick(input, ['reviewId', 'disposition', 'reviewer']);
+      const now = clock();
+      return mutate({
+        operation: 'resolveQualityReview', scopeId: reviewId, idempotencyKey, request, now,
+        body: async (tx) => {
+          const review = await readRequired(tx, 'reviews', reviewId, 'review_not_found');
+          const reservation = await readRequired(tx, 'reservations', review.reservationId, 'reservation_not_found');
+          const account = await readRequired(tx, 'accounts', reservation.accountId, 'account_not_found');
+          const { charge, termKey } = decideReview(review, reservation, request);
+          const reviewer = pick(request.reviewer, ['reviewerId', 'authority', 'decisionId']);
+          const { record, writes } = finalize({
+            account,
+            reservation,
+            decision: {
+              outcome: 'failed_quality',
+              termKey,
+              formula: reservation.terms.settlement[termKey],
+              metering: review.metering,
+              attempt: reservation.attempts.find((entry) => entry.attemptId === review.attemptId),
+              phase: null
+            },
+            charge,
+            input: { billableEventId: review.billableEventId, completedAt: review.completedAt, reason: review.claim.reason },
+            review: { reviewId, disposition: request.disposition, procedureId: review.procedureId, ...reviewer },
+            now
+          });
+          Object.assign(review, {
+            status: 'resolved', disposition: request.disposition, reviewer, resolvedAt: now, settlementId: record.settlementId
+          });
+          return { result: record, writes: [put('reviews', reviewId, review), ...writes] };
+        }
+      });
+    },
+
+    async getQualityReview(reviewId) {
+      return backend.get('reviews', reviewId);
+    },
+
+    /** Return charged credit to its original lots under a named decision authority. */
+    async refundSettlement(input = {}) {
+      assertKnownKeys(input, ['reservationId', 'refundId', 'amount', 'authority', 'reason', 'idempotencyKey'], 'refundSettlement');
+      const { reservationId, refundId, amount, authority, idempotencyKey } = input;
+      assertId(reservationId, 'reservationId');
+      assertId(refundId, 'refundId');
+      if (!REFUND_AUTHORITIES.includes(authority?.kind)
+        || !isNonEmptyString(authority?.decisionId) || !isNonEmptyString(authority?.actorId)) {
+        fail('refund_authority_required', `refunds need authority.kind (${REFUND_AUTHORITIES.join(', ')}), decisionId and actorId`);
+      }
+      const request = pick(input, ['reservationId', 'refundId', 'amount', 'authority', 'reason']);
+      const now = clock();
+      return mutate({
+        operation: 'refundSettlement', scopeId: reservationId, idempotencyKey, request, now,
+        body: async (tx) => {
+          const reservation = await readRequired(tx, 'reservations', reservationId, 'reservation_not_found');
+          const refundClaimId = claimId('refund', refundId);
+          const claim = await tx.get('claims', refundClaimId);
+          const account = await readRequired(tx, 'accounts', reservation.accountId, 'account_not_found');
+          if (claim) fail('duplicate_refund', 'refund id was already recorded', { reservationId: claim.reservationId });
+          if (reservation.status !== 'settled' || !reservation.settlement) {
+            fail('refund_requires_settlement', 'only a settled charge can be refunded', { status: reservation.status });
+          }
+          const { settlement } = reservation;
+          const lots = applyRefund(account, settlement.chargedLots, reservation.refunds.byLot, amount);
+          const entry = appendEntry(account, {
+            type: 'refund', amount, lots,
+            refs: { quoteId: reservation.quoteId, reservationId, settlementId: settlement.settlementId, refundId }, now
+          });
+          account.updatedAt = now;
+          reservation.refunds.total += amount;
+          for (const lot of lots) reservation.refunds.byLot[lot.lotId] = (reservation.refunds.byLot[lot.lotId] || 0) + lot.amount;
+          reservation.refunds.refundIds.push(refundId);
+          reservation.updatedAt = now;
+          const record = {
+            schema: REFUND_SCHEMA,
+            refundId,
+            reservationId,
+            settlementId: settlement.settlementId,
+            quoteId: reservation.quoteId,
+            accountId: reservation.accountId,
+            originalCharge: settlement.charge,
+            amount,
+            refundedTotal: reservation.refunds.total,
+            lots,
+            authority: pick(authority, ['kind', 'decisionId', 'actorId']),
+            reason: request.reason ?? null,
+            refundedAt: now
+          };
+          return {
+            result: record,
+            writes: [
+              insert('claims', refundClaimId, { kind: 'refund', key: refundId, reservationId, record, recordedAt: now }),
+              insert('journal', entry.entryId, entry),
+              put('accounts', reservation.accountId, account),
+              put('reservations', reservationId, reservation)
+            ]
+          };
+        }
+      });
+    },
+
+    /**
+     * Declared release rule: an open reservation past its period releases its
+     * whole hold at zero charge. Reviews are not expired here.
+     */
+    async expireReservations({ limit = 100 } = {}) {
+      const now = clock();
+      const due = (await backend.list('reservations', { field: 'status', value: 'open' }))
+        .filter((reservation) => isReservationExpired(reservation, now))
+        .sort((left, right) => toMs(left.expiresAt) - toMs(right.expiresAt))
+        .slice(0, limit);
+      const results = [];
+      for (const candidate of due) {
+        const record = await backend.runTransaction(async (tx) => {
+          const reservation = await tx.get('reservations', candidate.reservationId);
+          if (!reservation || !isReservationExpired(reservation, now)) return null;
+          const account = await readRequired(tx, 'accounts', reservation.accountId, 'account_not_found');
+          const { record: settlement, writes } = finalize({
+            account,
+            reservation,
+            decision: { outcome: 'expired', termKey: null, formula: null, metering: {}, attempt: null, phase: null },
+            charge: 0,
+            input: null,
+            review: null,
+            now
+          });
+          applyWrites(tx, writes);
+          return settlement;
+        });
+        if (record) results.push(record);
+      }
+      return results;
+    },
+
+    /** Transferable lots keep provenance and parentage, but transfers are not activated. */
+    async transferCredits() {
+      fail('transfers_disabled', 'account transfers are not activated; activation requires approved transfer qualification');
+    },
+
+    async listJournal(accountId) {
+      const entries = await backend.list('journal', { field: 'accountId', value: accountId });
+      return entries.sort((left, right) => left.seq - right.seq);
+    },
+
+    /** Rebuild balances from the journal and compare them with the stored projection. */
+    async auditAccount(accountId) {
+      const account = await backend.get('accounts', accountId);
+      if (!account) fail('account_not_found', `account ${accountId} was not found`);
+      const entries = (await store.listJournal(accountId)).filter((entry) => entry.seq <= account.sequence);
+      const replayed = replayJournal(entries, { accountId });
+      return {
+        accountId,
+        sequence: account.sequence,
+        journalEntries: entries.length,
+        consistent: replayed.sequence === account.sequence
+          && canonicalJson(replayed.totals) === canonicalJson(account.totals)
+          && canonicalJson(replayed.lots) === canonicalJson(account.lots)
+      };
+    },
+
+    async getSolvencySnapshot() {
+      const now = clock();
+      const [accounts, open, underReview] = await Promise.all([
+        backend.list('accounts'),
+        backend.list('reservations', { field: 'status', value: 'open' }),
+        backend.list('reservations', { field: 'status', value: 'under_review' })
+      ]);
+      return summarizeSolvency({ accounts, reservations: [...open, ...underReview], policy: activePolicy, now });
+    }
+  };
+  return store;
+}
+
+export default createLedgerStore;
