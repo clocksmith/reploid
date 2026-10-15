@@ -2,6 +2,13 @@ import type { PartitionBinding } from './partition-runner.js';
 export const partitionIdentityKeys: readonly (keyof PartitionBinding)[];
 export const partitionActions: readonly string[];
 export function assertPartition(value: unknown, message: string): asserts value;
+/** Codes declared in transport/partition-errors.json; the message is the declared one. */
+export type PartitionFailureCode = 'RESULT_EXPIRED' | 'RESOURCE_EXHAUSTED' | 'AUTHORIZATION_DENIED' | 'EXECUTION_FAILED'
+  | 'OUTPUT_LIMIT_EXCEEDED' | 'GENERATION_OUTPUT_INVALID' | 'CAPACITY_UNAVAILABLE' | 'CAPACITY_QUEUE_FULL'
+  | 'CAPACITY_QUEUE_TIMEOUT' | 'CONNECTION_LOST' | 'REQUEST_TIMEOUT' | 'CLEANUP_FAILED';
+export function partitionFailure<T extends object = {}>(code: PartitionFailureCode, detail?: T): Error & T & { code: PartitionFailureCode };
+/** Throws CAPACITY_UNAVAILABLE unless `value` holds. */
+export function assertCapacity(value: unknown): asserts value;
 export function samePartitionIdentity(actual: unknown, expected: PartitionBinding): boolean;
 export function validatePartitionIdentity(identity: unknown): asserts identity is PartitionBinding;
 export function canonicalPartitionJson(value: unknown): string;

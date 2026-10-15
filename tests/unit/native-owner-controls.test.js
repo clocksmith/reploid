@@ -149,7 +149,7 @@ describe('schedule boundaries', () => {
     expect(gated.reserve({ attemptId: 'inside' }).phase).toBe('reserved');
     clock = at('2026-10-13T08:00:00Z');
     expect(() => gated.reserve({ attemptId: 'outside' })).toThrow(expect.objectContaining({
-      message: 'Contributor reservation capacity exhausted', code: 'CAPACITY_UNAVAILABLE' }));
+      message: failureMessages.CAPACITY_UNAVAILABLE, code: 'CAPACITY_UNAVAILABLE' }));
     expect(gated.reserve({ attemptId: 'inside' }).phase).toBe('reserved');
     await resident.close();
   });

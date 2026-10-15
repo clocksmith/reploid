@@ -2,7 +2,7 @@ import { createResidentRouteBinding } from './resident-route.js';
 import residentErrorCodes from './resident-error-codes.json' with { type: 'json' };
 import failureMessages from '../../transport/partition-errors.json' with { type: 'json' };
 import { createPartitionReservations } from './partition-reservations.js';
-import { assertPartition as assert, canonicalPartitionJson } from './partition-contract.js';
+import { assertPartition as assert, assertCapacity, canonicalPartitionJson } from './partition-contract.js';
 import { verifyPartitionStageCommit } from './partition-stage-commit.js';
 import { openStageReceipts } from './partition-attempt-evidence.js';
 
@@ -108,8 +108,8 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     return structuredClone(actual);
   };
   const reserve = identity => {
-    assert((phase === 'ready' || phase === 'draining' && attempts.has(identity?.attemptId))
-      && !lifetime.signal.aborted, 'Partition contributor is not ready');
+    // A resident that is not offering admission refuses as unavailable capacity, never as a generic failure.
+    assertCapacity((phase === 'ready' || phase === 'draining' && attempts.has(identity?.attemptId)) && !lifetime.signal.aborted);
     if (routeBinding) identity = routeBinding.identity(identity);
     const record = reservations.reserve(identity);
     attempts.add(identity.attemptId); notify(); return record;
@@ -192,7 +192,7 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
       await openTally(request);
       request.signal?.throwIfAborted();
       if (device && !attempts.has(request.identity?.attemptId)) {
-        assert(phase === 'ready' && !lifetime.signal.aborted, 'Partition contributor is not ready');
+        assertCapacity(phase === 'ready' && !lifetime.signal.aborted);
         const binding = routeBinding.identity(request.identity);
         // A bounded wait in the device queue ends when this resident closes or the caller cancels.
         await device.admit({ owner: deviceOwner, attemptId: binding.attemptId, bytes: attemptBytes,

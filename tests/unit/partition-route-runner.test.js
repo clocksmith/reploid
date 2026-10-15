@@ -31,7 +31,8 @@ describe('ordered ordinary route (injected numerical execution)', () => {
     f.stages[1].closeAttempt.mockRejectedValue(new Error('channel lost'));
     await expect(f.runner.execute(f.request)).rejects.toMatchObject({ code: 'CLEANUP_FAILED' });
     expect(f.runner.getState()).toMatchObject({ active: 0, unsettled: 1 });
-    await expect(f.runner.execute(another(f, 'second'))).rejects.toThrow('cleanup unsettled');
+    // Unsettled cleanup keeps its slot: a new attempt is refused as unavailable capacity, never a generic failure.
+    await expect(f.runner.execute(another(f, 'second'))).rejects.toMatchObject({ code: 'CAPACITY_UNAVAILABLE' });
     f.stages[1].closeAttempt.mockResolvedValue();
     await f.runner.retryCleanup('attempt');
     expect(f.stages.map(stage => stage.closeAttempt.mock.calls.length)).toEqual([1, 2, 1]);
@@ -183,7 +184,7 @@ describe('ordered ordinary route (injected numerical execution)', () => {
       identity: { ...another(f, `request-${index}`).identity, requesterId: `requester-${index}` } }));
     const work = requests.map(request => f.runner.execute(request));
     await entered.promise;
-    await expect(f.runner.execute(another(f, 'overflow'))).rejects.toThrow('concurrency budget');
+    await expect(f.runner.execute(another(f, 'overflow'))).rejects.toMatchObject({ code: 'CAPACITY_UNAVAILABLE' });
     expect(f.calls.some(row => row[2] === 'overflow')).toBe(false);
     release.resolve();
     const results = await Promise.all(work);

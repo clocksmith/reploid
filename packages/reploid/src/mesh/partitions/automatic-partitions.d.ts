@@ -111,6 +111,8 @@ export interface OrderedAutomaticPartitionState extends Omit<AutomaticPartitionS
   attempts: import('./partition-route-execution.js').OrderedRouteReceipt[];
   /** Receipts of retired routes whose cleanup was never confirmed. */
   unknownAttempts: import('./partition-route-execution.js').OrderedRouteReceipt[];
+  /** This coordinator's admission queue: attempts waiting, admitted tickets and the component's bounds. */
+  queue: ReturnType<import('./partition-attempt-queue.js').AttemptQueue['getState']>;
   /** Present only with `orchestration.autoStage`: the latest own-stage decision. */
   assignment?: (import('./partition-stage-assignment.js').StageAssignmentDecision & { decidedAt: number;
     demand?: import('./partition-stage-assignment.js').StageDemand }) | null;

@@ -5,15 +5,17 @@ import { createRouteObservations, rankPartitionRoutes, preferRoute, routeSelecti
   ROUTE_RANKING_WORK_LIMIT } from './partition-route-ranking.js';
 import { ORDERED_PARTITION_CHANNEL } from './partition-route-network.js';
 import { createPartitionPeer } from './partition-peer.js';
-import { createPartitionEntry } from './partition-entry.js';
+import { createPartitionEntry, ATTEMPT_STATE_SCHEMA } from './partition-entry.js';
 import { createEntryPublicationScope, entryPublicationPort } from './partition-entry-publication.js';
 import { ORDERED_PUBLICATION_CONTEXT_SCHEMA } from './partition-ordered-publication.js';
 import { summarizePartitionExecution } from './partition-summary.js';
 import { createPartitionChat } from './partition-chat.js';
 import { createPartitionGrantAuthority, orderedPartitionDisclosure } from './partition-grants.js';
-import { assertPartition as assert, canonicalPartitionJson, canonicalPartitionRoute, validatePartitionRoute, PARTITION_ROUTE_SCHEMA } from './partition-contract.js';
+import { assertPartition as assert, assertCapacity, partitionFailure, canonicalPartitionJson, canonicalPartitionRoute, validatePartitionRoute,
+  PARTITION_ROUTE_SCHEMA } from './partition-contract.js';
 import { planStageAssignment, stageDemand, STAGE_ASSIGNMENT_SCHEMA, STAGE_COSTS_SCHEMA } from './partition-stage-assignment.js';
 import { createDeviceAdmission } from './partition-device-admission.js';
+import { ATTEMPT_QUEUE_POLICY, createPartitionAttemptQueue } from './partition-attempt-queue.js';
 
 const equal = (a, b) => canonicalPartitionJson(a) === canonicalPartitionJson(b);
 /** Explicit prepared-stage mode of automatic participation. Geometry and local
@@ -25,7 +27,10 @@ const equal = (a, b) => canonicalPartitionJson(a) === canonicalPartitionJson(b);
  * for new attempts only, recording each decision with the attempts it admits;
  * with `admission`, every resident this owner prepares charges one device budget,
  * optionally behind a fair bounded queue; with `replicas`, an automatic contributor
- * joins or moves to a stage whose queue or measured cost makes another replica useful. */
+ * joins or moves to a stage whose queue or measured cost makes another replica useful.
+ * Always (Launch 1): as a coordinator, every route it owns admits through one bounded FIFO queue
+ * under the partitions component's queue policy, so an authorized attempt that finds no free slot
+ * waits and shows `queued` instead of failing; a weightless requester reports that state. */
 export function createAutomaticOrderedPartitions({ identity, meshId, models, policy, peers, createNetwork,
   loadProgram, ordered, onChange = () => {} }) {
   const config = structuredClone(policy), catalog = structuredClone(models), options = structuredClone(ordered);
@@ -59,6 +64,8 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     'Shared device admission requires an explicit attempt allocation');
   // One owner prepares at most one resident at a time on this host's device; moves reuse this budget.
   const device = admission ? createDeviceAdmission(admission) : null;
+  // One waiting line for every route this coordinator owns: they share its own stage's slots.
+  const attemptQueue = createPartitionAttemptQueue({ policy: ATTEMPT_QUEUE_POLICY });
   const closedOwners = new WeakSet();
   const lifetime = new AbortController(), listeners = new Set(), admissions = new Map(), routes = new Map(), debt = new Set();
   const authority = createPartitionGrantAuthority({ identity, meshId, maxGrants: config.limits.maxAttempts,
@@ -78,7 +85,8 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     capabilities: discovery.getSnapshot(), descriptor: program?.resident.getState().descriptor ?? null,
     reservations: program?.resident.getState().reservations ?? null, acquisition: program?.getReceipt?.() ?? null,
     models: getModels(), attempts: [...routes.values()].flatMap(row => row.chat.getState().attempts), unsettledOwners: debt.size,
-    unknownAttempts: structuredClone(unknownAttempts), ...(auto ? { assignment: structuredClone(assignment) } : {}),
+    unknownAttempts: structuredClone(unknownAttempts), queue: attemptQueue.getState(),
+    ...(auto ? { assignment: structuredClone(assignment) } : {}),
     ...(ranking ? { routeObservations: observations.snapshot(), routeOutcomes: observations.snapshotRoutes() } : {}) });
   const notify = () => { onChange(getState()); for (const listener of listeners) listener(getModels()); };
   // A bounded device queue is advertised with capacity; it is present only when configured.
@@ -95,8 +103,12 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     const entry = current()?.chat.getModels()[0];
     if (inventory.length && entry && offer && phase === 'ready') inventory[0] = { ...inventory[0], ...entry };
     const route = ranking && offer && phase === 'ready' ? current()?.route : null;
+    // An offering coordinator also advertises its admission queue, so requesters may send to it and
+    // wait while its slots are full; the queue's own bounds still refuse explicitly.
+    const coordinating = stage?.index === 0 && offer && phase === 'ready' && current(), waitingLine = attemptQueue.getState();
     return { schema: 'reploid.partition-capability/v2', participantId: identity.peerId,
-      phase, models: inventory, capacity: residentCapacity(),
+      phase, models: inventory, capacity: { ...residentCapacity(),
+        ...(coordinating ? { attemptQueue: { queued: waitingLine.queued, maxQueued: waitingLine.maxQueuedAttempts } } : {}) },
       ...(auto && offer ? { assignment: { schema: STAGE_ASSIGNMENT_SCHEMA, modelId: offer.id, modelIdentity: offer.identity,
         index: stage?.index ?? null } } : {}),
       // A ranking coordinator shares its measured per-stage decode cost so automatic contributors can see bottlenecks.
@@ -129,7 +141,8 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     async refresh({ signal } = {}) { await tick(); await current()?.chat.refresh({ signal }); },
     generate(request, controls) {
       const key = canonicalPartitionJson(request.model.partition.route), owner = routes.get(key);
-      assert(owner && offer && !closed && !stopping && !moving, 'Ordered input owner unavailable');
+      // A retired, stopping or moving route owner is unavailable capacity; attempts never move to another route.
+      assertCapacity(owner && offer && !closed && !stopping && !moving);
       // The decision that chose this route when the attempt arrived travels with its execution record.
       const selection = owner.selection ?? null;
       const running = owner.chat.generate(request, controls);
@@ -297,7 +310,8 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       assert(offer && !stopping && !closed, 'Contribution stopped while opening route');
       const chat = createPartitionChat({ runtime: program.runtime, model: program.model, authority, plan: program.plan,
         planId: program.planId, limits: config.limits, grantTtlMs: config.grantMs,
-        ordered: { route, stages: [program.resident, ...ports] }, authorizeRequester: async () => !!offer && !closed && !stopping && !moving });
+        ordered: { route, stages: [program.resident, ...ports], queue: attemptQueue },
+        authorizeRequester: async () => !!offer && !closed && !stopping && !moving });
       routes.set(key, { route, ports, chat, selection: decision.selection ?? null });
       await chat.refresh({ signal: controller.signal }); currentKey = key; notify();
     } catch (cause) {
@@ -359,7 +373,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       await service.refresh({ signal });
       return { ready: !!offer && !stopping && !moving && phase === 'ready', descriptor: { models: service.getModels() } };
     },
-    async generate(input, { signal, onDelta, onUsage, onActivity, onOutput, publication, onPublished }) {
+    async generate(input, { signal, onDelta, onUsage, onActivity, onOutput, onState, publication, onPublished }) {
       assert(equal(admissions.get(input.attemptId), input), 'Local ordered input is not approved');
       assert((publication !== undefined) === (input.publication !== undefined), 'Local ordered publication requires its requester context');
       const model = service.getModels().find(row => equal(row.partition?.route, input.route) && row.availability === 'ready');
@@ -375,7 +389,9 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
           ...(scope ? { publication: structuredClone(input.publication) } : {}), ...(input.charge !== undefined ? { charge: structuredClone(input.charge) } : {}),
           permissions: { sharingScope: 'approved-partition-path' } }, { signal, ...(input.charge !== undefined && onOutput ? { onOutput } : {}),
           ...(scope ? { publication: entryPublicationPort((method, body) => scope.call(method, body)) } : {}),
-          requestApproval: async () => equal(admissions.get(input.attemptId), input), onActivity: value => onActivity?.(value), onUsage: value => onUsage?.({schema:value.schema,inputTokens:value.inputTokens,outputTokens:value.outputTokens}), onDelta: event => onDelta?.(event.text) });
+          requestApproval: async () => equal(admissions.get(input.attemptId), input), onActivity: value => onActivity?.(value), onUsage: value => onUsage?.({schema:value.schema,inputTokens:value.inputTokens,outputTokens:value.outputTokens}), onDelta: event => onDelta?.(event.text),
+          // The same admission state a remote entry forwards: queued while waiting, executing once admitted.
+          onState: value => { if (value?.threadId === input.threadId && value.attemptId === input.attemptId) return onState?.(value.status); } });
         if (scope) {
           const projection = scope.getProjection();
           assert(projection.count > 0 && projection.terminal && result.content === projection.content, 'Local result differs from durable publication');
@@ -445,10 +461,12 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       if (offer && stage?.index === 0 && current()) observed.unshift({ participantId: identity.peerId, transportId: stage.transportId,
         available: true, description: describe() });
       const selected = selectPartitionExecution({ model: request.model, capabilities: observed, ordered: true });
-      assert(selected.transportId, 'No prepared ordered entry available');
+      // Nothing is sent when no coordinator can take the attempt; a full advertised queue says so.
+      if (!selected.transportId && selected.eligibility.some(row => row.reason === 'input-owner-queue-full')) throw partitionFailure('CAPACITY_QUEUE_FULL');
+      assertCapacity(selected.transportId);
       const entry = selected.transportId === stage?.transportId ? localEntry : await entries.connect(selected.transportId);
       const initial = await refreshed(entry, selected.transportId, request.model, signal), model = structuredClone(initial.model);
-      assert(initial.state.ready && model, 'Prepared ordered entry unavailable');
+      assertCapacity(initial.state.ready && model);
       requireGenerationCapability(model, requested);
       const route = canonicalPartitionRoute(model.partition.route), identityBinding = { schema: 'reploid.partition-attempt/v2', route,
         requesterId: identity.peerId, threadId: request.threadId, attemptId: request.attemptId, placementGeneration: request.placementGeneration ?? 0 };
@@ -461,23 +479,35 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       signal.throwIfAborted(); assert(approved === true && Date.now() < expiresAt, 'Ordered disclosure declined or expired');
       expiresAt = Math.min(controls.authorizationExpiresAt?.() ?? expiresAt, Date.now() + config.grantMs);
       const checked = await refreshed(entry, selected.transportId, model, signal);
-      assert(checked.state.ready && checked.model && equal(checked.model.partition, model.partition), 'Approved ordered route changed; review a new attempt');
+      assertCapacity(checked.state.ready && checked.model);
+      assert(equal(checked.model.partition, model.partition), 'Approved ordered route changed; review a new attempt');
       signal.throwIfAborted(); assert(Date.now() < expiresAt, 'Ordered disclosure expired');
       const input = { schema: 'reploid.partition-input/v3', operation: 'generate', meshId, requesterId: identity.peerId,
         coordinatorId: route.stages[0].participantId, route, modelId: model.id, modelIdentity: model.identity, planId: route.planId,
         ...(controls.onActivity ? {activity:'reploid.partition-activity/v1'} : {}),
+        // This requester reports the coordinator's admission state (queued, then executing).
+        attemptState: ATTEMPT_STATE_SCHEMA,
         threadId: request.threadId, attemptId: request.attemptId, placementGeneration: identityBinding.placementGeneration, disclosureExpiresAt: expiresAt, messages: request.messages, ...(requested ? {generationRequest: requested} : {}),
         ...(published ? { publication: { schema: ORDERED_PUBLICATION_CONTEXT_SCHEMA, publisherEpoch: controls.publisherEpoch, deadlineAt: expiresAt } } : {}),
         // A charged attempt's signed binding, made after its spending binding; outputs return for acknowledgment.
         ...(controls.charge && typeof controls.onOutput === 'function' ? { charge: structuredClone(controls.charge) } : {}) };
       assert(!admissions.has(input.attemptId), 'Ordered requester attempt already admitted'); admissions.set(input.attemptId, structuredClone(input));
-      let sequence = 0;
+      let sequence = 0, executing = false;
+      // The attempt stays queued until its coordinator admits it: by the coordinator's own notice, or,
+      // from a coordinator that sends none, by the first delta, usage or activity of this attempt (a
+      // committed publication marks the conversation executing itself).
+      const state = status => controls.onState?.({ threadId: request.threadId, attemptId: request.attemptId, status,
+        execution: { placement: 'ordered-layer-partition', identity: identityBinding } });
+      const admitted = () => { if (!executing) { executing = true; state('executing'); } };
+      const first = callback => callback && ((...args) => { admitted(); return callback(...args); });
       try {
-        controls.onState?.({ threadId: request.threadId, attemptId: request.attemptId, status: 'executing', execution: { placement: 'ordered-layer-partition', identity: identityBinding } });
+        state('queued');
         const result = await entry.generate(input, { signal, ...(published ? { publication: controls.publication, onPublished: controls.onPublished } : {}),
           ...(input.charge ? { onOutput: controls.onOutput } : {}),
-          ...(controls.onActivity ? {onActivity: activity => controls.onActivity({threadId:request.threadId,attemptId:request.attemptId,...activity})} : {}), onUsage: usage => controls.onUsage?.({threadId: request.threadId, attemptId: request.attemptId, ...usage}), onDelta: text => controls.onDelta?.({ threadId: request.threadId,
-          attemptId: request.attemptId, sequence: sequence++, text }) });
+          onState: status => { if (status === 'executing') admitted(); },
+          ...(controls.onActivity ? {onActivity: first(activity => controls.onActivity({threadId:request.threadId,attemptId:request.attemptId,...activity}))} : {}),
+          onUsage: first(usage => controls.onUsage?.({threadId: request.threadId, attemptId: request.attemptId, ...usage})),
+          onDelta: first(text => controls.onDelta?.({ threadId: request.threadId, attemptId: request.attemptId, sequence: sequence++, text })) });
         return { ...result, threadId: request.threadId, attemptId: request.attemptId, modelId: model.id, modelIdentity: model.identity,
           adapterIdentities: [], execution: { ...result.execution, selection: selected } };
       } finally { admissions.delete(input.attemptId); }

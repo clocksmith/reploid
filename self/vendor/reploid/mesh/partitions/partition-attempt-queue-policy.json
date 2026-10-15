@@ -1,0 +1,6 @@
+{
+  "schema": "reploid.partition-attempt-queue-policy/v1",
+  "maxQueuedAttempts": 4,
+  "maxQueuedPerRequester": 2,
+  "maxQueueWaitMs": 300000
+}

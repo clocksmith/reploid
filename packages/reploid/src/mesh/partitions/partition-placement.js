@@ -32,21 +32,27 @@ export function selectPartitionPlacement({ participantId, offer, localIndex, pre
 }
 
 /** New attempts consume availability hints; signed reservations remain authoritative.
- * Capacity changes never move an already placed conversation. */
+ * Capacity changes never move an already placed conversation. An ordered coordinator whose
+ * slots are full stays eligible while its advertised admission queue has room (the attempt
+ * waits there); one with a free slot is preferred. */
 export function selectPartitionExecution({ model, capabilities, ordered = false }) {
+  const waits = new Set();
   const eligibility = capabilities.map(peer => {
     const prepared = peer.description?.models?.find(candidate => candidate.id === model.id
       && candidate.identity === model.identity && candidate.availability === 'ready'
       && (ordered ? isOrderedPartitionEntryModel(candidate, peer)
         : peer.description?.schema !== 'reploid.partition-capability/v2'
           && candidate.partition?.schema !== 'reploid.partition-selection/v2'));
-    const capacity = peer.description?.capacity;
+    const capacity = peer.description?.capacity, queue = ordered ? capacity?.attemptQueue : undefined;
+    const queueRoom = Number.isSafeInteger(queue?.queued) && Number.isSafeInteger(queue?.maxQueued) && queue.queued < queue.maxQueued;
     const reason = !peer.available ? peer.reason : !prepared ? 'no-prepared-path'
-      : capacity?.closed || capacity?.availableSlots === 0 ? 'input-owner-at-capacity' : 'reservation-required';
+      : capacity?.closed ? 'input-owner-at-capacity'
+        : capacity?.availableSlots === 0 && !queueRoom ? (queue ? 'input-owner-queue-full' : 'input-owner-at-capacity') : 'reservation-required';
+    if (reason === 'reservation-required' && capacity?.availableSlots === 0) waits.add(peer.transportId);
     return { participantId: peer.participantId, transportId: peer.transportId, reason,
       eligible: reason === 'reservation-required', capacity: structuredClone(capacity || null) };
   });
-  const selected = eligibility.find(peer => peer.eligible);
+  const selected = eligibility.find(peer => peer.eligible && !waits.has(peer.transportId)) ?? eligibility.find(peer => peer.eligible);
   return { transportId: selected?.transportId ?? null, eligibility };
 }
 

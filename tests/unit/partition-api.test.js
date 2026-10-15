@@ -181,7 +181,7 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
     await f.local.close();
     expect(f.local.getState().recovery).toEqual(expected);
     expect(f.local.getState().ready).toBe(false);
-    expect(() => f.local.executeGroup0({ identity: f.binding })).toThrow('not ready');
+    expect(() => f.local.executeGroup0({ identity: f.binding })).toThrow(expect.objectContaining({ code: 'CAPACITY_UNAVAILABLE' }));
   });
 
   it('verifies signatures, exact attempt/recipient/plan binding, expiry, revocation and cleanup authority', async () => {
@@ -387,7 +387,7 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
     const rejected = expect(closing).rejects.toMatchObject({ code: 'CLEANUP_FAILED' });
     await entered.promise;
     expect(f.local.getState().reservations).toMatchObject({ active: 1, availableSlots: 0 });
-    expect(() => f.local.reserve({ ...f.binding, attemptId: 'next' })).toThrow('capacity exhausted');
+    expect(() => f.local.reserve({ ...f.binding, attemptId: 'next' })).toThrow(expect.objectContaining({ code: 'CAPACITY_UNAVAILABLE' }));
     release.resolve(); await rejected;
     expect(f.local.getState().reservations.records[0]).toMatchObject({ phase: 'settling', settledAt: null, failure: 'cleanup refused' });
     await f.local.close();
