@@ -1,0 +1,207 @@
+{
+ "schema": "reploid.answer-regression.search-set/v1",
+ "name": "Reploid REP-8 search-task regression set",
+ "label": "automated regression evaluation — not independent acceptance",
+ "frozenOn": "2026-10-15",
+ "state": "Frozen and unexercised. No model has answered these items. They run once retrieval is wired to a target.",
+ "authorship": "Written by Claude Opus 5.5 (claude-opus-5-5) on 2026-10-15 from evaluation policy R and the retrieval component's public interfaces. The sealed key was not opened and no grades were consulted; no search answer or grade of one exists. The author had read the useful-answer set README, which summarizes earlier grades of that set's 40 unrelated items. These items are short, English and single-author; they are regression probes, not a representative sample or an acceptance set.",
+ "policy": {
+  "file": "artifacts/independent-answer-review-20261014/evaluation-policies.md",
+  "version": "reploid-whole-answer-policies 1.0.0",
+  "sha256": "41550353a495f6268ae1a0dffdaf9619af1d0ae0edaab7c3b0241414b19abacb",
+  "section": "Policy R: search-backed answers",
+  "use": "Items follow policy R's record and citation rules. The automated checks below test mechanical citation validity and the asked point only. They never grade support or truth the way policy R requires of a reviewer."
+ },
+ "retrieval": {
+  "component": "packages/reploid/src/retrieval (createRetrieval: request, pending, retrieve, dispatch and verify; createFixedSearchProvider)",
+  "provider": "createFixedSearchProvider over each item's own documents, used as both search provider and passage extractor, as the retrieval unit tests compose it. It makes no network request, so retrieval is deterministic and the regression isolates the model and citation path.",
+  "fixedNow": 1792022400000,
+  "fixedNowIso": "2026-10-15T00:00:00Z",
+  "query": "The item prompt, as the chat session defaults it (retrieval.query ?? content).",
+  "limits": {"maxResults": 5, "maxSourceCharacters": 1200, "maxContextCharacters": 6000, "timeoutMs": 10000},
+  "limitsSource": "Pinned to reploid.retrieval-policy 1.0.0 defaults on 2026-10-15.",
+  "documents": "Every document is written for this set. Except item search-water-boiling, the people, places, products and numbers are invented, so a model cannot answer from memory and the documents are the only ground truth. URLs use the reserved .example domain and resolve nowhere."
+ },
+ "settings": {
+  "turns": "One turn per item.",
+  "decoding": "The target's own generation settings, recorded in each run.",
+  "promptTokenLimit": "Each target declares the prompt limit of the route it stands for. A turn whose dispatched prompt exceeds it is generated and checked for information but recorded as overPromptLimit and does not pass, as in the useful-answer set's promptLimit rule."
+ },
+ "rules": {
+  "retrievalOutcome": "The retrieval record's outcome must equal expectedOutcome. When it is not 'retrieved', nothing is dispatched to the model, as the workspace does; the item passes when the outcome matches and no answer was generated.",
+  "answer": "answerChecks use the useful-answer set's frozen check types and semantics (artifacts/useful-answer-set-20261014/answer-set.json checkTypes), applied to the delivered answer.",
+  "abstain": "When abstain is true, the answer must say the retrieved sources do not answer the question: abstentionPattern below must match (Python re.search, case-insensitive, on the normalized text).",
+  "citationValidity": "The retrieval component's own verification, createRetrieval().verify with no support checker, against the turn's own retrieval record, as the workspace stores it: verifyCitations flags plus mapClaimSpans claim-to-span validity. Valid when there are no unresolved citations, no unresolved or mismatched reference entries, no URL absent from the record, the sent context digest still holds, and every citation is deterministically valid (a fetched source, its passage hash, and an exact hashed span).",
+  "citedSources": "Every document id in citedSources must be cited by at least one claim, through its marker number in the record.",
+  "claimCoverage": "Reported separately: every parsed claim carries a citation. Abstention items are exempt, because the abstention sentence has no source to cite.",
+  "support": "Whether a cited passage supports its claim is not judged here; the component leaves it unverified until an independent reviewer decides it. Policy R support needs that reviewer."
+ },
+ "abstentionPattern": "\\b(sources?|documents?|results?|passages?)\\b[^.\\n]{0,80}?\\b(do|does|did)\\s*(not|n't)\\b[^.\\n]{0,60}?\\b(answer|include|contain|list|mention|provide|state|say|give|show|specify)|\\b(not|isn't|aren't)\\s+(listed|provided|given|included|mentioned|stated|available|found)\\b[^.\\n]{0,40}?\\b(in|from|among)\\s+(the\\s+)?(retrieved\\s+|provided\\s+|available\\s+)?(sources?|documents?|results?|passages?)|\\bno\\s+(information|mention|details?|phone\\s+number|number)\\b[^.\\n]{0,60}?\\b(in|from|among)\\s+(the\\s+)?(retrieved\\s+|provided\\s+)?(sources?|documents?|results?|passages?)",
+ "items": [
+  {
+   "id": "search-kettle-recall-models",
+   "kind": "single source among distractors",
+   "policy": "R",
+   "prompt": "Which BrewMate kettle models are part of the Norvale recall?",
+   "expectedOutcome": "retrieved",
+   "expected": "BM-200 and BM-210 (BM-300 is not part of it), cited to the Norvale recall notice.",
+   "answerChecks": [
+    {"type": "regex", "pattern": "BM\\s*[-‑–]?\\s*200"},
+    {"type": "regex", "pattern": "BM\\s*[-‑–]?\\s*210"}
+   ],
+   "citedSources": ["norvale-brewmate-recall"],
+   "abstain": false,
+   "documents": [
+    {"id": "norvale-brewmate-recall", "url": "https://safety.norvale.example/recalls/brewmate-2026", "title": "Norvale recalls BrewMate electric kettles",
+     "text": "Norvale is recalling BrewMate electric kettles with model numbers BM-200 and BM-210 that were sold from January through April 2026. The kettle base can crack and expose wiring, which creates a shock hazard. The BrewMate BM-300 is not part of this recall. Owners should unplug the affected kettles and contact Norvale for a full refund."},
+    {"id": "norvale-toastpro-review", "url": "https://reviews.homegear.example/norvale-toastpro-tp-4", "title": "Review: Norvale ToastPro TP-4 toaster",
+     "text": "The Norvale ToastPro TP-4 browns bread evenly on all six settings, and its crumb tray slides out for cleaning. Our tester found the 2026 models quieter than earlier ones, though the outer case still gets hot to the touch."},
+    {"id": "calder-ck1-recall", "url": "https://alerts.consumersafety.example/calder-ck-1", "title": "Calder recalls CK-1 travel kettle",
+     "text": "Calder is recalling about 3,000 CK-1 travel kettles because the lid hinge can break and release hot water. The recall covers all CK-1 units sold in 2025. No other Calder kettle models are part of the recall."}
+   ]
+  },
+  {
+   "id": "search-kayak-parking-total",
+   "kind": "value computed from two sources",
+   "policy": "R",
+   "prompt": "How much would it cost in total to rent a single kayak for 3 hours at Pellham Lake Park and to park one car there for the day?",
+   "expectedOutcome": "retrieved",
+   "expected": "$50: 3 hours x $14 per hour for a single kayak, plus an $8 parking day pass, citing both the boat-rental and parking pages.",
+   "answerChecks": [
+    {"type": "number", "value": 50, "tolerance": 0}
+   ],
+   "citedSources": ["pellham-boat-rentals", "pellham-parking"],
+   "abstain": false,
+   "documents": [
+    {"id": "pellham-boat-rentals", "url": "https://parks.pellham.example/lake/boat-rentals", "title": "Pellham Lake Park boat rentals",
+     "text": "Boat rentals at Pellham Lake Park run daily from 9 am to 6 pm, May through September. A single kayak costs $14 per hour, a tandem kayak costs $20 per hour, and a canoe costs $18 per hour. Life jackets are included with every rental."},
+    {"id": "pellham-parking", "url": "https://parks.pellham.example/lake/parking", "title": "Parking at Pellham Lake Park",
+     "text": "Visitors to Pellham Lake Park can buy a parking day pass at the entrance kiosk. A day pass costs $8 per car and is valid until the park closes. Vehicles with a county resident sticker park free on weekdays."},
+    {"id": "pellham-picnic-shelters", "url": "https://parks.pellham.example/lake/picnic-shelters", "title": "Picnic shelters at Pellham Lake Park",
+     "text": "Picnic shelters at Pellham Lake Park can be reserved for $35 per day. Each shelter seats up to 40 people and has two grills. Reservations open 3 months in advance."}
+   ]
+  },
+  {
+   "id": "search-bus-route-near-miss",
+   "kind": "near-miss distractor with a similar name",
+   "policy": "R",
+   "prompt": "How often does the Route 12X bus run on weekday mornings?",
+   "expectedOutcome": "retrieved",
+   "expected": "Every 20 minutes (6 am to 9 am), cited to the Route 12X schedule; Route 12 runs every 10 minutes and is a different route.",
+   "answerChecks": [
+    {"type": "regex", "pattern": "\\b20\\s*-?\\s*min"}
+   ],
+   "citedSources": ["marlow-route-12x"],
+   "abstain": false,
+   "documents": [
+    {"id": "marlow-route-12x", "url": "https://transit.marlow.example/routes/12x", "title": "Route 12X Harbor Express schedule",
+     "text": "The Route 12X Harbor Express bus runs every 20 minutes on weekday mornings from 6 am to 9 am, and every 30 minutes in the weekday afternoon peak from 3 pm to 7 pm. It does not run on weekends or public holidays."},
+    {"id": "marlow-route-12", "url": "https://transit.marlow.example/routes/12", "title": "Route 12 Harbor Local schedule",
+     "text": "The Route 12 Harbor Local bus runs every 10 minutes on weekday mornings and every 15 minutes at other times, seven days a week, stopping at every stop between Marlow Station and the ferry terminal."},
+    {"id": "marlow-route-12x-detour", "url": "https://transit.marlow.example/alerts/12x-detour", "title": "Service change: Route 12X detour",
+     "text": "From November 2 to November 20, 2026, Route 12X buses will detour around the closed Pier Street bridge. Expect trips to take about 5 minutes longer. Departure times do not change."}
+   ]
+  },
+  {
+   "id": "search-pool-phone-unanswerable",
+   "kind": "sources on topic that do not answer",
+   "policy": "R",
+   "prompt": "What is the phone number of the Ashbury Community Pool?",
+   "expectedOutcome": "retrieved",
+   "expected": "The retrieved sources give no phone number for the pool. The only phone number retrieved, 555-0142, belongs to the Ashbury Public Library.",
+   "answerChecks": [],
+   "citedSources": [],
+   "abstain": true,
+   "documents": [
+    {"id": "ashbury-pool-hours", "url": "https://recreation.ashbury.example/pool", "title": "Ashbury Community Pool hours and location",
+     "text": "The Ashbury Community Pool is at 410 Linden Avenue. Lap swim runs from 6 am to 9 am on weekdays, and open swim runs from noon to 6 pm every day from June through August. The pool is closed on public holidays."},
+    {"id": "ashbury-pool-lessons", "url": "https://recreation.ashbury.example/pool/lessons", "title": "Swim lessons at the Ashbury Community Pool",
+     "text": "Swim lessons for ages 4 to 12 start on June 15. Registration is online only through the Ashbury Recreation website, and each session has a limit of 8 swimmers. Questions about lessons can be sent through the website's contact form."},
+    {"id": "ashbury-library-contact", "url": "https://library.ashbury.example/contact", "title": "Contact the Ashbury Public Library",
+     "text": "You can reach the Ashbury Public Library by phone at 555-0142 during opening hours, or by email at help@library.ashbury.example."}
+   ]
+  },
+  {
+   "id": "search-library-superseded-hours",
+   "kind": "newer source supersedes an older one",
+   "policy": "R",
+   "prompt": "What time does the Fenwick Branch Library open on Saturdays?",
+   "expectedOutcome": "retrieved",
+   "expected": "9 am, starting October 3, 2026 (it was 10 am before), cited to the September 14, 2026 notice.",
+   "answerChecks": [
+    {"type": "regex", "pattern": "\\b9(:00)?\\s*(am|a\\.m\\.)"}
+   ],
+   "citedSources": ["fenwick-saturday-change"],
+   "abstain": false,
+   "documents": [
+    {"id": "fenwick-hours", "url": "https://library.fenwick.example/branches/fenwick/hours", "title": "Fenwick Branch Library hours",
+     "text": "Fenwick Branch Library hours (updated March 2, 2026): Monday to Thursday 9 am to 8 pm, Friday 9 am to 6 pm, Saturday 10 am to 5 pm. The branch is closed on Sundays."},
+    {"id": "fenwick-saturday-change", "url": "https://library.fenwick.example/news/saturday-hours", "title": "Fenwick Branch to open earlier on Saturdays",
+     "text": "Posted September 14, 2026. Starting October 3, 2026, the Fenwick Branch Library will open at 9 am on Saturdays instead of 10 am. Closing time on Saturdays stays at 5 pm. The change follows a patron survey."},
+    {"id": "fenwick-book-sale", "url": "https://library.fenwick.example/news/book-sale", "title": "Friends of the Fenwick Library book sale",
+     "text": "The Friends of the Fenwick Library hold their autumn book sale on Saturday, October 17, 2026, from 10 am to 2 pm in the community room. Hardcovers cost $2 and paperbacks cost $1."}
+   ]
+  },
+  {
+   "id": "search-thermostat-reset-steps",
+   "kind": "procedure from one source, sibling model as distractor",
+   "policy": "R",
+   "prompt": "How do I reset a Corvel TH-3 thermostat to its factory settings?",
+   "expectedOutcome": "retrieved",
+   "expected": "Hold Mode and Down together for 10 seconds until the display shows rSt, then press Mode once to confirm; cited to the TH-3 manual, not the TH-5 procedure.",
+   "answerChecks": [
+    {"type": "contains", "all": ["Mode", "Down"], "caseSensitive": true},
+    {"type": "number", "value": 10, "tolerance": 0},
+    {"type": "excludes", "any": ["Fan button", "hold the Fan"]}
+   ],
+   "citedSources": ["corvel-th3-reset"],
+   "abstain": false,
+   "documents": [
+    {"id": "corvel-th3-reset", "url": "https://support.corvel.example/th-3/factory-reset", "title": "Corvel TH-3 thermostat manual: factory reset",
+     "text": "To restore a Corvel TH-3 thermostat to factory settings, hold the Mode and Down buttons together for 10 seconds until the display shows rSt. Then press Mode once to confirm. The thermostat restarts with its default schedule, and saved Wi-Fi details are erased."},
+    {"id": "corvel-th5-reset", "url": "https://support.corvel.example/th-5/factory-reset", "title": "Corvel TH-5 thermostat manual: factory reset",
+     "text": "To return a Corvel TH-5 thermostat to factory settings, open the Settings menu, choose Reset, and hold the Fan button for 5 seconds. The TH-5 keeps its Wi-Fi details after a reset."},
+    {"id": "corvel-th3-batteries", "url": "https://support.corvel.example/th-3/batteries", "title": "Changing the batteries in a Corvel TH-3",
+     "text": "The Corvel TH-3 thermostat uses two AA batteries. Pull the thermostat face straight off the wall plate, replace both batteries, and push the face back on. Your settings are kept while the batteries are out."}
+   ]
+  },
+  {
+   "id": "search-no-results",
+   "kind": "retrieval finds nothing",
+   "policy": "R",
+   "prompt": "What are the opening hours of the Quillon Observatory?",
+   "expectedOutcome": "empty",
+   "expected": "The search returns no results, so retrieval records outcome 'empty' with error 'no-results' and nothing is sent to the model; the application reports that sources could not be retrieved.",
+   "answerChecks": [],
+   "citedSources": [],
+   "abstain": false,
+   "documents": [
+    {"id": "marlow-ferry-fares", "url": "https://transit.marlow.example/ferry/fares", "title": "Marlow ferry fares",
+     "text": "A single ferry ticket costs $3.50 for adults and $1.75 for children. Monthly passes are sold at the terminal."},
+    {"id": "ashbury-garden-plots", "url": "https://recreation.ashbury.example/garden", "title": "Ashbury community garden plots",
+     "text": "Garden plots are assigned each spring by lottery. Each plot is 3 metres by 4 metres, and water is available from April to October."}
+   ]
+  },
+  {
+   "id": "search-water-boiling",
+   "kind": "stable real-world fact with an accurate source and a near-miss value",
+   "policy": "R",
+   "prompt": "At what temperature does water boil at sea level, in degrees Fahrenheit?",
+   "expectedOutcome": "retrieved",
+   "expected": "About 212 degrees Fahrenheit (about 100 degrees Celsius) at standard sea-level pressure, cited to the boiling-point source; 202 degrees is the Denver figure.",
+   "answerChecks": [
+    {"type": "number", "value": 212, "tolerance": 0}
+   ],
+   "citedSources": ["water-boiling-point"],
+   "abstain": false,
+   "documents": [
+    {"id": "water-boiling-point", "url": "https://reference.science.example/water/boiling-point", "title": "Boiling point of water",
+     "text": "At standard sea-level atmospheric pressure, pure water boils at about 100 degrees Celsius, which is about 212 degrees Fahrenheit. At higher altitudes the air pressure is lower, so water boils at a lower temperature."},
+    {"id": "water-freezing-point", "url": "https://reference.science.example/water/freezing-point", "title": "Freezing point of water",
+     "text": "At standard atmospheric pressure, pure water freezes at 0 degrees Celsius, which is 32 degrees Fahrenheit. Dissolved salt lowers the freezing point, which is why sea water freezes at about minus 2 degrees Celsius."},
+    {"id": "high-altitude-cooking", "url": "https://reference.science.example/cooking/high-altitude", "title": "High-altitude cooking",
+     "text": "Above about 3,000 feet, water boils at a lower temperature, so pasta and beans take longer to cook. In Denver, about 5,280 feet above sea level, water boils at roughly 202 degrees Fahrenheit."}
+   ]
+  }
+ ]
+}

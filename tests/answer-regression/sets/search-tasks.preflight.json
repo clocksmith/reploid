@@ -1,0 +1,240 @@
+{
+ "schema": "reploid.answer-regression.search-preflight/v1",
+ "label": "automated regression evaluation — not independent acceptance",
+ "scope": "Engineering regression signal only. It compares one run with a stored run of the same target. It establishes no answer quality, no acceptance, no release decision and no independent review; human reviewers assess the working experience separately.",
+ "checkedAt": "2026-10-15T13:15:40Z",
+ "searchSet": {
+  "file": "tests/answer-regression/sets/search-tasks.json",
+  "sha256": "1b0a150ec32d163a7f6036b955e3d040fe4d7f66ebbfcbbc34c442d3851ebe33"
+ },
+ "retrievalComponent": {
+  "path": "packages/reploid/src/retrieval",
+  "files": 12,
+  "sha256": "0a0a5c2c6a796f4270f7e981427102d94814da4eb5364ef019862c37c55cec68",
+  "gitHead": "28c30352897b2b159bea00ff43909843a2ba1f00"
+ },
+ "textPath": {
+  "dopplerVersion": "0.6.28",
+  "chatTemplate": {
+   "type": "qwen",
+   "enabled": true,
+   "thinking": false
+  },
+  "archiveSha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8"
+ },
+ "modelRun": false,
+ "items": [
+  {
+   "id": "search-kettle-recall-models",
+   "kind": "single source among distractors",
+   "outcome": "retrieved",
+   "error": null,
+   "sources": [
+    [
+     1,
+     "norvale-brewmate-recall"
+    ],
+    [
+     2,
+     "calder-ck1-recall"
+    ],
+    [
+     3,
+     "norvale-toastpro-review"
+    ]
+   ],
+   "citedSourceMarkers": {
+    "norvale-brewmate-recall": 1
+   },
+   "contextCharacters": 1340,
+   "contextDigest": "sha256:4215ed3f54e38a1f542b44791ef0979b1ac21e3dc1543b011ae49ab18befefe1",
+   "dispatchedCharacters": 1412,
+   "failureMessage": null,
+   "dispatchedPromptTokens": 378
+  },
+  {
+   "id": "search-kayak-parking-total",
+   "kind": "value computed from two sources",
+   "outcome": "retrieved",
+   "error": null,
+   "sources": [
+    [
+     1,
+     "pellham-boat-rentals"
+    ],
+    [
+     2,
+     "pellham-parking"
+    ],
+    [
+     3,
+     "pellham-picnic-shelters"
+    ]
+   ],
+   "citedSourceMarkers": {
+    "pellham-boat-rentals": 1,
+    "pellham-parking": 2
+   },
+   "contextCharacters": 1145,
+   "contextDigest": "sha256:09e5c62c26963fc4ae6d6b0be8f2233b43b4624fb5ee85dd965aace9591fc8e4",
+   "dispatchedCharacters": 1283,
+   "failureMessage": null,
+   "dispatchedPromptTokens": 340
+  },
+  {
+   "id": "search-bus-route-near-miss",
+   "kind": "near-miss distractor with a similar name",
+   "outcome": "retrieved",
+   "error": null,
+   "sources": [
+    [
+     1,
+     "marlow-route-12x"
+    ],
+    [
+     2,
+     "marlow-route-12"
+    ],
+    [
+     3,
+     "marlow-route-12x-detour"
+    ]
+   ],
+   "citedSourceMarkers": {
+    "marlow-route-12x": 1
+   },
+   "contextCharacters": 1122,
+   "contextDigest": "sha256:486fdc34362623deeeafc04b06b17aa333838eafadb34678a6d41ce18737cfe4",
+   "dispatchedCharacters": 1191,
+   "failureMessage": null,
+   "dispatchedPromptTokens": 327
+  },
+  {
+   "id": "search-pool-phone-unanswerable",
+   "kind": "sources on topic that do not answer",
+   "outcome": "retrieved",
+   "error": null,
+   "sources": [
+    [
+     1,
+     "ashbury-pool-hours"
+    ],
+    [
+     2,
+     "ashbury-pool-lessons"
+    ],
+    [
+     3,
+     "ashbury-library-contact"
+    ]
+   ],
+   "citedSourceMarkers": {},
+   "contextCharacters": 1120,
+   "contextDigest": "sha256:96795d49d5a8e278bf452f6d2e85b51c11de7a759f053456e2eb155069d681b6",
+   "dispatchedCharacters": 1187,
+   "failureMessage": null,
+   "dispatchedPromptTokens": 304
+  },
+  {
+   "id": "search-library-superseded-hours",
+   "kind": "newer source supersedes an older one",
+   "outcome": "retrieved",
+   "error": null,
+   "sources": [
+    [
+     1,
+     "fenwick-saturday-change"
+    ],
+    [
+     2,
+     "fenwick-hours"
+    ],
+    [
+     3,
+     "fenwick-book-sale"
+    ]
+   ],
+   "citedSourceMarkers": {
+    "fenwick-saturday-change": 1
+   },
+   "contextCharacters": 1120,
+   "contextDigest": "sha256:651a29d1a0f8150d899786cd144b5ceb52f34ff44bad5dbb327ed44ea262de33",
+   "dispatchedCharacters": 1192,
+   "failureMessage": null,
+   "dispatchedPromptTokens": 333
+  },
+  {
+   "id": "search-thermostat-reset-steps",
+   "kind": "procedure from one source, sibling model as distractor",
+   "outcome": "retrieved",
+   "error": null,
+   "sources": [
+    [
+     1,
+     "corvel-th3-reset"
+    ],
+    [
+     2,
+     "corvel-th5-reset"
+    ],
+    [
+     3,
+     "corvel-th3-batteries"
+    ]
+   ],
+   "citedSourceMarkers": {
+    "corvel-th3-reset": 1
+   },
+   "contextCharacters": 1227,
+   "contextDigest": "sha256:309b621d369f76cc2874dd952d91328e870c8869f90cec68b8b55fbf173032bf",
+   "dispatchedCharacters": 1303,
+   "failureMessage": null,
+   "dispatchedPromptTokens": 323
+  },
+  {
+   "id": "search-no-results",
+   "kind": "retrieval finds nothing",
+   "outcome": "empty",
+   "error": {
+    "code": "no-results",
+    "message": "the search returned no results"
+   },
+   "sources": [],
+   "citedSourceMarkers": {},
+   "contextCharacters": null,
+   "contextDigest": null,
+   "dispatchedCharacters": null,
+   "failureMessage": "Could not retrieve sources: the search returned no results."
+  },
+  {
+   "id": "search-water-boiling",
+   "kind": "stable real-world fact with an accurate source and a near-miss value",
+   "outcome": "retrieved",
+   "error": null,
+   "sources": [
+    [
+     1,
+     "high-altitude-cooking"
+    ],
+    [
+     2,
+     "water-boiling-point"
+    ],
+    [
+     3,
+     "water-freezing-point"
+    ]
+   ],
+   "citedSourceMarkers": {
+    "water-boiling-point": 2
+   },
+   "contextCharacters": 1158,
+   "contextDigest": "sha256:9829b1a8f9048c257e8d17a9787c3ce9a1a1212a847b4dc72b2f0b532a5d6434",
+   "dispatchedCharacters": 1242,
+   "failureMessage": null,
+   "dispatchedPromptTokens": 303
+  }
+ ],
+ "problems": [],
+ "note": "No answer was generated. Prompt token counts use the qwen template and tokenizer of the Launch 1 model."
+}

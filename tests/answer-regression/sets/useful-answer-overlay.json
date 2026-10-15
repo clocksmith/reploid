@@ -1,0 +1,65 @@
+{
+ "schema": "reploid.answer-regression.overlay/v1",
+ "label": "automated regression evaluation — not independent acceptance",
+ "appliesTo": {
+  "file": "artifacts/useful-answer-set-20261014/answer-set.json",
+  "sha256": "ac174063024054b9ea048b2dd4c532119bea96ae4d330dab89dd2c3ea62dced5"
+ },
+ "frozenOn": "2026-10-15",
+ "authorship": "Written by Claude Opus 5.5 (claude-opus-5-5) on 2026-10-15 from the prompts' explicit requirements. The frozen set and its mechanical checks are unchanged; this overlay adds regression checks beside them. It was written after earlier answers to this set existed, so it is a regression probe, not an acceptance criterion.",
+ "instructionChecks": {
+  "note": "Checks of explicit form requirements in a prompt that the frozen mechanical checks do not already test. Check types are the frozen set's checkTypes, with their semantics, plus codeOnly (defined below).",
+  "codeOnly": "The answer is code only. When it has fenced code blocks, nothing but whitespace lies outside them; otherwise the whole answer parses as the named language (Python ast.parse, or node --check for JavaScript). Nothing is executed.",
+  "items": [
+   {"item": "expl-sky-blue", "turn": 1, "requirement": "Explain in two or three sentences.",
+    "checks": [{"type": "sentences", "min": 2, "max": 3}]},
+   {"item": "code-double-evens", "turn": 1, "requirement": "A JavaScript function doubleEvens(numbers) using filter and map.",
+    "checks": [{"type": "regex", "pattern": "function\\s+doubleEvens\\s*\\(|\\bdoubleEvens\\s*=", "caseSensitive": true},
+               {"type": "regex", "pattern": "\\.filter\\s*\\(", "caseSensitive": true},
+               {"type": "regex", "pattern": "\\.map\\s*\\(", "caseSensitive": true}]},
+   {"item": "code-sum-squares", "turn": 1, "requirement": "A Python function sum_of_squares(nums).",
+    "checks": [{"type": "regex", "pattern": "def\\s+sum_of_squares\\s*\\(", "caseSensitive": true}]},
+   {"item": "code-reverse-string", "turn": 1, "requirement": "A JavaScript function.",
+    "checks": [{"type": "regex", "pattern": "function\\s*[A-Za-z_$]*\\s*\\(|=>", "caseSensitive": true}]},
+   {"item": "code-python-slice", "turn": 1, "requirement": "Answer with just the output.",
+    "checks": [{"type": "onlyAnswer", "pattern": "\\[[-\\d\\s,.]*\\]"}]},
+   {"item": "code-js-default-sort", "turn": 1, "requirement": "Answer with just the output.",
+    "checks": [{"type": "onlyAnswer", "pattern": "\\[[-\\d\\s,.]*\\]"}]},
+   {"item": "code-count-vowels", "turn": 1, "requirement": "A Python function count_vowels(s).",
+    "checks": [{"type": "regex", "pattern": "def\\s+count_vowels\\s*\\(", "caseSensitive": true}]},
+   {"item": "fu-double-evens", "turn": 1, "requirement": "A JavaScript function doubleEvens(numbers) using filter and map.",
+    "checks": [{"type": "regex", "pattern": "function\\s+doubleEvens\\s*\\(|\\bdoubleEvens\\s*=", "caseSensitive": true},
+               {"type": "regex", "pattern": "\\.filter\\s*\\(", "caseSensitive": true},
+               {"type": "regex", "pattern": "\\.map\\s*\\(", "caseSensitive": true}]},
+   {"item": "fu-double-evens", "turn": 2, "requirement": "Answer only with the array.",
+    "checks": [{"type": "onlyAnswer", "pattern": "\\[[-\\d\\s,.]*\\]"}]},
+   {"item": "fu-palindrome", "turn": 1, "requirement": "A Python function is_palindrome(s). Just the code.",
+    "checks": [{"type": "codeOnly", "language": "python"}]},
+   {"item": "rw-grammar", "turn": 1, "requirement": "Reply with only the corrected sentence.",
+    "checks": [{"type": "lines", "count": 1}, {"type": "sentences", "min": 1, "max": 1}]}
+  ]
+ },
+ "codeExecution": {
+  "note": "Each case runs the answer's own code verbatim in a fresh directory outside the repository, then a probe appended by the harness calls the named function on the inputs the prompt names. Expected values follow from the prompt. Code is extracted as in artifacts/useful-answer-set-20261014/scripts/run-answer-code.py: fenced blocks tagged with the language (or untagged), otherwise the whole answer.",
+  "timeoutSeconds": 10,
+  "cases": [
+   {"item": "code-double-evens", "turn": 1, "language": "javascript", "function": "doubleEvens",
+    "probes": [{"args": [[1, 2, 3, 4]], "expect": [4, 8]}, {"args": [[-2, 3, 6]], "expect": [-4, 12]}]},
+   {"item": "fu-double-evens", "turn": 1, "language": "javascript", "function": "doubleEvens",
+    "probes": [{"args": [[1, 2, 3, 4]], "expect": [4, 8]}, {"args": [[-2, 3, 6]], "expect": [-4, 12]}]},
+   {"item": "code-sum-squares", "turn": 1, "language": "python", "function": "sum_of_squares",
+    "probes": [{"args": [[1, 2, 3]], "expect": 14}]},
+   {"item": "code-reverse-string", "turn": 1, "language": "javascript", "function": null,
+    "functionNote": "The prompt names no function; the probe calls the first function the code declares.",
+    "probes": [{"args": ["stressed"], "expect": "desserts"}]},
+   {"item": "code-count-vowels", "turn": 1, "language": "python", "function": "count_vowels",
+    "probes": [{"args": ["education"], "expect": 5}]},
+   {"item": "fu-palindrome", "turn": 1, "language": "python", "function": "is_palindrome",
+    "probes": [{"args": ["Racecar"], "expect": true}, {"args": ["racecar"], "expect": true}, {"args": ["hello"], "expect": false}]}
+  ],
+  "referencePrograms": [
+   {"item": "code-python-slice", "language": "python", "program": "x = [1, 2, 3, 4, 5]\nprint(x[1:4])", "expectStdout": "[2, 3, 4]\n"},
+   {"item": "code-js-default-sort", "language": "javascript", "program": "const nums = [5, 1, 10];\nnums.sort();\nconsole.log(nums);", "expectStdout": "[ 1, 10, 5 ]\n"}
+  ]
+ }
+}

@@ -1,0 +1,228 @@
+{
+ "schema": "reploid.answer-regression.reproduction/v1",
+ "label": "automated regression evaluation — not independent acceptance",
+ "scope": "Engineering regression signal only. It compares one run with a stored run of the same target. It establishes no answer quality, no acceptance, no release decision and no independent review; human reviewers assess the working experience separately.",
+ "checkedAt": "2026-10-15T13:17:36Z",
+ "run": {
+  "runId": "cpu-q4k-mac-20261015T130407Z",
+  "file": "tests/answer-regression/baselines/cpu-q4k-mac-20261015/run.json",
+  "sha256": "8f21ff612784b8eb3fb1e99c6c3c7cc49bbb842f005ba3c73ea6a8fdd7d0bd64"
+ },
+ "frozen": {
+  "results.json": {
+   "file": "artifacts/useful-answer-set-20261014/results.json",
+   "sha256": "5a915efda2fc381506589c2ab8a5d576d4b2c69be53ef60d7894710b427db97c"
+  },
+  "q4k-run.json": {
+   "file": "artifacts/useful-answer-set-20261014/q4k-run.json",
+   "sha256": "bb26a677e58b9ab721ca0859e172ee430419a15063e329c76bd78e887cd85c09"
+  },
+  "bf16-run.json": {
+   "file": "artifacts/useful-answer-set-20261014/bf16-run.json",
+   "sha256": "f18c9089eacefe071dff8ed4408e49808c1ee8962fa3000a4a3cbf40443e8b4b"
+  }
+ },
+ "notUsed": "results.json review, provisional rubric grades and reviewer-adjusted view (earlier grades)",
+ "sections": {
+  "checkEquivalenceQ4K": {
+   "comparison": "stored q4k arm run vs results.json",
+   "items": 38,
+   "checks": 60,
+   "mismatches": 0
+  },
+  "checkEquivalenceBF16": {
+   "comparison": "stored bf16 arm run vs results.json",
+   "items": 38,
+   "checks": 60,
+   "mismatches": 0
+  },
+  "generationReproduction": {
+   "comparison": "fresh run vs stored Q4_K arm run (2026-10-14)",
+   "turns": 46,
+   "fieldsCompared": [
+    "promptTokenIds",
+    "renderedPromptSha256",
+    "outputTokenIds",
+    "output",
+    "stopReason",
+    "decodeSteps",
+    "minMarginTop1Top2",
+    "minMarginStep",
+    "reusedFrom"
+   ],
+   "differingTurns": 0
+  },
+  "baselineVerdicts": {
+   "comparison": "fresh run vs results.json q4k",
+   "items": 38,
+   "checks": 60,
+   "mismatches": 0
+  },
+  "mechanicalRates": {
+   "rows": [
+    {
+     "harness": "fresh",
+     "frozenArm": "q4k",
+     "equal": true
+    },
+    {
+     "harness": "storedQ4K",
+     "frozenArm": "q4k",
+     "equal": true
+    },
+    {
+     "harness": "storedBF16",
+     "frozenArm": "bf16",
+     "equal": true
+    }
+   ],
+   "harness": {
+    "fresh": {
+     "overall": {
+      "pass": 32,
+      "total": 38,
+      "rate": 0.8421
+     },
+     "byCategory": {
+      "factual": {
+       "pass": 6,
+       "total": 6,
+       "rate": 1.0
+      },
+      "explanation": {
+       "pass": 3,
+       "total": 3,
+       "rate": 1.0
+      },
+      "code": {
+       "pass": 2,
+       "total": 6,
+       "rate": 0.3333
+      },
+      "arithmetic": {
+       "pass": 6,
+       "total": 6,
+       "rate": 1.0
+      },
+      "follow-up": {
+       "pass": 4,
+       "total": 6,
+       "rate": 0.6667
+      },
+      "rewrite": {
+       "pass": 5,
+       "total": 5,
+       "rate": 1.0
+      },
+      "format": {
+       "pass": 6,
+       "total": 6,
+       "rate": 1.0
+      }
+     }
+    },
+    "storedQ4K": {
+     "overall": {
+      "pass": 32,
+      "total": 38,
+      "rate": 0.8421
+     },
+     "byCategory": {
+      "factual": {
+       "pass": 6,
+       "total": 6,
+       "rate": 1.0
+      },
+      "explanation": {
+       "pass": 3,
+       "total": 3,
+       "rate": 1.0
+      },
+      "code": {
+       "pass": 2,
+       "total": 6,
+       "rate": 0.3333
+      },
+      "arithmetic": {
+       "pass": 6,
+       "total": 6,
+       "rate": 1.0
+      },
+      "follow-up": {
+       "pass": 4,
+       "total": 6,
+       "rate": 0.6667
+      },
+      "rewrite": {
+       "pass": 5,
+       "total": 5,
+       "rate": 1.0
+      },
+      "format": {
+       "pass": 6,
+       "total": 6,
+       "rate": 1.0
+      }
+     }
+    },
+    "storedBF16": {
+     "overall": {
+      "pass": 35,
+      "total": 38,
+      "rate": 0.9211
+     },
+     "byCategory": {
+      "factual": {
+       "pass": 6,
+       "total": 6,
+       "rate": 1.0
+      },
+      "explanation": {
+       "pass": 3,
+       "total": 3,
+       "rate": 1.0
+      },
+      "code": {
+       "pass": 4,
+       "total": 6,
+       "rate": 0.6667
+      },
+      "arithmetic": {
+       "pass": 6,
+       "total": 6,
+       "rate": 1.0
+      },
+      "follow-up": {
+       "pass": 5,
+       "total": 6,
+       "rate": 0.8333
+      },
+      "rewrite": {
+       "pass": 5,
+       "total": 5,
+       "rate": 1.0
+      },
+      "format": {
+       "pass": 6,
+       "total": 6,
+       "rate": 1.0
+      }
+     }
+    }
+   }
+  },
+  "wholeEvaluation": {
+   "comparison": "stored Q4_K arm run evaluated now vs the fresh run evaluation",
+   "families": [
+    "mechanical",
+    "format",
+    "instruction",
+    "code"
+   ],
+   "items": 40,
+   "differences": 0
+  }
+ },
+ "mismatches": [],
+ "verdict": "reproduced exactly"
+}
