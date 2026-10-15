@@ -13,11 +13,20 @@ const HOW = {
   public: 'answered by one computer'
 };
 
+/** Identifies the wording below in each permission record; change the version whenever the text changes. */
+export const REMOTE_PERMISSION_WORDING = Object.freeze({ id: 'reploid.remote-contributor-permission', version: '1' });
+
 export function remotePermissionText(need) {
   return { title: "Answer with contributors' computers?",
     what: "To answer, this conversation is sent to contributors' computers on this network: your message, earlier messages in the thread, and the context prompt when it is on.",
     who: WHO[need.disclosure] || WHO.public,
     scope: 'You are asked once. Later questions and follow-ups are sent the same way until you turn this off in Settings.' };
+}
+
+/** The exact wording the dialog shows for `need`, as the permission record keeps it. */
+export function remotePermissionWording(need) {
+  const text = remotePermissionText(need);
+  return { ...REMOTE_PERMISSION_WORDING, text: ['title', 'what', 'who', 'scope'].map(key => text[key]).join('\n\n') };
 }
 
 export function renderRemotePermissionDialog() {
@@ -39,7 +48,8 @@ export function bindRemotePermissionDialog(dialog, session, { onError = () => {}
   find('[data-remote-permission-allow]').addEventListener('click', () => {
     const need = JSON.parse(dialog.dataset.need), allow = find('[data-remote-permission-allow]');
     allow.disabled = true;
-    Promise.resolve().then(() => session.grantRemotePermission(need)).then(() => finish(true), error => { onError(error); finish(false); })
+    Promise.resolve().then(() => session.grantRemotePermission(need, { wording: remotePermissionWording(need) }))
+      .then(() => finish(true), error => { onError(error); finish(false); })
       .finally(() => { allow.disabled = false; });
   }, options);
   return {

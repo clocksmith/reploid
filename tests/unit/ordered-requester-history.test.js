@@ -28,6 +28,7 @@ vi.mock('../../self/host/work-peer-offers.js', () => ({ createWorkPeerOffers: ()
   acquire: async () => 'transport-requester', attach: async () => {}, close() {}, getState: () => null }) }));
 import { createProductSession } from '../../self/host/product-session.js';
 import { LOCAL_HISTORY_IDENTITY } from '../../self/host/chat-session.js';
+import { remotePermissionWording } from '../../self/ui/pool-home/remote-permission.js';
 import { resolveConfig } from '../../self/vendor/reploid/config/index.js';
 
 const metadataDigest = (schema, body) => 'sha256:' + createHash('sha256').update(schema + '\0' + canonicalPartitionJson(body)).digest('hex');
@@ -91,7 +92,7 @@ async function send(chat, threadId, text) {
     const attempt = chat.getState().threads.find(row => row.id === threadId)?.attempts.at(-1);
     if (attempt?.status === 'approval' && attempt.approval && !approved.has(attempt.approval.id)) {
       approved.add(attempt.approval.id);
-      await chat.grantRemotePermission(attempt.approval.permissionNeed);
+      await chat.grantRemotePermission(attempt.approval.permissionNeed, { wording: remotePermissionWording(attempt.approval.permissionNeed) });
     }
     await new Promise(resolve => setTimeout(resolve, 5));
   }

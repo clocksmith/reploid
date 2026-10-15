@@ -16,6 +16,7 @@ import fetch from 'node-fetch';
 import createPoolRouter from './pool/routes.js';
 import { installJsonBodyMiddleware } from './json-body-middleware.js';
 import { mountEarningRoutes } from './earning-routes/mount.js';
+import { mountSearchRoutes } from './search/mount.js';
 import { createFirebaseStore } from './pool/firebase-store.js';
 import { createGcsAdapterOriginSigner } from './pool/adapter-origin-signer.js';
 import { createChangeControlAuthenticator, parseChangeControlTokenConfig } from './change-control/auth.js';
@@ -693,6 +694,11 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+// Server-side search and cited-page extraction (/api/retrieval). Off unless a provider, its key or
+// base URL, and a daily query budget are configured (server/search/config.js); keys never reach browsers.
+const searchRoutes = mountSearchRoutes(app, { env: process.env, authorize: requireServerAccess });
+console.log(searchRoutes.mounted ? `[Search] Serving ${searchRoutes.provider} search` : `[Search] Off: ${searchRoutes.reason}`);
 
 app.use('/pool', express.static(path.join(selfRootDir, 'pool'), {
   index: false,

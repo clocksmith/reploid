@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { createChatSession, CANONICAL_CHAT_MODELS } from '../../self/host/chat-session.js';
 import { createChatScheduler } from '../../self/vendor/reploid/chat/index.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
+import { remotePermissionWording } from '../../self/ui/pool-home/remote-permission.js';
 const storage = () => {
   const values = new Map();
   return { getItem: key => values.get(key), setItem: (key, value) => values.set(key, value) };
@@ -123,7 +124,7 @@ describe('Chat host with injected execution, not actual inference', () => {
     // The product host never approves one request; only a stored permission releases it.
     const attempt = session.getState().activeThread.attempts[0];
     expect(() => session.approve(id, attempt.id, attempt.approval.id, true)).toThrow('remote contributor permission');
-    const permission = await session.grantRemotePermission(attempt.approval.permissionNeed);
+    const permission = await session.grantRemotePermission(attempt.approval.permissionNeed, { wording: remotePermissionWording(attempt.approval.permissionNeed) });
     expect((await completion).status).toBe('completed');
     expect(disclosed).toEqual(['Public question']); expect(service.calls).toHaveLength(0);
     expect(session.remotePermissionNeeded({ model, sharingScope: 'mesh' })).toBeNull();

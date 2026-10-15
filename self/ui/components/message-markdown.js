@@ -6,12 +6,16 @@ const MAX_FORMATTED_CHARACTERS = 100000, MAX_BLOCKS = 2000;
 
 function inline(value, targets, depth = 0) {
   if (depth > 4) return [text(value)];
-  const pattern = /\[D\d+:P\d+\]|`([^`\n]+)`|\*\*([^*\n]+)\*\*|\*([^*\n]+)\*|\[([^\]\n]+)\]\(([^\s)]+)\)/g;
+  // Numbered citation markers ([1]) link only when `targets` names a retrieved source with that number.
+  const pattern = /\[D\d+:P\d+\]|`([^`\n]+)`|\*\*([^*\n]+)\*\*|\*([^*\n]+)\*|\[([^\]\n]+)\]\(([^\s)]+)\)|\[(\d{1,3})\]/g;
   const nodes = []; let cursor = 0;
   for (const match of value.matchAll(pattern)) {
     if (nodes.length > 2000) break;
     if (match.index > cursor) nodes.push(text(value.slice(cursor, match.index)));
-    if (/^\[D\d+:P\d+\]$/.test(match[0])) {
+    if (match[6]) {
+      const target = targets.get(match[6]);
+      nodes.push(target ? element('a', [text(match[0])], { href: '#' + target, 'data-source-reference': '' }) : text(match[0]));
+    } else if (/^\[D\d+:P\d+\]$/.test(match[0])) {
       const target = targets.get(match[0].slice(1, -1));
       nodes.push(element(target ? 'a' : 'span', [text(match[0])], target ? { href: '#' + target, 'data-source-reference': '' } : { title: 'No supplied passage has this reference' }));
     } else if (match[1]) nodes.push(element('code', [text(match[1])]));

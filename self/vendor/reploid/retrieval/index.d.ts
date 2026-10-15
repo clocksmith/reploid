@@ -19,12 +19,18 @@ export interface SearchResult {
   /** Provider-attested sha256 of the content it retrieved. */
   contentHash: string;
 }
+/** Per-query usage a provider reports: billable requests and, when priced, the cost in micro-dollars (null when unpriced). */
+export interface SearchUsage { provider: string; requests: number; costMicroUsd: number | null }
 /** A search provider. The host owns its credentials, terms and any disclosure of the query to it. */
 export interface SearchProvider {
   id: string; version: string;
-  search(query: string, limits: RetrievalLimits, signal: AbortSignal): Promise<SearchResult[]>;
+  /** Names the search service a search-answer permission discloses the query to. */
+  searchProvider?: string;
+  search(query: string, limits: RetrievalLimits, signal: AbortSignal): Promise<SearchResult[] | { results: SearchResult[]; usage?: SearchUsage }>;
 }
-export interface ExtractedPassage { sourceId: string; url?: string; text: string; retrievedAt: number; contentHash: string }
+/** Where an extracted passage sits in the fetched document's extracted text, which `sha256` identifies. end - start is the passage length. */
+export interface PassageDocument { url: string; contentType: string; characters: number; sha256: string; start: number; end: number; bytes?: number; status?: number }
+export interface ExtractedPassage { sourceId: string; url?: string; text: string; retrievedAt: number; contentHash: string; document?: PassageDocument }
 /** Fetches a source and extracts the passage text relevant to the query. */
 export interface PassageExtractor {
   id: string; version: string;
@@ -49,6 +55,8 @@ export interface RetrievedSource {
   sourceId: string; url: string; title: string; retrievedAt: number; contentHash: string;
   /** Exactly the passage text sent; passageHash is its sha256. */
   passage: string; passageHash: string; passageOrigin: 'extract' | 'search-excerpt'; truncated: boolean;
+  /** The retained passage's offsets in the fetched document's extracted text, when the extractor reported them. */
+  document?: PassageDocument;
 }
 export interface CitationClaim {
   index: number; start: number; end: number; text: string; markers: number[]; cited: boolean;
@@ -71,6 +79,52 @@ export interface CitationVerification {
   flags: CitationFlag[];
   summary: { claims: number; citedClaims: number; uncitedClaims: number; citations: number; unresolvedCitations: number;
     supported: number; unsupported: number; unverified: number; unrecordedUrls: number };
+  /** Claim-to-span mapping and deterministic validity; entailment awaits an independent reviewer. */
+  claimSupport?: ClaimSupport;
+}
+export type CitationProblem = 'unresolved-marker' | 'mismatched-reference' | 'not-retrieved' | 'passage-hash-mismatch'
+  | 'document-offsets-invalid' | 'context-digest-mismatch' | 'span-invalid';
+export interface ClaimSpan { start: number; end: number; text: string; sha256: string; alignment?: 'sentence' | 'whole-passage' }
+export interface ClaimCitation {
+  marker: number; sourceId: string | null; url: string | null; passageHash?: string;
+  document?: { sha256: string; start: number; end: number }; valid: boolean; problems: CitationProblem[]; span: ClaimSpan | null;
+}
+export interface MappedClaim {
+  id: string; index: number; text: string; start: number; end: number; markers: number[]; citations: ClaimCitation[];
+  /** True when at least one citation is deterministically valid, so a reviewer can decide it. */
+  reviewable: boolean; verdict: SupportVerdict; reason: 'uncited' | 'unresolved-citation' | 'awaiting-review' | 'invalid-evidence';
+}
+export interface ClaimSupport {
+  schema: 'reploid.claim-support/v1'; alignment: 'reploid.lexical-span-alignment/v1'; query: string | null; contextDigest: string | null;
+  contextValid: boolean; claims: MappedClaim[];
+  summary: { claims: number; citedClaims: number; reviewableClaims: number; citations: number; validCitations: number; invalidCitations: number;
+    supported: number; unsupported: number; unverified: number };
+}
+export interface SupportReviewPacket {
+  schema: 'reploid.claim-support-review-packet/v1'; id: string; instructions: string[]; question: string; answer: string;
+  sources: Array<{ number: number; title: string; url: string; retrievedAt: number; passage: string; passageSha256: string }>;
+  claims: Array<{ id: string; text: string; quote: { start: number; end: number };
+    citations: Array<{ source: number; suggestedSpan: ClaimSpan }> }>;
+}
+export interface SupportReviewer { kind: 'human' | 'model'; id: string; model?: { provider: string; name: string; version?: string | null; identity?: string } }
+export interface SupportJudgments {
+  schema: 'reploid.claim-support-judgments/v1'; packet: { id: string; sha256: string }; reviewer: SupportReviewer;
+  judgments: Array<{ claim: string; verdict: SupportVerdict; basis: string;
+    spans?: Array<{ source: number; start?: number; end?: number; quote?: string }> }>;
+}
+export interface GeneratorIdentity { modelId: string; modelIdentity: string }
+export interface ClaimSupportResult {
+  schema: 'reploid.claim-support-result/v1'; packet: { id: string; sha256: string }; reviewers: SupportReviewer[];
+  claims: Array<{ id: string; text: string; start: number; end: number; citations: ClaimCitation[];
+    evidence: Array<{ source: number; url: string | null; passageHash?: string; span: ClaimSpan | null; document?: { sha256: string; start: number; end: number } }>;
+    verdict: SupportVerdict; reason: string; disputed: boolean;
+    reviews: Array<{ reviewer: { kind: 'human' | 'model'; id: string }; verdict: SupportVerdict; basis: string; spans: Array<ClaimSpan & { source: number }> }> }>;
+  summary: { claims: number; supported: number; unsupported: number; unverified: number; disputed: number; awaitingReview: number; supportRate: number | null };
+}
+/** Entailment reviewer interface: a human queue returns null (judgments arrive later); a model reviewer returns judgments. */
+export interface EntailmentReviewer {
+  id: string; version: string; kind: 'human-queue' | 'model';
+  review(packet: SupportReviewPacket, context: { generator: GeneratorIdentity; claimSupport?: ClaimSupport; signal?: AbortSignal | null }): Promise<SupportJudgments | null>;
 }
 export interface RetrievalRecord {
   schema: 'reploid.retrieval-record/v1';
@@ -84,6 +138,8 @@ export interface RetrievalRecord {
   sources: RetrievedSource[];
   omitted: Array<{ sourceId: string; reason: 'result-limit' | 'extraction-failed' | 'context-limit' }>;
   context: { schema: string; characters: number; digest: string } | null;
+  /** Provider-reported search usage and extraction volume, for quotes and service economics; null before a search returns. */
+  usage?: { search: SearchUsage | null; extraction: { documents: number; bytes: number } } | null;
   verification: CitationVerification | null;
 }
 export interface RetrievalPolicy {
@@ -121,3 +177,39 @@ export function verifyCitations(options: { answer: string; record: RetrievalReco
 export function createLexicalSupportChecker(options?: { supportedAt?: number; unsupportedBelow?: number }): SupportChecker & { qualified: false };
 export function createFixedSearchProvider(options: { documents: Array<{ id: string; url: string; title: string; text: string }>;
   now?: () => number; id?: string; version?: string }): SearchProvider & PassageExtractor;
+export const CLAIM_SUPPORT_SCHEMA: 'reploid.claim-support/v1';
+export const SPAN_ALIGNMENT: 'reploid.lexical-span-alignment/v1';
+export const CITATION_PROBLEMS: readonly CitationProblem[];
+export function mapClaimSpans(options: { answer: string; record: RetrievalRecord; policy?: RetrievalPolicy }): Promise<ClaimSupport>;
+export function alignClaimSpan(claim: string, passage: string): { start: number; end: number; alignment: 'sentence' | 'whole-passage' };
+export function passageSentences(passage: string): Array<{ start: number; end: number }>;
+export function validSpan(passage: string, span: ClaimSpan | null | undefined): Promise<boolean>;
+export const SUPPORT_REVIEW_PACKET_SCHEMA: 'reploid.claim-support-review-packet/v1';
+export const SUPPORT_JUDGMENTS_SCHEMA: 'reploid.claim-support-judgments/v1';
+export const SUPPORT_RESULT_SCHEMA: 'reploid.claim-support-result/v1';
+export const REVIEW_VERDICTS: readonly SupportVerdict[];
+export const SUPPORT_REVIEW_INSTRUCTIONS: readonly string[];
+export function createSupportReviewPacket(options: { id: string; question: string; answer: string; record: RetrievalRecord; claimSupport: ClaimSupport }): SupportReviewPacket;
+export function renderSupportReviewPacketMarkdown(packet: SupportReviewPacket): string;
+export function validateGenerator(generator: unknown): GeneratorIdentity;
+/** Throws when the reviewer is the generating model, by name or content identity. */
+export function assertIndependentReviewer(reviewer: SupportReviewer, generator: GeneratorIdentity): void;
+export function validateSupportJudgments(options: { packet: SupportReviewPacket; judgments: SupportJudgments; generator: GeneratorIdentity }):
+  Promise<Map<string, { verdict: SupportVerdict; basis: string; spans: Array<ClaimSpan & { source: number }> }>>;
+export function applySupportJudgments(options: { packet: SupportReviewPacket; claimSupport: ClaimSupport; judgments?: SupportJudgments[];
+  generator: GeneratorIdentity }): Promise<ClaimSupportResult>;
+export function supportPacketHash(packet: SupportReviewPacket): Promise<string>;
+export function canonicalJson(value: unknown): string;
+export const REVIEW_QUEUE_SCHEMA: 'reploid.claim-support-review-queue/v1';
+export function createHumanReviewQueue(options?: { store?: { load(): unknown; save(state: unknown): void }; now?: () => number; requiredReviews?: number }):
+  EntailmentReviewer & { kind: 'human-queue';
+    pending(): Promise<Array<{ packet: SupportReviewPacket; sha256: string; reviews: number; thirdReviewClaims?: string[] }>>;
+    packet(id: string): SupportReviewPacket;
+    submit(judgments: SupportJudgments): Promise<{ packetId: string; reviews: number; requiredReviews: number; disagreements: string[]; needsThirdReview: boolean; complete: boolean }>;
+    status(id: string): Promise<{ packetId: string; reviews: number; requiredReviews: number; disagreements: string[]; needsThirdReview: boolean; complete: boolean }>;
+    result(id: string): Promise<ClaimSupportResult> };
+export const MODEL_REVIEWER_SYSTEM: string;
+export function renderModelReviewPrompt(packet: SupportReviewPacket): string;
+export function createModelSupportReviewer(options: { identity: { provider: string; model: string; version?: string; identity?: string };
+  strongerThan: string[]; complete(input: { system: string; prompt: string; signal: AbortSignal | null }): Promise<string>; maxReplyCharacters?: number }):
+  EntailmentReviewer & { kind: 'model'; reviewer: SupportReviewer };

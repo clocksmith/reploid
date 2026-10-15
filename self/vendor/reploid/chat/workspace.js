@@ -5,6 +5,7 @@ import { ORDERED_PUBLICATION_ATTEMPT_SCHEMA } from '../mesh/partitions/partition
 import defaults from './policy.json' with { type: 'json' };
 import { disclosureRecipients, disclosureScope, matchingThreadGrant, validateThreadGrants } from './thread-grants.js';
 import { remotePermissionCovers, remotePermissionNeed } from './remote-permission.js';
+import { SEARCH_RECIPIENTS_CHANGED, validateSearchPermission } from './search-permission.js';
 import { createRetrieval } from '../retrieval/retrieval.js';
 import { interruptRetrievalRecord, retrievalFailureMessage } from '../retrieval/sources.js';
 
@@ -22,13 +23,33 @@ const DISCLOSURE_MISMATCH = 'Peer disclosure does not match the selected model a
 // retrieval, when supplied, holds the host's search provider and optional passage extractor and support
 // checker (retrieval/); a request opts in per send. Retrieved sources travel inside the request's messages,
 // so the same disclosure authorization covers them, and nothing is dispatched when retrieval fails.
+// `retrieval: { routes: { name: ports } }` offers several; a request names one, else 'default'. A route with
+// `permission: 'search-answer'` needs a per-answer search permission (search-permission.js) on every send and
+// retry, its provider declares `searchProvider`, its request carries only the current question and the retrieved
+// passages, and its passages reach only the contributors that permission lists.
 export function createChatWorkspace({ meshId, participantId, store, execute, requesterIdentity = () => participantId,
   remotePermissions = null, networkId = () => meshId, retrieval = null, policy = defaults, now = Date.now, id = () => crypto.randomUUID() }) {
   assert(typeof meshId === 'string' && meshId && typeof participantId === 'string' && participantId, 'Mesh and participant identities required');
   assert(typeof store?.load === 'function' && typeof store?.save === 'function' && typeof execute === 'function'
     && typeof requesterIdentity === 'function' && (remotePermissions === null || typeof remotePermissions === 'function')
     && typeof networkId === 'function' && (retrieval === null || typeof retrieval === 'object'), 'Workspace host ports required');
-  const retriever = retrieval === null ? null : createRetrieval({ ...retrieval, now });
+  const routes = new Map(Object.entries(retrieval === null ? {} : retrieval.routes ?? { default: retrieval }).map(([name, ports]) => {
+    assert(/^[a-z][a-z0-9-]{0,31}$/.test(name) && ports && typeof ports === 'object'
+      && [undefined, 'search-answer'].includes(ports.permission), 'Invalid retrieval route');
+    if (ports.permission) assert(typeof ports.provider?.searchProvider === 'string' && ports.provider.searchProvider, 'A search-answer route names its search service');
+    return [name, { retriever: createRetrieval({ ...ports, now }), permission: ports.permission ?? null, provider: ports.provider }];
+  }));
+  const routeFor = input => { const route = routes.get(input?.route ?? 'default'); assert(route, 'Retrieval is not configured'); return route; };
+  // A search-answer route's permission covers this thread, network, query and service, once.
+  const searchGrant = (thread, route, searched, grant) => {
+    if (!route?.permission) { assert(grant == null, 'This request takes no search permission'); return null; }
+    assert(grant != null, 'Search-backed answers need the per-answer search permission');
+    const valid = validateSearchPermission(grant);
+    assert(valid.threadId === thread.id && valid.networkId === networkId() && valid.query === searched.query
+      && valid.searchProvider === route.provider.searchProvider, 'The search permission does not cover this answer');
+    assert(!threads.some(item => item.attempts.some(attempt => attempt.searchPermission?.id === valid.id)), 'A search permission allows one answer');
+    return valid;
+  };
   const covering = need => need && (remotePermissions?.() || []).find(permission => remotePermissionCovers(permission, need)) || null;
   // The authorization cites the permission and names the verified route this attempt is dispatched to.
   const permitted = (scope, preview, permission) => ({ kind: 'permission', grantId: null, permissionId: permission.id,
@@ -135,13 +156,13 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       && value.adapters.every(adapter => /^sha256:[a-f0-9]{64}$/.test(adapter.identity)), 'Select identified adapters');
     return copy(value);
   };
-  const start = (thread, request, userMessageId, retryOf = null, select = true, authorizeDisclosure = null) => {
+  const start = (thread, request, userMessageId, retryOf = null, select = true, authorizeDisclosure = null, searchPermission = null) => {
     current();
     assert(authorizeDisclosure === null || typeof authorizeDisclosure === 'function', 'Invalid disclosure authorization port');
     assert(!runs.has(thread.id), 'This conversation already has an active response');
     assert(runs.size < limits.maxConcurrentAttempts, 'Concurrent conversation limit reached');
     assert(thread.messages.length < limits.maxMessagesPerThread, 'Conversation history limit reached');
-    assert(!request.retrieval || retriever, 'Retrieval is not configured');
+    const retriever = request.retrieval ? routeFor(request.retrieval).retriever : null;
     const controller = new AbortController();
     // publicationMode 'canonical' is the persisted marker for requester-published output, from either
     // canonical two-stage or ordinary ordered records; it does not mean canonical decoding. Saved
@@ -150,8 +171,9 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       status: 'queued', createdAt: now(), finishedAt: null, error: null, approval: null,
       execution: null, authorization: null, ...(transactional ? { publicationMode: 'canonical' } : {}), request: copy(request),
       systemContext: copy(retryOf ? thread.attempts.find(item => item.id === retryOf)?.systemContext ?? null : thread.systemContext),
-      // Each attempt retrieves afresh; a retry never reuses another attempt's sources.
-      ...(request.retrieval ? { retrieval: retriever.pending(request.retrieval, now()) } : {}) };
+      // Each attempt retrieves afresh; a retry never reuses another attempt's sources or search permission.
+      ...(request.retrieval ? { retrieval: retriever.pending(request.retrieval, now()) } : {}),
+      ...(searchPermission ? { searchPermission: copy(searchPermission) } : {}) };
     const response = { id: attempt.responseId, attemptId: attempt.id, role: 'assistant', content: '', status: 'queued' };
     thread.attempts.push(attempt); thread.messages.push(response);
     const run = { controller, approval: null, completion: null, nextSequence: 0 };
@@ -235,6 +257,9 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
             assert(!run.approval, 'An approval is already pending');
             const scope = disclosureScope(request, preview, requester()), grant = matchingThreadGrant(thread.grants, scope);
             if (transactional) assert(publishedDisclosures.has(scope?.disclosure), 'Canonical disclosure requires exact verified partition recipients');
+            // Retrieved passages go only to verified recipients the per-answer search permission listed.
+            if (attempt.searchPermission) assert(scope && disclosureRecipients(scope, preview)
+              .every(recipient => attempt.searchPermission.recipients.includes(recipient)), SEARCH_RECIPIENTS_CHANGED);
             if (attempt.authorization?.kind === 'permission') {
               assert(scope && attempt.authorization.peerId === preview.peerId && Object.keys(scope).every(key =>
                 JSON.stringify(attempt.authorization[key]) === JSON.stringify(scope[key])),
@@ -385,29 +410,36 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
     renameThread(threadId, title) { current(); assert(typeof title === 'string' && title.trim() && title.length <= limits.maxMessageCharacters, 'Invalid conversation title'); find(threadId).title = title.trim(); return persist(); },
     closeThread(threadId) { current(); find(threadId).closed = true; if (selectedId === threadId) selectedId = null; return persist(); },
     reopenThread(threadId) { current(); find(threadId).closed = false; selectedId = threadId; return persist(); },
-    /** `retrieval` opts this request into search-backed answering: `{ query?, limits? }`, the query defaulting to the message. */
-    send(threadId, content, { select = true, authorizeDisclosure = null, retrieval = null } = {}) {
+    /** `retrieval` opts this request into search-backed answering: `{ route?, query?, limits? }`, the query defaulting
+     * to the message. A search-answer route also needs `searchPermission` for this answer. */
+    send(threadId, content, { select = true, authorizeDisclosure = null, retrieval = null, searchPermission = null } = {}) {
       current(); const thread = find(threadId);
       assert(!thread.closed && !runs.has(threadId), 'Open an idle conversation before sending');
       assert(runs.size < limits.maxConcurrentAttempts && thread.messages.length + 2 <= limits.maxMessagesPerThread, 'Conversation allowance reached');
-      assert(retrieval === null || retriever, 'Retrieval is not configured');
-      const searched = retrieval === null ? null : retriever.request(retrieval, text(content));
+      const route = retrieval === null ? null : routeFor(retrieval);
+      const { route: routeName = 'default', ...input } = retrieval ?? {};
+      const searched = route && { ...(routeName === 'default' ? {} : { route: routeName }), ...route.retriever.request(input, text(content)) };
+      const permission = searchGrant(thread, route, searched, searchPermission);
       const message = { id: id(), role: 'user', content: text(content), status: 'completed' };
       thread.messages.push(message);
       const completedUsers = new Set(thread.attempts.filter(attempt => attempt.status === 'completed').map(attempt => attempt.userMessageId));
-      const messages = thread.messages.filter(item => item.status === 'completed'
+      // A search-answer request carries only this question; history, context prompt and purpose stay here.
+      const messages = permission ? [{ role: 'user', content: message.content }] : thread.messages.filter(item => item.status === 'completed'
         && (item.role === 'assistant' || completedUsers.has(item.id) || item.id === message.id))
         .map(({ role, content }) => ({ role, content }));
       const system = [thread.systemContext?.content, thread.purpose].filter(Boolean).join('\n\n');
-      if (system) messages.unshift({ role: 'system', content: system });
+      if (system && !permission) messages.unshift({ role: 'system', content: system });
       try { return start(thread, { model: thread.model, permissions: thread.permissions, members: thread.members, messages,
-        ...(searched ? { retrieval: searched } : {}) }, message.id, null, select, authorizeDisclosure); }
+        ...(searched ? { retrieval: searched } : {}) }, message.id, null, select, authorizeDisclosure, permission); }
       catch (error) { thread.messages.pop(); throw error; }
     },
-    retry(threadId, attemptId, { authorizeDisclosure = null } = {}) {
+    /** A search-answer retry searches and discloses again, so it needs a fresh `searchPermission`. */
+    retry(threadId, attemptId, { authorizeDisclosure = null, searchPermission = null } = {}) {
       current(); const thread = find(threadId), attempt = thread.attempts.at(-1);
       assert(!thread.closed && attempt?.id === attemptId && ['cancelled', 'failed', 'interrupted'].includes(attempt.status), 'Only the latest interrupted or unsuccessful response can be retried');
-      return start(thread, attempt.request, attempt.userMessageId, attempt.id, true, authorizeDisclosure);
+      const route = attempt.request.retrieval ? routeFor(attempt.request.retrieval) : null;
+      const permission = searchGrant(thread, route, attempt.request.retrieval, searchPermission);
+      return start(thread, attempt.request, attempt.userMessageId, attempt.id, true, authorizeDisclosure, permission);
     },
     approve(threadId, attemptId, previewId, accepted, { remember = false } = {}) {
       current(); const thread = find(threadId), attempt = thread.attempts.at(-1), run = runs.get(threadId);

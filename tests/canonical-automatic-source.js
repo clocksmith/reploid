@@ -11,6 +11,7 @@ import { createPartitionDataChannel } from '../packages/reploid/src/transport/pa
 import { verifyPartitionStageCommit } from '../packages/reploid/src/mesh/partitions/partition-stage-commit.js';
 import { openCanonicalWorkspaceHistory } from '../packages/reploid/src/chat/workspace-history.js';
 import { createChatSession } from '../self/host/chat-session.js';
+import { remotePermissionWording } from '../self/ui/pool-home/remote-permission.js';
 import { fixture, runtime, plan, planId, limits, hash, epoch } from './canonical-runner-fixture.js';
 const requester = await createSigningIdentity({ algorithm: 'ECDSA' });
 let root = null, tail = Promise.resolve(), authorize = () => false;
@@ -118,7 +119,7 @@ try {
     const pending = await new Promise(resolve => { const stop = session.subscribe(value => {
       const attempt = value.activeThread?.attempts.at(-1);
       if (attempt?.status === 'approval') { queueMicrotask(() => stop()); resolve(attempt); } }); });
-    await session.grantRemotePermission(pending.approval.permissionNeed);
+    await session.grantRemotePermission(pending.approval.permissionNeed, { wording: remotePermissionWording(pending.approval.permissionNeed) });
     result = await completing;
   }
   assert.equal(result.status, 'completed', result.error);

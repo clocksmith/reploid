@@ -345,13 +345,13 @@
     },
     {
       "path": "chat/index.d.ts",
-      "bytes": 12115,
-      "sha256": "110ffd5ab3e3e899b21b622694d084951ed3dc906d04622e0c644c88f25cd2f6"
+      "bytes": 13298,
+      "sha256": "feacadf5699ae5559f2a1243fd0b2df4e2674f25a3ca9b63a6747e085cf33007"
     },
     {
       "path": "chat/index.js",
-      "bytes": 463,
-      "sha256": "d188d396047a91c505cdbbdfe3c4ca669f55cf176a9451347710b4a88e60e983"
+      "bytes": 674,
+      "sha256": "01a86bcaed84be23253c611ad6d070fd6d7e3163e2904e504f1870983ab8e962"
     },
     {
       "path": "chat/policy.json",
@@ -365,18 +365,33 @@
     },
     {
       "path": "chat/remote-permission.d.ts",
-      "bytes": 2055,
-      "sha256": "c67aef0c53ce176c83d607c8c9f4908807089efe58599834e9d6c6204a491ca0"
+      "bytes": 2562,
+      "sha256": "d762cfd0fa34be9e2f04bb93fcb64ad2fa0f686ccea85bd85d7328f993dcf2b2"
     },
     {
       "path": "chat/remote-permission.js",
-      "bytes": 4246,
-      "sha256": "f3ad2024d7472fa11904fd2b6a0f1e0305b6094ebc389571c5923a9efcc6bf7e"
+      "bytes": 5403,
+      "sha256": "0f4547bf512da4cafe84fc324b149784360e27d5cc3662607b6a93a899e3e305"
     },
     {
       "path": "chat/scheduler.js",
       "bytes": 9539,
       "sha256": "413f233f4df3be5975434b3c45fa4aa4507e387650dfd349006d51a40bbf105e"
+    },
+    {
+      "path": "chat/search-permission.d.ts",
+      "bytes": 1134,
+      "sha256": "ad8c1e82deb21b242949890e0f7a4faaba1f24bcc401903e6c3672346716f60d"
+    },
+    {
+      "path": "chat/search-permission.js",
+      "bytes": 3327,
+      "sha256": "ed430dfc5980504816139903bc311612ce9689b22c7df9b1029caf23c3f1c83a"
+    },
+    {
+      "path": "chat/search-permission.json",
+      "bytes": 353,
+      "sha256": "374fd18ba4ddc946fa269e1daf91bfba5b0848099337791227c3857b26c6a302"
     },
     {
       "path": "chat/thread-grants.js",
@@ -405,8 +420,8 @@
     },
     {
       "path": "chat/workspace.js",
-      "bytes": 35367,
-      "sha256": "058df6c55922ebc7f78b42d26965c5ece697214e063879cb8288cea4afdc9bc2"
+      "bytes": 38653,
+      "sha256": "ea4af34a7d868324a1d11088c09a91df841ad0e22bfa030b1746a081554eba41"
     },
     {
       "path": "config/defaults.json",
@@ -1044,24 +1059,34 @@
       "sha256": "d9e2d12decf403b3002555f5ae0273373d9e49debd66a1ac647edf6bbfe20486"
     },
     {
+      "path": "retrieval/claim-support.js",
+      "bytes": 7942,
+      "sha256": "808bc0703d54727f80c7dc95dcd5ff78afe59538db3326d1064a8238bce2e675"
+    },
+    {
       "path": "retrieval/fixed-provider.js",
       "bytes": 2335,
       "sha256": "4c0f26d3047fa5625d551f564b751a7a0455a522810077d4167e21f2c56b2bb2"
     },
     {
       "path": "retrieval/index.d.ts",
-      "bytes": 7882,
-      "sha256": "d833b37134b2ea65c6af02b9e4b14b82123a6b420bf5953e36f95454e1181e8e"
+      "bytes": 16180,
+      "sha256": "2f40b6a14ada05f616971689cbf4b4fde05b6a82ba247c14590b82224a70a768"
     },
     {
       "path": "retrieval/index.js",
-      "bytes": 536,
-      "sha256": "88c626fa2df06bb79418549a22c2d8ba85d7cf77ed2cf56100b8d0986a792073"
+      "bytes": 1243,
+      "sha256": "2c941f40a24b7e4fcd18d777c08452670a7a7f57ed89f0a85881813939401b7d"
     },
     {
       "path": "retrieval/lexical-support.js",
       "bytes": 1932,
       "sha256": "333f8772a5a13d911e7293b287ba2014ec450740327ba2561608d54f0aaa5c3e"
+    },
+    {
+      "path": "retrieval/model-reviewer.js",
+      "bytes": 4630,
+      "sha256": "9464911b5ffdcd1b38bfd962108a8d63d9cf1ee266ab8e67c9d3de9b58ee21b4"
     },
     {
       "path": "retrieval/policy.json",
@@ -1070,13 +1095,23 @@
     },
     {
       "path": "retrieval/retrieval.js",
-      "bytes": 1288,
-      "sha256": "e26f13e5b5cc3d1714c349d76ccaededc1f12c888ecd499920ed3486cd15bf43"
+      "bytes": 1555,
+      "sha256": "2f844afb1d1f730819130dd5a5bd176d27bd17a044c040ce1d4a6bdf2cf2daa3"
+    },
+    {
+      "path": "retrieval/review-queue.js",
+      "bytes": 5035,
+      "sha256": "38c9cfefb8c60be676aa1d561de2abfed589c1dc6ee71531d95d6998a32ed366"
     },
     {
       "path": "retrieval/sources.js",
-      "bytes": 12529,
-      "sha256": "51054b990916ebaf529d29ccecc5142e03b2e030ff4de5092d76f08850621fbb"
+      "bytes": 15251,
+      "sha256": "9ede697d7e4f5869d4c7422a0ac801eeac831c7b7931f9afc1b916e6967fd67e"
+    },
+    {
+      "path": "retrieval/support-review.js",
+      "bytes": 11880,
+      "sha256": "92420df7ae3725f830678c1fe6361d1296a7c4203dcaef775d57cc2cb9d149c5"
     },
     {
       "path": "retrieval/text.js",

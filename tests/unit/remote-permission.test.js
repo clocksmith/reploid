@@ -10,7 +10,8 @@ const digest = c => 'sha256:' + c.repeat(64), PEER = 'peer:' + 'b'.repeat(24);
 const modelA = { id: 'model-a', name: 'Model A', identity: digest('a') }, modelB = { id: 'model-b', name: 'Model B', identity: digest('b') };
 const adapter = { id: 'adapter', identity: digest('c') };
 const need = (overrides = {}) => ({ networkId: 'mesh', sharingScope: 'mesh', disclosure: 'public', modelId: modelA.id, modelIdentity: modelA.identity, adapterIdentities: [], ...overrides });
-const granted = (overrides = {}) => createRemotePermission({ id: 'permission-1', need: need(), catalog: [modelA], grantedAt: 1, ...overrides });
+const WORDING = { id: 'reploid.remote-contributor-permission', version: '1', text: 'Shown text' };
+const granted = (overrides = {}) => createRemotePermission({ id: 'permission-1', need: need(), catalog: [modelA], wording: WORDING, grantedAt: 1, ...overrides });
 
 describe('remote permission scope', () => {
   it('defines inside exactly: unrevoked, same sharing scope and disclosure kind, listed model and every adapter', () => {
@@ -145,7 +146,7 @@ describe('workspace under a remote permission', () => {
       const thread = f.app.createThread({ model, permissions: { sharingScope } }), completion = f.app.send(thread, name);
       const attempt = await held(f, thread);
       expect(f.disclosed, name).not.toContain(name);
-      f.stored.push(createRemotePermission({ id: 'for-' + name, need: attempt.approval.permissionNeed, grantedAt: 2 }));
+      f.stored.push(createRemotePermission({ id: 'for-' + name, need: attempt.approval.permissionNeed, wording: WORDING, grantedAt: 2 }));
       expect(f.app.resumePermitted()).toBe(1);
       expect((await completion).authorization.permissionId).toBe('for-' + name);
     }

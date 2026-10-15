@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 import { createFixedSearchProvider, createLexicalSupportChecker, renderSourceContext } from '../../packages/reploid/src/retrieval/index.js';
 import { createChatSession } from '../../self/host/chat-session.js';
+import { remotePermissionWording } from '../../self/ui/pool-home/remote-permission.js';
 import { orderedPartitionDisclosure } from '../../packages/reploid/src/mesh/partitions/partition-grants.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 
@@ -179,7 +180,7 @@ describe('host retrieval plumbing and disclosure', () => {
     expect(partitions.disclosed).toEqual([]);
 
     const need = session.remotePermissionNeeded({ model: ordered, sharingScope: 'mesh' });
-    const permission = await session.grantRemotePermission(need);
+    const permission = await session.grantRemotePermission(need, { wording: remotePermissionWording(need) });
     const done = await completion;
     expect(done).toMatchObject({ status: 'completed', authorization: { kind: 'permission', permissionId: permission.id, recipients: STAGES } });
     expect(partitions.disclosed).toHaveLength(1);

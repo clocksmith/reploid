@@ -15,7 +15,7 @@ This tree.
 ## Contracts
 Inputs: [conversation/execution state](../../../packages/reploid/src/chat/CATSCAN.md),
 [host composition](../../host/CATSCAN.md), [runtime](../../pool/CATSCAN.md),
-and scoped deterministic [room state](room-projection.js).
+deterministic [room state](room-projection.js).
 Outputs: [conversations](conversation-workspace.js), [markup](view.js), [Room-1](room-view.js).
 
 ## Invariants
@@ -26,8 +26,8 @@ Outputs: [conversations](conversation-workspace.js), [markup](view.js), [Room-1]
 - Link tasks/helpers/jobs/results/candidates; show observations and missing admission/evaluators.
 - Preserve execution in protein/document examples and request/execution/comparison/acceptance/receipt lifecycles. Recovery requires valid state.
 - Disclose execution location. Before the first remote request, explain once what is
-  sent and who receives it; Settings shows and revokes that permission. No per-request
-  review; local runs never ask. Viewing/restoring/selection grants nothing.
+  sent to whom; Settings shows and revokes that permission. Only search-backed
+  answers ask per request; local runs never ask. Viewing/restoring/selection grants nothing.
 - Keep failures and Stop visible; selection never stops background threads.
 - Include compatible adapters in model selection. Separate compute/bounded file consent;
   discovery/thread grants imply neither.
@@ -39,7 +39,7 @@ Outputs: [conversations](conversation-workspace.js), [markup](view.js), [Room-1]
 
 - Measure benefit/cost against local/centralized baselines. Fixtures prove no inference.
 - Desktop/mobile, both themes: empty/active/interrupted/completed screenshots.
-- Evidence: [conversations](../../../tests/e2e/chat-material.spec.js), [CSS](../../../scripts/verify-poolday-css-layers.js), [visuals](../../../tests/e2e/workspace-material.spec.js), [navigation](../../../tests/unit/pool-home-nav.test.js), [requests](../../../tests/unit/pool-home-ask-controls.test.js), [records](../../../tests/unit/pool-home-record.test.js), [peers](../../../tests/e2e/p2p-mesh.spec.js).
+- Evidence: [conversations](../../../tests/e2e/chat-material.spec.js), [CSS](../../../scripts/verify-poolday-css-layers.js), [visuals](../../../tests/e2e/workspace-material.spec.js), [navigation](../../../tests/unit/pool-home-nav.test.js), [requests](../../../tests/unit/pool-home-ask-controls.test.js), [records](../../../tests/unit/pool-home-record.test.js), [peers](../../../tests/e2e/p2p-mesh.spec.js), [search](../../../tests/unit/search-answer-permission.test.js).
 
 ## Non-goals
 Primary scientific administration, reputation, protocol internals.

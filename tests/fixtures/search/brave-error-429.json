@@ -1,0 +1,12 @@
+{
+  "_note": "Constructed from Brave's documented error body shape for a rate-limited request. Not a live recording; Brave's exact 429 code and detail strings are unconfirmed.",
+  "type": "ErrorResponse",
+  "error": {
+    "id": "6a1d4c2e-0000-4000-8000-000000000429",
+    "status": 429,
+    "code": "RATE_LIMITED",
+    "detail": "Request rate limit exceeded for plan.",
+    "meta": { "plan": "Search", "rate_limit": 1, "rate_current": 2, "quota_limit": 15000, "quota_current": 210 }
+  },
+  "time": 1760500000
+}
