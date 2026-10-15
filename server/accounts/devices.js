@@ -207,6 +207,60 @@ export function createDeviceOperations({ backend, policy, clock, createId, trans
     },
 
     /**
+     * Make the calling session act as an already registered, active device of
+     * its account, when that device's earlier session ended or expired. The
+     * device signs a session binding for a challenge issued to this session,
+     * exactly as registration with `bindSession` requires; no key moves.
+     */
+    async bindDeviceSession(input = {}) {
+      assertKnownKeys(input, ['sessionToken', 'deviceId', 'sessionBinding', 'idempotencyKey'], 'bindDeviceSession');
+      const { sessionToken, deviceId, sessionBinding, idempotencyKey } = input;
+      assertText(deviceId, 'deviceId', 160);
+      assertIdempotencyKey(idempotencyKey);
+      const now = clock();
+      const { session: callerSession, account: caller } = await readSession(backend, sessionToken, now);
+      const request = { deviceId, sessionBinding };
+      const operation = 'bindDeviceSession';
+      const prior = await lookupIdempotent({ operation, scopeId: caller.accountId, idempotencyKey, request });
+      if (prior) return prior.result;
+      const device = await backend.get('devices', deviceId);
+      if (!device || device.accountId !== caller.accountId || device.status !== 'active') {
+        fail('device_not_found', 'no active device with this id belongs to the account');
+      }
+      const challengeId = typeof sessionBinding?.challengeId === 'string' ? sessionBinding.challengeId : null;
+      const challenge = challengeId ? await backend.get('challenges', challengeId) : null;
+      if (!challenge) fail('challenge_not_found', 'no registration challenge has this id');
+      if (!await checkSessionBinding(sessionBinding, {
+        publicJwk: device.publicJwk, challenge: { challengeId, nonce: challenge.nonce, accountId: caller.accountId, sessionId: callerSession.sessionId }
+      })) {
+        fail('session_binding_invalid', 'binding a session needs the device\'s signed binding for this challenge and session');
+      }
+      return mutate({
+        operation, scopeId: caller.accountId, idempotencyKey, request, now,
+        body: async (tx) => {
+          const { session, account } = await readSession(tx, sessionToken, now);
+          const current = await tx.get('devices', deviceId);
+          const fresh = await tx.get('challenges', challengeId);
+          if (account.accountId !== caller.accountId) fail('session_invalid', 'the session changed accounts during binding');
+          if (current?.status !== 'active' || current.accountId !== account.accountId) fail('device_not_found', 'no active device with this id belongs to the account');
+          if (fresh?.status !== 'open') fail('challenge_used', 'this challenge was already answered; request a new one');
+          if (fresh.accountId !== account.accountId || fresh.sessionId !== session.sessionId || fresh.nonce !== challenge.nonce) {
+            fail('challenge_mismatch', 'the challenge was issued to a different session');
+          }
+          if (toMs(now) >= toMs(fresh.expiresAt)) fail('challenge_expired', 'the challenge has expired');
+          if (session.deviceId) fail('session_already_bound', 'the session already acts as a device');
+          return {
+            result: { deviceId, participantId: current.participantId, registrationId: current.registrationId, accountId: account.accountId, sessionBound: true },
+            writes: [
+              put('challenges', challengeId, { ...fresh, status: 'used', usedAt: now, registrationId: current.registrationId }),
+              put('sessions', session.sessionId, { ...session, deviceId, registrationId: current.registrationId })
+            ]
+          };
+        }
+      });
+    },
+
+    /**
      * Revoke a device of the session's account. Every later identity check,
      * custody-key attribution and device-bound session refuses it at once;
      * registrations keep their history.

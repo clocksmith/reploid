@@ -39,7 +39,8 @@ import {
 import { createRouteIdempotency } from './idempotency.js';
 
 const DELIVERY_EVIDENCE_KEYS = Object.freeze(['artifactId', 'authorization', 'index', 'receipt', 'attestation', 'supplierCertificate', 'acquirerCertificate']);
-const CLAIM_KEYS = Object.freeze([...DELIVERY_EVIDENCE_KEYS, 'deliveryId', 'reservationId', 'attemptId', 'stageIndex']);
+const STAGE_SHARE_KEYS = Object.freeze(['contribution', 'stageIndex', 'reservationId', 'attemptId']);
+const CLAIM_KEYS = Object.freeze([...DELIVERY_EVIDENCE_KEYS, 'deliveryId', ...STAGE_SHARE_KEYS]);
 const SETTLEMENT_KEYS = Object.freeze(['billableEventId', 'outcome', 'attemptId', 'metering', 'completedAt', 'reason', 'evidenceRef']);
 const COMMITMENT_KEYS = Object.freeze(['commitmentId', 'funderKind', 'funderId', 'externalRef', 'amount', 'unit', 'validFrom', 'validUntil']);
 
@@ -194,6 +195,12 @@ export function createEarningRouter({
     if (!reservation || reservation.accountId !== accountId) notFound('reservation_not_found', 'reservation');
     return reservation;
   };
+  // Attempts bind and report only from the device whose session accepted the reservation.
+  const acceptingDevice = async (reservationId, ctx) => {
+    const reservation = await ownReservation(reservationId, ctx.accountId);
+    if (reservation.deviceId !== ctx.deviceId) refuse(403, 'reservation_device_mismatch', 'only the device that accepted this reservation binds and reports its attempts');
+    return reservation;
+  };
   const ownOffer = async (offerId, accountId) => {
     const offer = await rewards.getOffer(offerId);
     if (!offer || offer.accountId !== accountId) notFound('offer_not_found', 'offer');
@@ -226,6 +233,13 @@ export function createEarningRouter({
     const body = bodyOf(req, ['proof', 'label', 'bindSession', 'sessionBinding']);
     return keyed(req, ctx, body, async (idempotencyKey) => ({
       status: 201, body: await accounts.registerDevice({ ...body, sessionToken: ctx.token, idempotencyKey })
+    }));
+  });
+  // A registered device binds a later session after its earlier one ended or expired.
+  define('post', '/devices/:deviceId/sessions', { auth: 'session', body: 'json' }, async (req, ctx) => {
+    const body = bodyOf(req, ['sessionBinding']);
+    return keyed(req, ctx, body, async (idempotencyKey) => ({
+      body: await accounts.bindDeviceSession({ sessionToken: ctx.token, deviceId: req.params.deviceId, sessionBinding: body.sessionBinding, idempotencyKey })
     }));
   });
   define('get', '/devices', { auth: 'session' }, async (req, ctx) => ({ body: { devices: await accounts.listDevices(ctx.accountId) } }));
@@ -277,8 +291,21 @@ export function createEarningRouter({
   define('post', '/reservations/:reservationId/attempts', { auth: 'device', body: 'json' }, async (req, ctx) => {
     const body = bodyOf(req, ['attemptId', 'recipients']);
     return keyed(req, ctx, body, async (idempotencyKey) => {
-      await ownReservation(req.params.reservationId, ctx.accountId);
+      await acceptingDevice(req.params.reservationId, ctx);
       return { body: await ledger.bindAttempt({ reservationId: req.params.reservationId, attemptId: body.attemptId, recipients: body.recipients, idempotencyKey }) };
+    });
+  });
+  /**
+   * The accepting device reports what one bound attempt's route returned; the
+   * ledger's declared outcome rules decide the outcome, metering and charge.
+   * A failure closes the attempt and keeps the reservation for a retry under
+   * the same acceptance; the report names no outcome or amount.
+   */
+  define('post', '/reservations/:reservationId/reports', { auth: 'device', body: 'evidence' }, async (req, ctx) => {
+    const body = bodyOf(req, ['report']);
+    return keyed(req, ctx, body, async (idempotencyKey) => {
+      await acceptingDevice(req.params.reservationId, ctx);
+      return { body: await ledger.settleAttempt({ reservationId: req.params.reservationId, report: body.report, idempotencyKey }) };
     });
   });
 
@@ -303,14 +330,20 @@ export function createEarningRouter({
   /**
    * A claim against one of the account's accepted offers, from a device-bound
    * session. Delivery claims name acquirer-submitted evidence by deliveryId or
-   * carry it inline; either way validation re-checks every signature. Accepted
-   * work is issued at once (offers pay on validation); an issuance the
-   * authority declines stays pending for the operator's resume.
+   * carry it inline; either way validation re-checks every signature. A
+   * stage-share claim carries the contributor's own admission record; the
+   * route summary and reservation come from the requester's kept report of
+   * that route attempt, never from the claimant. Accepted work is issued at
+   * once (offers pay on validation); an issuance the authority declines stays
+   * pending for the operator's resume.
    */
   define('post', '/offers/:offerId/claims', { auth: 'device', body: 'evidence' }, async (req, ctx) => {
     const body = bodyOf(req, CLAIM_KEYS);
     if (body.deliveryId !== undefined && Object.keys(body).length !== 1) {
       refuse(400, 'invalid_body', 'a claim names a deliveryId or carries its evidence, not both');
+    }
+    if (body.contribution !== undefined && Object.keys(body).some((key) => !STAGE_SHARE_KEYS.includes(key))) {
+      refuse(400, 'invalid_body', 'a stage-share claim carries its admission record and stage index, not delivery evidence');
     }
     return keyed(req, ctx, body, async (idempotencyKey) => {
       await ownOffer(req.params.offerId, ctx.accountId);
@@ -319,6 +352,17 @@ export function createEarningRouter({
         const record = await rewards.getDeliveryEvidence(body.deliveryId);
         if (!record) refuse(404, 'delivery_not_found', 'no delivery evidence has this id');
         claim = record.evidence;
+      }
+      if (body.contribution !== undefined) {
+        const record = await ledger.findAttemptRecord(body.contribution?.admission?.identity);
+        if (!record) refuse(404, 'attempt_record_not_found', 'no reported route attempt matches this admission record');
+        if ([['reservationId', record.reservationId], ['attemptId', record.attemptId]].some(([key, value]) => body[key] !== undefined && body[key] !== value)) {
+          refuse(409, 'attempt_record_mismatch', 'the claim names a different reservation or attempt than the reported route');
+        }
+        claim = {
+          reservationId: record.reservationId, attemptId: record.attemptId, stageIndex: body.stageIndex, contribution: body.contribution,
+          ...(record.execution ? { execution: record.execution } : {})
+        };
       }
       const validation = await rewards.validateWork({ ...claim, offerId: req.params.offerId, idempotencyKey });
       let issuance = null;

@@ -44,6 +44,7 @@ import {
   applyReserve,
   applySettle,
   assertAccountConsistent,
+  assertOpenReservation,
   bindAttemptTransition,
   buildSettlementRecord,
   closeAttemptTransition,
@@ -67,6 +68,14 @@ import {
   sweepReversedLots,
   validateReversalPolicy
 } from './reversals.js';
+import {
+  ATTEMPT_OUTCOME_RULES_ID,
+  ATTEMPT_RECORD_SCHEMA,
+  attemptRecordIdFor,
+  billableEventIdFor,
+  deriveAttemptOutcome,
+  routeHashOf
+} from './attempt-outcomes.js';
 import { checkStampedConversion, createConversionOperations } from './conversion/records.js';
 import { ALLOCATED_PROVENANCE, createFundingRegisterOperations, drawIssuanceAllocation, summarizeFunding } from './funding/register.js';
 import { assertLedgerBackend } from './store-contract.js';
@@ -232,6 +241,45 @@ export function createLedgerStore({
         put('reservations', reservation.reservationId, reservation)
       ]
     };
+  };
+
+  // One billable event's economic effect inside the caller's transaction; reads precede the returned writes.
+  const settleWithin = async (tx, reservation, request, now) => {
+    const { reservationId } = reservation;
+    const { billableEventId } = request;
+    const eventClaimId = claimId('billable_event', billableEventId);
+    const claim = await tx.get('claims', eventClaimId);
+    const account = await readRequired(tx, 'accounts', reservation.accountId, 'account_not_found');
+    const decision = decideSettlement(reservation, request, now);
+    if (claim) {
+      fail('billable_event_already_settled', 'billable event already has its economic effect', {
+        reservationId: claim.reservationId, settlementId: claim.settlementId
+      });
+    }
+    reservation.billableEventId = billableEventId;
+    const eventClaim = insert('claims', eventClaimId, {
+      kind: 'billable_event', key: billableEventId, reservationId,
+      settlementId: settlementIdForReservation(reservationId), recordedAt: now
+    });
+    if (decision.outcome === 'failed_quality') {
+      const review = newReview({ reservation, decision, input: request, now });
+      Object.assign(reservation, { status: 'under_review', reviewId: review.reviewId, updatedAt: now });
+      return {
+        result: {
+          status: 'under_review',
+          reservationId,
+          reviewId: review.reviewId,
+          billableEventId,
+          held: reservation.authorizedMax,
+          dispositionCharges: review.dispositionCharges
+        },
+        writes: [eventClaim, insert('reviews', review.reviewId, review), put('reservations', reservationId, reservation)]
+      };
+    }
+    const charge = evaluateFormula(decision.formula, decision.metering, reservation.rounding);
+    const reversals = await readReversals(tx, reservation.draws);
+    const { record, writes } = finalize({ account, reservation, decision, charge, input: request, review: null, reversals, now });
+    return { result: record, writes: [eventClaim, ...writes] };
   };
 
   const conversions = createConversionOperations({ backend, policy: activePolicy, clock, mutate, conversionAuthority });
@@ -494,43 +542,78 @@ export function createLedgerStore({
       const now = clock();
       return mutate({
         operation: 'settleReservation', scopeId: reservationId, idempotencyKey, request, now,
+        body: async (tx) => settleWithin(tx, await readRequired(tx, 'reservations', reservationId, 'reservation_not_found'), request, now)
+      });
+    },
+
+    /**
+     * Apply a requester's report of one route attempt under the declared
+     * outcome rules (attempt-outcomes.js), in one transaction: close a failed
+     * attempt, settle the reservation's one billable event, or both when no
+     * retry remains, and keep the route record contributors claim against.
+     * The report names no outcome, metering or charge.
+     */
+    async settleAttempt(input = {}) {
+      assertKnownKeys(input, ['reservationId', 'report', 'idempotencyKey'], 'settleAttempt');
+      const { reservationId, idempotencyKey } = input;
+      assertId(reservationId, 'reservationId');
+      if (input.report?.attemptId != null) assertId(input.report.attemptId, 'report.attemptId');
+      const request = { reservationId, report: cloneJson(input.report ?? null) };
+      const now = clock();
+      return mutate({
+        operation: 'settleAttempt', scopeId: reservationId, idempotencyKey, request, now,
         body: async (tx) => {
           const reservation = await readRequired(tx, 'reservations', reservationId, 'reservation_not_found');
-          const eventClaimId = claimId('billable_event', billableEventId);
-          const claim = await tx.get('claims', eventClaimId);
-          const account = await readRequired(tx, 'accounts', reservation.accountId, 'account_not_found');
-          const decision = decideSettlement(reservation, request, now);
-          if (claim) {
-            fail('billable_event_already_settled', 'billable event already has its economic effect', {
-              reservationId: claim.reservationId, settlementId: claim.settlementId
-            });
+          assertOpenReservation(reservation, now);
+          const derived = deriveAttemptOutcome({ reservation, report: request.report, now });
+          if (derived.record && await tx.get('attemptRecords', derived.record.recordId)) {
+            fail('attempt_already_reported', 'this route attempt already has its report', { recordId: derived.record.recordId });
           }
-          reservation.billableEventId = billableEventId;
-          const eventClaim = insert('claims', eventClaimId, {
-            kind: 'billable_event', key: billableEventId, reservationId,
-            settlementId: settlementIdForReservation(reservationId), recordedAt: now
-          });
-          if (decision.outcome === 'failed_quality') {
-            const review = newReview({ reservation, decision, input: request, now });
-            Object.assign(reservation, { status: 'under_review', reviewId: review.reviewId, updatedAt: now });
-            return {
-              result: {
-                status: 'under_review',
-                reservationId,
-                reviewId: review.reviewId,
-                billableEventId,
-                held: reservation.authorizedMax,
-                dispositionCharges: review.dispositionCharges
-              },
-              writes: [eventClaim, insert('reviews', review.reviewId, review), put('reservations', reservationId, reservation)]
-            };
+          const closed = derived.close ? closeAttemptTransition(reservation, { ...derived.close, now }) : null;
+          let settlement = null;
+          const writes = [];
+          if (derived.settle) {
+            const settled = await settleWithin(tx, reservation, { billableEventId: billableEventIdFor(reservationId), ...derived.settle }, now);
+            settlement = settled.result;
+            writes.push(...settled.writes);
+          } else {
+            reservation.updatedAt = now;
+            writes.push(put('reservations', reservationId, reservation));
           }
-          const charge = evaluateFormula(decision.formula, decision.metering, reservation.rounding);
-          const reversals = await readReversals(tx, reservation.draws);
-          const { record, writes } = finalize({ account, reservation, decision, charge, input: request, review: null, reversals, now });
-          return { result: record, writes: [eventClaim, ...writes] };
+          const attemptId = derived.record?.identity.attemptId ?? derived.settle?.attemptId ?? null;
+          const record = derived.record ? {
+            schema: ATTEMPT_RECORD_SCHEMA, ...derived.record, reservationId, quoteId: reservation.quoteId, accountId: reservation.accountId,
+            attemptId, rules: ATTEMPT_OUTCOME_RULES_ID, rule: derived.rule,
+            outcome: settlement?.outcome ?? null, settlementId: settlement?.settlementId ?? null, reportedAt: now
+          } : null;
+          if (record) writes.push(insert('attemptRecords', record.recordId, record));
+          const attempt = attemptId ? reservation.attempts.find((entry) => entry.attemptId === attemptId) : null;
+          return {
+            result: {
+              reservationId, rules: ATTEMPT_OUTCOME_RULES_ID, rule: derived.rule, recordId: record?.recordId ?? null,
+              attempt: attempt ? { attemptId, attemptNumber: attempt.attemptNumber, status: attempt.status, reason: attempt.reason } : null,
+              closed: Boolean(closed), reservationStatus: reservation.status, settlement
+            },
+            writes
+          };
         }
       });
+    },
+
+    async getAttemptRecord(recordId) {
+      return typeof recordId === 'string' && /^atr_[a-f0-9]{32}$/.test(recordId) ? backend.get('attemptRecords', recordId) : null;
+    },
+
+    /** The kept record of a reported route attempt, by its canonical route identity; null when none or malformed. */
+    async findAttemptRecord(identity) {
+      let routeHash;
+      try {
+        routeHash = routeHashOf(identity);
+      } catch {
+        return null;
+      }
+      const record = await backend.get('attemptRecords', attemptRecordIdFor(routeHash));
+      return record?.routeHash === routeHash ? record : null;
     },
 
     /** Record an operational review disposition; charges come from terms fixed at acceptance. */

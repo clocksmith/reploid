@@ -7,7 +7,7 @@ import { readWorkGenerationCompletion } from '../providers/work-generation-compl
 
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 
-export function createChatExecution({ service, swarm, partitions, scheduler, models, getModels, profile, onChange = () => {} }) {
+export function createChatExecution({ service, swarm, partitions, scheduler, models, getModels, profile, earning = null, onChange = () => {} }) {
   let local = null;
   // The same routing execute() applies: partitions always leave this device; local scope or a ready local copy stays.
   const runsHere = (model, sharingScope) => !model.partition && (sharingScope === 'local' || (local?.ready && local.modelIdentity === model.identity));
@@ -51,7 +51,8 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
 
     if (model.partition) {
       assert(partitions?.generate, 'Partition execution service is unavailable');
-      return partitions.generate(request, controls);
+      // A configured earning client runs each partition attempt under an accepted quote and reports its route records.
+      return earning ? earning.run(request, controls, (req, ctl) => partitions.generate(req, ctl)) : partitions.generate(request, controls);
     }
 
     if (runsHere(model, request.permissions?.sharingScope)) {

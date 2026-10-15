@@ -10,7 +10,7 @@ import { assertLedgerBackend } from '../ledger/store-contract.js';
 
 export const ACCOUNT_STORE_OPERATIONS = Object.freeze([
   'signIn', 'authenticate', 'authorizeDevice', 'endSession', 'recoverAccount', 'getAccount', 'listRecoveries',
-  'createRegistrationChallenge', 'registerDevice', 'revokeDevice', 'getDevice', 'listDevices',
+  'createRegistrationChallenge', 'registerDevice', 'bindDeviceSession', 'revokeDevice', 'getDevice', 'listDevices',
   'recordOwnerAuthorization', 'getOwnerRecord',
   'verifyCustodyKey', 'resolveParticipant', 'attributeParticipant', 'attributeCustodyKey',
   'recordLink', 'linksBetween', 'listLinks'

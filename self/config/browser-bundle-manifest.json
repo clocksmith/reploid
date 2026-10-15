@@ -1320,8 +1320,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 534741,
-      "sha256": "sha256:9fa25c8751d94b842cc0714fafba40777581f72bb5a88c0a1e75f2ae8485080d"
+      "byteLength": 536137,
+      "sha256": "sha256:d87796d0271e747696e048086c1b03aadd3eb5316e10bc14d8cde38a25028412"
     },
     {
       "path": "config/module-registry.json",
@@ -1380,8 +1380,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 114972,
-      "sha256": "sha256:020fe97374f9a0fb7532a26dfdabeaaca37f02fff820a6a8726cee068f794bdd"
+      "byteLength": 115085,
+      "sha256": "sha256:49caf42c5339135c05605c706ce974955e6b32b1dd7612e42fe52dae3003e00a"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1690,8 +1690,8 @@
     },
     {
       "path": "host/chat-execution.js",
-      "byteLength": 7206,
-      "sha256": "sha256:3982407ceaf960fec0968500eb8c5a4a82fe1b9424ffaf579f560828157b68f2"
+      "byteLength": 7430,
+      "sha256": "sha256:78546c0062179e4c34aae3ff177c1e80c52094484132b9992001db7475ada0e2"
     },
     {
       "path": "host/chat-history.js",
@@ -1700,8 +1700,8 @@
     },
     {
       "path": "host/chat-session.js",
-      "byteLength": 21107,
-      "sha256": "sha256:f927462386bec3e2b14505177f9f25c442a6e53ef93038f465315743ff7c8eed"
+      "byteLength": 21245,
+      "sha256": "sha256:cc65b5854557a59c5d3d6a7656423c06063a1db9778dd2be71eca27ff2f15500"
     },
     {
       "path": "host/chat-view.js",
@@ -1719,6 +1719,21 @@
       "sha256": "sha256:86aa1ae8127b18366ce39b3ec1b4aafa0eff7a8b87e326899c7b369b257b3b0e"
     },
     {
+      "path": "host/earning/attempts.js",
+      "byteLength": 10717,
+      "sha256": "sha256:50dbc5e002496be942b9d46978985cb3659a59b50cc4c2de52cc19cdd0db987a"
+    },
+    {
+      "path": "host/earning/client.js",
+      "byteLength": 10555,
+      "sha256": "sha256:691d4d3e69565850ef5f83155a8f71190f78e834dfba3b1772dd4b29ea21782b"
+    },
+    {
+      "path": "host/earning/contribution.js",
+      "byteLength": 7185,
+      "sha256": "sha256:47ef06edc436bb04707784ad15b4c06150397585286f05605aee0a5252711a74"
+    },
+    {
       "path": "host/mcp-client.js",
       "byteLength": 3742,
       "sha256": "sha256:39344af84701486e529a4b2527c960af7023de7ad9346f22557851f8a18c4aa9"
@@ -1730,8 +1745,8 @@
     },
     {
       "path": "host/product-session.js",
-      "byteLength": 9088,
-      "sha256": "sha256:2f24d52258817224b43a0d98908b3bc4eacc9a25a0c8b1ca6f8347d14be3a3bc"
+      "byteLength": 9225,
+      "sha256": "sha256:bfd61ce96edc72e4ab3e8eb872e2bd7a498058423eb4a7f70eae28a613392fe9"
     },
     {
       "path": "host/readonly-view.js",
@@ -9390,8 +9405,8 @@
     },
     {
       "path": "vendor/reploid/chat/workspace.js",
-      "byteLength": 35232,
-      "sha256": "sha256:aea1141e376ed72d4c047c1e0fa63b94ff099865dc7d27c3f7c0a611469f8323"
+      "byteLength": 35367,
+      "sha256": "sha256:058df6c55922ebc7f78b42d26965c5ece697214e063879cb8288cea4afdc9bc2"
     },
     {
       "path": "vendor/reploid/config/defaults.json",
@@ -9696,7 +9711,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 40411,
-      "sha256": "sha256:bc851d8b5f00d1fc8dc9e1ceae255875ab728f65d2d9a756e6efd06dec579624"
+      "sha256": "sha256:ca7a385d13ae05acee43fc35b3398ab92064f11063a37645465f295796e9039a"
     },
     {
       "path": "vendor/reploid/retrieval/citations.js",
@@ -9824,5 +9839,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:5b45407b157c7925fecf00ac3562320aa10771ce4e5f4d0380714e4b9a6fea89"
+  "bundleHash": "sha256:cbf8a16987cd0dae2f5de25ecfd1eff5876e6402846b7814c52bd975f4fa2169"
 }

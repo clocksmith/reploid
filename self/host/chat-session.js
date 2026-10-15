@@ -60,6 +60,8 @@ export function createChatSession({
   // Search provider, optional passage extractor and support checker (vendor/reploid/retrieval). None is
   // composed by default, so retrieval-backed requests are refused until a qualified provider is supplied.
   retrieval = null,
+  // Spending for partition attempts (earning/attempts.js); none unless the host configures an earning client.
+  earning = null,
   now = Date.now,
   id = () => crypto.randomUUID()
 } = {}) {
@@ -98,7 +100,7 @@ export function createChatSession({
     remotePermissions = next;
   };
 
-  const execution = createChatExecution({ service, swarm, partitions, scheduler, models,
+  const execution = createChatExecution({ service, swarm, partitions, scheduler, models, earning,
     getModels: () => [...models, ...peerModels, ...(partitions?.getModels() || [])], profile, onChange: () => notifyAll() });
 
   const workspace = createChatWorkspace({

@@ -4,11 +4,11 @@ Parent: [Hosted Services](../CATSCAN.md)
 
 ## Target
 
-Authenticated HTTP access to accounts, devices, quotes, reservations, balances, reward claims and operator funding, settlement and link records.
+Authenticated HTTP for accounts, devices, quotes, reservations, attempt reports, balances, reward claims and operator funding, settlement and links.
 
 ## Authority
-- Owns route authentication and authorization, body bounds, rate limits, Idempotency-Key bindings, refusal statuses and the off-by-default mount.
-- Excludes identity, balances, prices, reward validation, funding decisions and who holds operator credentials.
+- Owns route authentication/authorization, body bounds, rate limits, Idempotency-Key bindings, refusal statuses, the off-by-default mount.
+- Excludes identity, balances, prices, outcomes, reward validation, funding decisions, operator credential holders.
 
 ## Scope
 
@@ -23,20 +23,20 @@ Outputs:
 - `/v1` routes from [router.js](router.js), mounted by [mount.js](mount.js) when `REPLOID_EARNING_ROUTES=enabled`.
 
 ## Invariants
-- Account and device come from the session; operator actors from the credential; neither from a body.
-- Spending, attempt binding, claims and delivery evidence need a session bound to an active device.
-- Clients never author quote terms.
-- An Idempotency-Key binds to its route, caller and canonical request; a different request conflicts, even in progress; callers share no results. Only definite no-effect failures free it; ambiguous ones reconcile under the same component key.
-- Unauthenticated bodies are never parsed; upstream-parsed bodies are refused.
+- Account and device come from the session, operator actors from the credential, neither from bodies.
+- Spending, attempts, reports, claims and delivery evidence need an active device's session; attempts bind and report only from the accepting device.
+- Clients never author quote terms, outcomes or claimed route summaries.
+- An Idempotency-Key binds route, caller and canonical request; a different request conflicts, even in progress; callers share no results. Only definite no-effect failures free it; ambiguous ones reconcile under the same component key.
+- Unauthenticated bodies are never parsed; upstream-parsed ones are refused.
 - No local-development or loopback bypass; never mounted under `/pool`.
-- Production refuses missing or test-only sign-in providers and memory stores.
+- Production refuses missing/test-only sign-in providers and memory stores.
 
 ## Acceptance
-- Evidence: [HTTP route tests](../../tests/integration/earning-routes.test.js) on memory and Firestore.
+- Evidence: [route](../../tests/integration/earning-routes.test.js) and [execution](../../tests/integration/earning-execution.test.js) tests on memory and Firestore.
 - Limits: real sign-in, payment and search providers, shared rate limiting and installed hosts need separate acceptance.
 
 ## Non-goals
-- UI, real providers, credential issuance or pricing.
+- UI, real providers, credential issuance, pricing.
 
 ## Freedom
-Preserve these boundaries and pass acceptance.
+Preserve boundaries; pass acceptance.

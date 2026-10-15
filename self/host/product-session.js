@@ -50,7 +50,7 @@ async function openOrderedRequesterChat({ chatOptions, requesterIdentity, ports 
 
 export function createProductSession({ storage, networkOptions, swarmNetworkOptions, operationNetwork = null,
   canonical = null, ordered = null, eventTarget = window, onChanges = () => {}, onDocuments = () => {}, onSharing = () => {},
-  historyPorts = {} }) {
+  historyPorts = {}, earning = null }) {
   let runtime, work, chat, documents, operationSharing, closed = false, closing, ownsNetwork = false;
   const service = createReploidDopplerRuntimeService();
   const evolution = createWorkEvolution({ storage, isBusy: () => work?.getState().anyBusy === true, onChange: onChanges });
@@ -68,8 +68,9 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
   };
   // The person's MCP search server, used only for sends made while web search is on (Settings).
   const webSearch = createWebSearch({ storage });
+  // `earning` (earning/attempts.js) is off unless the embedding host composes an explicitly configured client.
   const chatOptions = { service, storage, swarm, partitions: swarm.partitions, peers: createWorkPeerJobs({ getNetwork }),
-    retrieval: { provider: webSearch.provider } };
+    retrieval: { provider: webSearch.provider }, earning };
   const failOpening = async error => {
     const settled = await Promise.allSettled([() => swarm.close(), () => chat?.close()].map(close => Promise.resolve().then(close)));
     const failures = settled.filter(result => result.status === 'rejected').map(result => result.reason);

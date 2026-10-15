@@ -183,8 +183,9 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         }
         if (transactional) await store.assertCurrentWriter();
         publication = transactional ? await store.publication(thread.id) : undefined;
+        // retryOf lets the host keep an explicit retry under the acceptance its failed attempt held.
         const result = await execute(copy({ ...dispatched, threadId: thread.id, attemptId: attempt.id,
-          meshId, participantId }), {
+          meshId, participantId, ...(retryOf ? { retryOf } : {}) }), {
           signal: controller.signal,
           authorizationExpiresAt: () => live() ? attempt.authorization?.expiresAt ?? null : null,
           ...(transactional ? { publication, publisherEpoch: store.writerEpoch,

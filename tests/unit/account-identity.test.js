@@ -193,6 +193,29 @@ describe.each(['memory', 'firestore'])('account identity (%s store)', (kind) => 
       expect((await accounts.authorizeDevice(session.token)).deviceId).toBe((await accounts.listDevices((await accounts.authenticate(session.token)).accountId))[0].deviceId);
       await rejectsWith(accounts.authorizeDevice(desk.token), 'device_session_required');
     });
+
+    it('binds a later session to an active registration with the device\'s own signed binding', async () => {
+      const { session } = await signIn('alice');
+      const device = await newIdentity();
+      const { registration } = await registerDevice(accounts, session, device, { host: 'native', bindSession: true });
+      advance(ACCOUNT_POLICY.sessionTtlMs + MIN);
+      await rejectsWith(accounts.authorizeDevice(session.token), 'session_expired');
+      const later = (await signIn('alice')).session;
+      const challenge = await accounts.createRegistrationChallenge({ sessionToken: later.token });
+      const bind = (input, idempotencyKey) => accounts.bindDeviceSession({ sessionToken: later.token, deviceId: registration.deviceId, idempotencyKey, ...input });
+      await rejectsWith(bind({ sessionBinding: await createSessionBinding({ identity: await newIdentity(), challenge }) }, 'b:other-key'), 'session_binding_invalid');
+      await rejectsWith(bind({ deviceId: 'dev_' + '0'.repeat(32), sessionBinding: await createSessionBinding({ identity: device, challenge }) }, 'b:unknown'), 'device_not_found');
+      const bound = await bind({ sessionBinding: await createSessionBinding({ identity: device, challenge }) }, 'b:genuine');
+      expect(bound).toMatchObject({ deviceId: registration.deviceId, registrationId: registration.registrationId, sessionBound: true });
+      expect(await bind({ sessionBinding: await createSessionBinding({ identity: device, challenge }) }, 'b:genuine')).toEqual(bound);
+      expect((await accounts.authorizeDevice(later.token)).deviceId).toBe(registration.deviceId);
+      // The challenge is spent, a bound session cannot rebind, and another account's session cannot bind this device.
+      await rejectsWith(bind({ sessionBinding: await createSessionBinding({ identity: device, challenge }) }, 'b:again'), 'challenge_used');
+      const bob = (await signIn('bob')).session;
+      const bobChallenge = await accounts.createRegistrationChallenge({ sessionToken: bob.token });
+      await rejectsWith(accounts.bindDeviceSession({ sessionToken: bob.token, deviceId: registration.deviceId,
+        sessionBinding: await createSessionBinding({ identity: device, challenge: bobChallenge }), idempotencyKey: 'b:bob' }), 'device_not_found');
+    });
   });
 
   describe('revocation', () => {

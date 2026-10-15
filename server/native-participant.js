@@ -375,10 +375,15 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
 /** `owner` is the optional owner gate from openNativeOwnerControls. It defers or reduces
  * new contribution, stage attempts and piece supply; it never cancels admitted work.
  * The persistent identity certifies the per-process custody key at startup and on
- * renewal; `onCustodyCertificate` observes each certificate (public, no secrets). */
+ * renewal; `onCustodyCertificate` observes each certificate (public, no secrets).
+ * `earning` (self/host/earning/contribution.js over an explicitly configured client)
+ * claims this host's settled stage shares and supplied deliveries and submits the
+ * evidence of deliveries it acquired; it needs the owner policy and is off by default.
+ * Claim failures are reported to the logger and never stop contribution. */
 export async function createNativeParticipant({ model, modelDirectory, identity, rtc, WebSocket,
   signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
-  owner: ownerGate = null, onCustodyCertificate = () => {} }) {
+  owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null }) {
+  requireValue(earning === null || ownerGate && typeof earning.observe === 'function', 'Native earning requires the owner policy and an earning contribution port');
   if (ordered !== null) model = structuredClone(model);
   ordered = snapshotWorkOrderedParticipation(ordered, canonical, [model]);
   requireValue(identity?.privateJwk && await createPeerIdFromPublicJwk(identity.publicJwk) === identity.peerId,
@@ -421,6 +426,12 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
           && (!admission || (!request.contact && !request.from) || await admission.verify(request.contact || request.from)) }
     })
   } });
+  // Claims read this host's own records only; they never change admission or settlement.
+  const observeEarning = () => {
+    if (!earning) return;
+    earning.observe({ admissions: partitions?.getState().reservations?.records ?? [], deliveries: files?.getDeliveryEvidence() ?? [] })
+      .catch(error => logger.warn('Earning claims deferred', error?.code || error?.message));
+  };
   const settledOwners = new Set();
   const closeOwner = async owner => {
     if (!owner || settledOwners.has(owner)) return;
@@ -481,7 +492,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
           ...(epochs ? { canonical: { ...controls.canonical, epochs } } : {}),
           ...(ownerGate ? { gpuBufferBytes: ownerGate.gpuBufferBytes(policy.maxGpuBufferBytes) } : {}) });
         return ownerGate ? { ...program, resident: ownerGate.gateResident(program.resident) } : program;
-      }, onChange
+      }, onChange: earning ? state => { onChange(state); observeEarning(); } : onChange
     });
     return Object.freeze({ identity: identity.peerId, getState: () => partitions.getState(),
       generate(request, controls) {
@@ -501,7 +512,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
         return files.share(model, approved);
       } : approved => { requireValue(files, 'Native cache directory required'); return files.share(model, approved); },
       stopSharing: ownerGate ? () => { endOwnerWait('share', 'Native file contribution stopped'); return files?.stopSupply(); } : () => files?.stopSupply(),
-      announceFiles: () => files?.announce(), getOwnerState: () => ownerGate ? ownerGate.summary() : NO_OWNER_POLICY,
+      announceFiles: () => { files?.announce(); observeEarning(); }, getOwnerState: () => ownerGate ? ownerGate.summary() : NO_OWNER_POLICY,
       getCustodyCertificate: async () => files ? files.custodyCertificate() : null });
   } catch (error) { try { await close(); } catch (cleanup) { throw new AggregateError([error, cleanup], 'Native startup and cleanup failed'); } throw error; }
 }
