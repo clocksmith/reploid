@@ -1320,8 +1320,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 540286,
-      "sha256": "sha256:4e1ba1bde58aeda68cf581c3df216d51345d465040ac6eddb52a93b52d0500a0"
+      "byteLength": 541493,
+      "sha256": "sha256:7444e7b62dc9ac5acaf6dcc52ea7473a930c3d974d498c1c8a166e828d2299f4"
     },
     {
       "path": "config/module-registry.json",
@@ -1850,8 +1850,8 @@
     },
     {
       "path": "host/work-partition-plan.js",
-      "byteLength": 10010,
-      "sha256": "sha256:16a259d7e4f8861d73670657bfcc152af4dba44c0a46d9671b780dbd4161aea1"
+      "byteLength": 10356,
+      "sha256": "sha256:5e96e9088f10804efe760b6d9923709d2964acf410653c16e0ca5f8b9d1c1086"
     },
     {
       "path": "host/work-partition-tokenizer-guard.js",
@@ -9565,8 +9565,8 @@
     },
     {
       "path": "vendor/reploid/mesh/partitions/automatic-ordered-partitions.js",
-      "byteLength": 36949,
-      "sha256": "sha256:52b10d802f1dd6cdf0d80d85e747d88f06f6affb009d77cebe67024b3b4415c0"
+      "byteLength": 40153,
+      "sha256": "sha256:f127bc1fd4eda57fb46073a81d94a3a291e2570a7ef7aced8bd830f0f00b2f77"
     },
     {
       "path": "vendor/reploid/mesh/partitions/automatic-partitions.js",
@@ -9695,8 +9695,8 @@
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-route-ranking.js",
-      "byteLength": 8204,
-      "sha256": "sha256:1ef417d05013f0c7fd38494b287524ec424cdbc9e3c99ea8ffcfd6f6d33e7917"
+      "byteLength": 21266,
+      "sha256": "sha256:0604b1b1d3bbb192c7c5a701b534ee7da97155924bc54bf15897af3d031b2974"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-runner.js",
@@ -9720,8 +9720,8 @@
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-summary.js",
-      "byteLength": 7339,
-      "sha256": "sha256:cbfb528204ce79fee90ac8aa88737e9106470e97552683d69c79f12251de2906"
+      "byteLength": 7526,
+      "sha256": "sha256:97d01182a47ef6586778f8d4be58a141362920f98c28163ac0a2349957284795"
     },
     {
       "path": "vendor/reploid/mesh/partitions/resident-error-codes.json",
@@ -9765,8 +9765,8 @@
     },
     {
       "path": "vendor/reploid/package-assets.json",
-      "byteLength": 42530,
-      "sha256": "sha256:8d72eaa9eba604c7a5e70c8344ad85341c9a7a18ec7dbe6898f4bf1f129babb9"
+      "byteLength": 42531,
+      "sha256": "sha256:3bd5a90da1ab9a80f3e46527ecbfe7391194bdbccef2dfdd8619e9bb2c1e786f"
     },
     {
       "path": "vendor/reploid/retrieval/citations.js",
@@ -9934,5 +9934,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:7e14609af94129f8d12394f4d62059dbbb636df4e58bed536a474bffe2e706bd"
+  "bundleHash": "sha256:af666c8409b07d7acf97f5cf3a3653665f1ccc5b98d8491c6fd0706ff5cb6d67"
 }

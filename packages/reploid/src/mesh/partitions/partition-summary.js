@@ -47,7 +47,9 @@ export function summarizePartitionExecution(execution) {
     return structuredClone({ schema: 'reploid.mesh.partition-summary/v2', identity: execution.identity,
       activationBytes: execution.activationBytes, stopReason: execution.stopReason, settlement: execution.settlement,
       stepSummary: { count: execution.steps?.length || 0, stages: [...stages.values()],
-        phases: summarizeOrderedPhases(execution.steps || []), detail: 'aggregate; no per-step trace transferred' } });
+        phases: summarizeOrderedPhases(execution.steps || []), detail: 'aggregate; no per-step trace transferred' },
+      // A ranking coordinator's unsigned record of the decision that chose this attempt's route.
+      ...(execution.routeSelection ? { routeSelection: execution.routeSelection } : {}) });
   }
   if (execution.schema === 'reploid.mesh.canonical-partition-execution/v1') {
     // Signed records are already retained by the requester transaction owner.

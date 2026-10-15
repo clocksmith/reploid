@@ -1,7 +1,8 @@
 import { generationRequest, requireGenerationCapability } from './partition-generation-request.js';
 import { createPartitionDiscovery } from './partition-discovery.js';
 import { selectPartitionRoute, selectPartitionExecution, eligiblePartitionStages } from './partition-placement.js';
-import { createRouteObservations, rankPartitionRoutes, preferRoute } from './partition-route-ranking.js';
+import { createRouteObservations, rankPartitionRoutes, preferRoute, routeSelectionRecord, validateRouteCostPolicy,
+  ROUTE_RANKING_WORK_LIMIT } from './partition-route-ranking.js';
 import { ORDERED_PARTITION_CHANNEL } from './partition-route-network.js';
 import { createPartitionPeer } from './partition-peer.js';
 import { createPartitionEntry } from './partition-entry.js';
@@ -20,7 +21,8 @@ const equal = (a, b) => canonicalPartitionJson(a) === canonicalPartitionJson(b);
  * mechanisms run only under an explicit `ordered.orchestration` member: with
  * `autoStage`, the operator's auto choice lets this contributor's own policy pick
  * its stage from observed offers and move only while idle; with `routeRanking`,
- * a coordinator ranks complete routes by measured phases for new attempts only;
+ * a coordinator ranks complete routes by expected cost under its explicit cost policy
+ * for new attempts only, recording each decision with the attempts it admits;
  * with `admission`, every resident this owner prepares charges one device budget,
  * optionally behind a fair bounded queue; with `replicas`, an automatic contributor
  * joins or moves to a stage whose queue or measured cost makes another replica useful. */
@@ -46,7 +48,9 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     && Number.isSafeInteger(ranking.workload?.promptTokens) && ranking.workload.promptTokens > 0
     && Number.isSafeInteger(ranking.workload.expectedTokens) && ranking.workload.expectedTokens > 0,
   'Measured route preference requires an explicit margin and workload');
-  // Bounded, smoothed per (plan, participant, stage) costs from attempts this coordinator completed.
+  // Every price, prior and reserve comes from the operator's versioned cost policy; none is defaulted.
+  const costPolicy = ranking ? validateRouteCostPolicy(ranking.costs) : null;
+  // Bounded per (plan, participant, stage) costs and per-route outcomes from attempts this coordinator served.
   const observations = ranking ? createRouteObservations({ maxEntries: ranking.maxObservations, smoothing: ranking.smoothing }) : null;
   assert(replicas === null || auto !== null && Number.isSafeInteger(replicas.queueBound) && replicas.queueBound >= 0
     && typeof replicas.bottleneckRatio === 'number' && replicas.bottleneckRatio > 1,
@@ -75,7 +79,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     reservations: program?.resident.getState().reservations ?? null, acquisition: program?.getReceipt?.() ?? null,
     models: getModels(), attempts: [...routes.values()].flatMap(row => row.chat.getState().attempts), unsettledOwners: debt.size,
     unknownAttempts: structuredClone(unknownAttempts), ...(auto ? { assignment: structuredClone(assignment) } : {}),
-    ...(ranking ? { routeObservations: observations.snapshot() } : {}) });
+    ...(ranking ? { routeObservations: observations.snapshot(), routeOutcomes: observations.snapshotRoutes() } : {}) });
   const notify = () => { onChange(getState()); for (const listener of listeners) listener(getModels()); };
   // A bounded device queue is advertised with capacity; it is present only when configured.
   const residentCapacity = () => program ? (({ active, availableSlots, closed, device: shared }) => ({ active, availableSlots, closed,
@@ -106,15 +110,34 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       observations.record({ planId: route.planId, route, phases: summarizePartitionExecution(result.execution).stepSummary?.phases, at: Date.now() });
     } catch { /* A malformed execution summary is not a measurement. */ }
   };
+  // Readiness and failure evidence from the attempt's own runner receipt. Stages that reserved it
+  // admitted it; a non-cancelled attempt that stopped during admission was refused by the next stage
+  // (including a declined or failed reservation call). Only a fully admitted attempt has an execution
+  // outcome; one that never reached admission is not a route outcome, and cancellation is neither.
+  const settle = (owner, attemptId, completed, cancelled) => {
+    try {
+      const receipt = owner.chat.getState().attempts.find(row => row.identity?.attemptId === attemptId);
+      if (!receipt) return;
+      const admitted = receipt.reservations.length, all = admitted === owner.route.stages.length;
+      cancelled ||= receipt.phase === 'cancelled';
+      observations.recordOutcome({ planId: owner.route.planId, route: owner.route, admitted, refused: !cancelled && !all,
+        execution: cancelled || !all ? null : completed ? 'completed' : 'failed', at: Date.now() });
+    } catch { /* A malformed receipt is not an outcome. */ }
+  };
   const service = {
     getModels: () => offer && !closed && phase === 'ready' ? routeOwners().flatMap(row => row.chat.getModels()) : [],
     async refresh({ signal } = {}) { await tick(); await current()?.chat.refresh({ signal }); },
     generate(request, controls) {
       const key = canonicalPartitionJson(request.model.partition.route), owner = routes.get(key);
       assert(owner && offer && !closed && !stopping && !moving, 'Ordered input owner unavailable');
+      // The decision that chose this route when the attempt arrived travels with its execution record.
+      const selection = owner.selection ?? null;
       const running = owner.chat.generate(request, controls);
-      // Only completed attempts become observations; failures and cancellations are not costs.
-      return observations ? running.then(result => { observe(owner.route, result); return result; }) : running;
+      if (!observations) return running;
+      return running.then(result => {
+        observe(owner.route, result); settle(owner, request.attemptId, true, false);
+        return selection ? { ...result, execution: { ...result.execution, routeSelection: selection } } : result;
+      }, error => { settle(owner, request.attemptId, false, !!controls?.signal?.aborted); throw error; });
     }
   };
   entries = createNetwork({ label: 'reploid-partitions-input', maxPeers: config.maxPeers, timeoutMs: config.connectTimeoutMs,
@@ -196,31 +219,40 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     } finally { loading = null; notify(); }
   }
   const healthy = owner => owner.ports.every(port => port.getState().ready);
-  /** Opt-in: rank complete admissible routes by measured cost; peer id only breaks ties. */
+  /** Opt-in: rank complete admissible routes by expected cost; peer id only breaks ties. A stage
+   * without an eligible prepared offer reports unavailable capacity rather than a partial route. */
   async function rankedRoute(selection, existing) {
     const eligible = await eligiblePartitionStages(selection);
     if (eligible.candidates.some(rows => !rows.length)) return selectPartitionRoute(selection);
     const capacity = new Map(selection.capabilities.map(peer => [peer.participantId, peer.description?.capacity ?? null]));
     let ranked;
     try {
-      ranked = rankPartitionRoutes({ planId: eligible.planId, observations,
-        candidates: eligible.candidates.map(rows => rows.map(row => ({ ...row, capacity: structuredClone(capacity.get(row.participantId)) }))),
+      ranked = rankPartitionRoutes({ planId: eligible.planId, observations, policy: costPolicy, now: selection.now,
+        open: [...routes.values()].filter(healthy).map(row => row.route.stages),
+        candidates: eligible.candidates.map(rows => rows.map(row => ({ ...row, local: row.participantId === identity.peerId,
+          capacity: structuredClone(capacity.get(row.participantId)) }))),
         workload: { ...ranking.workload, allocationBytes: 0 },
         // Every enumerated route stays listed so the current one is always found if admissible.
         limits: { maxParticipants: config.maxPeers, maxRoutes: options.maxSelectionSteps, maxSelectionSteps: options.maxSelectionSteps } });
-    } catch {
+    } catch (cause) {
+      if (cause?.message !== ROUTE_RANKING_WORK_LIMIT) throw cause;
       return existing ? { route: existing.route, reason: 'retain-prepared-route', ranking: 'work-limit' }
         : { ...await selectPartitionRoute(selection), ranking: 'work-limit' };
     }
     const chat = existing?.chat.getState();
     const chosen = preferRoute({ current: existing && healthy(existing) ? existing.route : null, ranked,
       active: !!(chat?.active || chat?.pendingInputs), margin: ranking.margin });
-    if (!chosen) return { route: null, reason: 'no-admissible-route' };
-    if (existing && chosen === existing.route) return { route: existing.route, reason: 'retain-ranked-route' };
+    const stageIds = route => JSON.stringify(route.stages.map(({ participantId, transportId, residentId, executionId }) =>
+      [participantId, transportId, residentId, executionId]));
+    const same = route => stageIds(route) === stageIds(chosen);
+    const record = reason => routeSelectionRecord({ policy: costPolicy, workload: ranking.workload, ranked, reason, decidedAt: selection.now,
+      maxRoutes: options.maxRoutes, chosen: chosen ? ranked.find(same) ?? null : null });
+    if (!chosen) return { route: null, reason: 'no-admissible-route', selection: record('no-admissible-route') };
+    if (existing && chosen === existing.route) return { route: existing.route, reason: 'retain-ranked-route', selection: record('retain-ranked-route') };
     const route = await validatePartitionRoute(program.runtime, program.plan, { schema: PARTITION_ROUTE_SCHEMA,
       modelId: eligible.model.id, modelIdentity: eligible.model.identity, planId: eligible.planId, activation: eligible.activation,
       stages: chosen.stages.map(({ index, participantId, transportId, residentId, executionId }) => ({ index, participantId, transportId, residentId, executionId })) });
-    return { route, reason: 'ranked-route', measured: chosen.measured, cost: chosen.cost };
+    return { route, reason: 'ranked-route', measured: chosen.measured, cost: chosen.cost, selection: record('ranked-route') };
   }
   async function reconcile() {
     if (!offer || !program || stage.index !== 0 || stopping || closed || phase !== 'ready') return;
@@ -247,18 +279,26 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       limits: { maxPeers: config.maxPeers, maxStages: config.limits.maxStages, maxOffersPerPeer: config.maxStageOffersPerPeer, maxSelectionSteps: options.maxSelectionSteps } };
     const kept = existing && healthy(existing) ? existing : null;
     decision = ranking ? await rankedRoute(selection, kept) : await selectPartitionRoute(selection);
-    if (!decision.route) { if (kept) decision = { ...decision, route: kept.route }; return; }
+    if (!decision.route) {
+      if (kept) { decision = { ...decision, route: kept.route }; if (decision.selection) kept.selection = decision.selection; }
+      return;
+    }
     const route = decision.route, key = canonicalPartitionJson(route);
-    if (routes.has(key)) { currentKey = key; return; }
+    if (routes.has(key)) { if (decision.selection) routes.get(key).selection = decision.selection; currentKey = key; return; }
     if (ranking && routes.size >= options.maxRoutes) { decision = { ...decision, route: kept?.route ?? null, reason: 'route-limit' }; return; }
     const ports = [];
     try {
-      for (const row of route.stages.slice(1)) ports.push(await execution.connect(row.transportId, { route }));
+      for (const row of route.stages.slice(1)) {
+        const started = performance.now();
+        ports.push(await execution.connect(row.transportId, { route }));
+        // Opening a new route is the preparation a not-yet-open route still needs.
+        observations?.recordOpening({ planId: route.planId, stage: row, openingMs: performance.now() - started, at: Date.now() });
+      }
       assert(offer && !stopping && !closed, 'Contribution stopped while opening route');
       const chat = createPartitionChat({ runtime: program.runtime, model: program.model, authority, plan: program.plan,
         planId: program.planId, limits: config.limits, grantTtlMs: config.grantMs,
         ordered: { route, stages: [program.resident, ...ports] }, authorizeRequester: async () => !!offer && !closed && !stopping && !moving });
-      routes.set(key, { route, ports, chat });
+      routes.set(key, { route, ports, chat, selection: decision.selection ?? null });
       await chat.refresh({ signal: controller.signal }); currentKey = key; notify();
     } catch (cause) {
       // Network owns even a rejected or unacknowledged opening until explicit settlement.

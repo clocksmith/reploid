@@ -78,11 +78,18 @@ it('browser binds an operator auto choice to the authenticated transport only wi
   expect(ports.options.ordered).toEqual({ stage: null, maxRouteBytes: orderedPolicy.limits.maxRouteBytes,
     maxSelectionSteps: orderedPolicy.limits.maxSelectionSteps, maxRoutes: orderedPolicy.limits.maxRoutes,
     orchestration: { autoStage: { dwellMs: 60000, transportId: 'actual-rtc' } } });
-  // Coordinator ranking passes through unchanged next to an explicitly assigned stage.
-  const ranking = { margin: 0.1, smoothing: 0.5, maxObservations: 64, workload: { promptTokens: 24, expectedTokens: 64 } };
+  // Coordinator ranking passes through unchanged next to an explicitly assigned stage, with its complete cost policy.
+  const costs = { schema: 'reploid.route-cost-policy/v1', id: 'test-host-costs/1', unit: 'test-unit', resolution: 1,
+    prices: { latencyPerMs: 1, queueingPerMs: 1, transferPerMs: 1, preparationPerMs: 1, refundPerFailure: 100, retryPerFailure: 10 },
+    unknown: { prefillMsPerToken: 50, decodeMsPerToken: 500, transferMsPerToken: 50, openingMs: 1000, maxObservationAgeMs: 600000 },
+    readiness: { priorAttempts: 4, priorRefusals: 1 }, failure: { priorAttempts: 4, priorFailures: 1 }, reserve: { spareSlots: 1, perMissingSlot: 10 } };
+  const ranking = { margin: 0.1, smoothing: 0.5, maxObservations: 64, workload: { promptTokens: 24, expectedTokens: 64 }, costs };
   await browserSwarm(storage(JSON.stringify(stage()), JSON.stringify({ routeRanking: ranking }))).connect();
   expect(ports.options.ordered.orchestration).toEqual({ routeRanking: ranking });
-  expect(() => browserSwarm(storage(JSON.stringify(stage()), JSON.stringify({ routeRanking: { ...ranking, margin: 1 } })))).toThrow('orchestration');
+  const { costs: _costs, ...unpriced } = ranking;
+  for (const invalid of [{ ...ranking, margin: 1 }, unpriced, { ...ranking, costs: { ...costs, prices: { ...costs.prices, retryPerFailure: -1 } } }]) {
+    expect(() => browserSwarm(storage(JSON.stringify(stage()), JSON.stringify({ routeRanking: invalid })))).toThrow('orchestration');
+  }
   // A shared device budget may not exceed the existing per-executor allocation ceiling.
   const admission = { maxBytes: 1420000000, maxConcurrentAttempts: 2, attemptBytes: 300000000 };
   await browserSwarm(storage(JSON.stringify(stage()), JSON.stringify({ admission }))).connect();
