@@ -25,6 +25,16 @@ const failed = (code) => (code ? { code } : {});
 export function createSweepJobs({ ledger = null, rewards = null, access = null, payments = null } = {}) {
   const jobs = {};
   if (ledger) {
+    // Evidence-terms reservations past their deadline and evidence window get their one decision.
+    jobs['ledger.settleDueEvidence'] = {
+      async run({ limit }) {
+        const decided = await ledger.settleDueEvidence({ limit });
+        return {
+          items: decided.map((result) => ({ ref: result.reservationId, status: result.status, outcome: result.settlement?.outcome ?? null, held: result.dispute?.held ?? 0 })),
+          backlog: backlog(decided.length, limit)
+        };
+      }
+    };
     // Open reservations past their period release their whole hold at zero charge.
     jobs['ledger.expireReservations'] = {
       async run({ limit }) {

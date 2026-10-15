@@ -22,6 +22,8 @@ export const REFUND_SCHEMA = 'reploid.credit-refund/v1';
 export const REVIEW_SCHEMA = 'reploid.credit-quality-review/v1';
 export const JOURNAL_SCHEMA = 'reploid.credit-journal-entry/v1';
 export const SOLVENCY_SCHEMA = 'reploid.credit-solvency-inputs/v1';
+// The declared evidence rules (attempt-evidence.js) a quote's evidence terms name.
+export const EVIDENCE_RULES_ID = 'reploid.attempt-evidence-rules/1.0.0';
 
 // `subsidized` is credit for validated contribution paid from an explicit funding
 // reservation instead of settled demand; it stays apart from `earned`.
@@ -323,7 +325,31 @@ const validateService = (service, errors) => {
   if (!isIsoTime(service.deadline)) errors.push('service.deadline must be an absolute ISO time');
 };
 
-const validateTerms = (terms, service, maxCharge, rounding, errors) => {
+/**
+ * Optional evidence terms: { rulesId, windowMs, clockSkewMs }. Present, they
+ * let signed receipts and acknowledgments settle what a report omits, with
+ * decisions waiting `windowMs` after the deadline and signing times compared
+ * within `clockSkewMs`. Absent, the quote offers report-only settlement. The
+ * reservation period must outlast the window so evidence decides before expiry.
+ */
+function validateEvidenceTerms(terms, service, now, errors) {
+  const evidence = terms.evidence;
+  if (evidence === undefined) return;
+  if (!evidence || typeof evidence !== 'object' || Array.isArray(evidence)
+    || Object.keys(evidence).some((key) => !['rulesId', 'windowMs', 'clockSkewMs'].includes(key))) {
+    errors.push('terms.evidence must be { rulesId, windowMs, clockSkewMs }');
+    return;
+  }
+  if (evidence.rulesId !== EVIDENCE_RULES_ID) errors.push(`terms.evidence.rulesId must be ${EVIDENCE_RULES_ID}`);
+  if (!Number.isSafeInteger(evidence.windowMs) || evidence.windowMs <= 0) errors.push('terms.evidence.windowMs must be a positive integer');
+  if (!Number.isSafeInteger(evidence.clockSkewMs) || evidence.clockSkewMs < 0) errors.push('terms.evidence.clockSkewMs must be a non-negative integer');
+  if (isIsoTime(service?.deadline) && Number.isSafeInteger(evidence.windowMs) && Number.isSafeInteger(terms.reservationPeriodMs)
+    && toMs(now) + terms.reservationPeriodMs < toMs(service.deadline) + evidence.windowMs) {
+    errors.push('terms.reservationPeriodMs must outlast the deadline plus terms.evidence.windowMs');
+  }
+}
+
+const validateTerms = (terms, service, maxCharge, rounding, now, errors) => {
   if (!terms || typeof terms !== 'object') {
     errors.push('terms are required');
     return;
@@ -342,6 +368,7 @@ const validateTerms = (terms, service, maxCharge, rounding, errors) => {
   }
   requireString(terms.refund?.policyId, 'terms.refund.policyId', errors);
   requireString(terms.qualityReview?.procedureId, 'terms.qualityReview.procedureId', errors);
+  validateEvidenceTerms(terms, service, now, errors);
   const settlement = terms.settlement || {};
   assertExactKeys(settlement, SETTLEMENT_TERM_KEYS, 'terms.settlement', errors);
   const limitsValid = Boolean(service?.limits) && Object.values(service.limits)
@@ -370,7 +397,7 @@ export function buildQuote(input, { policy, now }) {
   requireString(pricing?.basis?.kind, 'pricing.basis.kind', errors);
   if (!isAmount(pricing?.maxCharge)) errors.push('pricing.maxCharge must be a non-negative integer');
   validateService(service, errors);
-  validateTerms(terms, service, pricing?.maxCharge, policy.rounding, errors);
+  validateTerms(terms, service, pricing?.maxCharge, policy.rounding, now, errors);
   const nowMs = toMs(now);
   if (isIsoTime(terms?.validUntil) && toMs(terms.validUntil) <= nowMs) errors.push('terms.validUntil must be in the future');
   if (isIsoTime(service?.deadline) && isIsoTime(terms?.validUntil) && toMs(service.deadline) <= toMs(terms.validUntil)) {

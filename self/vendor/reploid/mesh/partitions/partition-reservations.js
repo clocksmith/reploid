@@ -51,6 +51,11 @@ export function createPartitionReservations({ limits, participantId, index, now 
       const record = lookup(identity);
       record.settledAt ??= now(); record.phase = record.failure ? 'failed' : 'settled';
     },
+    /** The stage's own signed evidence for a charged attempt, kept with its admission record. */
+    attachEvidence(identity, evidence) {
+      if (records.has(identity.attemptId)) lookup(identity).evidence = structuredClone(evidence);
+    },
+    failureOf: identity => (records.has(identity.attemptId) ? lookup(identity).failure : null),
     getState() {
       return { closed, active: active().length,
         availableSlots: closed || records.size >= limits.maxAttempts ? 0 : limits.maxConcurrentAttempts - active().length,

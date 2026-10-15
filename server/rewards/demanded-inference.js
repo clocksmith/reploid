@@ -5,7 +5,10 @@
  * The credit ledger's settlement is the root of evidence. The route summary,
  * stage receipts and contributor admission record only map that settled
  * attempt onto a stage; without the settlement they prove nothing, and
- * signatures or peer agreement never substitute for it.
+ * signatures or peer agreement never substitute for it. When the settlement
+ * came from evidence rather than a requester's route summary, the stage's own
+ * signed receipt the ledger verified and kept maps it instead. A disputed
+ * reservation earns nothing until operational review resolves it.
  */
 
 import { canonicalRouteAttemptBinding, sameRouteAttemptIdentity } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
@@ -17,10 +20,10 @@ import { CATEGORY_TERMS, computeReward } from './domain.js';
 /** Conditions disclosed in every demanded-inference offer and checked for every claim. */
 export const DEMANDED_INFERENCE_CONDITIONS = Object.freeze([
   'requester_quote_accepted: a requester account accepted an inference quote that reserved the charge',
-  'settlement_completed: the ledger settled that reservation as full or reduced service, or a review disposed it so',
+  'settlement_completed: the ledger settled that reservation as full or reduced service, from a report, acknowledged evidence or a resolved dispute, or a review disposed it so',
   'attempt_binds_contributor: the settled attempt bound the contributor participant as a recipient before dispatch',
   'route_matches_offer: the claimed stage of the settled route runs on the offer participant and model plan',
-  'stage_executed: the route receipt shows the stage reserved, executing every step and cleanup settled',
+  'stage_executed: the route receipt, or the stage\'s own verified signed receipt, shows the stage executing every settled step and cleanup settled',
   'contributor_admission: the contributor admission record settled under the owner policy accepted with the offer',
   'work_within_offer: bound after acceptance, inside the duration, resource bounds and claim window',
   'not_self_dealing: distinct requester and contributor account, owner and participant, and no disqualifying account link',
@@ -78,7 +81,7 @@ export async function evaluateDemandedInference({ claim, offer, ledger, identity
     || quote.accountId !== reservation.accountId || quote.reservationId !== reservation.reservationId) {
     reject('requester_quote_not_accepted', 'the reservation is not backed by the requester account\'s accepted inference quote');
   }
-  if (reservation.status === 'open' || reservation.status === 'under_review') {
+  if (['open', 'under_review', 'disputed'].includes(reservation.status)) {
     reject('work_not_settled', `the requester reservation is ${reservation.status}; only settled work can earn`);
     return result();
   }
@@ -104,10 +107,21 @@ export async function evaluateDemandedInference({ claim, offer, ledger, identity
   const recipients = settlement.attempt.recipients;
   const boundAttempt = reservation.attempts.find((attempt) => attempt.attemptId === claim.attemptId);
 
-  // 2. The route summary maps the settled attempt onto stages; the ledger binding must agree.
-  const parsed = routeSummary(claim.execution);
+  // 2. The route summary, or the ledger's kept evidence when the settlement came from it, maps the settled
+  //    attempt onto stages; the ledger binding must agree.
+  let parsed = routeSummary(claim.execution);
+  let stageReceipt = null;
+  if (!parsed && claim.execution === undefined && typeof ledger.getAttemptEvidence === 'function') {
+    const kept = await ledger.getAttemptEvidence({ reservationId: claim.reservationId, attemptId: claim.attemptId });
+    try {
+      if (kept) parsed = { summary: null, binding: canonicalRouteAttemptBinding(kept.identity) };
+    } catch {
+      parsed = null;
+    }
+    stageReceipt = kept?.stages?.[String(claim.stageIndex)] ?? null;
+  }
   if (!parsed) {
-    reject('execution_invalid', 'the route attempt summary is missing or malformed');
+    reject('execution_invalid', 'the route attempt summary or kept attempt evidence is missing or malformed');
     return result();
   }
   const { summary, binding } = parsed;
@@ -129,15 +143,24 @@ export async function evaluateDemandedInference({ claim, offer, ledger, identity
   if (unbound.length) reject('route_mismatch', 'route stages are not the settled attempt\'s bound recipients', { unbound });
 
   const sameAttempt = (value) => sameRouteAttemptIdentity(value, binding);
-  const receipt = summary.settlement;
-  const reserved = receipt?.reservations?.find((entry) => entry?.partitionIndex === claim.stageIndex);
-  const cleanup = receipt?.cleanup?.find((entry) => entry?.partitionIndex === claim.stageIndex);
-  const steps = summary.stepSummary?.count;
-  const row = summary.stepSummary?.stages?.find((entry) => entry?.partitionIndex === claim.stageIndex);
-  if (!sameAttempt(receipt?.identity) || receipt.phase !== 'completed' || receipt.failure != null || receipt.cleanupSettledAt == null
-    || !sameAttempt(reserved?.identity) || reserved.status !== 'reserved' || cleanup?.status !== 'settled'
-    || !Number.isSafeInteger(steps) || steps < 1 || row?.steps !== steps) {
-    reject('stage_not_executed', 'the route receipt does not show this stage reserved, executing every step and settling cleanup');
+  if (summary) {
+    const receipt = summary.settlement;
+    const reserved = receipt?.reservations?.find((entry) => entry?.partitionIndex === claim.stageIndex);
+    const cleanup = receipt?.cleanup?.find((entry) => entry?.partitionIndex === claim.stageIndex);
+    const steps = summary.stepSummary?.count;
+    const row = summary.stepSummary?.stages?.find((entry) => entry?.partitionIndex === claim.stageIndex);
+    if (!sameAttempt(receipt?.identity) || receipt.phase !== 'completed' || receipt.failure != null || receipt.cleanupSettledAt == null
+      || !sameAttempt(reserved?.identity) || reserved.status !== 'reserved' || cleanup?.status !== 'settled'
+      || !Number.isSafeInteger(steps) || steps < 1 || row?.steps !== steps) {
+      reject('stage_not_executed', 'the route receipt does not show this stage reserved, executing every step and settling cleanup');
+    }
+  } else {
+    // The stage's own closing receipt, verified against its registration when the ledger kept it.
+    const settledSteps = settlement.metering?.output;
+    if (stageReceipt?.participantId !== stage?.participantId || stageReceipt.status !== 'settled'
+      || !Number.isSafeInteger(settledSteps) || settledSteps < 1 || stageReceipt.steps < settledSteps) {
+      reject('stage_not_executed', 'the stage\'s verified signed receipt does not show it executing every settled step and closing cleanly');
+    }
   }
 
   // 3. The contributor's own admission under the owner policy accepted with the offer.

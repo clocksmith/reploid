@@ -24,7 +24,7 @@ Outputs:
 
 ## Invariants
 - Account and device come from the session, operator actors from the credential, neither from bodies.
-- Spending, attempts, reports, claims and delivery evidence need an active device's session; attempts bind and report only from the accepting device.
+- Spending, attempts, reports, claims, evidence need active device sessions; only the accepting device binds and reports, evidence also comes from recipients.
 - Clients never author quote, offer or checkout terms, outcomes or route summaries.
 - An Idempotency-Key binds route, caller and canonical request; a different request conflicts. Only definite no-effect failures free it; ambiguous ones reconcile under the same component key.
 - Unauthenticated bodies are never parsed; upstream-parsed ones are refused.

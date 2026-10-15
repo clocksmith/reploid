@@ -5,10 +5,14 @@ import { partitionActivity, summarizePartitionExecution } from './partition-summ
 import { createEntryPublicationScope, entryPublicationEnvelope, entryPublicationPort, matchingEntryPublication,
   validateEntryPublicationContext } from './partition-entry-publication.js';
 import { validateOrderedPublicationContext } from './partition-ordered-publication.js';
+import { isChargeBindingShape } from './partition-attempt-evidence.js';
 
 /** Requester-to-A channel. This module imports no tokenizer, tensor codec or GPU runtime.
  * The host authenticates the channel and grants input disclosure to both stages.
  * A's chat port owns the A-to-B execution channel; activation bytes never enter here.
+ * An ordered input may carry the requester's signed charge binding; the coordinator then
+ * returns each output with its final-stage receipt and carries the requester's
+ * acknowledgment back to the route.
  */
 export function createPartitionEntry({ channel, localParticipantId, remoteParticipantId,
   service = null, canonical = false, ordered = false, authorize, limits, inputLimits, now = Date.now }) {
@@ -42,7 +46,8 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
       || canonical && m?.schema === 'reploid.partition-input/v2' && !!validateEntryPublicationContext(m.canonical, m))
       && m.participantA !== m.participantB;
   }
-  const valid = m => m?.operation === 'generate' && validMode(m) && validGeneration(m) && m.requesterId !== coordinator(m)
+  const validCharge = m => m.charge === undefined || orderedInput(m) && isChargeBindingShape(m.charge, m);
+  const valid = m => m?.operation === 'generate' && validMode(m) && validGeneration(m) && validCharge(m) && m.requesterId !== coordinator(m)
     && typeof m.attemptId === 'string' && m.attemptId.length <= 128
     && typeof m.threadId === 'string' && m.threadId.length <= 128
     && Number.isSafeInteger(m.placementGeneration) && m.placementGeneration >= 0
@@ -59,6 +64,16 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
         return (canonical || ordered) && !!request && matchingEntryPublication(metadata, request)
           && request.requesterId === (sending ? remoteParticipantId : localParticipantId)
           && await authorize(structuredClone(request), { action }) === true;
+      }
+      if (metadata.operation === 'output') {
+        const sending = action === 'send' || action === 'accept';
+        const request = sending ? active.get(metadata.attemptId)?.request : deliveries.get(metadata.attemptId)?.request;
+        return !!request && orderedInput(request) && request.charge !== undefined && metadata.requesterId === request.requesterId
+          && metadata.requesterId === (sending ? remoteParticipantId : localParticipantId)
+          && metadata.coordinatorId === request.coordinatorId && metadata.threadId === request.threadId
+          && sameRouteAttemptIdentity(metadata.identity, attempt(request)) && Number.isSafeInteger(metadata.step) && metadata.step >= 0
+          && typeof metadata.delta === 'string' && metadata.delta.length <= policy.maxOutputCharacters && typeof metadata.done === 'boolean'
+          && (metadata.receipt === null || !!metadata.receipt && typeof metadata.receipt === 'object' && !Array.isArray(metadata.receipt));
       }
       if (metadata.operation === 'delta' || metadata.operation === 'usage') {
         const sending = action === 'send' || action === 'accept';
@@ -89,6 +104,13 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
         const scope = deliveries.get(m.attemptId)?.publication;
         assert(scope, 'Requester publication owner unavailable');
         return scope.call(m.method, m.body);
+      }
+      if (m.operation === 'output') {
+        // The requester's own port decides whether this output is acknowledged; only its signed answer returns.
+        const delivery = deliveries.get(m.attemptId);
+        assert(delivery, 'Unexpected attempt output');
+        const acknowledged = await delivery.onOutput?.({ step: m.step, delta: m.delta, done: m.done, receipt: structuredClone(m.receipt) });
+        return { received: true, acknowledged: acknowledged ?? null };
       }
       if (m.operation === 'usage') {
         const delivery = deliveries.get(m.attemptId);
@@ -142,8 +164,15 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
       const operation = Promise.resolve().then(() => service.generate({ meshId: m.meshId, participantId: m.requesterId,
         threadId: m.threadId, attemptId: m.attemptId, placementGeneration: m.placementGeneration,
         model, ...(requested ? {generationRequest: requested} : {}), ...(orderedInput(m) && m.disclosureExpiresAt !== undefined ? {disclosureExpiresAt:m.disclosureExpiresAt} : {}), ...(isCanonical ? { canonical: structuredClone(m.canonical) } : {}),
-        ...(orderedPublished ? { publication: structuredClone(m.publication) } : {}), messages: structuredClone(m.messages), permissions: { sharingScope: 'approved-partition-path' } },
+        ...(orderedPublished ? { publication: structuredClone(m.publication) } : {}), ...(m.charge !== undefined ? { charge: structuredClone(m.charge) } : {}),
+        messages: structuredClone(m.messages), permissions: { sharingScope: 'approved-partition-path' } },
       { signal, publication, requestApproval: async () => authorize(structuredClone(m), { action: 'execute' }),
+        ...(m.charge !== undefined ? { onOutput(record) {
+          if (!acceptingCallbacks) return null;
+          return endpoint.request({ operation: 'output', requesterId: m.requesterId, coordinatorId: m.coordinatorId, identity: attempt(m),
+            threadId: m.threadId, attemptId: m.attemptId, step: record.step, delta: record.delta, done: record.done, receipt: record.receipt ?? null },
+          new Uint8Array(), { signal }).then(response => response?.acknowledged ?? null);
+        } } : {}),
         onState() {}, onActivity(value) {
           if (m.activity === undefined) return; // Older requesters did not opt in to this event.
           assert(acceptingCallbacks && orderedInput(m) && value.threadId === m.threadId && value.attemptId === m.attemptId, 'Unbound or late partition activity');
@@ -190,8 +219,9 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
         'Invalid entry descriptor');
       observedAt = now(); return this.getState();
     },
-    async generate(request, { signal, onDelta, onUsage, onActivity, publication, onPublished } = {}) {
+    async generate(request, { signal, onDelta, onUsage, onActivity, onOutput, publication, onPublished } = {}) {
       assert(!closed && this.getState().ready, 'Refresh an available entry before requesting execution');
+      assert(request.charge === undefined || typeof onOutput === 'function', 'A charged ordered input needs its acknowledgment port');
       const isCanonical = request.canonical !== undefined, isOrdered = request.route !== undefined;
       assert(!isOrdered || ordered && !isCanonical, 'Ordered entry capability unavailable');
       assert(!isCanonical || canonical, 'Canonical entry capability unavailable');
@@ -206,7 +236,7 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
       const scope = publication !== undefined ? createEntryPublicationScope({ request: metadata, owner: publication, onPublished,
         authorize: () => authorize(structuredClone(metadata), { action: 'publish' }),
         maxControlBytes: limits.maxControlBytes, maxOutputCharacters: policy.maxOutputCharacters }) : null;
-      deliveries.set(metadata.attemptId, { request: metadata, sequence: 0, characters: 0, content: '', onDelta, onUsage, onActivity, activity:null, usage:null, publication: scope });
+      deliveries.set(metadata.attemptId, { request: metadata, sequence: 0, characters: 0, content: '', onDelta, onUsage, onActivity, onOutput, activity:null, usage:null, publication: scope });
       let result;
       let failure = null;
       try {

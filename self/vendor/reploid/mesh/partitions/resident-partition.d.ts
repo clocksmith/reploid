@@ -119,5 +119,7 @@ export function createResidentPartition(options: Omit<OrderedResidentAllocation,
     stage: import('./partition-contract.js').PartitionRouteStage };
   /** Launch 3, opt-in: one budget shared by every resident on this device. */
   device?: import('./partition-device-admission.js').DeviceAdmission | null; attemptBytes?: number;
+  /** Signs cumulative receipts for attempts reserved with the requester's charge binding; kept on admission records as `evidence`. */
+  evidence?: import('./partition-attempt-evidence.js').AttemptEvidenceSigner | null;
   onChange?(state: OrderedResidentState): void;
 }): OrderedResidentPartition;

@@ -2,6 +2,7 @@ import type { PartitionActivity } from './partition-summary.js';
 import type { OrderedPartitionPlan, OrderedPartitionRuntime, PartitionRoute, RouteAttemptBinding } from './partition-contract.js';
 import type { ActivationTensor, ActivationFrame } from './partition-runner.js';
 import type { OrderedPublicationStep } from './partition-ordered-publication.js';
+import type { AcknowledgedOutput, OutputAcknowledgment, StageReceipt } from './partition-attempt-evidence.js';
 export interface OrderedExecutionPlan extends OrderedPartitionPlan {
   hiddenSize: number; vocabSize: number; totalLayers: number;
 }
@@ -18,15 +19,18 @@ export interface OrderedStageResult extends OrderedStageBinding {
   step: number; tokenPosition: number; continuation: unknown;
   activationTensor?: ActivationTensor; tokenId?: number; delta?: string; done?: boolean; stopReason?: string;
   logits?: Float32Array | number[]; metrics?: Record<string, unknown>;
+  /** A stage's signed cumulative receipt of a charged attempt. */
+  receipt?: StageReceipt;
 }
 export interface OrderedStageDevice {
   id: string; transportId: string; residentId: string; executionId: string;
   reserve(options: OrderedStageBinding & { inputTokenCount: number; maxTokens: number; generationDigest: string;
-    generation: Record<string, unknown> & { maxTokens: number }; executionGrant: object; signal: AbortSignal }): Promise<OrderedReservation>;
+    generation: Record<string, unknown> & { maxTokens: number }; executionGrant: object; charge?: OutputAcknowledgment; signal: AbortSignal }): Promise<OrderedReservation>;
   executeStage(options: OrderedStageBinding & OrderedStep & { inputTokenIds: number[];
     generation: Record<string, unknown> & { maxTokens: number }; continuation: unknown; activation?: unknown;
-    executionGrant: object; tokenContextGrant: object; incomingActivationGrant?: object; outgoingActivationGrant?: object; outputGrant?: object; signal: AbortSignal }): Promise<OrderedStageResult>;
-  closeAttempt(options: OrderedStageBinding): Promise<void>;
+    executionGrant: object; tokenContextGrant: object; incomingActivationGrant?: object; outgoingActivationGrant?: object; outputGrant?: object;
+    acknowledged?: AcknowledgedOutput; signal: AbortSignal }): Promise<OrderedStageResult>;
+  closeAttempt(options: OrderedStageBinding & { acknowledged?: AcknowledgedOutput }): Promise<void>;
 }
 export interface OrderedRouteLimits {
   maxTokens: number; maxPromptTokens: number; maxActivationBytes: number; maxOutputCharacters: number;
@@ -38,6 +42,10 @@ export interface OrderedRouteRequest {
   maxTokens: number; signal?: AbortSignal; onActivity?: (activity:PartitionActivity)=>void|Promise<void>; onDelta?: (delta: string) => void | Promise<void>;
   /** Awaited after each final-stage result and before activity, delivery or the next step; holds no stage lease. */
   onStep?: ((step: OrderedPublicationStep) => void | Promise<void>) | null;
+  /** The requester's signed binding of this attempt to its reservation, given to every stage's reservation. */
+  charge?: OutputAcknowledgment | null;
+  /** Each final-stage output with its receipt; the answer, if any, is the requester's acknowledgment. Not awaited before the next step. */
+  onOutput?: ((output: { step: number; delta: string; done: boolean; receipt: StageReceipt | null }) => AcknowledgedOutput | null | Promise<AcknowledgedOutput | null>) | null;
 }
 export interface OrderedRouteReceipt {
   identity: RouteAttemptBinding; phase: 'admitting' | 'executing' | 'settling' | 'cleanup-failed' | 'completed' | 'cancelled' | 'failed';

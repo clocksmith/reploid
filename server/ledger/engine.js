@@ -76,6 +76,8 @@ import {
   deriveAttemptOutcome,
   routeHashOf
 } from './attempt-outcomes.js';
+import { EVIDENCE_RULES_ID, decideFromEvidence, evidenceWindowClosed, mergeAttemptEvidence, verifyAttemptEvidence } from './attempt-evidence.js';
+import { createEvidenceOperations } from './evidence-operations.js';
 import { checkStampedConversion, createConversionOperations } from './conversion/records.js';
 import { ALLOCATED_PROVENANCE, createFundingRegisterOperations, drawIssuanceAllocation, summarizeFunding } from './funding/register.js';
 import { assertLedgerBackend } from './store-contract.js';
@@ -121,6 +123,9 @@ const readRequired = async (tx, collection, id, code) => {
  * @param {Function} [options.conversionAuthority] ({ action: 'publish_conversion', conversionId, currency,
  *   policyVersion, authority }) -> { allowed, reason? }; who may publish conversion records is policy
  *   behind the port, and without it publishing fails closed
+ * @param {Function} [options.signerAuthority] ({ participantId, at }) -> { accountId, deviceId, registrationId,
+ *   publicJwk } | null: the registration of a participant key in force at a signing time, even if revoked
+ *   since; without it attempt evidence fails closed
  */
 export function createLedgerStore({
   backend,
@@ -129,6 +134,7 @@ export function createLedgerStore({
   createId = defaultCreateId,
   conversionAuthority = null,
   deviceAuthority = null,
+  signerAuthority = null,
   fundingAuthority = null,
   issuanceAuthority = null,
   // Explicit spent-credit treatment per reversal kind (see reversals.js); without it reversals fail closed.
@@ -138,6 +144,7 @@ export function createLedgerStore({
   if (deviceAuthority !== null && typeof deviceAuthority !== 'function') throw new TypeError('deviceAuthority must be a function');
   if (fundingAuthority !== null && typeof fundingAuthority !== 'function') throw new TypeError('fundingAuthority must be a function');
   if (conversionAuthority !== null && typeof conversionAuthority !== 'function') throw new TypeError('conversionAuthority must be a function');
+  if (signerAuthority !== null && typeof signerAuthority !== 'function') throw new TypeError('signerAuthority must be a function');
   const activePolicy = validateAccountingPolicy(policy);
   const activeReversalPolicy = validateReversalPolicy(reversalPolicy);
   const idempotencyId = (operation, scopeId, key) => sha256Hex(`${operation}\u0000${scopeId}\u0000${key}`);
@@ -283,12 +290,87 @@ export function createLedgerStore({
   };
 
   const conversions = createConversionOperations({ backend, policy: activePolicy, clock, mutate, conversionAuthority });
+  const evidence = createEvidenceOperations({ backend, clock, mutate, claimId, readRequired, readReversals, sweep, applyWrites, signerAuthority });
+
+  /**
+   * A report's own evidence is verified before its transaction. Evidence that
+   * does not verify leaves the report to its rules and is listed, not kept.
+   */
+  const verifyReportEvidence = async (reservationId, report, now) => {
+    if (report?.evidence === undefined || report.evidence === null) return { verified: null, rejected: [] };
+    const reservation = await backend.get('reservations', reservationId);
+    if (!reservation?.terms?.evidence) fail('evidence_not_in_terms', 'the accepted quote offers report-only settlement');
+    if (typeof signerAuthority !== 'function') fail('evidence_authority_required', 'evidence verification needs the signer-registration port');
+    try {
+      const verified = await verifyAttemptEvidence({ bundle: report.evidence, reservation, signerAt: signerAuthority, now });
+      return { verified, rejected: verified.rejected };
+    } catch (error) {
+      if (error?.name !== 'LedgerError' || error.retryable) throw error;
+      return { verified: null, rejected: [{ item: 'evidence', problem: error.code }] };
+    }
+  };
+
+  /** An evidence-terms report inside settleAttempt's transaction (see settleAttempt). */
+  const settleReportedAttempt = async (tx, reservation, { report, verified, rejected, now }) => {
+    const { reservationId } = reservation;
+    if (reservation.report) fail('attempt_already_reported', 'a final report awaits its evidence window', { attemptId: reservation.report.attemptId });
+    const derived = deriveAttemptOutcome({ reservation, report, now });
+    const existing = derived.record ? await tx.get('attemptRecords', derived.record.recordId) : null;
+    const records = await evidence.readRecords(tx, reservation);
+    if (existing) fail('attempt_already_reported', 'this route attempt already has its report', { recordId: derived.record.recordId });
+    const writes = [];
+    if (verified) {
+      const merged = mergeAttemptEvidence(records.get(verified.attemptId) ?? null, verified, {
+        reservation, submitter: { participantId: verified.identity.requesterId }, now
+      });
+      records.set(verified.attemptId, merged.record);
+      if (merged.changed) writes.push(put('attemptEvidence', merged.record.evidenceId, merged.record));
+    }
+    const closed = derived.close ? closeAttemptTransition(reservation, { ...derived.close, now }) : null;
+    const attemptId = derived.record?.identity.attemptId ?? derived.settle?.attemptId ?? null;
+    const record = derived.record ? {
+      schema: ATTEMPT_RECORD_SCHEMA, ...derived.record, reservationId, quoteId: reservation.quoteId, accountId: reservation.accountId,
+      attemptId, rules: ATTEMPT_OUTCOME_RULES_ID, rule: derived.rule, outcome: null, settlementId: null, reportedAt: now
+    } : null;
+    let applied = null;
+    if (derived.settle) {
+      // A report its rules cannot settle is refused now, exactly as without evidence terms, never left to fail at the window.
+      decideSettlement(cloneJson(reservation), { billableEventId: billableEventIdFor(reservationId), ...derived.settle }, now);
+      reservation.report = { rule: derived.rule, attemptId, settle: cloneJson(derived.settle), recordId: record?.recordId ?? null, reportedAt: now };
+      const decision = decideFromEvidence({ reservation, records, now });
+      if (derived.rule === 'cancelled_before_dispatch' || decision.corroborated || evidenceWindowClosed(reservation, now)) {
+        applied = await evidence.applyDecisionWithin(tx, reservation, decision, records, now, { newRecord: record });
+        writes.push(...applied.writes);
+      }
+    }
+    if (!applied) {
+      reservation.updatedAt = now;
+      writes.push(put('reservations', reservationId, reservation));
+      if (record) writes.push(insert('attemptRecords', record.recordId, record));
+    }
+    const attempt = attemptId ? reservation.attempts.find((entry) => entry.attemptId === attemptId) : null;
+    const waiting = derived.settle && !applied;
+    return {
+      result: {
+        reservationId, rules: ATTEMPT_OUTCOME_RULES_ID, rule: derived.rule, recordId: record?.recordId ?? null,
+        attempt: attempt ? { attemptId, attemptNumber: attempt.attemptNumber, status: attempt.status, reason: attempt.reason } : null,
+        closed: Boolean(closed), reservationStatus: reservation.status, settlement: applied?.result.settlement ?? null,
+        dispute: applied?.result.dispute ?? null,
+        evidence: {
+          rules: EVIDENCE_RULES_ID, basis: applied?.result.basis ?? null, rejected,
+          awaitingUntil: waiting ? new Date(toMs(reservation.service.deadline) + reservation.terms.evidence.windowMs).toISOString() : null
+        }
+      },
+      writes
+    };
+  };
 
   const store = {
     kind: backend.kind,
     policy: activePolicy,
 
     ...conversions.operations,
+    ...evidence.operations,
     ...createFundingRegisterOperations({
       backend, policy: activePolicy, clock, mutate, claimId, fundingAuthority, conversionInEffect: conversions.conversionInEffect
     }),
@@ -552,6 +634,13 @@ export function createLedgerStore({
      * attempt, settle the reservation's one billable event, or both when no
      * retry remains, and keep the route record contributors claim against.
      * The report names no outcome, metering or charge.
+     *
+     * Under evidence terms (attempt-evidence.js) the report may carry the
+     * requester's own evidence, and a final report becomes the reservation's
+     * one decision only when it needs no evidence window: a cancellation before
+     * dispatch, or a completed route whose every output is acknowledged with
+     * nothing disputed. Otherwise it waits for the window, when kept evidence
+     * can raise an understated report or hold an asserted remainder in dispute.
      */
     async settleAttempt(input = {}) {
       assertKnownKeys(input, ['reservationId', 'report', 'idempotencyKey'], 'settleAttempt');
@@ -560,11 +649,18 @@ export function createLedgerStore({
       if (input.report?.attemptId != null) assertId(input.report.attemptId, 'report.attemptId');
       const request = { reservationId, report: cloneJson(input.report ?? null) };
       const now = clock();
+      const prior = await lookupIdempotent({ operation: 'settleAttempt', scopeId: reservationId, idempotencyKey, request });
+      if (prior) return prior.result;
+      const { verified, rejected } = await verifyReportEvidence(reservationId, request.report, now);
       return mutate({
         operation: 'settleAttempt', scopeId: reservationId, idempotencyKey, request, now,
         body: async (tx) => {
           const reservation = await readRequired(tx, 'reservations', reservationId, 'reservation_not_found');
           assertOpenReservation(reservation, now);
+          if (reservation.terms.evidence) {
+            return settleReportedAttempt(tx, reservation, { report: request.report, verified, rejected, now });
+          }
+          if (request.report?.evidence !== undefined) fail('evidence_not_in_terms', 'the accepted quote offers report-only settlement');
           const derived = deriveAttemptOutcome({ reservation, report: request.report, now });
           if (derived.record && await tx.get('attemptRecords', derived.record.recordId)) {
             fail('attempt_already_reported', 'this route attempt already has its report', { recordId: derived.record.recordId });
@@ -736,6 +832,13 @@ export function createLedgerStore({
         .slice(0, limit);
       const results = [];
       for (const candidate of due) {
+        // Under evidence terms the hold never lapses past kept evidence: its one decision runs instead.
+        if (candidate.terms.evidence) {
+          const decided = await evidence.decideDue(candidate.reservationId, now);
+          if (decided?.code) results.push({ reservationId: decided.reservationId, outcome: null, released: 0, status: 'error', code: decided.code });
+          else if (decided) results.push(decided.settlement ?? { reservationId: decided.reservationId, outcome: null, released: 0, status: decided.status });
+          continue;
+        }
         const record = await backend.runTransaction(async (tx) => {
           const reservation = await tx.get('reservations', candidate.reservationId);
           if (!reservation || !isReservationExpired(reservation, now)) return null;
@@ -834,15 +937,16 @@ export function createLedgerStore({
     /** Balances, reservations and subsidy, plus the funding register's commitments and allocations. */
     async getSolvencySnapshot() {
       const now = clock();
-      const [accounts, open, underReview, commitments, allocations] = await Promise.all([
+      const [accounts, open, underReview, disputed, commitments, allocations] = await Promise.all([
         backend.list('accounts'),
         backend.list('reservations', { field: 'status', value: 'open' }),
         backend.list('reservations', { field: 'status', value: 'under_review' }),
+        backend.list('reservations', { field: 'status', value: 'disputed' }),
         backend.list('commitments'),
         backend.list('allocations')
       ]);
       return {
-        ...summarizeSolvency({ accounts, reservations: [...open, ...underReview], policy: activePolicy, now }),
+        ...summarizeSolvency({ accounts, reservations: [...open, ...underReview, ...disputed], policy: activePolicy, now }),
         funding: summarizeFunding({ commitments, allocations, now })
       };
     }

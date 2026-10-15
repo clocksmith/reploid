@@ -5,13 +5,14 @@
  * { schema, enabled: true, baseUrl, providerId } configuration. It signs in
  * through the injected provider port, registers this host's participant
  * identity as a device and binds its own session to it, then carries quote,
- * acceptance, attempt, report, delivery and claim requests. Every mutation has
+ * acceptance, attempt, report, attempt evidence, delivery and claim requests. Every mutation has
  * a stable Idempotency-Key and waits in a durable outbox until the service
  * answers definitely; a restarted host resends the same request and the
  * service reconciles it to its one effect. Nothing here decides prices,
  * outcomes or rewards, and conversation text never travels.
  */
 import { createDeviceRegistrationProof, createSessionBinding } from '../../vendor/reploid/artifacts/participant-proofs.js';
+import { createAttemptEvidenceSigner } from '../../vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
 
 export const EARNING_CLIENT_SCHEMA = 'reploid.earning-client/v1';
 const OUTBOX = 'outbox';
@@ -166,6 +167,8 @@ export function createEarningClient({ config = null, identity, host, signIn, sto
   return Object.freeze({
     config: settings,
     participantId: identity.peerId,
+    // Signs this device's attempt charge bindings and output acknowledgments with its registered identity.
+    evidenceSigner: createAttemptEvidenceSigner({ identity }),
     ensureSession,
     send,
     get: path => request('GET', path),

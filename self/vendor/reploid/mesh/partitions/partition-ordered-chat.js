@@ -124,8 +124,10 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
       controls.onState?.({ threadId: identity.threadId, attemptId: identity.attemptId, status: 'executing',
         execution: { placement: 'ordered-layer-partition', identity } });
       let sequence = 0;
+      // A charged attempt's signed binding reaches every stage; outputs return for acknowledgment.
       const operation = runner.execute({ identity, tokenIds: input.tokenIds, generation,
         maxTokens: generation.maxTokens, signal,
+        ...(request.charge ? { charge: request.charge, ...(typeof controls.onOutput === 'function' ? { onOutput: controls.onOutput } : {}) } : {}),
         grants: { execution: stages.map(() => grant), tokenContext: stages.map(() => grant),
           activation: stages.slice(1).map(() => grant), output: grant },
         onActivity: activity => controls.onActivity?.({threadId: identity.threadId, attemptId: identity.attemptId, ...activity}),
