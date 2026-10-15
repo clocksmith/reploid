@@ -87,10 +87,11 @@ export interface OrderedOrchestration {
   /** The operator chose `auto`: this contributor's own policy picks its stage (stage must be null).
    * It re-evaluates only while idle and at least `dwellMs` after becoming ready. */
   autoStage?: { transportId: string; dwellMs: number };
-  /** A coordinator ranks complete routes for new attempts by measured prefill and decode; a measured
+  /** A coordinator ranks complete routes for new attempts by expected cost under `costs`; another
    * route must be cheaper by `margin` while the current one is admissible and idle. */
   routeRanking?: { margin: number; smoothing: number; maxObservations: number;
-    workload: { promptTokens: number; expectedTokens: number } };
+    workload: { promptTokens: number; expectedTokens: number };
+    costs: import('./partition-route-ranking.js').RouteCostPolicy };
   /** One budget for this host's device: resident weights once, plus `attemptBytes` and one slot per admitted attempt. */
   admission?: { maxBytes: number; maxConcurrentAttempts: number; attemptBytes: number;
     /** Fair bounded waiting; advertised as `capacity.queued` and `capacity.maxQueued`. */
@@ -102,7 +103,9 @@ export interface OrderedOrchestration {
 export interface OrderedAutomaticPartitionState extends Omit<AutomaticPartitionState,
   'placementDecision' | 'reservations' | 'attempts' | 'descriptor'> {
   placementDecision: { route: import('./partition-contract.js').PartitionRoute | null; reason: string;
-    selectionSteps?: number; eligibility?: readonly unknown[]; measured?: boolean; cost?: number | null; ranking?: 'work-limit' } | null;
+    selectionSteps?: number; eligibility?: readonly unknown[]; measured?: boolean; cost?: number | null; ranking?: 'work-limit';
+    /** Present with `orchestration.routeRanking`; also attached as `routeSelection` to each completed attempt's execution. */
+    selection?: import('./partition-route-ranking.js').RouteSelectionRecord } | null;
   reservations: import('./resident-partition.js').OrderedResidentState['reservations'] | null;
   descriptor: import('./resident-partition.js').OrderedResidentState['descriptor'];
   attempts: import('./partition-route-execution.js').OrderedRouteReceipt[];
@@ -113,6 +116,7 @@ export interface OrderedAutomaticPartitionState extends Omit<AutomaticPartitionS
     demand?: import('./partition-stage-assignment.js').StageDemand }) | null;
   /** Present only with `orchestration.routeRanking`. */
   routeObservations?: import('./partition-route-ranking.js').RouteObservation[];
+  routeOutcomes?: import('./partition-route-ranking.js').RouteOutcome[];
 }
 export interface OrderedAutomaticPartitions extends Omit<AutomaticPartitions, 'getState'> {
   getState(): OrderedAutomaticPartitionState;

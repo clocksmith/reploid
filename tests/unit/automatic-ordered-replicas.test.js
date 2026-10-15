@@ -17,7 +17,12 @@ vi.mock('../../packages/reploid/src/mesh/partitions/partition-discovery.js', () 
 const cleanups = [];
 afterEach(async () => { await Promise.allSettled(cleanups.splice(0).map(fn => fn())); discoveryOwners.length = 0; vi.useRealTimers(); });
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-const routeRanking = { margin: 0.2, smoothing: 1, maxObservations: 32, workload: { promptTokens: 2, expectedTokens: 3 } };
+// Test cost values only; ranking requires a complete versioned cost policy.
+const costs = { schema: 'reploid.route-cost-policy/v1', id: 'test-replica-costs/1', unit: 'test-unit', resolution: 0.001,
+  prices: { latencyPerMs: 1, queueingPerMs: 1, transferPerMs: 1, preparationPerMs: 1, refundPerFailure: 0, retryPerFailure: 0 },
+  unknown: { prefillMsPerToken: 1, decodeMsPerToken: 1, transferMsPerToken: 0, openingMs: 0, maxObservationAgeMs: 3600000 },
+  readiness: { priorAttempts: 1, priorRefusals: 0 }, failure: { priorAttempts: 1, priorFailures: 0 }, reserve: { spareSlots: 0, perMissingSlot: 0 } };
+const routeRanking = { margin: 0.2, smoothing: 1, maxObservations: 32, workload: { promptTokens: 2, expectedTokens: 3 }, costs };
 const f = stagesFixture(3);
 const model = { id: f.route.modelId, identity: f.route.modelIdentity, name: 'Synthetic', partitionPlan: { stageCount: 3 } };
 const ready = (participantId, index, capacity = {}, at = Date.now()) => ({ participantId, transportId: 'transport-' + participantId, available: true,

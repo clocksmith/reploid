@@ -1,6 +1,7 @@
 /** Hosts carry an explicit Doppler plan; Doppler validates its geometry and storage. */
 import { freezeJson } from '../vendor/reploid/config/index.js';
 import { partitionActivationContract } from '../vendor/reploid/mesh/partitions/partition-contract.js';
+import { validateRouteCostPolicy } from '../vendor/reploid/mesh/partitions/partition-route-ranking.js';
 import partitionPolicy from '../config/partition-policy.json' with { type: 'json' };
 
 export function snapshotWorkPartitionSelection(selected) {
@@ -67,13 +68,15 @@ export function createWorkPartitionPlan(runtime, manifest, selected, index = 0) 
 const positiveInteger = value => Number.isSafeInteger(value) && value > 0;
 const exactKeys = (value, keys) => !!value && typeof value === 'object' && !Array.isArray(value)
   && Object.keys(value).length === keys.length && keys.every(key => Object.hasOwn(value, key));
+const validCostPolicy = value => { try { validateRouteCostPolicy(value); return true; } catch { return false; } };
 const ORCHESTRATION_POLICIES = Object.freeze({
   autoStage: value => exactKeys(value, ['dwellMs']) && Number.isSafeInteger(value.dwellMs) && value.dwellMs >= 0,
-  routeRanking: value => exactKeys(value, ['margin', 'smoothing', 'maxObservations', 'workload'])
+  // Prices, priors and reserves come only from the operator's versioned cost policy.
+  routeRanking: value => exactKeys(value, ['margin', 'smoothing', 'maxObservations', 'workload', 'costs'])
     && typeof value.margin === 'number' && value.margin >= 0 && value.margin < 1
     && typeof value.smoothing === 'number' && value.smoothing > 0 && value.smoothing <= 1 && positiveInteger(value.maxObservations)
     && exactKeys(value.workload, ['promptTokens', 'expectedTokens']) && positiveInteger(value.workload.promptTokens)
-    && positiveInteger(value.workload.expectedTokens),
+    && positiveInteger(value.workload.expectedTokens) && validCostPolicy(value.costs),
   // Never above the existing per-executor allocation ceiling.
   admission: value => exactKeys(value, ['maxBytes', 'maxConcurrentAttempts', 'attemptBytes', ...(value?.queue === undefined ? [] : ['queue'])])
     && positiveInteger(value.maxBytes) && value.maxBytes <= partitionPolicy.maxGpuBufferBytes
