@@ -11,14 +11,15 @@
  * the session; operator actors always come from the credential; neither is
  * read from a body. Bodies are parsed only after authentication, under this
  * router's own size limits, and name only the fields each route accepts.
- * Idempotency-Key headers pass through to the components, which hold the
- * idempotency records. Requests are counted per client address, per account,
- * per device and per operator. There is no local-development bypass.
+ * An Idempotency-Key binds to its route, authenticated caller and canonical
+ * request (idempotency.js); components receive a key derived from that
+ * binding. Requests are counted per client address, per account, per device
+ * and per operator. There is no local-development bypass.
  */
 
-import { createHash } from 'node:crypto';
-
 import express from 'express';
+
+import { sha256Hex } from '../ledger/domain.js';
 
 import {
   authenticateOperator,
@@ -31,6 +32,7 @@ import {
   refuse,
   validateRouteLimits
 } from './http.js';
+import { createRouteIdempotency } from './idempotency.js';
 
 const DELIVERY_EVIDENCE_KEYS = Object.freeze(['artifactId', 'authorization', 'index', 'receipt', 'attestation', 'supplierCertificate', 'acquirerCertificate']);
 const CLAIM_KEYS = Object.freeze([...DELIVERY_EVIDENCE_KEYS, 'deliveryId', 'reservationId', 'attemptId', 'stageIndex']);
@@ -65,15 +67,18 @@ const notFound = (code, what) => refuse(404, code, `no ${what} with this id belo
  * @param {object} [options.operatorAuthority] { authenticate({ token }) -> { actorId, roles } | null };
  *   without it operator routes fail closed
  * @param {object} options.limits explicit body and rate limits (see http.js)
+ * @param {object} options.idempotencyBackend transactional backend for Idempotency-Key bindings
+ *   (createMemoryRouteBackend or createFirestoreRouteBackend in idempotency.js)
  * @param {object} [options.rateLimiter] { consume({ key, max, windowMs }) -> { allowed, resetAt } }
  */
 export function createEarningRouter({
   accounts, ledger, rewards, guards, communityAccess = null, quoteTerms = null, operatorAuthority = null,
-  limits, rateLimiter = null, nowMs = () => Date.now(), log = console
+  limits, idempotencyBackend, rateLimiter = null, nowMs = () => Date.now(), log = console
 } = {}) {
-  for (const [name, port] of Object.entries({ accounts, ledger, rewards, guards })) {
+  for (const [name, port] of Object.entries({ accounts, ledger, rewards, guards, idempotencyBackend })) {
     if (!port || typeof port !== 'object') throw new TypeError(`earning routes need the composed ${name}`);
   }
+  const idempotency = createRouteIdempotency({ backend: idempotencyBackend, clock: () => new Date(nowMs()).toISOString() });
   const bounds = validateRouteLimits(limits);
   const limiter = rateLimiter ?? createMemoryRateLimiter({ nowMs });
   if (typeof limiter.consume !== 'function') throw new TypeError('rateLimiter must provide consume({ key, max, windowMs })');
@@ -95,14 +100,17 @@ export function createEarningRouter({
     if (auth.operator) {
       const operator = await authenticateOperator(operatorAuthority, req, auth.operator);
       await count(res, `operator:${operator.actorId}`, bounds.operator);
-      return { operator };
+      return { operator, caller: { operatorId: operator.actorId } };
     }
     const token = bearerToken(req);
     if (!token) refuse(401, 'session_required', 'a session bearer token is required');
     const session = auth === 'device' ? await accounts.authorizeDevice(token) : await accounts.authenticate(token);
     await count(res, `account:${session.accountId}`, bounds.account);
     if (auth === 'device') await count(res, `device:${session.deviceId}`, bounds.device);
-    return { token, sessionId: session.sessionId, accountId: session.accountId, deviceId: session.deviceId, ownerId: session.ownerId };
+    return {
+      token, sessionId: session.sessionId, accountId: session.accountId, deviceId: session.deviceId, ownerId: session.ownerId,
+      caller: auth === 'device' ? { accountId: session.accountId, deviceId: session.deviceId } : { accountId: session.accountId }
+    };
   };
 
   const parse = (req, res, kind) => new Promise((resolve, reject) => {
@@ -135,10 +143,25 @@ export function createEarningRouter({
             throw error;
           }
         }
-        const { status = 200, body } = await handler(req, ctx);
+        const { status = 200, body } = await handler(req, { ...ctx, routeId: `${method.toUpperCase()} ${path}` });
         res.status(status).json(body);
       })().catch(next);
     });
+  };
+
+  /**
+   * Bind the Idempotency-Key to this route, the authenticated caller and the
+   * canonical request (path parameters and validated body), then run with the
+   * component key derived from that binding. A failed request frees the key.
+   */
+  const keyed = async (req, ctx, body, run) => {
+    const binding = await idempotency.bind({ routeId: ctx.routeId, caller: ctx.caller, key: idempotencyKeyOf(req), request: { params: { ...req.params }, body } });
+    try {
+      return await run(binding.componentKey, binding);
+    } catch (error) {
+      await binding.release().catch(() => {});
+      throw error;
+    }
   };
 
   const ownReservation = async (reservationId, accountId) => {
@@ -176,53 +199,62 @@ export function createEarningRouter({
   }));
   define('post', '/devices', { auth: 'session', body: 'json' }, async (req, ctx) => {
     const body = bodyOf(req, ['proof', 'label', 'bindSession', 'sessionBinding']);
-    return { status: 201, body: await accounts.registerDevice({ ...body, sessionToken: ctx.token, idempotencyKey: idempotencyKeyOf(req) }) };
+    return keyed(req, ctx, body, async (idempotencyKey) => ({
+      status: 201, body: await accounts.registerDevice({ ...body, sessionToken: ctx.token, idempotencyKey })
+    }));
   });
   define('get', '/devices', { auth: 'session' }, async (req, ctx) => ({ body: { devices: await accounts.listDevices(ctx.accountId) } }));
   define('delete', '/devices/:deviceId', { auth: 'session', body: 'json' }, async (req, ctx) => {
-    const { reason } = bodyOf(req, ['reason']);
-    return {
-      body: await accounts.revokeDevice({ sessionToken: ctx.token, deviceId: req.params.deviceId, reason, idempotencyKey: idempotencyKeyOf(req) })
-    };
+    const body = bodyOf(req, ['reason']);
+    return keyed(req, ctx, body, async (idempotencyKey) => ({
+      body: await accounts.revokeDevice({ sessionToken: ctx.token, deviceId: req.params.deviceId, reason: body.reason, idempotencyKey })
+    }));
   });
   define('put', '/devices/:deviceId/owner-authorization', { auth: 'session', body: 'json' }, async (req, ctx) => {
-    const { ownerAuthorization } = bodyOf(req, ['ownerAuthorization']);
-    return {
+    const body = bodyOf(req, ['ownerAuthorization']);
+    return keyed(req, ctx, body, async (idempotencyKey) => ({
       body: await accounts.recordOwnerAuthorization({
-        sessionToken: ctx.token, deviceId: req.params.deviceId, ownerAuthorization, idempotencyKey: idempotencyKeyOf(req)
+        sessionToken: ctx.token, deviceId: req.params.deviceId, ownerAuthorization: body.ownerAuthorization, idempotencyKey
       })
-    };
+    }));
   });
 
   // Spending: a session acting as an active registered device.
   define('post', '/quotes', { auth: 'device', body: 'json' }, async (req, ctx) => {
-    const { request = null } = bodyOf(req, ['request']);
-    const idempotencyKey = idempotencyKeyOf(req);
+    const body = bodyOf(req, ['request']);
     if (typeof quoteTerms !== 'function') refuse(503, 'quote_terms_unconfigured', 'quotes need the service and price policy port');
-    // One quote per account and key: a retry returns the quote first issued under it.
-    const quoteId = `quote_${createHash('sha256').update(`${ctx.accountId}\u0000${idempotencyKey}`).digest('hex').slice(0, 32)}`;
-    const existing = await ledger.getQuote(quoteId);
-    if (existing) return { body: existing };
-    const offered = await quoteTerms({ accountId: ctx.accountId, deviceId: ctx.deviceId, request });
-    if (!offered || typeof offered !== 'object') refuse(422, 'quote_not_offered', 'no service is offered for this request');
-    const { service, pricing, terms } = offered;
-    try {
-      return { status: 201, body: await guards.createQuote({ sessionToken: ctx.token, quoteId, service, pricing, terms, idempotencyKey }) };
-    } catch (error) {
-      const raced = ['quote_exists', 'idempotency_conflict'].includes(error?.code) ? await ledger.getQuote(quoteId) : null;
-      if (raced?.accountId === ctx.accountId) return { body: raced };
-      throw error;
-    }
+    return keyed(req, ctx, body, async (idempotencyKey, binding) => {
+      // Terms come from the price policy at call time, so the ledger cannot compare retries itself.
+      // The quote id names this binding and request: a retry with the same request returns the quote
+      // first issued for it, and no other caller or request can reach that quote.
+      const quoteId = `quote_${sha256Hex(`${binding.bindingId}\u0000${binding.requestHash}`).slice(0, 32)}`;
+      const existing = await ledger.getQuote(quoteId);
+      if (existing) return { body: existing };
+      const offered = await quoteTerms({ accountId: ctx.accountId, deviceId: ctx.deviceId, request: body.request ?? null });
+      if (!offered || typeof offered !== 'object') refuse(422, 'quote_not_offered', 'no service is offered for this request');
+      const { service, pricing, terms } = offered;
+      try {
+        return { status: 201, body: await guards.createQuote({ sessionToken: ctx.token, quoteId, service, pricing, terms, idempotencyKey }) };
+      } catch (error) {
+        // A concurrent retry of the same request created it first.
+        const raced = ['quote_exists', 'idempotency_conflict'].includes(error?.code) ? await ledger.getQuote(quoteId) : null;
+        if (raced?.accountId === ctx.accountId) return { body: raced };
+        throw error;
+      }
+    });
   });
   define('post', '/quotes/:quoteId/accept', { auth: 'device', body: 'json' }, async (req, ctx) => {
-    const { quoteHash } = bodyOf(req, ['quoteHash']);
-    return { body: await guards.acceptQuote({ sessionToken: ctx.token, quoteId: req.params.quoteId, quoteHash, idempotencyKey: idempotencyKeyOf(req) }) };
+    const body = bodyOf(req, ['quoteHash']);
+    return keyed(req, ctx, body, async (idempotencyKey) => ({
+      body: await guards.acceptQuote({ sessionToken: ctx.token, quoteId: req.params.quoteId, quoteHash: body.quoteHash, idempotencyKey })
+    }));
   });
   define('post', '/reservations/:reservationId/attempts', { auth: 'device', body: 'json' }, async (req, ctx) => {
-    const { attemptId, recipients } = bodyOf(req, ['attemptId', 'recipients']);
-    const idempotencyKey = idempotencyKeyOf(req);
-    await ownReservation(req.params.reservationId, ctx.accountId);
-    return { body: await ledger.bindAttempt({ reservationId: req.params.reservationId, attemptId, recipients, idempotencyKey }) };
+    const body = bodyOf(req, ['attemptId', 'recipients']);
+    return keyed(req, ctx, body, async (idempotencyKey) => {
+      await ownReservation(req.params.reservationId, ctx.accountId);
+      return { body: await ledger.bindAttempt({ reservationId: req.params.reservationId, attemptId: body.attemptId, recipients: body.recipients, idempotencyKey }) };
+    });
   });
 
   // Reads of the session's own credit account.
@@ -238,13 +270,10 @@ export function createEarningRouter({
   // Contribution: offers made to the account, acceptance and claims.
   define('get', '/offers/:offerId', { auth: 'session' }, async (req, ctx) => ({ body: await ownOffer(req.params.offerId, ctx.accountId) }));
   define('post', '/offers/:offerId/accept', { auth: 'session', body: 'json' }, async (req, ctx) => {
-    const { offerHash, ownerAuthorization } = bodyOf(req, ['offerHash', 'ownerAuthorization']);
-    return {
-      body: await guards.acceptOffer({
-        sessionToken: ctx.token, offerId: req.params.offerId, offerHash, ...(ownerAuthorization === undefined ? {} : { ownerAuthorization }),
-        idempotencyKey: idempotencyKeyOf(req)
-      })
-    };
+    const body = bodyOf(req, ['offerHash', 'ownerAuthorization']);
+    return keyed(req, ctx, body, async (idempotencyKey) => ({
+      body: await guards.acceptOffer({ ...body, sessionToken: ctx.token, offerId: req.params.offerId, idempotencyKey })
+    }));
   });
   /**
    * A claim against one of the account's accepted offers, from a device-bound
@@ -255,25 +284,28 @@ export function createEarningRouter({
    */
   define('post', '/offers/:offerId/claims', { auth: 'device', body: 'evidence' }, async (req, ctx) => {
     const body = bodyOf(req, CLAIM_KEYS);
-    const idempotencyKey = idempotencyKeyOf(req);
-    await ownOffer(req.params.offerId, ctx.accountId);
-    let claim = body;
-    if (body.deliveryId !== undefined) {
-      if (Object.keys(body).length !== 1) refuse(400, 'invalid_body', 'a claim names a deliveryId or carries its evidence, not both');
-      const record = await rewards.getDeliveryEvidence(body.deliveryId);
-      if (!record) refuse(404, 'delivery_not_found', 'no delivery evidence has this id');
-      claim = record.evidence;
+    if (body.deliveryId !== undefined && Object.keys(body).length !== 1) {
+      refuse(400, 'invalid_body', 'a claim names a deliveryId or carries its evidence, not both');
     }
-    const validation = await rewards.validateWork({ ...claim, offerId: req.params.offerId, idempotencyKey });
-    let issuance = null;
-    if (validation.outcome === 'accepted') {
-      try {
-        issuance = await rewards.issueReward({ validationId: validation.validationId });
-      } catch (error) {
-        issuance = { validationId: validation.validationId, status: 'pending', code: error?.code ?? 'issuance_failed' };
+    return keyed(req, ctx, body, async (idempotencyKey) => {
+      await ownOffer(req.params.offerId, ctx.accountId);
+      let claim = body;
+      if (body.deliveryId !== undefined) {
+        const record = await rewards.getDeliveryEvidence(body.deliveryId);
+        if (!record) refuse(404, 'delivery_not_found', 'no delivery evidence has this id');
+        claim = record.evidence;
       }
-    }
-    return { body: { validation: validationView(validation), issuance } };
+      const validation = await rewards.validateWork({ ...claim, offerId: req.params.offerId, idempotencyKey });
+      let issuance = null;
+      if (validation.outcome === 'accepted') {
+        try {
+          issuance = await rewards.issueReward({ validationId: validation.validationId });
+        } catch (error) {
+          issuance = { validationId: validation.validationId, status: 'pending', code: error?.code ?? 'issuance_failed' };
+        }
+      }
+      return { body: { validation: validationView(validation), issuance } };
+    });
   });
   /** A certified acquirer's evidence of a completed delivery, from the acquiring device's session. */
   define('post', '/deliveries', { auth: 'device', body: 'evidence' }, async (req, ctx) => {
@@ -290,9 +322,9 @@ export function createEarningRouter({
   const funding = { operator: ['funding'] };
   const fundingReader = { operator: ['funding', 'audit'] };
   const linkReader = { operator: ['links', 'audit'] };
-  define('post', '/operator/funding/commitments', { auth: funding, body: 'json' }, async (req) => {
+  define('post', '/operator/funding/commitments', { auth: funding, body: 'json' }, async (req, ctx) => {
     const body = bodyOf(req, COMMITMENT_KEYS);
-    return { status: 201, body: await ledger.recordFundingCommitment({ ...body, idempotencyKey: idempotencyKeyOf(req) }) };
+    return keyed(req, ctx, body, async (idempotencyKey) => ({ status: 201, body: await ledger.recordFundingCommitment({ ...body, idempotencyKey }) }));
   });
   define('get', '/operator/funding/commitments/:commitmentId', { auth: fundingReader }, async (req) => {
     const commitment = await ledger.getFundingCommitment(req.params.commitmentId);
@@ -300,11 +332,11 @@ export function createEarningRouter({
     return { body: { commitment, allocations: await ledger.listFundingAllocations({ commitmentId: req.params.commitmentId }) } };
   });
   define('post', '/operator/funding/reward-reservations', { auth: funding, body: 'json' }, async (req, ctx) => {
-    const { decisionId, ...body } = bodyOf(req, ['fundingId', 'commitmentId', 'amount', 'commitmentAmount', 'categories', 'decisionId']);
-    return {
-      status: 201,
-      body: await rewards.reserveFunding({ ...body, authority: decided(ctx.operator, decisionId), idempotencyKey: idempotencyKeyOf(req) })
-    };
+    const body = bodyOf(req, ['fundingId', 'commitmentId', 'amount', 'commitmentAmount', 'categories', 'decisionId']);
+    const { decisionId, ...reservation } = body;
+    return keyed(req, ctx, body, async (idempotencyKey) => ({
+      status: 201, body: await rewards.reserveFunding({ ...reservation, authority: decided(ctx.operator, decisionId), idempotencyKey })
+    }));
   });
   define('post', '/operator/funding/reward-reservations/:fundingId/release', { auth: funding, body: 'json' }, async (req, ctx) => {
     const { decisionId } = bodyOf(req, ['decisionId']);
@@ -318,9 +350,11 @@ export function createEarningRouter({
   define('get', '/operator/funding/allocations', { auth: fundingReader }, async (req) => ({
     body: { allocations: await ledger.listFundingAllocations(typeof req.query.commitmentId === 'string' ? { commitmentId: req.query.commitmentId } : {}) }
   }));
-  define('post', '/operator/reservations/:reservationId/settle', { auth: { operator: ['settlement'] }, body: 'json' }, async (req) => {
+  define('post', '/operator/reservations/:reservationId/settle', { auth: { operator: ['settlement'] }, body: 'json' }, async (req, ctx) => {
     const body = bodyOf(req, SETTLEMENT_KEYS);
-    return { body: await ledger.settleReservation({ ...body, reservationId: req.params.reservationId, idempotencyKey: idempotencyKeyOf(req) }) };
+    return keyed(req, ctx, body, async (idempotencyKey) => ({
+      body: await ledger.settleReservation({ ...body, reservationId: req.params.reservationId, idempotencyKey })
+    }));
   });
   define('post', '/operator/rewards/issuance/resume', { auth: { operator: ['issuance'] }, body: 'json' }, async (req) => {
     const { limit } = bodyOf(req, ['limit']);
@@ -328,14 +362,11 @@ export function createEarningRouter({
     return { body: { results: await rewards.resumeIssuance(limit === undefined ? {} : { limit }) } };
   });
   define('post', '/operator/links', { auth: { operator: ['links'] }, body: 'json' }, async (req, ctx) => {
-    const { kind, accountIds, evidenceId, note } = bodyOf(req, ['kind', 'accountIds', 'evidenceId', 'note']);
-    return {
+    const body = bodyOf(req, ['kind', 'accountIds', 'evidenceId', 'note']);
+    return keyed(req, ctx, body, async (idempotencyKey) => ({
       status: 201,
-      body: await accounts.recordLink({
-        kind, accountIds, evidenceId, ...(note === undefined ? {} : { note }),
-        recordedBy: { authority: 'operator', id: ctx.operator.actorId }, idempotencyKey: idempotencyKeyOf(req)
-      })
-    };
+      body: await accounts.recordLink({ ...body, recordedBy: { authority: 'operator', id: ctx.operator.actorId }, idempotencyKey })
+    }));
   });
   define('get', '/operator/accounts/:accountId/links', { auth: linkReader }, async (req) => ({ body: { links: await accounts.listLinks(req.params.accountId) } }));
   define('get', '/operator/accounts/:accountId/audit', { auth: { operator: ['audit'] } }, async (req) => ({ body: await ledger.auditAccount(req.params.accountId) }));

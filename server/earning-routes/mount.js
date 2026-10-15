@@ -2,15 +2,16 @@
  * @fileoverview Configuration switch and mount for the earning-loop routes.
  *
  * Off by default: the routes mount only when REPLOID_EARNING_ROUTES is
- * exactly `enabled`. The composition (stores, policies, sign-in providers,
- * quote terms, operator authority and limits) is the operator's, loaded from
- * the module REPLOID_EARNING_COMPOSITION names; this repository ships no
- * real provider, policy or credential. In production mode (NODE_ENV=production
- * or a Cloud Run K_SERVICE), the routes refuse to start without a sign-in
- * provider, with any provider marked testOnly (such as the local test
- * provider) or over memory stores. The routes mount at /v1 on the application
- * itself, never under /pool, so no local-development bypass reaches them, and
- * they must mount before any general JSON parser.
+ * exactly `enabled`. The composition (stores, the Idempotency-Key binding
+ * backend, policies, sign-in providers, quote terms, operator authority and
+ * limits) is the operator's, loaded from the module REPLOID_EARNING_COMPOSITION
+ * names; this repository ships no real provider, policy or credential. In
+ * production mode (NODE_ENV=production or a Cloud Run K_SERVICE), the routes
+ * refuse to start without a sign-in provider, with any provider marked
+ * testOnly (such as the local test provider) or over memory stores, binding
+ * backend included. The routes mount at /v1 on the application itself, never
+ * under /pool, so no local-development bypass reaches them, and they must
+ * mount before any general JSON parser.
  */
 
 import path from 'node:path';
@@ -47,7 +48,8 @@ export function readEarningRoutesConfig(env = {}) {
 
 /**
  * Refuse a composition that must not serve production: no sign-in provider,
- * any test-only provider, or memory-backed accounts, ledger or rewards.
+ * any test-only provider, or memory-backed accounts, ledger, rewards or
+ * Idempotency-Key bindings.
  */
 export function assertProductionComposition(composition) {
   const providers = composition?.accounts?.signInProviders;
@@ -56,7 +58,7 @@ export function assertProductionComposition(composition) {
   if (testOnly.length) {
     refuse('test_sign_in_provider_in_production', `the test-only sign-in provider (${testOnly.join(', ')}) is not permitted in production`);
   }
-  const memory = ['accounts', 'ledger', 'rewards'].filter((name) => composition[name]?.kind === 'memory');
+  const memory = ['accounts', 'ledger', 'rewards', 'idempotencyBackend'].filter((name) => composition[name]?.kind === 'memory');
   if (memory.length) refuse('memory_store_in_production', `production earning routes need durable stores; memory-backed: ${memory.join(', ')}`);
 }
 

@@ -10,6 +10,7 @@ import { createDeviceRegistrationProof, createSessionBinding } from '../../packa
 import { sha256Hex } from '../../packages/reploid/src/artifacts/signatures.js';
 import { createCommunityAccess } from '../../server/community-access/engine.js';
 import { createMemoryCommunityAccessBackend } from '../../server/community-access/stores.js';
+import { createFirestoreRouteBackend, createMemoryRouteBackend } from '../../server/earning-routes/idempotency.js';
 import { mountEarningRoutes } from '../../server/earning-routes/mount.js';
 import { installJsonBodyMiddleware } from '../../server/json-body-middleware.js';
 import createPoolRouter from '../../server/pool/routes.js';
@@ -35,6 +36,7 @@ const OPERATORS = Object.freeze({
   'operator-funding': { actorId: FUNDING_ADMIN, roles: ['funding'] },
   'operator-unauthorized-funder': { actorId: 'funding_other_test', roles: ['funding'] },
   'operator-settlement': { actorId: 'settlement_test', roles: ['settlement'] },
+  'operator-settlement-2': { actorId: 'settlement_other_test', roles: ['settlement'] },
   'operator-issuance': { actorId: 'issuance_test', roles: ['issuance'] },
   'operator-links': { actorId: 'links_test', roles: ['links'] },
   'operator-audit': { actorId: 'audit_test', roles: ['audit'] }
@@ -94,6 +96,11 @@ describe.each(['memory', 'firestore'])('earning routes over HTTP (%s store)', (k
   let base;
   let call;
 
+  // Idempotency-Key bindings live beside the account database, on the same kind of store.
+  const idempotencyBackend = () => (kind === 'memory'
+    ? createMemoryRouteBackend({ state: harness.states.identity })
+    : createFirestoreRouteBackend({ firestore: harness.dbs.identity, collectionPrefix: 'test' }));
+
   /** The composition an operator module would return: stores, ports and limits. */
   const composition = (overrides = {}) => {
     const communityAccess = createCommunityAccess({
@@ -106,7 +113,10 @@ describe.each(['memory', 'firestore'])('earning routes over HTTP (%s store)', (k
       const { service, pricing, terms } = quoteInput({ quoteId: 'unused', accountId });
       return { service, pricing, terms };
     };
-    return { ...services, communityAccess, quoteTerms, operatorAuthority, limits: LIMITS, nowMs: () => fx.nowMs, log: { error() {} }, ...overrides };
+    return {
+      ...services, communityAccess, quoteTerms, operatorAuthority, idempotencyBackend: idempotencyBackend(),
+      limits: LIMITS, nowMs: () => fx.nowMs, log: { error() {} }, ...overrides
+    };
   };
 
   /** An app shaped like server/proxy.js: earning routes, then the general parser, then the Pool router. */
@@ -405,6 +415,74 @@ describe.each(['memory', 'firestore'])('earning routes over HTTP (%s store)', (k
     });
   });
 
+  describe('idempotency keys', () => {
+    it('binds a key to its caller and canonical request: a different request conflicts, another caller gets its own result', async () => {
+      const alice = await browserParticipant('alice');
+      const bob = await browserParticipant('bob');
+      await fund(services.ledger, alice.account.accountId, 100);
+      const quote = (who, request) => call('POST', '/v1/quotes', { token: who.session.token, key: 'shared-key', body: { request } });
+      const first = await quote(alice, { service: 'chat' });
+      expect(first.status).toBe(201);
+      // Same caller, same key, different body: refused, with no second quote and no call to the price policy.
+      const changed = await quote(alice, { service: 'search' });
+      expect([changed.status, changed.body.error]).toEqual([409, 'idempotency_conflict']);
+      expect(quoteRequests).toHaveLength(1);
+      expect((await quote(alice, { service: 'chat' })).body.quoteId).toBe(first.body.quoteId);
+      // Another account using the same key and body gets its own quote, never alice's.
+      const theirs = await quote(bob, { service: 'chat' });
+      expect(theirs.status).toBe(201);
+      expect(theirs.body).toMatchObject({ accountId: bob.account.accountId });
+      expect(theirs.body.quoteId).not.toBe(first.body.quoteId);
+
+      // A failed request leaves its key free, as in the ledger; a success binds it.
+      const accept = (quoteHash) => call('POST', `/v1/quotes/${first.body.quoteId}/accept`, { token: alice.session.token, key: 'accept-key', body: { quoteHash } });
+      expect((await accept('sha256:not-the-terms')).body.error).toBe('quote_terms_mismatch');
+      const accepted = await accept(first.body.quoteHash);
+      expect(accepted.status).toBe(200);
+      expect((await accept('sha256:not-the-terms')).body.error).toBe('idempotency_conflict');
+      expect((await accept(first.body.quoteHash)).body).toEqual(accepted.body);
+
+      // Device registration: bob's request under alice's key registers bob's device; alice's key with another proof conflicts.
+      const device = async (who, identity) => {
+        const challenge = (await call('POST', '/v1/devices/challenges', { token: who.session.token })).body;
+        const proof = await createDeviceRegistrationProof({ identity, challenge, host: 'native' });
+        return call('POST', '/v1/devices', { token: who.session.token, key: 'device-key', body: { proof } });
+      };
+      const aliceNative = await device(alice, await newIdentity());
+      expect(aliceNative.body).toMatchObject({ accountId: alice.account.accountId });
+      const bobNative = await device(bob, await newIdentity());
+      expect(bobNative.body).toMatchObject({ accountId: bob.account.accountId });
+      expect((await device(alice, await newIdentity())).body.error).toBe('idempotency_conflict');
+
+      // Operators: the same key from another actor reaches the component as its own request, never the first result.
+      const commitment = (commitmentId) => ({
+        commitmentId, funderKind: 'operator', funderId: 'operator_test', externalRef: `external:${commitmentId}`,
+        amount: 100, unit: { kind: 'credits' }, validFrom: clock(), validUntil: at(24 * 60 * MIN)
+      });
+      const commit = (token, body) => call('POST', '/v1/operator/funding/commitments', { token, key: 'commit-key', body });
+      expect((await commit('operator-funding', commitment('commitment_1'))).status).toBe(201);
+      expect((await commit('operator-funding', commitment('commitment_2'))).body.error).toBe('idempotency_conflict');
+      expect((await commit('operator-funding', commitment('commitment_1'))).status).toBe(201);
+      const other = await commit('operator-unauthorized-funder', commitment('commitment_1'));
+      expect([other.status, other.body.error]).toEqual([409, 'commitment_exists']);
+
+      // Settlement: a changed metering under the same key conflicts; another settlement actor cannot replay the first result.
+      const { reservationId } = accepted.body;
+      expect((await call('POST', `/v1/reservations/${reservationId}/attempts`, {
+        token: alice.session.token, key: 'bind-key', body: { attemptId: 'att_1', recipients: ['peer_c0'] }
+      })).status).toBe(200);
+      const settle = (token, output) => call('POST', `/v1/operator/reservations/${reservationId}/settle`, {
+        token, key: 'settle-key', body: { billableEventId: 'event_1', outcome: 'full', attemptId: 'att_1', metering: { output }, completedAt: clock() }
+      });
+      const settled = await settle('operator-settlement', 40);
+      expect(settled.body).toMatchObject({ charge: 30 });
+      expect((await settle('operator-settlement', 80)).body.error).toBe('idempotency_conflict');
+      expect((await settle('operator-settlement', 40)).body).toEqual(settled.body);
+      const replay = await settle('operator-settlement-2', 40);
+      expect([replay.status, replay.body.error]).toEqual([409, 'reservation_already_settled']);
+    });
+  });
+
   describe('ingress, limits and configuration', () => {
     it('bounds bodies per route, accepts only JSON objects and refuses bodies parsed upstream', async () => {
       const alice = await browserParticipant('alice');
@@ -498,6 +576,10 @@ describe.each(['memory', 'firestore'])('earning routes over HTTP (%s store)', (k
       const production = mountWith({ ...ENABLED, NODE_ENV: 'production' }, withProviders([providerUnderAcceptance]));
       if (kind === 'memory') await expect(production).rejects.toMatchObject({ code: 'memory_store_in_production' });
       else expect(await production).toMatchObject({ mounted: true, production: true, signInProviders: [{ providerId: 'provider-under-acceptance', testOnly: false }] });
+      // Memory-held Idempotency-Key bindings are refused in production too.
+      await expect(mountWith({ ...ENABLED, NODE_ENV: 'production' }, {
+        ...withProviders([providerUnderAcceptance]), idempotencyBackend: createMemoryRouteBackend()
+      })).rejects.toMatchObject({ code: 'memory_store_in_production' });
     });
   });
 }, 30_000);
