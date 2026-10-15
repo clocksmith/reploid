@@ -47,3 +47,29 @@
   .pool-home .pool-glass-focus:focus { border-color: ButtonText; }
   .pool-activity-edge::after { display: none; }
 }
+
+/* Reusable diamond; state and completion come only from the caller. */
+.pool-diamond { display: inline-grid; width: 100%; min-width: 0; text-align: center; }
+.pool-diamond-visual { display: block; position: relative; width: 100%; aspect-ratio: 8 / 7; }
+.pool-diamond :is(.pool-prism-still, .pool-prism-canvas, .pool-diamond-progress) { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.pool-diamond .pool-prism-canvas { visibility: hidden; }
+.pool-diamond-progress { display: none; color: var(--pool-color-muted); }
+.pool-diamond[data-diamond-state='loading'] .pool-diamond-progress,
+.pool-diamond[data-diamond-state='progress'] .pool-diamond-progress,
+.pool-diamond[data-diamond-state='complete'] .pool-diamond-progress { display: block; }
+.pool-diamond[data-diamond-state='loading'] .pool-diamond-visual { animation: pool-diamond-breathe var(--pool-motion-optical-active) ease-in-out infinite alternate; }
+.pool-diamond[data-diamond-state='loading'] [data-diamond-progress] { stroke-dasharray: var(--pool-diamond-trace-length) calc(var(--pool-diamond-path-length) - var(--pool-diamond-trace-length)); animation: pool-diamond-trace var(--pool-motion-optical-active) linear infinite; }
+.pool-diamond[data-prism-state='ready'] .pool-prism-canvas { visibility: visible; }
+.pool-diamond[data-prism-state='ready'] .pool-prism-still { visibility: hidden; }
+.pool-diamond [hidden] { display: none; }
+@keyframes pool-diamond-breathe { from { transform: translateY(0); } to { transform: translateY(calc(-1 * var(--pool-size-4))); } }
+@keyframes pool-diamond-trace { from { stroke-dashoffset: var(--pool-diamond-path-length); } to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { .pool-diamond *, .pool-diamond *::after { animation: none !important; transition: none !important; } }
+@media (forced-colors: active) {
+  .pool-diamond .pool-prism-canvas { display: none; }
+  .pool-diamond .pool-prism-still { visibility: visible; }
+  .pool-diamond svg path { fill: Canvas; stroke: CanvasText; }
+  .pool-diamond .pool-diamond-progress path { fill: none; stroke: Highlight; }
+}
+
+[data-context-peers] { fill: none; stroke: currentColor; stroke-width: var(--pool-border-thin); }

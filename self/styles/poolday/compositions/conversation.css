@@ -86,9 +86,8 @@
 .chat-composer-notices { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--pool-size-8); }
 .chat-composer-notices:not(:has(:not([hidden]))) { display: none; }
 .chat-composer-notices > button { padding-block: var(--pool-size-4); }
-.chat-execution-location { display: flex; flex-wrap: wrap; align-items: center; gap: var(--pool-size-8); min-width: 0; max-width: 100%; }
-.chat-execution-location .pool-segmented { max-width: 100%; gap: var(--pool-size-2); }
-.chat-execution-location .pool-segment { flex: 1; min-width: min-content; padding-inline: var(--pool-size-4); }
+.chat-execution-location { display: grid; grid-template-columns: repeat(auto-fit, minmax(var(--pool-size-128), 1fr)); gap: var(--pool-size-4); margin-top: var(--pool-size-8); }
+.chat-execution-location .pool-button { white-space: nowrap; }
 .chat-composer-area .chat-setup-hint { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .chat-composer-field .chat-attachments { margin-bottom: var(--pool-size-8); }
 
@@ -321,3 +320,6 @@
 }
 
 .pool-home[data-chat-compact]:is([data-pool-route-id='home'], [data-pool-route-id='network']) .pool-primary-nav { display: block; height: 0; min-height: 0; padding: 0; }
+
+.pool-home .chat-context-indicator { display: inline-flex; align-items: center; gap: var(--pool-size-8); padding: 0 var(--pool-size-4); margin-left: auto; order: 1; }
+.chat-context-indicator svg { flex: none; }

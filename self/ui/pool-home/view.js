@@ -1,3 +1,4 @@
+import { renderDiamond } from '../components/diamond.js';
 import { getPeerRoomId, getPeerRelayMode, getPeerRelayLabel, getPeerRoomBusFactory } from '../../host/product-context.js';
 export { getPeerRoomId, getPeerRelayMode, getPeerRelayLabel, getPeerRoomBusFactory };
 import { normalizeProductPath, getRouteId, isProductPath, renderNav, updateChangesControl, renderPowerTower } from './shell-view.js';
@@ -1828,30 +1829,7 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
             <p class="pool-caption pool-home-brand-status" data-pool-brand-status hidden></p>
           </div>
           <div class="pool-prism" data-pool-prism aria-hidden="true">
-            <svg class="pool-prism-still" viewBox="0 0 480 420" focusable="false">
-              <defs>
-                <linearGradient id="pool-prism-glass" x1="0" y1="0" x2="1" y2="1">
-                  <stop stop-color="#ffffff"/><stop offset=".45" stop-color="#e3e9ee"/>
-                  <stop offset=".7" stop-color="#dedaf1"/><stop offset="1" stop-color="#f6e4d7"/>
-                </linearGradient>
-                <linearGradient id="pool-prism-edge" x1="0" y1="0" x2="1" y2="1">
-                  <stop stop-color="#bfdecd"/><stop offset=".4" stop-color="#ffffff"/>
-                  <stop offset=".65" stop-color="#a6cce4"/><stop offset="1" stop-color="#d5b8ec"/>
-                </linearGradient>
-                <radialGradient id="pool-prism-light">
-                  <stop stop-color="#c5c2df" stop-opacity=".35"/><stop offset="1" stop-color="#e9e8e4" stop-opacity="0"/>
-                </radialGradient>
-              </defs>
-              <ellipse cx="240" cy="344" rx="154" ry="39" fill="url(#pool-prism-light)"/>
-              <g stroke="url(#pool-prism-edge)" stroke-width="1.5" stroke-linejoin="round">
-                <path d="M239 55 373 167 270 304 116 200Z" fill="url(#pool-prism-glass)"/>
-                <path d="M239 55 244 186 116 200Z" fill="#fbfcfc" fill-opacity=".7"/>
-                <path d="M239 55 373 167 244 186Z" fill="#dce7e7" fill-opacity=".45"/>
-                <path d="M244 186 373 167 270 304Z" fill="#c7c9e3" fill-opacity=".45"/>
-                <path d="M116 200 244 186 270 304Z" fill="#f4e6dd" fill-opacity=".5"/>
-              </g>
-            </svg>
-            <canvas class="pool-prism-canvas" data-pool-prism-canvas></canvas>
+            ${renderDiamond({ id: 'examples-diamond' })}
           </div>
         </div>
       </div>

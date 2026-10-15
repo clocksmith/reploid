@@ -125,6 +125,8 @@
   --pool-motion-nav: 320ms cubic-bezier(0.22, 1, 0.36, 1);
   --pool-motion-nav-duration: 320ms;
   --pool-motion-nav-easing: cubic-bezier(0.22, 1, 0.36, 1);
+  --pool-diamond-path-length: 100;
+  --pool-diamond-trace-length: 25;
   --pool-motion-optical-active: 2400ms;
   --pool-motion-optical-ready: 900ms;
   --pool-motion-steps-easing: steps(2, end);
