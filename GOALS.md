@@ -2,20 +2,23 @@
 
 ## Mission & Thesis
 
-Earn on your computer; use AI from any device. The initial product gives people
-everyday questions, explanations, summaries and retrieval-backed answers with
-supporting citations through prepared shared capacity. People may use funded
-Community Access, earn credits for useful validated contributions, or buy top-ups
-without subscriptions. Contribution stays optional; requesting needs no weights
-or cluster management. The [product specification](docs/product-specification.md)
-defines this intent, including nonexpiring balances, quoted service, owner limits
-and separately qualified financial accounting.
+Reploid helps people ask questions, compare options, connect information, and develop ideas using open models and web sources. Its promise: earn on your computer, use AI anywhere.
 
-First prove bounded overnight contribution and useful next-day redemption from a
-phone, showing what was earned and spent and the owner's actual resource cost.
-Consumer chat leads; developer APIs use the same capacity and accounting later.
-Coding and vertical specialization follow. Complete-answer quality, latency and
-economics require their own evidence; numerical parity alone is insufficient.
+Consumer chat leads, with cited investigations, follow-ups, and persistent history. Attachments provide context. Search runs through authorized device-side tools or paid providers, with retrieval, verification, and fallback costs measured separately. Developer APIs and autonomous agents follow.
+
+Users receive funded Community Access, purchase top-ups, or earn nonexpiring credits through useful contributions. Credits represent service balances, without guaranteed immediate availability or cash redemption. Contributors supply validated computation, storage, delivery, or contracted readiness within approved schedules, memory, bandwidth, power, temperature, and foreground-use limits.
+
+Reploid coordinates capacity, permissions, queues, accounting, and recovery; Doppler executes models. Routing selects qualified supply using expected costs, including preparation, readiness, failures, refunds, and reserves. Accepted quotes bind model, disclosure, quality, deadline, and spending limits. Hosted fallback requires authorization. Otherwise, requests queue or fail explicitly.
+
+Revenue comes from delivered paid services and funded community usage. Reploid retains a margin after contributor rewards, retrieval, verification, infrastructure, payment fees, support, and reliability costs. Outstanding credits require realistic redemption funding. Reserved service, cash payouts, transfers, and trading follow proven demand and controls.
+
+Launch with one model community and supported hardware cohort, using founder machines with disclosed subsidies. The hypothesis is that pooled intermittent demand and otherwise-idle resources can deliver competitive service economically.
+
+Freeze quality, latency, surplus, margin, and advantage thresholds before testing. Measure overnight contribution and next-day redemption, then replay demand against task-equivalent alternatives. Count energy, hardware assumptions, idle time, failures, and rejected demand.
+
+Scale only when contributors earn worthwhile value, customers return and obtain competitive answers, and Reploid retains positive contribution margin. Report energy efficiency separately. Repeat purchases and sustained participation justify expansion; failed configurations are revised or rejected before spending or unsupported commercial promises.
+
+The [product specification](docs/product-specification.md) is the canonical contract for this plan, including nonexpiring balances, quoted service, owner limits and separately qualified financial accounting. Complete-answer quality, latency and economics require their own evidence; numerical parity alone is insufficient.
 
 Reploid's goal is to coordinate and evolve distributed intelligence. Its
 peer-to-peer network of agents combines participating devices' model storage,
