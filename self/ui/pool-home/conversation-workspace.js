@@ -10,6 +10,7 @@ import { bindDisclosure } from '../components/disclosure.js';
 import { bindDialog } from '../components/dialog.js';
 import { createMessageList } from './message-list.js';
 import { renderRemotePermissionDialog, bindRemotePermissionDialog } from './remote-permission.js';
+import { renderSearchPermissionDialog, bindSearchPermissionDialog } from './search-permission.js';
 
 const selectable = model => ['ready', 'busy', 'loading', 'preparing'].includes(model.availability);
 
@@ -49,6 +50,7 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
         <div class="chat-composer-field pool-input pool-glass pool-glass-focus pool-activity-edge pool-focus-within" data-composer-field>
           <div class="chat-attachments" data-attachments-preview hidden></div>
           <textarea class="pool-bare pool-body" id="chat-message" data-composer-input rows="1" required placeholder="Ask a question…"></textarea>
+          <button class="pool-button btn-ghost pool-icon" type="button" data-search-toggle aria-pressed="false" aria-label="Search for this answer" title="Search for this answer" hidden>${interfaceIcon('search')}</button>
           <label class="pool-button btn-ghost pool-icon pool-file chat-file-label pool-focus-within" title="Attach files">${interfaceIcon('attach')}<span class="chat-visually-hidden">Attach files</span><input type="file" multiple data-composer-files accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
           <div class="chat-composer-submit">
             <button class="pool-button btn-primary pool-icon" type="submit" data-composer-send aria-label="Send" title="Send">${interfaceIcon('send')}</button>
@@ -71,12 +73,13 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
         <div class="chat-network-actions"><button class="pool-button" type="button" data-model-picker-close>Cancel</button><button class="pool-button" type="button" data-change-model>New thread with this model</button></div>
       </dialog>
       ${renderRemotePermissionDialog()}
+      ${renderSearchPermissionDialog()}
     </section>
     ${inspector ? renderNetworkInspector() : ''}
   </section>`;
 }
 
-export function bindConversationWorkspace(root, session, { getInviteUrl, viewState = {}, inspector: sharedInspector, webSearch = null } = {}) {
+export function bindConversationWorkspace(root, session, { getInviteUrl, viewState = {}, inspector: sharedInspector, webSearch = null, search = null } = {}) {
   const container = root.querySelector('[data-chat-workspace]');
   if (!container || !session) return () => {};
   const find = selector => container.querySelector(selector);
@@ -146,6 +149,15 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     return !need || permission.ask(need);
   };
   let askedFor = null;
+  // Search is chosen per answer and asked every time; Brave receives the query only after Allow.
+  const searchPermission = bindSearchPermissionDialog(find('[data-search-permission]'), session);
+  const searchToggle = find('[data-search-toggle]');
+  const setSearch = on => { searchToggle.setAttribute('aria-pressed', String(on && !searchToggle.hidden)); };
+  const searching = () => searchToggle.getAttribute('aria-pressed') === 'true';
+  const allowSearch = async (model, sharingScope) => {
+    const request = session.searchPermissionRequest({ model, sharingScope });
+    return await searchPermission.ask(request) ? { wording: request.wording, recipients: request.recipients } : null;
+  };
   function resizeInput() {
     input.style.removeProperty('--pool-param-composer-height');
     input.style.setProperty('--pool-param-composer-height', Math.min(Math.max(48, input.scrollHeight), Math.max(72, (globalThis.visualViewport?.height || globalThis.innerHeight || 800) * 0.22)) + 'px');
@@ -258,6 +270,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
 
   };
   const unsubscribe = session.subscribe(render);
+  const unsubscribeSearch = search && session.searchPermissionRequest
+    ? search.subscribe(() => { searchToggle.hidden = !search.available(); if (searchToggle.hidden) setSearch(false); }) : () => {};
+  if (search && search.state().state === 'unknown') void search.refresh();
+  on('[data-search-toggle]', 'click', () => setSearch(!searching()));
   const webSearchOn = find('[data-web-search-on]');
   const unsubscribeWebSearch = webSearch ? webSearch.subscribe(state => { if (webSearchOn) webSearchOn.hidden = !(state.enabled && state.url); }) : () => {};
   const changeContext = () => {
@@ -328,21 +344,29 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const content = input.value.trim(), state = session.getState();
     if (!content || reading || submitting || state.runningIds.includes(state.selectedId)) return;
     if (find('[data-composer-send]').disabled) return;
+    const searched = searching();
+    if (searched && files.length) { error("Search-backed answers don't include files. Remove the files or turn off search for this answer."); return; }
     submitting = true;
     const revision = composerRevision, origin = state.selectedId, attachments = files.map(file => ({ ...file }));
     act(async () => {
       try {
         const model = state.models.find(item => (item.selectionId || item.id) === modelSelect.value);
         const sharingScope = model?.localReady ? 'local' : 'mesh';
+        const target = state.activeThread || { model, permissions: { sharingScope } };
         // Keep answers local sends nothing and leaves the draft in place.
-        if (!await permitted(state.activeThread || { model, permissions: { sharingScope } })) return;
+        if (!await permitted(target)) return;
+        // Don't search sends nothing either; the person can turn search off and send again.
+        const allowed = searched ? await allowSearch(target.model, target.permissions?.sharingScope) : null;
+        if (searched && !allowed) return;
         const threadId = state.selectedId || await session.createThread({ model, sharingScope, contextPrompt: contextPrompt || undefined });
         if (selectedId === threadId) {
           const current = composerRevision === revision ? { text: content, files: attachments } : drafts.get(origin);
           if (current) { input.value = current.text; files = current.files; showFiles(); }
         }
-        // With web search on, the send opts into retrieval: the question goes to the search server first.
-        const completion = session.send(threadId, content, attachments, ...(webSearch?.enabled() ? [{ retrieval: {} }] : []));
+        // An allowed search answer uses the search route; otherwise, with web search on, the send opts into the MCP server.
+        const completion = session.send(threadId, content, attachments, ...(allowed ? [{ search: allowed }]
+          : webSearch?.enabled() ? [{ retrieval: {} }] : []));
+        if (allowed) setSearch(false);
         // A second call cannot begin while asynchronous admission is pending.
         completion.catch(() => {});
         if (completion.admitted) await completion.admitted;
@@ -371,7 +395,12 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const button = event.target.closest('[data-retry-attempt]');
     if (button && !button.disabled) act(async () => {
       const thread = session.getState().activeThread;
-      if (await permitted(thread)) return session.retry(thread.id, button.dataset.retryAttempt);
+      if (!await permitted(thread)) return;
+      // A search-backed retry searches and shares passages again, so it asks again.
+      const failed = thread.attempts.find(item => item.id === button.dataset.retryAttempt);
+      if (!session.searchRetryNeedsPermission?.(failed)) return session.retry(thread.id, button.dataset.retryAttempt);
+      const allowed = await allowSearch(thread.model, thread.permissions?.sharingScope);
+      if (allowed) return session.retry(thread.id, button.dataset.retryAttempt, { search: allowed });
     });
   });
   on('[data-composer-files]', 'click', () => { find('[data-attachment-help]').hidden = false; });
@@ -405,13 +434,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     try { observe(saveDraft()); } catch (cause) { error(cause); }
     inputResize?.disconnect();
     detachInspector?.();
-    messages.dispose(); threads.dispose(); actionsPanel.dispose(); picker.dispose(); renameDialog.dispose(); permission.dispose();
+    messages.dispose(); threads.dispose(); actionsPanel.dispose(); picker.dispose(); renameDialog.dispose(); permission.dispose(); searchPermission.dispose();
     const surface = container.closest('.pool-home');
     surface?.style.removeProperty('--pool-param-workspace-height');
     surface?.removeAttribute('data-chat-compact');
     surface?.removeAttribute('data-left-rail-open');
     if (railToggle && brandParent) brandParent.prepend(railToggle);
-    controller.abort(); fileRevision++; unsubscribe(); unsubscribeWebSearch(); if (!sharedInspector) inspector.dispose();
+    controller.abort(); fileRevision++; unsubscribe(); unsubscribeWebSearch(); unsubscribeSearch(); if (!sharedInspector) inspector.dispose();
     find('[data-composer-field]').dataset.activity = 'idle';
     find('[data-model-control]').dataset.activity = 'idle';
   };

@@ -1,0 +1,10 @@
+{
+  "id": "reploid.search-answer-permission",
+  "wordings": {
+    "brave": {
+      "version": "2026-10-15",
+      "text": "Allow Reploid to send this search query to Brave and share retrieved passages with the listed execution contributors for this answer. Your files and unrelated conversation history are excluded."
+    }
+  },
+  "maxRecipients": 64
+}

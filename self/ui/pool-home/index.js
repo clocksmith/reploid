@@ -111,7 +111,7 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
       try {
         if (routeId === 'home' || routeId === 'network') {
           content.innerHTML = renderConversationWorkspace({ inspector: false });
-          detachView = bindConversationWorkspace(content, host.chat, { viewState, inspector, webSearch: host.webSearch });
+          detachView = bindConversationWorkspace(content, host.chat, { viewState, inspector, webSearch: host.webSearch, search: host.search });
           if (routeId === 'network') inspector.open();
         } else {
           content.innerHTML = '<p role="status">Loading…</p>';

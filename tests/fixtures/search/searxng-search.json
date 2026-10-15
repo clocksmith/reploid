@@ -1,0 +1,53 @@
+{
+  "_note": "Constructed from the SearXNG JSON search API format (GET /search?format=json): query, number_of_results, results[] url/title/content/engine/engines/score/category, answers, corrections, infoboxes, suggestions, unresponsive_engines. Not a live recording.",
+  "query": "when was the eiffel tower completed",
+  "number_of_results": 0,
+  "results": [
+    {
+      "url": "https://www.example.org/eiffel-tower",
+      "title": "Eiffel Tower - History &amp; Facts",
+      "content": "The Eiffel Tower was completed on March 31, 1889, for the Exposition Universelle.",
+      "engine": "duckduckgo",
+      "parsed_url": ["https", "www.example.org", "/eiffel-tower", "", "", ""],
+      "template": "default.html",
+      "engines": ["duckduckgo", "bing"],
+      "positions": [1, 2],
+      "score": 4.0,
+      "category": "general"
+    },
+    {
+      "url": "https://encyclopedia.example.net/wiki/Eiffel_Tower",
+      "title": "Eiffel Tower",
+      "content": "Construction began in January 1887 and finished in 1889.",
+      "engine": "wikipedia",
+      "engines": ["wikipedia"],
+      "positions": [3],
+      "score": 1.0,
+      "category": "general",
+      "publishedDate": null
+    },
+    {
+      "url": "https://www.example.org/eiffel-tower",
+      "title": "Duplicate URL",
+      "content": "A second engine's copy of the first result.",
+      "engine": "brave",
+      "engines": ["brave"],
+      "score": 0.5,
+      "category": "general"
+    },
+    {
+      "url": "https://empty.example.com/",
+      "title": "No content",
+      "content": "",
+      "engine": "qwant",
+      "engines": ["qwant"],
+      "score": 0.2,
+      "category": "general"
+    }
+  ],
+  "answers": [],
+  "corrections": [],
+  "infoboxes": [],
+  "suggestions": ["eiffel tower height"],
+  "unresponsive_engines": [["google", "timeout"]]
+}

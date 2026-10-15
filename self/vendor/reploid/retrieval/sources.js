@@ -65,7 +65,7 @@ export function pendingRetrievalRecord({ request, provider, extractor = null, po
     // Every source below came from the provider this request explicitly opted into.
     sourceUse: 'requester-opt-in', query: request.query, limits: copy(request.limits),
     outcome: 'pending', error: null, startedAt, finishedAt: null, providerResultCount: null,
-    sources: [], omitted: [], context: null, verification: null };
+    sources: [], omitted: [], context: null, usage: null, verification: null };
 }
 
 export function retrievalFailureMessage(record) {
@@ -88,9 +88,31 @@ function validResult(value) {
     && typeof value.excerpt === 'string' && value.excerpt.trim()
     && Number.isFinite(value.retrievedAt) && value.retrievedAt > 0 && typeof value.contentHash === 'string' && SHA256.test(value.contentHash);
 }
+const count = value => Number.isSafeInteger(value) && value >= 0;
+/** Where a fetched passage sits in the extracted document text the extractor hashed. */
+const validDocument = (value, text) => value === undefined || value && typeof value === 'object' && webUrl(value.url)
+  && typeof value.contentType === 'string' && value.contentType.length <= 200 && SHA256.test(value.sha256)
+  && count(value.start) && count(value.end) && value.end - value.start === text.length && count(value.characters)
+  && value.end <= value.characters && (value.bytes === undefined || count(value.bytes))
+  && (value.status === undefined || Number.isSafeInteger(value.status) && value.status >= 200 && value.status < 300);
 const validPassage = (value, source) => value && typeof value === 'object' && value.sourceId === source.sourceId
   && typeof value.text === 'string' && value.text.trim() && Number.isFinite(value.retrievedAt) && value.retrievedAt > 0
-  && typeof value.contentHash === 'string' && SHA256.test(value.contentHash);
+  && typeof value.contentHash === 'string' && SHA256.test(value.contentHash) && validDocument(value.document, value.text);
+/** Provider-reported usage for one query: billable requests and, when priced, the cost in micro-dollars. */
+const validUsage = value => value === undefined || value && typeof value === 'object' && typeof value.provider === 'string'
+  && /^[\x21-\x7e]{1,64}$/.test(value.provider) && count(value.requests) && (value.costMicroUsd === null || count(value.costMicroUsd));
+/** Providers return results, or `{ results, usage }` when they report per-query usage. */
+const providerResults = value => Array.isArray(value) ? { results: value, usage: undefined }
+  : value && typeof value === 'object' && Array.isArray(value.results) ? { results: value.results, usage: value.usage } : null;
+
+/** The retained passage's offsets in the extracted document: the extractor's span, less trimmed and truncated text. */
+function retainedDocument(document, text, retained) {
+  if (!document) return null;
+  const start = document.start + (text.length - text.trimStart().length);
+  return { url: document.url, contentType: document.contentType, characters: document.characters, sha256: document.sha256,
+    start, end: start + retained.length, ...(document.bytes === undefined ? {} : { bytes: document.bytes }),
+    ...(document.status === undefined ? {} : { status: document.status }) };
+}
 
 /** Passages longer than the per-source limit are cut at a word boundary when one is near. */
 function bounded(text, limit) {
@@ -122,12 +144,18 @@ export async function retrieveSources({ record, provider, extractor = null, sign
   const timer = setTimeout(() => deadline.abort(new RetrievalError('timeout')), limits.timeoutMs);
   const forward = () => deadline.abort(new RetrievalError('cancelled'));
   if (signal?.aborted) forward(); else signal?.addEventListener('abort', forward, { once: true });
-  const finish = (fields) => ({ ...record, ...fields, finishedAt: now() });
+  let usage = null;
+  const finish = (fields) => ({ ...record, ...fields, usage, finishedAt: now() });
   try {
-    let results;
-    try { results = await race(() => provider.search(record.query, copy(limits), deadline.signal), deadline.signal); }
+    let returned;
+    try { returned = providerResults(await race(() => provider.search(record.query, copy(limits), deadline.signal), deadline.signal)); }
     catch (error) { throw error instanceof RetrievalError ? error : new RetrievalError('provider-error', error); }
-    if (!Array.isArray(results) || !results.every(validResult)) throw new RetrievalError('invalid-provider-result');
+    if (!returned || !returned.results.every(validResult) || !validUsage(returned.usage)) throw new RetrievalError('invalid-provider-result');
+    const results = returned.results;
+    // Recorded before anything else can fail: a failed or empty search may still have been billed.
+    const searchUsage = returned.usage ? { provider: returned.usage.provider, requests: returned.usage.requests,
+      costMicroUsd: returned.usage.costMicroUsd } : null;
+    usage = { search: searchUsage, extraction: { documents: 0, bytes: 0 } };
     if (!results.length) return finish({ outcome: 'empty', error: { code: 'no-results', message: FAILURES['no-results'] }, providerResultCount: 0 });
     const omitted = [], seen = new Set(), kept = [];
     for (const result of results) {
@@ -146,8 +174,11 @@ export async function retrieveSources({ record, provider, extractor = null, sign
       const passage = passages[index];
       if (passage.status === 'rejected') { omitted.push({ sourceId: source.sourceId, reason: 'extraction-failed' }); return; }
       const { text, truncated } = bounded(passage.value.text, limits.maxSourceCharacters);
+      const document = retainedDocument(passage.value.document, passage.value.text, text);
+      if (document) { usage.extraction.documents++; usage.extraction.bytes += document.bytes ?? 0; }
       candidates.push({ sourceId: source.sourceId, url: source.url, title: line(source.title), retrievedAt: passage.value.retrievedAt,
-        contentHash: passage.value.contentHash, passage: text, passageOrigin: passage.value.origin, truncated });
+        contentHash: passage.value.contentHash, passage: text, passageOrigin: passage.value.origin, truncated,
+        ...(document ? { document } : {}) });
     });
     if (!candidates.length) throw new RetrievalError('extraction-failed');
     // Sources are numbered in provider order; any that would push the context past its limit are omitted.

@@ -2,6 +2,7 @@
 // Numerical steps are injected; this is not a GPU acceptance claim.
 import assert from 'node:assert/strict';
 import { createChatSession } from '../self/host/chat-session.js';
+import { remotePermissionWording } from '../self/ui/pool-home/remote-permission.js';
 import { openCanonicalWorkspaceHistory } from '../packages/reploid/src/chat/workspace-history.js';
 import { verifyPartitionStageCommit } from '../packages/reploid/src/mesh/partitions/partition-stage-commit.js';
 import { fixture, runtime, plan, planId, hash, epoch } from './canonical-runner-fixture.js';
@@ -56,7 +57,7 @@ const completing = session.send(thread, 'question');
 const pending = await entered;
 assert.equal(pending.ephemeral, true); assert.equal(pending.persistedStatus, 'queued');
 // No stored remote contributor permission yet: the request is held until the one-time grant releases it.
-const permission = await session.grantRemotePermission(pending.approval.permissionNeed);
+const permission = await session.grantRemotePermission(pending.approval.permissionNeed, { wording: remotePermissionWording(pending.approval.permissionNeed) });
 assert.equal((await completing).status, 'completed');
 assert.equal(session.getState().activeThread.messages.at(-1).content, '34');
 session.revokeRemotePermission(permission.id); unsubscribe();

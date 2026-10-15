@@ -2165,7 +2165,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:cc65b5854557a59c5d3d6a7656423c06063a1db9778dd2be71eca27ff2f15500",
+      "sha256": "sha256:bc0ea1398f9f27565e7a1507bdb5f2276084b2ae84d74c631cde86a30faa0787",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -2242,7 +2242,7 @@
     {
       "path": "self/host/product-session.js",
       "owner": "self",
-      "sha256": "sha256:bfd61ce96edc72e4ab3e8eb872e2bd7a498058423eb4a7f70eae28a613392fe9",
+      "sha256": "sha256:2d77e394992fa27d636c5512d77fe7d9febf99d1ddd1e0f4b351f8dcb6fd8a28",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/ordered-participation.json",
@@ -2258,6 +2258,7 @@
         "../pool/requester-client.js",
         "./chat-history.js",
         "./chat-session.js",
+        "./server-search.js",
         "./swarm-autoconnect.js",
         "./web-search.js",
         "./work-evolution.js",
@@ -2284,6 +2285,12 @@
         "../lab/profiles.js",
         "./vfs-bootstrap.js"
       ]
+    },
+    {
+      "path": "self/host/server-search.js",
+      "owner": "self",
+      "sha256": "sha256:86395ce5ff5fca0d4a50e76cba1e210b9238ea837b6450c69568c012d45701bf",
+      "imports": []
     },
     {
       "path": "self/host/start-app.js",
@@ -3113,13 +3120,13 @@
     {
       "path": "ui/components/interface-icons.js",
       "owner": "ui",
-      "sha256": "sha256:c1a38b03e571ebb6bebc3646cd87a4205b205b3bd766ff801ab0678a302a39e3",
+      "sha256": "sha256:4124533126367d5ad899060583b0ef91a2d76c333967cb66505380351f60ce94",
       "imports": []
     },
     {
       "path": "ui/components/message-markdown.js",
       "owner": "ui",
-      "sha256": "sha256:4a8a0f09f715c29ce6913ea49b4f348dda3865ee11e052e153a6c04459472a67",
+      "sha256": "sha256:58eb6a02055472018044bb9b9e4a3cc956595d983533bb60210b1ef7d7ec3053",
       "imports": []
     },
     {
@@ -3208,7 +3215,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:c803df91d01fc22af1fb62c596da06d1e83b7647f17c89b39e37f657238a9938",
+      "sha256": "sha256:26e5c861abbe1f60e1853eb46bab5ce0e12f3b45ea58d0ddde6b66276a6cf4b9",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -3220,7 +3227,8 @@
         "./message-list.js",
         "./network-controls.js",
         "./network-inspector.js",
-        "./remote-permission.js"
+        "./remote-permission.js",
+        "./search-permission.js"
       ]
     },
     {
@@ -3253,7 +3261,7 @@
     {
       "path": "ui/pool-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:c87b36ccd0e4e031fb5d5533bfa2516bd97eb71882cd1db7f9c99118969daf79",
+      "sha256": "sha256:b0e721f33412ee64290616774c9555f047d3fdca6b30e47a47d540710a7c246a",
       "imports": [
         "../../host/product-context.js",
         "../../host/product-session.js",
@@ -3277,7 +3285,7 @@
     {
       "path": "ui/pool-home/message-list.js",
       "owner": "ui",
-      "sha256": "sha256:5d96f9cac626e40264c9834b44fefd9adecab6c6fa9d8e9b49735c8777faa02f",
+      "sha256": "sha256:bd0e340bc57223c93bfbe180f768e321f5ebb9d15fc0e0ed3ea03707147a6931",
       "imports": [
         "../components/attachments.js",
         "../components/interface-icons.js",
@@ -3357,7 +3365,7 @@
     {
       "path": "ui/pool-home/remote-permission.js",
       "owner": "ui",
-      "sha256": "sha256:baae83979e0cbab69469a48c34e5f14497f641a5635cf2093d44e928bb8f950c",
+      "sha256": "sha256:aae91b143e84de6c1dbef37bcbef3764323d0dc4b8120f2d6528d19d34208f22",
       "imports": [
         "../components/attachments.js"
       ]
@@ -3451,6 +3459,14 @@
       "sha256": "sha256:4e8c4231fc045b17d349e1a00515d34b18493d40dfa52e440d41d99150ebf52e",
       "imports": [
         "./room-projection.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/search-permission.js",
+      "owner": "ui",
+      "sha256": "sha256:ff4bf801e1c0baaa9928c3f40fcc75f0a608a0ede06e728887559095ccb013ae",
+      "imports": [
+        "./computer-labels.js"
       ]
     },
     {
@@ -15103,10 +15119,11 @@
     {
       "path": "vendor/reploid/chat/index.js",
       "owner": "vendor",
-      "sha256": "sha256:d188d396047a91c505cdbbdfe3c4ca669f55cf176a9451347710b4a88e60e983",
+      "sha256": "sha256:01a86bcaed84be23253c611ad6d070fd6d7e3163e2904e504f1870983ab8e962",
       "imports": [
         "./remote-permission.js",
         "./scheduler.js",
+        "./search-permission.js",
         "./workspace-history.js",
         "./workspace-publication.js",
         "./workspace.js"
@@ -15115,7 +15132,7 @@
     {
       "path": "vendor/reploid/chat/remote-permission.js",
       "owner": "vendor",
-      "sha256": "sha256:f3ad2024d7472fa11904fd2b6a0f1e0305b6094ebc389571c5923a9efcc6bf7e",
+      "sha256": "sha256:0f4547bf512da4cafe84fc324b149784360e27d5cc3662607b6a93a899e3e305",
       "imports": []
     },
     {
@@ -15124,6 +15141,15 @@
       "sha256": "sha256:413f233f4df3be5975434b3c45fa4aa4507e387650dfd349006d51a40bbf105e",
       "imports": [
         "./policy.json"
+      ]
+    },
+    {
+      "path": "vendor/reploid/chat/search-permission.js",
+      "owner": "vendor",
+      "sha256": "sha256:ed430dfc5980504816139903bc311612ce9689b22c7df9b1029caf23c3f1c83a",
+      "imports": [
+        "./remote-permission.js",
+        "./search-permission.json"
       ]
     },
     {
@@ -15155,7 +15181,7 @@
     {
       "path": "vendor/reploid/chat/workspace.js",
       "owner": "vendor",
-      "sha256": "sha256:058df6c55922ebc7f78b42d26965c5ece697214e063879cb8288cea4afdc9bc2",
+      "sha256": "sha256:ea4af34a7d868324a1d11088c09a91df841ad0e22bfa030b1746a081554eba41",
       "imports": [
         "../mesh/partitions/partition-contract.js",
         "../mesh/partitions/partition-ordered-publication.js",
@@ -15164,6 +15190,7 @@
         "../retrieval/sources.js",
         "./policy.json",
         "./remote-permission.js",
+        "./search-permission.js",
         "./thread-grants.js"
       ]
     },
@@ -15673,6 +15700,17 @@
       "imports": []
     },
     {
+      "path": "vendor/reploid/retrieval/claim-support.js",
+      "owner": "vendor",
+      "sha256": "sha256:808bc0703d54727f80c7dc95dcd5ff78afe59538db3326d1064a8238bce2e675",
+      "imports": [
+        "./citations.js",
+        "./policy.json",
+        "./sources.js",
+        "./text.js"
+      ]
+    },
+    {
       "path": "vendor/reploid/retrieval/fixed-provider.js",
       "owner": "vendor",
       "sha256": "sha256:4c0f26d3047fa5625d551f564b751a7a0455a522810077d4167e21f2c56b2bb2",
@@ -15683,13 +15721,17 @@
     {
       "path": "vendor/reploid/retrieval/index.js",
       "owner": "vendor",
-      "sha256": "sha256:88c626fa2df06bb79418549a22c2d8ba85d7cf77ed2cf56100b8d0986a792073",
+      "sha256": "sha256:2c941f40a24b7e4fcd18d777c08452670a7a7f57ed89f0a85881813939401b7d",
       "imports": [
         "./citations.js",
+        "./claim-support.js",
         "./fixed-provider.js",
         "./lexical-support.js",
+        "./model-reviewer.js",
         "./retrieval.js",
-        "./sources.js"
+        "./review-queue.js",
+        "./sources.js",
+        "./support-review.js"
       ]
     },
     {
@@ -15701,21 +15743,47 @@
       ]
     },
     {
+      "path": "vendor/reploid/retrieval/model-reviewer.js",
+      "owner": "vendor",
+      "sha256": "sha256:9464911b5ffdcd1b38bfd962108a8d63d9cf1ee266ab8e67c9d3de9b58ee21b4",
+      "imports": [
+        "./support-review.js"
+      ]
+    },
+    {
       "path": "vendor/reploid/retrieval/retrieval.js",
       "owner": "vendor",
-      "sha256": "sha256:e26f13e5b5cc3d1714c349d76ccaededc1f12c888ecd499920ed3486cd15bf43",
+      "sha256": "sha256:2f844afb1d1f730819130dd5a5bd176d27bd17a044c040ce1d4a6bdf2cf2daa3",
       "imports": [
         "./citations.js",
+        "./claim-support.js",
         "./policy.json",
         "./sources.js"
       ]
     },
     {
+      "path": "vendor/reploid/retrieval/review-queue.js",
+      "owner": "vendor",
+      "sha256": "sha256:38c9cfefb8c60be676aa1d561de2abfed589c1dc6ee71531d95d6998a32ed366",
+      "imports": [
+        "./support-review.js"
+      ]
+    },
+    {
       "path": "vendor/reploid/retrieval/sources.js",
       "owner": "vendor",
-      "sha256": "sha256:51054b990916ebaf529d29ccecc5142e03b2e030ff4de5092d76f08850621fbb",
+      "sha256": "sha256:9ede697d7e4f5869d4c7422a0ac801eeac831c7b7931f9afc1b916e6967fd67e",
       "imports": [
         "./policy.json",
+        "./text.js"
+      ]
+    },
+    {
+      "path": "vendor/reploid/retrieval/support-review.js",
+      "owner": "vendor",
+      "sha256": "sha256:92420df7ae3725f830678c1fe6361d1296a7c4203dcaef775d57cc2cb9d149c5",
+      "imports": [
+        "./claim-support.js",
         "./text.js"
       ]
     },

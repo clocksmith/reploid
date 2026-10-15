@@ -20,15 +20,14 @@ Compose custody/whole-request jobs/[retrieval](../retrieval/CATSCAN.md); file po
 ## Invariants
 - Selection/closure never cancels execution; cancellation affects one attempt.
 - Stream updates bind thread/attempt. Retries create new attempts, never append to old generations.
-- Restore history and mark unfinished attempts interrupted; never silently resend.
+- Restore history, marking unfinished attempts interrupted; never silently resend.
 - One requester-owned transactional writer commits canonical and ordered records; known rejections never fence.
-- Permissions precede placement. Model and adapter identity remain exact.
-- Host ports authorize remote disclosure, retrieved sources included: per-send, or stored permissions whose
-  exact scope covers it; otherwise nothing is sent. Records cite the permission
-  and dispatched recipients, never live capability.
-- Reusable disclosure grants bind verified recipient, mesh, thread, model,
-  adapters and scope. Persist before use; revocation cancels affected attempts and
-  prevents reuse. Grants authorize no contribution/supply/evaluation/adoption.
+- Permissions precede placement; model/adapter identity stays exact.
+- Remote disclosure, retrieved sources included, needs per-send or covering stored host permission; otherwise
+  nothing is sent. Records cite it, its shown wording and dispatched recipients.
+- Search-answer grants cover one answer: query, then that question and passages to listed recipients.
+- Reusable grants bind verified recipient/mesh/thread/model/adapters/scope, persist before use,
+  and revocation cancels affected attempts and reuse. Grants authorize no contribution/supply/evaluation/adoption.
 - Share bounded residency; reset conversation/adapter state between executions.
 - Fairness uses host-authenticated participants, never requester-chosen thread IDs.
 - Cancellation retains the device slot until execution and cleanup settle.
@@ -38,7 +37,8 @@ Compose custody/whole-request jobs/[retrieval](../retrieval/CATSCAN.md); file po
 ## Acceptance
 Evidence: [workspace](../../../../tests/unit/chat-workspace.test.js),
 [scheduler](../../../../tests/unit/chat-scheduler.test.js), [tabs](../../../../tests/e2e/chat-three-tab.spec.js),
-[publication](../../../../tests/unit/ordered-publication.test.js), [retrieval](../../../../tests/unit/chat-retrieval.test.js).
+[publication](../../../../tests/unit/ordered-publication.test.js), [retrieval](../../../../tests/unit/chat-retrieval.test.js),
+[search](../../../../tests/unit/search-answer-permission.test.js).
 Tabs cover concurrency/transfers/refresh/peer-loss; physical qualification separate.
 
 ## Non-goals

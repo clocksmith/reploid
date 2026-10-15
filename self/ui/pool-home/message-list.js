@@ -48,8 +48,13 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
               return `<p id="${escape(anchor)}" tabindex="-1"><strong>[${escape(passage.id)}]</strong> ${escape(passage.text)}</p>`;
             }).join('') + '</details>').join('');
           if (body.dataset.source !== markup) { body.innerHTML = markup; body.dataset.source = markup; }
-        } else updateMessageMarkdown(body, message.content, targets);
+        }
         const attempt = thread.attempts.find(item => item.id === message.attemptId);
+        const sources = message.role === 'assistant' && attempt?.retrieval?.outcome === 'retrieved' ? attempt.retrieval.sources : [];
+        const anchor = number => `source-${message.id}-${number}`;
+        // A search-backed answer's [n] markers link to its numbered sources below it.
+        if (!source) updateMessageMarkdown(body, message.content, sources.length
+          ? new Map(sources.map(item => [String(item.number), anchor(item.number)])) : targets);
         if (message.role === 'assistant') updateExecutionActivity(row.querySelector('[data-execution-activity]'), { ...state, activeThread: { ...thread, attempts: attempt ? [attempt] : [] } });
         const author = row.querySelector('.chat-message-author');
         author.hidden = message.role === 'user' || !!message.content || !row.querySelector('[data-execution-activity]').hidden;
@@ -57,12 +62,11 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
         const failed = message.role === 'assistant' && attempt && ['failed', 'cancelled', 'interrupted'].includes(attempt.status);
         const retryable = failed && attempt.id === thread.attempts.at(-1)?.id && !busy;
         const actions = row.querySelector('.chat-message-actions');
-        const sources = message.role === 'assistant' && attempt?.retrieval?.outcome === 'retrieved' ? attempt.retrieval.sources : [];
         const actionKey = JSON.stringify([failed && attempt.status, attempt?.error, attempt?.retryOf, retryable, usable, !!message.content, sources.map(item => item.url)]);
         if (actions.dataset.key !== actionKey) {
           actions.dataset.key = actionKey;
           actions.innerHTML = `${failed ? `<p role="status">${escape(failureLabel(attempt))}</p>${attempt.error ? `<details><summary>Technical details</summary><pre>${escape(attempt.error)}</pre></details>` : ''}` : ''}
-            ${sources.length ? `<details class="pool-small"><summary>Sources searched (${sources.length})</summary><ol class="pool-list">${sources.map(item => `<li><a href="${escape(item.url)}" target="_blank" rel="noopener noreferrer">[${item.number}] ${escape(item.title)}</a></li>`).join('')}</ol></details>` : ''}
+            ${sources.length ? `<details class="pool-small"><summary>Sources searched (${sources.length})</summary><ol class="pool-list">${sources.map(item => `<li id="${escape(anchor(item.number))}" tabindex="-1"><a href="${escape(item.url)}" target="_blank" rel="noopener noreferrer">[${item.number}] ${escape(item.title)}</a></li>`).join('')}</ol></details>` : ''}
             ${attempt?.retryOf ? '<small>New attempt</small>' : ''}
             ${retryable ? `<button type="button" class="pool-button" data-retry-attempt="${escape(attempt.id)}"${usable ? '' : ' disabled'}>Retry response</button><small>Starts a new attempt; keeps this response.</small>` : ''}
             ${message.content ? `<button type="button" class="pool-button btn-ghost pool-icon pool-muted pool-reveal" data-copy-message aria-label="Copy response" title="Copy response">${interfaceIcon('copy')}</button>` : ''}`;

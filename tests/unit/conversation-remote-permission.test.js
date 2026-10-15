@@ -91,7 +91,8 @@ describe('One-time remote contributor permission', () => {
     view.find('[data-remote-permission-allow]').click();
     const [first] = await completed(session, 1);
     const [permission] = session.getState().remotePermissions;
-    expect(permission).toMatchObject({ schema: 'reploid.remote-permission/v2', networkId: session.getState().remoteNetworkId, sharingScope: 'mesh',
+    expect(permission).toMatchObject({ schema: 'reploid.remote-permission/v3', kind: 'remote-contributors',
+      wording: { id: 'reploid.remote-contributor-permission', version: '1', text: Object.values(PERMISSION_TEXT).join('\n\n') }, networkId: session.getState().remoteNetworkId, sharingScope: 'mesh',
       disclosure: 'ordered-partition-activations-and-tokens', revokedAt: null });
     expect(permission.modelIdentities).toContain(model.identity);
     expect(first.authorization).toMatchObject({ kind: 'permission', source: 'permission', permissionId: permission.id, recipients: STAGES, route });

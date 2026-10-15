@@ -7,6 +7,7 @@ import { createPartitionGrantAuthority, createResidentPartition, createPartition
 import { createPartitionEntry, createPartitionRequester } from '../../packages/reploid/src/mesh/partitions/partition-entry.js';
 import { disclosureScope, matchingThreadGrant } from '../../packages/reploid/src/chat/thread-grants.js';
 import { createChatSession } from '../../self/host/chat-session.js';
+import { remotePermissionWording } from '../../self/ui/pool-home/remote-permission.js';
 import { createPartitionRuntimeFixture } from '../fixtures/partition-runtime.js';
 
 const policy = { maxTokens: 4, maxPromptTokens: 32, maxActivationBytes: 4096, maxOutputCharacters: 1024,
@@ -60,7 +61,7 @@ function host(f, storage = null) {
 // every held request the permission covers. Later covered requests never wait.
 function approve(session, threadId) {
   const attempt = session.getState().threads.find(t => t.id === threadId).attempts.at(-1);
-  if (attempt.approval?.permissionNeed) return session.grantRemotePermission(attempt.approval.permissionNeed);
+  if (attempt.approval?.permissionNeed) return session.grantRemotePermission(attempt.approval.permissionNeed, { wording: remotePermissionWording(attempt.approval.permissionNeed) });
 }
 
 describe('Reploid partition APIs with injected Doppler sessions', () => {

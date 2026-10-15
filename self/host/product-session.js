@@ -5,8 +5,9 @@ import { createWorkSession } from './work-session.js';
 import { createWorkEvolution } from './work-evolution.js';
 import { createWorkSwarm } from './work-swarm.js';
 import { createWorkPeerJobs } from './work-peer-jobs.js';
-import { createChatSession, openCanonicalChatSession, LOCAL_HISTORY_IDENTITY } from './chat-session.js';
+import { createChatSession, openCanonicalChatSession, LOCAL_HISTORY_IDENTITY, SEARCH_ROUTE } from './chat-session.js';
 import { createWebSearch } from './web-search.js';
+import { createServerSearch } from './server-search.js';
 import { acquireChatHistoryOwner, refusedChatHistory } from './chat-history.js';
 import { DOPPLER_PARTITIONS_MODULE_URL } from '../config/doppler-local-models.js';
 import orderedPolicy from '../config/ordered-participation.json' with { type: 'json' };
@@ -50,7 +51,7 @@ async function openOrderedRequesterChat({ chatOptions, requesterIdentity, ports 
 
 export function createProductSession({ storage, networkOptions, swarmNetworkOptions, operationNetwork = null,
   canonical = null, ordered = null, eventTarget = window, onChanges = () => {}, onDocuments = () => {}, onSharing = () => {},
-  historyPorts = {}, earning = null }) {
+  historyPorts = {}, earning = null, search = createServerSearch() }) {
   let runtime, work, chat, documents, operationSharing, closed = false, closing, ownsNetwork = false;
   const service = createReploidDopplerRuntimeService();
   const evolution = createWorkEvolution({ storage, isBusy: () => work?.getState().anyBusy === true, onChange: onChanges });
@@ -70,7 +71,9 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
   const webSearch = createWebSearch({ storage });
   // `earning` (earning/attempts.js) is off unless the embedding host composes an explicitly configured client.
   const chatOptions = { service, storage, swarm, partitions: swarm.partitions, peers: createWorkPeerJobs({ getNetwork }),
-    retrieval: { provider: webSearch.provider }, earning };
+    // Search-backed answers use the server's Brave route, each under its own per-answer search permission.
+    retrieval: { routes: { default: { provider: webSearch.provider },
+      [SEARCH_ROUTE]: { provider: search.provider, extractor: search.extractor, permission: 'search-answer' } } }, earning };
   const failOpening = async error => {
     const settled = await Promise.allSettled([() => swarm.close(), () => chat?.close()].map(close => Promise.resolve().then(close)));
     const failures = settled.filter(result => result.status === 'rejected').map(result => result.reason);
@@ -94,7 +97,7 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
       onError: error => console.warn('[Reploid Swarm] Discovery connection failed', error) });
     const assertOpen = () => { if (closed) throw new Error('Application session is closed'); };
     return {
-      chat, swarm, evolution, webSearch,
+      chat, swarm, evolution, webSearch, search,
       get runtime() { assertOpen(); return runtime ??= globalThis.REPLOID_DOPPLER_RUNTIME || createDopplerRuntime(); },
       get work() { assertOpen(); return work ??= createWorkSession({ service, storage, swarm, evolution, peers: createWorkPeerJobs({ getNetwork }) }); },
       get documents() { assertOpen(); return documents ??= createDocumentAssistant({ executor: createLocalPackExecutor(), network: getNetwork(), onChange: onDocuments }); },

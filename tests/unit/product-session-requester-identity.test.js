@@ -31,6 +31,7 @@ vi.mock('../../self/host/work-peer-offers.js', () => ({ createWorkPeerOffers: ()
   acquire: async () => 'transport-requester', attach: async () => {}, close() {}, getState: () => null }) }));
 import { createProductSession } from '../../self/host/product-session.js';
 import { createChatSession } from '../../self/host/chat-session.js';
+import { remotePermissionWording } from '../../self/ui/pool-home/remote-permission.js';
 import { resolveConfig } from '../../self/vendor/reploid/config/index.js';
 
 const DISCLOSURE_MISMATCH = 'Peer disclosure does not match the selected model and verified recipients';
@@ -66,7 +67,7 @@ async function sendPermitted(chat, threadId, text, held = () => {}) {
     expect(attempt.status).toBe('approval'); return attempt;
   }, { timeout: 5000 });
   held(waiting);
-  const permission = await chat.grantRemotePermission(waiting.approval.permissionNeed);
+  const permission = await chat.grantRemotePermission(waiting.approval.permissionNeed, { wording: remotePermissionWording(waiting.approval.permissionNeed) });
   return { permission, attempt: await completion };
 }
 const readyModel = (chat, match) => vi.waitFor(() => {

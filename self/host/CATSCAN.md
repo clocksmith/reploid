@@ -9,7 +9,7 @@ Boot surfaces from trusted seeds.
 ## Authority
 - Owns seeding/startup/tools, independent threads, opt-in [earning client](earning/CATSCAN.md).
 - Remote disclosure needs stored, revocable contributor permissions
-  (sharing-scope/disclosure-kind/model-catalog), thread grants or per-server search settings.
+  (sharing-scope/disclosure-kind/model-catalog), thread grants or per-server/per-answer search permissions.
 - Separates helpers/swarms/previews/isolation/evaluation/activation from Packs.
 - Tasks validate; repositories version; providers execute; views are immutable.
 - Excludes policy/module semantics/recovery-root mutation.
@@ -45,10 +45,10 @@ Outputs: [VFS](seed-vfs.js), [startup](start-reploid.js).
 - Version objectives/measures outside isolation; changed objectives require reevaluation.
 
 ## Acceptance
-- Seeded modules are complete; VFS round-trips succeed.
+- Seeded modules complete; VFS round-trips succeed.
 - Evidence: [boot](../../tests/unit/boot-seed.test.js), [VFS](../../tests/integration/vfs.test.js),
   [chat](../../tests/e2e/chat-real-adapter.spec.js), [races](../../tests/unit/work-swarm-lifecycle.test.js),
-  [history](../../tests/unit/ordered-requester-history.test.js).
+  [history](../../tests/unit/ordered-requester-history.test.js), [search](../../tests/unit/search-answer-permission.test.js).
 
 ## Non-goals
 - Scientific question/model policy/promotion.

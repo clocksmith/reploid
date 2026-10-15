@@ -1,0 +1,66 @@
+{
+  "_note": "Constructed from Brave Search API documentation (web.results[] title/url/description/extra_snippets, query.original/more_results_available, <strong> markup in descriptions). Not a live recording; tests/integration/search-live-smoke.test.js can record one with REPLOID_SEARCH_RECORD_DIR.",
+  "type": "search",
+  "query": {
+    "original": "when was the eiffel tower completed",
+    "show_strict_warning": false,
+    "is_navigational": false,
+    "spellcheck_off": true,
+    "country": "us",
+    "more_results_available": true
+  },
+  "mixed": {
+    "type": "mixed",
+    "main": [
+      { "type": "web", "index": 0, "all": false },
+      { "type": "web", "index": 1, "all": false }
+    ]
+  },
+  "web": {
+    "type": "search",
+    "family_friendly": true,
+    "results": [
+      {
+        "type": "search_result",
+        "subtype": "generic",
+        "title": "Eiffel Tower - <strong>History</strong> &amp; Facts",
+        "url": "https://www.example.org/eiffel-tower",
+        "is_source_local": false,
+        "is_source_both": false,
+        "description": "The <strong>Eiffel</strong> <strong>Tower</strong> was completed on March 31, 1889, for the Exposition Universelle &#8212; Paris&#39;s world fair.",
+        "page_age": "2024-05-02T10:00:00",
+        "profile": { "name": "Example", "url": "https://www.example.org", "long_name": "example.org", "img": "https://imgs.search.brave.com/x.png" },
+        "language": "en",
+        "family_friendly": true,
+        "meta_url": { "scheme": "https", "netloc": "www.example.org", "hostname": "www.example.org", "favicon": "https://imgs.search.brave.com/y.png", "path": "› eiffel-tower" },
+        "extra_snippets": ["Gustave Eiffel's company designed and built the tower.", "It was the tallest structure in the world until 1930."]
+      },
+      {
+        "type": "search_result",
+        "subtype": "generic",
+        "title": "Tour Eiffel",
+        "url": "https://encyclopedia.example.net/wiki/Eiffel_Tower",
+        "description": "",
+        "language": "en",
+        "family_friendly": true,
+        "extra_snippets": ["Construction began in January 1887 and finished in <strong>1889</strong>."]
+      },
+      {
+        "type": "search_result",
+        "subtype": "generic",
+        "title": "No text result",
+        "url": "https://no-text.example.com/",
+        "description": "",
+        "language": "en"
+      },
+      {
+        "type": "search_result",
+        "subtype": "generic",
+        "title": "Not a web URL",
+        "url": "ftp://files.example.com/eiffel.txt",
+        "description": "An FTP listing.",
+        "language": "en"
+      }
+    ]
+  }
+}

@@ -3,7 +3,8 @@
  * and Poolday peer execution. Manages multithreaded conversations, persistent scopes,
  * fair device scheduling, and truthful execution placement.
  */
-import { createChatWorkspace, createRemotePermission, remotePermissionCovers, remotePermissionNeed, validateRemotePermission } from '../vendor/reploid/chat/index.js';
+import { createChatWorkspace, createRemotePermission, createSearchPermission, remotePermissionCovers, remotePermissionNeed,
+  searchPermissionWording, validPermissionWording, validateRemotePermission } from '../vendor/reploid/chat/index.js';
 import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
 import { createChatExecution } from './chat-execution.js';
 import { projectChatCatalog, projectChatPlacements } from './chat-view.js';
@@ -38,6 +39,8 @@ function loadPermissions(storage) {
 
 // Requesters and contributors use one artifact catalog.
 export const CANONICAL_CHAT_MODELS = LOCAL_DOPPLER_MODELS;
+/** The retrieval route for search-backed answers under the per-answer search permission (product-session.js). */
+export const SEARCH_ROUTE = 'search';
 
 export function createChatSession({
   storage = globalThis.localStorage,
@@ -123,6 +126,29 @@ export function createChatSession({
     persist: canonicalHistory ? raw => canonicalHistory.saveDrafts(raw) : null, key: `${STORAGE_KEY}:drafts`, maxThreads: allowances.maxThreads,
     maxCharacters: allowances.maxMessageCharacters, maxFiles: profile.files.maxInputs,
     maxFileBytes: profile.files.maxFileBytes, maxInputBytes: profile.files.maxInputBytes });
+
+  // The route for search-backed answers, offered only when its search service has approved permission wording.
+  const searchRoute = () => {
+    const route = retrieval?.routes?.[SEARCH_ROUTE];
+    return route?.permission === 'search-answer' && searchPermissionWording(route.provider?.searchProvider) ? route : null;
+  };
+  /** Contributors that may receive this answer: none when it runs here, else the verified route's stages or the
+   * catalog's ready providers for this model. Execution must stay within them or the passages are not sent. */
+  const listedContributors = (model, sharingScope) => {
+    if (!execution.remoteDisclosure(model, sharingScope)) return [];
+    const key = item => item.selectionId || item.id;
+    const known = getCatalogModels().find(item => key(item) === key(model) && item.identity === model.identity) || model;
+    if (known.partition?.route) return [...new Set(known.partition.route.stages.map(stage => stage.participantId))];
+    if (known.partition?.participantA) return [known.partition.participantA, known.partition.participantB].filter(Boolean);
+    return [...new Set(known.providerIds || [])];
+  };
+  const searchGrant = (threadId, query, search) => {
+    const route = searchRoute();
+    assert(route, 'Search is not available');
+    assert(search && Array.isArray(search.recipients), 'Allow search for this answer first');
+    return createSearchPermission({ id: id(), networkId: currentNetwork(), threadId, searchProvider: route.provider.searchProvider,
+      query: String(query).trim(), recipients: search.recipients, wording: search.wording, grantedAt: now() });
+  };
 
   const getCatalogModels = () => copy(projectChatCatalog({
     models: [...models, ...peerModels], peers: swarm?.getState?.().consumer?.peers || [],
@@ -257,8 +283,9 @@ export function createChatSession({
     },
     // Remote disclosure waits in the workspace's 'approval' state until approve() records the displayed recipients.
     // `retrieval: { query?, limits? }` opts this request into retrieval; the query defaults to the typed text,
-    // never to attachment contents.
-    send(threadId, content, attachments = [], { retrieval = null } = {}) {
+    // never to attachment contents. `search: { wording, recipients }` is the per-answer search permission as shown
+    // and allowed: the typed text goes to the search service and nothing else from the conversation is sent.
+    send(threadId, content, attachments = [], { retrieval = null, search = null } = {}) {
       assertOpen();
       assert(threadId, 'threadId required');
       assert(Array.isArray(attachments) && attachments.length <= profile.files.maxInputs, 'Too many attachments');
@@ -271,9 +298,27 @@ export function createChatSession({
       });
       assert(total <= profile.files.maxInputBytes, 'Attachments exceed the input allowance');
       assert(retrieval === null || retrieval && typeof retrieval === 'object', 'Invalid retrieval request');
+      if (search) {
+        assert(retrieval === null, 'Choose search or web search for this answer, not both');
+        assert(!attachments.length, "Search-backed answers don't include files. Remove the files or turn off search for this answer.");
+        return workspace.send(threadId, content, { retrieval: { route: SEARCH_ROUTE, query: content },
+          searchPermission: searchGrant(threadId, content, search) });
+      }
       return workspace.send(threadId, attachmentInput(content, attachments),
         retrieval ? { retrieval: { ...retrieval, query: retrieval.query ?? content } } : undefined);
     },
+    /** The approved wording and listed contributors to show before a search-backed answer; throws when search is unavailable. */
+    searchPermissionRequest({ model, sharingScope = 'mesh' }) {
+      assertOpen();
+      const route = searchRoute();
+      assert(route, 'Search is not available');
+      assert(model, 'Choose a model first');
+      const recipients = listedContributors(model, sharingScope);
+      assert(recipients.length || !execution.remoteDisclosure(model, sharingScope), 'No execution contributors are available for this answer');
+      return { searchProvider: route.provider.searchProvider, wording: searchPermissionWording(route.provider.searchProvider), recipients };
+    },
+    /** Whether retrying this attempt needs a fresh per-answer search permission. */
+    searchRetryNeedsPermission: attempt => attempt?.request?.retrieval?.route === SEARCH_ROUTE,
     cancel(threadId) {
       assertOpen();
       comparisons.get(threadId)?.controller.abort();
@@ -287,9 +332,11 @@ export function createChatSession({
         workspace.cancel(tid);
       }
     },
-    retry(threadId, attemptId) {
+    retry(threadId, attemptId, { search = null } = {}) {
       assertOpen();
-      return workspace.retry(threadId, attemptId);
+      const attempt = workspace.getState().threads.find(thread => thread.id === threadId)?.attempts.find(item => item.id === attemptId);
+      return workspace.retry(threadId, attemptId, search
+        ? { searchPermission: searchGrant(threadId, attempt?.request?.retrieval?.query ?? '', search) } : undefined);
     },
     approve(threadId, attemptId, previewId, accepted, options) {
       assertOpen();
@@ -303,13 +350,15 @@ export function createChatSession({
       const need = remotePermissionNeed({ networkId: currentNetwork(), sharingScope, disclosure, model });
       return remotePermissions.some(permission => remotePermissionCovers(permission, need)) ? null : need;
     },
-    /** Stores the one-time permission for `need` and the verified catalog, then continues waiting attempts it covers. */
-    async grantRemotePermission(need) {
+    /** Stores the one-time permission for `need` and the verified catalog, recording the `wording` the person was
+     * shown, then continues waiting attempts it covers. */
+    async grantRemotePermission(need, { wording } = {}) {
       assertOpen();
       const model = getCatalogModels().find(item => item.identity === need?.modelIdentity && item.id === need?.modelId);
       assert(model && Array.isArray(need.adapterIdentities) && need.adapterIdentities.every(identity => (model.adapters || [])
         .some(adapter => adapter.identity === identity)), 'Choose a catalog model before allowing remote contributors');
-      const permission = createRemotePermission({ id: crypto.randomUUID(), need, catalog: models, grantedAt: now() });
+      assert(validPermissionWording(wording), 'Record the permission wording that was shown');
+      const permission = createRemotePermission({ id: crypto.randomUUID(), need, catalog: models, wording, grantedAt: now() });
       savePermissions([...remotePermissions, permission].slice(-MAX_PERMISSIONS));
       try { await workspace.resumePermitted(); } finally { notifyAll(); }
       return copy(permission);

@@ -1,0 +1,12 @@
+{
+  "_note": "Constructed from Brave's documented error body (type ErrorResponse; error.id/status/code/detail/meta; time). Not a live recording.",
+  "type": "ErrorResponse",
+  "error": {
+    "id": "6a1d4c2e-0000-4000-8000-000000000422",
+    "status": 422,
+    "code": "VALIDATION",
+    "detail": "Unable to validate request parameter(s): count must be at most 20.",
+    "meta": { "errors": [{ "type": "less_than_equal", "loc": ["query", "count"], "msg": "Input should be less than or equal to 20" }] }
+  },
+  "time": 1760500000
+}
