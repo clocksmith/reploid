@@ -1,6 +1,8 @@
-import { assertPartition as assert, canonicalPartitionJson } from './partition-contract.js';
+import { assertPartition as assert, assertCapacity, canonicalPartitionJson } from './partition-contract.js';
 
-/** Per-contributor admission owner. A slot stays held until cleanup settles. */
+/** Per-contributor admission owner. A slot stays held until cleanup settles. A closed owner, an
+ * exhausted attempt history or no free slot refuses with CAPACITY_UNAVAILABLE, which reaches the
+ * requester as that code rather than as a generic execution failure. */
 export function createPartitionReservations({ limits, participantId, index, now = Date.now }) {
   assert(Number.isSafeInteger(limits.maxAttempts) && limits.maxAttempts > 0
     && Number.isSafeInteger(limits.maxConcurrentAttempts) && limits.maxConcurrentAttempts > 0,
@@ -16,15 +18,15 @@ export function createPartitionReservations({ limits, participantId, index, now 
   };
   return Object.freeze({
     reserve(identity) {
-      assert(!closed, 'Contributor reservations closed');
+      assertCapacity(!closed);
       assert(typeof identity?.attemptId === 'string' && identity.attemptId.length > 0, 'Reservation attempt identity required');
       if (records.has(identity.attemptId)) {
         const record = lookup(identity);
         assert(record.phase === 'reserved', 'Attempt reservation already settling or retired');
         return describe(record);
       }
-      assert(records.size < limits.maxAttempts, 'Contributor reservation history exhausted');
-      assert(active().length < limits.maxConcurrentAttempts, 'Contributor reservation capacity exhausted');
+      assertCapacity(records.size < limits.maxAttempts);
+      assertCapacity(active().length < limits.maxConcurrentAttempts);
       const record = { identity: structuredClone(identity), binding: canonicalPartitionJson(identity), participantId, index,
         phase: 'reserved', reservedAt: now(), settlingAt: null, settledAt: null, failure: null,
         resources: { attemptSlots: 1, maxPromptTokens: limits.maxPromptTokens, maxTokens: limits.maxTokens,

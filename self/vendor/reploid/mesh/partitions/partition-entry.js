@@ -1,6 +1,6 @@
 import { generationRequest, requireGenerationCapability, tokenUsage } from './partition-generation-request.js';
 import { createPartitionDataChannel } from '../../transport/partition-data-channel.js';
-import { assertPartition as assert, canonicalPartitionJson, canonicalRouteAttemptBinding, sameRouteAttemptIdentity } from './partition-contract.js';
+import { assertPartition as assert, assertCapacity, canonicalPartitionJson, canonicalRouteAttemptBinding, sameRouteAttemptIdentity } from './partition-contract.js';
 import { partitionActivity, summarizePartitionExecution } from './partition-summary.js';
 import { createEntryPublicationScope, entryPublicationEnvelope, entryPublicationPort, matchingEntryPublication,
   validateEntryPublicationContext } from './partition-entry-publication.js';
@@ -13,7 +13,11 @@ import { isChargeBindingShape } from './partition-attempt-evidence.js';
  * An ordered input may carry the requester's signed charge binding; the coordinator then
  * returns each output with its final-stage receipt and carries the requester's
  * acknowledgment back to the route.
+ * An ordered requester that opts in with `attemptState` receives the coordinator's admission
+ * state (`queued` while it waits for route capacity, `executing` once admitted); nothing else.
  */
+export const ATTEMPT_STATE_SCHEMA = 'reploid.partition-attempt-state/v1';
+const ATTEMPT_STATES = Object.freeze(['queued', 'executing']);
 export function createPartitionEntry({ channel, localParticipantId, remoteParticipantId,
   service = null, canonical = false, ordered = false, authorize, limits, inputLimits, now = Date.now }) {
   assert(typeof authorize === 'function' && ['maxInputCharacters', 'maxOutputCharacters', 'maxAttempts',
@@ -34,6 +38,7 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
   }
   function validMode(m) {
     if (m.activity !== undefined && (!orderedInput(m) || m.activity !== 'reploid.partition-activity/v1')) return false;
+    if (m.attemptState !== undefined && (!orderedInput(m) || m.attemptState !== ATTEMPT_STATE_SCHEMA)) return false;
     if (orderedInput(m)) {
       try {
         return ordered && (m.disclosureExpiresAt === undefined || Number.isSafeInteger(m.disclosureExpiresAt) && m.disclosureExpiresAt > now()) && m.canonical === undefined && m.participantA === undefined && m.participantB === undefined
@@ -64,6 +69,15 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
         return (canonical || ordered) && !!request && matchingEntryPublication(metadata, request)
           && request.requesterId === (sending ? remoteParticipantId : localParticipantId)
           && await authorize(structuredClone(request), { action }) === true;
+      }
+      if (metadata.operation === 'state') {
+        // Admission state only, bound to an opted-in ordered attempt in flight on this channel.
+        const sending = action === 'send' || action === 'accept';
+        const request = (sending ? active : deliveries).get(metadata.attemptId)?.request;
+        return !!request && orderedInput(request) && request.attemptState === ATTEMPT_STATE_SCHEMA
+          && metadata.requesterId === request.requesterId && metadata.requesterId === (sending ? remoteParticipantId : localParticipantId)
+          && metadata.coordinatorId === request.coordinatorId && metadata.threadId === request.threadId
+          && sameRouteAttemptIdentity(metadata.identity, attempt(request)) && ATTEMPT_STATES.includes(metadata.status);
       }
       if (metadata.operation === 'output') {
         const sending = action === 'send' || action === 'accept';
@@ -105,6 +119,11 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
         assert(scope, 'Requester publication owner unavailable');
         return scope.call(m.method, m.body);
       }
+      if (m.operation === 'state') {
+        const delivery = deliveries.get(m.attemptId);
+        assert(delivery, 'Unexpected attempt state');
+        await delivery.onState?.(m.status); return { received: true };
+      }
       if (m.operation === 'output') {
         // The requester's own port decides whether this output is acknowledged; only its signed answer returns.
         const delivery = deliveries.get(m.attemptId);
@@ -136,15 +155,17 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
         return { models: structuredClone(models), accepting: !!service && !draining && !closed,
           slots: draining || closed ? 0 : policy.maxConcurrentAttempts - active.size };
       }
-      assert(service && !draining && !closed && active.size < policy.maxConcurrentAttempts, 'Entry is unavailable or draining');
-      assert(!retired.has(m.attemptId) && retired.size < policy.maxAttempts, 'Entry attempt already used or budget exhausted');
+      // A draining, closed or full entry is unavailable capacity for this requester, never a generic failure.
+      assertCapacity(service && !draining && !closed && active.size < policy.maxConcurrentAttempts);
+      assert(!retired.has(m.attemptId), 'Entry attempt already used');
+      assertCapacity(retired.size < policy.maxAttempts);
       const model = service.getModels().find(model => model.id === m.modelId && model.identity === m.modelIdentity
         && model.partition?.planId === m.planId && (orderedInput(m)
           ? model.partition.schema === 'reploid.partition-selection/v2' && model.partition.coordinatorId === m.coordinatorId
             && canonicalPartitionJson(model.partition.route) === canonicalPartitionJson(m.route)
           : model.partition.participantA === m.participantA && model.partition.participantB === m.participantB)
         && model.availability === 'ready');
-      assert(model, 'Requested placement is not ready');
+      assertCapacity(model);
       const requested = requireGenerationCapability(model, m.generationRequest, m.schema === 'reploid.partition-input/v2');
       const isCanonical = m.schema === 'reploid.partition-input/v2';
       if (isCanonical) {
@@ -173,7 +194,15 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
             threadId: m.threadId, attemptId: m.attemptId, step: record.step, delta: record.delta, done: record.done, receipt: record.receipt ?? null },
           new Uint8Array(), { signal }).then(response => response?.acknowledged ?? null);
         } } : {}),
-        onState() {}, onActivity(value) {
+        onState(value) {
+          // Older requesters did not opt in; an opted-in one learns only queued/executing for this attempt.
+          if (m.attemptState === undefined || !acceptingCallbacks || !ATTEMPT_STATES.includes(value?.status)
+            || value.threadId !== m.threadId || value.attemptId !== m.attemptId) return;
+          const metadata = { operation: 'state', requesterId: m.requesterId, coordinatorId: m.coordinatorId, identity: attempt(m),
+            threadId: m.threadId, attemptId: m.attemptId, status: value.status };
+          delivery = delivery.then(() => endpoint.request(metadata, new Uint8Array(), { signal }));
+          delivery.catch(() => {});
+        }, onActivity(value) {
           if (m.activity === undefined) return; // Older requesters did not opt in to this event.
           assert(acceptingCallbacks && orderedInput(m) && value.threadId === m.threadId && value.attemptId === m.attemptId, 'Unbound or late partition activity');
           activity = partitionActivity(value, attempt(m), activity);
@@ -219,8 +248,8 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
         'Invalid entry descriptor');
       observedAt = now(); return this.getState();
     },
-    async generate(request, { signal, onDelta, onUsage, onActivity, onOutput, publication, onPublished } = {}) {
-      assert(!closed && this.getState().ready, 'Refresh an available entry before requesting execution');
+    async generate(request, { signal, onDelta, onUsage, onActivity, onOutput, onState, publication, onPublished } = {}) {
+      assertCapacity(!closed && this.getState().ready);
       assert(request.charge === undefined || typeof onOutput === 'function', 'A charged ordered input needs its acknowledgment port');
       const isCanonical = request.canonical !== undefined, isOrdered = request.route !== undefined;
       assert(!isOrdered || ordered && !isCanonical, 'Ordered entry capability unavailable');
@@ -230,13 +259,14 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
       const metadata = { ...structuredClone(request), operation: 'generate',
         schema: isOrdered ? 'reploid.partition-input/v3' : isCanonical ? 'reploid.partition-input/v2' : 'reploid.partition-input/v1',
         ...(isOrdered && typeof onActivity === 'function' ? {activity:'reploid.partition-activity/v1'} : {}),
+        ...(isOrdered && typeof onState === 'function' ? { attemptState: ATTEMPT_STATE_SCHEMA } : {}),
         requesterId: localParticipantId, ...(isOrdered ? { coordinatorId: remoteParticipantId } : { participantA: remoteParticipantId }) };
       assert(!deliveries.has(metadata.attemptId), 'Entry attempt already streaming');
       assert(valid(metadata), 'Invalid partition entry input');
       const scope = publication !== undefined ? createEntryPublicationScope({ request: metadata, owner: publication, onPublished,
         authorize: () => authorize(structuredClone(metadata), { action: 'publish' }),
         maxControlBytes: limits.maxControlBytes, maxOutputCharacters: policy.maxOutputCharacters }) : null;
-      deliveries.set(metadata.attemptId, { request: metadata, sequence: 0, characters: 0, content: '', onDelta, onUsage, onActivity, onOutput, activity:null, usage:null, publication: scope });
+      deliveries.set(metadata.attemptId, { request: metadata, sequence: 0, characters: 0, content: '', onDelta, onUsage, onActivity, onOutput, onState, activity:null, usage:null, publication: scope });
       let result;
       let failure = null;
       try {

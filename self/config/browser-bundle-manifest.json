@@ -1320,8 +1320,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 542230,
-      "sha256": "sha256:bac4af6b259011381250b88925890623eb9ebdc4cc149760d0a9837055e2bf06"
+      "byteLength": 542679,
+      "sha256": "sha256:f9a2c6443f0e52c1b67dec6e5769792f8e63776699738ef41c9fe70914b4c825"
     },
     {
       "path": "config/module-registry.json",
@@ -1380,8 +1380,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 116074,
-      "sha256": "sha256:fc15eb2218dce1fa3c684f3e1c9e034d00ff9a217250e168ee1933f35751c8d7"
+      "byteLength": 116213,
+      "sha256": "sha256:f2d69dabad90049716612e289b107613685258ed549425c8550509324937a91d"
     },
     {
       "path": "config/vfs-policy.js",
@@ -9580,8 +9580,8 @@
     },
     {
       "path": "vendor/reploid/mesh/partitions/automatic-ordered-partitions.js",
-      "byteLength": 40153,
-      "sha256": "sha256:f127bc1fd4eda57fb46073a81d94a3a291e2570a7ef7aced8bd830f0f00b2f77"
+      "byteLength": 42632,
+      "sha256": "sha256:45cc0516c9a6a53003cb763aceb1e2cd57e555b6e1479a9003fc9ce50424be01"
     },
     {
       "path": "vendor/reploid/mesh/partitions/automatic-partitions.js",
@@ -9592,6 +9592,16 @@
       "path": "vendor/reploid/mesh/partitions/partition-attempt-evidence.js",
       "byteLength": 20133,
       "sha256": "sha256:7874511420ed359ae7db77225ed0824a731fa06077b95d778fde3125043b6f45"
+    },
+    {
+      "path": "vendor/reploid/mesh/partitions/partition-attempt-queue-policy.json",
+      "byteLength": 144,
+      "sha256": "sha256:188de9b2ffd0a56fb5d55dae56c9241e7f2d774d4a93bd6b11524777cde7d5d1"
+    },
+    {
+      "path": "vendor/reploid/mesh/partitions/partition-attempt-queue.js",
+      "byteLength": 6713,
+      "sha256": "sha256:5d617d9d5a9e2e7d60e8d95b6347399073ec60c13244365cd2bb0adf46e8879b"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-canonical-contract.js",
@@ -9615,8 +9625,8 @@
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-contract.js",
-      "byteLength": 11462,
-      "sha256": "sha256:97ab2918549977e3c76a94fb37e964aa4fef292e6b8d13ce863b7b7f3c49d59b"
+      "byteLength": 12191,
+      "sha256": "sha256:29ac5adf523ec2b4caee07ce4e587c241d5847dafc4fb263503cc7d81409aa34"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-device-admission.js",
@@ -9635,8 +9645,8 @@
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-entry.js",
-      "byteLength": 28273,
-      "sha256": "sha256:645398c539e6131ec075f79136ce645766a8d5090c3351110394b9af3cf5ffa1"
+      "byteLength": 30520,
+      "sha256": "sha256:c540be75b377b5432fc1c815eb6b05e91e02a49c7c4173ffc67f14bd0f7dc6d1"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-generation-request.js",
@@ -9660,13 +9670,13 @@
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-ordered-chat.js",
-      "byteLength": 14824,
-      "sha256": "sha256:20b4c8cd904856f8a081d302068cfd01ee0e0133e3fd87bc74901f3bdd5f76e7"
+      "byteLength": 17859,
+      "sha256": "sha256:30fb2be15a5d0a8f4000dbcc15e0a97e43fa19b62a4d907289e4146a445be5df"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-ordered-peer.js",
-      "byteLength": 26245,
-      "sha256": "sha256:7227b0b64ea69a1b2e905a3adbac37983607aedfc3c95944ad59aeefb8a99793"
+      "byteLength": 26708,
+      "sha256": "sha256:00ce019290fcbdc845c35cca68c6755758be400819cbed5d44cece5b31bc83e7"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-ordered-publication.js",
@@ -9675,13 +9685,13 @@
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-peer.js",
-      "byteLength": 22953,
-      "sha256": "sha256:bfbcd688c178bcfcfec4c1c94a1fe1a8b4e232e3885b14773699638ef6eacb0e"
+      "byteLength": 22815,
+      "sha256": "sha256:0c4ec84d46769f3ba430dcff0c29d70eb3e8b892a484c7436df0def7c3137b72"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-placement.js",
-      "byteLength": 9593,
-      "sha256": "sha256:1c8a31141947833f5b271920c5c0baa75be28fa2cab2ef2eea36e70fe834baa8"
+      "byteLength": 10249,
+      "sha256": "sha256:8bd999e09d28bca2c7a90e8d9b2833d25f8a23ec5492977fded21cdde1497cae"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-preparation-progress.js",
@@ -9695,13 +9705,13 @@
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-reservations.js",
-      "byteLength": 4089,
-      "sha256": "sha256:2beda12a7dc2f7eb604fe9b417ff6673a674fc5111e110cb86bc26702179e184"
+      "byteLength": 4190,
+      "sha256": "sha256:e5b607f64ff0786b330f5a4f99a859e8d10be95598ca62dafb482e6673843782"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-route-execution.js",
-      "byteLength": 23908,
-      "sha256": "sha256:10830aaba9caba51b9e3bce4f25c87fc8a49d689d8e793b6e6c8096dfe7c0ead"
+      "byteLength": 23942,
+      "sha256": "sha256:3102916f99b2d76644dc1d906c41f7c27d136089b8d5fdd7e5aa546c45cdd031"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-route-network.js",
@@ -9735,8 +9745,8 @@
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-summary.js",
-      "byteLength": 7526,
-      "sha256": "sha256:97d01182a47ef6586778f8d4be58a141362920f98c28163ac0a2349957284795"
+      "byteLength": 7745,
+      "sha256": "sha256:c5a5375aa292845fd22539f00dad29344f08e00eecde76b2220a57eed9ba8c9a"
     },
     {
       "path": "vendor/reploid/mesh/partitions/resident-error-codes.json",
@@ -9745,8 +9755,8 @@
     },
     {
       "path": "vendor/reploid/mesh/partitions/resident-partition.js",
-      "byteLength": 21443,
-      "sha256": "sha256:b6325d5e2e1c382c23a22c1955122819e521c2bd71184fa98b121055a84695aa"
+      "byteLength": 21503,
+      "sha256": "sha256:43d5cfffcd774a2bdecd700dc483b9e887fa0d87117e5a41a28921337dca292c"
     },
     {
       "path": "vendor/reploid/mesh/partitions/resident-route.js",
@@ -9780,8 +9790,8 @@
     },
     {
       "path": "vendor/reploid/package-assets.json",
-      "byteLength": 43457,
-      "sha256": "sha256:ccf7429a0e57f938efe53fdf189d4d6dc1adee204ca802825a6019638d2b651a"
+      "byteLength": 43999,
+      "sha256": "sha256:433a15efa738455a898d82bcb56b326d680651f8199c0ce8845879045ae885a3"
     },
     {
       "path": "vendor/reploid/retrieval/citations.js",
@@ -9920,8 +9930,8 @@
     },
     {
       "path": "vendor/reploid/transport/partition-errors.json",
-      "byteLength": 1142,
-      "sha256": "sha256:e1d717b5871e24c5f7eee339b406c4429397b565bd9e58efcb4117bd65ce1fbd"
+      "byteLength": 1466,
+      "sha256": "sha256:4951de030b41aed0f16b570eafe7453bdf10dd89367d9cef16ca49cf3dd87cc9"
     },
     {
       "path": "vendor/reploid/transport/retry-policy.js",
@@ -9949,5 +9959,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:340698f66dd9bbfdf851333de55f2b611cf73788e94b9ae67dab4ed81191fe72"
+  "bundleHash": "sha256:c564ee4f443a61c7ac838ae12ad75366a7164780f08448d383b22a35a84da418"
 }

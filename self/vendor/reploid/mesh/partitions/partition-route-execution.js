@@ -1,7 +1,7 @@
 /** Ordinary ordered-stage execution. Doppler owns every numerical operation. */
 import { canonicalPartitionJson, partitionActivationContract,
   matchingPartitionActivation, validatePartitionRoute, canonicalRouteAttemptBinding,
-  sameRouteAttemptIdentity } from './partition-contract.js';
+  sameRouteAttemptIdentity, assertCapacity } from './partition-contract.js';
 import failureMessages from '../../transport/partition-errors.json' with { type: 'json' };
 import { MAX_UNACKNOWLEDGED_OUTPUTS, acknowledgmentOverdue } from './partition-attempt-evidence.js';
 
@@ -129,9 +129,9 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
       && grants.activation.every(value => value && typeof value === 'object') && grants.output,
     'Grants for every stage, adjacent edge and final output required');
     assert(!attempts.has(binding.attemptId), 'Attempt already used; replacement requires a fresh authorized attempt');
-    assert(attempts.size < policy.maxAttempts, 'Ordered attempt budget exhausted');
-    assert([...attempts.values()].filter(item => item.running || item.owned.size).length < policy.maxConcurrentAttempts,
-      'Ordered concurrency budget exhausted or cleanup unsettled');
+    // The route's attempt history and concurrent slots (unsettled cleanup keeps its slot) are capacity.
+    assertCapacity(attempts.size < policy.maxAttempts);
+    assertCapacity([...attempts.values()].filter(item => item.running || item.owned.size).length < policy.maxConcurrentAttempts);
     const authority = freeze(clone(grants)), settings = freeze(clone(generation));
     const coordinatorId = route.stages[0].participantId;
     const recipients = (...ids) => [...new Set(ids)];

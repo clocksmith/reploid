@@ -4,7 +4,8 @@ import type { OrderedExecutionRuntime, OrderedExecutionPlan, OrderedStageDevice,
 import type { PartitionGrantAuthority } from './partition-grants.js';
 import type { OrderedPublicationContext } from './partition-ordered-publication.js';
 export interface OrderedChatStage extends OrderedStageDevice {
-  getState(): {ready:boolean};
+  /** The coordinator stage's `reservations.availableSlots`, when reported, gates queued admission. */
+  getState(): {ready:boolean;reservations?:{availableSlots:number}};
   subscribe(listener: (...args:any[])=>void):()=>void;
   refresh?(options?:{signal?:AbortSignal}):Promise<unknown>;
   tokenize?(request:object):Promise<{modelIdentity:string;tokenIds:number[];generation:Record<string,unknown>&{maxTokens:number}}>;
@@ -22,7 +23,9 @@ export interface OrderedPartitionChat {
 }
 export interface OrderedPartitionChatOptions {
   runtime:OrderedExecutionRuntime;model:ChatModel;authority:PartitionGrantAuthority;plan:OrderedExecutionPlan;planId:string;
-  limits:OrderedRouteLimits;grantTtlMs:number;ordered:{route:PartitionRoute;stages:OrderedChatStage[]};canonical?:null;
+  limits:OrderedRouteLimits;grantTtlMs:number;ordered:{route:PartitionRoute;stages:OrderedChatStage[];
+    /** Shared by a coordinator's routes; without it this route admits through its own queue under the component policy. */
+    queue?:import('./partition-attempt-queue.js').AttemptQueue};canonical?:null;
   authorizeRequester?:(request:ChatRequest & {participantId:string},signal:AbortSignal)=>Promise<boolean>;now?:()=>number;
 }
 export function createOrderedPartitionChat(options:OrderedPartitionChatOptions):OrderedPartitionChat;

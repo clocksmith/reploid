@@ -49,7 +49,9 @@ export function summarizePartitionExecution(execution) {
       stepSummary: { count: execution.steps?.length || 0, stages: [...stages.values()],
         phases: summarizeOrderedPhases(execution.steps || []), detail: 'aggregate; no per-step trace transferred' },
       // A ranking coordinator's unsigned record of the decision that chose this attempt's route.
-      ...(execution.routeSelection ? { routeSelection: execution.routeSelection } : {}) });
+      ...(execution.routeSelection ? { routeSelection: execution.routeSelection } : {}),
+      // The coordinator's unsigned admission wait, kept apart from prefill and decode timing.
+      ...(Number.isFinite(execution.admission?.queuedMs) ? { admission: { queuedMs: execution.admission.queuedMs } } : {}) });
   }
   if (execution.schema === 'reploid.mesh.canonical-partition-execution/v1') {
     // Signed records are already retained by the requester transaction owner.

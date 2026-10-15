@@ -166,15 +166,14 @@ export function createPartitionPeer({ channel, localParticipantId, remotePartici
         ...(canonical ? { canonical: contributor?.getState().ready ? { stage: canonicalStage,
           generation: contributor.getCanonicalGeneration() } : null } : {}) };
       if (metadata.operation === 'reserve') {
-        assert(!closing, 'Partition peer closed');
-        assert(reservations.has(metadata.identity.attemptId) || reservations.size < receiverLimits.maxAttempts,
-          'Remote reservation budget exhausted');
+        if (closing || !reservations.has(metadata.identity.attemptId) && reservations.size >= receiverLimits.maxAttempts) {
+          return { accepted: false, code: 'CAPACITY_UNAVAILABLE' };
+        }
         signal.throwIfAborted();
         let reservation;
         try { reservation = contributor.reserve(metadata.identity); }
         catch (cause) {
-          if (['Contributor reservation capacity exhausted', 'Contributor reservation history exhausted',
-            'Partition contributor is not ready'].includes(cause.message)) return { accepted: false, code: 'CAPACITY_UNAVAILABLE' };
+          if (cause?.code === 'CAPACITY_UNAVAILABLE') return { accepted: false, code: 'CAPACITY_UNAVAILABLE' };
           throw cause;
         }
         reservations.set(metadata.identity.attemptId, structuredClone(metadata.identity));

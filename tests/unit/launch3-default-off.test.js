@@ -107,7 +107,7 @@ describe('Launch 3 mechanisms are off by default (Launch 1 candidate behavior)',
       route: { schema: 'reploid.partition-route/v1', modelId: 'm', modelIdentity: sha, planId: sha, activation,
         stages: [{ index: 0, participantId: 'p0', transportId: 't0', residentId: 'r0', executionId: 'e0' }, stage] } });
     await resident.reserve({ identity: identity('a'), partitionIndex: 1 });
-    await expect(resident.reserve({ identity: identity('b'), partitionIndex: 1 })).rejects.toThrow('Contributor reservation capacity exhausted');
+    await expect(resident.reserve({ identity: identity('b'), partitionIndex: 1 })).rejects.toMatchObject({ code: 'CAPACITY_UNAVAILABLE' });
     expect(resident.getState().reservations).not.toHaveProperty('device');
   });
 

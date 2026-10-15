@@ -1,6 +1,6 @@
 import { createPartitionDataChannel } from '../../transport/partition-data-channel.js';
 import { createPartitionStepReceiver } from './partition-step-receiver.js';
-import { assertPartition as assert, canonicalPartitionJson, canonicalRouteAttemptBinding,
+import { assertPartition as assert, assertCapacity, partitionFailure, canonicalPartitionJson, canonicalRouteAttemptBinding,
   sameRouteAttemptIdentity, validatePartitionRoute, partitionFingerprint, matchingPartitionActivation } from './partition-contract.js';
 
 const SCHEMA = 'reploid.partition-stage-rpc/v1';
@@ -115,7 +115,11 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
   const endpoint = createPartitionDataChannel({ channel, localParticipantId, remoteParticipantId, limits,
     async authorize({ action, metadata, byteLength }) {
       await ready;
-      if (closed || retiring && !['settle', 'settle-accepted', 'retired'].includes(metadata.operation)) return false;
+      if (closed || retiring && !['settle', 'settle-accepted', 'retired'].includes(metadata.operation)) {
+        // A retiring stage admits no new attempt: that is unavailable capacity, not a declined grant.
+        if (metadata.operation === 'reserve') throw partitionFailure('CAPACITY_UNAVAILABLE');
+        return false;
+      }
       if (metadata.operation === 'describe') return byteLength === 0 && metadata.schema === SCHEMA;
       try { protocol(metadata); } catch { return false; }
       const returningOutput = metadata.operation === 'stage-output' || metadata.operation === 'retired';
@@ -178,8 +182,11 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
         return { outputDigest: digest };
       }
       if (metadata.operation === 'reserve') {
-        assert(serving && !closed && !retiring && !settlements.has(metadata.identity.attemptId)
-          && (reservations.has(metadata.identity.attemptId) || reservations.size + settlements.size < receiverLimits.maxAttempts), 'Ordered reservation budget exhausted or retired');
+        assert(serving && !settlements.has(metadata.identity.attemptId), 'Ordered reservation already settled');
+        // A retiring stage or an exhausted receiver budget is unavailable capacity; the resident's own
+        // slot refusal below carries the same code across the channel.
+        assertCapacity(!closed && !retiring && (reservations.has(metadata.identity.attemptId)
+          || reservations.size + settlements.size < receiverLimits.maxAttempts));
         const previous = reservations.get(metadata.identity.attemptId);
         assert(!previous || sameRouteAttemptIdentity(previous.identity, metadata.identity), 'Ordered reservation identity collision');
         // May have been admitted even if the subsequent acknowledgment is lost.
@@ -315,7 +322,8 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
     },
     async reserve(request) {
       request = snapshotRequest(request);
-      await ready; assert(!serving && !closed && !retiring && active.size + confirmed.size < receiverLimits.maxAttempts, 'Ordered remote admission unavailable');
+      await ready; assert(!serving, 'Only the coordinator reserves a remote stage');
+      assertCapacity(!closed && !retiring && active.size + confirmed.size < receiverLimits.maxAttempts);
       const metadata = control({ ...request, step: 0 }, 'reserve'); protocol(metadata);
       const previous = active.get(request.identity.attemptId);
       assert(!previous || sameRouteAttemptIdentity(previous.identity, metadata.identity), 'Ordered reservation identity collision');

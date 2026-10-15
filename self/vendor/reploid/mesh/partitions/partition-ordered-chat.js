@@ -1,16 +1,25 @@
 import { TEXT_GENERATION_CAPABILITY, requireGenerationCapability, boundedGeneration, tokenUsage } from './partition-generation-request.js';
 import { createLayerPartitionRunner } from './partition-runner.js';
 import { orderedPartitionDisclosure } from './partition-grants.js';
-import { assertPartition as assert, canonicalPartitionJson, canonicalRouteAttemptBinding, validatePartitionRoute } from './partition-contract.js';
+import { assertPartition as assert, assertCapacity, canonicalPartitionJson, canonicalRouteAttemptBinding,
+  validatePartitionRoute } from './partition-contract.js';
 import { validateOrderedPublicationContext, orderedPublicationAttempt, orderedGenerationBounds,
   orderedPublicationRecord } from './partition-ordered-publication.js';
+import { ATTEMPT_QUEUE_POLICY, createPartitionAttemptQueue } from './partition-attempt-queue.js';
 
 /** Existing chat composition for an explicitly prepared, coordinator-mediated route.
  * With a requester publication port, every final-stage step is durably committed
- * by the requester's transaction owner before delivery or the next step. */
+ * by the requester's transaction owner before delivery or the next step.
+ * An authorized attempt that finds the route's slots or this coordinator's own stage full waits
+ * in `ordered.queue` (shared by a coordinator's routes; otherwise this route's own queue under the
+ * partitions component's policy) and reports `queued`. Waiting tokenizes, reserves, grants and
+ * discloses nothing; admission happens before the disclosure window is applied, so waiting never
+ * extends it, and the route an attempt waits for is the route it runs on. */
 export function createOrderedPartitionChat({ runtime, authority, model, plan, planId, limits,
   grantTtlMs, ordered, authorizeRequester, now = Date.now }) {
   const route = structuredClone(ordered.route), policy = structuredClone(limits), stages = [...ordered.stages];
+  const queue = ordered.queue ?? createPartitionAttemptQueue({ policy: ATTEMPT_QUEUE_POLICY });
+  assert(['admit', 'pump'].every(method => typeof queue?.[method] === 'function'), 'Ordered admission queue required');
   // Distinguishes this coordinator incarnation's admissions in requester history.
   const coordinatorEpoch = Array.from(crypto.getRandomValues(new Uint8Array(16)), byte => byte.toString(16).padStart(2, '0')).join('');
   const local = stages[0], coordinatorId = route.stages[0].participantId;
@@ -38,8 +47,21 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
   const models = () => [{ ...structuredClone(selection), textGeneration: TEXT_GENERATION_CAPABILITY,
     availability: !closed && validated && stages.every(stage => stage.getState().ready) ? 'ready' : 'unavailable',
     providerIds: stages.map(stage => stage.id), placement: 'ordered-layer-partition' }];
-  const notify = () => { for (const listener of listeners) { try { listener(models()); } catch {} } };
+  // Stage state changes (a settled reservation, a lost stage) may admit or refuse waiting attempts.
+  const notify = () => { for (const listener of listeners) { try { listener(models()); } catch {} } queue.pump(); };
   const unsubscribers = stages.map(stage => stage.subscribe(notify));
+  // The route's occupied slots: live admission tickets plus finished attempts whose cleanup has
+  // not settled (the runner still counts them). The coordinator's own stage is shared by its
+  // routes; tickets not yet holding its reservation are subtracted from what it advertises.
+  const queueKey = Symbol('ordered-route');
+  const admissible = ({ admitted, opening }) => {
+    assertCapacity(!closed && models()[0].availability === 'ready');
+    const runnerState = runner.getState();
+    const unsettledOpenings = [...openingDebt.keys()].filter(id => !pending.has(id)).length;
+    const slots = local.getState().reservations?.availableSlots;
+    return admitted + runnerState.unsettled + unsettledOpenings < policy.maxConcurrentAttempts
+      && (!Number.isSafeInteger(slots) || slots - opening > 0);
+  };
   async function refresh(options) { await preparation; await Promise.all(stages.slice(1).map(stage => stage.refresh(options))); notify(); return models(); }
   async function releaseOpening(identity) {
     await local.closeAttempt({ identity, partitionIndex: 0 }); openingDebt.delete(identity.attemptId);
@@ -49,8 +71,9 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
     const requested = requireGenerationCapability(models()[0], request.generationRequest, request.canonical !== undefined);
       assert(!requested || requested.maxOutputTokens <= policy.maxTokens, 'Caller token limit exceeds route budget');
     const owner = controls.publication, published = owner !== undefined;
-    assert(!closed && request.canonical === undefined && published === (request.publication !== undefined),
-      'Ordered chat requires ordinary execution, an open owner and explicit requester publication context');
+    assertCapacity(!closed);
+    assert(request.canonical === undefined && published === (request.publication !== undefined),
+      'Ordered chat requires ordinary execution and explicit requester publication context');
     const context = published ? validateOrderedPublicationContext(request.publication) : null;
     if (published) assert(owner?.requiresCommitEvidence === true && ['reconcile', 'admitAttempt', 'publish', 'cancel']
       .every(name => typeof owner[name] === 'function') && typeof runtime.metadataDigest === 'function' && context.deadlineAt > now(),
@@ -67,7 +90,7 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
       placementGeneration: request.placementGeneration ?? 0 });
     assert(!pending.has(identity.attemptId) && !openingDebt.has(identity.attemptId), 'Ordered chat attempt already pending');
     const completion = Promise.withResolvers(); pending.set(identity.attemptId, completion.promise);
-    let grant = null, delegatedToRunner = false, failure, admitted = null, cancellation = null;
+    let grant = null, delegatedToRunner = false, failure, admitted = null, cancellation = null, ticket = null;
     // The requester's writer records cancellation of an admitted attempt; a
     // committed terminal record stays completed (the writer never rewrites it).
     const settlePublication = () => {
@@ -80,7 +103,16 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
         && await authorizeRequester(request, signal) === true, 'Requester has not authorized this route');
       assert(request.permissions?.sharingScope && request.permissions.sharingScope !== 'local', 'Partition disclosure is disabled');
       await refresh({ signal }); signal.throwIfAborted();
-      assert(models()[0].availability === 'ready', 'No ready contributors for this ordered route');
+      assertCapacity(models()[0].availability === 'ready');
+      // Wait for a slot on this exact route, bounded by policy and by the attempt's own disclosure and
+      // publication deadlines. Closing this chat or losing a stage refuses the wait with
+      // CAPACITY_UNAVAILABLE; the requester's cancellation removes it with nothing held.
+      ticket = await queue.admit({ key: queueKey, attemptId: identity.attemptId, requesterId: identity.requesterId,
+        deadlineAt: Math.min(request.disclosureExpiresAt ?? Infinity, context?.deadlineAt ?? Infinity),
+        signal: controls.signal, check: admissible,
+        onQueued: () => controls.onState?.({ threadId: identity.threadId, attemptId: identity.attemptId, status: 'queued',
+          execution: { placement: 'ordered-layer-partition', identity } }) });
+      signal.throwIfAborted();
       const disclosure = orderedPartitionDisclosure(identity), expiresAt = Math.min(now() + grantTtlMs, request.disclosureExpiresAt ?? Infinity);
       assert(expiresAt > now(), 'Requester disclosure expired during preparation');
       const approved = await controls.requestApproval({ id: crypto.randomUUID(), threadId: identity.threadId,
@@ -92,7 +124,9 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
       signal.throwIfAborted(); assert(approved === true && !closed, 'Ordered disclosure declined or chat closed');
       assert(now() < expiresAt, 'Ordered disclosure expired');
       openingDebt.set(identity.attemptId, identity);
-      const input = await local.tokenize({ messages: request.messages, identity, signal });
+      let input;
+      // Tokenizing takes this coordinator stage's reservation; from here it counts in the stage's own slots.
+      try { input = await local.tokenize({ messages: request.messages, identity, signal }); } finally { ticket.opened(); }
       signal.throwIfAborted();
       assert(input.modelIdentity === selection.identity && Number.isSafeInteger(input.generation?.maxTokens)
         && input.generation.maxTokens > 0 && input.generation.maxTokens <= policy.maxTokens, 'Doppler tokenization contract mismatch');
@@ -148,7 +182,8 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
         return { threadId: identity.threadId, attemptId: identity.attemptId, modelId: selection.id,
           modelIdentity: selection.identity, adapterIdentities: [], content: result.content,
           ...(requested ? {usage: tokenUsage(input.tokenIds.length, result.tokenIds.length, requested)} : {}),
-          execution: { ...result.execution, provider: 'peer' } };
+          // Coordinator admission wait for this attempt (0 when a slot was free on arrival).
+          execution: { ...result.execution, provider: 'peer', admission: { queuedMs: ticket.queuedMs } } };
       } finally {
         // An accepted runner attempt owns cleanup, including failed cleanup and
         // retries. Pre-admission rejection leaves tokenizer ownership here.
@@ -165,14 +200,16 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
       if (grant) authority.revoke(grant);
       try { if (!delegatedToRunner && openingDebt.has(identity.attemptId)) await releaseOpening(identity); }
       catch (error) { throw new AggregateError(failure ? [failure, error] : [error], 'Ordered chat opening cleanup failed'); }
-      finally { pending.delete(identity.attemptId); completion.resolve(); }
+      finally { pending.delete(identity.attemptId); completion.resolve(); ticket?.release(); }
     }
   }
   return Object.freeze({ getModels: models,
+    // pendingInputs includes attempts waiting for admission: a route with waiting attempts is not idle.
     getState: () => ({ ...runner.getState(), pendingInputs: pending.size, unsettledInputs: openingDebt.size }),
     subscribe(listener) { listeners.add(listener); listener(models()); return () => listeners.delete(listener); }, refresh, generate,
     async close() {
-      closed = true; lifetime.abort(new Error('Ordered chat closed')); unsubscribers.forEach(unsubscribe => unsubscribe());
+      // Attempts still waiting for this route fail as unavailable capacity; they never move to another route.
+      closed = true; queue.pump(); lifetime.abort(new Error('Ordered chat closed')); unsubscribers.forEach(unsubscribe => unsubscribe());
       await Promise.allSettled([...pending.values()]);
       const results = await Promise.allSettled([runner.close(), ...[...openingDebt.values()].map(releaseOpening)]);
       listeners.clear();

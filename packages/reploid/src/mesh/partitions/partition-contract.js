@@ -1,8 +1,18 @@
+import failureMessages from '../../transport/partition-errors.json' with { type: 'json' };
+
 /** Shared orchestration bindings. Tensor semantics remain supplied by Doppler. */
 export const partitionIdentityKeys = Object.freeze(['modelId', 'modelIdentity', 'planId', 'threadId', 'attemptId', 'participantA', 'participantB']);
 export const partitionActions = Object.freeze(['mesh.execute_partition_a', 'mesh.execute_partition_b',
   'mesh.transfer_intermediate_activation', 'mesh.transfer_token_context', 'mesh.transfer_partition_output']);
 export const assertPartition = (value, message) => { if (!value) throw new Error(message); };
+/** A declared failure whose code and message cross every channel hop together; an uncoded error
+ * becomes EXECUTION_FAILED at the next hop. `detail` adds non-message fields, such as a bound. */
+export function partitionFailure(code, detail = {}) {
+  assertPartition(Object.hasOwn(failureMessages, code), 'Undeclared partition failure code');
+  return Object.assign(new Error(failureMessages[code]), detail, { code });
+}
+/** Throw CAPACITY_UNAVAILABLE unless `value` holds: an exhausted or closed admission slot, never a defect. */
+export const assertCapacity = value => { if (!value) throw partitionFailure('CAPACITY_UNAVAILABLE'); };
 export const samePartitionIdentity = (actual, expected) => actual && [...partitionIdentityKeys, 'requesterId', 'placementGeneration'].every(key => actual[key] === expected[key]);
 /** Ask the injected provider for tensor layout; retain the accepted v1 adapter. */
 export function partitionActivationContract(runtime, plan) {

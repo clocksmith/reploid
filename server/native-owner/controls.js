@@ -142,9 +142,8 @@ export async function openNativeOwnerControls({ file, policy: parsed, custody, p
       };
       const admit = identity => {
         if (holds(identity?.attemptId) || admitStage(active())) return;
-        // The same refusal the resident's own capacity limit produces on each path.
-        throw Object.assign(new Error(ordered ? failureMessages.CAPACITY_UNAVAILABLE : 'Contributor reservation capacity exhausted'),
-          { code: 'CAPACITY_UNAVAILABLE' });
+        // The same coded refusal the resident's own capacity limit produces on each path.
+        throw Object.assign(new Error(failureMessages.CAPACITY_UNAVAILABLE), { code: 'CAPACITY_UNAVAILABLE' });
       };
       return Object.freeze({ ...resident,
         getState: () => gated(resident.getState()),
