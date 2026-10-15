@@ -12,6 +12,8 @@
  * a loopback address. Nothing here authors prices, outcomes or rewards; the
  * spending limit is the person's own standing decision on this device, and a
  * quote above it (or with no limit set) is declined before anything is sent.
+ * When the service offers Community Access and the account's available
+ * credits cannot cover a quote, the answer asks for Community Access instead.
  */
 import { createSigningIdentity } from '../../vendor/reploid/artifacts/identity.js';
 import { createEarningAttempts } from '../earning/attempts.js';
@@ -66,6 +68,8 @@ export async function loadEarningIdentity({ storage, create = () => createSignin
 }
 
 const quoteRequest = request => ({ modelId: request.model.id, modelIdentity: request.model.identity, operation: 'chat.completion' });
+const quoteRecord = (quote, { accepted, funding }) => ({ quoteId: quote?.quoteId ?? null, modelId: quote?.service?.model?.modelId ?? null,
+  maxCharge: quote?.pricing?.maxCharge ?? null, deadline: quote?.service?.deadline ?? null, accepted, funding, at: new Date().toISOString() });
 
 /**
  * The account model the settings panel renders. Reads need a signed-in device session; until the
@@ -163,9 +167,20 @@ export function createEarningAccount({ client, signIn, service, storage, origin,
     async authorizeSpending({ quote }) {
       const limit = readLimit();
       const accepted = limit !== null && quote?.pricing?.maxCharge <= limit;
-      set({ spendingLimit: limit, lastQuote: { quoteId: quote?.quoteId ?? null, modelId: quote?.service?.model?.modelId ?? null, maxCharge: quote?.pricing?.maxCharge ?? null,
-        deadline: quote?.service?.deadline ?? null, accepted, at: new Date().toISOString() } });
+      set({ spendingLimit: limit, lastQuote: quoteRecord(quote, { accepted, funding: 'account' }) });
       return accepted;
+    },
+    /**
+     * Community Access when the service offers it and this account's available credits cannot cover the
+     * quoted maximum; the pool, not the person, is charged, so no spending limit applies.
+     */
+    async useCommunityAccess({ quote }) {
+      if (service.communityAccess !== true) return false;
+      let available = 0;
+      try { available = (await client.get('/balances')).available; } catch { return false; }
+      if (!(available < quote?.pricing?.maxCharge)) return false;
+      set({ lastQuote: quoteRecord(quote, { accepted: true, funding: 'community_access' }) });
+      return true;
     },
     /** Sign out of the provider on this device; refresh() then ends the service session. */
     async signOut() {
@@ -205,7 +220,8 @@ export async function openBrowserEarning({ location = globalThis.location, stora
   const identity = await loadIdentity({ storage });
   const client = createEarningClient({ config, identity, host: 'browser', signIn: signIn.signIn, storage: createWebStorageEarningStorage(storage), fetch });
   const account = createEarningAccount({ client, signIn, service, storage, origin, fetch, ...(navigate ? { navigate } : {}) });
-  const attempts = createEarningAttempts({ client, quoteRequest, authorizeSpending: account.authorizeSpending });
+  const attempts = createEarningAttempts({ client, quoteRequest, authorizeSpending: account.authorizeSpending,
+    ...(service.communityAccess === true ? { communityAccess: { decide: account.useCommunityAccess } } : {}) });
   // Pending reports and claims from an earlier visit resend once this device is signed in again.
   let reconciled = false;
   account.subscribe(state => {

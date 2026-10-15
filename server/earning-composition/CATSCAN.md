@@ -28,6 +28,7 @@ Outputs:
 - Real providers only when their variables are set; test sign-in and processor only when switched on, never in production.
 - Production refuses memory stores; all stores share one database.
 - Quotes and offers come only from templates; clients name a model or category, never terms.
+- Templates the ledger or Community Access would refuse refuse to start.
 - A published conversion id never changes; conflicting policy refuses to start.
 - Operator tokens are matched by SHA-256 digest; the file holds none.
 

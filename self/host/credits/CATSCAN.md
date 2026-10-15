@@ -27,6 +27,7 @@ Outputs:
 - Supabase when offered; local test sign-in only on loopback pages.
 - One persistent participant identity per profile registers the device; the swarm requests as it, so routes name the paying account.
 - Quotes above the person's standing limit, or with none set, are declined before anything is sent.
+- Community Access only when offered and the balance cannot cover the quote.
 - Checkout pages open only over https or the service's own origin.
 - Provider sign-out ends the device's service session.
 - Conversation text never travels.

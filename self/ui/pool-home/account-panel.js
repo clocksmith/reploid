@@ -28,6 +28,7 @@ const balanceText = balance => {
 const quoteText = (quote, limit) => {
   if (!quote) return limit ? '' : 'No spending limit is set, so answers that cost credits are not sent.';
   const head = `Last quote: up to ${number(quote.maxCharge)} credits${quote.deadline ? `, answer by ${new Date(quote.deadline).toLocaleTimeString()}` : ''}.`;
+  if (quote.funding === 'community_access') return `${head} Asked for Community Access, which the pool pays.`;
   if (quote.accepted) return `${head} Accepted.`;
   return `${head} Not sent: ${limit ? `above your limit of ${number(limit)}` : 'no spending limit is set'}.`;
 };

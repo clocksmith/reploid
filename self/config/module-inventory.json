@@ -2189,7 +2189,7 @@
     {
       "path": "self/host/credits/browser.js",
       "owner": "self",
-      "sha256": "sha256:6be2b2df3c726b4691a3f23ed35bd8dc9d5475c0cecd5bf3a89b66bef38f56c3",
+      "sha256": "sha256:31cb57b4695198fdbe1689ac322efb4e6ea76fcdbffa89c17a96827ac9ff8613",
       "imports": [
         "../../vendor/reploid/artifacts/identity.js",
         "../earning/attempts.js",
@@ -2219,7 +2219,7 @@
     {
       "path": "self/host/earning/attempts.js",
       "owner": "self",
-      "sha256": "sha256:174879257596f9db8bfd7a469dc4403472654eddbfe81b8258dfa915e1d555f1",
+      "sha256": "sha256:123f05e73244a90deacd8543290aaa71c5947588bb8deb16147f849173d7d033",
       "imports": [
         "../../vendor/reploid/mesh/partitions/partition-attempt-evidence.js"
       ]
@@ -3182,7 +3182,7 @@
     {
       "path": "ui/pool-home/account-panel.js",
       "owner": "ui",
-      "sha256": "sha256:3be7e34d069d2ec421167446324bdec478a8cb840af7df360e4ac4268ef131ba",
+      "sha256": "sha256:acb98567867b4f14695f724def94d4a10bf089b103e4a4256d234468c4ef6363",
       "imports": [
         "../components/attachments.js",
         "./account-sign-in.js"
@@ -3329,7 +3329,7 @@
     {
       "path": "ui/pool-home/message-list.js",
       "owner": "ui",
-      "sha256": "sha256:bd0e340bc57223c93bfbe180f768e321f5ebb9d15fc0e0ed3ea03707147a6931",
+      "sha256": "sha256:e9b01fb5814ae3d488ca85295c401040463e175142aff399486203db664c3eb9",
       "imports": [
         "../components/attachments.js",
         "../components/interface-icons.js",

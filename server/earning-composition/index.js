@@ -41,6 +41,7 @@ import { createCommunityAccess, createFundingIssuanceAuthority } from '../commun
 import { createFirestoreCommunityAccessBackend, createMemoryCommunityAccessBackend } from '../community-access/stores.js';
 import { EARNING_ROUTES_PREFIX } from '../earning-routes/mount.js';
 import { createFirestoreRouteBackend, createMemoryRouteBackend } from '../earning-routes/idempotency.js';
+import { buildQuote, hashCanonical } from '../ledger/domain.js';
 import { createLedgerStore } from '../ledger/engine.js';
 import { createFirestoreLedgerBackend } from '../ledger/firestore-store.js';
 import { createMemoryLedgerBackend, createMemoryLedgerState } from '../ledger/memory-store.js';
@@ -166,6 +167,8 @@ function testCheckoutProcessor({ clock }) {
   };
 }
 
+const PUBLICATION_LEAD_MS = 250;
+
 /** Publish the policy's conversion records once; a published id with other terms refuses to start. */
 async function publishConversions({ ledger, conversions, clock }) {
   for (const record of conversions.records) {
@@ -178,10 +181,22 @@ async function publishConversions({ ledger, conversions, clock }) {
       if (!same) refuse('conversion_conflict', `conversion ${record.conversionId} is already published with other terms; publish a new conversion id`);
       continue;
     }
-    await ledger.publishConversion({
-      ...record, effectiveFrom: onPublication ? clock() : record.effectiveFrom,
-      authority: { ...conversions.authority }, idempotencyKey: `policy:${record.conversionId}`
-    });
+    const publish = (effectiveFrom) => ledger.publishConversion({ ...record, effectiveFrom, authority: { ...conversions.authority },
+      idempotencyKey: `policy:${record.conversionId}` });
+    if (!onPublication) {
+      await publish(record.effectiveFrom);
+      continue;
+    }
+    // `on_publication` takes effect at publication. A clock that moved on before the ledger stamped it gets a
+    // short lead instead (never before publication), and startup waits it out.
+    try {
+      await publish(clock());
+    } catch (error) {
+      if (error?.code !== 'invalid_conversion') throw error;
+      const effectiveFrom = new Date(Date.parse(clock()) + PUBLICATION_LEAD_MS).toISOString();
+      await publish(effectiveFrom);
+      await new Promise((resolve) => setTimeout(resolve, Math.max(0, Date.parse(effectiveFrom) - Date.parse(clock()))));
+    }
   }
 }
 
@@ -252,6 +267,22 @@ export async function createEarningComposition({ env = process.env, production =
     communityPoolAccountIds: policy.communityAccess ? poolAccountIds(policy.communityAccess) : []
   });
   await publishConversions({ ledger: services.ledger, conversions: policy.conversions, clock });
+  // Every quote template must build a quote the ledger accepts (formulas within maxCharge, deadlines, evidence terms
+  // and their unacknowledged-output bound), so a misconfigured policy refuses to start rather than refuse each quote.
+  const quoteTerms = createQuoteTerms({ services: policy.services, clock });
+  for (const template of policy.services) {
+    const offered = await quoteTerms({ request: template.request });
+    try {
+      buildQuote({ quoteId: 'policy_check', accountId: 'policy_check', ...offered }, { policy: services.ledger.policy, now: clock() });
+    } catch (error) {
+      refuse('quote_template_invalid', `the quote template for ${template.request.modelId} is invalid: ${[error.message, ...(error.details?.errors ?? [])].join('; ')}`);
+    }
+    // Community Access stamps its own evidence terms and refuses others, so the templates it uses must carry the same.
+    if (policy.communityAccess && template.terms.evidence !== undefined
+      && hashCanonical(template.terms.evidence) !== hashCanonical(policy.communityAccess.evidence)) {
+      refuse('evidence_terms_mismatch', `the quote template for ${template.request.modelId} names evidence terms other than policy.communityAccess.evidence`);
+    }
+  }
 
   const payments = processor ? createPaymentStore({
     backend: paymentBackend, ledger: services.ledger, processor, clock,
@@ -269,7 +300,7 @@ export async function createEarningComposition({ env = process.env, production =
     payments,
     testCheckout: local && payments ? local.bind(payments) : null,
     communityAccess,
-    quoteTerms: createQuoteTerms({ services: policy.services, clock }),
+    quoteTerms,
     offerTerms: policy.offers.length ? createOfferTerms({ offers: policy.offers, clock }) : null,
     operatorAuthority,
     idempotencyBackend: stores.binding(),

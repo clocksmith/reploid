@@ -168,13 +168,10 @@ export async function openNativeEarning({ settings, identity, ownerAuthorization
         if (!offer) continue;
         groups.set(offer.offerId, [...(groups.get(offer.offerId) ?? []), record]);
       }
-      const results = { evidence: [], stages: [], deliveries: [] };
-      for (const [offerId, records] of groups) {
-        const observed = await contributionFor(offerId).observe({ admissions: records });
-        results.evidence.push(...observed.evidence);
-        results.stages.push(...observed.stages);
-      }
-      if (deliveries.length) results.deliveries.push(...(await base.observe({ deliveries })).deliveries);
+      // Signed receipts of every closed charged attempt are submitted, offer or not: they settle the requester's charge.
+      const { evidence, deliveries: delivered } = await base.observe({ admissions, deliveries });
+      const results = { evidence, stages: [], deliveries: delivered };
+      for (const [offerId, records] of groups) results.stages.push(...await contributionFor(offerId).claimStageShares(records));
       return results;
     },
     reconcile: () => client.reconcile()

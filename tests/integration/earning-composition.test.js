@@ -90,7 +90,7 @@ describe.each(['memory', 'firestore'])('earning composition (%s store)', (kind) 
   it('publishes its settings, signs in through the local flow and refuses malformed subjects', async () => {
     const settings = await call(base, 'GET', '/v1/client');
     expect(settings.body).toEqual({ schema: 'reploid.earning-service/v1', signIn: [{ providerId: 'local-test', flow: 'local_test_subject', testOnly: true }],
-      topUps: [{ topUpId: 'test-topup', price: { amountMinor: 1000, currency: 'USD' } }] });
+      topUps: [{ topUpId: 'test-topup', price: { amountMinor: 1000, currency: 'USD' } }], communityAccess: false });
     expect((await call(base, 'POST', '/v1/sign-in/local-test/assertions', { body: { subject: 'Not Valid' } })).body.error).toBe('invalid_body');
     expect((await call(base, 'POST', '/v1/sign-in/local-test/assertions', { body: { subject: 'alice', extra: 1 } })).body.error).toBe('invalid_body');
     // The local flow issues no states; real providers' state route does not exist for it.
@@ -99,6 +99,9 @@ describe.each(['memory', 'firestore'])('earning composition (%s store)', (kind) 
     const again = await device('alice', 'native');
     expect(again.accountId).toBe(alice.accountId);
     expect((await call(base, 'GET', '/v1/accounts/me', { token: alice.token })).body.account.providerId).toBe('local-test');
+    // Without a communityAccess policy section the Community Access route says so.
+    expect((await call(base, 'POST', '/v1/community-access/requests', { token: alice.token, key: 'access:1', body: { request: { ...QUOTE_REQUEST } } })).body.error)
+      .toBe('community_access_unconfigured');
   });
 
   it('starts a top-up checkout once per key, completes it on the test checkout page and credits it once', async () => {
@@ -177,6 +180,10 @@ describe.each(['memory', 'firestore'])('earning composition (%s store)', (kind) 
     await expect(compose({ REPLOID_EARNING_TEST_SIGN_IN: 'disabled' })).rejects.toMatchObject({ code: 'sign_in_provider_required' });
     await expect(compose({ REPLOID_EARNING_POLICY_FILE: await writeOutsideRepository('policy.json', earningPolicy({ services: [] })) }))
       .rejects.toMatchObject({ code: 'policy_invalid' });
+    // A template the ledger would refuse (here, evidence terms with another unacknowledged-output bound) refuses to start.
+    const unbounded = earningPolicy();
+    unbounded.services[0].terms.evidence = { rulesId: 'reploid.attempt-evidence-rules/1.1.0', windowMs: 5 * MIN, clockSkewMs: 30_000, maxUnacknowledgedOutputs: 99 };
+    await expect(compose({ REPLOID_EARNING_POLICY_FILE: await writeOutsideRepository('policy.json', unbounded) })).rejects.toMatchObject({ code: 'quote_template_invalid' });
     const late = earningPolicy();
     late.services[0].deadlines.firstOutputMs = late.services[0].deadlines.completeMs;
     await expect(compose({ REPLOID_EARNING_POLICY_FILE: await writeOutsideRepository('policy.json', late) })).rejects.toThrow('firstOutputMs must be');
