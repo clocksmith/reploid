@@ -1,0 +1,11 @@
+{
+ "label": "sliced paired RMSNorm (rmsnorm_paired_sliced.wgsl)",
+ "kernels": {
+  "norm": {
+   "kernel": "rmsnorm_paired_sliced.wgsl",
+   "entry": "main",
+   "digest": "sha256:92760258450f504f4707b4fcb98148967b11c9a8e27e95d3f1242191c88bf1cc",
+   "constants": { "WORKGROUP_SIZE": 256 }
+  }
+ }
+}

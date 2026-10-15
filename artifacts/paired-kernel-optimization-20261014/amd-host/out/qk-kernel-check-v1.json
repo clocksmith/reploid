@@ -1,0 +1,181 @@
+{
+ "schema": "reploid.paired-qk-kernel-check/v1",
+ "startedAt": "2026-10-14T23:04:26.383Z",
+ "sources": {
+  "shipped": {
+   "path": "/var/tmp/reploid-signed-completion-9-20261014/reploid/node_modules/doppler-gpu/src/gpu/kernels/gated_delta_qk_paired.wgsl",
+   "sha256": "20623d93648c0216dfc4d122bf8637594d3b5d858f32d023cd9b015e92fea6ae"
+  },
+  "candidate": {
+   "path": "pkg-rec-e62a2d41/node_modules/doppler-gpu/src/gpu/kernels/gated_delta_qk_paired_parallel.wgsl",
+   "sha256": "a70a7992410f877c0cf795a79eab5e554303790b0b9792c3053d6ba00e795d7d"
+  }
+ },
+ "candidateConstants": {
+  "WORKGROUP_SIZE": 256
+ },
+ "repeats": 3,
+ "cases": [
+  {
+   "profile": "model",
+   "tokens": 1,
+   "kHeads": 16,
+   "vHeads": 16,
+   "kDim": 128,
+   "vDim": 128,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 6.106226635438361e-16,
+     "medianMs": 0.32135699999980716
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 6.106226635438361e-16,
+     "medianMs": 0.17388800000026094
+    }
+   },
+   "shippedVsCandidate": {
+    "bitIdenticalWords": 12288,
+    "words": 12288
+   }
+  },
+  {
+   "profile": "model",
+   "tokens": 16,
+   "kHeads": 16,
+   "vHeads": 16,
+   "kDim": 128,
+   "vDim": 128,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 9.43689570931383e-16,
+     "medianMs": 3.17200800000046
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 9.43689570931383e-16,
+     "medianMs": 1.8181620000004841
+    }
+   },
+   "shippedVsCandidate": {
+    "bitIdenticalWords": 196608,
+    "words": 196608
+   }
+  },
+  {
+   "profile": "wide",
+   "tokens": 1,
+   "kHeads": 16,
+   "vHeads": 16,
+   "kDim": 128,
+   "vDim": 128,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.5543122344752192e-15,
+     "medianMs": 1.3313629999993282
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.5543122344752192e-15,
+     "medianMs": 0.17142400000011548
+    }
+   },
+   "shippedVsCandidate": {
+    "bitIdenticalWords": 12288,
+    "words": 12288
+   }
+  },
+  {
+   "profile": "wide",
+   "tokens": 16,
+   "kHeads": 16,
+   "vHeads": 16,
+   "kDim": 128,
+   "vDim": 128,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 2.6645352591003757e-15,
+     "medianMs": 3.203037000000222
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 2.6645352591003757e-15,
+     "medianMs": 1.9004779999995662
+    }
+   },
+   "shippedVsCandidate": {
+    "bitIdenticalWords": 196608,
+    "words": 196608
+   }
+  },
+  {
+   "profile": "cancel",
+   "tokens": 1,
+   "kHeads": 16,
+   "vHeads": 16,
+   "kDim": 128,
+   "vDim": 128,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.191891195797325e-16,
+     "medianMs": 0.403280999999879
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 3.191891195797325e-16,
+     "medianMs": 0.17419900000004418
+    }
+   },
+   "shippedVsCandidate": {
+    "bitIdenticalWords": 12288,
+    "words": 12288
+   }
+  },
+  {
+   "profile": "cancel",
+   "tokens": 16,
+   "kHeads": 16,
+   "vHeads": 16,
+   "kDim": 128,
+   "vDim": 128,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 6.245004513516506e-16,
+     "medianMs": 4.006092999999964
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 6.245004513516506e-16,
+     "medianMs": 1.8536089999997785
+    }
+   },
+   "shippedVsCandidate": {
+    "bitIdenticalWords": 196608,
+    "words": 196608
+   }
+  },
+  {
+   "profile": "model",
+   "tokens": 3,
+   "kHeads": 2,
+   "vHeads": 2,
+   "kDim": 100,
+   "vDim": 72,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 6.38378239159465e-16,
+     "medianMs": 0.6018659999999727
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 6.38378239159465e-16,
+     "medianMs": 0.3801480000001902
+    }
+   },
+   "shippedVsCandidate": {
+    "bitIdenticalWords": 3264,
+    "words": 3264
+   }
+  }
+ ],
+ "errors": [],
+ "adapter": {
+  "vendor": "amd",
+  "architecture": "rdna-3",
+  "description": "radv: Mesa 26.0.3-1ubuntu1"
+ },
+ "finishedAt": "2026-10-14T23:04:31.854Z"
+}

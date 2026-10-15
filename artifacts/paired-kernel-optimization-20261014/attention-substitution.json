@@ -1,0 +1,11 @@
+{
+ "label": "tiled paired attention (attention_paired_tiled.wgsl)",
+ "kernels": {
+  "attention": {
+   "kernel": "attention_paired_tiled.wgsl",
+   "entry": "main",
+   "digest": "sha256:70a0a584eb26e3eb9aa14ea1082b9f3801bf730c43577874c1c4257a69b6ea16",
+   "constants": { "WORKGROUP_SIZE": 256, "DOT_LANES": 4 }
+  }
+ }
+}

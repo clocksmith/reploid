@@ -1,0 +1,20 @@
+{
+ "label": "compensated paired matmul (matmul_paired_compensated.wgsl) for every projection and the output head",
+ "kernels": {
+  "projection_q4": {
+   "kernel": "matmul_paired_compensated.wgsl",
+   "entry": "main",
+   "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c"
+  },
+  "projection_f16": {
+   "kernel": "matmul_paired_compensated.wgsl",
+   "entry": "main",
+   "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c"
+  },
+  "head": {
+   "kernel": "matmul_paired_compensated.wgsl",
+   "entry": "main",
+   "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c"
+  }
+ }
+}

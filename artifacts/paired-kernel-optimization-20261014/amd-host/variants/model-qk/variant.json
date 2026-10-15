@@ -1,0 +1,16 @@
+{
+ "label": "parallel paired Q/K normalization (gated_delta_qk_paired_parallel.wgsl, declared replacement of paired_qk)",
+ "baseManifestSha256": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+ "variantManifestSha256": "sha256:6b7529898ce9ff046fa4bf73123a9540d4c6ef8cb0552d1aa3efa2d907942035",
+ "substituted": {},
+ "addedMechanismKernels": {
+  "paired_qk_parallel": {
+   "kernel": "gated_delta_qk_paired_parallel.wgsl",
+   "entry": "main",
+   "digest": "sha256:75b6c97cea545f81e384a8d5254b8c97c5063b02a9e827c877383401eed92daa",
+   "constants": {
+    "WORKGROUP_SIZE": 256
+   }
+  }
+ }
+}

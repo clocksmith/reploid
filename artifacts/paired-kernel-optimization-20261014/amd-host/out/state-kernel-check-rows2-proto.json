@@ -1,0 +1,702 @@
+{
+ "schema": "reploid.paired-state-kernel-check/v1",
+ "startedAt": "2026-10-14T23:58:41.987Z",
+ "sources": {
+  "shipped": {
+   "path": "/var/tmp/reploid-signed-completion-9-20261014/reploid/node_modules/doppler-gpu/src/gpu/kernels/gated_delta_state_paired.wgsl",
+   "sha256": "36dc4fe9f21e1daedbd0df276a8b139d7119dd9a3129ce8c8c5cc0717ae12fd7"
+  },
+  "candidate": {
+   "path": "kernels/gated_delta_state_paired_rows2.wgsl",
+   "sha256": "8e8a5dc34a4dc630b71fcb403a5aceb6929b50979c307ab93c35881ccd95cb48"
+  }
+ },
+ "candidateConstants": {
+  "WORKGROUP_SIZE": 256,
+  "K_SLICES": 64
+ },
+ "repeats": 3,
+ "cases": [
+  {
+   "name": "model-model-geometry-tokens1",
+   "profile": "model",
+   "tokens": 1,
+   "kHeads": 16,
+   "vHeads": 16,
+   "kDim": 128,
+   "vDim": 128,
+   "kernels": {
+    "shipped": {
+     "output": {
+      "maxRelativeErrorVsF64": 1.124100812432971e-15,
+      "maxMagnitudeRelativeErrorVsF64": 2.1641306841277166e-11,
+      "finite": true
+     },
+     "state": {
+      "maxRelativeErrorVsF64": 3.6637359812630166e-15,
+      "maxMagnitudeRelativeErrorVsF64": 1.1306176034072013e-10,
+      "finite": true
+     },
+     "medianMs": 6.471231999999873,
+     "minMs": 6.313172999999551,
+     "maxMs": 6.6863469999998415
+    },
+    "candidate": {
+     "output": {
+      "maxRelativeErrorVsF64": 3.608224830031759e-16,
+      "maxMagnitudeRelativeErrorVsF64": 6.027014948745815e-12,
+      "finite": true
+     },
+     "state": {
+      "maxRelativeErrorVsF64": 3.040271739002624e-15,
+      "maxMagnitudeRelativeErrorVsF64": 1.1306176034072013e-10,
+      "finite": true
+     },
+     "medianMs": 0.6594749999994747,
+     "minMs": 0.5956740000001446,
+     "maxMs": 1.5478110000003653
+    }
+   },
+   "shippedVsCandidate": {
+    "output": {
+     "maxRelativeDifference": 1.3322676295501878e-15,
+     "maxMagnitudeRelativeDifference": 2.766832179062176e-11,
+     "bitIdentical": 264,
+     "count": 2048
+    },
+    "state": {
+     "maxRelativeDifference": 3.552713678800501e-15,
+     "maxMagnitudeRelativeDifference": 7.054433516883803e-11,
+     "bitIdentical": 205855,
+     "count": 262144
+    }
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "model-model-geometry-tokens3",
+   "profile": "model",
+   "tokens": 3,
+   "kHeads": 16,
+   "vHeads": 16,
+   "kDim": 128,
+   "vDim": 128,
+   "kernels": {
+    "shipped": {
+     "output": {
+      "maxRelativeErrorVsF64": 1.8318679906315083e-15,
+      "maxMagnitudeRelativeErrorVsF64": 1.8887351445873054e-11,
+      "finite": true
+     },
+     "state": {
+      "maxRelativeErrorVsF64": 5.329070518200751e-15,
+      "maxMagnitudeRelativeErrorVsF64": 1.501755489336889e-11,
+      "finite": true
+     },
+     "medianMs": 18.858977999999297,
+     "minMs": 18.8204939999996,
+     "maxMs": 19.480709999999817
+    },
+    "candidate": {
+     "output": {
+      "maxRelativeErrorVsF64": 3.885780586188048e-16,
+      "maxMagnitudeRelativeErrorVsF64": 3.84118605865214e-12,
+      "finite": true
+     },
+     "state": {
+      "maxRelativeErrorVsF64": 5.329070518200751e-15,
+      "maxMagnitudeRelativeErrorVsF64": 2.72983848645937e-11,
+      "finite": true
+     },
+     "medianMs": 1.6873640000003434,
+     "minMs": 1.6831360000005589,
+     "maxMs": 1.6933850000004895
+    }
+   },
+   "shippedVsCandidate": {
+    "output": {
+     "maxRelativeDifference": 1.887379141862766e-15,
+     "maxMagnitudeRelativeDifference": 2.017429649573495e-11,
+     "bitIdentical": 737,
+     "count": 6144
+    },
+    "state": {
+     "maxRelativeDifference": 4.440892098500626e-15,
+     "maxMagnitudeRelativeDifference": 2.957325026990924e-11,
+     "bitIdentical": 183794,
+     "count": 262144
+    }
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "model-model-geometry-tokens16",
+   "profile": "model",
+   "tokens": 16,
+   "kHeads": 16,
+   "vHeads": 16,
+   "kDim": 128,
+   "vDim": 128,
+   "kernels": {
+    "shipped": {
+     "output": {
+      "maxRelativeErrorVsF64": 1.4155343563970746e-15,
+      "maxMagnitudeRelativeErrorVsF64": 8.10017724224271e-11,
+      "finite": true
+     },
+     "state": {
+      "maxRelativeErrorVsF64": 6.716849298982197e-15,
+      "maxMagnitudeRelativeErrorVsF64": 1.3902337265995823e-10,
+      "finite": true
+     },
+     "medianMs": 98.87679300000036,
+     "minMs": 98.7534599999999,
+     "maxMs": 101.03157900000042
+    },
+    "candidate": {
+     "output": {
+      "maxRelativeErrorVsF64": 4.475586568020162e-16,
+      "maxMagnitudeRelativeErrorVsF64": 1.2450802474825366e-10,
+      "finite": true
+     },
+     "state": {
+      "maxRelativeErrorVsF64": 6.716849298982197e-15,
+      "maxMagnitudeRelativeErrorVsF64": 8.350812943693593e-11,
+      "finite": true
+     },
+     "medianMs": 8.766592999999375,
+     "minMs": 8.36466400000063,
+     "maxMs": 8.924620999999206
+    }
+   },
+   "shippedVsCandidate": {
+    "output": {
+     "maxRelativeDifference": 1.3877787807814457e-15,
+     "maxMagnitudeRelativeDifference": 1.2187705002139005e-10,
+     "bitIdentical": 3617,
+     "count": 32768
+    },
+    "state": {
+     "maxRelativeDifference": 5.218048215738236e-15,
+     "maxMagnitudeRelativeDifference": 1.168931215180933e-10,
+     "bitIdentical": 115962,
+     "count": 262144
+    }
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "wide-model-geometry-tokens1",
+   "profile": "wide",
+   "tokens": 1,
+   "kHeads": 16,
+   "vHeads": 16,
+   "kDim": 128,
+   "vDim": 128,
+   "kernels": {
+    "shipped": {
+     "output": {
+      "maxRelativeErrorVsF64": 9.71667191151937e-13,
+      "maxMagnitudeRelativeErrorVsF64": 2.384101217079742e-12,
+      "finite": true
+     },
+     "state": {
+      "maxRelativeErrorVsF64": 7.07899115772724e-13,
+      "maxMagnitudeRelativeErrorVsF64": 5.5871572743789814e-11,
+      "finite": true
+     },
+     "medianMs": 6.4339609999997265,
+     "minMs": 6.3178420000003825,
+     "maxMs": 7.526652999999897
+    },
+    "candidate": {
+     "output": {
+      "maxRelativeErrorVsF64": 6.972189864462153e-13,
+      "maxMagnitudeRelativeErrorVsF64": 1.0552353175337048e-12,
+      "finite": true
+     },
+     "state": {
+      "maxRelativeErrorVsF64": 3.5926817076870066e-13,
+      "maxMagnitudeRelativeErrorVsF64": 5.886464219653859e-11,
+      "finite": true
+     },
+     "medianMs": 0.6965040000004592,
+     "minMs": 0.6939999999995052,
+     "maxMs": 0.7526310000002923
+    }
+   },
+   "shippedVsCandidate": {
+    "output": {
+     "maxRelativeDifference": 8.317047046743394e-13,
+     "maxMagnitudeRelativeDifference": 1.5812468595760104e-12,
+     "bitIdentical": 197,
+     "count": 2048
+    },
+    "state": {
+     "maxRelativeDifference": 6.392436141230665e-13,
+     "maxMagnitudeRelativeDifference": 8.329146651142248e-11,
+     "bitIdentical": 128291,
+     "count": 262144
+    }
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "wide-model-geometry-tokens3",
+   "profile": "wide",
+   "tokens": 3,
+   "kHeads": 16,
+   "vHeads": 16,
+   "kDim": 128,
+   "vDim": 128,
+   "kernels": {
+    "shipped": {
+     "output": {
+      "maxRelativeErrorVsF64": 2.7284841053187847e-12,
+      "maxMagnitudeRelativeErrorVsF64": 1.1818772230904778e-11,
+      "finite": true
+     },
+     "state": {
+      "maxRelativeErrorVsF64": 1.2518874825673265e-12,
+      "maxMagnitudeRelativeErrorVsF64": 2.4524840454035753e-10,
+      "finite": true
+     },
+     "medianMs": 18.93406899999991,
+     "minMs": 18.763817000000017,
+     "maxMs": 19.114900999999918
+    },
+    "candidate": {
+     "output": {
+      "maxRelativeErrorVsF64": 1.0062456979691916e-12,
+      "maxMagnitudeRelativeErrorVsF64": 5.171492219966896e-12,
+      "finite": true
+     },
+     "state": {
+      "maxRelativeErrorVsF64": 1.6897594434794883e-12,
+      "maxMagnitudeRelativeErrorVsF64": 6.880865252998663e-11,
+      "finite": true
+     },
+     "medianMs": 1.659060999999383,
+     "minMs": 1.6479699999999866,
+     "maxMs": 2.561312999999245
+    }
+   },
+   "shippedVsCandidate": {
+    "output": {
+     "maxRelativeDifference": 1.8758328224066645e-12,
+     "maxMagnitudeRelativeDifference": 1.3245880972266844e-11,
+     "bitIdentical": 449,
+     "count": 6144
+    },
+    "state": {
+     "maxRelativeDifference": 1.808331262509455e-12,
+     "maxMagnitudeRelativeDifference": 2.3132600597260055e-10,
+     "bitIdentical": 63251,
+     "count": 262144
+    }
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "wide-model-geometry-tokens16",
+   "profile": "wide",
+   "tokens": 16,
+   "kHeads": 16,
+   "vHeads": 16,
+   "kDim": 128,
+   "vDim": 128,
+   "kernels": {
+    "shipped": {
+     "output": {
+      "maxRelativeErrorVsF64": 2.2782915740578797e-11,
+      "maxMagnitudeRelativeErrorVsF64": 6.025813731472753e-11,
+      "finite": true
+     },
+     "state": {
+      "maxRelativeErrorVsF64": 1.3800405262998083e-11,
+      "maxMagnitudeRelativeErrorVsF64": 2.194160151983584e-8,
+      "finite": true
+     },
+     "medianMs": 98.23361899999963,
+     "minMs": 97.92546799999946,
+     "maxMs": 105.93103399999927
+    },
+    "candidate": {
+     "output": {
+      "maxRelativeErrorVsF64": 2.0261820719898334e-11,
+      "maxMagnitudeRelativeErrorVsF64": 4.806265161103001e-11,
+      "finite": true
+     },
+     "state": {
+      "maxRelativeErrorVsF64": 1.229050194950787e-11,
+      "maxMagnitudeRelativeErrorVsF64": 2.554982078676337e-8,
+      "finite": true
+     },
+     "medianMs": 8.467399000000114,
+     "minMs": 8.351199000000634,
+     "maxMs": 9.393134999999347
+    }
+   },
+   "shippedVsCandidate": {
+    "output": {
+     "maxRelativeDifference": 1.3613256556279698e-11,
+     "maxMagnitudeRelativeDifference": 8.494657698386872e-11,
+     "bitIdentical": 1730,
+     "count": 32768
+    },
+    "state": {
+     "maxRelativeDifference": 3.538502824085299e-12,
+     "maxMagnitudeRelativeDifference": 4.749142126456137e-8,
+     "bitIdentical": 35026,
+     "count": 262144
+    }
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "cancel-model-geometry-tokens1",
+   "profile": "cancel",
+   "tokens": 1,
+   "kHeads": 16,
+   "vHeads": 16,
+   "kDim": 128,
+   "vDim": 128,
+   "kernels": {
+    "shipped": {
+     "output": {
+      "maxRelativeErrorVsF64": 3.309640125225711e-14,
+      "maxMagnitudeRelativeErrorVsF64": 1.6488976717533014e-11,
+      "finite": true
+     },
+     "state": {
+      "maxRelativeErrorVsF64": 6.855627177060342e-15,
+      "maxMagnitudeRelativeErrorVsF64": 1.274922058164771e-10,
+      "finite": true
+     },
+     "medianMs": 6.525072999999793,
+     "minMs": 6.3865109999997,
+     "maxMs": 7.32398000000012
+    },
+    "candidate": {
+     "output": {
+      "maxRelativeErrorVsF64": 4.5852210917018965e-14,
+      "maxMagnitudeRelativeErrorVsF64": 1.890189218788844e-11,
+      "finite": true
+     },
+     "state": {
+      "maxRelativeErrorVsF64": 1.504352198367087e-14,
+      "maxMagnitudeRelativeErrorVsF64": 1.809063272739326e-10,
+      "finite": true
+     },
+     "medianMs": 0.735728000000563,
+     "minMs": 0.5972369999999501,
+     "maxMs": 1.5495039999996152
+    }
+   },
+   "shippedVsCandidate": {
+    "output": {
+     "maxRelativeDifference": 4.243759210580633e-14,
+     "maxMagnitudeRelativeDifference": 1.9940457692696765e-11,
+     "bitIdentical": 116,
+     "count": 2048
+    },
+    "state": {
+     "maxRelativeDifference": 1.4210854715202004e-14,
+     "maxMagnitudeRelativeDifference": 8.396610300512802e-11,
+     "bitIdentical": 135263,
+     "count": 262144
+    }
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "cancel-model-geometry-tokens3",
+   "profile": "cancel",
+   "tokens": 3,
+   "kHeads": 16,
+   "vHeads": 16,
+   "kDim": 128,
+   "vDim": 128,
+   "kernels": {
+    "shipped": {
+     "output": {
+      "maxRelativeErrorVsF64": 8.504308368628699e-14,
+      "maxMagnitudeRelativeErrorVsF64": 3.0749783267289063e-11,
+      "finite": true
+     },
+     "state": {
+      "maxRelativeErrorVsF64": 3.863576125695545e-14,
+      "maxMagnitudeRelativeErrorVsF64": 5.79057071606139e-10,
+      "finite": true
+     },
+     "medianMs": 18.781660999999986,
+     "minMs": 18.677656000000752,
+     "maxMs": 19.566312000000835
+    },
+    "candidate": {
+     "output": {
+      "maxRelativeErrorVsF64": 9.825473767932635e-14,
+      "maxMagnitudeRelativeErrorVsF64": 4.685267566237447e-11,
+      "finite": true
+     },
+     "state": {
+      "maxRelativeErrorVsF64": 5.551115123125783e-14,
+      "maxMagnitudeRelativeErrorVsF64": 5.79057071606139e-10,
+      "finite": true
+     },
+     "medianMs": 2.5513840000003256,
+     "minMs": 1.6105590000006487,
+     "maxMs": 2.8331660000003467
+    }
+   },
+   "shippedVsCandidate": {
+    "output": {
+     "maxRelativeDifference": 1.4654943925052066e-13,
+     "maxMagnitudeRelativeDifference": 3.379923575759871e-11,
+     "bitIdentical": 366,
+     "count": 6144
+    },
+    "state": {
+     "maxRelativeDifference": 6.371183716338466e-14,
+     "maxMagnitudeRelativeDifference": 5.162418706230714e-10,
+     "bitIdentical": 57107,
+     "count": 262144
+    }
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "cancel-model-geometry-tokens16",
+   "profile": "cancel",
+   "tokens": 16,
+   "kHeads": 16,
+   "vHeads": 16,
+   "kDim": 128,
+   "vDim": 128,
+   "kernels": {
+    "shipped": {
+     "output": {
+      "maxRelativeErrorVsF64": 5.0253134986633086e-12,
+      "maxMagnitudeRelativeErrorVsF64": 9.031799192591579e-11,
+      "finite": true
+     },
+     "state": {
+      "maxRelativeErrorVsF64": 3.865352482534945e-12,
+      "maxMagnitudeRelativeErrorVsF64": 4.551075146482721e-9,
+      "finite": true
+     },
+     "medianMs": 100.62090400000034,
+     "minMs": 98.64347199999975,
+     "maxMs": 105.03013399999963
+    },
+    "candidate": {
+     "output": {
+      "maxRelativeErrorVsF64": 4.1617632571779035e-12,
+      "maxMagnitudeRelativeErrorVsF64": 2.863929487565364e-10,
+      "finite": true
+     },
+     "state": {
+      "maxRelativeErrorVsF64": 1.6342482922482304e-12,
+      "maxMagnitudeRelativeErrorVsF64": 5.353187714565263e-9,
+      "finite": true
+     },
+     "medianMs": 8.482676999999967,
+     "minMs": 8.166479999999865,
+     "maxMs": 9.023838000000069
+    }
+   },
+   "shippedVsCandidate": {
+    "output": {
+     "maxRelativeDifference": 5.8650451129984696e-12,
+     "maxMagnitudeRelativeDifference": 3.767109406484284e-10,
+     "bitIdentical": 1324,
+     "count": 32768
+    },
+    "state": {
+     "maxRelativeDifference": 3.89813444578413e-12,
+     "maxMagnitudeRelativeDifference": 9.90426281597294e-9,
+     "bitIdentical": 9332,
+     "count": 262144
+    }
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "model-gqa-qrep2-tokens3",
+   "profile": "model",
+   "tokens": 3,
+   "kHeads": 4,
+   "vHeads": 8,
+   "kDim": 128,
+   "vDim": 128,
+   "kernels": {
+    "shipped": {
+     "output": {
+      "maxRelativeErrorVsF64": 1.3739009929736312e-15,
+      "maxMagnitudeRelativeErrorVsF64": 1.0256294720178582e-11,
+      "finite": true
+     },
+     "state": {
+      "maxRelativeErrorVsF64": 4.884981308350689e-15,
+      "maxMagnitudeRelativeErrorVsF64": 9.204909369927925e-11,
+      "finite": true
+     },
+     "medianMs": 18.72000500000013,
+     "minMs": 18.66371899999922,
+     "maxMs": 19.408254000000852
+    },
+    "candidate": {
+     "output": {
+      "maxRelativeErrorVsF64": 3.7470027081099033e-16,
+      "maxMagnitudeRelativeErrorVsF64": 2.918457847205287e-12,
+      "finite": true
+     },
+     "state": {
+      "maxRelativeErrorVsF64": 5.10702591327572e-15,
+      "maxMagnitudeRelativeErrorVsF64": 2.0010672543321576e-11,
+      "finite": true
+     },
+     "medianMs": 0.9028130000006058,
+     "minMs": 0.9000480000004245,
+     "maxMs": 0.9899880000002668
+    }
+   },
+   "shippedVsCandidate": {
+    "output": {
+     "maxRelativeDifference": 1.3877787807814457e-15,
+     "maxMagnitudeRelativeDifference": 7.337836873048553e-12,
+     "bitIdentical": 340,
+     "count": 3072
+    },
+    "state": {
+     "maxRelativeDifference": 3.552713678800501e-15,
+     "maxMagnitudeRelativeDifference": 7.203842116258875e-11,
+     "bitIdentical": 93950,
+     "count": 131072
+    }
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "model-partial-100x72-tokens3",
+   "profile": "model",
+   "tokens": 3,
+   "kHeads": 2,
+   "vHeads": 2,
+   "kDim": 100,
+   "vDim": 72,
+   "kernels": {
+    "shipped": {
+     "output": {
+      "maxRelativeErrorVsF64": 7.355227538141662e-16,
+      "maxMagnitudeRelativeErrorVsF64": 9.947242310441514e-13,
+      "finite": true
+     },
+     "state": {
+      "maxRelativeErrorVsF64": 4.773959005888173e-15,
+      "maxMagnitudeRelativeErrorVsF64": 3.2478305466388346e-12,
+      "finite": true
+     },
+     "medianMs": 14.305374999999913,
+     "minMs": 13.634428999999727,
+     "maxMs": 15.397766000000047
+    },
+    "candidate": {
+     "output": {
+      "maxRelativeErrorVsF64": 3.608224830031759e-16,
+      "maxMagnitudeRelativeErrorVsF64": 3.4305075458753804e-13,
+      "finite": true
+     },
+     "state": {
+      "maxRelativeErrorVsF64": 4.773959005888173e-15,
+      "maxMagnitudeRelativeErrorVsF64": 3.8126706417064575e-12,
+      "finite": true
+     },
+     "medianMs": 0.5112149999995381,
+     "minMs": 0.5050230000006195,
+     "maxMs": 0.6146099999996295
+    }
+   },
+   "shippedVsCandidate": {
+    "output": {
+     "maxRelativeDifference": 8.881784197001252e-16,
+     "maxMagnitudeRelativeDifference": 1.3377749856303589e-12,
+     "bitIdentical": 52,
+     "count": 432
+    },
+    "state": {
+     "maxRelativeDifference": 3.552713678800501e-15,
+     "maxMagnitudeRelativeDifference": 7.060501188368224e-12,
+     "bitIdentical": 9738,
+     "count": 14400
+    }
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "cancel-partial-100x72-tokens16",
+   "profile": "cancel",
+   "tokens": 16,
+   "kHeads": 2,
+   "vHeads": 2,
+   "kDim": 100,
+   "vDim": 72,
+   "kernels": {
+    "shipped": {
+     "output": {
+      "maxRelativeErrorVsF64": 8.124501071904433e-12,
+      "maxMagnitudeRelativeErrorVsF64": 2.376294574461137e-11,
+      "finite": true
+     },
+     "state": {
+      "maxRelativeErrorVsF64": 2.5512099107905557e-12,
+      "maxMagnitudeRelativeErrorVsF64": 8.474467044248193e-11,
+      "finite": true
+     },
+     "medianMs": 72.4213409999993,
+     "minMs": 72.0363040000002,
+     "maxMs": 72.46557500000017
+    },
+    "candidate": {
+     "output": {
+      "maxRelativeErrorVsF64": 7.858047545994395e-12,
+      "maxMagnitudeRelativeErrorVsF64": 5.120376250894916e-11,
+      "finite": true
+     },
+     "state": {
+      "maxRelativeErrorVsF64": 2.4364540901527086e-12,
+      "maxMagnitudeRelativeErrorVsF64": 8.073149380993793e-11,
+      "finite": true
+     },
+     "medianMs": 2.3077750000002197,
+     "minMs": 2.2657160000007934,
+     "maxMs": 2.738237000000481
+    }
+   },
+   "shippedVsCandidate": {
+    "output": {
+     "maxRelativeDifference": 1.408012663978515e-12,
+     "maxMagnitudeRelativeDifference": 5.457904559140255e-11,
+     "bitIdentical": 79,
+     "count": 2304
+    },
+    "state": {
+     "maxRelativeDifference": 1.0054179711005418e-12,
+     "maxMagnitudeRelativeDifference": 4.0223293651694296e-11,
+     "bitIdentical": 434,
+     "count": 14400
+    }
+   },
+   "errorsSoFar": 0
+  }
+ ],
+ "errors": [],
+ "adapter": {
+  "vendor": "amd",
+  "architecture": "rdna-3",
+  "description": "radv: Mesa 26.0.3-1ubuntu1"
+ },
+ "compileMs_shipped": 5.033608000000001,
+ "compileMs_candidate": 4526.737075,
+ "finishedAt": "2026-10-14T23:58:48.456Z"
+}

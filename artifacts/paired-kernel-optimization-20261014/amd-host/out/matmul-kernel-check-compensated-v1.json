@@ -1,0 +1,304 @@
+{
+ "schema": "reploid.paired-matmul-kernel-check/v1",
+ "startedAt": "2026-10-14T23:35:55.804Z",
+ "sources": {
+  "shipped": {
+   "path": "/var/tmp/reploid-signed-completion-9-20261014/reploid/node_modules/doppler-gpu/src/gpu/kernels/matmul_paired.wgsl",
+   "sha256": "2d56380990eb5c66a8272ca8f9ff3903bd55f018f6d9de079cc32ae5759aafb7"
+  },
+  "candidate": {
+   "path": "pkg-mm-980d4f39/node_modules/doppler-gpu/src/gpu/kernels/matmul_paired_compensated.wgsl",
+   "sha256": "ae5a3c159814a141e17100c83061e00b817f00df6a497bf3d6d15496d821e1e7"
+  }
+ },
+ "candidateConstants": {
+  "WORKGROUP_SIZE": 64
+ },
+ "repeats": 3,
+ "cases": [
+  {
+   "profile": "uniform",
+   "M": 1,
+   "N": 3584,
+   "K": 1024,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 8.800371455466922e-13,
+     "medianMs": 0.866928999999999,
+     "minMs": 0.8360000000000127
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 3.9143608051130475e-13,
+     "medianMs": 0.6609800000000519,
+     "minMs": 0.6418840000000046
+    }
+   },
+   "shippedVsCandidate": {
+    "maxRelativeDifference": 5.207055999276519e-13,
+    "bitIdenticalOutputs": 1161,
+    "outputs": 3584
+   }
+  },
+  {
+   "profile": "uniform",
+   "M": 16,
+   "N": 3584,
+   "K": 1024,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 2.1032064978498966e-12,
+     "medianMs": 13.056639999999902,
+     "minMs": 12.811876999999981
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.4530598946294049e-12,
+     "medianMs": 10.770869999999945,
+     "minMs": 9.743877999999995
+    }
+   },
+   "shippedVsCandidate": {
+    "maxRelativeDifference": 2.2737367544323206e-12,
+    "bitIdenticalOutputs": 12293,
+    "outputs": 57344
+   }
+  },
+  {
+   "profile": "uniform",
+   "M": 1,
+   "N": 1024,
+   "K": 3584,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.9912049961974034e-12,
+     "medianMs": 0.823195999999939,
+     "minMs": 0.7947520000000168
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 9.72613452849531e-13,
+     "medianMs": 0.5820599999999558,
+     "minMs": 0.5787040000000161
+    }
+   },
+   "shippedVsCandidate": {
+    "maxRelativeDifference": 1.0185915433458442e-12,
+    "bitIdenticalOutputs": 116,
+    "outputs": 1024
+   }
+  },
+  {
+   "profile": "uniform",
+   "M": 16,
+   "N": 1024,
+   "K": 3584,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.375077994860476e-12,
+     "medianMs": 13.076256999999941,
+     "minMs": 12.99150700000007
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 3.3648210316881624e-12,
+     "medianMs": 9.23738000000003,
+     "minMs": 9.095542000000023
+    }
+   },
+   "shippedVsCandidate": {
+    "maxRelativeDifference": 4.433786671143025e-12,
+    "bitIdenticalOutputs": 2582,
+    "outputs": 16384
+   }
+  },
+  {
+   "profile": "uniform",
+   "M": 1,
+   "N": 6144,
+   "K": 1024,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.0789508145836197e-12,
+     "medianMs": 1.3706010000000788,
+     "minMs": 1.365039999999908
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 8.881784197001252e-13,
+     "medianMs": 1.1044870000000628,
+     "minMs": 1.0609559999998055
+    }
+   },
+   "shippedVsCandidate": {
+    "maxRelativeDifference": 1.3642420526593924e-12,
+    "bitIdenticalOutputs": 1234,
+    "outputs": 6144
+   }
+  },
+  {
+   "profile": "uniform",
+   "M": 16,
+   "N": 6144,
+   "K": 1024,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.9769162377371774e-12,
+     "medianMs": 22.934230999999954,
+     "minMs": 22.646456999999828
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.3358203432289883e-12,
+     "medianMs": 17.684937999999875,
+     "minMs": 17.241940999999997
+    }
+   },
+   "shippedVsCandidate": {
+    "maxRelativeDifference": 2.5733418145409335e-12,
+    "bitIdenticalOutputs": 24410,
+    "outputs": 98304
+   }
+  },
+  {
+   "profile": "uniform",
+   "M": 1,
+   "N": 1024,
+   "K": 2048,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.5845103007450234e-12,
+     "medianMs": 0.6769289999999728,
+     "minMs": 0.6117659999999887
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.3855583347321954e-12,
+     "medianMs": 0.35810700000001816,
+     "minMs": 0.35429999999996653
+    }
+   },
+   "shippedVsCandidate": {
+    "maxRelativeDifference": 1.3642420526593924e-12,
+    "bitIdenticalOutputs": 163,
+    "outputs": 1024
+   }
+  },
+  {
+   "profile": "uniform",
+   "M": 16,
+   "N": 1024,
+   "K": 2048,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 2.2382096176443156e-12,
+     "medianMs": 7.274079000000029,
+     "minMs": 7.0343259999999646
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.9539925233402755e-12,
+     "medianMs": 5.847823999999946,
+     "minMs": 5.167667999999821
+    }
+   },
+   "shippedVsCandidate": {
+    "maxRelativeDifference": 2.7284841053187847e-12,
+    "bitIdenticalOutputs": 3144,
+    "outputs": 16384
+   }
+  },
+  {
+   "profile": "wide",
+   "M": 3,
+   "N": 1024,
+   "K": 1024,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 2.714246789898963e-12,
+     "medianMs": 0.7677909999999883,
+     "minMs": 0.7664890000000923
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 3.3208353348261863e-12,
+     "medianMs": 0.5809480000000349,
+     "minMs": 0.5741350000000693
+    }
+   },
+   "shippedVsCandidate": {
+    "maxRelativeDifference": 3.824891362583968e-12,
+    "bitIdenticalOutputs": 807,
+    "outputs": 3072
+   }
+  },
+  {
+   "profile": "cancel",
+   "M": 3,
+   "N": 1024,
+   "K": 1024,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.580536033278349e-13,
+     "medianMs": 0.7450979999998708,
+     "minMs": 0.7446879999999965
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 2.0444453421863962e-13,
+     "medianMs": 0.5692860000001474,
+     "minMs": 0.5659100000000308
+    }
+   },
+   "shippedVsCandidate": {
+    "maxRelativeDifference": 6.52367049269742e-13,
+    "bitIdenticalOutputs": 0,
+    "outputs": 3072
+   }
+  },
+  {
+   "profile": "uniform",
+   "M": 1,
+   "N": 1027,
+   "K": 512,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 6.735498063018911e-13,
+     "medianMs": 0.18760400000019217,
+     "minMs": 0.18285599999990154
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 5.329070518200751e-13,
+     "medianMs": 0.1389120000001185,
+     "minMs": 0.1368889999998828
+    }
+   },
+   "shippedVsCandidate": {
+    "maxRelativeDifference": 8.980664084019166e-13,
+    "bitIdenticalOutputs": 233,
+    "outputs": 1027
+   }
+  },
+  {
+   "profile": "uniform",
+   "M": 1,
+   "N": 65536,
+   "K": 1024,
+   "scalarOutput": true,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.9235429335587355e-8,
+     "medianMs": 15.0581430000002,
+     "minMs": 14.580069999999978
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 5.9235429335587355e-8,
+     "medianMs": 12.126111000000037,
+     "minMs": 11.8156740000004
+    }
+   },
+   "shippedVsCandidate": {
+    "maxRelativeDifference": 0,
+    "bitIdenticalOutputs": 65536,
+    "outputs": 65536
+   }
+  }
+ ],
+ "errors": [],
+ "adapter": {
+  "vendor": "amd",
+  "architecture": "rdna-3",
+  "description": "radv: Mesa 26.0.3-1ubuntu1"
+ },
+ "finishedAt": "2026-10-14T23:35:58.233Z"
+}

@@ -1,0 +1,98 @@
+{
+ "label": "compensated paired matmul (matmul_paired_compensated.wgsl) for every projection and the output head",
+ "baseManifestSha256": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+ "variantManifestSha256": "sha256:22a33e307d90a2913277b938cf787cff57a7685597112403670faa694cfd7921",
+ "substituted": {
+  "projection_q4": {
+   "before": {
+    "kernel": "matmul_paired.wgsl",
+    "entry": "main",
+    "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+    "constants": {
+     "WEIGHT_F16": false,
+     "WEIGHT_Q4K": true,
+     "SCALAR_OUTPUT": false
+    },
+    "precision": {
+     "inputDtype": "f32",
+     "outputDtype": "f32"
+    }
+   },
+   "after": {
+    "kernel": "matmul_paired_compensated.wgsl",
+    "entry": "main",
+    "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+    "constants": {
+     "WEIGHT_F16": false,
+     "WEIGHT_Q4K": true,
+     "SCALAR_OUTPUT": false
+    },
+    "precision": {
+     "inputDtype": "f32",
+     "outputDtype": "f32"
+    }
+   }
+  },
+  "projection_f16": {
+   "before": {
+    "kernel": "matmul_paired.wgsl",
+    "entry": "main",
+    "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+    "constants": {
+     "WEIGHT_F16": true,
+     "WEIGHT_Q4K": false,
+     "SCALAR_OUTPUT": false
+    },
+    "precision": {
+     "inputDtype": "f32",
+     "outputDtype": "f32"
+    }
+   },
+   "after": {
+    "kernel": "matmul_paired_compensated.wgsl",
+    "entry": "main",
+    "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+    "constants": {
+     "WEIGHT_F16": true,
+     "WEIGHT_Q4K": false,
+     "SCALAR_OUTPUT": false
+    },
+    "precision": {
+     "inputDtype": "f32",
+     "outputDtype": "f32"
+    }
+   }
+  },
+  "head": {
+   "before": {
+    "kernel": "matmul_paired.wgsl",
+    "entry": "main",
+    "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+    "constants": {
+     "WEIGHT_F16": false,
+     "WEIGHT_Q4K": true,
+     "SCALAR_OUTPUT": true
+    },
+    "precision": {
+     "inputDtype": "f32",
+     "outputDtype": "f32"
+    }
+   },
+   "after": {
+    "kernel": "matmul_paired_compensated.wgsl",
+    "entry": "main",
+    "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+    "constants": {
+     "WEIGHT_F16": false,
+     "WEIGHT_Q4K": true,
+     "SCALAR_OUTPUT": true
+    },
+    "precision": {
+     "inputDtype": "f32",
+     "outputDtype": "f32"
+    }
+   }
+  }
+ },
+ "addedMechanismKernels": {}
+}

@@ -1,0 +1,33 @@
+{
+ "label": "tiled paired attention (attention_paired_tiled.wgsl)",
+ "baseManifestSha256": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+ "variantManifestSha256": "sha256:98c5526482008941d4178bee9ed4a325226789420b63a9bde9a738e4951b91d3",
+ "substituted": {
+  "attention": {
+   "before": {
+    "kernel": "attention_paired.wgsl",
+    "entry": "main",
+    "digest": "sha256:95e862b22362590cb3a24b4184222b94b4a942e8c331bfb8520ad5d418ddf1f1",
+    "precision": {
+     "inputDtype": "f32",
+     "outputDtype": "f32",
+     "kvDtype": "f16"
+    }
+   },
+   "after": {
+    "kernel": "attention_paired_tiled.wgsl",
+    "entry": "main",
+    "digest": "sha256:70a0a584eb26e3eb9aa14ea1082b9f3801bf730c43577874c1c4257a69b6ea16",
+    "precision": {
+     "inputDtype": "f32",
+     "outputDtype": "f32",
+     "kvDtype": "f16"
+    },
+    "constants": {
+     "WORKGROUP_SIZE": 256,
+     "DOT_LANES": 4
+    }
+   }
+  }
+ }
+}

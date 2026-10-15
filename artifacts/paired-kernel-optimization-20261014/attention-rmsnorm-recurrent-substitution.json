@@ -1,0 +1,41 @@
+{
+ "label": "tiled attention + sliced RMSNorm + sliced recurrent state + parallel Q/K normalization",
+ "kernels": {
+  "attention": {
+   "kernel": "attention_paired_tiled.wgsl",
+   "entry": "main",
+   "digest": "sha256:70a0a584eb26e3eb9aa14ea1082b9f3801bf730c43577874c1c4257a69b6ea16",
+   "constants": {
+    "WORKGROUP_SIZE": 256,
+    "DOT_LANES": 4
+   }
+  },
+  "norm": {
+   "kernel": "rmsnorm_paired_sliced.wgsl",
+   "entry": "main",
+   "digest": "sha256:92760258450f504f4707b4fcb98148967b11c9a8e27e95d3f1242191c88bf1cc",
+   "constants": {
+    "WORKGROUP_SIZE": 256
+   }
+  }
+ },
+ "addMechanismKernels": {
+  "paired_state_sliced": {
+   "kernel": "gated_delta_state_paired_sliced.wgsl",
+   "entry": "main",
+   "digest": "sha256:731ae7762d2a24aaa949e837932e971a54ba21b28f2d04fb3505b79193c74b36",
+   "constants": {
+    "WORKGROUP_SIZE": 256,
+    "K_SLICES": 16
+   }
+  },
+  "paired_qk_parallel": {
+   "kernel": "gated_delta_qk_paired_parallel.wgsl",
+   "entry": "main",
+   "digest": "sha256:75b6c97cea545f81e384a8d5254b8c97c5063b02a9e827c877383401eed92daa",
+   "constants": {
+    "WORKGROUP_SIZE": 256
+   }
+  }
+ }
+}
