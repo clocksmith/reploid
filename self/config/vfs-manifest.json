@@ -1907,6 +1907,7 @@
     "vendor/reploid/index.js",
     "vendor/reploid/measurement/capacity-utilization.js",
     "vendor/reploid/measurement/index.js",
+    "vendor/reploid/measurement/readiness-records.js",
     "vendor/reploid/mesh/contribution.js",
     "vendor/reploid/mesh/index.js",
     "vendor/reploid/mesh/jobs/contracts.js",

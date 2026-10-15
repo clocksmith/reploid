@@ -13,6 +13,8 @@ import { openNativeOwnerControls, nativeOwnerStatus, NO_OWNER_POLICY } from './n
 import { openNativeCanonicalEpochs } from './native-canonical-epochs.js';
 import { openNativeReleaseCheckpoints } from './native-release-storage.js';
 import { installedPackageDirectory, nativeShaderCacheIdentity, openNativeShaderCache } from './native-shader-cache.js';
+import { openNativeReadinessLog } from './native-readiness-log.js';
+import { createReadinessRecorder } from '../packages/reploid/src/measurement/index.js';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { EventEmitter } from 'node:events';
@@ -40,8 +42,9 @@ const hash = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('hex
 const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
 
 /** CLI status only. Detailed receipts remain available through getState(); routine
- * notifications must not serialize signed artifact bodies or conversation text. */
-export function summarizeNativePartitionState(state) {
+ * notifications must not serialize signed artifact bodies or conversation text.
+ * `at` (ISO 8601, UTC) is when the host observed this state. */
+export function summarizeNativePartitionState(state, { at = Date.now() } = {}) {
   const text = (value, limit = 256) => typeof value === 'string'
     ? value.length > limit ? value.slice(0, limit) + '…' : value : null;
   const scalar = value => typeof value === 'string' ? text(value)
@@ -54,7 +57,7 @@ export function summarizeNativePartitionState(state) {
   };
   const placement = Array.isArray(state.placement) ? state.placement : [];
   const acquisition = state.acquisition;
-  return { event: 'partition-state', phase: text(state.phase), error: text(state.error, 1024),
+  return { event: 'partition-state', at: new Date(at).toISOString(), phase: text(state.phase), error: text(state.error, 1024),
     offering: state.offering === true, modelId: text(state.modelId), unsettledOwners: scalar(state.unsettledOwners),
     progress: state.progress ? pick(state.progress, ['stage', 'phase', 'message', 'loaded', 'total', 'progress',
       'status', 'prepared', 'key', 'elapsedMs', 'startedAt', 'maxDurationMs', 'outstanding']) : null,
@@ -386,11 +389,15 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
  * `earning` (self/host/earning/contribution.js over an explicitly configured client)
  * claims this host's settled stage shares and supplied deliveries and submits the
  * evidence of deliveries it acquired; it needs the owner policy and is off by default.
- * Claim failures are reported to the logger and never stop contribution. */
+ * Claim failures are reported to the logger and never stop contribution.
+ * `readiness` (createReadinessRecorder from reploid/measurement, off by default) observes every
+ * partition state and each prepared resident's admissions; the caller owns and ends it. */
 export async function createNativeParticipant({ model, modelDirectory, identity, rtc, WebSocket,
   signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
-  owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null }) {
+  owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null, readiness = null }) {
   requireValue(earning === null || ownerGate && typeof earning.observe === 'function', 'Native earning requires the owner policy and an earning contribution port');
+  requireValue(readiness === null || typeof readiness.observe === 'function' && typeof readiness.watchResident === 'function',
+    'Native readiness recording requires a readiness recorder');
   if (ordered !== null) model = structuredClone(model);
   ordered = snapshotWorkOrderedParticipation(ordered, canonical, [model]);
   requireValue(identity?.privateJwk && await createPeerIdFromPublicJwk(identity.publicJwk) === identity.peerId,
@@ -499,8 +506,10 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
           nativeGpu: () => gpuPromise ||= nativeGpu().catch(error => { gpuPromise = null; throw error; }), files, ...controls, evidenceSigner, shaderCache,
           ...(epochs ? { canonical: { ...controls.canonical, epochs } } : {}),
           ...(ownerGate ? { gpuBufferBytes: ownerGate.gpuBufferBytes(policy.maxGpuBufferBytes) } : {}) });
-        return ownerGate ? { ...program, resident: ownerGate.gateResident(program.resident) } : program;
-      }, onChange: earning ? state => { onChange(state); observeEarning(); } : onChange
+        const prepared = ownerGate ? { ...program, resident: ownerGate.gateResident(program.resident) } : program;
+        readiness?.watchResident(prepared.resident);
+        return prepared;
+      }, onChange: earning || readiness ? state => { onChange(state); readiness?.observe(state); if (earning) observeEarning(); } : onChange
     });
     return Object.freeze({ identity: identity.peerId, getState: () => partitions.getState(),
       generate(request, controls) {
@@ -576,7 +585,7 @@ export async function resolveNativeRoomToken(values, { warn = message => console
 async function main() {
   const { values } = parseArgs({ options: Object.fromEntries(['model', 'model-directory', 'identity-file', 'rtc-module',
     'ws-module', 'gpu-module', 'ordered-config', 'signaling-url', 'room', 'room-token', 'room-token-file', 'origin', 'cache-directory',
-    'owner-policy', 'shader-cache-root', 'earning-config'].map(key => [key, { type: 'string' }]).concat([
+    'owner-policy', 'shader-cache-root', 'earning-config', 'readiness-log'].map(key => [key, { type: 'string' }]).concat([
       ['help', { type: 'boolean', default: false }], ['canonical', { type: 'boolean', default: false }], ['share-files', { type: 'boolean', default: false }], ['contribute', { type: 'boolean', default: false }], ['connect-only', { type: 'boolean', default: false }]])) });
   if (values.help) {
     console.log(`Reploid native participant (Node 22.13 or newer)
@@ -591,6 +600,7 @@ Usage: reploid-participant --connect-only|--share-files|--contribute
   [--owner-policy <absolute JSON path>] (owner schedule, memory, rate, power, temperature and foreground limits)
   [--earning-config <absolute JSON path>] (reploid.native-earning/v1: earning service, sign-in and stage-share offers; needs --owner-policy)
   [--shader-cache-root <absolute directory>] (sealed Mesa shader cache; default: shader-cache beside the identity file)
+  [--readiness-log <absolute JSONL path>] (appends readiness spans and stage admissions for scripts/capacity-utilization.js; needs --contribute)
 
 --room-token-file reads the private room token once at startup from a regular
 file owned by this user with mode 0600; one trailing newline is removed.
@@ -608,12 +618,15 @@ Native GPU execution is qualified on Linux/Vulkan only; --help opens no provider
   }
   requireValue(values.contribute || values['share-files'] || values['connect-only'], 'Choose --contribute, --share-files or --connect-only explicitly');
   if (values.contribute) requireValue(values['gpu-module'], '--gpu-module is required for compute');
+  requireValue(values['readiness-log'] === undefined || values.contribute && path.isAbsolute(values['readiness-log']),
+    '--readiness-log requires --contribute and an absolute file path');
   for (const name of ['model', 'model-directory', 'identity-file', 'rtc-module', 'ws-module']) requireValue(values[name], '--' + name + ' is required');
   // Before identity, module or connection side effects; read once.
   const roomToken = await resolveNativeRoomToken(values);
-  let logNetwork = () => {};
+  let logNetwork = () => {}, observeReadiness = () => {};
   const owner = values['owner-policy'] === undefined ? null : await openNativeOwnerControls({ file: values['owner-policy'],
-    custody: custodyPolicy, onChange: () => logNetwork(),
+    // An owner decision changes admitted capacity without a partition notification.
+    custody: custodyPolicy, onChange: () => { logNetwork(); observeReadiness(); },
     // Doppler's application GPU buffer accounting; null until compute opens a device.
     readGpuBuffers: values.contribute ? async () => (await import('doppler-gpu/partitions')).inspectDeviceMemory() : null });
   let ordered = null;
@@ -656,34 +669,43 @@ Native GPU execution is qualified on Linux/Vulkan only; --help opens no provider
   const Socket = wsModule.default || wsModule.WebSocket;
   class HostWebSocket extends Socket { constructor(url) { super(url, { origin: values.origin || 'http://localhost:8000' }); } }
   const gpuHost = createNativeGpuHost(() => importModule(values['gpu-module']));
+  // Optional readiness records (reploid.readiness-span/v1, reploid.stage-admission/v1) for the utilization CLI;
+  // identities, times and slot counts only. The session starts here, before any stage is prepared.
+  const readinessLog = values['readiness-log'] === undefined ? null : await openNativeReadinessLog({ file: values['readiness-log'],
+    onError: error => console.error('Readiness record not written:', error.code || error.message) });
+  const readiness = readinessLog && createReadinessRecorder({ participantId: identity.peerId, host: 'node', write: readinessLog.write });
+  const closeReadiness = async reason => { readiness?.close(reason); await readinessLog?.close(); };
   // Optional earning: signs this host in, registers its identity as a native device, records the owner policy
   // and claims settled stage shares under service-authored offers (native-earning.js); state lives beside the identity.
   if (values['earning-config']) requireValue(owner, '--earning-config requires --owner-policy');
   const earning = values['earning-config'] ? await import('./native-earning.js').then(async native => native.openNativeEarning({
     settings: await native.readNativeEarningFile(values['earning-config']), identity, ownerAuthorization: { policy: owner.policy, digest: owner.digest },
     storage: native.createNativeEarningStorage(path.join(path.dirname(identityFile), 'earning-state.json')) }))
-    .catch(async error => { owner?.close(); await shaderCache?.close(); throw error; }) : null;
+    .catch(async error => { owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); throw error; }) : null;
   const participant = await createNativeParticipant({ model, modelDirectory: values['model-directory'], identity, rtc,
     WebSocket: HostWebSocket, signalingUrl: values['signaling-url'] || bootstrap.signalingUrl,
     roomId: values.room || bootstrap.publicRoomId, roomToken: roomToken || bootstrap.publicJoinMarker,
     cacheDirectory: values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
     ordered, canonical: values.canonical ? { epochDirectory: path.join(path.dirname(identityFile), 'canonical-epochs',
       createHash('sha256').update(values.room || bootstrap.publicRoomId).digest('hex')) } : null,
-    nativeGpu: () => gpuHost.open(), owner, shaderCache, earning,
+    nativeGpu: () => gpuHost.open(), owner, shaderCache, earning, readiness,
     onCustodyCertificate: certificate => console.log(JSON.stringify({ event: 'custody-certificate', certificate })),
     onChange: state => {
       console.log(JSON.stringify({ ...summarizeNativePartitionState(state), owner: nativeOwnerStatus(owner) }));
       // A prepared stage is offered for before any route admits it.
       if (earning && state.descriptor?.planId) earning.ensureOffer(state.descriptor).catch(error => console.error('Earning offer deferred:', error.code || error.message));
     } })
-    .catch(async error => { owner?.close(); await shaderCache?.close(); throw error; });
+    .catch(async error => { owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); throw error; });
   logNetwork = () => console.log(JSON.stringify({ event: 'network', ...participant.getNetworkState(),
     files: participant.getFileState({ includeReceipts: false }), owner: participant.getOwnerState() }));
-  // Polling also renews the custody certificate before it expires.
-  const timer = setInterval(() => { participant.announceFiles(); logNetwork();
+  if (readiness) observeReadiness = () => readiness.observe(participant.getState());
+  // Polling also renews the custody certificate before it expires, and observes readiness even while a partition tick waits.
+  const timer = setInterval(() => { participant.announceFiles(); logNetwork(); observeReadiness();
     participant.getCustodyCertificate().catch(error => console.error('Custody certificate renewal failed:', error.message)); }, policy.pollMs);
   const shutdown = createNativeShutdown(participant, gpuHost);
-  const stop = () => { clearInterval(timer); logNetwork = () => {}; return shutdown().finally(async () => { owner?.close(); await shaderCache?.close(); }); };
+  // Readiness ends when shutdown begins and admission closes; admissions settled by shutdown are still recorded.
+  const stop = () => { clearInterval(timer); logNetwork = () => {}; observeReadiness = () => {}; readiness?.end('shutdown');
+    return shutdown().finally(async () => { owner?.close(); await shaderCache?.close(); await closeReadiness('shutdown'); }); };
   const completion = new Promise((resolve, reject) => {
     const signalStop = () => stop().then(resolve, reject);
     process.once('SIGINT', signalStop); process.once('SIGTERM', signalStop);
