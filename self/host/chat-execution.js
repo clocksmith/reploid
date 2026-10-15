@@ -73,6 +73,7 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
         modelIdentity: result.modelIdentity, adapterIdentities: result.adapterIdentities };
       execution.completion = readWorkGenerationCompletion(result);
       execution.stopReason = execution.completion?.stopReason ?? null;
+      execution.timing = result.timing ?? null;
       return {
         threadId,
         attemptId,

@@ -1,6 +1,6 @@
 /** Host-selected compatibility providers. Signed Pack providers remain separate. */
 import profile from '../config/work-profile.json' with { type: 'json' };
-import { readWorkGenerationCompletion } from './work-generation-completion.js';
+import { readWorkGenerationCompletion, readWorkGenerationTiming } from './work-generation-completion.js';
 const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
 
 export function selectWorkModel({ models, modelId, defaultModelId }) {
@@ -90,7 +90,7 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
     async generate(messages, onUpdate = () => {}, { signal: attemptSignal, adapters = [] }) {
       const combined = AbortSignal.any([signal, attemptSignal]);
       combined.throwIfAborted();
-      let text = '', actualModel = model.id, actualIdentity = null, completion = null;
+      let text = '', actualModel = model.id, actualIdentity = null, completion = null, timing = null;
       const update = delta => {
         combined.throwIfAborted();
         requireValue(typeof delta === 'string', 'Provider emitted an invalid text delta');
@@ -113,6 +113,7 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
             update(result.outputText.slice(text.length));
             actualIdentity = evidencedIdentity(result, adapters);
             completion = readWorkGenerationCompletion(result);
+            timing = readWorkGenerationTiming(result.evidence?.stats);
             requireValue(text === result.outputText, 'Doppler streamed text differs from generation evidence');
           } else {
             actualIdentity = executionIdentity();
@@ -122,6 +123,8 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
               if (event.type === 'complete') {
                 requireValue(event.outputText === text, 'Doppler completed text differs from its stream');
                 completion = readWorkGenerationCompletion(event);
+                timing = readWorkGenerationTiming(session.supports?.('advanced') === false
+                  ? null : session.advanced?.getStats?.());
               }
             }
             requireValue(JSON.stringify(executionIdentity()) === JSON.stringify(actualIdentity),
@@ -163,7 +166,7 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
       combined.throwIfAborted();
       requireValue(text.trim() || completion?.stopReason === 'max-tokens', 'Provider returned no text');
       return { content: text, raw: text, requestedModel: model.id, model: actualModel,
-        ...(session ? { ...actualIdentity, completion } : {}),
+        ...(session ? { ...actualIdentity, completion, timing } : {}),
         provider: model.provider, execution: session ? 'local-scoped-session' : 'cloud-proxy-session' };
     }
   });
