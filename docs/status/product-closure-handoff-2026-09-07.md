@@ -1,6 +1,5 @@
 > Historical checkpoint. Package, deployment and next-work statements below
-> apply only to this dated observation. Follow the [current integration closure
-> sequence](../../ROADMAP.md) for active work.
+> apply only to this dated observation. Follow the current integration closure sequence (private roadmap) for active work.
 
 Reploid product closure handoff: September 7, 2026
 

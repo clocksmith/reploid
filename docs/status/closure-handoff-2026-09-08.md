@@ -1,6 +1,5 @@
 > Historical checkpoint. Package, deployment and next-work statements below
-> apply only to this dated observation. Follow the [current integration closure
-> sequence](../../ROADMAP.md) for active work.
+> apply only to this dated observation. Follow the current integration closure sequence (private roadmap) for active work.
 
 Reploid, Simulatte, and Mandate are deployed, but the complete product finish line remains open. Retained [evidence](../../artifacts/product-closure-2026-09-08/README.md) separates implementation, physical execution, semantic review, and independent operation. The archive preserves failures, exact outputs, source identities, and subsequent corrections.
 

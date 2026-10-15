@@ -19,7 +19,7 @@ Work not narrowed by child charters.
 ## Contracts
 
 Inputs: [GOALS.md](GOALS.md) mission, [INTENT.md](INTENT.md) protections,
-[governance](docs/GOVERNANCE_DETAILS.md) constraints, [claim index](docs/status/surface-claim-index.json) qualification.
+[product contract](docs/product-specification.md) terms, [claim index](docs/status/surface-claim-index.json) qualification.
 
 Outputs: [README](README.md) navigation, [component index](docs/component-index.md) ownership.
 

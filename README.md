@@ -48,7 +48,7 @@ permissions remain distinct.
 Reploid coordinates, Doppler computes, and Poolday transports. The overview keeps
 its two-contributor example; the technical view describes the broader multistage
 target. Neither diagram establishes package, route, concurrency, or deployment
-qualification; the [implementation checklist](ROADMAP.md) owns those gates.
+qualification; the owner's implementation checklist owns those gates.
 
 [Architecture and source owners](docs/open-mesh-architecture.md) · [Attempt recovery](docs/open-mesh-architecture.md#attempt-failure-and-recovery)
 
@@ -65,8 +65,7 @@ See [improvement episodes](docs/rsi-improvement-episodes.md).
 
 ## Read next
 
-- [Business plan and product contract](docs/product-specification.md) — customer promise, funding, economics and obligations.
-- [Roadmap and acceptance](ROADMAP.md) — launch order, current work and evidence.
+- [Product contract](docs/product-specification.md) — public terms: service records, Community Access, credits and settlement, answer quality, contribution and disclosure.
 - [Architecture](docs/open-mesh-architecture.md) — coordination, custody, and recovery.
 - [Security](docs/SECURITY.md) — permission and trust boundaries.
 - [Zero and X](docs/zero-x-quick-start.md) — optional agent configurations.

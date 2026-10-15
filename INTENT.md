@@ -72,7 +72,7 @@ network benefit nor recursive improvement.
 ## Truth
 
 These are targets. The [claim index](docs/status/surface-claim-index.json) bounds
-qualification; [detailed requirements](docs/GOVERNANCE_DETAILS.md) preserve separate acceptance boundaries.
+qualification; the [product contract](docs/product-specification.md) and [architecture](docs/open-mesh-architecture.md) preserve separate acceptance boundaries.
 
 Related: [GOALS.md](GOALS.md), [CATSCAN.md](CATSCAN.md).
 

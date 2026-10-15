@@ -1,6 +1,6 @@
 # Change Passport Runtime Contract
 
-Change Passport remains an inactive commercial alternative. This page defines
+Change Passport remains an inactive alternative. This page defines
 its implemented interfaces and required evidence; it does not select work.
 [Product intent](product-intent.md) and the [pilot charter](pilot-charter.md)
 own their separate product and external-adoption boundaries.

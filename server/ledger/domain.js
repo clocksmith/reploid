@@ -11,7 +11,7 @@ import { createHash } from 'node:crypto';
 
 import { MAX_UNACKNOWLEDGED_OUTPUTS } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 
-export const PRODUCT_ECONOMICS_CONTRACT_ID = 'reploid.product-economics/1.2.1';
+export const PRODUCT_ECONOMICS_CONTRACT_ID = 'reploid.product-economics/1.3.0';
 export const ACCOUNT_SCHEMA = 'reploid.credit-account/v1';
 // v2: donated sources name funderId and funderKind (v1 named only donorId, the
 // commitment's funder id); purchased sources name their conversion record.

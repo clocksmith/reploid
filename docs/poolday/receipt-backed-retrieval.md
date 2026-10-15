@@ -1,7 +1,7 @@
 # Poolday Receipt-Backed Retrieval
 
-This is the missing Poolday strategy note for retrieval, embeddings, reranking,
-and vector memory.
+This is the Poolday design note for retrieval, embeddings, reranking, and vector
+memory.
 
 Status: broader retrieval strategy and contract direction. Poolday now supports
 a bounded public protein evidence collection with exact flat similarity,
@@ -14,16 +14,13 @@ does not yet provide receipt-backed index-build, query, or reranker workloads.
 Poolday should extend from receipt-backed browser inference into
 receipt-backed distributed retrieval.
 
-The strategic attack is not "a cheaper hosted vector database." The attack is:
+The approach is:
 
 ```text
 open/pinned local models + browser/peer execution + signed retrieval evidence
 ```
 
-Pinecone owns the managed hosted vector database lane: storage, indexing,
-metadata filters, embedding, reranking, operations, and enterprise service
-contracts. Poolday should not copy that shape first. Poolday should own a
-different proof surface: every embedding, index build, query, rerank, and
+Poolday's proof surface: every embedding, index build, query, rerank, and
 retrieval result can be bound to model identity, corpus identity, runtime
 identity, provider identity, policy, hashes, signatures, and optional quorum
 agreement.
@@ -349,26 +346,6 @@ Required capabilities:
 The first useful implementation can be local-first and browser-only, but it
 must expose the same receipt shape that peer and hosted modes will later use.
 
-## Competitive Position
-
-Do not pitch this as "Pinecone, but decentralized" first. That frames Reploid
-as a worse hosted database.
-
-The stronger position is:
-
-```text
-Pinecone gives you managed retrieval.
-Reploid gives you evidence-backed retrieval work.
-```
-
-For low-risk public corpora, open-source docs, agent memory, browser-native
-apps, benchmark/eval datasets, and local-first workflows, evidence-backed
-retrieval can matter more than managed database convenience.
-
-For enterprise hosted production search, Pinecone still wins until Poolday has
-durable indexes, metadata filtering, ingestion, auth, observability, service
-contracts, and a private deployment story.
-
 ## Product Rule
 
 Every retrieval result shown to a requester should answer:
@@ -401,7 +378,6 @@ retrieval result.
 7. Add peer agreement on `candidateSetHash` and `resultSetHash`.
 8. Add ANN index manifests and benchmark receipts.
 9. Add private-room retrieval policy.
-10. Only then test the stronger competitive claim against Pinecone-class
-    workloads.
+10. Only then benchmark against managed vector-database workloads.
 
 *Last updated: July 2026*

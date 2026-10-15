@@ -76,7 +76,7 @@ replay do not restore inference state; replay or restart requires current
 authorization. A disconnected transport does not establish GPU cleanup.
 
 Exact package identity, retained evidence and remaining qualification belong in
-the [implementation checklist](../ROADMAP.md). Contract tests, physical execution,
+the implementation checklist (private roadmap). Contract tests, physical execution,
 numerical accuracy, answer quality and deployment remain separate claims.
 
 ## Explicit application generation policy
@@ -133,7 +133,7 @@ Other library hosts retain explicit review and revocable thread-grant support.
 | Qualification open | Both-direction frozen numerical parity at 0.001, repeatable ordinary application acceptance, lifecycle/capacity evidence and separate answer-quality evaluation. |
 | Planned or separately scoped | Additional qualified native hosts, generalized continuations, adapter/catalog expansion and independently evaluated network improvement. Source existence establishes none of these outcomes. |
 
-[Current dependency and retained evidence](../ROADMAP.md)
+Current dependency and retained evidence (private roadmap)
 separates the installed candidate, scoped controls, remaining acceptance and
 public deployment gates.
 A failed numerical gate means not qualified, not unimplemented. A model can
