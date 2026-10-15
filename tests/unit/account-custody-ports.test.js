@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import {
   CUSTODY_CERTIFICATE_LIFETIME_MS, CUSTODY_CERTIFICATE_SCHEMA, createCustodyKeyCertificate, createCustodyKeyCertifier, custodyCertificateBody
-} from '../../server/accounts/custody-certificate.js';
-import { signAsParticipant } from '../../server/accounts/proofs.js';
+} from '../../packages/reploid/src/artifacts/custody-certificate.js';
+import { signAsParticipant } from '../../packages/reploid/src/artifacts/participant-proofs.js';
 import { checkCounterparty } from '../../server/rewards/counterparty.js';
 import { certifiedCustodyKey } from '../../server/rewards/custody-evidence.js';
 import { ACCOUNT_POLICY, newCustodyKey, newIdentity, openAccountFixture, registerDevice, signInAs } from '../helpers/account-fixture.js';

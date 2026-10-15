@@ -1320,8 +1320,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 533830,
-      "sha256": "sha256:da3b1058d2f1453583462c4be36a25653a911cdf6d1b89c390b722a1cecc3dba"
+      "byteLength": 534449,
+      "sha256": "sha256:db56c953464e4acb9b68eff018b5aa0dda69629df72525026b3e2b1ac8c2e7a3"
     },
     {
       "path": "config/module-registry.json",
@@ -1380,8 +1380,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 114594,
-      "sha256": "sha256:f4076f2c84d66a4735c528ac122e43f0736ed38796af8e1d91032b383e8c414f"
+      "byteLength": 114703,
+      "sha256": "sha256:c0cf843ade09479ab1cfcd9865c4186c1df0a41eb9b1f39fa0236a25cefcf963"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1780,8 +1780,8 @@
     },
     {
       "path": "host/work-model-files.js",
-      "byteLength": 31076,
-      "sha256": "sha256:d92547465e1f427f532c4d0cb1521b1f7c4bbdbd363f864987c6b5c57e3c1f45"
+      "byteLength": 32074,
+      "sha256": "sha256:da621f028b726481f2d96ce7878f49288943187ee1b223d6caf4c97b4bf8dafb"
     },
     {
       "path": "host/work-partition-artifact-source.js",
@@ -1835,8 +1835,8 @@
     },
     {
       "path": "host/work-swarm.js",
-      "byteLength": 26435,
-      "sha256": "sha256:3604cf412b323266a4d76d0edb49db8af4c6801caeb8fc3cfe84a2ffeeba54a6"
+      "byteLength": 26472,
+      "sha256": "sha256:2afff34fef3d8af1d5ade5dce6753a4b3149711526871d94ab23af4cb983b08e"
     },
     {
       "path": "host/work-task.js",
@@ -9259,9 +9259,14 @@
       "sha256": "sha256:0ad3d3ad274cefe1bd6030f07334ca7a23612d41d0f43fd0fef369f15de91c91"
     },
     {
+      "path": "vendor/reploid/artifacts/custody-certificate.js",
+      "byteLength": 6059,
+      "sha256": "sha256:e8c2f8e1480f03cc33b4b0b3ac72b6a0f7bdda6a0db7de7a82e4ffd4f11d5945"
+    },
+    {
       "path": "vendor/reploid/artifacts/custody/exchange.js",
-      "byteLength": 23428,
-      "sha256": "sha256:08cd3da9eaea0c1c8ed859dec289589239623cd636270664f80874837370553f"
+      "byteLength": 25398,
+      "sha256": "sha256:8af6962250f25a754d956d8edb77e0e7e22daa82cbb4277769a6ead289973a29"
     },
     {
       "path": "vendor/reploid/artifacts/custody/piece-acquisition.js",
@@ -9292,6 +9297,11 @@
       "path": "vendor/reploid/artifacts/job-journal.js",
       "byteLength": 15129,
       "sha256": "sha256:57b405b0f3be55234c622c0518ad3a0eab6eb62cb14c4d23e62e97d1591bc434"
+    },
+    {
+      "path": "vendor/reploid/artifacts/participant-proofs.js",
+      "byteLength": 5666,
+      "sha256": "sha256:dd1c93242af58f2910c7db1ea3a83cdea7b3278df245391b68e8d614e0b63a37"
     },
     {
       "path": "vendor/reploid/artifacts/receipt.js",
@@ -9655,8 +9665,8 @@
     },
     {
       "path": "vendor/reploid/package-assets.json",
-      "byteLength": 39910,
-      "sha256": "sha256:789be791879842153be67ecdbd56007e66ce0841a556dd802385e8a68cab58a6"
+      "byteLength": 40243,
+      "sha256": "sha256:e3063967f87a23870bb801e4e18f6f52d4b25a1b204fc942455d559d903d8bc7"
     },
     {
       "path": "vendor/reploid/retrieval/citations.js",
@@ -9784,5 +9794,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:f29f3e16aa42578b329319dd3958a89032c27f53ae4f9893d22cb5792325f8cb"
+  "bundleHash": "sha256:73c4582ae4ebb1e6cb336471e0215d4d87a39d34bfe04fb1501af750ad5da42a"
 }

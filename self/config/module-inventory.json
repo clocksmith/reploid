@@ -2334,7 +2334,7 @@
     {
       "path": "self/host/work-model-files.js",
       "owner": "self",
-      "sha256": "sha256:d92547465e1f427f532c4d0cb1521b1f7c4bbdbd363f864987c6b5c57e3c1f45",
+      "sha256": "sha256:da621f028b726481f2d96ce7878f49288943187ee1b223d6caf4c97b4bf8dafb",
       "imports": [
         "../config/chat-files.json",
         "../config/doppler-local-models.js",
@@ -2344,6 +2344,7 @@
         "../pool/inference-receipt.js",
         "../pool/peer-pack-custody.js",
         "../pool/peer-pack-data-channel.js",
+        "../vendor/reploid/artifacts/custody-certificate.js",
         "../vendor/reploid/artifacts/custody/exchange.js",
         "./work-partition-artifact-source.js"
       ]
@@ -2463,7 +2464,7 @@
     {
       "path": "self/host/work-swarm.js",
       "owner": "self",
-      "sha256": "sha256:3604cf412b323266a4d76d0edb49db8af4c6801caeb8fc3cfe84a2ffeeba54a6",
+      "sha256": "sha256:2afff34fef3d8af1d5ade5dce6753a4b3149711526871d94ab23af4cb983b08e",
       "imports": [
         "../capabilities/communication/library-adapter.js",
         "../config/doppler-local-models.js",
@@ -14955,9 +14956,18 @@
       ]
     },
     {
+      "path": "vendor/reploid/artifacts/custody-certificate.js",
+      "owner": "vendor",
+      "sha256": "sha256:e8c2f8e1480f03cc33b4b0b3ac72b6a0f7bdda6a0db7de7a82e4ffd4f11d5945",
+      "imports": [
+        "./participant-proofs.js",
+        "./signatures.js"
+      ]
+    },
+    {
       "path": "vendor/reploid/artifacts/custody/exchange.js",
       "owner": "vendor",
-      "sha256": "sha256:08cd3da9eaea0c1c8ed859dec289589239623cd636270664f80874837370553f",
+      "sha256": "sha256:8af6962250f25a754d956d8edb77e0e7e22daa82cbb4277769a6ead289973a29",
       "imports": []
     },
     {
@@ -15001,6 +15011,15 @@
       "sha256": "sha256:57b405b0f3be55234c622c0518ad3a0eab6eb62cb14c4d23e62e97d1591bc434",
       "imports": [
         "../config/index.js"
+      ]
+    },
+    {
+      "path": "vendor/reploid/artifacts/participant-proofs.js",
+      "owner": "vendor",
+      "sha256": "sha256:dd1c93242af58f2910c7db1ea3a83cdea7b3278df245391b68e8d614e0b63a37",
+      "imports": [
+        "./canonical-json.js",
+        "./identity.js"
       ]
     },
     {

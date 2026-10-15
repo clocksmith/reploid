@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { createNativeArtifactCache, createNativeModelFiles } from '../../server/native-model-files.js';
-import { CUSTODY_CERTIFICATE_LIFETIME_MS, checkCustodyKeyCertificate, createCustodyKeyCertifier } from '../../server/accounts/custody-certificate.js';
+import { CUSTODY_CERTIFICATE_LIFETIME_MS, checkCustodyKeyCertificate, createCustodyKeyCertifier } from '../../packages/reploid/src/artifacts/custody-certificate.js';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 const roots = [], hosts = [];
 afterEach(async () => { await Promise.allSettled(hosts.splice(0).map(host => host.close())); await Promise.all(roots.splice(0).map(root => fs.rm(root, { recursive: true, force: true }))); });

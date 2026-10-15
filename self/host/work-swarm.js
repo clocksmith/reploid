@@ -171,7 +171,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
         await active.connect();
         if (closed || paused || version !== generation) { await active.close(); throw new Error('Text swarm connection stopped'); }
         await peerOffers?.attach();
-        modelFiles = createModelFiles({ getTransport: () => consumerTransport, onChange: notify });
+        modelFiles = createModelFiles({ getTransport: () => consumerTransport, getIdentity: () => consumerIdentity, onChange: notify });
         await modelFiles.attach();
         partitionNetworks = createWorkPartitionNetworks({ transport: consumerTransport,
           verifyPeer: (peerId, signal) => active.verifyPeerIdentity(peerId, signal) });

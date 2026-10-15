@@ -23,6 +23,7 @@ identity and verify final bytes; inventory possession grants no redistribution.
 - Candidates cannot expand permissions or approve their own output.
 - Cancellation does not claim termination of borrowed work.
 - Preserve record identities and recovery compatibility.
+- Identity certificates travel beside grants, never inside; unbound ones are dropped.
 - Storage shards do not establish computational partitions. Retention and redistribution remain bounded by participant grants; placement cannot infer execution permission from possession.
 - Advertisements do not acquire bytes. Explicit offers bound supply budgets and
   simultaneous transfers. Dedicated byte channels reuse signed chunk custody and

@@ -8,7 +8,7 @@
  * native hosts can sign with the same code the server verifies with.
  */
 
-import { canonicalize } from '../../packages/reploid/src/artifacts/canonical-json.js';
+import { canonicalize } from './canonical-json.js';
 import {
   createPeerIdFromPublicJwk,
   encodeBytes,
@@ -17,7 +17,7 @@ import {
   importSigningKey,
   importVerificationKey,
   toBase64Url
-} from '../../packages/reploid/src/artifacts/identity.js';
+} from './identity.js';
 
 export const REGISTRATION_PROOF_SCHEMA = 'reploid.device-registration-proof/v1';
 export const DEVICE_HOSTS = Object.freeze(['browser', 'native']);

@@ -40,6 +40,19 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
     return ids;
   };
   const notify = () => ports.onChange?.();
+  // Identity certificates travel beside requests and grants, never inside them, so grant hashes
+  // and older peers are unchanged. Only one bound to the party's grant key and peer id is kept;
+  // verifying who signed it belongs to whoever attributes the transfer.
+  const bound = (certificate, party) => certificate !== null && typeof certificate === 'object' && !Array.isArray(certificate)
+    && certificate.custodyPeerId === party?.peerId && certificate.custodyPublicKey === party?.publicKey
+    && JSON.stringify(certificate).length <= policy.channel.maxControlBytes;
+  const ownCertificate = async () => {
+    if (!ports.certificate) return null;
+    try {
+      const certificate = await ports.certificate();
+      return bound(certificate, identity) ? structuredClone(certificate) : null;
+    } catch (error) { ports.onError?.(error); return null; }
+  };
   // Optional host admission: it withholds new supply and its advertisement; granted transfers continue.
   const admitted = (active, advertise) => !ports.admitSupply || ports.admitSupply({ active, advertise }) === true;
   const announce = peer => {
@@ -186,11 +199,14 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
           inventory: { expiresAt: authorization.expiresAt, maxBytes: selected.sizeBytes,
             artifacts: [{ artifactId: artifact.artifactId, chunkIndexes: chunks.map(chunk => chunk.index) }] },
           readChunk: async (_, chunk) => bytes.slice(chunk.offset, chunk.offset + chunk.sizeBytes), now });
+        const certificates = { requester: bound(message.requesterCertificate, message.requester) ? structuredClone(message.requesterCertificate) : null,
+          supplier: await ownCertificate() };
         if (closed || !supply || epoch !== supplyEpoch) { supplier.close(); throw new Error('File contribution stopped'); }
         const timer = setTimeout(() => { supplier.close(); suppliers.delete(authorization.transferId); }, Math.max(0, authorization.expiresAt - now()));
         suppliers.set(authorization.transferId, { supplier, peer, timer });
         try {
-          if (!transport.sendToPeer(peer, 'reploid:custody-response', { id: message.id, authorization, index, inventory: supplier.inventory })) {
+          if (!transport.sendToPeer(peer, 'reploid:custody-response', { id: message.id, authorization, index, inventory: supplier.inventory,
+            ...(certificates.supplier ? { supplierCertificate: certificates.supplier } : {}) })) {
             throw new Error('File offer response could not be queued');
           }
         } catch (error) {
@@ -199,6 +215,8 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
           clearTimeout(timer); suppliers.delete(authorization.transferId); supplier.close();
           throw error;
         }
+        ports.observeDelivery?.({ role: 'supplier', transferId: authorization.transferId, peerId: peer,
+          authorization: structuredClone(authorization), index: structuredClone(index), receipt: null, certificates });
       } finally { preparing--; notify(); }
     })().catch(error => {
       if (!closed) transport.sendToPeer(peer, 'reploid:custody-response', { id: message?.id, error: error.message });
@@ -213,7 +231,7 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
     return { path: `piece-${range.identity.slice(7)}.bin`, role: artifact.role,
       sizeBytes: range.size, hash: range.identity.slice(7), hashAlgorithm: 'sha256' };
   };
-  const request = (peer, artifact, signal, range, maxExpiresAt) => new Promise((resolve, reject) => {
+  const request = (peer, artifact, signal, range, maxExpiresAt, requesterCertificate) => new Promise((resolve, reject) => {
     signal.throwIfAborted();
     if (pending.size >= policy.maxTransfers) { reject(new Error('File acquisition limit reached')); return; }
     const id = crypto.randomUUID();
@@ -226,13 +244,14 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
     const timer = setTimeout(() => finish(unavailable('File offer timed out')), policy.channel.timeoutMs);
     pending.set(id, { peer, finish }); signal.addEventListener('abort', abort, { once: true });
     if (!transport.sendToPeer(peer, 'reploid:custody-request', { id, artifact, range, maxExpiresAt,
-      requester: { peerId: identity.peerId, publicKey: identity.publicKey } })) finish(unavailable('File peer disconnected'));
+      requester: { peerId: identity.peerId, publicKey: identity.publicKey },
+      ...(requesterCertificate ? { requesterCertificate } : {}) })) finish(unavailable('File peer disconnected'));
   });
   const acquireFrom = async (peer, source, combined, range, reserveDownload) => {
       const artifact = rangeDescriptor(source, range);
       const bus = await channelFor(peer, combined);
-      const maxExpiresAt = now() + policy.grantMs;
-      const result = await request(peer, source, combined, range, maxExpiresAt); combined.throwIfAborted();
+      const maxExpiresAt = now() + policy.grantMs, requesterCertificate = await ownCertificate();
+      const result = await request(peer, source, combined, range, maxExpiresAt, requesterCertificate); combined.throwIfAborted();
       const grant = result.authorization, declared = grant?.artifactSet?.artifacts?.[0];
       if (grant?.artifactSet?.artifacts?.length !== 1 || declared?.path !== artifact.path || declared?.sizeBytes !== artifact.sizeBytes
         || grant.requester?.peerId !== identity.peerId || grant.requester?.publicKey !== identity.publicKey
@@ -273,7 +292,12 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
           }
           combined.throwIfAborted();
         }
-        ports.observe?.(store.getReceipt()); return bytes;
+        ports.observe?.(store.getReceipt());
+        ports.observeDelivery?.({ role: 'requester', transferId: grant.transferId, peerId: peer,
+          authorization: structuredClone(grant), index: structuredClone(result.index), receipt: structuredClone(store.getReceipt()),
+          certificates: { requester: requesterCertificate,
+            supplier: bound(result.supplierCertificate, grant.suppliers[0]) ? structuredClone(result.supplierCertificate) : null } });
+        return bytes;
       } catch (error) {
         if (store) ports.observe?.({ ...store.getReceipt(), failure: error.message }); throw reservationFailure || error;
       } finally {

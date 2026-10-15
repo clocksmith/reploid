@@ -10,8 +10,8 @@
  * unattributable. WebCrypto only, so any host can sign.
  */
 
-import { importPublicKey } from '../../packages/reploid/src/artifacts/signatures.js';
-import { participantIdFor, signAsParticipant, verifyParticipantSignature } from './proofs.js';
+import { importPublicKey } from './signatures.js';
+import { participantIdFor, signAsParticipant, verifyParticipantSignature } from './participant-proofs.js';
 
 export const CUSTODY_CERTIFICATE_SCHEMA = 'reploid.custody-key-certificate/v1';
 
