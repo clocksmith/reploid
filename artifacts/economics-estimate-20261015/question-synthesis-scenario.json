@@ -1,0 +1,80 @@
+{
+  "status": "illustrative planning scenario, not approved pricing, measured quality, demand forecast or Flash-Next equivalence",
+  "checked_on": "2026-10-15",
+  "product_intent": {
+    "lead": "Question answering, synthesis across model knowledge and web sources, ideation and everyday search tasks",
+    "attachments": "Supporting feature, not lead positioning",
+    "later": "Reploid-native autonomous agents with bounded tools, durable execution and budgets"
+  },
+  "sources": [
+    {
+      "url": "https://www.together.ai/pricing",
+      "model": "Qwen3.8 Flash",
+      "input_usd_per_million": 0.15,
+      "output_usd_per_million": 0.47,
+      "scope": "Listed hosted model; not established equivalent to the deployed Flash-Next checkpoint"
+    },
+    {
+      "url": "https://brave.com/search/api/",
+      "search_request_usd": 0.005,
+      "monthly_subsidy_excluded": true
+    },
+    {
+      "url": "https://stripe.com/pricing",
+      "us_domestic_card_fraction": 0.029,
+      "fixed_usd": 0.3
+    }
+  ],
+  "assumptions": {
+    "topup_usd": 10,
+    "hypothetical_answers_per_topup": 1000,
+    "input_tokens_per_answer": 4000,
+    "output_tokens_per_answer": 500,
+    "model_calls_per_answer": 1,
+    "all_attempts_satisfactory_and_on_time": true,
+    "cache_discount": false
+  },
+  "net_after_card_fee_usd": 9.41,
+  "rows": [
+    {
+      "searches_per_answer": 0,
+      "answers": 1000,
+      "model_cost_usd": 0.8350000000000001,
+      "search_cost_usd": 0.0,
+      "direct_provider_cost_usd": 0.8350000000000001,
+      "remaining_after_payment_and_direct_providers_usd": 8.575
+    },
+    {
+      "searches_per_answer": 1,
+      "answers": 1000,
+      "model_cost_usd": 0.8350000000000001,
+      "search_cost_usd": 5.0,
+      "direct_provider_cost_usd": 5.835,
+      "remaining_after_payment_and_direct_providers_usd": 3.575
+    },
+    {
+      "searches_per_answer": 3,
+      "answers": 1000,
+      "model_cost_usd": 0.8350000000000001,
+      "search_cost_usd": 15.0,
+      "direct_provider_cost_usd": 15.834999999999999,
+      "remaining_after_payment_and_direct_providers_usd": -6.424999999999999
+    }
+  ],
+  "excluded_costs": [
+    "retrieval/page fetching",
+    "semantic verification",
+    "additional model calls and reasoning tokens",
+    "failed attempts and refunds",
+    "support and infrastructure",
+    "fraud losses",
+    "customer acquisition",
+    "company fixed expenses"
+  ],
+  "interpretation": [
+    "Positive remainder is not profit.",
+    "Search and inference are paid external bills in this comparator; substituting the mesh replaces inference with contributor and execution costs, not an additional duplicated inference bill.",
+    "Earned-credit redemption still incurs external search costs and needs funded capacity or cross-subsidy; issuance alone does not fund it.",
+    "No monthly subscription is implied by this one-time topup scenario."
+  ]
+}
