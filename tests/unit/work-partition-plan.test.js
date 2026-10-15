@@ -110,6 +110,8 @@ describe('explicit ordered host participation', () => {
     expect(bound.ordered.stage).toEqual({ index: 1, participantId: 'actual', transportId: 'rtc-actual', residentId: 'resident', executionId: 'execution' });
     expect(bound.policy.executionChannel).toEqual(baseline.executionChannel);
     expect(bound.policy.limits.maxActivationBytes).toBe(baseline.limits.maxActivationBytes);
+    // The coordinator's own stage runs under the same declared bound as its remote stages.
+    expect(bound.policy.limits.stageTimeoutMs).toBe(baseline.executionChannel.timeoutMs);
     expect(baseline.limits.maxStages).toBeUndefined();
   });
   it('rejects missing/unsupported stage geometry, identity mismatches and canonical coexistence', () => {

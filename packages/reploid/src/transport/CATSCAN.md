@@ -14,13 +14,13 @@ Subtree.
 ## Contracts
 Inputs: immutable policy/ports; `getRtcConfig` supplies ICE. Never issue/persist credentials.
 Outputs: bounded delivery evidence.
-Partitions use authorized binary requests/bounded JSON replies; receipt/cancellation proves no GPU settlement.
+Partitions pipeline authorized requests/bounded replies under receiver credit; receipt/cancellation proves no GPU settlement.
 
 ## Invariants
 - Introduction availability is separate from established direct channel liveness.
 - Introductions authenticate contacts, encrypt negotiation and bound separately authorized forwarding.
 - Replaceable bootstrap ports grant no admission/compute/disclosure. Qualify WebRTC Direct separately.
-- Imports are inert and application independent.
+- Imports are inert, application independent.
 - Candidates cannot expand permissions or approve their own output.
 - Cancellation does not claim termination of borrowed work.
 - Preserve record identities and recovery compatibility.
@@ -43,4 +43,4 @@ Catalogs, credentials, UI, scientific truth or deployment claims.
 ## Freedom
 Preserve contracts.
 
-*Last updated: September 2026*
+*Last updated: October 2026*

@@ -1,12 +1,19 @@
-import { createPartitionDataChannel } from '../../transport/partition-data-channel.js';
+import { createPartitionDataChannel, partitionBinaryResult } from '../../transport/partition-data-channel.js';
 import { createPartitionStepReceiver } from './partition-step-receiver.js';
 import { assertPartition as assert, assertCapacity, partitionFailure, canonicalPartitionJson, canonicalRouteAttemptBinding,
   sameRouteAttemptIdentity, validatePartitionRoute, partitionFingerprint, matchingPartitionActivation } from './partition-contract.js';
 
-const SCHEMA = 'reploid.partition-stage-rpc/v1';
+const SCHEMA = 'reploid.partition-stage-rpc/v2';
+const GRANT_REFERENCE = 'reploid.partition-grant-reference/v1';
+const GRANT_FIELDS = ['executionGrant', 'tokenContextGrant', 'incomingActivationGrant', 'outgoingActivationGrant', 'outputGrant'];
 const equal = (a, b) => canonicalPartitionJson(a) === canonicalPartitionJson(b);
 const unique = values => [...new Set(values)];
-/** Ordered mode of the existing peer. Binary outputs return to the explicitly disclosed coordinator. */
+const grantDigest = grant => partitionFingerprint({ schema: GRANT_REFERENCE, grant });
+const isReference = value => value?.schema === GRANT_REFERENCE && Object.keys(value).length === 2
+  && /^sha256:[a-f0-9]{64}$/.test(value.digest);
+/** Ordered mode of the existing peer. Binary outputs return to the explicitly disclosed coordinator
+ * on the reply to the step that produced them. A step names a signed grant already delivered for its
+ * attempt by digest; the stage resolves it only from grants it verified for that attempt. */
 export function createOrderedPartitionPeer({ channel, localParticipantId, remoteParticipantId, runtime, plan,
   planId, modelIdentity, authority, contributor, limits, receiverLimits, ordered, canonical }) {
   assert(!canonical, 'Ordered canonical peer is unsupported');
@@ -21,11 +28,13 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
   const ready = validatePartitionRoute(runtime, plan, route); ready.catch(() => {});
   const confirmed = new Map(), retirementReceipts = new Map();
   let undeliveredRetirements = 0;
-  const active = new Map(), reservations = new Map(), settlements = new Map(), pendingOutputs = new Map(), outputCharacters = new Map(), listeners = new Set();
-  let closed = false, retiring = false, remoteRetiring = false, closing = null, descriptor = null, outputBytes = 0;
+  const active = new Map(), reservations = new Map(), settlements = new Map(), inflight = new Set(), outputCharacters = new Map(), listeners = new Set();
+  // Per attempt: the grants a coordinator sent or a stage verified, by digest; and, on the coordinator,
+  // the digests its stage acknowledged receiving.
+  const delivered = new Map(), verifiedGrants = new Map();
+  let closed = false, retiring = false, remoteRetiring = false, closing = null, descriptor = null;
   let channelClosed;
   const remoteClose = new Promise(resolve => { channelClosed = resolve; });
-  const outputKey = request => request.identity.attemptId + ':' + request.step;
   const binding = request => {
     const identity = canonicalRouteAttemptBinding(request.identity);
     assert(equal(identity.route, route) && request.partitionIndex === index && request.coordinatorId === coordinatorId,
@@ -33,14 +42,20 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
     return identity;
   };
   const protocol = request => {
-    assert(request?.schema === SCHEMA && ['reserve', 'step', 'stage-output', 'settle', 'settle-accepted', 'retired'].includes(request.operation), 'Ordered peer message version mismatch');
+    assert(request?.schema === SCHEMA && ['reserve', 'step', 'settle', 'settle-accepted', 'retired'].includes(request.operation), 'Ordered peer message version mismatch');
     return binding(request);
   };
   const scope = (request, action) => ({ identity: request.identity, coordinatorId, action,
     partitionIndex: index, step: request.step, inputTokenCount: request.inputTokenCount,
     generationDigest: request.generationDigest, activationBytes: request.frame?.byteLength });
-  const permit = async (request, action, grant, extra = {}, settlement = false) => authority.verify(grant,
-    { ...scope(request, action), ...extra }, { settlement });
+  const permit = async (request, action, grant, extra = {}, settlement = false) => {
+    const input = { ...scope(request, action), ...extra };
+    const { ok, reason } = authority.check ? await authority.check(grant, input, { settlement })
+      : { ok: await authority.verify(grant, input, { settlement }) === true, reason: null };
+    // The attempt's grant lifetime is its answer window: an expired grant reports the deadline.
+    if (reason === 'expired') throw partitionFailure('ANSWER_DEADLINE_EXCEEDED');
+    return ok;
+  };
   const execution = (request, settlement = false) => permit(request, 'mesh.execute_partition_stage', request.executionGrant, {}, settlement);
   const token = request => permit(request, 'mesh.transfer_token_context', request.tokenContextGrant,
     { recipients: unique([coordinatorId, stage.participantId]) });
@@ -59,8 +74,8 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
     && Number.isSafeInteger(request.inputTokenCount) && request.inputTokenCount > 0
     && Array.isArray(request.inputTokenIds) && request.inputTokenIds.length === request.inputTokenCount
     && request.inputTokenIds.every(id => Number.isSafeInteger(id) && id >= 0 && id < plan.vocabSize);
-  const validFrame = (request, byteLength) => {
-    const frame = request.frame, layout = route.activation;
+  const validFrame = (request, byteLength, frame = request.frame) => {
+    const layout = route.activation;
     return validStep(request) && frame?.schema === layout.schema && matchingPartitionActivation(frame, layout, true)
       && equal(frame.shape, [1, request.inputTokenCount, layout.hiddenSize]) && frame.step === request.step
       && frame.seqOffset === request.tokenPosition && frame.byteLength === byteLength && byteLength > 0
@@ -73,6 +88,28 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
   const frameMetadata = request => ({ identity: request.identity, partitionIndex: index, step: request.step,
     tokenPosition: request.tokenPosition, generationDigest: request.generationDigest });
   const snapshotRequest = request => { const { signal, ...data } = request; return { ...structuredClone(data), signal }; };
+  const activationBytes = request => request.inputTokenCount * route.activation.hiddenSize * route.activation.elementStrideBytes;
+  // A step's grant references resolve only to grants this stage verified (or this coordinator sent) for that same attempt.
+  const resolveGrants = metadata => {
+    if (metadata?.operation !== 'step') return metadata;
+    const known = verifiedGrants.get(metadata.identity?.attemptId);
+    for (const field of GRANT_FIELDS) {
+      if (!isReference(metadata[field])) continue;
+      const grant = known?.get(metadata[field].digest);
+      if (!grant) return null;
+      metadata[field] = structuredClone(grant);
+    }
+    return metadata;
+  };
+  const rememberGrants = async metadata => {
+    const attemptId = metadata.identity.attemptId;
+    if (!reservations.has(attemptId) && metadata.operation !== 'reserve') return;
+    const known = verifiedGrants.get(attemptId) ?? new Map();
+    for (const field of GRANT_FIELDS) {
+      if (metadata[field] && !isReference(metadata[field]) && known.size < GRANT_FIELDS.length) known.set(await grantDigest(metadata[field]), structuredClone(metadata[field]));
+    }
+    if (known.size) verifiedGrants.set(attemptId, known);
+  };
   const control = (request, operation) => {
     const { signal: _signal, activation: _activation, ...data } = request;
     return { ...structuredClone(data), schema: SCHEMA, operation, coordinatorId, partitionIndex: index };
@@ -108,7 +145,7 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
       try { await contributor.closeAttempt({ identity: record.identity, partitionIndex: index }); } catch (error) { failures.push(error); }
       if (failures.length) throw new AggregateError(failures, 'Ordered remote cleanup failed');
       record.completed = true;
-      reservations.delete(identity.attemptId); outputCharacters.delete(identity.attemptId);
+      reservations.delete(identity.attemptId); outputCharacters.delete(identity.attemptId); verifiedGrants.delete(identity.attemptId);
     })().catch(error => { settlements.delete(identity.attemptId); throw error; });
     return record.promise;
   };
@@ -122,7 +159,8 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
       }
       if (metadata.operation === 'describe') return byteLength === 0 && metadata.schema === SCHEMA;
       try { protocol(metadata); } catch { return false; }
-      const returningOutput = metadata.operation === 'stage-output' || metadata.operation === 'retired';
+      if (!resolveGrants(metadata)) return false;
+      const returningOutput = metadata.operation === 'retired';
       const outbound = action === 'send' || action === 'accept';
       if (returningOutput ? outbound !== serving : outbound === serving) return false;
       if (metadata.operation === 'settle') return byteLength === 0 && execution(metadata, true);
@@ -137,20 +175,19 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
           && known.generationDigest === metadata.generationDigest && await execution(metadata, true);
       }
       if (!await execution(metadata) || await runtime.hashPartitionGeneration(metadata.generation) !== metadata.generationDigest) return false;
-      if (metadata.operation === 'reserve') return byteLength === 0
-        && Number.isSafeInteger(metadata.maxTokens) && metadata.maxTokens > 0
-        && metadata.maxTokens <= Math.min(receiverLimits.maxSteps, metadata.executionGrant.claim.limits.maxTokens)
-        && metadata.generation?.maxTokens === metadata.maxTokens;
-      if (!validFrame(metadata, byteLength)) return false;
-      if (returningOutput) {
-        if (index === route.stages.length - 1 || !await output(metadata)) return false;
-        const pending = serving ? null : pendingOutputs.get(outputKey(metadata));
-        return serving || !!pending && sameRouteAttemptIdentity(pending.request.identity, metadata.identity)
-          && pending.request.generationDigest === metadata.generationDigest && pending.request.tokenPosition === metadata.tokenPosition
-          && pending.request.inputTokenCount === metadata.inputTokenCount && pending.request.maxTokens === metadata.maxTokens;
+      if (metadata.operation === 'reserve') {
+        const allowed = byteLength === 0
+          && Number.isSafeInteger(metadata.maxTokens) && metadata.maxTokens > 0
+          && metadata.maxTokens <= Math.min(receiverLimits.maxSteps, metadata.executionGrant.claim.limits.maxTokens)
+          && metadata.generation?.maxTokens === metadata.maxTokens;
+        if (allowed && serving && action === 'receive') await rememberGrants(metadata);
+        return allowed;
       }
-      return await token(metadata) && await activation(metadata, false) && await output(metadata)
+      if (!validFrame(metadata, byteLength)) return false;
+      const allowed = await token(metadata) && await activation(metadata, false) && await output(metadata)
         && (!serving || reservations.has(metadata.identity.attemptId));
+      if (allowed && serving && action === 'receive') await rememberGrants(metadata);
+      return allowed;
     },
     async serve(metadata, payload, { signal }) {
       if (metadata.operation === 'describe') {
@@ -167,19 +204,6 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
         // Do not notify a host that could close the channel before this reply.
         // The retiring supplier closes it after receiving this acknowledgment.
         return { settled: true, identity: metadata.identity, partitionIndex: index };
-      }
-      if (metadata.operation === 'stage-output') {
-        const pending = pendingOutputs.get(outputKey(metadata));
-        assert(pending && !serving, 'Unexpected ordered output');
-        const digest = await partitionFingerprint(metadata.frame, payload);
-        assert(digest === metadata.outputDigest, 'Ordered output payload digest mismatch');
-        if (pending.output) assert(pending.output.digest === digest, 'Ordered output frame collision');
-        else {
-          assert(outputBytes + payload.byteLength <= limits.maxPendingBytes, 'Ordered pending output byte budget exhausted');
-          pending.output = { digest, frame: { ...structuredClone(metadata.frame), buffer: payload.slice().buffer } };
-          outputBytes += payload.byteLength;
-        }
-        return { outputDigest: digest };
       }
       if (metadata.operation === 'reserve') {
         assert(serving && !settlements.has(metadata.identity.attemptId), 'Ordered reservation already settled');
@@ -211,6 +235,7 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
         if (!record.acknowledged) retirementReceipts.set(metadata.identity.attemptId, record.request);
         await pending; return { settled: true };
       }
+      assert(resolveGrants(metadata), 'Ordered grant reference is not verified for this attempt');
       const result = await receiver.receive({ ...metadata, payload }, { signal });
       assert(sameRouteAttemptIdentity(result.identity, metadata.identity) && result.partitionIndex === index
         && result.step === metadata.step && result.tokenPosition === metadata.tokenPosition, 'Ordered output identity mismatch');
@@ -224,16 +249,17 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
       const frame = runtime.serializeActivationFrame({ ...result.activationTensor, metadata: frameMetadata(metadata) });
       runtime.validateActivationFrameForPlan(frame, plan);
       const { buffer, ...header } = frame;
-      const outputDigest = await partitionFingerprint(header, new Uint8Array(buffer));
-      const response = await endpoint.request({ ...metadata, operation: 'stage-output', frame: header, outputDigest }, new Uint8Array(buffer), { signal });
-      assert(response.outputDigest === outputDigest, 'Ordered output acknowledgment mismatch');
+      const bytes = new Uint8Array(buffer);
+      assert(validFrame(metadata, bytes.byteLength, header), 'Ordered output frame mismatch');
+      const outputDigest = await partitionFingerprint(header, bytes);
       const { activationTensor: _tensor, logits: _logits, ...rest } = result;
-      return { ...rest, outputDigest };
+      // The activation returns on this step's own reply, bound to its header by digest.
+      return partitionBinaryResult({ ...rest, frame: header, outputDigest }, bytes);
     }
   });
   const getState = () => ({ ready: !closed && !retiring && channel.readyState === 'open' && descriptor?.ready === true,
     participantId: remoteParticipantId, descriptor: structuredClone(descriptor), receipt: endpoint.getReceipt(),
-    retainedOutputBytes: outputBytes, unsettled: serving ? new Set([...reservations.keys(), ...retirementReceipts.keys()]).size : active.size,
+    unsettled: serving ? new Set([...reservations.keys(), ...retirementReceipts.keys()]).size : active.size,
     ...(serving ? { undeliveredRetirements } : {}) });
   const notify = () => { for (const listener of listeners) { try { listener(getState()); } catch {} } };
   const closeAttempt = async ({ identity }) => {
@@ -249,7 +275,7 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
       }
       const receipt = await endpoint.request({ ...previous, operation: 'settle-accepted' }, new Uint8Array());
       assert(receipt.accepted === true, 'Ordered settlement receipt not acknowledged');
-      active.delete(identity.attemptId); notify();
+      active.delete(identity.attemptId); delivered.delete(identity.attemptId); verifiedGrants.delete(identity.attemptId); notify();
     } catch (error) {
       // Only an already authenticated cleanup result can survive channel loss.
       // Concurrent retirement also confirms this exact attempt; a closed
@@ -303,7 +329,7 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
       })]); } catch (error) { failures.push(error); } finally { clearTimeout(timer); }
     }
     if (failures.length) { notify(); throw new AggregateError(failures, 'Ordered peer cleanup remains unknown'); }
-    closed = true; endpoint.close(); pendingOutputs.clear(); outputBytes = 0; notify();
+    closed = true; endpoint.close(); delivered.clear(); verifiedGrants.clear(); notify();
     })().catch(error => { closing = null; throw error; });
     return closing;
   };
@@ -330,7 +356,9 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
       active.set(metadata.identity.attemptId, metadata);
       const response = await endpoint.request(metadata, new Uint8Array(), { signal: request.signal });
       assert(sameRouteAttemptIdentity(response.identity, metadata.identity) && response.partitionIndex === index
-        && response.status === 'reserved', 'Ordered reservation acknowledgment mismatch'); return response;
+        && response.status === 'reserved', 'Ordered reservation acknowledgment mismatch');
+      delivered.set(metadata.identity.attemptId, new Set([await grantDigest(metadata.executionGrant)]));
+      return response;
     },
     async executeStage(request) {
       request = snapshotRequest(request);
@@ -341,21 +369,36 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
       const frame = runtime.serializeActivationFrame({ ...layout, data: tensorData, metadata: frameMetadata(request) });
       const { buffer, ...header } = frame;
       const metadata = control({ ...request, frame: header }, 'step'); protocol(metadata);
-      const key = outputKey(metadata); assert(pendingOutputs.size < receiverLimits.maxAttempts
-        && ![...pendingOutputs.values()].some(value => value.request.identity.attemptId === metadata.identity.attemptId), 'Ordered remote step already in flight');
-      const pending = { request: metadata, output: null }; pendingOutputs.set(key, pending);
+      const attemptId = metadata.identity.attemptId, final = index === route.stages.length - 1;
+      assert(inflight.size < receiverLimits.maxAttempts && !inflight.has(attemptId), 'Ordered remote step already in flight');
+      inflight.add(attemptId);
       try {
-        const response = await endpoint.request(metadata, new Uint8Array(buffer), { signal: request.signal });
+        // Grants this stage already holds for the attempt travel as digests; new ones travel once.
+        const known = delivered.get(attemptId) ?? new Set(), sent = [], wire = { ...metadata };
+        const own = verifiedGrants.get(attemptId) ?? new Map();
+        for (const field of GRANT_FIELDS) {
+          if (!metadata[field]) continue;
+          const digest = await grantDigest(metadata[field]);
+          if (own.size < GRANT_FIELDS.length || own.has(digest)) own.set(digest, metadata[field]);
+          if (known.has(digest)) wire[field] = { schema: GRANT_REFERENCE, digest };
+          else sent.push(digest);
+        }
+        if (active.has(attemptId)) verifiedGrants.set(attemptId, own);
+        const reply = await endpoint.request(wire, new Uint8Array(buffer), { signal: request.signal,
+          ...(final ? {} : { maxResponseBytes: activationBytes(metadata) }) });
+        const response = final ? reply : reply.result;
         assert(sameRouteAttemptIdentity(response.identity, metadata.identity) && response.partitionIndex === index
           && response.step === metadata.step && response.tokenPosition === metadata.tokenPosition, 'Ordered response binding mismatch');
-        if (index === route.stages.length - 1) return response;
-        assert(pending.output && pending.output.digest === response.outputDigest, 'Ordered binary output missing or unacknowledged');
-        const decoded = runtime.validateActivationFrameForPlan(pending.output.frame, plan);
+        for (const digest of sent) known.add(digest);
+        if (active.has(attemptId)) delivered.set(attemptId, known);
+        if (final) return response;
+        const { frame: output, outputDigest, ...rest } = response;
+        assert(validFrame(metadata, reply.bytes.byteLength, output)
+          && await partitionFingerprint(output, reply.bytes) === outputDigest, 'Ordered binary output missing or altered');
+        const decoded = runtime.validateActivationFrameForPlan({ ...output, buffer: reply.bytes.slice().buffer }, plan);
         const { tensorData: data, ...geometry } = decoded;
-        return { ...response, activationTensor: { ...geometry, data } };
-      } finally {
-        if (pendingOutputs.get(key) === pending) { outputBytes -= pending.output?.frame.buffer.byteLength || 0; pendingOutputs.delete(key); }
-      }
+        return { ...rest, outputDigest, activationTensor: { ...geometry, data } };
+      } finally { inflight.delete(attemptId); }
     }
   });
 }

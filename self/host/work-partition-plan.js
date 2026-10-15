@@ -146,5 +146,7 @@ export function bindWorkOrderedParticipation(options, participantId, transportId
   if (orchestration?.autoStage) orchestration.autoStage = { ...orchestration.autoStage, transportId };
   return { ordered: { stage, maxRouteBytes: options.maxRouteBytes, maxSelectionSteps: options.maxSelectionSteps, maxRoutes: options.maxRoutes,
     ...(orchestration ? { orchestration } : {}) },
-  policy: { ...policy, maxStageOffersPerPeer: options.maxStageOffersPerPeer, limits: { ...policy.limits, maxStages: options.maxStages } } };
+  // Every ordered stage, the coordinator's own included, runs under the declared execution-channel bound.
+  policy: { ...policy, maxStageOffersPerPeer: options.maxStageOffersPerPeer,
+    limits: { ...policy.limits, maxStages: options.maxStages, stageTimeoutMs: policy.executionChannel?.timeoutMs } } };
 }

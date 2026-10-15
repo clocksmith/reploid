@@ -1943,6 +1943,8 @@
     "vendor/reploid/mesh/partitions/partition-preparation-progress.js",
     "vendor/reploid/mesh/partitions/partition-receiver-policy.json",
     "vendor/reploid/mesh/partitions/partition-reservations.js",
+    "vendor/reploid/mesh/partitions/partition-route-envelope-policy.json",
+    "vendor/reploid/mesh/partitions/partition-route-envelope.js",
     "vendor/reploid/mesh/partitions/partition-route-execution.js",
     "vendor/reploid/mesh/partitions/partition-route-network.js",
     "vendor/reploid/mesh/partitions/partition-route-ranking.js",

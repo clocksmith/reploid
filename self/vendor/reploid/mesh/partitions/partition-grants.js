@@ -28,6 +28,29 @@ export function createPartitionGrantAuthority({ identity, meshId, maxGrants, max
   const signer = structuredClone(identity);
   const issued = new Map();
   let closed = false;
+  // Signatures already verified, keyed by signature and bound to the exact canonical grant record.
+  // Later checks of the same grant skip only the key derivation, import and signature verification;
+  // binding, scope, expiry and revocation are evaluated on every call. Bounded like issuance.
+  const verified = new Map();
+  const OK = Object.freeze({ ok: true, reason: null });
+  const refused = reason => ({ ok: false, reason });
+  const DECLINED = Object.freeze(refused('declined'));
+  async function signatureValid(record, signerId, signed) {
+    const json = canonicalPartitionJson(record);
+    const known = verified.get(record.signature);
+    if (known?.json === json && known.signerId === signerId) return true;
+    if (await createPeerIdFromPublicJwk(record.publicJwk) !== signerId) return false;
+    const key = await importVerificationKey(record.publicJwk);
+    if (!await crypto.subtle.verify(getIdentitySignAlgorithm(record.publicJwk), key, fromBase64Url(record.signature), signed)) return false;
+    const at = now();
+    for (const [signature, entry] of verified) if (entry.expiresAt <= at) verified.delete(signature);
+    while (verified.size >= maxGrants) verified.delete(verified.keys().next().value);
+    verified.set(record.signature, { json, signerId, expiresAt: record.claim.expiresAt });
+    return true;
+  }
+  // Expiry and revocation are re-evaluated after the asynchronous signature check.
+  const current = (claim, settlement) => closed ? DECLINED : settlement ? OK
+    : issued.get(claim.id)?.revoked === true ? refused('revoked') : claim.expiresAt <= now() ? refused('expired') : OK;
   const canonicalCapability = () => assert(['metadataDigest', 'canonicalGenerationIdentity', 'validateResidentAttemptIdentity', 'residentAttemptDigest']
     .every(method => typeof canonicalRuntime?.[method] === 'function'), 'Canonical Doppler grant capability required');
   const exact = (value, keys) => assert(value && typeof value === 'object' && !Array.isArray(value)
@@ -71,19 +94,18 @@ export function createPartitionGrantAuthority({ identity, meshId, maxGrants, max
       && claim.expiresAt - claim.issuedAt <= maxTtlMs, 'Invalid canonical grant lifetime');
     return { generation, attempt };
   };
-  async function verifyCanonical(grant, request, settlement) {
+  async function checkCanonical(grant, request, settlement) {
     try {
-      if (closed) return false;
+      if (closed) return DECLINED;
       canonicalCapability(); canonicalDigest({ grant, request });
       const record = structuredClone(grant), input = structuredClone(request), claim = record.claim;
       exact(record, ['claim', 'publicJwk', 'signature']);
       const { generation, attempt } = canonicalClaim(claim);
       const requested = canonicalRuntime.validateResidentAttemptIdentity(input.canonicalAttempt);
       if (!samePartitionIdentity(claim.identity, input.identity)
-        || canonicalRuntime.residentAttemptDigest(attempt) !== canonicalRuntime.residentAttemptDigest(requested)) return false;
+        || canonicalRuntime.residentAttemptDigest(attempt) !== canonicalRuntime.residentAttemptDigest(requested)) return DECLINED;
       if (!settlement) {
-        if (claim.expiresAt <= now() || issued.get(claim.id)?.revoked === true
-          || input.generationId !== generation.generationId || !partitionActions.includes(input.action)
+        if (input.generationId !== generation.generationId || !partitionActions.includes(input.action)
           || !['admit', 'step'].includes(input.phase) || !Number.isSafeInteger(input.step) || input.step < 0
           || !Number.isSafeInteger(input.inputTokenCount) || input.inputTokenCount < 1
           || input.inputTokenCount > (input.step === 0 ? Math.min(claim.limits.maxPromptTokens,
@@ -91,14 +113,11 @@ export function createPartitionGrantAuthority({ identity, meshId, maxGrants, max
           || input.phase === 'admit' && (input.step !== 0 || input.activationBytes != null && input.activationBytes !== 0)
           || input.phase === 'step' && input.step >= generation.policy.maxGeneratedTokens
           || input.activationBytes != null && (!Number.isSafeInteger(input.activationBytes)
-            || input.activationBytes < 0 || input.activationBytes > claim.limits.maxActivationBytes)) return false;
+            || input.activationBytes < 0 || input.activationBytes > claim.limits.maxActivationBytes)) return DECLINED;
       }
-      if (await createPeerIdFromPublicJwk(record.publicJwk) !== claim.identity.participantA) return false;
-      const key = await importVerificationKey(record.publicJwk);
-      const valid = await crypto.subtle.verify(getIdentitySignAlgorithm(record.publicJwk), key,
-        fromBase64Url(record.signature), canonicalBytes(claim));
-      return valid && !closed && (settlement || claim.expiresAt > now() && issued.get(claim.id)?.revoked !== true);
-    } catch { return false; }
+      if (!await signatureValid(record, claim.identity.participantA, canonicalBytes(claim))) return DECLINED;
+      return current(claim, settlement);
+    } catch { return DECLINED; }
   }
   const orderedClaim = claim => {
     exact(claim, ['schema', 'id', 'meshId', 'identity', 'coordinatorId', 'disclosure', 'generationDigest', 'issuedAt', 'expiresAt', 'limits']);
@@ -116,9 +135,9 @@ export function createPartitionGrantAuthority({ identity, meshId, maxGrants, max
       && claim.expiresAt - claim.issuedAt <= maxTtlMs, 'Invalid ordered grant allocation or lifetime');
     return binding;
   };
-  async function verifyOrdered(grant, request, settlement) {
+  async function checkOrdered(grant, request, settlement) {
     try {
-      if (closed) return false;
+      if (closed) return DECLINED;
       const record = structuredClone(grant), claim = record.claim;
       // Host authorization calls also carry borrowed AbortSignals/ports. Snapshot
       // only the signed protocol inputs, before any asynchronous verification.
@@ -127,44 +146,41 @@ export function createPartitionGrantAuthority({ identity, meshId, maxGrants, max
         .filter(key => Object.hasOwn(request, key)).map(key => [key, request[key]])));
       exact(record, ['claim', 'publicJwk', 'signature']);
       const binding = orderedClaim(claim), stages = binding.route.stages;
-      if (!sameRouteAttemptIdentity(binding, input.identity) || input.coordinatorId !== claim.coordinatorId) return false;
+      if (!sameRouteAttemptIdentity(binding, input.identity) || input.coordinatorId !== claim.coordinatorId) return DECLINED;
       const validStage = Number.isSafeInteger(input.partitionIndex) && input.partitionIndex >= 0 && input.partitionIndex < stages.length;
       if (settlement) {
-        if (input.action !== 'mesh.execute_partition_stage' || !validStage) return false;
+        if (input.action !== 'mesh.execute_partition_stage' || !validStage) return DECLINED;
       } else {
-        if (claim.expiresAt <= now() || issued.get(claim.id)?.revoked === true
-          || input.generationDigest !== claim.generationDigest || !Number.isSafeInteger(input.step)
+        if (input.generationDigest !== claim.generationDigest || !Number.isSafeInteger(input.step)
           || input.step < 0 || input.step >= claim.limits.maxTokens || !Number.isSafeInteger(input.inputTokenCount)
           || input.inputTokenCount < 1 || input.inputTokenCount > (input.step === 0 ? claim.limits.maxPromptTokens : 1)
           || input.activationBytes != null && (!Number.isSafeInteger(input.activationBytes)
-            || input.activationBytes < 0 || input.activationBytes > claim.limits.maxActivationBytes)) return false;
+            || input.activationBytes < 0 || input.activationBytes > claim.limits.maxActivationBytes)) return DECLINED;
         let recipients;
-        if (input.action === 'mesh.execute_partition_stage') { if (!validStage) return false; }
+        if (input.action === 'mesh.execute_partition_stage') { if (!validStage) return DECLINED; }
         else if (input.action === 'mesh.transfer_token_context') {
-          if (!validStage) return false;
+          if (!validStage) return DECLINED;
           recipients = [...new Set([claim.coordinatorId, stages[input.partitionIndex].participantId])];
         } else if (input.action === 'mesh.transfer_intermediate_activation') {
           if (!Number.isSafeInteger(input.fromStage) || input.fromStage < 0 || input.toStage !== input.fromStage + 1
-            || input.toStage >= stages.length) return false;
+            || input.toStage >= stages.length) return DECLINED;
           recipients = claim.disclosure.activationPaths[input.fromStage];
         } else if (input.action === 'mesh.transfer_partition_output') {
-          if (input.partitionIndex !== stages.length - 1) return false;
+          if (input.partitionIndex !== stages.length - 1) return DECLINED;
           recipients = claim.disclosure.outputRecipients;
-        } else return false;
-        if (recipients && canonicalPartitionJson(input.recipients) !== canonicalPartitionJson(recipients)) return false;
+        } else return DECLINED;
+        if (recipients && canonicalPartitionJson(input.recipients) !== canonicalPartitionJson(recipients)) return DECLINED;
       }
-      if (await createPeerIdFromPublicJwk(record.publicJwk) !== claim.coordinatorId) return false;
-      const key = await importVerificationKey(record.publicJwk);
-      const valid = await crypto.subtle.verify(getIdentitySignAlgorithm(record.publicJwk), key,
-        fromBase64Url(record.signature), bytes(claim));
-      return valid && !closed && (settlement || claim.expiresAt > now() && issued.get(claim.id)?.revoked !== true);
-    } catch { return false; }
+      if (!await signatureValid(record, claim.coordinatorId, bytes(claim))) return DECLINED;
+      return current(claim, settlement);
+    } catch { return DECLINED; }
   }
-  async function verify(grant, request, { settlement = false } = {}) {
-    if (grant?.claim?.schema === ORDERED_SCHEMA) return verifyOrdered(grant, request, settlement);
-    if (grant?.claim?.schema === CANONICAL_SCHEMA) return verifyCanonical(grant, request, settlement);
+  /** `{ ok, reason }`: reason is 'expired', 'revoked' or 'declined' (any other mismatch) when refused. */
+  async function check(grant, request, { settlement = false } = {}) {
+    if (grant?.claim?.schema === ORDERED_SCHEMA) return checkOrdered(grant, request, settlement);
+    if (grant?.claim?.schema === CANONICAL_SCHEMA) return checkCanonical(grant, request, settlement);
     try {
-      if (closed) return false;
+      if (closed) return DECLINED;
       validatePartitionIdentity(request.identity);
       const record = structuredClone(grant), claim = record.claim;
       if (claim?.schema !== SCHEMA || claim.meshId !== meshId || !samePartitionIdentity(claim.identity, request.identity)
@@ -173,25 +189,24 @@ export function createPartitionGrantAuthority({ identity, meshId, maxGrants, max
         || !Number.isSafeInteger(claim.issuedAt) || !Number.isSafeInteger(claim.expiresAt)
         || claim.issuedAt > now() + maxClockSkewMs || claim.expiresAt <= claim.issuedAt || claim.expiresAt - claim.issuedAt > maxTtlMs
         || typeof claim.id !== 'string' || claim.id.length > 128
-        || bounds.some(key => !Number.isSafeInteger(claim.limits?.[key]) || claim.limits[key] <= 0)) return false;
-      if (!settlement && (claim.expiresAt <= now() || issued.get(claim.id)?.revoked === true
-        || !partitionActions.includes(request.action) || !Number.isSafeInteger(request.step)
+        || bounds.some(key => !Number.isSafeInteger(claim.limits?.[key]) || claim.limits[key] <= 0)) return DECLINED;
+      if (!settlement && (!partitionActions.includes(request.action) || !Number.isSafeInteger(request.step)
         || request.generationDigest !== claim.generationDigest
         || request.action === 'mesh.transfer_token_context' && claim.disclosure !== 'partition-activations-and-tokens'
         || request.step < 0 || request.step >= claim.limits.maxTokens
         || !Number.isSafeInteger(request.inputTokenCount) || request.inputTokenCount < 1
         || request.inputTokenCount > (request.step === 0 ? claim.limits.maxPromptTokens : 1)
         || request.activationBytes != null && (!Number.isSafeInteger(request.activationBytes)
-          || request.activationBytes < 0 || request.activationBytes > claim.limits.maxActivationBytes))) return false;
-      if (await createPeerIdFromPublicJwk(record.publicJwk) !== request.identity.participantA) return false;
-      const key = await importVerificationKey(record.publicJwk);
-      const valid = await crypto.subtle.verify(getIdentitySignAlgorithm(record.publicJwk), key,
-        fromBase64Url(record.signature), bytes(claim));
-      return valid && !closed && (settlement || claim.expiresAt > now() && issued.get(claim.id)?.revoked !== true);
-    } catch { return false; }
+          || request.activationBytes < 0 || request.activationBytes > claim.limits.maxActivationBytes))) return DECLINED;
+      if (!await signatureValid(record, request.identity.participantA, bytes(claim))) return DECLINED;
+      return current(claim, settlement);
+    } catch { return DECLINED; }
   }
+  const verify = async (grant, request, options) => (await check(grant, request, options)).ok;
   return Object.freeze({
-    participantId: signer.peerId, meshId, verify,
+    participantId: signer.peerId, meshId, verify, check,
+    /** The declared clock allowance between participants that check this authority's grants. */
+    maxClockSkewMs,
     canonicalScope,
     async issueOrdered(identity, limits, { approved, ttlMs, disclosure, generationDigest, expiresAt }) {
       assert(!closed && approved === true, 'Explicit ordered partition disclosure approval required');
@@ -257,6 +272,6 @@ export function createPartitionGrantAuthority({ identity, meshId, maxGrants, max
       } catch (error) { entry.revoked = true; throw error; }
     },
     revoke(grant) { const entry = issued.get(grant?.claim?.id); if (entry) entry.revoked = true; },
-    close() { closed = true; for (const entry of issued.values()) entry.revoked = true; }
+    close() { closed = true; verified.clear(); for (const entry of issued.values()) entry.revoked = true; }
   });
 }

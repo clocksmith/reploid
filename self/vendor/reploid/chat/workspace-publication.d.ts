@@ -25,7 +25,9 @@ export type AdmissionEnvelope = Omit<PublicationEnvelope<never, never>, 'success
 export interface PublicationHistory<Attempt, Policy, Cursor, Publication> {
   schema: 'reploid.publication-history/v1'; writerEpoch: string | null; head: string | null;
   attempts: Array<{ identity: Attempt; generationPolicy: Policy; executionIdentity: string; vocabSize: number;
-    deadlineAt: number; requireCommitEvidence?: true; digest: string; status: 'live' | 'interrupted' | 'cancelled' | 'completed'; nextSequence: number; cursor: Cursor | null }>;
+    deadlineAt: number; requireCommitEvidence?: true;
+    /** Ordered attempts: the declared window of computed steps that may be uncommitted when the writer stops. */
+    persistence?: { maxUnsavedSteps: number; maxUnsavedMs: number }; digest: string; status: 'live' | 'interrupted' | 'cancelled' | 'completed'; nextSequence: number; cursor: Cursor | null }>;
   records: Array<{ publication: Publication; receipt: PublicationReceipt; evidence?: readonly unknown[]; evidenceDigest?: string }>;
 }
 export function createConversationPublication<Attempt extends PublicationAttempt, Policy,
@@ -45,7 +47,9 @@ export function createConversationPublication<Attempt extends PublicationAttempt
     /** Require exact signed stage evidence in the same transaction as output. Persisted admission prevents restart downgrade. */
     requireCommitEvidence?: boolean;
     authorize(scope: { conversationId: string; writerEpoch: string; action: 'writer'|'admit'|'publish'|'cancel'|'read'|'replay'; attempt: Attempt | null }): boolean;
-    policy?: { maxAttempts: number; maxPublications: number }; now?: () => number;
+    policy?: { maxAttempts: number; maxPublications: number;
+      /** Recorded on each ordered attempt; maxUnsavedSteps 0 declares per-step commit. */
+      persistence: { maxUnsavedSteps: number; maxUnsavedMs: number } }; now?: () => number;
   }): {
     readonly requiresCommitEvidence: boolean;
     claimWriter(expectedEpoch: string | null): Promise<{ writerEpoch: string; head: string | null }>;
@@ -55,6 +59,8 @@ export function createConversationPublication<Attempt extends PublicationAttempt
     admitAttempt(input: { identity: OrderedPublicationAttempt; generationPolicy: OrderedGenerationBounds; executionIdentity: string;
       vocabSize: number; deadlineAt: number }): Promise<WriterHistory<Attempt, Policy, Cursor, Publication | Admission>['attempts'][number]>;
     publish(input: Publication | Admission | OrderedPublication, options?: { evidence?: readonly unknown[] }): Promise<PublicationReceipt>;
+    /** Consecutive records of one attempt, each checked as by publish, committed in one transaction (all or none). */
+    publishBatch(inputs: readonly (Publication | Admission | OrderedPublication)[], options?: { evidence?: readonly (readonly unknown[])[] }): Promise<PublicationReceipt[]>;
     cancel(attemptId: string, coordinatorEpoch: string): Promise<{ status: string; head: string | null }>;
     reconcile(): Promise<WriterHistory<Attempt, Policy, Cursor, Publication | Admission>>;
     readPublished(afterIndex: number): Promise<WriterHistory<Attempt, Policy, Cursor, Publication | Admission>['records']>;

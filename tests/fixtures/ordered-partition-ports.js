@@ -39,7 +39,7 @@ export function fixture(count = 3, limit = 2) {
   const options = { runtime, plan, route, stages, authorize: vi.fn(async () => true),
     transport: { transferActivation: vi.fn(async frame => structuredClone(frame)) },
     limits: { maxTokens: 10, maxPromptTokens: 32, maxActivationBytes: 4096, maxOutputCharacters: 100,
-      maxAttempts: 100, maxConcurrentAttempts: limit, maxStages: 32 } };
+      maxAttempts: 100, maxConcurrentAttempts: limit, maxStages: 32, stageTimeoutMs: 1000 } };
   return { ...options, request, calls, runner: createLayerPartitionRunner(options) };
 }
 export function another(f, id) { return { ...f.request, identity: { ...f.request.identity, attemptId: id, threadId: id } }; }

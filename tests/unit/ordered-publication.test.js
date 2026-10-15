@@ -81,13 +81,15 @@ async function coordinator() {
 
 /** One requester application lifetime: transactional history, workspace and a
  * fresh authenticated entry channel to the coordinator. Reopening is a reload. */
-async function requester(c, store, { writerEpoch = epochA, expectedWriterEpoch = null, service = c.chat } = {}) {
+// These controls pin per-step commit (a declared window of zero steps); the coalesced window is covered below.
+const perStep = { maxAttempts: 64, maxPublications: 4096, persistence: { maxUnsavedSteps: 0, maxUnsavedMs: 0 } };
+async function requester(c, store, { writerEpoch = epochA, expectedWriterEpoch = null, service = c.chat, policy = perStep } = {}) {
   let authorizeExecution = () => false;
   const history = await openCanonicalWorkspaceHistory({ store, key: 'workspace', meshId: 'mesh', participantId: requesterId,
     writerEpoch, expectedWriterEpoch, legacy: { workspace: null, drafts: null }, maxWorkspaceBytes: 1000000, maxThreads: 8,
     // Only a digest port: ordered publication needs no canonical Doppler validators,
     // and an ordered record carries no stage commitment to authenticate.
-    publicationOptions: () => ({ doppler: { metadataDigest }, authenticateCommit: async () => false,
+    publicationOptions: () => ({ doppler: { metadataDigest }, authenticateCommit: async () => false, policy,
       authorize: scope => ['writer', 'read', 'replay'].includes(scope.action) || authorizeExecution(scope) === true }) });
   const pair = channels();
   const server = createPartitionEntry({ channel: pair[1], localParticipantId: c.signer.peerId, remoteParticipantId: requesterId,
@@ -144,13 +146,13 @@ async function requester(c, store, { writerEpoch = epochA, expectedWriterEpoch =
     } };
 }
 
-async function opened() {
-  const c = await coordinator(), store = memoryStore(), r = await requester(c, store);
+async function opened(policy = perStep) {
+  const c = await coordinator(), store = memoryStore(), r = await requester(c, store, { policy });
   const threadId = await r.newThread();
   const owners = [r];
   return { c, store, r, threadId, owners,
     async reload(options = {}) {
-      const next = await requester(c, store, options); owners.push(next); return next;
+      const next = await requester(c, store, { policy, ...options }); owners.push(next); return next;
     },
     async close() { for (const owner of owners) await owner.close(); await c.close(); } };
 }
@@ -367,6 +369,108 @@ describe('three-stage ordered route publishing through the requester-owned trans
         expect(third.thread().attempts.map(row => row.status)).toEqual(['interrupted', 'completed']);
       } finally { gate.resolve(); await t.close(); }
     });
+});
+
+describe('coalesced publication under the requester\'s declared persistence window', () => {
+  const windowed = (maxUnsavedSteps, maxUnsavedMs) => ({ maxAttempts: 64, maxPublications: 4096, persistence: { maxUnsavedSteps, maxUnsavedMs } });
+  // Each transaction that adds records, as the sequences it commits together.
+  const commits = (t, log = []) => {
+    t.store.hook = (prior, next) => {
+      const before = publications(prior, t.threadId).records.length, after = publications(next, t.threadId).records;
+      const batch = after.slice(before).map(row => row.publication.sequence);
+      return batch.length ? () => log.push(['commit', batch]) : undefined;
+    };
+    t.c.f.stages.forEach((stage, index) => {
+      const run = stage.executeStage.getMockImplementation();
+      stage.executeStage.mockImplementation(async args => { if (index === 0) log.push(['execute', args.step]); return run(args); });
+    });
+    return log;
+  };
+  it('commits steps in one transaction off the step path, shows only committed text and marks the window on the attempt', async () => {
+    const t = await opened(windowed(8, 60000)), visible = [];
+    try {
+      const log = commits(t);
+      t.r.workspace.subscribe(state => {
+        const message = state.threads[0]?.messages.at(-1);
+        if (message?.role === 'assistant') visible.push([message.content, text(records(t.store, t.threadId, message.attemptId))]);
+      });
+      const attempt = await t.r.send(t.threadId);
+      expect([attempt.error, t.r.writerErrors]).toEqual([null, []]);
+      expect(attempt.status).toBe('completed'); expect(t.r.response().content).toBe('012');
+      // Steps 1 and 2 ran before anything was committed; the terminal step committed all three at once.
+      expect(log).toEqual([['execute', 0], ['execute', 1], ['execute', 2], ['commit', [0, 1, 2]]]);
+      expect(visible.every(([shown, committed]) => committed.startsWith(shown))).toBe(true);
+      expect(t.r.projected).toHaveLength(1);
+      expect(publications(t.store.durable.get('workspace'), t.threadId).attempts[0])
+        .toMatchObject({ status: 'completed', persistence: { maxUnsavedSteps: 8, maxUnsavedMs: 60000 } });
+    } finally { await t.close(); }
+  });
+  it('never leaves more than the declared steps uncommitted while computing the next one', async () => {
+    const t = await opened(windowed(1, 60000));
+    try {
+      const log = commits(t);
+      expect((await t.r.send(t.threadId)).status).toBe('completed');
+      expect(log).toEqual([['execute', 0], ['execute', 1], ['commit', [0, 1]], ['execute', 2], ['commit', [2]]]);
+    } finally { await t.close(); }
+  });
+  it('starts a commit after the declared delay without waiting for the next step', async () => {
+    const t = await opened(windowed(8, 0)), last = t.c.f.stages[2], run = last.executeStage.getMockImplementation();
+    try {
+      const log = commits(t);
+      last.executeStage.mockImplementation(async args => { if (args.step === 1) await new Promise(resolve => setTimeout(resolve, 30)); return run(args); });
+      expect((await t.r.send(t.threadId)).status).toBe('completed');
+      expect(log.findIndex(row => row[0] === 'commit' && row[1].includes(0))).toBeLessThan(log.findIndex(row => row[0] === 'execute' && row[1] === 2));
+    } finally { await t.close(); }
+  });
+  it('a crash loses at most the declared window: reload restores the committed prefix as interrupted, with its window marked', async () => {
+    const t = await opened(windowed(8, 60000)), last = t.c.f.stages[2], run = last.executeStage.getMockImplementation();
+    const gate = Promise.withResolvers(), reached = Promise.withResolvers();
+    last.executeStage.mockImplementation(async args => { if (args.step === 2) { reached.resolve(); await gate.promise; } return run(args); });
+    try {
+      const pending = t.r.send(t.threadId);
+      await reached.promise;
+      const interrupted = t.r.attempt().id;
+      // Two computed steps were uncommitted when this writer stopped: within the window of eight.
+      const reloaded = await t.reload({ writerEpoch: epochB, expectedWriterEpoch: epochA });
+      expect(reloaded.attempt()).toMatchObject({ id: interrupted, status: 'interrupted' });
+      expect(reloaded.response().content).toBe('');
+      expect(publications(t.store.durable.get('workspace'), t.threadId).attempts[0])
+        .toMatchObject({ status: 'interrupted', persistence: { maxUnsavedSteps: 8, maxUnsavedMs: 60000 } });
+      gate.resolve();
+      await expect(pending).rejects.toThrow();
+      // The superseded writer could not commit the window afterwards.
+      expect(records(t.store, t.threadId, interrupted)).toEqual([]);
+    } finally { gate.resolve(); await t.close(); }
+  });
+  it('a failed attempt commits every step it computed before the writer records its end', async () => {
+    const t = await opened(windowed(8, 60000)), last = t.c.f.stages[2], run = last.executeStage.getMockImplementation();
+    last.executeStage.mockImplementation(async args => { if (args.step === 2) throw Error('stage failed'); return run(args); });
+    try {
+      const attempt = await t.r.send(t.threadId);
+      expect(attempt.status).toBe('failed');
+      expect(records(t.store, t.threadId, attempt.id).map(row => row.publication.sequence)).toEqual([0, 1]);
+      expect(t.r.response()).toMatchObject({ content: '01', status: 'failed' });
+      expect(publications(t.store.durable.get('workspace'), t.threadId).attempts[0].status).toBe('cancelled');
+      const reloaded = await t.reload({ writerEpoch: epochB, expectedWriterEpoch: epochA });
+      expect(reloaded.response().content).toBe('01');
+    } finally { await t.close(); }
+  });
+  it('a stop keeps exactly the committed text as the final state', async () => {
+    const t = await opened(windowed(8, 60000)), last = t.c.f.stages[2], run = last.executeStage.getMockImplementation();
+    const reached = Promise.withResolvers(), gate = Promise.withResolvers();
+    last.executeStage.mockImplementation(async args => { if (args.step === 2) { reached.resolve(); await gate.promise; } return run(args); });
+    try {
+      const pending = t.r.send(t.threadId);
+      await reached.promise; void t.r.workspace.cancel(t.threadId); gate.resolve();
+      const attempt = await pending;
+      expect(attempt.status).toBe('cancelled');
+      const durable = text(records(t.store, t.threadId, attempt.id));
+      expect(t.r.response().content).toBe(durable);
+      expect(publications(t.store.durable.get('workspace'), t.threadId).attempts[0].status).toBe('cancelled');
+      const reloaded = await t.reload({ writerEpoch: epochB, expectedWriterEpoch: epochA });
+      expect(reloaded.response().content).toBe(durable);
+    } finally { gate.resolve(); await t.close(); }
+  });
 });
 
 describe('ordered publication record contract inside the existing writer', () => {

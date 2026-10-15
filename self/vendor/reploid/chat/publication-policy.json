@@ -1,4 +1,8 @@
 {
   "maxAttempts": 64,
-  "maxPublications": 4096
+  "maxPublications": 4096,
+  "persistence": {
+    "maxUnsavedSteps": 8,
+    "maxUnsavedMs": 50
+  }
 }

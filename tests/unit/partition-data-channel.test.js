@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createPartitionDataChannel } from '../../packages/reploid/src/transport/partition-data-channel.js';
+import { createPartitionDataChannel, partitionBinaryResult } from '../../packages/reploid/src/transport/partition-data-channel.js';
 import { createBoundedChannelWriter } from '../../packages/reploid/src/transport/bounded-channel-writer.js';
 
 const limits = { maxFrameBytes: 32, maxControlBytes: 1024, maxPayloadBytes: 128,
@@ -78,7 +78,7 @@ describe('partition binary transport (injected host ports)', () => {
     bytes.fill(0); metadata.thread = 'mutated';
     expect(await one).toEqual({ thread: 'one', values: Array.from({ length: 49 }, (_, i) => i) });
     expect(await two).toEqual({ thread: 'two', values: [200] });
-    expect(frames(f.a).map(frame => frame.byteLength).sort()).toEqual([13, 21, 32, 32]);
+    expect(frames(f.a).map(frame => frame.byteLength).sort()).toEqual([14, 24, 32, 32]);
     await vi.waitFor(() => expect(f.client.getReceipt().reservedBytes).toBe(0));
     expect(f.client.getReceipt().sentFrameBytes).toBe(f.server.getReceipt().receivedFrameBytes);
     expect(f.client.getReceipt().receivedFrameBytes).toBe(f.server.getReceipt().sentFrameBytes);
@@ -88,14 +88,61 @@ describe('partition binary transport (injected host ports)', () => {
       localParticipantId: 'b', remoteParticipantId: 'a', byteLength: 49 }), expect.anything());
   });
 
-  it('authorizes both endpoints before any activation bytes are sent', async () => {
+  it('authorizes the sender before any frame and the receiver before any execution', async () => {
     for (const side of ['client', 'server']) {
       const f = fixture({ [side]: { authorize: async () => false } });
       await expect(f.client.request({ thread: 'denied' }, new Uint8Array([1]))).rejects.toThrow(/authorization|declined/);
-      expect(frames(f.a)).toEqual([]);
       expect(f.serve).not.toHaveBeenCalled();
       if (side === 'client') expect(f.a.frames).toEqual([]);
+      // A refused receiver discards the pipelined payload and returns its window.
+      await vi.waitFor(() => expect(f.server.getReceipt()).toMatchObject({ reservedBytes: 0, inboundRequests: 0 }));
+      expect(f.client.getReceipt().creditHeld).toEqual({ requests: 0, bytes: 0 });
     }
+  });
+
+  it('pipelines the payload with its header and replies once: two one-way crossings per request', async () => {
+    const f = fixture(), log = [];
+    for (const [name, channel] of [['out', f.a], ['back', f.b]]) {
+      const original = channel.send;
+      channel.send = function(data) { if (log.at(-1) !== name) log.push(name); return original.call(this, data); };
+    }
+    expect(await f.client.request({ thread: 'one' }, Uint8Array.from({ length: 49 }, (_, i) => i))).toMatchObject({ thread: 'one' });
+    expect(log).toEqual(['out', 'back']);
+    expect(f.b.frames.filter(frame => typeof frame === 'string').map(frame => JSON.parse(frame).type)).toEqual(['result']);
+  });
+
+  it('returns binary reply bytes on the direct path within the declared allocation', async () => {
+    const f = fixture({ server: { serve: async (metadata, bytes) => partitionBinaryResult({ echoed: bytes.length },
+      Uint8Array.from({ length: 40 }, (_, i) => 255 - i)) } });
+    const reply = await f.client.request({ thread: 'binary' }, new Uint8Array([7]), { maxResponseBytes: 40 });
+    expect(reply.result).toEqual({ echoed: 1 });
+    expect([...reply.bytes]).toEqual(Array.from({ length: 40 }, (_, i) => 255 - i));
+    expect(f.authorize).toHaveBeenCalledWith(expect.objectContaining({ action: 'accept', responseByteLength: 40 }), expect.anything());
+    await vi.waitFor(() => expect(f.client.getReceipt().reservedBytes).toBe(0));
+    // A reply larger than the request allowed is never sent.
+    const g = fixture({ server: { serve: async () => partitionBinaryResult({}, new Uint8Array(41)) } });
+    await expect(g.client.request({}, new Uint8Array(), { maxResponseBytes: 40 })).rejects.toMatchObject({ code: 'EXECUTION_FAILED' });
+    expect(frames(g.b)).toEqual([]);
+  });
+
+  it('waits for credit held by cancelled uncooperative work instead of overrunning the receiver window', async () => {
+    const entered = gate(), release = gate();
+    const tight = { ...limits, maxPendingRequests: 1 };
+    const f = fixture({ client: { limits: tight }, server: { limits: tight, serve: async metadata => {
+      if (metadata.thread === 'one') { entered.resolve(); await release.promise; }
+      return { thread: metadata.thread };
+    } } });
+    const controller = new AbortController();
+    const one = f.client.request({ thread: 'one' }, new Uint8Array([1]), { signal: controller.signal });
+    const failed = expect(one).rejects.toThrow('cancelled');
+    await entered.promise; controller.abort(); await failed;
+    const two = f.client.request({ thread: 'two' }, new Uint8Array([2]));
+    await new Promise(resolve => setTimeout(resolve, 10));
+    expect(f.client.getReceipt()).toMatchObject({ creditWaiting: 1, creditHeld: { requests: 1 } });
+    expect(f.server.getReceipt()).toMatchObject({ closed: false, inboundRequests: 1 });
+    release.resolve();
+    expect(await two).toEqual({ thread: 'two' });
+    expect(f.b.frames.filter(frame => typeof frame === 'string').map(frame => JSON.parse(frame).type)).toEqual(['released', 'result']);
   });
 
   it('does not confuse asynchronous authorization order with transport replay', async () => {
@@ -242,8 +289,8 @@ describe('partition binary transport (injected host ports)', () => {
         await f.client.request({}, new Uint8Array([1]));
         f.a.send(f.a.frames[0]);
       } else {
-        f.a.send(JSON.stringify({ schema: 'reploid.partition-channel/v1', type: 'request',
-          id: 1, metadata: {}, size: 0xffffffff }));
+        f.a.send(JSON.stringify({ schema: 'reploid.partition-channel/v2', type: 'request',
+          id: 1, metadata: {}, size: 0xffffffff, responseBytes: 0 }));
       }
       await vi.waitFor(() => expect(f.server.getReceipt().closed).toBe(true));
       expect(f.serve).toHaveBeenCalledTimes(replay ? 1 : 0);

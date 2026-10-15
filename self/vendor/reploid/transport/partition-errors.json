@@ -10,5 +10,7 @@
   "CAPACITY_QUEUE_TIMEOUT": "No prepared capacity for this route became free before this attempt's queue limit or permission window ended. The attempt was not run; retry starts a new attempt.",
   "CONNECTION_LOST": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.",
   "REQUEST_TIMEOUT": "The contributor request timed out. Remote completion and cleanup are not confirmed.",
-  "CLEANUP_FAILED": "Partition attempt settlement failed. Contributor cleanup is not confirmed; its capacity remains unavailable."
+  "CLEANUP_FAILED": "Partition attempt settlement failed. Contributor cleanup is not confirmed; its capacity remains unavailable.",
+  "ANSWER_DEADLINE_EXCEEDED": "Response timed out. Retry starts a new attempt.",
+  "WORKLOAD_OUTSIDE_ENVELOPE": "This route does not support a request of this prompt length, answer length or number of concurrent requests. Nothing was sent to its contributors."
 }
