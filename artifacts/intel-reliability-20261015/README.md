@@ -163,13 +163,19 @@ A copy of that interrupted staging (7.1 MB of Mesa-DB) is retained on intel-host
 
 1. **The stopped public browser contributor (299769)** is the owner's to restart. I did not touch
    it.
-2. **How to run cold compiles on intel-host without oomd killing other work.** Each option needs
-   the user's choice:
-   - run GPU steps outside `user@1000.service`, in a system scope (needs sudo);
-   - relax oomd's policy for the user manager (needs admin);
-   - drop MemoryHigh and keep only MemoryMax 12 GiB, so the kernel OOM-kills inside the scope
-     instead of throttling. This changes the stated bound;
-   - pause the other heavy user workloads (tmux sessions, `zero-supervisor`) during the step.
+2. **How to run cold compiles on intel-host without oomd killing other work.** The incident shows
+   failed containment, so another attempt needs verified isolation, not larger or different memory
+   limits. Raising or dropping MemoryHigh, or relaxing oomd alone, is not evidence of isolation.
+   Before any further GPU step, a non-GPU memory-pressure probe at the cold-compile footprint
+   (more than 10 GiB for over 400 s) must show that the other user-session units (tmux sessions,
+   `zero-supervisor`, the public contributors) keep running and their pressure stays below oomd's
+   limit. Candidate mechanisms, each needing the owner's choice and administrator access where noted:
+   - run GPU steps outside `user@1000.service`, in a system slice with its own memory budget (sudo);
+   - protect the other units (`MemoryMin`/`MemoryLow`, `ManagedOOMPreference=avoid`) and confirm
+     oomd then selects only the experiment (admin for system-wide oomd policy);
+   - schedule the step when the owner has paused the other workloads.
+   The incident's disruption and recovery belong in the cost record
+   ([Flash-Next register](../efficiency-evidence-20261015/FLASH-NEXT.md#intel-incident-and-read-only-recovery-observation)).
 3. **Mesa upgrade.** Ubuntu 24.04 ships `mesa-vulkan-drivers` 25.2.8-0ubuntu0.24.04.4. Installing
    it needs administrator access (`apt`) and requalification of the Intel stage, numerically and
    for compile cost. A compiler change can change both the crash and the cold-compile footprint
