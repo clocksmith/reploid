@@ -7,7 +7,7 @@ Parent: [Reploid](../CATSCAN.md)
 Bounded authentication, discovery, relay, proxy and native participation without authority over browser claims.
 
 ## Authority
-- Owns server validation, signaling, relay, external adapters, native composition, accounts, credit accounting and contribution rewards.
+- Owns server validation, signaling, relay, external adapters, native composition, accounts, credit accounting, purchase reconciliation, Community Access and contribution rewards.
 - Excludes browser execution claims, exactly-once delivery, scientific validity and Research Room decisions.
 
 ## Scope
@@ -34,13 +34,13 @@ Outputs:
 
 ## Acceptance
 - Preserve admission boundaries.
-- Evidence: native lifecycle: [native host tests](../tests/unit/native-participant.test.js).
+- Evidence: native lifecycle: [host tests](../tests/unit/native-participant.test.js).
 - Native custody: [native file tests](../tests/unit/native-model-files.test.js).
 - [public discovery tests](../tests/integration/public-swarm-server.test.js).
-- [signaling integration tests](../tests/integration/signaling-server.test.js) and [public inference admission tests](../tests/integration/public-inference-admission.test.js).
+- [signaling integration](../tests/integration/signaling-server.test.js) and [public inference admission](../tests/integration/public-inference-admission.test.js) tests.
 
 ## Non-goals
-- Operating a trustless compute marketplace or centralizing browser evidence authority.
+- Trustless compute marketplaces or centralized browser evidence authority.
 
 ## Freedom
 Preserve boundaries and pass acceptance.

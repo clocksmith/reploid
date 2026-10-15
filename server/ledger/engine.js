@@ -6,7 +6,7 @@
  * A duplicate delivery returns the stored result. A replay under a new key is
  * rejected by canonical identity: one acceptance per quote, one settlement per
  * reservation, one economic effect per billable event, one lot per issuance
- * source and one record per refund id.
+ * source, one record per refund id and one reversal per purchased lot.
  */
 
 import { randomUUID } from 'node:crypto';
@@ -55,6 +55,14 @@ import {
   summarizeBalance,
   summarizeSolvency
 } from './transitions.js';
+import {
+  REVERSIBLE_PROVENANCE,
+  accountDeficit,
+  newReversal,
+  reversalTreatment,
+  sweepReversedLots,
+  validateReversalPolicy
+} from './reversals.js';
 import { assertLedgerBackend } from './store-contract.js';
 
 const defaultClock = () => new Date().toISOString();
@@ -95,10 +103,13 @@ export function createLedgerStore({
   policy,
   clock = defaultClock,
   createId = defaultCreateId,
-  issuanceAuthority = null
+  issuanceAuthority = null,
+  // Explicit spent-credit treatment per reversal kind (see reversals.js); without it reversals fail closed.
+  reversalPolicy = null
 } = {}) {
   assertLedgerBackend(backend);
   const activePolicy = validateAccountingPolicy(policy);
+  const activeReversalPolicy = validateReversalPolicy(reversalPolicy);
   const idempotencyId = (operation, scopeId, key) => sha256Hex(`${operation}\u0000${scopeId}\u0000${key}`);
   const claimId = (kind, key) => sha256Hex(`${kind}\u0000${key}`);
 
@@ -144,8 +155,31 @@ export function createLedgerStore({
     return { decisionId: decision.decisionId, limitId: decision.limitId ?? null };
   };
 
+  // Reversal records for the reversible lots a transition may return credit to.
+  const readReversals = async (tx, lots) => {
+    const found = {};
+    const lotIds = new Set(lots.filter((lot) => REVERSIBLE_PROVENANCE.includes(lot.provenance)).map((lot) => lot.lotId));
+    for (const lotId of lotIds) {
+      const reversal = await tx.get('reversals', lotId);
+      if (reversal) found[lotId] = reversal;
+    }
+    return found;
+  };
+
+  // Credit returned to a reversed lot is removed in the same transaction.
+  const sweep = (account, reversals, { cause, refs, now }) => {
+    const { swept, changed } = sweepReversedLots(account, reversals, { cause, ref: refs, now });
+    const entries = swept.length
+      ? [appendEntry(account, {
+        type: 'reverse', amount: swept.reduce((sum, lot) => sum + lot.amount, 0), lots: swept,
+        refs: { ...refs, reversalIds: changed.map((reversal) => reversal.reversalId) }, now
+      })]
+      : [];
+    return [...entries.map((entry) => insert('journal', entry.entryId, entry)), ...changed.map((reversal) => put('reversals', reversal.lotId, reversal))];
+  };
+
   // Charge per accepted terms, release the rest, and close the reservation.
-  const finalize = ({ account, reservation, decision, charge, input, review, now }) => {
+  const finalize = ({ account, reservation, decision, charge, input, review, reversals = {}, now }) => {
     const { charged, released } = applySettle(account, reservation.draws, charge);
     const settlementId = settlementIdForReservation(reservation.reservationId);
     const refs = {
@@ -158,6 +192,7 @@ export function createLedgerStore({
     if (charge > 0) entries.push(appendEntry(account, { type: 'charge', amount: charge, lots: charged, refs, now }));
     const releasedAmount = reservation.authorizedMax - charge;
     if (releasedAmount > 0) entries.push(appendEntry(account, { type: 'release', amount: releasedAmount, lots: released, refs, now }));
+    const reversalWrites = sweep(account, reversals, { cause: 'settlement', refs, now });
     const record = buildSettlementRecord({ reservation, ...decision, charge, charged, released, input, review, now });
     const attempt = decision.attempt
       ? reservation.attempts.find((entry) => entry.attemptId === decision.attempt.attemptId)
@@ -171,6 +206,7 @@ export function createLedgerStore({
       record,
       writes: [
         ...entries.map((entry) => insert('journal', entry.entryId, entry)),
+        ...reversalWrites,
         put('accounts', account.accountId, account),
         put('reservations', reservation.reservationId, reservation)
       ]
@@ -319,6 +355,9 @@ export function createLedgerStore({
           if (quote.accountingVersion !== activePolicy.accountingVersion) {
             fail('accounting_version_changed', 'quote was issued under a different accounting version; request a new quote');
           }
+          if (accountDeficit(account) > 0) {
+            fail('account_in_deficit', 'a reversed purchase left spent credit owed; new spending is blocked', { deficit: accountDeficit(account) });
+          }
           const draws = applyReserve(account, quote.pricing.maxCharge, activePolicy.lotConsumptionOrder);
           const reservation = newReservation({ quote, deviceId, draws, now });
           const writes = [];
@@ -440,7 +479,8 @@ export function createLedgerStore({
             };
           }
           const charge = evaluateFormula(decision.formula, decision.metering, reservation.rounding);
-          const { record, writes } = finalize({ account, reservation, decision, charge, input: request, review: null, now });
+          const reversals = await readReversals(tx, reservation.draws);
+          const { record, writes } = finalize({ account, reservation, decision, charge, input: request, review: null, reversals, now });
           return { result: record, writes: [eventClaim, ...writes] };
         }
       });
@@ -461,9 +501,11 @@ export function createLedgerStore({
           const account = await readRequired(tx, 'accounts', reservation.accountId, 'account_not_found');
           const { charge, termKey } = decideReview(review, reservation, request);
           const reviewer = pick(request.reviewer, ['reviewerId', 'authority', 'decisionId']);
+          const reversals = await readReversals(tx, reservation.draws);
           const { record, writes } = finalize({
             account,
             reservation,
+            reversals,
             decision: {
               outcome: 'failed_quality',
               termKey,
@@ -513,11 +555,11 @@ export function createLedgerStore({
             fail('refund_requires_settlement', 'only a settled charge can be refunded', { status: reservation.status });
           }
           const { settlement } = reservation;
+          const reversals = await readReversals(tx, settlement.chargedLots);
           const lots = applyRefund(account, settlement.chargedLots, reservation.refunds.byLot, amount);
-          const entry = appendEntry(account, {
-            type: 'refund', amount, lots,
-            refs: { quoteId: reservation.quoteId, reservationId, settlementId: settlement.settlementId, refundId }, now
-          });
+          const refs = { quoteId: reservation.quoteId, reservationId, settlementId: settlement.settlementId, refundId };
+          const entry = appendEntry(account, { type: 'refund', amount, lots, refs, now });
+          const reversalWrites = sweep(account, reversals, { cause: 'refund', refs, now });
           account.updatedAt = now;
           reservation.refunds.total += amount;
           for (const lot of lots) reservation.refunds.byLot[lot.lotId] = (reservation.refunds.byLot[lot.lotId] || 0) + lot.amount;
@@ -543,6 +585,7 @@ export function createLedgerStore({
             writes: [
               insert('claims', refundClaimId, { kind: 'refund', key: refundId, reservationId, record, recordedAt: now }),
               insert('journal', entry.entryId, entry),
+              ...reversalWrites,
               put('accounts', reservation.accountId, account),
               put('reservations', reservationId, reservation)
             ]
@@ -567,9 +610,11 @@ export function createLedgerStore({
           const reservation = await tx.get('reservations', candidate.reservationId);
           if (!reservation || !isReservationExpired(reservation, now)) return null;
           const account = await readRequired(tx, 'accounts', reservation.accountId, 'account_not_found');
+          const reversals = await readReversals(tx, reservation.draws);
           const { record: settlement, writes } = finalize({
             account,
             reservation,
+            reversals,
             decision: { outcome: 'expired', termKey: null, formula: null, metering: {}, attempt: null, phase: null },
             charge: 0,
             input: null,
@@ -582,6 +627,52 @@ export function createLedgerStore({
         if (record) results.push(record);
       }
       return results;
+    },
+
+    /**
+     * Refund or chargeback of a purchased lot: remove its unspent balance and
+     * apply the declared spent-credit treatment to what was already spent.
+     * Held credit resolves when its reservation settles. One reversal per lot.
+     */
+    async reverseIssuance(input = {}) {
+      assertKnownKeys(input, ['lotId', 'reversalId', 'kind', 'authority', 'reason', 'idempotencyKey'], 'reverseIssuance');
+      const { lotId, reversalId, kind, authority, idempotencyKey } = input;
+      assertId(lotId, 'lotId');
+      assertId(reversalId, 'reversalId');
+      const treatment = reversalTreatment(activeReversalPolicy, kind, authority);
+      const request = pick(input, ['lotId', 'reversalId', 'kind', 'authority', 'reason']);
+      const now = clock();
+      return mutate({
+        operation: 'reverseIssuance', scopeId: lotId, idempotencyKey, request, now,
+        body: async (tx) => {
+          const lot = await readRequired(tx, 'lots', lotId, 'lot_not_found');
+          const existing = await tx.get('reversals', lotId);
+          const account = await readRequired(tx, 'accounts', lot.accountId, 'account_not_found');
+          if (existing) fail('duplicate_reversal', 'this lot was already reversed', { reversalId: existing.reversalId });
+          if (!REVERSIBLE_PROVENANCE.includes(lot.provenance)) {
+            fail('reversal_not_permitted', `only ${REVERSIBLE_PROVENANCE.join(', ')} lots can be refunded or charged back`, { provenance: lot.provenance });
+          }
+          const reversal = newReversal({ lot, reversalId, kind, authority, treatment, reason: request.reason, now });
+          const { swept } = sweepReversedLots(account, { [lotId]: reversal }, { cause: kind, ref: { reversalId }, now });
+          const entry = appendEntry(account, {
+            type: 'reverse', amount: swept.reduce((sum, lot) => sum + lot.amount, 0), lots: swept,
+            refs: { lotId, reversalId, kind }, now
+          });
+          account.updatedAt = now;
+          return {
+            result: { ...reversal, entrySeq: entry.seq, balance: summarizeBalance(account), deficit: accountDeficit(account) },
+            writes: [
+              insert('reversals', lotId, reversal),
+              insert('journal', entry.entryId, entry),
+              put('accounts', lot.accountId, account)
+            ]
+          };
+        }
+      });
+    },
+
+    async getReversal(lotId) {
+      return backend.get('reversals', lotId);
     },
 
     /** Transferable lots keep provenance and parentage, but transfers are not activated. */

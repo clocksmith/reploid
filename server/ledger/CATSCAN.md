@@ -7,7 +7,7 @@ Parent: [Hosted Services](../CATSCAN.md)
 Durable credit accounts, quotes, reservations and settlement giving each billable event exactly one economic effect.
 
 ## Authority
-- Owns credit lots and provenance, quote terms, monetary reservations, settlement outcomes, refunds, the append-only journal and solvency inputs.
+- Owns credit lots and provenance, quote terms, monetary reservations, settlement outcomes, refunds, purchase reversals, the append-only journal and solvency inputs.
 - Excludes prices, reward amounts, payments, reward validation, capacity admission, disclosure grants and quality adjudication.
 
 ## Scope
@@ -32,10 +32,11 @@ Outputs:
 - Transfers stay disabled until approved activation.
 - Separate from Poolday points, compute reservations, resource settlement and transfer allowances.
 - Spending never adds per-request disclosure review.
+- Reversals remove a purchased lot's unspent credit; spent credit follows the declared treatment.
 
 ## Acceptance
 - Memory and Firestore stores pass identical ledger scenarios.
-- Evidence: [ledger tests](../../tests/unit/credit-ledger.test.js).
+- Evidence: [ledger](../../tests/unit/credit-ledger.test.js) and [reversal](../../tests/unit/credit-reversals.test.js) tests.
 
 ## Non-goals
 - Payment processing, reward policy, solvency stress testing, marketplace trading or financial-accounting qualification.
