@@ -137,12 +137,13 @@ export async function authenticateOperator(operatorAuthority, req, roles) {
 const STATUS = new Map(Object.entries({
   session_invalid: 401, session_ended: 401, session_expired: 401, session_revoked: 401, session_device_revoked: 401,
   assertion_invalid: 401, assertion_expired: 401, assertion_replayed: 401, reauthentication_required: 401,
-  provider_unknown: 400, idempotency_key_required: 400, proof_malformed: 400,
+  provider_unknown: 400, idempotency_key_required: 400, proof_malformed: 400, notification_not_authentic: 400,
   device_session_required: 403, session_binding_invalid: 403, account_mismatch: 403, participant_not_owned: 403,
   offer_account_mismatch: 403, quote_account_mismatch: 403, device_not_authorized: 403, link_authority_denied: 403,
   funding_not_authorized: 403, acquirer_device_mismatch: 403, owner_authorization_unrecorded: 403,
   idempotency_conflict: 409, challenge_used: 409, participant_conflict: 409, device_registered_elsewhere: 409,
-  session_already_bound: 409, allocation_closed: 409, storage_conflict: 503, funding_authority_required: 503
+  session_already_bound: 409, allocation_closed: 409, storage_conflict: 503, funding_authority_required: 503,
+  processor_unavailable: 503
 }));
 
 /**

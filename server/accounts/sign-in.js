@@ -18,7 +18,8 @@
  *   testOnly: true marks a provider for local runs and tests only
  *   (test-sign-in.js); hosted compositions refuse it in production.
  *
- * No real provider ships here. Real providers need their own acceptance.
+ * No real provider ships here; real providers live in ../providers and need
+ * their own acceptance.
  */
 
 import { fail, isIsoTime, isNonEmptyString, toMs } from './domain.js';

@@ -32,6 +32,7 @@ import {
   PAYMENT_PHASES,
   PAYMENT_SCHEMA,
   POLLED_PHASES,
+  PaymentError,
   completingReversal,
   derivePhase,
   fail,
@@ -110,6 +111,13 @@ export function createPaymentStore({ backend, ledger, processor, accounts, polic
   const paymentPolicy = validatePaymentPolicy(policy);
   if (paymentPolicy.processorId !== processor.id) throw new TypeError('policy.processorId must name the supplied processor');
   const processorId = processor.id;
+  // Records name the processor that created them; another processor never reconciles them.
+  const ownRecord = (record) => {
+    if (record.processor !== processorId) {
+      fail('processor_mismatch', `payment ${record.checkoutId} belongs to processor ${record.processor}`, { checkoutId: record.checkoutId });
+    }
+    return record;
+  };
 
   // Apply `change` to the current record in one transaction and re-derive its phase.
   const update = (checkoutId, change) => backend.runTransaction(async (tx) => {
@@ -135,7 +143,10 @@ export function createPaymentStore({ backend, ledger, processor, accounts, polic
       accountId: record.accountId,
       credits: record.credits ?? record.topUp.credits,
       amount: record.topUp.price,
-      idempotencyKey: record.checkoutId
+      idempotencyKey: record.checkoutId,
+      topUpId: record.topUp.topUpId,
+      paymentPolicyVersion: record.paymentPolicyVersion,
+      conversion: record.quote ? { conversionId: record.quote.conversionId, recordHash: record.quote.recordHash } : null
     }));
     const claimId = purchaseClaimId(processorId, response.purchaseId);
     return backend.runTransaction(async (tx) => {
@@ -239,6 +250,8 @@ export function createPaymentStore({ backend, ledger, processor, accounts, polic
   const store = {
     kind: backend.kind,
     policy: paymentPolicy,
+    /** Which processor reconciles here, whether it serves local runs and tests only, and its mode. */
+    processor: Object.freeze({ id: processorId, testOnly: processor.testOnly === true, mode: typeof processor.mode === 'string' ? processor.mode : null }),
 
     /**
      * Start a one-time top-up checkout for the authenticated participant's
@@ -308,10 +321,13 @@ export function createPaymentStore({ backend, ledger, processor, accounts, polic
       try {
         event = validateNotificationEvent(await processor.verifyNotification({ headers, rawBody }));
       } catch (error) {
+        // A processor failure after authentication (a lookup it needs) is not a verdict on authenticity.
+        if (error instanceof PaymentError) throw error;
         fail('notification_not_authentic', 'the processor could not verify this notification', { reason: error?.message ?? null });
       }
       if (!event) fail('notification_not_authentic', 'the processor could not verify this notification');
-      const claim = await backend.get('claims', purchaseClaimId(processorId, event.purchaseId));
+      // An authentic event that names no purchase is recorded and has no effect.
+      const claim = event.purchaseId === null ? null : await backend.get('claims', purchaseClaimId(processorId, event.purchaseId));
       const now = clock();
       const duplicate = await backend.runTransaction(async (tx) => {
         const noticeId = notificationId(processorId, event.eventId);
@@ -329,7 +345,7 @@ export function createPaymentStore({ backend, ledger, processor, accounts, polic
 
     /** Bring one payment and its ledger effects in line with the processor's authoritative status. */
     async reconcile({ checkoutId } = {}) {
-      let record = await readPayment(checkoutId);
+      let record = ownRecord(await readPayment(checkoutId));
       if (record.phase === 'creating') record = await completeCheckout(record);
       const status = validatePaymentStatus(await processor.fetchPayment(record.purchaseId), record);
       record = await update(checkoutId, (current) => ({ ...current, observed: mergeObservation(current.observed, status, clock()) }));
@@ -345,6 +361,7 @@ export function createPaymentStore({ backend, ledger, processor, accounts, polic
       const nowMs = toMs(clock());
       const lists = await Promise.all([...POLLED_PHASES, 'issued'].map((phase) => backend.list('payments', { field: 'phase', value: phase })));
       const due = lists.flat()
+        .filter((record) => record.processor === processorId)
         .filter((record) => record.phase !== 'issued' || nowMs - toMs(record.issuance.issuedAt) <= paymentPolicy.polling.reversalWatchMs)
         .filter((record) => nowMs - toMs(record.updatedAt) >= paymentPolicy.polling.minAgeMs)
         .sort((left, right) => toMs(left.updatedAt) - toMs(right.updatedAt) || left.checkoutId.localeCompare(right.checkoutId))
