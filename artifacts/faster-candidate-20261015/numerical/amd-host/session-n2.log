@@ -1,0 +1,10 @@
+session n2 start 2026-10-15T00:56:11Z amdgpu-errors 50
+public-native cpu 120.0
+n2-cand-check exit=0 seconds=133 at 00:58:24 amdgpu-errors 50
+public-native cpu 120.0
+n2-cand-unsplit exit=0 seconds=73 at 00:59:37 amdgpu-errors 50
+public-native cpu 120.0
+n2-cand-profile exit=0 seconds=16 at 00:59:53 amdgpu-errors 50
+public-native cpu 130.0
+n2-cand-memory exit=0 seconds=79 at 01:01:13 amdgpu-errors 50
+session n2 done 2026-10-15T01:01:13Z amdgpu-errors 50

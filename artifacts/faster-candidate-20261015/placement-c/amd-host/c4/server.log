@@ -1,0 +1,3 @@
+Running as unit: fc-c4-server.scope; invocation ID: f8e9f25eb0344646bf78501251d6758d
+{"app":"http://127.0.0.1:29850","model":"http://127.0.0.1:29851","pid":2342096}
+Diagnostic model server on loopback port 29851

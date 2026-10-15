@@ -1,0 +1,17 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Failed physical execution cannot qualify
+    at producePhysicalReports (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:139:3)
+    at main (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:380:20)
+    at async file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:407:90 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v22.20.0

@@ -1,0 +1,5 @@
+start 2026-10-15T01:45:42Z i915=54
+state-shipped-cold exit=0 seconds=20 peak= at 01:46:03 i915=54
+state-shipped-warm exit=0 seconds=0 peak= at 01:46:03 i915=54
+state-sliced-cold exit=143 seconds=1801 peak= at 02:16:05 i915=54
+state-sliced-warm exit=143 seconds=957 peak= at 02:32:02 i915=54
