@@ -1,0 +1,175 @@
+{
+  "schema": "reploid.economics-estimate/v1",
+  "as_of": "2026-10-15",
+  "status": "planning estimates; no economic acceptance or approved pricing",
+  "runtime_archive": "3b132ee7ff984c80ef48487d3010028ade46b64d39323304d674feebfde3bf78",
+  "model": "qwen-3-5-0-8b-q4k-ehaf16",
+  "route": "final-10 pass 3, placement C: Mac browser plus two AMD processes sharing one physical AMD host",
+  "physical_hosts": 2,
+  "measurements": {
+    "input_tokens": 56,
+    "output_tokens": 100,
+    "answer_s": 147.8,
+    "first_token_s": 19.3,
+    "decode_s_per_token": 1.262,
+    "parallel_amd_cold_preparation_s": 90.7,
+    "amd_whole_model_prefill_s": 8.21,
+    "amd_whole_model_decode_s": 0.2865,
+    "source": "../faster-candidate-20261015/README.md",
+    "note": "Single retained short workload, not a representative throughput or quality distribution. Cold preparation excludes unmeasured acquisition and model-open overhead.",
+    "browser_full_model_seed_s": 887
+  },
+  "sources": {
+    "brave": {
+      "url": "https://brave.com/search/api/",
+      "checked": "2026-10-15",
+      "search_usd_per_1000": 5,
+      "monthly_credit_usd": 5,
+      "scope": "Search plan; limited credit excluded from recurring unit-cost advantage"
+    },
+    "stripe": {
+      "url": "https://stripe.com/pricing",
+      "checked": "2026-10-15",
+      "fraction": 0.029,
+      "fixed_usd": 0.3,
+      "scope": "US standard domestic cards only; extra products, disputes, FX and international fees excluded"
+    },
+    "supabase": {
+      "url": "https://supabase.com/pricing",
+      "checked": "2026-10-15",
+      "pro_monthly_from_usd": 25,
+      "scope": "Starting plan price, not full service operating cost"
+    },
+    "together": {
+      "url": "https://www.together.ai/pricing",
+      "checked": "2026-10-15",
+      "scope": "Uncached serverless token prices, not proven equivalent quality/latency/privacy; provider energy unknown",
+      "models": [
+        {
+          "name": "Qwen3.5 9B",
+          "input_usd_per_million": 0.17,
+          "output_usd_per_million": 0.25
+        },
+        {
+          "name": "Qwen3.7-Plus",
+          "input_usd_per_million": 0.32,
+          "output_usd_per_million": 1.28
+        },
+        {
+          "name": "Qwen3.5-397B-A17B",
+          "input_usd_per_million": 0.6,
+          "output_usd_per_million": 3.6
+        }
+      ]
+    },
+    "eia": {
+      "url": "https://www.eia.gov/energyexplained/electricity/prices-and-factors-affecting-prices.php",
+      "checked": "2026-10-15",
+      "residential_2025_usd_kwh": 0.173,
+      "scope": "US annual reference only; not either host's tariff"
+    }
+  },
+  "common": {
+    "night_hours": 8,
+    "nights_per_month": 30,
+    "deadline_s": 180,
+    "topup_usd": 10,
+    "reward_markup_fraction": 0.2,
+    "note": "Eight hours, deadline, top-up and reward markup are illustrative policy inputs, not spending or issuance authorization. Credits have no configured USD exchange rate."
+  },
+  "scenarios": [
+    {
+      "name": "low_cost",
+      "active_incremental_w": 80,
+      "idle_incremental_w": 10,
+      "baseline_w": 30,
+      "network_incremental_w": 2,
+      "cooling_multiplier": 1,
+      "tariff_usd_kwh": 0.12,
+      "utilization": 0.75,
+      "quality_pass_fraction": 0.9,
+      "on_time_fraction": 0.98,
+      "failed_attempt_duration_ratio": 0.5,
+      "startup_extra_s": 5,
+      "acquisition_s": 0,
+      "cache_reuse_nights": 30,
+      "acquisition_gb": 1.16,
+      "transfer_mb_per_attempt": 2,
+      "egress_usd_gb": 0,
+      "hardware_basis_usd": 1500,
+      "hardware_years": 5,
+      "hardware_allocation_fraction": 0.25,
+      "platform_usd_month": 30,
+      "operator_minutes_night": 0.5,
+      "operator_usd_hour": 25,
+      "review_model_index": 0,
+      "review_input_tokens": 500,
+      "review_output_tokens": 50,
+      "loss_reserve_fraction": 0.005,
+      "paid_answer_fraction": 0.8,
+      "alternative_searxng_monthly_usd": 5
+    },
+    {
+      "name": "base",
+      "active_incremental_w": 180,
+      "idle_incremental_w": 25,
+      "baseline_w": 60,
+      "network_incremental_w": 5,
+      "cooling_multiplier": 1.1,
+      "tariff_usd_kwh": 0.2,
+      "utilization": 0.4,
+      "quality_pass_fraction": 0.65,
+      "on_time_fraction": 0.95,
+      "failed_attempt_duration_ratio": 1,
+      "startup_extra_s": 20,
+      "acquisition_s": 887,
+      "cache_reuse_nights": 7,
+      "acquisition_gb": 1.16,
+      "transfer_mb_per_attempt": 10,
+      "egress_usd_gb": 0.02,
+      "hardware_basis_usd": 3500,
+      "hardware_years": 4,
+      "hardware_allocation_fraction": 0.5,
+      "platform_usd_month": 75,
+      "operator_minutes_night": 3,
+      "operator_usd_hour": 50,
+      "review_model_index": 1,
+      "review_input_tokens": 1500,
+      "review_output_tokens": 150,
+      "loss_reserve_fraction": 0.02,
+      "paid_answer_fraction": 0.5,
+      "alternative_searxng_monthly_usd": 20
+    },
+    {
+      "name": "stress",
+      "active_incremental_w": 300,
+      "idle_incremental_w": 50,
+      "baseline_w": 100,
+      "network_incremental_w": 10,
+      "cooling_multiplier": 1.25,
+      "tariff_usd_kwh": 0.35,
+      "utilization": 0.15,
+      "quality_pass_fraction": 0.425,
+      "on_time_fraction": 0.85,
+      "failed_attempt_duration_ratio": 1.5,
+      "startup_extra_s": 60,
+      "acquisition_s": 1774,
+      "cache_reuse_nights": 1,
+      "acquisition_gb": 1.16,
+      "transfer_mb_per_attempt": 50,
+      "egress_usd_gb": 0.09,
+      "hardware_basis_usd": 6000,
+      "hardware_years": 3,
+      "hardware_allocation_fraction": 1,
+      "platform_usd_month": 200,
+      "operator_minutes_night": 10,
+      "operator_usd_hour": 100,
+      "review_model_index": 2,
+      "review_input_tokens": 4000,
+      "review_output_tokens": 500,
+      "loss_reserve_fraction": 0.05,
+      "paid_answer_fraction": 0.2,
+      "alternative_searxng_monthly_usd": 50
+    }
+  ]
+}
