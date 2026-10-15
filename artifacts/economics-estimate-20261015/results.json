@@ -122,8 +122,114 @@
     "300_watts": 20.0,
     "450_watts": 30.000000000000004
   },
-  "inputs_sha256": "3facaa0150be581413d142fb447322fc67f9c4a9e4c23381343baa09e400491f",
+  "inputs_sha256": "a09f373c80d829b2c68afeae7c9e93321df7c371b2d240b44991bc73d6897a4b",
   "local_amd_same_precision_answer_s_estimate": 36.86,
+  "rental_comparison": [
+    {
+      "accepted_per_billed_hour_to_beat_reploid_base": 11.416779139752352,
+      "common_fixed_service_usd_hour": 0.625,
+      "complete_service_usd_per_accepted_sensitivity": [
+        {
+          "accepted_per_billed_hour": 6,
+          "usd_per_accepted": 0.22358825910931174
+        },
+        {
+          "accepted_per_billed_hour": 25,
+          "usd_per_accepted": 0.05448825910931174
+        },
+        {
+          "accepted_per_billed_hour": 100,
+          "usd_per_accepted": 0.01443825910931174
+        }
+      ],
+      "instance_usd_730_hours": 503.7,
+      "instance_usd_8_hours": 5.52,
+      "name": "Lambda Quadro RTX 6000",
+      "review_usd_per_accepted_assumption": 0.001088259109311741,
+      "scope": "Single GPU instance including listed CPU/RAM/local SSD; persistent filesystem charges separate; regional capacity not checked",
+      "url": "https://lambda.ai/instances",
+      "usd_hour": 0.69,
+      "vram_gb": 24
+    },
+    {
+      "accepted_per_billed_hour_to_beat_reploid_base": 14.837536934434706,
+      "common_fixed_service_usd_hour": 0.625,
+      "complete_service_usd_per_accepted_sensitivity": [
+        {
+          "accepted_per_billed_hour": 6,
+          "usd_per_accepted": 0.29025492577597845
+        },
+        {
+          "accepted_per_billed_hour": 25,
+          "usd_per_accepted": 0.07048825910931174
+        },
+        {
+          "accepted_per_billed_hour": 100,
+          "usd_per_accepted": 0.018438259109311742
+        }
+      ],
+      "instance_usd_730_hours": 795.7,
+      "instance_usd_8_hours": 8.72,
+      "name": "Lambda A6000",
+      "review_usd_per_accepted_assumption": 0.001088259109311741,
+      "scope": "Single GPU instance including listed CPU/RAM/local SSD; persistent filesystem charges separate; regional capacity not checked",
+      "url": "https://lambda.ai/instances",
+      "usd_hour": 1.09,
+      "vram_gb": 48
+    },
+    {
+      "accepted_per_billed_hour_to_beat_reploid_base": 16.54791583177588,
+      "common_fixed_service_usd_hour": 0.625,
+      "complete_service_usd_per_accepted_sensitivity": [
+        {
+          "accepted_per_billed_hour": 6,
+          "usd_per_accepted": 0.32358825910931177
+        },
+        {
+          "accepted_per_billed_hour": 25,
+          "usd_per_accepted": 0.07848825910931173
+        },
+        {
+          "accepted_per_billed_hour": 100,
+          "usd_per_accepted": 0.02043825910931174
+        }
+      ],
+      "instance_usd_730_hours": 941.7,
+      "instance_usd_8_hours": 10.32,
+      "name": "Lambda A10",
+      "review_usd_per_accepted_assumption": 0.001088259109311741,
+      "scope": "Single GPU instance including listed CPU/RAM/local SSD; regional capacity not checked",
+      "url": "https://lambda.ai/instances",
+      "usd_hour": 1.29,
+      "vram_gb": 24
+    },
+    {
+      "accepted_per_billed_hour_to_beat_reploid_base": 11.560726988075466,
+      "common_fixed_service_usd_hour": 0.625,
+      "complete_service_usd_per_accepted_sensitivity": [
+        {
+          "accepted_per_billed_hour": 6,
+          "usd_per_accepted": 0.2263936384426451
+        },
+        {
+          "accepted_per_billed_hour": 25,
+          "usd_per_accepted": 0.05516155014931175
+        },
+        {
+          "accepted_per_billed_hour": 100,
+          "usd_per_accepted": 0.014606581869311743
+        }
+      ],
+      "instance_usd_730_hours": 515.98756148,
+      "instance_usd_8_hours": 5.654658208,
+      "name": "Google g2-standard-4 / L4",
+      "review_usd_per_accepted_assumption": 0.001088259109311741,
+      "scope": "Displayed on-demand table price includes 1 L4, 4 vCPU, 16 GiB host RAM; region not exposed in retrieved table. Requote selected region before provisioning. Disk/egress excluded from list rate.",
+      "url": "https://cloud.google.com/products/compute/pricing/accelerator-optimized?hl=en",
+      "usd_hour": 0.706832276,
+      "vram_gb": 24
+    }
+  ],
   "scenarios": [
     {
       "alternative_searxng_hosting_only_usd_per_accepted": 0.0012207760437949278,

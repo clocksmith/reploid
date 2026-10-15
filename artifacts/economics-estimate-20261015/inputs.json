@@ -171,5 +171,45 @@
       "paid_answer_fraction": 0.2,
       "alternative_searxng_monthly_usd": 50
     }
-  ]
+  ],
+  "rental_comparison": {
+    "checked": "2026-10-15",
+    "basis": "On-demand USD list prices; tax excluded; no instance rented or quota/availability checked",
+    "additional_disk_network_usd_hour_assumption": 0.02,
+    "accepted_answers_per_billed_hour_sensitivity": [
+      6,
+      25,
+      100
+    ],
+    "offers": [
+      {
+        "name": "Lambda Quadro RTX 6000",
+        "vram_gb": 24,
+        "usd_hour": 0.69,
+        "url": "https://lambda.ai/instances",
+        "scope": "Single GPU instance including listed CPU/RAM/local SSD; persistent filesystem charges separate; regional capacity not checked"
+      },
+      {
+        "name": "Lambda A6000",
+        "vram_gb": 48,
+        "usd_hour": 1.09,
+        "url": "https://lambda.ai/instances",
+        "scope": "Single GPU instance including listed CPU/RAM/local SSD; persistent filesystem charges separate; regional capacity not checked"
+      },
+      {
+        "name": "Lambda A10",
+        "vram_gb": 24,
+        "usd_hour": 1.29,
+        "url": "https://lambda.ai/instances",
+        "scope": "Single GPU instance including listed CPU/RAM/local SSD; regional capacity not checked"
+      },
+      {
+        "name": "Google g2-standard-4 / L4",
+        "vram_gb": 24,
+        "usd_hour": 0.706832276,
+        "url": "https://cloud.google.com/products/compute/pricing/accelerator-optimized?hl=en",
+        "scope": "Displayed on-demand table price includes 1 L4, 4 vCPU, 16 GiB host RAM; region not exposed in retrieved table. Requote selected region before provisioning. Disk/egress excluded from list rate."
+      }
+    ]
+  }
 }

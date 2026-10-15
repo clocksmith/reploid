@@ -88,3 +88,29 @@ At $0.20/kWh, 100% busy decode and no prefill, failures, idle or other costs. St
 | 450 | 10 | 2.500 |
 
 AMD-only same-precision short-answer estimate: **36.86 seconds**, summing measured whole-model prefill and 100 decode steps. This is not an installed application measurement. Qualification of that service path remains necessary.
+
+## Rental comparison
+
+On-demand rates checked 2026-10-15. No cloud inference was benchmarked. Accepted-answer rates are sensitivity inputs, including idle, startup and failed work per billed hour. Instance availability and NVIDIA correctness remain unqualified.
+
+| Instance | GPU GB | USD/hour | USD/8 hours | USD/730 hours |
+|---|---:|---:|---:|---:|
+| Lambda Quadro RTX 6000 | 24 | 0.6900 | 5.52 | 503.70 |
+| Lambda A6000 | 48 | 1.0900 | 8.72 | 795.70 |
+| Lambda A10 | 24 | 1.2900 | 10.32 | 941.70 |
+| Google g2-standard-4 / L4 | 24 | 0.7068 | 5.65 | 515.99 |
+
+[Lambda list prices](https://lambda.ai/instances); [Google accelerator pricing](https://cloud.google.com/products/compute/pricing/accelerator-optimized?hl=en). Google rate requires regional requote; disk/egress separate. Tax excluded.
+
+Comparable service boundary: add the same base platform/labor allocation ($0.625/hour), the same assumed review cost per accepted answer, and an assumed $0.02/hour disk/network allowance. Excludes payment fees, search, tax and one-time setup on both sides. Does not add electricity or hardware depreciation on top of rental.
+
+| Instance | At 6 accepted/hour | At 25 accepted/hour | At 100 accepted/hour | Accepted/hour needed to beat Reploid base |
+|---|---:|---:|---:|---:|
+| Lambda Quadro RTX 6000 | $0.2236 | $0.0545 | $0.0144 | 11.42 |
+| Lambda A6000 | $0.2903 | $0.0705 | $0.0184 | 14.84 |
+| Lambda A10 | $0.3236 | $0.0785 | $0.0204 | 16.55 |
+| Google g2-standard-4 / L4 | $0.2264 | $0.0552 | $0.0146 | 11.56 |
+
+Reploid base on this before-payment-fee boundary: $0.1180/accepted answer, at 5.97 accepted/hour. This is an estimate anchored to retained timings, not measured economic proof.
+
+Read 25/hour as a condition to verify, not a cloud speed forecast. Higher GPU capacity does not guarantee demand. Startup, idle time, failed quality and deadlines must all be inside the observed accepted-per-billed-hour denominator. No Spot discount, utilization gain or automatic batching gain is assumed.
