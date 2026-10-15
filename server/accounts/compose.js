@@ -5,9 +5,31 @@
  * session. No HTTP routes are defined here.
  */
 
+import { LEDGER_COLLECTIONS } from '../ledger/store-contract.js';
 import { composeContributionRewards } from '../rewards/engine.js';
 import { assertKnownKeys, fail } from './domain.js';
 import { createAccountStore } from './engine.js';
+import { ACCOUNT_COLLECTIONS } from './store-contract.js';
+
+/**
+ * The ledger backend's collections when it shares the account database: the
+ * ledger's own, plus the account devices it reads inside quote acceptance.
+ * Both backends must use the same database (memory state or Firestore and
+ * prefix) so that read joins the acceptance transaction.
+ */
+export const ACCOUNT_LEDGER_COLLECTIONS = Object.freeze({ ...LEDGER_COLLECTIONS, identityDevices: ACCOUNT_COLLECTIONS.devices });
+
+/**
+ * The ledger's deviceAuthority: inside the acceptance transaction, the device
+ * must be active and registered to the accepting account. A revocation that
+ * commits first refuses the acceptance; on Firestore one that commits during
+ * it forces a retry that then refuses.
+ */
+export async function ledgerDeviceAuthority(tx, { accountId, deviceId }) {
+  if (typeof deviceId !== 'string' || !/^dev_[a-f0-9]{32}$/.test(deviceId)) return false;
+  const device = await tx.get('identityDevices', deviceId);
+  return device?.status === 'active' && device.accountId === accountId;
+}
 
 /**
  * Identity ports for the ledger and rewards. Each answer is read at call
@@ -58,7 +80,7 @@ export function createAccountGuards({ accounts, ledger, rewards }) {
       return ledger.createQuote({ ...input, accountId: auth.accountId });
     },
 
-    /** Spending: accept a quote as the session's active device. */
+    /** Spending: accept a quote as the session's active device; the ledger re-checks the device at commit. */
     async acceptQuote({ sessionToken, ...input } = {}) {
       assertKnownKeys(input, ['quoteId', 'quoteHash', 'idempotencyKey'], 'acceptQuote');
       const auth = await accounts.authorizeDevice(sessionToken);
@@ -88,7 +110,10 @@ export function createAccountGuards({ accounts, ledger, rewards }) {
 /**
  * Build the account store, ledger and rewards over their backends. New
  * accounts open their credit account with the account's owner id; rewards
- * read identity through the account ports.
+ * read identity through the account ports. `createLedger` receives
+ * `deviceAuthority`; its backend must share the account database and map
+ * ACCOUNT_LEDGER_COLLECTIONS, or every acceptance fails on the unknown
+ * collection.
  */
 export function composeAccountServices({
   accountBackend, accountPolicy, providers, rewardBackend, createLedger, rewardPolicy, issuancePolicy,
@@ -101,8 +126,8 @@ export function composeAccountServices({
   });
   const identity = createAccountIdentityPorts(accounts);
   const composed = composeContributionRewards({
-    backend: rewardBackend, createLedger, rewardPolicy, issuancePolicy, identity, readAdmittedCapacity, otherProvenance, readinessProber,
-    clock, createId, random
+    backend: rewardBackend, createLedger: (ports) => createLedger({ ...ports, deviceAuthority: ledgerDeviceAuthority }),
+    rewardPolicy, issuancePolicy, identity, readAdmittedCapacity, otherProvenance, readinessProber, clock, createId, random
   });
   ledger = composed.ledger;
   return { accounts, identity, ...composed, guards: createAccountGuards({ accounts, ledger, rewards: composed.rewards }) };

@@ -19,6 +19,7 @@ Durable credit accounts, quotes, reservations and settlement giving each billabl
 Inputs:
 - Explicit accounting policy under the [economics contract](../../docs/product-specification.md#3-credits-and-marketplace).
 - Validated-work, purchase, donation or funding references.
+- Device authority read inside quote acceptance.
 
 Outputs:
 - Operations in [store-contract.js](store-contract.js), settlement receipts and solvency snapshots.
@@ -42,4 +43,4 @@ Outputs:
 - Payment processing, reward policy, solvency stress testing, marketplace trading or financial-accounting qualification.
 
 ## Freedom
-Any mechanism is permitted if it preserves these boundaries and passes the acceptance evidence.
+Preserve these boundaries and pass acceptance.
