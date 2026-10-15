@@ -8,11 +8,13 @@
 
 import { assertId, isNonEmptyString, toMs } from '../ledger/domain.js';
 
-export const FUNDING_SCHEMA = 'reploid.community-access-funding/v1';
+export const FUNDING_SCHEMA = 'reploid.community-access-funding/v2';
+export const FUNDING_USE = 'community_access_pool';
 export const ENTRY_SCHEMA = 'reploid.community-access-request/v1';
 export const CAPACITY_EVIDENCE_SCHEMA = 'reploid.community-capacity-evidence/v1';
 export const SUBSIDY_REPORT_SCHEMA = 'reploid.community-access-subsidy/v1';
 
+// Funder kinds whose commitments may fund Community Access pools.
 export const FUNDER_KINDS = Object.freeze(['donor', 'operator']);
 // `none` is the proposed default: queue or explicit retry, no guaranteed minimum or completion.
 export const GUARANTEE_MODES = Object.freeze(['none', 'funded_floor']);

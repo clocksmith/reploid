@@ -3,9 +3,10 @@
  * queues, per-account usage limits, account and device rate limits and
  * visible availability, admitted only under funded and admitted capacity.
  *
- * Funding issues `community_access` lots into dedicated pool accounts, never
- * into member accounts, so registering or requesting access gives a member
- * nothing to hold or transfer. An admitted request reserves its quoted
+ * Pool funding allocates from a commitment in the ledger's funding register
+ * and issues it as a `community_access` lot into a dedicated pool account,
+ * never into a member account, so registering or requesting access gives a
+ * member nothing to hold or transfer. The issuance consumes the allocation. An admitted request reserves its quoted
  * maximum from a pool account and settles through the ledger like any other
  * quote; that charge is Community Access consumption, which the ledger's
  * solvency snapshot discloses as subsidy. Whether operators guarantee a
@@ -24,11 +25,13 @@ import {
   sourceClaimKey,
   toMs
 } from '../ledger/domain.js';
+import { FUNDING_REFUSAL_CODES } from '../ledger/funding/register.js';
 import { assertLedgerStoreContract } from '../ledger/store-contract.js';
 import {
   ENTRY_SCHEMA,
   FUNDER_KINDS,
   FUNDING_SCHEMA,
+  FUNDING_USE,
   OCCUPANCY_ID,
   POOL_OWNER_ID,
   SUBSIDY_REPORT_SCHEMA,
@@ -294,13 +297,50 @@ export function createCommunityAccess({ backend, ledger, accounts, readCommunity
     return index === -1 ? null : index + 1;
   };
 
+  /** Move a funding record from one status to the next in one transaction; otherwise return it unchanged. */
+  const advanceFunding = (fundingId, from, change) => backend.runTransaction(async (tx) => {
+    const current = await tx.get('fundings', fundingId);
+    if (current.status !== from) return current;
+    const updated = { ...current, ...change(current, clock()) };
+    tx.set('fundings', fundingId, updated);
+    return updated;
+  });
+
+  /** Allocate the pool's credits from the named commitment; a register refusal is final and retained. */
+  const allocatePool = async (record) => {
+    let allocation;
+    try {
+      allocation = await ledger.allocateFunding({
+        commitmentId: record.commitmentId, use: FUNDING_USE, useRef: record.fundingId, credits: record.quantity,
+        ...(record.commitmentAmount === null ? {} : { amount: record.commitmentAmount }),
+        accountId: record.poolAccountId, funderKinds: [...FUNDER_KINDS], idempotencyKey: `community-allocation:${record.fundingId}`
+      });
+    } catch (error) {
+      if (!FUNDING_REFUSAL_CODES.includes(error?.code)) throw error;
+      await advanceFunding(record.fundingId, 'allocating', (current, now) => ({
+        status: 'refused', refusal: { code: error.code, message: error.message, details: error.details ?? {} }, closedAt: now
+      }));
+      throw error;
+    }
+    return advanceFunding(record.fundingId, 'allocating', (current, now) => ({
+      status: 'allocated', allocationId: allocation.allocationId, funderId: allocation.funderId,
+      funderKind: allocation.funderKind, validUntil: allocation.validUntil, allocatedAt: now
+    }));
+  };
+
+  /**
+   * Issue the allocated credits into the pool; the ledger consumes the
+   * allocation in the issuance transaction. If the commitment's validity
+   * ended first, the allocation returns to it and the funding expires.
+   */
   const issueFunding = async (record) => {
     await ledger.openAccount({ accountId: record.poolAccountId, ownerId: POOL_OWNER_ID });
     const source = {
       fundingId: record.fundingId,
       funderId: record.funderId,
       funderKind: record.funderKind,
-      sourceRef: record.sourceRef,
+      commitmentId: record.commitmentId,
+      allocationId: record.allocationId,
       poolAccountId: record.poolAccountId,
       communityAccessPolicyVersion: record.policyVersion
     };
@@ -311,17 +351,26 @@ export function createCommunityAccess({ backend, ledger, accounts, readCommunity
         idempotencyKey: `community-funding:${record.fundingId}`
       });
     } catch (error) {
+      if (error?.code === 'commitment_expired') {
+        await ledger.releaseFundingAllocation({
+          allocationId: record.allocationId, consumedCredits: 0, closure: 'expired', idempotencyKey: `community-allocation-expiry:${record.fundingId}`
+        });
+        return advanceFunding(record.fundingId, 'allocated', (current, now) => ({ status: 'expired', closedAt: now }));
+      }
       const lot = error?.code === 'duplicate_issuance_source' ? await ledger.getLot(lotId) : null;
       if (lot?.accountId !== record.poolAccountId || lot?.source?.fundingId !== record.fundingId) throw error;
     }
     const lot = await ledger.getLot(lotId);
-    return backend.runTransaction(async (tx) => {
-      const current = await tx.get('fundings', record.fundingId);
-      if (current.status !== 'recorded') return current;
-      const updated = { ...current, status: 'issued', lotId, issuedAt: lot.issuedAt };
-      tx.set('fundings', record.fundingId, updated);
-      return updated;
-    });
+    return advanceFunding(record.fundingId, 'allocated', () => ({ status: 'issued', lotId, issuedAt: lot.issuedAt }));
+  };
+
+  /** Drive a funding record forward from wherever a crash left it. */
+  const completeFunding = async (initial) => {
+    let record = initial;
+    if (record.status === 'refused') fail(record.refusal.code, record.refusal.message, record.refusal.details);
+    if (record.status === 'allocating') record = await allocatePool(record);
+    if (record.status === 'allocated') record = await issueFunding(record);
+    return record;
   };
 
   const store = {
@@ -329,42 +378,64 @@ export function createCommunityAccess({ backend, ledger, accounts, readCommunity
     policy: accessPolicy,
 
     /**
-     * Record donor or operator funding with its provenance and issue it as
-     * `community_access` credit into a declared pool account. Funding never
-     * credits a member account. The funding id is the idempotency identity.
+     * Fund a declared pool account from a commitment in the ledger's funding
+     * register (donor or operator; the commitment supplies the funder) and
+     * issue it as `community_access` credit there. Funding never credits a
+     * member account. The funding id is the idempotency identity; a repeat
+     * finishes an interrupted allocation or issuance.
      */
     async recordFunding(input = {}) {
-      assertKnownKeys(input, ['fundingId', 'funderId', 'funderKind', 'quantity', 'poolAccountId', 'sourceRef'], 'recordFunding');
-      const { fundingId, funderId, funderKind, quantity, poolAccountId, sourceRef } = input;
+      assertKnownKeys(input, ['fundingId', 'commitmentId', 'quantity', 'poolAccountId', 'commitmentAmount'], 'recordFunding');
+      const { fundingId, commitmentId, quantity, poolAccountId, commitmentAmount } = input;
       assertId(fundingId, 'fundingId');
-      if (!FUNDER_KINDS.includes(funderKind)) fail('invalid_input', `funderKind must be one of ${FUNDER_KINDS.join(', ')}`);
-      if (!isNonEmptyString(funderId) || !isNonEmptyString(sourceRef)) fail('invalid_input', 'funderId and sourceRef (the funding commitment) are required');
+      assertId(commitmentId, 'commitmentId');
       if (!Number.isSafeInteger(quantity) || quantity <= 0) fail('invalid_input', 'quantity must be a positive integer');
+      if (commitmentAmount !== undefined && (!Number.isSafeInteger(commitmentAmount) || commitmentAmount <= 0)) {
+        fail('invalid_input', 'commitmentAmount must be a positive integer in the commitment unit');
+      }
       if (!pools.includes(poolAccountId)) {
         fail('not_a_pool_account', 'Community Access funding goes only to a declared pool account, never to a member account', { poolAccountId });
       }
-      const request = { fundingId, funderId, funderKind, quantity, poolAccountId, sourceRef };
+      const request = { fundingId, commitmentId, quantity, poolAccountId, ...(commitmentAmount === undefined ? {} : { commitmentAmount }) };
       const requestHash = hashCanonical(request);
       const now = clock();
-      let record = await backend.runTransaction(async (tx) => {
+      const record = await backend.runTransaction(async (tx) => {
         const existing = await tx.get('fundings', fundingId);
         if (existing) {
           if (existing.requestHash !== requestHash) fail('funding_conflict', 'funding id was already recorded with different terms', { fundingId });
           return existing;
         }
         const created = {
-          schema: FUNDING_SCHEMA, ...request, policyVersion: accessPolicy.policyVersion, requestHash,
-          status: 'recorded', lotId: null, recordedAt: now, issuedAt: null
+          schema: FUNDING_SCHEMA, ...request, commitmentAmount: commitmentAmount ?? null, policyVersion: accessPolicy.policyVersion, requestHash,
+          status: 'allocating', allocationId: null, funderId: null, funderKind: null, validUntil: null, refusal: null, lotId: null,
+          recordedAt: now, allocatedAt: null, issuedAt: null, closedAt: null
         };
         tx.create('fundings', fundingId, created);
         return created;
       });
-      if (record.status === 'recorded') record = await issueFunding(record);
-      return record;
+      return completeFunding(record);
     },
 
     async getFunding(fundingId) {
       return backend.get('fundings', fundingId);
+    },
+
+    /** Finish pool fundings a crash left allocating or allocated; failures stay for the next pass. */
+    async resumeFunding({ limit = 100 } = {}) {
+      const pending = (await Promise.all(['allocating', 'allocated'].map((status) => backend.list('fundings', { field: 'status', value: status }))))
+        .flat()
+        .sort((left, right) => toMs(left.recordedAt) - toMs(right.recordedAt) || left.fundingId.localeCompare(right.fundingId))
+        .slice(0, limit);
+      const results = [];
+      for (const record of pending) {
+        try {
+          results.push({ fundingId: record.fundingId, status: (await completeFunding(record)).status });
+        } catch (error) {
+          const current = await backend.get('fundings', record.fundingId);
+          results.push({ fundingId: record.fundingId, status: current?.status ?? null, code: error?.code ?? 'funding_failed' });
+        }
+      }
+      return results;
     },
 
     /**
@@ -563,8 +634,9 @@ export function createCommunityAccess({ backend, ledger, accounts, readCommunity
 
 /**
  * Ledger issuance decision for Community Access credit: allow a
- * `community_access` lot only for recorded funding, into its declared pool
- * account, with matching quantity and funder. Member accounts never qualify.
+ * `community_access` lot only for allocated funding, into its declared pool
+ * account, with matching quantity, funder and register allocation. Member
+ * accounts never qualify.
  */
 export function createFundingIssuanceAuthority({ backend, policy } = {}) {
   assertCommunityAccessBackend(backend);
@@ -578,7 +650,10 @@ export function createFundingIssuanceAuthority({ backend, policy } = {}) {
       && funding.poolAccountId === request.accountId
       && funding.quantity === request.amount
       && funding.funderId === source.funderId
-      && funding.funderKind === source.funderKind;
+      && funding.funderKind === source.funderKind
+      && funding.allocationId !== null
+      && funding.allocationId === source.allocationId
+      && funding.commitmentId === source.commitmentId;
     if (!matches) return { allowed: false, reason: 'issuance_request_mismatch' };
     return { allowed: true, decisionId: `community-funding:${funding.fundingId}`, limitId: null };
   };

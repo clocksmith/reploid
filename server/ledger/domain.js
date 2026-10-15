@@ -153,7 +153,8 @@ const SOURCE_FIELDS = Object.freeze({
   subsidized: [...REWARD_SOURCE_FIELDS, 'fundingId', 'funderKind', 'funderId'],
   purchased: ['processor', 'purchaseId', 'confirmationId'],
   donated: ['donationId', 'donorId'],
-  community_access: ['fundingId', 'funderId', 'funderKind']
+  // Pool credit consumes the funding-register allocation it names.
+  community_access: ['fundingId', 'funderId', 'funderKind', 'commitmentId', 'allocationId']
 });
 
 /**

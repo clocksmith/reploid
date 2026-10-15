@@ -528,9 +528,18 @@ describe.each(Object.keys(harnesses))('credit ledger (%s store)', (kind) => {
       accountId: 'acct_alice', provenance: 'donated', amount: 20,
       source: { donationId: 'donation:1', donorId: 'donor_test' }, idempotencyKey: 'issue:donation:1'
     });
+    await ledger.recordFundingCommitment({
+      commitmentId: 'commitment:1', funderKind: 'operator', funderId: 'operator_test', externalRef: 'external:commitment:1', amount: 10,
+      unit: { kind: 'credits' }, validFrom: clock(), validUntil: at(60 * MIN), idempotencyKey: 'commit:1'
+    });
+    const allocation = await ledger.allocateFunding({
+      commitmentId: 'commitment:1', use: 'community_access_pool', useRef: 'funding:1', credits: 10, accountId: 'acct_alice',
+      funderKinds: ['operator'], idempotencyKey: 'allocate:funding:1'
+    });
     const funded = await ledger.issueCredits({
       accountId: 'acct_alice', provenance: 'community_access', amount: 10,
-      source: { fundingId: 'funding:1', funderId: 'operator_test', funderKind: 'operator' }, idempotencyKey: 'issue:funding:1'
+      source: { fundingId: 'funding:1', funderId: 'operator_test', funderKind: 'operator', commitmentId: 'commitment:1', allocationId: allocation.allocationId },
+      idempotencyKey: 'issue:funding:1'
     });
 
     expect(await ledger.getLot(purchased.lotId)).toMatchObject({

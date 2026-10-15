@@ -48,9 +48,17 @@ describe.each(Object.keys(harnesses))('Community Access (%s store)', (kind) => {
     ledger = harness.openLedger({ issuanceAuthority: composeIssuance({ community_access: createFundingIssuanceAuthority({ backend, policy }) }) });
     access = createCommunityAccess({ backend, ledger, accounts, readCommunityCapacity: async () => fx.capacity, policy, clock });
   };
-  const fund = (quantity, { fundingId = `funding:${quantity}`, funderKind = 'donor', poolAccountId = 'pool_general' } = {}) => access.recordFunding({
-    fundingId, funderId: `${funderKind}_test`, funderKind, quantity, poolAccountId, sourceRef: `commitment:${fundingId}`
-  });
+  // Each funding draws its whole quantity from its own registered commitment.
+  const fund = async (quantity, { fundingId = `funding:${quantity}`, funderKind = 'donor', poolAccountId = 'pool_general' } = {}) => {
+    const commitmentId = `commitment:${fundingId}`;
+    if (!await ledger.getFundingCommitment(commitmentId)) {
+      await ledger.recordFundingCommitment({
+        commitmentId, funderKind, funderId: `${funderKind}_test`, externalRef: `external:${fundingId}`, amount: quantity,
+        unit: { kind: 'credits' }, validFrom: clock(), validUntil: at(30 * 24 * 60 * MIN), idempotencyKey: `commit:${fundingId}`
+      });
+    }
+    return access.recordFunding({ fundingId, commitmentId, quantity, poolAccountId });
+  };
   const request = (member, { device = `${member}-phone`, requestId = `r${++seq}:${member}` } = {}) => access.requestAccess({
     requestId, participantId: `peer_${member}`, deviceId: device, quote: quoteTerms()
   });
@@ -86,18 +94,18 @@ describe.each(Object.keys(harnesses))('Community Access (%s store)', (kind) => {
     expect(donor).toMatchObject({ status: 'issued', funderKind: 'donor', poolAccountId: 'pool_general', quantity: 300 });
     expect(await fund(300, { fundingId: 'donation:1' })).toEqual(donor);
     await rejectsWith(fund(301, { fundingId: 'donation:1' }), 'funding_conflict');
-    await fund(200, { fundingId: 'operator:1', funderKind: 'operator' });
+    const operator = await fund(200, { fundingId: 'operator:1', funderKind: 'operator' });
     await rejectsWith(fund(50, { fundingId: 'donation:2', poolAccountId: 'acct_alice' }), 'not_a_pool_account');
-    await rejectsWith(fund(50, { fundingId: 'donation:3', funderKind: 'sponsor' }), 'invalid_input');
+    await rejectsWith(fund(50, { fundingId: 'donation:3', funderKind: 'sponsor' }), 'invalid_commitment');
     expect(await ledger.getLot(donor.lotId)).toMatchObject({
       provenance: 'community_access', accountId: 'pool_general', quantity: 300,
-      source: { fundingId: 'donation:1', funderKind: 'donor', funderId: 'donor_test', sourceRef: 'commitment:donation:1' }
+      source: { fundingId: 'donation:1', funderKind: 'donor', funderId: 'donor_test', commitmentId: 'commitment:donation:1', allocationId: donor.allocationId }
     });
     expect(await ledger.getAccount('pool_general')).toMatchObject({ available: 500, byProvenance: { community_access: { issued: 500 }, purchased: { issued: 0 }, earned: { issued: 0 } } });
     // Community Access credit cannot be minted into a member account by any path.
     await rejectsWith(ledger.issueCredits({
       accountId: 'acct_alice', provenance: 'community_access', amount: 10, idempotencyKey: 'mint:member',
-      source: { fundingId: 'operator:1', funderId: 'operator_test', funderKind: 'operator' }
+      source: { fundingId: 'operator:1', funderId: 'operator_test', funderKind: 'operator', commitmentId: 'commitment:operator:1', allocationId: operator.allocationId }
     }), 'issuance_not_authorized');
   });
 

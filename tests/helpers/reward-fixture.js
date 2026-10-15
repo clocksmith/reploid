@@ -144,6 +144,14 @@ export const fund = (ledger, accountId, amount, purchaseId = `purchase:${account
   idempotencyKey: `issue:${purchaseId}`
 });
 
+/** Record an external funding commitment in the ledger's register; test-only amounts and validity. */
+export const commit = (ledger, { commitmentId, funderKind = 'operator', funderId = `${funderKind}_test`, amount, validForMs = 24 * 60 * MIN }) => (
+  ledger.recordFundingCommitment({
+    commitmentId, funderKind, funderId, externalRef: `external:${commitmentId}`, amount, unit: { kind: 'credits' },
+    validFrom: clock(), validUntil: at(validForMs), idempotencyKey: `commit:${commitmentId}`
+  })
+);
+
 export const quoteInput = ({ quoteId, accountId, service = {} }) => ({
   quoteId,
   accountId,

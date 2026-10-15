@@ -23,6 +23,7 @@ import {
   sourceClaimKey,
   toMs
 } from '../ledger/domain.js';
+import { FUNDING_REFUSAL_CODES } from '../ledger/funding/register.js';
 import { assertLedgerStoreContract } from '../ledger/store-contract.js';
 import { nativeOwnerPolicyDigest, validateNativeOwnerPolicy } from '../native-owner/policy.js';
 import { createChallengeOperations } from './challenges.js';
@@ -39,7 +40,9 @@ import {
 } from './demanded-inference.js';
 import { ISSUANCE_STATE_ID, createRewardIssuanceAuthority } from './issuance-authority.js';
 import {
+  FUNDER_KINDS,
   FUNDING_SCHEMA,
+  FUNDING_USE,
   OFFER_INPUT_KEYS,
   REWARD_CATEGORIES,
   VALIDATION_SCHEMA,
@@ -119,7 +122,13 @@ const ledgerSource = (validation, allowance) => ({
   participantId: validation.offer.participantId,
   basis: allowance.basis,
   decisionId: allowance.decisionId,
-  ...(allowance.funding ? { fundingId: allowance.funding.fundingId, funderKind: allowance.funding.funderKind, funderId: allowance.funding.funderId } : {}),
+  ...(allowance.funding ? {
+    fundingId: allowance.funding.fundingId,
+    funderKind: allowance.funding.funderKind,
+    funderId: allowance.funding.funderId,
+    commitmentId: allowance.funding.commitmentId,
+    allocationId: allowance.funding.allocationId
+  } : {}),
   ...validation.workRefs
 });
 
@@ -211,6 +220,78 @@ export function createRewardStore({
     return offer;
   };
 
+  /** Move a funding record from one status to the next in one reward transaction; otherwise return it unchanged. */
+  const advanceFunding = (fundingId, from, change) => backend.runTransaction(async (tx) => {
+    const current = await tx.get('fundings', fundingId);
+    if (!current) fail('funding_not_found', `funding ${fundingId} was not found`, { fundingId });
+    if (current.status !== from) return current;
+    const now = clock();
+    const updated = { ...current, ...change(current, now), updatedAt: now };
+    tx.set('fundings', fundingId, updated);
+    return updated;
+  });
+
+  /**
+   * Allocate a recorded reservation from its commitment in the ledger's
+   * funding register, then activate it. A refusal is final and retained; any
+   * other failure leaves it `allocating` for a retry or resumeFunding.
+   */
+  const completeFunding = async (fundingId) => {
+    const funding = await backend.get('fundings', fundingId);
+    if (funding.status === 'refused') fail(funding.refusal.code, funding.refusal.message, funding.refusal.details);
+    if (funding.status !== 'allocating') return funding;
+    let allocation;
+    try {
+      allocation = await ledger.allocateFunding({
+        commitmentId: funding.commitmentId, use: FUNDING_USE, useRef: fundingId, credits: funding.amount,
+        ...(funding.commitmentAmount === null ? {} : { amount: funding.commitmentAmount }),
+        funderKinds: [...FUNDER_KINDS], idempotencyKey: `reward-funding:${fundingId}`
+      });
+    } catch (error) {
+      if (!FUNDING_REFUSAL_CODES.includes(error?.code)) throw error;
+      await advanceFunding(fundingId, 'allocating', () => ({
+        status: 'refused', refusal: { code: error.code, message: error.message, details: cloneJson(error.details ?? {}) }
+      }));
+      throw error;
+    }
+    return advanceFunding(fundingId, 'allocating', (current, now) => ({
+      status: 'active',
+      allocationId: allocation.allocationId,
+      funderKind: allocation.funderKind,
+      funderId: allocation.funderId,
+      unit: allocation.unit,
+      validUntil: allocation.validUntil,
+      activatedAt: now
+    }));
+  };
+
+  /**
+   * Close an active reservation: freeze what allowances already authorized
+   * (no allowance draws on it afterwards), return the rest to the
+   * commitment, then record the closure. Each step resumes after a crash.
+   */
+  const closeFunding = async (fundingId, closure) => {
+    const closing = await backend.runTransaction(async (tx) => {
+      const funding = await tx.get('fundings', fundingId);
+      if (!funding) fail('funding_not_found', `funding ${fundingId} was not found`, { fundingId });
+      if (['closing', 'released', 'expired'].includes(funding.status)) return funding;
+      if (funding.status !== 'active') fail('funding_not_active', `funding is ${funding.status}`, { status: funding.status });
+      const now = clock();
+      if (closure === 'expired' && toMs(now) < toMs(funding.validUntil)) {
+        fail('funding_not_expired', 'the commitment behind this funding is still valid', { validUntil: funding.validUntil });
+      }
+      const updated = { ...funding, status: 'closing', closure, consumedCredits: funding.authorized, updatedAt: now };
+      tx.set('fundings', fundingId, updated);
+      return updated;
+    });
+    if (closing.status !== 'closing') return closing;
+    const allocation = await ledger.releaseFundingAllocation({
+      allocationId: closing.allocationId, consumedCredits: closing.consumedCredits, closure: closing.closure,
+      idempotencyKey: `reward-funding-close:${fundingId}`
+    });
+    return advanceFunding(fundingId, 'closing', (current, now) => ({ status: current.closure, returned: allocation.returnedCredits, closedAt: now }));
+  };
+
   const store = {
     kind: backend.kind,
     policy: rewardPolicy,
@@ -220,31 +301,77 @@ export function createRewardStore({
     }),
 
     /**
-     * Reserve explicit operator or community funding for subsidized rewards.
-     * The reservation is an issuance budget backed by `sourceRef`; credit
-     * drawn from it is subsidized in provenance and solvency.
+     * Reserve operator or community funding for subsidized rewards as an
+     * allocation from a commitment in the ledger's funding register; the
+     * commitment supplies the funder. The reservation is an issuance budget;
+     * credit drawn from it is subsidized in provenance and solvency. A replay
+     * returns the current record, finishing an interrupted allocation.
      */
     async reserveFunding(input = {}) {
       const { idempotencyKey, ...request } = input;
       const funding = validateFundingReservation(request);
       assertId(funding.fundingId, 'fundingId');
+      assertId(funding.commitmentId, 'commitmentId');
       assertIdempotencyKey(idempotencyKey);
       const operation = 'reserveFunding';
       const prior = await lookupIdempotent({ operation, scopeId: funding.fundingId, idempotencyKey, request });
-      if (prior) return prior.result;
-      const now = clock();
-      const record = { schema: FUNDING_SCHEMA, ...funding, authorized: 0, allowances: 0, reservedAt: now, updatedAt: now };
-      return mutate({
-        operation, scopeId: funding.fundingId, idempotencyKey, request, now,
-        body: async (tx) => {
-          if (await tx.get('fundings', funding.fundingId)) fail('funding_exists', 'funding id is already in use', { fundingId: funding.fundingId });
-          return { result: record, writes: [insert('fundings', funding.fundingId, record)] };
-        }
-      });
+      if (!prior) {
+        const now = clock();
+        const record = {
+          schema: FUNDING_SCHEMA, fundingId: funding.fundingId, commitmentId: funding.commitmentId, amount: funding.amount,
+          commitmentAmount: funding.commitmentAmount ?? null, categories: funding.categories, status: 'allocating',
+          allocationId: null, funderKind: null, funderId: null, unit: null, validUntil: null, authorized: 0, allowances: 0,
+          refusal: null, closure: null, consumedCredits: null, returned: null,
+          reservedAt: now, activatedAt: null, closedAt: null, updatedAt: now
+        };
+        await mutate({
+          operation, scopeId: funding.fundingId, idempotencyKey, request, now,
+          body: async (tx) => {
+            if (await tx.get('fundings', funding.fundingId)) fail('funding_exists', 'funding id is already in use', { fundingId: funding.fundingId });
+            return { result: { fundingId: funding.fundingId, status: 'allocating' }, writes: [insert('fundings', funding.fundingId, record)] };
+          }
+        });
+      }
+      return completeFunding(funding.fundingId);
     },
 
     async getFunding(fundingId) {
       return backend.get('fundings', fundingId);
+    },
+
+    /** Stop drawing on a reservation and return its unauthorized funding to the commitment. */
+    async releaseFunding({ fundingId } = {}) {
+      assertId(fundingId, 'fundingId');
+      return closeFunding(fundingId, 'released');
+    },
+
+    /**
+     * Finish reservations a crash interrupted (allocating or closing) and
+     * expire active ones whose commitment validity ended, returning their
+     * unauthorized funding. Failures stay for the next pass.
+     */
+    async resumeFunding({ limit = 100 } = {}) {
+      const now = clock();
+      const [allocating, closing, active] = await Promise.all(['allocating', 'closing', 'active']
+        .map((status) => backend.list('fundings', { field: 'status', value: status })));
+      const order = (left, right) => toMs(left.reservedAt) - toMs(right.reservedAt) || left.fundingId.localeCompare(right.fundingId);
+      const due = [
+        ...allocating.sort(order).map((funding) => [funding.fundingId, () => completeFunding(funding.fundingId)]),
+        ...closing.sort(order).map((funding) => [funding.fundingId, () => closeFunding(funding.fundingId, funding.closure)]),
+        ...active.filter((funding) => toMs(now) >= toMs(funding.validUntil)).sort(order)
+          .map((funding) => [funding.fundingId, () => closeFunding(funding.fundingId, 'expired')])
+      ].slice(0, limit);
+      const results = [];
+      for (const [fundingId, run] of due) {
+        try {
+          const record = await run();
+          results.push({ fundingId, status: record.status, returned: record.returned });
+        } catch (error) {
+          const current = await backend.get('fundings', fundingId);
+          results.push({ fundingId, status: current?.status ?? null, code: error?.code ?? 'funding_failed' });
+        }
+      }
+      return results;
     },
 
 
