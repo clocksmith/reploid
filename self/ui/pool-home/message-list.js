@@ -9,6 +9,10 @@ function failureLabel(attempt) {
   if (attempt.status === 'cancelled') return 'Stopped. Your partial answer is saved.';
   if (/disconnect|peer.*lost|contributor.*lost/i.test(attempt.error || '')) return 'A computer disconnected. Retry this answer.';
   if (/memory|allocation|resource.*exhaust|budget/i.test(attempt.error || '')) return 'This answer exceeded the available resources.';
+  if (/quoted terms were not accepted/i.test(attempt.error || '')) return 'Not sent. The quote is above your spending limit, or no limit is set (Settings, Credits).';
+  if (/Community Access (is not available|refused)/i.test(attempt.error || '')) return 'Not sent. Community Access cannot take this answer now.';
+  if (/acknowledgments are overdue/i.test(attempt.error || '')) return 'Stopped. This device did not confirm the received output in time; only confirmed output is charged.';
+  if (/quoted (first-output )?deadline passed/i.test(attempt.error || '')) return 'Stopped at the quoted deadline.';
   if (attempt.status === 'interrupted') return 'This answer was interrupted.';
   return 'This answer could not finish.';
 }

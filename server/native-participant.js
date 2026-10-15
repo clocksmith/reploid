@@ -576,7 +576,7 @@ export async function resolveNativeRoomToken(values, { warn = message => console
 async function main() {
   const { values } = parseArgs({ options: Object.fromEntries(['model', 'model-directory', 'identity-file', 'rtc-module',
     'ws-module', 'gpu-module', 'ordered-config', 'signaling-url', 'room', 'room-token', 'room-token-file', 'origin', 'cache-directory',
-    'owner-policy', 'shader-cache-root'].map(key => [key, { type: 'string' }]).concat([
+    'owner-policy', 'shader-cache-root', 'earning-config'].map(key => [key, { type: 'string' }]).concat([
       ['help', { type: 'boolean', default: false }], ['canonical', { type: 'boolean', default: false }], ['share-files', { type: 'boolean', default: false }], ['contribute', { type: 'boolean', default: false }], ['connect-only', { type: 'boolean', default: false }]])) });
   if (values.help) {
     console.log(`Reploid native participant (Node 22.13 or newer)
@@ -589,6 +589,7 @@ Usage: reploid-participant --connect-only|--share-files|--contribute
   [--ordered-config <absolute JSON path>] (explicit stage assignment and ordered limits)
   [--canonical] (requires explicit catalog generation and a capable installed runtime)
   [--owner-policy <absolute JSON path>] (owner schedule, memory, rate, power, temperature and foreground limits)
+  [--earning-config <absolute JSON path>] (reploid.native-earning/v1: earning service, sign-in and stage-share offers; needs --owner-policy)
   [--shader-cache-root <absolute directory>] (sealed Mesa shader cache; default: shader-cache beside the identity file)
 
 --room-token-file reads the private room token once at startup from a regular
@@ -655,15 +656,26 @@ Native GPU execution is qualified on Linux/Vulkan only; --help opens no provider
   const Socket = wsModule.default || wsModule.WebSocket;
   class HostWebSocket extends Socket { constructor(url) { super(url, { origin: values.origin || 'http://localhost:8000' }); } }
   const gpuHost = createNativeGpuHost(() => importModule(values['gpu-module']));
+  // Optional earning: signs this host in, registers its identity as a native device, records the owner policy
+  // and claims settled stage shares under service-authored offers (native-earning.js); state lives beside the identity.
+  if (values['earning-config']) requireValue(owner, '--earning-config requires --owner-policy');
+  const earning = values['earning-config'] ? await import('./native-earning.js').then(async native => native.openNativeEarning({
+    settings: await native.readNativeEarningFile(values['earning-config']), identity, ownerAuthorization: { policy: owner.policy, digest: owner.digest },
+    storage: native.createNativeEarningStorage(path.join(path.dirname(identityFile), 'earning-state.json')) }))
+    .catch(async error => { owner?.close(); await shaderCache?.close(); throw error; }) : null;
   const participant = await createNativeParticipant({ model, modelDirectory: values['model-directory'], identity, rtc,
     WebSocket: HostWebSocket, signalingUrl: values['signaling-url'] || bootstrap.signalingUrl,
     roomId: values.room || bootstrap.publicRoomId, roomToken: roomToken || bootstrap.publicJoinMarker,
     cacheDirectory: values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
     ordered, canonical: values.canonical ? { epochDirectory: path.join(path.dirname(identityFile), 'canonical-epochs',
       createHash('sha256').update(values.room || bootstrap.publicRoomId).digest('hex')) } : null,
-    nativeGpu: () => gpuHost.open(), owner, shaderCache,
+    nativeGpu: () => gpuHost.open(), owner, shaderCache, earning,
     onCustodyCertificate: certificate => console.log(JSON.stringify({ event: 'custody-certificate', certificate })),
-    onChange: state => console.log(JSON.stringify({ ...summarizeNativePartitionState(state), owner: nativeOwnerStatus(owner) })) })
+    onChange: state => {
+      console.log(JSON.stringify({ ...summarizeNativePartitionState(state), owner: nativeOwnerStatus(owner) }));
+      // A prepared stage is offered for before any route admits it.
+      if (earning && state.descriptor?.planId) earning.ensureOffer(state.descriptor).catch(error => console.error('Earning offer deferred:', error.code || error.message));
+    } })
     .catch(async error => { owner?.close(); await shaderCache?.close(); throw error; });
   logNetwork = () => console.log(JSON.stringify({ event: 'network', ...participant.getNetworkState(),
     files: participant.getFileState({ includeReceipts: false }), owner: participant.getOwnerState() }));

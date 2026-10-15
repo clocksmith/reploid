@@ -74,6 +74,8 @@ describe('credits panel', () => {
     expect(account.setSpendingLimit).toHaveBeenCalledWith('80');
     account.set({ lastQuote: { maxCharge: 90, deadline: null, accepted: false }, spendingLimit: 80 });
     expect(find('[data-earning-quote]').textContent).toBe('Last quote: up to 90 credits. Not sent: above your limit of 80.');
+    account.set({ lastQuote: { maxCharge: 12, deadline: null, accepted: true, funding: 'community_access' } });
+    expect(find('[data-earning-quote]').textContent).toBe('Last quote: up to 12 credits. Asked for Community Access, which the pool pays.');
     find('[data-earning-sign-out]').click();
     expect(account.signOut).toHaveBeenCalled();
     dispose();

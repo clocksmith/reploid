@@ -2,7 +2,7 @@
  * @fileoverview Provider routes mounted beside the earning routes, under the
  * same switch and prefix:
  *
- *   GET  /client                                the service's public settings: sign-in flows and top-ups
+ *   GET  /client                                the service's public settings: sign-in flows, top-ups, Community Access
  *   GET  /sign-in/:providerId                   public settings of a browser sign-in flow
  *   POST /sign-in/:providerId/states            a single-use sign-in state; no body is read
  *   POST /sign-in/:providerId/assertions        local test flows only: an assertion for a typed subject
@@ -50,7 +50,8 @@ ${done ? `<p role="status" data-test-checkout-status>${escapeHtml(done)}</p><p><
  * @param {object} options.limits explicit route limits (http.js)
  * @param {object} [options.rateLimiter]
  */
-export function createProviderRouter({ accounts, signInFlows = [], payments = null, testCheckout = null, limits, rateLimiter = null, nowMs = () => Date.now(), log = console } = {}) {
+export function createProviderRouter({ accounts, signInFlows = [], payments = null, testCheckout = null, communityAccess = false, limits, rateLimiter = null,
+  nowMs = () => Date.now(), log = console } = {}) {
   const bounds = validateRouteLimits(limits);
   const limiter = rateLimiter ?? createMemoryRateLimiter({ nowMs });
   if (typeof limiter.consume !== 'function') throw new TypeError('rateLimiter must provide consume({ key, max, windowMs })');
@@ -98,7 +99,8 @@ export function createProviderRouter({ accounts, signInFlows = [], payments = nu
         const { providerId, flow: kind } = flow.clientConfig();
         return { providerId, flow: kind, testOnly: flow.testOnly === true };
       }),
-      topUps: payments ? payments.policy.topUps.map(({ topUpId, price }) => ({ topUpId, price: { ...price } })) : []
+      topUps: payments ? payments.policy.topUps.map(({ topUpId, price }) => ({ topUpId, price: { ...price } })) : [],
+      communityAccess: communityAccess === true
     }
   })));
 

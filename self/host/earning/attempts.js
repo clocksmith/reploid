@@ -34,10 +34,12 @@ export class SpendingDeclinedError extends Error {
  * @param {object} options.client createEarningClient(...) result
  * @param {Function} options.quoteRequest (request) -> the service request a quote names; never terms or prices
  * @param {Function} options.authorizeSpending ({ quote }) -> true to accept the disclosed terms
+ * @param {object} [options.communityAccess] { decide({ quote }) -> true to ask for funded Community Access instead
+ *   of spending this account's credits, pollMs }: a queued request is polled until admitted, unavailable or past its queue
  * @param {Function} [options.now] clock in ms, the quote deadline's clock
  * @param {Function} [options.setTimer] (callback, ms) -> cancel
  */
-export function createEarningAttempts({ client, quoteRequest, authorizeSpending, now = Date.now, setTimer = defaultTimer } = {}) {
+export function createEarningAttempts({ client, quoteRequest, authorizeSpending, communityAccess = null, now = Date.now, setTimer = defaultTimer } = {}) {
   if (!client || typeof client.send !== 'function') throw new TypeError('Earning attempts require an enabled earning client');
   if (typeof quoteRequest !== 'function' || typeof authorizeSpending !== 'function') {
     throw new TypeError('Earning attempts require a quote request and a spending decision port');
@@ -46,20 +48,48 @@ export function createEarningAttempts({ client, quoteRequest, authorizeSpending,
   const readThread = async threadId => (await storage.get(stateKey(threadId))) ?? null;
   const writeThread = (threadId, value) => storage.set(stateKey(threadId), value);
 
-  /** A new accepted reservation for this attempt, after the host accepts its disclosed terms. */
+  const reservationOf = (request, quote, reservationId, authorizedMax, extra = {}) => ({ threadId: request.threadId, reservationId, quoteId: quote.quoteId,
+    authorizedMax, deadline: quote.service.deadline, firstOutputDeadline: quote.service.firstOutputDeadline ?? null,
+    maxAttempts: quote.terms.execution.maxAttempts, evidence: quote.terms.evidence !== undefined,
+    attempts: [], lastAttemptId: null, status: 'open', retryable: false, ...extra });
+
+  /**
+   * Funded Community Access for this answer: the pool's own quote and reservation, which this device binds
+   * and reports on. Nothing is sent unless the request is admitted; a queued request waits within its queue.
+   */
+  async function admitPooled(request) {
+    let entry = await client.send({ opId: `access:${request.threadId}:${request.attemptId}`, path: '/community-access/requests',
+      body: { request: quoteRequest(request) }, durable: false });
+    while (entry.state === 'queued' && Date.parse(entry.queuedUntil) > now()) {
+      await new Promise(resolve => setTimer(resolve, communityAccess.pollMs ?? 2000));
+      entry = await client.get(`/community-access/requests/${encodeURIComponent(entry.requestId)}`);
+    }
+    if (entry.state !== 'available' || !entry.quote) {
+      throw new SpendingDeclinedError(`Community Access is not available for this answer${entry.reason ? ` (${entry.reason})` : ''}; nothing was sent`,
+        'community_access_unavailable');
+    }
+    return reservationOf(request, entry.quote, entry.reservationId, entry.authorizedMax, { communityAccess: { requestId: entry.requestId, poolAccountId: entry.poolAccountId } });
+  }
+
+  /** A new accepted reservation for this attempt, after the host accepts its disclosed terms or is admitted to Community Access. */
   async function acceptNew(request) {
     const quote = await client.send({ opId: `quote:${request.threadId}:${request.attemptId}`, path: '/quotes',
       body: { request: quoteRequest(request) }, durable: false });
+    if (communityAccess && await communityAccess.decide({ quote: structuredClone(quote) }) === true) {
+      try { return await admitPooled(request); }
+      catch (error) {
+        if (error instanceof SpendingDeclinedError) throw error;
+        // The pool's refusal, such as evidence terms it does not accept, sends nothing.
+        throw new SpendingDeclinedError(`Community Access refused this answer (${error.code || error.message}); nothing was sent`, 'community_access_refused');
+      }
+    }
     if (await authorizeSpending({ quote: structuredClone(quote) }) !== true) {
       throw new SpendingDeclinedError('The quoted terms were not accepted; nothing was sent', 'spending_declined');
     }
     // An acceptance no attempt binds expires and releases under the quote's own terms.
     const accepted = await client.send({ opId: `accept:${quote.quoteId}`, path: `/quotes/${encodeURIComponent(quote.quoteId)}/accept`,
       body: { quoteHash: quote.quoteHash }, durable: false });
-    return { threadId: request.threadId, reservationId: accepted.reservationId, quoteId: quote.quoteId, authorizedMax: accepted.authorizedMax,
-      deadline: quote.service.deadline, firstOutputDeadline: quote.service.firstOutputDeadline ?? null,
-      maxAttempts: quote.terms.execution.maxAttempts, evidence: quote.terms.evidence !== undefined,
-      attempts: [], lastAttemptId: null, status: 'open', retryable: false };
+    return reservationOf(request, quote, accepted.reservationId, accepted.authorizedMax);
   }
 
   /** The route summary fields the outcome rules read; selection and provider details stay here. */

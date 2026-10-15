@@ -100,15 +100,17 @@ export async function mountEarningRoutes(app, { env = process.env, composition =
     resolved = await create({ env, production: config.production });
   }
   if (config.production) assertProductionComposition(resolved);
-  const { signInFlows = [], payments = null, testCheckout = null, offerTerms = null } = resolved;
+  const { signInFlows = [], payments = null, testCheckout = null, offerTerms = null, communityAccess = null } = resolved;
   const shared = { limits: resolved.limits, rateLimiter: resolved.rateLimiter ?? null, ...(resolved.nowMs ? { nowMs: resolved.nowMs } : {}), log };
   // Provider and session routes first: the earning router answers every other /v1 path, unknown ones with 404.
   if (signInFlows.length || payments) {
-    app.use(EARNING_ROUTES_PREFIX, createProviderRouter({ accounts: resolved.accounts, signInFlows, payments, testCheckout, ...shared }));
+    app.use(EARNING_ROUTES_PREFIX, createProviderRouter({ accounts: resolved.accounts, signInFlows, payments, testCheckout,
+      communityAccess: Boolean(communityAccess), ...shared }));
   }
-  if (payments || offerTerms) {
+  if (payments || offerTerms || communityAccess) {
     app.use(EARNING_ROUTES_PREFIX, createSessionRouter({
-      accounts: resolved.accounts, payments, rewards: resolved.rewards, offerTerms, idempotencyBackend: resolved.idempotencyBackend, ...shared
+      accounts: resolved.accounts, payments, rewards: resolved.rewards, offerTerms, communityAccess, quoteTerms: resolved.quoteTerms ?? null,
+      ledger: resolved.ledger, idempotencyBackend: resolved.idempotencyBackend, ...shared
     }));
   }
   app.use(EARNING_ROUTES_PREFIX, createEarningRouter({ log, ...resolved }));
@@ -119,7 +121,8 @@ export async function mountEarningRoutes(app, { env = process.env, composition =
     signInProviders: (resolved.accounts?.signInProviders ?? []).map(({ providerId, testOnly }) => ({ providerId, testOnly })),
     signInFlows: signInFlows.map(({ providerId }) => providerId),
     payments: payments ? { ...payments.processor } : null,
-    offers: Boolean(offerTerms)
+    offers: Boolean(offerTerms),
+    communityAccess: Boolean(communityAccess)
   };
 }
 
