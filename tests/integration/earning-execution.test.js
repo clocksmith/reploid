@@ -21,6 +21,7 @@ import { EARNING_CLIENT_SCHEMA, createEarningClient } from '../../self/host/earn
 import { createEarningContribution } from '../../self/host/earning/contribution.js';
 import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
 import { createSessionBinding } from '../../packages/reploid/src/artifacts/participant-proofs.js';
+import { remotePermissionWording } from '../../self/ui/pool-home/remote-permission.js';
 import { ACCOUNT_POLICY, newIdentity, openAccountFixture } from '../helpers/account-fixture.js';
 import { PIECE_BYTES, transferPiece } from '../helpers/custody-transfer.js';
 import { PROMPT_TOKENS, STEPS, residentRoute } from '../helpers/resident-route.js';
@@ -168,8 +169,8 @@ describe.each(['memory', 'firestore'])('earning with actual execution and delive
     const execution = createChatExecution({ service: {}, partitions: route.requester, models: [], getModels: () => [route.model],
       profile: { generation: {}, maxOutcomeCharacters: 1000 }, earning: attempts });
     // The one-time remote contributor permission; no per-request review follows it.
-    const permission = createRemotePermission({ id: 'remote', grantedAt: 1, need: remotePermissionNeed({
-      networkId: 'mesh', sharingScope: 'mesh', disclosure: 'ordered-partition-activations-and-tokens', model: route.model }) });
+    const need = remotePermissionNeed({ networkId: 'mesh', sharingScope: 'mesh', disclosure: 'ordered-partition-activations-and-tokens', model: route.model });
+    const permission = createRemotePermission({ id: 'remote', grantedAt: 1, need, wording: remotePermissionWording(need) });
     let saved = null;
     const app = createChatWorkspace({ meshId: 'mesh', participantId: identity.peerId, remotePermissions: () => [permission],
       store: { load: () => structuredClone(saved), save: (value) => { saved = structuredClone(value); } }, execute: execution.execute });
