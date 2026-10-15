@@ -1,0 +1,1 @@
+Verified 162 native files, 1998 installed runtime files, 2073 browser files and 44 metadata files; no GPU opened

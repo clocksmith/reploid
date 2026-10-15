@@ -1,0 +1,23 @@
+{"at":"2026-10-15T02:44:36.392Z","phase":"provider-started","providerPid":2332757,"supervisorPid":2332714,"cgroup":"/user.slice/user-1000.slice/user@1000.service/app.slice/fc-o3-native-1.scope","inspectorPort":29992,"deadlineMs":3540000}
+{"at":"2026-10-15T02:44:37.395Z","phase":"memory","memory.current":"206782464","memory.peak":"225832960","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T02:44:38.396Z","phase":"memory","memory.current":"206442496","memory.peak":"225832960","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T02:44:39.398Z","phase":"memory","memory.current":"205758464","memory.peak":"225832960","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T02:44:40.398Z","phase":"memory","memory.current":"205279232","memory.peak":"225832960","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T02:44:41.399Z","phase":"memory","memory.current":"205119488","memory.peak":"225832960","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T02:44:42.400Z","phase":"memory","memory.current":"204632064","memory.peak":"225832960","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T02:44:43.401Z","phase":"memory","memory.current":"204632064","memory.peak":"225832960","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T02:44:44.403Z","phase":"memory","memory.current":"205275136","memory.peak":"225832960","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T02:44:45.404Z","phase":"memory","memory.current":"49623040","memory.peak":"225832960","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T02:44:46.406Z","phase":"memory","memory.current":"49520640","memory.peak":"225832960","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T02:44:47.406Z","phase":"memory","memory.current":"50212864","memory.peak":"225832960","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T02:44:48.407Z","phase":"memory","memory.current":"183660544","memory.peak":"225832960","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T02:44:49.408Z","phase":"memory","memory.current":"202596352","memory.peak":"243294208","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T02:44:50.409Z","phase":"memory","memory.current":"263479296","memory.peak":"263479296","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T02:44:51.410Z","phase":"memory","memory.current":"262549504","memory.peak":"263479296","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T02:44:52.411Z","phase":"memory","memory.current":"262684672","memory.peak":"263479296","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T02:44:53.412Z","phase":"memory","memory.current":"263151616","memory.peak":"263479296","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T02:44:54.413Z","phase":"memory","memory.current":"348688384","memory.peak":"354627584","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T02:44:55.414Z","phase":"memory","memory.current":"595238912","memory.peak":"632463360","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T02:44:56.415Z","phase":"memory","memory.current":"766955520","memory.peak":"767565824","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T02:44:57.416Z","phase":"memory","memory.current":"641122304","memory.peak":"808017920","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"}
+{"at":"2026-10-15T02:44:57.790Z","phase":"provider-exit","code":0,"signal":null,"memory.current":"17608704","memory.peak":"808017920","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0","cleanup":"Read provider events; exit alone does not establish GPU settlement."}

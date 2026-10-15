@@ -1,0 +1,128 @@
+{
+  "schema": "doppler.resident-qualification-contract/v2",
+  "manifestIdentity": "sha256:64d747193bd983feb3d25eea6227284c6e979ea35c7cb874a3b0a0a582c2acbd",
+  "executionGraphHash": "sha256:ffb898132339f8017e6545421ad9cff7ffb7527cb427cb50311cb0c998e648f8",
+  "partitionPlanHash": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+  "partitionPlan": {
+    "schema": "doppler.layer-partition-contract/v3",
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "totalLayers": 24,
+    "hiddenSize": 1024,
+    "vocabSize": 248320,
+    "stageCount": 3,
+    "splitLayers": [
+      8,
+      16
+    ],
+    "activationDtype": "f32",
+    "activationPrecision": "two-f32",
+    "activationComponents": 2,
+    "activationElementStrideBytes": 8,
+    "partitions": [
+      {
+        "index": 0,
+        "layerRange": [
+          0,
+          7
+        ],
+        "layerCount": 8,
+        "hasEmbedding": true,
+        "hasLmHead": false,
+        "inputContract": {
+          "type": "token-ids",
+          "rank": 2,
+          "shapeDescription": "[batchSize, seqLen]",
+          "dtype": "i32"
+        },
+        "outputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 1024,
+          "dtype": "f32",
+          "precision": "two-f32",
+          "components": 2,
+          "elementStrideBytes": 8
+        }
+      },
+      {
+        "index": 1,
+        "layerRange": [
+          8,
+          15
+        ],
+        "layerCount": 8,
+        "hasEmbedding": false,
+        "hasLmHead": false,
+        "inputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 1024,
+          "dtype": "f32",
+          "precision": "two-f32",
+          "components": 2,
+          "elementStrideBytes": 8
+        },
+        "outputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 1024,
+          "dtype": "f32",
+          "precision": "two-f32",
+          "components": 2,
+          "elementStrideBytes": 8
+        }
+      },
+      {
+        "index": 2,
+        "layerRange": [
+          16,
+          23
+        ],
+        "layerCount": 8,
+        "hasEmbedding": false,
+        "hasLmHead": true,
+        "inputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 1024,
+          "dtype": "f32",
+          "precision": "two-f32",
+          "components": 2,
+          "elementStrideBytes": 8
+        },
+        "outputContract": {
+          "type": "logits",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, vocabSize]",
+          "vocabSize": 248320,
+          "dtype": "f32"
+        }
+      }
+    ]
+  },
+  "referenceHash": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+  "evaluatorHash": "sha256:90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7",
+  "tolerance": 0.001,
+  "comparedSteps": 55,
+  "stages": [
+    {
+      "index": 0,
+      "surface": "browser-webgpu",
+      "providerIdentityHash": "sha256:9a44814095409807d41dff085fd5065c0078b08b514fe37c8ed66db3ff4f9ca9"
+    },
+    {
+      "index": 1,
+      "surface": "node-webgpu",
+      "providerIdentityHash": "sha256:5bf5dc0db5233d6c88d4548eff8d345ced4b82f9af057156d4c51121ee0f3c02"
+    },
+    {
+      "index": 2,
+      "surface": "node-webgpu",
+      "providerIdentityHash": "sha256:5bf5dc0db5233d6c88d4548eff8d345ced4b82f9af057156d4c51121ee0f3c02"
+    }
+  ]
+}

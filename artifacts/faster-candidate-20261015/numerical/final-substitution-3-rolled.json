@@ -1,0 +1,62 @@
+{
+ "label": "tiled attention + sliced RMSNorm + sliced recurrent state (rolled row loops) + parallel Q/K normalization + compensated matmul + declared Q/K head-norm program (shipped rmsnorm_paired)",
+ "kernels": {
+  "attention": {
+   "kernel": "attention_paired_tiled.wgsl",
+   "entry": "main",
+   "digest": "sha256:70a0a584eb26e3eb9aa14ea1082b9f3801bf730c43577874c1c4257a69b6ea16",
+   "constants": {
+    "WORKGROUP_SIZE": 256,
+    "DOT_LANES": 4
+   }
+  },
+  "norm": {
+   "kernel": "rmsnorm_paired_sliced.wgsl",
+   "entry": "main",
+   "digest": "sha256:92760258450f504f4707b4fcb98148967b11c9a8e27e95d3f1242191c88bf1cc",
+   "constants": {
+    "WORKGROUP_SIZE": 256
+   }
+  },
+  "projection_q4": {
+   "kernel": "matmul_paired_compensated.wgsl",
+   "entry": "main",
+   "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c"
+  },
+  "projection_f16": {
+   "kernel": "matmul_paired_compensated.wgsl",
+   "entry": "main",
+   "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c"
+  },
+  "head": {
+   "kernel": "matmul_paired_compensated.wgsl",
+   "entry": "main",
+   "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c"
+  }
+ },
+ "addMechanismKernels": {
+  "paired_state_sliced_rolled": {
+   "kernel": "gated_delta_state_paired_sliced_rolled.wgsl",
+   "entry": "main",
+   "digest": "sha256:66ead3035467220fda5c807096055a1377c1d8711f1d1d0106bc02d242e95d2b",
+   "constants": {
+    "WORKGROUP_SIZE": 256,
+    "K_SLICES": 16
+   }
+  },
+  "paired_qk_parallel": {
+   "kernel": "gated_delta_qk_paired_parallel.wgsl",
+   "entry": "main",
+   "digest": "sha256:75b6c97cea545f81e384a8d5254b8c97c5063b02a9e827c877383401eed92daa",
+   "constants": {
+    "WORKGROUP_SIZE": 256
+   }
+  },
+  "paired_qk_head_norm": {
+   "kernel": "rmsnorm_paired.wgsl",
+   "entry": "main",
+   "digest": "sha256:c0268aa06ac8962379dd811f5d256b0aceaa8300542e80619e3c088d683af61e",
+   "constants": {}
+  }
+ }
+}

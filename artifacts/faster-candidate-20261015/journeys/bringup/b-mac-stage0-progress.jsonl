@@ -1,0 +1,4 @@
+{"at":"2026-10-15T01:59:01.723Z","phase":"loading","error":null,"progress":null,"unsettledOwners":0,"placement":null}
+{"at":"2026-10-15T01:59:03.732Z","phase":"loading","error":null,"progress":{"stage":"acquiring","path":"artifacts/evidence/qualification-node-webgpu-f47c82c5daf9.json","receivedBytes":63103,"totalBytes":63103,"message":"Downloading artifacts/evidence/qualification-node-webgpu-f47c82c5daf9.json: 100%"},"unsettledOwners":0,"placement":null}
+{"at":"2026-10-15T01:59:05.856Z","phase":"loading","error":null,"progress":{"stage":"acquiring","path":"artifacts/program-bundle.json","receivedBytes":167600,"totalBytes":167600,"message":"Downloading artifacts/program-bundle.json: 100%"},"unsettledOwners":0,"placement":null}
+{"at":"2026-10-15T02:00:08.843Z","phase":"ready","error":null,"progress":null,"unsettledOwners":0,"placement":["peer:5c15cbe15956e1c6eca0fdd7","peer:9af15d884eba51b0c0540e2a","peer:5f288f6f0259c251a1915c11"]}

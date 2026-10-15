@@ -1,0 +1,12 @@
+{
+  "executorId": "amd-stage-2",
+  "platform": "amd-host:node-dawn",
+  "endpoint": "ws://127.0.0.1:29995/2bcd6a3d-9081-47a8-b832-83e96034d7a0",
+  "pid": 1276658,
+  "executableIdentity": {
+    "path": "/usr/bin/node",
+    "sha256": "d0efb6fcb9d023ba4e2b160ec2384dc28fe4f17732141ef47f676828fa960505",
+    "sizeBytes": 26856
+  },
+  "observedAt": "2026-10-15T01:12:14.384Z"
+}

@@ -1,0 +1,932 @@
+{
+  "schema": "doppler.physical-resident-producer-input/v2",
+  "archiveHash": "sha256:21d054eeb70212a7434c9eccfe467fe0accbb8685e9358f2b72341500978cd5f",
+  "manifestHash": "sha256:64d747193bd983feb3d25eea6227284c6e979ea35c7cb874a3b0a0a582c2acbd",
+  "graphHash": "sha256:7abe300781c0990c88a23f023c2af577d2fda53e21dac7cb3c9617d5a6e0d8cf",
+  "referenceHash": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+  "evaluatorHash": "sha256:90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7",
+  "proposalSha256": "138a76cff303746fe73e5307659c0aaca5a6b2c953ac44a8798c58f6ac297210",
+  "outputIndexSha256": "2c95ecd599b5007b15872c7f3b1ddc5934f5319f983375a996dab536e1021979",
+  "requestContractHashes": [
+    "sha256:ba2a4668d6affb85faf05221d6263a5b29b55d26c8f89a4f107cbacb717599a9",
+    "sha256:3cc051de10f77e945c6a62b66cccb22f0c15e55bf11196c6f71aeda4174ba5a2",
+    "sha256:8b21b154357efa8c9d1c853ffe36c5ce9d9e32e684b496db9031bc59fa6fe836"
+  ],
+  "requestFixtureSha256": "794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
+  "factorySha256": "32adf87e811950333e14280221ffa9136cc081b04a45c20a427f6dc612f47750",
+  "identityHelperSha256": "2c25b83186104597025031a9436a53ba0d3a71c1ee170c4f4ccebdd3e4f6d689",
+  "producerHash": "sha256:714cc204e61c6289f1e937bcf1b75e693bd5bf2ddf1529e1a9e3368e896b3c99",
+  "deliveryMode": "direct-fixture",
+  "testDeliveryHash": "sha256:678e50f27cf751932e78f9eb36662611e7fe5c50cd1c244d9b2300bd7f2d1895",
+  "installedFiles": 1998,
+  "partitionPlan": {
+    "schema": "doppler.layer-partition-contract/v3",
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "totalLayers": 24,
+    "hiddenSize": 1024,
+    "vocabSize": 248320,
+    "stageCount": 3,
+    "splitLayers": [
+      8,
+      16
+    ],
+    "activationDtype": "f32",
+    "activationPrecision": "two-f32",
+    "activationComponents": 2,
+    "activationElementStrideBytes": 8,
+    "partitions": [
+      {
+        "index": 0,
+        "layerRange": [
+          0,
+          7
+        ],
+        "layerCount": 8,
+        "hasEmbedding": true,
+        "hasLmHead": false,
+        "inputContract": {
+          "type": "token-ids",
+          "rank": 2,
+          "shapeDescription": "[batchSize, seqLen]",
+          "dtype": "i32"
+        },
+        "outputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 1024,
+          "dtype": "f32",
+          "precision": "two-f32",
+          "components": 2,
+          "elementStrideBytes": 8
+        }
+      },
+      {
+        "index": 1,
+        "layerRange": [
+          8,
+          15
+        ],
+        "layerCount": 8,
+        "hasEmbedding": false,
+        "hasLmHead": false,
+        "inputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 1024,
+          "dtype": "f32",
+          "precision": "two-f32",
+          "components": 2,
+          "elementStrideBytes": 8
+        },
+        "outputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 1024,
+          "dtype": "f32",
+          "precision": "two-f32",
+          "components": 2,
+          "elementStrideBytes": 8
+        }
+      },
+      {
+        "index": 2,
+        "layerRange": [
+          16,
+          23
+        ],
+        "layerCount": 8,
+        "hasEmbedding": false,
+        "hasLmHead": true,
+        "inputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 1024,
+          "dtype": "f32",
+          "precision": "two-f32",
+          "components": 2,
+          "elementStrideBytes": 8
+        },
+        "outputContract": {
+          "type": "logits",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, vocabSize]",
+          "vocabSize": 248320,
+          "dtype": "f32"
+        }
+      }
+    ]
+  },
+  "legacyPlanId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+  "providers": {
+    "mac-stage-0": {
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+      "platform": "MacIntel",
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "unknown",
+        "description": ""
+      }
+    },
+    "amd-stage-1": {
+      "adapter": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "radeon-8060s-graphics-radv-strix-halo-",
+        "description": "radv: Mesa 26.0.3-1ubuntu1"
+      }
+    },
+    "amd-stage-2": {
+      "adapter": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "radeon-8060s-graphics-radv-strix-halo-",
+        "description": "radv: Mesa 26.0.3-1ubuntu1"
+      }
+    }
+  },
+  "browserVersions": {
+    "mac-stage-0": "155.0.8059.40"
+  },
+  "placements": [
+    {
+      "partitionIndex": 0,
+      "platform": "mac.lan",
+      "executorId": "mac-stage-0",
+      "participantId": "ordered-stage-0",
+      "transportId": "ordered-transport-0",
+      "residentId": "ordered-resident-0",
+      "executionId": "sha256:c0636d1e2806a933d567b05f2ddb09bc8f1639c1dc3787e29ba89d0a73a52209"
+    },
+    {
+      "partitionIndex": 1,
+      "platform": "amd-host:node-dawn",
+      "executorId": "amd-stage-1",
+      "participantId": "ordered-stage-1",
+      "transportId": "ordered-transport-1",
+      "residentId": "ordered-resident-1",
+      "executionId": "sha256:c0636d1e2806a933d567b05f2ddb09bc8f1639c1dc3787e29ba89d0a73a52209"
+    },
+    {
+      "partitionIndex": 2,
+      "platform": "amd-host:node-dawn",
+      "executorId": "amd-stage-2",
+      "participantId": "ordered-stage-2",
+      "transportId": "ordered-transport-2",
+      "residentId": "ordered-resident-2",
+      "executionId": "sha256:c0636d1e2806a933d567b05f2ddb09bc8f1639c1dc3787e29ba89d0a73a52209"
+    }
+  ],
+  "surfaces": {
+    "mac-stage-0": "browser-webgpu",
+    "amd-stage-1": "node-webgpu",
+    "amd-stage-2": "node-webgpu"
+  },
+  "nativeHosts": {
+    "amd-stage-1": {
+      "node": "22.22.1",
+      "nativeDeliverySha256": "8eeaa257d0951c40f4d8e0d8b371abce858bc90ec9e6e193b4a0ce13d2c98cca",
+      "testDeliveryHash": "sha256:678e50f27cf751932e78f9eb36662611e7fe5c50cd1c244d9b2300bd7f2d1895",
+      "provider": {
+        "module": "webgpu",
+        "version": "0.4.0",
+        "entrySha256": "18a44f1e81cd3697156e7ddd3456e9f0d346a0afabb76588379b5b2f6dca50b4",
+        "packageSha256": "808ca40c7fdacd112c4b1935dde1fbbbf4279ae11dbbae5ef5cd50b1c639222a",
+        "observation": "Actual process.report sharedObjects after provider opening",
+        "libraries": [
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libnode.so.127",
+            "bytes": 70228184,
+            "sha256": "ab75d3a6c0a6ea5c0e2ea1ae983621fbcb392a6b4a85067cb83e5b77c2b223e2"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+            "bytes": 2190608,
+            "sha256": "85e64f97e348786a8fb4d9f3d52fec289e2fb86bba20f0731dfe61990525e0f7"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libz.so.1",
+            "bytes": 121272,
+            "sha256": "47b61967895b30e8c0c6818dd633ffeb87711cf637c688f981896f0dd84ce23b"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libllhttp.so.9.3",
+            "bytes": 63560,
+            "sha256": "dadc5624f9a6b302fa60aed7252caeba7be3e42d4a079e2f2bce903611312de4"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libuv.so.1",
+            "bytes": 225376,
+            "sha256": "bd551bdd58301a4da96545a90429a38dc16621b5d35c54565d6398b37682b571"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libada-url0.so.3",
+            "bytes": 737672,
+            "sha256": "578a73ed8cb1f09f4c9764aca3a09d03a04182eb606dfa65b623fd2e93864ee4"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libsimdjson.so.29",
+            "bytes": 207896,
+            "sha256": "8ce4fe5000cec26cd6716ba3713873b585ba19d817f5bae6bb8e1d287e1df05c"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libsimdutf.so.31",
+            "bytes": 522504,
+            "sha256": "165129f068e4c54f61d98e3a89cff451ba06025028bf1cc5829474c8d29c5633"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libbrotlidec.so.1",
+            "bytes": 55688,
+            "sha256": "eb8768f85e9c367cd74772919b5668bbe0045cb71b65d75aafc32828e7acb1b7"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libbrotlienc.so.1",
+            "bytes": 686936,
+            "sha256": "82dd80ab6b6504637b55d32985cf5826de56caac7031ed0f04b93b03051a02f4"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libcares.so.2",
+            "bytes": 215216,
+            "sha256": "e12676f45f12e2c129ccd585cf20e0c287fdc0f0718f9de3f4b5dfe2a9124c99"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libnghttp2.so.14",
+            "bytes": 166336,
+            "sha256": "2655558fee787cb4724ad59c72ce75b20847efc92a1c52fc202aea1d812c9b20"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libsqlite3.so.0",
+            "bytes": 1522152,
+            "sha256": "4633a4be13fdf05cb0f859e04fb06077a1fe30a90e405721a23873bd1f3d88a8"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libzstd.so.1",
+            "bytes": 796824,
+            "sha256": "060eeb79531d435306665fd78329d8a9dd579f95876c5960bb67937825362a80"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libcrypto.so.3",
+            "bytes": 6386528,
+            "sha256": "5385f0436ac2e284ba8c5fb1488874057c29c04be72dea32add832694f381e28"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libssl.so.3",
+            "bytes": 1114280,
+            "sha256": "63b47f444efa588e291e9b650a5ba2ab02f856356f2d50f13a2e477db9119e09"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libicui18n.so.78",
+            "bytes": 3853200,
+            "sha256": "14b42ecb935cb21758a24a61052e7b4cd410553e4deae37736cd8c748a1511f4"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libicuuc.so.78",
+            "bytes": 2267544,
+            "sha256": "1eb54ce8839e953fbaa755522f3488039d879be3a61b272df3cabd6c00f08d2d"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6",
+            "bytes": 2735712,
+            "sha256": "5bb0d21308f123b6ad46c6f35b42cedfcb8d6d439a53aa3dae04d880aaffdde3"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+            "bytes": 1198376,
+            "sha256": "1c488db6f4fe8cecb72456bc018de000b7a9b539c2994864b0416b5e8371b3d8"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+            "bytes": 187120,
+            "sha256": "9d339ecb409578d6a5d587e6c537a8f9589b8a13fefba30d167433a4b5758bee"
+          },
+          {
+            "path": "/lib64/ld-linux-x86-64.so.2",
+            "bytes": 254864,
+            "sha256": "bda779ea9e9ad234f60315477d7cfd0bdde861cd8ddd9df8cdaf62f18c4cec14"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libbrotlicommon.so.1",
+            "bytes": 141712,
+            "sha256": "fb353cab2ea4ecd90814b46f872c21e1034c92bd86c3c677415748b4d16b5ad1"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libicudata.so.78",
+            "bytes": 33117904,
+            "sha256": "3a08c11ef1d168a1edc3b0437cecb8b42e621f67706980a0502c97364bf744a7"
+          },
+          {
+            "path": "/var/tmp/reploid-faster-candidate-20261015/installed/reploid/node_modules/webgpu/dist/linux-x64.dawn.node",
+            "bytes": 18617336,
+            "sha256": "fbfe599055b469963e4c9bfc900a702843db962dcaba0799b3c81ae33fa43db1"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libvulkan.so.1",
+            "bytes": 588520,
+            "sha256": "def4af45e9e5784cf65eaaaa289530a5c73546b01015da4c0920ef0a144fe189"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libvulkan_asahi.so",
+            "bytes": 14261976,
+            "sha256": "726d307718ce540e6804ee3aff4d60faf5232199b1110e50a64d20ea8210996d"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libdrm.so.2",
+            "bytes": 92848,
+            "sha256": "c8be7d3863453898666977c12b0b392014a1c728d84215d885d574882d6e7b89"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libxcb.so.1",
+            "bytes": 170680,
+            "sha256": "6af94be329e17e57f1cc0f5e4afb5bdfe669a5168accdc31b03274110b937b41"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libX11-xcb.so.1",
+            "bytes": 14104,
+            "sha256": "6a9047ac83e4e1afb8032e62332aa449e7c6307c731f621054c9c0573a460899"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libxcb-dri3.so.0",
+            "bytes": 22824,
+            "sha256": "d2f0488a28a351718192c01bba15f60556f514db555dfbce9a132dedd1401e98"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libxcb-present.so.0",
+            "bytes": 14616,
+            "sha256": "085bc629d45125f8c3b0f09f9c37ee65d35b1ea55e1f047cffd6aef4ce218b5a"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libxcb-xfixes.so.0",
+            "bytes": 35096,
+            "sha256": "37c933b3e89f66330a930207b3133ce5b2c7aade777c7711b70945cc7d4b2333"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libxcb-sync.so.1",
+            "bytes": 35112,
+            "sha256": "bf494083f05bc427135042b5cdaa5bf5fbe0886f34f611151dde0056257022c9"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libxcb-randr.so.0",
+            "bytes": 67864,
+            "sha256": "a9444026ba3c927a917ff5a0ce47318bed09ab8f9382fe231c72b33da4ec8bbc"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libxcb-shm.so.0",
+            "bytes": 14632,
+            "sha256": "58fcb847e2009affbd7eeb1f6d39949f29ccc153f230e0b0d23de00d2b5c1353"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libxshmfence.so.1",
+            "bytes": 14592,
+            "sha256": "8b4406ff7f9f2b2830e6d135f9e7ffe991d32832b8fc3569fed189517b557d2b"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libwayland-client.so.0",
+            "bytes": 73056,
+            "sha256": "f27b9eecd96d76ae49ec9f7d4da17dcc43df3411ef3d432ce56d710c8b62930c"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libdisplay-info.so.3",
+            "bytes": 227400,
+            "sha256": "b3822cd8ca06feaf57da22fc4e5c905c2cb873f5bc2664e53a3c5f2cf060cb27"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libexpat.so.1",
+            "bytes": 186704,
+            "sha256": "2e5f66e2784c2746775567ff9916f6e7503182a8f1f2deb8ca729dfc1463849f"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libXau.so.6",
+            "bytes": 18776,
+            "sha256": "2b742de65acd00f154ed156720af66c0c0af9a58360ba041f25a41e2f775fab5"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libXdmcp.so.6",
+            "bytes": 26856,
+            "sha256": "24beecbb0faf600d1a646b5edfc8c144da6f2965cb427598f4e17edc1285a733"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libffi.so.8",
+            "bytes": 64184,
+            "sha256": "1a0dc86f787f73e025a6e521056360afcbe70f2a82cd808132fefc2b4ee95daa"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libvulkan_lvp.so",
+            "bytes": 14333536,
+            "sha256": "c71b513e1dd12f7eb2ad0ea76fdea379e213b0b9331d8e10c5127f2d0723ca81"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libLLVM.so.21.1",
+            "bytes": 138567144,
+            "sha256": "12dca1fc2d9f5d4ff35315fc2aa3a97b615b41ec6a71d3ce545efb62c075d902"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libedit.so.2",
+            "bytes": 220544,
+            "sha256": "438090e1cd463d9f89c9259ce9e99f229eae56c857b5e525d581e338f61aa1ce"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libxml2.so.16",
+            "bytes": 1449112,
+            "sha256": "302dfa1295c6f917758243ef0f118f7144026b51a5f5cd1610fba849c968f73b"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libtinfo.so.6",
+            "bytes": 212504,
+            "sha256": "085dbbe5dc38619276bdd0af37ae588969b1308baded09a2990ce8824a602912"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libbsd.so.0",
+            "bytes": 81048,
+            "sha256": "c71b8a0d7e94c5e34f6c328c5dd1ba7f325d3300c97a54a7c69ef9a6c2caa8b3"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libmd.so.0",
+            "bytes": 55608,
+            "sha256": "f115fa619f586e47ddfbec21bfd50069fbe5d21f388f8d9a07a984cb075d7efa"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libvulkan_radeon.so",
+            "bytes": 18162752,
+            "sha256": "0949baaa43f5ea34fc785f28f31863ca5ea4949478fae96b37c37675a489f830"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libdrm_amdgpu.so.1",
+            "bytes": 47784,
+            "sha256": "edc5af5a40623befde7f1214950cb0046e04e9a39f925e6959e71f01d2d34d9c"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libelf.so.1",
+            "bytes": 133928,
+            "sha256": "f77db7b4cfa02c98aa5918caf1f02b6cf37a5998e2e5cc8e43e664dbb72c87fa"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libVkLayer_MESA_device_select.so",
+            "bytes": 97856,
+            "sha256": "98b7eed51becfcc8ca42ee4d466b5a4cebf0c1fa54361f7d08a0cb50c1dda45a"
+          }
+        ],
+        "virtualLibraries": [
+          {
+            "name": "linux-vdso.so.1",
+            "kind": "kernel-virtual-dso",
+            "fileHashAvailable": false
+          }
+        ]
+      }
+    },
+    "amd-stage-2": {
+      "node": "22.22.1",
+      "nativeDeliverySha256": "8eeaa257d0951c40f4d8e0d8b371abce858bc90ec9e6e193b4a0ce13d2c98cca",
+      "testDeliveryHash": "sha256:678e50f27cf751932e78f9eb36662611e7fe5c50cd1c244d9b2300bd7f2d1895",
+      "provider": {
+        "module": "webgpu",
+        "version": "0.4.0",
+        "entrySha256": "18a44f1e81cd3697156e7ddd3456e9f0d346a0afabb76588379b5b2f6dca50b4",
+        "packageSha256": "808ca40c7fdacd112c4b1935dde1fbbbf4279ae11dbbae5ef5cd50b1c639222a",
+        "observation": "Actual process.report sharedObjects after provider opening",
+        "libraries": [
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libnode.so.127",
+            "bytes": 70228184,
+            "sha256": "ab75d3a6c0a6ea5c0e2ea1ae983621fbcb392a6b4a85067cb83e5b77c2b223e2"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+            "bytes": 2190608,
+            "sha256": "85e64f97e348786a8fb4d9f3d52fec289e2fb86bba20f0731dfe61990525e0f7"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libz.so.1",
+            "bytes": 121272,
+            "sha256": "47b61967895b30e8c0c6818dd633ffeb87711cf637c688f981896f0dd84ce23b"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libllhttp.so.9.3",
+            "bytes": 63560,
+            "sha256": "dadc5624f9a6b302fa60aed7252caeba7be3e42d4a079e2f2bce903611312de4"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libuv.so.1",
+            "bytes": 225376,
+            "sha256": "bd551bdd58301a4da96545a90429a38dc16621b5d35c54565d6398b37682b571"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libada-url0.so.3",
+            "bytes": 737672,
+            "sha256": "578a73ed8cb1f09f4c9764aca3a09d03a04182eb606dfa65b623fd2e93864ee4"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libsimdjson.so.29",
+            "bytes": 207896,
+            "sha256": "8ce4fe5000cec26cd6716ba3713873b585ba19d817f5bae6bb8e1d287e1df05c"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libsimdutf.so.31",
+            "bytes": 522504,
+            "sha256": "165129f068e4c54f61d98e3a89cff451ba06025028bf1cc5829474c8d29c5633"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libbrotlidec.so.1",
+            "bytes": 55688,
+            "sha256": "eb8768f85e9c367cd74772919b5668bbe0045cb71b65d75aafc32828e7acb1b7"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libbrotlienc.so.1",
+            "bytes": 686936,
+            "sha256": "82dd80ab6b6504637b55d32985cf5826de56caac7031ed0f04b93b03051a02f4"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libcares.so.2",
+            "bytes": 215216,
+            "sha256": "e12676f45f12e2c129ccd585cf20e0c287fdc0f0718f9de3f4b5dfe2a9124c99"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libnghttp2.so.14",
+            "bytes": 166336,
+            "sha256": "2655558fee787cb4724ad59c72ce75b20847efc92a1c52fc202aea1d812c9b20"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libsqlite3.so.0",
+            "bytes": 1522152,
+            "sha256": "4633a4be13fdf05cb0f859e04fb06077a1fe30a90e405721a23873bd1f3d88a8"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libzstd.so.1",
+            "bytes": 796824,
+            "sha256": "060eeb79531d435306665fd78329d8a9dd579f95876c5960bb67937825362a80"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libcrypto.so.3",
+            "bytes": 6386528,
+            "sha256": "5385f0436ac2e284ba8c5fb1488874057c29c04be72dea32add832694f381e28"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libssl.so.3",
+            "bytes": 1114280,
+            "sha256": "63b47f444efa588e291e9b650a5ba2ab02f856356f2d50f13a2e477db9119e09"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libicui18n.so.78",
+            "bytes": 3853200,
+            "sha256": "14b42ecb935cb21758a24a61052e7b4cd410553e4deae37736cd8c748a1511f4"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libicuuc.so.78",
+            "bytes": 2267544,
+            "sha256": "1eb54ce8839e953fbaa755522f3488039d879be3a61b272df3cabd6c00f08d2d"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6",
+            "bytes": 2735712,
+            "sha256": "5bb0d21308f123b6ad46c6f35b42cedfcb8d6d439a53aa3dae04d880aaffdde3"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+            "bytes": 1198376,
+            "sha256": "1c488db6f4fe8cecb72456bc018de000b7a9b539c2994864b0416b5e8371b3d8"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+            "bytes": 187120,
+            "sha256": "9d339ecb409578d6a5d587e6c537a8f9589b8a13fefba30d167433a4b5758bee"
+          },
+          {
+            "path": "/lib64/ld-linux-x86-64.so.2",
+            "bytes": 254864,
+            "sha256": "bda779ea9e9ad234f60315477d7cfd0bdde861cd8ddd9df8cdaf62f18c4cec14"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libbrotlicommon.so.1",
+            "bytes": 141712,
+            "sha256": "fb353cab2ea4ecd90814b46f872c21e1034c92bd86c3c677415748b4d16b5ad1"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libicudata.so.78",
+            "bytes": 33117904,
+            "sha256": "3a08c11ef1d168a1edc3b0437cecb8b42e621f67706980a0502c97364bf744a7"
+          },
+          {
+            "path": "/var/tmp/reploid-faster-candidate-20261015/installed/reploid/node_modules/webgpu/dist/linux-x64.dawn.node",
+            "bytes": 18617336,
+            "sha256": "fbfe599055b469963e4c9bfc900a702843db962dcaba0799b3c81ae33fa43db1"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libvulkan.so.1",
+            "bytes": 588520,
+            "sha256": "def4af45e9e5784cf65eaaaa289530a5c73546b01015da4c0920ef0a144fe189"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libvulkan_asahi.so",
+            "bytes": 14261976,
+            "sha256": "726d307718ce540e6804ee3aff4d60faf5232199b1110e50a64d20ea8210996d"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libdrm.so.2",
+            "bytes": 92848,
+            "sha256": "c8be7d3863453898666977c12b0b392014a1c728d84215d885d574882d6e7b89"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libxcb.so.1",
+            "bytes": 170680,
+            "sha256": "6af94be329e17e57f1cc0f5e4afb5bdfe669a5168accdc31b03274110b937b41"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libX11-xcb.so.1",
+            "bytes": 14104,
+            "sha256": "6a9047ac83e4e1afb8032e62332aa449e7c6307c731f621054c9c0573a460899"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libxcb-dri3.so.0",
+            "bytes": 22824,
+            "sha256": "d2f0488a28a351718192c01bba15f60556f514db555dfbce9a132dedd1401e98"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libxcb-present.so.0",
+            "bytes": 14616,
+            "sha256": "085bc629d45125f8c3b0f09f9c37ee65d35b1ea55e1f047cffd6aef4ce218b5a"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libxcb-xfixes.so.0",
+            "bytes": 35096,
+            "sha256": "37c933b3e89f66330a930207b3133ce5b2c7aade777c7711b70945cc7d4b2333"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libxcb-sync.so.1",
+            "bytes": 35112,
+            "sha256": "bf494083f05bc427135042b5cdaa5bf5fbe0886f34f611151dde0056257022c9"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libxcb-randr.so.0",
+            "bytes": 67864,
+            "sha256": "a9444026ba3c927a917ff5a0ce47318bed09ab8f9382fe231c72b33da4ec8bbc"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libxcb-shm.so.0",
+            "bytes": 14632,
+            "sha256": "58fcb847e2009affbd7eeb1f6d39949f29ccc153f230e0b0d23de00d2b5c1353"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libxshmfence.so.1",
+            "bytes": 14592,
+            "sha256": "8b4406ff7f9f2b2830e6d135f9e7ffe991d32832b8fc3569fed189517b557d2b"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libwayland-client.so.0",
+            "bytes": 73056,
+            "sha256": "f27b9eecd96d76ae49ec9f7d4da17dcc43df3411ef3d432ce56d710c8b62930c"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libdisplay-info.so.3",
+            "bytes": 227400,
+            "sha256": "b3822cd8ca06feaf57da22fc4e5c905c2cb873f5bc2664e53a3c5f2cf060cb27"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libexpat.so.1",
+            "bytes": 186704,
+            "sha256": "2e5f66e2784c2746775567ff9916f6e7503182a8f1f2deb8ca729dfc1463849f"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libXau.so.6",
+            "bytes": 18776,
+            "sha256": "2b742de65acd00f154ed156720af66c0c0af9a58360ba041f25a41e2f775fab5"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libXdmcp.so.6",
+            "bytes": 26856,
+            "sha256": "24beecbb0faf600d1a646b5edfc8c144da6f2965cb427598f4e17edc1285a733"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libffi.so.8",
+            "bytes": 64184,
+            "sha256": "1a0dc86f787f73e025a6e521056360afcbe70f2a82cd808132fefc2b4ee95daa"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libvulkan_lvp.so",
+            "bytes": 14333536,
+            "sha256": "c71b513e1dd12f7eb2ad0ea76fdea379e213b0b9331d8e10c5127f2d0723ca81"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libLLVM.so.21.1",
+            "bytes": 138567144,
+            "sha256": "12dca1fc2d9f5d4ff35315fc2aa3a97b615b41ec6a71d3ce545efb62c075d902"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libedit.so.2",
+            "bytes": 220544,
+            "sha256": "438090e1cd463d9f89c9259ce9e99f229eae56c857b5e525d581e338f61aa1ce"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libxml2.so.16",
+            "bytes": 1449112,
+            "sha256": "302dfa1295c6f917758243ef0f118f7144026b51a5f5cd1610fba849c968f73b"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libtinfo.so.6",
+            "bytes": 212504,
+            "sha256": "085dbbe5dc38619276bdd0af37ae588969b1308baded09a2990ce8824a602912"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libbsd.so.0",
+            "bytes": 81048,
+            "sha256": "c71b8a0d7e94c5e34f6c328c5dd1ba7f325d3300c97a54a7c69ef9a6c2caa8b3"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libmd.so.0",
+            "bytes": 55608,
+            "sha256": "f115fa619f586e47ddfbec21bfd50069fbe5d21f388f8d9a07a984cb075d7efa"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libvulkan_radeon.so",
+            "bytes": 18162752,
+            "sha256": "0949baaa43f5ea34fc785f28f31863ca5ea4949478fae96b37c37675a489f830"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libdrm_amdgpu.so.1",
+            "bytes": 47784,
+            "sha256": "edc5af5a40623befde7f1214950cb0046e04e9a39f925e6959e71f01d2d34d9c"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libelf.so.1",
+            "bytes": 133928,
+            "sha256": "f77db7b4cfa02c98aa5918caf1f02b6cf37a5998e2e5cc8e43e664dbb72c87fa"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libVkLayer_MESA_device_select.so",
+            "bytes": 97856,
+            "sha256": "98b7eed51becfcc8ca42ee4d466b5a4cebf0c1fa54361f7d08a0cb50c1dda45a"
+          }
+        ],
+        "virtualLibraries": [
+          {
+            "name": "linux-vdso.so.1",
+            "kind": "kernel-virtual-dso",
+            "fileHashAvailable": false
+          }
+        ]
+      }
+    }
+  },
+  "expectationBasis": {
+    "scope": "Fresh Mac and native pre-output adapter-only observations, unchanged independently frozen reference and producer",
+    "priorRejectedExpectationsSha256": "aab60923b90d01405e9fee286f0c7f97446831f10066c3414494a00d29161469"
+  },
+  "logicalStageCount": 3,
+  "physicalHostCount": 2,
+  "requesterId": "repaired-ordered-reference",
+  "placementGeneration": 1,
+  "maxGpuBufferBytes": 1420000000,
+  "deadlines": {
+    "stageMs": 300000,
+    "cleanupMs": 10000,
+    "observationMs": 2000
+  },
+  "executables": {
+    "mac-stage-0": {
+      "path": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "sha256": "428dccc1a45819d23c5db4fb37388883f8d9ba64611cbd6c42395eac4a18b6a4",
+      "sizeBytes": 367696
+    },
+    "amd-stage-1": {
+      "path": "/usr/bin/node",
+      "sha256": "d0efb6fcb9d023ba4e2b160ec2384dc28fe4f17732141ef47f676828fa960505",
+      "sizeBytes": 26856
+    },
+    "amd-stage-2": {
+      "path": "/usr/bin/node",
+      "sha256": "d0efb6fcb9d023ba4e2b160ec2384dc28fe4f17732141ef47f676828fa960505",
+      "sizeBytes": 26856
+    }
+  },
+  "orderedContract": {
+    "schema": "doppler.resident-qualification-contract/v2",
+    "manifestIdentity": "sha256:64d747193bd983feb3d25eea6227284c6e979ea35c7cb874a3b0a0a582c2acbd",
+    "executionGraphHash": "sha256:ffb898132339f8017e6545421ad9cff7ffb7527cb427cb50311cb0c998e648f8",
+    "partitionPlanHash": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+    "partitionPlan": {
+      "schema": "doppler.layer-partition-contract/v3",
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "totalLayers": 24,
+      "hiddenSize": 1024,
+      "vocabSize": 248320,
+      "stageCount": 3,
+      "splitLayers": [
+        8,
+        16
+      ],
+      "activationDtype": "f32",
+      "activationPrecision": "two-f32",
+      "activationComponents": 2,
+      "activationElementStrideBytes": 8,
+      "partitions": [
+        {
+          "index": 0,
+          "layerRange": [
+            0,
+            7
+          ],
+          "layerCount": 8,
+          "hasEmbedding": true,
+          "hasLmHead": false,
+          "inputContract": {
+            "type": "token-ids",
+            "rank": 2,
+            "shapeDescription": "[batchSize, seqLen]",
+            "dtype": "i32"
+          },
+          "outputContract": {
+            "type": "activation-tensor",
+            "rank": 3,
+            "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+            "hiddenSize": 1024,
+            "dtype": "f32",
+            "precision": "two-f32",
+            "components": 2,
+            "elementStrideBytes": 8
+          }
+        },
+        {
+          "index": 1,
+          "layerRange": [
+            8,
+            15
+          ],
+          "layerCount": 8,
+          "hasEmbedding": false,
+          "hasLmHead": false,
+          "inputContract": {
+            "type": "activation-tensor",
+            "rank": 3,
+            "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+            "hiddenSize": 1024,
+            "dtype": "f32",
+            "precision": "two-f32",
+            "components": 2,
+            "elementStrideBytes": 8
+          },
+          "outputContract": {
+            "type": "activation-tensor",
+            "rank": 3,
+            "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+            "hiddenSize": 1024,
+            "dtype": "f32",
+            "precision": "two-f32",
+            "components": 2,
+            "elementStrideBytes": 8
+          }
+        },
+        {
+          "index": 2,
+          "layerRange": [
+            16,
+            23
+          ],
+          "layerCount": 8,
+          "hasEmbedding": false,
+          "hasLmHead": true,
+          "inputContract": {
+            "type": "activation-tensor",
+            "rank": 3,
+            "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+            "hiddenSize": 1024,
+            "dtype": "f32",
+            "precision": "two-f32",
+            "components": 2,
+            "elementStrideBytes": 8
+          },
+          "outputContract": {
+            "type": "logits",
+            "rank": 3,
+            "shapeDescription": "[batchSize, seqLen, vocabSize]",
+            "vocabSize": 248320,
+            "dtype": "f32"
+          }
+        }
+      ]
+    },
+    "referenceHash": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+    "evaluatorHash": "sha256:90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7",
+    "tolerance": 0.001,
+    "comparedSteps": 55,
+    "stages": [
+      {
+        "index": 0,
+        "surface": "browser-webgpu",
+        "providerIdentityHash": "sha256:9a44814095409807d41dff085fd5065c0078b08b514fe37c8ed66db3ff4f9ca9"
+      },
+      {
+        "index": 1,
+        "surface": "node-webgpu",
+        "providerIdentityHash": "sha256:5bf5dc0db5233d6c88d4548eff8d345ced4b82f9af057156d4c51121ee0f3c02"
+      },
+      {
+        "index": 2,
+        "surface": "node-webgpu",
+        "providerIdentityHash": "sha256:5bf5dc0db5233d6c88d4548eff8d345ced4b82f9af057156d4c51121ee0f3c02"
+      }
+    ]
+  }
+}

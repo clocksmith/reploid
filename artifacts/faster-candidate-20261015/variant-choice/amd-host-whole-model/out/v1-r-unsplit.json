@@ -1,0 +1,237 @@
+{
+ "schema": "reploid.speed-isolation/v1",
+ "mode": "paired-unsplit",
+ "maxTokens": 128,
+ "startedAt": "2026-10-15T02:27:18.056Z",
+ "machine": "amd-host",
+ "dopplerVersion": "0.6.28",
+ "inputs": {
+  "catalogSha256": "89ac4bfef47444e51de5218313b0c6dd45dc28b1c0c9a73f813886e927d301af",
+  "policySha256": "5a6f974f34b1cba00aff269857c3fe53728782317477bede684a0e11f2b6a235",
+  "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v3-171132d428ce64eaf706c637ee22fea0103f50a21e39e9899cac5d91b5f94234",
+  "archivePackageVersion": "0.6.28",
+  "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+  "splitLayers": [
+   8,
+   16
+  ],
+  "generation": {
+   "maxTokens": 128,
+   "maxSeqLen": 4096,
+   "temperature": 0,
+   "topP": 1,
+   "topK": 1,
+   "repetitionPenalty": 1,
+   "repetitionPenaltyWindow": 0,
+   "presencePenalty": 0,
+   "useChatTemplate": true,
+   "suppressTokenIds": [],
+   "stopSequences": []
+  },
+  "capsuleRuntimeConfigSha256": "5b3597fc5cb3c8ca473cdfa447852b51ec52c56e12605989d9698acf8732f412",
+  "manifestDecodeLoop": {
+   "batchSize": 4,
+   "stopCheckMode": "batch",
+   "readbackInterval": 8,
+   "readbackMode": "sequential",
+   "submitLatencyThresholdMs": null,
+   "ringTokens": 1,
+   "ringStop": 1,
+   "ringStaging": 1,
+   "disableCommandBatching": false
+  }
+ },
+ "verification": {
+  "modelArtifacts": {
+   "checked": 20,
+   "allMatch": true,
+   "absent": [
+    "pieces.json"
+   ]
+  },
+  "kernelSubstitution": {
+   "baseManifestIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+   "variantManifestIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+   "substituted": {
+    "norm": {
+     "before": {
+      "kernel": "rmsnorm_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:c0268aa06ac8962379dd811f5d256b0aceaa8300542e80619e3c088d683af61e",
+      "constants": null
+     },
+     "after": {
+      "kernel": "rmsnorm_paired_sliced.wgsl",
+      "entry": "main",
+      "digest": "sha256:92760258450f504f4707b4fcb98148967b11c9a8e27e95d3f1242191c88bf1cc",
+      "constants": {
+       "WORKGROUP_SIZE": 256
+      }
+     }
+    },
+    "projection_q4": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": false
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": false
+      }
+     }
+    },
+    "projection_f16": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": true,
+       "WEIGHT_Q4K": false,
+       "SCALAR_OUTPUT": false
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": true,
+       "WEIGHT_Q4K": false,
+       "SCALAR_OUTPUT": false
+      }
+     }
+    },
+    "head": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": true
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": true
+      }
+     }
+    },
+    "attention": {
+     "before": {
+      "kernel": "attention_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:95e862b22362590cb3a24b4184222b94b4a942e8c331bfb8520ad5d418ddf1f1",
+      "constants": null
+     },
+     "after": {
+      "kernel": "attention_paired_tiled.wgsl",
+      "entry": "main",
+      "digest": "sha256:70a0a584eb26e3eb9aa14ea1082b9f3801bf730c43577874c1c4257a69b6ea16",
+      "constants": {
+       "WORKGROUP_SIZE": 256,
+       "DOT_LANES": 4
+      }
+     }
+    },
+    "paired_state_sliced_rolled": {
+     "added": {
+      "kernel": "gated_delta_state_paired_sliced_rolled.wgsl",
+      "entry": "main",
+      "digest": "sha256:66ead3035467220fda5c807096055a1377c1d8711f1d1d0106bc02d242e95d2b",
+      "constants": {
+       "WORKGROUP_SIZE": 256,
+       "K_SLICES": 16
+      }
+     }
+    },
+    "paired_qk_parallel": {
+     "added": {
+      "kernel": "gated_delta_qk_paired_parallel.wgsl",
+      "entry": "main",
+      "digest": "sha256:75b6c97cea545f81e384a8d5254b8c97c5063b02a9e827c877383401eed92daa",
+      "constants": {
+       "WORKGROUP_SIZE": 256
+      }
+     }
+    },
+    "paired_qk_head_norm": {
+     "added": {
+      "kernel": "rmsnorm_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:c0268aa06ac8962379dd811f5d256b0aceaa8300542e80619e3c088d683af61e",
+      "constants": {}
+     }
+    }
+   }
+  },
+  "executionIdentity": {
+   "match": false,
+   "error": "Loaded execution identity does not match TargetPlan: executionGraphHash, executionPlanDigest, kernelClosure, kernelClosureHash, resolvedGraphHash, runtimeEngine, runtimeEngineDigest."
+  }
+ },
+ "turns": [
+  {
+   "label": "turn-1",
+   "promptTokens": 56,
+   "tokens": 100,
+   "stopReason": "eos-token",
+   "prefillMs": 9456.871340000002,
+   "decode": {
+    "count": 99,
+    "totalMs": 31266.62341900002,
+    "medianMs": 291.1341059999995,
+    "p90Ms": 421.4220119999991,
+    "minMs": 281.4843069999988,
+    "maxMs": 473.7441319999998
+   },
+   "decodeTokensPerSecond": 3.1663156802483488
+  },
+  {
+   "label": "turn-2-follow-up",
+   "promptTokens": 189,
+   "tokens": 12,
+   "stopReason": "eos-token",
+   "prefillMs": 26749.201787000005,
+   "decode": {
+    "count": 11,
+    "totalMs": 3328.2114940000174,
+    "medianMs": 293.1976020000002,
+    "p90Ms": 303.85208799999964,
+    "minMs": 291.2460929999943,
+    "maxMs": 385.09082900000794
+   },
+   "decodeTokensPerSecond": 3.3050784242018314
+  }
+ ],
+ "gpu": {
+  "adapter": {
+   "vendor": "amd",
+   "architecture": "rdna-3",
+   "device": "radeon-8060s-graphics-radv-strix-halo-",
+   "description": "radv: Mesa 26.0.3-1ubuntu1"
+  },
+  "hasF16": true,
+  "hasSubgroups": true
+ },
+ "loadMs": 982.4775180000001,
+ "finishedAt": "2026-10-15T02:28:31.242Z"
+}

@@ -1,0 +1,16 @@
+== amd-host-1 fc-run8-amd-native-1-2
+active=active cache=cold
+ActiveEnterTimestamp=Wed 2026-10-14 21:55:59 EDT
+RuntimeMaxUSec=45min
+pids=1760934 
+== amd-host-2 fc-run8-amd-native-2-2
+active=active cache=cold
+ActiveEnterTimestamp=Wed 2026-10-14 21:56:03 EDT
+RuntimeMaxUSec=45min
+pids=1761825 
+{"event":"partition-state","phase":"ready","error":null,"offering":true,"modelId":"qwen-3-5-0-8b-q4k-ehaf16","unsettledOwners":0,"progress":null,"placement":[],
+journal-token-hits 0
+pid 1760934 argv-token-hits 0
+{"event":"partition-state","phase":"ready","error":null,"offering":true,"modelId":"qwen-3-5-0-8b-q4k-ehaf16","unsettledOwners":0,"progress":null,"placement":[],
+journal-token-hits 0
+pid 1761825 argv-token-hits 0

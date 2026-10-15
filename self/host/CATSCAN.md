@@ -8,10 +8,8 @@ Boot surfaces from trusted seeds.
 
 ## Authority
 - Owns seeding/startup/tools and independent threads.
-- Remote disclosure needs a stored, revocable contributor permission
-  (sharing-scope/disclosure-kind/model-catalog) or thread grant. Web search
-  sends questions only to the MCP server its setting names, only while on;
-  a new server turns it off.
+- Remote disclosure needs stored, revocable contributor permissions
+  (sharing-scope/disclosure-kind/model-catalog), thread grants or per-server search settings.
 - Separates helpers/swarms/previews/isolation/evaluation/activation from Packs.
 - Tasks validate; repositories version; providers execute; views are immutable.
 - Excludes policy/module semantics/recovery-root mutation.

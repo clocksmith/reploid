@@ -1,0 +1,208 @@
+{
+ "session": "m2",
+ "checks": {
+  "m2-cand-check": {
+   "label": "paired candidate final (Capsule TargetPlan runtime config)",
+   "manifestIdentity": "sha256:c6220c6aefef7006aa2b3bc3c89932d61788340597c9abf055d27e8cdd1767fd",
+   "dopplerVersion": "0.6.28",
+   "acceptance": {
+    "comparedSteps": 55,
+    "withinTolerance": 55,
+    "tokenMatches": 55,
+    "maxDifference": 9.520044947919359e-07,
+    "valuesOverTolerance": 0,
+    "passed": true
+   },
+   "perRequestMax": [
+    8.399647413170896e-07,
+    8.902515347131157e-07,
+    9.520044947919359e-07
+   ],
+   "speed": {
+    "prompt56Ms": 26477.200000047684,
+    "prompt184Ms": 110410.20000004768,
+    "decodeMedianMs": 736.2000000476837
+   },
+   "cacheGate": {
+    "identitiesMatched": 12,
+    "identities": 12,
+    "layers": [
+     {
+      "layer": 3,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 7,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 11,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 15,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 19,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 23,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     }
+    ],
+    "passed": true,
+    "differingStoredValuesVsControl": {
+     "control": "m1-c-installed-check",
+     "perLayer": [
+      {
+       "layer": 3,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 3,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 7,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 7,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 11,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 11,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 15,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 15,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 19,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 19,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 23,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 23,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      }
+     ],
+     "total": 0,
+     "firstDifferences": []
+    }
+   },
+   "stepMaxDifferences": [
+    8.399647413170896e-07,
+    6.15752007604442e-07,
+    7.122407730264513e-07,
+    8.902515347131157e-07,
+    9.465929977636733e-07,
+    9.511217982094422e-07,
+    8.68015469279726e-07,
+    7.162583912645459e-07,
+    8.71407298319582e-07,
+    5.736278545498408e-07,
+    7.928766692089084e-07,
+    7.735741682779462e-07,
+    8.880480919515321e-07,
+    7.18186271342347e-07,
+    6.088153909900029e-07,
+    8.808601243970315e-07,
+    7.976590090663649e-07,
+    9.029354934853018e-07,
+    8.974647514037315e-07,
+    6.479467806741468e-07,
+    9.431464889075869e-07,
+    6.020213518809214e-07,
+    4.76104393243304e-07,
+    6.868741131427214e-07,
+    8.416379735365354e-07,
+    4.7671555236661334e-07,
+    7.527730794265608e-07,
+    5.66631417342478e-07,
+    5.008885572976851e-07,
+    7.055716224613207e-07,
+    4.758145006888981e-07,
+    7.735567919553432e-07,
+    7.37632763758711e-07,
+    7.353005955224035e-07,
+    4.943657643252664e-07,
+    8.45685566019938e-07,
+    5.022872180404647e-07,
+    4.989301132241053e-07,
+    8.834450042627395e-07,
+    7.852569972044421e-07,
+    4.765196788270032e-07,
+    9.196834902525097e-07,
+    7.017729615199642e-07,
+    4.763602685642354e-07,
+    6.057156873851e-07,
+    6.90009414938686e-07,
+    6.659978630807473e-07,
+    8.981626429260814e-07,
+    8.844390428919269e-07,
+    8.330828507041588e-07,
+    8.883623330291357e-07,
+    6.82579010202744e-07,
+    4.766864023508788e-07,
+    9.520044947919359e-07,
+    9.168414152327387e-07
+   ]
+  }
+ },
+ "ladder": {}
+}

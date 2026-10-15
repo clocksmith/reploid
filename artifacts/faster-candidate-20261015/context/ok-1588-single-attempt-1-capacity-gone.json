@@ -1,0 +1,140 @@
+{
+  "schema": "reploid.faster-candidate-long-prompt/v1",
+  "startedAt": "2026-10-15T05:41:16.640Z",
+  "promptFile": "ok-1588.txt",
+  "promptSha256": "sha256:708059228bf1baed6558c67b70d9dff325fbda2eddaec53580dc48ae9c54e9bf",
+  "promptCharacters": 6339,
+  "requesters": 1,
+  "runs": [
+    {
+      "index": 0,
+      "attemptId": "b9ca19fb-1283-49e2-a0e7-4178f93850a8",
+      "status": "failed",
+      "error": "Prepared ordered entry unavailable",
+      "stopReason": null,
+      "generatedTokens": null,
+      "answerCharacters": 0,
+      "answerHead": "",
+      "timing": {
+        "schema": "reploid.signed-completion-answer-timing/v2",
+        "threadId": "78127726-de0c-45ba-b5b3-89f7c489ef75",
+        "attemptId": "b9ca19fb-1283-49e2-a0e7-4178f93850a8",
+        "status": "failed",
+        "requester": {
+          "attemptMs": {
+            "status": "measured",
+            "value": 7277,
+            "unit": "ms",
+            "clock": "requester-application",
+            "source": "packages/reploid/src/chat/workspace.js:248 minus packages/reploid/src/chat/workspace.js:116"
+          },
+          "firstVisibleTextMs": {
+            "status": "missing",
+            "unit": "ms",
+            "clock": "harness",
+            "source": "harness stream sample (Send click to first nonempty rendered response)",
+            "resolutionMs": 500
+          },
+          "outputCharacters": 0
+        },
+        "coordinator": {
+          "generatedTokens": null,
+          "promptTokens": {
+            "status": "not-observable",
+            "reason": "Ordered summaries before phase timing carry no prompt length",
+            "source": "doppler src/inference/pipelines/text/resident-partition.js:173-202,230 produces metrics; partition-route-execution.js:182 keeps them per step on the coordinator; partition-summary.js:16-18 drops them from the requester summary; server/native-participant.js:51-63 state log omits them"
+          },
+          "phases": null,
+          "stages": [],
+          "activationBytes": {
+            "status": "missing",
+            "unit": "bytes",
+            "clock": "coordinator",
+            "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:209"
+          }
+        },
+        "runtime": {
+          "executionMs": {
+            "status": "not-observable",
+            "reason": "Doppler per-stage metrics never reach an observable application boundary for ordered routes",
+            "source": "doppler src/inference/pipelines/text/resident-partition.js:173-202,230 produces metrics; partition-route-execution.js:182 keeps them per step on the coordinator; partition-summary.js:16-18 drops them from the requester summary; server/native-participant.js:51-63 state log omits them"
+          },
+          "logitsReadbackMs": {
+            "status": "not-observable",
+            "reason": "Doppler per-stage metrics never reach an observable application boundary for ordered routes",
+            "source": "doppler src/inference/pipelines/text/resident-partition.js:173-202,230 produces metrics; partition-route-execution.js:182 keeps them per step on the coordinator; partition-summary.js:16-18 drops them from the requester summary; server/native-participant.js:51-63 state log omits them"
+          },
+          "samplingMs": {
+            "status": "not-observable",
+            "reason": "Doppler per-stage metrics never reach an observable application boundary for ordered routes",
+            "source": "doppler src/inference/pipelines/text/resident-partition.js:173-202,230 produces metrics; partition-route-execution.js:182 keeps them per step on the coordinator; partition-summary.js:16-18 drops them from the requester summary; server/native-participant.js:51-63 state log omits them"
+          }
+        },
+        "scheduler": {
+          "queuedMs": {
+            "status": "not-observable",
+            "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+            "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+          },
+          "loadMs": {
+            "status": "not-observable",
+            "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+            "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+          },
+          "executionMs": {
+            "status": "not-observable",
+            "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+            "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+          }
+        },
+        "transport": {
+          "status": "not-observable",
+          "reason": "Ordered summaries carry no transport timing",
+          "source": "partition-summary.js:43-45 aggregates transportTiming for v1 two-device summaries only; the ordered v2 summary (partition-summary.js:16-18) carries none"
+        },
+        "persistence": {
+          "status": "not-observable",
+          "reason": "History persistence exposes no timing",
+          "source": "ordered routes commit each step through the requester transaction owner (packages/reploid/src/mesh/partitions/partition-ordered-chat.js:136, owner.publish) before delivery or the next step; neither that commit nor ordinary history (packages/reploid/src/chat/workspace.js persist()) exposes timing"
+        }
+      }
+    }
+  ],
+  "sentAt": "2026-10-15T05:41:19.844Z",
+  "sends": [
+    {
+      "sentAt": "2026-10-15T05:41:19.864Z",
+      "permission": {
+        "need": {
+          "networkId": "reploid-swarm-fc-run8-c19c585f99ce",
+          "sharingScope": "mesh",
+          "disclosure": "ordered-partition-activations-and-tokens",
+          "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+          "modelIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+          "adapterIdentities": []
+        },
+        "title": "Answer with contributors' computers?",
+        "what": "To answer, this conversation is sent to contributors' computers on this network: your message, earlier messages in the thread, and the context prompt when it is on.",
+        "who": "The first computer receives the text. The other computers receive the same content as model tokens, which read back as text, plus intermediate results.",
+        "scope": "You are asked once. Later questions and follow-ups are sent the same way until you turn this off in Settings.",
+        "shownAt": "2026-10-15T05:41:19.919Z",
+        "allowedAt": "2026-10-15T05:41:19.953Z",
+        "stored": {
+          "schema": "reploid.remote-permission/v2",
+          "id": "428d9e01-3481-45e1-8751-6d3e72d53312",
+          "networkId": "reploid-swarm-fc-run8-c19c585f99ce",
+          "sharingScope": "mesh",
+          "disclosure": "ordered-partition-activations-and-tokens",
+          "modelIdentities": [
+            "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db"
+          ],
+          "adapterIdentities": [],
+          "grantedAt": 1792042879947,
+          "revokedAt": null
+        }
+      }
+    }
+  ],
+  "ok": false,
+  "finishedAt": "2026-10-15T05:41:27.756Z"
+}

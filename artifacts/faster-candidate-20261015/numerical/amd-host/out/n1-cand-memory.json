@@ -1,0 +1,59 @@
+{
+ "schema": "reploid.paired-memory-peak/v1",
+ "label": "paired candidate final (Capsule TargetPlan runtime config)",
+ "manifestIdentity": "sha256:64d747193bd983feb3d25eea6227284c6e979ea35c7cb874a3b0a0a582c2acbd",
+ "limitBytes": 1420000000,
+ "phases": [
+  {
+   "phase": "loaded",
+   "currentBytesAllocated": 938584320,
+   "peakBytesAllocated": 938584320,
+   "peakBytesRequested": 935504128,
+   "activeBuffers": 347,
+   "pooledBuffers": 1,
+   "processVmHWMBytes": 617979904
+  },
+  {
+   "phase": "request-2 prefill (184 tokens)",
+   "currentBytesAllocated": 994663936,
+   "peakBytesAllocated": 994663936,
+   "peakBytesRequested": 981299968,
+   "activeBuffers": 455,
+   "pooledBuffers": 48,
+   "processVmHWMBytes": 1415995392
+  },
+  {
+   "phase": "request-2 after 50 decode steps",
+   "currentBytesAllocated": 994856960,
+   "peakBytesAllocated": 1001209600,
+   "peakBytesRequested": 984787968,
+   "activeBuffers": 455,
+   "pooledBuffers": 64,
+   "processVmHWMBytes": 1511673856
+  },
+  {
+   "phase": "answer-cause-follow-up prefill (189 tokens)",
+   "currentBytesAllocated": 996558336,
+   "peakBytesAllocated": 1001209600,
+   "peakBytesRequested": 984787968,
+   "activeBuffers": 455,
+   "pooledBuffers": 60,
+   "processVmHWMBytes": 1523724288
+  },
+  {
+   "phase": "answer-cause-follow-up after 16 decode steps",
+   "currentBytesAllocated": 996413440,
+   "peakBytesAllocated": 1002913536,
+   "peakBytesRequested": 984787968,
+   "activeBuffers": 455,
+   "pooledBuffers": 64,
+   "processVmHWMBytes": 1570578432
+  }
+ ],
+ "summary": {
+  "peakBytesAllocated": 1002913536,
+  "limitBytes": 1420000000,
+  "withinLimit": true,
+  "headroomBytes": 417086464
+ }
+}

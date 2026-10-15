@@ -1,0 +1,523 @@
+{
+ "session": "n2",
+ "checks": {
+  "n2-cand-check": {
+   "label": "paired candidate final (Capsule TargetPlan runtime config)",
+   "manifestIdentity": "sha256:c6220c6aefef7006aa2b3bc3c89932d61788340597c9abf055d27e8cdd1767fd",
+   "dopplerVersion": "0.6.28",
+   "acceptance": {
+    "comparedSteps": 55,
+    "withinTolerance": 55,
+    "tokenMatches": 55,
+    "maxDifference": 9.520044947919359e-07,
+    "valuesOverTolerance": 0,
+    "passed": true
+   },
+   "perRequestMax": [
+    8.399647413170896e-07,
+    8.902515347131157e-07,
+    9.520044947919359e-07
+   ],
+   "speed": {
+    "prompt56Ms": 8426.278280999999,
+    "prompt184Ms": 26965.10476700001,
+    "decodeMedianMs": 285.7538399999976
+   },
+   "cacheGate": {
+    "identitiesMatched": 12,
+    "identities": 12,
+    "layers": [
+     {
+      "layer": 3,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 7,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 11,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 15,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 19,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 23,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     }
+    ],
+    "passed": true,
+    "differingStoredValuesVsControl": {
+     "control": "n1-c-installed-check",
+     "perLayer": [
+      {
+       "layer": 3,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 3,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 7,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 7,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 11,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 11,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 15,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 15,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 19,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 19,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 23,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 23,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      }
+     ],
+     "total": 0,
+     "firstDifferences": []
+    }
+   },
+   "stepMaxDifferences": [
+    8.399647413170896e-07,
+    6.15752007604442e-07,
+    7.122407730264513e-07,
+    8.902515347131157e-07,
+    9.465929977636733e-07,
+    9.511217982094422e-07,
+    8.68015469279726e-07,
+    7.162583912645459e-07,
+    8.71407298319582e-07,
+    5.736278545498408e-07,
+    7.928766692089084e-07,
+    7.735741682779462e-07,
+    8.880480919515321e-07,
+    7.18186271342347e-07,
+    6.088153909900029e-07,
+    8.808601243970315e-07,
+    7.976590090663649e-07,
+    9.029354934853018e-07,
+    8.974647514037315e-07,
+    6.479467806741468e-07,
+    9.431464889075869e-07,
+    6.020213518809214e-07,
+    4.76104393243304e-07,
+    6.868741131427214e-07,
+    8.416379735365354e-07,
+    4.7671555236661334e-07,
+    7.527730794265608e-07,
+    5.66631417342478e-07,
+    5.008885572976851e-07,
+    7.055716224613207e-07,
+    4.758145006888981e-07,
+    7.735567919553432e-07,
+    7.37632763758711e-07,
+    7.353005955224035e-07,
+    4.943657643252664e-07,
+    8.45685566019938e-07,
+    5.022872180404647e-07,
+    4.989301132241053e-07,
+    8.834450042627395e-07,
+    7.852569972044421e-07,
+    4.765196788270032e-07,
+    9.196834902525097e-07,
+    7.017729615199642e-07,
+    4.763602685642354e-07,
+    6.057156873851e-07,
+    6.90009414938686e-07,
+    6.659978630807473e-07,
+    8.981626429260814e-07,
+    8.844390428919269e-07,
+    8.330828507041588e-07,
+    8.883623330291357e-07,
+    6.82579010202744e-07,
+    4.766864023508788e-07,
+    9.520044947919359e-07,
+    9.168414152327387e-07
+   ]
+  }
+ },
+ "ladder": {
+  "n2-cand-profile": {
+   "mode": "paired-profile",
+   "dopplerVersion": "0.6.28",
+   "kernelSubstitution": {
+    "norm": {
+     "before": {
+      "kernel": "rmsnorm_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:c0268aa06ac8962379dd811f5d256b0aceaa8300542e80619e3c088d683af61e",
+      "constants": null
+     },
+     "after": {
+      "kernel": "rmsnorm_paired_sliced.wgsl",
+      "entry": "main",
+      "digest": "sha256:92760258450f504f4707b4fcb98148967b11c9a8e27e95d3f1242191c88bf1cc",
+      "constants": {
+       "WORKGROUP_SIZE": 256
+      }
+     }
+    },
+    "projection_q4": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": false
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": false
+      }
+     }
+    },
+    "projection_f16": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": true,
+       "WEIGHT_Q4K": false,
+       "SCALAR_OUTPUT": false
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": true,
+       "WEIGHT_Q4K": false,
+       "SCALAR_OUTPUT": false
+      }
+     }
+    },
+    "head": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": true
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": true
+      }
+     }
+    },
+    "attention": {
+     "before": {
+      "kernel": "attention_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:95e862b22362590cb3a24b4184222b94b4a942e8c331bfb8520ad5d418ddf1f1",
+      "constants": null
+     },
+     "after": {
+      "kernel": "attention_paired_tiled.wgsl",
+      "entry": "main",
+      "digest": "sha256:70a0a584eb26e3eb9aa14ea1082b9f3801bf730c43577874c1c4257a69b6ea16",
+      "constants": {
+       "WORKGROUP_SIZE": 256,
+       "DOT_LANES": 4
+      }
+     }
+    },
+    "paired_state_sliced": {
+     "added": {
+      "kernel": "gated_delta_state_paired_sliced.wgsl",
+      "entry": "main",
+      "digest": "sha256:731ae7762d2a24aaa949e837932e971a54ba21b28f2d04fb3505b79193c74b36",
+      "constants": {
+       "WORKGROUP_SIZE": 256,
+       "K_SLICES": 16
+      }
+     }
+    },
+    "paired_qk_parallel": {
+     "added": {
+      "kernel": "gated_delta_qk_paired_parallel.wgsl",
+      "entry": "main",
+      "digest": "sha256:75b6c97cea545f81e384a8d5254b8c97c5063b02a9e827c877383401eed92daa",
+      "constants": {
+       "WORKGROUP_SIZE": 256
+      }
+     }
+    },
+    "paired_qk_head_norm": {
+     "added": {
+      "kernel": "rmsnorm_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:c0268aa06ac8962379dd811f5d256b0aceaa8300542e80619e3c088d683af61e",
+      "constants": {}
+     }
+    }
+   },
+   "executionIdentity": null,
+   "turns": [
+    {
+     "label": "turn-1",
+     "promptTokens": 56,
+     "profiledSteps": 16,
+     "gpuPerStepMs": 214.99084800000003,
+     "wallMedianMs": 292.630505000001,
+     "kernels": {
+      "matmul": 86.23718399999996,
+      "qwen_linear_attention_prepare": 42.586112,
+      "gated_delta_recurrent": 30.94118400000001,
+      "paired_pointwise": 19.828736000000013,
+      "rmsnorm": 13.27513599999999,
+      "gated_delta_conv": 12.046335999999998,
+      "attention": 9.003008000000001,
+      "rope_qk": 0.9584639999999999,
+      "split_qg": 0.077824,
+      "cast": 0.036864
+     }
+    }
+   ]
+  },
+  "n2-cand-unsplit": {
+   "mode": "paired-unsplit",
+   "dopplerVersion": "0.6.28",
+   "kernelSubstitution": {
+    "norm": {
+     "before": {
+      "kernel": "rmsnorm_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:c0268aa06ac8962379dd811f5d256b0aceaa8300542e80619e3c088d683af61e",
+      "constants": null
+     },
+     "after": {
+      "kernel": "rmsnorm_paired_sliced.wgsl",
+      "entry": "main",
+      "digest": "sha256:92760258450f504f4707b4fcb98148967b11c9a8e27e95d3f1242191c88bf1cc",
+      "constants": {
+       "WORKGROUP_SIZE": 256
+      }
+     }
+    },
+    "projection_q4": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": false
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": false
+      }
+     }
+    },
+    "projection_f16": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": true,
+       "WEIGHT_Q4K": false,
+       "SCALAR_OUTPUT": false
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": true,
+       "WEIGHT_Q4K": false,
+       "SCALAR_OUTPUT": false
+      }
+     }
+    },
+    "head": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": true
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": true
+      }
+     }
+    },
+    "attention": {
+     "before": {
+      "kernel": "attention_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:95e862b22362590cb3a24b4184222b94b4a942e8c331bfb8520ad5d418ddf1f1",
+      "constants": null
+     },
+     "after": {
+      "kernel": "attention_paired_tiled.wgsl",
+      "entry": "main",
+      "digest": "sha256:70a0a584eb26e3eb9aa14ea1082b9f3801bf730c43577874c1c4257a69b6ea16",
+      "constants": {
+       "WORKGROUP_SIZE": 256,
+       "DOT_LANES": 4
+      }
+     }
+    },
+    "paired_state_sliced": {
+     "added": {
+      "kernel": "gated_delta_state_paired_sliced.wgsl",
+      "entry": "main",
+      "digest": "sha256:731ae7762d2a24aaa949e837932e971a54ba21b28f2d04fb3505b79193c74b36",
+      "constants": {
+       "WORKGROUP_SIZE": 256,
+       "K_SLICES": 16
+      }
+     }
+    },
+    "paired_qk_parallel": {
+     "added": {
+      "kernel": "gated_delta_qk_paired_parallel.wgsl",
+      "entry": "main",
+      "digest": "sha256:75b6c97cea545f81e384a8d5254b8c97c5063b02a9e827c877383401eed92daa",
+      "constants": {
+       "WORKGROUP_SIZE": 256
+      }
+     }
+    },
+    "paired_qk_head_norm": {
+     "added": {
+      "kernel": "rmsnorm_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:c0268aa06ac8962379dd811f5d256b0aceaa8300542e80619e3c088d683af61e",
+      "constants": {}
+     }
+    }
+   },
+   "executionIdentity": {
+    "match": false,
+    "error": "Loaded execution identity does not match TargetPlan: executionGraphHash, executionPlanDigest, kernelClosure, kernelClosureHash, resolvedGraphHash, runtimeEngine, runtimeEngineDigest."
+   },
+   "turns": [
+    {
+     "label": "turn-1",
+     "promptTokens": 56,
+     "tokens": 100,
+     "stopReason": "eos-token",
+     "prefillMs": 8671.522998,
+     "decodeMedianMs": 289.251311,
+     "decodeTokensPerSecond": 3.303414865145525
+    },
+    {
+     "label": "turn-2-follow-up",
+     "promptTokens": 189,
+     "tokens": 12,
+     "stopReason": "eos-token",
+     "prefillMs": 27994.444971999998,
+     "decodeMedianMs": 293.18965800000296,
+     "decodeTokensPerSecond": 3.208253183950251
+    }
+   ]
+  }
+ }
+}

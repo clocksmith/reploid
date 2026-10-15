@@ -56,8 +56,8 @@ Still open:
 
 - **Intel crash:** in contribution attempt j, Intel native 16 exited on SIGSEGV mid-answer; the [crash investigation](artifacts/native-crash-20261014/README.md) reproduces a node crash on that host in Mesa's shader-cache NIR reload during pipeline creation and keeps the exit open as a reliability item.
 - **Wrong answers:** two wrong example outputs, attributed by the [answer cause](artifacts/answer-cause-20261014/README.md) comparison to the deployed Q4_K weights (turn 1) and to the source model (turn 2), retained as failed answers pending the quality decision and independent answer review.
-- **Speed:** a product limitation, about 2.5 s per generated token on placement B and 3.3 s on placement A, Intel-bound.
-- **Context bound:** Intel prefill measured at about 1.0 to 1.1 s per prompt token, so prompts much past 270 tokens exceed the 300 s stage bound used in the journeys, and the 1,588-token workload is unrun.
+- **Speed:** the [faster candidate](artifacts/faster-candidate-20261015/README.md) on placement C (mac-host browser and two amd-host natives, no Intel) decodes at about 1.0-1.3 s per generated token installed, against about 2.5 s on placement B. The remaining AMD time per token is mostly transfer and waiting through the mac-host coordinator.
+- **Context bound:** on placement C, 1,588 prompt tokens are measured to fit the 300 s stage bound (the Mac stage takes 263.6 s). The 1,588-token concurrency workload still does not complete within the 900 s answer deadline, because its long answers do not fit after two serialized prefills ([context](artifacts/faster-candidate-20261015/context/README.md)).
 - **Test environment:** recurring 10 to 30 s `mac-host` network stalls.
 - **Production signing:** blocks public promotion only.
 

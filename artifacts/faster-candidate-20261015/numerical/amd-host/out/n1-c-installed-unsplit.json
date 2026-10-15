@@ -1,0 +1,102 @@
+{
+ "schema": "reploid.speed-isolation/v1",
+ "mode": "paired-unsplit",
+ "maxTokens": 128,
+ "startedAt": "2026-10-15T00:17:15.182Z",
+ "machine": "amd-host",
+ "dopplerVersion": "0.6.28",
+ "inputs": {
+  "catalogSha256": "89ac4bfef47444e51de5218313b0c6dd45dc28b1c0c9a73f813886e927d301af",
+  "policySha256": "5a6f974f34b1cba00aff269857c3fe53728782317477bede684a0e11f2b6a235",
+  "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v3-171132d428ce64eaf706c637ee22fea0103f50a21e39e9899cac5d91b5f94234",
+  "archivePackageVersion": "0.6.28",
+  "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+  "splitLayers": [
+   8,
+   16
+  ],
+  "generation": {
+   "maxTokens": 128,
+   "maxSeqLen": 4096,
+   "temperature": 0,
+   "topP": 1,
+   "topK": 1,
+   "repetitionPenalty": 1,
+   "repetitionPenaltyWindow": 0,
+   "presencePenalty": 0,
+   "useChatTemplate": true,
+   "suppressTokenIds": [],
+   "stopSequences": []
+  },
+  "capsuleRuntimeConfigSha256": "5b3597fc5cb3c8ca473cdfa447852b51ec52c56e12605989d9698acf8732f412",
+  "manifestDecodeLoop": {
+   "batchSize": 4,
+   "stopCheckMode": "batch",
+   "readbackInterval": 8,
+   "readbackMode": "sequential",
+   "submitLatencyThresholdMs": null,
+   "ringTokens": 1,
+   "ringStop": 1,
+   "ringStaging": 1,
+   "disableCommandBatching": false
+  }
+ },
+ "verification": {
+  "modelArtifacts": {
+   "checked": 20,
+   "allMatch": true,
+   "absent": [
+    "pieces.json"
+   ]
+  },
+  "executionIdentity": {
+   "match": true
+  }
+ },
+ "turns": [
+  {
+   "label": "turn-1",
+   "promptTokens": 56,
+   "tokens": 100,
+   "stopReason": "eos-token",
+   "prefillMs": 17137.569086,
+   "decode": {
+    "count": 99,
+    "totalMs": 60832.89032800008,
+    "medianMs": 601.899089999999,
+    "p90Ms": 662.3117630000052,
+    "minMs": 534.0935360000003,
+    "maxMs": 810.5341480000061
+   },
+   "decodeTokensPerSecond": 1.6274091115219034
+  },
+  {
+   "label": "turn-2-follow-up",
+   "promptTokens": 189,
+   "tokens": 12,
+   "stopReason": "eos-token",
+   "prefillMs": 57939.816802999994,
+   "decode": {
+    "count": 11,
+    "totalMs": 8138.335154,
+    "medianMs": 726.6073909999977,
+    "p90Ms": 785.6990119999973,
+    "minMs": 718.3283059999812,
+    "maxMs": 821.7392730000138
+   },
+   "decodeTokensPerSecond": 1.3516277951017401
+  }
+ ],
+ "gpu": {
+  "adapter": {
+   "vendor": "amd",
+   "architecture": "rdna-3",
+   "device": "radeon-8060s-graphics-radv-strix-halo-",
+   "description": "radv: Mesa 26.0.3-1ubuntu1"
+  },
+  "hasF16": true,
+  "hasSubgroups": true
+ },
+ "loadMs": 860.3419829999998,
+ "finishedAt": "2026-10-15T00:19:41.271Z"
+}

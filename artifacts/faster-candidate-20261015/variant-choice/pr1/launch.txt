@@ -1,0 +1,22 @@
+active
+active
+active
+fc-pr1-native-1 pids=2218147 2218199 
+fc-pr1-native-2 pids=2218149 2218198 
+fc-pr1-server pids=2218145 
+{"at":"2026-10-15T02:36:37.877Z","phase":"provider-started","providerPid":2218199,"supervisorPid":2218147,"cgroup":"/user.slice/user-1000.slice/user@1000.service/app.slice/fc-pr1-native-1.scope","inspectorPort":29992,"deadlineMs":3540000}
+{"at":"2026-10-15T02:36:38.879Z","phase":"memory","memory.cur
+{"at":"2026-10-15T02:36:37.876Z","phase":"provider-started","providerPid":2218198,"supervisorPid":2218149,"cgroup":"/user.slice/user-1000.slice/user@1000.service/app.slice/fc-pr1-native-2.scope","inspectorPort":29996,"deadlineMs":3540000}
+{"at":"2026-10-15T02:36:38.879Z","phase":"memory","memory.cur
+Running as unit: fc-pr1-native-1.scope; invocation ID: bf647f7eca4348c4911c43426c927fda
+Debugger listening on ws://127.0.0.1:29992/cad4f3f7-faaa-4b28-92f8-454efc8ebfcc
+For help, see: https://nodejs.org/en/docs/inspector
+{"nativeFixtureReady":{"schema":"reploid.native-partition-fixture/v1","nativeDeliverySha256":"65dc088e1003ac114f75eae8a8a03baf6840e9786f0c463dd050f02607e04d63","testDelivery":{"sch
+Running as unit: fc-pr1-server.scope; invocation ID: f377ba7f9129455488b3d1308d2b2fda
+{"app":"http://127.0.0.1:29850","model":"http://127.0.0.1:29851","pid":2218145}
+Diagnostic model server on loopbac
+none
+6944	/var/tmp/faster-candidate-20261015/placement-c/mesa-pr-1
+6996	/var/tmp/faster-candidate-20261015/placement-c/mesa-pr-2
+7024	/var/tmp/faster-candidate-20261015/placement-c/mesa-pu-1
+7076	/var/tmp/faster-candidate-20261015/placement-c/mesa-pu-2
