@@ -2,7 +2,7 @@
 
 Non-production. Local test sign-in, the test payment processor, a Firestore
 emulator as the durable store, and the in-repository fixture route instead of
-a model. Run against Reploid `de33ff6e` from a clean detached checkout (no
+a model. Run against Reploid `ef33767f` from a clean detached checkout (no
 other session's uncommitted files).
 
 ## What ran
@@ -14,9 +14,11 @@ other session's uncommitted files).
   `REPLOID_EARNING_COMPOSITION=server/earning-composition/index.js`,
   `REPLOID_EARNING_STORE=firestore` (emulator), the local test sign-in flow,
   the test processor, an operator-declared admitted-capacity file, an
-  operator-declared Community Access capacity file and an operator file holding
-  only a token digest; the policy file, capacity files and operator file lived
-  outside the checkout and are not committed;
+  operator-declared Community Access capacity file (one admitted slot) and an
+  operator file holding only a token digest, and `REPLOID_EARNING_SCHEDULER=in-process`:
+  the server runs the durable scheduler over the policy's schedule (every job
+  every 5 s, demonstration values); the policy file, capacity files and
+  operator file lived outside the checkout and are not committed;
 - [`contributor.mjs`](contributor.mjs): two native contributor devices of one
   account (`carol`) opened through `server/native-earning.js` (the module the
   native CLI's `--earning-config` opens), hosting the two resident stages of
@@ -26,13 +28,14 @@ other session's uncommitted files).
   and WebSocket request was blocked and recorded (none were made:
   `evidence/blocked-requests.json` is empty); the app ran with `?swarm=off`.
 
-Three people, five devices:
+Four people, six devices:
 
 | Person | Devices | What happened |
 | --- | --- | --- |
 | alice (requester) | browser profile A | Signed in from the app's Settings → Credits, topped up $10 on the test checkout page (1,000 credits), set a 20-credit standing limit, sent three answers. Each was quoted (maximum 20), held 20, charged 10 and released 10. Balance 970. |
 | carol (contributor) | 2 native devices, browser profile B | The native devices accepted service-authored stage-share offers, submitted their signed receipts and claimed 8 stage shares (4 credits each: 6 from alice's answers, 2 from dave's); 2 claims for carol's own answer were rejected as self-demand. On browser profile B, carol saw 24 earned credits in the app and spent them on one answer (held 20, charged 10, released 10). Balance 22. |
-| dave (Community Access) | browser profile C | No credits. The answer was admitted to the founder-funded pool and charged to it; dave's own journal is empty. |
+| erin (Community Access) | a scripted device | Took the pool's one admitted slot, then ended her answer before dispatch. |
+| dave (Community Access) | browser profile C | No credits. His request queued behind erin's while his client polled it. After erin's answer ended, the server's scheduler admission sweep (`community-access.admitWaiting~0000000003`, runner `local-demo-server`) released her slot and admitted his request, which his client was polling. The answer was charged to the pool; dave's own journal is empty. |
 
 Every paid and Community Access quote carried evidence terms
 (`reploid.attempt-evidence-rules/1.1.0`, two unacknowledged outputs): the
@@ -70,6 +73,13 @@ No step needed next-day timing; no clock was injected.
   pool account's audit.
 - `evidence/contributor-log.jsonl`: native device registration, offers,
   attempts and claim outcomes.
+- `evidence/scheduler-admission-passes.json`: the admission sweep's recorded
+  passes that released or admitted requests, read from the emulator.
+- `evidence/scheduler-cli-round.jsonl`: one round of
+  `node server/earning-composition/run-scheduler.js --once` beside the
+  server's runner. Every job reported `not_due` because the server's runner
+  had just run it; this shows the shared job state, not a job run by the
+  separate process (the tests cover that).
 - `evidence/server-log-excerpt.txt`, `evidence/page-errors.json` (only 404s
   for the unconfigured search status route), `evidence/run.json` (timeline).
 

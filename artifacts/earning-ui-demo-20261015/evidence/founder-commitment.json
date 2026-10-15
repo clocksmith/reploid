@@ -10,13 +10,13 @@
       "currency": "USD"
     },
     "amount": 10000,
-    "validFrom": "2026-10-15T14:10:54.575Z",
-    "validUntil": "2026-10-22T14:10:54.575Z",
+    "validFrom": "2026-10-15T14:21:26.462Z",
+    "validUntil": "2026-10-22T14:21:26.462Z",
     "allocated": 10000,
     "returned": 0,
     "allocations": 1,
-    "recordedAt": "2026-10-15T14:10:54.592Z",
-    "updatedAt": "2026-10-15T14:10:54.628Z",
+    "recordedAt": "2026-10-15T14:21:26.474Z",
+    "updatedAt": "2026-10-15T14:21:26.507Z",
     "status": "active",
     "unallocated": 0
   },
@@ -38,9 +38,9 @@
       "credits": 10000,
       "conversion": {
         "conversionId": "conv_local_demo_usd",
-        "recordHash": "sha256:207f921cf6ad7c8d2e21e1515b44a8d110f935fcc116e9efe111200e5a72c91d"
+        "recordHash": "sha256:ec7b2a457dd0c026eec90e3180cb0c84a7593c6c507ebd7f11c111dd9f09febc"
       },
-      "validUntil": "2026-10-22T14:10:54.575Z",
+      "validUntil": "2026-10-22T14:21:26.462Z",
       "requestHash": "sha256:84c5a4e87a182c08b6d2428eee5b868c2c1966dabdc0731ec8352173ecee12eb",
       "authority": {
         "actorId": "founder",
@@ -53,14 +53,14 @@
       "returnedAmount": 0,
       "releaseAuthority": null,
       "lotId": "lot_97b23ba908c6fd5827176f24a1154835",
-      "allocatedAt": "2026-10-15T14:10:54.628Z",
-      "closedAt": "2026-10-15T14:10:54.693Z"
+      "allocatedAt": "2026-10-15T14:21:26.507Z",
+      "closedAt": "2026-10-15T14:21:26.548Z"
     }
   ],
   "poolAccount": {
     "accountId": "pool_community_general",
-    "sequence": 4,
-    "journalEntries": 4,
+    "sequence": 6,
+    "journalEntries": 6,
     "consistent": true
   }
 }

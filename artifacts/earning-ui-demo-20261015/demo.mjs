@@ -33,6 +33,16 @@ const { MODEL } = await import(pathToFileURL(path.join(repo, 'tests/helpers/rewa
 const { CAPACITY_EVIDENCE_SCHEMA: COMMUNITY_CAPACITY_SCHEMA } = await import(pathToFileURL(path.join(repo, 'server/community-access/domain.js')).href);
 const { EVIDENCE_RULES_ID } = await import(pathToFileURL(path.join(repo, 'server/ledger/domain.js')).href);
 const { MAX_UNACKNOWLEDGED_OUTPUTS } = await import(pathToFileURL(path.join(repo, 'packages/reploid/src/mesh/partitions/partition-attempt-evidence.js')).href);
+const { EARNING_CLIENT_SCHEMA, createEarningClient } = await import(pathToFileURL(path.join(repo, 'self/host/earning/client.js')).href);
+const { createSigningIdentity } = await import(pathToFileURL(path.join(repo, 'packages/reploid/src/artifacts/identity.js')).href);
+/** The emulator's documents, read directly for evidence of what the scheduler recorded. */
+const emulatorFirestore = async () => {
+  process.env.FIRESTORE_EMULATOR_HOST = `127.0.0.1:${values['emulator-port']}`;
+  const appModule = await import(pathToFileURL(path.join(repo, 'node_modules/firebase-admin/lib/app/index.js')).href);
+  const firestoreModule = await import(pathToFileURL(path.join(repo, 'node_modules/firebase-admin/lib/firestore/index.js')).href);
+  const app = appModule.getApps().find((row) => row.name === 'demo-reader') ?? appModule.initializeApp({ projectId: 'demo-reploid-earning' }, 'demo-reader');
+  return firestoreModule.getFirestore(app);
+};
 await fs.mkdir(work, { recursive: true, mode: 0o700 });
 await fs.mkdir(path.join(out, 'screenshots'), { recursive: true });
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -101,7 +111,11 @@ const policy = {
   communityAccess: { policyVersion: 'local-demo-community/1', poolAccountId: 'pool_community_general', guarantee: { mode: 'none' },
     queue: { maxLength: 16, maxPerAccount: 2, maxWaitMs: 2 * MIN }, usage: { windowMs: 24 * 60 * MIN, maxAdmissions: 5, maxAuthorizedCredits: 100 },
     rateLimits: { account: { windowMs: MIN, maxRequests: 5 }, device: { windowMs: MIN, maxRequests: 5 } }, capacity: { evidenceMaxAgeMs: 24 * 60 * MIN },
-    evidence: { ...EVIDENCE } }
+    evidence: { ...EVIDENCE } },
+  // Demonstration schedule for the durable scheduler the server hosts in-process: every job each 5 s.
+  scheduler: { scheduleVersion: 'local-demo-schedule/1', leaseMs: 30_000,
+    jobs: Object.fromEntries(['ledger.settleDueEvidence', 'ledger.expireReservations', 'rewards.resumeIssuance', 'community-access.resumeFunding',
+      'community-access.expireQueue', 'community-access.admitWaiting', 'payments.pollPending'].map((jobId) => [jobId, { intervalMs: 5000, batchLimit: 20 }])) }
 };
 const operatorToken = randomBytes(32).toString('base64url');
 const files = {
@@ -113,9 +127,9 @@ await fs.writeFile(files.policy, JSON.stringify(policy, null, 2), { mode: 0o600 
 // Operator-declared admitted-capacity evidence; no execution owner publishes it yet.
 await fs.writeFile(files.capacity, JSON.stringify({ schema: CAPACITY_EVIDENCE_SCHEMA, evidenceId: 'capacity:local-demo-operator-declared',
   accountingVersion: 'local-demo-accounting/1', serviceCredits: 1_000_000, observedAt: new Date().toISOString() }), { mode: 0o600 });
-// Operator-declared Community Access capacity: two admitted slots.
+// Operator-declared Community Access capacity: one admitted slot, so a second request queues.
 await fs.writeFile(files.communityCapacity, JSON.stringify({ schema: COMMUNITY_CAPACITY_SCHEMA, evidenceId: 'community-capacity:local-demo-operator-declared',
-  observedAt: new Date().toISOString(), admittedSlots: 2 }), { mode: 0o600 });
+  observedAt: new Date().toISOString(), admittedSlots: 1 }), { mode: 0o600 });
 await fs.writeFile(files.operators, JSON.stringify({ schema: 'reploid.earning-operators/v1',
   operators: [{ actorId: 'founder', roles: ['funding', 'audit'], tokenSha256: createHash('sha256').update(operatorToken).digest('hex') }] }), { mode: 0o600 });
 await fs.writeFile(files.firebase, JSON.stringify({ emulators: { firestore: { host: '127.0.0.1', port: Number(values['emulator-port']) }, ui: { enabled: false }, singleProjectMode: true } }));
@@ -149,7 +163,8 @@ try {
     REPLOID_EARNING_POLICY_FILE: files.policy, REPLOID_EARNING_STORE: 'firestore', REPLOID_EARNING_FIRESTORE_PREFIX: 'local_demo_20261015',
     FIRESTORE_EMULATOR_HOST: `127.0.0.1:${values['emulator-port']}`, GCLOUD_PROJECT: 'demo-reploid-earning',
     REPLOID_EARNING_TEST_SIGN_IN: 'enabled', REPLOID_EARNING_TEST_PROCESSOR: 'enabled', REPLOID_EARNING_CAPACITY_FILE: files.capacity,
-    REPLOID_EARNING_OPERATORS_FILE: files.operators, REPLOID_EARNING_COMMUNITY_CAPACITY_FILE: files.communityCapacity, NODE_ENV: 'development' };
+    REPLOID_EARNING_OPERATORS_FILE: files.operators, REPLOID_EARNING_COMMUNITY_CAPACITY_FILE: files.communityCapacity, NODE_ENV: 'development',
+    REPLOID_EARNING_SCHEDULER: 'in-process', REPLOID_EARNING_SCHEDULER_RUNNER_ID: 'local-demo-server' };
   delete serverEnv.K_SERVICE;
   start('server', process.execPath, ['server/proxy.js'], { cwd: repo, env: serverEnv }, files.serverLog);
   await waitFor(async () => (await fetch(`${origin}/v1/client`)).ok, 'the earning service');
@@ -308,13 +323,45 @@ ${['tokens.css', 'primitives/base.css', 'primitives/surfaces.css', 'primitives/c
   await dave.page.locator('[data-earning-ready]').waitFor({ state: 'visible', timeout: 30_000 });
   await shot(dave, '13-community-member-app-no-credits.png');
   await openHarness(dave);
-  await send(dave, 'Explain a closure in one sentence.', { allow: true });
+  // Erin, another member on a scripted device, holds the pool's one admitted slot, so dave's request queues.
+  const erinIdentity = await createSigningIdentity({ algorithm: 'Ed25519' });
+  const erinStorage = new Map();
+  const erin = createEarningClient({ config: { schema: EARNING_CLIENT_SCHEMA, enabled: true, baseUrl: `${origin}/v1`, providerId: 'local-test' }, identity: erinIdentity, host: 'browser',
+    storage: { get: async (key) => erinStorage.get(key) ?? null, set: async (key, value) => { erinStorage.set(key, value); }, delete: async (key) => { erinStorage.delete(key); } },
+    signIn: async () => (await (await fetch(`${origin}/v1/sign-in/local-test/assertions`, { method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ subject: 'erin' }) })).json()).assertion });
+  const erinRequest = await erin.send({ opId: 'erin-access', path: '/community-access/requests', durable: false,
+    body: { request: { modelId: MODEL.modelId, modelIdentity: MODEL.modelIdentity, operation: 'chat.completion' } } });
+  mark('community-access-slot-held', { requester: 'erin', state: erinRequest.state });
+  const db = await emulatorFirestore();
+  const requests = db.collection('local_demo_20261015_community_access_requests');
+  const answering = send(dave, 'Explain a closure in one sentence.', { allow: true });
+  await waitFor(async () => (await requests.where('state', '==', 'waiting').get()).size === 1, "dave's queued request");
+  const [queuedDoc] = (await requests.where('state', '==', 'waiting').get()).docs;
+  mark('community-access-queued', { requester: 'dave', requestId: queuedDoc.id });
+  // Erin's answer ends before dispatch; only the scheduler's admission sweep frees her slot and admits dave.
+  await erin.send({ opId: 'erin-cancel', path: `/reservations/${encodeURIComponent(erinRequest.reservationId)}/reports`,
+    body: { report: { schema: 'reploid.attempt-report/v1', result: 'cancelled', attemptId: null } } });
+  await answering;
   await harnessCredits(dave);
   await shot(dave, '14-community-member-harness-answer.png');
   const daveSession = await session(dave);
+  const admissionPasses = (await db.collection('local_demo_20261015_scheduler_passes').where('jobId', '==', 'community-access.admitWaiting').get()).docs
+    .map((doc) => doc.data()).filter((pass) => pass.items.length).sort((left, right) => left.seq - right.seq);
+  await fs.writeFile(path.join(out, 'scheduler-admission-passes.json'), `${JSON.stringify(admissionPasses, null, 2)}\n`);
+  mark('community-access-admitted-by-sweep', { requestId: queuedDoc.id,
+    pass: admissionPasses.find((pass) => pass.items.some((item) => item.ref === queuedDoc.id && item.status === 'admitted'))?.passId ?? null });
   await waitFor(async () => ((await fs.readFile(files.contributorLog, 'utf8')).match(/"issuance":"issued"/g) ?? []).length >= 8, 'two more issued stage shares', 90_000);
   mark('community-access-stage-shares-issued');
   await sleep(5000);
+
+  // ---- The scheduler as its own process (REPLOID_EARNING_SCHEDULER=external path), sharing leases with the server's runner.
+  const cliOutput = path.join(out, 'scheduler-cli-round.jsonl');
+  await fs.rm(cliOutput, { force: true });
+  const cli = start('scheduler-cli', process.execPath, ['server/earning-composition/run-scheduler.js', '--once'],
+    { cwd: repo, env: { ...serverEnv, REPLOID_EARNING_SCHEDULER: 'external', REPLOID_EARNING_SCHEDULER_RUNNER_ID: 'local-demo-cli' } }, cliOutput);
+  await new Promise((resolve) => cli.on('exit', resolve));
+  mark('scheduler-cli-round', { exitCode: cli.exitCode });
 
   // ---- Evidence: the service's own records for both accounts.
   const read = async (token, route) => (await fetch(`${origin}/v1${route}`, { headers: { authorization: `Bearer ${token}` } })).json();
