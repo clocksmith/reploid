@@ -359,13 +359,13 @@ it('does not let a borrowed contribution port mutate retained model descriptions
   await session.close();
 });
 
-it('reports the verified download size without opening an execution session', async () => {
+it.each([undefined, '/config/model-manifests/pinned.json'])('verifies download metadata at its pinned URL (%s) without execution', async url => {
   const originalFetch = globalThis.fetch;
   const bytes = new TextEncoder().encode(JSON.stringify({ modelId: CANONICAL_CHAT_MODELS[0].id, shards: [{ size: 200 }, { size: 300 }] }));
   const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(b => b.toString(16).padStart(2, '0')).join('');
   const model = structuredClone(CANONICAL_CHAT_MODELS[0]);
   model.identity = 'sha256:' + hash;
-  model.source.files = [{ role: 'model-manifest', path: 'manifest.json', sizeBytes: bytes.length },
+  model.source.files = [{ role: 'model-manifest', path: 'manifest.json', sizeBytes: bytes.length, url },
     { role: 'tokenizer', path: 'tokenizer.json', sizeBytes: 100 },
     { role: 'model-piece-index', path: 'pieces.json', sizeBytes: 50 }];
   const service = createChatTestService(), session = createChatSession({ storage: null, service, models: [model] });
@@ -374,7 +374,7 @@ it('reports the verified download size without opening an execution session', as
   try {
     expect((await session.getModelDownload(model.id)).sizeBytes).toBe(600 + bytes.length);
     expect(fetcher).toHaveBeenCalledTimes(1);
-    expect(String(fetcher.mock.calls[0][0])).toBe(new URL('manifest.json', model.source.baseUrl).href);
+    expect(String(fetcher.mock.calls[0][0])).toBe((url ? new URL(url, location.href) : new URL('manifest.json', model.source.baseUrl)).href);
     expect(service.calls).toHaveLength(0);
     const corrupt = bytes.slice(); corrupt[0] = 32;
     fetcher.mockImplementation(async () => new Response(corrupt));
@@ -385,4 +385,23 @@ it('reports the verified download size without opening an execution session', as
     await expect(session.getModelDownload(model.id)).rejects.toThrow('Could not check');
     expect(service.calls).toHaveLength(0);
   } finally { globalThis.fetch = originalFetch; await session.close(); }
+});
+
+
+it('passes the host-resolved pinned source into local execution and refuses resolution failures', async () => {
+  const model = CANONICAL_CHAT_MODELS[0], source = { manifestHash: model.identity, manifest: { modelId: model.id } };
+  const service = createChatTestService(), open = service.open;
+  service.open = vi.fn(options => open({ ...options, source: options.source.manifest.modelId }));
+  const resolveLocalSource = vi.fn(async () => source);
+  const session = createChatSession({ storage: null, service, resolveLocalSource });
+  await session.prepareLocalModel(model.id);
+  expect(resolveLocalSource).toHaveBeenCalledWith(expect.objectContaining({ identity: model.identity }),
+    expect.objectContaining({ signal: expect.any(AbortSignal), onProgress: expect.any(Function) }));
+  expect(service.open).toHaveBeenCalledWith(expect.objectContaining({ source }));
+  await session.close();
+  service.open.mockClear();
+  const refused = createChatSession({ storage: null, service, resolveLocalSource: async () => { throw Error('Pinned artifact failed verification'); } });
+  await expect(refused.prepareLocalModel(model.id)).rejects.toThrow('failed verification');
+  expect(service.open).not.toHaveBeenCalled();
+  await refused.close();
 });

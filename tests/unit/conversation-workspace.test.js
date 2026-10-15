@@ -32,6 +32,32 @@ describe('Conversation workspace', () => {
     expect(root.textContent).not.toMatch(/Mesh Active|Distributed Intelligence|Contributing|Scope:|Recent Improvements|LoRA/);
   });
 
+  it('offers local setup from the unavailable composer without starting a download', async () => {
+    expect(find('[data-composer-model-setup]').hidden).toBe(false);
+    find('[data-composer-model-setup]').click();
+    await vi.waitFor(() => expect(find('[data-download-confirm]').disabled).toBe(false));
+    expect(find('[data-model-dialog]').open).toBe(true);
+    expect(find('[data-download-size]').textContent).toBe('123 MB download');
+    expect(service.calls).toHaveLength(0);
+    find('[data-download-cancel]').click();
+    expect(find('[data-model-dialog]').open).toBe(false);
+  });
+
+  it('shows declared answer limits before sending, including the history allowance', () => {
+    dispose();
+    const model = { ...CANONICAL_CHAT_MODELS[1], availability: 'ready' };
+    const project = state => ({ ...state, models: [model], answerLimits: [{ selectionId: model.id,
+      cells: [{ maxConcurrency: 1, maxPromptTokens: 512, maxAnswerTokens: 255 },
+        { maxConcurrency: 1, maxPromptTokens: 1024, maxAnswerTokens: 63 }] }] });
+    dispose = bindConversationWorkspace(root, { ...session,
+      getState: () => project(session.getState()), subscribe: fn => session.subscribe(state => fn(project(state))) });
+    expect(find('[data-answer-limit]').hidden).toBe(false);
+    expect(find('[data-answer-limit]').textContent).toContain('255 answer tokens for up to 512 input tokens');
+    expect(find('[data-answer-limit]').textContent).toContain('63 answer tokens for up to 1024 input tokens');
+    expect(find('[data-answer-limit]').textContent).toContain('Input includes conversation history');
+    expect(service.calls).toHaveLength(0);
+  });
+
   it('previews optional capped context and retains each conversation setting', async () => {
     await session.prepareLocalModel(CANONICAL_CHAT_MODELS[1].id);
     expect(find('[data-context-enabled]').checked).toBe(false);

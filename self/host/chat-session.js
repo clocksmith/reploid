@@ -6,6 +6,7 @@
 import { createChatWorkspace, createRemotePermission, createSearchPermission, remotePermissionCovers, remotePermissionNeed,
   searchPermissionWording, validPermissionWording, validateRemotePermission } from '../vendor/reploid/chat/index.js';
 import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
+import { ROUTE_ENVELOPE_POLICY } from '../vendor/reploid/mesh/partitions/partition-route-envelope.js';
 import { createChatExecution } from './chat-execution.js';
 import { projectChatCatalog, projectChatPlacements } from './chat-view.js';
 import { createChatDrafts } from './chat-drafts.js';
@@ -52,6 +53,7 @@ export function createChatSession({
   swarm = null,
   partitions = null,
   scheduler = null,
+  resolveLocalSource,
   canonicalHistory = null,
   bindPublicationAuthorization = null,
   // History owner. Ordered disclosure binds requesterIdentity, the host's authenticated swarm peer;
@@ -106,7 +108,7 @@ export function createChatSession({
     remotePermissions = next;
   };
 
-  const execution = createChatExecution({ service, swarm, partitions, scheduler, models, earning,
+  const execution = createChatExecution({ service, swarm, partitions, scheduler, models, earning, resolveLocalSource,
     getModels: () => [...models, ...peerModels, ...(partitions?.getModels() || [])], profile, onChange: () => notifyAll() });
 
   const workspace = createChatWorkspace({
@@ -193,6 +195,11 @@ export function createChatSession({
       activeThread,
       comparisonPhase: comparisons.get(wsState.selectedId)?.phase || null,
       models: catalog,
+      answerLimits: catalog.filter(model => model.partition).map(model => ({
+        selectionId: model.selectionId || model.id,
+        cells: ROUTE_ENVELOPE_POLICY.routes.find(row => row.modelIdentity === model.identity
+          && row.planId === model.partition.planId)?.cells || []
+      })).filter(entry => entry.cells.length),
       defaultModel: preferred(catalog.filter(model => model.availability === 'ready'))
         || preferred(catalog.filter(model => model.availability === 'busy')) || preferred(catalog) || null,
       discovering,
@@ -241,7 +248,7 @@ export function createChatSession({
       const model = models.find(item => item.id === modelId);
       assert(model?.source, 'Choose a catalog model');
       const file = model.source.files.find(item => item.role === 'model-manifest');
-      const response = await fetch(new URL(file.path, model.source.baseUrl), { signal });
+      const response = await fetch(file.url ? new URL(file.url, location.href) : new URL(file.path, model.source.baseUrl), { signal });
       assert(response.ok, 'Could not check the model download');
       const bytes = await response.arrayBuffer();
       assert(bytes.byteLength === file.sizeBytes, 'Model manifest size mismatch');

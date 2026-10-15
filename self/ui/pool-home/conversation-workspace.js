@@ -57,7 +57,7 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
             <button class="pool-button btn-primary pool-icon" type="button" data-composer-stop aria-label="Stop" title="Stop" hidden>${interfaceIcon('stop')}</button>
           </div>
         </div>
-        <div class="chat-composer-notices"><span class="pool-chip" data-web-search-on hidden>Web search on</span><p class="chat-setup-hint pool-small pool-muted" id="chat-model-status" data-model-status role="status" hidden></p><button class="pool-button btn-ghost" type="button" data-retry-connection hidden>Retry connection</button></div>
+        <div class="chat-composer-notices"><p class="pool-small pool-muted" data-answer-limit hidden></p><span class="pool-chip" data-web-search-on hidden>Web search on</span><p class="chat-setup-hint pool-small pool-muted" id="chat-model-status" data-model-status role="status" hidden></p><button class="pool-button" type="button" data-composer-model-setup hidden>Run on this device</button><button class="pool-button btn-ghost" type="button" data-retry-connection hidden>Retry connection</button></div>
         <p class="chat-attachment-help pool-small pool-muted" data-attachment-help hidden>Text files: up to 8, 64 KB each, 128 KB total.</p>
       </form></footer>
       <dialog class="chat-model-setup pool-surface pool-small" data-rename-dialog aria-labelledby="chat-rename-title">
@@ -86,6 +86,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const controller = new AbortController(), options = { signal: controller.signal };
   const input = find('[data-composer-input]'), modelSelect = find('[data-active-model-select]');
   const inspector = sharedInspector || bindNetworkInspector(container, session, { getInviteUrl, webSearch });
+  find('[data-composer-model-setup]').addEventListener('click', event => inspector.openModelSetup(event.currentTarget), options);
   let archived = false, renameId = null, chosenModel = viewState.chosenModel || null, pickerModel = null;
   let files = [], fileRevision = 0, composerRevision = 0, reading = false;
   let contextPrompt = viewState.contextPrompt || null;
@@ -235,9 +236,19 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       : state.localModel?.error && !usable ? 'Download failed: ' + state.localModel.error
       : !usable && current && !preparing && catalogModels.some(model => ['ready', 'busy'].includes(model.availability))
         ? 'Choose an available model.'
-      : !usable ? preparing ? 'Model preparing…' : state.network?.paused ? 'Reconnect to continue.'
+      : !usable ? preparing ? state.localModel?.progress?.message || 'Model preparing…' : state.network?.paused ? 'Reconnect to continue.'
         : state.network?.connecting || ['connecting', 'retrying'].includes(networkState) ? 'Finding capacity…' : 'Model unavailable.' : '';
     modelStatus.hidden = !modelStatus.textContent;
+    const answerLimit = find('[data-answer-limit]');
+    const cells = state.answerLimits?.find(entry => entry.selectionId === keyFor(requestedModel || {}))?.cells || [];
+    const bounds = [...new Map(cells.map(cell => [cell.maxPromptTokens + '/' + cell.maxAnswerTokens, cell])).values()]
+      .sort((a, b) => a.maxPromptTokens - b.maxPromptTokens);
+    answerLimit.textContent = bounds.length ? 'Route limits: ' + bounds.map(cell =>
+      `${cell.maxAnswerTokens} answer tokens for up to ${cell.maxPromptTokens} input tokens`).join('; ')
+      + '. Input includes conversation history. Answers reaching the limit are incomplete.' : '';
+    answerLimit.hidden = !bounds.length;
+    find('[data-composer-model-setup]').hidden = usable || preparing || !!thread?.closed
+      || !catalogModels.some(model => !model.partition && !model.adapters?.length);
     find('[data-model-control]').hidden = !models.length;
     find('[data-model-control]').dataset.activity = models.some(model => keyFor(model) === current && model.availability === 'ready') ? 'ready' : 'idle';
     threads.update(state.threads, state.selectedId, { archived });

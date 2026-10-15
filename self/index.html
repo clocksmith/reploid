@@ -94,7 +94,7 @@
         let timeoutId;
         try {
           return await Promise.race([
-            import('/ui/pool-home/index.js'),
+            import('/ui/pool-home/app.bundle.js'),
             new Promise((_, reject) => {
               timeoutId = window.setTimeout(() => {
                 reject(new Error('Reploid product route module load timed out'));
@@ -108,7 +108,7 @@
       const bootProductRoute = async (appRoot) => {
         try {
           const { initPoolHome } = await loadProductRouteModule();
-          initPoolHome(appRoot);
+          await initPoolHome(appRoot);
           writeProductBootRecovery(false);
           clearProductBootRecoveryUrl();
         } catch (error) {
