@@ -1,0 +1,38 @@
+{"event":"start","at":"2026-10-15T13:52:06.491Z","t":7,"pid":1893692,"mode":"prepare","manifestIdentity":"sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db","mesaShaderCacheDir":null}
+{"event":"shader-cache","at":"2026-10-15T13:52:06.880Z","t":395,"phase":"bound","schema":"reploid.native-shader-cache/v1","root":"/var/tmp/intel-reliability-20261015/roots/a","key":"851a1a96e6c0b3baf82e5fbb6715546b05be55034ce9219531114df96f16629a","mode":"cold","session":"943c81e7db3a-1893692-647452662-577c0845","directory":"/var/tmp/intel-reliability-20261015/roots/a/v1/sessions/943c81e7db3a-1893692-647452662-577c0845/cache","sealed":false,"loaded":null,"discarded":[],"rejected":null,"seal":null}
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 1000000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 1000000 to 16 to fit dynamic offset allocation limit.
+[881.4ms][Platform] No specific platform matched for adapter (vendor=intel, arch=gen-12lp), falling back to generic
+[GPU] intel gen-12lp, f16/subgroups, 4.0GB, submit probe: 5.3ms
+{"event":"device","at":"2026-10-15T13:52:07.359Z","t":875,"adapter":{"vendor":"intel","architecture":"gen-12lp","device":"intel-r-uhd-graphics-tgl-gt2-","description":"Intel open-source Mesa driver: Mesa 24.2.8-1ubuntu1~24.04.1"},"provider":"pre-installed"}
+{"event":"stage-opening","at":"2026-10-15T13:52:07.361Z","t":876,"index":1}
+[914.4ms][Pipeline] Execution v1 enabled (steps=43, kernelPathInline=yes, pipelineInline=no)
+[914.6ms][Config] Using manifest-first config (source of truth)
+[919.0ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+[919.2ms][Pipeline] Vision capable: imageTokenId=248056
+[920.3ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (19 decode steps, 8 kernels, source=execution-v1)
+[920.6ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[921.1ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[1084.9ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[1320.2ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges
+[1320.5ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[1321.7ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=4096
+[1326.6ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[1400.5ms][ShardCache] Custom shard loader configured
+[1400.9ms][Loader] Initializing...
+[1477.1ms][HeapManager] Allocated segment 0: 1024MB
+[1477.3ms][HeapManager] Segmented heap: 1GB per segment
+[1477.3ms][HeapManager] Initialized with strategy: SEGMENTED
+[1477.4ms][Loader] Initialized (f16, subgroups)
+[1478.2ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16
+[1509.7ms][Loader] [0.0s] Memory (start): | RSS=224.02 MB (heap=60.09 MB/62.02 MB, external=2.00 GB, arrayBuffers=1.00 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[1511.0ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[1514.5ms][Loader] Layers: 8-15
+[1675.6ms][Loader] Layers: 8 complete (0.16s)
+[1675.8ms][Loader] Complete: 89.58 MB in 0.16s (552.98 MB/s)
+[1676.6ms][Loader] [0.2s] Memory (complete): | RSS=268.27 MB (heap=63.27 MB/72.52 MB, external=1.03 GB, arrayBuffers=1.03 GB) | GPU=90.55 MB (114 active, 0 pooled, peak=90.55 MB) | ShardCache=0 B (0 shards) | Layers=8, GPUBuffers=114
+[216516.6ms][Pipeline] Model loaded successfully (215608ms)
+{"event":"pipeline","at":"2026-10-15T13:55:42.997Z","t":216512,"index":1,"status":"preparing","prepared":0,"total":21,"key":"rmsnorm_paired_sliced.wgsl#main {\"OUTPUT_PRENORM\":0,\"POST_RESIDUAL\":0,\"PRE_RESIDUAL\":0,\"WEIGHT_F16\":1,\"WEIGHT_OFFSET\":1,\"WORKGROUP_SIZE\":256}","elapsedMs":0}
+{"event":"pipeline","at":"2026-10-15T13:56:34.572Z","t":268088,"index":1,"status":"preparing","prepared":1,"total":21,"key":"matmul_paired_compensated.wgsl#main {\"SCALAR_OUTPUT\":0,\"TRANSPOSE_B\":1,\"WEIGHT_F16\":0,\"WEIGHT_Q4K\":1,\"WORKGROUP_SIZE\":64}","elapsedMs":51576}
+{"event":"pipeline","at":"2026-10-15T13:56:36.729Z","t":270244,"index":1,"status":"preparing","prepared":2,"total":21,"key":"matmul_paired_compensated.wgsl#main {\"SCALAR_OUTPUT\":0,\"TRANSPOSE_B\":1,\"WEIGHT_F16\":1,\"WEIGHT_Q4K\":0,\"WORKGROUP_SIZE\":64}","elapsedMs":53732}
+{"event":"pipeline","at":"2026-10-15T13:56:39.282Z","t":272798,"index":1,"status":"preparing","prepared":3,"total":21,"key":"gated_delta_conv_paired.wgsl#main {\"WORKGROUP_SIZE\":64}","elapsedMs":56285}
