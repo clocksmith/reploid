@@ -12,9 +12,11 @@
  * read from a body. Bodies are parsed only after authentication, under this
  * router's own size limits, and name only the fields each route accepts.
  * An Idempotency-Key binds to its route, authenticated caller and canonical
- * request (idempotency.js); components receive a key derived from that
- * binding. Requests are counted per client address, per account, per device
- * and per operator. There is no local-development bypass.
+ * request (idempotency.js). Only a definite no-effect failure frees it; an
+ * ambiguous one keeps it, and the retry reconciles through the component's
+ * own idempotency under the same derived key. Requests are counted per
+ * client address, per account, per device and per operator. There is no
+ * local-development bypass.
  */
 
 import express from 'express';
@@ -27,8 +29,10 @@ import {
   bodyOf,
   consumeRate,
   createMemoryRateLimiter,
+  RouteError,
   earningErrorHandler,
   idempotencyKeyOf,
+  isComponentRefusal,
   refuse,
   validateRouteLimits
 } from './http.js';
@@ -70,16 +74,19 @@ const notFound = (code, what) => refuse(404, code, `no ${what} with this id belo
  * @param {object} options.idempotencyBackend transactional backend for Idempotency-Key bindings
  *   (createMemoryRouteBackend or createFirestoreRouteBackend in idempotency.js)
  * @param {object} [options.rateLimiter] { consume({ key, max, windowMs }) -> { allowed, resetAt } }
+ * @param {object} [options.faultHooks] test-only failure injection at the binding boundaries:
+ *   afterComponent({ routeId }) once the component returned, before the response is stored;
+ *   afterComplete({ routeId }) once it is stored, before it is sent
  */
 export function createEarningRouter({
   accounts, ledger, rewards, guards, communityAccess = null, quoteTerms = null, operatorAuthority = null,
-  limits, idempotencyBackend, rateLimiter = null, nowMs = () => Date.now(), log = console
+  limits, idempotencyBackend, rateLimiter = null, nowMs = () => Date.now(), log = console, faultHooks = {}
 } = {}) {
   for (const [name, port] of Object.entries({ accounts, ledger, rewards, guards, idempotencyBackend })) {
     if (!port || typeof port !== 'object') throw new TypeError(`earning routes need the composed ${name}`);
   }
-  const idempotency = createRouteIdempotency({ backend: idempotencyBackend, clock: () => new Date(nowMs()).toISOString() });
   const bounds = validateRouteLimits(limits);
+  const idempotency = createRouteIdempotency({ backend: idempotencyBackend, leaseMs: bounds.idempotencyLeaseMs, nowMs });
   const limiter = rateLimiter ?? createMemoryRateLimiter({ nowMs });
   if (typeof limiter.consume !== 'function') throw new TypeError('rateLimiter must provide consume({ key, max, windowMs })');
   const parsers = {
@@ -143,7 +150,8 @@ export function createEarningRouter({
             throw error;
           }
         }
-        const { status = 200, body } = await handler(req, { ...ctx, routeId: `${method.toUpperCase()} ${path}` });
+        const { status = 200, body, replayed = false } = await handler(req, { ...ctx, routeId: `${method.toUpperCase()} ${path}` });
+        if (replayed) res.setHeader('Idempotent-Replayed', 'true');
         res.status(status).json(body);
       })().catch(next);
     });
@@ -152,16 +160,33 @@ export function createEarningRouter({
   /**
    * Bind the Idempotency-Key to this route, the authenticated caller and the
    * canonical request (path parameters and validated body), then run with the
-   * component key derived from that binding. A failed request frees the key.
+   * component key derived from the request. A completed request replays its
+   * stored response. A failure frees the key only when it definitely had no
+   * effect: a route refusal (always raised before the component acts) or, for
+   * an `atomic` single-transaction operation, a coded component refusal.
+   * Anything else is ambiguous and keeps the key as unknown, so the retry
+   * reconciles through the component's idempotency under the same key.
    */
-  const keyed = async (req, ctx, body, run) => {
-    const binding = await idempotency.bind({ routeId: ctx.routeId, caller: ctx.caller, key: idempotencyKeyOf(req), request: { params: { ...req.params }, body } });
+  const keyed = async (req, ctx, body, run, { atomic = true } = {}) => {
+    const binding = await idempotency.begin({ routeId: ctx.routeId, caller: ctx.caller, key: idempotencyKeyOf(req), request: { params: { ...req.params }, body } });
+    if (binding.replay) return { ...binding.replay, replayed: true };
+    let response;
     try {
-      return await run(binding.componentKey, binding);
+      response = await run(binding.componentKey, binding);
+      await faultHooks.afterComponent?.({ routeId: ctx.routeId });
+      await binding.complete(response);
     } catch (error) {
-      await binding.release().catch(() => {});
+      const definite = error instanceof RouteError || (atomic && isComponentRefusal(error));
+      try {
+        await (definite ? binding.release() : binding.markUnknown());
+      } catch (cause) {
+        // The binding stays pending under this lease; a retry after it expires reconciles.
+        log.error?.('[Earning routes] idempotency binding not updated:', cause);
+      }
       throw error;
     }
+    await faultHooks.afterComplete?.({ routeId: ctx.routeId });
+    return response;
   };
 
   const ownReservation = async (reservationId, accountId) => {
@@ -223,11 +248,11 @@ export function createEarningRouter({
   define('post', '/quotes', { auth: 'device', body: 'json' }, async (req, ctx) => {
     const body = bodyOf(req, ['request']);
     if (typeof quoteTerms !== 'function') refuse(503, 'quote_terms_unconfigured', 'quotes need the service and price policy port');
-    return keyed(req, ctx, body, async (idempotencyKey, binding) => {
+    return keyed(req, ctx, body, async (idempotencyKey) => {
       // Terms come from the price policy at call time, so the ledger cannot compare retries itself.
-      // The quote id names this binding and request: a retry with the same request returns the quote
-      // first issued for it, and no other caller or request can reach that quote.
-      const quoteId = `quote_${sha256Hex(`${binding.bindingId}\u0000${binding.requestHash}`).slice(0, 32)}`;
+      // The quote id derives from the request's component key: every attempt of the same request
+      // reaches the same quote, and no other caller or request can reach it.
+      const quoteId = `quote_${sha256Hex(idempotencyKey).slice(0, 32)}`;
       const existing = await ledger.getQuote(quoteId);
       if (existing) return { body: existing };
       const offered = await quoteTerms({ accountId: ctx.accountId, deviceId: ctx.deviceId, request: body.request ?? null });
@@ -301,10 +326,14 @@ export function createEarningRouter({
         try {
           issuance = await rewards.issueReward({ validationId: validation.validationId });
         } catch (error) {
-          issuance = { validationId: validation.validationId, status: 'pending', code: error?.code ?? 'issuance_failed' };
+          // A coded decline is a durable answer; anything else is ambiguous and reconciles on retry.
+          if (!isComponentRefusal(error)) throw error;
+          issuance = { validationId: validation.validationId, status: 'pending', code: error.code };
         }
       }
-      return { body: { validation: validationView(validation), issuance } };
+      // A reconciled retry reads the validation as it stands, issuance included.
+      const current = (await rewards.getValidation(validation.validationId)) ?? validation;
+      return { body: { validation: validationView(current), issuance } };
     });
   });
   /** A certified acquirer's evidence of a completed delivery, from the acquiring device's session. */
@@ -334,9 +363,10 @@ export function createEarningRouter({
   define('post', '/operator/funding/reward-reservations', { auth: funding, body: 'json' }, async (req, ctx) => {
     const body = bodyOf(req, ['fundingId', 'commitmentId', 'amount', 'commitmentAmount', 'categories', 'decisionId']);
     const { decisionId, ...reservation } = body;
+    // Several transactions (record, allocate, activate): even a coded refusal may follow a commit.
     return keyed(req, ctx, body, async (idempotencyKey) => ({
       status: 201, body: await rewards.reserveFunding({ ...reservation, authority: decided(ctx.operator, decisionId), idempotencyKey })
-    }));
+    }), { atomic: false });
   });
   define('post', '/operator/funding/reward-reservations/:fundingId/release', { auth: funding, body: 'json' }, async (req, ctx) => {
     const { decisionId } = bodyOf(req, ['decisionId']);

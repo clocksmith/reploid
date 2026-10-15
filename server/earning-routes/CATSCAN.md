@@ -26,14 +26,14 @@ Outputs:
 - Account and device come from the session; operator actors from the credential; neither from a body.
 - Spending, attempt binding, claims and delivery evidence need a session bound to an active device.
 - Clients never author quote terms.
-- An Idempotency-Key binds to its route, caller and canonical request; a different request conflicts, and callers never share results or component keys.
-- Unauthenticated bodies are never parsed; bodies parsed upstream are refused.
+- An Idempotency-Key binds to its route, caller and canonical request; a different request conflicts, even in progress; callers share no results. Only definite no-effect failures free it; ambiguous ones reconcile under the same component key.
+- Unauthenticated bodies are never parsed; upstream-parsed bodies are refused.
 - No local-development or loopback bypass; never mounted under `/pool`.
-- Production refuses missing or test-only sign-in providers and memory stores, bindings included.
+- Production refuses missing or test-only sign-in providers and memory stores.
 
 ## Acceptance
-- Evidence: [HTTP route tests](../../tests/integration/earning-routes.test.js) over memory and Firestore stores.
-- Limits: real sign-in, payment and search providers, shared rate limiting and installed hosts need their own acceptance.
+- Evidence: [HTTP route tests](../../tests/integration/earning-routes.test.js) on memory and Firestore.
+- Limits: real sign-in, payment and search providers, shared rate limiting and installed hosts need separate acceptance.
 
 ## Non-goals
 - UI, real providers, credential issuance or pricing.
