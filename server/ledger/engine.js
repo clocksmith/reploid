@@ -6,7 +6,9 @@
  * A duplicate delivery returns the stored result. A replay under a new key is
  * rejected by canonical identity: one acceptance per quote, one settlement per
  * reservation, one economic effect per billable event, one lot per issuance
- * source, one record per refund id and one reversal per purchased lot.
+ * source, one record per refund id and one reversal per purchased lot. The
+ * funding-commitment register (funding/register.js) shares these guarantees:
+ * one commitment per external reference and allocations within its total.
  */
 
 import { randomUUID } from 'node:crypto';
@@ -63,6 +65,7 @@ import {
   sweepReversedLots,
   validateReversalPolicy
 } from './reversals.js';
+import { consumePoolAllocation, createFundingRegisterOperations, summarizeFunding } from './funding/register.js';
 import { assertLedgerBackend } from './store-contract.js';
 
 const defaultClock = () => new Date().toISOString();
@@ -222,6 +225,8 @@ export function createLedgerStore({
     kind: backend.kind,
     policy: activePolicy,
 
+    ...createFundingRegisterOperations({ backend, policy: activePolicy, clock, mutate, claimId }),
+
     async openAccount(input = {}) {
       assertKnownKeys(input, ['accountId', 'ownerId'], 'openAccount');
       const { accountId, ownerId } = input;
@@ -247,8 +252,9 @@ export function createLedgerStore({
 
     /**
      * Mint a lot from an explicit source reference. Earned credit needs a
-     * validated-work reference plus an issuance-authority decision; balances
-     * carry no expiry.
+     * validated-work reference plus an issuance-authority decision; Community
+     * Access credit consumes its funding allocation in the same transaction;
+     * balances carry no expiry.
      */
     async issueCredits(input = {}) {
       if ('expiresAt' in input || 'expiry' in input) {
@@ -259,6 +265,8 @@ export function createLedgerStore({
       assertId(accountId, 'accountId');
       if (!Number.isSafeInteger(amount) || amount <= 0) fail('invalid_input', 'amount must be a positive integer quantity');
       const source = validateIssuanceSource(provenance, input.source);
+      const pooled = provenance === 'community_access';
+      if (pooled) assertId(source.allocationId, 'source.allocationId');
       assertIdempotencyKey(idempotencyKey);
       const request = { accountId, provenance, amount, source };
       const operation = 'issueCredits';
@@ -275,6 +283,7 @@ export function createLedgerStore({
           const account = await readRequired(tx, 'accounts', accountId, 'account_not_found');
           const claim = await tx.get('claims', sourceClaimId);
           if (claim) fail('duplicate_issuance_source', 'this source reference already issued credit', { lotId: claim.lotId, sourceKey });
+          const allocationWrites = pooled ? [await consumePoolAllocation(tx, { accountId, amount, source, lotId, now })] : [];
           const lots = applyIssue(account, { lotId, provenance, amount, now });
           const entry = appendEntry(account, { type: 'issue', amount, lots, refs: { lotId, sourceKey }, now });
           account.updatedAt = now;
@@ -297,7 +306,8 @@ export function createLedgerStore({
               insert('claims', sourceClaimId, { kind: 'issuance_source', key: sourceKey, lotId, accountId, recordedAt: now }),
               insert('lots', lotId, lot),
               insert('journal', entry.entryId, entry),
-              put('accounts', accountId, account)
+              put('accounts', accountId, account),
+              ...allocationWrites
             ]
           };
         }
@@ -709,14 +719,20 @@ export function createLedgerStore({
       };
     },
 
+    /** Balances, reservations and subsidy, plus the funding register's commitments and allocations. */
     async getSolvencySnapshot() {
       const now = clock();
-      const [accounts, open, underReview] = await Promise.all([
+      const [accounts, open, underReview, commitments, allocations] = await Promise.all([
         backend.list('accounts'),
         backend.list('reservations', { field: 'status', value: 'open' }),
-        backend.list('reservations', { field: 'status', value: 'under_review' })
+        backend.list('reservations', { field: 'status', value: 'under_review' }),
+        backend.list('commitments'),
+        backend.list('allocations')
       ]);
-      return summarizeSolvency({ accounts, reservations: [...open, ...underReview], policy: activePolicy, now });
+      return {
+        ...summarizeSolvency({ accounts, reservations: [...open, ...underReview], policy: activePolicy, now }),
+        funding: summarizeFunding({ commitments, allocations, now })
+      };
     }
   };
   return store;

@@ -11,6 +11,8 @@ export const LEDGER_STORE_OPERATIONS = Object.freeze([
   'bindAttempt', 'recordAttemptOutcome', 'getReservation', 'listReservations',
   'settleReservation', 'resolveQualityReview', 'getQualityReview', 'refundSettlement',
   'reverseIssuance', 'getReversal',
+  'recordFundingCommitment', 'getFundingCommitment', 'allocateFunding', 'releaseFundingAllocation',
+  'getFundingAllocation', 'listFundingAllocations',
   'expireReservations', 'transferCredits', 'listJournal', 'auditAccount', 'getSolvencySnapshot'
 ]);
 
@@ -29,6 +31,8 @@ export const LEDGER_COLLECTIONS = Object.freeze({
   reviews: 'credit_quality_reviews',
   journal: 'credit_journal',
   reversals: 'credit_reversals',
+  commitments: 'credit_funding_commitments',
+  allocations: 'credit_funding_allocations',
   claims: 'credit_claims',
   idempotency: 'credit_idempotency'
 });

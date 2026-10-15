@@ -6,9 +6,10 @@
  * declares for the validation's category:
  * - `settled_demand`: earned credit within a policy share of measured net
  *   settled spending;
- * - `funded_reservation`: subsidized credit drawn from an explicit operator
- *   or community funding reservation, recorded as subsidy in provenance and
- *   solvency, never as earned demand.
+ * - `funded_reservation`: subsidized credit drawn from an active operator or
+ *   community funding reservation (a funding-register allocation) while its
+ *   commitment is valid, recorded as subsidy in provenance and solvency,
+ *   never as earned demand.
  * Every basis is also bounded by fresh admitted-capacity evidence: issuing
  * credit creates no capacity. Allowances commit atomically against one
  * counter and the chosen reservation, so concurrent issuance cannot overrun a
@@ -18,7 +19,7 @@
 
 import { randomUUID } from 'node:crypto';
 
-import { REWARD_PROVENANCE, assertId, cloneJson, isNonEmptyString } from '../ledger/domain.js';
+import { REWARD_PROVENANCE, assertId, cloneJson, isNonEmptyString, toMs } from '../ledger/domain.js';
 import {
   BASIS_PROVENANCE,
   ISSUANCE_DECISION_SCHEMA,
@@ -147,7 +148,9 @@ export function createRewardIssuanceAuthority({
           }
           tried.push({ basis, reason: demand.reason });
         } else {
-          const funding = fundings.find((entry) => entry && entry.amount - entry.authorized >= amount);
+          // Only an active reservation inside its commitment's validity can be drawn.
+          const funding = fundings.find((entry) => entry?.status === 'active' && toMs(now) < toMs(entry.validUntil)
+            && entry.amount - entry.authorized >= amount);
           if (funding) {
             figures.fundingRemainingAfter = funding.amount - funding.authorized - amount;
             chosen = { basis, funding };
@@ -165,7 +168,10 @@ export function createRewardIssuanceAuthority({
         reason: null,
         basis,
         provenance: BASIS_PROVENANCE[basis],
-        funding: funding ? { fundingId: funding.fundingId, funderKind: funding.funderKind, funderId: funding.funderId } : null,
+        funding: funding ? {
+          fundingId: funding.fundingId, funderKind: funding.funderKind, funderId: funding.funderId,
+          commitmentId: funding.commitmentId, allocationId: funding.allocationId
+        } : null,
         figures: cloneJson(figures)
       };
       tx.create('allowances', validationId, allowance);

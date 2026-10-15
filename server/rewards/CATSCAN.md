@@ -29,13 +29,13 @@ Outputs:
 - Readiness requires real admission, execution and settlement probes; stored bytes never prove it.
 - Storage is accessible delivery; byte responses cannot establish local custody.
 - Missed or failed obligations reduce or void rewards per accepted terms.
-- Funded-reservation credit is subsidized, never earned; every basis stays within admitted capacity.
+- Funded-reservation credit is subsidized, never earned, from open [register](../ledger/funding/CATSCAN.md) allocations; every basis stays within admitted capacity.
 - One reward per unit of work; same account, owner, participant or named link earns nothing.
 - Rejections, voids and declines persist.
 
 ## Acceptance
 - Evidence: memory and Firestore pass identical [inference](../../tests/unit/contribution-rewards.test.js) and [category](../../tests/unit/contribution-reward-categories.test.js) scenarios.
-- Limits: known-link rejection is incomplete collusion prevention; separate accounts are not shown independent. `failureCompensation: none` is the only supported term.
+- Limits: known-link rejection is incomplete collusion prevention; separate accounts are not shown independent. Only `failureCompensation: none` is supported.
 
 ## Non-goals
 - Reward amounts, payments, clawback, local-retention proof or attested hardware.

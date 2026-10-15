@@ -172,8 +172,10 @@ const validateRatio = (ratio, path, errors) => {
 /** Issuance bases and the lot provenance each produces. */
 export const ISSUANCE_BASES = Object.freeze(['settled_demand', 'funded_reservation']);
 export const BASIS_PROVENANCE = Object.freeze({ settled_demand: 'earned', funded_reservation: 'subsidized' });
+// Funder kinds whose commitments may fund subsidized rewards.
 export const FUNDER_KINDS = Object.freeze(['operator', 'community']);
-export const FUNDING_SCHEMA = 'reploid.reward-funding/v1';
+export const FUNDING_SCHEMA = 'reploid.reward-funding/v2';
+export const FUNDING_USE = 'reward_funding';
 
 /**
  * Explicit issuance policy. `bases` declares each enabled basis:
@@ -224,14 +226,20 @@ export function validateIssuancePolicy(policy) {
   return deepFreeze(cloneJson(policy));
 }
 
-/** An explicit operator or community funding reservation for subsidized rewards. */
+/**
+ * A funding reservation for subsidized rewards: `amount` credits allocated
+ * from a commitment in the ledger's funding register, whose funder identity
+ * and kind it takes. `commitmentAmount` states the draw in a currency
+ * commitment's minor units.
+ */
 export function validateFundingReservation(input) {
   const errors = [];
-  unknownKeys(input, ['fundingId', 'funderKind', 'funderId', 'amount', 'categories', 'sourceRef'], 'funding', errors);
-  if (!FUNDER_KINDS.includes(input?.funderKind)) errors.push(`funding.funderKind must be one of ${FUNDER_KINDS.join(', ')}`);
-  requireString(input?.funderId, 'funding.funderId', errors);
-  requireString(input?.sourceRef, 'funding.sourceRef (the funding commitment record)', errors);
+  unknownKeys(input, ['fundingId', 'commitmentId', 'amount', 'commitmentAmount', 'categories'], 'funding', errors);
+  requireString(input?.commitmentId, 'funding.commitmentId (the registered funding commitment)', errors);
   if (!isPositiveInteger(input?.amount)) errors.push('funding.amount must be a positive integer');
+  if (input?.commitmentAmount !== undefined && !isPositiveInteger(input.commitmentAmount)) {
+    errors.push('funding.commitmentAmount must be a positive integer in the commitment unit');
+  }
   if (!distinctStrings(input?.categories) || input.categories.length === 0 || input.categories.some((category) => !REWARD_CATEGORIES[category])) {
     errors.push(`funding.categories must list distinct reward categories from ${Object.keys(REWARD_CATEGORIES).join(', ')}`);
   }

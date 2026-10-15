@@ -7,7 +7,7 @@ Parent: [Hosted Services](../CATSCAN.md)
 Durable credit accounts, quotes, reservations and settlement giving each billable event exactly one economic effect.
 
 ## Authority
-- Owns credit lots and provenance, quote terms, monetary reservations, settlement outcomes, refunds, purchase reversals, the append-only journal and solvency inputs.
+- Owns credit lots and provenance, quote terms, monetary reservations, settlement outcomes, refunds, purchase reversals, the append-only journal, [funding commitments](funding/CATSCAN.md) and solvency inputs.
 - Excludes prices, reward amounts, payments, reward validation, capacity admission, disclosure grants and quality adjudication.
 
 ## Scope
