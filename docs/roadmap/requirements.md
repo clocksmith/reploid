@@ -809,7 +809,7 @@ Next action: Qualify a real processor; decide the access guarantee, spent-credit
 
 ### REP-10
 
-Owner: Reploid service accounting. Status: Source ledger with quotes, reservations, settlement and reversals (`7ca3dae5`, `78408a83`); versioned conversion records (`8bda47c9`); accounts and devices with in-transaction revocation (`fc8e4913`, `49552405`, `3110c480`); authenticated routes with retry-safe idempotency (`b044adc5`, `c871492d`, `a6d17eea`); test providers only; acceptance open.
+Owner: Reploid service accounting. Status: Source ledger with quotes, reservations, settlement and reversals (`7ca3dae5`, `78408a83`); versioned conversion records (`8bda47c9`); accounts and devices with in-transaction revocation (`fc8e4913`, `49552405`, `3110c480`); authenticated routes with retry-safe idempotency (`b044adc5`, `c871492d`, `a6d17eea`); in-process integration with actual route execution (`33542241`): a chat attempt quotes and accepts from a device-bound session before dispatch, binds its exact route recipients, and the ledger settles each acceptance's one billable event from the route's own summary, receipt, failure code or activity under declared outcome rules (completed, cancellation, deadline, contributor loss with one retry under the same acceptance, abandonment, cancellation before dispatch); crash before settlement, before the response, two server processes and revoked devices each reconcile to one effect on memory and fake-Firestore stores (`tests/integration/earning-execution.test.js`); route records are requester-reported and unsigned, and an unreported acceptance only expires at zero charge; test providers only; acceptance open.
 
 Next action: Prove crash and retry behavior end to end with actual execution and account-bound spending; set the accounting policy values; qualify a real sign-in provider. Dependencies: Authenticated account and work identities; DR-3 permissions remain independent.
 
@@ -830,7 +830,7 @@ Next action: Prove crash and retry behavior end to end with actual execution and
 
 ### REP-11
 
-Owner: Reploid service accounting / contribution. Status: Source rewards for all four adopted categories, an execution-based readiness probe and a funded issuance basis (`5610260a`, `bb17dc15`, `0c65e361`); durable scheduling of challenges and probes (`8bda47c9`); not qualified for real earning; acceptance open.
+Owner: Reploid service accounting / contribution. Status: Source rewards for all four adopted categories, an execution-based readiness probe and a funded issuance basis (`5610260a`, `bb17dc15`, `0c65e361`); durable scheduling of challenges and probes (`8bda47c9`); stage shares claimed from contributors' own resident admission records against the requester's kept route record, and deliveries claimed from acquirer attestations of real custody transfers, each earn once through device-bound routes on the settled-demand basis under its cap or a funded reservation, including after a crash between validation and issuance (`33542241`, in-process only); not qualified for real earning; acceptance open.
 
 Next action: Integrate actual execution and delivery evidence with account-bound issuance; build the readiness-probe adapter and challenge transport; set reward policy values. Dependencies: REP-10 ledger; REP-4 lifecycle; REP-5 custody; DR-6 execution.
 
@@ -858,7 +858,7 @@ Next action: Qualify on installed hosts: a schedule closing mid-work, wire rates
 
 ### REP-13
 
-Owner: Reploid product integration. Status: New requirement; acceptance open.
+Owner: Reploid product integration. Status: Host earning client, off by default, composed into browser chat spending and native contributor claims with session renewal for a registered device (`33542241`, in-process tests only); no real provider, installed run, frozen journey or funded commitment; acceptance open.
 
 Next action: Freeze the overnight contribution and next-day phone redemption journey and success criteria. Dependencies: REP-8 through REP-12; exact installed package and supported capacity.
 
