@@ -150,10 +150,10 @@ export function validateAccountingPolicy(policy) {
 const REWARD_SOURCE_FIELDS = ['category', 'workId', 'offerId', 'validationId', 'validatorId', 'validatedAt'];
 const SOURCE_FIELDS = Object.freeze({
   earned: REWARD_SOURCE_FIELDS,
-  subsidized: [...REWARD_SOURCE_FIELDS, 'fundingId', 'funderKind', 'funderId'],
+  // Subsidized, donated and Community Access credit draw the funding-register allocation they name.
+  subsidized: [...REWARD_SOURCE_FIELDS, 'fundingId', 'funderKind', 'funderId', 'commitmentId', 'allocationId'],
   purchased: ['processor', 'purchaseId', 'confirmationId'],
-  donated: ['donationId', 'donorId'],
-  // Pool credit consumes the funding-register allocation it names.
+  donated: ['donationId', 'donorId', 'commitmentId', 'allocationId'],
   community_access: ['fundingId', 'funderId', 'funderKind', 'commitmentId', 'allocationId']
 });
 

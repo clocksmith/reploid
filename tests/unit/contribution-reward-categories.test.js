@@ -7,7 +7,7 @@ import { executablePacksMatch, hashDopplerEvidence, validateExecutablePack } fro
 import { CHALLENGE_ANSWER_SCHEMA, DELIVERY_ATTESTATION_SCHEMA, deliveryAttestationBody } from '../../server/rewards/custody-evidence.js';
 import { validateIssuancePolicy } from '../../server/rewards/domain.js';
 import {
-  ISSUANCE_POLICY, MIN, MODEL, at, clock, codes, commit, declinedWith, demand, fx, journalShape, openFixture, ownerAuthorization, rejectsWith, throwsWith
+  ISSUANCE_POLICY, MIN, MODEL, at, clock, codes, commit, decidedBy, declinedWith, demand, fx, journalShape, openFixture, ownerAuthorization, rejectsWith, throwsWith
 } from '../helpers/reward-fixture.js';
 
 // Real REP-5 custody contracts produce the grants, signed requests/responses and receipts used as evidence.
@@ -471,7 +471,7 @@ describe.each(['memory', 'firestore'])('contribution reward categories (%s store
     await commit(ledger, { commitmentId: 'commitment_operator', funderId: 'acct_operator', amount: 40 });
     await rewards.reserveFunding({
       fundingId: 'funding_operator', commitmentId: 'commitment_operator', amount: 40,
-      categories: ['prepared_readiness', 'contracted_storage'], idempotencyKey: 'fund:operator'
+      categories: ['prepared_readiness', 'contracted_storage'], authority: decidedBy('decision:fund:operator'), idempotencyKey: 'fund:operator'
     });
     const offer = await acceptOffer(rewards, readinessOffer({ offerId: 'offer_ready' }));
     await rejectsWith(rewards.issueChallenge({ offerId: offer.offerId, kind: 'custody', idempotencyKey: 'c:custody' }), 'invalid_challenge_kind');
@@ -556,16 +556,16 @@ describe.each(['memory', 'firestore'])('contribution reward categories (%s store
 
     // The funder comes from a registered commitment, never from the reservation itself.
     await expect(rewards.reserveFunding({ fundingId: 'funding_x', funderKind: 'investor', amount: 5, categories: ['contracted_storage'], idempotencyKey: 'fund:x' }))
-      .rejects.toMatchObject({ code: 'invalid_funding', details: { errors: expect.arrayContaining([expect.stringContaining('funderKind'), expect.stringContaining('commitmentId')]) } });
+      .rejects.toMatchObject({ code: 'invalid_funding', details: { errors: expect.arrayContaining([expect.stringContaining('funderKind'), expect.stringContaining('commitmentId'), expect.stringContaining('authority')]) } });
     await commit(ledger, { commitmentId: 'commitment_donor', funderKind: 'donor', amount: 5 });
     await rejectsWith(rewards.reserveFunding({
-      fundingId: 'funding_donor', commitmentId: 'commitment_donor', amount: 5, categories: ['contracted_storage'], idempotencyKey: 'fund:donor'
+      fundingId: 'funding_donor', commitmentId: 'commitment_donor', amount: 5, categories: ['contracted_storage'], authority: decidedBy('decision:fund:donor'), idempotencyKey: 'fund:donor'
     }), 'funder_kind_not_accepted');
     expect(await rewards.getFunding('funding_donor')).toMatchObject({ status: 'refused', refusal: { code: 'funder_kind_not_accepted' } });
     await commit(ledger, { commitmentId: 'commitment_operator', funderId: 'acct_operator', amount: 10 });
     await rewards.reserveFunding({
       fundingId: 'funding_operator', commitmentId: 'commitment_operator', amount: 10,
-      categories: ['contracted_storage', 'prepared_readiness'], idempotencyKey: 'fund:operator'
+      categories: ['contracted_storage', 'prepared_readiness'], authority: decidedBy('decision:fund:operator'), idempotencyKey: 'fund:operator'
     });
     // Funding never creates capacity: admitted capacity still bounds subsidized issuance.
     fx.capacity.serviceCredits = (await ledger.getSolvencySnapshot()).outstanding.total + 7;
@@ -592,16 +592,20 @@ describe.each(['memory', 'firestore'])('contribution reward categories (%s store
     await commit(ledger, { commitmentId: 'commitment_community', funderKind: 'community', funderId: 'community_pool', amount: 20 });
     await rewards.reserveFunding({
       fundingId: 'funding_community', commitmentId: 'commitment_community', amount: 20,
-      categories: ['prepared_readiness'], idempotencyKey: 'fund:community'
+      categories: ['prepared_readiness'], authority: decidedBy('decision:fund:community'), idempotencyKey: 'fund:community'
     });
     expect(await rewards.resumeIssuance()).toEqual([expect.objectContaining({ validationId: prepared.validationId, status: 'issued', basis: 'funded_reservation', provenance: 'subsidized' })]);
     expect(await rewards.getFunding('funding_community')).toMatchObject({ authorized: 8 });
     expect((await ledger.getSolvencySnapshot()).issued.byProvenance).toMatchObject({ earned: 0, subsidized: 16 });
 
     // Releasing a reservation freezes what it authorized and returns the rest to its commitment.
-    expect(await rewards.releaseFunding({ fundingId: 'funding_operator' })).toMatchObject({ status: 'released', consumedCredits: 8, returned: 2 });
+    const release = decidedBy('decision:release:operator');
+    expect(await rewards.releaseFunding({ fundingId: 'funding_operator', authority: release })).toMatchObject({ status: 'released', consumedCredits: 8, returned: 2 });
     expect(await ledger.getFundingCommitment('commitment_operator')).toMatchObject({ amount: 10, allocated: 8, returned: 2, unallocated: 2 });
-    expect(await rewards.releaseFunding({ fundingId: 'funding_operator' })).toMatchObject({ status: 'released', returned: 2 });
+    expect(await rewards.releaseFunding({ fundingId: 'funding_operator', authority: release })).toMatchObject({ status: 'released', returned: 2 });
+    expect(await ledger.getFundingAllocation((await rewards.getFunding('funding_operator')).allocationId)).toMatchObject({
+      issuedCredits: 8, consumedCredits: 8, authority: decidedBy('decision:fund:operator'), releaseAuthority: release
+    });
 
     // The policy declares the bases per category; an undeclared basis is refused.
     throwsWith(() => validateIssuancePolicy({ ...ISSUANCE_POLICY, bases: { settled_demand: ISSUANCE_POLICY.bases.settled_demand } }), 'invalid_policy');
@@ -657,7 +661,7 @@ describe.each(['memory', 'firestore'])('contribution reward categories (%s store
     await commit(ledger, { commitmentId: 'commitment_operator', funderId: 'acct_operator', amount: 20 });
     await rewards.reserveFunding({
       fundingId: 'funding_operator', commitmentId: 'commitment_operator', amount: 20,
-      categories: ['prepared_readiness'], idempotencyKey: 'fund:operator'
+      categories: ['prepared_readiness'], authority: decidedBy('decision:fund:operator'), idempotencyKey: 'fund:operator'
     });
     await declinedWith(rewards.issueReward({ validationId: prepared.validationId }), 'capacity_evidence_unavailable');
     fx.capacity = { evidenceId: 'capacity:test', serviceCredits: 100_000, observedAt: null };

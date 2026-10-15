@@ -65,7 +65,7 @@ import {
   sweepReversedLots,
   validateReversalPolicy
 } from './reversals.js';
-import { consumePoolAllocation, createFundingRegisterOperations, summarizeFunding } from './funding/register.js';
+import { ALLOCATED_PROVENANCE, createFundingRegisterOperations, drawIssuanceAllocation, summarizeFunding } from './funding/register.js';
 import { assertLedgerBackend } from './store-contract.js';
 
 const defaultClock = () => new Date().toISOString();
@@ -252,9 +252,10 @@ export function createLedgerStore({
 
     /**
      * Mint a lot from an explicit source reference. Earned credit needs a
-     * validated-work reference plus an issuance-authority decision; Community
-     * Access credit consumes its funding allocation in the same transaction;
-     * balances carry no expiry.
+     * validated-work reference plus an issuance-authority decision.
+     * Subsidized, Community Access and donated credit draw the funding
+     * allocation their source names in the same transaction, so the register
+     * counts what each allocation issued. Balances carry no expiry.
      */
     async issueCredits(input = {}) {
       if ('expiresAt' in input || 'expiry' in input) {
@@ -265,8 +266,7 @@ export function createLedgerStore({
       assertId(accountId, 'accountId');
       if (!Number.isSafeInteger(amount) || amount <= 0) fail('invalid_input', 'amount must be a positive integer quantity');
       const source = validateIssuanceSource(provenance, input.source);
-      const pooled = provenance === 'community_access';
-      if (pooled) assertId(source.allocationId, 'source.allocationId');
+      if (ALLOCATED_PROVENANCE[provenance]) assertId(source.allocationId, 'source.allocationId');
       assertIdempotencyKey(idempotencyKey);
       const request = { accountId, provenance, amount, source };
       const operation = 'issueCredits';
@@ -283,7 +283,7 @@ export function createLedgerStore({
           const account = await readRequired(tx, 'accounts', accountId, 'account_not_found');
           const claim = await tx.get('claims', sourceClaimId);
           if (claim) fail('duplicate_issuance_source', 'this source reference already issued credit', { lotId: claim.lotId, sourceKey });
-          const allocationWrites = pooled ? [await consumePoolAllocation(tx, { accountId, amount, source, lotId, now })] : [];
+          const allocationWrite = await drawIssuanceAllocation(tx, { provenance, accountId, amount, source, lotId, now });
           const lots = applyIssue(account, { lotId, provenance, amount, now });
           const entry = appendEntry(account, { type: 'issue', amount, lots, refs: { lotId, sourceKey }, now });
           account.updatedAt = now;
@@ -307,7 +307,7 @@ export function createLedgerStore({
               insert('lots', lotId, lot),
               insert('journal', entry.entryId, entry),
               put('accounts', accountId, account),
-              ...allocationWrites
+              ...(allocationWrite ? [allocationWrite] : [])
             ]
           };
         }

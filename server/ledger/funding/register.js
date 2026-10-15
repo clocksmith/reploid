@@ -3,15 +3,21 @@
  * commitment and the allocations its named uses draw against it.
  *
  * A commitment states its funder, external reference, total in credit units
- * or a currency's minor units, and validity. Reward funding reservations and
- * Community Access pools allocate from it instead of recording commitments of
- * their own. Each allocation commits in one ledger transaction with the
- * commitment's running total, so concurrent allocations never exceed it, and
- * the external reference is claimed once. Closing an allocation (release, or
- * expiry after the commitment's validity) returns its unused part. A
- * Community Access allocation is consumed only by the pool issuance that
- * names it, inside that issuance transaction. Status derives from validity at
- * read time, so it is never stale.
+ * or a currency's minor units, and validity. Reward funding reservations,
+ * Community Access pools and donated credit allocate from it instead of
+ * recording commitments of their own. Each allocation commits in one ledger
+ * transaction with the commitment's running total, so concurrent allocations
+ * never exceed it, and the external reference is claimed once.
+ *
+ * Every lot of those provenances draws its allocation inside the issuance
+ * transaction, so the ledger itself counts what each allocation issued.
+ * Community Access and donated allocations issue whole, once. Reward funding
+ * issues subsidized lots up to its credits. Closing an allocation (release,
+ * or expiry after the commitment's validity) returns the unconsumed share;
+ * the consumed figure a use reports can never fall below what the ledger
+ * issued, and later issuance can never exceed it. Reward reservations and
+ * every release name an authority and decision; who may hold that authority
+ * is decided outside the register. Status derives from validity at read time.
  */
 
 import {
@@ -30,8 +36,19 @@ export const ALLOCATION_SCHEMA = 'reploid.funding-allocation/v1';
 
 // Funder kinds across uses; each use names the kinds it accepts when it allocates.
 export const FUNDING_FUNDER_KINDS = Object.freeze(['operator', 'community', 'donor']);
-export const FUNDING_USES = Object.freeze(['reward_funding', 'community_access_pool']);
-export const POOL_USE = 'community_access_pool';
+/**
+ * How each use's credit reaches the ledger. `whole` uses issue one lot of the
+ * whole allocation into its named account; reward funding issues subsidized
+ * lots against it. `ref` is the source field naming the use record.
+ */
+const USE_RULES = Object.freeze({
+  reward_funding: Object.freeze({ provenance: 'subsidized', whole: false, ref: 'fundingId', authorityRequired: true }),
+  community_access_pool: Object.freeze({ provenance: 'community_access', whole: true, ref: 'fundingId', authorityRequired: false }),
+  donated_credit: Object.freeze({ provenance: 'donated', whole: true, ref: 'donationId', authorityRequired: false })
+});
+export const FUNDING_USES = Object.freeze(Object.keys(USE_RULES));
+// Lot provenance -> the register use its issuance draws on.
+export const ALLOCATED_PROVENANCE = Object.freeze(Object.fromEntries(Object.entries(USE_RULES).map(([use, rule]) => [rule.provenance, use])));
 export const ALLOCATION_CLOSURES = Object.freeze(['released', 'expired']);
 // Register refusals that are final for the use record that asked.
 export const FUNDING_REFUSAL_CODES = Object.freeze([
@@ -53,6 +70,23 @@ const readRequired = async (tx, collection, id, code) => {
   const record = await tx.get(collection, id);
   if (!record) fail(code, `${collection} record ${id} was not found`, { id });
   return record;
+};
+
+/**
+ * A named authority and its decision. The register records it; which actors
+ * hold funding authority is a policy decided outside the ledger.
+ */
+const readAuthority = (authority, { required, what }) => {
+  if (authority === undefined || authority === null) {
+    if (required) fail('funding_authority_required', `${what} needs authority.actorId and authority.decisionId`);
+    return null;
+  }
+  const keys = typeof authority === 'object' ? Object.keys(authority) : [];
+  if (keys.some((key) => !['actorId', 'decisionId'].includes(key))
+    || !isNonEmptyString(authority.actorId) || !isNonEmptyString(authority.decisionId)) {
+    fail('invalid_input', 'authority must be { actorId, decisionId } naming the deciding authority and its decision');
+  }
+  return { actorId: authority.actorId, decisionId: authority.decisionId };
 };
 
 export const allocationIdFor = (use, useRef) => `alloc_${sha256Hex(`${use}\u0000${useRef}`).slice(0, 32)}`;
@@ -149,20 +183,25 @@ export function createFundingRegisterOperations({ backend, policy, clock, mutate
      * Draw one allocation for a named use within the commitment's validity.
      * The check against the commitment's remaining total and both writes share
      * one transaction. One allocation per use record: a repeat converges.
+     * Reward funding names the authority and decision behind it; other uses
+     * record one when given.
      */
     async allocateFunding(input = {}) {
-      assertKnownKeys(input, ['commitmentId', 'use', 'useRef', 'credits', 'amount', 'accountId', 'funderKinds', 'idempotencyKey'], 'allocateFunding');
-      const { idempotencyKey, funderKinds, ...request } = input;
-      assertId(request.commitmentId, 'commitmentId');
-      if (!FUNDING_USES.includes(request.use)) fail('invalid_input', `use must be one of ${FUNDING_USES.join(', ')}`);
-      assertId(request.useRef, 'useRef');
-      if (!isPositiveInteger(request.credits)) fail('invalid_input', 'credits must be a positive integer');
-      if (request.amount !== undefined && !isPositiveInteger(request.amount)) fail('invalid_input', 'amount must be a positive integer in the commitment unit');
-      if (request.use === POOL_USE) assertId(request.accountId, 'accountId');
-      else if (request.accountId !== undefined) fail('invalid_input', 'accountId names the pool account of a Community Access allocation only');
+      assertKnownKeys(input, ['commitmentId', 'use', 'useRef', 'credits', 'amount', 'accountId', 'authority', 'funderKinds', 'idempotencyKey'], 'allocateFunding');
+      const { idempotencyKey, funderKinds, authority: suppliedAuthority, ...fields } = input;
+      assertId(fields.commitmentId, 'commitmentId');
+      if (!FUNDING_USES.includes(fields.use)) fail('invalid_input', `use must be one of ${FUNDING_USES.join(', ')}`);
+      const rule = USE_RULES[fields.use];
+      assertId(fields.useRef, 'useRef');
+      if (!isPositiveInteger(fields.credits)) fail('invalid_input', 'credits must be a positive integer');
+      if (fields.amount !== undefined && !isPositiveInteger(fields.amount)) fail('invalid_input', 'amount must be a positive integer in the commitment unit');
+      if (rule.whole) assertId(fields.accountId, 'accountId');
+      else if (fields.accountId !== undefined) fail('invalid_input', 'accountId names the issuance account of a whole-issuance allocation only');
       if (!Array.isArray(funderKinds) || funderKinds.length === 0 || funderKinds.some((kind) => !FUNDING_FUNDER_KINDS.includes(kind))) {
         fail('invalid_input', `funderKinds must list the funder kinds this use accepts, from ${FUNDING_FUNDER_KINDS.join(', ')}`);
       }
+      const authority = readAuthority(suppliedAuthority, { required: rule.authorityRequired, what: `a ${fields.use} allocation` });
+      const request = { ...fields, ...(authority ? { authority } : {}) };
       const allocationId = allocationIdFor(request.use, request.useRef);
       const requestHash = hashCanonical(request);
       const now = clock();
@@ -210,10 +249,14 @@ export function createFundingRegisterOperations({ backend, policy, clock, mutate
             credits: request.credits,
             validUntil: commitment.validUntil,
             requestHash,
+            authority,
             status: 'active',
+            // Counted by the ledger in each issuance transaction that draws on this allocation.
+            issuedCredits: 0,
             consumedCredits: null,
             returnedCredits: 0,
             returnedAmount: 0,
+            releaseAuthority: null,
             lotId: null,
             allocatedAt: now,
             closedAt: null
@@ -233,17 +276,22 @@ export function createFundingRegisterOperations({ backend, policy, clock, mutate
 
     /**
      * Close an active allocation, returning what its use did not consume.
-     * The use owner states the consumed credits; Community Access allocations
-     * are consumed only by issuance, so they close here with nothing consumed.
-     * `expired` needs the commitment's validity to have ended.
+     * The use states the credits it consumed, checked against the ledger's
+     * own count: never below what the allocation already issued, and after
+     * closing the ledger issues no more than that figure against it. A whole
+     * allocation still active has issued nothing, so it closes with nothing
+     * consumed. `released` names an authority and decision; `expired` needs
+     * the commitment's validity to have ended instead.
      */
     async releaseFundingAllocation(input = {}) {
-      assertKnownKeys(input, ['allocationId', 'consumedCredits', 'closure', 'idempotencyKey'], 'releaseFundingAllocation');
+      assertKnownKeys(input, ['allocationId', 'consumedCredits', 'closure', 'authority', 'idempotencyKey'], 'releaseFundingAllocation');
       const { allocationId, consumedCredits, closure, idempotencyKey } = input;
       assertId(allocationId, 'allocationId');
       if (!ALLOCATION_CLOSURES.includes(closure)) fail('invalid_input', `closure must be one of ${ALLOCATION_CLOSURES.join(', ')}`);
       if (!Number.isSafeInteger(consumedCredits) || consumedCredits < 0) fail('invalid_input', 'consumedCredits must be a non-negative integer');
-      const request = { allocationId, consumedCredits, closure };
+      if (closure === 'expired' && input.authority !== undefined) fail('invalid_input', 'expiry follows the commitment\'s validity; it names no authority');
+      const authority = readAuthority(input.authority, { required: closure === 'released', what: 'a release' });
+      const request = { allocationId, consumedCredits, closure, ...(authority ? { authority } : {}) };
       const now = clock();
       return mutate({
         operation: 'releaseFundingAllocation', scopeId: allocationId, idempotencyKey, request, now,
@@ -255,15 +303,22 @@ export function createFundingRegisterOperations({ backend, policy, clock, mutate
             fail('allocation_closed', 'allocation is already closed', { status: allocation.status });
           }
           if (consumedCredits > allocation.credits) fail('invalid_input', 'consumedCredits exceeds the allocated credits', { credits: allocation.credits });
-          if (allocation.use === POOL_USE && consumedCredits !== 0) {
-            fail('invalid_input', 'a pool allocation is consumed only by the issuance that names it');
+          if (consumedCredits < allocation.issuedCredits) {
+            fail('consumed_below_issued', 'the ledger already issued more against this allocation than the reported consumption', {
+              issuedCredits: allocation.issuedCredits, consumedCredits
+            });
+          }
+          if (USE_RULES[allocation.use].whole && consumedCredits !== allocation.issuedCredits) {
+            fail('invalid_input', 'a whole-issuance allocation is consumed only by the issuance that names it');
           }
           if (closure === 'expired' && commitmentStatus(commitment, now) !== 'expired') {
             fail('commitment_not_expired', 'commitment validity has not ended', { validUntil: commitment.validUntil });
           }
           const returnedCredits = allocation.credits - consumedCredits;
           const returnedAmount = returnedAmountFor(allocation, returnedCredits);
-          const closed = { ...allocation, status: closure, consumedCredits, returnedCredits, returnedAmount, closedAt: now };
+          const closed = {
+            ...allocation, status: closure, consumedCredits, returnedCredits, returnedAmount, releaseAuthority: authority, closedAt: now
+          };
           return {
             result: closed,
             writes: [
@@ -290,33 +345,56 @@ export function createFundingRegisterOperations({ backend, policy, clock, mutate
   };
 }
 
+// The funder a lot's source names, per provenance; donated sources name only the donor.
+const sourceFunder = (provenance, source) => (provenance === 'donated'
+  ? { funderId: source.donorId, funderKind: null }
+  : { funderId: source.funderId, funderKind: source.funderKind });
+
 /**
- * Inside a Community Access issuance transaction: the active pool allocation
- * the source names, for exactly these credits, into its pool account, while
- * its commitment is valid. Returns the write that consumes it.
+ * Inside the issuance transaction of a lot whose provenance draws on the
+ * register: the allocation its source names, for the same commitment, use
+ * record and funder. A whole allocation issues once, for exactly its credits,
+ * into its account, while its commitment is valid. Reward funding issues
+ * subsidized lots up to its credits, and after closing up to the credits its
+ * use reported consumed; allowances authorized before expiry may still issue.
+ * Returns the allocation write, or null for provenance outside the register.
  */
-export async function consumePoolAllocation(tx, { accountId, amount, source, lotId, now }) {
+export async function drawIssuanceAllocation(tx, { provenance, accountId, amount, source, lotId, now }) {
+  const use = ALLOCATED_PROVENANCE[provenance];
+  if (!use) return null;
+  const rule = USE_RULES[use];
   const allocation = await tx.get('allocations', source.allocationId);
-  if (!allocation || allocation.use !== POOL_USE) fail('allocation_not_found', 'issuance names no Community Access pool allocation', { allocationId: source.allocationId });
-  if (allocation.status !== 'active') fail('allocation_not_active', 'the pool allocation is already closed', { status: allocation.status });
+  if (!allocation || allocation.use !== use) fail('allocation_not_found', `issuance names no ${use} allocation`, { allocationId: source.allocationId });
+  const funder = sourceFunder(provenance, source);
   const matches = allocation.commitmentId === source.commitmentId
-    && allocation.useRef === source.fundingId
-    && allocation.accountId === accountId
-    && allocation.credits === amount
-    && allocation.funderKind === source.funderKind
-    && allocation.funderId === source.funderId;
-  if (!matches) fail('allocation_mismatch', 'issuance differs from its pool allocation', { allocationId: allocation.allocationId });
-  if (toMs(now) >= toMs(allocation.validUntil)) fail('commitment_expired', 'commitment validity ended before issuance', { validUntil: allocation.validUntil });
-  return put('allocations', allocation.allocationId, { ...allocation, status: 'consumed', consumedCredits: allocation.credits, lotId, closedAt: now });
+    && allocation.useRef === source[rule.ref]
+    && allocation.funderId === funder.funderId
+    && (funder.funderKind === null || allocation.funderKind === funder.funderKind)
+    && (!rule.whole || (allocation.accountId === accountId && allocation.credits === amount));
+  if (!matches) fail('allocation_mismatch', 'issuance differs from the allocation it names', { allocationId: allocation.allocationId });
+  if (rule.whole) {
+    if (allocation.status !== 'active') fail('allocation_not_active', 'the allocation is already closed', { status: allocation.status });
+    if (toMs(now) >= toMs(allocation.validUntil)) fail('commitment_expired', 'commitment validity ended before issuance', { validUntil: allocation.validUntil });
+    return put('allocations', allocation.allocationId, {
+      ...allocation, status: 'consumed', issuedCredits: amount, consumedCredits: amount, lotId, closedAt: now
+    });
+  }
+  const limit = allocation.status === 'active' ? allocation.credits : allocation.consumedCredits;
+  if (allocation.issuedCredits + amount > limit) {
+    fail('allocation_exhausted', 'issuance would exceed what this allocation may still issue', {
+      allocationId: allocation.allocationId, status: allocation.status, issuedCredits: allocation.issuedCredits, limit, requested: amount
+    });
+  }
+  return put('allocations', allocation.allocationId, { ...allocation, issuedCredits: allocation.issuedCredits + amount });
 }
 
 /**
  * Solvency view of the register. Per commitment unit: committed totals,
  * allocations by use net of returns, and unallocated funding that is
- * available, not yet valid or lapsed. In credits: allocations by use, where
- * Community Access pool credits equal issued `community_access` credit (the
- * subsidy block's consumption is drawn from them) and reward funding bounds
- * subsidized reward issuance.
+ * available, not yet valid or lapsed. In credits: allocations by use and
+ * what the ledger issued against them by use, which equals issued
+ * `subsidized`, `community_access` and `donated` credit (the subsidy block's
+ * Community Access consumption and subsidized issuance are drawn from them).
  */
 export function summarizeFunding({ commitments, allocations, now }) {
   const byUse = () => Object.fromEntries(FUNDING_USES.map((use) => [use, 0]));
@@ -346,6 +424,7 @@ export function summarizeFunding({ commitments, allocations, now }) {
     entry.unallocated[field[status]] += commitment.amount - commitment.allocated;
   }
   const credits = { total: 0, byUse: byUse() };
+  const issued = { total: 0, byUse: byUse() };
   const allocationStatuses = { active: 0, consumed: 0, released: 0, expired: 0 };
   for (const allocation of allocations) {
     const entry = entryFor(allocation.unit);
@@ -354,13 +433,16 @@ export function summarizeFunding({ commitments, allocations, now }) {
     entry.allocated.byUse[allocation.use] += net;
     credits.total += allocation.credits - allocation.returnedCredits;
     credits.byUse[allocation.use] += allocation.credits - allocation.returnedCredits;
+    issued.total += allocation.issuedCredits;
+    issued.byUse[allocation.use] += allocation.issuedCredits;
     allocationStatuses[allocation.status] += 1;
   }
   return {
     commitments: { count: commitments.length, ...statuses },
     allocations: { count: allocations.length, ...allocationStatuses },
     byUnit: [...units.entries()].sort(([left], [right]) => left.localeCompare(right)).map(([, entry]) => entry),
-    creditsAllocated: credits
+    creditsAllocated: credits,
+    creditsIssued: issued
   };
 }
 
@@ -369,6 +451,6 @@ export default {
   FUNDING_USES,
   FUNDING_REFUSAL_CODES,
   createFundingRegisterOperations,
-  consumePoolAllocation,
+  drawIssuanceAllocation,
   summarizeFunding
 };

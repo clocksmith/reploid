@@ -227,15 +227,30 @@ export function validateIssuancePolicy(policy) {
 }
 
 /**
+ * The authority and decision behind reserving or releasing funding. Which
+ * actors hold funding authority is not decided here; the reward store asks
+ * its funding-authority port.
+ */
+export function fundingAuthorityProblems(authority, path) {
+  const errors = [];
+  if (!authority || typeof authority !== 'object') return [`${path} must name { actorId, decisionId }`];
+  unknownKeys(authority, ['actorId', 'decisionId'], path, errors);
+  requireString(authority.actorId, `${path}.actorId`, errors);
+  requireString(authority.decisionId, `${path}.decisionId`, errors);
+  return errors;
+}
+
+/**
  * A funding reservation for subsidized rewards: `amount` credits allocated
  * from a commitment in the ledger's funding register, whose funder identity
- * and kind it takes. `commitmentAmount` states the draw in a currency
- * commitment's minor units.
+ * and kind it takes, under a named authority's decision. `commitmentAmount`
+ * states the draw in a currency commitment's minor units.
  */
 export function validateFundingReservation(input) {
   const errors = [];
-  unknownKeys(input, ['fundingId', 'commitmentId', 'amount', 'commitmentAmount', 'categories'], 'funding', errors);
+  unknownKeys(input, ['fundingId', 'commitmentId', 'amount', 'commitmentAmount', 'categories', 'authority'], 'funding', errors);
   requireString(input?.commitmentId, 'funding.commitmentId (the registered funding commitment)', errors);
+  errors.push(...fundingAuthorityProblems(input?.authority, 'funding.authority'));
   if (!isPositiveInteger(input?.amount)) errors.push('funding.amount must be a positive integer');
   if (input?.commitmentAmount !== undefined && !isPositiveInteger(input.commitmentAmount)) {
     errors.push('funding.commitmentAmount must be a positive integer in the commitment unit');

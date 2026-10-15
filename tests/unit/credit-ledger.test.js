@@ -23,6 +23,15 @@ const clock = () => new Date(nowMs).toISOString();
 const at = (offsetMs) => new Date(nowMs + offsetMs).toISOString();
 const advance = (ms) => { nowMs += ms; };
 
+/** Record a test-only commitment and draw one register allocation from it for a direct issuance. */
+const allocate = async (ledger, { commitmentId, funderKind, funderId, credits, ...allocation }) => {
+  await ledger.recordFundingCommitment({
+    commitmentId, funderKind, funderId, externalRef: `external:${commitmentId}`, amount: credits,
+    unit: { kind: 'credits' }, validFrom: clock(), validUntil: at(60 * MIN), idempotencyKey: `commit:${commitmentId}`
+  });
+  return ledger.allocateFunding({ commitmentId, credits, funderKinds: [funderKind], idempotencyKey: `allocate:${commitmentId}`, ...allocation });
+};
+
 const issuanceAuthority = async ({ provenance, amount }) => ({ allowed: true, decisionId: `test-capacity:${provenance}:${amount}` });
 const storeOptions = { policy: POLICY, clock, issuanceAuthority };
 
@@ -524,17 +533,16 @@ describe.each(Object.keys(harnesses))('credit ledger (%s store)', (kind) => {
   it('records issuance provenance per lot and keeps quantity, price, reward and service price distinct', async () => {
     const purchased = await fund(ledger, 'acct_alice', 40);
     const earned = await earn(ledger, 'acct_alice', 30, 'work:1');
+    const donation = await allocate(ledger, {
+      commitmentId: 'commitment:donation:1', funderKind: 'donor', funderId: 'donor_test', use: 'donated_credit', useRef: 'donation:1', credits: 20, accountId: 'acct_alice'
+    });
     const donated = await ledger.issueCredits({
       accountId: 'acct_alice', provenance: 'donated', amount: 20,
-      source: { donationId: 'donation:1', donorId: 'donor_test' }, idempotencyKey: 'issue:donation:1'
+      source: { donationId: 'donation:1', donorId: 'donor_test', commitmentId: 'commitment:donation:1', allocationId: donation.allocationId },
+      idempotencyKey: 'issue:donation:1'
     });
-    await ledger.recordFundingCommitment({
-      commitmentId: 'commitment:1', funderKind: 'operator', funderId: 'operator_test', externalRef: 'external:commitment:1', amount: 10,
-      unit: { kind: 'credits' }, validFrom: clock(), validUntil: at(60 * MIN), idempotencyKey: 'commit:1'
-    });
-    const allocation = await ledger.allocateFunding({
-      commitmentId: 'commitment:1', use: 'community_access_pool', useRef: 'funding:1', credits: 10, accountId: 'acct_alice',
-      funderKinds: ['operator'], idempotencyKey: 'allocate:funding:1'
+    const allocation = await allocate(ledger, {
+      commitmentId: 'commitment:1', funderKind: 'operator', funderId: 'operator_test', use: 'community_access_pool', useRef: 'funding:1', credits: 10, accountId: 'acct_alice'
     });
     const funded = await ledger.issueCredits({
       accountId: 'acct_alice', provenance: 'community_access', amount: 10,
@@ -595,7 +603,11 @@ describe.each(Object.keys(harnesses))('credit ledger (%s store)', (kind) => {
       category: 'storage', workId, offerId: `offer:${workId}`, validationId: `validation:${workId}`,
       validatorId: 'validator_test', outcome: 'accepted', validatedAt: clock()
     });
-    const funding = { fundingId: 'funding:operator', funderKind: 'operator', funderId: 'operator_test' };
+    const { allocationId } = await allocate(ledger, {
+      commitmentId: 'commitment:operator', funderKind: 'operator', funderId: 'operator_test', use: 'reward_funding', useRef: 'funding:operator', credits: 10,
+      authority: { actorId: 'funding_admin_test', decisionId: 'decision:fund' }
+    });
+    const funding = { fundingId: 'funding:operator', funderKind: 'operator', funderId: 'operator_test', commitmentId: 'commitment:operator', allocationId };
     await rejectsWith(ledger.issueCredits({
       accountId: 'acct_bob', provenance: 'subsidized', amount: 5, source: work('work:unfunded'), idempotencyKey: 'issue:unfunded'
     }), 'invalid_source_reference');

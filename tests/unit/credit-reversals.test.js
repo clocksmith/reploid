@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { validateReversalPolicy } from '../../server/ledger/reversals.js';
 import { LEDGER_STORE_OPERATIONS } from '../../server/ledger/store-contract.js';
 import {
-  MIN, advance, clock, composeIssuance, crash, deliver, harnesses, journalShape, rejectsWith, reserve, resetFixture, spend
+  DAY, MIN, advance, at, clock, composeIssuance, crash, deliver, harnesses, journalShape, rejectsWith, reserve, resetFixture, spend
 } from '../helpers/access-fixture.js';
 
 // Test-only treatments. Which treatment applies to which kind is an open product decision.
@@ -121,9 +121,17 @@ describe.each(Object.keys(harnesses))('credit reversals (%s store)', (kind) => {
 
   it('reverses only purchased lots, keeping earned and subsidized credit distinct', async () => {
     const work = { category: 'storage', workId: 'work:s', offerId: 'o', validationId: 'v', validatorId: 'val', outcome: 'accepted', validatedAt: clock() };
+    await ledger.recordFundingCommitment({
+      commitmentId: 'commitment:operator', funderKind: 'operator', funderId: 'operator_test', externalRef: 'external:operator', amount: 7,
+      unit: { kind: 'credits' }, validFrom: clock(), validUntil: at(DAY), idempotencyKey: 'commit:operator'
+    });
+    const { allocationId } = await ledger.allocateFunding({
+      commitmentId: 'commitment:operator', use: 'reward_funding', useRef: 'funding:operator', credits: 7,
+      authority: { actorId: 'funding_admin_test', decisionId: 'decision:fund' }, funderKinds: ['operator'], idempotencyKey: 'allocate:funding:operator'
+    });
     const subsidized = await ledger.issueCredits({
       accountId: 'acct_alice', provenance: 'subsidized', amount: 7, idempotencyKey: 'issue:subsidized',
-      source: { ...work, fundingId: 'funding:operator', funderKind: 'operator', funderId: 'operator_test' }
+      source: { ...work, fundingId: 'funding:operator', funderKind: 'operator', funderId: 'operator_test', commitmentId: 'commitment:operator', allocationId }
     });
     const earned = await ledger.issueCredits({
       accountId: 'acct_alice', provenance: 'earned', amount: 5, idempotencyKey: 'issue:earned', source: { ...work, workId: 'work:e' }

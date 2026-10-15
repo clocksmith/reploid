@@ -29,7 +29,7 @@ Outputs:
 - Readiness requires real admission, execution and settlement probes; stored bytes never prove it.
 - Storage is accessible delivery; byte responses cannot establish local custody.
 - Missed or failed obligations reduce or void rewards per accepted terms.
-- Funded-reservation credit is subsidized, never earned, from open [register](../ledger/funding/CATSCAN.md) allocations; every basis stays within admitted capacity.
+- Funded-reservation credit is subsidized, never earned, from open, authority-approved [register](../ledger/funding/CATSCAN.md) allocations; every basis stays within admitted capacity.
 - One reward per unit of work; same account, owner, participant or named link earns nothing.
 - Rejections, voids and declines persist.
 
@@ -41,4 +41,4 @@ Outputs:
 - Reward amounts, payments, clawback, local-retention proof or attested hardware.
 
 ## Freedom
-Preserve these boundaries and acceptance.
+Preserve boundaries and acceptance.

@@ -117,7 +117,7 @@ export function createAccountGuards({ accounts, ledger, rewards }) {
  */
 export function composeAccountServices({
   accountBackend, accountPolicy, providers, rewardBackend, createLedger, rewardPolicy, issuancePolicy,
-  readAdmittedCapacity, otherProvenance = null, readinessProber = null, clock, createId, random
+  readAdmittedCapacity, otherProvenance = null, readinessProber = null, fundingAuthority = null, clock, createId, random
 } = {}) {
   let ledger = null;
   const accounts = createAccountStore({
@@ -127,7 +127,7 @@ export function composeAccountServices({
   const identity = createAccountIdentityPorts(accounts);
   const composed = composeContributionRewards({
     backend: rewardBackend, createLedger: (ports) => createLedger({ ...ports, deviceAuthority: ledgerDeviceAuthority }),
-    rewardPolicy, issuancePolicy, identity, readAdmittedCapacity, otherProvenance, readinessProber, clock, createId, random
+    rewardPolicy, issuancePolicy, identity, readAdmittedCapacity, otherProvenance, readinessProber, fundingAuthority, clock, createId, random
   });
   ledger = composed.ledger;
   return { accounts, identity, ...composed, guards: createAccountGuards({ accounts, ledger, rewards: composed.rewards }) };

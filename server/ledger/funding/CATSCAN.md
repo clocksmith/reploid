@@ -7,8 +7,8 @@ Parent: [Service Credit Ledger](../CATSCAN.md)
 One record per external funding commitment, with every use's allocation drawn within its total.
 
 ## Authority
-- Owns funding commitments, external-reference claims, allocations by named use, their release and expiry, and the solvency `funding` view.
-- Excludes funding decisions and amounts, currency-to-credit conversion, which funder kinds a use accepts, and each use's own consumption records.
+- Owns funding commitments, external-reference claims, allocations by named use, credits issued against them, their release and expiry, and the solvency `funding` view.
+- Excludes funding decisions and amounts, who holds funding authority, currency-to-credit conversion and which funder kinds a use accepts.
 
 ## Scope
 
@@ -17,8 +17,8 @@ One record per external funding commitment, with every use's allocation drawn wi
 ## Contracts
 
 Inputs:
-- Commitments naming funder kind and identity, external reference, total in credit units or currency minor units, and validity.
-- Allocations for [reward funding reservations](../../rewards/CATSCAN.md) and [Community Access pools](../../community-access/CATSCAN.md), naming the funder kinds each accepts.
+- Commitments naming funder kind and identity, external reference, total (credits or currency minor units) and validity.
+- Allocations for [reward funding](../../rewards/CATSCAN.md), [Community Access pools](../../community-access/CATSCAN.md) and donated credit, naming accepted funder kinds and any authority decision.
 
 Outputs:
 - Ledger operations in [store-contract.js](../store-contract.js) and the solvency `funding` block.
@@ -26,17 +26,18 @@ Outputs:
 ## Invariants
 - An external reference records one commitment.
 - Each allocation commits in one ledger transaction with its commitment's total and never exceeds it.
-- Allocation and pool issuance need the commitment's validity; status derives from it.
-- Release or expiry returns the unconsumed share, never more.
-- Community Access issuance consumes its pool allocation inside the issuance transaction.
+- Subsidized, Community Access and donated lots draw their allocation inside the issuance transaction, never beyond it.
+- Allocation and whole issuance need validity; status derives from it.
+- Reported consumption never falls below issued credits and caps later issuance; release or expiry returns the rest.
+- Reward allocations and every release name an authority and decision.
 - Uses record no commitments of their own.
 
 ## Acceptance
-- Memory and Firestore stores pass identical register scenarios across both uses.
+- Memory and Firestore stores pass identical register scenarios.
 - Evidence: [funding register tests](../../../tests/unit/funding-register.test.js).
 
 ## Non-goals
-- Moving or holding money, currency conversion, funder verification or expiring issued balances.
+- Moving money, funder verification or expiring issued balances.
 
 ## Freedom
 Preserve these boundaries and pass acceptance.
