@@ -4,7 +4,9 @@
   "product_intent": {
     "lead": "Question answering, synthesis across model knowledge and web sources, ideation and everyday search tasks",
     "attachments": "Supporting feature, not lead positioning",
-    "later": "Reploid-native autonomous agents with bounded tools, durable execution and budgets"
+    "later": "Reploid-native autonomous agents with bounded tools, durable execution and budgets",
+    "promise": "Ask, explore and figure things out. Earn access by contributing useful computer resources, or pay as you go.",
+    "search": "Optional tool; invoke when useful, through an eligible authorized route rather than requiring paid search for every interaction."
   },
   "sources": [
     {
@@ -23,6 +25,14 @@
       "url": "https://stripe.com/pricing",
       "us_domestic_card_fraction": 0.029,
       "fixed_usd": 0.3
+    },
+    {
+      "url": "https://developer.chrome.com/docs/extensions/develop/concepts/network-requests",
+      "scope": "Extension-origin cross-origin requests and required host permissions"
+    },
+    {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS",
+      "scope": "Ordinary-page cross-origin constraints"
     }
   ],
   "assumptions": {
@@ -32,7 +42,8 @@
     "output_tokens_per_answer": 500,
     "model_calls_per_answer": 1,
     "all_attempts_satisfactory_and_on_time": true,
-    "cache_discount": false
+    "cache_discount": false,
+    "original_rows_retrieval_route": "paid API only; not a universal Reploid cost model"
   },
   "net_after_card_fee_usd": 9.41,
   "rows": [
@@ -74,7 +85,104 @@
   "interpretation": [
     "Positive remainder is not profit.",
     "Search and inference are paid external bills in this comparator; substituting the mesh replaces inference with contributor and execution costs, not an additional duplicated inference bill.",
-    "Earned-credit redemption still incurs external search costs and needs funded capacity or cross-subsidy; issuance alone does not fund it.",
-    "No monthly subscription is implied by this one-time topup scenario."
+    "No monthly subscription is implied by this one-time topup scenario.",
+    "The original rows apply only to paid-API retrieval.",
+    "Mixed-route remainder excludes all local/remote retrieval resource costs and is not profit.",
+    "Earned-credit redemption must fund actual external bills and service costs; no-fee retrieval reduces a potential bill but does not create funding.",
+    "Measure actual billable attempts including retries; the simple fallback fraction assumes one paid request per fallback and none on successful no-fee lookups."
+  ],
+  "retrieval_route_policy": {
+    "eligible_route_types": [
+      "requester browser extension",
+      "requester native/Node companion",
+      "permitted remote retrieval worker",
+      "paid search API"
+    ],
+    "selection": "Choose among qualified routes within authorized recipients, access rules, deadline, cost and owner limits; fallback may not silently broaden disclosure or spending.",
+    "common_result_contract": [
+      "request and route identities",
+      "URLs and extracted evidence",
+      "retrieval timestamp and duration",
+      "provenance/content hashes where available",
+      "errors and partial outcomes",
+      "actual attempts, billable calls and measured/unknown costs"
+    ],
+    "privacy": "Search providers receive queries; synthesis executors receive authorized evidence and context. Private browser sessions, credentials and authenticated content are not shared infrastructure by default.",
+    "cost_boundary": "No per-query API fee is not zero cost. Include local/remote execution, bandwidth, hosting, maintenance, failed attempts and user intervention.",
+    "browser_boundary": "An ordinary Reploid tab cannot generally read unrelated tabs or arbitrary origins. Extension cross-origin requests require host permissions in an appropriate extension context; native bridges require explicit authorization.",
+    "qualification": "The 90% no-fee success rate is an assumption, not a measured route capability or savings claim."
+  },
+  "source_inspection": {
+    "existing": [
+      "packages/reploid/src/retrieval/index.d.ts defines provider/extractor contracts with source URLs, timestamps, hashes, usage and errors",
+      "server/search/brave.js and server/search/searxng.js provide server adapters"
+    ],
+    "not_established": [
+      "installed requester extension or companion search route",
+      "qualified remote retrieval contributor path and associated rewards",
+      "measured no-fee success and paid fallback rates",
+      "cost/latency/quality equivalence of retrieval routes"
+    ],
+    "scope": "Source inspection only; no runtime tests or live provider requests in this update."
+  },
+  "proof_journey": [
+    "Freeze one investigation task, evidence requirements, answer quality policy, deadline and permissions.",
+    "Run it through requester-device retrieval plus authorized synthesis and record every attempt, source, error, fallback, intervention, latency and attributable cost.",
+    "Repeat against API-only retrieval under comparable conditions; compare evidence coverage and supported-answer quality, not just successful HTTP responses.",
+    "Use repeated representative investigations to estimate fallback rate and costs; a single successful journey proves integration only."
+  ],
+  "mixed_route_rows": [
+    {
+      "answers": 1000,
+      "searches_per_answer": 3,
+      "paid_fallback_fraction": 0,
+      "no_fee_success_fraction": 1,
+      "paid_api_requests": 0,
+      "model_cost_usd": 0.835,
+      "paid_search_api_cost_usd": 0.0,
+      "remaining_after_payment_model_and_paid_search_usd": 8.575,
+      "no_fee_route_resource_cost_usd": null,
+      "complete_service_cost_usd": null,
+      "profit_usd": null
+    },
+    {
+      "answers": 1000,
+      "searches_per_answer": 3,
+      "paid_fallback_fraction": 0.1,
+      "no_fee_success_fraction": 0.9,
+      "paid_api_requests": 300.0,
+      "model_cost_usd": 0.835,
+      "paid_search_api_cost_usd": 1.5,
+      "remaining_after_payment_model_and_paid_search_usd": 7.074999999999999,
+      "no_fee_route_resource_cost_usd": null,
+      "complete_service_cost_usd": null,
+      "profit_usd": null
+    },
+    {
+      "answers": 1000,
+      "searches_per_answer": 3,
+      "paid_fallback_fraction": 0.5,
+      "no_fee_success_fraction": 0.5,
+      "paid_api_requests": 1500.0,
+      "model_cost_usd": 0.835,
+      "paid_search_api_cost_usd": 7.5,
+      "remaining_after_payment_model_and_paid_search_usd": 1.0749999999999993,
+      "no_fee_route_resource_cost_usd": null,
+      "complete_service_cost_usd": null,
+      "profit_usd": null
+    },
+    {
+      "answers": 1000,
+      "searches_per_answer": 3,
+      "paid_fallback_fraction": 1,
+      "no_fee_success_fraction": 0,
+      "paid_api_requests": 3000,
+      "model_cost_usd": 0.835,
+      "paid_search_api_cost_usd": 15.0,
+      "remaining_after_payment_model_and_paid_search_usd": -6.425000000000001,
+      "no_fee_route_resource_cost_usd": null,
+      "complete_service_cost_usd": null,
+      "profit_usd": null
+    }
   ]
 }
