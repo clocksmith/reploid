@@ -7,7 +7,7 @@ Parent: [Hosted Services](../CATSCAN.md)
 One account per sign-in subject, usable from every registered device; keys count for it only while registered.
 
 ## Authority
-- Owns accounts, sessions, device registration and revocation, recovery, owner grant records, account links and the custody-certificate format.
+- Owns accounts, sessions, device registration and revocation, recovery, owner grant records, account links and custody-key attribution.
 - Excludes sign-in providers, balances, rewards, payments, disclosure grants and HTTP routes.
 
 ## Scope
@@ -17,7 +17,7 @@ One account per sign-in subject, usable from every registered device; keys count
 ## Contracts
 
 Inputs:
-- Provider assertions through [sign-in](sign-in.js); device [proofs](proofs.js) and [custody certificates](custody-certificate.js) signed by persistent participant identities.
+- Provider assertions through [sign-in](sign-in.js); device [proofs](../../packages/reploid/src/artifacts/participant-proofs.js) and [custody certificates](../../packages/reploid/src/artifacts/custody-certificate.js), library formats signed by persistent identities.
 
 Outputs:
 - Operations in [store-contract.js](store-contract.js); ledger and reward identity ports and session guards in [compose.js](compose.js).

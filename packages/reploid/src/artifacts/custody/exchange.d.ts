@@ -15,6 +15,19 @@ export interface CustodyExchangePolicy {
 }
 type Supplier = Awaited<ReturnType<typeof createPeerPackSupplier>>;
 type Store = Awaited<ReturnType<typeof createPeerPackArtifactStore>>;
+/** `reploid.custody-key-certificate/v1` (../custody-certificate.js): a persistent participant
+ * identity's signed statement that it holds this per-process custody key and peer id. */
+export interface CustodyKeyCertificate {
+  schema: 'reploid.custody-key-certificate/v1'; certificateId: string; participantId: string;
+  custodyPeerId: string; custodyPublicKey: string; issuedAt: string; expiresAt: string; signature: string;
+}
+/** One granted (supplier) or completed (requester) transfer. A certificate is null unless that
+ * party sent one bound to its grant key and peer id; the signer is not verified here. */
+export interface CustodyDeliveryRecord {
+  role: 'supplier' | 'requester'; transferId: string; peerId: string;
+  authorization: unknown; index: unknown; receipt: ReturnType<Store['getReceipt']> | null;
+  certificates: { requester: CustodyKeyCertificate | null; supplier: CustodyKeyCertificate | null };
+}
 export interface CustodyExchangePorts {
   /** Required for supply, not acquisition. Durable atomic reservations never refund uncertainty. */
   supplyBudget?: {
@@ -40,6 +53,11 @@ export interface CustodyExchangePorts {
   hashBytes(bytes: Uint8Array): Promise<string>;
   checkpoints?: CustodyCheckpoints;
   observe?(receipt: ReturnType<Store['getReceipt']>): void;
+  /** This participant's certificate for its custody key, sent beside requests and grants.
+   * Without it, or when it does not bind this key and peer id, nothing is sent. */
+  certificate?(): Promise<CustodyKeyCertificate | null>;
+  /** Evidence for each granted or completed transfer, with both parties' bound certificates. */
+  observeDelivery?(record: CustodyDeliveryRecord): void;
   onChange?(): void;
   onError?(error: Error): void;
 }

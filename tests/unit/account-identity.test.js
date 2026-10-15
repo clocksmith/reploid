@@ -2,7 +2,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { createAccountGuards, ledgerDeviceAuthority } from '../../server/accounts/compose.js';
-import { createDeviceRegistrationProof, registrationProofBody, signAsParticipant, REGISTRATION_PROOF_SCHEMA } from '../../server/accounts/proofs.js';
+import { createDeviceRegistrationProof, registrationProofBody, signAsParticipant, REGISTRATION_PROOF_SCHEMA } from '../../packages/reploid/src/artifacts/participant-proofs.js';
 import { ACCOUNT_STORE_OPERATIONS, validateAccountStoreContract } from '../../server/accounts/store-contract.js';
 import { validateAccountPolicy } from '../../server/accounts/domain.js';
 import { createLedgerStore } from '../../server/ledger/engine.js';

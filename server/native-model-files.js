@@ -69,7 +69,7 @@ export async function createNativeArtifactCache({ directory, maxBytes = policy.m
 
 /** `owner` is the optional native owner gate (server/native-owner/controls.js). Without
  * it, channels, supply admission and acquisition deadlines are exactly as before.
- * `certifyCustodyKey` (server/accounts/custody-certificate.js) lets the persistent
+ * `certifyCustodyKey` (packages/reploid/src/artifacts/custody-certificate.js) lets the persistent
  * participant identity certify this process's custody key; without it the key stays
  * unattributable to any device. */
 export async function createNativeModelFiles({ transport, modelDirectory, cacheDirectory, onChange = () => {}, owner = null, certifyCustodyKey = null }) {
@@ -105,13 +105,16 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
     finally { await handle?.close(); }
   };
   const observe = receipt => { receipts.push(receipt); if (receipts.length > policy.maxReceipts) receipts.shift(); onChange(); };
+  // Transfer evidence with both parties' certificates, for whoever claims the delivery.
+  const deliveries = [], observeDelivery = record => { deliveries.push(record); if (deliveries.length > policy.maxReceipts) deliveries.shift(); };
   const contracts = createCustodyContracts({ hashDopplerEvidence, validateExecutablePack, executablePacksMatch, sha256Hex, signCanonical, verifyCanonicalSignature });
   const exchange = createCustodyExchange({ transport, identity: custodyKey, policy, ports: { supplyBudget,
     createSupplier: contracts.createPeerPackSupplier, createStore: contracts.createPeerPackArtifactStore,
     createChannel: owner ? owner.paceChannel(createPeerPackDataChannel) : createPeerPackDataChannel,
     ...(owner ? { admitSupply: request => owner.admitSupply(request) } : {}), hash: hashDopplerEvidence, hashBytes: sha256Hex,
     readArtifact: async file => { const bytes = await cache.get(file); assert(bytes, 'Advertised native bytes are unavailable'); return bytes; },
-    verifyArtifact: verify, commitArtifact: (file, bytes, controls) => cache.put(file, bytes, controls), observe, onChange
+    verifyArtifact: verify, commitArtifact: (file, bytes, controls) => cache.put(file, bytes, controls), observe, onChange,
+    certificate: custodyCertificate, observeDelivery
   } });
   const readAvailableMetadata = async (file, signal) => {
     signal.throwIfAborted(); let bytes = await cache.get(file);
@@ -147,7 +150,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
     retainedFiles: retained.size, receiptCount: receipts.length,
     ...(includeReceipts ? { receipts: structuredClone(receipts) } : {}) });
   exchange.announce();
-  return Object.freeze({ getState, announce: () => exchange.announce(), custodyCertificate,
+  return Object.freeze({ getState, announce: () => exchange.announce(), custodyCertificate, getDeliveryEvidence: () => structuredClone(deliveries),
     preparePartitionSource(model, { signal } = {}) { return own((async () => {
       signal = AbortSignal.any([lifetime.signal, ...(signal ? [signal] : [])]);
       const data = await metadata(model, signal), descriptors = new Map(); signal.throwIfAborted();

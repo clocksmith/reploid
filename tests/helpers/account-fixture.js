@@ -6,7 +6,7 @@ import { createHmac, randomBytes, randomUUID, timingSafeEqual } from 'node:crypt
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createSigningKeyPair, exportPublicKey } from '../../packages/reploid/src/artifacts/signatures.js';
 import { ACCOUNT_LEDGER_COLLECTIONS, composeAccountServices } from '../../server/accounts/compose.js';
-import { createDeviceRegistrationProof } from '../../server/accounts/proofs.js';
+import { createDeviceRegistrationProof } from '../../packages/reploid/src/artifacts/participant-proofs.js';
 import { createFirestoreAccountBackend, createMemoryAccountBackend, createMemoryAccountState } from '../../server/accounts/stores.js';
 import { canonicalJson } from '../../server/ledger/domain.js';
 import { createLedgerStore } from '../../server/ledger/engine.js';

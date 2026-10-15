@@ -8,7 +8,7 @@ export { createMessages } from './messages.js';
 
 import fs from 'node:fs/promises';
 import { createNativeModelFiles } from './native-model-files.js';
-import { createCustodyKeyCertifier } from './accounts/custody-certificate.js';
+import { createCustodyKeyCertifier } from '../packages/reploid/src/artifacts/custody-certificate.js';
 import { openNativeOwnerControls, nativeOwnerStatus, NO_OWNER_POLICY } from './native-owner/controls.js';
 import { openNativeCanonicalEpochs } from './native-canonical-epochs.js';
 import { openNativeReleaseCheckpoints } from './native-release-storage.js';

@@ -35,7 +35,7 @@ import {
   put,
   toMs
 } from './domain.js';
-import { checkDeviceRegistrationProof } from './proofs.js';
+import { checkDeviceRegistrationProof } from '../../packages/reploid/src/artifacts/participant-proofs.js';
 
 const challengeView = (challenge) => ({
   schema: challenge.schema,

@@ -10,7 +10,7 @@
  * so past receipts keep their attribution.
  */
 
-import { checkCustodyKeyCertificate } from './custody-certificate.js';
+import { checkCustodyKeyCertificate } from '../../packages/reploid/src/artifacts/custody-certificate.js';
 import { fail, indexId, isIsoTime, registrationCovers, toMs } from './domain.js';
 
 const provenance = (registration, extra = {}) => ({

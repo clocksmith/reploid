@@ -1,6 +1,7 @@
 import { resolvePartitionArtifactSource } from './work-partition-artifact-source.js';
 /** Host grants and pinned catalog composition for the library's signed artifact custody. */
 import { createCustodyExchange } from '../vendor/reploid/artifacts/custody/exchange.js';
+import { createCustodyKeyCertifier } from '../vendor/reploid/artifacts/custody-certificate.js';
 import { createPeerPackSupplier, createPeerPackArtifactStore } from '../pool/peer-pack-custody.js';
 import { createPeerPackDataChannel } from '../pool/peer-pack-data-channel.js';
 import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../pool/inference-receipt.js';
@@ -27,7 +28,10 @@ const SEEDING_BYTES = Object.freeze(Object.fromEntries(LOCAL_DOPPLER_MODELS
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 const decoder = new TextDecoder('utf-8', { fatal: true });
 
-export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchImpl = globalThis.fetch }) {
+/** `getIdentity` returns the persistent participant identity bundle. When present it certifies each
+ * per-attach custody key (renewed at half-life), so this browser's deliveries are attributable;
+ * without it custody keys stay unattributable. */
+export function createWorkModelFiles({ getTransport, getIdentity = () => null, onChange = () => {}, fetchImpl = globalThis.fetch }) {
   let exchange = null, checkpoints = null, attaching = null, closed = false, preparing = false, stopping = false;
   let directory = null, tooling = null, storageFactory = null, lastFile = null, error = '', progress = null;
   const pieceWaiters = [];
@@ -46,7 +50,8 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
       if (closed) budget.close();
     } catch (cause) { budgetError = cause; }
   })();
-  const lifetime = new AbortController(), operations = new Set(), receipts = [];
+  const lifetime = new AbortController(), operations = new Set(), receipts = [], deliveries = [];
+  let custodyCertificate = async () => null;
   const own = operation => {
     operations.add(operation); operation.finally(() => operations.delete(operation)).catch(() => {}); return operation;
   };
@@ -233,6 +238,8 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
       const pair = await createSigningKeyPair();
       checkpoints = await openPeerPackFileCheckpoints({ maxBytes: policy.maxCheckpointBytes });
       const identity = { peerId: transport._getPeerId(), publicKey: await exportPublicKey(pair.publicKey), privateKey: pair.privateKey };
+      const participant = getIdentity(), certifier = participant ? createCustodyKeyCertifier({ identity: participant }) : null;
+      custodyCertificate = async () => certifier ? certifier.certify({ custodyPeerId: identity.peerId, custodyPublicKey: identity.publicKey }) : null;
       lifetime.signal.throwIfAborted();
       exchange = createCustodyExchange({ transport, identity, policy, ports: { supplyBudget,
         createSupplier: createPeerPackSupplier, createStore: createPeerPackArtifactStore, createChannel: createPeerPackDataChannel,
@@ -244,13 +251,16 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
         })()), verifyArtifact: check,
         commitArtifact: (file, bytes, { signal }) => persist(file, bytes, signal),
         hash: hashDopplerEvidence, hashBytes: sha256Hex, checkpoints, onChange: notify,
-        observe: receipt => { receipts.push(receipt); if (receipts.length > policy.maxReceipts) receipts.shift(); }
+        observe: receipt => { receipts.push(receipt); if (receipts.length > policy.maxReceipts) receipts.shift(); },
+        certificate: () => custodyCertificate(),
+        observeDelivery: record => { deliveries.push(record); if (deliveries.length > policy.maxReceipts) deliveries.shift(); }
       } });
       exchange.announce();
     })().finally(() => { attaching = null; });
     return attaching;
   };
   return Object.freeze({ getState, attach, announce: () => exchange?.announce(),
+    custodyCertificate: () => custodyCertificate(), getDeliveryEvidence: () => structuredClone(deliveries),
     async preparePartitionSource(model, { signal, onProgress }) {
       signal = AbortSignal.any([signal, lifetime.signal].filter(Boolean));
       const custody = { queueMs: 0, peerTransferMs: 0, cacheReadMs: 0, peerBytes: 0, cacheBytes: 0, transfers: 0, failures: 0 };

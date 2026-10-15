@@ -1,5 +1,7 @@
-import { it, expect, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { createCustodyExchange } from '../../packages/reploid/src/artifacts/custody/exchange.js';
+import { CUSTODY_CERTIFICATE_LIFETIME_MS, checkCustodyKeyCertificate, createCustodyKeyCertifier } from '../../packages/reploid/src/artifacts/custody-certificate.js';
+import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createPeerPackSupplier, createPeerPackArtifactStore } from '../../self/pool/peer-pack-custody.js';
 import { createPeerPackDataChannel } from '../../self/pool/peer-pack-data-channel.js';
 import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../../self/pool/inference-receipt.js';
@@ -14,15 +16,15 @@ function channelPair() {
   });
   return channels;
 }
-async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, maxSupplyBytes = 100, commitArtifact, onChange = () => {}, clockOffsets = [], grantMs = [], supplierGrant = () => {}, supplyBudgets = [], sendResult = () => true, onSupplier = () => {}, timeoutMs = 1000, down = new Set() } = {}) {
-  const bytes = new Uint8Array([1, 2, 3, 4, 5]), stores = Array.from({ length: count }, () => new Map()), callbacks = [], owners = [], receipts = [], requests = [];
+async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, maxSupplyBytes = 100, commitArtifact, onChange = () => {}, clockOffsets = [], grantMs = [], supplierGrant = () => {}, supplyBudgets = [], sendResult = () => true, onSupplier = () => {}, timeoutMs = 1000, down = new Set(), certify = null } = {}) {
+  const bytes = new Uint8Array([1, 2, 3, 4, 5]), stores = Array.from({ length: count }, () => new Map()), callbacks = [], owners = [], receipts = [], requests = [], deliveries = [];
   const file = { path: 'shard.bin', role: 'model-weights', sizeBytes: 5, hash: (await sha256Hex(bytes)).slice(7), hashAlgorithm: 'sha256' };
   const policy = { maxTransfers: 2, maxPeers, maxAcquisitionAttempts: 4, maxSupplyBytes, maxArtifactBytes: 20, maxInventoryFiles: 128, grantMs: 5000,
     channel: { maxFrameBytes: 128, maxControlBytes: 4096, maxChunkBytes: 2,
       maxBufferedBytes: 8192, maxPendingRequests: 2, maxTransferBytes: 1048576, timeoutMs } };
   const reads = vi.fn(async () => bytes.slice());
   for (let i = 0; i < count; i++) {
-    const pair = await createSigningKeyPair();
+    const pair = await createSigningKeyPair(), publicKey = await exportPublicKey(pair.publicKey);
     let durableReserved = 0;
     const supplyBudget = supplyBudgets[i] || { getState: () => ({ reservedBytes: durableReserved, maxBytes: maxSupplyBytes }),
       async reserve(bytes) { if (durableReserved + bytes > maxSupplyBytes) throw new Error('File contribution limit reached'); durableReserved += bytes; return this.getState(); } };
@@ -40,7 +42,7 @@ async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, m
       onDataChannel: (_, callback) => { callbacks[i] = callback; return () => {}; },
       openDataChannel(peer) { const [left, right] = channelPair(); callbacks[Number(peer)](String(i), right); return left; }
     };
-    owners.push(createCustodyExchange({ transport, identity: { peerId: String(i), privateKey: pair.privateKey, publicKey: await exportPublicKey(pair.publicKey) },
+    owners.push(createCustodyExchange({ transport, identity: { peerId: String(i), privateKey: pair.privateKey, publicKey },
       policy: { ...policy, grantMs: grantMs[i] ?? policy.grantMs },
       ports: { supplyBudget, now: () => Date.now() + (clockOffsets[i] || 0),
         createSupplier: async options => { supplierGrant(options.authorization, i); const supplier = await createPeerPackSupplier(options); onSupplier(supplier, i); return supplier; }, createStore: createPeerPackArtifactStore,
@@ -53,9 +55,11 @@ async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, m
           deleteChunk: async chunk => { checkpoints.delete(chunk.hash); }
         },
         hash: hashDopplerEvidence, hashBytes: sha256Hex, observe: receipt => receipts.push(receipt),
+        observeDelivery: record => deliveries.push({ owner: i, ...record }),
+        ...(certify?.(i) ? { certificate: certify(i)({ custodyPeerId: String(i), custodyPublicKey: publicKey, privateKey: pair.privateKey }) } : {}),
         onChange: () => onChange(i) } }));
   }
-  return { owners, file, bytes, reads, receipts, stores, requests, close: () => owners.forEach(owner => owner.close()) };
+  return { owners, file, bytes, reads, receipts, stores, requests, deliveries, close: () => owners.forEach(owner => owner.close()) };
 }
 
 it('cannot renew the supply allowance by refreshing inventory or stopping and restarting', async () => {
@@ -485,4 +489,76 @@ it('stops after the configured number of grants when a supplier never answers', 
     expect(f.requests).toHaveLength(4);
     expect(a.getState().pending).toBe(0);
   } finally { f.close(); }
+});
+
+describe('identity certificates beside custody grants', () => {
+  const certifierFor = identities => i => identities[i] ? ({ custodyPeerId, custodyPublicKey }) => {
+    const certifier = createCustodyKeyCertifier({ identity: identities[i] });
+    return () => certifier.certify({ custodyPeerId, custodyPublicKey });
+  } : null;
+  const transfer = async f => {
+    const [requester, supplier] = f.owners;
+    supplier.offer([f.file]); await vi.waitFor(() => expect(requester.has(f.file)).toBe(true));
+    await requester.acquire(f.file, { signal: new AbortController().signal });
+    return { requesterRecord: f.deliveries.find(row => row.owner === 0), supplierRecord: f.deliveries.find(row => row.owner === 1) };
+  };
+
+  it('carries each party\'s certificate to the other and records transfer evidence on both sides', async () => {
+    const identities = [await createSigningIdentity({ algorithm: 'ECDSA' }), await createSigningIdentity({ algorithm: 'Ed25519' })];
+    const f = await fixture({ certify: certifierFor(identities) });
+    try {
+      const { requesterRecord, supplierRecord } = await transfer(f);
+      const { requester, supplier } = requesterRecord.certificates;
+      expect(requester).toMatchObject({ participantId: identities[0].peerId, custodyPeerId: '0' });
+      expect(supplier).toMatchObject({ participantId: identities[1].peerId, custodyPeerId: '1' });
+      // Each certificate is signed by its participant identity over the custody key the grant names.
+      for (const [index, certificate] of [requester, supplier].entries()) {
+        expect(await checkCustodyKeyCertificate(certificate, { publicJwk: identities[index].publicJwk, atMs: Date.now(),
+          maxLifetimeMs: CUSTODY_CERTIFICATE_LIFETIME_MS, maxClockSkewMs: 0 })).toEqual([]);
+      }
+      expect(requester.custodyPublicKey).toBe(requesterRecord.authorization.requester.publicKey);
+      expect(supplier.custodyPublicKey).toBe(requesterRecord.authorization.suppliers[0].publicKey);
+      expect(requesterRecord).toMatchObject({ role: 'requester', peerId: '1', transferId: requesterRecord.authorization.transferId,
+        receipt: { schema: 'reploid.pool.pack-custody-receipt/v1', transferId: requesterRecord.authorization.transferId } });
+      expect(requesterRecord.index.artifactSetIdentity).toBe(requesterRecord.authorization.artifactSet.identity);
+      // The supplier holds the same grant and the requester's certificate; certificates stay outside the grant.
+      expect(supplierRecord).toMatchObject({ role: 'supplier', peerId: '0', receipt: null, certificates: { requester, supplier } });
+      expect(supplierRecord.authorization).toEqual(requesterRecord.authorization);
+      expect(JSON.stringify(requesterRecord.authorization)).not.toContain('certificate');
+      expect(f.requests.at(-1).requesterCertificate).toEqual(requester);
+    } finally { f.close(); }
+  });
+
+  it('interoperates with uncertified peers and drops certificates not bound to the grant key', async () => {
+    const identity = await createSigningIdentity({ algorithm: 'Ed25519' });
+    const f = await fixture({ certify: certifierFor([null, identity]) });
+    try {
+      const { requesterRecord, supplierRecord } = await transfer(f);
+      expect(requesterRecord.certificates).toMatchObject({ requester: null, supplier: { participantId: identity.peerId } });
+      expect(supplierRecord.certificates.requester).toBeNull();
+      expect(f.requests.at(-1)).not.toHaveProperty('requesterCertificate');
+    } finally { f.close(); }
+
+    // A certificate naming another custody key is neither sent by its host nor kept by a peer.
+    const foreign = await createSigningKeyPair();
+    const other = await createSigningIdentity({ algorithm: 'Ed25519' });
+    const misbound = await createSigningIdentity({ algorithm: 'Ed25519' });
+    const forged = await createCustodyKeyCertifier({ identity: misbound })
+      .certify({ custodyPeerId: '0', custodyPublicKey: await exportPublicKey(foreign.publicKey) });
+    const g = await fixture({
+      certify: i => i === 1 ? ({ custodyPeerId, custodyPublicKey }) => {
+        const certifier = createCustodyKeyCertifier({ identity: other });
+        return () => certifier.certify({ custodyPeerId, custodyPublicKey: custodyPeerId === '1' ? 'not-this-key' : custodyPublicKey });
+      } : null,
+      sendResult: (from, peer, type, payload) => {
+        if (type === 'reploid:custody-request' && payload.artifact) payload.requesterCertificate = forged;
+        return true;
+      }
+    });
+    try {
+      const { requesterRecord, supplierRecord } = await transfer(g);
+      expect(requesterRecord.certificates).toEqual({ requester: null, supplier: null });
+      expect(supplierRecord.certificates).toEqual({ requester: null, supplier: null });
+    } finally { g.close(); }
+  });
 });
