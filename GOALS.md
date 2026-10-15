@@ -2,6 +2,12 @@
 
 ## Operating mission
 
+Reploid's current objective is to validate one bounded AI service with real
+demand, dependable contributor supply and sustainable complete-request
+economics. A chosen model, audience, service contract and contributor cohort
+define the scope of both success and rejection. A failed cell does not reject
+every distributed-compute approach; a passing cell does not qualify broad support.
+
 Reploid helps people ask questions, compare options, connect information, and develop ideas using open models and web sources. Its promise: earn on your computer, use AI anywhere.
 
 Consumer chat leads, with cited investigations, follow-ups, and persistent history. Attachments provide context. Search runs through authorized device-side tools or paid providers, with retrieval, verification, and fallback costs measured separately. Developer APIs and autonomous agents follow.
@@ -12,11 +18,23 @@ Reploid coordinates capacity, permissions, queues, accounting, and recovery; Dop
 
 Revenue comes from delivered paid services and funded community usage. Reploid retains a margin after contributor rewards, retrieval, verification, infrastructure, payment fees, support, and reliability costs. Outstanding credits require realistic redemption funding. Reserved service, cash payouts, transfers, and trading follow proven demand and controls.
 
-Launch with one model community and supported hardware cohort, using founder machines with disclosed subsidies. The hypothesis is that pooled intermittent demand and otherwise-idle resources can deliver competitive service economically.
+Qualify the architecture before selecting a pilot: compare whole-model,
+same-machine partitioned and network-partitioned execution at identical model,
+prompts, quality, hardware budget and deadlines. Prefer whole-model service
+whenever one participant can satisfy the request. Partitioning must justify its
+complete-request costs and is not itself the product outcome.
 
-Freeze quality, latency, surplus, margin, and advantage thresholds before testing. Measure overnight contribution and next-day redemption, then replay demand against task-equivalent alternatives. Count energy, hardware assumptions, idle time, failures, and rejected demand.
+Freeze the service scope and acceptance before recruitment. Validate completed
+real tasks, voluntary repeat requests, wait times, contributor reliability and
+the user's current alternative before transaction experiments. Hardware interest
+without measured availability, memory, bandwidth and operating windows is not
+qualified supply. Count preparation, communication, idle capacity, failures,
+refunds and rejected demand in complete-request economics.
 
-Scale only when contributors earn worthwhile value, customers return and obtain competitive answers, and Reploid retains positive contribution margin. Report energy efficiency separately. Repeat purchases and sustained participation justify expansion; failed configurations are revised or rejected before spending or unsupported commercial promises.
+Expansion requires admitted demand, dependable supply and sustainable economics
+within predeclared exposure limits. Failed thresholds or exhausted allowances
+close the selected cell; they do not authorize an adjacent campaign. Existing
+accepted service and refund obligations remain binding on closure.
 
 The [product specification](docs/product-specification.md) is the canonical contract for this plan, including nonexpiring balances, quoted service, owner limits and separately qualified financial accounting. Complete-answer quality, latency and economics require their own evidence; numerical parity alone is insufficient.
 
@@ -64,12 +82,12 @@ qualify execution or authorize adoption; those remain application/operator contr
 
 ## Current implementation sequence
 
-The owner's private roadmap owns the active cross-repository checklist: dependable
-distributed chat as the technical foundation, then the complete initial consumer
-product with everyday utility, access, earning, owner control and measured costs.
-The existing five cumulative launches retain their numbers. Durable independent
-jobs and evaluated improvement remain later capabilities.
-Other plans retain design contracts and historical evidence, not parallel queues.
+The owner's private roadmap owns the capped validation sequence and exposure
+limits. Existing launch numbers and acceptance records are retained references,
+not an automatic expansion queue. Marketplaces, payouts, speculative blocks,
+broad model support and self-improving placement are paused. Long-term outcomes
+and research below do not authorize concurrent work. Existing user obligations
+and necessary correctness/security repairs remain separately governed.
 
 ## Operating Loops
 
@@ -89,6 +107,8 @@ Preserve uncertainty and observation provenance; duplicated evidence does not
 count as independent experience.
 Evaluate information-seeking decisions rather than assuming exploration helps.
 Specific distributions and scheduling experiments belong in the technical plan.
+This is retained research intent; self-improving placement remains paused under
+the current validation boundary.
 
 ## Strategic Constraints
 

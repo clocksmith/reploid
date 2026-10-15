@@ -25,6 +25,12 @@ Consumer chat leads; coding and vertical specialization follow later.
 
 ## Invariants
 
+- Qualification is scoped to the frozen model, audience, service terms and
+  contributor cohort. Whole-model service is preferred when one participant can
+  satisfy the request; partitioning requires a matched complete-request comparison.
+  Failed thresholds or exhausted exposure caps close that cell without implicit
+  expansion. Actual-use acceptance precedes transaction experiments; promised
+  hardware alone establishes no supply. Preserve already accepted obligations.
 - Participation provides an otherwise unavailable capability, better results,
   greater reliability, or lower total resource cost. Each participant controls
   its contribution, disclosures, and adoption of changes, and can stop contributing.
