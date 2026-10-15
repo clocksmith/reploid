@@ -6,7 +6,7 @@
  * supplies a default limit, funding amount or guarantee.
  */
 
-import { assertId, isNonEmptyString, toMs } from '../ledger/domain.js';
+import { FUNDER_KINDS, assertId, isNonEmptyString, toMs } from '../ledger/domain.js';
 
 export const FUNDING_SCHEMA = 'reploid.community-access-funding/v2';
 export const FUNDING_USE = 'community_access_pool';
@@ -14,8 +14,11 @@ export const ENTRY_SCHEMA = 'reploid.community-access-request/v1';
 export const CAPACITY_EVIDENCE_SCHEMA = 'reploid.community-capacity-evidence/v1';
 export const SUBSIDY_REPORT_SCHEMA = 'reploid.community-access-subsidy/v1';
 
-// Funder kinds whose commitments may fund Community Access pools.
-export const FUNDER_KINDS = Object.freeze(['donor', 'operator']);
+// Funder kinds, from the ledger's one vocabulary, whose commitments may fund Community Access pools.
+export const POOL_FUNDER_KINDS = Object.freeze(['donor', 'operator']);
+for (const kind of POOL_FUNDER_KINDS) {
+  if (!FUNDER_KINDS.includes(kind)) throw new Error(`ledger has no ${kind} funder kind`);
+}
 // `none` is the proposed default: queue or explicit retry, no guaranteed minimum or completion.
 export const GUARANTEE_MODES = Object.freeze(['none', 'funded_floor']);
 export const FLOOR_SHORTFALL_BEHAVIORS = Object.freeze(['queue', 'unavailable']);
@@ -257,7 +260,7 @@ export function entryView(entry, { policy, position = null, capacity = null } = 
 }
 
 export default {
-  FUNDER_KINDS,
+  POOL_FUNDER_KINDS,
   GUARANTEE_MODES,
   validateCommunityAccessPolicy,
   fairOrder,

@@ -1,11 +1,16 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { POOL_FUNDER_KINDS } from '../../server/community-access/domain.js';
 import { createCommunityAccess, createFundingIssuanceAuthority } from '../../server/community-access/engine.js';
+import { FUNDER_KINDS, LEGACY_LOT_SCHEMA, lotFunder } from '../../server/ledger/domain.js';
+import { FUNDER_KINDS as REGISTER_FUNDER_KINDS } from '../../server/ledger/funding/register.js';
+import { REWARD_FUNDER_KINDS } from '../../server/rewards/domain.js';
 import { createFirestoreCommunityAccessBackend, createMemoryCommunityAccessBackend } from '../../server/community-access/stores.js';
 import { createFirestoreLedgerStore } from '../../server/ledger/firestore-store.js';
 import { createMemoryLedgerState, createMemoryLedgerStore } from '../../server/ledger/memory-store.js';
 import { composeContributionRewards } from '../../server/rewards/engine.js';
 import { createFirestoreRewardBackend, createMemoryRewardBackend } from '../../server/rewards/stores.js';
+import { conversionAuthority, publishConversion } from '../helpers/conversion-fixture.js';
 import { createFakeFirestore } from '../helpers/fake-firestore.js';
 import {
   LEDGER_POLICY, MIN, START, advance, at, clock, composition, decidedBy, demand, fx, otherProvenance, rejectsWith
@@ -65,7 +70,7 @@ const harnesses = {
     return {
       faults,
       retries: () => null,
-      ledger: (options) => createMemoryLedgerStore({ state: states.ledger, hooks: hooks('ledger'), policy: LEDGER_POLICY, clock, ...options }),
+      ledger: (options) => createMemoryLedgerStore({ state: states.ledger, hooks: hooks('ledger'), policy: LEDGER_POLICY, clock, conversionAuthority, ...options }),
       reward: () => createMemoryRewardBackend({ state: states.reward, hooks: hooks('reward') }),
       community: () => createMemoryCommunityAccessBackend({ state: states.community, hooks: hooks('community') })
     };
@@ -76,7 +81,7 @@ const harnesses = {
     return {
       faults: Object.fromEntries(COMPONENTS.map((name) => [name, dbs[name].faults])),
       retries: () => dbs.ledger.stats.retries,
-      ledger: (options) => createFirestoreLedgerStore({ firestore: ledgerDb, collectionPrefix: 'test', policy: LEDGER_POLICY, clock, ...options }),
+      ledger: (options) => createFirestoreLedgerStore({ firestore: ledgerDb, collectionPrefix: 'test', policy: LEDGER_POLICY, clock, conversionAuthority, ...options }),
       reward: () => createFirestoreRewardBackend({ firestore: dbs.reward, collectionPrefix: 'test' }),
       community: () => createFirestoreCommunityAccessBackend({ firestore: dbs.community, collectionPrefix: 'test' })
     };
@@ -124,7 +129,7 @@ const donate = async (ledger, { donationId, commitmentId = 'commitment_1', amoun
   });
   const lot = await ledger.issueCredits({
     accountId, provenance: 'donated', amount, idempotencyKey: `donate:${donationId}`,
-    source: { donationId, donorId: allocation.funderId, commitmentId, allocationId: allocation.allocationId }
+    source: { donationId, funderId: allocation.funderId, funderKind: allocation.funderKind, commitmentId, allocationId: allocation.allocationId }
   });
   return { allocation, lot };
 };
@@ -168,7 +173,8 @@ describe.each(Object.keys(harnesses))('funding-commitment register (%s store)', 
     });
     const donated = await donate(ledger, { donationId: 'donation_1', amount: 20 });
     expect(await ledger.getLot(donated.lot.lotId)).toMatchObject({
-      provenance: 'donated', accountId: 'acct_c1', quantity: 20, source: { donorId: 'operator_test', commitmentId: 'commitment_1', allocationId: donated.allocation.allocationId }
+      provenance: 'donated', accountId: 'acct_c1', quantity: 20,
+      source: { funderId: 'operator_test', funderKind: 'operator', commitmentId: 'commitment_1', allocationId: donated.allocation.allocationId }
     });
     expect(await ledger.getFundingAllocation(pooled.allocationId)).toMatchObject({
       use: 'community_access_pool', status: 'consumed', issuedCredits: 60, lotId: pooled.lotId, authority: decidedBy('decision:pool:funding_pool')
@@ -190,9 +196,9 @@ describe.each(Object.keys(harnesses))('funding-commitment register (%s store)', 
     await rejectsWith(release(rewards, 'funding_reward_2'), 'funding_not_active');
     // Donated credit needs its allocation, cannot reuse a consumed one, and issues once.
     await rejectsWith(ledger.issueCredits({
-      accountId: 'acct_c1', provenance: 'donated', amount: 5, source: { donationId: 'donation_free', donorId: 'operator_test' }, idempotencyKey: 'donate:free'
+      accountId: 'acct_c1', provenance: 'donated', amount: 5, source: { donationId: 'donation_free', funderId: 'operator_test', funderKind: 'operator' }, idempotencyKey: 'donate:free'
     }), 'invalid_source_reference');
-    const reused = { donorId: 'operator_test', commitmentId: 'commitment_1', allocationId: donated.allocation.allocationId };
+    const reused = { funderId: 'operator_test', funderKind: 'operator', commitmentId: 'commitment_1', allocationId: donated.allocation.allocationId };
     await rejectsWith(ledger.issueCredits({
       accountId: 'acct_c1', provenance: 'donated', amount: 20, source: { ...reused, donationId: 'donation_3' }, idempotencyKey: 'donate:reused'
     }), 'allocation_mismatch');
@@ -219,8 +225,8 @@ describe.each(Object.keys(harnesses))('funding-commitment register (%s store)', 
         returned: 0,
         unallocated: { available: 0, notYetValid: 0, lapsed: 0 }
       }],
-      creditsAllocated: { total: 120, byUse: { reward_funding: 40, community_access_pool: 60, donated_credit: 20 } },
-      creditsIssued: { total: 80, byUse: { reward_funding: 0, community_access_pool: 60, donated_credit: 20 } }
+      creditsAllocated: { total: 120, byUse: { reward_funding: 40, community_access_pool: 60, donated_credit: 20 }, byFunderKind: { donor: 0, operator: 120, community: 0 } },
+      creditsIssued: { total: 80, byUse: { reward_funding: 0, community_access_pool: 60, donated_credit: 20 }, byFunderKind: { donor: 0, operator: 80, community: 0 } }
     });
     // What the register issued is exactly the ledger's issued credit of each provenance; the subsidy block discloses what pools spent of it.
     expect(snapshot.funding.creditsIssued.byUse).toEqual({
@@ -453,17 +459,85 @@ describe.each(Object.keys(harnesses))('funding-commitment register (%s store)', 
     expect(await later.ledger.auditAccount('pool_general')).toMatchObject({ consistent: true });
   });
 
+  it('names every funder in one vocabulary across uses, lots, solvency and subsidy reports', async () => {
+    const { ledger, rewards, access, rewardBackend } = services;
+    // One vocabulary; each use accepts its own subset of it.
+    expect(FUNDER_KINDS).toEqual(['donor', 'operator', 'community']);
+    expect(REGISTER_FUNDER_KINDS).toBe(FUNDER_KINDS);
+    expect(REWARD_FUNDER_KINDS.every((kind) => FUNDER_KINDS.includes(kind))).toBe(true);
+    expect(POOL_FUNDER_KINDS.every((kind) => FUNDER_KINDS.includes(kind))).toBe(true);
+    await ledger.openAccount({ accountId: 'acct_c1', ownerId: 'uid_c1' });
+    await commitment(ledger, { commitmentId: 'c_donor', funderKind: 'donor', amount: 60 });
+    await commitment(ledger, { commitmentId: 'c_operator', funderKind: 'operator', amount: 60 });
+    await commitment(ledger, { commitmentId: 'c_community', funderKind: 'community', amount: 60 });
+
+    // Donated credit names its funder's kind as well as its id, so donor and operator gifts stay distinct.
+    const fromDonor = await donate(ledger, { donationId: 'gift_donor', commitmentId: 'c_donor', amount: 10 });
+    const fromOperator = await donate(ledger, { donationId: 'gift_operator', commitmentId: 'c_operator', amount: 7 });
+    expect((await ledger.getLot(fromDonor.lot.lotId)).source).toMatchObject({ funderKind: 'donor', funderId: 'donor_test' });
+    expect((await ledger.getLot(fromOperator.lot.lotId)).source).toMatchObject({ funderKind: 'operator', funderId: 'operator_test' });
+    const misnamed = await ledger.allocateFunding({
+      commitmentId: 'c_donor', use: 'donated_credit', useRef: 'gift_misnamed', credits: 5, accountId: 'acct_c1',
+      authority: decidedBy('decision:gift_misnamed'), funderKinds: ['donor'], idempotencyKey: 'allocate:gift_misnamed'
+    });
+    const source = { donationId: 'gift_misnamed', funderId: 'donor_test', commitmentId: 'c_donor', allocationId: misnamed.allocationId };
+    await rejectsWith(ledger.issueCredits({ accountId: 'acct_c1', provenance: 'donated', amount: 5, source: { ...source, funderKind: 'operator' }, idempotencyKey: 'gift:misnamed' }), 'allocation_mismatch');
+    await rejectsWith(ledger.issueCredits({ accountId: 'acct_c1', provenance: 'donated', amount: 5, source: { ...source, funderKind: 'sponsor' }, idempotencyKey: 'gift:sponsor' }), 'invalid_source_reference');
+    // A v1 donated lot named only donorId (its commitment's funder id); it reads with its allocation's kind, unrewritten.
+    const legacy = { schema: LEGACY_LOT_SCHEMA, provenance: 'donated', source: { donationId: 'old', donorId: 'donor_test', commitmentId: 'c_donor', allocationId: misnamed.allocationId } };
+    expect(lotFunder(legacy, misnamed)).toEqual({ funderId: 'donor_test', funderKind: 'donor', legacy: true });
+    expect(lotFunder(await ledger.getLot(fromDonor.lot.lotId))).toEqual({ funderId: 'donor_test', funderKind: 'donor', legacy: false });
+
+    // Rewards accept operator and community funding; pools accept donor and operator.
+    await reserve(rewards, { fundingId: 'f_community', commitmentId: 'c_community', amount: 20 });
+    await rejectsWith(reserve(rewards, { fundingId: 'f_donor', commitmentId: 'c_donor', amount: 5 }), 'funder_kind_not_accepted');
+    await pendingValidation(rewardBackend, 'val_community', 4);
+    expect(await rewards.issueReward({ validationId: 'val_community' })).toMatchObject({ status: 'issued', provenance: 'subsidized' });
+    const subsidized = await ledger.getLot((await rewards.getValidation('val_community')).issuance.lotId);
+    expect(subsidized.source).toMatchObject({ funderKind: 'community', funderId: 'community_test' });
+    expect(await pool(access, { fundingId: 'p_operator', commitmentId: 'c_operator', quantity: 30 })).toMatchObject({ status: 'issued', funderKind: 'operator' });
+
+    // Solvency and the subsidy report count by the same kinds.
+    const { funding } = await ledger.getSolvencySnapshot();
+    expect(funding.creditsIssued).toEqual({
+      total: 51, byUse: { reward_funding: 4, community_access_pool: 30, donated_credit: 17 }, byFunderKind: { donor: 10, operator: 37, community: 4 }
+    });
+    expect(funding.byUnit[0].committed.byFunderKind).toEqual({ donor: 60, operator: 60, community: 60 });
+    expect((await access.getSubsidyReport()).funded).toEqual({ total: 30, byFunderKind: { donor: 0, operator: 30, community: 0 } });
+
+    // After the commitments lapse, the register expires only the unissued donated allocation; rewards expires its own.
+    advance(DAY);
+    expect(await ledger.expireAllocations()).toEqual([{ allocationId: misnamed.allocationId, status: 'expired', returnedCredits: 5 }]);
+    expect(await ledger.expireAllocations()).toEqual([]);
+    expect(await ledger.getFundingAllocation((await rewards.getFunding('f_community')).allocationId)).toMatchObject({ status: 'active' });
+    expect(await rewards.resumeFunding()).toEqual([{ fundingId: 'f_community', status: 'expired', returned: 16 }]);
+    expect(await ledger.getAccount('acct_c1')).toMatchObject({ available: 21 });
+  });
+
   it('draws currency commitments in their own minor units and returns no more than the unused share', async () => {
     const { ledger, access } = services;
     await commitment(ledger, { commitmentId: 'commitment_usd', amount: 50_000, unit: { kind: 'currency', currency: 'USD' } });
+    // Without a conversion record in effect a currency commitment allocates nothing.
+    await rejectsWith(pool(access, { fundingId: 'funding_unconverted', commitmentId: 'commitment_usd', quantity: 100, commitmentAmount: 30_000 }), 'conversion_unavailable');
+    // Test-only rate: one credit per 300 minor units, rounded down.
+    const conversion = await publishConversion(ledger, { conversionId: 'conv_test_usd_300', rate: { credits: 1, perMinorUnits: 300 }, clock });
     await rejectsWith(pool(access, { fundingId: 'funding_unstated', commitmentId: 'commitment_usd', quantity: 100 }), 'invalid_input');
     const usd = await pool(access, { fundingId: 'funding_usd', commitmentId: 'commitment_usd', quantity: 100, commitmentAmount: 30_000 });
-    expect(await ledger.getFundingAllocation(usd.allocationId)).toMatchObject({ unit: { kind: 'currency', currency: 'USD' }, amount: 30_000, credits: 100, status: 'consumed' });
-    await rejectsWith(pool(access, { fundingId: 'funding_over', commitmentId: 'commitment_usd', quantity: 100, commitmentAmount: 20_001 }), 'allocation_exceeds_commitment');
+    expect(await ledger.getFundingAllocation(usd.allocationId)).toMatchObject({
+      unit: { kind: 'currency', currency: 'USD' }, amount: 30_000, credits: 100, status: 'consumed',
+      conversion: { conversionId: 'conv_test_usd_300', recordHash: conversion.recordHash }
+    });
+    expect(await ledger.verifyConversion({ allocationId: usd.allocationId })).toMatchObject({ consistent: true, recordedCredits: 100, recomputedCredits: 100 });
+    // Credits that the stated amount does not convert to are refused and retained.
+    await expect(pool(access, { fundingId: 'funding_miscounted', commitmentId: 'commitment_usd', quantity: 100, commitmentAmount: 20_001 }))
+      .rejects.toMatchObject({ code: 'conversion_mismatch', details: { expected: 66 } });
+    expect(await access.getFunding('funding_miscounted')).toMatchObject({ status: 'refused', refusal: { code: 'conversion_mismatch' } });
+    await rejectsWith(pool(access, { fundingId: 'funding_over', commitmentId: 'commitment_usd', quantity: 100, commitmentAmount: 30_000 }), 'allocation_exceeds_commitment');
     const partial = await ledger.allocateFunding({
       commitmentId: 'commitment_usd', use: 'reward_funding', useRef: 'funding_partial', credits: 3, amount: 1000,
       authority: decidedBy('decision:partial'), funderKinds: ['operator', 'community'], idempotencyKey: 'allocate:partial'
     });
+    expect(partial.conversion).toEqual({ conversionId: 'conv_test_usd_300', recordHash: conversion.recordHash });
     expect(await ledger.releaseFundingAllocation({
       allocationId: partial.allocationId, consumedCredits: 1, closure: 'released', authority: decidedBy('decision:release:partial'), idempotencyKey: 'release:partial'
     }))
@@ -490,8 +564,8 @@ describe.each(Object.keys(harnesses))('funding-commitment register (%s store)', 
           unallocated: { available: 100, notYetValid: 0, lapsed: 0 }
         }
       ],
-      creditsAllocated: { total: 101, byUse: { reward_funding: 1, community_access_pool: 100, donated_credit: 0 } },
-      creditsIssued: { total: 100, byUse: { reward_funding: 0, community_access_pool: 100, donated_credit: 0 } }
+      creditsAllocated: { total: 101, byUse: { reward_funding: 1, community_access_pool: 100, donated_credit: 0 }, byFunderKind: { donor: 0, operator: 101, community: 0 } },
+      creditsIssued: { total: 100, byUse: { reward_funding: 0, community_access_pool: 100, donated_credit: 0 }, byFunderKind: { donor: 0, operator: 100, community: 0 } }
     });
   });
 });

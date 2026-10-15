@@ -1,6 +1,9 @@
 /**
  * @fileoverview Purchase reconciliation behind a payment processor port.
  *
+ * A checkout is the purchase quote: its credits come from the ledger's
+ * conversion record in effect when it starts, and it stamps that record, so a
+ * later rate never changes it and the ledger recomputes the lot from it.
  * A notification only names the purchase to look at. Every effect follows the
  * processor's authoritative status, fetched through the port, so duplicate,
  * reordered and replayed notifications converge on one state, and polling
@@ -55,12 +58,13 @@ const assertKnownKeys = (input, allowed, operation) => {
   if (unknown.length) fail('invalid_input', `${operation} does not accept: ${unknown.join(', ')}`, { unknown });
 };
 
-// The ledger source names the purchase, its confirmation and price apart from quantity.
+// The ledger source names the purchase, its confirmation, its price apart from quantity and the conversion stamp.
 const purchaseSource = (record) => ({
   processor: record.processor,
   purchaseId: record.purchaseId,
   confirmationId: record.observed.confirmationId,
   price: record.topUp.price,
+  conversion: { conversionId: record.quote.conversionId, recordHash: record.quote.recordHash },
   checkoutId: record.checkoutId,
   topUpId: record.topUp.topUpId,
   paymentPolicyVersion: record.paymentPolicyVersion
@@ -74,6 +78,8 @@ export function summarizePayment(record) {
     purchaseId: record.purchaseId,
     phase: record.phase,
     topUp: record.topUp,
+    quote: record.quote ?? null,
+    credits: record.credits ?? record.topUp.credits ?? null,
     checkout: record.checkout,
     observed: record.observed,
     issuance: record.issuance,
@@ -127,7 +133,7 @@ export function createPaymentStore({ backend, ledger, processor, accounts, polic
     const response = validateCheckoutResponse(await processor.createCheckout({
       checkoutId: record.checkoutId,
       accountId: record.accountId,
-      credits: record.topUp.credits,
+      credits: record.credits ?? record.topUp.credits,
       amount: record.topUp.price,
       idempotencyKey: record.checkoutId
     }));
@@ -157,7 +163,7 @@ export function createPaymentStore({ backend, ledger, processor, accounts, polic
       await ledger.issueCredits({
         accountId: record.accountId,
         provenance: 'purchased',
-        amount: record.topUp.credits,
+        amount: record.credits,
         source: purchaseSource(record),
         idempotencyKey: issuanceKey(record)
       });
@@ -236,8 +242,9 @@ export function createPaymentStore({ backend, ledger, processor, accounts, polic
 
     /**
      * Start a one-time top-up checkout for the authenticated participant's
-     * account. The idempotency key fixes the checkout id, so a retry after a
-     * crash resumes the same processor checkout.
+     * account, quoting its credits from the conversion record in effect. The
+     * idempotency key fixes the checkout id, so a retry after a crash resumes
+     * the same processor checkout and keeps its quote.
      */
     async startCheckout(input = {}) {
       assertKnownKeys(input, ['participantId', 'topUpId', 'idempotencyKey'], 'startCheckout');
@@ -251,6 +258,9 @@ export function createPaymentStore({ backend, ledger, processor, accounts, polic
       if (!await ledger.getAccount(accountId)) fail('account_not_found', `account ${accountId} has no credit account`);
       const checkoutId = `chk_${sha256Hex(`${accountId}\u0000${idempotencyKey}`).slice(0, 32)}`;
       const requestHash = hashCanonical({ accountId, topUpId, paymentPolicyVersion: paymentPolicy.policyVersion });
+      const quote = await backend.get('payments', checkoutId)
+        ? null : await ledger.quoteConversion({ currency: topUp.price.currency, amountMinor: topUp.price.amountMinor });
+      if (quote && quote.credits <= 0) fail('top_up_buys_nothing', `top-up ${topUpId} converts to no credits under ${quote.conversionId}`);
       const now = clock();
       let record = await backend.runTransaction(async (tx) => {
         const existing = await tx.get('payments', checkoutId);
@@ -258,6 +268,7 @@ export function createPaymentStore({ backend, ledger, processor, accounts, polic
           if (existing.requestHash !== requestHash) fail('idempotency_conflict', 'idempotency key was already used with a different request');
           return existing;
         }
+        if (!quote) fail('storage_conflict', 'checkout record disappeared during creation; retry');
         const created = {
           schema: PAYMENT_SCHEMA,
           checkoutId,
@@ -266,6 +277,8 @@ export function createPaymentStore({ backend, ledger, processor, accounts, polic
           processor: processorId,
           purchaseId: null,
           topUp: cloneJson(topUp),
+          quote,
+          credits: quote.credits,
           paymentPolicyVersion: paymentPolicy.policyVersion,
           requestHash,
           phase: 'creating',
@@ -376,8 +389,11 @@ export function createPurchaseIssuanceAuthority({ backend } = {}) {
     const record = claim ? await backend.get('payments', claim.checkoutId) : null;
     if (!record) return { allowed: false, reason: 'payment_not_found' };
     if (record.phase !== 'awaiting_issuance') return { allowed: false, reason: 'payment_not_confirmed', phase: record.phase };
-    const matches = record.accountId === request.accountId
-      && record.topUp.credits === request.amount
+    const matches = Boolean(record.quote)
+      && record.accountId === request.accountId
+      && record.credits === request.amount
+      && record.quote.conversionId === request.source.conversion?.conversionId
+      && record.quote.recordHash === request.source.conversion?.recordHash
       && record.checkoutId === checkoutId
       && record.observed.confirmationId === confirmationId
       && hashCanonical(record.topUp.price) === hashCanonical(request.source.price);

@@ -6,8 +6,8 @@
  * declares for the validation's category:
  * - `settled_demand`: earned credit within a policy share of measured net
  *   settled spending;
- * - `funded_reservation`: subsidized credit drawn from an active operator or
- *   community funding reservation (a funding-register allocation) while its
+ * - `funded_reservation`: subsidized credit drawn from an active funding
+ *   reservation of a policy-listed funder kind (a register allocation) while its
  *   commitment is valid, recorded as subsidy in provenance and solvency,
  *   never as earned demand.
  * Every basis is also bounded by fresh admitted-capacity evidence: issuing

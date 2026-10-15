@@ -11,7 +11,10 @@ import { createHash } from 'node:crypto';
 
 export const PRODUCT_ECONOMICS_CONTRACT_ID = 'reploid.product-economics/1.0.0';
 export const ACCOUNT_SCHEMA = 'reploid.credit-account/v1';
-export const LOT_SCHEMA = 'reploid.credit-lot/v1';
+// v2: donated sources name funderId and funderKind (v1 named only donorId, the
+// commitment's funder id); purchased sources name their conversion record.
+export const LOT_SCHEMA = 'reploid.credit-lot/v2';
+export const LEGACY_LOT_SCHEMA = 'reploid.credit-lot/v1';
 export const QUOTE_SCHEMA = 'reploid.credit-quote/v1';
 export const RESERVATION_SCHEMA = 'reploid.credit-reservation/v1';
 export const SETTLEMENT_SCHEMA = 'reploid.credit-settlement/v1';
@@ -20,9 +23,21 @@ export const REVIEW_SCHEMA = 'reploid.credit-quality-review/v1';
 export const JOURNAL_SCHEMA = 'reploid.credit-journal-entry/v1';
 export const SOLVENCY_SCHEMA = 'reploid.credit-solvency-inputs/v1';
 
-// `subsidized` is credit for validated contribution paid from an explicit operator or
-// community funding reservation instead of settled demand; it stays apart from `earned`.
+// `subsidized` is credit for validated contribution paid from an explicit funding
+// reservation instead of settled demand; it stays apart from `earned`.
 export const PROVENANCE_KINDS = Object.freeze(['earned', 'subsidized', 'purchased', 'donated', 'community_access']);
+/**
+ * The one funder vocabulary for funding commitments and every credit drawn
+ * from them (subsidized, Community Access and donated lots, their allocations
+ * and solvency). Each use accepts its own subset.
+ * - `donor`: a person or organization outside the operation donating funds;
+ * - `operator`: the service operator funding from its own accounts;
+ * - `community`: kept distinct because its holder is undefined. The product
+ *   specification names "reserved community resources" as a Community Access
+ *   source; nothing states who holds or commits them, so it is neither a donor
+ *   nor the operator.
+ */
+export const FUNDER_KINDS = Object.freeze(['donor', 'operator', 'community']);
 export const REWARD_PROVENANCE = Object.freeze(['earned', 'subsidized']);
 export const REWARD_CATEGORIES = Object.freeze(['computation', 'delivery', 'storage', 'readiness']);
 export const ROUNDING_MODES = Object.freeze(['floor', 'ceil', 'half_up']);
@@ -148,14 +163,31 @@ export function validateAccountingPolicy(policy) {
 }
 
 const REWARD_SOURCE_FIELDS = ['category', 'workId', 'offerId', 'validationId', 'validatorId', 'validatedAt'];
+// Subsidized, donated and Community Access credit draw the funding-register allocation they
+// name, and name its funder in the one vocabulary.
+const FUNDED_SOURCE_FIELDS = ['funderKind', 'funderId', 'commitmentId', 'allocationId'];
 const SOURCE_FIELDS = Object.freeze({
   earned: REWARD_SOURCE_FIELDS,
-  // Subsidized, donated and Community Access credit draw the funding-register allocation they name.
-  subsidized: [...REWARD_SOURCE_FIELDS, 'fundingId', 'funderKind', 'funderId', 'commitmentId', 'allocationId'],
+  subsidized: [...REWARD_SOURCE_FIELDS, 'fundingId', ...FUNDED_SOURCE_FIELDS],
   purchased: ['processor', 'purchaseId', 'confirmationId'],
-  donated: ['donationId', 'donorId', 'commitmentId', 'allocationId'],
-  community_access: ['fundingId', 'funderId', 'funderKind', 'commitmentId', 'allocationId']
+  donated: ['donationId', ...FUNDED_SOURCE_FIELDS],
+  community_access: ['fundingId', ...FUNDED_SOURCE_FIELDS]
 });
+const FUNDED_PROVENANCE = Object.freeze(['subsidized', 'donated', 'community_access']);
+
+/**
+ * The funder a register-drawn lot names, for either lot schema. A v1 donated
+ * source named only `donorId`, which was always its commitment's funder id;
+ * its kind is the allocation's (pass the allocation to recover it).
+ */
+export function lotFunder(lot, allocation = null) {
+  const source = lot?.source ?? {};
+  if (!FUNDED_PROVENANCE.includes(lot?.provenance)) return null;
+  if (lot.provenance === 'donated' && source.funderId === undefined) {
+    return { funderId: source.donorId ?? null, funderKind: allocation?.funderKind ?? null, legacy: true };
+  }
+  return { funderId: source.funderId, funderKind: source.funderKind, legacy: false };
+}
 
 /**
  * Every lot names its issuance source. Earned and subsidized credit need an
@@ -176,9 +208,16 @@ export function validateIssuanceSource(provenance, source) {
     if (source?.outcome !== 'accepted') errors.push('source.outcome must record an accepted validation');
     if (source?.validatedAt && !isIsoTime(source.validatedAt)) errors.push('source.validatedAt must be an ISO time');
   }
+  if (FUNDED_PROVENANCE.includes(provenance) && source?.funderKind !== undefined && !FUNDER_KINDS.includes(source.funderKind)) {
+    errors.push(`source.funderKind must be one of ${FUNDER_KINDS.join(', ')}`);
+  }
   if (provenance === 'purchased') {
     if (!isAmount(source?.price?.amountMinor) || !isNonEmptyString(source?.price?.currency)) {
       errors.push('source.price must state amountMinor and currency');
+    }
+    // The quantity follows from the price under one published conversion record.
+    if (!isNonEmptyString(source?.conversion?.conversionId) || !isNonEmptyString(source?.conversion?.recordHash)) {
+      errors.push('source.conversion must name the conversionId and recordHash the quantity was quoted under');
     }
   }
   if (errors.length) fail('invalid_source_reference', `${provenance} issuance requires an explicit source reference`, { errors });
@@ -222,7 +261,7 @@ const validateFormula = (formula, path, limits, errors) => {
   });
 };
 
-const divideRounded = (numerator, denominator, rounding) => {
+export const divideRounded = (numerator, denominator, rounding) => {
   const n = BigInt(numerator);
   const d = BigInt(denominator);
   const quotient = n / d;

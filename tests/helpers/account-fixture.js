@@ -13,6 +13,7 @@ import { createLedgerStore } from '../../server/ledger/engine.js';
 import { createFirestoreLedgerBackend } from '../../server/ledger/firestore-store.js';
 import { createMemoryLedgerBackend } from '../../server/ledger/memory-store.js';
 import { createFirestoreRewardBackend, createMemoryRewardBackend, createMemoryRewardState } from '../../server/rewards/stores.js';
+import { conversionAuthority } from './conversion-fixture.js';
 import { createFakeFirestore } from './fake-firestore.js';
 import {
   ISSUANCE_POLICY, LEDGER_POLICY, MIN, REWARD_POLICY, START, clock, fx, otherProvenance, random, readAdmittedCapacity, readinessProber
@@ -50,7 +51,7 @@ export const accountHarnesses = {
         ...baseComposition(provider),
         accountBackend: createMemoryAccountBackend({ state: states.identity }),
         rewardBackend: createMemoryRewardBackend({ state: states.rewards }),
-        createLedger: (ports) => createLedgerStore({ backend: ledgerBackend(), policy: LEDGER_POLICY, clock, ...ports }),
+        createLedger: (ports) => createLedgerStore({ backend: ledgerBackend(), policy: LEDGER_POLICY, clock, conversionAuthority, ...ports }),
         ...overrides
       })
     };
@@ -67,7 +68,7 @@ export const accountHarnesses = {
         ...baseComposition(provider),
         accountBackend: createFirestoreAccountBackend({ firestore: dbs.identity, collectionPrefix: 'test' }),
         rewardBackend: createFirestoreRewardBackend({ firestore: dbs.rewards, collectionPrefix: 'test' }),
-        createLedger: (ports) => createLedgerStore({ backend: ledgerBackend(), policy: LEDGER_POLICY, clock, ...ports }),
+        createLedger: (ports) => createLedgerStore({ backend: ledgerBackend(), policy: LEDGER_POLICY, clock, conversionAuthority, ...ports }),
         ...overrides
       })
     };

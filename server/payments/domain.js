@@ -2,13 +2,16 @@
  * @fileoverview Pure purchase-reconciliation rules: payment policy, the
  * authoritative observation merge and the phase a payment record is in.
  *
- * Top-up quantities and prices arrive in explicit policy. Nothing here
- * performs I/O or supplies a default price, quantity or policy value.
+ * Top-up prices arrive in explicit policy; the credits a price buys come from
+ * the ledger's conversion record in effect at checkout, stamped on the record.
+ * Nothing here performs I/O or supplies a default price, rate or policy value.
  */
 
 import { isAmount, isIsoTime, isNonEmptyString, toMs } from '../ledger/domain.js';
 
-export const PAYMENT_SCHEMA = 'reploid.payment-record/v1';
+// v2: a top-up names its price only; `quote` stamps the conversion record and `credits` its result.
+// A v1 record carried policy credits and no conversion; it is never issued, only reviewed.
+export const PAYMENT_SCHEMA = 'reploid.payment-record/v2';
 export const NOTIFICATION_SCHEMA = 'reploid.payment-notification/v1';
 
 // Processor-reported payment states. `paid` is sticky once observed.
@@ -49,8 +52,9 @@ const unknownKeys = (value, allowed, label, errors) => {
 };
 
 /**
- * Validate explicit payment policy. Top-ups are one-time purchases; there is
- * no recurring or subscription field. Credits and price are separate inputs.
+ * Validate explicit payment policy. Top-ups are one-time purchases at a
+ * price; there is no recurring or subscription field. The credits a price
+ * buys are not policy here: the ledger's conversion record decides them.
  */
 export function validatePaymentPolicy(policy) {
   const errors = [];
@@ -62,11 +66,10 @@ export function validatePaymentPolicy(policy) {
   const seen = new Set();
   (policy.topUps || []).forEach((topUp, index) => {
     const label = `policy.topUps[${index}]`;
-    unknownKeys(topUp, ['topUpId', 'credits', 'price'], label, errors);
+    unknownKeys(topUp, ['topUpId', 'price'], label, errors);
     if (!isNonEmptyString(topUp?.topUpId)) errors.push(`${label}.topUpId is required`);
     if (seen.has(topUp?.topUpId)) errors.push(`${label}.topUpId repeats ${topUp.topUpId}`);
     seen.add(topUp?.topUpId);
-    if (!isPositiveInteger(topUp?.credits)) errors.push(`${label}.credits must be a positive integer quantity`);
     if (!isMoney(topUp?.price) || topUp.price.amountMinor === 0) errors.push(`${label}.price must state a positive amountMinor and ISO currency`);
     unknownKeys(topUp?.price, ['amountMinor', 'currency'], `${label}.price`, errors);
   });
@@ -77,7 +80,7 @@ export function validatePaymentPolicy(policy) {
   return Object.freeze(JSON.parse(JSON.stringify({
     policyVersion: policy.policyVersion,
     processorId: policy.processorId,
-    topUps: policy.topUps.map(({ topUpId, credits, price }) => ({ topUpId, credits, price: { amountMinor: price.amountMinor, currency: price.currency } })),
+    topUps: policy.topUps.map(({ topUpId, price }) => ({ topUpId, price: { amountMinor: price.amountMinor, currency: price.currency } })),
     polling: { minAgeMs: policy.polling.minAgeMs, reversalWatchMs: policy.polling.reversalWatchMs }
   })));
 }
@@ -123,7 +126,7 @@ export function completingReversal(observed) {
  * The phase follows from the observation and recorded ledger effects alone,
  * so every arrival order of the same facts yields the same phase.
  */
-export function derivePhase({ observed, issuance, reversal, topUp }) {
+export function derivePhase({ observed, issuance, reversal, topUp, quote }) {
   if (!observed) return { phase: 'open', review: null };
   if (!observed.paid) return { phase: observed.status === 'open' ? 'open' : observed.status, review: null };
   if (!sameMoney(observed.amount, topUp.price)) {
@@ -133,6 +136,8 @@ export function derivePhase({ observed, issuance, reversal, topUp }) {
     return { phase: 'review_required', review: { reason: 'reversal_currency_mismatch' } };
   }
   const reversedMinor = observed.reversals.reduce((sum, entry) => sum + entry.amount.amountMinor, 0);
+  // A v1 record has no conversion stamp; issuing it would mint credits no published record recomputes.
+  if (!quote && !issuance && reversedMinor === 0) return { phase: 'review_required', review: { reason: 'conversion_unstamped' } };
   if (reversedMinor === 0) return { phase: issuance ? 'issued' : 'awaiting_issuance', review: null };
   if (reversedMinor > observed.amount.amountMinor) {
     return { phase: 'review_required', review: { reason: 'reversal_exceeds_payment', reversedMinor } };

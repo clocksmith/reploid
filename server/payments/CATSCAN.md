@@ -8,7 +8,7 @@ Confirmed one-time top-ups issue purchased credit exactly once, and refunds and 
 
 ## Authority
 - Owns checkout records, notification authenticity through the processor port, authoritative-status reconciliation, polling recovery and the ledger's purchased `issuanceAuthority`.
-- Excludes prices and quantities (explicit policy), real processors, keys, taxes, terms, balances, lots and spent-credit treatment.
+- Excludes prices (explicit policy), rate values ([conversion records](../ledger/conversion/CATSCAN.md)), real processors, keys, taxes, terms, balances and spent-credit treatment.
 
 ## Scope
 
@@ -24,15 +24,16 @@ Outputs:
 - Operations in [store-contract.js](store-contract.js); purchased issuance and reversals in the [ledger](../ledger/CATSCAN.md).
 
 ## Invariants
-- Only port-verified notifications count, and they only name a purchase.
-- Effects follow fetched authoritative status, so duplicate, reordered and replayed notifications converge.
-- One purchased lot per purchase, minted only after confirmation at the checkout's amount for its account.
-- Polling recovers missed notifications; restarts resume without a second effect.
+- Only port-verified notifications count; they only name a purchase.
+- Effects follow fetched authoritative status, so repeated, reordered and replayed notifications converge.
+- Checkouts quote and stamp credits under the conversion record in effect; later records never change them.
+- One purchased lot per purchase, minted after confirmation at the checkout's amount and stamped credits.
+- Polling recovers missed notifications; restarts resume without second effects.
 - Full refunds and chargebacks reverse the lot; partial reversals and amount mismatches await review.
 - Top-ups never recur.
 
 ## Acceptance
-- Memory and Firestore stores pass identical reconciliation scenarios.
+- Memory and Firestore stores pass identical scenarios.
 - Evidence: [reconciliation tests](../../tests/unit/payment-reconciliation.test.js).
 - A real processor needs its own authenticity, refund, chargeback, tax and terms acceptance.
 
@@ -40,4 +41,4 @@ Outputs:
 - Moving money, card data, tax calculation, pricing or dispute representation.
 
 ## Freedom
-Any mechanism is permitted if it preserves these boundaries and passes the acceptance evidence.
+Preserve boundaries; pass acceptance.

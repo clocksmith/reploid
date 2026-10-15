@@ -27,7 +27,8 @@ import { CHALLENGE_ANSWER_SCHEMA, certifiedCustodyKey, verifyChunkBytes, verifyC
 import { computeReward, fail } from './domain.js';
 import { transferKey } from './verified-delivery.js';
 
-export const CHALLENGE_SCHEMA = 'reploid.reward-challenge/v1';
+// v2 adds `obligationRef`: the scheduled obligation slot that issued it, or null.
+export const CHALLENGE_SCHEMA = 'reploid.reward-challenge/v2';
 /** Kinds callers may issue and answer; readiness uses store-run execution probes only. */
 export const CHALLENGE_KINDS = Object.freeze({
   contracted_storage: Object.freeze(['custody', 'service']),
@@ -81,11 +82,12 @@ export const challengeStatus = (challenge, now) => {
   return challenge.kind === 'execution' ? 'withdrawn' : 'missed';
 };
 
-export function buildChallenge({ offer, kind, target, acquirer, challengeId, nonce, now }) {
+export function buildChallenge({ offer, kind, target, acquirer, challengeId, nonce, now, obligationRef = null }) {
   return {
     schema: CHALLENGE_SCHEMA,
     challengeId,
     offerId: offer.offerId,
+    obligationRef,
     category: offer.category,
     kind,
     participantId: offer.work.participantId,

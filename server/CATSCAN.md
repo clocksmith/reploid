@@ -7,7 +7,7 @@ Parent: [Reploid](../CATSCAN.md)
 Bounded authentication, discovery, relay, proxy and native participation without authority over browser claims.
 
 ## Authority
-- Owns server validation, signaling, relay, external adapters, native composition, accounts, credit accounting, purchase reconciliation, Community Access and contribution rewards.
+- Owns server validation, signaling, relay, external adapters, native composition, accounts, credit accounting, purchase reconciliation, Community Access, contribution rewards and durable scheduling.
 - Excludes browser execution claims, exactly-once delivery, scientific validity and Research Room decisions.
 
 ## Scope
@@ -43,4 +43,4 @@ Outputs:
 - Trustless compute marketplaces or centralized browser evidence authority.
 
 ## Freedom
-Preserve boundaries and pass acceptance.
+Preserve boundaries; pass acceptance.

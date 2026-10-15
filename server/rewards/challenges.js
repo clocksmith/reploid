@@ -29,14 +29,16 @@ export function createChallengeOperations({
     /**
      * Issue an unpredictable challenge inside an accepted contract's duration.
      * A service challenge designates an acquirer that is not the contributor,
-     * its owner or a policy-linked account.
+     * its owner or a policy-linked account. `obligationRef` names the
+     * scheduled obligation that asked, so a scheduler can find it again.
      */
     async issueChallenge(input = {}) {
-      assertKnownKeys(input, ['offerId', 'kind', 'acquirerParticipantId', 'idempotencyKey'], 'issueChallenge');
+      assertKnownKeys(input, ['offerId', 'kind', 'acquirerParticipantId', 'obligationRef', 'idempotencyKey'], 'issueChallenge');
       const { offerId, kind, idempotencyKey } = input;
       assertId(offerId, 'offerId');
+      if (input.obligationRef !== undefined) assertId(input.obligationRef, 'obligationRef');
       assertIdempotencyKey(idempotencyKey);
-      const request = pick(input, ['offerId', 'kind', 'acquirerParticipantId']);
+      const request = pick(input, ['offerId', 'kind', 'acquirerParticipantId', 'obligationRef']);
       const operation = 'issueChallenge';
       const prior = await lookupIdempotent({ operation, scopeId: offerId, idempotencyKey, request });
       if (prior) return prior.result;
@@ -71,7 +73,7 @@ export function createChallengeOperations({
       }
       const challenge = buildChallenge({
         offer, kind, target: selectChallengeTarget(offer, kind, random), acquirer,
-        challengeId: createId('chl'), nonce: createId('nonce'), now
+        challengeId: createId('chl'), nonce: createId('nonce'), now, obligationRef: input.obligationRef ?? null
       });
       return mutate({
         operation, scopeId: offerId, idempotencyKey, request, now,
@@ -132,14 +134,18 @@ export function createChallengeOperations({
      * Run one bounded execution probe on a readiness contract's stage. The
      * probe is recorded open before it runs; a probe the prober never
      * finishes stays open and is withdrawn, never charged to the contributor.
+     * Only the caller whose request recorded the probe runs it, so a
+     * concurrent or repeated request never drives the stage a second time.
      */
     async probeReadiness(input = {}) {
-      assertKnownKeys(input, ['offerId', 'idempotencyKey'], 'probeReadiness');
+      assertKnownKeys(input, ['offerId', 'obligationRef', 'idempotencyKey'], 'probeReadiness');
       const { offerId, idempotencyKey } = input;
       assertId(offerId, 'offerId');
+      if (input.obligationRef !== undefined) assertId(input.obligationRef, 'obligationRef');
       assertIdempotencyKey(idempotencyKey);
       const operation = 'probeReadiness';
-      const prior = await lookupIdempotent({ operation, scopeId: offerId, idempotencyKey, request: { offerId } });
+      const request = pick(input, ['offerId', 'obligationRef']);
+      const prior = await lookupIdempotent({ operation, scopeId: offerId, idempotencyKey, request });
       if (prior) return backend.get('challenges', prior.result.challengeId);
       const offer = await readOffer(offerId);
       assertRewardCategory(offer.category, rewardPolicy);
@@ -150,16 +156,20 @@ export function createChallengeOperations({
         fail('challenge_outside_contract', 'probes run only inside the accepted contract duration');
       }
       const { model, stageIndex } = offer.work.stage;
+      const challengeId = createId('chl');
+      const nonce = createId('nonce');
       const issued = await mutate({
-        operation, scopeId: offerId, idempotencyKey, request: { offerId }, now,
+        operation, scopeId: offerId, idempotencyKey, request, now,
         body: async () => {
           const challenge = buildChallenge({
             offer, kind: 'execution', target: { model, stageIndex, attemptSlots: offer.resourceBounds.attemptSlots.max },
-            acquirer: null, challengeId: createId('chl'), nonce: createId('nonce'), now
+            acquirer: null, challengeId, nonce, now, obligationRef: request.obligationRef ?? null
           });
           return { result: challenge, writes: [{ create: true, collection: 'challenges', id: challenge.challengeId, value: challenge }] };
         }
       });
+      // A concurrent request with this key recorded the probe first; that caller runs it.
+      if (issued.challengeId !== challengeId) return backend.get('challenges', issued.challengeId);
       const receipt = await runReadinessProbe({ challenge: issued, offer, prober, clock });
       const status = receipt.withdrawn ? 'withdrawn' : probePassed(receipt, offer.resourceBounds.attemptSlots.max) ? 'passed' : 'failed';
       return backend.runTransaction(async (tx) => {
