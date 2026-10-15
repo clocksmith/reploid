@@ -60,7 +60,7 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
             <button class="pool-button btn-primary pool-icon" type="button" data-composer-stop aria-label="Stop" title="Stop" hidden>${interfaceIcon('stop')}</button>
           </div>
         </div>
-        <div class="chat-composer-notices"><p class="pool-small pool-muted" data-answer-limit hidden></p><span class="pool-chip" data-web-search-on hidden>Web search on</span><p class="chat-setup-hint pool-small pool-muted" id="chat-model-status" data-model-status role="status" hidden></p><button class="pool-button btn-ghost" type="button" data-retry-connection hidden>Retry connection</button></div>
+        <div class="chat-composer-notices"><label class="pool-small pool-muted">Run on <select class="pool-input" data-execution-location aria-label="Execution location"><option value="auto">Automatic</option><option value="local">This device</option><option value="network">Network</option></select></label><p class="pool-small pool-muted" data-answer-limit hidden></p><span class="pool-chip" data-web-search-on hidden>Web search on</span><p class="chat-setup-hint pool-small pool-muted" id="chat-model-status" data-model-status role="status" hidden></p><button class="pool-button btn-ghost" type="button" data-retry-connection hidden>Retry connection</button></div>
         <p class="chat-attachment-help pool-small pool-muted" data-attachment-help hidden>Text files: up to 8, 64 KB each, 128 KB total.</p>
       </form></footer>
       <dialog class="chat-model-setup pool-surface pool-small" data-rename-dialog aria-labelledby="chat-rename-title">
@@ -92,6 +92,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   let archived = false, renameId = null, chosenModel = viewState.chosenModel || null, pickerModel = null;
   let files = [], fileRevision = 0, composerRevision = 0, reading = false;
   let contextPrompt = viewState.contextPrompt || null;
+  let executionLocation = viewState.executionLocation || 'auto';
   viewState.positions ??= new Map(); viewState.seen ??= new Map();
   const threads = createConversationList(find('[data-thread-list]'), viewState.seen, { getSources: session.getDocumentSources });
   const messages = createMessageList(find('[data-message-stream]'), { getSources: session.getDocumentSources, positions: viewState.positions, scrollContainer: find('[data-chat-transcript]') });
@@ -150,7 +151,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   // Asked once, before the first request that would leave this device; the host stores the answer.
   const permission = bindRemotePermissionDialog(find('[data-remote-permission]'), session, { onError: error });
   const permitted = async thread => {
-    const need = session.remotePermissionNeeded?.({ model: thread.model, sharingScope: thread.permissions?.sharingScope });
+    const need = session.remotePermissionNeeded?.({ model: thread.model, sharingScope: thread.permissions?.sharingScope, executionLocation: thread.permissions?.executionLocation });
     return !need || permission.ask(need);
   };
   let askedFor = null;
@@ -162,8 +163,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   // The person's own search server when it is set up and on, otherwise the server's Brave route.
   const searchRouteNow = () => session.preferredSearchRoute?.() ?? undefined;
   const deviceSearchOn = () => session.preferredSearchRoute?.() === 'device-search';
-  const allowSearch = async (model, sharingScope, route = searchRouteNow()) => {
-    const request = session.searchPermissionRequest({ model, sharingScope, ...(route ? { route } : {}) });
+  const allowSearch = async (model, sharingScope, route = searchRouteNow(), location = executionLocation) => {
+    const request = session.searchPermissionRequest({ model, sharingScope, executionLocation: location, ...(route ? { route } : {}) });
     return await searchPermission.ask(request)
       ? { route: request.route, wording: request.wording, recipients: request.recipients, searchServer: request.searchServer ?? null } : null;
   };
@@ -219,7 +220,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     currentModel.setAttribute('aria-label', `${thread?.model.name || 'Model'}. Choose a model for a new thread`);
     const peerCount = projectNetworkPeers(state).length;
     for (const node of surface?.querySelectorAll('[data-mesh-peers]') || []) node.textContent = `${peerCount} ${peerCount === 1 ? 'computer' : 'computers'}`;
-    const usable = thread?.permissions?.sharingScope === 'local'
+    const location = thread?.permissions?.executionLocation ?? (thread?.permissions?.sharingScope === 'local' ? 'local' : executionLocation);
+    find('[data-execution-location]').value = location;
+    find('[data-execution-location]').disabled = !!thread?.closed || state.runningIds.includes(state.selectedId) || submitting;
+    const selectedModel = catalogModels.find(model => keyFor(model) === current);
+    const usable = location === 'network' ? ['ready', 'busy'].includes(selectedModel?.networkAvailability ?? selectedModel?.availability)
+      : location === 'local' ? !!selectedModel && !selectedModel.partition && !!(selectedModel.localReady || selectedModel.localCached)
+      : thread?.permissions?.sharingScope === 'local'
       || models.some(model => keyFor(model) === current && ['ready', 'busy', 'cached'].includes(model.availability));
     const modelStatus = find('[data-model-status]');
     const networkState = state.network?.consumer?.connectionState;
@@ -238,6 +245,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     // here, including before the first attempt, without adding another panel.
     modelStatus.textContent = thread?.closed ? 'Restore this thread to continue.'
       : state.localModel?.error && !usable ? 'Model preparation failed: ' + state.localModel.error
+      : !usable && location === 'network' ? 'No network capacity for this model. Local execution will not be used.'
+      : !usable && location === 'local' ? 'Download this model in Sharing to run it on this device.'
       : !usable && current && !preparing && catalogModels.some(model => ['ready', 'busy', 'cached'].includes(model.availability))
         ? 'Choose an available model.'
       : !usable ? preparing ? state.localModel?.progress?.message || 'Model preparing…' : state.network?.paused ? 'Reconnect to continue.'
@@ -363,6 +372,12 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       }); return;
     }
     const button = event.target.closest('[data-thread-item-id]'); if (button) { try { observe(after(saveDraft(), () => { session.select(button.dataset.threadItemId); if (globalThis.innerWidth <= 760) setThreads(false); })); } catch (cause) { error(cause); } } });
+  on('[data-execution-location]', 'change', () => {
+    const location = find('[data-execution-location]').value;
+    const thread = session.getState().activeThread;
+    if (thread) { void act(() => session.setExecutionLocation(thread.id, location)); }
+    else { executionLocation = location; viewState.executionLocation = location; render(session.getState()); }
+  });
   on('[data-composer-form]', 'submit', event => {
     event.preventDefault();
     const content = input.value.trim(), state = session.getState();
@@ -375,14 +390,15 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     act(async () => {
       try {
         const model = state.models.find(item => (item.selectionId || item.id) === modelSelect.value);
-        const sharingScope = (model?.localReady || model?.localCached) ? 'local' : 'mesh';
-        const target = state.activeThread || { model, permissions: { sharingScope } };
+        const location = state.activeThread?.permissions?.executionLocation ?? (state.activeThread?.permissions?.sharingScope === 'local' ? 'local' : executionLocation);
+        const sharingScope = location === 'local' ? 'local' : 'mesh';
+        const target = state.activeThread || { model, permissions: { sharingScope, executionLocation: location } };
         // Keep answers local sends nothing and leaves the draft in place.
         if (!await permitted(target)) return;
         // Don't search sends nothing either; the person can turn search off and send again.
-        const allowed = searched ? await allowSearch(target.model, target.permissions?.sharingScope) : null;
+        const allowed = searched ? await allowSearch(target.model, target.permissions?.sharingScope, searchRouteNow(), location) : null;
         if (searched && !allowed) return;
-        const threadId = state.selectedId || await session.createThread({ model, sharingScope, contextPrompt: contextPrompt || undefined });
+        const threadId = state.selectedId || await session.createThread({ model, sharingScope, executionLocation: location, contextPrompt: contextPrompt || undefined });
         if (selectedId === threadId) {
           const current = composerRevision === revision ? { text: content, files: attachments } : drafts.get(origin);
           if (current) { input.value = current.text; files = current.files; showFiles(); }
@@ -423,7 +439,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       // A search-backed retry searches and shares passages again, so it asks again.
       const failed = thread.attempts.find(item => item.id === button.dataset.retryAttempt);
       if (!session.searchRetryNeedsPermission?.(failed)) return session.retry(thread.id, button.dataset.retryAttempt);
-      const allowed = await allowSearch(thread.model, thread.permissions?.sharingScope, failed.request?.retrieval?.route);
+      const allowed = await allowSearch(thread.model, failed.request?.permissions?.sharingScope ?? thread.permissions?.sharingScope, failed.request?.retrieval?.route, failed.request?.permissions?.executionLocation ?? 'auto');
       if (allowed) return session.retry(thread.id, button.dataset.retryAttempt, { search: allowed });
     });
   });

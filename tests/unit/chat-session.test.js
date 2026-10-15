@@ -101,7 +101,7 @@ describe('Chat host with injected execution, not actual inference', () => {
     await session.close();
   });
 
-  it('holds a peer request until the one-time remote permission exists, then sends follow-ups without asking', async () => {
+  it('forces network execution with cached weights, waits for permission, and preserves the choice through reload', async () => {
     const peer = 'peer:' + 'b'.repeat(24), disclosed = [];
     const swarm = {
       getState: () => ({ sharing: false }), connect: async () => {}, hasProvider: () => true,
@@ -115,23 +115,33 @@ describe('Chat host with injected execution, not actual inference', () => {
         return { model: controls.modelId, modelIdentity: controls.modelIdentity, adapterIdentities: [], provider: 'doppler', peerId: peer, content: 'Peer answer' };
       }
     };
-    const service = createChatTestService(), session = createChatSession({ storage: null, service, swarm });
-    const id = session.createThread(), model = session.getState().activeThread.model;
-    expect(session.remotePermissionNeeded({ model, sharingScope: 'mesh' })).toMatchObject({ disclosure: 'public', modelIdentity: model.identity });
+    const store = storage(), service = createChatTestService(), session = createChatSession({ storage: store, service, swarm });
+    session.setCachedModels(CANONICAL_CHAT_MODELS);
+    const id = session.createThread({ executionLocation: 'network' }), model = session.getState().activeThread.model;
+    expect(session.remotePermissionNeeded({ model, sharingScope: 'mesh', executionLocation: 'network' })).toMatchObject({ disclosure: 'public', modelIdentity: model.identity });
     const completion = session.send(id, 'Public question');
     await vi.waitFor(() => expect(session.getState().activeThread.attempts[0].status).toBe('approval'));
     expect(disclosed).toEqual([]);
+    expect(() => session.setExecutionLocation(id, 'local')).toThrow('idle');
     // The product host never approves one request; only a stored permission releases it.
     const attempt = session.getState().activeThread.attempts[0];
     expect(() => session.approve(id, attempt.id, attempt.approval.id, true)).toThrow('remote contributor permission');
     const permission = await session.grantRemotePermission(attempt.approval.permissionNeed, { wording: remotePermissionWording(attempt.approval.permissionNeed) });
     expect((await completion).status).toBe('completed');
     expect(disclosed).toEqual(['Public question']); expect(service.calls).toHaveLength(0);
-    expect(session.remotePermissionNeeded({ model, sharingScope: 'mesh' })).toBeNull();
+    expect(session.remotePermissionNeeded({ model, sharingScope: 'mesh', executionLocation: 'network' })).toBeNull();
     const follow = await session.send(id, 'Follow-up');
     expect(follow).toMatchObject({ status: 'completed', authorization: { kind: 'permission', permissionId: permission.id, recipients: [peer] } });
     expect(disclosed).toEqual(['Public question', 'Follow-up']);
+    expect(service.calls).toHaveLength(0);
     await session.close();
+    const restored = createChatSession({ storage: store, service, swarm });
+    expect(restored.getState().threads[0].permissions.executionLocation).toBe('network');
+    restored.restoreThread(id);
+    restored.setExecutionLocation(id, 'local');
+    expect((await restored.send(id, 'Locally now')).execution.placement).toBe('local-webgpu');
+    expect(disclosed).toHaveLength(2);
+    await restored.close();
   });
 
   it('contribution invokes the owner and requires explicit consent', async () => {
@@ -437,4 +447,17 @@ it('persists measured local timing with the completed attempt through reload', a
   restored.restoreThread(id);
   expect(restored.getState().activeThread.attempts.at(-1).execution.timing).toEqual(timing);
   await restored.close();
+});
+
+it('does not fall back to a cached model when Network has no capacity', async () => {
+  const service = createChatTestService(), swarm = { getState: () => ({ consumer: { peers: [] } }),
+    connect: async () => {}, hasProvider: () => false,
+    generate: vi.fn(async () => { throw Error('No network capacity'); }) };
+  const session = createChatSession({ storage: null, service, swarm });
+  session.setCachedModels(CANONICAL_CHAT_MODELS);
+  const id = session.createThread({ executionLocation: 'network' });
+  const attempt = await session.send(id, 'Do not run locally');
+  expect(attempt).toMatchObject({ status: 'failed', error: 'No network capacity' });
+  expect(service.calls).toHaveLength(0);
+  await session.close();
 });

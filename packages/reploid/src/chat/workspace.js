@@ -428,6 +428,15 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       return transactional ? saved.then(() => thread.id) : thread.id;
     },
     select(threadId) { current(); if (threadId !== null) find(threadId); selectedId = threadId; notify(); },
+    setExecutionLocation(threadId, location) {
+      current(); const thread = find(threadId);
+      assert(['auto', 'local', 'network'].includes(location), 'Invalid execution location');
+      assert(!thread.closed && !runs.has(threadId), 'Change execution location only in an open idle conversation');
+      assert(location !== 'local' || !thread.model.partition, 'This model requires network execution');
+      const previous = thread.permissions;
+      thread.permissions = { ...previous, executionLocation: location, sharingScope: location === 'local' ? 'local' : 'mesh' };
+      try { return persist(); } catch (error) { thread.permissions = previous; notify(); throw error; }
+    },
     setSystemContext(threadId, value) {
       current(); const thread = find(threadId);
       assert(!thread.closed && !runs.has(threadId), 'Change context only in an open idle conversation');
