@@ -37,8 +37,9 @@ Outputs: [VFS](seed-vfs.js), [startup](start-reploid.js).
   Uncovered requests send nothing until granted; revocation spares admitted
   answers, which never reroute.
   Ordered catalogs with metadataDigest open one tab's transactional history, else report ordinary.
-- File contribution requires separate bounded consent. Explicit compute may acquire
-  selected files, not redistribute. Discovery never downloads weights.
+- Connection, introductions, cached compute/file sharing default on;
+  Separate off controls; downloads require approval.
+  Discovery never downloads weights.
 - Doppler storage verifies files; inventories cannot select code.
   Resident leases include adapter application/evidence/removal/cancellation settlement.
 - Candidates cannot read protected tests or self-activate; attempts pin versions, retaining rollback sources.

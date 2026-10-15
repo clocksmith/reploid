@@ -106,8 +106,13 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
   return finish(createChatSession({ ...chatOptions, requesterIdentity }));
   function finish(openedChat) {
     chat = openedChat;
-    modelCache = watchModelCache({ eventTarget, onChange: models => chat.setCachedModels(globalThis.navigator?.gpu ? models : []) });
-    const autoconnect = startSwarmAutoconnect({ connect: options => swarm.connect(options),
+    let cachedModels = [];
+    modelCache = watchModelCache({ eventTarget, onChange: models => {
+      cachedModels = models;
+      chat.setCachedModels(globalThis.navigator?.gpu ? models : []);
+      void swarm.shareCachedModels(models);
+    } });
+    const autoconnect = startSwarmAutoconnect({ connect: async options => { await swarm.connect(options); void swarm.shareCachedModels(cachedModels); },
       enabled: () => swarm.autoConnectEnabled(), isConnected: () => {
         const state = swarm.getState();
         return state.connecting || ['connected', 'connecting', 'retrying'].includes(state.consumer?.connectionState);
