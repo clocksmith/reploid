@@ -10,6 +10,7 @@ export { createConversationPublication } from './workspace-publication.js';
 export { REMOTE_PERMISSION_SCHEMA, REMOTE_DISCLOSURES, remoteDisclosureKind, remotePermissionNeed, remotePermissionCovers,
   createRemotePermission, validateRemotePermission } from './remote-permission.js';
 import type { RemotePermission, RemotePermissionNeed } from './remote-permission.js';
+import type { RetrievalPorts, RetrievalRecord, RetrievalRequest, RetrievalRequestInput } from '../retrieval/index.js';
 export type { RemotePermission, RemotePermissionNeed } from './remote-permission.js';
 export type { TransactionalChatStore, PublicationReceipt } from './workspace-publication.js';
 export interface ChatModel {
@@ -47,6 +48,8 @@ export interface ChatRequest {
   messages: Array<{ role: string; content: string }>;
   permissions: Record<string, unknown>;
   members: string[];
+  /** The requester's opt-in to retrieval for this request. Executors never receive it; they receive the sources in messages. */
+  retrieval?: RetrievalRequest;
 }
 export interface ChatEnvelope { threadId: string; attemptId: string }
 export interface ChatApproval extends ChatEnvelope {
@@ -88,6 +91,9 @@ export interface ChatAttempt {
   execution: Record<string, unknown> | null;
   request: ChatRequest;
   systemContext?: ChatSystemContext | null;
+  /** Present when the request opted into retrieval: query, sources with provenance, failure and citation verification.
+   * The sources were disclosed with the request's messages under `authorization`. */
+  retrieval?: RetrievalRecord;
 }
 export interface ChatThread {
   id: string; model: ChatModel; purpose: string; title?: string; members: string[];
@@ -115,7 +121,11 @@ export interface ChatControls {
 /** Live host authorization for this Send/Retry only. Never persisted or reused. */
 export interface ChatSendOptions {
   select?: boolean;
-  authorizeDisclosure?: ((input: { request: ChatRequest & ChatEnvelope; preview: ChatApproval }) => boolean) | null;
+  /** Receives the request as dispatched, retrieved sources included, with its retrieval record. */
+  authorizeDisclosure?: ((input: { request: Omit<ChatRequest, 'retrieval'> & ChatEnvelope & { retrieval?: RetrievalRecord };
+    preview: ChatApproval }) => boolean) | null;
+  /** Opts this request into retrieval-backed answering; requires the workspace `retrieval` ports. */
+  retrieval?: RetrievalRequestInput | null;
 }
 export interface ChatWorkspaceOptions {
   meshId: string; participantId: string;
@@ -126,6 +136,8 @@ export interface ChatWorkspaceOptions {
   remotePermissions?: (() => readonly RemotePermission[]) | null;
   /** The network (room) a remote request is sent on; permissions cover only the network they were granted on. Defaults to meshId. */
   networkId?: () => string;
+  /** Search provider, optional passage extractor and support checker. Without them, retrieval requests are refused. */
+  retrieval?: RetrievalPorts | null;
   store: { load(): unknown; save(state: unknown): void };
   execute(request: ChatRequest & ChatEnvelope & { meshId: string; participantId: string }, controls: ChatControls): Promise<ChatResult>;
   policy?: ChatPolicy; now?: () => number; id?: () => string;
@@ -143,6 +155,7 @@ export interface ChatWorkspace {
   closeThread(threadId: string): void;
   reopenThread(threadId: string): void;
   send(threadId: string, content: string, options?: ChatSendOptions): ChatAttemptCompletion;
+  /** A retry of a retrieval-backed attempt retrieves again under the same query and limits. */
   retry(threadId: string, attemptId: string, options?: Pick<ChatSendOptions, 'authorizeDisclosure'>): ChatAttemptCompletion;
   /** Decline cancels only this attempt. Accepting is refused when the host supplies remotePermissions. */
   approve(threadId: string, attemptId: string, previewId: string, accepted: boolean, options?: { remember?: boolean }): void;

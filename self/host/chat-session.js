@@ -57,6 +57,9 @@ export function createChatSession({
   // ordinary, or refused because another tab owns it. Reported in state as-is.
   history = null,
   models = CANONICAL_CHAT_MODELS,
+  // Search provider, optional passage extractor and support checker (vendor/reploid/retrieval). None is
+  // composed by default, so retrieval-backed requests are refused until a qualified provider is supplied.
+  retrieval = null,
   now = Date.now,
   id = () => crypto.randomUUID()
 } = {}) {
@@ -106,6 +109,7 @@ export function createChatSession({
     remotePermissions: () => remotePermissions,
     // Permissions are bound to the network (room) they were granted on.
     networkId: currentNetwork,
+    retrieval,
     store,
     execute: execution.execute,
     now,
@@ -250,7 +254,9 @@ export function createChatSession({
       workspace.select(threadId);
     },
     // Remote disclosure waits in the workspace's 'approval' state until approve() records the displayed recipients.
-    send(threadId, content, attachments = []) {
+    // `retrieval: { query?, limits? }` opts this request into retrieval; the query defaults to the typed text,
+    // never to attachment contents.
+    send(threadId, content, attachments = [], { retrieval = null } = {}) {
       assertOpen();
       assert(threadId, 'threadId required');
       assert(Array.isArray(attachments) && attachments.length <= profile.files.maxInputs, 'Too many attachments');
@@ -262,7 +268,9 @@ export function createChatSession({
         assert(bytes <= profile.files.maxFileBytes, 'Attachment exceeds the file allowance');
       });
       assert(total <= profile.files.maxInputBytes, 'Attachments exceed the input allowance');
-      return workspace.send(threadId, attachmentInput(content, attachments));
+      assert(retrieval === null || retrieval && typeof retrieval === 'object', 'Invalid retrieval request');
+      return workspace.send(threadId, attachmentInput(content, attachments),
+        retrieval ? { retrieval: { ...retrieval, query: retrieval.query ?? content } } : undefined);
     },
     cancel(threadId) {
       assertOpen();

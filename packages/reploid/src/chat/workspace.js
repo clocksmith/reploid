@@ -5,6 +5,8 @@ import { ORDERED_PUBLICATION_ATTEMPT_SCHEMA } from '../mesh/partitions/partition
 import defaults from './policy.json' with { type: 'json' };
 import { disclosureRecipients, disclosureScope, matchingThreadGrant, validateThreadGrants } from './thread-grants.js';
 import { remotePermissionCovers, remotePermissionNeed } from './remote-permission.js';
+import { createRetrieval } from '../retrieval/retrieval.js';
+import { interruptRetrievalRecord, retrievalFailureMessage } from '../retrieval/sources.js';
 
 const copy = value => structuredClone(value);
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
@@ -17,12 +19,16 @@ const DISCLOSURE_MISMATCH = 'Peer disclosure does not match the selected model a
 // binds into ordered requester disclosure; null until authenticated. Hosts whose participant is that peer keep the default.
 // remotePermissions, when supplied, returns the host's stored remote contributor permissions
 // (remote-permission.js); every remote disclosure then requires one that covers it.
+// retrieval, when supplied, holds the host's search provider and optional passage extractor and support
+// checker (retrieval/); a request opts in per send. Retrieved sources travel inside the request's messages,
+// so the same disclosure authorization covers them, and nothing is dispatched when retrieval fails.
 export function createChatWorkspace({ meshId, participantId, store, execute, requesterIdentity = () => participantId,
-  remotePermissions = null, networkId = () => meshId, policy = defaults, now = Date.now, id = () => crypto.randomUUID() }) {
+  remotePermissions = null, networkId = () => meshId, retrieval = null, policy = defaults, now = Date.now, id = () => crypto.randomUUID() }) {
   assert(typeof meshId === 'string' && meshId && typeof participantId === 'string' && participantId, 'Mesh and participant identities required');
   assert(typeof store?.load === 'function' && typeof store?.save === 'function' && typeof execute === 'function'
     && typeof requesterIdentity === 'function' && (remotePermissions === null || typeof remotePermissions === 'function')
-    && typeof networkId === 'function', 'Workspace host ports required');
+    && typeof networkId === 'function' && (retrieval === null || typeof retrieval === 'object'), 'Workspace host ports required');
+  const retriever = retrieval === null ? null : createRetrieval({ ...retrieval, now });
   const covering = need => need && (remotePermissions?.() || []).find(permission => remotePermissionCovers(permission, need)) || null;
   // The authorization cites the permission and names the verified route this attempt is dispatched to.
   const permitted = (scope, preview, permission) => ({ kind: 'permission', grantId: null, permissionId: permission.id,
@@ -68,6 +74,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
     for (const attempt of thread.attempts) if (activeStatuses.has(attempt.status)) {
       attempt.status = 'interrupted'; attempt.error = 'Connection interrupted. Retry starts a new attempt.';
       attempt.approval = null; attempt.finishedAt = now();
+      if (attempt.retrieval) attempt.retrieval = interruptRetrievalRecord(attempt.retrieval, attempt.finishedAt);
       const message = thread.messages.find(item => item.id === attempt.responseId);
       if (message) message.status = 'interrupted';
     }
@@ -134,6 +141,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
     assert(!runs.has(thread.id), 'This conversation already has an active response');
     assert(runs.size < limits.maxConcurrentAttempts, 'Concurrent conversation limit reached');
     assert(thread.messages.length < limits.maxMessagesPerThread, 'Conversation history limit reached');
+    assert(!request.retrieval || retriever, 'Retrieval is not configured');
     const controller = new AbortController();
     // publicationMode 'canonical' is the persisted marker for requester-published output, from either
     // canonical two-stage or ordinary ordered records; it does not mean canonical decoding. Saved
@@ -141,7 +149,9 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
     const attempt = { id: id(), threadId: thread.id, userMessageId, responseId: id(), retryOf,
       status: 'queued', createdAt: now(), finishedAt: null, error: null, approval: null,
       execution: null, authorization: null, ...(transactional ? { publicationMode: 'canonical' } : {}), request: copy(request),
-      systemContext: copy(retryOf ? thread.attempts.find(item => item.id === retryOf)?.systemContext ?? null : thread.systemContext) };
+      systemContext: copy(retryOf ? thread.attempts.find(item => item.id === retryOf)?.systemContext ?? null : thread.systemContext),
+      // Each attempt retrieves afresh; a retry never reuses another attempt's sources.
+      ...(request.retrieval ? { retrieval: retriever.pending(request.retrieval, now()) } : {}) };
     const response = { id: attempt.responseId, attemptId: attempt.id, role: 'assistant', content: '', status: 'queued' };
     thread.attempts.push(attempt); thread.messages.push(response);
     const run = { controller, approval: null, completion: null, nextSequence: 0 };
@@ -160,13 +170,20 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
     };
     controller.signal.addEventListener('abort', aborted, { once: true });
     run.completion = (async () => {
-      let publication = null;
+      let publication = null, dispatched = request;
       try {
         if (transactional) await admitted;
         controller.signal.throwIfAborted();
+        if (request.retrieval) {
+          // Provenance is durable before any source text can be disclosed; failure dispatches nothing.
+          attempt.retrieval = await retriever.retrieve(attempt.retrieval, controller.signal);
+          await persist(); controller.signal.throwIfAborted();
+          assert(attempt.retrieval.outcome === 'retrieved', retrievalFailureMessage(attempt.retrieval));
+          dispatched = await retriever.dispatch(request, attempt.retrieval);
+        }
         if (transactional) await store.assertCurrentWriter();
         publication = transactional ? await store.publication(thread.id) : undefined;
-        const result = await execute(copy({ ...request, threadId: thread.id, attemptId: attempt.id,
+        const result = await execute(copy({ ...dispatched, threadId: thread.id, attemptId: attempt.id,
           meshId, participantId }), {
           signal: controller.signal,
           authorizationExpiresAt: () => live() ? attempt.authorization?.expiresAt ?? null : null,
@@ -231,7 +248,9 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
                 'Execution recipients changed. Retry starts a new authorized attempt.');
                 return live() && attempt.authorization.expiresAt > now();
               }
-              const accepted = authorizeDisclosure({ request: copy({ ...request, threadId: thread.id, attemptId: attempt.id }), preview: copy(preview) });
+              // The host authorizes exactly what is sent, including any retrieved sources.
+              const accepted = authorizeDisclosure({ request: copy({ ...dispatched, threadId: thread.id, attemptId: attempt.id,
+                ...(attempt.retrieval ? { retrieval: attempt.retrieval } : {}) }), preview: copy(preview) });
               if (accepted !== true || !live() || preview.expiresAt <= now()) return false;
               attempt.authorization = { kind: 'once', grantId: null, peerId: preview.peerId,
                 ...copy(scope), source: 'send', expiresAt: preview.expiresAt };
@@ -281,6 +300,9 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         assert(!['max-tokens', 'length', 'context-limit'].includes(attempt.execution?.stopReason),
           'The answer reached its generation limit and is incomplete. Its partial text is preserved; retry starts a new attempt.');
         assert(transactional || result.content.trim(), 'Invalid completed response');
+        // Mechanical citation evidence for the finished answer. A stop during checking leaves the rest unverified.
+        if (attempt.retrieval) attempt.retrieval = { ...attempt.retrieval,
+          verification: await retriever.verify(result.content, attempt.retrieval, controller.signal) };
         response.status = 'completed'; attempt.status = 'completed';
       } catch (error) {
         let cancelled = controller.signal.aborted;
@@ -362,10 +384,13 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
     renameThread(threadId, title) { current(); assert(typeof title === 'string' && title.trim() && title.length <= limits.maxMessageCharacters, 'Invalid conversation title'); find(threadId).title = title.trim(); return persist(); },
     closeThread(threadId) { current(); find(threadId).closed = true; if (selectedId === threadId) selectedId = null; return persist(); },
     reopenThread(threadId) { current(); find(threadId).closed = false; selectedId = threadId; return persist(); },
-    send(threadId, content, { select = true, authorizeDisclosure = null } = {}) {
+    /** `retrieval` opts this request into search-backed answering: `{ query?, limits? }`, the query defaulting to the message. */
+    send(threadId, content, { select = true, authorizeDisclosure = null, retrieval = null } = {}) {
       current(); const thread = find(threadId);
       assert(!thread.closed && !runs.has(threadId), 'Open an idle conversation before sending');
       assert(runs.size < limits.maxConcurrentAttempts && thread.messages.length + 2 <= limits.maxMessagesPerThread, 'Conversation allowance reached');
+      assert(retrieval === null || retriever, 'Retrieval is not configured');
+      const searched = retrieval === null ? null : retriever.request(retrieval, text(content));
       const message = { id: id(), role: 'user', content: text(content), status: 'completed' };
       thread.messages.push(message);
       const completedUsers = new Set(thread.attempts.filter(attempt => attempt.status === 'completed').map(attempt => attempt.userMessageId));
@@ -374,7 +399,8 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         .map(({ role, content }) => ({ role, content }));
       const system = [thread.systemContext?.content, thread.purpose].filter(Boolean).join('\n\n');
       if (system) messages.unshift({ role: 'system', content: system });
-      try { return start(thread, { model: thread.model, permissions: thread.permissions, members: thread.members, messages }, message.id, null, select, authorizeDisclosure); }
+      try { return start(thread, { model: thread.model, permissions: thread.permissions, members: thread.members, messages,
+        ...(searched ? { retrieval: searched } : {}) }, message.id, null, select, authorizeDisclosure); }
       catch (error) { thread.messages.pop(); throw error; }
     },
     retry(threadId, attemptId, { authorizeDisclosure = null } = {}) {

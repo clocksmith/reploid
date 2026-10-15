@@ -21,6 +21,12 @@ these software contract checks.
 | reploid/browser | Explicit IndexedDB, memory stores and VFS adapters |
 | reploid/doppler | Optional public Doppler Capsule-session integration |
 | reploid/improve | Existing signed improvement episode ledger and promotion-readiness checks |
+| reploid/retrieval | Search provider, passage extractor and support checker interfaces; bounded provenance records, numbered source context and mechanical citation checks |
+
+`reploid/retrieval` includes no search provider. Its fixed-document provider and
+lexical-overlap checker are deterministic test doubles. Whether a cited source
+supports a claim is a judgment: any real support checker, like any real search
+provider, needs its own qualification before its verdicts count as evidence.
 
 The package contains no Express, Firebase Admin, application catalog, routes or
 server deployment tooling. It does not register a service worker. Importing is

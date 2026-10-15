@@ -15,6 +15,10 @@
       "types": "./src/chat/index.d.ts",
       "import": "./src/chat/index.js"
     },
+    "./retrieval": {
+      "types": "./src/retrieval/index.d.ts",
+      "import": "./src/retrieval/index.js"
+    },
     ".": {
       "types": "./src/index.d.ts",
       "import": "./src/index.js"
