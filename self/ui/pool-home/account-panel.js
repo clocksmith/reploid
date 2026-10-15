@@ -106,7 +106,7 @@ export function bindAccountPanel(root, opening) {
       const button = event.target.closest('[data-earning-top-up]');
       if (button) { button.disabled = true; void account.topUp(button.dataset.earningTopUp).finally(() => { button.disabled = false; }); }
     }, options);
-    let topUpsKey = '', journalKey = '';
+    let topUpsKey = null, journalKey = null;
     unsubscribe = account.subscribe(state => {
       const ready = state.phase === 'ready';
       find('[data-earning-ready]').hidden = !ready;

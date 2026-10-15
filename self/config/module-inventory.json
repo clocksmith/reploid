@@ -2189,7 +2189,7 @@
     {
       "path": "self/host/credits/browser.js",
       "owner": "self",
-      "sha256": "sha256:31cb57b4695198fdbe1689ac322efb4e6ea76fcdbffa89c17a96827ac9ff8613",
+      "sha256": "sha256:5c021fa097f8fadda65891f03e0f2c0a2d456b2ef2e54624096438a6fbf622ae",
       "imports": [
         "../../vendor/reploid/artifacts/identity.js",
         "../earning/attempts.js",
@@ -3182,7 +3182,7 @@
     {
       "path": "ui/pool-home/account-panel.js",
       "owner": "ui",
-      "sha256": "sha256:acb98567867b4f14695f724def94d4a10bf089b103e4a4256d234468c4ef6363",
+      "sha256": "sha256:6e44eca6fcb30c90732ff7afe85b5d4f9b0a78814298be6a14a1eeb2aa4ef59c",
       "imports": [
         "../components/attachments.js",
         "./account-sign-in.js"

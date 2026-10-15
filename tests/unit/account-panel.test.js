@@ -50,6 +50,7 @@ describe('credits panel', () => {
     expect(signIn.useSubject).toHaveBeenCalledWith('alice');
     expect(find('[data-earning-local-signed-in]').textContent).toBe('Signed in as alice (local test).');
     expect(find('[data-earning-quote]').textContent).toBe('No spending limit is set, so answers that cost credits are not sent.');
+    expect(find('[data-earning-journal]').textContent).toBe('No activity yet.');
 
     account.set({ phase: 'ready', spendingLimit: 60, balance: { available: 988, held: 0, byProvenance: { earned: { available: 4 }, purchased: { available: 984 } } },
       checkout: { phase: 'issued', credits: 1000 },
