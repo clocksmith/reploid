@@ -18,7 +18,7 @@ Outputs: `reploid.retrieval-record/v1`, `reploid.retrieval-costs/v1`, `reploid.c
 
 ## Invariants
 - Requests narrow policy limits; count, characters and time stay bounded.
-- Records keep source id, URL, retrieval time, hashes, offsets, usage and exact passage before disclosure.
+- Records keep source id, URL, retrieval time, hashes/offsets, usage, exact passage and supply before disclosure.
 - Fetched-page sources keep that page's own address and title; search-response titles and snippets stay transient.
 - Failure or emptiness yields no source and dispatches nothing.
 - Valid citations resolve to fetched sources whose passage hash, context digest and exact span hold.

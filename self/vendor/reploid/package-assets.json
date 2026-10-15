@@ -11,6 +11,10 @@
       "types": "./src/retrieval/index.d.ts",
       "import": "./src/retrieval/index.js"
     },
+    "./measurement": {
+      "types": "./src/measurement/index.d.ts",
+      "import": "./src/measurement/index.js"
+    },
     ".": {
       "types": "./src/index.d.ts",
       "import": "./src/index.js"
@@ -345,13 +349,13 @@
     },
     {
       "path": "chat/index.d.ts",
-      "bytes": 13298,
-      "sha256": "feacadf5699ae5559f2a1243fd0b2df4e2674f25a3ca9b63a6747e085cf33007"
+      "bytes": 13976,
+      "sha256": "582b2f849c26b7f1b091bb789280c72599129d673124d1e46989c5bee87ef6c7"
     },
     {
       "path": "chat/index.js",
-      "bytes": 674,
-      "sha256": "01a86bcaed84be23253c611ad6d070fd6d7e3163e2904e504f1870983ab8e962"
+      "bytes": 929,
+      "sha256": "e90bd7bce013eeb4d88e303400a391273edcdd4abaae7c41251660e0898aa73a"
     },
     {
       "path": "chat/policy.json",
@@ -394,6 +398,16 @@
       "sha256": "18ed405c9321f094badf74fa960ca2752a128a74209707d5367c59286f06087b"
     },
     {
+      "path": "chat/supply-provenance.d.ts",
+      "bytes": 3873,
+      "sha256": "1d3f4eea1378b56d8fa64bdff9a02fd481e8eb12e3049dcc4cc0bf81fddbcb68"
+    },
+    {
+      "path": "chat/supply-provenance.js",
+      "bytes": 9045,
+      "sha256": "85aa151a9a08544389e629a92cdc766373c4a2869e98f32f2ef47201dfb761a3"
+    },
+    {
       "path": "chat/thread-grants.js",
       "bytes": 7367,
       "sha256": "c667722c889c449e4866e4ca67172fdbad4e45f906925023d4bea2d626eb6488"
@@ -420,8 +434,8 @@
     },
     {
       "path": "chat/workspace.js",
-      "bytes": 39011,
-      "sha256": "428626f03debe094d6b9a24a2ee9084ff70be24669210aab24c1012f00a77ebc"
+      "bytes": 40449,
+      "sha256": "1aceb51ad3c9452c776ad8454418d8a82fc06ea4549ca680fe56867d19f99ef8"
     },
     {
       "path": "config/defaults.json",
@@ -602,6 +616,21 @@
       "path": "index.js",
       "bytes": 187,
       "sha256": "565faddca9230b2abb1861d3b5ec56815253507b92363cf6959ccb7cc82fedf1"
+    },
+    {
+      "path": "measurement/capacity-utilization.js",
+      "bytes": 20166,
+      "sha256": "54cd7cebdd4d4524f0b2477cc38885d36ae10dc2255e89d3e7402393bdc1f595"
+    },
+    {
+      "path": "measurement/index.d.ts",
+      "bytes": 4457,
+      "sha256": "87b3e0c17cbeeb226574c32dff3689e11c2a35108e83c781b96357621632cbb3"
+    },
+    {
+      "path": "measurement/index.js",
+      "bytes": 224,
+      "sha256": "f165ee61133178311e7d77bd690e80b80005f8f02121a1f3553cb05d6ef3673b"
     },
     {
       "path": "mesh/contribution.d.ts",
@@ -1085,13 +1114,13 @@
     },
     {
       "path": "retrieval/index.d.ts",
-      "bytes": 21416,
-      "sha256": "36899f0a4f37bdaa8c8a1fa9d1a8bb55f9254b61f359a4cb2d0a00dcfcbff7b2"
+      "bytes": 21850,
+      "sha256": "4b9a9ea4c274b291cfcfd60a462eef93d85728a9a63a18d125aa3636ad980c73"
     },
     {
       "path": "retrieval/index.js",
-      "bytes": 1839,
-      "sha256": "e4ad493f258ecb984fa0917f78044d3b728d86fab3e279cb562787a73280b36a"
+      "bytes": 1859,
+      "sha256": "f34fddd2a5ff0dbb6e664e89dbbc442a84e6c7e3348ed31da65a739c12076f7f"
     },
     {
       "path": "retrieval/lexical-support.js",
@@ -1135,8 +1164,8 @@
     },
     {
       "path": "retrieval/sources.js",
-      "bytes": 17302,
-      "sha256": "c8fee6d50048417a8f2e408bd6c71a6bab85401b287d973de4877499562cb7be"
+      "bytes": 17681,
+      "sha256": "34de843cb101691b567efe085beb1b9aded3653194f2483c9b142201c1f0888c"
     },
     {
       "path": "retrieval/support-review.js",

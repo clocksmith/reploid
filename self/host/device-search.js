@@ -69,7 +69,7 @@ export function createDeviceSearch({ source, enabled = () => true, server, fetch
 
   const provider = Object.freeze({
     get id() { return `reploid.device-search/${source.id}`; },
-    version: '1', searchProvider: DEVICE_SEARCH_PROVIDER, costBearer: 'requester',
+    version: '1', searchProvider: DEVICE_SEARCH_PROVIDER, costBearer: 'requester', supply: 'device',
     /** The host of the search server the person set up; each per-answer permission names it. */
     get searchServer() { return server() || null; },
     // The answer key stays on this device: the search tool receives only the query.

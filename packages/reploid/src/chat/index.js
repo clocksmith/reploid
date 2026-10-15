@@ -6,3 +6,5 @@ export { REMOTE_PERMISSION_SCHEMA, PERMISSION_KINDS, REMOTE_DISCLOSURES, remoteD
   createRemotePermission, validateRemotePermission, validPermissionWording } from './remote-permission.js';
 export { SEARCH_PERMISSION_KIND, SEARCH_RECIPIENTS_CHANGED, searchPermissionWording, createSearchPermission,
   validateSearchPermission } from './search-permission.js';
+export { ANSWER_PROVENANCE_SCHEMA, SUPPLY_CLASSES, HOSTED_EXECUTION_REFUSED, UNRECOGNIZED_EXECUTION_REFUSED, supplyOf,
+  classifyExecutionSupply, executionRefusal, retrievalSupply, attemptExecutionSupply, answerProvenance } from './supply-provenance.js';

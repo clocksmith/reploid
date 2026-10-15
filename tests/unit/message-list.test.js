@@ -95,4 +95,18 @@ describe('Stable message presentation', () => {
     view.dispose();
   });
 
+  it('shows each answer\'s recorded supply provenance in its technical details', () => {
+    const root = document.createElement('div'), thread = { ...conversation(), model: { name: 'Model' } };
+    thread.messages[1].content = 'Answer';
+    thread.attempts[0] = { id: 'attempt', status: 'completed', execution: { provider: 'peer', placement: 'peer-whole-request', peerId: 'peer-1' },
+      provenance: { schema: 'reploid.answer-provenance/v1', supply: 'mesh', classes: ['mesh'],
+        execution: { supply: 'mesh', classes: ['mesh'], placement: 'peer-whole-request', participants: [] }, earlierAttempts: [], retrieval: { supply: 'none' } } };
+    const view = createMessageList(root);
+    view.update(thread, { usable: true, busy: false, state: { participantId: 'requester' } });
+    const details = root.querySelector('[data-message-id="reply"] [data-execution-activity]');
+    expect(details.hidden).toBe(false);
+    expect(details.querySelector('summary').textContent).toBe('Complete · 1 computer · Mesh');
+    view.dispose();
+  });
+
 });
