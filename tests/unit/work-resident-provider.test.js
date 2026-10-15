@@ -153,3 +153,21 @@ it('snapshots queued conversation input before the caller can mutate it', async 
   messages[0].content = 'mutated'; gate.resolve(); await held;
   expect((await request).content).toBe('original'); await f.owner.close();
 });
+
+it('captures runtime timing before cleanup resets it, without counting text chunks as tokens', async () => {
+  let stats = null;
+  const f = fixture({
+    advanced: { getStats: () => stats },
+    resetGenerationState() { stats = null; },
+    async *stream() {
+      yield { type: 'text-delta', text: 'One chunk, several tokens 🌍' };
+      stats = { totalTimeMs: 400, prefillTimeMs: 100, decodeTimeMs: 300, ttftMs: 110, tokensGenerated: 7 };
+      yield { type: 'complete', outputText: 'One chunk, several tokens 🌍' };
+    }
+  });
+  await f.owner.prepare();
+  const result = await f.owner.generate([], () => {}, { signal: signal() });
+  expect(stats).toBeNull();
+  expect(result.timing).toEqual({ totalMs: 400, prefillMs: 100, decodeMs: 300, firstTokenMs: 110, generatedTokenCount: 7 });
+  await f.owner.close();
+});

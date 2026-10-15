@@ -94,3 +94,22 @@ describe('recorded supply provenance label', () => {
     expect(root.querySelector('[data-attempt-supply]').textContent).toBe('This attempt: Mesh');
   });
 });
+
+it('shows completed whole-model timing and never leaves a finished answer pending', () => {
+  const attempt = { id: 'attempt', status: 'completed', execution: { placement: 'local-webgpu',
+    timing: { totalMs: 500, generatedTokenCount: 10 } } };
+  const state = { activeThread: { id: 'thread', model: { name: 'Model' }, messages: [], attempts: [attempt] } };
+  const root = document.createElement('details');
+  root.innerHTML = '<summary></summary><div data-activity-detail></div>';
+  updateExecutionActivity(root, state);
+  expect(root.textContent).toContain('20.0 tok/s');
+  expect(root.textContent).toContain('includes prompt processing');
+  expect(root.querySelector('.chat-distribution')).toBeNull();
+  attempt.execution.timing = null;
+  updateExecutionActivity(root, state);
+  expect(root.textContent).toContain('Timing not recorded');
+  expect(root.textContent).not.toContain('Timing pending');
+  attempt.status = 'executing';
+  updateExecutionActivity(root, state);
+  expect(root.textContent).toContain('Timing pending');
+});

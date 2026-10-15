@@ -11,8 +11,12 @@ export function projectExecutionActivity(state) {
     return values?.length && values.every(value => Number.isFinite(value) && value >= 0)
       ? { count: values.length, total: values.reduce((a, b) => a + b, 0) } : null;
   };
+  const generation = view.execution?.timing;
+  const wholeTiming = generation && Number.isSafeInteger(generation.generatedTokenCount)
+    && generation.generatedTokenCount >= 0 && Number.isFinite(generation.totalMs) && generation.totalMs > 0
+    ? { count: generation.generatedTokenCount, total: generation.totalMs } : null;
   const nodes = view.executors.map((node, index) => {
-    const timing = view.ordered ? node.timing : view.split ? metric(index === 0 ? 'localStepMs' : 'remoteStepMs') : null;
+    const timing = view.ordered ? node.timing : view.split ? metric(index === 0 ? 'localStepMs' : 'remoteStepMs') : wholeTiming;
     return { ...node, timing, speed: timing?.total > 0 ? 1000 * timing.count / timing.total : null };
   });
   const total = nodes.length && nodes.every(node => node.timing?.total > 0)
@@ -38,11 +42,11 @@ export function updateExecutionActivity(root, state) {
   if (root.hidden) return;
   root.querySelector('summary').textContent = [view.status === 'executing' ? 'Generating' : view.statusLabel,
     ...(view.nodes.length ? [`${view.nodes.length} computer${view.nodes.length === 1 ? '' : 's'}`] : []), ...(supply.answer ? [supply.answer] : [])].join(' · ');
-  const measured = view.nodes.every(node => node.share !== null);
+  const measured = view.nodes.length > 0 && view.nodes.every(node => node.share !== null);
   // A hosted or unreported executor has no computers to list; only its supply label is shown.
-  const markup = (!view.nodes.length ? '' : (measured ? `<div class="chat-distribution pool-bar" role="img" aria-label="Recorded step time share: ${escape(view.nodes.map(node => `${node.label} ${Math.round(node.share * 100)}%`).join(', '))}">${view.nodes.map(node => `<span style="--pool-param-share: ${node.share}"></span>`).join('')}</div>` : '')
-    + `<ul>${view.nodes.map(node => `<li><span>${escape(node.label)}</span><span>${measured ? `${Math.round(node.share * 100)}% · ` : ''}${node.speed === null ? escape(node.layers) : `${node.speed.toFixed(1)} tok/s`}</span></li>`).join('')}</ul>`
-    + (measured ? '<small title="Includes runtime and transport overhead, not GPU-only speed or completion progress.">Step-time share · includes overhead</small>' : '<small>Timing pending</small>'))
+  const markup = (!view.nodes.length ? '' : (measured && view.split ? `<div class="chat-distribution pool-bar" role="img" aria-label="Recorded step time share: ${escape(view.nodes.map(node => `${node.label} ${Math.round(node.share * 100)}%`).join(', '))}">${view.nodes.map(node => `<span style="--pool-param-share: ${node.share}"></span>`).join('')}</div>` : '')
+    + `<ul>${view.nodes.map(node => `<li><span>${escape(node.label)}</span><span>${measured && view.split ? `${Math.round(node.share * 100)}% · ` : ''}${node.speed === null ? escape(node.layers) : `${node.speed.toFixed(1)} tok/s`}</span></li>`).join('')}</ul>`
+    + (measured && !view.split ? '<small>Generation average · includes prompt processing</small>' : measured ? '<small title="Includes runtime and transport overhead, not GPU-only speed or completion progress.">Step-time share · includes overhead</small>' : `<small>${view.active ? 'Timing pending' : 'Timing not recorded'}</small>`))
     + (supply.attempt ? `<small data-attempt-supply>This attempt: ${escape(supply.attempt)}</small>` : '');
   const detail = root.querySelector('[data-activity-detail]');
   if (detail.dataset.projection !== markup) { detail.innerHTML = markup; detail.dataset.projection = markup; }

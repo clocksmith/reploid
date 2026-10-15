@@ -420,3 +420,21 @@ it('uses another tab’s cached model locally without marking it GPU-ready or as
   expect(service.calls).toHaveLength(1);
   await session.close();
 });
+
+it('persists measured local timing with the completed attempt through reload', async () => {
+  const store = storage();
+  const timing = { totalMs: 500, generatedTokenCount: 10, prefillMs: 100, decodeMs: 400, firstTokenMs: 120 };
+  const session = createChatSession({ storage: store, service: createChatTestService(), scheduler: {
+    getState: () => ({}),
+    schedule: async request => ({ model: request.model.id, modelIdentity: request.model.identity,
+      adapterIdentities: [], content: 'Answer', timing })
+  } });
+  const id = session.createThread({ sharingScope: 'local' });
+  expect((await session.send(id, 'Question')).status).toBe('completed');
+  expect(session.getState().activeThread.attempts.at(-1).execution.timing).toEqual(timing);
+  await session.close();
+  const restored = createChatSession({ storage: store, service: createChatTestService() });
+  restored.restoreThread(id);
+  expect(restored.getState().activeThread.attempts.at(-1).execution.timing).toEqual(timing);
+  await restored.close();
+});

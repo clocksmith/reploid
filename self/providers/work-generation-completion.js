@@ -13,3 +13,13 @@ export function readWorkGenerationCompletion(result) {
   return { schema: value.schema, stopReason: value.stopReason,
     promptTokenCount: value.promptTokenCount, generatedTokenCount: value.generatedTokenCount };
 }
+
+/** Copy measurements while the generation still owns the session, before reset. */
+export function readWorkGenerationTiming(stats) {
+  if (!stats || !Number.isFinite(stats.totalTimeMs) || stats.totalTimeMs <= 0
+    || !Number.isSafeInteger(stats.tokensGenerated) || stats.tokensGenerated < 0) return null;
+  const duration = value => Number.isFinite(value) && value >= 0 ? value : null;
+  return { totalMs: stats.totalTimeMs, generatedTokenCount: stats.tokensGenerated,
+    prefillMs: duration(stats.prefillTimeMs), decodeMs: duration(stats.decodeTimeMs),
+    firstTokenMs: duration(stats.ttftMs) };
+}
