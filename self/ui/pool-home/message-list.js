@@ -39,7 +39,7 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
         if (!row) {
           row = stream.ownerDocument.createElement('article'); row.dataset.messageId = messageId;
           row.className = message.role === 'user' ? 'chat-message-row is-user pool-well pool-reveal-host' : 'chat-message-row is-assistant';
-          row.innerHTML = '<details class="chat-execution-activity pool-small pool-muted" data-execution-activity hidden><summary></summary><div data-activity-detail></div></details><span class="chat-message-author pool-small pool-muted"></span><div class="chat-message-content pool-body pool-prose"></div><div class="chat-message-actions"></div>';
+          row.innerHTML = '<details class="chat-execution-activity pool-small pool-muted" data-execution-activity hidden><summary class="pool-button" title="Execution details"></summary><div class="pool-well" data-activity-detail></div></details><span class="chat-message-author pool-small pool-muted"></span><div class="chat-message-content pool-body pool-prose"></div><div class="chat-message-actions"></div>';
           row.querySelector('.chat-message-author').textContent = message.role === 'user' ? 'You' : 'Assistant'; rows.set(id, row);
         }
         const body = row.querySelector('.chat-message-content');

@@ -20,6 +20,7 @@ export function renderNetworkInspector() {
     </nav>
     <dialog class="network-inspector pool-surface pool-small" data-contextual-inspector data-network-workspace aria-labelledby="network-inspector-title">
     <header class="chat-network-heading"><h2 class="pool-subheading" id="network-inspector-title" tabindex="-1">Network</h2><button class="pool-button" type="button" data-close-inspector aria-label="Back to chat" title="Back to chat">${interfaceIcon('close')}</button></header>
+    <section data-inspector-pane="model" aria-label="Model" hidden><div data-model-picker-slot></div></section>
     <section data-inspector-pane="conversation" aria-label="This conversation">
       <div class="execution-ribbon-route" data-inspector-route></div>
       <p data-inspector-status role="status"></p><p class="pool-caption pool-muted" data-context-detail></p>
@@ -89,7 +90,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   let grantsKey = '', executionKey = '', metadataController, disposed = false, specialized;
   const select = section => {
     for (const pane of panel.querySelectorAll('[data-inspector-pane]')) pane.hidden = pane.dataset.inspectorPane !== section;
-    find('#network-inspector-title').textContent = { conversation: 'This conversation', participants: 'Computers', device: 'Sharing', settings: 'Settings' }[section];
+    find('#network-inspector-title').textContent = { model: 'Model', conversation: 'This conversation', participants: 'Computers', device: 'Sharing', settings: 'Settings' }[section];
     for (const button of navigation.querySelectorAll('[data-inspector-section]')) button.setAttribute('aria-pressed', String(button.dataset.inspectorSection === section));
   };
   panel.addEventListener('click', event => {

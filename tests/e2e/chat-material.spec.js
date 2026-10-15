@@ -38,10 +38,12 @@ async function installConversation(page, theme) {
       state.activeThread.attempts[0].execution.stepSummary = { metrics };
       listeners.forEach(callback => callback(state));
     };
-    window.setVisualThreads = () => {
+    window.setVisualThreads = (count = 6) => {
       const template = state.activeThread;
-      state.threads = ['Compare weekend plans', 'Review the formatter', 'Notes for the next meeting', 'Summarize the reading', 'Check the itinerary', 'Follow up on the proposal'].map((purpose, index) => ({
-        ...structuredClone(template), id: 'recent-' + index, purpose, createdAt: 10 - index,
+      const purposes = ['Compare weekend plans', 'Review the formatter', 'Notes for the next meeting', 'Summarize the reading', 'Check the itinerary', 'Follow up on the proposal'];
+      state.threads = Array.from({ length: count }, (_, index) => ({
+        ...structuredClone(template), id: 'recent-' + index, purpose: purposes[index % purposes.length], createdAt: 10 - index,
+        messages: template.messages.map(message => ({ ...message, ...(message.attemptId ? { attemptId: 'attempt-' + index } : {}) })),
         attempts: template.attempts.map(attempt => ({ ...attempt, id: 'attempt-' + index, status: index === 0 ? attempt.status : 'completed' }))
       }));
       state.selectedId = state.threads[0].id; state.activeThread = state.threads[0];
@@ -319,14 +321,23 @@ test('answer activity shows observed shares and preserves its disclosure during 
   await installConversation(page, 'dark');
   await page.evaluate(() => window.setVisualState('executing'));
   const activity = page.locator('[data-execution-activity]:not([hidden])');
-  await activity.locator('summary').click();
+  await expect(activity).not.toHaveAttribute('open');
+  const trigger = activity.locator('summary');
+  expect(await trigger.evaluate(node => getComputedStyle(node).boxShadow)).not.toBe('none');
+  await trigger.focus();
+  await page.keyboard.press('Enter');
   await expect(activity.locator('.chat-distribution')).toHaveCount(0);
   await page.evaluate(() => window.setVisualMetrics({ localStepMs: { count: 4, total: 1000 }, remoteStepMs: { count: 4, total: 3000 } }));
   await expect(activity).toHaveAttribute('open', '');
   await expect(activity.getByRole('img')).toHaveAttribute('aria-label', 'Recorded step time share: Computer 1 25%, Computer 2 75%');
   await expect(activity).toContainText('25% · 4.0 tok/s');
   await expect(activity).toContainText('75% · 1.3 tok/s');
+  const panel = await activity.locator('[data-activity-detail]').boundingBox();
+  expect(panel.width).toBeLessThanOrEqual(320);
+  expect(panel.x + panel.width).toBeLessThanOrEqual(390);
   await page.screenshot({ path: info.outputPath('activity.png'), fullPage: true });
+  await trigger.press('Space');
+  await expect(activity).not.toHaveAttribute('open');
 });
 
 for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
@@ -340,7 +351,7 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
     const threads = page.locator('[data-thread-item-id]:visible');
     for (const mode of ['empty', 'executing', 'interrupted', 'completed']) {
       await page.evaluate(mode => { window.setVisualState(mode); if (mode !== 'empty') window.setVisualThreads(); }, mode);
-      await expect(threads).toHaveCount(mode === 'empty' ? 0 : 3);
+      await expect(threads).toHaveCount(mode === 'empty' ? 0 : 6);
       const rail = await page.locator('[data-thread-sidebar]').boundingBox();
       const settings = await page.locator('[data-inspector-section="settings"]').boundingBox();
       expect(rail.y + rail.height - settings.y - settings.height).toBeLessThanOrEqual(12);
@@ -371,7 +382,7 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
     await expect(page.locator('[data-thread-item-id="recent-0"]')).toHaveAttribute('data-activity', 'executing');
     await page.locator('[data-composer-input]').fill('Keep this draft');
     const compactRail = await page.locator('[data-thread-sidebar]').boundingBox();
-    for (const section of ['participants', 'device', 'settings']) {
+    for (const section of ['model', 'conversation', 'participants', 'device', 'settings']) {
       const destination = page.locator(`[data-inspector-section="${section}"]`);
       await destination.click();
       await expect(page.locator(`[data-inspector-pane="${section}"]`)).toBeVisible();
@@ -392,5 +403,17 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
     await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft');
     await expect(page.locator('[data-contextual-inspector]')).not.toBeVisible();
     await expect(page.locator('[data-thread-item-id="recent-1"]')).toHaveAttribute('aria-current', 'true');
+    // A long history uses the gap without moving the fixed destination controls.
+    await page.evaluate(() => window.setVisualThreads(30));
+    const settingsBefore = await page.locator('[data-inspector-section="settings"]').boundingBox();
+    const list = page.locator('[data-thread-list]');
+    expect(await list.evaluate(node => node.scrollHeight > node.clientHeight)).toBe(true);
+    await page.locator('[data-thread-item-id="recent-29"]').scrollIntoViewIfNeeded();
+    await expect(page.locator('[data-thread-item-id="recent-29"]')).toBeInViewport();
+    expect(await page.locator('[data-inspector-section="settings"]').boundingBox()).toEqual(settingsBefore);
+    const listBox = await list.boundingBox();
+    const controls = await page.locator('.chat-rail-footer').boundingBox();
+    expect(listBox.y + listBox.height).toBeLessThanOrEqual(controls.y);
+    await page.screenshot({ path: info.outputPath('rail-overflow.png') });
   });
 }
