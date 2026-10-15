@@ -1,7 +1,7 @@
 # Reploid product specification and economics contract
 
-**Reploid Product Economics Contract v1.0**, identity
-`reploid.product-economics/1.0.0`. Normative product requirements merged into the
+**Reploid Product Economics Contract v1.1**, identity
+`reploid.product-economics/1.1.0` (2026-10-15; adds the owner's adopted decisions below; v1.0 is preserved in history at `970c80f7`). Normative product requirements merged into the
 seven-section definition below. MUST denotes a requirement, not implementation or
 economic proof. Credit quotes, rewards, redemption and solvency remain
 unimplemented/unproven unless separately evidenced in the canonical register.
@@ -264,6 +264,13 @@ Acceptance: [REP-13](roadmap/requirements.md#rep-13),
 | Account transfers | Adopted: design transferability now; transfers and marketplace are off initially. REP-10 qualifies later activation; direct transfers need not wait for marketplace launch. |
 | Recipient eligibility | Open, user: arbitrary participating computers versus approved operators for sensitive work. Proposed default: reject unspecified eligibility/disclosure, without inferring trust from payment or participation. Existing explicit, revocable grants remain mandatory; DR-3 owns enforcement. |
 | First distributed proof | Partitioned execution with no execution participant retaining the complete weights and no requester weights. DR-5/DR-6 require exact-run inventory and execution evidence. Separate REP-5 storage seeds may hold the complete model. |
+| Launch 1 model | Adopted 2026-10-15: Qwen 3.5 0.8B is an engineering vehicle and Community Preview, not the default consumer model. Promotion requires independent review reaching at least 80% whole-answer correctness with no critical unsupported claims. REP-7 and REP-8 own the gate. |
+| Independent answer review | Adopted 2026-10-15: two blinded human reviewers who did not author the tasks; a third only for disagreements. Publish element-level judgments, not one aggregate score. |
+| Search provider | Adopted 2026-10-15: Brave Search API first. The search-provider interface keeps a path to a self-hosted SearXNG JSON endpoint; public SearXNG instances may disable it. REP-8. |
+| Citation support | Adopted 2026-10-15: fetch pages, hash retained passages, map each material claim to its cited spans, require deterministic URL and span validity plus blinded human or stronger-model entailment review. The generating model never certifies itself. REP-8. |
+| Retrieval permission wording | Adopted 2026-10-15, exact text: "Allow Reploid to send this search query to Brave and share retrieved passages with the listed execution contributors for this answer. Your files and unrelated conversation history are excluded." DR-3 and REP-8. |
+| Sign-in and payments | Adopted 2026-10-15: Supabase Auth email magic links initially; Stripe Checkout with verified webhooks for one-time top-ups. Each needs provider-specific acceptance. REP-9 and REP-10. |
+| REP-13 pilot values | Adopted 2026-10-15, versioned and revisable: founder-funded Community Access of $100 per week; $10 top-up; first-token deadline 30 s; complete short answer 180 s; at least 80% whole-answer correctness and 95% citation-support accuracy; validated contribution rewarded at measured marginal cost plus a 20% pilot bonus. Rates are published as versioned records and never applied retroactively. |
 
 Existing receipts retain their exact model/runtime/package/placement scope. The
 [run-7 native launcher](../artifacts/signed-completion-journey-20261013/run-7/tools/native-launch.sh)
