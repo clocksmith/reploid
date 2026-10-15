@@ -1,0 +1,28 @@
+{
+ "schema": "reploid.answer-regression.target/v1",
+ "id": "doppler-amd-host-unsplit",
+ "kind": "doppler-single-machine",
+ "host": "amd-host",
+ "hostLabel": "amd-host",
+ "description": "Example, not yet run: Doppler's own Node/Dawn pipeline for one package and model on amd-host, whole model in one pipeline. Copy this file, set the ${...} variables, and keep one id per package-independent target so runs of different packages compare against each other.",
+ "placement": "unsplit",
+ "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+ "routePromptTokenLimit": 250,
+ "remote": {
+  "workDir": "${REPLOID_ARX_REMOTE_WORK}",
+  "node": "${REPLOID_ARX_REMOTE_NODE}",
+  "packageRoot": "${REPLOID_ARX_REMOTE_PACKAGE_ROOT}",
+  "packageArchive": "${REPLOID_ARX_REMOTE_PACKAGE_ARCHIVE}",
+  "capsuleDir": "${REPLOID_ARX_REMOTE_CAPSULE_DIR}",
+  "catalog": "${REPLOID_ARX_REMOTE_CATALOG}",
+  "partitionPolicy": "${REPLOID_ARX_REMOTE_PARTITION_POLICY}",
+  "env": {}
+ },
+ "remoteNotes": {
+  "host": "An SSH alias resolved by the operator's own SSH configuration, or 'local'. No address is stored here.",
+  "packageRoot": "An installed Doppler package directory on the host with its dependencies (node_modules), including the Node WebGPU provider.",
+  "packageArchive": "The archive the package root was installed from; the runner checks every archive file equals the package root's.",
+  "env": "Extra environment for the runner on the host, for example DOPPLER_NODE_WEBGPU_MODULE when the default provider is not used."
+ },
+ "timeoutSeconds": 14400
+}

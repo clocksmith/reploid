@@ -1,0 +1,299 @@
+"""Focused tests of the answer regression harness. Synthetic answers only: no model, no GPU, no network.
+
+Run: python3 -I tests/answer-regression/test_harness.py
+"""
+import json
+import os
+import sys
+import tempfile
+import threading
+import unittest
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from answer_regression import checks, codeexec, judge, report  # noqa: E402
+from answer_regression.common import JUDGE_LABEL, LABEL, SEARCH_SET, load_json, sha256_file, write_json  # noqa: E402
+
+
+class FrozenChecks(unittest.TestCase):
+    def test_frozen_check_module_is_pinned_and_unchanged_in_behavior(self):
+        self.assertEqual(sha256_file(checks.FROZEN_CHECK), checks.FROZEN_CHECK_SHA256)
+        self.assertTrue(checks.run_check({'type': 'finalArray', 'equals': [4, 8], 'ignore': [[1, 2, 3, 4]]},
+                                         'doubleEvens([1, 2, 3, 4]) // [4, 8]')['pass'])
+        self.assertFalse(checks.run_check({'type': 'onlyAnswer', 'pattern': 'yes'}, 'Yes, it is prime.')['pass'])
+
+    def test_mechanical_item_uses_frozen_grade_arm(self):
+        item = {'id': 'x', 'category': 'arithmetic', 'judgment': 'mechanical',
+                'turns': [{'user': 'q', 'checks': [{'type': 'number', 'value': 12, 'tolerance': 0}]}]}
+        run_item = {'arm': 't', 'turns': [{'turn': 1, 'output': 'It is 12.', 'promptTokenCount': 300, 'overPromptLimit': True,
+                                           'stopReason': 'eos-token', 'decodeSteps': 4, 'seconds': 1, 'minMarginTop1Top2': 1}]}
+        result = checks.mechanical_item(item, run_item)
+        self.assertTrue(result['checksPass'])
+        self.assertFalse(result['pass'])  # over the route prompt limit never passes
+        self.assertEqual(result['status'], 'promptLimitExceeded')
+
+
+class FormatAndInstruction(unittest.TestCase):
+    def test_format_checks(self):
+        good = {'output': 'Canberra.', 'stopReason': 'eos-token', 'overPromptLimit': False, 'promptTokenCount': 19}
+        self.assertTrue(all(row['pass'] for row in checks.format_checks(good)))
+        loop = dict(good, output=' '.join(['the same twelve words repeat here again and again in this loop'] * 3))
+        self.assertFalse({r['type']: r['pass'] for r in checks.format_checks(loop)}['noDegenerateRepetition'])
+        leak = dict(good, output='Answer<|im_end|>', stopReason='max-tokens')
+        rows = {r['type']: r['pass'] for r in checks.format_checks(leak)}
+        self.assertFalse(rows['noTemplateTokens'])
+        self.assertFalse(rows['stoppedOnEndOfTurn'])
+
+    def test_code_only(self):
+        sandbox = codeexec.Sandbox()
+        try:
+            fenced = '```python\ndef is_palindrome(s):\n    return s.lower() == s.lower()[::-1]\n```'
+            self.assertTrue(checks.instruction_check({'type': 'codeOnly', 'language': 'python'}, fenced, sandbox)['pass'])
+            self.assertFalse(checks.instruction_check({'type': 'codeOnly', 'language': 'python'}, 'Here it is:\n' + fenced, sandbox)['pass'])
+            self.assertTrue(checks.instruction_check({'type': 'codeOnly', 'language': 'python'}, 'def f(s):\n    return s', sandbox)['pass'])
+        finally:
+            sandbox.close()
+
+
+class CodeExecution(unittest.TestCase):
+    def setUp(self):
+        self.sandbox = codeexec.Sandbox(timeout=5)
+
+    def tearDown(self):
+        self.sandbox.close()
+
+    def case(self, language, function, probes):
+        return {'item': 'x', 'turn': 1, 'language': language, 'function': function, 'probes': probes}
+
+    def test_python_probe_passes_and_fails(self):
+        answer = '```python\ndef sum_of_squares(nums):\n    return sum(n * n for n in nums)\n```\nIt returns 14.'
+        result = codeexec.run_case(self.sandbox, self.case('python', 'sum_of_squares', [{'args': [[1, 2, 3]], 'expect': 14}]), answer)
+        self.assertTrue(result['pass'], result)
+        broken = '```python\ndef count_vowels(s):\n    return len(s.is_vowel())\n```'
+        result = codeexec.run_case(self.sandbox, self.case('python', 'count_vowels', [{'args': ['education'], 'expect': 5}]), broken)
+        self.assertFalse(result['pass'])
+        self.assertIn('AttributeError', result['probes'][0]['observed']['error'])
+
+    def test_javascript_first_declared_function_and_bool_strictness(self):
+        answer = '```javascript\nconst reverseString = (s) => s.split("").reverse().join("");\n```'
+        result = codeexec.run_case(self.sandbox, self.case('javascript', None, [{'args': ['stressed'], 'expect': 'desserts'}]), answer)
+        self.assertTrue(result['pass'], result)
+        self.assertEqual(result['function'], 'reverseString')
+        self.assertFalse(codeexec.same_value(1, True))
+
+    def test_timeout_and_isolation(self):
+        loop = '```python\ndef f():\n    return 1\nwhile True:\n    pass\n```'
+        result = codeexec.run_case(self.sandbox, self.case('python', 'f', [{'args': [], 'expect': 1}]), loop)
+        self.assertTrue(result['execution']['timedOut'])
+        self.assertFalse(result['pass'])
+        if self.sandbox.isolation['kind'] == 'sandbox-exec':
+            net = ('```python\nimport socket\ndef f():\n    try:\n        socket.create_connection(("1.1.1.1", 80), timeout=2)\n'
+                   '        return "open"\n    except OSError:\n        return "blocked"\n```')
+            result = codeexec.run_case(self.sandbox, self.case('python', 'f', [{'args': [], 'expect': 'blocked'}]), net)
+            self.assertTrue(result['pass'], result)
+
+
+class Citations(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.data = load_json(SEARCH_SET)
+        cls.items = {item['id']: item for item in cls.data['items']}
+
+    def run_item(self, item_id, answer):
+        item = self.items[item_id]
+        prepared = checks.prepare_retrieval(item, self.data, [{'role': 'user', 'content': item['prompt']}])
+        dispatched = prepared['dispatchedMessages'] is not None
+        turn = {'turn': 1, 'output': answer if dispatched else None, 'retrieval': prepared['record'], 'dispatched': dispatched,
+                'overPromptLimit': False}
+        return checks.search_item(item, {'turns': [turn]}, self.data)
+
+    def test_valid_and_invalid_citations(self):
+        good = self.run_item('search-kettle-recall-models', 'The recall covers BrewMate models BM-200 and BM-210 [1].')
+        self.assertTrue(good['pass'], good)
+        self.assertTrue(good['claimCoverage']['pass'])
+        invented = self.run_item('search-kettle-recall-models',
+                                 'The recall covers BM-200 and BM-210 [7]. See https://example.com/recall for details [1].')
+        names = {c['type']: c['pass'] for c in invented['citations']['checks']}
+        self.assertFalse(names['citationsResolve'])
+        self.assertFalse(names['noUnrecordedUrls'])
+        self.assertFalse(invented['pass'])
+
+    def test_expected_source_and_abstention_and_empty_retrieval(self):
+        wrong_source = self.run_item('search-kayak-parking-total', 'The total is $50 [1].')
+        self.assertTrue(wrong_source['answer']['pass'])
+        self.assertFalse(wrong_source['citations']['pass'])  # the parking page (2) is not cited
+        abstains = self.run_item('search-pool-phone-unanswerable',
+                                 'The retrieved sources do not include a phone number for the Ashbury Community Pool.')
+        self.assertTrue(abstains['pass'], abstains)
+        invents = self.run_item('search-pool-phone-unanswerable', 'The pool phone number is 555-0142 [3].')
+        self.assertFalse(invents['answer']['pass'])
+        empty = self.run_item('search-no-results', '')
+        self.assertEqual(empty['retrievalOutcome']['observed'], 'empty')
+        self.assertTrue(empty['pass'])
+
+
+class Handler(BaseHTTPRequestHandler):
+    reply_model = 'other-judge-model-1'
+
+    def do_POST(self):
+        body = json.loads(self.rfile.read(int(self.headers['content-length'])))
+        Handler.last_auth = self.headers.get('authorization')
+        text = json.dumps({'reference': [], 'status': 'whole-answer-correct',
+                           'elements': [{'kind': 'fact', 'quote': 'Canberra', 'claim': 'capital', 'addition': False,
+                                         'grade': 'correct', 'basis': 'known'}]})
+        payload = {'id': 'r1', 'model': Handler.reply_model, 'choices': [{'message': {'content': text}}]}
+        Handler.last_body = body
+        data = json.dumps(payload).encode()
+        self.send_response(200)
+        self.send_header('content-type', 'application/json')
+        self.send_header('content-length', str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def log_message(self, *args):
+        pass
+
+
+class Judge(unittest.TestCase):
+    generator = {'names': ['qwen-3-5-0-8b-q4k-ehaf16', 'Qwen/Qwen3.5-0.8B'], 'manifestIdentity': 'sha256:abc', 'routeBaseUrl': None}
+
+    def config(self, model, endpoint='http://127.0.0.1:9/v1/chat/completions'):
+        return {'schema': judge.JUDGE_SCHEMA, 'adapter': 'openai-chat', 'endpoint': endpoint, 'model': model,
+                'credentials': {'env': 'ARX_TEST_JUDGE_KEY'}}
+
+    def test_judge_must_differ_from_generator(self):
+        os.environ['ARX_TEST_JUDGE_KEY'] = 'test-key'
+        for same in ('Qwen/Qwen3.5-0.8B', 'qwen3.5-0.8b-instruct', 'qwen-3-5-0-8b-q4k-ehaf16', 'Qwen3.5'):
+            with self.assertRaises(SystemExit):
+                judge.Judge(self.config(same), self.generator)
+        with self.assertRaises(SystemExit):
+            judge.Judge(dict(self.config('other'), modelIdentity='sha256:abc'), self.generator)
+        judge.Judge(self.config('other-judge-model'), self.generator)
+
+    def test_round_trip_label_and_response_identity(self):
+        os.environ['ARX_TEST_JUDGE_KEY'] = 'test-key'
+        server = HTTPServer(('127.0.0.1', 0), Handler)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        try:
+            endpoint = f'http://127.0.0.1:{server.server_port}/v1/chat/completions'
+            instance = judge.Judge(self.config('other-judge-model', endpoint), self.generator)
+            Handler.reply_model = 'other-judge-model-1'
+            record = instance.judge(item_id='x', policy='Q', context=[], prompt='Capital of Australia?', answer='Canberra.')
+            self.assertEqual(record['label'], JUDGE_LABEL)
+            self.assertEqual(record['status'], 'whole-answer-correct')
+            self.assertEqual(Handler.last_auth, 'Bearer test-key')
+            self.assertEqual(Handler.last_body['temperature'], 0)
+            self.assertNotIn('test-key', json.dumps(record) + json.dumps(instance.describe()))
+            Handler.reply_model = 'Qwen3.5-0.8B'
+            self.assertIn('generator', instance.judge(item_id='x', policy='Q', context=[], prompt='p', answer='a')['error'])
+            Handler.reply_model = 'unrelated-model'
+            self.assertIn('not the configured judge', instance.judge(item_id='x', policy='Q', context=[], prompt='p', answer='a')['error'])
+        finally:
+            server.shutdown()
+            server.server_close()
+
+    def test_status_is_derived_from_grades(self):
+        parsed = judge.parse_reply('```json\n{"status": "whole-answer-correct", "elements": [{"grade": "correct"}, '
+                                   '{"grade": "unverified"}]}\n```')
+        self.assertEqual(parsed['status'], 'unverified-only')
+        self.assertTrue(parsed['statusCorrected'])
+
+
+class RouteHandler(BaseHTTPRequestHandler):
+    requests = []
+
+    def do_POST(self):
+        body = json.loads(self.rfile.read(int(self.headers['content-length'])))
+        RouteHandler.requests.append({'path': self.path, 'auth': self.headers.get('authorization'), 'body': body})
+        content = 'Canberra.' if len(body['messages']) == 1 else 'Wellington.'
+        data = json.dumps({'id': 'c', 'object': 'chat.completion', 'model': body['model'],
+                           'choices': [{'index': 0, 'message': {'role': 'assistant', 'content': content},
+                                        'finish_reason': 'stop'}]}).encode()
+        self.send_response(200)
+        self.send_header('content-type', 'application/json')
+        self.send_header('content-length', str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def log_message(self, *args):
+        pass
+
+
+class InstalledRouteTarget(unittest.TestCase):
+    def test_two_turn_history_identities_and_no_search(self):
+        from answer_regression.targets import load_target
+        server = HTTPServer(('127.0.0.1', 0), RouteHandler)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        try:
+            with tempfile.TemporaryDirectory() as root:
+                app = Path(root) / 'app'
+                entry = {'id': 'm', 'identity': 'sha256:' + '0' * 64, 'capsule': {'capsuleId': 'cap', 'targetPlans': []},
+                         'generation': {'temperature': 0, 'maxTokens': 64}}
+                write_json(app / 'self' / 'config' / 'chat-models.json', [entry])
+                config = {'schema': 'reploid.answer-regression.target/v1', 'id': 'route', 'kind': 'installed-route',
+                          'protocol': 'chat-completions', 'baseUrl': '${ARX_TEST_ROUTE}', 'modelId': 'm',
+                          'routePromptTokenLimit': 250, 'auth': {'env': 'ARX_TEST_ROUTE_TOKEN'},
+                          'paths': {'installedApp': '${ARX_TEST_APP}'}}
+                write_json(Path(root) / 'target.json', config)
+                environ = {'ARX_TEST_ROUTE': f'http://127.0.0.1:{server.server_port}', 'ARX_TEST_APP': str(app)}
+                os.environ['ARX_TEST_ROUTE_TOKEN'] = 'route-token'
+                target = load_target(Path(root) / 'target.json', environ)
+                plan = {'setKind': 'useful-answer', 'items': [{'id': 'x', 'category': 'follow-up', 'turns': [
+                    {'user': 'Capital of Australia?', 'send': 'Capital of Australia?', 'dispatch': True, 'retrieval': None},
+                    {'user': 'And New Zealand?', 'send': 'And New Zealand?', 'dispatch': True, 'retrieval': None}]}]}
+                items, identities, _ = target.generate(plan, Path(root) / 'work', lambda message: None)
+                turns = items[0]['turns']
+                self.assertEqual([t['output'] for t in turns], ['Canberra.', 'Wellington.'])
+                self.assertEqual(RouteHandler.requests[1]['body']['messages'][1], {'role': 'assistant', 'content': 'Canberra.'})
+                self.assertEqual(RouteHandler.requests[0]['auth'], 'Bearer route-token')
+                self.assertNotIn('temperature', RouteHandler.requests[0]['body'])
+                self.assertEqual(turns[0]['responseModel'], 'm')
+                self.assertEqual(identities['route']['baseUrl'], {'configured': '${ARX_TEST_ROUTE}'})
+                self.assertNotIn(str(app), json.dumps(identities))
+                self.assertEqual(target.supports_search()[0], False)
+        finally:
+            server.shutdown()
+            server.server_close()
+
+
+class Compare(unittest.TestCase):
+    def make(self, root, name, output, tokens, mechanical, target='t'):
+        run = {'schema': 'reploid.answer-regression.run/v1', 'label': LABEL, 'runId': name,
+               'target': {'id': target, 'kind': 'cpu-q4k-control'}, 'itemSet': {'kind': 'useful-answer', 'sha256': 's', 'name': 'n'},
+               'identities': {'package': {'archive': {'sha256': name}}, 'sampling': {'temperature': 0}},
+               'items': [{'id': 'a', 'turns': [{'turn': 1, 'output': output, 'outputTokenIds': tokens}]},
+                         {'id': 'b', 'turns': [{'turn': 1, 'output': 'same', 'outputTokenIds': [9]}]}]}
+        directory = Path(root) / name
+        write_json(directory / 'run.json', run)
+        evaluation = {'run': {'sha256': sha256_file(directory / 'run.json')}, 'judge': None,
+                      'summary': {'mechanical': {'pass': int(mechanical) + 1, 'total': 2}},
+                      'items': [{'id': 'a', 'category': 'code', 'mechanical': {'pass': mechanical}, 'format': {'pass': True},
+                                 'instruction': {'pass': None}, 'code': {'pass': None}, 'turns': []},
+                                {'id': 'b', 'category': 'factual', 'mechanical': {'pass': True}, 'format': {'pass': True},
+                                 'instruction': {'pass': None}, 'code': {'pass': None}, 'turns': []}]}
+        write_json(directory / 'evaluation.json', evaluation)
+        return directory
+
+    def test_newly_failing_changed_answers_and_labels(self):
+        with tempfile.TemporaryDirectory() as root:
+            base = self.make(root, 'base', '[4, 8]', [1, 2, 3], True)
+            cand = self.make(root, 'cand', '[2, 4, 6, 8]', [1, 5, 3], False)
+            result = report.compare_runs(base, cand)
+            self.assertEqual(result['label'], LABEL)
+            self.assertEqual(result['summary']['newlyFailing'], {'mechanical': ['a']})
+            self.assertEqual(result['summary']['answersChanged'], 1)
+            self.assertEqual(result['items'][0]['turns'][0]['firstTokenDivergence'], 1)
+            self.assertEqual([c['path'] for c in result['identityChanges']], ['package.archive.sha256'])
+            self.assertFalse(result['samplingOrLimitsChanged'])
+            markdown = report.render_markdown(result)
+            self.assertIn(LABEL, markdown)
+            self.assertIn('Newly failing', markdown)
+            other = self.make(root, 'other', 'x', [1], True, target='different')
+            with self.assertRaisesRegex(SystemExit, 'same target'):
+                report.compare_runs(base, other)
+
+
+if __name__ == '__main__':
+    unittest.main()

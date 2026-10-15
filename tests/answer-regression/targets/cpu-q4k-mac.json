@@ -1,0 +1,26 @@
+{
+ "schema": "reploid.answer-regression.target/v1",
+ "id": "cpu-q4k-mac",
+ "kind": "cpu-q4k-control",
+ "host": "mac-host",
+ "description": "The useful-answer set's CPU Q4_K control (artifacts/useful-answer-set-20261014): its frozen run-arm.py and doppler-text.mjs, unchanged, on mac-host CPU with 4 threads. The application's template, tokenizer and incremental decoder from the Doppler archive; transformers float32 arithmetic over the deployed Q4_K bytes. Not the GPU route.",
+ "routePromptTokenLimit": 250,
+ "routePromptTokenLimitSource": "answer-set.json settings.promptTokenLimit: the installed route cannot take much more than about 270 prompt tokens.",
+ "paths": {
+  "packageArchive": "${REPLOID_ARX_DOPPLER_ARCHIVE}",
+  "capsuleDir": "${REPLOID_ARX_CAPSULE_DIR}",
+  "catalog": "${REPLOID_ARX_INSTALLED_CATALOG}",
+  "checkpointDir": "${REPLOID_ARX_BF16_CHECKPOINT}",
+  "ggufDir": "${REPLOID_ARX_GGUF_DIR}",
+  "tokenContract": "artifacts/answer-cause-20261014/doppler-single-machine.json"
+ },
+ "pathNotes": {
+  "packageArchive": "The Doppler 0.6.28 candidate archive doppler-gpu-0.6.28.tgz, sha256 2df37d88...; the harness extracts it into the work directory.",
+  "capsuleDir": "The signed Capsule -c directory with artifacts/model/.",
+  "catalog": "The installed application's self/config/chat-models.json.",
+  "checkpointDir": "The Qwen/Qwen3.5-0.8B revision 2fc06364 checkpoint (config and tokenizer are read; bf16 weights are not loaded by the q4k arm).",
+  "ggufDir": "A directory containing the gguf 0.17.1 Python package."
+ },
+ "python": "python3",
+ "timeoutSeconds": 7200
+}

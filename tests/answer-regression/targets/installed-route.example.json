@@ -1,0 +1,20 @@
+{
+ "schema": "reploid.answer-regression.target/v1",
+ "id": "installed-route-chat",
+ "kind": "installed-route",
+ "host": "mac-host",
+ "description": "Example, not yet run: the installed native participant's opt-in text HTTP API (docs/native-participant.md), mounted by the host application. Answers go through the existing requester, its admission, disclosure authorization and the prepared route; the API takes no sampling overrides.",
+ "protocol": "chat-completions",
+ "protocolNotes": "chat-completions sends model, messages, stream:false. messages also reports raw-model-token usage (prompt and output token counts) and needs maxTokens within the route's prepared allocation.",
+ "baseUrl": "${REPLOID_ARX_ROUTE_URL}",
+ "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+ "maxTokens": 1024,
+ "routePromptTokenLimit": 250,
+ "declaredPlacement": "Operator-declared route, for example the signed ordered three-stage route and the hosts serving each stage. The API does not report placement.",
+ "auth": {"env": "REPLOID_ARX_ROUTE_TOKEN", "header": "authorization", "prefix": "Bearer "},
+ "paths": {
+  "installedApp": "${REPLOID_ARX_INSTALLED_APP}"
+ },
+ "retrieval": false,
+ "timeoutSeconds": 600
+}

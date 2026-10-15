@@ -1,0 +1,17 @@
+{
+ "schema": "reploid.answer-regression.judge/v1",
+ "label": "automated judge, not independent review",
+ "description": "Example, not configured: the optional automated whole-answer judge. Pass a copy to `evaluate --judge`. The model must differ from the generator; the harness refuses a judge whose model name or identity matches the run's model, whose endpoint is the run's own route, or whose response reports another model.",
+ "adapter": "openai-chat",
+ "adapterNotes": "openai-chat posts to any OpenAI-compatible /v1/chat/completions endpoint; anthropic-messages posts to /v1/messages with an x-api-key header.",
+ "endpoint": "${REPLOID_ARX_JUDGE_ENDPOINT}",
+ "provider": "${REPLOID_ARX_JUDGE_PROVIDER}",
+ "model": "${REPLOID_ARX_JUDGE_MODEL}",
+ "modelIdentity": null,
+ "credentials": {"env": "REPLOID_ARX_JUDGE_KEY"},
+ "credentialsNotes": "Either env (an environment variable name) or file (a path outside the repository). Keys are never written to any record.",
+ "temperature": 0,
+ "maxTokens": 4096,
+ "timeoutSeconds": 180,
+ "retries": 2
+}

@@ -1,0 +1,4241 @@
+{
+ "schema": "reploid.answer-regression.evaluation/v1",
+ "label": "automated regression evaluation — not independent acceptance",
+ "scope": "Engineering regression signal only. It compares one run with a stored run of the same target. It establishes no answer quality, no acceptance, no release decision and no independent review; human reviewers assess the working experience separately.",
+ "evaluatedAt": "2026-10-15T13:17:35Z",
+ "harness": {
+  "path": "tests/answer-regression",
+  "gitHead": "8eed21f811dba1151f2bcbd5fca462689cef19b1",
+  "codeAndSets": {
+   "files": 17,
+   "sha256": "50bdc6487fbc5e911f10366387bf27cdc44e320dab7c48c6e45c6d0be404fa8d"
+  }
+ },
+ "run": {
+  "runId": "cpu-q4k-mac-20261015T130407Z",
+  "file": "tests/answer-regression/baselines/cpu-q4k-mac-20261015/run.json",
+  "sha256": "8f21ff612784b8eb3fb1e99c6c3c7cc49bbb842f005ba3c73ea6a8fdd7d0bd64",
+  "target": {
+   "id": "cpu-q4k-mac",
+   "kind": "cpu-q4k-control",
+   "host": "mac-host",
+   "description": "The useful-answer set's CPU Q4_K control (artifacts/useful-answer-set-20261014): its frozen run-arm.py and doppler-text.mjs, unchanged, on mac-host CPU with 4 threads. The application's template, tokenizer and incremental decoder from the Doppler archive; transformers float32 arithmetic over the deployed Q4_K bytes. Not the GPU route.",
+   "configFile": "tests/answer-regression/targets/cpu-q4k-mac.json",
+   "configSha256": "767b23cbc15d47bfd13f364c83a53e02a4667c3d580168e0d318f187c3f9bc77",
+   "routePromptTokenLimit": 250
+  }
+ },
+ "itemSet": {
+  "kind": "useful-answer",
+  "name": "Reploid Launch 1 useful-answer set",
+  "file": "artifacts/useful-answer-set-20261014/answer-set.json",
+  "sha256": "ac174063024054b9ea048b2dd4c532119bea96ae4d330dab89dd2c3ea62dced5"
+ },
+ "checkSources": {
+  "mechanical": {
+   "file": "artifacts/useful-answer-set-20261014/scripts/check.py",
+   "sha256": "1a303808caf85a14745177b8b8c1b51e17684688b16c213310f512d4dc180f34",
+   "use": "run_check and grade_arm called unchanged; no review file, so rubric items stay ungraded"
+  },
+  "overlay": {
+   "file": "tests/answer-regression/sets/useful-answer-overlay.json",
+   "sha256": "1419fd8ebbbbd716a5f69c131f4b1cb36b643664a87bf107d34759ed3f8876d3"
+  },
+  "formatDefinition": {
+   "nonEmpty": "The delivered answer is not empty after trimming.",
+   "stoppedOnEndOfTurn": "Generation stopped on the model's end-of-turn or stop token, not a length limit.",
+   "noTemplateTokens": "No chat-template control token (<|...|>, <think>) appears in the delivered text.",
+   "noReplacementCharacters": "No U+FFFD replacement character (broken decoding) appears.",
+   "noDegenerateRepetition": "No 12-word sequence occurs three times, and no line of 8+ characters repeats three times in a row.",
+   "promptWithinRouteLimit": "The prompt fits the target's declared route prompt limit."
+  },
+  "referencePrograms": [
+   {
+    "item": "code-python-slice",
+    "language": "python",
+    "program": "x = [1, 2, 3, 4, 5]\nprint(x[1:4])",
+    "expectStdout": "[2, 3, 4]\n",
+    "execution": {
+     "command": "python3 -I main.py",
+     "exitCode": 0,
+     "timedOut": false,
+     "stdout": "[2, 3, 4]\n",
+     "stderrTail": []
+    },
+    "pass": true
+   },
+   {
+    "item": "code-js-default-sort",
+    "language": "javascript",
+    "program": "const nums = [5, 1, 10];\nnums.sort();\nconsole.log(nums);",
+    "expectStdout": "[ 1, 10, 5 ]\n",
+    "execution": {
+     "command": "node main.js",
+     "exitCode": 0,
+     "timedOut": false,
+     "stdout": "[ 1, 10, 5 ]\n",
+     "stderrTail": []
+    },
+    "pass": true
+   }
+  ],
+  "codeExecution": {
+   "os": "darwin",
+   "python": "3.14.2",
+   "node": "v22.20.0",
+   "timeoutSeconds": 10,
+   "isolation": {
+    "kind": "sandbox-exec",
+    "network": "denied",
+    "writes": "case directory only"
+   },
+   "environmentVariables": [
+    "PATH",
+    "HOME (the case directory)"
+   ],
+   "fileSizeLimitBytes": 8388608
+  },
+  "harnessEnvironment": {
+   "python": "3.14.2",
+   "node": "v22.20.0",
+   "os": "Darwin 25.6.0",
+   "machine": "arm64"
+  }
+ },
+ "judge": null,
+ "summary": {
+  "items": 40,
+  "notRun": [],
+  "mechanical": {
+   "pass": 32,
+   "total": 38,
+   "rate": 0.8421,
+   "note": "Mechanical items only; the two rubric items are not graded by the harness."
+  },
+  "rubricItemsNotGraded": [
+   "expl-list-tuple",
+   "expl-weather-climate"
+  ],
+  "format": {
+   "pass": 39,
+   "total": 40,
+   "rate": 0.975
+  },
+  "instruction": {
+   "pass": 10,
+   "total": 10,
+   "rate": 1.0
+  },
+  "code": {
+   "pass": 5,
+   "total": 6,
+   "rate": 0.8333
+  },
+  "byCategory": {
+   "factual": {
+    "items": 6,
+    "mechanical": {
+     "pass": 6,
+     "total": 6,
+     "rate": 1.0
+    },
+    "format": {
+     "pass": 5,
+     "total": 6,
+     "rate": 0.8333
+    },
+    "instruction": {
+     "pass": 0,
+     "total": 0,
+     "rate": null
+    },
+    "code": {
+     "pass": 0,
+     "total": 0,
+     "rate": null
+    }
+   },
+   "explanation": {
+    "items": 5,
+    "mechanical": {
+     "pass": 3,
+     "total": 3,
+     "rate": 1.0
+    },
+    "format": {
+     "pass": 5,
+     "total": 5,
+     "rate": 1.0
+    },
+    "instruction": {
+     "pass": 1,
+     "total": 1,
+     "rate": 1.0
+    },
+    "code": {
+     "pass": 0,
+     "total": 0,
+     "rate": null
+    }
+   },
+   "code": {
+    "items": 6,
+    "mechanical": {
+     "pass": 2,
+     "total": 6,
+     "rate": 0.3333
+    },
+    "format": {
+     "pass": 6,
+     "total": 6,
+     "rate": 1.0
+    },
+    "instruction": {
+     "pass": 6,
+     "total": 6,
+     "rate": 1.0
+    },
+    "code": {
+     "pass": 3,
+     "total": 4,
+     "rate": 0.75
+    }
+   },
+   "arithmetic": {
+    "items": 6,
+    "mechanical": {
+     "pass": 6,
+     "total": 6,
+     "rate": 1.0
+    },
+    "format": {
+     "pass": 6,
+     "total": 6,
+     "rate": 1.0
+    },
+    "instruction": {
+     "pass": 0,
+     "total": 0,
+     "rate": null
+    },
+    "code": {
+     "pass": 0,
+     "total": 0,
+     "rate": null
+    }
+   },
+   "follow-up": {
+    "items": 6,
+    "mechanical": {
+     "pass": 4,
+     "total": 6,
+     "rate": 0.6667
+    },
+    "format": {
+     "pass": 6,
+     "total": 6,
+     "rate": 1.0
+    },
+    "instruction": {
+     "pass": 2,
+     "total": 2,
+     "rate": 1.0
+    },
+    "code": {
+     "pass": 2,
+     "total": 2,
+     "rate": 1.0
+    }
+   },
+   "rewrite": {
+    "items": 5,
+    "mechanical": {
+     "pass": 5,
+     "total": 5,
+     "rate": 1.0
+    },
+    "format": {
+     "pass": 5,
+     "total": 5,
+     "rate": 1.0
+    },
+    "instruction": {
+     "pass": 1,
+     "total": 1,
+     "rate": 1.0
+    },
+    "code": {
+     "pass": 0,
+     "total": 0,
+     "rate": null
+    }
+   },
+   "format": {
+    "items": 6,
+    "mechanical": {
+     "pass": 6,
+     "total": 6,
+     "rate": 1.0
+    },
+    "format": {
+     "pass": 6,
+     "total": 6,
+     "rate": 1.0
+    },
+    "instruction": {
+     "pass": 0,
+     "total": 0,
+     "rate": null
+    },
+    "code": {
+     "pass": 0,
+     "total": 0,
+     "rate": null
+    }
+   }
+  }
+ },
+ "items": [
+  {
+   "id": "fact-capital-australia",
+   "category": "factual",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "c60f1aea8e2c13d2d7bc2cc0a92fdf44778a1efdffdbbb243776453c56459600",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "288 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "19 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "contains",
+        "pass": true,
+        "detail": "found ['Canberra']"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "fact-pride-prejudice-author",
+   "category": "factual",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "c2a1c96fe0fb9fb1dd1bb40d789f54461a421176753fca77422238978732e860",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "323 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "20 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "contains",
+        "pass": true,
+        "detail": "found ['Austen']"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "fact-gold-symbol",
+   "category": "factual",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "5f64713b211ee4b6a6bfeff6a333cddd11fd2b40f87f19e14ca52f8f0713bcb3",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "189 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "20 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "regex",
+        "pass": true,
+        "detail": "match 'Au'"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "fact-apollo11-year",
+   "category": "factual",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "0c0486ee65bda323632ee4afd4a92959739143f709876ab47816ad8a3116eb89",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "198 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "24 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "number",
+        "pass": true,
+        "detail": "numbers [11.0, 20.0, 1969.0]"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "fact-http-expansion",
+   "category": "factual",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "f2654cc8d55adff64225adc4709f03fae64b2b469a8f8ce96ddac009aeacd649",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "345 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "18 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "regex",
+        "pass": true,
+        "detail": "match 'HyperText Transfer Protocol'"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "fact-adult-bones",
+   "category": "factual",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "f555c701aefbecbc80218bb9fff2a0bbc32ef10ec036c1b63cf1e7cd39c13731",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "1081 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": false,
+       "detail": "repeats '* **Fetal Bones**: There are 106 bones in the fetus, which are'"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "22 prompt tokens"
+      }
+     ],
+     "formatPass": false,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "number",
+        "pass": true,
+        "detail": "numbers [206.0, 2018.0, 2020.0, 206.0, 206.0, 11.0, 106.0, 206.0, 106.0, 206.0, 106.0, 206.0]"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": false
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "expl-sky-blue",
+   "category": "explanation",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "bdb84118d3e4a3bf67b0a8376f2824e655ea2122177f9ad91f7a33b800541951",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "384 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "25 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": [
+      {
+       "type": "sentences",
+       "pass": true,
+       "detail": "3 sentences",
+       "turn": 1
+      }
+     ]
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "regex",
+        "pass": true,
+        "detail": "match 'scatter'"
+       },
+       {
+        "type": "contains",
+        "pass": true,
+        "detail": "found ['wavelength', 'shorter', 'short']"
+       },
+       {
+        "type": "words",
+        "pass": true,
+        "detail": "65 words"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": true
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "expl-list-tuple",
+   "category": "explanation",
+   "judgment": "human",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "5ab87c9689771310c4b0d8d42601c7b17998fac45abff5ba484507c90a5bd6f8",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "2473 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "25 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "rubric, provisional",
+    "pass": null,
+    "checksPass": null,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": []
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "expl-leap-year",
+   "category": "explanation",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "6b171687658aff4a796e990c99143b6202c5e39d18cbefaf88f49256b315592d",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "2249 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "19 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "regex",
+        "pass": true,
+        "detail": "match '365.2425'"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "expl-weather-climate",
+   "category": "explanation",
+   "judgment": "human",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "fa6d45096e0ddaee205c6b5681eae9061ec57dc0546cef9e7b41ae2b182cad54",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "2372 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "21 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "rubric, provisional",
+    "pass": null,
+    "checksPass": null,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": []
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "expl-http-404",
+   "category": "explanation",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "2ce8da1ebb6f69e0507892a470d4f7be1d61b7319bd16b8bc3a86b2c60f848fc",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "2083 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "27 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "contains",
+        "pass": true,
+        "detail": "found ['not found', 'cannot find', \"doesn't exist\", 'does not exist']"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "code-double-evens",
+   "category": "code",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "e32a22d7ea2cdf7cc68163c4ded87328a00c7b9d89b5df0186e0d567ae48860b",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "258 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "56 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": [
+      {
+       "type": "regex",
+       "pass": true,
+       "detail": "match 'function doubleEvens('",
+       "turn": 1
+      },
+      {
+       "type": "regex",
+       "pass": true,
+       "detail": "match '.filter('",
+       "turn": 1
+      },
+      {
+       "type": "regex",
+       "pass": true,
+       "detail": "match '.map('",
+       "turn": 1
+      }
+     ]
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": false,
+    "checksPass": false,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": false,
+      "checks": [
+       {
+        "type": "finalArray",
+        "pass": false,
+        "detail": "final [2.0, 4.0, 6.0, 8.0]"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": true
+   },
+   "code": {
+    "pass": true,
+    "cases": [
+     {
+      "item": "code-double-evens",
+      "turn": 1,
+      "language": "javascript",
+      "function": "doubleEvens",
+      "functionFromAnswer": false,
+      "pass": true,
+      "reason": null,
+      "probes": [
+       {
+        "args": [
+         [
+          1,
+          2,
+          3,
+          4
+         ]
+        ],
+        "expect": [
+         4,
+         8
+        ],
+        "observed": {
+         "ok": true,
+         "value": [
+          4,
+          8
+         ]
+        },
+        "pass": true
+       },
+       {
+        "args": [
+         [
+          -2,
+          3,
+          6
+         ]
+        ],
+        "expect": [
+         -4,
+         12
+        ],
+        "observed": {
+         "ok": true,
+         "value": [
+          -4,
+          12
+         ]
+        },
+        "pass": true
+       }
+      ],
+      "program": {
+       "answerCode": "function doubleEvens(numbers) {\n  // Filter keeps only even numbers, then doubles them\n  return numbers.filter(n => n % 2 === 0).map(n => n * 2);\n}\n\n// Result for [1, 2, 3, 4]\nconsole.log(doubleEvens([1, 2, 3, 4])); \n// Output: [2, 4, 6, 8]\n",
+       "appendedByHarness": "\n// --- appended by the answer regression harness ---\n(() => { let __rhText; try { const __rhValue = (doubleEvens)(...[[1, 2, 3, 4]]); __rhText = JSON.stringify(__rhValue === undefined ? { ok: true, undefined: true } : { ok: true, value: __rhValue }); } catch (__rhError) { __rhText = JSON.stringify({ ok: false, error: String(__rhError && __rhError.name) + \": \" + String(__rhError && __rhError.message).slice(0, 200) }); } console.log(\"\\n__REPLOID_REGRESSION_PROBE__ \" + __rhText); })();\n(() => { let __rhText; try { const __rhValue = (doubleEvens)(...[[-2, 3, 6]]); __rhText = JSON.stringify(__rhValue === undefined ? { ok: true, undefined: true } : { ok: true, value: __rhValue }); } catch (__rhError) { __rhText = JSON.stringify({ ok: false, error: String(__rhError && __rhError.name) + \": \" + String(__rhError && __rhError.message).slice(0, 200) }); } console.log(\"\\n__REPLOID_REGRESSION_PROBE__ \" + __rhText); })();\n"
+      },
+      "execution": {
+       "command": "node main.js",
+       "exitCode": 0,
+       "timedOut": false,
+       "stdout": "[ 4, 8 ]\n\n__REPLOID_REGRESSION_PROBE__ {\"ok\":true,\"value\":[4,8]}\n\n__REPLOID_REGRESSION_PROBE__ {\"ok\":true,\"value\":[-4,12]}\n",
+       "stderrTail": []
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "code-sum-squares",
+   "category": "code",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "ba69a4e3516da24703196875eb23d6e32e69c102b4a0bbc373bd1f43094471b4",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "396 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "49 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": [
+      {
+       "type": "regex",
+       "pass": true,
+       "detail": "match 'def sum_of_squares('",
+       "turn": 1
+      }
+     ]
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "number",
+        "pass": true,
+        "detail": "numbers [2.0, 1.0, 2.0, 3.0, 1.0, 4.0, 9.0, 14.0]"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": true
+   },
+   "code": {
+    "pass": true,
+    "cases": [
+     {
+      "item": "code-sum-squares",
+      "turn": 1,
+      "language": "python",
+      "function": "sum_of_squares",
+      "functionFromAnswer": false,
+      "pass": true,
+      "reason": null,
+      "probes": [
+       {
+        "args": [
+         [
+          1,
+          2,
+          3
+         ]
+        ],
+        "expect": 14,
+        "observed": {
+         "ok": true,
+         "value": 14
+        },
+        "pass": true
+       }
+      ],
+      "program": {
+       "answerCode": "def sum_of_squares(nums):\n    \"\"\"\n    Returns the sum of the squares of the numbers in the input list.\n    \n    Parameters:\n        nums (list): A list of numbers (integers or floats).\n    \n    Returns:\n        float: The sum of the squares of the numbers.\n    \"\"\"\n    return sum(x ** 2 for x in nums)\n",
+       "appendedByHarness": "\n# --- appended by the answer regression harness ---\nimport json as __rh_json\ndef __rh_probe(__rh_name, __rh_args):\n    try:\n        __rh_value = globals()[__rh_name](*__rh_args)\n        try:\n            __rh_text = __rh_json.dumps({\"ok\": True, \"value\": __rh_value})\n        except (TypeError, ValueError):\n            __rh_text = __rh_json.dumps({\"ok\": True, \"repr\": repr(__rh_value)})\n    except BaseException as __rh_error:\n        __rh_text = __rh_json.dumps({\"ok\": False, \"error\": type(__rh_error).__name__ + \": \" + str(__rh_error)[:200]})\n    print(\"\\n__REPLOID_REGRESSION_PROBE__ \" + __rh_text, flush=True)\n__rh_probe(\"sum_of_squares\", __rh_json.loads(\"[[1, 2, 3]]\"))\n"
+      },
+      "execution": {
+       "command": "python3 -I main.py",
+       "exitCode": 0,
+       "timedOut": false,
+       "stdout": "\n__REPLOID_REGRESSION_PROBE__ {\"ok\": true, \"value\": 14}\n",
+       "stderrTail": []
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "code-reverse-string",
+   "category": "code",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "cdf6f56ad4f825350fdf7529d684409b3ecba199ea4befdbfa52619c09a22d65",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "296 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "32 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": [
+      {
+       "type": "regex",
+       "pass": true,
+       "detail": "match 'function reverseString('",
+       "turn": 1
+      }
+     ]
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": false,
+    "checksPass": false,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": false,
+      "checks": [
+       {
+        "type": "contains",
+        "pass": false,
+        "detail": "found []"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": true
+   },
+   "code": {
+    "pass": true,
+    "cases": [
+     {
+      "item": "code-reverse-string",
+      "turn": 1,
+      "language": "javascript",
+      "function": "reverseString",
+      "functionFromAnswer": true,
+      "pass": true,
+      "reason": null,
+      "probes": [
+       {
+        "args": [
+         "stressed"
+        ],
+        "expect": "desserts",
+        "observed": {
+         "ok": true,
+         "value": "desserts"
+        },
+        "pass": true
+       }
+      ],
+      "program": {
+       "answerCode": "/**\n * Reverses a string.\n * \n * @param {string} str - The string to reverse.\n * @returns {string} The reversed string.\n */\nfunction reverseString(str) {\n  return str.split('').reverse().join('');\n}\n\n// Example usage\nconsole.log(reverseString(\"stressed\")); \n// Output: \"edresst\"\n",
+       "appendedByHarness": "\n// --- appended by the answer regression harness ---\n(() => { let __rhText; try { const __rhValue = (reverseString)(...[\"stressed\"]); __rhText = JSON.stringify(__rhValue === undefined ? { ok: true, undefined: true } : { ok: true, value: __rhValue }); } catch (__rhError) { __rhText = JSON.stringify({ ok: false, error: String(__rhError && __rhError.name) + \": \" + String(__rhError && __rhError.message).slice(0, 200) }); } console.log(\"\\n__REPLOID_REGRESSION_PROBE__ \" + __rhText); })();\n"
+      },
+      "execution": {
+       "command": "node main.js",
+       "exitCode": 0,
+       "timedOut": false,
+       "stdout": "desserts\n\n__REPLOID_REGRESSION_PROBE__ {\"ok\":true,\"value\":\"desserts\"}\n",
+       "stderrTail": []
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "code-python-slice",
+   "category": "code",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "d3404059a01f4426ac8962d8a2d07f4b82824293477b5c929e4303678cbf0359",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "9 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "51 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": [
+      {
+       "type": "onlyAnswer",
+       "pass": true,
+       "detail": "answer '[2, 3, 4]'",
+       "turn": 1
+      }
+     ]
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "finalArray",
+        "pass": true,
+        "detail": "final [2.0, 3.0, 4.0]"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": true
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "code-js-default-sort",
+   "category": "code",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "3b83a7d25b04fc785240fda4f1cc4b5fb4ced3b992d182eb4dc7362fdea0e8da",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "10 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "48 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": [
+      {
+       "type": "onlyAnswer",
+       "pass": true,
+       "detail": "answer '[1, 5, 10]'",
+       "turn": 1
+      }
+     ]
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": false,
+    "checksPass": false,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": false,
+      "checks": [
+       {
+        "type": "finalArray",
+        "pass": false,
+        "detail": "final [1.0, 5.0, 10.0]"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": true
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "code-count-vowels",
+   "category": "code",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "2b9c16da8621435e48df1b0b1ad9da87580db48284988bf381dc9c0812275d0c",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "708 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "47 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": [
+      {
+       "type": "regex",
+       "pass": true,
+       "detail": "match 'def count_vowels('",
+       "turn": 1
+      }
+     ]
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": false,
+    "checksPass": false,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": false,
+      "checks": [
+       {
+        "type": "number",
+        "pass": false,
+        "detail": "numbers [4.0, 4.0, 1.0, 3.0, 6.0, 7.0, 4.0]"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": true
+   },
+   "code": {
+    "pass": false,
+    "cases": [
+     {
+      "item": "code-count-vowels",
+      "turn": 1,
+      "language": "python",
+      "function": "count_vowels",
+      "functionFromAnswer": false,
+      "pass": false,
+      "reason": "the code stopped before every probe ran",
+      "probes": [
+       {
+        "args": [
+         "education"
+        ],
+        "expect": 5,
+        "observed": null,
+        "pass": false
+       }
+      ],
+      "program": {
+       "answerCode": "def count_vowels(s):\n    \"\"\"\n    Counts the vowels 'a', 'e', 'i', 'o', 'u' in a string.\n    \n    Parameters:\n        s (str): The input string to analyze.\n    \n    Returns:\n        int: The count of vowels found in the string.\n    \"\"\"\n    vowels = {'a', 'e', 'i', 'o', 'u'}\n    return len(s.lower().is_vowel())\n\n# Example usage:\nprint(count_vowels(\"education\"))  # Output: 4\n",
+       "appendedByHarness": "\n# --- appended by the answer regression harness ---\nimport json as __rh_json\ndef __rh_probe(__rh_name, __rh_args):\n    try:\n        __rh_value = globals()[__rh_name](*__rh_args)\n        try:\n            __rh_text = __rh_json.dumps({\"ok\": True, \"value\": __rh_value})\n        except (TypeError, ValueError):\n            __rh_text = __rh_json.dumps({\"ok\": True, \"repr\": repr(__rh_value)})\n    except BaseException as __rh_error:\n        __rh_text = __rh_json.dumps({\"ok\": False, \"error\": type(__rh_error).__name__ + \": \" + str(__rh_error)[:200]})\n    print(\"\\n__REPLOID_REGRESSION_PROBE__ \" + __rh_text, flush=True)\n__rh_probe(\"count_vowels\", __rh_json.loads(\"[\\\"education\\\"]\"))\n"
+      },
+      "execution": {
+       "command": "python3 -I main.py",
+       "exitCode": 1,
+       "timedOut": false,
+       "stdout": "",
+       "stderrTail": [
+        "    return len(s.lower().is_vowel())",
+        "               ^^^^^^^^^^^^^^^^^^",
+        "AttributeError: 'str' object has no attribute 'is_vowel'. Did you mean: 'islower'?"
+       ]
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "arith-multiply",
+   "category": "arithmetic",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "849b990e7665ecb053a921f51d6dbeb53d641e058a3fbc0bb246ca4ccce73cfc",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "350 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "22 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "number",
+        "pass": true,
+        "detail": "numbers [17.0, 24.0, 1.0, 17.0, 24.0, 17.0, 20.0, 4.0, 17.0, 20.0, 17.0, 4.0, 340.0, 68.0, 408.0, 2.0, 17.0, 24.0, 17.0, 24.0, 408.0, 17.0, 24.0, 408.0]"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "arith-percent",
+   "category": "arithmetic",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "31fd8b30b739d35899e550609693ee020e43cdb65d42c39900ce3eef97071d1b",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "399 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "23 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "number",
+        "pass": true,
+        "detail": "numbers [15.0, 80.0, 1.0, 15.0, 15.0, 100.0, 0.15, 2.0, 80.0, 0.15, 80.0, 15.0, 100.0, 80.0, 15.0, 100.0, 80.0, 15.0, 1200.0, 100.0, 1200.0, 100.0, 12.0, 15.0, 80.0, 12.0]"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "arith-miles-km",
+   "category": "arithmetic",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "afc33c3b6f166cfc83247906c27447e85b0d0d588551b1877684b51e6f8c3f30",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "421 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "20 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "number",
+        "pass": true,
+        "detail": "numbers [1.0, 1.60934, 1.0, 5.0, 2.0, 5.0, 1.60934, 3.0, 8.0467, 2.0, 8.05]"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "arith-f-to-c",
+   "category": "arithmetic",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "0c69b867b8fa3c53bb9a9d054e982baa08671d18c2ac63241f3cc055d343f2b2",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "321 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "22 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "number",
+        "pass": true,
+        "detail": "numbers [100.0, 32.0, 5.0, 9.0, 100.0, 32.0, 5.0, 9.0, 68.0, 5.0, 9.0, 340.0, 9.0, 37.777, 37.78]"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "arith-discount",
+   "category": "arithmetic",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "ccdec5d446c67b8d87e1ae03c4cee841714c8bc43f4cf95dee9cf310ffe40acc",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "528 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "32 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "number",
+        "pass": true,
+        "detail": "numbers [1.0, 80.0, 2.0, 25.0, 3.0, 25.0, 80.0, 0.25, 4.0, 80.0, 0.25, 20.0, 20.0, 4.0, 80.0, 20.0, 60.0, 60.0]"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "arith-hours-seconds",
+   "category": "arithmetic",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "834c12d983bf3df32f58d57854cd88f75425622347d328f38aa043fa67c96fa1",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "377 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "23 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "number",
+        "pass": true,
+        "detail": "numbers [60.0, 60.0, 1.0, 60.0, 60.0, 3600.0, 2.5, 2.5, 3600.0, 2.5, 3600.0, 9000.0, 9000.0, 2.5]"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "fu-double-evens",
+   "category": "follow-up",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "e32a22d7ea2cdf7cc68163c4ded87328a00c7b9d89b5df0186e0d567ae48860b",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "258 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "56 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": [
+      {
+       "type": "regex",
+       "pass": true,
+       "detail": "match 'function doubleEvens('",
+       "turn": 1
+      },
+      {
+       "type": "regex",
+       "pass": true,
+       "detail": "match '.filter('",
+       "turn": 1
+      },
+      {
+       "type": "regex",
+       "pass": true,
+       "detail": "match '.map('",
+       "turn": 1
+      }
+     ]
+    },
+    {
+     "turn": 2,
+     "outputSha256": "579780520c84ee0e09d7add53c66d1ad0aff969c9fec0b43f0533d4912aa6399",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "12 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "189 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": [
+      {
+       "type": "onlyAnswer",
+       "pass": true,
+       "detail": "answer '[-6, 12, 18]'",
+       "turn": 2
+      }
+     ]
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": false,
+    "checksPass": false,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": []
+     },
+     {
+      "turn": 2,
+      "notRun": false,
+      "empty": false,
+      "pass": false,
+      "checks": [
+       {
+        "type": "finalArray",
+        "pass": false,
+        "detail": "final [-6.0, 12.0, 18.0]"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": true
+   },
+   "code": {
+    "pass": true,
+    "cases": [
+     {
+      "item": "fu-double-evens",
+      "turn": 1,
+      "language": "javascript",
+      "function": "doubleEvens",
+      "functionFromAnswer": false,
+      "pass": true,
+      "reason": null,
+      "probes": [
+       {
+        "args": [
+         [
+          1,
+          2,
+          3,
+          4
+         ]
+        ],
+        "expect": [
+         4,
+         8
+        ],
+        "observed": {
+         "ok": true,
+         "value": [
+          4,
+          8
+         ]
+        },
+        "pass": true
+       },
+       {
+        "args": [
+         [
+          -2,
+          3,
+          6
+         ]
+        ],
+        "expect": [
+         -4,
+         12
+        ],
+        "observed": {
+         "ok": true,
+         "value": [
+          -4,
+          12
+         ]
+        },
+        "pass": true
+       }
+      ],
+      "program": {
+       "answerCode": "function doubleEvens(numbers) {\n  // Filter keeps only even numbers, then doubles them\n  return numbers.filter(n => n % 2 === 0).map(n => n * 2);\n}\n\n// Result for [1, 2, 3, 4]\nconsole.log(doubleEvens([1, 2, 3, 4])); \n// Output: [2, 4, 6, 8]\n",
+       "appendedByHarness": "\n// --- appended by the answer regression harness ---\n(() => { let __rhText; try { const __rhValue = (doubleEvens)(...[[1, 2, 3, 4]]); __rhText = JSON.stringify(__rhValue === undefined ? { ok: true, undefined: true } : { ok: true, value: __rhValue }); } catch (__rhError) { __rhText = JSON.stringify({ ok: false, error: String(__rhError && __rhError.name) + \": \" + String(__rhError && __rhError.message).slice(0, 200) }); } console.log(\"\\n__REPLOID_REGRESSION_PROBE__ \" + __rhText); })();\n(() => { let __rhText; try { const __rhValue = (doubleEvens)(...[[-2, 3, 6]]); __rhText = JSON.stringify(__rhValue === undefined ? { ok: true, undefined: true } : { ok: true, value: __rhValue }); } catch (__rhError) { __rhText = JSON.stringify({ ok: false, error: String(__rhError && __rhError.name) + \": \" + String(__rhError && __rhError.message).slice(0, 200) }); } console.log(\"\\n__REPLOID_REGRESSION_PROBE__ \" + __rhText); })();\n"
+      },
+      "execution": {
+       "command": "node main.js",
+       "exitCode": 0,
+       "timedOut": false,
+       "stdout": "[ 4, 8 ]\n\n__REPLOID_REGRESSION_PROBE__ {\"ok\":true,\"value\":[4,8]}\n\n__REPLOID_REGRESSION_PROBE__ {\"ok\":true,\"value\":[-4,12]}\n",
+       "stderrTail": []
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "fu-rectangle",
+   "category": "follow-up",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "9c5f07e381df293a7ea4533e059b9a815100caa39bf4c2ad63783e39f0d5043b",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "364 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "30 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    },
+    {
+     "turn": 2,
+     "outputSha256": "e267bbc3d5ec38522e70ab8aa02707c8b1287c9735c86395fd4ad940f22f8f2d",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "569 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "176 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "number",
+        "pass": true,
+        "detail": "numbers [8.0, 5.0, 8.0, 5.0, 40.0, 2.0, 40.0]"
+       }
+      ]
+     },
+     {
+      "turn": 2,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "number",
+        "pass": true,
+        "detail": "numbers [2.0, 8.0, 5.0, 2.0, 2.0, 8.0, 5.0, 2.0, 13.0, 26.0, 26.0]"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "fu-translate",
+   "category": "follow-up",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "2f71624b190cff06aa5c2dd6807a1bcb3048a608484e15352f931cbfd8a1a906",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "405 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "23 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    },
+    {
+     "turn": 2,
+     "outputSha256": "13028d90aa77a7b0115f540b2a2f9837051ce6f8cf768bf5fac80390cb25e981",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "395 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "147 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "contains",
+        "pass": true,
+        "detail": "found ['gracias']"
+       }
+      ]
+     },
+     {
+      "turn": 2,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "contains",
+        "pass": true,
+        "detail": "found ['merci']"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "fu-cookies",
+   "category": "follow-up",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "544465d0b0488f84f1b74567ea93d2873b7889a5284e7f5b88d833cf7cecd074",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "146 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "28 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    },
+    {
+     "turn": 2,
+     "outputSha256": "9e086c9e093b508765701842030e2b98e73ad97993fae1a01c6e9c5003b76cc8",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "381 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "104 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "number",
+        "pass": true,
+        "detail": "numbers [20.0, 4.0, 20.0, 4.0, 16.0, 16.0]"
+       }
+      ]
+     },
+     {
+      "turn": 2,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "number",
+        "pass": true,
+        "detail": "numbers [1.0, 20.0, 4.0, 16.0, 2.0, 16.0, 8.0, 16.0, 8.0, 16.0, 8.0, 2.0, 2.0]"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "fu-palindrome",
+   "category": "follow-up",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "3bfb0e53e9f0bd36caf568625be279033a2f738fd681ce35a1c159c868f2df68",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "447 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "41 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": [
+      {
+       "type": "codeOnly",
+       "pass": true,
+       "detail": "unfenced; parses as Python",
+       "turn": 1
+      }
+     ]
+    },
+    {
+     "turn": 2,
+     "outputSha256": "526c6d3d46538f4890eecb0e479c181e2d5c5bad39e50c698b033d77fce8d9b9",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "367 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "161 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": false,
+    "checksPass": false,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "regex",
+        "pass": true,
+        "detail": "match 'def is_palindrome('"
+       }
+      ]
+     },
+     {
+      "turn": 2,
+      "notRun": false,
+      "empty": false,
+      "pass": false,
+      "checks": [
+       {
+        "type": "regex",
+        "pass": false,
+        "detail": "no match"
+       },
+       {
+        "type": "notRegex",
+        "pass": false,
+        "detail": "match 'False'"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": true
+   },
+   "code": {
+    "pass": true,
+    "cases": [
+     {
+      "item": "fu-palindrome",
+      "turn": 1,
+      "language": "python",
+      "function": "is_palindrome",
+      "functionFromAnswer": false,
+      "pass": true,
+      "reason": null,
+      "probes": [
+       {
+        "args": [
+         "Racecar"
+        ],
+        "expect": true,
+        "observed": {
+         "ok": true,
+         "value": true
+        },
+        "pass": true
+       },
+       {
+        "args": [
+         "racecar"
+        ],
+        "expect": true,
+        "observed": {
+         "ok": true,
+         "value": true
+        },
+        "pass": true
+       },
+       {
+        "args": [
+         "hello"
+        ],
+        "expect": false,
+        "observed": {
+         "ok": true,
+         "value": false
+        },
+        "pass": true
+       }
+      ],
+      "program": {
+       "answerCode": "def is_palindrome(s):\n    \"\"\"\n    Checks if a string reads the same forwards and backwards, ignoring case.\n    Returns True if the string is a palindrome, False otherwise.\n    \"\"\"\n    # Convert to lowercase and remove non-alphanumeric characters to handle spaces and punctuation\n    cleaned = ''.join(c.lower() for c in s if c.isalnum())\n    \n    # Check if the cleaned string is the same forwards and backwards\n    return cleaned == cleaned[::-1]",
+       "appendedByHarness": "\n# --- appended by the answer regression harness ---\nimport json as __rh_json\ndef __rh_probe(__rh_name, __rh_args):\n    try:\n        __rh_value = globals()[__rh_name](*__rh_args)\n        try:\n            __rh_text = __rh_json.dumps({\"ok\": True, \"value\": __rh_value})\n        except (TypeError, ValueError):\n            __rh_text = __rh_json.dumps({\"ok\": True, \"repr\": repr(__rh_value)})\n    except BaseException as __rh_error:\n        __rh_text = __rh_json.dumps({\"ok\": False, \"error\": type(__rh_error).__name__ + \": \" + str(__rh_error)[:200]})\n    print(\"\\n__REPLOID_REGRESSION_PROBE__ \" + __rh_text, flush=True)\n__rh_probe(\"is_palindrome\", __rh_json.loads(\"[\\\"Racecar\\\"]\"))\n__rh_probe(\"is_palindrome\", __rh_json.loads(\"[\\\"racecar\\\"]\"))\n__rh_probe(\"is_palindrome\", __rh_json.loads(\"[\\\"hello\\\"]\"))\n"
+      },
+      "execution": {
+       "command": "python3 -I main.py",
+       "exitCode": 0,
+       "timedOut": false,
+       "stdout": "\n__REPLOID_REGRESSION_PROBE__ {\"ok\": true, \"value\": true}\n\n__REPLOID_REGRESSION_PROBE__ {\"ok\": true, \"value\": true}\n\n__REPLOID_REGRESSION_PROBE__ {\"ok\": true, \"value\": false}\n",
+       "stderrTail": []
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "fu-primary-colors",
+   "category": "follow-up",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "810a32507ac5fc2c7293caf875edfdb12d4170a4cb3bc1d3ebb3437161448f3f",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "392 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "21 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    },
+    {
+     "turn": 2,
+     "outputSha256": "76fe1ae05410febb7bac2b5538bdd254882c54574086d8cd07699b45a6bcdc6c",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "4 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "124 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "contains",
+        "pass": true,
+        "detail": "found ['red', 'green', 'blue']"
+       }
+      ]
+     },
+     {
+      "turn": 2,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "onlyAnswer",
+        "pass": true,
+        "detail": "answer 'Red'"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "rw-grammar",
+   "category": "rewrite",
+   "judgment": "mechanical",
+   "policy": "S",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "8a6803b43955577145057f3df3ce4c58e93e393fe57485f2269ec389c9cfc35c",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "56 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "43 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": [
+      {
+       "type": "lines",
+       "pass": true,
+       "detail": "1 lines",
+       "turn": 1
+      },
+      {
+       "type": "sentences",
+       "pass": true,
+       "detail": "1 sentences",
+       "turn": 1
+      }
+     ]
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "regex",
+        "pass": true,
+        "detail": "match 'They are going'"
+       },
+       {
+        "type": "regex",
+        "pass": true,
+        "detail": "match 'tomorrow'"
+       },
+       {
+        "type": "regex",
+        "pass": true,
+        "detail": "match 'to buy'"
+       },
+       {
+        "type": "regex",
+        "pass": true,
+        "detail": "match 'apples'"
+       },
+       {
+        "type": "excludes",
+        "pass": true,
+        "detail": "none found"
+       },
+       {
+        "type": "notRegex",
+        "pass": true,
+        "detail": "no match"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": true
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "rw-polite",
+   "category": "rewrite",
+   "judgment": "mechanical",
+   "policy": "S",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "1ffa5b5b62cf59c9da59d6b20b66cd0c4738b1a073ec2cb399f6367e17f6f96a",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "1024 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "34 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "contains",
+        "pass": true,
+        "detail": "found ['please', 'could you', 'appreciate']"
+       },
+       {
+        "type": "contains",
+        "pass": true,
+        "detail": "found ['Friday', 'report']"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "rw-summary-library",
+   "category": "rewrite",
+   "judgment": "mechanical",
+   "policy": "S",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "c49ea0e78eb4811d5824f0bb2bcdda20af54f4bff6461f6df142d2cddbfea02b",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "185 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "98 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "sentences",
+        "pass": true,
+        "detail": "1 sentences"
+       },
+       {
+        "type": "words",
+        "pass": true,
+        "detail": "34 words"
+       },
+       {
+        "type": "contains",
+        "pass": true,
+        "detail": "found ['library']"
+       },
+       {
+        "type": "regex",
+        "pass": true,
+        "detail": "match 'extend'"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "rw-recall-bullets",
+   "category": "rewrite",
+   "judgment": "mechanical",
+   "policy": "S",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "ac6d8ad0ba3630939e03a65ef5ed029901dff89745333dc97c4016bcf7e51d50",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "288 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "83 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "bullets",
+        "pass": true,
+        "detail": "2 marked of 2 lines"
+       },
+       {
+        "type": "contains",
+        "pass": true,
+        "detail": "found ['overheat', 'fire']"
+       },
+       {
+        "type": "contains",
+        "pass": true,
+        "detail": "found ['stop using', 'replacement', 'replace']"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "rw-shorten-email",
+   "category": "rewrite",
+   "judgment": "mechanical",
+   "policy": "S",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "050193fe8d143ada7fcb98ceae1debbb1c297a89e04a9703ec087fa3aa82612d",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "153 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "90 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "words",
+        "pass": true,
+        "detail": "28 words"
+       },
+       {
+        "type": "contains",
+        "pass": true,
+        "detail": "found ['Thursday']"
+       },
+       {
+        "type": "regex",
+        "pass": true,
+        "detail": "match '2 pm'"
+       },
+       {
+        "type": "regex",
+        "pass": true,
+        "detail": "match 'Room B'"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "fmt-one-word-banana",
+   "category": "format",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "19dd83f117525b931fccdafe808aaa6939af792ee549f359eff13fac0d622f5d",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "6 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "24 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "onlyAnswer",
+        "pass": true,
+        "detail": "answer 'Yellow'"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "fmt-three-bullets",
+   "category": "format",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "8f2a9aa9c1c933bb363fb7f3e4fd9df32e08364dcad4b39fbddc9fb19f4f64e0",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "378 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "31 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "bullets",
+        "pass": true,
+        "detail": "3 marked of 3 lines"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "fmt-json-eiffel",
+   "category": "format",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "5d6843b455df809255f97392dfb09e2f6bc5cbb4da40ee2b4e02a865b34d8c4b",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "38 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "36 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "json",
+        "pass": true,
+        "detail": "value {'city': 'Paris', 'country': 'France'}"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "fmt-yes-no-prime",
+   "category": "format",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "85a39ab345d672ff8ca9b9c6876f3adcacf45ee7c1e2dbd2408fd338bd55e07e",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "3 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "27 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "onlyAnswer",
+        "pass": true,
+        "detail": "answer 'Yes'"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "fmt-numbered-countries",
+   "category": "format",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "fca57324d73cc146d393fe28a647166ede5b3890c1859330440cabe110b96802",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "39 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "28 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "numberedList",
+        "pass": true,
+        "detail": "4 marked of 4 lines; items ['brazil', 'argentina', 'chile', 'peru']"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  },
+  {
+   "id": "fmt-haiku-lines",
+   "category": "format",
+   "judgment": "mechanical",
+   "policy": "Q",
+   "turns": [
+    {
+     "turn": 1,
+     "outputSha256": "e7b4a043980b9321f1cf94f58426bf18b0346add827a6eafd2e1d62f1d43fc07",
+     "stopReason": "eos-token",
+     "format": [
+      {
+       "type": "nonEmpty",
+       "pass": true,
+       "detail": "57 characters"
+      },
+      {
+       "type": "stoppedOnEndOfTurn",
+       "pass": true,
+       "detail": "stop reason 'eos-token'"
+      },
+      {
+       "type": "noTemplateTokens",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "noReplacementCharacters",
+       "pass": true,
+       "detail": "0 U+FFFD"
+      },
+      {
+       "type": "noDegenerateRepetition",
+       "pass": true,
+       "detail": "none"
+      },
+      {
+       "type": "promptWithinRouteLimit",
+       "pass": true,
+       "detail": "27 prompt tokens"
+      }
+     ],
+     "formatPass": true,
+     "instruction": []
+    }
+   ],
+   "mechanical": {
+    "grading": "mechanical",
+    "pass": true,
+    "checksPass": true,
+    "overPromptLimit": false,
+    "status": null,
+    "turns": [
+     {
+      "turn": 1,
+      "notRun": false,
+      "empty": false,
+      "pass": true,
+      "checks": [
+       {
+        "type": "lines",
+        "pass": true,
+        "detail": "3 lines"
+       }
+      ]
+     }
+    ]
+   },
+   "format": {
+    "pass": true
+   },
+   "instruction": {
+    "pass": null
+   },
+   "code": {
+    "pass": null,
+    "cases": []
+   }
+  }
+ ]
+}
