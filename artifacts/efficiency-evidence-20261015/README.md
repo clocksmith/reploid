@@ -4,6 +4,9 @@ Economics remain unproved. This investigation identifies measured improvements,
 diagnostic bottlenecks and conditional opportunities. It does not change the
 runtime, qualify a release, authorize a purchase or establish commercial rates.
 
+[Flash-Next follow-up](FLASH-NEXT.md) records the model-memory distinction,
+alternative rental candidates and a read-only Intel recovery observation.
+
 ## Findings and useful next experiments
 
 | Opportunity | Evidence | Proof still needed |
