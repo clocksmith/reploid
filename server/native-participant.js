@@ -8,6 +8,7 @@ export { createMessages } from './messages.js';
 
 import fs from 'node:fs/promises';
 import { createNativeModelFiles } from './native-model-files.js';
+import { openNativeOwnerControls, nativeOwnerStatus, NO_OWNER_POLICY } from './native-owner/controls.js';
 import { openNativeCanonicalEpochs } from './native-canonical-epochs.js';
 import { openNativeReleaseCheckpoints } from './native-release-storage.js';
 import path from 'node:path';
@@ -20,6 +21,7 @@ import { createSwarmTransport, createRoomIntroductionAdmission } from '../packag
 import { createSigningIdentity, createPeerIdFromPublicJwk } from '../packages/reploid/src/artifacts/identity.js';
 import { resolveConfig } from '../packages/reploid/src/config/index.js';
 import models from '../self/config/chat-models.json' with { type: 'json' };
+import custodyPolicy from '../self/config/chat-files.json' with { type: 'json' };
 import policy from '../self/config/partition-policy.json' with { type: 'json' };
 import profile from '../self/config/reploid-library.json' with { type: 'json' };
 import bootstrap from '../self/config/swarm-bootstrap.json' with { type: 'json' };
@@ -258,7 +260,8 @@ export function createNativeGpuHost(loadProvider) {
 }
 
 export async function openNativePartition({ model: selected, modelDirectory, nativeGpu, index, signal, participantId,
-  files, releaseDirectory, registerCleanup, canonical = null, ordered = null, device = null, attemptBytes, onProgress = () => {} }) {
+  files, releaseDirectory, registerCleanup, canonical = null, ordered = null, device = null, attemptBytes, onProgress = () => {},
+  gpuBufferBytes = policy.maxGpuBufferBytes }) {
   selected = snapshotWorkPartitionSelection(selected);
   const stageBinding = snapshotWorkPartitionStage(selected, index, participantId, ordered, canonical);
   if (selected.capsule !== undefined) requireValue(files && selected.packOpenOptions && selected.executablePack && releaseDirectory,
@@ -273,7 +276,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
     canonical.epochs.assertCurrent();
   }
   await nativeGpu(); signal.throwIfAborted();
-  await runtime.configureDeviceMemoryBudget({ maxBytes: policy.maxGpuBufferBytes });
+  await runtime.configureDeviceMemoryBudget({ maxBytes: gpuBufferBytes });
   const source = await openNativeModelSource({ model: selected, modelDirectory, signal, runtime, files });
   let resident, release = null, capsuleVerification = null, sourceSettled = false, releaseSettled = false, residentSettled = false, commitAuthority = null;
   const ownerId = canonical ? crypto.randomUUID().replaceAll('-', '') : null;
@@ -368,8 +371,11 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
   }
 }
 
+/** `owner` is the optional owner gate from openNativeOwnerControls. It defers or reduces
+ * new contribution, stage attempts and piece supply; it never cancels admitted work. */
 export async function createNativeParticipant({ model, modelDirectory, identity, rtc, WebSocket,
-  signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console }) {
+  signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
+  owner: ownerGate = null }) {
   if (ordered !== null) model = structuredClone(model);
   ordered = snapshotWorkOrderedParticipation(ordered, canonical, [model]);
   requireValue(identity?.privateJwk && await createPeerIdFromPublicJwk(identity.publicJwk) === identity.peerId,
@@ -417,8 +423,21 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     if (!owner || settledOwners.has(owner)) return;
     await owner.close(); settledOwners.add(owner);
   };
+  // Contribution or file supply waiting for owner admission owns nothing yet; stopping only ends the wait.
+  const ownerWaits = { contribute: null, share: null };
+  // Resolves false when stop or close ended the wait, like stopping an unfinished preparation.
+  const ownerAdmission = async kind => {
+    const controller = new AbortController(); ownerWaits[kind]?.abort(new Error('Superseded owner admission wait'));
+    ownerWaits[kind] = controller;
+    try { await ownerGate.waitForAdmission({ kind: kind === 'share' ? 'file supply' : 'contribution', signal: controller.signal }); }
+    catch (error) { if (controller.signal.aborted) return false; throw error; }
+    finally { if (ownerWaits[kind] === controller) ownerWaits[kind] = null; }
+    return !closed;
+  };
+  const endOwnerWait = (kind, reason) => ownerWaits[kind]?.abort(new Error(reason));
   const close = () => closePromise ||= (async () => {
     closed = true;
+    endOwnerWait('contribute', 'Native participant closed'); endOwnerWait('share', 'Native participant closed');
     const results = await Promise.allSettled([partitions, ...networks]
       .map(owner => Promise.resolve().then(() => closeOwner(owner))));
     // Sources and the mesh outlive resident cancellation/opening settlement.
@@ -436,7 +455,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   try {
     if (canonical) epochs = await openNativeCanonicalEpochs({ directory: canonical.epochDirectory, participantId: identity.peerId, meshId: roomId });
     await mesh.connect();
-    if (cacheDirectory) files = await createNativeModelFiles({ transport, modelDirectory, cacheDirectory, onChange: onFileChange });
+    if (cacheDirectory) files = await createNativeModelFiles({ transport, modelDirectory, cacheDirectory, onChange: onFileChange, owner: ownerGate });
     partitions = createAutomaticPartitions({ identity, meshId: roomId, models: [model], ...bindWorkOrderedParticipation(ordered, identity.peerId, ordered ? transport._getPeerId() : null, policy),
       canonical: epochs ? { runtime: canonicalRuntime, participantEpoch: epochs.participantEpoch, coordinatorEpoch: epochs.coordinatorEpoch } : null,
       peers: () => transport.getConnectedPeers().map(peer => ({ ...peer, localTransportId: transport._getPeerId() })),
@@ -448,10 +467,14 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
           } });
         networks.add(network); return network;
       },
-      loadProgram: (selected, index, controls) => openNativePartition({ model: selected, index, modelDirectory,
-        releaseDirectory: cacheDirectory && path.join(path.dirname(cacheDirectory), 'release-checkpoints'),
-        nativeGpu: () => gpuPromise ||= nativeGpu().catch(error => { gpuPromise = null; throw error; }), files, ...controls,
-        ...(epochs ? { canonical: { ...controls.canonical, epochs } } : {}) }), onChange
+      loadProgram: async (selected, index, controls) => {
+        const program = await openNativePartition({ model: selected, index, modelDirectory,
+          releaseDirectory: cacheDirectory && path.join(path.dirname(cacheDirectory), 'release-checkpoints'),
+          nativeGpu: () => gpuPromise ||= nativeGpu().catch(error => { gpuPromise = null; throw error; }), files, ...controls,
+          ...(epochs ? { canonical: { ...controls.canonical, epochs } } : {}),
+          ...(ownerGate ? { gpuBufferBytes: ownerGate.gpuBufferBytes(policy.maxGpuBufferBytes) } : {}) });
+        return ownerGate ? { ...program, resident: ownerGate.gateResident(program.resident) } : program;
+      }, onChange
     });
     return Object.freeze({ identity: identity.peerId, getState: () => partitions.getState(),
       generate(request, controls) {
@@ -459,10 +482,19 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
         requireValue(typeof controls?.requestApproval === 'function', 'Explicit requester disclosure authorization required');
         return partitions.generate(request, controls);
       },
-      contribute: approved => partitions.contribute(model.id, approved), stop: () => partitions.stop(), close,
+      contribute: ownerGate ? async approved => {
+        if (approved === true && !await ownerAdmission('contribute')) return;
+        return partitions.contribute(model.id, approved);
+      } : approved => partitions.contribute(model.id, approved),
+      stop: ownerGate ? () => { endOwnerWait('contribute', 'Native contribution stopped'); return partitions.stop(); } : () => partitions.stop(), close,
       getNetworkState: () => mesh.getSwarmSnapshot(), getFileState: options => files?.getState(options) || null,
-      shareFiles: approved => { requireValue(files, 'Native cache directory required'); return files.share(model, approved); },
-      stopSharing: () => files?.stopSupply(), announceFiles: () => files?.announce() });
+      shareFiles: ownerGate ? async approved => {
+        requireValue(files, 'Native cache directory required');
+        if (approved === true && !await ownerAdmission('share')) return null;
+        return files.share(model, approved);
+      } : approved => { requireValue(files, 'Native cache directory required'); return files.share(model, approved); },
+      stopSharing: ownerGate ? () => { endOwnerWait('share', 'Native file contribution stopped'); return files?.stopSupply(); } : () => files?.stopSupply(),
+      announceFiles: () => files?.announce(), getOwnerState: () => ownerGate ? ownerGate.summary() : NO_OWNER_POLICY });
   } catch (error) { try { await close(); } catch (cleanup) { throw new AggregateError([error, cleanup], 'Native startup and cleanup failed'); } throw error; }
 }
 
@@ -516,7 +548,8 @@ export async function resolveNativeRoomToken(values, { warn = message => console
 
 async function main() {
   const { values } = parseArgs({ options: Object.fromEntries(['model', 'model-directory', 'identity-file', 'rtc-module',
-    'ws-module', 'gpu-module', 'ordered-config', 'signaling-url', 'room', 'room-token', 'room-token-file', 'origin', 'cache-directory'].map(key => [key, { type: 'string' }]).concat([
+    'ws-module', 'gpu-module', 'ordered-config', 'signaling-url', 'room', 'room-token', 'room-token-file', 'origin', 'cache-directory',
+    'owner-policy'].map(key => [key, { type: 'string' }]).concat([
       ['help', { type: 'boolean', default: false }], ['canonical', { type: 'boolean', default: false }], ['share-files', { type: 'boolean', default: false }], ['contribute', { type: 'boolean', default: false }], ['connect-only', { type: 'boolean', default: false }]])) });
   if (values.help) {
     console.log(`Reploid native participant (Node 22.13 or newer)
@@ -528,6 +561,7 @@ Usage: reploid-participant --connect-only|--share-files|--contribute
   [--room <namespace>] [--room-token-file <absolute path>] [--origin <allowed origin>]
   [--ordered-config <absolute JSON path>] (explicit stage assignment and ordered limits)
   [--canonical] (requires explicit catalog generation and a capable installed runtime)
+  [--owner-policy <absolute JSON path>] (owner schedule, memory, rate, power, temperature and foreground limits)
 
 --room-token-file reads the private room token once at startup from a regular
 file owned by this user with mode 0600; one trailing newline is removed.
@@ -545,6 +579,11 @@ Native GPU execution is qualified on Linux/Vulkan only; --help opens no provider
   for (const name of ['model', 'model-directory', 'identity-file', 'rtc-module', 'ws-module']) requireValue(values[name], '--' + name + ' is required');
   // Before identity, module or connection side effects; read once.
   const roomToken = await resolveNativeRoomToken(values);
+  let logNetwork = () => {};
+  const owner = values['owner-policy'] === undefined ? null : await openNativeOwnerControls({ file: values['owner-policy'],
+    custody: custodyPolicy, onChange: () => logNetwork(),
+    // Doppler's application GPU buffer accounting; null until compute opens a device.
+    readGpuBuffers: values.contribute ? async () => (await import('doppler-gpu/partitions')).inspectDeviceMemory() : null });
   let ordered = null;
   if (values['ordered-config']) {
     requireValue(!values.canonical && path.isAbsolute(values['ordered-config']), 'Ordered config requires an absolute file path and ordinary execution');
@@ -576,16 +615,20 @@ Native GPU execution is qualified on Linux/Vulkan only; --help opens no provider
     cacheDirectory: values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
     ordered, canonical: values.canonical ? { epochDirectory: path.join(path.dirname(identityFile), 'canonical-epochs',
       createHash('sha256').update(values.room || bootstrap.publicRoomId).digest('hex')) } : null,
-    nativeGpu: () => gpuHost.open(), onChange: state => console.log(JSON.stringify(summarizeNativePartitionState(state))) });
-  const timer = setInterval(() => { participant.announceFiles(); console.log(JSON.stringify({ event: 'network', ...participant.getNetworkState(),
-    files: participant.getFileState({ includeReceipts: false }) })); }, policy.pollMs);
+    nativeGpu: () => gpuHost.open(), owner,
+    onChange: state => console.log(JSON.stringify({ ...summarizeNativePartitionState(state), owner: nativeOwnerStatus(owner) })) })
+    .catch(error => { owner?.close(); throw error; });
+  logNetwork = () => console.log(JSON.stringify({ event: 'network', ...participant.getNetworkState(),
+    files: participant.getFileState({ includeReceipts: false }), owner: participant.getOwnerState() }));
+  const timer = setInterval(() => { participant.announceFiles(); logNetwork(); }, policy.pollMs);
   const shutdown = createNativeShutdown(participant, gpuHost);
-  const stop = () => { clearInterval(timer); return shutdown(); };
+  const stop = () => { clearInterval(timer); logNetwork = () => {}; return shutdown().finally(() => owner?.close()); };
   const completion = new Promise((resolve, reject) => {
     const signalStop = () => stop().then(resolve, reject);
     process.once('SIGINT', signalStop); process.once('SIGTERM', signalStop);
   });
-  console.log(JSON.stringify({ event: 'native-initialized', participantId: identity.peerId, modelId: model.id }));
+  console.log(JSON.stringify({ event: 'native-initialized', participantId: identity.peerId, modelId: model.id,
+    owner: owner ? owner.declaration() : NO_OWNER_POLICY }));
   try {
     await Promise.all([completion, (async () => {
       if (values['share-files']) await participant.shareFiles(true);

@@ -40,8 +40,10 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
     return ids;
   };
   const notify = () => ports.onChange?.();
+  // Optional host admission: it withholds new supply and its advertisement; granted transfers continue.
+  const admitted = (active, advertise) => !ports.admitSupply || ports.admitSupply({ active, advertise }) === true;
   const announce = peer => {
-    const payload = { artifacts: supply ? offered : [] };
+    const payload = { artifacts: supply && admitted(0, true) ? offered : [] };
     if (peer) transport.sendToPeer(peer, 'reploid:custody-offer', payload);
     else transport.broadcast('reploid:custody-offer', payload);
   };
@@ -138,7 +140,8 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
       live();
       if (typeof message?.id !== 'string' || message.id.length > 128 || !valid(message.artifact)) throw new Error('Invalid file request');
       if (message.maxExpiresAt !== undefined && !Number.isSafeInteger(message.maxExpiresAt)) throw new Error('Invalid file expiry limit');
-      if (!supply || preparing + suppliers.size >= policy.maxTransfers) throw new Error('File contribution unavailable');
+      if (!supply || preparing + suppliers.size >= policy.maxTransfers
+        || !admitted(preparing + suppliers.size, false)) throw new Error('File contribution unavailable');
       const descriptor = offered.find(item => key(item) === key(message.artifact));
       if (!descriptor || message.requester?.peerId !== peer || !message.requester.publicKey) throw new Error('Unapproved artifact request');
       const selected = rangeDescriptor(descriptor, message.range);

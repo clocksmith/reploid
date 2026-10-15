@@ -70,6 +70,66 @@ installation uses the named packages above. Installing or connecting alone
 does not establish useful distributed answers, numerical accuracy or release
 qualification. No package publication or deployment occurs during packaging.
 
+## Owner limits
+
+`--owner-policy <absolute JSON path>` applies the owner's approved contribution
+limits. Without it, behavior is unchanged and status lines report
+`"owner":{"status":"no owner policy"}`. The file is read once at startup, so a
+restart with the same file restores the same limits.
+
+```json
+{
+  "schema": "reploid.native-owner-policy/v1",
+  "authorization": {
+    "equipment": { "granted": true, "ownership": "workplace", "grantedBy": "A. Owner", "workplaceApproval": "IT ticket 1234" },
+    "network": { "granted": true, "ownership": "personal", "grantedBy": "A. Owner" }
+  },
+  "sampleIntervalMs": 5000,
+  "schedule": { "timeZone": "America/New_York",
+    "windows": [{ "days": ["mon", "tue", "wed", "thu", "fri"], "start": "22:00", "end": "07:00" }] },
+  "memory": { "maxProcessResidentBytes": 8589934592, "maxGpuBufferBytes": 1073741824 },
+  "bandwidth": { "uploadBytesPerSecond": 1048576, "downloadBytesPerSecond": 4194304 },
+  "temperature": { "sensors": ["amdgpu"], "reduceAboveCelsius": 80, "deferAboveCelsius": 90 },
+  "power": { "requireExternalPower": true, "gpuSensors": ["amdgpu"], "deferAboveWatts": 150 },
+  "foreground": { "source": "owner-signal", "signalFile": "/run/user/1000/reploid-foreground", "action": "defer" },
+  "reduced": { "maxConcurrentAttempts": 1, "maxSupplyTransfers": 1 }
+}
+```
+
+- Equipment and network grants are required; workplace resources also need
+  `workplaceApproval`. Unknown keys fail startup. No limit has a built-in
+  default; an omitted section requests no control.
+- Schedule windows use local wall time in `timeZone`; a window that ends before
+  it starts continues into the next day.
+- `defer` admits no new stage attempt, contribution preparation or piece supply;
+  `reduce` lowers new admission to the `reduced` limits. Admitted attempts and
+  granted transfers finish or settle. Nothing cancels conversations, and the
+  process takes no wake lock.
+- Rates pace custody piece and file bytes, not execution activations. Each rate
+  must be at least the custody deadline floor (74,566 bytes per second with the
+  current file policy). Cumulative file allowances are unchanged.
+- `maxGpuBufferBytes` lowers Doppler's GPU buffer budget (application
+  allocations, not physical VRAM); `maxProcessResidentBytes` defers new work
+  while the process exceeds it.
+- A requested control without a readable source rejects new work; missing or
+  stale readings defer it.
+- With `owner-signal`, new work defers or reduces while `signalFile` exists.
+- `power.gpuSensors` without watt thresholds only measures GPU energy.
+
+| Control | Linux | macOS | Windows |
+| --- | --- | --- | --- |
+| Schedule, process memory, GPU buffer budget, rates, owner signal | Supported | Supported | Supported |
+| Temperature | Named hwmon sensors (`temp*_input`) | Unsupported (needs root) | Unsupported |
+| GPU power | Named hwmon sensors (`power*`, `energy*`); component estimate | Unsupported (needs root) | Unsupported |
+| External power | `power_supply` | `pmset -g batt` | Unsupported |
+| Input idle | Unsupported; use `owner-signal` | `ioreg` `HIDIdleTime` | Unsupported |
+| Wall power | Unsupported (external meter) | Unsupported | Unsupported |
+
+`native-initialized` declares the policy and every control. `network` lines
+report the decision, readings and measured CPU, memory, transfer and GPU energy;
+`partition-state` lines carry the current decision. These are source controls;
+installed and physical qualification are separate.
+
 ## Opt-in text HTTP APIs
 
 The installed native entry exports `createChatCompletions`, `createResponses` and `createMessages`. Each borrows an ordinary

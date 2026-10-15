@@ -23,6 +23,10 @@ export interface CustodyExchangePorts {
   };
   /** Host wall clock; defaults to Date.now. */
   now?(): number;
+  /** Optional host admission for new supply. `active` counts transfers being prepared or granted;
+   * `advertise` asks whether the inventory may be announced. Returning false withholds the
+   * announcement and refuses new requests; granted transfers are never revoked by it. */
+  admitSupply?(request: { active: number; advertise: boolean }): boolean;
   createSupplier: typeof createPeerPackSupplier;
   createStore: typeof createPeerPackArtifactStore;
   createChannel(options: { channel: RTCDataChannel; limits: CustodyChannelLimits; serve: Supplier['serve'] }): {
