@@ -8,13 +8,14 @@ export function renderSearchPermissionDialog() {
   return `<dialog class="chat-model-setup pool-surface pool-small" data-search-permission aria-labelledby="chat-search-permission-title" aria-describedby="chat-search-permission-body">
     <h2 class="pool-heading" id="chat-search-permission-title">Search for this answer?</h2>
     <div id="chat-search-permission-body"><p data-search-permission-text></p>
+      <p data-search-permission-server hidden>Search server: <span data-search-permission-server-host></span></p>
       <p data-search-permission-recipients-label>Execution contributors:</p><ul data-search-permission-recipients></ul></div>
     <div class="chat-network-actions"><button class="pool-button" type="button" data-search-permission-decline>Don't search</button>
       <button class="pool-button btn-primary" type="button" data-search-permission-allow>Allow</button></div>
   </dialog>`;
 }
 
-/** `ask(request)` shows `request.wording.text` and its recipients; resolves true only on Allow. */
+/** `ask(request)` shows `request.wording.text`, any person-chosen search server and the recipients; resolves true only on Allow. */
 export function bindSearchPermissionDialog(dialog, session) {
   const find = selector => dialog.querySelector(selector), controller = new AbortController(), options = { signal: controller.signal };
   let pending = null, opener = null;
@@ -24,9 +25,12 @@ export function bindSearchPermissionDialog(dialog, session) {
   dialog.addEventListener('close', () => { opener?.isConnected && opener.focus({ preventScroll: true }); finish(false); }, options);
   return {
     get open() { return dialog.open; },
-    ask({ wording, recipients }) {
+    ask({ wording, recipients, searchServer = null }) {
       if (pending) return Promise.resolve(false);
       find('[data-search-permission-text]').textContent = wording.text;
+      // A person-chosen search server is named; the permission covers that server only.
+      find('[data-search-permission-server]').hidden = !searchServer;
+      find('[data-search-permission-server-host]').textContent = searchServer || '';
       const state = withComputerLabels(session.getState(), session), list = find('[data-search-permission-recipients]');
       list.replaceChildren(...(recipients.length ? recipients : [null]).map(id => {
         const item = dialog.ownerDocument.createElement('li');

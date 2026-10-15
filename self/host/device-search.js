@@ -2,8 +2,8 @@
  * this device fetches the result pages, so no Reploid server receives the query or the pages. The search tool is the
  * MCP web search the person named and turned on in Settings (web-search.js); turning it on is its one-time
  * configuration consent, and changing the server turns it off. Each answer also needs the per-answer search
- * permission for DEVICE_SEARCH_PROVIDER; until the owner approves that wording in search-permission.json, the chat
- * session does not offer this route.
+ * permission for DEVICE_SEARCH_PROVIDER (the owner-approved wording in search-permission.json), which names the
+ * server's host; a changed server needs a new permission.
  *
  * Pages are fetched under the shared page fetch policy (the server fetcher's limits) without cookies, credentials or
  * a referrer, then extracted, sliced and hashed by the same library code as the server route, so the same bytes give
@@ -14,7 +14,7 @@
  * which have no configured price: they stay null, never zero. */
 import { PAGE_FETCH_POLICY, extractDocumentText, selectPassage, sha256Text } from '../vendor/reploid/retrieval/index.js';
 
-/** The search service a per-answer permission for this route names. search-permission.json has no wording for it yet. */
+/** The search service a per-answer permission for this route names, with the chosen server's host. */
 export const DEVICE_SEARCH_PROVIDER = 'device-mcp';
 const ACCEPT = 'text/html,application/xhtml+xml,text/plain;q=0.9';
 const LOCAL_SUFFIXES = ['.localhost', '.local', '.internal', '.intranet', '.lan', '.home.arpa'];
@@ -60,15 +60,18 @@ async function readBounded(response, maxBytes) {
  * `source`: the device-run search tool, a SearchProvider such as the Settings MCP web search. `enabled()`: whether its
  * one-time configuration consent is in force. `fetch`: this tab's fetch, or a separately authorized bridge's.
  */
-export function createDeviceSearch({ source, enabled = () => true, fetch = (...input) => globalThis.fetch(...input), now = Date.now,
+export function createDeviceSearch({ source, enabled = () => true, server, fetch = (...input) => globalThis.fetch(...input), now = Date.now,
   policy = PAGE_FETCH_POLICY } = {}) {
   assert(source && typeof source.search === 'function' && typeof source.id === 'string', 'Device search needs a search tool');
-  assert(typeof enabled === 'function' && typeof fetch === 'function', 'Device search needs its consent check and fetch');
+  assert(typeof enabled === 'function' && typeof server === 'function' && typeof fetch === 'function',
+    'Device search needs its consent check, its search server and fetch');
   const allowed = new Set(policy.contentTypes), unsupported = new Set(policy.unsupportedContentTypes);
 
   const provider = Object.freeze({
     get id() { return `reploid.device-search/${source.id}`; },
     version: '1', searchProvider: DEVICE_SEARCH_PROVIDER, costBearer: 'requester',
+    /** The host of the search server the person set up; each per-answer permission names it. */
+    get searchServer() { return server() || null; },
     // The answer key stays on this device: the search tool receives only the query.
     async search(query, limits, signal) {
       assert(enabled(), 'Device search is off');
@@ -129,5 +132,5 @@ export function createDeviceSearch({ source, enabled = () => true, fetch = (...i
 
   return Object.freeze({ provider, extractor, searchProvider: DEVICE_SEARCH_PROVIDER,
     /** The one-time configuration consent; the per-answer permission is checked separately for every answer. */
-    available: () => enabled() });
+    available: () => enabled() && Boolean(server()) });
 }

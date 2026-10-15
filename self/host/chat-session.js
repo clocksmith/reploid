@@ -151,8 +151,10 @@ export function createChatSession({
     const route = searchRoute(name);
     assert(route, 'Search is not available');
     assert(search && Array.isArray(search.recipients), 'Allow search for this answer first');
+    const searchServer = route.provider.searchServer ?? null;
+    assert((search.searchServer ?? null) === searchServer, 'The search server changed after search was allowed. Nothing was sent. Retry asks again.');
     return createSearchPermission({ id: id(), networkId: currentNetwork(), threadId, searchProvider: route.provider.searchProvider,
-      query: String(query).trim(), recipients: search.recipients, wording: search.wording, grantedAt: now() });
+      searchServer, query: String(query).trim(), recipients: search.recipients, wording: search.wording, grantedAt: now() });
   };
 
   const getCatalogModels = () => copy(projectChatCatalog({
@@ -323,8 +325,12 @@ export function createChatSession({
       assert(model, 'Choose a model first');
       const recipients = listedContributors(model, sharingScope);
       assert(recipients.length || !execution.remoteDisclosure(model, sharingScope), 'No execution contributors are available for this answer');
-      return { route: name, searchProvider: route.provider.searchProvider, wording: searchPermissionWording(route.provider.searchProvider), recipients };
+      return { route: name, searchProvider: route.provider.searchProvider, searchServer: route.provider.searchServer ?? null,
+        wording: searchPermissionWording(route.provider.searchProvider), recipients };
     },
+    /** The search-answer route a new search-backed answer uses: the person's own search server when they set one up
+     * in Settings and it is on, otherwise the server's Brave route; null when neither is offered. */
+    preferredSearchRoute: () => searchRoute(DEVICE_SEARCH_ROUTE) ? DEVICE_SEARCH_ROUTE : searchRoute(SEARCH_ROUTE) ? SEARCH_ROUTE : null,
     /** Whether retrying this attempt needs a fresh per-answer search permission. */
     searchRetryNeedsPermission: attempt => isSearchRoute(attempt?.request?.retrieval?.route),
     cancel(threadId) {

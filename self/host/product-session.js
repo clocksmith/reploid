@@ -73,11 +73,12 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
   // The person's MCP search server, used only for sends made while web search is on (Settings).
   const webSearch = createWebSearch({ storage });
   // The same server as a device-side route: the query goes from this device to it and this device fetches the pages.
-  const deviceSearch = createDeviceSearch({ source: webSearch.provider, enabled: () => webSearch.enabled() });
+  const deviceSearch = createDeviceSearch({ source: webSearch.provider, enabled: () => webSearch.enabled(),
+    server: () => webSearch.state().recipient });
   // `earning` (earning/attempts.js) is off unless the embedding host composes an explicitly configured client.
   const chatOptions = { service, storage, swarm, partitions: swarm.partitions, peers: createWorkPeerJobs({ getNetwork }),
     // Search-backed answers use the server's Brave route or the device-side route, each answer under its own
-    // per-answer search permission. The device-side route is not offered until its wording is approved.
+    // per-answer search permission; the device-side route's permission names the person's search server.
     retrieval: { routes: { default: { provider: webSearch.provider },
       [SEARCH_ROUTE]: { provider: search.provider, extractor: search.extractor, permission: 'search-answer' },
       [DEVICE_SEARCH_ROUTE]: { provider: deviceSearch.provider, extractor: deviceSearch.extractor, permission: 'search-answer',
