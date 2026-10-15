@@ -1,0 +1,47 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.7ms
+[594.1ms][ExecutionV1] Capability transforms applied: [widenToF32CorrectnessFallback] (Runtime KV cache resolved f32.)
+[598.4ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no, transforms=[widenToF32CorrectnessFallback])
+[598.5ms][Config] Using manifest-first config (source of truth)
+[603.6ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+[603.7ms][Pipeline] Vision capable: imageTokenId=248056
+[604.9ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (15 decode steps, 10 kernels, source=execution-v1)
+[605.2ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[605.9ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[732.5ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[853.7ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges
+[854.0ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[858.9ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f32, requestedMaxSeqLen=4096
+[860.5ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[921.3ms][ShardCache] Custom shard loader configured
+[921.6ms][Loader] Initializing...
+[958.2ms][HeapManager] Allocated segment 0: 1024MB
+[958.4ms][HeapManager] Segmented heap: 1GB per segment
+[958.4ms][HeapManager] Initialized with strategy: SEGMENTED
+[958.5ms][Loader] Initialized (f16, subgroups)
+[959.0ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16
+[971.1ms][Loader] [0.0s] Memory (start): | RSS=496.34 MB (heap=197.88 MB/200.40 MB, external=2.14 GB, arrayBuffers=1.14 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[971.7ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[1123.3ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,1024], isWeightBuffer=true
+[1123.6ms][Loader] Layers: 0-23
+[1266.5ms][Loader] Layers: 24 complete (0.14s)
+[1311.4ms][Loader] Complete: 890.16 MB in 0.34s (2.57 GB/s)
+[1312.3ms][Loader] [0.4s] Memory (complete): | RSS=564.40 MB (heap=210.41 MB/227.65 MB, external=1.17 GB, arrayBuffers=1.16 GB) | GPU=893.10 MB (345 active, 0 pooled, peak=893.10 MB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=345
+[1322.8ms][Pipeline] Model loaded successfully (732ms)
+[1353.6ms][KernelSelect] matmul variant=q4_fused_widetile reason=path_override
+[1360.5ms][KernelSelect] matmul variant=f16w_f32a_tiled reason=default
+[1432.1ms][KernelSelect] attention variant=prefill_streaming reason=path_override:streaming
+[1667.6ms][KernelSelect] matmul variant=q4_fused_batched_multicol_shared reason=path_override
+[1711.5ms][KernelSelect] matmul variant=q4_fused_gemv reason=path_override
+[1773.7ms][KernelSelect] matmul variant=gemv_subgroup reason=gemv
+[1791.9ms][KernelSelect] attention variant=decode_streaming reason=path_override:streaming
+{"label":"plain + F32 K/V cache (manifest variant 5de90500: F32-KV attention programs; runtime session kvcache.kvDtype f32, otherwise the runtime default kvcache)","speedPass":0,"prefillMs":375.687361,"decodeMedianMs":67.41762300000028}
+{"label":"plain + F32 K/V cache (manifest variant 5de90500: F32-KV attention programs; runtime session kvcache.kvDtype f32, otherwise the runtime default kvcache)","speedPass":1,"prefillMs":281.01784899999984,"decodeMedianMs":67.24403899999925}
+[11153.9ms][KernelSelect] matmul variant=f16w_f32a reason=default
+{"label":"plain + F32 K/V cache (manifest variant 5de90500: F32-KV attention programs; runtime session kvcache.kvDtype f32, otherwise the runtime default kvcache)","attempt":0,"promptTokens":19,"maxDifference":0.004156231620750184,"failedSteps":2}
+{"label":"plain + F32 K/V cache (manifest variant 5de90500: F32-KV attention programs; runtime session kvcache.kvDtype f32, otherwise the runtime default kvcache)","attempt":1,"promptTokens":21,"maxDifference":0.0024520207128198024,"failedSteps":2}
+{"label":"plain + F32 K/V cache (manifest variant 5de90500: F32-KV attention programs; runtime session kvcache.kvDtype f32, otherwise the runtime default kvcache)","attempt":2,"promptTokens":184,"maxDifference":0.004795161727263242,"failedSteps":51}
+{"label":"plain + F32 K/V cache (manifest variant 5de90500: F32-KV attention programs; runtime session kvcache.kvDtype f32, otherwise the runtime default kvcache)","comparedSteps":55,"withinTolerance":0,"tokenMatches":55,"maxDifference":0.004795161727263242,"valuesOverTolerance":924531,"passed":false,"prompt56Ms":281.01784899999984,"prompt184Ms":776.3253199999999,"decodeMedianMs":67.24403899999925}
+[19185.7ms][ExpertCache] Cache cleared
+[19287.0ms][Pipeline] Unloaded

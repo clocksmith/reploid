@@ -1,0 +1,46 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.7ms
+[586.7ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[586.8ms][Config] Using manifest-first config (source of truth)
+[591.5ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+[591.7ms][Pipeline] Vision capable: imageTokenId=248056
+[592.5ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (15 decode steps, 11 kernels, source=execution-v1)
+[592.7ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[593.1ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[695.2ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[812.6ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges
+[813.0ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[816.1ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=4096
+[817.4ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[868.0ms][ShardCache] Custom shard loader configured
+[868.3ms][Loader] Initializing...
+[907.0ms][HeapManager] Allocated segment 0: 1024MB
+[921.5ms][HeapManager] Segmented heap: 1GB per segment
+[921.6ms][HeapManager] Initialized with strategy: SEGMENTED
+[921.8ms][Loader] Initialized (f16, subgroups)
+[922.4ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16
+[923.0ms][Loader] [0.0s] Memory (start): | RSS=498.90 MB (heap=197.35 MB/203.40 MB, external=2.14 GB, arrayBuffers=1.14 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[923.5ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[1090.2ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,1024], isWeightBuffer=true
+[1090.6ms][Loader] Layers: 0-23
+[1219.0ms][Loader] Layers: 24 complete (0.13s)
+[1262.9ms][Loader] Complete: 890.16 MB in 0.34s (2.58 GB/s)
+[1263.9ms][Loader] [0.3s] Memory (complete): | RSS=564.76 MB (heap=216.51 MB/250.40 MB, external=1.15 GB, arrayBuffers=1.14 GB) | GPU=893.10 MB (345 active, 0 pooled, peak=893.10 MB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=345
+[1277.9ms][Pipeline] Model loaded successfully (695ms)
+[1317.4ms][KernelSelect] matmul variant=q4_fused_widetile reason=path_override
+[1367.0ms][KernelSelect] matmul variant=f16w_f32a_tiled reason=default
+[1880.1ms][KernelSelect] attention variant=prefill_head256_f16kv reason=path_override:tiled_small
+[2124.5ms][KernelSelect] matmul variant=q4_fused_batched_multicol_shared reason=path_override
+[2161.6ms][KernelSelect] matmul variant=q4_fused_gemv reason=path_override
+[2209.5ms][KernelSelect] matmul variant=gemv_subgroup reason=gemv
+[2253.6ms][KernelSelect] attention variant=decode_online_f16kv reason=path_override:subgroup
+{"label":"plain control (manifest defaults)","speedPass":0,"prefillMs":873.8877150000003,"decodeMedianMs":29.351177000000007}
+{"label":"plain control (manifest defaults)","speedPass":1,"prefillMs":159.7007539999995,"decodeMedianMs":27.769542}
+[6622.1ms][KernelSelect] matmul variant=f16w_f32a reason=default
+{"label":"plain control (manifest defaults)","attempt":0,"promptTokens":19,"maxDifference":0.0005488027261089101,"failedSteps":0}
+{"label":"plain control (manifest defaults)","attempt":1,"promptTokens":21,"maxDifference":0.0006218545628309258,"failedSteps":0}
+{"label":"plain control (manifest defaults)","attempt":2,"promptTokens":184,"maxDifference":0.0034951507058513798,"failedSteps":27}
+{"label":"plain control (manifest defaults)","comparedSteps":55,"withinTolerance":28,"tokenMatches":55,"maxDifference":0.0034951507058513798,"valuesOverTolerance":25151,"passed":false,"prompt56Ms":159.7007539999995,"prompt184Ms":341.80789299999924,"decodeMedianMs":27.769542}
+[9354.2ms][ExpertCache] Cache cleared
+[9355.3ms][Pipeline] Unloaded

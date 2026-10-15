@@ -1,0 +1,67 @@
+{
+ "label": "plain + F32 K/V cache (manifest variant 5de90500: F32-KV attention programs; runtime session kvcache.kvDtype f32, otherwise the runtime default kvcache)",
+ "request": 1,
+ "dataSha256": "sha256:a06b7979dcbdc6bcdc67c47868861373e39f8aea5504787276e0cea0a0040245",
+ "layers": [
+  {
+   "layer": 3,
+   "seqLen": 22,
+   "numHeads": 2,
+   "headDim": 256,
+   "kvDtype": "f32",
+   "partition": null,
+   "keySha256": "c8dbda3f549125912f6ee190c63f40dd67ffe3ebb0c8c04f422d7cebb87639e2",
+   "valueSha256": "902c5eb41eca17bbdc0d44f86c1ce125d2f773c188bc1c7482e09a1053e13dbb"
+  },
+  {
+   "layer": 7,
+   "seqLen": 22,
+   "numHeads": 2,
+   "headDim": 256,
+   "kvDtype": "f32",
+   "partition": null,
+   "keySha256": "1fd5c520ac94e0095c24da8028c4768218bb469fc822ce4a014e83bcf4874994",
+   "valueSha256": "e80e1d30fc35560b1ef49c08d4ce8402eeefe2adf7cf159c9774c17de3e32cdf"
+  },
+  {
+   "layer": 11,
+   "seqLen": 22,
+   "numHeads": 2,
+   "headDim": 256,
+   "kvDtype": "f32",
+   "partition": null,
+   "keySha256": "f51b2b02a2515a8d1a08b9648d19d9d5f11efd5ae47960c865cd22ae2ea83653",
+   "valueSha256": "905b5e218d91cc70e4ded7c2b4f44eb833bab8f2596df10c1fea9f17725d07d9"
+  },
+  {
+   "layer": 15,
+   "seqLen": 22,
+   "numHeads": 2,
+   "headDim": 256,
+   "kvDtype": "f32",
+   "partition": null,
+   "keySha256": "2cee2305cd7a3998a924d903cbc985ae48a45688775b6ec66fc6109eae7eebd0",
+   "valueSha256": "38f1215658288fa3294e9656846c4e4ac08216dba88ab89574280f7c28718487"
+  },
+  {
+   "layer": 19,
+   "seqLen": 22,
+   "numHeads": 2,
+   "headDim": 256,
+   "kvDtype": "f32",
+   "partition": null,
+   "keySha256": "c6c4901ce9875bed16b598b065785d3302a35a839bd31cee5f3994e800605cb2",
+   "valueSha256": "330dd6d8e6befa6f4907747e87d24c0e9bddda78978614340b7a38579593cf4b"
+  },
+  {
+   "layer": 23,
+   "seqLen": 22,
+   "numHeads": 2,
+   "headDim": 256,
+   "kvDtype": "f32",
+   "partition": null,
+   "keySha256": "065085810b7688d28e4e449be05d724c33ff575cf38fe97d146af5b29b17ff09",
+   "valueSha256": "cd098305bcdec9c48d3326d010f2170ec02104a8e17aa6d3cd8e29c0a1c148bd"
+  }
+ ]
+}

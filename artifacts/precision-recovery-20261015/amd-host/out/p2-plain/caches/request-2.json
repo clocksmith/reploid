@@ -1,0 +1,67 @@
+{
+ "label": "plain control (manifest defaults)",
+ "request": 2,
+ "dataSha256": "sha256:cbaad4682263e7312d8dbf414a980493011457659218f590e3385ede3ef5d56a",
+ "layers": [
+  {
+   "layer": 3,
+   "seqLen": 234,
+   "numHeads": 2,
+   "headDim": 256,
+   "kvDtype": "f16",
+   "partition": null,
+   "keySha256": "61613df9d90cece154804296f6b124ff8ba3f050e52fcdfc23f734068fe39871",
+   "valueSha256": "15d727f77183b9712786923c1fdbb2e3ad8896a6221e5e76a6e9b84c403b442f"
+  },
+  {
+   "layer": 7,
+   "seqLen": 234,
+   "numHeads": 2,
+   "headDim": 256,
+   "kvDtype": "f16",
+   "partition": null,
+   "keySha256": "17493ef6a2e24fbce72a3f8fe75b52da48a46976a7cad328d754ed799c48a904",
+   "valueSha256": "5ce4bb5db7f0336e2b7d5bb56a5b4df6843ebd84c8b838185cb7ef2613025bd2"
+  },
+  {
+   "layer": 11,
+   "seqLen": 234,
+   "numHeads": 2,
+   "headDim": 256,
+   "kvDtype": "f16",
+   "partition": null,
+   "keySha256": "0d47a604bcc6e81c5dde1dd9965e396b1e75ee70fa8ad18cf23b67fa945d373d",
+   "valueSha256": "87c6584dac22d7c7b4249138c555224d196c4900907b730cac2094f2670798a1"
+  },
+  {
+   "layer": 15,
+   "seqLen": 234,
+   "numHeads": 2,
+   "headDim": 256,
+   "kvDtype": "f16",
+   "partition": null,
+   "keySha256": "33a3538227936177e63444d608f17916242442caa96f66eaee9ceeecf00deb90",
+   "valueSha256": "c4ee2cc0110bdd10b063cf1a0f86b261e813a3b127935840e2c3c508a7553e05"
+  },
+  {
+   "layer": 19,
+   "seqLen": 234,
+   "numHeads": 2,
+   "headDim": 256,
+   "kvDtype": "f16",
+   "partition": null,
+   "keySha256": "ff63c7edd03e56a572b441c32026d77ee998303b82da7edab7e720745a6c8fa0",
+   "valueSha256": "c668b1e78c242649d0a440429966e88b304ba22107fcefbb11c703aae694b2af"
+  },
+  {
+   "layer": 23,
+   "seqLen": 234,
+   "numHeads": 2,
+   "headDim": 256,
+   "kvDtype": "f16",
+   "partition": null,
+   "keySha256": "c1fb336e737ce384099523c1142f039bfa0278923648380b356a352a4b6de3fa",
+   "valueSha256": "c6c9f8877e609770a23fc11e166a905777311b982b5fadad5775949ff5378b3e"
+  }
+ ]
+}

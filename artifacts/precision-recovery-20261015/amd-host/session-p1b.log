@@ -1,0 +1,4 @@
+session p1b start 2026-10-15T19:14:10Z amdgpu-errors 50 oomd-lines-48h 0 avail-GiB 53 user.slice-some-avg10 0.00
+p1b-kvf32m pre avail-GiB 53 user.slice-some-avg10 0.00 public-native-cpu 110.0 mesa c-kvf32m
+p1b-kvf32m exit=1 seconds=4 at 19:14:14 amdgpu-errors 50 oomd-lines-since-start 0 scope-peak-bytes=600076288 
+session p1b done 2026-10-15T19:14:14Z amdgpu-errors 50 oomd-lines-since-start 0

@@ -1,0 +1,4360 @@
+{
+ "schema": "reploid.precision-recovery-summary/v1",
+ "kvControl": "p1-paired",
+ "runs": {
+  "p1-plain": {
+   "label": "plain control (manifest defaults)",
+   "manifestIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+   "splitFrontManifestIdentity": null,
+   "dopplerVersion": "0.6.28",
+   "configSha256": "sha256:16dd252a8e38d0c15401f9cdf6a6e7b8868ae9077fc24a16ed2807e35b609634",
+   "acceptance": {
+    "comparedSteps": 55,
+    "withinTolerance": 28,
+    "tokenMatches": 55,
+    "maxDifference": 0.0034951507058513798,
+    "valuesOverTolerance": 25151,
+    "passed": false
+   },
+   "marginToTolerance": -2.4951507058513798,
+   "error": null,
+   "perRequest": [
+    {
+     "promptTokens": 19,
+     "maxDifference": 0.0005488027261089101,
+     "failedSteps": []
+    },
+    {
+     "promptTokens": 21,
+     "maxDifference": 0.0006218545628309258,
+     "failedSteps": []
+    },
+    {
+     "promptTokens": 184,
+     "maxDifference": 0.0034951507058513798,
+     "failedSteps": [
+      3,
+      5,
+      7,
+      8,
+      9,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      21,
+      22,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      37,
+      40,
+      42,
+      50
+     ]
+    }
+   ],
+   "speed": {
+    "prompt56Ms": 159.7007539999995,
+    "prompt184Ms": 341.80789299999924,
+    "decodeMedianMs": 27.769542,
+    "checkRequest2DecodeMedianMs": 28.24996099999953,
+    "passes": [
+     {
+      "prefillMs": 873.8877150000003,
+      "decode": {
+       "count": 64,
+       "totalMs": 2210.729009999999,
+       "medianMs": 29.351177000000007,
+       "p90Ms": 34.527602000000115,
+       "minMs": 26.998141000000032,
+       "maxMs": 176.38838399999986
+      },
+      "firstDecodeMs": 158.98190099999965
+     },
+     {
+      "prefillMs": 159.7007539999995,
+      "decode": {
+       "count": 64,
+       "totalMs": 2053.7795009999973,
+       "medianMs": 27.769542,
+       "p90Ms": 31.051276999999573,
+       "minMs": 25.653352999999697,
+       "maxMs": 201.59653799999978
+      },
+      "firstDecodeMs": 201.59653799999978
+     }
+    ]
+   },
+   "preparation": {
+    "mesaShaderCacheDir": "/var/tmp/precision-recovery-20261015/mesa/c-plain",
+    "mesaShaderCacheDisabled": null,
+    "openMs": {
+     "main": 701.007623
+    },
+    "firstUsePrefill56Ms": 873.8877150000003,
+    "firstUseDecodeMs": 158.98190099999965,
+    "warmPrefill56Ms": 159.7007539999995,
+    "warmFirstDecodeMs": 201.59653799999978
+   },
+   "memory": {
+    "pool": {
+     "currentBytesAllocated": 1008662528,
+     "peakBytesAllocated": 1087412992,
+     "peakBytesRequested": 1056131072,
+     "activeBuffers": 455,
+     "pooledBuffers": 64
+    },
+    "process": {
+     "vmHWMBytes": 1012932608,
+     "vmRSSBytes": 838664192
+    },
+    "perExecutorLimitBytes": 1420000000
+   },
+   "resolved": {
+    "main": {
+     "capabilityPolicy": {
+      "kind": "default-noop",
+      "dtypeEffect": "none",
+      "reason": "GPU supports all required features.",
+      "evidence": []
+     },
+     "laneIntegrity": {
+      "declared": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "executed": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "status": "matches",
+      "transforms": [],
+      "policy": {
+       "kind": "default-noop",
+       "dtypeEffect": "none",
+       "reason": "GPU supports all required features.",
+       "evidence": []
+      }
+     },
+     "appliedTransforms": [],
+     "resolvedStepsHash": "sha256:dac816f255c721cb5b7ec434051cad07b7e3c8dfe8d8725a4c477c7a16db34a7",
+     "intermediatePrecision": "f32",
+     "kvDtype": "f16",
+     "kvCacheLayers": 6,
+     "kvMaxSeqLen": 4096,
+     "kvCacheBytes": 50331648
+    },
+    "front": null
+   },
+   "splitBoundary": null,
+   "session": {
+    "exit": 0,
+    "seconds": 11,
+    "scopePeakBytes": 899108864,
+    "stopped": false
+   },
+   "stepMaxDifferences": [
+    0.0005488027261089101,
+    0.0004897227031657181,
+    0.00038153091146631013,
+    0.0006218545628309258,
+    0.0007045465124986272,
+    0.0009503841421754089,
+    0.000874628876696093,
+    0.0012218348229229292,
+    0.0009291759612581885,
+    0.0010074224643119578,
+    0.0008553656772734008,
+    0.0016050100181441707,
+    0.001128586798007536,
+    0.0013949900368572798,
+    0.0008699663913529498,
+    0.0012521076714966384,
+    0.0016727544986774312,
+    0.0011684873689841169,
+    0.0013319037369317055,
+    0.0034951507058513798,
+    0.002632727920642175,
+    0.0017313005149155458,
+    0.0014719822522586412,
+    0.0009948375116621833,
+    0.0008592278058827674,
+    0.00114682049126702,
+    0.0014038471613346815,
+    0.0007546564400962019,
+    0.0008952914360844666,
+    0.0008576013131431637,
+    0.000940365352354533,
+    0.0015674119321396063,
+    0.0029949721614030977,
+    0.0011165999654408898,
+    0.0012766540596569342,
+    0.0025398793345914328,
+    0.0012680395525963561,
+    0.0012627405895366817,
+    0.002037322277846254,
+    0.0009723353038059157,
+    0.0007994120298850937,
+    0.0012005550134190912,
+    0.0007937472024854841,
+    0.00090041467053803,
+    0.0011548509624756953,
+    0.0007725627678629721,
+    0.0010188522212866147,
+    0.0008982977191729358,
+    0.0006256748844046811,
+    0.0008433216705414637,
+    0.0009707933326028595,
+    0.000791556510757907,
+    0.0007414438361301734,
+    0.000746095359572152,
+    0.001117481843592949
+   ],
+   "kv": {
+    "storedF32": false,
+    "layers": [
+     {
+      "layer": 3,
+      "kvDtype": "f16",
+      "partition": null,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 512,
+      "keyMaxF16Steps": 28,
+      "valueDifferingVsControl": 505,
+      "valueMaxF16Steps": 40
+     },
+     {
+      "layer": 7,
+      "kvDtype": "f16",
+      "partition": null,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 4698,
+      "keyMaxF16Steps": 267,
+      "valueDifferingVsControl": 5072,
+      "valueMaxF16Steps": 192
+     },
+     {
+      "layer": 11,
+      "kvDtype": "f16",
+      "partition": null,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 14232,
+      "keyMaxF16Steps": 7413,
+      "valueDifferingVsControl": 16058,
+      "valueMaxF16Steps": 966
+     },
+     {
+      "layer": 15,
+      "kvDtype": "f16",
+      "partition": null,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 13303,
+      "keyMaxF16Steps": 832,
+      "valueDifferingVsControl": 13504,
+      "valueMaxF16Steps": 559
+     },
+     {
+      "layer": 19,
+      "kvDtype": "f16",
+      "partition": null,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 11400,
+      "keyMaxF16Steps": 1048,
+      "valueDifferingVsControl": 12652,
+      "valueMaxF16Steps": 1037
+     },
+     {
+      "layer": 23,
+      "kvDtype": "f16",
+      "partition": null,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 10971,
+      "keyMaxF16Steps": 3490,
+      "valueDifferingVsControl": 8786,
+      "valueMaxF16Steps": 851
+     }
+    ],
+    "identitiesMatched": 0,
+    "identities": 12,
+    "differingVsControl": 111693,
+    "valuesCompared": 1437696,
+    "comparison": "stored F16 bits vs control stored F16 bits"
+   }
+  },
+  "p2-plain": {
+   "label": "plain control (manifest defaults)",
+   "manifestIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+   "splitFrontManifestIdentity": null,
+   "dopplerVersion": "0.6.28",
+   "configSha256": "sha256:16dd252a8e38d0c15401f9cdf6a6e7b8868ae9077fc24a16ed2807e35b609634",
+   "acceptance": {
+    "comparedSteps": 55,
+    "withinTolerance": 28,
+    "tokenMatches": 55,
+    "maxDifference": 0.0034951507058513798,
+    "valuesOverTolerance": 25151,
+    "passed": false
+   },
+   "marginToTolerance": -2.4951507058513798,
+   "error": null,
+   "perRequest": [
+    {
+     "promptTokens": 19,
+     "maxDifference": 0.0005488027261089101,
+     "failedSteps": []
+    },
+    {
+     "promptTokens": 21,
+     "maxDifference": 0.0006218545628309258,
+     "failedSteps": []
+    },
+    {
+     "promptTokens": 184,
+     "maxDifference": 0.0034951507058513798,
+     "failedSteps": [
+      3,
+      5,
+      7,
+      8,
+      9,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      21,
+      22,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      37,
+      40,
+      42,
+      50
+     ]
+    }
+   ],
+   "speed": {
+    "prompt56Ms": 176.27537600000005,
+    "prompt184Ms": 321.58534099999997,
+    "decodeMedianMs": 27.620504999999866,
+    "checkRequest2DecodeMedianMs": 27.959665000000314,
+    "passes": [
+     {
+      "prefillMs": 334.89425800000004,
+      "decode": {
+       "count": 64,
+       "totalMs": 2151.203689999996,
+       "medianMs": 29.606604999999945,
+       "p90Ms": 35.07999500000005,
+       "minMs": 27.536527000000206,
+       "maxMs": 184.20567999999957
+      },
+      "firstDecodeMs": 94.71087699999998
+     },
+     {
+      "prefillMs": 176.27537600000005,
+      "decode": {
+       "count": 64,
+       "totalMs": 1889.5481569999965,
+       "medianMs": 27.620504999999866,
+       "p90Ms": 29.956177999999454,
+       "minMs": 26.577430000000277,
+       "maxMs": 76.2646249999998
+      },
+      "firstDecodeMs": 29.32818099999986
+     }
+    ]
+   },
+   "preparation": {
+    "mesaShaderCacheDir": "/var/tmp/precision-recovery-20261015/mesa/c-plain",
+    "mesaShaderCacheDisabled": null,
+    "openMs": {
+     "main": 860.2649099999999
+    },
+    "firstUsePrefill56Ms": 334.89425800000004,
+    "firstUseDecodeMs": 94.71087699999998,
+    "warmPrefill56Ms": 176.27537600000005,
+    "warmFirstDecodeMs": 29.32818099999986
+   },
+   "memory": {
+    "pool": {
+     "currentBytesAllocated": 1008662528,
+     "peakBytesAllocated": 1087412992,
+     "peakBytesRequested": 1056131072,
+     "activeBuffers": 455,
+     "pooledBuffers": 64
+    },
+    "process": {
+     "vmHWMBytes": 923746304,
+     "vmRSSBytes": 860348416
+    },
+    "perExecutorLimitBytes": 1420000000
+   },
+   "resolved": {
+    "main": {
+     "capabilityPolicy": {
+      "kind": "default-noop",
+      "dtypeEffect": "none",
+      "reason": "GPU supports all required features.",
+      "evidence": []
+     },
+     "laneIntegrity": {
+      "declared": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "executed": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "status": "matches",
+      "transforms": [],
+      "policy": {
+       "kind": "default-noop",
+       "dtypeEffect": "none",
+       "reason": "GPU supports all required features.",
+       "evidence": []
+      }
+     },
+     "appliedTransforms": [],
+     "resolvedStepsHash": "sha256:dac816f255c721cb5b7ec434051cad07b7e3c8dfe8d8725a4c477c7a16db34a7",
+     "intermediatePrecision": "f32",
+     "kvDtype": "f16",
+     "kvCacheLayers": 6,
+     "kvMaxSeqLen": 4096,
+     "kvCacheBytes": 50331648
+    },
+    "front": null
+   },
+   "splitBoundary": null,
+   "session": {
+    "exit": 0,
+    "seconds": 10,
+    "scopePeakBytes": 814448640,
+    "stopped": false
+   },
+   "stepMaxDifferences": [
+    0.0005488027261089101,
+    0.0004897227031657181,
+    0.00038153091146631013,
+    0.0006218545628309258,
+    0.0007045465124986272,
+    0.0009503841421754089,
+    0.000874628876696093,
+    0.0012218348229229292,
+    0.0009291759612581885,
+    0.0010074224643119578,
+    0.0008553656772734008,
+    0.0016050100181441707,
+    0.001128586798007536,
+    0.0013949900368572798,
+    0.0008699663913529498,
+    0.0012521076714966384,
+    0.0016727544986774312,
+    0.0011684873689841169,
+    0.0013319037369317055,
+    0.0034951507058513798,
+    0.002632727920642175,
+    0.0017313005149155458,
+    0.0014719822522586412,
+    0.0009948375116621833,
+    0.0008592278058827674,
+    0.00114682049126702,
+    0.0014038471613346815,
+    0.0007546564400962019,
+    0.0008952914360844666,
+    0.0008576013131431637,
+    0.000940365352354533,
+    0.0015674119321396063,
+    0.0029949721614030977,
+    0.0011165999654408898,
+    0.0012766540596569342,
+    0.0025398793345914328,
+    0.0012680395525963561,
+    0.0012627405895366817,
+    0.002037322277846254,
+    0.0009723353038059157,
+    0.0007994120298850937,
+    0.0012005550134190912,
+    0.0007937472024854841,
+    0.00090041467053803,
+    0.0011548509624756953,
+    0.0007725627678629721,
+    0.0010188522212866147,
+    0.0008982977191729358,
+    0.0006256748844046811,
+    0.0008433216705414637,
+    0.0009707933326028595,
+    0.000791556510757907,
+    0.0007414438361301734,
+    0.000746095359572152,
+    0.001117481843592949
+   ],
+   "kv": {
+    "storedF32": false,
+    "layers": [
+     {
+      "layer": 3,
+      "kvDtype": "f16",
+      "partition": null,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 512,
+      "keyMaxF16Steps": 28,
+      "valueDifferingVsControl": 505,
+      "valueMaxF16Steps": 40
+     },
+     {
+      "layer": 7,
+      "kvDtype": "f16",
+      "partition": null,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 4698,
+      "keyMaxF16Steps": 267,
+      "valueDifferingVsControl": 5072,
+      "valueMaxF16Steps": 192
+     },
+     {
+      "layer": 11,
+      "kvDtype": "f16",
+      "partition": null,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 14232,
+      "keyMaxF16Steps": 7413,
+      "valueDifferingVsControl": 16058,
+      "valueMaxF16Steps": 966
+     },
+     {
+      "layer": 15,
+      "kvDtype": "f16",
+      "partition": null,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 13303,
+      "keyMaxF16Steps": 832,
+      "valueDifferingVsControl": 13504,
+      "valueMaxF16Steps": 559
+     },
+     {
+      "layer": 19,
+      "kvDtype": "f16",
+      "partition": null,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 11400,
+      "keyMaxF16Steps": 1048,
+      "valueDifferingVsControl": 12652,
+      "valueMaxF16Steps": 1037
+     },
+     {
+      "layer": 23,
+      "kvDtype": "f16",
+      "partition": null,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 10971,
+      "keyMaxF16Steps": 3490,
+      "valueDifferingVsControl": 8786,
+      "valueMaxF16Steps": 851
+     }
+    ],
+    "identitiesMatched": 0,
+    "identities": 12,
+    "differingVsControl": 111693,
+    "valuesCompared": 1437696,
+    "comparison": "stored F16 bits vs control stored F16 bits"
+   }
+  },
+  "p1-paired": {
+   "label": "paired control (frozen faster candidate, Capsule TargetPlan config)",
+   "manifestIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+   "splitFrontManifestIdentity": null,
+   "dopplerVersion": "0.6.28",
+   "configSha256": "sha256:c2e17735f63695d938b1592c13f30e7de3653dde8e821c87dd475ad8b40d1438",
+   "acceptance": {
+    "comparedSteps": 55,
+    "withinTolerance": 55,
+    "tokenMatches": 55,
+    "maxDifference": 9.520044947919359e-07,
+    "valuesOverTolerance": 0,
+    "passed": true
+   },
+   "marginToTolerance": 0.9990479955052081,
+   "error": null,
+   "perRequest": [
+    {
+     "promptTokens": 19,
+     "maxDifference": 8.399647413170896e-07,
+     "failedSteps": []
+    },
+    {
+     "promptTokens": 21,
+     "maxDifference": 8.902515347131157e-07,
+     "failedSteps": []
+    },
+    {
+     "promptTokens": 184,
+     "maxDifference": 9.520044947919359e-07,
+     "failedSteps": []
+    }
+   ],
+   "speed": {
+    "prompt56Ms": 8225.749619999988,
+    "prompt184Ms": 26930.274567000015,
+    "decodeMedianMs": 282.4256199999945,
+    "checkRequest2DecodeMedianMs": 289.5527009999787,
+    "passes": [
+     {
+      "prefillMs": 77880.61397199999,
+      "decode": {
+       "count": 64,
+       "totalMs": 19107.139399999985,
+       "medianMs": 282.72356300000683,
+       "p90Ms": 364.52745900000446,
+       "minMs": 278.274768999996,
+       "maxMs": 458.4380119999987
+      },
+      "firstDecodeMs": 301.9416770000098
+     },
+     {
+      "prefillMs": 8225.749619999988,
+      "decode": {
+       "count": 64,
+       "totalMs": 18454.108313999954,
+       "medianMs": 282.4256199999945,
+       "p90Ms": 288.5148920000065,
+       "minMs": 275.1573400000052,
+       "maxMs": 427.40063599997666
+      },
+      "firstDecodeMs": 287.1598440000089
+     }
+    ]
+   },
+   "preparation": {
+    "mesaShaderCacheDir": "/var/tmp/precision-recovery-20261015/mesa/c-paired",
+    "mesaShaderCacheDisabled": null,
+    "openMs": {
+     "main": 30411.682978999997
+    },
+    "firstUsePrefill56Ms": 77880.61397199999,
+    "firstUseDecodeMs": 301.9416770000098,
+    "warmPrefill56Ms": 8225.749619999988,
+    "warmFirstDecodeMs": 287.1598440000089
+   },
+   "memory": {
+    "pool": {
+     "currentBytesAllocated": 994860544,
+     "peakBytesAllocated": 1001799424,
+     "peakBytesRequested": 984787968,
+     "activeBuffers": 455,
+     "pooledBuffers": 60
+    },
+    "process": {
+     "vmHWMBytes": 7953899520,
+     "vmRSSBytes": 7743807488
+    },
+    "perExecutorLimitBytes": 1420000000
+   },
+   "resolved": {
+    "main": {
+     "capabilityPolicy": {
+      "kind": "default-noop",
+      "dtypeEffect": "none",
+      "reason": "GPU supports all required features.",
+      "evidence": []
+     },
+     "laneIntegrity": {
+      "declared": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "executed": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "status": "matches",
+      "transforms": [],
+      "policy": {
+       "kind": "default-noop",
+       "dtypeEffect": "none",
+       "reason": "GPU supports all required features.",
+       "evidence": []
+      }
+     },
+     "appliedTransforms": [],
+     "resolvedStepsHash": "sha256:0aae434122a48a94eb64a546ccbdad2661e0c0c25d84ab08ff0450fb978b3021",
+     "intermediatePrecision": "two-f32",
+     "kvDtype": "f16",
+     "kvCacheLayers": 6,
+     "kvMaxSeqLen": 4096,
+     "kvCacheBytes": 50331648
+    },
+    "front": null
+   },
+   "splitBoundary": null,
+   "session": {
+    "exit": 0,
+    "seconds": 233,
+    "scopePeakBytes": 7868682240,
+    "stopped": false
+   },
+   "stepMaxDifferences": [
+    8.399647413170896e-07,
+    6.15752007604442e-07,
+    7.122407730264513e-07,
+    8.902515347131157e-07,
+    9.465929977636733e-07,
+    9.511217982094422e-07,
+    8.68015469279726e-07,
+    7.162583912645459e-07,
+    8.71407298319582e-07,
+    5.736278545498408e-07,
+    7.928766692089084e-07,
+    7.735741682779462e-07,
+    8.880480919515321e-07,
+    7.18186271342347e-07,
+    6.088153909900029e-07,
+    8.808601243970315e-07,
+    7.976590090663649e-07,
+    9.029354934853018e-07,
+    8.974647514037315e-07,
+    6.479467806741468e-07,
+    9.431464889075869e-07,
+    6.020213518809214e-07,
+    4.76104393243304e-07,
+    6.868741131427214e-07,
+    8.416379735365354e-07,
+    4.7671555236661334e-07,
+    7.527730794265608e-07,
+    5.66631417342478e-07,
+    5.008885572976851e-07,
+    7.055716224613207e-07,
+    4.758145006888981e-07,
+    7.735567919553432e-07,
+    7.37632763758711e-07,
+    7.353005955224035e-07,
+    4.943657643252664e-07,
+    8.45685566019938e-07,
+    5.022872180404647e-07,
+    4.989301132241053e-07,
+    8.834450042627395e-07,
+    7.852569972044421e-07,
+    4.765196788270032e-07,
+    9.196834902525097e-07,
+    7.017729615199642e-07,
+    4.763602685642354e-07,
+    6.057156873851e-07,
+    6.90009414938686e-07,
+    6.659978630807473e-07,
+    8.981626429260814e-07,
+    8.844390428919269e-07,
+    8.330828507041588e-07,
+    8.883623330291357e-07,
+    6.82579010202744e-07,
+    4.766864023508788e-07,
+    9.520044947919359e-07,
+    9.168414152327387e-07
+   ],
+   "kv": {
+    "storedF32": false,
+    "layers": [
+     {
+      "layer": 3,
+      "kvDtype": "f16",
+      "partition": null,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 7,
+      "kvDtype": "f16",
+      "partition": null,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 11,
+      "kvDtype": "f16",
+      "partition": null,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 15,
+      "kvDtype": "f16",
+      "partition": null,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 19,
+      "kvDtype": "f16",
+      "partition": null,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 23,
+      "kvDtype": "f16",
+      "partition": null,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     }
+    ],
+    "identitiesMatched": 12,
+    "identities": 12,
+    "differingVsControl": 0,
+    "valuesCompared": 1437696,
+    "comparison": "stored F16 bits vs control stored F16 bits"
+   }
+  },
+  "p2-paired": {
+   "label": "paired control (frozen faster candidate, Capsule TargetPlan config)",
+   "manifestIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+   "splitFrontManifestIdentity": null,
+   "dopplerVersion": "0.6.28",
+   "configSha256": "sha256:c2e17735f63695d938b1592c13f30e7de3653dde8e821c87dd475ad8b40d1438",
+   "acceptance": {
+    "comparedSteps": 55,
+    "withinTolerance": 55,
+    "tokenMatches": 55,
+    "maxDifference": 9.520044947919359e-07,
+    "valuesOverTolerance": 0,
+    "passed": true
+   },
+   "marginToTolerance": 0.9990479955052081,
+   "error": null,
+   "perRequest": [
+    {
+     "promptTokens": 19,
+     "maxDifference": 8.399647413170896e-07,
+     "failedSteps": []
+    },
+    {
+     "promptTokens": 21,
+     "maxDifference": 8.902515347131157e-07,
+     "failedSteps": []
+    },
+    {
+     "promptTokens": 184,
+     "maxDifference": 9.520044947919359e-07,
+     "failedSteps": []
+    }
+   ],
+   "speed": {
+    "prompt56Ms": 8556.171167,
+    "prompt184Ms": 27298.188037999993,
+    "decodeMedianMs": 282.6264930000034,
+    "checkRequest2DecodeMedianMs": 288.97430200000235,
+    "passes": [
+     {
+      "prefillMs": 8887.37235,
+      "decode": {
+       "count": 64,
+       "totalMs": 20260.10998299999,
+       "medianMs": 284.9538739999989,
+       "p90Ms": 439.5900920000022,
+       "minMs": 279.23924199999965,
+       "maxMs": 576.7354610000002
+      },
+      "firstDecodeMs": 450.0373899999995
+     },
+     {
+      "prefillMs": 8556.171167,
+      "decode": {
+       "count": 64,
+       "totalMs": 19679.490516000027,
+       "medianMs": 282.6264930000034,
+       "p90Ms": 381.0971300000019,
+       "minMs": 275.9331200000015,
+       "maxMs": 595.7355820000012
+      },
+      "firstDecodeMs": 286.96308200000203
+     }
+    ]
+   },
+   "preparation": {
+    "mesaShaderCacheDir": "/var/tmp/precision-recovery-20261015/mesa/c-paired",
+    "mesaShaderCacheDisabled": null,
+    "openMs": {
+     "main": 952.1562749999999
+    },
+    "firstUsePrefill56Ms": 8887.37235,
+    "firstUseDecodeMs": 450.0373899999995,
+    "warmPrefill56Ms": 8556.171167,
+    "warmFirstDecodeMs": 286.96308200000203
+   },
+   "memory": {
+    "pool": {
+     "currentBytesAllocated": 994860544,
+     "peakBytesAllocated": 1001799424,
+     "peakBytesRequested": 984787968,
+     "activeBuffers": 455,
+     "pooledBuffers": 60
+    },
+    "process": {
+     "vmHWMBytes": 1513467904,
+     "vmRSSBytes": 1293320192
+    },
+    "perExecutorLimitBytes": 1420000000
+   },
+   "resolved": {
+    "main": {
+     "capabilityPolicy": {
+      "kind": "default-noop",
+      "dtypeEffect": "none",
+      "reason": "GPU supports all required features.",
+      "evidence": []
+     },
+     "laneIntegrity": {
+      "declared": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "executed": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "status": "matches",
+      "transforms": [],
+      "policy": {
+       "kind": "default-noop",
+       "dtypeEffect": "none",
+       "reason": "GPU supports all required features.",
+       "evidence": []
+      }
+     },
+     "appliedTransforms": [],
+     "resolvedStepsHash": "sha256:0aae434122a48a94eb64a546ccbdad2661e0c0c25d84ab08ff0450fb978b3021",
+     "intermediatePrecision": "two-f32",
+     "kvDtype": "f16",
+     "kvCacheLayers": 6,
+     "kvMaxSeqLen": 4096,
+     "kvCacheBytes": 50331648
+    },
+    "front": null
+   },
+   "splitBoundary": null,
+   "session": {
+    "exit": 0,
+    "seconds": 138,
+    "scopePeakBytes": 1861521408,
+    "stopped": false
+   },
+   "stepMaxDifferences": [
+    8.399647413170896e-07,
+    6.15752007604442e-07,
+    7.122407730264513e-07,
+    8.902515347131157e-07,
+    9.465929977636733e-07,
+    9.511217982094422e-07,
+    8.68015469279726e-07,
+    7.162583912645459e-07,
+    8.71407298319582e-07,
+    5.736278545498408e-07,
+    7.928766692089084e-07,
+    7.735741682779462e-07,
+    8.880480919515321e-07,
+    7.18186271342347e-07,
+    6.088153909900029e-07,
+    8.808601243970315e-07,
+    7.976590090663649e-07,
+    9.029354934853018e-07,
+    8.974647514037315e-07,
+    6.479467806741468e-07,
+    9.431464889075869e-07,
+    6.020213518809214e-07,
+    4.76104393243304e-07,
+    6.868741131427214e-07,
+    8.416379735365354e-07,
+    4.7671555236661334e-07,
+    7.527730794265608e-07,
+    5.66631417342478e-07,
+    5.008885572976851e-07,
+    7.055716224613207e-07,
+    4.758145006888981e-07,
+    7.735567919553432e-07,
+    7.37632763758711e-07,
+    7.353005955224035e-07,
+    4.943657643252664e-07,
+    8.45685566019938e-07,
+    5.022872180404647e-07,
+    4.989301132241053e-07,
+    8.834450042627395e-07,
+    7.852569972044421e-07,
+    4.765196788270032e-07,
+    9.196834902525097e-07,
+    7.017729615199642e-07,
+    4.763602685642354e-07,
+    6.057156873851e-07,
+    6.90009414938686e-07,
+    6.659978630807473e-07,
+    8.981626429260814e-07,
+    8.844390428919269e-07,
+    8.330828507041588e-07,
+    8.883623330291357e-07,
+    6.82579010202744e-07,
+    4.766864023508788e-07,
+    9.520044947919359e-07,
+    9.168414152327387e-07
+   ],
+   "kv": {
+    "storedF32": false,
+    "layers": [
+     {
+      "layer": 3,
+      "kvDtype": "f16",
+      "partition": null,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 7,
+      "kvDtype": "f16",
+      "partition": null,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 11,
+      "kvDtype": "f16",
+      "partition": null,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 15,
+      "kvDtype": "f16",
+      "partition": null,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 19,
+      "kvDtype": "f16",
+      "partition": null,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 23,
+      "kvDtype": "f16",
+      "partition": null,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     }
+    ],
+    "identitiesMatched": 12,
+    "identities": 12,
+    "differingVsControl": 0,
+    "valuesCompared": 1437696,
+    "comparison": "stored F16 bits vs control stored F16 bits"
+   }
+  },
+  "p1-kvf32": {
+   "label": "plain + F32 K/V cache (session kvcache.kvDtype f32; all else manifest defaults)",
+   "manifestIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+   "splitFrontManifestIdentity": null,
+   "dopplerVersion": "0.6.28",
+   "configSha256": "sha256:2258e9db3bce0c74d07225fea14c6aad51911a181d2eb3fd98c97fb05f6c213d",
+   "acceptance": {},
+   "marginToTolerance": null,
+   "error": null,
+   "perRequest": [],
+   "speed": {
+    "checkRequest2DecodeMedianMs": null,
+    "passes": []
+   },
+   "preparation": null,
+   "memory": null,
+   "resolved": null,
+   "splitBoundary": null,
+   "session": {
+    "exit": 1,
+    "seconds": 2,
+    "scopePeakBytes": 0,
+    "stopped": false
+   },
+   "stepMaxDifferences": []
+  },
+  "p1b-kvf32m": {
+   "label": "plain + F32 K/V cache (manifest variant: kvDtype f32, F32-KV attention_streaming at the three attention programs)",
+   "manifestIdentity": "sha256:5de90500eb4f94c8e8d428ba1cbea7f7c57f2155a39b7b370f1dd21a280c41cb",
+   "splitFrontManifestIdentity": null,
+   "dopplerVersion": "0.6.28",
+   "configSha256": "sha256:a67512b0dcd1f1e3094c4fb739b047fec78756ca9b1c43bf7f98ff241b163f3d",
+   "acceptance": {},
+   "marginToTolerance": null,
+   "error": null,
+   "perRequest": [],
+   "speed": {
+    "checkRequest2DecodeMedianMs": null,
+    "passes": []
+   },
+   "preparation": null,
+   "memory": null,
+   "resolved": null,
+   "splitBoundary": null,
+   "session": {
+    "exit": 1,
+    "seconds": 4,
+    "scopePeakBytes": 600076288,
+    "stopped": false
+   },
+   "stepMaxDifferences": []
+  },
+  "p1c-kvf32m": {
+   "label": "plain + F32 K/V cache (manifest variant 5de90500: F32-KV attention programs; runtime session kvcache.kvDtype f32, otherwise the runtime default kvcache)",
+   "manifestIdentity": "sha256:5de90500eb4f94c8e8d428ba1cbea7f7c57f2155a39b7b370f1dd21a280c41cb",
+   "splitFrontManifestIdentity": null,
+   "dopplerVersion": "0.6.28",
+   "configSha256": "sha256:50714452c808f333a18c21043a1edaca749581dd3d14079c310a744eb469a9d0",
+   "acceptance": {
+    "comparedSteps": 55,
+    "withinTolerance": 0,
+    "tokenMatches": 55,
+    "maxDifference": 0.004795161727263242,
+    "valuesOverTolerance": 924531,
+    "passed": false
+   },
+   "marginToTolerance": -3.795161727263242,
+   "error": null,
+   "perRequest": [
+    {
+     "promptTokens": 19,
+     "maxDifference": 0.004156231620750184,
+     "failedSteps": [
+      0,
+      1
+     ]
+    },
+    {
+     "promptTokens": 21,
+     "maxDifference": 0.0024520207128198024,
+     "failedSteps": [
+      0,
+      1
+     ]
+    },
+    {
+     "promptTokens": 184,
+     "maxDifference": 0.004795161727263242,
+     "failedSteps": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50
+     ]
+    }
+   ],
+   "speed": {
+    "prompt56Ms": 316.01311199999964,
+    "prompt184Ms": 835.7596730000005,
+    "decodeMedianMs": 66.17039499999919,
+    "checkRequest2DecodeMedianMs": 115.1680320000014,
+    "passes": [
+     {
+      "prefillMs": 910.9841870000002,
+      "decode": {
+       "count": 64,
+       "totalMs": 4941.194516000001,
+       "medianMs": 67.33656499999961,
+       "p90Ms": 78.293635,
+       "minMs": 60.26587100000006,
+       "maxMs": 289.9713569999999
+      },
+      "firstDecodeMs": 233.67822099999967
+     },
+     {
+      "prefillMs": 316.01311199999964,
+      "decode": {
+       "count": 64,
+       "totalMs": 4440.694216999995,
+       "medianMs": 66.17039499999919,
+       "p90Ms": 76.9539220000006,
+       "minMs": 51.42755400000078,
+       "maxMs": 176.50618600000053
+      },
+      "firstDecodeMs": 51.42755400000078
+     }
+    ]
+   },
+   "preparation": {
+    "mesaShaderCacheDir": "/var/tmp/precision-recovery-20261015/mesa/c-kvf32m2",
+    "mesaShaderCacheDisabled": null,
+    "openMs": {
+     "main": 728.3530229999999
+    },
+    "firstUsePrefill56Ms": 910.9841870000002,
+    "firstUseDecodeMs": 233.67822099999967,
+    "warmPrefill56Ms": 316.01311199999964,
+    "warmFirstDecodeMs": 51.42755400000078
+   },
+   "memory": {
+    "pool": {
+     "currentBytesAllocated": 1008662528,
+     "peakBytesAllocated": 1087412992,
+     "peakBytesRequested": 1056131072,
+     "activeBuffers": 455,
+     "pooledBuffers": 64
+    },
+    "process": {
+     "vmHWMBytes": 1145032704,
+     "vmRSSBytes": 985399296
+    },
+    "perExecutorLimitBytes": 1420000000
+   },
+   "resolved": {
+    "main": {
+     "capabilityPolicy": {
+      "kind": "runtime-session-compatibility",
+      "dtypeEffect": "full-f32",
+      "reason": "Runtime KV cache resolved f32.",
+      "evidence": [
+       "tests/integration/execution-v1-capability-policy.test.js"
+      ]
+     },
+     "laneIntegrity": {
+      "declared": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f32"
+      },
+      "executed": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f32"
+      },
+      "status": "matches",
+      "transforms": [
+       "widenToF32CorrectnessFallback"
+      ],
+      "policy": {
+       "kind": "runtime-session-compatibility",
+       "dtypeEffect": "full-f32",
+       "reason": "Runtime KV cache resolved f32.",
+       "evidence": [
+        "tests/integration/execution-v1-capability-policy.test.js"
+       ]
+      }
+     },
+     "appliedTransforms": [
+      "widenToF32CorrectnessFallback"
+     ],
+     "resolvedStepsHash": "sha256:be7d34efc31b9397f51366dade17af130769063186ce4269a27c761450dd3493",
+     "intermediatePrecision": "f32",
+     "kvDtype": "f32",
+     "kvCacheLayers": 6,
+     "kvMaxSeqLen": 4096,
+     "kvCacheBytes": 100663296
+    },
+    "front": null
+   },
+   "splitBoundary": null,
+   "session": {
+    "exit": 0,
+    "seconds": 22,
+    "scopePeakBytes": 1033809920,
+    "stopped": false
+   },
+   "stepMaxDifferences": [
+    0.003155559998795354,
+    0.004156231620750184,
+    0.0020702322725423272,
+    0.0024520207128198024,
+    0.002745487435990679,
+    0.003602280532238211,
+    0.004278716796628279,
+    0.003623345997270988,
+    0.004487325386554719,
+    0.0032157148792182344,
+    0.00446059228457063,
+    0.003000934815766243,
+    0.004102992967425889,
+    0.002724531390988716,
+    0.0036924741477473155,
+    0.002639821324884384,
+    0.0028822518096511818,
+    0.003937157835065985,
+    0.003643622217997633,
+    0.0025842831980511516,
+    0.003345905118903758,
+    0.0032416764334610715,
+    0.003809950144060714,
+    0.0024013428291085326,
+    0.002941994920387714,
+    0.0040280064466418075,
+    0.0024532778183363746,
+    0.002376769523418698,
+    0.003939804916662126,
+    0.0021086332027717702,
+    0.002858891563368715,
+    0.004505851257929017,
+    0.0018407817005205995,
+    0.0025812151019763974,
+    0.004169281565467919,
+    0.0020141570563083633,
+    0.0025430050430754747,
+    0.0039624350002118724,
+    0.0016020923195634307,
+    0.0027184958123456227,
+    0.004525251820799658,
+    0.0018905033418514794,
+    0.0027570087384631847,
+    0.004795161727263242,
+    0.0026276024072492965,
+    0.0026580217536578132,
+    0.0036604063207246185,
+    0.002689481560215423,
+    0.002536892830562909,
+    0.0027429952479973707,
+    0.0026339052076300717,
+    0.002830115525627619,
+    0.003097535755337777,
+    0.002682507583632976,
+    0.003424597430352616
+   ],
+   "kv": {
+    "storedF32": true,
+    "layers": [
+     {
+      "layer": 3,
+      "kvDtype": "f32",
+      "partition": null,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 512,
+      "keyMaxF16Steps": 28,
+      "valueDifferingVsControl": 505,
+      "valueMaxF16Steps": 40
+     },
+     {
+      "layer": 7,
+      "kvDtype": "f32",
+      "partition": null,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 25692,
+      "keyMaxF16Steps": 2475,
+      "valueDifferingVsControl": 27749,
+      "valueMaxF16Steps": 1658
+     },
+     {
+      "layer": 11,
+      "kvDtype": "f32",
+      "partition": null,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 41504,
+      "keyMaxF16Steps": 5747,
+      "valueDifferingVsControl": 44715,
+      "valueMaxF16Steps": 3206
+     },
+     {
+      "layer": 15,
+      "kvDtype": "f32",
+      "partition": null,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 36083,
+      "keyMaxF16Steps": 7541,
+      "valueDifferingVsControl": 37416,
+      "valueMaxF16Steps": 1679
+     },
+     {
+      "layer": 19,
+      "kvDtype": "f32",
+      "partition": null,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 30529,
+      "keyMaxF16Steps": 3036,
+      "valueDifferingVsControl": 33997,
+      "valueMaxF16Steps": 4824
+     },
+     {
+      "layer": 23,
+      "kvDtype": "f32",
+      "partition": null,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 31300,
+      "keyMaxF16Steps": 4490,
+      "valueDifferingVsControl": 25001,
+      "valueMaxF16Steps": 3047
+     }
+    ],
+    "identitiesMatched": 0,
+    "identities": 12,
+    "differingVsControl": 335003,
+    "valuesCompared": 1437696,
+    "comparison": "nearest F16 of each stored F32 value vs control stored F16 bits"
+   }
+  },
+  "p2-kvf32m": {
+   "label": "plain + F32 K/V cache (manifest variant 5de90500: F32-KV attention programs; runtime session kvcache.kvDtype f32, otherwise the runtime default kvcache)",
+   "manifestIdentity": "sha256:5de90500eb4f94c8e8d428ba1cbea7f7c57f2155a39b7b370f1dd21a280c41cb",
+   "splitFrontManifestIdentity": null,
+   "dopplerVersion": "0.6.28",
+   "configSha256": "sha256:50714452c808f333a18c21043a1edaca749581dd3d14079c310a744eb469a9d0",
+   "acceptance": {
+    "comparedSteps": 55,
+    "withinTolerance": 0,
+    "tokenMatches": 55,
+    "maxDifference": 0.004795161727263242,
+    "valuesOverTolerance": 924531,
+    "passed": false
+   },
+   "marginToTolerance": -3.795161727263242,
+   "error": null,
+   "perRequest": [
+    {
+     "promptTokens": 19,
+     "maxDifference": 0.004156231620750184,
+     "failedSteps": [
+      0,
+      1
+     ]
+    },
+    {
+     "promptTokens": 21,
+     "maxDifference": 0.0024520207128198024,
+     "failedSteps": [
+      0,
+      1
+     ]
+    },
+    {
+     "promptTokens": 184,
+     "maxDifference": 0.004795161727263242,
+     "failedSteps": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50
+     ]
+    }
+   ],
+   "speed": {
+    "prompt56Ms": 281.01784899999984,
+    "prompt184Ms": 776.3253199999999,
+    "decodeMedianMs": 67.24403899999925,
+    "checkRequest2DecodeMedianMs": 114.9656959999993,
+    "passes": [
+     {
+      "prefillMs": 375.687361,
+      "decode": {
+       "count": 64,
+       "totalMs": 4653.0943970000035,
+       "medianMs": 67.41762300000028,
+       "p90Ms": 79.09590500000013,
+       "minMs": 60.590823999999884,
+       "maxMs": 151.50629400000003
+      },
+      "firstDecodeMs": 151.50629400000003
+     },
+     {
+      "prefillMs": 281.01784899999984,
+      "decode": {
+       "count": 64,
+       "totalMs": 4470.497010999997,
+       "medianMs": 67.24403899999925,
+       "p90Ms": 78.05407600000035,
+       "minMs": 52.89534900000035,
+       "maxMs": 146.16961699999956
+      },
+      "firstDecodeMs": 52.89534900000035
+     }
+    ]
+   },
+   "preparation": {
+    "mesaShaderCacheDir": "/var/tmp/precision-recovery-20261015/mesa/c-kvf32m2",
+    "mesaShaderCacheDisabled": null,
+    "openMs": {
+     "main": 738.361051
+    },
+    "firstUsePrefill56Ms": 375.687361,
+    "firstUseDecodeMs": 151.50629400000003,
+    "warmPrefill56Ms": 281.01784899999984,
+    "warmFirstDecodeMs": 52.89534900000035
+   },
+   "memory": {
+    "pool": {
+     "currentBytesAllocated": 1008662528,
+     "peakBytesAllocated": 1087412992,
+     "peakBytesRequested": 1056131072,
+     "activeBuffers": 455,
+     "pooledBuffers": 64
+    },
+    "process": {
+     "vmHWMBytes": 917385216,
+     "vmRSSBytes": 827244544
+    },
+    "perExecutorLimitBytes": 1420000000
+   },
+   "resolved": {
+    "main": {
+     "capabilityPolicy": {
+      "kind": "runtime-session-compatibility",
+      "dtypeEffect": "full-f32",
+      "reason": "Runtime KV cache resolved f32.",
+      "evidence": [
+       "tests/integration/execution-v1-capability-policy.test.js"
+      ]
+     },
+     "laneIntegrity": {
+      "declared": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f32"
+      },
+      "executed": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f32"
+      },
+      "status": "matches",
+      "transforms": [
+       "widenToF32CorrectnessFallback"
+      ],
+      "policy": {
+       "kind": "runtime-session-compatibility",
+       "dtypeEffect": "full-f32",
+       "reason": "Runtime KV cache resolved f32.",
+       "evidence": [
+        "tests/integration/execution-v1-capability-policy.test.js"
+       ]
+      }
+     },
+     "appliedTransforms": [
+      "widenToF32CorrectnessFallback"
+     ],
+     "resolvedStepsHash": "sha256:be7d34efc31b9397f51366dade17af130769063186ce4269a27c761450dd3493",
+     "intermediatePrecision": "f32",
+     "kvDtype": "f32",
+     "kvCacheLayers": 6,
+     "kvMaxSeqLen": 4096,
+     "kvCacheBytes": 100663296
+    },
+    "front": null
+   },
+   "splitBoundary": null,
+   "session": {
+    "exit": 0,
+    "seconds": 20,
+    "scopePeakBytes": 808333312,
+    "stopped": false
+   },
+   "stepMaxDifferences": [
+    0.003155559998795354,
+    0.004156231620750184,
+    0.0020702322725423272,
+    0.0024520207128198024,
+    0.002745487435990679,
+    0.003602280532238211,
+    0.004278716796628279,
+    0.003623345997270988,
+    0.004487325386554719,
+    0.0032157148792182344,
+    0.00446059228457063,
+    0.003000934815766243,
+    0.004102992967425889,
+    0.002724531390988716,
+    0.0036924741477473155,
+    0.002639821324884384,
+    0.0028822518096511818,
+    0.003937157835065985,
+    0.003643622217997633,
+    0.0025842831980511516,
+    0.003345905118903758,
+    0.0032416764334610715,
+    0.003809950144060714,
+    0.0024013428291085326,
+    0.002941994920387714,
+    0.0040280064466418075,
+    0.0024532778183363746,
+    0.002376769523418698,
+    0.003939804916662126,
+    0.0021086332027717702,
+    0.002858891563368715,
+    0.004505851257929017,
+    0.0018407817005205995,
+    0.0025812151019763974,
+    0.004169281565467919,
+    0.0020141570563083633,
+    0.0025430050430754747,
+    0.0039624350002118724,
+    0.0016020923195634307,
+    0.0027184958123456227,
+    0.004525251820799658,
+    0.0018905033418514794,
+    0.0027570087384631847,
+    0.004795161727263242,
+    0.0026276024072492965,
+    0.0026580217536578132,
+    0.0036604063207246185,
+    0.002689481560215423,
+    0.002536892830562909,
+    0.0027429952479973707,
+    0.0026339052076300717,
+    0.002830115525627619,
+    0.003097535755337777,
+    0.002682507583632976,
+    0.003424597430352616
+   ],
+   "kv": {
+    "storedF32": true,
+    "layers": [
+     {
+      "layer": 3,
+      "kvDtype": "f32",
+      "partition": null,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 512,
+      "keyMaxF16Steps": 28,
+      "valueDifferingVsControl": 505,
+      "valueMaxF16Steps": 40
+     },
+     {
+      "layer": 7,
+      "kvDtype": "f32",
+      "partition": null,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 25692,
+      "keyMaxF16Steps": 2475,
+      "valueDifferingVsControl": 27749,
+      "valueMaxF16Steps": 1658
+     },
+     {
+      "layer": 11,
+      "kvDtype": "f32",
+      "partition": null,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 41504,
+      "keyMaxF16Steps": 5747,
+      "valueDifferingVsControl": 44715,
+      "valueMaxF16Steps": 3206
+     },
+     {
+      "layer": 15,
+      "kvDtype": "f32",
+      "partition": null,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 36083,
+      "keyMaxF16Steps": 7541,
+      "valueDifferingVsControl": 37416,
+      "valueMaxF16Steps": 1679
+     },
+     {
+      "layer": 19,
+      "kvDtype": "f32",
+      "partition": null,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 30529,
+      "keyMaxF16Steps": 3036,
+      "valueDifferingVsControl": 33997,
+      "valueMaxF16Steps": 4824
+     },
+     {
+      "layer": 23,
+      "kvDtype": "f32",
+      "partition": null,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 31300,
+      "keyMaxF16Steps": 4490,
+      "valueDifferingVsControl": 25001,
+      "valueMaxF16Steps": 3047
+     }
+    ],
+    "identitiesMatched": 0,
+    "identities": 12,
+    "differingVsControl": 335003,
+    "valuesCompared": 1437696,
+    "comparison": "nearest F16 of each stored F32 value vs control stored F16 bits"
+   }
+  },
+  "p1-split12": {
+   "label": "paired layers 0-11 (faster kernels), plain layers 12-23 + head",
+   "manifestIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+   "splitFrontManifestIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+   "dopplerVersion": "0.6.28",
+   "configSha256": "sha256:3ef723fff9898366a4e9c5aa90fe0a5772345a5f52fc6ddac6cc457a5468f953",
+   "acceptance": {
+    "comparedSteps": 55,
+    "withinTolerance": 54,
+    "tokenMatches": 55,
+    "maxDifference": 0.0010429017582183064,
+    "valuesOverTolerance": 4,
+    "passed": false
+   },
+   "marginToTolerance": -0.04290175821830644,
+   "error": null,
+   "perRequest": [
+    {
+     "promptTokens": 19,
+     "maxDifference": 0.0002884061215508993,
+     "failedSteps": []
+    },
+    {
+     "promptTokens": 21,
+     "maxDifference": 0.00023837616219246627,
+     "failedSteps": []
+    },
+    {
+     "promptTokens": 184,
+     "maxDifference": 0.0010429017582183064,
+     "failedSteps": [
+      32
+     ]
+    }
+   ],
+   "speed": {
+    "prompt56Ms": 4730.262487999993,
+    "prompt184Ms": 13648.865882999991,
+    "decodeMedianMs": 136.20599099999527,
+    "checkRequest2DecodeMedianMs": 140.01264300002367,
+    "passes": [
+     {
+      "prefillMs": 74685.598933,
+      "decode": {
+       "count": 64,
+       "totalMs": 10222.317728000009,
+       "medianMs": 138.02774400000635,
+       "p90Ms": 141.57669799998985,
+       "minMs": 133.81403700000374,
+       "maxMs": 677.8869819999964
+      },
+      "firstDecodeMs": 677.8869819999964
+     },
+     {
+      "prefillMs": 4730.262487999993,
+      "decode": {
+       "count": 64,
+       "totalMs": 9812.765342000042,
+       "medianMs": 136.20599099999527,
+       "p90Ms": 138.85421700000006,
+       "minMs": 132.16286900000705,
+       "maxMs": 704.9379500000068
+      },
+      "firstDecodeMs": 133.95124400001077
+     }
+    ]
+   },
+   "preparation": {
+    "mesaShaderCacheDir": "/var/tmp/precision-recovery-20261015/mesa/c-split12",
+    "mesaShaderCacheDisabled": null,
+    "openMs": {
+     "front": 28557.015313,
+     "main": 285.50509299999976
+    },
+    "firstUsePrefill56Ms": 74685.598933,
+    "firstUseDecodeMs": 677.8869819999964,
+    "warmPrefill56Ms": 4730.262487999993,
+    "warmFirstDecodeMs": 133.95124400001077
+   },
+   "memory": {
+    "pool": {
+     "currentBytesAllocated": 1032602880,
+     "peakBytesAllocated": 1098604288,
+     "peakBytesRequested": 1068484608,
+     "activeBuffers": 457,
+     "pooledBuffers": 64
+    },
+    "process": {
+     "vmHWMBytes": 7974367232,
+     "vmRSSBytes": 7773147136
+    },
+    "perExecutorLimitBytes": 1420000000
+   },
+   "resolved": {
+    "main": {
+     "capabilityPolicy": {
+      "kind": "default-noop",
+      "dtypeEffect": "none",
+      "reason": "GPU supports all required features.",
+      "evidence": []
+     },
+     "laneIntegrity": {
+      "declared": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "executed": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "status": "matches",
+      "transforms": [],
+      "policy": {
+       "kind": "default-noop",
+       "dtypeEffect": "none",
+       "reason": "GPU supports all required features.",
+       "evidence": []
+      }
+     },
+     "appliedTransforms": [],
+     "resolvedStepsHash": "sha256:dac816f255c721cb5b7ec434051cad07b7e3c8dfe8d8725a4c477c7a16db34a7",
+     "intermediatePrecision": "f32",
+     "kvDtype": "f16",
+     "kvCacheLayers": 3,
+     "kvMaxSeqLen": 4096,
+     "kvCacheBytes": 25165824
+    },
+    "front": {
+     "capabilityPolicy": {
+      "kind": "default-noop",
+      "dtypeEffect": "none",
+      "reason": "GPU supports all required features.",
+      "evidence": []
+     },
+     "laneIntegrity": {
+      "declared": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "executed": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "status": "matches",
+      "transforms": [],
+      "policy": {
+       "kind": "default-noop",
+       "dtypeEffect": "none",
+       "reason": "GPU supports all required features.",
+       "evidence": []
+      }
+     },
+     "appliedTransforms": [],
+     "resolvedStepsHash": "sha256:0aae434122a48a94eb64a546ccbdad2661e0c0c25d84ab08ff0450fb978b3021",
+     "intermediatePrecision": "two-f32",
+     "kvDtype": "f16",
+     "kvCacheLayers": 3,
+     "kvMaxSeqLen": 4096,
+     "kvCacheBytes": 25165824
+    }
+   },
+   "splitBoundary": {
+    "narrowedValues": 716800
+   },
+   "session": {
+    "exit": 0,
+    "seconds": 170,
+    "scopePeakBytes": 7892004864,
+    "stopped": false
+   },
+   "stepMaxDifferences": [
+    0.0001144113543701808,
+    0.0002884061215508993,
+    9.938526434083439e-05,
+    0.00023837616219246627,
+    0.0002187252993857136,
+    0.00015755554980945163,
+    0.00017807683744353042,
+    0.000888405351762156,
+    0.0005899129294624217,
+    0.00020127832234084764,
+    0.0002732644638432369,
+    0.00022942724704000383,
+    0.0003826230769616856,
+    0.0003361443140690312,
+    0.000182934207467067,
+    0.00023522287747179682,
+    0.00026084269686066364,
+    0.00020817947884577137,
+    0.00019146017324089826,
+    0.0004988373312579952,
+    0.0004828823669580373,
+    0.000602607172355718,
+    0.00027553969617011287,
+    0.0003495097743622111,
+    0.00036157789264290585,
+    0.00035811425338616587,
+    0.00040429006594899786,
+    0.00030237307860625506,
+    0.0003608626163060791,
+    0.00015265869998301596,
+    0.00020389297987133403,
+    0.00046860028859541103,
+    0.00015494388167947015,
+    0.00019987096535473148,
+    0.0003791233315872944,
+    0.00013792395205047825,
+    0.0010429017582183064,
+    0.0006909343062284634,
+    0.0005723190579121074,
+    0.0002420886163498892,
+    0.0003123772138658998,
+    0.000523250907568773,
+    0.0007444248529937525,
+    0.000425177918238262,
+    0.0005178199560305075,
+    0.00021508599964681352,
+    0.000314670788921223,
+    0.000335204026553626,
+    0.00017773312905111638,
+    0.0001593191802146121,
+    0.0002795853604222742,
+    0.0004726788195021925,
+    0.000254328673020332,
+    0.0001875709271585979,
+    0.0003839970058805431
+   ],
+   "kv": {
+    "storedF32": false,
+    "layers": [
+     {
+      "layer": 3,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 7,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 11,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 15,
+      "kvDtype": "f16",
+      "partition": 1,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 440,
+      "keyMaxF16Steps": 29,
+      "valueDifferingVsControl": 365,
+      "valueMaxF16Steps": 7
+     },
+     {
+      "layer": 19,
+      "kvDtype": "f16",
+      "partition": 1,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 1092,
+      "keyMaxF16Steps": 83,
+      "valueDifferingVsControl": 1349,
+      "valueMaxF16Steps": 31
+     },
+     {
+      "layer": 23,
+      "kvDtype": "f16",
+      "partition": 1,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 2650,
+      "keyMaxF16Steps": 174,
+      "valueDifferingVsControl": 2306,
+      "valueMaxF16Steps": 310
+     }
+    ],
+    "identitiesMatched": 6,
+    "identities": 12,
+    "differingVsControl": 8202,
+    "valuesCompared": 1437696,
+    "comparison": "stored F16 bits vs control stored F16 bits"
+   }
+  },
+  "p2-split12": {
+   "label": "paired layers 0-11 (faster kernels), plain layers 12-23 + head",
+   "manifestIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+   "splitFrontManifestIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+   "dopplerVersion": "0.6.28",
+   "configSha256": "sha256:3ef723fff9898366a4e9c5aa90fe0a5772345a5f52fc6ddac6cc457a5468f953",
+   "acceptance": {
+    "comparedSteps": 55,
+    "withinTolerance": 54,
+    "tokenMatches": 55,
+    "maxDifference": 0.0010429017582183064,
+    "valuesOverTolerance": 4,
+    "passed": false
+   },
+   "marginToTolerance": -0.04290175821830644,
+   "error": null,
+   "perRequest": [
+    {
+     "promptTokens": 19,
+     "maxDifference": 0.0002884061215508993,
+     "failedSteps": []
+    },
+    {
+     "promptTokens": 21,
+     "maxDifference": 0.00023837616219246627,
+     "failedSteps": []
+    },
+    {
+     "promptTokens": 184,
+     "maxDifference": 0.0010429017582183064,
+     "failedSteps": [
+      32
+     ]
+    }
+   ],
+   "speed": {
+    "prompt56Ms": 3994.477225999999,
+    "prompt184Ms": 13730.971446000003,
+    "decodeMedianMs": 135.62708699999712,
+    "checkRequest2DecodeMedianMs": 140.3025589999961,
+    "passes": [
+     {
+      "prefillMs": 4702.447122,
+      "decode": {
+       "count": 64,
+       "totalMs": 9846.866627999992,
+       "medianMs": 136.89005999999972,
+       "p90Ms": 145.62924100000055,
+       "minMs": 133.0944729999992,
+       "maxMs": 390.6787999999997
+      },
+      "firstDecodeMs": 181.65527799999927
+     },
+     {
+      "prefillMs": 3994.477225999999,
+      "decode": {
+       "count": 64,
+       "totalMs": 10072.595044999995,
+       "medianMs": 135.62708699999712,
+       "p90Ms": 140.75226800000019,
+       "minMs": 132.45362699999896,
+       "maxMs": 834.6097799999989
+      },
+      "firstDecodeMs": 142.9119009999995
+     }
+    ]
+   },
+   "preparation": {
+    "mesaShaderCacheDir": "/var/tmp/precision-recovery-20261015/mesa/c-split12",
+    "mesaShaderCacheDisabled": null,
+    "openMs": {
+     "front": 680.58684,
+     "main": 230.05026999999995
+    },
+    "firstUsePrefill56Ms": 4702.447122,
+    "firstUseDecodeMs": 181.65527799999927,
+    "warmPrefill56Ms": 3994.477225999999,
+    "warmFirstDecodeMs": 142.9119009999995
+   },
+   "memory": {
+    "pool": {
+     "currentBytesAllocated": 1032602880,
+     "peakBytesAllocated": 1098604288,
+     "peakBytesRequested": 1068484608,
+     "activeBuffers": 457,
+     "pooledBuffers": 64
+    },
+    "process": {
+     "vmHWMBytes": 1837572096,
+     "vmRSSBytes": 1625227264
+    },
+    "perExecutorLimitBytes": 1420000000
+   },
+   "resolved": {
+    "main": {
+     "capabilityPolicy": {
+      "kind": "default-noop",
+      "dtypeEffect": "none",
+      "reason": "GPU supports all required features.",
+      "evidence": []
+     },
+     "laneIntegrity": {
+      "declared": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "executed": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "status": "matches",
+      "transforms": [],
+      "policy": {
+       "kind": "default-noop",
+       "dtypeEffect": "none",
+       "reason": "GPU supports all required features.",
+       "evidence": []
+      }
+     },
+     "appliedTransforms": [],
+     "resolvedStepsHash": "sha256:dac816f255c721cb5b7ec434051cad07b7e3c8dfe8d8725a4c477c7a16db34a7",
+     "intermediatePrecision": "f32",
+     "kvDtype": "f16",
+     "kvCacheLayers": 3,
+     "kvMaxSeqLen": 4096,
+     "kvCacheBytes": 25165824
+    },
+    "front": {
+     "capabilityPolicy": {
+      "kind": "default-noop",
+      "dtypeEffect": "none",
+      "reason": "GPU supports all required features.",
+      "evidence": []
+     },
+     "laneIntegrity": {
+      "declared": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "executed": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "status": "matches",
+      "transforms": [],
+      "policy": {
+       "kind": "default-noop",
+       "dtypeEffect": "none",
+       "reason": "GPU supports all required features.",
+       "evidence": []
+      }
+     },
+     "appliedTransforms": [],
+     "resolvedStepsHash": "sha256:0aae434122a48a94eb64a546ccbdad2661e0c0c25d84ab08ff0450fb978b3021",
+     "intermediatePrecision": "two-f32",
+     "kvDtype": "f16",
+     "kvCacheLayers": 3,
+     "kvMaxSeqLen": 4096,
+     "kvCacheBytes": 25165824
+    }
+   },
+   "splitBoundary": {
+    "narrowedValues": 716800
+   },
+   "session": {
+    "exit": 0,
+    "seconds": 71,
+    "scopePeakBytes": 1997938688,
+    "stopped": false
+   },
+   "stepMaxDifferences": [
+    0.0001144113543701808,
+    0.0002884061215508993,
+    9.938526434083439e-05,
+    0.00023837616219246627,
+    0.0002187252993857136,
+    0.00015755554980945163,
+    0.00017807683744353042,
+    0.000888405351762156,
+    0.0005899129294624217,
+    0.00020127832234084764,
+    0.0002732644638432369,
+    0.00022942724704000383,
+    0.0003826230769616856,
+    0.0003361443140690312,
+    0.000182934207467067,
+    0.00023522287747179682,
+    0.00026084269686066364,
+    0.00020817947884577137,
+    0.00019146017324089826,
+    0.0004988373312579952,
+    0.0004828823669580373,
+    0.000602607172355718,
+    0.00027553969617011287,
+    0.0003495097743622111,
+    0.00036157789264290585,
+    0.00035811425338616587,
+    0.00040429006594899786,
+    0.00030237307860625506,
+    0.0003608626163060791,
+    0.00015265869998301596,
+    0.00020389297987133403,
+    0.00046860028859541103,
+    0.00015494388167947015,
+    0.00019987096535473148,
+    0.0003791233315872944,
+    0.00013792395205047825,
+    0.0010429017582183064,
+    0.0006909343062284634,
+    0.0005723190579121074,
+    0.0002420886163498892,
+    0.0003123772138658998,
+    0.000523250907568773,
+    0.0007444248529937525,
+    0.000425177918238262,
+    0.0005178199560305075,
+    0.00021508599964681352,
+    0.000314670788921223,
+    0.000335204026553626,
+    0.00017773312905111638,
+    0.0001593191802146121,
+    0.0002795853604222742,
+    0.0004726788195021925,
+    0.000254328673020332,
+    0.0001875709271585979,
+    0.0003839970058805431
+   ],
+   "kv": {
+    "storedF32": false,
+    "layers": [
+     {
+      "layer": 3,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 7,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 11,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 15,
+      "kvDtype": "f16",
+      "partition": 1,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 440,
+      "keyMaxF16Steps": 29,
+      "valueDifferingVsControl": 365,
+      "valueMaxF16Steps": 7
+     },
+     {
+      "layer": 19,
+      "kvDtype": "f16",
+      "partition": 1,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 1092,
+      "keyMaxF16Steps": 83,
+      "valueDifferingVsControl": 1349,
+      "valueMaxF16Steps": 31
+     },
+     {
+      "layer": 23,
+      "kvDtype": "f16",
+      "partition": 1,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 2650,
+      "keyMaxF16Steps": 174,
+      "valueDifferingVsControl": 2306,
+      "valueMaxF16Steps": 310
+     }
+    ],
+    "identitiesMatched": 6,
+    "identities": 12,
+    "differingVsControl": 8202,
+    "valuesCompared": 1437696,
+    "comparison": "stored F16 bits vs control stored F16 bits"
+   }
+  },
+  "p1-split16": {
+   "label": "paired layers 0-15 (faster kernels), plain layers 16-23 + head",
+   "manifestIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+   "splitFrontManifestIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+   "dopplerVersion": "0.6.28",
+   "configSha256": "sha256:3975e260cdca40d9731886a06743238dfe365ea56a8583ea019e8a3ed03467d1",
+   "acceptance": {
+    "comparedSteps": 55,
+    "withinTolerance": 54,
+    "tokenMatches": 55,
+    "maxDifference": 0.0010752810436525095,
+    "valuesOverTolerance": 3,
+    "passed": false
+   },
+   "marginToTolerance": -0.07528104365250954,
+   "error": null,
+   "perRequest": [
+    {
+     "promptTokens": 19,
+     "maxDifference": 6.183723723651724e-05,
+     "failedSteps": []
+    },
+    {
+     "promptTokens": 21,
+     "maxDifference": 0.0004817321211731951,
+     "failedSteps": []
+    },
+    {
+     "promptTokens": 184,
+     "maxDifference": 0.0010752810436525095,
+     "failedSteps": [
+      32
+     ]
+    }
+   ],
+   "speed": {
+    "prompt56Ms": 5914.235344999994,
+    "prompt184Ms": 18594.363373,
+    "decodeMedianMs": 171.1250070000242,
+    "checkRequest2DecodeMedianMs": 173.41991699999198,
+    "passes": [
+     {
+      "prefillMs": 76230.783165,
+      "decode": {
+       "count": 64,
+       "totalMs": 12629.954248999944,
+       "medianMs": 173.01606300000276,
+       "p90Ms": 179.2016730000032,
+       "minMs": 168.7693719999952,
+       "maxMs": 702.0771249999962
+      },
+      "firstDecodeMs": 277.44144300000335
+     },
+     {
+      "prefillMs": 5914.235344999994,
+      "decode": {
+       "count": 64,
+       "totalMs": 12363.711711000054,
+       "medianMs": 171.1250070000242,
+       "p90Ms": 173.95492399999057,
+       "minMs": 166.70228099999076,
+       "maxMs": 690.7252520000038
+      },
+      "firstDecodeMs": 173.26911700000346
+     }
+    ]
+   },
+   "preparation": {
+    "mesaShaderCacheDir": "/var/tmp/precision-recovery-20261015/mesa/c-split16",
+    "mesaShaderCacheDisabled": null,
+    "openMs": {
+     "front": 31529.832839000002,
+     "main": 231.9720640000014
+    },
+    "firstUsePrefill56Ms": 76230.783165,
+    "firstUseDecodeMs": 277.44144300000335,
+    "warmPrefill56Ms": 5914.235344999994,
+    "warmFirstDecodeMs": 173.26911700000346
+   },
+   "memory": {
+    "pool": {
+     "currentBytesAllocated": 1035945216,
+     "peakBytesAllocated": 1101946624,
+     "peakBytesRequested": 1071925248,
+     "activeBuffers": 457,
+     "pooledBuffers": 64
+    },
+    "process": {
+     "vmHWMBytes": 8420315136,
+     "vmRSSBytes": 8214999040
+    },
+    "perExecutorLimitBytes": 1420000000
+   },
+   "resolved": {
+    "main": {
+     "capabilityPolicy": {
+      "kind": "default-noop",
+      "dtypeEffect": "none",
+      "reason": "GPU supports all required features.",
+      "evidence": []
+     },
+     "laneIntegrity": {
+      "declared": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "executed": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "status": "matches",
+      "transforms": [],
+      "policy": {
+       "kind": "default-noop",
+       "dtypeEffect": "none",
+       "reason": "GPU supports all required features.",
+       "evidence": []
+      }
+     },
+     "appliedTransforms": [],
+     "resolvedStepsHash": "sha256:dac816f255c721cb5b7ec434051cad07b7e3c8dfe8d8725a4c477c7a16db34a7",
+     "intermediatePrecision": "f32",
+     "kvDtype": "f16",
+     "kvCacheLayers": 2,
+     "kvMaxSeqLen": 4096,
+     "kvCacheBytes": 16777216
+    },
+    "front": {
+     "capabilityPolicy": {
+      "kind": "default-noop",
+      "dtypeEffect": "none",
+      "reason": "GPU supports all required features.",
+      "evidence": []
+     },
+     "laneIntegrity": {
+      "declared": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "executed": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "status": "matches",
+      "transforms": [],
+      "policy": {
+       "kind": "default-noop",
+       "dtypeEffect": "none",
+       "reason": "GPU supports all required features.",
+       "evidence": []
+      }
+     },
+     "appliedTransforms": [],
+     "resolvedStepsHash": "sha256:0aae434122a48a94eb64a546ccbdad2661e0c0c25d84ab08ff0450fb978b3021",
+     "intermediatePrecision": "two-f32",
+     "kvDtype": "f16",
+     "kvCacheLayers": 4,
+     "kvMaxSeqLen": 4096,
+     "kvCacheBytes": 33554432
+    }
+   },
+   "splitBoundary": {
+    "narrowedValues": 716800
+   },
+   "session": {
+    "exit": 0,
+    "seconds": 193,
+    "scopePeakBytes": 8338923520,
+    "stopped": false
+   },
+   "stepMaxDifferences": [
+    6.183723723651724e-05,
+    5.978382382365588e-05,
+    5.297846553958818e-05,
+    0.0004817321211731951,
+    0.0002320767398154011,
+    0.00014979303352635753,
+    0.00016753286639303866,
+    0.0001297538372675433,
+    0.0005863366507758982,
+    0.0001328840697030209,
+    0.00018872559458182891,
+    0.00021307492361088975,
+    0.00013851326120550844,
+    0.00016598083397578733,
+    0.00011259948548314469,
+    0.00017859679636167414,
+    0.00012513054194607243,
+    0.00016036625554388673,
+    0.00010885345367106503,
+    0.00014171952403785326,
+    0.00011216922585699507,
+    0.0002225679572678274,
+    0.00019606007100581024,
+    0.00016666330693837494,
+    0.000179360697293518,
+    0.0001333799704978933,
+    0.0002463173868862967,
+    0.0001368727449859719,
+    0.00011388612934926101,
+    0.00013090148404160118,
+    0.0001703960522385639,
+    0.00017198173093790903,
+    9.449789612769877e-05,
+    7.753039507107928e-05,
+    0.00016840955714858552,
+    9.036555329799967e-05,
+    0.0010752810436525095,
+    0.0006674598959232891,
+    0.000542516735524412,
+    0.00026569187980207687,
+    0.00032455894849281464,
+    0.0003713947439123455,
+    0.0003186879949357291,
+    0.00020020732525516394,
+    0.00026019683460098975,
+    9.932933573919556e-05,
+    0.00010590651241848548,
+    0.00015502701172920297,
+    8.53350787544116e-05,
+    8.194317943566176e-05,
+    0.00013169754456132665,
+    6.214779455016028e-05,
+    4.0256837168684e-05,
+    5.194035728184332e-05,
+    0.00018721752491046573
+   ],
+   "kv": {
+    "storedF32": false,
+    "layers": [
+     {
+      "layer": 3,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 7,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 11,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 15,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 19,
+      "kvDtype": "f16",
+      "partition": 1,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 303,
+      "keyMaxF16Steps": 13,
+      "valueDifferingVsControl": 350,
+      "valueMaxF16Steps": 11
+     },
+     {
+      "layer": 23,
+      "kvDtype": "f16",
+      "partition": 1,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 2054,
+      "keyMaxF16Steps": 112,
+      "valueDifferingVsControl": 1740,
+      "valueMaxF16Steps": 222
+     }
+    ],
+    "identitiesMatched": 8,
+    "identities": 12,
+    "differingVsControl": 4447,
+    "valuesCompared": 1437696,
+    "comparison": "stored F16 bits vs control stored F16 bits"
+   }
+  },
+  "p2-split16": {
+   "label": "paired layers 0-15 (faster kernels), plain layers 16-23 + head",
+   "manifestIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+   "splitFrontManifestIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+   "dopplerVersion": "0.6.28",
+   "configSha256": "sha256:3975e260cdca40d9731886a06743238dfe365ea56a8583ea019e8a3ed03467d1",
+   "acceptance": {
+    "comparedSteps": 55,
+    "withinTolerance": 54,
+    "tokenMatches": 55,
+    "maxDifference": 0.0010752810436525095,
+    "valuesOverTolerance": 3,
+    "passed": false
+   },
+   "marginToTolerance": -0.07528104365250954,
+   "error": null,
+   "perRequest": [
+    {
+     "promptTokens": 19,
+     "maxDifference": 6.183723723651724e-05,
+     "failedSteps": []
+    },
+    {
+     "promptTokens": 21,
+     "maxDifference": 0.0004817321211731951,
+     "failedSteps": []
+    },
+    {
+     "promptTokens": 184,
+     "maxDifference": 0.0010752810436525095,
+     "failedSteps": [
+      32
+     ]
+    }
+   ],
+   "speed": {
+    "prompt56Ms": 5587.480442,
+    "prompt184Ms": 18279.719616000002,
+    "decodeMedianMs": 170.7567960000015,
+    "checkRequest2DecodeMedianMs": 173.04877799999667,
+    "passes": [
+     {
+      "prefillMs": 5961.997215,
+      "decode": {
+       "count": 64,
+       "totalMs": 12247.082218999989,
+       "medianMs": 171.9377420000019,
+       "p90Ms": 275.2851379999993,
+       "minMs": 167.37091399999917,
+       "maxMs": 346.8953739999997
+      },
+      "firstDecodeMs": 289.15520000000015
+     },
+     {
+      "prefillMs": 5587.480442,
+      "decode": {
+       "count": 64,
+       "totalMs": 12063.203149999987,
+       "medianMs": 170.7567960000015,
+       "p90Ms": 222.41229899999598,
+       "minMs": 166.91981700000179,
+       "maxMs": 374.353912999999
+      },
+      "firstDecodeMs": 168.84779200000048
+     }
+    ]
+   },
+   "preparation": {
+    "mesaShaderCacheDir": "/var/tmp/precision-recovery-20261015/mesa/c-split16",
+    "mesaShaderCacheDisabled": null,
+    "openMs": {
+     "front": 721.913454,
+     "main": 168.73025799999982
+    },
+    "firstUsePrefill56Ms": 5961.997215,
+    "firstUseDecodeMs": 289.15520000000015,
+    "warmPrefill56Ms": 5587.480442,
+    "warmFirstDecodeMs": 168.84779200000048
+   },
+   "memory": {
+    "pool": {
+     "currentBytesAllocated": 1035945216,
+     "peakBytesAllocated": 1101946624,
+     "peakBytesRequested": 1071925248,
+     "activeBuffers": 457,
+     "pooledBuffers": 64
+    },
+    "process": {
+     "vmHWMBytes": 1214865408,
+     "vmRSSBytes": 1085972480
+    },
+    "perExecutorLimitBytes": 1420000000
+   },
+   "resolved": {
+    "main": {
+     "capabilityPolicy": {
+      "kind": "default-noop",
+      "dtypeEffect": "none",
+      "reason": "GPU supports all required features.",
+      "evidence": []
+     },
+     "laneIntegrity": {
+      "declared": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "executed": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "status": "matches",
+      "transforms": [],
+      "policy": {
+       "kind": "default-noop",
+       "dtypeEffect": "none",
+       "reason": "GPU supports all required features.",
+       "evidence": []
+      }
+     },
+     "appliedTransforms": [],
+     "resolvedStepsHash": "sha256:dac816f255c721cb5b7ec434051cad07b7e3c8dfe8d8725a4c477c7a16db34a7",
+     "intermediatePrecision": "f32",
+     "kvDtype": "f16",
+     "kvCacheLayers": 2,
+     "kvMaxSeqLen": 4096,
+     "kvCacheBytes": 16777216
+    },
+    "front": {
+     "capabilityPolicy": {
+      "kind": "default-noop",
+      "dtypeEffect": "none",
+      "reason": "GPU supports all required features.",
+      "evidence": []
+     },
+     "laneIntegrity": {
+      "declared": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "executed": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "status": "matches",
+      "transforms": [],
+      "policy": {
+       "kind": "default-noop",
+       "dtypeEffect": "none",
+       "reason": "GPU supports all required features.",
+       "evidence": []
+      }
+     },
+     "appliedTransforms": [],
+     "resolvedStepsHash": "sha256:0aae434122a48a94eb64a546ccbdad2661e0c0c25d84ab08ff0450fb978b3021",
+     "intermediatePrecision": "two-f32",
+     "kvDtype": "f16",
+     "kvCacheLayers": 4,
+     "kvMaxSeqLen": 4096,
+     "kvCacheBytes": 33554432
+    }
+   },
+   "splitBoundary": {
+    "narrowedValues": 716800
+   },
+   "session": {
+    "exit": 0,
+    "seconds": 89,
+    "scopePeakBytes": 1109958656,
+    "stopped": false
+   },
+   "stepMaxDifferences": [
+    6.183723723651724e-05,
+    5.978382382365588e-05,
+    5.297846553958818e-05,
+    0.0004817321211731951,
+    0.0002320767398154011,
+    0.00014979303352635753,
+    0.00016753286639303866,
+    0.0001297538372675433,
+    0.0005863366507758982,
+    0.0001328840697030209,
+    0.00018872559458182891,
+    0.00021307492361088975,
+    0.00013851326120550844,
+    0.00016598083397578733,
+    0.00011259948548314469,
+    0.00017859679636167414,
+    0.00012513054194607243,
+    0.00016036625554388673,
+    0.00010885345367106503,
+    0.00014171952403785326,
+    0.00011216922585699507,
+    0.0002225679572678274,
+    0.00019606007100581024,
+    0.00016666330693837494,
+    0.000179360697293518,
+    0.0001333799704978933,
+    0.0002463173868862967,
+    0.0001368727449859719,
+    0.00011388612934926101,
+    0.00013090148404160118,
+    0.0001703960522385639,
+    0.00017198173093790903,
+    9.449789612769877e-05,
+    7.753039507107928e-05,
+    0.00016840955714858552,
+    9.036555329799967e-05,
+    0.0010752810436525095,
+    0.0006674598959232891,
+    0.000542516735524412,
+    0.00026569187980207687,
+    0.00032455894849281464,
+    0.0003713947439123455,
+    0.0003186879949357291,
+    0.00020020732525516394,
+    0.00026019683460098975,
+    9.932933573919556e-05,
+    0.00010590651241848548,
+    0.00015502701172920297,
+    8.53350787544116e-05,
+    8.194317943566176e-05,
+    0.00013169754456132665,
+    6.214779455016028e-05,
+    4.0256837168684e-05,
+    5.194035728184332e-05,
+    0.00018721752491046573
+   ],
+   "kv": {
+    "storedF32": false,
+    "layers": [
+     {
+      "layer": 3,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 7,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 11,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 15,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 19,
+      "kvDtype": "f16",
+      "partition": 1,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 303,
+      "keyMaxF16Steps": 13,
+      "valueDifferingVsControl": 350,
+      "valueMaxF16Steps": 11
+     },
+     {
+      "layer": 23,
+      "kvDtype": "f16",
+      "partition": 1,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 2054,
+      "keyMaxF16Steps": 112,
+      "valueDifferingVsControl": 1740,
+      "valueMaxF16Steps": 222
+     }
+    ],
+    "identitiesMatched": 8,
+    "identities": 12,
+    "differingVsControl": 4447,
+    "valuesCompared": 1437696,
+    "comparison": "stored F16 bits vs control stored F16 bits"
+   }
+  },
+  "p1-split20": {
+   "label": "paired layers 0-19 (faster kernels), plain layers 20-23 + head",
+   "manifestIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+   "splitFrontManifestIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+   "dopplerVersion": "0.6.28",
+   "configSha256": "sha256:b40f4d8d950182b441937a63c24d25c5e4b3a9890278b37488b364c5629de9e3",
+   "acceptance": {
+    "comparedSteps": 55,
+    "withinTolerance": 55,
+    "tokenMatches": 55,
+    "maxDifference": 0.00017151970234019487,
+    "valuesOverTolerance": 0,
+    "passed": true
+   },
+   "marginToTolerance": 0.8284802976598051,
+   "error": null,
+   "perRequest": [
+    {
+     "promptTokens": 19,
+     "maxDifference": 1.5386778628112552e-05,
+     "failedSteps": []
+    },
+    {
+     "promptTokens": 21,
+     "maxDifference": 0.00015843661572445544,
+     "failedSteps": []
+    },
+    {
+     "promptTokens": 184,
+     "maxDifference": 0.00017151970234019487,
+     "failedSteps": []
+    }
+   ],
+   "speed": {
+    "prompt56Ms": 7218.351400000014,
+    "prompt184Ms": 23037.388326999993,
+    "decodeMedianMs": 204.6364079999912,
+    "checkRequest2DecodeMedianMs": 209.77220200002193,
+    "passes": [
+     {
+      "prefillMs": 76986.876261,
+      "decode": {
+       "count": 64,
+       "totalMs": 14777.148900000015,
+       "medianMs": 206.33840199999395,
+       "p90Ms": 210.93570000000182,
+       "minMs": 201.76020799999242,
+       "maxMs": 756.9220080000086
+      },
+      "firstDecodeMs": 314.1242190000048
+     },
+     {
+      "prefillMs": 7218.351400000014,
+      "decode": {
+       "count": 64,
+       "totalMs": 15018.924899999896,
+       "medianMs": 204.6364079999912,
+       "p90Ms": 209.99553400001605,
+       "minMs": 198.80797399999574,
+       "maxMs": 752.6257960000075
+      },
+      "firstDecodeMs": 203.7549299999955
+     }
+    ]
+   },
+   "preparation": {
+    "mesaShaderCacheDir": "/var/tmp/precision-recovery-20261015/mesa/c-split20",
+    "mesaShaderCacheDisabled": null,
+    "openMs": {
+     "front": 31032.848433,
+     "main": 358.8686839999973
+    },
+    "firstUsePrefill56Ms": 76986.876261,
+    "firstUseDecodeMs": 314.1242190000048,
+    "warmPrefill56Ms": 7218.351400000014,
+    "warmFirstDecodeMs": 203.7549299999955
+   },
+   "memory": {
+    "pool": {
+     "currentBytesAllocated": 1038764288,
+     "peakBytesAllocated": 1104797440,
+     "peakBytesRequested": 1075365888,
+     "activeBuffers": 457,
+     "pooledBuffers": 64
+    },
+    "process": {
+     "vmHWMBytes": 8600719360,
+     "vmRSSBytes": 8382058496
+    },
+    "perExecutorLimitBytes": 1420000000
+   },
+   "resolved": {
+    "main": {
+     "capabilityPolicy": {
+      "kind": "default-noop",
+      "dtypeEffect": "none",
+      "reason": "GPU supports all required features.",
+      "evidence": []
+     },
+     "laneIntegrity": {
+      "declared": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "executed": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "status": "matches",
+      "transforms": [],
+      "policy": {
+       "kind": "default-noop",
+       "dtypeEffect": "none",
+       "reason": "GPU supports all required features.",
+       "evidence": []
+      }
+     },
+     "appliedTransforms": [],
+     "resolvedStepsHash": "sha256:dac816f255c721cb5b7ec434051cad07b7e3c8dfe8d8725a4c477c7a16db34a7",
+     "intermediatePrecision": "f32",
+     "kvDtype": "f16",
+     "kvCacheLayers": 1,
+     "kvMaxSeqLen": 4096,
+     "kvCacheBytes": 8388608
+    },
+    "front": {
+     "capabilityPolicy": {
+      "kind": "default-noop",
+      "dtypeEffect": "none",
+      "reason": "GPU supports all required features.",
+      "evidence": []
+     },
+     "laneIntegrity": {
+      "declared": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "executed": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "status": "matches",
+      "transforms": [],
+      "policy": {
+       "kind": "default-noop",
+       "dtypeEffect": "none",
+       "reason": "GPU supports all required features.",
+       "evidence": []
+      }
+     },
+     "appliedTransforms": [],
+     "resolvedStepsHash": "sha256:0aae434122a48a94eb64a546ccbdad2661e0c0c25d84ab08ff0450fb978b3021",
+     "intermediatePrecision": "two-f32",
+     "kvDtype": "f16",
+     "kvCacheLayers": 5,
+     "kvMaxSeqLen": 4096,
+     "kvCacheBytes": 41943040
+    }
+   },
+   "splitBoundary": {
+    "narrowedValues": 716800
+   },
+   "session": {
+    "exit": 0,
+    "seconds": 212,
+    "scopePeakBytes": 8519487488,
+    "stopped": false
+   },
+   "stepMaxDifferences": [
+    1.0915307706471644e-05,
+    1.5386778628112552e-05,
+    5.767758822639024e-05,
+    0.00015843661572445544,
+    3.207395227755594e-05,
+    2.583700630598429e-05,
+    3.574863958188956e-05,
+    1.5680237980264522e-05,
+    1.5320809051644346e-05,
+    1.8835174519615805e-05,
+    1.3848970052521281e-05,
+    7.385107176460792e-05,
+    4.07211413167019e-05,
+    3.401404339165026e-05,
+    3.079186755172714e-05,
+    3.712284313728276e-05,
+    4.145518497011835e-05,
+    4.3021083000027716e-05,
+    5.180886144096064e-05,
+    0.00013592146695984297,
+    3.116467640595921e-05,
+    7.86790998930087e-05,
+    2.1736709687303346e-05,
+    4.0690717181490754e-05,
+    4.7360563087295304e-05,
+    1.6707234444524044e-05,
+    4.513288596186271e-05,
+    6.714457721912481e-05,
+    0.00016441485748402984,
+    7.429040232764805e-05,
+    0.00017151970234019487,
+    9.527943789822135e-05,
+    0.00011179593657217879,
+    8.410331879815658e-05,
+    6.920236749219377e-05,
+    8.584408371348218e-05,
+    7.56372150902962e-05,
+    5.0317056186965914e-05,
+    5.688820590110666e-05,
+    6.702107057421358e-05,
+    3.328389659795761e-05,
+    3.758381518537135e-05,
+    5.332677391933771e-05,
+    2.5520237808329682e-05,
+    6.839403415526135e-05,
+    0.0001612312056611387,
+    2.7764678609543125e-05,
+    9.594631115339425e-05,
+    9.372112181083025e-05,
+    1.919402417716043e-05,
+    7.909561561136869e-05,
+    3.139021369946704e-05,
+    7.599072622177516e-05,
+    2.460463243192379e-05,
+    1.2350958637163956e-05
+   ],
+   "kv": {
+    "storedF32": false,
+    "layers": [
+     {
+      "layer": 3,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 7,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 11,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 15,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 19,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 23,
+      "kvDtype": "f16",
+      "partition": 1,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 360,
+      "keyMaxF16Steps": 62,
+      "valueDifferingVsControl": 245,
+      "valueMaxF16Steps": 9
+     }
+    ],
+    "identitiesMatched": 10,
+    "identities": 12,
+    "differingVsControl": 605,
+    "valuesCompared": 1437696,
+    "comparison": "stored F16 bits vs control stored F16 bits"
+   }
+  },
+  "p2-split20": {
+   "label": "paired layers 0-19 (faster kernels), plain layers 20-23 + head",
+   "manifestIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+   "splitFrontManifestIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+   "dopplerVersion": "0.6.28",
+   "configSha256": "sha256:b40f4d8d950182b441937a63c24d25c5e4b3a9890278b37488b364c5629de9e3",
+   "acceptance": {
+    "comparedSteps": 55,
+    "withinTolerance": 55,
+    "tokenMatches": 55,
+    "maxDifference": 0.00017151970234019487,
+    "valuesOverTolerance": 0,
+    "passed": true
+   },
+   "marginToTolerance": 0.8284802976598051,
+   "error": null,
+   "perRequest": [
+    {
+     "promptTokens": 19,
+     "maxDifference": 1.5386778628112552e-05,
+     "failedSteps": []
+    },
+    {
+     "promptTokens": 21,
+     "maxDifference": 0.00015843661572445544,
+     "failedSteps": []
+    },
+    {
+     "promptTokens": 184,
+     "maxDifference": 0.00017151970234019487,
+     "failedSteps": []
+    }
+   ],
+   "speed": {
+    "prompt56Ms": 6971.151280999999,
+    "prompt184Ms": 23102.041985999997,
+    "decodeMedianMs": 204.72223900000245,
+    "checkRequest2DecodeMedianMs": 209.93924700000207,
+    "passes": [
+     {
+      "prefillMs": 7833.1239749999995,
+      "decode": {
+       "count": 64,
+       "totalMs": 15096.403475999992,
+       "medianMs": 206.41077799999766,
+       "p90Ms": 214.40685499999927,
+       "minMs": 201.77702800000043,
+       "maxMs": 597.6584619999994
+      },
+      "firstDecodeMs": 251.00233499999922
+     },
+     {
+      "prefillMs": 6971.151280999999,
+      "decode": {
+       "count": 64,
+       "totalMs": 14979.20393399999,
+       "medianMs": 204.72223900000245,
+       "p90Ms": 211.93126499999926,
+       "minMs": 200.47459199999867,
+       "maxMs": 563.7250989999957
+      },
+      "firstDecodeMs": 213.75523399999656
+     }
+    ]
+   },
+   "preparation": {
+    "mesaShaderCacheDir": "/var/tmp/precision-recovery-20261015/mesa/c-split20",
+    "mesaShaderCacheDisabled": null,
+    "openMs": {
+     "front": 689.9104950000001,
+     "main": 157.3619819999999
+    },
+    "firstUsePrefill56Ms": 7833.1239749999995,
+    "firstUseDecodeMs": 251.00233499999922,
+    "warmPrefill56Ms": 6971.151280999999,
+    "warmFirstDecodeMs": 213.75523399999656
+   },
+   "memory": {
+    "pool": {
+     "currentBytesAllocated": 1038764288,
+     "peakBytesAllocated": 1104797440,
+     "peakBytesRequested": 1075365888,
+     "activeBuffers": 457,
+     "pooledBuffers": 64
+    },
+    "process": {
+     "vmHWMBytes": 1779757056,
+     "vmRSSBytes": 1589301248
+    },
+    "perExecutorLimitBytes": 1420000000
+   },
+   "resolved": {
+    "main": {
+     "capabilityPolicy": {
+      "kind": "default-noop",
+      "dtypeEffect": "none",
+      "reason": "GPU supports all required features.",
+      "evidence": []
+     },
+     "laneIntegrity": {
+      "declared": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "executed": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "status": "matches",
+      "transforms": [],
+      "policy": {
+       "kind": "default-noop",
+       "dtypeEffect": "none",
+       "reason": "GPU supports all required features.",
+       "evidence": []
+      }
+     },
+     "appliedTransforms": [],
+     "resolvedStepsHash": "sha256:dac816f255c721cb5b7ec434051cad07b7e3c8dfe8d8725a4c477c7a16db34a7",
+     "intermediatePrecision": "f32",
+     "kvDtype": "f16",
+     "kvCacheLayers": 1,
+     "kvMaxSeqLen": 4096,
+     "kvCacheBytes": 8388608
+    },
+    "front": {
+     "capabilityPolicy": {
+      "kind": "default-noop",
+      "dtypeEffect": "none",
+      "reason": "GPU supports all required features.",
+      "evidence": []
+     },
+     "laneIntegrity": {
+      "declared": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "executed": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "status": "matches",
+      "transforms": [],
+      "policy": {
+       "kind": "default-noop",
+       "dtypeEffect": "none",
+       "reason": "GPU supports all required features.",
+       "evidence": []
+      }
+     },
+     "appliedTransforms": [],
+     "resolvedStepsHash": "sha256:0aae434122a48a94eb64a546ccbdad2661e0c0c25d84ab08ff0450fb978b3021",
+     "intermediatePrecision": "two-f32",
+     "kvDtype": "f16",
+     "kvCacheLayers": 5,
+     "kvMaxSeqLen": 4096,
+     "kvCacheBytes": 41943040
+    }
+   },
+   "splitBoundary": {
+    "narrowedValues": 716800
+   },
+   "session": {
+    "exit": 0,
+    "seconds": 111,
+    "scopePeakBytes": 1686511616,
+    "stopped": false
+   },
+   "stepMaxDifferences": [
+    1.0915307706471644e-05,
+    1.5386778628112552e-05,
+    5.767758822639024e-05,
+    0.00015843661572445544,
+    3.207395227755594e-05,
+    2.583700630598429e-05,
+    3.574863958188956e-05,
+    1.5680237980264522e-05,
+    1.5320809051644346e-05,
+    1.8835174519615805e-05,
+    1.3848970052521281e-05,
+    7.385107176460792e-05,
+    4.07211413167019e-05,
+    3.401404339165026e-05,
+    3.079186755172714e-05,
+    3.712284313728276e-05,
+    4.145518497011835e-05,
+    4.3021083000027716e-05,
+    5.180886144096064e-05,
+    0.00013592146695984297,
+    3.116467640595921e-05,
+    7.86790998930087e-05,
+    2.1736709687303346e-05,
+    4.0690717181490754e-05,
+    4.7360563087295304e-05,
+    1.6707234444524044e-05,
+    4.513288596186271e-05,
+    6.714457721912481e-05,
+    0.00016441485748402984,
+    7.429040232764805e-05,
+    0.00017151970234019487,
+    9.527943789822135e-05,
+    0.00011179593657217879,
+    8.410331879815658e-05,
+    6.920236749219377e-05,
+    8.584408371348218e-05,
+    7.56372150902962e-05,
+    5.0317056186965914e-05,
+    5.688820590110666e-05,
+    6.702107057421358e-05,
+    3.328389659795761e-05,
+    3.758381518537135e-05,
+    5.332677391933771e-05,
+    2.5520237808329682e-05,
+    6.839403415526135e-05,
+    0.0001612312056611387,
+    2.7764678609543125e-05,
+    9.594631115339425e-05,
+    9.372112181083025e-05,
+    1.919402417716043e-05,
+    7.909561561136869e-05,
+    3.139021369946704e-05,
+    7.599072622177516e-05,
+    2.460463243192379e-05,
+    1.2350958637163956e-05
+   ],
+   "kv": {
+    "storedF32": false,
+    "layers": [
+     {
+      "layer": 3,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 7,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 11,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 15,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 19,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 23,
+      "kvDtype": "f16",
+      "partition": 1,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 360,
+      "keyMaxF16Steps": 62,
+      "valueDifferingVsControl": 245,
+      "valueMaxF16Steps": 9
+     }
+    ],
+    "identitiesMatched": 10,
+    "identities": 12,
+    "differingVsControl": 605,
+    "valuesCompared": 1437696,
+    "comparison": "stored F16 bits vs control stored F16 bits"
+   }
+  },
+  "p1-split23": {
+   "label": "paired layers 0-22 (faster kernels), plain layers 23-23 + head",
+   "manifestIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+   "splitFrontManifestIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+   "dopplerVersion": "0.6.28",
+   "configSha256": "sha256:6d5147f22e889792dd5ebc485b41ae7a788ef9619ba5e99428ea83bd6212901a",
+   "acceptance": {
+    "comparedSteps": 55,
+    "withinTolerance": 55,
+    "tokenMatches": 55,
+    "maxDifference": 0.00021192533967706595,
+    "valuesOverTolerance": 0,
+    "passed": true
+   },
+   "marginToTolerance": 0.788074660322934,
+   "error": null,
+   "perRequest": [
+    {
+     "promptTokens": 19,
+     "maxDifference": 3.353985265253101e-05,
+     "failedSteps": []
+    },
+    {
+     "promptTokens": 21,
+     "maxDifference": 0.00021192533967706595,
+     "failedSteps": []
+    },
+    {
+     "promptTokens": 184,
+     "maxDifference": 0.00015904990951298714,
+     "failedSteps": []
+    }
+   ],
+   "speed": {
+    "prompt56Ms": 8089.977855000005,
+    "prompt184Ms": 26734.642201999988,
+    "decodeMedianMs": 230.85649699997157,
+    "checkRequest2DecodeMedianMs": 236.65946100000292,
+    "passes": [
+     {
+      "prefillMs": 77208.306396,
+      "decode": {
+       "count": 64,
+       "totalMs": 16456.831770999997,
+       "medianMs": 232.85543699999107,
+       "p90Ms": 240.03704799999832,
+       "minMs": 228.14657600001374,
+       "maxMs": 657.9015930000023
+      },
+      "firstDecodeMs": 323.98236700000416
+     },
+     {
+      "prefillMs": 8089.977855000005,
+      "decode": {
+       "count": 64,
+       "totalMs": 16495.517275000253,
+       "medianMs": 230.85649699997157,
+       "p90Ms": 236.79722200002288,
+       "minMs": 226.95496000000276,
+       "maxMs": 643.7565570000152
+      },
+      "firstDecodeMs": 228.44177999999374
+     }
+    ]
+   },
+   "preparation": {
+    "mesaShaderCacheDir": "/var/tmp/precision-recovery-20261015/mesa/c-split23",
+    "mesaShaderCacheDisabled": null,
+    "openMs": {
+     "front": 29540.358643,
+     "main": 513.3339190000006
+    },
+    "firstUsePrefill56Ms": 77208.306396,
+    "firstUseDecodeMs": 323.98236700000416,
+    "warmPrefill56Ms": 8089.977855000005,
+    "warmFirstDecodeMs": 228.44177999999374
+   },
+   "memory": {
+    "pool": {
+     "currentBytesAllocated": 1006372352,
+     "peakBytesAllocated": 1022420480,
+     "peakBytesRequested": 1005252864,
+     "activeBuffers": 457,
+     "pooledBuffers": 64
+    },
+    "process": {
+     "vmHWMBytes": 7952973824,
+     "vmRSSBytes": 7717535744
+    },
+    "perExecutorLimitBytes": 1420000000
+   },
+   "resolved": {
+    "main": {
+     "capabilityPolicy": {
+      "kind": "default-noop",
+      "dtypeEffect": "none",
+      "reason": "GPU supports all required features.",
+      "evidence": []
+     },
+     "laneIntegrity": {
+      "declared": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "executed": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "status": "matches",
+      "transforms": [],
+      "policy": {
+       "kind": "default-noop",
+       "dtypeEffect": "none",
+       "reason": "GPU supports all required features.",
+       "evidence": []
+      }
+     },
+     "appliedTransforms": [],
+     "resolvedStepsHash": "sha256:dac816f255c721cb5b7ec434051cad07b7e3c8dfe8d8725a4c477c7a16db34a7",
+     "intermediatePrecision": "f32",
+     "kvDtype": "f16",
+     "kvCacheLayers": 1,
+     "kvMaxSeqLen": 4096,
+     "kvCacheBytes": 8388608
+    },
+    "front": {
+     "capabilityPolicy": {
+      "kind": "default-noop",
+      "dtypeEffect": "none",
+      "reason": "GPU supports all required features.",
+      "evidence": []
+     },
+     "laneIntegrity": {
+      "declared": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "executed": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "status": "matches",
+      "transforms": [],
+      "policy": {
+       "kind": "default-noop",
+       "dtypeEffect": "none",
+       "reason": "GPU supports all required features.",
+       "evidence": []
+      }
+     },
+     "appliedTransforms": [],
+     "resolvedStepsHash": "sha256:0aae434122a48a94eb64a546ccbdad2661e0c0c25d84ab08ff0450fb978b3021",
+     "intermediatePrecision": "two-f32",
+     "kvDtype": "f16",
+     "kvCacheLayers": 5,
+     "kvMaxSeqLen": 4096,
+     "kvCacheBytes": 41943040
+    }
+   },
+   "splitBoundary": {
+    "narrowedValues": 716800
+   },
+   "session": {
+    "exit": 0,
+    "seconds": 225,
+    "scopePeakBytes": 7870119936,
+    "stopped": false
+   },
+   "stepMaxDifferences": [
+    2.195016226202995e-05,
+    3.353985265253101e-05,
+    6.363532391695514e-05,
+    0.00021192533967706595,
+    3.11689732761522e-05,
+    2.8433141073591628e-05,
+    4.664883038874024e-05,
+    1.9773752520491072e-05,
+    1.4455292692616695e-05,
+    1.949380011656565e-05,
+    2.0295532858316534e-05,
+    7.692675439519014e-05,
+    2.2108963001699067e-05,
+    1.7339739628641215e-05,
+    1.6457589914420367e-05,
+    1.646229089669049e-05,
+    2.5285140708319886e-05,
+    2.0934128357463777e-05,
+    1.9579952805770517e-05,
+    2.7928621391559716e-05,
+    2.0004853575006365e-05,
+    2.157263460089709e-05,
+    1.54891470307561e-05,
+    1.547446362515359e-05,
+    1.3300017554396248e-05,
+    1.0966138887250065e-05,
+    1.674938717854957e-05,
+    2.011217130792886e-05,
+    0.00015904990951298714,
+    6.24198761975947e-05,
+    9.211282559906664e-05,
+    9.706757724148307e-05,
+    7.77917670529149e-05,
+    3.0023959734393202e-05,
+    6.360774870195485e-05,
+    0.00010127963241757243,
+    2.385720704811689e-05,
+    6.657515912911194e-05,
+    8.093895362826231e-05,
+    1.4632382821844203e-05,
+    3.722667607952701e-05,
+    4.08222432657368e-05,
+    1.6600867959404297e-05,
+    3.3930258266812174e-05,
+    2.6693388351262115e-05,
+    1.6941937820647013e-05,
+    3.170952343189981e-05,
+    3.614342495339429e-05,
+    1.501085746813402e-05,
+    3.4220910439586305e-05,
+    3.3849154703724516e-05,
+    1.410968597737039e-05,
+    2.2803744046839824e-05,
+    3.2312428391634285e-05,
+    1.765377431528492e-05
+   ],
+   "kv": {
+    "storedF32": false,
+    "layers": [
+     {
+      "layer": 3,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 7,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 11,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 15,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 19,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 23,
+      "kvDtype": "f16",
+      "partition": 1,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 204,
+      "keyMaxF16Steps": 63,
+      "valueDifferingVsControl": 153,
+      "valueMaxF16Steps": 3
+     }
+    ],
+    "identitiesMatched": 10,
+    "identities": 12,
+    "differingVsControl": 357,
+    "valuesCompared": 1437696,
+    "comparison": "stored F16 bits vs control stored F16 bits"
+   }
+  },
+  "p2-split23": {
+   "label": "paired layers 0-22 (faster kernels), plain layers 23-23 + head",
+   "manifestIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+   "splitFrontManifestIdentity": "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+   "dopplerVersion": "0.6.28",
+   "configSha256": "sha256:6d5147f22e889792dd5ebc485b41ae7a788ef9619ba5e99428ea83bd6212901a",
+   "acceptance": {
+    "comparedSteps": 55,
+    "withinTolerance": 55,
+    "tokenMatches": 55,
+    "maxDifference": 0.00021192533967706595,
+    "valuesOverTolerance": 0,
+    "passed": true
+   },
+   "marginToTolerance": 0.788074660322934,
+   "error": null,
+   "perRequest": [
+    {
+     "promptTokens": 19,
+     "maxDifference": 3.353985265253101e-05,
+     "failedSteps": []
+    },
+    {
+     "promptTokens": 21,
+     "maxDifference": 0.00021192533967706595,
+     "failedSteps": []
+    },
+    {
+     "promptTokens": 184,
+     "maxDifference": 0.00015904990951298714,
+     "failedSteps": []
+    }
+   ],
+   "speed": {
+    "prompt56Ms": 8195.513198999997,
+    "prompt184Ms": 26746.699928,
+    "decodeMedianMs": 230.79301500000292,
+    "checkRequest2DecodeMedianMs": 234.8781020000024,
+    "passes": [
+     {
+      "prefillMs": 8667.619040000001,
+      "decode": {
+       "count": 64,
+       "totalMs": 16024.954563000003,
+       "medianMs": 231.77771100000064,
+       "p90Ms": 287.65226599999914,
+       "minMs": 226.39526900000055,
+       "maxMs": 449.15331700000024
+      },
+      "firstDecodeMs": 273.324990000001
+     },
+     {
+      "prefillMs": 8195.513198999997,
+      "decode": {
+       "count": 64,
+       "totalMs": 16655.35425499999,
+       "medianMs": 230.79301500000292,
+       "p90Ms": 369.5591910000003,
+       "minMs": 225.75840700000117,
+       "maxMs": 529.8250550000012
+      },
+      "firstDecodeMs": 369.5591910000003
+     }
+    ]
+   },
+   "preparation": {
+    "mesaShaderCacheDir": "/var/tmp/precision-recovery-20261015/mesa/c-split23",
+    "mesaShaderCacheDisabled": null,
+    "openMs": {
+     "front": 810.8302030000001,
+     "main": 143.69783400000006
+    },
+    "firstUsePrefill56Ms": 8667.619040000001,
+    "firstUseDecodeMs": 273.324990000001,
+    "warmPrefill56Ms": 8195.513198999997,
+    "warmFirstDecodeMs": 369.5591910000003
+   },
+   "memory": {
+    "pool": {
+     "currentBytesAllocated": 1006372352,
+     "peakBytesAllocated": 1022420480,
+     "peakBytesRequested": 1005252864,
+     "activeBuffers": 457,
+     "pooledBuffers": 64
+    },
+    "process": {
+     "vmHWMBytes": 1447972864,
+     "vmRSSBytes": 1239814144
+    },
+    "perExecutorLimitBytes": 1420000000
+   },
+   "resolved": {
+    "main": {
+     "capabilityPolicy": {
+      "kind": "default-noop",
+      "dtypeEffect": "none",
+      "reason": "GPU supports all required features.",
+      "evidence": []
+     },
+     "laneIntegrity": {
+      "declared": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "executed": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "status": "matches",
+      "transforms": [],
+      "policy": {
+       "kind": "default-noop",
+       "dtypeEffect": "none",
+       "reason": "GPU supports all required features.",
+       "evidence": []
+      }
+     },
+     "appliedTransforms": [],
+     "resolvedStepsHash": "sha256:dac816f255c721cb5b7ec434051cad07b7e3c8dfe8d8725a4c477c7a16db34a7",
+     "intermediatePrecision": "f32",
+     "kvDtype": "f16",
+     "kvCacheLayers": 1,
+     "kvMaxSeqLen": 4096,
+     "kvCacheBytes": 8388608
+    },
+    "front": {
+     "capabilityPolicy": {
+      "kind": "default-noop",
+      "dtypeEffect": "none",
+      "reason": "GPU supports all required features.",
+      "evidence": []
+     },
+     "laneIntegrity": {
+      "declared": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "executed": {
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "accumDtype": "f32",
+       "kvDtype": "f16"
+      },
+      "status": "matches",
+      "transforms": [],
+      "policy": {
+       "kind": "default-noop",
+       "dtypeEffect": "none",
+       "reason": "GPU supports all required features.",
+       "evidence": []
+      }
+     },
+     "appliedTransforms": [],
+     "resolvedStepsHash": "sha256:0aae434122a48a94eb64a546ccbdad2661e0c0c25d84ab08ff0450fb978b3021",
+     "intermediatePrecision": "two-f32",
+     "kvDtype": "f16",
+     "kvCacheLayers": 5,
+     "kvMaxSeqLen": 4096,
+     "kvCacheBytes": 41943040
+    }
+   },
+   "splitBoundary": {
+    "narrowedValues": 716800
+   },
+   "session": {
+    "exit": 0,
+    "seconds": 125,
+    "scopePeakBytes": 1348018176,
+    "stopped": false
+   },
+   "stepMaxDifferences": [
+    2.195016226202995e-05,
+    3.353985265253101e-05,
+    6.363532391695514e-05,
+    0.00021192533967706595,
+    3.11689732761522e-05,
+    2.8433141073591628e-05,
+    4.664883038874024e-05,
+    1.9773752520491072e-05,
+    1.4455292692616695e-05,
+    1.949380011656565e-05,
+    2.0295532858316534e-05,
+    7.692675439519014e-05,
+    2.2108963001699067e-05,
+    1.7339739628641215e-05,
+    1.6457589914420367e-05,
+    1.646229089669049e-05,
+    2.5285140708319886e-05,
+    2.0934128357463777e-05,
+    1.9579952805770517e-05,
+    2.7928621391559716e-05,
+    2.0004853575006365e-05,
+    2.157263460089709e-05,
+    1.54891470307561e-05,
+    1.547446362515359e-05,
+    1.3300017554396248e-05,
+    1.0966138887250065e-05,
+    1.674938717854957e-05,
+    2.011217130792886e-05,
+    0.00015904990951298714,
+    6.24198761975947e-05,
+    9.211282559906664e-05,
+    9.706757724148307e-05,
+    7.77917670529149e-05,
+    3.0023959734393202e-05,
+    6.360774870195485e-05,
+    0.00010127963241757243,
+    2.385720704811689e-05,
+    6.657515912911194e-05,
+    8.093895362826231e-05,
+    1.4632382821844203e-05,
+    3.722667607952701e-05,
+    4.08222432657368e-05,
+    1.6600867959404297e-05,
+    3.3930258266812174e-05,
+    2.6693388351262115e-05,
+    1.6941937820647013e-05,
+    3.170952343189981e-05,
+    3.614342495339429e-05,
+    1.501085746813402e-05,
+    3.4220910439586305e-05,
+    3.3849154703724516e-05,
+    1.410968597737039e-05,
+    2.2803744046839824e-05,
+    3.2312428391634285e-05,
+    1.765377431528492e-05
+   ],
+   "kv": {
+    "storedF32": false,
+    "layers": [
+     {
+      "layer": 3,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 7,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 11,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 15,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 19,
+      "kvDtype": "f16",
+      "partition": 0,
+      "keyIdentityMatches": true,
+      "valueIdentityMatches": true,
+      "keyDifferingVsControl": 0,
+      "keyMaxF16Steps": 0,
+      "valueDifferingVsControl": 0,
+      "valueMaxF16Steps": 0
+     },
+     {
+      "layer": 23,
+      "kvDtype": "f16",
+      "partition": 1,
+      "keyIdentityMatches": false,
+      "valueIdentityMatches": false,
+      "keyDifferingVsControl": 204,
+      "keyMaxF16Steps": 63,
+      "valueDifferingVsControl": 153,
+      "valueMaxF16Steps": 3
+     }
+    ],
+    "identitiesMatched": 10,
+    "identities": 12,
+    "differingVsControl": 357,
+    "valuesCompared": 1437696,
+    "comparison": "stored F16 bits vs control stored F16 bits"
+   }
+  }
+ }
+}

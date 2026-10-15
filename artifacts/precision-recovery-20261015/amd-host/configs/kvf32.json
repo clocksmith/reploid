@@ -1,0 +1,33 @@
+{
+ "label": "plain + F32 K/V cache (session kvcache.kvDtype f32; all else manifest defaults)",
+ "sessionOverrides": {
+  "kvcache": {
+   "kvDtype": "f32",
+   "layout": "contiguous",
+   "maxSeqLen": 8192,
+   "pageSize": 256,
+   "tiering": {
+    "mode": "off",
+    "hotWindow": 1024,
+    "coldPageSize": 256,
+    "coldDtype": "f16",
+    "compression": {
+     "mode": "none",
+     "blockSize": 1,
+     "bitWidth": 4,
+     "prodMode": false
+    },
+    "gating": {
+     "mode": "auto",
+     "minAluBwRatio": 0
+    }
+   },
+   "quantization": {
+    "mode": "none",
+    "bitWidth": 4,
+    "prodMode": false
+   }
+  }
+ },
+ "dumpCaches": true
+}

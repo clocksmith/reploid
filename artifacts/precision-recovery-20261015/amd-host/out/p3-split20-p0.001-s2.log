@@ -1,0 +1,70 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.6ms
+[594.1ms][Pipeline] Execution v1 enabled (steps=43, kernelPathInline=yes, pipelineInline=no)
+[594.2ms][Config] Using manifest-first config (source of truth)
+[599.0ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+[599.2ms][Pipeline] Vision capable: imageTokenId=248056
+[600.3ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (19 decode steps, 8 kernels, source=execution-v1)
+[600.6ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[601.2ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[697.9ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[790.5ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges
+[790.9ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[792.3ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=4096
+[807.9ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[848.1ms][ShardCache] Custom shard loader configured
+[848.3ms][Loader] Initializing...
+[888.0ms][HeapManager] Allocated segment 0: 1024MB
+[888.2ms][HeapManager] Segmented heap: 1GB per segment
+[888.2ms][HeapManager] Initialized with strategy: SEGMENTED
+[888.3ms][Loader] Initialized (f16, subgroups)
+[888.8ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16
+[900.7ms][Loader] [0.0s] Memory (start): | RSS=500.02 MB (heap=198.17 MB/200.65 MB, external=2.14 GB, arrayBuffers=1.14 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[901.3ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[1018.6ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,1024], isWeightBuffer=true
+[1019.0ms][Loader] Layers: 0-19
+[1138.6ms][Loader] Layers: 20 complete (0.12s)
+[1138.9ms][Loader] Complete: 708.96 MB in 0.24s (2.93 GB/s)
+[1139.7ms][Loader] [0.3s] Memory (complete): | RSS=573.68 MB (heap=208.27 MB/216.15 MB, external=1.20 GB, arrayBuffers=1.20 GB) | GPU=711.39 MB (286 active, 0 pooled, peak=711.39 MB) | ShardCache=0 B (0 shards) | Layers=20, GPUBuffers=286
+[1154.9ms][Pipeline] Model loaded successfully (568ms)
+[1158.9ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[1158.9ms][Config] Using manifest-first config (source of truth)
+[1159.8ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+[1159.9ms][Pipeline] Vision capable: imageTokenId=248056
+[1159.9ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (15 decode steps, 11 kernels, source=execution-v1)
+[1160.0ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[1160.0ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[1160.0ms][Tokenizer] Bundled tokenizer cache hit: tokenizer.json
+[1160.1ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[1160.4ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=4096
+[1160.7ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[1186.9ms][ShardCache] Custom shard loader configured
+[1187.0ms][Loader] Initializing...
+[1212.5ms][Loader] Initialized (f16, subgroups)
+[1212.7ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16
+[1213.1ms][Loader] [0.0s] Memory (start): | RSS=532.35 MB (heap=199.42 MB/211.15 MB, external=2.14 GB, arrayBuffers=2.14 GB) | GPU=713.39 MB (288 active, 1 pooled, peak=713.39 MB) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[1213.4ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[1214.1ms][Loader] Layers: 20-23
+[1255.7ms][Loader] Layers: 4 complete (0.04s)
+[1303.2ms][Loader] Complete: 181.20 MB in 0.09s (1.99 GB/s)
+[1303.8ms][Loader] [0.1s] Memory (complete): | RSS=559.57 MB (heap=204.06 MB/213.65 MB, external=1.17 GB, arrayBuffers=1.17 GB) | GPU=895.10 MB (347 active, 0 pooled, peak=895.10 MB) | ShardCache=0 B (0 shards) | Layers=4, GPUBuffers=59
+[1310.3ms][Pipeline] Model loaded successfully (153ms)
+[8290.1ms][KernelSelect] matmul variant=q4_fused_widetile reason=path_override
+[8295.6ms][KernelSelect] matmul variant=f16w_f32a_tiled reason=default
+[8349.8ms][KernelSelect] attention variant=prefill_head256_f16kv reason=path_override:tiled_small
+[8380.4ms][KernelSelect] matmul variant=q4_fused_batched_multicol_shared reason=path_override
+[8592.2ms][KernelSelect] matmul variant=q4_fused_gemv reason=path_override
+[8599.1ms][KernelSelect] matmul variant=gemv_subgroup reason=gemv
+[8615.1ms][KernelSelect] attention variant=decode_online_f16kv reason=path_override:subgroup
+{"label":"paired layers 0-19 (faster kernels), plain layers 20-23 + head; diagnostic boundary perturbation p=0.001 seed 2","speedPass":0,"prefillMs":7075.132214000001,"decodeMedianMs":201.0421959999985}
+{"label":"paired layers 0-19 (faster kernels), plain layers 20-23 + head; diagnostic boundary perturbation p=0.001 seed 2","speedPass":1,"prefillMs":6635.271915000001,"decodeMedianMs":200.0353780000005}
+[45502.0ms][KernelSelect] matmul variant=f16w_f32a reason=default
+{"label":"paired layers 0-19 (faster kernels), plain layers 20-23 + head; diagnostic boundary perturbation p=0.001 seed 2","attempt":0,"promptTokens":19,"maxDifference":0.000016776897863057805,"failedSteps":0}
+{"label":"paired layers 0-19 (faster kernels), plain layers 20-23 + head; diagnostic boundary perturbation p=0.001 seed 2","attempt":1,"promptTokens":21,"maxDifference":0.00016481431271542224,"failedSteps":0}
+{"label":"paired layers 0-19 (faster kernels), plain layers 20-23 + head; diagnostic boundary perturbation p=0.001 seed 2","attempt":2,"promptTokens":184,"maxDifference":0.0001994250036503331,"failedSteps":0}
+{"label":"paired layers 0-19 (faster kernels), plain layers 20-23 + head; diagnostic boundary perturbation p=0.001 seed 2","comparedSteps":55,"withinTolerance":55,"tokenMatches":55,"maxDifference":0.0001994250036503331,"valuesOverTolerance":0,"passed":true,"prompt56Ms":6635.271915000001,"prompt184Ms":21856.284625,"decodeMedianMs":200.0353780000005}
+[103923.8ms][ExpertCache] Cache cleared
+[103925.2ms][Pipeline] Unloaded
+[103926.5ms][ExpertCache] Cache cleared
+[103927.1ms][Pipeline] Unloaded

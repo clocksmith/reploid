@@ -1,0 +1,1126 @@
+{
+ "schema": "reploid.plain-substitution-check/v1",
+ "label": "plain + F32 K/V cache (manifest variant 5de90500: F32-KV attention programs; runtime session kvcache.kvDtype f32, otherwise the runtime default kvcache)",
+ "startedAt": "2026-10-15T19:22:38.022Z",
+ "machine": "amd-host",
+ "dopplerVersion": "0.6.28",
+ "referenceSha256": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+ "referenceModelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+ "manifestIdentity": "sha256:5de90500eb4f94c8e8d428ba1cbea7f7c57f2155a39b7b370f1dd21a280c41cb",
+ "manifestMatchesReference": false,
+ "config": {
+  "label": "plain + F32 K/V cache (manifest variant 5de90500: F32-KV attention programs; runtime session kvcache.kvDtype f32, otherwise the runtime default kvcache)",
+  "sessionOverrides": {
+   "kvcache": {
+    "maxSeqLen": 4096,
+    "gpuPagedFallbackMaxSeqLen": 4096,
+    "kvDtype": "f32",
+    "forceF32Softcap": false,
+    "layout": "contiguous",
+    "pageSize": 256,
+    "bdpaVocabSize": 2048,
+    "windowSize": 1024,
+    "tiering": {
+     "mode": "off",
+     "hotWindow": 1024,
+     "coldPageSize": 256,
+     "coldDtype": "f16",
+     "compression": {
+      "mode": "none",
+      "blockSize": 1,
+      "bitWidth": 4,
+      "prodMode": false
+     },
+     "gating": {
+      "mode": "auto",
+      "minAluBwRatio": 0
+     }
+    },
+    "quantization": {
+     "mode": "none",
+     "bitWidth": 4,
+     "prodMode": false
+    }
+   }
+  },
+  "dumpCaches": true
+ },
+ "configSha256": "sha256:50714452c808f333a18c21043a1edaca749581dd3d14079c310a744eb469a9d0",
+ "tolerance": 0.001,
+ "requiredSteps": 55,
+ "requestContractSha256": [
+  "sha256:ba2a4668d6affb85faf05221d6263a5b29b55d26c8f89a4f107cbacb717599a9",
+  "sha256:3cc051de10f77e945c6a62b66cccb22f0c15e55bf11196c6f71aeda4174ba5a2",
+  "sha256:8b21b154357efa8c9d1c853ffe36c5ce9d9e32e684b496db9031bc59fa6fe836"
+ ],
+ "speed": {
+  "promptTokens": 56,
+  "passes": [
+   {
+    "prefillMs": 375.687361,
+    "decode": {
+     "count": 64,
+     "totalMs": 4653.0943970000035,
+     "medianMs": 67.41762300000028,
+     "p90Ms": 79.09590500000013,
+     "minMs": 60.590823999999884,
+     "maxMs": 151.50629400000003
+    },
+    "firstDecodeMs": 151.50629400000003
+   },
+   {
+    "prefillMs": 281.01784899999984,
+    "decode": {
+     "count": 64,
+     "totalMs": 4470.497010999997,
+     "medianMs": 67.24403899999925,
+     "p90Ms": 78.05407600000035,
+     "minMs": 52.89534900000035,
+     "maxMs": 146.16961699999956
+    },
+    "firstDecodeMs": 52.89534900000035
+   }
+  ],
+  "longPrompt": {
+   "promptTokens": 184,
+   "prefillMs": 776.3253199999999
+  },
+  "checkRequest2Decode": {
+   "count": 50,
+   "totalMs": 5977.777692999993,
+   "medianMs": 114.9656959999993,
+   "p90Ms": 126.14915200000178,
+   "minMs": 102.42583000000013,
+   "maxMs": 201.34833499999877
+  },
+  "summary": {
+   "prompt56Ms": 281.01784899999984,
+   "prompt184Ms": 776.3253199999999,
+   "decodeMedianMs": 67.24403899999925
+  }
+ },
+ "requests": [
+  {
+   "attempt": 0,
+   "promptTokens": 19,
+   "promptMatchesFrozenPrefix": true,
+   "steps": [
+    {
+     "step": 0,
+     "maxDifference": 0.003155559998795354,
+     "maxDifferenceAt": 67976,
+     "valuesOverTolerance": 25888,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 9419,
+     "referenceTokenId": 9419,
+     "tokenMatches": true,
+     "elapsedMs": 127.02980899999966
+    },
+    {
+     "step": 1,
+     "maxDifference": 0.004156231620750184,
+     "maxDifferenceAt": 38765,
+     "valuesOverTolerance": 44724,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 248046,
+     "referenceTokenId": 248046,
+     "tokenMatches": true,
+     "elapsedMs": 78.94633599999906
+    }
+   ],
+   "finalCaches": [
+    {
+     "layer": 3,
+     "seqLen": 20,
+     "numHeads": 2,
+     "headDim": 256,
+     "kvDtype": "f32",
+     "partition": null,
+     "keySha256": "efa71cdf50a47d9fac6c4bee6a33229fce8e0c7cc1fe6042a2f81ee4620fa193",
+     "valueSha256": "761af5cf51d61d3a5b9e251a6324f8595911cceb1b0751492e9aa156b81096c7"
+    },
+    {
+     "layer": 7,
+     "seqLen": 20,
+     "numHeads": 2,
+     "headDim": 256,
+     "kvDtype": "f32",
+     "partition": null,
+     "keySha256": "8d618bd3308d9c70c7f9effb3caf69670690f83c26e9510015a6e8de83eb8026",
+     "valueSha256": "33383c1ab51dd4d0857ae65a93c7731ca04ba2b815959f9b25782bd5708357cf"
+    },
+    {
+     "layer": 11,
+     "seqLen": 20,
+     "numHeads": 2,
+     "headDim": 256,
+     "kvDtype": "f32",
+     "partition": null,
+     "keySha256": "653f53e6973d85a6a0db4b1a3c4628a5c011cf42ce7b6841147e5e49e369331f",
+     "valueSha256": "0a5b8b254b84c857ad4e2e1f4cb55b34b4fc8bc7fcd3b72e5377de7b2144da6f"
+    },
+    {
+     "layer": 15,
+     "seqLen": 20,
+     "numHeads": 2,
+     "headDim": 256,
+     "kvDtype": "f32",
+     "partition": null,
+     "keySha256": "0f5fd7dd87b4ea82800e0de6b924e6e438e80a429ff9d6d463ac808d76aae510",
+     "valueSha256": "431e2794129ea3c2e716181ad79e78807e75a8169d3e028ff157299754138fd5"
+    },
+    {
+     "layer": 19,
+     "seqLen": 20,
+     "numHeads": 2,
+     "headDim": 256,
+     "kvDtype": "f32",
+     "partition": null,
+     "keySha256": "54a99a826a3d2c0d1f13295422abb290e70f7858e16956879f88d8295f78cf21",
+     "valueSha256": "7777e582dc065bdaba44081900c4e6ae66b1ca8682aa79aa36a95629fe170630"
+    },
+    {
+     "layer": 23,
+     "seqLen": 20,
+     "numHeads": 2,
+     "headDim": 256,
+     "kvDtype": "f32",
+     "partition": null,
+     "keySha256": "ee3b42a26eae2450fe46c4d4191a53eb3ea7dbb60dc4d8ce170600adc6d48105",
+     "valueSha256": "d81203985c13257f83fb3b6b0325651f9677bd22361810ef5d0cf7dec9bf3fd2"
+    }
+   ],
+   "maxDifference": 0.004156231620750184,
+   "failedSteps": [
+    0,
+    1
+   ]
+  },
+  {
+   "attempt": 1,
+   "promptTokens": 21,
+   "promptMatchesFrozenPrefix": true,
+   "steps": [
+    {
+     "step": 0,
+     "maxDifference": 0.0020702322725423272,
+     "maxDifferenceAt": 21135,
+     "valuesOverTolerance": 2512,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 19,
+     "referenceTokenId": 19,
+     "tokenMatches": true,
+     "elapsedMs": 120.41644799999995
+    },
+    {
+     "step": 1,
+     "maxDifference": 0.0024520207128198024,
+     "maxDifferenceAt": 1330,
+     "valuesOverTolerance": 8117,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 248046,
+     "referenceTokenId": 248046,
+     "tokenMatches": true,
+     "elapsedMs": 47.60964400000012
+    }
+   ],
+   "finalCaches": [
+    {
+     "layer": 3,
+     "seqLen": 22,
+     "numHeads": 2,
+     "headDim": 256,
+     "kvDtype": "f32",
+     "partition": null,
+     "keySha256": "c8dbda3f549125912f6ee190c63f40dd67ffe3ebb0c8c04f422d7cebb87639e2",
+     "valueSha256": "902c5eb41eca17bbdc0d44f86c1ce125d2f773c188bc1c7482e09a1053e13dbb"
+    },
+    {
+     "layer": 7,
+     "seqLen": 22,
+     "numHeads": 2,
+     "headDim": 256,
+     "kvDtype": "f32",
+     "partition": null,
+     "keySha256": "1fd5c520ac94e0095c24da8028c4768218bb469fc822ce4a014e83bcf4874994",
+     "valueSha256": "e80e1d30fc35560b1ef49c08d4ce8402eeefe2adf7cf159c9774c17de3e32cdf"
+    },
+    {
+     "layer": 11,
+     "seqLen": 22,
+     "numHeads": 2,
+     "headDim": 256,
+     "kvDtype": "f32",
+     "partition": null,
+     "keySha256": "f51b2b02a2515a8d1a08b9648d19d9d5f11efd5ae47960c865cd22ae2ea83653",
+     "valueSha256": "905b5e218d91cc70e4ded7c2b4f44eb833bab8f2596df10c1fea9f17725d07d9"
+    },
+    {
+     "layer": 15,
+     "seqLen": 22,
+     "numHeads": 2,
+     "headDim": 256,
+     "kvDtype": "f32",
+     "partition": null,
+     "keySha256": "2cee2305cd7a3998a924d903cbc985ae48a45688775b6ec66fc6109eae7eebd0",
+     "valueSha256": "38f1215658288fa3294e9656846c4e4ac08216dba88ab89574280f7c28718487"
+    },
+    {
+     "layer": 19,
+     "seqLen": 22,
+     "numHeads": 2,
+     "headDim": 256,
+     "kvDtype": "f32",
+     "partition": null,
+     "keySha256": "c6c4901ce9875bed16b598b065785d3302a35a839bd31cee5f3994e800605cb2",
+     "valueSha256": "330dd6d8e6befa6f4907747e87d24c0e9bddda78978614340b7a38579593cf4b"
+    },
+    {
+     "layer": 23,
+     "seqLen": 22,
+     "numHeads": 2,
+     "headDim": 256,
+     "kvDtype": "f32",
+     "partition": null,
+     "keySha256": "065085810b7688d28e4e449be05d724c33ff575cf38fe97d146af5b29b17ff09",
+     "valueSha256": "cd098305bcdec9c48d3326d010f2170ec02104a8e17aa6d3cd8e29c0a1c148bd"
+    }
+   ],
+   "maxDifference": 0.0024520207128198024,
+   "failedSteps": [
+    0,
+    1
+   ]
+  },
+  {
+   "attempt": 2,
+   "promptTokens": 184,
+   "promptMatchesFrozenPrefix": true,
+   "steps": [
+    {
+     "step": 0,
+     "maxDifference": 0.002745487435990679,
+     "maxDifferenceAt": 393,
+     "valuesOverTolerance": 12549,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 774.6893810000001
+    },
+    {
+     "step": 1,
+     "maxDifference": 0.003602280532238211,
+     "maxDifferenceAt": 248046,
+     "valuesOverTolerance": 24244,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 102.55017299999963
+    },
+    {
+     "step": 2,
+     "maxDifference": 0.004278716796628279,
+     "maxDifferenceAt": 35874,
+     "valuesOverTolerance": 59748,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 17,
+     "referenceTokenId": 17,
+     "tokenMatches": true,
+     "elapsedMs": 102.42583000000013
+    },
+    {
+     "step": 3,
+     "maxDifference": 0.003623345997270988,
+     "maxDifferenceAt": 36353,
+     "valuesOverTolerance": 34335,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 106.0700829999987
+    },
+    {
+     "step": 4,
+     "maxDifference": 0.004487325386554719,
+     "maxDifferenceAt": 1001,
+     "valuesOverTolerance": 24643,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 18,
+     "referenceTokenId": 18,
+     "tokenMatches": true,
+     "elapsedMs": 104.63738999999987
+    },
+    {
+     "step": 5,
+     "maxDifference": 0.0032157148792182344,
+     "maxDifferenceAt": 18414,
+     "valuesOverTolerance": 10223,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 106.90711999999985
+    },
+    {
+     "step": 6,
+     "maxDifference": 0.00446059228457063,
+     "maxDifferenceAt": 393,
+     "valuesOverTolerance": 16585,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 19,
+     "referenceTokenId": 19,
+     "tokenMatches": true,
+     "elapsedMs": 108.33458099999916
+    },
+    {
+     "step": 7,
+     "maxDifference": 0.003000934815766243,
+     "maxDifferenceAt": 248046,
+     "valuesOverTolerance": 15593,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 103.862740999999
+    },
+    {
+     "step": 8,
+     "maxDifference": 0.004102992967425889,
+     "maxDifferenceAt": 393,
+     "valuesOverTolerance": 33337,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 20,
+     "referenceTokenId": 20,
+     "tokenMatches": true,
+     "elapsedMs": 108.09115600000041
+    },
+    {
+     "step": 9,
+     "maxDifference": 0.002724531390988716,
+     "maxDifferenceAt": 40131,
+     "valuesOverTolerance": 12535,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 112.31307000000015
+    },
+    {
+     "step": 10,
+     "maxDifference": 0.0036924741477473155,
+     "maxDifferenceAt": 393,
+     "valuesOverTolerance": 22774,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 21,
+     "referenceTokenId": 21,
+     "tokenMatches": true,
+     "elapsedMs": 108.71428300000116
+    },
+    {
+     "step": 11,
+     "maxDifference": 0.002639821324884384,
+     "maxDifferenceAt": 1001,
+     "valuesOverTolerance": 11641,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 191.19854300000043
+    },
+    {
+     "step": 12,
+     "maxDifference": 0.0028822518096511818,
+     "maxDifferenceAt": 56014,
+     "valuesOverTolerance": 16361,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 22,
+     "referenceTokenId": 22,
+     "tokenMatches": true,
+     "elapsedMs": 107.03816499999994
+    },
+    {
+     "step": 13,
+     "maxDifference": 0.003937157835065985,
+     "maxDifferenceAt": 18414,
+     "valuesOverTolerance": 41267,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 111.01673300000039
+    },
+    {
+     "step": 14,
+     "maxDifference": 0.003643622217997633,
+     "maxDifferenceAt": 56014,
+     "valuesOverTolerance": 28731,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 23,
+     "referenceTokenId": 23,
+     "tokenMatches": true,
+     "elapsedMs": 109.93773299999884
+    },
+    {
+     "step": 15,
+     "maxDifference": 0.0025842831980511516,
+     "maxDifferenceAt": 84310,
+     "valuesOverTolerance": 12082,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 110.18583699999908
+    },
+    {
+     "step": 16,
+     "maxDifference": 0.003345905118903758,
+     "maxDifferenceAt": 4771,
+     "valuesOverTolerance": 16769,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 24,
+     "referenceTokenId": 24,
+     "tokenMatches": true,
+     "elapsedMs": 110.72154000000046
+    },
+    {
+     "step": 17,
+     "maxDifference": 0.0032416764334610715,
+     "maxDifferenceAt": 35836,
+     "valuesOverTolerance": 28998,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 109.82183599999917
+    },
+    {
+     "step": 18,
+     "maxDifference": 0.003809950144060714,
+     "maxDifferenceAt": 4771,
+     "valuesOverTolerance": 25066,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 106.58764100000008
+    },
+    {
+     "step": 19,
+     "maxDifference": 0.0024013428291085326,
+     "maxDifferenceAt": 1730,
+     "valuesOverTolerance": 4745,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 15,
+     "referenceTokenId": 15,
+     "tokenMatches": true,
+     "elapsedMs": 134.25381299999935
+    },
+    {
+     "step": 20,
+     "maxDifference": 0.002941994920387714,
+     "maxDifferenceAt": 18414,
+     "valuesOverTolerance": 10167,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 111.92617500000051
+    },
+    {
+     "step": 21,
+     "maxDifference": 0.0040280064466418075,
+     "maxDifferenceAt": 4771,
+     "valuesOverTolerance": 32426,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 113.42469999999958
+    },
+    {
+     "step": 22,
+     "maxDifference": 0.0024532778183363746,
+     "maxDifferenceAt": 18735,
+     "valuesOverTolerance": 5506,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 113.63640699999996
+    },
+    {
+     "step": 23,
+     "maxDifference": 0.002376769523418698,
+     "maxDifferenceAt": 18414,
+     "valuesOverTolerance": 7317,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 114.64912299999924
+    },
+    {
+     "step": 24,
+     "maxDifference": 0.003939804916662126,
+     "maxDifferenceAt": 4771,
+     "valuesOverTolerance": 35387,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 112.44966600000043
+    },
+    {
+     "step": 25,
+     "maxDifference": 0.0021086332027717702,
+     "maxDifferenceAt": 82,
+     "valuesOverTolerance": 3694,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 17,
+     "referenceTokenId": 17,
+     "tokenMatches": true,
+     "elapsedMs": 114.72333199999957
+    },
+    {
+     "step": 26,
+     "maxDifference": 0.002858891563368715,
+     "maxDifferenceAt": 18414,
+     "valuesOverTolerance": 9368,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 117.51357499999904
+    },
+    {
+     "step": 27,
+     "maxDifference": 0.004505851257929017,
+     "maxDifferenceAt": 4771,
+     "valuesOverTolerance": 25228,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 178.66444000000047
+    },
+    {
+     "step": 28,
+     "maxDifference": 0.0018407817005205995,
+     "maxDifferenceAt": 25273,
+     "valuesOverTolerance": 1628,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 18,
+     "referenceTokenId": 18,
+     "tokenMatches": true,
+     "elapsedMs": 114.78990700000031
+    },
+    {
+     "step": 29,
+     "maxDifference": 0.0025812151019763974,
+     "maxDifferenceAt": 54087,
+     "valuesOverTolerance": 2306,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 117.70778900000005
+    },
+    {
+     "step": 30,
+     "maxDifference": 0.004169281565467919,
+     "maxDifferenceAt": 4771,
+     "valuesOverTolerance": 16315,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 115.00616199999968
+    },
+    {
+     "step": 31,
+     "maxDifference": 0.0020141570563083633,
+     "maxDifferenceAt": 20,
+     "valuesOverTolerance": 1507,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 19,
+     "referenceTokenId": 19,
+     "tokenMatches": true,
+     "elapsedMs": 116.29875100000027
+    },
+    {
+     "step": 32,
+     "maxDifference": 0.0025430050430754747,
+     "maxDifferenceAt": 54087,
+     "valuesOverTolerance": 3482,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 118.99746400000004
+    },
+    {
+     "step": 33,
+     "maxDifference": 0.0039624350002118724,
+     "maxDifferenceAt": 393,
+     "valuesOverTolerance": 20748,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 119.37686399999984
+    },
+    {
+     "step": 34,
+     "maxDifference": 0.0016020923195634307,
+     "maxDifferenceAt": 7950,
+     "valuesOverTolerance": 1592,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 20,
+     "referenceTokenId": 20,
+     "tokenMatches": true,
+     "elapsedMs": 201.34833499999877
+    },
+    {
+     "step": 35,
+     "maxDifference": 0.0027184958123456227,
+     "maxDifferenceAt": 54087,
+     "valuesOverTolerance": 6783,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 114.9656959999993
+    },
+    {
+     "step": 36,
+     "maxDifference": 0.004525251820799658,
+     "maxDifferenceAt": 393,
+     "valuesOverTolerance": 22490,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 119.47908499999903
+    },
+    {
+     "step": 37,
+     "maxDifference": 0.0018905033418514794,
+     "maxDifferenceAt": 67525,
+     "valuesOverTolerance": 3875,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 21,
+     "referenceTokenId": 21,
+     "tokenMatches": true,
+     "elapsedMs": 119.54829499999687
+    },
+    {
+     "step": 38,
+     "maxDifference": 0.0027570087384631847,
+     "maxDifferenceAt": 9059,
+     "valuesOverTolerance": 10581,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 119.3884160000016
+    },
+    {
+     "step": 39,
+     "maxDifference": 0.004795161727263242,
+     "maxDifferenceAt": 4771,
+     "valuesOverTolerance": 19146,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 117.44842399999834
+    },
+    {
+     "step": 40,
+     "maxDifference": 0.0026276024072492965,
+     "maxDifferenceAt": 8771,
+     "valuesOverTolerance": 13068,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 22,
+     "referenceTokenId": 22,
+     "tokenMatches": true,
+     "elapsedMs": 117.66302499999802
+    },
+    {
+     "step": 41,
+     "maxDifference": 0.0026580217536578132,
+     "maxDifferenceAt": 8771,
+     "valuesOverTolerance": 12360,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 119.52336899999864
+    },
+    {
+     "step": 42,
+     "maxDifference": 0.0036604063207246185,
+     "maxDifferenceAt": 393,
+     "valuesOverTolerance": 10343,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 126.14915200000178
+    },
+    {
+     "step": 43,
+     "maxDifference": 0.002689481560215423,
+     "maxDifferenceAt": 393,
+     "valuesOverTolerance": 14654,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 23,
+     "referenceTokenId": 23,
+     "tokenMatches": true,
+     "elapsedMs": 117.60121100000106
+    },
+    {
+     "step": 44,
+     "maxDifference": 0.002536892830562909,
+     "maxDifferenceAt": 4771,
+     "valuesOverTolerance": 10222,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 121.29739899999913
+    },
+    {
+     "step": 45,
+     "maxDifference": 0.0027429952479973707,
+     "maxDifferenceAt": 8185,
+     "valuesOverTolerance": 21871,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 120.65866499999902
+    },
+    {
+     "step": 46,
+     "maxDifference": 0.0026339052076300717,
+     "maxDifferenceAt": 393,
+     "valuesOverTolerance": 18499,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 24,
+     "referenceTokenId": 24,
+     "tokenMatches": true,
+     "elapsedMs": 120.53289900000163
+    },
+    {
+     "step": 47,
+     "maxDifference": 0.002830115525627619,
+     "maxDifferenceAt": 4771,
+     "valuesOverTolerance": 17409,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 122.33248800000001
+    },
+    {
+     "step": 48,
+     "maxDifference": 0.003097535755337777,
+     "maxDifferenceAt": 5036,
+     "valuesOverTolerance": 12626,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 17,
+     "referenceTokenId": 17,
+     "tokenMatches": true,
+     "elapsedMs": 121.59625900000174
+    },
+    {
+     "step": 49,
+     "maxDifference": 0.002682507583632976,
+     "maxDifferenceAt": 56014,
+     "valuesOverTolerance": 2468,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 15,
+     "referenceTokenId": 15,
+     "tokenMatches": true,
+     "elapsedMs": 123.49413199999981
+    },
+    {
+     "step": 50,
+     "maxDifference": 0.003424597430352616,
+     "maxDifferenceAt": 82032,
+     "valuesOverTolerance": 17998,
+     "finite": true,
+     "withinTolerance": false,
+     "tokenId": 248046,
+     "referenceTokenId": 248046,
+     "tokenMatches": true,
+     "elapsedMs": 140.9182200000032
+    }
+   ],
+   "finalCaches": [
+    {
+     "layer": 3,
+     "seqLen": 234,
+     "numHeads": 2,
+     "headDim": 256,
+     "kvDtype": "f32",
+     "partition": null,
+     "keySha256": "e3926d2ab2f352102c6746575463f8b8c45bb24d530849b433ee466e6f37ee21",
+     "valueSha256": "8e3fc97dca5c3aa58c999ac2345d4305b56a677b5d1b069c9ab2ef7cc17177e4"
+    },
+    {
+     "layer": 7,
+     "seqLen": 234,
+     "numHeads": 2,
+     "headDim": 256,
+     "kvDtype": "f32",
+     "partition": null,
+     "keySha256": "574126a8d5b6d33a64116111e5e20f8c614428fe1ddd27c5f0d178c182f50678",
+     "valueSha256": "816a358abcadb797ae43cd835e7a56a9cb8bca64e646a63642d00eb87f99c1d2"
+    },
+    {
+     "layer": 11,
+     "seqLen": 234,
+     "numHeads": 2,
+     "headDim": 256,
+     "kvDtype": "f32",
+     "partition": null,
+     "keySha256": "df087e1c5e04e9ead250771b56d7419a3ece8c309fb0f6a49f88d2969a33084e",
+     "valueSha256": "2b5c7289ceb6f6444003982faccdb4a28a40409f48c8638250802a0817d98e20"
+    },
+    {
+     "layer": 15,
+     "seqLen": 234,
+     "numHeads": 2,
+     "headDim": 256,
+     "kvDtype": "f32",
+     "partition": null,
+     "keySha256": "1f625840d5b0dabca7841d709029f65bdce8474e2eb34752fd205976f13035eb",
+     "valueSha256": "7554dad0be4469e2b485a7b9ec4d34045c854a9ad9c2a62346d805b6161d4b8f"
+    },
+    {
+     "layer": 19,
+     "seqLen": 234,
+     "numHeads": 2,
+     "headDim": 256,
+     "kvDtype": "f32",
+     "partition": null,
+     "keySha256": "33f6db16aadb3bede61f9dfd6f429035a29175a4fdfb6261e6c8c15d3a7ff478",
+     "valueSha256": "be81ba7e6f10c7ccf6a6524cb984f770f9121c6cf1f2a98798c11b8c960bfdeb"
+    },
+    {
+     "layer": 23,
+     "seqLen": 234,
+     "numHeads": 2,
+     "headDim": 256,
+     "kvDtype": "f32",
+     "partition": null,
+     "keySha256": "f9c63a21114037e9399fbfffa2580fe628b62d72256be499f9bafccb4746af58",
+     "valueSha256": "b38908a7e7e25fe554de268e13558df70ba4088bf7b925815ef044a74a560ac4"
+    }
+   ],
+   "maxDifference": 0.004795161727263242,
+   "failedSteps": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50
+   ]
+  }
+ ],
+ "gpu": {
+  "adapter": {
+   "vendor": "amd",
+   "architecture": "rdna-3",
+   "device": "radeon-8060s-graphics-radv-strix-halo-",
+   "description": "radv: Mesa 26.0.3-1ubuntu1"
+  },
+  "hasF16": true
+ },
+ "summary": {
+  "comparedSteps": 55,
+  "withinTolerance": 0,
+  "tokenMatches": 55,
+  "maxDifference": 0.004795161727263242,
+  "valuesOverTolerance": 924531,
+  "passed": false
+ },
+ "preparation": {
+  "mesaShaderCacheDir": "/var/tmp/precision-recovery-20261015/mesa/c-kvf32m2",
+  "mesaShaderCacheDisabled": null,
+  "openMs": {
+   "main": 738.361051
+  },
+  "firstUsePrefill56Ms": 375.687361,
+  "firstUseDecodeMs": 151.50629400000003,
+  "warmPrefill56Ms": 281.01784899999984,
+  "warmFirstDecodeMs": 52.89534900000035
+ },
+ "resolved": {
+  "main": {
+   "capabilityPolicy": {
+    "kind": "runtime-session-compatibility",
+    "dtypeEffect": "full-f32",
+    "reason": "Runtime KV cache resolved f32.",
+    "evidence": [
+     "tests/integration/execution-v1-capability-policy.test.js"
+    ]
+   },
+   "laneIntegrity": {
+    "declared": {
+     "activationDtype": "f32",
+     "mathDtype": "f32",
+     "accumDtype": "f32",
+     "kvDtype": "f32"
+    },
+    "executed": {
+     "activationDtype": "f32",
+     "mathDtype": "f32",
+     "accumDtype": "f32",
+     "kvDtype": "f32"
+    },
+    "status": "matches",
+    "transforms": [
+     "widenToF32CorrectnessFallback"
+    ],
+    "policy": {
+     "kind": "runtime-session-compatibility",
+     "dtypeEffect": "full-f32",
+     "reason": "Runtime KV cache resolved f32.",
+     "evidence": [
+      "tests/integration/execution-v1-capability-policy.test.js"
+     ]
+    }
+   },
+   "appliedTransforms": [
+    "widenToF32CorrectnessFallback"
+   ],
+   "resolvedStepsHash": "sha256:be7d34efc31b9397f51366dade17af130769063186ce4269a27c761450dd3493",
+   "intermediatePrecision": "f32",
+   "kvDtype": "f32",
+   "kvCacheLayers": 6,
+   "kvMaxSeqLen": 4096,
+   "kvCacheBytes": 100663296
+  },
+  "front": null
+ },
+ "memory": {
+  "pool": {
+   "currentBytesAllocated": 1008662528,
+   "peakBytesAllocated": 1087412992,
+   "peakBytesRequested": 1056131072,
+   "activeBuffers": 455,
+   "pooledBuffers": 64
+  },
+  "process": {
+   "vmHWMBytes": 917385216,
+   "vmRSSBytes": 827244544
+  },
+  "perExecutorLimitBytes": 1420000000
+ },
+ "finishedAt": "2026-10-15T19:22:56.832Z"
+}

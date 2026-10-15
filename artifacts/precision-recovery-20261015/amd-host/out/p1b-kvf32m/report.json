@@ -1,0 +1,38 @@
+{
+ "schema": "reploid.plain-substitution-check/v1",
+ "label": "plain + F32 K/V cache (manifest variant: kvDtype f32, F32-KV attention_streaming at the three attention programs)",
+ "startedAt": "2026-10-15T19:14:11.016Z",
+ "machine": "amd-host",
+ "dopplerVersion": "0.6.28",
+ "referenceSha256": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+ "referenceModelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+ "manifestIdentity": "sha256:5de90500eb4f94c8e8d428ba1cbea7f7c57f2155a39b7b370f1dd21a280c41cb",
+ "manifestMatchesReference": false,
+ "config": {
+  "label": "plain + F32 K/V cache (manifest variant: kvDtype f32, F32-KV attention_streaming at the three attention programs)",
+  "dumpCaches": true
+ },
+ "configSha256": "sha256:a67512b0dcd1f1e3094c4fb739b047fec78756ca9b1c43bf7f98ff241b163f3d",
+ "tolerance": 0.001,
+ "requiredSteps": 55,
+ "requestContractSha256": [
+  "sha256:ba2a4668d6affb85faf05221d6263a5b29b55d26c8f89a4f107cbacb717599a9",
+  "sha256:3cc051de10f77e945c6a62b66cccb22f0c15e55bf11196c6f71aeda4174ba5a2",
+  "sha256:8b21b154357efa8c9d1c853ffe36c5ce9d9e32e684b496db9031bc59fa6fe836"
+ ],
+ "speed": {
+  "promptTokens": 56,
+  "passes": []
+ },
+ "requests": [],
+ "gpu": {
+  "adapter": {
+   "vendor": "amd",
+   "architecture": "rdna-3",
+   "device": "radeon-8060s-graphics-radv-strix-halo-",
+   "description": "radv: Mesa 26.0.3-1ubuntu1"
+  },
+  "hasF16": true
+ },
+ "finishedAt": "2026-10-15T19:14:12.576Z"
+}

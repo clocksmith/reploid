@@ -1,0 +1,46 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.9ms
+[603.8ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[603.9ms][Config] Using manifest-first config (source of truth)
+[608.7ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+[608.8ms][Pipeline] Vision capable: imageTokenId=248056
+[609.9ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (15 decode steps, 10 kernels, source=execution-v1)
+[610.2ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[610.6ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[718.4ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[831.5ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges
+[831.9ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[834.9ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=4096
+[836.2ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[889.4ms][ShardCache] Custom shard loader configured
+[889.7ms][Loader] Initializing...
+[936.4ms][HeapManager] Allocated segment 0: 1024MB
+[936.6ms][HeapManager] Segmented heap: 1GB per segment
+[936.6ms][HeapManager] Initialized with strategy: SEGMENTED
+[936.7ms][Loader] Initialized (f16, subgroups)
+[937.2ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16
+[949.6ms][Loader] [0.0s] Memory (start): | RSS=500.24 MB (heap=197.82 MB/200.40 MB, external=2.14 GB, arrayBuffers=1.14 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[950.1ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[1122.2ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,1024], isWeightBuffer=true
+[1122.5ms][Loader] Layers: 0-23
+[1320.9ms][Loader] Layers: 24 complete (0.20s)
+[1370.9ms][Loader] Complete: 890.16 MB in 0.42s (2.07 GB/s)
+[1372.1ms][Loader] [0.4s] Memory (complete): | RSS=572.66 MB (heap=198.56 MB/209.40 MB, external=1.19 GB, arrayBuffers=1.18 GB) | GPU=893.10 MB (345 active, 0 pooled, peak=893.10 MB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=345
+[1395.4ms][Pipeline] Model loaded successfully (796ms)
+[1433.5ms][KernelSelect] matmul variant=q4_fused_widetile reason=path_override
+[1484.9ms][KernelSelect] matmul variant=f16w_f32a_tiled reason=default
+[2011.2ms][ExpertCache] Cache cleared
+[2012.1ms][Pipeline] Unloaded
+file:///var/tmp/precision-recovery-20261015/pkg/node_modules/doppler-gpu/src/inference/pipelines/text/attention/precision-contract.js:95
+    throw new Error(
+          ^
+
+Error: [ExecutionV1] attention precision declares kvDtype="f32" but KV cache resolved "f16" at layer 3.
+    at resolveAttentionPrecisionContract (file:///var/tmp/precision-recovery-20261015/pkg/node_modules/doppler-gpu/src/inference/pipelines/text/attention/precision-contract.js:95:11)
+    at interpretAttentionWithRecorder (file:///var/tmp/precision-recovery-20261015/pkg/node_modules/doppler-gpu/src/inference/pipelines/text/attention/interpreter.js:119:38)
+    at recordLayerAttentionGPU (file:///var/tmp/precision-recovery-20261015/pkg/node_modules/doppler-gpu/src/inference/pipelines/text/attention/executor-recorded.js:16:10)
+    at doAttention (file:///var/tmp/precision-recovery-20261015/pkg/node_modules/doppler-gpu/src/inference/pipelines/text/ops.js:519:12)
+    at processLayerGPU (file:///var/tmp/precision-recovery-20261015/pkg/node_modules/doppler-gpu/src/inference/pipelines/text/layer.js:433:30)
+
+Node.js v22.22.1
