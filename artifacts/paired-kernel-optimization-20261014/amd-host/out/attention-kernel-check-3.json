@@ -1,0 +1,632 @@
+{
+ "schema": "reploid.paired-attention-kernel-check/v1",
+ "startedAt": "2026-10-14T22:11:10.489Z",
+ "sources": {
+  "shipped": {
+   "path": "/var/tmp/reploid-signed-completion-9-20261014/reploid/node_modules/doppler-gpu/src/gpu/kernels/attention_paired.wgsl",
+   "sha256": "78d22e268b2d8d5681e46c4bcd196b78777bde00eeeb06639180db86b44e7358"
+  },
+  "candidate": {
+   "path": "kernels/attention_paired_tiled.wgsl",
+   "sha256": "909aae38aefc27ce6aa1b389756df1ee639310b0936ae121b82b32e19c97c45a"
+  }
+ },
+ "candidateConstants": {
+  "WORKGROUP_SIZE": 256,
+  "DOT_LANES": 4
+ },
+ "repeats": 3,
+ "geometry": {
+  "heads": 8,
+  "kvHeads": 2,
+  "headDim": 256,
+  "scale": 0.0625
+ },
+ "cases": [
+  {
+   "name": "decode-kv1",
+   "seq": 1,
+   "kv": 1,
+   "start": 0,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 0,
+     "finite": true,
+     "medianMs": 0.24963099999999372,
+     "minMs": 0.21365199999999618,
+     "maxMs": 0.6821759999999983
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 0,
+     "finite": true,
+     "medianMs": 0.5333249999999907,
+     "minMs": 0.5025679999999966,
+     "maxMs": 0.5827489999999926
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 0,
+    "bitIdenticalOutputs": 2048,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "decode-kv57",
+   "seq": 1,
+   "kv": 57,
+   "start": 56,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.4876988529977098e-14,
+     "finite": true,
+     "medianMs": 14.032421,
+     "minMs": 13.764556999999996,
+     "maxMs": 14.698107000000007
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.7263968032921184e-14,
+     "finite": true,
+     "medianMs": 1.339396000000022,
+     "minMs": 1.3186869999999828,
+     "maxMs": 1.4375909999999976
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.4210854715202004e-14,
+    "bitIdenticalOutputs": 242,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "decode-kv72",
+   "seq": 1,
+   "kv": 72,
+   "start": 71,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.284781580660763e-14,
+     "finite": true,
+     "medianMs": 17.201617,
+     "minMs": 17.193241999999998,
+     "maxMs": 18.215058999999997
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.84297022087776e-14,
+     "finite": true,
+     "medianMs": 1.6225489999999922,
+     "minMs": 1.6087129999999945,
+     "maxMs": 2.014318000000003
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 2.353672812205332e-14,
+    "bitIdenticalOutputs": 262,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "decode-kv128",
+   "seq": 1,
+   "kv": 128,
+   "start": 127,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.4432899320127035e-14,
+     "finite": true,
+     "medianMs": 30.737622999999985,
+     "minMs": 30.66716100000002,
+     "maxMs": 32.11933899999997
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.3766765505351941e-14,
+     "finite": true,
+     "medianMs": 1.9784710000000132,
+     "minMs": 1.9569900000000189,
+     "maxMs": 2.0467800000000125
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.5987211554602254e-14,
+    "bitIdenticalOutputs": 185,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "decode-kv234",
+   "seq": 1,
+   "kv": 234,
+   "start": 233,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.3211653993039363e-14,
+     "finite": true,
+     "medianMs": 55.73679500000003,
+     "minMs": 55.62433299999998,
+     "maxMs": 57.74204599999996
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.6209256159527285e-14,
+     "finite": true,
+     "medianMs": 3.05795599999999,
+     "minMs": 3.0507820000000265,
+     "maxMs": 3.140000999999984
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.6209256159527285e-14,
+    "bitIdenticalOutputs": 113,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "decode-kv255",
+   "seq": 1,
+   "kv": 255,
+   "start": 254,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.7319479184152442e-14,
+     "finite": true,
+     "medianMs": 60.600055999999995,
+     "minMs": 60.536336000000006,
+     "maxMs": 63.31072800000004
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 2.0872192862952943e-14,
+     "finite": true,
+     "medianMs": 3.249268000000029,
+     "minMs": 3.193983000000003,
+     "maxMs": 3.289662999999905
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.6431300764452317e-14,
+    "bitIdenticalOutputs": 145,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "decode-kv256",
+   "seq": 1,
+   "kv": 256,
+   "start": 255,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.6542323066914832e-14,
+     "finite": true,
+     "medianMs": 60.71774800000003,
+     "minMs": 60.70832100000007,
+     "maxMs": 63.21474599999999
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.1102230246251565e-14,
+     "finite": true,
+     "medianMs": 3.7538979999999356,
+     "minMs": 3.728711999999973,
+     "maxMs": 3.8343099999999595
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.3322676295501878e-14,
+    "bitIdenticalOutputs": 125,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "decode-kv257",
+   "seq": 1,
+   "kv": 257,
+   "start": 256,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.5765166949677223e-14,
+     "finite": true,
+     "medianMs": 63.46525800000006,
+     "minMs": 62.386404000000084,
+     "maxMs": 65.53406099999984
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 2.1094237467877974e-14,
+     "finite": true,
+     "medianMs": 3.8558509999998023,
+     "minMs": 3.841084000000137,
+     "maxMs": 3.957844000000023
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 2.3592239273284576e-14,
+    "bitIdenticalOutputs": 126,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "decode-kv317",
+   "seq": 1,
+   "kv": 317,
+   "start": 316,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 2.6201263381153694e-14,
+     "finite": true,
+     "medianMs": 75.22896199999991,
+     "minMs": 75.18121199999996,
+     "maxMs": 78.39050399999996
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 2.220446049250313e-14,
+     "finite": true,
+     "medianMs": 4.428230999999869,
+     "minMs": 4.427269000000024,
+     "maxMs": 4.509364000000005
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 2.1316282072803006e-14,
+    "bitIdenticalOutputs": 145,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "decode-kv600",
+   "seq": 1,
+   "kv": 600,
+   "start": 599,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.5987211554602254e-14,
+     "finite": true,
+     "medianMs": 142.878512,
+     "minMs": 142.8232170000001,
+     "maxMs": 146.4126560000002
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.837419105754634e-14,
+     "finite": true,
+     "medianMs": 7.913772999999992,
+     "minMs": 7.869179000000031,
+     "maxMs": 7.995185999999876
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.687538997430238e-14,
+    "bitIdenticalOutputs": 70,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "prefill16-start0",
+   "seq": 16,
+   "kv": 16,
+   "start": 0,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.4876988529977098e-14,
+     "finite": true,
+     "medianMs": 3.5237449999999626,
+     "minMs": 3.41590199999996,
+     "maxMs": 4.381521999999904
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 3.26405569239796e-14,
+     "finite": true,
+     "medianMs": 1.010564999999815,
+     "minMs": 1.0022300000000541,
+     "maxMs": 1.0541980000000422
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 2.220446049250313e-14,
+    "bitIdenticalOutputs": 10137,
+    "outputs": 32768
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "prefill16-start48",
+   "seq": 16,
+   "kv": 64,
+   "start": 48,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.7763568394002505e-14,
+     "finite": true,
+     "medianMs": 14.807692999999972,
+     "minMs": 14.757929999999988,
+     "maxMs": 15.130100999999968
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 2.7755575615628914e-14,
+     "finite": true,
+     "medianMs": 1.7303329999999733,
+     "minMs": 1.7299619999998868,
+     "maxMs": 1.8159339999999702
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 2.6645352591003757e-14,
+    "bitIdenticalOutputs": 3276,
+    "outputs": 32768
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "prefill16-start176",
+   "seq": 16,
+   "kv": 192,
+   "start": 176,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 2.786659791809143e-14,
+     "finite": true,
+     "medianMs": 44.45784599999979,
+     "minMs": 44.2869639999999,
+     "maxMs": 49.66140900000005
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 2.8754776337791554e-14,
+     "finite": true,
+     "medianMs": 4.630471999999827,
+     "minMs": 4.057842000000164,
+     "maxMs": 16.863090000000284
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 2.9531932455029164e-14,
+    "bitIdenticalOutputs": 2066,
+    "outputs": 32768
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "prefill8-start176",
+   "seq": 8,
+   "kv": 184,
+   "start": 176,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 2.4646951146678475e-14,
+     "finite": true,
+     "medianMs": 43.500700999999935,
+     "minMs": 43.1517530000001,
+     "maxMs": 43.81448300000011
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 2.2315482794965646e-14,
+     "finite": true,
+     "medianMs": 2.7263709999997445,
+     "minMs": 2.6970249999999396,
+     "maxMs": 4.096474999999828
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 2.220446049250313e-14,
+    "bitIdenticalOutputs": 1091,
+    "outputs": 16384
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "prefill16-start584",
+   "seq": 16,
+   "kv": 600,
+   "start": 584,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.086420008457935e-14,
+     "finite": true,
+     "medianMs": 136.580465,
+     "minMs": 135.50657,
+     "maxMs": 138.64313399999992
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 3.2085445411667024e-14,
+     "finite": true,
+     "medianMs": 12.535408999999618,
+     "minMs": 12.484091999999691,
+     "maxMs": 12.672256000000289
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 2.9753977059954195e-14,
+    "bitIdenticalOutputs": 1550,
+    "outputs": 32768
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "decode-kv300-peaked",
+   "seq": 1,
+   "kv": 300,
+   "start": 299,
+   "keySpread": 24,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 2.859491162570692e-14,
+     "finite": true,
+     "medianMs": 70.87971000000016,
+     "minMs": 70.86528300000009,
+     "maxMs": 72.79436100000021
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 3.752553823233029e-14,
+     "finite": true,
+     "medianMs": 3.7583380000000943,
+     "minMs": 3.7568240000000515,
+     "maxMs": 3.870318000000225
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 5.3290705182007514e-14,
+    "bitIdenticalOutputs": 438,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "window-kv9",
+   "seq": 1,
+   "kv": 9,
+   "start": 8,
+   "window": 3,
+   "kvStart": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.0111225531677624e-14,
+     "finite": true,
+     "medianMs": 0.8035359999998946,
+     "minMs": 0.7862230000000636,
+     "maxMs": 0.855923999999959
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.4099832412739488e-14,
+     "finite": true,
+     "medianMs": 0.7701220000003559,
+     "minMs": 0.7685489999998936,
+     "maxMs": 0.8009799999999814
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 2.4868995751603507e-14,
+    "bitIdenticalOutputs": 751,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "kvstart4-kv3",
+   "seq": 1,
+   "kv": 3,
+   "start": 0,
+   "kvStart": 4,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 0,
+     "finite": true,
+     "medianMs": 0.053179999999883876,
+     "minMs": 0.05239900000015041,
+     "maxMs": 0.1136940000001232
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 0,
+     "finite": true,
+     "medianMs": 0.04264999999986685,
+     "minMs": 0.042330000000220025,
+     "maxMs": 0.08294599999999264
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 0,
+    "bitIdenticalOutputs": 2048,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "noncausal-seq3-kv7",
+   "seq": 3,
+   "kv": 7,
+   "start": 4,
+   "causal": 0,
+   "kvStart": 0,
+   "window": 0,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.6986412276764895e-14,
+     "finite": true,
+     "medianMs": 1.710725999999795,
+     "minMs": 1.6502110000001267,
+     "maxMs": 2.183958000000075
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 2.1316282072803006e-14,
+     "finite": true,
+     "medianMs": 0.8737980000000789,
+     "minMs": 0.8733270000002449,
+     "maxMs": 1.017229000000043
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.509903313490213e-14,
+    "bitIdenticalOutputs": 773,
+    "outputs": 6144
+   },
+   "errorsSoFar": 0
+  }
+ ],
+ "errors": [],
+ "adapter": {
+  "vendor": "amd",
+  "architecture": "rdna-3",
+  "description": "radv: Mesa 26.0.3-1ubuntu1"
+ },
+ "compile": {
+  "shipped": {
+   "ms": 10.683676999999989
+  },
+  "candidate": {
+   "ms": 10.952122000000003
+  }
+ },
+ "finishedAt": "2026-10-14T22:11:13.616Z"
+}

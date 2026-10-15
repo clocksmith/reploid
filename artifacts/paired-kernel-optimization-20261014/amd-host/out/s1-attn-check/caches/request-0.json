@@ -1,0 +1,55 @@
+{
+ "label": "tiled paired attention (Capsule TargetPlan runtime config)",
+ "request": 0,
+ "dataSha256": "sha256:7665150b60bed5250bf69bb158ced3627483848d0285172d30a4a64470d9dce5",
+ "layers": [
+  {
+   "layer": 3,
+   "seqLen": 20,
+   "numHeads": 2,
+   "headDim": 256,
+   "keySha256": "bd2efba068329d39222e0f708c3904b59cef04530f0369d85ad8d7aa182af622",
+   "valueSha256": "4fe94766aa6af9d8c95733216adc8ac2fe5c7df66e9aa46202421aa43c921880"
+  },
+  {
+   "layer": 7,
+   "seqLen": 20,
+   "numHeads": 2,
+   "headDim": 256,
+   "keySha256": "8ef893e51585327a84fb2af415f7ddc9fb2dfb8397ea34e0b1503119ea8ba54c",
+   "valueSha256": "bc760e9bb40f5809ee1f192b86096090374d53ff54de00f78d377456899dc74c"
+  },
+  {
+   "layer": 11,
+   "seqLen": 20,
+   "numHeads": 2,
+   "headDim": 256,
+   "keySha256": "7fa4b214feb77b1af2777233d36ed7b8bf333905592c5f16ddebcfd1e7705494",
+   "valueSha256": "1894653e14a5c1b41c7143660117c8ee318e81f5fc22e84c0aa2476d4b8e3ee1"
+  },
+  {
+   "layer": 15,
+   "seqLen": 20,
+   "numHeads": 2,
+   "headDim": 256,
+   "keySha256": "1b288190843e0f4406093ab4dc8ace67898dde2c260c22b382a82d5a2b683ad9",
+   "valueSha256": "5cc9ae6f2350f3ab8f38fabefa73013cbfea39b94a1190a9b425adc1ae58f5c7"
+  },
+  {
+   "layer": 19,
+   "seqLen": 20,
+   "numHeads": 2,
+   "headDim": 256,
+   "keySha256": "780d49b7ed9f5e54188c5d40c67f64dfb18362acf9398b84a8b8bd422b50cfd8",
+   "valueSha256": "5b5d0f9487e65ec201177d69bff163139e079908cafb3a9552f570aedc085d57"
+  },
+  {
+   "layer": 23,
+   "seqLen": 20,
+   "numHeads": 2,
+   "headDim": 256,
+   "keySha256": "a616f1e690f4d18641d04d40e876bdb84e2ef1412d42c7ffda08b8efb1bbd420",
+   "valueSha256": "4693335888f3d780dba1a75e57c34a300fb7a0e8281f9ff349e96ccdab5d8831"
+  }
+ ]
+}

@@ -1,0 +1,1788 @@
+{
+ "schema": "reploid.paired-attention-kernel-check/v2",
+ "startedAt": "2026-10-14T22:18:05.200Z",
+ "sources": {
+  "shipped": {
+   "path": "/var/tmp/reploid-signed-completion-9-20261014/reploid/node_modules/doppler-gpu/src/gpu/kernels/attention_paired.wgsl",
+   "sha256": "78d22e268b2d8d5681e46c4bcd196b78777bde00eeeb06639180db86b44e7358"
+  },
+  "candidate": {
+   "path": "pkg-attn-0617dbf5/node_modules/doppler-gpu/src/gpu/kernels/attention_paired_tiled.wgsl",
+   "sha256": "909aae38aefc27ce6aa1b389756df1ee639310b0936ae121b82b32e19c97c45a"
+  }
+ },
+ "candidateConstants": {
+  "WORKGROUP_SIZE": 256,
+  "DOT_LANES": 4
+ },
+ "repeats": 3,
+ "geometry": {
+  "heads": 8,
+  "kvHeads": 2,
+  "headDim": 256,
+  "scale": 0.0625
+ },
+ "cases": [
+  {
+   "name": "decode-kv1",
+   "seq": 1,
+   "kv": 1,
+   "start": 0,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 0,
+     "maxMagnitudeRelativeErrorVsF64": 0,
+     "finite": true,
+     "medianMs": 0.24225699999999506,
+     "minMs": 0.20305300000001125,
+     "maxMs": 0.7400850000000077
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 0,
+     "maxMagnitudeRelativeErrorVsF64": 0,
+     "finite": true,
+     "medianMs": 0.5053729999999916,
+     "minMs": 0.4493670000000094,
+     "maxMs": 0.5151310000000109
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 0,
+    "maxRelativeDifference": 0,
+    "maxMagnitudeRelativeDifference": 0,
+    "bitIdenticalOutputs": 2048,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "decode-kv57",
+   "seq": 1,
+   "kv": 57,
+   "start": 56,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.4876988529977098e-14,
+     "maxMagnitudeRelativeErrorVsF64": 2.4797721966071116e-12,
+     "finite": true,
+     "medianMs": 14.022148999999985,
+     "minMs": 13.802785,
+     "maxMs": 14.607653000000013
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.7263968032921184e-14,
+     "maxMagnitudeRelativeErrorVsF64": 2.365588491858436e-12,
+     "finite": true,
+     "medianMs": 1.3503059999999891,
+     "minMs": 1.3311999999999955,
+     "maxMs": 1.4293049999999994
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 1.1624887053239532e-14,
+    "maxMagnitudeRelativeDifference": 4.845360688453532e-12,
+    "bitIdenticalOutputs": 242,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "decode-kv72",
+   "seq": 1,
+   "kv": 72,
+   "start": 71,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.284781580660763e-14,
+     "maxMagnitudeRelativeErrorVsF64": 2.0500050692452656e-11,
+     "finite": true,
+     "medianMs": 17.312261999999976,
+     "minMs": 17.274381000000005,
+     "maxMs": 18.405774000000008
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.84297022087776e-14,
+     "maxMagnitudeRelativeErrorVsF64": 5.2506404813007506e-11,
+     "finite": true,
+     "medianMs": 1.6237020000000086,
+     "minMs": 1.610636999999997,
+     "maxMs": 1.6744070000000022
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 2.353672812205332e-14,
+    "maxRelativeDifference": 2.353672812205332e-14,
+    "maxMagnitudeRelativeDifference": 3.200635411989872e-11,
+    "bitIdenticalOutputs": 262,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "decode-kv128",
+   "seq": 1,
+   "kv": 128,
+   "start": 127,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.4432899320127035e-14,
+     "maxMagnitudeRelativeErrorVsF64": 3.282110250270205e-11,
+     "finite": true,
+     "medianMs": 31.12381399999998,
+     "minMs": 30.648528,
+     "maxMs": 31.704589
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.3766765505351941e-14,
+     "maxMagnitudeRelativeErrorVsF64": 1.793125435649885e-11,
+     "finite": true,
+     "medianMs": 1.958923000000027,
+     "minMs": 1.9439160000000015,
+     "maxMs": 2.059853999999973
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.5987211554602254e-14,
+    "maxRelativeDifference": 1.5987211554602254e-14,
+    "maxMagnitudeRelativeDifference": 3.6309834398332226e-11,
+    "bitIdenticalOutputs": 185,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "decode-kv234",
+   "seq": 1,
+   "kv": 234,
+   "start": 233,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.3211653993039363e-14,
+     "maxMagnitudeRelativeErrorVsF64": 1.9856488034724627e-11,
+     "finite": true,
+     "medianMs": 58.04486400000002,
+     "minMs": 56.40116499999999,
+     "maxMs": 63.881467999999984
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.6209256159527285e-14,
+     "maxMagnitudeRelativeErrorVsF64": 6.2470628602124464e-12,
+     "finite": true,
+     "medianMs": 3.0621740000000273,
+     "minMs": 3.0600899999999456,
+     "maxMs": 3.1389179999999897
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.6209256159527285e-14,
+    "maxRelativeDifference": 1.6209256159527285e-14,
+    "maxMagnitudeRelativeDifference": 2.017638188619975e-11,
+    "bitIdenticalOutputs": 113,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "decode-kv255",
+   "seq": 1,
+   "kv": 255,
+   "start": 254,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.7319479184152442e-14,
+     "maxMagnitudeRelativeErrorVsF64": 4.002177636807804e-11,
+     "finite": true,
+     "medianMs": 60.67150599999991,
+     "minMs": 60.64749100000006,
+     "maxMs": 62.84031600000003
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 2.0872192862952943e-14,
+     "maxMagnitudeRelativeErrorVsF64": 1.0516385322372454e-9,
+     "finite": true,
+     "medianMs": 3.1835519999999633,
+     "minMs": 3.1770500000000084,
+     "maxMs": 3.2579729999999927
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.6431300764452317e-14,
+    "maxRelativeDifference": 1.6431300764452317e-14,
+    "maxMagnitudeRelativeDifference": 1.0116167558286807e-9,
+    "bitIdenticalOutputs": 145,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "decode-kv256",
+   "seq": 1,
+   "kv": 256,
+   "start": 255,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.6542323066914832e-14,
+     "maxMagnitudeRelativeErrorVsF64": 2.1384720855094127e-12,
+     "finite": true,
+     "medianMs": 60.94638500000008,
+     "minMs": 60.79887599999995,
+     "maxMs": 63.26552700000002
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.1102230246251565e-14,
+     "maxMagnitudeRelativeErrorVsF64": 2.911181680857365e-12,
+     "finite": true,
+     "medianMs": 3.7792859999999564,
+     "minMs": 3.724572999999964,
+     "maxMs": 3.8487969999999905
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.3322676295501878e-14,
+    "maxRelativeDifference": 1.3322676295501878e-14,
+    "maxMagnitudeRelativeDifference": 2.872432482531334e-12,
+    "bitIdenticalOutputs": 125,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "decode-kv257",
+   "seq": 1,
+   "kv": 257,
+   "start": 256,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.5765166949677223e-14,
+     "maxMagnitudeRelativeErrorVsF64": 9.089581485985022e-11,
+     "finite": true,
+     "medianMs": 61.42437599999994,
+     "minMs": 61.37601399999994,
+     "maxMs": 63.670420000000036
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 2.1094237467877974e-14,
+     "maxMagnitudeRelativeErrorVsF64": 1.9500488415420094e-10,
+     "finite": true,
+     "medianMs": 3.862321999999949,
+     "minMs": 3.8348399999999856,
+     "maxMs": 3.9133589999999003
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 2.3592239273284576e-14,
+    "maxRelativeDifference": 2.3592239273284576e-14,
+    "maxMagnitudeRelativeDifference": 1.041090693038138e-10,
+    "bitIdenticalOutputs": 126,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "decode-kv317",
+   "seq": 1,
+   "kv": 317,
+   "start": 316,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 2.6201263381153694e-14,
+     "maxMagnitudeRelativeErrorVsF64": 3.97927955984491e-12,
+     "finite": true,
+     "medianMs": 75.20522899999992,
+     "minMs": 75.17590399999995,
+     "maxMs": 78.58348000000001
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 2.220446049250313e-14,
+     "maxMagnitudeRelativeErrorVsF64": 1.0127592491125974e-11,
+     "finite": true,
+     "medianMs": 4.386471000000029,
+     "minMs": 4.356915000000072,
+     "maxMs": 4.502369000000044
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 2.1316282072803006e-14,
+    "maxRelativeDifference": 2.1316282072803006e-14,
+    "maxMagnitudeRelativeDifference": 1.2619955013657627e-11,
+    "bitIdenticalOutputs": 145,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "decode-kv600",
+   "seq": 1,
+   "kv": 600,
+   "start": 599,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.5987211554602254e-14,
+     "maxMagnitudeRelativeErrorVsF64": 6.233867494417031e-12,
+     "finite": true,
+     "medianMs": 142.86644499999989,
+     "minMs": 142.80761399999983,
+     "maxMs": 146.95562499999983
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.837419105754634e-14,
+     "maxMagnitudeRelativeErrorVsF64": 8.943017334664326e-12,
+     "finite": true,
+     "medianMs": 7.901728999999932,
+     "minMs": 7.842788000000155,
+     "maxMs": 7.908750999999938
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.687538997430238e-14,
+    "maxRelativeDifference": 1.687538997430238e-14,
+    "maxMagnitudeRelativeDifference": 8.367305739661039e-12,
+    "bitIdenticalOutputs": 70,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "uniform-decode-kv63",
+   "profile": "uniform",
+   "seq": 1,
+   "kv": 63,
+   "start": 62,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.2989609388114332e-14,
+     "maxMagnitudeRelativeErrorVsF64": 9.276606672141115e-13,
+     "finite": true,
+     "medianMs": 15.95584400000007,
+     "minMs": 14.861081000000013,
+     "maxMs": 18.088115000000016
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.0131408248710371e-14,
+     "maxMagnitudeRelativeErrorVsF64": 2.428803304377239e-12,
+     "finite": true,
+     "medianMs": 1.3454270000001998,
+     "minMs": 1.3312499999999545,
+     "maxMs": 1.9791210000000774
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.199040866595169e-14,
+    "maxRelativeDifference": 1.0309120118827596e-14,
+    "maxMagnitudeRelativeDifference": 2.2198389057081005e-12,
+    "bitIdenticalOutputs": 197,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "uniform-decode-kv64",
+   "profile": "uniform",
+   "seq": 1,
+   "kv": 64,
+   "start": 63,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.3766765505351941e-14,
+     "maxMagnitudeRelativeErrorVsF64": 2.171280648520621e-12,
+     "finite": true,
+     "medianMs": 15.562262999999803,
+     "minMs": 15.230105999999978,
+     "maxMs": 16.397838000000093
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.9678480952213416e-14,
+     "maxMagnitudeRelativeErrorVsF64": 6.657196382861891e-12,
+     "finite": true,
+     "medianMs": 1.383618999999726,
+     "minMs": 1.3624789999998939,
+     "maxMs": 1.4329510000002301
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.7763568394002505e-14,
+    "maxRelativeDifference": 1.75013597065981e-14,
+    "maxMagnitudeRelativeDifference": 4.485915734331529e-12,
+    "bitIdenticalOutputs": 119,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "uniform-decode-kv65",
+   "profile": "uniform",
+   "seq": 1,
+   "kv": 65,
+   "start": 64,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.27675647831893e-14,
+     "maxMagnitudeRelativeErrorVsF64": 4.2970751637400545e-12,
+     "finite": true,
+     "medianMs": 15.678531999999905,
+     "minMs": 15.618649000000005,
+     "maxMs": 16.65500299999985
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.6431300764452317e-14,
+     "maxMagnitudeRelativeErrorVsF64": 6.002973085196738e-12,
+     "finite": true,
+     "medianMs": 1.5862010000000737,
+     "minMs": 1.5790769999998702,
+     "maxMs": 1.6319170000001577
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.2434497875801753e-14,
+    "maxRelativeDifference": 1.2434497875801753e-14,
+    "maxMagnitudeRelativeDifference": 7.068379355006977e-12,
+    "bitIdenticalOutputs": 219,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "uniform-decode-kv254",
+   "profile": "uniform",
+   "seq": 1,
+   "kv": 254,
+   "start": 253,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.4210854715202004e-14,
+     "maxMagnitudeRelativeErrorVsF64": 4.534095664985993e-12,
+     "finite": true,
+     "medianMs": 61.5274000000004,
+     "minMs": 60.70142299999998,
+     "maxMs": 62.609570000000076
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.3433698597964394e-14,
+     "maxMagnitudeRelativeErrorVsF64": 9.798801211133496e-12,
+     "finite": true,
+     "medianMs": 3.1654389999998784,
+     "minMs": 3.1634350000003906,
+     "maxMs": 3.26079800000025
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 1.4210854715202004e-14,
+    "maxMagnitudeRelativeDifference": 5.264705546123632e-12,
+    "bitIdenticalOutputs": 158,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "uniform-decode-kv255",
+   "profile": "uniform",
+   "seq": 1,
+   "kv": 255,
+   "start": 254,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.1324274851176597e-14,
+     "maxMagnitudeRelativeErrorVsF64": 5.829477343955161e-11,
+     "finite": true,
+     "medianMs": 61.077070999999705,
+     "minMs": 61.06194199999982,
+     "maxMs": 62.92572599999994
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.3378187446733136e-14,
+     "maxMagnitudeRelativeErrorVsF64": 4.3276940313403744e-11,
+     "finite": true,
+     "medianMs": 3.194242999999915,
+     "minMs": 3.1858659999998054,
+     "maxMs": 3.3434339999998883
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.6431300764452317e-14,
+    "maxRelativeDifference": 1.6431300764452317e-14,
+    "maxMagnitudeRelativeDifference": 1.501783312527241e-11,
+    "bitIdenticalOutputs": 167,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "uniform-decode-kv256",
+   "profile": "uniform",
+   "seq": 1,
+   "kv": 256,
+   "start": 255,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 2.1760371282653068e-14,
+     "maxMagnitudeRelativeErrorVsF64": 5.6996211819569795e-11,
+     "finite": true,
+     "medianMs": 62.70096199999989,
+     "minMs": 61.416040000000066,
+     "maxMs": 62.74785100000008
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.9206858326015208e-14,
+     "maxMagnitudeRelativeErrorVsF64": 6.425296630373297e-11,
+     "finite": true,
+     "medianMs": 3.7790649999997186,
+     "minMs": 3.757264999999734,
+     "maxMs": 3.8727819999999156
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 2.4868995751603507e-14,
+    "maxRelativeDifference": 2.4868995751603507e-14,
+    "maxMagnitudeRelativeDifference": 1.2980818249711242e-11,
+    "bitIdenticalOutputs": 109,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "uniform-decode-kv509",
+   "profile": "uniform",
+   "seq": 1,
+   "kv": 509,
+   "start": 508,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 2.181715234317176e-14,
+     "maxMagnitudeRelativeErrorVsF64": 1.7766805190977581e-12,
+     "finite": true,
+     "medianMs": 121.14696299999969,
+     "minMs": 121.0984510000003,
+     "maxMs": 125.35998599999994
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 2.181715234317176e-14,
+     "maxMagnitudeRelativeErrorVsF64": 6.924017720860971e-12,
+     "finite": true,
+     "medianMs": 6.352808999999979,
+     "minMs": 6.301692000000003,
+     "maxMs": 7.00095999999985
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 2.2315482794965646e-14,
+    "maxRelativeDifference": 2.2315482794965646e-14,
+    "maxMagnitudeRelativeDifference": 8.055654867466474e-12,
+    "bitIdenticalOutputs": 103,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "uniform-decode-kv510",
+   "profile": "uniform",
+   "seq": 1,
+   "kv": 510,
+   "start": 509,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.84297022087776e-14,
+     "maxMagnitudeRelativeErrorVsF64": 3.009320112712646e-11,
+     "finite": true,
+     "medianMs": 121.44728899999973,
+     "minMs": 121.38522199999989,
+     "maxMs": 125.54158900000039
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.354472090042691e-14,
+     "maxMagnitudeRelativeErrorVsF64": 2.5529158111160744e-11,
+     "finite": true,
+     "medianMs": 6.340534999999818,
+     "minMs": 6.298155999999835,
+     "maxMs": 6.352617999999893
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 2.398081733190338e-14,
+    "maxRelativeDifference": 2.398081733190338e-14,
+    "maxMagnitudeRelativeDifference": 5.562235923996106e-11,
+    "bitIdenticalOutputs": 96,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "uniform-decode-kv511",
+   "profile": "uniform",
+   "seq": 1,
+   "kv": 511,
+   "start": 510,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.1657341758564144e-14,
+     "maxMagnitudeRelativeErrorVsF64": 1.6605786601578137e-11,
+     "finite": true,
+     "medianMs": 123.41519900000003,
+     "minMs": 122.243109,
+     "maxMs": 125.46324200000026
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.2656542480726785e-14,
+     "maxMagnitudeRelativeErrorVsF64": 6.7045906512448e-11,
+     "finite": true,
+     "medianMs": 6.937090000000353,
+     "minMs": 6.861678000000211,
+     "maxMs": 8.112285000000156
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 1.4210854715202004e-14,
+    "maxMagnitudeRelativeDifference": 5.529189427961449e-11,
+    "bitIdenticalOutputs": 81,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "uniform-prefill16-start248",
+   "profile": "uniform",
+   "seq": 16,
+   "kv": 264,
+   "start": 248,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.064215547965432e-14,
+     "maxMagnitudeRelativeErrorVsF64": 8.496785439114289e-11,
+     "finite": true,
+     "medianMs": 60.426423999999315,
+     "minMs": 60.11880400000018,
+     "maxMs": 61.062503000000106
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 2.8847170352683065e-14,
+     "maxMagnitudeRelativeErrorVsF64": 1.3525612904694657e-10,
+     "finite": true,
+     "medianMs": 6.110961999999745,
+     "minMs": 6.087478000000374,
+     "maxMs": 6.133975999999166
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 2.55351295663786e-14,
+    "maxRelativeDifference": 2.55351295663786e-14,
+    "maxMagnitudeRelativeDifference": 1.8145135839622386e-10,
+    "bitIdenticalOutputs": 2153,
+    "outputs": 32768
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "wide-decode-kv63",
+   "profile": "wide",
+   "seq": 1,
+   "kv": 63,
+   "start": 62,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.640115666169722e-15,
+     "maxMagnitudeRelativeErrorVsF64": 4.979319341502357e-13,
+     "finite": true,
+     "medianMs": 15.191534000000502,
+     "minMs": 15.122564000000239,
+     "maxMs": 16.32987999999932
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 3.640115666169722e-15,
+     "maxMagnitudeRelativeErrorVsF64": 6.529946377556001e-13,
+     "finite": true,
+     "medianMs": 1.1628520000003846,
+     "minMs": 1.142453999999816,
+     "maxMs": 1.2280350000000908
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 3.3223551972978144e-15,
+    "maxMagnitudeRelativeDifference": 1.550627036052872e-13,
+    "bitIdenticalOutputs": 1639,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "wide-decode-kv64",
+   "profile": "wide",
+   "seq": 1,
+   "kv": 64,
+   "start": 63,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 6.726346333537253e-13,
+     "maxMagnitudeRelativeErrorVsF64": 5.118330989725289e-11,
+     "finite": true,
+     "medianMs": 15.135247999999592,
+     "minMs": 15.001584999999977,
+     "maxMs": 15.892555000000357
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 6.726346333537253e-13,
+     "maxMagnitudeRelativeErrorVsF64": 5.118330989725289e-11,
+     "finite": true,
+     "medianMs": 1.2087490000003527,
+     "minMs": 1.2036299999999756,
+     "maxMs": 1.2391859999997905
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.8474111129762605e-13,
+    "maxRelativeDifference": 1.5365486660812167e-13,
+    "maxMagnitudeRelativeDifference": 3.348713801053798e-11,
+    "bitIdenticalOutputs": 1303,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "wide-decode-kv65",
+   "profile": "wide",
+   "seq": 1,
+   "kv": 65,
+   "start": 64,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.086420008457935e-13,
+     "maxMagnitudeRelativeErrorVsF64": 1.1101276368373059e-10,
+     "finite": true,
+     "medianMs": 15.467685000000529,
+     "minMs": 15.361062999999376,
+     "maxMs": 16.54783099999986
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 5.963007865261716e-13,
+     "maxMagnitudeRelativeErrorVsF64": 8.486922887880113e-12,
+     "finite": true,
+     "medianMs": 1.433973000000151,
+     "minMs": 1.4038470000004963,
+     "maxMs": 1.502212999999756
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 7.673861546209082e-13,
+    "maxRelativeDifference": 5.062616992290714e-13,
+    "maxMagnitudeRelativeDifference": 1.142328640553377e-10,
+    "bitIdenticalOutputs": 1060,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "wide-decode-kv254",
+   "profile": "wide",
+   "seq": 1,
+   "kv": 254,
+   "start": 253,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.563073911516482e-12,
+     "maxMagnitudeRelativeErrorVsF64": 3.402099571229714e-11,
+     "finite": true,
+     "medianMs": 59.43343200000072,
+     "minMs": 59.404787999999826,
+     "maxMs": 61.46044299999994
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 2.7949864644938316e-14,
+     "maxMagnitudeRelativeErrorVsF64": 6.041049143242781e-12,
+     "finite": true,
+     "medianMs": 2.2912999999998647,
+     "minMs": 2.2852389999998195,
+     "maxMs": 2.347797000000355
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 2.5011104298755527e-12,
+    "maxRelativeDifference": 1.585632151021542e-12,
+    "maxMagnitudeRelativeDifference": 3.471472366610356e-11,
+    "bitIdenticalOutputs": 1730,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "wide-decode-kv255",
+   "profile": "wide",
+   "seq": 1,
+   "kv": 255,
+   "start": 254,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.405799969074794e-13,
+     "maxMagnitudeRelativeErrorVsF64": 1.1494656218882656e-11,
+     "finite": true,
+     "medianMs": 60.001563000000715,
+     "minMs": 59.98465099999976,
+     "maxMs": 61.984231000000364
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 3.390943698762581e-13,
+     "maxMagnitudeRelativeErrorVsF64": 3.4911345291641576e-11,
+     "finite": true,
+     "medianMs": 2.3768010000003414,
+     "minMs": 2.3622940000004746,
+     "maxMs": 2.4831120000008013
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 6.195044477408373e-14,
+    "maxRelativeDifference": 6.195044477408373e-14,
+    "maxMagnitudeRelativeDifference": 3.213596637733248e-11,
+    "bitIdenticalOutputs": 1289,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "wide-decode-kv256",
+   "profile": "wide",
+   "seq": 1,
+   "kv": 256,
+   "start": 255,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 6.961098364399732e-14,
+     "maxMagnitudeRelativeErrorVsF64": 9.514005727645089e-12,
+     "finite": true,
+     "medianMs": 60.99409400000059,
+     "minMs": 59.883200000000215,
+     "maxMs": 62.075362999999925
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 4.984901380566953e-14,
+     "maxMagnitudeRelativeErrorVsF64": 6.800059995401976e-12,
+     "finite": true,
+     "medianMs": 2.7958019999996395,
+     "minMs": 2.78975999999966,
+     "maxMs": 2.9169900000006237
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.2789769243681803e-13,
+    "maxRelativeDifference": 1.1945999744966684e-13,
+    "maxMagnitudeRelativeDifference": 1.6314065723202278e-11,
+    "bitIdenticalOutputs": 1149,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "wide-decode-kv509",
+   "profile": "wide",
+   "seq": 1,
+   "kv": 509,
+   "start": 508,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 2.774447338538266e-13,
+     "maxMagnitudeRelativeErrorVsF64": 8.414985594371442e-12,
+     "finite": true,
+     "medianMs": 118.84148599999935,
+     "minMs": 118.76040199999989,
+     "maxMs": 122.63178199999948
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.6303625116620424e-12,
+     "maxMagnitudeRelativeErrorVsF64": 4.885493052072503e-11,
+     "finite": true,
+     "medianMs": 4.646321000000171,
+     "minMs": 4.483935000000201,
+     "maxMs": 5.140121999999792
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 2.644995333866973e-12,
+    "maxRelativeDifference": 1.907807245515869e-12,
+    "maxMagnitudeRelativeDifference": 5.7269916115578396e-11,
+    "bitIdenticalOutputs": 1568,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "wide-decode-kv510",
+   "profile": "wide",
+   "seq": 1,
+   "kv": 510,
+   "start": 509,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.618216837253385e-13,
+     "maxMagnitudeRelativeErrorVsF64": 1.5981898980175846e-10,
+     "finite": true,
+     "medianMs": 119.31816499999968,
+     "minMs": 119.29337699999996,
+     "maxMs": 122.14397300000019
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 9.728538565229307e-13,
+     "maxMagnitudeRelativeErrorVsF64": 1.0872785445680837e-10,
+     "finite": true,
+     "medianMs": 4.476098999999522,
+     "minMs": 4.451302999999825,
+     "maxMs": 4.637094000000616
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 3.069544618483633e-12,
+    "maxRelativeDifference": 1.1572964808692632e-12,
+    "maxMagnitudeRelativeDifference": 5.699267402810822e-11,
+    "bitIdenticalOutputs": 782,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "wide-decode-kv511",
+   "profile": "wide",
+   "seq": 1,
+   "kv": 511,
+   "start": 510,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.460733973388469e-14,
+     "maxMagnitudeRelativeErrorVsF64": 1.1990034572958209e-12,
+     "finite": true,
+     "medianMs": 119.43479500000012,
+     "minMs": 119.30900600000041,
+     "maxMs": 123.2440459999998
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 2.55351295663786e-14,
+     "maxMagnitudeRelativeErrorVsF64": 1.739957205567439e-12,
+     "finite": true,
+     "medianMs": 4.911399999999958,
+     "minMs": 4.885190999999395,
+     "maxMs": 4.977245000000039
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 5.684341886080802e-14,
+    "maxRelativeDifference": 1.1338152638984411e-14,
+    "maxMagnitudeRelativeDifference": 1.7428887650361313e-12,
+    "bitIdenticalOutputs": 1317,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "wide-prefill16-start248",
+   "profile": "wide",
+   "seq": 16,
+   "kv": 264,
+   "start": 248,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 8.994113702453248e-13,
+     "maxMagnitudeRelativeErrorVsF64": 1.8993115506652777e-10,
+     "finite": true,
+     "medianMs": 58.110617000000275,
+     "minMs": 58.08988899999986,
+     "maxMs": 60.3336589999999
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.787459069646502e-12,
+     "maxMagnitudeRelativeErrorVsF64": 3.329992120415846e-10,
+     "finite": true,
+     "medianMs": 4.5631640000001426,
+     "minMs": 4.547142999999778,
+     "maxMs": 4.684843000000001
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 2.369660023759934e-12,
+    "maxRelativeDifference": 1.6613377340490842e-12,
+    "maxMagnitudeRelativeDifference": 2.65312995607298e-10,
+    "bitIdenticalOutputs": 18677,
+    "outputs": 32768
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "cancel-decode-kv63",
+   "profile": "cancel",
+   "seq": 1,
+   "kv": 63,
+   "start": 62,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.807581861967833e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.904718617441121e-12,
+     "finite": true,
+     "medianMs": 9.439688999999817,
+     "minMs": 9.378131999999823,
+     "maxMs": 10.436478000000534
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 3.497202527569243e-15,
+     "maxMagnitudeRelativeErrorVsF64": 8.703508756969447e-12,
+     "finite": true,
+     "medianMs": 0.9665830000003552,
+     "minMs": 0.9439899999997579,
+     "maxMs": 1.053436000000147
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 3.771288836773579e-15,
+    "maxRelativeDifference": 3.771288836773579e-15,
+    "maxMagnitudeRelativeDifference": 9.445174614885803e-12,
+    "bitIdenticalOutputs": 29,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "cancel-decode-kv64",
+   "profile": "cancel",
+   "seq": 1,
+   "kv": 64,
+   "start": 63,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.914818684853563e-15,
+     "maxMagnitudeRelativeErrorVsF64": 0.000009831961295909002,
+     "finite": true,
+     "medianMs": 9.518055999999888,
+     "minMs": 9.494972999999845,
+     "maxMs": 10.136191999999937
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 3.700180103214225e-15,
+     "maxMagnitudeRelativeErrorVsF64": 0.000004213085910732852,
+     "finite": true,
+     "medianMs": 1.01476300000013,
+     "minMs": 0.9442300000000614,
+     "maxMs": 1.8923779999995531
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 4.0974392966303206e-15,
+    "maxRelativeDifference": 4.0974392966303206e-15,
+    "maxMagnitudeRelativeDifference": 0.000009438775646608985,
+    "bitIdenticalOutputs": 4,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "cancel-decode-kv65",
+   "profile": "cancel",
+   "seq": 1,
+   "kv": 65,
+   "start": 64,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.9272777818102327e-15,
+     "maxMagnitudeRelativeErrorVsF64": 5.028776830470301e-12,
+     "finite": true,
+     "medianMs": 10.4353059999994,
+     "minMs": 9.660996000000523,
+     "maxMs": 14.117648999999801
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 3.4017927363905187e-15,
+     "maxMagnitudeRelativeErrorVsF64": 9.531565675285755e-12,
+     "finite": true,
+     "medianMs": 1.189052000000629,
+     "minMs": 1.1662189999997281,
+     "maxMs": 1.9813459999995757
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 4.045375145977914e-15,
+    "maxRelativeDifference": 4.045375145977914e-15,
+    "maxMagnitudeRelativeDifference": 9.70595954328504e-12,
+    "bitIdenticalOutputs": 17,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "cancel-decode-kv254",
+   "profile": "cancel",
+   "seq": 1,
+   "kv": 254,
+   "start": 253,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 7.890046920364885e-16,
+     "maxMagnitudeRelativeErrorVsF64": 9.069385639349591e-7,
+     "finite": true,
+     "medianMs": 37.6539359999997,
+     "minMs": 37.58560699999998,
+     "maxMs": 39.4753410000003
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.524378831273081e-15,
+     "maxMagnitudeRelativeErrorVsF64": 0.000001970434152428167,
+     "finite": true,
+     "medianMs": 2.8584299999993164,
+     "minMs": 2.857006999999612,
+     "maxMs": 2.9669139999996332
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.7947289840261962e-15,
+    "maxRelativeDifference": 1.7947289840261962e-15,
+    "maxMagnitudeRelativeDifference": 0.000002572509697676122,
+    "bitIdenticalOutputs": 1,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "cancel-decode-kv255",
+   "profile": "cancel",
+   "seq": 1,
+   "kv": 255,
+   "start": 254,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 8.334262099896073e-16,
+     "maxMagnitudeRelativeErrorVsF64": 8.929795141532078e-12,
+     "finite": true,
+     "medianMs": 37.91536999999971,
+     "minMs": 37.90364800000043,
+     "maxMs": 39.71440199999961
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.6898510585630633e-15,
+     "maxMagnitudeRelativeErrorVsF64": 1.898615472092608e-11,
+     "finite": true,
+     "medianMs": 2.7456670000001395,
+     "minMs": 2.7454170000000886,
+     "maxMs": 2.7818059999999605
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.824712256293104e-15,
+    "maxRelativeDifference": 1.824712256293104e-15,
+    "maxMagnitudeRelativeDifference": 2.067922034382582e-11,
+    "bitIdenticalOutputs": 9,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "cancel-decode-kv256",
+   "profile": "cancel",
+   "seq": 1,
+   "kv": 256,
+   "start": 255,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 7.269587742613924e-16,
+     "maxMagnitudeRelativeErrorVsF64": 0.000004733051870703921,
+     "finite": true,
+     "medianMs": 38.07857700000022,
+     "minMs": 37.999447999999575,
+     "maxMs": 39.84156200000052
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.7676980318620536e-15,
+     "maxMagnitudeRelativeErrorVsF64": 0.000004282285041634977,
+     "finite": true,
+     "medianMs": 3.165598999999929,
+     "minMs": 3.152825000000121,
+     "maxMs": 3.315360999999939
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 2.005358284739759e-15,
+    "maxRelativeDifference": 2.005358284739759e-15,
+    "maxMagnitudeRelativeDifference": 0.000009015379582598097,
+    "bitIdenticalOutputs": 0,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "cancel-decode-kv509",
+   "profile": "cancel",
+   "seq": 1,
+   "kv": 509,
+   "start": 508,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.354332428819664e-16,
+     "maxMagnitudeRelativeErrorVsF64": 1.2718245470899385e-11,
+     "finite": true,
+     "medianMs": 75.93126800000027,
+     "minMs": 75.90639200000078,
+     "maxMs": 78.4187979999997
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.1618310480354666e-15,
+     "maxMagnitudeRelativeErrorVsF64": 2.658869300316826e-11,
+     "finite": true,
+     "medianMs": 5.385725000000093,
+     "minMs": 5.375816000000668,
+     "maxMs": 5.464703000000554
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.2526871900897518e-15,
+    "maxRelativeDifference": 1.2526871900897518e-15,
+    "maxMagnitudeRelativeDifference": 3.125292520504221e-11,
+    "bitIdenticalOutputs": 8,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "cancel-decode-kv510",
+   "profile": "cancel",
+   "seq": 1,
+   "kv": 510,
+   "start": 509,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.642598254849493e-16,
+     "maxMagnitudeRelativeErrorVsF64": 0.000001373465283825866,
+     "finite": true,
+     "medianMs": 76.1699579999995,
+     "minMs": 76.1365650000007,
+     "maxMs": 78.61615999999958
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.0161873822759522e-15,
+     "maxMagnitudeRelativeErrorVsF64": 0.0000035887318576167034,
+     "finite": true,
+     "medianMs": 5.470334000000548,
+     "minMs": 5.407114999999976,
+     "maxMs": 5.50183399999969
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.0936889414947526e-15,
+    "maxRelativeDifference": 1.0936889414947526e-15,
+    "maxMagnitudeRelativeDifference": 0.000004962203956857435,
+    "bitIdenticalOutputs": 1,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "cancel-decode-kv511",
+   "profile": "cancel",
+   "seq": 1,
+   "kv": 511,
+   "start": 510,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.24537011048487e-16,
+     "maxMagnitudeRelativeErrorVsF64": 1.1200186367484984e-11,
+     "finite": true,
+     "medianMs": 76.03984300000047,
+     "minMs": 75.95414100000016,
+     "maxMs": 78.7401149999996
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.2880525097035134e-15,
+     "maxMagnitudeRelativeErrorVsF64": 3.181245538865173e-11,
+     "finite": true,
+     "medianMs": 5.825132999999369,
+     "minMs": 5.819091999999728,
+     "maxMs": 5.924359999999979
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.2691670631115315e-15,
+    "maxRelativeDifference": 1.2691670631115315e-15,
+    "maxMagnitudeRelativeDifference": 3.7825482436974434e-11,
+    "bitIdenticalOutputs": 3,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "cancel-prefill16-start248",
+   "profile": "cancel",
+   "seq": 16,
+   "kv": 264,
+   "start": 248,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.0862621566132269e-15,
+     "maxMagnitudeRelativeErrorVsF64": 0.00003155161196597078,
+     "finite": true,
+     "medianMs": 47.17770300000029,
+     "minMs": 46.21825399999943,
+     "maxMs": 47.74473299999954
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 2.1462999349514442e-15,
+     "maxMagnitudeRelativeErrorVsF64": 0.00003719721727212337,
+     "finite": true,
+     "medianMs": 5.236793999998554,
+     "minMs": 5.070990999998685,
+     "maxMs": 5.250129000000015
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 2.308573051148545e-15,
+    "maxRelativeDifference": 2.308573051148545e-15,
+    "maxMagnitudeRelativeDifference": 0.00003788840207365654,
+    "bitIdenticalOutputs": 86,
+    "outputs": 32768
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "prefill16-start0",
+   "seq": 16,
+   "kv": 16,
+   "start": 0,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.0547118733938987e-14,
+     "maxMagnitudeRelativeErrorVsF64": 2.367574303743645e-10,
+     "finite": true,
+     "medianMs": 4.5572030000003,
+     "minMs": 3.5253670000001875,
+     "maxMs": 5.153005999998641
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.8540724511240114e-14,
+     "maxMagnitudeRelativeErrorVsF64": 5.6261717998988434e-11,
+     "finite": true,
+     "medianMs": 1.0115779999996448,
+     "minMs": 0.9861389999987296,
+     "maxMs": 1.945439000000988
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 2.5757174171303632e-14,
+    "maxRelativeDifference": 2.2359475672613335e-14,
+    "maxMagnitudeRelativeDifference": 2.3676178557717117e-10,
+    "bitIdenticalOutputs": 8845,
+    "outputs": 32768
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "prefill16-start48",
+   "seq": 16,
+   "kv": 64,
+   "start": 48,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.607582556405303e-14,
+     "maxMagnitudeRelativeErrorVsF64": 8.711848050929351e-11,
+     "finite": true,
+     "medianMs": 15.66826200000105,
+     "minMs": 14.484360000000379,
+     "maxMs": 18.04884099999981
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 2.4147350785597155e-14,
+     "maxMagnitudeRelativeErrorVsF64": 3.214160445037222e-10,
+     "finite": true,
+     "medianMs": 1.7319859999988694,
+     "minMs": 1.7052949999997509,
+     "maxMs": 1.74284599999919
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 2.4202861936828413e-14,
+    "maxRelativeDifference": 2.4202861936828413e-14,
+    "maxMagnitudeRelativeDifference": 2.454803263143382e-10,
+    "bitIdenticalOutputs": 2926,
+    "outputs": 32768
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "prefill16-start176",
+   "seq": 16,
+   "kv": 192,
+   "start": 176,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 2.749001803945013e-14,
+     "maxMagnitudeRelativeErrorVsF64": 1.5207698223330015e-10,
+     "finite": true,
+     "medianMs": 45.02159800000118,
+     "minMs": 43.20334999999977,
+     "maxMs": 53.86906999999883
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 2.298161660974074e-14,
+     "maxMagnitudeRelativeErrorVsF64": 3.224583544057118e-10,
+     "finite": true,
+     "medianMs": 4.060585999999603,
+     "minMs": 3.9109339999995427,
+     "maxMs": 4.788999000000331
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 2.4868995751603507e-14,
+    "maxRelativeDifference": 2.353672812205332e-14,
+    "maxMagnitudeRelativeDifference": 3.1487273005961633e-10,
+    "bitIdenticalOutputs": 2023,
+    "outputs": 32768
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "prefill8-start176",
+   "seq": 8,
+   "kv": 184,
+   "start": 176,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 2.3493654491591845e-14,
+     "maxMagnitudeRelativeErrorVsF64": 2.1095559155850334e-10,
+     "finite": true,
+     "medianMs": 43.328136000000086,
+     "minMs": 43.32104100000106,
+     "maxMs": 43.41213299999981
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 2.9753977059954195e-14,
+     "maxMagnitudeRelativeErrorVsF64": 5.14398460139755e-10,
+     "finite": true,
+     "medianMs": 2.71833499999957,
+     "minMs": 2.686745000000883,
+     "maxMs": 2.748953000000256
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 2.3092638912203256e-14,
+    "maxRelativeDifference": 2.162247847013712e-14,
+    "maxMagnitudeRelativeDifference": 3.034428686452647e-10,
+    "bitIdenticalOutputs": 1081,
+    "outputs": 16384
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "prefill16-start584",
+   "seq": 16,
+   "kv": 600,
+   "start": 584,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 3.784978199577572e-14,
+     "maxMagnitudeRelativeErrorVsF64": 1.1329207223617208e-10,
+     "finite": true,
+     "medianMs": 136.57387999999992,
+     "minMs": 135.41809000000103,
+     "maxMs": 139.35905100000127
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 3.280314439633896e-14,
+     "maxMagnitudeRelativeErrorVsF64": 2.883866488089238e-10,
+     "finite": true,
+     "medianMs": 12.60973600000034,
+     "minMs": 12.451758000001064,
+     "maxMs": 12.618591999998898
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 2.1316282072803006e-14,
+    "maxRelativeDifference": 2.1316282072803006e-14,
+    "maxMagnitudeRelativeDifference": 2.9507985686233455e-10,
+    "bitIdenticalOutputs": 1691,
+    "outputs": 32768
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "decode-kv300-peaked",
+   "seq": 1,
+   "kv": 300,
+   "start": 299,
+   "keySpread": 24,
+   "kvStart": 0,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 9.309220061481938e-14,
+     "maxMagnitudeRelativeErrorVsF64": 2.7600063952395037e-11,
+     "finite": true,
+     "medianMs": 70.77439500000037,
+     "minMs": 70.7622420000007,
+     "maxMs": 72.7364550000002
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 2.032263246576349e-13,
+     "maxMagnitudeRelativeErrorVsF64": 5.89452682068602e-11,
+     "finite": true,
+     "medianMs": 3.787902000000031,
+     "minMs": 3.7651999999998225,
+     "maxMs": 3.860778999998729
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.1013412404281553e-13,
+    "maxRelativeDifference": 1.1013412404281553e-13,
+    "maxMagnitudeRelativeDifference": 3.1345204253600035e-11,
+    "bitIdenticalOutputs": 325,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "window-kv9",
+   "seq": 1,
+   "kv": 9,
+   "start": 8,
+   "window": 3,
+   "kvStart": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 5.4837007187510535e-15,
+     "maxMagnitudeRelativeErrorVsF64": 8.116557936631049e-12,
+     "finite": true,
+     "medianMs": 0.809836999998879,
+     "minMs": 0.7819440000002942,
+     "maxMs": 1.6635569999998552
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.235480038777434e-14,
+     "maxMagnitudeRelativeErrorVsF64": 8.116557936631049e-12,
+     "finite": true,
+     "medianMs": 0.7794300000005023,
+     "minMs": 0.7571880000014062,
+     "maxMs": 0.7798599999987346
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.4210854715202004e-14,
+    "maxRelativeDifference": 1.4210854715202004e-14,
+    "maxMagnitudeRelativeDifference": 6.411976127494428e-12,
+    "bitIdenticalOutputs": 841,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "kvstart4-kv3",
+   "seq": 1,
+   "kv": 3,
+   "start": 0,
+   "kvStart": 4,
+   "window": 0,
+   "causal": 1,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 0,
+     "maxMagnitudeRelativeErrorVsF64": 0,
+     "finite": true,
+     "medianMs": 0.04466400000092108,
+     "minMs": 0.04401300000063202,
+     "maxMs": 0.0899200000003475
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 0,
+     "maxMagnitudeRelativeErrorVsF64": 0,
+     "finite": true,
+     "medianMs": 0.034655000001293956,
+     "minMs": 0.03052699999898323,
+     "maxMs": 0.09120199999961187
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 0,
+    "maxRelativeDifference": 0,
+    "maxMagnitudeRelativeDifference": 0,
+    "bitIdenticalOutputs": 2048,
+    "outputs": 2048
+   },
+   "errorsSoFar": 0
+  },
+  {
+   "name": "noncausal-seq3-kv7",
+   "seq": 3,
+   "kv": 7,
+   "start": 4,
+   "causal": 0,
+   "kvStart": 0,
+   "window": 0,
+   "kernels": {
+    "shipped": {
+     "maxRelativeErrorVsF64": 1.0880185641326534e-14,
+     "maxMagnitudeRelativeErrorVsF64": 4.724110199937563e-11,
+     "finite": true,
+     "medianMs": 1.6461940000008326,
+     "minMs": 1.6453529999998864,
+     "maxMs": 2.6709759999994276
+    },
+    "candidate": {
+     "maxRelativeErrorVsF64": 1.659783421814609e-14,
+     "maxMagnitudeRelativeErrorVsF64": 1.3384462949052553e-10,
+     "finite": true,
+     "medianMs": 0.8914710000008199,
+     "minMs": 0.875,
+     "maxMs": 0.9301530000011553
+    }
+   },
+   "shippedVsCandidate": {
+    "maxAbsDifference": 1.7763568394002505e-14,
+    "maxRelativeDifference": 1.726708578084163e-14,
+    "maxMagnitudeRelativeDifference": 8.660352749524114e-11,
+    "bitIdenticalOutputs": 1039,
+    "outputs": 6144
+   },
+   "errorsSoFar": 0
+  }
+ ],
+ "errors": [],
+ "adapter": {
+  "vendor": "amd",
+  "architecture": "rdna-3",
+  "description": "radv: Mesa 26.0.3-1ubuntu1"
+ },
+ "compile": {
+  "shipped": {
+   "ms": 11.699589000000003
+  },
+  "candidate": {
+   "ms": 11.91505500000001
+  }
+ },
+ "finishedAt": "2026-10-14T22:18:14.657Z"
+}

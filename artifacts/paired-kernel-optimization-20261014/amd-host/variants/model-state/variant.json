@@ -1,0 +1,17 @@
+{
+ "label": "sliced paired recurrent state (gated_delta_state_paired_sliced.wgsl, declared replacement of paired_state)",
+ "baseManifestSha256": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+ "variantManifestSha256": "sha256:09eb3ff2cb3abcba31457373fc907e9caeaf50b34d88822c01cac8a885f89ff2",
+ "substituted": {},
+ "addedMechanismKernels": {
+  "paired_state_sliced": {
+   "kernel": "gated_delta_state_paired_sliced.wgsl",
+   "entry": "main",
+   "digest": "sha256:731ae7762d2a24aaa949e837932e971a54ba21b28f2d04fb3505b79193c74b36",
+   "constants": {
+    "WORKGROUP_SIZE": 256,
+    "K_SLICES": 16
+   }
+  }
+ }
+}

@@ -1,0 +1,23 @@
+{
+ "label": "sliced paired recurrent state + parallel paired Q/K normalization",
+ "kernels": {},
+ "addMechanismKernels": {
+  "paired_state_sliced": {
+   "kernel": "gated_delta_state_paired_sliced.wgsl",
+   "entry": "main",
+   "digest": "sha256:731ae7762d2a24aaa949e837932e971a54ba21b28f2d04fb3505b79193c74b36",
+   "constants": {
+    "WORKGROUP_SIZE": 256,
+    "K_SLICES": 16
+   }
+  },
+  "paired_qk_parallel": {
+   "kernel": "gated_delta_qk_paired_parallel.wgsl",
+   "entry": "main",
+   "digest": "sha256:75b6c97cea545f81e384a8d5254b8c97c5063b02a9e827c877383401eed92daa",
+   "constants": {
+    "WORKGROUP_SIZE": 256
+   }
+  }
+ }
+}

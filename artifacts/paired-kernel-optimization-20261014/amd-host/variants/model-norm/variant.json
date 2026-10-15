@@ -1,0 +1,30 @@
+{
+ "label": "sliced paired RMSNorm (rmsnorm_paired_sliced.wgsl)",
+ "baseManifestSha256": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+ "variantManifestSha256": "sha256:af75db44ac87e45a78c80b5983a386a434843003ce92a8220e3a870bac35287a",
+ "substituted": {
+  "norm": {
+   "before": {
+    "kernel": "rmsnorm_paired.wgsl",
+    "entry": "main",
+    "digest": "sha256:c0268aa06ac8962379dd811f5d256b0aceaa8300542e80619e3c088d683af61e",
+    "precision": {
+     "inputDtype": "f32",
+     "outputDtype": "f32"
+    }
+   },
+   "after": {
+    "kernel": "rmsnorm_paired_sliced.wgsl",
+    "entry": "main",
+    "digest": "sha256:92760258450f504f4707b4fcb98148967b11c9a8e27e95d3f1242191c88bf1cc",
+    "precision": {
+     "inputDtype": "f32",
+     "outputDtype": "f32"
+    },
+    "constants": {
+     "WORKGROUP_SIZE": 256
+    }
+   }
+  }
+ }
+}

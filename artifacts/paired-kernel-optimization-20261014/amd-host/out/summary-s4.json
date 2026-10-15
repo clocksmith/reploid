@@ -1,0 +1,1391 @@
+{
+ "session": "s4",
+ "checks": {
+  "s4-c-paired-installed-check": {
+   "label": "paired control (Capsule TargetPlan runtime config)",
+   "manifestIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+   "dopplerVersion": "0.6.28",
+   "acceptance": {
+    "comparedSteps": 55,
+    "withinTolerance": 55,
+    "tokenMatches": 55,
+    "maxDifference": 9.520044947919359e-07,
+    "valuesOverTolerance": 0,
+    "passed": true
+   },
+   "perRequestMax": [
+    8.399647413170896e-07,
+    8.902515347131157e-07,
+    9.520044947919359e-07
+   ],
+   "speed": {
+    "prompt56Ms": 17115.34151099999,
+    "prompt184Ms": 56746.13476299998,
+    "decodeMedianMs": 581.10051199999
+   },
+   "cacheGate": {
+    "identitiesMatched": 12,
+    "identities": 12,
+    "layers": [
+     {
+      "layer": 3,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 7,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 11,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 15,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 19,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 23,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     }
+    ],
+    "passed": true
+   },
+   "stepMaxDifferences": [
+    8.399647413170896e-07,
+    6.15752007604442e-07,
+    7.122407730264513e-07,
+    8.902515347131157e-07,
+    9.465929977636733e-07,
+    9.511217982094422e-07,
+    8.68015469279726e-07,
+    7.162583912645459e-07,
+    8.71407298319582e-07,
+    5.736278545498408e-07,
+    7.928766692089084e-07,
+    7.735741682779462e-07,
+    8.880480919515321e-07,
+    7.18186271342347e-07,
+    6.088153909900029e-07,
+    8.808601243970315e-07,
+    7.976590090663649e-07,
+    9.029354934853018e-07,
+    8.974647514037315e-07,
+    6.479467806741468e-07,
+    9.431464889075869e-07,
+    6.020213518809214e-07,
+    4.76104393243304e-07,
+    6.868741131427214e-07,
+    8.416379735365354e-07,
+    4.7671555236661334e-07,
+    7.527730794265608e-07,
+    5.66631417342478e-07,
+    5.008885572976851e-07,
+    7.055716224613207e-07,
+    4.758145006888981e-07,
+    7.735567919553432e-07,
+    7.37632763758711e-07,
+    7.353005955224035e-07,
+    4.943657643252664e-07,
+    8.45685566019938e-07,
+    5.022872180404647e-07,
+    4.989301132241053e-07,
+    8.834450042627395e-07,
+    7.852569972044421e-07,
+    4.765196788270032e-07,
+    9.196834902525097e-07,
+    7.017729615199642e-07,
+    4.763602685642354e-07,
+    6.057156873851e-07,
+    6.90009414938686e-07,
+    6.659978630807473e-07,
+    8.981626429260814e-07,
+    8.844390428919269e-07,
+    8.330828507041588e-07,
+    8.883623330291357e-07,
+    6.82579010202744e-07,
+    4.766864023508788e-07,
+    9.520044947919359e-07,
+    9.168414152327387e-07
+   ]
+  },
+  "s4-c-paired-main-check": {
+   "label": "paired control (Capsule TargetPlan runtime config)",
+   "manifestIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+   "dopplerVersion": "0.6.28",
+   "acceptance": {
+    "comparedSteps": 55,
+    "withinTolerance": 55,
+    "tokenMatches": 55,
+    "maxDifference": 9.520044947919359e-07,
+    "valuesOverTolerance": 0,
+    "passed": true
+   },
+   "perRequestMax": [
+    8.399647413170896e-07,
+    8.902515347131157e-07,
+    9.520044947919359e-07
+   ],
+   "speed": {
+    "prompt56Ms": 17006.559042000008,
+    "prompt184Ms": 57223.36515499998,
+    "decodeMedianMs": 579.9018480000086
+   },
+   "cacheGate": {
+    "identitiesMatched": 12,
+    "identities": 12,
+    "layers": [
+     {
+      "layer": 3,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 7,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 11,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 15,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 19,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 23,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     }
+    ],
+    "passed": true,
+    "differingStoredValuesVsControl": {
+     "control": "s4-c-paired-installed-check",
+     "perLayer": [
+      {
+       "layer": 3,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 3,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 7,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 7,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 11,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 11,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 15,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 15,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 19,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 19,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 23,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 23,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      }
+     ],
+     "total": 0,
+     "firstDifferences": []
+    }
+   },
+   "stepMaxDifferences": [
+    8.399647413170896e-07,
+    6.15752007604442e-07,
+    7.122407730264513e-07,
+    8.902515347131157e-07,
+    9.465929977636733e-07,
+    9.511217982094422e-07,
+    8.68015469279726e-07,
+    7.162583912645459e-07,
+    8.71407298319582e-07,
+    5.736278545498408e-07,
+    7.928766692089084e-07,
+    7.735741682779462e-07,
+    8.880480919515321e-07,
+    7.18186271342347e-07,
+    6.088153909900029e-07,
+    8.808601243970315e-07,
+    7.976590090663649e-07,
+    9.029354934853018e-07,
+    8.974647514037315e-07,
+    6.479467806741468e-07,
+    9.431464889075869e-07,
+    6.020213518809214e-07,
+    4.76104393243304e-07,
+    6.868741131427214e-07,
+    8.416379735365354e-07,
+    4.7671555236661334e-07,
+    7.527730794265608e-07,
+    5.66631417342478e-07,
+    5.008885572976851e-07,
+    7.055716224613207e-07,
+    4.758145006888981e-07,
+    7.735567919553432e-07,
+    7.37632763758711e-07,
+    7.353005955224035e-07,
+    4.943657643252664e-07,
+    8.45685566019938e-07,
+    5.022872180404647e-07,
+    4.989301132241053e-07,
+    8.834450042627395e-07,
+    7.852569972044421e-07,
+    4.765196788270032e-07,
+    9.196834902525097e-07,
+    7.017729615199642e-07,
+    4.763602685642354e-07,
+    6.057156873851e-07,
+    6.90009414938686e-07,
+    6.659978630807473e-07,
+    8.981626429260814e-07,
+    8.844390428919269e-07,
+    8.330828507041588e-07,
+    8.883623330291357e-07,
+    6.82579010202744e-07,
+    4.766864023508788e-07,
+    9.520044947919359e-07,
+    9.168414152327387e-07
+   ],
+   "logitsMarginVsControl": {
+    "control": "s4-c-paired-installed-check",
+    "maxDifference": 9.520044947919359e-07,
+    "controlMaxDifference": 9.520044947919359e-07,
+    "maxStepChange": 0.0,
+    "stepsLarger": 0
+   }
+  },
+  "s4-c-plain-check": {
+   "label": "plain control (manifest defaults)",
+   "manifestIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+   "dopplerVersion": "0.6.28",
+   "acceptance": {
+    "comparedSteps": 55,
+    "withinTolerance": 28,
+    "tokenMatches": 55,
+    "maxDifference": 0.0034951507058513798,
+    "valuesOverTolerance": 25151,
+    "passed": false
+   },
+   "perRequestMax": [
+    0.0005488027261089101,
+    0.0006218545628309258,
+    0.0034951507058513798
+   ],
+   "speed": {
+    "prompt56Ms": 190.2579169999999,
+    "prompt184Ms": 320.83117800000036,
+    "decodeMedianMs": 27.830073999999513
+   },
+   "stepMaxDifferences": [
+    0.0005488027261089101,
+    0.0004897227031657181,
+    0.00038153091146631013,
+    0.0006218545628309258,
+    0.0007045465124986272,
+    0.0009503841421754089,
+    0.000874628876696093,
+    0.0012218348229229292,
+    0.0009291759612581885,
+    0.0010074224643119578,
+    0.0008553656772734008,
+    0.0016050100181441707,
+    0.001128586798007536,
+    0.0013949900368572798,
+    0.0008699663913529498,
+    0.0012521076714966384,
+    0.0016727544986774312,
+    0.0011684873689841169,
+    0.0013319037369317055,
+    0.0034951507058513798,
+    0.002632727920642175,
+    0.0017313005149155458,
+    0.0014719822522586412,
+    0.0009948375116621833,
+    0.0008592278058827674,
+    0.00114682049126702,
+    0.0014038471613346815,
+    0.0007546564400962019,
+    0.0008952914360844666,
+    0.0008576013131431637,
+    0.000940365352354533,
+    0.0015674119321396063,
+    0.0029949721614030977,
+    0.0011165999654408898,
+    0.0012766540596569342,
+    0.0025398793345914328,
+    0.0012680395525963561,
+    0.0012627405895366817,
+    0.002037322277846254,
+    0.0009723353038059157,
+    0.0007994120298850937,
+    0.0012005550134190912,
+    0.0007937472024854841,
+    0.00090041467053803,
+    0.0011548509624756953,
+    0.0007725627678629721,
+    0.0010188522212866147,
+    0.0008982977191729358,
+    0.0006256748844046811,
+    0.0008433216705414637,
+    0.0009707933326028595,
+    0.000791556510757907,
+    0.0007414438361301734,
+    0.000746095359572152,
+    0.001117481843592949
+   ],
+   "logitsMarginVsControl": {
+    "control": "s4-c-paired-installed-check",
+    "maxDifference": 0.0034951507058513798,
+    "controlMaxDifference": 9.520044947919359e-07,
+    "maxStepChange": 0.0034945027590707056,
+    "stepsLarger": 55
+   }
+  },
+  "s4-final-check": {
+   "label": "paired candidate final (Capsule TargetPlan runtime config)",
+   "manifestIdentity": "sha256:64d747193bd983feb3d25eea6227284c6e979ea35c7cb874a3b0a0a582c2acbd",
+   "dopplerVersion": "0.6.28",
+   "acceptance": {
+    "comparedSteps": 55,
+    "withinTolerance": 55,
+    "tokenMatches": 55,
+    "maxDifference": 9.520044947919359e-07,
+    "valuesOverTolerance": 0,
+    "passed": true
+   },
+   "perRequestMax": [
+    8.399647413170896e-07,
+    8.902515347131157e-07,
+    9.520044947919359e-07
+   ],
+   "speed": {
+    "prompt56Ms": 8434.922245000002,
+    "prompt184Ms": 27530.172806000002,
+    "decodeMedianMs": 285.50333800000226
+   },
+   "cacheGate": {
+    "identitiesMatched": 12,
+    "identities": 12,
+    "layers": [
+     {
+      "layer": 3,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 7,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 11,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 15,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 19,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 23,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     }
+    ],
+    "passed": true,
+    "differingStoredValuesVsControl": {
+     "control": "s4-c-paired-installed-check",
+     "perLayer": [
+      {
+       "layer": 3,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 3,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 7,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 7,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 11,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 11,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 15,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 15,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 19,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 19,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 23,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 23,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      }
+     ],
+     "total": 0,
+     "firstDifferences": []
+    }
+   },
+   "stepMaxDifferences": [
+    8.399647413170896e-07,
+    6.15752007604442e-07,
+    7.122407730264513e-07,
+    8.902515347131157e-07,
+    9.465929977636733e-07,
+    9.511217982094422e-07,
+    8.68015469279726e-07,
+    7.162583912645459e-07,
+    8.71407298319582e-07,
+    5.736278545498408e-07,
+    7.928766692089084e-07,
+    7.735741682779462e-07,
+    8.880480919515321e-07,
+    7.18186271342347e-07,
+    6.088153909900029e-07,
+    8.808601243970315e-07,
+    7.976590090663649e-07,
+    9.029354934853018e-07,
+    8.974647514037315e-07,
+    6.479467806741468e-07,
+    9.431464889075869e-07,
+    6.020213518809214e-07,
+    4.76104393243304e-07,
+    6.868741131427214e-07,
+    8.416379735365354e-07,
+    4.7671555236661334e-07,
+    7.527730794265608e-07,
+    5.66631417342478e-07,
+    5.008885572976851e-07,
+    7.055716224613207e-07,
+    4.758145006888981e-07,
+    7.735567919553432e-07,
+    7.37632763758711e-07,
+    7.353005955224035e-07,
+    4.943657643252664e-07,
+    8.45685566019938e-07,
+    5.022872180404647e-07,
+    4.989301132241053e-07,
+    8.834450042627395e-07,
+    7.852569972044421e-07,
+    4.765196788270032e-07,
+    9.196834902525097e-07,
+    7.017729615199642e-07,
+    4.763602685642354e-07,
+    6.057156873851e-07,
+    6.90009414938686e-07,
+    6.659978630807473e-07,
+    8.981626429260814e-07,
+    8.844390428919269e-07,
+    8.330828507041588e-07,
+    8.883623330291357e-07,
+    6.82579010202744e-07,
+    4.766864023508788e-07,
+    9.520044947919359e-07,
+    9.168414152327387e-07
+   ],
+   "logitsMarginVsControl": {
+    "control": "s4-c-paired-installed-check",
+    "maxDifference": 9.520044947919359e-07,
+    "controlMaxDifference": 9.520044947919359e-07,
+    "maxStepChange": 0.0,
+    "stepsLarger": 0
+   }
+  },
+  "s4-matmul-check": {
+   "label": "paired candidate matmul (Capsule TargetPlan runtime config)",
+   "manifestIdentity": "sha256:22a33e307d90a2913277b938cf787cff57a7685597112403670faa694cfd7921",
+   "dopplerVersion": "0.6.28",
+   "acceptance": {
+    "comparedSteps": 55,
+    "withinTolerance": 55,
+    "tokenMatches": 55,
+    "maxDifference": 9.520044947919359e-07,
+    "valuesOverTolerance": 0,
+    "passed": true
+   },
+   "perRequestMax": [
+    8.399647413170896e-07,
+    8.902515347131157e-07,
+    9.520044947919359e-07
+   ],
+   "speed": {
+    "prompt56Ms": 15266.099556000008,
+    "prompt184Ms": 49917.60298600001,
+    "decodeMedianMs": 535.305812999999
+   },
+   "cacheGate": {
+    "identitiesMatched": 12,
+    "identities": 12,
+    "layers": [
+     {
+      "layer": 3,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 7,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 11,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 15,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 19,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     },
+     {
+      "layer": 23,
+      "seqLen": 234,
+      "keyMatches": true,
+      "valueMatches": true
+     }
+    ],
+    "passed": true,
+    "differingStoredValuesVsControl": {
+     "control": "s4-c-paired-installed-check",
+     "perLayer": [
+      {
+       "layer": 3,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 3,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 7,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 7,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 11,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 11,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 15,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 15,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 19,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 19,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 23,
+       "kind": "key",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      },
+      {
+       "layer": 23,
+       "kind": "value",
+       "differingValues": 0,
+       "f16StepHistogram": {}
+      }
+     ],
+     "total": 0,
+     "firstDifferences": []
+    }
+   },
+   "stepMaxDifferences": [
+    8.399647413170896e-07,
+    6.15752007604442e-07,
+    7.122407730264513e-07,
+    8.902515347131157e-07,
+    9.465929977636733e-07,
+    9.511217982094422e-07,
+    8.68015469279726e-07,
+    7.162583912645459e-07,
+    8.71407298319582e-07,
+    5.736278545498408e-07,
+    7.928766692089084e-07,
+    7.735741682779462e-07,
+    8.880480919515321e-07,
+    7.18186271342347e-07,
+    6.088153909900029e-07,
+    8.808601243970315e-07,
+    7.976590090663649e-07,
+    9.029354934853018e-07,
+    8.974647514037315e-07,
+    6.479467806741468e-07,
+    9.431464889075869e-07,
+    6.020213518809214e-07,
+    4.76104393243304e-07,
+    6.868741131427214e-07,
+    8.416379735365354e-07,
+    4.7671555236661334e-07,
+    7.527730794265608e-07,
+    5.66631417342478e-07,
+    5.008885572976851e-07,
+    7.055716224613207e-07,
+    4.758145006888981e-07,
+    7.735567919553432e-07,
+    7.37632763758711e-07,
+    7.353005955224035e-07,
+    4.943657643252664e-07,
+    8.45685566019938e-07,
+    5.022872180404647e-07,
+    4.989301132241053e-07,
+    8.834450042627395e-07,
+    7.852569972044421e-07,
+    4.765196788270032e-07,
+    9.196834902525097e-07,
+    7.017729615199642e-07,
+    4.763602685642354e-07,
+    6.057156873851e-07,
+    6.90009414938686e-07,
+    6.659978630807473e-07,
+    8.981626429260814e-07,
+    8.844390428919269e-07,
+    8.330828507041588e-07,
+    8.883623330291357e-07,
+    6.82579010202744e-07,
+    4.766864023508788e-07,
+    9.520044947919359e-07,
+    9.168414152327387e-07
+   ],
+   "logitsMarginVsControl": {
+    "control": "s4-c-paired-installed-check",
+    "maxDifference": 9.520044947919359e-07,
+    "controlMaxDifference": 9.520044947919359e-07,
+    "maxStepChange": 0.0,
+    "stepsLarger": 0
+   }
+  }
+ },
+ "ladder": {
+  "s4-c-paired-installed-profile": {
+   "mode": "paired-profile",
+   "dopplerVersion": "0.6.28",
+   "kernelSubstitution": null,
+   "executionIdentity": null,
+   "turns": [
+    {
+     "label": "turn-1",
+     "promptTokens": 56,
+     "profiledSteps": 16,
+     "gpuPerStepMs": 455.5407360000001,
+     "wallMedianMs": 557.4743190000008,
+     "kernels": {
+      "gated_delta_recurrent": 133.38624000000004,
+      "matmul": 115.53177600000011,
+      "attention": 93.483008,
+      "qwen_linear_attention_prepare": 43.483136,
+      "rmsnorm": 36.36019200000001,
+      "paired_pointwise": 19.93113600000001,
+      "gated_delta_conv": 12.271615999999996,
+      "rope_qk": 1.0117120000000002,
+      "split_qg": 0.04915200000000001,
+      "cast": 0.032768
+     }
+    }
+   ]
+  },
+  "s4-c-paired-installed-unsplit": {
+   "mode": "paired-unsplit",
+   "dopplerVersion": "0.6.28",
+   "kernelSubstitution": null,
+   "executionIdentity": {
+    "match": true
+   },
+   "turns": [
+    {
+     "label": "turn-1",
+     "promptTokens": 56,
+     "tokens": 100,
+     "stopReason": "eos-token",
+     "prefillMs": 17145.499856,
+     "decodeMedianMs": 602.7628610000029,
+     "decodeTokensPerSecond": 1.6311942471736325
+    },
+    {
+     "label": "turn-2-follow-up",
+     "promptTokens": 189,
+     "tokens": 12,
+     "stopReason": "eos-token",
+     "prefillMs": 57648.52779199999,
+     "decodeMedianMs": 726.1217370000086,
+     "decodeTokensPerSecond": 1.3659276500923392
+    }
+   ]
+  },
+  "s4-c-plain-per-token": {
+   "mode": "ordinary-per-token",
+   "dopplerVersion": "0.6.28",
+   "kernelSubstitution": null,
+   "executionIdentity": null,
+   "turns": [
+    {
+     "label": "turn-1",
+     "promptTokens": 56,
+     "tokens": 128,
+     "stopReason": null,
+     "prefillMs": 294.67027199999984,
+     "decodeMedianMs": 28.603747999999996,
+     "decodeTokensPerSecond": 30.199676295662147
+    },
+    {
+     "label": "turn-2-follow-up",
+     "promptTokens": 189,
+     "tokens": 128,
+     "stopReason": null,
+     "prefillMs": 332.9979480000002,
+     "decodeMedianMs": 27.006953999998586,
+     "decodeTokensPerSecond": 33.21294577600207
+    }
+   ]
+  },
+  "s4-c-plain-profile": {
+   "mode": "ordinary-profile",
+   "dopplerVersion": "0.6.28",
+   "kernelSubstitution": null,
+   "executionIdentity": null,
+   "turns": [
+    {
+     "label": "turn-1",
+     "promptTokens": 56,
+     "profiledSteps": 16,
+     "gpuPerStepMs": 8.450047999999898,
+     "wallMedianMs": 35.93499299999985,
+     "kernels": {
+      "linear_attention_recurrent": 1.7326080000000004,
+      "fused_ffn": 0.8478720000000001,
+      "attention": 0.303104,
+      "matmul:ffn_down:L0": 0.221184,
+      "rmsnorm": 0.20889599999999997,
+      "rmsnorm:post_attn_norm": 0.17612799999999998,
+      "matmul:linear_out_proj:L0": 0.14336000000000002,
+      "linear_attention_conv": 0.126976,
+      "matmul:linear_qkv_proj:L0": 0.11878400000000003,
+      "residual": 0.1024,
+      "matmul:linear_z_proj:L0": 0.09420800000000001,
+      "matmul:ffn_down:L6": 0.07782400000000002,
+      "matmul:ffn_down:L7": 0.077824,
+      "matmul:ffn_down:L2": 0.07372800000000002,
+      "matmul:ffn_down:L3": 0.07372800000000002,
+      "matmul:ffn_down:L18": 0.07372800000000002,
+      "matmul:ffn_down:L8": 0.073728,
+      "matmul:ffn_down:L1": 0.06963200000000001,
+      "rmsnorm:input_norm": 0.06963200000000001,
+      "matmul:ffn_down:L4": 0.06963200000000001,
+      "matmul:ffn_down:L9": 0.06963200000000001,
+      "matmul:ffn_down:L14": 0.06963200000000001,
+      "matmul:ffn_down:L19": 0.06963200000000001,
+      "matmul:ffn_down:L23": 0.06963200000000001,
+      "matmul:ffn_down:L5": 0.06553600000000001,
+      "matmul:ffn_down:L10": 0.06553600000000001,
+      "matmul:ffn_down:L11": 0.06553600000000001,
+      "matmul:ffn_down:L12": 0.06553600000000001,
+      "matmul:ffn_down:L13": 0.06553600000000001,
+      "matmul:ffn_down:L15": 0.06553600000000001,
+      "matmul:ffn_down:L16": 0.06553600000000001,
+      "matmul:ffn_down:L17": 0.06553600000000001,
+      "matmul:ffn_down:L20": 0.06553600000000001,
+      "matmul:ffn_down:L21": 0.06553600000000001,
+      "matmul:ffn_down:L22": 0.06553600000000001,
+      "matmul:linear_out_proj:L8": 0.05324800000000001,
+      "matmul:linear_qkv_proj:L1": 0.053248000000000004,
+      "matmul:linear_out_proj:L9": 0.04915200000000001,
+      "matmul:linear_qkv_proj:L10": 0.04915200000000001,
+      "matmul:linear_out_proj:L17": 0.04915200000000001,
+      "matmul:linear_out_proj:L18": 0.04915200000000001,
+      "matmul:linear_out_proj:L4": 0.045056000000000006,
+      "matmul:linear_out_proj:L6": 0.045056000000000006,
+      "matmul:linear_z_proj:L9": 0.045056000000000006,
+      "matmul:q_proj:L11": 0.045056000000000006,
+      "matmul:linear_out_proj:L13": 0.045056000000000006,
+      "matmul:linear_out_proj:L14": 0.045056000000000006,
+      "matmul:linear_qkv_proj:L17": 0.045056000000000006,
+      "matmul:linear_qkv_proj:L22": 0.045056000000000006,
+      "matmul:linear_z_proj:L1": 0.045056,
+      "matmul:linear_out_proj:L1": 0.04096,
+      "matmul:linear_out_proj:L2": 0.04096,
+      "matmul:o_proj:L3": 0.04096,
+      "matmul:linear_out_proj:L5": 0.04096,
+      "matmul:o_proj:L11": 0.04096,
+      "matmul:linear_qkv_proj:L13": 0.04096,
+      "matmul:linear_qkv_proj:L16": 0.04096,
+      "matmul:linear_qkv_proj:L4": 0.036864,
+      "matmul:linear_qkv_proj:L5": 0.036864,
+      "matmul:linear_qkv_proj:L6": 0.036864,
+      "matmul:o_proj:L7": 0.036864,
+      "matmul:linear_out_proj:L20": 0.036864,
+      "matmul:linear_out_proj:L21": 0.036864,
+      "matmul:linear_out_proj:L22": 0.036864,
+      "matmul:o_proj:L23": 0.036864,
+      "matmul:linear_qkv_proj:L2": 0.032768,
+      "matmul:linear_qkv_proj:L12": 0.032768,
+      "matmul:linear_qkv_proj:L14": 0.032768,
+      "matmul:linear_out_proj:L16": 0.032768,
+      "matmul:linear_qkv_proj:L18": 0.032768,
+      "matmul:o_proj:L19": 0.032768,
+      "matmul:linear_z_proj:L21": 0.032768,
+      "rmsnorm_qk": 0.028672,
+      "matmul:linear_b_proj:L0": 0.028671999999999996,
+      "matmul:q_proj:L3": 0.028671999999999996,
+      "matmul:linear_z_proj:L4": 0.028671999999999996,
+      "matmul:q_proj:L7": 0.028671999999999996,
+      "matmul:k_proj:L7": 0.028671999999999996,
+      "matmul:linear_qkv_proj:L8": 0.028671999999999996,
+      "matmul:linear_z_proj:L8": 0.028671999999999996,
+      "matmul:linear_out_proj:L12": 0.028671999999999996,
+      "matmul:o_proj:L15": 0.028671999999999996,
+      "matmul:linear_qkv_proj:L20": 0.028671999999999996,
+      "matmul:linear_qkv_proj:L21": 0.028671999999999996,
+      "matmul:q_proj:L23": 0.028671999999999996,
+      "matmul:linear_a_proj:L0": 0.024575999999999997,
+      "matmul:k_proj:L3": 0.024575999999999997,
+      "matmul:linear_z_proj:L12": 0.024575999999999997,
+      "matmul:q_proj:L15": 0.024575999999999997,
+      "matmul:linear_z_proj:L18": 0.024575999999999997,
+      "matmul:k_proj:L19": 0.024575999999999997,
+      "matmul:linear_z_proj:L2": 0.020479999999999998,
+      "split_qg": 0.020479999999999998,
+      "matmul:linear_z_proj:L5": 0.020479999999999998,
+      "matmul:linear_out_proj:L10": 0.020479999999999998,
+      "matmul:linear_z_proj:L13": 0.020479999999999998,
+      "matmul:linear_z_proj:L14": 0.020479999999999998,
+      "matmul:k_proj:L15": 0.020479999999999998,
+      "matmul:v_proj:L15": 0.020479999999999998,
+      "matmul:linear_z_proj:L16": 0.020479999999999998,
+      "matmul:linear_z_proj:L17": 0.020479999999999998,
+      "matmul:q_proj:L19": 0.020479999999999998,
+      "matmul:linear_z_proj:L20": 0.020479999999999998,
+      "matmul:v_proj:L23": 0.020479999999999998,
+      "matmul:v_proj:L3": 0.016384,
+      "kv_cache_write:f32_to_f16": 0.016384,
+      "matmul:linear_z_proj:L6": 0.016384,
+      "matmul:linear_a_proj:L6": 0.016384,
+      "matmul:linear_qkv_proj:L9": 0.016384,
+      "matmul:linear_z_proj:L10": 0.016384,
+      "matmul:v_proj:L11": 0.016384,
+      "matmul:v_proj:L19": 0.016384,
+      "matmul:linear_a_proj:L20": 0.016384,
+      "matmul:linear_z_proj:L22": 0.016384,
+      "rope_qk": 0.012288,
+      "silu": 0.012288,
+      "matmul:linear_b_proj:L5": 0.012288,
+      "matmul:linear_a_proj:L8": 0.012288,
+      "matmul:linear_a_proj:L14": 0.012288,
+      "matmul:linear_a_proj:L18": 0.012288,
+      "matmul:linear_b_proj:L22": 0.012288,
+      "matmul:linear_a_proj:L1": 0.008192,
+      "matmul:linear_b_proj:L1": 0.008192,
+      "matmul:linear_a_proj:L2": 0.008192,
+      "matmul:linear_b_proj:L4": 0.008192,
+      "matmul:linear_a_proj:L5": 0.008192,
+      "matmul:linear_b_proj:L6": 0.008192,
+      "matmul:v_proj:L7": 0.008192,
+      "matmul:linear_b_proj:L8": 0.008192,
+      "matmul:linear_a_proj:L13": 0.008192,
+      "matmul:linear_b_proj:L13": 0.008192,
+      "matmul:linear_b_proj:L16": 0.008192,
+      "matmul:linear_b_proj:L17": 0.008192,
+      "matmul:linear_a_proj:L22": 0.008192,
+      "matmul:k_proj:L23": 0.008192,
+      "matmul:linear_b_proj:L9": 0.004096,
+      "matmul:linear_b_proj:L10": 0.004096,
+      "matmul:k_proj:L11": 0.004096,
+      "matmul:linear_a_proj:L12": 0.004096,
+      "matmul:linear_b_proj:L14": 0.004096,
+      "matmul:linear_a_proj:L16": 0.004096,
+      "matmul:linear_a_proj:L17": 0.004096,
+      "matmul:linear_b_proj:L18": 0.004096,
+      "matmul:linear_b_proj:L20": 0.004096,
+      "matmul:linear_a_proj:L21": 0.004096,
+      "matmul:linear_b_proj:L21": 0.004096,
+      "matmul:linear_b_proj:L2": 0,
+      "matmul:linear_a_proj:L4": 0,
+      "matmul:linear_a_proj:L9": 0,
+      "matmul:linear_a_proj:L10": 0,
+      "matmul:linear_b_proj:L12": 0
+     }
+    }
+   ]
+  },
+  "s4-final-profile": {
+   "mode": "paired-profile",
+   "dopplerVersion": "0.6.28",
+   "kernelSubstitution": {
+    "norm": {
+     "before": {
+      "kernel": "rmsnorm_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:c0268aa06ac8962379dd811f5d256b0aceaa8300542e80619e3c088d683af61e",
+      "constants": null
+     },
+     "after": {
+      "kernel": "rmsnorm_paired_sliced.wgsl",
+      "entry": "main",
+      "digest": "sha256:92760258450f504f4707b4fcb98148967b11c9a8e27e95d3f1242191c88bf1cc",
+      "constants": {
+       "WORKGROUP_SIZE": 256
+      }
+     }
+    },
+    "projection_q4": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": false
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": false
+      }
+     }
+    },
+    "projection_f16": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": true,
+       "WEIGHT_Q4K": false,
+       "SCALAR_OUTPUT": false
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": true,
+       "WEIGHT_Q4K": false,
+       "SCALAR_OUTPUT": false
+      }
+     }
+    },
+    "head": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": true
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": true
+      }
+     }
+    },
+    "attention": {
+     "before": {
+      "kernel": "attention_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:95e862b22362590cb3a24b4184222b94b4a942e8c331bfb8520ad5d418ddf1f1",
+      "constants": null
+     },
+     "after": {
+      "kernel": "attention_paired_tiled.wgsl",
+      "entry": "main",
+      "digest": "sha256:70a0a584eb26e3eb9aa14ea1082b9f3801bf730c43577874c1c4257a69b6ea16",
+      "constants": {
+       "WORKGROUP_SIZE": 256,
+       "DOT_LANES": 4
+      }
+     }
+    },
+    "paired_state_sliced": {
+     "added": {
+      "kernel": "gated_delta_state_paired_sliced.wgsl",
+      "entry": "main",
+      "digest": "sha256:731ae7762d2a24aaa949e837932e971a54ba21b28f2d04fb3505b79193c74b36",
+      "constants": {
+       "WORKGROUP_SIZE": 256,
+       "K_SLICES": 16
+      }
+     }
+    },
+    "paired_qk_parallel": {
+     "added": {
+      "kernel": "gated_delta_qk_paired_parallel.wgsl",
+      "entry": "main",
+      "digest": "sha256:75b6c97cea545f81e384a8d5254b8c97c5063b02a9e827c877383401eed92daa",
+      "constants": {
+       "WORKGROUP_SIZE": 256
+      }
+     }
+    }
+   },
+   "executionIdentity": null,
+   "turns": [
+    {
+     "label": "turn-1",
+     "promptTokens": 56,
+     "profiledSteps": 16,
+     "gpuPerStepMs": 214.40921600000004,
+     "wallMedianMs": 290.99996699999974,
+     "kernels": {
+      "matmul": 86.33139199999992,
+      "qwen_linear_attention_prepare": 42.29939199999999,
+      "gated_delta_recurrent": 30.59712000000001,
+      "paired_pointwise": 19.79187200000001,
+      "rmsnorm": 13.180927999999994,
+      "gated_delta_conv": 12.050432,
+      "attention": 9.048064000000002,
+      "rope_qk": 1.011712,
+      "split_qg": 0.08192,
+      "cast": 0.016384
+     }
+    }
+   ]
+  },
+  "s4-final-unsplit": {
+   "mode": "paired-unsplit",
+   "dopplerVersion": "0.6.28",
+   "kernelSubstitution": {
+    "norm": {
+     "before": {
+      "kernel": "rmsnorm_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:c0268aa06ac8962379dd811f5d256b0aceaa8300542e80619e3c088d683af61e",
+      "constants": null
+     },
+     "after": {
+      "kernel": "rmsnorm_paired_sliced.wgsl",
+      "entry": "main",
+      "digest": "sha256:92760258450f504f4707b4fcb98148967b11c9a8e27e95d3f1242191c88bf1cc",
+      "constants": {
+       "WORKGROUP_SIZE": 256
+      }
+     }
+    },
+    "projection_q4": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": false
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": false
+      }
+     }
+    },
+    "projection_f16": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": true,
+       "WEIGHT_Q4K": false,
+       "SCALAR_OUTPUT": false
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": true,
+       "WEIGHT_Q4K": false,
+       "SCALAR_OUTPUT": false
+      }
+     }
+    },
+    "head": {
+     "before": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ccbee5e548d13e95a829cbaaf5b6c72ce26e3c9c44835a36e9dac1d833fe510a",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": true
+      }
+     },
+     "after": {
+      "kernel": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "constants": {
+       "WEIGHT_F16": false,
+       "WEIGHT_Q4K": true,
+       "SCALAR_OUTPUT": true
+      }
+     }
+    },
+    "attention": {
+     "before": {
+      "kernel": "attention_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:95e862b22362590cb3a24b4184222b94b4a942e8c331bfb8520ad5d418ddf1f1",
+      "constants": null
+     },
+     "after": {
+      "kernel": "attention_paired_tiled.wgsl",
+      "entry": "main",
+      "digest": "sha256:70a0a584eb26e3eb9aa14ea1082b9f3801bf730c43577874c1c4257a69b6ea16",
+      "constants": {
+       "WORKGROUP_SIZE": 256,
+       "DOT_LANES": 4
+      }
+     }
+    },
+    "paired_state_sliced": {
+     "added": {
+      "kernel": "gated_delta_state_paired_sliced.wgsl",
+      "entry": "main",
+      "digest": "sha256:731ae7762d2a24aaa949e837932e971a54ba21b28f2d04fb3505b79193c74b36",
+      "constants": {
+       "WORKGROUP_SIZE": 256,
+       "K_SLICES": 16
+      }
+     }
+    },
+    "paired_qk_parallel": {
+     "added": {
+      "kernel": "gated_delta_qk_paired_parallel.wgsl",
+      "entry": "main",
+      "digest": "sha256:75b6c97cea545f81e384a8d5254b8c97c5063b02a9e827c877383401eed92daa",
+      "constants": {
+       "WORKGROUP_SIZE": 256
+      }
+     }
+    }
+   },
+   "executionIdentity": {
+    "match": false,
+    "error": "Loaded execution identity does not match TargetPlan: executionGraphHash, executionPlanDigest, kernelClosure, kernelClosureHash, resolvedGraphHash, runtimeEngine, runtimeEngineDigest."
+   },
+   "turns": [
+    {
+     "label": "turn-1",
+     "promptTokens": 56,
+     "tokens": 100,
+     "stopReason": "eos-token",
+     "prefillMs": 8783.055341,
+     "decodeMedianMs": 290.1781409999967,
+     "decodeTokensPerSecond": 3.345288863978689
+    },
+    {
+     "label": "turn-2-follow-up",
+     "promptTokens": 189,
+     "tokens": 12,
+     "stopReason": "eos-token",
+     "prefillMs": 27999.03396,
+     "decodeMedianMs": 292.466803000003,
+     "decodeTokensPerSecond": 3.2436340015202263
+    }
+   ]
+  }
+ }
+}

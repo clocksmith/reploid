@@ -1,0 +1,1041 @@
+{
+ "schema": "reploid.speed-isolation/v1",
+ "mode": "ordinary-profile",
+ "maxTokens": 16,
+ "startedAt": "2026-10-14T22:37:46.486Z",
+ "machine": "amd-host",
+ "dopplerVersion": "0.6.28",
+ "inputs": {
+  "catalogSha256": "89ac4bfef47444e51de5218313b0c6dd45dc28b1c0c9a73f813886e927d301af",
+  "policySha256": "5a6f974f34b1cba00aff269857c3fe53728782317477bede684a0e11f2b6a235",
+  "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v3-171132d428ce64eaf706c637ee22fea0103f50a21e39e9899cac5d91b5f94234",
+  "archivePackageVersion": "0.6.28",
+  "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+  "splitLayers": [
+   8,
+   16
+  ],
+  "generation": {
+   "maxTokens": 16,
+   "maxSeqLen": 4096,
+   "temperature": 0,
+   "topP": 1,
+   "topK": 1,
+   "repetitionPenalty": 1,
+   "repetitionPenaltyWindow": 0,
+   "presencePenalty": 0,
+   "useChatTemplate": true,
+   "suppressTokenIds": [],
+   "stopSequences": []
+  },
+  "capsuleRuntimeConfigSha256": "5b3597fc5cb3c8ca473cdfa447852b51ec52c56e12605989d9698acf8732f412",
+  "manifestDecodeLoop": {
+   "batchSize": 4,
+   "stopCheckMode": "batch",
+   "readbackInterval": 8,
+   "readbackMode": "sequential",
+   "submitLatencyThresholdMs": null,
+   "ringTokens": 1,
+   "ringStop": 1,
+   "ringStaging": 1,
+   "disableCommandBatching": false
+  }
+ },
+ "verification": {
+  "modelArtifacts": {
+   "checked": 20,
+   "allMatch": true,
+   "absent": [
+    "pieces.json"
+   ]
+  }
+ },
+ "turns": [
+  {
+   "label": "turn-1",
+   "promptTokens": 56,
+   "profiledSteps": 16,
+   "wall": {
+    "count": 16,
+    "totalMs": 662.0216529999998,
+    "medianMs": 36.2002080000002,
+    "p90Ms": 40.33696699999973,
+    "minMs": 31.323235000000295,
+    "maxMs": 120.14084100000036
+   },
+   "gpuPerStepMs": 8.396799999999901,
+   "kernels": [
+    {
+     "label": "linear_attention_recurrent",
+     "totalMs": 27.918336000000004,
+     "count": 16,
+     "perStepMs": 1.7448960000000002
+    },
+    {
+     "label": "fused_ffn",
+     "totalMs": 13.369344000000005,
+     "count": 16,
+     "perStepMs": 0.8355840000000003
+    },
+    {
+     "label": "attention",
+     "totalMs": 5.046271999999999,
+     "count": 16,
+     "perStepMs": 0.31539199999999995
+    },
+    {
+     "label": "rmsnorm",
+     "totalMs": 3.93216,
+     "count": 16,
+     "perStepMs": 0.24576
+    },
+    {
+     "label": "rmsnorm:post_attn_norm",
+     "totalMs": 2.818048,
+     "count": 16,
+     "perStepMs": 0.176128
+    },
+    {
+     "label": "matmul:ffn_down:L0",
+     "totalMs": 2.6214399999999998,
+     "count": 16,
+     "perStepMs": 0.16383999999999999
+    },
+    {
+     "label": "matmul:linear_out_proj:L0",
+     "totalMs": 2.4903679999999997,
+     "count": 16,
+     "perStepMs": 0.15564799999999998
+    },
+    {
+     "label": "linear_attention_conv",
+     "totalMs": 1.8350080000000004,
+     "count": 16,
+     "perStepMs": 0.11468800000000003
+    },
+    {
+     "label": "matmul:linear_z_proj:L0",
+     "totalMs": 1.6384000000000003,
+     "count": 16,
+     "perStepMs": 0.10240000000000002
+    },
+    {
+     "label": "matmul:linear_qkv_proj:L0",
+     "totalMs": 1.5728640000000003,
+     "count": 16,
+     "perStepMs": 0.09830400000000002
+    },
+    {
+     "label": "matmul:ffn_down:L4",
+     "totalMs": 1.1796480000000003,
+     "count": 16,
+     "perStepMs": 0.07372800000000002
+    },
+    {
+     "label": "matmul:ffn_down:L11",
+     "totalMs": 1.1796480000000003,
+     "count": 16,
+     "perStepMs": 0.07372800000000002
+    },
+    {
+     "label": "matmul:ffn_down:L1",
+     "totalMs": 1.1141120000000002,
+     "count": 16,
+     "perStepMs": 0.06963200000000001
+    },
+    {
+     "label": "matmul:ffn_down:L5",
+     "totalMs": 1.1141120000000002,
+     "count": 16,
+     "perStepMs": 0.06963200000000001
+    },
+    {
+     "label": "matmul:ffn_down:L6",
+     "totalMs": 1.1141120000000002,
+     "count": 16,
+     "perStepMs": 0.06963200000000001
+    },
+    {
+     "label": "matmul:ffn_down:L8",
+     "totalMs": 1.1141120000000002,
+     "count": 16,
+     "perStepMs": 0.06963200000000001
+    },
+    {
+     "label": "matmul:ffn_down:L10",
+     "totalMs": 1.1141120000000002,
+     "count": 16,
+     "perStepMs": 0.06963200000000001
+    },
+    {
+     "label": "matmul:ffn_down:L14",
+     "totalMs": 1.1141120000000002,
+     "count": 16,
+     "perStepMs": 0.06963200000000001
+    },
+    {
+     "label": "matmul:ffn_down:L15",
+     "totalMs": 1.1141120000000002,
+     "count": 16,
+     "perStepMs": 0.06963200000000001
+    },
+    {
+     "label": "matmul:ffn_down:L17",
+     "totalMs": 1.1141120000000002,
+     "count": 16,
+     "perStepMs": 0.06963200000000001
+    },
+    {
+     "label": "matmul:ffn_down:L18",
+     "totalMs": 1.1141120000000002,
+     "count": 16,
+     "perStepMs": 0.06963200000000001
+    },
+    {
+     "label": "matmul:ffn_down:L19",
+     "totalMs": 1.1141120000000002,
+     "count": 16,
+     "perStepMs": 0.06963200000000001
+    },
+    {
+     "label": "matmul:ffn_down:L23",
+     "totalMs": 1.1141120000000002,
+     "count": 16,
+     "perStepMs": 0.06963200000000001
+    },
+    {
+     "label": "residual",
+     "totalMs": 1.114112,
+     "count": 16,
+     "perStepMs": 0.069632
+    },
+    {
+     "label": "matmul:ffn_down:L2",
+     "totalMs": 1.0485760000000002,
+     "count": 16,
+     "perStepMs": 0.06553600000000001
+    },
+    {
+     "label": "matmul:ffn_down:L3",
+     "totalMs": 1.0485760000000002,
+     "count": 16,
+     "perStepMs": 0.06553600000000001
+    },
+    {
+     "label": "matmul:ffn_down:L7",
+     "totalMs": 1.0485760000000002,
+     "count": 16,
+     "perStepMs": 0.06553600000000001
+    },
+    {
+     "label": "matmul:ffn_down:L9",
+     "totalMs": 1.0485760000000002,
+     "count": 16,
+     "perStepMs": 0.06553600000000001
+    },
+    {
+     "label": "matmul:ffn_down:L12",
+     "totalMs": 1.0485760000000002,
+     "count": 16,
+     "perStepMs": 0.06553600000000001
+    },
+    {
+     "label": "matmul:ffn_down:L13",
+     "totalMs": 1.0485760000000002,
+     "count": 16,
+     "perStepMs": 0.06553600000000001
+    },
+    {
+     "label": "matmul:ffn_down:L16",
+     "totalMs": 1.0485760000000002,
+     "count": 16,
+     "perStepMs": 0.06553600000000001
+    },
+    {
+     "label": "matmul:ffn_down:L20",
+     "totalMs": 1.0485760000000002,
+     "count": 16,
+     "perStepMs": 0.06553600000000001
+    },
+    {
+     "label": "matmul:ffn_down:L21",
+     "totalMs": 1.0485760000000002,
+     "count": 16,
+     "perStepMs": 0.06553600000000001
+    },
+    {
+     "label": "matmul:ffn_down:L22",
+     "totalMs": 1.0485760000000002,
+     "count": 16,
+     "perStepMs": 0.06553600000000001
+    },
+    {
+     "label": "matmul:linear_out_proj:L14",
+     "totalMs": 0.8519680000000002,
+     "count": 16,
+     "perStepMs": 0.05324800000000001
+    },
+    {
+     "label": "matmul:linear_out_proj:L21",
+     "totalMs": 0.8519680000000002,
+     "count": 16,
+     "perStepMs": 0.05324800000000001
+    },
+    {
+     "label": "rmsnorm:input_norm",
+     "totalMs": 0.8519680000000001,
+     "count": 16,
+     "perStepMs": 0.053248000000000004
+    },
+    {
+     "label": "matmul:linear_out_proj:L4",
+     "totalMs": 0.7864320000000001,
+     "count": 16,
+     "perStepMs": 0.04915200000000001
+    },
+    {
+     "label": "matmul:linear_out_proj:L20",
+     "totalMs": 0.7864320000000001,
+     "count": 16,
+     "perStepMs": 0.04915200000000001
+    },
+    {
+     "label": "matmul:o_proj:L23",
+     "totalMs": 0.7864320000000001,
+     "count": 16,
+     "perStepMs": 0.04915200000000001
+    },
+    {
+     "label": "matmul:linear_b_proj:L0",
+     "totalMs": 0.7208960000000001,
+     "count": 16,
+     "perStepMs": 0.045056000000000006
+    },
+    {
+     "label": "matmul:linear_out_proj:L5",
+     "totalMs": 0.7208960000000001,
+     "count": 16,
+     "perStepMs": 0.045056000000000006
+    },
+    {
+     "label": "matmul:linear_qkv_proj:L6",
+     "totalMs": 0.7208960000000001,
+     "count": 16,
+     "perStepMs": 0.045056000000000006
+    },
+    {
+     "label": "matmul:o_proj:L7",
+     "totalMs": 0.7208960000000001,
+     "count": 16,
+     "perStepMs": 0.045056000000000006
+    },
+    {
+     "label": "matmul:linear_out_proj:L13",
+     "totalMs": 0.7208960000000001,
+     "count": 16,
+     "perStepMs": 0.045056000000000006
+    },
+    {
+     "label": "matmul:linear_qkv_proj:L1",
+     "totalMs": 0.720896,
+     "count": 16,
+     "perStepMs": 0.045056
+    },
+    {
+     "label": "matmul:linear_out_proj:L2",
+     "totalMs": 0.65536,
+     "count": 16,
+     "perStepMs": 0.04096
+    },
+    {
+     "label": "matmul:linear_qkv_proj:L4",
+     "totalMs": 0.65536,
+     "count": 16,
+     "perStepMs": 0.04096
+    },
+    {
+     "label": "matmul:q_proj:L7",
+     "totalMs": 0.65536,
+     "count": 16,
+     "perStepMs": 0.04096
+    },
+    {
+     "label": "matmul:linear_out_proj:L9",
+     "totalMs": 0.65536,
+     "count": 16,
+     "perStepMs": 0.04096
+    },
+    {
+     "label": "matmul:linear_qkv_proj:L10",
+     "totalMs": 0.65536,
+     "count": 16,
+     "perStepMs": 0.04096
+    },
+    {
+     "label": "matmul:linear_qkv_proj:L12",
+     "totalMs": 0.65536,
+     "count": 16,
+     "perStepMs": 0.04096
+    },
+    {
+     "label": "matmul:linear_out_proj:L12",
+     "totalMs": 0.65536,
+     "count": 16,
+     "perStepMs": 0.04096
+    },
+    {
+     "label": "matmul:linear_qkv_proj:L13",
+     "totalMs": 0.65536,
+     "count": 16,
+     "perStepMs": 0.04096
+    },
+    {
+     "label": "matmul:linear_out_proj:L17",
+     "totalMs": 0.65536,
+     "count": 16,
+     "perStepMs": 0.04096
+    },
+    {
+     "label": "matmul:linear_out_proj:L18",
+     "totalMs": 0.65536,
+     "count": 16,
+     "perStepMs": 0.04096
+    },
+    {
+     "label": "matmul:o_proj:L19",
+     "totalMs": 0.65536,
+     "count": 16,
+     "perStepMs": 0.04096
+    },
+    {
+     "label": "matmul:linear_z_proj:L21",
+     "totalMs": 0.65536,
+     "count": 16,
+     "perStepMs": 0.04096
+    },
+    {
+     "label": "matmul:linear_out_proj:L1",
+     "totalMs": 0.589824,
+     "count": 16,
+     "perStepMs": 0.036864
+    },
+    {
+     "label": "matmul:linear_qkv_proj:L2",
+     "totalMs": 0.589824,
+     "count": 16,
+     "perStepMs": 0.036864
+    },
+    {
+     "label": "matmul:linear_qkv_proj:L8",
+     "totalMs": 0.589824,
+     "count": 16,
+     "perStepMs": 0.036864
+    },
+    {
+     "label": "matmul:linear_out_proj:L10",
+     "totalMs": 0.589824,
+     "count": 16,
+     "perStepMs": 0.036864
+    },
+    {
+     "label": "matmul:o_proj:L11",
+     "totalMs": 0.589824,
+     "count": 16,
+     "perStepMs": 0.036864
+    },
+    {
+     "label": "matmul:linear_qkv_proj:L16",
+     "totalMs": 0.589824,
+     "count": 16,
+     "perStepMs": 0.036864
+    },
+    {
+     "label": "matmul:q_proj:L23",
+     "totalMs": 0.589824,
+     "count": 16,
+     "perStepMs": 0.036864
+    },
+    {
+     "label": "matmul:o_proj:L3",
+     "totalMs": 0.524288,
+     "count": 16,
+     "perStepMs": 0.032768
+    },
+    {
+     "label": "matmul:linear_z_proj:L5",
+     "totalMs": 0.524288,
+     "count": 16,
+     "perStepMs": 0.032768
+    },
+    {
+     "label": "matmul:linear_out_proj:L6",
+     "totalMs": 0.524288,
+     "count": 16,
+     "perStepMs": 0.032768
+    },
+    {
+     "label": "matmul:linear_qkv_proj:L9",
+     "totalMs": 0.524288,
+     "count": 16,
+     "perStepMs": 0.032768
+    },
+    {
+     "label": "matmul:o_proj:L15",
+     "totalMs": 0.524288,
+     "count": 16,
+     "perStepMs": 0.032768
+    },
+    {
+     "label": "matmul:linear_qkv_proj:L17",
+     "totalMs": 0.524288,
+     "count": 16,
+     "perStepMs": 0.032768
+    },
+    {
+     "label": "matmul:linear_qkv_proj:L18",
+     "totalMs": 0.524288,
+     "count": 16,
+     "perStepMs": 0.032768
+    },
+    {
+     "label": "matmul:q_proj:L19",
+     "totalMs": 0.524288,
+     "count": 16,
+     "perStepMs": 0.032768
+    },
+    {
+     "label": "matmul:linear_z_proj:L20",
+     "totalMs": 0.524288,
+     "count": 16,
+     "perStepMs": 0.032768
+    },
+    {
+     "label": "matmul:linear_z_proj:L1",
+     "totalMs": 0.45875199999999994,
+     "count": 16,
+     "perStepMs": 0.028671999999999996
+    },
+    {
+     "label": "matmul:linear_z_proj:L2",
+     "totalMs": 0.45875199999999994,
+     "count": 16,
+     "perStepMs": 0.028671999999999996
+    },
+    {
+     "label": "matmul:q_proj:L3",
+     "totalMs": 0.45875199999999994,
+     "count": 16,
+     "perStepMs": 0.028671999999999996
+    },
+    {
+     "label": "matmul:v_proj:L3",
+     "totalMs": 0.45875199999999994,
+     "count": 16,
+     "perStepMs": 0.028671999999999996
+    },
+    {
+     "label": "matmul:linear_out_proj:L8",
+     "totalMs": 0.45875199999999994,
+     "count": 16,
+     "perStepMs": 0.028671999999999996
+    },
+    {
+     "label": "matmul:q_proj:L11",
+     "totalMs": 0.45875199999999994,
+     "count": 16,
+     "perStepMs": 0.028671999999999996
+    },
+    {
+     "label": "matmul:linear_qkv_proj:L14",
+     "totalMs": 0.45875199999999994,
+     "count": 16,
+     "perStepMs": 0.028671999999999996
+    },
+    {
+     "label": "matmul:v_proj:L15",
+     "totalMs": 0.45875199999999994,
+     "count": 16,
+     "perStepMs": 0.028671999999999996
+    },
+    {
+     "label": "matmul:linear_out_proj:L16",
+     "totalMs": 0.45875199999999994,
+     "count": 16,
+     "perStepMs": 0.028671999999999996
+    },
+    {
+     "label": "matmul:linear_z_proj:L18",
+     "totalMs": 0.45875199999999994,
+     "count": 16,
+     "perStepMs": 0.028671999999999996
+    },
+    {
+     "label": "matmul:linear_qkv_proj:L20",
+     "totalMs": 0.45875199999999994,
+     "count": 16,
+     "perStepMs": 0.028671999999999996
+    },
+    {
+     "label": "matmul:linear_qkv_proj:L22",
+     "totalMs": 0.45875199999999994,
+     "count": 16,
+     "perStepMs": 0.028671999999999996
+    },
+    {
+     "label": "matmul:linear_z_proj:L22",
+     "totalMs": 0.45875199999999994,
+     "count": 16,
+     "perStepMs": 0.028671999999999996
+    },
+    {
+     "label": "matmul:linear_qkv_proj:L5",
+     "totalMs": 0.39321599999999995,
+     "count": 16,
+     "perStepMs": 0.024575999999999997
+    },
+    {
+     "label": "matmul:linear_z_proj:L8",
+     "totalMs": 0.39321599999999995,
+     "count": 16,
+     "perStepMs": 0.024575999999999997
+    },
+    {
+     "label": "matmul:v_proj:L11",
+     "totalMs": 0.39321599999999995,
+     "count": 16,
+     "perStepMs": 0.024575999999999997
+    },
+    {
+     "label": "matmul:linear_z_proj:L12",
+     "totalMs": 0.39321599999999995,
+     "count": 16,
+     "perStepMs": 0.024575999999999997
+    },
+    {
+     "label": "matmul:linear_z_proj:L14",
+     "totalMs": 0.39321599999999995,
+     "count": 16,
+     "perStepMs": 0.024575999999999997
+    },
+    {
+     "label": "matmul:q_proj:L15",
+     "totalMs": 0.39321599999999995,
+     "count": 16,
+     "perStepMs": 0.024575999999999997
+    },
+    {
+     "label": "matmul:k_proj:L19",
+     "totalMs": 0.39321599999999995,
+     "count": 16,
+     "perStepMs": 0.024575999999999997
+    },
+    {
+     "label": "matmul:linear_out_proj:L22",
+     "totalMs": 0.39321599999999995,
+     "count": 16,
+     "perStepMs": 0.024575999999999997
+    },
+    {
+     "label": "split_qg",
+     "totalMs": 0.32767999999999997,
+     "count": 16,
+     "perStepMs": 0.020479999999999998
+    },
+    {
+     "label": "rope_qk",
+     "totalMs": 0.32767999999999997,
+     "count": 16,
+     "perStepMs": 0.020479999999999998
+    },
+    {
+     "label": "matmul:linear_z_proj:L4",
+     "totalMs": 0.32767999999999997,
+     "count": 16,
+     "perStepMs": 0.020479999999999998
+    },
+    {
+     "label": "matmul:k_proj:L7",
+     "totalMs": 0.32767999999999997,
+     "count": 16,
+     "perStepMs": 0.020479999999999998
+    },
+    {
+     "label": "matmul:v_proj:L7",
+     "totalMs": 0.32767999999999997,
+     "count": 16,
+     "perStepMs": 0.020479999999999998
+    },
+    {
+     "label": "matmul:linear_z_proj:L9",
+     "totalMs": 0.32767999999999997,
+     "count": 16,
+     "perStepMs": 0.020479999999999998
+    },
+    {
+     "label": "matmul:linear_z_proj:L10",
+     "totalMs": 0.32767999999999997,
+     "count": 16,
+     "perStepMs": 0.020479999999999998
+    },
+    {
+     "label": "matmul:k_proj:L11",
+     "totalMs": 0.32767999999999997,
+     "count": 16,
+     "perStepMs": 0.020479999999999998
+    },
+    {
+     "label": "matmul:linear_z_proj:L17",
+     "totalMs": 0.32767999999999997,
+     "count": 16,
+     "perStepMs": 0.020479999999999998
+    },
+    {
+     "label": "matmul:v_proj:L19",
+     "totalMs": 0.32767999999999997,
+     "count": 16,
+     "perStepMs": 0.020479999999999998
+    },
+    {
+     "label": "matmul:linear_qkv_proj:L21",
+     "totalMs": 0.32767999999999997,
+     "count": 16,
+     "perStepMs": 0.020479999999999998
+    },
+    {
+     "label": "matmul:linear_a_proj:L1",
+     "totalMs": 0.262144,
+     "count": 16,
+     "perStepMs": 0.016384
+    },
+    {
+     "label": "silu",
+     "totalMs": 0.262144,
+     "count": 16,
+     "perStepMs": 0.016384
+    },
+    {
+     "label": "matmul:linear_a_proj:L9",
+     "totalMs": 0.262144,
+     "count": 16,
+     "perStepMs": 0.016384
+    },
+    {
+     "label": "matmul:linear_z_proj:L13",
+     "totalMs": 0.262144,
+     "count": 16,
+     "perStepMs": 0.016384
+    },
+    {
+     "label": "matmul:linear_a_proj:L13",
+     "totalMs": 0.262144,
+     "count": 16,
+     "perStepMs": 0.016384
+    },
+    {
+     "label": "matmul:linear_z_proj:L16",
+     "totalMs": 0.262144,
+     "count": 16,
+     "perStepMs": 0.016384
+    },
+    {
+     "label": "matmul:k_proj:L23",
+     "totalMs": 0.262144,
+     "count": 16,
+     "perStepMs": 0.016384
+    },
+    {
+     "label": "matmul:linear_b_proj:L1",
+     "totalMs": 0.196608,
+     "count": 16,
+     "perStepMs": 0.012288
+    },
+    {
+     "label": "matmul:k_proj:L3",
+     "totalMs": 0.196608,
+     "count": 16,
+     "perStepMs": 0.012288
+    },
+    {
+     "label": "matmul:linear_b_proj:L4",
+     "totalMs": 0.196608,
+     "count": 16,
+     "perStepMs": 0.012288
+    },
+    {
+     "label": "matmul:linear_z_proj:L6",
+     "totalMs": 0.196608,
+     "count": 16,
+     "perStepMs": 0.012288
+    },
+    {
+     "label": "matmul:linear_b_proj:L6",
+     "totalMs": 0.196608,
+     "count": 16,
+     "perStepMs": 0.012288
+    },
+    {
+     "label": "matmul:linear_a_proj:L14",
+     "totalMs": 0.196608,
+     "count": 16,
+     "perStepMs": 0.012288
+    },
+    {
+     "label": "matmul:linear_b_proj:L14",
+     "totalMs": 0.196608,
+     "count": 16,
+     "perStepMs": 0.012288
+    },
+    {
+     "label": "matmul:k_proj:L15",
+     "totalMs": 0.196608,
+     "count": 16,
+     "perStepMs": 0.012288
+    },
+    {
+     "label": "matmul:linear_a_proj:L17",
+     "totalMs": 0.196608,
+     "count": 16,
+     "perStepMs": 0.012288
+    },
+    {
+     "label": "matmul:linear_b_proj:L17",
+     "totalMs": 0.196608,
+     "count": 16,
+     "perStepMs": 0.012288
+    },
+    {
+     "label": "matmul:linear_a_proj:L18",
+     "totalMs": 0.196608,
+     "count": 16,
+     "perStepMs": 0.012288
+    },
+    {
+     "label": "matmul:v_proj:L23",
+     "totalMs": 0.196608,
+     "count": 16,
+     "perStepMs": 0.012288
+    },
+    {
+     "label": "matmul:linear_a_proj:L0",
+     "totalMs": 0.131072,
+     "count": 16,
+     "perStepMs": 0.008192
+    },
+    {
+     "label": "rmsnorm_qk",
+     "totalMs": 0.131072,
+     "count": 16,
+     "perStepMs": 0.008192
+    },
+    {
+     "label": "matmul:linear_a_proj:L4",
+     "totalMs": 0.131072,
+     "count": 16,
+     "perStepMs": 0.008192
+    },
+    {
+     "label": "matmul:linear_a_proj:L5",
+     "totalMs": 0.131072,
+     "count": 16,
+     "perStepMs": 0.008192
+    },
+    {
+     "label": "matmul:linear_b_proj:L9",
+     "totalMs": 0.131072,
+     "count": 16,
+     "perStepMs": 0.008192
+    },
+    {
+     "label": "matmul:linear_b_proj:L12",
+     "totalMs": 0.131072,
+     "count": 16,
+     "perStepMs": 0.008192
+    },
+    {
+     "label": "matmul:linear_a_proj:L16",
+     "totalMs": 0.131072,
+     "count": 16,
+     "perStepMs": 0.008192
+    },
+    {
+     "label": "matmul:linear_b_proj:L16",
+     "totalMs": 0.131072,
+     "count": 16,
+     "perStepMs": 0.008192
+    },
+    {
+     "label": "matmul:linear_b_proj:L20",
+     "totalMs": 0.131072,
+     "count": 16,
+     "perStepMs": 0.008192
+    },
+    {
+     "label": "matmul:linear_b_proj:L21",
+     "totalMs": 0.131072,
+     "count": 16,
+     "perStepMs": 0.008192
+    },
+    {
+     "label": "kv_cache_write:f32_to_f16",
+     "totalMs": 0.065536,
+     "count": 16,
+     "perStepMs": 0.004096
+    },
+    {
+     "label": "matmul:linear_b_proj:L5",
+     "totalMs": 0.065536,
+     "count": 16,
+     "perStepMs": 0.004096
+    },
+    {
+     "label": "matmul:linear_a_proj:L6",
+     "totalMs": 0.065536,
+     "count": 16,
+     "perStepMs": 0.004096
+    },
+    {
+     "label": "matmul:linear_b_proj:L8",
+     "totalMs": 0.065536,
+     "count": 16,
+     "perStepMs": 0.004096
+    },
+    {
+     "label": "matmul:linear_a_proj:L10",
+     "totalMs": 0.065536,
+     "count": 16,
+     "perStepMs": 0.004096
+    },
+    {
+     "label": "matmul:linear_b_proj:L10",
+     "totalMs": 0.065536,
+     "count": 16,
+     "perStepMs": 0.004096
+    },
+    {
+     "label": "matmul:linear_a_proj:L12",
+     "totalMs": 0.065536,
+     "count": 16,
+     "perStepMs": 0.004096
+    },
+    {
+     "label": "matmul:linear_a_proj:L20",
+     "totalMs": 0.065536,
+     "count": 16,
+     "perStepMs": 0.004096
+    },
+    {
+     "label": "matmul:linear_a_proj:L21",
+     "totalMs": 0.065536,
+     "count": 16,
+     "perStepMs": 0.004096
+    },
+    {
+     "label": "matmul:linear_a_proj:L22",
+     "totalMs": 0.065536,
+     "count": 16,
+     "perStepMs": 0.004096
+    },
+    {
+     "label": "matmul:linear_b_proj:L22",
+     "totalMs": 0.065536,
+     "count": 16,
+     "perStepMs": 0.004096
+    },
+    {
+     "label": "matmul:linear_a_proj:L2",
+     "totalMs": 0,
+     "count": 16,
+     "perStepMs": 0
+    },
+    {
+     "label": "matmul:linear_b_proj:L2",
+     "totalMs": 0,
+     "count": 16,
+     "perStepMs": 0
+    },
+    {
+     "label": "matmul:linear_a_proj:L8",
+     "totalMs": 0,
+     "count": 16,
+     "perStepMs": 0
+    },
+    {
+     "label": "matmul:linear_b_proj:L13",
+     "totalMs": 0,
+     "count": 16,
+     "perStepMs": 0
+    },
+    {
+     "label": "matmul:linear_b_proj:L18",
+     "totalMs": 0,
+     "count": 16,
+     "perStepMs": 0
+    }
+   ],
+   "firstStepSample": "{\"step\":1,\"timings\":{\"rmsnorm\":0.131072,\"matmul:linear_qkv_proj:L0\":0.131072,\"matmul:linear_z_proj:L0\":0.131072,\"matmul:linear_a_proj:L0\":0,\"matmul:linear_b_proj:L0\":0.065536,\"linear_attention_conv\":0.065536,\"linear_attention_recurrent\":1.7694720000000004,\"matmul:linear_out_proj:L0\":0.196608,\"rmsnorm:post_attn_norm\":0.196608,\"fused_ffn\":0.8519680000000002,\"matmul:ffn_down:L0\":0.32768,\"residual\":0.131072,\"matmul:linear_qkv_proj:L1\":0.065536,\"matmul:linear_z_proj:L1\":0,\"matmul:linear_a_proj:L1\":0.065536,\"matmul:linear_b_proj:L1\":0,\"matmul:linear_out_proj:L1\":0.065536,\"matmul:ffn_down:L1\":0.065536,\"matmul:linear_qkv_proj:L2\":0.065536,\"matmul:linear_z_proj:L2\":0,\"matmul:linear_a_proj:L2\":0,\"matmul:linear_b_proj:L2\":0,\"matmul:linear_out_proj:L2\":0.065536,\"matmul:ffn_down:L2\":0.065536,\"rmsnorm:input_norm\":0.131072,\"matmul:q_proj:L3\":0,\"split_qg\":0.065536,\"matmul:k_proj:L3\":0,\"matmul:v_proj:L3\":0.065536,\"rmsnorm_qk\":0.065536,\"rope_qk\":0,\"kv_cache_write:f32_to_f16\":0,\"attention\":0.262144,\"silu\":0,\"matmul:o_proj:L3\":0,\"matmul:ffn_down:L3\":0.065536,\"matmul:linear_qkv_proj:L4\":0.065536,\"matmul:linear_z_proj:L4\":0,\"matmul:linear_a_proj:L4\":0,\"matmul:linear_b_proj:L4\":0.065536,\"matmul:linear_out_proj:L4\":0.065536,\"matmul:ffn_down:L4\":0.065536,\"matmul:linear_qkv_proj:L5\":0,\"matmul:linear_z_proj:L5\":0.065536,\"matmul:linear_a_proj:L5\":0,\"matmul:linear_b_proj:L5\":0,\"matmul:linear_out_proj:L5\":0.065536,\"matmul:ffn_down:L5\":0.065536,\"matmul:linear_qkv_proj:L6\":0.065536,\"matmul:linear_z_proj:L6\":0,\"matmul:linear_a_proj:L6\":0,\"matmul:linear_b_proj:L6\":0,\"matmul:linear_out_proj:L6\":0,\"matmul:ffn_down:L6\":0.065536,\"matmul:q_proj:L7\":0.065536,\"matmul:k_proj:L7\":0,\"matmul:v_proj:L7\":0,\"matmul:o_proj:L7\":0.065536,\"matmul:ffn_down:L7\":0.065536,\"matmul:linear_qkv_proj:L8\":0.065536,\"matmul:linear_z_proj:L8\":0,\"matmul:linear_a_proj:L8\":0,\"matmul:linear_b_proj:L8\":0,\"matmul:linear_out_proj:L8\":0,\"matmul:ffn_down:L8\":0.065536,\"matmul:linear_qkv_proj:L9\":0.065536,\"matmul:linear_z_proj:L9\":0,\"matmul",
+   "statsKeys": [
+    "prefillTimeMs",
+    "decodeTimeMs",
+    "ttftMs",
+    "loadTiming",
+    "pipelineLoadTiming",
+    "prefillTokens",
+    "decodeTokens",
+    "memoryUsageBytes",
+    "tokensGenerated",
+    "totalTimeMs",
+    "decodeRecordMs",
+    "decodeRecordOps",
+    "decodeRecordPasses",
+    "decodeRecordOpLabels",
+    "decodeSubmitWaitMs",
+    "decodeReadbackWaitMs",
+    "decodeReadbackMapWaitMs",
+    "decodeReadbackCleanupMs",
+    "decodeReadbackCopyMs",
+    "prefillRecordMs",
+    "prefillRecordOps",
+    "prefillRecordPasses",
+    "prefillRecordOpLabels",
+    "prefillSubmitWaitMs",
+    "prefillProfileSteps",
+    "decodeProfileSteps",
+    "executionPlan",
+    "kernelPathId",
+    "kernelPathSource",
+    "operatorDiagnostics",
+    "attentionInputs",
+    "decodeMode",
+    "batchGuardReason",
+    "singleTokenSubmitWaitMs",
+    "singleTokenReadbackWaitMs",
+    "singleTokenReadbackMapWaitMs",
+    "singleTokenReadbackCleanupMs",
+    "singleTokenReadbackCopyMs",
+    "singleTokenOrchestrationMs",
+    "plePreparedTokenCacheHits",
+    "plePreparedTokenCacheMisses",
+    "plePreparedTokenCacheEntries",
+    "plePreparedTokenCacheBytes",
+    "pleHotVocabularyHits",
+    "pleHotVocabularyMisses",
+    "modelLoadMs",
+    "gpuTimePrefillMs",
+    "gpuTimeDecodeMs",
+    "batching",
+    "uniformCache"
+   ]
+  }
+ ],
+ "gpu": {
+  "adapter": {
+   "vendor": "amd",
+   "architecture": "rdna-3",
+   "device": "radeon-8060s-graphics-radv-strix-halo-",
+   "description": "radv: Mesa 26.0.3-1ubuntu1"
+  },
+  "hasF16": true,
+  "hasSubgroups": true
+ },
+ "finishedAt": "2026-10-14T22:37:49.210Z"
+}

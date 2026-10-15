@@ -1,0 +1,1162 @@
+{
+ "schema": "reploid.paired-compile-cost/v1",
+ "machine": "amd-host",
+ "note": "compile-cost.mjs, one fresh process per row; cold = MESA_SHADER_CACHE_DISABLE=true; warm1 populates and warm2 re-measures the driver cache; hwmIncreaseMiB is the process VmHWM increase across module and pipeline creation.",
+ "rows": [
+  {
+   "label": "cold-attention-new",
+   "wgsl": "attention_paired_tiled.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 256,
+    "DOT_LANES": 4
+   },
+   "cacheDisabled": true,
+   "ms": 7903.016222,
+   "before": {
+    "vmHWMKiB": 129416,
+    "vmRSSKiB": 127312
+   },
+   "after": {
+    "vmHWMKiB": 870516,
+    "vmRSSKiB": 658276
+   },
+   "hwmIncreaseMiB": 723.73046875,
+   "errors": [],
+   "job": "s3-compile-cold-attention-new"
+  },
+  {
+   "label": "cold-attention-old",
+   "wgsl": "attention_paired.wgsl",
+   "constants": {},
+   "cacheDisabled": true,
+   "ms": 7353.846692,
+   "before": {
+    "vmHWMKiB": 129360,
+    "vmRSSKiB": 127372
+   },
+   "after": {
+    "vmHWMKiB": 809692,
+    "vmRSSKiB": 658776
+   },
+   "hwmIncreaseMiB": 664.38671875,
+   "errors": [],
+   "job": "s3-compile-cold-attention-old"
+  },
+  {
+   "label": "cold-qk-new",
+   "wgsl": "gated_delta_qk_paired_parallel.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 256
+   },
+   "cacheDisabled": true,
+   "ms": 4948.364614,
+   "before": {
+    "vmHWMKiB": 128752,
+    "vmRSSKiB": 127348
+   },
+   "after": {
+    "vmHWMKiB": 808556,
+    "vmRSSKiB": 640400
+   },
+   "hwmIncreaseMiB": 663.87109375,
+   "errors": [],
+   "job": "s3-compile-cold-qk-new"
+  },
+  {
+   "label": "cold-qk-old",
+   "wgsl": "gated_delta_qk_paired.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 128
+   },
+   "cacheDisabled": true,
+   "ms": 5120.173617,
+   "before": {
+    "vmHWMKiB": 129140,
+    "vmRSSKiB": 127344
+   },
+   "after": {
+    "vmHWMKiB": 753800,
+    "vmRSSKiB": 625820
+   },
+   "hwmIncreaseMiB": 610.01953125,
+   "errors": [],
+   "job": "s3-compile-cold-qk-old"
+  },
+  {
+   "label": "cold-rmsnorm-input-new",
+   "wgsl": "rmsnorm_paired_sliced.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 256,
+    "WEIGHT_F16": 1,
+    "WEIGHT_OFFSET": 1,
+    "POST_RESIDUAL": 0,
+    "PRE_RESIDUAL": 0,
+    "OUTPUT_PRENORM": 0
+   },
+   "cacheDisabled": true,
+   "ms": 5682.951814,
+   "before": {
+    "vmHWMKiB": 128856,
+    "vmRSSKiB": 127360
+   },
+   "after": {
+    "vmHWMKiB": 806452,
+    "vmRSSKiB": 690756
+   },
+   "hwmIncreaseMiB": 661.71484375,
+   "errors": [],
+   "job": "s3-compile-cold-rmsnorm-input-new"
+  },
+  {
+   "label": "cold-rmsnorm-input-old",
+   "wgsl": "rmsnorm_paired.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 64,
+    "WEIGHT_F16": 1,
+    "WEIGHT_OFFSET": 1,
+    "POST_RESIDUAL": 0,
+    "PRE_RESIDUAL": 0,
+    "OUTPUT_PRENORM": 0
+   },
+   "cacheDisabled": true,
+   "ms": 5700.3114319999995,
+   "before": {
+    "vmHWMKiB": 129292,
+    "vmRSSKiB": 127428
+   },
+   "after": {
+    "vmHWMKiB": 813276,
+    "vmRSSKiB": 687452
+   },
+   "hwmIncreaseMiB": 667.953125,
+   "errors": [],
+   "job": "s3-compile-cold-rmsnorm-input-old"
+  },
+  {
+   "label": "cold-rmsnorm-post-new",
+   "wgsl": "rmsnorm_paired_sliced.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 256,
+    "WEIGHT_F16": 1,
+    "WEIGHT_OFFSET": 1,
+    "POST_RESIDUAL": 0,
+    "PRE_RESIDUAL": 1,
+    "OUTPUT_PRENORM": 1
+   },
+   "cacheDisabled": true,
+   "ms": 6260.040412,
+   "before": {
+    "vmHWMKiB": 129208,
+    "vmRSSKiB": 127384
+   },
+   "after": {
+    "vmHWMKiB": 817004,
+    "vmRSSKiB": 688912
+   },
+   "hwmIncreaseMiB": 671.67578125,
+   "errors": [],
+   "job": "s3-compile-cold-rmsnorm-post-new"
+  },
+  {
+   "label": "cold-rmsnorm-post-old",
+   "wgsl": "rmsnorm_paired.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 64,
+    "WEIGHT_F16": 1,
+    "WEIGHT_OFFSET": 1,
+    "POST_RESIDUAL": 0,
+    "PRE_RESIDUAL": 1,
+    "OUTPUT_PRENORM": 1
+   },
+   "cacheDisabled": true,
+   "ms": 6318.022687,
+   "before": {
+    "vmHWMKiB": 129476,
+    "vmRSSKiB": 127488
+   },
+   "after": {
+    "vmHWMKiB": 822400,
+    "vmRSSKiB": 689564
+   },
+   "hwmIncreaseMiB": 676.68359375,
+   "errors": [],
+   "job": "s3-compile-cold-rmsnorm-post-old"
+  },
+  {
+   "label": "cold-state-new",
+   "wgsl": "gated_delta_state_paired_sliced.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 256,
+    "K_SLICES": 16
+   },
+   "cacheDisabled": true,
+   "ms": 16566.682877,
+   "before": {
+    "vmHWMKiB": 129316,
+    "vmRSSKiB": 127352
+   },
+   "after": {
+    "vmHWMKiB": 1569276,
+    "vmRSSKiB": 592500
+   },
+   "hwmIncreaseMiB": 1406.2109375,
+   "errors": [],
+   "job": "s3-compile-cold-state-new"
+  },
+  {
+   "label": "cold-state-old",
+   "wgsl": "gated_delta_state_paired.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 128
+   },
+   "cacheDisabled": true,
+   "ms": 1958.869539,
+   "before": {
+    "vmHWMKiB": 129544,
+    "vmRSSKiB": 127412
+   },
+   "after": {
+    "vmHWMKiB": 583688,
+    "vmRSSKiB": 462628
+   },
+   "hwmIncreaseMiB": 443.5,
+   "errors": [],
+   "job": "s3-compile-cold-state-old"
+  },
+  {
+   "label": "warm1-attention-new",
+   "wgsl": "attention_paired_tiled.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 256,
+    "DOT_LANES": 4
+   },
+   "cacheDisabled": false,
+   "ms": 10.159699000000003,
+   "before": {
+    "vmHWMKiB": 129016,
+    "vmRSSKiB": 127548
+   },
+   "after": {
+    "vmHWMKiB": 149988,
+    "vmRSSKiB": 149988
+   },
+   "hwmIncreaseMiB": 20.48046875,
+   "errors": [],
+   "job": "s3-compile-warm1-attention-new"
+  },
+  {
+   "label": "warm1-attention-old",
+   "wgsl": "attention_paired.wgsl",
+   "constants": {},
+   "cacheDisabled": false,
+   "ms": 11.53859899999999,
+   "before": {
+    "vmHWMKiB": 129056,
+    "vmRSSKiB": 127496
+   },
+   "after": {
+    "vmHWMKiB": 149780,
+    "vmRSSKiB": 149780
+   },
+   "hwmIncreaseMiB": 20.23828125,
+   "errors": [],
+   "job": "s3-compile-warm1-attention-old"
+  },
+  {
+   "label": "warm1-qk-new",
+   "wgsl": "gated_delta_qk_paired_parallel.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 256
+   },
+   "cacheDisabled": false,
+   "ms": 10.135483000000008,
+   "before": {
+    "vmHWMKiB": 129552,
+    "vmRSSKiB": 127388
+   },
+   "after": {
+    "vmHWMKiB": 148424,
+    "vmRSSKiB": 148424
+   },
+   "hwmIncreaseMiB": 18.4296875,
+   "errors": [],
+   "job": "s3-compile-warm1-qk-new"
+  },
+  {
+   "label": "warm1-qk-old",
+   "wgsl": "gated_delta_qk_paired.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 128
+   },
+   "cacheDisabled": false,
+   "ms": 9.044798999999998,
+   "before": {
+    "vmHWMKiB": 129312,
+    "vmRSSKiB": 127432
+   },
+   "after": {
+    "vmHWMKiB": 148312,
+    "vmRSSKiB": 148312
+   },
+   "hwmIncreaseMiB": 18.5546875,
+   "errors": [],
+   "job": "s3-compile-warm1-qk-old"
+  },
+  {
+   "label": "warm1-rmsnorm-input-new",
+   "wgsl": "rmsnorm_paired_sliced.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 256,
+    "WEIGHT_F16": 1,
+    "WEIGHT_OFFSET": 1,
+    "POST_RESIDUAL": 0,
+    "PRE_RESIDUAL": 0,
+    "OUTPUT_PRENORM": 0
+   },
+   "cacheDisabled": false,
+   "ms": 8.759489000000002,
+   "before": {
+    "vmHWMKiB": 128956,
+    "vmRSSKiB": 127416
+   },
+   "after": {
+    "vmHWMKiB": 148416,
+    "vmRSSKiB": 148416
+   },
+   "hwmIncreaseMiB": 19.00390625,
+   "errors": [],
+   "job": "s3-compile-warm1-rmsnorm-input-new"
+  },
+  {
+   "label": "warm1-rmsnorm-input-old",
+   "wgsl": "rmsnorm_paired.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 64,
+    "WEIGHT_F16": 1,
+    "WEIGHT_OFFSET": 1,
+    "POST_RESIDUAL": 0,
+    "PRE_RESIDUAL": 0,
+    "OUTPUT_PRENORM": 0
+   },
+   "cacheDisabled": false,
+   "ms": 9.055329,
+   "before": {
+    "vmHWMKiB": 128224,
+    "vmRSSKiB": 127532
+   },
+   "after": {
+    "vmHWMKiB": 148560,
+    "vmRSSKiB": 148560
+   },
+   "hwmIncreaseMiB": 19.859375,
+   "errors": [],
+   "job": "s3-compile-warm1-rmsnorm-input-old"
+  },
+  {
+   "label": "warm1-rmsnorm-post-new",
+   "wgsl": "rmsnorm_paired_sliced.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 256,
+    "WEIGHT_F16": 1,
+    "WEIGHT_OFFSET": 1,
+    "POST_RESIDUAL": 0,
+    "PRE_RESIDUAL": 1,
+    "OUTPUT_PRENORM": 1
+   },
+   "cacheDisabled": false,
+   "ms": 10.657892000000004,
+   "before": {
+    "vmHWMKiB": 129252,
+    "vmRSSKiB": 127432
+   },
+   "after": {
+    "vmHWMKiB": 150836,
+    "vmRSSKiB": 150836
+   },
+   "hwmIncreaseMiB": 21.078125,
+   "errors": [],
+   "job": "s3-compile-warm1-rmsnorm-post-new"
+  },
+  {
+   "label": "warm1-rmsnorm-post-old",
+   "wgsl": "rmsnorm_paired.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 64,
+    "WEIGHT_F16": 1,
+    "WEIGHT_OFFSET": 1,
+    "POST_RESIDUAL": 0,
+    "PRE_RESIDUAL": 1,
+    "OUTPUT_PRENORM": 1
+   },
+   "cacheDisabled": false,
+   "ms": 12.88079900000001,
+   "before": {
+    "vmHWMKiB": 130392,
+    "vmRSSKiB": 127560
+   },
+   "after": {
+    "vmHWMKiB": 150464,
+    "vmRSSKiB": 150464
+   },
+   "hwmIncreaseMiB": 19.6015625,
+   "errors": [],
+   "job": "s3-compile-warm1-rmsnorm-post-old"
+  },
+  {
+   "label": "warm1-state-new",
+   "wgsl": "gated_delta_state_paired_sliced.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 256,
+    "K_SLICES": 16
+   },
+   "cacheDisabled": false,
+   "ms": 11.626264000000006,
+   "before": {
+    "vmHWMKiB": 129240,
+    "vmRSSKiB": 127532
+   },
+   "after": {
+    "vmHWMKiB": 153240,
+    "vmRSSKiB": 153240
+   },
+   "hwmIncreaseMiB": 23.4375,
+   "errors": [],
+   "job": "s3-compile-warm1-state-new"
+  },
+  {
+   "label": "warm1-state-old",
+   "wgsl": "gated_delta_state_paired.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 128
+   },
+   "cacheDisabled": false,
+   "ms": 8.487383999999992,
+   "before": {
+    "vmHWMKiB": 129976,
+    "vmRSSKiB": 127524
+   },
+   "after": {
+    "vmHWMKiB": 147148,
+    "vmRSSKiB": 147148
+   },
+   "hwmIncreaseMiB": 16.76953125,
+   "errors": [],
+   "job": "s3-compile-warm1-state-old"
+  },
+  {
+   "label": "warm2-attention-new",
+   "wgsl": "attention_paired_tiled.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 256,
+    "DOT_LANES": 4
+   },
+   "cacheDisabled": false,
+   "ms": 11.564999,
+   "before": {
+    "vmHWMKiB": 129756,
+    "vmRSSKiB": 127592
+   },
+   "after": {
+    "vmHWMKiB": 150340,
+    "vmRSSKiB": 150340
+   },
+   "hwmIncreaseMiB": 20.1015625,
+   "errors": [],
+   "job": "s3-compile-warm2-attention-new"
+  },
+  {
+   "label": "warm2-attention-old",
+   "wgsl": "attention_paired.wgsl",
+   "constants": {},
+   "cacheDisabled": false,
+   "ms": 10.557181,
+   "before": {
+    "vmHWMKiB": 129504,
+    "vmRSSKiB": 127492
+   },
+   "after": {
+    "vmHWMKiB": 149324,
+    "vmRSSKiB": 149324
+   },
+   "hwmIncreaseMiB": 19.35546875,
+   "errors": [],
+   "job": "s3-compile-warm2-attention-old"
+  },
+  {
+   "label": "warm2-qk-new",
+   "wgsl": "gated_delta_qk_paired_parallel.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 256
+   },
+   "cacheDisabled": false,
+   "ms": 9.287468000000004,
+   "before": {
+    "vmHWMKiB": 129448,
+    "vmRSSKiB": 127544
+   },
+   "after": {
+    "vmHWMKiB": 148488,
+    "vmRSSKiB": 148488
+   },
+   "hwmIncreaseMiB": 18.59375,
+   "errors": [],
+   "job": "s3-compile-warm2-qk-new"
+  },
+  {
+   "label": "warm2-qk-old",
+   "wgsl": "gated_delta_qk_paired.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 128
+   },
+   "cacheDisabled": false,
+   "ms": 8.560502,
+   "before": {
+    "vmHWMKiB": 129416,
+    "vmRSSKiB": 127548
+   },
+   "after": {
+    "vmHWMKiB": 148944,
+    "vmRSSKiB": 148944
+   },
+   "hwmIncreaseMiB": 19.0703125,
+   "errors": [],
+   "job": "s3-compile-warm2-qk-old"
+  },
+  {
+   "label": "warm2-rmsnorm-input-new",
+   "wgsl": "rmsnorm_paired_sliced.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 256,
+    "WEIGHT_F16": 1,
+    "WEIGHT_OFFSET": 1,
+    "POST_RESIDUAL": 0,
+    "PRE_RESIDUAL": 0,
+    "OUTPUT_PRENORM": 0
+   },
+   "cacheDisabled": false,
+   "ms": 9.925004999999999,
+   "before": {
+    "vmHWMKiB": 129872,
+    "vmRSSKiB": 127568
+   },
+   "after": {
+    "vmHWMKiB": 149312,
+    "vmRSSKiB": 149312
+   },
+   "hwmIncreaseMiB": 18.984375,
+   "errors": [],
+   "job": "s3-compile-warm2-rmsnorm-input-new"
+  },
+  {
+   "label": "warm2-rmsnorm-input-old",
+   "wgsl": "rmsnorm_paired.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 64,
+    "WEIGHT_F16": 1,
+    "WEIGHT_OFFSET": 1,
+    "POST_RESIDUAL": 0,
+    "PRE_RESIDUAL": 0,
+    "OUTPUT_PRENORM": 0
+   },
+   "cacheDisabled": false,
+   "ms": 10.199864999999988,
+   "before": {
+    "vmHWMKiB": 128724,
+    "vmRSSKiB": 127468
+   },
+   "after": {
+    "vmHWMKiB": 148548,
+    "vmRSSKiB": 148548
+   },
+   "hwmIncreaseMiB": 19.359375,
+   "errors": [],
+   "job": "s3-compile-warm2-rmsnorm-input-old"
+  },
+  {
+   "label": "warm2-rmsnorm-post-new",
+   "wgsl": "rmsnorm_paired_sliced.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 256,
+    "WEIGHT_F16": 1,
+    "WEIGHT_OFFSET": 1,
+    "POST_RESIDUAL": 0,
+    "PRE_RESIDUAL": 1,
+    "OUTPUT_PRENORM": 1
+   },
+   "cacheDisabled": false,
+   "ms": 10.053438,
+   "before": {
+    "vmHWMKiB": 129476,
+    "vmRSSKiB": 127536
+   },
+   "after": {
+    "vmHWMKiB": 148780,
+    "vmRSSKiB": 148780
+   },
+   "hwmIncreaseMiB": 18.8515625,
+   "errors": [],
+   "job": "s3-compile-warm2-rmsnorm-post-new"
+  },
+  {
+   "label": "warm2-rmsnorm-post-old",
+   "wgsl": "rmsnorm_paired.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 64,
+    "WEIGHT_F16": 1,
+    "WEIGHT_OFFSET": 1,
+    "POST_RESIDUAL": 0,
+    "PRE_RESIDUAL": 1,
+    "OUTPUT_PRENORM": 1
+   },
+   "cacheDisabled": false,
+   "ms": 10.256541999999996,
+   "before": {
+    "vmHWMKiB": 129820,
+    "vmRSSKiB": 127476
+   },
+   "after": {
+    "vmHWMKiB": 148816,
+    "vmRSSKiB": 148816
+   },
+   "hwmIncreaseMiB": 18.55078125,
+   "errors": [],
+   "job": "s3-compile-warm2-rmsnorm-post-old"
+  },
+  {
+   "label": "warm2-state-new",
+   "wgsl": "gated_delta_state_paired_sliced.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 256,
+    "K_SLICES": 16
+   },
+   "cacheDisabled": false,
+   "ms": 13.590451999999999,
+   "before": {
+    "vmHWMKiB": 129944,
+    "vmRSSKiB": 127364
+   },
+   "after": {
+    "vmHWMKiB": 154644,
+    "vmRSSKiB": 154644
+   },
+   "hwmIncreaseMiB": 24.12109375,
+   "errors": [],
+   "job": "s3-compile-warm2-state-new"
+  },
+  {
+   "label": "warm2-state-old",
+   "wgsl": "gated_delta_state_paired.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 128
+   },
+   "cacheDisabled": false,
+   "ms": 9.021584000000004,
+   "before": {
+    "vmHWMKiB": 129116,
+    "vmRSSKiB": 127408
+   },
+   "after": {
+    "vmHWMKiB": 147312,
+    "vmRSSKiB": 147312
+   },
+   "hwmIncreaseMiB": 17.76953125,
+   "errors": [],
+   "job": "s3-compile-warm2-state-old"
+  },
+  {
+   "label": "cold-matmul-f16-new",
+   "wgsl": "matmul_paired_compensated.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 64,
+    "WEIGHT_F16": 1,
+    "WEIGHT_Q4K": 0,
+    "TRANSPOSE_B": 1,
+    "SCALAR_OUTPUT": 0
+   },
+   "cacheDisabled": true,
+   "ms": 303.234287,
+   "before": {
+    "vmHWMKiB": 128880,
+    "vmRSSKiB": 127296
+   },
+   "after": {
+    "vmHWMKiB": 299640,
+    "vmRSSKiB": 283812
+   },
+   "hwmIncreaseMiB": 166.7578125,
+   "errors": [],
+   "job": "s4-compile-cold-matmul-f16-new"
+  },
+  {
+   "label": "cold-matmul-f16-old",
+   "wgsl": "matmul_paired.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 64,
+    "WEIGHT_F16": 1,
+    "WEIGHT_Q4K": 0,
+    "TRANSPOSE_B": 1,
+    "SCALAR_OUTPUT": 0
+   },
+   "cacheDisabled": true,
+   "ms": 322.918953,
+   "before": {
+    "vmHWMKiB": 128868,
+    "vmRSSKiB": 127364
+   },
+   "after": {
+    "vmHWMKiB": 304516,
+    "vmRSSKiB": 287440
+   },
+   "hwmIncreaseMiB": 171.53125,
+   "errors": [],
+   "job": "s4-compile-cold-matmul-f16-old"
+  },
+  {
+   "label": "cold-matmul-head-new",
+   "wgsl": "matmul_paired_compensated.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 64,
+    "WEIGHT_F16": 0,
+    "WEIGHT_Q4K": 1,
+    "TRANSPOSE_B": 1,
+    "SCALAR_OUTPUT": 1
+   },
+   "cacheDisabled": true,
+   "ms": 291.835476,
+   "before": {
+    "vmHWMKiB": 129104,
+    "vmRSSKiB": 127376
+   },
+   "after": {
+    "vmHWMKiB": 294140,
+    "vmRSSKiB": 278212
+   },
+   "hwmIncreaseMiB": 161.16796875,
+   "errors": [],
+   "job": "s4-compile-cold-matmul-head-new"
+  },
+  {
+   "label": "cold-matmul-head-old",
+   "wgsl": "matmul_paired.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 64,
+    "WEIGHT_F16": 0,
+    "WEIGHT_Q4K": 1,
+    "TRANSPOSE_B": 1,
+    "SCALAR_OUTPUT": 1
+   },
+   "cacheDisabled": true,
+   "ms": 332.12380199999996,
+   "before": {
+    "vmHWMKiB": 129508,
+    "vmRSSKiB": 127484
+   },
+   "after": {
+    "vmHWMKiB": 304264,
+    "vmRSSKiB": 287824
+   },
+   "hwmIncreaseMiB": 170.66015625,
+   "errors": [],
+   "job": "s4-compile-cold-matmul-head-old"
+  },
+  {
+   "label": "cold-matmul-q4k-new",
+   "wgsl": "matmul_paired_compensated.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 64,
+    "WEIGHT_F16": 0,
+    "WEIGHT_Q4K": 1,
+    "TRANSPOSE_B": 1,
+    "SCALAR_OUTPUT": 0
+   },
+   "cacheDisabled": true,
+   "ms": 306.941473,
+   "before": {
+    "vmHWMKiB": 128768,
+    "vmRSSKiB": 127376
+   },
+   "after": {
+    "vmHWMKiB": 298220,
+    "vmRSSKiB": 283800
+   },
+   "hwmIncreaseMiB": 165.48046875,
+   "errors": [],
+   "job": "s4-compile-cold-matmul-q4k-new"
+  },
+  {
+   "label": "cold-matmul-q4k-old",
+   "wgsl": "matmul_paired.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 64,
+    "WEIGHT_F16": 0,
+    "WEIGHT_Q4K": 1,
+    "TRANSPOSE_B": 1,
+    "SCALAR_OUTPUT": 0
+   },
+   "cacheDisabled": true,
+   "ms": 304.38867600000003,
+   "before": {
+    "vmHWMKiB": 127984,
+    "vmRSSKiB": 127376
+   },
+   "after": {
+    "vmHWMKiB": 303412,
+    "vmRSSKiB": 287480
+   },
+   "hwmIncreaseMiB": 171.31640625,
+   "errors": [],
+   "job": "s4-compile-cold-matmul-q4k-old"
+  },
+  {
+   "label": "warm1-matmul-f16-new",
+   "wgsl": "matmul_paired_compensated.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 64,
+    "WEIGHT_F16": 1,
+    "WEIGHT_Q4K": 0,
+    "TRANSPOSE_B": 1,
+    "SCALAR_OUTPUT": 0
+   },
+   "cacheDisabled": false,
+   "ms": 10.056456999999995,
+   "before": {
+    "vmHWMKiB": 129244,
+    "vmRSSKiB": 127472
+   },
+   "after": {
+    "vmHWMKiB": 147032,
+    "vmRSSKiB": 147032
+   },
+   "hwmIncreaseMiB": 17.37109375,
+   "errors": [],
+   "job": "s4-compile-warm1-matmul-f16-new"
+  },
+  {
+   "label": "warm1-matmul-f16-old",
+   "wgsl": "matmul_paired.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 64,
+    "WEIGHT_F16": 1,
+    "WEIGHT_Q4K": 0,
+    "TRANSPOSE_B": 1,
+    "SCALAR_OUTPUT": 0
+   },
+   "cacheDisabled": false,
+   "ms": 8.770269999999996,
+   "before": {
+    "vmHWMKiB": 129700,
+    "vmRSSKiB": 127440
+   },
+   "after": {
+    "vmHWMKiB": 146344,
+    "vmRSSKiB": 146344
+   },
+   "hwmIncreaseMiB": 16.25390625,
+   "errors": [],
+   "job": "s4-compile-warm1-matmul-f16-old"
+  },
+  {
+   "label": "warm1-matmul-head-new",
+   "wgsl": "matmul_paired_compensated.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 64,
+    "WEIGHT_F16": 0,
+    "WEIGHT_Q4K": 1,
+    "TRANSPOSE_B": 1,
+    "SCALAR_OUTPUT": 1
+   },
+   "cacheDisabled": false,
+   "ms": 9.136170000000007,
+   "before": {
+    "vmHWMKiB": 129432,
+    "vmRSSKiB": 127348
+   },
+   "after": {
+    "vmHWMKiB": 146884,
+    "vmRSSKiB": 146884
+   },
+   "hwmIncreaseMiB": 17.04296875,
+   "errors": [],
+   "job": "s4-compile-warm1-matmul-head-new"
+  },
+  {
+   "label": "warm1-matmul-head-old",
+   "wgsl": "matmul_paired.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 64,
+    "WEIGHT_F16": 0,
+    "WEIGHT_Q4K": 1,
+    "TRANSPOSE_B": 1,
+    "SCALAR_OUTPUT": 1
+   },
+   "cacheDisabled": false,
+   "ms": 8.840593000000013,
+   "before": {
+    "vmHWMKiB": 129272,
+    "vmRSSKiB": 127492
+   },
+   "after": {
+    "vmHWMKiB": 146820,
+    "vmRSSKiB": 146820
+   },
+   "hwmIncreaseMiB": 17.13671875,
+   "errors": [],
+   "job": "s4-compile-warm1-matmul-head-old"
+  },
+  {
+   "label": "warm1-matmul-q4k-new",
+   "wgsl": "matmul_paired_compensated.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 64,
+    "WEIGHT_F16": 0,
+    "WEIGHT_Q4K": 1,
+    "TRANSPOSE_B": 1,
+    "SCALAR_OUTPUT": 0
+   },
+   "cacheDisabled": false,
+   "ms": 8.958805999999996,
+   "before": {
+    "vmHWMKiB": 129504,
+    "vmRSSKiB": 127408
+   },
+   "after": {
+    "vmHWMKiB": 147084,
+    "vmRSSKiB": 147084
+   },
+   "hwmIncreaseMiB": 17.16796875,
+   "errors": [],
+   "job": "s4-compile-warm1-matmul-q4k-new"
+  },
+  {
+   "label": "warm1-matmul-q4k-old",
+   "wgsl": "matmul_paired.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 64,
+    "WEIGHT_F16": 0,
+    "WEIGHT_Q4K": 1,
+    "TRANSPOSE_B": 1,
+    "SCALAR_OUTPUT": 0
+   },
+   "cacheDisabled": false,
+   "ms": 8.137675999999999,
+   "before": {
+    "vmHWMKiB": 129200,
+    "vmRSSKiB": 127468
+   },
+   "after": {
+    "vmHWMKiB": 147116,
+    "vmRSSKiB": 147116
+   },
+   "hwmIncreaseMiB": 17.49609375,
+   "errors": [],
+   "job": "s4-compile-warm1-matmul-q4k-old"
+  },
+  {
+   "label": "warm2-matmul-f16-new",
+   "wgsl": "matmul_paired_compensated.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 64,
+    "WEIGHT_F16": 1,
+    "WEIGHT_Q4K": 0,
+    "TRANSPOSE_B": 1,
+    "SCALAR_OUTPUT": 0
+   },
+   "cacheDisabled": false,
+   "ms": 10.203845000000001,
+   "before": {
+    "vmHWMKiB": 129060,
+    "vmRSSKiB": 127400
+   },
+   "after": {
+    "vmHWMKiB": 146988,
+    "vmRSSKiB": 146988
+   },
+   "hwmIncreaseMiB": 17.5078125,
+   "errors": [],
+   "job": "s4-compile-warm2-matmul-f16-new"
+  },
+  {
+   "label": "warm2-matmul-f16-old",
+   "wgsl": "matmul_paired.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 64,
+    "WEIGHT_F16": 1,
+    "WEIGHT_Q4K": 0,
+    "TRANSPOSE_B": 1,
+    "SCALAR_OUTPUT": 0
+   },
+   "cacheDisabled": false,
+   "ms": 7.582037999999997,
+   "before": {
+    "vmHWMKiB": 129956,
+    "vmRSSKiB": 127496
+   },
+   "after": {
+    "vmHWMKiB": 145896,
+    "vmRSSKiB": 145896
+   },
+   "hwmIncreaseMiB": 15.56640625,
+   "errors": [],
+   "job": "s4-compile-warm2-matmul-f16-old"
+  },
+  {
+   "label": "warm2-matmul-head-new",
+   "wgsl": "matmul_paired_compensated.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 64,
+    "WEIGHT_F16": 0,
+    "WEIGHT_Q4K": 1,
+    "TRANSPOSE_B": 1,
+    "SCALAR_OUTPUT": 1
+   },
+   "cacheDisabled": false,
+   "ms": 8.596581999999998,
+   "before": {
+    "vmHWMKiB": 129148,
+    "vmRSSKiB": 127416
+   },
+   "after": {
+    "vmHWMKiB": 147100,
+    "vmRSSKiB": 147100
+   },
+   "hwmIncreaseMiB": 17.53125,
+   "errors": [],
+   "job": "s4-compile-warm2-matmul-head-new"
+  },
+  {
+   "label": "warm2-matmul-head-old",
+   "wgsl": "matmul_paired.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 64,
+    "WEIGHT_F16": 0,
+    "WEIGHT_Q4K": 1,
+    "TRANSPOSE_B": 1,
+    "SCALAR_OUTPUT": 1
+   },
+   "cacheDisabled": false,
+   "ms": 9.022536000000002,
+   "before": {
+    "vmHWMKiB": 128916,
+    "vmRSSKiB": 127596
+   },
+   "after": {
+    "vmHWMKiB": 147152,
+    "vmRSSKiB": 147152
+   },
+   "hwmIncreaseMiB": 17.80859375,
+   "errors": [],
+   "job": "s4-compile-warm2-matmul-head-old"
+  },
+  {
+   "label": "warm2-matmul-q4k-new",
+   "wgsl": "matmul_paired_compensated.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 64,
+    "WEIGHT_F16": 0,
+    "WEIGHT_Q4K": 1,
+    "TRANSPOSE_B": 1,
+    "SCALAR_OUTPUT": 0
+   },
+   "cacheDisabled": false,
+   "ms": 9.736744000000002,
+   "before": {
+    "vmHWMKiB": 128996,
+    "vmRSSKiB": 127496
+   },
+   "after": {
+    "vmHWMKiB": 147584,
+    "vmRSSKiB": 147584
+   },
+   "hwmIncreaseMiB": 18.15234375,
+   "errors": [],
+   "job": "s4-compile-warm2-matmul-q4k-new"
+  },
+  {
+   "label": "warm2-matmul-q4k-old",
+   "wgsl": "matmul_paired.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 64,
+    "WEIGHT_F16": 0,
+    "WEIGHT_Q4K": 1,
+    "TRANSPOSE_B": 1,
+    "SCALAR_OUTPUT": 0
+   },
+   "cacheDisabled": false,
+   "ms": 9.928094999999999,
+   "before": {
+    "vmHWMKiB": 128544,
+    "vmRSSKiB": 127548
+   },
+   "after": {
+    "vmHWMKiB": 146908,
+    "vmRSSKiB": 146908
+   },
+   "hwmIncreaseMiB": 17.93359375,
+   "errors": [],
+   "job": "s4-compile-warm2-matmul-q4k-old"
+  },
+  {
+   "label": "cold-state-rolled",
+   "wgsl": "gated_delta_state_paired_sliced_rolled.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 256,
+    "K_SLICES": 16
+   },
+   "cacheDisabled": true,
+   "ms": 2691.483839,
+   "before": {
+    "vmHWMKiB": 129860,
+    "vmRSSKiB": 127380
+   },
+   "after": {
+    "vmHWMKiB": 614716,
+    "vmRSSKiB": 491600
+   },
+   "hwmIncreaseMiB": 473.4921875,
+   "errors": [],
+   "job": "s5-compile-cold-state-rolled"
+  },
+  {
+   "label": "cold-state-rows2",
+   "wgsl": "gated_delta_state_paired_rows2.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 256,
+    "K_SLICES": 64
+   },
+   "cacheDisabled": true,
+   "ms": 4280.996334,
+   "before": {
+    "vmHWMKiB": 128780,
+    "vmRSSKiB": 127240
+   },
+   "after": {
+    "vmHWMKiB": 699544,
+    "vmRSSKiB": 494936
+   },
+   "hwmIncreaseMiB": 557.38671875,
+   "errors": [],
+   "job": "s5-compile-cold-state-rows2"
+  },
+  {
+   "label": "cold-state-rows4",
+   "wgsl": "gated_delta_state_paired_rows4.wgsl",
+   "constants": {
+    "WORKGROUP_SIZE": 256,
+    "K_SLICES": 32
+   },
+   "cacheDisabled": true,
+   "ms": 8996.212105999999,
+   "before": {
+    "vmHWMKiB": 129268,
+    "vmRSSKiB": 127504
+   },
+   "after": {
+    "vmHWMKiB": 981804,
+    "vmRSSKiB": 521452
+   },
+   "hwmIncreaseMiB": 832.5546875,
+   "errors": [],
+   "job": "s5-compile-cold-state-rows4"
+  }
+ ]
+}

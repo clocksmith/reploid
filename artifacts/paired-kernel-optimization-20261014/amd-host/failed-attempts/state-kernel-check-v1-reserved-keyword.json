@@ -1,0 +1,31 @@
+{
+ "schema": "reploid.paired-state-kernel-check/v1",
+ "startedAt": "2026-10-14T22:37:51.966Z",
+ "sources": {
+  "shipped": {
+   "path": "/var/tmp/reploid-signed-completion-9-20261014/reploid/node_modules/doppler-gpu/src/gpu/kernels/gated_delta_state_paired.wgsl",
+   "sha256": "36dc4fe9f21e1daedbd0df276a8b139d7119dd9a3129ce8c8c5cc0717ae12fd7"
+  },
+  "candidate": {
+   "path": "kernels/gated_delta_state_paired_sliced.wgsl",
+   "sha256": "4302cfc6c96f8d38b993b97756f023e9e26c9a774df560a76a9bf9759a97b9ff"
+  }
+ },
+ "candidateConstants": {
+  "WORKGROUP_SIZE": 256,
+  "K_SLICES": 16
+ },
+ "repeats": 3,
+ "cases": [],
+ "errors": [
+  "Error while parsing WGSL: :290:7 error: 'active' is a reserved keyword\n  let active = column < u.head_v_dim;\n      ^^^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"\"\"]).\n"
+ ],
+ "adapter": {
+  "vendor": "amd",
+  "architecture": "rdna-3",
+  "description": "radv: Mesa 26.0.3-1ubuntu1"
+ },
+ "compileMs_shipped": 5.460542000000004,
+ "failure": "Error: candidate: 'active' is a reserved keyword\n    at file:///var/tmp/paired-kernel-opt-20261014/state-kernel-check.mjs:155:27",
+ "finishedAt": "2026-10-14T22:37:52.020Z"
+}

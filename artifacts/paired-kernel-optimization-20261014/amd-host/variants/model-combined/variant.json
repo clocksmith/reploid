@@ -1,0 +1,75 @@
+{
+ "label": "tiled attention + sliced RMSNorm + sliced recurrent state + parallel Q/K normalization",
+ "baseManifestSha256": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+ "variantManifestSha256": "sha256:549cb6b5fb4d5b0027046323fa84b897c0b1820284daea04e4aa03c01dda392a",
+ "substituted": {
+  "attention": {
+   "before": {
+    "kernel": "attention_paired.wgsl",
+    "entry": "main",
+    "digest": "sha256:95e862b22362590cb3a24b4184222b94b4a942e8c331bfb8520ad5d418ddf1f1",
+    "precision": {
+     "inputDtype": "f32",
+     "outputDtype": "f32",
+     "kvDtype": "f16"
+    }
+   },
+   "after": {
+    "kernel": "attention_paired_tiled.wgsl",
+    "entry": "main",
+    "digest": "sha256:70a0a584eb26e3eb9aa14ea1082b9f3801bf730c43577874c1c4257a69b6ea16",
+    "precision": {
+     "inputDtype": "f32",
+     "outputDtype": "f32",
+     "kvDtype": "f16"
+    },
+    "constants": {
+     "WORKGROUP_SIZE": 256,
+     "DOT_LANES": 4
+    }
+   }
+  },
+  "norm": {
+   "before": {
+    "kernel": "rmsnorm_paired.wgsl",
+    "entry": "main",
+    "digest": "sha256:c0268aa06ac8962379dd811f5d256b0aceaa8300542e80619e3c088d683af61e",
+    "precision": {
+     "inputDtype": "f32",
+     "outputDtype": "f32"
+    }
+   },
+   "after": {
+    "kernel": "rmsnorm_paired_sliced.wgsl",
+    "entry": "main",
+    "digest": "sha256:92760258450f504f4707b4fcb98148967b11c9a8e27e95d3f1242191c88bf1cc",
+    "precision": {
+     "inputDtype": "f32",
+     "outputDtype": "f32"
+    },
+    "constants": {
+     "WORKGROUP_SIZE": 256
+    }
+   }
+  }
+ },
+ "addedMechanismKernels": {
+  "paired_state_sliced": {
+   "kernel": "gated_delta_state_paired_sliced.wgsl",
+   "entry": "main",
+   "digest": "sha256:731ae7762d2a24aaa949e837932e971a54ba21b28f2d04fb3505b79193c74b36",
+   "constants": {
+    "WORKGROUP_SIZE": 256,
+    "K_SLICES": 16
+   }
+  },
+  "paired_qk_parallel": {
+   "kernel": "gated_delta_qk_paired_parallel.wgsl",
+   "entry": "main",
+   "digest": "sha256:75b6c97cea545f81e384a8d5254b8c97c5063b02a9e827c877383401eed92daa",
+   "constants": {
+    "WORKGROUP_SIZE": 256
+   }
+  }
+ }
+}
