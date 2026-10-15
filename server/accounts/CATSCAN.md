@@ -26,7 +26,7 @@ Outputs:
 - Accounts come only from verified provider subjects; each assertion is used once.
 - Registration needs an authenticated session and a signed, unexpired, unused challenge.
 - A key belongs to at most one account; moving it needs revocation first and records a `shared_device` link.
-- Revocation applies to every later check; registration history keeps past provenance.
+- Revocation refuses every later check, including ledger commits; history keeps provenance.
 - Recovery ends sessions and revokes devices; it never moves or mints credit.
 - Custody keys count only through an unexpired certificate issued after an active registration.
 - Owner grants and links are recorded declarations; a missing link never proves independence.

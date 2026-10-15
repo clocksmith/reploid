@@ -5,12 +5,13 @@ import { createHmac, randomBytes, randomUUID, timingSafeEqual } from 'node:crypt
 
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createSigningKeyPair, exportPublicKey } from '../../packages/reploid/src/artifacts/signatures.js';
-import { composeAccountServices } from '../../server/accounts/compose.js';
+import { ACCOUNT_LEDGER_COLLECTIONS, composeAccountServices } from '../../server/accounts/compose.js';
 import { createDeviceRegistrationProof } from '../../server/accounts/proofs.js';
 import { createFirestoreAccountBackend, createMemoryAccountBackend, createMemoryAccountState } from '../../server/accounts/stores.js';
 import { canonicalJson } from '../../server/ledger/domain.js';
-import { createFirestoreLedgerStore } from '../../server/ledger/firestore-store.js';
-import { createMemoryLedgerState, createMemoryLedgerStore } from '../../server/ledger/memory-store.js';
+import { createLedgerStore } from '../../server/ledger/engine.js';
+import { createFirestoreLedgerBackend } from '../../server/ledger/firestore-store.js';
+import { createMemoryLedgerBackend } from '../../server/ledger/memory-store.js';
 import { createFirestoreRewardBackend, createMemoryRewardBackend, createMemoryRewardState } from '../../server/rewards/stores.js';
 import { createFakeFirestore } from './fake-firestore.js';
 import {
@@ -62,36 +63,39 @@ const baseComposition = (provider) => ({
   readAdmittedCapacity, otherProvenance, readinessProber, clock, random
 });
 
-// Each harness owns durable account, ledger and reward state; open() models a (re)started process.
+// Each harness owns durable state; open() models a (re)started process. Accounts and the
+// ledger share one database so quote acceptance reads device state in its own transaction.
 export const accountHarnesses = {
   memory: () => {
     const provider = createTestSignInProvider();
-    const states = { accounts: createMemoryAccountState(), ledger: createMemoryLedgerState(), rewards: createMemoryRewardState() };
+    const states = { identity: createMemoryAccountState(), rewards: createMemoryRewardState() };
+    const ledgerBackend = () => createMemoryLedgerBackend({ state: states.identity, collections: ACCOUNT_LEDGER_COLLECTIONS });
     return {
       provider,
       states,
+      ledgerBackend,
       open: (overrides = {}) => composeAccountServices({
         ...baseComposition(provider),
-        accountBackend: createMemoryAccountBackend({ state: states.accounts }),
+        accountBackend: createMemoryAccountBackend({ state: states.identity }),
         rewardBackend: createMemoryRewardBackend({ state: states.rewards }),
-        createLedger: ({ issuanceAuthority }) => createMemoryLedgerStore({ state: states.ledger, policy: LEDGER_POLICY, clock, issuanceAuthority }),
+        createLedger: (ports) => createLedgerStore({ backend: ledgerBackend(), policy: LEDGER_POLICY, clock, ...ports }),
         ...overrides
       })
     };
   },
   firestore: () => {
     const provider = createTestSignInProvider();
-    const dbs = { accounts: createFakeFirestore(), ledger: createFakeFirestore(), rewards: createFakeFirestore() };
+    const dbs = { identity: createFakeFirestore(), rewards: createFakeFirestore() };
+    const ledgerBackend = () => createFirestoreLedgerBackend({ firestore: dbs.identity, collectionPrefix: 'test', collections: ACCOUNT_LEDGER_COLLECTIONS });
     return {
       provider,
       dbs,
+      ledgerBackend,
       open: (overrides = {}) => composeAccountServices({
         ...baseComposition(provider),
-        accountBackend: createFirestoreAccountBackend({ firestore: dbs.accounts, collectionPrefix: 'test' }),
+        accountBackend: createFirestoreAccountBackend({ firestore: dbs.identity, collectionPrefix: 'test' }),
         rewardBackend: createFirestoreRewardBackend({ firestore: dbs.rewards, collectionPrefix: 'test' }),
-        createLedger: ({ issuanceAuthority }) => createFirestoreLedgerStore({
-          firestore: dbs.ledger, collectionPrefix: 'test', policy: LEDGER_POLICY, clock, issuanceAuthority
-        }),
+        createLedger: (ports) => createLedgerStore({ backend: ledgerBackend(), policy: LEDGER_POLICY, clock, ...ports }),
         ...overrides
       })
     };

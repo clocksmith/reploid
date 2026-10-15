@@ -97,17 +97,22 @@ const readRequired = async (tx, collection, id, code) => {
  * @param {object} options.policy explicit accounting policy; there is no default
  * @param {Function} [options.issuanceAuthority] capacity-aware issuance decision port;
  *   required for earned and subsidized credit, consulted for every issuance when supplied
+ * @param {Function} [options.deviceAuthority] (tx, { accountId, deviceId }) -> true when the
+ *   device may spend for the account; read inside the quote-acceptance transaction, so a
+ *   revocation committed first refuses the acceptance
  */
 export function createLedgerStore({
   backend,
   policy,
   clock = defaultClock,
   createId = defaultCreateId,
+  deviceAuthority = null,
   issuanceAuthority = null,
   // Explicit spent-credit treatment per reversal kind (see reversals.js); without it reversals fail closed.
   reversalPolicy = null
 } = {}) {
   assertLedgerBackend(backend);
+  if (deviceAuthority !== null && typeof deviceAuthority !== 'function') throw new TypeError('deviceAuthority must be a function');
   const activePolicy = validateAccountingPolicy(policy);
   const activeReversalPolicy = validateReversalPolicy(reversalPolicy);
   const idempotencyId = (operation, scopeId, key) => sha256Hex(`${operation}\u0000${scopeId}\u0000${key}`);
@@ -346,6 +351,9 @@ export function createLedgerStore({
         body: async (tx) => {
           const quote = await readRequired(tx, 'quotes', quoteId, 'quote_not_found');
           const account = await readRequired(tx, 'accounts', accountId, 'account_not_found');
+          if (deviceAuthority && await deviceAuthority(tx, { accountId, deviceId }) !== true) {
+            fail('device_not_authorized', 'the accepting device is not active for this account', { deviceId });
+          }
           if (quote.accountId !== accountId) fail('quote_account_mismatch', 'quote was issued to a different account');
           if (quote.status !== 'offered') {
             fail('quote_already_accepted', 'quote was already accepted; a replacement needs a new quote', { reservationId: quote.reservationId });

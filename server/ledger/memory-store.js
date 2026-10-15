@@ -3,14 +3,16 @@
  *
  * Transactions run one at a time, read before writing, and stage writes until
  * the operation returns; a failure before commit applies nothing. `state`
- * survives store re-creation so tests can model a process restart.
+ * survives store re-creation so tests can model a process restart. Backends
+ * over one `state` share its tables (by physical collection name) and its
+ * transaction queue, like stores in one database.
  */
 
 import { LedgerError, cloneJson } from './domain.js';
 import { createLedgerStore } from './engine.js';
 import { LEDGER_COLLECTIONS, assertLedgerStoreContract } from './store-contract.js';
 
-export const createMemoryLedgerState = () => ({ tables: new Map() });
+export const createMemoryLedgerState = () => ({ tables: new Map(), queue: Promise.resolve() });
 
 /**
  * @param {object} [options]
@@ -20,14 +22,14 @@ export const createMemoryLedgerState = () => ({ tables: new Map() });
  */
 export function createMemoryLedgerBackend({ state = createMemoryLedgerState(), hooks = {}, collections = LEDGER_COLLECTIONS } = {}) {
   const table = (name) => {
-    if (!collections[name]) throw new TypeError(`Unknown collection: ${name}`);
-    if (!state.tables.has(name)) state.tables.set(name, new Map());
-    return state.tables.get(name);
+    const physical = collections[name];
+    if (!physical) throw new TypeError(`Unknown collection: ${name}`);
+    if (!state.tables.has(physical)) state.tables.set(physical, new Map());
+    return state.tables.get(physical);
   };
-  let queue = Promise.resolve();
 
   const runTransaction = (operation) => {
-    const run = queue.then(async () => {
+    const run = (state.queue ?? Promise.resolve()).then(async () => {
       const writes = [];
       const tx = {
         async get(collection, id) {
@@ -52,7 +54,7 @@ export function createMemoryLedgerBackend({ state = createMemoryLedgerState(), h
       if (hooks.afterCommit) await hooks.afterCommit(writes);
       return result;
     });
-    queue = run.catch(() => {});
+    state.queue = run.catch(() => {});
     return run;
   };
 

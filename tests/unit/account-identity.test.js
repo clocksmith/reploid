@@ -1,13 +1,15 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { createAccountGuards, ledgerDeviceAuthority } from '../../server/accounts/compose.js';
 import { createDeviceRegistrationProof, registrationProofBody, signAsParticipant, REGISTRATION_PROOF_SCHEMA } from '../../server/accounts/proofs.js';
 import { ACCOUNT_STORE_OPERATIONS, validateAccountStoreContract } from '../../server/accounts/store-contract.js';
 import { validateAccountPolicy } from '../../server/accounts/domain.js';
+import { createLedgerStore } from '../../server/ledger/engine.js';
 import {
   ACCOUNT_POLICY, createTestSignInProvider, newIdentity, openAccountFixture, registerDevice, signInAs
 } from '../helpers/account-fixture.js';
-import { MIN, advance, clock, fund, journalShape, quoteInput, rejectsWith } from '../helpers/reward-fixture.js';
+import { LEDGER_POLICY, MIN, advance, clock, fund, journalShape, quoteInput, rejectsWith } from '../helpers/reward-fixture.js';
 
 describe.each(['memory', 'firestore'])('account identity (%s store)', (kind) => {
   let harness;
@@ -199,6 +201,76 @@ describe.each(['memory', 'firestore'])('account identity (%s store)', (kind) => 
       await rejectsWith(accounts.revokeDevice({ sessionToken: desk.token, deviceId: registration.deviceId, reason: 'retired', idempotencyKey: 'revoke:again' }), 'device_already_revoked');
       const mallory = (await signIn('mallory')).session;
       await rejectsWith(accounts.revokeDevice({ sessionToken: mallory.token, deviceId: registration.deviceId, reason: 'retired', idempotencyKey: 'revoke:foreign' }), 'device_not_found');
+    });
+
+    /** A funded account with a phone-bound session, a second session and an open quote. */
+    async function spendingFixture() {
+      const { account, session } = await signIn('alice');
+      const desk = (await signIn('alice')).session;
+      const { registration } = await registerDevice(accounts, session, await newIdentity(), { bindSession: true });
+      await fund(ledger, account.accountId, 500);
+      const quote = await guards.createQuote({ sessionToken: session.token, ...quoteInput({ quoteId: 'q_race', accountId: account.accountId }), idempotencyKey: 'quote:race' });
+      const revoke = () => accounts.revokeDevice({ sessionToken: desk.token, deviceId: registration.deviceId, reason: 'compromised', idempotencyKey: 'revoke:race' });
+      return { account, session, registration, quote, revoke };
+    }
+
+    it('refuses a spend when the device is revoked between the session guard and the ledger write', async () => {
+      const { account, session, quote, revoke } = await spendingFixture();
+      const before = await ledger.getAccount(account.accountId);
+      // The guard's device check passes, then the revocation commits, then the ledger write runs.
+      const racing = createAccountGuards({ ledger, rewards: null, accounts: { ...accounts, authorizeDevice: async (token) => {
+        const auth = await accounts.authorizeDevice(token);
+        await revoke();
+        return auth;
+      } } });
+      await rejectsWith(racing.acceptQuote({ sessionToken: session.token, quoteId: quote.quoteId, quoteHash: quote.quoteHash, idempotencyKey: 'accept:race' }), 'device_not_authorized');
+      expect(await ledger.getQuote(quote.quoteId)).toMatchObject({ status: 'offered', reservationId: null });
+      expect(await ledger.getAccount(account.accountId)).toEqual(before);
+      expect(await ledger.listReservations({ status: 'open' })).toEqual([]);
+    });
+
+    it('decides a revocation that commits during the acceptance transaction by commit order', async () => {
+      const { account, session, registration, quote, revoke } = await spendingFixture();
+      // A second ledger process over the same database whose device read triggers the revocation.
+      let revocation = null;
+      const raced = createLedgerStore({
+        backend: harness.ledgerBackend(), policy: LEDGER_POLICY, clock,
+        deviceAuthority: async (tx, input) => {
+          const allowed = await ledgerDeviceAuthority(tx, input);
+          if (!revocation) {
+            revocation = revoke();
+            // Firestore: the revocation commits now, so this transaction's device read is stale.
+            // Memory: transactions are serialized, so it waits until this acceptance commits.
+            if (kind === 'firestore') await revocation;
+          }
+          return allowed;
+        }
+      });
+      const accept = (idempotencyKey) => raced.acceptQuote({
+        quoteId: quote.quoteId, accountId: account.accountId, quoteHash: quote.quoteHash, deviceId: registration.deviceId, idempotencyKey
+      });
+      if (kind === 'firestore') {
+        await rejectsWith(accept('accept:during'), 'device_not_authorized');
+        expect(await ledger.getQuote(quote.quoteId)).toMatchObject({ status: 'offered' });
+      } else {
+        // The acceptance committed first; the revocation follows it and refuses the next one.
+        expect(await accept('accept:during')).toMatchObject({ deviceId: registration.deviceId });
+        await revocation;
+        const next = await ledger.createQuote({ ...quoteInput({ quoteId: 'q_next', accountId: account.accountId }), idempotencyKey: 'quote:next' });
+        await rejectsWith(raced.acceptQuote({
+          quoteId: next.quoteId, accountId: account.accountId, quoteHash: next.quoteHash, deviceId: registration.deviceId, idempotencyKey: 'accept:next'
+        }), 'device_not_authorized');
+      }
+      expect((await accounts.getDevice(registration.deviceId)).status).toBe('revoked');
+    });
+
+    it('refuses acceptance for a device of another account or an unknown device id', async () => {
+      const { account, quote } = await spendingFixture();
+      const other = await signIn('bob');
+      const { registration } = await registerDevice(accounts, other.session, await newIdentity(), { bindSession: true });
+      for (const deviceId of [registration.deviceId, 'phone', 'dev_' + '0'.repeat(32)]) {
+        await rejectsWith(ledger.acceptQuote({ quoteId: quote.quoteId, accountId: account.accountId, quoteHash: quote.quoteHash, deviceId, idempotencyKey: `accept:${deviceId}` }), 'device_not_authorized');
+      }
     });
   });
 
