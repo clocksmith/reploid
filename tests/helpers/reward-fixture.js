@@ -90,8 +90,14 @@ export const readinessProber = {
 };
 // Purchases are outside reward policy; this double stands in for their decision owner.
 export const otherProvenance = async ({ provenance }) => ({ allowed: true, decisionId: `test-funding:${provenance}` });
+// Funding-authority double: one test actor holds the authority. Who holds it in production is policy.
+export const FUNDING_ADMIN = 'funding_admin_test';
+export const fundingAuthority = async ({ authority }) => (authority.actorId === FUNDING_ADMIN
+  ? { allowed: true }
+  : { allowed: false, reason: 'not_a_funding_authority' });
+export const decidedBy = (decisionId, actorId = FUNDING_ADMIN) => ({ actorId, decisionId });
 export const composition = {
-  rewardPolicy: REWARD_POLICY, issuancePolicy: ISSUANCE_POLICY, identity, readAdmittedCapacity, otherProvenance, readinessProber, clock, random
+  rewardPolicy: REWARD_POLICY, issuancePolicy: ISSUANCE_POLICY, identity, readAdmittedCapacity, otherProvenance, readinessProber, fundingAuthority, clock, random
 };
 
 export const once = (faults, point) => () => {

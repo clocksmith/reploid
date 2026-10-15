@@ -49,6 +49,7 @@ import {
   assertRewardCategory,
   buildOffer,
   fail,
+  fundingAuthorityProblems,
   validateFundingReservation,
   validateRewardPolicy
 } from './domain.js';
@@ -163,10 +164,15 @@ const issuanceResult = (validation) => ({
  *   only through a certificate from that participant's identity
  * @param {Function} options.issuance this component's issuance authority (its `allocate` chooses the basis)
  * @param {object} [options.readinessProber] connect/prepare/verify port for readiness execution probes
+ * @param {Function} [options.fundingAuthority] funding-authority decision port:
+ *   ({ action: 'reserve' | 'release', fundingId, commitmentId?, amount?, categories?,
+ *   authority: { actorId, decisionId } }) -> { allowed, reason? }. Which actors hold
+ *   that authority is policy outside this store; without the port, reserving and
+ *   releasing funding fail closed
  * @param {Function} [options.random] random(n) -> integer in [0, n) for challenge targets
  */
 export function createRewardStore({
-  backend, ledger, policy, identity, issuance, readinessProber = null,
+  backend, ledger, policy, identity, issuance, readinessProber = null, fundingAuthority = null,
   clock = defaultClock, createId = defaultCreateId, random = defaultRandom
 } = {}) {
   assertRewardBackend(backend);
@@ -183,6 +189,7 @@ export function createRewardStore({
     throw new TypeError('readiness rewards require a readinessProber with connect, prepare and verify');
   }
   if (typeof issuance?.allocate !== 'function') throw new TypeError('reward store requires its issuance authority');
+  if (fundingAuthority !== null && typeof fundingAuthority !== 'function') throw new TypeError('fundingAuthority must be a function');
   const idempotencyId = (operation, scopeId, key) => sha256Hex(`${operation}\u0000${scopeId}\u0000${key}`);
   const claimId = (kind, key) => sha256Hex(`${kind}\u0000${key}`);
 
@@ -220,6 +227,17 @@ export function createRewardStore({
     return offer;
   };
 
+  /** The funding-authority port must allow the named authority's decision; it fails closed. */
+  const authorizeFunding = async (request) => {
+    if (typeof fundingAuthority !== 'function') {
+      fail('funding_authority_required', 'reserving and releasing funding need a funding-authority decision port');
+    }
+    const decision = await fundingAuthority(cloneJson(request));
+    if (decision?.allowed !== true) {
+      fail('funding_not_authorized', 'the funding authority did not allow this decision', { reason: decision?.reason ?? null });
+    }
+  };
+
   /** Move a funding record from one status to the next in one reward transaction; otherwise return it unchanged. */
   const advanceFunding = (fundingId, from, change) => backend.runTransaction(async (tx) => {
     const current = await tx.get('fundings', fundingId);
@@ -245,7 +263,7 @@ export function createRewardStore({
       allocation = await ledger.allocateFunding({
         commitmentId: funding.commitmentId, use: FUNDING_USE, useRef: fundingId, credits: funding.amount,
         ...(funding.commitmentAmount === null ? {} : { amount: funding.commitmentAmount }),
-        funderKinds: [...FUNDER_KINDS], idempotencyKey: `reward-funding:${fundingId}`
+        authority: funding.authority, funderKinds: [...FUNDER_KINDS], idempotencyKey: `reward-funding:${fundingId}`
       });
     } catch (error) {
       if (!FUNDING_REFUSAL_CODES.includes(error?.code)) throw error;
@@ -268,9 +286,12 @@ export function createRewardStore({
   /**
    * Close an active reservation: freeze what allowances already authorized
    * (no allowance draws on it afterwards), return the rest to the
-   * commitment, then record the closure. Each step resumes after a crash.
+   * commitment, then record the closure. The register checks that figure
+   * against what the ledger issued for the allocation and caps later
+   * issuance at it. A release names its authority; expiry names none. Each
+   * step resumes after a crash.
    */
-  const closeFunding = async (fundingId, closure) => {
+  const closeFunding = async (fundingId, closure, authority = null) => {
     const closing = await backend.runTransaction(async (tx) => {
       const funding = await tx.get('fundings', fundingId);
       if (!funding) fail('funding_not_found', `funding ${fundingId} was not found`, { fundingId });
@@ -280,13 +301,17 @@ export function createRewardStore({
       if (closure === 'expired' && toMs(now) < toMs(funding.validUntil)) {
         fail('funding_not_expired', 'the commitment behind this funding is still valid', { validUntil: funding.validUntil });
       }
-      const updated = { ...funding, status: 'closing', closure, consumedCredits: funding.authorized, updatedAt: now };
+      const updated = {
+        ...funding, status: 'closing', closure, consumedCredits: funding.authorized,
+        releaseAuthority: closure === 'released' ? authority : null, updatedAt: now
+      };
       tx.set('fundings', fundingId, updated);
       return updated;
     });
     if (closing.status !== 'closing') return closing;
     const allocation = await ledger.releaseFundingAllocation({
       allocationId: closing.allocationId, consumedCredits: closing.consumedCredits, closure: closing.closure,
+      ...(closing.releaseAuthority ? { authority: closing.releaseAuthority } : {}),
       idempotencyKey: `reward-funding-close:${fundingId}`
     });
     return advanceFunding(fundingId, 'closing', (current, now) => ({ status: current.closure, returned: allocation.returnedCredits, closedAt: now }));
@@ -303,9 +328,11 @@ export function createRewardStore({
     /**
      * Reserve operator or community funding for subsidized rewards as an
      * allocation from a commitment in the ledger's funding register; the
-     * commitment supplies the funder. The reservation is an issuance budget;
-     * credit drawn from it is subsidized in provenance and solvency. A replay
-     * returns the current record, finishing an interrupted allocation.
+     * commitment supplies the funder. A named authority's decision, allowed
+     * by the funding-authority port, is recorded on the reservation and its
+     * allocation. The reservation is an issuance budget; credit drawn from it
+     * is subsidized in provenance and solvency. A replay returns the current
+     * record, finishing an interrupted allocation.
      */
     async reserveFunding(input = {}) {
       const { idempotencyKey, ...request } = input;
@@ -316,12 +343,16 @@ export function createRewardStore({
       const operation = 'reserveFunding';
       const prior = await lookupIdempotent({ operation, scopeId: funding.fundingId, idempotencyKey, request });
       if (!prior) {
+        const authority = { actorId: funding.authority.actorId, decisionId: funding.authority.decisionId };
+        await authorizeFunding({
+          action: 'reserve', fundingId: funding.fundingId, commitmentId: funding.commitmentId, amount: funding.amount, categories: funding.categories, authority
+        });
         const now = clock();
         const record = {
           schema: FUNDING_SCHEMA, fundingId: funding.fundingId, commitmentId: funding.commitmentId, amount: funding.amount,
           commitmentAmount: funding.commitmentAmount ?? null, categories: funding.categories, status: 'allocating',
-          allocationId: null, funderKind: null, funderId: null, unit: null, validUntil: null, authorized: 0, allowances: 0,
-          refusal: null, closure: null, consumedCredits: null, returned: null,
+          authority, allocationId: null, funderKind: null, funderId: null, unit: null, validUntil: null, authorized: 0, allowances: 0,
+          refusal: null, closure: null, consumedCredits: null, returned: null, releaseAuthority: null,
           reservedAt: now, activatedAt: null, closedAt: null, updatedAt: now
         };
         await mutate({
@@ -339,10 +370,20 @@ export function createRewardStore({
       return backend.get('fundings', fundingId);
     },
 
-    /** Stop drawing on a reservation and return its unauthorized funding to the commitment. */
-    async releaseFunding({ fundingId } = {}) {
+    /**
+     * Stop drawing on a reservation and return its unauthorized funding to
+     * the commitment, under a named authority's decision allowed by the
+     * funding-authority port and recorded on the allocation.
+     */
+    async releaseFunding(input = {}) {
+      assertKnownKeys(input, ['fundingId', 'authority'], 'releaseFunding');
+      const { fundingId } = input;
       assertId(fundingId, 'fundingId');
-      return closeFunding(fundingId, 'released');
+      const problems = fundingAuthorityProblems(input.authority, 'authority');
+      if (problems.length) fail('invalid_input', 'releasing funding needs the authority and its decision', { errors: problems });
+      const authority = { actorId: input.authority.actorId, decisionId: input.authority.decisionId };
+      await authorizeFunding({ action: 'release', fundingId, authority });
+      return closeFunding(fundingId, 'released', authority);
     },
 
     /**
@@ -357,7 +398,7 @@ export function createRewardStore({
       const order = (left, right) => toMs(left.reservedAt) - toMs(right.reservedAt) || left.fundingId.localeCompare(right.fundingId);
       const due = [
         ...allocating.sort(order).map((funding) => [funding.fundingId, () => completeFunding(funding.fundingId)]),
-        ...closing.sort(order).map((funding) => [funding.fundingId, () => closeFunding(funding.fundingId, funding.closure)]),
+        ...closing.sort(order).map((funding) => [funding.fundingId, () => closeFunding(funding.fundingId, funding.closure, funding.releaseAuthority)]),
         ...active.filter((funding) => toMs(now) >= toMs(funding.validUntil)).sort(order)
           .map((funding) => [funding.fundingId, () => closeFunding(funding.fundingId, 'expired')])
       ].slice(0, limit);
@@ -630,7 +671,7 @@ export function createRewardStore({
  */
 export function composeContributionRewards({
   backend, createLedger, rewardPolicy, issuancePolicy, identity, readAdmittedCapacity, otherProvenance = null, readinessProber = null,
-  clock = defaultClock, createId = defaultCreateId, random = defaultRandom
+  fundingAuthority = null, clock = defaultClock, createId = defaultCreateId, random = defaultRandom
 } = {}) {
   let ledger = null;
   const issuanceAuthority = createRewardIssuanceAuthority({
@@ -639,7 +680,7 @@ export function composeContributionRewards({
   });
   ledger = createLedger({ issuanceAuthority });
   const rewards = createRewardStore({
-    backend, ledger, policy: rewardPolicy, identity, issuance: issuanceAuthority, readinessProber, clock, createId, random
+    backend, ledger, policy: rewardPolicy, identity, issuance: issuanceAuthority, readinessProber, fundingAuthority, clock, createId, random
   });
   return { ledger, rewards, issuanceAuthority };
 }
