@@ -1304,8 +1304,8 @@
     },
     {
       "path": "transport/partition-errors.json",
-      "bytes": 1728,
-      "sha256": "2f3eae7d33950f671849b23e297caa585b99fdc7e6f63c7245e4848795a0a232"
+      "bytes": 1734,
+      "sha256": "be1822b99cc7d11c8c7217d09b7f3be1c3dafd1a45f5a6bfd0d865b98fba9f8d"
     },
     {
       "path": "transport/retry-policy.d.ts",
