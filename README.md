@@ -65,9 +65,13 @@ prepared stage (a **resident**) can serve several attempts at once, each with se
 up to its admitted slots.
 
 **Numerics.** Every package must match a frozen F64 reference within `0.001` on all 55 reference
-prefixes. Today the shipped kernels meet that only with a compensated two-F32 ("paired")
-arithmetic profile, which costs about 21x the ordinary F32 profile on one GPU before any
-networking. Recovering ordinary speed under the same tolerance is open work. On a quiet link
+prefixes. Today the kernels meet that only with a compensated two-F32 ("paired") arithmetic
+profile. On one AMD GPU with no network, the current paired kernels decode at about 282 ms per
+token against about 28 ms for ordinary F32, which fails the check. The cheapest passing mixed
+configuration measured so far (paired layers 0–19, ordinary layers 20–23 and the output head)
+decodes at about 205 ms per token and is not yet packaged
+([precision evidence](artifacts/precision-recovery-20261015/README.md)). Recovering ordinary
+speed under the same tolerance is open work. On a quiet link
 the route above averages about 1.05 s per token; the
 [measured breakdown](artifacts/placement-c-envelope-20261015/README.md) attributes each part
 (GPU execution in the paired profile, network transfer, authorization, history writes).
