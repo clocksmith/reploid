@@ -140,6 +140,32 @@ describe('search-backed answers in the workspace', () => {
     expect(partitions.disclosed).toHaveLength(1);
     expect(partitions.disclosed[0]).toHaveLength(1);
   });
+
+  it('on one contributor\'s computer, passes when the verified recipient is the listed peer and sends nothing otherwise', async () => {
+    // Discovery lists swarm peer IDs; the swarm peer ID is the signing identity, so a verified recipient matches it.
+    const single = { id: 'single', name: 'Single', identity: digest('c'), adapters: [] }, PROVIDER = peer('5'), disclosed = [];
+    const app = createChatWorkspace({ meshId: 'mesh', participantId: REQUESTER, store: { load: () => null, save() {} },
+      retrieval: { routes: { [SEARCH_ROUTE]: searchPorts() } },
+      async execute(request, controls) {
+        const { threadId, attemptId } = request;
+        const approved = await controls.requestApproval({ id: 'preview-' + attemptId, threadId, attemptId, operation: 'generate',
+          disclosure: 'public', peerId: PROVIDER, recipientIdentity: PROVIDER, modelId: single.id, modelIdentity: single.identity,
+          adapterIdentities: [], expiresAt: Date.now() + 60000 });
+        if (approved !== true) throw Error('Disclosure declined or expired');
+        disclosed.push(structuredClone(request.messages));
+        return { threadId, attemptId, modelId: single.id, modelIdentity: single.identity, adapterIdentities: [], content: ANSWER };
+      } });
+    cleanups.push(() => app.close());
+    const thread = app.createThread({ model: single, permissions: { sharingScope: 'mesh' } }), search = { route: SEARCH_ROUTE };
+    const failed = await app.send(thread, QUESTION, { retrieval: search, searchPermission: grant(thread, { recipients: [peer('6')] }),
+      authorizeDisclosure: () => true });
+    expect(failed).toMatchObject({ status: 'failed', error: SEARCH_RECIPIENTS_CHANGED });
+    expect(disclosed).toEqual([]);
+    const sent = await app.send(thread, QUESTION, { retrieval: search, searchPermission: grant(thread, { recipients: [PROVIDER] }),
+      authorizeDisclosure: () => true });
+    expect(sent).toMatchObject({ status: 'completed', searchPermission: { recipients: [PROVIDER] } });
+    expect(disclosed).toHaveLength(1);
+  });
 });
 
 describe('host session and conversation view', () => {
