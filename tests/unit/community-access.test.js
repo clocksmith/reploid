@@ -9,7 +9,7 @@ import {
   MIN, accounts, advance, at, clock, composeIssuance, decidedBy, deliver, fundingAuthority, fx, harnesses, journalShape, quoteTerms, rejectsWith, resetFixture
 } from '../helpers/access-fixture.js';
 
-// Test-only limits. The guarantee mode, limits and funding are open product decisions.
+// Test-only limits and funding; the published policy record sets the real ones.
 const POLICY = Object.freeze({
   policyVersion: 'test-community/1',
   poolAccountId: 'pool_general',
@@ -156,6 +156,29 @@ describe.each(Object.keys(harnesses))('Community Access (%s store)', (kind) => {
     capacity(1);
     await access.admitWaiting();
     expect(await access.getRequest(late.requestId)).toMatchObject({ state: 'unavailable', reason: 'queue_wait_exceeded', retry: 'explicit' });
+  });
+
+  it('keeps a request queued while funds are only held, and refuses it once the period funding cannot cover it', async () => {
+    capacity(2);
+    await fund(100);
+    const admitted = await request('alice');
+    expect(admitted).toMatchObject({ state: 'available', reservationId: expect.any(String) });
+    // 40 available, 60 held by alice: bob's 90-credit quote waits for the hold to settle.
+    const bob = await access.requestAccess({ requestId: 'r-bob-90', participantId: 'peer_bob', deviceId: 'bob-phone',
+      quote: quoteTerms({ maxCharge: 90, reservationPeriodMs: 60 * MIN }) });
+    expect(bob).toMatchObject({ state: 'queued' });
+    // Alice is charged 30: 70 remain in total, below bob's 90, so the funding is used up for him.
+    await finish(admitted);
+    expect(await access.getRequest('r-bob-90')).toMatchObject({ state: 'unavailable', reason: 'pool_exhausted', retry: 'explicit' });
+
+    // With funds only held, the same wait ends in admission once the hold settles.
+    await fund(200, { fundingId: 'funding:top' });
+    const carol = await request('carol');
+    const dave = await access.requestAccess({ requestId: 'r-dave-90', participantId: 'peer_dave', deviceId: 'dave-phone',
+      quote: quoteTerms({ maxCharge: 90, reservationPeriodMs: 60 * MIN }) });
+    expect(['queued', 'available']).toContain(dave.state);
+    await finish(carol);
+    expect(await access.getRequest('r-dave-90')).toMatchObject({ state: 'available' });
   });
 
   it('serves accounts in fair turns rather than arrival order', async () => {
