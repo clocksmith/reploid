@@ -47,4 +47,28 @@ export function createTestSignInProvider({ providerId = 'test-provider', audienc
   });
 }
 
+const SUBJECT = /^[a-z0-9][a-z0-9._-]{0,63}$/;
+
+/**
+ * The local sign-in flow over a test provider, for local runs only: the
+ * provider routes publish its settings and issue an assertion for a subject
+ * the person types, prefixed `local:` so it can never equal a real provider's
+ * subject. Anyone who can reach the service can sign in as any subject, which
+ * is why it is marked testOnly and hosted compositions refuse it in
+ * production.
+ */
+export function createTestSignInFlow(provider) {
+  if (provider?.testOnly !== true || typeof provider.issue !== 'function') throw new TypeError('the local sign-in flow needs the test-only provider');
+  return Object.freeze({
+    providerId: provider.providerId,
+    testOnly: true,
+    clientConfig: () => ({ providerId: provider.providerId, flow: 'local_test_subject', testOnly: true }),
+    /** An assertion for `subject`, or null when the subject is not a short lowercase name. */
+    issueAssertion({ subject } = {}) {
+      if (typeof subject !== 'string' || !SUBJECT.test(subject)) return null;
+      return { providerId: provider.providerId, assertion: provider.issue({ subject: `local:${subject}` }) };
+    }
+  });
+}
+
 export default createTestSignInProvider;

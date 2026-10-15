@@ -23,6 +23,7 @@ import { pathToFileURL } from 'node:url';
 
 import { createProviderRouter } from './provider-routes.js';
 import { createEarningRouter } from './router.js';
+import { createSessionRouter } from './session-routes.js';
 
 export const EARNING_ROUTES_SWITCH = 'REPLOID_EARNING_ROUTES';
 export const EARNING_COMPOSITION_MODULE = 'REPLOID_EARNING_COMPOSITION';
@@ -53,8 +54,9 @@ export function readEarningRoutesConfig(env = {}) {
 
 /**
  * Refuse a composition that must not serve production: no sign-in provider,
- * any test-only provider or payment processor, or memory-backed accounts,
- * ledger, rewards, Idempotency-Key bindings or payments.
+ * any test-only provider, sign-in flow, payment processor or test checkout,
+ * or memory-backed accounts, ledger, rewards, Idempotency-Key bindings or
+ * payments.
  */
 export function assertProductionComposition(composition) {
   const providers = composition?.accounts?.signInProviders;
@@ -63,6 +65,9 @@ export function assertProductionComposition(composition) {
   if (testOnly.length) {
     refuse('test_sign_in_provider_in_production', `the test-only sign-in provider (${testOnly.join(', ')}) is not permitted in production`);
   }
+  const testFlows = (composition.signInFlows ?? []).filter((flow) => flow?.testOnly === true).map((flow) => flow.providerId);
+  if (testFlows.length) refuse('test_sign_in_provider_in_production', `the test-only sign-in flow (${testFlows.join(', ')}) is not permitted in production`);
+  if (composition.testCheckout) refuse('test_payment_processor_in_production', 'the test checkout is not permitted in production');
   if (composition.payments && composition.payments.processor?.testOnly !== false) {
     refuse('test_payment_processor_in_production', `the payment processor ${composition.payments.processor?.id ?? '(unnamed)'} is not declared for production`);
   }
@@ -95,12 +100,15 @@ export async function mountEarningRoutes(app, { env = process.env, composition =
     resolved = await create({ env, production: config.production });
   }
   if (config.production) assertProductionComposition(resolved);
-  const { signInFlows = [], payments = null } = resolved;
-  // Provider routes first: the earning router answers every other /v1 path, unknown ones with 404.
+  const { signInFlows = [], payments = null, testCheckout = null, offerTerms = null } = resolved;
+  const shared = { limits: resolved.limits, rateLimiter: resolved.rateLimiter ?? null, ...(resolved.nowMs ? { nowMs: resolved.nowMs } : {}), log };
+  // Provider and session routes first: the earning router answers every other /v1 path, unknown ones with 404.
   if (signInFlows.length || payments) {
-    app.use(EARNING_ROUTES_PREFIX, createProviderRouter({
-      accounts: resolved.accounts, signInFlows, payments, limits: resolved.limits, rateLimiter: resolved.rateLimiter ?? null,
-      ...(resolved.nowMs ? { nowMs: resolved.nowMs } : {}), log
+    app.use(EARNING_ROUTES_PREFIX, createProviderRouter({ accounts: resolved.accounts, signInFlows, payments, testCheckout, ...shared }));
+  }
+  if (payments || offerTerms) {
+    app.use(EARNING_ROUTES_PREFIX, createSessionRouter({
+      accounts: resolved.accounts, payments, rewards: resolved.rewards, offerTerms, idempotencyBackend: resolved.idempotencyBackend, ...shared
     }));
   }
   app.use(EARNING_ROUTES_PREFIX, createEarningRouter({ log, ...resolved }));
@@ -110,7 +118,8 @@ export async function mountEarningRoutes(app, { env = process.env, composition =
     production: config.production,
     signInProviders: (resolved.accounts?.signInProviders ?? []).map(({ providerId, testOnly }) => ({ providerId, testOnly })),
     signInFlows: signInFlows.map(({ providerId }) => providerId),
-    payments: payments ? { ...payments.processor } : null
+    payments: payments ? { ...payments.processor } : null,
+    offers: Boolean(offerTerms)
   };
 }
 
