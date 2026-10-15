@@ -243,8 +243,46 @@ business profitability. Add observed costs rather than silently treating unknown
 
 ## Verification retained
 
-Four offline checks pass: the original $20/$30 illustration and 2.5-token/s
+Five offline checks pass: the original $20/$30 illustration and 2.5-token/s
 threshold; cancellation of internal rewards and reconciliation of fees/reserves;
-zero-success and missed-deadline behavior; and failure-duration/paid-share sensitivity.
+zero-success and missed-deadline behavior; failure-duration/paid-share sensitivity; and rental break-even on the same service boundary.
 `calculate.py --check` reproduces the committed results from the input hash.
 No application, GPU, provider or human-review acceptance is asserted.
+
+## Lambda and Google comparison added 2026-10-15
+
+The [rental tables](RESULTS.md#rental-comparison) retain dated instance prices,
+8-hour/730-hour bills, assumed accepted-answer rates and service-level break-even.
+The same base platform/labor and per-accepted-answer review costs are applied to
+cloud and Reploid. A separate $0.02/hour disk/network allowance is an assumption,
+not a provider quote; replace it with actual disk/egress receipts. Electricity and
+hardware depreciation are included in the rental price from the renter's perspective,
+not charged a second time. Provider profit is part of rental price; underlying
+provider energy/resource efficiency cannot be inferred from that bill.
+
+No NVIDIA speed estimate is presented as a measurement. The exact 0.8B model's
+retained footprint fits these GPU memory capacities, but actual NVIDIA/Doppler
+compatibility, numerical tolerance, context, concurrency and lifecycle must still
+qualify. A 24-48 GB GPU can also accommodate some larger representations; model
+size alone does not prove a particular larger checkpoint fits with its KV/runtime
+memory or answers usefully. The current estimate covers only the 56/100-token task.
+
+Run two distinct controls: exact model/representation and numerical gate on a
+single rented GPU; then an acceptable-quality hosted configuration for the same
+user tasks. Do not describe different quantization/precision as execution parity.
+No cloud instance, purchase, quota request or paid benchmark was authorized or run.
+
+At the base assumption of only about six accepted answers per hour, continuous
+rental is expensive. At sufficiently higher accepted throughput it can beat the
+current distributed route. This establishes a measurable obligation, not a cloud
+win: confirm correct, timely throughput and demand, startup/idle costs, and the
+same quality/disclosure contract. Scale-to-zero can reduce idle billing but adds
+cold-start latency and possible capacity unavailability.
+
+[Lambda billing](https://docs.lambda.ai/public-cloud/billing/) bills running
+on-demand instances in minute increments, including idle time.
+[Google VM billing](https://cloud.google.com/products/compute/pricing) has a
+one-minute minimum followed by per-second billing; running idle VMs remain billed.
+Spot and committed-use discounts are excluded; neither should be assumed without
+its interruption or commitment obligations. Regions, quotas and availability need
+checking before provisioning, especially Google's displayed regional price.

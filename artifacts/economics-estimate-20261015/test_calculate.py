@@ -28,6 +28,18 @@ class Accounting(unittest.TestCase):
                  r['operator_cost_before_payment_fees_usd_night'])
             self.assertAlmostEqual(r['busy_hours']+r['idle_hours']+r['preparation_hours'],8)
 
+    def test_rental_break_even_uses_same_service_boundary(self):
+        r=results(DATA)
+        target=r['scenarios'][1]['consolidated_usd_per_accepted_before_payment_fees']
+        for a in r['rental_comparison']:
+            hourly=(a['usd_hour']+a['common_fixed_service_usd_hour']
+                    +DATA['rental_comparison']['additional_disk_network_usd_hour_assumption'])
+            self.assertAlmostEqual(hourly/a['accepted_per_billed_hour_to_beat_reploid_base']
+                                   +a['review_usd_per_accepted_assumption'],target)
+            self.assertAlmostEqual(a['instance_usd_730_hours'],730*a['usd_hour'])
+            costs=[v['usd_per_accepted'] for v in a['complete_service_usd_per_accepted_sensitivity']]
+            self.assertGreater(costs[0],costs[1]);self.assertGreater(costs[1],costs[2])
+
     def test_zero_success_never_has_favorable_unit_cost(self):
         for field in ['quality_pass_fraction','on_time_fraction','utilization']:
             s=dict(DATA['scenarios'][1],**{field:0})

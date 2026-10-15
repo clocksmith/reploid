@@ -107,8 +107,27 @@ def results(data):
                                'minimum_decode_tokens_s_energy_only':watts/1000*0.20*1e6/(price*3600)})
     alternatives=[dict(model, usd_per_56_in_100_out=token_cost(model,m['input_tokens'],m['output_tokens']))
                   for model in data['sources']['together']['models']]
+    rental = data['rental_comparison']
+    common_fixed_hour = (base['platform_usd_month']/data['common']['nights_per_month']
+                         + base['operator_minutes_night']/60*base['operator_usd_hour'])/data['common']['night_hours']
+    review_per_accepted = token_cost(data['sources']['together']['models'][base['review_model_index']],
+                                     base['review_input_tokens'], base['review_output_tokens']) / (base['quality_pass_fraction']*base['on_time_fraction'])
+    target = rows[1]['consolidated_usd_per_accepted_before_payment_fees']
+    rentals=[]
+    for offer in rental['offers']:
+        hourly = offer['usd_hour']+common_fixed_hour+rental['additional_disk_network_usd_hour_assumption']
+        threshold = hourly/(target-review_per_accepted)
+        rentals.append(dict(offer,
+            instance_usd_8_hours=offer['usd_hour']*8,
+            instance_usd_730_hours=offer['usd_hour']*730,
+            common_fixed_service_usd_hour=common_fixed_hour,
+            review_usd_per_accepted_assumption=review_per_accepted,
+            accepted_per_billed_hour_to_beat_reploid_base=threshold,
+            complete_service_usd_per_accepted_sensitivity=[
+                {'accepted_per_billed_hour':q,'usd_per_accepted':hourly/q+review_per_accepted}
+                for q in rental['accepted_answers_per_billed_hour_sensitivity']]))
     return {'status':'estimates, not qualification', 'as_of':data['as_of'], 'scenarios':rows,
-            'sensitivity':sensitivity,'energy_only_break_even':thresholds,'api_price_comparators':alternatives,
+            'rental_comparison':rentals, 'sensitivity':sensitivity,'energy_only_break_even':thresholds,'api_price_comparators':alternatives,
             'local_amd_same_precision_answer_s_estimate':m['amd_whole_model_prefill_s']+m['output_tokens']*m['amd_whole_model_decode_s'],
             'illustrative_original_usd_per_million':{'300_watts':300/1000*0.2/(3600/1.2)*1e6,
                                                    '450_watts':450/1000*0.2/(3600/1.2)*1e6}}
@@ -152,6 +171,19 @@ def render(data,r):
     for a in r['energy_only_break_even']:
         lines.append(f'| {a["watts"]} | {a["alternative_usd_per_million_output"]} | {a["minimum_decode_tokens_s_energy_only"]:.3f} |')
     lines+=['',f'AMD-only same-precision short-answer estimate: **{r["local_amd_same_precision_answer_s_estimate"]:.2f} seconds**, summing measured whole-model prefill and 100 decode steps. This is not an installed application measurement. Qualification of that service path remains necessary.', '']
+    lines+=['## Rental comparison', '',
+            'On-demand rates checked 2026-10-15. No cloud inference was benchmarked. Accepted-answer rates are sensitivity inputs, including idle, startup and failed work per billed hour. Instance availability and NVIDIA correctness remain unqualified.', '',
+            '| Instance | GPU GB | USD/hour | USD/8 hours | USD/730 hours |', '|---|---:|---:|---:|---:|']
+    for a in r['rental_comparison']:
+        lines.append(f'| {a["name"]} | {a["vram_gb"]} | {a["usd_hour"]:.4f} | {a["instance_usd_8_hours"]:.2f} | {a["instance_usd_730_hours"]:.2f} |')
+    lines+=['', '[Lambda list prices](https://lambda.ai/instances); [Google accelerator pricing](https://cloud.google.com/products/compute/pricing/accelerator-optimized?hl=en). Google rate requires regional requote; disk/egress separate. Tax excluded.', '',
+            'Comparable service boundary: add the same base platform/labor allocation ($0.625/hour), the same assumed review cost per accepted answer, and an assumed $0.02/hour disk/network allowance. Excludes payment fees, search, tax and one-time setup on both sides. Does not add electricity or hardware depreciation on top of rental.', '',
+            '| Instance | At 6 accepted/hour | At 25 accepted/hour | At 100 accepted/hour | Accepted/hour needed to beat Reploid base |', '|---|---:|---:|---:|---:|']
+    for a in r['rental_comparison']:
+        values=' | '.join(f'${x["usd_per_accepted"]:.4f}' for x in a['complete_service_usd_per_accepted_sensitivity'])
+        lines.append(f'| {a["name"]} | {values} | {a["accepted_per_billed_hour_to_beat_reploid_base"]:.2f} |')
+    lines+=['', f'Reploid base on this before-payment-fee boundary: ${rows[1]["consolidated_usd_per_accepted_before_payment_fees"]:.4f}/accepted answer, at {rows[1]["satisfactory_on_time_night"]/data["common"]["night_hours"]:.2f} accepted/hour. This is an estimate anchored to retained timings, not measured economic proof.', '',
+            'Read 25/hour as a condition to verify, not a cloud speed forecast. Higher GPU capacity does not guarantee demand. Startup, idle time, failed quality and deadlines must all be inside the observed accepted-per-billed-hour denominator. No Spot discount, utilization gain or automatic batching gain is assumed.', '']
     return '\n'.join(lines)
 
 
