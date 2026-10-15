@@ -12,5 +12,5 @@
   "REQUEST_TIMEOUT": "The contributor request timed out. Remote completion and cleanup are not confirmed.",
   "CLEANUP_FAILED": "Partition attempt settlement failed. Contributor cleanup is not confirmed; its capacity remains unavailable.",
   "ANSWER_DEADLINE_EXCEEDED": "Response timed out. Retry starts a new attempt.",
-  "WORKLOAD_OUTSIDE_ENVELOPE": "This route does not support a request of this prompt length, answer length or number of concurrent requests. Nothing was sent to its contributors."
+  "WORKLOAD_OUTSIDE_ENVELOPE": "This route does not support a request of this prompt length, answer length or number of concurrent requests. Nothing was sent to its other contributors."
 }
