@@ -2,9 +2,18 @@
 
 Guide to all documentation in the REPLOID project.
 
-Active implementation: [canonical Doppler–Reploid roadmap](../ROADMAP.md).
-Adopted product: [Reploid product specification](product-specification.md).
-Full task entries and acceptance: [canonical requirements](roadmap/requirements.md).
+Keep [GOALS.md](../GOALS.md) and [INTENT.md](../INTENT.md) as durable direction.
+The three product/planning documents are:
+
+1. [Business plan and product contract](product-specification.md) — customer promise, business model, obligations and policy decisions.
+2. [Roadmap and acceptance register](../ROADMAP.md) — launches, active work, stable IDs, checkboxes and evidence.
+3. [Architecture](open-mesh-architecture.md) — components, network participation, execution and recovery.
+
+The old requirements and network-intent paths contain compatibility links only.
+Economics calculations and retained receipts are supporting evidence, not another
+plan. Specialist protocols remain scoped references; dated history and inactive
+commercial alternatives do not select current work.
+
 Historical narrative: [roadmap history](roadmap/history.md).
 Topology requirements and inherited fixtures: [RD-CANON/1](roadmap/rd-canon-1.md).
 Launch 3 source design (off by default): [orchestration](launch-3-orchestration.md).
@@ -54,7 +63,7 @@ Typed model operations: [Doppler decisions in Reploid](doppler-choice-scoring.md
 - **[docs/change-passport/pilot-manifest.json](./change-passport/pilot-manifest.json)** - Machine-readable pilot readiness and fail-closed freeze gate
 - **[docs/change-passport/runtime-contract.md](./change-passport/runtime-contract.md)** - Hosted storage, authentication, GitHub App, endpoint, and deployment boundary
 - **[Ouroboros documentation authority](https://github.com/clocksmith/ouroboros/blob/main/docs/authority/README.md)** - Cross-project record routing; Reploid remains canonical for product and runtime behavior
-- **[docs/poolday/product-intent.md](./poolday/product-intent.md)** - Network purpose, prepared execution, contribution, conversations and independently evaluated improvement
+- **[Network participation and lifecycle](open-mesh-architecture.md#network-participation-and-lifecycle-contracts)** - Prepared execution, contribution, conversations and independently evaluated improvement under the product contract
 - **[Research and legacy qualification checkpoint](poolday/product-intent-checkpoint-2026-10-09.md)** - Original scientific procedures, Pack recipes and dated qualification scopes
 - **[docs/poolday/discovery-contract.md](./poolday/discovery-contract.md)** - Target atomic active-science object, action-value boundary, epistemic updates, replication, and closure
 

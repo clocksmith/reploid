@@ -7,9 +7,16 @@
 ## Current implementation work
 
 Follow [ROADMAP.md](ROADMAP.md), the single Doppler–Reploid implementation roadmap.
-Update acceptance evidence and checkboxes in the
-[canonical requirements](docs/roadmap/requirements.md) as acceptance passes.
+Update acceptance evidence and checkboxes in its
+[detailed acceptance register](ROADMAP.md#detailed-acceptance-register) as acceptance passes.
 Historical plans cannot start a competing campaign.
+
+Keep product/planning authority in three documents alongside `GOALS.md` and
+`INTENT.md`: [business and product contract](docs/product-specification.md),
+[roadmap and acceptance](ROADMAP.md), and [architecture](docs/open-mesh-architecture.md).
+Old requirements and network-intent paths are compatibility links, not editable
+copies. Calculations, retained evidence and specialist protocols support these
+owners; they do not create another product strategy or work queue.
 
 ## Git workflow: direct to main
 
