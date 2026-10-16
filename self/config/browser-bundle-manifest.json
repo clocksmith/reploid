@@ -1211,7 +1211,7 @@
     {
       "path": "config/chat-models.json",
       "byteLength": 10265,
-      "sha256": "sha256:6ede9d0dc72af3fabfe5f8c69d37e9f3ef082252e96873fac2d279b1b7255d4e"
+      "sha256": "sha256:d2c32ef93dbe8323a4354243ac7e1e635bfacf37351c1f5d3efacefd483b7e58"
     },
     {
       "path": "config/chat-remote-permission.json",
@@ -1336,7 +1336,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 569702,
-      "sha256": "sha256:78283aeb8ab06ae2602299bb3614006433fc7f5722b1a72cb320cdff5467c00e"
+      "sha256": "sha256:09ba30ac060533bf969f37fbf576a70b28e933235613d3b60d6482d134a4d1fc"
     },
     {
       "path": "config/module-registry.json",
@@ -3246,7 +3246,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "byteLength": 2035168,
-      "sha256": "sha256:a856e21ffa6701d0cddfe2b08b10e82b2562405e497a9fee49d3aa443e258541"
+      "sha256": "sha256:a0fdc156dea367824dc11d1122080ba8b466c233e65bbacd1f9172ac5229d7e6"
     },
     {
       "path": "ui/pool-home/computer-labels.js",
@@ -10484,5 +10484,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:e9dd785c1dba76bd9220f9a3877f2810d07c26efbf6e88c888fa89fdf620feff"
+  "bundleHash": "sha256:c6d633d61fd8547a77737b6529310064dabd0e1dee63d95183fb2334b0ad830b"
 }
