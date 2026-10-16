@@ -9,6 +9,7 @@ import * as runtime from 'doppler-gpu/partitions';
 import { normalizeNativeDataChannel, openNativeModelSource, openNativePartition, createNativeGpuHost, createNativeShutdown, createNativeParticipant } from '../../server/native-participant.js';
 
 const gpu = vi.hoisted(() => ({ device: null, order: [] }));
+vi.mock('doppler-gpu/partitions', async importOriginal => ({ ...(await importOriginal()), canonicalGenerationIdentity: undefined }));
 vi.mock('doppler-gpu/tooling', () => ({ getDevice: () => gpu.device, destroyBufferPool: () => gpu.order.push('pool') }));
 
 it('settles the provider after failed participant cleanup and shares overlapping stops', async () => {
@@ -110,7 +111,7 @@ describe('native host boundary', () => {
   });
 });
 
-it('installed accepted runtime refuses canonical participation before GPU, transport or epoch persistence', async () => {
+it('a runtime missing canonical capability refuses participation before GPU, transport or epoch persistence', async () => {
   const { directory } = await fixture(); const nativeGpu = vi.fn();
   const identity = await createSigningIdentity({ algorithm: 'Ed25519' });
   const Socket = vi.fn(), Peer = vi.fn();

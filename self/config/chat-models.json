@@ -120,5 +120,203 @@
     "size": "Q4K",
     "recommended": true,
     "adapters": []
+  },
+  {
+    "id": "qwen3-8-27b-text-f16-af32",
+    "name": "Qwen 3.8 27B",
+    "identity": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+    "provider": "doppler",
+    "contextLength": 4096,
+    "quantization": "f16",
+    "size": "F16 · 54 GB",
+    "adapters": [],
+    "executionModes": [
+      "whole-model",
+      "partition"
+    ],
+    "partitionSplitLayer": 1,
+    "source": {
+      "baseUrl": "https://storage.googleapis.com/reploid-model-artifacts/models/qwen3-8-27b-text-f16-af32/",
+      "files": [
+        {
+          "path": "manifest.json",
+          "role": "model-manifest",
+          "sizeBytes": 734314,
+          "hashAlgorithm": "sha256",
+          "hash": "f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+          "url": "/config/model-manifests/f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735.json"
+        },
+        {
+          "path": "tokenizer.json",
+          "role": "tokenizer",
+          "sizeBytes": 9089356,
+          "hashAlgorithm": "sha256",
+          "hash": "ae50d65939a34a089eaf1e541c15c8a7d866079a5fe9a1d35454e0aa88577753"
+        },
+        {
+          "path": "qwen-3-8-27b-pieces.json",
+          "role": "model-piece-index",
+          "sizeBytes": 135069,
+          "hashAlgorithm": "sha256",
+          "hash": "44f05f1fdf34423e45621ac78fb75620927c6d228aa3771037ae093ef947233d",
+          "url": "/config/model-pieces/qwen-3-8-27b-pieces.json"
+        }
+      ]
+    },
+    "generation": {
+      "maxTokens": 128,
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1,
+      "repetitionPenalty": 1,
+      "maxSeqLen": 4096,
+      "useChatTemplate": true
+    },
+    "loadOptions": {
+      "runtimeConfig": {
+        "shared": {
+          "debug": {
+            "logLevel": {
+              "defaultLogLevel": "warn"
+            }
+          },
+          "bufferPool": {
+            "budget": {
+              "maxTotalBytes": 60129542144,
+              "highWatermarkRatio": 0.94,
+              "emergencyTrimTargetRatio": 0.9,
+              "hardFailOnBudgetExceeded": true
+            }
+          }
+        },
+        "loading": {
+          "shardCache": {
+            "networkEntries": 2,
+            "maxConcurrentLoads": 1,
+            "verifyHashes": true
+          },
+          "prefetch": {
+            "enabled": false
+          }
+        },
+        "inference": {
+          "chatTemplate": {
+            "thinking": false
+          },
+          "kvcache": {
+            "maxSeqLen": 4096
+          },
+          "session": {
+            "kvcache": {
+              "maxSeqLen": 4096
+            },
+            "decodeLoop": {
+              "batchSize": 1,
+              "readbackInterval": 1,
+              "stopCheckMode": "per-token",
+              "readbackMode": "sequential",
+              "submitLatencyThresholdMs": null,
+              "maxBatchDecodeTokens": 1,
+              "ringTokens": 1,
+              "ringStop": 1,
+              "ringStaging": 1,
+              "disableCommandBatching": false
+            },
+            "prefillChunkLayers": 1,
+            "prefillTokenChunkSize": null
+          },
+          "generation": {
+            "disableMultiTokenDecode": true
+          },
+          "batching": {
+            "maxTokens": 128,
+            "batchSize": 1,
+            "readbackInterval": 1,
+            "stopCheckMode": "per-token",
+            "readbackMode": "sequential",
+            "ringTokens": 1,
+            "ringStop": 1,
+            "ringStaging": 1
+          }
+        }
+      }
+    },
+    "partitionRuntime": {
+      "maxGpuBufferBytes": [
+        6442450944,
+        55834574848
+      ],
+      "runtimeConfig": {
+        "shared": {
+          "debug": {
+            "logLevel": {
+              "defaultLogLevel": "warn"
+            }
+          },
+          "bufferPool": {
+            "budget": {
+              "maxTotalBytes": 60129542144,
+              "highWatermarkRatio": 0.94,
+              "emergencyTrimTargetRatio": 0.9,
+              "hardFailOnBudgetExceeded": true
+            }
+          }
+        },
+        "loading": {
+          "shardCache": {
+            "networkEntries": 2,
+            "maxConcurrentLoads": 1,
+            "verifyHashes": true
+          },
+          "prefetch": {
+            "enabled": false
+          }
+        },
+        "inference": {
+          "chatTemplate": {
+            "thinking": false
+          },
+          "kvcache": {
+            "maxSeqLen": 4096
+          },
+          "session": {
+            "kvcache": {
+              "maxSeqLen": 4096
+            },
+            "decodeLoop": {
+              "batchSize": 1,
+              "readbackInterval": 1,
+              "stopCheckMode": "per-token",
+              "readbackMode": "sequential",
+              "submitLatencyThresholdMs": null,
+              "maxBatchDecodeTokens": 1,
+              "ringTokens": 1,
+              "ringStop": 1,
+              "ringStaging": 1,
+              "disableCommandBatching": false
+            },
+            "prefillChunkLayers": 1,
+            "prefillTokenChunkSize": null
+          },
+          "generation": {
+            "disableMultiTokenDecode": true
+          },
+          "batching": {
+            "maxTokens": 128,
+            "batchSize": 1,
+            "readbackInterval": 1,
+            "stopCheckMode": "per-token",
+            "readbackMode": "sequential",
+            "ringTokens": 1,
+            "ringStop": 1,
+            "ringStaging": 1
+          }
+        }
+      }
+    },
+    "partitionContributionIndexes": [
+      0
+    ],
+    "partitionPlanId": "sha256:1503c19cb03173427308b541ec7b8ab5ac596bd4e9cf01d667e93ddfc440010e"
   }
 ]

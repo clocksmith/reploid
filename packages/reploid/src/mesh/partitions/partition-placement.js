@@ -8,11 +8,13 @@ export function selectPartitionPlacement({ participantId, offer, localIndex, pre
     reason: !peer.available ? peer.reason : peer.description.phase === 'failed' ? 'contributor-failed'
       : peer.description.offer?.id !== offer.id || peer.description.offer?.identity !== offer.identity
         ? 'model-mismatch' : 'approved-model-contribution',
-    index: peer.description?.index ?? null }));
-  const candidates = [{ id: participantId, index: localIndex },
+    index: peer.description?.index ?? null, indexes: peer.description?.eligibleIndexes ?? [0, 1] }));
+  const candidates = [{ id: participantId, index: localIndex, indexes: offer.partitionContributionIndexes ?? [0, 1] },
     ...eligibility.filter(peer => peer.reason === 'approved-model-contribution')
-      .map(peer => ({ id: peer.participantId, index: peer.index }))].sort((a, b) => a.id.localeCompare(b.id));
+      .map(peer => ({ id: peer.participantId, index: peer.index, indexes: peer.indexes }))].sort((a, b) => a.id.localeCompare(b.id));
   const ids = candidates.map(peer => peer.id);
+  const inputs = candidates.filter(peer => peer.indexes.includes(0));
+  const outputs = candidates.filter(peer => peer.indexes.includes(1));
   if (localIndex === null && !candidates.some(peer => peer.index === 0)) {
     const awaitingInput = capabilities.some(peer => peer.available && peer.description?.index === 1
       && peer.description.offer?.id === offer.id && peer.description.offer?.identity === offer.identity
@@ -21,12 +23,13 @@ export function selectPartitionPlacement({ participantId, offer, localIndex, pre
     if (awaitingInput) return { participants: [], eligibility, reason: 'await-advertised-input-owner' };
   }
   const retainedA = previous && ids.includes(previous[0])
-    && candidates.find(peer => peer.id === previous[0])?.index === 0 ? previous[0] : null;
-  const a = retainedA || candidates.find(peer => peer.index === 0)?.id
-    || candidates.find(peer => peer.index === null)?.id || ids[0];
-  const b = participantId !== a ? participantId
-    : previous?.[0] === a && candidates.some(peer => peer.id === previous[1] && peer.index === 1) ? previous[1]
-      : candidates.find(peer => peer.id !== a && peer.index === 1)?.id || ids.find(id => id !== a);
+    && inputs.find(peer => peer.id === previous[0])?.index === 0 ? previous[0] : null;
+  const a = retainedA || inputs.find(peer => peer.index === 0)?.id
+    || inputs.find(peer => peer.index === null)?.id || inputs[0]?.id;
+  if (!a) return { participants: [], eligibility, reason: 'missing-eligible-input-contributor' };
+  const b = participantId !== a ? outputs.find(peer => peer.id === participantId)?.id
+    : previous?.[0] === a && outputs.some(peer => peer.id === previous[1] && peer.index === 1) ? previous[1]
+      : outputs.find(peer => peer.id !== a && peer.index === 1)?.id || outputs.find(peer => peer.id !== a)?.id;
   return { participants: b ? [a, b] : [], eligibility,
     reason: !b ? 'missing-complementary-contributor' : retainedA ? 'retain-input-owner' : 'select-input-owner' };
 }

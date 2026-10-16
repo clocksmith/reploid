@@ -2,7 +2,7 @@ import { renderContextIndicator, updateContextIndicator } from './context-indica
 import { withComputerLabels } from './computer-labels.js';
 import { interfaceIcon } from '../components/interface-icons.js';
 import { createConversationList } from './conversation-list.js';
-import { updateModelSelect } from '../components/model-select.js';
+import { updateModelSelect, modelSelectionLabel } from '../components/model-select.js';
 /** Conversation presentation; the host owns execution and disclosure. */
 import { projectNetworkPeers } from './network-controls.js';
 import { renderNetworkInspector, bindNetworkInspector } from './network-inspector.js';
@@ -201,7 +201,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const showFiles = () => { refreshStartingPrompts(); resizeInput(); renderAttachments(find('[data-attachments-preview]'), files); find('[data-attachment-help]').hidden = !files.length; };
   const updatePicker = state => {
     const keyFor = model => model?.selectionId || model?.id;
-    const models = state.models.filter(selectable);
+    const models = state.models.filter(model => selectable(model) || model.executionModes?.length);
     const selected = state.models.find(model => keyFor(model) === keyFor(pickerModel));
     if (pickerModel && !models.some(model => keyFor(model) === keyFor(pickerModel))) {
       models.push(selected || { ...pickerModel, availability: 'unavailable' });
@@ -223,19 +223,20 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     }
     const thread = state.activeThread, catalogModels = state.models || [];
     const keyFor = model => model?.selectionId || model?.id;
-    const models = catalogModels.filter(selectable);
+    const models = catalogModels.filter(model => selectable(model) || model.executionModes?.length);
     if (!thread && chosenModel && !models.some(model => keyFor(model) === keyFor(chosenModel))) {
       models.push(catalogModels.find(model => keyFor(model) === keyFor(chosenModel)) || { ...chosenModel, availability: 'unavailable' });
     }
     if (thread && !models.some(model => keyFor(model) === keyFor(thread.model))) {
       models.push(catalogModels.find(model => keyFor(model) === keyFor(thread.model)) || { ...thread.model, availability: 'unavailable' });
     }
-    const current = keyFor(thread?.model) || keyFor(chosenModel) || (models.some(model => keyFor(model) === modelSelect.value) ? modelSelect.value : null)
-      || keyFor(models.find(model => keyFor(model) === keyFor(state.defaultModel))) || keyFor(models[0]);
+    const current = keyFor(thread?.model) || keyFor(chosenModel) || (models.some(model => keyFor(model) === modelSelect.value && selectable(model)) ? modelSelect.value : null)
+      || keyFor(models.find(model => keyFor(model) === keyFor(state.defaultModel) && selectable(model)))
+      || keyFor(models.find(selectable)) || keyFor(models[0]);
     updateModelSelect(modelSelect, models, { value: current, showAvailability: true });
     modelSelect.value = current || ''; modelSelect.disabled = !models.length; modelSelect.hidden = !!thread;
     const currentModel = find('[data-current-model]'); currentModel.hidden = !thread;
-    currentModel.textContent = thread?.model.name || 'Model';
+    currentModel.textContent = thread?.model ? modelSelectionLabel(thread.model) : 'Model';
     currentModel.setAttribute('aria-label', `${thread?.model.name || 'Model'}. Choose a model for a new thread`);
     const peerCount = projectNetworkPeers(state).length;
     for (const node of surface?.querySelectorAll('[data-mesh-peers]') || []) node.textContent = `${peerCount} ${peerCount === 1 ? 'computer' : 'computers'}`;
@@ -291,13 +292,15 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const cells = state.answerLimits?.find(entry => entry.selectionId === keyFor(requestedModel || {}))?.cells || [];
     const bounds = [...new Map(cells.map(cell => [cell.maxPromptTokens + '/' + cell.maxAnswerTokens, cell])).values()]
       .sort((a, b) => a.maxPromptTokens - b.maxPromptTokens);
+    const configuredAnswerTokens = catalogModels.find(model => model.id === requestedModel?.id && !model.partition)?.generation?.maxTokens;
     answerLimit.textContent = bounds.length ? 'Route limits: ' + bounds.map(cell =>
       `${cell.maxAnswerTokens} answer tokens for up to ${cell.maxPromptTokens} input tokens`).join('; ')
-      + '. Input includes conversation history. Answers reaching the limit are incomplete.' : '';
-    answerLimit.hidden = !bounds.length;
+      + '. Input includes conversation history. Answers reaching the limit are incomplete.'
+      : Number.isSafeInteger(configuredAnswerTokens) ? `Answer limit: ${configuredAnswerTokens} tokens. Answers reaching the limit are incomplete.` : '';
+    answerLimit.hidden = !answerLimit.textContent;
     find('[data-model-control]').hidden = !models.length;
     find('[data-model-control]').dataset.activity = models.some(model => keyFor(model) === current && model.availability === 'ready') ? 'ready' : 'idle';
-    const modelDigest = requestedModel?.name || 'Unavailable';
+    const modelDigest = requestedModel ? modelSelectionLabel(requestedModel) : 'Unavailable';
     find('[data-model-digest]').textContent = modelDigest;
     find('[data-open-model]').title = `Choose model: ${modelDigest}`;
     find('[data-open-model]').setAttribute('aria-label', `Choose model: ${modelDigest}`);

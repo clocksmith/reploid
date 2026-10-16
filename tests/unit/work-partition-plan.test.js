@@ -6,7 +6,7 @@ import { createWorkPartitionPlan, workOrderedResidentOptions, snapshotWorkOrdere
 const manifest = { modelId: 'plan-fixture', architecture: { numLayers: 4, hiddenSize: 8, vocabSize: 16 },
   inference: { session: { compute: { defaults: { activationDtype: 'f32' } } } } };
 const selected = { id: manifest.modelId, partitionSplitLayer: 2 };
-describe('host plan selection against the unchanged installed Doppler pin', () => {
+describe('host plan selection against the installed Doppler pin', () => {
   it('preserves legacy plan construction and accepts the same explicit v1 plan', () => {
     const plan = createWorkPartitionPlan(accepted, manifest, selected);
     expect(plan.schema).toBe('doppler.layer-partition-contract/v1');
@@ -22,12 +22,13 @@ describe('host plan selection against the unchanged installed Doppler pin', () =
       activationComponents: 2, activationElementStrideBytes: 8 };
     expect(() => createWorkPartitionPlan(accepted, manifest, { ...selected, partitionPlan: paired })).toThrow();
   });
-  it('rejects ordered contribution with the actual accepted runtime before opening it', () => {
+  it('rejects ordered contribution when the provider lacks ordered capabilities', () => {
+    const legacy = { ...accepted, ORDERED_LAYER_PARTITION_SCHEMA: undefined };
     const plan = { schema: 'doppler.layer-partition-contract/v3', modelId: manifest.modelId,
       stageCount: 3, splitLayers: [1, 3] };
-    expect(() => createWorkPartitionPlan(accepted, manifest,
+    expect(() => createWorkPartitionPlan(legacy, manifest,
       { id: manifest.modelId, partitionPlan: plan }, 1)).toThrow(/ordered plan/);
-    expect(() => workOrderedResidentOptions(accepted, { index: 1 })).toThrow(/ordered resident/);
+    expect(() => workOrderedResidentOptions(legacy, { index: 1 })).toThrow(/ordered resident/);
   });
   it('rejects altered model geometry and missing validation without fallback', () => {
     const plan = createWorkPartitionPlan(accepted, manifest, selected);
@@ -43,7 +44,7 @@ describe('ordered plan validation uses the provider argument order', () => {
   const orderedPlan = () => ({ schema: ORDERED, modelId: 'ordered-fixture', totalLayers: 6, hiddenSize: 8, vocabSize: 16,
     stageCount: 3, splitLayers: [2, 4], partitions: [{ index: 0 }, { index: 1 }, { index: 2 }] });
   // Argument contract of doppler-gpu 0.6.28 validateOrderedLayerPartitionPlan(manifest, plan), including its
-  // messages. It is a strict double, not the provider: the pinned 0.6.27 package exports no ordered validator.
+  // messages. This strict double also checks invocation order independently of the installed provider.
   const strictRuntime = () => {
     const calls = [];
     const validateOrderedLayerPartitionPlan = (...args) => {

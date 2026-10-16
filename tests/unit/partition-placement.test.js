@@ -42,3 +42,14 @@ describe('placement over partial discovery', () => {
     expect(result.eligibility.map(peer => peer.reason)).toEqual(['expired', 'input-owner-at-capacity', 'reservation-required']);
   });
 });
+
+it('assigns only owner-eligible indexes regardless of participant identity order', () => {
+  const input = { ...offer, partitionContributionIndexes: [0] };
+  const output = { ...offer, partitionContributionIndexes: [1] };
+  expect(selectPartitionPlacement({ participantId: 'z', offer: input, localIndex: null, previous: null,
+    capabilities: [capability('a', null, { eligibleIndexes: [1], placement: null })] }).participants).toEqual(['z', 'a']);
+  expect(selectPartitionPlacement({ participantId: 'a', offer: output, localIndex: null, previous: null,
+    capabilities: [capability('z', null, { eligibleIndexes: [0], placement: null })] }).participants).toEqual(['z', 'a']);
+  expect(selectPartitionPlacement({ participantId: 'z', offer: input, localIndex: null, previous: null,
+    capabilities: [capability('a', null, { eligibleIndexes: [0], placement: null })] }).participants).toEqual([]);
+});

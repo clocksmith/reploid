@@ -1,0 +1,22 @@
+[
+  {
+    "width": 1280,
+    "options": [
+      "Qwen 3.8 27B · Whole model · Unavailable",
+      "Qwen 3.8 27B · Distributed layers · Unavailable"
+    ],
+    "overflow": false,
+    "errors": [],
+    "limit": "Answer limit: 128 tokens. Answers reaching the limit are incomplete."
+  },
+  {
+    "width": 390,
+    "options": [
+      "Qwen 3.8 27B · Whole model · Unavailable",
+      "Qwen 3.8 27B · Distributed layers · Unavailable"
+    ],
+    "overflow": false,
+    "errors": [],
+    "limit": "Answer limit: 128 tokens. Answers reaching the limit are incomplete."
+  }
+]

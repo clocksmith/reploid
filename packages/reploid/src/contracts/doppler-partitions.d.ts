@@ -13,7 +13,7 @@ export declare const ACTIVATION_TENSOR_SCHEMA: 'doppler.activation-tensor/v1';
 
 export type ActivationDtype = 'f32' | 'f16';
 
-export interface PartitionTensorContract {
+export interface PartitionTensorContract extends ActivationLayout {
   type: 'token-ids' | 'activation-tensor' | 'logits';
   rank: number;
   shapeDescription: string;
@@ -33,18 +33,21 @@ export interface LayerPartition {
 }
 
 export interface LayerPartitionPlan {
-  readonly schema: typeof LAYER_PARTITION_SCHEMA;
+  readonly schema: typeof LAYER_PARTITION_SCHEMA | typeof PAIRED_LAYER_PARTITION_SCHEMA;
   readonly modelId: string;
   readonly totalLayers: number;
   readonly hiddenSize: number;
   readonly vocabSize: number;
   readonly splitLayer: number;
   readonly activationDtype: ActivationDtype;
+  readonly activationPrecision?: ActivationPrecision;
+  readonly activationComponents?: number;
+  readonly activationElementStrideBytes?: number;
   readonly partitions: readonly Readonly<LayerPartition>[];
 }
 
-export interface ActivationFrame {
-  readonly schema: typeof ACTIVATION_TENSOR_SCHEMA;
+export interface ActivationFrame extends ActivationLayout {
+  readonly schema: typeof ACTIVATION_TENSOR_SCHEMA | typeof PAIRED_ACTIVATION_TENSOR_SCHEMA;
   readonly shape: readonly number[];
   readonly dtype: ActivationDtype;
   readonly seqOffset: number;
@@ -61,15 +64,21 @@ export interface PartitionTiming {
 
 export interface ResidentPartitionAllocation {
   model: { id: string; identity: string };
-  plan: LayerPartitionPlan; planId: string; index: 0 | 1; participantId: string;
+  plan: AnyLayerPartitionPlan; planId: string; index: number; participantId: string;
   limits: ResidentPartitionLimits; generation: GenerationOptions;
+  /** Explicit opt-in; never inferred from a legacy generation object. */
+  canonicalGeneration?: { policy: CanonicalGenerationPolicy; executionIdentity: string };
 }
 
 export interface ResidentPartitionDescriptor {
-  schema: 'doppler.resident-partition/v1'; ready: boolean;
-  modelId: string; modelIdentity: string; planId: string; index: 0 | 1;
+  schema: 'doppler.resident-partition/v1' | 'doppler.resident-partition/v2'; ready: boolean;
+  stageCount?: number;
+  modelId: string; modelIdentity: string; planId: string; index: number;
   layerRange: readonly number[]; residentWeightBytes: number;
   generationDigest: string;
+  canonicalGenerationId?: string;
+  /** Pipelines created before readiness; absent from residents that predate opening preparation. */
+  pipelinePreparation?: ResidentPipelinePreparation;
 }
 
 export interface ResidentPartitionIdentity {
@@ -81,15 +90,21 @@ export interface ResidentPartitionIdentity {
 export interface ResidentPartitionLimits {
   maxTokens: number; maxPromptTokens: number; maxActivationBytes: number;
   maxOutputCharacters: number; maxAttempts: number; maxConcurrentAttempts: number;
+  /**
+   * Host-declared bound on opening pipeline preparation, in milliseconds. Exceeding it fails
+   * opening; a provider creation already in flight stays owned until it settles.
+   */
+  maxPreparationMs: number;
 }
 
 export interface ResidentPartitionStep {
-  identity: ResidentPartitionIdentity; step: number; tokenPosition: number; inputTokenCount: number;
+  identity: ResidentExecutionIdentity; step: number; tokenPosition: number; inputTokenCount: number;
   maxTokens: number; generation: GenerationOptions; continuation: unknown; signal: AbortSignal;
+  generationId?: string; baseCursorId?: string | null;
 }
 
 export interface ResidentPartitionTokenizationRequest {
-  messages: unknown; identity: ResidentPartitionIdentity; signal: AbortSignal;
+  messages: unknown; identity: ResidentExecutionIdentity; signal: AbortSignal;
 }
 
 export interface ResidentPartitionTokenizationResult {
@@ -100,24 +115,25 @@ export interface ResidentPartitionTokenizationResult {
 export interface ResidentPartitionARequest extends ResidentPartitionStep { tokenIds: number[]; }
 
 export interface ResidentPartitionAResult {
-  activationTensor: { shape: number[]; dtype: 'f16' | 'f32'; data: ArrayBuffer; step: number; seqOffset: number };
+  activationTensor: ActivationLayout & { shape: number[]; dtype: 'f16' | 'f32'; data: ArrayBuffer; step: number; seqOffset: number };
   continuation: unknown;
   metrics: ResidentPartitionMetrics;
 }
 
 export interface ResidentPartitionBRequest extends ResidentPartitionStep {
   inputTokenIds: number[];
-  activation: { shape: number[]; dtype: string; seqOffset: number; step: number;
+  activation: ActivationLayout & { shape: number[]; dtype: string; seqOffset: number; step: number;
     tensorData: Float32Array | Uint16Array };
 }
 
 export interface ResidentPartitionBResult {
-  identity: ResidentPartitionIdentity; step: number; tokenPosition: number;
+  identity: ResidentExecutionIdentity; step: number; tokenPosition: number;
   tokenId: number; delta: string; done: boolean; stopReason: string | null;
   continuation: unknown; logits: Float32Array; metrics: ResidentPartitionMetrics;
 }
 
 export interface ResidentPartitionMetrics extends PartitionTiming {
+  outputUsage?: { rawCharacters: number; rawTokens: number; finalCharacters: number; state: string };
   executionMs: number; logitsReadbackMs: number; samplingMs: number;
   memory: Pick<DeviceMemorySnapshot,
     'maxBytes' | 'liveBytes' | 'peakBytes' | 'categories'> | null;
@@ -134,9 +150,19 @@ export interface ResidentPartitionSession {
   getDescriptor(): ResidentPartitionDescriptor;
   /** Live continuation is not portable recovery. This implementation reports all flags false. */
   getRecoveryCapabilities(): ResidentRecoveryCapabilities;
+  getCanonicalGeneration(): ResidentCanonicalGeneration | null;
+  admitCanonicalPrompt(request: { identity: ResidentExecutionIdentity; tokenIds: number[]; generationId: string; signal: AbortSignal }):
+    Promise<Readonly<AdmissionOnlyResult> | Readonly<{ kind: 'prefill'; tokenIds: readonly number[]; generationId: string }>>;
+  executeCanonicalGroup0(request: ResidentCanonicalARequest): Promise<ResidentPartitionAResult>;
+  executeCanonicalGroup1(request: ResidentCanonicalBRequest): Promise<ResidentCanonicalBResult>;
+  /** Settled numerical input-stage commit; not an authenticated transport acknowledgment. */
+  commitCanonicalTransition(request: { identity: ResidentExecutionIdentity; baseCursorId: string | null;
+    transition: ResidentTargetTransition; signal: AbortSignal }): Promise<Readonly<ResidentTargetTransition>>;
   tokenize(request: ResidentPartitionTokenizationRequest): Promise<ResidentPartitionTokenizationResult>;
+  /** Ordered v3 plan only. Entry embeds, intermediate returns activation, final alone samples. */
+  executeStage(request: ResidentStageRequest): Promise<ResidentStageResult>;
   executeGroup0(request: ResidentPartitionARequest): Promise<ResidentPartitionAResult>;
   executeGroup1(request: ResidentPartitionBRequest): Promise<ResidentPartitionBResult>;
-  closeAttempt(request: { identity: ResidentPartitionIdentity }): Promise<void>;
+  closeAttempt(request: { identity: ResidentExecutionIdentity }): Promise<void>;
   close(): Promise<void>;
 }

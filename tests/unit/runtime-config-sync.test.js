@@ -131,3 +131,13 @@ describe('runtime config synchronization', () => {
     expect(synchronizeRuntimeConfig(fixture).poolConfig.modelCatalog[0].runtimeVersion).toBe('0.6.0');
   });
 });
+
+it('removes a previous prerelease suffix without consuming the configuration suffix', () => {
+  const fixture = createFixture();
+  fixture.poolConfig.configVersion = 'release.doppler-0.6.27-unicode.1.esm2-capsule-v2';
+  fixture.poolConfig.browserRuntime.dopplerModuleUrl = '/vendor/doppler/0.6.27-unicode.1/src/index.js';
+  fixture.poolConfig.launchModel.runtimeCompatibility.capabilityAction = 'Use doppler-gpu@0.6.27-unicode.1 or newer.';
+  const result = synchronizeRuntimeConfig(fixture);
+  expect(result.poolConfig.configVersion).toBe(`release.doppler-${DOPPLER_BROWSER_RUNTIME_VERSION}.esm2-capsule-v2`);
+  expect(result.poolConfig.launchModel.runtimeCompatibility.capabilityAction).toBe(`Use doppler-gpu@${DOPPLER_BROWSER_RUNTIME_VERSION} or newer.`);
+});

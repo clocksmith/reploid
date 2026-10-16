@@ -1,0 +1,21 @@
+{
+  "unitCommand": "npx vitest run --config tests/vitest.config.js <16 focused test files>",
+  "testFilesPassed": 16,
+  "testsPassed": 163,
+  "browserSelectorWidths": [
+    1280,
+    390
+  ],
+  "browserSelectorErrors": [],
+  "horizontalOverflow": false,
+  "browserBundleHash": "sha256:62e6932128c5c4c52442abaa5bfc16dfbda99b46dffeecf34bbc65d6140199de",
+  "checks": [
+    "verify-catscan",
+    "verify-planning-boundary",
+    "verify-pool-production",
+    "build-browser-bundle-manifest --check",
+    "git diff --check"
+  ],
+  "qualified27BApplicationExecution": false,
+  "deployed": false
+}

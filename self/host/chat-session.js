@@ -186,6 +186,7 @@ export function createChatSession({
     model = { ...model, networkAvailability: model.availability };
     const local = execution.getLocalState();
     if (canonicalHistory && !publishable(historyState.publication, model)) return { ...model, availability: 'unavailable', localReady: false };
+    if (model.partition) return { ...model, localReady: false, localCached: false };
     return local?.ready && local.modelIdentity === model.identity && !(model.adapters?.length)
       ? { ...model, availability: 'ready', localReady: true }
       : isCached(model) ? { ...model, availability: 'cached', localCached: true } : model;

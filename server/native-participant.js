@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 /** Native Node host for the same authenticated partition protocol as the browser.
- * No browser, model arithmetic, placement policy, or whole-request fallback lives here.
+ * No browser, model arithmetic, or implicit execution fallback lives here.
  */
 export { createChatCompletions } from './chat-completions.js';
 export { createResponses } from './responses.js';
 export { createMessages } from './messages.js';
 
 import fs from 'node:fs/promises';
+import { createNativeWholeModel } from './native-whole-model.js';
 import { createNativeModelFiles } from './native-model-files.js';
 import { createCustodyKeyCertifier } from '../packages/reploid/src/artifacts/custody-certificate.js';
 import { openNativeOwnerControls, nativeOwnerStatus, NO_OWNER_POLICY } from './native-owner/controls.js';
@@ -269,7 +270,7 @@ export function createNativeGpuHost(loadProvider) {
 
 export async function openNativePartition({ model: selected, modelDirectory, nativeGpu, index, signal, participantId,
   files, releaseDirectory, registerCleanup, canonical = null, ordered = null, device = null, attemptBytes, onProgress = () => {},
-  gpuBufferBytes = policy.maxGpuBufferBytes, evidenceSigner = null, shaderCache = null }) {
+  gpuBufferBytes, evidenceSigner = null, shaderCache = null }) {
   selected = snapshotWorkPartitionSelection(selected);
   const stageBinding = snapshotWorkPartitionStage(selected, index, participantId, ordered, canonical);
   if (selected.capsule !== undefined) requireValue(files && selected.packOpenOptions && selected.executablePack && releaseDirectory,
@@ -284,7 +285,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
     canonical.epochs.assertCurrent();
   }
   await nativeGpu(); signal.throwIfAborted();
-  await runtime.configureDeviceMemoryBudget({ maxBytes: gpuBufferBytes });
+  await runtime.configureDeviceMemoryBudget({ maxBytes: gpuBufferBytes ?? selected.partitionRuntime?.maxGpuBufferBytes?.[index] ?? policy.maxGpuBufferBytes });
   const source = await openNativeModelSource({ model: selected, modelDirectory, signal, runtime, files });
   let resident, release = null, capsuleVerification = null, sourceSettled = false, releaseSettled = false, residentSettled = false, commitAuthority = null;
   const ownerId = canonical ? crypto.randomUUID().replaceAll('-', '') : null;
@@ -350,7 +351,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
         assertSession: assertWorkResidentCapsule, closeSources, trackSession, canonical: !!canonical,
         onVerification: value => { capsuleVerification = value; }, onLoadProgress });
     } else factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: selected.identity, onLoadProgress,
-      runtimeConfig: { shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: policy.profileGpu } } },
+      runtimeConfig: selected.partitionRuntime?.runtimeConfig ?? { shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: policy.profileGpu } } },
         inference: { session: { kvcache: { maxSeqLen: configured.generation.maxSeqLen },
           prefillChunkLayers: policy.prefillChunkLayers, prefillTokenChunkSize: policy.prefillTokenChunkSize } } },
       createStorage: async () => tokenizer.storage });
@@ -395,7 +396,11 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
  * partition state and each prepared resident's admissions; the caller owns and ends it. */
 export async function createNativeParticipant({ model, modelDirectory, identity, rtc, WebSocket,
   signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
-  owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null, readiness = null }) {
+  owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null, readiness = null, executionMode = 'partition' }) {
+  requireValue(['partition', 'whole-model'].includes(executionMode), 'Unknown native execution mode');
+  const wholeMode = executionMode === 'whole-model';
+  requireValue(!wholeMode || canonical === null && ordered === null && earning === null && readiness === null,
+    'Whole-model execution cannot inherit ordered, canonical, earning or stage-readiness configuration');
   requireValue(earning === null || ownerGate && typeof earning.observe === 'function', 'Native earning requires the owner policy and an earning contribution port');
   requireValue(readiness === null || typeof readiness.observe === 'function' && typeof readiness.watchResident === 'function',
     'Native readiness recording requires a readiness recorder');
@@ -420,19 +425,26 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   endpoint.searchParams.set('scope', roomId === bootstrap.publicRoomId ? 'public' : 'private');
   endpoint.searchParams.set('roomId', roomId);
   const config = resolveConfig({ profile: profile.profile, overrides: {
-    mesh: { enabled: true, executeJobs: false, roomId },
+    mesh: { enabled: true, executeJobs: wholeMode, maxInboundJobs: 1, roomId },
     webrtc: { signalingUrl: endpoint.href, broadcastRoomId: roomId, transportOrder: ['webrtc'] }
   } });
   const eventBus = events(), bridge = events(), utils = { logger, generateId: () => crypto.randomUUID() };
   const admission = roomId === bootstrap.publicRoomId ? null : createRoomIntroductionAdmission({ roomId, token: roomToken });
   let transport, partitions, files, closePromise, closed = false, gpuPromise;
   const networks = new Set();
+  const whole = wholeMode ? createNativeWholeModel({ model, modelDirectory, nativeGpu, owner: ownerGate,
+    onChange: state => { onChange(state); mesh.refreshAdvertisement(); } }) : null;
   const mesh = createLegacyGenerationMesh({ config, ports: {
-    instanceId: 'node:' + identity.peerId, modelConfig: null, utils, eventBus, events: bridge,
+    instanceId: 'node:' + identity.peerId, modelConfig: wholeMode ? model : null, utils, eventBus, events: bridge,
+    getExecutionState: () => { const state = whole?.getState(); return { ...state, phase: state?.ready ? state.phase : state?.phase === 'ready' || state?.phase === 'executing' ? 'idle' : state?.phase || 'idle' }; },
     identity: { ensure: async () => identity, save: async () => {}, sync: async () => {},
       rotate: async () => { throw new Error('Stop the native participant before rotating its identity'); } },
-    authorize: async request => !closed && request.action === 'mesh.connect',
-    generate: async () => { throw new Error('Native whole-request fallback is disabled'); },
+    authorize: async request => !closed && (request.action === 'mesh.connect'
+      || request.action === 'mesh.execute' && whole?.getState().ready === true),
+    generate: (messages, onUpdate, controls) => {
+      requireValue(!closed && whole, 'Native whole-model execution was not enabled');
+      return whole.generate(messages, onUpdate, controls);
+    },
     createTransport: () => transport = createSwarmTransport({ config, Utils: utils, EventBus: eventBus,
       WebSocket, RTCPeerConnection: rtc.RTCPeerConnection, RTCSessionDescription: rtc.RTCSessionDescription,
       RTCIceCandidate: rtc.RTCIceCandidate,
@@ -468,7 +480,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   const close = () => closePromise ||= (async () => {
     closed = true;
     endOwnerWait('contribute', 'Native participant closed'); endOwnerWait('share', 'Native participant closed');
-    const results = await Promise.allSettled([partitions, ...networks]
+    const results = await Promise.allSettled([whole, partitions, ...networks]
       .map(owner => Promise.resolve().then(() => closeOwner(owner))));
     // Sources and the mesh outlive resident cancellation/opening settlement.
     for (const owner of [files, mesh]) {
@@ -490,7 +502,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
         certifyCustodyKey: createCustodyKeyCertifier({ identity, onIssue: onCustodyCertificate }).certify });
       await files.custodyCertificate();
     }
-    partitions = createAutomaticPartitions({ identity, meshId: roomId, models: [model], ...bindWorkOrderedParticipation(ordered, identity.peerId, ordered ? transport._getPeerId() : null, policy),
+    if (!wholeMode) partitions = createAutomaticPartitions({ identity, meshId: roomId, models: [model], ...bindWorkOrderedParticipation(ordered, identity.peerId, ordered ? transport._getPeerId() : null, policy),
       canonical: epochs ? { runtime: canonicalRuntime, participantEpoch: epochs.participantEpoch, coordinatorEpoch: epochs.coordinatorEpoch } : null,
       peers: () => transport.getConnectedPeers().map(peer => ({ ...peer, localTransportId: transport._getPeerId() })),
       createNetwork(options) {
@@ -506,23 +518,23 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
           releaseDirectory: cacheDirectory && path.join(path.dirname(cacheDirectory), 'release-checkpoints'),
           nativeGpu: () => gpuPromise ||= nativeGpu().catch(error => { gpuPromise = null; throw error; }), files, ...controls, evidenceSigner, shaderCache,
           ...(epochs ? { canonical: { ...controls.canonical, epochs } } : {}),
-          ...(ownerGate ? { gpuBufferBytes: ownerGate.gpuBufferBytes(policy.maxGpuBufferBytes) } : {}) });
+          ...(ownerGate ? { gpuBufferBytes: ownerGate.gpuBufferBytes(selected.partitionRuntime?.maxGpuBufferBytes?.[index] ?? policy.maxGpuBufferBytes) } : {}) });
         const prepared = ownerGate ? { ...program, resident: ownerGate.gateResident(program.resident) } : program;
         readiness?.watchResident(prepared.resident);
         return prepared;
       }, onChange: earning || readiness ? state => { onChange(state); readiness?.observe(state); if (earning) observeEarning(); } : onChange
     });
-    return Object.freeze({ identity: identity.peerId, getState: () => partitions.getState(),
+    return Object.freeze({ identity: identity.peerId, getState: () => whole ? whole.getState() : partitions.getState(),
       generate(request, controls) {
-        requireValue(!closed && !canonical, 'Native ordinary requester is unavailable');
+        requireValue(!closed && !canonical && partitions, 'Native ordinary requester is unavailable');
         requireValue(typeof controls?.requestApproval === 'function', 'Explicit requester disclosure authorization required');
         return partitions.generate(request, controls);
       },
       contribute: ownerGate ? async approved => {
         if (approved === true && !await ownerAdmission('contribute')) return;
-        return partitions.contribute(model.id, approved);
-      } : approved => partitions.contribute(model.id, approved),
-      stop: ownerGate ? () => { endOwnerWait('contribute', 'Native contribution stopped'); return partitions.stop(); } : () => partitions.stop(), close,
+        return whole ? whole.contribute(approved) : partitions.contribute(model.id, approved);
+      } : approved => whole ? whole.contribute(approved) : partitions.contribute(model.id, approved),
+      stop: ownerGate ? () => { endOwnerWait('contribute', 'Native contribution stopped'); return whole ? whole.stop() : partitions.stop(); } : () => whole ? whole.stop() : partitions.stop(), close,
       getNetworkState: () => mesh.getSwarmSnapshot(), getFileState: options => files?.getState(options) || null,
       shareFiles: ownerGate ? async approved => {
         requireValue(files, 'Native cache directory required');
@@ -530,7 +542,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
         return files.share(model, approved);
       } : approved => { requireValue(files, 'Native cache directory required'); return files.share(model, approved); },
       stopSharing: ownerGate ? () => { endOwnerWait('share', 'Native file contribution stopped'); return files?.stopSupply(); } : () => files?.stopSupply(),
-      announceFiles: () => { files?.announce(); observeEarning(); }, getOwnerState: () => ownerGate ? ownerGate.summary() : NO_OWNER_POLICY,
+      announceFiles: () => { files?.announce(); if (whole) mesh.refreshAdvertisement(); observeEarning(); }, getOwnerState: () => ownerGate ? ownerGate.summary() : NO_OWNER_POLICY,
       getCustodyCertificate: async () => files ? files.custodyCertificate() : null });
   } catch (error) { try { await close(); } catch (cleanup) { throw new AggregateError([error, cleanup], 'Native startup and cleanup failed'); } throw error; }
 }
@@ -585,7 +597,7 @@ export async function resolveNativeRoomToken(values, { warn = message => console
 
 async function main() {
   const { values } = parseArgs({ options: Object.fromEntries(['model', 'model-directory', 'identity-file', 'rtc-module',
-    'ws-module', 'gpu-module', 'ordered-config', 'signaling-url', 'room', 'room-token', 'room-token-file', 'origin', 'cache-directory',
+    'ws-module', 'gpu-module', 'execution-mode', 'partition-index', 'ordered-config', 'signaling-url', 'room', 'room-token', 'room-token-file', 'origin', 'cache-directory',
     'owner-policy', 'shader-cache-root', 'earning-config', 'readiness-log'].map(key => [key, { type: 'string' }]).concat([
       ['help', { type: 'boolean', default: false }], ['canonical', { type: 'boolean', default: false }], ['share-files', { type: 'boolean', default: false }], ['contribute', { type: 'boolean', default: false }], ['connect-only', { type: 'boolean', default: false }]])) });
   if (values.help) {
@@ -596,6 +608,8 @@ Usage: reploid-participant --connect-only|--share-files|--contribute
   --rtc-module @roamhq/wrtc --ws-module ws [--gpu-module webgpu]
   [--cache-directory <verified piece cache>] [--signaling-url <ws(s) URL>]
   [--room <namespace>] [--room-token-file <absolute path>] [--origin <allowed origin>]
+  [--execution-mode partition|whole-model] (default: partition; never falls back)
+  [--partition-index 0|1] (explicit eligible stage for a two-stage route)
   [--ordered-config <absolute JSON path>] (explicit stage assignment and ordered limits)
   [--canonical] (requires explicit catalog generation and a capable installed runtime)
   [--owner-policy <absolute JSON path>] (owner schedule, memory, rate, power, temperature and foreground limits)
@@ -622,6 +636,9 @@ Native GPU execution is qualified on Linux/Vulkan only; --help opens no provider
   requireValue(values['readiness-log'] === undefined || values.contribute && path.isAbsolute(values['readiness-log']),
     '--readiness-log requires --contribute and an absolute file path');
   for (const name of ['model', 'model-directory', 'identity-file', 'rtc-module', 'ws-module']) requireValue(values[name], '--' + name + ' is required');
+  requireValue(values['execution-mode'] === undefined || ['partition', 'whole-model'].includes(values['execution-mode']), 'Unknown native execution mode');
+  requireValue(values['execution-mode'] !== 'whole-model' || !values.canonical && !values['ordered-config'] && !values['earning-config'] && !values['readiness-log'],
+    'Whole-model execution cannot inherit ordered, canonical, earning or stage-readiness configuration');
   // Before identity, module or connection side effects; read once.
   const roomToken = await resolveNativeRoomToken(values);
   let logNetwork = () => {}, observeReadiness = () => {};
@@ -637,8 +654,11 @@ Native GPU execution is qualified on Linux/Vulkan only; --help opens no provider
     requireValue(ordered && typeof ordered === 'object', 'Ordered config requires an explicit configuration object');
     snapshotWorkOrderedParticipation(ordered, null, models);
   }
+  requireValue(values['partition-index'] === undefined || ['0', '1'].includes(values['partition-index'])
+    && !values['ordered-config'] && values['execution-mode'] !== 'whole-model', 'Partition index requires a two-stage partition contributor');
   const identityFile = path.resolve(values['identity-file']);
-  const model = models.find(row => row.id === values.model); requireValue(model, 'Model is absent from the application catalog');
+  let model = models.find(row => row.id === values.model); requireValue(model, 'Model is absent from the application catalog');
+  if (values['partition-index'] !== undefined) model = { ...model, partitionContributionIndexes: [Number(values['partition-index'])] };
   const moduleSpecifier = value => {
     requireValue(path.isAbsolute(value) || ['@roamhq/wrtc', 'ws', 'webgpu'].includes(value),
       'Native modules require an operator-selected absolute local path or supported package name');
@@ -689,6 +709,7 @@ Native GPU execution is qualified on Linux/Vulkan only; --help opens no provider
     WebSocket: HostWebSocket, signalingUrl: values['signaling-url'] || bootstrap.signalingUrl,
     roomId: values.room || bootstrap.publicRoomId, roomToken: roomToken || bootstrap.publicJoinMarker,
     cacheDirectory: values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
+    executionMode: values['execution-mode'] || 'partition',
     ordered, canonical: values.canonical ? { epochDirectory: path.join(path.dirname(identityFile), 'canonical-epochs',
       createHash('sha256').update(values.room || bootstrap.publicRoomId).digest('hex')) } : null,
     nativeGpu: () => gpuHost.open(), owner, shaderCache, earning, readiness,

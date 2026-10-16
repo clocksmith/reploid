@@ -40,7 +40,7 @@ function synchronizeCompatibility(value, packageVersion) {
     }
     if (key === 'capabilityAction' && typeof entry === 'string') {
       synchronized[key] = entry.replace(
-        new RegExp(`${escapeRegExp(DOPPLER_PACKAGE_NAME)}@\\d+\\.\\d+\\.\\d+`, 'g'),
+        new RegExp(`${escapeRegExp(DOPPLER_PACKAGE_NAME)}@\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?`, 'g'),
         `${DOPPLER_PACKAGE_NAME}@${packageVersion}`
       );
       continue;
@@ -104,8 +104,10 @@ export function synchronizeRuntimeConfig({
   const synchronizedPoolConfig = synchronizeCompatibility(clone(poolConfig), browserRuntimeVersion);
   const configVersion = String(synchronizedPoolConfig.configVersion || '').trim();
   if (!configVersion) throw new Error('Pool configVersion is required');
-  synchronizedPoolConfig.configVersion = /doppler-\d+\.\d+\.\d+/.test(configVersion)
-    ? configVersion.replace(/doppler-\d+\.\d+\.\d+/, `doppler-${browserRuntimeVersion}`)
+  const previousVersion = poolConfig.browserRuntime?.dopplerModuleUrl?.match(/\/vendor\/doppler\/([^/]+)\//)?.[1];
+  const versionPattern = previousVersion ? new RegExp(`doppler-${escapeRegExp(previousVersion)}`) : /doppler-\d+\.\d+\.\d+/;
+  synchronizedPoolConfig.configVersion = versionPattern.test(configVersion)
+    ? configVersion.replace(versionPattern, `doppler-${browserRuntimeVersion}`)
     : `${configVersion}.doppler-${browserRuntimeVersion}`;
   synchronizedPoolConfig.browserRuntime = {
     ...synchronizedPoolConfig.browserRuntime,
