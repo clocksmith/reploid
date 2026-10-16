@@ -1,0 +1,59 @@
+{
+  "kind": "observed-check-summary",
+  "recordedAt": "2026-10-16T19:16:20.203716+00:00",
+  "revision": "e40ea4c4",
+  "deployedUrl": "https://replo.id",
+  "browserBundle": "sha256:a0edec2ef3509b52124110da5d591aa825a07cbb57f217ebb019382803935f1d",
+  "component": "contributor web retrieval",
+  "intent": "deliberately changed",
+  "boundaryEffects": [
+    "opt-in web jobs over authenticated mesh",
+    "separate search-contributor permission",
+    "isolated browser-to-native public-page bridge"
+  ],
+  "checks": {
+    "focusedUnitTests": 75,
+    "browserTests": 2,
+    "libraryTypes": "passed",
+    "newModuleVerificationWorker": "passed"
+  },
+  "liveQuery": "WebGPU MDN browser GPU API",
+  "workers": [
+    {
+      "host": "mac-host",
+      "mode": "browser with native public-page bridge",
+      "participantId": "peer:691a71be6c88b33d7f0123d2",
+      "outcome": "retrieved",
+      "sources": 5,
+      "service": "id.replo.web-contributor"
+    },
+    {
+      "host": "amd-host",
+      "mode": "native public-web worker",
+      "participantId": "peer:89f37893d8653e193a79f42a",
+      "outcome": "retrieved",
+      "sources": 5,
+      "service": "reploid-web-search.service"
+    }
+  ],
+  "liveUrls": [
+    "https://webgpu.org/",
+    "https://en.wikipedia.org/wiki/WebGPU",
+    "https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API",
+    "https://webgpu.com/",
+    "https://www.webgpu.net/en"
+  ],
+  "ui": {
+    "searchAvailable": true,
+    "namedSearchContributorPermission": true,
+    "sourcesRetrievedAfterPermission": 5,
+    "modelExecutionPermissionShownSeparately": true
+  },
+  "limits": [
+    "This summary records observed checks, not a raw signed execution receipt.",
+    "End-to-end model answer quality and semantic citation support were not qualified.",
+    "Public search can refuse or change; this is not an availability guarantee.",
+    "No personal tabs, cookies or browser sign-ins are read."
+  ],
+  "rollout": "Dedicated search contributors added; existing AMD whole-model services remained active."
+}
