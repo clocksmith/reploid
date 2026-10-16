@@ -7,8 +7,6 @@ export { createResponses } from './responses.js';
 export { createMessages } from './messages.js';
 
 import fs from 'node:fs/promises';
-import { createWebAccessNetwork } from '../packages/reploid/src/mesh/web-access-network.js';
-import { createPublicWebWorker } from './public-web-worker.js';
 import { createNativeWholeModel } from './native-whole-model.js';
 import { createNativeModelFiles } from './native-model-files.js';
 import { createCustodyKeyCertifier } from '../packages/reploid/src/artifacts/custody-certificate.js';
@@ -399,7 +397,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
  * partition state and each prepared resident's admissions; the caller owns and ends it. */
 export async function createNativeParticipant({ model, modelDirectory, identity, rtc, WebSocket,
   signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
-  owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null, readiness = null, executionMode = 'partition', webWorker = null }) {
+  owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null, readiness = null, executionMode = 'partition' }) {
   requireValue(['partition', 'whole-model'].includes(executionMode), 'Unknown native execution mode');
   const wholeMode = executionMode === 'whole-model';
   requireValue(!wholeMode || canonical === null && ordered === null && earning === null && readiness === null,
@@ -433,7 +431,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   } });
   const eventBus = events(), bridge = events(), utils = { logger, generateId: () => crypto.randomUUID() };
   const admission = roomId === bootstrap.publicRoomId ? null : createRoomIntroductionAdmission({ roomId, token: roomToken });
-  let transport, partitions, files, webNetwork, closePromise, closed = false, gpuPromise;
+  let transport, partitions, files, closePromise, closed = false, gpuPromise;
   const networks = new Set();
   const whole = wholeMode ? createNativeWholeModel({ model, modelDirectory, nativeGpu, owner: ownerGate,
     onChange: state => { onChange(state); mesh.refreshAdvertisement(); } }) : null;
@@ -483,7 +481,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   const close = () => closePromise ||= (async () => {
     closed = true;
     endOwnerWait('contribute', 'Native participant closed'); endOwnerWait('share', 'Native participant closed');
-    const results = await Promise.allSettled([webNetwork, whole, partitions, ...networks]
+    const results = await Promise.allSettled([whole, partitions, ...networks]
       .map(owner => Promise.resolve().then(() => closeOwner(owner))));
     // Sources and the mesh outlive resident cancellation/opening settlement.
     for (const owner of [files, mesh]) {
@@ -500,8 +498,6 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   try {
     if (canonical) epochs = await openNativeCanonicalEpochs({ directory: canonical.epochDirectory, participantId: identity.peerId, meshId: roomId });
     await mesh.connect();
-    webNetwork = createWebAccessNetwork({ transport, worker: webWorker, enabled: () => !closed && webWorker !== null,
-      verifyPeer: (peer, signal) => mesh.verifyPeerIdentity(peer, signal) });
     if (cacheDirectory) {
       files = await createNativeModelFiles({ transport, modelDirectory, cacheDirectory, onChange: onFileChange, owner: ownerGate,
         certifyCustodyKey: createCustodyKeyCertifier({ identity, onIssue: onCustodyCertificate }).certify });
@@ -604,13 +600,12 @@ async function main() {
   const { values } = parseArgs({ options: Object.fromEntries(['model', 'model-directory', 'identity-file', 'rtc-module',
     'ws-module', 'gpu-module', 'execution-mode', 'partition-index', 'ordered-config', 'signaling-url', 'room', 'room-token', 'room-token-file', 'origin', 'cache-directory',
     'owner-policy', 'shader-cache-root', 'earning-config', 'readiness-log'].map(key => [key, { type: 'string' }]).concat([
-      ['web-search', { type: 'boolean', default: false }], ['help', { type: 'boolean', default: false }], ['canonical', { type: 'boolean', default: false }], ['share-files', { type: 'boolean', default: false }], ['contribute', { type: 'boolean', default: false }], ['connect-only', { type: 'boolean', default: false }]])) });
+      ['help', { type: 'boolean', default: false }], ['canonical', { type: 'boolean', default: false }], ['share-files', { type: 'boolean', default: false }], ['contribute', { type: 'boolean', default: false }], ['connect-only', { type: 'boolean', default: false }]])) });
   if (values.help) {
     console.log(`Reploid native participant (Node 22.13 or newer)
 Usage: reploid-participant --connect-only|--share-files|--contribute
   --model <catalog id> --model-directory <read-only weights directory>
   --identity-file <private state/identity.json>
-  --web-search (opt in to public Bing search and page extraction; no browser sign-ins)
   --rtc-module @roamhq/wrtc --ws-module ws [--gpu-module webgpu]
   [--cache-directory <verified piece cache>] [--signaling-url <ws(s) URL>]
   [--room <namespace>] [--room-token-file <absolute path>] [--origin <allowed origin>]
@@ -717,7 +712,6 @@ is separate from backend selection; --help opens no provider.`);
     roomId: values.room || bootstrap.publicRoomId, roomToken: roomToken || bootstrap.publicJoinMarker,
     cacheDirectory: values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
     executionMode: values['execution-mode'] || 'partition',
-    webWorker: values['web-search'] ? createPublicWebWorker() : null,
     ordered, canonical: values.canonical ? { epochDirectory: path.join(path.dirname(identityFile), 'canonical-epochs',
       createHash('sha256').update(values.room || bootstrap.publicRoomId).digest('hex')) } : null,
     nativeGpu: () => gpuHost.open(), owner, shaderCache, earning, readiness,
