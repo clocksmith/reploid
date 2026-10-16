@@ -1,0 +1,978 @@
+{
+  "modelId": "qwen3-8-27b-text-f16-af32",
+  "modelIdentity": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+  "browser": "155.0.8059.80",
+  "at": "2026-10-16T14:44:51.872Z",
+  "turns": [
+    {
+      "attempt": {
+        "id": "8de78b04-ff22-4195-a6b5-0afc38202e96",
+        "threadId": "804930c2-daf1-48b5-8faf-7dc1e72a7a69",
+        "userMessageId": "a05c7e18-8d74-4357-9a88-3d34661ab7b7",
+        "responseId": "d820d10e-d105-42f2-afbb-fdfa4e7fa76a",
+        "retryOf": null,
+        "status": "completed",
+        "createdAt": 1792161864660,
+        "finishedAt": 1792161869390,
+        "error": null,
+        "approval": null,
+        "execution": {
+          "provider": "peer",
+          "placement": "peer-whole-request",
+          "peerId": "1cc0f802-6820-4256-b8df-b29f571300e2",
+          "modelId": "qwen3-8-27b-text-f16-af32",
+          "modelIdentity": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+          "adapterIdentities": [],
+          "completion": {
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "stop-token",
+            "promptTokenCount": 28,
+            "generatedTokenCount": 3
+          },
+          "stopReason": "stop-token",
+          "timing": {
+            "decodeMs": 865.5422670000007,
+            "firstTokenMs": 3766.296835000001,
+            "generatedTokenCount": 3,
+            "prefillMs": 3757.118422000003,
+            "totalMs": 4633.661039000002
+          }
+        },
+        "authorization": {
+          "kind": "permission",
+          "grantId": null,
+          "permissionId": "3c48efc0-aeeb-4542-a10e-55926e3bee11",
+          "peerId": "1cc0f802-6820-4256-b8df-b29f571300e2",
+          "recipientIdentity": "peer:f8b4321055811aa0da93d5cc",
+          "modelId": "qwen3-8-27b-text-f16-af32",
+          "modelIdentity": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+          "adapterIdentities": [],
+          "sharingScope": "mesh",
+          "disclosure": "public",
+          "source": "permission",
+          "recipients": [
+            "peer:f8b4321055811aa0da93d5cc"
+          ],
+          "expiresAt": 1792161894708
+        },
+        "request": {
+          "model": {
+            "id": "qwen3-8-27b-text-f16-af32",
+            "name": "Qwen 3.8 27B",
+            "identity": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+            "provider": "doppler",
+            "contextLength": 4096,
+            "quantization": "f16",
+            "size": "F16 \u00b7 54 GB",
+            "adapters": [],
+            "executionModes": [
+              "whole-model",
+              "partition"
+            ],
+            "partitionSplitLayer": 1,
+            "source": {
+              "baseUrl": "https://storage.googleapis.com/reploid-model-artifacts/models/qwen3-8-27b-text-f16-af32/",
+              "files": [
+                {
+                  "path": "manifest.json",
+                  "role": "model-manifest",
+                  "sizeBytes": 734314,
+                  "hashAlgorithm": "sha256",
+                  "hash": "f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+                  "url": "/config/model-manifests/f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735.json"
+                },
+                {
+                  "path": "tokenizer.json",
+                  "role": "tokenizer",
+                  "sizeBytes": 9089356,
+                  "hashAlgorithm": "sha256",
+                  "hash": "ae50d65939a34a089eaf1e541c15c8a7d866079a5fe9a1d35454e0aa88577753"
+                },
+                {
+                  "path": "qwen-3-8-27b-pieces.json",
+                  "role": "model-piece-index",
+                  "sizeBytes": 135069,
+                  "hashAlgorithm": "sha256",
+                  "hash": "44f05f1fdf34423e45621ac78fb75620927c6d228aa3771037ae093ef947233d",
+                  "url": "/config/model-pieces/qwen-3-8-27b-pieces.json"
+                }
+              ]
+            },
+            "generation": {
+              "maxTokens": 128,
+              "temperature": 0,
+              "topK": 1,
+              "topP": 1,
+              "repetitionPenalty": 1,
+              "maxSeqLen": 4096,
+              "useChatTemplate": true
+            },
+            "loadOptions": {
+              "runtimeConfig": {
+                "shared": {
+                  "debug": {
+                    "logLevel": {
+                      "defaultLogLevel": "warn"
+                    }
+                  },
+                  "bufferPool": {
+                    "budget": {
+                      "maxTotalBytes": 60129542144,
+                      "highWatermarkRatio": 0.94,
+                      "emergencyTrimTargetRatio": 0.9,
+                      "hardFailOnBudgetExceeded": true
+                    }
+                  }
+                },
+                "loading": {
+                  "shardCache": {
+                    "networkEntries": 2,
+                    "maxConcurrentLoads": 1,
+                    "verifyHashes": true
+                  },
+                  "prefetch": {
+                    "enabled": false
+                  }
+                },
+                "inference": {
+                  "chatTemplate": {
+                    "thinking": false
+                  },
+                  "kvcache": {
+                    "maxSeqLen": 4096
+                  },
+                  "session": {
+                    "kvcache": {
+                      "maxSeqLen": 4096
+                    },
+                    "decodeLoop": {
+                      "batchSize": 1,
+                      "readbackInterval": 1,
+                      "stopCheckMode": "per-token",
+                      "readbackMode": "sequential",
+                      "submitLatencyThresholdMs": null,
+                      "maxBatchDecodeTokens": 1,
+                      "ringTokens": 1,
+                      "ringStop": 1,
+                      "ringStaging": 1,
+                      "disableCommandBatching": false
+                    },
+                    "prefillChunkLayers": 1,
+                    "prefillTokenChunkSize": null
+                  },
+                  "generation": {
+                    "disableMultiTokenDecode": true
+                  },
+                  "batching": {
+                    "maxTokens": 128,
+                    "batchSize": 1,
+                    "readbackInterval": 1,
+                    "stopCheckMode": "per-token",
+                    "readbackMode": "sequential",
+                    "ringTokens": 1,
+                    "ringStop": 1,
+                    "ringStaging": 1
+                  }
+                }
+              }
+            },
+            "partitionRuntime": {
+              "maxGpuBufferBytes": [
+                6442450944,
+                55834574848
+              ],
+              "runtimeConfig": {
+                "shared": {
+                  "debug": {
+                    "logLevel": {
+                      "defaultLogLevel": "warn"
+                    }
+                  },
+                  "bufferPool": {
+                    "budget": {
+                      "maxTotalBytes": 60129542144,
+                      "highWatermarkRatio": 0.94,
+                      "emergencyTrimTargetRatio": 0.9,
+                      "hardFailOnBudgetExceeded": true
+                    }
+                  }
+                },
+                "loading": {
+                  "shardCache": {
+                    "networkEntries": 2,
+                    "maxConcurrentLoads": 1,
+                    "verifyHashes": true
+                  },
+                  "prefetch": {
+                    "enabled": false
+                  }
+                },
+                "inference": {
+                  "chatTemplate": {
+                    "thinking": false
+                  },
+                  "kvcache": {
+                    "maxSeqLen": 4096
+                  },
+                  "session": {
+                    "kvcache": {
+                      "maxSeqLen": 4096
+                    },
+                    "decodeLoop": {
+                      "batchSize": 1,
+                      "readbackInterval": 1,
+                      "stopCheckMode": "per-token",
+                      "readbackMode": "sequential",
+                      "submitLatencyThresholdMs": null,
+                      "maxBatchDecodeTokens": 1,
+                      "ringTokens": 1,
+                      "ringStop": 1,
+                      "ringStaging": 1,
+                      "disableCommandBatching": false
+                    },
+                    "prefillChunkLayers": 1,
+                    "prefillTokenChunkSize": null
+                  },
+                  "generation": {
+                    "disableMultiTokenDecode": true
+                  },
+                  "batching": {
+                    "maxTokens": 128,
+                    "batchSize": 1,
+                    "readbackInterval": 1,
+                    "stopCheckMode": "per-token",
+                    "readbackMode": "sequential",
+                    "ringTokens": 1,
+                    "ringStop": 1,
+                    "ringStaging": 1
+                  }
+                }
+              }
+            },
+            "partitionContributionIndexes": [
+              0
+            ],
+            "partitionPlanId": "sha256:1503c19cb03173427308b541ec7b8ab5ac596bd4e9cf01d667e93ddfc440010e",
+            "packageName": "doppler-gpu",
+            "packageVersion": "0.6.30",
+            "availability": "ready",
+            "providerIds": [
+              "1cc0f802-6820-4256-b8df-b29f571300e2"
+            ],
+            "networkAvailability": "ready"
+          },
+          "permissions": {
+            "sharingScope": "mesh",
+            "executionLocation": "auto"
+          },
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "role": "user",
+              "content": "What is 17 + 25? Answer with the number only."
+            }
+          ]
+        },
+        "systemContext": {
+          "content": "",
+          "metadata": {
+            "policyId": "reploid.compact-context/v1",
+            "enabled": false,
+            "maxWords": 16,
+            "wordCount": 0,
+            "modelIdentity": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+            "mode": null
+          }
+        },
+        "provenance": {
+          "schema": "reploid.answer-provenance/v1",
+          "attemptId": "8de78b04-ff22-4195-a6b5-0afc38202e96",
+          "supply": "mesh",
+          "classes": [
+            "mesh"
+          ],
+          "execution": {
+            "supply": "mesh",
+            "classes": [
+              "mesh"
+            ],
+            "placement": "peer-whole-request",
+            "participants": [
+              {
+                "participantId": "1cc0f802-6820-4256-b8df-b29f571300e2",
+                "supply": "mesh",
+                "role": "whole-request",
+                "stage": null
+              }
+            ]
+          },
+          "earlierAttempts": [],
+          "retrieval": {
+            "supply": "none"
+          }
+        }
+      },
+      "answer": "42"
+    },
+    {
+      "attempt": {
+        "id": "b2b35475-9578-43ff-9e36-e29c2fd258e9",
+        "threadId": "804930c2-daf1-48b5-8faf-7dc1e72a7a69",
+        "userMessageId": "bc1b7afc-48ed-41c0-ac17-18e879a8ad89",
+        "responseId": "fa3b4a71-8177-4bd3-af5b-ed564efa1a41",
+        "retryOf": null,
+        "status": "completed",
+        "createdAt": 1792161869649,
+        "finishedAt": 1792161876278,
+        "error": null,
+        "approval": null,
+        "execution": {
+          "provider": "peer",
+          "placement": "peer-whole-request",
+          "peerId": "1cc0f802-6820-4256-b8df-b29f571300e2",
+          "modelId": "qwen3-8-27b-text-f16-af32",
+          "modelIdentity": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+          "adapterIdentities": [],
+          "completion": {
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "stop-token",
+            "promptTokenCount": 54,
+            "generatedTokenCount": 3
+          },
+          "stopReason": "stop-token",
+          "timing": {
+            "decodeMs": 724.3366910000004,
+            "firstTokenMs": 5706.6381440000005,
+            "generatedTokenCount": 3,
+            "prefillMs": 5698.605391999998,
+            "totalMs": 6431.761317999997
+          }
+        },
+        "authorization": {
+          "kind": "permission",
+          "grantId": null,
+          "permissionId": "3c48efc0-aeeb-4542-a10e-55926e3bee11",
+          "peerId": "1cc0f802-6820-4256-b8df-b29f571300e2",
+          "recipientIdentity": "peer:f8b4321055811aa0da93d5cc",
+          "modelId": "qwen3-8-27b-text-f16-af32",
+          "modelIdentity": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+          "adapterIdentities": [],
+          "sharingScope": "mesh",
+          "disclosure": "public",
+          "source": "permission",
+          "recipients": [
+            "peer:f8b4321055811aa0da93d5cc"
+          ],
+          "expiresAt": 1792161899736
+        },
+        "request": {
+          "model": {
+            "id": "qwen3-8-27b-text-f16-af32",
+            "name": "Qwen 3.8 27B",
+            "identity": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+            "provider": "doppler",
+            "contextLength": 4096,
+            "quantization": "f16",
+            "size": "F16 \u00b7 54 GB",
+            "adapters": [],
+            "executionModes": [
+              "whole-model",
+              "partition"
+            ],
+            "partitionSplitLayer": 1,
+            "source": {
+              "baseUrl": "https://storage.googleapis.com/reploid-model-artifacts/models/qwen3-8-27b-text-f16-af32/",
+              "files": [
+                {
+                  "path": "manifest.json",
+                  "role": "model-manifest",
+                  "sizeBytes": 734314,
+                  "hashAlgorithm": "sha256",
+                  "hash": "f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+                  "url": "/config/model-manifests/f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735.json"
+                },
+                {
+                  "path": "tokenizer.json",
+                  "role": "tokenizer",
+                  "sizeBytes": 9089356,
+                  "hashAlgorithm": "sha256",
+                  "hash": "ae50d65939a34a089eaf1e541c15c8a7d866079a5fe9a1d35454e0aa88577753"
+                },
+                {
+                  "path": "qwen-3-8-27b-pieces.json",
+                  "role": "model-piece-index",
+                  "sizeBytes": 135069,
+                  "hashAlgorithm": "sha256",
+                  "hash": "44f05f1fdf34423e45621ac78fb75620927c6d228aa3771037ae093ef947233d",
+                  "url": "/config/model-pieces/qwen-3-8-27b-pieces.json"
+                }
+              ]
+            },
+            "generation": {
+              "maxTokens": 128,
+              "temperature": 0,
+              "topK": 1,
+              "topP": 1,
+              "repetitionPenalty": 1,
+              "maxSeqLen": 4096,
+              "useChatTemplate": true
+            },
+            "loadOptions": {
+              "runtimeConfig": {
+                "shared": {
+                  "debug": {
+                    "logLevel": {
+                      "defaultLogLevel": "warn"
+                    }
+                  },
+                  "bufferPool": {
+                    "budget": {
+                      "maxTotalBytes": 60129542144,
+                      "highWatermarkRatio": 0.94,
+                      "emergencyTrimTargetRatio": 0.9,
+                      "hardFailOnBudgetExceeded": true
+                    }
+                  }
+                },
+                "loading": {
+                  "shardCache": {
+                    "networkEntries": 2,
+                    "maxConcurrentLoads": 1,
+                    "verifyHashes": true
+                  },
+                  "prefetch": {
+                    "enabled": false
+                  }
+                },
+                "inference": {
+                  "chatTemplate": {
+                    "thinking": false
+                  },
+                  "kvcache": {
+                    "maxSeqLen": 4096
+                  },
+                  "session": {
+                    "kvcache": {
+                      "maxSeqLen": 4096
+                    },
+                    "decodeLoop": {
+                      "batchSize": 1,
+                      "readbackInterval": 1,
+                      "stopCheckMode": "per-token",
+                      "readbackMode": "sequential",
+                      "submitLatencyThresholdMs": null,
+                      "maxBatchDecodeTokens": 1,
+                      "ringTokens": 1,
+                      "ringStop": 1,
+                      "ringStaging": 1,
+                      "disableCommandBatching": false
+                    },
+                    "prefillChunkLayers": 1,
+                    "prefillTokenChunkSize": null
+                  },
+                  "generation": {
+                    "disableMultiTokenDecode": true
+                  },
+                  "batching": {
+                    "maxTokens": 128,
+                    "batchSize": 1,
+                    "readbackInterval": 1,
+                    "stopCheckMode": "per-token",
+                    "readbackMode": "sequential",
+                    "ringTokens": 1,
+                    "ringStop": 1,
+                    "ringStaging": 1
+                  }
+                }
+              }
+            },
+            "partitionRuntime": {
+              "maxGpuBufferBytes": [
+                6442450944,
+                55834574848
+              ],
+              "runtimeConfig": {
+                "shared": {
+                  "debug": {
+                    "logLevel": {
+                      "defaultLogLevel": "warn"
+                    }
+                  },
+                  "bufferPool": {
+                    "budget": {
+                      "maxTotalBytes": 60129542144,
+                      "highWatermarkRatio": 0.94,
+                      "emergencyTrimTargetRatio": 0.9,
+                      "hardFailOnBudgetExceeded": true
+                    }
+                  }
+                },
+                "loading": {
+                  "shardCache": {
+                    "networkEntries": 2,
+                    "maxConcurrentLoads": 1,
+                    "verifyHashes": true
+                  },
+                  "prefetch": {
+                    "enabled": false
+                  }
+                },
+                "inference": {
+                  "chatTemplate": {
+                    "thinking": false
+                  },
+                  "kvcache": {
+                    "maxSeqLen": 4096
+                  },
+                  "session": {
+                    "kvcache": {
+                      "maxSeqLen": 4096
+                    },
+                    "decodeLoop": {
+                      "batchSize": 1,
+                      "readbackInterval": 1,
+                      "stopCheckMode": "per-token",
+                      "readbackMode": "sequential",
+                      "submitLatencyThresholdMs": null,
+                      "maxBatchDecodeTokens": 1,
+                      "ringTokens": 1,
+                      "ringStop": 1,
+                      "ringStaging": 1,
+                      "disableCommandBatching": false
+                    },
+                    "prefillChunkLayers": 1,
+                    "prefillTokenChunkSize": null
+                  },
+                  "generation": {
+                    "disableMultiTokenDecode": true
+                  },
+                  "batching": {
+                    "maxTokens": 128,
+                    "batchSize": 1,
+                    "readbackInterval": 1,
+                    "stopCheckMode": "per-token",
+                    "readbackMode": "sequential",
+                    "ringTokens": 1,
+                    "ringStop": 1,
+                    "ringStaging": 1
+                  }
+                }
+              }
+            },
+            "partitionContributionIndexes": [
+              0
+            ],
+            "partitionPlanId": "sha256:1503c19cb03173427308b541ec7b8ab5ac596bd4e9cf01d667e93ddfc440010e",
+            "packageName": "doppler-gpu",
+            "packageVersion": "0.6.30",
+            "availability": "ready",
+            "providerIds": [
+              "1cc0f802-6820-4256-b8df-b29f571300e2"
+            ],
+            "networkAvailability": "ready"
+          },
+          "permissions": {
+            "sharingScope": "mesh",
+            "executionLocation": "auto"
+          },
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "role": "user",
+              "content": "What is 17 + 25? Answer with the number only."
+            },
+            {
+              "role": "assistant",
+              "content": "42"
+            },
+            {
+              "role": "user",
+              "content": "Subtract 2 from that result. Answer with the number only."
+            }
+          ]
+        },
+        "systemContext": {
+          "content": "",
+          "metadata": {
+            "policyId": "reploid.compact-context/v1",
+            "enabled": false,
+            "maxWords": 16,
+            "wordCount": 0,
+            "modelIdentity": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+            "mode": null
+          }
+        },
+        "provenance": {
+          "schema": "reploid.answer-provenance/v1",
+          "attemptId": "b2b35475-9578-43ff-9e36-e29c2fd258e9",
+          "supply": "mesh",
+          "classes": [
+            "mesh"
+          ],
+          "execution": {
+            "supply": "mesh",
+            "classes": [
+              "mesh"
+            ],
+            "placement": "peer-whole-request",
+            "participants": [
+              {
+                "participantId": "1cc0f802-6820-4256-b8df-b29f571300e2",
+                "supply": "mesh",
+                "role": "whole-request",
+                "stage": null
+              }
+            ]
+          },
+          "earlierAttempts": [],
+          "retrieval": {
+            "supply": "none"
+          }
+        }
+      },
+      "answer": "40"
+    },
+    {
+      "attempt": {
+        "id": "97f76abb-d951-4182-aa3e-bf15201131b7",
+        "threadId": "804930c2-daf1-48b5-8faf-7dc1e72a7a69",
+        "userMessageId": "0a7c38cc-f842-4dcb-b141-56defc59b622",
+        "responseId": "a1a4c60d-1f45-4e62-89c3-75df264ac591",
+        "retryOf": null,
+        "status": "completed",
+        "createdAt": 1792161883765,
+        "finishedAt": 1792161891453,
+        "error": null,
+        "approval": null,
+        "execution": {
+          "provider": "peer",
+          "placement": "peer-whole-request",
+          "peerId": "1cc0f802-6820-4256-b8df-b29f571300e2",
+          "modelId": "qwen3-8-27b-text-f16-af32",
+          "modelIdentity": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+          "adapterIdentities": [],
+          "completion": {
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "stop-token",
+            "promptTokenCount": 80,
+            "generatedTokenCount": 3
+          },
+          "stopReason": "stop-token",
+          "timing": {
+            "decodeMs": 737.750721999997,
+            "firstTokenMs": 6849.230613,
+            "generatedTokenCount": 3,
+            "prefillMs": 6847.686951000003,
+            "totalMs": 7587.940985000001
+          }
+        },
+        "authorization": {
+          "kind": "permission",
+          "grantId": null,
+          "permissionId": "3c48efc0-aeeb-4542-a10e-55926e3bee11",
+          "peerId": "1cc0f802-6820-4256-b8df-b29f571300e2",
+          "recipientIdentity": "peer:f8b4321055811aa0da93d5cc",
+          "modelId": "qwen3-8-27b-text-f16-af32",
+          "modelIdentity": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+          "adapterIdentities": [],
+          "sharingScope": "mesh",
+          "disclosure": "public",
+          "source": "permission",
+          "recipients": [
+            "peer:f8b4321055811aa0da93d5cc"
+          ],
+          "expiresAt": 1792161913825
+        },
+        "request": {
+          "model": {
+            "id": "qwen3-8-27b-text-f16-af32",
+            "name": "Qwen 3.8 27B",
+            "identity": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+            "provider": "doppler",
+            "contextLength": 4096,
+            "quantization": "f16",
+            "size": "F16 \u00b7 54 GB",
+            "adapters": [],
+            "executionModes": [
+              "whole-model",
+              "partition"
+            ],
+            "partitionSplitLayer": 1,
+            "source": {
+              "baseUrl": "https://storage.googleapis.com/reploid-model-artifacts/models/qwen3-8-27b-text-f16-af32/",
+              "files": [
+                {
+                  "path": "manifest.json",
+                  "role": "model-manifest",
+                  "sizeBytes": 734314,
+                  "hashAlgorithm": "sha256",
+                  "hash": "f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+                  "url": "/config/model-manifests/f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735.json"
+                },
+                {
+                  "path": "tokenizer.json",
+                  "role": "tokenizer",
+                  "sizeBytes": 9089356,
+                  "hashAlgorithm": "sha256",
+                  "hash": "ae50d65939a34a089eaf1e541c15c8a7d866079a5fe9a1d35454e0aa88577753"
+                },
+                {
+                  "path": "qwen-3-8-27b-pieces.json",
+                  "role": "model-piece-index",
+                  "sizeBytes": 135069,
+                  "hashAlgorithm": "sha256",
+                  "hash": "44f05f1fdf34423e45621ac78fb75620927c6d228aa3771037ae093ef947233d",
+                  "url": "/config/model-pieces/qwen-3-8-27b-pieces.json"
+                }
+              ]
+            },
+            "generation": {
+              "maxTokens": 128,
+              "temperature": 0,
+              "topK": 1,
+              "topP": 1,
+              "repetitionPenalty": 1,
+              "maxSeqLen": 4096,
+              "useChatTemplate": true
+            },
+            "loadOptions": {
+              "runtimeConfig": {
+                "shared": {
+                  "debug": {
+                    "logLevel": {
+                      "defaultLogLevel": "warn"
+                    }
+                  },
+                  "bufferPool": {
+                    "budget": {
+                      "maxTotalBytes": 60129542144,
+                      "highWatermarkRatio": 0.94,
+                      "emergencyTrimTargetRatio": 0.9,
+                      "hardFailOnBudgetExceeded": true
+                    }
+                  }
+                },
+                "loading": {
+                  "shardCache": {
+                    "networkEntries": 2,
+                    "maxConcurrentLoads": 1,
+                    "verifyHashes": true
+                  },
+                  "prefetch": {
+                    "enabled": false
+                  }
+                },
+                "inference": {
+                  "chatTemplate": {
+                    "thinking": false
+                  },
+                  "kvcache": {
+                    "maxSeqLen": 4096
+                  },
+                  "session": {
+                    "kvcache": {
+                      "maxSeqLen": 4096
+                    },
+                    "decodeLoop": {
+                      "batchSize": 1,
+                      "readbackInterval": 1,
+                      "stopCheckMode": "per-token",
+                      "readbackMode": "sequential",
+                      "submitLatencyThresholdMs": null,
+                      "maxBatchDecodeTokens": 1,
+                      "ringTokens": 1,
+                      "ringStop": 1,
+                      "ringStaging": 1,
+                      "disableCommandBatching": false
+                    },
+                    "prefillChunkLayers": 1,
+                    "prefillTokenChunkSize": null
+                  },
+                  "generation": {
+                    "disableMultiTokenDecode": true
+                  },
+                  "batching": {
+                    "maxTokens": 128,
+                    "batchSize": 1,
+                    "readbackInterval": 1,
+                    "stopCheckMode": "per-token",
+                    "readbackMode": "sequential",
+                    "ringTokens": 1,
+                    "ringStop": 1,
+                    "ringStaging": 1
+                  }
+                }
+              }
+            },
+            "partitionRuntime": {
+              "maxGpuBufferBytes": [
+                6442450944,
+                55834574848
+              ],
+              "runtimeConfig": {
+                "shared": {
+                  "debug": {
+                    "logLevel": {
+                      "defaultLogLevel": "warn"
+                    }
+                  },
+                  "bufferPool": {
+                    "budget": {
+                      "maxTotalBytes": 60129542144,
+                      "highWatermarkRatio": 0.94,
+                      "emergencyTrimTargetRatio": 0.9,
+                      "hardFailOnBudgetExceeded": true
+                    }
+                  }
+                },
+                "loading": {
+                  "shardCache": {
+                    "networkEntries": 2,
+                    "maxConcurrentLoads": 1,
+                    "verifyHashes": true
+                  },
+                  "prefetch": {
+                    "enabled": false
+                  }
+                },
+                "inference": {
+                  "chatTemplate": {
+                    "thinking": false
+                  },
+                  "kvcache": {
+                    "maxSeqLen": 4096
+                  },
+                  "session": {
+                    "kvcache": {
+                      "maxSeqLen": 4096
+                    },
+                    "decodeLoop": {
+                      "batchSize": 1,
+                      "readbackInterval": 1,
+                      "stopCheckMode": "per-token",
+                      "readbackMode": "sequential",
+                      "submitLatencyThresholdMs": null,
+                      "maxBatchDecodeTokens": 1,
+                      "ringTokens": 1,
+                      "ringStop": 1,
+                      "ringStaging": 1,
+                      "disableCommandBatching": false
+                    },
+                    "prefillChunkLayers": 1,
+                    "prefillTokenChunkSize": null
+                  },
+                  "generation": {
+                    "disableMultiTokenDecode": true
+                  },
+                  "batching": {
+                    "maxTokens": 128,
+                    "batchSize": 1,
+                    "readbackInterval": 1,
+                    "stopCheckMode": "per-token",
+                    "readbackMode": "sequential",
+                    "ringTokens": 1,
+                    "ringStop": 1,
+                    "ringStaging": 1
+                  }
+                }
+              }
+            },
+            "partitionContributionIndexes": [
+              0
+            ],
+            "partitionPlanId": "sha256:1503c19cb03173427308b541ec7b8ab5ac596bd4e9cf01d667e93ddfc440010e",
+            "packageName": "doppler-gpu",
+            "packageVersion": "0.6.30",
+            "availability": "ready",
+            "providerIds": [
+              "1cc0f802-6820-4256-b8df-b29f571300e2"
+            ],
+            "networkAvailability": "ready"
+          },
+          "permissions": {
+            "sharingScope": "mesh",
+            "executionLocation": "auto"
+          },
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "role": "user",
+              "content": "What is 17 + 25? Answer with the number only."
+            },
+            {
+              "role": "assistant",
+              "content": "42"
+            },
+            {
+              "role": "user",
+              "content": "Subtract 2 from that result. Answer with the number only."
+            },
+            {
+              "role": "assistant",
+              "content": "40"
+            },
+            {
+              "role": "user",
+              "content": "What is 6 times 7? Answer with the number only."
+            }
+          ]
+        },
+        "systemContext": {
+          "content": "",
+          "metadata": {
+            "policyId": "reploid.compact-context/v1",
+            "enabled": false,
+            "maxWords": 16,
+            "wordCount": 0,
+            "modelIdentity": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+            "mode": null
+          }
+        },
+        "provenance": {
+          "schema": "reploid.answer-provenance/v1",
+          "attemptId": "97f76abb-d951-4182-aa3e-bf15201131b7",
+          "supply": "mesh",
+          "classes": [
+            "mesh"
+          ],
+          "execution": {
+            "supply": "mesh",
+            "classes": [
+              "mesh"
+            ],
+            "placement": "peer-whole-request",
+            "participants": [
+              {
+                "participantId": "1cc0f802-6820-4256-b8df-b29f571300e2",
+                "supply": "mesh",
+                "role": "whole-request",
+                "stage": null
+              }
+            ]
+          },
+          "earlierAttempts": [],
+          "retrieval": {
+            "supply": "none"
+          }
+        }
+      },
+      "answer": "42"
+    }
+  ],
+  "cancelled": true,
+  "reusedAfterCancellation": true,
+  "historyPreserved": true,
+  "weightRequests": [],
+  "errors": [],
+  "testedSource": "37feb3be87aa06edcbf82b9a9313f9d949dd730a",
+  "bundleHash": "sha256:6a1c0130e439ea1d4f4c07484bf31be174edc55c3e43a68b5f530e18cc41ed83",
+  "testDurationMs": 43524,
+  "status": "passed",
+  "sharedHost": true
+}

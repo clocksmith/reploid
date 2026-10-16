@@ -1,0 +1,30 @@
+{
+  "runtime": "doppler-gpu/0.6.30",
+  "modelId": "qwen3-8-27b-text-f16-af32",
+  "manifestIdentity": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+  "runs": [
+    {
+      "prompt": "What is 17 + 25? Answer with the number only.",
+      "text": "42",
+      "elapsedMs": 3824.2065269999985
+    },
+    {
+      "prompt": "Name one gentle comedy movie and explain your choice in one short sentence.",
+      "text": "I recommend *Am\u00e9lie*, as its whimsical storytelling and vibrant visuals create a heartwarming, low-stakes narrative that feels like a warm hug.",
+      "elapsedMs": 14739.295548999999
+    }
+  ],
+  "complete": true,
+  "loadMs": 25576.639484,
+  "settled": true,
+  "memory": {
+    "minimumAvailableBytes": 71489191936,
+    "peakGttUsedBytes": 56655618048
+  },
+  "exit": {
+    "exit": 0,
+    "reason": null,
+    "elapsed": 45.02306160899752,
+    "gttUsedBytes": 37601280
+  }
+}

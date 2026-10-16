@@ -1,0 +1,273 @@
+{
+  "errors": [],
+  "weights": [],
+  "runs": [
+    {
+      "threadId": "9dfcd9be-bbfe-4222-ae8c-1d4e68cf0c2e",
+      "attempts": [
+        {
+          "id": "f2b73733-256b-4812-873a-807e57e77fe4",
+          "status": "completed",
+          "createdAt": 1792161151963,
+          "finishedAt": 1792161156218,
+          "execution": {
+            "provider": "peer",
+            "placement": "peer-whole-request",
+            "peerId": "cc7eca36-2b12-4eae-8b3d-c1daa289003e",
+            "modelId": "qwen3-8-27b-text-f16-af32",
+            "modelIdentity": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+            "adapterIdentities": [],
+            "completion": {
+              "schema": "doppler.generation-completion/v1",
+              "stopReason": "stop-token",
+              "promptTokenCount": 28,
+              "generatedTokenCount": 3
+            },
+            "stopReason": "stop-token",
+            "timing": {
+              "decodeMs": 789.1009000000195,
+              "firstTokenMs": 3378.0381259999995,
+              "generatedTokenCount": 3,
+              "prefillMs": 3369.8480160000036,
+              "totalMs": 4168.626201999985
+            }
+          },
+          "error": null
+        }
+      ],
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is 17 + 25? Answer with the number only."
+        },
+        {
+          "role": "assistant",
+          "content": "42"
+        }
+      ]
+    },
+    {
+      "threadId": "9dfcd9be-bbfe-4222-ae8c-1d4e68cf0c2e",
+      "attempts": [
+        {
+          "id": "f2b73733-256b-4812-873a-807e57e77fe4",
+          "status": "completed",
+          "createdAt": 1792161151963,
+          "finishedAt": 1792161156218,
+          "execution": {
+            "provider": "peer",
+            "placement": "peer-whole-request",
+            "peerId": "cc7eca36-2b12-4eae-8b3d-c1daa289003e",
+            "modelId": "qwen3-8-27b-text-f16-af32",
+            "modelIdentity": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+            "adapterIdentities": [],
+            "completion": {
+              "schema": "doppler.generation-completion/v1",
+              "stopReason": "stop-token",
+              "promptTokenCount": 28,
+              "generatedTokenCount": 3
+            },
+            "stopReason": "stop-token",
+            "timing": {
+              "decodeMs": 789.1009000000195,
+              "firstTokenMs": 3378.0381259999995,
+              "generatedTokenCount": 3,
+              "prefillMs": 3369.8480160000036,
+              "totalMs": 4168.626201999985
+            }
+          },
+          "error": null
+        },
+        {
+          "id": "26486150-3a67-4d23-9c7f-eafbc250a1db",
+          "status": "completed",
+          "createdAt": 1792161156576,
+          "finishedAt": 1792161162921,
+          "execution": {
+            "provider": "peer",
+            "placement": "peer-whole-request",
+            "peerId": "cc7eca36-2b12-4eae-8b3d-c1daa289003e",
+            "modelId": "qwen3-8-27b-text-f16-af32",
+            "modelIdentity": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+            "adapterIdentities": [],
+            "completion": {
+              "schema": "doppler.generation-completion/v1",
+              "stopReason": "stop-token",
+              "promptTokenCount": 54,
+              "generatedTokenCount": 3
+            },
+            "stopReason": "stop-token",
+            "timing": {
+              "decodeMs": 794.3672220000008,
+              "firstTokenMs": 5285.704759000015,
+              "generatedTokenCount": 3,
+              "prefillMs": 5280.368912000005,
+              "totalMs": 6080.68521700002
+            }
+          },
+          "error": null
+        }
+      ],
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is 17 + 25? Answer with the number only."
+        },
+        {
+          "role": "assistant",
+          "content": "42"
+        },
+        {
+          "role": "user",
+          "content": "Subtract 2 from that result. Answer with the number only."
+        },
+        {
+          "role": "assistant",
+          "content": "40"
+        }
+      ]
+    },
+    {
+      "threadId": "9dfcd9be-bbfe-4222-ae8c-1d4e68cf0c2e",
+      "attempts": [
+        {
+          "id": "f2b73733-256b-4812-873a-807e57e77fe4",
+          "status": "completed",
+          "createdAt": 1792161151963,
+          "finishedAt": 1792161156218,
+          "execution": {
+            "provider": "peer",
+            "placement": "peer-whole-request",
+            "peerId": "cc7eca36-2b12-4eae-8b3d-c1daa289003e",
+            "modelId": "qwen3-8-27b-text-f16-af32",
+            "modelIdentity": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+            "adapterIdentities": [],
+            "completion": {
+              "schema": "doppler.generation-completion/v1",
+              "stopReason": "stop-token",
+              "promptTokenCount": 28,
+              "generatedTokenCount": 3
+            },
+            "stopReason": "stop-token",
+            "timing": {
+              "decodeMs": 789.1009000000195,
+              "firstTokenMs": 3378.0381259999995,
+              "generatedTokenCount": 3,
+              "prefillMs": 3369.8480160000036,
+              "totalMs": 4168.626201999985
+            }
+          },
+          "error": null
+        },
+        {
+          "id": "26486150-3a67-4d23-9c7f-eafbc250a1db",
+          "status": "completed",
+          "createdAt": 1792161156576,
+          "finishedAt": 1792161162921,
+          "execution": {
+            "provider": "peer",
+            "placement": "peer-whole-request",
+            "peerId": "cc7eca36-2b12-4eae-8b3d-c1daa289003e",
+            "modelId": "qwen3-8-27b-text-f16-af32",
+            "modelIdentity": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+            "adapterIdentities": [],
+            "completion": {
+              "schema": "doppler.generation-completion/v1",
+              "stopReason": "stop-token",
+              "promptTokenCount": 54,
+              "generatedTokenCount": 3
+            },
+            "stopReason": "stop-token",
+            "timing": {
+              "decodeMs": 794.3672220000008,
+              "firstTokenMs": 5285.704759000015,
+              "generatedTokenCount": 3,
+              "prefillMs": 5280.368912000005,
+              "totalMs": 6080.68521700002
+            }
+          },
+          "error": null
+        },
+        {
+          "id": "85a15e2d-79d0-46ec-b1e4-79ea3e351634",
+          "status": "cancelled",
+          "createdAt": 1792161163255,
+          "finishedAt": 1792161169894,
+          "execution": {
+            "provider": "peer",
+            "placement": "peer-whole-request",
+            "peerId": "cc7eca36-2b12-4eae-8b3d-c1daa289003e"
+          },
+          "error": "Response stopped"
+        },
+        {
+          "id": "644e0bf3-955d-4d99-84cb-cdd69b0a4aa0",
+          "status": "completed",
+          "createdAt": 1792161170139,
+          "finishedAt": 1792161177644,
+          "execution": {
+            "provider": "peer",
+            "placement": "peer-whole-request",
+            "peerId": "cc7eca36-2b12-4eae-8b3d-c1daa289003e",
+            "modelId": "qwen3-8-27b-text-f16-af32",
+            "modelIdentity": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+            "adapterIdentities": [],
+            "completion": {
+              "schema": "doppler.generation-completion/v1",
+              "stopReason": "stop-token",
+              "promptTokenCount": 80,
+              "generatedTokenCount": 3
+            },
+            "stopReason": "stop-token",
+            "timing": {
+              "decodeMs": 693.2521779999952,
+              "firstTokenMs": 6660.9100050000125,
+              "generatedTokenCount": 3,
+              "prefillMs": 6659.411718999996,
+              "totalMs": 7355.006396000012
+            }
+          },
+          "error": null
+        }
+      ],
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is 17 + 25? Answer with the number only."
+        },
+        {
+          "role": "assistant",
+          "content": "42"
+        },
+        {
+          "role": "user",
+          "content": "Subtract 2 from that result. Answer with the number only."
+        },
+        {
+          "role": "assistant",
+          "content": "40"
+        },
+        {
+          "role": "user",
+          "content": "Count from one to one hundred, one number per line."
+        },
+        {
+          "role": "assistant",
+          "content": "1"
+        },
+        {
+          "role": "user",
+          "content": "What is 6 times 7? Answer with the number only."
+        },
+        {
+          "role": "assistant",
+          "content": "42"
+        }
+      ]
+    }
+  ],
+  "completed": true,
+  "cancelled": true,
+  "reusedAfterCancellation": true,
+  "historyPreserved": true
+}

@@ -1,0 +1,11 @@
+{
+  "at": "2026-10-16T14:30:08.229Z",
+  "finishedAt": "2026-10-16T14:30:53.253Z",
+  "modelId": "qwen3-8-27b-text-f16-af32",
+  "status": "failed",
+  "error": "Timed out waiting for remote host slot response",
+  "providerStartedGeneration": false,
+  "evidenceScope": "Physical Playwright run before identity-concurrency fix; no generation entry in provider state log. Exact dropped message was not retained.",
+  "testOutput": "/tmp/reploid-27b-formal-test",
+  "subsequentUnpatchedDebugRun": "1 passed (46.7s); attached debugger means timings are diagnostic, not performance evidence."
+}
