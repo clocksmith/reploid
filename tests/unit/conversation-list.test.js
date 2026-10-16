@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { createConversationList } from '../../self/ui/pool-home/conversation-list.js';
 import { attachmentInput, comparisonSources } from '../../self/host/document-comparison.js';
 
@@ -48,5 +48,40 @@ describe('Conversation list', () => {
     expect(button.dataset.activity).toBe('idle');
     expect(button.getAttribute('aria-label')).toContain('Interrupted');
     view.dispose(); root.remove();
+  });
+  it('shows measured context, unread and attention markers without guessing missing usage', () => {
+    const root = document.createElement('div'), view = createConversationList(root);
+    const model = { id: 'model', identity: 'checkpoint', contextLength: 1000 };
+    const thread = { id: 'one', title: 'Movie night', model, messages: [], attempts: [{ id: 'a', status: 'completed',
+      execution: { completion: { promptTokenCount: 300, generatedTokenCount: 120 } } }] };
+    view.update([thread], null, { models: [model] });
+    const button = root.querySelector('[data-thread-item-id]');
+    expect(button.querySelector('[data-thread-monogram]').textContent).toBe('MN');
+    expect(button.querySelector('[data-context-ring]').hasAttribute('hidden')).toBe(false);
+    expect(button.querySelector('[data-context-ring-value]').getAttribute('stroke-dasharray')).toBe('42 58');
+    expect(button.getAttribute('aria-label')).toContain('last answer 42% of advertised context');
+    expect(button.querySelector('[data-thread-unread]').hidden).toBe(false);
+    view.update([thread], 'one', { models: [{ ...model, identity: 'different-checkpoint' }] });
+    expect(button.querySelector('[data-thread-unread]').hidden).toBe(true);
+    expect(button.querySelector('[data-context-ring]').hasAttribute('hidden')).toBe(true);
+    thread.attempts.push({ id: 'b', status: 'failed' });
+    view.update([thread], 'one', { models: [model] });
+    expect(button.querySelector('[data-thread-attention]').hidden).toBe(false);
+    expect(button.querySelector('[data-context-ring]').hasAttribute('hidden')).toBe(true);
+    view.dispose();
+  });
+  it('refreshes last-activity age without changing focus and clears its clock on disposal', () => {
+    vi.useFakeTimers(); vi.setSystemTime(new Date('2026-10-15T20:00:00Z'));
+    const root = document.createElement('div'); document.body.append(root);
+    const view = createConversationList(root), before = vi.getTimerCount();
+    try {
+      view.update([{ id: 'one', messages: [], attempts: [{ status: 'completed', createdAt: Date.now() - 3600000, finishedAt: Date.now() - 120000 }] }], 'one');
+      const button = root.querySelector('button'); button.focus();
+      expect(button.querySelector('time').textContent).toBe('2m');
+      vi.advanceTimersByTime(60000);
+      expect(button.querySelector('time').textContent).toBe('3m');
+      expect(document.activeElement).toBe(button);
+      view.dispose(); expect(vi.getTimerCount()).toBe(before);
+    } finally { view.dispose(); root.remove(); vi.useRealTimers(); }
   });
 });

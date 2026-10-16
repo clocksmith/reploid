@@ -21,7 +21,7 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
       <div class="chat-rail-toolbar pool-surface" data-chat-rail-toolbar>
       <div class="chat-rail-primary">
       <div class="chat-rail-heading">
-      <span data-thread-rail-brand></span>
+      <span class="chat-thread-brand" data-thread-rail-brand><small class="chat-thread-count pool-badge" data-thread-count hidden></small></span>
       <button class="pool-button chat-new-thread" type="button" data-new-thread aria-label="New thread" title="New thread">${interfaceIcon('newThread')}<span class="chat-rail-label">New thread</span></button>
       </div>
       <section class="chat-thread-panel" data-thread-panel aria-labelledby="chat-threads-title">
@@ -277,7 +277,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     find('[data-open-model]').title = `Choose model: ${modelDigest}`;
     find('[data-open-model]').setAttribute('aria-label', `Choose model: ${modelDigest}`);
     updateContextIndicator(container, state, session);
-    threads.update(state.threads, state.selectedId, { archived });
+    threads.update(state.threads, state.selectedId, { archived, models: state.models });
     const busy = state.runningIds.includes(thread?.id) || !!state.comparisonPhase;
     const contextControls = find('[data-context-controls]');
     contextControls.hidden = !session.previewContextPrompt;
