@@ -120,6 +120,7 @@
   --pool-metric-nav-item: var(--pool-size-56);
   --pool-metric-nav-panel: var(--pool-size-320);
   --pool-metric-nav-rail: var(--pool-size-64);
+  --pool-metric-app-bar: var(--pool-size-64);
   --pool-metric-nav-width: var(--pool-size-1280);
   --pool-metric-op-cell: var(--pool-size-2);
   --pool-metric-work-shell: var(--pool-size-1120);

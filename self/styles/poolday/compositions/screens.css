@@ -1219,24 +1219,6 @@ body[data-pool-route-id='home'] #app {
 }
 
 @media (max-width: 720px) {
-  .pool-nav-rail {
-    top: 0;
-    bottom: 0;
-    right: auto;
-    left: 0;
-    height: 100vh;
-    height: 100dvh;
-    width: var(--pool-metric-nav-rail);
-    max-width: none;
-  }
-
-  .pool-nav-rail.is-open {
-    right: auto;
-    left: 0;
-    width: min(var(--pool-metric-nav-panel), calc(100vw - var(--pool-size-24)));
-    padding: var(--pool-size-8);
-  }
-
   .pool-contribution-status {
     top: var(--pool-size-8);
     right: var(--pool-size-8);

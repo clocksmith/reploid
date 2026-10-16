@@ -78,6 +78,42 @@ async function installConversation(page, theme) {
 
 const animation = (locator, pseudo = '::after') => locator.evaluate((node, pseudo) => getComputedStyle(node, pseudo).animationName, pseudo);
 
+test('mobile bottom navigation preserves chat width and composer clearance', async ({ page }, info) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+  await installConversation(page, 'light');
+  await page.evaluate(() => { window.setVisualState('completed'); window.setVisualThreads(20); });
+  const rail = page.locator('[data-thread-sidebar]');
+  const composer = page.locator('[data-composer-area]');
+  for (const height of [844, 460]) {
+    await page.setViewportSize({ width: 390, height });
+    await expect.poll(async () => { const bar = await rail.boundingBox(); return bar.y + bar.height; }).toBeLessThanOrEqual(height);
+    await expect.poll(async () => (await composer.boundingBox()).y + (await composer.boundingBox()).height)
+      .toBeLessThan((await rail.boundingBox()).y);
+    const area = await page.locator('[data-conversation-area]').boundingBox();
+    expect(area.width).toBeGreaterThan(350);
+    const bar = await rail.boundingBox();
+    expect(bar.y + bar.height).toBeLessThanOrEqual(height);
+    expect(bar.height).toBeLessThan(80);
+    await page.locator('[data-toggle-thread-rail]').click();
+    await expect(page.locator('[data-thread-panel]')).toBeVisible();
+    expect((await rail.boundingBox()).y).toBeGreaterThanOrEqual(0);
+    const threads = page.locator('[data-thread-list]');
+    expect(await threads.evaluate(e => e.scrollHeight > e.clientHeight)).toBe(true);
+    await page.locator('[data-thread-item-id]').nth(1).click();
+    await expect(page.locator('[data-thread-panel]')).toBeHidden();
+    await page.locator('[data-inspector-section="settings"]').click();
+    await expect(page.locator('[data-chat-inspector-slot]')).toBeVisible();
+    await page.locator('[data-close-inspector]').click();
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: info.outputPath('mobile-bottom-navigation.png') });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  expect((await rail.boundingBox()).width).toBeLessThan(80);
+  expect((await rail.boundingBox()).height).toBeGreaterThan(900);
+});
+
 test('compact chat keeps attempt status reachable and composer visible', async ({ page, baseURL }, info) => {
   const origin = new URL(baseURL).origin;
   await page.route('**/*', route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());

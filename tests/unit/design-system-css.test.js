@@ -88,7 +88,6 @@ describe('RD stylesheet ownership', () => {
     expect(poolday).toContain('--pool-param-wordmark-optical-left');
     expect(poolday).toContain('font-family: var(--pool-font-display), var(--pool-font-ui)');
     expect(poolday).toContain('.pool-nav-toggle');
-    expect(poolday).toMatch(/\.pool-nav-rail\s*\{[\s\S]*?top: 0;[\s\S]*?bottom: 0;[\s\S]*?height: 100dvh;/);
     expect(poolday).toMatch(/\.pool-nav-rail\.is-open \.pool-nav-toggle\s*\{[\s\S]*?width: 100%;/);
     expect(poolday).not.toContain('.pool-nav-view-context');
     expect(poolday).toMatch(/@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\.pool-nav-toggle/);

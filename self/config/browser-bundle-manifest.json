@@ -1336,7 +1336,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 569658,
-      "sha256": "sha256:a2e28d0b6b1587ede0f6acbed8ca5d1aa45b2515532cbba351f186c2137c1a35"
+      "sha256": "sha256:1d0ce95614001ec41cc3eb7087dfd28aa2299ba3093d97ce4d7a0f67cbc85ba2"
     },
     {
       "path": "config/module-registry.json",
@@ -1955,8 +1955,8 @@
     },
     {
       "path": "index.html",
-      "byteLength": 7008,
-      "sha256": "sha256:4f27589f9606562feeeb9ab5dd3acdf784b52218e733ceeaf30b33a99817e5f8"
+      "byteLength": 7066,
+      "sha256": "sha256:133e3348254e131ab0c22687e1c04147566dcee2225da1d4adf565fb91fc3084"
     },
     {
       "path": "infrastructure/audit-logger.js",
@@ -2140,8 +2140,8 @@
     },
     {
       "path": "pool-entry.html",
-      "byteLength": 4956,
-      "sha256": "sha256:dcc33fe406c4c453b7982921e2ab29962b29262d4e74c1d27284bef83abc46f1"
+      "byteLength": 5064,
+      "sha256": "sha256:c56c784e63b9087b1d9979b6627ccf15cb0bae36c7d520de2780cfba5bb6d0d6"
     },
     {
       "path": "pool/adapter-canary-publication.js",
@@ -2770,8 +2770,8 @@
     },
     {
       "path": "styles/poolday/compositions/conversation.css",
-      "byteLength": 29834,
-      "sha256": "sha256:f389db13382732e72b06cbedf36053d3f048c57adb3e7d23dfd1bf7b83071cad"
+      "byteLength": 29425,
+      "sha256": "sha256:14f3592cc83bbd121d1541bf66ea7311369476cf2c2374b431804b41c0f22c9e"
     },
     {
       "path": "styles/poolday/compositions/interaction.css",
@@ -2779,14 +2779,19 @@
       "sha256": "sha256:a35dec7096d9aa9a142eee2091c64b8340e9a5cf6a72d1f9423ed65f26d00b9e"
     },
     {
+      "path": "styles/poolday/compositions/mobile-navigation.css",
+      "byteLength": 4391,
+      "sha256": "sha256:d803ecd1aadd5d8aebdc56cd8ae63963ec249d122596be3e09c3dcfda9aaa068"
+    },
+    {
       "path": "styles/poolday/compositions/screens.css",
-      "byteLength": 74989,
-      "sha256": "sha256:0678a76bda2b9d8967ec5006a21d218ee24baab79ccdfa23cbd3b8e8d5f20a4e"
+      "byteLength": 74632,
+      "sha256": "sha256:3a514dc7cbf01aac7fdbf5024767cc30a22ef040833a28ba0f0ce035d7438f96"
     },
     {
       "path": "styles/poolday/layers.json",
-      "byteLength": 355,
-      "sha256": "sha256:ded9e99d1c708dfa2604ed6f2f0e2cf9a84aea7aaea9f08ab88d50517c3562c8"
+      "byteLength": 397,
+      "sha256": "sha256:a54db3e0a494a68480ca4cc43bfe974967bdaa5f597398b978e9523b2541dda1"
     },
     {
       "path": "styles/poolday/primitives/base.css",
@@ -2820,8 +2825,8 @@
     },
     {
       "path": "styles/poolday/tokens.css",
-      "byteLength": 9462,
-      "sha256": "sha256:ef424246b867f25f89d8ab790ed107f3674f74c54de9dc63541bf7e2de0c7227"
+      "byteLength": 9508,
+      "sha256": "sha256:0f75bc7798a3fe90f4b0676c21003dbc6ebb8b6892584ee30444f3af9c39cc52"
     },
     {
       "path": "styles/proto/components.css",
@@ -3240,8 +3245,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2034824,
-      "sha256": "sha256:2e1f612a2c8d2f745fded3452d5c8559db68b31a9565d906529cedf0a308c361"
+      "byteLength": 2034864,
+      "sha256": "sha256:87bac216b6ff6471ebea6a02b948e2023a03b2dc92271c335743aa54a6d9db1a"
     },
     {
       "path": "ui/pool-home/computer-labels.js",
@@ -3275,8 +3280,8 @@
     },
     {
       "path": "ui/pool-home/conversation-workspace.js",
-      "byteLength": 42653,
-      "sha256": "sha256:27c576c32e7b4308ee0c59dfd7428e5801174332e6cc52c189bad22da464dcfd"
+      "byteLength": 42673,
+      "sha256": "sha256:46dd934ce588d808abfcfd634f87f6d4757507f327beb91fbf2fc63339aa82a8"
     },
     {
       "path": "ui/pool-home/document-search.js",
@@ -3405,8 +3410,8 @@
     },
     {
       "path": "ui/pool-home/shell-view.js",
-      "byteLength": 4125,
-      "sha256": "sha256:a3008b2561fbf911f242104db401b666da525e8d6970dcfbcdcefde061604422"
+      "byteLength": 4145,
+      "sha256": "sha256:85fd2df7720db1f4d11e06d4e7d0f0d44add650a6e54bdce4544699f0a0f7138"
     },
     {
       "path": "ui/pool-home/simulation-batches.js",
@@ -10479,5 +10484,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:6a1c0130e439ea1d4f4c07484bf31be174edc55c3e43a68b5f530e18cc41ed83"
+  "bundleHash": "sha256:0d30cf7252bf4c96b45c31791382185c1c6cc5241b407c89abb728711608987d"
 }
