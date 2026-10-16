@@ -26,7 +26,7 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
       <div class="chat-rail-toolbar pool-surface" data-chat-rail-toolbar>
       <div class="chat-rail-primary">
       <div class="chat-rail-heading">
-      <span class="chat-thread-brand" data-thread-rail-brand><small class="chat-thread-count pool-badge" data-thread-count hidden></small></span>
+      <span class="chat-thread-brand" data-thread-rail-brand></span>
       <button class="pool-button chat-new-thread" type="button" data-new-thread aria-label="New thread" title="New thread">${interfaceIcon('newThread')}<span class="chat-rail-label">New thread</span></button>
       </div>
       <section class="chat-thread-panel" data-thread-panel aria-labelledby="chat-threads-title">
