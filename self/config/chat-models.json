@@ -164,7 +164,7 @@
       ]
     },
     "generation": {
-      "maxTokens": 128,
+      "maxTokens": 256,
       "temperature": 0,
       "topK": 1,
       "topP": 1,
@@ -229,7 +229,7 @@
             "disableMultiTokenDecode": true
           },
           "batching": {
-            "maxTokens": 128,
+            "maxTokens": 256,
             "batchSize": 1,
             "readbackInterval": 1,
             "stopCheckMode": "per-token",
@@ -302,7 +302,7 @@
             "disableMultiTokenDecode": true
           },
           "batching": {
-            "maxTokens": 128,
+            "maxTokens": 256,
             "batchSize": 1,
             "readbackInterval": 1,
             "stopCheckMode": "per-token",
