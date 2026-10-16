@@ -1,0 +1,118 @@
+{
+  "schema": "reploid.q4-boundary-comparison/v1",
+  "rows": [
+    {
+      "step": 0,
+      "stage": "ffn_mlp_out",
+      "maxAbsMacVsAMD": 1.9073486328125e-06,
+      "maxAbsAMDVsF64": 9.745434157437671e-07,
+      "maxAbsMacVsF64": 2.881892048556267e-06
+    },
+    {
+      "step": 0,
+      "stage": "post_attn",
+      "maxAbsMacVsAMD": 2.86102294921875e-06,
+      "maxAbsAMDVsF64": 2.624359341396598e-06,
+      "maxAbsMacVsF64": 1.4737698332822902e-06
+    },
+    {
+      "step": 0,
+      "stage": "post_ffn",
+      "maxAbsMacVsAMD": 1.9073486328125e-06,
+      "maxAbsAMDVsF64": 2.78940645870307e-06,
+      "maxAbsMacVsF64": 2.78940645870307e-06
+    },
+    {
+      "step": 0,
+      "stage": "post_oproj",
+      "maxAbsMacVsAMD": 2.86102294921875e-06,
+      "maxAbsAMDVsF64": 2.624359341396598e-06,
+      "maxAbsMacVsF64": 1.4737698332822902e-06
+    },
+    {
+      "step": 0,
+      "stage": "post_qkv",
+      "maxAbsMacVsAMD": 1.9073486328125e-05,
+      "maxAbsAMDVsF64": 1.0422341652827072e-05,
+      "maxAbsMacVsF64": 1.7101119318851943e-05
+    },
+    {
+      "step": 0,
+      "stage": "post_rmsnorm",
+      "maxAbsMacVsAMD": 0.0,
+      "maxAbsAMDVsF64": 1.7813422417134461e-06,
+      "maxAbsMacVsF64": 1.7813422417134461e-06
+    },
+    {
+      "step": 0,
+      "stage": "pre_ffn",
+      "maxAbsMacVsAMD": 5.364418029785156e-07,
+      "maxAbsAMDVsF64": 4.032884408644577e-07,
+      "maxAbsMacVsF64": 6.125481966101631e-07
+    },
+    {
+      "step": 0,
+      "stage": "pre_layer_input",
+      "maxAbsMacVsAMD": 0.0,
+      "maxAbsAMDVsF64": 0.0,
+      "maxAbsMacVsF64": 0.0
+    },
+    {
+      "step": 1,
+      "stage": "ffn_mlp_out",
+      "maxAbsMacVsAMD": 2.384185791015625e-07,
+      "maxAbsAMDVsF64": 6.645497727664207e-07,
+      "maxAbsMacVsF64": 4.261311936648582e-07
+    },
+    {
+      "step": 1,
+      "stage": "post_attn",
+      "maxAbsMacVsAMD": 5.960464477539063e-08,
+      "maxAbsAMDVsF64": 4.466924542256834e-06,
+      "maxAbsMacVsF64": 4.466924542256834e-06
+    },
+    {
+      "step": 1,
+      "stage": "post_ffn",
+      "maxAbsMacVsAMD": 9.5367431640625e-07,
+      "maxAbsAMDVsF64": 3.3255376106211543e-06,
+      "maxAbsMacVsF64": 4.279211927027404e-06
+    },
+    {
+      "step": 1,
+      "stage": "post_oproj",
+      "maxAbsMacVsAMD": 5.960464477539063e-08,
+      "maxAbsAMDVsF64": 4.466924542256834e-06,
+      "maxAbsMacVsF64": 4.466924542256834e-06
+    },
+    {
+      "step": 1,
+      "stage": "post_qkv",
+      "maxAbsMacVsAMD": 0.0,
+      "maxAbsAMDVsF64": 1.3302713078644501e-05,
+      "maxAbsMacVsF64": 1.3302713078644501e-05
+    },
+    {
+      "step": 1,
+      "stage": "post_rmsnorm",
+      "maxAbsMacVsAMD": 0.0,
+      "maxAbsAMDVsF64": 2.9940584012067006e-07,
+      "maxAbsMacVsF64": 2.9940584012067006e-07
+    },
+    {
+      "step": 1,
+      "stage": "pre_ffn",
+      "maxAbsMacVsAMD": 2.384185791015625e-07,
+      "maxAbsAMDVsF64": 5.175561140352558e-07,
+      "maxAbsMacVsF64": 4.564817841501423e-07
+    },
+    {
+      "step": 1,
+      "stage": "pre_layer_input",
+      "maxAbsMacVsAMD": 0.0,
+      "maxAbsAMDVsF64": 0.0,
+      "maxAbsMacVsF64": 0.0
+    }
+  ],
+  "scope": "Independent F64 layer-0 diagnostic, no tolerance change; post_attn probe currently emits the branch before its residual is fused in FFN normalization, compared to post_oproj here explicitly."
+}

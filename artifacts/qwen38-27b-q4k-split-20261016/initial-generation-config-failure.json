@@ -1,0 +1,16 @@
+{
+  "schema": "reploid.q4-partition-control/v1",
+  "startedAt": "2026-10-16T18:08:44.221Z",
+  "scope": "Native same-device control; not public or cross-host qualification",
+  "configSha256": "31f4219689c5163feb0ca749cd12c1a6c892de1f180f1511779ffce60d04e276",
+  "contractSha256": "95f3ff989c49e968963f2a8c4c912272287fbdf03ca580ba8ae12fc5a517b078",
+  "opens": [],
+  "cases": [],
+  "cleanup": [],
+  "passed": false,
+  "error": {
+    "message": "Worker exited 1/null",
+    "stack": "Error: Worker exited 1/null\n    at ChildProcess.<anonymous> (file:///home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/qwen-partition-control.js:34:91)\n    at ChildProcess.emit (node:events:519:28)\n    at ChildProcess._handle.onexit (node:internal/child_process:293:12)"
+  },
+  "finishedAt": "2026-10-16T18:08:44.586Z"
+}

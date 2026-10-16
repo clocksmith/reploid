@@ -1,0 +1,41 @@
+{
+  "schema": "reploid.q4-split-experiment/v1",
+  "frozenAt": "2026-10-16",
+  "owner": "/root",
+  "authorization": "Owner: use Q4K; get split working; follow roadmaps. Public contributors stay active while headroom permits.",
+  "scope": "Exact Q4K two-stage numerical/control and Mac-to-AMD engineering proof; no new product pilot or speed-superiority claim.",
+  "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "cases": [
+    {
+      "id": "capitals55",
+      "prompt": "The capital of France is"
+    }
+  ],
+  "maxAbsoluteLogitError": 0.001,
+  "requiredSteps": 55,
+  "reference": "Same exact Q4 tensors in the qualified whole-model implementation. Independent same-quant parity retained separately; no BF16 transcript gate.",
+  "phases": [
+    "same-AMD whole then local stages",
+    "Mac input stage plus AMD output stage",
+    "actual Reploid conversation lifecycle only after numerical pass"
+  ],
+  "caps": {
+    "hardwarePurchaseUSD": 0,
+    "externalProviderUSD": 0,
+    "maxGpuProcessesStarted": 8,
+    "aggregateGpuHostSeconds": 7200,
+    "engineeringWallSeconds": 14400
+  },
+  "commandTimeoutMs": 360000,
+  "processTimeoutSeconds": 900,
+  "publicProviders": [
+    "27B Q4K",
+    "0.8B",
+    "2B"
+  ],
+  "weightBytesByStage": [
+    2759168448,
+    14235183680
+  ],
+  "limits": "No unchanged 0.8B qualification is reopened or inherited. No signed Capsule, selective-custody or public split claim from the private manifest lane."
+}

@@ -1,0 +1,27 @@
+{
+  "baselinePath": "/Users/xyz/deco/reploid/.tmp/qwen38-q4-split/capitals55-whole.json",
+  "baselineSha256": "a12724c5caf53ec1d64c1b096308acd5ef4c520e77977a4fd5e8aeb3f6015286",
+  "commandTimeoutMs": 360000,
+  "requiredSteps": 55,
+  "maxAbsoluteLogitError": 0.001,
+  "workers": [
+    {
+      "command": "node",
+      "args": [
+        "/Users/xyz/deco/reploid/tests/fixtures/qwen-partition-worker.js",
+        "/Users/xyz/deco/reploid/.tmp/qwen38-q4-split/mac-config.json"
+      ],
+      "env": {
+        "DOPPLER_NODE_WEBGPU_MODULE": "webgpu",
+        "DOPPLER_NODE_WEBGPU_PROVIDER_ARGS": "backend=metal,enable-dawn-features=allow_unsafe_apis"
+      }
+    },
+    {
+      "command": "ssh",
+      "args": [
+        "amd-host",
+        "systemd-run --user --pipe --wait --collect --unit=qwen-q4-cross-host-20261016 --property=MemoryMax=32G --property=MemorySwapMax=0 --property=RuntimeMaxSec=900 --property=WorkingDirectory=/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016 /usr/bin/flock --nonblock /tmp/reploid-qwen-q4-split-diagnostic.lock /usr/bin/node qwen-partition-worker.js amd-control-config-v2.json"
+      ]
+    }
+  ]
+}

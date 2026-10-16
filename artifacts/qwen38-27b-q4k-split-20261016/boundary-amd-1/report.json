@@ -1,0 +1,601 @@
+{
+  "schema": "reploid.partition-boundary-trace/v1",
+  "configSha256": "f216e493ada7b70c46cc74c1d4a493ae42ff4fc7fb7f935d288eb63b6e4177d7",
+  "inputSha256": "29dd52e637caaf4839be85781fca4c56f744a92bbabeffa8fbee0834d8707a00",
+  "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "steps": [
+    {
+      "step": 0,
+      "ids": [
+        760,
+        6511,
+        314,
+        9338,
+        369
+      ],
+      "outputSha256": "01efe0423cbeb9e1bec76ecb4246423552639107b03677f091dd99dcb0787edd",
+      "trace": [
+        {
+          "stage": "layer_in",
+          "tsirStage": "pre_layer_input",
+          "layerIdx": 0,
+          "phase": "prefill",
+          "generationStep": 0,
+          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/pre_layer_input.npy",
+          "shape": [
+            5,
+            5120
+          ],
+          "dtype": "float32",
+          "byteLength": 102528,
+          "payloadByteLength": 102400,
+          "written": true
+        },
+        {
+          "stage": "post_input_norm",
+          "tsirStage": "post_rmsnorm",
+          "layerIdx": 0,
+          "phase": "prefill",
+          "generationStep": 0,
+          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/post_rmsnorm.npy",
+          "shape": [
+            5,
+            5120
+          ],
+          "dtype": "float32",
+          "byteLength": 102528,
+          "payloadByteLength": 102400,
+          "written": true
+        },
+        {
+          "stage": "linear_qkv_proj",
+          "tsirStage": "post_qkv",
+          "layerIdx": 0,
+          "phase": "prefill",
+          "generationStep": 0,
+          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/post_qkv.npy",
+          "shape": [
+            5,
+            10240
+          ],
+          "dtype": "float32",
+          "byteLength": 204928,
+          "payloadByteLength": 204800,
+          "written": true
+        },
+        {
+          "stage": "attn_out",
+          "tsirStage": "post_oproj",
+          "layerIdx": 0,
+          "phase": "prefill",
+          "generationStep": 0,
+          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/post_oproj.npy",
+          "shape": [
+            5,
+            5120
+          ],
+          "dtype": "float32",
+          "byteLength": 102528,
+          "payloadByteLength": 102400,
+          "written": true
+        },
+        {
+          "stage": "post_attn",
+          "tsirStage": "post_attn",
+          "layerIdx": 0,
+          "phase": "prefill",
+          "generationStep": 0,
+          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/post_attn.npy",
+          "shape": [
+            5,
+            5120
+          ],
+          "dtype": "float32",
+          "byteLength": 102528,
+          "payloadByteLength": 102400,
+          "written": true
+        },
+        {
+          "stage": "ffn_in",
+          "tsirStage": "pre_ffn",
+          "layerIdx": 0,
+          "phase": "prefill",
+          "generationStep": 0,
+          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/pre_ffn.npy",
+          "shape": [
+            5,
+            5120
+          ],
+          "dtype": "float32",
+          "byteLength": 102528,
+          "payloadByteLength": 102400,
+          "written": true
+        },
+        {
+          "stage": "ffn_out",
+          "tsirStage": "ffn_mlp_out",
+          "layerIdx": 0,
+          "phase": "prefill",
+          "generationStep": 0,
+          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/ffn_mlp_out.npy",
+          "shape": [
+            5,
+            5120
+          ],
+          "dtype": "float32",
+          "byteLength": 102528,
+          "payloadByteLength": 102400,
+          "written": true
+        },
+        {
+          "stage": "layer_out",
+          "tsirStage": "post_ffn",
+          "layerIdx": 0,
+          "phase": "prefill",
+          "generationStep": 0,
+          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/post_ffn.npy",
+          "shape": [
+            5,
+            5120
+          ],
+          "dtype": "float32",
+          "byteLength": 102528,
+          "payloadByteLength": 102400,
+          "written": true
+        },
+        {
+          "stage": "layer_out",
+          "tsirStage": "post_ffn",
+          "layerIdx": 0,
+          "phase": "prefill",
+          "generationStep": 0,
+          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/post_ffn.npy",
+          "shape": [
+            5,
+            5120
+          ],
+          "dtype": "float32",
+          "byteLength": 102528,
+          "payloadByteLength": 102400,
+          "written": true
+        }
+      ],
+      "timing": {
+        "inputUploadMs": 0,
+        "encodeMs": 81.9311140000002,
+        "submitWaitMs": 0.38736000000017157,
+        "activationReadbackMs": 0.2027219999999943,
+        "logitsMs": 0,
+        "gpuKernelsMs": null
+      }
+    },
+    {
+      "step": 1,
+      "ids": [
+        11751
+      ],
+      "outputSha256": "7b354172e2b19f1342dddba4c81148049d6014ea0f63a57e991f0e5df932bdd4",
+      "trace": [
+        {
+          "stage": "layer_in",
+          "tsirStage": "pre_layer_input",
+          "layerIdx": 0,
+          "phase": "decode",
+          "generationStep": null,
+          "written": false,
+          "note": "pending-recorder-submit"
+        },
+        {
+          "stage": "post_input_norm",
+          "tsirStage": "post_rmsnorm",
+          "layerIdx": 0,
+          "phase": "decode",
+          "generationStep": null,
+          "written": false,
+          "note": "pending-recorder-submit"
+        },
+        {
+          "stage": "linear_qkv_proj",
+          "tsirStage": "post_qkv",
+          "layerIdx": 0,
+          "phase": "decode",
+          "generationStep": null,
+          "written": false,
+          "note": "pending-recorder-submit"
+        },
+        {
+          "stage": "attn_out",
+          "tsirStage": "post_oproj",
+          "layerIdx": 0,
+          "phase": "decode",
+          "generationStep": null,
+          "written": false,
+          "note": "pending-recorder-submit"
+        },
+        {
+          "stage": "post_attn",
+          "tsirStage": "post_attn",
+          "layerIdx": 0,
+          "phase": "decode",
+          "generationStep": null,
+          "written": false,
+          "note": "pending-recorder-submit"
+        },
+        {
+          "stage": "ffn_in",
+          "tsirStage": "pre_ffn",
+          "layerIdx": 0,
+          "phase": "decode",
+          "generationStep": null,
+          "written": false,
+          "note": "pending-recorder-submit"
+        },
+        {
+          "stage": "ffn_out",
+          "tsirStage": "ffn_mlp_out",
+          "layerIdx": 0,
+          "phase": "decode",
+          "generationStep": null,
+          "written": false,
+          "note": "pending-recorder-submit"
+        },
+        {
+          "stage": "layer_out",
+          "tsirStage": "post_ffn",
+          "layerIdx": 0,
+          "phase": "decode",
+          "generationStep": null,
+          "written": false,
+          "note": "pending-recorder-submit"
+        },
+        {
+          "stage": "layer_out",
+          "tsirStage": "post_ffn",
+          "layerIdx": 0,
+          "phase": "decode",
+          "generationStep": null,
+          "written": false,
+          "note": "pending-recorder-submit"
+        },
+        {
+          "stage": "layer_in",
+          "tsirStage": "pre_layer_input",
+          "layerIdx": 0,
+          "phase": "decode",
+          "generationStep": null,
+          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/pre_layer_input.npy",
+          "shape": [
+            1,
+            5120
+          ],
+          "dtype": "float32",
+          "byteLength": 20608,
+          "payloadByteLength": 20480,
+          "written": true
+        },
+        {
+          "stage": "post_input_norm",
+          "tsirStage": "post_rmsnorm",
+          "layerIdx": 0,
+          "phase": "decode",
+          "generationStep": null,
+          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/post_rmsnorm.npy",
+          "shape": [
+            1,
+            5120
+          ],
+          "dtype": "float32",
+          "byteLength": 20608,
+          "payloadByteLength": 20480,
+          "written": true
+        },
+        {
+          "stage": "linear_qkv_proj",
+          "tsirStage": "post_qkv",
+          "layerIdx": 0,
+          "phase": "decode",
+          "generationStep": null,
+          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/post_qkv.npy",
+          "shape": [
+            1,
+            10240
+          ],
+          "dtype": "float32",
+          "byteLength": 41088,
+          "payloadByteLength": 40960,
+          "written": true
+        },
+        {
+          "stage": "attn_out",
+          "tsirStage": "post_oproj",
+          "layerIdx": 0,
+          "phase": "decode",
+          "generationStep": null,
+          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/post_oproj.npy",
+          "shape": [
+            1,
+            5120
+          ],
+          "dtype": "float32",
+          "byteLength": 20608,
+          "payloadByteLength": 20480,
+          "written": true
+        },
+        {
+          "stage": "post_attn",
+          "tsirStage": "post_attn",
+          "layerIdx": 0,
+          "phase": "decode",
+          "generationStep": null,
+          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/post_attn.npy",
+          "shape": [
+            1,
+            5120
+          ],
+          "dtype": "float32",
+          "byteLength": 20608,
+          "payloadByteLength": 20480,
+          "written": true
+        },
+        {
+          "stage": "ffn_in",
+          "tsirStage": "pre_ffn",
+          "layerIdx": 0,
+          "phase": "decode",
+          "generationStep": null,
+          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/pre_ffn.npy",
+          "shape": [
+            1,
+            5120
+          ],
+          "dtype": "float32",
+          "byteLength": 20608,
+          "payloadByteLength": 20480,
+          "written": true
+        },
+        {
+          "stage": "ffn_out",
+          "tsirStage": "ffn_mlp_out",
+          "layerIdx": 0,
+          "phase": "decode",
+          "generationStep": null,
+          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/ffn_mlp_out.npy",
+          "shape": [
+            1,
+            5120
+          ],
+          "dtype": "float32",
+          "byteLength": 20608,
+          "payloadByteLength": 20480,
+          "written": true
+        },
+        {
+          "stage": "layer_out",
+          "tsirStage": "post_ffn",
+          "layerIdx": 0,
+          "phase": "decode",
+          "generationStep": null,
+          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/post_ffn.npy",
+          "shape": [
+            1,
+            5120
+          ],
+          "dtype": "float32",
+          "byteLength": 20608,
+          "payloadByteLength": 20480,
+          "written": true
+        },
+        {
+          "stage": "layer_out",
+          "tsirStage": "post_ffn",
+          "layerIdx": 0,
+          "phase": "decode",
+          "generationStep": null,
+          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/post_ffn.npy",
+          "shape": [
+            1,
+            5120
+          ],
+          "dtype": "float32",
+          "byteLength": 20608,
+          "payloadByteLength": 20480,
+          "written": true
+        }
+      ],
+      "timing": {
+        "inputUploadMs": 0,
+        "encodeMs": 22.067649999999958,
+        "submitWaitMs": 2.3795350000000326,
+        "activationReadbackMs": 0.24471100000005208,
+        "logitsMs": 0,
+        "gpuKernelsMs": null
+      }
+    }
+  ],
+  "passed": true,
+  "provider": {
+    "ok": true,
+    "provider": "webgpu",
+    "detail": null,
+    "module": {
+      "globals": {},
+      "isMac": false
+    },
+    "session": {
+      "gpu": null,
+      "adapter": null,
+      "module": null,
+      "receipt": {
+        "schema": "doe.webgpu-provider-receipt/v1",
+        "contract": "doe.webgpu-provider/v1",
+        "implementation": "doppler",
+        "providers": [
+          {
+            "id": "pre-installed",
+            "kind": "global"
+          },
+          {
+            "id": "webgpu",
+            "kind": "module",
+            "module": "webgpu",
+            "gpu": {
+              "kind": "factory",
+              "path": "create",
+              "args": [
+                [
+                  "enable-dawn-features=allow_unsafe_apis"
+                ]
+              ]
+            },
+            "globals": {
+              "GPUBufferUsage": "globals.GPUBufferUsage",
+              "GPUShaderStage": "globals.GPUShaderStage",
+              "GPUMapMode": "globals.GPUMapMode",
+              "GPUTextureUsage": "globals.GPUTextureUsage"
+            }
+          }
+        ],
+        "providerOrder": [
+          "pre-installed",
+          "webgpu"
+        ],
+        "adapterOptions": null,
+        "globals": {
+          "mode": "replace",
+          "installed": [
+            "GPUBufferUsage",
+            "GPUShaderStage",
+            "GPUMapMode",
+            "GPUTextureUsage",
+            "navigator.gpu"
+          ],
+          "restored": true
+        },
+        "attempts": [
+          {
+            "providerId": "pre-installed",
+            "kind": "global",
+            "module": null,
+            "ok": false,
+            "stage": "gpu.validate",
+            "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+            "detail": "Selected provider does not expose GPU.requestAdapter()."
+          },
+          {
+            "providerId": "webgpu",
+            "kind": "module",
+            "module": "webgpu",
+            "ok": true,
+            "stage": "complete",
+            "code": null,
+            "detail": null
+          }
+        ],
+        "selectedProviderId": "webgpu",
+        "ok": true
+      }
+    },
+    "receipt": {
+      "schema": "doe.webgpu-provider-receipt/v1",
+      "contract": "doe.webgpu-provider/v1",
+      "implementation": "doppler",
+      "providers": [
+        {
+          "id": "pre-installed",
+          "kind": "global"
+        },
+        {
+          "id": "webgpu",
+          "kind": "module",
+          "module": "webgpu",
+          "gpu": {
+            "kind": "factory",
+            "path": "create",
+            "args": [
+              [
+                "enable-dawn-features=allow_unsafe_apis"
+              ]
+            ]
+          },
+          "globals": {
+            "GPUBufferUsage": "globals.GPUBufferUsage",
+            "GPUShaderStage": "globals.GPUShaderStage",
+            "GPUMapMode": "globals.GPUMapMode",
+            "GPUTextureUsage": "globals.GPUTextureUsage"
+          }
+        }
+      ],
+      "providerOrder": [
+        "pre-installed",
+        "webgpu"
+      ],
+      "adapterOptions": null,
+      "globals": {
+        "mode": "replace",
+        "installed": [
+          "GPUBufferUsage",
+          "GPUShaderStage",
+          "GPUMapMode",
+          "GPUTextureUsage",
+          "navigator.gpu"
+        ],
+        "restored": true
+      },
+      "attempts": [
+        {
+          "providerId": "pre-installed",
+          "kind": "global",
+          "module": null,
+          "ok": false,
+          "stage": "gpu.validate",
+          "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+          "detail": "Selected provider does not expose GPU.requestAdapter()."
+        },
+        {
+          "providerId": "webgpu",
+          "kind": "module",
+          "module": "webgpu",
+          "ok": true,
+          "stage": "complete",
+          "code": null,
+          "detail": null
+        }
+      ],
+      "selectedProviderId": "webgpu",
+      "ok": true
+    }
+  },
+  "cleanup": {
+    "allocations": 66,
+    "reuses": 19,
+    "totalBytesAllocated": 2767606784,
+    "peakBytesAllocated": 2767574016,
+    "currentBytesAllocated": 2767278848,
+    "totalBytesRequested": 2766642176,
+    "peakBytesRequested": 2765156096,
+    "currentBytesRequested": 0,
+    "resources": {
+      "retainedModel": {
+        "bytes": 0,
+        "count": 0
+      },
+      "active": {
+        "bytes": 0,
+        "count": 0
+      },
+      "reusable": {
+        "bytes": 2767278848,
+        "count": 55
+      },
+      "deferredCleanup": {
+        "bytes": 0,
+        "count": 0
+      }
+    },
+    "activeBuffers": 0,
+    "pooledBuffers": 55,
+    "budgetMaxBytes": 25769803776,
+    "budgetUtilization": 0.10738455255826314,
+    "hitRate": "22.4%"
+  }
+}

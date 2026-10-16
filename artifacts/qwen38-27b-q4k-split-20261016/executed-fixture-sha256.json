@@ -1,0 +1,7 @@
+{
+  "tests/fixtures/qwen-partition-boundary-reference.py": "e7b6333f81e894a9751584e8903537597112cbfa11d3377dc3291d66db2d2268",
+  "tests/fixtures/qwen-partition-boundary-trace.js": "28b7b2df30de6ece736fde8f2a9b26e07f867ffcd05cd7b55d7d309ab7f600b7",
+  "tests/fixtures/qwen-partition-control.js": "b04245ce289074d61d3575868d1833a9ba17d64c90c25e6453860b5de90aface",
+  "tests/fixtures/qwen-partition-cross-host.js": "a05ea88c28556cb4be5cbc038ae0c66380bf1ea68d9f3844661bfc1450c6205a",
+  "tests/fixtures/qwen-partition-worker.js": "8e8806f2991ddcd1a125c188b76cf025f3f526f5b1834ac0b850a1cfc57c52c6"
+}
