@@ -2,7 +2,7 @@ import { it, expect, vi } from 'vitest';
 import { createLegacyGenerationMesh } from '../../packages/reploid/src/mesh/legacy-generation.js';
 import { resolveConfig } from '../../packages/reploid/src/config/index.js';
 
-function fixture(meshOverrides = {}) {
+function fixture(meshOverrides = {}, execution = {}) {
   const handlers = new Map(), listeners = new Map(), sent = [];
   const events = {
     on(name, fn) { if (!listeners.has(name)) listeners.set(name, new Set()); listeners.get(name).add(fn); return () => listeners.get(name).delete(fn); },
@@ -10,7 +10,8 @@ function fixture(meshOverrides = {}) {
   };
   const authorize = vi.fn(async () => true);
   const mesh = createLegacyGenerationMesh({ config: resolveConfig({ overrides: { mesh: { enabled: true, roomId: 'test', ...meshOverrides } } }), ports: {
-    instanceId: 'test', modelConfig: null, authorize, generate: async () => {},
+    instanceId: 'test', modelConfig: execution.modelConfig || null, authorize,
+    getExecutionState: execution.getExecutionState, generate: execution.generate || (async () => {}),
     utils: { generateId: () => crypto.randomUUID() }, events, eventBus: events,
     identity: { ensure: async () => ({ peerId: 'requester' }), sync: async () => {}, save: async () => {} },
     createTransport: () => ({ init: async () => true, disconnect() {}, broadcast() {},
@@ -21,7 +22,7 @@ function fixture(meshOverrides = {}) {
     { hasInference: true, swarmEnabled: true, readiness: 'ready', availableSlots: 1, model, updatedAt: Date.now(), ...overrides });
   const respond = (request, model = request.payload.model) => handlers.get('reploid:generation-result')(request.peer,
     { requestId: request.payload.requestId, response: { model, content: 'response' } });
-  return { mesh, sent, advertise, respond, authorize, events,
+  return { mesh, sent, advertise, respond, authorize, events, handlers,
     update: (request, chunk) => handlers.get('reploid:generation-update')(request.peer, { requestId: request.payload.requestId, chunk }) };
 }
 
@@ -173,4 +174,139 @@ it('retains bounded preparation telemetry and executing state without publishing
   f.advertise('loading', 'qwen', { hasInference: false, readiness: 'executing', availableSlots: 0, preparation: { kind: 'downloading' } });
   expect(f.mesh.getSwarmSnapshot().peers.find(peer => peer.peerId === 'loading')).toMatchObject({ readiness: 'executing', preparation: null });
   await f.mesh.close();
+});
+
+const artifactA = 'sha256:' + 'a'.repeat(64);
+const artifactB = 'sha256:' + 'b'.repeat(64);
+
+it('pins the selected model and advertised artifact even when the caller leaves selection automatic', async () => {
+  const f = fixture(); await f.mesh.connect();
+  try {
+    f.advertise('east', 'qwen', { modelIdentity: artifactA });
+    const request = f.mesh.generate([], null);
+    const failed = expect(request).rejects.toThrow('substituted');
+    await vi.waitFor(() => expect(f.sent).toHaveLength(1));
+    expect(f.sent[0].payload).toMatchObject({ model: 'qwen', modelIdentity: artifactA });
+    expect(f.authorize).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'mesh.dispatch', modelId: 'qwen', modelIdentity: artifactA
+    }));
+    await f.handlers.get('reploid:generation-result')('east', {
+      requestId: f.sent[0].payload.requestId,
+      response: { model: 'qwen', modelIdentity: artifactB, content: 'wrong artifact' }
+    });
+    await failed;
+  } finally { await f.mesh.close(); }
+});
+
+it('rejects a different model in automatic selection instead of accepting any returned model', async () => {
+  const f = fixture(); await f.mesh.connect();
+  try {
+    f.advertise('east', 'qwen');
+    const request = f.mesh.generate([], null);
+    const failed = expect(request).rejects.toThrow('substituted');
+    await vi.waitFor(() => expect(f.sent).toHaveLength(1));
+    await f.respond(f.sent[0], 'other'); await failed;
+  } finally { await f.mesh.close(); }
+});
+
+it.each(['artifact', 'adapter'])('rechecks provider %s after asynchronous execution authorization', async changed => {
+  const state = { phase: 'ready', modelIdentity: artifactA, adapterIdentities: [artifactB] };
+  const generate = vi.fn();
+  const f = fixture({ executeJobs: true }, { modelConfig: { id: 'qwen' }, getExecutionState: () => state, generate });
+  await f.mesh.connect();
+  try {
+    const authorization = Promise.withResolvers(), began = Promise.withResolvers();
+    f.authorize.mockImplementation(request => {
+      if (request.action !== 'mesh.execute') return true;
+      began.resolve(); return authorization.promise;
+    });
+    const request = f.handlers.get('reploid:generation-request')('consumer', {
+      requestId: 'one', model: 'qwen', modelIdentity: artifactA,
+      adapterIdentities: [artifactB], messages: [{ role: 'user', content: 'hello' }]
+    });
+    await began.promise;
+    if (changed === 'artifact') state.modelIdentity = artifactB;
+    else state.adapterIdentities = [];
+    authorization.resolve(true); await request;
+    expect(generate).not.toHaveBeenCalled();
+    expect(f.sent).toContainEqual(expect.objectContaining({ name: 'reploid:generation-error',
+      payload: expect.objectContaining({ requestId: 'one', error: expect.stringContaining('changed') }) }));
+  } finally { await f.mesh.close(); }
+});
+
+it('does not stream output after the provider artifact changes during execution', async () => {
+  const state = { phase: 'ready', modelIdentity: artifactA };
+  const generate = vi.fn(async (_messages, update) => {
+    state.modelIdentity = artifactB;
+    update('wrong artifact output');
+    return { model: 'qwen', modelIdentity: artifactB, content: 'wrong artifact output' };
+  });
+  const f = fixture({ executeJobs: true }, { modelConfig: { id: 'qwen' }, getExecutionState: () => state, generate });
+  await f.mesh.connect();
+  try {
+    await f.handlers.get('reploid:generation-request')('consumer', {
+      requestId: 'one', model: 'qwen', modelIdentity: artifactA,
+      messages: [{ role: 'user', content: 'hello' }]
+    });
+    expect(generate).toHaveBeenCalledTimes(1);
+    expect(f.sent.some(item => item.name === 'reploid:generation-update')).toBe(false);
+    expect(f.sent).toContainEqual(expect.objectContaining({ name: 'reploid:generation-error' }));
+  } finally { await f.mesh.close(); }
+});
+
+it('enforces an explicit artifact on local whole-model requests before invoking the provider', async () => {
+  const generate = vi.fn();
+  const f = fixture({}, { modelConfig: { id: 'qwen' },
+    getExecutionState: () => ({ phase: 'ready', modelIdentity: artifactA }), generate });
+  try {
+    await expect(f.mesh.generate([], null, { modelId: 'qwen', modelIdentity: artifactB })).rejects.toThrow('unavailable');
+    expect(generate).not.toHaveBeenCalled();
+  } finally { await f.mesh.close(); }
+});
+
+it('accepts the pinned automatic selection and leaves its identity on the result', async () => {
+  const f = fixture(); await f.mesh.connect();
+  try {
+    f.advertise('east', 'qwen', { modelIdentity: artifactA });
+    const request = f.mesh.generate([], null);
+    await vi.waitFor(() => expect(f.sent).toHaveLength(1));
+    await f.handlers.get('reploid:generation-result')('east', {
+      requestId: f.sent[0].payload.requestId,
+      response: { model: 'qwen', modelIdentity: artifactA, content: 'answer' }
+    });
+    await expect(request).resolves.toMatchObject({ model: 'qwen', modelIdentity: artifactA, content: 'answer' });
+  } finally { await f.mesh.close(); }
+});
+
+it('does not dispatch after the selected artifact changes during requester authorization', async () => {
+  const f = fixture(); await f.mesh.connect();
+  try {
+    f.advertise('east', 'qwen', { modelIdentity: artifactA });
+    const authorization = Promise.withResolvers(), began = Promise.withResolvers();
+    f.authorize.mockImplementation(request => {
+      if (request.action !== 'mesh.dispatch') return true;
+      began.resolve(); return authorization.promise;
+    });
+    const request = f.mesh.generate([], null);
+    const failed = expect(request).rejects.toThrow('no longer ready');
+    await began.promise;
+    f.advertise('east', 'qwen', { modelIdentity: artifactB });
+    authorization.resolve(true); await failed;
+    expect(f.sent).toHaveLength(0);
+  } finally { await f.mesh.close(); }
+});
+
+it('preserves the configured model and adapter binding against execution-port mutation', async () => {
+  const modelConfig = { id: 'qwen' };
+  const generate = vi.fn(async (_messages, _update, controls) => {
+    controls.adapterIdentities.push(artifactB);
+    return { model: 'qwen', modelIdentity: artifactA, adapterIdentities: [artifactB], content: 'substituted' };
+  });
+  const f = fixture({}, { modelConfig,
+    getExecutionState: () => ({ phase: 'ready', modelIdentity: artifactA }), generate });
+  modelConfig.id = 'changed by caller';
+  try {
+    await expect(f.mesh.generate([], null, { modelId: 'qwen', modelIdentity: artifactA })).rejects.toThrow('adapter execution identity mismatch');
+    expect(generate).toHaveBeenCalledTimes(1);
+  } finally { await f.mesh.close(); }
 });

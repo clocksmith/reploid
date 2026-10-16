@@ -3247,7 +3247,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:dd3bdc33b73b4c59756082c5f6ff4fff47d45e208239356b15f2a9963819ca36",
+      "sha256": "sha256:f91d59202a8f19c1224a5dc20b5ca7101cad9735ee86881021d58364b90f7641",
       "imports": []
     },
     {
@@ -16029,7 +16029,7 @@
     {
       "path": "vendor/reploid/mesh/legacy-generation.js",
       "owner": "vendor",
-      "sha256": "sha256:2eff413b7ffa35b80bda01299d602f2db9a10c7e33fcf3bab696cefee09c2276",
+      "sha256": "sha256:360e7d38d62e7e06c3451dbfcd8970a22cf1377dc20e9c1a1761f21bcbe12f6c",
       "imports": [
         "../artifacts/receipt.js",
         "../config/index.js",
