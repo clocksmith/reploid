@@ -117,10 +117,12 @@ losing a connection cannot prove that the remote GPU stopped. See
 ## Original open-mesh design
 
 The mechanisms below are retained design, not authority to expand the current
-bounded validation cell. Architecture qualification compares whole-model,
-same-machine partitioned and network-partitioned execution with the same model,
-prompts, quality requirements, hardware budget and deadlines. Whole-model service
-is preferred whenever one participant can satisfy the request. Isolate local
+bounded validation cell. Whole-model generation is the default when an eligible
+participant fits the exact model and execution envelope; partition only when none
+fits. A selected partition hypothesis compares whole-model controls where feasible,
+same-machine partitions and network partitions with the same model, prompts, quality
+requirements, hardware budget and deadlines. These partition controls do not gate
+an otherwise qualified whole-model service. Isolate local
 partition overhead from network/coordination costs and retain infeasible arms,
 timeouts, failures and complete-request costs. This is an acceptance requirement;
 the implemented partition path above does not establish that comparison or a

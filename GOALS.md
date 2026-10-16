@@ -2,45 +2,43 @@
 
 ## Operating mission
 
-Reploid's current objective is to validate one bounded AI service with real
-demand, dependable contributor supply and sustainable complete-request
-economics. A chosen model, audience, service contract and contributor cohort
-define the scope of both success and rejection. A failed cell does not reject
-every distributed-compute approach; a passing cell does not qualify broad support.
+Reploid coordinates access to exact models through authorized participating
+computers. A model has a stable service identity while prepared providers, model
+pieces and execution routes may change. Users retain independent conversations;
+contributors need not manually operate layers or rooms. This is the intended
+service, not a claim that interruption-free execution or product fit is established.
+Preserved conversation history is distinct from recovered inference state.
 
-Reploid helps people ask questions, compare options, connect information, and develop ideas using open models and web sources. Its promise: earn on your computer, use AI anywhere.
+Whole-model execution is the generation default whenever an eligible participant
+fits the exact model, context and execution state. Partitioning is eligible only
+when no such participant fits. Independent retrieval jobs, whole-model requests
+and partitioned inference have separate acceptance and economic evidence.
 
-Consumer chat leads, with cited investigations, follow-ups, and persistent history. Attachments provide context. Search runs through authorized device-side tools or paid providers, with retrieval, verification, and fallback costs measured separately. Developer APIs and autonomous agents follow.
+Participants control contribution, disclosure, resource limits and stopping.
+Model identity, accepted permissions, deadlines and spending bounds constrain
+routing. Hosted fallback requires authorization; otherwise unavailable capacity
+means explicit waiting or failure. Provider changes cannot silently widen disclosure
+or substitute a different model. Independent conversations retain their history,
+permissions and attempt ownership.
 
-Users receive funded Community Access, purchase top-ups, or earn nonexpiring credits through useful contributions. Credits represent service balances, without guaranteed immediate availability or cash redemption. Contributors supply validated computation, storage, delivery, or contracted readiness within approved schedules, memory, bandwidth, power, temperature, and foreground-use limits.
+Qualify complete service behavior: acquisition, preparation, streaming, follow-ups,
+cancellation, bounded queues, departure, retry and recovery. Compare useful outcomes
+against feasible alternatives, including conventional coordination on equivalent
+resources. Count preparation, idle residency, communication, failed work, owner
+intervention and complete costs. Infrastructure activity and numerical parity alone
+do not establish useful answers, service advantage or customer demand.
 
-Reploid coordinates capacity, permissions, queues, accounting, and recovery; Doppler executes models. Routing selects qualified supply using expected costs, including preparation, readiness, failures, refunds, and reserves. Accepted quotes bind model, disclosure, quality, deadline, and spending limits. Hosted fallback requires authorization. Otherwise, requests queue or fail explicitly.
+The [product specification](docs/product-specification.md) preserves public service
+and financial requirements, including nonexpiring balances, owner limits and quoted
+terms. Existing accepted obligations remain binding. Requirements for credits,
+Community Access, retrieval and accounting do not establish their implementation or
+require every experimental service to activate them. Their acceptance stays separate.
+The owner's private roadmap selects current work; this document grants no new
+campaign, spending or marketplace activation.
 
-Revenue comes from delivered paid services and funded community usage. Reploid retains a margin after contributor rewards, retrieval, verification, infrastructure, payment fees, support, and reliability costs. Outstanding credits require realistic redemption funding. Reserved service, cash payouts, transfers, and trading follow proven demand and controls.
-
-Qualify the architecture before selecting a pilot: compare whole-model,
-same-machine partitioned and network-partitioned execution at identical model,
-prompts, quality, hardware budget and deadlines. Prefer whole-model service
-whenever one participant can satisfy the request. Partitioning must justify its
-complete-request costs and is not itself the product outcome.
-
-Freeze the service scope and acceptance before recruitment. Validate completed
-real tasks, voluntary repeat requests, wait times, contributor reliability and
-the user's current alternative before transaction experiments. Hardware interest
-without measured availability, memory, bandwidth and operating windows is not
-qualified supply. Count preparation, communication, idle capacity, failures,
-refunds and rejected demand in complete-request economics.
-
-Expansion requires admitted demand, dependable supply and sustainable economics
-within predeclared exposure limits. Failed thresholds or exhausted allowances
-close the selected cell; they do not authorize an adjacent campaign. Existing
-accepted service and refund obligations remain binding on closure.
-
-The [product specification](docs/product-specification.md) is the canonical contract for this plan, including nonexpiring balances, quoted service, owner limits and separately qualified financial accounting. Complete-answer quality, latency and economics require their own evidence; numerical parity alone is insufficient.
-
-Reploid coordinates and learns; Poolday connects participants and transfers
-authorized data; Doppler defines and executes model computations. Participants
-control contribution, disclosure, and adoption.
+Reploid coordinates; Doppler defines and executes model computations. Poolday
+supplies participation and authorized data-transfer infrastructure. Zero and X retain
+their research scope. Research capabilities below do not select customer workloads.
 
 ## Intended Beneficiaries
 
@@ -56,8 +54,8 @@ browser library without inheriting a particular interface or credential system.
    practical capacity. Participation provides an otherwise unavailable capability,
    better results, greater reliability, or lower total resource cost, including
    through parallel investigations by complementary agents.
-2. Distribute model state and computation across compatible machines and pursue
-   progressively larger models toward frontier-scale execution and capability.
+2. Where no eligible participant fits the exact model, combine compatible
+   machines to provide otherwise unavailable execution capacity.
    Qualify each advance with identified artifacts, declared numerical tolerances,
    and measured correctness, latency, allocation budgets, and availability.
 3. Reuse verified content and reduce repeated acquisition. Retain complementary
