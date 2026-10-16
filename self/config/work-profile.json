@@ -107,5 +107,10 @@
     "maxToolResultCharacters": 8192
   },
   "defaultModelId": "qwen-3-5-2b-q4k-ehaf16",
+  "chatModelPreference": [
+    "qwen3-8-27b-text-f16-af32",
+    "qwen-3-5-2b-q4k-ehaf16",
+    "qwen-3-5-0-8b-q4k-ehaf16"
+  ],
   "allowedFallbackModels": []
 }

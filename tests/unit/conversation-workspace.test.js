@@ -17,6 +17,46 @@ describe('Conversation workspace', () => {
   });
   afterEach(async () => { dispose(); await session.close(); root.remove(); });
 
+  it('updates automatic defaults as capacity arrives, but preserves explicit choices and existing threads', async () => {
+    dispose(); await session.close();
+    let peers = [];
+    session = createChatSession({ storage: null, service, swarm: { getState: () => ({ consumer: { peers } }), connect: async () => {} } });
+    dispose = bindConversationWorkspace(root, session);
+    const [small, medium, large] = CANONICAL_CHAT_MODELS;
+    const publish = models => {
+      peers = models.map(model => ({ peerId: model.id, model: model.id, modelIdentity: model.identity,
+        readiness: 'ready', hasInference: true, availableSlots: 1 }));
+      session.setCachedModels([]);
+    };
+    publish([small]); expect(find('[data-active-model-select]').value).toBe(small.id);
+    publish([small, medium]); expect(find('[data-active-model-select]').value).toBe(medium.id);
+    publish([small, medium, large]); expect(find('[data-active-model-select]').value).toBe(large.id);
+    const select = find('[data-active-model-select]'); select.value = small.id;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    publish([small, medium]); expect(select.value).toBe(small.id);
+    find('[data-new-thread]').click();
+    await vi.waitFor(() => expect(select.value).toBe(medium.id));
+    publish([small, medium, large]); expect(select.value).toBe(large.id);
+    session.createThread();
+    publish([small, medium]);
+    expect(session.getState().activeThread.model.id).toBe(large.id);
+    expect(find('[data-model-digest]').textContent).toContain(large.name);
+  });
+
+  it('chooses local capacity for a local-only new chat even when a preferred model is ready remotely', async () => {
+    dispose(); await session.close();
+    const [small, , large] = CANONICAL_CHAT_MODELS;
+    session = createChatSession({ storage: null, service, swarm: { getState: () => ({ consumer: { peers: [
+      { peerId: large.id, model: large.id, modelIdentity: large.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }
+    ] } }), connect: async () => {} } });
+    session.setCachedModels([small]);
+    dispose = bindConversationWorkspace(root, session);
+    expect(find('[data-active-model-select]').value).toBe(large.id);
+    find('[data-execution-choice=local]').click();
+    expect(find('[data-active-model-select]').value).toBe(small.id);
+    expect(service.calls).toHaveLength(0);
+  });
+
   it('fills an editable draft from a starter without sending, and hides starters for existing conversations', async () => {
     const prompts = find('[data-starting-prompts]'), input = find('[data-composer-input]');
     expect(prompts.hidden).toBe(false);

@@ -9,7 +9,7 @@ import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-ru
 import { ROUTE_ENVELOPE_POLICY } from '../vendor/reploid/mesh/partitions/partition-route-envelope.js';
 import { createChatExecution } from './chat-execution.js';
 import { createRemoteAccessPreference } from './chat-remote-permission.js';
-import { projectChatCatalog, projectChatPlacements } from './chat-view.js';
+import { projectChatCatalog, projectChatPlacements, selectAvailableChatModel } from './chat-view.js';
 import { createChatDrafts } from './chat-drafts.js';
 import { createChatContext } from './chat-context.js';
 import { attachmentInput, comparisonInput, comparisonSources, comparisonExport, COMPARISON_CHECK } from './document-comparison.js';
@@ -212,6 +212,8 @@ export function createChatSession({
     const activeThread = wsState.threads.find(t => t.id === wsState.selectedId) || null;
     const catalog = getCatalogModels();
     const preferred = candidates => candidates.find(model => model.id === profile.defaultModelId) || candidates[0];
+    const defaultModels = Object.fromEntries(['auto', 'local', 'network'].map(location =>
+      [location, selectAvailableChatModel(catalog, profile.chatModelPreference, location)]));
     return readonlyView({
       ...wsState,
       closed,
@@ -223,9 +225,8 @@ export function createChatSession({
         cells: ROUTE_ENVELOPE_POLICY.routes.find(row => row.modelIdentity === model.identity
           && row.planId === model.partition.planId)?.cells || []
       })).filter(entry => entry.cells.length),
-      defaultModel: preferred(catalog.filter(model => model.availability === 'ready'))
-        || preferred(catalog.filter(model => model.availability === 'cached'))
-        || preferred(catalog.filter(model => model.availability === 'busy')) || preferred(catalog) || null,
+      defaultModels,
+      defaultModel: defaultModels.auto || preferred(catalog) || null,
       discovering,
       localModel: execution.getLocalState(),
       network: copy({ ...(swarm?.getState?.() || { sharing: false, consumer: null }), files: swarm?.getFileState?.() || null }),
