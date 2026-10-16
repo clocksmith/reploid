@@ -1,3 +1,4 @@
+import { interfaceIcon } from '../components/interface-icons.js';
 import { bindDisclosure } from '../components/disclosure.js';
 import { projectThreadContext, renderContextRing, updateContextRing } from './context-indicator.js';
 
@@ -26,18 +27,12 @@ export function createConversationList(list, seen = new Map(), { getSources, now
       const focused = list.contains(list.ownerDocument.activeElement) ? list.ownerDocument.activeElement : null;
       const recent = thread => thread.attempts.at(-1)?.createdAt ?? thread.createdAt ?? 0;
       const visible = threads.filter(thread => !!thread.closed === archived).sort((a, b) => recent(b) - recent(a));
-      const workspace = list.closest('[data-chat-workspace]'), total = workspace?.querySelector('[data-thread-count]');
-      if (total) {
-        total.textContent = String(visible.length); total.hidden = !visible.length;
-        total.title = `${visible.length} ${archived ? 'archived ' : ''}threads`;
-        workspace.querySelector('[data-toggle-thread-rail]')?.setAttribute('aria-description', total.title);
-      }
       for (const [index, thread] of visible.entries()) {
         let row = rows.get(thread.id), button = row?.querySelector('[data-thread-item-id]');
         if (!button) {
           button = list.ownerDocument.createElement('button'); button.type = 'button';
           button.className = 'chat-thread-item pool-button btn-ghost pool-activity-edge'; button.dataset.threadItemId = thread.id;
-          button.innerHTML = `<span class="chat-thread-title pool-small"></span><small class="chat-thread-digest pool-caption pool-muted"></small><span class="chat-thread-shortcut pool-caption" aria-hidden="true">${renderContextRing()}<span data-thread-monogram></span><span class="chat-thread-mark pool-dot" data-thread-unread aria-hidden="true" hidden></span><span class="chat-thread-mark pool-caption" data-thread-attention aria-hidden="true" hidden>!</span></span><time class="chat-thread-time pool-caption pool-muted" hidden></time>`;
+          button.innerHTML = `<span class="chat-thread-title pool-small"></span><small class="chat-thread-digest pool-caption pool-muted"></small><span class="chat-thread-shortcut pool-caption" aria-hidden="true">${renderContextRing()}${interfaceIcon('conversation')}<span class="chat-thread-mark pool-dot" data-thread-unread aria-hidden="true" hidden></span><span class="chat-thread-mark pool-dot pool-dot-open" data-thread-attention aria-hidden="true" hidden></span></span><time class="chat-thread-time pool-caption pool-muted" hidden></time>`;
           row = list.ownerDocument.createElement('div'); row.className = 'chat-thread-row'; row.append(button);
           const menu = list.ownerDocument.createElement('details'); menu.className = 'chat-thread-menu';
           menu.innerHTML = '<summary class="pool-button btn-ghost" aria-label="Thread actions">…</summary><div class="pool-surface"><button class="pool-button" type="button" data-rename-thread>Rename</button><button class="pool-button" type="button" data-archive-thread></button></div>';
@@ -59,7 +54,6 @@ export function createConversationList(list, seen = new Map(), { getSources, now
         const digest = button.querySelector('.chat-thread-digest');
         const summary = label || thread.model?.name || 'New thread';
         if (digest.textContent !== summary) digest.textContent = summary;
-        button.querySelector('[data-thread-monogram]').textContent = Array.from(title.trim())[0]?.toUpperCase() || String(index + 1);
         const context = projectThreadContext(thread, models);
         updateContextRing(button, context.percent);
         button.querySelector('[data-thread-unread]').hidden = label !== 'New answer';

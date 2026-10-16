@@ -302,7 +302,6 @@
 .chat-thread-menu > div { position: absolute; right: 0; z-index: var(--pool-z-2); min-width: var(--pool-size-128); }
 /* One compact identity in either rail width; metadata never changes the row height. */
 .chat-thread-brand { position: relative; display: block; }
-.pool-home .chat-thread-count { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(-1 * var(--pool-size-2)); min-width: var(--pool-size-16); min-height: var(--pool-size-16); padding: 0 var(--pool-size-4); justify-content: center; pointer-events: none; }
 .pool-home .chat-thread-row .chat-thread-shortcut { display: grid; place-items: center; position: relative; width: var(--pool-size-32); height: var(--pool-size-32); overflow: visible; }
 .chat-thread-shortcut .pool-meter { position: absolute; inset: 0; width: 100%; height: 100%; }
 .chat-thread-mark { position: absolute; left: 50%; bottom: calc(-1 * var(--pool-size-4)); transform: translateX(-50%); pointer-events: none; }
