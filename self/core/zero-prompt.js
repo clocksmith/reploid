@@ -2,12 +2,10 @@
 import { ZERO_SEED_TOOLS } from '../config/tool-surfaces.js';
 
 export const ZERO_REQUIRED_TOOL_NAMES = ZERO_SEED_TOOLS;
-export const ZERO_MUTATION_PROGRESS_TOOLS = ZERO_SEED_TOOLS;
 const CONTINUOUS_IMPROVEMENT_DIRECTIVE = [
   'Do this goal first. Then improve forever.',
   'Treat every working result as the baseline for the next evidence-backed improvement.'
 ].join(' ');
-export const getZeroMutationProgressToolList = () => ZERO_MUTATION_PROGRESS_TOOLS.join(', ');
 export function extractPersonaSection(personaPrompt = '') {
   const match = String(personaPrompt || '').match(/\n## PERSONA:[\s\S]*$/);
   return match ? match[0].trim() : '';

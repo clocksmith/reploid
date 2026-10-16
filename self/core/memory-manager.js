@@ -42,7 +42,6 @@ const MemoryManager = {
     let _episodicSummary = '';
     let _sessionId = null;
     let _isInitialized = false;
-    let _tokenEstimator = null;
 
     // --- Initialization ---
 

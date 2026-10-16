@@ -16,13 +16,17 @@ export function createMeshPeerIdentity({ transport, getIdentity, roomId, timeout
   const requests = createRemoteGenerationRequests({ timeoutMs, maxPending, sendCancel() {} });
   const binding = peerId => transport.getPeerBinding?.(peerId) || null;
   const answer = async (peerId, input) => {
-    if (closed || signing.has(peerId) || signing.size >= maxPending) return;
+    if (closed || signing.size >= maxPending) return;
     const channel = binding(peerId), challenge = structuredClone(input);
     if (!channel || !challenge || challenge.roomId !== roomId || challenge.requester !== peerId
       || challenge.provider !== transport._getPeerId() || typeof challenge.nonce !== 'string'
       || !/^[a-f0-9-]{36}$/.test(challenge.nonce)
       || challenge.local !== channel.remote || challenge.remote !== channel.local) return;
-    signing.add(peerId);
+    // Discovery and generation can verify the same connection concurrently.
+    // Deduplicate the challenge, not the peer; each fresh nonce needs its proof.
+    const requestKey = JSON.stringify([peerId, challenge.nonce]);
+    if (signing.has(requestKey)) return;
+    signing.add(requestKey);
     try {
       const identity = getIdentity(), key = await importSigningKey(identity);
       const signature = await crypto.subtle.sign(getIdentitySignAlgorithm(identity), key, signedBytes(challenge, identity.peerId));
@@ -30,7 +34,7 @@ export function createMeshPeerIdentity({ transport, getIdentity, roomId, timeout
         nonce: challenge.nonce, participantId: identity.peerId, publicJwk: identity.publicJwk,
         signature: toBase64Url(signature)
       });
-    } finally { signing.delete(peerId); }
+    } finally { signing.delete(requestKey); }
   };
   const accept = async (peerId, input) => {
     const pending = requests.get(input?.nonce, peerId);

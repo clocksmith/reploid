@@ -1,16 +1,12 @@
 import { createP2PTransport as createLibraryTransport, descriptionToPayload, candidateToPayload, defaultSerialize, defaultDeserialize } from '../vendor/reploid/transport/index.js';
 import { resolveConfig } from '../vendor/reploid/config/index.js';
 import {
-  SIGNAL_TYPES,
   createPoolSdkSignalingAdapter,
   createSignalingChannel
 } from './p2p-signaling.js';
 import { assertP2PPayload } from './p2p-payload.js';
 
 export { P2P_TRANSPORT_STATES } from '../vendor/reploid/transport/index.js';
-export const DEFAULT_DATA_CHANNEL_LABEL = 'reploid-pool';
-export const DEFAULT_MAX_PENDING_REMOTE_ICE_CANDIDATES = 64;
-export const DEFAULT_PENDING_REMOTE_ICE_TTL_MS = 30000;
 export const DEFAULT_RTC_CONFIG = Object.freeze({
   iceServers: Object.freeze([
     Object.freeze({ urls: 'stun:stun.l.google.com:19302' }),

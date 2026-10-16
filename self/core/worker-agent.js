@@ -32,8 +32,6 @@ const _rpc = (op, payload) => {
   });
 };
 
-const _log = (message) => _post({ type: 'log', workerId: _workerId, message });
-
 const _progress = (iteration, message) => _post({
   type: 'progress',
   workerId: _workerId,

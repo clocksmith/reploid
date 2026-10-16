@@ -6,7 +6,6 @@ import { CHANGE_CLASSES, hashChangePassportValue } from './contract.js';
 
 export const CHANGE_PASSPORT_POLICY_SCHEMA = 'change.passport-policy/v1';
 
-const isObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
 const cloneJson = (value) => JSON.parse(JSON.stringify(value));
 const text = (value) => String(value ?? '').trim();
 const unique = (values = []) => [...new Set(values.map(text).filter(Boolean))];

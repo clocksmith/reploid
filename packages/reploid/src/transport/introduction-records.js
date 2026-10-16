@@ -6,7 +6,6 @@ import { createPeerIdFromPublicJwk, importSigningKey, importVerificationKey,
 const encode = value => new TextEncoder().encode(canonicalize(value));
 const assert = (value, message) => { if (!value) throw new Error(message); };
 export const CONTACT = 'reploid.contact/v1', SIGNAL = 'reploid.introduction/v1';
-export const contactKey = record => `${record.body.participantId}/${record.body.peerId}`;
 
 export function boundedSnapshot(value, limit) {
   const text = JSON.stringify(value);

@@ -154,8 +154,8 @@
     },
     {
       "path": "agent/lab-strategy.js",
-      "bytes": 96991,
-      "sha256": "a89280b943e807129d0d548526a2b16c3331748d08769ee295e1882b1960a760"
+      "bytes": 96461,
+      "sha256": "e95de8316f750911123cdaa3a8325d035c8f41bff923bb2ce69b8dc160ff4010"
     },
     {
       "path": "agent/legacy-loop.d.ts",
@@ -248,6 +248,16 @@
       "sha256": "2cf1048b5b5da647274163bf2ecbe11e66d360668f9cc574eb7915f35ef04b53"
     },
     {
+      "path": "artifacts/binary.d.ts",
+      "bytes": 290,
+      "sha256": "028c28e161bffc3cb0441e96fcaae64ce3313d1b0a537d2f8899219cb968b98e"
+    },
+    {
+      "path": "artifacts/binary.js",
+      "bytes": 1036,
+      "sha256": "133382a28ae22d5ed02d9215d381a2b76efae40684d9e19aea7c06e0b603975a"
+    },
+    {
       "path": "artifacts/canonical-json.js",
       "bytes": 482,
       "sha256": "8c03ba8fc289d21bb99b3f2595ae8493397dfeb134cbb02e45311f2b43d561f4"
@@ -324,8 +334,8 @@
     },
     {
       "path": "artifacts/identity.js",
-      "bytes": 4030,
-      "sha256": "29a0f9c1bfe248da7fdf5c6cb69750ea4dbb42c5fe21a254f0d22989a083205c"
+      "bytes": 3225,
+      "sha256": "fa29e7c78d199a3c9fcb9f28a71c0b771bfe8ce04b49af7dbe66f43b45feaaee"
     },
     {
       "path": "artifacts/independent-unit-journal.d.ts",
@@ -374,8 +384,8 @@
     },
     {
       "path": "artifacts/signatures.js",
-      "bytes": 3725,
-      "sha256": "a6287d2e445e8386a04d6c2a3aa878b282272c4bbcc2e4f047c50b572709df18"
+      "bytes": 3117,
+      "sha256": "2cab796cb864d7adc97994d12da2db75208bf55d19e5deaa64b1fbbf97342c5c"
     },
     {
       "path": "artifacts/store.d.ts",
@@ -1139,8 +1149,8 @@
     },
     {
       "path": "mesh/peer-identity.js",
-      "bytes": 3834,
-      "sha256": "825f2a0397d7da4d37bee4e786e4aa941f578b35b110af93e83aa19fb06ad6db"
+      "bytes": 4085,
+      "sha256": "6ee36869a74b0e23f9dfef4f7de162dc8d33b2ca98ac052b2e7f3498a41a68ee"
     },
     {
       "path": "mesh/placement-beliefs.d.ts",
@@ -1219,8 +1229,8 @@
     },
     {
       "path": "retrieval/page-text.js",
-      "bytes": 10275,
-      "sha256": "ecd99c767324497149d86c226607fb34b6006b1f2ea4aae9ad963cb2dd3b5d73"
+      "bytes": 10192,
+      "sha256": "bdbb585e70c73db38edfdf4fcf4afe2cc7de70debadfd40ff0e2df770f761a0e"
     },
     {
       "path": "retrieval/passage.js",
@@ -1274,8 +1284,8 @@
     },
     {
       "path": "transport/assignment.js",
-      "bytes": 17612,
-      "sha256": "5c74c09ddd080f8b905f82263294fe99e8de9d107da3d40202199c9614b86bd1"
+      "bytes": 17421,
+      "sha256": "2df057da3fdeea5a2a73608a8d37d3830643961e527dff40ed942fcc01afc699"
     },
     {
       "path": "transport/bounded-channel-writer.d.ts",
@@ -1324,8 +1334,8 @@
     },
     {
       "path": "transport/introduction-records.js",
-      "bytes": 6319,
-      "sha256": "be0c4a3a4d3447ba9a2d7a4fa6b0b09bd142da2aa4c3ed33f03fe78215a27e25"
+      "bytes": 6229,
+      "sha256": "6a850b815a3ba441eecf175a016c72a1e1ae6ad9069aa22a372751139a436993"
     },
     {
       "path": "transport/introductions.d.ts",
@@ -1369,8 +1379,8 @@
     },
     {
       "path": "transport/room.js",
-      "bytes": 15848,
-      "sha256": "ae23d6665b2de8f74afa5dce3f6fec3f560cedb0c0a2fb135b48b329e8e62ef6"
+      "bytes": 15584,
+      "sha256": "cd36a2058d9b5dead7dfb628309ee8e457ecc9b219e9d044323bf6abca370d1e"
     },
     {
       "path": "transport/signaling.d.ts",
@@ -1389,8 +1399,8 @@
     },
     {
       "path": "transport/swarm.js",
-      "bytes": 46774,
-      "sha256": "ae1d9239e6b3ef5753aae822ae9fe9be4b888d425b20efd871e0b618f8847579"
+      "bytes": 46332,
+      "sha256": "af359dd2cb21df2f00c06c8ab4e4d553842d77c9e389e32016d0198039149810"
     },
     {
       "path": "transport/tool-offer-channel.d.ts",

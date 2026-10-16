@@ -13,10 +13,7 @@ import { sha256Hex, hashJson, createSigningKeyPair, exportPublicKey, exportPriva
 export { sha256Hex, hashJson, createSigningKeyPair, exportPublicKey, exportPrivateKey, importPublicKey, importPrivateKey, importSigningKeyPair, domainSeparatedPayload, signCanonical, verifyCanonicalSignature };
 
 export const RECEIPT_VERSION = 'reploid_browser_inference/v1';
-export const TRUST_TIER_SIGNED_RECEIPT = POOL_CONFIG.policies.fastest_receipt.trustTier;
-export const TRUST_TIER_CANARY_AUDITED = POOL_CONFIG.policies.canary_audited.trustTier;
-export const TRUST_TIER_REDUNDANT_AGREEMENT = POOL_CONFIG.policies.redundant_agreement.trustTier;
-export const TRUST_TIER_ACCEPTED_RECEIPT = 'T4_requester_accepted';
+const TRUST_TIER_SIGNED_RECEIPT = POOL_CONFIG.policies.fastest_receipt.trustTier;
 export const SIGNATURE_DOMAINS = Object.freeze({
   providerReceipt: 'poolday.provider_receipt.v1',
   requesterAcceptance: 'poolday.requester_acceptance.v1',

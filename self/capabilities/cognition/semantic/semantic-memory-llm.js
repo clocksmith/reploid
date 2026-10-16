@@ -1,3 +1,6 @@
+import { parseJsonl, toJsonl } from '../jsonl.js';
+import { cosineSimilarity as vectorCosineSimilarity } from '../vector-math.js';
+
 /**
  * @fileoverview Semantic Memory (LLM-based)
  * Uses the configured LLM for tag extraction and similarity ranking.
@@ -15,8 +18,8 @@ const SemanticMemoryLLM = {
   },
 
   factory: (deps) => {
-    const { Utils, EventBus, VFS, LLMClient } = deps;
-    const { logger, generateId, Errors } = Utils;
+    const { Utils, EventBus, VFS } = deps;
+    const { logger, generateId } = Utils;
 
     // Storage path
     const MEMORY_PATH = '/.memory/semantic-memories.jsonl';
@@ -36,13 +39,6 @@ const SemanticMemoryLLM = {
     let _tagIndex = {}; // tag -> [memoryIds]
     let _isInitialized = false;
 
-    // JSONL helpers
-    const parseJsonl = (content) => {
-      if (!content) return [];
-      return content.split('\n').filter(line => line.trim()).map(line => JSON.parse(line));
-    };
-
-    const toJsonl = (arr) => arr.map(item => JSON.stringify(item)).join('\n');
 
     // --- Storage ---
 
@@ -287,16 +283,7 @@ const SemanticMemoryLLM = {
     };
 
     // Compatibility: cosineSimilarity for any code that uses it
-    const cosineSimilarity = (a, b) => {
-      if (!a || !b || a.length !== b.length) return 0;
-      let dot = 0, normA = 0, normB = 0;
-      for (let i = 0; i < a.length; i++) {
-        dot += a[i] * b[i];
-        normA += a[i] * a[i];
-        normB += b[i] * b[i];
-      }
-      return dot / (Math.sqrt(normA) * Math.sqrt(normB) + 1e-8);
-    };
+    const cosineSimilarity = (a, b) => vectorCosineSimilarity(a, b, 1e-8);
 
     // --- Auto-learning from agent history ---
 

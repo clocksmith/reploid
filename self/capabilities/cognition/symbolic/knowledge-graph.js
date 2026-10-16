@@ -1,3 +1,4 @@
+import { parseJsonl, toJsonl } from '../jsonl.js';
 /**
  * @fileoverview Knowledge Graph
  * Entity-relationship store for symbolic reasoning.
@@ -31,13 +32,6 @@ const KnowledgeGraph = {
     let _subjectIndex = new Map();   // subject -> triple indices
     let _objectIndex = new Map();    // object -> triple indices
 
-    // JSONL helpers
-    const parseJsonl = (content) => {
-      if (!content) return [];
-      return content.split('\n').filter(line => line.trim()).map(line => JSON.parse(line));
-    };
-
-    const toJsonl = (arr) => arr.map(item => JSON.stringify(item)).join('\n');
 
     // --- Persistence ---
 

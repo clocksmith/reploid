@@ -1,6 +1,6 @@
 import { isTransientProviderFailure, providerRetryDelay } from './provider-recovery.js';
 import { createExecutionEngine } from './engine.js';
-import { TURN_NEXT, TURN_STOP, TURN_RETURN } from './engine.js';
+import { TURN_STOP, TURN_RETURN } from './engine.js';
 /**
  * @fileoverview Agent Loop
  * The main cognitive cycle: Think -> Act -> Observe.
@@ -31,20 +31,16 @@ const AgentLoop = {
     if (!deps.Storage || typeof deps.getRuntimeMode !== 'function' || typeof deps.buildInitialContext !== 'function' || !deps.Policies) {
       throw new TypeError('Legacy agent requires explicit storage, mode, prompt and policy ports');
     }
-    const getReploidStorage = () => deps.Storage;
     const {
   MANAGED_SERVER_PROXY_REJECT_STATUSES,
-  TRANSIENT_PROVIDER_STATUSES,
   compactContextForManagedProvider,
   getModelIterationLimit,
   getProviderErrorStatus,
-  getProviderRetryAfterMs,
   getToolSchemaName,
   isManagedServerProxyModel,
   measureContextChars,
   parseWaitDirective,
   renderModelContextForTrace,
-  resolveAgentCycleIntervalMs,
   resolveProviderThrottleConfig,
   stringifyMessageContent
 } = deps.Policies;
@@ -64,7 +60,6 @@ const AgentLoop = {
 
     const { logger, Errors } = Utils;
     const BUILD_READ_ONLY_DISCOVERY_LIMIT = policy.legacyAgent.discoveryLimit;
-    const DEFAULT_MAX_TOOL_CALLS = policy.legacyAgent.maxToolCalls;
 
     const getMaxToolCalls = () => policy.legacyAgent.maxToolCalls;
     const getProviderThrottleConfig = (model = _modelConfig) => resolveProviderThrottleConfig([
@@ -604,14 +599,6 @@ const AgentLoop = {
       const status = getProviderErrorStatus(error);
       return MANAGED_SERVER_PROXY_REJECT_STATUSES.has(status)
         && isManagedServerProxyModel(_modelConfig || _modelConfigs[0]);
-    };
-
-    const clampProviderBackoffMs = (value, model) => {
-      const config = getProviderThrottleConfig(model);
-      return Math.min(
-        config.providerBackoffMaxMs,
-        Math.max(0, Math.floor(Number(value) || 0))
-      );
     };
 
     const computeProviderBackoffMs = (attempt, error, model = _modelConfig) => {
@@ -1399,10 +1386,8 @@ const AgentLoop = {
             });
           }
 
-          let llmResponseText = '';
           const streamCallback = (text) => {
             EventBus.emit('agent:stream', text);
-            llmResponseText += text;
           };
 
           // Get tool schemas for native tool calling (if supported)

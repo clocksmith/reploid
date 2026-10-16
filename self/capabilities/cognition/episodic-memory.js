@@ -1,3 +1,5 @@
+import { cosineSimilarity } from './vector-math.js';
+
 /**
  * @fileoverview Episodic Memory
  * Full conversation message storage with embeddings, searchable history,
@@ -436,19 +438,7 @@ const EpisodicMemory = {
 
     // --- Helper Functions ---
 
-    const cosineSimilarity = (a, b) => {
-      if (!a || !b || a.length !== b.length) return 0;
 
-      let dot = 0, normA = 0, normB = 0;
-      for (let i = 0; i < a.length; i++) {
-        dot += a[i] * b[i];
-        normA += a[i] * a[i];
-        normB += b[i] * b[i];
-      }
-
-      const mag = Math.sqrt(normA) * Math.sqrt(normB);
-      return mag === 0 ? 0 : dot / mag;
-    };
 
     const getEpisodeFilePath = (sessionId) => {
       return `${CONFIG.episodesPath}${sessionId}.jsonl`;

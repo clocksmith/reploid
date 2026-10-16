@@ -1,32 +1,9 @@
+import { bytesToBase64, base64ToBytes } from './binary.js';
 import { canonicalize } from './canonical-json.js';
 const textEncoder = new TextEncoder();
 const bytesToHex = (bytes) => Array.from(bytes)
   .map((byte) => byte.toString(16).padStart(2, '0'))
   .join('');
-
-const bytesToBase64 = (bytes) => {
-  if (typeof Buffer !== 'undefined') {
-    return Buffer.from(bytes).toString('base64');
-  }
-  let binary = '';
-  const chunk = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunk) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
-  }
-  return btoa(binary);
-};
-
-const base64ToBytes = (value) => {
-  if (typeof Buffer !== 'undefined') {
-    return new Uint8Array(Buffer.from(String(value || ''), 'base64'));
-  }
-  const binary = atob(String(value || ''));
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i += 1) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return bytes;
-};
 
 export async function sha256Hex(value) {
   const input = value instanceof Uint8Array ? value : textEncoder.encode(String(value));

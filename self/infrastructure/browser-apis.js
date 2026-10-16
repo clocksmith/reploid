@@ -242,7 +242,7 @@ const BrowserAPIs = {
       }
 
       try {
-        const notification = new Notification(title, {
+        new Notification(title, {
           icon: '/favicon.ico',
           badge: '/favicon.ico',
           ...options

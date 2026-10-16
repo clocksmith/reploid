@@ -30,10 +30,6 @@ export {
   validatePooldayPolicyClasses
 };
 
-export const FASTEST_RECEIPT_POLICY = LAUNCH_POLICIES[POLICY_IDS.fastestReceipt];
-export const CANARY_AUDITED_POLICY = LAUNCH_POLICIES[POLICY_IDS.canaryAudited];
-export const REDUNDANT_AGREEMENT_POLICY = LAUNCH_POLICIES[POLICY_IDS.redundantAgreement];
-export const RING_QUORUM_RECEIPT_POLICY = LAUNCH_POLICIES[POLICY_IDS.ringQuorumReceipt];
 export function validateDeterministicGenerationConfig(config = {}) {
   return validateGenerationConfig(config, DETERMINISTIC_GENERATION_CONFIG);
 }
@@ -65,24 +61,5 @@ export function validatePolicyRequest(request = {}) {
     policy,
     policyId,
     reasons
-  };
-}
-
-export function describePolicy(policyId = FASTEST_RECEIPT_POLICY_ID) {
-  const policy = getPolicy(policyId);
-  if (!policy) return null;
-  return {
-    policyId: policy.policyId,
-    trustTier: policy.trustTier,
-    policyTrustTier: policy.policyTrustTier || policy.trustTier,
-    launch: true,
-    allowedModels: policy.allowedModels,
-    deterministicGenerationConfig: DETERMINISTIC_GENERATION_CONFIG,
-    redundancy: policy.redundancy,
-    summary: policy.adaptiveRing
-      ? 'One to twelve eligible browser providers run the same deterministic assignment in a coordinator-ordered ring; majority matching token/output hashes form the accepted ring receipt.'
-      : policy.redundancy > 1
-      ? 'Multiple independent browser providers must return matching signed receipts before requester acceptance and split point awards.'
-      : 'Single eligible browser provider, exact model identity, deterministic generation, signed assignment-bound receipt, verifier decision, requester acceptance before points.'
   };
 }
