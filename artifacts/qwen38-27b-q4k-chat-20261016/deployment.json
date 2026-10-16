@@ -1,0 +1,349 @@
+{
+  "checkedAt": "2026-10-16T19:09:50.219181+00:00",
+  "mac": {
+    "ready": {
+      "event": "partition-state",
+      "at": "2026-10-16T19:08:15.748Z",
+      "phase": "ready",
+      "error": null,
+      "offering": true,
+      "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+      "unsettledOwners": 0,
+      "progress": null,
+      "placement": [],
+      "placementOmitted": 0,
+      "descriptor": {
+        "schema": "doppler.resident-partition/v2",
+        "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+        "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+        "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+        "index": 0,
+        "ready": true,
+        "residentWeightBytes": 2759312128,
+        "generationDigest": "sha256:27e5d8aa66d9e3c9c88758d3c06199648bc76e6f2361ca4dac91733161993e3f",
+        "layerRange": [
+          0,
+          0
+        ]
+      },
+      "reservations": {
+        "active": 0,
+        "availableSlots": 2,
+        "closed": false,
+        "count": 0,
+        "omitted": 0,
+        "records": []
+      },
+      "attempts": {
+        "count": 0,
+        "omitted": 0,
+        "records": []
+      },
+      "acquisition": {
+        "openingMode": "pinned-manifest",
+        "memory": {
+          "liveBytes": 2760492112,
+          "maxBytes": 6442450944,
+          "peakBytes": 2760492112,
+          "allocations": 27,
+          "rejected": 0
+        },
+        "preparation": {}
+      },
+      "owner": {
+        "status": "no owner policy"
+      }
+    },
+    "latest": {
+      "event": "partition-state",
+      "at": "2026-10-16T19:09:11.340Z",
+      "phase": "ready",
+      "error": null,
+      "offering": true,
+      "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+      "unsettledOwners": 0,
+      "progress": null,
+      "placement": [
+        "peer:efb774c9f322dab41567fce6",
+        "peer:036f2d43da19536d800b6c2f"
+      ],
+      "placementOmitted": 0,
+      "descriptor": {
+        "schema": "doppler.resident-partition/v2",
+        "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+        "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+        "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+        "index": 0,
+        "ready": true,
+        "residentWeightBytes": 2759312128,
+        "generationDigest": "sha256:27e5d8aa66d9e3c9c88758d3c06199648bc76e6f2361ca4dac91733161993e3f",
+        "layerRange": [
+          0,
+          0
+        ]
+      },
+      "reservations": {
+        "active": 0,
+        "availableSlots": 2,
+        "closed": false,
+        "count": 5,
+        "omitted": 0,
+        "records": [
+          {
+            "attemptId": "43d17904-383f-4436-a15d-211914dc8637",
+            "phase": "settled",
+            "failure": null,
+            "reservedAt": 1792177713195,
+            "settlingAt": 1792177716595,
+            "settledAt": 1792177716595
+          },
+          {
+            "attemptId": "95d72afa-5bca-4ab3-813d-da6b5f6b22df",
+            "phase": "settled",
+            "failure": null,
+            "reservedAt": 1792177717277,
+            "settlingAt": 1792177720247,
+            "settledAt": 1792177720247
+          },
+          {
+            "attemptId": "3898f5c2-b271-474d-b071-a314f49de9f7",
+            "phase": "failed",
+            "failure": "Partition request cancelled or timed out",
+            "reservedAt": 1792177721127,
+            "settlingAt": 1792177724678,
+            "settledAt": 1792177724678
+          },
+          {
+            "attemptId": "d09432be-c3bc-404a-b64e-895b4ab7486c",
+            "phase": "settled",
+            "failure": null,
+            "reservedAt": 1792177725371,
+            "settlingAt": 1792177729067,
+            "settledAt": 1792177729068
+          },
+          {
+            "attemptId": "0f38b4d4-67d7-44e4-bcf3-8a84a4e39fef",
+            "phase": "settled",
+            "failure": null,
+            "reservedAt": 1792177729368,
+            "settlingAt": 1792177751247,
+            "settledAt": 1792177751247
+          }
+        ]
+      },
+      "attempts": {
+        "count": 5,
+        "omitted": 0,
+        "records": [
+          {
+            "phase": "completed"
+          },
+          {
+            "phase": "completed"
+          },
+          {
+            "phase": "cancelled"
+          },
+          {
+            "phase": "completed"
+          },
+          {
+            "phase": "completed"
+          }
+        ]
+      },
+      "acquisition": {
+        "openingMode": "pinned-manifest",
+        "memory": {
+          "liveBytes": 2932067680,
+          "maxBytes": 6442450944,
+          "peakBytes": 2977058816,
+          "allocations": 634,
+          "rejected": 0
+        },
+        "preparation": {}
+      },
+      "owner": {
+        "status": "no owner policy"
+      }
+    },
+    "firstLoadingAt": "2026-10-16T19:08:11.293Z",
+    "service": "id.replo.qwen27b-split",
+    "runtimeSourceSha256": "1440a7016ce7bc4d046a42cb4c96c907be9827b82e839541649d3524455f108b"
+  },
+  "bundleHash": "sha256:d6bc91e727465927cc30a5a16d322f5e10c18dbfe9bcbcfa1df4fdc4dc184afb",
+  "sourceCommits": [
+    "7af58213",
+    "b020ac9b",
+    "828578a2"
+  ],
+  "amd": {
+    "ready": {
+      "event": "partition-state",
+      "at": "2026-10-16T19:08:27.382Z",
+      "phase": "ready",
+      "error": null,
+      "offering": true,
+      "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+      "unsettledOwners": 0,
+      "progress": null,
+      "placement": [],
+      "placementOmitted": 0,
+      "descriptor": {
+        "schema": "doppler.resident-partition/v2",
+        "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+        "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+        "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+        "index": 1,
+        "ready": true,
+        "residentWeightBytes": 14242434304,
+        "generationDigest": "sha256:27e5d8aa66d9e3c9c88758d3c06199648bc76e6f2361ca4dac91733161993e3f",
+        "layerRange": [
+          1,
+          63
+        ]
+      },
+      "reservations": {
+        "active": 0,
+        "availableSlots": 2,
+        "closed": false,
+        "count": 0,
+        "omitted": 0,
+        "records": []
+      },
+      "attempts": {
+        "count": 0,
+        "omitted": 0,
+        "records": []
+      },
+      "acquisition": {
+        "openingMode": "pinned-manifest",
+        "memory": {
+          "liveBytes": 14243614288,
+          "maxBytes": 25769803776,
+          "peakBytes": 14512049744,
+          "allocations": 942,
+          "rejected": 0
+        },
+        "preparation": {}
+      },
+      "owner": {
+        "status": "no owner policy"
+      }
+    },
+    "latest": {
+      "event": "partition-state",
+      "at": "2026-10-16T19:09:11.461Z",
+      "phase": "ready",
+      "error": null,
+      "offering": true,
+      "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+      "unsettledOwners": 0,
+      "progress": null,
+      "placement": [],
+      "placementOmitted": 0,
+      "descriptor": {
+        "schema": "doppler.resident-partition/v2",
+        "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+        "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+        "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+        "index": 1,
+        "ready": true,
+        "residentWeightBytes": 14242434304,
+        "generationDigest": "sha256:27e5d8aa66d9e3c9c88758d3c06199648bc76e6f2361ca4dac91733161993e3f",
+        "layerRange": [
+          1,
+          63
+        ]
+      },
+      "reservations": {
+        "active": 0,
+        "availableSlots": 2,
+        "closed": false,
+        "count": 5,
+        "omitted": 0,
+        "records": [
+          {
+            "attemptId": "43d17904-383f-4436-a15d-211914dc8637",
+            "phase": "settled",
+            "failure": null,
+            "reservedAt": 1792177713236,
+            "settlingAt": 1792177716621,
+            "settledAt": 1792177716622
+          },
+          {
+            "attemptId": "95d72afa-5bca-4ab3-813d-da6b5f6b22df",
+            "phase": "settled",
+            "failure": null,
+            "reservedAt": 1792177717311,
+            "settlingAt": 1792177720272,
+            "settledAt": 1792177720273
+          },
+          {
+            "attemptId": "3898f5c2-b271-474d-b071-a314f49de9f7",
+            "phase": "settled",
+            "failure": null,
+            "reservedAt": 1792177721175,
+            "settlingAt": 1792177724701,
+            "settledAt": 1792177724702
+          },
+          {
+            "attemptId": "d09432be-c3bc-404a-b64e-895b4ab7486c",
+            "phase": "settled",
+            "failure": null,
+            "reservedAt": 1792177725406,
+            "settlingAt": 1792177729093,
+            "settledAt": 1792177729094
+          },
+          {
+            "attemptId": "0f38b4d4-67d7-44e4-bcf3-8a84a4e39fef",
+            "phase": "settled",
+            "failure": null,
+            "reservedAt": 1792177729402,
+            "settlingAt": 1792177751276,
+            "settledAt": 1792177751277
+          }
+        ]
+      },
+      "attempts": {
+        "count": 0,
+        "omitted": 0,
+        "records": []
+      },
+      "acquisition": {
+        "openingMode": "pinned-manifest",
+        "memory": {
+          "liveBytes": 14444984392,
+          "maxBytes": 25769803776,
+          "peakBytes": 14693013480,
+          "allocations": 79636,
+          "rejected": 0
+        },
+        "preparation": {}
+      },
+      "owner": {
+        "status": "no owner policy"
+      }
+    },
+    "firstLoadingAt": "2026-10-16T19:08:03.707Z",
+    "service": "reploid-qwen-27b-split.service",
+    "preparationSeconds": 23.675
+  },
+  "activeServices": {
+    "macSplit": 57903,
+    "amdSplit": 1739039,
+    "amdWholeQ4K": 482901,
+    "amd08b": 2963679,
+    "amd2b": 2967869
+  },
+  "validation": {
+    "focusedTests": 49,
+    "runtimeVerificationWorkerPassed": true,
+    "localBrowserPassed": true,
+    "liveBrowserPassed": true,
+    "requesterWeightDownloads": 0,
+    "followup": true,
+    "cancellationAndReuse": true,
+    "historyAfterReload": true
+  }
+}

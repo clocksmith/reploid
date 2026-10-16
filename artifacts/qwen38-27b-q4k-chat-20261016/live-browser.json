@@ -1,0 +1,2613 @@
+{
+  "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+  "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "browser": "155.0.8059.80",
+  "at": "2026-10-16T19:09:15.005Z",
+  "turns": [
+    {
+      "attempt": {
+        "approval": null,
+        "authorization": {
+          "adapterIdentities": [],
+          "disclosure": "ordered-partition-activations-and-tokens",
+          "expiresAt": 1792178613126,
+          "grantId": null,
+          "kind": "permission",
+          "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+          "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+          "peerId": "peer:efb774c9f322dab41567fce6",
+          "permissionId": "b00c3285-87e5-44c0-9507-2db743dbaeb9",
+          "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+          "recipientIdentity": "peer:efb774c9f322dab41567fce6",
+          "recipients": [
+            "peer:efb774c9f322dab41567fce6",
+            "peer:036f2d43da19536d800b6c2f"
+          ],
+          "requesterIdentity": "peer:60cf08c57a35f723d4023ce7",
+          "route": {
+            "activation": {
+              "components": 1,
+              "dtype": "f32",
+              "elementStrideBytes": 4,
+              "hiddenSize": 5120,
+              "precision": "f32",
+              "schema": "doppler.activation-tensor/v1"
+            },
+            "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+            "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+            "schema": "reploid.partition-route/v1",
+            "stages": [
+              {
+                "executionId": "q4k-split-chat-mac",
+                "index": 0,
+                "participantId": "peer:efb774c9f322dab41567fce6",
+                "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+              },
+              {
+                "executionId": "q4k-split-chat-amd",
+                "index": 1,
+                "participantId": "peer:036f2d43da19536d800b6c2f",
+                "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+              }
+            ]
+          },
+          "sharingScope": "mesh",
+          "source": "permission"
+        },
+        "createdAt": 1792177712905,
+        "error": null,
+        "execution": {
+          "activationBytes": 1269760,
+          "admission": {
+            "queuedMs": 0
+          },
+          "identity": {
+            "attemptId": "43d17904-383f-4436-a15d-211914dc8637",
+            "placementGeneration": 0,
+            "requesterId": "peer:60cf08c57a35f723d4023ce7",
+            "route": {
+              "activation": {
+                "components": 1,
+                "dtype": "f32",
+                "elementStrideBytes": 4,
+                "hiddenSize": 5120,
+                "precision": "f32",
+                "schema": "doppler.activation-tensor/v1"
+              },
+              "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+              "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+              "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+              "schema": "reploid.partition-route/v1",
+              "stages": [
+                {
+                  "executionId": "q4k-split-chat-mac",
+                  "index": 0,
+                  "participantId": "peer:efb774c9f322dab41567fce6",
+                  "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                  "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                },
+                {
+                  "executionId": "q4k-split-chat-amd",
+                  "index": 1,
+                  "participantId": "peer:036f2d43da19536d800b6c2f",
+                  "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                  "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                }
+              ]
+            },
+            "schema": "reploid.partition-attempt/v2",
+            "threadId": "08132ec3-717f-4352-b0f7-7d2826b0be26"
+          },
+          "schema": "reploid.mesh.partition-summary/v2",
+          "selection": {
+            "eligibility": [
+              {
+                "capacity": {
+                  "active": 0,
+                  "attemptQueue": {
+                    "maxQueued": 4,
+                    "queued": 0
+                  },
+                  "availableSlots": 2,
+                  "closed": false
+                },
+                "eligible": true,
+                "participantId": "peer:efb774c9f322dab41567fce6",
+                "reason": "reservation-required",
+                "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+              },
+              {
+                "capacity": {
+                  "active": 0,
+                  "availableSlots": 2,
+                  "closed": false
+                },
+                "eligible": false,
+                "participantId": "peer:036f2d43da19536d800b6c2f",
+                "reason": "no-prepared-path",
+                "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+              }
+            ],
+            "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+          },
+          "settlement": {
+            "cleanup": [
+              {
+                "error": null,
+                "partitionIndex": 0,
+                "status": "settled"
+              },
+              {
+                "error": null,
+                "partitionIndex": 1,
+                "status": "settled"
+              }
+            ],
+            "cleanupSettledAt": 1792177716615,
+            "failure": null,
+            "identity": {
+              "attemptId": "43d17904-383f-4436-a15d-211914dc8637",
+              "placementGeneration": 0,
+              "requesterId": "peer:60cf08c57a35f723d4023ce7",
+              "route": {
+                "activation": {
+                  "components": 1,
+                  "dtype": "f32",
+                  "elementStrideBytes": 4,
+                  "hiddenSize": 5120,
+                  "precision": "f32",
+                  "schema": "doppler.activation-tensor/v1"
+                },
+                "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+                "schema": "reploid.partition-route/v1",
+                "stages": [
+                  {
+                    "executionId": "q4k-split-chat-mac",
+                    "index": 0,
+                    "participantId": "peer:efb774c9f322dab41567fce6",
+                    "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                    "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                  },
+                  {
+                    "executionId": "q4k-split-chat-amd",
+                    "index": 1,
+                    "participantId": "peer:036f2d43da19536d800b6c2f",
+                    "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                    "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                  }
+                ]
+              },
+              "schema": "reploid.partition-attempt/v2",
+              "threadId": "08132ec3-717f-4352-b0f7-7d2826b0be26"
+            },
+            "phase": "completed",
+            "reservations": [
+              {
+                "failure": null,
+                "identity": {
+                  "attemptId": "43d17904-383f-4436-a15d-211914dc8637",
+                  "placementGeneration": 0,
+                  "requesterId": "peer:60cf08c57a35f723d4023ce7",
+                  "route": {
+                    "activation": {
+                      "components": 1,
+                      "dtype": "f32",
+                      "elementStrideBytes": 4,
+                      "hiddenSize": 5120,
+                      "precision": "f32",
+                      "schema": "doppler.activation-tensor/v1"
+                    },
+                    "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                    "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                    "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+                    "schema": "reploid.partition-route/v1",
+                    "stages": [
+                      {
+                        "executionId": "q4k-split-chat-mac",
+                        "index": 0,
+                        "participantId": "peer:efb774c9f322dab41567fce6",
+                        "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                        "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                      },
+                      {
+                        "executionId": "q4k-split-chat-amd",
+                        "index": 1,
+                        "participantId": "peer:036f2d43da19536d800b6c2f",
+                        "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                        "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                      }
+                    ]
+                  },
+                  "schema": "reploid.partition-attempt/v2",
+                  "threadId": "08132ec3-717f-4352-b0f7-7d2826b0be26"
+                },
+                "index": 0,
+                "participantId": "peer:efb774c9f322dab41567fce6",
+                "partitionIndex": 0,
+                "phase": "reserved",
+                "reservedAt": 1792177713195,
+                "resources": {
+                  "attemptSlots": 1,
+                  "maxActivationBytes": 33554432,
+                  "maxPromptTokens": 4096,
+                  "maxTokens": 4096,
+                  "scope": "application-attempt-limits"
+                },
+                "settledAt": null,
+                "settlingAt": null,
+                "status": "reserved"
+              },
+              {
+                "failure": null,
+                "identity": {
+                  "attemptId": "43d17904-383f-4436-a15d-211914dc8637",
+                  "placementGeneration": 0,
+                  "requesterId": "peer:60cf08c57a35f723d4023ce7",
+                  "route": {
+                    "activation": {
+                      "components": 1,
+                      "dtype": "f32",
+                      "elementStrideBytes": 4,
+                      "hiddenSize": 5120,
+                      "precision": "f32",
+                      "schema": "doppler.activation-tensor/v1"
+                    },
+                    "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                    "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                    "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+                    "schema": "reploid.partition-route/v1",
+                    "stages": [
+                      {
+                        "executionId": "q4k-split-chat-mac",
+                        "index": 0,
+                        "participantId": "peer:efb774c9f322dab41567fce6",
+                        "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                        "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                      },
+                      {
+                        "executionId": "q4k-split-chat-amd",
+                        "index": 1,
+                        "participantId": "peer:036f2d43da19536d800b6c2f",
+                        "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                        "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                      }
+                    ]
+                  },
+                  "schema": "reploid.partition-attempt/v2",
+                  "threadId": "08132ec3-717f-4352-b0f7-7d2826b0be26"
+                },
+                "index": 1,
+                "participantId": "peer:036f2d43da19536d800b6c2f",
+                "partitionIndex": 1,
+                "phase": "reserved",
+                "reservedAt": 1792177713236,
+                "resources": {
+                  "attemptSlots": 1,
+                  "maxActivationBytes": 33554432,
+                  "maxPromptTokens": 4096,
+                  "maxTokens": 4096,
+                  "scope": "application-attempt-limits"
+                },
+                "settledAt": null,
+                "settlingAt": null,
+                "status": "reserved"
+              }
+            ]
+          },
+          "stepSummary": {
+            "count": 3,
+            "detail": "aggregate; no per-step trace transferred",
+            "phases": {
+              "decode": {
+                "stages": [
+                  {
+                    "elapsedMs": {
+                      "count": 2,
+                      "max": 58.32150000000183,
+                      "min": 21.116000000001804,
+                      "total": 79.43750000000364
+                    },
+                    "partitionIndex": 0,
+                    "runtime": {
+                      "activationReadbackMs": {
+                        "count": 2,
+                        "max": 0.6114999999990687,
+                        "min": 0.4446250000000873,
+                        "total": 1.056124999999156
+                      },
+                      "encodeMs": {
+                        "count": 2,
+                        "max": 15.371083999998518,
+                        "min": 1.4011669999999867,
+                        "total": 16.772250999998505
+                      },
+                      "executionMs": {
+                        "count": 2,
+                        "max": 56.729708999999275,
+                        "min": 19.814084000001458,
+                        "total": 76.54379300000073
+                      },
+                      "gpuKernelsMs": {
+                        "count": 0,
+                        "max": null,
+                        "min": null,
+                        "total": 0
+                      },
+                      "inputUploadMs": {
+                        "count": 2,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "logitsMs": {
+                        "count": 2,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "logitsReadbackMs": {
+                        "count": 2,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "samplingMs": {
+                        "count": 2,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "submitWaitMs": {
+                        "count": 2,
+                        "max": 40.59087500000169,
+                        "min": 17.82775000000038,
+                        "total": 58.418625000002066
+                      }
+                    }
+                  },
+                  {
+                    "elapsedMs": {
+                      "count": 2,
+                      "max": 367.9562500000029,
+                      "min": 224.9368340000001,
+                      "total": 592.893084000003
+                    },
+                    "partitionIndex": 1,
+                    "runtime": {
+                      "activationReadbackMs": {
+                        "count": 2,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "encodeMs": {
+                        "count": 2,
+                        "max": 171.17964600000414,
+                        "min": 68.20102400000178,
+                        "total": 239.38067000000592
+                      },
+                      "executionMs": {
+                        "count": 2,
+                        "max": 329.14667599999666,
+                        "min": 178.5237430000052,
+                        "total": 507.67041900000186
+                      },
+                      "gpuKernelsMs": {
+                        "count": 0,
+                        "max": null,
+                        "min": null,
+                        "total": 0
+                      },
+                      "inputUploadMs": {
+                        "count": 2,
+                        "max": 0.05677700000524055,
+                        "min": 0.05013399999734247,
+                        "total": 0.10691100000258302
+                      },
+                      "logitsMs": {
+                        "count": 2,
+                        "max": 45.79019800000242,
+                        "min": 1.2636400000046706,
+                        "total": 47.05383800000709
+                      },
+                      "logitsReadbackMs": {
+                        "count": 2,
+                        "max": 4.068285000001197,
+                        "min": 3.9984540000004927,
+                        "total": 8.06673900000169
+                      },
+                      "samplingMs": {
+                        "count": 2,
+                        "max": 3.3208880000020145,
+                        "min": 1.3814629999978933,
+                        "total": 4.702350999999908
+                      },
+                      "submitWaitMs": {
+                        "count": 2,
+                        "max": 111.6272570000001,
+                        "min": 108.4308349999992,
+                        "total": 220.0580919999993
+                      }
+                    }
+                  }
+                ],
+                "steps": 2
+              },
+              "prompt": {
+                "inputTokens": 60,
+                "stages": [
+                  {
+                    "elapsedMs": 171.68337500000052,
+                    "partitionIndex": 0,
+                    "runtime": {
+                      "activationReadbackMs": 0.532999999999447,
+                      "encodeMs": 62.052208000000974,
+                      "executionMs": 168.55016700000124,
+                      "gpuKernelsMs": null,
+                      "inputUploadMs": 0,
+                      "logitsMs": 0,
+                      "logitsReadbackMs": 0,
+                      "samplingMs": 0,
+                      "submitWaitMs": 105.10620799999742
+                    }
+                  },
+                  {
+                    "elapsedMs": 2509.867250000003,
+                    "partitionIndex": 1,
+                    "runtime": {
+                      "activationReadbackMs": 0,
+                      "encodeMs": 1847.8485519999995,
+                      "executionMs": 2357.1467169999996,
+                      "gpuKernelsMs": null,
+                      "inputUploadMs": 0.1502230000005511,
+                      "logitsMs": 17.521973999999318,
+                      "logitsReadbackMs": 0.6697820000008505,
+                      "samplingMs": 9.300123000000895,
+                      "submitWaitMs": 473.92110799999864
+                    }
+                  }
+                ]
+              }
+            },
+            "stages": [
+              {
+                "partitionIndex": 0,
+                "stepMs": {
+                  "count": 3,
+                  "total": 251.12087500000416
+                },
+                "steps": 3
+              },
+              {
+                "partitionIndex": 1,
+                "stepMs": {
+                  "count": 3,
+                  "total": 3102.760334000006
+                },
+                "steps": 3
+              }
+            ]
+          },
+          "stopReason": "eos-token"
+        },
+        "finishedAt": 1792177716620,
+        "id": "43d17904-383f-4436-a15d-211914dc8637",
+        "provenance": {
+          "attemptId": "43d17904-383f-4436-a15d-211914dc8637",
+          "classes": [
+            "mesh"
+          ],
+          "earlierAttempts": [],
+          "execution": {
+            "classes": [
+              "mesh"
+            ],
+            "participants": [
+              {
+                "participantId": "peer:efb774c9f322dab41567fce6",
+                "role": "stage",
+                "stage": 0,
+                "supply": "mesh"
+              },
+              {
+                "participantId": "peer:036f2d43da19536d800b6c2f",
+                "role": "stage",
+                "stage": 1,
+                "supply": "mesh"
+              }
+            ],
+            "placement": "ordered-layer-partition",
+            "supply": "mesh"
+          },
+          "retrieval": {
+            "supply": "none"
+          },
+          "schema": "reploid.answer-provenance/v1",
+          "supply": "mesh"
+        },
+        "publicationMode": "canonical",
+        "request": {
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.8 27B.",
+              "role": "system"
+            },
+            {
+              "content": "What is 17 + 25? Answer with the number only.",
+              "role": "user"
+            }
+          ],
+          "model": {
+            "activation": {
+              "components": 1,
+              "dtype": "f32",
+              "elementStrideBytes": 4,
+              "hiddenSize": 5120,
+              "precision": "f32",
+              "schema": "doppler.activation-tensor/v1"
+            },
+            "adapters": [],
+            "availability": "ready",
+            "contextLength": 4096,
+            "executionId": "q4k-split-chat-mac",
+            "id": "qwen3-8-27b-text-q4k-ehaf16",
+            "identity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "index": 0,
+            "localCached": false,
+            "localReady": false,
+            "name": "Qwen 3.8 27B",
+            "networkAvailability": "ready",
+            "partition": {
+              "coordinatorId": "peer:efb774c9f322dab41567fce6",
+              "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+              "route": {
+                "activation": {
+                  "components": 1,
+                  "dtype": "f32",
+                  "elementStrideBytes": 4,
+                  "hiddenSize": 5120,
+                  "precision": "f32",
+                  "schema": "doppler.activation-tensor/v1"
+                },
+                "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+                "schema": "reploid.partition-route/v1",
+                "stages": [
+                  {
+                    "executionId": "q4k-split-chat-mac",
+                    "index": 0,
+                    "participantId": "peer:efb774c9f322dab41567fce6",
+                    "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                    "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                  },
+                  {
+                    "executionId": "q4k-split-chat-amd",
+                    "index": 1,
+                    "participantId": "peer:036f2d43da19536d800b6c2f",
+                    "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                    "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                  }
+                ]
+              },
+              "schema": "reploid.partition-selection/v2"
+            },
+            "placement": "ordered-layer-partition",
+            "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+            "provider": "doppler",
+            "providerIds": [
+              "peer:efb774c9f322dab41567fce6",
+              "peer:036f2d43da19536d800b6c2f"
+            ],
+            "quantization": "q4k",
+            "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+            "selectionId": "qwen3-8-27b-text-q4k-ehaf16/partition/sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+            "size": "Q4K \u00b7 17 GB",
+            "textGeneration": {
+              "schema": "reploid.text-generation/v1",
+              "usage": "raw-model-tokens/v1"
+            }
+          },
+          "permissions": {
+            "executionLocation": "auto",
+            "sharingScope": "mesh"
+          }
+        },
+        "responseId": "f57484f2-75ed-441b-99b6-cd57fc6aed51",
+        "retryOf": null,
+        "status": "completed",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.8 27B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        },
+        "threadId": "08132ec3-717f-4352-b0f7-7d2826b0be26",
+        "userMessageId": "8e6dfb4e-a351-4205-a463-bacd8c831e1b"
+      },
+      "answer": "42",
+      "firstDeltaMs": 3192.5093750000005,
+      "completeMs": 3820.2331669999994
+    },
+    {
+      "attempt": {
+        "approval": null,
+        "authorization": {
+          "adapterIdentities": [],
+          "disclosure": "ordered-partition-activations-and-tokens",
+          "expiresAt": 1792178617213,
+          "grantId": null,
+          "kind": "permission",
+          "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+          "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+          "peerId": "peer:efb774c9f322dab41567fce6",
+          "permissionId": "b00c3285-87e5-44c0-9507-2db743dbaeb9",
+          "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+          "recipientIdentity": "peer:efb774c9f322dab41567fce6",
+          "recipients": [
+            "peer:efb774c9f322dab41567fce6",
+            "peer:036f2d43da19536d800b6c2f"
+          ],
+          "requesterIdentity": "peer:60cf08c57a35f723d4023ce7",
+          "route": {
+            "activation": {
+              "components": 1,
+              "dtype": "f32",
+              "elementStrideBytes": 4,
+              "hiddenSize": 5120,
+              "precision": "f32",
+              "schema": "doppler.activation-tensor/v1"
+            },
+            "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+            "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+            "schema": "reploid.partition-route/v1",
+            "stages": [
+              {
+                "executionId": "q4k-split-chat-mac",
+                "index": 0,
+                "participantId": "peer:efb774c9f322dab41567fce6",
+                "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+              },
+              {
+                "executionId": "q4k-split-chat-amd",
+                "index": 1,
+                "participantId": "peer:036f2d43da19536d800b6c2f",
+                "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+              }
+            ]
+          },
+          "sharingScope": "mesh",
+          "source": "permission"
+        },
+        "createdAt": 1792177716719,
+        "error": null,
+        "execution": {
+          "activationBytes": 1802240,
+          "admission": {
+            "queuedMs": 0
+          },
+          "identity": {
+            "attemptId": "95d72afa-5bca-4ab3-813d-da6b5f6b22df",
+            "placementGeneration": 0,
+            "requesterId": "peer:60cf08c57a35f723d4023ce7",
+            "route": {
+              "activation": {
+                "components": 1,
+                "dtype": "f32",
+                "elementStrideBytes": 4,
+                "hiddenSize": 5120,
+                "precision": "f32",
+                "schema": "doppler.activation-tensor/v1"
+              },
+              "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+              "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+              "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+              "schema": "reploid.partition-route/v1",
+              "stages": [
+                {
+                  "executionId": "q4k-split-chat-mac",
+                  "index": 0,
+                  "participantId": "peer:efb774c9f322dab41567fce6",
+                  "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                  "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                },
+                {
+                  "executionId": "q4k-split-chat-amd",
+                  "index": 1,
+                  "participantId": "peer:036f2d43da19536d800b6c2f",
+                  "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                  "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                }
+              ]
+            },
+            "schema": "reploid.partition-attempt/v2",
+            "threadId": "08132ec3-717f-4352-b0f7-7d2826b0be26"
+          },
+          "schema": "reploid.mesh.partition-summary/v2",
+          "selection": {
+            "eligibility": [
+              {
+                "capacity": {
+                  "active": 1,
+                  "attemptQueue": {
+                    "maxQueued": 4,
+                    "queued": 0
+                  },
+                  "availableSlots": 1,
+                  "closed": false
+                },
+                "eligible": true,
+                "participantId": "peer:efb774c9f322dab41567fce6",
+                "reason": "reservation-required",
+                "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+              },
+              {
+                "capacity": {
+                  "active": 1,
+                  "availableSlots": 1,
+                  "closed": false
+                },
+                "eligible": false,
+                "participantId": "peer:036f2d43da19536d800b6c2f",
+                "reason": "no-prepared-path",
+                "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+              }
+            ],
+            "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+          },
+          "settlement": {
+            "cleanup": [
+              {
+                "error": null,
+                "partitionIndex": 0,
+                "status": "settled"
+              },
+              {
+                "error": null,
+                "partitionIndex": 1,
+                "status": "settled"
+              }
+            ],
+            "cleanupSettledAt": 1792177720265,
+            "failure": null,
+            "identity": {
+              "attemptId": "95d72afa-5bca-4ab3-813d-da6b5f6b22df",
+              "placementGeneration": 0,
+              "requesterId": "peer:60cf08c57a35f723d4023ce7",
+              "route": {
+                "activation": {
+                  "components": 1,
+                  "dtype": "f32",
+                  "elementStrideBytes": 4,
+                  "hiddenSize": 5120,
+                  "precision": "f32",
+                  "schema": "doppler.activation-tensor/v1"
+                },
+                "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+                "schema": "reploid.partition-route/v1",
+                "stages": [
+                  {
+                    "executionId": "q4k-split-chat-mac",
+                    "index": 0,
+                    "participantId": "peer:efb774c9f322dab41567fce6",
+                    "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                    "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                  },
+                  {
+                    "executionId": "q4k-split-chat-amd",
+                    "index": 1,
+                    "participantId": "peer:036f2d43da19536d800b6c2f",
+                    "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                    "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                  }
+                ]
+              },
+              "schema": "reploid.partition-attempt/v2",
+              "threadId": "08132ec3-717f-4352-b0f7-7d2826b0be26"
+            },
+            "phase": "completed",
+            "reservations": [
+              {
+                "failure": null,
+                "identity": {
+                  "attemptId": "95d72afa-5bca-4ab3-813d-da6b5f6b22df",
+                  "placementGeneration": 0,
+                  "requesterId": "peer:60cf08c57a35f723d4023ce7",
+                  "route": {
+                    "activation": {
+                      "components": 1,
+                      "dtype": "f32",
+                      "elementStrideBytes": 4,
+                      "hiddenSize": 5120,
+                      "precision": "f32",
+                      "schema": "doppler.activation-tensor/v1"
+                    },
+                    "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                    "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                    "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+                    "schema": "reploid.partition-route/v1",
+                    "stages": [
+                      {
+                        "executionId": "q4k-split-chat-mac",
+                        "index": 0,
+                        "participantId": "peer:efb774c9f322dab41567fce6",
+                        "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                        "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                      },
+                      {
+                        "executionId": "q4k-split-chat-amd",
+                        "index": 1,
+                        "participantId": "peer:036f2d43da19536d800b6c2f",
+                        "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                        "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                      }
+                    ]
+                  },
+                  "schema": "reploid.partition-attempt/v2",
+                  "threadId": "08132ec3-717f-4352-b0f7-7d2826b0be26"
+                },
+                "index": 0,
+                "participantId": "peer:efb774c9f322dab41567fce6",
+                "partitionIndex": 0,
+                "phase": "reserved",
+                "reservedAt": 1792177717277,
+                "resources": {
+                  "attemptSlots": 1,
+                  "maxActivationBytes": 33554432,
+                  "maxPromptTokens": 4096,
+                  "maxTokens": 4096,
+                  "scope": "application-attempt-limits"
+                },
+                "settledAt": null,
+                "settlingAt": null,
+                "status": "reserved"
+              },
+              {
+                "failure": null,
+                "identity": {
+                  "attemptId": "95d72afa-5bca-4ab3-813d-da6b5f6b22df",
+                  "placementGeneration": 0,
+                  "requesterId": "peer:60cf08c57a35f723d4023ce7",
+                  "route": {
+                    "activation": {
+                      "components": 1,
+                      "dtype": "f32",
+                      "elementStrideBytes": 4,
+                      "hiddenSize": 5120,
+                      "precision": "f32",
+                      "schema": "doppler.activation-tensor/v1"
+                    },
+                    "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                    "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                    "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+                    "schema": "reploid.partition-route/v1",
+                    "stages": [
+                      {
+                        "executionId": "q4k-split-chat-mac",
+                        "index": 0,
+                        "participantId": "peer:efb774c9f322dab41567fce6",
+                        "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                        "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                      },
+                      {
+                        "executionId": "q4k-split-chat-amd",
+                        "index": 1,
+                        "participantId": "peer:036f2d43da19536d800b6c2f",
+                        "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                        "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                      }
+                    ]
+                  },
+                  "schema": "reploid.partition-attempt/v2",
+                  "threadId": "08132ec3-717f-4352-b0f7-7d2826b0be26"
+                },
+                "index": 1,
+                "participantId": "peer:036f2d43da19536d800b6c2f",
+                "partitionIndex": 1,
+                "phase": "reserved",
+                "reservedAt": 1792177717311,
+                "resources": {
+                  "attemptSlots": 1,
+                  "maxActivationBytes": 33554432,
+                  "maxPromptTokens": 4096,
+                  "maxTokens": 4096,
+                  "scope": "application-attempt-limits"
+                },
+                "settledAt": null,
+                "settlingAt": null,
+                "status": "reserved"
+              }
+            ]
+          },
+          "stepSummary": {
+            "count": 3,
+            "detail": "aggregate; no per-step trace transferred",
+            "phases": {
+              "decode": {
+                "stages": [
+                  {
+                    "elapsedMs": {
+                      "count": 2,
+                      "max": 63.91058300000077,
+                      "min": 23.048542000000452,
+                      "total": 86.95912500000122
+                    },
+                    "partitionIndex": 0,
+                    "runtime": {
+                      "activationReadbackMs": {
+                        "count": 2,
+                        "max": 2.0729170000013255,
+                        "min": 0.5121670000007725,
+                        "total": 2.585084000002098
+                      },
+                      "encodeMs": {
+                        "count": 2,
+                        "max": 4.669458000000304,
+                        "min": 3.7460829999981797,
+                        "total": 8.415540999998484
+                      },
+                      "executionMs": {
+                        "count": 2,
+                        "max": 53.948624999997264,
+                        "min": 20.48320800000147,
+                        "total": 74.43183299999873
+                      },
+                      "gpuKernelsMs": {
+                        "count": 0,
+                        "max": null,
+                        "min": null,
+                        "total": 0
+                      },
+                      "inputUploadMs": {
+                        "count": 2,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "logitsMs": {
+                        "count": 2,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "logitsReadbackMs": {
+                        "count": 2,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "samplingMs": {
+                        "count": 2,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "submitWaitMs": {
+                        "count": 2,
+                        "max": 44.43654100000276,
+                        "min": 15.26616699999795,
+                        "total": 59.70270800000071
+                      }
+                    }
+                  },
+                  {
+                    "elapsedMs": {
+                      "count": 2,
+                      "max": 225.8597919999993,
+                      "min": 216.885542,
+                      "total": 442.7453339999993
+                    },
+                    "partitionIndex": 1,
+                    "runtime": {
+                      "activationReadbackMs": {
+                        "count": 2,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "encodeMs": {
+                        "count": 2,
+                        "max": 57.47894099999394,
+                        "min": 53.689110999999684,
+                        "total": 111.16805199999362
+                      },
+                      "executionMs": {
+                        "count": 2,
+                        "max": 169.48078499999974,
+                        "min": 168.61113599999953,
+                        "total": 338.0919209999993
+                      },
+                      "gpuKernelsMs": {
+                        "count": 0,
+                        "max": null,
+                        "min": null,
+                        "total": 0
+                      },
+                      "inputUploadMs": {
+                        "count": 2,
+                        "max": 0.052729000002727844,
+                        "min": 0.052228000000468455,
+                        "total": 0.1049570000031963
+                      },
+                      "logitsMs": {
+                        "count": 2,
+                        "max": 1.4671439999947324,
+                        "min": 1.2845200000010664,
+                        "total": 2.751663999995799
+                      },
+                      "logitsReadbackMs": {
+                        "count": 2,
+                        "max": 4.646724999998696,
+                        "min": 4.498606000001018,
+                        "total": 9.145330999999715
+                      },
+                      "samplingMs": {
+                        "count": 2,
+                        "max": 1.325728000003437,
+                        "min": 1.1832799999974668,
+                        "total": 2.509008000000904
+                      },
+                      "submitWaitMs": {
+                        "count": 2,
+                        "max": 112.63573799999722,
+                        "min": 110.10190299999522,
+                        "total": 222.73764099999244
+                      }
+                    }
+                  }
+                ],
+                "steps": 2
+              },
+              "prompt": {
+                "inputTokens": 86,
+                "stages": [
+                  {
+                    "elapsedMs": 190.09129200000098,
+                    "partitionIndex": 0,
+                    "runtime": {
+                      "activationReadbackMs": 1.876124999998865,
+                      "encodeMs": 9.704374999997526,
+                      "executionMs": 188.1597499999989,
+                      "gpuKernelsMs": null,
+                      "inputUploadMs": 0,
+                      "logitsMs": 0,
+                      "logitsReadbackMs": 0,
+                      "samplingMs": 0,
+                      "submitWaitMs": 176.3692919999994
+                    }
+                  },
+                  {
+                    "elapsedMs": 2184.144375,
+                    "partitionIndex": 1,
+                    "runtime": {
+                      "activationReadbackMs": 0,
+                      "encodeMs": 1452.1100880000013,
+                      "executionMs": 2070.102758000001,
+                      "gpuKernelsMs": null,
+                      "inputUploadMs": 0.15603399999963585,
+                      "logitsMs": 1.436997999997402,
+                      "logitsReadbackMs": 0.5246379999953206,
+                      "samplingMs": 3.342067000005045,
+                      "submitWaitMs": 595.5295049999986
+                    }
+                  }
+                ]
+              }
+            },
+            "stages": [
+              {
+                "partitionIndex": 0,
+                "stepMs": {
+                  "count": 3,
+                  "total": 277.0504170000022
+                },
+                "steps": 3
+              },
+              {
+                "partitionIndex": 1,
+                "stepMs": {
+                  "count": 3,
+                  "total": 2626.889708999999
+                },
+                "steps": 3
+              }
+            ]
+          },
+          "stopReason": "eos-token"
+        },
+        "finishedAt": 1792177720270,
+        "id": "95d72afa-5bca-4ab3-813d-da6b5f6b22df",
+        "provenance": {
+          "attemptId": "95d72afa-5bca-4ab3-813d-da6b5f6b22df",
+          "classes": [
+            "mesh"
+          ],
+          "earlierAttempts": [],
+          "execution": {
+            "classes": [
+              "mesh"
+            ],
+            "participants": [
+              {
+                "participantId": "peer:efb774c9f322dab41567fce6",
+                "role": "stage",
+                "stage": 0,
+                "supply": "mesh"
+              },
+              {
+                "participantId": "peer:036f2d43da19536d800b6c2f",
+                "role": "stage",
+                "stage": 1,
+                "supply": "mesh"
+              }
+            ],
+            "placement": "ordered-layer-partition",
+            "supply": "mesh"
+          },
+          "retrieval": {
+            "supply": "none"
+          },
+          "schema": "reploid.answer-provenance/v1",
+          "supply": "mesh"
+        },
+        "publicationMode": "canonical",
+        "request": {
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.8 27B.",
+              "role": "system"
+            },
+            {
+              "content": "What is 17 + 25? Answer with the number only.",
+              "role": "user"
+            },
+            {
+              "content": "42",
+              "role": "assistant"
+            },
+            {
+              "content": "Subtract 2 from that result. Answer with the number only.",
+              "role": "user"
+            }
+          ],
+          "model": {
+            "activation": {
+              "components": 1,
+              "dtype": "f32",
+              "elementStrideBytes": 4,
+              "hiddenSize": 5120,
+              "precision": "f32",
+              "schema": "doppler.activation-tensor/v1"
+            },
+            "adapters": [],
+            "availability": "ready",
+            "contextLength": 4096,
+            "executionId": "q4k-split-chat-mac",
+            "id": "qwen3-8-27b-text-q4k-ehaf16",
+            "identity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "index": 0,
+            "localCached": false,
+            "localReady": false,
+            "name": "Qwen 3.8 27B",
+            "networkAvailability": "ready",
+            "partition": {
+              "coordinatorId": "peer:efb774c9f322dab41567fce6",
+              "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+              "route": {
+                "activation": {
+                  "components": 1,
+                  "dtype": "f32",
+                  "elementStrideBytes": 4,
+                  "hiddenSize": 5120,
+                  "precision": "f32",
+                  "schema": "doppler.activation-tensor/v1"
+                },
+                "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+                "schema": "reploid.partition-route/v1",
+                "stages": [
+                  {
+                    "executionId": "q4k-split-chat-mac",
+                    "index": 0,
+                    "participantId": "peer:efb774c9f322dab41567fce6",
+                    "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                    "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                  },
+                  {
+                    "executionId": "q4k-split-chat-amd",
+                    "index": 1,
+                    "participantId": "peer:036f2d43da19536d800b6c2f",
+                    "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                    "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                  }
+                ]
+              },
+              "schema": "reploid.partition-selection/v2"
+            },
+            "placement": "ordered-layer-partition",
+            "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+            "provider": "doppler",
+            "providerIds": [
+              "peer:efb774c9f322dab41567fce6",
+              "peer:036f2d43da19536d800b6c2f"
+            ],
+            "quantization": "q4k",
+            "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+            "selectionId": "qwen3-8-27b-text-q4k-ehaf16/partition/sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+            "size": "Q4K \u00b7 17 GB",
+            "textGeneration": {
+              "schema": "reploid.text-generation/v1",
+              "usage": "raw-model-tokens/v1"
+            }
+          },
+          "permissions": {
+            "executionLocation": "auto",
+            "sharingScope": "mesh"
+          }
+        },
+        "responseId": "13baedf3-1cbb-49de-aaea-d38e372658a8",
+        "retryOf": null,
+        "status": "completed",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.8 27B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        },
+        "threadId": "08132ec3-717f-4352-b0f7-7d2826b0be26",
+        "userMessageId": "c747c122-ac6e-4a31-9e66-b979fa6f1499"
+      },
+      "answer": "40",
+      "firstDeltaMs": 3096.7051250000004,
+      "completeMs": 3783.1316659999993
+    },
+    {
+      "attempt": {
+        "approval": null,
+        "authorization": {
+          "adapterIdentities": [],
+          "disclosure": "ordered-partition-activations-and-tokens",
+          "expiresAt": 1792178625110,
+          "grantId": null,
+          "kind": "permission",
+          "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+          "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+          "peerId": "peer:efb774c9f322dab41567fce6",
+          "permissionId": "b00c3285-87e5-44c0-9507-2db743dbaeb9",
+          "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+          "recipientIdentity": "peer:efb774c9f322dab41567fce6",
+          "recipients": [
+            "peer:efb774c9f322dab41567fce6",
+            "peer:036f2d43da19536d800b6c2f"
+          ],
+          "requesterIdentity": "peer:60cf08c57a35f723d4023ce7",
+          "route": {
+            "activation": {
+              "components": 1,
+              "dtype": "f32",
+              "elementStrideBytes": 4,
+              "hiddenSize": 5120,
+              "precision": "f32",
+              "schema": "doppler.activation-tensor/v1"
+            },
+            "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+            "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+            "schema": "reploid.partition-route/v1",
+            "stages": [
+              {
+                "executionId": "q4k-split-chat-mac",
+                "index": 0,
+                "participantId": "peer:efb774c9f322dab41567fce6",
+                "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+              },
+              {
+                "executionId": "q4k-split-chat-amd",
+                "index": 1,
+                "participantId": "peer:036f2d43da19536d800b6c2f",
+                "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+              }
+            ]
+          },
+          "sharingScope": "mesh",
+          "source": "permission"
+        },
+        "createdAt": 1792177724835,
+        "error": null,
+        "execution": {
+          "activationBytes": 2334720,
+          "admission": {
+            "queuedMs": 0
+          },
+          "identity": {
+            "attemptId": "d09432be-c3bc-404a-b64e-895b4ab7486c",
+            "placementGeneration": 0,
+            "requesterId": "peer:60cf08c57a35f723d4023ce7",
+            "route": {
+              "activation": {
+                "components": 1,
+                "dtype": "f32",
+                "elementStrideBytes": 4,
+                "hiddenSize": 5120,
+                "precision": "f32",
+                "schema": "doppler.activation-tensor/v1"
+              },
+              "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+              "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+              "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+              "schema": "reploid.partition-route/v1",
+              "stages": [
+                {
+                  "executionId": "q4k-split-chat-mac",
+                  "index": 0,
+                  "participantId": "peer:efb774c9f322dab41567fce6",
+                  "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                  "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                },
+                {
+                  "executionId": "q4k-split-chat-amd",
+                  "index": 1,
+                  "participantId": "peer:036f2d43da19536d800b6c2f",
+                  "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                  "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                }
+              ]
+            },
+            "schema": "reploid.partition-attempt/v2",
+            "threadId": "08132ec3-717f-4352-b0f7-7d2826b0be26"
+          },
+          "schema": "reploid.mesh.partition-summary/v2",
+          "selection": {
+            "eligibility": [
+              {
+                "capacity": {
+                  "active": 1,
+                  "attemptQueue": {
+                    "maxQueued": 4,
+                    "queued": 0
+                  },
+                  "availableSlots": 1,
+                  "closed": false
+                },
+                "eligible": true,
+                "participantId": "peer:efb774c9f322dab41567fce6",
+                "reason": "reservation-required",
+                "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+              },
+              {
+                "capacity": {
+                  "active": 1,
+                  "availableSlots": 1,
+                  "closed": false
+                },
+                "eligible": false,
+                "participantId": "peer:036f2d43da19536d800b6c2f",
+                "reason": "no-prepared-path",
+                "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+              }
+            ],
+            "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+          },
+          "settlement": {
+            "cleanup": [
+              {
+                "error": null,
+                "partitionIndex": 0,
+                "status": "settled"
+              },
+              {
+                "error": null,
+                "partitionIndex": 1,
+                "status": "settled"
+              }
+            ],
+            "cleanupSettledAt": 1792177729085,
+            "failure": null,
+            "identity": {
+              "attemptId": "d09432be-c3bc-404a-b64e-895b4ab7486c",
+              "placementGeneration": 0,
+              "requesterId": "peer:60cf08c57a35f723d4023ce7",
+              "route": {
+                "activation": {
+                  "components": 1,
+                  "dtype": "f32",
+                  "elementStrideBytes": 4,
+                  "hiddenSize": 5120,
+                  "precision": "f32",
+                  "schema": "doppler.activation-tensor/v1"
+                },
+                "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+                "schema": "reploid.partition-route/v1",
+                "stages": [
+                  {
+                    "executionId": "q4k-split-chat-mac",
+                    "index": 0,
+                    "participantId": "peer:efb774c9f322dab41567fce6",
+                    "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                    "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                  },
+                  {
+                    "executionId": "q4k-split-chat-amd",
+                    "index": 1,
+                    "participantId": "peer:036f2d43da19536d800b6c2f",
+                    "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                    "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                  }
+                ]
+              },
+              "schema": "reploid.partition-attempt/v2",
+              "threadId": "08132ec3-717f-4352-b0f7-7d2826b0be26"
+            },
+            "phase": "completed",
+            "reservations": [
+              {
+                "failure": null,
+                "identity": {
+                  "attemptId": "d09432be-c3bc-404a-b64e-895b4ab7486c",
+                  "placementGeneration": 0,
+                  "requesterId": "peer:60cf08c57a35f723d4023ce7",
+                  "route": {
+                    "activation": {
+                      "components": 1,
+                      "dtype": "f32",
+                      "elementStrideBytes": 4,
+                      "hiddenSize": 5120,
+                      "precision": "f32",
+                      "schema": "doppler.activation-tensor/v1"
+                    },
+                    "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                    "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                    "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+                    "schema": "reploid.partition-route/v1",
+                    "stages": [
+                      {
+                        "executionId": "q4k-split-chat-mac",
+                        "index": 0,
+                        "participantId": "peer:efb774c9f322dab41567fce6",
+                        "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                        "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                      },
+                      {
+                        "executionId": "q4k-split-chat-amd",
+                        "index": 1,
+                        "participantId": "peer:036f2d43da19536d800b6c2f",
+                        "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                        "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                      }
+                    ]
+                  },
+                  "schema": "reploid.partition-attempt/v2",
+                  "threadId": "08132ec3-717f-4352-b0f7-7d2826b0be26"
+                },
+                "index": 0,
+                "participantId": "peer:efb774c9f322dab41567fce6",
+                "partitionIndex": 0,
+                "phase": "reserved",
+                "reservedAt": 1792177725371,
+                "resources": {
+                  "attemptSlots": 1,
+                  "maxActivationBytes": 33554432,
+                  "maxPromptTokens": 4096,
+                  "maxTokens": 4096,
+                  "scope": "application-attempt-limits"
+                },
+                "settledAt": null,
+                "settlingAt": null,
+                "status": "reserved"
+              },
+              {
+                "failure": null,
+                "identity": {
+                  "attemptId": "d09432be-c3bc-404a-b64e-895b4ab7486c",
+                  "placementGeneration": 0,
+                  "requesterId": "peer:60cf08c57a35f723d4023ce7",
+                  "route": {
+                    "activation": {
+                      "components": 1,
+                      "dtype": "f32",
+                      "elementStrideBytes": 4,
+                      "hiddenSize": 5120,
+                      "precision": "f32",
+                      "schema": "doppler.activation-tensor/v1"
+                    },
+                    "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                    "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                    "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+                    "schema": "reploid.partition-route/v1",
+                    "stages": [
+                      {
+                        "executionId": "q4k-split-chat-mac",
+                        "index": 0,
+                        "participantId": "peer:efb774c9f322dab41567fce6",
+                        "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                        "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                      },
+                      {
+                        "executionId": "q4k-split-chat-amd",
+                        "index": 1,
+                        "participantId": "peer:036f2d43da19536d800b6c2f",
+                        "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                        "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                      }
+                    ]
+                  },
+                  "schema": "reploid.partition-attempt/v2",
+                  "threadId": "08132ec3-717f-4352-b0f7-7d2826b0be26"
+                },
+                "index": 1,
+                "participantId": "peer:036f2d43da19536d800b6c2f",
+                "partitionIndex": 1,
+                "phase": "reserved",
+                "reservedAt": 1792177725406,
+                "resources": {
+                  "attemptSlots": 1,
+                  "maxActivationBytes": 33554432,
+                  "maxPromptTokens": 4096,
+                  "maxTokens": 4096,
+                  "scope": "application-attempt-limits"
+                },
+                "settledAt": null,
+                "settlingAt": null,
+                "status": "reserved"
+              }
+            ]
+          },
+          "stepSummary": {
+            "count": 3,
+            "detail": "aggregate; no per-step trace transferred",
+            "phases": {
+              "decode": {
+                "stages": [
+                  {
+                    "elapsedMs": {
+                      "count": 2,
+                      "max": 36.47766600000614,
+                      "min": 24.674874999996973,
+                      "total": 61.15254100000311
+                    },
+                    "partitionIndex": 0,
+                    "runtime": {
+                      "activationReadbackMs": {
+                        "count": 2,
+                        "max": 0.4670830000031856,
+                        "min": 0.4553329999980633,
+                        "total": 0.9224160000012489
+                      },
+                      "encodeMs": {
+                        "count": 2,
+                        "max": 3.1787919999987935,
+                        "min": 1.9365840000027674,
+                        "total": 5.115376000001561
+                      },
+                      "executionMs": {
+                        "count": 2,
+                        "max": 35.38441700000112,
+                        "min": 22.98045899999852,
+                        "total": 58.36487599999964
+                      },
+                      "gpuKernelsMs": {
+                        "count": 0,
+                        "max": null,
+                        "min": null,
+                        "total": 0
+                      },
+                      "inputUploadMs": {
+                        "count": 2,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "logitsMs": {
+                        "count": 2,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "logitsReadbackMs": {
+                        "count": 2,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "samplingMs": {
+                        "count": 2,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "submitWaitMs": {
+                        "count": 2,
+                        "max": 32.85933300000033,
+                        "min": 19.119582999999693,
+                        "total": 51.97891600000003
+                      }
+                    }
+                  },
+                  {
+                    "elapsedMs": {
+                      "count": 2,
+                      "max": 203.63904199999524,
+                      "min": 187.596375000001,
+                      "total": 391.23541699999623
+                    },
+                    "partitionIndex": 1,
+                    "runtime": {
+                      "activationReadbackMs": {
+                        "count": 2,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "encodeMs": {
+                        "count": 2,
+                        "max": 54.942994000004546,
+                        "min": 49.29534199999762,
+                        "total": 104.23833600000216
+                      },
+                      "executionMs": {
+                        "count": 2,
+                        "max": 170.44843799999944,
+                        "min": 159.07633999999962,
+                        "total": 329.52477799999906
+                      },
+                      "gpuKernelsMs": {
+                        "count": 0,
+                        "max": null,
+                        "min": null,
+                        "total": 0
+                      },
+                      "inputUploadMs": {
+                        "count": 2,
+                        "max": 0.05948200000420911,
+                        "min": 0.05211799999960931,
+                        "total": 0.11160000000381842
+                      },
+                      "logitsMs": {
+                        "count": 2,
+                        "max": 1.1119160000016564,
+                        "min": 1.049076999996032,
+                        "total": 2.1609929999976885
+                      },
+                      "logitsReadbackMs": {
+                        "count": 2,
+                        "max": 4.678835999999137,
+                        "min": 3.4035430000003544,
+                        "total": 8.082378999999491
+                      },
+                      "samplingMs": {
+                        "count": 2,
+                        "max": 1.4411349999936647,
+                        "min": 1.1872870000006515,
+                        "total": 2.628421999994316
+                      },
+                      "submitWaitMs": {
+                        "count": 2,
+                        "max": 113.68528499999957,
+                        "min": 107.915012999998,
+                        "total": 221.60029799999757
+                      }
+                    }
+                  }
+                ],
+                "steps": 2
+              },
+              "prompt": {
+                "inputTokens": 112,
+                "stages": [
+                  {
+                    "elapsedMs": 228.25525000000198,
+                    "partitionIndex": 0,
+                    "runtime": {
+                      "activationReadbackMs": 0.6482079999987036,
+                      "encodeMs": 5.82879099999991,
+                      "executionMs": 225.57145799999853,
+                      "gpuKernelsMs": null,
+                      "inputUploadMs": 0,
+                      "logitsMs": 0,
+                      "logitsReadbackMs": 0,
+                      "samplingMs": 0,
+                      "submitWaitMs": 218.80354100000113
+                    }
+                  },
+                  {
+                    "elapsedMs": 2952.7665419999976,
+                    "partitionIndex": 1,
+                    "runtime": {
+                      "activationReadbackMs": 0,
+                      "encodeMs": 1978.4654210000008,
+                      "executionMs": 2659.4722089999996,
+                      "gpuKernelsMs": null,
+                      "inputUploadMs": 0.14575499999773456,
+                      "logitsMs": 1.368678999999247,
+                      "logitsReadbackMs": 0.40302900000097,
+                      "samplingMs": 1.2985770000013872,
+                      "submitWaitMs": 658.4368419999955
+                    }
+                  }
+                ]
+              }
+            },
+            "stages": [
+              {
+                "partitionIndex": 0,
+                "stepMs": {
+                  "count": 3,
+                  "total": 289.4077910000051
+                },
+                "steps": 3
+              },
+              {
+                "partitionIndex": 1,
+                "stepMs": {
+                  "count": 3,
+                  "total": 3344.001958999994
+                },
+                "steps": 3
+              }
+            ]
+          },
+          "stopReason": "eos-token"
+        },
+        "finishedAt": 1792177729094,
+        "id": "d09432be-c3bc-404a-b64e-895b4ab7486c",
+        "provenance": {
+          "attemptId": "d09432be-c3bc-404a-b64e-895b4ab7486c",
+          "classes": [
+            "mesh"
+          ],
+          "earlierAttempts": [],
+          "execution": {
+            "classes": [
+              "mesh"
+            ],
+            "participants": [
+              {
+                "participantId": "peer:efb774c9f322dab41567fce6",
+                "role": "stage",
+                "stage": 0,
+                "supply": "mesh"
+              },
+              {
+                "participantId": "peer:036f2d43da19536d800b6c2f",
+                "role": "stage",
+                "stage": 1,
+                "supply": "mesh"
+              }
+            ],
+            "placement": "ordered-layer-partition",
+            "supply": "mesh"
+          },
+          "retrieval": {
+            "supply": "none"
+          },
+          "schema": "reploid.answer-provenance/v1",
+          "supply": "mesh"
+        },
+        "publicationMode": "canonical",
+        "request": {
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.8 27B.",
+              "role": "system"
+            },
+            {
+              "content": "What is 17 + 25? Answer with the number only.",
+              "role": "user"
+            },
+            {
+              "content": "42",
+              "role": "assistant"
+            },
+            {
+              "content": "Subtract 2 from that result. Answer with the number only.",
+              "role": "user"
+            },
+            {
+              "content": "40",
+              "role": "assistant"
+            },
+            {
+              "content": "What is 6 times 7? Answer with the number only.",
+              "role": "user"
+            }
+          ],
+          "model": {
+            "activation": {
+              "components": 1,
+              "dtype": "f32",
+              "elementStrideBytes": 4,
+              "hiddenSize": 5120,
+              "precision": "f32",
+              "schema": "doppler.activation-tensor/v1"
+            },
+            "adapters": [],
+            "availability": "ready",
+            "contextLength": 4096,
+            "executionId": "q4k-split-chat-mac",
+            "id": "qwen3-8-27b-text-q4k-ehaf16",
+            "identity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "index": 0,
+            "localCached": false,
+            "localReady": false,
+            "name": "Qwen 3.8 27B",
+            "networkAvailability": "ready",
+            "partition": {
+              "coordinatorId": "peer:efb774c9f322dab41567fce6",
+              "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+              "route": {
+                "activation": {
+                  "components": 1,
+                  "dtype": "f32",
+                  "elementStrideBytes": 4,
+                  "hiddenSize": 5120,
+                  "precision": "f32",
+                  "schema": "doppler.activation-tensor/v1"
+                },
+                "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+                "schema": "reploid.partition-route/v1",
+                "stages": [
+                  {
+                    "executionId": "q4k-split-chat-mac",
+                    "index": 0,
+                    "participantId": "peer:efb774c9f322dab41567fce6",
+                    "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                    "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                  },
+                  {
+                    "executionId": "q4k-split-chat-amd",
+                    "index": 1,
+                    "participantId": "peer:036f2d43da19536d800b6c2f",
+                    "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                    "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                  }
+                ]
+              },
+              "schema": "reploid.partition-selection/v2"
+            },
+            "placement": "ordered-layer-partition",
+            "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+            "provider": "doppler",
+            "providerIds": [
+              "peer:efb774c9f322dab41567fce6",
+              "peer:036f2d43da19536d800b6c2f"
+            ],
+            "quantization": "q4k",
+            "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+            "selectionId": "qwen3-8-27b-text-q4k-ehaf16/partition/sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+            "size": "Q4K \u00b7 17 GB",
+            "textGeneration": {
+              "schema": "reploid.text-generation/v1",
+              "usage": "raw-model-tokens/v1"
+            }
+          },
+          "permissions": {
+            "executionLocation": "auto",
+            "sharingScope": "mesh"
+          }
+        },
+        "responseId": "a0cfc4b4-d49c-413d-bd29-d0c96885413d",
+        "retryOf": null,
+        "status": "completed",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.8 27B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        },
+        "threadId": "08132ec3-717f-4352-b0f7-7d2826b0be26",
+        "userMessageId": "7ab574c2-5502-4a67-8b1f-cadc846feff3"
+      },
+      "answer": "42",
+      "firstDeltaMs": 3914.2419169999994,
+      "completeMs": 4376.869542
+    },
+    {
+      "attempt": {
+        "approval": null,
+        "authorization": {
+          "adapterIdentities": [],
+          "disclosure": "ordered-partition-activations-and-tokens",
+          "expiresAt": 1792178629293,
+          "grantId": null,
+          "kind": "permission",
+          "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+          "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+          "peerId": "peer:efb774c9f322dab41567fce6",
+          "permissionId": "b00c3285-87e5-44c0-9507-2db743dbaeb9",
+          "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+          "recipientIdentity": "peer:efb774c9f322dab41567fce6",
+          "recipients": [
+            "peer:efb774c9f322dab41567fce6",
+            "peer:036f2d43da19536d800b6c2f"
+          ],
+          "requesterIdentity": "peer:60cf08c57a35f723d4023ce7",
+          "route": {
+            "activation": {
+              "components": 1,
+              "dtype": "f32",
+              "elementStrideBytes": 4,
+              "hiddenSize": 5120,
+              "precision": "f32",
+              "schema": "doppler.activation-tensor/v1"
+            },
+            "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+            "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+            "schema": "reploid.partition-route/v1",
+            "stages": [
+              {
+                "executionId": "q4k-split-chat-mac",
+                "index": 0,
+                "participantId": "peer:efb774c9f322dab41567fce6",
+                "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+              },
+              {
+                "executionId": "q4k-split-chat-amd",
+                "index": 1,
+                "participantId": "peer:036f2d43da19536d800b6c2f",
+                "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+              }
+            ]
+          },
+          "sharingScope": "mesh",
+          "source": "permission"
+        },
+        "createdAt": 1792177729220,
+        "error": null,
+        "execution": {
+          "activationBytes": 4157440,
+          "admission": {
+            "queuedMs": 0
+          },
+          "identity": {
+            "attemptId": "0f38b4d4-67d7-44e4-bcf3-8a84a4e39fef",
+            "placementGeneration": 0,
+            "requesterId": "peer:60cf08c57a35f723d4023ce7",
+            "route": {
+              "activation": {
+                "components": 1,
+                "dtype": "f32",
+                "elementStrideBytes": 4,
+                "hiddenSize": 5120,
+                "precision": "f32",
+                "schema": "doppler.activation-tensor/v1"
+              },
+              "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+              "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+              "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+              "schema": "reploid.partition-route/v1",
+              "stages": [
+                {
+                  "executionId": "q4k-split-chat-mac",
+                  "index": 0,
+                  "participantId": "peer:efb774c9f322dab41567fce6",
+                  "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                  "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                },
+                {
+                  "executionId": "q4k-split-chat-amd",
+                  "index": 1,
+                  "participantId": "peer:036f2d43da19536d800b6c2f",
+                  "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                  "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                }
+              ]
+            },
+            "schema": "reploid.partition-attempt/v2",
+            "threadId": "08132ec3-717f-4352-b0f7-7d2826b0be26"
+          },
+          "schema": "reploid.mesh.partition-summary/v2",
+          "selection": {
+            "eligibility": [
+              {
+                "capacity": {
+                  "active": 1,
+                  "attemptQueue": {
+                    "maxQueued": 4,
+                    "queued": 0
+                  },
+                  "availableSlots": 1,
+                  "closed": false
+                },
+                "eligible": true,
+                "participantId": "peer:efb774c9f322dab41567fce6",
+                "reason": "reservation-required",
+                "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+              },
+              {
+                "capacity": {
+                  "active": 1,
+                  "availableSlots": 1,
+                  "closed": false
+                },
+                "eligible": false,
+                "participantId": "peer:036f2d43da19536d800b6c2f",
+                "reason": "no-prepared-path",
+                "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+              }
+            ],
+            "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+          },
+          "settlement": {
+            "cleanup": [
+              {
+                "error": null,
+                "partitionIndex": 0,
+                "status": "settled"
+              },
+              {
+                "error": null,
+                "partitionIndex": 1,
+                "status": "settled"
+              }
+            ],
+            "cleanupSettledAt": 1792177751270,
+            "failure": null,
+            "identity": {
+              "attemptId": "0f38b4d4-67d7-44e4-bcf3-8a84a4e39fef",
+              "placementGeneration": 0,
+              "requesterId": "peer:60cf08c57a35f723d4023ce7",
+              "route": {
+                "activation": {
+                  "components": 1,
+                  "dtype": "f32",
+                  "elementStrideBytes": 4,
+                  "hiddenSize": 5120,
+                  "precision": "f32",
+                  "schema": "doppler.activation-tensor/v1"
+                },
+                "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+                "schema": "reploid.partition-route/v1",
+                "stages": [
+                  {
+                    "executionId": "q4k-split-chat-mac",
+                    "index": 0,
+                    "participantId": "peer:efb774c9f322dab41567fce6",
+                    "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                    "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                  },
+                  {
+                    "executionId": "q4k-split-chat-amd",
+                    "index": 1,
+                    "participantId": "peer:036f2d43da19536d800b6c2f",
+                    "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                    "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                  }
+                ]
+              },
+              "schema": "reploid.partition-attempt/v2",
+              "threadId": "08132ec3-717f-4352-b0f7-7d2826b0be26"
+            },
+            "phase": "completed",
+            "reservations": [
+              {
+                "failure": null,
+                "identity": {
+                  "attemptId": "0f38b4d4-67d7-44e4-bcf3-8a84a4e39fef",
+                  "placementGeneration": 0,
+                  "requesterId": "peer:60cf08c57a35f723d4023ce7",
+                  "route": {
+                    "activation": {
+                      "components": 1,
+                      "dtype": "f32",
+                      "elementStrideBytes": 4,
+                      "hiddenSize": 5120,
+                      "precision": "f32",
+                      "schema": "doppler.activation-tensor/v1"
+                    },
+                    "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                    "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                    "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+                    "schema": "reploid.partition-route/v1",
+                    "stages": [
+                      {
+                        "executionId": "q4k-split-chat-mac",
+                        "index": 0,
+                        "participantId": "peer:efb774c9f322dab41567fce6",
+                        "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                        "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                      },
+                      {
+                        "executionId": "q4k-split-chat-amd",
+                        "index": 1,
+                        "participantId": "peer:036f2d43da19536d800b6c2f",
+                        "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                        "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                      }
+                    ]
+                  },
+                  "schema": "reploid.partition-attempt/v2",
+                  "threadId": "08132ec3-717f-4352-b0f7-7d2826b0be26"
+                },
+                "index": 0,
+                "participantId": "peer:efb774c9f322dab41567fce6",
+                "partitionIndex": 0,
+                "phase": "reserved",
+                "reservedAt": 1792177729368,
+                "resources": {
+                  "attemptSlots": 1,
+                  "maxActivationBytes": 33554432,
+                  "maxPromptTokens": 4096,
+                  "maxTokens": 4096,
+                  "scope": "application-attempt-limits"
+                },
+                "settledAt": null,
+                "settlingAt": null,
+                "status": "reserved"
+              },
+              {
+                "failure": null,
+                "identity": {
+                  "attemptId": "0f38b4d4-67d7-44e4-bcf3-8a84a4e39fef",
+                  "placementGeneration": 0,
+                  "requesterId": "peer:60cf08c57a35f723d4023ce7",
+                  "route": {
+                    "activation": {
+                      "components": 1,
+                      "dtype": "f32",
+                      "elementStrideBytes": 4,
+                      "hiddenSize": 5120,
+                      "precision": "f32",
+                      "schema": "doppler.activation-tensor/v1"
+                    },
+                    "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                    "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                    "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+                    "schema": "reploid.partition-route/v1",
+                    "stages": [
+                      {
+                        "executionId": "q4k-split-chat-mac",
+                        "index": 0,
+                        "participantId": "peer:efb774c9f322dab41567fce6",
+                        "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                        "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                      },
+                      {
+                        "executionId": "q4k-split-chat-amd",
+                        "index": 1,
+                        "participantId": "peer:036f2d43da19536d800b6c2f",
+                        "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                        "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                      }
+                    ]
+                  },
+                  "schema": "reploid.partition-attempt/v2",
+                  "threadId": "08132ec3-717f-4352-b0f7-7d2826b0be26"
+                },
+                "index": 1,
+                "participantId": "peer:036f2d43da19536d800b6c2f",
+                "partitionIndex": 1,
+                "phase": "reserved",
+                "reservedAt": 1792177729402,
+                "resources": {
+                  "attemptSlots": 1,
+                  "maxActivationBytes": 33554432,
+                  "maxPromptTokens": 4096,
+                  "maxTokens": 4096,
+                  "scope": "application-attempt-limits"
+                },
+                "settledAt": null,
+                "settlingAt": null,
+                "status": "reserved"
+              }
+            ]
+          },
+          "stepSummary": {
+            "count": 70,
+            "detail": "aggregate; no per-step trace transferred",
+            "phases": {
+              "decode": {
+                "stages": [
+                  {
+                    "elapsedMs": {
+                      "count": 69,
+                      "max": 110.01654099999723,
+                      "min": 10.562291999995068,
+                      "total": 1303.2880449999284
+                    },
+                    "partitionIndex": 0,
+                    "runtime": {
+                      "activationReadbackMs": {
+                        "count": 69,
+                        "max": 2.0359580000003916,
+                        "min": 0.2693329999965499,
+                        "total": 33.67804100002104
+                      },
+                      "encodeMs": {
+                        "count": 69,
+                        "max": 41.14112500000192,
+                        "min": 0.8509170000033919,
+                        "total": 123.21758199999022
+                      },
+                      "executionMs": {
+                        "count": 69,
+                        "max": 93.64450000000215,
+                        "min": 9.514042000002519,
+                        "total": 1201.0941249999887
+                      },
+                      "gpuKernelsMs": {
+                        "count": 0,
+                        "max": null,
+                        "min": null,
+                        "total": 0
+                      },
+                      "inputUploadMs": {
+                        "count": 69,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "logitsMs": {
+                        "count": 69,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "logitsReadbackMs": {
+                        "count": 69,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "samplingMs": {
+                        "count": 69,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "submitWaitMs": {
+                        "count": 69,
+                        "max": 51.38900000000285,
+                        "min": 7.726167000000714,
+                        "total": 1033.0195880000174
+                      }
+                    }
+                  },
+                  {
+                    "elapsedMs": {
+                      "count": 69,
+                      "max": 456.8257500000036,
+                      "min": 185.9116670000003,
+                      "total": 16688.719005000035
+                    },
+                    "partitionIndex": 1,
+                    "runtime": {
+                      "activationReadbackMs": {
+                        "count": 69,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "encodeMs": {
+                        "count": 69,
+                        "max": 157.77329500000633,
+                        "min": 40.055812999999034,
+                        "total": 3304.7374340000315
+                      },
+                      "executionMs": {
+                        "count": 69,
+                        "max": 403.1232209999944,
+                        "min": 151.59859999999753,
+                        "total": 11637.578521000025
+                      },
+                      "gpuKernelsMs": {
+                        "count": 0,
+                        "max": null,
+                        "min": null,
+                        "total": 0
+                      },
+                      "inputUploadMs": {
+                        "count": 69,
+                        "max": 0.06541400000423891,
+                        "min": 0.048932000005152076,
+                        "total": 3.8288350000657374
+                      },
+                      "logitsMs": {
+                        "count": 69,
+                        "max": 2.6324600000007194,
+                        "min": 0.9270459999970626,
+                        "total": 93.12772100001166
+                      },
+                      "logitsReadbackMs": {
+                        "count": 69,
+                        "max": 6.294290000005276,
+                        "min": 3.351845000004687,
+                        "total": 311.72554400004447
+                      },
+                      "samplingMs": {
+                        "count": 69,
+                        "max": 1.6960260000050766,
+                        "min": 1.1458789999960572,
+                        "total": 83.67424200005189
+                      },
+                      "submitWaitMs": {
+                        "count": 69,
+                        "max": 345.6758389999959,
+                        "min": 108.19419799999741,
+                        "total": 8188.153779000029
+                      }
+                    }
+                  }
+                ],
+                "steps": 69
+              },
+              "prompt": {
+                "inputTokens": 134,
+                "stages": [
+                  {
+                    "elapsedMs": 263.50362500000483,
+                    "partitionIndex": 0,
+                    "runtime": {
+                      "activationReadbackMs": 1.992792000004556,
+                      "encodeMs": 5.305416000002879,
+                      "executionMs": 261.5592089999991,
+                      "gpuKernelsMs": null,
+                      "inputUploadMs": 0,
+                      "logitsMs": 0,
+                      "logitsReadbackMs": 0,
+                      "samplingMs": 0,
+                      "submitWaitMs": 254.10570800000278
+                    }
+                  },
+                  {
+                    "elapsedMs": 3392.5054999999993,
+                    "partitionIndex": 1,
+                    "runtime": {
+                      "activationReadbackMs": 0,
+                      "encodeMs": 2067.106193000007,
+                      "executionMs": 2927.233420999997,
+                      "gpuKernelsMs": null,
+                      "inputUploadMs": 0.17561100000602892,
+                      "logitsMs": 1.3163500000009662,
+                      "logitsReadbackMs": 0.3840340000024298,
+                      "samplingMs": 1.3034649999972316,
+                      "submitWaitMs": 837.9840159999949
+                    }
+                  }
+                ]
+              }
+            },
+            "stages": [
+              {
+                "partitionIndex": 0,
+                "stepMs": {
+                  "count": 70,
+                  "total": 1566.7916699999332
+                },
+                "steps": 70
+              },
+              {
+                "partitionIndex": 1,
+                "stepMs": {
+                  "count": 70,
+                  "total": 20081.224505000035
+                },
+                "steps": 70
+              }
+            ]
+          },
+          "stopReason": "eos-token"
+        },
+        "finishedAt": 1792177751276,
+        "id": "0f38b4d4-67d7-44e4-bcf3-8a84a4e39fef",
+        "provenance": {
+          "attemptId": "0f38b4d4-67d7-44e4-bcf3-8a84a4e39fef",
+          "classes": [
+            "mesh"
+          ],
+          "earlierAttempts": [],
+          "execution": {
+            "classes": [
+              "mesh"
+            ],
+            "participants": [
+              {
+                "participantId": "peer:efb774c9f322dab41567fce6",
+                "role": "stage",
+                "stage": 0,
+                "supply": "mesh"
+              },
+              {
+                "participantId": "peer:036f2d43da19536d800b6c2f",
+                "role": "stage",
+                "stage": 1,
+                "supply": "mesh"
+              }
+            ],
+            "placement": "ordered-layer-partition",
+            "supply": "mesh"
+          },
+          "retrieval": {
+            "supply": "none"
+          },
+          "schema": "reploid.answer-provenance/v1",
+          "supply": "mesh"
+        },
+        "publicationMode": "canonical",
+        "request": {
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.8 27B.",
+              "role": "system"
+            },
+            {
+              "content": "What is 17 + 25? Answer with the number only.",
+              "role": "user"
+            },
+            {
+              "content": "42",
+              "role": "assistant"
+            },
+            {
+              "content": "Subtract 2 from that result. Answer with the number only.",
+              "role": "user"
+            },
+            {
+              "content": "40",
+              "role": "assistant"
+            },
+            {
+              "content": "What is 6 times 7? Answer with the number only.",
+              "role": "user"
+            },
+            {
+              "content": "42",
+              "role": "assistant"
+            },
+            {
+              "content": "Count from one to twenty, separated by commas.",
+              "role": "user"
+            }
+          ],
+          "model": {
+            "activation": {
+              "components": 1,
+              "dtype": "f32",
+              "elementStrideBytes": 4,
+              "hiddenSize": 5120,
+              "precision": "f32",
+              "schema": "doppler.activation-tensor/v1"
+            },
+            "adapters": [],
+            "availability": "ready",
+            "contextLength": 4096,
+            "executionId": "q4k-split-chat-mac",
+            "id": "qwen3-8-27b-text-q4k-ehaf16",
+            "identity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "index": 0,
+            "localCached": false,
+            "localReady": false,
+            "name": "Qwen 3.8 27B",
+            "networkAvailability": "ready",
+            "partition": {
+              "coordinatorId": "peer:efb774c9f322dab41567fce6",
+              "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+              "route": {
+                "activation": {
+                  "components": 1,
+                  "dtype": "f32",
+                  "elementStrideBytes": 4,
+                  "hiddenSize": 5120,
+                  "precision": "f32",
+                  "schema": "doppler.activation-tensor/v1"
+                },
+                "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+                "schema": "reploid.partition-route/v1",
+                "stages": [
+                  {
+                    "executionId": "q4k-split-chat-mac",
+                    "index": 0,
+                    "participantId": "peer:efb774c9f322dab41567fce6",
+                    "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                    "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                  },
+                  {
+                    "executionId": "q4k-split-chat-amd",
+                    "index": 1,
+                    "participantId": "peer:036f2d43da19536d800b6c2f",
+                    "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                    "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                  }
+                ]
+              },
+              "schema": "reploid.partition-selection/v2"
+            },
+            "placement": "ordered-layer-partition",
+            "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+            "provider": "doppler",
+            "providerIds": [
+              "peer:efb774c9f322dab41567fce6",
+              "peer:036f2d43da19536d800b6c2f"
+            ],
+            "quantization": "q4k",
+            "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+            "selectionId": "qwen3-8-27b-text-q4k-ehaf16/partition/sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+            "size": "Q4K \u00b7 17 GB",
+            "textGeneration": {
+              "schema": "reploid.text-generation/v1",
+              "usage": "raw-model-tokens/v1"
+            }
+          },
+          "permissions": {
+            "executionLocation": "auto",
+            "sharingScope": "mesh"
+          }
+        },
+        "responseId": "57f5d151-e671-4b0b-96b8-11047484fe9e",
+        "retryOf": null,
+        "status": "completed",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.8 27B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        },
+        "threadId": "08132ec3-717f-4352-b0f7-7d2826b0be26",
+        "userMessageId": "889e93f5-88ec-49c3-8fdc-475b667a9b57"
+      },
+      "answer": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20",
+      "firstDeltaMs": 4046.796124999997,
+      "completeMs": 22120.841582999998
+    }
+  ],
+  "cancelled": true,
+  "reusedAfterCancellation": true,
+  "historyPreserved": true,
+  "weightRequests": [],
+  "errors": []
+}

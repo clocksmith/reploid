@@ -1,0 +1,166 @@
+{
+  "sourceSha256": "1440a7016ce7bc4d046a42cb4c96c907be9827b82e839541649d3524455f108b",
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /server/native-participant.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /server/native-participant.js:91: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /server/native-participant.js:422: Dynamic property write detected: [name] - verify input sanitization",
+      "Warning in /server/native-participant.js:474: Dynamic property write detected: [kind] - verify input sanitization",
+      "Warning in /server/native-participant.js:477: Dynamic property write detected: [kind] - verify input sanitization",
+      "Warning in /server/native-participant.js:477: Dynamic property write detected: [kind] - verify input sanitization",
+      "Warning in /server/native-participant.js:690: Dynamic property write detected: [rtcModule, wsModule] - verify input sanitization",
+      "Warning in /server/native-participant.js:44: Suspicious variable name: requireValue - may indicate code execution",
+      "File exceeds 500 lines (756) - consider splitting",
+      "File has 77 functions (max 20) - consider modularizing",
+      "Nesting depth of 7 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792177585628,
+        "path": "/server/native-participant.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792177585630,
+        "path": "/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 91,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792177585630,
+        "path": "/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 422,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792177585630,
+        "path": "/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [kind] - verify input sanitization",
+        "line": 474,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792177585630,
+        "path": "/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [kind] - verify input sanitization",
+        "line": 477,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792177585630,
+        "path": "/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [kind] - verify input sanitization",
+        "line": 477,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792177585630,
+        "path": "/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [rtcModule, wsModule] - verify input sanitization",
+        "line": 690,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792177585630,
+        "path": "/server/native-participant.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: requireValue - may indicate code execution",
+        "line": 44,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792177585632,
+        "metric": "lines",
+        "value": 756,
+        "threshold": 500,
+        "message": "File exceeds 500 lines (756) - consider splitting",
+        "path": "/server/native-participant.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792177585632,
+        "metric": "functions",
+        "value": 77,
+        "threshold": 20,
+        "message": "File has 77 functions (max 20) - consider modularizing",
+        "path": "/server/native-participant.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792177585632,
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/server/native-participant.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/server/native-participant.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "lines",
+          "value": 756,
+          "threshold": 500,
+          "message": "File exceeds 500 lines (756) - consider splitting",
+          "path": "/server/native-participant.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 77,
+          "threshold": 20,
+          "message": "File has 77 functions (max 20) - consider modularizing",
+          "path": "/server/native-participant.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 7,
+          "threshold": 5,
+          "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+          "path": "/server/native-participant.js"
+        }
+      ],
+      "filesAnalyzed": 1
+    }
+  }
+}
