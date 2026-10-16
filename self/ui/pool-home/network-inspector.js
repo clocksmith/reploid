@@ -94,6 +94,12 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     for (const button of navigation.querySelectorAll('[data-inspector-section]')) button.setAttribute('aria-pressed', String(button.dataset.inspectorSection === section));
   };
   panel.addEventListener('click', event => {
+    const toggle = event.target.closest('[data-remote-answers-toggle]');
+    if (toggle && !toggle.disabled) {
+      toggle.disabled = true;
+      void act(() => session.setRemoteAnswersEnabled(toggle.getAttribute('aria-checked') !== 'true'))
+        .finally(() => { toggle.disabled = false; });
+    }
     const grant = event.target.closest('[data-revoke-grant]');
     if (grant) void act(() => session.revokeGrant(session.getState().selectedId, grant.dataset.revokeGrant));
     const remote = event.target.closest('[data-revoke-remote-permission]');

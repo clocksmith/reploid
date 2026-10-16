@@ -116,6 +116,7 @@ describe('Chat host with injected execution, not actual inference', () => {
       }
     };
     const store = storage(), service = createChatTestService(), session = createChatSession({ storage: store, service, swarm });
+    session.setRemoteAnswersEnabled(false);
     session.setCachedModels(CANONICAL_CHAT_MODELS);
     const id = session.createThread({ executionLocation: 'network' }), model = session.getState().activeThread.model;
     expect(session.remotePermissionNeeded({ model, sharingScope: 'mesh', executionLocation: 'network' })).toMatchObject({ disclosure: 'public', modelIdentity: model.identity });

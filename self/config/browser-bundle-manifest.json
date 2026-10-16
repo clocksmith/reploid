@@ -1204,6 +1204,11 @@
       "sha256": "sha256:1d5e76f1a2259ef8641b325f6422c9ab48a83dd28528dae45abdddb708aa97d5"
     },
     {
+      "path": "config/chat-remote-permission.json",
+      "byteLength": 306,
+      "sha256": "sha256:b84fd295a3eef5acbeec7affedd1c580e98962ad4393be560740470abbeca59f"
+    },
+    {
       "path": "config/clockwork-gamma-receipts.js",
       "byteLength": 895,
       "sha256": "sha256:d28d8b76a3e170071cea8987e49e57144be2c1b93521bd0569b58b6e3f4c9555"
@@ -1320,8 +1325,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 554608,
-      "sha256": "sha256:20dc096ea58c655c12932b72bd98838c75e6d43f61294eaff102e6c573f8901c"
+      "byteLength": 554856,
+      "sha256": "sha256:86485a0b663bbfb5c67b474de6f37f08067cbd7ca7a95f1479aa58053fe301c0"
     },
     {
       "path": "config/module-registry.json",
@@ -1380,8 +1385,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 128025,
-      "sha256": "sha256:7a4626a079cc964a6fc597d0b1f7d3772b5be81f23a9a0b1ca437f881cec1833"
+      "byteLength": 128110,
+      "sha256": "sha256:ed88643e3422635c00e3fa9a6da08ec4a81812bc7608e16a30d915211680a847"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1699,9 +1704,14 @@
       "sha256": "sha256:96b68694074befc516656ab022005725e8371391915259b054e7bd90c19360c9"
     },
     {
+      "path": "host/chat-remote-permission.js",
+      "byteLength": 1606,
+      "sha256": "sha256:0431d3303acf7fcdf0b4876a34e61c4b5edc92a11d2e776a4a17482f9847bd55"
+    },
+    {
       "path": "host/chat-session.js",
-      "byteLength": 28323,
-      "sha256": "sha256:6111573adb791a2352d8506da89788a00cef5dd8f9782fc6bae32195368bbdc5"
+      "byteLength": 30255,
+      "sha256": "sha256:e563295142edfab2e4bf56f24ad3fc5f368fe30bc80156430add037c4ee1fc03"
     },
     {
       "path": "host/chat-view.js",
@@ -3200,8 +3210,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2020950,
-      "sha256": "sha256:40dde2e3a6aab50a04ef1644dba439afcfa5c11a51bf0ead0f8076f6dba316c6"
+      "byteLength": 2022622,
+      "sha256": "sha256:b99c333d85650c14795e44487aee7054f55368a4cd7acb015d87435b51af8c6c"
     },
     {
       "path": "ui/pool-home/computer-labels.js",
@@ -3280,8 +3290,8 @@
     },
     {
       "path": "ui/pool-home/network-inspector.js",
-      "byteLength": 17761,
-      "sha256": "sha256:036d5dbd1f1ae303d9cdc9987d2b76452b6df980e0e09c2cafe42596b6711f55"
+      "byteLength": 18064,
+      "sha256": "sha256:95cf0717f88db73c7548f6fd97726be8a4b5ed8726d76413582f0e5bd87ecf41"
     },
     {
       "path": "ui/pool-home/network-projection.js",
@@ -3305,8 +3315,8 @@
     },
     {
       "path": "ui/pool-home/remote-permission.js",
-      "byteLength": 6090,
-      "sha256": "sha256:aae91b143e84de6c1dbef37bcbef3764323d0dc4b8120f2d6528d19d34208f22"
+      "byteLength": 5390,
+      "sha256": "sha256:e5f59a36e8d56709dc9e8f0f1f8ad4047976f2b78b6390b6c568b31b2dd98df0"
     },
     {
       "path": "ui/pool-home/requester-controls.js",
@@ -9445,8 +9455,8 @@
     },
     {
       "path": "vendor/reploid/chat/remote-permission.js",
-      "byteLength": 5403,
-      "sha256": "sha256:0f4547bf512da4cafe84fc324b149784360e27d5cc3662607b6a93a899e3e305"
+      "byteLength": 5482,
+      "sha256": "sha256:b2a22e3b083a7094bb4515e82893facec5e81e1aff4e80ab154c537268f40835"
     },
     {
       "path": "vendor/reploid/chat/scheduler.js",
@@ -9520,8 +9530,8 @@
     },
     {
       "path": "vendor/reploid/contracts/doppler-partitions.provenance.json",
-      "byteLength": 912,
-      "sha256": "sha256:614a685a40de6df82536e01a6e38fa4a94abf2c6fbf3d94a5f01597eb5d7c69a"
+      "byteLength": 922,
+      "sha256": "sha256:e698a00796dbbf8badd3525f2e33605aa65a78efaa6d6ab813cc94ce6c703ad7"
     },
     {
       "path": "vendor/reploid/improvement/code-evolution.js",
@@ -9836,7 +9846,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 44875,
-      "sha256": "sha256:281dcb43f0ade527e7f72d13255e5c6f10e9d7d49cdb94c3b34e82a5e17cafdf"
+      "sha256": "sha256:88a5066544995f6784900ddcc13a07209b8fdf7d3e94ece74fed137b58abcad7"
     },
     {
       "path": "vendor/reploid/retrieval/citations.js",
@@ -10004,5 +10014,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:632edc956ec285be300028b9d3452672c8597bbd80e5c79cfe91a84b94e4e5aa"
+  "bundleHash": "sha256:8bdfb4ae6b99635ae8b7787b0f048ef0a44f3587f0dfe199ccd7c1286e6224a4"
 }

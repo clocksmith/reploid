@@ -1,16 +1,10 @@
-import { escapeHtml as escape } from '../components/attachments.js';
-/** One-time permission to answer with contributors' computers, and its setting. The host stores and
- * enforces the permission; this view explains it once and reports the person's choice. */
+/** Network-answer preference and the consent dialog used when it is off.
+ * The host stores and enforces authorization; this view reports the person's choice. */
 
 const WHO = {
   'ordered-partition-activations-and-tokens': 'The first computer receives the text. The other computers receive the same content as model tokens, which read back as text, plus intermediate results.',
   'partition-activations-and-tokens': 'The first computer receives the text. The second receives the same content as model tokens, which read back as text, plus intermediate results.',
   public: 'One computer receives the text and returns the answer.'
-};
-const HOW = {
-  'ordered-partition-activations-and-tokens': 'split across several computers',
-  'partition-activations-and-tokens': 'split across two computers',
-  public: 'answered by one computer'
 };
 
 /** Identifies the wording below in each permission record; change the version whenever the text changes. */
@@ -67,22 +61,18 @@ export function bindRemotePermissionDialog(dialog, session, { onError = () => {}
 }
 
 export function renderRemotePermissionSettings() {
-  return `<section class="chat-network-details pool-well" data-remote-permission-settings aria-labelledby="remote-permission-settings-title">
-    <h3 id="remote-permission-settings-title">Contributors' computers</h3>
-    <p data-remote-permission-status role="status"></p><ul data-remote-permission-list></ul>
+  return `<section class="pool-stack pool-gap-xs" data-remote-permission-settings aria-labelledby="remote-permission-settings-title">
+    <div class="pool-row pool-row-between"><h3 class="pool-small" id="remote-permission-settings-title">Allow network answers</h3>
+      <button class="pool-switch" type="button" role="switch" aria-checked="false" aria-labelledby="remote-permission-settings-title" aria-describedby="remote-permission-help" data-remote-answers-toggle><span aria-hidden="true"></span></button></div>
+    <p class="pool-small pool-muted" id="remote-permission-help" data-remote-permission-status role="status"></p>
   </section>`;
 }
 
-/** Active permissions with their disclosure scope and a way to turn each off. Revoked ones are history only. */
+/** The network preference is distinct from routing and from sharing this device's capacity. */
 export function updateRemotePermissionSettings(root, state) {
-  // Only permissions granted on the network this session is on apply here.
-  const active = (state.remotePermissions || []).filter(permission => permission.revokedAt === null
-    && permission.networkId === state.remoteNetworkId);
-  const markup = active.map(permission => `<li><span>On: conversations are sent to contributors' computers on this network, ${escape(HOW[permission.disclosure] || permission.disclosure)}, for ${permission.modelIdentities.length} ${permission.modelIdentities.length === 1 ? 'model' : 'models'}.</span>
-    <button class="pool-button" type="button" data-revoke-remote-permission="${escape(permission.id)}">Turn off</button></li>`).join('');
-  const list = root.querySelector('[data-remote-permission-list]');
-  if (list.dataset.projection !== markup) { list.innerHTML = markup; list.dataset.projection = markup; }
-  root.querySelector('[data-remote-permission-status]').textContent = active.length ? ''
-    : "Off. You are asked before a conversation is sent to contributors' computers.";
-  root.querySelector('[data-remote-permission-status]').hidden = !!active.length;
+  const enabled = state.remoteAnswersEnabled === true;
+  root.querySelector('[data-remote-answers-toggle]').setAttribute('aria-checked', String(enabled));
+  root.querySelector('[data-remote-permission-status]').textContent = enabled
+    ? "Your messages and conversation context can be sent to contributors' computers on this network."
+    : 'Ask before sending conversations to other computers.';
 }

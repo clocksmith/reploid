@@ -1,7 +1,8 @@
 /** Permission records. A remote-contributors record is the one standing permission to send conversations to
  * remote contributors: the host stores and revokes it, and the workspace consults it before every remote disclosure
  * and cites it in each attempt's authorization. A search-answer record (search-permission.js) allows one
- * search-backed answer. Every v3 record keeps the exact wording the person was shown when granting it. */
+ * search-backed answer. Every v3 record keeps the governing disclosure wording. Hosts distinguish
+ * default-setting authorization from dialog consent using the wording id and version. */
 export const REMOTE_PERMISSION_SCHEMA = 'reploid.remote-permission/v3';
 export const PERMISSION_KINDS = Object.freeze(['remote-contributors', 'search-answer']);
 export const REMOTE_DISCLOSURES = Object.freeze(['public', 'partition-activations-and-tokens', 'ordered-partition-activations-and-tokens']);
@@ -10,7 +11,7 @@ const hash = value => typeof value === 'string' && /^sha256:[a-f0-9]{64}$/.test(
 const unique = values => [...new Set(values)].sort();
 const label = value => typeof value === 'string' && value.length > 0 && value.length <= 256;
 
-/** The wording shown when a permission was granted: its id, version and exact text. */
+/** The governing dialog or host-setting wording: its id, version and exact text. */
 export function validPermissionWording(wording) {
   return !!wording && typeof wording === 'object' && Object.keys(wording).length === 3 && label(wording.id) && label(wording.version)
     && typeof wording.text === 'string' && wording.text.trim().length > 0 && wording.text.length <= 4000;

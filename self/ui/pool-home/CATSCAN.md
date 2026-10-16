@@ -25,9 +25,10 @@ Outputs: [conversations](conversation-workspace.js), [markup](view.js), [Room-1]
   accessible themes/responsive scrolling. Activities prescribe no hierarchy.
 - Link tasks/helpers/jobs/results/candidates; show observations and missing admission/evaluators.
 - Preserve execution in protein/document examples and request/execution/comparison/acceptance/receipt lifecycles. Recovery requires valid state.
-- Disclose execution location. Before remote requests, explain once what is
-  sent to whom; Settings shows and revokes that permission. Only search-backed
-  answers ask per request; local runs never ask. Viewing/restoring/selection grants nothing.
+- Disclose execution location. Separate routing from default-on Allow network
+  answers; explain conversation disclosure to contributors. Persist opt-outs;
+  ask before sending. Search always asks per request; local never asks.
+  Viewing/restoring/selection grants nothing.
 - Keep failures and Stop visible; selection never stops background threads.
 - Connection/cached sharing default on; downloads require opt-in.
 - Include compatible adapters in model selection. Compute/file controls;

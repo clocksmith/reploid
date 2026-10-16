@@ -1,6 +1,6 @@
 {
   "schema": "reploid.doppler-partition-types/v1",
-  "packageVersion": "0.6.27",
+  "packageVersion": "0.6.27-unicode.1",
   "publicExport": "./partitions",
   "exportedTypes": [
     "LAYER_PARTITION_SCHEMA",
