@@ -1,0 +1,127 @@
+{
+  "schema": "reploid.partition-preflight/v1",
+  "checkedAt": "2026-10-16T15:08:47.899Z",
+  "status": "metadata-only; no partition process started",
+  "model": "qwen3-8-27b-text-f16-af32",
+  "modelIdentity": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+  "runtime": "doppler-gpu@0.6.30",
+  "planId": "sha256:1503c19cb03173427308b541ec7b8ab5ac596bd4e9cf01d667e93ddfc440010e",
+  "plan": {
+    "schema": "doppler.layer-partition-contract/v1",
+    "modelId": "qwen3-8-27b-text-f16-af32",
+    "totalLayers": 64,
+    "hiddenSize": 5120,
+    "vocabSize": 248320,
+    "splitLayer": 1,
+    "activationDtype": "f32",
+    "partitions": [
+      {
+        "index": 0,
+        "layerRange": [
+          0,
+          0
+        ],
+        "layerCount": 1,
+        "hasEmbedding": true,
+        "hasLmHead": false,
+        "inputContract": {
+          "type": "token-ids",
+          "rank": 2,
+          "shapeDescription": "[batchSize, seqLen]",
+          "dtype": "i32"
+        },
+        "outputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 5120,
+          "dtype": "f32"
+        }
+      },
+      {
+        "index": 1,
+        "layerRange": [
+          1,
+          63
+        ],
+        "layerCount": 63,
+        "hasEmbedding": false,
+        "hasLmHead": true,
+        "inputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 5120,
+          "dtype": "f32"
+        },
+        "outputContract": {
+          "type": "logits",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, vocabSize]",
+          "vocabSize": 248320,
+          "dtype": "f32"
+        }
+      }
+    ]
+  },
+  "stages": [
+    {
+      "index": 0,
+      "layerRange": [
+        0,
+        0
+      ],
+      "tensorCount": 15,
+      "manifestWeightBytes": 3309343168,
+      "configuredGpuBudgetBytes": 6442450944
+    },
+    {
+      "index": 1,
+      "layerRange": [
+        1,
+        63
+      ],
+      "tensorCount": 836,
+      "manifestWeightBytes": 50482653760,
+      "configuredGpuBudgetBytes": 55834574848
+    }
+  ],
+  "nonLayerGroups": [
+    "embed",
+    "head"
+  ],
+  "limits": {
+    "configuredContextTokens": 4096,
+    "configuredOutputTokens": 256,
+    "physicalPartitionQualification": false
+  },
+  "ownerConstraint": "Keep public whole-model 27B running; inspect and prepare only.",
+  "hostObservations": {
+    "mac-host": {
+      "physicalMemoryBytes": 25769803776,
+      "localModel": "manifest and tokenizer only; full weights absent"
+    },
+    "amd-host": {
+      "gpuGttAllocatedBytes": 61098479616,
+      "gpuGttTotalBytes": 65945571328,
+      "publicWholeModelsRunning": [
+        "0.8B",
+        "2B",
+        "27B"
+      ]
+    },
+    "intel-host": {
+      "physicalMemoryKiB": 32514064,
+      "availableMemoryKiB": 30432224,
+      "gpu": "Intel Tiger Lake-LP GT2",
+      "newGpuRun": false
+    }
+  },
+  "notes": [
+    "Manifest weight byte counts exclude execution state, compilation, transfers, and allocator overhead.",
+    "Catalog declares Mac/browser input-stage eligibility only, with layer 0 plus embedding; native output stage requires explicit index 1.",
+    "Current public whole-model allocation leaves insufficient GPU capacity for a simultaneous output-stage copy.",
+    "Metadata validation does not establish output correctness, latency, cancellation, or physical execution.",
+    "This asymmetric split is a functional partition candidate, not proof of a model that exceeds AMD capacity."
+  ]
+}
