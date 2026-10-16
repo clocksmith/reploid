@@ -1210,8 +1210,8 @@
     },
     {
       "path": "config/chat-models.json",
-      "byteLength": 7847,
-      "sha256": "sha256:b05406d7de1031e7ba90194ae4d2456e2e443689e230d6fd9278accf35325440"
+      "byteLength": 13633,
+      "sha256": "sha256:4a0cf1acbf23620052038b725ce70a3f14ea84750b7e3aa34d53d9ab43d836c2"
     },
     {
       "path": "config/chat-remote-permission.json",
@@ -1309,6 +1309,11 @@
       "sha256": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
     },
     {
+      "path": "config/model-manifests/19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d.json",
+      "byteLength": 563307,
+      "sha256": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d"
+    },
+    {
       "path": "config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json",
       "byteLength": 183803,
       "sha256": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028"
@@ -1334,9 +1339,14 @@
       "sha256": "sha256:44f05f1fdf34423e45621ac78fb75620927c6d228aa3771037ae093ef947233d"
     },
     {
+      "path": "config/model-pieces/qwen27b-q4-pieces.json",
+      "byteLength": 979941,
+      "sha256": "sha256:69400a62b129f8f045564527f6c7867b038b5c20edfe1842d3f36d60101a4600"
+    },
+    {
       "path": "config/module-inventory.json",
       "byteLength": 569873,
-      "sha256": "sha256:434208450d513df383ffe9c7433d6543d11895327780cbc4af49275ab59b7c97"
+      "sha256": "sha256:7350b567bc1956724769459404710c89ebb03e2afb2af1f16df7a62c48010777"
     },
     {
       "path": "config/module-registry.json",
@@ -3250,8 +3260,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2035733,
-      "sha256": "sha256:311511e346dbfbf1b916145041acf8e6ec7484814548c6987618fb06d2f49689"
+      "byteLength": 2038764,
+      "sha256": "sha256:349b158f1ed3520a7aae963c37b665e62fd5df0e406bbbfc0c804493fed7a4ec"
     },
     {
       "path": "ui/pool-home/computer-labels.js",
@@ -10489,5 +10499,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:4e789c2791788350de0f9e29c3b3be99004d3a956a664f7e2d124ecac915a33c"
+  "bundleHash": "sha256:d6bc91e727465927cc30a5a16d322f5e10c18dbfe9bcbcfa1df4fdc4dc184afb"
 }
