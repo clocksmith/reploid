@@ -47,6 +47,9 @@
 .pool-home .pool-dot { display: inline-flex; align-items: center; gap: var(--pool-size-4); }
 .pool-home .pool-dot::before { content: ''; flex: none; width: var(--pool-size-8); height: var(--pool-size-8); border-radius: var(--pool-radius-round); background: currentColor; }
 .pool-home .pool-dot.pool-dot-open::before { background: transparent; border: var(--pool-border-hairline) solid currentColor; }
+.pool-home .pool-meter { width: var(--pool-size-16); height: var(--pool-size-16); pointer-events: none; }
+.pool-home .pool-meter-track { stroke: var(--pool-color-line); }
+.pool-home .pool-meter-value { stroke: currentColor; }
 .pool-home .pool-reveal-host .pool-reveal { opacity: 0; }
 .pool-home .pool-reveal-host:is(:hover, :focus-within) .pool-reveal { opacity: 1; }
 .pool-home .pool-edge-top { border-top: var(--pool-border-hairline) solid var(--pool-color-line); }
