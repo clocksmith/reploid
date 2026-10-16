@@ -1,0 +1,16 @@
+{
+  "schema": "reploid.q4-cross-host/v1",
+  "startedAt": "2026-10-16T18:11:37.148Z",
+  "scope": "Doppler resident execution across Mac Metal and AMD Vulkan over private SSH; not Reploid WebRTC or signed release",
+  "configSha256": "912236b7323ae71d187330f9d2cbb88809aa6a93cd008739b20a0cdffa6c8ef5",
+  "baselineSha256": "a12724c5caf53ec1d64c1b096308acd5ef4c520e77977a4fd5e8aeb3f6015286",
+  "opens": [],
+  "rows": [],
+  "cleanup": [],
+  "passed": false,
+  "error": {
+    "message": "Cannot access 'start' before initialization",
+    "stack": "ReferenceError: Cannot access 'start' before initialization\n    at file:///Users/xyz/deco/reploid/tests/fixtures/qwen-partition-cross-host.js:55:20"
+  },
+  "finishedAt": "2026-10-16T18:11:37.172Z"
+}
