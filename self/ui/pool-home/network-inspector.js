@@ -27,7 +27,7 @@ export function renderNetworkInspector() {
         <p>Revoking stops this thread’s sharing. It cannot recall data already sent.</p><ul data-thread-grants></ul></section>
     </section>
     <section class="pool-stack pool-gap-lg" data-inspector-pane="participants" aria-label="Computers" hidden>
-      <section class="pool-stack pool-gap-sm" aria-label="This device"><h3 class="pool-subheading">This device</h3>
+      <section class="pool-stack pool-gap-md" aria-label="This device"><h3 class="pool-subheading">This device</h3>
         ${renderSharingControls({ introductory: false })}
         <details class="pool-disclosure" data-specialized-jobs><summary>Specialized model jobs</summary><div data-specialized-content></div></details>
       </section>

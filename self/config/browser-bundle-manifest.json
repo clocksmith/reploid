@@ -1336,7 +1336,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 569658,
-      "sha256": "sha256:6d06828a7e8aba9351cc698ed0ed5a7bf6737beb03b119db1ca8bc92e3b2ef37"
+      "sha256": "sha256:57bbdc57e9310097e9a5dd8b3e5f64b8f21646d0634d5ea33a31f096acbda3f1"
     },
     {
       "path": "config/module-registry.json",
@@ -3200,8 +3200,8 @@
     },
     {
       "path": "ui/components/interface-icons.js",
-      "byteLength": 1668,
-      "sha256": "sha256:d2241b14a9ec4e891d981b04fda50030dd37f7b6d5417b532fc78ad48f17a414"
+      "byteLength": 1754,
+      "sha256": "sha256:9e8e208c14cadc32f82bc4b80ed257c5e798d0dd5e5fda1d2cc480d9a62a64e0"
     },
     {
       "path": "ui/components/message-markdown.js",
@@ -3245,8 +3245,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2034740,
-      "sha256": "sha256:624fca8a27803973b3186c24e6de0247834bfc2f547a6e633ebb1badd8cdba58"
+      "byteLength": 2034826,
+      "sha256": "sha256:36fdef1077ddd9d6af77b610285837875441e69eb26f08a62c97390db3115972"
     },
     {
       "path": "ui/pool-home/computer-labels.js",
@@ -3321,12 +3321,12 @@
     {
       "path": "ui/pool-home/network-controls.js",
       "byteLength": 18760,
-      "sha256": "sha256:0b77505f95d1d02a78b0eeec6f10f34824d99d1bd8f2fd2ee1ff8c8ab6ff7f5e"
+      "sha256": "sha256:67e03cf7da7e98937280a351c86b2de719dba31257ca81221d41175c1533aa1d"
     },
     {
       "path": "ui/pool-home/network-inspector.js",
       "byteLength": 18305,
-      "sha256": "sha256:ea731042247fc9748b0c3826eef542f832e91f487dd2bd996085519fe418867a"
+      "sha256": "sha256:8fb893df18e395db7f9dccc1f9d909aa90fa587821b05091c33f8a89d79f9ed1"
     },
     {
       "path": "ui/pool-home/network-projection.js",
@@ -10484,5 +10484,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:ba7f89da657093fed88327e60a811b9a99b44820672161f79c8e9281212fc5c7"
+  "bundleHash": "sha256:b972db1ca81fc86c80a7b456f731d2a31a2c00fd3ecca30570a7732986bf67be"
 }

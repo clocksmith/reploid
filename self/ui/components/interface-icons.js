@@ -15,7 +15,7 @@ export function interfaceIcon(name) {
     copy: '<rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V3H3v13h5"/>',
     close: '<path d="m6 6 12 12M18 6 6 18"/>',
     activity: '<path d="M3 12h4l3-7 4 14 3-7h4"/>',
-    peers: '<circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="12" cy="18" r="3"/><path d="m7 9 4 6m6-6-4 6"/>',
+    peers: '<rect x="8" y="2" width="8" height="6" rx="1"/><rect x="1" y="15" width="8" height="6" rx="1"/><rect x="15" y="15" width="8" height="6" rx="1"/><path d="M12 8v4M5 15v-3h14v3M5 21v1m-2 0h4m12-1v1m-2 0h4"/>',
     device: '<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/>',
     settings: '<path d="M4 6h16M4 12h16M4 18h16"/><circle cx="8" cy="6" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="10" cy="18" r="2"/>'
   };
