@@ -26,7 +26,7 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
       <div class="chat-rail-toolbar pool-surface" data-chat-rail-toolbar>
       <div class="chat-rail-primary">
       <div class="chat-rail-heading">
-      <span class="chat-thread-brand" data-thread-rail-brand></span>
+      <span class="chat-thread-brand" data-thread-rail-brand><small class="chat-thread-count pool-badge" data-thread-count hidden></small></span>
       <button class="pool-button chat-new-thread" type="button" data-new-thread aria-label="New thread" title="New thread">${interfaceIcon('newThread')}<span class="chat-rail-label">New thread</span></button>
       </div>
       <section class="chat-thread-panel" data-thread-panel aria-labelledby="chat-threads-title">
@@ -230,8 +230,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (thread && !models.some(model => keyFor(model) === keyFor(thread.model))) {
       models.push(catalogModels.find(model => keyFor(model) === keyFor(thread.model)) || { ...thread.model, availability: 'unavailable' });
     }
-    const current = keyFor(thread?.model) || keyFor(chosenModel) || (models.some(model => keyFor(model) === modelSelect.value && selectable(model)) ? modelSelect.value : null)
-      || keyFor(models.find(model => keyFor(model) === keyFor(state.defaultModel) && selectable(model)))
+    const location = thread?.permissions?.executionLocation ?? (thread?.permissions?.sharingScope === 'local' ? 'local' : executionLocation);
+    const defaultModel = state.defaultModels?.[location] || state.defaultModel;
+    const current = keyFor(thread?.model) || keyFor(chosenModel)
+      || keyFor(models.find(model => keyFor(model) === keyFor(defaultModel) && selectable(model)))
       || keyFor(models.find(selectable)) || keyFor(models[0]);
     updateModelSelect(modelSelect, models, { value: current, showAvailability: true });
     modelSelect.value = current || ''; modelSelect.disabled = !models.length; modelSelect.hidden = !!thread;
@@ -240,7 +242,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     currentModel.setAttribute('aria-label', `${thread?.model.name || 'Model'}. Choose a model for a new thread`);
     const peerCount = projectNetworkPeers(state).length;
     for (const node of surface?.querySelectorAll('[data-mesh-peers]') || []) node.textContent = `${peerCount} ${peerCount === 1 ? 'computer' : 'computers'}`;
-    const location = thread?.permissions?.executionLocation ?? (thread?.permissions?.sharingScope === 'local' ? 'local' : executionLocation);
     for (const button of container.querySelectorAll('[data-execution-choice]')) {
       button.setAttribute('aria-pressed', String(button.dataset.executionChoice === location));
       button.disabled = !!thread?.closed || state.runningIds.includes(state.selectedId) || submitting;
@@ -387,7 +388,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     input.dispatchEvent(new Event('input', { bubbles: true }));
     input.focus();
   });
-  const newThread = () => after(saveDraft(), () => after(session.select(null), () => { inspector.close({ restoreFocus: false }); chosenModel = null; viewState.chosenModel = null; archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-archived]').textContent = 'Archived threads'; actionsPanel.setOpen(false); if (globalThis.innerWidth <= 760) setThreads(false); input.focus(); }));
+  const newThread = () => after(saveDraft(), () => after(session.select(null), () => { inspector.close({ restoreFocus: false }); chosenModel = null; viewState.chosenModel = null; archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-archived]').textContent = 'Archived threads'; actionsPanel.setOpen(false); if (globalThis.innerWidth <= 760) setThreads(false); render(session.getState()); input.focus(); }));
   on('[data-new-thread]', 'click', () => { try { observe(newThread()); } catch (cause) { error(cause); } });
   on('[data-active-model-select]', 'change', () => { chosenModel = session.getState().models.find(model => (model.selectionId || model.id) === modelSelect.value); viewState.chosenModel = chosenModel; render(session.getState()); });
   on('[data-change-model]', 'click', () => {
