@@ -162,3 +162,18 @@ describe('CATSCAN component charters', () => {
     }
   });
 });
+
+it('ignores root output snapshots while retaining ordinary source charters', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'reploid-catscan-output-'));
+  try {
+    await fs.writeFile(path.join(root, 'CATSCAN.md'), validCharter({ component: 'Root' }));
+    await fs.mkdir(path.join(root, 'output', 'source'), { recursive: true });
+    await fs.writeFile(path.join(root, 'output', 'source', 'CATSCAN.md'), 'malformed copied charter');
+    await fs.mkdir(path.join(root, 'src'));
+    await fs.writeFile(path.join(root, 'src', 'CATSCAN.md'), validCharter({ component: 'Child', parent: '[Root](../CATSCAN.md)' }));
+    const charters = await loadCatscans(root);
+    expect(charters.map(c => c.component)).toEqual(['Root', 'Child']);
+  } finally {
+    await fs.rm(root, { recursive: true, force: true });
+  }
+});
