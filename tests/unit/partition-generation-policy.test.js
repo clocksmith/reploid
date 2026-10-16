@@ -10,7 +10,8 @@ const explicit = () => ({ ...profile.generation, maxSeqLen: policy.maxSeqLen,
   temperature: 0.6, topK: 20, topP: 0.95, repetitionPenalty: 1, seed: 37 });
 it('preserves every current catalog model generation setting exactly', () => {
   const expected = resolveGenerationOptions({ ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen });
-  for (const model of catalog) expect(resolvePartitionGeneration(model)).toEqual(expected);
+  for (const model of catalog) expect(resolvePartitionGeneration(model)).toEqual(
+    Object.hasOwn(model, 'generation') ? resolveGenerationOptions(model.generation) : expected);
 });
 it('uses an explicit complete model policy without inheriting greedy settings', () => {
   const generation = explicit(), resolved = resolvePartitionGeneration({ generation });

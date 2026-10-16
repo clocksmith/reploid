@@ -37,6 +37,21 @@ async function fixture() {
 }
 
 describe('native host boundary', () => {
+  it.each(['metal', 'vulkan'])('selects the explicit %s backend without substituting another provider', async backend => {
+    const create = vi.fn(() => ({ requestAdapter() {} }));
+    const navigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+    const host = createNativeGpuHost(async () => ({ globals: {}, create }), { backend });
+    try {
+      await host.open();
+      expect(create).toHaveBeenCalledExactlyOnceWith(['backend=' + backend]);
+    } finally { await host.close(); }
+    expect(Object.getOwnPropertyDescriptor(globalThis, 'navigator')).toEqual(navigator);
+  });
+  it('rejects unsupported native backends before loading a provider', () => {
+    const load = vi.fn();
+    expect(() => createNativeGpuHost(load, { backend: 'fallback' })).toThrow('backend');
+    expect(load).not.toHaveBeenCalled();
+  });
   it('does not substitute manifest opening for an explicitly requested signed Capsule', async () => {
     const nativeGpu = vi.fn(async () => {});
     const files = { preparePartitionSource: vi.fn() };

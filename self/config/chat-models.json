@@ -131,7 +131,8 @@
     "size": "Q4K \u00b7 17 GB",
     "adapters": [],
     "executionModes": [
-      "whole-model"
+      "whole-model",
+      "partition"
     ],
     "generation": {
       "maxTokens": 256,
@@ -140,7 +141,8 @@
       "topP": 1,
       "repetitionPenalty": 1,
       "maxSeqLen": 4096,
-      "useChatTemplate": true
+      "useChatTemplate": true,
+      "repetitionPenaltyWindow": 1
     },
     "loadOptions": {
       "runtimeConfig": {
@@ -150,6 +152,204 @@
               "enabled": false,
               "captureLogits": true,
               "captureKvBytes": true
+            }
+          },
+          "debug": {
+            "logLevel": {
+              "defaultLogLevel": "warn"
+            },
+            "trace": {
+              "enabled": false
+            },
+            "profiler": {
+              "enabled": false
+            }
+          },
+          "bufferPool": {
+            "budget": {
+              "maxTotalBytes": 25769803776,
+              "highWatermarkRatio": 0.94,
+              "emergencyTrimTargetRatio": 0.9,
+              "hardFailOnBudgetExceeded": true
+            }
+          }
+        },
+        "inference": {
+          "prompt": "The capital of France is",
+          "chatTemplate": {
+            "enabled": false,
+            "type": null,
+            "thinking": false
+          },
+          "generation": {
+            "maxTokens": 128,
+            "disableMultiTokenDecode": true
+          },
+          "batching": {
+            "maxTokens": 128,
+            "batchSize": 1,
+            "readbackInterval": 1,
+            "stopCheckMode": "per-token",
+            "readbackMode": "sequential",
+            "ringTokens": 1,
+            "ringStop": 1,
+            "ringStaging": 1
+          },
+          "sampling": {
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1,
+            "repetitionPenalty": 1,
+            "repetitionPenaltyWindow": 1,
+            "greedyThreshold": 0,
+            "suppressSpecialTokens": false,
+            "suppressSpecialLikeTokens": false,
+            "suppressTokenIds": []
+          },
+          "session": {
+            "decodeLoop": {
+              "batchSize": 1,
+              "readbackInterval": 1,
+              "stopCheckMode": "per-token",
+              "readbackMode": "sequential",
+              "submitLatencyThresholdMs": null,
+              "maxBatchDecodeTokens": 1,
+              "ringTokens": 1,
+              "ringStop": 1,
+              "ringStaging": 1,
+              "disableCommandBatching": false
+            },
+            "kvcache": {
+              "maxSeqLen": 4096
+            },
+            "prefillTokenChunkSize": 256
+          },
+          "kernelPathPolicy": {
+            "mode": "capability-aware",
+            "sourceScope": [
+              "manifest"
+            ],
+            "allowSources": [
+              "manifest"
+            ],
+            "onIncompatible": "error"
+          },
+          "kvcache": {
+            "maxSeqLen": 4096
+          }
+        }
+      }
+    },
+    "source": {
+      "files": [
+        {
+          "path": "manifest.json",
+          "role": "model-manifest",
+          "sizeBytes": 563307,
+          "hashAlgorithm": "sha256",
+          "hash": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+          "url": "/config/model-manifests/19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d.json"
+        },
+        {
+          "path": "tokenizer.json",
+          "role": "tokenizer",
+          "sizeBytes": 9089356,
+          "hashAlgorithm": "sha256",
+          "hash": "ae50d65939a34a089eaf1e541c15c8a7d866079a5fe9a1d35454e0aa88577753"
+        },
+        {
+          "path": "qwen27b-q4-pieces.json",
+          "role": "model-piece-index",
+          "sizeBytes": 979941,
+          "hashAlgorithm": "sha256",
+          "hash": "69400a62b129f8f045564527f6c7867b038b5c20edfe1842d3f36d60101a4600",
+          "url": "/config/model-pieces/qwen27b-q4-pieces.json"
+        }
+      ]
+    },
+    "partitionPlan": {
+      "schema": "doppler.layer-partition-contract/v3",
+      "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+      "totalLayers": 64,
+      "hiddenSize": 5120,
+      "vocabSize": 248320,
+      "stageCount": 2,
+      "splitLayers": [
+        1
+      ],
+      "activationDtype": "f32",
+      "activationPrecision": "f32",
+      "activationComponents": 1,
+      "activationElementStrideBytes": 4,
+      "partitions": [
+        {
+          "index": 0,
+          "layerRange": [
+            0,
+            0
+          ],
+          "layerCount": 1,
+          "hasEmbedding": true,
+          "hasLmHead": false,
+          "inputContract": {
+            "type": "token-ids",
+            "rank": 2,
+            "shapeDescription": "[batchSize, seqLen]",
+            "dtype": "i32"
+          },
+          "outputContract": {
+            "type": "activation-tensor",
+            "rank": 3,
+            "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+            "hiddenSize": 5120,
+            "dtype": "f32",
+            "precision": "f32",
+            "components": 1,
+            "elementStrideBytes": 4
+          }
+        },
+        {
+          "index": 1,
+          "layerRange": [
+            1,
+            63
+          ],
+          "layerCount": 63,
+          "hasEmbedding": false,
+          "hasLmHead": true,
+          "inputContract": {
+            "type": "activation-tensor",
+            "rank": 3,
+            "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+            "hiddenSize": 5120,
+            "dtype": "f32",
+            "precision": "f32",
+            "components": 1,
+            "elementStrideBytes": 4
+          },
+          "outputContract": {
+            "type": "logits",
+            "rank": 3,
+            "shapeDescription": "[batchSize, seqLen, vocabSize]",
+            "vocabSize": 248320,
+            "dtype": "f32"
+          }
+        }
+      ]
+    },
+    "partitionPlanId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+    "partitionRuntime": {
+      "maxGpuBufferBytes": [
+        6442450944,
+        25769803776
+      ],
+      "runtimeConfig": {
+        "shared": {
+          "harness": {
+            "referenceTranscript": {
+              "enabled": false,
+              "captureLogits": false,
+              "captureKvBytes": false
             }
           },
           "debug": {
