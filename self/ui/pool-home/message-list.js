@@ -17,6 +17,22 @@ function failureLabel(attempt) {
   return 'This answer could not finish.';
 }
 
+function updateMessageMeta(root, thread, attempt) {
+  const execution = attempt?.execution;
+  const timing = execution?.timing;
+  const tokens = timing?.generatedTokenCount ?? execution?.completion?.generatedTokenCount;
+  const item = (icon, text, title = text) => `<span class="pool-row pool-gap-xs" title="${escape(title)}">${interfaceIcon(icon)}<span>${escape(text)}</span></span>`;
+  const parts = [];
+  if (thread.model?.name) parts.push(`<span class="pool-badge">${item('model', thread.model.name)}</span>`);
+  if (Number.isSafeInteger(tokens) && tokens >= 0) parts.push(item('tokens', `${tokens} tokens`, 'Generated tokens'));
+  if (Number.isFinite(timing?.totalMs) && timing.totalMs > 0) {
+    parts.push(item('clock', `${(timing.totalMs / 1000).toFixed(1)} s`, 'Generation time including prompt processing'));
+  }
+  const markup = parts.join('');
+  root.hidden = !markup;
+  if (root.dataset.markup !== markup) { root.innerHTML = markup; root.dataset.markup = markup; }
+}
+
 export function createMessageList(stream, { getSources, positions = new Map(), scrollContainer = stream } = {}) {
   const rows = new Map();
   let selected;
@@ -38,8 +54,9 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
         let row = rows.get(id);
         if (!row) {
           row = stream.ownerDocument.createElement('article'); row.dataset.messageId = messageId;
-          row.className = message.role === 'user' ? 'chat-message-row is-user pool-well pool-reveal-host' : 'chat-message-row is-assistant';
-          row.innerHTML = '<details class="chat-execution-activity pool-small pool-muted" data-execution-activity hidden><summary class="pool-button" title="Execution details"></summary><div class="pool-well" data-activity-detail></div></details><span class="chat-message-author pool-small pool-muted"></span><div class="chat-message-content pool-body pool-prose"></div><div class="chat-message-actions"></div>';
+          row.className = message.role === 'user' ? 'chat-message-row is-user' : 'chat-message-row is-assistant';
+          row.innerHTML = '<span class="chat-message-author pool-small pool-muted"></span><div class="chat-message-content pool-body pool-prose"></div><div class="chat-message-meta pool-row pool-gap-sm pool-small pool-muted" hidden></div><details class="chat-execution-activity pool-small pool-muted" data-execution-activity hidden><summary class="pool-button btn-ghost" title="Execution details"></summary><div class="pool-well" data-activity-detail></div></details><div class="chat-message-actions"></div>';
+          if (message.role === 'user') row.querySelector('.chat-message-content').classList.add('pool-well');
           row.querySelector('.chat-message-author').textContent = message.role === 'user' ? 'You' : 'Assistant'; rows.set(id, row);
         }
         const body = row.querySelector('.chat-message-content');
@@ -54,6 +71,7 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
           if (body.dataset.source !== markup) { body.innerHTML = markup; body.dataset.source = markup; }
         }
         const attempt = thread.attempts.find(item => item.id === message.attemptId);
+        if (message.role === 'assistant') updateMessageMeta(row.querySelector('.chat-message-meta'), thread, attempt);
         const sources = message.role === 'assistant' && attempt?.retrieval?.outcome === 'retrieved' ? attempt.retrieval.sources : [];
         const anchor = number => `source-${message.id}-${number}`;
         // A search-backed answer's [n] markers link to its numbered sources below it.
@@ -72,8 +90,8 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
           actions.innerHTML = `${failed ? `<p role="status">${escape(failureLabel(attempt))}</p>${attempt.error ? `<details><summary>Technical details</summary><pre>${escape(attempt.error)}</pre></details>` : ''}` : ''}
             ${sources.length ? `<details class="pool-small"><summary>Sources searched (${sources.length})</summary><ol class="pool-list">${sources.map(item => `<li id="${escape(anchor(item.number))}" tabindex="-1"><a href="${escape(item.url)}" target="_blank" rel="noopener noreferrer">[${item.number}] ${escape(item.title)}</a></li>`).join('')}</ol></details>` : ''}
             ${attempt?.retryOf ? '<small>New attempt</small>' : ''}
-            ${retryable ? `<button type="button" class="pool-button" data-retry-attempt="${escape(attempt.id)}"${usable ? '' : ' disabled'}>Retry response</button><small>Starts a new attempt; keeps this response.</small>` : ''}
-            ${message.content ? `<button type="button" class="pool-button btn-ghost pool-icon pool-muted pool-reveal" data-copy-message aria-label="Copy response" title="Copy response">${interfaceIcon('copy')}</button>` : ''}`;
+            ${retryable ? `<button type="button" class="pool-button" data-retry-attempt="${escape(attempt.id)}"${usable ? '' : ' disabled'}>${interfaceIcon('retry')}<span>Retry response</span></button><small>Starts a new attempt; keeps this response.</small>` : ''}
+            ${message.content ? `<button type="button" class="pool-button btn-ghost pool-icon pool-muted" data-copy-message aria-label="Copy response" title="Copy response">${interfaceIcon('copy')}</button>` : ''}`;
         }
         if (row.parentElement !== stream) stream.append(row);
       }

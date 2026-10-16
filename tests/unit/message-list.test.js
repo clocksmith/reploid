@@ -110,3 +110,22 @@ describe('Stable message presentation', () => {
   });
 
 });
+
+
+it('shows recorded answer metadata and omits unknown or invalid measurements', () => {
+  const root = document.createElement('div'), thread = conversation();
+  thread.model = { name: 'Recorded model' };
+  const view = createMessageList(root);
+  view.update(thread, { usable: true, busy: false });
+  const meta = root.querySelector('.is-assistant .chat-message-meta');
+  expect(meta.textContent).toBe('Recorded model');
+  thread.attempts[0].execution = { placement: 'local-webgpu', timing: { generatedTokenCount: 59, totalMs: 7900 } };
+  view.update(thread, { usable: true, busy: false });
+  expect(meta.textContent).toContain('59 tokens');
+  expect(meta.textContent).toContain('7.9 s');
+  expect(meta.querySelector('[title="Generation time including prompt processing"]')).not.toBeNull();
+  thread.attempts[0].execution.timing = { generatedTokenCount: -1, totalMs: NaN };
+  view.update(thread, { usable: true, busy: false });
+  expect(meta.textContent).toBe('Recorded model');
+  view.dispose();
+});

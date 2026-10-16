@@ -63,8 +63,12 @@
 }
 .chat-message-stream, .chat-composer-area, .chat-error { width: min(100%, var(--pool-size-720)); align-self: center; margin-inline: auto; }
 .chat-message-row { min-width: 0; width: 100%; display: grid; gap: var(--pool-size-8); }
-.chat-message-row.is-user { position: relative; width: max-content; min-width: min(100%, var(--pool-size-128)); max-width: 82%; padding-inline-end: var(--pool-size-64); }
-.chat-message-row.is-user { align-self: flex-end; padding-block: var(--pool-size-16); padding-inline-start: var(--pool-size-24); }
+.chat-message-row.is-user { width: fit-content; max-width: 85%; align-self: flex-end; }
+.chat-message-row.is-user .chat-message-content { padding: var(--pool-size-16) var(--pool-size-24); }
+.chat-message-row.is-user .chat-message-actions { justify-content: flex-end; }
+.chat-message-meta { flex-wrap: wrap; margin-top: var(--pool-size-8); }
+.chat-message-meta svg { width: var(--pool-size-16); height: var(--pool-size-16); flex: none; }
+.chat-message-meta > span { min-width: 0; overflow-wrap: anywhere; }
 .chat-message-content { white-space: pre-wrap; }
 .chat-message-content > [data-text-block] + [data-text-block] { margin-top: var(--pool-size-8); }
 /* One input surface; controls share its interior without covering the text. */
@@ -143,12 +147,8 @@
 .chat-message-actions p, .chat-message-actions details { flex-basis: 100%; }
 .chat-message-actions pre { white-space: pre-wrap; overflow-wrap: anywhere; }
 .chat-message-actions [data-copy-message] { display: grid; place-items: center; width: var(--pool-size-44); min-height: var(--pool-size-44); padding: 0; transition: opacity var(--pool-motion-nav), transform var(--pool-motion-nav), color var(--pool-motion-nav); }
-.chat-message-row.is-user .chat-message-actions { position: absolute; right: var(--pool-size-4); bottom: var(--pool-size-4); }
 .chat-message-actions:empty { display: none; }
-@media (hover: hover) {
-  .chat-message-row.is-user [data-copy-message] { pointer-events: none; transform: translateY(var(--pool-size-4)); }
-  .chat-message-row.is-user:is(:hover, :focus-within) [data-copy-message] { pointer-events: auto; transform: none; }
-}
+.chat-message-actions [data-retry-attempt] { display: inline-flex; align-items: center; gap: var(--pool-size-8); }
 @media (max-width: 760px) { .chat-mobile-threads { display: inline-flex; } }
 
 /* Bound the workspace, not its growing transcript. Dialogs occupy the top layer. */
@@ -286,8 +286,8 @@
 .chat-thread-menu > summary { display: grid; place-items: center; width: var(--pool-size-32); height: var(--pool-size-44); padding: 0; }
 .chat-thread-menu > div { position: absolute; right: 0; z-index: var(--pool-z-2); min-width: var(--pool-size-128); }
 .pool-home .chat-conversation-area.pool-surface { padding: 0; gap: var(--pool-size-24); }
-.chat-execution-activity { width: min(100%, var(--pool-size-320)); min-width: 0; max-width: 100%; }
-.chat-execution-activity summary { display: flex; align-items: center; gap: var(--pool-size-12); width: fit-content; max-width: 100%; list-style: none; }
+.chat-execution-activity { width: 100%; min-width: 0; max-width: 100%; }
+.chat-execution-activity summary { display: flex; align-items: center; gap: var(--pool-size-8); width: fit-content; max-width: 100%; padding: var(--pool-size-4) var(--pool-size-8); list-style: none; }
 .chat-execution-activity summary::-webkit-details-marker { display: none; }
 .chat-execution-activity summary::after { content: '+'; flex: none; margin-left: auto; }
 .chat-execution-activity[open] summary::after { content: '−'; }
