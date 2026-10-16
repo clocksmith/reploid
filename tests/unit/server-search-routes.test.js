@@ -107,6 +107,15 @@ describe('search route', () => {
 });
 
 describe('extract route', () => {
+  it('returns an explicit unavailable status without a provider, preserving authorization and keeping search unmounted', async () => {
+    const app = express(), authorize = vi.fn((_req, _res, next) => next());
+    mountSearchRoutes(app, { env: {}, authorize });
+    app.use((_req, res) => res.status(404).json({ error: 'not-found' }));
+    const call = await serve(app), status = await call('/status');
+    expect(status).toMatchObject({ status: 200, body: { schema: 'reploid.server-search-status/v1', enabled: false, provider: null } });
+    expect(authorize).toHaveBeenCalledOnce();
+    expect((await call('/search', { query: 'do not send' })).status).toBe(404);
+  });
   it('fetches only token-bound URLs and returns an exact passage with document offsets and hashes', async () => {
     const { app, pages, usage, clock } = fixture(), call = await serve(app);
     const url = 'https://www.example.org/eiffel-tower', token = signFetchToken(SECRET, url, clock.time + 60000);

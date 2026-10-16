@@ -105,7 +105,7 @@ describe('Stable message presentation', () => {
     view.update(thread, { usable: true, busy: false, state: { participantId: 'requester' } });
     const details = root.querySelector('[data-message-id="reply"] [data-execution-activity]');
     expect(details.hidden).toBe(false);
-    expect(details.querySelector('summary').textContent).toBe('Complete · 1 computer · Mesh');
+    expect(details.querySelector('[data-execution-trigger]').getAttribute('aria-label')).toBe('Complete · 1 computer · Mesh. Execution details');
     view.dispose();
   });
 
@@ -118,14 +118,34 @@ it('shows recorded answer metadata and omits unknown or invalid measurements', (
   const view = createMessageList(root);
   view.update(thread, { usable: true, busy: false });
   const meta = root.querySelector('.is-assistant .chat-message-meta');
-  expect(meta.textContent).toBe('Recorded model');
+  expect(meta.querySelector('[aria-label="Model: Recorded model"]')).not.toBeNull();
+  expect(meta.textContent).toBe('');
   thread.attempts[0].execution = { placement: 'local-webgpu', timing: { generatedTokenCount: 59, totalMs: 7900 } };
   view.update(thread, { usable: true, busy: false });
-  expect(meta.textContent).toContain('59 tokens');
+  expect(meta.querySelector('[title="59 generated tokens"]')).not.toBeNull();
   expect(meta.textContent).toContain('7.9 s');
+  expect(meta.textContent).toContain('7.5 tok/s');
   expect(meta.querySelector('[title="Generation time including prompt processing"]')).not.toBeNull();
   thread.attempts[0].execution.timing = { generatedTokenCount: -1, totalMs: NaN };
   view.update(thread, { usable: true, busy: false });
-  expect(meta.textContent).toBe('Recorded model');
+  expect(meta.textContent).toBe('');
+  view.dispose();
+});
+
+it('shows each answer’s own route and latency, without borrowing metrics from a later attempt', () => {
+  const root = document.createElement('div'), thread = conversation();
+  thread.model = { name: 'Model' };
+  thread.attempts[0].execution = { placement: 'local-webgpu', timing: { generatedTokenCount: 10, totalMs: 1000, firstTokenMs: 250, prefillMs: 200, decodeMs: 800 } };
+  thread.attempts.push({ id: 'later', status: 'completed', execution: { placement: 'two-device-layer-partition', participantA: 'a', participantB: 'b' } });
+  thread.messages.push({ id: 'later-reply', role: 'assistant', attemptId: 'later', content: 'Later answer' });
+  const view = createMessageList(root);
+  view.update(thread, { usable: true, busy: false });
+  const first = root.querySelector('[data-message-id="reply"]'), second = root.querySelector('[data-message-id="later-reply"]');
+  expect(first.querySelector('.chat-message-meta').textContent).toContain('10.0 tok/s');
+  expect(first.querySelector('[data-activity-detail]').textContent).toContain('First token0.25 s');
+  expect(first.textContent).toContain('Prompt processing');
+  expect(second.querySelector('[data-execution-trigger]').getAttribute('aria-label')).toContain('2 computers · Partitioned');
+  expect(second.textContent).not.toContain('tok/s');
+  expect(second.textContent).not.toContain('First token');
   view.dispose();
 });

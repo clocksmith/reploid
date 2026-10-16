@@ -23,7 +23,6 @@
    These names are load-bearing; do not rename without updating the JS.
    ============================================ */
 
-html[data-pool-route-id] { scrollbar-gutter: stable; }
 
 .pool-home > .pool-nav-rail.pool-primary-nav,
 .pool-home > .pool-route-content {

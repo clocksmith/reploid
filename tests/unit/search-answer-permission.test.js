@@ -10,6 +10,7 @@ import { createFixedSearchProvider, createRetrieval, renderSourceContext } from 
 import { orderedPartitionDisclosure } from '../../packages/reploid/src/mesh/partitions/partition-grants.js';
 import { createChatSession, SEARCH_ROUTE } from '../../self/host/chat-session.js';
 import { createServerSearch } from '../../self/host/server-search.js';
+import { createWebSearch } from '../../self/host/web-search.js';
 import { renderConversationWorkspace, bindConversationWorkspace } from '../../self/ui/pool-home/conversation-workspace.js';
 import { remotePermissionWording } from '../../self/ui/pool-home/remote-permission.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
@@ -205,11 +206,14 @@ describe('host session and conversation view', () => {
     await grantContributors(session);
     const search = { provider: {}, extractor: {}, available: () => true, state: () => ({ state: 'ready' }), subscribe: listener => { listener(); return () => {}; }, refresh() {} };
     const root = document.createElement('div'); root.innerHTML = renderConversationWorkspace(); document.body.append(root);
-    const dispose = bindConversationWorkspace(root, session, { search }); cleanups.push(async () => dispose());
+    const webSearch = createWebSearch({ storage: memory() });
+    const dispose = bindConversationWorkspace(root, session, { search, webSearch }); cleanups.push(async () => dispose());
     const find = selector => root.querySelector(selector), dialog = find('[data-search-permission]');
     const submit = text => { find('[data-composer-input]').value = text; find('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); };
     expect(find('[data-search-toggle]').hidden).toBe(false);
-    find('[data-search-toggle]').click();
+    expect(find('[data-web-search-toggle]').disabled).toBe(false);
+    find('[data-web-search-toggle]').click();
+    expect(find('[data-search-toggle]').getAttribute('aria-pressed')).toBe('true');
     submit(QUESTION);
     await vi.waitFor(() => expect(dialog.open).toBe(true));
     expect(find('[data-search-permission-text]').textContent).toBe(APPROVED);

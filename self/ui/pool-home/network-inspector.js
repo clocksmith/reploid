@@ -13,14 +13,12 @@ import { renderAccountPanel, bindAccountPanel } from './account-panel.js';
 export function renderNetworkInspector() {
   return `<aside class="chat-network-rail pool-surface" data-network-rail aria-label="Network and settings">
     <nav class="pool-stack pool-gap-sm" data-inspector-navigation aria-label="Network sections">
-      <button class="pool-button chat-rail-icon" type="button" data-inspector-section="conversation" aria-label="This conversation" title="This conversation">${interfaceIcon('activity')}<span class="chat-rail-label">This conversation</span><small class="chat-rail-digest pool-muted" data-rail-digest="conversation"></small></button>
       <button class="pool-button chat-network-toggle" type="button" data-inspector-section="participants" data-toggle-inspector aria-haspopup="dialog" aria-expanded="false" aria-label="Computers" title="Computers">${interfaceIcon('peers')}<span class="chat-rail-label">Computers</span><small class="chat-rail-digest pool-muted" data-rail-digest="participants"></small></button>
-      <button class="pool-button chat-rail-icon" type="button" data-inspector-section="device" aria-label="Sharing" title="Sharing">${interfaceIcon('device')}<span class="chat-rail-label">Sharing</span><small class="chat-rail-digest pool-muted" data-rail-digest="device"></small></button>
       <button class="pool-button chat-rail-icon" type="button" data-inspector-section="settings" aria-label="Settings" title="Settings">${interfaceIcon('settings')}<span class="chat-rail-label">Settings</span></button>
     </nav>
     <dialog class="network-inspector pool-surface pool-small" data-contextual-inspector data-network-workspace aria-labelledby="network-inspector-title">
     <header class="chat-network-heading"><h2 class="pool-subheading" id="network-inspector-title" tabindex="-1">Network</h2><button class="pool-button" type="button" data-close-inspector aria-label="Back to chat" title="Back to chat">${interfaceIcon('close')}</button></header>
-    <section data-inspector-pane="model" aria-label="Model" hidden><div data-model-picker-slot></div></section>
+    <section data-inspector-pane="model" aria-label="Model" hidden><div data-model-picker-slot></div><p class="pool-small pool-muted" data-model-empty hidden>No models are available. Connect to the network or prepare a model in Computers.</p><dl class="chat-model-facts pool-small" data-model-facts hidden></dl></section>
     <section data-inspector-pane="conversation" aria-label="This conversation">
       <div class="execution-ribbon-route" data-inspector-route></div>
       <p data-inspector-status role="status"></p><p class="pool-caption pool-muted" data-context-detail></p>
@@ -28,13 +26,16 @@ export function renderNetworkInspector() {
       <section data-thread-permissions hidden><h4>Current permissions</h4>
         <p>Revoking stops this thread’s sharing. It cannot recall data already sent.</p><ul data-thread-grants></ul></section>
     </section>
-    <section data-inspector-pane="participants" aria-label="Available computers" hidden>
-      ${renderConnectionControl()}<p class="network-readiness pool-small pool-muted" data-peer-readiness></p><ul class="network-peer-list pool-list" data-insp-device-list></ul>
-      <button class="pool-button" type="button" data-mesh-invite hidden>Copy private invitation</button>
-    </section>
-    <section data-inspector-pane="device" aria-label="This device" hidden>
-      ${renderSharingControls()}
-      <details class="pool-disclosure" data-specialized-jobs><summary>Specialized model jobs</summary><div data-specialized-content></div></details>
+    <section class="pool-stack pool-gap-lg" data-inspector-pane="participants" aria-label="Computers" hidden>
+      <section class="pool-stack pool-gap-sm" aria-label="This device"><h3 class="pool-subheading">This device</h3>
+        ${renderSharingControls({ introductory: false })}
+        <details class="pool-disclosure" data-specialized-jobs><summary>Specialized model jobs</summary><div data-specialized-content></div></details>
+      </section>
+      <section class="pool-stack pool-gap-sm" aria-label="Network computers"><h3 class="pool-subheading">Network</h3>
+        ${renderConnectionControl()}<p class="network-readiness pool-small pool-muted" data-peer-readiness></p>
+        <div class="execution-ribbon-route" data-computers-route></div><ul class="network-peer-list pool-list" data-insp-device-list></ul>
+        <button class="pool-button btn-ghost" type="button" data-mesh-invite hidden>Copy private invitation</button>
+      </section>
     </section>
     <section class="pool-stack pool-gap-lg" data-inspector-pane="settings" aria-label="Settings" hidden>${renderAccountPanel()}<div data-execution-settings hidden><h3 class="pool-small">Run on</h3><div class="chat-execution-location" data-execution-location role="group" aria-label="Execution location"><button class="pool-button btn-ghost" type="button" data-execution-choice="auto" aria-pressed="true">Automatic</button><button class="pool-button btn-ghost" type="button" data-execution-choice="local" aria-pressed="false">This device</button><button class="pool-button btn-ghost" type="button" data-execution-choice="network" aria-pressed="false">Network</button></div></div>${renderRemotePermissionSettings()}${renderWebSearchSettings()}</section>
     <p data-network-message role="status" hidden></p><p data-inspector-error role="alert" hidden></p>
@@ -47,7 +48,7 @@ export function renderNetworkInspector() {
   </dialog>`;
 }
 
-export function bindNetworkInspector(root, session, { getInviteUrl, loadSpecialized, webSearch = null, earning = null } = {}) {
+export function bindNetworkInspector(root, session, { getInviteUrl, loadSpecialized, webSearch = null, search = null, earning = null } = {}) {
   const rail = root.querySelector('[data-network-rail]');
   const navigation = rail.querySelector('[data-inspector-navigation]');
   const find = selector => rail.querySelector(selector) || root.querySelector(selector);
@@ -89,6 +90,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   const act = operation => Promise.resolve().then(operation).catch(error);
   let grantsKey = '', executionKey = '', metadataController, disposed = false, specialized;
   const select = section => {
+    if (section === 'device') section = 'participants';
     for (const pane of panel.querySelectorAll('[data-inspector-pane]')) pane.hidden = pane.dataset.inspectorPane !== section;
     find('#network-inspector-title').textContent = { model: 'Model', conversation: 'This conversation', participants: 'Computers', device: 'Sharing', settings: 'Settings' }[section];
     for (const button of navigation.querySelectorAll('[data-inspector-section]')) button.setAttribute('aria-pressed', String(button.dataset.inspectorSection === section));
@@ -121,6 +123,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     const view = projectExecutionRibbon(state), key = JSON.stringify([view.execution, view.status, view.model, view.attempt?.id, view.attempt?.createdAt, view.attempt?.error, view.totalMs, view.executors.map(node => node.label)]);
     if (key !== executionKey) {
       executionKey = key; find('[data-inspector-route]').innerHTML = routeMarkup(view);
+      find('[data-computers-route]').innerHTML = routeMarkup(view);
       find('[data-ribbon-facts]').innerHTML = detailMarkup(view);
       const events = [];
       if (Number.isFinite(view.attempt?.createdAt)) events.push(`Started ${new Date(view.attempt.createdAt).toLocaleTimeString()}`);
@@ -137,6 +140,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     };
     for (const [section, summary] of Object.entries(summaries)) {
       const button = navigation.querySelector(`[data-inspector-section="${section}"]`);
+      if (!button) continue;
       const digest = button.querySelector('[data-rail-digest]');
       if (digest.textContent !== summary) digest.textContent = summary;
       const label = button.querySelector('.chat-rail-label').textContent;
@@ -190,7 +194,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
       }).catch(cause => { if (!disposed) { specialized = null; error(cause); } });
     }
   });
-  const disposeWebSearch = bindWebSearchSettings(rail, webSearch);
+  const disposeWebSearch = bindWebSearchSettings(rail, webSearch, { search });
   // Credits appear only when the page's server publishes an earning service (host/credits/browser.js).
   const disposeAccount = bindAccountPanel(rail, earning);
   return {
