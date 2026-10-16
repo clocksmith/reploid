@@ -52,6 +52,8 @@
 .pool-home .pool-button.btn-ghost { background: transparent; box-shadow: none; }
 .pool-home .pool-button.btn-ghost:hover:not(:disabled) { background: var(--pool-color-inset); }
 .pool-home .pool-button.btn-ghost:is([aria-pressed='true'], [aria-current='true']) { background: var(--pool-color-inset); box-shadow: var(--pool-shadow-inset); }
+.pool-home .pool-choice:has(input:checked) { background: var(--pool-color-inset); box-shadow: var(--pool-shadow-inset); }
+.pool-home .pool-choice:has(input:focus-visible) { outline: var(--pool-border-thick) solid var(--pool-color-focus); outline-offset: var(--pool-border-thick); }
 /* A field inside another field's material (the composer) carries no material of its own;
    the container shows focus with pool-focus-within. */
 .pool-home .pool-bare { border: 0; border-radius: 0; background: transparent; box-shadow: none; }

@@ -3293,7 +3293,7 @@
     {
       "path": "ui/components/model-select.js",
       "owner": "ui",
-      "sha256": "sha256:9b00869f10a6de1ff5d6be90440758f81cd773609e065f3833799b08204f7153",
+      "sha256": "sha256:cc1d3d672614562a9e602a95619b7f8432389d6ecc5d6356501ce20d51d4a54f",
       "imports": [
         "./attachments.js"
       ]
@@ -3342,7 +3342,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:ea108fe18f6290f20833693a71db778137e0835f1f119ec92ab463933fb60538",
+      "sha256": "sha256:f6ec82aa5c62a7e242c23f2e98171e31e77739c281181176bb9859464cdd8906",
       "imports": []
     },
     {
@@ -3413,7 +3413,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:57eee3a9d1d8fd4ac8d8aafc862231b2058520fecba0969667473786bed17fd4",
+      "sha256": "sha256:bd58cacb82bc0b851a15ebc6b66b264e1254d0337c2a1a235b22c6bab63a7522",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
