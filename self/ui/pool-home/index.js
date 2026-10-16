@@ -88,7 +88,7 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
       mount.querySelector('.pool-home').insertAdjacentHTML('afterbegin', renderNav(routeId));
       const inspectorRoot = document.createElement('div'); inspectorRoot.dataset.shellInspector = '';
       inspectorRoot.innerHTML = renderNetworkInspector(); mount.querySelector('.pool-home').append(inspectorRoot);
-      inspector = bindNetworkInspector(inspectorRoot, host.chat, { getInviteUrl: () => host.swarm.getInviteUrl(), webSearch: host.webSearch, earning: earningOpening,
+      inspector = bindNetworkInspector(inspectorRoot, host.chat, { getInviteUrl: () => host.swarm.getInviteUrl(), webSearch: host.webSearch, search: host.search, earning: earningOpening,
         loadSpecialized: async target => {
           const operations = await import('./operation-sharing.js'); sharingView = operations;
           target.innerHTML = operations.renderOperationSharing();

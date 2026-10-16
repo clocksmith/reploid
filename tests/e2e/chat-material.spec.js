@@ -88,7 +88,7 @@ test('compact chat keeps attempt status reachable and composer visible', async (
   for (const [mode, label] of [['empty', 'No model ready'], ['queued', 'Queued'],
     ['executing', 'Executing'], ['cancelling', 'Stopping'], ['cancelled', 'Stopped']]) {
     await page.evaluate(mode => window.setVisualState(mode), mode);
-    const status = page.locator('[data-execution-activity]:not([hidden]) summary');
+    const status = page.locator('[data-execution-activity]:not([hidden]) [data-execution-trigger]');
     if (mode !== 'empty') {
       await expect(status).toContainText(mode === 'executing' ? 'Generating' : label);
       await expect(status).toBeVisible();
@@ -174,8 +174,8 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     expect(await field.evaluate(node => getComputedStyle(node).backgroundImage)).toBe(glassFill);
     await openParticipantControls(page);
     await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
-    await page.locator('[data-inspector-section="device"]').click();
-    await expect(page.locator('[data-inspector-pane="device"]')).toBeVisible();
+    await page.locator('[data-inspector-section="participants"]').click();
+    await expect(page.locator('[data-inspector-pane="participants"]')).toBeVisible();
     await openParticipantControls(page);
     await expect(page.locator('[data-mesh-connect]')).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
@@ -321,23 +321,23 @@ test('answer activity shows observed shares and preserves its disclosure during 
   await installConversation(page, 'dark');
   await page.evaluate(() => window.setVisualState('executing'));
   const activity = page.locator('[data-execution-activity]:not([hidden])');
-  await expect(activity).not.toHaveAttribute('open');
-  const trigger = activity.locator('summary');
-  expect(await trigger.evaluate(node => getComputedStyle(node).boxShadow)).not.toBe('none');
+  await expect(activity.locator('[data-activity-detail]')).not.toBeVisible();
+  const trigger = activity.locator('[data-execution-trigger]');
+  expect(await trigger.evaluate(node => getComputedStyle(node).boxShadow)).toBe('none');
   await trigger.focus();
   await page.keyboard.press('Enter');
   await expect(activity.locator('.chat-distribution')).toHaveCount(0);
   await page.evaluate(() => window.setVisualMetrics({ localStepMs: { count: 4, total: 1000 }, remoteStepMs: { count: 4, total: 3000 } }));
-  await expect(activity).toHaveAttribute('open', '');
+  await expect(activity.locator('[data-activity-detail]')).toBeVisible();
   await expect(activity.getByRole('img')).toHaveAttribute('aria-label', 'Recorded step time share: Computer 1 25%, Computer 2 75%');
-  await expect(activity).toContainText('25% · 4.0 tok/s');
-  await expect(activity).toContainText('75% · 1.3 tok/s');
+  await expect(activity).toContainText('25% · 4.0 steps/s');
+  await expect(activity).toContainText('75% · 1.3 steps/s');
   const panel = await activity.locator('[data-activity-detail]').boundingBox();
   expect(panel.width).toBeLessThanOrEqual(320);
   expect(panel.x + panel.width).toBeLessThanOrEqual(390);
   await page.screenshot({ path: info.outputPath('activity.png'), fullPage: true });
   await trigger.press('Space');
-  await expect(activity).not.toHaveAttribute('open');
+  await expect(activity.locator('[data-activity-detail]')).not.toBeVisible();
 });
 
 for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {

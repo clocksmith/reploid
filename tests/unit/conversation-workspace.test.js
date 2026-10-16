@@ -17,6 +17,27 @@ describe('Conversation workspace', () => {
   });
   afterEach(async () => { dispose(); await session.close(); root.remove(); });
 
+  it('fills an editable draft from a starter without sending, and hides starters for existing conversations', async () => {
+    const prompts = find('[data-starting-prompts]'), input = find('[data-composer-input]');
+    expect(prompts.hidden).toBe(false);
+    const prompt = prompts.querySelector('button').textContent;
+    prompts.querySelector('button').click();
+    expect(input.value).toBe(prompt);
+    expect(document.activeElement).toBe(input);
+    expect(prompts.hidden).toBe(true);
+    expect(service.calls).toHaveLength(0);
+    expect(session.getDraft(null).text).toBe(prompt);
+    input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(prompts.hidden).toBe(false);
+    await session.prepareLocalModel(CANONICAL_CHAT_MODELS[1].id);
+    input.value = 'My own question'; input.dispatchEvent(new Event('input', { bubbles: true }));
+    find('[data-composer-form]').requestSubmit();
+    await vi.waitFor(() => expect(session.getState().activeThread?.attempts[0]?.status).toBe('completed'));
+    expect(prompts.hidden).toBe(true);
+    find('[data-new-thread]').click();
+    await vi.waitFor(() => expect(prompts.hidden).toBe(false));
+  });
+
   it('shows no network capacity for cached weights and persists location changes in an existing thread', async () => {
     const model = CANONICAL_CHAT_MODELS[1];
     session.setCachedModels([model]);
@@ -37,16 +58,22 @@ describe('Conversation workspace', () => {
     expect(find('[data-execution-choice=network]').getAttribute('aria-pressed')).toBe('false');
   });
 
-  it('opens every section directly from the navigation rail with the correct heading', () => {
+  it('keeps only Computers and Settings in the rail, with model and answer details in context', () => {
     const navigation = find('[data-chat-rail-toolbar] [data-inspector-navigation]');
-    expect(navigation).not.toBeNull();
-    expect(find('[data-contextual-inspector] nav')).toBeNull();
-    for (const [section, title] of [['conversation', 'This conversation'], ['participants', 'Computers'], ['device', 'Sharing'], ['settings', 'Settings']]) {
+    expect([...navigation.querySelectorAll('[data-inspector-section]')].map(node => node.dataset.inspectorSection)).toEqual(['participants', 'settings']);
+    expect(find('[data-composer-area] [data-open-model]')).not.toBeNull();
+    find('[data-open-model]').click();
+    expect(find('#network-inspector-title').textContent).toBe('Model');
+    find('[data-close-inspector]').click();
+    for (const [section, title] of [['participants', 'Computers'], ['settings', 'Settings']]) {
       navigation.querySelector(`[data-inspector-section="${section}"]`).click();
       expect(find('[data-contextual-inspector]').open).toBe(true);
       expect(find('#network-inspector-title').textContent).toBe(title);
       expect(find(`[data-inspector-pane="${section}"]`).hidden).toBe(false);
     }
+    find('[data-context-indicator]').click();
+    expect(find('#network-inspector-title').textContent).toBe('This conversation');
+    expect(find('[data-inspector-pane="participants"] [data-toggle-contribution]')).not.toBeNull();
   });
 
   it('keeps the composer and draft while network capacity is unavailable', () => {
@@ -322,7 +349,9 @@ describe('Conversation workspace', () => {
     const thread = session.createThread({ sharingScope: 'local' });
     await session.send(thread, 'Hello');
     expect(find('[data-message-stream]').textContent).toContain('This answer could not finish.');
-    expect(find('[data-message-stream] .chat-message-actions details').textContent).toContain('GPU unavailable');
+    expect(find('[data-message-stream] [data-activity-detail] pre').textContent).toContain('GPU unavailable');
+    expect(find('[data-copy-error]').getAttribute('aria-label')).toBe('Copy error');
+    expect(find('[data-message-stream] .chat-message-actions details')).toBeNull();
     expect(find('[data-message-stream]').textContent).not.toContain('Executing via');
   });
 

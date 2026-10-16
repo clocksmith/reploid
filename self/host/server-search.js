@@ -65,7 +65,7 @@ export function createServerSearch({ fetch = (...input) => globalThis.fetch(...i
     refresh(signal) {
       checking ??= request('/status', null, signal).then(payload => {
         status = payload?.enabled && payload.provider === searchProvider ? { state: 'ready', provider: payload.provider, message: '' }
-          : { state: 'unavailable', provider: payload?.provider ?? null, message: `Server search uses ${payload?.provider ?? 'no service'}` };
+          : { state: 'unavailable', provider: payload?.provider ?? null, message: payload?.message || `Server search uses ${payload?.provider ?? 'no service'}` };
       }, error => { status = { state: 'unavailable', provider: null, message: error.message }; })
         .finally(() => { checking = null; notify(); });
       return checking.then(() => ({ ...status }));

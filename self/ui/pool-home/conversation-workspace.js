@@ -14,6 +14,11 @@ import { renderRemotePermissionDialog, bindRemotePermissionDialog } from './remo
 import { renderSearchPermissionDialog, bindSearchPermissionDialog } from './search-permission.js';
 
 const selectable = model => ['ready', 'busy', 'cached', 'loading', 'preparing'].includes(model.availability);
+const startingPrompts = [
+  'Suggest 3 clever sci-fi movies under two hours.',
+  'Pick 3 light comedy shows with 30-minute episodes.',
+  'Recommend 3 terrible ’80s movies.'
+];
 
 export function renderConversationWorkspace({ inspector = true } = {}) {
   return `<section class="reploid-chat-workspace" data-chat-workspace aria-label="Conversation workspace">
@@ -29,7 +34,6 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
       <div class="chat-thread-list" data-thread-list></div>
       </section>
       </div><footer class="chat-rail-footer">
-      <button class="pool-button chat-rail-control" type="button" data-open-model data-inspector-section="model" aria-label="Choose model" title="Choose model">${interfaceIcon('model')}<span class="chat-rail-label">Model</span><small class="chat-rail-digest pool-muted" data-model-digest></small></button>
       <div class="chat-rail-controls" data-network-header><div class="chat-thread-info">
           <span class="chat-model-control pool-activity-edge" data-model-control><select class="pool-input pool-glass" id="chat-model" data-active-model-select aria-label="Model"></select><button class="pool-button" type="button" data-current-model aria-haspopup="dialog" hidden></button></span>
           </div>
@@ -50,20 +54,23 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
     <aside class="chat-inspector-slot pool-surface" data-chat-inspector-slot aria-label="Selected controls"></aside>
     <section class="chat-conversation-area" data-conversation-area aria-label="Current conversation">
       <div class="chat-transcript chat-message-stream" data-chat-transcript data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
+      <div class="chat-starting-prompts" data-starting-prompts role="group" aria-label="Movie and show suggestions" hidden>
+        ${startingPrompts.map(prompt => `<button class="pool-button btn-ghost" type="button" data-starting-prompt>${escape(prompt)}</button>`).join('')}
+      </div>
       <p class="chat-error pool-well" role="alert" data-chat-error hidden></p>
       <footer class="chat-composer-area" data-composer-area><form data-composer-form>
         <label class="chat-visually-hidden" for="chat-message">Message</label>
         <div class="chat-composer-field pool-input pool-glass pool-glass-focus pool-activity-edge pool-focus-within" data-composer-field>
           <div class="chat-attachments" data-attachments-preview hidden></div>
           <textarea class="pool-bare pool-body" id="chat-message" data-composer-input rows="1" required placeholder="Ask a question…"></textarea>
-          <button class="pool-button btn-ghost pool-icon" type="button" data-search-toggle aria-pressed="false" aria-label="Search for this answer" title="Search for this answer" hidden>${interfaceIcon('search')}</button>
           <label class="pool-button btn-ghost pool-icon pool-file chat-file-label pool-focus-within" title="Attach files">${interfaceIcon('attach')}<span class="chat-visually-hidden">Attach files</span><input type="file" multiple data-composer-files accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
           <div class="chat-composer-submit">
+          <button class="pool-button btn-ghost pool-icon" type="button" data-search-toggle aria-pressed="false" aria-label="Search for this answer" title="Search for this answer" hidden>${interfaceIcon('search')}</button>
             <button class="pool-button btn-primary pool-icon" type="submit" data-composer-send aria-label="Send" title="Send">${interfaceIcon('send')}</button>
             <button class="pool-button btn-primary pool-icon" type="button" data-composer-stop aria-label="Stop" title="Stop" hidden>${interfaceIcon('stop')}</button>
           </div>
         </div>
-        <div class="chat-composer-notices">${renderContextIndicator()}<p class="pool-small pool-muted" data-answer-limit hidden></p><span class="pool-chip" data-web-search-on hidden>Web search on</span><p class="chat-setup-hint pool-small pool-muted" id="chat-model-status" data-model-status role="status" hidden></p><button class="pool-button btn-ghost" type="button" data-retry-connection hidden>Retry connection</button></div>
+        <div class="chat-composer-notices"><button class="pool-button chat-composer-model btn-ghost" type="button" data-open-model aria-label="Choose model" title="Choose model">${interfaceIcon('model')}<span >Model</span><small class="pool-muted" data-model-digest></small></button>${renderContextIndicator()}<p class="pool-small pool-muted" data-answer-limit hidden></p><span class="pool-chip" data-web-search-on hidden>Web search on</span><p class="chat-setup-hint pool-small pool-muted" id="chat-model-status" data-model-status role="status" hidden></p><button class="pool-button btn-ghost" type="button" data-retry-connection hidden>Retry connection</button></div>
         <p class="chat-attachment-help pool-small pool-muted" data-attachment-help hidden>Text files: up to 8, 64 KB each, 128 KB total.</p>
       </form></footer>
       <dialog class="chat-model-setup pool-surface pool-small" data-rename-dialog aria-labelledby="chat-rename-title">
@@ -91,7 +98,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const find = selector => container.querySelector(selector);
   const controller = new AbortController(), options = { signal: controller.signal };
   const input = find('[data-composer-input]'), modelSelect = find('[data-active-model-select]');
-  const inspector = sharedInspector || bindNetworkInspector(container, session, { getInviteUrl, webSearch });
+  const inspector = sharedInspector || bindNetworkInspector(container, session, { getInviteUrl, webSearch, search });
   let archived = false, renameId = null, chosenModel = viewState.chosenModel || null, pickerModel = null;
   let files = [], fileRevision = 0, composerRevision = 0, reading = false;
   let contextPrompt = viewState.contextPrompt || null;
@@ -117,7 +124,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const modelControl = find('[data-model-control]'), modelHome = modelControl.parentElement;
   const modelButton = find('[data-open-model]'), modelButtonHome = modelButton.parentElement;
   find('[data-model-picker-slot]').append(modelControl);
-  find('[data-inspector-navigation]').prepend(modelButton);
   const executionSettings = find('[data-execution-settings]');
   if (executionSettings) executionSettings.hidden = false;
   setThreads(viewState.threadsOpen ?? false);
@@ -178,7 +184,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   };
   function resizeInput() {
     input.style.removeProperty('--pool-param-composer-height');
-    input.style.setProperty('--pool-param-composer-height', Math.min(Math.max(48, input.scrollHeight), Math.max(72, (globalThis.visualViewport?.height || globalThis.innerHeight || 800) * 0.22)) + 'px');
+    input.style.setProperty('--pool-param-composer-height', Math.min(Math.max(44, input.scrollHeight), Math.max(72, (globalThis.visualViewport?.height || globalThis.innerHeight || 800) * 0.22)) + 'px');
   }
   // Rail changes alter the input width without a window resize.
   let inputWidth = input.getBoundingClientRect().width;
@@ -187,7 +193,12 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (!controller.signal.aborted && width !== inputWidth) { inputWidth = width; resizeInput(); }
   }) : null;
   inputResize?.observe(input);
-  const showFiles = () => { resizeInput(); renderAttachments(find('[data-attachments-preview]'), files); find('[data-attachment-help]').hidden = !files.length; };
+  const refreshStartingPrompts = () => {
+    const state = session.getState(), thread = state.activeThread;
+    find('[data-starting-prompts]').hidden = !!(thread?.messages.length || thread?.closed
+      || state.runningIds.includes(thread?.id) || state.comparisonPhase || input.value.trim() || files.length);
+  };
+  const showFiles = () => { refreshStartingPrompts(); resizeInput(); renderAttachments(find('[data-attachments-preview]'), files); find('[data-attachment-help]').hidden = !files.length; };
   const updatePicker = state => {
     const keyFor = model => model?.selectionId || model?.id;
     const models = state.models.filter(selectable);
@@ -242,6 +253,20 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const networkState = state.network?.consumer?.connectionState;
     const localPreparing = state.localModel?.phase === 'loading';
     const requestedModel = thread?.model || chosenModel || models.find(model => keyFor(model) === current);
+    const catalogModel = catalogModels.find(model => keyFor(model) === keyFor(requestedModel)) || requestedModel;
+    const facts = [
+      ['Weights', catalogModel?.quantization?.toUpperCase()],
+      ['Advertised context', Number.isSafeInteger(catalogModel?.contextLength) && catalogModel.contextLength > 0
+        ? `${catalogModel.contextLength.toLocaleString()} tokens` : null],
+      ['Availability', catalogModel?.availability],
+      ['Execution', catalogModel ? catalogModel.partition ? 'Layer partitioning' : 'Whole model' : null],
+      ['Active adapters', requestedModel?.adapters?.length ? requestedModel.adapters.length : null]
+    ].filter(([, value]) => value != null && value !== '');
+    const modelFacts = find('[data-model-facts]');
+    find('[data-model-empty]').hidden = !!catalogModel;
+    const factMarkup = facts.map(([label, value]) => `<div><dt class="pool-muted">${escape(label)}</dt><dd>${escape(value)}</dd></div>`).join('');
+    modelFacts.hidden = !facts.length;
+    if (modelFacts.dataset.markup !== factMarkup) { modelFacts.innerHTML = factMarkup; modelFacts.dataset.markup = factMarkup; }
     const remotePreparing = (state.network?.partitionPeers || []).some(peer => peer.available
       && peer.description?.phase === 'loading' && catalogModels.some(model => model.id === peer.description.offer?.id
         && model.identity === peer.description.offer?.identity)
@@ -279,6 +304,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     updateContextIndicator(container, state, session);
     threads.update(state.threads, state.selectedId, { archived, models: state.models });
     const busy = state.runningIds.includes(thread?.id) || !!state.comparisonPhase;
+    refreshStartingPrompts();
     const contextControls = find('[data-context-controls]');
     contextControls.hidden = !session.previewContextPrompt;
     if (session.previewContextPrompt) {
@@ -311,7 +337,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
 
   };
   const unsubscribe = session.subscribe(render);
-  const refreshSearchToggle = () => { searchToggle.hidden = !(search?.available() || deviceSearchOn()); if (searchToggle.hidden) setSearch(false); };
+  const refreshSearchToggle = () => { searchToggle.hidden = !(search?.available() || deviceSearchOn()); if (searchToggle.hidden) setSearch(false); else if (webSearch?.state().enabled && !webSearch.state().url) setSearch(true); };
   const unsubscribeSearch = search && session.searchPermissionRequest ? search.subscribe(refreshSearchToggle) : () => {};
   if (search && search.state().state === 'unknown') void search.refresh();
   on('[data-search-toggle]', 'click', () => setSearch(!searching()));
@@ -319,6 +345,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const unsubscribeWebSearch = webSearch ? webSearch.subscribe(state => {
     if (webSearchOn) webSearchOn.hidden = !(state.enabled && state.url);
     if (session.searchPermissionRequest) refreshSearchToggle();
+    if (!state.url) setSearch(state.enabled && !!search?.available());
   }) : () => {};
   const changeContext = () => {
     const selection = { enabled: find('[data-context-enabled]').checked, maxWords: Number(find('[data-context-cap]').value) };
@@ -333,6 +360,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   showFiles();
   const renameDialog = bindDialog(find('[data-rename-dialog]'));
   const picker = bindDialog(find('[data-model-picker]'));
+  on('[data-open-model]', 'click', event => inspector.open('model', event.currentTarget));
   on('[data-current-model]', 'click', event => {
     const state = session.getState();
     find('[data-current-model-description]').textContent = state.activeThread?.model.name || '';
@@ -345,7 +373,14 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     pickerModel = session.getState().models.find(model => (model.selectionId || model.id) === find('[data-next-model]').value) || pickerModel;
     updatePicker(session.getState());
   });
-  on('[data-composer-input]', 'input', () => { composerRevision++; resizeInput(); try { observe(saveDraft()); } catch (cause) { error(cause); } });
+  on('[data-composer-input]', 'input', () => { composerRevision++; resizeInput(); refreshStartingPrompts(); try { observe(saveDraft()); } catch (cause) { error(cause); } });
+  on('[data-starting-prompts]', 'click', event => {
+    const button = event.target.closest('[data-starting-prompt]');
+    if (!button || find('[data-starting-prompts]').hidden) return;
+    input.value = button.textContent;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.focus();
+  });
   const newThread = () => after(saveDraft(), () => after(session.select(null), () => { inspector.close({ restoreFocus: false }); chosenModel = null; viewState.chosenModel = null; archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-archived]').textContent = 'Archived threads'; actionsPanel.setOpen(false); if (globalThis.innerWidth <= 760) setThreads(false); input.focus(); }));
   on('[data-new-thread]', 'click', () => { try { observe(newThread()); } catch (cause) { error(cause); } });
   on('[data-active-model-select]', 'change', () => { chosenModel = session.getState().models.find(model => (model.selectionId || model.id) === modelSelect.value); viewState.chosenModel = chosenModel; render(session.getState()); });
@@ -439,6 +474,11 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   });
   on('[data-composer-stop]', 'click', () => act(() => session.cancel(session.getState().selectedId)));
   on('[data-message-stream]', 'click', event => {
+    const copyError = event.target.closest('[data-copy-error]');
+    if (copyError) act(async () => {
+      const attempt = session.getState().activeThread?.attempts.find(item => item.id === copyError.dataset.copyError);
+      if (attempt?.error) { await navigator.clipboard.writeText(attempt.error); copyError.title = 'Copied'; copyError.setAttribute('aria-label', 'Copied'); }
+    });
     const copy = event.target.closest('[data-copy-message], [data-copy-code]');
     if (copy) act(async () => {
       const row = copy.closest('[data-message-id]');

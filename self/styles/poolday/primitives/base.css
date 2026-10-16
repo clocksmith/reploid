@@ -57,12 +57,6 @@
   background: var(--pool-color-ink);
   color: var(--pool-color-page);
 }
-:where(.pool-home)::-webkit-scrollbar,
-:where(.pool-home) ::-webkit-scrollbar { width: var(--pool-size-8); height: var(--pool-size-8); }
-:where(.pool-home)::-webkit-scrollbar-track,
-:where(.pool-home) ::-webkit-scrollbar-track { background: var(--pool-color-page); }
-:where(.pool-home)::-webkit-scrollbar-thumb,
-:where(.pool-home) ::-webkit-scrollbar-thumb { background: var(--pool-color-muted); }
 
 /* Text */
 :where(.pool-home) a {

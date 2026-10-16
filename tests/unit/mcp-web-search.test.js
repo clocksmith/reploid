@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import { createWebSearch, parseSearchResults, chooseSearchTool } from '../../self/host/web-search.js';
 import { createRetrieval } from '../../packages/reploid/src/retrieval/index.js';
+import { bindWebSearchSettings, renderWebSearchSettings } from '../../self/ui/pool-home/web-search-settings.js';
 
 const SEARCH_TOOL = { name: 'web_search', inputSchema: { type: 'object', properties: { query: { type: 'string' }, numResults: { type: 'number' } }, required: ['query'] } };
 const EXA_TEXT = 'Title: Doppler WebGPU\nURL: https://example.org/doppler\nText: Doppler runs models in the browser with WebGPU.\n\n'
@@ -29,6 +30,21 @@ function fakeServer({ text = EXA_TEXT } = {}) {
 const memory = () => { const values = new Map(); return { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) }; };
 
 describe('MCP web search', () => {
+  it('enables built-in search without an MCP URL, persists the preference, and never calls the MCP provider', async () => {
+    const storage = memory(), server = fakeServer(), webSearch = createWebSearch({ storage, fetch: server.fetch });
+    const root = document.createElement('div'); root.innerHTML = renderWebSearchSettings();
+    const search = { available: () => true, state: () => ({ state: 'ready', message: '' }), subscribe: callback => { callback(); return () => {}; } };
+    const dispose = bindWebSearchSettings(root, webSearch, { search });
+    const toggle = root.querySelector('[data-web-search-toggle]');
+    expect(toggle.disabled).toBe(false); toggle.click();
+    expect(toggle.getAttribute('aria-checked')).toBe('true');
+    expect(createWebSearch({ storage }).state()).toMatchObject({ enabled: true, url: '' });
+    expect(webSearch.enabled()).toBe(false); // This method authorizes only the personal MCP route.
+    await expect(webSearch.provider.search('private query', { maxResults: 3 })).rejects.toThrow('Web search is off');
+    expect(server.calls).toEqual([]);
+    toggle.click(); expect(webSearch.state().enabled).toBe(false);
+    dispose();
+  });
   it('searches through the MCP session and yields sources the retrieval library accepts', async () => {
     const server = fakeServer();
     const search = createWebSearch({ storage: memory(), fetch: server.fetch, now: () => 1000 });

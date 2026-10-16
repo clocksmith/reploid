@@ -131,8 +131,8 @@ export function createWebSearch({ storage = globalThis.localStorage, fetch, now 
       status = changed ? { state: 'idle', message: '' } : status;
       save({ ...settings, url: trimmed, token, tool: tool.trim(), ...(changed ? { enabled: false, enabledAt: null } : {}) });
     },
-    setEnabled(enabled) {
-      assert(!enabled || settings.url, 'Add an MCP server URL first');
+    setEnabled(enabled, { serverAvailable = false } = {}) {
+      assert(!enabled || settings.url || serverAvailable, 'Add an MCP server URL first');
       save({ ...settings, enabled: Boolean(enabled), enabledAt: enabled ? now() : null });
     },
     /** Connects, lists tools and reports which one search would call. */

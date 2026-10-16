@@ -100,6 +100,7 @@
   --pool-color-ink: var(--pool-gray-96);
   --pool-color-focus: var(--pool-gray-100);
   --pool-color-ink-12: color-mix(in srgb, var(--pool-color-ink) var(--pool-alpha-12), transparent);
+  --pool-color-switch-on: color-mix(in srgb, var(--pool-color-ink) var(--pool-alpha-48), transparent);
 
   /* Semantic surfaces, shadows, motion and layout. */
   --pool-angle-45: 45deg;

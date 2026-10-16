@@ -9,9 +9,8 @@ export const renderConnectionControl = () => `<div class="network-sharing-row">
   <button class="network-switch pool-switch" type="button" role="switch" aria-label="Connect to network" aria-checked="false" data-mesh-connect><span></span></button>
 </div>`;
 
-export const renderSharingControls = () => `<div class="pool-stack pool-gap-lg">
-  <div class="pool-stack pool-gap-xs"><h3 class="pool-subheading">Contribute</h3>
-    <p class="pool-small pool-muted">Choose what this device shares. You don’t need to download a model to ask questions.</p></div>
+export const renderSharingControls = ({ introductory = true } = {}) => `<div class="pool-stack pool-gap-lg">
+  ${introductory ? '<div class="pool-stack pool-gap-xs"><h3 class="pool-subheading">Contribute</h3><p class="pool-small pool-muted">Choose what this device shares. You don’t need to download a model to ask questions.</p></div>' : ''}
   <p class="pool-small" data-tab-sharing-summary role="status" hidden></p>
   <div class="network-sharing-row">
     <div class="pool-stack pool-gap-xs"><strong>Answer requests</strong>

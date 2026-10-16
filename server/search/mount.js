@@ -18,7 +18,13 @@ const REPOSITORY_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)
 export function mountSearchRoutes(app, { env = process.env, authorize, log = console, fetch = globalThis.fetch, repoRoot = REPOSITORY_ROOT,
   fetcher = null, now = Date.now, readFileSync } = {}) {
   const config = readSearchConfig(env, { repoRoot, ...(readFileSync ? { readFileSync } : {}) });
-  if (!config.enabled) return { mounted: false, reason: config.reason, provider: config.provider };
+  if (!config.enabled) {
+    if (typeof authorize === 'function') app.get(`${SEARCH_ROUTES_PREFIX}/status`, authorize, (_req, res) => res.json({
+      schema: 'reploid.server-search-status/v1', enabled: false, provider: config.provider,
+      message: 'Web search is not configured on this server.'
+    }));
+    return { mounted: false, reason: config.reason, provider: config.provider };
+  }
   if (typeof authorize !== 'function') throw new Error('Search routes need an authorization middleware');
   const search = config.provider === 'brave'
     ? createBraveSearch({ apiKey: config.brave.apiKey, fetch, now, qps: config.brave.qps, costMicroUsdPerQuery: config.brave.costMicroUsdPerQuery })

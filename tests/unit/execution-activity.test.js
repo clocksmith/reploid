@@ -34,14 +34,34 @@ it('renders one measured time-share bar and all stage rates from completed step 
   const nodes = projectExecutionActivity(state).nodes;
   expect(nodes.map(node => node.share)).toEqual([0.1, 0.2, 0.7]);
   expect(nodes.map(node => node.speed)).toEqual([10, 5, 1000 / 700]);
-  const root = document.createElement('details');
-  root.innerHTML = '<summary></summary><div data-activity-detail></div>';
+  const root = document.createElement('div');
+  root.innerHTML = '<button data-execution-trigger></button><div data-activity-detail></div>';
   updateExecutionActivity(root, state);
-  expect(root.querySelector('summary').textContent).toBe('Generating · 3 computers');
+  expect(root.querySelector('[data-execution-trigger]').getAttribute('aria-label')).toBe('Generating · 3 computers · Partitioned. Execution details');
   expect(root.querySelectorAll('.chat-distribution')).toHaveLength(1);
   expect(root.querySelectorAll('li')).toHaveLength(3);
   expect(root.querySelector('[role="img"]').getAttribute('aria-label')).toContain('70%');
-  expect(root.textContent).toContain('10.0 tok/s');
+  expect(root.textContent).toContain('10.0 steps/s');
+  expect(root.textContent).not.toContain('tok/s');
+});
+
+it('counts distinct computers separately from stages and shows recorded transfer and queue costs', () => {
+  const state = orderedState(3), execution = state.activeThread.attempts[0].execution;
+  execution.identity.route.stages[2].participantId = 'stage-0';
+  execution.activationBytes = 2048; execution.admission = { queuedMs: 250 };
+  execution.stepSummary = { count: 2, metrics: { transferMs: { count: 2, total: 100 } } };
+  const root = document.createElement('div');
+  root.innerHTML = '<button data-execution-trigger></button><div data-activity-detail></div>';
+  updateExecutionActivity(root, state);
+  expect(root.querySelector('[data-execution-trigger]').getAttribute('aria-label')).toBe('Generating · 2 computers · Partitioned. Execution details');
+  expect(root.querySelectorAll('li')).toHaveLength(3);
+  expect(root.textContent).toContain('Stage 3 of 3');
+  expect(root.textContent).toContain('Admission wait0.25 s');
+  expect(root.textContent).toContain('Activation transfer time0.10 s');
+  expect(root.textContent).toContain('2,048 bytes');
+  execution.stepSummary.metrics.transferMs.count = 1;
+  updateExecutionActivity(root, state);
+  expect(root.textContent).not.toContain('Activation transfer time');
 });
 
 it('requires complete stage timing coverage in bounded summaries and preserves unknown measurements', () => {
@@ -60,8 +80,8 @@ describe('recorded supply provenance label', () => {
   const provenance = (supply, classes, execution = { supply, classes }) => ({ schema: 'reploid.answer-provenance/v1', supply, classes,
     execution: { participants: [], placement: null, ...execution }, earlierAttempts: [], retrieval: { supply: 'none' } });
   const render = attempt => {
-    const root = document.createElement('details');
-    root.innerHTML = '<summary></summary><div data-activity-detail></div>';
+    const root = document.createElement('div');
+    root.innerHTML = '<button data-execution-trigger></button><div data-activity-detail></div>';
     updateExecutionActivity(root, { participantId: 'requester', activeThread: { id: 'thread', model: { name: 'Model' }, messages: [], attempts: [attempt] } });
     return root;
   };
@@ -70,7 +90,7 @@ describe('recorded supply provenance label', () => {
     const root = render({ id: 'attempt', status: 'completed', execution: { provider: 'peer', placement: 'peer-whole-request', peerId: 'peer-1' },
       provenance: provenance('mesh', ['mesh']) });
     expect(root.hidden).toBe(false);
-    expect(root.querySelector('summary').textContent).toBe('Complete · 1 computer · Mesh');
+    expect(root.querySelector('[data-execution-trigger]').getAttribute('aria-label')).toBe('Complete · 1 computer · Mesh. Execution details');
     expect(projectSupplyLabel({ provenance: provenance('local', ['local']) })).toEqual({ answer: 'This device', attempt: null });
   });
 
@@ -78,10 +98,10 @@ describe('recorded supply provenance label', () => {
     const hosted = render({ id: 'attempt', status: 'failed', execution: { provider: 'hosted', placement: 'hosted-api', hostedProvider: 'example' },
       provenance: provenance('hosted', ['hosted']) });
     expect(hosted.hidden).toBe(false);
-    expect(hosted.querySelector('summary').textContent).toBe('Failed · Hosted');
+    expect(hosted.querySelector('[data-execution-trigger]').getAttribute('aria-label')).toBe('Failed · Hosted. Execution details');
     expect(hosted.querySelector('li')).toBeNull();
     expect(render({ id: 'attempt', status: 'completed', execution: null, provenance: provenance('unknown', []) })
-      .querySelector('summary').textContent).toBe('Complete · Executor not verified');
+      .querySelector('[data-execution-trigger]').getAttribute('aria-label')).toBe('Complete · Executor not verified. Execution details');
     expect(render({ id: 'attempt', status: 'failed', execution: null, provenance: provenance('none', []) }).hidden).toBe(true);
   });
 
@@ -90,7 +110,7 @@ describe('recorded supply provenance label', () => {
       execution: { provider: 'peer', placement: 'peer-whole-request', peerId: 'peer-1' },
       provenance: { ...provenance('mixed', ['local', 'mesh'], { supply: 'mesh', classes: ['mesh'] }),
         earlierAttempts: [{ attemptId: 'earlier', status: 'failed', supply: 'local', classes: ['local'] }] } });
-    expect(root.querySelector('summary').textContent).toBe('Complete · 1 computer · Mixed: This device + Mesh');
+    expect(root.querySelector('[data-execution-trigger]').getAttribute('aria-label')).toBe('Complete · 1 computer · Mixed: This device + Mesh. Execution details');
     expect(root.querySelector('[data-attempt-supply]').textContent).toBe('This attempt: Mesh');
   });
 });
@@ -99,8 +119,8 @@ it('shows completed whole-model timing and never leaves a finished answer pendin
   const attempt = { id: 'attempt', status: 'completed', execution: { placement: 'local-webgpu',
     timing: { totalMs: 500, generatedTokenCount: 10 } } };
   const state = { activeThread: { id: 'thread', model: { name: 'Model' }, messages: [], attempts: [attempt] } };
-  const root = document.createElement('details');
-  root.innerHTML = '<summary></summary><div data-activity-detail></div>';
+  const root = document.createElement('div');
+  root.innerHTML = '<button data-execution-trigger></button><div data-activity-detail></div>';
   updateExecutionActivity(root, state);
   expect(root.textContent).toContain('20.0 tok/s');
   expect(root.textContent).toContain('includes prompt processing');
