@@ -176,6 +176,7 @@ describe('host session and conversation view', () => {
     return { session, partitions };
   }
   const grantContributors = async session => {
+    session.setRemoteAnswersEnabled(false);
     const need = session.remotePermissionNeeded({ model, sharingScope: 'mesh' });
     await session.grantRemotePermission(need, { wording: remotePermissionWording(need) });
   };

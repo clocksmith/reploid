@@ -23,8 +23,9 @@ Compose custody/whole-request jobs/[retrieval](../retrieval/CATSCAN.md); file po
 - Restore history, marking unfinished attempts interrupted; never silently resend.
 - One requester-owned transactional writer commits canonical/ordered records; known rejections never fence.
 - Permissions precede placement; model/adapter identity stays exact.
-- Remote disclosure, retrieved sources included, needs per-send or covering stored host permission; otherwise
-  nothing is sent. Records cite it, its shown wording, dispatched recipients.
+- Disclosure, retrieved sources included, requires covering per-send/stored permission.
+  Records cite permission, governing wording and recipients. Hosts distinguish
+  default-setting authorization from dialog consent; both require exact coverage.
 - Search-answer grants cover one answer: query, then that question and passages to listed recipients.
 - Reusable grants bind verified recipient/mesh/thread/model/adapters/scope, persist before use,
   and revocation cancels affected attempts/reuse. Grants authorize no contribution/supply/evaluation/adoption.

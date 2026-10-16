@@ -369,13 +369,13 @@
     },
     {
       "path": "chat/remote-permission.d.ts",
-      "bytes": 2562,
-      "sha256": "d762cfd0fa34be9e2f04bb93fcb64ad2fa0f686ccea85bd85d7328f993dcf2b2"
+      "bytes": 2583,
+      "sha256": "c8715b21fbecc5db62ba40499410e129d6982485061aa654b188cc4a0a0a48d0"
     },
     {
       "path": "chat/remote-permission.js",
-      "bytes": 5403,
-      "sha256": "0f4547bf512da4cafe84fc324b149784360e27d5cc3662607b6a93a899e3e305"
+      "bytes": 5482,
+      "sha256": "b2a22e3b083a7094bb4515e82893facec5e81e1aff4e80ab154c537268f40835"
     },
     {
       "path": "chat/scheduler.js",
@@ -489,8 +489,8 @@
     },
     {
       "path": "contracts/doppler-partitions.provenance.json",
-      "bytes": 912,
-      "sha256": "614a685a40de6df82536e01a6e38fa4a94abf2c6fbf3d94a5f01597eb5d7c69a"
+      "bytes": 922,
+      "sha256": "e698a00796dbbf8badd3525f2e33605aa65a78efaa6d6ab813cc94ce6c703ad7"
     },
     {
       "path": "contracts/host-ports.d.ts",

@@ -3,7 +3,7 @@ export type PermissionKind = 'remote-contributors' | 'search-answer';
 export declare const PERMISSION_KINDS: readonly PermissionKind[];
 export type RemoteDisclosure = 'public' | 'partition-activations-and-tokens' | 'ordered-partition-activations-and-tokens';
 export declare const REMOTE_DISCLOSURES: readonly RemoteDisclosure[];
-/** The wording shown when a permission was granted, exactly as shown. */
+/** Governing dialog or host-setting wording; id/version identify the authorization source. */
 export interface PermissionWording { id: string; version: string; text: string }
 /** The standing permission to send conversations to remote contributors. revokedAt stops new disclosures only. */
 export interface RemotePermission {

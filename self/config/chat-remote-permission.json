@@ -1,0 +1,8 @@
+{
+  "enabledByDefault": true,
+  "wording": {
+    "id": "reploid.remote-contributor-setting",
+    "version": "1",
+    "text": "Allow network answers. Your messages and conversation context can be sent to contributors' computers on this network. Enabled by default; turn it off to ask before sending."
+  }
+}

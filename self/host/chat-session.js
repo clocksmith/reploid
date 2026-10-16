@@ -8,6 +8,7 @@ import { createChatWorkspace, createRemotePermission, createSearchPermission, re
 import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
 import { ROUTE_ENVELOPE_POLICY } from '../vendor/reploid/mesh/partitions/partition-route-envelope.js';
 import { createChatExecution } from './chat-execution.js';
+import { createRemoteAccessPreference } from './chat-remote-permission.js';
 import { projectChatCatalog, projectChatPlacements } from './chat-view.js';
 import { createChatDrafts } from './chat-drafts.js';
 import { createChatContext } from './chat-context.js';
@@ -106,6 +107,7 @@ export function createChatSession({
   let remotePermissions = loadPermissions(storage);
   // The room this session's swarm joins; without a swarm, the history mesh.
   const currentNetwork = () => swarm?.getNetworkId?.() || meshId;
+  const remoteAccess = createRemoteAccessPreference({ storage, currentNetwork, getPermissions: () => remotePermissions });
   const savePermissions = next => {
     storage?.setItem?.(PERMISSION_KEY, JSON.stringify(next));
     remotePermissions = next;
@@ -119,7 +121,7 @@ export function createChatSession({
     participantId,
     requesterIdentity,
     // Every remote disclosure needs a stored permission that covers it; see remote-permission.js.
-    remotePermissions: () => remotePermissions,
+    remotePermissions: () => remoteAccess.enabled() ? remotePermissions : [],
     // Permissions are bound to the network (room) they were granted on.
     networkId: currentNetwork,
     retrieval,
@@ -129,6 +131,21 @@ export function createChatSession({
     id
   });
   bindPublicationAuthorization?.(workspace.authorizePublication);
+  function allowConfiguredRemote(threadId) {
+    if (!remoteAccess.enabled()) return;
+    const thread = workspace.getState().threads.find(item => item.id === threadId);
+    if (!thread) return;
+    const { model, permissions } = thread;
+    const disclosure = execution.remoteDisclosure(model, permissions?.sharingScope, permissions?.executionLocation);
+    if (!disclosure) return;
+    const known = getCatalogModels().find(item => item.id === model.id && item.identity === model.identity);
+    assert(known, 'Choose a catalog model before allowing remote contributors');
+    const need = remotePermissionNeed({ networkId: currentNetwork(), sharingScope: permissions.sharingScope, disclosure, model });
+    if (remotePermissions.some(permission => remotePermissionCovers(permission, need))) return;
+    const permission = createRemotePermission({ id: crypto.randomUUID(), need, catalog: [],
+      wording: remoteAccess.wording, grantedAt: now() });
+    savePermissions([...remotePermissions, permission].slice(-MAX_PERMISSIONS));
+  }
   const allowances = workspace.getState().limits;
   const drafts = createChatDrafts({ storage: canonicalHistory ? { getItem: () => canonicalHistory.drafts } : storage,
     persist: canonicalHistory ? raw => canonicalHistory.saveDrafts(raw) : null, key: `${STORAGE_KEY}:drafts`, maxThreads: allowances.maxThreads,
@@ -214,7 +231,7 @@ export function createChatSession({
       scheduler: execution.getState(),
       placements: projectChatPlacements(wsState.threads),
       history: historyState,
-      remotePermissions: copy(remotePermissions), remoteNetworkId: currentNetwork()
+      remotePermissions: copy(remotePermissions), remoteNetworkId: currentNetwork(), remoteAnswersEnabled: remoteAccess.enabled()
     });
   };
 
@@ -284,6 +301,7 @@ export function createChatSession({
       assertOpen();
       assert(!comparisons.has(threadId), 'This comparison is already running');
       const input = comparisonInput(question, files);
+      allowConfiguredRemote(threadId);
       const controller = new AbortController(), operation = { controller, phase: 'comparing' };
       comparisons.set(threadId, operation);
       return (async () => { try {
@@ -335,6 +353,7 @@ export function createChatSession({
         return workspace.send(threadId, content, { retrieval: { route, query: content },
           searchPermission: searchGrant(threadId, content, search, route) });
       }
+      allowConfiguredRemote(threadId);
       return workspace.send(threadId, attachmentInput(content, attachments),
         retrieval ? { retrieval: { ...retrieval, query: retrieval.query ?? content } } : undefined);
     },
@@ -371,6 +390,7 @@ export function createChatSession({
     retry(threadId, attemptId, { search = null } = {}) {
       assertOpen();
       const attempt = workspace.getState().threads.find(thread => thread.id === threadId)?.attempts.find(item => item.id === attemptId);
+      if (!search && !isSearchRoute(attempt?.request?.retrieval?.route)) allowConfiguredRemote(threadId);
       return workspace.retry(threadId, attemptId, search ? { searchPermission: searchGrant(threadId, attempt?.request?.retrieval?.query ?? '',
         search, attempt?.request?.retrieval?.route ?? SEARCH_ROUTE) } : undefined);
     },
@@ -384,7 +404,7 @@ export function createChatSession({
       const disclosure = model && execution.remoteDisclosure(model, sharingScope, executionLocation);
       if (!disclosure) return null;
       const need = remotePermissionNeed({ networkId: currentNetwork(), sharingScope, disclosure, model });
-      return remotePermissions.some(permission => remotePermissionCovers(permission, need)) ? null : need;
+      return remoteAccess.enabled() ? null : need;
     },
     /** Stores the one-time permission for `need` and the verified catalog, recording the `wording` the person was
      * shown, then continues waiting attempts it covers. */
@@ -396,6 +416,7 @@ export function createChatSession({
       assert(validPermissionWording(wording), 'Record the permission wording that was shown');
       const permission = createRemotePermission({ id: crypto.randomUUID(), need, catalog: models, wording, grantedAt: now() });
       savePermissions([...remotePermissions, permission].slice(-MAX_PERMISSIONS));
+      remoteAccess.set(true);
       try { await workspace.resumePermitted(); } finally { notifyAll(); }
       return copy(permission);
     },
@@ -403,10 +424,22 @@ export function createChatSession({
     revokeRemotePermission(permissionId) {
       assertOpen();
       assert(remotePermissions.some(permission => permission.id === permissionId), 'Remote permission not found');
+      remoteAccess.set(false);
       // Fail closed: this session stops using it even if saving the revocation fails.
       remotePermissions = remotePermissions.map(permission => permission.id === permissionId && permission.revokedAt === null
         ? { ...permission, revokedAt: now() } : permission);
       try { storage?.setItem?.(PERMISSION_KEY, JSON.stringify(remotePermissions)); } finally { notifyAll(); }
+    },
+    setRemoteAnswersEnabled(enabled) {
+      assertOpen();
+      try {
+        remoteAccess.set(enabled);
+        if (!enabled) {
+          remotePermissions = remotePermissions.map(permission => permission.networkId === currentNetwork() && permission.revokedAt === null
+            ? { ...permission, revokedAt: now() } : permission);
+          savePermissions(remotePermissions);
+        }
+      } finally { notifyAll(); }
     },
     renameThread(threadId, title) { assertOpen(); return workspace.renameThread(threadId, title); },
     archiveThread(threadId) { assertOpen(); return workspace.closeThread(threadId); },

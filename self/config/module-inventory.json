@@ -2163,9 +2163,17 @@
       ]
     },
     {
+      "path": "self/host/chat-remote-permission.js",
+      "owner": "self",
+      "sha256": "sha256:0431d3303acf7fcdf0b4876a34e61c4b5edc92a11d2e776a4a17482f9847bd55",
+      "imports": [
+        "../config/chat-remote-permission.json"
+      ]
+    },
+    {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:6111573adb791a2352d8506da89788a00cef5dd8f9782fc6bae32195368bbdc5",
+      "sha256": "sha256:e563295142edfab2e4bf56f24ad3fc5f368fe30bc80156430add037c4ee1fc03",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -2176,6 +2184,7 @@
         "./chat-drafts.js",
         "./chat-execution.js",
         "./chat-history.js",
+        "./chat-remote-permission.js",
         "./chat-view.js",
         "./document-comparison.js",
         "./readonly-view.js"
@@ -3238,7 +3247,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:1227e4e816d41963047a2cb111f82cbb6b2270a39b9ea799c94570739a38a804",
+      "sha256": "sha256:40dde2e3a6aab50a04ef1644dba439afcfa5c11a51bf0ead0f8076f6dba316c6",
       "imports": []
     },
     {
@@ -3409,7 +3418,7 @@
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:036d5dbd1f1ae303d9cdc9987d2b76452b6df980e0e09c2cafe42596b6711f55",
+      "sha256": "sha256:95cf0717f88db73c7548f6fd97726be8a4b5ed8726d76413582f0e5bd87ecf41",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -3463,10 +3472,8 @@
     {
       "path": "ui/pool-home/remote-permission.js",
       "owner": "ui",
-      "sha256": "sha256:aae91b143e84de6c1dbef37bcbef3764323d0dc4b8120f2d6528d19d34208f22",
-      "imports": [
-        "../components/attachments.js"
-      ]
+      "sha256": "sha256:e5f59a36e8d56709dc9e8f0f1f8ad4047976f2b78b6390b6c568b31b2dd98df0",
+      "imports": []
     },
     {
       "path": "ui/pool-home/requester-controls.js",
@@ -15232,7 +15239,7 @@
     {
       "path": "vendor/reploid/chat/remote-permission.js",
       "owner": "vendor",
-      "sha256": "sha256:0f4547bf512da4cafe84fc324b149784360e27d5cc3662607b6a93a899e3e305",
+      "sha256": "sha256:b2a22e3b083a7094bb4515e82893facec5e81e1aff4e80ab154c537268f40835",
       "imports": []
     },
     {

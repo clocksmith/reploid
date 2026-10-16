@@ -47,7 +47,13 @@ const memory = () => { const values = new Map(); return { getItem: key => values
 
 const cleanups = [];
 afterEach(async () => { for (const close of cleanups.splice(0).reverse()) await close(); document.body.replaceChildren(); });
-function openSession({ storage = memory(), partitions = orderedRoute(), ...options } = {}) {
+function openSession({ storage = memory(), partitions = orderedRoute(), askFirst = true, ...options } = {}) {
+  // These retained consent-dialog cases explicitly exercise the opt-out setting.
+  if (askFirst) {
+    const network = options.swarm?.getNetworkId?.() || options.meshId || 'reploid-local-mesh';
+    const preferences = JSON.parse(storage.getItem('reploid.remote-access:v1') || '{}');
+    if (!Object.hasOwn(preferences, network)) storage.setItem('reploid.remote-access:v1', JSON.stringify({ ...preferences, [network]: false }));
+  }
   const session = createChatSession({ storage, service: createChatTestService(), partitions, requesterIdentity: () => REQUESTER, ...options });
   cleanups.push(() => session.close());
   return { session, partitions, storage };
@@ -72,6 +78,61 @@ const completed = (session, count) => vi.waitFor(() => {
 const tick = () => new Promise(resolve => setTimeout(resolve, 30));
 
 describe('One-time remote contributor permission', () => {
+  it('defaults on, records authorization only on Send, and does not ask again for the answer', async () => {
+    const { session, partitions } = openSession({ askFirst: false }), view = mount(session);
+    const thread = session.createThread({ model });
+    expect(session.getState().remoteAnswersEnabled).toBe(true);
+    expect(view.find('[data-remote-answers-toggle]').getAttribute('aria-checked')).toBe('true');
+    expect(session.getState().remotePermissions).toEqual([]);
+    expect(partitions.disclosed).toEqual([]);
+    session.select(thread);
+    expect(session.getState().remotePermissions).toEqual([]);
+    view.submit('Answer using the network');
+    const [attempt] = await completed(session, 1);
+    expect(view.dialog.open).toBe(false);
+    const [permission] = session.getState().remotePermissions;
+    expect(permission.wording.id).toBe('reploid.remote-contributor-setting');
+    expect(attempt.authorization).toMatchObject({ permissionId: permission.id, recipients: STAGES });
+    expect(partitions.disclosed[0].at(-1).content).toBe('Answer using the network');
+  });
+
+  it('persists an explicit off choice before any use, and on restores prompt-free network answers', async () => {
+    const first = openSession({ askFirst: false }), view = mount(first.session);
+    view.find('[data-remote-answers-toggle]').click();
+    await vi.waitFor(() => expect(first.session.getState().remoteAnswersEnabled).toBe(false));
+    const second = openSession({ storage: first.storage, askFirst: false }), again = mount(second.session);
+    expect(second.session.getState().remoteAnswersEnabled).toBe(false);
+    second.session.createThread({ model }); again.submit('Ask first');
+    await vi.waitFor(() => expect(again.dialog.open).toBe(true));
+    expect(second.partitions.disclosed).toEqual([]);
+    again.find('[data-remote-permission-local]').click();
+    again.find('[data-remote-answers-toggle]').click();
+    await vi.waitFor(() => expect(second.session.getState().remoteAnswersEnabled).toBe(true));
+    again.submit('Allowed now'); await completed(second.session, 1);
+    expect(again.dialog.open).toBe(false);
+  });
+
+  it('preserves legacy Turn off records when no new preference has been stored', async () => {
+    const first = openSession({ askFirst: false });
+    const thread = first.session.createThread({ model });
+    await first.session.send(thread, 'First');
+    first.session.revokeRemotePermission(first.session.getState().remotePermissions[0].id);
+    first.storage.setItem('reploid.remote-access:v1', '{}');
+    const second = openSession({ storage: first.storage, askFirst: false });
+    expect(second.session.getState().remoteAnswersEnabled).toBe(false);
+    expect(second.session.remotePermissionNeeded({ model })).not.toBeNull();
+  });
+
+  it('sends nothing if the default permission cannot be persisted', () => {
+    const storage = memory(), write = storage.setItem;
+    storage.setItem = (key, value) => { if (key === 'reploid.remote-permissions:v1') throw new Error('Storage unavailable'); write(key, value); };
+    const { session, partitions } = openSession({ storage, askFirst: false });
+    const thread = session.createThread({ model });
+    expect(() => session.send(thread, 'Do not leak')).toThrow('Storage unavailable');
+    expect(partitions.disclosed).toEqual([]);
+    expect(session.getState().remotePermissions).toEqual([]);
+  });
+
   it('asks once before anything leaves; Keep answers local sends nothing; Allow sends now and later without asking, across reloads', async () => {
     const { session, partitions, storage } = openSession(), view = mount(session);
     session.createThread({ model });
@@ -124,7 +185,7 @@ describe('One-time remote contributor permission', () => {
     view.find('[data-remote-permission-allow]').click(); await completed(first.session, 1);
     expect(first.session.getState().remotePermissions[0].networkId).toBe('room-a');
     const second = openSession({ storage, partitions, swarm: { getNetworkId: () => 'room-b', getState: () => ({}) } }), other = mount(second.session);
-    expect(other.find('[data-remote-permission-status]').textContent).toBe("Off. You are asked before a conversation is sent to contributors' computers.");
+    expect(other.find('[data-remote-permission-status]').textContent).toBe("Ask before sending conversations to other computers.");
     second.session.createThread({ model }); other.submit('On room B');
     await vi.waitFor(() => expect(other.dialog.open).toBe(true));
     expect(partitions.disclosed.map(messages => messages.at(-1).content)).toEqual(['On room A']);
@@ -135,17 +196,17 @@ describe('One-time remote contributor permission', () => {
     const partitions = orderedRoute({ hold: request => request.messages.at(-1).content === 'Long answer' ? gate : null });
     const { session } = openSession({ partitions }), view = mount(session);
     session.createThread({ model });
-    expect(view.find('[data-remote-permission-status]').textContent).toBe("Off. You are asked before a conversation is sent to contributors' computers.");
+    expect(view.find('[data-remote-permission-status]').textContent).toBe("Ask before sending conversations to other computers.");
     view.submit('Long answer');
     await vi.waitFor(() => expect(view.dialog.open).toBe(true));
     view.find('[data-remote-permission-allow]').click();
     await vi.waitFor(() => expect(partitions.disclosed).toHaveLength(1));
-    const setting = view.find('[data-remote-permission-list] li');
-    expect(setting.textContent).toContain("On: conversations are sent to contributors' computers on this network, split across several computers, for ");
-
-    setting.querySelector('[data-revoke-remote-permission]').click();
+    const setting = view.find('[data-remote-answers-toggle]');
+    expect(setting.getAttribute('aria-checked')).toBe('true');
+    expect(view.find('[data-remote-permission-settings]').classList.contains('pool-well')).toBe(false);
+    setting.click();
     await vi.waitFor(() => expect(session.getState().remotePermissions[0].revokedAt).not.toBeNull());
-    expect(view.find('[data-remote-permission-list]').children).toHaveLength(0);
+    expect(setting.getAttribute('aria-checked')).toBe('false');
     expect(lastAttempt(session).status).toBe('executing');
     release(); await completed(session, 1);
 
