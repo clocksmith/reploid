@@ -56,7 +56,7 @@ describe('Conversation list', () => {
       execution: { completion: { promptTokenCount: 300, generatedTokenCount: 120 } } }] };
     view.update([thread], null, { models: [model] });
     const button = root.querySelector('[data-thread-item-id]');
-    expect(button.querySelector('[data-thread-monogram]').textContent).toBe('MN');
+    expect(button.querySelector('[data-thread-monogram]').textContent).toBe('M');
     expect(button.querySelector('[data-context-ring]').hasAttribute('hidden')).toBe(false);
     expect(button.querySelector('[data-context-ring-value]').getAttribute('stroke-dasharray')).toBe('42 58');
     expect(button.getAttribute('aria-label')).toContain('last answer 42% of advertised context');
