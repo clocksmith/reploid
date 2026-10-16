@@ -2,7 +2,7 @@ import { renderContextIndicator, updateContextIndicator } from './context-indica
 import { withComputerLabels } from './computer-labels.js';
 import { interfaceIcon } from '../components/interface-icons.js';
 import { createConversationList } from './conversation-list.js';
-import { updateModelSelect, modelSelectionLabel } from '../components/model-select.js';
+import { updateModelSelect, modelSelectionLabel, bindModelChoices } from '../components/model-select.js';
 /** Conversation presentation; the host owns execution and disclosure. */
 import { projectNetworkPeers } from './network-controls.js';
 import { renderNetworkInspector, bindNetworkInspector } from './network-inspector.js';
@@ -81,7 +81,7 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
       <dialog class="chat-model-setup pool-surface pool-small" data-model-picker aria-labelledby="chat-model-picker-title">
         <h2 class="pool-heading" id="chat-model-picker-title">Conversation model</h2><p data-current-model-description></p>
         <p>A new model starts a new thread.</p>
-        <label>Model<select class="pool-input" data-next-model></select></label>
+        <div><select class="pool-input" data-next-model aria-label="Model"></select></div>
         <p data-next-model-status role="status" hidden></p>
         <div class="chat-network-actions"><button class="pool-button" type="button" data-model-picker-close>Cancel</button><button class="pool-button" type="button" data-change-model>New thread with this model</button></div>
       </dialog>
@@ -98,6 +98,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const find = selector => container.querySelector(selector);
   const controller = new AbortController(), options = { signal: controller.signal };
   const input = find('[data-composer-input]'), modelSelect = find('[data-active-model-select]');
+  const modelChoices = bindModelChoices(modelSelect), nextModelChoices = bindModelChoices(find('[data-next-model]'));
   const inspector = sharedInspector || bindNetworkInspector(container, session, { getInviteUrl, webSearch, search });
   let archived = false, renameId = null, chosenModel = viewState.chosenModel || null, pickerModel = null;
   let files = [], fileRevision = 0, composerRevision = 0, reading = false;
@@ -201,12 +202,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const showFiles = () => { refreshStartingPrompts(); resizeInput(); renderAttachments(find('[data-attachments-preview]'), files); find('[data-attachment-help]').hidden = !files.length; };
   const updatePicker = state => {
     const keyFor = model => model?.selectionId || model?.id;
-    const models = state.models.filter(model => selectable(model) || model.executionModes?.length);
+    const models = [...state.models];
     const selected = state.models.find(model => keyFor(model) === keyFor(pickerModel));
     if (pickerModel && !models.some(model => keyFor(model) === keyFor(pickerModel))) {
       models.push(selected || { ...pickerModel, availability: 'unavailable' });
     }
     updateModelSelect(find('[data-next-model]'), models, { value: keyFor(pickerModel), showAvailability: true });
+    nextModelChoices.update(models);
     const available = selected && selectable(selected);
     find('[data-change-model]').disabled = !available;
     const status = find('[data-next-model-status]');
@@ -223,7 +225,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     }
     const thread = state.activeThread, catalogModels = state.models || [];
     const keyFor = model => model?.selectionId || model?.id;
-    const models = catalogModels.filter(model => selectable(model) || model.executionModes?.length);
+    const models = [...catalogModels];
     if (!thread && chosenModel && !models.some(model => keyFor(model) === keyFor(chosenModel))) {
       models.push(catalogModels.find(model => keyFor(model) === keyFor(chosenModel)) || { ...chosenModel, availability: 'unavailable' });
     }
@@ -237,6 +239,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       || keyFor(models.find(selectable)) || keyFor(models[0]);
     updateModelSelect(modelSelect, models, { value: current, showAvailability: true });
     modelSelect.value = current || ''; modelSelect.disabled = !models.length; modelSelect.hidden = !!thread;
+    modelChoices.update(models);
     const currentModel = find('[data-current-model]'); currentModel.hidden = !thread;
     currentModel.textContent = thread?.model ? modelSelectionLabel(thread.model) : 'Model';
     currentModel.setAttribute('aria-label', `${thread?.model.name || 'Model'}. Choose a model for a new thread`);
@@ -390,6 +393,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     pickerModel = state.activeThread?.model || state.models.find(selectable) || null;
     updatePicker(state);
     picker.open(find('[data-next-model]'), event.currentTarget);
+    nextModelChoices.focus();
   });
   on('[data-model-picker-close]', 'click', () => picker.close());
   on('[data-next-model]', 'change', () => {
@@ -554,6 +558,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   return () => {
     try { observe(saveDraft()); } catch (cause) { error(cause); }
     inputResize?.disconnect();
+    modelChoices.dispose(); nextModelChoices.dispose();
     if (executionSettings) executionSettings.hidden = true;
     modelHome.append(modelControl); modelButtonHome.prepend(modelButton);
     detachInspector?.();

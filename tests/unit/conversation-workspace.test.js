@@ -17,6 +17,26 @@ describe('Conversation workspace', () => {
   });
   afterEach(async () => { dispose(); await session.close(); root.remove(); });
 
+  it('keeps every configured model visible before discovery and selects through themed choices', async () => {
+    dispose(); await session.close();
+    session = createChatSession({ storage: null, service, swarm: { getState: () => ({ consumer: { peers: [] } }) } });
+    dispose = bindConversationWorkspace(root, session);
+    const select = find('[data-active-model-select]');
+    const choices = select.nextElementSibling;
+    for (const model of CANONICAL_CHAT_MODELS) {
+      expect([...select.options].some(option => option.value === model.id)).toBe(true);
+      expect(choices.textContent).toContain(model.name);
+    }
+    const small = [...choices.querySelectorAll('input')].find(input => input.value === CANONICAL_CHAT_MODELS[0].id);
+    small.click();
+    expect(select.value).toBe(small.value);
+    expect(small.checked).toBe(true);
+    expect(find('[data-composer-send]').disabled).toBe(true);
+    session.refreshNetwork();
+    expect(choices.querySelector('input:checked')).toBe(small);
+    expect(service.calls).toHaveLength(0);
+  });
+
   it('updates automatic defaults as capacity arrives, but preserves explicit choices and existing threads', async () => {
     dispose(); await session.close();
     let peers = [];
@@ -118,12 +138,12 @@ describe('Conversation workspace', () => {
 
   it('keeps the composer and draft while network capacity is unavailable', () => {
     expect(find('[data-composer-send]').disabled).toBe(true);
-    expect(find('[data-active-model-select]').textContent).toBe('No models available');
+    expect(find('[data-active-model-select]').textContent).toBe(`${CANONICAL_CHAT_MODELS[1].name} · Unavailable`);
     expect(find('[data-model-status]').hidden).toBe(false);
     expect(find('[data-model-status]').textContent).toBe('Model unavailable.');
     expect(find('[data-model-digest]').textContent).toBe(CANONICAL_CHAT_MODELS[1].name);
     expect(find('[data-open-model]').textContent).not.toContain('Unavailable');
-    expect(find('[data-model-control]').hidden).toBe(true);
+    expect(find('[data-model-control]').hidden).toBe(false);
     expect(find('[data-toggle-contribution]').disabled).toBe(false);
     expect(find('[data-composer-send]').hidden).toBe(false);
     expect(find('[data-retry-connection]').hidden).toBe(false);
