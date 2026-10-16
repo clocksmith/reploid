@@ -1,3 +1,5 @@
+import { cosineSimilarity } from '../vector-math.js';
+
 /**
  * @fileoverview Embedding Store
  * VFS-backed storage for semantic memory embeddings.
@@ -20,7 +22,7 @@ const EmbeddingStore = {
 
   factory: (deps) => {
     const { Utils, VFS } = deps;
-    const { logger, generateId, Errors } = Utils;
+    const { logger, generateId } = Utils;
 
     const MEMORY_DIR = '/.memory/embeddings';
     const VOCAB_PATH = '/.memory/vocab.json';
@@ -143,22 +145,7 @@ const EmbeddingStore = {
 
     // --- Similarity Search ---
 
-    const cosineSimilarity = (a, b) => {
-      if (!a || !b || a.length !== b.length) return 0;
 
-      let dotProduct = 0;
-      let normA = 0;
-      let normB = 0;
-
-      for (let i = 0; i < a.length; i++) {
-        dotProduct += a[i] * b[i];
-        normA += a[i] * a[i];
-        normB += b[i] * b[i];
-      }
-
-      const magnitude = Math.sqrt(normA) * Math.sqrt(normB);
-      return magnitude === 0 ? 0 : dotProduct / magnitude;
-    };
 
     const searchSimilar = async (queryEmbedding, topK = 5, minSimilarity = 0.5) => {
       const memories = await getAllMemories();

@@ -64,7 +64,6 @@ export function htmlFragmentText(fragment) {
     .replace(/[\s ]+/g, ' ').trim();
 }
 
-const openTag = name => new RegExp(String.raw`<${name}(?=[\s/>])${ATTRS}>`, 'gi');
 const anyTag = name => new RegExp(String.raw`<(\/?)${name}(?=[\s/>])${ATTRS}>`, 'gi');
 
 /** Balanced elements named `name`: [{ start, innerStart, innerEnd, end }]. Unclosed elements run to the end. */

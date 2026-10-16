@@ -52,8 +52,6 @@ const WebRTCSwarm = {
     const policy = requireResolvedConfig(deps.config);
     const WebSocket = deps.WebSocket || globalThis.WebSocket;
     const RTCPeerConnection = deps.RTCPeerConnection || globalThis.RTCPeerConnection;
-    const RTCSessionDescription = deps.RTCSessionDescription || globalThis.RTCSessionDescription;
-    const RTCIceCandidate = deps.RTCIceCandidate || globalThis.RTCIceCandidate;
     const MAX_PAYLOAD_SIZE = policy.webrtc.maxMessageBytes;
     const MAX_BACKOFF_MS = policy.webrtc.maxBackoffMs;
     const HEARTBEAT_INTERVAL = policy.webrtc.heartbeatIntervalMs;
@@ -131,16 +129,6 @@ const WebRTCSwarm = {
     const setConnectionState = (state, detail = {}) => {
       _connectionState = state;
       EventBus.emit('swarm:state-change', { state: !_manualStop && [..._peers.values()].some(peer => peer.dataChannel?.readyState === 'open') ? 'connected' : state, introductionState: state, ...detail });
-    };
-
-    /**
-     * Generate UUID v4
-     */
-    const uuid = () => {
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-        const r = Math.random() * 16 | 0;
-        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-      });
     };
 
     /**

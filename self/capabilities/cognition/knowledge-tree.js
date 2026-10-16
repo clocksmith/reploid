@@ -1,3 +1,5 @@
+import { cosineSimilarity } from './vector-math.js';
+
 /**
  * @fileoverview Knowledge Tree
  * RAPTOR-style hierarchical knowledge organization with temporal indexing,
@@ -104,17 +106,7 @@ const KnowledgeTree = {
 
     // --- Clustering (Simple K-Means for Browser) ---
 
-    const cosineSimilarity = (a, b) => {
-      if (!a || !b || a.length !== b.length) return 0;
-      let dot = 0, normA = 0, normB = 0;
-      for (let i = 0; i < a.length; i++) {
-        dot += a[i] * b[i];
-        normA += a[i] * a[i];
-        normB += b[i] * b[i];
-      }
-      const mag = Math.sqrt(normA) * Math.sqrt(normB);
-      return mag === 0 ? 0 : dot / mag;
-    };
+
 
     const centroid = (embeddings) => {
       if (embeddings.length === 0) return null;
@@ -477,7 +469,7 @@ Summary:`;
     // --- Retrieval (Collapsed Tree with Hybrid & Temporal) ---
 
     const query = async (queryText, options = {}) => {
-      const { topK = 5, includeAllLevels = true, useHybrid = false, useRetention = true } = options;
+      const { topK = 5, includeAllLevels = true, useRetention = true } = options;
 
       if (!_tree?.levels) {
         logger.warn('[KnowledgeTree] No tree available for query');

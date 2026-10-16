@@ -18,7 +18,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
 const SELF_DIR = path.join(ROOT, 'self');
-const OUTPUT_PATH = path.join(SELF_DIR, 'config', 'module-inventory.json');
 const checkOnly = process.argv.includes('--check');
 
 const sha256 = (content) => `sha256:${crypto.createHash('sha256').update(content).digest('hex')}`;
@@ -68,25 +67,29 @@ export async function buildInventory({ selfDir = SELF_DIR } = {}) {
   return { version: 1, modules };
 }
 
-async function main() {
-  const inventory = await buildInventory();
+export async function synchronizeInventory({ selfDir = SELF_DIR, checkOnly = false } = {}) {
+  const inventory = await buildInventory({ selfDir });
+  const outputPath = path.join(selfDir, 'config', 'module-inventory.json');
   if (checkOnly) {
-    let existing = null;
+    let existing;
     try {
-      existing = JSON.parse(await fs.readFile(OUTPUT_PATH, 'utf8'));
+      existing = JSON.parse(await fs.readFile(outputPath, 'utf8'));
     } catch {
-      console.error('[module-inventory] inventory is missing or invalid');
-      process.exit(1);
+      throw new Error('Module inventory is missing or invalid');
     }
     if (JSON.stringify(existing.modules) !== JSON.stringify(inventory.modules)) {
-      console.error('[module-inventory] inventory is stale');
-      process.exit(1);
+      throw new Error('Module inventory is stale');
     }
     console.log(`[module-inventory] ${inventory.modules.length} source modules are current`);
-    return;
+  } else {
+    await fs.writeFile(outputPath, `${JSON.stringify(inventory, null, 2)}\n`, 'utf8');
+    console.log(`[module-inventory] Wrote ${outputPath} with ${inventory.modules.length} modules`);
   }
-  await fs.writeFile(OUTPUT_PATH, `${JSON.stringify(inventory, null, 2)}\n`, 'utf8');
-  console.log(`[module-inventory] Wrote ${OUTPUT_PATH} with ${inventory.modules.length} modules`);
+  return inventory;
+}
+
+async function main() {
+  await synchronizeInventory({ checkOnly });
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === __filename) main().catch((error) => {

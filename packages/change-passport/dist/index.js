@@ -1,3 +1,14 @@
+// self/vendor/reploid/artifacts/binary.js
+function base64ToBytes(value) {
+  const text = String(value || "");
+  if (typeof Buffer !== "undefined") return new Uint8Array(Buffer.from(text, "base64"));
+  return Uint8Array.from(atob(text), (character) => character.charCodeAt(0));
+}
+function fromBase64Url(value) {
+  const text = String(value || "").replace(/-/g, "+").replace(/_/g, "/");
+  return base64ToBytes(text.padEnd(Math.ceil(text.length / 4) * 4, "="));
+}
+
 // self/vendor/reploid/artifacts/canonical-json.js
 function canonicalize(value) {
   if (value === null || typeof value !== "object") return JSON.stringify(value);
@@ -16,15 +27,6 @@ var getCryptoApi = (cryptoApi) => {
     throw new Error("WebCrypto unavailable");
   }
   return api;
-};
-var fromBase64Url = (value) => {
-  const normalized = String(value || "").replace(/-/g, "+").replace(/_/g, "/");
-  const padded = normalized + "=".repeat((4 - (normalized.length % 4 || 4)) % 4);
-  if (typeof Buffer !== "undefined") {
-    return new Uint8Array(Buffer.from(padded, "base64"));
-  }
-  const binary = atob(padded);
-  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
 };
 async function sha256Hex(text, cryptoApi = globalThis.crypto) {
   const digest2 = await getCryptoApi(cryptoApi).subtle.digest("SHA-256", encoder.encode(String(text || "")));

@@ -278,26 +278,6 @@ export function isModuleCached(path) {
 }
 
 /**
- * Preload multiple modules
- * @param {Object} options - Base options (VFS, logger, etc.)
- * @param {string[]} paths - Array of paths to preload
- * @returns {Promise<Object>} Results map { path: module | error }
- */
-export async function preloadModules(options, paths) {
-  const results = {};
-
-  await Promise.all(paths.map(async (path) => {
-    try {
-      results[path] = await loadVfsModule({ ...options, path });
-    } catch (err) {
-      results[path] = { error: err.message };
-    }
-  }));
-
-  return results;
-}
-
-/**
  * Reset statistics (for testing)
  */
 export function resetVfsModuleStats() {

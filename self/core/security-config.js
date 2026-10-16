@@ -59,10 +59,3 @@ export function setSecurityEnabled(enabled, options = {}) {
 
   return { enabled: runtimeEnabled, source: runtimeSource };
 }
-
-export function syncSecurityFromStorage() {
-  const state = readStoredMode();
-  runtimeEnabled = state.enabled;
-  runtimeSource = state.source;
-  return state;
-}

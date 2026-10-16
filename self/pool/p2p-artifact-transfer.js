@@ -1,3 +1,4 @@
+import { bytesToBase64, base64ToBytes } from '../vendor/reploid/artifacts/binary.js';
 /**
  * @fileoverview Assignment-scoped adapter byte transfer over Poolday WebRTC.
  */
@@ -12,21 +13,6 @@ import {
 } from './p2p-payload.js';
 
 export const ADAPTER_TRANSFER_RECEIPT_SCHEMA = 'reploid.pool.adapter-transfer-receipt/v1';
-
-const bytesToBase64 = (bytes) => {
-  if (typeof Buffer !== 'undefined') return Buffer.from(bytes).toString('base64');
-  let binary = '';
-  for (let offset = 0; offset < bytes.length; offset += 0x8000) {
-    binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
-  }
-  return btoa(binary);
-};
-
-const base64ToBytes = (value) => {
-  if (typeof Buffer !== 'undefined') return new Uint8Array(Buffer.from(String(value || ''), 'base64'));
-  const binary = atob(String(value || ''));
-  return Uint8Array.from(binary, (character) => character.charCodeAt(0));
-};
 
 const payloadWithoutHash = (payload = {}) => {
   const { payloadHash, ...body } = payload;

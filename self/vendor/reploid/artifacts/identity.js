@@ -1,3 +1,4 @@
+import { toBase64Url, fromBase64Url } from './binary.js';
 import { canonicalize as stableJson } from './canonical-json.js';
 const encoder = new TextEncoder();
 
@@ -8,30 +9,6 @@ const getCryptoApi = (cryptoApi) => {
     throw new Error('WebCrypto unavailable');
   }
   return api;
-};
-
-const toBase64Url = (buffer) => {
-  const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
-  if (typeof Buffer !== 'undefined') {
-    return Buffer.from(bytes)
-      .toString('base64')
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=+$/g, '');
-  }
-  let binary = '';
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
-};
-
-const fromBase64Url = (value) => {
-  const normalized = String(value || '').replace(/-/g, '+').replace(/_/g, '/');
-  const padded = normalized + '='.repeat((4 - (normalized.length % 4 || 4)) % 4);
-  if (typeof Buffer !== 'undefined') {
-    return new Uint8Array(Buffer.from(padded, 'base64'));
-  }
-  const binary = atob(padded);
-  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
 };
 
 async function sha256Hex(text, cryptoApi = globalThis.crypto) {

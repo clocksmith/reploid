@@ -9,6 +9,34 @@ const browserHarnesses = ['evaluate-document-answers', 'pool-actual-browser-smok
   'verify-poolday-forecast-sdk', 'verify-swarm-runtime',
   'verify-visual-change-passport-dogfood'].map(name => `scripts/${name}.js`);
 const cleanedModules = [
+  'self/capabilities/cognition/vector-math.js',
+  'self/capabilities/cognition/jsonl.js',
+  'packages/reploid/src/artifacts/binary.js',
+  'self/shared/change-passport/policy.js',
+  'self/pool/policy-router.js',
+  'self/pool/p2p-transport.js',
+  'self/pool/p2p-artifact-transfer.js',
+  'self/pool/inference-receipt.js',
+  'self/infrastructure/browser-apis.js',
+  'self/core/zero-prompt.js',
+  'self/core/worker-agent.js',
+  'self/core/vfs-module-loader.js',
+  'self/core/security-config.js',
+  'self/core/memory-manager.js',
+  'self/capabilities/reflection/reflection-analyzer.js',
+  'self/capabilities/cognition/symbolic/knowledge-graph.js',
+  'self/capabilities/cognition/semantic/semantic-memory-llm.js',
+  'self/capabilities/cognition/semantic/embedding-store.js',
+  'self/capabilities/cognition/knowledge-tree.js',
+  'self/capabilities/cognition/episodic-memory.js',
+  'packages/reploid/src/transport/swarm.js',
+  'packages/reploid/src/transport/room.js',
+  'packages/reploid/src/transport/introduction-records.js',
+  'packages/reploid/src/transport/assignment.js',
+  'packages/reploid/src/retrieval/page-text.js',
+  'packages/reploid/src/artifacts/signatures.js',
+  'packages/reploid/src/artifacts/identity.js',
+  'packages/reploid/src/agent/lab-strategy.js',
   'packages/reploid/src/artifacts/acceptance.js',
   'packages/reploid/src/artifacts/manifest-identity.js',
   'packages/reploid/src/agent/tool-operation-retry.js',
@@ -53,9 +81,10 @@ export default [
   // These codecs deliberately support optional Node Buffer and browser encodings.
   { files: ['packages/reploid/src/artifacts/identity.js', 'packages/reploid/src/artifacts/signatures.js',
     'self/pool/device-identity.js', 'self/pool/p2p-artifact-transfer.js',
+    'packages/reploid/src/artifacts/binary.js',
     'self/bridge.js', 'self/tools/ReadFile.js', 'self/tools/WriteFile.js', 'self/key-unsealer.js'],
     languageOptions: { globals: { Buffer: 'readonly' } } },
   // Vitest uses happy-dom; Node globals are intentional only in the test host.
   { files: ['tests/**/*.js', 'tests/**/*.mjs'], languageOptions: { globals: { ...globals.vitest, ...globals.browser, ...globals.node } } },
-  { files: cleanedModules, rules: { 'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none' }] } }
+  { files: cleanedModules, rules: { 'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none', ignoreRestSiblings: true }] } }
 ];

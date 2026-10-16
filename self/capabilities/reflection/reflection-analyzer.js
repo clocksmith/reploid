@@ -17,14 +17,6 @@ const ReflectionAnalyzer = {
     const { ReflectionStore, Utils } = deps;
     const { logger } = Utils;
 
-    const getKeywords = (text) => {
-      if (!text) return [];
-      return text.toLowerCase()
-        .split(/\W+/)
-        .filter(w => w.length > 3)
-        .slice(0, 10);
-    };
-
     // Simple failure pattern detection
     const detectFailurePatterns = async () => {
       const failed = await ReflectionStore.getReflections({

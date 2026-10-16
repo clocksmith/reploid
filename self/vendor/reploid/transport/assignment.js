@@ -538,13 +538,6 @@ export function candidateToPayload(candidate) {
   };
 }
 
-function requireNonEmptyString(value, label) {
-  if (typeof value !== 'string' || value.length === 0) {
-    throw new TypeError(`${label} must be a non-empty string`);
-  }
-  return value;
-}
-
 export function defaultSerialize(value) {
   if (typeof value === 'string') {
     return value;

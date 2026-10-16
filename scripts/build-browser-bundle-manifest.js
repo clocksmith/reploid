@@ -7,6 +7,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { buildProductEntry } from './build-product-entry.js';
+import { synchronizeInventory } from './build-module-inventory.js';
 import { buildHostingFileSet } from './hosting-file-set.js';
 
 import {
@@ -24,6 +25,8 @@ const checkOnly = process.argv.includes('--check');
 
 async function main() {
   await buildProductEntry({ checkOnly });
+  // Hash the emitted product bytes before the descriptor includes the inventory.
+  await synchronizeInventory({ selfDir: SELF_DIR, checkOnly });
   const files = await buildHostingFileSet({ selfDir: SELF_DIR });
   const entries = await Promise.all(files.filter(file => file !== BROWSER_BUNDLE_DESCRIPTOR_PATH)
     .map(async file => ({ path: file, bytes: new Uint8Array(await fs.readFile(path.join(SELF_DIR, file))) })));

@@ -1,6 +1,6 @@
 {
   "schema": "reploid.sdk-provenance/v1",
-  "sourceHash": "sha256:94124041ddce03ab2feaa1a1e052b94ec9a60bd8d0fb8e692b54785922ff5470",
+  "sourceHash": "sha256:611d0b5b07f927a203e188061acf276beb3a104cafc6793d2b27f5e3a9505fc6",
   "toolchain": {
     "esbuild": "0.28.2",
     "node": "v22.20.0"
@@ -124,8 +124,8 @@
     },
     {
       "path": "self/pool/inference-receipt.js",
-      "hash": "sha256:f389cc48148ebfa5b3265aaea601c3a048945b62caaf3f8d13fbaf6d9d4b1812",
-      "sizeBytes": 14211
+      "hash": "sha256:3b985dac8fe39adcb7b157deaa1d01ca5b8550eee0af0e39bf6b0839a87d652b",
+      "sizeBytes": 13950
     },
     {
       "path": "self/pool/model-artifacts.js",
@@ -198,6 +198,11 @@
       "sizeBytes": 669
     },
     {
+      "path": "self/vendor/reploid/artifacts/binary.js",
+      "hash": "sha256:133382a28ae22d5ed02d9215d381a2b76efae40684d9e19aea7c06e0b603975a",
+      "sizeBytes": 1036
+    },
+    {
       "path": "self/vendor/reploid/artifacts/canonical-json.js",
       "hash": "sha256:8c03ba8fc289d21bb99b3f2595ae8493397dfeb134cbb02e45311f2b43d561f4",
       "sizeBytes": 482
@@ -209,8 +214,8 @@
     },
     {
       "path": "self/vendor/reploid/artifacts/signatures.js",
-      "hash": "sha256:a6287d2e445e8386a04d6c2a3aa878b282272c4bbcc2e4f047c50b572709df18",
-      "sizeBytes": 3725
+      "hash": "sha256:2cab796cb864d7adc97994d12da2db75208bf55d19e5deaa64b1fbbf97342c5c",
+      "sizeBytes": 3117
     },
     {
       "path": "self/vendor/reploid/config/defaults.json",
@@ -240,6 +245,6 @@
   ],
   "output": {
     "path": "dist/index.js",
-    "hash": "sha256:c8f20cda4b30b9e8edd5fa352542de46535e402cb9f95ee974502977e31690dd"
+    "hash": "sha256:ce5967613eee6f56f4526c021e44ad82c091aa1390b32a8889136b623ff92a3a"
   }
 }

@@ -81,6 +81,8 @@ describe('Conversation workspace', () => {
     expect(find('[data-active-model-select]').textContent).toBe('No models available');
     expect(find('[data-model-status]').hidden).toBe(false);
     expect(find('[data-model-status]').textContent).toBe('Model unavailable.');
+    expect(find('[data-model-digest]').textContent).toBe(CANONICAL_CHAT_MODELS[1].name);
+    expect(find('[data-open-model]').textContent).not.toContain('Unavailable');
     expect(find('[data-model-control]').hidden).toBe(true);
     expect(find('[data-toggle-contribution]').disabled).toBe(false);
     expect(find('[data-composer-send]').hidden).toBe(false);

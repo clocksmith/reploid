@@ -1,3 +1,4 @@
+import { bytesToBase64, base64ToBytes, toBase64Url as bytesToBase64Url, fromBase64Url as base64UrlToBytes } from '../vendor/reploid/artifacts/binary.js';
 /**
  * @fileoverview Device-root identity, role delegation, and optional passkey binding.
  */
@@ -26,7 +27,6 @@ const PASSKEY_KEY = 'REPLOID_POOL_PASSKEY_BINDING_V1';
 const SESSION_LIFETIME_MS = 12 * 60 * 60 * 1000;
 const rootCache = new Map();
 const passkeySessionCache = new Map();
-const textEncoder = new TextEncoder();
 
 const localStorageRef = () => {
   try {
@@ -34,31 +34,6 @@ const localStorageRef = () => {
   } catch {
     return null;
   }
-};
-
-const bytesToBase64 = (bytes) => {
-  if (typeof Buffer !== 'undefined') return Buffer.from(bytes).toString('base64');
-  let binary = '';
-  for (let offset = 0; offset < bytes.length; offset += 0x8000) {
-    binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
-  }
-  return btoa(binary);
-};
-
-const base64ToBytes = (value) => {
-  if (typeof Buffer !== 'undefined') return new Uint8Array(Buffer.from(String(value || ''), 'base64'));
-  const binary = atob(String(value || ''));
-  return Uint8Array.from(binary, (character) => character.charCodeAt(0));
-};
-
-const bytesToBase64Url = (bytes) => bytesToBase64(bytes)
-  .replace(/\+/g, '-')
-  .replace(/\//g, '_')
-  .replace(/=+$/g, '');
-
-const base64UrlToBytes = (value) => {
-  const normalized = String(value || '').replace(/-/g, '+').replace(/_/g, '/');
-  return base64ToBytes(normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '='));
 };
 
 const hashBytes = (hash) => {

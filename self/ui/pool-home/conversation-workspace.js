@@ -253,7 +253,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const modelStatus = find('[data-model-status]');
     const networkState = state.network?.consumer?.connectionState;
     const localPreparing = state.localModel?.phase === 'loading';
-    const requestedModel = thread?.model || chosenModel || models.find(model => keyFor(model) === current);
+    const requestedModel = thread?.model || chosenModel || models.find(model => keyFor(model) === current)
+      || catalogModels.find(model => keyFor(model) === current)
+      || catalogModels.find(model => keyFor(model) === keyFor(state.defaultModel))
+      || catalogModels[0];
     const catalogModel = catalogModels.find(model => keyFor(model) === keyFor(requestedModel)) || requestedModel;
     const facts = [
       ['Weights', catalogModel?.quantization?.toUpperCase()],
@@ -300,10 +303,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     answerLimit.hidden = !answerLimit.textContent;
     find('[data-model-control]').hidden = !models.length;
     find('[data-model-control]').dataset.activity = models.some(model => keyFor(model) === current && model.availability === 'ready') ? 'ready' : 'idle';
-    const modelDigest = requestedModel ? modelSelectionLabel(requestedModel) : 'Unavailable';
+    const modelDigest = requestedModel ? modelSelectionLabel(requestedModel) : '';
     find('[data-model-digest]').textContent = modelDigest;
-    find('[data-open-model]').title = `Choose model: ${modelDigest}`;
-    find('[data-open-model]').setAttribute('aria-label', `Choose model: ${modelDigest}`);
+    find('[data-open-model]').title = modelDigest ? `Choose model: ${modelDigest}` : 'Choose model';
+    find('[data-open-model]').setAttribute('aria-label', modelDigest ? `Choose model: ${modelDigest}` : 'Choose model');
     updateContextIndicator(container, state, session);
     threads.update(state.threads, state.selectedId, { archived, models: state.models });
     const busy = state.runningIds.includes(thread?.id) || !!state.comparisonPhase;
