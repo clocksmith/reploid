@@ -3264,7 +3264,7 @@
     {
       "path": "ui/components/interface-icons.js",
       "owner": "ui",
-      "sha256": "sha256:d2241b14a9ec4e891d981b04fda50030dd37f7b6d5417b532fc78ad48f17a414",
+      "sha256": "sha256:9e8e208c14cadc32f82bc4b80ed257c5e798d0dd5e5fda1d2cc480d9a62a64e0",
       "imports": []
     },
     {
@@ -3325,7 +3325,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:624fca8a27803973b3186c24e6de0247834bfc2f547a6e633ebb1badd8cdba58",
+      "sha256": "sha256:36fdef1077ddd9d6af77b610285837875441e69eb26f08a62c97390db3115972",
       "imports": []
     },
     {
@@ -3488,7 +3488,7 @@
     {
       "path": "ui/pool-home/network-controls.js",
       "owner": "ui",
-      "sha256": "sha256:0b77505f95d1d02a78b0eeec6f10f34824d99d1bd8f2fd2ee1ff8c8ab6ff7f5e",
+      "sha256": "sha256:67e03cf7da7e98937280a351c86b2de719dba31257ca81221d41175c1533aa1d",
       "imports": [
         "../../vendor/reploid/mesh/preparation-progress.js",
         "../components/model-select.js",
@@ -3498,7 +3498,7 @@
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:ea731042247fc9748b0c3826eef542f832e91f487dd2bd996085519fe418867a",
+      "sha256": "sha256:8fb893df18e395db7f9dccc1f9d909aa90fa587821b05091c33f8a89d79f9ed1",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
