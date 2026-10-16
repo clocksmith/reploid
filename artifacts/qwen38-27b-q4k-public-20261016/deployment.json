@@ -1,0 +1,46 @@
+{
+  "schema": "reploid.public-q4k-activation/v1",
+  "checkedAt": "2026-10-16T17:14:06.528069+00:00",
+  "component": [
+    "Runtime Configuration",
+    "Hosted Services"
+  ],
+  "intent": "preserved",
+  "boundaryEffects": "Public model identity changes from F16 to exact qualified Q4K; execution remains Doppler-owned whole-model. Existing conversations are not relabeled as a different artifact.",
+  "sourceCommit": "31f00711",
+  "url": "https://replo.id",
+  "bundleHash": "sha256:ba7f89da657093fed88327e60a811b9a99b44820672161f79c8e9281212fc5c7",
+  "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+  "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "runtime": "Doppler 0.6.30 plus exact qualified overlay from doppler 6ba1f43a evidence; verified 1956 runtime files before activation.",
+  "artifact": "Durable byte-identical copy of the 17.0 GB retained Q4K artifact; verified all 254 shard SHA-256 values. The 26.8 GB candidate is not used.",
+  "configuration": {
+    "contextTokens": 4096,
+    "maxOutputTokens": 256,
+    "prefillChunkTokens": 256,
+    "managedBufferBudgetBytes": 25769803776
+  },
+  "deployment": "Firebase Hosting only, isolated checkout; AMD persistent systemd service updated separately. Unrelated UI edits excluded.",
+  "publicSupply": true,
+  "verification": {
+    "focusedTests": 6,
+    "liveBrowserPassed": true,
+    "streaming": true,
+    "followup": true,
+    "cancelAndReuse": true,
+    "historyAfterReload": true,
+    "exactIdentity": true,
+    "requesterWeightDownloads": 0
+  },
+  "smallContributorsUnchanged": {
+    "qwen08bPid": 2963679,
+    "qwen2bPid": 2967869
+  },
+  "q4ProviderPid": 482901,
+  "qualification": "https://github.com/clocksmith/doppler/blob/6ba1f43a/artifacts/qwen38-27b-q4-qualification-20261016/qualification.json",
+  "limits": [
+    "Unchunked long-prefill device loss remains; this configuration explicitly uses 256-token chunks.",
+    "Q4 model weights are not published for browser download; this activation provides prepared native capacity.",
+    "This live functional check is not a continuous-availability or performance-superiority claim."
+  ]
+}
