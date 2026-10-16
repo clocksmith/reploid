@@ -70,7 +70,7 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
             <button class="pool-button btn-primary pool-icon" type="button" data-composer-stop aria-label="Stop" title="Stop" hidden>${interfaceIcon('stop')}</button>
           </div>
         </div>
-        <div class="chat-composer-notices"><button class="pool-button chat-composer-model btn-ghost" type="button" data-open-model aria-label="Choose model" title="Choose model">${interfaceIcon('model')}<span >Model</span><small class="pool-muted" data-model-digest></small></button>${renderContextIndicator()}<p class="pool-small pool-muted" data-answer-limit hidden></p><span class="pool-chip" data-web-search-on hidden>Web search on</span><p class="chat-setup-hint pool-small pool-muted" id="chat-model-status" data-model-status role="status" hidden></p><button class="pool-button btn-ghost" type="button" data-retry-connection hidden>Retry connection</button></div>
+        <div class="chat-composer-notices"><button class="pool-button chat-composer-model btn-ghost" type="button" data-open-model aria-label="Choose model" title="Choose model">${interfaceIcon('model')}<small class="pool-muted" data-model-digest></small></button>${renderContextIndicator()}<button class="pool-button btn-ghost pool-caption" type="button" data-open-limits hidden></button><span class="pool-chip" data-web-search-on hidden>Search on</span><button class="pool-button btn-ghost pool-caption" type="button" data-composer-status hidden></button><button class="pool-button btn-ghost pool-caption" type="button" data-retry-connection aria-label="Retry connection" hidden>Retry</button></div>
         <p class="chat-attachment-help pool-small pool-muted" data-attachment-help hidden>Text files: up to 8, 64 KB each, 128 KB total.</p>
       </form></footer>
       <dialog class="chat-model-setup pool-surface pool-small" data-rename-dialog aria-labelledby="chat-rename-title">
@@ -281,9 +281,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       && ['loading', 'preparing'].includes(model.availability));
     const preparing = localPreparing || remotePreparing || selectedPreparing;
     const attempt = thread?.attempts.at(-1);
+    const busy = state.runningIds.includes(thread?.id) || !!state.comparisonPhase;
     // The collapsed rails hide the header status. Explain a disabled composer
     // here, including before the first attempt, without adding another panel.
-    modelStatus.textContent = thread?.closed ? 'Restore this thread to continue.'
+    modelStatus.textContent = busy ? '' : thread?.closed ? 'Restore this thread to continue.'
       : state.localModel?.error && !usable ? 'Model preparation failed: ' + state.localModel.error
       : !usable && location === 'network' ? 'No network capacity for this model. Local execution will not be used.'
       : !usable && location === 'local' ? 'Download this model in Sharing to run it on this device.'
@@ -302,6 +303,19 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       + '. Input includes conversation history. Answers reaching the limit are incomplete.'
       : Number.isSafeInteger(configuredAnswerTokens) ? `Answer limit: ${configuredAnswerTokens} tokens. Answers reaching the limit are incomplete.` : '';
     answerLimit.hidden = !answerLimit.textContent;
+    const limitButton = find('[data-open-limits]');
+    const tokenLimits = bounds.length ? bounds.map(cell => cell.maxAnswerTokens) : [configuredAnswerTokens];
+    const minimum = Math.min(...tokenLimits), maximum = Math.max(...tokenLimits);
+    limitButton.hidden = answerLimit.hidden;
+    limitButton.textContent = minimum === maximum ? `${maximum} max` : `${minimum}–${maximum} max`;
+    limitButton.title = answerLimit.textContent;
+    limitButton.setAttribute('aria-label', answerLimit.textContent + ' View model limits.');
+    const statusButton = find('[data-composer-status]');
+    statusButton.hidden = modelStatus.hidden;
+    statusButton.textContent = thread?.closed ? 'Archived' : preparing ? 'Preparing' : 'Unavailable';
+    statusButton.title = modelStatus.textContent;
+    statusButton.setAttribute('aria-label', modelStatus.textContent + ' View model details.');
+    find('[data-retry-connection]').title = modelStatus.textContent;
     find('[data-model-control]').hidden = !models.length;
     find('[data-model-control]').dataset.activity = models.some(model => keyFor(model) === current && model.availability === 'ready') ? 'ready' : 'idle';
     const modelDigest = requestedModel ? modelSelectionLabel(requestedModel) : '';
@@ -310,7 +324,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     find('[data-open-model]').setAttribute('aria-label', modelDigest ? `Choose model: ${modelDigest}` : 'Choose model');
     updateContextIndicator(container, state, session);
     threads.update(state.threads, state.selectedId, { archived, models: state.models });
-    const busy = state.runningIds.includes(thread?.id) || !!state.comparisonPhase;
     refreshStartingPrompts();
     const contextControls = find('[data-context-controls]');
     contextControls.hidden = !session.previewContextPrompt;
@@ -325,6 +338,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     }
     find('[data-composer-send]').hidden = busy;
     find('[data-retry-connection]').hidden = busy || usable || preparing || state.network?.connecting || ['connecting', 'retrying'].includes(networkState); find('[data-composer-send]').disabled = reading || !usable || !!thread?.closed || !!state.storageError;
+    statusButton.hidden ||= !find('[data-retry-connection]').hidden;
     find('[data-composer-stop]').hidden = !busy;
     find('[data-conversation-download]').hidden = !thread?.messages.length;
     find('[data-composer-field]').dataset.activity = busy && attempt?.status === 'executing' ? 'executing' : 'idle';
@@ -367,7 +381,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   showFiles();
   const renameDialog = bindDialog(find('[data-rename-dialog]'));
   const picker = bindDialog(find('[data-model-picker]'));
-  on('[data-open-model]', 'click', event => inspector.open('model', event.currentTarget));
+  for (const selector of ['[data-open-model]', '[data-open-limits]', '[data-composer-status]']) {
+    on(selector, 'click', event => inspector.open('model', event.currentTarget));
+  }
   on('[data-current-model]', 'click', event => {
     const state = session.getState();
     find('[data-current-model-description]').textContent = state.activeThread?.model.name || '';
