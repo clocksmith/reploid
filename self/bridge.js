@@ -1,3 +1,5 @@
+import { normalizeFilePath, getOpfsFileHandle, OPFS_PREFIX } from './host/file-access.js';
+import { FILE_TEXT_LIMIT_BYTES as TEXT_LIMIT_BYTES, FILE_BINARY_LIMIT_BYTES as BINARY_LIMIT_BYTES } from './config/vfs-policy.js';
 /**
  * @fileoverview Bridge between the live self and the browser substrate.
  */
@@ -31,11 +33,7 @@ import { createLegacyNetworkOptions } from './capabilities/communication/library
 import { createSelfToolRunner } from './tool-runner.js';
 import { promoteShadowCandidate } from './tools/Promote.js';
 
-const TEXT_LIMIT_BYTES = 8 * 1024 * 1024;
-const BINARY_LIMIT_BYTES = 256 * 1024 * 1024;
 const REMOTE_GENERATION_TIMEOUT_MS = 45000;
-const OPFS_PREFIX = 'opfs:';
-const VFS_PREFIX = 'vfs:';
 const VFS_BYPASS_HEADER = 'x-reploid-vfs-bypass';
 const MANAGED_SERVER_PROXY_TYPE = 'firebase-function';
 const MANAGED_SERVER_PROXY_MAX_ITERATIONS = 99;
@@ -49,31 +47,9 @@ const normalizeManagedServerProxyMaxIterations = (value) => {
   return Math.min(limit, MANAGED_SERVER_PROXY_MAX_ITERATIONS);
 };
 const normalizePath = (rawPath, backendOverride) => {
-  if (!rawPath || typeof rawPath !== 'string') {
-    throw new Error('Missing path argument');
-  }
-
-  const trimmed = rawPath.trim();
-  let backend = backendOverride ? String(backendOverride).toLowerCase() : null;
-  if (backend && backend !== 'vfs' && backend !== 'opfs') {
-    throw new Error('Invalid backend. Use "vfs" or "opfs".');
-  }
-
-  let path = trimmed;
-  if (trimmed.startsWith(OPFS_PREFIX)) {
-    backend = 'opfs';
-    path = trimmed.slice(OPFS_PREFIX.length);
-  } else if (trimmed.startsWith(VFS_PREFIX)) {
-    backend = 'vfs';
-    path = trimmed.slice(VFS_PREFIX.length);
-  }
-
-  path = '/' + path.replace(/^\/+/, '');
-  if (path.split('/').includes('..')) {
-    throw new Error('Path traversal is not allowed');
-  }
-
-  return { backend: backend || 'vfs', path };
+  const normalized = normalizeFilePath(rawPath, backendOverride);
+  if (normalized.path.split('/').includes('..')) throw new Error('Path traversal is not allowed');
+  return normalized;
 };
 
 const getTextBytes = (content) => {
@@ -128,30 +104,7 @@ const fromBase64 = (data) => {
   return bytes;
 };
 
-const getOpfsRoot = async () => {
-  if (typeof navigator === 'undefined' || !navigator.storage?.getDirectory) {
-    throw new Error('OPFS not available in this environment');
-  }
-  if (typeof ServiceWorkerGlobalScope !== 'undefined' && self instanceof ServiceWorkerGlobalScope) {
-    throw new Error('OPFS not available in service workers');
-  }
-  return navigator.storage.getDirectory();
-};
 
-const getOpfsFileHandle = async (path, options = {}) => {
-  const root = await getOpfsRoot();
-  const parts = path.split('/').filter(Boolean);
-  if (parts.length === 0) {
-    throw new Error('Invalid OPFS path');
-  }
-
-  let dir = root;
-  for (let i = 0; i < parts.length - 1; i++) {
-    dir = await dir.getDirectoryHandle(parts[i], { create: !!options.createDirs });
-  }
-
-  return dir.getFileHandle(parts[parts.length - 1], { create: !!options.createFile });
-};
 
 const createVfsAdapter = ({
   canWritePath,

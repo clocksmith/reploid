@@ -3,6 +3,8 @@
  */
 
 import { validateExecutablePack } from './executable-pack.js';
+import { resolvePackOperationDefinitions } from './pack-operation-policy.js';
+import { resolvePackJobPolicy } from './peer-pack-job-policy.js';
 
 export const POLICY_IDS = Object.freeze({
   fastestReceipt: 'fastest_receipt',
@@ -147,6 +149,12 @@ const validateSequenceModelContract = (model, index, reasons, { isLaunchModel = 
 
 export function validatePoolConfigValue(config = {}) {
   const reasons = [];
+  try {
+    if (resolvePackJobPolicy(config.peerJobs).version !== 3) reasons.push('current peer job policy version required');
+  }
+  catch (error) { reasons.push(error.message); }
+  try { resolvePackOperationDefinitions(config.operations, config.operationComparisonPolicies); }
+  catch (error) { reasons.push(error.message); }
   const modelCatalog = Array.isArray(config.modelCatalog) ? config.modelCatalog : [];
   const launchModel = typeof config.launchModelId === 'string'
     ? modelCatalog.find((model) => model.modelId === config.launchModelId)
@@ -221,8 +229,17 @@ export function validatePoolConfigValue(config = {}) {
     reasons.push('active determinism profile requiring runtimeProfile must also require runtimeProfileHash');
   }
 
+  for (const field of ['maxPolls', 'intervalMs']) {
+    const value = config.ringPhaseProtocols?.polling?.[field];
+    if (!Number.isSafeInteger(value) || value < 1) reasons.push(`ringPhaseProtocols.polling.${field} must be a positive integer`);
+  }
   const activeRingProtocol = config.ringPhaseProtocols?.protocols?.[config.ringPhaseProtocols?.activeProtocolId];
   if (!activeRingProtocol) reasons.push('ringPhaseProtocols.activeProtocolId must reference ringPhaseProtocols.protocols');
+  for (const field of ['pollIntervalMs', 'maxWaitMs']) {
+    if (!Number.isSafeInteger(activeRingProtocol?.revealWait?.[field]) || activeRingProtocol.revealWait[field] <= 0) {
+      reasons.push(`active ring phase protocol revealWait.${field} must be a positive integer`);
+    }
+  }
   if (activeRingProtocol && activeRingProtocol.requireRevealBeforeReceipt !== true) {
     reasons.push('active ring phase protocol must require reveal before receipt');
   }

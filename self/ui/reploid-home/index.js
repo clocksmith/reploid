@@ -1,3 +1,5 @@
+import { escapeHtml as escapeHtmlValue } from '../components/html.js';
+const escapeHtml = value => escapeHtmlValue(value || '');
 /**
  * @fileoverview Minimal home surface for the primary Reploid route.
  */
@@ -57,12 +59,6 @@ const migrateStoredGoal = (goal) => {
     ? DEFAULT_REPLOID_HOME_GOAL
     : normalized;
 };
-
-const escapeHtml = (value) => String(value || '')
-  .replace(/&/g, '&amp;')
-  .replace(/</g, '&lt;')
-  .replace(/>/g, '&gt;')
-  .replace(/"/g, '&quot;');
 
 const normalize = (value) => String(value || '').trim();
 

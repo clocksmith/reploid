@@ -1,4 +1,7 @@
-export const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+export { escapeHtml };
+import { escapeHtml as escapeHtmlValue } from './html.js';
+const escapeHtml = value => escapeHtmlValue(value, '&#39;');
+
 
 export function renderAttachments(root, files) {
   root.hidden = !files.length;

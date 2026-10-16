@@ -57,3 +57,6 @@ export function assertOpfsArtifactPath(path) {
     throw new Error(`OPFS path not allowed: ${path}`);
   }
 }
+
+export const FILE_TEXT_LIMIT_BYTES = 8 * 1024 * 1024;
+export const FILE_BINARY_LIMIT_BYTES = 256 * 1024 * 1024;

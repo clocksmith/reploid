@@ -1,10 +1,9 @@
+import { escapeHtml as escapeHtmlValue } from '../components/html.js';
+const escapeHtml = value => escapeHtmlValue(value, '&#39;');
 /** Task-first input. Provider choice and disclosure remain explicit host decisions. */
 import policy from '../../config/work-profile.json' with { type: 'json' };
 import { DEFAULT_WORK_MODELS } from '../../host/work-session.js';
 import { selectWorkModel } from '../../providers/work-provider.js';
-
-const escapeHtml = value => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
-  .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
 const goalPlaceholders = Object.freeze([
   'Find the bug and propose a fix...',

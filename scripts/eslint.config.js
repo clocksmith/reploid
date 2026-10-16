@@ -1,15 +1,54 @@
 import globals from 'globals';
 
+const workerFiles = ['self/core/verification-worker.js', 'self/sw.js',
+  'self/sw-module-loader.js', 'self/host/sw-module-loader.js'];
+// These Node harnesses execute serialized callbacks inside Playwright pages.
+const browserHarnesses = ['evaluate-document-answers', 'pool-actual-browser-smoke',
+  'pool-browser-smoke', 'verify-cloudflare-swarm', 'verify-deploy-surface',
+  'verify-document-search', 'verify-gpu-startup', 'verify-peer-pack-execution',
+  'verify-poolday-forecast-sdk', 'verify-swarm-runtime',
+  'verify-visual-change-passport-dogfood'].map(name => `scripts/${name}.js`);
+const cleanedModules = [
+  'packages/reploid/src/artifacts/acceptance.js',
+  'packages/reploid/src/artifacts/manifest-identity.js',
+  'packages/reploid/src/agent/tool-operation-retry.js',
+  'self/host/file-access.js',
+  'self/ui/components/html.js',
+  'self/ui/components/vfs-progress.js'
+];
+
 export default [
-  { ignores: ['node_modules/**', 'artifacts/**', 'coverage/**', 'test-results/**', 'playwright-report/**',
-    'self/vendor/**', 'self/core/vendor/**', '**/dist/**', 'self/lib/**', 'doppler/**', '.firebase-hosting/**'] },
+  { ignores: ['.cache/**', 'output/**', 'node_modules/**', 'artifacts/**', 'coverage/**', 'test-results/**', 'playwright-report/**',
+    'self/vendor/**', 'self/core/vendor/**', '**/dist/**', 'packages/poolday-forecast/source/**', 'self/ui/pool-home/app.bundle.js',
+    'self/lib/**', 'doppler/**', '.firebase-hosting/**'] },
   {
     files: ['**/*.js', '**/*.mjs'],
-    languageOptions: { ecmaVersion: 'latest', sourceType: 'module',
-      globals: { ...globals.browser, ...globals.node, ...globals.worker, ...globals.serviceworker } },
+    languageOptions: { ecmaVersion: 'latest', sourceType: 'module' },
     rules: { 'no-undef': 'error',
       'no-restricted-globals': ['error', 'parent', 'name', 'event'], 'no-unreachable': 'error', 'no-dupe-args': 'error',
       'no-dupe-keys': 'error', 'no-constant-binary-expression': 'error', 'valid-typeof': 'error' }
   },
-  { files: ['tests/**/*.js'], languageOptions: { globals: globals.vitest } }
+  { files: ['self/**/*.js', 'examples/library-consumer/**/*.js',
+    'docs/diagrams/reploid-diagram/source/**'], ignores: workerFiles, languageOptions: { globals: globals.browser } },
+  { files: workerFiles, languageOptions: { globals: { ...globals.worker, ...globals.serviceworker } } },
+  { files: ['server/**/*.js', 'scripts/**/*.js', 'scripts/**/*.mjs', 'tools/**/*.js', 'bin/**/*.js',
+    'packages/functions/**/*.js', '.github/actions/**/*.js',
+    'docs/diagrams/reploid-diagram/{build,server}.mjs',
+    'docs/diagrams/reploid-diagram/test/**/*.mjs', 'docs/status/**/verify.js',
+    'reports/local/**/native-control.js'],
+    languageOptions: { globals: globals.node } },
+  { files: browserHarnesses, languageOptions: { globals: globals.browser } },
+  { files: ['scripts/verify-gpu-startup.js'],
+    languageOptions: { globals: { GPUBufferUsage: 'readonly', GPUMapMode: 'readonly' } } },
+  // Environment probe supports importing this adapter in Node tests.
+  { files: ['self/core/vfs-module-loader.js'], languageOptions: { globals: { process: 'readonly' } } },
+  { files: ['packages/reploid/src/**/*.js'], languageOptions: { globals: globals.worker } },
+  // These codecs deliberately support optional Node Buffer and browser encodings.
+  { files: ['packages/reploid/src/artifacts/identity.js', 'packages/reploid/src/artifacts/signatures.js',
+    'self/pool/device-identity.js', 'self/pool/p2p-artifact-transfer.js',
+    'self/bridge.js', 'self/tools/ReadFile.js', 'self/tools/WriteFile.js', 'self/key-unsealer.js'],
+    languageOptions: { globals: { Buffer: 'readonly' } } },
+  // Vitest uses happy-dom; Node globals are intentional only in the test host.
+  { files: ['tests/**/*.js', 'tests/**/*.mjs'], languageOptions: { globals: { ...globals.vitest, ...globals.browser, ...globals.node } } },
+  { files: cleanedModules, rules: { 'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none' }] } }
 ];

@@ -35,6 +35,7 @@ export const SELF_SOURCE_MIRRORS = Object.freeze([
   { webPath: '/tool-runner.js', vfsPath: '/self/tool-runner.js' },
   { webPath: '/config/tool-surfaces.js', vfsPath: '/self/config/tool-surfaces.js' },
   { webPath: '/config/vfs-policy.js', vfsPath: '/self/config/vfs-policy.js' },
+  { webPath: '/host/file-access.js', vfsPath: '/self/host/file-access.js' },
   { webPath: '/lab/mirrors.js', vfsPath: '/self/lab/mirrors.js' },
   { webPath: '/lab/profiles.js', vfsPath: '/self/lab/profiles.js' },
   { webPath: '/lab/runtime-ui.js', vfsPath: '/self/lab/runtime-ui.js' },

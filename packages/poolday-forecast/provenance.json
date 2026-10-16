@@ -1,6 +1,6 @@
 {
   "schema": "reploid.sdk-provenance/v1",
-  "sourceHash": "sha256:c35b3e155205fc4c95a85e0f537b6f2155b1e4d4146a1e6badb62adc57ed024d",
+  "sourceHash": "sha256:f81bd2b0387eea3b42ccf3703f8890e9fdf98652b6a1c13be176528609a3615e",
   "toolchain": {
     "esbuild": "0.28.2",
     "node": "v22.20.0"
@@ -14,33 +14,73 @@
     },
     {
       "path": "package-lock.json",
-      "hash": "sha256:034d54a956090bd518b41f271c592da9c7ebcb325023c0e52aaeef56ce2e1373",
-      "sizeBytes": 209032
+      "hash": "sha256:2f9e78df78e13eddd39259b87b70648f9a69f042cabdb6be61a2591242f3d5bf",
+      "sizeBytes": 307638
     },
     {
-      "path": "scripts/build-poolday-forecast-sdk.js",
-      "hash": "sha256:bd907b1fdc070cac010b4d5600c6ecc5230eb2f21241787e3b08b35bfb1063c4",
-      "sizeBytes": 2198
-    },
-    {
-      "path": "sdk/poolday-forecast/index.d.ts",
+      "path": "packages/poolday-forecast/index.d.ts",
       "hash": "sha256:635962500ebce6742e080f459d6c4c862e8b6997c9b743f5709baab822217e4f",
       "sizeBytes": 7370
     },
     {
-      "path": "sdk/poolday-forecast/index.js",
+      "path": "packages/poolday-forecast/index.js",
       "hash": "sha256:fa9832c363d5b4a2f5360cc8e761e7da635cbe61bf02923735da4d3cb2d4349f",
       "sizeBytes": 582
     },
     {
-      "path": "sdk/poolday-forecast/package.json",
+      "path": "packages/poolday-forecast/package.json",
       "hash": "sha256:0e71e30f2e8ed79b50d3a0ccb8c8d61d34d123c1c9481f8ef8025a61a8ea59eb",
       "sizeBytes": 380
     },
     {
+      "path": "scripts/build-poolday-forecast-sdk.js",
+      "hash": "sha256:a9a7188834ff9b9acd115b1b4e73856b8bf06c58b7b62b5070d94562b49fd8c2",
+      "sizeBytes": 2218
+    },
+    {
+      "path": "self/config/chat-models.json",
+      "hash": "sha256:6ede9d0dc72af3fabfe5f8c69d37e9f3ef082252e96873fac2d279b1b7255d4e",
+      "sizeBytes": 10265
+    },
+    {
+      "path": "self/config/doppler-execution-contracts.js",
+      "hash": "sha256:da74be2a290250d41b256b7a648ee8d78cecfe2a5105ac738bfc1d6b1a390730",
+      "sizeBytes": 1965
+    },
+    {
+      "path": "self/config/doppler-execution-contracts.json",
+      "hash": "sha256:06a33ca3aecf43ed99c86827ba1cfc0f835e17e1deb026a0f7026bc685bcc7d3",
+      "sizeBytes": 1819
+    },
+    {
+      "path": "self/config/doppler-generation-contract.js",
+      "hash": "sha256:82a45dec8b005d40e350eccfd1692ac21e0c66574dd7c8df3282850f590e862a",
+      "sizeBytes": 7633
+    },
+    {
+      "path": "self/config/doppler-local-models.js",
+      "hash": "sha256:be54f51261511abbc1cb966cb8b4c958d668eac60e5253896478ff2b94946dc8",
+      "sizeBytes": 3626
+    },
+    {
+      "path": "self/config/doppler-package.json",
+      "hash": "sha256:9ee536d8402a5031e1fd969503abfc14378966e6cd3480c95bce0c8bb23aa604",
+      "sizeBytes": 285
+    },
+    {
+      "path": "self/infrastructure/doppler-runtime-service.js",
+      "hash": "sha256:b99e396ce704e67aae141ec4a2baafb11592244d2e029dcd0338ba921110e14b",
+      "sizeBytes": 10732
+    },
+    {
+      "path": "self/pool/adapter-execution-policy.js",
+      "hash": "sha256:4e6e94fa150344403ae378eb4066ad1ad645262b7a682ee95cf28163cf30b40a",
+      "sizeBytes": 1597
+    },
+    {
       "path": "self/pool/adapter-pack.js",
-      "hash": "sha256:d48b0bf5089b1dffb65ec0e12458ee89dfb5af82a86a513428e1f7bdd25f09ca",
-      "sizeBytes": 14202
+      "hash": "sha256:5a1006daa2cb3e65d12cfe05f08eef15881c45460bb51cce3d24796799668b74",
+      "sizeBytes": 14221
     },
     {
       "path": "self/pool/artifact-origin.js",
@@ -54,8 +94,8 @@
     },
     {
       "path": "self/pool/canonical-json.js",
-      "hash": "sha256:8c03ba8fc289d21bb99b3f2595ae8493397dfeb134cbb02e45311f2b43d561f4",
-      "sizeBytes": 482
+      "hash": "sha256:aacac3d657c428d0f1922e0c1092e7fca204aa0d3360612b3f26070131e032c5",
+      "sizeBytes": 78
     },
     {
       "path": "self/pool/complete-forecast.js",
@@ -64,8 +104,8 @@
     },
     {
       "path": "self/pool/config-contract.js",
-      "hash": "sha256:7046b90238c1cd67bd0c3929b48debdf218ddf14caedc801acfe31ed1d41db08",
-      "sizeBytes": 19293
+      "hash": "sha256:1da0786384a24072a5bc7629a4bce5c2ab2c593228ed5a45453b300b23b9026d",
+      "sizeBytes": 20297
     },
     {
       "path": "self/pool/config.js",
@@ -74,8 +114,8 @@
     },
     {
       "path": "self/pool/executable-pack.js",
-      "hash": "sha256:3d15bc81e901afb20d97f581cf3bfacde8b80856726dc156d0d64f664e8da864",
-      "sizeBytes": 5992
+      "hash": "sha256:9d163fd2be3029455cde493ea509e9b7927634fe09207c0b3d9b5c38fea2ba44",
+      "sizeBytes": 6334
     },
     {
       "path": "self/pool/forecast-workload.js",
@@ -84,18 +124,33 @@
     },
     {
       "path": "self/pool/inference-receipt.js",
-      "hash": "sha256:f06258934ceb1f0250c1f25949c6093015b2d7bd4b715a1a50535fe987d68845",
-      "sizeBytes": 17901
+      "hash": "sha256:f389cc48148ebfa5b3265aaea601c3a048945b62caaf3f8d13fbaf6d9d4b1812",
+      "sizeBytes": 14211
     },
     {
       "path": "self/pool/model-artifacts.js",
-      "hash": "sha256:850a5afd343c01e9167fbd59511a6c213dd29e60397015e77ab3f16cb53cf1f9",
-      "sizeBytes": 21219
+      "hash": "sha256:3d4bbc1b2634b7033428d2082105c8eaea8ec79e9eb6e1def61706156107f0cc",
+      "sizeBytes": 21130
     },
     {
       "path": "self/pool/model-contract.js",
-      "hash": "sha256:36ce057649845d4b3a9ea947adb2fd1b7e618cf44f1bae544cbb7f75bab0ee54",
-      "sizeBytes": 14331
+      "hash": "sha256:e8c2b460963373541a9f78ec41a99cde4ba36761eb427ce78ff77359ac5072d3",
+      "sizeBytes": 14567
+    },
+    {
+      "path": "self/pool/operation-model.js",
+      "hash": "sha256:75969d9d9dd47e5433e6d6e89541a6ad0e043f1db56bc3bcf1f9d28a60c93f37",
+      "sizeBytes": 1690
+    },
+    {
+      "path": "self/pool/pack-operation-adapters.js",
+      "hash": "sha256:f3566fcbc37c00b3308a90c565b25aa480256925276734204c35bc74dff1a7ac",
+      "sizeBytes": 8323
+    },
+    {
+      "path": "self/pool/pack-operation-policy.js",
+      "hash": "sha256:18128c677c80cea91eb13cecd065dddc5ba87a46a85d53f8d183f58dedcb34d8",
+      "sizeBytes": 5747
     },
     {
       "path": "self/pool/participation-profile.js",
@@ -113,23 +168,78 @@
       "sizeBytes": 664
     },
     {
+      "path": "self/pool/peer-capabilities.js",
+      "hash": "sha256:eefff719db34a7ba82add77ccd24745811863f55c83cb1c974f98b66a07ec108",
+      "sizeBytes": 7564
+    },
+    {
+      "path": "self/pool/peer-pack-job-policy.js",
+      "hash": "sha256:56cdfbe04c41e007524b3f1abe30562150ce5dbf63e791a50c997658b2dc538f",
+      "sizeBytes": 5193
+    },
+    {
       "path": "self/pool/peer-protocol.js",
       "hash": "sha256:7ac6ddbcba78ec18b78e4cb80d499c759b05af548617a8a0d8c3fd4533a35488",
       "sizeBytes": 5118
     },
     {
       "path": "self/pool/pool-config.json",
-      "hash": "sha256:c9d57a6ff1107d9976985e0d01aa9571ca6d09d91c59f60910ba06e56d396602",
-      "sizeBytes": 54518
+      "hash": "sha256:a5566159c1c10c02b1034624af68fe2d244b174e93361c084d6f97cf82ca531b",
+      "sizeBytes": 79200
     },
     {
       "path": "self/pool/sequence-workload.js",
       "hash": "sha256:026bd1944e69ce4bfb931489d216ebfe22add4ed4ecefb9fe7348d4ed2feec3c",
       "sizeBytes": 11153
+    },
+    {
+      "path": "self/vendor/reploid/artifacts/acceptance.js",
+      "hash": "sha256:2cf1048b5b5da647274163bf2ecbe11e66d360668f9cc574eb7915f35ef04b53",
+      "sizeBytes": 669
+    },
+    {
+      "path": "self/vendor/reploid/artifacts/canonical-json.js",
+      "hash": "sha256:8c03ba8fc289d21bb99b3f2595ae8493397dfeb134cbb02e45311f2b43d561f4",
+      "sizeBytes": 482
+    },
+    {
+      "path": "self/vendor/reploid/artifacts/manifest-identity.js",
+      "hash": "sha256:e582ff0c2cb7c1a3de0c22846d29a0996335bece86b4e4daa3719898ea2843ac",
+      "sizeBytes": 694
+    },
+    {
+      "path": "self/vendor/reploid/artifacts/signatures.js",
+      "hash": "sha256:a6287d2e445e8386a04d6c2a3aa878b282272c4bbcc2e4f047c50b572709df18",
+      "sizeBytes": 3725
+    },
+    {
+      "path": "self/vendor/reploid/config/defaults.json",
+      "hash": "sha256:be33034450522fc660312d2f177286e58c50002ec40b193837f7be423d56b6f4",
+      "sizeBytes": 2465
+    },
+    {
+      "path": "self/vendor/reploid/config/index.js",
+      "hash": "sha256:4f4b3494d4fff00021a3dd9c5b1710f903fe5fa7b6ac80a1abbe5955e481d1c9",
+      "sizeBytes": 11638
+    },
+    {
+      "path": "self/vendor/reploid/config/request-overrides.json",
+      "hash": "sha256:6e80c26a4c07d317eae530199e86634356b8cb94e2d140087ed2e4e6be12306a",
+      "sizeBytes": 166
+    },
+    {
+      "path": "self/vendor/reploid/mesh/placement-beliefs.js",
+      "hash": "sha256:4e40796672e4569b8ddbfee1171a84c057cb87630286e77de026976050713efa",
+      "sizeBytes": 6986
+    },
+    {
+      "path": "self/vendor/reploid/rules/routing.rules.json",
+      "hash": "sha256:9eb2ed7ffc1bc7c00a7a1435392f7539873e7ac1462611f77dbc92f3bfeff779",
+      "sizeBytes": 313
     }
   ],
   "output": {
     "path": "dist/index.js",
-    "hash": "sha256:705ef15a2f39cc787de0936a97b867163fbde7252caf5057fd6d2474c0edbc44"
+    "hash": "sha256:275b24d2fc42180ddce87e0a9072bd811fbe3712943fc59898f04c39435331c9"
   }
 }

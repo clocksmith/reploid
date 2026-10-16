@@ -213,6 +213,16 @@
       "sha256": "5d6715a209e26493c3ff4aeb009f24304b249d211e5cb928d5be0be51a6113ec"
     },
     {
+      "path": "agent/tool-operation-retry.d.ts",
+      "bytes": 707,
+      "sha256": "c8d6449d2f657d5311597266c7431af627de17b0adba92b932ae6f020d4d5ef6"
+    },
+    {
+      "path": "agent/tool-operation-retry.js",
+      "bytes": 1575,
+      "sha256": "5f42a5be415d1ad887a20d4c648300ad1b4d6f596e9d8b80274915e1d74fe5f6"
+    },
+    {
       "path": "agent/tool-retry.js",
       "bytes": 994,
       "sha256": "2ae0f2aa04a4d21e7be003e70f6d152fcdb159a89fb8a447389aac23fd01fb83"
@@ -226,6 +236,16 @@
       "path": "agent/tool-runner.js",
       "bytes": 3182,
       "sha256": "f0bb92bc1932b0807173d1e8d1ede9b6b6bedb9f3b727b7414f9e614fa871c2a"
+    },
+    {
+      "path": "artifacts/acceptance.d.ts",
+      "bytes": 135,
+      "sha256": "7bf636c6ff35c48d5ecaf2cb1dcc8882909a1e96aea9c222e0d5f977b230ef11"
+    },
+    {
+      "path": "artifacts/acceptance.js",
+      "bytes": 669,
+      "sha256": "2cf1048b5b5da647274163bf2ecbe11e66d360668f9cc574eb7915f35ef04b53"
     },
     {
       "path": "artifacts/canonical-json.js",
@@ -294,8 +314,8 @@
     },
     {
       "path": "artifacts/identity.js",
-      "bytes": 4299,
-      "sha256": "f67b1abd7728ca7d82430c9edee00b5b8d7c86185e52a3d5aaf9c64b06aa52aa"
+      "bytes": 4030,
+      "sha256": "29a0f9c1bfe248da7fdf5c6cb69750ea4dbb42c5fe21a254f0d22989a083205c"
     },
     {
       "path": "artifacts/independent-unit-journal.d.ts",
@@ -318,6 +338,16 @@
       "sha256": "57b405b0f3be55234c622c0518ad3a0eab6eb62cb14c4d23e62e97d1591bc434"
     },
     {
+      "path": "artifacts/manifest-identity.d.ts",
+      "bytes": 257,
+      "sha256": "5b27ce862e5a8e6ff2202ab0965402f608f36a20e69b954bdcc1b963bcce6e6b"
+    },
+    {
+      "path": "artifacts/manifest-identity.js",
+      "bytes": 694,
+      "sha256": "e582ff0c2cb7c1a3de0c22846d29a0996335bece86b4e4daa3719898ea2843ac"
+    },
+    {
       "path": "artifacts/participant-proofs.js",
       "bytes": 7809,
       "sha256": "af3e7303b3a513f584b70180e27dbaf72c52e58adf1af538d66adcad41fae985"
@@ -329,8 +359,8 @@
     },
     {
       "path": "artifacts/receipt.js",
-      "bytes": 4190,
-      "sha256": "20db41850ade3fb8a0dd5613e7e7f4477d0b07c2ce5e2ede1cac2cd3290145a7"
+      "bytes": 3921,
+      "sha256": "5947a52e8816db9dcbe6adf11ca174b0b9877e608fbb780de17baedf8fa19eac"
     },
     {
       "path": "artifacts/signatures.js",
@@ -484,13 +514,13 @@
     },
     {
       "path": "contracts/doppler-partitions.d.ts",
-      "bytes": 7615,
-      "sha256": "fb1af1067aab37643dab6ec8a661ce2b4ff1bae18f1c2eefb87b8ba3fc704225"
+      "bytes": 12626,
+      "sha256": "3326c360481395ee536f2277dfb96be17943803bd243c8285fd5f7ebc6af0749"
     },
     {
       "path": "contracts/doppler-partitions.provenance.json",
-      "bytes": 912,
-      "sha256": "dcea75d6f82eaade1d4de579ab281bc2931ae49a678d52d862865b493110bea8"
+      "bytes": 1666,
+      "sha256": "c4a90eb65283d58aadd032db35f15175eeecf569fef524ff196e5ec5522f0157"
     },
     {
       "path": "contracts/host-ports.d.ts",

@@ -1,3 +1,6 @@
+import { normalizeVfsProgress } from '../components/vfs-progress.js';
+import { escapeHtml as escapeHtmlValue } from '../components/html.js';
+const escapeHtml = value => escapeHtmlValue(value || '', '&#39;');
 /**
  * @fileoverview Minimal route-locked boot UI for /, /0, and /x.
  */
@@ -137,34 +140,6 @@ let isInitialRender = true;
 let lastRenderSignature = null;
 let pendingDeferredRender = false;
 let vfsProgressListenerAttached = false;
-
-const escapeHtml = (value) => String(value || '')
-  .replace(/&/g, '&amp;')
-  .replace(/</g, '&lt;')
-  .replace(/>/g, '&gt;')
-  .replace(/"/g, '&quot;')
-  .replace(/'/g, '&#39;');
-
-const normalizeVfsProgress = (progress = {}) => {
-  if (!progress || typeof progress !== 'object') return null;
-  const total = Number(progress.total || 0);
-  const current = Number(progress.current ?? progress.written ?? progress.fetched ?? 0);
-  const percent = total > 0
-    ? Math.max(0, Math.min(100, Math.round((current / total) * 100)))
-    : 0;
-  return {
-    scope: String(progress.scope || 'vfs'),
-    phase: String(progress.phase || ''),
-    label: String(progress.label || ''),
-    total,
-    current,
-    percent,
-    written: Number(progress.written || 0),
-    fetched: Number(progress.fetched || 0),
-    skipped: Number(progress.skipped || 0),
-    timestamp: Number(progress.timestamp || Date.now())
-  };
-};
 
 const getCurrentFullSeedProgress = () => {
   if (typeof window === 'undefined') return null;

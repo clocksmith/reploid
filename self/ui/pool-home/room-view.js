@@ -1,15 +1,9 @@
+import { escapeHtml } from '../components/html.js';
 /**
  * @fileoverview Research Room presentation over the pure room projection.
  */
 
 import { projectResearchRoom, researchRoomAgreementLabels } from './room-projection.js';
-
-const escapeHtml = (value) => String(value ?? '')
-  .replace(/&/g, '&amp;')
-  .replace(/</g, '&lt;')
-  .replace(/>/g, '&gt;')
-  .replace(/"/g, '&quot;')
-  .replace(/'/g, '&#039;');
 
 const compactHash = (value) => {
   const text = String(value || 'unknown');

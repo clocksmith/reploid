@@ -1,13 +1,6 @@
+import { canonicalize as stableJson } from './canonical-json.js';
 const encoder = new TextEncoder();
-const stableJson = (value) => {
-  if (Array.isArray(value)) {
-    return `[${value.map((item) => stableJson(item)).join(',')}]`;
-  }
-  if (value && typeof value === 'object') {
-    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(',')}}`;
-  }
-  return JSON.stringify(value);
-};
+
 
 const getCryptoApi = (cryptoApi) => {
   const api = cryptoApi || globalThis.crypto;

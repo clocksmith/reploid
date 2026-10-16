@@ -1,9 +1,10 @@
+import { computeManifestShardSetHash } from '../vendor/reploid/artifacts/manifest-identity.js';
 /**
  * @fileoverview Model artifact URL and manifest validation helpers.
  */
 
 import { BROWSER_RUNTIME_CONFIG } from './config.js';
-import { hashJson, sha256Hex } from './inference-receipt.js';
+import { hashJson, sha256Hex } from '../vendor/reploid/artifacts/signatures.js';
 
 const trimSlashes = (value) => String(value || '').replace(/^\/+|\/+$/g, '');
 const pathJoin = (...parts) => parts
@@ -61,22 +62,6 @@ const getManifestModelHash = (manifest = {}) => (
   || manifest.artifactIdentity?.shardSetHash
   || null
 );
-
-const computeManifestShardSetHash = async (manifest = {}) => {
-  const shards = Array.isArray(manifest?.shards) ? manifest.shards : [];
-  if (shards.length === 0) return null;
-  const shardHashInput = shards
-    .map((shard) => {
-      const filename = typeof shard?.filename === 'string' ? shard.filename : '';
-      const size = Number.isFinite(Number(shard?.size)) ? Number(shard.size) : '';
-      const hash = typeof shard?.hash === 'string'
-        ? shard.hash
-        : (typeof shard?.blake3 === 'string' ? shard.blake3 : '');
-      return `${filename}:${size}:${hash}`;
-    })
-    .join('\n');
-  return sha256Hex(shardHashInput);
-};
 
 const getTokenizerHash = (manifest = {}, model = {}) => (
   manifest.tokenizerHash
@@ -261,16 +246,21 @@ export async function verifyModelArtifactManifest({
   }
   const textHash = await sha256Hex(text);
   const jsonHash = await hashJson(manifest);
-  const expectedManifestHash = String(model?.manifestHash || '').trim();
+  const manifestArtifacts = model?.executablePack?.artifacts?.filter(artifact => artifact.role === 'manifest');
+  if (model?.executablePack && manifestArtifacts?.length !== 1) {
+    throw new Error('Executable Capsule requires exactly one manifest artifact');
+  }
+  const expectedManifestHash = String(manifestArtifacts?.[0]?.hash || model?.manifestHash || '').trim();
   const hashMatches = hashesMatch(expectedManifestHash, textHash)
-    || hashesMatch(expectedManifestHash, jsonHash);
+    || (!model?.executablePack && hashesMatch(expectedManifestHash, jsonHash));
   if (expectedManifestHash && !hashMatches) {
     throw new Error('model manifest hash does not match configured manifestHash');
   }
   const modelId = manifest.modelId || manifest.id || model?.modelId || model?.id || null;
   const manifestModelHash = getManifestModelHash(manifest) || await computeManifestShardSetHash(manifest);
   if (model?.modelId && modelId && modelId !== model.modelId) throw new Error('model manifest modelId mismatch');
-  if (model?.modelHash && manifestModelHash && !hashesMatch(model.modelHash, manifestModelHash)) {
+  const expectedModelHash = model?.executablePack ? model.artifactIdentity?.weightPackHash : model?.modelHash;
+  if (expectedModelHash && manifestModelHash && !hashesMatch(expectedModelHash, manifestModelHash)) {
     throw new Error('model manifest modelHash mismatch');
   }
   return {

@@ -34,6 +34,38 @@ The whole-model binding checks in
 [regression tests](../tests/unit/legacy-generation-threads.test.js) exercise these
 rules. This guide adds no backend support or public service promise.
 
+## Engineering checklist and enforcement
+
+| Standard | Evidence |
+| --- | --- |
+| Locate the existing owner before adding a validator, serializer, lifecycle helper or UI primitive. Share only equivalent contracts; preserve permissions, signed bytes, failure handling and resource ownership. Name a responsibility, not a generic utility bucket. | Layer checks plus focused consumer and failure tests; equivalence requires review. |
+| Keep browser, Node and worker dependencies distinct. Add cleaned helpers to the scoped unused-variable gate. | `scripts/eslint.config.js` scopes globals and lists covered modules; unrelated legacy debt remains visible. |
+| Give extracted modules explicit inputs and ownership. Prefer existing components and tokens to copied markup/styles. | Nearest CATSCAN, consumer tests, CSS layer checker and relevant browser checks. |
+| New or changed exceptions identify paths, reason and removal condition. Generated SDK/source mirrors are generated artifacts, not independent implementations. | Owning policy/provenance checks and review; unverified exceptions remain debt. |
+| Verify affected behavior, then stop. A passing scoped check does not establish whole-tree compliance, GPU qualification or production deployment. | `AGENTS.md` development verification; no new full-suite or campaign gate. |
+
+## Browser Library Conventions
+
+- `packages/reploid/` is the publishable browser library. The root package is private application tooling.
+- Use ESM `.js` implementations and separate `.d.ts` declarations for package modules.
+- JSON owns schemas, defaults, profiles and selectable policy. JavaScript implements algorithms and orchestration; Doppler owns model execution.
+- Resolve configuration once: schema defaults, explicit chain, selected profile, application overrides, allowlisted request overrides. Retain provenance and a canonical identity.
+- Constructors consume validated immutable configuration. Do not read route URLs, application globals, localStorage or credentials to manufacture runtime defaults.
+- Null disables a nullable field deliberately; undefined in a supplied configuration is an error.
+- Register functions, credentials, stores, model sessions and network handles as host ports. JSON names their identifiers and cannot broaden host authorization.
+- Importing a public entry must not connect peers, fetch models, access storage or register service workers.
+- Keep package exports explicit and publish only allowlisted source, declarations and required assets. Never import outside the package into `self/`, server code or Node services.
+- Keep assignment and swarm protocol adapters distinct until equivalence is demonstrated. Joining a room does not authorize artifact supply, job execution or candidate sharing.
+- Every owned resource has a close path. Borrowed resources remain caller-owned. Cancellation ports must document cooperative cancellation limits.
+- Dynamic module loading requires an explicit asset/loader contract. A worker is not, by itself, an isolation boundary.
+- Generated browser delivery copies have one canonical package source. Edit the package and regenerate, never hand-maintain an application fork.
+
+### Application VFS Loading
+
+Use `loadVfsModule` for VFS blob imports: its import rewriter resolves relative paths against the original VFS module path. Register required host assets in `self/manifest.js`. Raw blob imports without that rewriter must be single-file or use absolute URLs.
+
+---
+
 ## Monochrome/Terminal Symbol Mapping
 
 Use these Unicode symbols instead of emojis for a consistent terminal aesthetic.
@@ -112,28 +144,6 @@ Use markdown checkboxes instead of emoji:
 1. **No emoji in source code, documentation, or blueprints** - Use Unicode symbols from this guide or plain text
 2. **Consistency** - Use the same symbol for the same concept throughout
 
-## Browser Library Conventions
-
-- `packages/reploid/` is the publishable browser library. The root package is private application tooling.
-- Use ESM `.js` implementations and separate `.d.ts` declarations for package modules.
-- JSON owns schemas, defaults, profiles and selectable policy. JavaScript implements algorithms and orchestration; Doppler owns model execution.
-- Resolve configuration once: schema defaults, explicit chain, selected profile, application overrides, allowlisted request overrides. Retain provenance and a canonical identity.
-- Constructors consume validated immutable configuration. Do not read route URLs, application globals, localStorage or credentials to manufacture runtime defaults.
-- Null disables a nullable field deliberately; undefined in a supplied configuration is an error.
-- Register functions, credentials, stores, model sessions and network handles as host ports. JSON names their identifiers and cannot broaden host authorization.
-- Importing a public entry must not connect peers, fetch models, access storage or register service workers.
-- Keep package exports explicit and publish only allowlisted source, declarations and required assets. Never import outside the package into `self/`, server code or Node services.
-- Keep assignment and swarm protocol adapters distinct until equivalence is demonstrated. Joining a room does not authorize artifact supply, job execution or candidate sharing.
-- Every owned resource has a close path. Borrowed resources remain caller-owned. Cancellation ports must document cooperative cancellation limits.
-- Dynamic module loading requires an explicit asset/loader contract. A worker is not, by itself, an isolation boundary.
-- Generated browser delivery copies have one canonical package source. Edit the package and regenerate, never hand-maintain an application fork.
-
-### Application VFS Loading
-
-Modules loaded via VFS blob imports must be single-file or use absolute URLs. Relative imports are not resolved by the blob loader.
-
----
-
 ## Writing Style
 
 ### Prose Guidelines
@@ -200,9 +210,9 @@ only custom properties to inline styles; a measured height or a share becomes a
 `--pool-param-*` that a rule consumes.
 
 The conversation screen (`compositions/conversation.css` and `interaction.css`) is
-converted. `compositions/screens.css` still carries one-off visual declarations;
-`layers.json` records how many remain under `legacy`, and that number may only go
-down as screens move to primitives.
+converted, as is `compositions/screens.css`. The layer manifest and CSS checker
+own conversion status. Compositions arrange primitives; new visual declarations
+belong in those primitives.
 
 `npm run verify:pool:css` checks the layer manifest and both entry paths. It also
 checks token references, structural-only literals, converted compositions, the

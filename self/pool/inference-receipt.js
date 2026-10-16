@@ -1,3 +1,5 @@
+import { compactAgreementForAcceptance } from '../vendor/reploid/artifacts/acceptance.js';
+export { compactAgreementForAcceptance } from '../vendor/reploid/artifacts/acceptance.js';
 /**
  * @fileoverview Canonical receipt helpers for Reploid browser inference pool.
  */
@@ -9,7 +11,6 @@ import { isSequenceWorkload } from './sequence-workload.js';
 
 import { sha256Hex, hashJson, createSigningKeyPair, exportPublicKey, exportPrivateKey, importPublicKey, importPrivateKey, importSigningKeyPair, domainSeparatedPayload, signCanonical, verifyCanonicalSignature } from '../vendor/reploid/artifacts/signatures.js';
 export { sha256Hex, hashJson, createSigningKeyPair, exportPublicKey, exportPrivateKey, importPublicKey, importPrivateKey, importSigningKeyPair, domainSeparatedPayload, signCanonical, verifyCanonicalSignature };
-
 
 export const RECEIPT_VERSION = 'reploid_browser_inference/v1';
 export const TRUST_TIER_SIGNED_RECEIPT = POOL_CONFIG.policies.fastest_receipt.trustTier;
@@ -222,22 +223,6 @@ export function calculateReceiptPoints(receiptRecord, { multiplier = 1 } = {}) {
   const inputTokens = Number(receipt?.tokenCounts?.input || 0);
   const basePoints = Math.max(1, outputTokens + Math.floor(inputTokens / 4));
   return Math.max(1, Math.floor(basePoints * multiplier));
-}
-
-export function compactAgreementForAcceptance(agreement = null) {
-  if (!agreement) return null;
-  return {
-    mode: agreement.mode || null,
-    status: agreement.status || null,
-    requiredAgreement: Number(agreement.requiredAgreement || agreement.requiredProviders || 1),
-    providerCount: Number(agreement.providerCount || 1),
-    agreementField: agreement.agreementField || 'tokenIdsHash',
-    outputHash: agreement.outputHash || null,
-    tokenIdsHash: agreement.tokenIdsHash || null,
-    vectorHash: agreement.vectorHash || null,
-    sequenceResultHash: agreement.sequenceResultHash || null,
-    effectiveTrustTier: agreement.effectiveTrustTier || null
-  };
 }
 
 export async function buildAcceptanceSummary({ job, receiptHash, receiptRecords = [] } = {}) {

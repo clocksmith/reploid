@@ -1,3 +1,4 @@
+import { escapeHtml } from '../components/html.js';
 import { renderDiamond } from '../components/diamond.js';
 import { getPeerRoomId, getPeerRelayMode, getPeerRelayLabel, getPeerRoomBusFactory } from '../../host/product-context.js';
 export { getPeerRoomId, getPeerRelayMode, getPeerRelayLabel, getPeerRoomBusFactory };
@@ -90,7 +91,6 @@ const POOLDAY_PROVIDER_HEALTH = {
   reputation: 'not_loaded'
 };
 
-
 export const getPoolRoomPanel = () => {
   const params = new URLSearchParams(window.location.search || '');
   const panel = params.get('panel');
@@ -175,7 +175,6 @@ const ensurePeerLedgerLoaded = (roomId = getPeerRoomId()) => recordPersistence.e
 const ensureRecordLedgersLoaded = (roomId = getPeerRoomId()) => recordPersistence.ensureLoaded(roomId);
 const persistReceiptLedgerRows = (roomId = getPeerRoomId()) => recordPersistence.persistReceipts(roomId);
 const persistPeerLedgerEvents = (roomId = getPeerRoomId()) => recordPersistence.persistPeerEvents(roomId);
-
 
 export const getPeerDiscoveryWindowMs = () => {
   const explicit = Number(window.REPLOID_POOL_DISCOVERY_WINDOW_MS || 0);
@@ -887,13 +886,6 @@ const compactHex = (value) => {
   const normalized = formatLedgerValue(value, '—');
   return normalized === '—' ? '—' : compactHash(normalized);
 };
-
-const escapeHtml = (value) => String(value ?? '')
-  .replace(/&/g, '&amp;')
-  .replace(/</g, '&lt;')
-  .replace(/>/g, '&gt;')
-  .replace(/"/g, '&quot;');
-
 
 const firstPresent = (...values) => values.find((value) => value !== undefined && value !== null && value !== '');
 
