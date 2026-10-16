@@ -28,6 +28,7 @@ vi.mock('../../self/host/work-model-files.js', async original => ({ ...await ori
 vi.mock('../../self/host/work-peer-offers.js', () => ({ createWorkPeerOffers: () => ({
   acquire: async () => 'transport-requester', attach: async () => {}, close() {}, getState: () => null }) }));
 import { createProductSession } from '../../self/host/product-session.js';
+import { createBrowserWebAccess } from '../../self/host/web-access.js';
 
 const cleanups = [];
 afterEach(async () => {
@@ -38,13 +39,31 @@ const memoryStorage = () => {
   const values = new Map();
   return { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, String(value)), removeItem: key => values.delete(key) };
 };
-const open = async participantIdentity => {
+const open = async (participantIdentity, options = {}) => {
   const host = await createProductSession({ storage: memoryStorage(), operationNetwork: null, canonical: null, ordered: null, networkOptions: () => ({}),
     swarmNetworkOptions: () => ({ autoConnect: true, discoveryScope: 'public', config: resolveConfig({ overrides: { mesh: { roomId: 'mesh' } } }) }),
-    ...(participantIdentity ? { participantIdentity } : {}) });
+    ...(participantIdentity ? { participantIdentity } : {}), ...options });
   cleanups.push(() => host.close());
   return host;
 };
+
+it('composes browser search only under its configured service and preserves the per-answer route', async () => {
+  ports.connection = await createSigningIdentity({ algorithm: 'Ed25519' });
+  const bridge = { id: 'attached-browser', search: vi.fn(async () => []), fetch: vi.fn() };
+  const access = createBrowserWebAccess({ bridge, authorized: () => true });
+  const host = await open(null, { webAccess: { server: 'search.example.org', access } });
+  expect(host.deviceSearch.available()).toBe(false);
+  host.webSearch.configure({ url: 'https://search.example.org/mcp' });
+  host.webSearch.setEnabled(true);
+  expect(host.chat.preferredSearchRoute()).toBe('device-search');
+  await host.deviceSearch.provider.search('public question', {});
+  expect(bridge.search).toHaveBeenCalledWith('public question', {}, undefined);
+  host.webSearch.configure({ url: 'https://other.example.org/mcp' });
+  host.webSearch.setEnabled(true);
+  expect(host.deviceSearch.available()).toBe(false);
+  await expect(host.deviceSearch.provider.search('another question', {})).rejects.toThrow('binding changed');
+  expect(bridge.search).toHaveBeenCalledTimes(1);
+});
 
 it('uses the existing browser identity for protected server-search requests', async () => {
   ports.connection = await createSigningIdentity({ algorithm: 'Ed25519' });

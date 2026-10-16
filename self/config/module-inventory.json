@@ -2235,9 +2235,10 @@
     {
       "path": "self/host/device-search.js",
       "owner": "self",
-      "sha256": "sha256:4d340c773a1eedf7e66bbb83ac0b3615f512ec3ad6ac2a2c0a702a0b6646b797",
+      "sha256": "sha256:57cf6a90dc2c9a1f0d0c9f5fc55386aa7504d6181f300bc0fe296df8b6c996f0",
       "imports": [
-        "../vendor/reploid/retrieval/index.js"
+        "../vendor/reploid/retrieval/index.js",
+        "./web-access.js"
       ]
     },
     {
@@ -2307,7 +2308,7 @@
     {
       "path": "self/host/product-session.js",
       "owner": "self",
-      "sha256": "sha256:41427f48db8e14d63faf35176fd75a44e2ba6b04654bf2ca39e96b64508155a7",
+      "sha256": "sha256:360a58cf81ff08c43f611fdc3b72fa00ea658dddd7d3908c93382928ed96699b",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/ordered-participation.json",
@@ -2420,6 +2421,12 @@
         "../config/doppler-local-models.js",
         "../instance.js"
       ]
+    },
+    {
+      "path": "self/host/web-access.js",
+      "owner": "self",
+      "sha256": "sha256:7b8114287a1fbb03242e37e268b7e44f19f99cce5226a6fd47e9596d0b4eb4df",
+      "imports": []
     },
     {
       "path": "self/host/web-search.js",
@@ -3325,7 +3332,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:36fdef1077ddd9d6af77b610285837875441e69eb26f08a62c97390db3115972",
+      "sha256": "sha256:311511e346dbfbf1b916145041acf8e6ec7484814548c6987618fb06d2f49689",
       "imports": []
     },
     {
