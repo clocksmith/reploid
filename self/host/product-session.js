@@ -7,8 +7,9 @@ import { createWorkSession } from './work-session.js';
 import { createWorkEvolution } from './work-evolution.js';
 import { createWorkSwarm } from './work-swarm.js';
 import { createWorkPeerJobs } from './work-peer-jobs.js';
-import { createChatSession, openCanonicalChatSession, LOCAL_HISTORY_IDENTITY, SEARCH_ROUTE, DEVICE_SEARCH_ROUTE } from './chat-session.js';
+import { createChatSession, openCanonicalChatSession, LOCAL_HISTORY_IDENTITY, SEARCH_ROUTE, DEVICE_SEARCH_ROUTE, CONTRIBUTOR_SEARCH_ROUTE } from './chat-session.js';
 import { createWebSearch } from './web-search.js';
+import { createContributorSearch } from './contributor-search.js';
 import { createServerSearch } from './server-search.js';
 import { getPoolAuthToken } from '../pool/identity.js';
 import { createDeviceSearch } from './device-search.js';
@@ -55,8 +56,9 @@ async function openOrderedRequesterChat({ chatOptions, requesterIdentity, ports 
 
 export function createProductSession({ storage, networkOptions, swarmNetworkOptions, operationNetwork = null,
   canonical = null, ordered = null, eventTarget = window, onChanges = () => {}, onDocuments = () => {}, onSharing = () => {},
-  historyPorts = {}, earning = null, participantIdentity = null, webAccess = null,
+  historyPorts = {}, earning = null, participantIdentity = null, webAccess = null, webContribution = null,
   search = createServerSearch({ authorization: getPoolAuthToken }) }) {
+  let notifySearch = () => {};
   let runtime, work, chat, modelCache, documents, operationSharing, closed = false, closing, ownsNetwork = false;
   const service = createReploidDopplerRuntimeService();
   // Local execution uses the same pinned, verified artifacts as contribution.
@@ -66,8 +68,8 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
   // Bootstrap and ICE belong to the swarm host, independently of signed job routing.
   // A host with an earning account requests as its registered participant (credits/browser.js); canonical
   // participation keeps its own configured identity.
-  const swarm = createWorkSwarm({ storage, evolution, service, networkOptions: swarmNetworkOptions, canonical, ordered,
-    ...(participantIdentity && !canonical ? { participantIdentity } : {}), onChange: () => chat?.refreshNetwork() });
+  const swarm = createWorkSwarm({ storage, evolution, service, networkOptions: swarmNetworkOptions, canonical, ordered, webWorker: webContribution,
+    ...(participantIdentity && !canonical ? { participantIdentity } : {}), onChange: () => { chat?.refreshNetwork(); notifySearch(); } });
   const getNetwork = () => {
     if (!operationNetwork) {
       operationNetwork = createOperationRoomNetwork({ ...networkOptions(),
@@ -83,13 +85,22 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
   // implicitly, and this injection does not enable search or replace its per-answer permission.
   const deviceSearch = createDeviceSearch({ ...(webAccess ? { access: webAccess.access, accessServer: webAccess.server } : { source: webSearch.provider }), enabled: () => webSearch.enabled(),
     server: () => webSearch.state().recipient });
+  const contributorSearch = createContributorSearch({ network: () => swarm.getWebNetwork?.() });
+  const searchListeners = new Set();
+  const searchStatus = Object.freeze({ ...search,
+    available: () => contributorSearch.available() || search.available(),
+    state: () => contributorSearch.available() ? { state: 'ready', provider: 'contributor-bing', message: 'A contributor can search Bing and fetch public pages. Each answer asks permission.' } : search.state(),
+    subscribe(listener) { searchListeners.add(listener); const stop = search.subscribe(() => listener(searchStatus.state()));
+      return () => { stop(); searchListeners.delete(listener); }; }
+  });
+  notifySearch = () => { for (const listener of searchListeners) listener(searchStatus.state()); };
   // `earning` (earning/attempts.js) is off unless the embedding host composes an explicitly configured client.
   const chatOptions = { service, storage, swarm,
     resolveLocalSource: (model, controls) => localFiles.prepareSource(model, { ...controls, cacheOnly: true }),
     partitions: swarm.partitions, peers: createWorkPeerJobs({ getNetwork }),
     // Search-backed answers use the server's Brave route or the device-side route, each answer under its own
     // per-answer search permission; the device-side route's permission names the person's search server.
-    retrieval: { routes: { default: { provider: webSearch.provider },
+    retrieval: { routes: { [CONTRIBUTOR_SEARCH_ROUTE]: { ...contributorSearch, permission: 'search-answer' }, default: { provider: webSearch.provider },
       [SEARCH_ROUTE]: { provider: search.provider, extractor: search.extractor, permission: 'search-answer' },
       [DEVICE_SEARCH_ROUTE]: { provider: deviceSearch.provider, extractor: deviceSearch.extractor, permission: 'search-answer',
         available: deviceSearch.available } } }, earning };
@@ -123,7 +134,7 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
       onError: error => console.warn('[Reploid Swarm] Discovery connection failed', error) });
     const assertOpen = () => { if (closed) throw new Error('Application session is closed'); };
     return {
-      chat, swarm, evolution, webSearch, search, deviceSearch,
+      chat, swarm, evolution, webSearch, search: searchStatus, deviceSearch, contributorSearch,
       get runtime() { assertOpen(); return runtime ??= globalThis.REPLOID_DOPPLER_RUNTIME || createDopplerRuntime(); },
       get work() { assertOpen(); return work ??= createWorkSession({ service, storage, swarm, evolution, peers: createWorkPeerJobs({ getNetwork }) }); },
       get documents() { assertOpen(); return documents ??= createDocumentAssistant({ executor: createLocalPackExecutor(), network: getNetwork(), onChange: onDocuments }); },

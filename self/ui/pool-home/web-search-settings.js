@@ -24,7 +24,8 @@ export function renderWebSearchSettings() {
 }
 
 const disclosure = (state, search) => !state.url
-  ? search?.available() ? 'Use built-in web search. Each answer asks before sending your query to Brave.'
+  ? search?.state().provider === 'contributor-bing' ? 'A contributor searches Bing and fetches public pages. Each answer asks permission and names the contributor.'
+    : search?.available() ? 'Use built-in web search. Each answer asks before sending your query to Brave.'
     : 'Built-in search is unavailable. Add your MCP search server below, or wait for the service to be configured.'
   : state.enabled
     ? `On. The text of each question you send goes to ${state.recipient} first. Its search results are added to the question as numbered sources. Turn off to stop.`

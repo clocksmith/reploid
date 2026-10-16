@@ -4,17 +4,19 @@ import { parseArgs } from 'node:util';
 import { mkdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { chromium } from 'playwright';
+import { attachBrowserWebBridge } from '../server/browser-web-bridge.js';
 
 const { values } = parseArgs({ options: {
   url: { type: 'string' }, profile: { type: 'string' }, model: { type: 'string' },
   contribute: { type: 'string' }, 'model-directory': { type: 'string' },
+  'web-search': { type: 'boolean', default: false },
   browser: { type: 'string', default: 'chrome' }, help: { type: 'boolean' }
 } });
 if (values.help) {
-  console.log('node scripts/run-mesh-contributor.js --url https://replo.id/ --profile PATH --model MODEL_ID --contribute compute|files [--model-directory PATH] [--browser chrome|chromium]');
+  console.log('node scripts/run-mesh-contributor.js --url https://replo.id/ --profile PATH --model MODEL_ID --contribute compute|files|web [--web-search] [--model-directory PATH] [--browser chrome|chromium]');
   process.exit(0);
 }
-if (!values.url || !values.profile || !values.model || !['compute', 'files'].includes(values.contribute)) {
+if (!values.url || !values.profile || (values.contribute !== 'web' && !values.model) || !['compute', 'files', 'web'].includes(values.contribute)) {
   throw Error('Explicit URL, persistent profile, model and compute/files contribution consent are required. See --help.');
 }
 const url = new URL(values.url);
@@ -33,6 +35,13 @@ process.once('SIGTERM', () => { void stop(); });
 process.once('SIGINT', () => { void stop(); });
 try {
   const page = context.pages()[0] || await context.newPage();
+  if (values['web-search'] || values.contribute === 'web') await attachBrowserWebBridge({ page, origin: url.origin });
+  if (values.contribute === 'web') {
+    await page.goto(url.href, { waitUntil: 'domcontentloaded' });
+    await page.locator('[data-chat-workspace]').waitFor();
+    console.log(JSON.stringify({ event: 'web-contribution-authorized', service: 'bing', url: url.href }));
+    await new Promise(resolve => context.once('close', resolve));
+  } else {
   if (values.contribute === 'compute') {
     // Observe the completed host receipt after its timers stop. No exception or
     // token breakpoints: acquisition and generation timings remain unpaused.
@@ -81,7 +90,7 @@ try {
   }
   await page.goto(url.href);
   await page.locator('[data-chat-workspace]').waitFor();
-  await page.locator('[data-inspector-section="device"]').click();
+  await page.locator('[data-inspector-section="participants"]').click();
   const modelSelect = page.locator('[data-contribution-model]');
   if (await modelSelect.inputValue() !== selected.id) {
     await page.getByText('Model and limits', { exact: true }).click();
@@ -141,6 +150,7 @@ try {
     } finally { checking = false; }
   }, 10000);
   await new Promise(resolve => context.once('close', resolve));
+  }
 } catch (error) {
   console.error(error.message); process.exitCode = 1; await stop();
 }

@@ -17,7 +17,7 @@ export interface ExecutionSupply {
 }
 /** Where retrieval ran: an operator's server route, this device, no retrieval, or an undeclared provider. */
 export interface RetrievalSupply {
-  supply: 'server' | 'device' | 'none' | 'unknown';
+  supply: 'server' | 'device' | 'contributor' | 'none' | 'unknown';
   route?: string | null; provider?: string | null; searchService?: string | null; searchServer?: string | null; outcome?: string | null;
 }
 export interface AnswerProvenance {

@@ -27,6 +27,7 @@ const MESSAGE_TYPES = new Set([
   'reploid:generation-result', 'reploid:generation-error',
   'reploid:generation-cancel',
   'reploid:receipt',
+  'reploid:web-offer', 'reploid:web-request', 'reploid:web-response', 'reploid:web-cancel',
   'reploid:tool-offer', 'reploid:tool-offer-ack',
   'reploid:custody-request', 'reploid:custody-response', 'reploid:custody-offer',
   'ping', 'pong',

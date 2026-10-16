@@ -39,7 +39,7 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
     console.warn('[Reploid] Credits are unavailable', error);
     return null;
   });
-  const openedHost = createProductSession({ storage, operationNetwork, canonical, ordered, earning: deferredEarning(earningOpening),
+  const openedHost = createProductSession({ webContribution: globalThis.REPLOID_WEB_CONTRIBUTION ?? null, storage, operationNetwork, canonical, ordered, earning: deferredEarning(earningOpening),
     participantIdentity: async () => (await earningOpening)?.identity ?? null,
     networkOptions: () => ({ roomId: getPeerRoomId(), roomBusFactory: getPeerRoomBusFactory(), rtcConfig: resolveRtcConfig() }),
     onChanges: refreshChanges,

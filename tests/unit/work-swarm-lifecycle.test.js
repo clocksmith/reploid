@@ -5,7 +5,7 @@ const ports = vi.hoisted(() => ({ ensure: vi.fn(), createTransport: vi.fn() }));
 vi.mock('../../self/identity.js', () => ({ ensureIdentityBundle: ports.ensure,
   saveIdentityBundle: vi.fn(), rotateIdentityBundle: vi.fn() }));
 vi.mock('../../self/vendor/reploid/transport/index.js', () => ({
-  createSwarmTransport: ports.createTransport, createToolOfferChannel: vi.fn(),
+  createSwarmTransport: (...args) => Object.assign({ getConnectedPeers: () => [] }, ports.createTransport(...args)), createToolOfferChannel: vi.fn(),
   TOOL_OFFER_MESSAGE: 'offer', TOOL_OFFER_ACK: 'ack'
 }));
 vi.mock('../../self/config/doppler-local-models.js', async importOriginal => {

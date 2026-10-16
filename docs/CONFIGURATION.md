@@ -348,3 +348,26 @@ still needs an invitation, a reachable configured participant, or another live
 connection. No independently operated public endpoints are installed by default.
 
 *Last updated: October 2026*
+
+
+### Contributor web search
+
+Native contributors can explicitly add `--web-search` to `server/native-participant.js`.
+This enables Bing public search and bounded extraction of that requester's returned
+pages. It does not enable model execution, use browser sign-ins, or charge a priced
+search service. Unmeasured costs remain unpriced. Search reliability is independent
+of model readiness; provider refusal, inaccessible pages and empty results fail explicitly.
+
+An operator-owned browser contributor can use `scripts/run-mesh-contributor.js --contribute web --web-search --url https://replo.id/ --profile <dedicated-profile>`.
+The launcher attaches a native public-page bridge to that one top-level page.
+Other tabs, frames and personal cookies are excluded. `--web-search` also works
+alongside explicit `compute` or `files` contribution. Closing the launcher stops
+its contribution. Ordinary tabs do not acquire this bridge automatically.
+
+The requester discovers search contributors over its existing authenticated peer
+connection. Each answer names its search contributor and Bing separately from
+model executors. A changed contributor needs a new permission; there is no silent
+provider fallback. Only the search query, result URLs and bounded passages travel
+through the search worker, not attachments or unrelated conversation history.
+The person's configured search server remains preferred; otherwise a discovered
+search contributor is offered before the configured hosted route.
