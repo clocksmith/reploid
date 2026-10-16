@@ -1,0 +1,6 @@
+{
+  "url": "https://replo.id",
+  "bundleHash": "sha256:4eb6a0b3266113ba55801ed5caf6ce6245e5c054d7baab3242e4a0622b475d56",
+  "sourceCommit": "03b8b920",
+  "changes": "Evidence and test harness only; no new runtime deployment for this check."
+}
