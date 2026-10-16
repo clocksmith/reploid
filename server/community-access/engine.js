@@ -1,3 +1,4 @@
+import { createKnownKeyValidator } from '../input-validation.js';
 /**
  * @fileoverview Community Access: donor- and operator-funded service with fair
  * queues, per-account usage limits, account and device rate limits and
@@ -61,10 +62,7 @@ const defaultClock = () => new Date().toISOString();
 const emptyOccupancy = () => ({ waiting: 0, active: { floor: 0, general: 0 } });
 const counterId = (scope, subject) => sha256Hex(`rate\u0000${scope}\u0000${subject}`);
 
-const assertKnownKeys = (input, allowed, operation) => {
-  const unknown = Object.keys(input || {}).filter((key) => !allowed.includes(key));
-  if (unknown.length) fail('invalid_input', `${operation} does not accept: ${unknown.join(', ')}`, { unknown });
-};
+const assertKnownKeys = createKnownKeyValidator(fail);
 
 const validId = (value) => {
   try {

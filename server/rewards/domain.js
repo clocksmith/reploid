@@ -1,3 +1,4 @@
+import { collectUnknownKeys } from '../input-validation.js';
 /**
  * @fileoverview Contribution reward rules: categories, explicit reward and
  * issuance policy, contribution offer terms and reward formulas.
@@ -107,11 +108,7 @@ const deepFreeze = (value) => {
   return Object.freeze(value);
 };
 
-const unknownKeys = (value, allowed, label, errors) => {
-  for (const key of Object.keys(value || {})) {
-    if (!allowed.includes(key)) errors.push(`${label}.${key} is not a recognized field`);
-  }
-};
+const unknownKeys = collectUnknownKeys;
 
 const requireString = (value, path, errors) => {
   if (!isNonEmptyString(value)) errors.push(`${path} is required`);

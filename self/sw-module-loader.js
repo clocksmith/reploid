@@ -1,4 +1,2 @@
-const version = new URL(self.location.href).searchParams.get('v');
-const suffix = version ? `?v=${encodeURIComponent(version)}` : '';
-
-importScripts(`/host/sw-module-loader.js${suffix}`);
+// Compatibility URL for previously installed workers; sw.js owns bootstrap behavior.
+importScripts('/sw.js' + new URL(self.location.href).search);

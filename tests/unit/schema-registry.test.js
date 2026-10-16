@@ -63,4 +63,11 @@ describe('SchemaRegistry', () => {
     expect(registry.getToolSchema('Promote').description).toContain('replayPassed: true');
     expect(registry.getToolSchema('ProposeSelfPatch')).toBeNull();
   });
+  it('keeps file-tool parameter schemas isolated across registry instances', async () => {
+    const first = await createRegistry('x');
+    const second = await createRegistry('x');
+    first.getToolSchema('WriteFile').parameters.properties.path.type = 'number';
+    expect(second.getToolSchema('WriteFile').parameters.properties.path.type).toBe('string');
+  });
+
 });

@@ -1,3 +1,4 @@
+import { createKnownKeyValidator } from '../input-validation.js';
 /**
  * @fileoverview Contribution reward operations over a transactional document
  * backend: offers, accepted-offer bindings, validated work and issuance.
@@ -69,10 +70,7 @@ const insert = (collection, id, value) => ({ create: true, collection, id, value
 const put = (collection, id, value) => ({ create: false, collection, id, value });
 const pick = (input, keys) => Object.fromEntries(keys.filter((key) => input[key] !== undefined).map((key) => [key, input[key]]));
 
-const assertKnownKeys = (input, allowed, operation) => {
-  const unknown = Object.keys(input || {}).filter((key) => !allowed.includes(key));
-  if (unknown.length) fail('invalid_input', `${operation} does not accept: ${unknown.join(', ')}`, { unknown });
-};
+const assertKnownKeys = createKnownKeyValidator(fail);
 
 /**
  * The contributor's authorization: a valid native owner policy with explicit

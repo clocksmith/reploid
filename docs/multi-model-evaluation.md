@@ -1,5 +1,8 @@
 # Generic Multi-Model Evaluation
 
+Implementation reference for the registered optional `MultiModelEvaluator` DI module.
+Registration does not establish an integrated product workflow or qualification.
+
 This is a generic chat-model quality harness. It runs the same task suite across
 LLM configurations and scores output quality, latency, and schema compliance.
 It is not a Poolday scientific-fitness evaluation, a protein-model comparison,

@@ -1311,58 +1311,7 @@ ${promptPreview}
       return population[Math.floor(Math.random() * population.length)];
     };
 
-    /**
-     * Resume evolution from a checkpoint.
-     * @param {string} checkpointPath - Path to checkpoint directory
-     * @param {Array} taskSet - Task set for evaluation
-     * @param {Object} options - Evolution options
-     * @returns {Promise<Object>} Evolution result
-     */
-    const resumeEvolution = async (checkpointPath, taskSet, options = {}) => {
-      const checkpoint = await loadCheckpoint(checkpointPath);
-      if (!checkpoint) {
-        throw new Errors.ValidationError('No checkpoint found to resume from');
-      }
-
-      const config = {
-        ...DEFAULTS,
-        ...checkpoint.config,
-        ...options
-      };
-
-      // Restore population state
-      _population = checkpoint.population || [];
-      _paretoFrontier = checkpoint.frontier || [];
-      _generation = checkpoint.generation;
-
-      logger.info('[GEPA] Resuming from checkpoint', {
-        generation: _generation,
-        populationSize: _population.length,
-        frontierSize: _paretoFrontier.length
-      });
-
-      EventBus.emit('gepa:resumed', {
-        generation: _generation,
-        populationSize: _population.length,
-        checkpointPath
-      });
-
-      // Continue evolution from next generation
-      const startGen = _generation + 1;
-      const remainingGens = config.maxGenerations - startGen;
-
-      if (remainingGens <= 0) {
-        return {
-          frontier: _paretoFrontier,
-          bestOverall: _paretoFrontier[0] || null,
-          generations: _generation + 1,
-          resumed: true,
-          message: 'Evolution already complete'
-        };
-      }
-
-      // Run remaining generations
-      for (let gen = startGen; gen < config.maxGenerations; gen++) {
+    const runGeneration = async (gen, taskSet, config) => {
         _generation = gen;
         const taskBatch = sampleTasks(taskSet, config.evaluationBatchSize);
         const evalResults = await evaluate(_population, taskBatch, config);
@@ -1416,6 +1365,62 @@ ${promptPreview}
         });
 
         await saveCheckpoint(gen, _population, _paretoFrontier, config);
+
+    };
+
+    /**
+     * Resume evolution from a checkpoint.
+     * @param {string} checkpointPath - Path to checkpoint directory
+     * @param {Array} taskSet - Task set for evaluation
+     * @param {Object} options - Evolution options
+     * @returns {Promise<Object>} Evolution result
+     */
+    const resumeEvolution = async (checkpointPath, taskSet, options = {}) => {
+      const checkpoint = await loadCheckpoint(checkpointPath);
+      if (!checkpoint) {
+        throw new Errors.ValidationError('No checkpoint found to resume from');
+      }
+
+      const config = {
+        ...DEFAULTS,
+        ...checkpoint.config,
+        ...options
+      };
+
+      // Restore population state
+      _population = checkpoint.population || [];
+      _paretoFrontier = checkpoint.frontier || [];
+      _generation = checkpoint.generation;
+
+      logger.info('[GEPA] Resuming from checkpoint', {
+        generation: _generation,
+        populationSize: _population.length,
+        frontierSize: _paretoFrontier.length
+      });
+
+      EventBus.emit('gepa:resumed', {
+        generation: _generation,
+        populationSize: _population.length,
+        checkpointPath
+      });
+
+      // Continue evolution from next generation
+      const startGen = _generation + 1;
+      const remainingGens = config.maxGenerations - startGen;
+
+      if (remainingGens <= 0) {
+        return {
+          frontier: _paretoFrontier,
+          bestOverall: _paretoFrontier[0] || null,
+          generations: _generation + 1,
+          resumed: true,
+          message: 'Evolution already complete'
+        };
+      }
+
+      // Run remaining generations
+      for (let gen = startGen; gen < config.maxGenerations; gen++) {
+        await runGeneration(gen, taskSet, config);
       }
 
       const result = {
@@ -1489,59 +1494,7 @@ ${promptPreview}
       });
 
       for (let gen = 0; gen < config.maxGenerations; gen++) {
-        _generation = gen;
-        const taskBatch = sampleTasks(taskSet, config.evaluationBatchSize);
-        const evalResults = await evaluate(_population, taskBatch, config);
-
-        for (const result of evalResults) {
-          result.candidate.scores = result.scores;
-          result.candidate.traces = result.traces;
-        }
-
-        EventBus.emit('gepa:evaluated', {
-          generation: gen,
-          results: evalResults.map(r => ({ id: r.candidate.id, scores: r.scores }))
-        });
-
-        const reflections = await reflect(evalResults, config);
-        reflections.forEach(r => _reflectionCache.set(r.errorType, r));
-
-        EventBus.emit('gepa:reflected', {
-          generation: gen,
-          reflectionCount: reflections.length,
-          errorTypes: reflections.map(r => r.errorType)
-        });
-
-        const offspring = [];
-        const elite = paretoSelect(_population, config.objectives, config.eliteCount);
-        offspring.push(...elite);
-
-        while (offspring.length < config.populationSize * 0.5) {
-          const [p1, p2] = selectParents(_population);
-          if (Math.random() < config.crossoverRate) {
-            offspring.push(crossover(p1, p2));
-          }
-        }
-
-        while (offspring.length < config.populationSize) {
-          const parent = selectParent(_population);
-          if (Math.random() < config.mutationRate) {
-            offspring.push(mutate(parent, reflections));
-          } else {
-            offspring.push(randomMutate(parent));
-          }
-        }
-
-        _population = paretoSelect(offspring, config.objectives, config.populationSize);
-        _paretoFrontier = _population.filter(c => c.dominatedBy === 0);
-
-        EventBus.emit('gepa:generation-complete', {
-          generation: gen,
-          frontierSize: _paretoFrontier.length,
-          bestScores: getBestScores(_population, config.objectives)
-        });
-
-        await saveCheckpoint(gen, _population, _paretoFrontier, config);
+        await runGeneration(gen, taskSet, config);
       }
 
       const result = {

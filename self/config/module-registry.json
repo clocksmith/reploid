@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-05T18:47:07.741Z",
+  "generatedAt": "2026-10-16T03:31:56.849Z",
   "modules": {
     "AgentLoop": {
       "id": "AgentLoop",
@@ -112,7 +112,8 @@
       "id": "ArenaHarness",
       "entry": "testing/arena/arena-harness.js",
       "files": [
-        "testing/arena/arena-harness.js"
+        "testing/arena/arena-harness.js",
+        "core/tool-argument-validation.js"
       ],
       "introduced": "full",
       "dependencies": [
@@ -504,7 +505,8 @@
       "id": "FunctionGemmaOrchestrator",
       "entry": "core/functiongemma-orchestrator.js",
       "files": [
-        "core/functiongemma-orchestrator.js"
+        "core/functiongemma-orchestrator.js",
+        "core/tool-argument-validation.js"
       ],
       "introduced": "full",
       "dependencies": [

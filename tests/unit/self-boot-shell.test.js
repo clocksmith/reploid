@@ -109,7 +109,10 @@ describe('self-first boot shell', () => {
     const startApp = readRepoFile('self/host/start-app.js');
 
     expect(startApp).toContain("'/ui/zero-home/index.js'");
-    expect(startApp).toContain("await import('../identity.js')");
+    const launcher = readRepoFile('self/host/reploid-launch.js');
+    expect(startApp).toContain("from './reploid-launch.js'");
+    expect(launcher).toContain("await import('../identity.js')");
+    expect(launcher).not.toMatch(/import\s+[^;]+\s+from\s+['"]\.\.\/identity\.js['"]/);
     expect(startApp).not.toContain("import { rotateIdentityBundle } from '../identity.js'");
   });
 

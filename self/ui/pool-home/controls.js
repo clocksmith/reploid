@@ -931,13 +931,6 @@ const RUN_ACTIVITY_COPY = Object.freeze({
   peer_run_failed: 'Run needs attention'
 });
 
-const adapterOptionLabel = (publication = {}) => String(
-  publication.pack?.label
-  || publication.pack?.runtimeManifest?.name
-  || publication.pack?.packId
-  || publication.packHash
-  || 'Adapter pack'
-);
 
 const createSelectOption = (label, value = '') => {
   const option = document.createElement('option');
@@ -946,98 +939,6 @@ const createSelectOption = (label, value = '') => {
   return option;
 };
 
-const updateAdapterPickerStatus = (adapterSelect, message, status) => {
-  const statusElement = adapterSelect
-    ?.closest('[data-pool-home-adapter-picker]')
-    ?.querySelector('small[data-pool-adapter-status]');
-  if (!statusElement) return;
-  statusElement.textContent = String(message || '');
-  statusElement.hidden = !message;
-  statusElement.dataset.poolAdapterStatus = status || '';
-};
-
-const syncComposerAdapterAvailability = (available) => {
-  document.querySelectorAll('[data-pool-composer-adapter-lane]').forEach((control) => {
-    control.hidden = !available;
-  });
-};
-
-const leaveUnavailableAdapterLane = () => {
-  const stage = document.querySelector('.pool-home-stage');
-  if (stage?.dataset.poolLane !== 'adapters') return;
-  const textLane = document.querySelector('.pool-lane-chip[data-pool-lane="text"]');
-  if (textLane) {
-    textLane.click();
-    return;
-  }
-  stage.dataset.poolLane = 'text';
-  const adapterPicker = document.querySelector('[data-pool-home-adapter-picker]');
-  if (adapterPicker) adapterPicker.hidden = true;
-};
-
-const refreshAdapterOptions = async (adapterSelect, model, { allowBaseModel = true } = {}) => {
-  if (!adapterSelect || !model) return [];
-  const previousValue = adapterSelect.value;
-  const requestId = String(Number(adapterSelect.dataset.poolAdapterRequestId || 0) + 1);
-  adapterSelect.dataset.poolAdapterRequestId = requestId;
-  adapterSelect.disabled = true;
-  adapterSelect.replaceChildren(createSelectOption('Loading published packs…'));
-  updateAdapterPickerStatus(adapterSelect, 'Checking published model adapters.', 'loading');
-  try {
-    const publications = await listFetchableAdapterPublications({
-      sdk: createPoolSdk(),
-      model
-    });
-    if (adapterSelect.dataset.poolAdapterRequestId !== requestId) return publications;
-    adapterSelect.replaceChildren();
-    if (allowBaseModel) adapterSelect.append(createSelectOption('Base model only'));
-    else adapterSelect.append(createSelectOption('Choose a published adapter pack'));
-    for (const publication of publications) {
-      adapterSelect.append(createSelectOption(adapterOptionLabel(publication), publication.packHash));
-    }
-    const previousStillExists = [...adapterSelect.options].some((option) => option.value === previousValue);
-    adapterSelect.value = previousStillExists ? previousValue : '';
-    adapterSelect.disabled = publications.length === 0 && !allowBaseModel;
-    adapterSelect.dataset.poolAdapterStatus = publications.length > 0 ? 'available' : 'empty';
-    if (publications.length === 0) {
-      leaveUnavailableAdapterLane();
-      syncComposerAdapterAvailability(false);
-      adapterSelect.options[adapterSelect.options.length - 1].textContent = allowBaseModel
-        ? 'Base model only — no published packs for this model'
-        : 'No published packs for this model';
-      updateAdapterPickerStatus(
-        adapterSelect,
-        `Adapter execution is supported, but no promoted public pack matches ${model.label || model.modelId}.`,
-        'empty'
-      );
-    } else {
-      syncComposerAdapterAvailability(true);
-      updateAdapterPickerStatus(
-        adapterSelect,
-        `${publications.length} promoted pack${publications.length === 1 ? '' : 's'} available for ${model.label || model.modelId}.`,
-        'available'
-      );
-    }
-    return publications;
-  } catch (error) {
-    if (adapterSelect.dataset.poolAdapterRequestId !== requestId) return [];
-    adapterSelect.replaceChildren(createSelectOption(
-      allowBaseModel ? 'Base model only — adapter registry unavailable' : 'Adapter registry unavailable',
-      ''
-    ));
-    adapterSelect.disabled = !allowBaseModel;
-    adapterSelect.dataset.poolAdapterStatus = 'error';
-    adapterSelect.dataset.poolAdapterError = errorString(error);
-    leaveUnavailableAdapterLane();
-    syncComposerAdapterAvailability(false);
-    updateAdapterPickerStatus(
-      adapterSelect,
-      `The adapter publication registry is unavailable: ${errorString(error)}`,
-      'error'
-    );
-    return [];
-  }
-};
 
 const resolveSelectedAdapter = async (adapterSelect, model, { required = false } = {}) => {
   const packHash = String(adapterSelect?.value || '').trim();

@@ -4,12 +4,8 @@
 
 The tabula-rasa runtime exposes a small primitive tool surface.
 
-| Tool | Purpose |
-|------|---------|
-| `ReadFile` | Read self descriptor, index, blueprints, shadow candidates, and artifacts. |
-| `WriteFile` | Write candidates under `/shadow` and evidence under `/artifacts`. |
-| `CreateTool` | Create, install, and load a new runtime tool. |
-| `LoadModule` | Reload an approved module from `/self`. |
+The [Zero kernel prompt](../prompts/kernel.md#primitive-tools) owns the primitive tool table.
+The executable allowlist is [tool-surfaces.js](../config/tool-surfaces.js).
 
 In Zero, `CreateTool` is the complete new-tool path. It stages source under `/shadow/tools`, executes declared activation checks, re-imports and replays them in a fresh fixture harness, requires matching transcripts, installs the tool under `/self/tools`, loads it into the runtime, and writes derived activation evidence under `/artifacts`. Broader Reploid/X surfaces may expose a separate `Promote` tool for evidence-gated self changes.
 

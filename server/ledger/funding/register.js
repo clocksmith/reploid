@@ -1,3 +1,4 @@
+import { createKnownKeyValidator } from '../../input-validation.js';
 /**
  * @fileoverview Funding-commitment register: one record per external funding
  * commitment and the allocations its named uses draw against it.
@@ -73,10 +74,7 @@ const insert = (collection, id, value) => ({ create: true, collection, id, value
 const put = (collection, id, value) => ({ create: false, collection, id, value });
 const isPositiveInteger = (value) => Number.isSafeInteger(value) && value > 0;
 
-const assertKnownKeys = (input, allowed, operation) => {
-  const unknown = Object.keys(input || {}).filter((key) => !allowed.includes(key));
-  if (unknown.length) fail('invalid_input', `${operation} does not accept: ${unknown.join(', ')}`, { unknown });
-};
+const assertKnownKeys = createKnownKeyValidator(fail);
 
 const readRequired = async (tx, collection, id, code) => {
   const record = await tx.get(collection, id);

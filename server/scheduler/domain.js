@@ -1,3 +1,4 @@
+import { collectUnknownKeys } from '../input-validation.js';
 /**
  * @fileoverview Pure durable-scheduler rules: explicit schedule configuration,
  * job and pass records, and lease arithmetic.
@@ -34,11 +35,7 @@ export const fail = (code, message, details) => {
 };
 
 const isPositiveInteger = (value) => Number.isSafeInteger(value) && value > 0;
-const unknownKeys = (value, allowed, label, errors) => {
-  for (const key of Object.keys(value || {})) {
-    if (!allowed.includes(key)) errors.push(`${label}.${key} is not a recognized field`);
-  }
-};
+const unknownKeys = collectUnknownKeys;
 
 /**
  * Validate the explicit schedule against the registered jobs. Every

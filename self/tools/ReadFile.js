@@ -1,3 +1,4 @@
+import { getTextBytes, assertOpfsPathAllowed } from '../host/file-access.js';
 import { normalizeFilePath as normalizePath, resolveMode, resolveMaxBytes, getOpfsFileHandle } from '../host/file-access.js';
 /**
  * @fileoverview ReadFile - Read content from VFS or OPFS
@@ -24,15 +25,7 @@ const assertSafePath = (path) => {
   }
 };
 
-const assertOpfsAllowed = (path) => {
-  const allowed = OPFS_ALLOWLIST_PREFIXES.some((prefix) => {
-    const cleanPrefix = prefix.endsWith('/') ? prefix : `${prefix}/`;
-    return path === cleanPrefix.slice(0, -1) || path.startsWith(cleanPrefix);
-  });
-  if (!allowed) {
-    throw new Error(`OPFS path not allowed: ${path}`);
-  }
-};
+const assertOpfsAllowed = path => assertOpfsPathAllowed(path, OPFS_ALLOWLIST_PREFIXES);
 
 const resolveRequestedMode = (args, backend) => {
   if (args.mode !== undefined && args.mode !== null) {
@@ -60,12 +53,7 @@ const toBase64 = (buffer) => {
   throw new Error('Base64 encoder not available');
 };
 
-const getTextBytes = (content) => {
-  if (typeof TextEncoder !== 'undefined') {
-    return new TextEncoder().encode(content).length;
-  }
-  return content.length;
-};
+
 
 const encodeText = (content) => {
   if (typeof TextEncoder !== 'undefined') {

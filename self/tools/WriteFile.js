@@ -1,3 +1,5 @@
+import { getTextBytes } from '../host/file-access.js';
+import fileToolSchemas from '../config/file-tool-schemas.json' with { type: 'json' };
 import { normalizeFilePath as normalizePath, resolveMode, resolveMaxBytes, getOpfsFileHandle } from '../host/file-access.js';
 /**
  * @fileoverview WriteFile - Write content to VFS or OPFS with guardrails
@@ -23,12 +25,7 @@ const decodeBase64 = (data) => {
   throw new Error('Base64 decoder not available');
 };
 
-const getTextBytes = (content) => {
-  if (typeof TextEncoder !== 'undefined') {
-    return new TextEncoder().encode(content).length;
-  }
-  return content.length;
-};
+
 
 const normalizeTextContent = (content) => {
   if (typeof content === 'string') return content;
@@ -290,23 +287,7 @@ async function call(args = {}, deps = {}) {
 export const tool = {
   name: "WriteFile",
   description: "Write content to VFS or OPFS. JSON object content is serialized as JSON text. Use opfs:/ for binary assets and mode: \"binary\" for tensor data.",
-  inputSchema: {
-    type: 'object',
-    required: ['path'],
-    properties: {
-      path: { type: 'string', description: 'Path to write (vfs:/ or opfs:/). Default backend is VFS.' },
-      backend: { type: 'string', description: 'Optional backend override (vfs or opfs)' },
-      mode: { type: 'string', enum: ['text', 'binary'], description: 'Write mode (default: text)' },
-      content: { type: 'string', description: 'Text content to write. JSON object content is accepted and serialized as JSON text.' },
-      data: { type: 'string', description: 'Base64 data for binary writes' },
-      checksum: { type: 'string', description: 'Optional checksum for binary data' },
-      checksumAlgorithm: { type: 'string', description: 'Checksum algorithm (default: sha256)' },
-      maxBytes: { type: 'number', description: 'Maximum bytes to write' },
-      create: { type: 'boolean', description: 'Create file if missing (default true)' },
-      overwrite: { type: 'boolean', description: 'Overwrite file if it exists (default true)' },
-      autoLoad: { type: 'boolean', description: 'If true and path is .js, hot-reload the module after writing', default: false }
-    }
-  },
+  inputSchema: structuredClone(fileToolSchemas.WriteFile),
   call
 };
 

@@ -1,4 +1,5 @@
-import { normalizeVfsProgress } from '../components/vfs-progress.js';
+const { setVfsProgress, attachVfsProgressListener } = createVfsProgressBinding(progress => setState({ vfsProgress: progress }));
+import { normalizeVfsProgress, getCurrentFullSeedProgress, createVfsProgressBinding } from '../components/vfs-progress.js';
 /**
  * @fileoverview Zero-only locked boot shell.
  */
@@ -51,7 +52,7 @@ const PROBE_TIMEOUT_MS = 3000;
 let container = null;
 let listenersAttached = false;
 let renderScheduled = false;
-let vfsProgressListenerAttached = false;
+
 let state = null;
 
 const escapeText = (value) => String(value || '')
@@ -82,10 +83,7 @@ const getStoredGoal = () => {
 const getStoredCycleIntervalSeconds = () =>
   normalizeCycleIntervalSeconds(getReploidStorage().getItem('REPLOID_CYCLE_INTERVAL_SECONDS'));
 
-const getCurrentFullSeedProgress = () => {
-  if (typeof window === 'undefined') return null;
-  return normalizeVfsProgress(window.REPLOID_VFS_FULL_SEED_PROGRESS || window.REPLOID_VFS_SEED_PROGRESS);
-};
+
 
 const withProxyState = (current = {}) => ({
   ...buildZeroGeminiProxyConfig(current),
@@ -149,19 +147,9 @@ const canAwaken = () => {
   return false;
 };
 
-const setVfsProgress = (progress) => {
-  const normalized = normalizeVfsProgress(progress);
-  if (!normalized) return;
-  setState({ vfsProgress: normalized });
-};
 
-const attachVfsProgressListener = () => {
-  if (vfsProgressListenerAttached || typeof window === 'undefined') return;
-  vfsProgressListenerAttached = true;
-  window.addEventListener('reploid:vfs-seed-progress', (event) => {
-    setVfsProgress(event.detail);
-  });
-};
+
+
 
 const renderAwakenButton = () => {
   const ready = canAwaken();

@@ -220,3 +220,40 @@ The audit treated content—not byte size—as authority. A concise file remaine
 ## Historical-ID rule
 
 Old numeric IDs are not retained as live aliases because the pre-audit filename and heading namespaces conflicted. Historical identity is preserved by exact former file path in each canonical blueprint and in `self/config/blueprint-registry.json`. New references must use the canonical path and ID.
+
+## Source cleanup follow-up: 2026-10-15
+
+This follow-up checks the supplied DRY/dead-code audit against imports, boot
+profiles, DI registration, documented clients, component charters and retained
+receipts. Zero static imports alone does not establish a dead entrypoint.
+
+| Audit item | Disposition and owner |
+| --- | --- |
+| Governed mirrors, compiled bundles, SDK snapshots and compatibility entries | Retained and regenerated from their canonical owners. No independent source edits in generated delivery. |
+| Nested April Doppler checkout | Removed 1,104 tracked legacy files. The installed `doppler-gpu` pin and versioned browser delivery remain authoritative. Git history preserves the old sources. |
+| Four `.deployment-checkouts` | Removed with `git worktree remove` after confirming each was clean. Release branches and commits were preserved; no forced removal. |
+| `agent-client.js`, `points-ledger.js` | Removed unused clients and their seed entries. |
+| `dream-instance.js` | Retained: `SELF_BOOT_SPEC.instances.sources` declares the instance-manifest source; absence from default boot is deliberate. |
+| `adapter-publisher-client.js` | Retained: a documented opt-in client in `docs/browser-inference-pool.md`, with a maintained design record. It is not part of the default chat flow. |
+| `sw-module-loader.js` | Retained as a compatibility URL for installed workers; now forwards to canonical `sw.js` rather than copying its bootstrap. |
+| Three superseded Qwen manifests | Moved byte-for-byte from served `self/config/model-manifests/` to `docs/status/model-manifests/`. Filenames preserve identity and historical recovery provenance. Current catalog manifests remain served. |
+| Eight DI modules | Retained: configured dynamic entrypoints in `genesis-levels.json`/`module-registry.json`. The loader instantiates declared module factories; static import counts miss this route. Registration does not prove an integrated caller workflow. |
+| Test-only research modules | Retained where component contracts and independent tests own their behavior, including scientific-policy promotion, protein investigation, simulation binding, artifact transport, observations and signaling. No capability is claimed from a passing fixture. |
+| Unreachable function bodies | Removed the main-thread `_executeWorker`, `_verifyCoreMutation` and its unused path helper, adapter refresh and its orphan helpers, five graph-edge helpers, and unused hydration/seed exports. Active Web Worker, WriteFile/Promote verification and session reset paths remain. |
+| Duplicate launchers | `self/host/reploid-launch.js` owns runtime loading, capsule mount/reload, styles, fresh identity consumption and rotation. Route choice, legacy model preparation and reload-error policy remain explicit in the callers. Identity stays deferred on Zero. |
+| Boot UI repetition | Shared credential/model probes and VFS progress bindings; one fresh wizard-state factory. Goal generation, connection selection and awaken flows retain their different route, inference, seeding and permission contracts. |
+| GEPA evolution loop | One `runGeneration` implements fresh and resumed generations; setup, checkpoint restoration and result reporting remain separate. |
+| Schema boilerplate | Shared parse, cloning and common modifiers. Object error aggregation and specialized union/literal/record behavior remain separate. Checked against the original across 392 input/chain combinations. |
+| Server field validation and token comparison | Shared exact-field mechanics accept the domain's failure port. Strict token comparison is shared by three servers; Change Passport's separately normalized admission policy remains distinct. |
+| Assignment endpoint repetition | Shared recovery, reread and provider-role admission. Receipt/failure stale handling and commit/reveal phase decisions keep their distinct response and settlement behavior. |
+| Cross-file clones | Shared shallow tool-argument validation, file-tool JSON schemas, signed-event verification, OPFS path mechanics and text-byte measurement. Explicit ESM export names remain static; browser/server configuration binding is destructured without merging their different hash/loading contracts. |
+| ESM2 evidence copies | Equal files use repository-relative symlinks to retained canonical bytes. Every original evidence path and recorded hash remains resolvable; all eight retained-episode checks pass. These are storage aliases, not additional observations. |
+| Blueprint indexes and Proposed designs | Retained: the inventory is a generated sitemap, the older audit preserves identifier migration provenance, and Proposed designs preserve intent rather than asserting implementation. |
+| Primitive-tool table drift | Zero's kernel prompt now names CreateTool instead of Promote. The tool contract links to that table and the executable allowlist instead of keeping a second table. |
+| Optional LoRA/evaluator docs | Retained as implementation references, explicitly distinguished from integrated product workflows and qualification. |
+
+Validation is scoped to changed contracts: consumer/failure tests, schema
+behavior comparison, browser launcher/reload checks with supplied test runtime,
+retained evidence hashes, library types, sandbox delta, lint, generated delivery
+and architecture checks. No physical inference, benchmark or deployment claim
+follows from this cleanup.

@@ -1,3 +1,4 @@
+import { collectUnknownKeys } from '../input-validation.js';
 /**
  * @fileoverview Pure credit-ledger rules: accounting policy, issuance sources,
  * quote terms and settlement formulas.
@@ -124,11 +125,7 @@ export const assertIdempotencyKey = (value) => {
   return value;
 };
 
-const assertExactKeys = (value, allowed, label, errors) => {
-  for (const key of Object.keys(value || {})) {
-    if (!allowed.includes(key)) errors.push(`${label}.${key} is not a recognized field`);
-  }
-};
+const assertExactKeys = collectUnknownKeys;
 
 /**
  * Validate explicit accounting policy. There is no default policy: units,

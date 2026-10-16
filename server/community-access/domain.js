@@ -1,3 +1,4 @@
+import { collectUnknownKeys } from '../input-validation.js';
 /**
  * @fileoverview Pure Community Access rules: policy and its guarantee switch,
  * usage and rate windows, fair queue order, lanes and availability views.
@@ -47,11 +48,7 @@ export const fail = (code, message, details) => {
 const isPositiveInteger = (value) => Number.isSafeInteger(value) && value > 0;
 const isCount = (value) => Number.isSafeInteger(value) && value >= 0;
 
-const unknownKeys = (value, allowed, label, errors) => {
-  for (const key of Object.keys(value || {})) {
-    if (!allowed.includes(key)) errors.push(`${label}.${key} is not a recognized field`);
-  }
-};
+const unknownKeys = collectUnknownKeys;
 
 const validId = (value) => {
   try {

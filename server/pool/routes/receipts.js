@@ -1,3 +1,4 @@
+import { createAssignmentEntryReader } from './assignment-entry.js';
 /**
  * @fileoverview Receipt, failure, acceptance, and receipt-read route registration.
  *
@@ -71,18 +72,14 @@ export function registerReceiptRoutes(router, {
   }
   if (!(activeAssignmentStatuses instanceof Set)) throw new Error('receipt routes require active assignment statuses');
   if (!(finalizedJobStatuses instanceof Set)) throw new Error('receipt routes require finalized job statuses');
+  const readAssignmentEntry = createAssignmentEntryReader({ store, recoverHostedAssignments, requireBoundRole });
   const POOL_CONFIG_VERSION = poolConfigVersion;
   const POOL_CONFIG_HASH = poolConfigHash;
 
   router.post('/assignments/:assignmentId/receipt', asyncRoute(async (req, res) => {
-    const pendingAssignment = await store.getAssignment(req.params.assignmentId);
-    const entryRecovery = await recoverHostedAssignments({
-      store,
-      targetJobId: pendingAssignment?.jobId || null
-    });
-    const assignment = await store.getAssignment(req.params.assignmentId);
-    if (!assignment) return res.status(404).json({ error: 'assignment not found' });
-    if (!requireBoundRole(req, res, 'provider', assignment.providerId)) return null;
+    const entry = await readAssignmentEntry(req, res);
+    if (!entry) return null;
+    const { assignment, entryRecovery } = entry;
     const policy = getPolicy(assignment.policyId);
     if (!policy) return res.status(400).json({ error: 'assignment policy is no longer supported' });
     if (!activeAssignmentStatuses.has(assignment.status)) {
@@ -288,14 +285,9 @@ export function registerReceiptRoutes(router, {
   }));
 
   router.post('/assignments/:assignmentId/failure', asyncRoute(async (req, res) => {
-    const pendingAssignment = await store.getAssignment(req.params.assignmentId);
-    const entryRecovery = await recoverHostedAssignments({
-      store,
-      targetJobId: pendingAssignment?.jobId || null
-    });
-    const assignment = await store.getAssignment(req.params.assignmentId);
-    if (!assignment) return res.status(404).json({ error: 'assignment not found' });
-    if (!requireBoundRole(req, res, 'provider', assignment.providerId)) return null;
+    const entry = await readAssignmentEntry(req, res);
+    if (!entry) return null;
+    const { assignment, entryRecovery } = entry;
     if (!activeAssignmentStatuses.has(assignment.status)) {
       return res.status(409).json({
         error: 'assignment is not active',

@@ -1,3 +1,4 @@
+import { createKnownKeyValidator } from '../input-validation.js';
 /**
  * @fileoverview Purchase reconciliation behind a payment processor port.
  *
@@ -54,10 +55,7 @@ const notificationId = (processor, eventId) => sha256Hex(`notification\u0000${pr
 const lotIdFor = (record) => lotIdForSource(sourceClaimKey('purchased', { processor: record.processor, purchaseId: record.purchaseId }));
 const issuanceKey = (record) => `purchase:${record.processor}:${record.purchaseId}`;
 
-const assertKnownKeys = (input, allowed, operation) => {
-  const unknown = Object.keys(input || {}).filter((key) => !allowed.includes(key));
-  if (unknown.length) fail('invalid_input', `${operation} does not accept: ${unknown.join(', ')}`, { unknown });
-};
+const assertKnownKeys = createKnownKeyValidator(fail);
 
 // The ledger source names the purchase, its confirmation, its price apart from quantity and the conversion stamp.
 const purchaseSource = (record) => ({

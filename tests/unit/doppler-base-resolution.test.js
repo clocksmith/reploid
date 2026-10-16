@@ -16,7 +16,9 @@ describe('Pinned Doppler asset resolution', () => {
     expect(html).toContain('resolveDopplerBrowserAssets({');
     expect(html).toContain("['reset', 'clear', 'default', 'local'].includes(queryBase)");
     expect(html).toContain("localStorage.removeItem('DOPPLER_BASE_URL')");
-    expect(html.indexOf('resolveDopplerBrowserAssets({')).toBeLessThan(html.indexOf("import('/ui/pool-home/index.js')"));
+    const applicationImport = /import\(['"]\/ui\/pool-home\/(?:app\.bundle|index)\.js['"]\)/.exec(html);
+    expect(applicationImport).not.toBeNull();
+    expect(html.indexOf('resolveDopplerBrowserAssets({')).toBeLessThan(applicationImport.index);
   });
 
   it('kernel boot uses the shared resolver without changing unrelated storage', () => {

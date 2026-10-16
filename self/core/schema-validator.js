@@ -25,7 +25,7 @@
 /**
  * Helper to create chainable schema with proper `this` binding
  */
-const createSchema = (config, methods) => {
+const createSchema = (config, methods, cloneable = false) => {
   const schema = { ...config };
 
   // Add methods that reference the schema via closure
@@ -33,6 +33,22 @@ const createSchema = (config, methods) => {
     schema[name] = (...args) => fn(schema, ...args);
   }
 
+  if (!methods.parse) schema.parse = value => {
+    const result = schema.safeParse(value);
+    if (!result.success) {
+      const error = new Error(result.error.issues[0].message);
+      error.name = 'ZodError';
+      error.issues = result.error.issues;
+      throw error;
+    }
+    return result.data;
+  };
+  if (cloneable) {
+    schema._cloneWith = config => createSchema(config, methods, true);
+    schema.optional = () => schema._cloneWith({ ...schema, _optional: true });
+    schema.nullable = () => schema._cloneWith({ ...schema, _nullable: true });
+    schema.default = value => schema._cloneWith({ ...schema, _default: value, _optional: true });
+  }
   return schema;
 };
 
@@ -53,9 +69,6 @@ const string = () => {
   const methods = {
     min: (self, length) => string()._cloneWith({ ...self, _minLength: length }),
     max: (self, length) => string()._cloneWith({ ...self, _maxLength: length }),
-    optional: (self) => string()._cloneWith({ ...self, _optional: true }),
-    nullable: (self) => string()._cloneWith({ ...self, _nullable: true }),
-    default: (self, value) => string()._cloneWith({ ...self, _default: value, _optional: true }),
 
     safeParse: (self, value) => {
       if (value === undefined) {
@@ -85,25 +98,10 @@ const string = () => {
       return { success: true, data: value };
     },
 
-    parse: (self, value) => {
-      const result = self.safeParse(value);
-      if (!result.success) {
-        const err = new Error(result.error.issues[0].message);
-        err.name = 'ZodError';
-        err.issues = result.error.issues;
-        throw err;
-      }
-      return result.data;
-    }
+
   };
 
-  const schema = createSchema(config, methods);
-  schema._cloneWith = (newConfig) => {
-    const s = createSchema(newConfig, methods);
-    s._cloneWith = schema._cloneWith;
-    return s;
-  };
-  return schema;
+  return createSchema(config, methods, true);
 };
 
 /**
@@ -125,9 +123,6 @@ const number = () => {
     min: (self, value) => number()._cloneWith({ ...self, _min: value }),
     max: (self, value) => number()._cloneWith({ ...self, _max: value }),
     int: (self) => number()._cloneWith({ ...self, _int: true }),
-    optional: (self) => number()._cloneWith({ ...self, _optional: true }),
-    nullable: (self) => number()._cloneWith({ ...self, _nullable: true }),
-    default: (self, value) => number()._cloneWith({ ...self, _default: value, _optional: true }),
 
     safeParse: (self, value) => {
       if (value === undefined) {
@@ -160,25 +155,10 @@ const number = () => {
       return { success: true, data: value };
     },
 
-    parse: (self, value) => {
-      const result = self.safeParse(value);
-      if (!result.success) {
-        const err = new Error(result.error.issues[0].message);
-        err.name = 'ZodError';
-        err.issues = result.error.issues;
-        throw err;
-      }
-      return result.data;
-    }
+
   };
 
-  const schema = createSchema(config, methods);
-  schema._cloneWith = (newConfig) => {
-    const s = createSchema(newConfig, methods);
-    s._cloneWith = schema._cloneWith;
-    return s;
-  };
-  return schema;
+  return createSchema(config, methods, true);
 };
 
 /**
@@ -194,9 +174,6 @@ const boolean = () => {
   };
 
   const methods = {
-    optional: (self) => boolean()._cloneWith({ ...self, _optional: true }),
-    nullable: (self) => boolean()._cloneWith({ ...self, _nullable: true }),
-    default: (self, value) => boolean()._cloneWith({ ...self, _default: value, _optional: true }),
 
     safeParse: (self, value) => {
       if (value === undefined) {
@@ -220,25 +197,10 @@ const boolean = () => {
       return { success: true, data: value };
     },
 
-    parse: (self, value) => {
-      const result = self.safeParse(value);
-      if (!result.success) {
-        const err = new Error(result.error.issues[0].message);
-        err.name = 'ZodError';
-        err.issues = result.error.issues;
-        throw err;
-      }
-      return result.data;
-    }
+
   };
 
-  const schema = createSchema(config, methods);
-  schema._cloneWith = (newConfig) => {
-    const s = createSchema(newConfig, methods);
-    s._cloneWith = schema._cloneWith;
-    return s;
-  };
-  return schema;
+  return createSchema(config, methods, true);
 };
 
 /**
@@ -266,9 +228,6 @@ const array = (itemSchema) => {
       const s = array(self._itemSchema)._cloneWith({ ...self, _maxLength: length });
       return s;
     },
-    optional: (self) => array(self._itemSchema)._cloneWith({ ...self, _optional: true }),
-    nullable: (self) => array(self._itemSchema)._cloneWith({ ...self, _nullable: true }),
-    default: (self, value) => array(self._itemSchema)._cloneWith({ ...self, _default: value, _optional: true }),
 
     safeParse: (self, value) => {
       if (value === undefined) {
@@ -311,25 +270,10 @@ const array = (itemSchema) => {
       return { success: true, data: validatedItems };
     },
 
-    parse: (self, value) => {
-      const result = self.safeParse(value);
-      if (!result.success) {
-        const err = new Error(result.error.issues[0].message);
-        err.name = 'ZodError';
-        err.issues = result.error.issues;
-        throw err;
-      }
-      return result.data;
-    }
+
   };
 
-  const schema = createSchema(config, methods);
-  schema._cloneWith = (newConfig) => {
-    const s = createSchema(newConfig, methods);
-    s._cloneWith = schema._cloneWith;
-    return s;
-  };
-  return schema;
+  return createSchema(config, methods, true);
 };
 
 /**
@@ -351,9 +295,6 @@ const object = (shape) => {
   const methods = {
     strict: (self) => object(self._shape)._cloneWith({ ...self, _strict: true }),
     passthrough: (self) => object(self._shape)._cloneWith({ ...self, _passthrough: true }),
-    optional: (self) => object(self._shape)._cloneWith({ ...self, _optional: true }),
-    nullable: (self) => object(self._shape)._cloneWith({ ...self, _nullable: true }),
-    default: (self, value) => object(self._shape)._cloneWith({ ...self, _default: value, _optional: true }),
     extend: (self, additionalShape) => object({ ...self._shape, ...additionalShape }),
 
     safeParse: (self, value) => {
@@ -421,13 +362,7 @@ const object = (shape) => {
     }
   };
 
-  const schema = createSchema(config, methods);
-  schema._cloneWith = (newConfig) => {
-    const s = createSchema(newConfig, methods);
-    s._cloneWith = schema._cloneWith;
-    return s;
-  };
-  return schema;
+  return createSchema(config, methods, true);
 };
 
 /**
@@ -462,16 +397,7 @@ const union = (schemas) => {
       return { success: false, error: { issues: [{ path: [], message: 'Invalid input: does not match any union member' }] } };
     },
 
-    parse: (self, value) => {
-      const result = self.safeParse(value);
-      if (!result.success) {
-        const err = new Error(result.error.issues[0].message);
-        err.name = 'ZodError';
-        err.issues = result.error.issues;
-        throw err;
-      }
-      return result.data;
-    }
+
   };
 
   return createSchema(config, methods);
@@ -506,16 +432,7 @@ const literal = (literalValue) => {
       return { success: true, data: value };
     },
 
-    parse: (self, value) => {
-      const result = self.safeParse(value);
-      if (!result.success) {
-        const err = new Error(result.error.issues[0].message);
-        err.name = 'ZodError';
-        err.issues = result.error.issues;
-        throw err;
-      }
-      return result.data;
-    }
+
   };
 
   return createSchema(config, methods);
@@ -545,16 +462,7 @@ const any = () => {
       return { success: true, data: value };
     },
 
-    parse: (self, value) => {
-      const result = self.safeParse(value);
-      if (!result.success) {
-        const err = new Error(result.error.issues[0].message);
-        err.name = 'ZodError';
-        err.issues = result.error.issues;
-        throw err;
-      }
-      return result.data;
-    }
+
   };
 
   return createSchema(config, methods);
@@ -613,16 +521,7 @@ const record = (keySchema, valueSchema) => {
       return { success: true, data: validatedObj };
     },
 
-    parse: (self, value) => {
-      const result = self.safeParse(value);
-      if (!result.success) {
-        const err = new Error(result.error.issues[0].message);
-        err.name = 'ZodError';
-        err.issues = result.error.issues;
-        throw err;
-      }
-      return result.data;
-    }
+
   };
 
   return createSchema(config, methods);

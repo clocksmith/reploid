@@ -1,3 +1,5 @@
+import { getTextBytes, assertOpfsPathAllowed } from '../host/file-access.js';
+import fileToolSchemas from '../config/file-tool-schemas.json' with { type: 'json' };
 import { normalizeFilePath, getOpfsFileHandle } from '../host/file-access.js';
 import { FILE_TEXT_LIMIT_BYTES as TEXT_LIMIT_BYTES } from '../config/vfs-policy.js';
 /**
@@ -10,22 +12,9 @@ import { assertNoPathTraversal, assertWritableVfsPath } from '../config/vfs-poli
 
 const OPFS_ALLOWLIST_PREFIXES = ['/doppler-models/adapters/'];
 
-const assertOpfsAllowed = (path) => {
-  const allowed = OPFS_ALLOWLIST_PREFIXES.some((prefix) => {
-    const cleanPrefix = prefix.endsWith('/') ? prefix : `${prefix}/`;
-    return path === cleanPrefix.slice(0, -1) || path.startsWith(cleanPrefix);
-  });
-  if (!allowed) {
-    throw new Error(`OPFS path not allowed: ${path}`);
-  }
-};
+const assertOpfsAllowed = path => assertOpfsPathAllowed(path, OPFS_ALLOWLIST_PREFIXES);
 
-const getTextBytes = (content) => {
-  if (typeof TextEncoder !== 'undefined') {
-    return new TextEncoder().encode(content).length;
-  }
-  return content.length;
-};
+
 
 const buildOperations = (args) => {
   if (Array.isArray(args.operations) && args.operations.length > 0) {
@@ -191,42 +180,7 @@ async function call(args = {}, deps = {}) {
 export const tool = {
   name: "EditFile",
   description: "Apply literal match/replacement edits to a writable candidate/evidence text file (VFS or OPFS).",
-  inputSchema: {
-    type: 'object',
-    required: ['path'],
-    properties: {
-      path: { type: 'string', description: 'Path to edit (vfs:/ or opfs:/). Default backend is VFS.' },
-      backend: { type: 'string', description: 'Optional backend override (vfs or opfs)' },
-      content: { type: 'string', description: 'Full replacement content (text only)' },
-      patch: {
-        type: 'array',
-        description: 'Patch operations with find/replace',
-        items: {
-          type: 'object',
-          required: ['find'],
-          properties: {
-            find: { type: 'string' },
-            replace: { type: 'string' },
-            count: { type: 'number' }
-          }
-        }
-      },
-      operations: {
-        type: 'array',
-        description: 'Legacy operations array',
-        items: {
-          type: 'object',
-          required: ['match'],
-          properties: {
-            match: { type: 'string' },
-            replacement: { type: 'string' },
-            count: { type: 'number' }
-          }
-        }
-      },
-      create: { type: 'boolean', description: 'Create file if missing (default false)' }
-    }
-  },
+  inputSchema: structuredClone(fileToolSchemas.EditFile),
   call
 };
 

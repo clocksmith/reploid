@@ -1,3 +1,4 @@
+import { createKnownKeyValidator } from '../input-validation.js';
 /**
  * @fileoverview Acquirer-submitted delivery evidence.
  *
@@ -32,10 +33,7 @@ const view = (record) => ({
   recordedAt: record.recordedAt
 });
 
-const assertKnownKeys = (input, allowed, operation) => {
-  const unknown = Object.keys(input || {}).filter((key) => !allowed.includes(key));
-  if (unknown.length) fail('invalid_input', `${operation} does not accept: ${unknown.join(', ')}`, { unknown });
-};
+const assertKnownKeys = createKnownKeyValidator(fail);
 
 /**
  * @param {object} ctx reward store internals: backend, identity (with

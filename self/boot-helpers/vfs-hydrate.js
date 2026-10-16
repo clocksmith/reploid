@@ -5,7 +5,7 @@
 
 import { buildCoreToolSet } from './config.js';
 import { toSourceWebPath } from '../boot-spec.js';
-import { getBootSeedProfile } from '../config/boot-seed.js';
+import '../config/boot-seed.js';
 
 /**
  * Convert file path to VFS path.
@@ -30,25 +30,6 @@ const toWebPath = (file) => {
   return new URL(toSourceWebPath(normalized), base).toString();
 };
 
-const loadVfsManifest = async (logger) => {
-  try {
-    const manifestUrl = toWebPath('config/vfs-manifest.json');
-    const resp = await fetch(manifestUrl, { cache: 'no-store' });
-    if (!resp.ok) {
-      logger.warn(`[Boot] Failed to load VFS manifest (${resp.status})`);
-      return null;
-    }
-    const data = await resp.json();
-    if (!data || !Array.isArray(data.files)) {
-      logger.warn('[Boot] VFS manifest missing files list');
-      return null;
-    }
-    return data.files;
-  } catch (err) {
-    logger.warn('[Boot] Failed to parse VFS manifest', err);
-    return null;
-  }
-};
 
 /**
  * Reset session artifacts from VFS.
@@ -149,151 +130,5 @@ export async function resetSession(vfs, genesisConfig, genesisLevel, logger) {
     }
   } catch (e) {
     logger.warn('[Boot] Session reset failed:', e.message);
-  }
-}
-
-/**
- * Seed FileOutline tool if missing.
- * @param {Object} vfs - VFS instance
- * @param {Object} logger - Logger instance
- */
-export async function seedCodeIntel(vfs, logger) {
-  const toolPath = '/tools/FileOutline.js';
-  if (await vfs.exists(toolPath)) return;
-
-  logger.info('[Boot] Seeding FileOutline tool...');
-  try {
-    const resp = await fetch('../tools/FileOutline.js', { cache: 'no-store' });
-    if (!resp.ok) {
-      logger.warn('[Boot] FileOutline.js not found on server, skipping seed.');
-      return;
-    }
-    const code = await resp.text();
-    await vfs.write(toolPath, code);
-    logger.info('[Boot] Seeding complete: FileOutline.js');
-  } catch (e) {
-    logger.error('[Boot] Failed to seed FileOutline', e);
-  }
-}
-
-/**
- * Hydrate VFS with source files from network.
- * @param {Object} vfs - VFS instance
- * @param {Object} genesisConfig - Genesis configuration
- * @param {string[]} resolvedModules - Resolved module list
- * @param {string} genesisLevel - Current genesis level
- * @param {Object} logger - Logger instance
- */
-export async function hydrateVFS(vfs, genesisConfig, resolvedModules, genesisLevel, logger) {
-  try {
-    const bootProfile = getBootSeedProfile();
-    if (bootProfile === 'zero_home') {
-      logger.info('[Boot] Skipping boot-helper VFS hydration for minimal boot profile "zero_home".');
-      return;
-    }
-
-    const preserveOnBoot = typeof localStorage !== 'undefined' &&
-      localStorage.getItem('REPLOID_PRESERVE_ON_BOOT') === 'true';
-
-    logger.info('[Boot] Beginning full VFS hydration (self-hosting mode)...');
-    if (preserveOnBoot) {
-      logger.info('[Boot] Preserve on boot enabled. Existing VFS files will not be overwritten.');
-    }
-
-    const filesToSeed = new Set();
-    const manifestFiles = await loadVfsManifest(logger);
-    if (manifestFiles && manifestFiles.length > 0) {
-      for (const file of manifestFiles) {
-        filesToSeed.add(file);
-      }
-    } else {
-      const moduleFiles = genesisConfig?.moduleFiles || {};
-      const sharedFiles = genesisConfig?.sharedFiles || {};
-
-      // Add files for each resolved module
-      for (const moduleName of resolvedModules) {
-        const files = moduleFiles[moduleName];
-        if (files) {
-          for (const file of files) {
-            filesToSeed.add(file);
-          }
-        }
-      }
-
-      // Add shared files (tools, ui, styles)
-      for (const category of Object.keys(sharedFiles)) {
-        for (const file of sharedFiles[category]) {
-          filesToSeed.add(file);
-        }
-      }
-
-      // Add level-specific files
-      const levelFiles = genesisConfig?.levelFiles?.[genesisLevel];
-      if (levelFiles) {
-        for (const category of Object.keys(levelFiles)) {
-          for (const file of levelFiles[category]) {
-            filesToSeed.add(file);
-          }
-        }
-        logger.debug(`[Boot] Added ${Object.values(levelFiles).flat().length} level-specific files`);
-      }
-    }
-
-    logger.info(`[Boot] Hydrating ${filesToSeed.size} files...`);
-
-    const hydrateFile = async (file) => {
-      const vfsPath = toVfsPath(file);
-      const webPath = toWebPath(file);
-
-      try {
-        if (preserveOnBoot) {
-          try {
-            if (await vfs.exists(vfsPath)) return;
-          } catch {
-            // Continue hydration if exists check fails
-          }
-        }
-
-        const resp = await fetch(webPath, { cache: 'no-store' });
-        if (!resp.ok) {
-          logger.warn(`[Boot] Failed to fetch ${webPath} (${resp.status})`);
-          return;
-        }
-        const contents = await resp.text();
-
-        // Skip write if content is identical (bandwidth/perf optimization)
-        let existingContent = null;
-        try {
-          existingContent = await vfs.read(vfsPath);
-        } catch {
-          // File doesn't exist yet
-        }
-        if (existingContent === contents) return;
-
-        await vfs.write(vfsPath, contents);
-        logger.info(`[Boot] Hydrated ${vfsPath}`);
-      } catch (err) {
-        logger.warn(`[Boot] Failed to hydrate ${webPath}`, err);
-      }
-    };
-
-    // Parallel hydration with concurrency limit
-    const files = Array.from(filesToSeed);
-    const concurrency = Math.min(6, files.length || 1);
-    let index = 0;
-
-    const worker = async () => {
-      while (index < files.length) {
-        const file = files[index];
-        index += 1;
-        await hydrateFile(file);
-      }
-    };
-
-    await Promise.all(Array.from({ length: concurrency }, () => worker()));
-
-    logger.info('[Boot] VFS hydration complete');
-  } catch (err) {
-    logger.warn('[Boot] VFS hydration failed:', err.message);
   }
 }

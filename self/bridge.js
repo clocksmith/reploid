@@ -1,3 +1,4 @@
+import { getTextBytes as measureTextBytes } from './host/file-access.js';
 import { normalizeFilePath, getOpfsFileHandle, OPFS_PREFIX } from './host/file-access.js';
 import { FILE_TEXT_LIMIT_BYTES as TEXT_LIMIT_BYTES, FILE_BINARY_LIMIT_BYTES as BINARY_LIMIT_BYTES } from './config/vfs-policy.js';
 /**
@@ -33,7 +34,6 @@ import { createLegacyNetworkOptions } from './capabilities/communication/library
 import { createSelfToolRunner } from './tool-runner.js';
 import { promoteShadowCandidate } from './tools/Promote.js';
 
-const REMOTE_GENERATION_TIMEOUT_MS = 45000;
 const VFS_BYPASS_HEADER = 'x-reploid-vfs-bypass';
 const MANAGED_SERVER_PROXY_TYPE = 'firebase-function';
 const MANAGED_SERVER_PROXY_MAX_ITERATIONS = 99;
@@ -52,12 +52,7 @@ const normalizePath = (rawPath, backendOverride) => {
   return normalized;
 };
 
-const getTextBytes = (content) => {
-  if (typeof TextEncoder !== 'undefined') {
-    return new TextEncoder().encode(String(content || '')).length;
-  }
-  return String(content || '').length;
-};
+const getTextBytes = content => measureTextBytes(String(content || ''));
 
 const isWithinRoot = (path, root) => {
   const normalizedRoot = root.endsWith('/') ? root.slice(0, -1) : root;

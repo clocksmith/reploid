@@ -71,3 +71,19 @@ export const getOpfsFileHandle = async (path, options = {}) => {
   }
   return dir.getFileHandle(parts[parts.length - 1], { create: !!options.createFile });
 };
+
+export const getTextBytes = (content) => {
+  if (typeof TextEncoder !== 'undefined') {
+    return new TextEncoder().encode(content).length;
+  }
+  return content.length;
+};
+export const assertOpfsPathAllowed = (path, prefixes) => {
+  const allowed = prefixes.some((prefix) => {
+    const cleanPrefix = prefix.endsWith('/') ? prefix : `${prefix}/`;
+    return path === cleanPrefix.slice(0, -1) || path.startsWith(cleanPrefix);
+  });
+  if (!allowed) {
+    throw new Error(`OPFS path not allowed: ${path}`);
+  }
+};

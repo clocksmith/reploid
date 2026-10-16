@@ -55,14 +55,14 @@ REPLOID/0
 TOOL: ReadFile
 path: /
 
-Primitive tools:
+## Primitive tools
 
 | Tool | Purpose |
 |------|---------|
 | `ReadFile` | Read self descriptor, index, blueprints, shadow candidates, and artifacts. |
 | `WriteFile` | Write candidates under `/shadow` and evidence under `/artifacts`. |
-| `LoadModule` | Load approved modules after promotion. |
-| `Promote` | Request a gated `/shadow` to `/self` change. |
+| `LoadModule` | Reload approved modules from `/self`. |
+| `CreateTool` | Stage, check, install, and load a new Zero runtime tool. |
 
 For multiline content, use a literal block:
 

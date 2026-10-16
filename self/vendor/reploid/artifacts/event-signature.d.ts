@@ -1,0 +1,1 @@
+export declare function verifyEventSignature(event: { eventHash?: string; signature?: { publicJwk?: JsonWebKey; value?: string; signerId?: string; [key: string]: unknown } } | null | undefined, cryptoApi?: Crypto): Promise<boolean>;

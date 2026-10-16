@@ -1,7 +1,0 @@
-{
-  "type": [
-    { "match": { "hasMerges": true }, "value": "bpe" },
-    { "match": { "hasScores": true }, "value": "unigram" },
-    { "match": {}, "value": "bpe" }
-  ]
-}
