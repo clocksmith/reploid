@@ -18,6 +18,9 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
     return createAutomaticOrderedPartitions({ identity, meshId, models, policy, peers, createNetwork, loadProgram, ordered, onChange });
   }
   const config = structuredClone(policy), catalog = structuredClone(models);
+  for (const model of catalog) assert(model.partitionContributionIndexes === undefined
+    || Array.isArray(model.partitionContributionIndexes) && model.partitionContributionIndexes.length > 0
+      && model.partitionContributionIndexes.every(index => index === 0 || index === 1), 'Invalid eligible partition indexes');
   assert(identity?.peerId && typeof peers === 'function' && typeof createNetwork === 'function'
     && typeof loadProgram === 'function' && Number.isSafeInteger(config.pollMs) && config.pollMs > 0,
   'Automatic partitions require identity, discovery, loader and explicit policy');
@@ -73,6 +76,7 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
   const discovery = createPartitionDiscovery({ identity, catalog, policy: config, peers, createNetwork,
     onChange: notify,
     describe: () => ({ participantId: identity.peerId, offer: offer && { id: offer.id, identity: offer.identity },
+      eligibleIndexes: offer?.partitionContributionIndexes ?? [0, 1],
       phase, preparation: phase === 'loading' ? publicPreparationProgress(progress) : null, placement, index: program?.resident.index ?? placement?.indexOf(identity.peerId) ?? null,
       planId: program?.planId ?? null, models: chat?.getModels() || [],
       // Discovery advertises capacity only; attempt identities remain with their owners.

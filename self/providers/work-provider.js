@@ -15,8 +15,9 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
   fetchImpl = globalThis.fetch, generation, maxOutcomeCharacters, allowedFallbackModels = [], onProgress,
   resolveAdapter, source = model.id, loadOptions = {} }) {
   signal.throwIfAborted();
+  generation = { ...generation, ...model.generation };
   const session = model.provider === 'doppler'
-    ? await service.open({ scope, source, options: { ...loadOptions, onProgress } }) : null;
+    ? await service.open({ scope, source, options: { ...model.loadOptions, ...loadOptions, onProgress } }) : null;
   signal.throwIfAborted();
   if (session) requireValue(typeof session.stream === 'function', 'Configured Doppler session does not expose text streaming');
   else requireValue(typeof credentials === 'function', 'Firebase Auth and App Check credentials are required');

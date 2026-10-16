@@ -83,7 +83,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
   const custodyKey = { peerId: transport._getPeerId(), publicKey: await exportPublicKey(pair.publicKey), privateKey: pair.privateKey };
   const custodyCertificate = async () => certifyCustodyKey
     ? certifyCustodyKey({ custodyPeerId: custodyKey.peerId, custodyPublicKey: custodyKey.publicKey }) : null;
-  const receipts = [], retained = new Map(), operations = new Set(), offeredFiles = new Map();
+  const receipts = [], retained = new Map(), operations = new Set(), offeredFiles = new Map(), localPieces = new Map();
   let closed = false, shareController = null, closing = null, suppliedModel = null;
   const own = operation => { operations.add(operation); operation.finally(() => operations.delete(operation)).catch(() => {}); return operation; };
   const readLocal = async (name, { offset, size, signal } = {}) => {
@@ -112,7 +112,11 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
     createSupplier: contracts.createPeerPackSupplier, createStore: contracts.createPeerPackArtifactStore,
     createChannel: owner ? owner.paceChannel(createPeerPackDataChannel) : createPeerPackDataChannel,
     ...(owner ? { admitSupply: request => owner.admitSupply(request) } : {}), hash: hashDopplerEvidence, hashBytes: sha256Hex,
-    readArtifact: async file => { const bytes = await cache.get(file); assert(bytes, 'Advertised native bytes are unavailable'); return bytes; },
+    readArtifact: async file => {
+      const local = localPieces.get(key(file));
+      const bytes = await cache.get(file) || (local && await readLocal(local.path, { ...local, signal: lifetime.signal }));
+      assert(bytes, 'Advertised native bytes are unavailable'); await verify(file, bytes); return bytes;
+    },
     verifyArtifact: verify, commitArtifact: (file, bytes, controls) => cache.put(file, bytes, controls), observe, onChange,
     certificate: custodyCertificate, observeDelivery
   } });
@@ -159,7 +163,12 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
         limits: { maxConcurrent: policy.maxPieceAcquisitions, maxQueued: policy.maxQueuedPieceAcquisitions,
           maxPieceBytes: policy.maxArtifactBytes,
           timeoutMs: owner ? owner.pieceTimeoutMs(policy.channel.timeoutMs, policy.maxArtifactBytes) : policy.channel.timeoutMs },
-        cache: { get: id => cache.get(pieceFile(descriptors.get(id))),
+        cache: { get: async id => {
+          const piece = descriptors.get(id);
+          // Existing owner-approved files are reusable custody, not another cache download.
+          // createPieceAcquisition verifies these bytes before returning them.
+          return await cache.get(pieceFile(piece)) ?? await readLocal(piece.path, { ...piece, signal });
+        },
           put: async (id, bytes) => {
             const file = pieceFile(descriptors.get(id)); await cache.put(file, bytes, { signal }); retained.set(key(file), file);
             if (!closed && suppliedModel === model.identity) {
@@ -235,7 +244,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
       const controller = new AbortController(); shareController = controller;
       const signal = AbortSignal.any([lifetime.signal, controller.signal]);
       try {
-        const data = await metadata(model, signal), offered = [];
+        const data = await metadata(model, signal), offered = [], approvedLocalPieces = new Map();
         for (const file of model.source.files) {
           // Program/evidence metadata ships in the application. Custody offers
           // manifest-local model files and verified pieces, never nested program paths.
@@ -245,19 +254,22 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
         }
         for (const file of data.index.files) for (const piece of file.pieces) {
           signal.throwIfAborted(); const descriptor = pieceFile(piece);
-          const bytes = await cache.get(descriptor) || await readLocal(file.path, { ...piece, signal });
+          const cached = await cache.get(descriptor);
+          const bytes = cached || await readLocal(file.path, { ...piece, signal });
           if (!bytes) continue;
-          await verify(descriptor, bytes); await cache.put(descriptor, bytes, { signal });
+          await verify(descriptor, bytes);
+          if (!cached) approvedLocalPieces.set(key(descriptor), { ...piece, path: file.path });
           offered.push(descriptor); assert(offered.length <= policy.maxInventoryFiles, 'Native inventory limit exceeded');
         }
-        signal.throwIfAborted(); offeredFiles.clear();
+        signal.throwIfAborted(); offeredFiles.clear(); localPieces.clear();
+        for (const [id, piece] of approvedLocalPieces) localPieces.set(id, piece);
         for (const file of offered) offeredFiles.set(key(file), file);
         suppliedModel = model.identity; exchange.offer(offered); return getState();
       } finally { if (shareController === controller) shareController = null; }
     })()); },
-    stopSupply() { suppliedModel = null; offeredFiles.clear(); shareController?.abort(new Error('Native file contribution stopped')); exchange.stopSupply(); },
+    stopSupply() { suppliedModel = null; offeredFiles.clear(); localPieces.clear(); shareController?.abort(new Error('Native file contribution stopped')); exchange.stopSupply(); },
     close() { return closing ||= (async () => {
-      closed = true; suppliedModel = null; offeredFiles.clear(); lifetime.abort(new Error('Native file host closed')); exchange.stopSupply();
+      closed = true; suppliedModel = null; offeredFiles.clear(); localPieces.clear(); lifetime.abort(new Error('Native file host closed')); exchange.stopSupply();
       await Promise.allSettled([...operations]);
       const settled = await Promise.allSettled([...sources].map(source => Promise.resolve().then(() => source.storage.close()))
         .concat([Promise.resolve().then(() => exchange.close()), Promise.resolve().then(() => cache.close()), Promise.resolve().then(() => budget?.close())]));

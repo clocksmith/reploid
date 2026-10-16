@@ -1,0 +1,18 @@
+{
+  "content": "2",
+  "raw": "2",
+  "requestedModel": "qwen-3-5-0-8b-q4k-ehaf16",
+  "model": "qwen-3-5-0-8b-q4k-ehaf16",
+  "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "adapterIdentities": [],
+  "completion": null,
+  "timing": {
+    "totalMs": 718.5999999046326,
+    "generatedTokenCount": 2,
+    "prefillMs": 391.90000009536743,
+    "decodeMs": 320.09999990463257,
+    "firstTokenMs": 397.40000009536743
+  },
+  "provider": "doppler",
+  "execution": "local-scoped-session"
+}

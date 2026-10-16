@@ -115,6 +115,7 @@ it('requires separate supply approval and revokes inventory without closing comp
 it('rejects a corrupt supplier and uses another already authorized supplier', async () => {
   const f = await fixture(3); await f.share();
   await fs.writeFile(path.join(f.cacheDirectories[1], 'sha256-' + hash(f.chunks[0])), Buffer.from([9,9,9,9]));
+  await fs.writeFile(path.join(f.directories[1], 'weights.bin'), Buffer.from([9,9,9,9,5,6,7,8]));
   const source = await f.owners[0].preparePartitionSource(f.model);
   try { expect(new Uint8Array(await source.storage.loadShardRange(0,0,4))).toEqual(new Uint8Array(f.chunks[0]));
     expect(f.writes.filter(row => row.type === 'reploid:custody-request' && row.message.artifact).map(row => row.peer)).toEqual(['1','2']); }
@@ -231,4 +232,21 @@ it('loads nested signed metadata from its pinned native bundle without treating 
     expect(await source.artifactStore.readArtifact(artifact)).toEqual(new Uint8Array(bytes));
     expect(f.writes.some(row => row.type === 'reploid:custody-request')).toBe(false);
   } finally { await source.storage.close(); read.mockRestore(); }
+});
+
+it('verifies existing approved weight pieces without making a second disk copy', async () => {
+  const f = await fixture();
+  const source = await f.owners[1].preparePartitionSource(f.model);
+  try {
+    expect(new Uint8Array(await source.storage.loadShardRange(0, 0, 4))).toEqual(new Uint8Array(f.chunks[0]));
+    expect(await fs.readdir(f.cacheDirectories[1])).not.toContain('sha256-' + hash(f.chunks[0]));
+    expect(source.getReceipt().custody.reusedBytes).toBe(4);
+  } finally { await source.storage.close(); }
+});
+it('shares approved local files without duplicating their weights into the artifact cache', async () => {
+  const f = await fixture(); await f.share();
+  expect(await fs.readdir(f.cacheDirectories[1])).not.toContain('sha256-' + hash(f.chunks[0]));
+  const source = await f.owners[0].preparePartitionSource(f.model);
+  try { expect(new Uint8Array(await source.storage.loadShardRange(0, 0, 4))).toEqual(new Uint8Array(f.chunks[0])); }
+  finally { await source.storage.close(); }
 });

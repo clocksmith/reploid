@@ -479,18 +479,18 @@
     },
     {
       "path": "contracts/config/doppler-generation-contract.d.ts",
-      "bytes": 2429,
-      "sha256": "ca4101e02943528bc67ccc7c6c9df38c25fa64218238da83fe822fa945e5b299"
+      "bytes": 3796,
+      "sha256": "9b21edfc74406d23abe618af085818dfcbe915c9a62009c9598482fc9ba586e3"
     },
     {
       "path": "contracts/doppler-partitions.d.ts",
-      "bytes": 5506,
-      "sha256": "907fabad0a6125369d769e530e54544093530bb283f6a89a17b5568f157f6a6b"
+      "bytes": 7615,
+      "sha256": "fb1af1067aab37643dab6ec8a661ce2b4ff1bae18f1c2eefb87b8ba3fc704225"
     },
     {
       "path": "contracts/doppler-partitions.provenance.json",
-      "bytes": 922,
-      "sha256": "e698a00796dbbf8badd3525f2e33605aa65a78efaa6d6ab813cc94ce6c703ad7"
+      "bytes": 912,
+      "sha256": "dcea75d6f82eaade1d4de579ab281bc2931ae49a678d52d862865b493110bea8"
     },
     {
       "path": "contracts/host-ports.d.ts",
@@ -744,8 +744,8 @@
     },
     {
       "path": "mesh/partitions/automatic-partitions.js",
-      "bytes": 19978,
-      "sha256": "c951566571314cb4c59382962d9c915136e4207edef5adba8a1a47d47a12f5c8"
+      "bytes": 20368,
+      "sha256": "d925e7cab76682af087aa3de3fdb82108cf2cc1078c5359518151eaa089aaf0b"
     },
     {
       "path": "mesh/partitions/partition-attempt-evidence.d.ts",
@@ -834,8 +834,8 @@
     },
     {
       "path": "mesh/partitions/partition-discovery.js",
-      "bytes": 5681,
-      "sha256": "e41ca4b0f5f56b6bb880a3f04804301c9f5c0c22a8bb4963ccba112369061baa"
+      "bytes": 5979,
+      "sha256": "a6272c1a70108f95f8186a7e0e20dcab9d384a231b71aa02eef77401b9e5dd61"
     },
     {
       "path": "mesh/partitions/partition-entry-publication.d.ts",
@@ -944,8 +944,8 @@
     },
     {
       "path": "mesh/partitions/partition-placement.js",
-      "bytes": 10249,
-      "sha256": "8bd999e09d28bca2c7a90e8d9b2833d25f8a23ec5492977fded21cdde1497cae"
+      "bytes": 10662,
+      "sha256": "a6956d2d094128e52756ed841787fa1359b747979267454c8a8e280f9edc92dd"
     },
     {
       "path": "mesh/partitions/partition-preparation-progress.d.ts",

@@ -61,6 +61,9 @@ export function createPartitionDiscovery({ identity, catalog, policy, peers, cre
             if (description?.schema === 'reploid.partition-capability/v2') {
               validateOrderedPartitionCapability(description, peer.participantId, policy.maxStageOffersPerPeer);
             } else assert(description.participantId === peer.participantId && Array.isArray(description.models)
+              && (description.eligibleIndexes === undefined || Array.isArray(description.eligibleIndexes)
+                && description.eligibleIndexes.length > 0 && description.eligibleIndexes.length <= 2
+                && description.eligibleIndexes.every(index => index === 0 || index === 1))
               && description.models.length <= catalog.length && [null, 0, 1].includes(description.index)
               && (!description.capacity || Number.isSafeInteger(description.capacity.availableSlots)
                 && description.capacity.availableSlots >= 0 && Number.isSafeInteger(description.capacity.active)

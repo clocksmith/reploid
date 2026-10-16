@@ -1,6 +1,6 @@
 {
   "schema": "reploid.doppler-partition-types/v1",
-  "packageVersion": "0.6.27-unicode.1",
+  "packageVersion": "0.6.30",
   "publicExport": "./partitions",
   "exportedTypes": [
     "LAYER_PARTITION_SCHEMA",
@@ -26,5 +26,5 @@
     "ResidentRecoveryCapabilities",
     "ResidentPartitionSession"
   ],
-  "sha256": "907fabad0a6125369d769e530e54544093530bb283f6a89a17b5568f157f6a6b"
+  "sha256": "fb1af1067aab37643dab6ec8a661ce2b4ff1bae18f1c2eefb87b8ba3fc704225"
 }

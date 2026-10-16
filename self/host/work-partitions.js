@@ -24,7 +24,7 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
   if (canonical && (typeof runtime.canonicalGenerationIdentity !== 'function'
     || canonical.identity?.peerId !== participantId || !/^[a-f0-9]{32}$/.test(canonical.participantEpoch)
     || !selected.canonicalGeneration)) throw new Error('Canonical contribution requires declared generation and provider capability');
-  await runtime.configureDeviceMemoryBudget({ maxBytes: policy.maxGpuBufferBytes });
+  await runtime.configureDeviceMemoryBudget({ maxBytes: selected.partitionRuntime?.maxGpuBufferBytes?.[index] ?? policy.maxGpuBufferBytes });
   const acquisitionStarted = performance.now();
   const source = await files.preparePartitionSource(selected, { signal, onProgress });
   const manifest = source.manifest;
@@ -84,7 +84,7 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
         assertSession: assertWorkResidentCapsule, closeSources, trackSession,
         canonical: !!canonical, onVerification: value => { capsuleVerification = value; }, onLoadProgress });
     } else factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: model.identity, onLoadProgress,
-      runtimeConfig: { shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: policy.profileGpu } } },
+      runtimeConfig: selected.partitionRuntime?.runtimeConfig ?? { shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: policy.profileGpu } } },
         inference: { session: { kvcache: { maxSeqLen: model.generation.maxSeqLen },
           prefillChunkLayers: policy.prefillChunkLayers, prefillTokenChunkSize: policy.prefillTokenChunkSize } } },
       createStorage: async () => tokenizer.storage });
