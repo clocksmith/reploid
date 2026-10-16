@@ -91,6 +91,8 @@ async function findCatscanFiles(root) {
       && (entry.isFile() || entry.isDirectory()))) return;
     for (const entry of entries) {
       if (entry.isDirectory() && IGNORED_DIRECTORIES.has(entry.name)) continue;
+      // Root output/ contains generated source snapshots, not live component owners.
+      if (directory === root && entry.isDirectory() && entry.name === 'output') continue;
       const resolved = path.join(directory, entry.name);
       if (entry.isDirectory()) await visit(resolved);
       else if (entry.isFile() && entry.name === 'CATSCAN.md') found.push(resolved);
