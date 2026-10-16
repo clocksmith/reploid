@@ -22,7 +22,7 @@ export interface SearchResult {
 /** Per-query usage a provider reports: billable requests and, when priced, the cost in micro-dollars (null when unpriced). */
 export interface SearchUsage { provider: string; requests: number; costMicroUsd: number | null }
 export type CostBearer = 'operator' | 'requester';
-export type RetrievalSupplyKind = 'server' | 'device';
+export type RetrievalSupplyKind = 'server' | 'device' | 'contributor';
 /** A search provider. The host owns its credentials, terms and any disclosure of the query to it. */
 export interface SearchProvider {
   id: string; version: string;
@@ -33,7 +33,7 @@ export interface SearchProvider {
   /** Where the query is sent from and pages are fetched: an operator's server route, or this device. Recorded in the retrieval record. */
   supply?: RetrievalSupplyKind;
   /** `context.answer` is an opaque per-answer key a provider may record in its own usage log; it is not part of the query. */
-  search(query: string, limits: RetrievalLimits, signal: AbortSignal, context?: { answer?: string }):
+  search(query: string, limits: RetrievalLimits, signal: AbortSignal, context?: { answer?: string; providerId?: string }):
     Promise<SearchResult[] | { results: SearchResult[]; usage?: SearchUsage }>;
 }
 /** Where an extracted passage sits in the fetched document's extracted text, which `sha256` identifies. end - start is the passage length. */

@@ -49,7 +49,8 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
     assert(grant != null, 'Search-backed answers need the per-answer search permission');
     const valid = validateSearchPermission(grant);
     assert(valid.threadId === thread.id && valid.networkId === networkId() && valid.query === searched.query
-      && valid.searchProvider === route.provider.searchProvider && valid.searchServer === (route.provider.searchServer ?? null),
+      && valid.searchProvider === route.provider.searchProvider && valid.searchServer === (route.provider.searchServer ?? null)
+      && (valid.searchPeer ?? null) === (route.provider.searchPeer ?? null),
     'The search permission does not cover this answer');
     assert(!threads.some(item => item.attempts.some(attempt => attempt.searchPermission?.id === valid.id)), 'A search permission allows one answer');
     return valid;

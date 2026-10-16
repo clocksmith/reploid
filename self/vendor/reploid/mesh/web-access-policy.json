@@ -1,0 +1,13 @@
+{
+  "pollMs": 5000,
+  "timeoutMs": 15000,
+  "maxPending": 8,
+  "maxInbound": 8,
+  "maxPeers": 64,
+  "maxMessageBytes": 48000,
+  "maxQueryCharacters": 2000,
+  "maxResults": 5,
+  "maxSourceCharacters": 6000,
+  "maxSeen": 512,
+  "resultTtlMs": 60000
+}

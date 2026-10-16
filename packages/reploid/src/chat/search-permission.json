@@ -8,6 +8,10 @@
     "device-mcp": {
       "version": "2026-10-15",
       "text": "Allow Reploid to send this search query from this device to the search server you set up in Settings, fetch the result pages on this device without your sign-ins, and share retrieved passages with the listed execution contributors for this answer. Your files and unrelated conversation history are excluded."
+    },
+    "contributor-bing": {
+      "version": "2026-10-16",
+      "text": "Allow Reploid to send this search query to the listed search contributor, which sends it to Bing and fetches public result pages without personal sign-ins. Share the retrieved passages with the listed execution contributors for this answer. Your files and unrelated conversation history are excluded."
     }
   },
   "maxRecipients": 64,

@@ -12,7 +12,7 @@ export const HOSTED_EXECUTION_REFUSED = 'This answer came from a hosted service,
 export const UNRECOGNIZED_EXECUTION_REFUSED = 'This answer came from an executor Reploid does not recognize. It was not accepted.';
 
 const ORDER = new Map(SUPPLY_CLASSES.map((name, index) => [name, index]));
-const RETRIEVAL_SUPPLY = new Set(['server', 'device']);
+const RETRIEVAL_SUPPLY = new Set(['server', 'device', 'contributor']);
 const EXECUTOR_FIELDS = ['provider', 'placement', 'identity', 'peerId', 'participantA', 'participantB', 'hostedProvider'];
 const id = value => typeof value === 'string' && value.length > 0 && value.length <= 256;
 const unknown = (placement, reason) => ({ supply: 'unknown', classes: [], placement: typeof placement === 'string' ? placement : null,

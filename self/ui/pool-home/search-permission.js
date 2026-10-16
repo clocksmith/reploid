@@ -9,6 +9,7 @@ export function renderSearchPermissionDialog() {
     <h2 class="pool-heading" id="chat-search-permission-title">Search for this answer?</h2>
     <div id="chat-search-permission-body"><p data-search-permission-text></p>
       <p data-search-permission-server hidden>Search server: <span data-search-permission-server-host></span></p>
+      <p data-search-permission-peer hidden>Search contributor: <span data-search-permission-peer-label></span></p>
       <p data-search-permission-recipients-label>Execution contributors:</p><ul data-search-permission-recipients></ul></div>
     <div class="chat-network-actions"><button class="pool-button" type="button" data-search-permission-decline>Don't search</button>
       <button class="pool-button btn-primary" type="button" data-search-permission-allow>Allow</button></div>
@@ -25,13 +26,15 @@ export function bindSearchPermissionDialog(dialog, session) {
   dialog.addEventListener('close', () => { opener?.isConnected && opener.focus({ preventScroll: true }); finish(false); }, options);
   return {
     get open() { return dialog.open; },
-    ask({ wording, recipients, searchServer = null }) {
+    ask({ wording, recipients, searchServer = null, searchPeer = null }) {
       if (pending) return Promise.resolve(false);
       find('[data-search-permission-text]').textContent = wording.text;
       // A person-chosen search server is named; the permission covers that server only.
       find('[data-search-permission-server]').hidden = !searchServer;
       find('[data-search-permission-server-host]').textContent = searchServer || '';
       const state = withComputerLabels(session.getState(), session), list = find('[data-search-permission-recipients]');
+      find('[data-search-permission-peer]').hidden = !searchPeer;
+      find('[data-search-permission-peer-label]').textContent = searchPeer ? `${computerLabel(state, searchPeer)} (${searchPeer})` : '';
       list.replaceChildren(...(recipients.length ? recipients : [null]).map(id => {
         const item = dialog.ownerDocument.createElement('li');
         item.textContent = id === null ? 'None. This answer runs on this device.' : computerLabel(state, id);

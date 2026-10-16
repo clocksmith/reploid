@@ -1,4 +1,5 @@
 /** Explicit compatibility text swarm, separate from admitted signed Pack operations. */
+import { createWebAccessNetwork } from '../vendor/reploid/mesh/web-access-network.js';
 import { createLegacyGenerationMesh, createAutomaticPartitions } from '../vendor/reploid/mesh/index.js';
 import { createSwarmTransport, createRoomIntroductionAdmission } from '../vendor/reploid/transport/index.js';
 import { resolveConfig } from '../vendor/reploid/config/index.js';
@@ -30,7 +31,7 @@ export const READINESS_RECORDS_KEY = 'REPLOID_READINESS_RECORDS';
  * attempts then carry that registered participant. Without it, or when it resolves null, each
  * connection keeps its own identity as before. */
 export function createWorkSwarm({ storage, evolution, onChange = () => {}, service = createReploidDopplerRuntimeService(), networkOptions = createLegacyNetworkOptions,
-  createModelFiles = createWorkModelFiles, createPartitions = createAutomaticPartitions, canonical = null, ordered = null, participantIdentity = null }) {
+  createModelFiles = createWorkModelFiles, createPartitions = createAutomaticPartitions, canonical = null, ordered = null, participantIdentity = null, webWorker = null }) {
   ordered = snapshotWorkOrderedParticipation(ordered, canonical, LOCAL_DOPPLER_MODELS);
   canonical = canonical ? Object.freeze({ runtime: canonical.runtime, meshId: canonical.meshId,
     participantId: canonical.participantId, participantEpoch: canonical.participantEpoch, coordinatorEpoch: canonical.coordinatorEpoch }) : null;
@@ -62,7 +63,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     if (failures.length) throw new AggregateError(failures, 'Contribution cleanup remains unsettled');
   };
   let partitionNetworks = null;
-  let consumerTransport = null;
+  let consumerTransport = null, webNetwork = null;
   // Readiness spans and admissions of the stages this connection's partition owner prepares.
   const readinessStore = typeof storage?.getItem === 'function' && typeof storage.setItem === 'function'
     ? createReadinessRecordStore({ storage, key: READINESS_RECORDS_KEY }) : null;
@@ -91,6 +92,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   const getState = () => ({ introductionAssistance, sharing, computeEnabled, filesEnabled, stopping, connecting, paused,
     error: error || connectionFailure?.message || '', unsettledOwners: cleanupDebt.size, models: LOCAL_DOPPLER_MODELS,
     discoveryScope: options.discoveryScope,
+    webContributors: webNetwork?.getOffers() || [],
     partitionPeers: partitionMesh?.getState?.()?.capabilities || [],
     contribution: { ...contribution }, limits: { maxInboundJobs: contribution.partition ? partitionPolicy.limits.maxConcurrentAttempts : 1, maxOutputTokens: profile.generation.maxTokens },
     consumer: consumer?.getSwarmSnapshot() || null, supplier: supplier?.getSwarmSnapshot() || null,
@@ -201,6 +203,8 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
         const active = consumer;
         await active.connect();
         if (closed || paused || version !== generation) { await active.close(); throw new Error('Text swarm connection stopped'); }
+        webNetwork = createWebAccessNetwork({ transport: consumerTransport, worker: webWorker, enabled: () => !closed && !paused && webWorker !== null,
+          verifyPeer: (peer, signal) => active.verifyPeerIdentity(peer, signal), onChange: notify });
         await peerOffers?.attach();
         modelFiles = createModelFiles({ getTransport: () => consumerTransport, getIdentity: () => consumerIdentity, onChange: notify });
         await modelFiles.attach();
@@ -245,8 +249,8 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       return getState();
     }
     catch (cause) {
-      const owners = [partitionMesh, partitionNetworks, modelFiles, consumer];
-      partitionMesh = null; partitionRequester = null; partitionNetworks = null; modelFiles = null; consumer = null; consumerTransport = null;
+      const owners = [webNetwork, partitionMesh, partitionNetworks, modelFiles, consumer];
+      webNetwork = null; partitionMesh = null; partitionRequester = null; partitionNetworks = null; modelFiles = null; consumer = null; consumerTransport = null;
       peerOffers?.close();
       const finishReadiness = retireReadiness('connection-failed');
       const results = await Promise.allSettled(owners.map(closeOwner));
@@ -321,6 +325,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     generation++;
     connectionFailure = null;
     const finishReadiness = retireReadiness('disconnected');
+    const webStop = closeOwner(webNetwork); webNetwork = null;
     const contributionStop = stopContribution();
     const partitionStop = closeOwner(partitionMesh); partitionMesh = null; partitionRequester = null;
     const fileStop = closeOwner(modelFiles); modelFiles = null;
@@ -329,7 +334,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     const transportStop = Promise.resolve().then(() => previousTransport?.disconnect());
     peerOffers?.close();
     const networkStop = closeOwner(partitionNetworks); partitionNetworks = null;
-    const pending = [connection, contributionStop, closeOwner(previousConsumer), fileStop, partitionStop, networkStop, transportStop,
+    const pending = [connection, contributionStop, closeOwner(previousConsumer), fileStop, partitionStop, networkStop, transportStop, webStop,
       ...[...cleanupDebt].map(closeOwner)];
     disconnecting = (async () => {
       const results = await Promise.allSettled(pending);
@@ -348,7 +353,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       if (closed || paused || !partitionNetworks) throw new Error('Connect before opening partition channels');
       return partitionNetworks.open({ createEndpoint, maxPeers, timeoutMs, onPeer, label, ...(ordered ? { ordered } : {}) });
     }
-  const api = Object.freeze({ getState, connect, disconnect, partitions,
+  const api = Object.freeze({ getState, connect, disconnect, partitions, getWebNetwork: () => webNetwork,
     allowIntroductions(allowed) {
       if (closed) throw new Error('Network is closed');
       introductionAssistance = allowed === true;

@@ -180,7 +180,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const allowSearch = async (model, sharingScope, route = searchRouteNow(), location = executionLocation) => {
     const request = session.searchPermissionRequest({ model, sharingScope, executionLocation: location, ...(route ? { route } : {}) });
     return await searchPermission.ask(request)
-      ? { route: request.route, wording: request.wording, recipients: request.recipients, searchServer: request.searchServer ?? null } : null;
+      ? { route: request.route, wording: request.wording, recipients: request.recipients, searchServer: request.searchServer ?? null, searchPeer: request.searchPeer ?? null } : null;
   };
   function resizeInput() {
     input.style.removeProperty('--pool-param-composer-height');

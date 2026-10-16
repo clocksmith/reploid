@@ -23,7 +23,7 @@ class RetrievalError extends Error {
 }
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 /** Where a provider's retrieval runs: an operator's server route, or this device. Recorded with the provider. */
-export const RETRIEVAL_SUPPLIES = Object.freeze(['server', 'device']);
+export const RETRIEVAL_SUPPLIES = Object.freeze(['server', 'device', 'contributor']);
 const copy = value => structuredClone(value);
 const port = value => value && typeof value.id === 'string' && value.id && typeof value.version === 'string' && value.version;
 const line = value => String(value).replace(/\s+/g, ' ').trim();
@@ -155,7 +155,7 @@ export async function retrieveSources({ record, provider, extractor = null, sign
   let usage = null;
   // What this retrieval spent, for its cost record: observed even when it fails.
   const meter = { searched: false, usage: null, attempted: 0, documents: 0, failed: 0, bytes: 0, costs: [] };
-  const context = answer === null ? {} : { answer };
+  const context = { providerId: record.provider.id, ...(answer === null ? {} : { answer }) };
   const finish = (fields) => ({ ...record, ...fields, usage, finishedAt: now(), costs: retrievalCostRecord({
     retrieval: retrievalCostEntry({ bearer: provider.costBearer ?? null, service: provider.searchProvider ?? null, meter }) }) });
   try {
