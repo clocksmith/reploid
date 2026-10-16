@@ -15,6 +15,7 @@
       },
       "mesh": {
         "executeJobs": true,
+        "generationTimeoutMs": 300000,
         "routing": "local-first"
       },
       "webrtc": {
