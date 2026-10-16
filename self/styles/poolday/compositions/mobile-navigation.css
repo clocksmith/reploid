@@ -1,0 +1,89 @@
+/* Shared mobile dock. Its surface and controls come from existing primitives.
+   The chat host supplies visual-viewport height when the keyboard is open. */
+@media (max-width: 760px) {
+  .pool-home {
+    --pool-param-app-bar-gap: var(--pool-size-8);
+    --pool-param-app-bar-inset: max(var(--pool-param-app-bar-gap), env(safe-area-inset-bottom));
+    padding-left: max(var(--pool-size-16), env(safe-area-inset-left));
+    padding-right: max(var(--pool-size-16), env(safe-area-inset-right));
+    padding-bottom: calc(var(--pool-metric-app-bar) + var(--pool-param-app-bar-inset) + var(--pool-param-app-bar-gap));
+  }
+
+  .pool-home .pool-primary-nav.pool-mobile-app-bar,
+  .pool-home .reploid-chat-workspace > .pool-mobile-app-bar {
+    position: fixed;
+    top: auto;
+    bottom: calc(max(0px, 100dvh - var(--pool-param-workspace-height, 100dvh)) + var(--pool-param-app-bar-inset));
+    left: max(var(--pool-param-app-bar-gap), env(safe-area-inset-left));
+    right: max(var(--pool-param-app-bar-gap), env(safe-area-inset-right));
+    width: auto;
+    height: auto;
+    min-height: var(--pool-metric-app-bar);
+    max-width: none;
+    max-height: calc(var(--pool-param-workspace-height, 100dvh) - var(--pool-param-app-bar-inset) - var(--pool-size-16));
+    margin: 0;
+    box-sizing: border-box;
+  }
+
+  .pool-home .pool-primary-nav.pool-mobile-app-bar {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: var(--pool-size-8);
+    padding: var(--pool-size-8) var(--pool-size-16);
+  }
+  .pool-mobile-app-bar .pool-primary-wordmark { display: none; }
+  .pool-mobile-app-bar .pool-primary-actions { grid-column: 3; grid-row: 1; }
+  .pool-home .pool-mobile-app-bar > .execution-ribbon { grid-column: 2; grid-row: 1; min-width: 0; }
+  .pool-mobile-app-bar .execution-ribbon-route { display: none; }
+  .pool-mobile-app-bar .execution-ribbon-trigger { padding: 0; }
+  .pool-mobile-app-bar .pool-settings > summary { width: var(--pool-size-44); min-width: 0; height: var(--pool-size-44); padding: 0; }
+  .pool-mobile-app-bar .pool-settings-panel { top: auto; bottom: calc(100% + var(--pool-size-16)); max-height: 65dvh; overflow-y: auto; }
+  .pool-home-toolbar,
+  .pool-home-stage--focused .pool-home-toolbar { padding-inline: var(--pool-size-8); }
+  .pool-home-task { width: 100%; margin-right: 0; }
+
+  .pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network']) {
+    height: min(100dvh, var(--pool-param-workspace-height));
+    padding-left: max(var(--pool-size-8), env(safe-area-inset-left));
+    padding-right: max(var(--pool-size-8), env(safe-area-inset-right));
+    padding-bottom: calc(var(--pool-metric-app-bar) + var(--pool-param-app-bar-inset) + var(--pool-param-app-bar-gap));
+  }
+  .pool-mobile-app-bar .chat-rail-toolbar {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: center;
+    gap: var(--pool-size-8);
+    padding: var(--pool-size-8);
+    min-height: var(--pool-metric-app-bar);
+    box-sizing: border-box;
+  }
+  .pool-mobile-app-bar :is(.chat-rail-primary, .chat-rail-heading, .chat-rail-footer, [data-network-trigger-slot], [data-inspector-navigation]) { display: contents; }
+  .pool-mobile-app-bar .chat-rail-heading > span { width: auto; }
+  .pool-home .pool-mobile-app-bar :is(.chat-rail-heading button, [data-inspector-section]) {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: var(--pool-size-2);
+    width: 100%;
+    min-height: var(--pool-size-44);
+    padding: 0;
+  }
+  .pool-mobile-app-bar .chat-rail-label { display: block; }
+  .pool-home[data-left-rail-open] .pool-mobile-app-bar .chat-rail-digest,
+  .pool-mobile-app-bar .chat-rail-digest { display: none; }
+  .pool-mobile-app-bar :is(.chat-thread-panel, .chat-rail-controls) { display: none; }
+  .pool-home[data-left-rail-open] .pool-mobile-app-bar .chat-thread-panel {
+    display: flex;
+    grid-column: 1 / -1;
+    grid-row: 1;
+    height: min(45dvh, var(--pool-size-480));
+    max-height: calc(var(--pool-param-workspace-height) - var(--pool-metric-app-bar) * 3);
+  }
+  .pool-home[data-left-rail-open] .pool-mobile-app-bar .chat-rail-controls {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .pool-mobile-app-bar .chat-conversation-actions > div { top: auto; bottom: 100%; max-height: 40dvh; }
+  .pool-mobile-app-bar .chat-thread-info:empty { display: none; }
+}

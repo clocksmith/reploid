@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes"
+      content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover"
     />
     <base id="reploid-base" href="/" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
@@ -38,7 +38,7 @@
       ]);
       const productRoute = productPaths.has(pathname);
       // Keep this synchronous boot list aligned with styles/poolday/layers.json.
-      const pooldayStylesheets = ["tokens.css", "primitives/base.css", "primitives/surfaces.css", "primitives/controls.css", "primitives/layout.css", "primitives/text.css", "primitives/optical.css", "compositions/screens.css", "compositions/conversation.css", "compositions/interaction.css"];
+      const pooldayStylesheets = ["tokens.css", "primitives/base.css", "primitives/surfaces.css", "primitives/controls.css", "primitives/layout.css", "primitives/text.css", "primitives/optical.css", "compositions/screens.css", "compositions/conversation.css", "compositions/interaction.css", "compositions/mobile-navigation.css"];
       const ensurePooldayStylesheet = () => {
         const version = encodeURIComponent(window.REPLOID_BUILD_VERSION || '');
         // Layer order is load order: tokens -> primitives -> components.

@@ -22,7 +22,7 @@ const startingPrompts = [
 
 export function renderConversationWorkspace({ inspector = true } = {}) {
   return `<section class="reploid-chat-workspace" data-chat-workspace aria-label="Conversation workspace">
-    <aside id="chat-threads" class="chat-thread-sidebar" data-thread-sidebar aria-label="Conversation controls">
+    <aside id="chat-threads" class="chat-thread-sidebar pool-mobile-app-bar" data-thread-sidebar aria-label="Conversation controls">
       <div class="chat-rail-toolbar pool-surface" data-chat-rail-toolbar>
       <div class="chat-rail-primary">
       <div class="chat-rail-heading">

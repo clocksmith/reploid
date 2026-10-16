@@ -3325,7 +3325,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:2e1f612a2c8d2f745fded3452d5c8559db68b31a9565d906529cedf0a308c361",
+      "sha256": "sha256:87bac216b6ff6471ebea6a02b948e2023a03b2dc92271c335743aa54a6d9db1a",
       "imports": []
     },
     {
@@ -3396,7 +3396,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:27c576c32e7b4308ee0c59dfd7428e5801174332e6cc52c189bad22da464dcfd",
+      "sha256": "sha256:46dd934ce588d808abfcfd634f87f6d4757507f327beb91fbf2fc63339aa82a8",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -3665,7 +3665,7 @@
     {
       "path": "ui/pool-home/shell-view.js",
       "owner": "ui",
-      "sha256": "sha256:a3008b2561fbf911f242104db401b666da525e8d6970dcfbcdcefde061604422",
+      "sha256": "sha256:85fd2df7720db1f4d11e06d4e7d0f0d44add650a6e54bdce4544699f0a0f7138",
       "imports": [
         "../../host/product-context.js",
         "../../pool/peer-room.js",

@@ -37,7 +37,7 @@ export const renderNav = (activeRoute) => {
   const changesPath = escapeHtml(roomHref(changes.path, getPeerRoomId()));
   const networkAction = ['home', 'network'].includes(activeRoute) ? '' : '<button class="pool-button" type="button" data-open-network>Network</button>';
   return `
-    <nav class="pool-nav-rail pool-primary-nav${['home', 'network'].includes(activeRoute) ? '' : ' pool-surface'}" aria-label="${escapeHtml(POOLDAY_NAME)}">
+    <nav class="pool-nav-rail pool-primary-nav${['home', 'network'].includes(activeRoute) ? '' : ' pool-surface pool-mobile-app-bar'}" aria-label="${escapeHtml(POOLDAY_NAME)}">
       ${['home', 'network'].includes(activeRoute) ? `<button class="pool-primary-brand pool-button" type="button" data-toggle-thread-rail aria-label="Toggle threads" aria-expanded="false">${renderPowerTower()}</button>` : `<a class="pool-primary-brand pool-heading pool-plain" aria-label="${escapeHtml(POOLDAY_NAME)} home"${activeRoute === 'home' ? ' aria-current="page"' : ''} href="${home}" data-pool-route-link="${home}">${renderPowerTower()}<span class="pool-primary-wordmark">${escapeHtml(POOLDAY_NAME)}</span></a>`}
       ${renderExecutionRibbon()}
       <div class="pool-primary-actions">

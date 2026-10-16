@@ -11,6 +11,7 @@
   "compositions": [
     "compositions/screens.css",
     "compositions/conversation.css",
-    "compositions/interaction.css"
+    "compositions/interaction.css",
+    "compositions/mobile-navigation.css"
   ]
 }

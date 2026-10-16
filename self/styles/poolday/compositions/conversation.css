@@ -325,13 +325,6 @@
 .chat-model-facts dd { margin: 0; overflow-wrap: anywhere; }
 .network-inspector :is([data-inspector-error], [data-network-message]) { margin-top: var(--pool-size-24); }
 .chat-distribution { display: flex; gap: var(--pool-size-2); height: var(--pool-size-8); overflow: hidden; margin-top: var(--pool-size-8); }
-@media (max-width: 760px) {
-  /* Expanded content overlays on phones; the one toolbar stays reachable. */
-  .pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network']) {
-    padding-left: calc(var(--pool-param-rail-collapsed) + var(--pool-param-chat-gutter) * 2);
-  }
-  .pool-home .reploid-chat-workspace > .chat-thread-sidebar { max-width: calc(100vw - var(--pool-param-chat-gutter) * 2); }
-}
 .pool-home .pool-power-tower { display: inline-flex; align-items: center; justify-content: center; width: max-content; height: var(--pool-size-32); gap: var(--pool-size-2); }
 .pool-home .pool-power-tower :is(.pool-seven-main, .pool-seven-small) { position: static; margin: 0; animation: none; transition: none; }
 .pool-home .pool-power-tower .pool-seven-main { order: 1; transform: translateY(var(--pool-size-2)); }
