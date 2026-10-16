@@ -1,0 +1,33 @@
+{
+  "schema": "reploid.q4-split-chat-experiment/v1",
+  "frozenAt": "2026-10-16T18:55:34.598901+00:00",
+  "authorization": "Owner accepts the retained small numerical difference for now and requests working split chat plus performance. Historical 0.001 gate remains failed, not relabeled.",
+  "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "plan": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+  "caps": {
+    "maxGpuProcessStarts": 6,
+    "maxNewProviderResidentSeconds": 10800,
+    "maxOutputTokensPerRequest": 256,
+    "maxBrowserJourneys": 3,
+    "externalSpendUSD": 0
+  },
+  "preserve": [
+    "public 27B Q4K",
+    "public 0.8B",
+    "public 2B"
+  ],
+  "memoryBudgets": {
+    "macGpuBytes": 6442450944,
+    "amdGpuBytes": 25769803776,
+    "amdProcessBytes": 34359738368
+  },
+  "acceptance": [
+    "real Reploid browser send over authenticated WebRTC to Mac input and AMD output stages",
+    "17 + 25 -> 42; follow-up subtract 2 -> 40",
+    "stream cancellation and reuse: 6 * 7 -> 42",
+    "reload retains conversation; browser downloads no weights",
+    "report preparation, first delta and complete latency; no superiority claim"
+  ],
+  "performancePrompt": "Count from one to twenty, separated by commas.",
+  "numericalDisposition": "Owner-authorized integration exception only; retain implementation, deployment and quality as separate judgments."
+}

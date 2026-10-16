@@ -187,8 +187,7 @@ it('migrates the existing localStorage workspace and drafts once', async () => {
 });
 
 it('keeps ordinary history, and says so in state, when the installed runtime lacks metadataDigest', async () => {
-  const storage = memoryStorage(), history = profileHistory(runtime);
-  expect(typeof runtime.metadataDigest).toBe('undefined');
+  const storage = memoryStorage(), history = profileHistory({ ...runtime, metadataDigest: undefined });
   const host = await openProduct(storage, history, { autoConnect: false });
   const state = host.chat.getState();
   expect(state.history).toEqual({ mode: 'ordinary', publication: null,

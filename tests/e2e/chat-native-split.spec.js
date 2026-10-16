@@ -1,0 +1,118 @@
+import { test, expect } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
+
+// An operator prepares the exact native model separately. This test neither
+// starts a contributor nor downloads weights or changes its resource limits.
+const url = process.env.REPLOID_SPLIT_CHAT_URL;
+const modelId = process.env.REPLOID_SPLIT_CHAT_MODEL;
+
+test('native split chat streams, follows up, cancels, reuses and reloads', async ({ browser }, info) => {
+  test.skip(!url || !modelId, 'Set REPLOID_SPLIT_CHAT_URL and REPLOID_SPLIT_CHAT_MODEL for a prepared native provider');
+  test.setTimeout(240000);
+  const models = JSON.parse(await readFile('self/config/chat-models.json', 'utf8'));
+  const model = models.find(candidate => candidate.id === modelId);
+  expect(model, 'The exact model must be present in the tested catalog').toBeTruthy();
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  const errors = [], weightRequests = [], turns = [];
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('request', request => {
+    if (/shard_\d+\.bin|tokenizer\.json/.test(request.url())) weightRequests.push(new URL(request.url()).pathname);
+  });
+  const history = () => page.evaluate(async () => {
+    const open = indexedDB.open('reploid-requester-history');
+    const db = await new Promise((resolve, reject) => { open.onsuccess = () => resolve(open.result); open.onerror = () => reject(open.error); });
+    try {
+      const request = db.transaction('conversations', 'readonly').objectStore('conversations').get('workspace');
+      const record = await new Promise((resolve, reject) => { request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
+      if (!record) return null;
+      // Ordered storage deliberately keeps text in publication records, outside metadata.
+      for (const thread of record.workspace.threads) {
+        const publications = record.publications[thread.id]?.records ?? [];
+        for (const attempt of thread.attempts.filter(row => row.publicationMode === 'canonical')) {
+          const message = thread.messages.find(row => row.id === attempt.responseId);
+          message.content = publications.filter(row => row.publication.attemptId === attempt.id)
+            .map(row => row.publication.delta?.text ?? '').join('');
+        }
+      }
+      return record.workspace;
+    } finally { db.close(); }
+  });
+  const current = async () => (await history())?.threads.at(-1);
+  let sentAt, firstDeltaMs;
+  const send = async prompt => {
+    firstDeltaMs = null;
+    await page.locator('[data-composer-input]').fill(prompt);
+    await expect(page.locator('[data-composer-send]')).toBeEnabled({ timeout: 60000 });
+    sentAt = performance.now();
+    await page.locator('[data-composer-send]').click();
+  };
+  const completion = async count => {
+    await expect.poll(async () => {
+      const thread = await current();
+      const attempt = thread?.attempts.at(-1);
+      if (thread?.attempts.length !== count) return 'awaiting-attempt';
+      if (firstDeltaMs === null && thread.messages.at(-1)?.role === 'assistant' && thread.messages.at(-1).content) firstDeltaMs = performance.now() - sentAt;
+      if (['failed', 'interrupted', 'cancelled'].includes(attempt.status)) {
+        throw new Error(`Attempt ${attempt.id} ${attempt.status}: ${attempt.error || 'no completed answer'}`);
+      }
+      return attempt.status;
+    }, { timeout: 90000, intervals: [100] }).toBe('completed');
+    const thread = await current();
+    const attempt = thread.attempts.at(-1);
+    expect(attempt.execution.identity.route.planId).toBe(model.partitionPlanId);
+    expect(attempt.execution.identity.route.modelIdentity).toBe(model.identity);
+    expect(new Set(attempt.execution.identity.route.stages.map(stage => stage.participantId)).size).toBe(2);
+    expect(thread.messages.at(-1).content).not.toContain('\uFFFD');
+    turns.push({ attempt, answer: thread.messages.at(-1).content, firstDeltaMs, completeMs: performance.now() - sentAt });
+    console.log(JSON.stringify({ turn: count, answer: thread.messages.at(-1).content, completeMs: turns.at(-1).completeMs }));
+    return thread;
+  };
+  try {
+    await page.goto(url);
+    await page.locator('[data-chat-workspace]').waitFor();
+    await page.locator('[data-open-model]').click();
+    await page.locator('[data-active-model-select]').selectOption(modelId + '/partition/' + model.partitionPlanId);
+    await page.locator('[data-close-inspector]').click();
+    await send('What is 17 + 25? Answer with the number only.');
+    // Current default network permission may already admit the request. Older
+    // deployments ask once; neither case is a reason to bypass the normal UI.
+    await expect.poll(async () => {
+      const allow = page.locator('[data-remote-permission-allow]');
+      if (await allow.isVisible()) await allow.click();
+      return (await current())?.attempts.length || 0;
+    }).toBe(1);
+    expect((await completion(1)).messages.at(-1).content.trim()).toBe('42');
+    await send('Subtract 2 from that result. Answer with the number only.');
+    expect((await completion(2)).messages.at(-1).content.trim()).toBe('40');
+    await send('Count from one to one hundred, one number per line.');
+    await expect.poll(async () => {
+      const thread = await current();
+      const message = thread?.messages.at(-1);
+      return thread?.attempts.length === 3 && message?.role === 'assistant' && message.content.length > 0;
+    }, { timeout: 90000 }).toBe(true);
+    await page.locator('[data-composer-stop]').click();
+    await expect.poll(async () => (await current())?.attempts.at(-1).status).toBe('cancelled');
+    await send('What is 6 times 7? Answer with the number only.');
+    const reused = await completion(4);
+    expect(reused.messages.at(-1).content.trim()).toBe('42');
+    await send('Count from one to twenty, separated by commas.');
+    const final = await completion(5);
+    expect(final.messages.at(-1).content).toContain('20');
+    await page.screenshot({ path: info.outputPath('answer.png'), fullPage: true });
+    await page.reload();
+    await page.locator('[data-chat-workspace]').waitFor();
+    const restored = (await history()).threads.find(thread => thread.id === final.id);
+    expect(restored.messages).toEqual(final.messages);
+    expect(restored.attempts.map(attempt => attempt.status)).toEqual(['completed', 'completed', 'cancelled', 'completed', 'completed']);
+    expect(weightRequests).toEqual([]);
+    expect(errors).toEqual([]);
+    await info.attach('split-chat.json', { contentType: 'application/json', body: JSON.stringify({
+      modelId, modelIdentity: model.identity, browser: browser.version(), at: new Date().toISOString(),
+      turns, cancelled: true, reusedAfterCancellation: true, historyPreserved: true, weightRequests, errors
+    }, null, 2) });
+  } finally {
+    await info.attach('retained-history.json', { contentType: 'application/json', body: JSON.stringify({ turns, history: await history().catch(() => null), errors, weightRequests }) });
+    await context.close();
+  }
+});
