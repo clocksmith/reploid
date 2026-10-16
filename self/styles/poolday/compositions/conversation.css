@@ -101,7 +101,9 @@
 .pool-home .chat-composer-submit > button { transition: border-color var(--pool-transition-fast), box-shadow var(--pool-transition-fast); }
 .chat-composer-field .chat-file-label { grid-column: 1; grid-row: 2; position: relative; overflow: hidden; cursor: pointer; }
 .chat-file-label input { position: absolute; inset: 0; width: 100%; height: 100%; cursor: pointer; }
-.chat-composer-notices { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--pool-size-8); }
+.chat-composer-notices { display: flex; flex-wrap: nowrap; align-items: center; gap: var(--pool-size-4); min-width: 0; }
+.chat-composer-notices > * { flex: none; white-space: nowrap; }
+.chat-composer-notices > .chat-composer-model { flex: 1; min-width: 0; }
 .chat-composer-notices:not(:has(:not([hidden]))) { display: none; }
 .chat-composer-notices > button { padding-block: var(--pool-size-4); }
 .chat-execution-location { display: grid; grid-template-columns: repeat(auto-fit, minmax(var(--pool-size-128), 1fr)); gap: var(--pool-size-4); margin-top: var(--pool-size-8); }

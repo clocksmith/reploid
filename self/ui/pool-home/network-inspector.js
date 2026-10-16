@@ -18,7 +18,7 @@ export function renderNetworkInspector() {
     </nav>
     <dialog class="network-inspector pool-surface pool-small" data-contextual-inspector data-network-workspace aria-labelledby="network-inspector-title">
     <header class="chat-network-heading"><h2 class="pool-subheading" id="network-inspector-title" tabindex="-1">Network</h2><button class="pool-button" type="button" data-close-inspector aria-label="Back to chat" title="Back to chat">${interfaceIcon('close')}</button></header>
-    <section data-inspector-pane="model" aria-label="Model" hidden><div data-model-picker-slot></div><p class="pool-small pool-muted" data-model-empty hidden>No models are available. Connect to the network or prepare a model in Computers.</p><dl class="chat-model-facts pool-small" data-model-facts hidden></dl></section>
+    <section data-inspector-pane="model" aria-label="Model" hidden><div data-model-picker-slot></div><p class="pool-small pool-muted" data-model-empty hidden>No models are available. Connect to the network or prepare a model in Computers.</p><dl class="chat-model-facts pool-small" data-model-facts hidden></dl><p class="pool-small pool-muted" data-answer-limit hidden></p><p class="pool-small pool-muted" id="chat-model-status" data-model-status role="status" hidden></p></section>
     <section data-inspector-pane="conversation" aria-label="This conversation">
       <div class="execution-ribbon-route" data-inspector-route></div>
       <p data-inspector-status role="status"></p><p class="pool-caption pool-muted" data-context-detail></p>

@@ -153,11 +153,27 @@ describe('Conversation workspace', () => {
         { maxConcurrency: 1, maxPromptTokens: 1024, maxAnswerTokens: 63 }] }] });
     dispose = bindConversationWorkspace(root, { ...session,
       getState: () => project(session.getState()), subscribe: fn => session.subscribe(state => fn(project(state))) });
+    expect(find('[data-open-limits]').textContent).toBe('63–255 max');
+    find('[data-open-limits]').click();
+    expect(find('[data-inspector-pane="model"]').hidden).toBe(false);
     expect(find('[data-answer-limit]').hidden).toBe(false);
     expect(find('[data-answer-limit]').textContent).toContain('255 answer tokens for up to 512 input tokens');
     expect(find('[data-answer-limit]').textContent).toContain('63 answer tokens for up to 1024 input tokens');
     expect(find('[data-answer-limit]').textContent).toContain('Input includes conversation history');
     expect(service.calls).toHaveLength(0);
+  });
+
+  it('does not ask to change models while an admitted conversation is still running', () => {
+    dispose();
+    const model = { ...CANONICAL_CHAT_MODELS[1], availability: 'unavailable', networkAvailability: 'unavailable' };
+    const project = state => ({ ...state, selectedId: 'running', runningIds: ['running'], models: [model],
+      activeThread: { id: 'running', model, messages: [], attempts: [{ id: 'a', status: 'executing' }],
+        permissions: { executionLocation: 'network', sharingScope: 'mesh' } } });
+    dispose = bindConversationWorkspace(root, { ...session,
+      getState: () => project(session.getState()), subscribe: fn => session.subscribe(state => fn(project(state))) });
+    expect(find('[data-model-status]').textContent).toBe('');
+    expect(find('[data-composer-status]').hidden).toBe(true);
+    expect(find('[data-composer-stop]').hidden).toBe(false);
   });
 
   it('previews optional capped context and retains each conversation setting', async () => {
