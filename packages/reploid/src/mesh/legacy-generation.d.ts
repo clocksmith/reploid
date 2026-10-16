@@ -7,13 +7,13 @@ export interface LegacyGenerationMesh extends GenerationProvider {
   verifyPeerIdentity(peerId: string, signal?: AbortSignal): Promise<string | null>;
   refreshAdvertisement(): Record<string, unknown>;
   generate(messages: Message[], onUpdate?: ((chunk: string) => void) | null,
-    control?: { signal?: AbortSignal; modelId?: string; modelIdentity?: string | null; requestContext?: import('../config/index.js').Json }): Promise<GenerationResult>;
+    control?: { signal?: AbortSignal; modelId?: string; modelIdentity?: string | null; adapterIdentities?: string[]; requestContext?: import('../config/index.js').Json }): Promise<GenerationResult>;
   rotateIdentity(input?: object): Promise<unknown>; getSwarmSnapshot(): Record<string, unknown>; hasAvailableProvider(modelId?: string): boolean;
   on(event: string, handler: (event: unknown) => void): () => void;
 }
 export interface LegacyMeshPorts {
   instanceId: string; modelConfig: Record<string, unknown> | null; utils: SwarmOptions['Utils'];
-  getExecutionState?(): { phase: string; modelIdentity: string | null };
+  getExecutionState?(): { phase: string; modelIdentity: string | null; adapterIdentities?: string[]; progress?: unknown };
   authorize: Authorize; createTransport(): SwarmTransport; generate: GenerationProvider['generate'];
   transport?: SwarmTransport | null; forceFreshIdentity?: boolean;
   events: { emit(event: string, data: unknown): void; on(event: string, handler: (event: unknown) => void): () => void };

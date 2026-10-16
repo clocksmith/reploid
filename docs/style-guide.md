@@ -1,5 +1,39 @@
 # REPLOID Style Guide
 
+## Execution and lifecycle code
+
+Follow the nearest CATSCAN for ownership. Reusable orchestration belongs in
+`packages/reploid/src`; host adapters supply runtime, storage and authorization
+ports. UI renders authoritative state. Keep model mathematics in the execution
+backend, and regenerate browser mirrors from their canonical source.
+
+- Give identity comparison, admission and execution separate named functions.
+  Share a check when local and remote paths enforce the same contract; keep
+  distinct protocol and settlement rules explicit.
+- Snapshot caller configuration and selected provider bindings before asynchronous
+  work. Pass copies to callbacks and provider ports; never let them mutate the
+  evidence later used to accept an outcome.
+- Recheck readiness and the selected identity after asynchronous authorization,
+  before dispatch, and before publishing execution output. An authorization result
+  does not freeze the underlying provider. Rejection must not silently select a
+  replacement provider or expand a disclosure grant.
+- Keep requested selection separate from the selected execution identity. Automatic
+  selection still binds the chosen model/artifact. Legacy missing identity remains
+  missing evidence; never present it as qualification for a new backend.
+- Withdraw admission before stopping; retain ownership until preparation, active
+  work and cleanup settle. Failed cleanup must stay retryable and visible.
+- Use explicit lifecycle names, early guards and small helpers rather than nested
+  ternaries or multi-action lines at ownership boundaries. Explain why a guard or
+  ordering constraint exists, rather than narrating each statement.
+- Test the actual failure boundary: delayed authorization, changed artifacts,
+  callback mutation, cancellation, and a valid matching request. Keep physical
+  inference and deployment claims separate from test-provider results.
+
+The whole-model binding checks in
+[legacy-generation.js](../packages/reploid/src/mesh/legacy-generation.js) and their
+[regression tests](../tests/unit/legacy-generation-threads.test.js) exercise these
+rules. This guide adds no backend support or public service promise.
+
 ## Monochrome/Terminal Symbol Mapping
 
 Use these Unicode symbols instead of emojis for a consistent terminal aesthetic.

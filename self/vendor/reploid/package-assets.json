@@ -719,13 +719,13 @@
     },
     {
       "path": "mesh/legacy-generation.d.ts",
-      "bytes": 2057,
-      "sha256": "0f645fcda4350cfa7a98185d985853614f548d8dbacd88fd54759bfa9a8b1055"
+      "bytes": 2137,
+      "sha256": "cfb786c8e4f3d7a1c0d30df45b6f7df3ff7794bdb96198bac4dc869b26583ae8"
     },
     {
       "path": "mesh/legacy-generation.js",
-      "bytes": 23744,
-      "sha256": "2eff413b7ffa35b80bda01299d602f2db9a10c7e33fcf3bab696cefee09c2276"
+      "bytes": 25356,
+      "sha256": "360e7d38d62e7e06c3451dbfcd8970a22cf1377dc20e9c1a1761f21bcbe12f6c"
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.d.ts",
