@@ -1,4 +1,6 @@
-import { normalizeVfsProgress } from '../components/vfs-progress.js';
+const { setVfsProgress, attachVfsProgressListener } = createVfsProgressBinding(progress => setState({ vfsProgress: progress }));
+import { createConnectionTestHandlers } from '../boot-wizard/connection-tests.js';
+import { normalizeVfsProgress, getCurrentFullSeedProgress, createVfsProgressBinding } from '../components/vfs-progress.js';
 import { escapeHtml as escapeHtmlValue } from '../components/html.js';
 const escapeHtml = value => escapeHtmlValue(value || '', '&#39;');
 /**
@@ -20,15 +22,7 @@ import {
   setState,
   subscribe
 } from '../boot-wizard/state.js';
-import {
-  generateSeededGoalPrompt,
-  runDetection,
-  testApiKey,
-  testDirectModel,
-  testLocalConnection,
-  testProxyConnection,
-  testProxyModel
-} from '../boot-wizard/detection.js';
+import { generateSeededGoalPrompt, runDetection } from '../boot-wizard/detection.js';
 import {
   DEFAULT_REPLOID_HOME_GOAL,
   DEFAULT_ZERO_GOAL,
@@ -68,17 +62,14 @@ import { CLOUD_MODELS, renderDirectConfigStep } from '../boot-wizard/steps/direc
 import { renderProxyConfigStep } from '../boot-wizard/steps/proxy.js';
 import { renderBrowserConfigStep } from '../boot-wizard/steps/browser.js';
 import { renderAwakenedFilesPanel, renderGoalStep } from '../boot-wizard/steps/goal.js';
-import {
-  ZERO_GEMINI_MODEL,
-  ZERO_GEMINI_PROVIDER,
-  buildZeroGeminiProxyConfig,
-  isZeroGeminiFunctionServer
-} from '../../config/zero-inference.js';
+import { ZERO_GEMINI_MODEL, ZERO_GEMINI_PROVIDER, buildZeroGeminiProxyConfig } from '../../config/zero-inference.js';
 import {
   getBootSeedProfile,
   shouldHydrateFullManifest
 } from '../../config/boot-seed.js';
 import { DEFAULT_DOPPLER_MODEL_ID } from '../../config/doppler-local-models.js';
+
+const { handleTestDirectKey, handleTestProxy, handleTestProxyModel, handleTestDirectModel } = createConnectionTestHandlers();
 
 const DEFAULT_DOPPLER_MODEL = DEFAULT_DOPPLER_MODEL_ID;
 const DEFAULT_GTM_PROXY_PROVIDER = ZERO_GEMINI_PROVIDER;
@@ -139,26 +130,7 @@ let sponsorAccessExpanded = false;
 let isInitialRender = true;
 let lastRenderSignature = null;
 let pendingDeferredRender = false;
-let vfsProgressListenerAttached = false;
 
-const getCurrentFullSeedProgress = () => {
-  if (typeof window === 'undefined') return null;
-  return normalizeVfsProgress(window.REPLOID_VFS_FULL_SEED_PROGRESS || window.REPLOID_VFS_SEED_PROGRESS);
-};
-
-const setVfsProgress = (progress) => {
-  const normalized = normalizeVfsProgress(progress);
-  if (!normalized) return;
-  setState({ vfsProgress: normalized });
-};
-
-const attachVfsProgressListener = () => {
-  if (vfsProgressListenerAttached || typeof window === 'undefined') return;
-  vfsProgressListenerAttached = true;
-  window.addEventListener('reploid:vfs-seed-progress', (event) => {
-    setVfsProgress(event.detail);
-  });
-};
 
 const renderVfsProgress = (state) => {
   const progress = normalizeVfsProgress(state.vfsProgress || getCurrentFullSeedProgress());
@@ -680,120 +652,6 @@ async function handleGenerateGoal() {
   }
 }
 
-async function handleTestDirectKey() {
-  const state = getState();
-  let { provider, apiKey, baseUrl } = state.directConfig;
-
-  const keyInput = document.getElementById('direct-key');
-  const urlInput = document.getElementById('direct-base-url');
-  if (keyInput?.value) apiKey = keyInput.value;
-  if (urlInput?.value) baseUrl = urlInput.value;
-
-  if (keyInput?.value) setNestedState('directConfig', { apiKey });
-  if (urlInput?.value) setNestedState('directConfig', { baseUrl });
-
-  if (!provider) {
-    setNestedState('directConfig', {
-      verifyState: VERIFY_STATE.FAILED,
-      verifyError: 'Select a provider first'
-    });
-    return;
-  }
-
-  if (!apiKey) {
-    setNestedState('directConfig', {
-      verifyState: VERIFY_STATE.FAILED,
-      verifyError: 'Enter an API key first'
-    });
-    return;
-  }
-
-  if (provider === 'other' && !baseUrl) {
-    setNestedState('directConfig', {
-      verifyState: VERIFY_STATE.FAILED,
-      verifyError: 'Enter a base URL for custom provider'
-    });
-    return;
-  }
-
-  setNestedState('directConfig', { verifyState: VERIFY_STATE.TESTING, verifyError: null });
-
-  const result = await testApiKey(provider, apiKey, baseUrl);
-  if (result.success) {
-    const currentModel = getState().directConfig.model;
-    const models = CLOUD_MODELS[provider] || [];
-    const autoModel = !currentModel && models.length > 0 ? models[0].id : currentModel;
-    setNestedState('directConfig', {
-      verifyState: VERIFY_STATE.VERIFIED,
-      verifyError: null,
-      model: autoModel
-    });
-  } else {
-    setNestedState('directConfig', {
-      verifyState: VERIFY_STATE.FAILED,
-      verifyError: result.error
-    });
-  }
-}
-
-async function handleTestProxy() {
-  const state = getState();
-  const { url, serverType } = state.proxyConfig;
-  if (!url) return;
-
-  setNestedState('proxyConfig', { verifyState: VERIFY_STATE.TESTING });
-  let result = await testProxyConnection(url, serverType);
-
-  if (!result.success && !isZeroGeminiFunctionServer(serverType)) {
-    result = await testLocalConnection(url);
-    if (result.success) {
-      setNestedState('proxyConfig', {
-        serverType: 'ollama',
-        availableModels: result.models || []
-      });
-    }
-  } else if (result.success) {
-    setNestedState('proxyConfig', {
-      serverType: serverType || 'reploid',
-      availableProviders: result.providers || []
-    });
-  }
-
-  setNestedState('proxyConfig', {
-    verifyState: result.success ? VERIFY_STATE.VERIFIED : VERIFY_STATE.FAILED,
-    verifyError: result.error
-  });
-}
-
-async function handleTestProxyModel() {
-  const state = getState();
-  const { url, provider, model, serverType } = state.proxyConfig;
-  if (!model) return;
-
-  setNestedState('proxyConfig', { modelVerifyState: VERIFY_STATE.TESTING, modelVerifyError: null });
-
-  const result = serverType === 'ollama'
-    ? await testProxyModel(url, 'ollama', model)
-    : await testProxyModel(url, provider, model, serverType);
-
-  setNestedState('proxyConfig', {
-    modelVerifyState: result.success ? VERIFY_STATE.VERIFIED : VERIFY_STATE.FAILED,
-    modelVerifyError: result.error
-  });
-}
-
-async function handleTestDirectModel() {
-  const state = getState();
-  const { provider, apiKey, model, baseUrl } = state.directConfig;
-  if (!model || !apiKey) return;
-
-  setNestedState('directConfig', { modelVerifyState: VERIFY_STATE.TESTING, modelVerifyError: null });
-  const result = await testDirectModel(provider, apiKey, model, baseUrl);
-  setNestedState('directConfig', {
-    modelVerifyState: result.success ? VERIFY_STATE.VERIFIED : VERIFY_STATE.FAILED,
-    modelVerifyError: result.error
-  });
-}
 
 async function handleImportRunReplayFile(file) {
   if (!file) return;

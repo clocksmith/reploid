@@ -1,3 +1,4 @@
+import { collectUnknownKeys } from '../input-validation.js';
 /**
  * @fileoverview Pure purchase-reconciliation rules: payment policy, the
  * authoritative observation merge and the phase a payment record is in.
@@ -45,11 +46,7 @@ const isCurrency = (value) => typeof value === 'string' && /^[A-Z]{3}$/.test(val
 export const isMoney = (value) => isAmount(value?.amountMinor) && isCurrency(value?.currency);
 export const sameMoney = (left, right) => left?.amountMinor === right?.amountMinor && left?.currency === right?.currency;
 
-const unknownKeys = (value, allowed, label, errors) => {
-  for (const key of Object.keys(value || {})) {
-    if (!allowed.includes(key)) errors.push(`${label}.${key} is not a recognized field`);
-  }
-};
+const unknownKeys = collectUnknownKeys;
 
 /**
  * Validate explicit payment policy. Top-ups are one-time purchases at a

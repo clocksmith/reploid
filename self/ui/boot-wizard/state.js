@@ -220,7 +220,7 @@ export const getStoredSwarmEnabled = () => {
 };
 
 // Default wizard state
-const defaultState = {
+const createDefaultState = () => ({
   currentStep: STEPS.START,
   mode: getStoredMode(),
   routeLockedMode: getRouteLockedMode(),
@@ -331,10 +331,10 @@ const defaultState = {
 
   // Genesis level (auto or manual)
   genesisLevel: getDefaultGenesisLevelForMode(getStoredMode())
-};
+});
 
 // Current state (module-level singleton)
-let state = { ...defaultState };
+let state = createDefaultState();
 let listeners = [];
 
 /**
@@ -381,65 +381,7 @@ function notifyListeners() {
  * Reset wizard to initial state
  */
 export function resetWizard() {
-  const storedMode = getStoredMode();
-  state = {
-    ...defaultState,
-    mode: storedMode,
-    routeLockedMode: getRouteLockedMode(),
-    genesisLevel: getDefaultGenesisLevelForMode(storedMode),
-    advancedOpen: false,
-    advancedConfig: getStoredAdvancedConfig(),
-    goal: getStoredGoal(),
-    environment: getStoredEnvironment(),
-    selectedEnvironmentTemplate: getStoredEnvironmentTemplateId(),
-    cycleIntervalSeconds: getStoredCycleIntervalSeconds(),
-    swarmEnabled: getStoredSwarmEnabled(),
-    selectedGoalCategory: null,
-    goalShuffleSeed: 0,
-    goalGenerator: {
-      status: 'idle',
-      error: null
-    },
-    runReplayImport: {
-      status: 'idle',
-      error: null,
-      filename: '',
-      summary: null
-    },
-    accessConfig: {
-      accessCode: '',
-      error: null
-    },
-    moduleOverrideSearch: '',
-    moduleOverrideFilter: 'all',
-    moduleConfig: {
-      loading: false,
-      error: null,
-      genesis: null,
-      registry: null
-    },
-    bootPayload: {
-      loading: false,
-      loaded: false,
-      error: null,
-      bootFiles: [],
-      bootTree: '',
-      manifestFiles: [],
-      rootSummary: []
-    },
-    selfPreview: {
-      loadingSelf: false,
-      loadedSelf: false,
-      loadingBootstrapper: false,
-      loadedBootstrapper: false,
-      error: null,
-      contents: {}
-    },
-    seedOverrides: {},
-    seedDrafts: {},
-    editingSeedPath: null,
-    selectedSelfPath: '/self/self.json'
-  };
+  state = createDefaultState();
   notifyListeners();
 }
 

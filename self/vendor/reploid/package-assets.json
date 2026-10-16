@@ -308,6 +308,16 @@
       "sha256": "842a01c08e31a147ec961e9902b851973359c6125eb4f7fd3c068b135e657aac"
     },
     {
+      "path": "artifacts/event-signature.d.ts",
+      "bytes": 233,
+      "sha256": "88dbb955fa319f18ddfb0306bfc25391475a57e42e91c7ee7d2ed44b63e2f404"
+    },
+    {
+      "path": "artifacts/event-signature.js",
+      "bytes": 760,
+      "sha256": "6853df90feb1118a39f493375270f580da2549e6bf9ecb304f8b068342a39c2b"
+    },
+    {
       "path": "artifacts/identity.d.ts",
       "bytes": 1010,
       "sha256": "d758486d48c9e7de15ca18cdcf2bd455a03353e41a75f2794bfb00fab5408d74"
@@ -619,8 +629,8 @@
     },
     {
       "path": "improvement/episodes.js",
-      "bytes": 49450,
-      "sha256": "9295d770d2e1bcedf64a79b6462f5e83b6042607e9e6f1f8ed3107ef53adf5e2"
+      "bytes": 48828,
+      "sha256": "5a48a71313e4fcf2cdb37f60e09aa84d43ff324f73908ebddacb66cd03af3cf2"
     },
     {
       "path": "improvement/index.d.ts",

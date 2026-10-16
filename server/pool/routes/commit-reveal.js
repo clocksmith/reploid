@@ -1,3 +1,4 @@
+import { createAssignmentEntryReader } from './assignment-entry.js';
 /**
  * @fileoverview Ring commit-reveal route registration.
  *
@@ -49,18 +50,14 @@ export function registerCommitRevealRoutes(router, {
   })) {
     if (typeof value !== 'function') throw new Error(`commit-reveal routes require ${name}`);
   }
+  const readAssignmentEntry = createAssignmentEntryReader({ store, recoverHostedAssignments, requireBoundRole });
   const POOL_CONFIG_VERSION = poolConfigVersion;
   const POOL_CONFIG_HASH = poolConfigHash;
 
   router.post('/assignments/:assignmentId/commit', asyncRoute(async (req, res) => {
-    const pendingAssignment = await store.getAssignment(req.params.assignmentId);
-    const entryRecovery = await recoverHostedAssignments({
-      store,
-      targetJobId: pendingAssignment?.jobId || null
-    });
-    const assignment = await store.getAssignment(req.params.assignmentId);
-    if (!assignment) return res.status(404).json({ error: 'assignment not found' });
-    if (!requireBoundRole(req, res, 'provider', assignment.providerId)) return null;
+    const entry = await readAssignmentEntry(req, res);
+    if (!entry) return null;
+    const { assignment, entryRecovery } = entry;
     if (!assignment.ring) return res.status(400).json({ error: 'assignment does not use ring commit-reveal' });
     if (!['assigned', 'running'].includes(assignment.status)) {
       return res.status(409).json({
@@ -139,14 +136,9 @@ export function registerCommitRevealRoutes(router, {
   }));
 
   router.post('/assignments/:assignmentId/reveal', asyncRoute(async (req, res) => {
-    const pendingAssignment = await store.getAssignment(req.params.assignmentId);
-    const entryRecovery = await recoverHostedAssignments({
-      store,
-      targetJobId: pendingAssignment?.jobId || null
-    });
-    const assignment = await store.getAssignment(req.params.assignmentId);
-    if (!assignment) return res.status(404).json({ error: 'assignment not found' });
-    if (!requireBoundRole(req, res, 'provider', assignment.providerId)) return null;
+    const entry = await readAssignmentEntry(req, res);
+    if (!entry) return null;
+    const { assignment, entryRecovery } = entry;
     if (!assignment.ring) return res.status(400).json({ error: 'assignment does not use ring commit-reveal' });
     const job = await store.getJob(assignment.jobId);
     if (!job) return res.status(404).json({ error: 'job not found', jobId: assignment.jobId });

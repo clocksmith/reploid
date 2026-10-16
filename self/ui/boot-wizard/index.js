@@ -1,35 +1,14 @@
+import { createConnectionTestHandlers } from './connection-tests.js';
 /**
  * @fileoverview Boot Wizard UI
  * Step-by-step configuration wizard for Reploid.
  */
 
-import {
-  STEPS,
-  VERIFY_STATE,
-  getState,
-  setState,
-  setNestedState,
-  subscribe,
-  goToStep,
-  checkSavedConfig,
-  saveConfig,
-  forgetDevice,
-  canAwaken,
-  hydrateSavedConfig,
-  normalizeCycleIntervalSeconds
-} from './state.js';
+import { STEPS, VERIFY_STATE, getState, setState, setNestedState, subscribe, goToStep, checkSavedConfig, saveConfig, canAwaken, hydrateSavedConfig, normalizeCycleIntervalSeconds } from './state.js';
 
-import {
-  runDetection, testApiKey, testProxyConnection, testLocalConnection,
-  testProxyModel, testDirectModel, generateGoalPrompt
-} from './detection.js';
+import { runDetection, generateGoalPrompt } from './detection.js';
 
-import {
-  formatGoalPacket,
-  getGoalEntries,
-  getRandomGoalEntry,
-  getRandomZeroGoal
-} from './goals.js';
+import { formatGoalPacket, getRandomGoalEntry, getRandomZeroGoal } from './goals.js';
 import {
   findReploidEnvironmentTemplateId,
   getReploidEnvironmentTemplate
@@ -57,13 +36,10 @@ import { renderProxyConfigStep } from './steps/proxy.js';
 import { renderBrowserConfigStep } from './steps/browser.js';
 import { renderGoalStep } from './steps/goal.js';
 import { renderAwakenStep } from './steps/awaken.js';
-import {
-  ZERO_GEMINI_MODEL,
-  ZERO_GEMINI_PROVIDER,
-  buildZeroGeminiProxyConfig,
-  isZeroGeminiFunctionServer
-} from '../../config/zero-inference.js';
+import { ZERO_GEMINI_MODEL, ZERO_GEMINI_PROVIDER, buildZeroGeminiProxyConfig } from '../../config/zero-inference.js';
 import { DEFAULT_DOPPLER_MODEL_ID } from '../../config/doppler-local-models.js';
+
+const { handleTestDirectKey, handleTestProxy, handleTestProxyModel, handleTestDirectModel } = createConnectionTestHandlers({ onTesting: () => render() });
 
 // DOM container reference
 let container = null;
@@ -1248,67 +1224,6 @@ function handleInput(e) {
   }
 }
 
-async function handleTestDirectKey() {
-  const state = getState();
-  let { provider, apiKey, baseUrl } = state.directConfig;
-
-  // Read values directly from inputs in case state is stale
-  const keyInput = document.getElementById('direct-key');
-  const urlInput = document.getElementById('direct-base-url');
-  if (keyInput?.value) apiKey = keyInput.value;
-  if (urlInput?.value) baseUrl = urlInput.value;
-
-  // Update state with current input values
-  if (keyInput?.value) setNestedState('directConfig', { apiKey });
-  if (urlInput?.value) setNestedState('directConfig', { baseUrl });
-
-  if (!provider) {
-    setNestedState('directConfig', {
-      verifyState: VERIFY_STATE.FAILED,
-      verifyError: 'Select a provider first'
-    });
-    return;
-  }
-
-  if (!apiKey) {
-    setNestedState('directConfig', {
-      verifyState: VERIFY_STATE.FAILED,
-      verifyError: 'Enter an API key first'
-    });
-    return;
-  }
-
-  if (provider === 'other' && !baseUrl) {
-    setNestedState('directConfig', {
-      verifyState: VERIFY_STATE.FAILED,
-      verifyError: 'Enter a base URL for custom provider'
-    });
-    return;
-  }
-
-  setNestedState('directConfig', { verifyState: VERIFY_STATE.TESTING, verifyError: null });
-  render();
-
-  const result = await testApiKey(provider, apiKey, baseUrl);
-
-  if (result.success) {
-    // Auto-select first model for this provider if none selected
-    const currentModel = getState().directConfig.model;
-    const models = CLOUD_MODELS[provider] || [];
-    const autoModel = !currentModel && models.length > 0 ? models[0].id : currentModel;
-
-    setNestedState('directConfig', {
-      verifyState: VERIFY_STATE.VERIFIED,
-      verifyError: null,
-      model: autoModel
-    });
-  } else {
-    setNestedState('directConfig', {
-      verifyState: VERIFY_STATE.FAILED,
-      verifyError: result.error
-    });
-  }
-}
 
 async function handleGenerateGoal() {
   setState({
@@ -1343,37 +1258,6 @@ async function handleGenerateGoal() {
   }
 }
 
-async function handleTestProxy() {
-  const state = getState();
-  const { url, serverType } = state.proxyConfig;
-
-  if (!url) return;
-
-  setNestedState('proxyConfig', { verifyState: VERIFY_STATE.TESTING });
-  render();
-
-  let result = await testProxyConnection(url, serverType);
-
-  if (!result.success && !isZeroGeminiFunctionServer(serverType)) {
-    result = await testLocalConnection(url);
-    if (result.success) {
-      setNestedState('proxyConfig', {
-        serverType: 'ollama',
-        availableModels: result.models || []
-      });
-    }
-  } else if (result.success) {
-    setNestedState('proxyConfig', {
-      serverType: serverType || 'reploid',
-      availableProviders: result.providers || []
-    });
-  }
-
-  setNestedState('proxyConfig', {
-    verifyState: result.success ? VERIFY_STATE.VERIFIED : VERIFY_STATE.FAILED,
-    verifyError: result.error
-  });
-}
 
 async function handleTestFromAwaken() {
   const state = getState();
@@ -1395,45 +1279,6 @@ async function handleTestFromAwaken() {
   }
 }
 
-async function handleTestProxyModel() {
-  const state = getState();
-  const { url, provider, model, serverType } = state.proxyConfig;
-
-  if (!model) return;
-
-  setNestedState('proxyConfig', { modelVerifyState: VERIFY_STATE.TESTING, modelVerifyError: null });
-  render();
-
-  let result;
-  if (serverType === 'ollama') {
-    // For Ollama, use generate endpoint
-    result = await testProxyModel(url, 'ollama', model);
-  } else {
-    result = await testProxyModel(url, provider, model, serverType);
-  }
-
-  setNestedState('proxyConfig', {
-    modelVerifyState: result.success ? VERIFY_STATE.VERIFIED : VERIFY_STATE.FAILED,
-    modelVerifyError: result.error
-  });
-}
-
-async function handleTestDirectModel() {
-  const state = getState();
-  const { provider, apiKey, model, baseUrl } = state.directConfig;
-
-  if (!model || !apiKey) return;
-
-  setNestedState('directConfig', { modelVerifyState: VERIFY_STATE.TESTING, modelVerifyError: null });
-  render();
-
-  const result = await testDirectModel(provider, apiKey, model, baseUrl);
-
-  setNestedState('directConfig', {
-    modelVerifyState: result.success ? VERIFY_STATE.VERIFIED : VERIFY_STATE.FAILED,
-    modelVerifyError: result.error
-  });
-}
 
 async function shouldResetReploidVfs(state) {
   if (!state.advancedConfig?.preserveOnBoot) {

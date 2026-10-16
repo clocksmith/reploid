@@ -80,30 +80,6 @@
     },
     {
       "source": "self/host/start-app.js",
-      "expression": "withBootstrapQuery(SELF_BOOT_SPEC.runtime.runtimeEntry, getCurrentReploidPeerQuery())",
-      "owner": "self/host/CATSCAN.md",
-      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
-    },
-    {
-      "source": "self/host/start-app.js",
-      "expression": "withBootstrapQuery(SELF_BOOT_SPEC.runtime.uiEntry, getCurrentReploidPeerQuery())",
-      "owner": "self/host/CATSCAN.md",
-      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
-    },
-    {
-      "source": "self/host/start-app.js",
-      "expression": "withSelfQuery(SELF_BOOT_SPEC.runtime.uiEntry, query)",
-      "owner": "self/host/CATSCAN.md",
-      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
-    },
-    {
-      "source": "self/host/start-app.js",
-      "expression": "withBootstrapQuery(SELF_BOOT_SPEC.runtime.uiEntry, query)",
-      "owner": "self/host/CATSCAN.md",
-      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
-    },
-    {
-      "source": "self/host/start-app.js",
       "expression": "vfsUrl",
       "owner": "self/host/CATSCAN.md",
       "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
@@ -141,30 +117,6 @@
     {
       "source": "self/host/start-app.js",
       "expression": "withQuery('/ui/boot-wizard/index.js', getCurrentReploidPeerQuery())",
-      "owner": "self/host/CATSCAN.md",
-      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
-    },
-    {
-      "source": "self/host/start-reploid.js",
-      "expression": "withSourceQuery(SELF_BOOT_SPEC.runtime.runtimeEntry, {\n        bootstrapper: 1,\n        ...getCurrentReploidPeerQuery()\n      })",
-      "owner": "self/host/CATSCAN.md",
-      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
-    },
-    {
-      "source": "self/host/start-reploid.js",
-      "expression": "withSourceQuery(SELF_BOOT_SPEC.runtime.uiEntry, {\n        bootstrapper: 1,\n        ...getCurrentReploidPeerQuery()\n      })",
-      "owner": "self/host/CATSCAN.md",
-      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
-    },
-    {
-      "source": "self/host/start-reploid.js",
-      "expression": "withVfsQuery(SELF_BOOT_SPEC.runtime.uiEntry, query)",
-      "owner": "self/host/CATSCAN.md",
-      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
-    },
-    {
-      "source": "self/host/start-reploid.js",
-      "expression": "withSourceQuery(SELF_BOOT_SPEC.runtime.uiEntry, {\n    bootstrapper: 1,\n    ...query\n  })",
       "owner": "self/host/CATSCAN.md",
       "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
     },
@@ -239,6 +191,34 @@
       "expression": "pathToFileURL(path.resolve(specifier)).href",
       "owner": "server/earning-routes/CATSCAN.md",
       "contract": "The operator-selected earning composition module named by REPLOID_EARNING_COMPOSITION, resolved from the local filesystem at startup and only when REPLOID_EARNING_ROUTES=enabled. No request-supplied code or network module URLs."
+    },
+    {
+      "source": "self/host/reploid-launch.js",
+      "expression": "withSourceQuery(SELF_BOOT_SPEC.runtime.runtimeEntry, {\n          bootstrapper: 1,\n          ...getCurrentReploidPeerQuery()\n        })",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile.",
+      "removalCondition": "Remove when this loader is removed or replaced by static imports; changing host-selected runtime or UI authority requires renewed review."
+    },
+    {
+      "source": "self/host/reploid-launch.js",
+      "expression": "withSourceQuery(SELF_BOOT_SPEC.runtime.uiEntry, {\n          bootstrapper: 1,\n          ...getCurrentReploidPeerQuery()\n        })",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile.",
+      "removalCondition": "Remove when this loader is removed or replaced by static imports; changing host-selected runtime or UI authority requires renewed review."
+    },
+    {
+      "source": "self/host/reploid-launch.js",
+      "expression": "withVfsQuery(SELF_BOOT_SPEC.runtime.uiEntry, query)",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile.",
+      "removalCondition": "Remove when this loader is removed or replaced by static imports; changing host-selected runtime or UI authority requires renewed review."
+    },
+    {
+      "source": "self/host/reploid-launch.js",
+      "expression": "withSourceQuery(SELF_BOOT_SPEC.runtime.uiEntry, {\n      bootstrapper: 1,\n      ...query\n    })",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile.",
+      "removalCondition": "Remove when this loader is removed or replaced by static imports; changing host-selected runtime or UI authority requires renewed review."
     }
   ],
   "cycles": []

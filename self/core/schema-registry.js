@@ -1,3 +1,4 @@
+import fileToolSchemas from '../config/file-tool-schemas.json' with { type: 'json' };
 /**
  * @fileoverview Schema Registry
  * Central source for tool input schemas, output schemas, and worker type definitions.
@@ -65,23 +66,7 @@ const SchemaRegistry = {
       WriteFile: {
         description: 'Mutating. Write text or binary content to VFS/OPFS. Stage candidates under /shadow and evidence under /artifacts. JSON object content is serialized as JSON text. Use CreateTool for new Zero runtime tools; broader surfaces use Promote for evidence-gated /self changes.',
         readOnly: false,
-        parameters: {
-          type: 'object',
-          required: ['path'],
-          properties: {
-            path: { type: 'string', description: 'Path to write (vfs:/ or opfs:/). Default backend is VFS.' },
-            backend: { type: 'string', description: 'Optional backend override (vfs or opfs)' },
-            mode: { type: 'string', enum: ['text', 'binary'], description: 'Write mode (default: text)' },
-            content: { type: 'string', description: 'Text content to write. JSON object content is accepted and serialized as JSON text.' },
-            data: { type: 'string', description: 'Base64 data for binary writes' },
-            checksum: { type: 'string', description: 'Optional checksum for binary data' },
-            checksumAlgorithm: { type: 'string', description: 'Checksum algorithm (default: sha256)' },
-            maxBytes: { type: 'number', description: 'Maximum bytes to write' },
-            create: { type: 'boolean', description: 'Create file if missing (default true)' },
-            overwrite: { type: 'boolean', description: 'Overwrite file if it exists (default true)' },
-            autoLoad: { type: 'boolean', description: 'If true and path is .js, hot-reload the module after writing', default: false }
-          }
-        }
+        parameters: structuredClone(fileToolSchemas.WriteFile)
       },
       Promote: {
         description: 'Mutating. Promote a /shadow candidate into an allowlisted /self target only after evidence JSON under /artifacts includes replayPassed: true. Doppler improvement claims also require a signed improvement episode; Clockwork-tagged candidates require a trusted accepted Gamma receipt. Use candidatePath, targetPath, and evidencePath.',
@@ -105,42 +90,7 @@ const SchemaRegistry = {
       EditFile: {
         description: 'Mutating. Apply narrow literal edits to a discovered VFS/OPFS text file after reading it.',
         readOnly: false,
-        parameters: {
-          type: 'object',
-          required: ['path'],
-          properties: {
-            path: { type: 'string', description: 'Path to edit (vfs:/ or opfs:/). Default backend is VFS.' },
-            backend: { type: 'string', description: 'Optional backend override (vfs or opfs)' },
-            content: { type: 'string', description: 'Full replacement content (text only)' },
-            patch: {
-              type: 'array',
-              description: 'Patch operations with find/replace',
-              items: {
-                type: 'object',
-                required: ['find'],
-                properties: {
-                  find: { type: 'string' },
-                  replace: { type: 'string' },
-                  count: { type: 'number' }
-                }
-              }
-            },
-            operations: {
-              type: 'array',
-              description: 'Legacy operations array',
-              items: {
-                type: 'object',
-                required: ['match'],
-                properties: {
-                  match: { type: 'string' },
-                  replacement: { type: 'string' },
-                  count: { type: 'number' }
-                }
-              }
-            },
-            create: { type: 'boolean', description: 'Create file if missing (default false)' }
-          }
-        }
+        parameters: structuredClone(fileToolSchemas.EditFile)
       },
       ListFiles: {
         description: 'Read-only. List files in a directory. Batch with up to 8 independent read-only calls when mapping roots or unrelated directories.',

@@ -1,3 +1,4 @@
+import { createKnownKeyValidator } from '../input-validation.js';
 /**
  * @fileoverview Pure account rules: explicit account policy, record schemas,
  * deterministic identifiers, session checks and account-link kinds.
@@ -73,10 +74,7 @@ export const assertIdempotencyKey = (value) => {
   return value;
 };
 
-export const assertKnownKeys = (input, allowed, operation) => {
-  const unknown = Object.keys(input || {}).filter((key) => !allowed.includes(key));
-  if (unknown.length) fail('invalid_input', `${operation} does not accept: ${unknown.join(', ')}`, { unknown });
-};
+export const assertKnownKeys = createKnownKeyValidator(fail);
 
 const positiveMs = (value) => Number.isSafeInteger(value) && value > 0;
 

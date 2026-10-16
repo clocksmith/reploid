@@ -910,8 +910,8 @@
     },
     {
       "path": "blueprints/deduplication-audit.md",
-      "byteLength": 30262,
-      "sha256": "sha256:cfeea76d16d629147dde7b125415741b617aae0cfe3c1c9f02d64abf29090235"
+      "byteLength": 35660,
+      "sha256": "sha256:ac91954a014b12dd51c422804b0c22f78ca7ef2d57c0f0bd66b4e9032afdb083"
     },
     {
       "path": "blueprints/implementation-status.md",
@@ -950,8 +950,8 @@
     },
     {
       "path": "blueprints/tool-contract.md",
-      "byteLength": 1846,
-      "sha256": "sha256:de4b655ae210d634bca9adb8dc0f045cd8d45c6559121c7dca45ac914cdff322"
+      "byteLength": 1678,
+      "sha256": "sha256:72bf4f1161af4a641d354e454bb6dd39a0ae62ce3a5eb4b4e8b6fa8e1943f337"
     },
     {
       "path": "boot-helpers/config.js",
@@ -990,8 +990,8 @@
     },
     {
       "path": "boot-helpers/vfs-hydrate.js",
-      "byteLength": 9738,
-      "sha256": "sha256:4012b570da0750029d7a8621d099140afd66d809de9ca30d751ef0277250d4e2"
+      "byteLength": 4482,
+      "sha256": "sha256:dcf1cd4ea6668e9e9f2299254acabbf1ac955ece40e01a822b7ed23066fd8c0a"
     },
     {
       "path": "boot-spec.js",
@@ -1000,8 +1000,8 @@
     },
     {
       "path": "bridge.js",
-      "byteLength": 19896,
-      "sha256": "sha256:f1ede9eb77bd8a489170a6be0e6811ff085a5d3ed9c4e78a49c18a43c7b3efce"
+      "byteLength": 19806,
+      "sha256": "sha256:e00ff4b07ec0885b671852ed0a2dff5aa11a36de9c536bfa075044f2d78b3b17"
     },
     {
       "path": "capabilities/cognition/cognition-api.js",
@@ -1015,8 +1015,8 @@
     },
     {
       "path": "capabilities/cognition/gepa-optimizer.js",
-      "byteLength": 58900,
-      "sha256": "sha256:87bf99983091e9ce89fa165380489c6792fd906a6cc8f9c45de75dde723bed09"
+      "byteLength": 57094,
+      "sha256": "sha256:fea5d47e61ae1c8ca4583f513d6611c27074bb7ad8b21a968cb221e9a726e5cb"
     },
     {
       "path": "capabilities/cognition/hybrid-retrieval.js",
@@ -1185,8 +1185,8 @@
     },
     {
       "path": "config/boot-seed.js",
-      "byteLength": 4239,
-      "sha256": "sha256:dd9cd362296538fa48cce3e776353a562edbdc56dc2601eba17edffb15fc7c52"
+      "byteLength": 4272,
+      "sha256": "sha256:80d2c3e112600833846115c2922bda07a3e3fc00d92bb35b8bacc4c73311234b"
     },
     {
       "path": "config/chat-context-policy.json",
@@ -1249,14 +1249,19 @@
       "sha256": "sha256:9ee536d8402a5031e1fd969503abfc14378966e6cd3480c95bce0c8bb23aa604"
     },
     {
+      "path": "config/file-tool-schemas.json",
+      "byteLength": 3084,
+      "sha256": "sha256:f23dfa769b5364188b9f280e6a2be438ebd271195730a9ecab57cd2d64a48e05"
+    },
+    {
       "path": "config/firebase-public.json",
       "byteLength": 183,
       "sha256": "sha256:969ee9619fde47307264776b501c761d25d6db4ef21abcba17b51cfc8ba374e4"
     },
     {
       "path": "config/genesis-levels.json",
-      "byteLength": 13955,
-      "sha256": "sha256:6dd3a74e7c9195b2abd000aec450a43b129d971039036c98381ff17acc0729aa"
+      "byteLength": 14039,
+      "sha256": "sha256:0e381286f1afa48f542d357225cc5d5129e70aca6a1dbd6364f24cced57779b1"
     },
     {
       "path": "config/genesis-template.json",
@@ -1294,24 +1299,9 @@
       "sha256": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
     },
     {
-      "path": "config/model-manifests/397dcc5fbf1a388a50fddd731cc42515ce1d0217afa3e0d7c50adcbff3c6f141.json",
-      "byteLength": 214203,
-      "sha256": "sha256:397dcc5fbf1a388a50fddd731cc42515ce1d0217afa3e0d7c50adcbff3c6f141"
-    },
-    {
-      "path": "config/model-manifests/43f35f03a92f94ef7113b9f20834620a8d55f5575cfb721d5687e158bf5ad7d0.json",
-      "byteLength": 214204,
-      "sha256": "sha256:43f35f03a92f94ef7113b9f20834620a8d55f5575cfb721d5687e158bf5ad7d0"
-    },
-    {
       "path": "config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json",
       "byteLength": 183803,
       "sha256": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028"
-    },
-    {
-      "path": "config/model-manifests/9d6d621650134275f017ae268c519e90c8b184b01a53d1495d0d43dfc410b206.json",
-      "byteLength": 214203,
-      "sha256": "sha256:9d6d621650134275f017ae268c519e90c8b184b01a53d1495d0d43dfc410b206"
     },
     {
       "path": "config/model-manifests/f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735.json",
@@ -1335,13 +1325,13 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 565602,
-      "sha256": "sha256:f5331f23e9a7081aa7286a053c9fbcf8e01be5987b3705e18dfc1978d0cb3d25"
+      "byteLength": 568709,
+      "sha256": "sha256:bff652db399f1dbb3abb0388b3dee83a750d96009f0c77dbd3ad33bc7dd8bffc"
     },
     {
       "path": "config/module-registry.json",
-      "byteLength": 42281,
-      "sha256": "sha256:9db377732042470728f6ecf2794141d642f06a5b889c67cc02490b1569dd4d86"
+      "byteLength": 42369,
+      "sha256": "sha256:73458a69c045de5a7f094b1db42704816edd76c190398f64cec79fd0ef3d3d2d"
     },
     {
       "path": "config/module-resolution.js",
@@ -1380,8 +1370,8 @@
     },
     {
       "path": "config/surface-resources.js",
-      "byteLength": 5327,
-      "sha256": "sha256:d1ddd0cc42e09dcc90a091b1f606b133904d0e3623d2db8483ec69c9193b3a94"
+      "byteLength": 5604,
+      "sha256": "sha256:1b20f25d0fbb8ad42fdcb3b95f3346b6ced14433883766cd4076eb635171ca95"
     },
     {
       "path": "config/swarm-bootstrap.json",
@@ -1395,8 +1385,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 122762,
-      "sha256": "sha256:8586d18418abaa5f610e8ab2db8cfc72dec734734d20b8a612aecc0e4a30aa07"
+      "byteLength": 122859,
+      "sha256": "sha256:e35801ee4b863f2917090aebbb9940430a9dcc34e179e7ec728b0e52c149ab2a"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1475,8 +1465,8 @@
     },
     {
       "path": "core/functiongemma-orchestrator.js",
-      "byteLength": 40718,
-      "sha256": "sha256:0a997079c07c1d8c0e0387f81be5bfabd25acc247665e6115d92e117c1d87b3a"
+      "byteLength": 39458,
+      "sha256": "sha256:787ac5a158255c4f4adc44fdaf6b55d22abe85ff2926086426c86716eeb7bea4"
     },
     {
       "path": "core/import-rewrite.js",
@@ -1535,13 +1525,13 @@
     },
     {
       "path": "core/schema-registry.js",
-      "byteLength": 23543,
-      "sha256": "sha256:9f91f8be88d0fae721b48bacf86530799d1694e35dce03076adf01d1a659fd32"
+      "byteLength": 21120,
+      "sha256": "sha256:95370066938db80bf4ca98fdd3e9b80e8e53bca0a0468e903c5d3d707eecb5c3"
     },
     {
       "path": "core/schema-validator.js",
-      "byteLength": 29819,
-      "sha256": "sha256:bab624d40a26a37c3553ada4d0eccaede9f6925d451747e801898a9b33989758"
+      "byteLength": 25985,
+      "sha256": "sha256:8d7ca04ca6a24e0d8178f5848f626a4ab74771bb24727e758b93f0b744189e89"
     },
     {
       "path": "core/security-config.js",
@@ -1559,9 +1549,14 @@
       "sha256": "sha256:612c16a166208d8b701db9b5610f25b4d781477023c1e89912cb64cec70b9172"
     },
     {
+      "path": "core/tool-argument-validation.js",
+      "byteLength": 1309,
+      "sha256": "sha256:eaaa9f21aed62c4f18af6bd22fd89f4529ab0a52de774c41eec1b340ca4ee5ad"
+    },
+    {
       "path": "core/tool-runner.js",
-      "byteLength": 29811,
-      "sha256": "sha256:00c31974fac8c0c0570093b182fd39fe2e878dc939f856401d0d9508a293985a"
+      "byteLength": 25637,
+      "sha256": "sha256:056ab696a014d8303e0230e47fc5f20a7c13115b46b55d729ecda7a9e404140d"
     },
     {
       "path": "core/tool-writer.js",
@@ -1620,8 +1615,8 @@
     },
     {
       "path": "core/worker-manager.js",
-      "byteLength": 28125,
-      "sha256": "sha256:e9aab596ad6a7be13375b57237e9cbcf8be32e16702436821ff6a3e94d65cca9"
+      "byteLength": 20640,
+      "sha256": "sha256:2ee26c93a7fbf461ce3805a0d57c6610dab507dcf53aacc29e06f736a3eb638f"
     },
     {
       "path": "core/zero-prompt.js",
@@ -1770,8 +1765,8 @@
     },
     {
       "path": "host/file-access.js",
-      "byteLength": 2558,
-      "sha256": "sha256:e29463da28d267887190376f74dc1981a4c6748b8f73d79deb71f6a66b388b66"
+      "byteLength": 3070,
+      "sha256": "sha256:f2488b5a4d1ca6b294c4bc108ee171802699dc695d246b45ff24ac244e4c1212"
     },
     {
       "path": "host/mcp-client.js",
@@ -1794,6 +1789,11 @@
       "sha256": "sha256:8ac047cd82c8f366aadf2861739e5f73dbc142543cd2fd9ed33060183cf2b988"
     },
     {
+      "path": "host/reploid-launch.js",
+      "byteLength": 7591,
+      "sha256": "sha256:278747e59fc9538bb58e15068a6669e0755aa0efcf5944db15990fe99a75246d"
+    },
+    {
       "path": "host/seed-vfs.js",
       "byteLength": 27249,
       "sha256": "sha256:f851b04b3837d3ed807aa9132fae5ea527af5b9a8ee3b0898b3d26524fc2a8e6"
@@ -1805,13 +1805,13 @@
     },
     {
       "path": "host/start-app.js",
-      "byteLength": 25924,
-      "sha256": "sha256:cd527918c54d9717d60d4800b44857fdbb5583970a6b7e66d120fac6bd740d7c"
+      "byteLength": 19971,
+      "sha256": "sha256:7825ebcd0d012b9049713313ebb37da9c342c33692ff4470d74fec6499c2957c"
     },
     {
       "path": "host/start-reploid.js",
-      "byteLength": 8968,
-      "sha256": "sha256:b76e45f285d3092356e6080004c55ac1a496bb759cca8eeb203dbd34cdcbaa38"
+      "byteLength": 2447,
+      "sha256": "sha256:ab3db71b79e518f70cde2dd2fd6a28ffc57c59e6d1d6ff26171b60094bd2e2f5"
     },
     {
       "path": "host/supabase-sign-in.js",
@@ -2115,8 +2115,8 @@
     },
     {
       "path": "manifest.js",
-      "byteLength": 14239,
-      "sha256": "sha256:2d2cdf0b13071798417ccdd8938aacf6a7b1394cf9b32a004f831588abb955bd"
+      "byteLength": 14176,
+      "sha256": "sha256:1b4c3688042b7b74d172e1e022394f5d8195fcbe2a10e8457d2a4269757f8f12"
     },
     {
       "path": "personas/code-architect.md",
@@ -2184,11 +2184,6 @@
       "sha256": "sha256:54552ca9c950fce5cde854b5314778daa74a08ab7b826844530b02c3d15db19d"
     },
     {
-      "path": "pool/agent-client.js",
-      "byteLength": 10024,
-      "sha256": "sha256:23977c3d28ac875228439e7317f88b9f109339b62ad3e9322d2ea634fc569095"
-    },
-    {
       "path": "pool/artifact-origin.js",
       "byteLength": 5276,
       "sha256": "sha256:579b8e7681654bfb18977c965c14a89cf033afc9f39317d1506bbc35df786976"
@@ -2230,8 +2225,8 @@
     },
     {
       "path": "pool/config.js",
-      "byteLength": 2461,
-      "sha256": "sha256:892ff8ff5dcc9f3aa4c9bbeaeabd29880ab4eedb5258d383efb12f0fe6d6ff75"
+      "byteLength": 1429,
+      "sha256": "sha256:2151d08b9f43a8b7f2af81ab8c01de79ada91ba5488cfd7abe06c04b222fb760"
     },
     {
       "path": "pool/device-identity.js",
@@ -2559,11 +2554,6 @@
       "sha256": "sha256:5fa1abd8520055c51f90b48d189130f3fe94e7c614ba74dbf2034ace8a0fd149"
     },
     {
-      "path": "pool/points-ledger.js",
-      "byteLength": 516,
-      "sha256": "sha256:5d035188de53fe639c031e7d87cd88872bd39a20407bd462329c8e1e7d291ce4"
-    },
-    {
       "path": "pool/policy-router.js",
       "byteLength": 3621,
       "sha256": "sha256:3b65c34c742adcc403352d9b6db51cae1b8a1ee9d656541953dfae1c82b55328"
@@ -2665,8 +2655,8 @@
     },
     {
       "path": "prompts/kernel.md",
-      "byteLength": 4344,
-      "sha256": "sha256:d9ad2b8aa3a56a20d4e9d9b954aca4124cedb17e5473c926568d0a1969d9de2f"
+      "byteLength": 4360,
+      "sha256": "sha256:c9a174bb88b2cd8bcb921b9ffe6caa389e036f217cf914da85a4a2c10aefa5d0"
     },
     {
       "path": "providers/doppler-reploid.js",
@@ -2730,8 +2720,8 @@
     },
     {
       "path": "shared/change-passport/contract.js",
-      "byteLength": 43344,
-      "sha256": "sha256:9e05fda60d72cefa8ed2c7d2f4c3a1496b3ce00e249e9bdaea4acc2ec9e6b7bc"
+      "byteLength": 42740,
+      "sha256": "sha256:a0d420b0c79b0a0174a8843b9323ac2095c0bdd644c0e8522e0eabdf9b2b587d"
     },
     {
       "path": "shared/change-passport/improvement-adapter.js",
@@ -2880,8 +2870,8 @@
     },
     {
       "path": "sw-module-loader.js",
-      "byteLength": 188,
-      "sha256": "sha256:2b4aabf6249a54b11022523ee79efa0652024c41217f8f90117108d74c62c86c"
+      "byteLength": 148,
+      "sha256": "sha256:e3b297e9a6bed80b79a41bb7c059a94d61345bf66f6d846bcfb0da2f3a425680"
     },
     {
       "path": "sw.js",
@@ -2895,8 +2885,8 @@
     },
     {
       "path": "testing/arena/arena-harness.js",
-      "byteLength": 12278,
-      "sha256": "sha256:877ad71952377ffbf65e77d9818080cb40b3bd69484ab9840d583be918b20b7b"
+      "byteLength": 11023,
+      "sha256": "sha256:dc89efa4348adb436c9f20d26c3639cf8a174a636b348142b5011665d7796816"
     },
     {
       "path": "testing/arena/arena-metrics.js",
@@ -2950,8 +2940,8 @@
     },
     {
       "path": "tools/EditFile.js",
-      "byteLength": 6899,
-      "sha256": "sha256:0bcdd08b34e14b18b70ce6b3b101641da9874ffc7898f829f02bc1eb1d012591"
+      "byteLength": 5566,
+      "sha256": "sha256:d13d58b225870e88998465f0d736d04f400848660e9a0c5a0508634a6670fa22"
     },
     {
       "path": "tools/FileOutline.js",
@@ -3025,8 +3015,8 @@
     },
     {
       "path": "tools/ReadFile.js",
-      "byteLength": 13229,
-      "sha256": "sha256:b94dd42e060fa587ea616c2e0a355009eae31eca895333384f011b3251439d37"
+      "byteLength": 12898,
+      "sha256": "sha256:3f7916514448def1e06c9b0d34d19ff1acafff3523a83ded059dbf2ef49423e7"
     },
     {
       "path": "tools/README.md",
@@ -3070,13 +3060,18 @@
     },
     {
       "path": "tools/WriteFile.js",
-      "byteLength": 10460,
-      "sha256": "sha256:bca6a5b3cb6b716c413f1740f46291e44fa17d5137e80b1267f858b00a8032ef"
+      "byteLength": 9322,
+      "sha256": "sha256:936a7bedc1c70ffa454ab86c476637ada0cccdd79bef95615100ea6390274f0f"
     },
     {
       "path": "ui/boot-home/index.js",
-      "byteLength": 49362,
-      "sha256": "sha256:66c221fa72d3b0aa9e36c2eddbdee6d358e336f740299ede921746a4f6cd01f1"
+      "byteLength": 45350,
+      "sha256": "sha256:5c9270d6435022d945810299790b26896f12e5315048eb3d92f8d344aa970bc9"
+    },
+    {
+      "path": "ui/boot-wizard/connection-tests.js",
+      "byteLength": 4350,
+      "sha256": "sha256:ee0617b30b410534dc84d555eb0438ee0de3ebc5a942f7469d29a1f93cfe340b"
     },
     {
       "path": "ui/boot-wizard/detection.js",
@@ -3090,8 +3085,8 @@
     },
     {
       "path": "ui/boot-wizard/index.js",
-      "byteLength": 48245,
-      "sha256": "sha256:a79761793bd82f9961e2fbb4e2c6c3f4cf16293a12dafbf1b972b3b44a3c14d2"
+      "byteLength": 44385,
+      "sha256": "sha256:bac74cc42332e6434443a2a0c4762a9b16b4399c80976cb7acf74459d0e5d68e"
     },
     {
       "path": "ui/boot-wizard/reploid-inference.js",
@@ -3105,8 +3100,8 @@
     },
     {
       "path": "ui/boot-wizard/state.js",
-      "byteLength": 21448,
-      "sha256": "sha256:0915503ec5f9b7b6c4c7c81cc96000aaf62d1760ad71f354252631caed516e8c"
+      "byteLength": 20041,
+      "sha256": "sha256:f3c9683fcbde3fe2324de6f7f1afe0cf846b662767d5af78932895fdafdec4a9"
     },
     {
       "path": "ui/boot-wizard/steps/awaken.js",
@@ -3210,8 +3205,8 @@
     },
     {
       "path": "ui/components/vfs-progress.js",
-      "byteLength": 730,
-      "sha256": "sha256:1a4fdae2faa9f157829583930a16264df09f92237d66172e0c909ebc630d985b"
+      "byteLength": 1601,
+      "sha256": "sha256:445fc40981cc96b127dca7eab4e4833452403f4d0419b43b2ef0f9de632f34f6"
     },
     {
       "path": "ui/panels/cognition-panel.js",
@@ -3235,8 +3230,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2035321,
-      "sha256": "sha256:1bfbf04a9403f3fb46b74de497160f6dc2bc39ea8fa3ecfc5fb0bb1136b8cef3"
+      "byteLength": 2035431,
+      "sha256": "sha256:8a75cf97b904ad5a9b7c047e928bf46ff1ef86580c3c8605876d926713a9a521"
     },
     {
       "path": "ui/pool-home/computer-labels.js",
@@ -3260,8 +3255,8 @@
     },
     {
       "path": "ui/pool-home/controls.js",
-      "byteLength": 115110,
-      "sha256": "sha256:6e2b99530f52cd436d3ee4d9e74a92f71381e12ded2fb1b4b30317c5bcaf2880"
+      "byteLength": 110869,
+      "sha256": "sha256:1d982519d3a7b9260266616d182ece7eebd9d1f04bb8fa7e598534069ab30822"
     },
     {
       "path": "ui/pool-home/conversation-list.js",
@@ -3420,8 +3415,8 @@
     },
     {
       "path": "ui/pool-home/simulation-flow-specs.js",
-      "byteLength": 12386,
-      "sha256": "sha256:1cddaf0a5fe79c8da48d5ae92e794e7683fd2f9de67e58a359ea73c8a4c0b19f"
+      "byteLength": 10838,
+      "sha256": "sha256:876f60b4a919f2d9b487731ddc382fbd82d52beccac983ea8bda6371c119e06b"
     },
     {
       "path": "ui/pool-home/simulation-flow-transition.js",
@@ -3580,8 +3575,8 @@
     },
     {
       "path": "ui/zero-home/index.js",
-      "byteLength": 22574,
-      "sha256": "sha256:d36f963efa5e326d42332490165387bff2a1f379c64d96c6134d4784f1eb4edd"
+      "byteLength": 22088,
+      "sha256": "sha256:38d4fed90dd9269b150dbd7f265b25a335fcb9bdc72aa5db77ec88fd4e9d7f5e"
     },
     {
       "path": "ui/zero/index.js",
@@ -9849,6 +9844,11 @@
       "sha256": "sha256:842a01c08e31a147ec961e9902b851973359c6125eb4f7fd3c068b135e657aac"
     },
     {
+      "path": "vendor/reploid/artifacts/event-signature.js",
+      "byteLength": 760,
+      "sha256": "sha256:6853df90feb1118a39f493375270f580da2549e6bf9ecb304f8b068342a39c2b"
+    },
+    {
       "path": "vendor/reploid/artifacts/identity.js",
       "byteLength": 4030,
       "sha256": "sha256:29a0f9c1bfe248da7fdf5c6cb69750ea4dbb42c5fe21a254f0d22989a083205c"
@@ -9990,8 +9990,8 @@
     },
     {
       "path": "vendor/reploid/improvement/episodes.js",
-      "byteLength": 49450,
-      "sha256": "sha256:9295d770d2e1bcedf64a79b6462f5e83b6042607e9e6f1f8ed3107ef53adf5e2"
+      "byteLength": 48828,
+      "sha256": "sha256:5a48a71313e4fcf2cdb37f60e09aa84d43ff324f73908ebddacb66cd03af3cf2"
     },
     {
       "path": "vendor/reploid/improvement/index.js",
@@ -10295,8 +10295,8 @@
     },
     {
       "path": "vendor/reploid/package-assets.json",
-      "byteLength": 45852,
-      "sha256": "sha256:f7d708dfaa244cf13fe30e25593f52e3658077aa838b41196755aee9f003dd61"
+      "byteLength": 46178,
+      "sha256": "sha256:3de85121ac2425e6b2898648385d932f2355bd55dd00eccff4b1da725d39fbe2"
     },
     {
       "path": "vendor/reploid/retrieval/citations.js",
@@ -10464,5 +10464,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:656c364a75e2645ebcf012e707cbc1a7e9b4495dabb15be3b300cbe5374e1c6f"
+  "bundleHash": "sha256:fe4ad543a31faf6e3f100a436be8cfa4cd889fe557e7c5634101229994d3ad7a"
 }

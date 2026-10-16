@@ -38,6 +38,7 @@ const REPLOID_MINIMAL_HOME_BOOT_SEED_PREFIXES = Object.freeze([
   'self/environment.js',
   'self/host/seed-vfs.js',
   'self/host/start-reploid.js',
+  'self/host/reploid-launch.js',
   'self/host/sw-module-loader.js',
   'self/host/vfs-bootstrap.js',
   'self/identity.js',

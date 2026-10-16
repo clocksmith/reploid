@@ -1,5 +1,8 @@
 # Intent Bundle LoRA Workflow
 
+Implementation reference for the registered optional `IntentBundleLoRA` DI module.
+Registration does not establish an integrated product workflow or qualification.
+
 This document describes how intent bundles gate LoRA adapter activation in Reploid.
 It covers the approval flow, required files, and event hooks.
 

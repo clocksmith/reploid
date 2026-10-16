@@ -1,0 +1,125 @@
+{
+  "EditFile": {
+    "type": "object",
+    "required": [
+      "path"
+    ],
+    "properties": {
+      "path": {
+        "type": "string",
+        "description": "Path to edit (vfs:/ or opfs:/). Default backend is VFS."
+      },
+      "backend": {
+        "type": "string",
+        "description": "Optional backend override (vfs or opfs)"
+      },
+      "content": {
+        "type": "string",
+        "description": "Full replacement content (text only)"
+      },
+      "patch": {
+        "type": "array",
+        "description": "Patch operations with find/replace",
+        "items": {
+          "type": "object",
+          "required": [
+            "find"
+          ],
+          "properties": {
+            "find": {
+              "type": "string"
+            },
+            "replace": {
+              "type": "string"
+            },
+            "count": {
+              "type": "number"
+            }
+          }
+        }
+      },
+      "operations": {
+        "type": "array",
+        "description": "Legacy operations array",
+        "items": {
+          "type": "object",
+          "required": [
+            "match"
+          ],
+          "properties": {
+            "match": {
+              "type": "string"
+            },
+            "replacement": {
+              "type": "string"
+            },
+            "count": {
+              "type": "number"
+            }
+          }
+        }
+      },
+      "create": {
+        "type": "boolean",
+        "description": "Create file if missing (default false)"
+      }
+    }
+  },
+  "WriteFile": {
+    "type": "object",
+    "required": [
+      "path"
+    ],
+    "properties": {
+      "path": {
+        "type": "string",
+        "description": "Path to write (vfs:/ or opfs:/). Default backend is VFS."
+      },
+      "backend": {
+        "type": "string",
+        "description": "Optional backend override (vfs or opfs)"
+      },
+      "mode": {
+        "type": "string",
+        "enum": [
+          "text",
+          "binary"
+        ],
+        "description": "Write mode (default: text)"
+      },
+      "content": {
+        "type": "string",
+        "description": "Text content to write. JSON object content is accepted and serialized as JSON text."
+      },
+      "data": {
+        "type": "string",
+        "description": "Base64 data for binary writes"
+      },
+      "checksum": {
+        "type": "string",
+        "description": "Optional checksum for binary data"
+      },
+      "checksumAlgorithm": {
+        "type": "string",
+        "description": "Checksum algorithm (default: sha256)"
+      },
+      "maxBytes": {
+        "type": "number",
+        "description": "Maximum bytes to write"
+      },
+      "create": {
+        "type": "boolean",
+        "description": "Create file if missing (default true)"
+      },
+      "overwrite": {
+        "type": "boolean",
+        "description": "Overwrite file if it exists (default true)"
+      },
+      "autoLoad": {
+        "type": "boolean",
+        "description": "If true and path is .js, hot-reload the module after writing",
+        "default": false
+      }
+    }
+  }
+}

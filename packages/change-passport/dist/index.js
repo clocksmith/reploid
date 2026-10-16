@@ -1,14 +1,15 @@
+// self/vendor/reploid/artifacts/canonical-json.js
+function canonicalize(value) {
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => canonicalize(item)).join(",")}]`;
+  }
+  const keys = Object.keys(value).sort();
+  return `{${keys.map((key) => `${JSON.stringify(key)}:${canonicalize(value[key])}`).join(",")}}`;
+}
+
 // self/vendor/reploid/artifacts/identity.js
 var encoder = new TextEncoder();
-var stableJson = (value) => {
-  if (Array.isArray(value)) {
-    return `[${value.map((item) => stableJson(item)).join(",")}]`;
-  }
-  if (value && typeof value === "object") {
-    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(",")}}`;
-  }
-  return JSON.stringify(value);
-};
 var getCryptoApi = (cryptoApi) => {
   const api = cryptoApi || globalThis.crypto;
   if (!api?.subtle) {
@@ -26,8 +27,8 @@ var fromBase64Url = (value) => {
   return Uint8Array.from(binary, (char) => char.charCodeAt(0));
 };
 async function sha256Hex(text, cryptoApi = globalThis.crypto) {
-  const digest = await getCryptoApi(cryptoApi).subtle.digest("SHA-256", encoder.encode(String(text || "")));
-  return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, "0")).join("");
+  const digest2 = await getCryptoApi(cryptoApi).subtle.digest("SHA-256", encoder.encode(String(text || "")));
+  return Array.from(new Uint8Array(digest2)).map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 function inferIdentityAlgorithm(bundleOrJwk = {}) {
   const algorithm = String(bundleOrJwk?.algorithm || "").trim();
@@ -52,8 +53,8 @@ async function createPeerIdFromPublicJwk(publicJwk, cryptoApi = globalThis.crypt
     n: publicJwk.n || null,
     e: publicJwk.e || null
   } : {};
-  const digest = await sha256Hex(stableJson(publicShape), cryptoApi);
-  return `peer:${digest.slice(0, 24)}`;
+  const digest2 = await sha256Hex(canonicalize(publicShape), cryptoApi);
+  return `peer:${digest2.slice(0, 24)}`;
 }
 async function importVerificationKey(bundleOrJwk, cryptoApi = globalThis.crypto) {
   const publicJwk = bundleOrJwk?.publicJwk || bundleOrJwk;
@@ -70,6 +71,24 @@ async function importVerificationKey(bundleOrJwk, cryptoApi = globalThis.crypto)
 }
 function encodeBytes(value) {
   return encoder.encode(String(value || ""));
+}
+
+// self/vendor/reploid/artifacts/event-signature.js
+async function verifyEventSignature(event, cryptoApi = globalThis.crypto) {
+  if (!event?.signature?.publicJwk || !event?.signature?.value) return false;
+  try {
+    const signerId = await createPeerIdFromPublicJwk(event.signature.publicJwk, cryptoApi);
+    if (signerId !== event.signature.signerId) return false;
+    const key = await importVerificationKey(event.signature.publicJwk, cryptoApi);
+    return cryptoApi.subtle.verify(
+      getIdentitySignAlgorithm(event.signature),
+      key,
+      fromBase64Url(event.signature.value),
+      encodeBytes(event.eventHash)
+    );
+  } catch {
+    return false;
+  }
 }
 
 // self/vendor/reploid/rules/contribution.rules.json
@@ -102,12 +121,119 @@ var partitionActions = Object.freeze([
   "mesh.transfer_token_context",
   "mesh.transfer_partition_output"
 ]);
+var assertPartition = (value, message) => {
+  if (!value) throw new Error(message);
+};
+
+// self/vendor/reploid/artifacts/participant-proofs.js
+var DEVICE_HOSTS = Object.freeze(["browser", "native"]);
+var PROOF_KEYS = Object.freeze(["schema", "challengeId", "nonce", "accountId", "audience", "participantId", "publicJwk", "host", "signature"]);
+var SESSION_BINDING_KEYS = Object.freeze(["schema", "challengeId", "nonce", "accountId", "sessionId", "participantId", "signature"]);
+
+// self/vendor/reploid/mesh/partitions/partition-receiver-policy.json
+var partition_receiver_policy_default = {
+  maxControlBytes: 65536,
+  maxCompletedSequences: 2,
+  maxRetentionMs: 6e4,
+  maxRetainedBytes: 1048576,
+  maxUnacknowledgedOutputs: 2
+};
+
+// self/vendor/reploid/mesh/partitions/partition-attempt-evidence.js
+var STAGE_RECEIPT_STATUSES = Object.freeze(["executing", "settled", "failed"]);
+var MAX_UNACKNOWLEDGED_OUTPUTS = partition_receiver_policy_default.maxUnacknowledgedOutputs;
+if (!Number.isSafeInteger(MAX_UNACKNOWLEDGED_OUTPUTS) || MAX_UNACKNOWLEDGED_OUTPUTS < 0) {
+  throw new Error("partition-receiver-policy.json must declare maxUnacknowledgedOutputs as a non-negative integer");
+}
+var RECEIPT_KEYS = Object.freeze([
+  "schema",
+  "reservationId",
+  "attemptId",
+  "routeHash",
+  "partitionIndex",
+  "participantId",
+  "sequence",
+  "status",
+  "steps",
+  "tokens",
+  "timing",
+  "output",
+  "signedAt"
+]);
+var ACKNOWLEDGMENT_KEYS = Object.freeze(["schema", "reservationId", "attemptId", "routeHash", "requesterId", "count", "chain", "signedAt"]);
+var TIMING_KEYS = Object.freeze(["reservedAt", "firstStepAt", "lastStepAt", "closedAt"]);
+var OUTPUT_KEYS = Object.freeze(["count", "chain", "done", "stopReason"]);
+var BUNDLE_KEYS = Object.freeze(["schema", "reservationId", "attemptId", "identity", "receipts", "acknowledged"]);
 
 // self/vendor/reploid/transport/partition-data-channel.js
 var encoder2 = new TextEncoder();
 
 // self/vendor/reploid/mesh/partitions/partition-generation-request.js
 var TEXT_GENERATION_CAPABILITY = Object.freeze({ schema: "reploid.text-generation/v1", usage: "raw-model-tokens/v1" });
+
+// self/vendor/reploid/mesh/partitions/partition-attempt-queue-policy.json
+var partition_attempt_queue_policy_default = {
+  schema: "reploid.partition-attempt-queue-policy/v1",
+  maxQueuedAttempts: 4,
+  maxQueuedPerRequester: 2,
+  maxQueueWaitMs: 3e5
+};
+
+// self/vendor/reploid/mesh/partitions/partition-attempt-queue.js
+var ATTEMPT_QUEUE_POLICY_SCHEMA = "reploid.partition-attempt-queue-policy/v1";
+var POLICY_KEYS = Object.freeze(["schema", "maxQueuedAttempts", "maxQueuedPerRequester", "maxQueueWaitMs"]);
+var positive = (value) => Number.isSafeInteger(value) && value > 0;
+function validateAttemptQueuePolicy(policy) {
+  const keys = policy && typeof policy === "object" && !Array.isArray(policy) ? Object.keys(policy) : [];
+  assertPartition(
+    keys.length === POLICY_KEYS.length && POLICY_KEYS.every((key) => keys.includes(key)) && policy.schema === ATTEMPT_QUEUE_POLICY_SCHEMA && ["maxQueuedAttempts", "maxQueuedPerRequester", "maxQueueWaitMs"].every((key) => positive(policy[key])) && policy.maxQueuedPerRequester <= policy.maxQueuedAttempts && policy.maxQueueWaitMs <= 2147483647,
+    `Explicit ${ATTEMPT_QUEUE_POLICY_SCHEMA} required: ${POLICY_KEYS.join(", ")}`
+  );
+  return Object.freeze({ ...policy });
+}
+var ATTEMPT_QUEUE_POLICY = validateAttemptQueuePolicy(partition_attempt_queue_policy_default);
+
+// self/vendor/reploid/mesh/partitions/partition-route-envelope-policy.json
+var partition_route_envelope_policy_default = {
+  schema: "reploid.route-envelope-policy/v1",
+  undeclaredRoutes: "existing-limits",
+  routes: [
+    {
+      modelIdentity: "sha256:548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+      planId: "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+      evidence: "artifacts/placement-c-envelope-20261015/README.md",
+      cells: [
+        { maxConcurrency: 1, maxPromptTokens: 512, maxAnswerTokens: 255 },
+        { maxConcurrency: 1, maxPromptTokens: 1024, maxAnswerTokens: 63 },
+        { maxConcurrency: 2, maxPromptTokens: 512, maxAnswerTokens: 255 }
+      ]
+    }
+  ]
+};
+
+// self/vendor/reploid/mesh/partitions/partition-route-envelope.js
+var ROUTE_ENVELOPE_POLICY_SCHEMA = "reploid.route-envelope-policy/v1";
+var digest = (value) => typeof value === "string" && /^sha256:[a-f0-9]{64}$/.test(value);
+var positive2 = (value) => Number.isSafeInteger(value) && value > 0;
+var exact = (value, keys) => !!value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).length === keys.length && keys.every((key) => Object.hasOwn(value, key));
+function validateRouteEnvelopePolicy(policy) {
+  assertPartition(
+    exact(policy, ["schema", "undeclaredRoutes", "routes"]) && policy.schema === ROUTE_ENVELOPE_POLICY_SCHEMA && ["existing-limits", "refuse"].includes(policy.undeclaredRoutes) && Array.isArray(policy.routes),
+    `Explicit ${ROUTE_ENVELOPE_POLICY_SCHEMA} required: schema, undeclaredRoutes, routes`
+  );
+  const seen = /* @__PURE__ */ new Set();
+  for (const entry of policy.routes) {
+    assertPartition(
+      exact(entry, ["modelIdentity", "planId", "evidence", "cells"]) && digest(entry.modelIdentity) && digest(entry.planId) && typeof entry.evidence === "string" && entry.evidence.length > 0 && Array.isArray(entry.cells) && entry.cells.length > 0 && entry.cells.every((cell) => exact(cell, ["maxConcurrency", "maxPromptTokens", "maxAnswerTokens"]) && positive2(cell.maxConcurrency) && positive2(cell.maxPromptTokens) && positive2(cell.maxAnswerTokens)),
+      "Invalid route envelope entry"
+    );
+    const key = entry.modelIdentity + "/" + entry.planId;
+    assertPartition(!seen.has(key), "Duplicate route envelope entry");
+    seen.add(key);
+  }
+  return Object.freeze(structuredClone(policy));
+}
+var ROUTE_ENVELOPE_POLICY = validateRouteEnvelopePolicy(partition_route_envelope_policy_default);
 
 // self/vendor/reploid/mesh/partitions/partition-summary.js
 var STAGE_RUNTIME_KEYS = Object.freeze([
@@ -121,6 +247,9 @@ var STAGE_RUNTIME_KEYS = Object.freeze([
   "logitsReadbackMs",
   "samplingMs"
 ]);
+
+// self/vendor/reploid/mesh/partitions/partition-entry.js
+var ATTEMPT_STATES = Object.freeze(["queued", "executing"]);
 
 // self/vendor/reploid/config/transport-defaults.json
 var transport_defaults_default = {
@@ -153,6 +282,19 @@ var P2P_TRANSPORT_STATES = Object.freeze({
   CLOSED: "closed",
   FAILED: "failed"
 });
+
+// self/vendor/reploid/mesh/partitions/partition-route-ranking.js
+var POLICY_GROUPS = Object.freeze({
+  prices: ["latencyPerMs", "queueingPerMs", "transferPerMs", "preparationPerMs", "refundPerFailure", "retryPerFailure"],
+  unknown: ["prefillMsPerToken", "decodeMsPerToken", "transferMsPerToken", "openingMs", "maxObservationAgeMs"],
+  readiness: ["priorAttempts", "priorRefusals"],
+  failure: ["priorAttempts", "priorFailures"],
+  reserve: ["spareSlots", "perMissingSlot"]
+});
+var COMPONENTS = Object.freeze(["latency", "queueing", "transfer", "preparation", "readiness", "failure", "reserve"]);
+
+// self/vendor/reploid/mesh/partitions/partition-preparation-progress.js
+var STATUSES = Object.freeze(["preparing", "prepared", "cancelling", "cancelled", "timed-out", "failed"]);
 
 // self/shared/change-passport/contract.js
 var CHANGE_PASSPORT_SCHEMA = "change.passport/v1";
@@ -211,11 +353,11 @@ var canonicalChangePassportJson = (value) => {
 };
 async function hashChangePassportValue(value, cryptoApi = globalThis.crypto) {
   if (!cryptoApi?.subtle) throw new Error("SHA-256 is unavailable");
-  const digest = await cryptoApi.subtle.digest(
+  const digest2 = await cryptoApi.subtle.digest(
     "SHA-256",
     encodeBytes(canonicalChangePassportJson(value))
   );
-  return `sha256:${Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, "0")).join("")}`;
+  return `sha256:${Array.from(new Uint8Array(digest2)).map((byte) => byte.toString(16).padStart(2, "0")).join("")}`;
 }
 var requiredText = (value, label, max = 4e3) => {
   const normalized = String(value ?? "").trim();
@@ -536,22 +678,6 @@ var eventHashInput = (event) => {
   delete unsigned.signature;
   return unsigned;
 };
-async function verifyEventSignature(event, cryptoApi = globalThis.crypto) {
-  if (!event?.signature?.publicJwk || !event?.signature?.value) return false;
-  try {
-    const signerId = await createPeerIdFromPublicJwk(event.signature.publicJwk, cryptoApi);
-    if (signerId !== event.signature.signerId) return false;
-    const key = await importVerificationKey(event.signature.publicJwk, cryptoApi);
-    return cryptoApi.subtle.verify(
-      getIdentitySignAlgorithm(event.signature),
-      key,
-      fromBase64Url(event.signature.value),
-      encodeBytes(event.eventHash)
-    );
-  } catch {
-    return false;
-  }
-}
 var eventByHash = (events, hash) => events.find((event) => event.eventHash === hash) || null;
 function validateChangePassportTransition(events = [], type, payload, actor = {}) {
   if (!EVENT_TYPE_SET.has(type)) throw new Error(`Unsupported Change Passport event type: ${type}`);

@@ -1,3 +1,4 @@
+import { createKnownKeyValidator } from '../input-validation.js';
 /**
  * @fileoverview Challenge operations for contracted storage and prepared
  * readiness. The reward store issues, times and records every challenge and
@@ -12,10 +13,7 @@ import { assertRewardCategory, fail } from './domain.js';
 import { probePassed, runReadinessProbe } from './readiness-probe.js';
 
 const pick = (input, keys) => Object.fromEntries(keys.filter((key) => input[key] !== undefined).map((key) => [key, input[key]]));
-const assertKnownKeys = (input, allowed, operation) => {
-  const unknown = Object.keys(input || {}).filter((key) => !allowed.includes(key));
-  if (unknown.length) fail('invalid_input', `${operation} does not accept: ${unknown.join(', ')}`, { unknown });
-};
+const assertKnownKeys = createKnownKeyValidator(fail);
 
 /**
  * @param {object} ports shared store internals: backend, ledger, identity,

@@ -14,7 +14,14 @@ const cleanedModules = [
   'packages/reploid/src/agent/tool-operation-retry.js',
   'self/host/file-access.js',
   'self/ui/components/html.js',
-  'self/ui/components/vfs-progress.js'
+  'self/ui/components/vfs-progress.js',
+  'self/host/reploid-launch.js',
+  'self/ui/boot-wizard/connection-tests.js',
+  'self/core/tool-argument-validation.js',
+  'packages/reploid/src/artifacts/event-signature.js',
+  'server/input-validation.js',
+  'server/token-auth.js',
+  'server/pool/routes/assignment-entry.js'
 ];
 
 export default [

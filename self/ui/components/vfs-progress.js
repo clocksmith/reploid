@@ -18,3 +18,26 @@ export const normalizeVfsProgress = (progress = {}) => {
     timestamp: Number(progress.timestamp || Date.now())
   };
 };
+
+export const getCurrentFullSeedProgress = () => typeof window === 'undefined' ? null
+  : normalizeVfsProgress(window.REPLOID_VFS_FULL_SEED_PROGRESS || window.REPLOID_VFS_SEED_PROGRESS);
+
+export function createVfsProgressBinding(onProgress) {
+  let attached = false;
+  const setVfsProgress = value => {
+    const progress = normalizeVfsProgress(value);
+    if (progress) onProgress(progress);
+  };
+  const listener = event => setVfsProgress(event.detail);
+  const attachVfsProgressListener = () => {
+    if (attached || typeof window === 'undefined') return;
+    attached = true;
+    window.addEventListener('reploid:vfs-seed-progress', listener);
+  };
+  const dispose = () => {
+    if (!attached) return;
+    window.removeEventListener('reploid:vfs-seed-progress', listener);
+    attached = false;
+  };
+  return { setVfsProgress, attachVfsProgressListener, dispose };
+}

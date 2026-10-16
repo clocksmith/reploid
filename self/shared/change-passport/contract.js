@@ -1,16 +1,9 @@
+import { verifyEventSignature } from '../../vendor/reploid/artifacts/event-signature.js';
 /**
  * @fileoverview Canonical Change Passport event ledger and deterministic projection.
  */
 
-import {
-  createPeerIdFromPublicJwk,
-  encodeBytes,
-  fromBase64Url,
-  getIdentitySignAlgorithm,
-  importSigningKey,
-  importVerificationKey,
-  toBase64Url
-} from '../../identity.js';
+import { encodeBytes, getIdentitySignAlgorithm, importSigningKey, toBase64Url } from '../../identity.js';
 
 export const CHANGE_PASSPORT_SCHEMA = 'change.passport/v1';
 export const CHANGE_PASSPORT_EVENT_SCHEMA = 'change.passport-event/v1';
@@ -461,22 +454,7 @@ async function signEventHash(eventHash, identityBundle, cryptoApi = globalThis.c
   };
 }
 
-async function verifyEventSignature(event, cryptoApi = globalThis.crypto) {
-  if (!event?.signature?.publicJwk || !event?.signature?.value) return false;
-  try {
-    const signerId = await createPeerIdFromPublicJwk(event.signature.publicJwk, cryptoApi);
-    if (signerId !== event.signature.signerId) return false;
-    const key = await importVerificationKey(event.signature.publicJwk, cryptoApi);
-    return cryptoApi.subtle.verify(
-      getIdentitySignAlgorithm(event.signature),
-      key,
-      fromBase64Url(event.signature.value),
-      encodeBytes(event.eventHash)
-    );
-  } catch {
-    return false;
-  }
-}
+
 
 const eventByHash = (events, hash) => events.find((event) => event.eventHash === hash) || null;
 

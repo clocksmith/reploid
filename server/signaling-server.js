@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { tokensEqual } from './token-auth.js';
 
 /**
  * @fileoverview Strict Reploid signaling server for WebRTC peer coordination.
@@ -90,12 +91,7 @@ const isLoopbackOrigin = (origin) => {
   }
 };
 
-const tokensEqual = (left, right) => {
-  if (typeof left !== 'string' || typeof right !== 'string') return false;
-  const leftBytes = Buffer.from(left);
-  const rightBytes = Buffer.from(right);
-  return leftBytes.length === rightBytes.length && crypto.timingSafeEqual(leftBytes, rightBytes);
-};
+
 
 const accessTokenFromRequest = (req) => {
   try {

@@ -1,16 +1,9 @@
+import { verifyEventSignature } from '../artifacts/event-signature.js';
 /**
  * @fileoverview Signed, append-only causal ledger for bounded improvement attempts.
  */
 
-import {
-  encodeBytes,
-  createPeerIdFromPublicJwk,
-  fromBase64Url,
-  getIdentitySignAlgorithm,
-  importSigningKey,
-  importVerificationKey,
-  toBase64Url
-} from '../artifacts/identity.js';
+import { encodeBytes, getIdentitySignAlgorithm, importSigningKey, toBase64Url } from '../artifacts/identity.js';
 
 export const IMPROVEMENT_EPISODE_SCHEMA = 'rsi.improvement-episode/v1';
 export const IMPROVEMENT_EVENT_SCHEMA = 'rsi.improvement-episode-event/v1';
@@ -394,22 +387,7 @@ async function signEventHash(eventHash, identityBundle, cryptoApi = globalThis.c
   };
 }
 
-async function verifyEventSignature(event, cryptoApi = globalThis.crypto) {
-  if (!event?.signature?.publicJwk || !event?.signature?.value) return false;
-  try {
-    const signerId = await createPeerIdFromPublicJwk(event.signature.publicJwk, cryptoApi);
-    if (signerId !== event.signature.signerId) return false;
-    const key = await importVerificationKey(event.signature.publicJwk, cryptoApi);
-    return cryptoApi.subtle.verify(
-      getIdentitySignAlgorithm(event.signature),
-      key,
-      fromBase64Url(event.signature.value),
-      encodeBytes(event.eventHash)
-    );
-  } catch {
-    return false;
-  }
-}
+
 
 export async function verifyImprovementEvents(events, cryptoApi = globalThis.crypto) {
   const reasons = [];

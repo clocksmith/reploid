@@ -1,3 +1,4 @@
+import { createReploidLauncher } from './reploid-launch.js';
 /**
  * @fileoverview Self-owned host launcher for Reploid and the legacy boot modes.
  */
@@ -7,18 +8,11 @@ import { SELF_BOOT_SPEC, toSourceWebPath } from '../boot-spec.js';
 import { getRuntimeUiSpecByMode } from '../lab/profiles.js';
 import { buildDefaultLocalDopplerModelConfig } from '../config/doppler-local-models.js';
 import { ZERO_GEMINI_AGENT_THROTTLE } from '../config/zero-inference.js';
-import {
-  clearRequestedFreshIdentity,
-  getCurrentReploidInstanceLabel,
-  getCurrentReploidPeerQuery,
-  getCurrentReploidStorage as getReploidStorage,
-  getSurfaceIdFromUrl,
-  hasRequestedFreshIdentity
-} from '../instance.js';
+import { getCurrentReploidInstanceLabel, getCurrentReploidPeerQuery, getCurrentReploidStorage as getReploidStorage, getSurfaceIdFromUrl } from '../instance.js';
 
 let sharedBootModulesPromise = null;
-let reploidModulesPromise = null;
-let consumeFreshIdentityOnNextAwaken = hasRequestedFreshIdentity();
+
+
 const MANAGED_SERVER_PROXY_TYPE = 'firebase-function';
 const MANAGED_SERVER_PROXY_MAX_ITERATIONS = 99;
 const VFS_FILE_CHANGED_EVENTS = Object.freeze([
@@ -94,9 +88,6 @@ const normalizeManagedServerProxyMaxIterations = (value) => {
   return Math.min(limit, MANAGED_SERVER_PROXY_MAX_ITERATIONS);
 };
 
-if (consumeFreshIdentityOnNextAwaken) {
-  clearRequestedFreshIdentity();
-}
 
 const withQuery = (path, query = {}) => {
   const url = new URL(toSourceWebPath(path), window.location.origin);
@@ -108,6 +99,7 @@ const withQuery = (path, query = {}) => {
   return url.toString();
 };
 
+
 const withSelfQuery = (path, query = {}) => {
   const url = new URL(path, window.location.origin);
   Object.entries(query).forEach(([key, value]) => {
@@ -118,10 +110,6 @@ const withSelfQuery = (path, query = {}) => {
   return url.toString();
 };
 
-const withBootstrapQuery = (path, query = {}) => withQuery(path, {
-  bootstrapper: 1,
-  ...query
-});
 
 const postServiceWorkerMessage = (type, data = {}) => new Promise((resolve) => {
   const controller = navigator.serviceWorker?.controller;
@@ -184,41 +172,27 @@ const loadSharedBootModules = async () => {
   return sharedBootModulesPromise;
 };
 
-const loadReploidModules = async () => {
-  if (!reploidModulesPromise) {
-    reploidModulesPromise = Promise.all([
-      import(withBootstrapQuery(SELF_BOOT_SPEC.runtime.runtimeEntry, getCurrentReploidPeerQuery())),
-      import(withBootstrapQuery(SELF_BOOT_SPEC.runtime.uiEntry, getCurrentReploidPeerQuery()))
-    ]).then(([runtimeMod, capsuleUiMod]) => ({
-      createSelfRuntime: runtimeMod.createSelfRuntime,
-      CapsuleUI: capsuleUiMod.default || capsuleUiMod
-    }));
-  }
-  return reploidModulesPromise;
-};
 
+const launcher = createReploidLauncher({
+  reloadInitialUi: true, handleReloadErrors: true, getLogger: () => Utils.factory().logger,
+  prepareInput(goal) {
+    const storage = getReploidStorage();
+    const input = goal && typeof goal === 'object' && !Array.isArray(goal) ? goal : {
+      goal, environment: storage.getItem('REPLOID_ENVIRONMENT') || '',
+      swarmEnabled: storage.getItem('REPLOID_SWARM_ENABLED') === 'true'
+    };
+    const hasModel = Object.prototype.hasOwnProperty.call(input, 'modelConfig');
+    let models = parseModels();
+    if (!hasModel && models.length === 0 && navigator.gpu) {
+      const model = buildDefaultLocalDopplerModelConfig();
+      models = model ? [model] : [];
+    }
+    return { ...input, modelConfig: hasModel ? input.modelConfig : models[0] || null };
+  }
+});
+const loadReploidModules = launcher.loadModules;
 window.preloadReploidModules = loadReploidModules;
 
-const loadReploidCapsuleUi = async ({ version = Date.now().toString(), preferVfs = false } = {}) => {
-  const query = { v: version, ...getCurrentReploidPeerQuery() };
-  let sourceError = null;
-
-  if (preferVfs) {
-    try {
-      const vfsModule = await import(withSelfQuery(SELF_BOOT_SPEC.runtime.uiEntry, query));
-      return vfsModule.default || vfsModule;
-    } catch (error) {
-      sourceError = error;
-    }
-  }
-
-  try {
-    const sourceModule = await import(withBootstrapQuery(SELF_BOOT_SPEC.runtime.uiEntry, query));
-    return sourceModule.default || sourceModule;
-  } catch (error) {
-    throw sourceError || error;
-  }
-};
 
 const renderBootFailure = async (err) => {
   console.error('[Boot] CRITICAL BOOT FAILURE', err);
@@ -558,155 +532,6 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
   }
 }
 
-async function completeReploidAwaken(goal, wizardContainer) {
-  const storage = getReploidStorage();
-  const awakenInput = (goal && typeof goal === 'object' && !Array.isArray(goal))
-    ? goal
-    : {
-        goal,
-        environment: storage.getItem('REPLOID_ENVIRONMENT') || '',
-        swarmEnabled: storage.getItem('REPLOID_SWARM_ENABLED') === 'true'
-      };
-  const utils = Utils.factory();
-  const logger = utils.logger;
-  const appEl = document.getElementById('app');
-
-  if (!appEl) {
-    throw new Error('Missing #app container');
-  }
-
-  const { createSelfRuntime } = await loadReploidModules();
-
-  if (wizardContainer) wizardContainer.remove();
-  document.body.classList.add('no-grid-pattern');
-  appEl.classList.add('active');
-  appEl.innerHTML = '';
-
-  const version = Date.now().toString();
-
-  let models = parseModels();
-  const hasExplicitModelConfig = Object.prototype.hasOwnProperty.call(awakenInput, 'modelConfig');
-  if (!hasExplicitModelConfig && models.length === 0 && navigator.gpu) {
-    const defaultModel = buildDefaultLocalDopplerModelConfig();
-    models = defaultModel ? [defaultModel] : [];
-    if (models[0]) {
-      logger.info('[Reploid] Auto-selected: ' + models[0].name);
-    }
-  }
-
-  const modelConfig = hasExplicitModelConfig ? awakenInput.modelConfig : (models[0] || null);
-
-  const runtime = createSelfRuntime({
-    instanceId: getCurrentReploidInstanceLabel(),
-    goal: awakenInput.goal,
-    environment: awakenInput.environment,
-    swarmEnabled: awakenInput.swarmEnabled,
-    modelConfig,
-    seedOverrides: awakenInput.seedOverrides,
-    forceFreshIdentity: consumeFreshIdentityOnNextAwaken
-  });
-  consumeFreshIdentityOnNextAwaken = false;
-  let runtimeUI = null;
-  let reloadTimer = null;
-  let reloadInProgress = false;
-  let reloadPending = false;
-  let pendingPreferVfsReload = false;
-
-  const ensureCapsuleStyles = (nextVersion) => {
-    let link = document.getElementById('runtime-ui-stylesheet');
-    if (!link) {
-      link = document.createElement('link');
-      link.id = 'runtime-ui-stylesheet';
-      link.rel = 'stylesheet';
-      document.head.appendChild(link);
-    }
-    link.href = withQuery(SELF_BOOT_SPEC.runtime.uiStylePath, { v: nextVersion, ...getCurrentReploidPeerQuery() });
-  };
-
-  const mountCapsuleUi = async (reason = '', { preferVfs = false } = {}) => {
-    if (runtimeUI?.cleanup) {
-      try {
-        runtimeUI.cleanup();
-      } catch (error) {
-        logger.debug('[Boot] Capsule cleanup failed', error?.message || error);
-      }
-    }
-
-    appEl.classList.add('active');
-    appEl.innerHTML = '';
-
-    const nextVersion = Date.now().toString();
-    window.REPLOID_UI_VERSION = nextVersion;
-    ensureCapsuleStyles(nextVersion);
-
-    const CapsuleUI = await loadReploidCapsuleUi({
-      version: nextVersion,
-      preferVfs
-    });
-    runtimeUI = CapsuleUI.factory({ runtime });
-    await runtimeUI.mount(appEl);
-    logger.info(`[Boot] Capsule shell mounted (reploid${reason ? `: ${reason}` : ''}).`);
-  };
-
-  const reloadCapsuleUi = async (reason = 'manual', { preferVfs = false } = {}) => {
-    if (reloadInProgress) {
-      reloadPending = true;
-      pendingPreferVfsReload = pendingPreferVfsReload || preferVfs;
-      return;
-    }
-
-    reloadInProgress = true;
-    try {
-      await mountCapsuleUi(reason, { preferVfs });
-    } catch (error) {
-      logger.error('[Boot] Capsule reload failed:', error?.message || error);
-    } finally {
-      reloadInProgress = false;
-      if (reloadPending) {
-        const nextPreferVfs = pendingPreferVfsReload;
-        reloadPending = false;
-        pendingPreferVfsReload = false;
-        void reloadCapsuleUi('pending', { preferVfs: nextPreferVfs });
-      }
-    }
-  };
-
-  const scheduleCapsuleReload = (reason = 'vfs', { preferVfs = false } = {}) => {
-    pendingPreferVfsReload = pendingPreferVfsReload || preferVfs;
-    if (reloadTimer) clearTimeout(reloadTimer);
-    reloadTimer = setTimeout(() => {
-      reloadTimer = null;
-      const nextPreferVfs = pendingPreferVfsReload;
-      pendingPreferVfsReload = false;
-      void reloadCapsuleUi(reason, { preferVfs: nextPreferVfs });
-    }, 150);
-  };
-
-  await mountCapsuleUi('initial');
-
-  if (typeof runtime.on === 'function') {
-    runtime.on('file-changed', (data = {}) => {
-      const path = data?.path || '';
-      if (typeof path !== 'string') return;
-      if (path === SELF_BOOT_SPEC.runtime.uiEntry || path.startsWith('/self/capsule/')) {
-        scheduleCapsuleReload('self-vfs', { preferVfs: true });
-      }
-    });
-  }
-
-  window.REPLOID = {
-    mode: 'reploid',
-    instanceId: getCurrentReploidInstanceLabel(),
-    runtime
-  };
-  window.REPLOID_UI = {
-    reload: async (reason = 'manual') => reloadCapsuleUi(reason, { preferVfs: true }),
-    getVersion: () => window.REPLOID_UI_VERSION || version
-  };
-  runtime.start().catch((e) => {
-    logger.error('[Reploid] Runtime error:', e?.message || e);
-  });
-}
 
 (async () => {
   try {
@@ -760,20 +585,7 @@ async function completeReploidAwaken(goal, wizardContainer) {
       }
     }
 
-    window.rotateReploidIdentity = async (options = {}) => {
-      const runtime = window.REPLOID?.runtime;
-      if (runtime && typeof runtime.rotateIdentity === 'function') {
-        return runtime.rotateIdentity(options);
-      }
-
-      const { rotateIdentityBundle } = await import('../identity.js');
-      return rotateIdentityBundle({
-        ...options,
-        instanceId: getCurrentReploidInstanceLabel(),
-        retireLegacy: options.retireLegacy !== false,
-        cryptoApi: globalThis.crypto
-      });
-    };
+    window.rotateReploidIdentity = launcher.rotateIdentity;
 
     // Expose awaken trigger - this runs boot() when user clicks Awaken
     window.triggerAwaken = async (goal) => {
@@ -787,7 +599,7 @@ async function completeReploidAwaken(goal, wizardContainer) {
         }
 
         if (runtimeMode === 'reploid') {
-          await completeReploidAwaken(goal, wizardContainer);
+          await launcher.awaken(goal, wizardContainer);
           return;
         }
 

@@ -16,6 +16,7 @@ export const SHARED_BOOT_UI_PREFIXES = Object.freeze([
   'config/reploid-environments.js',
   'config/surface-intents.js',
   'config/tool-surfaces.js',
+  'config/file-tool-schemas.json',
   'config/zero-inference.js',
   'config/boot-modes.js',
   'config/boot-seed.js',
@@ -23,6 +24,7 @@ export const SHARED_BOOT_UI_PREFIXES = Object.freeze([
   'core/utils.js',
   'core/security-config.js',
   'ui/boot-home/',
+  'ui/boot-wizard/connection-tests.js',
   'ui/boot-wizard/detection.js',
   'ui/boot-wizard/goals.js',
   'ui/boot-wizard/reploid-inference.js',
@@ -32,6 +34,8 @@ export const SHARED_BOOT_UI_PREFIXES = Object.freeze([
   'ui/boot-wizard/steps/direct.js',
   'ui/boot-wizard/steps/goal.js',
   'ui/boot-wizard/steps/proxy.js',
+  'ui/components/html.js',
+  'ui/components/vfs-progress.js',
   'ui/shared/',
   'styles/boot.css',
   'styles/rd.css'
@@ -42,7 +46,7 @@ const ZERO_SEED_TOOL_FILES = Object.freeze([
 ]);
 
 export const ZERO_SEED_PREFIXES = Object.freeze([
-  'entry/',
+  // Canonical host entries are seeded below; compatibility entry URLs stay hosted.
   'blueprint-index.json',
   'blueprints/blueprint-index-contract.md',
   'blueprints/tabula-rasa-runtime.md',
@@ -65,6 +69,7 @@ export const ZERO_SEED_PREFIXES = Object.freeze([
   'config/surface-intents.js',
   'config/surface-resources.js',
   'config/tool-surfaces.js',
+  'config/file-tool-schemas.json',
   'config/zero-goals.js',
   'config/zero-inference.js',
   'config/vfs-manifest.json',
@@ -101,6 +106,7 @@ export const ZERO_SEED_PREFIXES = Object.freeze([
   'self/boot-spec.js',
   'self/host/seed-vfs.js',
   'self/host/start-app.js',
+  'self/host/reploid-launch.js',
   'self/host/sw-module-loader.js',
   'self/host/vfs-bootstrap.js',
   'self/instance.js',

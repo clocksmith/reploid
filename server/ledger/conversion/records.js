@@ -1,3 +1,4 @@
+import { createKnownKeyValidator } from '../../input-validation.js';
 /**
  * @fileoverview Credit conversion records: published, versioned policy that
  * turns a currency amount into credits.
@@ -38,10 +39,7 @@ const insert = (collection, id, value) => ({ create: true, collection, id, value
 const put = (collection, id, value) => ({ create: false, collection, id, value });
 const isPositiveInteger = (value) => Number.isSafeInteger(value) && value > 0;
 
-const assertKnownKeys = (input, allowed, operation) => {
-  const unknown = Object.keys(input || {}).filter((key) => !allowed.includes(key));
-  if (unknown.length) fail('invalid_input', `${operation} does not accept: ${unknown.join(', ')}`, { unknown });
-};
+const assertKnownKeys = createKnownKeyValidator(fail);
 
 /** Hash of a record's economic terms; publication metadata is outside it. */
 export const conversionHash = (record) => hashCanonical(Object.fromEntries(TERM_FIELDS.map((field) => [field, record[field]])));

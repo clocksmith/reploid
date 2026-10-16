@@ -61,7 +61,7 @@
     {
       "path": "boot-helpers/vfs-hydrate.js",
       "owner": "boot-helpers",
-      "sha256": "sha256:4012b570da0750029d7a8621d099140afd66d809de9ca30d751ef0277250d4e2",
+      "sha256": "sha256:dcf1cd4ea6668e9e9f2299254acabbf1ac955ece40e01a822b7ed23066fd8c0a",
       "imports": [
         "../boot-spec.js",
         "../config/boot-seed.js",
@@ -83,7 +83,7 @@
     {
       "path": "capabilities/cognition/gepa-optimizer.js",
       "owner": "capabilities",
-      "sha256": "sha256:87bf99983091e9ce89fa165380489c6792fd906a6cc8f9c45de75dde723bed09",
+      "sha256": "sha256:fea5d47e61ae1c8ca4583f513d6611c27074bb7ad8b21a968cb221e9a726e5cb",
       "imports": []
     },
     {
@@ -259,7 +259,7 @@
     {
       "path": "config/boot-seed.js",
       "owner": "config",
-      "sha256": "sha256:dd9cd362296538fa48cce3e776353a562edbdc56dc2601eba17edffb15fc7c52",
+      "sha256": "sha256:80d2c3e112600833846115c2922bda07a3e3fc00d92bb35b8bacc4c73311234b",
       "imports": [
         "./surface-intents.js",
         "./surface-resources.js"
@@ -337,7 +337,7 @@
     {
       "path": "config/surface-resources.js",
       "owner": "config",
-      "sha256": "sha256:d1ddd0cc42e09dcc90a091b1f606b133904d0e3623d2db8483ec69c9193b3a94",
+      "sha256": "sha256:1b20f25d0fbb8ad42fdcb3b95f3346b6ced14433883766cd4076eb635171ca95",
       "imports": []
     },
     {
@@ -349,7 +349,7 @@
     {
       "path": "config/vfs-policy.js",
       "owner": "config",
-      "sha256": "sha256:fec5a0a8f71ab317fc35c8efe65c7b1dac263121b087e1cedd4b883a641ad1be",
+      "sha256": "sha256:56c02deed07ae8fea94f85100e3fda81c6088fce259b3bfd71d12abdd7307a67",
       "imports": []
     },
     {
@@ -444,8 +444,10 @@
     {
       "path": "core/functiongemma-orchestrator.js",
       "owner": "core",
-      "sha256": "sha256:0a997079c07c1d8c0e0387f81be5bfabd25acc247665e6115d92e117c1d87b3a",
-      "imports": []
+      "sha256": "sha256:787ac5a158255c4f4adc44fdaf6b55d22abe85ff2926086426c86716eeb7bea4",
+      "imports": [
+        "./tool-argument-validation.js"
+      ]
     },
     {
       "path": "core/import-rewrite.js",
@@ -524,8 +526,9 @@
     {
       "path": "core/schema-registry.js",
       "owner": "core",
-      "sha256": "sha256:9f91f8be88d0fae721b48bacf86530799d1694e35dce03076adf01d1a659fd32",
+      "sha256": "sha256:95370066938db80bf4ca98fdd3e9b80e8e53bca0a0468e903c5d3d707eecb5c3",
       "imports": [
+        "../config/file-tool-schemas.json",
         "../config/tool-surfaces.js",
         "../instance.js"
       ]
@@ -533,7 +536,7 @@
     {
       "path": "core/schema-validator.js",
       "owner": "core",
-      "sha256": "sha256:bab624d40a26a37c3553ada4d0eccaede9f6925d451747e801898a9b33989758",
+      "sha256": "sha256:8d7ca04ca6a24e0d8178f5848f626a4ab74771bb24727e758b93f0b744189e89",
       "imports": []
     },
     {
@@ -557,9 +560,15 @@
       "imports": []
     },
     {
+      "path": "core/tool-argument-validation.js",
+      "owner": "core",
+      "sha256": "sha256:eaaa9f21aed62c4f18af6bd22fd89f4529ab0a52de774c41eec1b340ca4ee5ad",
+      "imports": []
+    },
+    {
       "path": "core/tool-runner.js",
       "owner": "core",
-      "sha256": "sha256:00c31974fac8c0c0570093b182fd39fe2e878dc939f856401d0d9508a293985a",
+      "sha256": "sha256:056ab696a014d8303e0230e47fc5f20a7c13115b46b55d729ecda7a9e404140d",
       "imports": [
         "../config/tool-surfaces.js",
         "../instance.js",
@@ -644,7 +653,7 @@
     {
       "path": "core/worker-manager.js",
       "owner": "core",
-      "sha256": "sha256:e9aab596ad6a7be13375b57237e9cbcf8be32e16702436821ff6a3e94d65cca9",
+      "sha256": "sha256:2ee26c93a7fbf461ce3805a0d57c6610dab507dcf53aacc29e06f736a3eb638f",
       "imports": []
     },
     {
@@ -994,21 +1003,6 @@
       ]
     },
     {
-      "path": "pool/agent-client.js",
-      "owner": "pool",
-      "sha256": "sha256:23977c3d28ac875228439e7317f88b9f109339b62ad3e9322d2ea634fc569095",
-      "imports": [
-        "./adapter-publication.js",
-        "./identity.js",
-        "./inference-receipt.js",
-        "./model-contract.js",
-        "./peer-control-plane.js",
-        "./policy-router.js",
-        "./sdk.js",
-        "./sequence-workload.js"
-      ]
-    },
-    {
       "path": "pool/artifact-origin.js",
       "owner": "pool",
       "sha256": "sha256:579b8e7681654bfb18977c965c14a89cf033afc9f39317d1506bbc35df786976",
@@ -1087,7 +1081,7 @@
     {
       "path": "pool/config.js",
       "owner": "pool",
-      "sha256": "sha256:892ff8ff5dcc9f3aa4c9bbeaeabd29880ab4eedb5258d383efb12f0fe6d6ff75",
+      "sha256": "sha256:2151d08b9f43a8b7f2af81ab8c01de79ada91ba5488cfd7abe06c04b222fb760",
       "imports": [
         "./config-contract.js",
         "./pool-config.json"
@@ -1178,10 +1172,11 @@
     {
       "path": "pool/doppler-runtime.js",
       "owner": "pool",
-      "sha256": "sha256:fb5c7a8f2ad1a7b360dc9ff3d6ae7cb7f4eea37606a7226c53e57dae1fe0dd99",
+      "sha256": "sha256:05917b084c40bcdea94e3ca6116eea8179d72757d5d577f4615014c5d333fb61",
       "imports": [
         "../config/doppler-execution-contracts.js",
         "../infrastructure/doppler-runtime-service.js",
+        "../vendor/reploid/artifacts/manifest-identity.js",
         "./adapter-pack.js",
         "./capsule-artifact-cache.js",
         "./config.js",
@@ -1335,8 +1330,9 @@
     {
       "path": "pool/inference-receipt.js",
       "owner": "pool",
-      "sha256": "sha256:35746c676959ec27589a170af055cdacdd87c083e01635b563b02517da31d200",
+      "sha256": "sha256:f389cc48148ebfa5b3265aaea601c3a048945b62caaf3f8d13fbaf6d9d4b1812",
       "imports": [
+        "../vendor/reploid/artifacts/acceptance.js",
         "../vendor/reploid/artifacts/signatures.js",
         "./canonical-json.js",
         "./config.js",
@@ -1363,8 +1359,9 @@
     {
       "path": "pool/model-artifacts.js",
       "owner": "pool",
-      "sha256": "sha256:04ef10875dbab048d9397faf5df5754030448845130b425bcd1c79f7fc4f04cd",
+      "sha256": "sha256:3d4bbc1b2634b7033428d2082105c8eaea8ec79e9eb6e1def61706156107f0cc",
       "imports": [
+        "../vendor/reploid/artifacts/manifest-identity.js",
         "../vendor/reploid/artifacts/signatures.js",
         "./config.js"
       ]
@@ -1809,12 +1806,6 @@
       "imports": []
     },
     {
-      "path": "pool/points-ledger.js",
-      "owner": "pool",
-      "sha256": "sha256:5d035188de53fe639c031e7d87cd88872bd39a20407bd462329c8e1e7d291ce4",
-      "imports": []
-    },
-    {
       "path": "pool/policy-router.js",
       "owner": "pool",
       "sha256": "sha256:3b65c34c742adcc403352d9b6db51cae1b8a1ee9d656541953dfae1c82b55328",
@@ -2064,13 +2055,15 @@
     {
       "path": "self/bridge.js",
       "owner": "self",
-      "sha256": "sha256:fa3940d35d57dc7b661df971f95a75896faa27e12f19d0c0049d2d765070c7e8",
+      "sha256": "sha256:e00ff4b07ec0885b671852ed0a2dff5aa11a36de9c536bfa075044f2d78b3b17",
       "imports": [
         "./capabilities/communication/library-adapter.js",
         "./capabilities/communication/swarm-transport.js",
+        "./config/vfs-policy.js",
         "./core/llm-client.js",
         "./core/provider-registry.js",
         "./core/utils.js",
+        "./host/file-access.js",
         "./host/vfs-bootstrap.js",
         "./identity.js",
         "./infrastructure/event-bus.js",
@@ -2260,6 +2253,14 @@
       ]
     },
     {
+      "path": "self/host/file-access.js",
+      "owner": "self",
+      "sha256": "sha256:f2488b5a4d1ca6b294c4bc108ee171802699dc695d246b45ff24ac244e4c1212",
+      "imports": [
+        "../config/vfs-policy.js"
+      ]
+    },
+    {
       "path": "self/host/mcp-client.js",
       "owner": "self",
       "sha256": "sha256:39344af84701486e529a4b2527c960af7023de7ad9346f22557851f8a18c4aa9",
@@ -2316,6 +2317,15 @@
       "imports": []
     },
     {
+      "path": "self/host/reploid-launch.js",
+      "owner": "self",
+      "sha256": "sha256:278747e59fc9538bb58e15068a6669e0755aa0efcf5944db15990fe99a75246d",
+      "imports": [
+        "../boot-spec.js",
+        "../instance.js"
+      ]
+    },
+    {
       "path": "self/host/seed-vfs.js",
       "owner": "self",
       "sha256": "sha256:f851b04b3837d3ed807aa9132fae5ea527af5b9a8ee3b0898b3d26524fc2a8e6",
@@ -2337,24 +2347,25 @@
     {
       "path": "self/host/start-app.js",
       "owner": "self",
-      "sha256": "sha256:cd527918c54d9717d60d4800b44857fdbb5583970a6b7e66d120fac6bd740d7c",
+      "sha256": "sha256:7825ebcd0d012b9049713313ebb37da9c342c33692ff4470d74fec6499c2957c",
       "imports": [
         "../boot-spec.js",
         "../config/doppler-local-models.js",
         "../config/zero-inference.js",
         "../core/utils.js",
         "../instance.js",
-        "../lab/profiles.js"
+        "../lab/profiles.js",
+        "./reploid-launch.js"
       ]
     },
     {
       "path": "self/host/start-reploid.js",
       "owner": "self",
-      "sha256": "sha256:b76e45f285d3092356e6080004c55ac1a496bb759cca8eeb203dbd34cdcbaa38",
+      "sha256": "sha256:ab3db71b79e518f70cde2dd2fd6a28ffc57c59e6d1d6ff26171b60094bd2e2f5",
       "imports": [
         "../boot-spec.js",
-        "../identity.js",
-        "../instance.js"
+        "../instance.js",
+        "./reploid-launch.js"
       ]
     },
     {
@@ -2659,7 +2670,7 @@
     {
       "path": "self/manifest.js",
       "owner": "self",
-      "sha256": "sha256:1f2a65d0eddaf63f2a05c81ef6c258cb18078993eb7300cb786407dde7eb4e91",
+      "sha256": "sha256:1b4c3688042b7b74d172e1e022394f5d8195fcbe2a10e8457d2a4269757f8f12",
       "imports": [
         "./boot-spec.js",
         "./config/tool-surfaces.js",
@@ -2721,9 +2732,10 @@
     {
       "path": "shared/change-passport/contract.js",
       "owner": "shared",
-      "sha256": "sha256:9e05fda60d72cefa8ed2c7d2f4c3a1496b3ce00e249e9bdaea4acc2ec9e6b7bc",
+      "sha256": "sha256:a0d420b0c79b0a0174a8843b9323ac2095c0bdd644c0e8522e0eabdf9b2b587d",
       "imports": [
-        "../../identity.js"
+        "../../identity.js",
+        "../../vendor/reploid/artifacts/event-signature.js"
       ]
     },
     {
@@ -2754,7 +2766,7 @@
     {
       "path": "sw-module-loader.js",
       "owner": "sw-module-loader.js",
-      "sha256": "sha256:2b4aabf6249a54b11022523ee79efa0652024c41217f8f90117108d74c62c86c",
+      "sha256": "sha256:e3b297e9a6bed80b79a41bb7c059a94d61345bf66f6d846bcfb0da2f3a425680",
       "imports": []
     },
     {
@@ -2766,8 +2778,10 @@
     {
       "path": "testing/arena/arena-harness.js",
       "owner": "testing",
-      "sha256": "sha256:877ad71952377ffbf65e77d9818080cb40b3bd69484ab9840d583be918b20b7b",
-      "imports": []
+      "sha256": "sha256:dc89efa4348adb436c9f20d26c3639cf8a174a636b348142b5011665d7796816",
+      "imports": [
+        "../../core/tool-argument-validation.js"
+      ]
     },
     {
       "path": "testing/arena/arena-metrics.js",
@@ -2827,9 +2841,11 @@
     {
       "path": "tools/EditFile.js",
       "owner": "tools",
-      "sha256": "sha256:6e88bf8b08645b9e01cb62dc42c27eda265d2c737aa0ddc0c3309e4f0160337b",
+      "sha256": "sha256:d13d58b225870e88998465f0d736d04f400848660e9a0c5a0508634a6670fa22",
       "imports": [
-        "../config/vfs-policy.js"
+        "../config/file-tool-schemas.json",
+        "../config/vfs-policy.js",
+        "../host/file-access.js"
       ]
     },
     {
@@ -2898,8 +2914,10 @@
     {
       "path": "tools/LoadModule.js",
       "owner": "tools",
-      "sha256": "sha256:82b88621b445a5a18d5f3dc3621bd41eb104db5bc8b85e99266bec09969e8498",
-      "imports": []
+      "sha256": "sha256:236e0955d831bfc618b084ce7fc8894f24805329fbea99742919d3e764c68a07",
+      "imports": [
+        "../vendor/reploid/agent/tool-operation-retry.js"
+      ]
     },
     {
       "path": "tools/MakeDirectory.js",
@@ -2929,8 +2947,10 @@
     {
       "path": "tools/ReadFile.js",
       "owner": "tools",
-      "sha256": "sha256:01d33cfb29569c11c267734b0b0092d7f4a32aba98623a2052db8d6fa06ec59e",
-      "imports": []
+      "sha256": "sha256:3f7916514448def1e06c9b0d34d19ff1acafff3523a83ded059dbf2ef49423e7",
+      "imports": [
+        "../host/file-access.js"
+      ]
     },
     {
       "path": "tools/RunGEPA.js",
@@ -2941,8 +2961,10 @@
     {
       "path": "tools/SpawnWorker.js",
       "owner": "tools",
-      "sha256": "sha256:74335ee66b1768cfff76517a593fa6c48e4e45d306f43d60da2b9f3021906c4a",
-      "imports": []
+      "sha256": "sha256:cf968e4b78ad67fcebbc317a5779f4bbee47640b694bbb0e610b3eb239a2cd9d",
+      "imports": [
+        "../vendor/reploid/agent/tool-operation-retry.js"
+      ]
     },
     {
       "path": "tools/SwarmGetStatus.js",
@@ -2977,15 +2999,17 @@
     {
       "path": "tools/WriteFile.js",
       "owner": "tools",
-      "sha256": "sha256:7ba51ec247e425d75299698e9708faf742b2d8c69e98a870a734d1886962ac03",
+      "sha256": "sha256:936a7bedc1c70ffa454ab86c476637ada0cccdd79bef95615100ea6390274f0f",
       "imports": [
-        "../config/vfs-policy.js"
+        "../config/file-tool-schemas.json",
+        "../config/vfs-policy.js",
+        "../host/file-access.js"
       ]
     },
     {
       "path": "ui/boot-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:d5cf0430e67212cc95cddb857e1b153e4610e99bbff34718ec391ef88dc0bbd7",
+      "sha256": "sha256:5c9270d6435022d945810299790b26896f12e5315048eb3d92f8d344aa970bc9",
       "imports": [
         "../../boot-helpers/vfs-bootstrap.js",
         "../../config/boot-seed.js",
@@ -2995,6 +3019,7 @@
         "../../core/run-replay-bundle.js",
         "../../instance.js",
         "../../lab/profiles.js",
+        "../boot-wizard/connection-tests.js",
         "../boot-wizard/detection.js",
         "../boot-wizard/goals.js",
         "../boot-wizard/reploid-inference.js",
@@ -3003,7 +3028,20 @@
         "../boot-wizard/steps/choose.js",
         "../boot-wizard/steps/direct.js",
         "../boot-wizard/steps/goal.js",
-        "../boot-wizard/steps/proxy.js"
+        "../boot-wizard/steps/proxy.js",
+        "../components/html.js",
+        "../components/vfs-progress.js"
+      ]
+    },
+    {
+      "path": "ui/boot-wizard/connection-tests.js",
+      "owner": "ui",
+      "sha256": "sha256:ee0617b30b410534dc84d555eb0438ee0de3ebc5a942f7469d29a1f93cfe340b",
+      "imports": [
+        "../../config/zero-inference.js",
+        "./detection.js",
+        "./state.js",
+        "./steps/direct.js"
       ]
     },
     {
@@ -3029,7 +3067,7 @@
     {
       "path": "ui/boot-wizard/index.js",
       "owner": "ui",
-      "sha256": "sha256:a79761793bd82f9961e2fbb4e2c6c3f4cf16293a12dafbf1b972b3b44a3c14d2",
+      "sha256": "sha256:bac74cc42332e6434443a2a0c4762a9b16b4399c80976cb7acf74459d0e5d68e",
       "imports": [
         "../../boot-helpers/vfs-bootstrap.js",
         "../../config/boot-modes.js",
@@ -3040,6 +3078,7 @@
         "../../config/zero-inference.js",
         "../../core/security-config.js",
         "../../instance.js",
+        "./connection-tests.js",
         "./detection.js",
         "./goals.js",
         "./self-preview.js",
@@ -3073,7 +3112,7 @@
     {
       "path": "ui/boot-wizard/state.js",
       "owner": "ui",
-      "sha256": "sha256:0915503ec5f9b7b6c4c7c81cc96000aaf62d1760ad71f354252631caed516e8c",
+      "sha256": "sha256:f3c9683fcbde3fe2324de6f7f1afe0cf846b662767d5af78932895fdafdec4a9",
       "imports": [
         "../../config/boot-modes.js",
         "../../config/doppler-local-models.js",
@@ -3156,8 +3195,10 @@
     {
       "path": "ui/components/attachments.js",
       "owner": "ui",
-      "sha256": "sha256:fe1fea57cd8dfdac18b675b584d4aff4a0dda51239bf39f79de11b2b6591b5a2",
-      "imports": []
+      "sha256": "sha256:ebb49cb6f56c8ae16946ce60126c806ef139a4ed47f37d015fd46f8ce0cb6b0a",
+      "imports": [
+        "./html.js"
+      ]
     },
     {
       "path": "ui/components/dialog.js",
@@ -3181,6 +3222,12 @@
       "path": "ui/components/disclosure.js",
       "owner": "ui",
       "sha256": "sha256:4124879f37f9e409a7c481e1d468e9597d82f23a72facd43a45c12b833862514",
+      "imports": []
+    },
+    {
+      "path": "ui/components/html.js",
+      "owner": "ui",
+      "sha256": "sha256:8c9d3ba33aeaf09ee96187b91afd9a72d28ee3377599f46f63fa64c33647c06c",
       "imports": []
     },
     {
@@ -3218,6 +3265,12 @@
       ]
     },
     {
+      "path": "ui/components/vfs-progress.js",
+      "owner": "ui",
+      "sha256": "sha256:445fc40981cc96b127dca7eab4e4833452403f4d0419b43b2ef0f9de632f34f6",
+      "imports": []
+    },
+    {
       "path": "ui/panels/cognition-panel.js",
       "owner": "ui",
       "sha256": "sha256:de6508f0755f40d8828d5273f4fd99afcde82f503b3f5087d2062a5907d33ab3",
@@ -3247,7 +3300,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:f91d59202a8f19c1224a5dc20b5ca7101cad9735ee86881021d58364b90f7641",
+      "sha256": "sha256:4a79a1ae0fbb650ebc82be45fc2b2e9065616f9ba9328993c54f597654a44eb6",
       "imports": []
     },
     {
@@ -3280,7 +3333,7 @@
     {
       "path": "ui/pool-home/controls.js",
       "owner": "ui",
-      "sha256": "sha256:6e2b99530f52cd436d3ee4d9e74a92f71381e12ded2fb1b4b30317c5bcaf2880",
+      "sha256": "sha256:1d982519d3a7b9260266616d182ece7eebd9d1f04bb8fa7e598534069ab30822",
       "imports": [
         "../../pool/adapter-publication.js",
         "../../pool/adapter-registry.js",
@@ -3445,11 +3498,12 @@
     {
       "path": "ui/pool-home/operation-sharing.js",
       "owner": "ui",
-      "sha256": "sha256:bccabadc200bb3de81be23406b5f9c23f1b22d004db7c2a146faeec1636d2e7f",
+      "sha256": "sha256:46bd357e417b7d6432486fb8a84dfc6a98418960bc4b2a3e1367490fd65de459",
       "imports": [
         "../../pool/model-contract.js",
         "../../pool/operation-model.js",
-        "../../pool/pool-config.json"
+        "../../pool/pool-config.json",
+        "../components/html.js"
       ]
     },
     {
@@ -3480,8 +3534,10 @@
     {
       "path": "ui/pool-home/requester-controls.js",
       "owner": "ui",
-      "sha256": "sha256:b1e638a2f6c857b2a4dab7f7b04f191dfac6222757a2efa6fe59e4711d920f7b",
-      "imports": []
+      "sha256": "sha256:8c0d1a7ee9f4c0557ccb047f4c2c85a224631c73d6d404c5801437ea0322e8bc",
+      "imports": [
+        "../components/html.js"
+      ]
     },
     {
       "path": "ui/pool-home/research-adjudication-panel.js",
@@ -3503,8 +3559,10 @@
     {
       "path": "ui/pool-home/research-panels.js",
       "owner": "ui",
-      "sha256": "sha256:b6abbe4af5b4e0c54ab5dec12a09beb6ddc9a895759b192772372882892eed12",
-      "imports": []
+      "sha256": "sha256:abf70cf5db5a713de4f21eaf797338c7aabaca8209dd314fcd7d7eb9d64a5abd",
+      "imports": [
+        "../components/html.js"
+      ]
     },
     {
       "path": "ui/pool-home/research-store.js",
@@ -3521,20 +3579,22 @@
     {
       "path": "ui/pool-home/research-technical-panel.js",
       "owner": "ui",
-      "sha256": "sha256:1a39913b9930c124e54ded49ad8117f5c5aa0c225e90598dfd55aa0b0b1a0fa2",
+      "sha256": "sha256:7b71cd7f2707ab26f18e8c257bd7d424b532b90bb3e27edff65bbd510b467911",
       "imports": [
+        "../components/html.js",
         "./research-panels.js"
       ]
     },
     {
       "path": "ui/pool-home/research-view.js",
       "owner": "ui",
-      "sha256": "sha256:c4373f31a713ea32a116a947f9870401cb188a13e9a860f87f9f108ee68fe3d9",
+      "sha256": "sha256:a995924b9d584e3c994d4109f02c743584c00187c5b1448bc8002902799ed74f",
       "imports": [
         "../../pool/discovery-contract.js",
         "../../pool/evidence-network.js",
         "../../pool/identity.js",
         "../../pool/model-contract.js",
+        "../components/html.js",
         "./research-lifecycle-panel.js",
         "./research-panels.js",
         "./research-store.js",
@@ -3563,8 +3623,9 @@
     {
       "path": "ui/pool-home/room-view.js",
       "owner": "ui",
-      "sha256": "sha256:e180a9861b30b407b07d760b6ae10a7d9fa5f3d5264d2791fc0e010366bb9c3c",
+      "sha256": "sha256:9ed554b629bda25098e6854d676a1a074bf62259f337278618c1c23ae159e9d7",
       "imports": [
+        "../components/html.js",
         "./room-projection.js"
       ]
     },
@@ -3624,7 +3685,7 @@
     {
       "path": "ui/pool-home/simulation-flow-specs.js",
       "owner": "ui",
-      "sha256": "sha256:1cddaf0a5fe79c8da48d5ae92e794e7683fd2f9de67e58a359ea73c8a4c0b19f",
+      "sha256": "sha256:876f60b4a919f2d9b487731ddc382fbd82d52beccac983ea8bda6371c119e06b",
       "imports": [
         "./constants.js",
         "./simulation-flow-transition.js"
@@ -3677,7 +3738,7 @@
     {
       "path": "ui/pool-home/view.js",
       "owner": "ui",
-      "sha256": "sha256:bcffcb9074d4a27df05bd9663c0c6dc258606e40a6eec2b405aecaf9e8b9deda",
+      "sha256": "sha256:36142e7a196927c548790f8c3f83a6c4706fab9480db840184d2037d09b12ba8",
       "imports": [
         "../../config/surface-intents.js",
         "../../host/product-context.js",
@@ -3689,6 +3750,7 @@
         "../../pool/policy-router.js",
         "../../pool/sdk.js",
         "../components/diamond.js",
+        "../components/html.js",
         "./constants.js",
         "./contribution-state.js",
         "./conversation-workspace.js",
@@ -3738,11 +3800,12 @@
     {
       "path": "ui/pool-home/work-goal-composer.js",
       "owner": "ui",
-      "sha256": "sha256:37d1068951965239292e9dbfb4cba971e57f71bc3880531944c07c347550ef22",
+      "sha256": "sha256:1587f0d342f1609d89882f739893023200d6061a36fcf1d4c7aa2352338d38f0",
       "imports": [
         "../../config/work-profile.json",
         "../../host/work-session.js",
-        "../../providers/work-provider.js"
+        "../../providers/work-provider.js",
+        "../components/html.js"
       ]
     },
     {
@@ -3812,7 +3875,7 @@
     {
       "path": "ui/poolday-design/specimens.js",
       "owner": "ui",
-      "sha256": "sha256:f234f47e1db55700b4049330d2b0cd9b7c967e1cbdeb173593fa5b16809ff6e3",
+      "sha256": "sha256:b4e3e3fdd16b54b0e9c89d9fef2c3bda6af0f1c7dc031d3845b6183c482ed2b4",
       "imports": []
     },
     {
@@ -3883,10 +3946,11 @@
     {
       "path": "ui/reploid-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:0b3bb27b6890c89fa834440dde6a1cf6cb22c3d71bb4dbac6234de1baa616a56",
+      "sha256": "sha256:3944478d4169a1804bb7bb2a2530674406b682c702140dc7f876c9f4c8e3669a",
       "imports": [
         "../../config/reploid-environments.js",
         "../../instance.js",
+        "../components/html.js",
         "../shared/reploid-contract.js"
       ]
     },
@@ -3907,7 +3971,7 @@
     {
       "path": "ui/zero-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:5b8f01d808d536b9893160fe0a2482cac2c052e3541877ac99980ebcd2c6e2ab",
+      "sha256": "sha256:38d4fed90dd9269b150dbd7f265b25a335fcb9bdc72aa5db77ec88fd4e9d7f5e",
       "imports": [
         "../../boot-helpers/vfs-bootstrap.js",
         "../../config/boot-seed.js",
@@ -3916,7 +3980,8 @@
         "../../config/zero-inference.js",
         "../../instance.js",
         "../../lab/mirrors.js",
-        "../../lab/profiles.js"
+        "../../lab/profiles.js",
+        "../components/vfs-progress.js"
       ]
     },
     {
@@ -15655,6 +15720,12 @@
       ]
     },
     {
+      "path": "vendor/reploid/agent/tool-operation-retry.js",
+      "owner": "vendor",
+      "sha256": "sha256:5f42a5be415d1ad887a20d4c648300ad1b4d6f596e9d8b80274915e1d74fe5f6",
+      "imports": []
+    },
+    {
       "path": "vendor/reploid/agent/tool-retry.js",
       "owner": "vendor",
       "sha256": "sha256:2ae0f2aa04a4d21e7be003e70f6d152fcdb159a89fb8a447389aac23fd01fb83",
@@ -15664,6 +15735,12 @@
       "path": "vendor/reploid/agent/tool-runner.js",
       "owner": "vendor",
       "sha256": "sha256:f0bb92bc1932b0807173d1e8d1ede9b6b6bedb9f3b727b7414f9e614fa871c2a",
+      "imports": []
+    },
+    {
+      "path": "vendor/reploid/artifacts/acceptance.js",
+      "owner": "vendor",
+      "sha256": "sha256:2cf1048b5b5da647274163bf2ecbe11e66d360668f9cc574eb7915f35ef04b53",
       "imports": []
     },
     {
@@ -15727,10 +15804,20 @@
       ]
     },
     {
+      "path": "vendor/reploid/artifacts/event-signature.js",
+      "owner": "vendor",
+      "sha256": "sha256:6853df90feb1118a39f493375270f580da2549e6bf9ecb304f8b068342a39c2b",
+      "imports": [
+        "./identity.js"
+      ]
+    },
+    {
       "path": "vendor/reploid/artifacts/identity.js",
       "owner": "vendor",
-      "sha256": "sha256:f67b1abd7728ca7d82430c9edee00b5b8d7c86185e52a3d5aaf9c64b06aa52aa",
-      "imports": []
+      "sha256": "sha256:29a0f9c1bfe248da7fdf5c6cb69750ea4dbb42c5fe21a254f0d22989a083205c",
+      "imports": [
+        "./canonical-json.js"
+      ]
     },
     {
       "path": "vendor/reploid/artifacts/independent-unit-journal.js",
@@ -15749,6 +15836,14 @@
       ]
     },
     {
+      "path": "vendor/reploid/artifacts/manifest-identity.js",
+      "owner": "vendor",
+      "sha256": "sha256:e582ff0c2cb7c1a3de0c22846d29a0996335bece86b4e4daa3719898ea2843ac",
+      "imports": [
+        "./signatures.js"
+      ]
+    },
+    {
       "path": "vendor/reploid/artifacts/participant-proofs.js",
       "owner": "vendor",
       "sha256": "sha256:af3e7303b3a513f584b70180e27dbaf72c52e58adf1af538d66adcad41fae985",
@@ -15760,8 +15855,9 @@
     {
       "path": "vendor/reploid/artifacts/receipt.js",
       "owner": "vendor",
-      "sha256": "sha256:20db41850ade3fb8a0dd5613e7e7f4477d0b07c2ce5e2ede1cac2cd3290145a7",
+      "sha256": "sha256:5947a52e8816db9dcbe6adf11ca174b0b9877e608fbb780de17baedf8fa19eac",
       "imports": [
+        "./canonical-json.js",
         "./identity.js"
       ]
     },
@@ -15891,8 +15987,9 @@
     {
       "path": "vendor/reploid/improvement/episodes.js",
       "owner": "vendor",
-      "sha256": "sha256:9295d770d2e1bcedf64a79b6462f5e83b6042607e9e6f1f8ed3107ef53adf5e2",
+      "sha256": "sha256:5a48a71313e4fcf2cdb37f60e09aa84d43ff324f73908ebddacb66cd03af3cf2",
       "imports": [
+        "../artifacts/event-signature.js",
         "../artifacts/identity.js"
       ]
     },

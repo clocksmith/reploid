@@ -1,6 +1,6 @@
 {
   "schema": "reploid.sdk-provenance/v1",
-  "sourceHash": "sha256:f81bd2b0387eea3b42ccf3703f8890e9fdf98652b6a1c13be176528609a3615e",
+  "sourceHash": "sha256:94124041ddce03ab2feaa1a1e052b94ec9a60bd8d0fb8e692b54785922ff5470",
   "toolchain": {
     "esbuild": "0.28.2",
     "node": "v22.20.0"
@@ -109,8 +109,8 @@
     },
     {
       "path": "self/pool/config.js",
-      "hash": "sha256:892ff8ff5dcc9f3aa4c9bbeaeabd29880ab4eedb5258d383efb12f0fe6d6ff75",
-      "sizeBytes": 2461
+      "hash": "sha256:2151d08b9f43a8b7f2af81ab8c01de79ada91ba5488cfd7abe06c04b222fb760",
+      "sizeBytes": 1429
     },
     {
       "path": "self/pool/executable-pack.js",
@@ -240,6 +240,6 @@
   ],
   "output": {
     "path": "dist/index.js",
-    "hash": "sha256:275b24d2fc42180ddce87e0a9072bd811fbe3712943fc59898f04c39435331c9"
+    "hash": "sha256:c8f20cda4b30b9e8edd5fa352542de46535e402cb9f95ee974502977e31690dd"
   }
 }

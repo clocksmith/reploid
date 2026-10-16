@@ -58,61 +58,6 @@ const edge = (fromId, toId, kind = 'peer', options = {}) => ({
   ...options
 });
 
-const runnerRing = (options = {}) => POOLDAY_RUNNER_NODE_IDS.map((runnerId, index) => edge(
-  runnerId,
-  POOLDAY_RUNNER_NODE_IDS[(index + 1) % POOLDAY_RUNNER_NODE_IDS.length],
-  'peer',
-  {
-    alpha: 0.09,
-    tone: 'accent',
-    curve: 0.024,
-    speed: 0.82,
-    ...options
-  }
-));
-
-const verifierPair = (options = {}) => [
-  edge('verifier0', 'verifier1', 'peer', {
-    alpha: 0.10,
-    tone: 'evidence',
-    curve: 0.018,
-    speed: 0.84,
-    ...options
-  })
-];
-
-const corePath = (options = {}) => [
-  edge('requester', 'policy', 'core', { pulsePhase: 0, speed: 0.98, ...options.ingress }),
-  edge('policy', 'assignment', 'core', { pulsePhase: 0.5, speed: 0.98, ...options.policy }),
-  edge('agreement', 'settlement', 'core', { tone: 'evidence', pulsePhase: 2, speed: 0.96, ...options.settle }),
-  edge('settlement', 'ledger', 'core', { tone: 'evidence', pulsePhase: 2.4, speed: 0.94, ...options.ledger })
-];
-
-const runnerToVerifierEdges = (options = {}) => POOLDAY_RUNNER_NODE_IDS.map((runnerId, index) => edge(
-  runnerId,
-  POOLDAY_VERIFIER_NODE_IDS[index % POOLDAY_VERIFIER_NODE_IDS.length],
-  'peer',
-  {
-    alpha: 0.12,
-    tone: index % 2 ? 'accent' : 'pipe',
-    curve: index % 2 ? -0.022 : 0.022,
-    speed: 0.90,
-    ...options
-  }
-));
-
-const verifierToAgreementEdges = (options = {}) => POOLDAY_VERIFIER_NODE_IDS.map((verifierId, index) => edge(
-  verifierId,
-  'agreement',
-  'peer',
-  {
-    alpha: 0.14,
-    tone: index % 2 ? 'evidence' : 'accent',
-    curve: index % 2 ? -0.018 : 0.018,
-    speed: 0.92,
-    ...options
-  }
-));
 
 const expandEdgeSpec = (spec, specIndex) => {
   const defaults = BASE_STYLES[spec.kind] || BASE_STYLES.peer;

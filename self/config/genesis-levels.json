@@ -125,7 +125,8 @@
       "testing/arena/competitor.js"
     ],
     "ArenaHarness": [
-      "testing/arena/arena-harness.js"
+      "testing/arena/arena-harness.js",
+      "core/tool-argument-validation.js"
     ],
     "ArenaMetrics": [
       "testing/arena/arena-metrics.js"
@@ -173,7 +174,8 @@
       "experimental/intelligence/federated-learning.js"
     ],
     "FunctionGemmaOrchestrator": [
-      "core/functiongemma-orchestrator.js"
+      "core/functiongemma-orchestrator.js",
+      "core/tool-argument-validation.js"
     ],
     "GEPAOptimizer": [
       "capabilities/cognition/gepa-optimizer.js"
