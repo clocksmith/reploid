@@ -1,0 +1,13 @@
+{
+  "startedAt": "2026-10-16T17:12:01.947310+00:00",
+  "ready": {
+    "at": "2026-10-16T17:12:09.462Z",
+    "phase": "ready",
+    "error": null,
+    "offering": true,
+    "modelId": "qwen3-8-27b-text-q4k-ehaf16"
+  },
+  "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "release": "/home/x/.local/share/reploid/releases/q4k-27b-6ba1f43a/reploid",
+  "unitDropin": "[Unit]\nDescription=Reploid public Qwen 3.8 27B Q4K contributor (256 output tokens)\n\n[Service]\nWorkingDirectory=/home/x/.local/share/reploid/releases/q4k-27b-6ba1f43a/reploid\nExecStartPre=\nExecStartPre=/usr/bin/python3 /home/x/.local/share/reploid/public-native-27b/memory-preflight-q4k.py\nExecStart=\nExecStart=/usr/bin/flock --nonblock /tmp/reploid-qwen27b-gpu.lock /usr/bin/node server/native-participant.js --contribute --execution-mode whole-model --model qwen3-8-27b-text-q4k-ehaf16 --model-directory /home/x/.local/share/reploid/models/qwen38-27b-q4k-19ecff3e --identity-file /home/x/.local/share/reploid/public-native-27b/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo.id\nMemoryMax=48G\n"
+}
