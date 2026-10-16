@@ -162,11 +162,9 @@ describe('Conversation workspace', () => {
 
   it('previews optional capped context and retains each conversation setting', async () => {
     await session.prepareLocalModel(CANONICAL_CHAT_MODELS[1].id);
-    expect(find('[data-context-enabled]').checked).toBe(false);
+    expect(find('[data-context-enabled]').checked).toBe(true);
     expect(find('[data-context-cap]').value).toBe('16');
-    expect(find('[data-context-cap]').disabled).toBe(true);
-    find('[data-context-enabled]').checked = true;
-    find('[data-context-enabled]').dispatchEvent(new Event('change', { bubbles: true }));
+    expect(find('[data-context-cap]').disabled).toBe(false);
     find('[data-context-cap]').value = '32';
     find('[data-context-cap]').dispatchEvent(new Event('change', { bubbles: true }));
     const preview = find('[data-context-preview]').textContent;
@@ -185,7 +183,7 @@ describe('Conversation workspace', () => {
     const first = session.getState().activeThread;
     expect(first.systemContext.content).toBe(preview);
     expect(first.attempts[0].request.messages[0]).toEqual({ role: 'system', content: preview });
-    const other = session.createThread({ sharingScope: 'local' });
+    const other = session.createThread({ sharingScope: 'local', contextPrompt: { enabled: false } });
     expect(find('[data-context-enabled]').checked).toBe(false);
     session.select(first.id);
     expect(find('[data-context-enabled]').checked).toBe(true);

@@ -9,16 +9,17 @@ const result = request => ({ threadId: request.threadId, attemptId: request.atte
   modelIdentity: model.identity, adapterIdentities: [], content: 'A useful answer longer than the compact context word cap is still allowed.' });
 
 describe('optional application context', () => {
-  it('defaults off, bounds the complete generated prompt and uses only identity-bound catalog metadata', () => {
-    expect(createChatContext({}, model, [model])).toMatchObject({ content: '', metadata: { enabled: false, maxWords: 16, wordCount: 0 } });
+  it('defaults on, bounds the complete generated prompt and uses only identity-bound catalog metadata', () => {
+    expect(createChatContext({}, model, [model])).toMatchObject({ metadata: { enabled: true, maxWords: 16 } });
+    expect(createChatContext({ enabled: false }, model, [model])).toMatchObject({ content: '', metadata: { enabled: false, wordCount: 0 } });
     for (const maxWords of [16, 32, 64]) {
       const context = createChatContext({ enabled: true, maxWords }, model, [model]);
       expect(context.content.split(/\s+/u).length).toBeLessThanOrEqual(maxWords);
       expect(context.metadata.wordCount).toBe(context.content.split(/\s+/u).length);
       expect(context.content).toContain('Reploid');
-      expect(context.content).toContain('Never invent model identity or execution details.');
-      if (maxWords === 16) expect(context.metadata.wordCount).toBe(16);
-      else { expect(context.content).toContain(model.name); expect(context.content).toContain('Use supplied metadata'); }
+      expect(context.content).toContain('Answer briefly and directly; expand when asked.');
+      expect(context.content).toContain(model.name);
+      if (maxWords > 16) expect(context.content).toContain('Use supplied metadata');
       expect(context.metadata.mode).toBeNull();
     }
     const mismatch = createChatContext({ enabled: true }, { ...model, identity: 'sha256:' + 'b'.repeat(64) }, [model]);
@@ -86,14 +87,19 @@ describe('optional application context', () => {
   it('host updates and restores context without changing model or generation allowances', async () => {
     const values = new Map(), storage = { getItem: key => values.get(key), setItem: (key, value) => values.set(key, value) };
     const session = createChatSession({ storage, service: createChatTestService() });
-    const thread = session.createThread({ model: CANONICAL_CHAT_MODELS[1], sharingScope: 'local', contextPrompt: { enabled: true, maxWords: 16 } });
+    const thread = session.createThread({ model: CANONICAL_CHAT_MODELS[1], sharingScope: 'local' });
     const attempt = await session.send(thread, 'Hello');
     expect(attempt.status).toBe('completed'); expect(attempt.request.messages[0].role).toBe('system');
+    expect(attempt.request.messages[0].content).toContain('Answer briefly and directly; expand when asked.');
     const identity = session.getState().activeThread.model.identity;
     session.setContextPrompt(thread, { enabled: true, maxWords: 64 });
+    const optedOut = session.createThread({ model: CANONICAL_CHAT_MODELS[1], sharingScope: 'local', contextPrompt: { enabled: false } });
+    const withoutContext = await session.send(optedOut, 'Hello');
+    expect(withoutContext.request.messages).toEqual([{ role: 'user', content: 'Hello' }]);
     await session.close();
     const restored = createChatSession({ storage, service: createChatTestService() });
     expect(restored.getState().threads[0]).toMatchObject({ model: { identity }, systemContext: { metadata: { maxWords: 64, enabled: true } } });
+    expect(restored.getState().threads[1].systemContext).toMatchObject({ content: '', metadata: { enabled: false } });
     await restored.close();
   });
 });
