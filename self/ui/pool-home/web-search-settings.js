@@ -1,5 +1,5 @@
-/** Settings for web search through the person's MCP server. Turning it on is the permission to send each
- * question to that server; the text says so before it is on, and turning it off revokes it. */
+/** Built-in search keeps per-answer confirmation. A configured personal MCP server instead uses the
+ * stored on/off permission explained beside its switch. */
 export function renderWebSearchSettings() {
   return `<section class="pool-stack pool-gap-sm" data-web-search-settings aria-labelledby="web-search-title">
     <div class="pool-row pool-row-between">

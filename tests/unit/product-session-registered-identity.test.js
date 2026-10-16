@@ -7,6 +7,7 @@ import { createSigningIdentity } from '../../packages/reploid/src/artifacts/iden
 import { resolveConfig } from '../../self/vendor/reploid/config/index.js';
 
 const ports = vi.hoisted(() => ({ connection: null, bound: [], saved: 0, meshes: [] }));
+vi.mock('../../self/pool/identity.js', async original => ({ ...await original(), getPoolAuthToken: async () => 'fixture-search-token' }));
 vi.mock('../../self/identity.js', async original => ({ ...await original(),
   ensureIdentityBundle: async () => ports.connection, saveIdentityBundle: async () => { ports.saved += 1; } }));
 vi.mock('../../self/vendor/reploid/mesh/index.js', async original => ({ ...await original(),
@@ -44,6 +45,21 @@ const open = async participantIdentity => {
   cleanups.push(() => host.close());
   return host;
 };
+
+it('uses the existing browser identity for protected server-search requests', async () => {
+  ports.connection = await createSigningIdentity({ algorithm: 'Ed25519' });
+  const fetcher = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({
+    schema: 'reploid.server-search-status/v1', enabled: true, provider: 'brave'
+  }), { headers: { 'Content-Type': 'application/json' } }));
+  try {
+    const host = await open();
+    await host.search.refresh();
+    expect(host.search.available()).toBe(true);
+    expect(fetcher).toHaveBeenCalledWith('/api/retrieval/status', expect.objectContaining({
+      headers: expect.objectContaining({ Authorization: 'Bearer fixture-search-token' })
+    }));
+  } finally { fetcher.mockRestore(); }
+});
 
 it('requests as the registered participant when the earning account supplies one, and as the connection identity otherwise', async () => {
   const registered = await createSigningIdentity({ algorithm: 'Ed25519' });

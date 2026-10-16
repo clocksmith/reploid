@@ -10,6 +10,7 @@ import { createWorkPeerJobs } from './work-peer-jobs.js';
 import { createChatSession, openCanonicalChatSession, LOCAL_HISTORY_IDENTITY, SEARCH_ROUTE, DEVICE_SEARCH_ROUTE } from './chat-session.js';
 import { createWebSearch } from './web-search.js';
 import { createServerSearch } from './server-search.js';
+import { getPoolAuthToken } from '../pool/identity.js';
 import { createDeviceSearch } from './device-search.js';
 import { acquireChatHistoryOwner, refusedChatHistory } from './chat-history.js';
 import { DOPPLER_PARTITIONS_MODULE_URL } from '../config/doppler-local-models.js';
@@ -54,7 +55,7 @@ async function openOrderedRequesterChat({ chatOptions, requesterIdentity, ports 
 
 export function createProductSession({ storage, networkOptions, swarmNetworkOptions, operationNetwork = null,
   canonical = null, ordered = null, eventTarget = window, onChanges = () => {}, onDocuments = () => {}, onSharing = () => {},
-  historyPorts = {}, earning = null, participantIdentity = null, search = createServerSearch() }) {
+  historyPorts = {}, earning = null, participantIdentity = null, search = createServerSearch({ authorization: getPoolAuthToken }) }) {
   let runtime, work, chat, modelCache, documents, operationSharing, closed = false, closing, ownsNetwork = false;
   const service = createReploidDopplerRuntimeService();
   // Local execution uses the same pinned, verified artifacts as contribution.
