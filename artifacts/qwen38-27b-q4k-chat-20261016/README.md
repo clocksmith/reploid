@@ -55,6 +55,14 @@ Source commits `7af58213` and `b020ac9b` retain the split changes; the latter
 removes accidentally staged concurrent search edits from the release while
 preserving their working files. The isolated release excludes that search work.
 
+After that lifecycle test, the other session deployed its search changes in
+bundle `sha256:a0edec2ef3509b52124110da5d591aa825a07cbb57f217ebb019382803935f1d`.
+One additional bounded fresh-site smoke check (`post-release-smoke.json`) verifies
+that the current site still returns 42 through the exact two-contributor route
+without requester weights. It completed in 6.94 s including fresh discovery and
+request readiness. The full lifecycle timings above belong to the earlier
+isolated bundle; they are not relabeled as a full retest of the other release.
+
 ## Separate verdicts and retained failures
 
 The owner explicitly accepted the earlier small cross-device numerical difference
