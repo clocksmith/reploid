@@ -34,6 +34,10 @@ async function installConversation(page, theme) {
       state.activeThread.messages[1].content = answer;
       listeners.forEach(callback => callback(state));
     };
+    window.setVisualTiming = timing => {
+      state.activeThread.attempts[0].execution.timing = timing;
+      listeners.forEach(callback => callback(state));
+    };
     window.setVisualMetrics = metrics => {
       state.activeThread.attempts[0].execution.stepSummary = { metrics };
       listeners.forEach(callback => callback(state));
@@ -421,3 +425,51 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
     await page.screenshot({ path: info.outputPath('rail-overflow.png') });
   });
 }
+
+test('answer measurements and bottom-centered thread badges stay stable while loading', async ({ page }, info) => {
+  await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+  for (const width of [1440, 390]) for (const theme of ['light', 'dark']) {
+    await page.setViewportSize({ width, height: 900 });
+    await installConversation(page, theme);
+    await page.evaluate(() => window.setVisualState('loading'));
+    const row = page.locator('.chat-message-row.is-assistant');
+    const bounds = () => page.evaluate(() => {
+      const box = selector => {
+        const { x, width } = document.querySelector(selector).getBoundingClientRect(); return { x, width };
+      };
+      return { transcript: box('.chat-transcript'), composer: box('.chat-composer-area'), details: box('.is-assistant [data-execution-trigger]'), copy: box('.is-assistant [data-copy-message]') };
+    });
+    await page.evaluate(() => window.setVisualMessages('Question', ''));
+    const initial = await bounds();
+    await page.evaluate(() => window.setVisualState('completed'));
+    await page.evaluate(() => window.setVisualMessages('Question', 'A longer answer. '.repeat(700)));
+    await page.evaluate(() => window.setVisualTiming({ generatedTokenCount: 256, totalMs: 21700 }));
+    expect(await bounds()).toEqual(initial);
+    expect(await row.locator('.chat-message-meta').evaluate(node => getComputedStyle(node).display)).toBe('grid');
+    const metric = row.locator('[data-metric="tokens"]');
+    await expect(metric).toHaveText('256');
+    expect(await metric.evaluate(node => getComputedStyle(node).cursor)).toBe('help');
+    const details = row.locator('[data-execution-trigger]');
+    expect(await details.evaluate(node => getComputedStyle(node).boxShadow)).not.toBe('none');
+    await details.click();
+    await expect(row.locator('[popover]')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(row.locator('[popover]')).not.toBeVisible();
+    await page.evaluate(() => window.setVisualThreads(4));
+    const thread = page.locator('[data-thread-item-id="recent-1"]');
+    await expect(thread.locator('[data-thread-monogram]')).toHaveText('R');
+    for (const expanded of [false, true]) {
+      if (expanded) await page.locator('[data-toggle-thread-rail]').click();
+      const badge = await thread.evaluate(node => {
+        const icon = node.querySelector('.chat-thread-shortcut').getBoundingClientRect();
+        const mark = node.querySelector('[data-thread-unread]').getBoundingClientRect();
+        return { center: Math.abs(icon.x + icon.width / 2 - mark.x - mark.width / 2), below: mark.y >= icon.y + icon.height / 2 };
+      });
+      expect(badge.center).toBeLessThan(1); expect(badge.below).toBe(true);
+    }
+    await page.locator('[data-toggle-thread-rail]').click();
+    await page.evaluate(() => window.setVisualMessages('What should we watch?', 'A short list based on your shared preferences.'));
+    await page.screenshot({ path: info.outputPath(`cohesive-${width}-${theme}.png`) });
+  }
+});

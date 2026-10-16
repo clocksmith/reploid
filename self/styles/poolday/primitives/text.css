@@ -35,3 +35,6 @@
 .pool-home .pool-stats > div { padding: var(--pool-size-12); border-radius: var(--pool-radius-control); background: var(--pool-color-inset); box-shadow: var(--pool-shadow-inset); }
 .pool-home .pool-stats dt { color: var(--pool-color-muted); font-size: var(--pool-text-xs); }
 .pool-home .pool-stats dd { font-size: var(--pool-text-xl); font-weight: var(--pool-weight-bold); }
+
+/* Quiet measured values: inspectable, without a button surface. */
+.pool-home .pool-readout { font-variant-numeric: tabular-nums; cursor: help; }

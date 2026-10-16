@@ -22,18 +22,25 @@ function updateMessageMeta(root, thread, attempt, state) {
   const execution = attempt?.execution;
   const timing = execution?.timing;
   const tokens = timing?.generatedTokenCount ?? execution?.completion?.generatedTokenCount;
-  const item = (icon, text, title = text) => `<span class="chat-message-metric pool-row pool-gap-xs" tabindex="0" aria-label="${escape(title)}" title="${escape(title)}">${interfaceIcon(icon)}${text ? `<span>${escape(text)}</span>` : ''}</span>`;
-  const parts = [];
-  if (thread.model?.name) parts.push(item('model', '', 'Model: ' + thread.model.name));
   const view = projectExecutionActivity({ ...state, activeThread: { ...thread, attempts: attempt ? [attempt] : [] } });
-  if (view.averageSpeed !== null) parts.push(item('activity', `${view.averageSpeed.toFixed(1)} tok/s`, 'Generation average including prompt processing; excludes queue and model loading'));
-  if (Number.isSafeInteger(tokens) && tokens >= 0) parts.push(item('tokens', `${tokens}`, `${tokens} generated tokens`));
-  if (Number.isFinite(timing?.totalMs) && timing.totalMs > 0) {
-    parts.push(item('clock', `${(timing.totalMs / 1000).toFixed(1)} s`, 'Generation time including prompt processing'));
-  }
-  const markup = parts.join('');
-  root.hidden = !markup;
-  if (root.dataset.markup !== markup) { root.innerHTML = markup; root.dataset.markup = markup; }
+  const measurements = [
+    ['model', '', thread.model?.name ? 'Model: ' + thread.model.name : null],
+    ['activity', view.averageSpeed === null ? '' : `${view.averageSpeed.toFixed(1)} tok/s`, view.averageSpeed === null ? null : 'Generation average including prompt processing; excludes queue and model loading'],
+    ['tokens', Number.isSafeInteger(tokens) && tokens >= 0 ? `${tokens}` : '', Number.isSafeInteger(tokens) && tokens >= 0 ? `${tokens} generated tokens` : null],
+    ['clock', Number.isFinite(timing?.totalMs) && timing.totalMs > 0 ? `${(timing.totalMs / 1000).toFixed(1)} s` : '', Number.isFinite(timing?.totalMs) && timing.totalMs > 0 ? 'Generation time including prompt processing' : null]
+  ];
+  // Keep each slot and its focus target in place as recorded measurements arrive.
+  if (!root.children.length) root.innerHTML = measurements.map(([icon]) => `<span class="chat-message-metric pool-readout pool-row pool-gap-xs" data-metric="${icon}">${interfaceIcon(icon)}<span></span></span>`).join('');
+  measurements.forEach(([, text, title], index) => {
+    const slot = root.children[index];
+    slot.dataset.available = String(!!title);
+    slot.setAttribute('aria-hidden', String(!title));
+    slot.tabIndex = title ? 0 : -1;
+    slot.title = title || '';
+    slot.setAttribute('aria-label', title || '');
+    slot.lastElementChild.textContent = text;
+  });
+  root.hidden = false;
 }
 
 export function createMessageList(stream, { getSources, positions = new Map(), scrollContainer = stream } = {}) {
@@ -59,7 +66,7 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
           row = stream.ownerDocument.createElement('article'); row.dataset.messageId = messageId;
           row.className = message.role === 'user' ? 'chat-message-row is-user' : 'chat-message-row is-assistant';
           const popover = `chat-execution-${++nextPopover}`;
-          row.innerHTML = `<span class="chat-message-author pool-small pool-muted"></span><div class="chat-message-content pool-body pool-prose"></div><div class="chat-message-footer pool-row pool-gap-xs pool-small pool-muted"><div class="chat-message-meta pool-row pool-gap-sm" hidden></div><div class="chat-execution-activity" data-execution-activity hidden><button class="pool-button btn-ghost pool-icon" type="button" data-execution-trigger popovertarget="${popover}"></button><div class="chat-execution-popover pool-card pool-small" id="${popover}" popover data-activity-detail></div></div><div class="chat-message-actions"></div></div>`;
+          row.innerHTML = `<span class="chat-message-author pool-small pool-muted"></span><div class="chat-message-content pool-body pool-prose"></div><div class="chat-message-footer pool-row pool-gap-sm pool-small pool-muted"><div class="chat-message-meta pool-caption" hidden></div><div class="chat-execution-activity" data-execution-activity hidden><button class="pool-button pool-icon" type="button" data-execution-trigger popovertarget="${popover}"></button><div class="chat-execution-popover pool-card pool-small" id="${popover}" popover data-activity-detail></div></div><div class="chat-message-actions"></div></div>`;
           if (message.role === 'user') row.querySelector('.chat-message-content').classList.add('pool-well');
           row.querySelector('.chat-message-author').textContent = message.role === 'user' ? 'You' : 'Assistant'; rows.set(id, row);
         }
@@ -94,8 +101,8 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
           actions.innerHTML = `${failed ? `<p role="status">${escape(failureLabel(attempt))}</p>` : ''}
             ${sources.length ? `<details class="pool-small"><summary>Sources searched (${sources.length})</summary><ol class="pool-list">${sources.map(item => `<li id="${escape(anchor(item.number))}" tabindex="-1"><a href="${escape(item.url)}" target="_blank" rel="noopener noreferrer">[${item.number}] ${escape(item.title)}</a></li>`).join('')}</ol></details>` : ''}
             ${attempt?.retryOf ? '<small>New attempt</small>' : ''}
-            ${retryable ? `<button type="button" class="pool-button btn-ghost pool-icon" data-retry-attempt="${escape(attempt.id)}" aria-label="Retry response" title="Retry response. Starts a new attempt; keeps this response."${usable ? '' : ' disabled'}>${interfaceIcon('retry')}</button>` : ''}
-            ${message.content ? `<button type="button" class="pool-button btn-ghost pool-icon pool-muted" data-copy-message aria-label="${message.role === 'user' ? 'Copy message' : 'Copy response'}" title="${message.role === 'user' ? 'Copy message' : 'Copy response'}">${interfaceIcon('copy')}</button>` : ''}`;
+            ${retryable ? `<button type="button" class="pool-button pool-icon" data-retry-attempt="${escape(attempt.id)}" aria-label="Retry response" title="Retry response. Starts a new attempt; keeps this response."${usable ? '' : ' disabled'}>${interfaceIcon('retry')}</button>` : ''}
+            ${message.content || message.role === 'assistant' ? `<button type="button" class="pool-button pool-icon"${message.content ? '' : ' disabled'} data-copy-message aria-label="${message.role === 'user' ? 'Copy message' : 'Copy response'}" title="${message.role === 'user' ? 'Copy message' : 'Copy response'}">${interfaceIcon('copy')}</button>` : ''}`;
         }
         if (row.parentElement !== stream) stream.append(row);
       }
