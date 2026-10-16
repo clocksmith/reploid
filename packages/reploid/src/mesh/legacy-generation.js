@@ -36,9 +36,13 @@ export function createLegacyGenerationMesh({ config, ports }) {
   const swarmController = createSwarmController();
   const receiptHistory = [];
   const inbound = new Map(), completed = new Map();
+  const inboundSettlements = new Set();
+  const executions = new Set();
+  const lifetime = new AbortController();
   const subscriptions = [];
   const providerWaiters = new Set();
   const reservedProviders = new Set();
+  let closing = null;
   let closed = false, identityBundle = null, swarmTransport = ports.transport || null;
   let peerIdentity = null;
   let pendingFreshIdentity = ports.forceFreshIdentity === true;
@@ -47,11 +51,11 @@ export function createLegacyGenerationMesh({ config, ports }) {
     sendCancel: (peerId, requestId) => swarmTransport?.sendToPeer(peerId, 'reploid:generation-cancel', { requestId }) });
   let swarmInitPromise = null, swarmInitialized = false, swarmHandlersRegistered = false;
   const executionState = () => ports.getExecutionState?.() || { phase: modelConfig ? 'ready' : 'idle', modelIdentity: null };
-  const ready = () => !!modelConfig && executionState().phase === 'ready';
+  const ready = () => !closed && !!modelConfig && executionState().phase === 'ready';
   const currentModelBinding = () => modelBinding(modelConfig?.id || null, executionState().modelIdentity);
   const bindingAvailable = (binding, adapters) => sameModelBinding(currentModelBinding(), binding)
     && supportsAdapters(executionState(), adapters);
-  const generateBound = async (messages, onUpdate, controls, binding) => {
+  const executeBound = async (messages, onUpdate, controls, binding) => {
     const adapters = adapterSet(controls.adapterIdentities);
     const assertBinding = () => {
       if (!bindingAvailable(binding, adapters)) {
@@ -71,6 +75,20 @@ export function createLegacyGenerationMesh({ config, ports }) {
       throw new Error('Provider adapter execution identity mismatch');
     }
     return response;
+  };
+  const generateBound = (messages, onUpdate, controls, binding) => {
+    const signal = AbortSignal.any([lifetime.signal, ...(controls.signal ? [controls.signal] : [])]);
+    signal.throwIfAborted();
+    const pending = executeBound(messages, chunk => {
+      if (!signal.aborted) return onUpdate?.(chunk);
+    }, { ...controls, signal }, binding).then(response => {
+      signal.throwIfAborted();
+      return response;
+    });
+    executions.add(pending);
+    const settled = () => executions.delete(pending);
+    pending.then(settled, settled);
+    return pending;
   };
   const chooseCompatibleProvider = (modelId, includeBusy = false, modelIdentity = null, adapters = []) => rankProviderPeers(swarmController.listPeers())
     .find(peer => supportsAdapters(peer, adapters) && peer.readiness === 'ready' && (!modelIdentity || peer.modelIdentity === modelIdentity) && (!modelId || peer.model === modelId) && (includeBusy || (!reservedProviders.has(peer.peerId) && peer.availableSlots !== 0))
@@ -306,10 +324,13 @@ export function createLegacyGenerationMesh({ config, ports }) {
     }
     const controller = new AbortController();
     inbound.set(key, controller);
-    advertiseSelf();
+    let finishSettlement;
+    const settlement = new Promise(resolve => { finishSettlement = resolve; });
+    inboundSettlements.add(settlement);
     const deadline = setTimeout(() => controller.abort(new Error('Remote job deadline exceeded')), policy.mesh.generationTimeoutMs);
 
     try {
+      advertiseSelf();
       const response = await generateBound(messages, (chunk) => {
         if (closed || controller.signal.aborted) return;
         swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-update', {
@@ -338,12 +359,16 @@ export function createLegacyGenerationMesh({ config, ports }) {
       swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-result', result);
     } catch (error) {
       const payload = { requestId, error: error?.message || String(error) };
-      if (!closed) completed.set(key, { type: 'reploid:generation-error', payload });
-      swarmTransport?.sendToPeer(remotePeerId, 'reploid:generation-error', payload);
+      if (!closed) {
+        completed.set(key, { type: 'reploid:generation-error', payload });
+        swarmTransport?.sendToPeer(remotePeerId, 'reploid:generation-error', payload);
+      }
     } finally {
       while (completed.size > policy.mesh.maxRetainedJobs) completed.delete(completed.keys().next().value);
       clearTimeout(deadline);
       inbound.delete(key);
+      inboundSettlements.delete(settlement);
+      finishSettlement();
       advertiseSelf();
     }
   };
@@ -502,19 +527,26 @@ export function createLegacyGenerationMesh({ config, ports }) {
   };
 
 
-  const close = async () => {
-    if (closed) return;
+  const close = () => {
+    if (closing) return closing;
+    // Withdraw admission immediately; cancellation is a request, not settlement.
     closed = true;
-    peerIdentity?.close();
-    for (const finish of providerWaiters) finish(false);
-    remoteRequests.close();
-    for (const controller of inbound.values()) controller.abort(new Error('Mesh closed'));
-    inbound.clear();
-    completed.clear();
-    for (const unsubscribe of subscriptions.splice(0)) unsubscribe?.();
-    swarmTransport?.disconnect();
-    if (swarmInitPromise) await swarmInitPromise.catch(() => {});
-    swarmTransport?.disconnect();
+    closing = Promise.resolve().then(async () => {
+      lifetime.abort(new Error('Mesh closed'));
+      peerIdentity?.close();
+      for (const finish of providerWaiters) finish(false);
+      remoteRequests.close();
+      for (const controller of inbound.values()) controller.abort(new Error('Mesh closed'));
+      for (const unsubscribe of subscriptions.splice(0)) unsubscribe?.();
+      swarmTransport?.disconnect();
+      // Keep every close caller waiting while an admitted executor drains, even
+      // when its cancellation port cannot interrupt the current GPU operation.
+      await Promise.all([...inboundSettlements, ...[...executions].map(pending => pending.catch(() => {})),
+        ...(swarmInitPromise ? [swarmInitPromise.catch(() => {})] : [])]);
+      completed.clear();
+      swarmTransport?.disconnect();
+    });
+    return closing;
   };
   return Object.freeze({ connect: initialize, initialize, generate, rotateIdentity, getSwarmSnapshot,
     verifyPeerIdentity: (peerId, signal) => {

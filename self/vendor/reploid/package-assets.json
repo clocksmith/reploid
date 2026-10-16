@@ -764,8 +764,8 @@
     },
     {
       "path": "mesh/legacy-generation.js",
-      "bytes": 25356,
-      "sha256": "360e7d38d62e7e06c3451dbfcd8970a22cf1377dc20e9c1a1761f21bcbe12f6c"
+      "bytes": 26799,
+      "sha256": "3ecf11a7047ff51fba609ad52390f80514c217fd35d55976c6eb30a8a7d0d152"
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.d.ts",
