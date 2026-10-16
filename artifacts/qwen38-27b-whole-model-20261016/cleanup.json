@@ -1,0 +1,11 @@
+{
+  "exit": 0,
+  "reason": null,
+  "elapsed": 310.1455455329997,
+  "gttUsedBytes": 3638456320,
+  "ownedProcessPresent": false,
+  "otherPublicProviderProcessesPresent": [
+    true,
+    true
+  ]
+}

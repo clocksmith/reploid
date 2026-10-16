@@ -1,0 +1,9 @@
+{
+  "url": "https://replo.id",
+  "sourceRevision": "37feb3be87aa06edcbf82b9a9313f9d949dd730a",
+  "target": "hosting:reploid",
+  "bundleHash": "sha256:6a1c0130e439ea1d4f4c07484bf31be174edc55c3e43a68b5f530e18cc41ed83",
+  "modelId": "qwen3-8-27b-text-f16-af32",
+  "modelIdentity": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+  "scope": "Static frontend only; server services and existing public providers were not changed."
+}
