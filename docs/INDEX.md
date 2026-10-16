@@ -11,7 +11,10 @@ The public product documents are:
 The business plan, roadmap, acceptance register, economics and planning history
 are maintained privately by the owner. The old network-intent path contains
 compatibility links only. Retained receipts are supporting evidence, not another
-plan, and specialist protocols remain scoped references.
+plan, and specialist protocols remain scoped references. Public contract requirements
+do not select the active experiment or prove product fit. [GOALS.md](../GOALS.md)
+describes the shared-model service boundary; the private plan owns current user,
+comparison and evidence selection.
 
 Topology requirements and inherited fixtures: [RD-CANON/1](roadmap/rd-canon-1.md).
 Launch 3 source design (off by default): [orchestration](launch-3-orchestration.md).

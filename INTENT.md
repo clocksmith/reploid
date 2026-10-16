@@ -16,18 +16,22 @@ product. Use uncluttered workflows, brief copy, shared components
 and tokens, accessible light/dark themes, responsive scrolling, and futuristic,
 subtly neumorphic styling.
 
-The initial consumer product is earned everyday AI access: contribute useful
-capacity, then redeem service credits from any device. Funded Community Access
-and optional top-ups coexist with earned access. The
-[product specification](docs/product-specification.md) defines owner control,
-disclosure, nonexpiring credits, quotes and separate financial acceptance.
-Consumer chat leads; coding and vertical specialization follow later.
+The service target is dependable access to an exact model through a stable network
+address while prepared providers and routes change. Conversations remain independent;
+contributors authorize participation without manually operating layers or rooms.
+A stable address does not guarantee availability or recovery of live inference state.
+
+The [product specification](docs/product-specification.md) retains service and
+financial requirements for owner control, disclosure, credits, Community Access
+and quotes. Accepted obligations remain binding; those capabilities have separate
+acceptance and do not establish demand or mandate concurrent implementation.
 
 ## Invariants
 
 - Qualification is scoped to the frozen model, audience, service terms and
-  contributor cohort. Whole-model service is preferred when one participant can
-  satisfy the request; partitioning requires a matched complete-request comparison.
+  contributor cohort. Whole-model generation is the default when an eligible
+  participant fits the exact model and execution envelope. Partition only when none
+  fits, and require a matched complete-request comparison.
   Failed thresholds or exhausted exposure caps close that cell without implicit
   expansion. Actual-use acceptance precedes transaction experiments; promised
   hardware alone establishes no supply. Preserve already accepted obligations.
