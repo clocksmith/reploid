@@ -310,3 +310,62 @@ it('preserves the configured model and adapter binding against execution-port mu
     expect(generate).toHaveBeenCalledTimes(1);
   } finally { await f.mesh.close(); }
 });
+
+it('keeps every close caller pending until admitted provider execution settles', async () => {
+  let finishExecution, executionSignal;
+  const generate = vi.fn((_messages, _onUpdate, { signal }) => {
+    executionSignal = signal;
+    return new Promise(resolve => { finishExecution = resolve; });
+  });
+  const f = fixture({ executeJobs: true }, { modelConfig: { id: 'qwen' }, generate });
+  await f.mesh.connect();
+  const request = f.handlers.get('reploid:generation-request')('consumer', {
+    requestId: 'active', model: 'qwen', messages: [{ role: 'user', content: 'hello' }]
+  });
+  await vi.waitFor(() => expect(generate).toHaveBeenCalledOnce());
+  const firstClosed = vi.fn(), secondClosed = vi.fn();
+  const first = f.mesh.close().then(firstClosed);
+  const second = f.mesh.close().then(secondClosed);
+  try {
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(executionSignal.aborted).toBe(true);
+    expect(firstClosed).not.toHaveBeenCalled();
+    expect(secondClosed).not.toHaveBeenCalled();
+    await f.handlers.get('reploid:generation-request')('consumer', {
+      requestId: 'late', model: 'qwen', messages: [{ role: 'user', content: 'too late' }]
+    });
+    expect(generate).toHaveBeenCalledOnce();
+  } finally {
+    finishExecution({ model: 'qwen', content: 'late result' });
+    await Promise.all([request, first, second]);
+  }
+  expect(firstClosed).toHaveBeenCalledOnce();
+  expect(secondClosed).toHaveBeenCalledOnce();
+  expect(f.sent).toEqual([]);
+});
+
+
+it('settles local whole-model generation before close and suppresses output after stopping', async () => {
+  let finishExecution, emit, executionSignal;
+  const generate = vi.fn((_messages, onUpdate, { signal }) => {
+    emit = onUpdate; executionSignal = signal;
+    return new Promise(resolve => { finishExecution = resolve; });
+  });
+  const f = fixture({}, { modelConfig: { id: 'qwen' }, generate });
+  const updates = vi.fn();
+  const request = f.mesh.generate([], updates, { modelId: 'qwen' });
+  const failed = expect(request).rejects.toThrow('Mesh closed');
+  const closed = vi.fn();
+  const stopping = f.mesh.close().then(closed);
+  try {
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(executionSignal.aborted).toBe(true);
+    expect(closed).not.toHaveBeenCalled();
+    emit('late text');
+    expect(updates).not.toHaveBeenCalled();
+  } finally {
+    finishExecution({ model: 'qwen', content: 'late result' });
+    await failed; await stopping;
+  }
+  expect(closed).toHaveBeenCalledOnce();
+});
