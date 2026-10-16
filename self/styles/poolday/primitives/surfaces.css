@@ -54,3 +54,10 @@
 .pool-home .pool-reveal-host:is(:hover, :focus-within) .pool-reveal { opacity: 1; }
 .pool-home .pool-edge-top { border-top: var(--pool-border-hairline) solid var(--pool-color-line); }
 .pool-home .pool-edge-bottom { border-bottom: var(--pool-border-hairline) solid var(--pool-color-line); }
+
+/* Pulse only for observed active work; waiting and attention remain static. */
+.pool-home .pool-dot.pool-dot-pulse::before { animation: pool-dot-pulse var(--pool-motion-time-1500) ease-in-out infinite; }
+@keyframes pool-dot-pulse { 0%, 100% { opacity: 1; } 50% { opacity: var(--pool-alpha-32); } }
+@media (prefers-reduced-motion: reduce) {
+  .pool-home .pool-dot.pool-dot-pulse::before { animation: none; }
+}

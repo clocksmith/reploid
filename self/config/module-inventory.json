@@ -3264,7 +3264,7 @@
     {
       "path": "ui/components/interface-icons.js",
       "owner": "ui",
-      "sha256": "sha256:415ddbff0546eb275bad931dbe51fa70975cab3a22bf68f717a86a0bb8821ba1",
+      "sha256": "sha256:d2241b14a9ec4e891d981b04fda50030dd37f7b6d5417b532fc78ad48f17a414",
       "imports": []
     },
     {
@@ -3325,7 +3325,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:a0fdc156dea367824dc11d1122080ba8b466c233e65bbacd1f9172ac5229d7e6",
+      "sha256": "sha256:1a02f71f9bb45e2a3b3309d73e9705125d20e32d9e24ecc50ad30a9539a7d64b",
       "imports": []
     },
     {
@@ -3387,10 +3387,9 @@
     {
       "path": "ui/pool-home/conversation-list.js",
       "owner": "ui",
-      "sha256": "sha256:ed382b226fda76779b6bb7088b4fa1c4f8ec7269274b46b862809f4de8f6c499",
+      "sha256": "sha256:a9786e969d2f736e2ba9067dfded766fd672a05d35927fd51dab789411c8c621",
       "imports": [
         "../components/disclosure.js",
-        "../components/interface-icons.js",
         "./context-indicator.js"
       ]
     },

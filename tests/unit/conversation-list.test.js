@@ -56,6 +56,7 @@ describe('Conversation list', () => {
       execution: { completion: { promptTokenCount: 300, generatedTokenCount: 120 } } }] };
     view.update([thread], null, { models: [model] });
     const button = root.querySelector('[data-thread-item-id]');
+    expect(button.querySelector('[data-thread-monogram]').textContent).toBe('M');
     expect(button.querySelector('[data-context-ring]').hasAttribute('hidden')).toBe(false);
     expect(button.querySelector('[data-context-ring-value]').getAttribute('stroke-dasharray')).toBe('42 58');
     expect(button.getAttribute('aria-label')).toContain('last answer 42% of advertised context');
@@ -68,6 +69,26 @@ describe('Conversation list', () => {
     expect(button.querySelector('[data-thread-attention]').hidden).toBe(false);
     expect(button.querySelector('[data-context-ring]').hasAttribute('hidden')).toBe(true);
     view.dispose();
+  });
+  it('shows only the current state dot through waiting, execution, unread and read transitions', () => {
+    const root = document.createElement('div'), view = createConversationList(root);
+    const thread = { id: 'one', title: 'Hello', messages: [], attempts: [{ id: 'a', status: 'queued' }] };
+    try {
+      for (const [status, selected, marker] of [
+        ['queued', null, 'attention'], ['loading', null, 'attention'],
+        ['executing', null, 'working'], ['cancelling', null, 'attention'],
+        ['cancelled', null, null], ['failed', null, 'attention'],
+        ['approval', null, 'attention'], ['disconnected', null, 'attention'],
+        ['recovering', null, 'attention'], ['interrupted', null, 'attention'],
+        ['completed', null, 'unread'], ['completed', 'one', null]
+      ]) {
+        thread.attempts[0].status = status;
+        view.update([thread], selected);
+        const visible = [...root.querySelectorAll('.chat-thread-mark')].filter(node => !node.hidden);
+        expect(visible).toHaveLength(marker ? 1 : 0);
+        if (marker) expect(visible[0].hasAttribute(`data-thread-${marker}`)).toBe(true);
+      }
+    } finally { view.dispose(); }
   });
   it('refreshes last-activity age without changing focus and clears its clock on disposal', () => {
     vi.useFakeTimers(); vi.setSystemTime(new Date('2026-10-15T20:00:00Z'));

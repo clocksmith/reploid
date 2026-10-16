@@ -1,4 +1,3 @@
-import { interfaceIcon } from '../components/interface-icons.js';
 import { bindDisclosure } from '../components/disclosure.js';
 import { projectThreadContext, renderContextRing, updateContextRing } from './context-indicator.js';
 
@@ -32,7 +31,7 @@ export function createConversationList(list, seen = new Map(), { getSources, now
         if (!button) {
           button = list.ownerDocument.createElement('button'); button.type = 'button';
           button.className = 'chat-thread-item pool-button btn-ghost pool-activity-edge'; button.dataset.threadItemId = thread.id;
-          button.innerHTML = `<span class="chat-thread-title pool-small"></span><small class="chat-thread-digest pool-caption pool-muted"></small><span class="chat-thread-shortcut pool-caption" aria-hidden="true">${renderContextRing()}${interfaceIcon('conversation')}<span class="chat-thread-mark pool-dot" data-thread-unread aria-hidden="true" hidden></span><span class="chat-thread-mark pool-dot pool-dot-open" data-thread-attention aria-hidden="true" hidden></span></span><time class="chat-thread-time pool-caption pool-muted" hidden></time>`;
+          button.innerHTML = `<span class="chat-thread-title pool-small"></span><small class="chat-thread-digest pool-caption pool-muted"></small><span class="chat-thread-shortcut pool-caption" aria-hidden="true">${renderContextRing()}<span data-thread-monogram></span><span class="chat-thread-mark pool-dot pool-dot-pulse" data-thread-working aria-hidden="true" hidden></span><span class="chat-thread-mark pool-dot" data-thread-unread aria-hidden="true" hidden></span><span class="chat-thread-mark pool-dot pool-dot-open" data-thread-attention aria-hidden="true" hidden></span></span><time class="chat-thread-time pool-caption pool-muted" hidden></time>`;
           row = list.ownerDocument.createElement('div'); row.className = 'chat-thread-row'; row.append(button);
           const menu = list.ownerDocument.createElement('details'); menu.className = 'chat-thread-menu';
           menu.innerHTML = '<summary class="pool-button btn-ghost" aria-label="Thread actions">…</summary><div class="pool-surface"><button class="pool-button" type="button" data-rename-thread>Rename</button><button class="pool-button" type="button" data-archive-thread></button></div>';
@@ -54,10 +53,12 @@ export function createConversationList(list, seen = new Map(), { getSources, now
         const digest = button.querySelector('.chat-thread-digest');
         const summary = label || thread.model?.name || 'New thread';
         if (digest.textContent !== summary) digest.textContent = summary;
+        button.querySelector('[data-thread-monogram]').textContent = Array.from(title.trim())[0]?.toUpperCase() || 'N';
         const context = projectThreadContext(thread, models);
         updateContextRing(button, context.percent);
+        button.querySelector('[data-thread-working]').hidden = status !== 'executing';
         button.querySelector('[data-thread-unread]').hidden = label !== 'New answer';
-        button.querySelector('[data-thread-attention]').hidden = !['approval', 'failed', 'interrupted', 'disconnected'].includes(status);
+        button.querySelector('[data-thread-attention]').hidden = !['queued', 'loading', 'recovering', 'cancelling', 'approval', 'failed', 'interrupted', 'disconnected'].includes(status);
         const time = button.querySelector('time'), timestamp = activityTime(thread);
         time.hidden = !Number.isFinite(timestamp);
         if (!time.hidden) {
