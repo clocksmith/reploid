@@ -55,7 +55,8 @@ async function openOrderedRequesterChat({ chatOptions, requesterIdentity, ports 
 
 export function createProductSession({ storage, networkOptions, swarmNetworkOptions, operationNetwork = null,
   canonical = null, ordered = null, eventTarget = window, onChanges = () => {}, onDocuments = () => {}, onSharing = () => {},
-  historyPorts = {}, earning = null, participantIdentity = null, search = createServerSearch({ authorization: getPoolAuthToken }) }) {
+  historyPorts = {}, earning = null, participantIdentity = null, webAccess = null,
+  search = createServerSearch({ authorization: getPoolAuthToken }) }) {
   let runtime, work, chat, modelCache, documents, operationSharing, closed = false, closing, ownsNetwork = false;
   const service = createReploidDopplerRuntimeService();
   // Local execution uses the same pinned, verified artifacts as contribution.
@@ -78,8 +79,9 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
   };
   // The person's MCP search server, used only for sends made while web search is on (Settings).
   const webSearch = createWebSearch({ storage });
-  // The same server as a device-side route: the query goes from this device to it and this device fetches the pages.
-  const deviceSearch = createDeviceSearch({ source: webSearch.provider, enabled: () => webSearch.enabled(),
+  // Hosts may supply an authorized browser adapter for the same disclosed service. No browser is attached
+  // implicitly, and this injection does not enable search or replace its per-answer permission.
+  const deviceSearch = createDeviceSearch({ ...(webAccess ? { access: webAccess.access, accessServer: webAccess.server } : { source: webSearch.provider }), enabled: () => webSearch.enabled(),
     server: () => webSearch.state().recipient });
   // `earning` (earning/attempts.js) is off unless the embedding host composes an explicitly configured client.
   const chatOptions = { service, storage, swarm,

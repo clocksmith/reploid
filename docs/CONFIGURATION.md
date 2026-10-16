@@ -4,6 +4,38 @@ All configurable settings exposed in the boot UI and their corresponding localSt
 
 ---
 
+## Web search and page access
+
+The host [WebAccess interface](../self/host/web-access.d.ts) separates
+`search(query, limits, signal)` from `fetch(url, options)`. Search returns the
+existing `SearchProvider` results; page reads return a Fetch-compatible response.
+Known URLs can be read without issuing a search.
+
+[Implementations](../self/host/web-access.js):
+
+- `createProviderWebAccess({ provider, fetch })` composes an API or MCP search
+  provider with a page reader. The default reader is ordinary browser Fetch,
+  subject to the destination's cross-origin policy.
+- `createBrowserWebAccess({ bridge, authorized })` uses an already attached
+  browser bridge for both operations. The bridge implements the same methods;
+  its host owns attachment, destination permissions, public-page isolation,
+  redirects and cancellation. The adapter checks authorization and attachment
+  identity before dispatch and before returning results. Failure never silently
+  switches to a different implementation.
+
+Embedding hosts can pass `webAccess: { server, access }` to
+`createProductSession`. `server` must match the search server disclosed in
+Settings. A different configured server disables that adapter. Search still
+requires its existing enablement and per-answer permission; injection grants
+nothing. This device route permits public-page reads without sign-ins on the
+requester's device. Contributor-hosted browsing needs a separately disclosed
+route; it cannot reuse that grant.
+
+Both implementations use the same bounded page extraction, hashes, passages and
+citation pipeline through `createDeviceSearch`. The adapter tests use injected
+ports. The hosted app does not automatically attach an extension or automation
+browser; an embedding host must supply that connection.
+
 ## Boot UI: Advanced Options
 
 Expand "Advanced options" in the boot UI to access these settings.
