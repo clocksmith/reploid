@@ -175,7 +175,7 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     await openParticipantControls(page);
     await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
     await page.locator('[data-inspector-section="device"]').click();
-    await expect(page.locator('[data-contextual-inspector]').getByRole('button', { name: 'This device', exact: true })).toHaveCount(1);
+    await expect(page.locator('[data-inspector-pane="device"]')).toBeVisible();
     await openParticipantControls(page);
     await expect(page.locator('[data-mesh-connect]')).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
@@ -408,6 +408,10 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
     const settingsBefore = await page.locator('[data-inspector-section="settings"]').boundingBox();
     const list = page.locator('[data-thread-list]');
     expect(await list.evaluate(node => node.scrollHeight > node.clientHeight)).toBe(true);
+    expect(await list.evaluate(node => getComputedStyle(node).scrollbarWidth)).toBe('none');
+    await list.hover();
+    await page.mouse.wheel(0, 300);
+    await expect.poll(() => list.evaluate(node => node.scrollTop)).toBeGreaterThan(0);
     await page.locator('[data-thread-item-id="recent-29"]').scrollIntoViewIfNeeded();
     await expect(page.locator('[data-thread-item-id="recent-29"]')).toBeInViewport();
     expect(await page.locator('[data-inspector-section="settings"]').boundingBox()).toEqual(settingsBefore);

@@ -78,7 +78,8 @@ test('concurrent primary inference is placed on two approved WebRTC participants
             const goal = JSON.parse(messages.find(item => item.origin === 'goal').content).goal;
             text = 'TOOL: RecordOutcome\ntext: Finished ' + goal;
           }
-          yield { type: 'text-delta', text };
+          yield { schema: 'doppler.generation-event/v1', type: 'text-delta', text };
+          yield { schema: 'doppler.generation-event/v1', type: 'complete', outputText: text };
         } }; }
       } });
       await window.swarm.share('qwen-3-5-2b-q4k-ehaf16', true);

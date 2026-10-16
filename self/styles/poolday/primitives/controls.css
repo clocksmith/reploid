@@ -38,6 +38,12 @@
 }
 /* Containers that receive focus programmatically (dialogs, panels) show no ring; their controls do. */
 .pool-home :is(dialog, [tabindex='-1']):focus-visible { outline: none; }
+/* Keep keyboard focus inside soft controls, including those in scroll regions. */
+.pool-home .pool-button:focus-visible {
+  outline: var(--pool-border-hairline) solid var(--pool-color-focus);
+  outline-offset: calc(-1 * var(--pool-size-4));
+  box-shadow: var(--pool-shadow-inset);
+}
 @media (prefers-reduced-motion: reduce) {
   .pool-home :is(.pool-button, :where(.pool-work-shell .btn)) { transition: none; }
 }

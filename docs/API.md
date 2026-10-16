@@ -4,6 +4,49 @@ This document is a current module map for the live Reploid tree. It is intention
 
 ---
 
+## Reploid and Doppler chat boundary
+
+Ordinary chat uses Doppler's public scoped session. The host owns the model
+lease, permissions and conversation identity. Doppler owns chat templates,
+tokenization, numerical execution and Unicode decoding.
+
+```javascript
+session.stream([{ role: 'user', content: 'Question' }], {
+  ...generationOptions, signal
+});
+// Ordered events, schema: 'doppler.generation-event/v1':
+// { type: 'text-delta', text: 'An addition to the answer', ... }
+// { type: 'complete', outputText: 'The entire answer', completion?, ... }
+```
+
+`consumeWorkGenerationStream` in
+[`work-generation-completion.js`](../self/providers/work-generation-completion.js)
+accepts only that schema and those event types. Text additions are bounded and
+delivered in order, awaiting each consumer. Exactly one completion must follow;
+its output must equal the accumulated text. Missing completion, unknown events,
+events after completion and contradictory output fail the request. Exceptions
+remain failures, not answer text. Aborting waits for iterator and session cleanup.
+
+The optional Doppler `completion` record preserves its stop reason and raw prompt
+and generated token counts. Older pinned runtimes may omit it; absence remains
+unknown. Chunk count and text length never stand in for token usage. Adapter
+generation additionally checks Doppler's model and adapter evidence. Signed
+Capsule operations retain their separate verified event and receipt contracts.
+
+[`chat-execution.js`](../self/host/chat-execution.js) attaches `threadId`,
+`attemptId` and an increasing `sequence` to text additions. Local and whole-model
+peer results share one mapper for `content`, model and adapter identities,
+completion, stop reason and reported timing. The local request's
+`maxOutputTokens` maps to Doppler's `maxTokens`, capped by host generation policy;
+it does not mutate the resident model's configuration for the next request.
+The scheduler retains its slot until execution and cleanup settle.
+
+Tests: [stream boundary and installed Doppler session](../tests/unit/work-generation-completion.test.js),
+[resident lifecycle](../tests/unit/work-resident-provider.test.js).
+These exercise contracts with injected model execution, not model quality.
+
+---
+
 ## Source of Truth
 
 Use these files first:

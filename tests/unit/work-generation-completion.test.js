@@ -3,6 +3,8 @@ import { createChatExecution } from '../../self/host/chat-execution.js';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 import { openWorkProvider } from '../../self/providers/work-provider.js';
 import { readWorkGenerationCompletion } from '../../self/providers/work-generation-completion.js';
+import { consumeWorkGenerationStream } from '../../self/providers/work-generation-completion.js';
+import { createScopedModelSession } from '../../node_modules/doppler-gpu/src/client/runtime/scoped-session.js';
 
 const model = { id: 'fixture', name: 'Fixture', provider: 'doppler', identity: 'sha256:' + 'a'.repeat(64), adapters: [] };
 const complete = stopReason => ({ schema: 'doppler.generation-completion/v1', stopReason,
@@ -12,7 +14,8 @@ describe('Doppler termination through ordinary chat owners (injected execution)'
   it.each(['local', 'network'])('retains %s completion and partial text without calling token exhaustion success', async placement => {
     let stopReason = 'max-tokens', saved = null;
     const response = () => ({ model: model.id, modelIdentity: model.identity, adapterIdentities: [],
-      provider: 'doppler', content: 'Visible answer', evidence: { output: { completion: complete(stopReason) } } });
+      provider: 'doppler', content: 'Visible answer', timing: { totalMs: 150, generatedTokenCount: 9 },
+      evidence: { output: { completion: complete(stopReason) } } });
     const scheduler = { getState: () => ({}), schedule: async (_request, controls) => {
       controls.onDelta('Visible answer'); return response();
     } };
@@ -29,6 +32,7 @@ describe('Doppler termination through ordinary chat owners (injected execution)'
     expect(truncated.status).toBe('failed');
     expect(truncated.error).toContain('generation limit');
     expect(truncated.execution).toMatchObject({ stopReason: 'max-tokens', completion: complete('max-tokens') });
+    expect(truncated.execution.timing).toEqual({ totalMs: 150, generatedTokenCount: 9 });
     expect(workspace.getState().threads[0].messages.at(-1)).toMatchObject({ content: 'Visible answer', status: 'failed' });
     stopReason = 'eos-token';
     const retried = await workspace.retry(thread, truncated.id);
@@ -54,9 +58,9 @@ describe('Doppler termination through ordinary chat owners (injected execution)'
     const terminal = complete('max-tokens');
     const session = { loaded: true, modelId: model.id, manifestHash: model.identity.slice(7),
       resetGenerationState: vi.fn(), async *stream() {
-        yield { type: 'text-delta', text: '' };
-        yield { type: 'text-delta', text: 'final' };
-        yield { type: 'complete', outputText: 'final', completion: terminal };
+        yield { schema: 'doppler.generation-event/v1', type: 'text-delta', text: '' };
+        yield { schema: 'doppler.generation-event/v1', type: 'text-delta', text: 'final' };
+        yield { schema: 'doppler.generation-event/v1', type: 'complete', outputText: 'final', completion: terminal };
       } };
     const controller = new AbortController(), deltas = [];
     const provider = await openWorkProvider({ model, service: { open: async () => session },
@@ -90,5 +94,62 @@ describe('Doppler termination through ordinary chat owners (injected execution)'
     expect(result.content).toBe('answer!');
     expect(result.completion).toEqual(complete('eos-token'));
     expect(active).toBeNull();
+  });
+
+  it.each([
+    ['missing completion', [{ schema: 'doppler.generation-event/v1', type: 'text-delta', text: 'partial' }], /without completion/],
+    ['duplicate completion', [{ schema: 'doppler.generation-event/v1', type: 'complete', outputText: '' }, { schema: 'doppler.generation-event/v1', type: 'complete', outputText: '' }], /after completion/],
+    ['late text', [{ schema: 'doppler.generation-event/v1', type: 'complete', outputText: '' }, { schema: 'doppler.generation-event/v1', type: 'text-delta', text: 'late' }], /after completion/],
+    ['unknown event', [{ type: 'error', message: 'failed' }], /unsupported event/],
+    ['wrong schema', [{ schema: 'unknown/v1', type: 'complete', outputText: '' }], /unsupported event/],
+    ['mismatched text', [{ schema: 'doppler.generation-event/v1', type: 'text-delta', text: 'partial' }, { schema: 'doppler.generation-event/v1', type: 'complete', outputText: 'other' }], /differs/]
+  ])('rejects %s and still resets the session', async (_name, events, error) => {
+    const reset = vi.fn();
+    const session = { loaded: true, modelId: model.id, manifestHash: model.identity.slice(7),
+      resetGenerationState: reset, async *stream() {
+        for (const event of events) yield { schema: 'doppler.generation-event/v1', ...event };
+      } };
+    const signal = new AbortController().signal;
+    const provider = await openWorkProvider({ model, service: { open: async () => session },
+      signal, generation: {}, maxOutcomeCharacters: 100 });
+    await expect(provider.generate([], () => {}, { signal })).rejects.toThrow(error);
+    expect(reset).toHaveBeenCalledTimes(2);
+  });
+
+  it('consumes the installed Doppler scoped API and forwards bounded generation options', async () => {
+    const calls = [], deltas = [], signal = new AbortController().signal;
+    const handle = { loaded: true, modelId: model.id, manifestHash: model.identity.slice(7), resetGenerationState() {},
+      async *generate(messages, options) { calls.push({ messages, options }); yield 'Hello '; yield 'world'; }
+    };
+    const provider = await openWorkProvider({ model, service: { open: async () => createScopedModelSession(handle) },
+      signal, generation: { maxTokens: 20, temperature: 0 }, maxOutcomeCharacters: 100 });
+    const messages = [{ role: 'user', content: 'Question' }];
+    const result = await provider.generate(messages, text => deltas.push(text), { signal, maxOutputTokens: 7 });
+    expect(result.content).toBe('Hello world'); expect(deltas).toEqual(['Hello ', 'world']);
+    expect(calls[0]).toEqual({ messages, options: { maxTokens: 7, temperature: 0, signal: expect.any(AbortSignal) } });
+    await provider.generate(messages, () => {}, { signal, maxOutputTokens: 100 });
+    expect(calls[1].options.maxTokens).toBe(20);
+  });
+
+  it('awaits consumers and iterator cleanup on cancellation without publishing a completion', async () => {
+    const controller = new AbortController(), order = [];
+    async function* events() {
+      try {
+        yield { schema: 'doppler.generation-event/v1', type: 'text-delta', text: 'partial' };
+        order.push('continued');
+      } finally { await Promise.resolve(); order.push('cleaned'); }
+    }
+    await expect(consumeWorkGenerationStream(events(), { signal: controller.signal, maxOutcomeCharacters: 100,
+      async onDelta() { await Promise.resolve(); order.push('consumed'); controller.abort(new Error('Cancelled')); }
+    })).rejects.toThrow('Cancelled');
+    expect(order).toEqual(['consumed', 'cleaned']);
+  });
+
+  it('bounds streamed text before calling the consumer', async () => {
+    const onDelta = vi.fn();
+    async function* events() { yield { schema: 'doppler.generation-event/v1', type: 'text-delta', text: 'too long' }; }
+    await expect(consumeWorkGenerationStream(events(), { signal: new AbortController().signal,
+      maxOutcomeCharacters: 3, onDelta })).rejects.toThrow('size limit');
+    expect(onDelta).not.toHaveBeenCalled();
   });
 });

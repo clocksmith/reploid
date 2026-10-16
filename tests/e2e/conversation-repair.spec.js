@@ -113,7 +113,8 @@ test('browser host preserves files and followups across reload with injected exe
       options.onProgress?.({ stage: 'weights', progress: 0.5, message: 'Loading weights...' });
       return { loaded: true, modelId: source, manifestHash: CANONICAL_CHAT_MODELS[0].identity.slice(7),
       resetGenerationState() {}, async *stream(messages) {
-      yield { type: 'text-delta', text: 'Injected answer: ' + messages.at(-1).content };
+      yield { schema: 'doppler.generation-event/v1', type: 'text-delta', text: 'Injected answer: ' + messages.at(-1).content };
+      yield { schema: 'doppler.generation-event/v1', type: 'complete', outputText: 'Injected answer: ' + messages.at(-1).content };
     } }; }, async close() {} };
     // Availability is explicit test input; this fixture does not prove discovery or inference.
     const swarm = { getState: () => ({ consumer: { peers: [{ peerId: 'fixture',

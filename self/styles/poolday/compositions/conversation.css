@@ -62,6 +62,7 @@
   padding-block: var(--pool-size-16);
 }
 .chat-message-stream, .chat-composer-area, .chat-error { width: min(100%, var(--pool-size-720)); align-self: center; margin-inline: auto; }
+.chat-transcript.chat-message-stream { width: min(100%, calc(var(--pool-size-720) + var(--pool-size-32))); padding-inline: var(--pool-size-16); }
 .chat-message-row { min-width: 0; width: 100%; display: grid; gap: var(--pool-size-8); }
 .chat-message-row.is-user { width: fit-content; max-width: 85%; align-self: flex-end; }
 .chat-message-row.is-user .chat-message-content { padding: var(--pool-size-16) var(--pool-size-24); }
@@ -265,6 +266,8 @@
 .chat-thread-sidebar svg { flex: none; }
 .chat-rail-footer .chat-conversation-actions > div { left: 0; right: auto; top: auto; bottom: calc(100% + var(--pool-size-8)); width: 100%; max-width: 100%; max-height: 50dvh; overflow-y: auto; }
 .chat-thread-sidebar .chat-thread-list { width: 100%; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 0; }
+.chat-thread-sidebar .chat-thread-list { scrollbar-width: none; }
+.chat-thread-sidebar .chat-thread-list::-webkit-scrollbar { display: none; }
 .chat-thread-row { position: relative; display: block; width: 100%; min-width: 0; }
 .pool-home .chat-thread-row .chat-thread-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; width: 100%; height: var(--pool-size-44); min-height: var(--pool-size-44); padding: var(--pool-size-8); }
 .chat-thread-title, .chat-thread-digest { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -286,7 +289,7 @@
 .chat-thread-menu > summary { display: grid; place-items: center; width: var(--pool-size-32); height: var(--pool-size-44); padding: 0; }
 .chat-thread-menu > div { position: absolute; right: 0; z-index: var(--pool-z-2); min-width: var(--pool-size-128); }
 .pool-home .chat-conversation-area.pool-surface { padding: 0; gap: var(--pool-size-24); }
-.chat-execution-activity { width: 100%; min-width: 0; max-width: 100%; }
+.chat-execution-activity { width: min(100%, var(--pool-size-320)); min-width: 0; max-width: 100%; }
 .chat-execution-activity summary { display: flex; align-items: center; gap: var(--pool-size-8); width: fit-content; max-width: 100%; padding: var(--pool-size-4) var(--pool-size-8); list-style: none; }
 .chat-execution-activity summary::-webkit-details-marker { display: none; }
 .chat-execution-activity summary::after { content: '+'; flex: none; margin-left: auto; }

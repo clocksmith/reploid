@@ -29,7 +29,7 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
       <div class="chat-thread-list" data-thread-list></div>
       </section>
       </div><footer class="chat-rail-footer">
-      <button class="pool-button chat-rail-control" type="button" data-open-model data-inspector-section="model" aria-label="Choose model" title="Choose model">${interfaceIcon('device')}<span class="chat-rail-label">Model</span><small class="chat-rail-digest pool-muted" data-model-digest></small></button>
+      <button class="pool-button chat-rail-control" type="button" data-open-model data-inspector-section="model" aria-label="Choose model" title="Choose model">${interfaceIcon('model')}<span class="chat-rail-label">Model</span><small class="chat-rail-digest pool-muted" data-model-digest></small></button>
       <div class="chat-rail-controls" data-network-header><div class="chat-thread-info">
           <span class="chat-model-control pool-activity-edge" data-model-control><select class="pool-input pool-glass" id="chat-model" data-active-model-select aria-label="Model"></select><button class="pool-button" type="button" data-current-model aria-haspopup="dialog" hidden></button></span>
           </div>
@@ -444,7 +444,11 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       const row = copy.closest('[data-message-id]');
       const content = copy.hasAttribute('data-copy-code') ? copy.parentElement.querySelector('code').textContent
         : session.getState().activeThread.messages.find(message => message.id === row.dataset.messageId).content;
-      await navigator.clipboard.writeText(content); copy.textContent = 'Copied';
+      await navigator.clipboard.writeText(content);
+      if (copy.hasAttribute('data-copy-message')) {
+        copy.innerHTML = interfaceIcon('check');
+        copy.setAttribute('aria-label', 'Copied'); copy.title = 'Copied';
+      } else copy.textContent = 'Copied';
     });
     const button = event.target.closest('[data-retry-attempt]');
     if (button && !button.disabled) act(async () => {

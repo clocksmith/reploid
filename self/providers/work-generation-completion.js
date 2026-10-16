@@ -1,5 +1,31 @@
 import { GENERATION_CONTRACT } from '../config/doppler-generation-contract.js';
 
+/** Consume Doppler's public scoped stream: ordered text, then exactly one completion.
+ * A transport ending is not completion. Cancellation awaits iterator cleanup.
+ */
+export async function consumeWorkGenerationStream(events, { signal, onDelta, maxOutcomeCharacters }) {
+  let text = '', terminal = null;
+  for await (const event of events) {
+    signal.throwIfAborted();
+    if (terminal) throw new Error('Doppler stream emitted an event after completion');
+    if (event?.schema !== 'doppler.generation-event/v1'
+      || !['text-delta', 'complete'].includes(event.type)) throw new Error('Doppler stream emitted an unsupported event');
+    if (event.type === 'text-delta') {
+      if (typeof event.text !== 'string') throw new Error('Doppler stream emitted an invalid text delta');
+      text += event.text;
+      if (text.length > maxOutcomeCharacters) throw new Error('Model response exceeded the configured size limit');
+      await onDelta(event.text);
+      signal.throwIfAborted();
+    } else {
+      if (event.outputText !== text) throw new Error('Doppler completed text differs from its stream');
+      terminal = { content: text, completion: readWorkGenerationCompletion(event) };
+    }
+  }
+  signal.throwIfAborted();
+  if (!terminal) throw new Error('Doppler stream ended without completion');
+  return terminal;
+}
+
 /** Preserve Doppler's declared termination; missing legacy metadata stays unknown. */
 export function readWorkGenerationCompletion(result) {
   const value = Object.hasOwn(result, 'completion') ? result.completion : result.evidence?.output?.completion;

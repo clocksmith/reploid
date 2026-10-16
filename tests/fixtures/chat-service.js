@@ -16,7 +16,8 @@ export function createChatTestService() {
         resetGenerationState() {},
         async *stream(messages) {
         await new Promise(resolve => setTimeout(resolve, 10));
-        yield { type: 'text-delta', text: 'Fixture: ' + messages.at(-1).content };
+        yield { schema: 'doppler.generation-event/v1', type: 'text-delta', text: 'Fixture: ' + messages.at(-1).content };
+        yield { schema: 'doppler.generation-event/v1', type: 'complete', outputText: 'Fixture: ' + messages.at(-1).content };
       } };
     },
     async close(scope) { closed.push(scope); }

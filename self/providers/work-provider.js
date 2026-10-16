@@ -1,6 +1,6 @@
 /** Host-selected compatibility providers. Signed Pack providers remain separate. */
 import profile from '../config/work-profile.json' with { type: 'json' };
-import { readWorkGenerationCompletion, readWorkGenerationTiming } from './work-generation-completion.js';
+import { consumeWorkGenerationStream, readWorkGenerationCompletion, readWorkGenerationTiming } from './work-generation-completion.js';
 const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
 
 export function selectWorkModel({ models, modelId, defaultModelId }) {
@@ -87,16 +87,20 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
         catch (error) { healthy = false; throw error; }
       }
     },
-    async generate(messages, onUpdate = () => {}, { signal: attemptSignal, adapters = [] }) {
+    async generate(messages, onUpdate = () => {}, { signal: attemptSignal, adapters = [], maxOutputTokens }) {
       const combined = AbortSignal.any([signal, attemptSignal]);
       combined.throwIfAborted();
+      requireValue(maxOutputTokens === undefined || Number.isSafeInteger(maxOutputTokens) && maxOutputTokens > 0,
+        'Request maxOutputTokens must be a positive integer');
+      const requestGeneration = maxOutputTokens === undefined ? generation
+        : { ...generation, maxTokens: Math.min(generation.maxTokens ?? maxOutputTokens, maxOutputTokens) };
       let text = '', actualModel = model.id, actualIdentity = null, completion = null, timing = null;
       const update = delta => {
         combined.throwIfAborted();
         requireValue(typeof delta === 'string', 'Provider emitted an invalid text delta');
         text += delta;
         requireValue(text.length <= maxOutcomeCharacters, 'Model response exceeded the configured size limit');
-        onUpdate(delta);
+        return onUpdate(delta);
       };
       if (session) {
         // Raw compatibility sessions cancel cooperatively; the host waits for settlement.
@@ -104,29 +108,24 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
         try {
           await setAdapters(adapters, combined);
           if (adapters.length) {
-            const result = await session.generate(messages, { ...generation, signal: combined,
+            const result = await session.generate(messages, { ...requestGeneration, signal: combined,
               onToken: (_token, delta) => { if (typeof delta === 'string') update(delta); } });
             // Doppler owns visible output. Older callbacks supply only token IDs;
             // those sessions deliver completion text without decoding IDs here.
             requireValue(typeof result.outputText === 'string' && result.outputText.startsWith(text),
               'Doppler streamed text differs from generation evidence');
-            update(result.outputText.slice(text.length));
+            await update(result.outputText.slice(text.length));
             actualIdentity = evidencedIdentity(result, adapters);
             completion = readWorkGenerationCompletion(result);
             timing = readWorkGenerationTiming(result.evidence?.stats);
             requireValue(text === result.outputText, 'Doppler streamed text differs from generation evidence');
           } else {
             actualIdentity = executionIdentity();
-            for await (const event of session.stream(messages, { ...generation, signal: combined })) {
-              combined.throwIfAborted();
-              if (event.type === 'text-delta') update(event.text);
-              if (event.type === 'complete') {
-                requireValue(event.outputText === text, 'Doppler completed text differs from its stream');
-                completion = readWorkGenerationCompletion(event);
-                timing = readWorkGenerationTiming(session.supports?.('advanced') === false
-                  ? null : session.advanced?.getStats?.());
-              }
-            }
+            const result = await consumeWorkGenerationStream(session.stream(messages, { ...requestGeneration, signal: combined }),
+              { signal: combined, onDelta: update, maxOutcomeCharacters });
+            completion = result.completion;
+            timing = readWorkGenerationTiming(session.supports?.('advanced') === false
+              ? null : session.advanced?.getStats?.());
             requireValue(JSON.stringify(executionIdentity()) === JSON.stringify(actualIdentity),
               'Doppler execution identity changed during generation');
           }
@@ -144,7 +143,7 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
         const response = await fetchImpl('/zero/gemini', {
           method: 'POST', headers,
           body: JSON.stringify({ model: model.id, provider: model.provider, messages,
-            allowedFallbackModels, maxOutputTokens: generation.maxTokens }),
+            allowedFallbackModels, maxOutputTokens: requestGeneration.maxTokens }),
           signal: combined
         });
         if (!response.ok) {
@@ -161,7 +160,7 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
         requireValue(actualModel === model.id || allowedFallbackModels.includes(actualModel),
           'Provider substituted a model outside the declared fallback policy');
         requireValue(!data.provider || data.provider === model.provider, 'Provider identity mismatch');
-        update(data.content);
+        await update(data.content);
       }
       combined.throwIfAborted();
       requireValue(text.trim() || completion?.stopReason === 'max-tokens', 'Provider returned no text');
