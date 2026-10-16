@@ -22,6 +22,12 @@ export interface PartitionTensorContract extends ActivationLayout {
   vocabSize?: number;
 }
 
+export interface ActivationLayout {
+  precision?: ActivationPrecision; components?: number; elementStrideBytes?: number;
+}
+
+export type ActivationPrecision = ActivationDtype | 'two-f32' | 'i32';
+
 export interface LayerPartition {
   index: number;
   layerRange: readonly number[];
@@ -46,6 +52,8 @@ export interface LayerPartitionPlan {
   readonly partitions: readonly Readonly<LayerPartition>[];
 }
 
+export declare const PAIRED_LAYER_PARTITION_SCHEMA: 'doppler.layer-partition-contract/v2';
+
 export interface ActivationFrame extends ActivationLayout {
   readonly schema: typeof ACTIVATION_TENSOR_SCHEMA | typeof PAIRED_ACTIVATION_TENSOR_SCHEMA;
   readonly shape: readonly number[];
@@ -56,6 +64,8 @@ export interface ActivationFrame extends ActivationLayout {
   readonly metadata: Readonly<Record<string, unknown>>;
   readonly buffer: ArrayBuffer;
 }
+
+export declare const PAIRED_ACTIVATION_TENSOR_SCHEMA: 'doppler.activation-tensor/v2';
 
 export interface PartitionTiming {
   inputUploadMs: number; encodeMs: number; submitWaitMs: number; activationReadbackMs: number;
@@ -70,22 +80,18 @@ export interface ResidentPartitionAllocation {
   canonicalGeneration?: { policy: CanonicalGenerationPolicy; executionIdentity: string };
 }
 
-export interface ResidentPartitionDescriptor {
-  schema: 'doppler.resident-partition/v1' | 'doppler.resident-partition/v2'; ready: boolean;
-  stageCount?: number;
-  modelId: string; modelIdentity: string; planId: string; index: number;
-  layerRange: readonly number[]; residentWeightBytes: number;
-  generationDigest: string;
-  canonicalGenerationId?: string;
-  /** Pipelines created before readiness; absent from residents that predate opening preparation. */
-  pipelinePreparation?: ResidentPipelinePreparation;
+export type AnyLayerPartitionPlan = LayerPartitionPlan | OrderedLayerPartitionPlan;
+
+export interface OrderedLayerPartitionPlan extends Omit<LayerPartitionPlan, 'schema' | 'splitLayer'> {
+  readonly schema: typeof ORDERED_LAYER_PARTITION_SCHEMA;
+  readonly stageCount: number;
+  readonly splitLayers: readonly number[];
+  readonly activationPrecision: ActivationPrecision;
+  readonly activationComponents: number;
+  readonly activationElementStrideBytes: number;
 }
 
-export interface ResidentPartitionIdentity {
-  modelId: string; modelIdentity: string; planId: string; threadId: string;
-  attemptId: string; participantA: string; participantB: string;
-  requesterId?: string; placementGeneration?: number;
-}
+export declare const ORDERED_LAYER_PARTITION_SCHEMA: 'doppler.layer-partition-contract/v3';
 
 export interface ResidentPartitionLimits {
   maxTokens: number; maxPromptTokens: number; maxActivationBytes: number;
@@ -97,10 +103,87 @@ export interface ResidentPartitionLimits {
   maxPreparationMs: number;
 }
 
+export interface CanonicalGenerationPolicy {
+  schema: "doppler.generation-policy/v3";
+  sampler: "philox4x32-10/cpu-categorical-v1";
+  seedHex64: string;
+  selectionArithmeticId: string;
+  temperature: number;
+  topK: number;
+  topP: number;
+  repetitionPenalty: number;
+  repetitionPenaltyWindow: number;
+  presencePenalty: number;
+  presencePenaltyWindow: number;
+  suppressTokenIds: readonly number[];
+  padTokenId: number | null;
+  eosTokenIds: readonly number[];
+  stopTokenIds: readonly number[];
+  toolTokenIds: readonly number[];
+  stopSequences: string[];
+  toolBoundaryPolicy: "stop" | "reject";
+  maxGeneratedTokens: number;
+  materializedInputCapacity: number;
+  totalAcceptedTokenLimit: number;
+  maxRawOutputUtf16: number;
+  maxVisibleOutputUtf16: number;
+  decoderContract: string;
+}
+
+export interface ResidentPartitionDescriptor {
+  schema: 'doppler.resident-partition/v1' | 'doppler.resident-partition/v2'; ready: boolean;
+  stageCount?: number;
+  modelId: string; modelIdentity: string; planId: string; index: number;
+  layerRange: readonly number[]; residentWeightBytes: number;
+  generationDigest: string;
+  canonicalGenerationId?: string;
+  /** Pipelines created before readiness; absent from residents that predate opening preparation. */
+  pipelinePreparation?: ResidentPipelinePreparation;
+}
+
+export interface ResidentPipelinePreparation {
+  schema: 'doppler.resident-pipeline-preparation/v1';
+  /** True when no part of the stage program remains lazy. */
+  complete: boolean;
+  count: number;
+  durationMs: number;
+  /** Compiled programs in creation order; `key` is `shaderFile#entryPoint` plus canonical constants. */
+  pipelines: Array<KernelPipelineIdentity & { key: string; roles: string[] }>;
+  lazy: ResidentLazyPipelineScope[];
+}
+
+export interface KernelPipelineIdentity {
+  operation: string;
+  variant: string;
+  shaderFile: string;
+  entryPoint: string;
+  constants: Record<string, number> | null;
+}
+
+export interface ResidentLazyPipelineScope {
+  scope: 'program' | 'stage';
+  reason: string;
+}
+
+export interface ResidentPartitionIdentity {
+  modelId: string; modelIdentity: string; planId: string; threadId: string;
+  attemptId: string; participantA: string; participantB: string;
+  requesterId?: string; placementGeneration?: number;
+}
+
 export interface ResidentPartitionStep {
   identity: ResidentExecutionIdentity; step: number; tokenPosition: number; inputTokenCount: number;
   maxTokens: number; generation: GenerationOptions; continuation: unknown; signal: AbortSignal;
   generationId?: string; baseCursorId?: string | null;
+}
+
+export type ResidentExecutionIdentity = ResidentPartitionIdentity | ResidentOrderedPartitionIdentity;
+
+export interface ResidentOrderedPartitionIdentity {
+  schema: 'doppler.resident-partition-attempt/v2';
+  modelId: string; modelIdentity: string; planId: string; threadId: string; attemptId: string;
+  requesterId: string; placementGeneration: number;
+  stages: readonly { index: number; participantId: string; transportId: string; residentId: string; executionId: string }[];
 }
 
 export interface ResidentPartitionTokenizationRequest {
@@ -120,6 +203,13 @@ export interface ResidentPartitionAResult {
   metrics: ResidentPartitionMetrics;
 }
 
+export interface ResidentPartitionMetrics extends PartitionTiming {
+  outputUsage?: { rawCharacters: number; rawTokens: number; finalCharacters: number; state: string };
+  executionMs: number; logitsReadbackMs: number; samplingMs: number;
+  memory: Pick<DeviceMemorySnapshot,
+    'maxBytes' | 'liveBytes' | 'peakBytes' | 'categories'> | null;
+}
+
 export interface ResidentPartitionBRequest extends ResidentPartitionStep {
   inputTokenIds: number[];
   activation: ActivationLayout & { shape: number[]; dtype: string; seqOffset: number; step: number;
@@ -130,13 +220,6 @@ export interface ResidentPartitionBResult {
   identity: ResidentExecutionIdentity; step: number; tokenPosition: number;
   tokenId: number; delta: string; done: boolean; stopReason: string | null;
   continuation: unknown; logits: Float32Array; metrics: ResidentPartitionMetrics;
-}
-
-export interface ResidentPartitionMetrics extends PartitionTiming {
-  outputUsage?: { rawCharacters: number; rawTokens: number; finalCharacters: number; state: string };
-  executionMs: number; logitsReadbackMs: number; samplingMs: number;
-  memory: Pick<DeviceMemorySnapshot,
-    'maxBytes' | 'liveBytes' | 'peakBytes' | 'categories'> | null;
 }
 
 export interface ResidentRecoveryCapabilities {
@@ -166,3 +249,48 @@ export interface ResidentPartitionSession {
   closeAttempt(request: { identity: ResidentExecutionIdentity }): Promise<void>;
   close(): Promise<void>;
 }
+
+export interface ResidentCanonicalGeneration {
+  readonly policy: Readonly<CanonicalGenerationPolicy>; readonly executionIdentity: string; readonly generationId: string;
+}
+
+export interface AdmissionOnlyResult {
+  schema: 'doppler.admission-only/v1'; generationId: string; promptTokenCount: number;
+  promptDigest: string; acceptedTokenIds: readonly []; stopReason: 'max-tokens' | 'context-limit';
+}
+
+export type ResidentCanonicalARequest = Omit<ResidentPartitionARequest, 'generation' | 'maxTokens'> & {
+  generationId: string; baseCursorId: string | null;
+};
+
+export type ResidentCanonicalBRequest = Omit<ResidentPartitionBRequest, 'generation' | 'maxTokens'> & {
+  generationId: string; baseCursorId: string | null;
+};
+
+export interface ResidentCanonicalBResult extends ResidentPartitionBResult { transition: Readonly<ResidentTargetTransition>; }
+
+export interface ResidentTargetTransition {
+  acceptedTokenIds: readonly number[];
+  tokenRange: Readonly<{ start: number; end: number }>;
+  successor: Readonly<ResidentCursor>;
+  delta: string;
+  outputDigest: string;
+}
+
+export interface ResidentCursor {
+  schema: 'doppler.cursor/v2'; cursorId: string; generationId: string; revision: number;
+  promptTokenCount: number; materializedTokenCount: number; acceptedGeneratedTokenCount: number;
+  nextTargetTokenIndex: number; pendingTokenId: number; materializedPrefixDigest: string;
+  acceptedTokenDigest: string; terminal: boolean; stopReason: CanonicalStopReason | null;
+}
+
+export type CanonicalStopReason = "eos-token" | "stop-token" | "tool-boundary" | "stop-sequence" | "max-tokens" | "context-limit";
+
+export interface ResidentStageRequest extends Omit<ResidentPartitionStep, 'identity'> {
+  identity: ResidentOrderedPartitionIdentity; partitionIndex: number; inputTokenIds: number[];
+  generationDigest: string; activation?: ResidentPartitionBRequest['activation'];
+}
+
+export type ResidentStageResult = (ResidentPartitionAResult | ResidentPartitionBResult) & {
+  identity: ResidentOrderedPartitionIdentity; partitionIndex: number; step: number; tokenPosition: number;
+};

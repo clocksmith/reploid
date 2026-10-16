@@ -1,3 +1,4 @@
+import { escapeHtml } from '../components/html.js';
 /**
  * @fileoverview Reusable Research Room evidence, review, discovery, and quality panels.
  *
@@ -5,13 +6,6 @@
  * hydration, and review state remain owned by research-view.js and the evidence
  * network.
  */
-
-const escapeHtml = (value) => String(value ?? '')
-  .replace(/&/g, '&amp;')
-  .replace(/</g, '&lt;')
-  .replace(/>/g, '&gt;')
-  .replace(/"/g, '&quot;')
-  .replace(/'/g, '&#039;');
 
 export const compactHash = (value) => {
   const text = String(value || '');

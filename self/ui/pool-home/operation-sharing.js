@@ -1,9 +1,9 @@
+import { escapeHtml as escapeHtmlValue } from '../components/html.js';
+const escapeHtml = value => escapeHtmlValue(value, '&#39;');
 import config from '../../pool/pool-config.json' with { type: 'json' };
 import { listPoolModels } from '../../pool/model-contract.js';
 import { validateOperationModel } from '../../pool/operation-model.js';
 
-const escapeHtml = value => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
-  .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 const models = () => listPoolModels({ enabledOnly: true }).filter(model => validateOperationModel(model).ok);
 
 export const renderOperationSharing = () => [

@@ -1,3 +1,5 @@
+import { normalizeFilePath, getOpfsFileHandle } from '../host/file-access.js';
+import { FILE_TEXT_LIMIT_BYTES as TEXT_LIMIT_BYTES } from '../config/vfs-policy.js';
 /**
  * @fileoverview EditFile - Targeted text modifications (VFS or OPFS)
  * Supports literal match/replace operations with optional counts.
@@ -6,34 +8,7 @@
 
 import { assertNoPathTraversal, assertWritableVfsPath } from '../config/vfs-policy.js';
 
-const TEXT_LIMIT_BYTES = 8 * 1024 * 1024;
-const OPFS_PREFIX = 'opfs:';
-const VFS_PREFIX = 'vfs:';
 const OPFS_ALLOWLIST_PREFIXES = ['/doppler-models/adapters/'];
-
-const normalizePath = (rawPath, backendOverride) => {
-  if (!rawPath || typeof rawPath !== 'string') {
-    throw new Error('Missing "path" argument');
-  }
-
-  const trimmed = rawPath.trim();
-  let backend = backendOverride ? String(backendOverride).toLowerCase() : null;
-  if (backend && backend !== 'vfs' && backend !== 'opfs') {
-    throw new Error('Invalid backend. Use "vfs" or "opfs".');
-  }
-  let path = trimmed;
-
-  if (trimmed.startsWith(OPFS_PREFIX)) {
-    backend = 'opfs';
-    path = trimmed.slice(OPFS_PREFIX.length);
-  } else if (trimmed.startsWith(VFS_PREFIX)) {
-    backend = 'vfs';
-    path = trimmed.slice(VFS_PREFIX.length);
-  }
-
-  path = '/' + path.replace(/^\/+/, '');
-  return { backend: backend || 'vfs', path };
-};
 
 const assertOpfsAllowed = (path) => {
   const allowed = OPFS_ALLOWLIST_PREFIXES.some((prefix) => {
@@ -43,30 +18,6 @@ const assertOpfsAllowed = (path) => {
   if (!allowed) {
     throw new Error(`OPFS path not allowed: ${path}`);
   }
-};
-
-const getOpfsRoot = async () => {
-  if (typeof navigator === 'undefined' || !navigator.storage?.getDirectory) {
-    throw new Error('OPFS not available in this environment');
-  }
-  if (typeof ServiceWorkerGlobalScope !== 'undefined' && self instanceof ServiceWorkerGlobalScope) {
-    throw new Error('OPFS not available in service workers');
-  }
-  return navigator.storage.getDirectory();
-};
-
-const getOpfsFileHandle = async (path, options = {}) => {
-  const root = await getOpfsRoot();
-  const parts = path.split('/').filter(Boolean);
-  if (parts.length === 0) {
-    throw new Error('Invalid OPFS path');
-  }
-
-  let dir = root;
-  for (let i = 0; i < parts.length - 1; i++) {
-    dir = await dir.getDirectoryHandle(parts[i], { create: !!options.createDirs });
-  }
-  return dir.getFileHandle(parts[parts.length - 1], { create: !!options.createFile });
 };
 
 const getTextBytes = (content) => {
@@ -94,7 +45,7 @@ async function call(args = {}, deps = {}) {
   const { VFS, AuditLogger, EventBus, ToolRunner } = deps;
   if (!VFS) return 'VFS unavailable';
 
-  const { backend, path } = normalizePath(args.path || args.file, args.backend);
+  const { backend, path } = normalizeFilePath(args.path || args.file, args.backend, 'Missing "path" argument');
   assertNoPathTraversal(path);
 
   if (backend === 'opfs') {

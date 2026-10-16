@@ -1,8 +1,23 @@
 // Primitive specimens show each building block and its variants. Composition specimens are
 // rendered by the product modules themselves, so the page shows the markup the app ships.
 
-const UI = '/ui/pool-home/';
-const from = (file, name, ...args) => async () => (await import(UI + file))[name](...args);
+const loaders = {
+  'shell-view.js': () => import('../pool-home/shell-view.js'),
+  'execution-ribbon.js': () => import('../pool-home/execution-ribbon.js'),
+  'conversation-workspace.js': () => import('../pool-home/conversation-workspace.js'),
+  'document-search.js': () => import('../pool-home/document-search.js'),
+  'remote-permission.js': () => import('../pool-home/remote-permission.js'),
+  'work.js': () => import('../pool-home/work.js'),
+  'work-approval-panel.js': () => import('../pool-home/work-approval-panel.js'),
+  'work-activity-list.js': () => import('../pool-home/work-activity-list.js'),
+  'work-task-history.js': () => import('../pool-home/work-task-history.js'),
+  'work-tool-offers.js': () => import('../pool-home/work-tool-offers.js'),
+  'operation-sharing.js': () => import('../pool-home/operation-sharing.js'),
+  'requester-controls.js': () => import('../pool-home/requester-controls.js'),
+  'agent-network.js': () => import('../pool-home/agent-network.js'),
+  'view.js': () => import('../pool-home/view.js'),
+};
+const from = (file, name, ...args) => async () => (await loaders[file]())[name](...args);
 
 const strip = (items) => `<div class="pool-row pool-gap-md">${items.join('')}</div>`;
 // Every specimen names its class the same way: lowercase, monospace, as written in markup.
@@ -120,7 +135,7 @@ export const SPECIMENS = [...PRIMITIVE_GROUPS, ...COMPOSITION_GROUPS].flatMap((g
 
 /** The conversation fixture from the chat-rail layout test: two threads, one completed split attempt. */
 async function bindConversation(root) {
-  const { bindConversationWorkspace } = await import(UI + 'conversation-workspace.js');
+  const { bindConversationWorkspace } = await loaders['conversation-workspace.js']();
   const model = { id: 'qwen', identity: 'fixture:model', name: 'Qwen 3.5 0.8B', availability: 'ready', contextLength: 4096 };
   const thread = { id: 'thread', title: 'A conversation', model, permissions: { sharingScope: 'mesh' }, grants: [],
     messages: [{ id: 'q', role: 'user', content: 'Jump!' }, { id: 'r', role: 'assistant', attemptId: 'a', content: 'Ready for the challenge.' }],

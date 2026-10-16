@@ -1,0 +1,322 @@
+[
+  {
+    "id": "qwen-3-5-0-8b-q4k-ehaf16",
+    "name": "Qwen 3.5 0.8B",
+    "identity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+    "source": {
+      "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16/",
+      "files": [
+        {
+          "path": "manifest.json",
+          "role": "model-manifest",
+          "sizeBytes": 214203,
+          "hashAlgorithm": "sha256",
+          "hash": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+          "url": "/config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json"
+        },
+        {
+          "path": "tokenizer.json",
+          "role": "tokenizer",
+          "sizeBytes": 9088480,
+          "hashAlgorithm": "sha256",
+          "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4"
+        },
+        {
+          "path": "qwen-0-8b-pieces.json",
+          "role": "model-piece-index",
+          "sizeBytes": 34258,
+          "hashAlgorithm": "sha256",
+          "hash": "18adb1f08f4e694d357a27f7a5d67ea57a7d50c5e82aa7fda099084b445974b7",
+          "url": "/config/model-pieces/qwen-0-8b-pieces.json"
+        }
+      ]
+    },
+    "provider": "doppler",
+    "contextLength": 262144,
+    "quantization": "q4k",
+    "size": "Q4K",
+    "adapters": [],
+    "availableAdapters": [
+      {
+        "id": "qwen35-0-8b-ner-json-lora",
+        "name": "Qwen 3.5 0.8B NER JSON LoRA",
+        "identity": "sha256:dc0248f45553e69defd8a1846619443f1ac5902a118548c70a7254c21f66f64b",
+        "baseModelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+        "weightsLayout": "peft",
+        "artifact": {
+          "artifactId": "qwen35-0-8b-ner-json-lora",
+          "role": "adapter",
+          "path": "adapter_model.safetensors",
+          "sizeBytes": 43346432,
+          "hash": "sha256:dfed3509fdd54c04e80e362b6b14f98d9c326a8e732f539996a137086dc4f636",
+          "url": "https://huggingface.co/Mike0021/qwen35-0.8b-ner-json-lora/resolve/6d4e4cf3ebe7d8df10897b9f44cbf1e647386bcb/adapter_model.safetensors"
+        },
+        "manifest": {
+          "id": "qwen35-0-8b-ner-json-lora",
+          "name": "Qwen 3.5 0.8B NER JSON LoRA",
+          "version": "1.0.0",
+          "baseModel": "qwen-3-5-0-8b-q4k-ehaf16",
+          "rank": 16,
+          "alpha": 32,
+          "targetModules": [
+            "down_proj",
+            "o_proj",
+            "in_proj_a",
+            "up_proj",
+            "in_proj_z",
+            "gate_proj",
+            "q_proj",
+            "out_proj",
+            "v_proj",
+            "k_proj",
+            "in_proj_b",
+            "in_proj_qkv"
+          ],
+          "weightsFormat": "safetensors",
+          "weightsPath": "https://huggingface.co/clocksmith/lora/resolve/a618a2ccab25928a98694930376ebb3c3db241cb/adapters/network-canaries/qwen35-0.8b-ner-json-lora/adapter_model.safetensors",
+          "weightsSize": 43346432,
+          "checksum": "dfed3509fdd54c04e80e362b6b14f98d9c326a8e732f539996a137086dc4f636",
+          "checksumAlgorithm": "sha256"
+        }
+      }
+    ]
+  },
+  {
+    "id": "qwen-3-5-2b-q4k-ehaf16",
+    "name": "Qwen 3.5 2B",
+    "partitionSplitLayer": 4,
+    "identity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+    "source": {
+      "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+      "files": [
+        {
+          "path": "manifest.json",
+          "role": "model-manifest",
+          "sizeBytes": 183803,
+          "hashAlgorithm": "sha256",
+          "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+        },
+        {
+          "path": "tokenizer.json",
+          "role": "tokenizer",
+          "sizeBytes": 9088480,
+          "hashAlgorithm": "sha256",
+          "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4"
+        },
+        {
+          "path": "qwen-2b-pieces.json",
+          "role": "model-piece-index",
+          "sizeBytes": 111108,
+          "hashAlgorithm": "sha256",
+          "hash": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+          "url": "/config/model-pieces/qwen-2b-pieces.json"
+        }
+      ]
+    },
+    "provider": "doppler",
+    "contextLength": 262144,
+    "quantization": "q4k",
+    "size": "Q4K",
+    "recommended": true,
+    "adapters": []
+  },
+  {
+    "id": "qwen3-8-27b-text-f16-af32",
+    "name": "Qwen 3.8 27B",
+    "identity": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+    "provider": "doppler",
+    "contextLength": 4096,
+    "quantization": "f16",
+    "size": "F16 · 54 GB",
+    "adapters": [],
+    "executionModes": [
+      "whole-model",
+      "partition"
+    ],
+    "partitionSplitLayer": 1,
+    "source": {
+      "baseUrl": "https://storage.googleapis.com/reploid-model-artifacts/models/qwen3-8-27b-text-f16-af32/",
+      "files": [
+        {
+          "path": "manifest.json",
+          "role": "model-manifest",
+          "sizeBytes": 734314,
+          "hashAlgorithm": "sha256",
+          "hash": "f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+          "url": "/config/model-manifests/f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735.json"
+        },
+        {
+          "path": "tokenizer.json",
+          "role": "tokenizer",
+          "sizeBytes": 9089356,
+          "hashAlgorithm": "sha256",
+          "hash": "ae50d65939a34a089eaf1e541c15c8a7d866079a5fe9a1d35454e0aa88577753"
+        },
+        {
+          "path": "qwen-3-8-27b-pieces.json",
+          "role": "model-piece-index",
+          "sizeBytes": 135069,
+          "hashAlgorithm": "sha256",
+          "hash": "44f05f1fdf34423e45621ac78fb75620927c6d228aa3771037ae093ef947233d",
+          "url": "/config/model-pieces/qwen-3-8-27b-pieces.json"
+        }
+      ]
+    },
+    "generation": {
+      "maxTokens": 128,
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1,
+      "repetitionPenalty": 1,
+      "maxSeqLen": 4096,
+      "useChatTemplate": true
+    },
+    "loadOptions": {
+      "runtimeConfig": {
+        "shared": {
+          "debug": {
+            "logLevel": {
+              "defaultLogLevel": "warn"
+            }
+          },
+          "bufferPool": {
+            "budget": {
+              "maxTotalBytes": 60129542144,
+              "highWatermarkRatio": 0.94,
+              "emergencyTrimTargetRatio": 0.9,
+              "hardFailOnBudgetExceeded": true
+            }
+          }
+        },
+        "loading": {
+          "shardCache": {
+            "networkEntries": 2,
+            "maxConcurrentLoads": 1,
+            "verifyHashes": true
+          },
+          "prefetch": {
+            "enabled": false
+          }
+        },
+        "inference": {
+          "chatTemplate": {
+            "thinking": false
+          },
+          "kvcache": {
+            "maxSeqLen": 4096
+          },
+          "session": {
+            "kvcache": {
+              "maxSeqLen": 4096
+            },
+            "decodeLoop": {
+              "batchSize": 1,
+              "readbackInterval": 1,
+              "stopCheckMode": "per-token",
+              "readbackMode": "sequential",
+              "submitLatencyThresholdMs": null,
+              "maxBatchDecodeTokens": 1,
+              "ringTokens": 1,
+              "ringStop": 1,
+              "ringStaging": 1,
+              "disableCommandBatching": false
+            },
+            "prefillChunkLayers": 1,
+            "prefillTokenChunkSize": null
+          },
+          "generation": {
+            "disableMultiTokenDecode": true
+          },
+          "batching": {
+            "maxTokens": 128,
+            "batchSize": 1,
+            "readbackInterval": 1,
+            "stopCheckMode": "per-token",
+            "readbackMode": "sequential",
+            "ringTokens": 1,
+            "ringStop": 1,
+            "ringStaging": 1
+          }
+        }
+      }
+    },
+    "partitionRuntime": {
+      "maxGpuBufferBytes": [
+        6442450944,
+        55834574848
+      ],
+      "runtimeConfig": {
+        "shared": {
+          "debug": {
+            "logLevel": {
+              "defaultLogLevel": "warn"
+            }
+          },
+          "bufferPool": {
+            "budget": {
+              "maxTotalBytes": 60129542144,
+              "highWatermarkRatio": 0.94,
+              "emergencyTrimTargetRatio": 0.9,
+              "hardFailOnBudgetExceeded": true
+            }
+          }
+        },
+        "loading": {
+          "shardCache": {
+            "networkEntries": 2,
+            "maxConcurrentLoads": 1,
+            "verifyHashes": true
+          },
+          "prefetch": {
+            "enabled": false
+          }
+        },
+        "inference": {
+          "chatTemplate": {
+            "thinking": false
+          },
+          "kvcache": {
+            "maxSeqLen": 4096
+          },
+          "session": {
+            "kvcache": {
+              "maxSeqLen": 4096
+            },
+            "decodeLoop": {
+              "batchSize": 1,
+              "readbackInterval": 1,
+              "stopCheckMode": "per-token",
+              "readbackMode": "sequential",
+              "submitLatencyThresholdMs": null,
+              "maxBatchDecodeTokens": 1,
+              "ringTokens": 1,
+              "ringStop": 1,
+              "ringStaging": 1,
+              "disableCommandBatching": false
+            },
+            "prefillChunkLayers": 1,
+            "prefillTokenChunkSize": null
+          },
+          "generation": {
+            "disableMultiTokenDecode": true
+          },
+          "batching": {
+            "maxTokens": 128,
+            "batchSize": 1,
+            "readbackInterval": 1,
+            "stopCheckMode": "per-token",
+            "readbackMode": "sequential",
+            "ringTokens": 1,
+            "ringStop": 1,
+            "ringStaging": 1
+          }
+        }
+      }
+    },
+    "partitionContributionIndexes": [
+      0
+    ],
+    "partitionPlanId": "sha256:1503c19cb03173427308b541ec7b8ab5ac596bd4e9cf01d667e93ddfc440010e"
+  }
+]

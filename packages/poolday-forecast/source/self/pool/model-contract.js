@@ -6,6 +6,7 @@ import { BROWSER_RUNTIME_CONFIG, LAUNCH_MODEL, MODEL_CATALOG } from './config.js
 import { buildModelArtifactUrls } from './model-artifacts.js';
 import { validateExecutablePack } from './executable-pack.js';
 import { isForecastPoolModel, FORECAST_WORKLOAD } from './forecast-workload.js';
+import { validateOperationModel } from './operation-model.js';
 import {
   modelIdentityMatchesAdapterRequirement,
   modelSupportsAdapterRequirement,
@@ -23,6 +24,9 @@ export { modelSupportsAdapterRequirement };
 export { LAUNCH_MODEL, MODEL_CATALOG };
 
 export const POOLDAY_MODEL_WORKLOADS = Object.freeze({
+  generation: 'text-generation',
+  embedding: 'embedding',
+  reranking: 'reranking',
   sequenceEmbedding: SEQUENCE_WORKLOADS.embedding,
   sequenceMaskedLogits: SEQUENCE_WORKLOADS.maskedLogits
 });
@@ -41,12 +45,16 @@ export const isBiologicalSequencePoolModel = (model = {}) => (
   && isSequenceWorkload(getPoolModelWorkload(model))
 );
 
+export const isSupportedPoolModel = (model = {}) => (
+  isBiologicalSequencePoolModel(model) || validateOperationModel(model).ok
+);
+
 export const ENABLED_MODEL_CATALOG = Object.freeze(
   MODEL_CATALOG.filter((model) => (
     model.enabled !== false
     && model.modelHash
     && model.manifestHash
-    && isBiologicalSequencePoolModel(model)
+    && isSupportedPoolModel(model)
   ))
 );
 
@@ -68,7 +76,7 @@ const stableContractValue = (value) => {
 };
 
 export function listPoolModels({ enabledOnly = false, workload = null, alphabet = null } = {}) {
-  const source = enabledOnly ? ENABLED_MODEL_CATALOG : MODEL_CATALOG.filter(isBiologicalSequencePoolModel);
+  const source = enabledOnly ? ENABLED_MODEL_CATALOG : MODEL_CATALOG.filter(isSupportedPoolModel);
   return source.filter((model) => (
     (!workload || modelSupportsPoolWorkload(model, workload))
     && (!alphabet || model.sequence?.alphabet === alphabet)
@@ -76,7 +84,7 @@ export function listPoolModels({ enabledOnly = false, workload = null, alphabet 
 }
 
 export function getPoolModelContract(modelId = LAUNCH_MODEL.modelId) {
-  return MODEL_CATALOG.find((model) => model.modelId === modelId && isBiologicalSequencePoolModel(model)) || null;
+  return MODEL_CATALOG.find((model) => model.modelId === modelId && isSupportedPoolModel(model)) || null;
 }
 
 export function getEnabledPoolModelContract(modelId = LAUNCH_MODEL.modelId) {
@@ -122,7 +130,7 @@ export function getPoolModelWorkloads(model = {}) {
 }
 
 export function modelSupportsPoolWorkload(model = {}, workload) {
-  return (isBiologicalSequencePoolModel(model) && getPoolModelWorkloads(model).includes(workload)) ||
+  return (isSupportedPoolModel(model) && getPoolModelWorkloads(model).includes(workload)) ||
     (workload === FORECAST_WORKLOAD && isForecastPoolModel(model));
 }
 
@@ -295,8 +303,8 @@ const validateEnabledModelRequirement = (requirements = {}, {
   if (model && !executionMode && expectedExecutionMode !== SUPPORTED_MODEL_EXECUTION_MODE) {
     reasons.push(`modelRequirements.executionMode ${expectedExecutionMode} is required for ${requirements.modelId}`);
   }
-  if (model && !isBiologicalSequencePoolModel(model)) {
-    reasons.push('selected model is not a supported biological-sequence model');
+  if (model && !isSupportedPoolModel(model)) {
+    reasons.push('selected model does not have a supported operation contract');
   }
   if (workload && model && !modelSupportsPoolWorkload(model, workload)) {
     reasons.push(`modelRequirements.workload ${workload} is not supported for ${requirements.modelId || 'selected model'}; supported workloads: ${getPoolModelWorkloads(model).join(', ')}`);

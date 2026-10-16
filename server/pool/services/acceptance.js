@@ -1,3 +1,5 @@
+import { compactAgreementForAcceptance } from '../../../packages/reploid/src/artifacts/acceptance.js';
+export { compactAgreementForAcceptance } from '../../../packages/reploid/src/artifacts/acceptance.js';
 /**
  * @fileoverview Requester-acceptance summary construction for verified Pool receipts.
  */
@@ -7,22 +9,6 @@ import { deriveProviderAdmission } from '../runtime-profile.js';
 import { calculateReceiptPoints } from '../points.js';
 import { getPolicy } from '../policy-router.js';
 import { hashJson } from '../hash.js';
-
-export function compactAgreementForAcceptance(agreement = null) {
-  if (!agreement) return null;
-  return {
-    mode: agreement.mode || null,
-    status: agreement.status || null,
-    requiredAgreement: Number(agreement.requiredAgreement || agreement.requiredProviders || 1),
-    providerCount: Number(agreement.providerCount || 1),
-    agreementField: agreement.agreementField || 'tokenIdsHash',
-    outputHash: agreement.outputHash || null,
-    tokenIdsHash: agreement.tokenIdsHash || null,
-    vectorHash: agreement.vectorHash || null,
-    sequenceResultHash: agreement.sequenceResultHash || null,
-    effectiveTrustTier: agreement.effectiveTrustTier || null
-  };
-}
 
 export async function buildAcceptanceSummary({ store, job, receiptHash } = {}) {
   const receiptHashes = Array.isArray(job?.agreement?.receiptHashes) && job.agreement.status === 'accepted'

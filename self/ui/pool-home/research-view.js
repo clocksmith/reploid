@@ -1,3 +1,4 @@
+import { escapeHtml } from '../components/html.js';
 /**
  * @fileoverview Evidence-network rendering and human review controls for Poolday.
  */
@@ -59,12 +60,6 @@ import {
 import { renderLifecycleForms } from './research-lifecycle-panel.js';
 import { renderSequenceDisclosure, renderTechnicalEvidencePanel } from './research-technical-panel.js';
 
-const escapeHtml = (value) => String(value ?? '')
-  .replace(/&/g, '&amp;')
-  .replace(/</g, '&lt;')
-  .replace(/>/g, '&gt;')
-  .replace(/"/g, '&quot;')
-  .replace(/'/g, '&#039;');
 const reviewTargetFromUrl = () => {
   const target = new URLSearchParams(globalThis.location?.search || '').get('target') || '';
   return /^sha256:[a-f0-9]{64}$/.test(target) ? target : '';
@@ -134,7 +129,6 @@ const renderRecord = (record, {
     </article>
   `;
 };
-
 
 export function renderResearchWorkspace(roomId, records = loadResearchRecords(roomId), {
   query = '',

@@ -1,3 +1,4 @@
+import { escapeHtml } from '../components/html.js';
 /**
  * @fileoverview Consent-aware technical evidence disclosures for Research Room records.
  *
@@ -7,13 +8,6 @@
  */
 
 import { compactHash } from './research-panels.js';
-
-const escapeHtml = (value) => String(value ?? '')
-  .replace(/&/g, '&amp;')
-  .replace(/</g, '&lt;')
-  .replace(/>/g, '&gt;')
-  .replace(/"/g, '&quot;')
-  .replace(/'/g, '&#039;');
 
 const publicationState = (allowed) => allowed === true ? 'permitted' : 'withheld';
 

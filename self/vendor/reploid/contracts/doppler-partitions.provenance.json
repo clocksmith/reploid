@@ -26,5 +26,30 @@
     "ResidentRecoveryCapabilities",
     "ResidentPartitionSession"
   ],
-  "sha256": "fb1af1067aab37643dab6ec8a661ce2b4ff1bae18f1c2eefb87b8ba3fc704225"
+  "dependencyTypes": [
+    "ActivationLayout",
+    "ActivationPrecision",
+    "PAIRED_LAYER_PARTITION_SCHEMA",
+    "PAIRED_ACTIVATION_TENSOR_SCHEMA",
+    "AnyLayerPartitionPlan",
+    "OrderedLayerPartitionPlan",
+    "ORDERED_LAYER_PARTITION_SCHEMA",
+    "CanonicalGenerationPolicy",
+    "ResidentPipelinePreparation",
+    "KernelPipelineIdentity",
+    "ResidentLazyPipelineScope",
+    "ResidentExecutionIdentity",
+    "ResidentOrderedPartitionIdentity",
+    "ResidentCanonicalGeneration",
+    "AdmissionOnlyResult",
+    "ResidentCanonicalARequest",
+    "ResidentCanonicalBRequest",
+    "ResidentCanonicalBResult",
+    "ResidentTargetTransition",
+    "ResidentCursor",
+    "CanonicalStopReason",
+    "ResidentStageRequest",
+    "ResidentStageResult"
+  ],
+  "sha256": "3326c360481395ee536f2277dfb96be17943803bd243c8285fd5f7ebc6af0749"
 }

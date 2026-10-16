@@ -134,7 +134,11 @@ export function verifyRepositoryLayers(repoRoot) {
   const exceptionsFile = path.join(repoRoot, 'scripts/architecture-exceptions.json');
   const exceptions = fs.existsSync(exceptionsFile) ? JSON.parse(fs.readFileSync(exceptionsFile, 'utf8')) : { loaders: [], cycles: [] };
   for (const sourceRoot of ['packages/reploid/src', 'self', 'packages/functions', 'server']) for (const file of filesUnder(path.join(repoRoot, sourceRoot))) {
-    const relative = posix(path.relative(repoRoot, file)), source = fs.readFileSync(file, 'utf8');
+    const relative = posix(path.relative(repoRoot, file));
+    // Inspect canonical inputs, not minified copies of their loader expressions.
+    // The CLI separately rebuilds this exact output in memory and checks its bytes.
+    if (relative === 'self/ui/pool-home/app.bundle.js') continue;
+    const source = fs.readFileSync(file, 'utf8');
     violations.push(...findExecutionOwnerViolations(relative, source));
     violations.push(...findLayerViolations({ repoRoot, sourcePath: file, source }));
     const edges = moduleEdges(source);
@@ -183,6 +187,11 @@ export function verifyRepositoryLayers(repoRoot) {
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const violations = verifyRepositoryLayers(root);
+  try {
+    const { buildProductEntry } = await import('./build-product-entry.js');
+    await buildProductEntry({ checkOnly: true });
+  }
+  catch (error) { violations.push({ source: 'self/ui/pool-home/app.bundle.js', reason: error.message }); }
   const registry = JSON.parse(fs.readFileSync(path.join(root, 'self/config/module-registry.json'), 'utf8'));
   for (const chain of findRequiredModuleLeaks(SURFACE_INTENTS.zero, registry.modules)) {
     violations.push({ source: 'self/config/module-registry.json', reason: 'optional X capability is required by Zero', chain });
