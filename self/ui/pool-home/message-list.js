@@ -23,7 +23,7 @@ function updateMessageMeta(root, thread, attempt) {
   const tokens = timing?.generatedTokenCount ?? execution?.completion?.generatedTokenCount;
   const item = (icon, text, title = text) => `<span class="pool-row pool-gap-xs" title="${escape(title)}">${interfaceIcon(icon)}<span>${escape(text)}</span></span>`;
   const parts = [];
-  if (thread.model?.name) parts.push(`<span class="pool-badge">${item('model', thread.model.name)}</span>`);
+  if (thread.model?.name) parts.push(`<span class="pool-badge">${item('model', thread.model.name, 'Selected model: ' + thread.model.name)}</span>`);
   if (Number.isSafeInteger(tokens) && tokens >= 0) parts.push(item('tokens', `${tokens} tokens`, 'Generated tokens'));
   if (Number.isFinite(timing?.totalMs) && timing.totalMs > 0) {
     parts.push(item('clock', `${(timing.totalMs / 1000).toFixed(1)} s`, 'Generation time including prompt processing'));
@@ -55,7 +55,7 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
         if (!row) {
           row = stream.ownerDocument.createElement('article'); row.dataset.messageId = messageId;
           row.className = message.role === 'user' ? 'chat-message-row is-user' : 'chat-message-row is-assistant';
-          row.innerHTML = '<span class="chat-message-author pool-small pool-muted"></span><div class="chat-message-content pool-body pool-prose"></div><div class="chat-message-meta pool-row pool-gap-sm pool-small pool-muted" hidden></div><details class="chat-execution-activity pool-small pool-muted" data-execution-activity hidden><summary class="pool-button btn-ghost" title="Execution details"></summary><div class="pool-well" data-activity-detail></div></details><div class="chat-message-actions"></div>';
+          row.innerHTML = '<span class="chat-message-author pool-small pool-muted"></span><div class="chat-message-content pool-body pool-prose"></div><div class="chat-message-meta pool-row pool-gap-sm pool-small pool-muted" hidden></div><details class="chat-execution-activity pool-small pool-muted" data-execution-activity hidden><summary class="pool-button" title="Execution details"></summary><div class="pool-well" data-activity-detail></div></details><div class="chat-message-actions"></div>';
           if (message.role === 'user') row.querySelector('.chat-message-content').classList.add('pool-well');
           row.querySelector('.chat-message-author').textContent = message.role === 'user' ? 'You' : 'Assistant'; rows.set(id, row);
         }
@@ -91,7 +91,7 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
             ${sources.length ? `<details class="pool-small"><summary>Sources searched (${sources.length})</summary><ol class="pool-list">${sources.map(item => `<li id="${escape(anchor(item.number))}" tabindex="-1"><a href="${escape(item.url)}" target="_blank" rel="noopener noreferrer">[${item.number}] ${escape(item.title)}</a></li>`).join('')}</ol></details>` : ''}
             ${attempt?.retryOf ? '<small>New attempt</small>' : ''}
             ${retryable ? `<button type="button" class="pool-button" data-retry-attempt="${escape(attempt.id)}"${usable ? '' : ' disabled'}>${interfaceIcon('retry')}<span>Retry response</span></button><small>Starts a new attempt; keeps this response.</small>` : ''}
-            ${message.content ? `<button type="button" class="pool-button btn-ghost pool-icon pool-muted" data-copy-message aria-label="Copy response" title="Copy response">${interfaceIcon('copy')}</button>` : ''}`;
+            ${message.content ? `<button type="button" class="pool-button btn-ghost pool-icon pool-muted" data-copy-message aria-label="${message.role === 'user' ? 'Copy message' : 'Copy response'}" title="${message.role === 'user' ? 'Copy message' : 'Copy response'}">${interfaceIcon('copy')}</button>` : ''}`;
         }
         if (row.parentElement !== stream) stream.append(row);
       }

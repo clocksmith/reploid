@@ -7,6 +7,16 @@ import { readWorkGenerationCompletion } from '../providers/work-generation-compl
 
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 
+/** The same chat result envelope for local and whole-request peer execution. */
+function chatResult({ threadId, attemptId }, result, placement) {
+  const completion = readWorkGenerationCompletion(result);
+  return { threadId, attemptId, modelId: result.model, modelIdentity: result.modelIdentity,
+    adapterIdentities: result.adapterIdentities, content: result.content,
+    execution: { ...placement, modelId: result.model, modelIdentity: result.modelIdentity,
+      adapterIdentities: result.adapterIdentities, completion, stopReason: completion?.stopReason ?? null,
+      timing: result.timing ?? null } };
+}
+
 export function createChatExecution({ service, swarm, partitions, scheduler, models, getModels, profile, earning = null, resolveLocalSource, isCached = () => false, onChange = () => {} }) {
   let local = null;
   // The same routing execute() applies: partitions always leave this device; local scope or a ready local copy stays.
@@ -22,7 +32,7 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
       await resident.prepare();
       return {
         run: (req, { signal: runSignal, onDelta }) => resident.generate(req.messages, onDelta,
-          { signal: runSignal, adapters: req.model.adapters || [] }),
+          { signal: runSignal, adapters: req.model.adapters || [], maxOutputTokens: req.maxOutputTokens }),
         reset: async () => assert(resident.getState().ready, 'Resident session requires replacement'),
         // The resident applies and removes adapters inside the same device lease as generation.
         setAdapters: async () => {},
@@ -72,20 +82,7 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
         onDelta: text => controls.onDelta({ threadId, attemptId, sequence: sequence++, text }),
         onState: status => state(status, { provider: 'doppler', placement: 'local-webgpu' })
       });
-      const execution = { provider: 'doppler', placement: 'local-webgpu', modelId: result.model,
-        modelIdentity: result.modelIdentity, adapterIdentities: result.adapterIdentities };
-      execution.completion = readWorkGenerationCompletion(result);
-      execution.stopReason = execution.completion?.stopReason ?? null;
-      execution.timing = result.timing ?? null;
-      return {
-        threadId,
-        attemptId,
-        modelId: result.model,
-        modelIdentity: result.modelIdentity,
-        adapterIdentities: result.adapterIdentities,
-        content: result.content,
-        execution
-      };
+      return chatResult(request, result, { provider: 'doppler', placement: 'local-webgpu' });
     }
 
     assert(swarm?.generate, 'No connected participant can execute this model');
@@ -117,11 +114,7 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
     const execution = result.peerId
       ? { provider: 'peer', placement: 'peer-whole-request', peerId: result.peerId }
       : { provider: 'doppler', placement: 'local-webgpu' };
-    Object.assign(execution, { modelId: result.model, modelIdentity: result.modelIdentity, adapterIdentities: result.adapterIdentities });
-    execution.completion = readWorkGenerationCompletion(result);
-    execution.stopReason = execution.completion?.stopReason ?? null;
-    return { threadId, attemptId, modelId: result.model, modelIdentity: result.modelIdentity,
-      adapterIdentities: result.adapterIdentities, content: result.content, execution };
+    return chatResult(request, result, execution);
   };
 
   let closing = null;

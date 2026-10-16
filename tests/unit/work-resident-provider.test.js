@@ -9,11 +9,11 @@ const fixture = (overrides = {}, options = {}) => {
     advanced: { createIncrementalDecoder: () => ({ push: token => token, finish: () => '' }) },
     async generate(messages, options) {
       let outputText = '';
-      for await (const event of this.stream(messages)) { outputText += event.text; options.onToken?.(event.text); }
+      for await (const event of this.stream(messages)) { if (event.type === 'text-delta') { outputText += event.text; options.onToken?.(event.text); } }
       return { outputText, evidence: { runtimeProfile: { model: { modelId: this.modelId,
         manifestHash: this.manifestHash, activeAdapterDigest: this.adapterDigest?.() || null } } } };
     },
-    resetGenerationState: vi.fn(), async *stream(messages) { yield { type: 'text-delta', text: messages[0].content }; }, ...overrides };
+    resetGenerationState: vi.fn(), async *stream(messages) { yield { schema: 'doppler.generation-event/v1', type: 'text-delta', text: messages[0].content }; yield { schema: 'doppler.generation-event/v1', type: 'complete', outputText: messages[0].content }; }, ...overrides };
   const service = { open: vi.fn(async () => session), close: vi.fn(async () => {}) };
   const owner = createWorkResidentProvider({ service, model, generation: {}, maxOutcomeCharacters: 100, ...options });
   return { owner, service, session };
@@ -37,7 +37,7 @@ it('applies a verified adapter per request and restores the base model without a
   const f = fixture({
     loadLoRA: vi.fn(async () => { active = { digest: selected.identity }; }),
     unloadLoRA: vi.fn(async () => { active = null; }),
-    async *stream(messages) { yield { type: 'text-delta', text: (active ? 'adapted ' : 'base ') + messages[0].content }; }
+    async *stream(messages) { yield { schema: 'doppler.generation-event/v1', type: 'text-delta', text: (active ? 'adapted ' : 'base ') + messages[0].content }; yield { schema: 'doppler.generation-event/v1', type: 'complete', outputText: (active ? 'adapted ' : 'base ') + messages[0].content }; }
   }, { resolveAdapter });
   Object.defineProperties(f.session, {
     activeLoRA: { get: () => active ? 'fixture-adapter' : null },
@@ -59,7 +59,7 @@ it('rejects mismatched Doppler execution evidence and retires the session', asyn
   let active = null; const streamed = vi.fn();
   const f = fixture({ loadLoRA: async () => { active = { digest: 'sha256:' + 'c'.repeat(64) }; },
     unloadLoRA: async () => { active = null; },
-    async *stream() { streamed(); yield { type: 'text-delta', text: 'must not run' }; }
+    async *stream() { streamed(); yield { schema: 'doppler.generation-event/v1', type: 'text-delta', text: 'must not run' }; }
   }, { resolveAdapter: async () => ({ manifest: { baseModel: 'fixture' }, options: {} }) });
   Object.defineProperties(f.session, { activeLoRA: { get: () => active && 'wrong' }, adapterDigest: { value: () => active?.digest } });
   await f.owner.prepare();
@@ -109,7 +109,7 @@ it('retires a failed resident and prevents queued work from borrowing the retire
 
 it('close keeps ownership through running execution and a failed cleanup stays observable', async () => {
   const gate = deferred(), entered = deferred();
-  const f = fixture({ async *stream() { entered.resolve(); await gate.promise; yield { type: 'text-delta', text: 'late' }; } });
+  const f = fixture({ async *stream() { entered.resolve(); await gate.promise; yield { schema: 'doppler.generation-event/v1', type: 'text-delta', text: 'late' }; } });
   await f.owner.prepare();
   const request = f.owner.generate([{ content: 'A' }], () => {}, { signal: signal() });
   const cancelled = expect(request).rejects.toThrow('stopped'); await entered.promise;
@@ -160,9 +160,9 @@ it('captures runtime timing before cleanup resets it, without counting text chun
     advanced: { getStats: () => stats },
     resetGenerationState() { stats = null; },
     async *stream() {
-      yield { type: 'text-delta', text: 'One chunk, several tokens 🌍' };
+      yield { schema: 'doppler.generation-event/v1', type: 'text-delta', text: 'One chunk, several tokens 🌍' };
       stats = { totalTimeMs: 400, prefillTimeMs: 100, decodeTimeMs: 300, ttftMs: 110, tokensGenerated: 7 };
-      yield { type: 'complete', outputText: 'One chunk, several tokens 🌍' };
+      yield { schema: 'doppler.generation-event/v1', type: 'complete', outputText: 'One chunk, several tokens 🌍' };
     }
   });
   await f.owner.prepare();

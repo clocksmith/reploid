@@ -24,7 +24,7 @@ try {
     const { createChatSession, CANONICAL_CHAT_MODELS } = await import('/host/chat-session.js');
     const service = { async open({ source }) {
       return { loaded: true, modelId: source, manifestHash: CANONICAL_CHAT_MODELS[0].identity.slice(7),
-        resetGenerationState() {}, async *stream() { yield { type: 'text-delta', text: 'Synthetic saved answer.' }; } };
+        resetGenerationState() {}, async *stream() { yield { schema: 'doppler.generation-event/v1', type: 'text-delta', text: 'Synthetic saved answer.' }; yield { schema: 'doppler.generation-event/v1', type: 'complete', outputText: 'Synthetic saved answer.' }; } };
     }, async close() {} };
     const session = createChatSession({ service, storage: localStorage });
     const id = session.createThread({ model: CANONICAL_CHAT_MODELS[0], sharingScope: 'local', purpose: 'Upgrade check' });

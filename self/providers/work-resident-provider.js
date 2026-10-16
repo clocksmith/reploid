@@ -53,7 +53,7 @@ export function createWorkResidentProvider({ service, model, generation, maxOutc
     notify();
     return preparing;
   };
-  const generate = (messages, onUpdate, { signal, adapters = [] }) => {
+  const generate = (messages, onUpdate, { signal, adapters = [], maxOutputTokens }) => {
     if (!getState().ready) return Promise.reject(new Error('Contributor model is not ready'));
     const input = structuredClone(messages);
     const selectedAdapters = structuredClone(adapters);
@@ -63,7 +63,7 @@ export function createWorkResidentProvider({ service, model, generation, maxOutc
       if (adapter !== current || error) throw new Error('Resident session was retired before execution');
       phase = 'executing'; notify();
       try {
-        const result = await current.generate(input, onUpdate, { signal: combined, adapters: selectedAdapters });
+        const result = await current.generate(input, onUpdate, { signal: combined, adapters: selectedAdapters, maxOutputTokens });
         combined.throwIfAborted(); completed++;
         return result;
       } catch (cause) {

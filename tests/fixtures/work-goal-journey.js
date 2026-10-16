@@ -73,7 +73,8 @@ export function mountWorkGoalJourney({ namespace, peerUnit }) {
         async *stream(messages) {
           const response = fixtureResponse(messages);
           transcript.generations.push({ messages: copy(messages), response });
-          yield { type: 'text-delta', text: response };
+          yield { schema: 'doppler.generation-event/v1', type: 'text-delta', text: response };
+          yield { schema: 'doppler.generation-event/v1', type: 'complete', outputText: response };
         }
       };
     },

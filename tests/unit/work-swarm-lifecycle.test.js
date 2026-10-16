@@ -125,8 +125,9 @@ async function supplierFixture(modelId = 'whole-model-lifecycle-fixture') {
   const handlers = new Map(), ads = [], sent = [], load = deferred(), settlement = deferred();
   const session = { loaded: true, modelId, manifestHash: wholeModelIdentity.slice(7),
     resetGenerationState: vi.fn(), async *stream(messages) {
-      yield { type: 'text-delta', text: messages.at(-1).content };
+      yield { schema: 'doppler.generation-event/v1', type: 'text-delta', text: messages.at(-1).content };
       if (messages.at(-1).content === 'hold') await settlement.promise;
+      yield { schema: 'doppler.generation-event/v1', type: 'complete', outputText: messages.at(-1).content };
     } };
   const service = { open: vi.fn(() => load.promise), close: vi.fn() };
   ports.createTransport.mockReturnValue({ init: async () => true, disconnect: vi.fn(),
