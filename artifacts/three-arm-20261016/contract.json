@@ -1,0 +1,45 @@
+{
+  "schema": "reploid.three-arm-cost/v1",
+  "purpose": "Matched technical cost measurement, not a pilot or product-demand claim",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "runtimeArchiveSha256": "3b132ee7ff984c80ef48487d3010028ade46b64d39323304d674feebfde3bf78",
+  "manifestSha256": "548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+  "precision": "frozen paired TargetPlan, two-F32 intermediates; identical Q4_K shards",
+  "arms": [
+    "whole model on AMD, Node/Dawn",
+    "three local partitions on AMD, Node/Dawn",
+    "Mac browser stage 0 -> AMD Node stages 1 and 2, installed authorized peer route"
+  ],
+  "splitLayers": [
+    8,
+    16
+  ],
+  "workloadSource": "artifacts/speed-isolation-20261014/distributed-observed.json: runs.run-5.turns[*].requestMessages",
+  "maxTokens": 128,
+  "stop": "same Capsule EOS policy; differing actual token sequences/counts reject matched comparison",
+  "sampling": "frozen catalog greedy generation; no injected reference states or precision substitution",
+  "firstUseRepeats": 1,
+  "warmRepeats": 3,
+  "concurrency": 1,
+  "memoryLimitBytesPerNativeProcess": 12884901888,
+  "wallLimitSecondsPerArm": 1800,
+  "numericalPolicy": "unchanged retained 55-prefix reference tolerance 0.001; exact generated-token and prompt identity between measured arms additionally required",
+  "networkPermissions": "normal signed release and disclosure; no bypass",
+  "cachePolicy": "existing warm filesystem/driver cache; first use of fresh process separately reported, not claimed as cold compilation",
+  "metrics": [
+    "preparation",
+    "first-token",
+    "decode",
+    "complete-answer",
+    "process RSS",
+    "Doppler pool allocations",
+    "correctness",
+    "unaccounted wall time"
+  ],
+  "limitations": [
+    "whole/local runtime controls do not include installed requester authorization/persistence; cross-host difference is whole route overhead, not pure network latency",
+    "GPU pool accounting excludes driver/compiler allocations",
+    "no wall-power or business-economics claim"
+  ],
+  "runnerSha256": "50c07e75163e1223ee255ef72247d81507832929bc16c522b565d9e3b6f7762c"
+}

@@ -1,0 +1,310 @@
+{
+  "sources": [
+    {
+      "name": "server/native-participant.js",
+      "sha256": "1440a7016ce7bc4d046a42cb4c96c907be9827b82e839541649d3524455f108b"
+    },
+    {
+      "name": "tests/e2e/chat-native-split.spec.js",
+      "sha256": "2f31a6e62774f8bf042bf12d17ea96de1a7bce238b2fd6b509c1501e3ac56373"
+    },
+    {
+      "name": "tests/unit/native-participant.test.js",
+      "sha256": "64685127664a3cb01cf8953f5b5621c6b094d001588689a237b2f9b11645a945"
+    },
+    {
+      "name": "tests/unit/ordered-requester-history.test.js",
+      "sha256": "b34d5c24f97a244ffebc80d1cbee4ad3a1c61aaef6e4ae149173642d093a7d71"
+    },
+    {
+      "name": "tests/unit/partition-generation-policy.test.js",
+      "sha256": "a8f703810294621dd7f5e32d7b1a1a2e880871ec8ffd3a5da632a1e763be8616"
+    }
+  ],
+  "result": {
+    "passed": false,
+    "errors": [
+      "Security Violation in /tests/e2e/chat-native-split.spec.js: Direct IndexedDB access forbidden - use VFS",
+      "Security Violation in /tests/e2e/chat-native-split.spec.js: process.env access is forbidden - environment leakage risk"
+    ],
+    "warnings": [
+      "Warning in /server/native-participant.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /server/native-participant.js:91: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /server/native-participant.js:422: Dynamic property write detected: [name] - verify input sanitization",
+      "Warning in /server/native-participant.js:474: Dynamic property write detected: [kind] - verify input sanitization",
+      "Warning in /server/native-participant.js:477: Dynamic property write detected: [kind] - verify input sanitization",
+      "Warning in /server/native-participant.js:477: Dynamic property write detected: [kind] - verify input sanitization",
+      "Warning in /server/native-participant.js:690: Dynamic property write detected: [rtcModule, wsModule] - verify input sanitization",
+      "Warning in /server/native-participant.js:44: Suspicious variable name: requireValue - may indicate code execution",
+      "File exceeds 500 lines (756) - consider splitting",
+      "File has 77 functions (max 20) - consider modularizing",
+      "Nesting depth of 7 exceeds 5 - refactor nested code",
+      "Warning in /tests/unit/native-participant.test.js: Path traversal pattern detected (../) - potential security risk",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Warning in /tests/unit/ordered-requester-history.test.js: Path traversal pattern detected (../) - potential security risk",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Warning in /tests/unit/partition-generation-policy.test.js: Path traversal pattern detected (../) - potential security risk"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792177555820,
+        "path": "/server/native-participant.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792177555823,
+        "path": "/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 91,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792177555823,
+        "path": "/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 422,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792177555823,
+        "path": "/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [kind] - verify input sanitization",
+        "line": 474,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792177555823,
+        "path": "/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [kind] - verify input sanitization",
+        "line": 477,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792177555823,
+        "path": "/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [kind] - verify input sanitization",
+        "line": 477,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792177555823,
+        "path": "/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [rtcModule, wsModule] - verify input sanitization",
+        "line": 690,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792177555823,
+        "path": "/server/native-participant.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: requireValue - may indicate code execution",
+        "line": 44,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792177555826,
+        "metric": "lines",
+        "value": 756,
+        "threshold": 500,
+        "message": "File exceeds 500 lines (756) - consider splitting",
+        "path": "/server/native-participant.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792177555826,
+        "metric": "functions",
+        "value": 77,
+        "threshold": 20,
+        "message": "File has 77 functions (max 20) - consider modularizing",
+        "path": "/server/native-participant.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792177555826,
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/server/native-participant.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792177555829,
+        "path": "/tests/e2e/chat-native-split.spec.js",
+        "patternId": "indexeddb",
+        "category": "storage",
+        "message": "Direct IndexedDB access forbidden - use VFS",
+        "severity": "error"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792177555829,
+        "path": "/tests/e2e/chat-native-split.spec.js",
+        "patternId": "process_env",
+        "category": "process",
+        "message": "process.env access is forbidden - environment leakage risk",
+        "severity": "error"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792177555831,
+        "path": "/tests/unit/native-participant.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792177555832,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/tests/unit/native-participant.test.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792177555833,
+        "path": "/tests/unit/ordered-requester-history.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792177555834,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/tests/unit/ordered-requester-history.test.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792177555834,
+        "path": "/tests/unit/partition-generation-policy.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/server/native-participant.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/tests/e2e/chat-native-split.spec.js",
+          "patternId": "indexeddb",
+          "category": "storage",
+          "message": "Direct IndexedDB access forbidden - use VFS",
+          "severity": "error"
+        },
+        {
+          "path": "/tests/e2e/chat-native-split.spec.js",
+          "patternId": "process_env",
+          "category": "process",
+          "message": "process.env access is forbidden - environment leakage risk",
+          "severity": "error"
+        },
+        {
+          "path": "/tests/unit/native-participant.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/tests/unit/ordered-requester-history.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/tests/unit/partition-generation-policy.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "lines",
+          "value": 756,
+          "threshold": 500,
+          "message": "File exceeds 500 lines (756) - consider splitting",
+          "path": "/server/native-participant.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 77,
+          "threshold": 20,
+          "message": "File has 77 functions (max 20) - consider modularizing",
+          "path": "/server/native-participant.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 7,
+          "threshold": 5,
+          "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+          "path": "/server/native-participant.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/tests/unit/native-participant.test.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/tests/unit/ordered-requester-history.test.js"
+        }
+      ],
+      "filesAnalyzed": 5
+    },
+    "reason": "Verification Failed"
+  }
+}

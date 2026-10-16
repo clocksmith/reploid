@@ -1,0 +1,11 @@
+{
+  "frozenAt": "2026-10-16T19:06:57.065058+00:00",
+  "purpose": "One live-site lifecycle check of the isolated owned release, excluding concurrently edited search code. The first local test assertion read the wrong receipt field; the second read blank metadata rather than published text; the corrected local journey passed.",
+  "additionalBrowserJourneys": 1,
+  "newGpuProcessStartsLimit": 2,
+  "maxOutputTokensPerRequest": 256,
+  "externalSpendUSD": 0,
+  "qualityCases": "Same frozen arithmetic, follow-up, cancellation/reuse, count-to-twenty and reload checks.",
+  "publicProviders": "Keep existing whole-model Q4K, 0.8B and 2B running.",
+  "activation": "After passing, retain the owned split contributors under their 6/24 GiB GPU budgets; validation timeout is not an availability promise."
+}
