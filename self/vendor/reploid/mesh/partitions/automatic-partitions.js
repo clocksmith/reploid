@@ -1,3 +1,4 @@
+import { partitionAdapterIdentities, samePartitionAdapters, selectPartitionContribution } from './partition-contract.js';
 import { publicPreparationProgress } from '../preparation-progress.js';
 import { generationRequest, requireGenerationCapability } from './partition-generation-request.js';
 import { createAutomaticOrderedPartitions } from './automatic-ordered-partitions.js';
@@ -75,7 +76,7 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
     }) });
   const discovery = createPartitionDiscovery({ identity, catalog, policy: config, peers, createNetwork,
     onChange: notify,
-    describe: () => ({ participantId: identity.peerId, offer: offer && { id: offer.id, identity: offer.identity },
+    describe: () => ({ participantId: identity.peerId, offer: offer && { id: offer.id, identity: offer.identity, adapters: offer.adapters || [] },
       eligibleIndexes: offer?.partitionContributionIndexes ?? [0, 1],
       phase, preparation: phase === 'loading' ? publicPreparationProgress(progress) : null, placement, index: program?.resident.index ?? placement?.indexOf(identity.peerId) ?? null,
       planId: program?.planId ?? null, models: chat?.getModels() || [],
@@ -193,7 +194,7 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
     try { current = await entry.refresh({ signal }); }
     catch (cause) { if (!signal?.aborted) discovery.invalidateModel(transportId, model); throw cause; }
     if (!current.ready || !current.descriptor.models.some(candidate => candidate.id === model.id
-      && candidate.identity === model.identity && candidate.availability === 'ready')) {
+      && candidate.identity === model.identity && samePartitionAdapters(candidate, model) && candidate.availability === 'ready')) {
       discovery.invalidateModel(transportId, model);
     }
     return current;
@@ -201,12 +202,13 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
   const timer = setInterval(tick, config.pollMs);
   return Object.freeze({ getState, getModels,
     subscribe(listener) { listeners.add(listener); listener(getModels()); return () => listeners.delete(listener); },
-    async contribute(modelId, approved) {
+    async contribute(modelId, approved, adapters) {
       assert(approved === true && !closed, 'Approve partition computation before contributing');
       assert(!stopping && !unsettledOwners.size, 'Previous contribution must settle before replacement');
       assert(!offer, 'Stop existing partition contribution first');
-      offer = catalog.find(model => model.id === modelId);
-      assert(offer, 'No pinned partition model for this contribution');
+      const selected = catalog.find(model => model.id === modelId);
+      assert(selected, 'No pinned partition model for this contribution');
+      offer = selectPartitionContribution(selected, adapters);
       contributionController = new AbortController();
       phase = 'waiting'; error = null; progress = { message: 'Waiting for another contributor' }; notify(); await tick();
     },
@@ -234,7 +236,7 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
       const entry = await entries.connect(decision.transportId);
       const refreshed = await refreshEntry(entry, decision.transportId, request.model, controls.signal);
       const model = refreshed.descriptor.models.find(model => model.id === request.model.id
-        && model.identity === request.model.identity && model.availability === 'ready');
+        && model.identity === request.model.identity && samePartitionAdapters(model, request.model) && model.availability === 'ready');
       assert(refreshed.ready && model, 'No prepared cooperative partition path is available');
       assert(!!model.canonical === !!canonical, 'Prepared route has a different publication capability');
       requireGenerationCapability(model, requested, !!canonical);
@@ -244,7 +246,7 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
         attemptId: request.attemptId, operation: 'generate-partition',
         peerId: model.partition.participantA, recipientIdentity: model.partition.participantA,
         ...model.partition, modelId: model.id, modelIdentity: model.identity,
-        disclosure: 'partition-activations-and-tokens', adapterIdentities: [], expiresAt, executionTimeoutMs: config.grantMs,
+        disclosure: 'partition-activations-and-tokens', adapterIdentities: partitionAdapterIdentities(model), expiresAt, executionTimeoutMs: config.grantMs,
         input: { messages: structuredClone(messages), ...(requested ? {generationRequest: requested} : {}), recipients: [model.partition.participantA, model.partition.participantB] } });
       assert(approved === true, 'Partition input disclosure declined'); controls.signal.throwIfAborted();
       expiresAt = Math.min(controls.authorizationExpiresAt?.() ?? expiresAt, Date.now() + config.grantMs);
@@ -253,7 +255,7 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
       // but never transfer reviewed input to a newly selected recipient or plan.
       const current = await refreshEntry(entry, decision.transportId, model, controls.signal);
       const same = current.descriptor.models.find(candidate => candidate.id === model.id
-        && candidate.identity === model.identity && candidate.availability === 'ready'
+        && candidate.identity === model.identity && samePartitionAdapters(candidate, model) && candidate.availability === 'ready'
         && canonicalPartitionJson(candidate.partition) === canonicalPartitionJson(model.partition)
         && canonicalPartitionJson(candidate.canonical ?? null) === canonicalPartitionJson(model.canonical ?? null));
       assert(current.ready && same, 'Approved partition placement changed; review a new attempt');
@@ -273,7 +275,7 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
           ...(canonical ? { publication: controls.publication, onPublished: controls.onPublished } : {}),
           onDelta: text => controls.onDelta({ threadId: request.threadId, attemptId: request.attemptId, sequence: sequence++, text }) });
         return { ...result, threadId: request.threadId, attemptId: request.attemptId,
-          modelId: model.id, modelIdentity: model.identity, adapterIdentities: [],
+          modelId: model.id, modelIdentity: model.identity, adapterIdentities: partitionAdapterIdentities(model),
           execution: { ...result.execution, selection: decision } };
       } finally { admissions.delete(request.attemptId); }
     },
