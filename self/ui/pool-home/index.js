@@ -122,7 +122,12 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
           if (routeId === 'network') inspector.open();
         } else {
           content.innerHTML = '<p role="status">Loading…</p>';
-          if (routeId === 'improve') {
+          if (routeId === 'experiments') {
+            const plugins = await import('./research-plugins.js');
+            if (disposed || current !== revision) return;
+            content.innerHTML = plugins.renderResearchPlugins();
+            detachView = plugins.bindResearchPlugins(content, host);
+          } else if (routeId === 'improve') {
             const workView = await import('./work.js');
             if (disposed || current !== revision) return;
             content.innerHTML = workView.renderImproveSurface();

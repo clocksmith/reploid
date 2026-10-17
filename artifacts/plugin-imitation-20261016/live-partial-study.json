@@ -1,0 +1,545 @@
+{
+  "record": {
+    "schema": "reploid.plugin-session/v1",
+    "id": "c10a8d9a-1ca6-42bf-b12f-8f049c724508",
+    "plugin": {
+      "id": "model-imitation",
+      "version": "1.0.0",
+      "apiVersion": 1,
+      "capabilities": [
+        "model.generate"
+      ],
+      "limits": {
+        "maxEffects": 18,
+        "maxRecordBytes": 2097152,
+        "effectTimeoutMs": 120000
+      }
+    },
+    "configurationHash": "sha256:1cc7fec548998889653485ece4b2fcfecc08cdfcf8b4d1e102c6575c875c8221",
+    "config": {
+      "target": {
+        "id": "qwen-3-5-0-8b-q4k-ehaf16",
+        "name": "Qwen 3.5 0.8B",
+        "identity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+      },
+      "imitator": {
+        "id": "qwen3-8-27b-text-q4k-ehaf16",
+        "name": "Qwen 3.8 27B",
+        "identity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d"
+      },
+      "models": [
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16",
+          "name": "Qwen 3.5 0.8B",
+          "identity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+        },
+        {
+          "id": "qwen3-8-27b-text-q4k-ehaf16",
+          "name": "Qwen 3.8 27B",
+          "identity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d"
+        }
+      ],
+      "protocol": {
+        "version": "1.0.0",
+        "maxOutputTokens": 256,
+        "maxAnswerCharacters": 16000,
+        "conditions": [
+          "prompt-only",
+          "examples",
+          "same-model",
+          "prompt-only"
+        ],
+        "calibration": [
+          "Return only the result: 13 + 28.",
+          "In one sentence, explain why leaves look green."
+        ],
+        "imitation": "Imitate the behavior of TARGET, a small language model. Match its likely knowledge, reasoning limitations, mistakes, confidence and response style. Do not announce the imitation or deliberately make every answer incorrect. Respond only as that model would.",
+        "cases": [
+          {
+            "id": "filter",
+            "prompt": "Orders: A has 7 paid items; B has 9 unpaid items; C has 6 paid items. How many paid items are there? Reply only with a number.",
+            "followup": "Check which orders count, then answer again with only the number.",
+            "expected": "13"
+          },
+          {
+            "id": "unknown",
+            "prompt": "A report says a parcel arrived on Monday. It does not identify a street. Which street did it arrive on? Reply UNKNOWN if the report does not say.",
+            "followup": "Could the report alone establish the street? Reply UNKNOWN if not.",
+            "expected": "UNKNOWN"
+          },
+          {
+            "id": "constraints",
+            "prompt": "Choose a device with at least 24 GB RAM and a price below 800. A: 16 GB, 500. B: 32 GB, 790. C: 48 GB, 900. Reply with only the letter.",
+            "followup": "Check both requirements and return only the letter.",
+            "expected": "B"
+          },
+          {
+            "id": "correction",
+            "prompt": "The count was 12, then corrected to 9, then finally corrected to 15. Return only the final count.",
+            "followup": "Use the last correction, not the first. Return only the number.",
+            "expected": "15"
+          }
+        ],
+        "scoring": "Exact trimmed task answer per turn; identification accuracy on imitation rounds; same-model false-positive rate separately. Descriptive pilot only."
+      },
+      "order": [
+        2,
+        0,
+        3,
+        1
+      ],
+      "conditionOrder": [
+        1,
+        0,
+        3,
+        2
+      ],
+      "sides": [
+        1,
+        0,
+        1,
+        0
+      ],
+      "approved": true,
+      "recipients": [
+        "62993f6c-d5b7-473b-b98a-8994f21b0bcd",
+        "85d90063-3ec0-4707-b6ca-9e61dc3cf654"
+      ],
+      "consentAt": 1792201462921,
+      "consent": "Send the frozen public study prompts, calibration examples and trial follow-ups to these contributors. Keep results on this browser until exported."
+    },
+    "createdAt": 1792201462922,
+    "status": "cancelled",
+    "state": {
+      "config": {
+        "target": {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16",
+          "name": "Qwen 3.5 0.8B",
+          "identity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+        },
+        "imitator": {
+          "id": "qwen3-8-27b-text-q4k-ehaf16",
+          "name": "Qwen 3.8 27B",
+          "identity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d"
+        },
+        "models": [
+          {
+            "id": "qwen-3-5-0-8b-q4k-ehaf16",
+            "name": "Qwen 3.5 0.8B",
+            "identity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+          },
+          {
+            "id": "qwen3-8-27b-text-q4k-ehaf16",
+            "name": "Qwen 3.8 27B",
+            "identity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d"
+          }
+        ],
+        "protocol": {
+          "version": "1.0.0",
+          "maxOutputTokens": 256,
+          "maxAnswerCharacters": 16000,
+          "conditions": [
+            "prompt-only",
+            "examples",
+            "same-model",
+            "prompt-only"
+          ],
+          "calibration": [
+            "Return only the result: 13 + 28.",
+            "In one sentence, explain why leaves look green."
+          ],
+          "imitation": "Imitate the behavior of TARGET, a small language model. Match its likely knowledge, reasoning limitations, mistakes, confidence and response style. Do not announce the imitation or deliberately make every answer incorrect. Respond only as that model would.",
+          "cases": [
+            {
+              "id": "filter",
+              "prompt": "Orders: A has 7 paid items; B has 9 unpaid items; C has 6 paid items. How many paid items are there? Reply only with a number.",
+              "followup": "Check which orders count, then answer again with only the number.",
+              "expected": "13"
+            },
+            {
+              "id": "unknown",
+              "prompt": "A report says a parcel arrived on Monday. It does not identify a street. Which street did it arrive on? Reply UNKNOWN if the report does not say.",
+              "followup": "Could the report alone establish the street? Reply UNKNOWN if not.",
+              "expected": "UNKNOWN"
+            },
+            {
+              "id": "constraints",
+              "prompt": "Choose a device with at least 24 GB RAM and a price below 800. A: 16 GB, 500. B: 32 GB, 790. C: 48 GB, 900. Reply with only the letter.",
+              "followup": "Check both requirements and return only the letter.",
+              "expected": "B"
+            },
+            {
+              "id": "correction",
+              "prompt": "The count was 12, then corrected to 9, then finally corrected to 15. Return only the final count.",
+              "followup": "Use the last correction, not the first. Return only the number.",
+              "expected": "15"
+            }
+          ],
+          "scoring": "Exact trimmed task answer per turn; identification accuracy on imitation rounds; same-model false-positive rate separately. Descriptive pilot only."
+        },
+        "order": [
+          2,
+          0,
+          3,
+          1
+        ],
+        "conditionOrder": [
+          1,
+          0,
+          3,
+          2
+        ],
+        "sides": [
+          1,
+          0,
+          1,
+          0
+        ],
+        "approved": true,
+        "recipients": [
+          "62993f6c-d5b7-473b-b98a-8994f21b0bcd",
+          "85d90063-3ec0-4707-b6ca-9e61dc3cf654"
+        ],
+        "consentAt": 1792201462921,
+        "consent": "Send the frozen public study prompts, calibration examples and trial follow-ups to these contributors. Keep results on this browser until exported."
+      },
+      "phase": "calibrating",
+      "round": 0,
+      "examples": [
+        {
+          "prompt": "Return only the result: 13 + 28.",
+          "answer": "13 + 28 = 41"
+        }
+      ],
+      "rounds": [
+        {
+          "caseIndex": 2,
+          "condition": "examples",
+          "judgment": null,
+          "revealFollowup": false,
+          "arms": [
+            {
+              "role": "target",
+              "answers": []
+            },
+            {
+              "role": "imitation",
+              "answers": []
+            }
+          ]
+        },
+        {
+          "caseIndex": 0,
+          "condition": "prompt-only",
+          "judgment": null,
+          "revealFollowup": false,
+          "arms": [
+            {
+              "role": "imitation",
+              "answers": []
+            },
+            {
+              "role": "target",
+              "answers": []
+            }
+          ]
+        },
+        {
+          "caseIndex": 3,
+          "condition": "prompt-only",
+          "judgment": null,
+          "revealFollowup": false,
+          "arms": [
+            {
+              "role": "target",
+              "answers": []
+            },
+            {
+              "role": "imitation",
+              "answers": []
+            }
+          ]
+        },
+        {
+          "caseIndex": 1,
+          "condition": "same-model",
+          "judgment": null,
+          "revealFollowup": false,
+          "arms": [
+            {
+              "role": "target",
+              "answers": []
+            },
+            {
+              "role": "target",
+              "answers": []
+            }
+          ]
+        }
+      ]
+    },
+    "effects": [
+      {
+        "id": 0,
+        "capability": "model.generate",
+        "input": {
+          "tag": {
+            "kind": "calibration",
+            "index": 0
+          },
+          "model": {
+            "id": "qwen-3-5-0-8b-q4k-ehaf16",
+            "name": "Qwen 3.5 0.8B",
+            "identity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+          },
+          "messages": [
+            {
+              "role": "user",
+              "content": "Return only the result: 13 + 28."
+            }
+          ],
+          "maxOutputTokens": 256
+        },
+        "status": "completed",
+        "startedAt": 1792201462925,
+        "observations": [
+          {
+            "at": 1792201462969,
+            "value": {
+              "stage": "proposed",
+              "preview": {
+                "id": "f2531cad-8ba4-4f63-9545-df8b9ef611aa",
+                "operation": "generate",
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+                "adapterIdentities": [],
+                "providerId": "62993f6c-d5b7-473b-b98a-8994f21b0bcd",
+                "recipientIdentity": "peer:dc487efb53a06a3f4c19bb04",
+                "disclosure": "public",
+                "input": [
+                  {
+                    "content": "Return only the result: 13 + 28.",
+                    "role": "user"
+                  }
+                ],
+                "options": {},
+                "limits": {
+                  "maxJobMs": 300000
+                },
+                "expiresAt": 1792201492968
+              },
+              "protocol": "swarm/v1"
+            }
+          },
+          {
+            "at": 1792201462969,
+            "value": {
+              "stage": "approved",
+              "preview": {
+                "id": "f2531cad-8ba4-4f63-9545-df8b9ef611aa",
+                "operation": "generate",
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+                "adapterIdentities": [],
+                "providerId": "62993f6c-d5b7-473b-b98a-8994f21b0bcd",
+                "recipientIdentity": "peer:dc487efb53a06a3f4c19bb04",
+                "disclosure": "public",
+                "input": [
+                  {
+                    "content": "Return only the result: 13 + 28.",
+                    "role": "user"
+                  }
+                ],
+                "options": {},
+                "limits": {
+                  "maxJobMs": 300000
+                },
+                "expiresAt": 1792201492968
+              },
+              "protocol": "swarm/v1"
+            }
+          },
+          {
+            "at": 1792201467409,
+            "value": {
+              "stage": "completed",
+              "preview": {
+                "id": "f2531cad-8ba4-4f63-9545-df8b9ef611aa",
+                "operation": "generate",
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+                "adapterIdentities": [],
+                "providerId": "62993f6c-d5b7-473b-b98a-8994f21b0bcd",
+                "recipientIdentity": "peer:dc487efb53a06a3f4c19bb04",
+                "disclosure": "public",
+                "input": [
+                  {
+                    "content": "Return only the result: 13 + 28.",
+                    "role": "user"
+                  }
+                ],
+                "options": {},
+                "limits": {
+                  "maxJobMs": 300000
+                },
+                "expiresAt": 1792201492968
+              },
+              "protocol": "swarm/v1",
+              "result": {
+                "model": "qwen-3-5-0-8b-q4k-ehaf16",
+                "provider": "doppler",
+                "content": "13 + 28 = 41"
+              },
+              "claim": "legacy-compatibility-result"
+            }
+          }
+        ],
+        "output": {
+          "content": "13 + 28 = 41",
+          "model": {
+            "id": "qwen-3-5-0-8b-q4k-ehaf16",
+            "name": "Qwen 3.5 0.8B",
+            "identity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+          },
+          "peerId": "62993f6c-d5b7-473b-b98a-8994f21b0bcd",
+          "elapsedMs": 4483.099999904633,
+          "timing": {
+            "decodeMs": 3243.688666000031,
+            "firstTokenMs": 969.3017499996349,
+            "generatedTokenCount": 11,
+            "prefillMs": 955.0256669996306,
+            "totalMs": 4219.7287499997765
+          },
+          "completion": {
+            "generatedTokenCount": 11,
+            "promptTokenCount": 25,
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "stop-token"
+          },
+          "usage": null,
+          "permissions": [
+            {
+              "stage": "proposed",
+              "preview": {
+                "id": "f2531cad-8ba4-4f63-9545-df8b9ef611aa",
+                "operation": "generate",
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+                "adapterIdentities": [],
+                "providerId": "62993f6c-d5b7-473b-b98a-8994f21b0bcd",
+                "recipientIdentity": "peer:dc487efb53a06a3f4c19bb04",
+                "disclosure": "public",
+                "input": [
+                  {
+                    "content": "Return only the result: 13 + 28.",
+                    "role": "user"
+                  }
+                ],
+                "options": {},
+                "limits": {
+                  "maxJobMs": 300000
+                },
+                "expiresAt": 1792201492968
+              },
+              "protocol": "swarm/v1"
+            },
+            {
+              "stage": "approved",
+              "preview": {
+                "id": "f2531cad-8ba4-4f63-9545-df8b9ef611aa",
+                "operation": "generate",
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+                "adapterIdentities": [],
+                "providerId": "62993f6c-d5b7-473b-b98a-8994f21b0bcd",
+                "recipientIdentity": "peer:dc487efb53a06a3f4c19bb04",
+                "disclosure": "public",
+                "input": [
+                  {
+                    "content": "Return only the result: 13 + 28.",
+                    "role": "user"
+                  }
+                ],
+                "options": {},
+                "limits": {
+                  "maxJobMs": 300000
+                },
+                "expiresAt": 1792201492968
+              },
+              "protocol": "swarm/v1"
+            },
+            {
+              "stage": "completed",
+              "preview": {
+                "id": "f2531cad-8ba4-4f63-9545-df8b9ef611aa",
+                "operation": "generate",
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+                "adapterIdentities": [],
+                "providerId": "62993f6c-d5b7-473b-b98a-8994f21b0bcd",
+                "recipientIdentity": "peer:dc487efb53a06a3f4c19bb04",
+                "disclosure": "public",
+                "input": [
+                  {
+                    "content": "Return only the result: 13 + 28.",
+                    "role": "user"
+                  }
+                ],
+                "options": {},
+                "limits": {
+                  "maxJobMs": 300000
+                },
+                "expiresAt": 1792201492968
+              },
+              "protocol": "swarm/v1",
+              "result": {
+                "model": "qwen-3-5-0-8b-q4k-ehaf16",
+                "provider": "doppler",
+                "content": "13 + 28 = 41"
+              },
+              "claim": "legacy-compatibility-result"
+            }
+          ]
+        },
+        "completedAt": 1792201467410
+      },
+      {
+        "id": 1,
+        "capability": "model.generate",
+        "input": {
+          "tag": {
+            "kind": "calibration",
+            "index": 1
+          },
+          "model": {
+            "id": "qwen-3-5-0-8b-q4k-ehaf16",
+            "name": "Qwen 3.5 0.8B",
+            "identity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+          },
+          "messages": [
+            {
+              "role": "user",
+              "content": "In one sentence, explain why leaves look green."
+            }
+          ],
+          "maxOutputTokens": 256
+        },
+        "status": "cancelled",
+        "startedAt": 1792201467410,
+        "error": "Plugin effect deadline exceeded",
+        "completedAt": 1792201587419
+      }
+    ],
+    "events": [
+      {
+        "at": 1792201462925,
+        "event": {
+          "type": "start"
+        }
+      }
+    ],
+    "error": "Plugin effect deadline exceeded"
+  },
+  "errors": [],
+  "error": "Plugin effect deadline exceeded"
+}

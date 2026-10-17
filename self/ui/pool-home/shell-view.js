@@ -41,7 +41,7 @@ export const renderNav = (activeRoute) => {
       ${['home', 'network'].includes(activeRoute) ? `<button class="pool-primary-brand pool-button" type="button" data-toggle-thread-rail aria-label="Toggle threads" aria-expanded="false">${renderPowerTower()}</button>` : `<a class="pool-primary-brand pool-heading pool-plain" aria-label="${escapeHtml(POOLDAY_NAME)} home"${activeRoute === 'home' ? ' aria-current="page"' : ''} href="${home}" data-pool-route-link="${home}">${renderPowerTower()}<span class="pool-primary-wordmark">${escapeHtml(POOLDAY_NAME)}</span></a>`}
       ${renderExecutionRibbon()}
       <div class="pool-primary-actions">
-        ${renderSettings(renderPowerTower(true), `<a class="pool-nav-link pool-button" href="${changesPath}" data-pool-route-link="${changesPath}" data-pool-nav-id="improve" data-pool-changes aria-label="Changes"${activeRoute === 'improve' ? ' aria-current="page"' : ''}>Changes<span class="pool-change-count pool-small pool-well" data-pool-change-count aria-hidden="true" hidden></span></a>${networkAction}<a class="pool-button" href="/examples" data-pool-route-link="/examples">Examples</a>`)}
+        ${renderSettings(renderPowerTower(true), `<a class="pool-nav-link pool-button" href="${changesPath}" data-pool-route-link="${changesPath}" data-pool-nav-id="improve" data-pool-changes aria-label="Changes"${activeRoute === 'improve' ? ' aria-current="page"' : ''}>Changes<span class="pool-change-count pool-small pool-well" data-pool-change-count aria-hidden="true" hidden></span></a>${networkAction}<a class="pool-button" href="/examples" data-pool-route-link="/examples">Examples</a><a class="pool-button" href="/experiments" data-pool-route-link="/experiments">Experiments</a>`)}
       </div>
     </nav>
   `;

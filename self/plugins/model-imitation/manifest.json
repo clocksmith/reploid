@@ -1,0 +1,7 @@
+{
+  "id": "model-imitation",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "capabilities": ["model.generate"],
+  "limits": { "maxEffects": 18, "maxRecordBytes": 2097152, "effectTimeoutMs": 120000 }
+}
