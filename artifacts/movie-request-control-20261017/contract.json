@@ -1,0 +1,33 @@
+{
+  "schema": "reploid.movie-request-control-contract/v1",
+  "snapshot": "/Users/xyz/deco/reploid/.tmp/qwen-service-20261017",
+  "archive": "/Users/xyz/deco/doppler/.tmp/qwen-service-candidate-final-20261017/doppler-gpu-0.6.31.tgz",
+  "archiveSha256": "6b057b0e526a7a18afcefd655cb2fc4acb96e958962eee5a67b3caee231be1f9",
+  "verifiedPackageFiles": 2028,
+  "receipt": "artifacts/movie-service-20261017/service-tasks.json",
+  "receiptSha256": "4cfc34b265ebb76fd829e8c23b4455c22f3a72c1c6eb536244d272182650a18f",
+  "modelDirectory": "/Users/xyz/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
+  "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+  "caseIds": [
+    "format-followup/2",
+    "missing-availability/1"
+  ],
+  "maxTokens": 32,
+  "originalMaxTokens": 4096,
+  "maxSeqLen": 8192,
+  "timeoutMs": 180000,
+  "hardProcessDeadlineSeconds": 240,
+  "maxGpuRuns": 4,
+  "maxReferenceRuns": 2,
+  "referenceTimeoutSeconds": 600,
+  "referenceThreads": 4,
+  "maxReferenceAddressSpaceGiB": 24,
+  "spending": 0,
+  "publicServiceChanges": false,
+  "acceptance": "Diagnostic only. Capture must match provider streaming and stop before the shortened cap. Compare exact tokens and task answers; disagreement is not automatically a runtime defect.",
+  "hostFiles": {
+    "server/native-participant.js": "19ff0d6b5e06d26b778637ac0583844f5c8a849ce93d69732e65396959ff9702",
+    "self/providers/work-provider.js": "2ac80324d60263279f235af33ee632769bea8bd5af273ef4bbaa13514f0d60da",
+    "self/infrastructure/doppler-runtime-service.js": "b99e396ce704e67aae141ec4a2baafb11592244d2e029dcd0338ba921110e14b"
+  }
+}

@@ -1,0 +1,12 @@
+[
+  {
+    "caseId": "format-followup/2",
+    "exitCode": 0,
+    "elapsedSeconds": 19.765713803994004
+  },
+  {
+    "caseId": "missing-availability/1",
+    "exitCode": 0,
+    "elapsedSeconds": 22.379227424011333
+  }
+]
