@@ -2070,8 +2070,9 @@
     {
       "path": "providers/work-resident-provider.js",
       "owner": "providers",
-      "sha256": "sha256:e3916c49867420edb1f6cab8c65405534a2a70555d10c9a4b18b6e21d881ccd2",
+      "sha256": "sha256:2ea5305d079ee7b3d715f549d8378deb798c6fb8311ef216456a792a8688eefa",
       "imports": [
+        "../vendor/reploid/mesh/preparation-progress.js",
         "./work-device.js",
         "./work-provider.js"
       ]
@@ -2199,7 +2200,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:170ea712718402833d1aedda30bd522455c706e65c1810284db1071d861ae138",
+      "sha256": "sha256:c89c2d0305b19586c22d3097ae1acc3f78a3573bb4e0e77d628d8c110f9aaebf",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -2638,7 +2639,7 @@
     {
       "path": "self/host/work-swarm.js",
       "owner": "self",
-      "sha256": "sha256:7c316dad0504bf8feb7296afab17f8ddfd9f4c0010c47f87786a69ed4ed37250",
+      "sha256": "sha256:dfce38d17c905a1d2f1237641521ff9fb184e46621c417a0e906cd94019e50b4",
       "imports": [
         "../capabilities/communication/library-adapter.js",
         "../config/doppler-local-models.js",
@@ -3362,13 +3363,13 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:9cd156fd12ccd1eac35b13569c3a038a1a0cff42ba56a76721689a220616af5b",
+      "sha256": "sha256:ad96d995c19de3efb1af7529af381c73ea5b4dd63af911b0e4a6f3527d1e8c75",
       "imports": []
     },
     {
       "path": "ui/pool-home/computer-labels.js",
       "owner": "ui",
-      "sha256": "sha256:4169e8147c06b477ebeea7062ad41f0fad8e8b4185e94243bd18208b273f4eec",
+      "sha256": "sha256:c558f4503f049070a1a0bfdb84de53eac91bd8d856601c3e1b2fb8ce1e0fabf6",
       "imports": []
     },
     {
@@ -3433,7 +3434,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:bd58cacb82bc0b851a15ebc6b66b264e1254d0337c2a1a235b22c6bab63a7522",
+      "sha256": "sha256:5492f24ef0f381741d00aced6082ec5e6b347a975f4684281d5c7d614b293b98",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -3506,7 +3507,7 @@
     {
       "path": "ui/pool-home/message-list.js",
       "owner": "ui",
-      "sha256": "sha256:577cdc13ec636d47bb202d6e688e5b0b74499cd30f8b51cd368f96f983502d56",
+      "sha256": "sha256:5f6aa6c419796d5156944f3ec92b6285841b9ec4f69420f417e086a22f2d9586",
       "imports": [
         "../components/attachments.js",
         "../components/interface-icons.js",
@@ -3525,7 +3526,7 @@
     {
       "path": "ui/pool-home/network-controls.js",
       "owner": "ui",
-      "sha256": "sha256:67e03cf7da7e98937280a351c86b2de719dba31257ca81221d41175c1533aa1d",
+      "sha256": "sha256:4f556d3d8c84f2a32d42ce503f5fdcd49c5101d389a346a224397f21e30ed200",
       "imports": [
         "../../vendor/reploid/mesh/preparation-progress.js",
         "../components/model-select.js",
@@ -3535,7 +3536,7 @@
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:a944d97b4927da4bc754069ade35454e9c187aeb88e0ffc3e4ab5256ba0ebc0f",
+      "sha256": "sha256:e4af432b6f6493a9a47f994bc83ebd988838cfdf0ec1284ef76a53eaa3d2d8c6",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -3703,7 +3704,7 @@
     {
       "path": "ui/pool-home/search-permission.js",
       "owner": "ui",
-      "sha256": "sha256:61ed302add4f92dc8ae81b8bf4fc27fb7eed161327faad1e413a0be0ee100263",
+      "sha256": "sha256:de626d6bee67d2128f1331b3fa2d8756f53c25c2d2b26d675c2ab5578f1363fb",
       "imports": [
         "./computer-labels.js"
       ]
@@ -3711,11 +3712,12 @@
     {
       "path": "ui/pool-home/shell-view.js",
       "owner": "ui",
-      "sha256": "sha256:9274848f0e49c32034ed6f056c568488ec0278ef8c97b31194d206981024d291",
+      "sha256": "sha256:f8481f3a914eb92e833112bab9139cd2e3b90434dbaa3a1cc62241f339ddaa78",
       "imports": [
         "../../host/product-context.js",
         "../../pool/peer-room.js",
         "../components/attachments.js",
+        "../components/interface-icons.js",
         "./constants.js",
         "./execution-ribbon.js",
         "./theme.js"
@@ -16041,7 +16043,7 @@
     {
       "path": "vendor/reploid/chat/workspace.js",
       "owner": "vendor",
-      "sha256": "sha256:8dc775a608dcbd4cdf26825c0dccf7cf6e9e605e83b2c91a457bd4b0aa623003",
+      "sha256": "sha256:c892a8deed4f9b24dfa8316a606ed30b9e8f621a5fb522a5408a84cd104f0327",
       "imports": [
         "../mesh/partitions/partition-contract.js",
         "../mesh/partitions/partition-ordered-publication.js",
@@ -16218,7 +16220,7 @@
     {
       "path": "vendor/reploid/mesh/legacy-generation.js",
       "owner": "vendor",
-      "sha256": "sha256:3ecf11a7047ff51fba609ad52390f80514c217fd35d55976c6eb30a8a7d0d152",
+      "sha256": "sha256:e4424baddc4d3f7be0ba9cd36ea3f90b8f9bdee082162ecc127addaaeea781af",
       "imports": [
         "../artifacts/receipt.js",
         "../config/index.js",
@@ -16232,7 +16234,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/automatic-ordered-partitions.js",
       "owner": "vendor",
-      "sha256": "sha256:4497b78420e6509163bb985b88217dc9a73086f9ee516b65ff431b49ec202f2a",
+      "sha256": "sha256:675429f8006a77cb1f7022465d081c40fe3abbffeafee55d6e43572e84fdcd22",
       "imports": [
         "../preparation-progress.js",
         "./partition-attempt-queue.js",
@@ -16256,7 +16258,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/automatic-partitions.js",
       "owner": "vendor",
-      "sha256": "sha256:fca7c81cf3b908f059f38ac5b62f6bfa0da3a934712a6975844407dabb067d7b",
+      "sha256": "sha256:a2eb56c542dccdf445cd49f903d8b62ec9bb29959b44422cde5b8640caf29274",
       "imports": [
         "../preparation-progress.js",
         "./automatic-ordered-partitions.js",
@@ -16592,7 +16594,7 @@
     {
       "path": "vendor/reploid/mesh/peer-identity.js",
       "owner": "vendor",
-      "sha256": "sha256:6ee36869a74b0e23f9dfef4f7de162dc8d33b2ca98ac052b2e7f3498a41a68ee",
+      "sha256": "sha256:ff8d4df930c2bbb26f2b4dbdf5833d66dc7595eb3b9f7edff12e9848fe3f96e3",
       "imports": [
         "../artifacts/identity.js",
         "./remote-generation-requests.js"
@@ -16609,7 +16611,7 @@
     {
       "path": "vendor/reploid/mesh/preparation-progress.js",
       "owner": "vendor",
-      "sha256": "sha256:0851f2d3d5d9e4692833534753ba63134b9f3934040a4655cef80cf58a64872a",
+      "sha256": "sha256:e96c88f01937c04990a4519e7ee67b4c033e51dc9e83026d4821d3f0d6410edd",
       "imports": []
     },
     {
@@ -16739,7 +16741,7 @@
     {
       "path": "vendor/reploid/retrieval/retrieval.js",
       "owner": "vendor",
-      "sha256": "sha256:cb87e8d45ee6cf273a15ec4b54df7ddc46ce700768104564fb077add811e9a30",
+      "sha256": "sha256:3958dbe2a93b5df5baca38e032843de45076d0c575701d27e1944af1362db008",
       "imports": [
         "./citations.js",
         "./claim-support.js",
@@ -16758,7 +16760,7 @@
     {
       "path": "vendor/reploid/retrieval/sources.js",
       "owner": "vendor",
-      "sha256": "sha256:12f646db0a5bfef876c19408a739f8fe1f6fdafa258d06969619656dee26b87b",
+      "sha256": "sha256:5358e5b88c280a3143c11f7c4926d0f960bd434d8ef2486500c087ee9a3e0fc3",
       "imports": [
         "./costs.js",
         "./policy.json",
@@ -16867,7 +16869,7 @@
     {
       "path": "vendor/reploid/transport/room.js",
       "owner": "vendor",
-      "sha256": "sha256:cd36a2058d9b5dead7dfb628309ee8e457ecc9b219e9d044323bf6abca370d1e",
+      "sha256": "sha256:896993c8e363490831a089307b9e6a6632e4d26495c2b2c8d861bb5fcf1c99ab",
       "imports": [
         "../config/index.js",
         "./swarm.js"
@@ -16886,7 +16888,7 @@
     {
       "path": "vendor/reploid/transport/swarm.js",
       "owner": "vendor",
-      "sha256": "sha256:2d5f293153b3af7968bc76712f8d47fd7762e9d4fd4b3f832905085001cb6d9f",
+      "sha256": "sha256:ff220df94e2c8e502e20f633edc0927bfb862cea252718cbe6035c274eb378d4",
       "imports": [
         "../config/index.js",
         "./introduction-bootstrap.js",
