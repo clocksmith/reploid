@@ -348,7 +348,14 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
         return !chat.active && !chat.unsettled && !chat.pendingInputs && !chat.unsettledInputs; });
   }
   async function reassess() {
-    if (!auto || !offer || !program || phase !== 'ready' || stopping || closed || moving
+    if (!auto || !offer || stopping || closed || moving || loading) return;
+    if (!program && phase === 'waiting') {
+      assignment = plan(null);
+      if (assignment.index === null) { notify(); return; }
+      stage = autoIdentity(assignment.index); await prepare();
+      return;
+    }
+    if (!program || phase !== 'ready'
       || Date.now() - readyAt < auto.dwellMs || !idle()) return;
     const next = plan(stage.index);
     assignment = next;
@@ -435,10 +442,9 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
         // The contributor's own choice from what discovery observed; never a remote assignment.
         notify(); await discovery.refresh();
         if (!offer || stopping || closed) return;
-        const next = plan(null);
-        assignment = next; stage = autoIdentity(next.index);
-      }
-      await prepare(); if (offer && !stopping && phase === 'ready') await tick();
+        await reassess();
+      } else await prepare();
+      if (offer && !stopping && phase === 'ready') await tick();
     },
     stop() {
       if (stopping) return stopping;
