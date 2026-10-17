@@ -322,6 +322,10 @@
           "destination": "/index.html"
         },
         {
+          "source": "/experiments",
+          "destination": "/index.html"
+        },
+        {
           "source": "/ask",
           "destination": "/index.html"
         },

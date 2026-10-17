@@ -152,6 +152,7 @@ describe('poolday home navigation', () => {
 
   it('derives visible nav buttons and page copy from one route list', () => {
     expect(POOLDAY_ROUTE_DEFINITIONS.map((route) => route.id)).toEqual([
+      'experiments',
       'home',
       'ask',
       'network',
@@ -165,6 +166,7 @@ describe('poolday home navigation', () => {
       { id: 'improve', path: '/improve', label: 'Changes' }
     ]);
     expect(PRODUCT_ROUTES).toEqual({
+      '/experiments': 'experiments',
       '/': 'home',
       '/ask': 'ask',
       '/network': 'network',

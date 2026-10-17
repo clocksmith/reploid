@@ -1,0 +1,20 @@
+{
+  "at": "2026-10-17T01:43:15.745Z",
+  "models": [
+    {
+      "id": "qwen-3-5-0-8b-q4k-ehaf16",
+      "label": "Qwen 3.5 0.8B"
+    },
+    {
+      "id": "qwen-3-5-2b-q4k-ehaf16",
+      "label": "Qwen 3.5 2B"
+    },
+    {
+      "id": "qwen3-8-27b-text-q4k-ehaf16",
+      "label": "Qwen 3.8 27B"
+    }
+  ],
+  "startEnabled": true,
+  "errors": [],
+  "scope": "Read-only browser discovery; no model requests"
+}

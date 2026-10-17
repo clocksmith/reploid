@@ -3,6 +3,10 @@
   "package": "reploid",
   "version": "0.1.0",
   "exports": {
+    "./plugins": {
+      "types": "./src/plugins/index.d.ts",
+      "import": "./src/plugins/index.js"
+    },
     "./chat": {
       "types": "./src/chat/index.d.ts",
       "import": "./src/chat/index.js"
@@ -1191,6 +1195,21 @@
       "path": "mesh/web-access-policy.json",
       "bytes": 249,
       "sha256": "a6db052c298ab805db0ec691047808e2a4752ddedd1332a13d5ba2244a8384b3"
+    },
+    {
+      "path": "plugins/index.d.ts",
+      "bytes": 1250,
+      "sha256": "b9318aa937de89ce67f105d62a01afb988de1e6051b282906112ce2a6ce877ac"
+    },
+    {
+      "path": "plugins/index.js",
+      "bytes": 50,
+      "sha256": "8d99d07b673a3c4838e8cd825bd62c602da27a43a9981bcd935f2f4543b88abd"
+    },
+    {
+      "path": "plugins/session.js",
+      "bytes": 6597,
+      "sha256": "1c4795f60b31d1125278037a2143e54636270bbc3818c51e3b6b55a279716208"
     },
     {
       "path": "retrieval/citations.js",

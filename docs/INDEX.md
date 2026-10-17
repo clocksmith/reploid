@@ -38,6 +38,7 @@ Typed model operations: [Doppler decisions in Reploid](doppler-choice-scoring.md
 ## Core Documentation
 
 ### Architecture
+- **[Research and game plugins](./plugin-architecture.md)** - Versioned activity rules, capability ports, persisted sessions, and the model-imitation pilot.
 - **[Open mesh architecture](./open-mesh-architecture.md)** - Requested chat experience, discovery, authenticated pieces, automatic placement, Doppler execution, recovery, resource bounds and acceptance requirements; design, not release evidence
 - **[docs/system-architecture.md](./system-architecture.md)** - Agent and VFS substrate architecture
 - **[Reploid, Doppler, and Doe diagram](./diagrams/reploid-diagram/README.md)** - Editable interactive views of intended relationships, operations, improvement and recovery; not implementation evidence

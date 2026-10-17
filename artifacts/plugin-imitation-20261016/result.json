@@ -1,0 +1,6 @@
+{
+  "scope": "Browser UI with injected model responses; no research or physical inference result",
+  "screenshots": 20,
+  "errors": [],
+  "passed": true
+}

@@ -117,3 +117,18 @@
 
 .pool-home:not([data-pool-route-id='home']):not([data-pool-route-id='network']) .chat-network-rail { display: contents; }
 .pool-home:not([data-pool-route-id='home']):not([data-pool-route-id='network']) .chat-network-rail > :is(.chat-rail-heading, .chat-network-toggle) { display: none; }
+/* Built-in activities reuse surface/control primitives; rules live in plugins. */
+.pool-home > .pool-route-content > .pool-plugin-shell { max-width: var(--pool-size-960); margin: var(--pool-size-32) auto; display: grid; gap: var(--pool-size-24); }
+.pool-home[data-pool-route-id='experiments'] [data-inspector-navigation] { display: none; }
+.pool-plugin-shell > .pool-button { justify-self: start; }
+.pool-plugin-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--pool-size-24); }
+.pool-plugin-grid > label { display: grid; gap: var(--pool-size-8); }
+.pool-plugin-grid select { max-width: 100%; }
+.pool-plugin-answer { padding: var(--pool-size-24); min-width: 0; }
+.pool-plugin-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.pool-plugin-actions { display: flex; flex-wrap: wrap; gap: var(--pool-size-16); }
+.pool-plugin-choice { display: inline-flex; align-items: center; gap: var(--pool-size-8); margin: var(--pool-size-8); }
+.pool-plugin-shell table { width: 100%; text-align: left; }
+.pool-plugin-shell td, .pool-plugin-shell th { padding: var(--pool-size-8); }
+.pool-plugin-shell li { overflow-wrap: anywhere; }
+@media (max-width: 760px) { .pool-plugin-grid { grid-template-columns: minmax(0, 1fr); } }

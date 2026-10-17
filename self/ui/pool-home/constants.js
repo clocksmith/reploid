@@ -18,6 +18,10 @@ const createPooldayRoute = (route) => Object.freeze({
 
 export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
   createPooldayRoute({
+    id: 'experiments', path: '/experiments', label: 'Experiments', primary: false,
+    title: 'Experiments', eyebrow: 'Research plugins', body: 'Run a study and inspect its evidence.'
+  }),
+  createPooldayRoute({
     id: 'home',
     primary: false,
     path: '/',
