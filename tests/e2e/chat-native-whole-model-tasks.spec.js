@@ -32,8 +32,10 @@ test('prepared whole-model service completes frozen independent chat tasks', asy
       await page.locator(`.chat-model-choices input[value="${modelId}"]`).filter({ visible: true }).check();
       await page.locator('[data-close-inspector]').click();
       let threadId = null;
+      const expectedHistory = [];
       for (const [turnIndex, turn] of (task.turns || [task]).entries()) {
         const prompt = (turnIndex === 0 ? suite.context || '' : '') + turn.prompt;
+        expectedHistory.push({ role: 'user', content: prompt });
         const previousAttempts = new Set((await readChatWorkspace(page))?.threads.flatMap(item => item.attempts.map(attempt => attempt.id)) ?? []);
         await page.locator('[data-composer-input]').fill(prompt);
         await expect(page.locator('[data-composer-send]')).toBeEnabled({ timeout: 60000 });
@@ -57,11 +59,17 @@ test('prepared whole-model service completes frozen independent chat tasks', asy
           return attempt?.status;
         }, { timeout: 60000, intervals: [100] }).toBe('completed');
         threadId = thread.id;
-        const answer = thread.messages.at(-1).content.trim();
+        const responseText = thread.messages.at(-1).content;
+        const answer = responseText.trim();
         const id = task.turns ? `${task.id}/${turnIndex + 1}` : task.id;
-        results.push({ id, prompt, expected: turn.expectedJson ?? turn.expected, answer, firstOutputMs,
+        results.push({ id, prompt, expected: turn.expectedJson ?? turn.expected, answer, responseText, firstOutputMs,
           elapsedMs: performance.now() - start, attempt: thread.attempts.at(-1) });
-        expect(thread.attempts.at(-1).request.messages.filter(message => message.role === 'user').at(-1).content).toBe(prompt);
+        const system = [thread.systemContext?.content, thread.purpose].filter(Boolean).join('\n\n');
+        expect(thread.attempts.at(-1).request.messages).toEqual([
+          ...(system ? [{ role: 'system', content: system }] : []), ...expectedHistory
+        ]);
+        // Carry the actual untrimmed answer, including an incorrect answer, into the next request.
+        expectedHistory.push({ role: 'assistant', content: responseText });
         expect.soft(thread.attempts.at(-1).execution).toMatchObject({ placement: 'peer-whole-request', modelId, modelIdentity: model.identity });
         if ('expectedJson' in turn) {
           let parsed;

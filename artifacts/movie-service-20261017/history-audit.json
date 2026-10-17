@@ -1,0 +1,118 @@
+{
+  "schema": "reploid.retained-task-history-audit/v1",
+  "scope": "Offline audit of retained requester requests; no GPU replay or provider-side input token capture. Prior answers are the receipt text; untrimmed provider bytes were not retained separately.",
+  "suiteSha256": "ba41d5e6f3338d30fe7da4a1643db2a346874d2aef5c6c9ecfd84961c2da7c71",
+  "receiptSha256": "4cfc34b265ebb76fd829e8c23b4455c22f3a72c1c6eb536244d272182650a18f",
+  "historyPassed": 12,
+  "exactAnswersPassed": 5,
+  "results": [
+    {
+      "id": "format-followup/1",
+      "requestHistoryMatches": true,
+      "requestSha256": "77e2d45a2bff46290bb6cea9eecaa554200083c3db5be73fb524e94bd2d2b32a",
+      "messageCount": 2,
+      "promptTokenCount": 297,
+      "stopReason": "stop-token",
+      "exactAnswerMatches": true
+    },
+    {
+      "id": "format-followup/2",
+      "requestHistoryMatches": true,
+      "requestSha256": "1869ef859e99d3ccd9a51ee0a461ee324ec1550fde2b0a7069cd6b9f8955d19f",
+      "messageCount": 4,
+      "promptTokenCount": 321,
+      "stopReason": "stop-token",
+      "exactAnswerMatches": false
+    },
+    {
+      "id": "group-hard-constraints/1",
+      "requestHistoryMatches": true,
+      "requestSha256": "b0b7d0a70a9fac2fb34884030ffb478e76020c21fd36af384548bf06a2f6f7f2",
+      "messageCount": 2,
+      "promptTokenCount": 309,
+      "stopReason": "stop-token",
+      "exactAnswerMatches": false
+    },
+    {
+      "id": "group-hard-constraints/2",
+      "requestHistoryMatches": true,
+      "requestSha256": "b2a60d83a0991119edcc5c2759290978d10ff3b3f62ed7f1a298da55705bf956",
+      "messageCount": 4,
+      "promptTokenCount": 335,
+      "stopReason": "stop-token",
+      "exactAnswerMatches": false
+    },
+    {
+      "id": "subtitles-and-time/1",
+      "requestHistoryMatches": true,
+      "requestSha256": "55849420633c4e359d63e7d36a0942e53bb1ad74cf608473056ff6ff94fc440c",
+      "messageCount": 2,
+      "promptTokenCount": 295,
+      "stopReason": "stop-token",
+      "exactAnswerMatches": true
+    },
+    {
+      "id": "subtitles-and-time/2",
+      "requestHistoryMatches": true,
+      "requestSha256": "de9454ca75a76257468e4fd37aeda1b8e3cf75820f5b0e989780780e4ee6876f",
+      "messageCount": 4,
+      "promptTokenCount": 322,
+      "stopReason": "stop-token",
+      "exactAnswerMatches": false
+    },
+    {
+      "id": "rank-and-exclude/1",
+      "requestHistoryMatches": true,
+      "requestSha256": "53363ae25f1ef05a5c97f95646a862a2ca912270d46390c82197912733b2bb98",
+      "messageCount": 2,
+      "promptTokenCount": 287,
+      "stopReason": "stop-token",
+      "exactAnswerMatches": false
+    },
+    {
+      "id": "rank-and-exclude/2",
+      "requestHistoryMatches": true,
+      "requestSha256": "0b183b44e4550b4843c8af4a0b65449cfd344b06e2bc7881e83d6691c24d2679",
+      "messageCount": 4,
+      "promptTokenCount": 315,
+      "stopReason": "stop-token",
+      "exactAnswerMatches": false
+    },
+    {
+      "id": "missing-availability/1",
+      "requestHistoryMatches": true,
+      "requestSha256": "db1cef140aff78f71bc05641ae7878494551808d4a767632bb1867987bd12dec",
+      "messageCount": 2,
+      "promptTokenCount": 290,
+      "stopReason": "stop-token",
+      "exactAnswerMatches": false
+    },
+    {
+      "id": "missing-availability/2",
+      "requestHistoryMatches": true,
+      "requestSha256": "f16aa407b0b1b0ac8e3040e24b8cdf64793b3684d86e0897b3b157033b3912c1",
+      "messageCount": 4,
+      "promptTokenCount": 323,
+      "stopReason": "stop-token",
+      "exactAnswerMatches": true
+    },
+    {
+      "id": "audio-is-not-subtitles/1",
+      "requestHistoryMatches": true,
+      "requestSha256": "59e96ad13a9fe770bc039de3fc548cbc02efa0c230af956e85891e7ca414fdec",
+      "messageCount": 2,
+      "promptTokenCount": 291,
+      "stopReason": "stop-token",
+      "exactAnswerMatches": true
+    },
+    {
+      "id": "audio-is-not-subtitles/2",
+      "requestHistoryMatches": true,
+      "requestSha256": "b3842ef0676769d5a35b46fdde4779ce857e0cf680bd46852618932e20f5dc7c",
+      "messageCount": 4,
+      "promptTokenCount": 316,
+      "stopReason": "stop-token",
+      "exactAnswerMatches": true
+    }
+  ]
+}

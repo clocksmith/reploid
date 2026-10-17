@@ -43,6 +43,42 @@ The [frozen catalog and prompts](../../tests/fixtures/movie-service-tasks.json) 
 
 Two failing turns conveyed the intended semantic answer but broke the frozen output contract. Five failed task constraints; follow-up outcomes can inherit earlier mistakes, so they are not independent samples. Even if the two formatting failures were accepted, 7/12 would still fail the frozen 12/12 gate. No expected answer, prompt or acceptance threshold was relaxed after seeing outputs. Movie picking remains a plausible recurring task to investigate, not a validated use case for this candidate. No live streaming catalog, search integration or human preference has been tested.
 
+### Request history audit
+
+The [offline audit](history-audit.json) checks the original suite digest, all twelve
+request message sequences, distinct attempts, per-conversation thread identity,
+model identity and completion reasons. Each sequence contains its supplied catalog
+and question followed by the actual preceding answer and next question. All twelve
+match, including all six follow-ups after reload. All terminate at a stop token.
+The audit hashes the unchanged suite and receipt; it performs no model execution.
+
+The first observable task failure is `format-followup/2`: the request retains the
+under-90-minute constraint and changes the format to animated, but the answer is
+Clover (96 minutes), rather than Pine (81). The requester did not drop that
+constraint. The recorded `ca228707` workspace constructs completed history; its
+resident provider clones those messages, and its provider resets generation state
+before passing them to Doppler. The receipt does not retain provider-side input
+token IDs, so this audit cannot distinguish model limitations, prompt/template
+effects and numerical execution errors. No production repair is established.
+
+`rank-and-exclude/2` also has a dependent oracle: the frozen expected Cedar assumes
+the first answer was Pine. The actual first answer was Cedar, so "exclude that one"
+refers to Cedar in the delivered conversation. The returned Clover still is not
+the shortest eligible comedy, but this turn cannot be counted as an independent
+clean exclusion test. Preserve the 5/12 rejection. Future isolated exclusion tests
+must name the excluded title or score against the actual preceding answer under
+a rule frozen before execution.
+
+The physical task harness now asserts the complete request history, including the
+system context, rather than only the latest user message, and retains untrimmed
+response text separately from the existing trimmed scoring field. The existing
+workspace isolation test now crosses a save/restore boundary and asserts that
+restoration does not resend. All 16 workspace tests pass; scoped syntax and lint
+checks pass. These checks do not rerun the physical workload or improve its score.
+The next causal comparison needs the exact failed requests and provider-rendered
+input tokens matched against an independent same-model control before changing
+production prompts, model policy or numerical code.
+
 ## Useful preparation and contribution isolation
 
 Automatic ordered-stage contributors previously prepared a redundant stage even when every stage was already supplied, or an isolated stage when too few willing participants existed to complete a route. The existing policy now leaves these contributors waiting without loading weights. It prepares missing stages only when observed suppliers plus willing joiners cover a prospective route; excess joiners wait. With explicit replica policy, one joiner addresses observed queue/bottleneck demand and others wait while that replica prepares. Waiting contributors re-evaluate discovery and can fill a departed supplier's gap. Stopping while waiting prevents later preparation. Existing busy residents stay pinned; request placement still requires actual prepared capacity.

@@ -97,16 +97,20 @@ describe('conversation workspace', () => {
     expect(restored.getState().threads[0].title).toBe('Friendly title'); await restored.close();
   });
 
-  it('retains multi-turn context only inside its conversation', async () => {
+  it('retains multi-turn context only inside its conversation after reload', async () => {
     const execute = vi.fn(async request => result(request, 'A response'));
-    const { app } = fixture(execute);
+    const { app, options } = fixture(execute);
     const a = app.createThread({ model, purpose: 'Explain clearly' }), b = app.createThread({ model });
-    await app.send(a, 'First question'); await app.send(b, 'Different question'); await app.send(a, 'Follow-up');
+    await app.send(a, 'First question'); await app.send(b, 'Different question');
+    await app.close();
+    const restored = createChatWorkspace(options);
+    expect(execute).toHaveBeenCalledTimes(2);
+    await restored.send(a, 'Follow-up');
     expect(execute.mock.calls[2][0].messages).toEqual([
       { role: 'system', content: 'Explain clearly' }, { role: 'user', content: 'First question' },
       { role: 'assistant', content: 'A response' }, { role: 'user', content: 'Follow-up' }
     ]);
-    await app.close();
+    await restored.close();
   });
 
   it('requires the exact thread, attempt and disclosure identity for approval', async () => {
