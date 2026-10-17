@@ -1,0 +1,18 @@
+{
+  "schema": "reploid.whole-model-service-campaign/v1",
+  "applicationSource": "ca228707",
+  "dopplerSource": "8b211c3f",
+  "archiveSha256": "6b057b0e526a7a18afcefd655cb2fc4acb96e958962eee5a67b3caee231be1f9",
+  "baseUrl": "http://localhost:8127",
+  "room": "reploid-swarm-qwen-service-20261017",
+  "modelId": "qwen-3-5-2b-q4k-ehaf16",
+  "modelDirectory": "/Users/xyz/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
+  "participantEntry": "/Users/xyz/deco/reploid/.tmp/qwen-service-20261017/server/native-participant.js",
+  "stateDirectory": "/Users/xyz/deco/reploid/.tmp/qwen-service-20261017/state",
+  "maxConcurrentRequests": 2,
+  "nativeHostCommit": "721cd8625cb0171e0e84c3034068c3f20fcf00f9",
+  "nativeHostFiles": {
+    "server/native-participant.js": "19ff0d6b5e06d26b778637ac0583844f5c8a849ce93d69732e65396959ff9702",
+    "server/native-whole-model.js": "3b41095f13d9a73de4f2ae39acab1cd5efdb945af57eb9e11d1cd0d91aee96c9"
+  }
+}

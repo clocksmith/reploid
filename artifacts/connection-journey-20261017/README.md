@@ -36,6 +36,8 @@ npx playwright test --config tests/playwright.config.js \
 
 ## CI failures remain open
 
+Update after the complete isolated service campaign: hosted runs [39046487269](https://github.com/clocksmith/reploid/actions/runs/39046487269) (`721cd862`) and [39047399689](https://github.com/clocksmith/reploid/actions/runs/39047399689) (`18af09cd`) passed lint but **failed unit/integration tests**. Chromium installation, installed-package smoke and browser-boot smoke were again **skipped**. [First job steps](ci-39046487269.json), [latest job steps](ci-39047399689.json), [retained failure log](ci-39046487269.log.gz). These remain open; the [passing local whole-model lifecycle](../model-service-20261017/README.md) does not substitute for them.
+
 Hosted runs [39038880441](https://github.com/clocksmith/reploid/actions/runs/39038880441) and [39043016731](https://github.com/clocksmith/reploid/actions/runs/39043016731) failed lint and skipped unit/integration tests, Chromium installation, installed-package smoke and browser-boot smoke. Earlier failed runs remain failed; focused passes do not close them. [Latest retained job steps](ci-39043016731.json), [failed lint log](ci-39043016731.log).
 
 The six undefined-global lint errors are corrected with explicit `globalThis` references in serialized browser callbacks. This preserves their browser execution and top-frame/origin guard. No lint rule was disabled. Lint over all tracked JavaScript/MJS files passed ([log](tracked-lint.log.gz)); the unrestricted local `npm run lint` scan was stopped because it also traversed temporary historical snapshots. The hosted clean-checkout lint run remains separate.
