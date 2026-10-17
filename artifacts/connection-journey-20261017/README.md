@@ -1,6 +1,6 @@
 # Connection journey verification, 2026-10-17
 
-Reconnect and stale-update coverage is complete for the exercised boundaries below. No telemetry was added. The deployed Qwen3.5 2B whole-model journey passed independently of the local presentation fixture. Repository CI is **not green**.
+Reconnect and stale-update coverage is complete for the exercised boundaries below. No telemetry was added. The deployed Qwen3.5 2B whole-model journey passed independently of the local presentation fixture. Repository CI was **not green at this observation**; the later [clean-checkout repair](../ci-repair-20261017/README.md) records the successful run.
 
 ## Connection and UI evidence
 
@@ -34,7 +34,15 @@ npx playwright test --config tests/playwright.config.js \
   tests/e2e/chat-native-whole-model.spec.js --project chromium
 ```
 
-## CI failures remain open
+## CI follow-up
+
+The later clean hosted run at `a11f27dc` passed all Smoke steps, including the
+previously skipped Chromium installation, installed-package and browser checks.
+See the [retained repair receipt](../ci-repair-20261017/README.md). Historical
+failures below remain failures; the suite's individual skips remain unqualified.
+
+## Earlier CI failures
+
 
 Update after the complete isolated service campaign: hosted runs [39046487269](https://github.com/clocksmith/reploid/actions/runs/39046487269) (`721cd862`) and [39047399689](https://github.com/clocksmith/reploid/actions/runs/39047399689) (`18af09cd`) passed lint but **failed unit/integration tests**. Chromium installation, installed-package smoke and browser-boot smoke were again **skipped**. [First job steps](ci-39046487269.json), [latest job steps](ci-39047399689.json), [retained failure log](ci-39046487269.log.gz). These remain open; the [passing local whole-model lifecycle](../model-service-20261017/README.md) does not substitute for them.
 
