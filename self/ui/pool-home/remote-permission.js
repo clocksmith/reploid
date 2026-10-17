@@ -74,5 +74,5 @@ export function updateRemotePermissionSettings(root, state) {
   root.querySelector('[data-remote-answers-toggle]').setAttribute('aria-checked', String(enabled));
   root.querySelector('[data-remote-permission-status]').textContent = enabled
     ? "Your messages and conversation context can be sent to contributors' computers on this network."
-    : 'Ask before sending conversations to other computers.';
+    : 'Network answers are off. Turn this on to use contributors, or choose this device.';
 }

@@ -170,37 +170,35 @@ suppliers may retain a complete model; preserve full-model seeding under REP-5.
 Remote executors receive disclosed text, tokens and intermediate representations;
 tokens, transport encryption and signatures do not establish confidential execution.
 Describe prior turns and attached/retrieved context before relying on a grant.
-Model approval alone does not establish trust in arbitrary computers. Recipient authorization MUST be explicit and revocable through
-the explained, one-time permission. Renew approval only outside the granted
-recipient policy/disclosure scope or when other authorized terms are exceeded,
-not whenever an eligible computer changes between requests. The existing one-time
-network permission can satisfy recipient-policy authorization when its recorded
-scope explicitly covers the selected recipients, model and disclosure. Record actual
-recipients and never silently switch an active attempt's route. Revocation stops
-new disclosures; it cannot erase information already delivered.
+Model selection does not establish trust in arbitrary computers. Sending a message
+or explicitly retrying authorizes eligible contributors under the app's network-answer
+setting, model and disclosure scope. Network answers default on; no contributor
+permission popup interrupts sending. The host records that setting authorization
+separately from legacy dialog consent, binds actual recipients, and never silently
+switches an active attempt's route. Turning network answers off stops new remote
+disclosures and gives an inline explanation; local execution remains available.
+Revocation cannot erase information already delivered.
 
-**Sensitive work (adopted 2026-10-15).** Community executors receive private inputs
-only through the requester's explicit authorization: the explained one-time permission
-whose recorded scope covers them, or a per-answer grant. Otherwise a request MUST use
-local execution, a private pool the requester joined by invitation, or separately
-approved hosted supply that is labeled and priced separately. Fail closed when
-recipient eligibility or disclosure scope is unspecified; participation, payment and
-signatures confer no trusted status. Existing grants remain mandatory regardless. Any
-approved-operator class needs defined admission criteria, identity and scope; it does
-not prove secrecy.
+**Input disclosure (updated 2026-10-17).** Send/Retry authorize the conversation
+input needed for the selected request, including applicable prior turns and attached
+context. Settings explain this disclosure. Recipient eligibility and exact model
+identity remain enforced; participation, payment and signatures confer no trusted
+status. This request authorization grants no contributor capacity, downloads,
+spending beyond existing limits, or self-modification authority.
 Stopping contribution MUST preserve history and MUST NOT directly cancel
 unrelated requests. Loss of indispensable capacity may require waiting or explicit
 retry. Saved history MUST NOT be represented as recovered inference state.
 
-**Retrieval permission.** A search-backed answer MUST have its own per-answer
-permission that discloses, before anything is sent: which search service, or which
-person-chosen search server, receives the query; who fetches the result pages (this
-device or Reploid's server); which execution contributors receive the retrieved
-passages; and that files and unrelated conversation history are excluded. Each
-provider's exact wording is an owner-approved, versioned template. The permission
-record binds the shown template's identity, version and text, and for a person-chosen
-server its host. A template for one provider never authorizes another; adding or
-changing a provider needs an approved template, not a contract revision. Retrieved
-context sent for synthesis is limited to the current question and those passages.
+**Search tools (updated 2026-10-17).** Sending with search enabled, or explicitly
+retrying a search answer, starts the selected search tool without a permission popup.
+The thinking loader shows observed search, page-reading and result-preparation activity.
+Each attempt records its query, selected search service or configured server, search
+contributor where applicable, and verified execution recipients. The host records
+Send/Retry authorization distinctly from legacy dialog consent; a fresh retry gets a
+fresh record. Provider policy remains versioned and bound to the selected service;
+it is not represented as text the person approved in a dialog. Retrieved context
+sent for synthesis is limited to the current question and retrieved passages; files
+and unrelated conversation history stay excluded from search. An active attempt
+cannot silently switch its search provider or execution recipients.
 
 *Last updated: October 2026*

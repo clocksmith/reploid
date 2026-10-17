@@ -8,9 +8,9 @@ Boot from trusted seeds.
 
 ## Authority
 - Owns seeding/startup/tools, independent threads, opt-in [earning client](earning/CATSCAN.md).
-- Disclosure requires revocable contributor permissions (scope/disclosure/catalog), thread grants or per-server/per-answer search permission.
-- Network answers default on. Sending records permission citing host policy;
-  dialog consent stays distinct. Persist opt-outs; preserve local-only/search boundaries.
+- Disclosure requires revocable contributor/thread/search grants.
+- Network answers default on. Send/Retry bind host-policy grants without dialogs.
+  Persist opt-outs; distinguish legacy consent; preserve local-only/search boundaries.
 - Separates helpers/swarms/previews/isolation/evaluation/activation from Packs.
 - Tasks validate; repositories version; providers execute; views are immutable.
 - Excludes policy/module semantics/recovery-root mutation.
