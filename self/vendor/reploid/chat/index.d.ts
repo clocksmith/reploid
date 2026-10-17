@@ -81,7 +81,7 @@ export interface ChatResult extends ChatEnvelope {
 }
 export interface ChatAttempt {
   /** Text is authoritative only in requester-owned publication records (canonical or ordinary ordered). */
-  publicationMode?: 'canonical';
+  publicationMode?: 'canonical' | 'whole-model';
   id: string;
   threadId: string;
   userMessageId: string;

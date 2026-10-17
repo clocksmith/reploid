@@ -64,7 +64,7 @@ export async function openCanonicalChatHistory({ name, maxWorkspaceBytes, maxThr
   try {
     store = await openStore({ name, maxConversations: 1, maxConversationBytes: maxWorkspaceBytes, openTimeoutMs, indexedDB });
     const expected = expectedWriterEpoch === 'stored' ? (await store.read('workspace'))?.writerEpoch ?? null : expectedWriterEpoch;
-    history = await openCanonicalWorkspaceHistory({ store, key: 'workspace', meshId, participantId, writerEpoch,
+    history = await openCanonicalWorkspaceHistory({ allowWholeModel: ordered, store, key: 'workspace', meshId, participantId, writerEpoch,
       expectedWriterEpoch: expected, legacy, maxWorkspaceBytes, maxThreads,
       publicationOptions: () => ({ doppler,
         authorize: scope => ['writer', 'read', 'replay'].includes(scope.action) || authorizeExecution(scope) === true,

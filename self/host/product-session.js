@@ -49,7 +49,7 @@ async function openOrderedRequesterChat({ chatOptions, requesterIdentity, ports 
   // The existing localStorage workspace and drafts migrate once through the legacy import.
   return openCanonicalChatSession({ ...chatOptions, ...LOCAL_HISTORY_IDENTITY, requesterIdentity,
     history: { mode: 'transactional', publication: 'ordered',
-      reason: 'Only prepared ordered routes publish into this history; local and whole-request models are unavailable.' },
+      reason: 'Split answers retain verified publication records; whole-model answers retain their own request and response records.' },
     canonical: { name: database, ...bounds, runtime, publication: 'ordered', expectedWriterEpoch: 'stored', release,
       ...(openStore ? { openStore } : {}) } });
 }

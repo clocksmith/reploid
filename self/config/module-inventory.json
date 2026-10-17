@@ -2173,7 +2173,7 @@
     {
       "path": "self/host/chat-history.js",
       "owner": "self",
-      "sha256": "sha256:96b68694074befc516656ab022005725e8371391915259b054e7bd90c19360c9",
+      "sha256": "sha256:daeed4705e84c43bbd16e388406aed716e5f93823dcc63df67bf9cb4ae07d94a",
       "imports": [
         "../vendor/reploid/adapters/browser.js",
         "../vendor/reploid/chat/index.js",
@@ -2191,7 +2191,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:bba3d651a94a7512eab5a301f9832d13e3eb8e46e3b5df5ccd9b8835f152da75",
+      "sha256": "sha256:2194f5d85e75c69548f628e07ffd94525c52210f8ae62dd7b5700f8dab3fe306",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -2316,7 +2316,7 @@
     {
       "path": "self/host/product-session.js",
       "owner": "self",
-      "sha256": "sha256:1a44e2f7a4ca3dde492944d6f1c23db72d018dccb46a88cf0c03226b7cb7ad78",
+      "sha256": "sha256:88c8636582e13d636049f792cd386b9abb490368da5c48007f6dedd1cc236a5a",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/ordered-participation.json",
@@ -3342,7 +3342,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:f6ec82aa5c62a7e242c23f2e98171e31e77739c281181176bb9859464cdd8906",
+      "sha256": "sha256:1b1c81e5a12ffdc1d09f996c06c7d7653068d7037699d47e08dd107d3f6cd355",
       "imports": []
     },
     {
@@ -15982,7 +15982,7 @@
     {
       "path": "vendor/reploid/chat/workspace-history.js",
       "owner": "vendor",
-      "sha256": "sha256:29a0406074b12dfd8ff46c51517a585a24f2599a9fa0b59c649d2ab180973526",
+      "sha256": "sha256:60f8c432e9773a15d259d5574eca494fe37898c98601afe935267d493168d6c4",
       "imports": [
         "./workspace-publication.js"
       ]
@@ -15999,7 +15999,7 @@
     {
       "path": "vendor/reploid/chat/workspace.js",
       "owner": "vendor",
-      "sha256": "sha256:ff834960d15dea754312d2fb1ea937e234c580ff82252b358b08ade58b856b8d",
+      "sha256": "sha256:8dc775a608dcbd4cdf26825c0dccf7cf6e9e605e83b2c91a457bd4b0aa623003",
       "imports": [
         "../mesh/partitions/partition-contract.js",
         "../mesh/partitions/partition-ordered-publication.js",

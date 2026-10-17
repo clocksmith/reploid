@@ -181,12 +181,13 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
     assert(thread.messages.length < limits.maxMessagesPerThread, 'Conversation history limit reached');
     const retriever = request.retrieval ? routeFor(request.retrieval).retriever : null;
     const controller = new AbortController();
+    const published = transactional && !(store.supportsWholeModel === true && !request.model.partition);
     // publicationMode 'canonical' is the persisted marker for requester-published output, from either
     // canonical two-stage or ordinary ordered records; it does not mean canonical decoding. Saved
     // histories already hold this value, so it is kept rather than renamed.
     const attempt = { id: id(), threadId: thread.id, userMessageId, responseId: id(), retryOf,
       status: 'queued', createdAt: now(), finishedAt: null, error: null, approval: null,
-      execution: null, authorization: null, ...(transactional ? { publicationMode: 'canonical' } : {}), request: copy(request),
+      execution: null, authorization: null, ...(transactional ? { publicationMode: published ? 'canonical' : 'whole-model' } : {}), request: copy(request),
       systemContext: copy(retryOf ? thread.attempts.find(item => item.id === retryOf)?.systemContext ?? null : thread.systemContext),
       // Each attempt retrieves afresh; a retry never reuses another attempt's sources or search permission.
       ...(request.retrieval ? { retrieval: retriever.pending(request.retrieval, now()) } : {}),
@@ -224,13 +225,13 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
           dispatched = await retriever.dispatch(request, attempt.retrieval);
         }
         if (transactional) await store.assertCurrentWriter();
-        publication = transactional ? await store.publication(thread.id) : undefined;
+        publication = published ? await store.publication(thread.id) : undefined;
         // retryOf lets the host keep an explicit retry under the acceptance its failed attempt held.
         const result = await execute(copy({ ...dispatched, threadId: thread.id, attemptId: attempt.id,
           meshId, participantId, ...(retryOf ? { retryOf } : {}) }), {
           signal: controller.signal,
           authorizationExpiresAt: () => live() ? attempt.authorization?.expiresAt ?? null : null,
-          ...(transactional ? { publication, publisherEpoch: store.writerEpoch,
+          ...(published ? { publication, publisherEpoch: store.writerEpoch,
             async onPublished(record) {
               controller.signal.throwIfAborted();
               const projection = await store.project(thread.id, attempt.id, record);
@@ -244,7 +245,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
             } } : {}),
           onDelta(envelope) {
             if (!live() || !matches(envelope)) return;
-            assert(!transactional, 'Canonical response requires its saved publication');
+            assert(!published, 'Canonical response requires its saved publication');
             assert(Number.isSafeInteger(envelope.sequence) && envelope.sequence >= 0, 'Invalid response sequence');
             if (envelope.sequence < run.nextSequence) return;
             assert(envelope.sequence === run.nextSequence, 'Response stream has a gap');
@@ -279,7 +280,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
             'Invalid execution authorization window');
             assert(!run.approval, 'An approval is already pending');
             const scope = disclosureScope(request, preview, requester()), grant = matchingThreadGrant(thread.grants, scope);
-            if (transactional) assert(publishedDisclosures.has(scope?.disclosure), 'Canonical disclosure requires exact verified partition recipients');
+            if (published) assert(publishedDisclosures.has(scope?.disclosure), 'Canonical disclosure requires exact verified partition recipients');
             // Retrieved passages go only to verified recipients the per-answer search permission listed.
             if (attempt.searchPermission) assert(scope && disclosureRecipients(scope, preview)
               .every(recipient => attempt.searchPermission.recipients.includes(recipient)), SEARCH_RECIPIENTS_CHANGED);
@@ -341,7 +342,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
           && JSON.stringify(result.adapterIdentities) === JSON.stringify((request.model.adapters || []).map(adapter => adapter.identity)), 'Response identity mismatch');
         assert(typeof result.content === 'string'
           && result.content.length <= limits.maxResponseCharacters, 'Invalid completed response');
-        assert(transactional ? run.publicationTerminal === true && result.content === response.content
+        assert(published ? run.publicationTerminal === true && result.content === response.content
           : !response.content || result.content === response.content, 'Completed response differs from its stream');
         if (transactional) await store.assertCurrentWriter();
         attempt.execution = copy(result.execution || attempt.execution);
@@ -350,7 +351,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         response.content = result.content;
         assert(!['max-tokens', 'length', 'context-limit'].includes(attempt.execution?.stopReason),
           'The answer reached its generation limit and is incomplete. Its partial text is preserved; retry starts a new attempt.');
-        assert(transactional || result.content.trim(), 'Invalid completed response');
+        assert(published || result.content.trim(), 'Invalid completed response');
         // Mechanical citation evidence for the finished answer, with its verification cost entry. A stop during
         // checking leaves the rest unverified. Costs stay in the record, never in the conversation text.
         if (attempt.retrieval) attempt.retrieval = withVerification(attempt.retrieval,
@@ -358,7 +359,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         response.status = 'completed'; attempt.status = 'completed';
       } catch (error) {
         let cancelled = controller.signal.aborted;
-        if (transactional && cancelled && publication) {
+        if (published && cancelled && publication) {
           try {
             const saved = await publication.reconcile();
             const durableAttempt = saved.attempts.find(item => item.identity.attemptId === attempt.id);
