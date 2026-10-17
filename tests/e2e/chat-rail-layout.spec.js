@@ -47,7 +47,10 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-const railButtons = ['[data-toggle-thread-rail]', '[data-new-thread]', '[data-open-model]', '[data-toggle-inspector]'];
+// Rendered contract: four >=44px controls form a desktop column or a mobile row.
+// Compact desktop threads retain icons; model selection lives in its own panel.
+// Panel changes preserve draft and focus. Pending computer rows stay visible before ads.
+const railButtons = ['[data-toggle-thread-rail]', '[data-new-thread]', '[data-toggle-inspector]', '[data-inspector-section="settings"]'];
 const contrastRatio = (first, second) => {
   const luminance = css => css.match(/[\d.]+/g).slice(0,3).map(Number).map(value => {
     const channel=value/255;return channel<=0.04045?channel/12.92:((channel+0.055)/1.055)**2.4;
@@ -60,10 +63,13 @@ async function measureControls(page) {
   return page.evaluate(selectors => selectors.map(selector => {
     const node = document.querySelector(selector), box = node.getBoundingClientRect();
     const glyph = node.querySelector('svg, .pool-power-tower'), icon = glyph.getBoundingClientRect();
+    const label = node.querySelector('.chat-rail-label');
+    const labelBox = label?.checkVisibility() ? label.getBoundingClientRect() : icon;
+    const top = Math.min(icon.top, labelBox.top), bottom = Math.max(icon.bottom, labelBox.bottom);
     return { selector, box: box.toJSON(), icon: icon.toJSON(), visible: node.checkVisibility(),
       background: getComputedStyle(node).backgroundColor, color: getComputedStyle(node).color, radius: getComputedStyle(node).borderRadius,
       centerX: icon.x + icon.width / 2 - box.x - box.width / 2,
-      centerY: icon.y + icon.height / 2 - box.y - box.height / 2 };
+      centerY: (top + bottom) / 2 - box.y - box.height / 2 };
   }), railButtons);
 }
 
@@ -72,7 +78,8 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     await page.setViewportSize({ width, height: 844 });
     await page.evaluate(theme => { document.querySelector('.pool-home').dataset.poolTheme = theme; }, theme);
     const rail = page.locator('[data-thread-sidebar]');
-    await expect(page.locator('[data-thread-list]')).toBeHidden();
+    await expect(page.locator('.chat-thread-title').first()).toBeHidden();
+    if (width <= 760) await expect(page.locator('[data-thread-list]')).toBeHidden();
     await expect(page.locator('[data-conversation-actions]')).toBeHidden();
     await expect(page.locator('.pool-power-tower:visible')).toHaveCount(1);
     await expect(page.locator('[data-pool-settings] > summary')).toBeHidden();
@@ -81,10 +88,12 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     expect(new Set(controls.map(item => item.radius)).size).toBe(1);
     for (const item of controls) {
       expect(contrastRatio(item.background,item.color), item.selector).toBeGreaterThanOrEqual(3);
-      expect(item.box.width, item.selector).toBe(44); expect(item.box.height, item.selector).toBe(44);
+      expect(item.box.width, item.selector).toBeGreaterThanOrEqual(44); expect(item.box.height, item.selector).toBeGreaterThanOrEqual(44);
+      if (width > 760) expect(item.box.width, item.selector).toBe(44);
       expect(Math.abs(item.centerX), item.selector).toBeLessThanOrEqual(0.5);
       expect(Math.abs(item.centerY), item.selector).toBeLessThanOrEqual(0.5);
-      expect(item.box.x).toBe(controls[0].box.x);
+      if (width > 760) expect(item.box.x).toBe(controls[0].box.x);
+      else expect(item.box.y).toBe(controls[0].box.y);
     }
     // Check the graphic itself, not only the wrapper around the logo.
     const brand = await page.locator('[data-toggle-thread-rail]').evaluate(node => {
@@ -98,10 +107,11 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     await page.locator('[data-toggle-thread-rail]').click();
     await expect(page.locator('[data-thread-list]')).toBeVisible();
     await expect(page.locator('[data-conversation-actions]')).toBeVisible();
-    await expect(page.locator('[data-current-model]')).toBeVisible();
+    await expect(page.locator('[data-open-model]')).toBeVisible();
     await page.screenshot({path:info.outputPath('threads.png')});
     await page.locator('[data-toggle-inspector]').click();
-    await expect(page.locator('[data-thread-list]')).toBeHidden();
+    await expect(page.locator('.chat-thread-title').first()).toBeHidden();
+    if (width <= 760) await expect(page.locator('[data-thread-list]')).toBeHidden();
     await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
     await expect(page.locator('.network-peer-row strong')).toHaveText(['Computer 1','Computer 2','Computer 3','Computer 4']);
     await page.screenshot({path:info.outputPath('network.png')});
@@ -115,13 +125,17 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     await expect(page.locator('[data-chat-workspace]')).toHaveAttribute('data-threads-open','');
     await page.locator('[data-toggle-thread-rail]').click();
     await page.locator('[data-open-model]').click();
-    await expect(page.locator('[data-thread-panel]')).toBeVisible();
-    await expect(page.locator('[data-current-model]')).toBeFocused();
+    await expect(page.locator('[data-inspector-pane="model"]')).toBeVisible();
+    await expect(page.locator('#network-inspector-title')).toBeFocused();
+    await expect(page.locator('[data-current-model]')).toBeVisible();
+    await page.locator('[data-close-inspector]').click();
+    await expect(page.locator('[data-open-model]')).toBeFocused();
     await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft.');
     for (const item of await measureControls(page)) {
       expect(Math.abs(item.centerX),item.selector).toBeLessThanOrEqual(0.5);
       expect(Math.abs(item.centerY),item.selector).toBeLessThanOrEqual(0.5);
-      expect(item.box.x).toBe(controls[0].box.x);
+      if (width > 760) expect(item.box.x).toBe(controls[0].box.x);
+      else expect(item.box.y).toBe(controls[0].box.y);
     }
     expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
     await expect(rail).toBeVisible();
@@ -264,7 +278,7 @@ for (const width of [1440, 390]) for (const theme of ['light', 'dark']) {
       const network = window.railState.network;
       network.partitionPeers = [];
       network.consumer.peers = [];
-      network.consumer.connections = [{ id: 'transport-a', phase: 'preparing' }];
+      network.consumer.connections = [{ id: 'transport-a', attemptId: 'connection-1', phase: 'preparing' }];
       window.emitRailState();
     }, theme);
     await page.locator('[data-composer-input]').fill('Keep the draft while computers connect.');
@@ -273,7 +287,7 @@ for (const width of [1440, 390]) for (const theme of ['light', 'dark']) {
     await expect(row).toHaveCount(1);
     await expect(row).toContainText('Preparing connection');
     await expect(row).toContainText('Waiting for connection configuration');
-    await row.scrollIntoViewIfNeeded();
+    await expect(row).toBeInViewport();
     await page.screenshot({ path: info.outputPath('pending.png') });
     await page.evaluate(() => { window.railState.network.consumer.connections[0].phase = 'awaiting-answer'; window.emitRailState(); });
     await expect(row).toContainText('Waiting for computer');
@@ -317,7 +331,10 @@ for (const width of [1440, 390]) for (const theme of ['light', 'dark']) {
 test('connection runtime passes the Verification Worker', async ({ page }, info) => {
   const files = ['host/work-swarm.js', 'vendor/reploid/transport/swarm.js', 'vendor/reploid/transport/room.js',
     'vendor/reploid/mesh/legacy-generation.js', 'ui/pool-home/network-controls.js', 'ui/pool-home/network-inspector.js',
-    'ui/pool-home/computer-labels.js', 'ui/pool-home/shell-view.js'];
+    'ui/pool-home/computer-labels.js', 'ui/pool-home/shell-view.js', 'ui/pool-home/message-list.js',
+    'providers/work-resident-provider.js', 'vendor/reploid/mesh/preparation-progress.js', 'vendor/reploid/mesh/peer-identity.js',
+    'vendor/reploid/mesh/partitions/automatic-partitions.js', 'vendor/reploid/mesh/partitions/automatic-ordered-partitions.js',
+    'vendor/reploid/retrieval/sources.js'];
   const snapshot = Object.fromEntries(await Promise.all(files.map(async file => ['/' + file, await readFile('self/' + file, 'utf8')])));
   const result = await page.evaluate(snapshot => new Promise((resolve, reject) => {
     const worker = new Worker('/core/verification-worker.js');
@@ -327,4 +344,30 @@ test('connection runtime passes the Verification Worker', async ({ page }, info)
   }), snapshot);
   await info.attach('verification.json', { body: JSON.stringify(result, null, 2), contentType: 'application/json' });
   expect(result.errors).toEqual([]); expect(result.passed).toBe(true);
+});
+
+
+for (const width of [1440, 390]) test(`system failure is separate from model output and controls align at ${width}px`, async ({ page }, info) => {
+  await page.setViewportSize({ width, height: 844 });
+  await page.evaluate(() => {
+    const thread = window.railState.activeThread;
+    thread.messages[1].content = '';
+    thread.attempts[0] = { id: 'attempt', status: 'failed', error: 'Could not retrieve sources: retrieval exceeded its time limit.',
+      retrieval: { outcome: 'failed', limits: { timeoutMs: 10000 }, error: { code: 'timeout', stage: 'extraction' } } };
+    window.emitRailState();
+  });
+  const row = page.locator('.is-assistant');
+  await expect(row.locator('[data-system-status]')).toHaveText('System · Reading search results timed out after 10 seconds. No model answer was generated.');
+  await expect(row.locator('[aria-label="Model output"]')).toBeHidden();
+  await expect(row.locator('[data-copy-message]')).toHaveCount(0);
+  await expect(row.locator('[data-retry-attempt]')).toHaveText('Retry');
+  const boxes = await row.evaluate(row => ({
+    status: row.querySelector('[data-system-status]').getBoundingClientRect().toJSON(),
+    details: row.querySelector('[data-execution-trigger]').getBoundingClientRect().toJSON(),
+    retry: row.querySelector('[data-retry-attempt]').getBoundingClientRect().toJSON()
+  }));
+  expect(Math.abs(boxes.details.x - boxes.status.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(boxes.details.y - boxes.retry.y)).toBeLessThanOrEqual(1);
+  expect(boxes.retry.x - boxes.details.right).toBeLessThanOrEqual(24);
+  await page.screenshot({ path: info.outputPath('retrieval-failure.png') });
 });

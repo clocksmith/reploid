@@ -149,3 +149,24 @@ it('shows each answer’s own route and latency, without borrowing metrics from 
   expect(second.textContent).not.toContain('First token');
   view.dispose();
 });
+
+
+it('keeps retrieval failure and retry controls outside model output, with no empty copy action', () => {
+  const root = document.createElement('div'), thread = conversation();
+  thread.messages[1].content = '';
+  thread.attempts[0] = { id: 'attempt', status: 'failed', retryOf: 'previous',
+    error: 'Could not retrieve sources: retrieval exceeded its time limit.',
+    retrieval: { outcome: 'failed', limits: { timeoutMs: 10000 }, error: { code: 'timeout', stage: 'extraction' } } };
+  const view = createMessageList(root); view.update(thread, { usable: true, busy: false });
+  const row = root.querySelector('.is-assistant');
+  expect(row.querySelector('[data-system-status]').textContent).toBe('System · Reading search results timed out after 10 seconds. No model answer was generated.');
+  expect(row.querySelector('.chat-message-content').textContent).toBe('');
+  expect(row.querySelector('.chat-message-content').hidden).toBe(true);
+  expect(row.querySelector('[data-copy-message]')).toBeNull();
+  expect(row.querySelector('[data-retry-attempt]').textContent).toBe('Retry');
+  expect(row.textContent).not.toContain('New attempt');
+  thread.messages[1].content = 'Actual model words'; view.update(thread, { usable: true, busy: false });
+  expect(row.querySelector('[aria-label="Model output"]').textContent).toBe('Actual model words');
+  expect(row.querySelector('[aria-label="Model output"]').textContent).not.toContain('System');
+  view.dispose();
+});

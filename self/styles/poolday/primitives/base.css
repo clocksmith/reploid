@@ -275,3 +275,9 @@
   font: inherit;
   cursor: pointer;
 }
+
+/* Native progress semantics with the shared monochrome materials. */
+.pool-progress { appearance: none; border: none; background: var(--pool-color-raised); color: var(--pool-color-ink); }
+.pool-progress::-webkit-progress-bar { background: var(--pool-color-raised); }
+.pool-progress::-webkit-progress-value { background: var(--pool-color-ink); }
+.pool-progress::-moz-progress-bar { background: var(--pool-color-ink); }
