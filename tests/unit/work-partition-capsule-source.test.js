@@ -7,12 +7,12 @@ import { assertSignedPreparation } from '../../artifacts/cleanup-failure-2026101
 const ports = vi.hoisted(() => ({ models: [], createStorage: vi.fn(), computeHash: vi.fn(), exchange: vi.fn() }));
 vi.mock('../../self/config/doppler-local-models.js', () => ({
   LOCAL_DOPPLER_MODELS: ports.models, DOPPLER_BROWSER_RUNTIME_VERSION: '0.6.27',
-  DOPPLER_PARTITIONS_MODULE_URL: '../vendor/doppler/0.6.27/src/partitions.js',
-  DOPPLER_STORAGE_TOOLING_URL: '../vendor/doppler/0.6.27/src/tooling-exports/storage.js',
+  DOPPLER_PARTITIONS_MODULE_URL: 'doppler-gpu/partitions',
+  DOPPLER_STORAGE_TOOLING_URL: 'doppler-gpu/tooling/storage',
   DOPPLER_MODULE_URL: '/vendor/doppler/0.6.27/src/index.js',
 }));
-vi.mock('../../self/vendor/doppler/0.6.27/src/partitions.js', () => ({ createVerifiedPieceStorage: ports.createStorage }));
-vi.mock('../../self/vendor/doppler/0.6.27/src/tooling-exports/storage.js', () => ({ computeHash: ports.computeHash }));
+vi.mock('doppler-gpu/partitions', () => ({ createVerifiedPieceStorage: ports.createStorage }));
+vi.mock('doppler-gpu/tooling/storage', () => ({ computeHash: ports.computeHash }));
 vi.mock('../../self/vendor/reploid/artifacts/custody/exchange.js', () => ({ createCustodyExchange: ports.exchange }));
 vi.mock('../../self/infrastructure/pack-transfer-storage.js', () => ({ openPeerPackFileCheckpoints: async () => ({ close: async () => {} }) }));
 import { createWorkModelFiles } from '../../self/host/work-model-files.js';

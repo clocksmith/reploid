@@ -5,7 +5,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 import { createFixedSearchProvider, createLexicalSupportChecker, renderSourceContext } from '../../packages/reploid/src/retrieval/index.js';
 import { createChatSession } from '../../self/host/chat-session.js';
-import { remotePermissionWording } from '../../self/ui/pool-home/remote-permission.js';
 import { orderedPartitionDisclosure } from '../../packages/reploid/src/mesh/partitions/partition-grants.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 
@@ -230,24 +229,24 @@ const sessions = [];
 afterEach(async () => { for (const session of sessions.splice(0)) await session.close(); });
 
 describe('host retrieval plumbing and disclosure', () => {
-  it('retrieved sources leave the device only under the one-time remote permission, with the typed text as the query', async () => {
+  it('network-off rejects before retrieval; enabled search binds verified recipients without a popup', async () => {
     const partitions = orderedRoute();
     const session = createChatSession({ storage: memory(), service: createChatTestService(), partitions, retrieval: fixedPorts(),
       requesterIdentity: () => REQUESTER });
     sessions.push(session);
     session.setRemoteAnswersEnabled(false);
     const thread = session.createThread({ model: ordered });
-    const completion = session.send(thread, QUESTION, [{ name: 'notes.txt', text: 'My private notes about Paris.' }], { retrieval: {} });
-    const attempt = () => session.getState().threads[0].attempts.at(-1);
-    await vi.waitFor(() => expect(attempt().status).toBe('approval'));
-    // Retrieval ran here and its provenance is saved; nothing, sources included, has been sent.
-    expect(attempt().retrieval).toMatchObject({ outcome: 'retrieved', query: QUESTION });
+    await expect(session.send(thread, QUESTION, [], { retrieval: {} })).rejects.toThrow('Network answers are off');
     expect(partitions.disclosed).toEqual([]);
-
-    const need = session.remotePermissionNeeded({ model: ordered, sharingScope: 'mesh' });
-    const permission = await session.grantRemotePermission(need, { wording: remotePermissionWording(need) });
-    const done = await completion;
-    expect(done).toMatchObject({ status: 'completed', authorization: { kind: 'permission', permissionId: permission.id, recipients: STAGES } });
+    expect(session.getState().threads[0].attempts).toEqual([]);
+    session.setRemoteAnswersEnabled(true);
+    const statuses = [];
+    const unsubscribe = session.subscribe(state => statuses.push(state.threads[0]?.attempts.at(-1)?.status));
+    const done = await session.send(thread, QUESTION, [{ name: 'notes.txt', text: 'My private notes about Paris.' }], { retrieval: {} });
+    unsubscribe();
+    expect(statuses).not.toContain('approval');
+    expect(done.retrieval).toMatchObject({ outcome: 'retrieved', query: QUESTION });
+    expect(done).toMatchObject({ status: 'completed', authorization: { kind: 'permission', recipients: STAGES } });
     expect(partitions.disclosed).toHaveLength(1);
     const sent = partitions.disclosed[0].at(-1).content;
     expect(sent.startsWith(renderSourceContext(done.retrieval.sources))).toBe(true);

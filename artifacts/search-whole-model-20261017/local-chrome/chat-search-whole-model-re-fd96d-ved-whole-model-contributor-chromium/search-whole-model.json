@@ -1,0 +1,1066 @@
+{
+  "at": "2026-10-17T16:57:46.858Z",
+  "browser": "155.0.8059.80",
+  "url": "http://localhost:8128",
+  "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "question": "search weeb for 2026 blockbusters",
+  "reviewedQuery": "2026 blockbuster movies",
+  "passed": false,
+  "errors": [],
+  "weights": [],
+  "permissions": [
+    "Search for this answer?\n\nAllow Reploid to send this search query to the listed search contributor, which sends it to Bing and fetches public result pages without personal sign-ins. Share the retrieved passages with the listed execution contributors for this answer. Your files and unrelated conversation history are excluded.\n\nSearch query\n\nSearch sends the query shown above. The model receives your question, this query, and retrieved sources. Review the query before allowing search.\n\nSearch contributor: Computer 2 (peer:8525e9fb27f9aa33f8c0979c)\n\nExecution contributors:\n\nComputer\nDon't search\nAllow"
+  ],
+  "thread": {
+    "attempts": [
+      {
+        "approval": null,
+        "authorization": {
+          "adapterIdentities": [],
+          "disclosure": "public",
+          "expiresAt": 1792256355640,
+          "grantId": null,
+          "kind": "permission",
+          "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+          "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+          "peerId": "85d90063-3ec0-4707-b6ca-9e61dc3cf654",
+          "permissionId": "3772fc78-5683-4b20-890f-79388b16e760",
+          "recipientIdentity": "peer:e63a52ec7c80129d86672f86",
+          "recipients": [
+            "peer:e63a52ec7c80129d86672f86"
+          ],
+          "sharingScope": "mesh",
+          "source": "permission"
+        },
+        "createdAt": 1792256324459,
+        "error": null,
+        "execution": {
+          "adapterIdentities": [],
+          "completion": {
+            "generatedTokenCount": 9,
+            "promptTokenCount": 663,
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "stop-token"
+          },
+          "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+          "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+          "peerId": "85d90063-3ec0-4707-b6ca-9e61dc3cf654",
+          "placement": "peer-whole-request",
+          "provider": "peer",
+          "stopReason": "stop-token",
+          "timing": {
+            "decodeMs": 2164.7042520046234,
+            "firstTokenMs": 19047.536666989326,
+            "generatedTokenCount": 9,
+            "prefillMs": 19042.752609997988,
+            "totalMs": 21213.13608700037
+          }
+        },
+        "finishedAt": 1792256347057,
+        "id": "f1ab60f7-6930-495a-9e90-de94c80f52ca",
+        "provenance": {
+          "attemptId": "f1ab60f7-6930-495a-9e90-de94c80f52ca",
+          "classes": [
+            "mesh"
+          ],
+          "earlierAttempts": [],
+          "execution": {
+            "classes": [
+              "mesh"
+            ],
+            "participants": [
+              {
+                "participantId": "85d90063-3ec0-4707-b6ca-9e61dc3cf654",
+                "role": "whole-request",
+                "stage": null,
+                "supply": "mesh"
+              }
+            ],
+            "placement": "peer-whole-request",
+            "supply": "mesh"
+          },
+          "retrieval": {
+            "outcome": "retrieved",
+            "provider": "reploid.contributor-search/peer:8525e9fb27f9aa33f8c0979c/bing",
+            "route": "contributor-search",
+            "searchServer": null,
+            "searchService": "contributor-bing",
+            "supply": "contributor"
+          },
+          "schema": "reploid.answer-provenance/v1",
+          "supply": "mesh"
+        },
+        "publicationMode": "whole-model",
+        "request": {
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "content": "search weeb for 2026 blockbusters",
+              "role": "user"
+            }
+          ],
+          "model": {
+            "adapters": [],
+            "availability": "ready",
+            "contextLength": 4096,
+            "executionModes": [
+              "whole-model",
+              "partition"
+            ],
+            "generation": {
+              "maxSeqLen": 4096,
+              "maxTokens": 256,
+              "repetitionPenalty": 1,
+              "repetitionPenaltyWindow": 1,
+              "temperature": 0,
+              "topK": 1,
+              "topP": 1,
+              "useChatTemplate": true
+            },
+            "id": "qwen3-8-27b-text-q4k-ehaf16",
+            "identity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "loadOptions": {
+              "runtimeConfig": {
+                "inference": {
+                  "batching": {
+                    "batchSize": 1,
+                    "maxTokens": 128,
+                    "readbackInterval": 1,
+                    "readbackMode": "sequential",
+                    "ringStaging": 1,
+                    "ringStop": 1,
+                    "ringTokens": 1,
+                    "stopCheckMode": "per-token"
+                  },
+                  "chatTemplate": {
+                    "enabled": false,
+                    "thinking": false,
+                    "type": null
+                  },
+                  "generation": {
+                    "disableMultiTokenDecode": true,
+                    "maxTokens": 128
+                  },
+                  "kernelPathPolicy": {
+                    "allowSources": [
+                      "manifest"
+                    ],
+                    "mode": "capability-aware",
+                    "onIncompatible": "error",
+                    "sourceScope": [
+                      "manifest"
+                    ]
+                  },
+                  "kvcache": {
+                    "maxSeqLen": 4096
+                  },
+                  "prompt": "The capital of France is",
+                  "sampling": {
+                    "greedyThreshold": 0,
+                    "repetitionPenalty": 1,
+                    "repetitionPenaltyWindow": 1,
+                    "suppressSpecialLikeTokens": false,
+                    "suppressSpecialTokens": false,
+                    "suppressTokenIds": [],
+                    "temperature": 0,
+                    "topK": 1,
+                    "topP": 1
+                  },
+                  "session": {
+                    "decodeLoop": {
+                      "batchSize": 1,
+                      "disableCommandBatching": false,
+                      "maxBatchDecodeTokens": 1,
+                      "readbackInterval": 1,
+                      "readbackMode": "sequential",
+                      "ringStaging": 1,
+                      "ringStop": 1,
+                      "ringTokens": 1,
+                      "stopCheckMode": "per-token",
+                      "submitLatencyThresholdMs": null
+                    },
+                    "kvcache": {
+                      "maxSeqLen": 4096
+                    },
+                    "prefillTokenChunkSize": 256
+                  }
+                },
+                "shared": {
+                  "bufferPool": {
+                    "budget": {
+                      "emergencyTrimTargetRatio": 0.9,
+                      "hardFailOnBudgetExceeded": true,
+                      "highWatermarkRatio": 0.94,
+                      "maxTotalBytes": 25769803776
+                    }
+                  },
+                  "debug": {
+                    "logLevel": {
+                      "defaultLogLevel": "warn"
+                    },
+                    "profiler": {
+                      "enabled": false
+                    },
+                    "trace": {
+                      "enabled": false
+                    }
+                  },
+                  "harness": {
+                    "referenceTranscript": {
+                      "captureKvBytes": true,
+                      "captureLogits": true,
+                      "enabled": false
+                    }
+                  }
+                }
+              }
+            },
+            "name": "Qwen 3.8 27B",
+            "networkAvailability": "ready",
+            "packageName": "doppler-gpu",
+            "packageVersion": "0.6.31",
+            "partitionPlan": {
+              "activationComponents": 1,
+              "activationDtype": "f32",
+              "activationElementStrideBytes": 4,
+              "activationPrecision": "f32",
+              "hiddenSize": 5120,
+              "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+              "partitions": [
+                {
+                  "hasEmbedding": true,
+                  "hasLmHead": false,
+                  "index": 0,
+                  "inputContract": {
+                    "dtype": "i32",
+                    "rank": 2,
+                    "shapeDescription": "[batchSize, seqLen]",
+                    "type": "token-ids"
+                  },
+                  "layerCount": 1,
+                  "layerRange": [
+                    0,
+                    0
+                  ],
+                  "outputContract": {
+                    "components": 1,
+                    "dtype": "f32",
+                    "elementStrideBytes": 4,
+                    "hiddenSize": 5120,
+                    "precision": "f32",
+                    "rank": 3,
+                    "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+                    "type": "activation-tensor"
+                  }
+                },
+                {
+                  "hasEmbedding": false,
+                  "hasLmHead": true,
+                  "index": 1,
+                  "inputContract": {
+                    "components": 1,
+                    "dtype": "f32",
+                    "elementStrideBytes": 4,
+                    "hiddenSize": 5120,
+                    "precision": "f32",
+                    "rank": 3,
+                    "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+                    "type": "activation-tensor"
+                  },
+                  "layerCount": 63,
+                  "layerRange": [
+                    1,
+                    63
+                  ],
+                  "outputContract": {
+                    "dtype": "f32",
+                    "rank": 3,
+                    "shapeDescription": "[batchSize, seqLen, vocabSize]",
+                    "type": "logits",
+                    "vocabSize": 248320
+                  }
+                }
+              ],
+              "schema": "doppler.layer-partition-contract/v3",
+              "splitLayers": [
+                1
+              ],
+              "stageCount": 2,
+              "totalLayers": 64,
+              "vocabSize": 248320
+            },
+            "partitionPlanId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+            "partitionRuntime": {
+              "maxGpuBufferBytes": [
+                6442450944,
+                25769803776
+              ],
+              "runtimeConfig": {
+                "inference": {
+                  "batching": {
+                    "batchSize": 1,
+                    "maxTokens": 128,
+                    "readbackInterval": 1,
+                    "readbackMode": "sequential",
+                    "ringStaging": 1,
+                    "ringStop": 1,
+                    "ringTokens": 1,
+                    "stopCheckMode": "per-token"
+                  },
+                  "chatTemplate": {
+                    "enabled": false,
+                    "thinking": false,
+                    "type": null
+                  },
+                  "generation": {
+                    "disableMultiTokenDecode": true,
+                    "maxTokens": 128
+                  },
+                  "kernelPathPolicy": {
+                    "allowSources": [
+                      "manifest"
+                    ],
+                    "mode": "capability-aware",
+                    "onIncompatible": "error",
+                    "sourceScope": [
+                      "manifest"
+                    ]
+                  },
+                  "kvcache": {
+                    "maxSeqLen": 4096
+                  },
+                  "prompt": "The capital of France is",
+                  "sampling": {
+                    "greedyThreshold": 0,
+                    "repetitionPenalty": 1,
+                    "repetitionPenaltyWindow": 1,
+                    "suppressSpecialLikeTokens": false,
+                    "suppressSpecialTokens": false,
+                    "suppressTokenIds": [],
+                    "temperature": 0,
+                    "topK": 1,
+                    "topP": 1
+                  },
+                  "session": {
+                    "decodeLoop": {
+                      "batchSize": 1,
+                      "disableCommandBatching": false,
+                      "maxBatchDecodeTokens": 1,
+                      "readbackInterval": 1,
+                      "readbackMode": "sequential",
+                      "ringStaging": 1,
+                      "ringStop": 1,
+                      "ringTokens": 1,
+                      "stopCheckMode": "per-token",
+                      "submitLatencyThresholdMs": null
+                    },
+                    "kvcache": {
+                      "maxSeqLen": 4096
+                    },
+                    "prefillTokenChunkSize": 256
+                  }
+                },
+                "shared": {
+                  "bufferPool": {
+                    "budget": {
+                      "emergencyTrimTargetRatio": 0.9,
+                      "hardFailOnBudgetExceeded": true,
+                      "highWatermarkRatio": 0.94,
+                      "maxTotalBytes": 25769803776
+                    }
+                  },
+                  "debug": {
+                    "logLevel": {
+                      "defaultLogLevel": "warn"
+                    },
+                    "profiler": {
+                      "enabled": false
+                    },
+                    "trace": {
+                      "enabled": false
+                    }
+                  },
+                  "harness": {
+                    "referenceTranscript": {
+                      "captureKvBytes": false,
+                      "captureLogits": false,
+                      "enabled": false
+                    }
+                  }
+                }
+              }
+            },
+            "provider": "doppler",
+            "providerIds": [
+              "85d90063-3ec0-4707-b6ca-9e61dc3cf654"
+            ],
+            "quantization": "q4k",
+            "size": "Q4K · 17 GB",
+            "source": {
+              "files": [
+                {
+                  "hash": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                  "hashAlgorithm": "sha256",
+                  "path": "manifest.json",
+                  "role": "model-manifest",
+                  "sizeBytes": 563307,
+                  "url": "/config/model-manifests/19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d.json"
+                },
+                {
+                  "hash": "ae50d65939a34a089eaf1e541c15c8a7d866079a5fe9a1d35454e0aa88577753",
+                  "hashAlgorithm": "sha256",
+                  "path": "tokenizer.json",
+                  "role": "tokenizer",
+                  "sizeBytes": 9089356
+                },
+                {
+                  "hash": "69400a62b129f8f045564527f6c7867b038b5c20edfe1842d3f36d60101a4600",
+                  "hashAlgorithm": "sha256",
+                  "path": "qwen27b-q4-pieces.json",
+                  "role": "model-piece-index",
+                  "sizeBytes": 979941,
+                  "url": "/config/model-pieces/qwen27b-q4-pieces.json"
+                }
+              ]
+            }
+          },
+          "permissions": {
+            "executionLocation": "auto",
+            "sharingScope": "mesh"
+          },
+          "retrieval": {
+            "limits": {
+              "maxContextCharacters": 6000,
+              "maxResults": 5,
+              "maxSourceCharacters": 1200,
+              "timeoutMs": 10000
+            },
+            "query": "2026 blockbuster movies",
+            "route": "contributor-search"
+          }
+        },
+        "responseId": "8bf1ace8-e668-4998-80b0-9a6fab43f901",
+        "retrieval": {
+          "context": {
+            "characters": 2639,
+            "digest": "sha256:5a89385f210abacd77fe6ff78f2e5e3bbb92162f504c67bf041d39484bff5f93",
+            "schema": "reploid.retrieval-context/v1"
+          },
+          "costs": {
+            "fallback": {
+              "costMicroUsd": 0,
+              "path": "none"
+            },
+            "retrieval": {
+              "bearer": "operator",
+              "costMicroUsd": null,
+              "extraction": {
+                "attempted": 5,
+                "bytes": 621020,
+                "costMicroUsd": null,
+                "documents": 2,
+                "failed": 3
+              },
+              "search": {
+                "costMicroUsd": null,
+                "requests": 1,
+                "service": "contributor-bing"
+              }
+            },
+            "schema": "reploid.retrieval-costs/v1",
+            "totalMicroUsd": null,
+            "unit": "micro-usd",
+            "unknown": [
+              "retrieval.search",
+              "retrieval.extraction"
+            ],
+            "verification": {
+              "checker": null,
+              "costMicroUsd": 0,
+              "reviews": []
+            }
+          },
+          "error": null,
+          "extractor": {
+            "id": "reploid.contributor-page-extract",
+            "version": "1"
+          },
+          "finishedAt": 1792256325597,
+          "limits": {
+            "maxContextCharacters": 6000,
+            "maxResults": 5,
+            "maxSourceCharacters": 1200,
+            "timeoutMs": 10000
+          },
+          "omitted": [
+            {
+              "reason": "extraction-failed",
+              "sourceId": "web-2"
+            },
+            {
+              "reason": "extraction-failed",
+              "sourceId": "web-4"
+            },
+            {
+              "reason": "extraction-failed",
+              "sourceId": "web-5"
+            }
+          ],
+          "outcome": "retrieved",
+          "partial": true,
+          "policy": {
+            "id": "reploid.retrieval-policy",
+            "version": "1.0.0"
+          },
+          "progress": {
+            "available": 2,
+            "completed": 5,
+            "stage": "context",
+            "total": 5
+          },
+          "provider": {
+            "id": "reploid.contributor-search/peer:8525e9fb27f9aa33f8c0979c/bing",
+            "supply": "contributor",
+            "version": "1"
+          },
+          "providerResultCount": 5,
+          "query": "2026 blockbuster movies",
+          "schema": "reploid.retrieval-record/v1",
+          "sourceUse": "requester-opt-in",
+          "sources": [
+            {
+              "contentHash": "sha256:6bc121d0c636350b36f882a0868a5dc87cf0fb8829f608cedc5294f8ba8ba761",
+              "document": {
+                "bytes": 187961,
+                "characters": 24747,
+                "contentType": "text/html; charset=UTF-8",
+                "end": 907,
+                "sha256": "sha256:6bc121d0c636350b36f882a0868a5dc87cf0fb8829f608cedc5294f8ba8ba761",
+                "start": 6,
+                "status": 200,
+                "url": "https://editorial.rottentomatoes.com/article/the-most-anticipated-movies-of-2026/"
+              },
+              "number": 1,
+              "passage": "The Most Anticipated Movies of 2026\n\nThe year is flush with the usual blockbuster franchise titles, but we've also got some thrilling genre fare and new projects from the likes of Steven Spielberg, Christopher Nolan, and Jordan Peele, among others.\n\nBy Amrita Vora | Updated October 5, 2026\n\nTAGGED AS: movies\n\nBased on what we know so far, 2026 is shaping up to be pretty great, with a healthy mix of the expected blockbuster franchise titles, enticing genre films, and new projects from the likes of Steven Spielberg, Christopher Nolan, and Jordan Peele. With that in mind, here’s a handy calendar of some of the most noteworthy titles coming in 2026 so you can budget and plan accordingly.\n\nRecommended: The Best Movies of 2025\n\nJanuary – July\n\nAUGUST\n\nThe End of Oak Street (2026)\n\nRelease Date: August 14, 2026\nDirector: David Robert Mitchell\nStarring: Anne Hathaway, Ewan McGreggor, Maisy Stella",
+              "passageHash": "sha256:e41c2fbcf49669cd22cef813b8c6f6b1eb86c7ce1b9b90ff2c6855d0b1a0b632",
+              "passageOrigin": "extract",
+              "retrievedAt": 1792256325067,
+              "sourceId": "web-1",
+              "title": "The Most Anticipated Movies of 2026 | Rotten Tomatoes",
+              "truncated": false,
+              "url": "https://editorial.rottentomatoes.com/article/the-most-anticipated-movies-of-2026/"
+            },
+            {
+              "contentHash": "sha256:c1bdccb80b26439f1f3daebf8e1095434a46519fb5c1c948afa0466866ab1c5d",
+              "document": {
+                "bytes": 433059,
+                "characters": 13635,
+                "contentType": "text/html; charset=UTF-8",
+                "end": 1603,
+                "sha256": "sha256:c1bdccb80b26439f1f3daebf8e1095434a46519fb5c1c948afa0466866ab1c5d",
+                "start": 425,
+                "status": 200,
+                "url": "https://collider.com/most-anticipated-blockbuster-movies-2026-ranked/"
+              },
+              "number": 2,
+              "passage": "2026 is shaping up to be one of those years when Hollywood goes all-in. This year, audiences can expect to witness spectacle, nostalgia, and cultural events disguised as movies. From returning, long-awaited franchises to bold auteur-driven epics, the upcoming movies are designed to rule both the box office and cultural conversations. This year will see huge franchises like the Marvel Cinematic Universe and Star Wars releasing their biggest movies in years, while Oscar-winning director Christopher Nolan will release his next project.\n\nHere, we take a look at the 10 most anticipated blockbusters of 2026. Some have already made noise online with perfect casting choices that stay true to their source material, while others have released trailers and snippets that have been viewed by millions. These films represent entertainment aimed at children and adults alike, and they are expected to dominate the box office charts when they are released. It's not just about the money, but it's also about how these movies will bring audiences to the theatres so that everyone can experience them together.\n\n10 ‘The Hunger Games: Sunrise on the Reaping’ (2026)\n\nImage via Lionsgate",
+              "passageHash": "sha256:f9015164529541ea64eecec295bf0d990f735cf80ee6ef108bb9906ace744f12",
+              "passageOrigin": "extract",
+              "retrievedAt": 1792256325371,
+              "sourceId": "web-3",
+              "title": "10 Most Anticipated Blockbuster Movies of 2026, Ranked",
+              "truncated": false,
+              "url": "https://collider.com/most-anticipated-blockbuster-movies-2026-ranked/"
+            }
+          ],
+          "startedAt": 1792256324459,
+          "usage": {
+            "extraction": {
+              "bytes": 621020,
+              "documents": 2
+            },
+            "search": {
+              "costMicroUsd": null,
+              "provider": "contributor-bing",
+              "requests": 1
+            }
+          },
+          "verification": {
+            "checker": null,
+            "claimSupport": {
+              "alignment": "reploid.lexical-span-alignment/v1",
+              "claims": [
+                {
+                  "citations": [],
+                  "end": 39,
+                  "id": "claim-1",
+                  "index": 0,
+                  "markers": [],
+                  "reason": "uncited",
+                  "reviewable": false,
+                  "start": 0,
+                  "text": "The retrieved sources do not answer it.",
+                  "verdict": "unsupported"
+                }
+              ],
+              "contextDigest": "sha256:5a89385f210abacd77fe6ff78f2e5e3bbb92162f504c67bf041d39484bff5f93",
+              "contextValid": true,
+              "query": "2026 blockbuster movies",
+              "schema": "reploid.claim-support/v1",
+              "summary": {
+                "citations": 0,
+                "citedClaims": 0,
+                "claims": 1,
+                "invalidCitations": 0,
+                "reviewableClaims": 0,
+                "supported": 0,
+                "unsupported": 1,
+                "unverified": 0,
+                "validCitations": 0
+              }
+            },
+            "claims": [
+              {
+                "citations": [],
+                "cited": false,
+                "end": 39,
+                "index": 0,
+                "markers": [],
+                "start": 0,
+                "text": "The retrieved sources do not answer it."
+              }
+            ],
+            "flags": [
+              {
+                "claim": 0,
+                "kind": "uncited-claim"
+              }
+            ],
+            "references": [],
+            "schema": "reploid.citation-verification/v1",
+            "summary": {
+              "citations": 0,
+              "citedClaims": 0,
+              "claims": 1,
+              "supported": 0,
+              "uncitedClaims": 1,
+              "unrecordedUrls": 0,
+              "unresolvedCitations": 0,
+              "unsupported": 0,
+              "unverified": 0
+            },
+            "unrecordedUrls": [],
+            "usage": {
+              "checks": 0,
+              "costMicroUsd": 0
+            }
+          }
+        },
+        "retryOf": null,
+        "searchPermission": {
+          "grantedAt": 1792256324459,
+          "id": "8b6222f0-b1c7-42ba-8a23-b94e0ef6428b",
+          "kind": "search-answer",
+          "networkId": "reploid-swarm-public",
+          "query": "2026 blockbuster movies",
+          "recipients": [
+            "peer:e63a52ec7c80129d86672f86"
+          ],
+          "revokedAt": null,
+          "schema": "reploid.remote-permission/v3",
+          "searchPeer": "peer:8525e9fb27f9aa33f8c0979c",
+          "searchProvider": "contributor-bing",
+          "searchServer": null,
+          "threadId": "1ae244db-c19e-441a-bc79-f0a1fd01babd",
+          "wording": {
+            "id": "reploid.search-answer-permission",
+            "text": "Allow Reploid to send this search query to the listed search contributor, which sends it to Bing and fetches public result pages without personal sign-ins. Share the retrieved passages with the listed execution contributors for this answer. Your files and unrelated conversation history are excluded.",
+            "version": "2026-10-16"
+          }
+        },
+        "status": "completed",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.8 27B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        },
+        "threadId": "1ae244db-c19e-441a-bc79-f0a1fd01babd",
+        "userMessageId": "f7980904-cdf0-423e-a5bf-da65c8a2b118"
+      }
+    ],
+    "closed": false,
+    "createdAt": 1792256324438,
+    "grants": [],
+    "id": "1ae244db-c19e-441a-bc79-f0a1fd01babd",
+    "members": [
+      "local-user"
+    ],
+    "messages": [
+      {
+        "content": "search weeb for 2026 blockbusters",
+        "id": "f7980904-cdf0-423e-a5bf-da65c8a2b118",
+        "role": "user",
+        "status": "completed"
+      },
+      {
+        "attemptId": "f1ab60f7-6930-495a-9e90-de94c80f52ca",
+        "content": "The retrieved sources do not answer it.",
+        "id": "8bf1ace8-e668-4998-80b0-9a6fab43f901",
+        "role": "assistant",
+        "status": "completed"
+      }
+    ],
+    "model": {
+      "adapters": [],
+      "availability": "ready",
+      "contextLength": 4096,
+      "executionModes": [
+        "whole-model",
+        "partition"
+      ],
+      "generation": {
+        "maxSeqLen": 4096,
+        "maxTokens": 256,
+        "repetitionPenalty": 1,
+        "repetitionPenaltyWindow": 1,
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1,
+        "useChatTemplate": true
+      },
+      "id": "qwen3-8-27b-text-q4k-ehaf16",
+      "identity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+      "loadOptions": {
+        "runtimeConfig": {
+          "inference": {
+            "batching": {
+              "batchSize": 1,
+              "maxTokens": 128,
+              "readbackInterval": 1,
+              "readbackMode": "sequential",
+              "ringStaging": 1,
+              "ringStop": 1,
+              "ringTokens": 1,
+              "stopCheckMode": "per-token"
+            },
+            "chatTemplate": {
+              "enabled": false,
+              "thinking": false,
+              "type": null
+            },
+            "generation": {
+              "disableMultiTokenDecode": true,
+              "maxTokens": 128
+            },
+            "kernelPathPolicy": {
+              "allowSources": [
+                "manifest"
+              ],
+              "mode": "capability-aware",
+              "onIncompatible": "error",
+              "sourceScope": [
+                "manifest"
+              ]
+            },
+            "kvcache": {
+              "maxSeqLen": 4096
+            },
+            "prompt": "The capital of France is",
+            "sampling": {
+              "greedyThreshold": 0,
+              "repetitionPenalty": 1,
+              "repetitionPenaltyWindow": 1,
+              "suppressSpecialLikeTokens": false,
+              "suppressSpecialTokens": false,
+              "suppressTokenIds": [],
+              "temperature": 0,
+              "topK": 1,
+              "topP": 1
+            },
+            "session": {
+              "decodeLoop": {
+                "batchSize": 1,
+                "disableCommandBatching": false,
+                "maxBatchDecodeTokens": 1,
+                "readbackInterval": 1,
+                "readbackMode": "sequential",
+                "ringStaging": 1,
+                "ringStop": 1,
+                "ringTokens": 1,
+                "stopCheckMode": "per-token",
+                "submitLatencyThresholdMs": null
+              },
+              "kvcache": {
+                "maxSeqLen": 4096
+              },
+              "prefillTokenChunkSize": 256
+            }
+          },
+          "shared": {
+            "bufferPool": {
+              "budget": {
+                "emergencyTrimTargetRatio": 0.9,
+                "hardFailOnBudgetExceeded": true,
+                "highWatermarkRatio": 0.94,
+                "maxTotalBytes": 25769803776
+              }
+            },
+            "debug": {
+              "logLevel": {
+                "defaultLogLevel": "warn"
+              },
+              "profiler": {
+                "enabled": false
+              },
+              "trace": {
+                "enabled": false
+              }
+            },
+            "harness": {
+              "referenceTranscript": {
+                "captureKvBytes": true,
+                "captureLogits": true,
+                "enabled": false
+              }
+            }
+          }
+        }
+      },
+      "name": "Qwen 3.8 27B",
+      "networkAvailability": "ready",
+      "packageName": "doppler-gpu",
+      "packageVersion": "0.6.31",
+      "partitionPlan": {
+        "activationComponents": 1,
+        "activationDtype": "f32",
+        "activationElementStrideBytes": 4,
+        "activationPrecision": "f32",
+        "hiddenSize": 5120,
+        "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+        "partitions": [
+          {
+            "hasEmbedding": true,
+            "hasLmHead": false,
+            "index": 0,
+            "inputContract": {
+              "dtype": "i32",
+              "rank": 2,
+              "shapeDescription": "[batchSize, seqLen]",
+              "type": "token-ids"
+            },
+            "layerCount": 1,
+            "layerRange": [
+              0,
+              0
+            ],
+            "outputContract": {
+              "components": 1,
+              "dtype": "f32",
+              "elementStrideBytes": 4,
+              "hiddenSize": 5120,
+              "precision": "f32",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "type": "activation-tensor"
+            }
+          },
+          {
+            "hasEmbedding": false,
+            "hasLmHead": true,
+            "index": 1,
+            "inputContract": {
+              "components": 1,
+              "dtype": "f32",
+              "elementStrideBytes": 4,
+              "hiddenSize": 5120,
+              "precision": "f32",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "type": "activation-tensor"
+            },
+            "layerCount": 63,
+            "layerRange": [
+              1,
+              63
+            ],
+            "outputContract": {
+              "dtype": "f32",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, vocabSize]",
+              "type": "logits",
+              "vocabSize": 248320
+            }
+          }
+        ],
+        "schema": "doppler.layer-partition-contract/v3",
+        "splitLayers": [
+          1
+        ],
+        "stageCount": 2,
+        "totalLayers": 64,
+        "vocabSize": 248320
+      },
+      "partitionPlanId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+      "partitionRuntime": {
+        "maxGpuBufferBytes": [
+          6442450944,
+          25769803776
+        ],
+        "runtimeConfig": {
+          "inference": {
+            "batching": {
+              "batchSize": 1,
+              "maxTokens": 128,
+              "readbackInterval": 1,
+              "readbackMode": "sequential",
+              "ringStaging": 1,
+              "ringStop": 1,
+              "ringTokens": 1,
+              "stopCheckMode": "per-token"
+            },
+            "chatTemplate": {
+              "enabled": false,
+              "thinking": false,
+              "type": null
+            },
+            "generation": {
+              "disableMultiTokenDecode": true,
+              "maxTokens": 128
+            },
+            "kernelPathPolicy": {
+              "allowSources": [
+                "manifest"
+              ],
+              "mode": "capability-aware",
+              "onIncompatible": "error",
+              "sourceScope": [
+                "manifest"
+              ]
+            },
+            "kvcache": {
+              "maxSeqLen": 4096
+            },
+            "prompt": "The capital of France is",
+            "sampling": {
+              "greedyThreshold": 0,
+              "repetitionPenalty": 1,
+              "repetitionPenaltyWindow": 1,
+              "suppressSpecialLikeTokens": false,
+              "suppressSpecialTokens": false,
+              "suppressTokenIds": [],
+              "temperature": 0,
+              "topK": 1,
+              "topP": 1
+            },
+            "session": {
+              "decodeLoop": {
+                "batchSize": 1,
+                "disableCommandBatching": false,
+                "maxBatchDecodeTokens": 1,
+                "readbackInterval": 1,
+                "readbackMode": "sequential",
+                "ringStaging": 1,
+                "ringStop": 1,
+                "ringTokens": 1,
+                "stopCheckMode": "per-token",
+                "submitLatencyThresholdMs": null
+              },
+              "kvcache": {
+                "maxSeqLen": 4096
+              },
+              "prefillTokenChunkSize": 256
+            }
+          },
+          "shared": {
+            "bufferPool": {
+              "budget": {
+                "emergencyTrimTargetRatio": 0.9,
+                "hardFailOnBudgetExceeded": true,
+                "highWatermarkRatio": 0.94,
+                "maxTotalBytes": 25769803776
+              }
+            },
+            "debug": {
+              "logLevel": {
+                "defaultLogLevel": "warn"
+              },
+              "profiler": {
+                "enabled": false
+              },
+              "trace": {
+                "enabled": false
+              }
+            },
+            "harness": {
+              "referenceTranscript": {
+                "captureKvBytes": false,
+                "captureLogits": false,
+                "enabled": false
+              }
+            }
+          }
+        }
+      },
+      "provider": "doppler",
+      "providerIds": [
+        "85d90063-3ec0-4707-b6ca-9e61dc3cf654"
+      ],
+      "quantization": "q4k",
+      "size": "Q4K · 17 GB",
+      "source": {
+        "files": [
+          {
+            "hash": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "hashAlgorithm": "sha256",
+            "path": "manifest.json",
+            "role": "model-manifest",
+            "sizeBytes": 563307,
+            "url": "/config/model-manifests/19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d.json"
+          },
+          {
+            "hash": "ae50d65939a34a089eaf1e541c15c8a7d866079a5fe9a1d35454e0aa88577753",
+            "hashAlgorithm": "sha256",
+            "path": "tokenizer.json",
+            "role": "tokenizer",
+            "sizeBytes": 9089356
+          },
+          {
+            "hash": "69400a62b129f8f045564527f6c7867b038b5c20edfe1842d3f36d60101a4600",
+            "hashAlgorithm": "sha256",
+            "path": "qwen27b-q4-pieces.json",
+            "role": "model-piece-index",
+            "sizeBytes": 979941,
+            "url": "/config/model-pieces/qwen27b-q4-pieces.json"
+          }
+        ]
+      }
+    },
+    "permissions": {
+      "executionLocation": "auto",
+      "sharingScope": "mesh"
+    },
+    "purpose": "",
+    "systemContext": {
+      "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.8 27B.",
+      "metadata": {
+        "enabled": true,
+        "maxWords": 16,
+        "mode": null,
+        "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+        "policyId": "reploid.compact-context/v2",
+        "wordCount": 13
+      }
+    }
+  },
+  "firstTextMs": 21801.054125000002,
+  "completeMs": 24087.874458,
+  "bundle": "sha256:fd37e24f3e4415dec0fe91073a876f90652cde20b6a2282b43870df699f4556e"
+}
