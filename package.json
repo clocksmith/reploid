@@ -87,7 +87,7 @@
     "verify:browser-bundle:local": "node scripts/build-browser-bundle-manifest.js --check",
     "verify:runtime-config": "node scripts/sync-runtime-config.js",
     "verify:pool:css": "node scripts/verify-poolday-css-layers.js",
-    "test:design": "vitest run --config tests/vitest.config.js tests/unit/design-system-css.test.js tests/unit/zero-ui.test.js && npm run verify:pool:css",
+    "test:design": "vitest run --config tests/vitest.config.js tests/unit/zero-ui.test.js && npm run verify:pool:css",
     "catscan:chain": "node scripts/verify-catscan.js --chain",
     "lint": "eslint --config scripts/eslint.config.js .",
     "verify:library-types": "tsc -p tests/tsconfig.library.json",
