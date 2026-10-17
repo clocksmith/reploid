@@ -305,14 +305,35 @@ for (const width of [1440, 390]) for (const theme of ['light', 'dark']) {
     await expect(row.locator('progress')).toHaveAttribute('value', '75');
     await expect(row.locator('details')).toHaveAttribute('open', '');
     await page.screenshot({ path: info.outputPath('receiving.png') });
+    await page.evaluate(() => {
+      window.railState.network.consumer.connections[0].authenticated = true;
+      window.railState.network.consumer.peers[0].preparation = { kind: 'pipelines', prepared: 2, total: 4 };
+      window.emitRailState();
+    });
+    await expect(row).toContainText('Authenticated identity observed on this connection');
+    await expect(row).toContainText('Preparing GPU');
+    await expect(row.locator('progress')).toHaveAttribute('value', '2');
     await page.evaluate(() => { window.railState.network.consumer.peers[0].readiness = 'ready'; window.emitRailState(); });
     await expect(page.locator('[data-peer-readiness]')).toContainText('1 connected · 1 ready');
     await expect(row).toContainText('Model loaded and ready to answer');
     await page.screenshot({ path: info.outputPath('ready.png') });
+    await page.evaluate(() => { window.railState.network.consumer.peers[0].activity = { phase: 'executing' }; window.emitRailState(); });
+    await expect(row).toContainText('Answering a request');
+    await page.evaluate(() => { window.railState.network.consumer.peers[0].activity.phase = 'stopping'; window.emitRailState(); });
+    await expect(row).toContainText('Finishing cleanup before releasing resources');
     await page.evaluate(() => { window.railState.network.consumer.connections[0].phase = 'interrupted'; window.emitRailState(); });
     await expect(row).toContainText('Connection interrupted');
     await expect(page.locator('[data-peer-readiness]')).toContainText('0 connected · 0 ready');
     await page.screenshot({ path: info.outputPath('interrupted.png') });
+    await expect(row).not.toContainText('Model loaded and ready');
+    await page.evaluate(() => {
+      window.railState.network.consumer.connections[0] = { id: 'transport-a', attemptId: 'connection-2', phase: 'connected' };
+      window.railState.network.consumer.peers[0].attemptId = 'connection-1';
+      window.emitRailState();
+    });
+    await expect(row).toContainText('Waiting for this computer to report its model status');
+    await expect(row).toContainText('Identity authentication has not been observed on this connection');
+    await expect(page.locator('[data-peer-readiness]')).toContainText('1 connected · 0 ready');
     await page.evaluate(() => {
       window.railState.network.consumer.connections = []; window.railState.network.consumer.peers = [];
       window.railState.network.consumer.connectionState = 'retrying';

@@ -23,10 +23,10 @@ try {
   if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth))throw Error('Overflow '+state+' '+name);
   await page.waitForTimeout(150);await page.screenshot({path:`${out}/${state}-${theme}-${name}.png`,fullPage:true});
  }};
- await page.locator('[data-study-start]').waitFor();await capture('setup');await page.locator('[data-study-start]').click();await page.waitForFunction(()=>__calls===1);await capture('preparing');
+ await page.locator('[data-study-start]').waitFor();await capture('setup');await page.locator('[data-study-start]').click();await page.waitForFunction(()=>globalThis.__calls===1);await capture('preparing');
  await page.locator('[data-study-stop]').click();await page.getByRole('heading',{name:'Study cancelled'}).waitFor();await capture('cancelled');
- await page.evaluate(()=>{__wait=false});await page.locator('[data-study-new]').click();await page.locator('[data-study-start]').click();await page.locator('[data-study-judge]').waitFor();await capture('blind');
- if(await page.evaluate(()=>__calls)!==19)throw Error('Unexpected call count');
+ await page.evaluate(()=>{globalThis.__wait=false});await page.locator('[data-study-new]').click();await page.locator('[data-study-start]').click();await page.locator('[data-study-judge]').waitFor();await capture('blind');
+ if(await page.evaluate(()=>globalThis.__calls)!==19)throw Error('Unexpected call count');
  await page.locator('[data-study-followup]').click();
  for(let i=0;i<4;i++){await page.locator('[name=judgment][value=unsure]').check();await page.locator('[data-study-judge]').click();await page.waitForTimeout(50)}
  await page.getByRole('heading',{name:'Study complete'}).waitFor();await capture('complete');
