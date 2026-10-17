@@ -69,9 +69,9 @@ describe('retrieval', () => {
     const started = Date.now();
     const slow = await run(retrieval({ provider: provider(() => new Promise(() => {})), extractor: null }), 'Paris', { timeoutMs: 30 });
     expect(Date.now() - started).toBeLessThan(1000);
-    expect(slow).toMatchObject({ outcome: 'failed', error: { code: 'timeout' }, sources: [], context: null });
+    expect(slow).toMatchObject({ outcome: 'failed', error: { code: 'timeout', stage: 'search' }, sources: [], context: null });
     const slowExtract = { id: 'slow.extract', version: '1', extract: () => new Promise(() => {}) };
-    expect(await run(retrieval({ extractor: slowExtract }), 'Paris', { timeoutMs: 30 })).toMatchObject({ outcome: 'failed', error: { code: 'timeout' } });
+    expect(await run(retrieval({ extractor: slowExtract }), 'Paris', { timeoutMs: 30 })).toMatchObject({ outcome: 'failed', error: { code: 'timeout', stage: 'extraction' } });
 
     expect(() => normalizeRetrievalLimits({ maxResults: 11 })).toThrow('maxResults is outside the policy limit');
     expect(() => normalizeRetrievalLimits({ timeoutMs: 0 })).toThrow('timeoutMs is outside the policy limit');

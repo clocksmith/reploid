@@ -1,5 +1,5 @@
 import { partitionAdapterIdentities, samePartitionAdapters, selectPartitionContribution } from './partition-contract.js';
-import { publicPreparationProgress } from '../preparation-progress.js';
+import { publicPreparationProgress, createPreparationProgressObserver } from '../preparation-progress.js';
 import { generationRequest, requireGenerationCapability } from './partition-generation-request.js';
 import { createPartitionDiscovery } from './partition-discovery.js';
 import { selectPartitionRoute, selectPartitionExecution, eligiblePartitionStages } from './partition-placement.js';
@@ -188,14 +188,15 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     for (const owner of [...debt]) await closeOwner(owner);
   }
   async function prepare() {
-    const selected = offer, preparationOwners = new Set();
+    const selected = offer, preparationOwners = new Set(), observeProgress = createPreparationProgressObserver();
+    let observingPreparation = true;
     let candidate = null;
     phase = 'loading'; notify();
     loading = Promise.resolve().then(() => loadProgram(selected, stage.index, {
       signal: AbortSignal.any([lifetime.signal, controller.signal]), participantId: identity.peerId, ordered: { stage: structuredClone(stage) },
       ...(device ? { device, attemptBytes: admission.attemptBytes } : {}),
       registerCleanup(owner) { assert(typeof owner?.close === 'function', 'Preparation cleanup owner required'); preparationOwners.add(owner); return () => preparationOwners.delete(owner); },
-      onProgress(value) { progress = value; notify(); }
+      onProgress(value) { if (observingPreparation) { progress = observeProgress(value); notify(); } }
     }));
     try {
       candidate = await loading;
@@ -232,7 +233,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       for (const owner of preparationOwners) debt.add(owner);
       if (typeof candidate?.resident?.close === 'function') debt.add(candidate.resident);
       phase = 'failed'; error = cause.message;
-    } finally { loading = null; notify(); }
+    } finally { observingPreparation = false; loading = null; notify(); }
   }
   const healthy = owner => owner.ports.every(port => port.getState().ready);
   /** Opt-in: rank complete admissible routes by expected cost; peer id only breaks ties. A stage

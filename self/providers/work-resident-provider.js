@@ -1,4 +1,5 @@
 /** One prepared model, reusable across requests until explicitly retired. */
+import { createPreparationProgressObserver } from '../vendor/reploid/mesh/preparation-progress.js';
 import { openWorkProvider } from './work-provider.js';
 import { withWorkDevice } from './work-device.js';
 
@@ -34,13 +35,13 @@ export function createWorkResidentProvider({ service, model, generation, maxOutc
     if (adapter) return Promise.resolve(getState());
     if (error) return Promise.reject(new Error(error));
     phase = 'loading';
+    const observeProgress = createPreparationProgressObserver();
+    let observingPreparation = true;
     preparing = Promise.resolve().then(() => withWorkDevice(service, lifetime.signal, async () => {
-      const reportProgress = value => { if (!closed) { progress = structuredClone(value); notify(); } };
+      const reportProgress = value => { if (observingPreparation) { progress = observeProgress(structuredClone(value)); notify(); } };
       const resolvedSource = resolveSource ? await resolveSource(model, { signal: lifetime.signal, onProgress: reportProgress }) : source;
       const loaded = await openWorkProvider({ model, service, scope, signal: lifetime.signal,
-        generation, maxOutcomeCharacters, resolveAdapter, source: resolvedSource, loadOptions, onProgress(value) {
-          if (!closed) { progress = structuredClone(value); notify(); }
-        } });
+        generation, maxOutcomeCharacters, resolveAdapter, source: resolvedSource, loadOptions, onProgress: reportProgress });
       lifetime.signal.throwIfAborted();
       await loaded.reset();
       if (model.adapters?.length) adapterIdentities = await loaded.prepareAdapters(model.adapters);
@@ -49,7 +50,7 @@ export function createWorkResidentProvider({ service, model, generation, maxOutc
       return getState();
     })).catch(async cause => {
       await fail(cause); throw cause;
-    }).finally(() => { preparing = null; });
+    }).finally(() => { observingPreparation = false; preparing = null; });
     notify();
     return preparing;
   };

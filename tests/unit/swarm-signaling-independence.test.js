@@ -293,7 +293,8 @@ it('publishes an attempt before configuration resolves, coalesces duplicates, an
     expect(f.connections[0].close).not.toHaveBeenCalled();
     expect(f.events.some(([type, detail]) => type === 'swarm:peer-progress' && detail.phase === 'preparing')).toBe(true);
   } finally { f.swarm.disconnect(); }
-  expect(f.swarm.getPeerStates()).toEqual([]);
+  expect(f.swarm.getPeerStates()).toMatchObject([{ id: 'direct', phase: 'disconnected' }]);
+  expect(f.swarm.getConnectedPeers()).toEqual([]);
 });
 
 it('cancels preparation before RTC construction on disconnect and times out stalled configuration', async () => {
@@ -305,10 +306,32 @@ it('cancels preparation before RTC construction on disconnect and times out stal
     const pending = f.swarm.init(); f.sockets[0].onopen();
     const first = f.sockets[0].receive({ type: 'joined', peerId: 'local', roomId: 'test', peers: ['direct'] });
     await vi.advanceTimersByTimeAsync(301);
-    expect(f.swarm.getPeerStates()).toEqual([]);
+    expect(f.swarm.getPeerStates()).toMatchObject([{ id: 'direct', phase: 'failed' }]);
+    expect(f.swarm.getConnectedPeers()).toEqual([]);
     expect(f.events.some(([type]) => type === 'swarm:connection-failed')).toBe(true);
     f.swarm.disconnect(); resolve({ iceServers: [] }); await first; await pending;
     expect(f.connections).toEqual([]);
     expect(vi.getTimerCount()).toBe(0);
+  } finally { f.swarm.disconnect(); }
+});
+
+it('retains attempt identity through disconnect and ignores stale channel and authentication callbacks after reconnect', async () => {
+  vi.useFakeTimers(); const f = fixture();
+  try {
+    await f.open();
+    const first = f.swarm.getPeerStates().find(peer => peer.id === 'direct'), stale = f.connections[0];
+    expect(first.authenticated).toBe(false);
+    f.swarm.observePeerAuthentication('direct', first.attemptId);
+    expect(f.swarm.getPeerStates().find(peer => peer.id === 'direct').authenticated).toBe(true);
+    stale.connectionState = 'failed'; stale.onconnectionstatechange();
+    expect(f.swarm.getPeerStates().find(peer => peer.id === 'direct')).toMatchObject({ attemptId: first.attemptId, phase: 'failed' });
+    await vi.advanceTimersByTimeAsync(1000); f.sockets[1].onopen();
+    await f.sockets[1].receive({ type: 'joined', peerId: 'local', roomId: 'test', peers: ['direct'] });
+    const second = f.swarm.getPeerStates().find(peer => peer.id === 'direct');
+    expect(second.attemptId).not.toBe(first.attemptId);
+    f.swarm.observePeerAuthentication('direct', first.attemptId);
+    stale.channel.onopen(); stale.channel.onclose(); stale.onconnectionstatechange();
+    expect(f.swarm.getPeerStates().find(peer => peer.id === 'direct')).toEqual(second);
+    expect(f.swarm.getConnectedPeers()).toEqual([]);
   } finally { f.swarm.disconnect(); }
 });

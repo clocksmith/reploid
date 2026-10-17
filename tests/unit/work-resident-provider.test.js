@@ -171,3 +171,21 @@ it('captures runtime timing before cleanup resets it, without counting text chun
   expect(result.timing).toEqual({ totalMs: 400, prefillMs: 100, decodeMs: 300, firstTokenMs: 110, generatedTokenCount: 7 });
   await f.owner.close();
 });
+
+
+it('rejects loader callbacks after preparation settles without altering ready execution', async () => {
+  const gate = deferred(), f = fixture();
+  f.service.open.mockImplementation(() => gate.promise);
+  const preparing = f.owner.prepare();
+  await vi.waitFor(() => expect(f.service.open).toHaveBeenCalledOnce());
+  const report = f.service.open.mock.calls[0][0].options.onProgress;
+  report({ kind: 'receiving', receivedBytes: 60, totalBytes: 100, path: 'one' });
+  report({ kind: 'receiving', receivedBytes: 10, totalBytes: 100, path: 'one' });
+  expect(f.owner.getState().progress.receivedBytes).toBe(60);
+  gate.resolve(f.session); await preparing;
+  const before = f.owner.getState();
+  report({ kind: 'receiving', receivedBytes: 1, totalBytes: 100, path: 'late' });
+  expect(f.owner.getState()).toEqual(before);
+  expect((await f.owner.generate([{ content: 'Still usable' }], () => {}, { signal: signal() })).content).toBe('Still usable');
+  await f.owner.close();
+});

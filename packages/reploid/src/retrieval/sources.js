@@ -152,7 +152,7 @@ export async function retrieveSources({ record, provider, extractor = null, sign
   const timer = setTimeout(() => deadline.abort(new RetrievalError('timeout')), limits.timeoutMs);
   const forward = () => deadline.abort(new RetrievalError('cancelled'));
   if (signal?.aborted) forward(); else signal?.addEventListener('abort', forward, { once: true });
-  let usage = null;
+  let usage = null, stage = 'search';
   // What this retrieval spent, for its cost record: observed even when it fails.
   const meter = { searched: false, usage: null, attempted: 0, documents: 0, failed: 0, bytes: 0, costs: [] };
   const context = { providerId: record.provider.id, ...(answer === null ? {} : { answer }) };
@@ -172,6 +172,7 @@ export async function retrieveSources({ record, provider, extractor = null, sign
     meter.usage = searchUsage;
     usage = { search: searchUsage, extraction: { documents: 0, bytes: 0 } };
     if (!results.length) return finish({ outcome: 'empty', error: { code: 'no-results', message: FAILURES['no-results'] }, providerResultCount: 0 });
+    stage = 'extraction';
     const omitted = [], seen = new Set(), kept = [];
     for (const result of results) {
       if (seen.has(result.sourceId)) continue;
@@ -217,6 +218,7 @@ export async function retrieveSources({ record, provider, extractor = null, sign
       else omitted.push({ sourceId: candidate.sourceId, reason: 'context-limit' });
     }
     if (!sources.length) throw new RetrievalError('context-limit');
+    stage = 'context';
     for (const source of sources) source.passageHash = await sha256Text(source.passage);
     const content = renderSourceContext(sources, policy);
     return finish({ outcome: 'retrieved', providerResultCount: results.length, sources, omitted,
@@ -224,7 +226,7 @@ export async function retrieveSources({ record, provider, extractor = null, sign
   } catch (cause) {
     const error = cause instanceof RetrievalError ? cause : new RetrievalError('provider-error', cause);
     return finish({ outcome: error.code === 'cancelled' ? 'cancelled' : 'failed', sources: [], context: null,
-      error: { code: error.code, message: FAILURES[error.code] } });
+      error: { code: error.code, message: FAILURES[error.code], stage } });
   } finally {
     clearTimeout(timer); signal?.removeEventListener('abort', forward);
   }

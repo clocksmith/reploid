@@ -42,7 +42,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   let computeEnabled = storage?.getItem('REPLOID_CACHED_COMPUTE_ENABLED') !== 'false';
   let filesEnabled = storage?.getItem('REPLOID_CACHED_FILES_ENABLED') !== 'false';
   let cachedSharing = null;
-  let connectionFailure = null;
+
   let disconnecting = null, sharingConnection = null, generation = 0, paused = false;
   let automaticAllowed = options.autoConnect !== false;
   const requests = new Map(), cleanupDebt = new Set(), contributionDebt = new Set(), closingOwners = new WeakMap(), settledOwners = new WeakSet();
@@ -87,9 +87,11 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       return partitionMesh.generate(request, controls);
     }
   });
+  let connectionFailure = null, retainedConnections = [];
   let contributor = null, stoppingContribution = null, contributionEpoch = 0;
   let contribution = { phase: 'idle', completed: 0, modelId: null, modelIdentity: null, progress: null };
   const getState = () => ({ introductionAssistance, sharing, computeEnabled, filesEnabled, stopping, connecting, paused,
+    connections: consumerTransport?.getPeerStates?.() || retainedConnections,
     connectionFailure: connectionFailure ? { ...connectionFailure } : null,
     error: error || connectionFailure?.message || '', unsettledOwners: cleanupDebt.size, models: LOCAL_DOPPLER_MODELS,
     discoveryScope: options.discoveryScope,
@@ -101,7 +103,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   const notify = () => onChange(getState());
   for (const event of ['swarm:bootstrap-error', 'swarm:connection-failed']) eventBus.on(event, detail => {
     if (!closed && !paused) {
-      connectionFailure = { message: detail.message, peerId: event === 'swarm:connection-failed' ? detail.peerId : null };
+      connectionFailure = { message: detail.message, attemptId: detail.attemptId || null, peerId: event === 'swarm:connection-failed' ? detail.peerId : null };
       notify();
     }
   });
@@ -127,7 +129,8 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       instanceId, modelConfig: model, utils, eventBus, events,
       getExecutionState: () => {
         const state = execution?.getState();
-        return { phase: state?.phase === 'executing' ? 'executing' : sharing && state?.ready ? 'ready' : state?.phase || 'idle',
+        return { phase: sharing && state?.ready ? 'ready' : state?.phase || 'idle',
+          activity: { phase: state?.phase || 'idle', completed: state?.completed || 0, error: state?.error || null },
           progress: state?.progress || null,
           modelIdentity: state?.modelIdentity || null, adapterIdentities: state?.adapterIdentities || [] };
       },
@@ -332,6 +335,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     const partitionStop = closeOwner(partitionMesh); partitionMesh = null; partitionRequester = null;
     const fileStop = closeOwner(modelFiles); modelFiles = null;
     const previousConsumer = consumer, previousTransport = consumerTransport;
+    retainedConnections = (previousTransport?.getPeerStates?.() || []).map(peer => ({ ...peer, phase: 'disconnected', channelState: 'closed' }));
     consumer = null; consumerTransport = null;
     const transportStop = Promise.resolve().then(() => previousTransport?.disconnect());
     peerOffers?.close();

@@ -57,8 +57,11 @@ export function createMeshPeerIdentity({ transport, getIdentity, roomId, timeout
       const channel = binding(peerId);
       if (!channel) return null;
       const challenge = { roomId, nonce: crypto.randomUUID(), requester: transport._getPeerId(), provider: peerId, ...channel };
-      return requests.start({ requestId: challenge.nonce, providerPeerId: peerId, signal, channel, challenge },
+      const attemptId = transport.getPeerStates?.().find(peer => peer.id === peerId)?.attemptId;
+      const participantId = await requests.start({ requestId: challenge.nonce, providerPeerId: peerId, signal, channel, challenge },
         () => transport.sendToPeer(peerId, challengeType, challenge));
+      if (attemptId && sameBinding(channel, binding(peerId))) transport.observePeerAuthentication?.(peerId, attemptId);
+      return participantId;
     },
     retirePeer: requests.retirePeer,
     close() { closed = true; requests.close(); }
