@@ -10,7 +10,7 @@ const schema = 'reploid.canonical-workspace-history/v1';
  * An attempt's `publicationMode: 'canonical'` marks requester-published output,
  * canonical two-stage or ordinary ordered; the persisted value is not renamed. */
 export async function openCanonicalWorkspaceHistory({ store, key, meshId, participantId, writerEpoch,
-  expectedWriterEpoch, legacy, maxWorkspaceBytes, maxThreads, publicationOptions }) {
+  expectedWriterEpoch, legacy, maxWorkspaceBytes, maxThreads, publicationOptions, allowWholeModel = false }) {
   assert(store?.schema === 'reploid.transactional-chat-store/v1' && typeof store.transact === 'function'
     && typeof store.read === 'function', 'Transactional workspace store required');
   assert(typeof key === 'string' && key && typeof meshId === 'string' && meshId
@@ -32,6 +32,10 @@ export async function openCanonicalWorkspaceHistory({ store, key, meshId, partic
       && Array.isArray(thread.messages) && Array.isArray(thread.attempts), 'Invalid canonical conversation metadata');
     return value;
   };
+  const wholeModel = (thread, attempt) => allowWholeModel && attempt.publicationMode === 'whole-model'
+    && !thread.model?.partition && !attempt.request?.model?.partition
+    && typeof thread.model?.identity === 'string' && attempt.request?.model?.identity === thread.model.identity
+    && attempt.request?.model?.id === thread.model.id;
   const imported = bounded(legacy);
   assert(imported && ['workspace', 'drafts'].every(name => imported[name] === null || typeof imported[name] === 'string'),
     'Legacy migration requires exact original storage bytes');
@@ -127,7 +131,7 @@ export async function openCanonicalWorkspaceHistory({ store, key, meshId, partic
   };
   const loaded = await hydrate(), retained = await read(), retainedLegacy = copy(retained.legacy);
   return Object.freeze({
-    mode: 'transactional', writerEpoch,
+    mode: 'transactional', writerEpoch, supportsWholeModel: allowWholeModel,
     load: () => copy(loaded),
     legacyDrafts: retainedLegacy.drafts,
     drafts: Object.hasOwn(retained, 'drafts') ? retained.drafts : retainedLegacy.drafts,
@@ -147,6 +151,10 @@ export async function openCanonicalWorkspaceHistory({ store, key, meshId, partic
         message.content = ''; delete message.publicationDigests;
       }
       return transact(state => {
+        for (const previous of state.workspace.threads) for (const attempt of previous.attempts) {
+          const next = snapshot.threads.find(thread => thread.id === previous.id)?.attempts.find(row => row.id === attempt.id);
+          if (next) assert(next.publicationMode === attempt.publicationMode, 'Attempt publication mode cannot change');
+        }
         for (const previous of state.workspace.threads) for (const attempt of previous.attempts.filter(row => row.publicationMode === 'canonical')) {
           const next = snapshot.threads.find(thread => thread.id === previous.id)?.attempts.find(row => row.id === attempt.id);
           assert(next?.publicationMode === 'canonical' && next.responseId === attempt.responseId, 'Canonical publication reference cannot be removed or downgraded');
@@ -154,10 +162,11 @@ export async function openCanonicalWorkspaceHistory({ store, key, meshId, partic
         const old = state.legacy.workspace === null ? { threads: [] } : JSON.parse(state.legacy.workspace);
         for (const thread of snapshot.threads) {
           const importedThread = old.threads.find(row => row.id === thread.id);
-          for (const attempt of thread.attempts) assert(attempt.publicationMode === 'canonical'
+          for (const attempt of thread.attempts) assert(attempt.publicationMode === 'canonical' || wholeModel(thread, attempt)
             || importedThread?.attempts.some(row => row.id === attempt.id), 'New attempts require canonical publication');
           for (const message of thread.messages.filter(row => row.role === 'assistant')) {
             if (thread.attempts.some(attempt => attempt.publicationMode === 'canonical' && attempt.responseId === message.id)) continue;
+            if (thread.attempts.some(attempt => wholeModel(thread, attempt) && attempt.responseId === message.id && attempt.id === message.attemptId)) continue;
             assert(importedThread?.messages.some(row => row.id === message.id && row.role === 'assistant' && row.content === message.content),
               'Legacy assistant text is an immutable imported reference');
           }

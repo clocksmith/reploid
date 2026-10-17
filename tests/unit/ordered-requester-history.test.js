@@ -10,18 +10,18 @@ import { canonicalPartitionJson } from '../../packages/reploid/src/mesh/partitio
 import { automaticOrderedMesh, tasks } from '../fixtures/automatic-ordered-mesh.js';
 import orderedPolicy from '../../self/config/ordered-participation.json' with { type: 'json' };
 
-const ports = vi.hoisted(() => ({ identity: null, partitions: null }));
+const ports = vi.hoisted(() => ({ identity: null, partitions: null, peers: [] }));
 vi.mock('../../self/identity.js', async original => ({ ...await original(), ensureIdentityBundle: async () => ports.identity }));
 vi.mock('../../self/vendor/reploid/mesh/index.js', async original => ({ ...await original(),
   createLegacyGenerationMesh: ({ ports: input }) => {
     let identity = null;
     return { async connect() { identity = await input.identity.ensure({}); input.createTransport(); }, async close() {},
-      getSwarmSnapshot: () => ({ peerId: identity?.peerId ?? null, connectionState: identity ? 'connected' : 'disconnected', peers: [] }) };
+      getSwarmSnapshot: () => ({ peerId: identity?.peerId ?? null, connectionState: identity ? 'connected' : 'disconnected', peers: ports.peers }) };
   },
   createAutomaticPartitions: () => ports.partitions
 }));
 vi.mock('../../self/vendor/reploid/transport/index.js', async original => ({ ...await original(),
-  createSwarmTransport: () => ({ disconnect() {}, _getPeerId: () => 'transport-requester', getConnectedPeers: () => [] }) }));
+  createSwarmTransport: () => ({ disconnect() {}, onMessage() {}, offMessage() {}, sendToPeer() {}, _getPeerId: () => 'transport-requester', getConnectedPeers: () => [] }) }));
 vi.mock('../../self/host/work-model-files.js', async original => ({ ...await original(),
   createWorkModelFiles: () => ({ async attach() {}, async close() {}, announce() {}, getState: () => ({ sharing: false, preparing: false }) }) }));
 vi.mock('../../self/host/work-peer-offers.js', () => ({ createWorkPeerOffers: () => ({
@@ -37,7 +37,7 @@ const weightlessRequester = { stage: null, ...orderedPolicy.limits };
 const cleanups = [];
 afterEach(async () => {
   const results = await Promise.allSettled(cleanups.splice(0).reverse().map(close => close()));
-  Object.assign(ports, { identity: null, partitions: null });
+  Object.assign(ports, { identity: null, partitions: null, peers: [] });
   const failures = results.filter(row => row.status === 'rejected').map(row => row.reason);
   if (failures.length) throw new AggregateError(failures, 'Product session cleanup failed');
 });
@@ -127,8 +127,13 @@ it('opens requester-owned history for an ordered catalog and publishes the three
   expect(state.history).toMatchObject({ mode: 'transactional', publication: 'ordered' });
   expect(Object.hasOwn(state, 'ephemeralExecutions')).toBe(true);
   expect(history.opened).toEqual([orderedPolicy.requesterHistory.database]);
-  // Models whose output this history cannot publish are not offered as ready.
+  // No whole-model peers are present in this fixture yet.
   expect(state.models.filter(row => !row.partition).every(row => row.availability === 'unavailable')).toBe(true);
+  const whole = state.models.find(row => !row.partition && !row.adapters?.length);
+  ports.peers = [{ peerId: 'whole-provider', model: whole.id, modelIdentity: whole.identity,
+    readiness: 'ready', hasInference: true, availableSlots: 1 }];
+  host.chat.refreshNetwork();
+  expect(host.chat.getState().models.find(row => row.id === whole.id && !row.partition).availability).toBe('ready');
   expect(attempt.error).toBeNull(); expect(attempt.status).toBe('completed');
   expect(model.partition.route.stages).toHaveLength(3);
   const records = history.records(threadId);
