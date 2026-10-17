@@ -31,7 +31,7 @@ export interface AutomaticPartitionPolicy {
 export interface AutomaticPartitions {
   getState(): AutomaticPartitionState; getModels(): ChatModel[];
   subscribe(listener: (models: ChatModel[]) => void): () => void;
-  contribute(modelId: string, approved: boolean): Promise<void>;
+  contribute(modelId: string, approved: boolean, adapters?: ChatModel['adapters']): Promise<void>;
   stop(): Promise<void>; close(): Promise<void>;
   generate(request: ChatRequest & { threadId: string; attemptId: string }, controls: ChatControls): Promise<ChatResult>;
 }

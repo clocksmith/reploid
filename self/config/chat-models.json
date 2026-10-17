@@ -41,7 +41,7 @@
         "id": "qwen35-0-8b-ner-json-lora",
         "name": "Qwen 3.5 0.8B NER JSON LoRA",
         "identity": "sha256:dc0248f45553e69defd8a1846619443f1ac5902a118548c70a7254c21f66f64b",
-        "baseModelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+        "baseModelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
         "weightsLayout": "peft",
         "artifact": {
           "artifactId": "qwen35-0-8b-ner-json-lora",

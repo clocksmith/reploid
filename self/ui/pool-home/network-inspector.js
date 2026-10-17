@@ -171,7 +171,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     } catch (cause) { if (!request.signal.aborted && !disposed) find('[data-download-size]').textContent = cause.message; }
   };
   const openModelSetup = (opener, modelId) => {
-    const models = session.getState().models.filter(model => !model.partition && !model.adapters?.length);
+    const models = session.getState().models.filter(model => !model.partition);
     updateModelSelect(find('[data-download-model]'), models, { value: modelId });
     find('[data-download-compute-limits]').textContent = find('[data-contribution-limits]').textContent;
     modelDialog.open(find('[data-download-model]'), opener); void checkDownload();

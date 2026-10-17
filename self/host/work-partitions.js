@@ -2,6 +2,7 @@
 import { createResidentPartition, createPartitionStageCommitAuthority } from '../vendor/reploid/mesh/index.js';
 import { DOPPLER_MODULE_URL, DOPPLER_PARTITIONS_MODULE_URL, DOPPLER_KERNEL_BASE_URL } from '../config/doppler-local-models.js';
 import { resolvePartitionGeneration } from '../config/partition-generation.js';
+import { createWorkAdapterResolver } from '../providers/work-adapter.js';
 import policy from '../config/partition-policy.json' with { type: 'json' };
 import { prepareLocalPackRelease } from '../pool/pack-release-policy.js';
 import { assertWorkResidentCapsule } from './work-partition-capsule.js';
@@ -83,7 +84,7 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
         openCapsule, model, artifactStore: source.artifactStore, release,
         assertSession: assertWorkResidentCapsule, closeSources, trackSession,
         canonical: !!canonical, onVerification: value => { capsuleVerification = value; }, onLoadProgress });
-    } else factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: model.identity, onLoadProgress,
+    } else factory = runtime.createManifestResidentPartitionFactory({ resolveAdapter: createWorkAdapterResolver({ models: [selected], acquire: files.acquireAdapter }), manifest, manifestIdentity: model.identity, onLoadProgress,
       runtimeConfig: selected.partitionRuntime?.runtimeConfig ?? { shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: policy.profileGpu } } },
         inference: { session: { kvcache: { maxSeqLen: model.generation.maxSeqLen },
           prefillChunkLayers: policy.prefillChunkLayers, prefillTokenChunkSize: policy.prefillTokenChunkSize } } },

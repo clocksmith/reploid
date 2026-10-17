@@ -1,0 +1,60 @@
+{
+  "schema": "reploid.native-lora-lifecycle/v1",
+  "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "adapterIdentity": "sha256:dc0248f45553e69defd8a1846619443f1ac5902a118548c70a7254c21f66f64b",
+  "checks": [
+    "prepared-adapter",
+    "base-adapter-base-isolation",
+    "concurrent-caller-isolation",
+    "cancel-and-reuse",
+    "closed"
+  ],
+  "base": {
+    "content": "```json\n[\n  {\n",
+    "raw": "```json\n[\n  {\n",
+    "requestedModel": "qwen-3-5-0-8b-q4k-ehaf16",
+    "model": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+    "adapterIdentities": [],
+    "completion": {
+      "schema": "doppler.generation-completion/v1",
+      "stopReason": "max-tokens",
+      "promptTokenCount": 25,
+      "generatedTokenCount": 8
+    },
+    "timing": {
+      "totalMs": 583.103541,
+      "generatedTokenCount": 8,
+      "prefillMs": 225.301917,
+      "decodeMs": 354.310166,
+      "firstTokenMs": 228.24929100000008
+    },
+    "provider": "doppler",
+    "execution": "local-scoped-session"
+  },
+  "adapted": {
+    "content": "{\"people\":[\"Maya\"],\"places\":[\"",
+    "raw": "{\"people\":[\"Maya\"],\"places\":[\"",
+    "requestedModel": "qwen-3-5-0-8b-q4k-ehaf16",
+    "model": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+    "adapterIdentities": [
+      "sha256:dc0248f45553e69defd8a1846619443f1ac5902a118548c70a7254c21f66f64b"
+    ],
+    "completion": {
+      "schema": "doppler.generation-completion/v1",
+      "stopReason": "max-tokens",
+      "promptTokenCount": 25,
+      "generatedTokenCount": 8
+    },
+    "timing": {
+      "totalMs": 620.9222500000001,
+      "generatedTokenCount": 8,
+      "prefillMs": 221.3357500000002,
+      "decodeMs": 396.7087919999999,
+      "firstTokenMs": 224.14125000000013
+    },
+    "provider": "doppler",
+    "execution": "local-scoped-session"
+  }
+}

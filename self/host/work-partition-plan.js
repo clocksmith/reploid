@@ -2,16 +2,19 @@
 import { freezeJson } from '../vendor/reploid/config/index.js';
 import { partitionActivationContract } from '../vendor/reploid/mesh/partitions/partition-contract.js';
 import { validateRouteCostPolicy } from '../vendor/reploid/mesh/partitions/partition-route-ranking.js';
+import { selectWorkAdapters } from '../providers/work-adapter.js';
 import partitionPolicy from '../config/partition-policy.json' with { type: 'json' };
 
 export function snapshotWorkPartitionSelection(selected) {
+  const adapters = selectWorkAdapters(selected);
+  selected = { ...selected, adapters };
   if (selected.partitionPlan === undefined) return selected;
   const plan = selected.partitionPlan;
   if (!plan || plan.modelId !== selected.id
     || selected.partitionSplitLayer !== undefined && plan.splitLayer !== selected.partitionSplitLayer) {
     throw new Error('Declared partition plan differs from the selected model or split');
   }
-  return { ...selected, partitionPlan: freezeJson(structuredClone(plan)) };
+  return { ...selected, partitionPlan: freezeJson({ ...structuredClone(plan), ...(adapters.length ? { adapterIdentities: adapters.map(adapter => adapter.identity) } : {}) }) };
 }
 
 /** A catalog model participates in ordered routes only through its declared Doppler plan version. */
@@ -46,6 +49,7 @@ export function createWorkPartitionPlan(runtime, manifest, selected, index = 0) 
   if (selected.partitionPlan === undefined) {
     return runtime.createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,
       splitLayer: selected.partitionSplitLayer,
+      ...(selected.adapters.length ? { adapterIdentities: selected.adapters.map(adapter => adapter.identity) } : {}),
       activationDtype: manifest.inference.session.compute.defaults.activationDtype });
   }
   if (manifest.modelId !== selected.id || typeof runtime.resolveLayerPartition !== 'function') {
