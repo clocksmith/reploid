@@ -41,6 +41,8 @@ export interface LayerPartition {
 export interface LayerPartitionPlan {
   readonly schema: typeof LAYER_PARTITION_SCHEMA | typeof PAIRED_LAYER_PARTITION_SCHEMA;
   readonly modelId: string;
+  /** Exact prepared adapter, bound into the plan digest; absent means base-only. */
+  readonly adapterIdentities?: readonly string[];
   readonly totalLayers: number;
   readonly hiddenSize: number;
   readonly vocabSize: number;
