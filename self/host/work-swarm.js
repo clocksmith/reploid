@@ -90,6 +90,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   let contributor = null, stoppingContribution = null, contributionEpoch = 0;
   let contribution = { phase: 'idle', completed: 0, modelId: null, modelIdentity: null, progress: null };
   const getState = () => ({ introductionAssistance, sharing, computeEnabled, filesEnabled, stopping, connecting, paused,
+    connectionFailure: connectionFailure ? { ...connectionFailure } : null,
     error: error || connectionFailure?.message || '', unsettledOwners: cleanupDebt.size, models: LOCAL_DOPPLER_MODELS,
     discoveryScope: options.discoveryScope,
     webContributors: webNetwork?.getOffers() || [],
@@ -126,7 +127,8 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       instanceId, modelConfig: model, utils, eventBus, events,
       getExecutionState: () => {
         const state = execution?.getState();
-        return { phase: sharing && state?.ready ? 'ready' : state?.phase || 'idle',
+        return { phase: state?.phase === 'executing' ? 'executing' : sharing && state?.ready ? 'ready' : state?.phase || 'idle',
+          progress: state?.progress || null,
           modelIdentity: state?.modelIdentity || null, adapterIdentities: state?.adapterIdentities || [] };
       },
       createTransport: () => {

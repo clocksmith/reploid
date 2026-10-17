@@ -132,6 +132,47 @@ const WebRTCSwarm = {
       EventBus.emit('swarm:state-change', { state: !_manualStop && [..._peers.values()].some(peer => peer.dataChannel?.readyState === 'open') ? 'connected' : state, introductionState: state, ...detail });
     };
 
+    const reportPeerProgress = (peer, phase) => {
+      if (_manualStop || _peers.get(peer.id) !== peer) return;
+      peer.phase = phase; peer.updatedAt = Date.now();
+      EventBus.emit('swarm:peer-progress', { peerId: peer.id, phase });
+    };
+    const getPeerStates = () => [..._peers.values()].map(peer => ({
+      id: peer.id, phase: peer.phase || peer.status, transport: peer.transport || 'webrtc',
+      updatedAt: peer.updatedAt || peer.lastSeen,
+      iceState: peer.connection?.iceConnectionState || null,
+      channelState: peer.dataChannel?.readyState || null
+    }));
+    const preparePeer = async (remote, exchange) => {
+      const peer = { id: remote, exchange, connection: null, dataChannel: null,
+        metadata: {}, status: 'connecting', lastSeen: Date.now() };
+      _peers.set(remote, peer);
+      reportPeerProgress(peer, 'preparing');
+      boundNegotiation(remote, peer);
+      try {
+        const rtcConfig = deps.getRtcConfig ? await deps.getRtcConfig() : deps.rtcConfig || policy.webrtc.rtcConfig;
+        if (_manualStop || _peers.get(remote) !== peer || exchange && !exchange.isActive()) {
+          if (_peers.get(remote) === peer) removePeer(remote);
+          return null;
+        }
+        peer.connection = new RTCPeerConnection(rtcConfig);
+        peer.rtcConfigKey = JSON.stringify(rtcConfig);
+        reportPeerProgress(peer, 'negotiating');
+        peer.connection.oniceconnectionstatechange = () => {
+          const ice = peer.connection.iceConnectionState;
+          reportPeerProgress(peer, ice === 'disconnected' ? 'interrupted'
+            : peer.status === 'connected' ? 'connected' : 'negotiating');
+        };
+        return peer;
+      } catch (error) {
+        if (_peers.get(remote) === peer) {
+          recoverPeer(remote, peer);
+          EventBus.emit('swarm:connection-failed', { peerId: remote, message: 'Could not prepare the peer connection.' });
+        }
+        throw error;
+      }
+    };
+
     /**
      * Increment logical clock (Lamport timestamp)
      */
@@ -561,7 +602,8 @@ const WebRTCSwarm = {
       const existingPeer = _peers.get(remotePeerId);
       if (existingPeer) {
         if (existingPeer.exchange && !exchange) return;
-        if (existingPeer.status === 'connected') {
+        if (existingPeer.status === 'connected' || existingPeer.status === 'connecting'
+          && existingPeer.exchange?.attemptId === exchange?.attemptId) {
           logger.debug(`[WebRTCSwarm] Already connected to ${remotePeerId}, skipping`);
           return;
         }
@@ -572,32 +614,13 @@ const WebRTCSwarm = {
 
       logger.info(`[WebRTCSwarm] Connecting to peer: ${remotePeerId}`);
 
-      const generation = _generation;
-      const rtcConfig = deps.getRtcConfig ? await deps.getRtcConfig() : deps.rtcConfig || policy.webrtc.rtcConfig;
-      if (_manualStop || _generation !== generation || exchange && !exchange.isActive()) return;
-      const connection = new RTCPeerConnection(rtcConfig);
+      const peer = await preparePeer(remotePeerId, exchange);
+      if (!peer) return;
+      const connection = peer.connection;
       let dataChannel;
       try { dataChannel = connection.createDataChannel('reploid', CONFIG.channelOptions); }
-      catch (error) {
-        // Registration has not happened yet: disconnect cannot find this owner.
-        try { connection.close(); }
-        catch (cleanup) { throw new AggregateError([error, cleanup], 'Primary channel creation and cleanup failed'); }
-        throw error;
-      }
-
-      const peer = {
-        id: remotePeerId,
-        exchange,
-        connection,
-        rtcConfigKey: JSON.stringify(rtcConfig),
-        dataChannel,
-        metadata: {},
-        status: 'connecting',
-        lastSeen: Date.now()
-      };
-
-      _peers.set(remotePeerId, peer);
-      boundNegotiation(remotePeerId, peer);
+      catch (error) { removePeer(remotePeerId); throw error; }
+      peer.dataChannel = dataChannel;
 
       connection.ondatachannel = event => incomingChannel(remotePeerId, peer, event.channel);
 
@@ -616,6 +639,7 @@ const WebRTCSwarm = {
       // Connection state monitoring
       connection.onconnectionstatechange = () => {
         if (_peers.get(remotePeerId) !== peer) return;
+        reportPeerProgress(peer, connection.connectionState === 'disconnected' ? 'interrupted' : peer.status);
         logger.debug(`[WebRTCSwarm] Connection state with ${remotePeerId}: ${connection.connectionState}`);
         // ICE disconnected can recover. The existing heartbeat deadline bounds
         // liveness; do not destroy open custody/partition channels prematurely.
@@ -633,6 +657,7 @@ const WebRTCSwarm = {
       await connection.setLocalDescription(offer);
       if (_manualStop || _peers.get(remotePeerId) !== peer) return;
 
+      reportPeerProgress(peer, 'awaiting-answer');
       await sendPeerSignal(peer, {
         type: 'offer',
         peerId: _peerId,
@@ -650,24 +675,9 @@ const WebRTCSwarm = {
       if (_peers.has(remotePeerId)) removePeer(remotePeerId, Boolean(exchange));
       logger.info(`[WebRTCSwarm] Received offer from: ${remotePeerId}`);
 
-      const generation = _generation;
-      const rtcConfig = deps.getRtcConfig ? await deps.getRtcConfig() : deps.rtcConfig || policy.webrtc.rtcConfig;
-      if (_manualStop || _generation !== generation || exchange && !exchange.isActive()) return;
-      const connection = new RTCPeerConnection(rtcConfig);
-
-      const peer = {
-        id: remotePeerId,
-        exchange,
-        connection,
-        rtcConfigKey: JSON.stringify(rtcConfig),
-        dataChannel: null,
-        metadata: {},
-        status: 'connecting',
-        lastSeen: Date.now()
-      };
-
-      _peers.set(remotePeerId, peer);
-      boundNegotiation(remotePeerId, peer);
+      const peer = await preparePeer(remotePeerId, exchange);
+      if (!peer) return;
+      const connection = peer.connection;
 
       // ICE candidate handler
       connection.onicecandidate = (event) => {
@@ -687,6 +697,7 @@ const WebRTCSwarm = {
       };
       connection.onconnectionstatechange = () => {
         if (_peers.get(remotePeerId) !== peer) return;
+        reportPeerProgress(peer, connection.connectionState === 'disconnected' ? 'interrupted' : peer.status);
         // Preserve transient ICE recovery under the same heartbeat deadline as
         // outgoing connections. Terminal states still retire the peer now.
         if (connection.connectionState === 'failed' || connection.connectionState === 'closed') {
@@ -719,6 +730,7 @@ const WebRTCSwarm = {
       if (peer) {
         await peer.connection.setRemoteDescription(answer);
         await flushPendingIceCandidates(remotePeerId, peer.connection);
+        reportPeerProgress(peer, peer.status === 'connected' ? 'connected' : 'opening-channel');
       }
     };
 
@@ -764,6 +776,7 @@ const WebRTCSwarm = {
         if (_manualStop || _peers.get(remotePeerId) !== peer) { dataChannel.close(); return; }
         logger.info(`[WebRTCSwarm] Data channel opened with ${remotePeerId}`);
         peer.status = 'connected';
+        reportPeerProgress(peer, 'connected');
         clearTimeout(negotiationTimers.get(remotePeerId)); negotiationTimers.delete(remotePeerId);
         introductions?.settled(remotePeerId);
         startHeartbeat();
@@ -1181,6 +1194,7 @@ const WebRTCSwarm = {
       onMessage,
       getConnectionState,
       getConnectedPeers,
+      getPeerStates,
       onDataChannel(label, handler) {
         if (!AUXILIARY_CHANNELS.includes(label) || typeof handler !== 'function') throw new Error('Explicit auxiliary channel handler required');
         auxiliaryHandlers.set(label, handler);
