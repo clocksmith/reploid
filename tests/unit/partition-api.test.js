@@ -319,7 +319,7 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
     release.resolve(); expect((await first).status).toBe('cancelled');
     expect(f.factory.log.settlements.filter(s => s.index === 1)).toHaveLength(1);
     const steps = f.factory.log.steps.length;
-    await expect(session.send(id, '10')).rejects.toThrow('Network answers are off');
+    expect(() => session.send(id, '10')).toThrow('Network answers are off');
     expect(f.factory.log.steps).toHaveLength(steps);
     expect(session.getState().activeThread.attempts).toHaveLength(1);
     session.setRemoteAnswersEnabled(true);

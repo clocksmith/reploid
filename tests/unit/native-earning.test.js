@@ -10,8 +10,10 @@ import path from 'node:path';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 
 const ports = vi.hoisted(() => ({ onChange: null, records: [], deliveries: [] }));
+vi.mock('../../packages/reploid/src/transport/index.js', async original => ({ ...await original(),
+  createSwarmTransport: () => ({ onMessage() {}, offMessage() {}, sendToPeer() {}, getConnectedPeers: () => [], disconnect() {} }) }));
 vi.mock('../../packages/reploid/src/mesh/index.js', async (original) => ({ ...await original(),
-  createLegacyGenerationMesh: () => ({ connect: async () => {}, close: async () => {}, getSwarmSnapshot: () => ({}) }),
+  createLegacyGenerationMesh: ({ ports: input }) => ({ connect: async () => { input.createTransport(); }, close: async () => {}, getSwarmSnapshot: () => ({}) }),
   createAutomaticPartitions: ({ onChange }) => {
     ports.onChange = onChange;
     return { getState: () => ({ phase: 'ready', reservations: { active: 0, records: structuredClone(ports.records) } }),

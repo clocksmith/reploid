@@ -236,7 +236,7 @@ describe('host retrieval plumbing and disclosure', () => {
     sessions.push(session);
     session.setRemoteAnswersEnabled(false);
     const thread = session.createThread({ model: ordered });
-    await expect(session.send(thread, QUESTION, [], { retrieval: {} })).rejects.toThrow('Network answers are off');
+    expect(() => session.send(thread, QUESTION, [], { retrieval: {} })).toThrow('Network answers are off');
     expect(partitions.disclosed).toEqual([]);
     expect(session.getState().threads[0].attempts).toEqual([]);
     session.setRemoteAnswersEnabled(true);
