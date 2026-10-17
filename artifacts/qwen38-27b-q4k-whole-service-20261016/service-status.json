@@ -1,0 +1,64 @@
+{
+  "checkedAt": "2026-10-17T01:16:49.368524+00:00",
+  "host": "amd-host",
+  "services": [
+    {
+      "Id": "reploid-qwen-27b.service",
+      "ActiveState": "active",
+      "SubState": "running",
+      "MainPID": "482901",
+      "processMemory": [
+        {
+          "pid": 482901,
+          "VmHWM": 2211840,
+          "VmRSS": 2211840
+        },
+        {
+          "pid": 482909,
+          "VmHWM": 1477849088,
+          "VmRSS": 1345212416
+        }
+      ]
+    },
+    {
+      "Id": "reploid-qwen-27b-split.service",
+      "ActiveState": "active",
+      "SubState": "running",
+      "MainPID": "1739039",
+      "processMemory": [
+        {
+          "pid": 1739039,
+          "VmHWM": 1966931968,
+          "VmRSS": 1843048448
+        }
+      ]
+    },
+    {
+      "Id": "reploid-qwen-08b.service",
+      "ActiveState": "active",
+      "SubState": "running",
+      "MainPID": "2963679",
+      "processMemory": [
+        {
+          "pid": 2963679,
+          "VmHWM": 1581211648,
+          "VmRSS": 1500950528
+        }
+      ]
+    },
+    {
+      "Id": "reploid-qwen-2b.service",
+      "ActiveState": "active",
+      "SubState": "running",
+      "MainPID": "2967869",
+      "processMemory": [
+        {
+          "pid": 2967869,
+          "VmHWM": 1623162880,
+          "VmRSS": 1600843776
+        }
+      ]
+    }
+  ],
+  "memoryScope": "Linux process RSS/HWM, not GPU residency or a complete physical-memory requirement"
+}
