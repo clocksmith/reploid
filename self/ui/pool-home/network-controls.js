@@ -7,7 +7,7 @@ const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&a
 export const renderConnectionControl = () => `<div class="network-sharing-row">
   <div><strong class="pool-small">Network connection</strong><span class="pool-small pool-muted" data-connection-label>Disconnected</span></div>
   <button class="network-switch pool-switch" type="button" role="switch" aria-label="Connect to network" aria-checked="false" data-mesh-connect><span></span></button>
-</div>`;
+</div><p class="pool-small pool-muted" data-connection-detail role="status"></p>`;
 
 export const renderSharingControls = ({ introductory = true } = {}) => `<div class="pool-stack pool-gap-md">
   ${introductory ? '<div class="pool-stack pool-gap-xs"><h3 class="pool-subheading">Contribute</h3><p class="pool-small pool-muted">Choose what this device shares. You don’t need to download a model to ask questions.</p></div>' : ''}
@@ -56,15 +56,41 @@ function preparationStatus(progress) {
     loading: ['Preparing', 'Loading the model into memory.']
   };
   const [status, detail] = labels[step.kind];
-  return { status, detail };
+  const maximum = step.totalBytes || step.total || null;
+  return { status, detail, progress: maximum ? { value: step.receivedBytes ?? step.prepared ?? 0, max: maximum } : null };
 }
 
 export function projectNetworkPeers(state) {
   const network = state.network || {};
   const own = new Set([network.consumer?.peerId, network.supplier?.peerId]);
-  const peers = new Map();
+  const peers = new Map(), connections = new Map();
+  const connectionLabels = {
+    preparing: ['Preparing connection', 'Waiting for connection configuration.'],
+    negotiating: ['Connecting', 'Finding a network path to this computer.'],
+    connecting: ['Connecting', 'Finding a network path to this computer.'],
+    'awaiting-answer': ['Waiting for computer', 'Invitation sent. Waiting for this computer to answer.'],
+    'opening-channel': ['Opening connection', 'Computer answered. Waiting for the data channel.'],
+    interrupted: ['Connection interrupted', 'Trying to recover the network path. Requests cannot rely on this computer yet.'],
+    failed: ['Connection failed', 'Could not connect. Check the invitation and network, then retry.'],
+    connected: ['Connected', 'Waiting for this computer to report its model status.']
+  };
+  for (const snapshot of [network.consumer, network.supplier]) for (const peer of snapshot?.connections || []) {
+    if (own.has(peer.id)) continue;
+    if (connections.get(peer.id)?.phase === 'connected') continue;
+    connections.set(peer.id, peer);
+  }
+  if (network.connectionFailure?.peerId && !connections.has(network.connectionFailure.peerId)) {
+    connections.set(network.connectionFailure.peerId, { id: network.connectionFailure.peerId, phase: 'failed' });
+  }
+  for (const peer of connections.values()) {
+    const [status, detail] = connectionLabels[peer.phase] || connectionLabels.connecting;
+    peers.set(peer.id, { id: peer.id, model: 'Model status pending', phase: peer.phase,
+      connectionPhase: peer.phase, partitionIndex: null, status, detail });
+  }
   for (const snapshot of [network.consumer, network.supplier]) for (const peer of snapshot?.peers || []) {
     if (own.has(peer.peerId)) continue;
+    const connection = connections.get(peer.peerId);
+    if (connection && connection.phase !== 'connected') continue;
     const capability = network.partitionPeers?.find(item => item.transportId === peer.peerId);
     const description = capability?.available ? capability.description : null;
     const partition = description && (description.offer || description.assignment || description.models?.length || description.phase !== 'idle') ? description : null;
@@ -77,7 +103,8 @@ export function projectNetworkPeers(state) {
     if (phase === 'ready' && capacity?.active > 0) phase = 'executing';
     else if (phase === 'ready' && (capacity?.availableSlots ?? peer.availableSlots) === 0) phase = 'busy';
     let status = 'Connected', detail = 'Connected to the network; not offering model execution.';
-    if (phase === 'loading') ({ status, detail } = preparationStatus(partition?.preparation || peer.preparation));
+    let progress = null;
+    if (phase === 'loading') ({ status, detail, progress } = preparationStatus(partition?.preparation || peer.preparation));
     else if (phase === 'waiting') {
       status = index === null ? 'Needs contributor' : 'Awaiting route';
       detail = index === null ? 'Connected. Waiting for another contributor before assigning a model stage.'
@@ -89,7 +116,7 @@ export function projectNetworkPeers(state) {
     else if (phase === 'failed') { status = 'Failed'; detail = 'Model preparation or execution failed on this computer.'; }
     else if (phase === 'stopping') { status = 'Stopping'; detail = 'Finishing cleanup before releasing resources.'; }
     else if (modelId) { status = 'Status unknown'; detail = 'Connected, but model readiness has not been reported.'; }
-    peers.set(peer.peerId, { id: peer.peerId, model, phase, partitionIndex: index, status, detail });
+    peers.set(peer.peerId, { id: peer.peerId, model, phase, connectionPhase: 'connected', partitionIndex: index, status, detail, progress });
   }
   return [...peers.values()];
 }
@@ -101,11 +128,11 @@ function renderPeerRows(list, state) {
   const expanded = new Set([...list.querySelectorAll('details[open]')].map(node => node.dataset.peerIdentity));
   list.innerHTML = rows.length ? rows.map(peer => {
     const status = peer.status;
-    return `<li class="network-peer-row" data-peer-phase="${escape(peer.phase || 'connected')}"><div><strong class="pool-small">${escape(computerLabel(state, peer.id))}</strong><span class="pool-small pool-muted">${escape(peer.model)}</span><p class="pool-small pool-muted">${escape(peer.detail)}</p>
+    return `<li class="network-peer-row" data-peer-phase="${escape(peer.phase || 'connected')}"><div><strong class="pool-small">${escape(computerLabel(state, peer.id))}</strong><span class="pool-small pool-muted">${escape(peer.model)}</span><p class="pool-small pool-muted">${escape(peer.detail)}</p>${peer.progress ? `<progress aria-label="${escape(peer.status)}" value="${peer.progress.value}" max="${peer.progress.max}"></progress>` : ''}
       <details data-peer-identity="${escape(peer.id)}"${expanded.has(peer.id) ? ' open' : ''}><summary>Details</summary><p>${escape(peer.partitionIndex === null ? peer.status : `Model stage ${peer.partitionIndex + 1} · ${peer.status}`)}</p><code>${escape(peer.id)}</code></details></div><span class="network-status pool-chip${peer.phase === 'ready' ? ' pool-dot' : ''}${peer.phase === 'failed' ? ' pool-muted' : ''}">${escape(status)}</span></li>`;
   }).join('') : '<li class="network-empty pool-small pool-muted">No computers connected yet</li>';
   const summary = list.parentElement.querySelector('[data-peer-readiness]');
-  if (summary) summary.textContent = `${rows.filter(peer => peer.phase === 'ready').length} ready · ${rows.filter(peer => peer.phase === 'executing').length} working · ${rows.filter(peer => peer.phase === 'failed').length} unavailable`;
+  if (summary) summary.textContent = `${rows.filter(peer => peer.connectionPhase === 'connected').length} connected · ${rows.filter(peer => peer.phase === 'ready').length} ready · ${rows.filter(peer => peer.phase === 'executing').length} working · ${rows.filter(peer => peer.phase === 'failed').length} unavailable`;
 
 }
 
@@ -144,6 +171,13 @@ export function bindNetworkControls(container, session, { getInviteUrl, requestC
     find('[data-connection-label]').textContent = network.connecting || discoveryState === 'connecting' ? 'Connecting…'
       : discoveryState === 'awaiting-introduction' ? 'Needs an invitation'
       : discoveryState === 'retrying' ? 'Reconnecting…' : activeDiscovery ? 'Connected' : 'Disconnected';
+    const detail = find('[data-connection-detail]');
+    if (detail) detail.textContent = network.connecting || discoveryState === 'connecting'
+      ? 'Connection requested. Waiting for network discovery.'
+      : discoveryState === 'awaiting-introduction' ? 'Open an invitation from another computer to continue.'
+      : discoveryState === 'retrying' ? 'Discovery interrupted. Retrying; existing computer connections may still work.'
+      : activeDiscovery ? (peers.length ? 'Discovery is available. Each computer reports its connection and model readiness below.' : 'Discovery is available. Waiting for other computers to join.')
+      : 'Connect to discover computers. Model readiness is reported separately.';
     const message = find('[data-network-message]');
     message.textContent = network.error || actionError || ''; message.hidden = !message.textContent;
     const cleanupPending = network.contribution?.unsettledOwners > 0;
@@ -156,7 +190,8 @@ export function bindNetworkControls(container, session, { getInviteUrl, requestC
     find('[data-retry-contribution-stop]').disabled = !!network.stopping;
     find('[data-contribution-limits]').textContent = network.limits ? network.limits.maxInboundJobs + (network.limits.maxInboundJobs === 1 ? ' request' : ' requests') + ' at a time · ' + network.limits.maxOutputTokens + ' output tokens per request' : '';
     const progress = network.contribution?.progress;
-    const progressText = typeof progress === 'string' ? progress : progress?.message || progress?.stage || progress?.phase || '';
+    const progressText = network.contribution?.phase === 'loading' ? preparationStatus(progress).detail
+      : typeof progress === 'string' ? progress : progress?.message || progress?.stage || progress?.phase || '';
     const progressNode = find('[data-contribution-progress]');
     progressNode.textContent = network.contribution?.error || progressText;
     progressNode.hidden = !progressNode.textContent;

@@ -135,7 +135,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     const connection = find('[data-connection-label]').textContent;
     const summaries = {
       conversation: view.statusLabel,
-      participants: connection === 'Connected' ? `${peers.length} connected` : connection,
+      participants: connection === 'Connected' ? `${peers.filter(peer => peer.connectionPhase === 'connected').length} connected · ${peers.filter(peer => peer.phase === 'ready').length} ready` : connection,
       device: [find('[data-contrib-label]').textContent, state.network?.files?.sharing ? 'Files on' : ''].filter(Boolean).join(' · ')
     };
     for (const [section, summary] of Object.entries(summaries)) {

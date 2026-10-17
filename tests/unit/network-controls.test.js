@@ -149,3 +149,23 @@ it.each([
   const state = { network: { consumer: { peers: [{ peerId: 'remote', model: 'qwen', readiness: 'loading', preparation }] } } };
   expect(projectNetworkPeers(state)[0]).toMatchObject({ status, detail: expect.stringContaining(detail) });
 });
+
+
+it('keeps transport attempts visible before advertisements and never treats interruption as ready', () => {
+  const state = { network: { consumer: { peerId: 'local', connections: [
+    { id: 'local', phase: 'connected' }, { id: 'remote', phase: 'preparing' }
+  ], peers: [] } } };
+  expect(projectNetworkPeers(state)).toMatchObject([{ id: 'remote', status: 'Preparing connection', connectionPhase: 'preparing' }]);
+  const connection = state.network.consumer.connections[1];
+  connection.phase = 'connected';
+  expect(projectNetworkPeers(state)[0]).toMatchObject({ status: 'Connected', detail: expect.stringContaining('Waiting') });
+  state.network.consumer.peers = [{ peerId: 'remote', model: 'Qwen', readiness: 'loading', preparation: { kind: 'receiving', receivedBytes: 50, totalBytes: 100 } }];
+  expect(projectNetworkPeers(state)[0]).toMatchObject({ status: 'Receiving files', progress: { value: 50, max: 100 } });
+  state.network.consumer.peers[0].readiness = 'ready';
+  expect(projectNetworkPeers(state)[0].status).toBe('Ready');
+  connection.phase = 'interrupted';
+  expect(projectNetworkPeers(state)[0]).toMatchObject({ status: 'Connection interrupted', phase: 'interrupted' });
+  state.network.consumer.connections = []; state.network.consumer.peers = [];
+  state.network.connectionFailure = { peerId: 'remote', message: 'Timed out' };
+  expect(projectNetworkPeers(state)[0].status).toBe('Connection failed');
+});

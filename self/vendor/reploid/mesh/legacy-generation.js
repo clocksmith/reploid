@@ -51,7 +51,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
     sendCancel: (peerId, requestId) => swarmTransport?.sendToPeer(peerId, 'reploid:generation-cancel', { requestId }) });
   let swarmInitPromise = null, swarmInitialized = false, swarmHandlersRegistered = false;
   const executionState = () => ports.getExecutionState?.() || { phase: modelConfig ? 'ready' : 'idle', modelIdentity: null };
-  const ready = () => !closed && !!modelConfig && executionState().phase === 'ready';
+  const ready = () => !closed && !!modelConfig && ['ready', 'executing'].includes(executionState().phase);
   const currentModelBinding = () => modelBinding(modelConfig?.id || null, executionState().modelIdentity);
   const bindingAvailable = (binding, adapters) => sameModelBinding(currentModelBinding(), binding)
     && supportsAdapters(executionState(), adapters);
@@ -97,7 +97,8 @@ export function createLegacyGenerationMesh({ config, ports }) {
 
   const getTransportState = () => ({
     connectionState: swarmTransport?.getConnectionState?.() || 'disconnected',
-    transport: swarmTransport?.getTransportType?.() || null
+    transport: swarmTransport?.getTransportType?.() || null,
+    connections: swarmTransport?.getPeerStates?.() || []
   });
 
   const getSwarmSnapshot = () => ({
@@ -433,6 +434,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
         subscriptions.push(eventBus.on('swarm:state-change', () => {
           emitSwarmState();
         }, 'self-bridge'));
+        subscriptions.push(eventBus.on('swarm:peer-progress', emitSwarmState, 'self-bridge'));
         swarmHandlersRegistered = true;
       }
 

@@ -5,7 +5,7 @@ import { resolveConfig } from '../../packages/reploid/src/config/index.js';
 
 afterEach(() => vi.useRealTimers());
 
-function fixture({ failChannel = false, profile } = {}) {
+function fixture({ failChannel = false, profile, getRtcConfig, connectTimeoutMs = 30000 } = {}) {
   const sockets = [], connections = [], events = [];
   class Socket {
     static OPEN = 1;
@@ -33,10 +33,10 @@ function fixture({ failChannel = false, profile } = {}) {
   }
   const config = resolveConfig({ profile, overrides: { mesh: { enabled: true, roomId: 'test' },
     webrtc: { signalingUrl: 'wss://fixture.invalid', heartbeatIntervalMs: 100, peerTimeoutMs: 500,
-      reconnectBaseMs: 1000 } } });
+      reconnectBaseMs: 1000, connectTimeoutMs } } });
   const swarm = createWebRTCSwarm({ config, peerId: 'local', getSessionId: () => 'session',
     getRoomCredentials: () => ({ roomId: 'test', token: 'x'.repeat(32) }),
-    WebSocket: Socket, RTCPeerConnection: Connection,
+    WebSocket: Socket, RTCPeerConnection: Connection, getRtcConfig,
     Utils: { generateId: () => 'local', logger: { info() {}, debug() {}, warn() {}, error() {} } },
     EventBus: { emit: (...args) => events.push(args) } });
   async function open(incoming = false) {
@@ -267,4 +267,48 @@ it('negotiates the application control channel as reliable ordered without a ret
     await f.open();
     expect(f.connections[0].createdChannelOptions).toEqual({ordered:true});
   } finally {f.swarm.disconnect();}
+});
+
+
+it('publishes an attempt before configuration resolves, coalesces duplicates, and distinguishes channel readiness', async () => {
+  let resolve;
+  const f = fixture({ getRtcConfig: () => new Promise(done => { resolve = done; }) });
+  try {
+    const pending = f.swarm.init(); f.sockets[0].onopen();
+    const joined = { type: 'joined', peerId: 'local', roomId: 'test', peers: ['direct'] };
+    const first = f.sockets[0].receive(joined);
+    expect(f.swarm.getPeerStates()).toMatchObject([{ id: 'direct', phase: 'preparing' }]);
+    expect(f.swarm.getConnectedPeers()).toEqual([]);
+    await f.sockets[0].receive(joined);
+    resolve({ iceServers: [] }); await first; await pending;
+    expect(f.connections).toHaveLength(1);
+    expect(f.swarm.getPeerStates()[0].phase).toBe('awaiting-answer');
+    expect(f.swarm.getConnectedPeers()).toEqual([]);
+    await f.sockets[0].receive(joined);
+    expect(f.connections).toHaveLength(1);
+    f.connections[0].channel.onopen();
+    expect(f.swarm.getPeerStates()[0].phase).toBe('connected');
+    f.connections[0].connectionState = 'disconnected'; f.connections[0].onconnectionstatechange();
+    expect(f.swarm.getPeerStates()[0].phase).toBe('interrupted');
+    expect(f.connections[0].close).not.toHaveBeenCalled();
+    expect(f.events.some(([type, detail]) => type === 'swarm:peer-progress' && detail.phase === 'preparing')).toBe(true);
+  } finally { f.swarm.disconnect(); }
+  expect(f.swarm.getPeerStates()).toEqual([]);
+});
+
+it('cancels preparation before RTC construction on disconnect and times out stalled configuration', async () => {
+  vi.useFakeTimers();
+  let resolve;
+  const configuration = new Promise(done => { resolve = done; });
+  const f = fixture({ connectTimeoutMs: 300, getRtcConfig: () => configuration });
+  try {
+    const pending = f.swarm.init(); f.sockets[0].onopen();
+    const first = f.sockets[0].receive({ type: 'joined', peerId: 'local', roomId: 'test', peers: ['direct'] });
+    await vi.advanceTimersByTimeAsync(301);
+    expect(f.swarm.getPeerStates()).toEqual([]);
+    expect(f.events.some(([type]) => type === 'swarm:connection-failed')).toBe(true);
+    f.swarm.disconnect(); resolve({ iceServers: [] }); await first; await pending;
+    expect(f.connections).toEqual([]);
+    expect(vi.getTimerCount()).toBe(0);
+  } finally { f.swarm.disconnect(); }
 });

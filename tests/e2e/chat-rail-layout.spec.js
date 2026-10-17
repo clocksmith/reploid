@@ -254,3 +254,77 @@ for (const width of [1440,320]) test(`shared shell inspector survives mounting a
   await expect(page.locator('[data-pool-theme-choice="light"]')).toHaveCount(1);
   await page.screenshot({path:info.outputPath('shared-settings-return.png')});
 });
+
+
+for (const width of [1440, 390]) for (const theme of ['light', 'dark']) {
+  test(`${theme} connection journey preserves pending, transfer, readiness and interruption at ${width}px`, async ({ page }, info) => {
+    await page.setViewportSize({ width, height: 844 });
+    await page.evaluate(theme => {
+      document.querySelector('.pool-home').dataset.poolTheme = theme;
+      const network = window.railState.network;
+      network.partitionPeers = [];
+      network.consumer.peers = [];
+      network.consumer.connections = [{ id: 'transport-a', phase: 'preparing' }];
+      window.emitRailState();
+    }, theme);
+    await page.locator('[data-composer-input]').fill('Keep the draft while computers connect.');
+    await page.locator('[data-toggle-inspector]').click();
+    const row = page.locator('.network-peer-row');
+    await expect(row).toHaveCount(1);
+    await expect(row).toContainText('Preparing connection');
+    await expect(row).toContainText('Waiting for connection configuration');
+    await row.scrollIntoViewIfNeeded();
+    await page.screenshot({ path: info.outputPath('pending.png') });
+    await page.evaluate(() => { window.railState.network.consumer.connections[0].phase = 'awaiting-answer'; window.emitRailState(); });
+    await expect(row).toContainText('Waiting for computer');
+    await page.evaluate(() => { window.railState.network.consumer.connections[0].phase = 'connected'; window.emitRailState(); });
+    await expect(row).toContainText('Waiting for this computer to report its model status');
+    await expect(page.locator('[data-peer-readiness]')).toContainText('1 connected · 0 ready');
+    await page.evaluate(() => {
+      window.railState.network.consumer.peers = [{ peerId: 'transport-a', model: 'qwen', readiness: 'loading',
+        preparation: { kind: 'receiving', receivedBytes: 25, totalBytes: 100 } }]; window.emitRailState();
+    });
+    await expect(row).toContainText('Receiving files');
+    await expect(row.locator('progress')).toHaveAttribute('value', '25');
+    await row.locator('summary').click();
+    await page.evaluate(() => { window.railState.network.consumer.peers[0].preparation.receivedBytes = 75; window.emitRailState(); });
+    await expect(row.locator('progress')).toHaveAttribute('value', '75');
+    await expect(row.locator('details')).toHaveAttribute('open', '');
+    await page.screenshot({ path: info.outputPath('receiving.png') });
+    await page.evaluate(() => { window.railState.network.consumer.peers[0].readiness = 'ready'; window.emitRailState(); });
+    await expect(page.locator('[data-peer-readiness]')).toContainText('1 connected · 1 ready');
+    await expect(row).toContainText('Model loaded and ready to answer');
+    await page.screenshot({ path: info.outputPath('ready.png') });
+    await page.evaluate(() => { window.railState.network.consumer.connections[0].phase = 'interrupted'; window.emitRailState(); });
+    await expect(row).toContainText('Connection interrupted');
+    await expect(page.locator('[data-peer-readiness]')).toContainText('0 connected · 0 ready');
+    await page.screenshot({ path: info.outputPath('interrupted.png') });
+    await page.evaluate(() => {
+      window.railState.network.consumer.connections = []; window.railState.network.consumer.peers = [];
+      window.railState.network.consumer.connectionState = 'retrying';
+      window.railState.network.connectionFailure = { peerId: 'transport-a', message: 'Connection timed out' };
+      window.emitRailState();
+    });
+    await expect(row).toContainText('Connection failed');
+    await expect(page.locator('[data-connection-detail]')).toContainText('Retrying');
+    await page.screenshot({ path: info.outputPath('failed.png') });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+    await page.locator('[data-close-inspector]').click();
+    await expect(page.locator('[data-composer-input]')).toHaveValue('Keep the draft while computers connect.');
+  });
+}
+
+test('connection runtime passes the Verification Worker', async ({ page }, info) => {
+  const files = ['host/work-swarm.js', 'vendor/reploid/transport/swarm.js', 'vendor/reploid/transport/room.js',
+    'vendor/reploid/mesh/legacy-generation.js', 'ui/pool-home/network-controls.js', 'ui/pool-home/network-inspector.js',
+    'ui/pool-home/computer-labels.js', 'ui/pool-home/shell-view.js'];
+  const snapshot = Object.fromEntries(await Promise.all(files.map(async file => ['/' + file, await readFile('self/' + file, 'utf8')])));
+  const result = await page.evaluate(snapshot => new Promise((resolve, reject) => {
+    const worker = new Worker('/core/verification-worker.js');
+    worker.onerror = event => { worker.terminate(); reject(Error(event.message)); };
+    worker.onmessage = event => { worker.terminate(); resolve(event.data); };
+    worker.postMessage({ type: 'VERIFY', snapshot });
+  }), snapshot);
+  await info.attach('verification.json', { body: JSON.stringify(result, null, 2), contentType: 'application/json' });
+  expect(result.errors).toEqual([]); expect(result.passed).toBe(true);
+});
