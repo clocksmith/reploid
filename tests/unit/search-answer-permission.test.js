@@ -280,7 +280,8 @@ describe('host session and conversation view', () => {
     submit(QUESTION);
     await vi.waitFor(() => expect(dialog.open).toBe(true));
     expect(find('[data-search-permission-text]').textContent).toBe(APPROVED);
-    expect([...find('[data-search-permission-recipients]').children].map(item => item.textContent)).toHaveLength(3);
+    expect([...find('[data-search-permission-recipients]').children].map(item => item.textContent))
+      .toEqual(STAGES.map(id => expect.stringContaining(`(${id})`)));
     find('[data-search-permission-decline]').click();
     await new Promise(resolve => setTimeout(resolve, 30));
     expect(session.getState().threads).toEqual([]); expect(partitions.disclosed).toEqual([]);

@@ -50,7 +50,7 @@ export function bindSearchPermissionDialog(dialog, session) {
       find('[data-search-permission-peer-label]').textContent = searchPeer ? `${computerLabel(state, searchPeer)} (${searchPeer})` : '';
       list.replaceChildren(...(recipients.length ? recipients : [null]).map(id => {
         const item = dialog.ownerDocument.createElement('li');
-        item.textContent = id === null ? 'None. This answer runs on this device.' : computerLabel(state, id);
+        item.textContent = id === null ? 'None. This answer runs on this device.' : `${computerLabel(state, id)} (${id})`;
         return item;
       }));
       opener = dialog.ownerDocument.activeElement;

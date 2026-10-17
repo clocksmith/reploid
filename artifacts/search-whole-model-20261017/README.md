@@ -35,3 +35,7 @@ npx vitest run --config tests/vitest.config.js \
 The physical harness keeps the useful-answer/citation expectation and retains the failing answer. Chrome context teardown stalled after the receipt was written; the owned test worker was stopped after its four-minute bound. The harness now uses Playwright’s managed page fixture instead of awaiting manual context closure inside its failure handler. Earlier repository CI failures and skipped checks remain open; these focused checks do not close them. No independent model-quality or retention claim follows from restored authorization.
 
 Component: browser host search consent and swarm identity port. Intent: preserved. Boundary effects: asynchronous host permission preparation; existing mesh verification and execution-disclosure ownership unchanged. Acceptance: identity regression and physical authorized completion; useful movie answer remains failed.
+
+## Recipient display follow-up
+
+The consent dialog also displays each execution recipient’s signing identity beside its computer label, matching the existing search-contributor display. This keeps recipients distinguishable before a new identity has a session label. The [12 permission tests](recipient-label-tests.log.gz) and [Verification Worker](recipient-label-verification.json) passed after this display change. The physical answer above remains bound to the earlier bundle; this UI-only follow-up was not used to replace its failed usefulness result.
