@@ -2032,7 +2032,7 @@
     {
       "path": "providers/work-adapter.js",
       "owner": "providers",
-      "sha256": "sha256:e0898fd4cd08b107605a0635e8b46ac3ff622d601c2d5a67a40279be2c9b21c1",
+      "sha256": "sha256:36b09fedbab647fe7695b5d893c329556c44a9dc91cd5d35ed268410a66f938b",
       "imports": []
     },
     {
@@ -2199,7 +2199,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:2194f5d85e75c69548f628e07ffd94525c52210f8ae62dd7b5700f8dab3fe306",
+      "sha256": "sha256:170ea712718402833d1aedda30bd522455c706e65c1810284db1071d861ae138",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -2504,7 +2504,7 @@
     {
       "path": "self/host/work-model-files.js",
       "owner": "self",
-      "sha256": "sha256:052db70d215abe96f1e897123f393e9b8756c03d35507849e7244e3d96eaa473",
+      "sha256": "sha256:628de3543a8f6d435e81f134d71211573633533a6c52dbd0310163e52942cf69",
       "imports": [
         "../config/chat-files.json",
         "../config/doppler-local-models.js",
@@ -2546,9 +2546,10 @@
     {
       "path": "self/host/work-partition-plan.js",
       "owner": "self",
-      "sha256": "sha256:76ec36d01c1b09b0b9dcd4d201b016e841279b5a785a9f3507a0561231d0b757",
+      "sha256": "sha256:f36aa5e06cb68f88ce9813619ad38d83fbd2586864dacb9beeeb7a3d3a22a7fe",
       "imports": [
         "../config/partition-policy.json",
+        "../providers/work-adapter.js",
         "../vendor/reploid/config/index.js",
         "../vendor/reploid/mesh/partitions/partition-contract.js",
         "../vendor/reploid/mesh/partitions/partition-route-ranking.js"
@@ -2563,12 +2564,13 @@
     {
       "path": "self/host/work-partitions.js",
       "owner": "self",
-      "sha256": "sha256:97a85e8c29e37adfc20dd2f3fbe1116eb1552226220696d42d5057cea58f9985",
+      "sha256": "sha256:e43bf7079c86695731d52bff334decb31849936d411c76ac856a1a079d1651de",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/partition-generation.js",
         "../config/partition-policy.json",
         "../pool/pack-release-policy.js",
+        "../providers/work-adapter.js",
         "../vendor/reploid/mesh/index.js",
         "../vendor/reploid/mesh/partitions/partition-preparation-progress.js",
         "../vendor/reploid/mesh/partitions/signed-resident-factory.js",
@@ -2636,7 +2638,7 @@
     {
       "path": "self/host/work-swarm.js",
       "owner": "self",
-      "sha256": "sha256:e80698d15a80d0b6e6284812ca0a89675278b0a01e325f20ec97023b5dc42703",
+      "sha256": "sha256:7c316dad0504bf8feb7296afab17f8ddfd9f4c0010c47f87786a69ed4ed37250",
       "imports": [
         "../capabilities/communication/library-adapter.js",
         "../config/doppler-local-models.js",
@@ -3360,7 +3362,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:7364713d4a50b4903f366f5068732c798f7c436fb686b1175b2b4d53d3067c15",
+      "sha256": "sha256:df3175a35edff54cc9f959c836fb88d1f77d1c643630727335ddaccf54866133",
       "imports": []
     },
     {
@@ -3533,7 +3535,7 @@
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:8fb893df18e395db7f9dccc1f9d909aa90fa587821b05091c33f8a89d79f9ed1",
+      "sha256": "sha256:a944d97b4927da4bc754069ade35454e9c187aeb88e0ffc3e4ab5256ba0ebc0f",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -16217,7 +16219,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/automatic-ordered-partitions.js",
       "owner": "vendor",
-      "sha256": "sha256:ab48908425acf6c89ffd4dc1e9f8528a973836a03ba7eda424fabce484a4efd8",
+      "sha256": "sha256:4497b78420e6509163bb985b88217dc9a73086f9ee516b65ff431b49ec202f2a",
       "imports": [
         "../preparation-progress.js",
         "./partition-attempt-queue.js",
@@ -16241,7 +16243,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/automatic-partitions.js",
       "owner": "vendor",
-      "sha256": "sha256:d925e7cab76682af087aa3de3fdb82108cf2cc1078c5359518151eaa089aaf0b",
+      "sha256": "sha256:fca7c81cf3b908f059f38ac5b62f6bfa0da3a934712a6975844407dabb067d7b",
       "imports": [
         "../preparation-progress.js",
         "./automatic-ordered-partitions.js",
@@ -16305,7 +16307,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/partition-chat.js",
       "owner": "vendor",
-      "sha256": "sha256:9ba2b9b256a1b36f3963c51bde42848552e0d85d7af070f1a4b01cbfd8510a5c",
+      "sha256": "sha256:149a73917a02b338e9f151ec368e208b1badab5e09412fab52a8e67c740850d1",
       "imports": [
         "./partition-chat-canonical.js",
         "./partition-contract.js",
@@ -16317,7 +16319,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/partition-contract.js",
       "owner": "vendor",
-      "sha256": "sha256:29ac5adf523ec2b4caee07ce4e587c241d5847dafc4fb263503cc7d81409aa34",
+      "sha256": "sha256:82f5b2c81acc4ec0536358456184de6ff5568fb904b40835aae0c7590a45152f",
       "imports": [
         "../../transport/partition-errors.json"
       ]
@@ -16402,7 +16404,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/partition-ordered-chat.js",
       "owner": "vendor",
-      "sha256": "sha256:d4bf6588bde3ab7eebbffade5e288e23460788c1d66556cbb9b1048ee895f069",
+      "sha256": "sha256:cb1a94e34a3cbae87068bd1ad6a8538b6e856d37d6b354359a3eba773abaf8ed",
       "imports": [
         "./partition-attempt-queue.js",
         "./partition-contract.js",
@@ -16447,7 +16449,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/partition-placement.js",
       "owner": "vendor",
-      "sha256": "sha256:a6956d2d094128e52756ed841787fa1359b747979267454c8a8e280f9edc92dd",
+      "sha256": "sha256:80fadd92b7f6c7013858bbe2438a352047fe1e50aee6bfdf65254e3e128efe61",
       "imports": [
         "./partition-contract.js"
       ]
