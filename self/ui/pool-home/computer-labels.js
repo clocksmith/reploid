@@ -11,7 +11,7 @@ function collect(state, registry) {
   }
   const ids = new Set();
   const own = new Set([state.participantId, state.network?.consumer?.peerId, state.network?.supplier?.peerId]);
-  for (const source of [state.network?.consumer, state.network?.supplier]) {
+  for (const source of [state.network, state.network?.consumer, state.network?.supplier]) {
     for (const peer of source?.connections || []) if (!own.has(peer.id)) ids.add(peer.id);
     for (const peer of source?.peers || []) if (!own.has(peer.peerId)) ids.add(peer.peerId);
   }

@@ -132,3 +132,10 @@
 .pool-plugin-shell td, .pool-plugin-shell th { padding: var(--pool-size-8); }
 .pool-plugin-shell li { overflow-wrap: anywhere; }
 @media (max-width: 760px) { .pool-plugin-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* Keep the observed connection state beside its computer, including on phones. */
+.network-peer-row > div { width: 100%; }
+.network-peer-heading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--pool-size-8); }
+.network-peer-row progress { width: 100%; height: var(--pool-size-8); accent-color: var(--pool-color-ink); }
+.pool-app-shortcuts { display: flex; gap: var(--pool-size-8); }
+.pool-app-shortcuts > .pool-button { display: flex; flex: 1; flex-direction: column; gap: var(--pool-size-4); min-width: 0; min-height: var(--pool-size-44); padding: var(--pool-size-8) var(--pool-size-4); }

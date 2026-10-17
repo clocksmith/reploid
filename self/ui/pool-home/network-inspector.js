@@ -27,15 +27,15 @@ export function renderNetworkInspector() {
         <p>Revoking stops this thread’s sharing. It cannot recall data already sent.</p><ul data-thread-grants></ul></section>
     </section>
     <section class="pool-stack pool-gap-lg" data-inspector-pane="participants" aria-label="Computers" hidden>
-      <section class="pool-stack pool-gap-md" aria-label="This device"><h3 class="pool-subheading">This device</h3>
-        ${renderSharingControls({ introductory: false })}
-        <details class="pool-disclosure" data-specialized-jobs><summary>Specialized model jobs</summary><div data-specialized-content></div></details>
-      </section>
       <section class="pool-stack pool-gap-sm" aria-label="Network computers"><h3 class="pool-subheading">Network</h3>
         ${renderConnectionControl()}<p class="network-readiness pool-small pool-muted" data-peer-readiness></p>
-        <div class="execution-ribbon-route" data-computers-route></div><ul class="network-peer-list pool-list" data-insp-device-list></ul>
+        <details><summary>Current request route</summary><div class="execution-ribbon-route" data-computers-route></div></details><ul class="network-peer-list pool-list" data-insp-device-list></ul>
         <button class="pool-button btn-ghost" type="button" data-mesh-invite hidden>Copy private invitation</button>
       </section>
+      <details class="pool-disclosure"><summary>This device <span class="pool-muted" data-device-state-summary></span></summary><div class="pool-stack pool-gap-md">
+        ${renderSharingControls({ introductory: false })}
+        <details class="pool-disclosure" data-specialized-jobs><summary>Specialized model jobs</summary><div data-specialized-content></div></details>
+      </div></details>
     </section>
     <section class="pool-stack pool-gap-lg" data-inspector-pane="settings" aria-label="Settings" hidden>${renderAccountPanel()}<div data-execution-settings hidden><h3 class="pool-small">Run on</h3><div class="chat-execution-location" data-execution-location role="group" aria-label="Execution location"><button class="pool-button btn-ghost" type="button" data-execution-choice="auto" aria-pressed="true">Automatic</button><button class="pool-button btn-ghost" type="button" data-execution-choice="local" aria-pressed="false">This device</button><button class="pool-button btn-ghost" type="button" data-execution-choice="network" aria-pressed="false">Network</button></div></div>${renderRemotePermissionSettings()}${renderWebSearchSettings()}</section>
     <p data-network-message role="status" hidden></p><p data-inspector-error role="alert" hidden></p>
