@@ -27,8 +27,7 @@ Partitions pipeline authorized requests/bounded replies under receiver credit; r
 - Discovery joins only after matching acknowledgement; peer counts require open channels. Disconnect cancels joins and reconnects.
 - WebRTC-only callers never silently fall back to BroadcastChannel.
 - Reconnection honors trusted host retry deadlines; disconnect cancels that wait.
-- Custody and partitions use reliable ordered auxiliary channels, granting no permissions.
-  Reject unknown labels and channels arriving after disconnect.
+- Custody/partitions/training use separate reliable ordered channels; framing grants no execution. Reject unknown/post-disconnect channels.
 - Shards, jobs, tensors/continuations and subtasks retain distinct contracts. Transfers authorize no execution/compatibility.
 - Candidate transfers bind endpoints, room, contract, bytes and expiry. Retried delivery is bounded at-least-once; acknowledgements establish retained preview only.
 

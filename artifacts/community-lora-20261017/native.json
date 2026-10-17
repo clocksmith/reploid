@@ -1,0 +1,35 @@
+{
+  "schema": "reploid.training-application-check/v1",
+  "passed": true,
+  "at": "2026-10-17T18:52:38.320Z",
+  "execution": "one local native GPU optimizer step through the application executor; not pooled network or quality evidence",
+  "package": {
+    "name": "doppler-gpu",
+    "version": "0.6.32",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.32.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.32.tgz",
+    "integrity": "sha512-J83ak7CtSU17xhBqRAwS1VYDNsEs4/J9KRiY8Uk0PJBZlFyWvAx7LKOwYrbopIcaiYj7aGaKpBKM1/XYnDojlA=="
+  },
+  "baseManifestHash": "sha256:cf20c690cc397a4bd8e64ee4b00158114947ee75568c0ae8f2df8a9ebc052965",
+  "target": {
+    "layerIdx": 23,
+    "module": "down_proj"
+  },
+  "weightsSha256": "fdf970cf341317cf5df1249b4f0f8f410469d1c676a83297e56d2367d4db8299",
+  "bytes": 37051,
+  "metrics": [
+    {
+      "loss": 9.030719757080078,
+      "gradientNorm": 0.060733770754039434,
+      "optimizer": {
+        "optimizer_ms": 2.0837910000000193,
+        "effective_lr": 0.0001,
+        "scheduler_index": 0,
+        "scheduler_phase": "constant"
+      }
+    }
+  ],
+  "evaluated": false,
+  "activated": false,
+  "elapsedMs": 1573
+}

@@ -4,13 +4,13 @@ Parent: [Reploid Browser Library](../../../CATSCAN.md)
 
 ## Target
 
-Coordinate partitioned conversations.
+Coordinate conversations.
 
 ## Authority
 
 Discovery observes capabilities/channels; placement selects; residents admit;
 runners sequence attempts/grants/settlement. Doppler owns computation/positions/generation/stopping.
-Hosts own sessions. `partition-contract.js` holds shared validators;
+Hosts own sessions. [Training](../../training/CATSCAN.md) owns `reploid-training` grants/execution over shared authenticated channels. `partition-contract.js` holds validators;
 discovery/placement/reservations stay independent.
 
 ## Scope
@@ -21,8 +21,8 @@ Subtree.
 
 Inputs: Doppler plans/codecs, authenticated executors, grants, resources.
 Outputs: tokens, costs, settlement.
-Legacy traverses A/B. Ordered routes traverse all stages; only the last samples.
-Requester writers commit ordered steps before delivery, within their recorded window of computation.
+Legacy traverses A/B; ordered routes sample only at the end.
+Requester writers commit ordered steps before delivery, within their recorded computation window.
 Geometry determines stage count; attempts retain replicas.
 Charged stages sign receipts, refusing steps beyond K unacknowledged outputs.
 Session: [contract](../../../../../docs/chat-mvp.md#resident-integration-contract).
@@ -43,7 +43,7 @@ Session: [contract](../../../../../docs/chat-mvp.md#resident-integration-contrac
 - FIFO leases share weights: legacy per traversal, ordered per stage.
   Weightless requesters bind identity/placement generation.
 - Bound every stage call; deadlines precede grant expiry; envelopes refuse before disclosure.
-- No import-time connections, downloads, Doppler imports.
+- No import-time connections/downloads/Doppler.
 
 ## Acceptance
 

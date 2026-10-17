@@ -30,7 +30,7 @@ Outputs:
 
 ## Acceptance
 - Shared visual contracts and surface boot behavior pass focused tests.
-- Evidence: [design-system tests](../../tests/unit/design-system-css.test.js) and [browser boot test](../../tests/e2e/boot.spec.js).
+- Evidence: [CSS verification](../../scripts/verify-poolday-css-layers.js) and [browser boot test](../../tests/e2e/boot.spec.js).
 
 ## Non-goals
 - Creating competing dashboards for infrastructure that belongs in progressive disclosure.

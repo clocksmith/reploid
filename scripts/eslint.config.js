@@ -1,7 +1,7 @@
 import globals from 'globals';
 
 const workerFiles = ['self/core/verification-worker.js', 'self/sw.js',
-  'self/sw-module-loader.js', 'self/host/sw-module-loader.js'];
+  'self/sw-module-loader.js', 'self/host/sw-module-loader.js', 'self/host/lora-training-worker.js'];
 // These Node harnesses execute serialized callbacks inside Playwright pages.
 const browserHarnesses = ['evaluate-document-answers', 'pool-actual-browser-smoke',
   'pool-browser-smoke', 'verify-cloudflare-swarm', 'verify-deploy-surface',
@@ -9,6 +9,9 @@ const browserHarnesses = ['evaluate-document-answers', 'pool-actual-browser-smok
   'verify-poolday-forecast-sdk', 'verify-swarm-runtime',
   'verify-visual-change-passport-dogfood'].map(name => `scripts/${name}.js`);
 const cleanedModules = [
+  'packages/reploid/src/training/**/*.js',
+  'self/host/lora-training*.js',
+  'self/ui/pool-home/lora-training.js',
   'self/capabilities/cognition/vector-math.js',
   'self/capabilities/cognition/jsonl.js',
   'packages/reploid/src/artifacts/binary.js',

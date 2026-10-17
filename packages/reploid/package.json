@@ -11,6 +11,10 @@
   },
   "sideEffects": false,
   "exports": {
+    "./training": {
+      "types": "./src/training/index.d.ts",
+      "import": "./src/training/index.js"
+    },
     "./plugins": {
       "types": "./src/plugins/index.d.ts",
       "import": "./src/plugins/index.js"
