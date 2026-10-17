@@ -1,0 +1,31 @@
+{
+  "schema": "reploid.whole-model-service-campaign/v1",
+  "applicationSource": "70768396e30355ddb635330f5fb01605a747e4ee",
+  "harnessSha256": "d3b72676fd787d4413f8c5b5cd705201a723d4f091ad191b370a8a16d4953a88",
+  "dopplerPackage": {
+    "name": "doppler-gpu",
+    "version": "0.6.32",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.32.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.32.tgz",
+    "integrity": "sha512-J83ak7CtSU17xhBqRAwS1VYDNsEs4/J9KRiY8Uk0PJBZlFyWvAx7LKOwYrbopIcaiYj7aGaKpBKM1/XYnDojlA=="
+  },
+  "baseUrl": "http://localhost:8132",
+  "room": "reploid-swarm-search-service-20261017",
+  "modelId": "qwen-3-5-2b-q4k-ehaf16",
+  "modelDirectory": "/Users/xyz/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
+  "participantEntry": "/Users/xyz/deco/reploid/server/native-participant.js",
+  "stateDirectory": "/Users/xyz/deco/reploid/.tmp/search-service-20261017",
+  "maxConcurrentRequests": 2,
+  "search": {
+    "question": "What year was the Eiffel Tower completed? Cite a source.",
+    "answerPattern": "1889",
+    "followup": "Which city is it in? Answer with the city only.",
+    "followupPattern": "Paris"
+  },
+  "limits": {
+    "maxRuntimeMs": 600000,
+    "publicSearch": "Bing RSS through owned provider; no paid search or sign-ins",
+    "providerOwnership": "Only processes started by this campaign; replacement uses a different signing identity"
+  },
+  "scope": "Physical 2B service and source-backed factual answer, not movie-selection quality acceptance"
+}

@@ -1,0 +1,206 @@
+[
+  {
+    "query": "What year was the Eiffel Tower completed? Cite a source.",
+    "elapsedMs": 0.0017500000000012506,
+    "results": [
+      {
+        "sourceId": "web-1",
+        "url": "https://en.wikipedia.org/wiki/Year",
+        "title": "Year - Wikipedia",
+        "excerpt": "The modern world standard calendar (the Gregorian calendar) presents its calendar year to be either a common year of 365 days or a leap year of 366 days, as do the Julian calendars and the Solar Hijri calendar.",
+        "contentHash": "sha256:938411f36cc99d88f4e604905a8c7204c10775817025963cc8a6538e35321e18",
+        "retrievedAt": 1792265893461
+      },
+      {
+        "sourceId": "web-2",
+        "url": "https://todaysdatenow.com/tools/current-year/",
+        "title": "What Year Is It? - Current Year - todaysdatenow.com",
+        "excerpt": "Check the current year to align tax filings, school calendars, fiscal budgets, and software releases.",
+        "contentHash": "sha256:bfc90021c6d40a245ab41b13bfb300b23b515b2992fd6bdcfdf1dac23da1466c",
+        "retrievedAt": 1792265893461
+      },
+      {
+        "sourceId": "web-3",
+        "url": "https://whichyr.com/",
+        "title": "Which Year - Photo Year Guessing Game",
+        "excerpt": "Guess the year real-world photos were taken. Test your history knowledge with a daily challenge featuring a new set of photos each day.",
+        "contentHash": "sha256:744dd5eadaf1299efe620c45863e05456e32e7d27d04bdc6c64d552ffe51e69f",
+        "retrievedAt": 1792265893462
+      },
+      {
+        "sourceId": "web-4",
+        "url": "https://en.wikipedia.org/wiki/Calendar_year",
+        "title": "Calendar year - Wikipedia",
+        "excerpt": "A calendar year begins on the New Year's Day of the given calendar system and ends on New Year's Eve, and thus consists of a whole number of days. The astronomer's mean tropical year, which is averaged over equinoxes and solstices, is currently 365.24219 days.",
+        "contentHash": "sha256:abe1338ea87cd83c7bf24cfa7296e57127623fdc5fb84ce1482dc4acb14722ee",
+        "retrievedAt": 1792265893462
+      },
+      {
+        "sourceId": "web-5",
+        "url": "https://www.merriam-webster.com/dictionary/year",
+        "title": "YEAR Definition & Meaning - Merriam-Webster",
+        "excerpt": "The meaning of YEAR is the period of about 3651/4 solar days required for one revolution of the earth around the sun. How to use year in a sentence.",
+        "contentHash": "sha256:da020bf064504e526cdaf53b4df96e7f6055ec39822ba9a90f15ba09488186e5",
+        "retrievedAt": 1792265893462
+      }
+    ],
+    "usage": {
+      "provider": "contributor-bing",
+      "requests": 1,
+      "costMicroUsd": null
+    }
+  },
+  {
+    "query": "What year was the Eiffel Tower completed?",
+    "elapsedMs": 0.0009579999999971278,
+    "results": [
+      {
+        "sourceId": "web-1",
+        "url": "https://en.wikipedia.org/wiki/Year",
+        "title": "Year - Wikipedia",
+        "excerpt": "The modern world standard calendar (the Gregorian calendar) presents its calendar year to be either a common year of 365 days or a leap year of 366 days, as do the Julian calendars and the Solar Hijri calendar.",
+        "contentHash": "sha256:938411f36cc99d88f4e604905a8c7204c10775817025963cc8a6538e35321e18",
+        "retrievedAt": 1792265893623
+      },
+      {
+        "sourceId": "web-2",
+        "url": "https://todaysdatenow.com/tools/current-year/",
+        "title": "What Year Is It? - Current Year - todaysdatenow.com",
+        "excerpt": "Check the current year to align tax filings, school calendars, fiscal budgets, and software releases.",
+        "contentHash": "sha256:bfc90021c6d40a245ab41b13bfb300b23b515b2992fd6bdcfdf1dac23da1466c",
+        "retrievedAt": 1792265893623
+      },
+      {
+        "sourceId": "web-3",
+        "url": "https://whichyr.com/",
+        "title": "Which Year - Photo Year Guessing Game",
+        "excerpt": "Guess the year real-world photos were taken. Test your history knowledge with a daily challenge featuring a new set of photos each day.",
+        "contentHash": "sha256:744dd5eadaf1299efe620c45863e05456e32e7d27d04bdc6c64d552ffe51e69f",
+        "retrievedAt": 1792265893624
+      },
+      {
+        "sourceId": "web-4",
+        "url": "https://en.wikipedia.org/wiki/Calendar_year",
+        "title": "Calendar year - Wikipedia",
+        "excerpt": "A calendar year begins on the New Year's Day of the given calendar system and ends on New Year's Eve, and thus consists of a whole number of days. The astronomer's mean tropical year, which is averaged over equinoxes and solstices, is currently 365.24219 days.",
+        "contentHash": "sha256:abe1338ea87cd83c7bf24cfa7296e57127623fdc5fb84ce1482dc4acb14722ee",
+        "retrievedAt": 1792265893624
+      },
+      {
+        "sourceId": "web-5",
+        "url": "https://www.merriam-webster.com/dictionary/year",
+        "title": "YEAR Definition & Meaning - Merriam-Webster",
+        "excerpt": "The meaning of YEAR is the period of about 3651/4 solar days required for one revolution of the earth around the sun. How to use year in a sentence.",
+        "contentHash": "sha256:da020bf064504e526cdaf53b4df96e7f6055ec39822ba9a90f15ba09488186e5",
+        "retrievedAt": 1792265893624
+      }
+    ],
+    "usage": {
+      "provider": "contributor-bing",
+      "requests": 1,
+      "costMicroUsd": null
+    }
+  },
+  {
+    "query": "Eiffel Tower completion year",
+    "elapsedMs": 0.0013750000000527507,
+    "results": [
+      {
+        "sourceId": "web-1",
+        "url": "https://en.wikipedia.org/wiki/Gustave_Eiffel",
+        "title": "Gustave Eiffel - Wikipedia",
+        "excerpt": "He is best known for the Eiffel Tower, designed by his company and built for the 1889 Universal Exposition in Paris, and his contribution to building the Statue of Liberty (Liberty Enlightening the World) in New York.",
+        "contentHash": "sha256:154a40b2b69e3ac4abfdddb81c106f3b0c2b2089c77aa947908d229b159a2b6c",
+        "retrievedAt": 1792265893766
+      },
+      {
+        "sourceId": "web-2",
+        "url": "https://www.toureiffel.paris/en",
+        "title": "The OFFICIAL Eiffel Tower website: tickets, news, info...",
+        "excerpt": "To round out your visit, discover the cultural sites located near the Eiffel Tower. We’ve selected a variety of museums and historical landmarks that will delight you and help you discover another side of Paris.",
+        "contentHash": "sha256:5cda618d6f4fe75186078fe956df57b8c32a023c15fc5f4d3781e5f36f665a5b",
+        "retrievedAt": 1792265893767
+      },
+      {
+        "sourceId": "web-3",
+        "url": "https://en.wikipedia.org/wiki/Eiffel_Tower",
+        "title": "Eiffel Tower - Wikipedia",
+        "excerpt": "The Eiffel Tower (/ ˈaɪfəl / ⓘ EYE-fəl; French: Tour Eiffel [tuʁ ɛfɛl] ⓘ) is a lattice tower on the Champ de Mars in Paris, France. It is named after the engineer Gustave Eiffel, whose company designed and built the tower from 1887 to 1889.",
+        "contentHash": "sha256:0876367afe145a568ffea5b3057495b527cbe665c93e5d60741eb9ad9e70f871",
+        "retrievedAt": 1792265893767
+      },
+      {
+        "sourceId": "web-4",
+        "url": "https://www.britannica.com/topic/Eiffel-Tower-Paris-France",
+        "title": "Eiffel Tower | History, Height, & Facts | Britannica",
+        "excerpt": "Eiffel Tower, wrought-iron structure in Paris that is one of the most famous landmarks in the world. It is also a technological masterpiece in building-construction history. It was designed and built (1887–89) by Gustave Eiffel and named in his honor.",
+        "contentHash": "sha256:2f63e83b6fc57b563a09c3592d1a2c9de2ad186b4a9d31c9816e4a9e47a21abe",
+        "retrievedAt": 1792265893767
+      },
+      {
+        "sourceId": "web-5",
+        "url": "https://www.toureiffel.paris/fr",
+        "title": "La tour Eiffel, Site OFFICIEL : billets, infos, actualité....",
+        "excerpt": "Vous avez donc le choix entre visiter la tour Eiffel de jour ou de nuit. D'une manière générale, nous conseillons à nos visiteurs de réserver si possible leurs billets à l'avance sur le site de billetterie.",
+        "contentHash": "sha256:265b07262541757a6281bc07076f60efb96631fd5503fbe8456b47056b1cae77",
+        "retrievedAt": 1792265893768
+      }
+    ],
+    "usage": {
+      "provider": "contributor-bing",
+      "requests": 1,
+      "costMicroUsd": null
+    }
+  },
+  {
+    "query": "\"Eiffel Tower\" completion year",
+    "elapsedMs": 0.0008750000000645741,
+    "results": [
+      {
+        "sourceId": "web-1",
+        "url": "https://en.wikipedia.org/wiki/Gustave_Eiffel",
+        "title": "Gustave Eiffel - Wikipedia",
+        "excerpt": "He is best known for the Eiffel Tower, designed by his company and built for the 1889 Universal Exposition in Paris, and his contribution to building the Statue of Liberty (Liberty Enlightening the World) in New York.",
+        "contentHash": "sha256:154a40b2b69e3ac4abfdddb81c106f3b0c2b2089c77aa947908d229b159a2b6c",
+        "retrievedAt": 1792265893911
+      },
+      {
+        "sourceId": "web-2",
+        "url": "https://www.toureiffel.paris/en",
+        "title": "The OFFICIAL Eiffel Tower website: tickets, news, info...",
+        "excerpt": "To round out your visit, discover the cultural sites located near the Eiffel Tower. We’ve selected a variety of museums and historical landmarks that will delight you and help you discover another side of Paris.",
+        "contentHash": "sha256:5cda618d6f4fe75186078fe956df57b8c32a023c15fc5f4d3781e5f36f665a5b",
+        "retrievedAt": 1792265893911
+      },
+      {
+        "sourceId": "web-3",
+        "url": "https://en.wikipedia.org/wiki/Eiffel_Tower",
+        "title": "Eiffel Tower - Wikipedia",
+        "excerpt": "The Eiffel Tower (/ ˈaɪfəl / ⓘ EYE-fəl; French: Tour Eiffel [tuʁ ɛfɛl] ⓘ) is a lattice tower on the Champ de Mars in Paris, France. It is named after the engineer Gustave Eiffel, whose company designed and built the tower from 1887 to 1889.",
+        "contentHash": "sha256:0876367afe145a568ffea5b3057495b527cbe665c93e5d60741eb9ad9e70f871",
+        "retrievedAt": 1792265893911
+      },
+      {
+        "sourceId": "web-4",
+        "url": "https://www.britannica.com/topic/Eiffel-Tower-Paris-France",
+        "title": "Eiffel Tower | History, Height, & Facts | Britannica",
+        "excerpt": "Eiffel Tower, wrought-iron structure in Paris that is one of the most famous landmarks in the world. It is also a technological masterpiece in building-construction history. It was designed and built (1887–89) by Gustave Eiffel and named in his honor.",
+        "contentHash": "sha256:2f63e83b6fc57b563a09c3592d1a2c9de2ad186b4a9d31c9816e4a9e47a21abe",
+        "retrievedAt": 1792265893912
+      },
+      {
+        "sourceId": "web-5",
+        "url": "https://www.toureiffel.paris/fr",
+        "title": "La tour Eiffel, Site OFFICIEL : billets, infos, actualité....",
+        "excerpt": "Vous avez donc le choix entre visiter la tour Eiffel de jour ou de nuit. D'une manière générale, nous conseillons à nos visiteurs de réserver si possible leurs billets à l'avance sur le site de billetterie.",
+        "contentHash": "sha256:265b07262541757a6281bc07076f60efb96631fd5503fbe8456b47056b1cae77",
+        "retrievedAt": 1792265893912
+      }
+    ],
+    "usage": {
+      "provider": "contributor-bing",
+      "requests": 1,
+      "costMicroUsd": null
+    }
+  }
+]

@@ -25,12 +25,13 @@ test('exact whole-model service survives overlap, cancellation and provider depa
   const receipt = { config, modelIdentity: model.identity, browser: browser.version(), at: new Date().toISOString(),
     passed: false, observations: [], providerStarts: [], weightRequests: [], pageErrors: [], permissionDialogs: [] };
   let provider, providerLog = '', providerIdentity;
-  const startProvider = async () => {
+  const startProvider = async (replacement = false) => {
     const args = [config.participantEntry, '--contribute', '--execution-mode', 'whole-model', '--model', model.id,
-      '--model-directory', config.modelDirectory, '--identity-file', path.join(config.stateDirectory, 'identity.json'),
+      '--model-directory', config.modelDirectory, '--identity-file', path.join(config.stateDirectory, replacement ? 'identity-replacement.json' : 'identity.json'),
       '--rtc-module', '@roamhq/wrtc', '--ws-module', 'ws', '--gpu-module', 'webgpu',
       '--room', config.room, '--room-token-file', tokenFile,
       '--origin', config.baseUrl, '--signaling-url', config.baseUrl.replace(/^http/, 'ws') + '/swarm'];
+    if (config.search) args.push('--web-search');
     provider = spawn(process.execPath, args, { cwd: path.dirname(config.participantEntry), stdio: ['ignore', 'pipe', 'pipe'] });
     const child = provider;
     child.stdout.on('data', bytes => { providerLog += bytes; });
@@ -39,7 +40,7 @@ test('exact whole-model service survives overlap, cancellation and provider depa
     receipt.providerStarts.push({ pid: child.pid, at: new Date().toISOString() });
     await expect.poll(async () => {
       if (child.exitCode !== null) throw new Error('Owned contributor exited: ' + providerLog.slice(-3000));
-      try { providerIdentity = JSON.parse(await readFile(path.join(config.stateDirectory, 'identity.json'), 'utf8')).peerId; }
+      try { providerIdentity = JSON.parse(await readFile(path.join(config.stateDirectory, replacement ? 'identity-replacement.json' : 'identity.json'), 'utf8')).peerId; }
       catch { return false; }
       return true;
     }).toBe(true);
@@ -54,12 +55,8 @@ test('exact whole-model service survives overlap, cancellation and provider depa
     try { await exited; } finally { clearTimeout(timeout); }
   };
   const thread = async page => (await readChatWorkspace(page))?.threads.at(-1);
-  const approve = async page => {
-    const allow = page.locator('[data-remote-permission-allow]');
-    if (await allow.isVisible()) {
-      receipt.permissionDialogs.push(await page.locator('[data-remote-permission]').innerText());
-      await allow.click();
-    }
+  const assertNoPermissionDialog = async page => {
+    expect(await page.locator('[data-search-permission], [data-remote-permission]').count()).toBe(0);
   };
   const send = async (page, prompt) => {
     await page.locator('[data-composer-input]').fill(prompt);
@@ -70,7 +67,7 @@ test('exact whole-model service survives overlap, cancellation and provider depa
     receipt.observations.push(row);
     await page.locator('[data-composer-send]').click();
     await expect.poll(async () => {
-      await approve(page);
+      await assertNoPermissionDialog(page);
       const workspace = await readChatWorkspace(page);
       for (const current of workspace?.threads ?? []) {
         const attempt = current.attempts.find(item => !before.has(item.id));
@@ -114,13 +111,30 @@ test('exact whole-model service survives overlap, cancellation and provider depa
       await page.locator('[data-close-inspector]').click();
       await page.locator('[data-inspector-section="settings"]').click();
       const permission = page.locator('[data-remote-answers-toggle]');
-      if (await permission.getAttribute('aria-checked') === 'true') await permission.click();
+      if (await permission.getAttribute('aria-checked') !== 'true') await permission.click();
       await page.locator('[data-close-inspector]').click();
       await expect(page.locator('[data-composer-send]')).toBeEnabled({ timeout: 120000 });
     }
     const [a, b] = pages;
-    await complete(await send(a, 'What is 17 + 25? Answer with the number only.'), '42');
-    await complete(await send(a, 'Subtract 2 from that result. Answer with the number only.'), '40');
+    if (config.search) {
+      await expect(a.locator('[data-search-toggle]')).toBeVisible({ timeout: 60000 });
+      await a.locator('[data-search-toggle]').click();
+      const searched = await send(a, config.search.question);
+      await complete(searched);
+      expect(searched.attempt.searchPermission).toMatchObject({ source: 'send', query: config.search.question });
+      expect(searched.attempt.searchPermission.recipients).toContain(searched.attempt.authorization.recipientIdentity);
+      expect(searched.attempt.retrieval.outcome).toBe('retrieved');
+      expect(searched.attempt.retrieval.sources.length).toBeGreaterThan(0);
+      expect.soft(searched.answer, 'Useful search answer').toMatch(new RegExp(config.search.answerPattern, 'i'));
+      expect.soft(searched.answer, 'Answer cites retrieved sources').toMatch(/\[\d+\]/);
+      await a.locator('[data-search-toggle]').click();
+      const followup = await send(a, config.search.followup);
+      await complete(followup);
+      expect.soft(followup.answer, 'Contextual follow-up').toMatch(new RegExp(config.search.followupPattern, 'i'));
+    } else {
+      await complete(await send(a, 'What is 17 + 25? Answer with the number only.'), '42');
+      await complete(await send(a, 'Subtract 2 from that result. Answer with the number only.'), '40');
+    }
     const beforeReload = await readChatWorkspace(a);
     await a.reload(); await a.locator('[data-chat-workspace]').waitFor();
     expect((await readChatWorkspace(a)).threads).toEqual(beforeReload.threads);
@@ -157,12 +171,14 @@ test('exact whole-model service survives overlap, cancellation and provider depa
     await expect.poll(() => observe(interrupted), { timeout: 60000 }).toMatch(/failed|interrupted/);
     interrupted.elapsedMs = performance.now() - interrupted.started;
     const partial = interrupted.answer;
-    await startProvider();
+    const previousIdentity = providerIdentity;
+    await startProvider(true);
+    expect(providerIdentity).not.toBe(previousIdentity);
     const retry = a.locator(`[data-retry-attempt="${interrupted.attemptId}"]`);
     await expect(retry).toBeEnabled({ timeout: 120000 });
     const restarted = { ...interrupted, started: performance.now(), statuses: [], firstOutputMs: null, firstExecutionMs: null, elapsedMs: null, attempt: null };
     await retry.click();
-    await expect.poll(async () => { await approve(a); return (await thread(a)).attempts.at(-1).id; }).not.toBe(interrupted.attemptId);
+    await expect.poll(async () => { await assertNoPermissionDialog(a); return (await thread(a)).attempts.at(-1).id; }).not.toBe(interrupted.attemptId);
     restarted.attemptId = (await thread(a)).attempts.at(-1).id;
     receipt.observations.push(restarted);
     await complete(restarted);
@@ -173,9 +189,10 @@ test('exact whole-model service survives overlap, cancellation and provider depa
     expect((await readChatWorkspace(b)).threads).toEqual(unrelatedHistory.threads);
     await a.reload(); await a.locator('[data-chat-workspace]').waitFor();
     expect((await readChatWorkspace(a)).threads).toEqual(history.threads);
-    expect(receipt.permissionDialogs.length).toBeGreaterThanOrEqual(2);
+    await assertNoPermissionDialog(a); await assertNoPermissionDialog(b);
+    expect(receipt.permissionDialogs).toEqual([]);
     expect(receipt.weightRequests).toEqual([]); expect(receipt.pageErrors).toEqual([]);
-    receipt.passed = true;
+    receipt.passed = info.errors.length === 0;
   } finally {
     receipt.histories = await Promise.all(pages.map(page => readChatWorkspace(page).catch(() => null)));
     await stopProvider('SIGTERM');
