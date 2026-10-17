@@ -126,6 +126,31 @@ describe('search-backed answers in the workspace', () => {
     expect(app.getState().threads[0].messages.filter(message => message.role === 'user')).toHaveLength(1);
   });
 
+  it('binds a contextual query and an edited retry to fresh grants without adding unrelated history', async () => {
+    let fail = true;
+    const { app, executed } = workspace({ execute: async request => {
+      if (fail) throw new Error('Contributor disconnected');
+      executed.push(structuredClone(request));
+      return { threadId: request.threadId, attemptId: request.attemptId, modelId: request.model.id,
+        modelIdentity: request.model.identity, adapterIdentities: [], content: ANSWER };
+    } });
+    const thread = app.createThread({ model: { id: 'm', name: 'M', identity: digest('a') }, purpose: 'Private purpose' });
+    const query = 'Eiffel Tower Paris completion date';
+    const first = await app.send(thread, 'What year?', { retrieval: { route: SEARCH_ROUTE, query }, searchPermission: grant(thread, { query }) });
+    expect(first.status).toBe('failed');
+    const revised = 'Eiffel Tower completed 1889';
+    expect(() => app.retry(thread, first.id, { retrievalQuery: revised })).toThrow('fresh search permission');
+    expect(() => app.retry(thread, first.id, { retrievalQuery: revised, searchPermission: grant(thread, { query }) })).toThrow('does not cover');
+    fail = false;
+    const done = await app.retry(thread, first.id, { retrievalQuery: revised, searchPermission: grant(thread, { query: revised }) });
+    expect(done).toMatchObject({ status: 'completed', retryOf: first.id, retrieval: { query: revised }, searchPermission: { query: revised } });
+    expect(executed[0].messages).toHaveLength(1);
+    expect(executed[0].messages[0].content).toContain(revised);
+    expect(executed[0].messages[0].content).toContain('Question: What year?');
+    expect(JSON.stringify(executed)).not.toContain('Private purpose');
+    expect(app.getState().threads[0].messages[0].content).toBe('What year?');
+  });
+
   it('shares passages only with listed contributors; a changed route sends nothing and a retry needs a new grant', async () => {
     const partitions = orderedRoute();
     const app = createChatWorkspace({ meshId: 'mesh', participantId: REQUESTER, store: { load: () => null, save() {} },
@@ -233,6 +258,31 @@ describe('host session and conversation view', () => {
     const marker = find('.chat-message-row.is-assistant [data-source-reference]');
     expect(marker.textContent).toBe('[1]');
     expect(find(marker.getAttribute('href')).textContent).toContain('[1] Eiffel Tower');
+
+    // The prior question stays private until explicitly included in the reviewed query.
+    find('[data-search-toggle]').click(); submit('What year?');
+    await vi.waitFor(() => expect(dialog.open).toBe(true));
+    expect(find('[data-search-query]').value).toBe('What year?');
+    expect(find('[data-search-context]').checked).toBe(false);
+    expect(find('[data-search-context-choice]').hidden).toBe(false);
+    find('[data-search-context]').click();
+    const reviewed = `${QUESTION}\nFollow-up: What year?`;
+    expect(find('[data-search-query]').value).toBe(reviewed);
+    find('[data-search-permission-allow]').click();
+    await vi.waitFor(() => expect(session.getState().threads[0]?.attempts.at(-1)?.searchPermission?.query).toBe(reviewed));
+    await vi.waitFor(() => expect(session.getState().threads[0]?.attempts.at(-1)?.status).toBe('completed'));
+    expect(partitions.disclosed.at(-1)).toHaveLength(1);
+    expect(partitions.disclosed.at(-1)[0].content).toContain(reviewed);
+
+    await session.send(session.getState().selectedId, 'Tell me about the Eiffel Tower', [{ name: 'private.txt', text: 'Private attachment contents' }]);
+    find('[data-search-toggle]').click(); submit('When was it built?');
+    await vi.waitFor(() => expect(dialog.open).toBe(true));
+    find('[data-search-context]').click();
+    expect(find('[data-search-query]').value).toBe('Tell me about the Eiffel Tower\nFollow-up: When was it built?');
+    expect(find('[data-search-query]').value).not.toContain('Private attachment');
+    find('[data-search-query]').value = ''; find('[data-search-query]').dispatchEvent(new Event('input'));
+    expect(find('[data-search-permission-allow]').disabled).toBe(true);
+    find('[data-search-permission-decline]').click();
   });
 });
 

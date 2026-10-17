@@ -170,3 +170,32 @@ it('keeps retrieval failure and retry controls outside model output, with no emp
   expect(row.querySelector('[aria-label="Model output"]').textContent).not.toContain('System');
   view.dispose();
 });
+
+it('updates retrieval progress in system status and groups empty retries while preserving partial model output', () => {
+  const root = document.createElement('div'), thread = conversation(), view = createMessageList(root);
+  thread.messages[1].content = '';
+  thread.attempts[0] = { id: 'attempt', status: 'queued', retrieval: { outcome: 'pending' } };
+  view.update(thread, { usable: true, busy: true });
+  const row = root.querySelector('.is-assistant'), status = row.querySelector('[data-system-status]');
+  expect(status.textContent).toContain('System · Searching the web');
+  expect(row.querySelector('.chat-message-footer').hidden).toBe(true);
+  thread.attempts[0].retrieval.progress = { stage: 'extraction', completed: 1, total: 3, available: 1 };
+  view.update(thread, { usable: true, busy: true });
+  expect(row.querySelector('[data-system-status]')).toBe(status);
+  expect(status.textContent).toContain('1 of 3 pages checked; 1 usable');
+  thread.attempts[0].status = 'failed'; thread.attempts[0].retrieval.outcome = 'failed';
+  thread.attempts[0].error = 'Could not retrieve sources: the search provider failed.';
+  thread.attempts.push({ id: 'retry', retryOf: 'attempt', status: 'failed', error: 'Contributor disconnected' });
+  thread.messages.push({ id: 'retry-reply', role: 'assistant', content: 'Partial model words', attemptId: 'retry' });
+  view.update(thread, { usable: true, busy: false });
+  expect(root.querySelectorAll('.is-assistant')).toHaveLength(1);
+  expect(root.querySelector('[data-previous-attempts]').textContent).toContain('the search provider failed');
+  expect(root.querySelector('[aria-label="Model output"]').textContent).toBe('Partial model words');
+  thread.attempts.push({ id: 'retry-again', retryOf: 'retry', status: 'queued', retrieval: { outcome: 'pending' } });
+  thread.messages.push({ id: 'new-reply', role: 'assistant', content: '', attemptId: 'retry-again' });
+  view.update(thread, { usable: true, busy: true });
+  expect(root.querySelectorAll('.is-assistant')).toHaveLength(2);
+  expect(root.querySelector('[data-message-id="retry-reply"]').textContent).toContain('Partial model words');
+  expect(thread.messages).toHaveLength(4); expect(thread.attempts).toHaveLength(3);
+  view.dispose();
+});
