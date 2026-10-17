@@ -1,0 +1,15 @@
+{
+  "at": "2026-10-17T17:04:37.066Z",
+  "sourceSha256": "42255c9ef4892d32488761ec7dae6fba13f65bd3c9f9e0cbcf0abfcdb6718ab7",
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "events": [],
+    "details": {
+      "patternViolations": [],
+      "complexityWarnings": [],
+      "filesAnalyzed": 1
+    }
+  }
+}
