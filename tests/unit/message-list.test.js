@@ -171,18 +171,18 @@ it('keeps retrieval failure and retry controls outside model output, with no emp
   view.dispose();
 });
 
-it('updates retrieval progress in system status and groups empty retries while preserving partial model output', () => {
+it('updates retrieval progress in the loader and groups empty retries while preserving partial model output', () => {
   const root = document.createElement('div'), thread = conversation(), view = createMessageList(root);
   thread.messages[1].content = '';
   thread.attempts[0] = { id: 'attempt', status: 'queued', retrieval: { outcome: 'pending' } };
   view.update(thread, { usable: true, busy: true });
-  const row = root.querySelector('.is-assistant'), status = row.querySelector('[data-system-status]');
-  expect(status.textContent).toContain('System · Searching the web');
-  expect(row.querySelector('.chat-message-footer').hidden).toBe(true);
+  const row = root.querySelector('.is-assistant'), status = row.querySelector('[data-tool-status]');
+  expect(status.textContent).toContain('Searching the web');
+  expect(row.querySelector('.chat-message-footer').hidden).toBe(false);
   thread.attempts[0].retrieval.progress = { stage: 'extraction', completed: 1, total: 3, available: 1 };
   view.update(thread, { usable: true, busy: true });
-  expect(row.querySelector('[data-system-status]')).toBe(status);
-  expect(status.textContent).toContain('1 of 3 pages checked; 1 usable');
+  expect(row.querySelector('[data-tool-status]')).toBe(status);
+  expect(status.textContent).toContain('1 of 3 pages');
   thread.attempts[0].status = 'failed'; thread.attempts[0].retrieval.outcome = 'failed';
   thread.attempts[0].error = 'Could not retrieve sources: the search provider failed.';
   thread.attempts.push({ id: 'retry', retryOf: 'attempt', status: 'failed', error: 'Contributor disconnected' });
@@ -198,4 +198,28 @@ it('updates retrieval progress in system status and groups empty retries while p
   expect(root.querySelector('[data-message-id="retry-reply"]').textContent).toContain('Partial model words');
   expect(thread.messages).toHaveLength(4); expect(thread.attempts).toHaveLength(3);
   view.dispose();
+});
+
+
+it('shows observed search tools in the thinking loader and clears them on completion or cancellation', () => {
+  const root = document.createElement('div'), thread = conversation();
+  thread.messages[1].content = '';
+  thread.attempts[0] = { id: 'attempt', status: 'queued', retrieval: { outcome: 'pending' } };
+  const view = createMessageList(root);
+  const update = () => view.update(thread, { usable: true, busy: true });
+  update();
+  const tool = root.querySelector('.is-assistant [data-tool-status]');
+  expect(tool.hidden).toBe(false); expect(tool.textContent).toBe('Searching the web…');
+  expect(root.querySelector('.is-assistant [data-execution-activity]').hidden).toBe(false);
+  expect(root.querySelector('.is-assistant [data-system-status]').hidden).toBe(true);
+  thread.attempts[0].retrieval.progress = { stage: 'extraction', completed: 2, total: 4, available: 1 }; update();
+  expect(tool.textContent).toBe('Reading search results · 2 of 4 pages');
+  thread.attempts[0].retrieval.progress = { stage: 'context' }; update();
+  expect(tool.textContent).toBe('Preparing search results…');
+  thread.attempts[0].status = 'cancelled'; update();
+  expect(tool.hidden).toBe(true);
+  expect(root.querySelector('.is-assistant [data-system-status]').textContent).toContain('Stopped.');
+  thread.attempts[0].status = 'completed';
+  thread.attempts[0].retrieval = { outcome: 'retrieved', sources: [] }; update();
+  expect(tool.hidden).toBe(true); view.dispose();
 });

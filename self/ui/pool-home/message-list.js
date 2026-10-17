@@ -81,7 +81,7 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
           row = stream.ownerDocument.createElement('article'); row.dataset.messageId = messageId;
           row.className = message.role === 'user' ? 'chat-message-row is-user' : 'chat-message-row is-assistant';
           const popover = `chat-execution-${++nextPopover}`;
-          row.innerHTML = `<span class="chat-message-author pool-small pool-muted"></span><div class="chat-message-content pool-body pool-prose"></div><div class="chat-message-system pool-small" data-system-status role="status" aria-label="System status" hidden></div><div class="chat-message-footer pool-row pool-gap-sm pool-small pool-muted"><div class="chat-message-meta pool-caption" hidden></div><div class="chat-execution-activity" data-execution-activity hidden><button class="pool-button pool-icon" type="button" data-execution-trigger popovertarget="${popover}"></button><div class="chat-execution-popover pool-card pool-small" id="${popover}" popover data-activity-detail></div></div><div class="chat-message-actions"></div></div>`;
+          row.innerHTML = `<span class="chat-message-author pool-small pool-muted"></span><div class="chat-message-content pool-body pool-prose"></div><div class="chat-message-system pool-small" data-system-status role="status" aria-label="System status" hidden></div><div class="chat-message-footer pool-row pool-gap-sm pool-small pool-muted"><div class="chat-message-meta pool-caption" hidden></div><div class="chat-execution-activity pool-row pool-gap-sm" data-execution-activity hidden><span class="pool-small" data-tool-status role="status" hidden></span><button class="pool-button pool-icon" type="button" data-execution-trigger popovertarget="${popover}"></button><div class="chat-execution-popover pool-card pool-small" id="${popover}" popover data-activity-detail></div></div><div class="chat-message-actions"></div></div>`;
           if (message.role === 'user') row.querySelector('.chat-message-content').classList.add('pool-well');
           row.querySelector('.chat-message-author').textContent = message.role === 'user' ? 'You' : 'Assistant'; rows.set(id, row);
         }
@@ -110,12 +110,8 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
         const failed = message.role === 'assistant' && attempt && ['failed', 'cancelled', 'interrupted'].includes(attempt.status);
         const system = row.querySelector('[data-system-status]');
         const retrieval = attempt?.retrieval;
-        const searchProgress = retrieval?.progress;
         let systemText = failed ? failureLabel(attempt) : '';
-        if (!failed && retrieval?.outcome === 'pending') systemText = searchProgress?.stage === 'extraction'
-          ? `Reading search results: ${searchProgress.completed} of ${searchProgress.total} pages checked; ${searchProgress.available} usable.`
-          : searchProgress?.stage === 'context' ? 'Preparing retrieved sources for the model.' : 'Searching the web…';
-        else if (!failed && retrieval?.partial) systemText = `Using ${retrieval.sources.length} retrieved source${retrieval.sources.length === 1 ? '' : 's'}. Some pages were unavailable.`;
+        if (!failed && retrieval?.partial) systemText = `Using ${retrieval.sources.length} retrieved source${retrieval.sources.length === 1 ? '' : 's'}. Some pages were unavailable.`;
         system.hidden = !systemText;
         if (systemText) system.textContent = `System · ${systemText}`;
         if (systemText) author.hidden = true;

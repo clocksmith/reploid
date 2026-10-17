@@ -2200,7 +2200,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:0588130696350ce9ac1b88dfc08c9252c4db125e00d569b546de31f1e4aebcaf",
+      "sha256": "sha256:a70b16f9fa1372d5301d191be9453f13cf77816d068d3e435d8592da4379181b",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -3363,7 +3363,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:5d308390e5a5f8e11278f631d81ce835abc5ecb64c840bb62a1f818a059f302c",
+      "sha256": "sha256:742f3b8fb311c0283787801dc9d426e51e28a8a36b19228b5db8ffea45d93e17",
       "imports": []
     },
     {
@@ -3434,7 +3434,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:1a35dea66b4b457be14f8c24d73ddbab6fe9f6d0c0fe8113451d687119befa32",
+      "sha256": "sha256:1b962836642be83995f0fdf09cde30d21c2e189467eec81b59a75d3edf6b2d0f",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -3446,9 +3446,7 @@
         "./conversation-list.js",
         "./message-list.js",
         "./network-controls.js",
-        "./network-inspector.js",
-        "./remote-permission.js",
-        "./search-permission.js"
+        "./network-inspector.js"
       ]
     },
     {
@@ -3464,7 +3462,7 @@
     {
       "path": "ui/pool-home/execution-activity.js",
       "owner": "ui",
-      "sha256": "sha256:ca404f6ab6051a0062fb071b91636e342d5faaa0df7f540da01bf138e344b754",
+      "sha256": "sha256:2390227fd3a7df0f4d7bde3ca397f5e986ba9d29f14d4da1d42a822909cf2e82",
       "imports": [
         "../components/attachments.js",
         "../components/interface-icons.js",
@@ -3507,7 +3505,7 @@
     {
       "path": "ui/pool-home/message-list.js",
       "owner": "ui",
-      "sha256": "sha256:5f6aa6c419796d5156944f3ec92b6285841b9ec4f69420f417e086a22f2d9586",
+      "sha256": "sha256:d11166203e767fad6b5dff0e1e626bbc1d3c45307f77b4001f87b070154712e8",
       "imports": [
         "../components/attachments.js",
         "../components/interface-icons.js",
@@ -3591,7 +3589,7 @@
     {
       "path": "ui/pool-home/remote-permission.js",
       "owner": "ui",
-      "sha256": "sha256:e5f59a36e8d56709dc9e8f0f1f8ad4047976f2b78b6390b6c568b31b2dd98df0",
+      "sha256": "sha256:d1097e49455a221ca99561f7c5c4306e4257fb5cf275c78e3a181bba276e7e9f",
       "imports": []
     },
     {
@@ -16002,7 +16000,7 @@
     {
       "path": "vendor/reploid/chat/search-permission.js",
       "owner": "vendor",
-      "sha256": "sha256:45088b812aecdb5a3a2880e5e266327e7037d64e18c2a01c02bb2304b788232b",
+      "sha256": "sha256:fca71beb7be987cdac786ed857f3b595d9ba414d208ac4c06088dda5f655b9cc",
       "imports": [
         "./remote-permission.js",
         "./search-permission.json"

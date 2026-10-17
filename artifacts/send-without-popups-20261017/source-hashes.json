@@ -1,0 +1,8 @@
+{
+  "self/host/chat-session.js": "a70b16f9fa1372d5301d191be9453f13cf77816d068d3e435d8592da4379181b",
+  "self/ui/pool-home/conversation-workspace.js": "1b962836642be83995f0fdf09cde30d21c2e189467eec81b59a75d3edf6b2d0f",
+  "self/ui/pool-home/execution-activity.js": "2390227fd3a7df0f4d7bde3ca397f5e986ba9d29f14d4da1d42a822909cf2e82",
+  "self/ui/pool-home/message-list.js": "d11166203e767fad6b5dff0e1e626bbc1d3c45307f77b4001f87b070154712e8",
+  "self/ui/pool-home/remote-permission.js": "d1097e49455a221ca99561f7c5c4306e4257fb5cf275c78e3a181bba276e7e9f",
+  "self/vendor/reploid/chat/search-permission.js": "fca71beb7be987cdac786ed857f3b595d9ba414d208ac4c06088dda5f655b9cc"
+}

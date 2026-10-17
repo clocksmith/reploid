@@ -2,7 +2,6 @@ import { describe, it, expect, vi } from 'vitest';
 import { createChatSession, CANONICAL_CHAT_MODELS } from '../../self/host/chat-session.js';
 import { createChatScheduler } from '../../self/vendor/reploid/chat/index.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
-import { remotePermissionWording } from '../../self/ui/pool-home/remote-permission.js';
 const storage = () => {
   const values = new Map();
   return { getItem: key => values.get(key), setItem: (key, value) => values.set(key, value) };
@@ -101,7 +100,7 @@ describe('Chat host with injected execution, not actual inference', () => {
     await session.close();
   });
 
-  it('forces network execution with cached weights, waits for permission, and preserves the choice through reload', async () => {
+  it('forces network execution with cached weights, honors opt-out without a popup, and preserves the choice through reload', async () => {
     const peer = 'peer:' + 'b'.repeat(24), disclosed = [];
     const swarm = {
       getState: () => ({ sharing: false }), connect: async () => {}, hasProvider: () => true,
@@ -120,15 +119,11 @@ describe('Chat host with injected execution, not actual inference', () => {
     session.setCachedModels(CANONICAL_CHAT_MODELS);
     const id = session.createThread({ executionLocation: 'network' }), model = session.getState().activeThread.model;
     expect(session.remotePermissionNeeded({ model, sharingScope: 'mesh', executionLocation: 'network' })).toMatchObject({ disclosure: 'public', modelIdentity: model.identity });
-    const completion = session.send(id, 'Public question');
-    await vi.waitFor(() => expect(session.getState().activeThread.attempts[0].status).toBe('approval'));
+    expect(() => session.send(id, 'Public question')).toThrow('Network answers are off');
     expect(disclosed).toEqual([]);
-    expect(() => session.setExecutionLocation(id, 'local')).toThrow('idle');
-    // The product host never approves one request; only a stored permission releases it.
-    const attempt = session.getState().activeThread.attempts[0];
-    expect(() => session.approve(id, attempt.id, attempt.approval.id, true)).toThrow('remote contributor permission');
-    const permission = await session.grantRemotePermission(attempt.approval.permissionNeed, { wording: remotePermissionWording(attempt.approval.permissionNeed) });
-    expect((await completion).status).toBe('completed');
+    session.setRemoteAnswersEnabled(true);
+    expect((await session.send(id, 'Public question')).status).toBe('completed');
+    const [permission] = session.getState().remotePermissions;
     expect(disclosed).toEqual(['Public question']); expect(service.calls).toHaveLength(0);
     expect(session.remotePermissionNeeded({ model, sharingScope: 'mesh', executionLocation: 'network' })).toBeNull();
     const follow = await session.send(id, 'Follow-up');

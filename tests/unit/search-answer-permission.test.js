@@ -10,7 +10,6 @@ import { createFixedSearchProvider, createRetrieval, renderSourceContext } from 
 import { orderedPartitionDisclosure } from '../../packages/reploid/src/mesh/partitions/partition-grants.js';
 import { createChatSession, SEARCH_ROUTE } from '../../self/host/chat-session.js';
 import { createServerSearch } from '../../self/host/server-search.js';
-import { createWebSearch } from '../../self/host/web-search.js';
 import { renderConversationWorkspace, bindConversationWorkspace } from '../../self/ui/pool-home/conversation-workspace.js';
 import { remotePermissionWording } from '../../self/ui/pool-home/remote-permission.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
@@ -67,6 +66,10 @@ describe('permission records, schema v3', () => {
     for (const text of [APPROVED.replace('Brave', 'brave'), APPROVED + ' ', APPROVED.slice(0, -1)]) {
       expect(() => createSearchPermission({ ...grant, wording: { ...wording(), text } })).toThrow('not the approved text');
     }
+    const sent = createSearchPermission({ ...grant, source: 'send' });
+    expect(validateSearchPermission(sent).source).toBe('send');
+    expect(validateSearchPermission(grant).source).toBeUndefined();
+    expect(() => validateSearchPermission({ ...sent, source: 'unknown' })).toThrow('Invalid search permission');
     expect(() => createSearchPermission({ ...grant, searchProvider: 'searxng' })).toThrow('not the approved text');
     expect(() => validateSearchPermission({ ...grant, recipients: [STAGES[0], STAGES[0]] })).toThrow('Invalid search permission');
   });
@@ -264,65 +267,39 @@ describe('host session and conversation view', () => {
     await expect(unapproved.session.searchPermissionRequest({ model })).rejects.toThrow('Search is not available');
   });
 
-  it('asks with the exact text and contributors each time; Don\'t search sends nothing; Allow sends the answer', async () => {
+  it('Send and Retry run search without dialogs, bind fresh recipients, and exclude unrelated history', async () => {
     const { session, partitions } = open();
-    await grantContributors(session);
-    const search = { provider: {}, extractor: {}, available: () => true, state: () => ({ state: 'ready' }), subscribe: listener => { listener(); return () => {}; }, refresh() {} };
+    const generate = partitions.generate;
+    let fail = true;
+    partitions.generate = async (...args) => { if (fail) { fail = false; throw Error('Provider disconnected'); } return generate(...args); };
+    const search = { available: () => true, state: () => ({ state: 'ready' }), subscribe: listener => { listener(); return () => {}; }, refresh() {} };
     const root = document.createElement('div'); root.innerHTML = renderConversationWorkspace(); document.body.append(root);
-    const webSearch = createWebSearch({ storage: memory() });
-    const dispose = bindConversationWorkspace(root, session, { search, webSearch }); cleanups.push(async () => dispose());
-    const find = selector => root.querySelector(selector), dialog = find('[data-search-permission]');
+    const dispose = bindConversationWorkspace(root, session, { search }); cleanups.push(async () => dispose());
+    const find = selector => root.querySelector(selector);
     const submit = text => { find('[data-composer-input]').value = text; find('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); };
-    expect(find('[data-search-toggle]').hidden).toBe(false);
-    expect(find('[data-web-search-toggle]').disabled).toBe(false);
-    find('[data-web-search-toggle]').click();
-    expect(find('[data-search-toggle]').getAttribute('aria-pressed')).toBe('true');
-    submit(QUESTION);
-    await vi.waitFor(() => expect(dialog.open).toBe(true));
-    expect(find('[data-search-permission-text]').textContent).toBe(APPROVED);
-    expect([...find('[data-search-permission-recipients]').children].map(item => item.textContent))
-      .toEqual(STAGES.map(id => expect.stringContaining(`(${id})`)));
-    find('[data-search-permission-decline]').click();
-    await new Promise(resolve => setTimeout(resolve, 30));
-    expect(session.getState().threads).toEqual([]); expect(partitions.disclosed).toEqual([]);
-    expect(find('[data-composer-input]').value).toBe(QUESTION);
-
-    submit(QUESTION);
-    await vi.waitFor(() => expect(dialog.open).toBe(true));
-    find('[data-search-permission-allow]').click();
-    await vi.waitFor(() => expect(session.getState().threads[0]?.attempts.at(-1)?.status).toBe('completed'));
-    expect(session.getState().threads[0].attempts[0].searchPermission.wording.text).toBe(APPROVED);
+    expect(find('[data-search-permission]')).toBeNull();
+    expect(find('[data-remote-permission]')).toBeNull();
+    find('[data-search-toggle]').click(); submit(QUESTION);
+    await vi.waitFor(() => expect(session.getState().activeThread?.attempts.at(-1)?.status).toBe('failed'));
+    const first = session.getState().activeThread.attempts[0];
+    expect(first.searchPermission).toMatchObject({ source: 'send', query: QUESTION, recipients: STAGES });
+    find('[data-retry-attempt]').click();
+    await vi.waitFor(() => expect(session.getState().activeThread?.attempts.at(-1)?.status).toBe('completed'));
+    const retried = session.getState().activeThread.attempts.at(-1);
+    expect(retried.retryOf).toBe(first.id);
+    expect(retried.searchPermission).toMatchObject({ source: 'send', query: QUESTION, recipients: STAGES });
+    expect(retried.searchPermission.id).not.toBe(first.searchPermission.id);
+    expect(session.getState().remotePermissions[0].wording.id).toBe('reploid.remote-contributor-setting');
     expect(find('[data-search-toggle]').getAttribute('aria-pressed')).toBe('false');
-    // The answer's [1] marker links to its numbered source.
-    const marker = find('.chat-message-row.is-assistant [data-source-reference]');
-    expect(marker.textContent).toBe('[1]');
-    expect(find(marker.getAttribute('href')).textContent).toContain('[1] Eiffel Tower');
-
-    // The prior question stays private until explicitly included in the reviewed query.
-    find('[data-search-toggle]').click(); submit('What year?');
-    await vi.waitFor(() => expect(dialog.open).toBe(true));
-    expect(find('[data-search-query]').value).toBe('What year?');
-    expect(find('[data-search-context]').checked).toBe(false);
-    expect(find('[data-search-context-choice]').hidden).toBe(false);
-    find('[data-search-context]').click();
-    const reviewed = `${QUESTION}\nFollow-up: What year?`;
-    expect(find('[data-search-query]').value).toBe(reviewed);
-    find('[data-search-permission-allow]').click();
-    await vi.waitFor(() => expect(session.getState().threads[0]?.attempts.at(-1)?.searchPermission?.query).toBe(reviewed));
-    await vi.waitFor(() => expect(session.getState().threads[0]?.attempts.at(-1)?.status).toBe('completed'));
+    expect(find('.chat-message-row.is-assistant [data-source-reference]').textContent).toBe('[1]');
+    await session.send(session.getState().selectedId, 'Private notes', [{ name: 'private.txt', text: 'Private attachment contents' }]);
+    find('[data-search-toggle]').click(); submit('What year was the Eiffel Tower completed?');
+    await vi.waitFor(() => expect(session.getState().activeThread?.attempts.at(-1)?.searchPermission?.query).toBe('What year was the Eiffel Tower completed?'));
+    await vi.waitFor(() => expect(session.getState().activeThread?.attempts.at(-1)?.status).toBe('completed'));
     expect(partitions.disclosed.at(-1)).toHaveLength(1);
-    expect(partitions.disclosed.at(-1)[0].content).toContain(reviewed);
-
-    await session.send(session.getState().selectedId, 'Tell me about the Eiffel Tower', [{ name: 'private.txt', text: 'Private attachment contents' }]);
-    find('[data-search-toggle]').click(); submit('When was it built?');
-    await vi.waitFor(() => expect(dialog.open).toBe(true));
-    find('[data-search-context]').click();
-    expect(find('[data-search-query]').value).toBe('Tell me about the Eiffel Tower\nFollow-up: When was it built?');
-    expect(find('[data-search-query]').value).not.toContain('Private attachment');
-    find('[data-search-query]').value = ''; find('[data-search-query]').dispatchEvent(new Event('input'));
-    expect(find('[data-search-permission-allow]').disabled).toBe(true);
-    find('[data-search-permission-decline]').click();
+    expect(partitions.disclosed.at(-1)[0].content).not.toContain('Private');
   });
+
 });
 
 describe('server search port', () => {

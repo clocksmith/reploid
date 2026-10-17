@@ -438,13 +438,13 @@
     },
     {
       "path": "chat/search-permission.d.ts",
-      "bytes": 1384,
-      "sha256": "cdb50eb2658231fe89da1a80c42cbe1e97146eb1a8fdf00f1bc8f278a2592d35"
+      "bytes": 1440,
+      "sha256": "285005886dc1c8390ec851af22cef59aab90f6f194caecd70cf01d6ffc7203f7"
     },
     {
       "path": "chat/search-permission.js",
-      "bytes": 4340,
-      "sha256": "45088b812aecdb5a3a2880e5e266327e7037d64e18c2a01c02bb2304b788232b"
+      "bytes": 4694,
+      "sha256": "fca71beb7be987cdac786ed857f3b595d9ba414d208ac4c06088dda5f655b9cc"
     },
     {
       "path": "chat/search-permission.json",

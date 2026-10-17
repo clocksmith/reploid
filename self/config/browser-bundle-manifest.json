@@ -1345,8 +1345,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 572330,
-      "sha256": "sha256:8743c77f90b7ee3a5b6c5833459c85e06094613d4ad0c896860cc2c91b0d6131"
+      "byteLength": 572262,
+      "sha256": "sha256:8304b22c838096fecfd2db982a23eab8f1c81e01076153cbf27d32e15faf8b9e"
     },
     {
       "path": "config/module-registry.json",
@@ -1735,8 +1735,8 @@
     },
     {
       "path": "host/chat-session.js",
-      "byteLength": 31788,
-      "sha256": "sha256:0588130696350ce9ac1b88dfc08c9252c4db125e00d569b546de31f1e4aebcaf"
+      "byteLength": 32080,
+      "sha256": "sha256:a70b16f9fa1372d5301d191be9453f13cf77816d068d3e435d8592da4379181b"
     },
     {
       "path": "host/chat-view.js",
@@ -3285,8 +3285,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2086030,
-      "sha256": "sha256:5d308390e5a5f8e11278f631d81ce835abc5ecb64c840bb62a1f818a059f302c"
+      "byteLength": 2079654,
+      "sha256": "sha256:742f3b8fb311c0283787801dc9d426e51e28a8a36b19228b5db8ffea45d93e17"
     },
     {
       "path": "ui/pool-home/computer-labels.js",
@@ -3320,8 +3320,8 @@
     },
     {
       "path": "ui/pool-home/conversation-workspace.js",
-      "byteLength": 44427,
-      "sha256": "sha256:1a35dea66b4b457be14f8c24d73ddbab6fe9f6d0c0fe8113451d687119befa32"
+      "byteLength": 41909,
+      "sha256": "sha256:1b962836642be83995f0fdf09cde30d21c2e189467eec81b59a75d3edf6b2d0f"
     },
     {
       "path": "ui/pool-home/document-search.js",
@@ -3330,8 +3330,8 @@
     },
     {
       "path": "ui/pool-home/execution-activity.js",
-      "byteLength": 7990,
-      "sha256": "sha256:ca404f6ab6051a0062fb071b91636e342d5faaa0df7f540da01bf138e344b754"
+      "byteLength": 8551,
+      "sha256": "sha256:2390227fd3a7df0f4d7bde3ca397f5e986ba9d29f14d4da1d42a822909cf2e82"
     },
     {
       "path": "ui/pool-home/execution-ribbon.js",
@@ -3350,8 +3350,8 @@
     },
     {
       "path": "ui/pool-home/message-list.js",
-      "byteLength": 13763,
-      "sha256": "sha256:5f6aa6c419796d5156944f3ec92b6285841b9ec4f69420f417e086a22f2d9586"
+      "byteLength": 13423,
+      "sha256": "sha256:d11166203e767fad6b5dff0e1e626bbc1d3c45307f77b4001f87b070154712e8"
     },
     {
       "path": "ui/pool-home/navigation.js",
@@ -3390,8 +3390,8 @@
     },
     {
       "path": "ui/pool-home/remote-permission.js",
-      "byteLength": 5390,
-      "sha256": "sha256:e5f59a36e8d56709dc9e8f0f1f8ad4047976f2b78b6390b6c568b31b2dd98df0"
+      "byteLength": 5419,
+      "sha256": "sha256:d1097e49455a221ca99561f7c5c4306e4257fb5cf275c78e3a181bba276e7e9f"
     },
     {
       "path": "ui/pool-home/requester-controls.js",
@@ -10020,8 +10020,8 @@
     },
     {
       "path": "vendor/reploid/chat/search-permission.js",
-      "byteLength": 4340,
-      "sha256": "sha256:45088b812aecdb5a3a2880e5e266327e7037d64e18c2a01c02bb2304b788232b"
+      "byteLength": 4694,
+      "sha256": "sha256:fca71beb7be987cdac786ed857f3b595d9ba414d208ac4c06088dda5f655b9cc"
     },
     {
       "path": "vendor/reploid/chat/search-permission.json",
@@ -10411,7 +10411,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 47375,
-      "sha256": "sha256:8143d1bf0763e999eee371fdde78663f4f63ea81a33eacbb2e9a6a4e89efbe59"
+      "sha256": "sha256:b4f4c50d5ff7100b5014bf02002e14810524ea149000b7de44c814719930eacc"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -10589,5 +10589,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:eef65f33c9006cfd65490e4bb09e0e8e851efc3471def3e4d2e3dd59456e0bae"
+  "bundleHash": "sha256:ff5f0b323dffc6702fd692893196abcf70adfc756acf8423cdc11eafb536330d"
 }

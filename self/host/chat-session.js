@@ -133,12 +133,12 @@ export function createChatSession({
   });
   bindPublicationAuthorization?.(workspace.authorizePublication);
   function allowConfiguredRemote(threadId) {
-    if (!remoteAccess.enabled()) return;
     const thread = workspace.getState().threads.find(item => item.id === threadId);
     if (!thread) return;
     const { model, permissions } = thread;
     const disclosure = execution.remoteDisclosure(model, permissions?.sharingScope, permissions?.executionLocation);
     if (!disclosure) return;
+    assert(remoteAccess.enabled(), 'Network answers are off. Turn them on in Settings or choose this device.');
     const known = getCatalogModels().find(item => item.id === model.id && item.identity === model.identity);
     assert(known, 'Choose a catalog model before allowing remote contributors');
     const need = remotePermissionNeed({ networkId: currentNetwork(), sharingScope: permissions.sharingScope, disclosure, model });
@@ -169,7 +169,7 @@ export function createChatSession({
     if (known.partition?.route) return [...new Set(known.partition.route.stages.map(stage => stage.participantId))];
     if (known.partition?.participantA) return [known.partition.participantA, known.partition.participantB].filter(Boolean);
     // Whole-model providerIds address connections, not signing identities.
-    // Resolve fresh channel-bound proofs before the person approves recipients.
+    // Resolve fresh channel-bound proofs before binding this search to recipients.
     const providers = [...new Set(known.providerIds || [])];
     const verified = await Promise.allSettled(providers.map(peerId => swarm?.verifyPeerIdentity?.(peerId, signal)));
     signal?.throwIfAborted();
@@ -182,10 +182,10 @@ export function createChatSession({
     assert(search && Array.isArray(search.recipients), 'Allow search for this answer first');
     const searchServer = route.provider.searchServer ?? null;
     const searchPeer = route.provider.searchPeer ?? null;
-    assert((search.searchPeer ?? null) === searchPeer, 'The search contributor changed after search was allowed. Nothing was sent. Retry asks again.');
-    assert((search.searchServer ?? null) === searchServer, 'The search server changed after search was allowed. Nothing was sent. Retry asks again.');
+    assert((search.searchPeer ?? null) === searchPeer, 'The search contributor changed after search was allowed. Nothing was sent. Retry starts a new search.');
+    assert((search.searchServer ?? null) === searchServer, 'The search server changed after search was allowed. Nothing was sent. Retry starts a new search.');
     return createSearchPermission({ id: id(), networkId: currentNetwork(), threadId, searchProvider: route.provider.searchProvider,
-      searchServer, searchPeer, query: String(query).trim(), recipients: search.recipients, wording: search.wording, grantedAt: now() });
+      searchServer, searchPeer, query: String(query).trim(), recipients: search.recipients, wording: search.wording, ...(search.source ? { source: search.source } : {}), grantedAt: now() });
   };
 
   const getCatalogModels = () => copy(projectChatCatalog({
@@ -340,10 +340,10 @@ export function createChatSession({
       assertOpen();
       workspace.select(threadId);
     },
-    // Remote disclosure waits in the workspace's 'approval' state until approve() records the displayed recipients.
+    // Send records host-policy authorization; dispatch still binds verified model and recipient identities.
     // `retrieval: { query?, limits? }` opts this request into retrieval; the query defaults to the typed text,
     // never to attachment contents. `search: { route?, wording, recipients }` is the per-answer search permission as
-    // shown and allowed (route defaults to SEARCH_ROUTE): only the reviewed query goes to the search service.
+    // bound by the host (route defaults to SEARCH_ROUTE): only this query goes to the search service.
     // Any prior question must be explicitly included there; unrelated conversation and files stay excluded.
     send(threadId, content, attachments = [], { retrieval = null, search = null } = {}) {
       assertOpen();
@@ -363,6 +363,7 @@ export function createChatSession({
         assert(!attachments.length, "Search-backed answers don't include files. Remove the files or turn off search for this answer.");
         const route = search.route ?? SEARCH_ROUTE;
         const query = search.query ?? content;
+        allowConfiguredRemote(threadId);
         return workspace.send(threadId, content, { retrieval: { route, query },
           searchPermission: searchGrant(threadId, query, search, route) });
       }
@@ -370,13 +371,15 @@ export function createChatSession({
       return workspace.send(threadId, attachmentInput(content, attachments),
         retrieval ? { retrieval: { ...retrieval, query: retrieval.query ?? content } } : undefined);
     },
-    /** The approved wording and listed contributors to show before a search-backed answer on `route`; throws when
+    /** Resolve the policy and verified contributors for a search-backed Send or Retry on `route`; throws when
      * that route is unavailable (no approved wording, or its configuration consent is not in force). */
     async searchPermissionRequest({ model, sharingScope = 'mesh', executionLocation = 'auto', route: name = SEARCH_ROUTE, signal }) {
       assertOpen();
       const route = searchRoute(name);
       assert(route, 'Search is not available');
       assert(model, 'Choose a model first');
+      assert(remoteAccess.enabled() || !execution.remoteDisclosure(model, sharingScope, executionLocation),
+        'Network answers are off. Turn them on in Settings or choose this device.');
       const recipients = await listedContributors(model, sharingScope, executionLocation, signal);
       assertOpen();
       assert(recipients.length || !execution.remoteDisclosure(model, sharingScope, executionLocation), 'No execution contributors are available for this answer');
@@ -404,7 +407,7 @@ export function createChatSession({
     retry(threadId, attemptId, { search = null } = {}) {
       assertOpen();
       const attempt = workspace.getState().threads.find(thread => thread.id === threadId)?.attempts.find(item => item.id === attemptId);
-      if (!search && !isSearchRoute(attempt?.request?.retrieval?.route)) allowConfiguredRemote(threadId);
+      allowConfiguredRemote(threadId);
       return workspace.retry(threadId, attemptId, search ? { retrievalQuery: search.query ?? null,
         searchPermission: searchGrant(threadId, search.query ?? attempt?.request?.retrieval?.query ?? '',
         search, attempt?.request?.retrieval?.route ?? SEARCH_ROUTE) } : undefined);

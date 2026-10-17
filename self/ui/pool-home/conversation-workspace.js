@@ -10,8 +10,6 @@ import { escapeHtml as escape, renderAttachments, readTextAttachments } from '..
 import { bindDisclosure } from '../components/disclosure.js';
 import { bindDialog } from '../components/dialog.js';
 import { createMessageList } from './message-list.js';
-import { renderRemotePermissionDialog, bindRemotePermissionDialog } from './remote-permission.js';
-import { renderSearchPermissionDialog, bindSearchPermissionDialog } from './search-permission.js';
 
 const selectable = model => ['ready', 'busy', 'cached', 'loading', 'preparing'].includes(model.availability);
 const startingPrompts = [
@@ -85,8 +83,6 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
         <p data-next-model-status role="status" hidden></p>
         <div class="chat-network-actions"><button class="pool-button" type="button" data-model-picker-close>Cancel</button><button class="pool-button" type="button" data-change-model>New thread with this model</button></div>
       </dialog>
-      ${renderRemotePermissionDialog()}
-      ${renderSearchPermissionDialog()}
     </section>
     ${inspector ? renderNetworkInspector() : ''}
   </section>`;
@@ -163,25 +159,16 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const after = (pending, next) => pending?.then ? pending.then(next) : next();
   const observe = pending => pending?.catch?.(error);
   const on = (selector, event, callback) => find(selector)?.addEventListener(event, callback, options);
-  // Asked once, before the first request that would leave this device; the host stores the answer.
-  const permission = bindRemotePermissionDialog(find('[data-remote-permission]'), session, { onError: error });
-  const permitted = async thread => {
-    const need = session.remotePermissionNeeded?.({ model: thread.model, sharingScope: thread.permissions?.sharingScope, executionLocation: thread.permissions?.executionLocation });
-    return !need || permission.ask(need);
-  };
-  let askedFor = null;
-  // Search is chosen per answer and asked every time; Brave receives the query only after Allow.
-  const searchPermission = bindSearchPermissionDialog(find('[data-search-permission]'), session);
+  // Send and Retry authorize their selected tools; no separate approval dialog.
   const searchToggle = find('[data-search-toggle]');
   const setSearch = on => { searchToggle.setAttribute('aria-pressed', String(on && !searchToggle.hidden)); };
   const searching = () => searchToggle.getAttribute('aria-pressed') === 'true';
   // The person's own search server when it is set up and on, otherwise the server's Brave route.
   const searchRouteNow = () => session.preferredSearchRoute?.() ?? undefined;
   const deviceSearchOn = () => session.preferredSearchRoute?.() === 'device-search';
-  const allowSearch = async (model, sharingScope, route = searchRouteNow(), location = executionLocation, query = input.value, previousQuestion = null) => {
+  const prepareSearch = async (model, sharingScope, route = searchRouteNow(), location = executionLocation, query = input.value) => {
     const request = await session.searchPermissionRequest({ model, sharingScope, executionLocation: location, signal: controller.signal, ...(route ? { route } : {}) });
-    return await searchPermission.ask({ ...request, query, previousQuestion })
-      ? { query: searchPermission.query, route: request.route, wording: request.wording, recipients: request.recipients, searchServer: request.searchServer ?? null, searchPeer: request.searchPeer ?? null } : null;
+    return { ...request, query, source: 'send' };
   };
   function resizeInput() {
     input.style.removeProperty('--pool-param-composer-height');
@@ -347,16 +334,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     find('[data-composer-field]').dataset.activity = busy && attempt?.status === 'executing' ? 'executing' : 'idle';
     messages.update(thread, { usable: usable && !thread?.closed, busy, state });
     if (find('[data-model-picker]').open) updatePicker(state);
-    // A request found outside the stored permission at dispatch waits, sending nothing, until allowed or kept local.
-    const waiting = attempt?.status === 'approval' && attempt.approval?.permissionNeed ? attempt : null;
-    if (waiting && askedFor !== waiting.id && !permission.open) {
-      askedFor = waiting.id;
-      const threadId = thread.id, previewId = waiting.approval.id;
-      void permission.ask(waiting.approval.permissionNeed).then(allowed => allowed || act(() => {
-        const current = session.getState().threads.find(item => item.id === threadId)?.attempts.at(-1);
-        if (current?.id === waiting.id && current.status === 'approval') return session.approve(threadId, waiting.id, previewId, false);
-      }));
-    }
     error(state.storageError || '');
 
   };
@@ -469,13 +446,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         const location = state.activeThread?.permissions?.executionLocation ?? (state.activeThread?.permissions?.sharingScope === 'local' ? 'local' : executionLocation);
         const sharingScope = location === 'local' ? 'local' : 'mesh';
         const target = state.activeThread || { model, permissions: { sharingScope, executionLocation: location } };
-        // Keep answers local sends nothing and leaves the draft in place.
-        if (!await permitted(target)) return;
-        // Don't search sends nothing either; the person can turn search off and send again.
-        const previousInput = state.activeThread?.messages?.filter(message => message.role === 'user').at(-1)?.content || null;
-        const previousQuestion = previousInput ? session.getDocumentSources?.(previousInput)?.question ?? previousInput : null;
-        const allowed = searched ? await allowSearch(target.model, target.permissions?.sharingScope, searchRouteNow(), location, content, previousQuestion) : null;
-        if (searched && !allowed) return;
+        const allowed = searched ? await prepareSearch(target.model, target.permissions?.sharingScope, searchRouteNow(), location, content) : null;
         const threadId = state.selectedId || await session.createThread({ model, sharingScope, executionLocation: location, contextPrompt: contextPrompt || undefined });
         if (selectedId === threadId) {
           const current = composerRevision === revision ? { text: content, files: attachments } : drafts.get(origin);
@@ -522,11 +493,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const button = event.target.closest('[data-retry-attempt]');
     if (button && !button.disabled) act(async () => {
       const thread = session.getState().activeThread;
-      if (!await permitted(thread)) return;
-      // A search-backed retry searches and shares passages again, so it asks again.
+      // Retry starts a fresh search bound to the current tool and execution identities.
       const failed = thread.attempts.find(item => item.id === button.dataset.retryAttempt);
       if (!session.searchRetryNeedsPermission?.(failed)) return session.retry(thread.id, button.dataset.retryAttempt);
-      const allowed = await allowSearch(thread.model, failed.request?.permissions?.sharingScope ?? thread.permissions?.sharingScope, failed.request?.retrieval?.route, failed.request?.permissions?.executionLocation ?? 'auto', failed.request?.retrieval?.query || '');
+      const allowed = await prepareSearch(thread.model, failed.request?.permissions?.sharingScope ?? thread.permissions?.sharingScope, failed.request?.retrieval?.route, failed.request?.permissions?.executionLocation ?? 'auto', failed.request?.retrieval?.query || '');
       if (allowed) return session.retry(thread.id, button.dataset.retryAttempt, { search: allowed });
     });
   });
@@ -564,7 +534,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (executionSettings) executionSettings.hidden = true;
     modelHome.append(modelControl); modelButtonHome.prepend(modelButton);
     detachInspector?.();
-    messages.dispose(); threads.dispose(); actionsPanel.dispose(); picker.dispose(); renameDialog.dispose(); permission.dispose(); searchPermission.dispose();
+    messages.dispose(); threads.dispose(); actionsPanel.dispose(); picker.dispose(); renameDialog.dispose();
     const surface = container.closest('.pool-home');
     surface?.style.removeProperty('--pool-param-workspace-height');
     surface?.removeAttribute('data-chat-compact');

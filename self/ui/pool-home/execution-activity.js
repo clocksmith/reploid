@@ -41,16 +41,24 @@ export function projectSupplyLabel(attempt) {
 
 export function updateExecutionActivity(root, state) {
   const view = projectExecutionActivity(state), supply = projectSupplyLabel(view.attempt);
-  root.hidden = !view.attempt || !view.nodes.length && !supply.answer && !view.attempt.error;
+  const retrieval = view.attempt?.retrieval, progress = retrieval?.progress;
+  const toolStatus = view.active && retrieval?.outcome === 'pending'
+    ? progress?.stage === 'extraction'
+      ? `Reading search results · ${progress.completed} of ${progress.total} pages`
+      : progress?.stage === 'context' ? 'Preparing search results…' : 'Searching the web…'
+    : '';
+  const tool = root.querySelector('[data-tool-status]');
+  if (tool) { tool.hidden = !toolStatus; tool.textContent = toolStatus; }
+  root.hidden = !view.attempt || !toolStatus && !view.nodes.length && !supply.answer && !view.attempt.error;
   if (root.hidden) return;
-  const summary = [view.status === 'executing' ? 'Generating' : view.statusLabel,
+  const summary = [toolStatus || (view.status === 'executing' ? 'Generating' : view.statusLabel),
     ...(view.nodes.length ? [`${view.computerCount} computer${view.computerCount === 1 ? '' : 's'}`] : []),
     ...(view.split ? ['Partitioned'] : []), ...(supply.answer ? [supply.answer] : [])].join(' · ');
   const trigger = root.querySelector('[data-execution-trigger]');
   trigger.setAttribute('aria-label', summary + '. Execution details');
   trigger.title = summary + (view.nodes.length ? '\n' + view.nodes.map(node => node.label).join(' → ') : '')
     + (view.attempt.error ? '\n' + view.attempt.error : '') + '\nClick to inspect';
-  const icon = interfaceIcon(view.local ? 'device' : view.nodes.length ? 'peers' : 'activity')
+  const icon = interfaceIcon(toolStatus ? 'search' : view.local ? 'device' : view.nodes.length ? 'peers' : 'activity')
     + (view.computerCount ? `<span>${view.computerCount}</span>` : '')
     + `<span class="chat-visually-hidden">${escape(summary)}</span>`;
   if (trigger.dataset.markup !== icon) { trigger.innerHTML = icon; trigger.dataset.markup = icon; }
