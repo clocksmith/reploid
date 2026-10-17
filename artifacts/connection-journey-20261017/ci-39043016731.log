@@ -1,0 +1,26 @@
+smoke	Lint	﻿2026-10-17T14:59:24.8310161Z ##[group]Run npm run lint
+smoke	Lint	2026-10-17T14:59:24.8310724Z [36;1mnpm run lint[0m
+smoke	Lint	2026-10-17T14:59:24.8376322Z shell: /usr/bin/bash -e {0}
+smoke	Lint	2026-10-17T14:59:24.8376595Z ##[endgroup]
+smoke	Lint	2026-10-17T14:59:24.9368873Z 
+smoke	Lint	2026-10-17T14:59:24.9369283Z > reploid@0.1.0 lint
+smoke	Lint	2026-10-17T14:59:24.9369901Z > eslint --config scripts/eslint.config.js .
+smoke	Lint	2026-10-17T14:59:24.9370323Z 
+smoke	Lint	2026-10-17T14:59:36.5167731Z 
+smoke	Lint	2026-10-17T14:59:36.5168737Z /home/runner/work/reploid/reploid/server/browser-web-bridge.js
+smoke	Lint	2026-10-17T14:59:36.5203298Z ##[error]  31:9   error  'location' is not defined  no-undef
+smoke	Lint	2026-10-17T14:59:36.5213033Z ##[error]  31:39  error  'window' is not defined    no-undef
+smoke	Lint	2026-10-17T14:59:36.5214899Z ##[error]  31:50  error  'window' is not defined    no-undef
+smoke	Lint	2026-10-17T14:59:36.5216024Z 
+smoke	Lint	2026-10-17T14:59:36.5216511Z /home/runner/work/reploid/reploid/server/earning-routes/http.js
+smoke	Lint	2026-10-17T14:59:36.5217823Z   176:3  warning  Unused eslint-disable directive (no problems were reported from 'no-unused-vars')
+smoke	Lint	2026-10-17T14:59:36.5218580Z 
+smoke	Lint	2026-10-17T14:59:36.5219084Z /home/runner/work/reploid/reploid/tests/e2e/research-plugin-smoke.js
+smoke	Lint	2026-10-17T14:59:36.5220476Z ##[error]  26:156  error  '__calls' is not defined  no-undef
+smoke	Lint	2026-10-17T14:59:36.5222616Z ##[error]  28:27   error  '__wait' is not defined   no-undef
+smoke	Lint	2026-10-17T14:59:36.5224345Z ##[error]  29:29   error  '__calls' is not defined  no-undef
+smoke	Lint	2026-10-17T14:59:36.5225496Z 
+smoke	Lint	2026-10-17T14:59:36.5226066Z ✖ 7 problems (6 errors, 1 warning)
+smoke	Lint	2026-10-17T14:59:36.5227044Z   0 errors and 1 warning potentially fixable with the `--fix` option.
+smoke	Lint	2026-10-17T14:59:36.5227537Z 
+smoke	Lint	2026-10-17T14:59:36.5685179Z ##[error]Process completed with exit code 1.

@@ -333,5 +333,24 @@ it('retains attempt identity through disconnect and ignores stale channel and au
     stale.channel.onopen(); stale.channel.onclose(); stale.onconnectionstatechange();
     expect(f.swarm.getPeerStates().find(peer => peer.id === 'direct')).toEqual(second);
     expect(f.swarm.getConnectedPeers()).toEqual([]);
+    // A replacement must remain usable after old callbacks arrive, including
+    // callbacks delivered after its own authentication has completed.
+    const current = f.connections[1];
+    current.channel.onopen();
+    f.swarm.observePeerAuthentication('direct', second.attemptId);
+    const connected = f.swarm.getPeerStates().find(peer => peer.id === 'direct');
+    expect(connected).toMatchObject({ attemptId: second.attemptId, phase: 'connected', authenticated: true });
+    const receive = vi.fn();
+    f.swarm.onMessage('sync-request', receive);
+    const message = { data: JSON.stringify({ protocolVersion: 1, type: 'sync-request',
+      peerId: 'direct', timestamp: Date.now(), payload: {}, payloadSize: 2 }) };
+    stale.channel.onmessage(message);
+    stale.channel.onclose(); stale.onconnectionstatechange();
+    expect(receive).not.toHaveBeenCalled();
+    expect(f.swarm.getPeerStates().find(peer => peer.id === 'direct')).toEqual(connected);
+    expect(current.close).not.toHaveBeenCalled();
+    current.channel.onmessage(message);
+    expect(receive).toHaveBeenCalledOnce();
+    expect(f.swarm.sendToPeer('direct', 'sync-request', {})).toBe(true);
   } finally { f.swarm.disconnect(); }
 });
