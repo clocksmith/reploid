@@ -1,26 +1,18 @@
 // @vitest-environment node
 // Both host adapters are exercised through injected ports; no DOM is required.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import pin from '../../self/config/doppler-package.json' with { type: 'json' };
 
 const ports = vi.hoisted(() => ({
   orderedSchema: null, validateOrderedPlan: vi.fn(), generationHash: vi.fn(), validatePlan: vi.fn(), activationContract: vi.fn(), validateFrame: vi.fn(), signedFactory: vi.fn(), openCapsule: vi.fn(), release: vi.fn(), budget: vi.fn(), plan: vi.fn(), hash: vi.fn(), factory: vi.fn(), resident: vi.fn(), memory: vi.fn(),
 }));
 vi.mock('../../self/config/doppler-local-models.js', () => ({
   DOPPLER_BROWSER_RUNTIME_VERSION: '0.6.31',
-  DOPPLER_MODULE_URL: '../vendor/doppler/0.6.31/src/index.js',
-  DOPPLER_PARTITIONS_MODULE_URL: '../vendor/doppler/0.6.31/src/partitions.js',
+  DOPPLER_MODULE_URL: 'doppler-gpu/host',
+  DOPPLER_PARTITIONS_MODULE_URL: 'doppler-gpu/partitions',
   DOPPLER_KERNEL_BASE_URL: '/vendor/doppler/0.6.31/src/gpu/kernels',
 }));
-vi.mock('../../self/vendor/doppler/0.6.31/src/partitions.js', () => ({
-  get ORDERED_LAYER_PARTITION_SCHEMA() { return ports.orderedSchema; },
-  validateOrderedLayerPartitionPlan: ports.validateOrderedPlan, hashPartitionGeneration: ports.generationHash,
-  createResidentPartitionFactory: ports.signedFactory, configureDeviceMemoryBudget: ports.budget, createLayerPartitionPlan: ports.plan,
-  hashLayerPartitionPlan: ports.hash, createManifestResidentPartitionFactory: ports.factory,
-  inspectDeviceMemory: ports.memory, resolveLayerPartition: ports.validatePlan,
-  getPartitionActivationContract: ports.activationContract, validateActivationFrameForPlan: ports.validateFrame,
-}));
 vi.mock('../../self/host/work-partition-capsule.js', () => ({ assertWorkResidentCapsule: async () => {} }));
-vi.mock('../../self/vendor/doppler/0.6.31/src/index.js', () => ({ openCapsule: ports.openCapsule }));
 vi.mock('../../self/pool/pack-release-policy.js', () => ({ prepareLocalPackRelease: ports.release }));
 vi.mock('../../self/vendor/reploid/mesh/index.js', () => ({ createResidentPartition: ports.resident }));
 vi.mock('doppler-gpu/partitions', () => ({
@@ -52,7 +44,7 @@ it('requires a session cleanup owner before constructing a signed factory', () =
 it('uses composed public openers while the low-level entry requires explicit runtime ports', async () => {
   const raw = await vi.importActual('doppler-gpu');
   const native = await vi.importActual('doppler-gpu/host');
-  const browser = await vi.importActual('../../self/vendor/doppler/0.6.31/src/index.js');
+  const browser = await vi.importActual(`../../self/vendor/doppler/${pin.version}/src/index.js`);
   expect(() => raw.openCapsule({})).toThrow(/requires explicit ports:.*device.*programFactory/);
   expect(native.openCapsule).not.toBe(raw.openCapsule);
   // Both composed entrypoints enforce signed load policy before any GPU work.
