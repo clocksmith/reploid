@@ -360,6 +360,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         // checking leaves the rest unverified. Costs stay in the record, never in the conversation text.
         if (attempt.retrieval) attempt.retrieval = withVerification(attempt.retrieval,
           await retriever.verify(result.content, attempt.retrieval, controller.signal));
+        controller.signal.throwIfAborted();
         response.status = 'completed'; attempt.status = 'completed';
       } catch (error) {
         let cancelled = controller.signal.aborted;

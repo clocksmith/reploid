@@ -159,6 +159,43 @@ describe('retrieval-backed chat requests', () => {
     expect(limited.app.getState().threads[0].messages).toEqual([]);
     await limited.app.close();
   });
+
+  it.each(['stop', 'deadline'])('preserves %s during citation checking across reload and permits a fresh retry', async action => {
+    vi.useFakeTimers();
+    let release;
+    const check = vi.fn(() => new Promise(resolve => { release = resolve; }));
+    const { app, options, store, execute } = fixture({ retrieval: { ...fixedPorts(),
+      supportChecker: { id: 'held-checker', version: '1', check } } });
+    let restored;
+    try {
+      const thread = app.createThread({ model });
+      const pending = app.send(thread, QUESTION, { retrieval: {} });
+      await vi.waitFor(() => expect(check).toHaveBeenCalledOnce());
+      if (action === 'stop') await app.cancel(thread);
+      else await vi.advanceTimersToNextTimerAsync();
+      const attempt = await pending;
+      expect(attempt.status).toBe(action === 'stop' ? 'cancelled' : 'failed');
+      expect(attempt.error).toContain(action === 'stop' ? 'Response stopped' : 'timed out');
+      expect(attempt.retrieval.verification.summary.unverified).toBe(1);
+      expect(app.getState().threads[0].messages.at(-1)).toMatchObject({ content: ANSWER, status: attempt.status });
+
+      const retained = structuredClone(store.load());
+      release({ verdict: 'supported', reason: 'Late checker result.' });
+      await vi.runAllTimersAsync();
+      expect(store.load()).toEqual(retained);
+      await app.close();
+      restored = createChatWorkspace({ ...options, retrieval: fixedPorts() });
+      expect(restored.getState().threads[0].attempts[0]).toEqual(attempt);
+      expect(execute).toHaveBeenCalledOnce(); // Reload never silently resends.
+      const retry = await restored.retry(thread, attempt.id);
+      expect(retry).toMatchObject({ status: 'completed', retryOf: attempt.id });
+      expect(retry.id).not.toBe(attempt.id);
+      expect(restored.getState().threads[0].attempts[0]).toEqual(attempt);
+    } finally {
+      release?.({ verdict: 'unverified', reason: 'Test cleanup.' });
+      await app.close(); await restored?.close(); vi.useRealTimers();
+    }
+  });
 });
 
 const peer = c => 'peer:' + c.repeat(24), digest = c => 'sha256:' + c.repeat(64);
