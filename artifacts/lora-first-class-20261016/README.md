@@ -9,3 +9,20 @@ Doppler companion evidence: `reports/lora-partitions/20261016/` records whole ve
 This run used source, not the deployed browser or remote contributors. Peer file delivery and route identity are covered by focused contract tests; this physical run does not establish cross-machine adapter execution.
 
 Component: native contributor, host adapter resolution, partition routing. Intent: preserved. Boundary effects: exact adapter selection and base identity cross preparation, advertisement, permissions and returned execution identity.
+
+## Installed live follow-through
+
+[Live browser observation](live-browser.json): deployed Reploid `374cae85`, Doppler
+0.6.31 archive, backend revision `reploid-pool-00121-h8k`, matching hosting bundle
+`219b05cf30fdd324ad3beb67818eb6094d667a7df6015f64fbfec1605f8e6b92`.
+A fresh Playwright Chrome requester discovered the exact NER adapter as Ready,
+selected it, authorized the remote request, and received
+`{"people":["Maya"],"places":["Paris"]}`. The UI showed Complete, Mesh, one computer,
+11 output tokens and 1.7 seconds; no page errors. This is a functional observation,
+not an isolated latency benchmark. A separate installed Mac contributor serves
+that adapter and shares its verified cached files; existing contributors were not stopped.
+
+LoRA remains scoped to one exact adapter per request and supported scalar
+execution. Paired arithmetic, adapter stacking, signed Capsule composition,
+selective acquisition of only stage-local adapter bytes, and physical
+cross-machine LoRA stages are not qualified by these results.

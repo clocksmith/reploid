@@ -1,0 +1,21 @@
+{
+  "schema": "reploid.live-lora-observation/v1",
+  "observedAt": "2026-10-17T02:07:00Z",
+  "origin": "https://replo.id",
+  "sourceRevision": "374cae85ca40a02b8d5a2fe918c5bf6343cb87a5",
+  "dopplerVersion": "0.6.31",
+  "browser": "Playwright Chromium, installed Chrome, fresh headless context",
+  "provider": "mac-host installed native contributor",
+  "selection": "qwen-3-5-0-8b-q4k-ehaf16/qwen35-0-8b-ner-json-lora",
+  "prompt": "Extract people and places: Maya lives in Paris. Return JSON.",
+  "answer": "{\"people\":[\"Maya\"],\"places\":[\"Paris\"]}",
+  "visibleCompletion": "Complete \u00b7 1 computer \u00b7 Mesh",
+  "visibleTokens": 11,
+  "visibleSeconds": 1.7,
+  "pageErrors": [],
+  "limits": [
+    "one functional request; not broad NER quality",
+    "native whole-model execution; not browser GPU or cross-machine LoRA partition qualification",
+    "browser history database was not inspected; localStorage is no longer its owner"
+  ]
+}
