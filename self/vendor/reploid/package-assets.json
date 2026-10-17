@@ -778,8 +778,8 @@
     },
     {
       "path": "mesh/legacy-generation.js",
-      "bytes": 26973,
-      "sha256": "419b7ae1436943340d4f945f00d3ef44d67d583211d3cd71ff5ff3b94f63d827"
+      "bytes": 28913,
+      "sha256": "e4424baddc4d3f7be0ba9cd36ea3f90b8f9bdee082162ecc127addaaeea781af"
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.d.ts",
@@ -788,8 +788,8 @@
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.js",
-      "bytes": 43224,
-      "sha256": "4497b78420e6509163bb985b88217dc9a73086f9ee516b65ff431b49ec202f2a"
+      "bytes": 43428,
+      "sha256": "675429f8006a77cb1f7022465d081c40fe3abbffeafee55d6e43572e84fdcd22"
     },
     {
       "path": "mesh/partitions/automatic-partitions.d.ts",
@@ -798,8 +798,8 @@
     },
     {
       "path": "mesh/partitions/automatic-partitions.js",
-      "bytes": 20802,
-      "sha256": "fca7c81cf3b908f059f38ac5b62f6bfa0da3a934712a6975844407dabb067d7b"
+      "bytes": 21008,
+      "sha256": "a2eb56c542dccdf445cd49f903d8b62ec9bb29959b44422cde5b8640caf29274"
     },
     {
       "path": "mesh/partitions/partition-attempt-evidence.d.ts",
@@ -1153,8 +1153,8 @@
     },
     {
       "path": "mesh/peer-identity.js",
-      "bytes": 4085,
-      "sha256": "6ee36869a74b0e23f9dfef4f7de162dc8d33b2ca98ac052b2e7f3498a41a68ee"
+      "bytes": 4351,
+      "sha256": "ff8d4df930c2bbb26f2b4dbdf5833d66dc7595eb3b9f7edff12e9848fe3f96e3"
     },
     {
       "path": "mesh/placement-beliefs.d.ts",
@@ -1168,8 +1168,8 @@
     },
     {
       "path": "mesh/preparation-progress.js",
-      "bytes": 1334,
-      "sha256": "0851f2d3d5d9e4692833534753ba63134b9f3934040a4655cef80cf58a64872a"
+      "bytes": 2668,
+      "sha256": "e96c88f01937c04990a4519e7ee67b4c033e51dc9e83026d4821d3f0d6410edd"
     },
     {
       "path": "mesh/remote-generation-requests.js",
@@ -1283,8 +1283,8 @@
     },
     {
       "path": "retrieval/sources.js",
-      "bytes": 17737,
-      "sha256": "12f646db0a5bfef876c19408a739f8fe1f6fdafa258d06969619656dee26b87b"
+      "bytes": 17811,
+      "sha256": "a42199e40404546ce5b98c433390a2edd273c72a213b7765bee863d5f8d8eeda"
     },
     {
       "path": "retrieval/support-review.js",
@@ -1408,8 +1408,8 @@
     },
     {
       "path": "transport/room.js",
-      "bytes": 15863,
-      "sha256": "d55fc675d5187f387ddbf1b2536213dd37243ced6b7d3e95790d3d1cda9f8d5c"
+      "bytes": 15981,
+      "sha256": "896993c8e363490831a089307b9e6a6632e4d26495c2b2c8d861bb5fcf1c99ab"
     },
     {
       "path": "transport/signaling.d.ts",
@@ -1423,13 +1423,13 @@
     },
     {
       "path": "transport/swarm.d.ts",
-      "bytes": 2603,
-      "sha256": "d2afea5001c2cdddf72127346fedd81573f86cb47536e4bc69e5bf5a81708fb9"
+      "bytes": 2744,
+      "sha256": "934149afc661513f4e4223cd31fb40ca92a851d03544c4a884c01964e0b699b4"
     },
     {
       "path": "transport/swarm.js",
-      "bytes": 47719,
-      "sha256": "2388d11b0440912a462c67853475cd1704415ff4e73926acd466d9797b8af0db"
+      "bytes": 49245,
+      "sha256": "ff220df94e2c8e502e20f633edc0927bfb862cea252718cbe6035c274eb378d4"
     },
     {
       "path": "transport/tool-offer-channel.d.ts",

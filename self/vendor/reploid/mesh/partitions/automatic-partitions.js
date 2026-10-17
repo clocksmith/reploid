@@ -1,5 +1,5 @@
 import { partitionAdapterIdentities, samePartitionAdapters, selectPartitionContribution } from './partition-contract.js';
-import { publicPreparationProgress } from '../preparation-progress.js';
+import { publicPreparationProgress, createPreparationProgressObserver } from '../preparation-progress.js';
 import { generationRequest, requireGenerationCapability } from './partition-generation-request.js';
 import { createAutomaticOrderedPartitions } from './automatic-ordered-partitions.js';
 import { createPartitionDiscovery } from './partition-discovery.js';
@@ -123,7 +123,8 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
     placement = selected;
     if (!program) {
       placement = selected; phase = 'loading'; error = null; notify();
-      const selectedOffer = offer;
+      const selectedOffer = offer, observeProgress = createPreparationProgressObserver();
+      let observingPreparation = true;
       const preparationOwners = new Set();
       preparing = Promise.resolve().then(() => loadProgram(selectedOffer, selected.indexOf(identity.peerId), {
         signal: AbortSignal.any([lifetime.signal, contributionController.signal]), participantId: identity.peerId,
@@ -135,7 +136,7 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
           // A failed opening is not itself evidence of failed resource disposal.
           return () => preparationOwners.delete(owner);
         },
-        onProgress: value => { error = null; progress = value; notify(); }
+        onProgress: value => { if (observingPreparation) { error = null; progress = observeProgress(value); notify(); } }
       }));
       try {
         program = await preparing;
@@ -156,7 +157,7 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
         for (const owner of preparationOwners) unsettledOwners.add(owner);
         phase = 'failed'; error = cause.message; notify(); throw cause;
       }
-      finally { preparing = null; }
+      finally { observingPreparation = false; preparing = null; }
     }
     if (program && phase === 'waiting') { phase = 'ready'; progress = null; notify(); }
     // A restarted contributor may return between discovery polls. Its identity

@@ -5,7 +5,8 @@ export type SwarmDataChannelLabel = 'reploid-custody' | 'reploid-partitions'
   | 'reploid-partitions-input' | 'reploid-partitions-control' | 'reploid-jobs' | 'reploid-partitions-ordered';
 export declare const SWARM_AUXILIARY_CHANNELS: readonly SwarmDataChannelLabel[];
 export interface SwarmTransport {
-  getPeerStates?(): Array<{ id: string; phase: string; transport: string; updatedAt: number; iceState: string | null; channelState: string | null }>;
+  getPeerStates?(): Array<{ id: string; attemptId?: string; authenticated?: boolean; failure?: string | null; phase: string; transport: string; updatedAt: number; iceState: string | null; channelState: string | null }>;
+  observePeerAuthentication?(peerId: string, attemptId: string): void;
   getIntroductions(): PeerIntroductions | null;
   init(): Promise<boolean>; disconnect(): void; sendToPeer(peerId: string, type: string, payload: unknown): boolean;
   broadcast(type: string, payload: unknown): number; onMessage(type: string, handler: (peerId: string, payload: Record<string, unknown>, envelope?: object) => void): void;

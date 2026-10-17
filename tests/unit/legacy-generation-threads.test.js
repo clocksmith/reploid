@@ -369,3 +369,14 @@ it('settles local whole-model generation before close and suppresses output afte
   }
   expect(closed).toHaveBeenCalledOnce();
 });
+
+it('does not regress observed preparation or execution on delayed advertisements', async () => {
+  const f = fixture(); await f.mesh.connect();
+  const observation = { observationSession: 'one', updatedAt: 100 };
+  f.advertise('east', 'qwen', { ...observation, observationSequence: 2, readiness: 'loading', preparation: { kind: 'receiving', receivedBytes: 70, totalBytes: 100 } });
+  f.advertise('east', 'qwen', { ...observation, observationSequence: 1, readiness: 'loading', preparation: { kind: 'receiving', receivedBytes: 10, totalBytes: 100 } });
+  expect(f.mesh.getSwarmSnapshot().peers[0].preparation.receivedBytes).toBe(70);
+  f.advertise('east', 'qwen', { ...observation, observationSequence: 3, readiness: 'ready', activity: { phase: 'executing', completed: 2 } });
+  expect(f.mesh.getSwarmSnapshot().peers[0]).toMatchObject({ readiness: 'ready', activity: { phase: 'executing', completed: 2 } });
+  await f.mesh.close();
+});

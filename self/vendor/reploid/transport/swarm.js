@@ -83,7 +83,8 @@ const WebRTCSwarm = {
     let _generation = 0;
     let introductions = null, bootstrapLifetime = null;
     let adapter = null, unsubscribeAdapter = null, adapterEpoch = 0;
-    const negotiationTimers = new Map();
+    const negotiationTimers = new Map(), retiredPeerStates = new Map();
+    let attemptSequence = 0;
     let _cancelConnect = null;
     let _peers = new Map(); // peerId -> { connection, dataChannel, metadata, status, lastSeen }
     const auxiliaryHandlers = new Map(), auxiliaryChannels = new WeakMap();
@@ -135,17 +136,22 @@ const WebRTCSwarm = {
     const reportPeerProgress = (peer, phase) => {
       if (_manualStop || _peers.get(peer.id) !== peer) return;
       peer.phase = phase; peer.updatedAt = Date.now();
-      EventBus.emit('swarm:peer-progress', { peerId: peer.id, phase });
+      EventBus.emit('swarm:peer-progress', { peerId: peer.id, attemptId: peer.attemptId, phase });
     };
-    const getPeerStates = () => [..._peers.values()].map(peer => ({
-      id: peer.id, phase: peer.phase || peer.status, transport: peer.transport || 'webrtc',
-      updatedAt: peer.updatedAt || peer.lastSeen,
+    const peerState = peer => ({
+      id: peer.id, attemptId: peer.attemptId, phase: peer.phase || peer.status,
+      transport: peer.transport || 'webrtc', updatedAt: peer.updatedAt || peer.lastSeen,
+      authenticated: peer.authenticated === true, failure: peer.failure || null,
       iceState: peer.connection?.iceConnectionState || null,
       channelState: peer.dataChannel?.readyState || null
-    }));
+    });
+    // Retain bounded diagnostics only; these records never count as live peers.
+    const getPeerStates = () => [...retiredPeerStates.values(), ...[..._peers.values()].map(peerState)];
     const preparePeer = async (remote, exchange) => {
-      const peer = { id: remote, exchange, connection: null, dataChannel: null,
+      const peer = { id: remote, attemptId: `${_peerId}:${_generation}:${++attemptSequence}`,
+        authenticated: false, exchange, connection: null, dataChannel: null,
         metadata: {}, status: 'connecting', lastSeen: Date.now() };
+      retiredPeerStates.delete(remote);
       _peers.set(remote, peer);
       reportPeerProgress(peer, 'preparing');
       boundNegotiation(remote, peer);
@@ -166,8 +172,8 @@ const WebRTCSwarm = {
         return peer;
       } catch (error) {
         if (_peers.get(remote) === peer) {
-          recoverPeer(remote, peer);
-          EventBus.emit('swarm:connection-failed', { peerId: remote, message: 'Could not prepare the peer connection.' });
+          recoverPeer(remote, peer, 'failed', 'Could not prepare the peer connection.');
+          EventBus.emit('swarm:connection-failed', { peerId: remote, attemptId: peer.attemptId, message: peer.failure });
         }
         throw error;
       }
@@ -583,8 +589,8 @@ const WebRTCSwarm = {
       negotiationTimers.set(remote, setTimeout(() => {
         negotiationTimers.delete(remote);
         if (_peers.get(remote) === peer && peer.dataChannel?.readyState !== 'open') {
-          recoverPeer(remote, peer);
-          EventBus.emit('swarm:connection-failed', { peerId: remote, message: 'Peer connection unavailable; check the invitation route and ICE/relay configuration' });
+          recoverPeer(remote, peer, 'failed', 'Peer connection timed out; check the invitation and network.');
+          EventBus.emit('swarm:connection-failed', { peerId: remote, attemptId: peer.attemptId, message: peer.failure });
         }
       }, policy.webrtc.connectTimeoutMs));
     };
@@ -644,7 +650,7 @@ const WebRTCSwarm = {
         // ICE disconnected can recover. The existing heartbeat deadline bounds
         // liveness; do not destroy open custody/partition channels prematurely.
         if (connection.connectionState === 'failed' || connection.connectionState === 'closed') {
-          recoverPeer(remotePeerId, peer);
+          recoverPeer(remotePeerId, peer, connection.connectionState === 'failed' ? 'failed' : 'disconnected');
         }
       };
 
@@ -701,7 +707,7 @@ const WebRTCSwarm = {
         // Preserve transient ICE recovery under the same heartbeat deadline as
         // outgoing connections. Terminal states still retire the peer now.
         if (connection.connectionState === 'failed' || connection.connectionState === 'closed') {
-          recoverPeer(remotePeerId, peer);
+          recoverPeer(remotePeerId, peer, connection.connectionState === 'failed' ? 'failed' : 'disconnected');
         }
       };
 
@@ -818,7 +824,7 @@ const WebRTCSwarm = {
       }
 
       const peer = {
-        id: remotePeerId,
+        id: remotePeerId, attemptId: `${_peerId}:${_generation}:${++attemptSequence}`,
         connection: null,
         dataChannel: null,
         metadata: { ...metadata },
@@ -827,6 +833,7 @@ const WebRTCSwarm = {
         transport: 'signaling-relay'
       };
 
+      retiredPeerStates.delete(remotePeerId);
       _peers.set(remotePeerId, peer);
       return peer;
     };
@@ -839,6 +846,10 @@ const WebRTCSwarm = {
       const peer = _peers.get(remotePeerId);
       if (peer) {
         _peers.delete(remotePeerId);
+        retiredPeerStates.delete(remotePeerId);
+        retiredPeerStates.set(remotePeerId, { ...peerState(peer), phase: peer.phase === 'failed' ? 'failed' : 'disconnected',
+          channelState: 'closed', updatedAt: Date.now() });
+        while (retiredPeerStates.size > 64) retiredPeerStates.delete(retiredPeerStates.keys().next().value);
         if (!preserveIntroduction) introductions?.retirePeer(remotePeerId, peer.exchange?.attemptId);
         try {
           if (peer.dataChannel) peer.dataChannel.close();
@@ -846,7 +857,7 @@ const WebRTCSwarm = {
         } catch (e) {
           // Ignore cleanup errors
         }
-        EventBus.emit('swarm:peer-disconnected', { peerId: remotePeerId });
+        EventBus.emit('swarm:peer-disconnected', { peerId: remotePeerId, attemptId: peer.attemptId });
       }
       _pendingIceCandidates.delete(remotePeerId);
       _latencyByPeer.delete(remotePeerId);
@@ -856,8 +867,9 @@ const WebRTCSwarm = {
     // connection fails. Rejoin through its existing bounded backoff to obtain a
     // fresh admitted peer list; connectToPeer preserves still-open channels.
     // This restores transport only. Retired requests are never replayed here.
-    const recoverPeer = (remotePeerId, peer) => {
+    const recoverPeer = (remotePeerId, peer, phase = 'disconnected', failure = null) => {
       if (_peers.get(remotePeerId) !== peer) return;
+      peer.phase = phase; peer.failure = failure;
       removePeer(remotePeerId);
       if (!peer.exchange && peer.transport !== 'signaling-relay') scheduleReconnect();
     };
@@ -1195,6 +1207,11 @@ const WebRTCSwarm = {
       getConnectionState,
       getConnectedPeers,
       getPeerStates,
+      observePeerAuthentication(remote, attemptId) {
+        const peer = _peers.get(remote);
+        if (!peer || peer.attemptId !== attemptId || peer.status !== 'connected') return;
+        peer.authenticated = true; reportPeerProgress(peer, peer.phase);
+      },
       onDataChannel(label, handler) {
         if (!AUXILIARY_CHANNELS.includes(label) || typeof handler !== 'function') throw new Error('Explicit auxiliary channel handler required');
         auxiliaryHandlers.set(label, handler);
