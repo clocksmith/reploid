@@ -75,9 +75,11 @@ response text separately from the existing trimmed scoring field. The existing
 workspace isolation test now crosses a save/restore boundary and asserts that
 restoration does not resend. All 16 workspace tests pass; scoped syntax and lint
 checks pass. These checks do not rerun the physical workload or improve its score.
-The next causal comparison needs the exact failed requests and provider-rendered
-input tokens matched against an independent same-model control before changing
-production prompts, model policy or numerical code.
+The subsequent [independent control](../movie-request-control-20261017/README.md)
+replays two exact failed requests: both wrong answers and all output token IDs
+match independent Transformers CPU execution over the same retained Q4_K bytes.
+These failures are not specific to Doppler execution; base-model versus
+quantization attribution remains open. The original 5/12 score is unchanged.
 
 ## Useful preparation and contribution isolation
 
