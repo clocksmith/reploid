@@ -219,7 +219,11 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         if (request.retrieval) {
           // Provenance is durable before any source text can be disclosed; failure dispatches nothing.
           // The attempt id keys this answer's costs in provider usage logs; it is never part of the query.
-          attempt.retrieval = await retriever.retrieve(attempt.retrieval, controller.signal, { answer: attempt.id });
+          attempt.retrieval = await retriever.retrieve(attempt.retrieval, controller.signal, { answer: attempt.id,
+            onProgress(progress) {
+              if (!live() || attempt.retrieval.outcome !== 'pending') return;
+              attempt.retrieval.progress = copy(progress); notify();
+            } });
           await persist(); controller.signal.throwIfAborted();
           assert(attempt.retrieval.outcome === 'retrieved', retrievalFailureMessage(attempt.retrieval));
           dispatched = await retriever.dispatch(request, attempt.retrieval);
@@ -473,12 +477,17 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       catch (error) { thread.messages.pop(); throw error; }
     },
     /** A search-answer retry searches and discloses again, so it needs a fresh `searchPermission`. */
-    retry(threadId, attemptId, { authorizeDisclosure = null, searchPermission = null } = {}) {
+    retry(threadId, attemptId, { authorizeDisclosure = null, searchPermission = null, retrievalQuery = null } = {}) {
       current(); const thread = find(threadId), attempt = thread.attempts.at(-1);
       assert(!thread.closed && attempt?.id === attemptId && ['cancelled', 'failed', 'interrupted'].includes(attempt.status), 'Only the latest interrupted or unsuccessful response can be retried');
       const route = attempt.request.retrieval ? routeFor(attempt.request.retrieval) : null;
-      const permission = searchGrant(thread, route, attempt.request.retrieval, searchPermission);
-      return start(thread, attempt.request, attempt.userMessageId, attempt.id, true, authorizeDisclosure, permission);
+      const request = copy(attempt.request);
+      if (retrievalQuery !== null) {
+        assert(route && searchPermission, 'Changing a retry query requires fresh search permission');
+        request.retrieval = { ...request.retrieval, ...route.retriever.request({ query: retrievalQuery, limits: request.retrieval.limits }, retrievalQuery) };
+      }
+      const permission = searchGrant(thread, route, request.retrieval, searchPermission);
+      return start(thread, request, attempt.userMessageId, attempt.id, true, authorizeDisclosure, permission);
     },
     approve(threadId, attemptId, previewId, accepted, { remember = false } = {}) {
       current(); const thread = find(threadId), attempt = thread.attempts.at(-1), run = runs.get(threadId);

@@ -178,10 +178,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   // The person's own search server when it is set up and on, otherwise the server's Brave route.
   const searchRouteNow = () => session.preferredSearchRoute?.() ?? undefined;
   const deviceSearchOn = () => session.preferredSearchRoute?.() === 'device-search';
-  const allowSearch = async (model, sharingScope, route = searchRouteNow(), location = executionLocation) => {
+  const allowSearch = async (model, sharingScope, route = searchRouteNow(), location = executionLocation, query = input.value, previousQuestion = null) => {
     const request = session.searchPermissionRequest({ model, sharingScope, executionLocation: location, ...(route ? { route } : {}) });
-    return await searchPermission.ask(request)
-      ? { route: request.route, wording: request.wording, recipients: request.recipients, searchServer: request.searchServer ?? null, searchPeer: request.searchPeer ?? null } : null;
+    return await searchPermission.ask({ ...request, query, previousQuestion })
+      ? { query: searchPermission.query, route: request.route, wording: request.wording, recipients: request.recipients, searchServer: request.searchServer ?? null, searchPeer: request.searchPeer ?? null } : null;
   };
   function resizeInput() {
     input.style.removeProperty('--pool-param-composer-height');
@@ -472,7 +472,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         // Keep answers local sends nothing and leaves the draft in place.
         if (!await permitted(target)) return;
         // Don't search sends nothing either; the person can turn search off and send again.
-        const allowed = searched ? await allowSearch(target.model, target.permissions?.sharingScope, searchRouteNow(), location) : null;
+        const previousInput = state.activeThread?.messages?.filter(message => message.role === 'user').at(-1)?.content || null;
+        const previousQuestion = previousInput ? session.getDocumentSources?.(previousInput)?.question ?? previousInput : null;
+        const allowed = searched ? await allowSearch(target.model, target.permissions?.sharingScope, searchRouteNow(), location, content, previousQuestion) : null;
         if (searched && !allowed) return;
         const threadId = state.selectedId || await session.createThread({ model, sharingScope, executionLocation: location, contextPrompt: contextPrompt || undefined });
         if (selectedId === threadId) {
@@ -524,7 +526,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       // A search-backed retry searches and shares passages again, so it asks again.
       const failed = thread.attempts.find(item => item.id === button.dataset.retryAttempt);
       if (!session.searchRetryNeedsPermission?.(failed)) return session.retry(thread.id, button.dataset.retryAttempt);
-      const allowed = await allowSearch(thread.model, failed.request?.permissions?.sharingScope ?? thread.permissions?.sharingScope, failed.request?.retrieval?.route, failed.request?.permissions?.executionLocation ?? 'auto');
+      const allowed = await allowSearch(thread.model, failed.request?.permissions?.sharingScope ?? thread.permissions?.sharingScope, failed.request?.retrieval?.route, failed.request?.permissions?.executionLocation ?? 'auto', failed.request?.retrieval?.query || '');
       if (allowed) return session.retry(thread.id, button.dataset.retryAttempt, { search: allowed });
     });
   });

@@ -403,8 +403,8 @@
     },
     {
       "path": "chat/index.d.ts",
-      "bytes": 14200,
-      "sha256": "1ee8fd5094667e1f6950b056c5988cad8a8d2c0fc598ed02c7d44196d20cd56d"
+      "bytes": 14215,
+      "sha256": "30693969950cf268f8e75ec3e206453fbeb2281565ed83065eaa8f88fb06db35"
     },
     {
       "path": "chat/index.js",
@@ -488,8 +488,8 @@
     },
     {
       "path": "chat/workspace.js",
-      "bytes": 41636,
-      "sha256": "8dc775a608dcbd4cdf26825c0dccf7cf6e9e605e83b2c91a457bd4b0aa623003"
+      "bytes": 42191,
+      "sha256": "c892a8deed4f9b24dfa8316a606ed30b9e8f621a5fb522a5408a84cd104f0327"
     },
     {
       "path": "config/defaults.json",
@@ -1233,8 +1233,8 @@
     },
     {
       "path": "retrieval/index.d.ts",
-      "bytes": 21887,
-      "sha256": "700f3f17e1291736fabc8ff253c1675182e7fec6b02317e0668d15faca858704"
+      "bytes": 22245,
+      "sha256": "4426d85bcd1ea97c82b7fd625f9408d7b71b5dfb631ec981b776dad7bf87c713"
     },
     {
       "path": "retrieval/index.js",
@@ -1273,8 +1273,8 @@
     },
     {
       "path": "retrieval/retrieval.js",
-      "bytes": 1808,
-      "sha256": "cb87e8d45ee6cf273a15ec4b54df7ddc46ce700768104564fb077add811e9a30"
+      "bytes": 1832,
+      "sha256": "3958dbe2a93b5df5baca38e032843de45076d0c575701d27e1944af1362db008"
     },
     {
       "path": "retrieval/review-queue.js",
@@ -1283,8 +1283,8 @@
     },
     {
       "path": "retrieval/sources.js",
-      "bytes": 17811,
-      "sha256": "a42199e40404546ce5b98c433390a2edd273c72a213b7765bee863d5f8d8eeda"
+      "bytes": 18666,
+      "sha256": "5358e5b88c280a3143c11f7c4926d0f960bd434d8ef2486500c087ee9a3e0fc3"
     },
     {
       "path": "retrieval/support-review.js",

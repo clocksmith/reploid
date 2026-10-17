@@ -355,7 +355,8 @@ test('connection runtime passes the Verification Worker', async ({ page }, info)
     'ui/pool-home/computer-labels.js', 'ui/pool-home/shell-view.js', 'ui/pool-home/message-list.js',
     'providers/work-resident-provider.js', 'vendor/reploid/mesh/preparation-progress.js', 'vendor/reploid/mesh/peer-identity.js',
     'vendor/reploid/mesh/partitions/automatic-partitions.js', 'vendor/reploid/mesh/partitions/automatic-ordered-partitions.js',
-    'vendor/reploid/retrieval/sources.js'];
+    'vendor/reploid/retrieval/sources.js', 'vendor/reploid/retrieval/retrieval.js', 'vendor/reploid/chat/workspace.js',
+    'host/chat-session.js', 'ui/pool-home/conversation-workspace.js', 'ui/pool-home/search-permission.js'];
   const snapshot = Object.fromEntries(await Promise.all(files.map(async file => ['/' + file, await readFile('self/' + file, 'utf8')])));
   const result = await page.evaluate(snapshot => new Promise((resolve, reject) => {
     const worker = new Worker('/core/verification-worker.js');
@@ -391,4 +392,51 @@ for (const width of [1440, 390]) test(`system failure is separate from model out
   expect(Math.abs(boxes.details.y - boxes.retry.y)).toBeLessThanOrEqual(1);
   expect(boxes.retry.x - boxes.details.right).toBeLessThanOrEqual(24);
   await page.screenshot({ path: info.outputPath('retrieval-failure.png') });
+});
+
+for (const width of [1440, 390]) test(`search progress, retry history and reviewed context remain clear at ${width}px`, async ({ page }, info) => {
+  await page.setViewportSize({ width, height: 844 });
+  await page.evaluate(() => {
+    const thread = window.railState.activeThread;
+    thread.messages[1].content = '';
+    thread.attempts[0] = { id: 'attempt', status: 'failed', error: 'Could not retrieve sources: the search provider failed.' };
+    thread.messages.push({ id: 'retry-response', role: 'assistant', content: '', attemptId: 'retry' });
+    thread.attempts.push({ id: 'retry', retryOf: 'attempt', status: 'queued', retrieval: { outcome: 'pending',
+      progress: { stage: 'extraction', completed: 2, total: 5, available: 2 } } });
+    window.emitRailState();
+  });
+  const row = page.locator('.is-assistant');
+  await expect(row).toHaveCount(1);
+  await expect(row.locator('[data-system-status]')).toContainText('2 of 5 pages checked; 2 usable');
+  await expect(row.locator('[aria-label="Model output"]')).toBeHidden();
+  await row.locator('[data-previous-attempts] summary').click();
+  await expect(row.locator('[data-previous-attempts]')).toContainText('the search provider failed');
+  await page.screenshot({ path: info.outputPath('search-progress.png') });
+  await page.evaluate(() => {
+    const thread = window.railState.activeThread;
+    thread.messages.at(-1).content = 'An answer from the available pages.';
+    Object.assign(thread.attempts.at(-1), { status: 'completed', retrieval: { outcome: 'retrieved', partial: true,
+      sources: [{ number: 1, title: 'Retrieved page', url: 'https://example.com/page' }] } });
+    window.emitRailState();
+  });
+  await expect(row.locator('[data-system-status]')).toContainText('Using 1 retrieved source. Some pages were unavailable.');
+  await expect(row.locator('[aria-label="Model output"]')).toHaveText('An answer from the available pages.');
+  await expect(row.locator('[data-previous-attempts]')).toHaveAttribute('open', '');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+  await page.screenshot({ path: info.outputPath('partial-search-answer.png') });
+  await page.evaluate(async () => {
+    const { bindSearchPermissionDialog } = await import('/ui/pool-home/search-permission.js');
+    window.queryReview = bindSearchPermissionDialog(document.querySelector('[data-search-permission]'), window.railSession);
+    window.queryReview.ask({ wording: { text: 'Allow this reviewed query for this answer.' }, recipients: [],
+      query: 'What about its price?', previousQuestion: 'Search for QCOM news' });
+  });
+  const dialog = page.locator('[data-search-permission]');
+  await expect(dialog).toBeVisible();
+  await expect(dialog.locator('[data-search-query]')).toHaveValue('What about its price?');
+  await expect(dialog.locator('[data-search-context]')).not.toBeChecked();
+  await dialog.locator('[data-search-context]').check();
+  await expect(dialog.locator('[data-search-query]')).toHaveValue('Search for QCOM news\nFollow-up: What about its price?');
+  await expect(dialog.locator('[data-search-permission-allow]')).toBeInViewport();
+  expect(await dialog.evaluate(node => node.scrollWidth - node.clientWidth)).toBeLessThanOrEqual(1);
+  await page.screenshot({ path: info.outputPath('query-review.png') });
 });

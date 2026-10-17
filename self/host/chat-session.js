@@ -337,8 +337,8 @@ export function createChatSession({
     // Remote disclosure waits in the workspace's 'approval' state until approve() records the displayed recipients.
     // `retrieval: { query?, limits? }` opts this request into retrieval; the query defaults to the typed text,
     // never to attachment contents. `search: { route?, wording, recipients }` is the per-answer search permission as
-    // shown and allowed (route defaults to SEARCH_ROUTE): the typed text goes to the search service and nothing else
-    // from the conversation is sent.
+    // shown and allowed (route defaults to SEARCH_ROUTE): only the reviewed query goes to the search service.
+    // Any prior question must be explicitly included there; unrelated conversation and files stay excluded.
     send(threadId, content, attachments = [], { retrieval = null, search = null } = {}) {
       assertOpen();
       assert(threadId, 'threadId required');
@@ -356,8 +356,9 @@ export function createChatSession({
         assert(retrieval === null, 'Choose search or web search for this answer, not both');
         assert(!attachments.length, "Search-backed answers don't include files. Remove the files or turn off search for this answer.");
         const route = search.route ?? SEARCH_ROUTE;
-        return workspace.send(threadId, content, { retrieval: { route, query: content },
-          searchPermission: searchGrant(threadId, content, search, route) });
+        const query = search.query ?? content;
+        return workspace.send(threadId, content, { retrieval: { route, query },
+          searchPermission: searchGrant(threadId, query, search, route) });
       }
       allowConfiguredRemote(threadId);
       return workspace.send(threadId, attachmentInput(content, attachments),
@@ -397,7 +398,8 @@ export function createChatSession({
       assertOpen();
       const attempt = workspace.getState().threads.find(thread => thread.id === threadId)?.attempts.find(item => item.id === attemptId);
       if (!search && !isSearchRoute(attempt?.request?.retrieval?.route)) allowConfiguredRemote(threadId);
-      return workspace.retry(threadId, attemptId, search ? { searchPermission: searchGrant(threadId, attempt?.request?.retrieval?.query ?? '',
+      return workspace.retry(threadId, attemptId, search ? { retrievalQuery: search.query ?? null,
+        searchPermission: searchGrant(threadId, search.query ?? attempt?.request?.retrieval?.query ?? '',
         search, attempt?.request?.retrieval?.route ?? SEARCH_ROUTE) } : undefined);
     },
     approve(threadId, attemptId, previewId, accepted, options) {

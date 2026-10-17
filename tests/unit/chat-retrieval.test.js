@@ -91,6 +91,33 @@ describe('retrieval-backed chat requests', () => {
     }
   });
 
+  it('streams retrieval stages before execution and dispatches only the pages completed within the deadline', async () => {
+    const fixed = createFixedSearchProvider({ documents: DOCUMENTS, now: () => 1760000000000 });
+    let release;
+    const { app, execute, executed } = fixture({ retrieval: { provider: fixed, extractor: { id: 'partial', version: '1',
+      async extract(input) {
+        const value = await fixed.extract(input);
+        return input.source.sourceId === 'fixed:eiffel' ? value : new Promise(resolve => { release = () => resolve(value); });
+      } } } });
+    const seen = []; const unsubscribe = app.subscribe(state => {
+      const attempt = state.threads[0]?.attempts[0];
+      if (attempt?.retrieval?.outcome === 'pending' && attempt.retrieval.progress) seen.push(structuredClone(attempt.retrieval.progress));
+    });
+    const thread = app.createThread({ model });
+    const pending = app.send(thread, QUESTION, { retrieval: { limits: { timeoutMs: 100 } } });
+    await vi.waitFor(() => expect(seen.some(progress => progress.stage === 'extraction' && progress.available === 1)).toBe(true), { interval: 5 });
+    expect(execute).not.toHaveBeenCalled();
+    const done = await pending;
+    expect(done).toMatchObject({ status: 'completed', retrieval: { outcome: 'retrieved', partial: true } });
+    expect(seen[0].stage).toBe('search');
+    expect(done.retrieval.sources.map(source => source.sourceId)).toEqual(['fixed:eiffel']);
+    expect(executed).toHaveLength(1); expect(executed[0].messages[0].content).not.toContain('Louvre');
+    const retained = structuredClone(app.getState()); release();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(app.getState()).toEqual(retained);
+    unsubscribe(); await app.close();
+  });
+
   it('marks a retrieval pending at reload as interrupted, and a stop during retrieval cancels only that attempt', async () => {
     const hanging = { id: 'test.provider', version: '1', search: (query, limits, signal) => new Promise((_, reject) =>
       signal.addEventListener('abort', () => reject(signal.reason), { once: true })) };
@@ -171,6 +198,7 @@ describe('host retrieval plumbing and disclosure', () => {
     const session = createChatSession({ storage: memory(), service: createChatTestService(), partitions, retrieval: fixedPorts(),
       requesterIdentity: () => REQUESTER });
     sessions.push(session);
+    session.setRemoteAnswersEnabled(false);
     const thread = session.createThread({ model: ordered });
     const completion = session.send(thread, QUESTION, [{ name: 'notes.txt', text: 'My private notes about Paris.' }], { retrieval: {} });
     const attempt = () => session.getState().threads[0].attempts.at(-1);
