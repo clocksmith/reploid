@@ -35,6 +35,15 @@ export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner
   })().finally(() => { stopping = null; });
   return Object.freeze({
     getState,
+    getExecutionState() {
+      const state = getState();
+      return { ...state,
+        // Prepared capacity remains discoverable while its current slot is
+        // occupied. The mesh separately advertises the available slot count.
+        phase: state.ready ? 'ready' : ['ready', 'executing'].includes(state.phase) ? 'idle' : state.phase,
+        activity: { phase: state.phase, completed: state.completed || 0, error: state.error || null }
+      };
+    },
     async contribute(approved) {
       if (approved !== true) throw new Error('Approve contribution before loading a whole model');
       if (closed || stopping) throw new Error('Whole-model contributor is stopping');

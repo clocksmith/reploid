@@ -441,7 +441,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     onChange: state => { onChange(state); mesh.refreshAdvertisement(); } }) : null;
   const mesh = createLegacyGenerationMesh({ config, ports: {
     instanceId: 'node:' + identity.peerId, modelConfig: wholeMode ? model : null, utils, eventBus, events: bridge,
-    getExecutionState: () => { const state = whole?.getState(); return { ...state, phase: state?.ready ? state.phase : state?.phase === 'ready' || state?.phase === 'executing' ? 'idle' : state?.phase || 'idle' }; },
+    getExecutionState: () => whole?.getExecutionState() || { phase: 'idle' },
     identity: { ensure: async () => identity, save: async () => {}, sync: async () => {},
       rotate: async () => { throw new Error('Stop the native participant before rotating its identity'); } },
     authorize: async request => !closed && (request.action === 'mesh.connect'
