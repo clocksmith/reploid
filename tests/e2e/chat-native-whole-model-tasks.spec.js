@@ -8,7 +8,7 @@ const modelId = process.env.REPLOID_NATIVE_CHAT_MODEL;
 test('prepared whole-model service completes frozen independent chat tasks', async ({ browser }, info) => {
   test.skip(!url || !modelId, 'Set the prepared native chat URL and model');
   test.setTimeout(240000);
-  const suite = JSON.parse(await readFile('tests/fixtures/qwen27b-service-tasks.json', 'utf8'));
+  const suite = JSON.parse(await readFile(process.env.REPLOID_CHAT_TASK_SUITE || 'tests/fixtures/qwen27b-service-tasks.json', 'utf8'));
   const models = JSON.parse(await readFile('self/config/chat-models.json', 'utf8'));
   const model = models.find(row => row.id === modelId);
   expect(model).toBeTruthy();
@@ -28,18 +28,21 @@ test('prepared whole-model service completes frozen independent chat tasks', asy
       await expect(page.locator('[data-composer-send]')).toBeEnabled({ timeout: 60000 });
       const start = performance.now();
       await page.locator('[data-composer-send]').click();
-      let thread;
+      let thread, firstOutputMs = null;
       await expect.poll(async () => {
         const allow = page.locator('[data-remote-permission-allow]');
         if (await allow.isVisible()) await allow.click();
         const workspace = await readChatWorkspace(page);
         thread = workspace?.threads.at(-1);
+        if (firstOutputMs === null && thread?.messages.at(-1)?.role === 'assistant' && thread.messages.at(-1).content) {
+          firstOutputMs = performance.now() - start;
+        }
         const attempt = thread?.attempts.at(-1);
         if (['failed', 'cancelled', 'interrupted'].includes(attempt?.status)) throw new Error(JSON.stringify(attempt.error || attempt.status));
         return attempt?.status;
       }, { timeout: 60000, intervals: [100] }).toBe('completed');
       const answer = thread.messages.at(-1).content.trim();
-      results.push({ id: task.id, answer, elapsedMs: performance.now() - start, attempt: thread.attempts.at(-1) });
+      results.push({ id: task.id, answer, firstOutputMs, elapsedMs: performance.now() - start, attempt: thread.attempts.at(-1) });
       expect.soft(thread.attempts.at(-1).execution).toMatchObject({ placement: 'peer-whole-request', modelId, modelIdentity: model.identity });
       if ('expectedJson' in task) {
         let parsed;
