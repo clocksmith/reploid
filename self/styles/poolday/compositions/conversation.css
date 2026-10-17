@@ -289,7 +289,7 @@
 .chat-thread-sidebar .chat-thread-list { width: 100%; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 0; scrollbar-width: none; }
 .chat-thread-sidebar .chat-thread-list::-webkit-scrollbar { display: none; }
 .chat-thread-row { position: relative; display: block; width: 100%; min-width: 0; }
-.pool-home .chat-thread-row .chat-thread-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; width: 100%; height: var(--pool-size-44); min-height: var(--pool-size-44); padding: var(--pool-size-8); }
+.pool-home .chat-thread-row .chat-thread-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; width: 100%; height: var(--pool-size-44); min-height: var(--pool-size-44); padding: var(--pool-size-4) var(--pool-size-8); }
 .chat-thread-title, .chat-thread-digest { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chat-thread-shortcut { display: none; }
 .reploid-chat-workspace:not([data-threads-open]) .chat-thread-row :is(.chat-thread-title, .chat-thread-digest, .chat-thread-menu) { display: none; }
