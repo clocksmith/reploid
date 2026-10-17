@@ -12,7 +12,8 @@ Boot from trusted seeds.
 - Network answers default on. Send/Retry bind host-policy grants without dialogs.
   Persist opt-outs; distinguish legacy consent; preserve local-only/search boundaries.
 - Separates helpers/swarms/previews/isolation/evaluation/activation from Packs.
-- Tasks validate; repositories version; providers execute; views are immutable.
+- Composes separately authorized training in isolated workers; export never activates.
+- Tasks validate; repositories version; providers execute; views remain immutable.
 - Excludes policy/module semantics/recovery-root mutation.
 
 ## Scope
@@ -54,4 +55,4 @@ Outputs: [VFS](seed-vfs.js), [startup](start-reploid.js).
 - Scientific question/model policy/promotion.
 
 ## Freedom
-Preserve boundaries and acceptance.
+Preserve.

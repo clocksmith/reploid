@@ -125,6 +125,11 @@ describe('CATSCAN component charters', () => {
     const fixtureRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'reploid-catscan-boundary-'));
     try {
       await fs.mkdir(path.join(fixtureRoot, '.git'));
+      // Packaging and deployment snapshots are not repository implementation owners.
+      for (const directory of ['.tmp', '.deployment-checkouts']) {
+        await fs.mkdir(path.join(fixtureRoot, directory));
+        await fs.writeFile(path.join(fixtureRoot, directory, 'CATSCAN.md'), 'incomplete copied charter');
+      }
       await fs.writeFile(path.join(fixtureRoot, 'evidence.test.js'), 'export {}\n');
       await fs.writeFile(path.join(fixtureRoot, 'CATSCAN.md'), validCharter({ component: 'Fixture Root' }));
       const nested = path.join(fixtureRoot, '.checkouts', 'candidate');

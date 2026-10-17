@@ -360,6 +360,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       return partitionNetworks.open({ createEndpoint, maxPeers, timeoutMs, onPeer, label, ...(ordered ? { ordered } : {}) });
     }
   const api = Object.freeze({ getState, connect, disconnect, partitions, getWebNetwork: () => webNetwork,
+    getTrainingPeers: () => (consumerTransport?.getConnectedPeers() || []).map(peer => ({ id: peer.id, name: peer.id })),
     async verifyPeerIdentity(peerId, signal) {
       const active = consumer;
       if (closed || paused || !active) throw new Error('Connect before verifying a contributor');

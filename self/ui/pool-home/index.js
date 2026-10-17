@@ -131,7 +131,7 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
             const workView = await import('./work.js');
             if (disposed || current !== revision) return;
             content.innerHTML = workView.renderImproveSurface();
-            detachView = workView.bindWorkSurface(content, host.work, { evolution: host.evolution, swarm: host.swarm });
+            detachView = workView.bindWorkSurface(content, host.work, { evolution: host.evolution, swarm: host.swarm, training: host.training });
           } else {
             const module = await import('./specialist-routes.js');
             if (disposed || current !== revision) return;

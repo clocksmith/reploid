@@ -59,9 +59,10 @@ Recursive authority charters discovered from the repository root.
 | Service Measurement | [`packages/reploid/src/measurement/CATSCAN.md`](../packages/reploid/src/measurement/CATSCAN.md) | Reploid Browser Library | Measure useful service against the capacity kept ready for it, from exported records. |
 | Plugin Sessions | [`packages/reploid/src/plugins/CATSCAN.md`](../packages/reploid/src/plugins/CATSCAN.md) | Reploid Browser Library | Run versioned research and game sessions through host-owned capabilities. |
 | Retrieval and Citations | [`packages/reploid/src/retrieval/CATSCAN.md`](../packages/reploid/src/retrieval/CATSCAN.md) | Reploid Browser Library | Retrieval-backed answers whose cited sources were actually retrieved, with failure reported. |
+| Bounded LoRA Training | [`packages/reploid/src/training/CATSCAN.md`](../packages/reploid/src/training/CATSCAN.md) | Reploid Browser Library | Coordinate explicitly authorized individual training and one pooled gradient round. |
 | Peer Transport | [`packages/reploid/src/transport/CATSCAN.md`](../packages/reploid/src/transport/CATSCAN.md) | Reploid Browser Library | Provide authorized WebRTC exchange. |
 | Artifact Custody | [`packages/reploid/src/artifacts/custody/CATSCAN.md`](../packages/reploid/src/artifacts/custody/CATSCAN.md) | Reploid Browser Library | Exchange authorized model shards and retain useful pieces across network participants without redundant downloads where verified custody permits reuse. |
 | Complete Peer Jobs | [`packages/reploid/src/mesh/jobs/CATSCAN.md`](../packages/reploid/src/mesh/jobs/CATSCAN.md) | Reploid Browser Library | Delegate complete requests to authorized network participants with explicit host ports and bounded lifecycle. Aggregate independently valid embedding units through these existing signed requests. |
-| Model Partition Coordination | [`packages/reploid/src/mesh/partitions/CATSCAN.md`](../packages/reploid/src/mesh/partitions/CATSCAN.md) | Reploid Browser Library | Coordinate partitioned conversations. |
+| Model Partition Coordination | [`packages/reploid/src/mesh/partitions/CATSCAN.md`](../packages/reploid/src/mesh/partitions/CATSCAN.md) | Reploid Browser Library | Coordinate conversations. |
 
 *Generated from CATSCAN.md files.*

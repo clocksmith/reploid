@@ -3,6 +3,10 @@
   "package": "reploid",
   "version": "0.1.0",
   "exports": {
+    "./training": {
+      "types": "./src/training/index.d.ts",
+      "import": "./src/training/index.js"
+    },
     "./plugins": {
       "types": "./src/plugins/index.d.ts",
       "import": "./src/plugins/index.js"
@@ -544,7 +548,7 @@
     {
       "path": "contracts/doppler-partitions.provenance.json",
       "bytes": 1666,
-      "sha256": "69f15103d6cf9059a1bd8124e4f5921c06b66f9bfe7b9ad6fc0d7bf4dae126e4"
+      "sha256": "ad91727b6a7a22cc9a96eaa901b9c97378e29725c7d85d4b749e8b36afc8d5fe"
     },
     {
       "path": "contracts/host-ports.d.ts",
@@ -948,8 +952,8 @@
     },
     {
       "path": "mesh/partitions/partition-network.js",
-      "bytes": 6094,
-      "sha256": "2ebf730527ffe2f2907b008a0f69eef20cf4d2ecee30cf933d6dcc4280dbc708"
+      "bytes": 6128,
+      "sha256": "6397af362a2fc0b1b55e1968a764dcf9917de9a91c0af39a7e4f7b788426a9b1"
     },
     {
       "path": "mesh/partitions/partition-ordered-chat.d.ts",
@@ -1307,6 +1311,26 @@
       "sha256": "9eb2ed7ffc1bc7c00a7a1435392f7539873e7ac1462611f77dbc92f3bfeff779"
     },
     {
+      "path": "training/index.d.ts",
+      "bytes": 2863,
+      "sha256": "09368de112901598dc3fe766816ae7f2ba7511145861c1d048876c5b0017cab3"
+    },
+    {
+      "path": "training/index.js",
+      "bytes": 108,
+      "sha256": "1d998c6589d8ffec96513027a4484808f1982fba46a2c1f2104d7398c941e405"
+    },
+    {
+      "path": "training/network.js",
+      "bytes": 2469,
+      "sha256": "f8d474b6af010d14627a7441860f812104fc20774190c172f09d4107fa0ad9ab"
+    },
+    {
+      "path": "training/session.js",
+      "bytes": 12965,
+      "sha256": "d937818c9e3951e8380861e243a2d89db7c3a6def819ecf0ceb05b6e3862a6dd"
+    },
+    {
       "path": "transport/assignment.d.ts",
       "bytes": 2120,
       "sha256": "2c78371832f625b84cba9397203bee596836cfe768acfc4a8295705db44dcb2e"
@@ -1423,13 +1447,13 @@
     },
     {
       "path": "transport/swarm.d.ts",
-      "bytes": 2744,
-      "sha256": "934149afc661513f4e4223cd31fb40ca92a851d03544c4a884c01964e0b699b4"
+      "bytes": 2765,
+      "sha256": "647f81bb931875818b60255db01f50eeb519bac77d29e877c415a1d87ffaa31a"
     },
     {
       "path": "transport/swarm.js",
-      "bytes": 49245,
-      "sha256": "ff220df94e2c8e502e20f633edc0927bfb862cea252718cbe6035c274eb378d4"
+      "bytes": 49265,
+      "sha256": "e44566bdfcc4e9ffa64cf25842f434b31ea21c049954136676454e6ef3da0258"
     },
     {
       "path": "transport/tool-offer-channel.d.ts",

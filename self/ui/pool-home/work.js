@@ -1,3 +1,4 @@
+import { renderTraining, bindTraining } from './lora-training.js';
 import { updatePermissionSummary } from '../components/permission-card.js';
 /**
  * Views request host actions; task execution and disclosure enforcement live in the host.
@@ -59,6 +60,7 @@ export function renderImproveSurface() {
   return '<section class="pool-work-shell changes-workspace" data-work-surface aria-label="Changes">'
     + '<p class="pool-work-error pool-subheading" role="alert" data-work-error hidden></p>'
     + renderWorkHeading('Changes')
+    + renderTraining()
     + renderToolExperiments()
     + renderTaskHistory()
     + '<details class="pool-disclosure" data-change-inspection hidden><summary>Selected attempt</summary><div class="pool-disclosure-body">'
@@ -80,6 +82,7 @@ export function bindWorkSurface(root, application, services = {}) {
   if (!root.querySelector('[data-work-surface]')) return () => {};
   const controller = new AbortController(), options = { signal: controller.signal };
   const disposeCapabilities = bindWorkCapabilities(root, application, services);
+  const disposeTraining = bindTraining(root, services.training);
   const find = selector => root.querySelector(selector);
   const setText = (selector, text) => { const node = find(selector); if (node) node.textContent = text; };
   const error = value => {
@@ -447,5 +450,5 @@ export function bindWorkSurface(root, application, services = {}) {
       }
     });
   }, options);
-  return () => { fileRevision++; controller.abort(); unsubscribe(); disposeCapabilities(); };
+  return () => { fileRevision++; controller.abort(); unsubscribe(); disposeCapabilities(); disposeTraining(); };
 }

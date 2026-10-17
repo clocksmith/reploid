@@ -73,7 +73,7 @@ export async function buildHostingFileSet({ selfDir }) {
     if (!entriesByVersion.has(match[1])) entriesByVersion.set(match[1], new Set());
     entriesByVersion.get(match[1]).add(match[2]);
   };
-  for (const entry of ['src/index.js', 'src/partitions.js', 'src/tooling-exports.browser.js', 'src/tooling-exports/storage.js']) {
+  for (const entry of ['src/index.js', 'src/partitions.js', 'src/training-browser.js', 'src/tooling-exports.browser.js', 'src/tooling-exports/storage.js']) {
     addEntry(`/vendor/doppler/${pin.version}/${entry}`);
   }
   addEntry(pool.browserRuntime.dopplerModuleUrl);

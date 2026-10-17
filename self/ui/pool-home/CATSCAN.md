@@ -6,7 +6,7 @@ Parent: [Browser Interfaces](../CATSCAN.md)
 Present conversations/agents/models/results/evaluated changes.
 
 ## Authority
-Owns product/Room-1 presentation; requests candidate transfer/evaluation/adoption/rollback.
+Presents product/Room-1; requests transfer/evaluation/adoption/rollback.
 Owns no execution/review, validation/admission, transport or scientific interpretation.
 
 ## Scope
@@ -26,8 +26,9 @@ Outputs: [conversations](conversation-workspace.js), [markup](view.js), [Room-1]
 - Link tasks/helpers/jobs/results/candidates; show observations and missing admission/evaluators.
 - Preserve execution in protein/document examples and request/execution/comparison/acceptance/receipt lifecycles. Recovery requires valid state.
 - Disclose execution location and conversation sharing. Default-on network answers authorize Send/Retry without popups; loader shows tools. Preserve opt-outs with inline explanations; local-only stays local. Viewing/restoring/selection grants nothing.
-- Keep failures and Stop visible; selection never stops background threads.
+- Keep failures/Stop visible; selection never stops threads.
 - Connection/cached sharing default on; downloads require opt-in.
+- Training exposes consent, bounded rounds, Stop and unevaluated exports.
 - Include compatible adapters in model selection. Compute/file controls;
   discovery/thread grants imply neither.
 - Inspect Pack/runtime/provider/hardware/fallback/timing/output/agreement. Review grants no evaluation/promotion; receipts prove no hardware attestation; acceptance names policy.
