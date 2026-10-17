@@ -1,5 +1,8 @@
 # REPLOID Testing Guide
 
+Follow the [test-value rules](style-guide.md#test-value). Choose focused checks
+under `AGENTS.md`; full suites are not a prerequisite for ordinary commits.
+
 ## Test Architecture
 
 ```
@@ -34,12 +37,12 @@
 
 | Command | Purpose | When to Use |
 |---------|---------|-------------|
-| `npm test` | All tests | CI, before commits |
-| `npm run test:unit` | Unit tests only | After core logic changes |
-| `npm run test:integration` | Integration tests | After multi-module changes |
-| `npm run test:e2e` | Browser E2E | After UI changes |
+| `npm test` | All Vitest tests | Explicit full-suite validation |
+| `npx vitest run --config tests/vitest.config.js <file>` | Focused tests | Changed behavior |
+| `npm run test:integration` | Integration suite | Explicit integration-wide validation |
+| `npm run test:e2e` | Browser E2E suite | Explicit browser-wide validation |
 | `npm run test:watch` | Watch mode | During development |
-| `npm run test:coverage` | Coverage report | Before PRs |
+| `npm run test:coverage` | Coverage report | A named coverage question |
 
 ---
 
@@ -54,7 +57,7 @@ Representative test areas include:
 - Core modules: `state-manager.test.js`, `utils.test.js`, `utils-core.test.js`, `vfs-module-loader.test.js`
 - Tools: `tools/read-file.test.js`, `tools/write-file.test.js`, `tools/edit-file.test.js`, `tools/list-files.test.js`, `tools/grep.test.js`, `tools/find.test.js`
 - Execution: `tool-runner.test.js`, `response-parser.test.js`, `schema-validator.test.js`
-- UI/UX: `toast.test.js`, `doppler-optimization-ui.test.js`, `design-system-css.test.js`
+- UI/UX: `toast.test.js`, `doppler-optimization-ui.test.js`
 - Capabilities: `audit-logger.test.js`, `rate-limiter.test.js`, `rule-engine.test.js`, `policy-engine.test.js`, `gepa-engines.test.js`, `episodic-memory.test.js`, `hybrid-retrieval.test.js`, `knowledge-tree.test.js`, `observability.test.js`, `verification-manager.test.js`
 - Browser: `browser-apis.test.js`, `core-hardening.test.js`
 - Networking: `webrtc-swarm.test.js`, `swarm-sync.test.js`
