@@ -59,6 +59,21 @@ it('stopping during preparation waits for ownership settlement and never adverti
   gate.resolve(); await Promise.all([opening, stopping]);
   expect(f.participant.getState().ready).toBe(false);
 });
+it('keeps prepared capacity discoverable during execution without overriding owner withdrawal', async () => {
+  let action = 'admit';
+  const f = await fixture({ owner: { decide: () => ({ action }), gpuBufferBytes: () => 700 } });
+  await f.participant.contribute(true);
+  f.resident.getState = () => ({ phase: 'executing', ready: true, completed: 3, modelIdentity: f.model.identity });
+  expect(f.participant.getExecutionState()).toMatchObject({ phase: 'ready', ready: true,
+    modelIdentity: f.model.identity, activity: { phase: 'executing', completed: 3, error: null } });
+  action = 'defer';
+  expect(f.participant.getExecutionState()).toMatchObject({ phase: 'idle', ready: false,
+    activity: { phase: 'executing' } });
+  expect(() => f.participant.generate([], () => {}, {})).toThrow('unavailable');
+  action = 'admit';
+  await f.participant.stop();
+  expect(f.participant.getExecutionState()).toMatchObject({ phase: 'idle', ready: false });
+});
 it('rejects an approved-directory escape before opening the GPU', async () => {
   const f = await fixture(), external = await fixture();
   await fs.unlink(path.join(f.root, 'manifest.json'));
