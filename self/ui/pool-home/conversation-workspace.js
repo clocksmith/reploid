@@ -179,7 +179,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const searchRouteNow = () => session.preferredSearchRoute?.() ?? undefined;
   const deviceSearchOn = () => session.preferredSearchRoute?.() === 'device-search';
   const allowSearch = async (model, sharingScope, route = searchRouteNow(), location = executionLocation, query = input.value, previousQuestion = null) => {
-    const request = session.searchPermissionRequest({ model, sharingScope, executionLocation: location, ...(route ? { route } : {}) });
+    const request = await session.searchPermissionRequest({ model, sharingScope, executionLocation: location, signal: controller.signal, ...(route ? { route } : {}) });
     return await searchPermission.ask({ ...request, query, previousQuestion })
       ? { query: searchPermission.query, route: request.route, wording: request.wording, recipients: request.recipients, searchServer: request.searchServer ?? null, searchPeer: request.searchPeer ?? null } : null;
   };
