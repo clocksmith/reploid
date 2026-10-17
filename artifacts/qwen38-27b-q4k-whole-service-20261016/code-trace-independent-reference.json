@@ -1,0 +1,41 @@
+{
+  "schema": "doppler.qwen-quantized-transformers-reference/v1",
+  "qualified": false,
+  "scope": "Independent Transformers equations and gguf decoder; F32 arithmetic, F16 KV storage",
+  "versions": {
+    "torch": "2.11.0",
+    "transformers": "5.6.2",
+    "gguf": "0.19.0",
+    "numpy": "2.4.4"
+  },
+  "contractSha256": "cde55fb6797fa3feeedf05484ee086155dc74b8014ed43edec5a1d97720002b9",
+  "toolSha256": "044ed4b370203c07ebe73df4519a5180110272c23476b99f0fb57306de2ecc39",
+  "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "cases": [
+    {
+      "id": "code-trace",
+      "positions": [
+        84,
+        85,
+        86
+      ],
+      "greedyTokens": [
+        17,
+        17,
+        248046
+      ],
+      "logits": {
+        "path": "code-trace.npy",
+        "sha256": "70dd016ee5c7b0d31d35e7a11e79fccf3678fcf8df7f3b751bb3dfac7b641754",
+        "shape": [
+          3,
+          248320
+        ]
+      },
+      "elapsedSeconds": 101.35634864399617
+    }
+  ],
+  "states": [],
+  "linearAttentionAlgorithm": "recurrent",
+  "maxRssBytes": 17424416768
+}
