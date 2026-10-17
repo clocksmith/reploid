@@ -7,7 +7,7 @@ const model = vi.hoisted(() => ({ id: 'ordered', identity: 'sha256:' + 'a'.repea
 vi.mock('../../self/config/doppler-local-models.js', async original => ({ ...await original(), LOCAL_DOPPLER_MODELS:[model] }));
 vi.mock('../../self/identity.js', () => ({ ensureIdentityBundle: async () => ports.identity, saveIdentityBundle() {}, rotateIdentityBundle() {} }));
 const meshFactory = ({ports: input}) => ({ async connect() { await input.identity.ensure({}); input.createTransport(); }, async close() {}, getSwarmSnapshot: () => ({peers:[]}) });
-vi.mock('../../self/vendor/reploid/mesh/index.js', () => ({
+vi.mock('../../self/vendor/reploid/mesh/index.js', async original => ({ ...await original(),
   createLegacyGenerationMesh: (...args) => meshFactory(...args),
   createAutomaticPartitions: options => { ports.options = options; return ports.automatic; }, createPartitionNetwork(options) { ports.networkOptions = options; return ports.networkOwner; }
 }));
@@ -28,7 +28,7 @@ const orderedConfig = stage => ({stage, maxStages:7,maxStageOffersPerPeer:4,maxR
 const stage = () => ({modelId:'ordered',index:1,residentId:'resident',executionId:'execution'});
 async function setup() {
   ports.identity = await createSigningIdentity({algorithm:'Ed25519'});
-  ports.transport = { disconnect:vi.fn(), _getPeerId: () => 'actual-rtc', getConnectedPeers: () => [] };
+  ports.transport = { disconnect:vi.fn(), onMessage() {}, offMessage() {}, sendToPeer() {}, _getPeerId: () => 'actual-rtc', getConnectedPeers: () => [] };
   ports.automatic = { getModels: () => [], getState: () => ({phase:'idle'}), close:vi.fn(async()=>{}), stop:vi.fn(async()=>{}) };
   ports.options = null; ports.networkOptions = null; ports.networkOwner = {close:vi.fn(async()=>{})};
 }
