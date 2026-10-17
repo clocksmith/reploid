@@ -162,13 +162,19 @@ export function createChatSession({
   };
   /** Contributors that may receive this answer: none when it runs here, else the verified route's stages or the
    * catalog's ready providers for this model. Execution must stay within them or the passages are not sent. */
-  const listedContributors = (model, sharingScope, executionLocation) => {
+  const listedContributors = async (model, sharingScope, executionLocation, signal) => {
     if (!execution.remoteDisclosure(model, sharingScope, executionLocation)) return [];
     const key = item => item.selectionId || item.id;
     const known = getCatalogModels().find(item => key(item) === key(model) && item.identity === model.identity) || model;
     if (known.partition?.route) return [...new Set(known.partition.route.stages.map(stage => stage.participantId))];
     if (known.partition?.participantA) return [known.partition.participantA, known.partition.participantB].filter(Boolean);
-    return [...new Set(known.providerIds || [])];
+    // Whole-model providerIds address connections, not signing identities.
+    // Resolve fresh channel-bound proofs before the person approves recipients.
+    const providers = [...new Set(known.providerIds || [])];
+    const verified = await Promise.allSettled(providers.map(peerId => swarm?.verifyPeerIdentity?.(peerId, signal)));
+    signal?.throwIfAborted();
+    return [...new Set(verified.flatMap(result => result.status === 'fulfilled' && typeof result.value === 'string'
+      && result.value ? [result.value] : []))];
   };
   const searchGrant = (threadId, query, search, name = SEARCH_ROUTE) => {
     const route = searchRoute(name);
@@ -366,12 +372,13 @@ export function createChatSession({
     },
     /** The approved wording and listed contributors to show before a search-backed answer on `route`; throws when
      * that route is unavailable (no approved wording, or its configuration consent is not in force). */
-    searchPermissionRequest({ model, sharingScope = 'mesh', executionLocation = 'auto', route: name = SEARCH_ROUTE }) {
+    async searchPermissionRequest({ model, sharingScope = 'mesh', executionLocation = 'auto', route: name = SEARCH_ROUTE, signal }) {
       assertOpen();
       const route = searchRoute(name);
       assert(route, 'Search is not available');
       assert(model, 'Choose a model first');
-      const recipients = listedContributors(model, sharingScope, executionLocation);
+      const recipients = await listedContributors(model, sharingScope, executionLocation, signal);
+      assertOpen();
       assert(recipients.length || !execution.remoteDisclosure(model, sharingScope, executionLocation), 'No execution contributors are available for this answer');
       return { route: name, searchProvider: route.provider.searchProvider, searchServer: route.provider.searchServer ?? null, ...(route.provider.searchPeer ? { searchPeer: route.provider.searchPeer } : {}),
         wording: searchPermissionWording(route.provider.searchProvider), recipients };

@@ -360,6 +360,13 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       return partitionNetworks.open({ createEndpoint, maxPeers, timeoutMs, onPeer, label, ...(ordered ? { ordered } : {}) });
     }
   const api = Object.freeze({ getState, connect, disconnect, partitions, getWebNetwork: () => webNetwork,
+    async verifyPeerIdentity(peerId, signal) {
+      const active = consumer;
+      if (closed || paused || !active) throw new Error('Connect before verifying a contributor');
+      const identity = await active.verifyPeerIdentity(peerId, signal);
+      if (closed || paused || consumer !== active) throw new Error('Contributor connection changed during verification');
+      return identity;
+    },
     allowIntroductions(allowed) {
       if (closed) throw new Error('Network is closed');
       introductionAssistance = allowed === true;

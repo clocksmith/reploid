@@ -207,10 +207,48 @@ describe('host session and conversation view', () => {
     await session.grantRemotePermission(need, { wording: remotePermissionWording(need) });
   };
 
+  it('binds whole-model search consent to verified identity across transport changes, but refuses a new identity', async () => {
+    const single = { id: 'single', name: 'Single', provider: 'doppler', identity: digest('c'), adapters: [] };
+    let connection = 'connection-before', recipient = peer('5');
+    const disclosed = [], verifyPeerIdentity = vi.fn(async id => id === connection ? recipient : null);
+    const swarm = {
+      getState: () => ({ consumer: { peers: [{ peerId: connection, model: single.id, modelIdentity: single.identity,
+        readiness: 'ready', hasInference: true, availableSlots: 1 }] } }),
+      verifyPeerIdentity, connect: async () => {}, hasProvider: () => true,
+      async generate(messages, controls) {
+        const preview = { id: 'preview', operation: 'generate', disclosure: 'public', providerId: connection,
+          recipientIdentity: recipient, modelId: single.id, modelIdentity: single.identity, adapterIdentities: [], expiresAt: Date.now() + 60000 };
+        if (!await controls.approve(preview)) throw Error('Declined');
+        disclosed.push(messages); controls.onPartial(ANSWER);
+        return { model: single.id, modelIdentity: single.identity, provider: 'doppler', peerId: connection, adapterIdentities: [], content: ANSWER };
+      }
+    };
+    const session = createChatSession({ storage: memory(), service: createChatTestService(), models: [single], swarm,
+      retrieval: { routes: { [SEARCH_ROUTE]: searchPorts() } } });
+    cleanups.push(() => session.close());
+    session.setRemoteAnswersEnabled(false);
+    const need = session.remotePermissionNeeded({ model: single, sharingScope: 'mesh' });
+    await session.grantRemotePermission(need, { wording: remotePermissionWording(need) });
+    const thread = session.createThread({ model: single });
+    const allowed = await session.searchPermissionRequest({ model: single });
+    expect(verifyPeerIdentity).toHaveBeenCalledWith('connection-before', undefined);
+    expect(allowed.recipients).toEqual([peer('5')]);
+    connection = 'connection-after';
+    const done = await session.send(thread, QUESTION, [], { search: allowed });
+    expect(done.status).toBe('completed');
+    expect(done.authorization.recipients).toEqual([peer('5')]);
+    recipient = peer('6');
+    const failed = await session.send(thread, QUESTION, [], { search: allowed });
+    expect(failed).toMatchObject({ status: 'failed', error: SEARCH_RECIPIENTS_CHANGED });
+    expect(disclosed).toHaveLength(1);
+    verifyPeerIdentity.mockResolvedValue(null);
+    await expect(session.searchPermissionRequest({ model: single })).rejects.toThrow('No execution contributors');
+  });
+
   it('lists the route contributors, records the shown wording, and keeps files out of search answers', async () => {
     const { session, partitions } = open();
     await grantContributors(session);
-    const request = session.searchPermissionRequest({ model, sharingScope: 'mesh' });
+    const request = await session.searchPermissionRequest({ model, sharingScope: 'mesh' });
     expect(request).toEqual({ route: SEARCH_ROUTE, searchProvider: 'brave', searchServer: null, wording: wording(), recipients: STAGES });
     const thread = session.createThread({ model });
     expect(() => session.send(thread, QUESTION, [{ name: 'notes.txt', text: 'My private notes' }], { search: request }))
@@ -223,7 +261,7 @@ describe('host session and conversation view', () => {
     // The remote-contributor permission and the search grant stay separate records.
     expect(session.getState().remotePermissions.map(permission => permission.kind)).toEqual(['remote-contributors']);
     const unapproved = open({ retrieval: { routes: { [SEARCH_ROUTE]: searchPorts('searxng') } } });
-    expect(() => unapproved.session.searchPermissionRequest({ model })).toThrow('Search is not available');
+    await expect(unapproved.session.searchPermissionRequest({ model })).rejects.toThrow('Search is not available');
   });
 
   it('asks with the exact text and contributors each time; Don\'t search sends nothing; Allow sends the answer', async () => {
