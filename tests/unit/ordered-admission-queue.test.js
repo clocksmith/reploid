@@ -142,6 +142,8 @@ describe('coordinator admission queue across real ordered owners', () => {
       await m.ready();
       const runs = [0, 1, 2].map(r => m.send(r));
       await vi.waitFor(() => { expect(m.tokenized).toHaveLength(2); expect(m.coordinator.getState().queue.queued).toBe(1); }, { timeout: 10000 });
+      // Tokenization precedes asynchronous reservations on downstream stages. Observe admission, not that intermediate point.
+      await vi.waitFor(() => { for (const index of [0, 1, 2]) expect(m.activeReservations(index)).toBe(2); }, { timeout: 10000 });
       const waiting = runs.find(run => !run.admitted), admitted = runs.filter(run => run.admitted);
       // While it waits nothing is tokenized, reserved or sent to a stage for it, and every stage keeps two slots charged.
       expect(m.tokenized).not.toContain(waiting.threadId);

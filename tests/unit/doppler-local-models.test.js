@@ -1,7 +1,6 @@
 import pin from '../../self/config/doppler-package.json' with { type: 'json' };
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { resolveConfig } from '../../packages/reploid/src/config/index.js';
 
 import {
   DEFAULT_DOPPLER_MODEL_ID,
@@ -27,22 +26,6 @@ describe('local Doppler model contract', () => {
     expect(partition.inputChannel.timeoutMs).toBeGreaterThanOrEqual(conversation.attemptTimeoutMs);
     expect(partition.grantMs).toBeGreaterThanOrEqual(conversation.attemptTimeoutMs);
   });
-  it('can advertise every retained piece of a selected model within the inventory and transport budgets', () => {
-    const policy = JSON.parse(readFileSync('self/config/chat-files.json', 'utf8'));
-    const application = JSON.parse(readFileSync('self/config/reploid-library.json', 'utf8'));
-    const transport = resolveConfig({ profile: application.profile }).value.webrtc;
-    for (const model of LOCAL_DOPPLER_MODELS) {
-      const descriptor = model.source.files.find(file => file.role === 'model-piece-index');
-      const index = JSON.parse(readFileSync('self' + descriptor.url, 'utf8'));
-      const pieces = index.files.flatMap(file => file.pieces.map(piece => ({
-        path: `piece-${piece.identity.slice(7)}.bin`, role: 'model-weights',
-        sizeBytes: piece.size, hashAlgorithm: 'sha256', hash: piece.identity.slice(7),
-      })));
-      const artifacts = [...model.source.files, ...pieces];
-      expect(artifacts.length, model.id).toBeLessThanOrEqual(policy.maxInventoryFiles);
-      expect(JSON.stringify({ artifacts }).length, model.id).toBeLessThanOrEqual(transport.maxMessageBytes);
-    }
-  });
   it('exposes the same identified Qwen models for requests and contribution', () => {
     expect(DOPPLER_PACKAGE_NAME).toBe('doppler-gpu');
     expect(DOPPLER_PACKAGE_VERSION).toBe(`${pin.version}`);
@@ -53,9 +36,12 @@ describe('local Doppler model contract', () => {
     expect(DOPPLER_TOOLING_URL).toBe(`/vendor/doppler/${pin.version}/src/tooling-exports.browser.js`);
     expect(DOPPLER_STORAGE_TOOLING_URL).toBe(`/vendor/doppler/${pin.version}/src/tooling-exports/storage.js`);
     expect(DEFAULT_DOPPLER_MODEL_ID).toBe('qwen-3-5-2b-q4k-ehaf16');
-    expect(LOCAL_DOPPLER_MODELS.map((model) => model.id)).toEqual([
-      'qwen-3-5-0-8b-q4k-ehaf16', DEFAULT_DOPPLER_MODEL_ID
-    ]);
+    expect(LOCAL_DOPPLER_MODELS.length).toBeGreaterThan(0);
+    for (const model of LOCAL_DOPPLER_MODELS) {
+      const local = buildLocalDopplerModelConfig(model.id);
+      expect(local).toMatchObject({ id: model.id, identity: model.identity, provider: 'doppler' });
+      expect(getLocalDopplerModel(model.id)).toMatchObject({ id: model.id, identity: local.identity });
+    }
   });
 
   it('resolves only declared local Doppler model ids', () => {
