@@ -1,0 +1,13 @@
+{
+  "scope": "Frozen additional whole-model chat checks; no F16 comparison or general quality claim",
+  "tasks": [
+    { "id": "record-filter", "prompt": "Records: Ada, paid, 8 units; Ben, unpaid, 12 units; Cy, paid, 5 units. Sum only paid units. Reply with only the number.", "expected": "13" },
+    { "id": "json-extraction", "prompt": "From this record: item=lantern; count=7. Return only JSON with keys item and count. count must be a number.", "expectedJson": { "item": "lantern", "count": 7 } },
+    { "id": "missing-information", "prompt": "Report: The delivery reached the depot on Tuesday. No destination address is recorded. What street was it delivered to? If the report does not say, reply with exactly UNKNOWN.", "expected": "UNKNOWN" },
+    { "id": "latest-correction", "prompt": "Order log in chronological order: quantity 8; corrected quantity 11; final corrected quantity 6. What is the final quantity? Reply with only the number.", "expected": "6" },
+    { "id": "constraint-selection", "prompt": "Choose exactly one device. Requirements: at least 32 GB RAM and price at most 900. A: 16 GB, 500. B: 32 GB, 850. C: 48 GB, 1100. Reply only with its letter.", "expected": "B" },
+    { "id": "code-trace", "prompt": "Python code: values = [2, 5, 8]; result = sum(x * 2 for x in values if x > 3). What is result? Reply with only the number.", "expected": "26" },
+    { "id": "ordered-extraction", "prompt": "Sort these integers numerically in ascending order: 14, -3, 2, 0. Return only a JSON array of numbers.", "expectedJson": [-3, 0, 2, 14] },
+    { "id": "unicode-copy", "prompt": "Copy exactly the text between the brackets, preserving every character and adding nothing: [café — 東京]", "expected": "café — 東京" }
+  ]
+}

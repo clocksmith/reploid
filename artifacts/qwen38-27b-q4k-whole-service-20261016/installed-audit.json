@@ -1,0 +1,136 @@
+{
+  "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "packageVersion": "0.6.30",
+  "matchedRuntimeFiles": 1956,
+  "runtimeDifferences": [],
+  "runtimeConfigMatchesQualification": true,
+  "runtimeConfig": {
+    "shared": {
+      "harness": {
+        "referenceTranscript": {
+          "enabled": false,
+          "captureLogits": true,
+          "captureKvBytes": true
+        }
+      },
+      "debug": {
+        "logLevel": {
+          "defaultLogLevel": "warn"
+        },
+        "trace": {
+          "enabled": false
+        },
+        "profiler": {
+          "enabled": false
+        }
+      },
+      "bufferPool": {
+        "budget": {
+          "maxTotalBytes": 25769803776,
+          "highWatermarkRatio": 0.94,
+          "emergencyTrimTargetRatio": 0.9,
+          "hardFailOnBudgetExceeded": true
+        }
+      }
+    },
+    "inference": {
+      "prompt": "The capital of France is",
+      "chatTemplate": {
+        "enabled": false,
+        "type": null,
+        "thinking": false
+      },
+      "generation": {
+        "maxTokens": 128,
+        "disableMultiTokenDecode": true
+      },
+      "batching": {
+        "maxTokens": 128,
+        "batchSize": 1,
+        "readbackInterval": 1,
+        "stopCheckMode": "per-token",
+        "readbackMode": "sequential",
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
+      },
+      "sampling": {
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1,
+        "repetitionPenalty": 1,
+        "repetitionPenaltyWindow": 1,
+        "greedyThreshold": 0,
+        "suppressSpecialTokens": false,
+        "suppressSpecialLikeTokens": false,
+        "suppressTokenIds": []
+      },
+      "session": {
+        "decodeLoop": {
+          "batchSize": 1,
+          "readbackInterval": 1,
+          "stopCheckMode": "per-token",
+          "readbackMode": "sequential",
+          "submitLatencyThresholdMs": null,
+          "maxBatchDecodeTokens": 1,
+          "ringTokens": 1,
+          "ringStop": 1,
+          "ringStaging": 1,
+          "disableCommandBatching": false
+        },
+        "kvcache": {
+          "maxSeqLen": 4096
+        },
+        "prefillTokenChunkSize": 256
+      },
+      "kernelPathPolicy": {
+        "mode": "capability-aware",
+        "sourceScope": [
+          "manifest"
+        ],
+        "allowSources": [
+          "manifest"
+        ],
+        "onIncompatible": "error"
+      },
+      "kvcache": {
+        "maxSeqLen": 4096
+      }
+    }
+  },
+  "generation": {
+    "maxTokens": 256,
+    "temperature": 0,
+    "topK": 1,
+    "topP": 1,
+    "repetitionPenalty": 1,
+    "maxSeqLen": 4096,
+    "useChatTemplate": true
+  },
+  "referenceGeneration": {
+    "useChatTemplate": false,
+    "temperature": 0,
+    "topK": 1,
+    "topP": 1,
+    "maxTokens": 128,
+    "repetitionPenalty": 1
+  },
+  "services": "Id=reploid-qwen-27b.service\nActiveState=active\nMainPID=482901\n\nId=reploid-qwen-27b-split.service\nActiveState=active\nMainPID=1739039\n\nId=reploid-qwen-08b.service\nActiveState=active\nMainPID=2963679\n\nId=reploid-qwen-2b.service\nActiveState=active\nMainPID=2967869\n",
+  "checkedAt": "2026-10-17T01:13:37.255685+00:00",
+  "scope": "Read-only installed AMD service audit; no restart or model conversion",
+  "qualification": "doppler/artifacts/qwen38-27b-q4-qualification-20261016/qualification.json",
+  "inventory": "doppler/artifacts/qwen38-27b-q4-qualification-20261016/patched-runtime-v2-inventory.json",
+  "browser": {
+    "url": "https://replo.id",
+    "bundleHash": "sha256:99cae8548d5f68765c54874c381f2fd9831c3692f85785d51ed1103a35356ea2",
+    "manifestSha256": "aa9d611b4d30d5af5170ca9de79fcd90d89065f8e313e5113d546efbdd92f825",
+    "applicationBundle": {
+      "path": "ui/pool-home/app.bundle.js",
+      "byteLength": 2048708,
+      "sha256": "sha256:1b1c81e5a12ffdc1d09f996c06c7d7653068d7037699d47e08dd107d3f6cd355"
+    },
+    "finalBundleHash": "sha256:99cae8548d5f68765c54874c381f2fd9831c3692f85785d51ed1103a35356ea2",
+    "unchangedDuringChecks": true
+  }
+}
