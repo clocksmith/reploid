@@ -53,3 +53,14 @@ it('assigns only owner-eligible indexes regardless of participant identity order
   expect(selectPartitionPlacement({ participantId: 'z', offer: input, localIndex: null, previous: null,
     capabilities: [capability('a', null, { eligibleIndexes: [0], placement: null })] }).participants).toEqual([]);
 });
+
+it('does not route an adapter conversation to a ready base-only coordinator', () => {
+  const identity = 'sha256:' + 'a'.repeat(64);
+  const adapter = { identity: 'sha256:' + 'b'.repeat(64), baseModelIdentity: identity };
+  const model = { id: 'base', identity, adapters: [adapter] };
+  const peer = { available: true, participantId: 'provider', transportId: 'transport',
+    description: { models: [{ id: 'base', identity, availability: 'ready' }], capacity: { availableSlots: 1 } } };
+  expect(selectPartitionExecution({ model, capabilities: [peer] }).transportId).toBe(null);
+  peer.description.models[0].adapters = [adapter];
+  expect(selectPartitionExecution({ model, capabilities: [peer] }).transportId).toBe('transport');
+});

@@ -8,13 +8,17 @@ import { createNativeWholeModel } from '../../server/native-whole-model.js';
 
 const roots = [];
 afterEach(async () => { for (const root of roots.splice(0)) await fs.rm(root, { recursive: true, force: true }); });
-async function fixture({ prepare, owner } = {}) {
+async function fixture({ prepare, owner, adapter = false } = {}) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'native-whole-')); roots.push(root);
   const bytes = JSON.stringify({ modelId: 'model' }); await fs.writeFile(path.join(root, 'manifest.json'), bytes);
   const model = { id: 'model', identity: 'sha256:' + createHash('sha256').update(bytes).digest('hex'),
     loadOptions: { runtimeConfig: { shared: { bufferPool: { budget: { maxTotalBytes: 1000 } } } } } };
+  if (adapter) {
+    model.adapters = [{ id: 'adapter', identity: 'sha256:' + 'b'.repeat(64), baseModelIdentity: model.identity }];
+    model.availableAdapters = structuredClone(model.adapters);
+  }
   let ready = false;
-  const resident = { getState: () => ({ phase: ready ? 'ready' : 'loading', ready, modelIdentity: model.identity }),
+  const resident = { getState: () => ({ phase: ready ? 'ready' : 'loading', ready, modelIdentity: model.identity, adapterIdentities: ready ? (model.adapters || []).map(item => item.identity) : [] }),
     prepare: vi.fn(async () => { await prepare?.(); ready = true; }),
     close: vi.fn(async () => { ready = false; }), generate: vi.fn(async () => ({ content: 'answer' })) };
   const nativeGpu = vi.fn(), createResident = vi.fn(() => resident);
@@ -61,4 +65,20 @@ it('rejects an approved-directory escape before opening the GPU', async () => {
   await fs.symlink(path.join(external.root, 'manifest.json'), path.join(f.root, 'manifest.json'));
   await expect(f.participant.contribute(true)).rejects.toThrow('escapes');
   expect(f.nativeGpu).not.toHaveBeenCalled();
+});
+
+it('advertises only probed adapters, serves base requests, and refuses unprepared substitutions', async () => {
+  const f = await fixture({ adapter: true });
+  expect(f.participant.getState().adapterIdentities).toEqual(undefined);
+  await f.participant.contribute(true);
+  const identity = f.model.adapters[0].identity;
+  expect(f.participant.getState().adapterIdentities).toEqual([identity]);
+  expect(f.createResident.mock.calls[0][0].resolveAdapter).toBeTypeOf('function');
+  await f.participant.generate([], () => {}, { adapterIdentities: [identity] });
+  expect(f.resident.generate.mock.calls.at(-1)[2].adapters).toEqual(f.model.adapters);
+  await f.participant.generate([], () => {}, { adapterIdentities: [] });
+  expect(f.resident.generate.mock.calls.at(-1)[2].adapters).toEqual([]);
+  expect(() => f.participant.generate([], () => {}, { adapterIdentities: ['sha256:' + 'c'.repeat(64)] })).toThrow('not prepared');
+  expect(f.resident.generate).toHaveBeenCalledTimes(2);
+  await f.participant.close();
 });

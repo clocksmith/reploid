@@ -28,6 +28,7 @@ import { createSwarmTransport, createRoomIntroductionAdmission } from '../packag
 import { createSigningIdentity, createPeerIdFromPublicJwk } from '../packages/reploid/src/artifacts/identity.js';
 import { createAttemptEvidenceSigner } from '../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { resolveConfig } from '../packages/reploid/src/config/index.js';
+import { createWorkAdapterResolver } from '../self/providers/work-adapter.js';
 import models from '../self/config/chat-models.json' with { type: 'json' };
 import custodyPolicy from '../self/config/chat-files.json' with { type: 'json' };
 import policy from '../self/config/partition-policy.json' with { type: 'json' };
@@ -353,7 +354,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
         openCapsule, model: configured, artifactStore: source.artifactStore, release,
         assertSession: assertWorkResidentCapsule, closeSources, trackSession, canonical: !!canonical,
         onVerification: value => { capsuleVerification = value; }, onLoadProgress });
-    } else factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: selected.identity, onLoadProgress,
+    } else factory = runtime.createManifestResidentPartitionFactory({ resolveAdapter: createWorkAdapterResolver({ models: [selected], acquire: files?.acquireAdapter }), manifest, manifestIdentity: selected.identity, onLoadProgress,
       runtimeConfig: selected.partitionRuntime?.runtimeConfig ?? { shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: policy.profileGpu } } },
         inference: { session: { kvcache: { maxSeqLen: configured.generation.maxSeqLen },
           prefillChunkLayers: policy.prefillChunkLayers, prefillTokenChunkSize: policy.prefillTokenChunkSize } } },
@@ -436,6 +437,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   let transport, partitions, files, webNetwork, closePromise, closed = false, gpuPromise;
   const networks = new Set();
   const whole = wholeMode ? createNativeWholeModel({ model, modelDirectory, nativeGpu, owner: ownerGate,
+    resolveAdapter: createWorkAdapterResolver({ models: [model], ...(cacheDirectory ? { acquire: (artifact, controls) => files.acquireAdapter(artifact, controls) } : {}) }),
     onChange: state => { onChange(state); mesh.refreshAdvertisement(); } }) : null;
   const mesh = createLegacyGenerationMesh({ config, ports: {
     instanceId: 'node:' + identity.peerId, modelConfig: wholeMode ? model : null, utils, eventBus, events: bridge,
@@ -602,7 +604,7 @@ export async function resolveNativeRoomToken(values, { warn = message => console
 
 async function main() {
   const { values } = parseArgs({ options: Object.fromEntries(['model', 'model-directory', 'identity-file', 'rtc-module',
-    'ws-module', 'gpu-module', 'execution-mode', 'partition-index', 'ordered-config', 'signaling-url', 'room', 'room-token', 'room-token-file', 'origin', 'cache-directory',
+    'ws-module', 'gpu-module', 'adapter', 'execution-mode', 'partition-index', 'ordered-config', 'signaling-url', 'room', 'room-token', 'room-token-file', 'origin', 'cache-directory',
     'owner-policy', 'shader-cache-root', 'earning-config', 'readiness-log'].map(key => [key, { type: 'string' }]).concat([
       ['web-search', { type: 'boolean', default: false }], ['help', { type: 'boolean', default: false }], ['canonical', { type: 'boolean', default: false }], ['share-files', { type: 'boolean', default: false }], ['contribute', { type: 'boolean', default: false }], ['connect-only', { type: 'boolean', default: false }]])) });
   if (values.help) {
@@ -614,6 +616,7 @@ Usage: reploid-participant --connect-only|--share-files|--contribute
   --rtc-module @roamhq/wrtc --ws-module ws [--gpu-module webgpu]
   [--cache-directory <verified piece cache>] [--signaling-url <ws(s) URL>]
   [--room <namespace>] [--room-token-file <absolute path>] [--origin <allowed origin>]
+  [--adapter <catalog adapter id>] (prepare this exact adapter with its base model)
   [--execution-mode partition|whole-model] (default: partition; never falls back)
   [--partition-index 0|1] (explicit eligible stage for a two-stage route)
   [--ordered-config <absolute JSON path>] (explicit stage assignment and ordered limits)
@@ -665,6 +668,11 @@ is separate from backend selection; --help opens no provider.`);
     && !values['ordered-config'] && values['execution-mode'] !== 'whole-model', 'Partition index requires a two-stage partition contributor');
   const identityFile = path.resolve(values['identity-file']);
   let model = models.find(row => row.id === values.model); requireValue(model, 'Model is absent from the application catalog');
+  if (values.adapter) {
+    const adapter = model.availableAdapters?.find(entry => entry.id === values.adapter);
+    requireValue(adapter && adapter.baseModelIdentity === model.identity, 'Adapter is not authorized for this exact base artifact');
+    model = { ...model, adapters: [structuredClone(adapter)] };
+  }
   if (values['partition-index'] !== undefined) model = { ...model, partitionContributionIndexes: [Number(values['partition-index'])] };
   const moduleSpecifier = value => {
     requireValue(path.isAbsolute(value) || ['@roamhq/wrtc', 'ws', 'webgpu'].includes(value),

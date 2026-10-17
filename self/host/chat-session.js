@@ -273,13 +273,13 @@ export function createChatSession({
     },
     async prepareLocalModel(modelId) {
       assertOpen();
-      const model = models.find(item => item.id === modelId);
+      const model = getCatalogModels().find(item => (item.selectionId || item.id) === modelId);
       assert(model, 'Choose a catalog model');
       try { await execution.prepareLocal(model); } finally { notifyAll(); }
     },
     async getModelDownload(modelId, { signal } = {}) {
       assertOpen();
-      const model = models.find(item => item.id === modelId);
+      const model = getCatalogModels().find(item => (item.selectionId || item.id) === modelId);
       assert(model?.source, 'Choose a catalog model');
       const file = model.source.files.find(item => item.role === 'model-manifest');
       const response = await fetch(file.url ? new URL(file.url, location.href) : new URL(file.path, model.source.baseUrl), { signal });
@@ -291,7 +291,8 @@ export function createChatSession({
       const manifest = JSON.parse(new TextDecoder().decode(bytes));
       assert(manifest.modelId === model.id && Array.isArray(manifest.shards), 'Model manifest is incomplete');
       const sizeBytes = manifest.shards.reduce((total, shard) => total + shard.size, 0)
-        + model.source.files.filter(item => item.role !== 'model-piece-index').reduce((total, item) => total + item.sizeBytes, 0);
+        + model.source.files.filter(item => item.role !== 'model-piece-index').reduce((total, item) => total + item.sizeBytes, 0)
+        + (model.adapters || []).reduce((total, adapter) => total + adapter.artifact.sizeBytes, 0);
       assert(Number.isSafeInteger(sizeBytes) && sizeBytes > 0, 'Model download size is unavailable');
       return { id: model.id, name: model.name, sizeBytes };
     },
@@ -499,7 +500,7 @@ export function createChatSession({
           assert(approved === true, 'Approve public prompt execution before sharing');
           const model = getCatalogModels().find(item => (item.selectionId || item.id) === selectionId);
           assert(model, 'Select a catalog model before contributing');
-          await swarm.share(model.id, true, model.adapters || []);
+          await swarm.share(model.id, true, model.adapters || [], { mode: model.partition ? 'partition' : 'whole-model' });
         } else await swarm.stop();
       } finally { notifyAll(); }
     },

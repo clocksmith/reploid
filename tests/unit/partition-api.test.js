@@ -52,6 +52,10 @@ async function fixture(options = {}) {
     generation, generationDigest: await partitionFingerprint(generation), binding, a, b };
 }
 function host(f, storage = null) {
+  // These cases exercise explicit per-request permission, not the default network preference.
+  const originalStorage = storage;
+  storage = { getItem(key) { return key === 'reploid.remote-access:v1' ? JSON.stringify({ mesh: false }) : originalStorage?.getItem(key) ?? null; },
+    setItem(key, value) { originalStorage?.setItem(key, value); } };
   const session = createChatSession({ partitions: f.chat, storage, models: [f.model], participantId: f.a.peerId, meshId: 'mesh',
     service: { open() { throw new Error('Whole-model fallback forbidden'); } } });
   cleanup.push(() => session.close());
@@ -259,7 +263,7 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
     expect(statuses).not.toContain('approval');
     expect(session.getState().threads[0].attempts[1].authorization).toMatchObject({ kind: 'permission', source: 'permission',
       permissionId: session.getState().remotePermissions[0].id, recipients: [f.a.peerId, f.b.peerId] });
-    expect(f.factory.log.tokenizations.at(-1)).toEqual([{ role: 'user', content: '1' }, { role: 'assistant', content: '2 3 4 ' }, { role: 'user', content: '20' }]);
+    expect(f.factory.log.tokenizations.at(-1)).toEqual([{ role: 'system', content: "You're Reploid. Answer briefly and directly; expand when asked. Model: Injected partition model." }, { role: 'user', content: '1' }, { role: 'assistant', content: '2 3 4 ' }, { role: 'user', content: '20' }]);
     expect(f.factory.log.closes).toEqual([]);
     expect(f.remote.getState().receipt.sentFrames).toBeGreaterThan(9);
   });

@@ -11,7 +11,7 @@ import { LOCAL_DOPPLER_MODELS } from '../config/doppler-local-models.js';
 import profile from '../config/work-profile.json' with { type: 'json' };
 import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
 import { createWorkResidentProvider } from '../providers/work-resident-provider.js';
-import { createWorkAdapterResolver } from '../providers/work-adapter.js';
+import { createWorkAdapterResolver, selectWorkAdapters } from '../providers/work-adapter.js';
 import { createWorkPeerOffers } from './work-peer-offers.js';
 import { createWorkModelFiles, getFileContributionLimits } from './work-model-files.js';
 import { loadWorkPartition } from './work-partitions.js';
@@ -400,7 +400,6 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       if (!base) throw new Error('Select an available local model');
       // A piece index describes available artifacts; it does not assign this device a stage.
       if (mode === 'partition') {
-        if (adapters.length) throw new Error('This partition plan does not support adapters');
         if (!navigator.gpu) throw new Error('This browser does not support WebGPU');
         const version = generation, epoch = contributionEpoch;
         sharingConnection = Promise.resolve().then(async () => {
@@ -408,16 +407,11 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
           await connect({ automatic: true });
           if (closed || paused || version !== generation || epoch !== contributionEpoch) throw new Error('Contribution stopped');
           if (!partitionMesh) throw new Error('Connect before contributing compute');
-          await partitionMesh.contribute(modelId, approved);
+          await partitionMesh.contribute(modelId, approved, selectWorkAdapters(base, adapters));
         }).finally(() => { sharingConnection = null; notify(); });
         return sharingConnection;
       }
-      if (!Array.isArray(adapters) || adapters.length > 1) throw new Error('Select at most one adapter');
-      const model = { ...base, adapters: adapters.map(selected => {
-        const entry = base.availableAdapters?.find(adapter => adapter.identity === selected.identity);
-        if (!entry) throw new Error('Adapter is not in the contributor catalog');
-        return structuredClone(entry);
-      }) };
+      const model = { ...base, adapters: selectWorkAdapters(base, adapters) };
       if (!navigator.gpu) throw new Error('This browser does not support WebGPU');
       if (disconnecting || paused) throw new Error('Connect before contributing compute');
       const version = generation;
