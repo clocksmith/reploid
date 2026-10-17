@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  assignmentIsCurrent,
+  receiptsForCurrentAttempt,
   buildAssignmentClaimPatch,
   buildAssignmentExpirationPatch,
   buildExpiredAssignmentJobPatch,
   canClaimJobForAssignment
 } from '../../server/pool/coordinator-transitions.js';
+
+import { evaluateAgreement } from '../../server/pool/services/agreement-lifecycle.js';
 
 describe('Pool coordinator transitions', () => {
   it('keeps retry eligibility independent of persistence adapters', () => {
@@ -100,4 +104,34 @@ describe('Pool coordinator transitions', () => {
       }
     });
   });
+
+  it('excludes old assignments, attempts and rings from every agreement record kind', async () => {
+    const job = {
+      jobId: 'current-job', assignmentIds: ['current', 'legacy'], assignmentAttemptId: 2,
+      ringAttemptId: 'current-ring', providerCount: 3, agreement: { requiredAgreement: 3 }
+    };
+    const record = { jobId: job.jobId, assignmentId: 'current', assignmentAttemptId: '2', ringAttemptId: job.ringAttemptId };
+    const records = [
+      { ...record, receiptHash: 'current', commitmentHash: 'current' },
+      { jobId: job.jobId, assignmentId: 'legacy', receiptHash: 'legacy', commitmentHash: 'legacy' },
+      { ...record, assignmentId: 'retired' },
+      { ...record, assignmentAttemptId: 1 },
+      { ...record, ringAttemptId: 'old-ring' }
+    ].map(row => ({ ...row, verifierDecision: { accepted: true }, receipt: { tokenIdsHash: 'tokens', outputHash: 'output' } }));
+    expect(records.map(row => assignmentIsCurrent(row, job))).toEqual([true, true, false, false, false]);
+    const agreement = await evaluateAgreement({
+      job, policy: {}, store: {
+        listReceiptsForJob: async () => records,
+        listCommitmentsForJob: async () => records,
+        listRevealsForJob: async () => records
+      }
+    });
+    expect(agreement).toMatchObject({
+      status: 'pending', acceptedReceipts: 2, commitments: 2, reveals: 2,
+      receiptHashes: ['current', 'legacy'], commitmentHashes: ['current', 'legacy']
+    });
+    expect(receiptsForCurrentAttempt([...records, { ...records[0], jobId: 'other-job' }], job))
+      .toEqual(records.slice(0, 2));
+  });
+
 });

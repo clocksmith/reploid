@@ -9,39 +9,17 @@
 import { CHALLENGE_AUDIT_KIND, applyCanaryReputation, verifyCanaryResult } from '../audits.js';
 import { getLedgerReasons, getRingPhaseProtocol } from '../config.js';
 import { revealMatchesCommitment } from '../commit-reveal.js';
+import { createCurrentAssignmentMatcher } from '../coordinator-transitions.js';
 import { penalizeProvider } from '../points.js';
 import { recordRejectedReceipt } from '../reputation.js';
 
 const activeAssignmentStatuses = new Set(['assigned', 'running', 'commit_submitted', 'reveal_open', 'reveal_submitted']);
 
-export const assignmentMatchesCurrentJobAttempt = (assignment = {}, job = {}) => {
-  const currentAssignmentIds = new Set(Array.isArray(job.assignmentIds) ? job.assignmentIds : []);
-  if (currentAssignmentIds.size > 0 && !currentAssignmentIds.has(assignment.assignmentId)) return false;
-  if (job.assignmentAttemptId !== undefined
-    && assignment.assignmentAttemptId !== undefined
-    && Number(job.assignmentAttemptId) !== Number(assignment.assignmentAttemptId)) {
-    return false;
-  }
-  if (job.ringAttemptId
-    && assignment.ringAttemptId
-    && job.ringAttemptId !== assignment.ringAttemptId) {
-    return false;
-  }
-  return true;
-};
+export { assignmentIsCurrent as assignmentMatchesCurrentJobAttempt } from '../coordinator-transitions.js';
 
 const currentReceiptsForJob = async (store, job = {}) => {
-  const currentAssignmentIds = new Set(Array.isArray(job.assignmentIds) ? job.assignmentIds : []);
-  return (await store.listReceiptsForJob(job.jobId)).filter((record) => {
-    if (currentAssignmentIds.size > 0 && !currentAssignmentIds.has(record.assignmentId)) return false;
-    if (job.assignmentAttemptId !== undefined
-      && record.assignmentAttemptId !== undefined
-      && Number(job.assignmentAttemptId) !== Number(record.assignmentAttemptId)) {
-      return false;
-    }
-    if (job.ringAttemptId && record.ringAttemptId && job.ringAttemptId !== record.ringAttemptId) return false;
-    return true;
-  });
+  const matches = createCurrentAssignmentMatcher(job);
+  return (await store.listReceiptsForJob(job.jobId)).filter(matches);
 };
 
 const currentFailedAssignmentIds = (job = {}) => {
@@ -53,32 +31,14 @@ const currentFailedAssignmentIds = (job = {}) => {
 
 const currentCommitmentsForJob = async (store, job = {}) => {
   if (typeof store.listCommitmentsForJob !== 'function') return [];
-  const currentAssignmentIds = new Set(Array.isArray(job.assignmentIds) ? job.assignmentIds : []);
-  return (await store.listCommitmentsForJob(job.jobId)).filter((record) => {
-    if (currentAssignmentIds.size > 0 && !currentAssignmentIds.has(record.assignmentId)) return false;
-    if (job.assignmentAttemptId !== undefined
-      && record.assignmentAttemptId !== undefined
-      && Number(job.assignmentAttemptId) !== Number(record.assignmentAttemptId)) {
-      return false;
-    }
-    if (job.ringAttemptId && record.ringAttemptId && job.ringAttemptId !== record.ringAttemptId) return false;
-    return true;
-  });
+  const matches = createCurrentAssignmentMatcher(job);
+  return (await store.listCommitmentsForJob(job.jobId)).filter(matches);
 };
 
 export const currentRevealsForJob = async (store, job = {}) => {
   if (typeof store.listRevealsForJob !== 'function') return [];
-  const currentAssignmentIds = new Set(Array.isArray(job.assignmentIds) ? job.assignmentIds : []);
-  return (await store.listRevealsForJob(job.jobId)).filter((record) => {
-    if (currentAssignmentIds.size > 0 && !currentAssignmentIds.has(record.assignmentId)) return false;
-    if (job.assignmentAttemptId !== undefined
-      && record.assignmentAttemptId !== undefined
-      && Number(job.assignmentAttemptId) !== Number(record.assignmentAttemptId)) {
-      return false;
-    }
-    if (job.ringAttemptId && record.ringAttemptId && job.ringAttemptId !== record.ringAttemptId) return false;
-    return true;
-  });
+  const matches = createCurrentAssignmentMatcher(job);
+  return (await store.listRevealsForJob(job.jobId)).filter(matches);
 };
 
 export const phaseProtocolForAssignment = (assignment = {}) => (
@@ -169,7 +129,6 @@ const retireSupersededAssignments = async ({ store, job, agreement } = {}) => {
 };
 
 export const evaluateAgreement = async ({ store, job, policy }) => {
-  const currentAssignmentIds = new Set(Array.isArray(job?.assignmentIds) ? job.assignmentIds : []);
   const receiptRecords = await currentReceiptsForJob(store, job);
   const commitmentRecords = await currentCommitmentsForJob(store, job);
   const revealRecords = await currentRevealsForJob(store, job);

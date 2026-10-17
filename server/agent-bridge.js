@@ -3,7 +3,6 @@ import { tokensEqual } from './token-auth.js';
 
 import { WebSocketServer, WebSocket } from 'ws';
 import { EventEmitter } from 'events';
-import crypto from 'node:crypto';
 import { isLoopbackAddress } from './signaling-server.js';
 
 const isLoopbackOrigin = (origin) => {
@@ -457,7 +456,7 @@ class AgentBridge extends EventEmitter {
   }
 
   findAvailableAgent(requiredCapabilities) {
-    for (const [id, agent] of this.agents) {
+    for (const agent of this.agents.values()) {
       if (!requiredCapabilities || requiredCapabilities.length === 0) {
         return agent;
       }
