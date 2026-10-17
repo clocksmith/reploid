@@ -125,6 +125,17 @@ test('exact whole-model service survives overlap, cancellation and provider depa
     await a.reload(); await a.locator('[data-chat-workspace]').waitFor();
     expect((await readChatWorkspace(a)).threads).toEqual(beforeReload.threads);
     await a.locator(`[data-thread-item-id="${beforeReload.threads.at(-1).id}"]`).click();
+    await expect(a.locator(`[data-thread-item-id="${beforeReload.threads.at(-1).id}"]`)).toHaveAttribute('aria-current', 'true');
+
+    // Both callers must make progress without cancelling the first caller to
+    // free capacity. This proves the bounded two-caller case, not flood fairness.
+    const counting = await send(a, 'Count from 1 to 20, one number per line. Add nothing else.');
+    await expect.poll(async () => { await observe(counting); return counting.firstOutputMs !== null; }, { timeout: 90000, intervals: [100] }).toBe(true);
+    const movie = await send(b, 'Choose from these fictional movies: Cedar, a calm comedy lasting 84 minutes; Harbor, a tense thriller lasting 91 minutes; Orbit, a calm comedy lasting 122 minutes. We want a calm comedy under 100 minutes. Reply with only the title.');
+    expect(await observe(counting)).not.toBe('completed');
+    receipt.overlapWithoutCancellation = [counting.attemptId, movie.attemptId];
+    await Promise.all([complete(counting), complete(movie, 'Cedar')]);
+    expect(counting.answer.match(/\d+/g)?.map(Number)).toEqual(Array.from({ length: 20 }, (_, index) => index + 1));
 
     // Both independent conversations are outstanding at once. One ready model
     // may serialize execution; cancellation must release the queued request.

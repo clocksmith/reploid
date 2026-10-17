@@ -1,0 +1,145 @@
+{
+  "at": "2026-10-17T16:30:05.489Z",
+  "browser": "145.0.7632.6",
+  "sourceSha256": {
+    "packages/reploid/src/mesh/partitions/partition-stage-assignment.js": "cc0d4b838277590d8230a47bd894f82f96b4f0a39f2cff0b701dfac5e84610b6",
+    "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js": "e3099e193e71a91555e4bcd83eee7664d3d0ee5468b6322454a71d00b7d0f267"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in packages/reploid/src/mesh/partitions/partition-stage-assignment.js:25: Dynamic property write detected: [offer.index] - verify input sanitization",
+      "Warning in packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js:48: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js:209: Dynamic property write detected: [key] - verify input sanitization",
+      "File exceeds 500 lines (540) - consider splitting",
+      "File has 58 functions (max 20) - consider modularizing",
+      "Nesting depth of 7 exceeds 5 - refactor nested code",
+      "6 lines exceed 200 characters"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792254605477,
+        "path": "packages/reploid/src/mesh/partitions/partition-stage-assignment.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [offer.index] - verify input sanitization",
+        "line": 25,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792254605484,
+        "path": "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792254605486,
+        "path": "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 48,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792254605486,
+        "path": "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 209,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792254605487,
+        "metric": "lines",
+        "value": 540,
+        "threshold": 500,
+        "message": "File exceeds 500 lines (540) - consider splitting",
+        "path": "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792254605487,
+        "metric": "functions",
+        "value": 58,
+        "threshold": 20,
+        "message": "File has 58 functions (max 20) - consider modularizing",
+        "path": "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792254605487,
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792254605487,
+        "metric": "line_length",
+        "value": 6,
+        "threshold": 5,
+        "message": "6 lines exceed 200 characters",
+        "path": "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "lines",
+          "value": 540,
+          "threshold": 500,
+          "message": "File exceeds 500 lines (540) - consider splitting",
+          "path": "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 58,
+          "threshold": 20,
+          "message": "File has 58 functions (max 20) - consider modularizing",
+          "path": "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 7,
+          "threshold": 5,
+          "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+          "path": "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "line_length",
+          "value": 6,
+          "threshold": 5,
+          "message": "6 lines exceed 200 characters",
+          "path": "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js"
+        }
+      ],
+      "filesAnalyzed": 2
+    }
+  }
+}

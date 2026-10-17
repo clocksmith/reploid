@@ -89,6 +89,35 @@ describe('autonomous cold stage assignment (opt-in, injected discovery)', () => 
     expect(lower.loadProgram.mock.calls[0][1]).toBe(1);
   });
 
+  it('keeps excess capacity unprepared until a supplier departs, then fills the gap', async () => {
+    vi.useFakeTimers({ now: 1_000_000 });
+    const c = await contributor();
+    c.discovery.observe = () => [offer('coordinator', 0), offer('b', 1), offer('d', 2)];
+    await c.mesh.contribute('model', true);
+    expect(c.loadProgram).not.toHaveBeenCalled();
+    expect(c.mesh.getState()).toMatchObject({ phase: 'waiting', assignment: { index: null, reason: 'no-useful-assignment' } });
+    expect(c.discovery.options.describe()).toMatchObject({ models: [], assignment: { index: null } });
+    c.discovery.observe = () => [offer('coordinator', 0), offer('b', 1)];
+    await vi.advanceTimersByTimeAsync(60000);
+    expect(c.loadProgram).toHaveBeenCalledOnce();
+    expect(c.loadProgram.mock.calls[0][1]).toBe(2);
+    expect(c.mesh.getState().phase).toBe('ready');
+  });
+
+  it('waits for a complete prospective route and does not start after the owner stops', async () => {
+    vi.useFakeTimers({ now: 1_000_000 });
+    const c = await contributor();
+    c.discovery.observe = () => [offer('coordinator', 0)];
+    await c.mesh.contribute('model', true);
+    expect(c.loadProgram).not.toHaveBeenCalled();
+    expect(c.mesh.getState().assignment.reason).toBe('waiting-for-route');
+    await c.mesh.stop();
+    c.discovery.observe = () => [offer('coordinator', 0), offer('b', 1)];
+    await vi.advanceTimersByTimeAsync(60000);
+    expect(c.loadProgram).not.toHaveBeenCalled();
+    expect(c.mesh.getState()).toMatchObject({ phase: 'idle', offering: false, assignment: null });
+  });
+
   it('never moves an active conversation; moves an idle resident only after dwell and past hysteresis', async () => {
     vi.useFakeTimers({ now: 1_000_000 });
     const c = await contributor({ dwellMs: 120000 });
