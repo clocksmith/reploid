@@ -109,3 +109,16 @@ Component: verification evidence. Intent: preserved. Boundary effects: test
 selectors and persisted-history inspection only; numerical policy and application
 runtime unchanged. Acceptance evidence: retained browser receipts and installed
 audit in this directory.
+
+## Independent follow-up on the failed code task
+
+[Retained CPU reference](code-trace-independent-reference.json) executes the same
+Q4 bytes with independent GGUF Q4_K decoding and Transformers F32 equations,
+using F16 KV storage. It predicts token IDs `[17,17,248046]` (22, then stop),
+matching the wrong service answer; the correct answer remains 26. This isolates
+reproduction outside Doppler and Reploid transport. It does not distinguish
+quantization quality from the base model or prompt, because no matching F16
+control was run. The failed expanded-quality assertion remains failed.
+The receipt binds contract, tool and manifest hashes; its referenced full logits
+remain on amd-host and are not included here. CPU reference execution took
+101.356 seconds with 17.42 GB maximum resident memory.
