@@ -98,23 +98,21 @@ const rejectedStatusFor = (job = {}) => (
 
 const currentAssignmentSet = (job = {}) => new Set(Array.isArray(job.assignmentIds) ? job.assignmentIds : []);
 
-export const assignmentIsCurrent = (assignment = {}, job = {}) => {
+export const createCurrentAssignmentMatcher = (job = {}) => {
   const current = currentAssignmentSet(job);
-  if (current.size > 0 && !current.has(assignment.assignmentId)) return false;
-  if (job.assignmentAttemptId !== undefined && assignment.assignmentAttemptId !== undefined
-    && Number(job.assignmentAttemptId) !== Number(assignment.assignmentAttemptId)) return false;
-  return !(job.ringAttemptId && assignment.ringAttemptId && job.ringAttemptId !== assignment.ringAttemptId);
+  return (assignment) => {
+    if (current.size > 0 && !current.has(assignment.assignmentId)) return false;
+    if (job.assignmentAttemptId !== undefined && assignment.assignmentAttemptId !== undefined
+      && Number(job.assignmentAttemptId) !== Number(assignment.assignmentAttemptId)) return false;
+    return !(job.ringAttemptId && assignment.ringAttemptId && job.ringAttemptId !== assignment.ringAttemptId);
+  };
 };
 
+export const assignmentIsCurrent = (assignment = {}, job = {}) => createCurrentAssignmentMatcher(job)(assignment);
+
 export const receiptsForCurrentAttempt = (receiptRecords = [], job = {}) => {
-  const current = currentAssignmentSet(job);
-  return receiptRecords.filter((record) => {
-    if (record.jobId !== job.jobId) return false;
-    if (current.size > 0 && !current.has(record.assignmentId)) return false;
-    if (job.assignmentAttemptId !== undefined && record.assignmentAttemptId !== undefined
-      && Number(job.assignmentAttemptId) !== Number(record.assignmentAttemptId)) return false;
-    return !(job.ringAttemptId && record.ringAttemptId && job.ringAttemptId !== record.ringAttemptId);
-  });
+  const matches = createCurrentAssignmentMatcher(job);
+  return receiptRecords.filter((record) => record.jobId === job.jobId && matches(record));
 };
 
 export const buildExpiredAssignmentJobPatch = ({
