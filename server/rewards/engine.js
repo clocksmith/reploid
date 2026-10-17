@@ -1,4 +1,3 @@
-import { createKnownKeyValidator } from '../input-validation.js';
 /**
  * @fileoverview Contribution reward operations over a transactional document
  * backend: offers, accepted-offer bindings, validated work and issuance.
@@ -10,6 +9,8 @@ import { createKnownKeyValidator } from '../input-validation.js';
  * same backend; a crash between steps resumes without a second effect.
  */
 
+import { createDocumentTransactions } from '../document-transactions.js';
+import { createKnownKeyValidator } from '../input-validation.js';
 import { randomInt, randomUUID } from 'node:crypto';
 
 import custodyPolicy from '../../self/config/chat-files.json' with { type: 'json' };
@@ -17,7 +18,6 @@ import {
   assertId,
   assertIdempotencyKey,
   cloneJson,
-  hashCanonical,
   isNonEmptyString,
   lotIdForSource,
   sha256Hex,
@@ -189,36 +189,8 @@ export function createRewardStore({
   }
   if (typeof issuance?.allocate !== 'function') throw new TypeError('reward store requires its issuance authority');
   if (fundingAuthority !== null && typeof fundingAuthority !== 'function') throw new TypeError('fundingAuthority must be a function');
-  const idempotencyId = (operation, scopeId, key) => sha256Hex(`${operation}\u0000${scopeId}\u0000${key}`);
   const claimId = (kind, key) => sha256Hex(`${kind}\u0000${key}`);
-
-  const priorResult = (record, requestHash, operation) => {
-    if (!record) return null;
-    if (record.requestHash !== requestHash) fail('idempotency_conflict', 'idempotency key was already used with a different request', { operation });
-    return { result: cloneJson(record.result) };
-  };
-
-  const lookupIdempotent = async ({ operation, scopeId, idempotencyKey, request }) => priorResult(
-    await backend.get('idempotency', idempotencyId(operation, scopeId, idempotencyKey)),
-    hashCanonical({ operation, request }),
-    operation
-  );
-
-  const mutate = ({ operation, scopeId, idempotencyKey, request, now, body }) => {
-    const requestHash = hashCanonical({ operation, request });
-    const recordId = idempotencyId(operation, scopeId, idempotencyKey);
-    return backend.runTransaction(async (tx) => {
-      const prior = priorResult(await tx.get('idempotency', recordId), requestHash, operation);
-      if (prior) return prior.result;
-      const { result, writes } = await body(tx);
-      for (const write of writes) {
-        if (write.create) tx.create(write.collection, write.id, write.value);
-        else tx.set(write.collection, write.id, write.value);
-      }
-      tx.create('idempotency', recordId, { operation, scopeId, idempotencyKey, requestHash, result, recordedAt: now });
-      return cloneJson(result);
-    });
-  };
+  const { lookupIdempotent, mutate } = createDocumentTransactions({ backend, fail });
 
   const readOffer = async (offerId) => {
     const offer = await backend.get('offers', offerId);

@@ -1,4 +1,3 @@
-import { createKnownKeyValidator } from '../input-validation.js';
 /**
  * @fileoverview Credit-ledger operations over a transactional document backend.
  *
@@ -14,6 +13,8 @@ import { createKnownKeyValidator } from '../input-validation.js';
  * and currency allocations recompute their credits from the record they stamp.
  */
 
+import { createDocumentTransactions } from '../document-transactions.js';
+import { createKnownKeyValidator } from '../input-validation.js';
 import { randomUUID } from 'node:crypto';
 
 import {
@@ -29,7 +30,6 @@ import {
   cloneJson,
   evaluateFormula,
   fail,
-  hashCanonical,
   isNonEmptyString,
   lotIdForSource,
   sha256Hex,
@@ -145,35 +145,11 @@ export function createLedgerStore({
   if (signerAuthority !== null && typeof signerAuthority !== 'function') throw new TypeError('signerAuthority must be a function');
   const activePolicy = validateAccountingPolicy(policy);
   const activeReversalPolicy = validateReversalPolicy(reversalPolicy);
-  const idempotencyId = (operation, scopeId, key) => sha256Hex(`${operation}\u0000${scopeId}\u0000${key}`);
   const claimId = (kind, key) => sha256Hex(`${kind}\u0000${key}`);
-
-  const priorResult = (record, requestHash, operation) => {
-    if (!record) return null;
-    if (record.requestHash !== requestHash) {
-      fail('idempotency_conflict', 'idempotency key was already used with a different request', { operation });
-    }
-    return { result: cloneJson(record.result) };
-  };
-
-  const lookupIdempotent = async ({ operation, scopeId, idempotencyKey, request }) => priorResult(
-    await backend.get('idempotency', idempotencyId(operation, scopeId, idempotencyKey)),
-    hashCanonical({ operation, request }),
-    operation
-  );
-
-  const mutate = ({ operation, scopeId, idempotencyKey, request, now, body }) => {
-    assertIdempotencyKey(idempotencyKey);
-    const requestHash = hashCanonical({ operation, request });
-    const recordId = idempotencyId(operation, scopeId, idempotencyKey);
-    return backend.runTransaction(async (tx) => {
-      const prior = priorResult(await tx.get('idempotency', recordId), requestHash, operation);
-      if (prior) return prior.result;
-      const { result, writes } = await body(tx);
-      applyWrites(tx, writes);
-      tx.create('idempotency', recordId, { operation, scopeId, idempotencyKey, requestHash, result, recordedAt: now });
-      return cloneJson(result);
-    });
+  const { lookupIdempotent, mutate: mutateDocuments } = createDocumentTransactions({ backend, fail, applyWrites });
+  const mutate = (input) => {
+    assertIdempotencyKey(input.idempotencyKey);
+    return mutateDocuments(input);
   };
 
   const authorizeIssuance = async (request) => {

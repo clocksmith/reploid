@@ -10,6 +10,7 @@
  * and cannot move or mint credit.
  */
 
+import { createDocumentTransactions } from '../document-transactions.js';
 import { randomBytes, randomUUID } from 'node:crypto';
 
 import { createCustodyKeyOperations } from './custody-keys.js';
@@ -26,9 +27,7 @@ import {
   assertKnownKeys,
   assertText,
   byTime,
-  cloneJson,
   fail,
-  hashCanonical,
   indexId,
   insert,
   linkIdFor,
@@ -40,7 +39,6 @@ import {
   sessionProblem,
   sessionSecretDigest,
   sessionView,
-  sha256Hex,
   subjectDigest,
   toMs,
   validateAccountPolicy
@@ -66,45 +64,7 @@ export function createAccountStore({
   const activePolicy = validateAccountPolicy(policy);
   const signInProviders = createSignInProviders(providers);
   if (openCreditAccount !== null && typeof openCreditAccount !== 'function') throw new TypeError('openCreditAccount must be a function');
-  const idempotencyId = (operation, scopeId, key) => sha256Hex(`${operation}\u0000${scopeId}\u0000${key}`);
-
-  const priorResult = (record, requestHash, operation) => {
-    if (!record) return null;
-    if (record.requestHash !== requestHash) fail('idempotency_conflict', 'idempotency key was already used with a different request', { operation });
-    return { result: cloneJson(record.result) };
-  };
-
-  const lookupIdempotent = async ({ operation, scopeId, idempotencyKey, request }) => priorResult(
-    await backend.get('idempotency', idempotencyId(operation, scopeId, idempotencyKey)),
-    hashCanonical({ operation, request }),
-    operation
-  );
-
-  const applyWrites = (tx, writes) => {
-    for (const write of writes) {
-      if (write.create) tx.create(write.collection, write.id, write.value);
-      else tx.set(write.collection, write.id, write.value);
-    }
-  };
-
-  const transact = (body) => backend.runTransaction(async (tx) => {
-    const { result, writes } = await body(tx);
-    applyWrites(tx, writes);
-    return cloneJson(result);
-  });
-
-  const mutate = ({ operation, scopeId, idempotencyKey, request, now, body }) => {
-    const requestHash = hashCanonical({ operation, request });
-    const recordId = idempotencyId(operation, scopeId, idempotencyKey);
-    return backend.runTransaction(async (tx) => {
-      const prior = priorResult(await tx.get('idempotency', recordId), requestHash, operation);
-      if (prior) return prior.result;
-      const { result, writes } = await body(tx);
-      applyWrites(tx, writes);
-      tx.create('idempotency', recordId, { operation, scopeId, idempotencyKey, requestHash, result, recordedAt: now });
-      return cloneJson(result);
-    });
-  };
+  const { lookupIdempotent, transact, mutate } = createDocumentTransactions({ backend, fail });
 
   /** Read and check a session through `reader` (a transaction or the backend). */
   const readSession = async (reader, token, now) => {
