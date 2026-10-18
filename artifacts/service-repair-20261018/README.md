@@ -172,8 +172,7 @@ search authorization (twelve), native participant (twelve), native delivery
 (three), library types and browser-byte generation. The native-delivery suite is
 excluded from the default configuration; its first invocation found no tests,
 then the explicit heavy configuration executed all three successfully.
-CI for `c2f02f5b` is run `39166022261`; its result is independent of the prior
-successful run and must be read before claiming closure.
+CI for runtime `c2f02f5b` passed in [run 39166022261](https://github.com/clocksmith/reploid/actions/runs/39166022261): lint, unit/integration, Chromium installation, installed-package smoke and all five browser boot checks. Five optional test files remain skipped; successful CI does not count them as executed. Later evidence-only commits do not change deployed runtime bytes.
 
 Reproduce against the deployed route with the browser contributor and exact 2B
 model already ready:
