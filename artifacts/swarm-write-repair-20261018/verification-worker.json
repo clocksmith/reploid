@@ -1,0 +1,95 @@
+{
+  "passed": false,
+  "errors": [
+    "Security Violation in /server/cloudflare/room.js: child_process operations are forbidden",
+    "Security Violation in /server/cloudflare/admission.js: child_process operations are forbidden"
+  ],
+  "warnings": [
+    "Warning in /server/cloudflare/room.js: Path traversal pattern detected (../) - potential security risk",
+    "Warning in /server/cloudflare/room.js:49: Dynamic property write detected: [client, server] - verify input sanitization",
+    "Warning in /server/cloudflare/admission.js: Path traversal pattern detected (../) - potential security risk"
+  ],
+  "events": [
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792367540158,
+      "path": "/server/cloudflare/room.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792367540159,
+      "path": "/server/cloudflare/room.js",
+      "patternId": "child_process",
+      "category": "process",
+      "message": "child_process operations are forbidden",
+      "severity": "error"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792367540159,
+      "path": "/server/cloudflare/room.js",
+      "patternId": "dynamic_property_write",
+      "category": "structural",
+      "message": "Dynamic property write detected: [client, server] - verify input sanitization",
+      "line": 49,
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792367540162,
+      "path": "/server/cloudflare/admission.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792367540162,
+      "path": "/server/cloudflare/admission.js",
+      "patternId": "child_process",
+      "category": "process",
+      "message": "child_process operations are forbidden",
+      "severity": "error"
+    }
+  ],
+  "details": {
+    "patternViolations": [
+      {
+        "path": "/server/cloudflare/room.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "path": "/server/cloudflare/room.js",
+        "patternId": "child_process",
+        "category": "process",
+        "message": "child_process operations are forbidden",
+        "severity": "error"
+      },
+      {
+        "path": "/server/cloudflare/admission.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "path": "/server/cloudflare/admission.js",
+        "patternId": "child_process",
+        "category": "process",
+        "message": "child_process operations are forbidden",
+        "severity": "error"
+      }
+    ],
+    "complexityWarnings": [],
+    "filesAnalyzed": 2
+  },
+  "reason": "Verification Failed"
+}

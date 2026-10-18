@@ -145,6 +145,19 @@ export class SwarmRoom extends DurableObject {
     if (!sockets.length) return;
     const renewed = new Set(await this.admission().renew(sockets.map(ws => ws.deserializeAttachment().lease)));
     for (const ws of sockets) if (!renewed.has(ws.deserializeAttachment().lease)) await this.retire(ws, 4001, 'Admission expired');
-    if (this.sockets().length) await this.arm(Math.min(limits.joinTimeoutMs, limits.heartbeatInterval));
+    const remaining = this.sockets();
+    if (remaining.length) {
+      // The join timeout applies to pending joins, not every healthy peer.
+      // Keep the earliest actual expiry and check lease validity each heartbeat.
+      const now = Date.now();
+      const delay = Math.min(limits.heartbeatInterval, ...remaining.map(ws => {
+        const meta = ws.deserializeAttachment();
+        const idleDeadline = meta.lastSeen + limits.peerTimeout;
+        const deadline = !meta.peerId || meta.joining
+          ? Math.min(idleDeadline, meta.connectedAt + limits.joinTimeoutMs) : idleDeadline;
+        return Math.max(0, deadline - now);
+      }));
+      await this.arm(delay);
+    }
   }
 }
