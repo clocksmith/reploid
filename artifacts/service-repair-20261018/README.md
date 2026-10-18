@@ -76,8 +76,41 @@ REPLOID_SERVICE_CAMPAIGN=/absolute/private/campaign.json REPLOID_E2E_BASE_URL=ht
 
 Doppler main `31e777b3` has successful hosted CI; software Vulkan remains separate
 from physical qualification. Reploid's pinned package and historical model hashes
-were preserved. An additional installed-Doppler smoke invocation stopped at its
-missing `DOPPLER_TEST_CONSUMER` precondition, before execution; it is not counted
-as passing. A discovered same-version consumer differed from the pinned archive
-and was not substituted. The physical lane above used Reploid's actual installed
-runtime.
+were preserved. An initial installed-Doppler smoke invocation stopped at its
+missing `DOPPLER_TEST_CONSUMER` precondition, before execution. A discovered
+same-version consumer differed from the pinned archive and was not substituted.
+Instead, a fresh consumer installed Reploid's exact pinned archive and ran the
+public integration smoke successfully: 64 phase calls, 64 released results and
+two closed sessions, including cancellation, streaming and adapter cleanup.
+[Installed smoke summary](installed-smoke.json) retains the archive identity and
+lockfile. These injected-logit fixtures establish API behavior, not model quality
+or community training qualification. The physical lane used the same pinned
+runtime with actual Qwen weights.
+
+## Deployment and remaining gates
+
+Commits `434638d9` and `faba1d4d` were pushed to main. Hosting-only deployment
+completed on October 18; live bundle identity is
+`sha256:40e64aa43d8569c8f9010a01456201db55c42f40749312e34286d20c60efc0fc`.
+[Live post-deployment requests](deployed.json.gz) returned a sourced Eiffel summary
+and `Paris` on the ordinary follow-up through the physical 2B contributor.
+
+One subsequent live reload timed out after entering `reploidBootRetry`; no page
+exception had been recorded. It remains an unresolved intermittent boot failure.
+A [fresh empty-history reload](reload-probe.json.gz),
+[retained-history restoration](reload-retained-history.json.gz), and
+[three subsequent reloads](deployed-reloads.json.gz) passed. The latter restored
+the exact retained synthetic conversation into a fresh test profile, then compared
+all thread records after each reload (4981, 2452, 1990 ms). These follow-up checks
+do not erase the initial failure.
+
+CI run `39164235021` failed solely because the updated chat charter exceeded its
+250-word limit: 4593 tests passed, one failed, 36 skipped. The charter was shortened
+without changing requirements, its index regenerated, and all seven charter tests
+passed locally. Downstream installed-package/browser steps from that failed run
+remain unexecuted until a subsequent complete CI run passes.
+
+The separate, unsigned-in contributor Chrome profile is waiting at Google's
+human-verification page. No attached browser search service or new provider has
+been enabled. Search usefulness and the intermittent reload are still open;
+this checkpoint does not declare the product journey fully accepted.
