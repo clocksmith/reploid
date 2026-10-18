@@ -114,9 +114,77 @@ CI run `39164235021` failed solely because the updated chat charter exceeded its
 250-word limit: 4593 tests passed, one failed, 36 skipped. The charter was shortened
 without changing requirements, its index regenerated, and all seven charter tests
 passed locally. Downstream installed-package/browser steps from that failed run
-remain unexecuted until a subsequent complete CI run passes.
+were later executed successfully in runs `39164687957` and `39164826979`. The latter also ran the two updated product-root recovery checks. Optional unit skips remain separate from executed coverage.
 
-The separate, unsigned-in contributor Chrome profile is waiting at Google's
-human-verification page. No attached browser search service or new provider has
-been enabled. Search usefulness and the intermittent reload are still open;
-this checkpoint does not declare the product journey fully accepted.
+## Browser contributor repair
+
+After the owner manually completed Google's human check, the dedicated profile
+passed the original natural-language question and the Austen/Curie source probes.
+Commit `c2f02f5b` adds an opt-in native browser worker using that isolated profile.
+Google redirects use its session; extracted pages still use the bounded,
+DNS-guarded public reader without cookies. Search is serialized; busy requests
+refuse, cancellation closes its tab, and pending redirect work settles before
+reuse. Personal profiles are refused. Closing the browser withdraws its offer;
+human checks remain manual. No new permission popup was added.
+
+The [first live attempt](live-browser-search-unavailable.json.gz) and
+[settings-confirmed attempt](live-browser-search-no-ready-model.json.gz) could
+not send because no eligible exact 2B provider was ready. The owned contributor
+then prepared the already-provisioned 2B model; no new weights were downloaded.
+The [next attempt](live-browser-search-reload-race.json.gz) answered `1889 [2]`
+and `Paris`, but reload exposed the old Bing offer before the browser provider
+reconnected. Its Austen query returned irrelevant sources and an explicit unknown.
+The browser host now waits for its selected browser service instead of falling
+back to RSS. The legacy native adapter remains available only by explicit choice.
+
+Hosting deployed bundle
+`sha256:b278658b701cc1e24a8ca5530bd2fc07f87733140e9963c70aedca26f07f59f8`.
+The [final live receipt](live-browser-search.json.gz) and
+[compact results](browser-search-summary.json) record four completed answers:
+`1889 [2]`, `Paris`, Jane Austen with citations, and Physics (1903) / Chemistry
+(1911) with citations. Reload preserved exact conversation records. Each new
+search used `contributor-google-browser`; the Paris follow-up reused retained
+context without another search. No requester weights, page exceptions or search
+permission dialogs occurred. The contributor used whole-model Qwen 3.5 2B Q4_K,
+Mac Metal and the unchanged pinned Doppler archive. These are bounded functional
+observations, not general answer-quality or performance qualification.
+
+First output / complete latency in milliseconds:
+
+| Question | First output | Complete |
+| --- | ---: | ---: |
+| Eiffel completion | 12856 | 14497 |
+| City follow-up | 9964 | 11635 |
+| Austen | 29159 | 32071 |
+| Curie | 19599 | 26778 |
+
+The physical contributor and browser must remain available; this is not an
+always-on availability guarantee. Source extraction refusals remain explicit.
+The earlier intermittent reload timeout and rejected movie quality remain open.
+After this live harness saved its successful assertions and its Chrome child
+exited, Node retained an idle child-process pipe (no active requests). The owned
+harness process was stopped explicitly. This does not qualify natural process
+exit; the reproduction now closes its context explicitly and records completion
+after browser close. The contributor process was left running.
+
+Focused checks passed: browser worker (five tests), contributor routing (seven),
+search authorization (twelve), native participant (twelve), native delivery
+(three), library types and browser-byte generation. The native-delivery suite is
+excluded from the default configuration; its first invocation found no tests,
+then the explicit heavy configuration executed all three successfully.
+CI for `c2f02f5b` is run `39166022261`; its result is independent of the prior
+successful run and must be read before claiming closure.
+
+Reproduce against the deployed route with the browser contributor and exact 2B
+model already ready:
+
+```sh
+node artifacts/service-repair-20261018/reproduce-browser-search.mjs
+```
+
+The reproduction runs three searches and one follow-up, verifies citations,
+provider identity, reload history and zero requester weight requests. Its
+synthetic questions are development checks, not protected task evaluation.
+Component: hosted browser adapter, peer service identity and browser composition.
+Intent preserved; no model arithmetic or Doppler package changes. New service
+wording binds Google and its exact contributor under existing Send authorization.

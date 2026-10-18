@@ -1,0 +1,104 @@
+{
+  "sourceCommit": "c2f02f5bc108cf1a7856105adcec53d89300b8ab",
+  "bundle": "sha256:b278658b701cc1e24a8ca5530bd2fc07f87733140e9963c70aedca26f07f59f8",
+  "url": "https://replo.id",
+  "at": "2026-10-18T21:01:55.817Z",
+  "browser": "155.0.8059.80",
+  "passed": true,
+  "historyPreserved": true,
+  "errors": [],
+  "weightRequests": [],
+  "observations": [
+    {
+      "query": "What year was the Eiffel Tower completed? Cite a source.",
+      "answer": "1889 [2]",
+      "firstOutputMs": 12856,
+      "completeMs": 14497,
+      "searchProvider": "contributor-google-browser",
+      "searchContributor": "peer:82f5f485c9f50fb1fa86bf7a",
+      "modelId": "qwen-3-5-2b-q4k-ehaf16",
+      "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+      "sources": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Eiffel_Tower",
+          "title": "Eiffel Tower - Wikipedia"
+        },
+        {
+          "url": "https://www.facebook.com/libraryofcongress/posts/the-eiffel-tower-was-completed-and-dedicated-on-this-day-in-1889-it-was-built-to/1381798300659350/",
+          "title": "The Eiffel Tower was completed... - The Library of Congress"
+        },
+        {
+          "url": "https://kids.nationalgeographic.com/history/article/eiffel-tower",
+          "title": "Eiffel Tower | National Geographic Kids"
+        },
+        {
+          "url": "https://www.history.com/this-day-in-history/march-31/eiffel-tower-opens",
+          "title": "Eiffel Tower opens in Paris | March 31, 1889 | HISTORY"
+        }
+      ]
+    },
+    {
+      "query": "Which city is it in? Answer with the city only.",
+      "answer": "Paris",
+      "firstOutputMs": 9964,
+      "completeMs": 11635,
+      "searchProvider": null,
+      "searchContributor": null,
+      "modelId": "qwen-3-5-2b-q4k-ehaf16",
+      "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+      "sources": []
+    },
+    {
+      "query": "Who wrote Pride and Prejudice? Cite a source.",
+      "answer": "Pride and Prejudice was written by Jane Austen [1][2].",
+      "firstOutputMs": 29159,
+      "completeMs": 32071,
+      "searchProvider": "contributor-google-browser",
+      "searchContributor": "peer:82f5f485c9f50fb1fa86bf7a",
+      "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+      "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+      "sources": [
+        {
+          "url": "https://www.bibguru.com/b/how-to-cite-pride-and-prejudice/",
+          "title": "Citation: Pride and Prejudice - BibGuru Guides"
+        },
+        {
+          "url": "https://www.easybib.com/guides/citation-guides/books/pride-and-prejudice",
+          "title": "Cite Pride and Prejudice | EasyBib"
+        },
+        {
+          "url": "https://libguides.kent-school.edu/c.php?g=183710&p=3608260",
+          "title": "How to cite specific sources - Citation and Writing - LibGuides at Kent School"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Pride_and_Prejudice",
+          "title": "Pride and Prejudice - Wikipedia"
+        }
+      ]
+    },
+    {
+      "query": "Which two Nobel Prizes did Marie Curie win? Cite a source.",
+      "answer": "Marie Curie won the Nobel Prize in Physics in 1903 [2][3] and the Nobel Prize in Chemistry in 1911 [1][2][3].",
+      "firstOutputMs": 19599,
+      "completeMs": 26778,
+      "searchProvider": "contributor-google-browser",
+      "searchContributor": "peer:82f5f485c9f50fb1fa86bf7a",
+      "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+      "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+      "sources": [
+        {
+          "url": "https://www.nobelprize.org/stories/women-who-changed-science/marie-curie/",
+          "title": "MARIE CURIE - NobelPrize.org"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Marie_Curie",
+          "title": "Marie Curie - Wikipedia"
+        },
+        {
+          "url": "https://www.earthdate.org/episodes/marie-curies-double-nobel",
+          "title": "Marie Curie\u2019s Double Nobel | EarthDate"
+        }
+      ]
+    }
+  ]
+}
