@@ -290,3 +290,27 @@ physical model quality. The supported wire subset follows the official
 [Messages reference](https://platform.claude.com/docs/en/api/messages/create) and
 [streaming events](https://platform.claude.com/docs/en/build-with-claude/streaming);
 unsupported features fail explicitly.
+
+## Contributor browser search
+
+`--browser-search-profile /absolute/path/to/new-dedicated-profile` opts this
+participant into Google search through an owned, visible Chrome session. It can
+run with `--connect-only`: neither model preparation nor file sharing is needed.
+The host needs Chrome and Playwright (`npm install --no-save playwright` in a
+native delivery; the source checkout already includes it for browser tests).
+Do not point this option at a personal Chrome profile or sign into this profile.
+Existing non-Reploid profiles are refused. Keep its local browser state private;
+it can retain search queries and Google's verification cookies.
+
+Human verification remains manual in the contributor window. Closing the browser
+withdraws its offer; a verification challenge suspends it until resolved. Search
+runs one query at a time and refuses overlap; cancellation closes its search tab
+and waits for bounded outstanding redirect requests. Only search-engine redirects
+use the browser session. Source pages go through the existing DNS-guarded public
+fetcher without browser cookies. Individual extraction failures remain recorded.
+
+The browser application waits for a browser-Google contributor for new searches;
+it does not automatically fall back to the unreliable legacy Bing RSS service. Each attempt binds its exact contributor, service and version;
+there is no silent mid-request switch. A new Send or Retry authorizes the query
+under the existing settings without adding a popup. Search quality and continued
+availability still depend on the external search engine and source sites.

@@ -12,10 +12,18 @@
     "contributor-bing": {
       "version": "2026-10-16",
       "text": "Allow Reploid to send this search query to the listed search contributor, which sends it to Bing and fetches public result pages without personal sign-ins. Share the retrieved passages with the listed execution contributors for this answer. Your files and unrelated conversation history are excluded."
+    },
+    "contributor-google-browser": {
+      "version": "2026-10-18",
+      "text": "Allow Reploid to send this search query to the listed search contributor, which searches Google in a dedicated browser session and fetches public result pages without personal sign-ins. Share retrieved passages with the listed execution contributors for this answer. Your files and unrelated conversation history are excluded."
     }
   },
   "maxRecipients": 64,
   "personChosenServer": [
     "device-mcp"
+  ],
+  "contributorServices": [
+    "contributor-bing",
+    "contributor-google-browser"
   ]
 }
