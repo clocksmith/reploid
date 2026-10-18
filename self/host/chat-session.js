@@ -338,7 +338,7 @@ export function createChatSession({
     setExecutionLocation(threadId, location) { assertOpen(); return workspace.setExecutionLocation(threadId, location); },
     select(threadId) {
       assertOpen();
-      workspace.select(threadId);
+      return workspace.select(threadId);
     },
     // Send records host-policy authorization; dispatch still binds verified model and recipient identities.
     // `retrieval: { query?, limits? }` opts this request into retrieval; the query defaults to the typed text,

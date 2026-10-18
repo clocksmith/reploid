@@ -158,6 +158,8 @@ it('reload restores the published ordered attempt from verified records under a 
   // Reload: a fresh session; even another peer identity keeps the same local history owner.
   ports.identity = f.identities[6]; ports.partitions = f.meshes[6];
   const reloaded = await openProduct(storage, history);
+  expect(reloaded.chat.getState().selectedId).toBe(threadId);
+  expect(reloaded.chat.getState().activeThread.model).toEqual(host.chat.getState().threads.find(row => row.id === threadId).model);
   const thread = reloaded.chat.getState().threads.find(row => row.id === threadId);
   expect(thread.attempts.at(-1)).toMatchObject({ id: attempt.id, status: 'completed' });
   expect(thread.messages.at(-1)).toMatchObject({ content: tasks[0].chunks.join(''), publicationDigests: digests });

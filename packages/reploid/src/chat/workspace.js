@@ -96,6 +96,8 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
   assert(!loaded || loaded.schema === 'reploid.chat-workspace/v1'
     && loaded.meshId === meshId && loaded.participantId === participantId && Array.isArray(loaded.threads), 'Stored workspace identity mismatch');
   const threads = copy(loaded?.threads || []);
+  // Selection is a local history pointer, never permission to resume execution.
+  selectedId = threads.some(thread => thread.id === loaded?.selectedId && !thread.closed) ? loaded.selectedId : null;
   let durableThreads = copy(threads);
   assert(threads.length <= limits.maxThreads && new Set(threads.map(thread => thread.id)).size === threads.length, 'Invalid stored threads');
   const loadedRequester = threads.length ? requester() : null;
@@ -131,7 +133,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
   const persist = () => {
     assert(!storageError, `History storage failed: ${storageError}`);
     try {
-      const saved = copy({ schema: 'reploid.chat-workspace/v1', meshId, participantId, threads });
+      const saved = copy({ schema: 'reploid.chat-workspace/v1', meshId, participantId, selectedId, threads });
       const result = store.save(saved);
       if (transactional) {
         const operation = Promise.resolve(result).then(() => {
@@ -447,7 +449,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       threads.push(thread); selectedId = thread.id; const saved = persist();
       return transactional ? saved.then(() => thread.id) : thread.id;
     },
-    select(threadId) { current(); if (threadId !== null) find(threadId); selectedId = threadId; notify(); },
+    select(threadId) { current(); if (threadId !== null) find(threadId); selectedId = threadId; const saved = persist(); if (transactional) notify(); return saved; },
     setExecutionLocation(threadId, location) {
       current(); const thread = find(threadId);
       assert(['auto', 'local', 'network'].includes(location), 'Invalid execution location');

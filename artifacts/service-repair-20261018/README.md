@@ -145,18 +145,24 @@ The [final live receipt](live-browser-search.json.gz) and
 (1911) with citations. Reload preserved exact conversation records. Each new
 search used `contributor-google-browser`; the Paris follow-up reused retained
 context without another search. No requester weights, page exceptions or search
-permission dialogs occurred. The contributor used whole-model Qwen 3.5 2B Q4_K,
-Mac Metal and the unchanged pinned Doppler archive. These are bounded functional
-observations, not general answer-quality or performance qualification.
+permission dialogs occurred. **Correction from the retained receipts:** only the
+Eiffel and Paris answers used the owned Mac's whole-model Qwen 3.5 2B Q4_K.
+After reload, Austen and Curie ran on 27B in a newly created thread. History
+records survived, but the selected conversation did not. The original harness
+checked stored records without asserting selection or model continuity; its
+`passed: true` does not establish the complete exact-model journey. Raw receipts
+remain unchanged. The [selection repair and new evidence](../latency-reload-20261018/README.md)
+qualify that claim. These are bounded functional observations, not general
+answer-quality or performance qualification.
 
 First output / complete latency in milliseconds:
 
-| Question | First output | Complete |
-| --- | ---: | ---: |
-| Eiffel completion | 12856 | 14497 |
-| City follow-up | 9964 | 11635 |
-| Austen | 29159 | 32071 |
-| Curie | 19599 | 26778 |
+| Question | Model | First output | Complete |
+| --- | --- | ---: | ---: |
+| Eiffel completion | 2B | 12856 | 14497 |
+| City follow-up | 2B | 9964 | 11635 |
+| Austen | 27B | 29159 | 32071 |
+| Curie | 27B | 19599 | 26778 |
 
 The physical contributor and browser must remain available; this is not an
 always-on availability guarantee. Source extraction refusals remain explicit.

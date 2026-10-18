@@ -168,7 +168,7 @@ export interface ChatWorkspace {
   createThread(options: { model: ChatModel; purpose?: string; members?: string[]; permissions?: Record<string, unknown>; systemContext?: ChatSystemContext | null }): string;
   setExecutionLocation(threadId: string, location: 'auto' | 'local' | 'network'): void;
   setSystemContext(threadId: string, value: ChatSystemContext | null): void;
-  select(threadId: string | null): void;
+  select(threadId: string | null): void | Promise<void>;
   renameThread(threadId: string, title: string): void;
   closeThread(threadId: string): void;
   reopenThread(threadId: string): void;
