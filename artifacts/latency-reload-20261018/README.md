@@ -98,3 +98,5 @@ Complete the repaired exact-model journey after answer quality passes. Attribute
 GPU prefill operations before another kernel or allocation experiment. Current
 CI must be reported separately from focused local checks, preserving optional
 skips. No general availability or full service acceptance is established here.
+
+CI for `69d03ecc` passed in [run 39174629205](https://github.com/clocksmith/reploid/actions/runs/39174629205): 4,602 tests passed, 36 skipped across five optional files; installed-package smoke and all five browser boot checks passed. Optional skips remain unexecuted. [Independent answer controls](../search-answer-control-20261018/README.md) follow this checkpoint.

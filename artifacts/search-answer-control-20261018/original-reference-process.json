@@ -1,0 +1,29 @@
+{
+  "command": [
+    "/home/x/deco/gamma/.venv_rocm/bin/python",
+    "/tmp/reploid-search-answer-control-20261018/qwen35-original-weight-generation.py",
+    "--source",
+    "/var/tmp/doppler-qwen35-2b-source-20261011",
+    "--revision",
+    "15852e8c16360a2fea060d615a32b45270f8a8fc",
+    "--deployed",
+    "/home/x/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
+    "--control",
+    "/tmp/reploid-search-answer-control-20261018/control.json",
+    "--out",
+    "/tmp/reploid-search-answer-control-20261018/original-reference.json",
+    "--threads",
+    "4"
+  ],
+  "environment": {
+    "PYTHONPATH": "/tmp/reploid-movie-control-20261017/python-deps",
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1"
+  },
+  "memoryBeforeBytes": {
+    "MemTotal": 131891146752,
+    "MemAvailable": 80194760704
+  },
+  "exitCode": 0,
+  "elapsedSeconds": 18.75251621400821
+}

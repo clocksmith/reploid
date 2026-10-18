@@ -1,0 +1,35 @@
+{
+  "schema": "reploid.movie-request-control-contract/v1",
+  "scope": "One retained failed search request: capture exact input and output IDs, then independent CPU equations over same weights",
+  "snapshot": "/Users/xyz/deco/reploid",
+  "sourceCommit": "69d03ecc7aafafe23f169fb400235ff00da877fc",
+  "archive": "/Users/xyz/deco/reploid/deploy/artifacts/doppler-gpu-0.6.32.tgz",
+  "archiveSha256": "66c4a1d11a4400010af9a66033ea9a9fbe238f6bdd2fafba994a14156d80ab54",
+  "receipt": ".tmp/search-answer-control-20261018/retained-request.json",
+  "receiptSha256": "804589bd9c65f3e45ff5909c696d08dc96b8f7edb14b6f72dd73e562895c230a",
+  "modelDirectory": "/Users/xyz/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
+  "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+  "caseIds": [
+    "eiffel-year"
+  ],
+  "maxTokens": 32,
+  "originalMaxTokens": 256,
+  "maxSeqLen": 8192,
+  "timeoutMs": 180000,
+  "hardProcessDeadlineSeconds": 240,
+  "maxGpuRuns": 2,
+  "maxReferenceRuns": 1,
+  "referenceTimeoutSeconds": 600,
+  "referenceThreads": 4,
+  "maxReferenceAddressSpaceGiB": 40,
+  "minimumHostAvailableGiB": 48,
+  "spending": 0,
+  "publicServiceChanges": false,
+  "acceptance": "Diagnostic only. Match original prompt count and streamed answer; token capture must equal streaming and stop naturally. Independent token disagreement is not automatically a runtime defect.",
+  "hostFiles": {
+    "tests/fixtures/movie-request-control.js": "e4f7e1c1c71b6476b10cd6f376351c6062c27d6748844aca695f67b04db87c3b",
+    "server/native-participant.js": "22c742a6929961be3cd787ec15feb98db183e3c676b0346e64cd65d4d8e41198",
+    "self/providers/work-provider.js": "2ac80324d60263279f235af33ee632769bea8bd5af273ef4bbaa13514f0d60da",
+    "self/infrastructure/doppler-runtime-service.js": "b99e396ce704e67aae141ec4a2baafb11592244d2e029dcd0338ba921110e14b"
+  }
+}
