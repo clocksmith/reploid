@@ -1254,6 +1254,16 @@
       "sha256": "sha256:730d90d8e92a55c7d4c3e34a21ea0b10e3720456dc8d841e1238cc7a46325515"
     },
     {
+      "path": "config/doppler-metadata-contract.js",
+      "byteLength": 16713,
+      "sha256": "sha256:8173a4e13c8e46b28cbb6811ecc4e426384b3889edf1ae548397569254e85727"
+    },
+    {
+      "path": "config/doppler-metadata-contract.provenance.json",
+      "byteLength": 240,
+      "sha256": "sha256:1d74073d88afaace567e4c422609e232832b38ab7ae43cfbfad2970a54654921"
+    },
+    {
       "path": "config/doppler-package.json",
       "byteLength": 285,
       "sha256": "sha256:349e898c9120d6c0b5964413d16a823260844eb81b5b9371a75dd3a5ca091717"
@@ -1350,8 +1360,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 575996,
-      "sha256": "sha256:14030a25b5be2e6388c6b2b9b1635a8ef025b477beeb65664cc42125e3cbec04"
+      "byteLength": 576203,
+      "sha256": "sha256:2b6bd0705f1fa77a808fb487c1d8e28e23269bcf1554c51058f46dfe5b9aa8c4"
     },
     {
       "path": "config/module-registry.json",
@@ -1825,8 +1835,8 @@
     },
     {
       "path": "host/product-session.js",
-      "byteLength": 12986,
-      "sha256": "sha256:ef4882b4fce1fcbe742651e6c63bed836d7eed593f23d6b2db22de06d67342f7"
+      "byteLength": 12959,
+      "sha256": "sha256:9614b62f181227653fe48a5748ace30e33bfa8ec3b876b02d11fc8cb78ab2136"
     },
     {
       "path": "host/readonly-view.js",
@@ -2000,8 +2010,8 @@
     },
     {
       "path": "index.html",
-      "byteLength": 7066,
-      "sha256": "sha256:133e3348254e131ab0c22687e1c04147566dcee2225da1d4adf565fb91fc3084"
+      "byteLength": 7466,
+      "sha256": "sha256:bc50cc48274edfd80cfc5c03136aad9579aeee8290ec3329038963be84c4627f"
     },
     {
       "path": "infrastructure/audit-logger.js",
@@ -2200,8 +2210,8 @@
     },
     {
       "path": "pool-entry.html",
-      "byteLength": 5064,
-      "sha256": "sha256:c56c784e63b9087b1d9979b6627ccf15cb0bae36c7d520de2780cfba5bb6d0d6"
+      "byteLength": 5269,
+      "sha256": "sha256:e327c910e0bcde853dc8c38e08d8e13b902c84f316d88c82b7e73778546324a0"
     },
     {
       "path": "pool/adapter-canary-publication.js",
@@ -3305,8 +3315,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2098867,
-      "sha256": "sha256:8cd37582b7a8e6f33183a3f8078520a8a9058f2074ef6bc8d5c43ca17ab8f02b"
+      "byteLength": 2107562,
+      "sha256": "sha256:bd0638d85e5c91299041cfae7f398ecbccfe9f71e55c5512587a74da3c664188"
     },
     {
       "path": "ui/pool-home/computer-labels.js",
@@ -3360,8 +3370,8 @@
     },
     {
       "path": "ui/pool-home/index.js",
-      "byteLength": 10817,
-      "sha256": "sha256:aaedaffa60a3e37758ac3651267e1ed68bd0c909ad4403e9c010b22405526142"
+      "byteLength": 11041,
+      "sha256": "sha256:a5348adfb94ed25870771a0b150ce27fb90c832967612192cefe4fe4cfac119a"
     },
     {
       "path": "ui/pool-home/ledger-store.js",
@@ -10754,5 +10764,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:4cd485f72d88b2dec965a94a3e4701faee0589ff5ce0ce3fb31ce2b1e8aae714"
+  "bundleHash": "sha256:9cfd28c6c33d8dfceb163ab8bfae1c5129654bc8d5edeea289d3b11c6b9d0abe"
 }

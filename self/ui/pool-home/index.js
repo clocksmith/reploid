@@ -13,8 +13,9 @@ import { bindThemeSelector } from './theme.js';
 import { bindPoolRouteControls } from './navigation.js';
 
 let disposeWorkspace;
-export function initPoolHome(mount, { operationNetwork = null, canonical = null, ordered } = {}) {
+export function initPoolHome(mount, { operationNetwork = null, canonical = null, ordered, signal } = {}) {
   if (!mount) return;
+  signal?.throwIfAborted();
   // Host context, like the room, comes from this instance; a malformed stage stops before any binding.
   const storage = getCurrentReploidStorage();
   if (ordered === undefined) ordered = getOrderedParticipation(storage);
@@ -50,13 +51,16 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
     const cancelOpening = () => {
       if (disposed) return;
       disposed = true; theme.dispose();
+      signal?.removeEventListener('abort', cancelOpening);
       window.removeEventListener('pagehide', cancelOpening);
       if (disposeWorkspace === cancelOpening) disposeWorkspace = null;
     };
     disposeWorkspace = cancelOpening;
     window.addEventListener('pagehide', cancelOpening);
+    signal?.addEventListener('abort', cancelOpening, { once: true });
     return openedHost.then(async opened => {
       window.removeEventListener('pagehide', cancelOpening);
+      signal?.removeEventListener('abort', cancelOpening);
       if (disposed) { await opened.close(); return () => {}; }
       try { return bindHost(opened); }
       catch (error) {

@@ -82,17 +82,22 @@
         window.history.replaceState(window.history.state, '', `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`);
       };
       let timeoutId;
+      const controller = new AbortController();
       try {
-        const { initPoolHome } = await Promise.race([
-          import('/ui/pool-home/app.bundle.js'),
+        await Promise.race([
+          import('/ui/pool-home/app.bundle.js').then(({ initPoolHome }) => {
+            controller.signal.throwIfAborted();
+            return initPoolHome(appRoot, { signal: controller.signal });
+          }),
           new Promise((_, reject) => {
             timeoutId = window.setTimeout(() => {
-              reject(new Error('Reploid product route module load timed out'));
+              const error = new Error('Reploid startup timed out');
+              controller.abort(error);
+              reject(error);
             }, PRODUCT_BOOT_TIMEOUT_MS);
           })
         ]);
         window.clearTimeout(timeoutId);
-        await initPoolHome(appRoot);
         writeProductBootRecovery(false);
         clearProductBootRecoveryUrl();
       } catch (error) {
