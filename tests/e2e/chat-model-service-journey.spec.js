@@ -118,7 +118,7 @@ test('exact whole-model service survives overlap, cancellation and provider depa
     const [a, b] = pages;
     if (config.search) {
       await expect(a.locator('[data-search-toggle]')).toBeVisible({ timeout: 60000 });
-      await a.locator('[data-search-toggle]').click();
+      if (await a.locator('[data-search-toggle]').getAttribute('aria-pressed') !== 'true') await a.locator('[data-search-toggle]').click();
       const searched = await send(a, config.search.question);
       await complete(searched);
       expect(searched.attempt.searchPermission).toMatchObject({ source: 'send', query: config.search.question });
@@ -127,9 +127,11 @@ test('exact whole-model service survives overlap, cancellation and provider depa
       expect(searched.attempt.retrieval.sources.length).toBeGreaterThan(0);
       expect.soft(searched.answer, 'Useful search answer').toMatch(new RegExp(config.search.answerPattern, 'i'));
       expect.soft(searched.answer, 'Answer cites retrieved sources').toMatch(/\[\d+\]/);
-      await a.locator('[data-search-toggle]').click();
+      if (await a.locator('[data-search-toggle]').getAttribute('aria-pressed') === 'true') await a.locator('[data-search-toggle]').click();
+      await expect(a.locator('[data-search-toggle]')).toHaveAttribute('aria-pressed', 'false');
       const followup = await send(a, config.search.followup);
       await complete(followup);
+      expect(followup.attempt).not.toHaveProperty('retrieval');
       expect.soft(followup.answer, 'Contextual follow-up').toMatch(new RegExp(config.search.followupPattern, 'i'));
     } else {
       await complete(await send(a, 'What is 17 + 25? Answer with the number only.'), '42');

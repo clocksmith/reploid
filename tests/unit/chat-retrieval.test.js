@@ -63,14 +63,55 @@ describe('retrieval-backed chat requests', () => {
       expect(sha(renderSourceContext(again.sources))).toBe(again.context.digest);
       await restored.close();
     }
-    // A follow-up without retrieval does not resend the earlier sources.
+    // A follow-up without a new search retains its earlier evidence under the new Send.
     const follow = fixture();
     const second = follow.app.createThread({ model });
     await follow.app.send(second, QUESTION, { retrieval: {} }); await follow.app.send(second, 'Thanks');
-    expect(follow.executed[1].messages).toEqual([{ role: 'user', content: QUESTION }, { role: 'assistant', content: ANSWER },
+    expect(follow.executed[1].messages).toEqual([{ role: 'user', content: follow.executed[0].messages[0].content }, { role: 'assistant', content: ANSWER },
       { role: 'user', content: 'Thanks' }]);
     expect(follow.app.getState().threads[0].attempts[1]).not.toHaveProperty('retrieval');
     await follow.app.close();
+  });
+
+  it('retains checked source context after reload without a search provider, including on retry', async () => {
+    const first = fixture(), thread = first.app.createThread({ model,
+      systemContext: { content: 'Be concise.', metadata: {} } });
+    await first.app.send(thread, QUESTION, { retrieval: {} });
+    const saved = structuredClone(first.store.load()); await first.app.close();
+    const inputs = [];
+    const restored = createChatWorkspace({ ...first.options, retrieval: null,
+      store: { load: () => saved, save() {} }, execute: async request => {
+        inputs.push(structuredClone(request));
+        if (inputs.length === 1) throw new Error('Provider left');
+        return result(request, 'Paris');
+      } });
+    const failed = await restored.send(thread, 'Which city is it in?');
+    expect(failed.status).toBe('failed');
+    expect(inputs[0].messages[0]).toEqual({ role: 'system', content: 'Be concise.' });
+    expect(inputs[0].messages[1].content).toContain(DOCUMENTS[0].text);
+    expect(inputs[0].messages.at(-1).content).toBe('Which city is it in?');
+    const retried = await restored.retry(thread, failed.id);
+    expect(retried.status).toBe('completed');
+    expect(inputs[1].messages).toEqual(inputs[0].messages);
+    expect(retried.request.messages).toEqual(inputs[1].messages);
+    await restored.close();
+  });
+
+  it('never imports another conversation or discloses corrupted retained passages', async () => {
+    const first = fixture(), thread = first.app.createThread({ model });
+    await first.app.send(thread, QUESTION, { retrieval: {} });
+    const other = first.app.createThread({ model });
+    await first.app.send(other, 'Hello');
+    expect(first.executed.at(-1).messages).toEqual([{ role: 'user', content: 'Hello' }]);
+    const saved = structuredClone(first.store.load()); await first.app.close();
+    saved.threads[0].attempts[0].retrieval.sources[0].passage = 'Altered evidence';
+    const execute = vi.fn();
+    const restored = createChatWorkspace({ ...first.options, execute,
+      store: { load: () => saved, save() {} } });
+    const attempt = await restored.send(thread, 'Which city?');
+    expect(attempt).toMatchObject({ status: 'failed', error: 'Retrieved context does not match its recorded digest' });
+    expect(execute).not.toHaveBeenCalled();
+    await restored.close();
   });
 
   it('fails the attempt explicitly when retrieval fails, invents no source and dispatches nothing', async () => {

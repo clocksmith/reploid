@@ -27,6 +27,9 @@ Compose custody/whole-request jobs/[retrieval](../retrieval/CATSCAN.md); file po
   Records cite permission, governing wording and recipients. Hosts distinguish
   default-setting authorization from dialog consent; both require exact coverage.
 - Search binds query/service/recipients once. Send/Retry replace dialogs; distinguish consent. Exclude unrelated history; retries renew grants.
+- Ordinary follow-ups include digest-checked passages from completed turns in that
+  conversation under the new Send's disclosure authorization. Search-only grants
+  still exclude history. Cached passages are historical evidence, not a fresh search.
 - Reusable grants bind verified recipient/mesh/thread/model/adapters/scope, persist before use,
   and revocation cancels affected attempts/reuse. Grants authorize no contribution/supply/evaluation/adoption.
 - Share bounded residency; reset conversation/adapter state between executions.

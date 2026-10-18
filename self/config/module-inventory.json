@@ -2350,7 +2350,7 @@
     {
       "path": "self/host/product-session.js",
       "owner": "self",
-      "sha256": "sha256:58a2011e9e0a98c9e7f98e644c4e1a27bc6c53a4634ce9a64a7d980d62064f01",
+      "sha256": "sha256:70dbfc90f536fec1ae89f7bf6336fae09e4374265a05883ed200f3350a9f4027",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/ordered-participation.json",
@@ -3389,7 +3389,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:c66c1a20bc3c67642c292728115c4778b8b4f3669c8882a0ac262a34c9fc6b4a",
+      "sha256": "sha256:fc66064dee42dd0dd9e8403dd0940f6a896eb18c42bf01c548d4b7301cbc7be7",
       "imports": []
     },
     {
@@ -16128,7 +16128,7 @@
     {
       "path": "vendor/reploid/chat/workspace.js",
       "owner": "vendor",
-      "sha256": "sha256:d71f26f9c58d288738039720d27baeb92b55fed69cefc02244e271f84f132492",
+      "sha256": "sha256:a1d92b861f589c8d7acb473151657310fc0944c9b149b73f51b2b9ff718bc6b9",
       "imports": [
         "../mesh/partitions/partition-contract.js",
         "../mesh/partitions/partition-ordered-publication.js",

@@ -7,7 +7,7 @@ import { disclosureRecipients, disclosureScope, matchingThreadGrant, validateThr
 import { remotePermissionCovers, remotePermissionNeed } from './remote-permission.js';
 import { SEARCH_RECIPIENTS_CHANGED, validateSearchPermission } from './search-permission.js';
 import { createRetrieval } from '../retrieval/retrieval.js';
-import { interruptRetrievalRecord, retrievalFailureMessage } from '../retrieval/sources.js';
+import { interruptRetrievalRecord, retrievalFailureMessage, withSourceContext } from '../retrieval/sources.js';
 import { withVerification } from '../retrieval/costs.js';
 import { answerProvenance, classifyExecutionSupply, executionRefusal } from './supply-provenance.js';
 import failureMessages from '../transport/partition-errors.json' with { type: 'json' };
@@ -173,7 +173,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       && value.adapters.every(adapter => /^sha256:[a-f0-9]{64}$/.test(adapter.identity)), 'Select identified adapters');
     return copy(value);
   };
-  const start = (thread, request, userMessageId, retryOf = null, select = true, authorizeDisclosure = null, searchPermission = null) => {
+  const start = (thread, request, userMessageId, retryOf = null, select = true, authorizeDisclosure = null, searchPermission = null, sourceHistory = []) => {
     current();
     assert(authorizeDisclosure === null || typeof authorizeDisclosure === 'function', 'Invalid disclosure authorization port');
     assert(!runs.has(thread.id), 'This conversation already has an active response');
@@ -216,6 +216,19 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       try {
         if (transactional) await admitted;
         controller.signal.throwIfAborted();
+        // Ordinary follow-ups retain the evidence supplied with their earlier turns. Validate the
+        // saved digest again, then persist exactly what the new Send will disclose. Search-only
+        // grants never enter this path; they still exclude history. Retry uses this frozen input.
+        if (sourceHistory.length) {
+          dispatched = copy(request);
+          for (const { index, record } of sourceHistory) {
+            const restored = await withSourceContext({ messages: [dispatched.messages[index]] }, record);
+            controller.signal.throwIfAborted();
+            dispatched.messages[index] = restored.messages[0];
+          }
+          attempt.request = copy(dispatched);
+          await persist(); controller.signal.throwIfAborted();
+        }
         if (request.retrieval) {
           // Provenance is durable before any source text can be disclosed; failure dispatches nothing.
           // The attempt id keys this answer's costs in provider usage logs; it is never part of the query.
@@ -226,7 +239,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
             } });
           await persist(); controller.signal.throwIfAborted();
           assert(attempt.retrieval.outcome === 'retrieved', retrievalFailureMessage(attempt.retrieval));
-          dispatched = await retriever.dispatch(request, attempt.retrieval);
+          dispatched = await retriever.dispatch(dispatched, attempt.retrieval);
         }
         if (transactional) await store.assertCurrentWriter();
         publication = published ? await store.publication(thread.id) : undefined;
@@ -466,15 +479,23 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       const permission = searchGrant(thread, route, searched, searchPermission);
       const message = { id: id(), role: 'user', content: text(content), status: 'completed' };
       thread.messages.push(message);
-      const completedUsers = new Set(thread.attempts.filter(attempt => attempt.status === 'completed').map(attempt => attempt.userMessageId));
+      const completed = new Map(thread.attempts.filter(attempt => attempt.status === 'completed').map(attempt => [attempt.userMessageId, attempt]));
+      const sourceHistory = [];
       // A search-answer request carries only this question; history, context prompt and purpose stay here.
       const messages = permission ? [{ role: 'user', content: message.content }] : thread.messages.filter(item => item.status === 'completed'
-        && (item.role === 'assistant' || completedUsers.has(item.id) || item.id === message.id))
-        .map(({ role, content }) => ({ role, content }));
+        && (item.role === 'assistant' || completed.has(item.id) || item.id === message.id))
+        .map(({ id, role, content }, index) => {
+          const record = role === 'user' && completed.get(id)?.retrieval;
+          if (record?.outcome === 'retrieved') sourceHistory.push({ index, record: copy(record) });
+          return { role, content };
+        });
       const system = [thread.systemContext?.content, thread.purpose].filter(Boolean).join('\n\n');
-      if (system && !permission) messages.unshift({ role: 'system', content: system });
+      if (system && !permission) {
+        messages.unshift({ role: 'system', content: system });
+        sourceHistory.forEach(item => item.index++);
+      }
       try { return start(thread, { model: thread.model, permissions: thread.permissions, members: thread.members, messages,
-        ...(searched ? { retrieval: searched } : {}) }, message.id, null, select, authorizeDisclosure, permission); }
+        ...(searched ? { retrieval: searched } : {}) }, message.id, null, select, authorizeDisclosure, permission, sourceHistory); }
       catch (error) { thread.messages.pop(); throw error; }
     },
     /** A search-answer retry searches and discloses again, so it needs a fresh `searchPermission`. */
