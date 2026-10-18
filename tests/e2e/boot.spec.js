@@ -94,7 +94,7 @@ test.describe('Boot Screen', () => {
 test.describe('Route Entry Points', () => {
   test('recovers once from a transient public-route module failure', async ({ page }) => {
     let failedRequests = 0;
-    await page.route('**/ui/pool-home/view.js', async (route) => {
+    await page.route('**/ui/pool-home/app.bundle.js', async (route) => {
       if (failedRequests === 0) {
         failedRequests += 1;
         await route.fulfill({
@@ -108,11 +108,23 @@ test.describe('Route Entry Points', () => {
     });
 
     await page.goto(PRODUCT_HOME_PATH);
-    await page.waitForSelector('.pool-home', { timeout: 30000 });
+    await page.locator('[data-chat-workspace]').waitFor({ timeout: 30000 });
 
     expect(failedRequests).toBe(1);
     expect(new URL(page.url()).searchParams.has('reploidBootRetry')).toBe(false);
     await expect(page.locator('.pool-boot-failure')).toHaveCount(0);
+  });
+
+  test('stops after one public-route recovery when the product bundle stays unavailable', async ({ page }) => {
+    let requests = 0;
+    await page.route('**/ui/pool-home/app.bundle.js', route => {
+      requests++;
+      return route.fulfill({ status: 503, contentType: 'text/plain', body: 'Temporarily unavailable' });
+    });
+    await page.goto(PRODUCT_HOME_PATH);
+    await expect(page.locator('.pool-boot-failure')).toHaveText('Reploid could not load. Reload the page to try again.');
+    expect(requests).toBe(2);
+    await expect(page.locator('[data-chat-workspace]')).toHaveCount(0);
   });
 
   test('home keeps the task composer below connected activity navigation', async ({ page }) => {
