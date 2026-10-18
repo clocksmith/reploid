@@ -104,6 +104,12 @@ the exact retained synthetic conversation into a fresh test profile, then compar
 all thread records after each reload (4981, 2452, 1990 ms). These follow-up checks
 do not erase the initial failure.
 
+The existing boot-recovery test still intercepted an obsolete unbundled module.
+It now interrupts `app.bundle.js` and checks the current conversation workspace.
+A second check requires a visible terminal error after two failed loads, without
+an automatic reload loop. Both passed in physical Chrome locally (497/445 ms);
+both are now included in CI's browser smoke alongside its existing wizard checks.
+
 CI run `39164235021` failed solely because the updated chat charter exceeded its
 250-word limit: 4593 tests passed, one failed, 36 skipped. The charter was shortened
 without changing requirements, its index regenerated, and all seven charter tests
