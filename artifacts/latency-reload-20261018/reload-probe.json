@@ -1,0 +1,127 @@
+{
+  "at": "2026-10-18T21:33:23.156Z",
+  "cycles": [
+    {
+      "ms": 2480,
+      "selectedId": "ed68e6e4-6a42-4528-a796-4e3f4cf20ff8",
+      "url": "https://replo.id/",
+      "resources": [
+        {
+          "duration": 423.8999999910593,
+          "transferSize": 490316
+        }
+      ]
+    },
+    {
+      "ms": 2496,
+      "selectedId": "ed68e6e4-6a42-4528-a796-4e3f4cf20ff8",
+      "url": "https://replo.id/",
+      "resources": [
+        {
+          "duration": 656.8999999910593,
+          "transferSize": 490316
+        }
+      ]
+    },
+    {
+      "ms": 2540,
+      "selectedId": "ed68e6e4-6a42-4528-a796-4e3f4cf20ff8",
+      "url": "https://replo.id/",
+      "resources": [
+        {
+          "duration": 399.70000000298023,
+          "transferSize": 490316
+        }
+      ]
+    },
+    {
+      "ms": 2002,
+      "selectedId": "ed68e6e4-6a42-4528-a796-4e3f4cf20ff8",
+      "url": "https://replo.id/",
+      "resources": [
+        {
+          "duration": 389.8999999910593,
+          "transferSize": 490316
+        }
+      ]
+    }
+  ],
+  "pageErrors": [],
+  "failures": [
+    {
+      "url": "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js",
+      "error": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    },
+    {
+      "url": "https://replo.id/v1/client",
+      "error": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    },
+    {
+      "url": "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js",
+      "error": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    },
+    {
+      "url": "https://replo.id/v1/client",
+      "error": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    },
+    {
+      "url": "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyCIp4AQeGXx_PEmUnBZmfk_5zeAvynRVLE",
+      "error": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    },
+    {
+      "url": "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyCIp4AQeGXx_PEmUnBZmfk_5zeAvynRVLE",
+      "error": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    },
+    {
+      "url": "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyCIp4AQeGXx_PEmUnBZmfk_5zeAvynRVLE",
+      "error": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    },
+    {
+      "url": "https://replo.id/v1/client",
+      "error": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    },
+    {
+      "url": "https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=AIzaSyCIp4AQeGXx_PEmUnBZmfk_5zeAvynRVLE",
+      "error": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    },
+    {
+      "url": "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyCIp4AQeGXx_PEmUnBZmfk_5zeAvynRVLE",
+      "error": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    },
+    {
+      "url": "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyCIp4AQeGXx_PEmUnBZmfk_5zeAvynRVLE",
+      "error": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    },
+    {
+      "url": "https://replo.id/v1/client",
+      "error": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    }
+  ],
+  "passed": true,
+  "selectedId": "ed68e6e4-6a42-4528-a796-4e3f4cf20ff8",
+  "modelId": "qwen-3-5-2b-q4k-ehaf16"
+}

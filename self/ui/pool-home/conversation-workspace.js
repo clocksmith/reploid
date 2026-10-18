@@ -421,7 +421,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         (find('[data-thread-item-id][aria-current="true"]') || find('[data-new-thread]')).focus();
       }); return;
     }
-    const button = event.target.closest('[data-thread-item-id]'); if (button) { try { observe(after(saveDraft(), () => { session.select(button.dataset.threadItemId); inspector.close({ restoreFocus: false }); if (globalThis.innerWidth <= 760) setThreads(false); })); } catch (cause) { error(cause); } } });
+    const button = event.target.closest('[data-thread-item-id]'); if (button) { try { observe(after(saveDraft(), () => { const selected = session.select(button.dataset.threadItemId); inspector.close({ restoreFocus: false }); if (globalThis.innerWidth <= 760) setThreads(false); return selected; })); } catch (cause) { error(cause); } } });
   on('[data-context-indicator]', 'click', event => inspector.open('conversation', event.currentTarget));
   on('[data-execution-location]', 'click', event => {
     const button = event.target.closest('[data-execution-choice]');

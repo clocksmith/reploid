@@ -1,0 +1,50 @@
+{
+  "source": "../service-repair-20261018/live-browser-search.json.gz",
+  "scope": "Existing attempt timestamps and runtime counters; residual includes orchestration, not a pure network measurement",
+  "observations": [
+    {
+      "query": "What year was the Eiffel Tower completed? Cite a source.",
+      "modelId": "qwen-3-5-2b-q4k-ehaf16",
+      "threadId": "4dc45fd0-9637-4f90-b0a7-f4719166426d",
+      "attemptTotalMs": 14392,
+      "retrievalMs": 3656,
+      "prefillMs": 9076.398957999998,
+      "decodeMs": 1582.4677919999995,
+      "runtimeTotalMs": 10665.59575,
+      "outsideRetrievalAndRuntimeMs": 70.40424999999959
+    },
+    {
+      "query": "Which city is it in? Answer with the city only.",
+      "modelId": "qwen-3-5-2b-q4k-ehaf16",
+      "threadId": "4dc45fd0-9637-4f90-b0a7-f4719166426d",
+      "attemptTotalMs": 11548,
+      "retrievalMs": 0,
+      "prefillMs": 9724.647042000004,
+      "decodeMs": 1745.1626249999972,
+      "runtimeTotalMs": 11481.708416999994,
+      "outsideRetrievalAndRuntimeMs": 66.29158300000563
+    },
+    {
+      "query": "Who wrote Pride and Prejudice? Cite a source.",
+      "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+      "threadId": "d233ee47-1c2b-4a76-af08-74346bfc2529",
+      "attemptTotalMs": 31891,
+      "retrievalMs": 1558,
+      "prefillMs": 26788.257665008307,
+      "decodeMs": 2920.250020980835,
+      "runtimeTotalMs": 29712.07628902793,
+      "outsideRetrievalAndRuntimeMs": 620.9237109720707
+    },
+    {
+      "query": "Which two Nobel Prizes did Marie Curie win? Cite a source.",
+      "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+      "threadId": "d233ee47-1c2b-4a76-af08-74346bfc2529",
+      "attemptTotalMs": 25730,
+      "retrievalMs": 1451,
+      "prefillMs": 16670.326981008053,
+      "decodeMs": 7478.745577007532,
+      "runtimeTotalMs": 24152.705893993378,
+      "outsideRetrievalAndRuntimeMs": 126.29410600662231
+    }
+  ]
+}
