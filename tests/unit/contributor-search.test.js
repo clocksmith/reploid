@@ -35,7 +35,7 @@ function pair(worker, { enabled = () => true, verify = async peer => `identity:$
 it('searches and extracts over the peer channel, retaining fetched-page provenance and contributor supply', async () => {
   const ports = workerPorts(), { a } = pair(createPublicWebWorker(ports));
   await vi.waitFor(() => expect(a.getOffers()).toHaveLength(1));
-  const service = createContributorSearch({ network: () => a });
+  const service = createContributorSearch({ network: () => a, service: 'bing' });
   const retrieval = createRetrieval(service), query = 'When did the tower open?';
   const record = await retrieval.retrieve(retrieval.pending(retrieval.request({}, query), Date.now()));
   expect(record.outcome).toBe('retrieved');
@@ -55,7 +55,7 @@ it('refuses a different contributor after retrieval is prepared, without sending
   let enabled = true;
   const ports = workerPorts(), { a, b } = pair(createPublicWebWorker(ports), { enabled: () => enabled });
   await vi.waitFor(() => expect(a.getOffers()).toHaveLength(1));
-  const service = createContributorSearch({ network: () => a }), retrieval = createRetrieval(service);
+  const service = createContributorSearch({ network: () => a, service: 'bing' }), retrieval = createRetrieval(service);
   const record = retrieval.pending(retrieval.request({}, 'Question'), Date.now());
   enabled = false; b.refresh();
   await vi.waitFor(() => expect(a.getOffers()).toHaveLength(0));
@@ -93,4 +93,32 @@ it('cancels the worker, refuses replay and never accepts another peer response',
   await vi.waitFor(() => expect(cancelled).toBe(true));
   handlers.b.get('reploid:web-request')('a', request);
   expect(worker.search).toHaveBeenCalledOnce();
+});
+
+it('routes browser Google results under the exact service and rejects a changed service from the same peer', async () => {
+  const ports = workerPorts(), worker = createPublicWebWorker({ ...ports, service: 'google-browser' });
+  const { a, handlers } = pair(worker);
+  await vi.waitFor(() => expect(a.getOffers()).toHaveLength(1));
+  const service = createContributorSearch({ network: () => a });
+  expect(service.provider.searchProvider).toBe('contributor-google-browser');
+  const offer = a.getOffers()[0], providerId = service.provider.id;
+  const grant = createSearchPermission({ id: 'g', networkId: 'n', threadId: 't', searchProvider: service.provider.searchProvider,
+    searchPeer: offer.participantId, query: 'tower', recipients: [], wording: searchPermissionWording(service.provider.searchProvider), grantedAt: 1 });
+  expect(grant.searchPeer).toBe(offer.participantId);
+  expect(() => validateSearchPermission({ ...grant, searchPeer: null })).toThrow();
+  const retrieval = createRetrieval(service);
+  expect((await retrieval.retrieve(retrieval.pending(retrieval.request({}, 'tower'), Date.now()))).outcome).toBe('retrieved');
+  handlers.a.get('reploid:web-offer')('b', { service: 'bing', version: '1' });
+  await vi.waitFor(() => expect(a.getOffers()[0].service).toBe('bing'));
+  await expect(a.request(offer, 'search', { query: 'tower', maxResults: 1 })).rejects.toThrow('changed');
+  await expect(service.provider.search('tower', { maxResults: 1 }, undefined, { providerId })).rejects.toThrow('changed');
+});
+
+it('waits for the selected browser service after reload instead of silently using legacy RSS', () => {
+  let offers = [{ service: 'bing', version: '1', participantId: 'legacy' }];
+  const service = createContributorSearch({ network: () => ({ getOffers: () => offers }) });
+  expect(service.available()).toBe(false);
+  offers.push({ service: 'google-browser', version: '1', participantId: 'browser' });
+  expect(service.available()).toBe(true); expect(service.provider.searchPeer).toBe('browser');
+  offers = [offers[0]]; expect(service.available()).toBe(false);
 });

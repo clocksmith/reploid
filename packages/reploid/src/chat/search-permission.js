@@ -22,13 +22,13 @@ const sameWording = (a, b) => !!a && !!b && a.id === b.id && a.version === b.ver
 const PERSON_CHOSEN_SERVERS = new Set(policy.personChosenServer);
 
 export function validateSearchPermission(input) {
-  const keys = [...(Object.hasOwn(input || {}, 'source') ? ['source'] : []), 'schema', 'kind', 'id', 'networkId', 'threadId', 'searchProvider', 'searchServer', 'query', 'recipients', 'wording', 'grantedAt', 'revokedAt', ...(input?.searchProvider === 'contributor-bing' ? ['searchPeer'] : [])];
+  const keys = [...(Object.hasOwn(input || {}, 'source') ? ['source'] : []), 'schema', 'kind', 'id', 'networkId', 'threadId', 'searchProvider', 'searchServer', 'query', 'recipients', 'wording', 'grantedAt', 'revokedAt', ...(policy.contributorServices.includes(input?.searchProvider) ? ['searchPeer'] : [])];
   // Records written before searchServer existed named only fixed services; they read as naming no server.
   const permission = input && typeof input === 'object' && !Object.hasOwn(input, 'searchServer') ? { ...input, searchServer: null } : input;
   const server = permission?.searchServer;
   if (!permission || typeof permission !== 'object' || Object.keys(permission).length !== keys.length || !keys.every(key => Object.hasOwn(permission, key))
     || (PERSON_CHOSEN_SERVERS.has(permission.searchProvider) ? !label(server) || !/^[a-z0-9.-]+(:\d{1,5})?$/i.test(server) : server !== null)
-    || (permission.searchProvider === 'contributor-bing' && !label(permission.searchPeer))
+    || (policy.contributorServices.includes(permission.searchProvider) && !label(permission.searchPeer))
     || (Object.hasOwn(permission, 'source') && !['send', 'dialog'].includes(permission.source))
     || permission.schema !== REMOTE_PERMISSION_SCHEMA || permission.kind !== SEARCH_PERMISSION_KIND
     || !label(permission.id) || !label(permission.networkId) || !label(permission.threadId) || !label(permission.searchProvider)
@@ -48,5 +48,5 @@ export function validateSearchPermission(input) {
 export function createSearchPermission({ id, networkId, threadId, searchProvider, searchServer = null, searchPeer = null, query, recipients, wording, source, grantedAt }) {
   if (!sameWording(wording, searchPermissionWording(searchProvider))) throw new Error('The shown search permission wording is not the approved text');
   return validateSearchPermission({ schema: REMOTE_PERMISSION_SCHEMA, kind: SEARCH_PERMISSION_KIND, id, networkId, threadId, searchProvider,
-    ...(source ? { source } : {}), searchServer, ...(searchProvider === 'contributor-bing' ? { searchPeer } : {}), query, recipients: [...recipients], wording: { id: wording.id, version: wording.version, text: wording.text }, grantedAt, revokedAt: null });
+    ...(source ? { source } : {}), searchServer, ...(policy.contributorServices.includes(searchProvider) ? { searchPeer } : {}), query, recipients: [...recipients], wording: { id: wording.id, version: wording.version, text: wording.text }, grantedAt, revokedAt: null });
 }

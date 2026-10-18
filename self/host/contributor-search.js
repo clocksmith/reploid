@@ -1,11 +1,11 @@
 /** Search/extraction through one disclosed contributor, pinned for the complete retrieval. */
 import policy from '../vendor/reploid/mesh/web-access-policy.json' with { type: 'json' };
 
-export function createContributorSearch({ network }) {
-  const selected = () => network()?.getOffers().find(offer => offer.service === 'bing') || null;
-  const identity = offer => `reploid.contributor-search/${offer?.participantId || 'unavailable'}/bing`;
+export function createContributorSearch({ network, service = 'google-browser' }) {
+  const selected = () => network()?.getOffers().find(offer => offer.service === service && offer.version === policy.services[service]) || null;
+  const identity = offer => `reploid.contributor-search/${offer?.participantId || 'unavailable'}/${offer?.service || 'unavailable'}/${offer?.version || 'unavailable'}`;
   const provider = Object.freeze({
-    get id() { return identity(selected()); }, version: '1', searchProvider: 'contributor-bing', supply: 'contributor', costBearer: 'operator',
+    get id() { return identity(selected()); }, get version() { return selected()?.version || '1'; }, get searchProvider() { return `contributor-${selected()?.service || service}`; }, supply: 'contributor', costBearer: 'operator',
     get searchPeer() { return selected()?.participantId ?? null; },
     async search(query, limits, signal, { providerId } = {}) {
       const offer = selected(), owner = network();

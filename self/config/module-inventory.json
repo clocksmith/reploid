@@ -2226,7 +2226,7 @@
     {
       "path": "self/host/contributor-search.js",
       "owner": "self",
-      "sha256": "sha256:215988f71b3bf40e89212de3e3a2c63873e93961a8fa2b86a4e91391d60a8c0c",
+      "sha256": "sha256:38b90d2add018276581e0b4eedd027a77ea2dd4e74d9dd0d3a19aa0c0b000832",
       "imports": [
         "../vendor/reploid/mesh/web-access-policy.json"
       ]
@@ -2350,7 +2350,7 @@
     {
       "path": "self/host/product-session.js",
       "owner": "self",
-      "sha256": "sha256:70dbfc90f536fec1ae89f7bf6336fae09e4374265a05883ed200f3350a9f4027",
+      "sha256": "sha256:ef4882b4fce1fcbe742651e6c63bed836d7eed593f23d6b2db22de06d67342f7",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/ordered-participation.json",
@@ -3389,7 +3389,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:fc66064dee42dd0dd9e8403dd0940f6a896eb18c42bf01c548d4b7301cbc7be7",
+      "sha256": "sha256:5ade6f3d1d30fe79c6397563843febabdba8f55fda1d7964e2106f27f8e50e91",
       "imports": []
     },
     {
@@ -16087,7 +16087,7 @@
     {
       "path": "vendor/reploid/chat/search-permission.js",
       "owner": "vendor",
-      "sha256": "sha256:fca71beb7be987cdac786ed857f3b595d9ba414d208ac4c06088dda5f655b9cc",
+      "sha256": "sha256:b425a2b28a5aa46a0f91e9e8fd102044eba204d38eeb60c7b885c61e87d59aea",
       "imports": [
         "./remote-permission.js",
         "./search-permission.json"
@@ -16716,7 +16716,7 @@
     {
       "path": "vendor/reploid/mesh/web-access-network.js",
       "owner": "vendor",
-      "sha256": "sha256:eb02deb1569616d28ea83faeec5e6ba4219d1881e1d87b3bf0df5671b24e8972",
+      "sha256": "sha256:38472a03e425d53f5804d0c051631f8dd4b591fd13b17cc4e0dc0dec14c0040f",
       "imports": [
         "./remote-generation-requests.js",
         "./web-access-policy.json"

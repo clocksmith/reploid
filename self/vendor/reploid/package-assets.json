@@ -447,13 +447,13 @@
     },
     {
       "path": "chat/search-permission.js",
-      "bytes": 4694,
-      "sha256": "fca71beb7be987cdac786ed857f3b595d9ba414d208ac4c06088dda5f655b9cc"
+      "bytes": 4736,
+      "sha256": "b425a2b28a5aa46a0f91e9e8fd102044eba204d38eeb60c7b885c61e87d59aea"
     },
     {
       "path": "chat/search-permission.json",
-      "bytes": 1164,
-      "sha256": "86121f2698007f7112721aacc46b124be87688669fc83f98ebfd472f68038acd"
+      "bytes": 1670,
+      "sha256": "ffee2f326795f2b100c6e34544cd157332a9a9486b4936dee92e6cb71ce99f0e"
     },
     {
       "path": "chat/supply-provenance.d.ts",
@@ -1192,13 +1192,13 @@
     },
     {
       "path": "mesh/web-access-network.js",
-      "bytes": 7589,
-      "sha256": "eb02deb1569616d28ea83faeec5e6ba4219d1881e1d87b3bf0df5671b24e8972"
+      "bytes": 7945,
+      "sha256": "38472a03e425d53f5804d0c051631f8dd4b591fd13b17cc4e0dc0dec14c0040f"
     },
     {
       "path": "mesh/web-access-policy.json",
-      "bytes": 249,
-      "sha256": "a6db052c298ab805db0ec691047808e2a4752ddedd1332a13d5ba2244a8384b3"
+      "bytes": 313,
+      "sha256": "019ebf732adcffea73d1b6782ac61f2ebaf0488f0d8048ab76266bc59f18b07b"
     },
     {
       "path": "plugins/index.d.ts",

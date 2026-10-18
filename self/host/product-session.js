@@ -90,7 +90,7 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
   const searchListeners = new Set();
   const searchStatus = Object.freeze({ ...search,
     available: () => contributorSearch.available() || search.available(),
-    state: () => contributorSearch.available() ? { state: 'ready', provider: 'contributor-bing', message: 'A contributor can search Bing and read public pages. Send runs the selected tools.' } : search.state(),
+    state: () => contributorSearch.available() ? { state: 'ready', provider: contributorSearch.provider.searchProvider, message: 'A contributor can search the web and read public pages. Send runs the selected tools.' } : search.state(),
     subscribe(listener) { searchListeners.add(listener); const stop = search.subscribe(() => listener(searchStatus.state()));
       return () => { stop(); searchListeners.delete(listener); }; }
   });
