@@ -1,0 +1,425 @@
+{
+  "modelId": "qwen-3-5-2b-q4k-ehaf16",
+  "results": [
+    {
+      "id": "eiffel-year",
+      "answer": "3",
+      "expected": "1889 with a supporting source citation",
+      "attempt": {
+        "approval": null,
+        "authorization": {
+          "adapterIdentities": [],
+          "disclosure": "public",
+          "expiresAt": 1792359135203,
+          "grantId": null,
+          "kind": "permission",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "ee64e79a-d691-49a6-8210-ca5d49acfde3",
+          "permissionId": "c952bdbe-0825-4efb-8f0d-e431519255fe",
+          "recipientIdentity": "peer:18813808898ffbd29bbce3dd",
+          "recipients": [
+            "peer:18813808898ffbd29bbce3dd"
+          ],
+          "sharingScope": "mesh",
+          "source": "permission"
+        },
+        "createdAt": 1792359101338,
+        "error": null,
+        "execution": {
+          "adapterIdentities": [],
+          "completion": {
+            "generatedTokenCount": 2,
+            "promptTokenCount": 801,
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "stop-token"
+          },
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "ee64e79a-d691-49a6-8210-ca5d49acfde3",
+          "placement": "peer-whole-request",
+          "provider": "peer",
+          "stopReason": "stop-token",
+          "timing": {
+            "decodeMs": 701.846949994564,
+            "firstTokenMs": 1619.7470009922981,
+            "generatedTokenCount": 2,
+            "prefillMs": 1618.0876570045948,
+            "totalMs": 2321.9626049995422
+          }
+        },
+        "finishedAt": 1792359108814,
+        "id": "48f99b34-0cbe-4904-ab5f-0fefc40e00c5",
+        "provenance": {
+          "attemptId": "48f99b34-0cbe-4904-ab5f-0fefc40e00c5",
+          "classes": [
+            "mesh"
+          ],
+          "earlierAttempts": [],
+          "execution": {
+            "classes": [
+              "mesh"
+            ],
+            "participants": [
+              {
+                "participantId": "ee64e79a-d691-49a6-8210-ca5d49acfde3",
+                "role": "whole-request",
+                "stage": null,
+                "supply": "mesh"
+              }
+            ],
+            "placement": "peer-whole-request",
+            "supply": "mesh"
+          },
+          "retrieval": {
+            "outcome": "retrieved",
+            "provider": "reploid.contributor-search/peer:82f5f485c9f50fb1fa86bf7a/google-browser/1",
+            "route": "contributor-search",
+            "searchServer": null,
+            "searchService": "contributor-google-browser",
+            "supply": "contributor"
+          },
+          "schema": "reploid.answer-provenance/v1",
+          "supply": "mesh"
+        },
+        "publicationMode": "whole-model",
+        "request": {
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "content": "Answer using only the numbered sources below. Cite each factual sentence with the number of every source that states it, for example [1] or [1][2]. If the sources do not answer the question, say that the retrieved sources do not answer it. Do not name or cite any other source.\n\nSources:\n\n[1] Eiffel Tower - Wikipedia\nhttps://en.wikipedia.org/wiki/Eiffel_Tower\nOn two separate but related occasions in 1925, the con artist Victor Lustig \"sold\" the tower for scrap metal.[53] A year later, in February 1926, pilot Leon Collet was killed trying to fly under the tower. His aircraft became entangled in an aerial belonging to a wireless station.[54] A bust of Gustave Eiffel by Antoine Bourdelle was unveiled at the base of the north leg on 2 May 1929.[55] In 1930, the tower lost the title of the world's tallest structure when the Chrysler Building in New York City was completed.[56] In 1938, the decorative arcade around the first level was removed.[57]\n\n[2] Eiffel Tower | National Geographic Kids\nhttps://kids.nationalgeographic.com/history/article/eiffel-tower\nThe Eiffel Tower in Paris, France, has serious celeb status. Completed in March 1889, it's one of the most recognizable monuments in the world. And the site, which is also known as the Iron Lady, receives nearly seven millions tourists a year. But despite its fame, the tower has some monumental secrets. Get the lowdown on this Parisian highlight.\n\nHIDDEN APARTMENT\n\nIf you were in charge of constructing the Eiffel Tower, where else would you live but ... the Eiffel Tower? Gustave Eiffel, who designed the landmark, built himself a small apartment on the top level of the structure. The sky-high hideaway had plush rugs, oil paintings, and even a grand piano. Only a few VIPs were allowed to visit, such as superstar scientist Thomas Edison. Unused since the 1920s after Eiffel's death, few knew about the 950-foot-high pad until 2015 when it opened for public viewing.\n\nSKY LAB\n\n[3] Eiffel Tower opens in Paris | March 31, 1889 | HISTORY\nhttps://www.history.com/this-day-in-history/march-31/eiffel-tower-opens\nEiffel’s tower was greeted with skepticism from critics who argued that it would be structurally unsound, and indignation from others who thought it would be an eyesore in the heart of Paris. Unperturbed, Eiffel completed his great tower under budget in just two years. Only one worker lost his life during construction, which at the time was a remarkably low casualty number for a project of that magnitude. The light, airy structure was by all accounts a technological wonder and within a few decades came to be regarded as an architectural masterpiece.\n\nBuilding the Eiffel Tower\n\nThe Eiffel Tower was originally not well-liked by Parisians, but over time, it has become an iconic symbol of the city.\n\n2:53m watch\n\nThe Eiffel Tower is 984 feet tall and consists of an iron framework supported on four masonry piers, from which rise four columns that unite to form a single vertical tower. Platforms, each with an observation deck, are at three levels. Elevators ascend the piers on a curve, and Eiffel contracted the Otis Elevator Company of the United States to design the tower’s famous glass-cage elevators.\n\nQuestion: What year was the Eiffel Tower completed? Cite a source.",
+              "role": "user"
+            }
+          ],
+          "model": {
+            "adapters": [],
+            "availability": "ready",
+            "contextLength": 262144,
+            "id": "qwen-3-5-2b-q4k-ehaf16",
+            "identity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "name": "Qwen 3.5 2B",
+            "networkAvailability": "ready",
+            "packageName": "doppler-gpu",
+            "packageVersion": "0.6.32",
+            "partitionSplitLayer": 4,
+            "provider": "doppler",
+            "providerIds": [
+              "ee64e79a-d691-49a6-8210-ca5d49acfde3",
+              "b7a662d6-c034-474b-9e9d-ec217dffc06a"
+            ],
+            "quantization": "q4k",
+            "recommended": true,
+            "size": "Q4K",
+            "source": {
+              "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+              "files": [
+                {
+                  "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                  "hashAlgorithm": "sha256",
+                  "path": "manifest.json",
+                  "role": "model-manifest",
+                  "sizeBytes": 183803,
+                  "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+                },
+                {
+                  "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+                  "hashAlgorithm": "sha256",
+                  "path": "tokenizer.json",
+                  "role": "tokenizer",
+                  "sizeBytes": 9088480
+                },
+                {
+                  "hash": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+                  "hashAlgorithm": "sha256",
+                  "path": "qwen-2b-pieces.json",
+                  "role": "model-piece-index",
+                  "sizeBytes": 111108,
+                  "url": "/config/model-pieces/qwen-2b-pieces.json"
+                }
+              ]
+            }
+          },
+          "permissions": {
+            "executionLocation": "auto",
+            "sharingScope": "mesh"
+          }
+        },
+        "responseId": "a4e492ae-45d0-47fa-a491-e5b3805e3198",
+        "retrieval": {
+          "context": {
+            "characters": 3192,
+            "digest": "sha256:fc2e379d4dfe45c62ebadd5fa6fa7dc77a61a40428cc2fd0546474045fb0e17f",
+            "schema": "reploid.retrieval-context/v1"
+          },
+          "costs": {
+            "fallback": {
+              "costMicroUsd": 0,
+              "path": "none"
+            },
+            "retrieval": {
+              "bearer": "operator",
+              "costMicroUsd": null,
+              "extraction": {
+                "attempted": 5,
+                "bytes": 1617141,
+                "costMicroUsd": null,
+                "documents": 3,
+                "failed": 2
+              },
+              "search": {
+                "costMicroUsd": null,
+                "requests": 1,
+                "service": "contributor-google-browser"
+              }
+            },
+            "schema": "reploid.retrieval-costs/v1",
+            "totalMicroUsd": null,
+            "unit": "micro-usd",
+            "unknown": [
+              "retrieval.search",
+              "retrieval.extraction"
+            ],
+            "verification": {
+              "checker": null,
+              "costMicroUsd": 0,
+              "reviews": []
+            }
+          },
+          "error": null,
+          "extractor": {
+            "id": "reploid.contributor-page-extract",
+            "version": "1"
+          },
+          "finishedAt": 1792359104985,
+          "limits": {
+            "maxContextCharacters": 6000,
+            "maxResults": 5,
+            "maxSourceCharacters": 1200,
+            "timeoutMs": 10000
+          },
+          "omitted": [
+            {
+              "reason": "extraction-failed",
+              "sourceId": "web-1"
+            },
+            {
+              "reason": "extraction-failed",
+              "sourceId": "web-3"
+            }
+          ],
+          "outcome": "retrieved",
+          "partial": true,
+          "policy": {
+            "id": "reploid.retrieval-policy",
+            "version": "1.0.0"
+          },
+          "progress": {
+            "available": 3,
+            "completed": 5,
+            "stage": "context",
+            "total": 5
+          },
+          "provider": {
+            "id": "reploid.contributor-search/peer:82f5f485c9f50fb1fa86bf7a/google-browser/1",
+            "supply": "contributor",
+            "version": "1"
+          },
+          "providerResultCount": 5,
+          "query": "What year was the Eiffel Tower completed? Cite a source.",
+          "schema": "reploid.retrieval-record/v1",
+          "sourceUse": "requester-opt-in",
+          "sources": [
+            {
+              "contentHash": "sha256:9ea5165b7fa036bfb400488f2243cd7e605aeb9d178b6eeb5828c687ccf93d83",
+              "document": {
+                "bytes": 890067,
+                "characters": 88637,
+                "contentType": "text/html; charset=UTF-8",
+                "end": 24890,
+                "sha256": "sha256:9ea5165b7fa036bfb400488f2243cd7e605aeb9d178b6eeb5828c687ccf93d83",
+                "start": 24297,
+                "status": 200,
+                "url": "https://en.wikipedia.org/wiki/Eiffel_Tower"
+              },
+              "number": 1,
+              "passage": "On two separate but related occasions in 1925, the con artist Victor Lustig \"sold\" the tower for scrap metal.[53] A year later, in February 1926, pilot Leon Collet was killed trying to fly under the tower. His aircraft became entangled in an aerial belonging to a wireless station.[54] A bust of Gustave Eiffel by Antoine Bourdelle was unveiled at the base of the north leg on 2 May 1929.[55] In 1930, the tower lost the title of the world's tallest structure when the Chrysler Building in New York City was completed.[56] In 1938, the decorative arcade around the first level was removed.[57]",
+              "passageHash": "sha256:2015193ee011a2446fcc487fa68c362374c1f4943738bb461a1faaab0642e0c2",
+              "passageOrigin": "extract",
+              "retrievedAt": 1792359102920,
+              "sourceId": "web-2",
+              "title": "Eiffel Tower - Wikipedia",
+              "truncated": false,
+              "url": "https://en.wikipedia.org/wiki/Eiffel_Tower"
+            },
+            {
+              "contentHash": "sha256:93997ca21c3aab97f60d5da7ebb147b790e3faac8a0fc56275f8fa0a27985128",
+              "document": {
+                "bytes": 113427,
+                "characters": 3840,
+                "contentType": "text/html; charset=utf-8",
+                "end": 894,
+                "sha256": "sha256:93997ca21c3aab97f60d5da7ebb147b790e3faac8a0fc56275f8fa0a27985128",
+                "start": 13,
+                "status": 200,
+                "url": "https://kids.nationalgeographic.com/history/article/eiffel-tower"
+              },
+              "number": 2,
+              "passage": "The Eiffel Tower in Paris, France, has serious celeb status. Completed in March 1889, it's one of the most recognizable monuments in the world. And the site, which is also known as the Iron Lady, receives nearly seven millions tourists a year. But despite its fame, the tower has some monumental secrets. Get the lowdown on this Parisian highlight.\n\nHIDDEN APARTMENT\n\nIf you were in charge of constructing the Eiffel Tower, where else would you live but ... the Eiffel Tower? Gustave Eiffel, who designed the landmark, built himself a small apartment on the top level of the structure. The sky-high hideaway had plush rugs, oil paintings, and even a grand piano. Only a few VIPs were allowed to visit, such as superstar scientist Thomas Edison. Unused since the 1920s after Eiffel's death, few knew about the 950-foot-high pad until 2015 when it opened for public viewing.\n\nSKY LAB",
+              "passageHash": "sha256:f970f1d9d7404a422004f1ff0027a3b3d9d415e0009f0d2b146f8c2576927ff9",
+              "passageOrigin": "extract",
+              "retrievedAt": 1792359103264,
+              "sourceId": "web-4",
+              "title": "Eiffel Tower | National Geographic Kids",
+              "truncated": false,
+              "url": "https://kids.nationalgeographic.com/history/article/eiffel-tower"
+            },
+            {
+              "contentHash": "sha256:503deae966765ce6a8a7e0bce9e7804b3fde9ba6b9a246fb893ba7d6f1936c43",
+              "document": {
+                "bytes": 613647,
+                "characters": 9409,
+                "contentType": "text/html; charset=utf-8",
+                "end": 2132,
+                "sha256": "sha256:503deae966765ce6a8a7e0bce9e7804b3fde9ba6b9a246fb893ba7d6f1936c43",
+                "start": 1019,
+                "status": 200,
+                "url": "https://www.history.com/this-day-in-history/march-31/eiffel-tower-opens"
+              },
+              "number": 3,
+              "passage": "Eiffel’s tower was greeted with skepticism from critics who argued that it would be structurally unsound, and indignation from others who thought it would be an eyesore in the heart of Paris. Unperturbed, Eiffel completed his great tower under budget in just two years. Only one worker lost his life during construction, which at the time was a remarkably low casualty number for a project of that magnitude. The light, airy structure was by all accounts a technological wonder and within a few decades came to be regarded as an architectural masterpiece.\n\nBuilding the Eiffel Tower\n\nThe Eiffel Tower was originally not well-liked by Parisians, but over time, it has become an iconic symbol of the city.\n\n2:53m watch\n\nThe Eiffel Tower is 984 feet tall and consists of an iron framework supported on four masonry piers, from which rise four columns that unite to form a single vertical tower. Platforms, each with an observation deck, are at three levels. Elevators ascend the piers on a curve, and Eiffel contracted the Otis Elevator Company of the United States to design the tower’s famous glass-cage elevators.",
+              "passageHash": "sha256:d78e99979e06f60e27087fbfa068c1cb7ad3b44451271cc8b2ce4daf57ce392b",
+              "passageOrigin": "extract",
+              "retrievedAt": 1792359103271,
+              "sourceId": "web-5",
+              "title": "Eiffel Tower opens in Paris | March 31, 1889 | HISTORY",
+              "truncated": false,
+              "url": "https://www.history.com/this-day-in-history/march-31/eiffel-tower-opens"
+            }
+          ],
+          "startedAt": 1792359101338,
+          "usage": {
+            "extraction": {
+              "bytes": 1617141,
+              "documents": 3
+            },
+            "search": {
+              "costMicroUsd": null,
+              "provider": "contributor-google-browser",
+              "requests": 1
+            }
+          },
+          "verification": {
+            "checker": null,
+            "claimSupport": {
+              "alignment": "reploid.lexical-span-alignment/v1",
+              "claims": [
+                {
+                  "citations": [],
+                  "end": 1,
+                  "id": "claim-1",
+                  "index": 0,
+                  "markers": [],
+                  "reason": "uncited",
+                  "reviewable": false,
+                  "start": 0,
+                  "text": "3",
+                  "verdict": "unsupported"
+                }
+              ],
+              "contextDigest": "sha256:fc2e379d4dfe45c62ebadd5fa6fa7dc77a61a40428cc2fd0546474045fb0e17f",
+              "contextValid": true,
+              "query": "What year was the Eiffel Tower completed? Cite a source.",
+              "schema": "reploid.claim-support/v1",
+              "summary": {
+                "citations": 0,
+                "citedClaims": 0,
+                "claims": 1,
+                "invalidCitations": 0,
+                "reviewableClaims": 0,
+                "supported": 0,
+                "unsupported": 1,
+                "unverified": 0,
+                "validCitations": 0
+              }
+            },
+            "claims": [
+              {
+                "citations": [],
+                "cited": false,
+                "end": 1,
+                "index": 0,
+                "markers": [],
+                "start": 0,
+                "text": "3"
+              }
+            ],
+            "flags": [
+              {
+                "claim": 0,
+                "kind": "uncited-claim"
+              }
+            ],
+            "references": [],
+            "schema": "reploid.citation-verification/v1",
+            "summary": {
+              "citations": 0,
+              "citedClaims": 0,
+              "claims": 1,
+              "supported": 0,
+              "uncitedClaims": 1,
+              "unrecordedUrls": 0,
+              "unresolvedCitations": 0,
+              "unsupported": 0,
+              "unverified": 0
+            },
+            "unrecordedUrls": [],
+            "usage": {
+              "checks": 0,
+              "costMicroUsd": 0
+            }
+          }
+        },
+        "retryOf": null,
+        "searchPermission": {
+          "grantedAt": 1792359101338,
+          "id": "7c2df537-d226-4c5a-bcbd-92320c274c83",
+          "kind": "search-answer",
+          "networkId": "reploid-swarm-public",
+          "query": "What year was the Eiffel Tower completed? Cite a source.",
+          "recipients": [
+            "peer:18813808898ffbd29bbce3dd",
+            "peer:82f5f485c9f50fb1fa86bf7a"
+          ],
+          "revokedAt": null,
+          "schema": "reploid.remote-permission/v3",
+          "searchPeer": "peer:82f5f485c9f50fb1fa86bf7a",
+          "searchProvider": "contributor-google-browser",
+          "searchServer": null,
+          "source": "send",
+          "threadId": "ed68e6e4-6a42-4528-a796-4e3f4cf20ff8",
+          "wording": {
+            "id": "reploid.search-answer-permission",
+            "text": "Allow Reploid to send this search query to the listed search contributor, which searches Google in a dedicated browser session and fetches public result pages without personal sign-ins. Share retrieved passages with the listed execution contributors for this answer. Your files and unrelated conversation history are excluded.",
+            "version": "2026-10-18"
+          }
+        },
+        "status": "completed",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        },
+        "threadId": "ed68e6e4-6a42-4528-a796-4e3f4cf20ff8",
+        "userMessageId": "5bd4479e-062e-43c3-ab49-502ec801ecbd"
+      }
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "scope": "Exact original messages; official local tokenizer with thinking disabled",
+  "sameIds": true,
+  "deployedCount": 801,
+  "officialCount": 801,
+  "deployedTail": " ascend the piers on a curve, and Eiffel contracted the Otis Elevator Company of the United States to design the tower\u2019s famous glass-cage elevators.\n\nQuestion: What year was the Eiffel Tower completed? Cite a source.<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+  "officialTail": " ascend the piers on a curve, and Eiffel contracted the Otis Elevator Company of the United States to design the tower\u2019s famous glass-cage elevators.\n\nQuestion: What year was the Eiffel Tower completed? Cite a source.<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+  "firstDifference": null,
+  "initialProbeFailure": "Transformers apply_chat_template returned a structured encoding; initial diagnostic tried to decode it as IDs. No inference ran. Revised diagnostic renders text explicitly, then encodes without extra special tokens."
+}
