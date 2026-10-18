@@ -1,0 +1,6 @@
+
+> reploid@0.1.0 verify:doppler-generation
+> node scripts/sync-doppler-generation-contract.js --check && node scripts/sync-doppler-partition-contract.js --check
+
+Doppler generation validation bundle matches the installed public API.
+Partition types match the installed public Doppler API.

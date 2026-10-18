@@ -15,7 +15,7 @@ import { createServerSearch } from './server-search.js';
 import { getPoolAuthToken } from '../pool/identity.js';
 import { createDeviceSearch } from './device-search.js';
 import { acquireChatHistoryOwner, refusedChatHistory } from './chat-history.js';
-import { DOPPLER_PARTITIONS_MODULE_URL } from '../config/doppler-local-models.js';
+import { metadataDigest } from '../config/doppler-metadata-contract.js';
 import orderedPolicy from '../config/ordered-participation.json' with { type: 'json' };
 import { startSwarmAutoconnect } from './swarm-autoconnect.js';
 import swarmPolicy from '../config/swarm-bootstrap.json' with { type: 'json' };
@@ -34,7 +34,7 @@ const ordinaryReason = cause => `History stays ordinary: ${cause}; ordered answe
  * Doppler's metadataDigest; without it, or without Web Locks to keep one history
  * owner per browser profile, history stays ordinary and says so in state. */
 async function openOrderedRequesterChat({ chatOptions, requesterIdentity, ports }) {
-  const { loadRuntime = () => import(DOPPLER_PARTITIONS_MODULE_URL), locks = globalThis.navigator?.locks, openStore } = ports;
+  const { loadRuntime = () => ({ metadataDigest }), locks = globalThis.navigator?.locks, openStore } = ports;
   const ordinary = reason => createChatSession({ ...chatOptions, requesterIdentity,
     history: { mode: 'ordinary', publication: null, reason: ordinaryReason(reason) } });
   let runtime;

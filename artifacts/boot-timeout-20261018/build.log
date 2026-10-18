@@ -1,0 +1,6 @@
+
+> reploid@0.1.0 build:browser-bundle
+> node scripts/build-browser-bundle-manifest.js
+
+[module-inventory] Wrote /Users/xyz/deco/reploid/self/config/module-inventory.json with 1597 modules
+[browser-bundle] Wrote /Users/xyz/deco/reploid/self/config/browser-bundle-manifest.json with 2151 served files as sha256:9cfd28c6c33d8dfceb163ab8bfae1c5129654bc8d5edeea289d3b11c6b9d0abe

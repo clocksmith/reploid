@@ -318,6 +318,12 @@
       ]
     },
     {
+      "path": "config/doppler-metadata-contract.js",
+      "owner": "config",
+      "sha256": "sha256:8173a4e13c8e46b28cbb6811ecc4e426384b3889edf1ae548397569254e85727",
+      "imports": []
+    },
+    {
       "path": "config/immutability.js",
       "owner": "config",
       "sha256": "sha256:6f343344d22c601c0bd1c99320d608c96e37dfd62f569dceb806d33b22592169",
@@ -2350,9 +2356,9 @@
     {
       "path": "self/host/product-session.js",
       "owner": "self",
-      "sha256": "sha256:ef4882b4fce1fcbe742651e6c63bed836d7eed593f23d6b2db22de06d67342f7",
+      "sha256": "sha256:9614b62f181227653fe48a5748ace30e33bfa8ec3b876b02d11fc8cb78ab2136",
       "imports": [
-        "../config/doppler-local-models.js",
+        "../config/doppler-metadata-contract.js",
         "../config/ordered-participation.json",
         "../config/swarm-bootstrap.json",
         "../infrastructure/doppler-runtime-service.js",
@@ -3389,7 +3395,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:8cd37582b7a8e6f33183a3f8078520a8a9058f2074ef6bc8d5c43ca17ab8f02b",
+      "sha256": "sha256:bd0638d85e5c91299041cfae7f398ecbccfe9f71e55c5512587a74da3c664188",
       "imports": []
     },
     {
@@ -3506,7 +3512,7 @@
     {
       "path": "ui/pool-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:aaedaffa60a3e37758ac3651267e1ed68bd0c909ad4403e9c010b22405526142",
+      "sha256": "sha256:a5348adfb94ed25870771a0b150ce27fb90c832967612192cefe4fe4cfac119a",
       "imports": [
         "../../host/credits/browser.js",
         "../../host/product-context.js",
