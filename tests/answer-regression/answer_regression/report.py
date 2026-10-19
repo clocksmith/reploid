@@ -132,6 +132,8 @@ def validate_search_inputs(run):
     data = frozen_file(SEARCH_SET, SEARCH_SET_SHA256, 'search-task set')
     if run['itemSet']['sha256'] != SEARCH_SET_SHA256:
         raise SystemExit('Search comparison requires the frozen search-task set')
+    from .context_candidate import candidate_for_run
+    candidate = candidate_for_run(run)
     items = {item['id']: item for item in data['items']}
     seen = set()
     for row in run['items']:
@@ -148,7 +150,11 @@ def validate_search_inputs(run):
                 if turn.get('output') or turn.get('outputTokenIds'):
                     raise SystemExit(f'{item_id}: generated answer has no dispatched source evidence')
                 continue
-            expected = prepare_retrieval(item, data, [{'role': 'user', 'content': item['prompt']}])
+            if candidate:
+                retained = candidate[0][item_id]
+                expected = {'record': retained['retrieval'], 'dispatchedMessages': retained['dispatchedMessages']}
+            else:
+                expected = prepare_retrieval(item, data, [{'role': 'user', 'content': item['prompt']}])
             record = turn.get('retrieval') or {}
             if (record.get('outcome') != 'retrieved'
                     or record.get('sources') != expected['record']['sources']
@@ -165,6 +171,8 @@ def compare_runs(baseline_dir, candidate_dir, baseline_evaluation=None, candidat
                          f"({b_run['target']['id']} vs {c_run['target']['id']})")
     if b_run['itemSet']['sha256'] != c_run['itemSet']['sha256']:
         raise SystemExit('The baseline and candidate ran different item sets')
+    if b_run['itemSet'].get('contextCandidate') != c_run['itemSet'].get('contextCandidate'):
+        raise SystemExit('Changed source context requires a separate context-candidate baseline')
     kind = b_run['itemSet']['kind']
     if kind == 'search':
         validate_search_inputs(b_run)
@@ -173,7 +181,13 @@ def compare_runs(baseline_dir, candidate_dir, baseline_evaluation=None, candidat
         memberships = [{row['id'] for row in rows} for rows in item_rows]
         if any(len(rows) != len(ids) for rows, ids in zip(item_rows, memberships)):
             raise SystemExit('Search comparison requires unique evaluated item IDs')
-        if any(ids != memberships[0] for ids in memberships[1:]):
+        # Evaluators retain notRun rows for the rest of a frozen set on partial runs.
+        # Those placeholders must not conceal missing evaluations or changed subsets.
+        run_ids = memberships[0]
+        if (memberships[1] != run_ids or memberships[2] != memberships[3]
+                or not run_ids <= memberships[2]
+                or any(row['id'] not in run_ids and not row.get('notRun')
+                       for rows in item_rows[2:] for row in rows)):
             raise SystemExit('Search comparison requires the same evaluated item IDs in both runs')
     families = USEFUL_FAMILIES if kind == 'useful-answer' else SEARCH_FAMILIES
     b_items = {row['id']: row for row in b_eval['items']}

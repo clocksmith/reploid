@@ -369,5 +369,138 @@ class FixedDocumentCompare(unittest.TestCase):
         self.assertEqual(run['items'][0]['turns'][0]['retrieval']['outcome'], 'failed')
 
 
+class RetainedContextCandidate(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        from answer_regression.context_candidate import load_candidate
+        cls.identity, cls.retained, cls.policy = load_candidate('whole-passages-250')
+        cls.data = load_json(SEARCH_SET)
+
+    def run_record(self):
+        run = {'runId': 'synthetic', 'target': {'id': 'mock', 'kind': 'installed-route'}, 'identities': {},
+               'itemSet': {'kind': 'search', 'name': 'frozen search', 'sha256': sha256_file(SEARCH_SET),
+                           'contextCandidate': self.identity}, 'items': []}
+        for item in self.data['items']:
+            row = self.retained[item['id']]
+            run['items'].append({'id': item['id'], 'category': 'search', 'turns': [{
+                'turn': 1, 'dispatched': row['dispatchedMessages'] is not None,
+                'messages': row['dispatchedMessages'], 'retrieval': row['retrieval'],
+                'output': 'BM-300 [1].' if row['dispatchedMessages'] else '',
+                'stopReason': 'eos-token', 'seconds': 0.001, 'overPromptLimit': False}]})
+        return json.loads(json.dumps(run))
+
+    def test_plan_uses_full_retained_passages_and_does_not_dispatch_empty_retrieval(self):
+        import harness
+        class Target:
+            def supports_search(self):
+                return True, None
+        plan = harness.build_plan('search', self.data, [], Target(), self.retained)
+        self.assertEqual(len(plan['items']), 8)
+        turns = [item['turns'][0] for item in plan['items']]
+        self.assertEqual(sum(turn['dispatch'] for turn in turns), 7)
+        kettle = plan['items'][0]['turns'][0]
+        self.assertIn('The BrewMate BM-300 is not part of this recall.', kettle['send'])
+        self.assertEqual(kettle['retrieval'], self.retained[plan['items'][0]['id']]['retrieval'])
+        with self.assertRaisesRegex(SystemExit, 'only to search'):
+            harness.build_plan('useful-answer', self.data, [], Target(), self.retained)
+
+    def test_run_command_records_exact_candidate_and_per_item_limits_without_model(self):
+        import harness
+        from types import SimpleNamespace
+        from unittest.mock import patch
+        class Target:
+            kind = 'installed-route'
+            id = 'synthetic'
+            def supports_search(self):
+                return True, None
+            def describe(self):
+                return {'id': self.id, 'kind': self.kind}
+            def generate(self, plan, work, log):
+                # This injected target emits no answer and performs no inference.
+                return [], {}, {'syntheticPlanItems': len(plan['items'])}
+        with tempfile.TemporaryDirectory() as root:
+            args = SimpleNamespace(target='unused.json', set='search', context_candidate='whole-passages-250',
+                                   work=str(Path(root) / 'work'), out=str(Path(root) / 'out'), items=None, preflight=False)
+            with patch('answer_regression.targets.load_target', return_value=Target()):
+                harness.command_run(args)
+            run = load_json(Path(args.out) / 'run.json')
+            self.assertEqual(run['itemSet']['contextCandidate'], self.identity)
+            self.assertIsNone(run['retrieval']['limits'])
+            self.assertEqual(run['retrieval']['perItemLimits'],
+                             {key: row['limits'] for key, row in self.retained.items()})
+            self.assertEqual(run['details']['syntheticPlanItems'], 8)
+
+    def test_rejects_tampered_candidate_identity_and_dispatched_context(self):
+        run = self.run_record()
+        report.validate_search_inputs(run)
+        run['itemSet']['contextCandidate']['selectedInputSha256'] = 'changed'
+        with self.assertRaisesRegex(SystemExit, 'exact retained'):
+            report.validate_search_inputs(run)
+        run = self.run_record()
+        run['items'][0]['turns'][0]['messages'][0]['content'] += ' extra instruction'
+        with self.assertRaisesRegex(SystemExit, 'frozen source context'):
+            report.validate_search_inputs(run)
+
+    def test_candidate_citation_binding_uses_its_own_policy_and_keeps_wrong_answer(self):
+        item = self.data['items'][0]
+        row = self.run_record()['items'][0]
+        result = checks.search_item(item, row, self.data, self.policy)
+        validity = {check['type']: check['pass'] for check in result['citations']['checks']}
+        self.assertTrue(validity['contextDigestHolds'])
+        self.assertFalse(result['answer']['pass'])
+        self.assertFalse(result['pass'])
+        self.assertFalse(result['citations']['supportJudged'])
+        # Original-policy verification must not silently approve changed instructions.
+        original = checks.search_item(item, row, self.data)
+        self.assertFalse({check['type']: check['pass'] for check in original['citations']['checks']}['contextDigestHolds'])
+
+    def test_partial_runs_compare_with_not_run_placeholders_and_reject_changed_subsets(self):
+        from answer_regression.evaluation import evaluate_run
+        with tempfile.TemporaryDirectory() as root:
+            dirs = []
+            for name in ['baseline', 'candidate']:
+                directory = Path(root) / name
+                run = self.run_record()
+                run['items'] = run['items'][:1]
+                write_json(directory / 'run.json', run)
+                evaluated = evaluate_run(directory / 'run.json', log=lambda _: None)
+                self.assertEqual(len(evaluated['summary']['notRun']), 7)
+                write_json(directory / 'evaluation.json', evaluated)
+                dirs.append(directory)
+            self.assertEqual(report.compare_runs(*dirs)['summary']['newlyFailingTotal'], 0)
+            run = self.run_record()
+            run['items'] = run['items'][1:2]
+            write_json(dirs[1] / 'run.json', run, exclusive=False)
+            write_json(dirs[1] / 'evaluation.json', evaluate_run(dirs[1] / 'run.json', log=lambda _: None), exclusive=False)
+            with self.assertRaisesRegex(SystemExit, 'same evaluated item IDs'):
+                report.compare_runs(*dirs)
+
+    def test_candidate_evaluation_and_compare_require_separate_baseline(self):
+        from answer_regression.evaluation import evaluate_run
+        with tempfile.TemporaryDirectory() as root:
+            dirs = []
+            for name in ['baseline', 'candidate']:
+                directory = Path(root) / name
+                run = self.run_record()
+                run['runId'] = name
+                write_json(directory / 'run.json', run)
+                evaluated = evaluate_run(directory / 'run.json', log=lambda _: None)
+                write_json(directory / 'evaluation.json', evaluated)
+                dirs.append(directory)
+            compared = report.compare_runs(*dirs)
+            self.assertEqual(compared['summary']['newlyFailingTotal'], 0)
+            self.assertFalse(compared['items'][0]['candidate']['answer'])
+            self.assertEqual(compared['itemSet']['contextCandidate'], self.identity)
+            # Same frozen documents are insufficient when dispatched context differs.
+            run = load_json(dirs[1] / 'run.json')
+            del run['itemSet']['contextCandidate']
+            write_json(dirs[1] / 'run.json', run, exclusive=False)
+            evaluation = load_json(dirs[1] / 'evaluation.json')
+            evaluation['run']['sha256'] = sha256_file(dirs[1] / 'run.json')
+            write_json(dirs[1] / 'evaluation.json', evaluation, exclusive=False)
+            with self.assertRaisesRegex(SystemExit, 'separate context-candidate baseline'):
+                report.compare_runs(*dirs)
+
+
 if __name__ == '__main__':
     unittest.main()

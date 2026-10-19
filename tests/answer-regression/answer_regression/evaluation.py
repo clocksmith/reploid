@@ -83,6 +83,12 @@ def evaluate_useful(data, run, sandbox, judge, log):
 
 
 def evaluate_search(data, run, judge, log):
+    from .context_candidate import candidate_for_run
+    candidate = candidate_for_run(run)
+    if candidate:
+        from .report import validate_search_inputs
+        validate_search_inputs(run)
+    policy = candidate[1] if candidate else None
     run_items = {item['id']: item for item in run['items']}
     rows = []
     for item in data['items']:
@@ -90,7 +96,7 @@ def evaluate_search(data, run, judge, log):
         if run_item is None or not run_item['turns']:
             rows.append({'id': item['id'], 'category': 'search', 'kind': item['kind'], 'notRun': True})
             continue
-        result = checks.search_item(item, run_item, data)
+        result = checks.search_item(item, run_item, data, policy)
         turn = run_item['turns'][0]
         fmt = checks.format_checks(turn) if turn.get('dispatched') else []
         row = {'id': item['id'], 'category': 'search', 'kind': item['kind'], 'policy': 'R', 'search': result,

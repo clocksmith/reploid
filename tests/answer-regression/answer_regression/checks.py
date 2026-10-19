@@ -169,14 +169,14 @@ def prepare_retrieval(item, search_set, messages):
     return reply
 
 
-def verify_citations(answer, record):
-    reply = node_helper({'op': 'verify', 'answer': answer, 'record': record})
+def verify_citations(answer, record, policy=None):
+    reply = node_helper({'op': 'verify', 'answer': answer, 'record': record, 'policy': policy})
     if not reply.get('ok'):
         raise SystemExit(f"citation verification failed in the harness: {reply.get('error')}")
     return reply['verification']
 
 
-def search_item(item, run_item, search_set):
+def search_item(item, run_item, search_set, policy=None):
     """Verdict families for one search item: answer, citation validity, claim coverage."""
     turn = run_item['turns'][0]
     record = turn.get('retrieval')
@@ -195,7 +195,7 @@ def search_item(item, run_item, search_set):
     if item['abstain']:
         match = re.search(search_set['abstentionPattern'], frozen().normalize(output), re.IGNORECASE)
         answer.append({'type': 'abstains', 'pass': bool(match), 'detail': f'match {match.group(0)!r}' if match else 'no match'})
-    verification = verify_citations(output, record)
+    verification = verify_citations(output, record, policy)
     numbers = {source['sourceId']: source['number'] for source in record['sources']}
     cited = {citation['marker'] for claim in verification['claims'] for citation in claim['citations'] if citation['resolved']}
     flags = [flag['kind'] for flag in verification['flags']]

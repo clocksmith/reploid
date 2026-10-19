@@ -33,9 +33,11 @@ def load_item_set(kind):
     return data, {'kind': kind, 'name': data['name'], 'file': repo_relative(SEARCH_SET), 'sha256': SEARCH_SET_SHA256}
 
 
-def build_plan(kind, data, only, target):
+def build_plan(kind, data, only, target, context_candidate=None):
     """The exact content to send per turn. Search turns carry the retrieval record and dispatched content."""
     from answer_regression.checks import prepare_retrieval
+    if context_candidate and kind != 'search':
+        raise SystemExit('Context candidates apply only to search runs')
     items = [item for item in data['items'] if not only or item['id'] in only]
     if only and len(items) != len(only):
         raise SystemExit(f'unknown item ids: {sorted(set(only) - {item["id"] for item in items})}')
@@ -47,7 +49,12 @@ def build_plan(kind, data, only, target):
             turns = [{'user': turn['user'], 'send': turn['user'], 'dispatch': True, 'retrieval': None} for turn in item['turns']]
             plan['items'].append({'id': item['id'], 'category': item['category'], 'turns': turns})
             continue
-        prepared = prepare_retrieval(item, data, [{'role': 'user', 'content': item['prompt']}])
+        if context_candidate:
+            retained = context_candidate[item['id']]
+            prepared = {'record': retained['retrieval'], 'dispatchedMessages': retained['dispatchedMessages'],
+                        'failureMessage': None}
+        else:
+            prepared = prepare_retrieval(item, data, [{'role': 'user', 'content': item['prompt']}])
         dispatched = prepared['dispatchedMessages']
         turn = {'user': item['prompt'], 'send': dispatched[-1]['content'] if dispatched else None,
                 'dispatch': bool(dispatched) and supported, 'retrieval': prepared['record'],
@@ -62,6 +69,13 @@ def command_run(args):
     from answer_regression.targets import load_target
     target = load_target(args.target)
     data, item_set = load_item_set(args.set)
+    context_candidate = None
+    if args.context_candidate:
+        if args.set != 'search':
+            raise SystemExit('Context candidates apply only to search runs')
+        from answer_regression.context_candidate import load_candidate
+        identity, context_candidate, _ = load_candidate(args.context_candidate)
+        item_set['contextCandidate'] = identity
     work = Path(args.work).resolve()
     require_outside_repo(work, 'The work directory')
     if work.exists() and any(work.iterdir()):
@@ -74,7 +88,7 @@ def command_run(args):
     if only and args.set == 'useful-answer' and target.kind == 'cpu-q4k-control':
         raise SystemExit('The CPU control runs the frozen useful-answer file as a whole; --items is not supported there.')
     started = now_iso()
-    plan = build_plan(args.set, data, only, target)
+    plan = build_plan(args.set, data, only, target, context_candidate)
     if args.preflight:
         if target.kind != 'doppler-single-machine':
             raise SystemExit('--preflight applies to the doppler-single-machine target')
@@ -92,7 +106,10 @@ def command_run(args):
         'harness': harness_identity(),
         'target': target.describe(), 'identities': identities, 'details': details, 'itemSet': item_set,
         'retrieval': ({'component': retrieval_component_identity(), 'provider': data['retrieval']['provider'],
-                       'fixedNow': data['retrieval']['fixedNow'], 'limits': data['retrieval']['limits']}
+                       'fixedNow': data['retrieval']['fixedNow'],
+                       'limits': None if context_candidate else data['retrieval']['limits'],
+                       'perItemLimits': ({key: row['limits'] for key, row in context_candidate.items()}
+                                         if context_candidate else None)}
                       if args.set == 'search' else None),
         'items': items,
     }
@@ -154,6 +171,8 @@ def main():
     run = sub.add_parser('run', help='generate answers on one target')
     run.add_argument('--target', required=True, help='target configuration JSON')
     run.add_argument('--set', choices=['useful-answer', 'search'], default='useful-answer')
+    run.add_argument('--context-candidate', choices=['whole-passages-250'],
+                     help='search only: separately bound retained development input; requires its own baseline')
     run.add_argument('--work', required=True, help='empty work directory outside the repository (raw outputs and logs)')
     run.add_argument('--out', required=True, help='run directory; run.json is written there')
     run.add_argument('--items', help='comma-separated item ids (targets that support partial runs)')
