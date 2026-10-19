@@ -1,0 +1,41 @@
+{
+  "sourceFilesUnchanged": true,
+  "files": [
+    {
+      "path": "server/native-whole-model.js",
+      "unchanged": true
+    },
+    {
+      "path": "self/providers/work-resident-provider.js",
+      "unchanged": true
+    },
+    {
+      "path": "self/providers/work-provider.js",
+      "unchanged": true
+    },
+    {
+      "path": "self/providers/work-generation-completion.js",
+      "unchanged": true
+    },
+    {
+      "path": "self/infrastructure/doppler-runtime-service.js",
+      "unchanged": true
+    },
+    {
+      "path": "self/config/chat-models.json",
+      "unchanged": true
+    },
+    {
+      "path": "self/config/work-profile.json",
+      "unchanged": true
+    },
+    {
+      "path": "artifacts/source-answer-organization-20261019/run.mjs",
+      "unchanged": true
+    },
+    {
+      "path": "artifacts/source-answer-organization-20261019/checks.mjs",
+      "unchanged": true
+    }
+  ]
+}
