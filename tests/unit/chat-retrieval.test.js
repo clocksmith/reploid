@@ -109,6 +109,43 @@ describe('retrieval-backed chat requests', () => {
     await app.close();
   });
 
+  it('keeps cancelled provenance across reload and retrieves afresh from a replacement provider on explicit retry', async () => {
+    let release, dispatched;
+    const gate = new Promise(resolve => { release = resolve; });
+    const first = fixture({ hold: () => gate });
+    const thread = first.app.createThread({ model });
+    const pending = first.app.send(thread, QUESTION, { retrieval: {} });
+    await vi.waitFor(() => expect(first.executed).toHaveLength(1));
+    dispatched = structuredClone(first.executed[0]);
+    const original = structuredClone(first.store.load().threads[0].attempts[0].retrieval);
+    const cancelling = first.app.cancel(thread);
+    release();
+    await cancelling;
+    expect(await pending).toMatchObject({ status: 'cancelled' });
+    const saved = structuredClone(first.store.load());
+    await first.app.close();
+
+    const documents = DOCUMENTS.map(document => document.id === 'fixed:eiffel'
+      ? { ...document, text: 'The Eiffel Tower in Paris was completed in 1890.' } : document);
+    const provider = createFixedSearchProvider({ documents, now: () => 1760000000001 });
+    const execute = vi.fn(async request => result(request, 'The Eiffel Tower was completed in 1890 [1].'));
+    const restored = createChatWorkspace({ ...first.options, execute,
+      retrieval: { provider, extractor: provider }, store: { load: () => saved, save() {} } });
+    expect(execute).not.toHaveBeenCalled();
+    const oldAttempt = restored.getState().threads[0].attempts[0];
+    expect(oldAttempt.status).toBe('cancelled');
+    expect(oldAttempt.retrieval.sources).toEqual(original.sources);
+    expect(oldAttempt.retrieval.context).toEqual(original.context);
+    const retried = await restored.retry(thread, oldAttempt.id);
+    expect(retried).toMatchObject({ status: 'completed', retryOf: oldAttempt.id });
+    expect(retried.id).not.toBe(oldAttempt.id);
+    expect(retried.retrieval.context.digest).not.toBe(original.context.digest);
+    expect(execute.mock.calls[0][0].messages[0].content).toContain('completed in 1890');
+    expect(dispatched.messages[0].content).toContain('completed in 1889');
+    expect(restored.getState().threads[0].attempts[0].retrieval.sources).toEqual(original.sources);
+    await restored.close();
+  });
+
   it('retries with a fresh retrieval in a new attempt and refuses retrieval without configured ports', async () => {
     let fail = true;
     const provider = createFixedSearchProvider({ documents: DOCUMENTS, now: () => 1760000000000 });
@@ -171,6 +208,8 @@ describe('host retrieval plumbing and disclosure', () => {
     const session = createChatSession({ storage: memory(), service: createChatTestService(), partitions, retrieval: fixedPorts(),
       requesterIdentity: () => REQUESTER });
     sessions.push(session);
+    // Exercise manual per-answer approval explicitly; ordinary remote answers are default-on.
+    session.setRemoteAnswersEnabled(false);
     const thread = session.createThread({ model: ordered });
     const completion = session.send(thread, QUESTION, [{ name: 'notes.txt', text: 'My private notes about Paris.' }], { retrieval: {} });
     const attempt = () => session.getState().threads[0].attempts.at(-1);

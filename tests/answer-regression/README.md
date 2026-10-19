@@ -87,7 +87,7 @@ python3 -I tests/answer-regression/harness.py evaluate --run "$SCRATCH/arx-candi
 python3 -I tests/answer-regression/test_harness.py
 ```
 
-`compare` refuses runs of different targets or item sets. It reports:
+`compare` refuses runs of different targets or item sets. For search, generated turns must bind the frozen sources, context digest and actual dispatched messages; changed or missing inputs require a separate baseline. Both runs must contain the same evaluated item IDs. Non-dispatched retrieval failures remain visible failures. Timing and citation verification metadata do not change source identity or establish answer quality. It reports:
 - identity changes, with a note when sampling or limits changed, so answer differences are not read as arithmetic drift;
 - changed answers, with the first diverging token;
 - every verdict that newly fails or newly passes;

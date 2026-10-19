@@ -6,7 +6,8 @@ judge when both runs have one) and per-category counts, keeps per-item details, 
 """
 from pathlib import Path
 
-from .common import JUDGE_LABEL, LABEL, SCOPE_NOTE, label_block, load_json, now_iso, repo_relative, sha256_file
+from .common import (JUDGE_LABEL, LABEL, SEARCH_SET, SEARCH_SET_SHA256, SCOPE_NOTE, frozen_file,
+                     label_block, load_json, now_iso, repo_relative, sha256_file)
 
 USEFUL_FAMILIES = ('mechanical', 'format', 'instruction', 'code', 'judge')
 SEARCH_FAMILIES = ('retrievalOutcome', 'answer', 'citations', 'claimCoverage', 'item', 'format', 'judge')
@@ -120,6 +121,42 @@ def tally(rows, family):
             'rate': round(sum(1 for v in graded if v) / len(graded), 4) if graded else None}
 
 
+def validate_search_inputs(run):
+    """Bind generated answers to the frozen documents and actual dispatched messages.
+
+    Retrieval failures stay comparable failures. A generated answer with missing or
+    changed source evidence cannot be attributed to a model/package regression.
+    Verification, timing and cost metadata are deliberately outside this identity.
+    """
+    from .checks import prepare_retrieval
+    data = frozen_file(SEARCH_SET, SEARCH_SET_SHA256, 'search-task set')
+    if run['itemSet']['sha256'] != SEARCH_SET_SHA256:
+        raise SystemExit('Search comparison requires the frozen search-task set')
+    items = {item['id']: item for item in data['items']}
+    seen = set()
+    for row in run['items']:
+        item_id = row['id']
+        if item_id in seen or item_id not in items:
+            raise SystemExit(f'{item_id}: duplicate or unknown search item')
+        seen.add(item_id)
+        item = items[item_id]
+        turns = row.get('turns') or []
+        if len(turns) > 1:
+            raise SystemExit(f'{item_id}: frozen search items have one turn')
+        for turn in turns:
+            if turn.get('dispatched') is not True:
+                if turn.get('output') or turn.get('outputTokenIds'):
+                    raise SystemExit(f'{item_id}: generated answer has no dispatched source evidence')
+                continue
+            expected = prepare_retrieval(item, data, [{'role': 'user', 'content': item['prompt']}])
+            record = turn.get('retrieval') or {}
+            if (record.get('outcome') != 'retrieved'
+                    or record.get('sources') != expected['record']['sources']
+                    or record.get('context') != expected['record']['context']
+                    or turn.get('messages') != expected['dispatchedMessages']):
+                raise SystemExit(f'{item_id}: generated answer does not bind the frozen source context and dispatched messages')
+
+
 def compare_runs(baseline_dir, candidate_dir, baseline_evaluation=None, candidate_evaluation=None):
     b_run, b_eval, b_run_path, b_eval_path = load_pair(baseline_dir, baseline_evaluation)
     c_run, c_eval, c_run_path, c_eval_path = load_pair(candidate_dir, candidate_evaluation)
@@ -129,6 +166,15 @@ def compare_runs(baseline_dir, candidate_dir, baseline_evaluation=None, candidat
     if b_run['itemSet']['sha256'] != c_run['itemSet']['sha256']:
         raise SystemExit('The baseline and candidate ran different item sets')
     kind = b_run['itemSet']['kind']
+    if kind == 'search':
+        validate_search_inputs(b_run)
+        validate_search_inputs(c_run)
+        item_rows = (b_run['items'], c_run['items'], b_eval['items'], c_eval['items'])
+        memberships = [{row['id'] for row in rows} for rows in item_rows]
+        if any(len(rows) != len(ids) for rows, ids in zip(item_rows, memberships)):
+            raise SystemExit('Search comparison requires unique evaluated item IDs')
+        if any(ids != memberships[0] for ids in memberships[1:]):
+            raise SystemExit('Search comparison requires the same evaluated item IDs in both runs')
     families = USEFUL_FAMILIES if kind == 'useful-answer' else SEARCH_FAMILIES
     b_items = {row['id']: row for row in b_eval['items']}
     c_items = {row['id']: row for row in c_eval['items']}
