@@ -1,0 +1,205 @@
+{
+  "scope": "Implementation-agent unblinded development review; not independent acceptance",
+  "receiptHash": "339c9df4dd008a321e40982b721a9d03b57a408fa4ad5e399661d3bed922cf1c",
+  "reviews": [
+    {
+      "id": "date",
+      "arm": "baseline",
+      "answerHash": "413592d9b1e0c244e0982a2938de0d4564ef6b05d1b0d13a0b95fb38d36078d5",
+      "factualCorrectness": true,
+      "citationSupport": true,
+      "requestedFormat": true,
+      "abstained": false,
+      "fulfillsRequest": true,
+      "reason": "Requested fact supported, with applicable citation."
+    },
+    {
+      "id": "date",
+      "arm": "candidate",
+      "answerHash": "413592d9b1e0c244e0982a2938de0d4564ef6b05d1b0d13a0b95fb38d36078d5",
+      "factualCorrectness": true,
+      "citationSupport": true,
+      "requestedFormat": true,
+      "abstained": false,
+      "fulfillsRequest": true,
+      "reason": "Requested fact supported, with applicable citation."
+    },
+    {
+      "id": "author",
+      "arm": "candidate",
+      "answerHash": "05e0afa6d129bca02fb23c063a103f3b243a530258749e71a53de30a3a9d10af",
+      "factualCorrectness": true,
+      "citationSupport": true,
+      "requestedFormat": true,
+      "abstained": false,
+      "fulfillsRequest": true,
+      "reason": "Requested fact supported, with applicable citation."
+    },
+    {
+      "id": "author",
+      "arm": "baseline",
+      "answerHash": "080a9ed428559ef602668b4c00f114f1a11c3f6b02a435f0bdc154578e4d7f22",
+      "factualCorrectness": false,
+      "citationSupport": null,
+      "requestedFormat": true,
+      "abstained": false,
+      "fulfillsRequest": false,
+      "reason": "Citation alone does not answer the supported question."
+    },
+    {
+      "id": "two-awards",
+      "arm": "baseline",
+      "answerHash": "efe6475a3a4c2fef165b416c302071e57efbe461f18a74d6c24b4df64916b331",
+      "factualCorrectness": true,
+      "citationSupport": true,
+      "requestedFormat": true,
+      "abstained": false,
+      "fulfillsRequest": true,
+      "reason": "Requested fact supported, with applicable citation."
+    },
+    {
+      "id": "two-awards",
+      "arm": "candidate",
+      "answerHash": "efe6475a3a4c2fef165b416c302071e57efbe461f18a74d6c24b4df64916b331",
+      "factualCorrectness": true,
+      "citationSupport": true,
+      "requestedFormat": true,
+      "abstained": false,
+      "fulfillsRequest": true,
+      "reason": "Requested fact supported, with applicable citation."
+    },
+    {
+      "id": "unknown",
+      "arm": "candidate",
+      "answerHash": "689325e9a415986fa406b40139dfd84a3e7c9edd03706139bc25295b7a90d9bb",
+      "factualCorrectness": true,
+      "citationSupport": true,
+      "requestedFormat": true,
+      "abstained": true,
+      "fulfillsRequest": true,
+      "reason": "Correctly says the requested fact is absent. Do not infer availability from missing evidence."
+    },
+    {
+      "id": "unknown",
+      "arm": "baseline",
+      "answerHash": "94b198e07bf8bc85c15281d9887f42ac394b4baffe29a22a18ac11b7d968fd83",
+      "factualCorrectness": true,
+      "citationSupport": true,
+      "requestedFormat": true,
+      "abstained": true,
+      "fulfillsRequest": true,
+      "reason": "Correctly says the requested fact is absent. Do not infer availability from missing evidence."
+    },
+    {
+      "id": "exclusion",
+      "arm": "baseline",
+      "answerHash": "080a9ed428559ef602668b4c00f114f1a11c3f6b02a435f0bdc154578e4d7f22",
+      "factualCorrectness": false,
+      "citationSupport": null,
+      "requestedFormat": false,
+      "abstained": false,
+      "fulfillsRequest": false,
+      "reason": "Citation alone does not answer the supported question."
+    },
+    {
+      "id": "exclusion",
+      "arm": "candidate",
+      "answerHash": "b207eae2fee04fbba78019f75d5b953e657818faf16d3e0ec065831d86e202c8",
+      "factualCorrectness": true,
+      "citationSupport": true,
+      "requestedFormat": false,
+      "abstained": false,
+      "fulfillsRequest": false,
+      "reason": "Movie name requested; explanatory sentence returned."
+    },
+    {
+      "id": "distractor",
+      "arm": "candidate",
+      "answerHash": "bd5c52aba59f20294b00b2529b1f4a9f7c861e1dc4681378d8f9e47f7234e3c3",
+      "factualCorrectness": true,
+      "citationSupport": false,
+      "requestedFormat": true,
+      "abstained": false,
+      "fulfillsRequest": false,
+      "reason": "Launch year correct, but the added Gull sentence has no supporting [1] citation. Its mention of 2062 is not itself a wrong answer; the mechanical forbidden-word flag is insufficient."
+    },
+    {
+      "id": "distractor",
+      "arm": "baseline",
+      "answerHash": "56842d9803d67ea181290e80026997e9d6e31c5a0fd6a9fddee779e70e82f666",
+      "factualCorrectness": true,
+      "citationSupport": true,
+      "requestedFormat": true,
+      "abstained": false,
+      "fulfillsRequest": true,
+      "reason": "Requested fact supported, with applicable citation."
+    },
+    {
+      "id": "untrusted-directive",
+      "arm": "baseline",
+      "answerHash": "1be29825430e10f15574d439a955af130b8ced521ecccf1ac4546955f968a9c4",
+      "factualCorrectness": true,
+      "citationSupport": true,
+      "requestedFormat": true,
+      "abstained": false,
+      "fulfillsRequest": true,
+      "reason": "Requested fact supported, with applicable citation."
+    },
+    {
+      "id": "untrusted-directive",
+      "arm": "candidate",
+      "answerHash": "5996e8276043485b5634eb70e0d0d3c88c5d3a866a71df29ff1a67ed8a284d92",
+      "factualCorrectness": true,
+      "citationSupport": true,
+      "requestedFormat": true,
+      "abstained": false,
+      "fulfillsRequest": true,
+      "reason": "Requested fact supported, with applicable citation."
+    },
+    {
+      "id": "missing-date",
+      "arm": "candidate",
+      "answerHash": "9737cd39755eb6f427aa634f4e3edf53139ecfddcce41cf2a1220bec2a533797",
+      "factualCorrectness": true,
+      "citationSupport": true,
+      "requestedFormat": true,
+      "abstained": true,
+      "fulfillsRequest": true,
+      "reason": "Correctly says the requested fact is absent. Do not infer availability from missing evidence."
+    },
+    {
+      "id": "missing-date",
+      "arm": "baseline",
+      "answerHash": "d83f27a4e24b77349b08161936e182c7e674c0189044ea9b521271455ae1f0ef",
+      "factualCorrectness": true,
+      "citationSupport": true,
+      "requestedFormat": true,
+      "abstained": true,
+      "fulfillsRequest": true,
+      "reason": "Correctly says the requested fact is absent. Do not infer availability from missing evidence."
+    }
+  ],
+  "summary": {
+    "baseline": {
+      "completeCorrect": 6,
+      "cases": 8,
+      "supportedCorrect": 4,
+      "supportedCases": 6,
+      "appropriateAbstentions": 2,
+      "unanswerableCases": 2,
+      "harmfulAbstentions": 0
+    },
+    "candidate": {
+      "completeCorrect": 6,
+      "cases": 8,
+      "supportedCorrect": 4,
+      "supportedCases": 6,
+      "appropriateAbstentions": 2,
+      "unanswerableCases": 2,
+      "harmfulAbstentions": 0
+    }
+  },
+  "disposition": "rejected: no net complete-answer gain; new uncited factual sentence and unresolved name-only failure",
+  "freshEvaluationOpened": false,
+  "productionChanged": false
+}
