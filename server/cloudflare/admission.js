@@ -79,7 +79,8 @@ export class SwarmAdmission extends DurableObject {
   }
 
   async arm() {
-    if (await this.ctx.storage.getAlarm() === null) await this.ctx.storage.setAlarm(Date.now() + bootstrap.server.heartbeatInterval);
+    const previous = await this.ctx.storage.getAlarm(), now = Date.now();
+    if (previous === null || previous <= now) await this.ctx.storage.setAlarm(now + bootstrap.server.heartbeatInterval);
   }
 
   async alarm() {

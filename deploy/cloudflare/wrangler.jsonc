@@ -16,7 +16,7 @@
   "vars": {
     "FIREBASE_PROJECT_ID": "reploid",
     "TURN_KEY_ID": "17352396aa1d4598b73065ce71b3ad8e",
-    "RELEASE_ID": "cloudflare-swarm-20261018-lease-renewal"
+    "RELEASE_ID": "cloudflare-swarm-20261019-lease-recovery"
   },
   "observability": {
     "enabled": true,
