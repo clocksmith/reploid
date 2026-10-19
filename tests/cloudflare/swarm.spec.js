@@ -187,6 +187,34 @@ it('schedules healthy rooms less often while retaining earlier unjoined and inac
   });
 });
 
+it('rearms overdue room and admission alarms after failed delivery', async () => {
+  for (const stub of [env.ROOMS.getByName(`public:${bootstrap.publicRoomId}`), env.ADMISSION.getByName('bounded-admission-v1')]) {
+    await runInDurableObject(stub, async (instance, state) => {
+      await state.storage.setAlarm(Date.now() - 60000);
+      await instance.arm(bootstrap.server.joinTimeoutMs);
+      expect(await state.storage.getAlarm()).toBeGreaterThan(Date.now());
+      const next = await state.storage.getAlarm();
+      await instance.arm(bootstrap.server.heartbeatInterval);
+      expect(await state.storage.getAlarm()).toBe(next);
+    });
+  }
+});
+
+it('a heartbeat restores missing cleanup without postponing an earlier alarm', async () => {
+  const a = await connect(); a.send(join('heartbeat-recovery')); await a.wait('joined');
+  const stub = env.ROOMS.getByName(`public:${bootstrap.publicRoomId}`);
+  await runInDurableObject(stub, async (instance, state) => {
+    const ws = state.getWebSockets().find(socket => socket.deserializeAttachment().peerId === 'heartbeat-recovery');
+    await state.storage.deleteAlarm();
+    await instance.webSocketMessage(ws, JSON.stringify({ type: 'heartbeat', peerId: 'heartbeat-recovery' }));
+    expect(await state.storage.getAlarm()).toBeGreaterThan(Date.now());
+    const earlier = Date.now() + 1000;
+    await state.storage.setAlarm(earlier);
+    await instance.webSocketMessage(ws, JSON.stringify({ type: 'heartbeat', peerId: 'heartbeat-recovery' }));
+    expect(await state.storage.getAlarm()).toBe(earlier);
+  });
+});
+
 it('requires Firebase authentication for TURN and keeps failures uncached', async () => {
   for (const authorization of ['', 'Bearer invalid']) {
     const response = await exports.default.fetch('https://worker.test/rtc-config', { headers: { Origin: 'https://replo.id', Authorization: authorization } });
