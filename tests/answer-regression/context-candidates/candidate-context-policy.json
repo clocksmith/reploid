@@ -1,0 +1,24 @@
+{
+  "id": "reploid.task-local-compact-source-context",
+  "version": "2026-10-19-1",
+  "defaults": {
+    "maxResults": 5,
+    "maxSourceCharacters": 1200,
+    "maxContextCharacters": 6000,
+    "timeoutMs": 10000
+  },
+  "maxima": {
+    "maxResults": 10,
+    "maxSourceCharacters": 4000,
+    "maxContextCharacters": 12000,
+    "timeoutMs": 30000
+  },
+  "maxQueryCharacters": 512,
+  "maxSupportChecks": 256,
+  "context": {
+    "schema": "reploid.retrieval-context/v1",
+    "instructions": "Use only these sources; cite every factual sentence with all supporting source numbers [1][2]. If unanswered, say the sources do not answer. Cite no other sources.",
+    "sourcesHeading": "Sources:",
+    "questionLabel": "Question:"
+  }
+}

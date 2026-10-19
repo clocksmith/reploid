@@ -1,0 +1,14 @@
+{
+  "schema": "reploid.context-candidate-identity/v1",
+  "file": "whole-passages-250.json",
+  "fileSha256": "b013d023d522ff42b07feb5dc91d523287d4ae581c29440db6d7db4c66747eda",
+  "canonicalization": "UTF-8 JSON; recursively sorted keys; compact separators; unescaped Unicode",
+  "selectedInputSha256": "d71ebf6f9d1d6f9c2c4c51c7ba2a4d684fec5fe77760bc96538eca64ca59f6b9",
+  "variantSha256": {
+    "frozen-original": "1ca4f0e7aed648222b0fdc0417659dcce4a43416f5ddd81cef10fab7701d6e21",
+    "top2-source160": "be91d038e58d2ac99a7bc6e675ba988634fab69ed91198eb47ec6243eb2a4bfb",
+    "compact-instructions-top2-token-budget250": "9440f535dba75bd9fb8223c6ffafea9d9f0049eb958fa262e28d0b6b97371652",
+    "compact-instructions-whole-passages-budget250": "e2f82d8ebb4e97c56e48cb42e95e8dd55735760e94a722bd59cf8b81b80bf264"
+  },
+  "scope": "Exact development input identity only. Original/rejected prompts are retained. No model outputs or acceptance verdicts."
+}
