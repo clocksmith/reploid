@@ -295,5 +295,79 @@ class Compare(unittest.TestCase):
                 report.compare_runs(base, other)
 
 
+class FixedDocumentCompare(unittest.TestCase):
+    def setUp(self):
+        self.data = load_json(SEARCH_SET)
+        self.item = self.data['items'][0]
+        self.prepared = checks.prepare_retrieval(self.item, self.data,
+                                                [{'role': 'user', 'content': self.item['prompt']}])
+
+    def run_record(self):
+        return {'itemSet': {'kind': 'search', 'sha256': sha256_file(SEARCH_SET)},
+                'items': [{'id': self.item['id'], 'turns': [{'turn': 1, 'dispatched': True,
+                          'messages': json.loads(json.dumps(self.prepared['dispatchedMessages'])),
+                          'retrieval': json.loads(json.dumps(self.prepared['record'])),
+                          'output': 'A wrong answer remains evidence, even when it was fast.', 'seconds': 0.001}]}]}
+
+    def test_accepts_exact_context_without_grading_answer_or_speed(self):
+        run = self.run_record()
+        report.validate_search_inputs(run)
+        turn = run['items'][0]['turns'][0]
+        turn['retrieval']['verification'] = {'pass': False}
+        turn['seconds'] = 900
+        report.validate_search_inputs(run)
+
+    def test_rejects_changed_or_missing_dispatched_source_evidence(self):
+        mutations = [lambda t: t.pop('retrieval'),
+                     lambda t: t['retrieval']['sources'][0].update(passage='Replacement source'),
+                     lambda t: t['retrieval']['context'].update(digest='sha256:substituted'),
+                     lambda t: t['messages'][-1].update(content='Question without sources'),
+                     lambda t: t.pop('messages')]
+        for mutate in mutations:
+            with self.subTest(mutate=mutate):
+                run = self.run_record()
+                mutate(run['items'][0]['turns'][0])
+                with self.assertRaisesRegex(SystemExit, 'frozen source context'):
+                    report.validate_search_inputs(run)
+
+    def test_rejects_generated_output_without_dispatch_evidence(self):
+        run = self.run_record()
+        run['items'][0]['turns'][0].pop('dispatched')
+        with self.assertRaisesRegex(SystemExit, 'no dispatched source evidence'):
+            report.validate_search_inputs(run)
+
+    def test_report_keeps_wrong_fast_answer_failed_and_refuses_changed_item_membership(self):
+        with tempfile.TemporaryDirectory() as root:
+            directories = []
+            for name, passed, seconds in [('baseline', True, 10), ('candidate', False, 0.001)]:
+                run = self.run_record()
+                run.update({'runId': name, 'target': {'id': 'fixed', 'kind': 'installed-route'}, 'identities': {}})
+                turn = run['items'][0]['turns'][0]
+                turn.update({'seconds': seconds, 'output': 'BM-200 and BM-210 [1].' if passed else 'BM-300 [1].'})
+                directory = Path(root) / name
+                write_json(directory / 'run.json', run)
+                write_json(directory / 'evaluation.json', {
+                    'run': {'sha256': sha256_file(directory / 'run.json')}, 'judge': None,
+                    'items': [{'id': self.item['id'], 'category': 'search',
+                               'search': {'answer': {'pass': passed}, 'pass': passed}}]})
+                directories.append(directory)
+            result = report.compare_runs(*directories)
+            self.assertEqual(result['summary']['newlyFailing'],
+                             {'answer': [self.item['id']], 'item': [self.item['id']]})
+            self.assertEqual(result['items'][0]['turns'][0]['candidateOutput'], 'BM-300 [1].')
+            evaluation = load_json(directories[1] / 'evaluation.json')
+            evaluation['items'] = []
+            write_json(directories[1] / 'evaluation.json', evaluation, exclusive=False)
+            with self.assertRaisesRegex(SystemExit, 'same evaluated item IDs'):
+                report.compare_runs(*directories)
+
+    def test_preserves_non_dispatched_retrieval_failure(self):
+        run = self.run_record()
+        run['items'][0]['turns'][0] = {'turn': 1, 'dispatched': False, 'output': None,
+                                      'retrieval': {'outcome': 'failed', 'error': {'code': 'provider-error'}}}
+        report.validate_search_inputs(run)
+        self.assertEqual(run['items'][0]['turns'][0]['retrieval']['outcome'], 'failed')
+
+
 if __name__ == '__main__':
     unittest.main()
