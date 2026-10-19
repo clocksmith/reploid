@@ -1,0 +1,28 @@
+{
+  "startedAt": "2026-10-19T00:12:56.737Z",
+  "passed": true,
+  "checks": [
+    "public discovery",
+    {
+      "expiryLimitMs": 20000,
+      "elapsedMs": 10082,
+      "code": 4001
+    },
+    {
+      "expiryLimitMs": 75000,
+      "elapsedMs": 59858,
+      "code": 4001
+    },
+    "unjoined and inactive expiry",
+    "healthy membership beyond 90-second lease",
+    "negotiation after renewal",
+    "departure",
+    "same-identity reconnect"
+  ],
+  "health": {
+    "service": "reploid-swarm",
+    "release": "cloudflare-swarm-20261019-lease-recovery",
+    "discoveryOnly": true
+  },
+  "finishedAt": "2026-10-19T00:14:57.947Z"
+}
