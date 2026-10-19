@@ -1,0 +1,12 @@
+{
+  "startedAt": "2026-10-19T00:01:42.296Z",
+  "passed": false,
+  "checks": [],
+  "health": {
+    "service": "reploid-swarm",
+    "release": "cloudflare-swarm-20261018-lease-renewal",
+    "discoveryOnly": true
+  },
+  "error": "Unexpected server response: 503",
+  "finishedAt": "2026-10-19T00:01:42.519Z"
+}

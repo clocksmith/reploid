@@ -20,11 +20,11 @@ async function connect(join=true, keepAlive=true, id='repair-'+randomUUID()) {
 }
 try{
  const health=await fetch(endpoint+'/health');assert.equal(health.status,200);receipt.health=await health.json();
- assert.equal(receipt.health.release,'cloudflare-swarm-20261018-lease-renewal');
+ assert.equal(receipt.health.release,process.env.EXPECTED_RELEASE||'cloudflare-swarm-20261019-lease-recovery');
  const a=await connect(), b=await connect();
  assert.ok((await b.wait('joined')).peers.includes(a.id));receipt.checks.push('public discovery');
  const idle=await connect(true,false), pending=await connect(false);
- const closed=(peer,limit)=>new Promise((resolve,reject)=>{const t=setTimeout(()=>reject(Error('Expiry deadline missed')),limit);peer.ws.once('close',(code)=>{clearTimeout(t);resolve(code);});});
+ const closed=(peer,limit)=>new Promise((resolve,reject)=>{const began=Date.now();const t=setTimeout(()=>reject(Error('Expiry deadline missed')),limit);peer.ws.once('close',(code)=>{clearTimeout(t);receipt.checks.push({expiryLimitMs:limit,elapsedMs:Date.now()-began,code});resolve(code);});});
  const expiry=Promise.all([closed(idle,75000),closed(pending,20000)]);
  expiry.catch(()=>{}); // Retain a deadline failure until the joined checks settle.
  const began=Date.now();
