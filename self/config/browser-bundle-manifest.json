@@ -2010,8 +2010,8 @@
     },
     {
       "path": "index.html",
-      "byteLength": 7466,
-      "sha256": "sha256:bc50cc48274edfd80cfc5c03136aad9579aeee8290ec3329038963be84c4627f"
+      "byteLength": 7583,
+      "sha256": "sha256:05b60144eca90706bf39cdba6b1f464dce096da46b83dc460d3077f06c22c1f3"
     },
     {
       "path": "infrastructure/audit-logger.js",
@@ -2210,8 +2210,8 @@
     },
     {
       "path": "pool-entry.html",
-      "byteLength": 5269,
-      "sha256": "sha256:e327c910e0bcde853dc8c38e08d8e13b902c84f316d88c82b7e73778546324a0"
+      "byteLength": 5386,
+      "sha256": "sha256:861f85e78aa711596515e46c895e10fac1d52d9161907cf4f4841e1b1da1c511"
     },
     {
       "path": "pool/adapter-canary-publication.js",
@@ -10764,5 +10764,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:9cfd28c6c33d8dfceb163ab8bfae1c5129654bc8d5edeea289d3b11c6b9d0abe"
+  "bundleHash": "sha256:0c42eb0f3cb1c0dfdee8435c67a42f01676f735584e55ed31f8691db6a0ce599"
 }
