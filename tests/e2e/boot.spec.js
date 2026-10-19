@@ -93,6 +93,22 @@ test.describe('Boot Screen', () => {
 
 test.describe('Route Entry Points', () => {
   for (const path of [PRODUCT_HOME_PATH, '/pool-entry.html']) {
+    test(`bounds public-route recovery when session storage is unavailable: ${path}`, async ({ page }) => {
+      await page.addInitScript(() => {
+        Object.defineProperty(window, 'sessionStorage', { configurable: true,
+          get() { throw new DOMException('Storage denied', 'SecurityError'); } });
+      });
+      let requests = 0;
+      await page.route('**/ui/pool-home/app.bundle.js', route => {
+        requests++;
+        return route.fulfill({ status: 503, contentType: 'text/plain', body: 'Temporarily unavailable' });
+      });
+      await page.goto(path, { waitUntil: 'domcontentloaded' });
+      await expect(page.locator('.pool-boot-failure')).toBeVisible({ timeout: 3000 });
+      expect(requests).toBe(2);
+      await expect(page.locator('[data-chat-workspace]')).toHaveCount(0);
+    });
+
     test(`opens public-route history while inference module downloads are stalled: ${path}`, async ({ page }) => {
       let release;
       const pending = new Promise(resolve => { release = resolve; });

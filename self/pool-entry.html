@@ -48,6 +48,7 @@
         throw new Error('Missing pool mount root');
       }
       const readProductBootRecovery = () => {
+        if (new URL(window.location.href).searchParams.get('reploidBootRetry') === String(window.REPLOID_BUILD_VERSION)) return true;
         try {
           return sessionStorage.getItem(PRODUCT_BOOT_RECOVERY_KEY) === 'true';
         } catch {
@@ -59,7 +60,7 @@
           if (active) sessionStorage.setItem(PRODUCT_BOOT_RECOVERY_KEY, 'true');
           else sessionStorage.removeItem(PRODUCT_BOOT_RECOVERY_KEY);
         } catch {
-          // Storage is optional. The visible terminal error still prevents a blank page.
+          // The URL marker bounds recovery when storage is unavailable.
         }
       };
       const showProductBootFailure = () => {
