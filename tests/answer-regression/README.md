@@ -169,3 +169,28 @@ The baseline run record was written before the harness was committed. It names t
 - **Variation.** Each run is one greedy generation; there is no confidence interval.
 
 *Last updated: October 2026*
+
+## Retained 250-token context candidate
+
+`context-candidates/whole-passages-250.json` retains the original prompts, two
+rejected truncated variants, and a separately identified full-passage candidate.
+The candidate tries two complete ranked passages, then one, using only the exact
+250-token budget for selection. Required source IDs are checked afterward.
+Compact citation/abstention instructions are recorded as a separate task policy;
+source documents, evaluator checks, model catalog and route limit are unchanged.
+The seven dispatched prompts contain 184–242 tokens; empty retrieval dispatches
+nothing. Earlier truncated prompts remain rejected.
+
+`context-candidates/identity.json` binds the fixture bytes and canonical selected
+inputs, including passages, digests, dispatched messages and tokenizer IDs. These
+are development input identities. No model has answered this candidate, and
+source coverage establishes neither citation entailment nor answer quality.
+The ordinary frozen-set comparator continues to reject changed source contexts;
+this candidate needs its own explicitly bound baseline.
+
+Run the read-only coverage check from the repository root:
+
+```sh
+node tests/answer-regression/test-context-candidate.js
+python3 -I tests/answer-regression/test_harness.py Citations FixedDocumentCompare Compare
+```
