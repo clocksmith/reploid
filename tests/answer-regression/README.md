@@ -194,3 +194,19 @@ Run the read-only coverage check from the repository root:
 node tests/answer-regression/test-context-candidate.js
 python3 -I tests/answer-regression/test_harness.py Citations FixedDocumentCompare Compare
 ```
+
+The existing `run` command accepts `--set search --context-candidate whole-passages-250`.
+This replays and verifies the retained fixture through the public retrieval API,
+then sends its exact full-passage messages through the selected existing target.
+It records a separate context identity and per-item limits. `evaluate` uses the
+same frozen answer/citation checks with that candidate's bound rendering policy;
+citation support remains unjudged. `compare` requires both runs to bind the same
+context candidate and item subset. An original-context run cannot be its baseline.
+Partial runs retain explicit `notRun` rows; omitted items do not become successes.
+
+No generation is started by adding this option or running the harness tests. Before
+physical execution, qualify the exact target/package/model and obtain the applicable
+host/campaign approval. The retained 184–242 token counts apply to their recorded
+text path; the selected target must record its own actual prompt counts and limit
+failures. Reload, cancellation and provider-replacement tests remain separate from
+answer checks (`tests/unit/chat-retrieval.test.js` and `chat-workspace.test.js`).

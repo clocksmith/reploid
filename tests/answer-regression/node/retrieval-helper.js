@@ -41,7 +41,7 @@ async function handle(request) {
     if (request.op === 'verify') {
       // verify never searches; the provider port only satisfies createRetrieval's validation.
       const port = createRetrieval({ provider: { id: 'reploid.answer-regression.verify-only', version: '1', search: async () => [] },
-        supportChecker: null });
+        supportChecker: null, ...(request.policy ? { policy: request.policy } : {}) });
       return { ok: true, verification: await port.verify(request.answer, request.record, null) };
     }
     if (request.op === 'describe') {
