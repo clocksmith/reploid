@@ -74,7 +74,10 @@ export class SwarmRoom extends DurableObject {
       meta.lastSeen = now;
       ws.serializeAttachment(meta);
       if (message.type === 'leave') return await this.retire(ws);
-      if (message.type === 'heartbeat') return;
+      if (message.type === 'heartbeat') {
+        await this.arm(limits.heartbeatInterval);
+        return;
+      }
       if (!['offer', 'answer', 'ice-candidate'].includes(message.type) || !peerPattern.test(message.targetPeer)) return await this.reject(ws, 'Invalid negotiation message');
       const field = message.type === 'ice-candidate' ? 'candidate' : message.type;
       if (!message[field] || typeof message[field] !== 'object' || Array.isArray(message[field])) return await this.reject(ws, 'Invalid negotiation payload');
@@ -131,8 +134,9 @@ export class SwarmRoom extends DurableObject {
   async webSocketError(ws) { await this.retire(ws, 1011, 'Connection failed'); }
 
   async arm(delay) {
-    const at = Date.now() + delay, previous = await this.ctx.storage.getAlarm();
-    if (previous === null || previous > at) await this.ctx.storage.setAlarm(at);
+    const now = Date.now(), at = now + delay, previous = await this.ctx.storage.getAlarm();
+    // An overdue alarm may have exhausted retries during a storage outage.
+    if (previous === null || previous <= now || previous > at) await this.ctx.storage.setAlarm(at);
   }
   async alarm() {
     const now = Date.now();
@@ -145,6 +149,19 @@ export class SwarmRoom extends DurableObject {
     if (!sockets.length) return;
     const renewed = new Set(await this.admission().renew(sockets.map(ws => ws.deserializeAttachment().lease)));
     for (const ws of sockets) if (!renewed.has(ws.deserializeAttachment().lease)) await this.retire(ws, 4001, 'Admission expired');
-    if (this.sockets().length) await this.arm(Math.min(limits.joinTimeoutMs, limits.heartbeatInterval));
+    const remaining = this.sockets();
+    if (remaining.length) {
+      // The join timeout applies to pending joins, not every healthy peer.
+      // Keep the earliest actual expiry and check lease validity each heartbeat.
+      const now = Date.now();
+      const delay = Math.min(limits.heartbeatInterval, ...remaining.map(ws => {
+        const meta = ws.deserializeAttachment();
+        const idleDeadline = meta.lastSeen + limits.peerTimeout;
+        const deadline = !meta.peerId || meta.joining
+          ? Math.min(idleDeadline, meta.connectedAt + limits.joinTimeoutMs) : idleDeadline;
+        return Math.max(0, deadline - now);
+      }));
+      await this.arm(delay);
+    }
   }
 }

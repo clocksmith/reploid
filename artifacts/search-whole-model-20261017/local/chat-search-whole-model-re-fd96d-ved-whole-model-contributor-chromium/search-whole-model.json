@@ -1,0 +1,16 @@
+{
+  "at": "2026-10-17T16:54:47.628Z",
+  "browser": "145.0.7632.6",
+  "url": "http://localhost:8128",
+  "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "question": "search weeb for 2026 blockbusters",
+  "reviewedQuery": "2026 blockbuster movies",
+  "passed": false,
+  "errors": [],
+  "weights": [],
+  "permissions": [],
+  "thread": null,
+  "firstTextMs": null,
+  "completeMs": null,
+  "bundle": "sha256:fd37e24f3e4415dec0fe91073a876f90652cde20b6a2282b43870df699f4556e"
+}

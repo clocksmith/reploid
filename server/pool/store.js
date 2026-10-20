@@ -4,6 +4,7 @@
 
 import crypto from 'crypto';
 import { assertPoolStoreContract } from './store-contract.js';
+import { resolveIdempotentRelay } from './relay-identity.js';
 import {
   buildAcceptanceClaimPatch,
   buildAssignmentClaimPatch,
@@ -29,16 +30,6 @@ import {
 
 const makeId = (prefix) => `${prefix}_${crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)}`;
 const nowIso = () => new Date().toISOString();
-const rejectRelayIdConflict = (kind) => {
-  const error = new Error(`${kind} id is already bound to a different relay payload`);
-  error.code = 'relay_id_conflict';
-  throw error;
-};
-const resolveIdempotentRelay = (existing, incoming, kind) => {
-  if (!existing) return null;
-  if (existing.idempotencyHash && incoming.idempotencyHash === existing.idempotencyHash) return existing;
-  return rejectRelayIdConflict(kind);
-};
 const toEpochMs = (value) => {
   if (typeof value === 'number') return value;
   const parsed = Date.parse(value);

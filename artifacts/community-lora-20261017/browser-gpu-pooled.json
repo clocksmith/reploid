@@ -1,0 +1,85 @@
+{
+  "schema": "reploid.browser-training-check/v1",
+  "at": "2026-10-17T19:24:21.917Z",
+  "elapsedMs": 45881,
+  "scope": "Two Chrome workers on one M3, real local WebRTC with trusted test-host identity/signaling ports; no public discovery, cross-machine or quality qualification",
+  "contract": {
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "baseManifestHash": "sha256:cf20c690cc397a4bd8e64ee4b00158114947ee75568c0ae8f2df8a9ebc052965",
+    "samples": [
+      {
+        "inputIds": [
+          100,
+          200,
+          300
+        ],
+        "targetIds": [
+          200,
+          300,
+          400
+        ],
+        "supervisedTokenCount": 3
+      }
+    ],
+    "steps": 1,
+    "participants": 2,
+    "pooled": true,
+    "timeoutMs": 300000,
+    "publicDisclosureBytes": 0,
+    "activated": false,
+    "reference": {
+      "loss": 9.030719757080078,
+      "absoluteTolerance": 0.0001
+    },
+    "package": {
+      "name": "doppler-gpu",
+      "version": "0.6.32",
+      "spec": "file:deploy/artifacts/doppler-gpu-0.6.32.tgz",
+      "resolved": "file:deploy/artifacts/doppler-gpu-0.6.32.tgz",
+      "integrity": "sha512-J83ak7CtSU17xhBqRAwS1VYDNsEs4/J9KRiY8Uk0PJBZlFyWvAx7LKOwYrbopIcaiYj7aGaKpBKM1/XYnDojlA=="
+    }
+  },
+  "passed": true,
+  "loss": 9.410573244094849,
+  "bytes": 37051,
+  "weightsSha256": "6d6cbc9620668694fc21e18607cd79788169df76c41da63c572656ace6fdf11d",
+  "baseManifestHash": "sha256:cf20c690cc397a4bd8e64ee4b00158114947ee75568c0ae8f2df8a9ebc052965",
+  "activated": false,
+  "evaluated": false,
+  "applied": [
+    {
+      "contributions": [
+        {
+          "participantId": "peer:aaaaaaaaaaaaaaaaaaaaaaaa",
+          "loss": 9.030719757080078,
+          "tokens": 3,
+          "roundHash": "sha256:ddb91d8fd5e428d2783c0304d6262fdcfaaf8e4e316d37ef4554ab4a3ad581cb"
+        },
+        {
+          "participantId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb",
+          "loss": 10.55013370513916,
+          "tokens": 1,
+          "roundHash": "sha256:ddb91d8fd5e428d2783c0304d6262fdcfaaf8e4e316d37ef4554ab4a3ad581cb"
+        }
+      ],
+      "result": {
+        "roundHash": "sha256:ddb91d8fd5e428d2783c0304d6262fdcfaaf8e4e316d37ef4554ab4a3ad581cb",
+        "contributors": [
+          "peer:aaaaaaaaaaaaaaaaaaaaaaaa",
+          "peer:bbbbbbbbbbbbbbbbbbbbbbbb"
+        ],
+        "supervisedTokenCount": 4,
+        "loss": 9.410573244094849,
+        "gradientNorm": 0.05755856190918337,
+        "optimizer": {
+          "optimizer_ms": 6,
+          "effective_lr": 0.0001,
+          "scheduler_index": 0,
+          "scheduler_phase": "constant"
+        },
+        "stepCount": 1
+      }
+    }
+  ],
+  "contributorPhase": "contributed"
+}

@@ -1,0 +1,103 @@
+{
+  "at": "2026-10-18T23:41:13.258Z",
+  "cycles": [
+    {
+      "ms": 475,
+      "selectedId": "ed68e6e4-6a42-4528-a796-4e3f4cf20ff8",
+      "url": "https://replo.id/",
+      "resources": [
+        {
+          "duration": 182,
+          "transferSize": 492269
+        }
+      ]
+    },
+    {
+      "ms": 445,
+      "selectedId": "ed68e6e4-6a42-4528-a796-4e3f4cf20ff8",
+      "url": "https://replo.id/",
+      "resources": [
+        {
+          "duration": 218.70000000298023,
+          "transferSize": 492269
+        }
+      ]
+    },
+    {
+      "ms": 632,
+      "selectedId": "ed68e6e4-6a42-4528-a796-4e3f4cf20ff8",
+      "url": "https://replo.id/",
+      "resources": [
+        {
+          "duration": 189.29999999701977,
+          "transferSize": 492269
+        }
+      ]
+    },
+    {
+      "ms": 517,
+      "selectedId": "ed68e6e4-6a42-4528-a796-4e3f4cf20ff8",
+      "url": "https://replo.id/",
+      "resources": [
+        {
+          "duration": 219.20000000298023,
+          "transferSize": 492269
+        }
+      ]
+    }
+  ],
+  "pageErrors": [],
+  "failures": [
+    {
+      "url": "https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=AIzaSyCIp4AQeGXx_PEmUnBZmfk_5zeAvynRVLE",
+      "error": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    },
+    {
+      "url": "https://replo.id/v1/client",
+      "error": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    },
+    {
+      "url": "https://replo.id/v1/client",
+      "error": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    },
+    {
+      "url": "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyCIp4AQeGXx_PEmUnBZmfk_5zeAvynRVLE",
+      "error": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    },
+    {
+      "url": "https://replo.id/v1/client",
+      "error": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    },
+    {
+      "url": "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyCIp4AQeGXx_PEmUnBZmfk_5zeAvynRVLE",
+      "error": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    },
+    {
+      "url": "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyCIp4AQeGXx_PEmUnBZmfk_5zeAvynRVLE",
+      "error": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    },
+    {
+      "url": "https://replo.id/v1/client",
+      "error": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    }
+  ],
+  "passed": true,
+  "selectedId": "ed68e6e4-6a42-4528-a796-4e3f4cf20ff8",
+  "modelId": "qwen-3-5-2b-q4k-ehaf16"
+}

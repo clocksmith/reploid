@@ -1,0 +1,509 @@
+{
+  "at": "2026-10-17T19:08:52.638Z",
+  "sources": [
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-network.js",
+      "hash": "sha256:6397af362a2fc0b1b55e1968a764dcf9917de9a91c0af39a7e4f7b788426a9b1"
+    },
+    {
+      "path": "packages/reploid/src/transport/swarm.js",
+      "hash": "sha256:e44566bdfcc4e9ffa64cf25842f434b31ea21c049954136676454e6ef3da0258"
+    },
+    {
+      "path": "self/config/doppler-local-models.js",
+      "hash": "sha256:730d90d8e92a55c7d4c3e34a21ea0b10e3720456dc8d841e1238cc7a46325515"
+    },
+    {
+      "path": "self/host/product-session.js",
+      "hash": "sha256:58a2011e9e0a98c9e7f98e644c4e1a27bc6c53a4634ce9a64a7d980d62064f01"
+    },
+    {
+      "path": "self/host/work-swarm.js",
+      "hash": "sha256:5bd63ab7a6db95772858ee629a06bb1c2835529dbce7465d0ed12b7e765aea84"
+    },
+    {
+      "path": "self/ui/pool-home/index.js",
+      "hash": "sha256:aaedaffa60a3e37758ac3651267e1ed68bd0c909ad4403e9c010b22405526142"
+    },
+    {
+      "path": "self/ui/pool-home/work.js",
+      "hash": "sha256:977b1fe48d21f1cc45ee215df03106ee022bdaafc33e3b1b4620d49e1b56415b"
+    },
+    {
+      "path": "packages/reploid/src/training/index.js",
+      "hash": "sha256:1d998c6589d8ffec96513027a4484808f1982fba46a2c1f2104d7398c941e405"
+    },
+    {
+      "path": "packages/reploid/src/training/network.js",
+      "hash": "sha256:f8d474b6af010d14627a7441860f812104fc20774190c172f09d4107fa0ad9ab"
+    },
+    {
+      "path": "packages/reploid/src/training/session.js",
+      "hash": "sha256:d937818c9e3951e8380861e243a2d89db7c3a6def819ecf0ceb05b6e3862a6dd"
+    },
+    {
+      "path": "self/host/lora-training-executor.js",
+      "hash": "sha256:6f080f8a5211a7a85200dc9c25e2a16821aa5e4f2350fd2e99351671217748cd"
+    },
+    {
+      "path": "self/host/lora-training-worker.js",
+      "hash": "sha256:588007981b0596ff8f941bfb00ed2305f933289783a45f7722817a9a3604cca3"
+    },
+    {
+      "path": "self/host/lora-training.js",
+      "hash": "sha256:ab497bd771ad208be881667cc13878035c354f6ae89637bef5cc33c8bdd60c46"
+    },
+    {
+      "path": "self/ui/pool-home/lora-training.js",
+      "hash": "sha256:6a4034072381d74c1b55325f010d635d521c87e05a99a9993d473667121a6d78"
+    }
+  ],
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /packages/reploid/src/transport/swarm.js: Path traversal pattern detected (../) - potential security risk",
+      "File exceeds 500 lines (1251) - consider splitting",
+      "File has 105 functions (max 20) - consider modularizing",
+      "Nesting depth of 8 exceeds 5 - refactor nested code",
+      "Warning in /host/product-session.js: Path traversal pattern detected (../) - potential security risk",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Warning in /host/work-swarm.js: Path traversal pattern detected (../) - potential security risk",
+      "File has 43 functions (max 20) - consider modularizing",
+      "Nesting depth of 8 exceeds 5 - refactor nested code",
+      "Warning in /ui/pool-home/index.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /ui/pool-home/index.js: innerHTML assignment is risky - consider textContent",
+      "Warning in /ui/pool-home/index.js: insertAdjacentHTML is risky - potential XSS",
+      "File has 21 functions (max 20) - consider modularizing",
+      "Nesting depth of 7 exceeds 5 - refactor nested code",
+      "Warning in /ui/pool-home/work.js: Path traversal pattern detected (../) - potential security risk",
+      "File has 45 functions (max 20) - consider modularizing",
+      "Nesting depth of 8 exceeds 5 - refactor nested code",
+      "Warning in /packages/reploid/src/training/network.js: Path traversal pattern detected (../) - potential security risk",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "File has 26 functions (max 20) - consider modularizing",
+      "Nesting depth of 7 exceeds 5 - refactor nested code",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Warning in /host/lora-training-worker.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /host/lora-training-worker.js:6: Suspicious variable name: executor - may indicate code execution",
+      "Warning in /host/lora-training.js: Path traversal pattern detected (../) - potential security risk"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792264132600,
+        "path": "/packages/reploid/src/transport/swarm.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792264132602,
+        "metric": "lines",
+        "value": 1251,
+        "threshold": 500,
+        "message": "File exceeds 500 lines (1251) - consider splitting",
+        "path": "/packages/reploid/src/transport/swarm.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792264132602,
+        "metric": "functions",
+        "value": 105,
+        "threshold": 20,
+        "message": "File has 105 functions (max 20) - consider modularizing",
+        "path": "/packages/reploid/src/transport/swarm.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792264132602,
+        "metric": "nesting",
+        "value": 8,
+        "threshold": 5,
+        "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/transport/swarm.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792264132606,
+        "path": "/host/product-session.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792264132607,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/host/product-session.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792264132611,
+        "path": "/host/work-swarm.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792264132613,
+        "metric": "functions",
+        "value": 43,
+        "threshold": 20,
+        "message": "File has 43 functions (max 20) - consider modularizing",
+        "path": "/host/work-swarm.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792264132613,
+        "metric": "nesting",
+        "value": 8,
+        "threshold": 5,
+        "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+        "path": "/host/work-swarm.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792264132614,
+        "path": "/ui/pool-home/index.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792264132614,
+        "path": "/ui/pool-home/index.js",
+        "patternId": "innerhtml_assign",
+        "category": "dom",
+        "message": "innerHTML assignment is risky - consider textContent",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792264132614,
+        "path": "/ui/pool-home/index.js",
+        "patternId": "insertadjacenthtml",
+        "category": "dom",
+        "message": "insertAdjacentHTML is risky - potential XSS",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792264132616,
+        "metric": "functions",
+        "value": 21,
+        "threshold": 20,
+        "message": "File has 21 functions (max 20) - consider modularizing",
+        "path": "/ui/pool-home/index.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792264132616,
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/ui/pool-home/index.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792264132618,
+        "path": "/ui/pool-home/work.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792264132620,
+        "metric": "functions",
+        "value": 45,
+        "threshold": 20,
+        "message": "File has 45 functions (max 20) - consider modularizing",
+        "path": "/ui/pool-home/work.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792264132620,
+        "metric": "nesting",
+        "value": 8,
+        "threshold": 5,
+        "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+        "path": "/ui/pool-home/work.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792264132620,
+        "path": "/packages/reploid/src/training/network.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792264132621,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/training/network.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792264132623,
+        "metric": "functions",
+        "value": 26,
+        "threshold": 20,
+        "message": "File has 26 functions (max 20) - consider modularizing",
+        "path": "/packages/reploid/src/training/session.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792264132623,
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/training/session.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792264132624,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/host/lora-training-executor.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792264132624,
+        "path": "/host/lora-training-worker.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792264132624,
+        "path": "/host/lora-training-worker.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: executor - may indicate code execution",
+        "line": 6,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792264132624,
+        "path": "/host/lora-training.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/packages/reploid/src/transport/swarm.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/host/product-session.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/host/work-swarm.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/ui/pool-home/index.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/ui/pool-home/index.js",
+          "patternId": "innerhtml_assign",
+          "category": "dom",
+          "message": "innerHTML assignment is risky - consider textContent",
+          "severity": "warning"
+        },
+        {
+          "path": "/ui/pool-home/index.js",
+          "patternId": "insertadjacenthtml",
+          "category": "dom",
+          "message": "insertAdjacentHTML is risky - potential XSS",
+          "severity": "warning"
+        },
+        {
+          "path": "/ui/pool-home/work.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/packages/reploid/src/training/network.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/host/lora-training-worker.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/host/lora-training.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "lines",
+          "value": 1251,
+          "threshold": 500,
+          "message": "File exceeds 500 lines (1251) - consider splitting",
+          "path": "/packages/reploid/src/transport/swarm.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 105,
+          "threshold": 20,
+          "message": "File has 105 functions (max 20) - consider modularizing",
+          "path": "/packages/reploid/src/transport/swarm.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 8,
+          "threshold": 5,
+          "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/transport/swarm.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/host/product-session.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 43,
+          "threshold": 20,
+          "message": "File has 43 functions (max 20) - consider modularizing",
+          "path": "/host/work-swarm.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 8,
+          "threshold": 5,
+          "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+          "path": "/host/work-swarm.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 21,
+          "threshold": 20,
+          "message": "File has 21 functions (max 20) - consider modularizing",
+          "path": "/ui/pool-home/index.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 7,
+          "threshold": 5,
+          "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+          "path": "/ui/pool-home/index.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 45,
+          "threshold": 20,
+          "message": "File has 45 functions (max 20) - consider modularizing",
+          "path": "/ui/pool-home/work.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 8,
+          "threshold": 5,
+          "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+          "path": "/ui/pool-home/work.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/training/network.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 26,
+          "threshold": 20,
+          "message": "File has 26 functions (max 20) - consider modularizing",
+          "path": "/packages/reploid/src/training/session.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 7,
+          "threshold": 5,
+          "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/training/session.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/host/lora-training-executor.js"
+        }
+      ],
+      "filesAnalyzed": 14
+    }
+  }
+}

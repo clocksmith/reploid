@@ -1,0 +1,49 @@
+{
+  "schema": "reploid.model-service-tasks/v1",
+  "scope": "Frozen supplied-list movie selection: six independent conversations, twelve exact constraint/follow-up answers, reload between turns. This does not establish general model quality, real streaming availability, preference or retention.",
+  "context": "Use only this fictional movie catalog. Fields are title | tone | genre | minutes | format | rating | audio | subtitles.\nCedar | calm | comedy | 84 | live-action | PG-13 | English | English\nClover | calm | comedy | 96 | animated | PG | English | English, Spanish\nHarbor | tense | thriller | 91 | live-action | R | Spanish | English\nOrbit | calm | comedy | 122 | live-action | PG | English | Spanish\nLantern | calm | drama | 98 | live-action | PG | English | English\nMeadow | calm | comedy | 89 | live-action | PG-13 | French | English\nPine | calm | comedy | 81 | animated | PG | English | French\nAtlas | calm | documentary | 85 | live-action | G | German | English\nStreaming services and release years are not supplied. Never invent missing facts. For each request, reply with only the matching title; reply NONE if no title satisfies every constraint, or UNKNOWN if the requested fact is missing.\n\n",
+  "tasks": [
+    {
+      "id": "format-followup",
+      "turns": [
+        { "prompt": "Pick a calm English-audio live-action comedy shorter than 90 minutes.", "expected": "Cedar", "reloadAfter": true },
+        { "prompt": "Keep those requirements except make it animated instead of live-action.", "expected": "Pine" }
+      ]
+    },
+    {
+      "id": "group-hard-constraints",
+      "turns": [
+        { "prompt": "Alice refuses R-rated movies, Bob needs under 100 minutes, and Cara requires Spanish audio. Pick a movie satisfying all three.", "expected": "NONE", "reloadAfter": true },
+        { "prompt": "Alice now accepts an R rating. Keep Bob's and Cara's requirements.", "expected": "Harbor" }
+      ]
+    },
+    {
+      "id": "subtitles-and-time",
+      "turns": [
+        { "prompt": "Choose a calm comedy with Spanish subtitles under 100 minutes.", "expected": "Clover", "reloadAfter": true },
+        { "prompt": "Keep the same requirements but reduce the limit to under 90 minutes.", "expected": "NONE" }
+      ]
+    },
+    {
+      "id": "rank-and-exclude",
+      "turns": [
+        { "prompt": "Choose the shortest calm comedy.", "expected": "Pine", "reloadAfter": true },
+        { "prompt": "We already watched that one. Exclude it and choose the next shortest calm comedy.", "expected": "Cedar" }
+      ]
+    },
+    {
+      "id": "missing-availability",
+      "turns": [
+        { "prompt": "Which catalog movie is available on Netflix tonight?", "expected": "UNKNOWN", "reloadAfter": true },
+        { "prompt": "We checked: only Cedar and Harbor are available to us. Pick the calm comedy from those available titles.", "expected": "Cedar" }
+      ]
+    },
+    {
+      "id": "audio-is-not-subtitles",
+      "turns": [
+        { "prompt": "Choose a comedy with French audio and English subtitles.", "expected": "Meadow", "reloadAfter": true },
+        { "prompt": "Now choose a comedy with English audio and French subtitles instead.", "expected": "Pine" }
+      ]
+    }
+  ]
+}

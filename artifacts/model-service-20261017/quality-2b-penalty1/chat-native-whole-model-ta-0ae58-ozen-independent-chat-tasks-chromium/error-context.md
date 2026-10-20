@@ -1,0 +1,129 @@
+# Page snapshot
+
+```yaml
+- main [ref=e3]:
+  - navigation "Reploid"
+  - region "Conversation workspace" [ref=e5]:
+    - complementary "Conversation controls" [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - generic [ref=e9]:
+            - button "Toggle threads" [ref=e11] [cursor=pointer]:
+              - generic [ref=e12]:
+                - generic [ref=e13]: "7"
+                - superscript [ref=e14]: "7"
+            - button "New thread" [ref=e15] [cursor=pointer]:
+              - img [ref=e16]
+          - region "Threads" [ref=e18]:
+            - generic [ref=e19]:
+              - 'button "Reply with the first item that is not a fruit in this list: apple, pear, hammer, orange. Reply with only that item.: Complete, last answer <1% of advertised context" [ref=e21] [cursor=pointer]':
+                - generic [ref=e22]:
+                  - img
+                  - generic [ref=e23]: R
+              - 'button "Count the even integers in this list: 3, 4, 7, 10, 12. Reply with only the count.: Complete, last answer <1% of advertised context" [ref=e25] [cursor=pointer]':
+                - generic [ref=e26]:
+                  - img
+                  - generic [ref=e27]: C
+              - 'button "The parcel label says blue: 16, green: 25, red: 31. What number belongs to green? Reply with only the number.: Complete, last answer <1% of advertised context" [ref=e29] [cursor=pointer]':
+                - generic [ref=e30]:
+                  - img
+                  - generic [ref=e31]: T
+              - 'button "Reply with exactly these three lowercase words, separated by single spaces, without punctuation: copper silver gold: Complete, last answer <1% of advertised context" [ref=e33] [cursor=pointer]':
+                - generic [ref=e34]:
+                  - img
+                  - generic [ref=e35]: R
+              - 'button "Choose from these fictional movies: Cedar, a calm comedy lasting 84 minutes; Harbor, a tense thriller lasting 91 minutes; Orbit, a calm comedy lasting 122 minutes. We want a calm comedy under 100 minutes. Reply with only the title.: Complete, last answer <1% of advertised context" [ref=e37] [cursor=pointer]':
+                - generic [ref=e38]:
+                  - img
+                  - generic [ref=e39]: C
+              - 'button "What is 17 + 25? Reply with only the number.: Complete, last answer <1% of advertised context" [ref=e41] [cursor=pointer]':
+                - generic [ref=e42]:
+                  - img
+                  - generic [ref=e43]: W
+              - 'button "Copy exactly the text between the brackets, preserving every character and adding nothing: [café — 東京]: Complete, last answer <1% of advertised context" [ref=e45] [cursor=pointer]':
+                - generic [ref=e46]:
+                  - img
+                  - generic [ref=e47]: C
+              - 'button "Sort these integers numerically in ascending order: 14, -3, 2, 0. Return only a JSON array of numbers.: Complete, last answer <1% of advertised context" [ref=e49] [cursor=pointer]':
+                - generic [ref=e50]:
+                  - img
+                  - generic [ref=e51]: S
+              - 'button "Python code: values = [2, 5, 8]; result = sum(x * 2 for x in values if x > 3). What is result? Reply with only the number.: Complete, last answer <1% of advertised context" [ref=e53] [cursor=pointer]':
+                - generic [ref=e54]:
+                  - img
+                  - generic [ref=e55]: P
+              - 'button "Choose exactly one device. Requirements: at least 32 GB RAM and price at most 900. A: 16 GB, 500. B: 32 GB, 850. C: 48 GB, 1100. Reply only with its letter.: Complete, last answer <1% of advertised context" [ref=e57] [cursor=pointer]':
+                - generic [ref=e58]:
+                  - img
+                  - generic [ref=e59]: C
+              - 'button "Order log in chronological order: quantity 8; corrected quantity 11; final corrected quantity 6. What is the final quantity? Reply with only the number.: Complete, last answer <1% of advertised context" [ref=e61] [cursor=pointer]':
+                - generic [ref=e62]:
+                  - img
+                  - generic [ref=e63]: O
+              - 'button "Report: The delivery reached the depot on Tuesday. No destination address is recorded. What street was it delivered to? If the report does not say, reply with exactly UNKNOWN.: Complete, last answer <1% of advertised context" [ref=e65] [cursor=pointer]':
+                - generic [ref=e66]:
+                  - img
+                  - generic [ref=e67]: R
+              - 'button "From this record: item=lantern; count=7. Return only JSON with keys item and count. count must be a number.: Complete, last answer <1% of advertised context" [ref=e69] [cursor=pointer]':
+                - generic [ref=e70]:
+                  - img
+                  - generic [ref=e71]: F
+              - 'button "Records: Ada, paid, 8 units; Ben, unpaid, 12 units; Cy, paid, 5 units. Sum only paid units. Reply with only the number.: Complete, last answer <1% of advertised context" [ref=e73] [cursor=pointer]':
+                - generic [ref=e74]:
+                  - img
+                  - generic [ref=e75]: R
+        - navigation "Network sections" [ref=e78]:
+          - 'button "Computers: 1 connected · 1 ready" [ref=e79] [cursor=pointer]':
+            - img [ref=e80]
+          - button "Settings" [ref=e85] [cursor=pointer]:
+            - img [ref=e86]
+    - text: ↔ ↔ + + + + +
+    - region "Current conversation" [ref=e91]:
+      - log "Messages" [ref=e92]:
+        - article [ref=e93]:
+          - generic "Your message" [ref=e94]:
+            - generic [ref=e95]: "Reply with the first item that is not a fruit in this list: apple, pear, hammer, orange. Reply with only that item."
+          - button "Copy message" [ref=e98] [cursor=pointer]:
+            - img [ref=e99]
+        - article [ref=e102]:
+          - generic "Model output" [ref=e103]:
+            - generic [ref=e104]: hammer
+          - generic [ref=e105]:
+            - generic [ref=e106]:
+              - 'generic "Model: Qwen 3.5 2B" [ref=e107]':
+                - img [ref=e108]
+              - generic "Generation average including prompt processing; excludes queue and model loading" [ref=e110]:
+                - img [ref=e111]
+                - generic [ref=e113]: 0.6 tok/s
+              - generic "2 generated tokens" [ref=e114]:
+                - img [ref=e115]
+                - generic [ref=e117]: "2"
+              - generic "Generation time including prompt processing" [ref=e118]:
+                - img [ref=e119]
+                - generic [ref=e122]: 3.3 s
+            - button "Complete · 1 computer · Mesh. Execution details" [ref=e124] [cursor=pointer]:
+              - img [ref=e125]
+              - generic [ref=e130]: "1"
+              - generic [ref=e131]: Complete · 1 computer · Mesh
+            - button "Copy response" [ref=e133] [cursor=pointer]:
+              - img [ref=e134]
+      - generic [ref=e138]:
+        - generic [ref=e139]: Message
+        - generic [ref=e140]:
+          - textbox "Message" [ref=e141]:
+            - /placeholder: Ask a question…
+          - generic "Attach files" [ref=e142] [cursor=pointer]:
+            - img [ref=e143]
+            - generic [ref=e145]: Attach files
+            - button "Attach files" [ref=e146]
+          - button "Send" [ref=e148] [cursor=pointer]:
+            - img [ref=e149]
+        - generic [ref=e151]:
+          - 'button "Choose model: Qwen 3.5 2B" [ref=e152] [cursor=pointer]':
+            - img [ref=e153]
+            - generic [ref=e155]: Qwen 3.5 2B
+          - button "<1% of model context. Last answer used 73 tokens (71 input, 2 output) of the model’s 262,144-token advertised context window. Unsent draft is not counted; the execution limit may be smaller. Last execution on Computer 1. Working KV-cache residency is not reported." [ref=e156] [cursor=pointer]:
+            - img
+            - generic [ref=e157]: <1%
+            - img [ref=e158]
+```

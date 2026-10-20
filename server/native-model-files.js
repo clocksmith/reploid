@@ -1,5 +1,6 @@
+import { fetchAdapterFile } from '../self/providers/work-adapter.js';
 import { resolvePartitionArtifactSource } from '../self/host/work-partition-artifact-source.js';
-/** Filesystem host ports for the existing signed custody protocol. No origin downloads. */
+/** Filesystem host ports for the existing signed custody protocol. Model weights remain peer-only; explicit adapter acquisition permits its pinned origin. */
 import fs from 'node:fs/promises';
 import { openNativeSupplyBudget } from './native-supply-budget.js';
 import { constants } from 'node:fs';
@@ -155,6 +156,22 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
     ...(includeReceipts ? { receipts: structuredClone(receipts) } : {}) });
   exchange.announce();
   return Object.freeze({ getState, announce: () => exchange.announce(), custodyCertificate, getDeliveryEvidence: () => structuredClone(deliveries),
+    acquireAdapter(artifact, { signal }) {
+      return own((async () => {
+        const combined = AbortSignal.any([lifetime.signal, signal]);
+        combined.throwIfAborted();
+        assert(artifact.role === 'adapter', 'Adapter acquisition requires a pinned adapter artifact');
+        assert(Number.isSafeInteger(artifact.sizeBytes) && artifact.sizeBytes > 0
+          && artifact.sizeBytes <= policy.maxArtifactBytes, 'Adapter exceeds the file allowance');
+        const file = { ...artifact, hash: artifact.hash.replace(/^sha256:/, ''), hashAlgorithm: 'sha256' };
+        let bytes = await readAvailableMetadata(file, combined);
+        if (!bytes) bytes = exchange.has(file) ? await exchange.acquire(file, { signal: combined })
+          : await fetchAdapterFile(artifact, { signal: combined });
+        await verify(file, bytes); combined.throwIfAborted();
+        await cache.put(file, bytes, { signal: combined }); retained.set(key(file), file);
+        return bytes;
+      })());
+    },
     preparePartitionSource(model, { signal } = {}) { return own((async () => {
       signal = AbortSignal.any([lifetime.signal, ...(signal ? [signal] : [])]);
       const data = await metadata(model, signal), descriptors = new Map(); signal.throwIfAborted();
@@ -245,7 +262,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
       const signal = AbortSignal.any([lifetime.signal, controller.signal]);
       try {
         const data = await metadata(model, signal), offered = [], approvedLocalPieces = new Map();
-        for (const file of model.source.files) {
+        for (const file of [...model.source.files, ...(model.adapters || []).map(adapter => ({ ...adapter.artifact, hash: adapter.artifact.hash.replace(/^sha256:/, ''), hashAlgorithm: 'sha256' }))]) {
           // Program/evidence metadata ships in the application. Custody offers
           // manifest-local model files and verified pieces, never nested program paths.
           if (!/^[a-zA-Z0-9_.-]+$/.test(file.path)) continue;

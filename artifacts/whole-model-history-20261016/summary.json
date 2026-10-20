@@ -1,0 +1,21 @@
+{
+  "component": "Conversation history and catalog availability",
+  "intent": "Whole-model answers now coexist with ordered split publications; canonical publication checks remain required for split attempts.",
+  "rootCause": "The ordered-history host suppressed whole-model catalog entries, and the workspace/store required publication records for every new attempt.",
+  "sourceCommit": "e27aa27f",
+  "deployedUrl": "https://replo.id",
+  "bundleHash": "sha256:99cae8548d5f68765c54874c381f2fd9831c3692f85785d51ed1103a35356ea2",
+  "focusedTests": 40,
+  "libraryTypes": "passed",
+  "runtimeVerification": "passed",
+  "localAndLiveWholeAnswers": "0.8B and 2B returned 42 and persisted after reload",
+  "timingsExcludeDiscovery": true,
+  "discoveryLimitation": "Initial empty catalog projections persist while peers connect; 2B needed more than the first 10-second harness wait. A subsequent 60-second admission wait succeeded locally and live. No inference was started while unavailable.",
+  "providerProcessesUnchanged": {
+    "amd08b": 2963679,
+    "amd2b": 2967869,
+    "amd27bWhole": 482901,
+    "amd27bSplit": 1739039
+  },
+  "boundaries": "No provider restart, weight reload, runtime numerical change, or new split campaign."
+}

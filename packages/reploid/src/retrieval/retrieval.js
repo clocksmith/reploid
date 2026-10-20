@@ -13,7 +13,7 @@ export function createRetrieval({ provider, extractor = null, supportChecker = n
     request: (input, content) => normalizeRetrievalRequest(input, content, rules),
     pending: (request, startedAt) => pendingRetrievalRecord({ request, provider, extractor, policy: rules, startedAt }),
     /** `answer`: an opaque key for the answer, so per-answer costs can be summed in provider usage logs. */
-    retrieve: (record, signal, { answer = null } = {}) => retrieveSources({ record, provider, extractor, signal, now, policy: rules, answer }),
+    retrieve: (record, signal, { answer = null, onProgress } = {}) => retrieveSources({ record, provider, extractor, signal, now, policy: rules, answer, onProgress }),
     dispatch: (request, record) => withSourceContext(request, record, rules),
     // Citation flags plus the claim-to-span mapping and deterministic validity; entailment awaits an independent reviewer.
     // withVerification (costs.js) attaches the result to its record together with the verification cost entry.

@@ -1,0 +1,32 @@
+{
+  "schema": "reploid.whole-model-service-campaign/v1",
+  "applicationSource": "98fcf1aaa55a20ea87bd9f9337453020c35d0b27",
+  "harnessSha256": "580cbe9b072ace6636cadc641dff89f73247da6b5327828e6bd534edee8c70b6",
+  "dopplerPackage": {
+    "name": "doppler-gpu",
+    "version": "0.6.32",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.32.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.32.tgz",
+    "integrity": "sha512-J83ak7CtSU17xhBqRAwS1VYDNsEs4/J9KRiY8Uk0PJBZlFyWvAx7LKOwYrbopIcaiYj7aGaKpBKM1/XYnDojlA=="
+  },
+  "baseUrl": "http://localhost:8132",
+  "room": "reploid-swarm-service-repair-checked-20261018",
+  "modelId": "qwen-3-5-2b-q4k-ehaf16",
+  "modelDirectory": "/Users/xyz/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
+  "participantEntry": "/Users/xyz/deco/reploid/server/native-participant.js",
+  "stateDirectory": "/Users/xyz/deco/reploid/.tmp/service-repair-20261018/qualified-journey",
+  "maxConcurrentRequests": 2,
+  "search": {
+    "question": "Eiffel Tower",
+    "answerPattern": "1889",
+    "followup": "Which city is it in? Answer with the city only.",
+    "followupPattern": "Paris"
+  },
+  "limits": {
+    "maxRuntimeMs": 600000,
+    "publicSearch": "Bing RSS through owned provider; no paid search or sign-ins",
+    "providerOwnership": "Only processes started by this campaign; replacement uses a different signing identity"
+  },
+  "scope": "Retained-source follow-up and full 2B lifecycle. Keyword search is diagnostic only; original natural-language Bing failure remains unresolved.",
+  "candidateDiffSha256": "5dc594d1c4f78602c1231dc8a86080fa3a50ce1daad3be8d91cf4c13d24e8f03"
+}

@@ -26,6 +26,8 @@ const REQUIRED_FIELDS = Object.freeze([
 
 const IGNORED_DIRECTORIES = new Set([
   '.git',
+  '.tmp',
+  '.deployment-checkouts',
   'node_modules',
   'playwright-report',
   'test-results',

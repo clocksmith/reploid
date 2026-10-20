@@ -1,0 +1,7 @@
+{
+  "startedAt": "2026-10-19T00:09:54.879Z",
+  "passed": false,
+  "pages": [],
+  "error": "page.waitForFunction: Timeout 60000ms exceeded.",
+  "finishedAt": "2026-10-19T00:10:56.692Z"
+}

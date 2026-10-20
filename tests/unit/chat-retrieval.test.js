@@ -5,7 +5,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 import { createFixedSearchProvider, createLexicalSupportChecker, renderSourceContext } from '../../packages/reploid/src/retrieval/index.js';
 import { createChatSession } from '../../self/host/chat-session.js';
-import { remotePermissionWording } from '../../self/ui/pool-home/remote-permission.js';
 import { orderedPartitionDisclosure } from '../../packages/reploid/src/mesh/partitions/partition-grants.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 
@@ -64,14 +63,55 @@ describe('retrieval-backed chat requests', () => {
       expect(sha(renderSourceContext(again.sources))).toBe(again.context.digest);
       await restored.close();
     }
-    // A follow-up without retrieval does not resend the earlier sources.
+    // A follow-up without a new search retains its earlier evidence under the new Send.
     const follow = fixture();
     const second = follow.app.createThread({ model });
     await follow.app.send(second, QUESTION, { retrieval: {} }); await follow.app.send(second, 'Thanks');
-    expect(follow.executed[1].messages).toEqual([{ role: 'user', content: QUESTION }, { role: 'assistant', content: ANSWER },
+    expect(follow.executed[1].messages).toEqual([{ role: 'user', content: follow.executed[0].messages[0].content }, { role: 'assistant', content: ANSWER },
       { role: 'user', content: 'Thanks' }]);
     expect(follow.app.getState().threads[0].attempts[1]).not.toHaveProperty('retrieval');
     await follow.app.close();
+  });
+
+  it('retains checked source context after reload without a search provider, including on retry', async () => {
+    const first = fixture(), thread = first.app.createThread({ model,
+      systemContext: { content: 'Be concise.', metadata: {} } });
+    await first.app.send(thread, QUESTION, { retrieval: {} });
+    const saved = structuredClone(first.store.load()); await first.app.close();
+    const inputs = [];
+    const restored = createChatWorkspace({ ...first.options, retrieval: null,
+      store: { load: () => saved, save() {} }, execute: async request => {
+        inputs.push(structuredClone(request));
+        if (inputs.length === 1) throw new Error('Provider left');
+        return result(request, 'Paris');
+      } });
+    const failed = await restored.send(thread, 'Which city is it in?');
+    expect(failed.status).toBe('failed');
+    expect(inputs[0].messages[0]).toEqual({ role: 'system', content: 'Be concise.' });
+    expect(inputs[0].messages[1].content).toContain(DOCUMENTS[0].text);
+    expect(inputs[0].messages.at(-1).content).toBe('Which city is it in?');
+    const retried = await restored.retry(thread, failed.id);
+    expect(retried.status).toBe('completed');
+    expect(inputs[1].messages).toEqual(inputs[0].messages);
+    expect(retried.request.messages).toEqual(inputs[1].messages);
+    await restored.close();
+  });
+
+  it('never imports another conversation or discloses corrupted retained passages', async () => {
+    const first = fixture(), thread = first.app.createThread({ model });
+    await first.app.send(thread, QUESTION, { retrieval: {} });
+    const other = first.app.createThread({ model });
+    await first.app.send(other, 'Hello');
+    expect(first.executed.at(-1).messages).toEqual([{ role: 'user', content: 'Hello' }]);
+    const saved = structuredClone(first.store.load()); await first.app.close();
+    saved.threads[0].attempts[0].retrieval.sources[0].passage = 'Altered evidence';
+    const execute = vi.fn();
+    const restored = createChatWorkspace({ ...first.options, execute,
+      store: { load: () => saved, save() {} } });
+    const attempt = await restored.send(thread, 'Which city?');
+    expect(attempt).toMatchObject({ status: 'failed', error: 'Retrieved context does not match its recorded digest' });
+    expect(execute).not.toHaveBeenCalled();
+    await restored.close();
   });
 
   it('fails the attempt explicitly when retrieval fails, invents no source and dispatches nothing', async () => {
@@ -89,6 +129,33 @@ describe('retrieval-backed chat requests', () => {
       expect(app.getState().threads[0].messages[1]).toMatchObject({ role: 'assistant', content: '', status: 'failed' });
       await app.close();
     }
+  });
+
+  it('streams retrieval stages before execution and dispatches only the pages completed within the deadline', async () => {
+    const fixed = createFixedSearchProvider({ documents: DOCUMENTS, now: () => 1760000000000 });
+    let release;
+    const { app, execute, executed } = fixture({ retrieval: { provider: fixed, extractor: { id: 'partial', version: '1',
+      async extract(input) {
+        const value = await fixed.extract(input);
+        return input.source.sourceId === 'fixed:eiffel' ? value : new Promise(resolve => { release = () => resolve(value); });
+      } } } });
+    const seen = []; const unsubscribe = app.subscribe(state => {
+      const attempt = state.threads[0]?.attempts[0];
+      if (attempt?.retrieval?.outcome === 'pending' && attempt.retrieval.progress) seen.push(structuredClone(attempt.retrieval.progress));
+    });
+    const thread = app.createThread({ model });
+    const pending = app.send(thread, QUESTION, { retrieval: { limits: { timeoutMs: 100 } } });
+    await vi.waitFor(() => expect(seen.some(progress => progress.stage === 'extraction' && progress.available === 1)).toBe(true), { interval: 5 });
+    expect(execute).not.toHaveBeenCalled();
+    const done = await pending;
+    expect(done).toMatchObject({ status: 'completed', retrieval: { outcome: 'retrieved', partial: true } });
+    expect(seen[0].stage).toBe('search');
+    expect(done.retrieval.sources.map(source => source.sourceId)).toEqual(['fixed:eiffel']);
+    expect(executed).toHaveLength(1); expect(executed[0].messages[0].content).not.toContain('Louvre');
+    const retained = structuredClone(app.getState()); release();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(app.getState()).toEqual(retained);
+    unsubscribe(); await app.close();
   });
 
   it('marks a retrieval pending at reload as interrupted, and a stop during retrieval cancels only that attempt', async () => {
@@ -169,6 +236,43 @@ describe('retrieval-backed chat requests', () => {
     expect(limited.app.getState().threads[0].messages).toEqual([]);
     await limited.app.close();
   });
+
+  it.each(['stop', 'deadline'])('preserves %s during citation checking across reload and permits a fresh retry', async action => {
+    vi.useFakeTimers();
+    let release;
+    const check = vi.fn(() => new Promise(resolve => { release = resolve; }));
+    const { app, options, store, execute } = fixture({ retrieval: { ...fixedPorts(),
+      supportChecker: { id: 'held-checker', version: '1', check } } });
+    let restored;
+    try {
+      const thread = app.createThread({ model });
+      const pending = app.send(thread, QUESTION, { retrieval: {} });
+      await vi.waitFor(() => expect(check).toHaveBeenCalledOnce());
+      if (action === 'stop') await app.cancel(thread);
+      else await vi.advanceTimersToNextTimerAsync();
+      const attempt = await pending;
+      expect(attempt.status).toBe(action === 'stop' ? 'cancelled' : 'failed');
+      expect(attempt.error).toContain(action === 'stop' ? 'Response stopped' : 'timed out');
+      expect(attempt.retrieval.verification.summary.unverified).toBe(1);
+      expect(app.getState().threads[0].messages.at(-1)).toMatchObject({ content: ANSWER, status: attempt.status });
+
+      const retained = structuredClone(store.load());
+      release({ verdict: 'supported', reason: 'Late checker result.' });
+      await vi.runAllTimersAsync();
+      expect(store.load()).toEqual(retained);
+      await app.close();
+      restored = createChatWorkspace({ ...options, retrieval: fixedPorts() });
+      expect(restored.getState().threads[0].attempts[0]).toEqual(attempt);
+      expect(execute).toHaveBeenCalledOnce(); // Reload never silently resends.
+      const retry = await restored.retry(thread, attempt.id);
+      expect(retry).toMatchObject({ status: 'completed', retryOf: attempt.id });
+      expect(retry.id).not.toBe(attempt.id);
+      expect(restored.getState().threads[0].attempts[0]).toEqual(attempt);
+    } finally {
+      release?.({ verdict: 'unverified', reason: 'Test cleanup.' });
+      await app.close(); await restored?.close(); vi.useRealTimers();
+    }
+  });
 });
 
 const peer = c => 'peer:' + c.repeat(24), digest = c => 'sha256:' + c.repeat(64);
@@ -203,25 +307,24 @@ const sessions = [];
 afterEach(async () => { for (const session of sessions.splice(0)) await session.close(); });
 
 describe('host retrieval plumbing and disclosure', () => {
-  it('retrieved sources leave the device only under the one-time remote permission, with the typed text as the query', async () => {
+  it('network-off rejects before retrieval; enabled search binds verified recipients without a popup', async () => {
     const partitions = orderedRoute();
     const session = createChatSession({ storage: memory(), service: createChatTestService(), partitions, retrieval: fixedPorts(),
       requesterIdentity: () => REQUESTER });
     sessions.push(session);
-    // Exercise manual per-answer approval explicitly; ordinary remote answers are default-on.
     session.setRemoteAnswersEnabled(false);
     const thread = session.createThread({ model: ordered });
-    const completion = session.send(thread, QUESTION, [{ name: 'notes.txt', text: 'My private notes about Paris.' }], { retrieval: {} });
-    const attempt = () => session.getState().threads[0].attempts.at(-1);
-    await vi.waitFor(() => expect(attempt().status).toBe('approval'));
-    // Retrieval ran here and its provenance is saved; nothing, sources included, has been sent.
-    expect(attempt().retrieval).toMatchObject({ outcome: 'retrieved', query: QUESTION });
+    expect(() => session.send(thread, QUESTION, [], { retrieval: {} })).toThrow('Network answers are off');
     expect(partitions.disclosed).toEqual([]);
-
-    const need = session.remotePermissionNeeded({ model: ordered, sharingScope: 'mesh' });
-    const permission = await session.grantRemotePermission(need, { wording: remotePermissionWording(need) });
-    const done = await completion;
-    expect(done).toMatchObject({ status: 'completed', authorization: { kind: 'permission', permissionId: permission.id, recipients: STAGES } });
+    expect(session.getState().threads[0].attempts).toEqual([]);
+    session.setRemoteAnswersEnabled(true);
+    const statuses = [];
+    const unsubscribe = session.subscribe(state => statuses.push(state.threads[0]?.attempts.at(-1)?.status));
+    const done = await session.send(thread, QUESTION, [{ name: 'notes.txt', text: 'My private notes about Paris.' }], { retrieval: {} });
+    unsubscribe();
+    expect(statuses).not.toContain('approval');
+    expect(done.retrieval).toMatchObject({ outcome: 'retrieved', query: QUESTION });
+    expect(done).toMatchObject({ status: 'completed', authorization: { kind: 'permission', recipients: STAGES } });
     expect(partitions.disclosed).toHaveLength(1);
     const sent = partitions.disclosed[0].at(-1).content;
     expect(sent.startsWith(renderSourceContext(done.retrieval.sources))).toBe(true);

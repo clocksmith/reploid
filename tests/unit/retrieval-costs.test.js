@@ -176,7 +176,7 @@ describe('costs in conversations', () => {
     const thread = app.createThread({ model: { id: 'm', name: 'M', identity: 'sha256:' + 'a'.repeat(64) } });
     const attempt = await app.send(thread, 'When was the Eiffel Tower completed?', { retrieval: {} });
     expect(attempt.status).toBe('completed');
-    expect(contexts).toEqual([{ answer: attempt.id }, { answer: attempt.id }]);
+    expect(contexts).toEqual([{ providerId: 'test.search', answer: attempt.id }, { answer: attempt.id }]);
     expect(attempt.retrieval.costs).toMatchObject({ retrieval: { bearer: 'operator', search: { costMicroUsd: 5000 }, extraction: { costMicroUsd: 7 } },
       verification: { checker: null, reviews: [], costMicroUsd: 0 }, fallback: { path: 'none', costMicroUsd: 0 }, totalMicroUsd: 5007 });
     // The executor receives the numbered sources and the question only.

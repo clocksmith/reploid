@@ -21,6 +21,51 @@ const channelLimits = { maxFrameBytes: 65536, maxControlBytes: 131072, maxPayloa
   maxPendingRequests: 8, maxRequestsPerChannel: 256, maxBufferedBytes: 262144, maxTransferBytes: 4194304, timeoutMs: 10000 };
 const inputLimits = { maxInputCharacters: 4096, maxOutputCharacters: 100, maxAttempts: 20, maxConcurrentAttempts: 2, descriptorTtlMs: 60000 };
 
+it('persists whole-model streams alongside ordered history without inventing publication records', async () => {
+  const store = memoryStore();
+  const options = { store, key: 'workspace', meshId: 'mesh', participantId: requesterId,
+    writerEpoch: epochA, expectedWriterEpoch: null, legacy: { workspace: null, drafts: null },
+    maxWorkspaceBytes: 1048576, maxThreads: 8, allowWholeModel: true,
+    publicationOptions: () => { throw Error('Whole model must not open partition publication'); } };
+  const history = await openCanonicalWorkspaceHistory(options);
+  const model = { id: 'whole', name: 'Whole model', identity: 'sha256:' + 'a'.repeat(64) };
+  const execute = async (request, controls) => {
+    const envelope = { threadId: request.threadId, attemptId: request.attemptId };
+    expect(controls.publication).toBeUndefined();
+    controls.onDelta({ ...envelope, sequence: 0, text: 'Forty ' });
+    controls.onDelta({ ...envelope, sequence: 1, text: 'two' });
+    if (request.messages.at(-1).content === 'Cancel this') await new Promise((resolve, reject) => {
+      controls.signal.addEventListener('abort', () => reject(controls.signal.reason), { once: true });
+    });
+    return { ...envelope, modelId: model.id, modelIdentity: model.identity, adapterIdentities: [], content: 'Forty two' };
+  };
+  const workspace = createChatWorkspace({ meshId: 'mesh', participantId: requesterId, store: history, execute });
+  const id = await workspace.createThread({ model, permissions: { sharingScope: 'local' } });
+  expect((await workspace.send(id, 'Question')).status).toBe('completed');
+  expect((await workspace.send(id, 'Follow up')).status).toBe('completed');
+  const cancellation = workspace.send(id, 'Cancel this');
+  await vi.waitFor(() => {
+    expect(workspace.getState().threads[0].attempts).toHaveLength(3);
+    expect(workspace.getState().threads[0].messages.at(-1).content).toBe('Forty two');
+  });
+  await workspace.cancel(id);
+  expect((await cancellation).status).toBe('cancelled');
+  const snapshot = workspace.getState().threads;
+  expect(snapshot[0].attempts.every(attempt => attempt.publicationMode === 'whole-model')).toBe(true);
+  expect(store.durable.get('workspace').publications).toEqual({});
+  // Inspect current durable metadata for rejection tests.
+  const invalid = structuredClone(store.durable.get('workspace').workspace);
+  invalid.threads[0].model.partition = { schema: 'reploid.partition-selection/v2' };
+  await expect(history.save(invalid)).rejects.toThrow('New attempts require canonical publication');
+  const downgrade = structuredClone(store.durable.get('workspace').workspace);
+  downgrade.threads[0].attempts[0].publicationMode = 'canonical';
+  await expect(history.save(downgrade)).rejects.toThrow('Attempt publication mode cannot change');
+  await workspace.close(); await history.close();
+  const reopened = await openCanonicalWorkspaceHistory({ ...options, writerEpoch: epochB, expectedWriterEpoch: epochA });
+  expect(reopened.load().threads).toEqual(snapshot);
+  await reopened.close();
+});
+
 function channels() {
   const pair = [new EventTarget(), new EventTarget()];
   pair.forEach((channel, index) => Object.assign(channel, { readyState: 'open', ordered: true,

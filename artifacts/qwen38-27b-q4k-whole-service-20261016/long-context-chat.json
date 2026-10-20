@@ -1,0 +1,818 @@
+{
+  "at": "2026-10-17T01:14:59.830Z",
+  "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+  "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "firstTextMs": 89213.064541,
+  "elapsedMs": 89734.570583,
+  "browser": "155.0.8059.80",
+  "history": {
+    "meshId": "reploid-local-mesh",
+    "participantId": "local-user",
+    "schema": "reploid.chat-workspace/v1",
+    "threads": [
+      {
+        "attempts": [
+          {
+            "approval": null,
+            "authorization": {
+              "adapterIdentities": [],
+              "disclosure": "public",
+              "expiresAt": 1792199635420,
+              "grantId": null,
+              "kind": "permission",
+              "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+              "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+              "peerId": "85d90063-3ec0-4707-b6ca-9e61dc3cf654",
+              "permissionId": "113cb74a-c7bb-49b3-ae3b-0773da26b011",
+              "recipientIdentity": "peer:e63a52ec7c80129d86672f86",
+              "recipients": [
+                "peer:e63a52ec7c80129d86672f86"
+              ],
+              "sharingScope": "mesh",
+              "source": "permission"
+            },
+            "createdAt": 1792199605038,
+            "error": null,
+            "execution": {
+              "adapterIdentities": [],
+              "completion": {
+                "generatedTokenCount": 3,
+                "promptTokenCount": 3816,
+                "schema": "doppler.generation-completion/v1",
+                "stopReason": "stop-token"
+              },
+              "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+              "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+              "peerId": "85d90063-3ec0-4707-b6ca-9e61dc3cf654",
+              "placement": "peer-whole-request",
+              "provider": "peer",
+              "stopReason": "stop-token",
+              "timing": {
+                "decodeMs": 469.34881000220776,
+                "firstTokenMs": 88736.6653320007,
+                "generatedTokenCount": 3,
+                "prefillMs": 88734.24892000109,
+                "totalMs": 89206.93513699993
+              }
+            },
+            "finishedAt": 1792199694689,
+            "id": "14de695e-fd59-476c-ba27-ef7f5f237d99",
+            "provenance": {
+              "attemptId": "14de695e-fd59-476c-ba27-ef7f5f237d99",
+              "classes": [
+                "mesh"
+              ],
+              "earlierAttempts": [],
+              "execution": {
+                "classes": [
+                  "mesh"
+                ],
+                "participants": [
+                  {
+                    "participantId": "85d90063-3ec0-4707-b6ca-9e61dc3cf654",
+                    "role": "whole-request",
+                    "stage": null,
+                    "supply": "mesh"
+                  }
+                ],
+                "placement": "peer-whole-request",
+                "supply": "mesh"
+              },
+              "retrieval": {
+                "supply": "none"
+              },
+              "schema": "reploid.answer-provenance/v1",
+              "supply": "mesh"
+            },
+            "publicationMode": "whole-model",
+            "request": {
+              "members": [
+                "local-user"
+              ],
+              "messages": [
+                {
+                  "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.8 27B.",
+                  "role": "system"
+                },
+                {
+                  "content": "The following lines are filler records. Ignore them when answering.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\n\nReply with only the number 42.",
+                  "role": "user"
+                }
+              ],
+              "model": {
+                "adapters": [],
+                "availability": "ready",
+                "contextLength": 4096,
+                "executionModes": [
+                  "whole-model",
+                  "partition"
+                ],
+                "generation": {
+                  "maxSeqLen": 4096,
+                  "maxTokens": 256,
+                  "repetitionPenalty": 1,
+                  "repetitionPenaltyWindow": 1,
+                  "temperature": 0,
+                  "topK": 1,
+                  "topP": 1,
+                  "useChatTemplate": true
+                },
+                "id": "qwen3-8-27b-text-q4k-ehaf16",
+                "identity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                "loadOptions": {
+                  "runtimeConfig": {
+                    "inference": {
+                      "batching": {
+                        "batchSize": 1,
+                        "maxTokens": 128,
+                        "readbackInterval": 1,
+                        "readbackMode": "sequential",
+                        "ringStaging": 1,
+                        "ringStop": 1,
+                        "ringTokens": 1,
+                        "stopCheckMode": "per-token"
+                      },
+                      "chatTemplate": {
+                        "enabled": false,
+                        "thinking": false,
+                        "type": null
+                      },
+                      "generation": {
+                        "disableMultiTokenDecode": true,
+                        "maxTokens": 128
+                      },
+                      "kernelPathPolicy": {
+                        "allowSources": [
+                          "manifest"
+                        ],
+                        "mode": "capability-aware",
+                        "onIncompatible": "error",
+                        "sourceScope": [
+                          "manifest"
+                        ]
+                      },
+                      "kvcache": {
+                        "maxSeqLen": 4096
+                      },
+                      "prompt": "The capital of France is",
+                      "sampling": {
+                        "greedyThreshold": 0,
+                        "repetitionPenalty": 1,
+                        "repetitionPenaltyWindow": 1,
+                        "suppressSpecialLikeTokens": false,
+                        "suppressSpecialTokens": false,
+                        "suppressTokenIds": [],
+                        "temperature": 0,
+                        "topK": 1,
+                        "topP": 1
+                      },
+                      "session": {
+                        "decodeLoop": {
+                          "batchSize": 1,
+                          "disableCommandBatching": false,
+                          "maxBatchDecodeTokens": 1,
+                          "readbackInterval": 1,
+                          "readbackMode": "sequential",
+                          "ringStaging": 1,
+                          "ringStop": 1,
+                          "ringTokens": 1,
+                          "stopCheckMode": "per-token",
+                          "submitLatencyThresholdMs": null
+                        },
+                        "kvcache": {
+                          "maxSeqLen": 4096
+                        },
+                        "prefillTokenChunkSize": 256
+                      }
+                    },
+                    "shared": {
+                      "bufferPool": {
+                        "budget": {
+                          "emergencyTrimTargetRatio": 0.9,
+                          "hardFailOnBudgetExceeded": true,
+                          "highWatermarkRatio": 0.94,
+                          "maxTotalBytes": 25769803776
+                        }
+                      },
+                      "debug": {
+                        "logLevel": {
+                          "defaultLogLevel": "warn"
+                        },
+                        "profiler": {
+                          "enabled": false
+                        },
+                        "trace": {
+                          "enabled": false
+                        }
+                      },
+                      "harness": {
+                        "referenceTranscript": {
+                          "captureKvBytes": true,
+                          "captureLogits": true,
+                          "enabled": false
+                        }
+                      }
+                    }
+                  }
+                },
+                "name": "Qwen 3.8 27B",
+                "networkAvailability": "ready",
+                "packageName": "doppler-gpu",
+                "packageVersion": "0.6.30",
+                "partitionPlan": {
+                  "activationComponents": 1,
+                  "activationDtype": "f32",
+                  "activationElementStrideBytes": 4,
+                  "activationPrecision": "f32",
+                  "hiddenSize": 5120,
+                  "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                  "partitions": [
+                    {
+                      "hasEmbedding": true,
+                      "hasLmHead": false,
+                      "index": 0,
+                      "inputContract": {
+                        "dtype": "i32",
+                        "rank": 2,
+                        "shapeDescription": "[batchSize, seqLen]",
+                        "type": "token-ids"
+                      },
+                      "layerCount": 1,
+                      "layerRange": [
+                        0,
+                        0
+                      ],
+                      "outputContract": {
+                        "components": 1,
+                        "dtype": "f32",
+                        "elementStrideBytes": 4,
+                        "hiddenSize": 5120,
+                        "precision": "f32",
+                        "rank": 3,
+                        "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+                        "type": "activation-tensor"
+                      }
+                    },
+                    {
+                      "hasEmbedding": false,
+                      "hasLmHead": true,
+                      "index": 1,
+                      "inputContract": {
+                        "components": 1,
+                        "dtype": "f32",
+                        "elementStrideBytes": 4,
+                        "hiddenSize": 5120,
+                        "precision": "f32",
+                        "rank": 3,
+                        "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+                        "type": "activation-tensor"
+                      },
+                      "layerCount": 63,
+                      "layerRange": [
+                        1,
+                        63
+                      ],
+                      "outputContract": {
+                        "dtype": "f32",
+                        "rank": 3,
+                        "shapeDescription": "[batchSize, seqLen, vocabSize]",
+                        "type": "logits",
+                        "vocabSize": 248320
+                      }
+                    }
+                  ],
+                  "schema": "doppler.layer-partition-contract/v3",
+                  "splitLayers": [
+                    1
+                  ],
+                  "stageCount": 2,
+                  "totalLayers": 64,
+                  "vocabSize": 248320
+                },
+                "partitionPlanId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+                "partitionRuntime": {
+                  "maxGpuBufferBytes": [
+                    6442450944,
+                    25769803776
+                  ],
+                  "runtimeConfig": {
+                    "inference": {
+                      "batching": {
+                        "batchSize": 1,
+                        "maxTokens": 128,
+                        "readbackInterval": 1,
+                        "readbackMode": "sequential",
+                        "ringStaging": 1,
+                        "ringStop": 1,
+                        "ringTokens": 1,
+                        "stopCheckMode": "per-token"
+                      },
+                      "chatTemplate": {
+                        "enabled": false,
+                        "thinking": false,
+                        "type": null
+                      },
+                      "generation": {
+                        "disableMultiTokenDecode": true,
+                        "maxTokens": 128
+                      },
+                      "kernelPathPolicy": {
+                        "allowSources": [
+                          "manifest"
+                        ],
+                        "mode": "capability-aware",
+                        "onIncompatible": "error",
+                        "sourceScope": [
+                          "manifest"
+                        ]
+                      },
+                      "kvcache": {
+                        "maxSeqLen": 4096
+                      },
+                      "prompt": "The capital of France is",
+                      "sampling": {
+                        "greedyThreshold": 0,
+                        "repetitionPenalty": 1,
+                        "repetitionPenaltyWindow": 1,
+                        "suppressSpecialLikeTokens": false,
+                        "suppressSpecialTokens": false,
+                        "suppressTokenIds": [],
+                        "temperature": 0,
+                        "topK": 1,
+                        "topP": 1
+                      },
+                      "session": {
+                        "decodeLoop": {
+                          "batchSize": 1,
+                          "disableCommandBatching": false,
+                          "maxBatchDecodeTokens": 1,
+                          "readbackInterval": 1,
+                          "readbackMode": "sequential",
+                          "ringStaging": 1,
+                          "ringStop": 1,
+                          "ringTokens": 1,
+                          "stopCheckMode": "per-token",
+                          "submitLatencyThresholdMs": null
+                        },
+                        "kvcache": {
+                          "maxSeqLen": 4096
+                        },
+                        "prefillTokenChunkSize": 256
+                      }
+                    },
+                    "shared": {
+                      "bufferPool": {
+                        "budget": {
+                          "emergencyTrimTargetRatio": 0.9,
+                          "hardFailOnBudgetExceeded": true,
+                          "highWatermarkRatio": 0.94,
+                          "maxTotalBytes": 25769803776
+                        }
+                      },
+                      "debug": {
+                        "logLevel": {
+                          "defaultLogLevel": "warn"
+                        },
+                        "profiler": {
+                          "enabled": false
+                        },
+                        "trace": {
+                          "enabled": false
+                        }
+                      },
+                      "harness": {
+                        "referenceTranscript": {
+                          "captureKvBytes": false,
+                          "captureLogits": false,
+                          "enabled": false
+                        }
+                      }
+                    }
+                  }
+                },
+                "provider": "doppler",
+                "providerIds": [
+                  "85d90063-3ec0-4707-b6ca-9e61dc3cf654"
+                ],
+                "quantization": "q4k",
+                "size": "Q4K · 17 GB",
+                "source": {
+                  "files": [
+                    {
+                      "hash": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                      "hashAlgorithm": "sha256",
+                      "path": "manifest.json",
+                      "role": "model-manifest",
+                      "sizeBytes": 563307,
+                      "url": "/config/model-manifests/19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d.json"
+                    },
+                    {
+                      "hash": "ae50d65939a34a089eaf1e541c15c8a7d866079a5fe9a1d35454e0aa88577753",
+                      "hashAlgorithm": "sha256",
+                      "path": "tokenizer.json",
+                      "role": "tokenizer",
+                      "sizeBytes": 9089356
+                    },
+                    {
+                      "hash": "69400a62b129f8f045564527f6c7867b038b5c20edfe1842d3f36d60101a4600",
+                      "hashAlgorithm": "sha256",
+                      "path": "qwen27b-q4-pieces.json",
+                      "role": "model-piece-index",
+                      "sizeBytes": 979941,
+                      "url": "/config/model-pieces/qwen27b-q4-pieces.json"
+                    }
+                  ]
+                }
+              },
+              "permissions": {
+                "executionLocation": "auto",
+                "sharingScope": "mesh"
+              }
+            },
+            "responseId": "9d33e9dc-150e-4b8c-9cde-9a775eaffb25",
+            "retryOf": null,
+            "status": "completed",
+            "systemContext": {
+              "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.8 27B.",
+              "metadata": {
+                "enabled": true,
+                "maxWords": 16,
+                "mode": null,
+                "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                "policyId": "reploid.compact-context/v2",
+                "wordCount": 13
+              }
+            },
+            "threadId": "36e7b2bc-a455-4e9f-8383-5b6718e832fc",
+            "userMessageId": "18418b73-9b1c-4482-a1e1-54f6f6b50f64"
+          }
+        ],
+        "closed": false,
+        "createdAt": 1792199605014,
+        "grants": [],
+        "id": "36e7b2bc-a455-4e9f-8383-5b6718e832fc",
+        "members": [
+          "local-user"
+        ],
+        "messages": [
+          {
+            "content": "The following lines are filler records. Ignore them when answering.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\nalpha beta gamma delta.\n\nReply with only the number 42.",
+            "id": "18418b73-9b1c-4482-a1e1-54f6f6b50f64",
+            "role": "user",
+            "status": "completed"
+          },
+          {
+            "attemptId": "14de695e-fd59-476c-ba27-ef7f5f237d99",
+            "content": "42",
+            "id": "9d33e9dc-150e-4b8c-9cde-9a775eaffb25",
+            "role": "assistant",
+            "status": "completed"
+          }
+        ],
+        "model": {
+          "adapters": [],
+          "availability": "ready",
+          "contextLength": 4096,
+          "executionModes": [
+            "whole-model",
+            "partition"
+          ],
+          "generation": {
+            "maxSeqLen": 4096,
+            "maxTokens": 256,
+            "repetitionPenalty": 1,
+            "repetitionPenaltyWindow": 1,
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1,
+            "useChatTemplate": true
+          },
+          "id": "qwen3-8-27b-text-q4k-ehaf16",
+          "identity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+          "loadOptions": {
+            "runtimeConfig": {
+              "inference": {
+                "batching": {
+                  "batchSize": 1,
+                  "maxTokens": 128,
+                  "readbackInterval": 1,
+                  "readbackMode": "sequential",
+                  "ringStaging": 1,
+                  "ringStop": 1,
+                  "ringTokens": 1,
+                  "stopCheckMode": "per-token"
+                },
+                "chatTemplate": {
+                  "enabled": false,
+                  "thinking": false,
+                  "type": null
+                },
+                "generation": {
+                  "disableMultiTokenDecode": true,
+                  "maxTokens": 128
+                },
+                "kernelPathPolicy": {
+                  "allowSources": [
+                    "manifest"
+                  ],
+                  "mode": "capability-aware",
+                  "onIncompatible": "error",
+                  "sourceScope": [
+                    "manifest"
+                  ]
+                },
+                "kvcache": {
+                  "maxSeqLen": 4096
+                },
+                "prompt": "The capital of France is",
+                "sampling": {
+                  "greedyThreshold": 0,
+                  "repetitionPenalty": 1,
+                  "repetitionPenaltyWindow": 1,
+                  "suppressSpecialLikeTokens": false,
+                  "suppressSpecialTokens": false,
+                  "suppressTokenIds": [],
+                  "temperature": 0,
+                  "topK": 1,
+                  "topP": 1
+                },
+                "session": {
+                  "decodeLoop": {
+                    "batchSize": 1,
+                    "disableCommandBatching": false,
+                    "maxBatchDecodeTokens": 1,
+                    "readbackInterval": 1,
+                    "readbackMode": "sequential",
+                    "ringStaging": 1,
+                    "ringStop": 1,
+                    "ringTokens": 1,
+                    "stopCheckMode": "per-token",
+                    "submitLatencyThresholdMs": null
+                  },
+                  "kvcache": {
+                    "maxSeqLen": 4096
+                  },
+                  "prefillTokenChunkSize": 256
+                }
+              },
+              "shared": {
+                "bufferPool": {
+                  "budget": {
+                    "emergencyTrimTargetRatio": 0.9,
+                    "hardFailOnBudgetExceeded": true,
+                    "highWatermarkRatio": 0.94,
+                    "maxTotalBytes": 25769803776
+                  }
+                },
+                "debug": {
+                  "logLevel": {
+                    "defaultLogLevel": "warn"
+                  },
+                  "profiler": {
+                    "enabled": false
+                  },
+                  "trace": {
+                    "enabled": false
+                  }
+                },
+                "harness": {
+                  "referenceTranscript": {
+                    "captureKvBytes": true,
+                    "captureLogits": true,
+                    "enabled": false
+                  }
+                }
+              }
+            }
+          },
+          "name": "Qwen 3.8 27B",
+          "networkAvailability": "ready",
+          "packageName": "doppler-gpu",
+          "packageVersion": "0.6.30",
+          "partitionPlan": {
+            "activationComponents": 1,
+            "activationDtype": "f32",
+            "activationElementStrideBytes": 4,
+            "activationPrecision": "f32",
+            "hiddenSize": 5120,
+            "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+            "partitions": [
+              {
+                "hasEmbedding": true,
+                "hasLmHead": false,
+                "index": 0,
+                "inputContract": {
+                  "dtype": "i32",
+                  "rank": 2,
+                  "shapeDescription": "[batchSize, seqLen]",
+                  "type": "token-ids"
+                },
+                "layerCount": 1,
+                "layerRange": [
+                  0,
+                  0
+                ],
+                "outputContract": {
+                  "components": 1,
+                  "dtype": "f32",
+                  "elementStrideBytes": 4,
+                  "hiddenSize": 5120,
+                  "precision": "f32",
+                  "rank": 3,
+                  "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+                  "type": "activation-tensor"
+                }
+              },
+              {
+                "hasEmbedding": false,
+                "hasLmHead": true,
+                "index": 1,
+                "inputContract": {
+                  "components": 1,
+                  "dtype": "f32",
+                  "elementStrideBytes": 4,
+                  "hiddenSize": 5120,
+                  "precision": "f32",
+                  "rank": 3,
+                  "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+                  "type": "activation-tensor"
+                },
+                "layerCount": 63,
+                "layerRange": [
+                  1,
+                  63
+                ],
+                "outputContract": {
+                  "dtype": "f32",
+                  "rank": 3,
+                  "shapeDescription": "[batchSize, seqLen, vocabSize]",
+                  "type": "logits",
+                  "vocabSize": 248320
+                }
+              }
+            ],
+            "schema": "doppler.layer-partition-contract/v3",
+            "splitLayers": [
+              1
+            ],
+            "stageCount": 2,
+            "totalLayers": 64,
+            "vocabSize": 248320
+          },
+          "partitionPlanId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+          "partitionRuntime": {
+            "maxGpuBufferBytes": [
+              6442450944,
+              25769803776
+            ],
+            "runtimeConfig": {
+              "inference": {
+                "batching": {
+                  "batchSize": 1,
+                  "maxTokens": 128,
+                  "readbackInterval": 1,
+                  "readbackMode": "sequential",
+                  "ringStaging": 1,
+                  "ringStop": 1,
+                  "ringTokens": 1,
+                  "stopCheckMode": "per-token"
+                },
+                "chatTemplate": {
+                  "enabled": false,
+                  "thinking": false,
+                  "type": null
+                },
+                "generation": {
+                  "disableMultiTokenDecode": true,
+                  "maxTokens": 128
+                },
+                "kernelPathPolicy": {
+                  "allowSources": [
+                    "manifest"
+                  ],
+                  "mode": "capability-aware",
+                  "onIncompatible": "error",
+                  "sourceScope": [
+                    "manifest"
+                  ]
+                },
+                "kvcache": {
+                  "maxSeqLen": 4096
+                },
+                "prompt": "The capital of France is",
+                "sampling": {
+                  "greedyThreshold": 0,
+                  "repetitionPenalty": 1,
+                  "repetitionPenaltyWindow": 1,
+                  "suppressSpecialLikeTokens": false,
+                  "suppressSpecialTokens": false,
+                  "suppressTokenIds": [],
+                  "temperature": 0,
+                  "topK": 1,
+                  "topP": 1
+                },
+                "session": {
+                  "decodeLoop": {
+                    "batchSize": 1,
+                    "disableCommandBatching": false,
+                    "maxBatchDecodeTokens": 1,
+                    "readbackInterval": 1,
+                    "readbackMode": "sequential",
+                    "ringStaging": 1,
+                    "ringStop": 1,
+                    "ringTokens": 1,
+                    "stopCheckMode": "per-token",
+                    "submitLatencyThresholdMs": null
+                  },
+                  "kvcache": {
+                    "maxSeqLen": 4096
+                  },
+                  "prefillTokenChunkSize": 256
+                }
+              },
+              "shared": {
+                "bufferPool": {
+                  "budget": {
+                    "emergencyTrimTargetRatio": 0.9,
+                    "hardFailOnBudgetExceeded": true,
+                    "highWatermarkRatio": 0.94,
+                    "maxTotalBytes": 25769803776
+                  }
+                },
+                "debug": {
+                  "logLevel": {
+                    "defaultLogLevel": "warn"
+                  },
+                  "profiler": {
+                    "enabled": false
+                  },
+                  "trace": {
+                    "enabled": false
+                  }
+                },
+                "harness": {
+                  "referenceTranscript": {
+                    "captureKvBytes": false,
+                    "captureLogits": false,
+                    "enabled": false
+                  }
+                }
+              }
+            }
+          },
+          "provider": "doppler",
+          "providerIds": [
+            "85d90063-3ec0-4707-b6ca-9e61dc3cf654"
+          ],
+          "quantization": "q4k",
+          "size": "Q4K · 17 GB",
+          "source": {
+            "files": [
+              {
+                "hash": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                "hashAlgorithm": "sha256",
+                "path": "manifest.json",
+                "role": "model-manifest",
+                "sizeBytes": 563307,
+                "url": "/config/model-manifests/19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d.json"
+              },
+              {
+                "hash": "ae50d65939a34a089eaf1e541c15c8a7d866079a5fe9a1d35454e0aa88577753",
+                "hashAlgorithm": "sha256",
+                "path": "tokenizer.json",
+                "role": "tokenizer",
+                "sizeBytes": 9089356
+              },
+              {
+                "hash": "69400a62b129f8f045564527f6c7867b038b5c20edfe1842d3f36d60101a4600",
+                "hashAlgorithm": "sha256",
+                "path": "qwen27b-q4-pieces.json",
+                "role": "model-piece-index",
+                "sizeBytes": 979941,
+                "url": "/config/model-pieces/qwen27b-q4-pieces.json"
+              }
+            ]
+          }
+        },
+        "permissions": {
+          "executionLocation": "auto",
+          "sharingScope": "mesh"
+        },
+        "purpose": "",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.8 27B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        }
+      }
+    ]
+  },
+  "errors": [],
+  "weightRequests": []
+}

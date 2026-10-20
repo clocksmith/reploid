@@ -6,6 +6,15 @@ import { updateMessageMarkdown } from '../components/message-markdown.js';
 let nextPopover = 0;
 
 function failureLabel(attempt) {
+  if (attempt.retrieval?.error?.code === 'timeout' || /retrieval exceeded its time limit/i.test(attempt.error || '')) {
+    const stage = attempt.retrieval?.error?.stage;
+    const action = stage === 'search' ? 'Web search' : stage === 'extraction' ? 'Reading search results' : 'Source retrieval';
+    const limit = attempt.retrieval?.limits?.timeoutMs;
+    return `${action} timed out${Number.isFinite(limit) ? ` after ${limit / 1000} seconds` : ''}. No model answer was generated.`;
+  }
+  if (attempt.retrieval?.outcome === 'failed' || /^Could not retrieve sources:/i.test(attempt.error || '')) {
+    return `${attempt.error || 'Source retrieval failed.'} No model answer was generated.`;
+  }
   if (attempt.error === 'Disclosure declined') return 'Not sent. You declined sharing this request.';
   if (attempt.status === 'cancelled') return 'Stopped. Your partial answer is saved.';
   if (/disconnect|peer.*lost|contributor.*lost/i.test(attempt.error || '')) return 'A computer disconnected. Retry this answer.';
@@ -58,7 +67,13 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
       const selecting = selection && !selection.isCollapsed && stream.contains(selection.anchorNode);
       let targets = new Map();
       const visible = new Set();
+      const attempts = new Map((thread?.attempts || []).map(attempt => [attempt.id, attempt]));
+      const retried = new Set([...attempts.values()].map(attempt => attempt.retryOf).filter(Boolean));
+      const collapsed = new Set((thread?.messages || []).filter(message => message.role === 'assistant' && !message.content
+        && retried.has(message.attemptId) && ['failed', 'cancelled', 'interrupted'].includes(attempts.get(message.attemptId)?.status))
+        .map(message => message.attemptId));
       for (const [index, message] of (thread?.messages || []).entries()) {
+        if (message.role === 'assistant' && collapsed.has(message.attemptId)) continue;
         const messageId = message.id || `message-${index}`;
         const id = `${thread.id}:${messageId}`; visible.add(id);
         let row = rows.get(id);
@@ -66,7 +81,7 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
           row = stream.ownerDocument.createElement('article'); row.dataset.messageId = messageId;
           row.className = message.role === 'user' ? 'chat-message-row is-user' : 'chat-message-row is-assistant';
           const popover = `chat-execution-${++nextPopover}`;
-          row.innerHTML = `<span class="chat-message-author pool-small pool-muted"></span><div class="chat-message-content pool-body pool-prose"></div><div class="chat-message-footer pool-row pool-gap-sm pool-small pool-muted"><div class="chat-message-meta pool-caption" hidden></div><div class="chat-execution-activity" data-execution-activity hidden><button class="pool-button pool-icon" type="button" data-execution-trigger popovertarget="${popover}"></button><div class="chat-execution-popover pool-card pool-small" id="${popover}" popover data-activity-detail></div></div><div class="chat-message-actions"></div></div>`;
+          row.innerHTML = `<span class="chat-message-author pool-small pool-muted"></span><div class="chat-message-content pool-body pool-prose"></div><div class="chat-message-system pool-small" data-system-status role="status" aria-label="System status" hidden></div><div class="chat-message-footer pool-row pool-gap-sm pool-small pool-muted"><div class="chat-message-meta pool-caption" hidden></div><div class="chat-execution-activity pool-row pool-gap-sm" data-execution-activity hidden><span class="pool-small" data-tool-status role="status" hidden></span><button class="pool-button pool-icon" type="button" data-execution-trigger popovertarget="${popover}"></button><div class="chat-execution-popover pool-card pool-small" id="${popover}" popover data-activity-detail></div></div><div class="chat-message-actions"></div></div>`;
           if (message.role === 'user') row.querySelector('.chat-message-content').classList.add('pool-well');
           row.querySelector('.chat-message-author').textContent = message.role === 'user' ? 'You' : 'Assistant'; rows.set(id, row);
         }
@@ -81,7 +96,7 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
             }).join('') + '</details>').join('');
           if (body.dataset.source !== markup) { body.innerHTML = markup; body.dataset.source = markup; }
         }
-        const attempt = thread.attempts.find(item => item.id === message.attemptId);
+        const attempt = attempts.get(message.attemptId);
         if (message.role === 'assistant') updateMessageMeta(row.querySelector('.chat-message-meta'), thread, attempt, state);
         const sources = message.role === 'assistant' && attempt?.retrieval?.outcome === 'retrieved' ? attempt.retrieval.sources : [];
         const anchor = number => `source-${message.id}-${number}`;
@@ -93,17 +108,52 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
         author.hidden = message.role === 'user' || !!message.content || !row.querySelector('[data-execution-activity]').hidden;
         if (!author.hidden) author.textContent = ({ queued: 'Waiting…', loading: 'Preparing…', executing: 'Thinking…', cancelling: 'Stopping…' })[attempt?.status] || '';
         const failed = message.role === 'assistant' && attempt && ['failed', 'cancelled', 'interrupted'].includes(attempt.status);
+        const system = row.querySelector('[data-system-status]');
+        const retrieval = attempt?.retrieval;
+        let systemText = failed ? failureLabel(attempt) : '';
+        if (!failed && retrieval?.partial) systemText = `Using ${retrieval.sources.length} retrieved source${retrieval.sources.length === 1 ? '' : 's'}. Some pages were unavailable.`;
+        system.hidden = !systemText;
+        if (systemText) system.textContent = `System · ${systemText}`;
+        if (systemText) author.hidden = true;
+        const earlier = [], visited = new Set();
+        let ancestor = attempt?.retryOf;
+        while (collapsed.has(ancestor) && !visited.has(ancestor)) {
+          visited.add(ancestor); earlier.unshift(attempts.get(ancestor)); ancestor = attempts.get(ancestor)?.retryOf;
+        }
+        let history = row.querySelector('[data-previous-attempts]');
+        if (earlier.length && !history) {
+          history = stream.ownerDocument.createElement('details');
+          history.className = 'pool-small pool-muted'; history.dataset.previousAttempts = '';
+          history.setAttribute('aria-label', 'System attempt history');
+          history.innerHTML = '<summary></summary><ol class="pool-list"></ol>'; row.append(history);
+        }
+        if (history) {
+          history.hidden = !earlier.length;
+          const key = JSON.stringify(earlier.map(item => [item.id, item.status, item.error]));
+          if (history.dataset.key !== key) {
+            history.dataset.key = key;
+            history.firstElementChild.textContent = `Previous attempts (${earlier.length})`;
+            history.lastElementChild.replaceChildren(...earlier.map(item => {
+              const entry = stream.ownerDocument.createElement('li'); entry.textContent = `System · ${failureLabel(item)}`; return entry;
+            }));
+          }
+        }
+        body.hidden = !message.content && !source;
+        body.setAttribute('aria-label', message.role === 'assistant' ? 'Model output' : 'Your message');
+        row.dataset.systemOnly = String(message.role === 'assistant' && !message.content);
+        if (row.dataset.systemOnly === 'true') row.querySelector('.chat-message-meta').hidden = true;
         const retryable = failed && attempt.id === thread.attempts.at(-1)?.id && !busy;
         const actions = row.querySelector('.chat-message-actions');
         const actionKey = JSON.stringify([failed && attempt.status, attempt?.error, attempt?.retryOf, retryable, usable, !!message.content, sources.map(item => item.url)]);
         if (actions.dataset.key !== actionKey) {
           actions.dataset.key = actionKey;
-          actions.innerHTML = `${failed ? `<p role="status">${escape(failureLabel(attempt))}</p>` : ''}
+          actions.innerHTML = `
             ${sources.length ? `<details class="pool-small"><summary>Sources searched (${sources.length})</summary><ol class="pool-list">${sources.map(item => `<li id="${escape(anchor(item.number))}" tabindex="-1"><a href="${escape(item.url)}" target="_blank" rel="noopener noreferrer">[${item.number}] ${escape(item.title)}</a></li>`).join('')}</ol></details>` : ''}
-            ${attempt?.retryOf ? '<small>New attempt</small>' : ''}
-            ${retryable ? `<button type="button" class="pool-button pool-icon" data-retry-attempt="${escape(attempt.id)}" aria-label="Retry response" title="Retry response. Starts a new attempt; keeps this response."${usable ? '' : ' disabled'}>${interfaceIcon('retry')}</button>` : ''}
-            ${message.content || message.role === 'assistant' ? `<button type="button" class="pool-button pool-icon"${message.content ? '' : ' disabled'} data-copy-message aria-label="${message.role === 'user' ? 'Copy message' : 'Copy response'}" title="${message.role === 'user' ? 'Copy message' : 'Copy response'}">${interfaceIcon('copy')}</button>` : ''}`;
+            ${retryable ? `<button type="button" class="pool-button" data-retry-attempt="${escape(attempt.id)}" aria-label="Retry response" title="Retry this request; keeps any earlier response."${usable ? '' : ' disabled'}>${interfaceIcon('retry')}<span>Retry</span></button>` : ''}
+            ${message.content ? `<button type="button" class="pool-button pool-icon" data-copy-message aria-label="${message.role === 'user' ? 'Copy message' : 'Copy response'}" title="${message.role === 'user' ? 'Copy message' : 'Copy response'}">${interfaceIcon('copy')}</button>` : ''}`;
         }
+        row.querySelector('.chat-message-footer').hidden = row.querySelector('.chat-message-meta').hidden
+          && row.querySelector('[data-execution-activity]').hidden && !actions.children.length;
         if (row.parentElement !== stream) stream.append(row);
       }
       for (const child of [...stream.children]) if (!visible.has(`${thread?.id}:${child.dataset.messageId}`)) child.remove();

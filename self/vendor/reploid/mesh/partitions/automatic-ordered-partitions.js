@@ -1,4 +1,5 @@
-import { publicPreparationProgress } from '../preparation-progress.js';
+import { partitionAdapterIdentities, samePartitionAdapters, selectPartitionContribution } from './partition-contract.js';
+import { publicPreparationProgress, createPreparationProgressObserver } from '../preparation-progress.js';
 import { generationRequest, requireGenerationCapability } from './partition-generation-request.js';
 import { createPartitionDiscovery } from './partition-discovery.js';
 import { selectPartitionRoute, selectPartitionExecution, eligiblePartitionStages } from './partition-placement.js';
@@ -96,7 +97,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     program.resident.getState().reservations) : { active: 0, availableSlots: 0, closed: true };
   function describe() {
     const state = program?.resident.getState(), descriptor = state?.descriptor;
-    const inventory = descriptor ? [{ id: program.model.id, name: program.model.name, identity: program.model.identity, index: stage.index, planId: program.planId,
+    const inventory = descriptor ? [{ id: program.model.id, name: program.model.name, identity: program.model.identity, adapters: program.model.adapters || [], index: stage.index, planId: program.planId,
       residentId: stage.residentId, executionId: stage.executionId,
       activation: program.runtime.getPartitionActivationContract(program.plan), availability: offer && phase === 'ready' && state.ready ? 'ready' : 'unavailable' }] : [];
     // A stage offer is never a complete entry. Only the currently prepared chat
@@ -187,14 +188,15 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     for (const owner of [...debt]) await closeOwner(owner);
   }
   async function prepare() {
-    const selected = offer, preparationOwners = new Set();
+    const selected = offer, preparationOwners = new Set(), observeProgress = createPreparationProgressObserver();
+    let observingPreparation = true;
     let candidate = null;
     phase = 'loading'; notify();
     loading = Promise.resolve().then(() => loadProgram(selected, stage.index, {
       signal: AbortSignal.any([lifetime.signal, controller.signal]), participantId: identity.peerId, ordered: { stage: structuredClone(stage) },
       ...(device ? { device, attemptBytes: admission.attemptBytes } : {}),
       registerCleanup(owner) { assert(typeof owner?.close === 'function', 'Preparation cleanup owner required'); preparationOwners.add(owner); return () => preparationOwners.delete(owner); },
-      onProgress(value) { progress = value; notify(); }
+      onProgress(value) { if (observingPreparation) { progress = observeProgress(value); notify(); } }
     }));
     try {
       candidate = await loading;
@@ -231,7 +233,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       for (const owner of preparationOwners) debt.add(owner);
       if (typeof candidate?.resident?.close === 'function') debt.add(candidate.resident);
       phase = 'failed'; error = cause.message;
-    } finally { loading = null; notify(); }
+    } finally { observingPreparation = false; loading = null; notify(); }
   }
   const healthy = owner => owner.ports.every(port => port.getState().ready);
   /** Opt-in: rank complete admissible routes by expected cost; peer id only breaks ties. A stage
@@ -346,7 +348,14 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
         return !chat.active && !chat.unsettled && !chat.pendingInputs && !chat.unsettledInputs; });
   }
   async function reassess() {
-    if (!auto || !offer || !program || phase !== 'ready' || stopping || closed || moving
+    if (!auto || !offer || stopping || closed || moving || loading) return;
+    if (!program && phase === 'waiting') {
+      assignment = plan(null);
+      if (assignment.index === null) { notify(); return; }
+      stage = autoIdentity(assignment.index); await prepare();
+      return;
+    }
+    if (!program || phase !== 'ready'
       || Date.now() - readyAt < auto.dwellMs || !idle()) return;
     const next = plan(stage.index);
     assignment = next;
@@ -409,7 +418,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     let state;
     try { state = await entry.refresh({ signal }); }
     catch (cause) { if (!signal?.aborted && entry !== localEntry) discovery.invalidateModel(transportId, model); throw cause; }
-    const selected = state.descriptor?.models.find(row => row.id === model.id && row.identity === model.identity
+    const selected = state.descriptor?.models.find(row => row.id === model.id && row.identity === model.identity && samePartitionAdapters(row, model)
       && row.availability === 'ready' && row.partition?.schema === 'reploid.partition-selection/v2');
     if (!state.ready || !selected) discovery.invalidateModel(transportId, model);
     return { state, model: selected };
@@ -417,10 +426,11 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
   const timer = setInterval(tick, config.pollMs);
   return Object.freeze({ getState, getModels,
     subscribe(listener) { listeners.add(listener); listener(getModels()); return () => listeners.delete(listener); },
-    async contribute(modelId, approved) {
+    async contribute(modelId, approved, adapters) {
       assert(approved === true && (stage || auto) && !closed, 'Approve an explicitly assigned stage before contributing');
       assert(!offer && !stopping && !debt.size && !program, 'Previous ordered contribution must settle before replacement');
-      offer = catalog.find(model => model.id === modelId); assert(offer, 'No pinned ordered model');
+      const selected = catalog.find(model => model.id === modelId); assert(selected, 'No pinned ordered model');
+      offer = selectPartitionContribution(selected, adapters);
       if (auto) {
         const count = offer.partitionPlan?.stageCount;
         if (!Number.isSafeInteger(count) || count < 2 || count > config.limits.maxStages) {
@@ -432,10 +442,9 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
         // The contributor's own choice from what discovery observed; never a remote assignment.
         notify(); await discovery.refresh();
         if (!offer || stopping || closed) return;
-        const next = plan(null);
-        assignment = next; stage = autoIdentity(next.index);
-      }
-      await prepare(); if (offer && !stopping && phase === 'ready') await tick();
+        await reassess();
+      } else await prepare();
+      if (offer && !stopping && phase === 'ready') await tick();
     },
     stop() {
       if (stopping) return stopping;
@@ -476,7 +485,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       let expiresAt = Date.now() + config.grantMs;
       const approved = await controls.requestApproval({ id: crypto.randomUUID(), threadId: request.threadId, attemptId: request.attemptId,
         operation: 'generate-partition', peerId: route.stages[0].participantId, recipientIdentity: route.stages[0].participantId,
-        ...structuredClone(model.partition), modelId: model.id, modelIdentity: model.identity, adapterIdentities: [], disclosure, expiresAt, executionTimeoutMs: config.grantMs,
+        ...structuredClone(model.partition), modelId: model.id, modelIdentity: model.identity, adapterIdentities: partitionAdapterIdentities(model), disclosure, expiresAt, executionTimeoutMs: config.grantMs,
         input: { messages: structuredClone(request.messages), ...(requested ? {generationRequest: requested} : {}), recipients: [...new Set([...disclosure.tokenRecipients, ...disclosure.outputRecipients])] } });
       signal.throwIfAborted(); assert(approved === true && Date.now() < expiresAt, 'Ordered disclosure declined or expired');
       expiresAt = Math.min(controls.authorizationExpiresAt?.() ?? expiresAt, Date.now() + config.grantMs);
@@ -511,7 +520,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
           onUsage: first(usage => controls.onUsage?.({threadId: request.threadId, attemptId: request.attemptId, ...usage})),
           onDelta: first(text => controls.onDelta?.({ threadId: request.threadId, attemptId: request.attemptId, sequence: sequence++, text })) });
         return { ...result, threadId: request.threadId, attemptId: request.attemptId, modelId: model.id, modelIdentity: model.identity,
-          adapterIdentities: [], execution: { ...result.execution, selection: selected } };
+          adapterIdentities: partitionAdapterIdentities(model), execution: { ...result.execution, selection: selected } };
       } finally { admissions.delete(input.attemptId); }
     },
     close() {

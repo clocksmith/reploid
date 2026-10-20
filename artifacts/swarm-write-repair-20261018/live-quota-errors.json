@@ -1,0 +1,65 @@
+{
+  "source": "Wrangler live tail; request headers and identifiers omitted",
+  "exceptions": [
+    {
+      "name": "Error",
+      "message": "Exceeded allowed rows written in Durable Objects free tier.",
+      "stack": "    at new SwarmAdmission (index.js:1180:21)",
+      "timestamp": 1792368153730
+    },
+    {
+      "name": "Error",
+      "message": "Exceeded allowed rows written in Durable Objects free tier.",
+      "stack": "    at new SwarmRoom (index.js:69:21)",
+      "timestamp": 1792368153995
+    },
+    {
+      "name": "Error",
+      "message": "Exceeded allowed rows written in Durable Objects free tier.",
+      "stack": "    at new SwarmRoom (index.js:69:21)",
+      "timestamp": 1792368154334
+    },
+    {
+      "name": "Error",
+      "message": "Exceeded allowed rows written in Durable Objects free tier.",
+      "stack": "    at new SwarmRoom (index.js:69:21)",
+      "timestamp": 1792368154990
+    },
+    {
+      "name": "Error",
+      "message": "Exceeded allowed rows written in Durable Objects free tier.",
+      "stack": "    at new SwarmRoom (index.js:69:21)",
+      "timestamp": 1792368157212
+    },
+    {
+      "name": "Error",
+      "message": "Exceeded allowed rows written in Durable Objects free tier.",
+      "stack": "    at new SwarmRoom (index.js:69:21)",
+      "timestamp": 1792368158508
+    },
+    {
+      "name": "Error",
+      "message": "Exceeded allowed rows written in Durable Objects free tier.",
+      "stack": "    at new SwarmRoom (index.js:69:21)",
+      "timestamp": 1792368161496
+    },
+    {
+      "name": "Error",
+      "message": "Exceeded allowed rows written in Durable Objects free tier.",
+      "stack": "    at new SwarmRoom (index.js:69:21)",
+      "timestamp": 1792368163206
+    },
+    {
+      "name": "Error",
+      "message": "Exceeded allowed rows written in Durable Objects free tier.",
+      "stack": "    at new SwarmRoom (index.js:69:21)",
+      "timestamp": 1792368163550
+    },
+    {
+      "name": "Error",
+      "message": "Exceeded allowed rows written in Durable Objects free tier.",
+      "stack": "    at new SwarmRoom (index.js:69:21)",
+      "timestamp": 1792368164654
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "at": "2026-10-17T01:17:39.115Z",
+  "url": "https://replo.id/",
+  "choices": [
+    "Qwen 3.5 0.8BReady",
+    "Qwen 3.5 0.8B NER JSON LoRAUnavailable",
+    "Qwen 3.5 2BReady",
+    "Qwen 3.8 27B · Whole modelReady",
+    "Qwen 3.8 27B · Distributed layersReady"
+  ],
+  "wholeModelReady": [
+    "qwen-3-5-0-8b-q4k-ehaf16",
+    "qwen-3-5-2b-q4k-ehaf16",
+    "qwen3-8-27b-text-q4k-ehaf16"
+  ]
+}

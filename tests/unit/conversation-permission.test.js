@@ -35,7 +35,7 @@ describe('Conversation Send authorization', () => {
     thread.attempts.push({ id: 'other-attempt', status: 'approval', approval: { id: 'other-preview' } });
     listeners.forEach(fn => fn(state));
     expect(approve).not.toHaveBeenCalled();
-    expect(root.querySelector('[data-remote-permission]').open).toBe(false);
+    expect(root.querySelector('[data-remote-permission]')).toBeNull();
     expect(root.querySelector('[data-composer-area]').hidden).toBe(false);
     dispose();
   });

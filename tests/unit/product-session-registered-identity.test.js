@@ -22,7 +22,7 @@ vi.mock('../../self/vendor/reploid/mesh/index.js', async original => ({ ...await
   createAutomaticPartitions: options => { ports.bound.push(options.identity.peerId); return { getModels: () => [], subscribe: () => () => {}, close: async () => {}, getState: () => ({}) }; }
 }));
 vi.mock('../../self/vendor/reploid/transport/index.js', async original => ({ ...await original(),
-  createSwarmTransport: () => ({ disconnect() {}, _getPeerId: () => 'transport-requester', getConnectedPeers: () => [] }) }));
+  createSwarmTransport: () => ({ disconnect() {}, onMessage() {}, offMessage() {}, sendToPeer() {}, _getPeerId: () => 'transport-requester', getConnectedPeers: () => [] }) }));
 vi.mock('../../self/host/work-model-files.js', async original => ({ ...await original(),
   createWorkModelFiles: () => ({ async attach() {}, async close() {}, announce() {}, getState: () => ({ sharing: false, preparing: false }) }) }));
 vi.mock('../../self/host/work-peer-offers.js', () => ({ createWorkPeerOffers: () => ({

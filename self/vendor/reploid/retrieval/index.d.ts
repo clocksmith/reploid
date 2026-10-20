@@ -147,6 +147,7 @@ export interface EntailmentReviewer {
   id: string; version: string; kind: 'human-queue' | 'model';
   review(packet: SupportReviewPacket, context: { generator: GeneratorIdentity; claimSupport?: ClaimSupport; signal?: AbortSignal | null }): Promise<SupportJudgments | null>;
 }
+export interface RetrievalProgress { stage: 'search' | 'extraction' | 'context'; completed: number; total: number | null; available: number }
 export interface RetrievalRecord {
   schema: 'reploid.retrieval-record/v1';
   policy: { id: string; version: string };
@@ -155,10 +156,12 @@ export interface RetrievalRecord {
   extractor: { id: string; version: string } | null;
   sourceUse: 'requester-opt-in';
   query: string; limits: RetrievalLimits;
-  outcome: RetrievalOutcome; error: { code: RetrievalErrorCode; message: string } | null;
+  outcome: RetrievalOutcome; error: { code: RetrievalErrorCode; message: string; stage?: RetrievalProgress['stage'] } | null;
+  progress?: RetrievalProgress;
+  partial?: boolean;
   startedAt: number; finishedAt: number | null; providerResultCount: number | null;
   sources: RetrievedSource[];
-  omitted: Array<{ sourceId: string; reason: 'result-limit' | 'extraction-failed' | 'context-limit' }>;
+  omitted: Array<{ sourceId: string; reason: 'result-limit' | 'extraction-failed' | 'extraction-timeout' | 'context-limit' }>;
   context: { schema: string; characters: number; digest: string } | null;
   /** Provider-reported search usage and extraction volume, for quotes and service economics; null before a search returns. */
   usage?: { search: SearchUsage | null; extraction: { documents: number; bytes: number } } | null;
@@ -203,14 +206,14 @@ export const SUPPORT_VERDICTS: readonly SupportVerdict[];
 export function createRetrieval(options: RetrievalPorts & { policy?: RetrievalPolicy; now?: () => number }): {
   request(input: RetrievalRequestInput, content: string): RetrievalRequest;
   pending(request: RetrievalRequest, startedAt: number): RetrievalRecord;
-  retrieve(record: RetrievalRecord, signal: AbortSignal | null, options?: { answer?: string | null }): Promise<RetrievalRecord>;
+  retrieve(record: RetrievalRecord, signal: AbortSignal | null, options?: { answer?: string | null; onProgress?: (progress: RetrievalProgress) => void }): Promise<RetrievalRecord>;
   dispatch<T extends { messages: Array<{ role: string; content: string }> }>(request: T, record: RetrievalRecord): Promise<Omit<T, 'retrieval'>>;
   verify(answer: string, record: RetrievalRecord, signal: AbortSignal | null): Promise<CitationVerification>;
 };
 export function normalizeRetrievalLimits(requested?: Partial<RetrievalLimits>, policy?: RetrievalPolicy): RetrievalLimits;
 export function normalizeRetrievalRequest(input: RetrievalRequestInput, content: string, policy?: RetrievalPolicy): RetrievalRequest;
 export function retrieveSources(options: { record: RetrievalRecord; provider: SearchProvider; extractor?: PassageExtractor | null;
-  signal?: AbortSignal | null; now?: () => number; policy?: RetrievalPolicy; answer?: string | null }): Promise<RetrievalRecord>;
+  signal?: AbortSignal | null; now?: () => number; policy?: RetrievalPolicy; answer?: string | null; onProgress?: (progress: RetrievalProgress) => void }): Promise<RetrievalRecord>;
 export function renderSourceContext(sources: RetrievedSource[], policy?: RetrievalPolicy): string;
 export function withSourceContext<T extends { messages: Array<{ role: string; content: string }> }>(request: T, record: RetrievalRecord,
   policy?: RetrievalPolicy): Promise<Omit<T, 'retrieval'>>;

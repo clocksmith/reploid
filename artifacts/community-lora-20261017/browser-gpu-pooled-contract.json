@@ -1,0 +1,36 @@
+{
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "baseManifestHash": "sha256:cf20c690cc397a4bd8e64ee4b00158114947ee75568c0ae8f2df8a9ebc052965",
+  "samples": [
+    {
+      "inputIds": [
+        100,
+        200,
+        300
+      ],
+      "targetIds": [
+        200,
+        300,
+        400
+      ],
+      "supervisedTokenCount": 3
+    }
+  ],
+  "steps": 1,
+  "participants": 2,
+  "pooled": true,
+  "timeoutMs": 300000,
+  "publicDisclosureBytes": 0,
+  "activated": false,
+  "reference": {
+    "loss": 9.030719757080078,
+    "absoluteTolerance": 0.0001
+  },
+  "package": {
+    "name": "doppler-gpu",
+    "version": "0.6.32",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.32.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.32.tgz",
+    "integrity": "sha512-J83ak7CtSU17xhBqRAwS1VYDNsEs4/J9KRiY8Uk0PJBZlFyWvAx7LKOwYrbopIcaiYj7aGaKpBKM1/XYnDojlA=="
+  }
+}

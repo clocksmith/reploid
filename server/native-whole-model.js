@@ -5,11 +5,15 @@ import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import { createReploidDopplerRuntimeService } from '../self/infrastructure/doppler-runtime-service.js';
 import { createWorkResidentProvider } from '../self/providers/work-resident-provider.js';
+import { createWorkAdapterResolver, selectWorkAdapters } from '../self/providers/work-adapter.js';
 import profile from '../self/config/work-profile.json' with { type: 'json' };
 
 export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner = null, onChange = () => {},
+  resolveAdapter = createWorkAdapterResolver({ models: [model] }),
   service = createReploidDopplerRuntimeService({ loadModule: () => import('doppler-gpu/compat') }),
   createResident = createWorkResidentProvider }) {
+  model = structuredClone(model);
+  model.adapters = selectWorkAdapters(model);
   let resident = null, preparing = null, stopping = null, closed = false, enabled = false;
   const ownerAllows = () => {
     const decision = owner?.decide();
@@ -31,6 +35,15 @@ export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner
   })().finally(() => { stopping = null; });
   return Object.freeze({
     getState,
+    getExecutionState() {
+      const state = getState();
+      return { ...state,
+        // Prepared capacity remains discoverable while its current slot is
+        // occupied. The mesh separately advertises the available slot count.
+        phase: state.ready ? 'ready' : ['ready', 'executing'].includes(state.phase) ? 'idle' : state.phase,
+        activity: { phase: state.phase, completed: state.completed || 0, error: state.error || null }
+      };
+    },
     async contribute(approved) {
       if (approved !== true) throw new Error('Approve contribution before loading a whole model');
       if (closed || stopping) throw new Error('Whole-model contributor is stopping');
@@ -51,7 +64,7 @@ export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner
         const loadOptions = structuredClone(model.loadOptions || {});
         const budget = loadOptions.runtimeConfig?.shared?.bufferPool?.budget;
         if (owner && budget) budget.maxTotalBytes = owner.gpuBufferBytes(budget.maxTotalBytes);
-        resident = createResident({ service, model, generation: model.generation || profile.generation,
+        resident = createResident({ service, model, resolveAdapter, generation: model.generation || profile.generation,
           maxOutcomeCharacters: profile.maxOutcomeCharacters, loadOptions,
           source: { manifest: JSON.parse(manifest.toString('utf8')), manifestText: manifest.toString('utf8'),
             manifestHash: model.identity.slice(7), baseUrl: pathToFileURL(root + path.sep).href }, onChange: notify });
@@ -65,8 +78,16 @@ export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner
     },
     generate(messages, onUpdate, controls) {
       if (!getState().ready) throw Object.assign(new Error('Whole-model capacity unavailable'), { code: 'CAPACITY_UNAVAILABLE' });
-      if (controls.adapterIdentities?.length) throw new Error('Native whole-model adapters are not configured');
-      return resident.generate(messages, onUpdate, { ...controls, adapters: [] });
+      const identities = controls.adapterIdentities || [];
+      if (!Array.isArray(identities) || identities.length > 1) throw new Error('Select at most one prepared adapter');
+      const adapters = identities.map(identity => {
+        const selected = model.adapters?.find(adapter => adapter.identity === identity);
+        if (!selected || !getState().adapterIdentities?.includes(identity)) {
+          throw new Error('Requested adapter is not prepared on this contributor');
+        }
+        return structuredClone(selected);
+      });
+      return resident.generate(messages, onUpdate, { ...controls, adapters });
     },
     stop,
     async close() { closed = true; await stop(); }

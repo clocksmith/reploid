@@ -1,0 +1,35 @@
+{
+  "source": "Wrangler live tails; identifiers and request contents omitted",
+  "groups": [
+    {
+      "entrypoint": "SwarmRoom",
+      "version": "87941425-da17-4814-a115-63cd0a871ca6",
+      "firstEvent": 1792368022686,
+      "lastEvent": 1792368736782
+    },
+    {
+      "entrypoint": "SwarmAdmission",
+      "version": "87941425-da17-4814-a115-63cd0a871ca6",
+      "firstEvent": 1792368030630,
+      "lastEvent": 1792368734164
+    },
+    {
+      "entrypoint": "SwarmRoom",
+      "version": "ed17da8c-3f25-48c4-b9f8-98ee0afa236a",
+      "firstEvent": 1792368500490,
+      "lastEvent": 1792368510639
+    },
+    {
+      "entrypoint": "SwarmAdmission",
+      "version": "9f152187-7788-469d-8eac-e11d2837dbb9",
+      "firstEvent": 1792368737994,
+      "lastEvent": 1792368927036
+    },
+    {
+      "entrypoint": "SwarmRoom",
+      "version": "9f152187-7788-469d-8eac-e11d2837dbb9",
+      "firstEvent": 1792368737947,
+      "lastEvent": 1792368926502
+    }
+  ]
+}

@@ -9,5 +9,9 @@
   "maxResults": 5,
   "maxSourceCharacters": 6000,
   "maxSeen": 512,
-  "resultTtlMs": 60000
+  "resultTtlMs": 60000,
+  "services": {
+    "google-browser": "1",
+    "bing": "1"
+  }
 }

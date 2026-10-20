@@ -72,7 +72,7 @@ test('native split chat streams, follows up, cancels, reuses and reloads', async
     await page.goto(url);
     await page.locator('[data-chat-workspace]').waitFor();
     await page.locator('[data-open-model]').click();
-    await page.locator('[data-active-model-select]').selectOption(modelId + '/partition/' + model.partitionPlanId);
+    await page.locator(`.chat-model-choices input[value="${modelId}/partition/${model.partitionPlanId}"]`).filter({ visible: true }).check();
     await page.locator('[data-close-inspector]').click();
     await send('What is 17 + 25? Answer with the number only.');
     // Current default network permission may already admit the request. Older

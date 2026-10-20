@@ -49,12 +49,17 @@ export class SwarmAdmission extends DurableObject {
   renew(ids) {
     this.prune();
     if (!Array.isArray(ids) || ids.length > bootstrap.server.maxConnections) throw new Error('Invalid lease batch');
+    const now = Date.now();
     const renewed = [];
     for (const id of ids) {
-      if (this.ctx.storage.sql.exec('SELECT id FROM leases WHERE id = ?', id).toArray().length) {
-        this.ctx.storage.sql.exec('UPDATE leases SET expires = ? WHERE id = ?', Date.now() + policy.leaseMs, id);
-        renewed.push(id);
+      const lease = this.ctx.storage.sql.exec('SELECT expires FROM leases WHERE id = ?', id).toArray()[0];
+      if (!lease || lease.expires <= now) continue;
+      // Healthy leases already reserve capacity durably. Refresh only in their
+      // latter half, retaining headroom beyond the room's next heartbeat check.
+      if (lease.expires <= now + policy.leaseMs / 2) {
+        this.ctx.storage.sql.exec('UPDATE leases SET expires = ? WHERE id = ?', now + policy.leaseMs, id);
       }
+      renewed.push(id);
     }
     return renewed;
   }
@@ -74,7 +79,8 @@ export class SwarmAdmission extends DurableObject {
   }
 
   async arm() {
-    if (await this.ctx.storage.getAlarm() === null) await this.ctx.storage.setAlarm(Date.now() + bootstrap.server.heartbeatInterval);
+    const previous = await this.ctx.storage.getAlarm(), now = Date.now();
+    if (previous === null || previous <= now) await this.ctx.storage.setAlarm(now + bootstrap.server.heartbeatInterval);
   }
 
   async alarm() {

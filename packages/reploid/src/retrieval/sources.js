@@ -147,18 +147,24 @@ function race(operation, signal) {
 /** Runs one retrieval and returns the finished record. Failures are recorded, never thrown and never filled with sources.
  * `answer` is an opaque key for the answer this retrieval serves; providers may pass it to their own usage log so
  * service economics can sum costs per answer. It is never part of the query. */
-export async function retrieveSources({ record, provider, extractor = null, signal, now = Date.now, policy = defaults, answer = null }) {
+export async function retrieveSources({ record, provider, extractor = null, signal, now = Date.now, policy = defaults, answer = null, onProgress }) {
   const limits = record.limits, deadline = new AbortController();
   const timer = setTimeout(() => deadline.abort(new RetrievalError('timeout')), limits.timeoutMs);
   const forward = () => deadline.abort(new RetrievalError('cancelled'));
   if (signal?.aborted) forward(); else signal?.addEventListener('abort', forward, { once: true });
-  let usage = null;
+  let usage = null, stage = 'search';
+  let completed = 0, available = 0;
+  const progress = (total = null) => {
+    if (signal?.aborted) return;
+    try { onProgress?.({ stage, completed, total, available }); } catch { /* Observation cannot cancel retrieval. */ }
+  };
   // What this retrieval spent, for its cost record: observed even when it fails.
   const meter = { searched: false, usage: null, attempted: 0, documents: 0, failed: 0, bytes: 0, costs: [] };
   const context = { providerId: record.provider.id, ...(answer === null ? {} : { answer }) };
   const finish = (fields) => ({ ...record, ...fields, usage, finishedAt: now(), costs: retrievalCostRecord({
     retrieval: retrievalCostEntry({ bearer: provider.costBearer ?? null, service: provider.searchProvider ?? null, meter }) }) });
   try {
+    progress();
     let returned;
     try {
       returned = providerResults(await race(() => { meter.searched = true; return provider.search(record.query, copy(limits), deadline.signal, copy(context)); },
@@ -172,6 +178,7 @@ export async function retrieveSources({ record, provider, extractor = null, sign
     meter.usage = searchUsage;
     usage = { search: searchUsage, extraction: { documents: 0, bytes: 0 } };
     if (!results.length) return finish({ outcome: 'empty', error: { code: 'no-results', message: FAILURES['no-results'] }, providerResultCount: 0 });
+    stage = 'extraction';
     const omitted = [], seen = new Set(), kept = [];
     for (const result of results) {
       if (seen.has(result.sourceId)) continue;
@@ -179,12 +186,15 @@ export async function retrieveSources({ record, provider, extractor = null, sign
       if (kept.length < limits.maxResults) kept.push(result); else omitted.push({ sourceId: result.sourceId, reason: 'result-limit' });
     }
     if (extractor) meter.attempted = kept.length;
-    const passages = await Promise.allSettled(kept.map(source => extractor
+    progress(kept.length);
+    const passages = await Promise.allSettled(kept.map(source => (extractor
       ? race(() => extractor.extract({ source: copy(source), query: record.query, limits: copy(limits), signal: deadline.signal, ...copy(context) }),
         deadline.signal)
         .then(value => { if (!validPassage(value, source)) throw new Error('Invalid extracted passage'); return { ...value, origin: 'extract' }; })
       : Promise.resolve({ sourceId: source.sourceId, text: source.excerpt, retrievedAt: source.retrievedAt,
-        contentHash: source.contentHash, origin: 'search-excerpt' })));
+        contentHash: source.contentHash, origin: 'search-excerpt' }))
+      .then(value => { available++; return value; })
+      .finally(() => { completed++; progress(kept.length); })));
     if (extractor) for (const passage of passages) {
       if (passage.status === 'rejected') { meter.failed++; continue; }
       const bytes = passage.value.document?.bytes;
@@ -192,11 +202,13 @@ export async function retrieveSources({ record, provider, extractor = null, sign
       meter.bytes = meter.bytes === null || bytes === undefined ? null : meter.bytes + bytes;
       meter.costs.push(passage.value.costMicroUsd ?? null);
     }
-    if (deadline.signal.aborted) throw deadline.signal.reason;
+    const timedOut = deadline.signal.aborted && deadline.signal.reason?.code === 'timeout';
+    if (deadline.signal.aborted && !timedOut) throw deadline.signal.reason;
     const candidates = [];
     kept.forEach((source, index) => {
       const passage = passages[index];
-      if (passage.status === 'rejected') { omitted.push({ sourceId: source.sourceId, reason: 'extraction-failed' }); return; }
+      if (passage.status === 'rejected') { omitted.push({ sourceId: source.sourceId,
+        reason: passage.reason?.code === 'timeout' ? 'extraction-timeout' : 'extraction-failed' }); return; }
       const { text, truncated } = bounded(passage.value.text, limits.maxSourceCharacters);
       const document = retainedDocument(passage.value.document, passage.value.text, text);
       if (document) { usage.extraction.documents++; usage.extraction.bytes += document.bytes ?? 0; }
@@ -208,7 +220,7 @@ export async function retrieveSources({ record, provider, extractor = null, sign
         contentHash: passage.value.contentHash, passage: text, passageOrigin: passage.value.origin, truncated,
         ...(document ? { document } : {}) });
     });
-    if (!candidates.length) throw new RetrievalError('extraction-failed');
+    if (!candidates.length) throw new RetrievalError(timedOut ? 'timeout' : 'extraction-failed');
     // Sources are numbered in provider order; any that would push the context past its limit are omitted.
     const sources = [];
     for (const candidate of candidates) {
@@ -217,14 +229,19 @@ export async function retrieveSources({ record, provider, extractor = null, sign
       else omitted.push({ sourceId: candidate.sourceId, reason: 'context-limit' });
     }
     if (!sources.length) throw new RetrievalError('context-limit');
+    stage = 'context';
+    progress(kept.length);
     for (const source of sources) source.passageHash = await sha256Text(source.passage);
     const content = renderSourceContext(sources, policy);
+    const digest = await sha256Text(content);
+    if (signal?.aborted) throw new RetrievalError('cancelled');
     return finish({ outcome: 'retrieved', providerResultCount: results.length, sources, omitted,
-      context: { schema: policy.context.schema, characters: content.length, digest: await sha256Text(content) } });
+      partial: passages.some(passage => passage.status === 'rejected'),
+      context: { schema: policy.context.schema, characters: content.length, digest } });
   } catch (cause) {
     const error = cause instanceof RetrievalError ? cause : new RetrievalError('provider-error', cause);
     return finish({ outcome: error.code === 'cancelled' ? 'cancelled' : 'failed', sources: [], context: null,
-      error: { code: error.code, message: FAILURES[error.code] } });
+      error: { code: error.code, message: FAILURES[error.code], stage } });
   } finally {
     clearTimeout(timer); signal?.removeEventListener('abort', forward);
   }
@@ -239,7 +256,7 @@ export async function withSourceContext(request, record, policy = defaults) {
   const { retrieval, ...executed } = request, messages = request.messages.map(message => ({ ...message }));
   const last = messages.at(-1);
   assert(last?.role === 'user', 'Retrieval requires a user question');
-  last.content = `${content}\n\n${policy.context.questionLabel} ${last.content}`;
+  last.content = `${content}\n\n${record.query !== last.content ? `Search query: ${record.query}\n` : ''}${policy.context.questionLabel} ${last.content}`;
   return { ...executed, messages };
 }
 

@@ -1,0 +1,1167 @@
+{
+  "question": "What is WebGPU used for?",
+  "url": "https://replo.id",
+  "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "at": "2026-10-16T23:41:18.922Z",
+  "permissions": [
+    {
+      "kind": "search",
+      "text": "Search for this answer?\n\nAllow Reploid to send this search query to the listed search contributor, which sends it to Bing and fetches public result pages without personal sign-ins. Share the retrieved passages with the listed execution contributors for this answer. Your files and unrelated conversation history are excluded.\n\nSearch contributor: Computer 2 (peer:691a71be6c88b33d7f0123d2)\n\nExecution contributors:\n\nComputer 4\nComputer\nDon't search\nAllow",
+      "elapsedMs": 33.490459000000556
+    },
+    {
+      "kind": "remote",
+      "text": "Answer with contributors' computers?\n\nTo answer, this conversation is sent to contributors' computers on this network: your message, earlier messages in the thread, and the context prompt when it is on.\n\nThe first computer receives the text. The other computers receive the same content as model tokens, which read back as text, plus intermediate results.\n\nYou are asked once. Later questions and follow-ups are sent the same way until you turn this off in Settings.\n\nKeep answers local\nAllow",
+      "elapsedMs": 5025.765834
+    }
+  ],
+  "firstTextMs": 76012.455209,
+  "completeMs": 98118.561625,
+  "history": {
+    "attempts": [
+      {
+        "approval": null,
+        "authorization": {
+          "adapterIdentities": [],
+          "disclosure": "ordered-partition-activations-and-tokens",
+          "expiresAt": 1792194885839,
+          "grantId": null,
+          "kind": "permission",
+          "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+          "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+          "peerId": "peer:efb774c9f322dab41567fce6",
+          "permissionId": "408ada4c-6f52-45d2-bb6d-b95becfeffd7",
+          "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+          "recipientIdentity": "peer:efb774c9f322dab41567fce6",
+          "recipients": [
+            "peer:efb774c9f322dab41567fce6",
+            "peer:036f2d43da19536d800b6c2f"
+          ],
+          "requesterIdentity": "peer:30f805b02516f51a6a825d7c",
+          "route": {
+            "activation": {
+              "components": 1,
+              "dtype": "f32",
+              "elementStrideBytes": 4,
+              "hiddenSize": 5120,
+              "precision": "f32",
+              "schema": "doppler.activation-tensor/v1"
+            },
+            "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+            "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+            "schema": "reploid.partition-route/v1",
+            "stages": [
+              {
+                "executionId": "q4k-split-chat-mac",
+                "index": 0,
+                "participantId": "peer:efb774c9f322dab41567fce6",
+                "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+              },
+              {
+                "executionId": "q4k-split-chat-amd",
+                "index": 1,
+                "participantId": "peer:036f2d43da19536d800b6c2f",
+                "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+              }
+            ]
+          },
+          "sharingScope": "mesh",
+          "source": "permission"
+        },
+        "createdAt": 1792193980877,
+        "error": null,
+        "execution": {
+          "activationBytes": 22855680,
+          "admission": {
+            "queuedMs": 0
+          },
+          "identity": {
+            "attemptId": "4c0282c8-cddf-49a6-806f-b312fe1681ca",
+            "placementGeneration": 0,
+            "requesterId": "peer:30f805b02516f51a6a825d7c",
+            "route": {
+              "activation": {
+                "components": 1,
+                "dtype": "f32",
+                "elementStrideBytes": 4,
+                "hiddenSize": 5120,
+                "precision": "f32",
+                "schema": "doppler.activation-tensor/v1"
+              },
+              "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+              "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+              "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+              "schema": "reploid.partition-route/v1",
+              "stages": [
+                {
+                  "executionId": "q4k-split-chat-mac",
+                  "index": 0,
+                  "participantId": "peer:efb774c9f322dab41567fce6",
+                  "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                  "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                },
+                {
+                  "executionId": "q4k-split-chat-amd",
+                  "index": 1,
+                  "participantId": "peer:036f2d43da19536d800b6c2f",
+                  "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                  "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                }
+              ]
+            },
+            "schema": "reploid.partition-attempt/v2",
+            "threadId": "1cfd2d57-b762-4116-aedf-5d094d91fda4"
+          },
+          "schema": "reploid.mesh.partition-summary/v2",
+          "selection": {
+            "eligibility": [
+              {
+                "capacity": null,
+                "eligible": false,
+                "participantId": "peer:bd05c5700bde79b3d7388860",
+                "reason": "no-prepared-path",
+                "transportId": "peer_mvbm0po0_pmy97beg"
+              },
+              {
+                "capacity": {
+                  "active": 0,
+                  "availableSlots": 0,
+                  "closed": true
+                },
+                "eligible": false,
+                "participantId": "peer:691a71be6c88b33d7f0123d2",
+                "reason": "no-prepared-path",
+                "transportId": "c8e2c828-ec80-410f-99f1-ed561ae23726"
+              },
+              {
+                "capacity": {
+                  "active": 0,
+                  "attemptQueue": {
+                    "maxQueued": 4,
+                    "queued": 0
+                  },
+                  "availableSlots": 2,
+                  "closed": false
+                },
+                "eligible": true,
+                "participantId": "peer:efb774c9f322dab41567fce6",
+                "reason": "reservation-required",
+                "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+              }
+            ],
+            "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+          },
+          "settlement": {
+            "cleanup": [
+              {
+                "error": null,
+                "partitionIndex": 0,
+                "status": "settled"
+              },
+              {
+                "error": null,
+                "partitionIndex": 1,
+                "status": "settled"
+              }
+            ],
+            "cleanupSettledAt": 1792194078772,
+            "failure": null,
+            "identity": {
+              "attemptId": "4c0282c8-cddf-49a6-806f-b312fe1681ca",
+              "placementGeneration": 0,
+              "requesterId": "peer:30f805b02516f51a6a825d7c",
+              "route": {
+                "activation": {
+                  "components": 1,
+                  "dtype": "f32",
+                  "elementStrideBytes": 4,
+                  "hiddenSize": 5120,
+                  "precision": "f32",
+                  "schema": "doppler.activation-tensor/v1"
+                },
+                "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+                "schema": "reploid.partition-route/v1",
+                "stages": [
+                  {
+                    "executionId": "q4k-split-chat-mac",
+                    "index": 0,
+                    "participantId": "peer:efb774c9f322dab41567fce6",
+                    "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                    "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                  },
+                  {
+                    "executionId": "q4k-split-chat-amd",
+                    "index": 1,
+                    "participantId": "peer:036f2d43da19536d800b6c2f",
+                    "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                    "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                  }
+                ]
+              },
+              "schema": "reploid.partition-attempt/v2",
+              "threadId": "1cfd2d57-b762-4116-aedf-5d094d91fda4"
+            },
+            "phase": "completed",
+            "reservations": [
+              {
+                "failure": null,
+                "identity": {
+                  "attemptId": "4c0282c8-cddf-49a6-806f-b312fe1681ca",
+                  "placementGeneration": 0,
+                  "requesterId": "peer:30f805b02516f51a6a825d7c",
+                  "route": {
+                    "activation": {
+                      "components": 1,
+                      "dtype": "f32",
+                      "elementStrideBytes": 4,
+                      "hiddenSize": 5120,
+                      "precision": "f32",
+                      "schema": "doppler.activation-tensor/v1"
+                    },
+                    "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                    "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                    "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+                    "schema": "reploid.partition-route/v1",
+                    "stages": [
+                      {
+                        "executionId": "q4k-split-chat-mac",
+                        "index": 0,
+                        "participantId": "peer:efb774c9f322dab41567fce6",
+                        "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                        "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                      },
+                      {
+                        "executionId": "q4k-split-chat-amd",
+                        "index": 1,
+                        "participantId": "peer:036f2d43da19536d800b6c2f",
+                        "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                        "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                      }
+                    ]
+                  },
+                  "schema": "reploid.partition-attempt/v2",
+                  "threadId": "1cfd2d57-b762-4116-aedf-5d094d91fda4"
+                },
+                "index": 0,
+                "participantId": "peer:efb774c9f322dab41567fce6",
+                "partitionIndex": 0,
+                "phase": "reserved",
+                "reservedAt": 1792193985906,
+                "resources": {
+                  "attemptSlots": 1,
+                  "maxActivationBytes": 33554432,
+                  "maxPromptTokens": 4096,
+                  "maxTokens": 4096,
+                  "scope": "application-attempt-limits"
+                },
+                "settledAt": null,
+                "settlingAt": null,
+                "status": "reserved"
+              },
+              {
+                "failure": null,
+                "identity": {
+                  "attemptId": "4c0282c8-cddf-49a6-806f-b312fe1681ca",
+                  "placementGeneration": 0,
+                  "requesterId": "peer:30f805b02516f51a6a825d7c",
+                  "route": {
+                    "activation": {
+                      "components": 1,
+                      "dtype": "f32",
+                      "elementStrideBytes": 4,
+                      "hiddenSize": 5120,
+                      "precision": "f32",
+                      "schema": "doppler.activation-tensor/v1"
+                    },
+                    "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                    "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                    "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+                    "schema": "reploid.partition-route/v1",
+                    "stages": [
+                      {
+                        "executionId": "q4k-split-chat-mac",
+                        "index": 0,
+                        "participantId": "peer:efb774c9f322dab41567fce6",
+                        "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                        "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                      },
+                      {
+                        "executionId": "q4k-split-chat-amd",
+                        "index": 1,
+                        "participantId": "peer:036f2d43da19536d800b6c2f",
+                        "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                        "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                      }
+                    ]
+                  },
+                  "schema": "reploid.partition-attempt/v2",
+                  "threadId": "1cfd2d57-b762-4116-aedf-5d094d91fda4"
+                },
+                "index": 1,
+                "participantId": "peer:036f2d43da19536d800b6c2f",
+                "partitionIndex": 1,
+                "phase": "reserved",
+                "reservedAt": 1792193986617,
+                "resources": {
+                  "attemptSlots": 1,
+                  "maxActivationBytes": 33554432,
+                  "maxPromptTokens": 4096,
+                  "maxTokens": 4096,
+                  "scope": "application-attempt-limits"
+                },
+                "settledAt": null,
+                "settlingAt": null,
+                "status": "reserved"
+              }
+            ]
+          },
+          "stepSummary": {
+            "count": 37,
+            "detail": "aggregate; no per-step trace transferred",
+            "phases": {
+              "decode": {
+                "stages": [
+                  {
+                    "elapsedMs": {
+                      "count": 36,
+                      "max": 56.492957999929786,
+                      "min": 19.505832999944687,
+                      "total": 1007.8710759971291
+                    },
+                    "partitionIndex": 0,
+                    "runtime": {
+                      "activationReadbackMs": {
+                        "count": 36,
+                        "max": 0.806708000600338,
+                        "min": 0.20779100060462952,
+                        "total": 15.746418006718159
+                      },
+                      "encodeMs": {
+                        "count": 36,
+                        "max": 2.200375000014901,
+                        "min": 0.9385420009493828,
+                        "total": 39.53487299568951
+                      },
+                      "executionMs": {
+                        "count": 36,
+                        "max": 55.36712499894202,
+                        "min": 18.31179199926555,
+                        "total": 968.2595399990678
+                      },
+                      "gpuKernelsMs": {
+                        "count": 0,
+                        "max": null,
+                        "min": null,
+                        "total": 0
+                      },
+                      "inputUploadMs": {
+                        "count": 36,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "logitsMs": {
+                        "count": 36,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "logitsReadbackMs": {
+                        "count": 36,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "samplingMs": {
+                        "count": 36,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "submitWaitMs": {
+                        "count": 36,
+                        "max": 53.383540999144316,
+                        "min": 16.506666999310255,
+                        "total": 908.9465030021966
+                      }
+                    }
+                  },
+                  {
+                    "elapsedMs": {
+                      "count": 36,
+                      "max": 5145.501792000607,
+                      "min": 201.78387499973178,
+                      "total": 21048.057373998687
+                    },
+                    "partitionIndex": 1,
+                    "runtime": {
+                      "activationReadbackMs": {
+                        "count": 36,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "encodeMs": {
+                        "count": 36,
+                        "max": 289.5699640009552,
+                        "min": 38.07351399958134,
+                        "total": 1761.65692999959
+                      },
+                      "executionMs": {
+                        "count": 36,
+                        "max": 733.5856400001794,
+                        "min": 158.20286099985242,
+                        "total": 7027.588075004518
+                      },
+                      "gpuKernelsMs": {
+                        "count": 0,
+                        "max": null,
+                        "min": null,
+                        "total": 0
+                      },
+                      "inputUploadMs": {
+                        "count": 36,
+                        "max": 0.058661000803112984,
+                        "min": 0.048520999029278755,
+                        "total": 1.8991999942809343
+                      },
+                      "logitsMs": {
+                        "count": 36,
+                        "max": 4.765780000016093,
+                        "min": 0.9363949988037348,
+                        "total": 47.999322002753615
+                      },
+                      "logitsReadbackMs": {
+                        "count": 36,
+                        "max": 14.462020998820662,
+                        "min": 3.220608999952674,
+                        "total": 184.85302499495447
+                      },
+                      "samplingMs": {
+                        "count": 36,
+                        "max": 1.836039999499917,
+                        "min": 1.1540350001305342,
+                        "total": 46.02125999517739
+                      },
+                      "submitWaitMs": {
+                        "count": 36,
+                        "max": 677.159444000572,
+                        "min": 116.8447779994458,
+                        "total": 5188.994889995083
+                      }
+                    }
+                  }
+                ],
+                "steps": 36
+              },
+              "prompt": {
+                "inputTokens": 1080,
+                "stages": [
+                  {
+                    "elapsedMs": 2064.753415999934,
+                    "partitionIndex": 0,
+                    "runtime": {
+                      "activationReadbackMs": 6.237289998680353,
+                      "encodeMs": 43.058292999863625,
+                      "executionMs": 2058.4740410000086,
+                      "gpuKernelsMs": null,
+                      "inputUploadMs": 0,
+                      "logitsMs": 0,
+                      "logitsReadbackMs": 0,
+                      "samplingMs": 0,
+                      "submitWaitMs": 2007.3190410006791
+                    }
+                  },
+                  {
+                    "elapsedMs": 67767.80287500098,
+                    "partitionIndex": 1,
+                    "runtime": {
+                      "activationReadbackMs": 0,
+                      "encodeMs": 7446.313511978835,
+                      "executionMs": 21942.36873000115,
+                      "gpuKernelsMs": null,
+                      "inputUploadMs": 4.550844999030232,
+                      "logitsMs": 1.3830859996378422,
+                      "logitsReadbackMs": 0.39017600007355213,
+                      "samplingMs": 1.820389999076724,
+                      "submitWaitMs": 14469.75831501931
+                    }
+                  }
+                ]
+              }
+            },
+            "stages": [
+              {
+                "partitionIndex": 0,
+                "stepMs": {
+                  "count": 37,
+                  "total": 3072.624491997063
+                },
+                "steps": 37
+              },
+              {
+                "partitionIndex": 1,
+                "stepMs": {
+                  "count": 37,
+                  "total": 88815.86024899967
+                },
+                "steps": 37
+              }
+            ]
+          },
+          "stopReason": "eos-token"
+        },
+        "finishedAt": 1792194078780,
+        "id": "4c0282c8-cddf-49a6-806f-b312fe1681ca",
+        "provenance": {
+          "attemptId": "4c0282c8-cddf-49a6-806f-b312fe1681ca",
+          "classes": [
+            "mesh"
+          ],
+          "earlierAttempts": [],
+          "execution": {
+            "classes": [
+              "mesh"
+            ],
+            "participants": [
+              {
+                "participantId": "peer:efb774c9f322dab41567fce6",
+                "role": "stage",
+                "stage": 0,
+                "supply": "mesh"
+              },
+              {
+                "participantId": "peer:036f2d43da19536d800b6c2f",
+                "role": "stage",
+                "stage": 1,
+                "supply": "mesh"
+              }
+            ],
+            "placement": "ordered-layer-partition",
+            "supply": "mesh"
+          },
+          "retrieval": {
+            "outcome": "retrieved",
+            "provider": "reploid.contributor-search/peer:691a71be6c88b33d7f0123d2/bing",
+            "route": "contributor-search",
+            "searchServer": null,
+            "searchService": "contributor-bing",
+            "supply": "contributor"
+          },
+          "schema": "reploid.answer-provenance/v1",
+          "supply": "mesh"
+        },
+        "publicationMode": "canonical",
+        "request": {
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "content": "What is WebGPU used for?",
+              "role": "user"
+            }
+          ],
+          "model": {
+            "activation": {
+              "components": 1,
+              "dtype": "f32",
+              "elementStrideBytes": 4,
+              "hiddenSize": 5120,
+              "precision": "f32",
+              "schema": "doppler.activation-tensor/v1"
+            },
+            "adapters": [],
+            "availability": "ready",
+            "contextLength": 4096,
+            "executionId": "q4k-split-chat-mac",
+            "id": "qwen3-8-27b-text-q4k-ehaf16",
+            "identity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "index": 0,
+            "localCached": false,
+            "localReady": false,
+            "name": "Qwen 3.8 27B",
+            "networkAvailability": "ready",
+            "partition": {
+              "coordinatorId": "peer:efb774c9f322dab41567fce6",
+              "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+              "route": {
+                "activation": {
+                  "components": 1,
+                  "dtype": "f32",
+                  "elementStrideBytes": 4,
+                  "hiddenSize": 5120,
+                  "precision": "f32",
+                  "schema": "doppler.activation-tensor/v1"
+                },
+                "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+                "schema": "reploid.partition-route/v1",
+                "stages": [
+                  {
+                    "executionId": "q4k-split-chat-mac",
+                    "index": 0,
+                    "participantId": "peer:efb774c9f322dab41567fce6",
+                    "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                    "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                  },
+                  {
+                    "executionId": "q4k-split-chat-amd",
+                    "index": 1,
+                    "participantId": "peer:036f2d43da19536d800b6c2f",
+                    "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                    "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                  }
+                ]
+              },
+              "schema": "reploid.partition-selection/v2"
+            },
+            "placement": "ordered-layer-partition",
+            "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+            "provider": "doppler",
+            "providerIds": [
+              "peer:efb774c9f322dab41567fce6",
+              "peer:036f2d43da19536d800b6c2f"
+            ],
+            "quantization": "q4k",
+            "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+            "selectionId": "qwen3-8-27b-text-q4k-ehaf16/partition/sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+            "size": "Q4K · 17 GB",
+            "textGeneration": {
+              "schema": "reploid.text-generation/v1",
+              "usage": "raw-model-tokens/v1"
+            }
+          },
+          "permissions": {
+            "executionLocation": "auto",
+            "sharingScope": "mesh"
+          },
+          "retrieval": {
+            "limits": {
+              "maxContextCharacters": 6000,
+              "maxResults": 5,
+              "maxSourceCharacters": 1200,
+              "timeoutMs": 10000
+            },
+            "query": "What is WebGPU used for?",
+            "route": "contributor-search"
+          }
+        },
+        "responseId": "a53cc908-8b2f-4c49-b08b-7f96fe828c50",
+        "retrieval": {
+          "context": {
+            "characters": 4247,
+            "digest": "sha256:fac5e7585a394e24e4a5f6d44523426e28983d9a2d1cac3a8cc00366f1ead87a",
+            "schema": "reploid.retrieval-context/v1"
+          },
+          "costs": {
+            "fallback": {
+              "costMicroUsd": 0,
+              "path": "none"
+            },
+            "retrieval": {
+              "bearer": "operator",
+              "costMicroUsd": null,
+              "extraction": {
+                "attempted": 5,
+                "bytes": 914136,
+                "costMicroUsd": null,
+                "documents": 5,
+                "failed": 0
+              },
+              "search": {
+                "costMicroUsd": null,
+                "requests": 1,
+                "service": "contributor-bing"
+              }
+            },
+            "schema": "reploid.retrieval-costs/v1",
+            "totalMicroUsd": null,
+            "unit": "micro-usd",
+            "unknown": [
+              "retrieval.search",
+              "retrieval.extraction"
+            ],
+            "verification": {
+              "checker": null,
+              "costMicroUsd": 0,
+              "reviews": []
+            }
+          },
+          "error": null,
+          "extractor": {
+            "id": "reploid.contributor-page-extract",
+            "version": "1"
+          },
+          "finishedAt": 1792193985359,
+          "limits": {
+            "maxContextCharacters": 6000,
+            "maxResults": 5,
+            "maxSourceCharacters": 1200,
+            "timeoutMs": 10000
+          },
+          "omitted": [],
+          "outcome": "retrieved",
+          "policy": {
+            "id": "reploid.retrieval-policy",
+            "version": "1.0.0"
+          },
+          "provider": {
+            "id": "reploid.contributor-search/peer:691a71be6c88b33d7f0123d2/bing",
+            "supply": "contributor",
+            "version": "1"
+          },
+          "providerResultCount": 5,
+          "query": "What is WebGPU used for?",
+          "schema": "reploid.retrieval-record/v1",
+          "sourceUse": "requester-opt-in",
+          "sources": [
+            {
+              "contentHash": "sha256:bf2631d9a67fbe54f49ae175d39b8adb9ea1d05c5e7dcb7e4dd29d35dc0ddbe5",
+              "document": {
+                "bytes": 10350,
+                "characters": 3501,
+                "contentType": "text/html; charset=utf-8",
+                "end": 1070,
+                "sha256": "sha256:bf2631d9a67fbe54f49ae175d39b8adb9ea1d05c5e7dcb7e4dd29d35dc0ddbe5",
+                "start": 0,
+                "status": 200,
+                "url": "https://webgpu.org/"
+              },
+              "number": 1,
+              "passage": "WebGPU and WGSL (WebGPU Shading Language) are W3C standards for GPU acceleration on the Web. There are also implementations of WebGPU in other languages, for both WebAssembly and native applications.\n\nwebgpu.org is a work in progress - contribute here!\n\n✅ Maintained by the WebGPU Working Group\n🤝 Maintained by browser/implementation contributors or well-known community members\n💬 Official community spaces\n🌐 Unofficial resources\n\nImplementation Status & Bug Reporting\n\n✅ WebGPU Implementation Status - status of different browsers/OSes, and how to report bugs\n🤝 For status of individual features, check on your device using WebGPU Report\n\nCommunity Spaces\n\n💬 Chat - “Web Graphics” Matrix Community: #webgraphics:matrix.org\n\nThe general WebGPU channel is #WebGPU:matrix.org\n\n💬 Q&A and feature proposals - GitHub Discussions\n💬 Mailing list - public-gpu@w3.org at the W3C\n\nSamples & Demos\n\n✅ WebGPU Samples - sample code and demos of various features and graphics/compute techniques\n🤝 wgpu Examples (Rust on Wasm)\n🌐 compute.toys\n🌐 … and many more here\n\nTutorials",
+              "passageHash": "sha256:be3b617a8f1317ca4169b3ca5e352e59fc0d15eb0e9b26d47263afd41943cab0",
+              "passageOrigin": "extract",
+              "retrievedAt": 1792193983219,
+              "sourceId": "web-1",
+              "title": "WebGPU",
+              "truncated": false,
+              "url": "https://webgpu.org/"
+            },
+            {
+              "contentHash": "sha256:62a08af6e54479a36d31e8cde79c2860e3a817b656d97fd9f9c505e0c225fbf8",
+              "document": {
+                "bytes": 193071,
+                "characters": 10312,
+                "contentType": "text/html; charset=UTF-8",
+                "end": 998,
+                "sha256": "sha256:62a08af6e54479a36d31e8cde79c2860e3a817b656d97fd9f9c505e0c225fbf8",
+                "start": 61,
+                "status": 200,
+                "url": "https://en.wikipedia.org/wiki/WebGPU"
+              },
+              "number": 2,
+              "passage": "WebGPU\n\nShow dark mode logo\n\nShow light mode logo\n\nStatus Candidate recommendation (CR)\nYear started 18 May 2021 (2021-05-18)\nFirst published 18 May 2021 (2021-05-18)\nLatest version W3C Candidate recommendation\n(As of 2025)\nOrganization W3C\nCommittee\n\nGPU for the Web WG\nGPU for the Web CG\n\nEditors\n\nKai Ninomiya\nBrandon Jones\nJim Blandy\nMyles C. Maxfield (former)\nDzmitry Malyshau (former)\nJustin Fan (former)\n\n[1]\nRelated standards\n\nCSS Color Module Level 4\nHTML DOM\nECMAScript\n\nDomain\n\nGPU computing\nECMAScript\nAPI\n\nWebsite www.w3.org/TR/webgpu/\n\nWebGPU API is a JavaScript, Rust, C++, and C API for cross-platform efficient graphics processing unit (GPU) access. Using a system's underlying Vulkan, Metal, or Direct3D 12 technologies, WebGPU allows for graphics processing, games, and more, as well as AI and machine learning applications. WebGPU is intended to supersede the older WebGL as the main graphics standard for the Web.[2]",
+              "passageHash": "sha256:7c150b482c24b736e39759105334878b83f12ef47f95c63e652aa8a1046e30c9",
+              "passageOrigin": "extract",
+              "retrievedAt": 1792193983285,
+              "sourceId": "web-2",
+              "title": "WebGPU - Wikipedia",
+              "truncated": false,
+              "url": "https://en.wikipedia.org/wiki/WebGPU"
+            },
+            {
+              "contentHash": "sha256:1817eb4814c4fe162aa5ff4143e6dae627b55d84111f34b4b9f641e06de09bcb",
+              "document": {
+                "bytes": 216208,
+                "characters": 35497,
+                "contentType": "text/html",
+                "end": 4789,
+                "sha256": "sha256:1817eb4814c4fe162aa5ff4143e6dae627b55d84111f34b4b9f641e06de09bcb",
+                "start": 4202,
+                "status": 200,
+                "url": "https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API"
+              },
+              "number": 3,
+              "passage": "A logical device is an abstraction via which a single web app can access GPU capabilities in a compartmentalized way. Logical devices are required to provide multiplexing capabilities. A physical device's GPU is used by many applications and processes concurrently, including potentially many web apps. Each web app needs to be able to access WebGPU in isolation for security and logic reasons.\n\nAccessing a device\n\nA logical device — represented by a GPUDevice object instance — is the basis from which a web app accesses all WebGPU functionality. Accessing a device is done as follows:",
+              "passageHash": "sha256:368b7842761dddca6b52307116bc34a7280ee84250e43f8868db9e5dcf0b1a92",
+              "passageOrigin": "extract",
+              "retrievedAt": 1792193985205,
+              "sourceId": "web-3",
+              "title": "WebGPU API - Web APIs | MDN",
+              "truncated": false,
+              "url": "https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API"
+            },
+            {
+              "contentHash": "sha256:8bb8f93bc3c54a57dd69f519cc8a12272b5a92e0bba56c0e1475bc50f0a5c772",
+              "document": {
+                "bytes": 397867,
+                "characters": 4373,
+                "contentType": "text/html; charset=utf-8",
+                "end": 1141,
+                "sha256": "sha256:8bb8f93bc3c54a57dd69f519cc8a12272b5a92e0bba56c0e1475bc50f0a5c772",
+                "start": 228,
+                "status": 200,
+                "url": "https://webgpu.com/"
+              },
+              "number": 4,
+              "passage": "ASTRODITHER Turns Audio Into WebGPU Signal Noise\n\nRobert Borghesi’s ASTRODITHER is an audio-reactive Three.js WebGPU experiment using TSL, fluid simulation, bloom, dithering, and time-warped signal noise.\n\nRobert BorghesiWebGPU\n\nNoomo's 3D Storytelling Site: A Walk Through Phoenix\n\nNoomo's storytelling site turns five client stories into rooms in a lit hallway, with animation bound to scroll instead of autoplay. Three.js doing the heavy lifting, WebGPU peeking around the corner on sister projects. Worth opening the network tab for.\n\nNoomo AgencyWebGL\n\nTrack: A Scroll-Paced WebGL Run by Hiroto Sato\n\nScroll the page and an athlete runs forward. Stopwatch climbing, meters racking up, quotes from sports icons surfacing as you earn them. Hiroto Sato's TRACK pairs WebGL with GSAP and paces its reveals to distance instead of viewport position.\n\nHiroto SatoWebGL\n\nArtisans d'Idées: Treats Shadow as a Material",
+              "passageHash": "sha256:e5199b515836717cd828860376882983e3320eec67f5f191f6425210990665ef",
+              "passageOrigin": "extract",
+              "retrievedAt": 1792193985195,
+              "sourceId": "web-4",
+              "title": "WebGL / WebGPU: Community Showcase and News",
+              "truncated": false,
+              "url": "https://webgpu.com/"
+            },
+            {
+              "contentHash": "sha256:29fdd58ab8a72f2d9445cade52f1330a8f31b1c12a71d7206702d0484abe22bc",
+              "document": {
+                "bytes": 96640,
+                "characters": 128,
+                "contentType": "text/html; charset=utf-8",
+                "end": 128,
+                "sha256": "sha256:29fdd58ab8a72f2d9445cade52f1330a8f31b1c12a71d7206702d0484abe22bc",
+                "start": 26,
+                "status": 200,
+                "url": "https://developer.chrome.com/docs/web-platform/webgpu/"
+              },
+              "number": 5,
+              "passage": "WebGPU\n\nStay organized with collections Save and categorize content based on your preferences.\n\nWebGPU",
+              "passageHash": "sha256:0a0977823fa7aa684fa49100bb9b96574c969754735347fb95aa35e30ac77150",
+              "passageOrigin": "extract",
+              "retrievedAt": 1792193985347,
+              "sourceId": "web-5",
+              "title": "WebGPU | Chrome for Developers",
+              "truncated": false,
+              "url": "https://developer.chrome.com/docs/web-platform/webgpu/"
+            }
+          ],
+          "startedAt": 1792193980877,
+          "usage": {
+            "extraction": {
+              "bytes": 914136,
+              "documents": 5
+            },
+            "search": {
+              "costMicroUsd": null,
+              "provider": "contributor-bing",
+              "requests": 1
+            }
+          },
+          "verification": {
+            "checker": null,
+            "claimSupport": {
+              "alignment": "reploid.lexical-span-alignment/v1",
+              "claims": [
+                {
+                  "citations": [
+                    {
+                      "document": {
+                        "end": 904,
+                        "sha256": "sha256:62a08af6e54479a36d31e8cde79c2860e3a817b656d97fd9f9c505e0c225fbf8",
+                        "start": 728
+                      },
+                      "marker": 2,
+                      "passageHash": "sha256:7c150b482c24b736e39759105334878b83f12ef47f95c63e652aa8a1046e30c9",
+                      "problems": [],
+                      "sourceId": "web-2",
+                      "span": {
+                        "alignment": "sentence",
+                        "end": 843,
+                        "sha256": "sha256:86f3c0d068c2fb5feb82aa87821153e701bfa236945c99206373be2d84efd7a8",
+                        "start": 667,
+                        "text": "Using a system's underlying Vulkan, Metal, or Direct3D 12 technologies, WebGPU allows for graphics processing, games, and more, as well as AI and machine learning applications."
+                      },
+                      "url": "https://en.wikipedia.org/wiki/WebGPU",
+                      "valid": true
+                    }
+                  ],
+                  "end": 92,
+                  "id": "claim-1",
+                  "index": 0,
+                  "markers": [
+                    2
+                  ],
+                  "reason": "awaiting-review",
+                  "reviewable": true,
+                  "start": 0,
+                  "text": "WebGPU is used for graphics processing, games, and AI and machine learning applications.",
+                  "verdict": "unverified"
+                },
+                {
+                  "citations": [
+                    {
+                      "document": {
+                        "end": 727,
+                        "sha256": "sha256:62a08af6e54479a36d31e8cde79c2860e3a817b656d97fd9f9c505e0c225fbf8",
+                        "start": 611
+                      },
+                      "marker": 2,
+                      "passageHash": "sha256:7c150b482c24b736e39759105334878b83f12ef47f95c63e652aa8a1046e30c9",
+                      "problems": [],
+                      "sourceId": "web-2",
+                      "span": {
+                        "alignment": "sentence",
+                        "end": 666,
+                        "sha256": "sha256:17c0d40ca24c3b2ffcef65e21ccdafde66a9ab8cfa73736cd981d6c8abb83297",
+                        "start": 550,
+                        "text": "WebGPU API is a JavaScript, Rust, C++, and C API for cross-platform efficient graphics processing unit (GPU) access."
+                      },
+                      "url": "https://en.wikipedia.org/wiki/WebGPU",
+                      "valid": true
+                    }
+                  ],
+                  "end": 179,
+                  "id": "claim-2",
+                  "index": 1,
+                  "markers": [
+                    2
+                  ],
+                  "reason": "awaiting-review",
+                  "reviewable": true,
+                  "start": 93,
+                  "text": "It provides cross-platform efficient access to the graphics processing unit (GPU).",
+                  "verdict": "unverified"
+                }
+              ],
+              "contextDigest": "sha256:fac5e7585a394e24e4a5f6d44523426e28983d9a2d1cac3a8cc00366f1ead87a",
+              "contextValid": true,
+              "query": "What is WebGPU used for?",
+              "schema": "reploid.claim-support/v1",
+              "summary": {
+                "citations": 2,
+                "citedClaims": 2,
+                "claims": 2,
+                "invalidCitations": 0,
+                "reviewableClaims": 2,
+                "supported": 0,
+                "unsupported": 0,
+                "unverified": 2,
+                "validCitations": 2
+              }
+            },
+            "claims": [
+              {
+                "citations": [
+                  {
+                    "marker": 2,
+                    "resolved": true,
+                    "sourceId": "web-2",
+                    "support": {
+                      "reason": "No support checker is configured.",
+                      "verdict": "unverified"
+                    }
+                  }
+                ],
+                "cited": true,
+                "end": 92,
+                "index": 0,
+                "markers": [
+                  2
+                ],
+                "start": 0,
+                "text": "WebGPU is used for graphics processing, games, and AI and machine learning applications."
+              },
+              {
+                "citations": [
+                  {
+                    "marker": 2,
+                    "resolved": true,
+                    "sourceId": "web-2",
+                    "support": {
+                      "reason": "No support checker is configured.",
+                      "verdict": "unverified"
+                    }
+                  }
+                ],
+                "cited": true,
+                "end": 179,
+                "index": 1,
+                "markers": [
+                  2
+                ],
+                "start": 93,
+                "text": "It provides cross-platform efficient access to the graphics processing unit (GPU)."
+              }
+            ],
+            "flags": [
+              {
+                "claim": 0,
+                "kind": "unverified-support",
+                "marker": 2
+              },
+              {
+                "claim": 1,
+                "kind": "unverified-support",
+                "marker": 2
+              }
+            ],
+            "references": [],
+            "schema": "reploid.citation-verification/v1",
+            "summary": {
+              "citations": 2,
+              "citedClaims": 2,
+              "claims": 2,
+              "supported": 0,
+              "uncitedClaims": 0,
+              "unrecordedUrls": 0,
+              "unresolvedCitations": 0,
+              "unsupported": 0,
+              "unverified": 2
+            },
+            "unrecordedUrls": [],
+            "usage": {
+              "checks": 0,
+              "costMicroUsd": 0
+            }
+          }
+        },
+        "retryOf": null,
+        "searchPermission": {
+          "grantedAt": 1792193980876,
+          "id": "9bd83671-4691-43cb-ac68-7ee9019dbd96",
+          "kind": "search-answer",
+          "networkId": "reploid-swarm-public",
+          "query": "What is WebGPU used for?",
+          "recipients": [
+            "peer:efb774c9f322dab41567fce6",
+            "peer:036f2d43da19536d800b6c2f"
+          ],
+          "revokedAt": null,
+          "schema": "reploid.remote-permission/v3",
+          "searchPeer": "peer:691a71be6c88b33d7f0123d2",
+          "searchProvider": "contributor-bing",
+          "searchServer": null,
+          "threadId": "1cfd2d57-b762-4116-aedf-5d094d91fda4",
+          "wording": {
+            "id": "reploid.search-answer-permission",
+            "text": "Allow Reploid to send this search query to the listed search contributor, which sends it to Bing and fetches public result pages without personal sign-ins. Share the retrieved passages with the listed execution contributors for this answer. Your files and unrelated conversation history are excluded.",
+            "version": "2026-10-16"
+          }
+        },
+        "status": "completed",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.8 27B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        },
+        "threadId": "1cfd2d57-b762-4116-aedf-5d094d91fda4",
+        "userMessageId": "1319fc89-d647-4aee-9f3b-10d811c3ef25"
+      }
+    ],
+    "closed": false,
+    "createdAt": 1792193980856,
+    "grants": [],
+    "id": "1cfd2d57-b762-4116-aedf-5d094d91fda4",
+    "members": [
+      "local-user"
+    ],
+    "messages": [
+      {
+        "content": "What is WebGPU used for?",
+        "id": "1319fc89-d647-4aee-9f3b-10d811c3ef25",
+        "role": "user",
+        "status": "completed"
+      },
+      {
+        "attemptId": "4c0282c8-cddf-49a6-806f-b312fe1681ca",
+        "content": "WebGPU is used for graphics processing, games, and AI and machine learning applications [2]. It provides cross-platform efficient access to the graphics processing unit (GPU) [2].",
+        "id": "a53cc908-8b2f-4c49-b08b-7f96fe828c50",
+        "role": "assistant",
+        "status": "completed"
+      }
+    ],
+    "model": {
+      "activation": {
+        "components": 1,
+        "dtype": "f32",
+        "elementStrideBytes": 4,
+        "hiddenSize": 5120,
+        "precision": "f32",
+        "schema": "doppler.activation-tensor/v1"
+      },
+      "adapters": [],
+      "availability": "ready",
+      "contextLength": 4096,
+      "executionId": "q4k-split-chat-mac",
+      "id": "qwen3-8-27b-text-q4k-ehaf16",
+      "identity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+      "index": 0,
+      "localCached": false,
+      "localReady": false,
+      "name": "Qwen 3.8 27B",
+      "networkAvailability": "ready",
+      "partition": {
+        "coordinatorId": "peer:efb774c9f322dab41567fce6",
+        "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+        "route": {
+          "activation": {
+            "components": 1,
+            "dtype": "f32",
+            "elementStrideBytes": 4,
+            "hiddenSize": 5120,
+            "precision": "f32",
+            "schema": "doppler.activation-tensor/v1"
+          },
+          "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+          "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+          "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+          "schema": "reploid.partition-route/v1",
+          "stages": [
+            {
+              "executionId": "q4k-split-chat-mac",
+              "index": 0,
+              "participantId": "peer:efb774c9f322dab41567fce6",
+              "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+              "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+            },
+            {
+              "executionId": "q4k-split-chat-amd",
+              "index": 1,
+              "participantId": "peer:036f2d43da19536d800b6c2f",
+              "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+              "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+            }
+          ]
+        },
+        "schema": "reploid.partition-selection/v2"
+      },
+      "placement": "ordered-layer-partition",
+      "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+      "provider": "doppler",
+      "providerIds": [
+        "peer:efb774c9f322dab41567fce6",
+        "peer:036f2d43da19536d800b6c2f"
+      ],
+      "quantization": "q4k",
+      "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+      "selectionId": "qwen3-8-27b-text-q4k-ehaf16/partition/sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+      "size": "Q4K · 17 GB",
+      "textGeneration": {
+        "schema": "reploid.text-generation/v1",
+        "usage": "raw-model-tokens/v1"
+      }
+    },
+    "permissions": {
+      "executionLocation": "auto",
+      "sharingScope": "mesh"
+    },
+    "purpose": "",
+    "systemContext": {
+      "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.8 27B.",
+      "metadata": {
+        "enabled": true,
+        "maxWords": 16,
+        "mode": null,
+        "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+        "policyId": "reploid.compact-context/v2",
+        "wordCount": 13
+      }
+    }
+  },
+  "errors": [],
+  "weightRequests": []
+}

@@ -34,7 +34,8 @@ export function createLegacyGenerationMesh({ config, ports }) {
   const swarmEnabled = policy.mesh.enabled;
   const REMOTE_GENERATION_TIMEOUT_MS = policy.mesh.generationTimeoutMs;
   const swarmController = createSwarmController();
-  const receiptHistory = [];
+  const receiptHistory = [], observedPeers = new Map();
+  let observationSequence = 0;
   const inbound = new Map(), completed = new Map();
   const inboundSettlements = new Set();
   const executions = new Set();
@@ -97,7 +98,8 @@ export function createLegacyGenerationMesh({ config, ports }) {
 
   const getTransportState = () => ({
     connectionState: swarmTransport?.getConnectionState?.() || 'disconnected',
-    transport: swarmTransport?.getTransportType?.() || null
+    transport: swarmTransport?.getTransportType?.() || null,
+    connections: swarmTransport?.getPeerStates?.() || []
   });
 
   const getSwarmSnapshot = () => ({
@@ -108,7 +110,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
     }),
     ...getTransportState(),
     peerId: identityBundle?.peerId || null,
-    peers: snapshotJson(swarmController.listPeers())
+    peers: snapshotJson(swarmController.listPeers().map(peer => observedPeers.get(peer.peerId) || peer))
   });
 
   const emitSwarmState = () => {
@@ -133,7 +135,13 @@ export function createLegacyGenerationMesh({ config, ports }) {
       updatedAt: Date.now()
     });
     advertisement.model = modelConfig?.id || null;
+    advertisement.observationSession = instanceId;
+    advertisement.observationSequence = ++observationSequence;
     advertisement.readiness = executionState().phase;
+    const activity = executionState().activity;
+    advertisement.activity = activity ? { phase: activity.phase,
+      completed: Number.isSafeInteger(activity.completed) ? activity.completed : 0,
+      failure: activity.error ? { phase: activity.phase, message: 'Model preparation or execution failed on this computer.' } : null } : null;
     advertisement.preparation = advertisement.readiness === 'loading' ? publicPreparationProgress(executionState().progress) : null;
     advertisement.modelIdentity = executionState().modelIdentity;
     advertisement.adapterIdentities = executionState().adapterIdentities || [];
@@ -210,6 +218,9 @@ export function createLegacyGenerationMesh({ config, ports }) {
       peerId: remotePeerId
     });
     if (next) {
+      next.activity = payload.activity && ['idle', 'loading', 'ready', 'executing', 'stopping', 'failed'].includes(payload.activity.phase)
+        ? { phase: payload.activity.phase, completed: Number.isSafeInteger(payload.activity.completed) ? payload.activity.completed : 0,
+          failure: payload.activity.failure ? { message: 'Model preparation or execution failed on this computer.' } : null } : null;
       next.model = typeof payload.model === 'string' ? payload.model : null;
       next.readiness = ['loading', 'ready', 'executing', 'idle', 'failed', 'stopping'].includes(payload.readiness) ? payload.readiness : 'unavailable';
       next.preparation = next.readiness === 'loading' ? publicPreparationProgress(payload.preparation) : null;
@@ -218,6 +229,18 @@ export function createLegacyGenerationMesh({ config, ports }) {
       next.availableSlots = Number.isSafeInteger(payload.availableSlots) && payload.availableSlots > 0 ? payload.availableSlots : 0;
       next.modelContract = payload.modelContract || null;
       next.identityProtocol = payload.identityProtocol === 1 ? 1 : null;
+    }
+    if (next) {
+      const connection = swarmTransport?.getPeerStates?.().find(peer => peer.id === remotePeerId);
+      const previous = observedPeers.get(remotePeerId);
+      const sameAttempt = (previous?.attemptId ?? null) === (connection?.attemptId ?? null);
+      const ordered = !sameAttempt || !previous || (payload.observationSession === previous.observationSession
+        && Number.isSafeInteger(payload.observationSequence) && Number.isSafeInteger(previous.observationSequence)
+        ? payload.observationSequence > previous.observationSequence : payload.updatedAt >= previous.updatedAt);
+      if (ordered && (!connection || !['disconnected', 'failed'].includes(connection.phase))) {
+        observedPeers.set(remotePeerId, { ...snapshotJson(next), attemptId: connection?.attemptId || null,
+          observationSession: payload.observationSession ?? null, observationSequence: payload.observationSequence ?? null });
+      }
     }
     if (next?.role === 'provider') {
       bridgeEvents.emit('provider-ready', next);
@@ -424,6 +447,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
         const retirePeer = ({ peerId }) => {
           peerIdentity?.retirePeer(peerId);
           swarmController.removePeer(peerId);
+          observedPeers.delete(peerId);
           remoteRequests.retirePeer(peerId);
           for (const [key, controller] of inbound) if (key.startsWith(`${peerId}:`)) controller.abort(new Error('Requester disconnected'));
           emitSwarmState();
@@ -433,6 +457,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
         subscriptions.push(eventBus.on('swarm:state-change', () => {
           emitSwarmState();
         }, 'self-bridge'));
+        subscriptions.push(eventBus.on('swarm:peer-progress', emitSwarmState, 'self-bridge'));
         swarmHandlersRegistered = true;
       }
 

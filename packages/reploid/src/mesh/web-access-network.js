@@ -18,7 +18,7 @@ export function createWebAccessNetwork({ transport, verifyPeer, worker = null, e
     sendCancel: (peer, requestId) => send(peer, CANCEL, { requestId }) });
   const peers = () => new Set(transport.getConnectedPeers().map(peer => peer.id));
   const available = () => !closed && worker && enabled() === true;
-  const describe = () => available() ? { service: worker.service, version: worker.version } : null;
+  const describe = () => available() && (worker.isAvailable?.() ?? true) ? { service: worker.service, version: worker.version } : null;
   const publish = peer => send(peer, OFFER, describe());
   const notify = () => onChange();
   const retire = peer => {
@@ -39,13 +39,13 @@ export function createWebAccessNetwork({ transport, verifyPeer, worker = null, e
   transport.onMessage(OFFER, (peer, offer) => {
     if (closed || !peers().has(peer)) return;
     if (!offer) { checking.get(peer)?.abort(); epochs.delete(peer); retire(peer); return; }
-    if (offer.service !== 'bing' || offer.version !== '1' || checking.has(peer) || checking.size >= policy.maxPeers) return;
+    if (!Object.hasOwn(policy.services, offer.service) || offer.version !== policy.services[offer.service] || checking.has(peer) || checking.size >= policy.maxPeers) return;
     const controller = new AbortController(), timer = setTimeout(() => controller.abort(), policy.timeoutMs);
     checking.set(peer, controller); epochs.set(peer, controller);
     Promise.resolve().then(() => verifyPeer(peer, controller.signal)).then(participantId => {
       if (closed || epochs.get(peer) !== controller || controller.signal.aborted || !peers().has(peer) || !validId(participantId)) return;
       const prior = offers.get(peer);
-      if (prior?.participantId === participantId) return;
+      if (prior?.participantId === participantId && prior.service === offer.service && prior.version === offer.version) return;
       if (offers.size >= policy.maxPeers) return;
       offers.set(peer, { peerId: peer, participantId, service: offer.service, version: offer.version }); notify();
     }).catch(() => {}).finally(() => { clearTimeout(timer); checking.delete(peer); });
@@ -66,6 +66,7 @@ export function createWebAccessNetwork({ transport, verifyPeer, worker = null, e
     const key = `${peer}/${input.requestId}`;
     const reject = message => send(peer, RESPONSE, { requestId: input.requestId, error: message });
     if (!available()) return reject('Web contribution is off');
+    if (input.operation === 'search' && worker.isAvailable?.() === false) return reject('Contributor browser is unavailable');
     if (input.service !== worker.service || input.version !== worker.version) return reject('Search service changed');
     if (!['search', 'extract'].includes(input.operation) || !input.args || typeof input.args !== 'object') return reject('Invalid web request');
     if (inbound.has(key) || seen.has(key)) return reject('Duplicate web request');
@@ -92,7 +93,7 @@ export function createWebAccessNetwork({ transport, verifyPeer, worker = null, e
       offer = structuredClone(offer); args = structuredClone(args);
       signal?.throwIfAborted();
       const current = offers.get(offer?.peerId);
-      if (closed || !current || current.participantId !== offer.participantId || !peers().has(offer.peerId)) fail('Search contributor changed; allow a new search');
+      if (closed || !current || current.participantId !== offer.participantId || current.service !== offer.service || current.version !== offer.version || !peers().has(offer.peerId)) fail('Search contributor changed; allow a new search');
       const identity = await verifyPeer(offer.peerId, signal);
       signal?.throwIfAborted();
       if (identity !== offer.participantId || offers.get(offer.peerId) !== current) fail('Search contributor changed; allow a new search');

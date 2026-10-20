@@ -1,3 +1,4 @@
+import { partitionAdapterIdentities, samePartitionAdapters } from './partition-contract.js';
 import { TEXT_GENERATION_CAPABILITY, requireGenerationCapability, boundedGeneration, tokenUsage } from './partition-generation-request.js';
 import { createLayerPartitionRunner } from './partition-runner.js';
 import { orderedPartitionDisclosure } from './partition-grants.js';
@@ -35,7 +36,8 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
   'Ordered chat requires the actual local coordinator and prepared stage ports');
   assert(model.id === route.modelId && model.identity === route.modelIdentity && planId === route.planId
     && Number.isSafeInteger(grantTtlMs) && grantTtlMs > 0, 'Ordered chat model, plan and grant lifetime required');
-  const selection = { id: model.id, name: model.name, identity: model.identity, adapters: [],
+  assert(canonicalPartitionJson(plan.adapterIdentities || []) === canonicalPartitionJson(partitionAdapterIdentities(model)), 'Partition plan adapter binding mismatch');
+  const selection = { id: model.id, name: model.name, identity: model.identity, adapters: structuredClone(model.adapters || []),
     selectionId: model.id + '/partition/' + planId,
     partition: { schema: 'reploid.partition-selection/v2', planId, coordinatorId, route } };
   for (const key of ['provider', 'contextLength', 'quantization', 'size', 'recommended']) {
@@ -149,7 +151,7 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
     assert(request.disclosureExpiresAt === undefined || Number.isSafeInteger(request.disclosureExpiresAt) && request.disclosureExpiresAt > now(),
       'Requester disclosure deadline expired or invalid');
     assert(request.meshId === authority.meshId && request.model.id === selection.id
-      && request.model.identity === selection.identity && !(request.model.adapters || []).length
+      && request.model.identity === selection.identity && samePartitionAdapters(request.model, selection)
       && canonicalPartitionJson(request.model.partition) === canonicalPartitionJson(selection.partition), 'Ordered chat selection mismatch');
     const identity = canonicalRouteAttemptBinding({ schema: 'reploid.partition-attempt/v2', route,
       requesterId: request.participantId, threadId: request.threadId, attemptId: request.attemptId,
@@ -183,7 +185,7 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
       assert(expiresAt > now(), 'Requester disclosure expired during preparation');
       const approved = await controls.requestApproval({ id: crypto.randomUUID(), threadId: identity.threadId,
         attemptId: identity.attemptId, peerId: coordinatorId, recipientIdentity: coordinatorId,
-        modelId: selection.id, modelIdentity: selection.identity, adapterIdentities: [],
+        modelId: selection.id, modelIdentity: selection.identity, adapterIdentities: partitionAdapterIdentities(selection),
         operation: 'generate-partition', ...structuredClone(selection.partition), disclosure,
         expiresAt, input: { messages: structuredClone(request.messages), ...(requested ? {generationRequest: requested} : {}),
           recipients: [...new Set([...disclosure.tokenRecipients, ...disclosure.outputRecipients])] } });
@@ -244,7 +246,7 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
         const result = await operation;
         assert(!publisher || publisher.durable()?.terminal === true, 'Ordered generation ended without its durable terminal publication');
         return { threadId: identity.threadId, attemptId: identity.attemptId, modelId: selection.id,
-          modelIdentity: selection.identity, adapterIdentities: [], content: result.content,
+          modelIdentity: selection.identity, adapterIdentities: partitionAdapterIdentities(selection), content: result.content,
           ...(requested ? {usage: tokenUsage(input.tokenIds.length, result.tokenIds.length, requested)} : {}),
           // Coordinator admission wait for this attempt (0 when a slot was free on arrival).
           execution: { ...result.execution, provider: 'peer', admission: { queuedMs: ticket.queuedMs },

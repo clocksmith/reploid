@@ -7,7 +7,7 @@ import { disclosureRecipients, disclosureScope, matchingThreadGrant, validateThr
 import { remotePermissionCovers, remotePermissionNeed } from './remote-permission.js';
 import { SEARCH_RECIPIENTS_CHANGED, validateSearchPermission } from './search-permission.js';
 import { createRetrieval } from '../retrieval/retrieval.js';
-import { interruptRetrievalRecord, retrievalFailureMessage } from '../retrieval/sources.js';
+import { interruptRetrievalRecord, retrievalFailureMessage, withSourceContext } from '../retrieval/sources.js';
 import { withVerification } from '../retrieval/costs.js';
 import { answerProvenance, classifyExecutionSupply, executionRefusal } from './supply-provenance.js';
 import failureMessages from '../transport/partition-errors.json' with { type: 'json' };
@@ -96,6 +96,8 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
   assert(!loaded || loaded.schema === 'reploid.chat-workspace/v1'
     && loaded.meshId === meshId && loaded.participantId === participantId && Array.isArray(loaded.threads), 'Stored workspace identity mismatch');
   const threads = copy(loaded?.threads || []);
+  // Selection is a local history pointer, never permission to resume execution.
+  selectedId = threads.some(thread => thread.id === loaded?.selectedId && !thread.closed) ? loaded.selectedId : null;
   let durableThreads = copy(threads);
   assert(threads.length <= limits.maxThreads && new Set(threads.map(thread => thread.id)).size === threads.length, 'Invalid stored threads');
   const loadedRequester = threads.length ? requester() : null;
@@ -131,7 +133,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
   const persist = () => {
     assert(!storageError, `History storage failed: ${storageError}`);
     try {
-      const saved = copy({ schema: 'reploid.chat-workspace/v1', meshId, participantId, threads });
+      const saved = copy({ schema: 'reploid.chat-workspace/v1', meshId, participantId, selectedId, threads });
       const result = store.save(saved);
       if (transactional) {
         const operation = Promise.resolve(result).then(() => {
@@ -173,7 +175,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       && value.adapters.every(adapter => /^sha256:[a-f0-9]{64}$/.test(adapter.identity)), 'Select identified adapters');
     return copy(value);
   };
-  const start = (thread, request, userMessageId, retryOf = null, select = true, authorizeDisclosure = null, searchPermission = null) => {
+  const start = (thread, request, userMessageId, retryOf = null, select = true, authorizeDisclosure = null, searchPermission = null, sourceHistory = []) => {
     current();
     assert(authorizeDisclosure === null || typeof authorizeDisclosure === 'function', 'Invalid disclosure authorization port');
     assert(!runs.has(thread.id), 'This conversation already has an active response');
@@ -181,12 +183,13 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
     assert(thread.messages.length < limits.maxMessagesPerThread, 'Conversation history limit reached');
     const retriever = request.retrieval ? routeFor(request.retrieval).retriever : null;
     const controller = new AbortController();
+    const published = transactional && !(store.supportsWholeModel === true && !request.model.partition);
     // publicationMode 'canonical' is the persisted marker for requester-published output, from either
     // canonical two-stage or ordinary ordered records; it does not mean canonical decoding. Saved
     // histories already hold this value, so it is kept rather than renamed.
     const attempt = { id: id(), threadId: thread.id, userMessageId, responseId: id(), retryOf,
       status: 'queued', createdAt: now(), finishedAt: null, error: null, approval: null,
-      execution: null, authorization: null, ...(transactional ? { publicationMode: 'canonical' } : {}), request: copy(request),
+      execution: null, authorization: null, ...(transactional ? { publicationMode: published ? 'canonical' : 'whole-model' } : {}), request: copy(request),
       systemContext: copy(retryOf ? thread.attempts.find(item => item.id === retryOf)?.systemContext ?? null : thread.systemContext),
       // Each attempt retrieves afresh; a retry never reuses another attempt's sources or search permission.
       ...(request.retrieval ? { retrieval: retriever.pending(request.retrieval, now()) } : {}),
@@ -215,22 +218,39 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       try {
         if (transactional) await admitted;
         controller.signal.throwIfAborted();
+        // Ordinary follow-ups retain the evidence supplied with their earlier turns. Validate the
+        // saved digest again, then persist exactly what the new Send will disclose. Search-only
+        // grants never enter this path; they still exclude history. Retry uses this frozen input.
+        if (sourceHistory.length) {
+          dispatched = copy(request);
+          for (const { index, record } of sourceHistory) {
+            const restored = await withSourceContext({ messages: [dispatched.messages[index]] }, record);
+            controller.signal.throwIfAborted();
+            dispatched.messages[index] = restored.messages[0];
+          }
+          attempt.request = copy(dispatched);
+          await persist(); controller.signal.throwIfAborted();
+        }
         if (request.retrieval) {
           // Provenance is durable before any source text can be disclosed; failure dispatches nothing.
           // The attempt id keys this answer's costs in provider usage logs; it is never part of the query.
-          attempt.retrieval = await retriever.retrieve(attempt.retrieval, controller.signal, { answer: attempt.id });
+          attempt.retrieval = await retriever.retrieve(attempt.retrieval, controller.signal, { answer: attempt.id,
+            onProgress(progress) {
+              if (!live() || attempt.retrieval.outcome !== 'pending') return;
+              attempt.retrieval.progress = copy(progress); notify();
+            } });
           await persist(); controller.signal.throwIfAborted();
           assert(attempt.retrieval.outcome === 'retrieved', retrievalFailureMessage(attempt.retrieval));
-          dispatched = await retriever.dispatch(request, attempt.retrieval);
+          dispatched = await retriever.dispatch(dispatched, attempt.retrieval);
         }
         if (transactional) await store.assertCurrentWriter();
-        publication = transactional ? await store.publication(thread.id) : undefined;
+        publication = published ? await store.publication(thread.id) : undefined;
         // retryOf lets the host keep an explicit retry under the acceptance its failed attempt held.
         const result = await execute(copy({ ...dispatched, threadId: thread.id, attemptId: attempt.id,
           meshId, participantId, ...(retryOf ? { retryOf } : {}) }), {
           signal: controller.signal,
           authorizationExpiresAt: () => live() ? attempt.authorization?.expiresAt ?? null : null,
-          ...(transactional ? { publication, publisherEpoch: store.writerEpoch,
+          ...(published ? { publication, publisherEpoch: store.writerEpoch,
             async onPublished(record) {
               controller.signal.throwIfAborted();
               const projection = await store.project(thread.id, attempt.id, record);
@@ -244,7 +264,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
             } } : {}),
           onDelta(envelope) {
             if (!live() || !matches(envelope)) return;
-            assert(!transactional, 'Canonical response requires its saved publication');
+            assert(!published, 'Canonical response requires its saved publication');
             assert(Number.isSafeInteger(envelope.sequence) && envelope.sequence >= 0, 'Invalid response sequence');
             if (envelope.sequence < run.nextSequence) return;
             assert(envelope.sequence === run.nextSequence, 'Response stream has a gap');
@@ -279,7 +299,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
             'Invalid execution authorization window');
             assert(!run.approval, 'An approval is already pending');
             const scope = disclosureScope(request, preview, requester()), grant = matchingThreadGrant(thread.grants, scope);
-            if (transactional) assert(publishedDisclosures.has(scope?.disclosure), 'Canonical disclosure requires exact verified partition recipients');
+            if (published) assert(publishedDisclosures.has(scope?.disclosure), 'Canonical disclosure requires exact verified partition recipients');
             // Retrieved passages go only to verified recipients the per-answer search permission listed.
             if (attempt.searchPermission) assert(scope && disclosureRecipients(scope, preview)
               .every(recipient => attempt.searchPermission.recipients.includes(recipient)), SEARCH_RECIPIENTS_CHANGED);
@@ -341,7 +361,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
           && JSON.stringify(result.adapterIdentities) === JSON.stringify((request.model.adapters || []).map(adapter => adapter.identity)), 'Response identity mismatch');
         assert(typeof result.content === 'string'
           && result.content.length <= limits.maxResponseCharacters, 'Invalid completed response');
-        assert(transactional ? run.publicationTerminal === true && result.content === response.content
+        assert(published ? run.publicationTerminal === true && result.content === response.content
           : !response.content || result.content === response.content, 'Completed response differs from its stream');
         if (transactional) await store.assertCurrentWriter();
         attempt.execution = copy(result.execution || attempt.execution);
@@ -350,15 +370,16 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         response.content = result.content;
         assert(!['max-tokens', 'length', 'context-limit'].includes(attempt.execution?.stopReason),
           'The answer reached its generation limit and is incomplete. Its partial text is preserved; retry starts a new attempt.');
-        assert(transactional || result.content.trim(), 'Invalid completed response');
+        assert(published || result.content.trim(), 'Invalid completed response');
         // Mechanical citation evidence for the finished answer, with its verification cost entry. A stop during
         // checking leaves the rest unverified. Costs stay in the record, never in the conversation text.
         if (attempt.retrieval) attempt.retrieval = withVerification(attempt.retrieval,
           await retriever.verify(result.content, attempt.retrieval, controller.signal));
+        controller.signal.throwIfAborted();
         response.status = 'completed'; attempt.status = 'completed';
       } catch (error) {
         let cancelled = controller.signal.aborted;
-        if (transactional && cancelled && publication) {
+        if (published && cancelled && publication) {
           try {
             const saved = await publication.reconcile();
             const durableAttempt = saved.attempts.find(item => item.identity.attemptId === attempt.id);
@@ -428,7 +449,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       threads.push(thread); selectedId = thread.id; const saved = persist();
       return transactional ? saved.then(() => thread.id) : thread.id;
     },
-    select(threadId) { current(); if (threadId !== null) find(threadId); selectedId = threadId; notify(); },
+    select(threadId) { current(); if (threadId !== null) find(threadId); selectedId = threadId; const saved = persist(); if (transactional) notify(); return saved; },
     setExecutionLocation(threadId, location) {
       current(); const thread = find(threadId);
       assert(['auto', 'local', 'network'].includes(location), 'Invalid execution location');
@@ -460,24 +481,37 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       const permission = searchGrant(thread, route, searched, searchPermission);
       const message = { id: id(), role: 'user', content: text(content), status: 'completed' };
       thread.messages.push(message);
-      const completedUsers = new Set(thread.attempts.filter(attempt => attempt.status === 'completed').map(attempt => attempt.userMessageId));
+      const completed = new Map(thread.attempts.filter(attempt => attempt.status === 'completed').map(attempt => [attempt.userMessageId, attempt]));
+      const sourceHistory = [];
       // A search-answer request carries only this question; history, context prompt and purpose stay here.
       const messages = permission ? [{ role: 'user', content: message.content }] : thread.messages.filter(item => item.status === 'completed'
-        && (item.role === 'assistant' || completedUsers.has(item.id) || item.id === message.id))
-        .map(({ role, content }) => ({ role, content }));
+        && (item.role === 'assistant' || completed.has(item.id) || item.id === message.id))
+        .map(({ id, role, content }, index) => {
+          const record = role === 'user' && completed.get(id)?.retrieval;
+          if (record?.outcome === 'retrieved') sourceHistory.push({ index, record: copy(record) });
+          return { role, content };
+        });
       const system = [thread.systemContext?.content, thread.purpose].filter(Boolean).join('\n\n');
-      if (system && !permission) messages.unshift({ role: 'system', content: system });
+      if (system && !permission) {
+        messages.unshift({ role: 'system', content: system });
+        sourceHistory.forEach(item => item.index++);
+      }
       try { return start(thread, { model: thread.model, permissions: thread.permissions, members: thread.members, messages,
-        ...(searched ? { retrieval: searched } : {}) }, message.id, null, select, authorizeDisclosure, permission); }
+        ...(searched ? { retrieval: searched } : {}) }, message.id, null, select, authorizeDisclosure, permission, sourceHistory); }
       catch (error) { thread.messages.pop(); throw error; }
     },
     /** A search-answer retry searches and discloses again, so it needs a fresh `searchPermission`. */
-    retry(threadId, attemptId, { authorizeDisclosure = null, searchPermission = null } = {}) {
+    retry(threadId, attemptId, { authorizeDisclosure = null, searchPermission = null, retrievalQuery = null } = {}) {
       current(); const thread = find(threadId), attempt = thread.attempts.at(-1);
       assert(!thread.closed && attempt?.id === attemptId && ['cancelled', 'failed', 'interrupted'].includes(attempt.status), 'Only the latest interrupted or unsuccessful response can be retried');
       const route = attempt.request.retrieval ? routeFor(attempt.request.retrieval) : null;
-      const permission = searchGrant(thread, route, attempt.request.retrieval, searchPermission);
-      return start(thread, attempt.request, attempt.userMessageId, attempt.id, true, authorizeDisclosure, permission);
+      const request = copy(attempt.request);
+      if (retrievalQuery !== null) {
+        assert(route && searchPermission, 'Changing a retry query requires fresh search permission');
+        request.retrieval = { ...request.retrieval, ...route.retriever.request({ query: retrievalQuery, limits: request.retrieval.limits }, retrievalQuery) };
+      }
+      const permission = searchGrant(thread, route, request.retrieval, searchPermission);
+      return start(thread, request, attempt.userMessageId, attempt.id, true, authorizeDisclosure, permission);
     },
     approve(threadId, attemptId, previewId, accepted, { remember = false } = {}) {
       current(); const thread = find(threadId), attempt = thread.attempts.at(-1), run = runs.get(threadId);

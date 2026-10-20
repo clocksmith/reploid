@@ -49,3 +49,7 @@ export function sameRouteAttemptIdentity(actual: unknown, expected: unknown): bo
 export function validateOrderedPartitionCapability(description: unknown, participantId: string, maxOffersPerPeer: number): void;
 export function isOrderedPartitionEntryModel(model: unknown, peer: { participantId: string; transportId: string;
   description?: { schema?: string } | null }): boolean;
+
+export function partitionAdapterIdentities(model: {identity: string; adapters?: readonly {identity:string;baseModelIdentity:string}[]}): string[];
+export function samePartitionAdapters(left: Parameters<typeof partitionAdapterIdentities>[0], right: Parameters<typeof partitionAdapterIdentities>[0]): boolean;
+export function selectPartitionContribution<T extends import('../../chat/index.js').ChatModel>(model: T, adapters?: T['adapters']): T;

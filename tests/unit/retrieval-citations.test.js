@@ -43,7 +43,7 @@ describe('retrieval', () => {
       messages: [{ role: 'user', content: 'Earlier' }, { role: 'assistant', content: 'Reply' }, { role: 'user', content: 'When was it built?' }] }, record);
     expect(sent).not.toHaveProperty('retrieval');
     expect(sent.messages.slice(0, 2)).toEqual([{ role: 'user', content: 'Earlier' }, { role: 'assistant', content: 'Reply' }]);
-    expect(sent.messages[2].content).toBe(`${context}\n\nQuestion: When was it built?`);
+    expect(sent.messages[2].content).toBe(`${context}\n\nSearch query: Eiffel Tower Paris completed\nQuestion: When was it built?`);
     // A record whose sources no longer match their digest cannot be dispatched.
     const altered = structuredClone(record); altered.sources[0].passage += ' Altered.';
     await expect(port.dispatch({ messages: [{ role: 'user', content: 'q' }] }, altered)).rejects.toThrow('does not match its recorded digest');
@@ -69,9 +69,9 @@ describe('retrieval', () => {
     const started = Date.now();
     const slow = await run(retrieval({ provider: provider(() => new Promise(() => {})), extractor: null }), 'Paris', { timeoutMs: 30 });
     expect(Date.now() - started).toBeLessThan(1000);
-    expect(slow).toMatchObject({ outcome: 'failed', error: { code: 'timeout' }, sources: [], context: null });
+    expect(slow).toMatchObject({ outcome: 'failed', error: { code: 'timeout', stage: 'search' }, sources: [], context: null });
     const slowExtract = { id: 'slow.extract', version: '1', extract: () => new Promise(() => {}) };
-    expect(await run(retrieval({ extractor: slowExtract }), 'Paris', { timeoutMs: 30 })).toMatchObject({ outcome: 'failed', error: { code: 'timeout' } });
+    expect(await run(retrieval({ extractor: slowExtract }), 'Paris', { timeoutMs: 30 })).toMatchObject({ outcome: 'failed', error: { code: 'timeout', stage: 'extraction' } });
 
     expect(() => normalizeRetrievalLimits({ maxResults: 11 })).toThrow('maxResults is outside the policy limit');
     expect(() => normalizeRetrievalLimits({ timeoutMs: 0 })).toThrow('timeoutMs is outside the policy limit');
@@ -161,4 +161,28 @@ describe('citation verification', () => {
       { kind: 'unrecorded-url', url: 'https://invented.example/tower' }, { kind: 'unrecorded-url', url: 'https://invented.example/nine' }]);
     expect(verification.summary.unresolvedCitations).toBe(1);
   });
+});
+
+
+it('keeps completed pages when another page exhausts the deadline and reports live progress', async () => {
+  const results = [result(1), result(2)], updates = [];
+  const port = retrieval({ provider: provider(async () => results), extractor: { id: 'mixed', version: '1',
+    extract: ({ source }) => source.sourceId === 'fake:1'
+      ? Promise.resolve({ ...source, text: source.excerpt }) : new Promise(() => {}) } });
+  const record = await port.retrieve(port.pending(port.request({ limits: { timeoutMs: 30 } }, 'Paris'), 1), null,
+    { onProgress: update => updates.push(update) });
+  expect(record).toMatchObject({ outcome: 'retrieved', partial: true, error: null, sources: [{ sourceId: 'fake:1' }],
+    omitted: [{ sourceId: 'fake:2', reason: 'extraction-timeout' }] });
+  expect(updates[0]).toMatchObject({ stage: 'search' });
+  expect(updates).toContainEqual({ stage: 'extraction', completed: 1, total: 2, available: 1 });
+  expect(updates.at(-1)).toMatchObject({ stage: 'context', available: 1 });
+});
+
+it('discards partial pages on explicit cancellation even if a source succeeded', async () => {
+  const controller = new AbortController(), results = [result(1), result(2)];
+  const port = retrieval({ provider: provider(async () => results), extractor: { id: 'cancelled', version: '1',
+    extract: ({ source }) => source.sourceId === 'fake:1' ? Promise.resolve({ ...source, text: source.excerpt }) : new Promise(() => {}) } });
+  const record = await port.retrieve(port.pending(port.request({}, 'Paris'), 1), controller.signal,
+    { onProgress: update => { if (update.available === 1) controller.abort(); } });
+  expect(record).toMatchObject({ outcome: 'cancelled', sources: [], context: null });
 });

@@ -55,6 +55,7 @@ export function planStageAssignment({ participantId, model, stageCount, capabili
   const stageIndex = value => Number.isSafeInteger(value) && value >= 0 && value < stageCount;
   const wanted = demand && stageIndex(demand.index) ? demand.index : null;
   const supply = Array.from({ length: stageCount }, () => new Set()), joiners = new Set();
+  let replicaPreparing = false;
   for (const peer of capabilities) {
     if (peer?.participantId === participantId || peer?.available !== true || !(peer.expiresAt > now)) continue;
     const description = peer.description;
@@ -67,7 +68,10 @@ export function planStageAssignment({ participantId, model, stageCount, capabili
     if (claim?.schema === STAGE_ASSIGNMENT_SCHEMA && claim.modelId === model.id && claim.modelIdentity === model.identity
       && ['waiting', 'loading', 'ready'].includes(description.phase)) {
       if (claim.index === null) joiners.add(peer.participantId);
-      else if (stageIndex(claim.index)) supply[claim.index].add(peer.participantId);
+      else if (stageIndex(claim.index)) {
+        supply[claim.index].add(peer.participantId);
+        if (claim.index === wanted && description.phase !== 'ready') replicaPreparing = true;
+      }
     }
   }
   for (const id of joiners) if (supply.some(set => set.has(id))) joiners.delete(id);
@@ -80,13 +84,16 @@ export function planStageAssignment({ participantId, model, stageCount, capabili
   // A replica is useful only once every stage has a supplier: completing a route comes first.
   const replicate = wanted !== null && counts.every(count => count > 0);
   if (current === null) {
-    // Simultaneous joiners that observe each other fill stages in participant-id order; with demand,
-    // the first joiner becomes the demanded stage's replica and the rest fill by supply.
-    const rank = [participantId, ...joiners].sort().indexOf(participantId), filled = [...counts];
-    let index = -1, turn = 0;
-    if (replicate) { index = wanted; filled[wanted]++; turn = 1; }
-    for (; turn <= rank; turn++) { index = least(filled); filled[index]++; }
-    return decide(index, replicate && rank === 0 ? 'replicate-' + demand.reason : 'cold-least-supplied');
+    // Preparation consumes the owner's resources. Wait until observed suppliers
+    // and willing joiners can cover a route; excess joiners remain unprepared.
+    const missing = counts.flatMap((count, index) => count === 0 ? [index] : []);
+    const rank = [participantId, ...joiners].sort().indexOf(participantId);
+    if (missing.length > joiners.size + 1) return decide(null, 'waiting-for-route');
+    if (rank < missing.length) return decide(missing[rank], 'cold-least-supplied');
+    // One joiner addresses the observed demand. An in-flight replica already
+    // addresses that observation; wait for fresh demand after it becomes ready.
+    if (replicate && rank === 0 && !replicaPreparing) return decide(wanted, 'replicate-' + demand.reason);
+    return decide(null, 'no-useful-assignment');
   }
   // Hysteresis: move only when this stage has at least two more contributors than the least
   // supplied one, no joiner is about to fill the gap, and only its highest participant id moves.

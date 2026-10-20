@@ -472,6 +472,9 @@ const SwarmTransport = {
       onMessage,
       getConnectionState,
       getConnectedPeers,
+      observePeerAuthentication: (peerId, attemptId) => _webrtcSwarm?.observePeerAuthentication?.(peerId, attemptId),
+      getPeerStates: () => _transport === 'webrtc' && _webrtcSwarm
+        ? _webrtcSwarm.getPeerStates?.() || [] : getConnectedPeers().map(peer => ({ id: peer.id, phase: 'connected', transport: 'broadcast', updatedAt: peer.lastSeen || 0, iceState: null, channelState: null })),
       onDataChannel: (label, handler) => {
         if (!_webrtcSwarm) throw new Error('WebRTC transport is not initialized');
         return _webrtcSwarm.onDataChannel(label, handler);

@@ -63,14 +63,15 @@ describe('useful replicas (opt-in, injected discovery and stages)', () => {
     const described = coordinator.discovery.options.describe();
     expect(described.stageCosts).toMatchObject({ schema: 'reploid.stage-costs/v1', modelId: 'model', planId: coordinator.route.planId });
     expect(described.stageCosts.decodeMs[2]).toBeGreaterThan(2 * Math.max(described.stageCosts.decodeMs[0], described.stageCosts.decodeMs[1]));
-    // Every stage is supplied; without replicas a joiner fills the lowest index, with them it joins stage 2.
+    // Every stage is supplied; without demand a joiner waits, with observed demand it joins stage 2.
     const observe = () => [observedDescription(described), ready('node-1', 1), ready('node-2', 2)];
     const withReplicas = await contributor({ queueBound: 4, bottleneckRatio: 2 }, 60000), without = await contributor(null, 60000);
     withReplicas.discovery.observe = observe; without.discovery.observe = observe;
     await withReplicas.mesh.contribute('model', true); await without.mesh.contribute('model', true);
     expect(withReplicas.loadProgram.mock.calls[0][1]).toBe(2);
     expect(withReplicas.mesh.getState().assignment).toMatchObject({ reason: 'replicate-bottleneck', demand: { index: 2, reason: 'bottleneck' } });
-    expect(without.loadProgram.mock.calls[0][1]).toBe(0);
+    expect(without.loadProgram).not.toHaveBeenCalled();
+    expect(without.mesh.getState()).toMatchObject({ phase: 'waiting', assignment: { index: null, reason: 'no-useful-assignment' } });
   });
 
   it('an idle contributor moves to a queued stage while its own stage stays supplied; the coordinator routes new attempts to either replica', async () => {

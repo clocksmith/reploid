@@ -1,0 +1,107 @@
+# Page snapshot
+
+```yaml
+- main [ref=e3]:
+  - navigation "Reploid"
+  - region "Conversation workspace" [ref=e5]:
+    - complementary "Conversation controls" [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - generic [ref=e9]:
+            - button "Toggle threads" [ref=e11] [cursor=pointer]:
+              - generic [ref=e12]:
+                - generic [ref=e13]: "7"
+                - superscript [ref=e14]: "7"
+            - button "New thread" [ref=e15] [cursor=pointer]:
+              - img [ref=e16]
+          - region "Threads" [ref=e18]:
+            - 'button "Choose from these fictional movies: Cedar, a calm comedy lasting 84 minutes; Harbor, a tense thriller lasting 91 minutes; Orbit, a calm comedy lasting 122 minutes. We want a calm comedy under 100 minutes. Reply with only the title.: Complete, last answer <1% of advertised context" [ref=e21] [cursor=pointer]':
+              - generic [ref=e22]:
+                - img
+                - generic [ref=e23]: C
+        - navigation "Network sections" [ref=e26]:
+          - 'button "Computers: 1 connected · 0 ready" [ref=e27] [cursor=pointer]':
+            - img [ref=e28]
+          - button "Settings" [ref=e33] [cursor=pointer]:
+            - img [ref=e34]
+    - text: ↔ ↔ + + + + +
+    - region "Current conversation" [ref=e39]:
+      - log "Messages" [ref=e40]:
+        - article [ref=e41]:
+          - generic "Your message" [ref=e42]:
+            - generic [ref=e43]: "Choose from these fictional movies: Cedar, a calm comedy lasting 84 minutes; Harbor, a tense thriller lasting 91 minutes; Orbit, a calm comedy lasting 122 minutes. We want a calm comedy under 100 minutes. Reply with only the title."
+          - button "Copy message" [ref=e46] [cursor=pointer]:
+            - img [ref=e47]
+        - article [ref=e50]:
+          - generic "Model output" [ref=e51]:
+            - generic [ref=e52]: Cedar
+          - generic [ref=e53]:
+            - generic [ref=e54]:
+              - 'generic "Model: Qwen 3.5 2B" [ref=e55]':
+                - img [ref=e56]
+              - generic "Generation average including prompt processing; excludes queue and model loading" [ref=e58]:
+                - img [ref=e59]
+                - generic [ref=e61]: 1.3 tok/s
+              - generic "3 generated tokens" [ref=e62]:
+                - img [ref=e63]
+                - generic [ref=e65]: "3"
+              - generic "Generation time including prompt processing" [ref=e66]:
+                - img [ref=e67]
+                - generic [ref=e70]: 2.4 s
+            - button "Complete · 1 computer · Mesh. Execution details" [ref=e72] [cursor=pointer]:
+              - img [ref=e73]
+              - generic [ref=e78]: "1"
+              - generic [ref=e79]: Complete · 1 computer · Mesh
+            - button "Copy response" [ref=e81] [cursor=pointer]:
+              - img [ref=e82]
+        - article [ref=e85]:
+          - generic "Your message" [ref=e86]:
+            - generic [ref=e87]: What is 9 times 7? Answer with the number only.
+          - button "Copy message" [ref=e90] [cursor=pointer]:
+            - img [ref=e91]
+        - article [ref=e94]:
+          - generic "Model output" [ref=e95]:
+            - generic [ref=e96]: "63"
+          - generic [ref=e97]:
+            - generic [ref=e98]:
+              - 'generic "Model: Qwen 3.5 2B" [ref=e99]':
+                - img [ref=e100]
+              - generic "Generation average including prompt processing; excludes queue and model loading" [ref=e102]:
+                - img [ref=e103]
+                - generic [ref=e105]: 1.2 tok/s
+              - generic "3 generated tokens" [ref=e106]:
+                - img [ref=e107]
+                - generic [ref=e109]: "3"
+              - generic "Generation time including prompt processing" [ref=e110]:
+                - img [ref=e111]
+                - generic [ref=e114]: 2.5 s
+            - button "Complete · 1 computer · Mesh. Execution details" [ref=e116] [cursor=pointer]:
+              - img [ref=e117]
+              - generic [ref=e122]: "1"
+              - generic [ref=e123]: Complete · 1 computer · Mesh
+            - button "Copy response" [ref=e125] [cursor=pointer]:
+              - img [ref=e126]
+      - generic [ref=e130]:
+        - generic [ref=e131]: Message
+        - generic [ref=e132]:
+          - textbox "Message" [ref=e133]:
+            - /placeholder: Ask a question…
+          - generic "Attach files" [ref=e134] [cursor=pointer]:
+            - img [ref=e135]
+            - generic [ref=e137]: Attach files
+            - button "Attach files" [ref=e138]
+          - generic [ref=e139]:
+            - button "Search for this answer" [ref=e140] [cursor=pointer]:
+              - img [ref=e141]
+            - button "Send" [disabled] [ref=e144]:
+              - img [ref=e145]
+        - generic [ref=e147]:
+          - 'button "Choose model: Qwen 3.5 2B" [ref=e148] [cursor=pointer]':
+            - img [ref=e149]
+            - generic [ref=e151]: Qwen 3.5 2B
+          - button "<1% of model context. Last answer used 130 tokens (127 input, 3 output) of the model’s 262,144-token advertised context window. Unsent draft is not counted; the execution limit may be smaller. Last execution on Computer 1. Working KV-cache residency is not reported." [ref=e152] [cursor=pointer]:
+            - img
+            - generic [ref=e153]: <1%
+            - img [ref=e154]
+          - button "Retry connection" [ref=e156] [cursor=pointer]: Retry
+```

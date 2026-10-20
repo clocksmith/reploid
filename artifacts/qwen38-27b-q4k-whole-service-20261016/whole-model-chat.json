@@ -1,0 +1,1348 @@
+{
+  "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+  "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "browser": "155.0.8059.80",
+  "at": "2026-10-17T01:15:58.983Z",
+  "turns": [
+    {
+      "attempt": {
+        "approval": null,
+        "authorization": {
+          "adapterIdentities": [],
+          "disclosure": "public",
+          "expiresAt": 1792199773283,
+          "grantId": null,
+          "kind": "permission",
+          "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+          "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+          "peerId": "85d90063-3ec0-4707-b6ca-9e61dc3cf654",
+          "permissionId": "c6ac847d-e61a-40fc-847a-a9731815fe08",
+          "recipientIdentity": "peer:e63a52ec7c80129d86672f86",
+          "recipients": [
+            "peer:e63a52ec7c80129d86672f86"
+          ],
+          "sharingScope": "mesh",
+          "source": "permission"
+        },
+        "createdAt": 1792199743252,
+        "error": null,
+        "execution": {
+          "adapterIdentities": [],
+          "completion": {
+            "generatedTokenCount": 3,
+            "promptTokenCount": 60,
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "stop-token"
+          },
+          "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+          "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+          "peerId": "85d90063-3ec0-4707-b6ca-9e61dc3cf654",
+          "placement": "peer-whole-request",
+          "provider": "peer",
+          "stopReason": "stop-token",
+          "timing": {
+            "decodeMs": 315.7209249995649,
+            "firstTokenMs": 2118.98958100006,
+            "generatedTokenCount": 3,
+            "prefillMs": 2117.5320449993014,
+            "totalMs": 2435.2274800017476
+          }
+        },
+        "finishedAt": 1792199745753,
+        "id": "0160f23a-31c3-422f-b12d-a70361e28552",
+        "provenance": {
+          "attemptId": "0160f23a-31c3-422f-b12d-a70361e28552",
+          "classes": [
+            "mesh"
+          ],
+          "earlierAttempts": [],
+          "execution": {
+            "classes": [
+              "mesh"
+            ],
+            "participants": [
+              {
+                "participantId": "85d90063-3ec0-4707-b6ca-9e61dc3cf654",
+                "role": "whole-request",
+                "stage": null,
+                "supply": "mesh"
+              }
+            ],
+            "placement": "peer-whole-request",
+            "supply": "mesh"
+          },
+          "retrieval": {
+            "supply": "none"
+          },
+          "schema": "reploid.answer-provenance/v1",
+          "supply": "mesh"
+        },
+        "publicationMode": "whole-model",
+        "request": {
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.8 27B.",
+              "role": "system"
+            },
+            {
+              "content": "What is 17 + 25? Answer with the number only.",
+              "role": "user"
+            }
+          ],
+          "model": {
+            "adapters": [],
+            "availability": "ready",
+            "contextLength": 4096,
+            "executionModes": [
+              "whole-model",
+              "partition"
+            ],
+            "generation": {
+              "maxSeqLen": 4096,
+              "maxTokens": 256,
+              "repetitionPenalty": 1,
+              "repetitionPenaltyWindow": 1,
+              "temperature": 0,
+              "topK": 1,
+              "topP": 1,
+              "useChatTemplate": true
+            },
+            "id": "qwen3-8-27b-text-q4k-ehaf16",
+            "identity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "loadOptions": {
+              "runtimeConfig": {
+                "inference": {
+                  "batching": {
+                    "batchSize": 1,
+                    "maxTokens": 128,
+                    "readbackInterval": 1,
+                    "readbackMode": "sequential",
+                    "ringStaging": 1,
+                    "ringStop": 1,
+                    "ringTokens": 1,
+                    "stopCheckMode": "per-token"
+                  },
+                  "chatTemplate": {
+                    "enabled": false,
+                    "thinking": false,
+                    "type": null
+                  },
+                  "generation": {
+                    "disableMultiTokenDecode": true,
+                    "maxTokens": 128
+                  },
+                  "kernelPathPolicy": {
+                    "allowSources": [
+                      "manifest"
+                    ],
+                    "mode": "capability-aware",
+                    "onIncompatible": "error",
+                    "sourceScope": [
+                      "manifest"
+                    ]
+                  },
+                  "kvcache": {
+                    "maxSeqLen": 4096
+                  },
+                  "prompt": "The capital of France is",
+                  "sampling": {
+                    "greedyThreshold": 0,
+                    "repetitionPenalty": 1,
+                    "repetitionPenaltyWindow": 1,
+                    "suppressSpecialLikeTokens": false,
+                    "suppressSpecialTokens": false,
+                    "suppressTokenIds": [],
+                    "temperature": 0,
+                    "topK": 1,
+                    "topP": 1
+                  },
+                  "session": {
+                    "decodeLoop": {
+                      "batchSize": 1,
+                      "disableCommandBatching": false,
+                      "maxBatchDecodeTokens": 1,
+                      "readbackInterval": 1,
+                      "readbackMode": "sequential",
+                      "ringStaging": 1,
+                      "ringStop": 1,
+                      "ringTokens": 1,
+                      "stopCheckMode": "per-token",
+                      "submitLatencyThresholdMs": null
+                    },
+                    "kvcache": {
+                      "maxSeqLen": 4096
+                    },
+                    "prefillTokenChunkSize": 256
+                  }
+                },
+                "shared": {
+                  "bufferPool": {
+                    "budget": {
+                      "emergencyTrimTargetRatio": 0.9,
+                      "hardFailOnBudgetExceeded": true,
+                      "highWatermarkRatio": 0.94,
+                      "maxTotalBytes": 25769803776
+                    }
+                  },
+                  "debug": {
+                    "logLevel": {
+                      "defaultLogLevel": "warn"
+                    },
+                    "profiler": {
+                      "enabled": false
+                    },
+                    "trace": {
+                      "enabled": false
+                    }
+                  },
+                  "harness": {
+                    "referenceTranscript": {
+                      "captureKvBytes": true,
+                      "captureLogits": true,
+                      "enabled": false
+                    }
+                  }
+                }
+              }
+            },
+            "name": "Qwen 3.8 27B",
+            "networkAvailability": "ready",
+            "packageName": "doppler-gpu",
+            "packageVersion": "0.6.30",
+            "partitionPlan": {
+              "activationComponents": 1,
+              "activationDtype": "f32",
+              "activationElementStrideBytes": 4,
+              "activationPrecision": "f32",
+              "hiddenSize": 5120,
+              "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+              "partitions": [
+                {
+                  "hasEmbedding": true,
+                  "hasLmHead": false,
+                  "index": 0,
+                  "inputContract": {
+                    "dtype": "i32",
+                    "rank": 2,
+                    "shapeDescription": "[batchSize, seqLen]",
+                    "type": "token-ids"
+                  },
+                  "layerCount": 1,
+                  "layerRange": [
+                    0,
+                    0
+                  ],
+                  "outputContract": {
+                    "components": 1,
+                    "dtype": "f32",
+                    "elementStrideBytes": 4,
+                    "hiddenSize": 5120,
+                    "precision": "f32",
+                    "rank": 3,
+                    "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+                    "type": "activation-tensor"
+                  }
+                },
+                {
+                  "hasEmbedding": false,
+                  "hasLmHead": true,
+                  "index": 1,
+                  "inputContract": {
+                    "components": 1,
+                    "dtype": "f32",
+                    "elementStrideBytes": 4,
+                    "hiddenSize": 5120,
+                    "precision": "f32",
+                    "rank": 3,
+                    "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+                    "type": "activation-tensor"
+                  },
+                  "layerCount": 63,
+                  "layerRange": [
+                    1,
+                    63
+                  ],
+                  "outputContract": {
+                    "dtype": "f32",
+                    "rank": 3,
+                    "shapeDescription": "[batchSize, seqLen, vocabSize]",
+                    "type": "logits",
+                    "vocabSize": 248320
+                  }
+                }
+              ],
+              "schema": "doppler.layer-partition-contract/v3",
+              "splitLayers": [
+                1
+              ],
+              "stageCount": 2,
+              "totalLayers": 64,
+              "vocabSize": 248320
+            },
+            "partitionPlanId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+            "partitionRuntime": {
+              "maxGpuBufferBytes": [
+                6442450944,
+                25769803776
+              ],
+              "runtimeConfig": {
+                "inference": {
+                  "batching": {
+                    "batchSize": 1,
+                    "maxTokens": 128,
+                    "readbackInterval": 1,
+                    "readbackMode": "sequential",
+                    "ringStaging": 1,
+                    "ringStop": 1,
+                    "ringTokens": 1,
+                    "stopCheckMode": "per-token"
+                  },
+                  "chatTemplate": {
+                    "enabled": false,
+                    "thinking": false,
+                    "type": null
+                  },
+                  "generation": {
+                    "disableMultiTokenDecode": true,
+                    "maxTokens": 128
+                  },
+                  "kernelPathPolicy": {
+                    "allowSources": [
+                      "manifest"
+                    ],
+                    "mode": "capability-aware",
+                    "onIncompatible": "error",
+                    "sourceScope": [
+                      "manifest"
+                    ]
+                  },
+                  "kvcache": {
+                    "maxSeqLen": 4096
+                  },
+                  "prompt": "The capital of France is",
+                  "sampling": {
+                    "greedyThreshold": 0,
+                    "repetitionPenalty": 1,
+                    "repetitionPenaltyWindow": 1,
+                    "suppressSpecialLikeTokens": false,
+                    "suppressSpecialTokens": false,
+                    "suppressTokenIds": [],
+                    "temperature": 0,
+                    "topK": 1,
+                    "topP": 1
+                  },
+                  "session": {
+                    "decodeLoop": {
+                      "batchSize": 1,
+                      "disableCommandBatching": false,
+                      "maxBatchDecodeTokens": 1,
+                      "readbackInterval": 1,
+                      "readbackMode": "sequential",
+                      "ringStaging": 1,
+                      "ringStop": 1,
+                      "ringTokens": 1,
+                      "stopCheckMode": "per-token",
+                      "submitLatencyThresholdMs": null
+                    },
+                    "kvcache": {
+                      "maxSeqLen": 4096
+                    },
+                    "prefillTokenChunkSize": 256
+                  }
+                },
+                "shared": {
+                  "bufferPool": {
+                    "budget": {
+                      "emergencyTrimTargetRatio": 0.9,
+                      "hardFailOnBudgetExceeded": true,
+                      "highWatermarkRatio": 0.94,
+                      "maxTotalBytes": 25769803776
+                    }
+                  },
+                  "debug": {
+                    "logLevel": {
+                      "defaultLogLevel": "warn"
+                    },
+                    "profiler": {
+                      "enabled": false
+                    },
+                    "trace": {
+                      "enabled": false
+                    }
+                  },
+                  "harness": {
+                    "referenceTranscript": {
+                      "captureKvBytes": false,
+                      "captureLogits": false,
+                      "enabled": false
+                    }
+                  }
+                }
+              }
+            },
+            "provider": "doppler",
+            "providerIds": [
+              "85d90063-3ec0-4707-b6ca-9e61dc3cf654"
+            ],
+            "quantization": "q4k",
+            "size": "Q4K · 17 GB",
+            "source": {
+              "files": [
+                {
+                  "hash": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                  "hashAlgorithm": "sha256",
+                  "path": "manifest.json",
+                  "role": "model-manifest",
+                  "sizeBytes": 563307,
+                  "url": "/config/model-manifests/19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d.json"
+                },
+                {
+                  "hash": "ae50d65939a34a089eaf1e541c15c8a7d866079a5fe9a1d35454e0aa88577753",
+                  "hashAlgorithm": "sha256",
+                  "path": "tokenizer.json",
+                  "role": "tokenizer",
+                  "sizeBytes": 9089356
+                },
+                {
+                  "hash": "69400a62b129f8f045564527f6c7867b038b5c20edfe1842d3f36d60101a4600",
+                  "hashAlgorithm": "sha256",
+                  "path": "qwen27b-q4-pieces.json",
+                  "role": "model-piece-index",
+                  "sizeBytes": 979941,
+                  "url": "/config/model-pieces/qwen27b-q4-pieces.json"
+                }
+              ]
+            }
+          },
+          "permissions": {
+            "executionLocation": "auto",
+            "sharingScope": "mesh"
+          }
+        },
+        "responseId": "89302a7f-996c-44f2-992a-819e6b97bc5b",
+        "retryOf": null,
+        "status": "completed",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.8 27B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        },
+        "threadId": "3633fc8e-d7b5-47df-a4dc-c4172ee730a3",
+        "userMessageId": "8c62c2d2-b5cc-4553-a25b-2d2cf256c773"
+      },
+      "answer": "42"
+    },
+    {
+      "attempt": {
+        "approval": null,
+        "authorization": {
+          "adapterIdentities": [],
+          "disclosure": "public",
+          "expiresAt": 1792199776358,
+          "grantId": null,
+          "kind": "permission",
+          "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+          "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+          "peerId": "85d90063-3ec0-4707-b6ca-9e61dc3cf654",
+          "permissionId": "c6ac847d-e61a-40fc-847a-a9731815fe08",
+          "recipientIdentity": "peer:e63a52ec7c80129d86672f86",
+          "recipients": [
+            "peer:e63a52ec7c80129d86672f86"
+          ],
+          "sharingScope": "mesh",
+          "source": "permission"
+        },
+        "createdAt": 1792199746315,
+        "error": null,
+        "execution": {
+          "adapterIdentities": [],
+          "completion": {
+            "generatedTokenCount": 3,
+            "promptTokenCount": 86,
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "stop-token"
+          },
+          "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+          "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+          "peerId": "85d90063-3ec0-4707-b6ca-9e61dc3cf654",
+          "placement": "peer-whole-request",
+          "provider": "peer",
+          "stopReason": "stop-token",
+          "timing": {
+            "decodeMs": 329.2516770027578,
+            "firstTokenMs": 2454.761277001351,
+            "generatedTokenCount": 3,
+            "prefillMs": 2453.1633859984577,
+            "totalMs": 2784.253508001566
+          }
+        },
+        "finishedAt": 1792199749184,
+        "id": "0db37e39-4fd1-4f0b-990a-739667cad6a5",
+        "provenance": {
+          "attemptId": "0db37e39-4fd1-4f0b-990a-739667cad6a5",
+          "classes": [
+            "mesh"
+          ],
+          "earlierAttempts": [],
+          "execution": {
+            "classes": [
+              "mesh"
+            ],
+            "participants": [
+              {
+                "participantId": "85d90063-3ec0-4707-b6ca-9e61dc3cf654",
+                "role": "whole-request",
+                "stage": null,
+                "supply": "mesh"
+              }
+            ],
+            "placement": "peer-whole-request",
+            "supply": "mesh"
+          },
+          "retrieval": {
+            "supply": "none"
+          },
+          "schema": "reploid.answer-provenance/v1",
+          "supply": "mesh"
+        },
+        "publicationMode": "whole-model",
+        "request": {
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.8 27B.",
+              "role": "system"
+            },
+            {
+              "content": "What is 17 + 25? Answer with the number only.",
+              "role": "user"
+            },
+            {
+              "content": "42",
+              "role": "assistant"
+            },
+            {
+              "content": "Subtract 2 from that result. Answer with the number only.",
+              "role": "user"
+            }
+          ],
+          "model": {
+            "adapters": [],
+            "availability": "ready",
+            "contextLength": 4096,
+            "executionModes": [
+              "whole-model",
+              "partition"
+            ],
+            "generation": {
+              "maxSeqLen": 4096,
+              "maxTokens": 256,
+              "repetitionPenalty": 1,
+              "repetitionPenaltyWindow": 1,
+              "temperature": 0,
+              "topK": 1,
+              "topP": 1,
+              "useChatTemplate": true
+            },
+            "id": "qwen3-8-27b-text-q4k-ehaf16",
+            "identity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "loadOptions": {
+              "runtimeConfig": {
+                "inference": {
+                  "batching": {
+                    "batchSize": 1,
+                    "maxTokens": 128,
+                    "readbackInterval": 1,
+                    "readbackMode": "sequential",
+                    "ringStaging": 1,
+                    "ringStop": 1,
+                    "ringTokens": 1,
+                    "stopCheckMode": "per-token"
+                  },
+                  "chatTemplate": {
+                    "enabled": false,
+                    "thinking": false,
+                    "type": null
+                  },
+                  "generation": {
+                    "disableMultiTokenDecode": true,
+                    "maxTokens": 128
+                  },
+                  "kernelPathPolicy": {
+                    "allowSources": [
+                      "manifest"
+                    ],
+                    "mode": "capability-aware",
+                    "onIncompatible": "error",
+                    "sourceScope": [
+                      "manifest"
+                    ]
+                  },
+                  "kvcache": {
+                    "maxSeqLen": 4096
+                  },
+                  "prompt": "The capital of France is",
+                  "sampling": {
+                    "greedyThreshold": 0,
+                    "repetitionPenalty": 1,
+                    "repetitionPenaltyWindow": 1,
+                    "suppressSpecialLikeTokens": false,
+                    "suppressSpecialTokens": false,
+                    "suppressTokenIds": [],
+                    "temperature": 0,
+                    "topK": 1,
+                    "topP": 1
+                  },
+                  "session": {
+                    "decodeLoop": {
+                      "batchSize": 1,
+                      "disableCommandBatching": false,
+                      "maxBatchDecodeTokens": 1,
+                      "readbackInterval": 1,
+                      "readbackMode": "sequential",
+                      "ringStaging": 1,
+                      "ringStop": 1,
+                      "ringTokens": 1,
+                      "stopCheckMode": "per-token",
+                      "submitLatencyThresholdMs": null
+                    },
+                    "kvcache": {
+                      "maxSeqLen": 4096
+                    },
+                    "prefillTokenChunkSize": 256
+                  }
+                },
+                "shared": {
+                  "bufferPool": {
+                    "budget": {
+                      "emergencyTrimTargetRatio": 0.9,
+                      "hardFailOnBudgetExceeded": true,
+                      "highWatermarkRatio": 0.94,
+                      "maxTotalBytes": 25769803776
+                    }
+                  },
+                  "debug": {
+                    "logLevel": {
+                      "defaultLogLevel": "warn"
+                    },
+                    "profiler": {
+                      "enabled": false
+                    },
+                    "trace": {
+                      "enabled": false
+                    }
+                  },
+                  "harness": {
+                    "referenceTranscript": {
+                      "captureKvBytes": true,
+                      "captureLogits": true,
+                      "enabled": false
+                    }
+                  }
+                }
+              }
+            },
+            "name": "Qwen 3.8 27B",
+            "networkAvailability": "ready",
+            "packageName": "doppler-gpu",
+            "packageVersion": "0.6.30",
+            "partitionPlan": {
+              "activationComponents": 1,
+              "activationDtype": "f32",
+              "activationElementStrideBytes": 4,
+              "activationPrecision": "f32",
+              "hiddenSize": 5120,
+              "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+              "partitions": [
+                {
+                  "hasEmbedding": true,
+                  "hasLmHead": false,
+                  "index": 0,
+                  "inputContract": {
+                    "dtype": "i32",
+                    "rank": 2,
+                    "shapeDescription": "[batchSize, seqLen]",
+                    "type": "token-ids"
+                  },
+                  "layerCount": 1,
+                  "layerRange": [
+                    0,
+                    0
+                  ],
+                  "outputContract": {
+                    "components": 1,
+                    "dtype": "f32",
+                    "elementStrideBytes": 4,
+                    "hiddenSize": 5120,
+                    "precision": "f32",
+                    "rank": 3,
+                    "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+                    "type": "activation-tensor"
+                  }
+                },
+                {
+                  "hasEmbedding": false,
+                  "hasLmHead": true,
+                  "index": 1,
+                  "inputContract": {
+                    "components": 1,
+                    "dtype": "f32",
+                    "elementStrideBytes": 4,
+                    "hiddenSize": 5120,
+                    "precision": "f32",
+                    "rank": 3,
+                    "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+                    "type": "activation-tensor"
+                  },
+                  "layerCount": 63,
+                  "layerRange": [
+                    1,
+                    63
+                  ],
+                  "outputContract": {
+                    "dtype": "f32",
+                    "rank": 3,
+                    "shapeDescription": "[batchSize, seqLen, vocabSize]",
+                    "type": "logits",
+                    "vocabSize": 248320
+                  }
+                }
+              ],
+              "schema": "doppler.layer-partition-contract/v3",
+              "splitLayers": [
+                1
+              ],
+              "stageCount": 2,
+              "totalLayers": 64,
+              "vocabSize": 248320
+            },
+            "partitionPlanId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+            "partitionRuntime": {
+              "maxGpuBufferBytes": [
+                6442450944,
+                25769803776
+              ],
+              "runtimeConfig": {
+                "inference": {
+                  "batching": {
+                    "batchSize": 1,
+                    "maxTokens": 128,
+                    "readbackInterval": 1,
+                    "readbackMode": "sequential",
+                    "ringStaging": 1,
+                    "ringStop": 1,
+                    "ringTokens": 1,
+                    "stopCheckMode": "per-token"
+                  },
+                  "chatTemplate": {
+                    "enabled": false,
+                    "thinking": false,
+                    "type": null
+                  },
+                  "generation": {
+                    "disableMultiTokenDecode": true,
+                    "maxTokens": 128
+                  },
+                  "kernelPathPolicy": {
+                    "allowSources": [
+                      "manifest"
+                    ],
+                    "mode": "capability-aware",
+                    "onIncompatible": "error",
+                    "sourceScope": [
+                      "manifest"
+                    ]
+                  },
+                  "kvcache": {
+                    "maxSeqLen": 4096
+                  },
+                  "prompt": "The capital of France is",
+                  "sampling": {
+                    "greedyThreshold": 0,
+                    "repetitionPenalty": 1,
+                    "repetitionPenaltyWindow": 1,
+                    "suppressSpecialLikeTokens": false,
+                    "suppressSpecialTokens": false,
+                    "suppressTokenIds": [],
+                    "temperature": 0,
+                    "topK": 1,
+                    "topP": 1
+                  },
+                  "session": {
+                    "decodeLoop": {
+                      "batchSize": 1,
+                      "disableCommandBatching": false,
+                      "maxBatchDecodeTokens": 1,
+                      "readbackInterval": 1,
+                      "readbackMode": "sequential",
+                      "ringStaging": 1,
+                      "ringStop": 1,
+                      "ringTokens": 1,
+                      "stopCheckMode": "per-token",
+                      "submitLatencyThresholdMs": null
+                    },
+                    "kvcache": {
+                      "maxSeqLen": 4096
+                    },
+                    "prefillTokenChunkSize": 256
+                  }
+                },
+                "shared": {
+                  "bufferPool": {
+                    "budget": {
+                      "emergencyTrimTargetRatio": 0.9,
+                      "hardFailOnBudgetExceeded": true,
+                      "highWatermarkRatio": 0.94,
+                      "maxTotalBytes": 25769803776
+                    }
+                  },
+                  "debug": {
+                    "logLevel": {
+                      "defaultLogLevel": "warn"
+                    },
+                    "profiler": {
+                      "enabled": false
+                    },
+                    "trace": {
+                      "enabled": false
+                    }
+                  },
+                  "harness": {
+                    "referenceTranscript": {
+                      "captureKvBytes": false,
+                      "captureLogits": false,
+                      "enabled": false
+                    }
+                  }
+                }
+              }
+            },
+            "provider": "doppler",
+            "providerIds": [
+              "85d90063-3ec0-4707-b6ca-9e61dc3cf654"
+            ],
+            "quantization": "q4k",
+            "size": "Q4K · 17 GB",
+            "source": {
+              "files": [
+                {
+                  "hash": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                  "hashAlgorithm": "sha256",
+                  "path": "manifest.json",
+                  "role": "model-manifest",
+                  "sizeBytes": 563307,
+                  "url": "/config/model-manifests/19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d.json"
+                },
+                {
+                  "hash": "ae50d65939a34a089eaf1e541c15c8a7d866079a5fe9a1d35454e0aa88577753",
+                  "hashAlgorithm": "sha256",
+                  "path": "tokenizer.json",
+                  "role": "tokenizer",
+                  "sizeBytes": 9089356
+                },
+                {
+                  "hash": "69400a62b129f8f045564527f6c7867b038b5c20edfe1842d3f36d60101a4600",
+                  "hashAlgorithm": "sha256",
+                  "path": "qwen27b-q4-pieces.json",
+                  "role": "model-piece-index",
+                  "sizeBytes": 979941,
+                  "url": "/config/model-pieces/qwen27b-q4-pieces.json"
+                }
+              ]
+            }
+          },
+          "permissions": {
+            "executionLocation": "auto",
+            "sharingScope": "mesh"
+          }
+        },
+        "responseId": "7691be5d-a341-43f3-a431-a02577f572c0",
+        "retryOf": null,
+        "status": "completed",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.8 27B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        },
+        "threadId": "3633fc8e-d7b5-47df-a4dc-c4172ee730a3",
+        "userMessageId": "a69457b0-4b68-43b8-9225-e03195605ab1"
+      },
+      "answer": "40"
+    },
+    {
+      "attempt": {
+        "approval": null,
+        "authorization": {
+          "adapterIdentities": [],
+          "disclosure": "public",
+          "expiresAt": 1792199783346,
+          "grantId": null,
+          "kind": "permission",
+          "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+          "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+          "peerId": "85d90063-3ec0-4707-b6ca-9e61dc3cf654",
+          "permissionId": "c6ac847d-e61a-40fc-847a-a9731815fe08",
+          "recipientIdentity": "peer:e63a52ec7c80129d86672f86",
+          "recipients": [
+            "peer:e63a52ec7c80129d86672f86"
+          ],
+          "sharingScope": "mesh",
+          "source": "permission"
+        },
+        "createdAt": 1792199753299,
+        "error": null,
+        "execution": {
+          "adapterIdentities": [],
+          "completion": {
+            "generatedTokenCount": 3,
+            "promptTokenCount": 112,
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "stop-token"
+          },
+          "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+          "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+          "peerId": "85d90063-3ec0-4707-b6ca-9e61dc3cf654",
+          "placement": "peer-whole-request",
+          "provider": "peer",
+          "stopReason": "stop-token",
+          "timing": {
+            "decodeMs": 323.31796500086784,
+            "firstTokenMs": 2882.021464999765,
+            "generatedTokenCount": 3,
+            "prefillMs": 2880.8504289984703,
+            "totalMs": 3205.8416059985757
+          }
+        },
+        "finishedAt": 1792199756599,
+        "id": "8fd87cad-c62e-4e69-b28d-fe7f0bfd7224",
+        "provenance": {
+          "attemptId": "8fd87cad-c62e-4e69-b28d-fe7f0bfd7224",
+          "classes": [
+            "mesh"
+          ],
+          "earlierAttempts": [],
+          "execution": {
+            "classes": [
+              "mesh"
+            ],
+            "participants": [
+              {
+                "participantId": "85d90063-3ec0-4707-b6ca-9e61dc3cf654",
+                "role": "whole-request",
+                "stage": null,
+                "supply": "mesh"
+              }
+            ],
+            "placement": "peer-whole-request",
+            "supply": "mesh"
+          },
+          "retrieval": {
+            "supply": "none"
+          },
+          "schema": "reploid.answer-provenance/v1",
+          "supply": "mesh"
+        },
+        "publicationMode": "whole-model",
+        "request": {
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.8 27B.",
+              "role": "system"
+            },
+            {
+              "content": "What is 17 + 25? Answer with the number only.",
+              "role": "user"
+            },
+            {
+              "content": "42",
+              "role": "assistant"
+            },
+            {
+              "content": "Subtract 2 from that result. Answer with the number only.",
+              "role": "user"
+            },
+            {
+              "content": "40",
+              "role": "assistant"
+            },
+            {
+              "content": "What is 6 times 7? Answer with the number only.",
+              "role": "user"
+            }
+          ],
+          "model": {
+            "adapters": [],
+            "availability": "ready",
+            "contextLength": 4096,
+            "executionModes": [
+              "whole-model",
+              "partition"
+            ],
+            "generation": {
+              "maxSeqLen": 4096,
+              "maxTokens": 256,
+              "repetitionPenalty": 1,
+              "repetitionPenaltyWindow": 1,
+              "temperature": 0,
+              "topK": 1,
+              "topP": 1,
+              "useChatTemplate": true
+            },
+            "id": "qwen3-8-27b-text-q4k-ehaf16",
+            "identity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "loadOptions": {
+              "runtimeConfig": {
+                "inference": {
+                  "batching": {
+                    "batchSize": 1,
+                    "maxTokens": 128,
+                    "readbackInterval": 1,
+                    "readbackMode": "sequential",
+                    "ringStaging": 1,
+                    "ringStop": 1,
+                    "ringTokens": 1,
+                    "stopCheckMode": "per-token"
+                  },
+                  "chatTemplate": {
+                    "enabled": false,
+                    "thinking": false,
+                    "type": null
+                  },
+                  "generation": {
+                    "disableMultiTokenDecode": true,
+                    "maxTokens": 128
+                  },
+                  "kernelPathPolicy": {
+                    "allowSources": [
+                      "manifest"
+                    ],
+                    "mode": "capability-aware",
+                    "onIncompatible": "error",
+                    "sourceScope": [
+                      "manifest"
+                    ]
+                  },
+                  "kvcache": {
+                    "maxSeqLen": 4096
+                  },
+                  "prompt": "The capital of France is",
+                  "sampling": {
+                    "greedyThreshold": 0,
+                    "repetitionPenalty": 1,
+                    "repetitionPenaltyWindow": 1,
+                    "suppressSpecialLikeTokens": false,
+                    "suppressSpecialTokens": false,
+                    "suppressTokenIds": [],
+                    "temperature": 0,
+                    "topK": 1,
+                    "topP": 1
+                  },
+                  "session": {
+                    "decodeLoop": {
+                      "batchSize": 1,
+                      "disableCommandBatching": false,
+                      "maxBatchDecodeTokens": 1,
+                      "readbackInterval": 1,
+                      "readbackMode": "sequential",
+                      "ringStaging": 1,
+                      "ringStop": 1,
+                      "ringTokens": 1,
+                      "stopCheckMode": "per-token",
+                      "submitLatencyThresholdMs": null
+                    },
+                    "kvcache": {
+                      "maxSeqLen": 4096
+                    },
+                    "prefillTokenChunkSize": 256
+                  }
+                },
+                "shared": {
+                  "bufferPool": {
+                    "budget": {
+                      "emergencyTrimTargetRatio": 0.9,
+                      "hardFailOnBudgetExceeded": true,
+                      "highWatermarkRatio": 0.94,
+                      "maxTotalBytes": 25769803776
+                    }
+                  },
+                  "debug": {
+                    "logLevel": {
+                      "defaultLogLevel": "warn"
+                    },
+                    "profiler": {
+                      "enabled": false
+                    },
+                    "trace": {
+                      "enabled": false
+                    }
+                  },
+                  "harness": {
+                    "referenceTranscript": {
+                      "captureKvBytes": true,
+                      "captureLogits": true,
+                      "enabled": false
+                    }
+                  }
+                }
+              }
+            },
+            "name": "Qwen 3.8 27B",
+            "networkAvailability": "ready",
+            "packageName": "doppler-gpu",
+            "packageVersion": "0.6.30",
+            "partitionPlan": {
+              "activationComponents": 1,
+              "activationDtype": "f32",
+              "activationElementStrideBytes": 4,
+              "activationPrecision": "f32",
+              "hiddenSize": 5120,
+              "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+              "partitions": [
+                {
+                  "hasEmbedding": true,
+                  "hasLmHead": false,
+                  "index": 0,
+                  "inputContract": {
+                    "dtype": "i32",
+                    "rank": 2,
+                    "shapeDescription": "[batchSize, seqLen]",
+                    "type": "token-ids"
+                  },
+                  "layerCount": 1,
+                  "layerRange": [
+                    0,
+                    0
+                  ],
+                  "outputContract": {
+                    "components": 1,
+                    "dtype": "f32",
+                    "elementStrideBytes": 4,
+                    "hiddenSize": 5120,
+                    "precision": "f32",
+                    "rank": 3,
+                    "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+                    "type": "activation-tensor"
+                  }
+                },
+                {
+                  "hasEmbedding": false,
+                  "hasLmHead": true,
+                  "index": 1,
+                  "inputContract": {
+                    "components": 1,
+                    "dtype": "f32",
+                    "elementStrideBytes": 4,
+                    "hiddenSize": 5120,
+                    "precision": "f32",
+                    "rank": 3,
+                    "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+                    "type": "activation-tensor"
+                  },
+                  "layerCount": 63,
+                  "layerRange": [
+                    1,
+                    63
+                  ],
+                  "outputContract": {
+                    "dtype": "f32",
+                    "rank": 3,
+                    "shapeDescription": "[batchSize, seqLen, vocabSize]",
+                    "type": "logits",
+                    "vocabSize": 248320
+                  }
+                }
+              ],
+              "schema": "doppler.layer-partition-contract/v3",
+              "splitLayers": [
+                1
+              ],
+              "stageCount": 2,
+              "totalLayers": 64,
+              "vocabSize": 248320
+            },
+            "partitionPlanId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+            "partitionRuntime": {
+              "maxGpuBufferBytes": [
+                6442450944,
+                25769803776
+              ],
+              "runtimeConfig": {
+                "inference": {
+                  "batching": {
+                    "batchSize": 1,
+                    "maxTokens": 128,
+                    "readbackInterval": 1,
+                    "readbackMode": "sequential",
+                    "ringStaging": 1,
+                    "ringStop": 1,
+                    "ringTokens": 1,
+                    "stopCheckMode": "per-token"
+                  },
+                  "chatTemplate": {
+                    "enabled": false,
+                    "thinking": false,
+                    "type": null
+                  },
+                  "generation": {
+                    "disableMultiTokenDecode": true,
+                    "maxTokens": 128
+                  },
+                  "kernelPathPolicy": {
+                    "allowSources": [
+                      "manifest"
+                    ],
+                    "mode": "capability-aware",
+                    "onIncompatible": "error",
+                    "sourceScope": [
+                      "manifest"
+                    ]
+                  },
+                  "kvcache": {
+                    "maxSeqLen": 4096
+                  },
+                  "prompt": "The capital of France is",
+                  "sampling": {
+                    "greedyThreshold": 0,
+                    "repetitionPenalty": 1,
+                    "repetitionPenaltyWindow": 1,
+                    "suppressSpecialLikeTokens": false,
+                    "suppressSpecialTokens": false,
+                    "suppressTokenIds": [],
+                    "temperature": 0,
+                    "topK": 1,
+                    "topP": 1
+                  },
+                  "session": {
+                    "decodeLoop": {
+                      "batchSize": 1,
+                      "disableCommandBatching": false,
+                      "maxBatchDecodeTokens": 1,
+                      "readbackInterval": 1,
+                      "readbackMode": "sequential",
+                      "ringStaging": 1,
+                      "ringStop": 1,
+                      "ringTokens": 1,
+                      "stopCheckMode": "per-token",
+                      "submitLatencyThresholdMs": null
+                    },
+                    "kvcache": {
+                      "maxSeqLen": 4096
+                    },
+                    "prefillTokenChunkSize": 256
+                  }
+                },
+                "shared": {
+                  "bufferPool": {
+                    "budget": {
+                      "emergencyTrimTargetRatio": 0.9,
+                      "hardFailOnBudgetExceeded": true,
+                      "highWatermarkRatio": 0.94,
+                      "maxTotalBytes": 25769803776
+                    }
+                  },
+                  "debug": {
+                    "logLevel": {
+                      "defaultLogLevel": "warn"
+                    },
+                    "profiler": {
+                      "enabled": false
+                    },
+                    "trace": {
+                      "enabled": false
+                    }
+                  },
+                  "harness": {
+                    "referenceTranscript": {
+                      "captureKvBytes": false,
+                      "captureLogits": false,
+                      "enabled": false
+                    }
+                  }
+                }
+              }
+            },
+            "provider": "doppler",
+            "providerIds": [
+              "85d90063-3ec0-4707-b6ca-9e61dc3cf654"
+            ],
+            "quantization": "q4k",
+            "size": "Q4K · 17 GB",
+            "source": {
+              "files": [
+                {
+                  "hash": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                  "hashAlgorithm": "sha256",
+                  "path": "manifest.json",
+                  "role": "model-manifest",
+                  "sizeBytes": 563307,
+                  "url": "/config/model-manifests/19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d.json"
+                },
+                {
+                  "hash": "ae50d65939a34a089eaf1e541c15c8a7d866079a5fe9a1d35454e0aa88577753",
+                  "hashAlgorithm": "sha256",
+                  "path": "tokenizer.json",
+                  "role": "tokenizer",
+                  "sizeBytes": 9089356
+                },
+                {
+                  "hash": "69400a62b129f8f045564527f6c7867b038b5c20edfe1842d3f36d60101a4600",
+                  "hashAlgorithm": "sha256",
+                  "path": "qwen27b-q4-pieces.json",
+                  "role": "model-piece-index",
+                  "sizeBytes": 979941,
+                  "url": "/config/model-pieces/qwen27b-q4-pieces.json"
+                }
+              ]
+            }
+          },
+          "permissions": {
+            "executionLocation": "auto",
+            "sharingScope": "mesh"
+          }
+        },
+        "responseId": "041c8f3a-93c9-4d9d-aa31-8451eef6ecac",
+        "retryOf": null,
+        "status": "completed",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.8 27B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        },
+        "threadId": "3633fc8e-d7b5-47df-a4dc-c4172ee730a3",
+        "userMessageId": "917b083f-8d64-4877-bac4-269948ad6226"
+      },
+      "answer": "42"
+    }
+  ],
+  "cancelled": true,
+  "reusedAfterCancellation": true,
+  "historyPreserved": true,
+  "weightRequests": [],
+  "errors": []
+}

@@ -1,0 +1,36 @@
+{
+  "scope": "One exposed failed request; diagnostic only",
+  "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+  "expectedAnswer": "1889 with supporting citation",
+  "gpuOutput": "3",
+  "cpuOutput": "3",
+  "inputIdsMatch": true,
+  "outputIdsMatch": true,
+  "generatedIdsIncludingStop": [
+    18,
+    248046
+  ],
+  "cpuStopReason": "eos",
+  "gpuStopReason": "stop-token",
+  "productionChanged": false,
+  "originalWeights": {
+    "outputText": "[2]",
+    "generatedTokenIds": [
+      58,
+      17,
+      60,
+      248046
+    ],
+    "stopReason": "eos",
+    "precision": {
+      "arithmetic": "float32",
+      "kvStorage": "float16",
+      "weights": [
+        "torch.bfloat16",
+        "torch.float32"
+      ],
+      "originalTiedHead": true
+    },
+    "taskPassed": false
+  }
+}

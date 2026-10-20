@@ -20,7 +20,7 @@ describe('autonomous cold stage assignment policy', () => {
       index: 2, reason: 'cold-least-supplied', move: false, supply: [1, 1, 0] });
     // Expired, unavailable or other-model offers supply nothing.
     const other = peer('x', { ready: [2] }); other.description.models[0].identity = 'sha256:' + 'b'.repeat(64);
-    expect(plan('m', [peer('c', { ready: [0] }), peer('d', { ready: [1], expiresAt: now }), other]).index).toBe(1);
+    expect(plan('m', [peer('c', { ready: [0] }), peer('d', { ready: [1], expiresAt: now }), other])).toMatchObject({ index: null, reason: 'waiting-for-route' });
   });
 
   it('counts a peer still preparing its claimed stage as supply', () => {
@@ -30,9 +30,16 @@ describe('autonomous cold stage assignment policy', () => {
   it('spreads simultaneous joiners deterministically by participant-id rank', () => {
     const ids = ['p-a', 'p-b', 'p-c'], coordinator = peer('coordinator', { ready: [0] });
     const chosen = ids.map(id => plan(id, [coordinator, ...ids.filter(other => other !== id).map(other => peer(other, { claim: null }))]).index);
-    expect(chosen).toEqual([1, 2, 0]);
+    expect(chosen).toEqual([1, 2, null]);
     // Without a coordinator the three still cover every stage.
     expect(ids.map(id => plan(id, ids.filter(other => other !== id).map(other => peer(other, { claim: null }))).index).sort()).toEqual([0, 1, 2]);
+  });
+
+  it('waits for enough willing peers to cover a route, and ignores idle observers', () => {
+    expect(plan('a', [])).toMatchObject({ index: null, reason: 'waiting-for-route' });
+    expect(plan('a', [peer('b', { claim: null })]).index).toBeNull();
+    expect(plan('a', [peer('b', { claim: null }), peer('c', { claim: null })]).index).toBe(0);
+    expect(plan('a', [peer('b', { claim: null }), peer('c', { claim: null, phase: 'idle' })]).index).toBeNull();
   });
 
   it('re-evaluates with hysteresis: retains unless two more contributors share this stage and it has the highest id', () => {
@@ -49,7 +56,7 @@ describe('autonomous cold stage assignment policy', () => {
   it('ignores malformed claims and offers outside the plan', () => {
     const bad = peer('x', { ready: [7] }); bad.description.assignment = { schema: 'other', index: 2 };
     const malformed = peer('y', { claim: 2 }); malformed.description.capacity = null;
-    expect(plan('m', [peer('c', { ready: [0] }), bad, malformed])).toMatchObject({ index: 1, supply: [1, 0, 0] });
+    expect(plan('m', [peer('c', { ready: [0] }), bad, malformed])).toMatchObject({ index: null, reason: 'waiting-for-route', supply: [1, 0, 0] });
     expect(() => plan('m', [], 3)).toThrow('Explicit stage assignment input required');
   });
 });
@@ -73,12 +80,22 @@ describe('useful replica demand (opt-in)', () => {
   it('completes a missing stage before replicating, then sends the first joiner to the demanded stage', () => {
     const wanted = { index: 2, reason: 'bottleneck' };
     const full = [peer('coordinator', { ready: [0] }), peer('b', { ready: [1] }), peer('c', { ready: [2] })];
-    expect(plan('m', full)).toMatchObject({ index: 0, reason: 'cold-least-supplied' });
+    expect(plan('m', full)).toMatchObject({ index: null, reason: 'no-useful-assignment' });
     expect(planStageAssignment({ participantId: 'm', model, stageCount: 3, capabilities: full, now, maxOffersPerPeer: 4, demand: wanted }))
       .toMatchObject({ index: 2, reason: 'replicate-bottleneck' });
     const missing = [peer('coordinator', { ready: [0] }), peer('c', { ready: [2] })];
     expect(planStageAssignment({ participantId: 'm', model, stageCount: 3, capabilities: missing, now, maxOffersPerPeer: 4, demand: wanted }))
       .toMatchObject({ index: 1, reason: 'cold-least-supplied' });
+  });
+
+  it('limits a demand observation to one joiner and waits for a preparing replica', () => {
+    const full = [peer('c', { ready: [0] }), peer('d', { ready: [1] }), peer('e', { ready: [2] })];
+    const decide = (participantId, extra) => planStageAssignment({ participantId, model, stageCount: 3,
+      capabilities: [...full, ...extra], now, maxOffersPerPeer: 4, demand: { index: 2, reason: 'queue' } });
+    expect(decide('a', [peer('b', { claim: null })]).index).toBe(2);
+    expect(decide('b', [peer('a', { claim: null })]).index).toBeNull();
+    expect(decide('b', [peer('a', { claim: 2, phase: 'loading' })]).index).toBeNull();
+    expect(decide('b', [peer('a', { ready: [2] })]).index).toBe(2);
   });
 
   it('moves an idle contributor to the demanded stage only while its own stage stays supplied', () => {

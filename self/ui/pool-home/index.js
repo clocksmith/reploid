@@ -13,8 +13,9 @@ import { bindThemeSelector } from './theme.js';
 import { bindPoolRouteControls } from './navigation.js';
 
 let disposeWorkspace;
-export function initPoolHome(mount, { operationNetwork = null, canonical = null, ordered } = {}) {
+export function initPoolHome(mount, { operationNetwork = null, canonical = null, ordered, signal } = {}) {
   if (!mount) return;
+  signal?.throwIfAborted();
   // Host context, like the room, comes from this instance; a malformed stage stops before any binding.
   const storage = getCurrentReploidStorage();
   if (ordered === undefined) ordered = getOrderedParticipation(storage);
@@ -50,13 +51,16 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
     const cancelOpening = () => {
       if (disposed) return;
       disposed = true; theme.dispose();
+      signal?.removeEventListener('abort', cancelOpening);
       window.removeEventListener('pagehide', cancelOpening);
       if (disposeWorkspace === cancelOpening) disposeWorkspace = null;
     };
     disposeWorkspace = cancelOpening;
     window.addEventListener('pagehide', cancelOpening);
+    signal?.addEventListener('abort', cancelOpening, { once: true });
     return openedHost.then(async opened => {
       window.removeEventListener('pagehide', cancelOpening);
+      signal?.removeEventListener('abort', cancelOpening);
       if (disposed) { await opened.close(); return () => {}; }
       try { return bindHost(opened); }
       catch (error) {
@@ -122,11 +126,16 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
           if (routeId === 'network') inspector.open();
         } else {
           content.innerHTML = '<p role="status">Loading…</p>';
-          if (routeId === 'improve') {
+          if (routeId === 'experiments') {
+            const plugins = await import('./research-plugins.js');
+            if (disposed || current !== revision) return;
+            content.innerHTML = plugins.renderResearchPlugins();
+            detachView = plugins.bindResearchPlugins(content, host);
+          } else if (routeId === 'improve') {
             const workView = await import('./work.js');
             if (disposed || current !== revision) return;
             content.innerHTML = workView.renderImproveSurface();
-            detachView = workView.bindWorkSurface(content, host.work, { evolution: host.evolution, swarm: host.swarm });
+            detachView = workView.bindWorkSurface(content, host.work, { evolution: host.evolution, swarm: host.swarm, training: host.training });
           } else {
             const module = await import('./specialist-routes.js');
             if (disposed || current !== revision) return;

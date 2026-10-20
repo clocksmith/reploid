@@ -57,7 +57,7 @@ describe('Launch 3 mechanisms are off by default (Launch 1 candidate behavior)',
     expect(c.discovery.options.describe()).not.toHaveProperty('assignment');
   });
 
-  it('an assigned stage keeps the Launch 1 capability shape and never moves, even when over-supplied and idle', async () => {
+  it('an assigned stage keeps orchestration disabled and never moves, even when over-supplied and idle', async () => {
     vi.useFakeTimers({ now: 1_000_000 });
     const c = await launch1(1);
     c.discovery.capabilities = [offer('coordinator', 0), offer('!a', 1), offer('!b', 1)];
@@ -65,7 +65,11 @@ describe('Launch 3 mechanisms are off by default (Launch 1 candidate behavior)',
     await vi.advanceTimersByTimeAsync(10 * policy.pollMs);
     expect(c.loadProgram).toHaveBeenCalledOnce();
     expect(c.resident.close).not.toHaveBeenCalled(); expect(c.resident.drain).not.toHaveBeenCalled();
-    expect(Object.keys(c.discovery.options.describe())).toEqual(['schema', 'participantId', 'phase', 'models', 'capacity']);
+    const description = c.discovery.options.describe();
+    expect(description.schema).toBe('reploid.partition-capability/v2');
+    expect(description.capacity).not.toHaveProperty('device');
+    expect(description).not.toHaveProperty('routeObservations');
+    expect(description).not.toHaveProperty('assignment');
     expect(c.mesh.getState()).not.toHaveProperty('assignment');
   });
 
@@ -80,7 +84,11 @@ describe('Launch 3 mechanisms are off by default (Launch 1 candidate behavior)',
     expect(c.replica.executeStage).not.toHaveBeenCalled();
     expect(c.mesh.getState().placementDecision.reason).toBe('retain-prepared-route');
     expect(c.mesh.getState()).not.toHaveProperty('routeObservations');
-    expect(Object.keys(c.discovery.options.describe())).toEqual(['schema', 'participantId', 'phase', 'models', 'capacity']);
+    const description = c.discovery.options.describe();
+    expect(description.schema).toBe('reploid.partition-capability/v2');
+    expect(description.capacity).not.toHaveProperty('device');
+    expect(description).not.toHaveProperty('routeObservations');
+    expect(description).not.toHaveProperty('assignment');
   });
 
   it('without a shared device, each resident admits by its own slots and loaders receive no device', async () => {

@@ -1,0 +1,923 @@
+{
+  "origin": "https://replo.id",
+  "results": [
+    {
+      "id": "qwen-3-5-0-8b-q4k-ehaf16",
+      "content": "42",
+      "elapsedMs": 1310
+    },
+    {
+      "id": "qwen-3-5-2b-q4k-ehaf16",
+      "content": "42",
+      "elapsedMs": 1569
+    }
+  ],
+  "saved": [
+    {
+      "attempts": [
+        {
+          "approval": null,
+          "authorization": {
+            "adapterIdentities": [],
+            "disclosure": "public",
+            "expiresAt": 1792199356804,
+            "grantId": null,
+            "kind": "permission",
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+            "peerId": "ef333e43-f0e1-4e11-a54e-a8771f6cbe69",
+            "permissionId": "f1299bc8-d2da-4f29-aaee-07407b66a0e6",
+            "recipientIdentity": "peer:688e732256ab83155c54f72e",
+            "recipients": [
+              "peer:688e732256ab83155c54f72e"
+            ],
+            "sharingScope": "mesh",
+            "source": "permission"
+          },
+          "createdAt": 1792199326538,
+          "error": null,
+          "execution": {
+            "adapterIdentities": [],
+            "completion": {
+              "generatedTokenCount": 3,
+              "promptTokenCount": 61,
+              "schema": "doppler.generation-completion/v1",
+              "stopReason": "stop-token"
+            },
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+            "peerId": "ef333e43-f0e1-4e11-a54e-a8771f6cbe69",
+            "placement": "peer-whole-request",
+            "provider": "peer",
+            "stopReason": "stop-token",
+            "timing": {
+              "decodeMs": 708.1965269967914,
+              "firstTokenMs": 223.34447899460793,
+              "generatedTokenCount": 3,
+              "prefillMs": 216.4421989992261,
+              "totalMs": 932.2949769943953
+            }
+          },
+          "finishedAt": 1792199327785,
+          "id": "155681de-11ce-48ee-b56b-4ee1fca477e2",
+          "provenance": {
+            "attemptId": "155681de-11ce-48ee-b56b-4ee1fca477e2",
+            "classes": [
+              "mesh"
+            ],
+            "earlierAttempts": [],
+            "execution": {
+              "classes": [
+                "mesh"
+              ],
+              "participants": [
+                {
+                  "participantId": "ef333e43-f0e1-4e11-a54e-a8771f6cbe69",
+                  "role": "whole-request",
+                  "stage": null,
+                  "supply": "mesh"
+                }
+              ],
+              "placement": "peer-whole-request",
+              "supply": "mesh"
+            },
+            "retrieval": {
+              "supply": "none"
+            },
+            "schema": "reploid.answer-provenance/v1",
+            "supply": "mesh"
+          },
+          "publicationMode": "whole-model",
+          "request": {
+            "members": [
+              "local-user"
+            ],
+            "messages": [
+              {
+                "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 0.8B.",
+                "role": "system"
+              },
+              {
+                "content": "What is 17 + 25? Answer with the number only.",
+                "role": "user"
+              }
+            ],
+            "model": {
+              "adapters": [],
+              "availability": "ready",
+              "availableAdapters": [
+                {
+                  "artifact": {
+                    "artifactId": "qwen35-0-8b-ner-json-lora",
+                    "hash": "sha256:dfed3509fdd54c04e80e362b6b14f98d9c326a8e732f539996a137086dc4f636",
+                    "path": "adapter_model.safetensors",
+                    "role": "adapter",
+                    "sizeBytes": 43346432,
+                    "url": "https://huggingface.co/Mike0021/qwen35-0.8b-ner-json-lora/resolve/6d4e4cf3ebe7d8df10897b9f44cbf1e647386bcb/adapter_model.safetensors"
+                  },
+                  "baseModelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+                  "id": "qwen35-0-8b-ner-json-lora",
+                  "identity": "sha256:dc0248f45553e69defd8a1846619443f1ac5902a118548c70a7254c21f66f64b",
+                  "manifest": {
+                    "alpha": 32,
+                    "baseModel": "qwen-3-5-0-8b-q4k-ehaf16",
+                    "checksum": "dfed3509fdd54c04e80e362b6b14f98d9c326a8e732f539996a137086dc4f636",
+                    "checksumAlgorithm": "sha256",
+                    "id": "qwen35-0-8b-ner-json-lora",
+                    "name": "Qwen 3.5 0.8B NER JSON LoRA",
+                    "rank": 16,
+                    "targetModules": [
+                      "down_proj",
+                      "o_proj",
+                      "in_proj_a",
+                      "up_proj",
+                      "in_proj_z",
+                      "gate_proj",
+                      "q_proj",
+                      "out_proj",
+                      "v_proj",
+                      "k_proj",
+                      "in_proj_b",
+                      "in_proj_qkv"
+                    ],
+                    "version": "1.0.0",
+                    "weightsFormat": "safetensors",
+                    "weightsPath": "https://huggingface.co/clocksmith/lora/resolve/a618a2ccab25928a98694930376ebb3c3db241cb/adapters/network-canaries/qwen35-0.8b-ner-json-lora/adapter_model.safetensors",
+                    "weightsSize": 43346432
+                  },
+                  "name": "Qwen 3.5 0.8B NER JSON LoRA",
+                  "weightsLayout": "peft"
+                }
+              ],
+              "contextLength": 262144,
+              "id": "qwen-3-5-0-8b-q4k-ehaf16",
+              "identity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+              "name": "Qwen 3.5 0.8B",
+              "networkAvailability": "ready",
+              "packageName": "doppler-gpu",
+              "packageVersion": "0.6.30",
+              "provider": "doppler",
+              "providerIds": [
+                "62993f6c-d5b7-473b-b98a-8994f21b0bcd",
+                "ef333e43-f0e1-4e11-a54e-a8771f6cbe69"
+              ],
+              "quantization": "q4k",
+              "size": "Q4K",
+              "source": {
+                "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16/",
+                "files": [
+                  {
+                    "hash": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+                    "hashAlgorithm": "sha256",
+                    "path": "manifest.json",
+                    "role": "model-manifest",
+                    "sizeBytes": 214203,
+                    "url": "/config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json"
+                  },
+                  {
+                    "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+                    "hashAlgorithm": "sha256",
+                    "path": "tokenizer.json",
+                    "role": "tokenizer",
+                    "sizeBytes": 9088480
+                  },
+                  {
+                    "hash": "18adb1f08f4e694d357a27f7a5d67ea57a7d50c5e82aa7fda099084b445974b7",
+                    "hashAlgorithm": "sha256",
+                    "path": "qwen-0-8b-pieces.json",
+                    "role": "model-piece-index",
+                    "sizeBytes": 34258,
+                    "url": "/config/model-pieces/qwen-0-8b-pieces.json"
+                  }
+                ]
+              }
+            },
+            "permissions": {
+              "executionLocation": "auto",
+              "sharingScope": "mesh"
+            }
+          },
+          "responseId": "2038130e-2e1b-4728-8503-5360bd5f1184",
+          "retryOf": null,
+          "status": "completed",
+          "systemContext": {
+            "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 0.8B.",
+            "metadata": {
+              "enabled": true,
+              "maxWords": 16,
+              "mode": null,
+              "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+              "policyId": "reploid.compact-context/v2",
+              "wordCount": 13
+            }
+          },
+          "threadId": "94d18085-440a-4d81-8314-a4370b9dde32",
+          "userMessageId": "998ba33f-f22a-4d3c-b2c8-c12f87e9e9ec"
+        }
+      ],
+      "closed": false,
+      "createdAt": 1792199326517,
+      "grants": [],
+      "id": "94d18085-440a-4d81-8314-a4370b9dde32",
+      "members": [
+        "local-user"
+      ],
+      "messages": [
+        {
+          "content": "What is 17 + 25? Answer with the number only.",
+          "id": "998ba33f-f22a-4d3c-b2c8-c12f87e9e9ec",
+          "role": "user",
+          "status": "completed"
+        },
+        {
+          "attemptId": "155681de-11ce-48ee-b56b-4ee1fca477e2",
+          "content": "42",
+          "id": "2038130e-2e1b-4728-8503-5360bd5f1184",
+          "role": "assistant",
+          "status": "completed"
+        }
+      ],
+      "model": {
+        "adapters": [],
+        "availability": "ready",
+        "availableAdapters": [
+          {
+            "artifact": {
+              "artifactId": "qwen35-0-8b-ner-json-lora",
+              "hash": "sha256:dfed3509fdd54c04e80e362b6b14f98d9c326a8e732f539996a137086dc4f636",
+              "path": "adapter_model.safetensors",
+              "role": "adapter",
+              "sizeBytes": 43346432,
+              "url": "https://huggingface.co/Mike0021/qwen35-0.8b-ner-json-lora/resolve/6d4e4cf3ebe7d8df10897b9f44cbf1e647386bcb/adapter_model.safetensors"
+            },
+            "baseModelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+            "id": "qwen35-0-8b-ner-json-lora",
+            "identity": "sha256:dc0248f45553e69defd8a1846619443f1ac5902a118548c70a7254c21f66f64b",
+            "manifest": {
+              "alpha": 32,
+              "baseModel": "qwen-3-5-0-8b-q4k-ehaf16",
+              "checksum": "dfed3509fdd54c04e80e362b6b14f98d9c326a8e732f539996a137086dc4f636",
+              "checksumAlgorithm": "sha256",
+              "id": "qwen35-0-8b-ner-json-lora",
+              "name": "Qwen 3.5 0.8B NER JSON LoRA",
+              "rank": 16,
+              "targetModules": [
+                "down_proj",
+                "o_proj",
+                "in_proj_a",
+                "up_proj",
+                "in_proj_z",
+                "gate_proj",
+                "q_proj",
+                "out_proj",
+                "v_proj",
+                "k_proj",
+                "in_proj_b",
+                "in_proj_qkv"
+              ],
+              "version": "1.0.0",
+              "weightsFormat": "safetensors",
+              "weightsPath": "https://huggingface.co/clocksmith/lora/resolve/a618a2ccab25928a98694930376ebb3c3db241cb/adapters/network-canaries/qwen35-0.8b-ner-json-lora/adapter_model.safetensors",
+              "weightsSize": 43346432
+            },
+            "name": "Qwen 3.5 0.8B NER JSON LoRA",
+            "weightsLayout": "peft"
+          }
+        ],
+        "contextLength": 262144,
+        "id": "qwen-3-5-0-8b-q4k-ehaf16",
+        "identity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+        "name": "Qwen 3.5 0.8B",
+        "networkAvailability": "ready",
+        "packageName": "doppler-gpu",
+        "packageVersion": "0.6.30",
+        "provider": "doppler",
+        "providerIds": [
+          "62993f6c-d5b7-473b-b98a-8994f21b0bcd",
+          "ef333e43-f0e1-4e11-a54e-a8771f6cbe69"
+        ],
+        "quantization": "q4k",
+        "size": "Q4K",
+        "source": {
+          "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16/",
+          "files": [
+            {
+              "hash": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+              "hashAlgorithm": "sha256",
+              "path": "manifest.json",
+              "role": "model-manifest",
+              "sizeBytes": 214203,
+              "url": "/config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json"
+            },
+            {
+              "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+              "hashAlgorithm": "sha256",
+              "path": "tokenizer.json",
+              "role": "tokenizer",
+              "sizeBytes": 9088480
+            },
+            {
+              "hash": "18adb1f08f4e694d357a27f7a5d67ea57a7d50c5e82aa7fda099084b445974b7",
+              "hashAlgorithm": "sha256",
+              "path": "qwen-0-8b-pieces.json",
+              "role": "model-piece-index",
+              "sizeBytes": 34258,
+              "url": "/config/model-pieces/qwen-0-8b-pieces.json"
+            }
+          ]
+        }
+      },
+      "permissions": {
+        "executionLocation": "auto",
+        "sharingScope": "mesh"
+      },
+      "purpose": "",
+      "systemContext": {
+        "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 0.8B.",
+        "metadata": {
+          "enabled": true,
+          "maxWords": 16,
+          "mode": null,
+          "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+          "policyId": "reploid.compact-context/v2",
+          "wordCount": 13
+        }
+      }
+    },
+    {
+      "attempts": [
+        {
+          "approval": null,
+          "authorization": {
+            "adapterIdentities": [],
+            "disclosure": "public",
+            "expiresAt": 1792199411775,
+            "grantId": null,
+            "kind": "permission",
+            "modelId": "qwen-3-5-2b-q4k-ehaf16",
+            "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "peerId": "ee64e79a-d691-49a6-8210-ca5d49acfde3",
+            "permissionId": "e107b73d-b869-4e67-9042-edd09364c908",
+            "recipientIdentity": "peer:18813808898ffbd29bbce3dd",
+            "recipients": [
+              "peer:18813808898ffbd29bbce3dd"
+            ],
+            "sharingScope": "mesh",
+            "source": "permission"
+          },
+          "createdAt": 1792199381334,
+          "error": null,
+          "execution": {
+            "adapterIdentities": [],
+            "completion": {
+              "generatedTokenCount": 3,
+              "promptTokenCount": 59,
+              "schema": "doppler.generation-completion/v1",
+              "stopReason": "stop-token"
+            },
+            "modelId": "qwen-3-5-2b-q4k-ehaf16",
+            "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "peerId": "ee64e79a-d691-49a6-8210-ca5d49acfde3",
+            "placement": "peer-whole-request",
+            "provider": "peer",
+            "stopReason": "stop-token",
+            "timing": {
+              "decodeMs": 671.153592005372,
+              "firstTokenMs": 213.50961500406265,
+              "generatedTokenCount": 3,
+              "prefillMs": 211.86405400186777,
+              "totalMs": 885.0584720000625
+            }
+          },
+          "finishedAt": 1792199382714,
+          "id": "ecac2a77-dfc5-4646-ab62-f475af01d075",
+          "provenance": {
+            "attemptId": "ecac2a77-dfc5-4646-ab62-f475af01d075",
+            "classes": [
+              "mesh"
+            ],
+            "earlierAttempts": [],
+            "execution": {
+              "classes": [
+                "mesh"
+              ],
+              "participants": [
+                {
+                  "participantId": "ee64e79a-d691-49a6-8210-ca5d49acfde3",
+                  "role": "whole-request",
+                  "stage": null,
+                  "supply": "mesh"
+                }
+              ],
+              "placement": "peer-whole-request",
+              "supply": "mesh"
+            },
+            "retrieval": {
+              "supply": "none"
+            },
+            "schema": "reploid.answer-provenance/v1",
+            "supply": "mesh"
+          },
+          "publicationMode": "whole-model",
+          "request": {
+            "members": [
+              "local-user"
+            ],
+            "messages": [
+              {
+                "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+                "role": "system"
+              },
+              {
+                "content": "What is 17 + 25? Answer with the number only.",
+                "role": "user"
+              }
+            ],
+            "model": {
+              "adapters": [],
+              "availability": "ready",
+              "contextLength": 262144,
+              "id": "qwen-3-5-2b-q4k-ehaf16",
+              "identity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+              "name": "Qwen 3.5 2B",
+              "networkAvailability": "ready",
+              "packageName": "doppler-gpu",
+              "packageVersion": "0.6.30",
+              "partitionSplitLayer": 4,
+              "provider": "doppler",
+              "providerIds": [
+                "ee64e79a-d691-49a6-8210-ca5d49acfde3"
+              ],
+              "quantization": "q4k",
+              "recommended": true,
+              "size": "Q4K",
+              "source": {
+                "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+                "files": [
+                  {
+                    "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                    "hashAlgorithm": "sha256",
+                    "path": "manifest.json",
+                    "role": "model-manifest",
+                    "sizeBytes": 183803,
+                    "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+                  },
+                  {
+                    "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+                    "hashAlgorithm": "sha256",
+                    "path": "tokenizer.json",
+                    "role": "tokenizer",
+                    "sizeBytes": 9088480
+                  },
+                  {
+                    "hash": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+                    "hashAlgorithm": "sha256",
+                    "path": "qwen-2b-pieces.json",
+                    "role": "model-piece-index",
+                    "sizeBytes": 111108,
+                    "url": "/config/model-pieces/qwen-2b-pieces.json"
+                  }
+                ]
+              }
+            },
+            "permissions": {
+              "executionLocation": "auto",
+              "sharingScope": "mesh"
+            }
+          },
+          "responseId": "c745ec76-fbf5-4df2-97e1-2d58b534d420",
+          "retryOf": null,
+          "status": "completed",
+          "systemContext": {
+            "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+            "metadata": {
+              "enabled": true,
+              "maxWords": 16,
+              "mode": null,
+              "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+              "policyId": "reploid.compact-context/v2",
+              "wordCount": 13
+            }
+          },
+          "threadId": "001a18df-71ef-4d14-b86f-78f1f3a6b2e0",
+          "userMessageId": "835b1cdf-2799-45a9-a2d6-88d7572f58d1"
+        }
+      ],
+      "closed": false,
+      "createdAt": 1792199381315,
+      "grants": [],
+      "id": "001a18df-71ef-4d14-b86f-78f1f3a6b2e0",
+      "members": [
+        "local-user"
+      ],
+      "messages": [
+        {
+          "content": "What is 17 + 25? Answer with the number only.",
+          "id": "835b1cdf-2799-45a9-a2d6-88d7572f58d1",
+          "role": "user",
+          "status": "completed"
+        },
+        {
+          "attemptId": "ecac2a77-dfc5-4646-ab62-f475af01d075",
+          "content": "42",
+          "id": "c745ec76-fbf5-4df2-97e1-2d58b534d420",
+          "role": "assistant",
+          "status": "completed"
+        }
+      ],
+      "model": {
+        "adapters": [],
+        "availability": "ready",
+        "contextLength": 262144,
+        "id": "qwen-3-5-2b-q4k-ehaf16",
+        "identity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+        "name": "Qwen 3.5 2B",
+        "networkAvailability": "ready",
+        "packageName": "doppler-gpu",
+        "packageVersion": "0.6.30",
+        "partitionSplitLayer": 4,
+        "provider": "doppler",
+        "providerIds": [
+          "ee64e79a-d691-49a6-8210-ca5d49acfde3"
+        ],
+        "quantization": "q4k",
+        "recommended": true,
+        "size": "Q4K",
+        "source": {
+          "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+          "files": [
+            {
+              "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+              "hashAlgorithm": "sha256",
+              "path": "manifest.json",
+              "role": "model-manifest",
+              "sizeBytes": 183803,
+              "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+            },
+            {
+              "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+              "hashAlgorithm": "sha256",
+              "path": "tokenizer.json",
+              "role": "tokenizer",
+              "sizeBytes": 9088480
+            },
+            {
+              "hash": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+              "hashAlgorithm": "sha256",
+              "path": "qwen-2b-pieces.json",
+              "role": "model-piece-index",
+              "sizeBytes": 111108,
+              "url": "/config/model-pieces/qwen-2b-pieces.json"
+            }
+          ]
+        }
+      },
+      "permissions": {
+        "executionLocation": "auto",
+        "sharingScope": "mesh"
+      },
+      "purpose": "",
+      "systemContext": {
+        "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+        "metadata": {
+          "enabled": true,
+          "maxWords": 16,
+          "mode": null,
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "policyId": "reploid.compact-context/v2",
+          "wordCount": 13
+        }
+      }
+    }
+  ],
+  "errors": [],
+  "verification": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /host/chat-session.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /host/chat-session.js:117: Suspicious variable name: execution - may indicate code execution",
+      "Warning in /host/chat-session.js:539: Suspicious variable name: authorizeExecution - may indicate code execution",
+      "File exceeds 500 lines (548) - consider splitting",
+      "File has 64 functions (max 20) - consider modularizing",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Warning in /host/chat-history.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /host/chat-history.js:57: Dynamic property write detected: [name] - verify input sanitization",
+      "Nesting depth of 7 exceeds 5 - refactor nested code",
+      "Warning in /host/product-session.js: Path traversal pattern detected (../) - potential security risk",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Warning in /vendor/reploid/chat/workspace.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /vendor/reploid/chat/workspace.js:81: Dynamic property write detected: [name] - verify input sanitization",
+      "File exceeds 500 lines (556) - consider splitting",
+      "File has 68 functions (max 20) - consider modularizing",
+      "Nesting depth of 10 exceeds 5 - refactor nested code",
+      "Warning in /vendor/reploid/chat/workspace-history.js:40: Dynamic property write detected: [name] - verify input sanitization",
+      "Warning in /vendor/reploid/chat/workspace-history.js:40: Dynamic property write detected: [name] - verify input sanitization",
+      "File has 28 functions (max 20) - consider modularizing",
+      "Nesting depth of 8 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792199385262,
+        "path": "/host/chat-session.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792199385263,
+        "path": "/host/chat-session.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: execution - may indicate code execution",
+        "line": 117,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792199385263,
+        "path": "/host/chat-session.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: authorizeExecution - may indicate code execution",
+        "line": 539,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792199385264,
+        "metric": "lines",
+        "value": 548,
+        "threshold": 500,
+        "message": "File exceeds 500 lines (548) - consider splitting",
+        "path": "/host/chat-session.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792199385264,
+        "metric": "functions",
+        "value": 64,
+        "threshold": 20,
+        "message": "File has 64 functions (max 20) - consider modularizing",
+        "path": "/host/chat-session.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792199385264,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/host/chat-session.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792199385265,
+        "path": "/host/chat-history.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792199385265,
+        "path": "/host/chat-history.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 57,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792199385265,
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/host/chat-history.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792199385266,
+        "path": "/host/product-session.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792199385267,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/host/product-session.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792199385271,
+        "path": "/vendor/reploid/chat/workspace.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792199385272,
+        "path": "/vendor/reploid/chat/workspace.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 81,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792199385272,
+        "metric": "lines",
+        "value": 556,
+        "threshold": 500,
+        "message": "File exceeds 500 lines (556) - consider splitting",
+        "path": "/vendor/reploid/chat/workspace.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792199385272,
+        "metric": "functions",
+        "value": 68,
+        "threshold": 20,
+        "message": "File has 68 functions (max 20) - consider modularizing",
+        "path": "/vendor/reploid/chat/workspace.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792199385272,
+        "metric": "nesting",
+        "value": 10,
+        "threshold": 5,
+        "message": "Nesting depth of 10 exceeds 5 - refactor nested code",
+        "path": "/vendor/reploid/chat/workspace.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792199385274,
+        "path": "/vendor/reploid/chat/workspace-history.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 40,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1792199385274,
+        "path": "/vendor/reploid/chat/workspace-history.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 40,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792199385274,
+        "metric": "functions",
+        "value": 28,
+        "threshold": 20,
+        "message": "File has 28 functions (max 20) - consider modularizing",
+        "path": "/vendor/reploid/chat/workspace-history.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1792199385274,
+        "metric": "nesting",
+        "value": 8,
+        "threshold": 5,
+        "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+        "path": "/vendor/reploid/chat/workspace-history.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/host/chat-session.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/host/chat-history.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/host/product-session.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/vendor/reploid/chat/workspace.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "lines",
+          "value": 548,
+          "threshold": 500,
+          "message": "File exceeds 500 lines (548) - consider splitting",
+          "path": "/host/chat-session.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 64,
+          "threshold": 20,
+          "message": "File has 64 functions (max 20) - consider modularizing",
+          "path": "/host/chat-session.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/host/chat-session.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 7,
+          "threshold": 5,
+          "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+          "path": "/host/chat-history.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/host/product-session.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "lines",
+          "value": 556,
+          "threshold": 500,
+          "message": "File exceeds 500 lines (556) - consider splitting",
+          "path": "/vendor/reploid/chat/workspace.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 68,
+          "threshold": 20,
+          "message": "File has 68 functions (max 20) - consider modularizing",
+          "path": "/vendor/reploid/chat/workspace.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 10,
+          "threshold": 5,
+          "message": "Nesting depth of 10 exceeds 5 - refactor nested code",
+          "path": "/vendor/reploid/chat/workspace.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 28,
+          "threshold": 20,
+          "message": "File has 28 functions (max 20) - consider modularizing",
+          "path": "/vendor/reploid/chat/workspace-history.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 8,
+          "threshold": 5,
+          "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+          "path": "/vendor/reploid/chat/workspace-history.js"
+        }
+      ],
+      "filesAnalyzed": 5
+    }
+  }
+}

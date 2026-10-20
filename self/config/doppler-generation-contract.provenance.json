@@ -1,7 +1,7 @@
 {
   "schema": "reploid.doppler-generation-contract/v1",
   "packageName": "doppler-gpu",
-  "packageVersion": "0.6.30",
+  "packageVersion": "0.6.32",
   "publicExport": "./generation-contract",
   "bundleSha256": "82a45dec8b005d40e350eccfd1692ac21e0c66574dd7c8df3282850f590e862a"
 }
