@@ -15,7 +15,8 @@ export interface StageAssignmentClaim {
   schema: typeof STAGE_ASSIGNMENT_SCHEMA; modelId: string; modelIdentity: string; index: number | null;
 }
 export interface StageAssignmentDecision {
-  index: number; reason: 'cold-least-supplied' | 'retain' | 'rebalance' | 'replicate-queue' | 'replicate-bottleneck'; move: boolean;
+  index: number | null; reason: 'cold-least-supplied' | 'retain' | 'rebalance' | 'replicate-queue' | 'replicate-bottleneck'
+    | 'waiting-for-route' | 'no-useful-assignment'; move: boolean;
   /** Distinct other participants per stage index: ready offers plus claims still preparing. */
   supply: readonly number[]; joiners: number;
 }

@@ -97,16 +97,20 @@ describe('conversation workspace', () => {
     expect(restored.getState().threads[0].title).toBe('Friendly title'); await restored.close();
   });
 
-  it('retains multi-turn context only inside its conversation', async () => {
+  it('retains multi-turn context only inside its conversation after reload', async () => {
     const execute = vi.fn(async request => result(request, 'A response'));
-    const { app } = fixture(execute);
+    const { app, options } = fixture(execute);
     const a = app.createThread({ model, purpose: 'Explain clearly' }), b = app.createThread({ model });
-    await app.send(a, 'First question'); await app.send(b, 'Different question'); await app.send(a, 'Follow-up');
+    await app.send(a, 'First question'); await app.send(b, 'Different question');
+    await app.close();
+    const restored = createChatWorkspace(options);
+    expect(execute).toHaveBeenCalledTimes(2);
+    await restored.send(a, 'Follow-up');
     expect(execute.mock.calls[2][0].messages).toEqual([
       { role: 'system', content: 'Explain clearly' }, { role: 'user', content: 'First question' },
       { role: 'assistant', content: 'A response' }, { role: 'user', content: 'Follow-up' }
     ]);
-    await app.close();
+    await restored.close();
   });
 
   it('requires the exact thread, attempt and disclosure identity for approval', async () => {
@@ -136,7 +140,7 @@ describe('conversation workspace', () => {
     const resumedExecute = vi.fn(async request => result(request, 'Fresh answer'));
     const restored = createChatWorkspace({ ...options, store: { load: () => saved, save() {} }, execute: resumedExecute });
     expect(resumedExecute).not.toHaveBeenCalled();
-    expect(restored.getState().selectedId).toBe(null);
+    expect(restored.getState().selectedId).toBe(a);
     expect(restored.getState().threads[0].attempts[0].status).toBe('interrupted');
     const retry = await restored.retry(a, original.attemptId);
     expect(retry.retryOf).toBe(original.attemptId); expect(retry.id).not.toBe(original.attemptId);
@@ -220,4 +224,25 @@ describe('conversation workspace', () => {
     expect(await app.send(thread, 'Hello')).toMatchObject({ status: 'failed', error: 'Response stream has a gap' });
     await app.close();
   });
+});
+
+it('restores the selected conversation and exact model, while preserving an explicit new-thread selection', async () => {
+  const execute = vi.fn(async request => result(request, 'answer'));
+  const { app, options, store } = fixture(execute);
+  const first = app.createThread({ model });
+  app.createThread({ model: { ...model, id: 'different', identity: 'sha256:' + 'c'.repeat(64) } });
+  app.select(first);
+  let restored = createChatWorkspace(options);
+  expect(restored.getState().selectedId).toBe(first);
+  expect(restored.getState().threads.find(t => t.id === restored.getState().selectedId).model).toEqual(model);
+  expect(execute).not.toHaveBeenCalled();
+  restored.select(null); restored = createChatWorkspace(options);
+  expect(restored.getState().selectedId).toBeNull();
+  const saved = store.load(); delete saved.selectedId; store.save(saved);
+  expect(createChatWorkspace(options).getState().selectedId).toBeNull();
+  store.save({ ...saved, selectedId: 'deleted-thread' });
+  expect(createChatWorkspace(options).getState().selectedId).toBeNull();
+  app.select(first); app.closeThread(first);
+  expect(createChatWorkspace(options).getState().selectedId).toBeNull();
+  await app.close(); await restored.close();
 });

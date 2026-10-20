@@ -1,0 +1,514 @@
+{
+  "modelId": "qwen-3-5-2b-q4k-ehaf16",
+  "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+  "browser": "155.0.8059.80",
+  "at": "2026-10-17T15:08:51.496Z",
+  "turns": [
+    {
+      "attempt": {
+        "approval": null,
+        "authorization": {
+          "adapterIdentities": [],
+          "disclosure": "public",
+          "expiresAt": 1792249736820,
+          "grantId": null,
+          "kind": "permission",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "ee64e79a-d691-49a6-8210-ca5d49acfde3",
+          "permissionId": "b41075d2-252d-467b-85bb-99aff27ccc62",
+          "recipientIdentity": "peer:18813808898ffbd29bbce3dd",
+          "recipients": [
+            "peer:18813808898ffbd29bbce3dd"
+          ],
+          "sharingScope": "mesh",
+          "source": "permission"
+        },
+        "createdAt": 1792249706743,
+        "error": null,
+        "execution": {
+          "adapterIdentities": [],
+          "completion": {
+            "generatedTokenCount": 3,
+            "promptTokenCount": 59,
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "stop-token"
+          },
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "ee64e79a-d691-49a6-8210-ca5d49acfde3",
+          "placement": "peer-whole-request",
+          "provider": "peer",
+          "stopReason": "stop-token",
+          "timing": {
+            "decodeMs": 2323.190586000681,
+            "firstTokenMs": 2649.862175002694,
+            "generatedTokenCount": 3,
+            "prefillMs": 2645.3480980098248,
+            "totalMs": 4975.848469004035
+          }
+        },
+        "finishedAt": 1792249711886,
+        "id": "876ab7a3-0fe1-475d-a3a8-a981a625fdc2",
+        "provenance": {
+          "attemptId": "876ab7a3-0fe1-475d-a3a8-a981a625fdc2",
+          "classes": [
+            "mesh"
+          ],
+          "earlierAttempts": [],
+          "execution": {
+            "classes": [
+              "mesh"
+            ],
+            "participants": [
+              {
+                "participantId": "ee64e79a-d691-49a6-8210-ca5d49acfde3",
+                "role": "whole-request",
+                "stage": null,
+                "supply": "mesh"
+              }
+            ],
+            "placement": "peer-whole-request",
+            "supply": "mesh"
+          },
+          "retrieval": {
+            "supply": "none"
+          },
+          "schema": "reploid.answer-provenance/v1",
+          "supply": "mesh"
+        },
+        "publicationMode": "whole-model",
+        "request": {
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+              "role": "system"
+            },
+            {
+              "content": "What is 17 + 25? Answer with the number only.",
+              "role": "user"
+            }
+          ],
+          "model": {
+            "adapters": [],
+            "availability": "ready",
+            "contextLength": 262144,
+            "id": "qwen-3-5-2b-q4k-ehaf16",
+            "identity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "name": "Qwen 3.5 2B",
+            "networkAvailability": "ready",
+            "packageName": "doppler-gpu",
+            "packageVersion": "0.6.31",
+            "partitionSplitLayer": 4,
+            "provider": "doppler",
+            "providerIds": [
+              "ee64e79a-d691-49a6-8210-ca5d49acfde3"
+            ],
+            "quantization": "q4k",
+            "recommended": true,
+            "size": "Q4K",
+            "source": {
+              "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+              "files": [
+                {
+                  "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                  "hashAlgorithm": "sha256",
+                  "path": "manifest.json",
+                  "role": "model-manifest",
+                  "sizeBytes": 183803,
+                  "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+                },
+                {
+                  "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+                  "hashAlgorithm": "sha256",
+                  "path": "tokenizer.json",
+                  "role": "tokenizer",
+                  "sizeBytes": 9088480
+                },
+                {
+                  "hash": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+                  "hashAlgorithm": "sha256",
+                  "path": "qwen-2b-pieces.json",
+                  "role": "model-piece-index",
+                  "sizeBytes": 111108,
+                  "url": "/config/model-pieces/qwen-2b-pieces.json"
+                }
+              ]
+            }
+          },
+          "permissions": {
+            "executionLocation": "auto",
+            "sharingScope": "mesh"
+          }
+        },
+        "responseId": "abdf810c-a24e-45aa-8e23-ea24d04a847e",
+        "retryOf": null,
+        "status": "completed",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        },
+        "threadId": "ec4d4af4-f50d-4557-8b0d-7e51cfacf55a",
+        "userMessageId": "2c6bdc0a-bc85-457c-9e8a-74ce4dba561d"
+      },
+      "answer": "42"
+    },
+    {
+      "attempt": {
+        "approval": null,
+        "authorization": {
+          "adapterIdentities": [],
+          "disclosure": "public",
+          "expiresAt": 1792249743008,
+          "grantId": null,
+          "kind": "permission",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "ee64e79a-d691-49a6-8210-ca5d49acfde3",
+          "permissionId": "b41075d2-252d-467b-85bb-99aff27ccc62",
+          "recipientIdentity": "peer:18813808898ffbd29bbce3dd",
+          "recipients": [
+            "peer:18813808898ffbd29bbce3dd"
+          ],
+          "sharingScope": "mesh",
+          "source": "permission"
+        },
+        "createdAt": 1792249712911,
+        "error": null,
+        "execution": {
+          "adapterIdentities": [],
+          "completion": {
+            "generatedTokenCount": 3,
+            "promptTokenCount": 85,
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "stop-token"
+          },
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "ee64e79a-d691-49a6-8210-ca5d49acfde3",
+          "placement": "peer-whole-request",
+          "provider": "peer",
+          "stopReason": "stop-token",
+          "timing": {
+            "decodeMs": 2338.7618290036917,
+            "firstTokenMs": 1057.500367000699,
+            "generatedTokenCount": 3,
+            "prefillMs": 1053.7334289997816,
+            "totalMs": 3397.0456620007753
+          }
+        },
+        "finishedAt": 1792249716492,
+        "id": "6a664e5c-f38a-44fc-8279-8845842c475b",
+        "provenance": {
+          "attemptId": "6a664e5c-f38a-44fc-8279-8845842c475b",
+          "classes": [
+            "mesh"
+          ],
+          "earlierAttempts": [],
+          "execution": {
+            "classes": [
+              "mesh"
+            ],
+            "participants": [
+              {
+                "participantId": "ee64e79a-d691-49a6-8210-ca5d49acfde3",
+                "role": "whole-request",
+                "stage": null,
+                "supply": "mesh"
+              }
+            ],
+            "placement": "peer-whole-request",
+            "supply": "mesh"
+          },
+          "retrieval": {
+            "supply": "none"
+          },
+          "schema": "reploid.answer-provenance/v1",
+          "supply": "mesh"
+        },
+        "publicationMode": "whole-model",
+        "request": {
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+              "role": "system"
+            },
+            {
+              "content": "What is 17 + 25? Answer with the number only.",
+              "role": "user"
+            },
+            {
+              "content": "42",
+              "role": "assistant"
+            },
+            {
+              "content": "Subtract 2 from that result. Answer with the number only.",
+              "role": "user"
+            }
+          ],
+          "model": {
+            "adapters": [],
+            "availability": "ready",
+            "contextLength": 262144,
+            "id": "qwen-3-5-2b-q4k-ehaf16",
+            "identity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "name": "Qwen 3.5 2B",
+            "networkAvailability": "ready",
+            "packageName": "doppler-gpu",
+            "packageVersion": "0.6.31",
+            "partitionSplitLayer": 4,
+            "provider": "doppler",
+            "providerIds": [
+              "ee64e79a-d691-49a6-8210-ca5d49acfde3"
+            ],
+            "quantization": "q4k",
+            "recommended": true,
+            "size": "Q4K",
+            "source": {
+              "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+              "files": [
+                {
+                  "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                  "hashAlgorithm": "sha256",
+                  "path": "manifest.json",
+                  "role": "model-manifest",
+                  "sizeBytes": 183803,
+                  "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+                },
+                {
+                  "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+                  "hashAlgorithm": "sha256",
+                  "path": "tokenizer.json",
+                  "role": "tokenizer",
+                  "sizeBytes": 9088480
+                },
+                {
+                  "hash": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+                  "hashAlgorithm": "sha256",
+                  "path": "qwen-2b-pieces.json",
+                  "role": "model-piece-index",
+                  "sizeBytes": 111108,
+                  "url": "/config/model-pieces/qwen-2b-pieces.json"
+                }
+              ]
+            }
+          },
+          "permissions": {
+            "executionLocation": "auto",
+            "sharingScope": "mesh"
+          }
+        },
+        "responseId": "f08a4511-b984-426e-8da9-fbb4708fa609",
+        "retryOf": null,
+        "status": "completed",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        },
+        "threadId": "ec4d4af4-f50d-4557-8b0d-7e51cfacf55a",
+        "userMessageId": "4174e97d-260e-415b-8380-dad523f3b12c"
+      },
+      "answer": "40"
+    },
+    {
+      "attempt": {
+        "approval": null,
+        "authorization": {
+          "adapterIdentities": [],
+          "disclosure": "public",
+          "expiresAt": 1792249752896,
+          "grantId": null,
+          "kind": "permission",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "ee64e79a-d691-49a6-8210-ca5d49acfde3",
+          "permissionId": "b41075d2-252d-467b-85bb-99aff27ccc62",
+          "recipientIdentity": "peer:18813808898ffbd29bbce3dd",
+          "recipients": [
+            "peer:18813808898ffbd29bbce3dd"
+          ],
+          "sharingScope": "mesh",
+          "source": "permission"
+        },
+        "createdAt": 1792249722836,
+        "error": null,
+        "execution": {
+          "adapterIdentities": [],
+          "completion": {
+            "generatedTokenCount": 3,
+            "promptTokenCount": 111,
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "stop-token"
+          },
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "ee64e79a-d691-49a6-8210-ca5d49acfde3",
+          "placement": "peer-whole-request",
+          "provider": "peer",
+          "stopReason": "stop-token",
+          "timing": {
+            "decodeMs": 2450.366417005658,
+            "firstTokenMs": 1420.5636820048094,
+            "generatedTokenCount": 3,
+            "prefillMs": 1416.825608998537,
+            "totalMs": 3871.8872020095587
+          }
+        },
+        "finishedAt": 1792249726874,
+        "id": "2bcd17cd-7f3e-45fa-ad29-6dbeb047f4b7",
+        "provenance": {
+          "attemptId": "2bcd17cd-7f3e-45fa-ad29-6dbeb047f4b7",
+          "classes": [
+            "mesh"
+          ],
+          "earlierAttempts": [],
+          "execution": {
+            "classes": [
+              "mesh"
+            ],
+            "participants": [
+              {
+                "participantId": "ee64e79a-d691-49a6-8210-ca5d49acfde3",
+                "role": "whole-request",
+                "stage": null,
+                "supply": "mesh"
+              }
+            ],
+            "placement": "peer-whole-request",
+            "supply": "mesh"
+          },
+          "retrieval": {
+            "supply": "none"
+          },
+          "schema": "reploid.answer-provenance/v1",
+          "supply": "mesh"
+        },
+        "publicationMode": "whole-model",
+        "request": {
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+              "role": "system"
+            },
+            {
+              "content": "What is 17 + 25? Answer with the number only.",
+              "role": "user"
+            },
+            {
+              "content": "42",
+              "role": "assistant"
+            },
+            {
+              "content": "Subtract 2 from that result. Answer with the number only.",
+              "role": "user"
+            },
+            {
+              "content": "40",
+              "role": "assistant"
+            },
+            {
+              "content": "What is 6 times 7? Answer with the number only.",
+              "role": "user"
+            }
+          ],
+          "model": {
+            "adapters": [],
+            "availability": "ready",
+            "contextLength": 262144,
+            "id": "qwen-3-5-2b-q4k-ehaf16",
+            "identity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "name": "Qwen 3.5 2B",
+            "networkAvailability": "ready",
+            "packageName": "doppler-gpu",
+            "packageVersion": "0.6.31",
+            "partitionSplitLayer": 4,
+            "provider": "doppler",
+            "providerIds": [
+              "ee64e79a-d691-49a6-8210-ca5d49acfde3"
+            ],
+            "quantization": "q4k",
+            "recommended": true,
+            "size": "Q4K",
+            "source": {
+              "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+              "files": [
+                {
+                  "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                  "hashAlgorithm": "sha256",
+                  "path": "manifest.json",
+                  "role": "model-manifest",
+                  "sizeBytes": 183803,
+                  "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+                },
+                {
+                  "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+                  "hashAlgorithm": "sha256",
+                  "path": "tokenizer.json",
+                  "role": "tokenizer",
+                  "sizeBytes": 9088480
+                },
+                {
+                  "hash": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+                  "hashAlgorithm": "sha256",
+                  "path": "qwen-2b-pieces.json",
+                  "role": "model-piece-index",
+                  "sizeBytes": 111108,
+                  "url": "/config/model-pieces/qwen-2b-pieces.json"
+                }
+              ]
+            }
+          },
+          "permissions": {
+            "executionLocation": "auto",
+            "sharingScope": "mesh"
+          }
+        },
+        "responseId": "347f3241-9e20-484f-aae7-9e5d586157b9",
+        "retryOf": null,
+        "status": "completed",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        },
+        "threadId": "ec4d4af4-f50d-4557-8b0d-7e51cfacf55a",
+        "userMessageId": "ae07c0bb-65d6-4c83-9d1e-be0ae5fa9165"
+      },
+      "answer": "42"
+    }
+  ],
+  "cancelled": true,
+  "reusedAfterCancellation": true,
+  "historyPreserved": true,
+  "weightRequests": [],
+  "errors": []
+}

@@ -1,0 +1,73 @@
+{
+  "sourceHead": "f51234a359e595f1b7cdd7a8c6ec0445a998b7c9",
+  "scope": "Live public browser to existing AMD native whole-model Q4K service; isolated requester profiles; no provider restart",
+  "tests": [
+    {
+      "title": "whole-model browser conversation preserves the qualified long prompt",
+      "file": "chat-native-whole-model-capacity.spec.js",
+      "status": "expected",
+      "runs": [
+        {
+          "status": "passed",
+          "durationMs": 98664,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "prepared whole-model service completes frozen independent chat tasks",
+      "file": "chat-native-whole-model-tasks.spec.js",
+      "status": "unexpected",
+      "runs": [
+        {
+          "status": "failed",
+          "durationMs": 37451,
+          "errors": [
+            "Error: code-trace\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"2\u001b[7m6\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"2\u001b[7m2\u001b[27m\"\u001b[39m\n\n  46 |         try { parsed = JSON.parse(answer); } catch { parsed = answer; }\n  47 |         expect.soft(parsed, task.id).toEqual(task.expectedJson);\n> 48 |       } else expect.soft(answer, task.id).toBe(task.expected);\n     |                                           ^\n  49 |     }\n  50 |     expect(errors).toEqual([]);\n  51 |   } finally {\n    at /Users/xyz/deco/reploid/tests/e2e/chat-native-whole-model-tasks.spec.js:48:43"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "native whole-model chat streams, follows up, cancels, reuses and reloads",
+      "file": "chat-native-whole-model.spec.js",
+      "status": "expected",
+      "runs": [
+        {
+          "status": "passed",
+          "durationMs": 20583,
+          "errors": []
+        }
+      ]
+    }
+  ],
+  "harnessSha256": {
+    "tests/e2e/chat-native-whole-model.spec.js": "3fcdd9d9d214596d5974623a7f198bb6b2c6aabfc517a596659ab973272cded2",
+    "tests/e2e/chat-native-whole-model-capacity.spec.js": "fef2f1d6534356cc70def71fd268b63c34c48e0726ed44a75cc1fd2753af3c22",
+    "tests/e2e/chat-native-whole-model-tasks.spec.js": "4525ef37ae56ae680dc23afb3c15452ada1892922bf6b91df22c26f89720eea8",
+    "tests/fixtures/chat-workspace-history.js": "848808556b992f93cc6b5b6599e74f7ef91c2ab53b90ff8446b980754d5b0d57",
+    "tests/fixtures/qwen27b-capacity-case.json": "f305f4aafb05dca48403979cab477d629ce9452a22bfec4c28cef322ce648edf",
+    "tests/fixtures/qwen27b-service-tasks.json": "cf59fdcdc1fa1659586822ea05033efeedcfbb6e1d6d1c26f94611670419a22f"
+  },
+  "verdicts": {
+    "runtimeIdentity": "pass: exact retained patched inventory and runtime config",
+    "browserLifecycle": "pass",
+    "longContext": "pass: 3816 prompt tokens, 256-token answer cap, 256-token prefill chunks",
+    "additionalTasks": "7/8: code-trace answered 22 instead of 26; cause not isolated",
+    "sustainedMultiuser": "not tested",
+    "hardwareCapacityTiers": "not tested",
+    "F16QualityComparison": "not repeated",
+    "publicPackageRelease": "not performed"
+  },
+  "evidenceSha256": {
+    "installed-audit.json": "8d6e06773be5e1b48612f26225f3d41f9bb8d9117fe1653d4620fd2e9167e7d3",
+    "long-context-chat.json": "7ca30670c1b9f5ad94b905beacb9ed53661f683972da2bd0a8ed087fd2fc8b25",
+    "ready-models.json": "89a05fbc336aadffe1cdffa8886bb57beaca8d4ffc3683803ac5b7273f515d96",
+    "ready-models.png": "170a74477917d6fdcbff22d8f334135104d1d3b0695851ec11865a895898314e",
+    "service-status.json": "a8fae6b490a8e48884a2a5b8f773766f43877c78bc68523efa0e348bcce987e2",
+    "service-tasks.json": "e7b6e286e1f5d78ed7ac7c8cc9c6d6a3aadac6eee18ca8a0a8c294d4613496b6",
+    "task-suite-final-state.png": "06a34e1d9e37fd14ac2698a2d8da76aedb98b4bada855e2ddbcd9a2a7e0aec0c",
+    "whole-model-answer.png": "dd22d288b6207ba1353df0bc5611286144df30818324ebe779ec57f3b12597dc",
+    "whole-model-chat.json": "bf6c65db7872100217547399a9374cb68595eb4ebc7570cea22043f5fea29525"
+  }
+}

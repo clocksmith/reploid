@@ -1,0 +1,288 @@
+{
+  "passed": true,
+  "errors": [],
+  "warnings": [
+    "Warning in /host/research-plugins.js: Path traversal pattern detected (../) - potential security risk",
+    "Warning in /ui/pool-home/research-plugins.js: Path traversal pattern detected (../) - potential security risk",
+    "Warning in /ui/pool-home/research-plugins.js: innerHTML assignment is risky - consider textContent",
+    "Nesting depth of 6 exceeds 5 - refactor nested code",
+    "11 lines exceed 200 characters",
+    "Nesting depth of 6 exceeds 5 - refactor nested code",
+    "Warning in /vendor/reploid/plugins/session.js: Path traversal pattern detected (../) - potential security risk",
+    "Warning in /vendor/reploid/plugins/session.js:10: Dynamic property write detected: [name] - verify input sanitization",
+    "Nesting depth of 9 exceeds 5 - refactor nested code",
+    "Warning in /ui/pool-home/index.js: Path traversal pattern detected (../) - potential security risk",
+    "Warning in /ui/pool-home/index.js: innerHTML assignment is risky - consider textContent",
+    "Warning in /ui/pool-home/index.js: insertAdjacentHTML is risky - potential XSS",
+    "File has 21 functions (max 20) - consider modularizing",
+    "Nesting depth of 7 exceeds 5 - refactor nested code",
+    "Warning in /ui/pool-home/shell-view.js: Path traversal pattern detected (../) - potential security risk",
+    "File exceeds 500 lines (574) - consider splitting"
+  ],
+  "events": [
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792201235473,
+      "path": "/host/research-plugins.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792201235477,
+      "path": "/ui/pool-home/research-plugins.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792201235477,
+      "path": "/ui/pool-home/research-plugins.js",
+      "patternId": "innerhtml_assign",
+      "category": "dom",
+      "message": "innerHTML assignment is risky - consider textContent",
+      "severity": "warning"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1792201235478,
+      "metric": "nesting",
+      "value": 6,
+      "threshold": 5,
+      "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "path": "/ui/pool-home/research-plugins.js"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1792201235478,
+      "metric": "line_length",
+      "value": 11,
+      "threshold": 5,
+      "message": "11 lines exceed 200 characters",
+      "path": "/ui/pool-home/research-plugins.js"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1792201235480,
+      "metric": "nesting",
+      "value": 6,
+      "threshold": 5,
+      "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "path": "/plugins/model-imitation/plugin.js"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792201235481,
+      "path": "/vendor/reploid/plugins/session.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792201235481,
+      "path": "/vendor/reploid/plugins/session.js",
+      "patternId": "dynamic_property_write",
+      "category": "structural",
+      "message": "Dynamic property write detected: [name] - verify input sanitization",
+      "line": 10,
+      "severity": "warning"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1792201235481,
+      "metric": "nesting",
+      "value": 9,
+      "threshold": 5,
+      "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+      "path": "/vendor/reploid/plugins/session.js"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792201235482,
+      "path": "/ui/pool-home/index.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792201235482,
+      "path": "/ui/pool-home/index.js",
+      "patternId": "innerhtml_assign",
+      "category": "dom",
+      "message": "innerHTML assignment is risky - consider textContent",
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792201235482,
+      "path": "/ui/pool-home/index.js",
+      "patternId": "insertadjacenthtml",
+      "category": "dom",
+      "message": "insertAdjacentHTML is risky - potential XSS",
+      "severity": "warning"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1792201235483,
+      "metric": "functions",
+      "value": 21,
+      "threshold": 20,
+      "message": "File has 21 functions (max 20) - consider modularizing",
+      "path": "/ui/pool-home/index.js"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1792201235483,
+      "metric": "nesting",
+      "value": 7,
+      "threshold": 5,
+      "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+      "path": "/ui/pool-home/index.js"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792201235484,
+      "path": "/ui/pool-home/shell-view.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1792201235486,
+      "metric": "lines",
+      "value": 574,
+      "threshold": 500,
+      "message": "File exceeds 500 lines (574) - consider splitting",
+      "path": "/ui/pool-home/constants.js"
+    }
+  ],
+  "details": {
+    "patternViolations": [
+      {
+        "path": "/host/research-plugins.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "path": "/ui/pool-home/research-plugins.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "path": "/ui/pool-home/research-plugins.js",
+        "patternId": "innerhtml_assign",
+        "category": "dom",
+        "message": "innerHTML assignment is risky - consider textContent",
+        "severity": "warning"
+      },
+      {
+        "path": "/vendor/reploid/plugins/session.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "path": "/ui/pool-home/index.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "path": "/ui/pool-home/index.js",
+        "patternId": "innerhtml_assign",
+        "category": "dom",
+        "message": "innerHTML assignment is risky - consider textContent",
+        "severity": "warning"
+      },
+      {
+        "path": "/ui/pool-home/index.js",
+        "patternId": "insertadjacenthtml",
+        "category": "dom",
+        "message": "insertAdjacentHTML is risky - potential XSS",
+        "severity": "warning"
+      },
+      {
+        "path": "/ui/pool-home/shell-view.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      }
+    ],
+    "complexityWarnings": [
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/ui/pool-home/research-plugins.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "line_length",
+        "value": 11,
+        "threshold": 5,
+        "message": "11 lines exceed 200 characters",
+        "path": "/ui/pool-home/research-plugins.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/plugins/model-imitation/plugin.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 9,
+        "threshold": 5,
+        "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+        "path": "/vendor/reploid/plugins/session.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "functions",
+        "value": 21,
+        "threshold": 20,
+        "message": "File has 21 functions (max 20) - consider modularizing",
+        "path": "/ui/pool-home/index.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/ui/pool-home/index.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "lines",
+        "value": 574,
+        "threshold": 500,
+        "message": "File exceeds 500 lines (574) - consider splitting",
+        "path": "/ui/pool-home/constants.js"
+      }
+    ],
+    "filesAnalyzed": 7
+  }
+}

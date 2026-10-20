@@ -81,7 +81,7 @@ export interface ChatResult extends ChatEnvelope {
 }
 export interface ChatAttempt {
   /** Text is authoritative only in requester-owned publication records (canonical or ordinary ordered). */
-  publicationMode?: 'canonical';
+  publicationMode?: 'canonical' | 'whole-model';
   id: string;
   threadId: string;
   userMessageId: string;
@@ -168,13 +168,13 @@ export interface ChatWorkspace {
   createThread(options: { model: ChatModel; purpose?: string; members?: string[]; permissions?: Record<string, unknown>; systemContext?: ChatSystemContext | null }): string;
   setExecutionLocation(threadId: string, location: 'auto' | 'local' | 'network'): void;
   setSystemContext(threadId: string, value: ChatSystemContext | null): void;
-  select(threadId: string | null): void;
+  select(threadId: string | null): void | Promise<void>;
   renameThread(threadId: string, title: string): void;
   closeThread(threadId: string): void;
   reopenThread(threadId: string): void;
   send(threadId: string, content: string, options?: ChatSendOptions): ChatAttemptCompletion;
-  /** A retry of a retrieval-backed attempt retrieves again under the same query and limits; a search-answer retry needs a fresh searchPermission. */
-  retry(threadId: string, attemptId: string, options?: Pick<ChatSendOptions, 'authorizeDisclosure' | 'searchPermission'>): ChatAttemptCompletion;
+  /** Retrieves again under the same limits. A changed query and every search-answer retry require a fresh searchPermission. */
+  retry(threadId: string, attemptId: string, options?: Pick<ChatSendOptions, 'authorizeDisclosure' | 'searchPermission'> & { retrievalQuery?: string | null }): ChatAttemptCompletion;
   /** Decline cancels only this attempt. Accepting is refused when the host supplies remotePermissions. */
   approve(threadId: string, attemptId: string, previewId: string, accepted: boolean, options?: { remember?: boolean }): void;
   /** Continues waiting attempts a stored permission now covers; returns how many. */

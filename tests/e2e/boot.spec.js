@@ -92,9 +92,53 @@ test.describe('Boot Screen', () => {
 });
 
 test.describe('Route Entry Points', () => {
+  for (const path of [PRODUCT_HOME_PATH, '/pool-entry.html']) {
+    test(`bounds public-route recovery when session storage is unavailable: ${path}`, async ({ page }) => {
+      await page.addInitScript(() => {
+        Object.defineProperty(window, 'sessionStorage', { configurable: true,
+          get() { throw new DOMException('Storage denied', 'SecurityError'); } });
+      });
+      let requests = 0;
+      await page.route('**/ui/pool-home/app.bundle.js', route => {
+        requests++;
+        return route.fulfill({ status: 503, contentType: 'text/plain', body: 'Temporarily unavailable' });
+      });
+      await page.goto(path, { waitUntil: 'domcontentloaded' });
+      await expect(page.locator('.pool-boot-failure')).toBeVisible({ timeout: 3000 });
+      expect(requests).toBe(2);
+      await expect(page.locator('[data-chat-workspace]')).toHaveCount(0);
+    });
+
+    test(`opens public-route history while inference module downloads are stalled: ${path}`, async ({ page }) => {
+      let release;
+      const pending = new Promise(resolve => { release = resolve; });
+      await page.route('**/vendor/doppler/**', async route => { await pending; await route.abort().catch(() => {}); });
+      try {
+        await page.goto(path, { waitUntil: 'domcontentloaded' });
+        await expect(page.locator('[data-chat-workspace]')).toBeVisible({ timeout: 5000 });
+        expect(await page.evaluate(() => location.search)).not.toContain('reploidBootRetry');
+      } finally { release(); }
+    });
+
+    test(`bounds public-route initialization after the bundle has loaded: ${path}`, async ({ page }) => {
+      await page.addInitScript(() => {
+        const original = window.setTimeout;
+        window.setTimeout = (callback, delay, ...args) => original(callback, delay === 10000 ? 100 : delay, ...args);
+      });
+      let requests = 0;
+      await page.route('**/ui/pool-home/app.bundle.js', route => {
+        requests++;
+        return route.fulfill({ contentType: 'application/javascript', body: 'export const initPoolHome = () => new Promise(() => {});' });
+      });
+      await page.goto(path, { waitUntil: 'domcontentloaded' });
+      await expect(page.locator('.pool-boot-failure')).toBeVisible({ timeout: 3000 });
+      expect(requests).toBe(2);
+    });
+  }
+
   test('recovers once from a transient public-route module failure', async ({ page }) => {
     let failedRequests = 0;
-    await page.route('**/ui/pool-home/view.js', async (route) => {
+    await page.route('**/ui/pool-home/app.bundle.js', async (route) => {
       if (failedRequests === 0) {
         failedRequests += 1;
         await route.fulfill({
@@ -108,11 +152,23 @@ test.describe('Route Entry Points', () => {
     });
 
     await page.goto(PRODUCT_HOME_PATH);
-    await page.waitForSelector('.pool-home', { timeout: 30000 });
+    await page.locator('[data-chat-workspace]').waitFor({ timeout: 30000 });
 
     expect(failedRequests).toBe(1);
     expect(new URL(page.url()).searchParams.has('reploidBootRetry')).toBe(false);
     await expect(page.locator('.pool-boot-failure')).toHaveCount(0);
+  });
+
+  test('stops after one public-route recovery when the product bundle stays unavailable', async ({ page }) => {
+    let requests = 0;
+    await page.route('**/ui/pool-home/app.bundle.js', route => {
+      requests++;
+      return route.fulfill({ status: 503, contentType: 'text/plain', body: 'Temporarily unavailable' });
+    });
+    await page.goto(PRODUCT_HOME_PATH);
+    await expect(page.locator('.pool-boot-failure')).toHaveText('Reploid could not load. Reload the page to try again.');
+    expect(requests).toBe(2);
+    await expect(page.locator('[data-chat-workspace]')).toHaveCount(0);
   });
 
   test('home keeps the task composer below connected activity navigation', async ({ page }) => {

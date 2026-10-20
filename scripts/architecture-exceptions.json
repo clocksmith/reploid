@@ -1,6 +1,13 @@
 {
   "loaders": [
     {
+      "source": "self/host/lora-training-worker.js",
+      "expression": "DOPPLER_TRAINING_URL",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Pinned Doppler public training API in an isolated worker, opened only after explicit sample and training consent. Peers cannot select runtime code or module URLs.",
+      "removalCondition": "Remove if the worker no longer loads the version-pinned public training entry."
+    },
+    {
       "source": "self/host/work-model-files.js",
       "expression": "DOPPLER_PARTITIONS_MODULE_URL",
       "owner": "self/host/CATSCAN.md",

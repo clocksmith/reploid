@@ -1,0 +1,1003 @@
+{
+  "question": "According to MDN, what is WebGPU used for? Answer in two sentences with citations to the fetched sources.",
+  "url": "https://replo.id",
+  "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "at": "2026-10-16T23:38:50.309Z",
+  "permissions": [
+    {
+      "kind": "search",
+      "text": "Search for this answer?\n\nAllow Reploid to send this search query to the listed search contributor, which sends it to Bing and fetches public result pages without personal sign-ins. Share the retrieved passages with the listed execution contributors for this answer. Your files and unrelated conversation history are excluded.\n\nSearch contributor: Computer 2 (peer:691a71be6c88b33d7f0123d2)\n\nExecution contributors:\n\nComputer 4\nComputer 3\nDon't search\nAllow",
+      "elapsedMs": 35.55658300000505
+    },
+    {
+      "kind": "remote",
+      "text": "Answer with contributors' computers?\n\nTo answer, this conversation is sent to contributors' computers on this network: your message, earlier messages in the thread, and the context prompt when it is on.\n\nThe first computer receives the text. The other computers receive the same content as model tokens, which read back as text, plus intermediate results.\n\nYou are asked once. Later questions and follow-ups are sent the same way until you turn this off in Settings.\n\nKeep answers local\nAllow",
+      "elapsedMs": 1118.572500000002
+    }
+  ],
+  "firstTextMs": 20581.402500000004,
+  "completeMs": 23687.701791000007,
+  "history": {
+    "attempts": [
+      {
+        "approval": null,
+        "authorization": {
+          "adapterIdentities": [],
+          "disclosure": "ordered-partition-activations-and-tokens",
+          "expiresAt": 1792194807762,
+          "grantId": null,
+          "kind": "permission",
+          "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+          "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+          "peerId": "peer:efb774c9f322dab41567fce6",
+          "permissionId": "21f0b464-8742-4f27-90c6-61bbae535de4",
+          "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+          "recipientIdentity": "peer:efb774c9f322dab41567fce6",
+          "recipients": [
+            "peer:efb774c9f322dab41567fce6",
+            "peer:036f2d43da19536d800b6c2f"
+          ],
+          "requesterIdentity": "peer:4ccfbabf294037009e297594",
+          "route": {
+            "activation": {
+              "components": 1,
+              "dtype": "f32",
+              "elementStrideBytes": 4,
+              "hiddenSize": 5120,
+              "precision": "f32",
+              "schema": "doppler.activation-tensor/v1"
+            },
+            "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+            "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+            "schema": "reploid.partition-route/v1",
+            "stages": [
+              {
+                "executionId": "q4k-split-chat-mac",
+                "index": 0,
+                "participantId": "peer:efb774c9f322dab41567fce6",
+                "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+              },
+              {
+                "executionId": "q4k-split-chat-amd",
+                "index": 1,
+                "participantId": "peer:036f2d43da19536d800b6c2f",
+                "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+              }
+            ]
+          },
+          "sharingScope": "mesh",
+          "source": "permission"
+        },
+        "createdAt": 1792193906701,
+        "error": null,
+        "execution": {
+          "activationBytes": 6533120,
+          "admission": {
+            "queuedMs": 0
+          },
+          "identity": {
+            "attemptId": "ca8e9ecc-92d8-4060-8460-b025d337c874",
+            "placementGeneration": 0,
+            "requesterId": "peer:4ccfbabf294037009e297594",
+            "route": {
+              "activation": {
+                "components": 1,
+                "dtype": "f32",
+                "elementStrideBytes": 4,
+                "hiddenSize": 5120,
+                "precision": "f32",
+                "schema": "doppler.activation-tensor/v1"
+              },
+              "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+              "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+              "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+              "schema": "reploid.partition-route/v1",
+              "stages": [
+                {
+                  "executionId": "q4k-split-chat-mac",
+                  "index": 0,
+                  "participantId": "peer:efb774c9f322dab41567fce6",
+                  "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                  "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                },
+                {
+                  "executionId": "q4k-split-chat-amd",
+                  "index": 1,
+                  "participantId": "peer:036f2d43da19536d800b6c2f",
+                  "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                  "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                }
+              ]
+            },
+            "schema": "reploid.partition-attempt/v2",
+            "threadId": "6ca30e37-4523-4086-8786-edaa430c0bf5"
+          },
+          "schema": "reploid.mesh.partition-summary/v2",
+          "selection": {
+            "eligibility": [
+              {
+                "capacity": {
+                  "active": 0,
+                  "availableSlots": 0,
+                  "closed": true
+                },
+                "eligible": false,
+                "participantId": "peer:691a71be6c88b33d7f0123d2",
+                "reason": "no-prepared-path",
+                "transportId": "c8e2c828-ec80-410f-99f1-ed561ae23726"
+              },
+              {
+                "capacity": {
+                  "active": 0,
+                  "availableSlots": 2,
+                  "closed": false
+                },
+                "eligible": false,
+                "participantId": "peer:036f2d43da19536d800b6c2f",
+                "reason": "no-prepared-path",
+                "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+              },
+              {
+                "capacity": {
+                  "active": 0,
+                  "attemptQueue": {
+                    "maxQueued": 4,
+                    "queued": 0
+                  },
+                  "availableSlots": 2,
+                  "closed": false
+                },
+                "eligible": true,
+                "participantId": "peer:efb774c9f322dab41567fce6",
+                "reason": "reservation-required",
+                "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+              }
+            ],
+            "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+          },
+          "settlement": {
+            "cleanup": [
+              {
+                "error": null,
+                "partitionIndex": 0,
+                "status": "settled"
+              },
+              {
+                "error": null,
+                "partitionIndex": 1,
+                "status": "settled"
+              }
+            ],
+            "cleanupSettledAt": 1792193930283,
+            "failure": null,
+            "identity": {
+              "attemptId": "ca8e9ecc-92d8-4060-8460-b025d337c874",
+              "placementGeneration": 0,
+              "requesterId": "peer:4ccfbabf294037009e297594",
+              "route": {
+                "activation": {
+                  "components": 1,
+                  "dtype": "f32",
+                  "elementStrideBytes": 4,
+                  "hiddenSize": 5120,
+                  "precision": "f32",
+                  "schema": "doppler.activation-tensor/v1"
+                },
+                "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+                "schema": "reploid.partition-route/v1",
+                "stages": [
+                  {
+                    "executionId": "q4k-split-chat-mac",
+                    "index": 0,
+                    "participantId": "peer:efb774c9f322dab41567fce6",
+                    "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                    "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                  },
+                  {
+                    "executionId": "q4k-split-chat-amd",
+                    "index": 1,
+                    "participantId": "peer:036f2d43da19536d800b6c2f",
+                    "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                    "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                  }
+                ]
+              },
+              "schema": "reploid.partition-attempt/v2",
+              "threadId": "6ca30e37-4523-4086-8786-edaa430c0bf5"
+            },
+            "phase": "completed",
+            "reservations": [
+              {
+                "failure": null,
+                "identity": {
+                  "attemptId": "ca8e9ecc-92d8-4060-8460-b025d337c874",
+                  "placementGeneration": 0,
+                  "requesterId": "peer:4ccfbabf294037009e297594",
+                  "route": {
+                    "activation": {
+                      "components": 1,
+                      "dtype": "f32",
+                      "elementStrideBytes": 4,
+                      "hiddenSize": 5120,
+                      "precision": "f32",
+                      "schema": "doppler.activation-tensor/v1"
+                    },
+                    "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                    "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                    "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+                    "schema": "reploid.partition-route/v1",
+                    "stages": [
+                      {
+                        "executionId": "q4k-split-chat-mac",
+                        "index": 0,
+                        "participantId": "peer:efb774c9f322dab41567fce6",
+                        "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                        "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                      },
+                      {
+                        "executionId": "q4k-split-chat-amd",
+                        "index": 1,
+                        "participantId": "peer:036f2d43da19536d800b6c2f",
+                        "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                        "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                      }
+                    ]
+                  },
+                  "schema": "reploid.partition-attempt/v2",
+                  "threadId": "6ca30e37-4523-4086-8786-edaa430c0bf5"
+                },
+                "index": 0,
+                "participantId": "peer:efb774c9f322dab41567fce6",
+                "partitionIndex": 0,
+                "phase": "reserved",
+                "reservedAt": 1792193907904,
+                "resources": {
+                  "attemptSlots": 1,
+                  "maxActivationBytes": 33554432,
+                  "maxPromptTokens": 4096,
+                  "maxTokens": 4096,
+                  "scope": "application-attempt-limits"
+                },
+                "settledAt": null,
+                "settlingAt": null,
+                "status": "reserved"
+              },
+              {
+                "failure": null,
+                "identity": {
+                  "attemptId": "ca8e9ecc-92d8-4060-8460-b025d337c874",
+                  "placementGeneration": 0,
+                  "requesterId": "peer:4ccfbabf294037009e297594",
+                  "route": {
+                    "activation": {
+                      "components": 1,
+                      "dtype": "f32",
+                      "elementStrideBytes": 4,
+                      "hiddenSize": 5120,
+                      "precision": "f32",
+                      "schema": "doppler.activation-tensor/v1"
+                    },
+                    "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                    "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                    "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+                    "schema": "reploid.partition-route/v1",
+                    "stages": [
+                      {
+                        "executionId": "q4k-split-chat-mac",
+                        "index": 0,
+                        "participantId": "peer:efb774c9f322dab41567fce6",
+                        "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                        "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                      },
+                      {
+                        "executionId": "q4k-split-chat-amd",
+                        "index": 1,
+                        "participantId": "peer:036f2d43da19536d800b6c2f",
+                        "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                        "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                      }
+                    ]
+                  },
+                  "schema": "reploid.partition-attempt/v2",
+                  "threadId": "6ca30e37-4523-4086-8786-edaa430c0bf5"
+                },
+                "index": 1,
+                "participantId": "peer:036f2d43da19536d800b6c2f",
+                "partitionIndex": 1,
+                "phase": "reserved",
+                "reservedAt": 1792193907976,
+                "resources": {
+                  "attemptSlots": 1,
+                  "maxActivationBytes": 33554432,
+                  "maxPromptTokens": 4096,
+                  "maxTokens": 4096,
+                  "scope": "application-attempt-limits"
+                },
+                "settledAt": null,
+                "settlingAt": null,
+                "status": "reserved"
+              }
+            ]
+          },
+          "stepSummary": {
+            "count": 9,
+            "detail": "aggregate; no per-step trace transferred",
+            "phases": {
+              "decode": {
+                "stages": [
+                  {
+                    "elapsedMs": {
+                      "count": 8,
+                      "max": 57.576084000989795,
+                      "min": 16.948875000700355,
+                      "total": 209.31308400258422
+                    },
+                    "partitionIndex": 0,
+                    "runtime": {
+                      "activationReadbackMs": {
+                        "count": 8,
+                        "max": 1.096832999959588,
+                        "min": 0.24050000123679638,
+                        "total": 4.41508099809289
+                      },
+                      "encodeMs": {
+                        "count": 8,
+                        "max": 1.3192919995635748,
+                        "min": 0.9119170010089874,
+                        "total": 8.61608400195837
+                      },
+                      "executionMs": {
+                        "count": 8,
+                        "max": 56.47595899924636,
+                        "min": 15.774041999131441,
+                        "total": 200.5862939991057
+                      },
+                      "gpuKernelsMs": {
+                        "count": 0,
+                        "max": null,
+                        "min": null,
+                        "total": 0
+                      },
+                      "inputUploadMs": {
+                        "count": 8,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "logitsMs": {
+                        "count": 8,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "logitsReadbackMs": {
+                        "count": 8,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "samplingMs": {
+                        "count": 8,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "submitWaitMs": {
+                        "count": 8,
+                        "max": 54.415166998282075,
+                        "min": 13.391958000138402,
+                        "total": 186.6044999975711
+                      }
+                    }
+                  },
+                  {
+                    "elapsedMs": {
+                      "count": 8,
+                      "max": 994.7195839993656,
+                      "min": 225.79441699944437,
+                      "total": 2803.8919999971986
+                    },
+                    "partitionIndex": 1,
+                    "runtime": {
+                      "activationReadbackMs": {
+                        "count": 8,
+                        "max": 0,
+                        "min": 0,
+                        "total": 0
+                      },
+                      "encodeMs": {
+                        "count": 8,
+                        "max": 290.2172959987074,
+                        "min": 39.48995500057936,
+                        "total": 593.4057149980217
+                      },
+                      "executionMs": {
+                        "count": 8,
+                        "max": 710.1889709997922,
+                        "min": 153.29429800063372,
+                        "total": 1824.1605600006878
+                      },
+                      "gpuKernelsMs": {
+                        "count": 0,
+                        "max": null,
+                        "min": null,
+                        "total": 0
+                      },
+                      "inputUploadMs": {
+                        "count": 8,
+                        "max": 0.0650820005685091,
+                        "min": 0.05410199984908104,
+                        "total": 0.45283300429582596
+                      },
+                      "logitsMs": {
+                        "count": 8,
+                        "max": 1.1321639996021986,
+                        "min": 0.9745770003646612,
+                        "total": 8.383057001978159
+                      },
+                      "logitsReadbackMs": {
+                        "count": 8,
+                        "max": 8.656622000038624,
+                        "min": 3.930817000567913,
+                        "total": 41.384052999317646
+                      },
+                      "samplingMs": {
+                        "count": 8,
+                        "max": 1.6060569994151592,
+                        "min": 1.1496559996157885,
+                        "total": 10.154943997040391
+                      },
+                      "submitWaitMs": {
+                        "count": 8,
+                        "max": 418.2121400013566,
+                        "min": 111.67745499871671,
+                        "total": 1216.4832819998264
+                      }
+                    }
+                  }
+                ],
+                "steps": 8
+              },
+              "prompt": {
+                "inputTokens": 311,
+                "stages": [
+                  {
+                    "elapsedMs": 1105.9486660007387,
+                    "partitionIndex": 0,
+                    "runtime": {
+                      "activationReadbackMs": 3.8265410028398037,
+                      "encodeMs": 384.91249999962747,
+                      "executionMs": 1101.971958000213,
+                      "gpuKernelsMs": null,
+                      "inputUploadMs": 0,
+                      "logitsMs": 0,
+                      "logitsReadbackMs": 0,
+                      "samplingMs": 0,
+                      "submitWaitMs": 712.5610419996083
+                    }
+                  },
+                  {
+                    "elapsedMs": 18032.589625000954,
+                    "partitionIndex": 1,
+                    "runtime": {
+                      "activationReadbackMs": 0,
+                      "encodeMs": 4666.3509369995445,
+                      "executionMs": 7089.996456999332,
+                      "gpuKernelsMs": null,
+                      "inputUploadMs": 1.5614330004900694,
+                      "logitsMs": 1.3355759996920824,
+                      "logitsReadbackMs": 0.44304499961435795,
+                      "samplingMs": 1.8917149994522333,
+                      "submitWaitMs": 2400.551973000169
+                    }
+                  }
+                ]
+              }
+            },
+            "stages": [
+              {
+                "partitionIndex": 0,
+                "stepMs": {
+                  "count": 9,
+                  "total": 1315.261750003323
+                },
+                "steps": 9
+              },
+              {
+                "partitionIndex": 1,
+                "stepMs": {
+                  "count": 9,
+                  "total": 20836.481624998152
+                },
+                "steps": 9
+              }
+            ]
+          },
+          "stopReason": "eos-token"
+        },
+        "finishedAt": 1792193930291,
+        "id": "ca8e9ecc-92d8-4060-8460-b025d337c874",
+        "provenance": {
+          "attemptId": "ca8e9ecc-92d8-4060-8460-b025d337c874",
+          "classes": [
+            "mesh"
+          ],
+          "earlierAttempts": [],
+          "execution": {
+            "classes": [
+              "mesh"
+            ],
+            "participants": [
+              {
+                "participantId": "peer:efb774c9f322dab41567fce6",
+                "role": "stage",
+                "stage": 0,
+                "supply": "mesh"
+              },
+              {
+                "participantId": "peer:036f2d43da19536d800b6c2f",
+                "role": "stage",
+                "stage": 1,
+                "supply": "mesh"
+              }
+            ],
+            "placement": "ordered-layer-partition",
+            "supply": "mesh"
+          },
+          "retrieval": {
+            "outcome": "retrieved",
+            "provider": "reploid.contributor-search/peer:691a71be6c88b33d7f0123d2/bing",
+            "route": "contributor-search",
+            "searchServer": null,
+            "searchService": "contributor-bing",
+            "supply": "contributor"
+          },
+          "schema": "reploid.answer-provenance/v1",
+          "supply": "mesh"
+        },
+        "publicationMode": "canonical",
+        "request": {
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "content": "According to MDN, what is WebGPU used for? Answer in two sentences with citations to the fetched sources.",
+              "role": "user"
+            }
+          ],
+          "model": {
+            "activation": {
+              "components": 1,
+              "dtype": "f32",
+              "elementStrideBytes": 4,
+              "hiddenSize": 5120,
+              "precision": "f32",
+              "schema": "doppler.activation-tensor/v1"
+            },
+            "adapters": [],
+            "availability": "ready",
+            "contextLength": 4096,
+            "executionId": "q4k-split-chat-mac",
+            "id": "qwen3-8-27b-text-q4k-ehaf16",
+            "identity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "index": 0,
+            "localCached": false,
+            "localReady": false,
+            "name": "Qwen 3.8 27B",
+            "networkAvailability": "ready",
+            "partition": {
+              "coordinatorId": "peer:efb774c9f322dab41567fce6",
+              "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+              "route": {
+                "activation": {
+                  "components": 1,
+                  "dtype": "f32",
+                  "elementStrideBytes": 4,
+                  "hiddenSize": 5120,
+                  "precision": "f32",
+                  "schema": "doppler.activation-tensor/v1"
+                },
+                "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+                "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+                "schema": "reploid.partition-route/v1",
+                "stages": [
+                  {
+                    "executionId": "q4k-split-chat-mac",
+                    "index": 0,
+                    "participantId": "peer:efb774c9f322dab41567fce6",
+                    "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+                    "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+                  },
+                  {
+                    "executionId": "q4k-split-chat-amd",
+                    "index": 1,
+                    "participantId": "peer:036f2d43da19536d800b6c2f",
+                    "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+                    "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+                  }
+                ]
+              },
+              "schema": "reploid.partition-selection/v2"
+            },
+            "placement": "ordered-layer-partition",
+            "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+            "provider": "doppler",
+            "providerIds": [
+              "peer:efb774c9f322dab41567fce6",
+              "peer:036f2d43da19536d800b6c2f"
+            ],
+            "quantization": "q4k",
+            "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+            "selectionId": "qwen3-8-27b-text-q4k-ehaf16/partition/sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+            "size": "Q4K · 17 GB",
+            "textGeneration": {
+              "schema": "reploid.text-generation/v1",
+              "usage": "raw-model-tokens/v1"
+            }
+          },
+          "permissions": {
+            "executionLocation": "auto",
+            "sharingScope": "mesh"
+          },
+          "retrieval": {
+            "limits": {
+              "maxContextCharacters": 6000,
+              "maxResults": 5,
+              "maxSourceCharacters": 1200,
+              "timeoutMs": 10000
+            },
+            "query": "According to MDN, what is WebGPU used for? Answer in two sentences with citations to the fetched sources.",
+            "route": "contributor-search"
+          }
+        },
+        "responseId": "6c7ae4d4-8efa-4475-9792-4be0d8ec120d",
+        "retrieval": {
+          "context": {
+            "characters": 1294,
+            "digest": "sha256:1c218f2435ce134341cd15d24ea8b7e928123b12884a8db3022fe9e2b9570a47",
+            "schema": "reploid.retrieval-context/v1"
+          },
+          "costs": {
+            "fallback": {
+              "costMicroUsd": 0,
+              "path": "none"
+            },
+            "retrieval": {
+              "bearer": "operator",
+              "costMicroUsd": null,
+              "extraction": {
+                "attempted": 5,
+                "bytes": 60057,
+                "costMicroUsd": null,
+                "documents": 1,
+                "failed": 4
+              },
+              "search": {
+                "costMicroUsd": null,
+                "requests": 1,
+                "service": "contributor-bing"
+              }
+            },
+            "schema": "reploid.retrieval-costs/v1",
+            "totalMicroUsd": null,
+            "unit": "micro-usd",
+            "unknown": [
+              "retrieval.search",
+              "retrieval.extraction"
+            ],
+            "verification": {
+              "checker": null,
+              "costMicroUsd": 0,
+              "reviews": []
+            }
+          },
+          "error": null,
+          "extractor": {
+            "id": "reploid.contributor-page-extract",
+            "version": "1"
+          },
+          "finishedAt": 1792193907352,
+          "limits": {
+            "maxContextCharacters": 6000,
+            "maxResults": 5,
+            "maxSourceCharacters": 1200,
+            "timeoutMs": 10000
+          },
+          "omitted": [
+            {
+              "reason": "extraction-failed",
+              "sourceId": "web-1"
+            },
+            {
+              "reason": "extraction-failed",
+              "sourceId": "web-2"
+            },
+            {
+              "reason": "extraction-failed",
+              "sourceId": "web-4"
+            },
+            {
+              "reason": "extraction-failed",
+              "sourceId": "web-5"
+            }
+          ],
+          "outcome": "retrieved",
+          "policy": {
+            "id": "reploid.retrieval-policy",
+            "version": "1.0.0"
+          },
+          "provider": {
+            "id": "reploid.contributor-search/peer:691a71be6c88b33d7f0123d2/bing",
+            "supply": "contributor",
+            "version": "1"
+          },
+          "providerResultCount": 5,
+          "query": "According to MDN, what is WebGPU used for? Answer in two sentences with citations to the fetched sources.",
+          "schema": "reploid.retrieval-record/v1",
+          "sourceUse": "requester-opt-in",
+          "sources": [
+            {
+              "contentHash": "sha256:8067b63be34ad0c9396089cc33c053567667016d4546e0416b73de4612f5fd3d",
+              "document": {
+                "bytes": 60057,
+                "characters": 2710,
+                "contentType": "text/html;charset=UTF-8",
+                "end": 1983,
+                "sha256": "sha256:8067b63be34ad0c9396089cc33c053567667016d4546e0416b73de4612f5fd3d",
+                "start": 1090,
+                "status": 200,
+                "url": "https://www.vocabulary.com/dictionary/According"
+              },
+              "number": 1,
+              "passage": "DISCLAIMER: These example sentences appear in various news sources and books to reflect the usage of the word ‘according'. Views expressed in the examples do not represent the opinion of Vocabulary.com or its editors. Send us feedback\n\nWord Family\n\nVocabulary lists containing according\n\nJim Burke's Academic Vocabulary List\n\nA thorough survey of various textbooks, assignments, content area standards, and examinations yields the following list of words compiled by Jim Burke. You cannot expect to succeed on assignments if you do not understand the directions.\n\nPARCC: Language of the Test (Grade 11)\n\nBefore you can answer a question on the PARCC English Language Arts/Literacy section, you first need to know what the question is asking. Learn this list of 70 words that we extracted from a PARCC practice test's directions, question stems, and answer options.\n\nSHSAT: Language of the Test",
+              "passageHash": "sha256:59a8f389262c96a8e812ac6abc8e19f6717615d1b7a300abfe7e2ac0a3c71c44",
+              "passageOrigin": "extract",
+              "retrievedAt": 1792193907350,
+              "sourceId": "web-3",
+              "title": "According - Definition, Meaning & Synonyms | Vocabulary.com",
+              "truncated": false,
+              "url": "https://www.vocabulary.com/dictionary/According"
+            }
+          ],
+          "startedAt": 1792193906701,
+          "usage": {
+            "extraction": {
+              "bytes": 60057,
+              "documents": 1
+            },
+            "search": {
+              "costMicroUsd": null,
+              "provider": "contributor-bing",
+              "requests": 1
+            }
+          },
+          "verification": {
+            "checker": null,
+            "claimSupport": {
+              "alignment": "reploid.lexical-span-alignment/v1",
+              "claims": [
+                {
+                  "citations": [],
+                  "end": 39,
+                  "id": "claim-1",
+                  "index": 0,
+                  "markers": [],
+                  "reason": "uncited",
+                  "reviewable": false,
+                  "start": 0,
+                  "text": "The retrieved sources do not answer it.",
+                  "verdict": "unsupported"
+                }
+              ],
+              "contextDigest": "sha256:1c218f2435ce134341cd15d24ea8b7e928123b12884a8db3022fe9e2b9570a47",
+              "contextValid": true,
+              "query": "According to MDN, what is WebGPU used for? Answer in two sentences with citations to the fetched sources.",
+              "schema": "reploid.claim-support/v1",
+              "summary": {
+                "citations": 0,
+                "citedClaims": 0,
+                "claims": 1,
+                "invalidCitations": 0,
+                "reviewableClaims": 0,
+                "supported": 0,
+                "unsupported": 1,
+                "unverified": 0,
+                "validCitations": 0
+              }
+            },
+            "claims": [
+              {
+                "citations": [],
+                "cited": false,
+                "end": 39,
+                "index": 0,
+                "markers": [],
+                "start": 0,
+                "text": "The retrieved sources do not answer it."
+              }
+            ],
+            "flags": [
+              {
+                "claim": 0,
+                "kind": "uncited-claim"
+              }
+            ],
+            "references": [],
+            "schema": "reploid.citation-verification/v1",
+            "summary": {
+              "citations": 0,
+              "citedClaims": 0,
+              "claims": 1,
+              "supported": 0,
+              "uncitedClaims": 1,
+              "unrecordedUrls": 0,
+              "unresolvedCitations": 0,
+              "unsupported": 0,
+              "unverified": 0
+            },
+            "unrecordedUrls": [],
+            "usage": {
+              "checks": 0,
+              "costMicroUsd": 0
+            }
+          }
+        },
+        "retryOf": null,
+        "searchPermission": {
+          "grantedAt": 1792193906700,
+          "id": "c14eb135-f864-4e9c-8f55-7e99544ed114",
+          "kind": "search-answer",
+          "networkId": "reploid-swarm-public",
+          "query": "According to MDN, what is WebGPU used for? Answer in two sentences with citations to the fetched sources.",
+          "recipients": [
+            "peer:efb774c9f322dab41567fce6",
+            "peer:036f2d43da19536d800b6c2f"
+          ],
+          "revokedAt": null,
+          "schema": "reploid.remote-permission/v3",
+          "searchPeer": "peer:691a71be6c88b33d7f0123d2",
+          "searchProvider": "contributor-bing",
+          "searchServer": null,
+          "threadId": "6ca30e37-4523-4086-8786-edaa430c0bf5",
+          "wording": {
+            "id": "reploid.search-answer-permission",
+            "text": "Allow Reploid to send this search query to the listed search contributor, which sends it to Bing and fetches public result pages without personal sign-ins. Share the retrieved passages with the listed execution contributors for this answer. Your files and unrelated conversation history are excluded.",
+            "version": "2026-10-16"
+          }
+        },
+        "status": "completed",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.8 27B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        },
+        "threadId": "6ca30e37-4523-4086-8786-edaa430c0bf5",
+        "userMessageId": "8ab8fe73-b5d1-4130-999b-183ef8cd8448"
+      }
+    ],
+    "closed": false,
+    "createdAt": 1792193906679,
+    "grants": [],
+    "id": "6ca30e37-4523-4086-8786-edaa430c0bf5",
+    "members": [
+      "local-user"
+    ],
+    "messages": [
+      {
+        "content": "According to MDN, what is WebGPU used for? Answer in two sentences with citations to the fetched sources.",
+        "id": "8ab8fe73-b5d1-4130-999b-183ef8cd8448",
+        "role": "user",
+        "status": "completed"
+      },
+      {
+        "attemptId": "ca8e9ecc-92d8-4060-8460-b025d337c874",
+        "content": "The retrieved sources do not answer it.",
+        "id": "6c7ae4d4-8efa-4475-9792-4be0d8ec120d",
+        "role": "assistant",
+        "status": "completed"
+      }
+    ],
+    "model": {
+      "activation": {
+        "components": 1,
+        "dtype": "f32",
+        "elementStrideBytes": 4,
+        "hiddenSize": 5120,
+        "precision": "f32",
+        "schema": "doppler.activation-tensor/v1"
+      },
+      "adapters": [],
+      "availability": "ready",
+      "contextLength": 4096,
+      "executionId": "q4k-split-chat-mac",
+      "id": "qwen3-8-27b-text-q4k-ehaf16",
+      "identity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+      "index": 0,
+      "localCached": false,
+      "localReady": false,
+      "name": "Qwen 3.8 27B",
+      "networkAvailability": "ready",
+      "partition": {
+        "coordinatorId": "peer:efb774c9f322dab41567fce6",
+        "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+        "route": {
+          "activation": {
+            "components": 1,
+            "dtype": "f32",
+            "elementStrideBytes": 4,
+            "hiddenSize": 5120,
+            "precision": "f32",
+            "schema": "doppler.activation-tensor/v1"
+          },
+          "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+          "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+          "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+          "schema": "reploid.partition-route/v1",
+          "stages": [
+            {
+              "executionId": "q4k-split-chat-mac",
+              "index": 0,
+              "participantId": "peer:efb774c9f322dab41567fce6",
+              "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+              "transportId": "c825ca73-828a-4753-86a8-31f781562d6f"
+            },
+            {
+              "executionId": "q4k-split-chat-amd",
+              "index": 1,
+              "participantId": "peer:036f2d43da19536d800b6c2f",
+              "residentId": "eaf21118-4985-44a2-a7e3-027f827749b7",
+              "transportId": "755a60be-23af-4d4a-9815-98c3d4045d09"
+            }
+          ]
+        },
+        "schema": "reploid.partition-selection/v2"
+      },
+      "placement": "ordered-layer-partition",
+      "planId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+      "provider": "doppler",
+      "providerIds": [
+        "peer:efb774c9f322dab41567fce6",
+        "peer:036f2d43da19536d800b6c2f"
+      ],
+      "quantization": "q4k",
+      "residentId": "07ebe00a-6eb7-4dec-95fc-5717c0f65d45",
+      "selectionId": "qwen3-8-27b-text-q4k-ehaf16/partition/sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+      "size": "Q4K · 17 GB",
+      "textGeneration": {
+        "schema": "reploid.text-generation/v1",
+        "usage": "raw-model-tokens/v1"
+      }
+    },
+    "permissions": {
+      "executionLocation": "auto",
+      "sharingScope": "mesh"
+    },
+    "purpose": "",
+    "systemContext": {
+      "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.8 27B.",
+      "metadata": {
+        "enabled": true,
+        "maxWords": 16,
+        "mode": null,
+        "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+        "policyId": "reploid.compact-context/v2",
+        "wordCount": 13
+      }
+    }
+  },
+  "errors": [],
+  "weightRequests": []
+}

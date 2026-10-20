@@ -1,0 +1,125 @@
+# Page snapshot
+
+```yaml
+- main [ref=e3]:
+  - navigation "Reploid"
+  - region "Conversation workspace" [ref=e5]:
+    - complementary "Conversation controls" [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - generic [ref=e9]:
+            - button "Toggle threads" [ref=e11] [cursor=pointer]:
+              - generic [ref=e12]:
+                - generic [ref=e13]: "7"
+                - superscript [ref=e14]: "7"
+            - button "New thread" [ref=e15] [cursor=pointer]:
+              - img [ref=e16]
+          - region "Threads" [ref=e18]:
+            - generic [ref=e19]:
+              - button [ref=e21] [cursor=pointer]:
+                - generic [ref=e22]:
+                  - img
+                  - generic [ref=e23]: U
+              - button [ref=e25] [cursor=pointer]:
+                - generic [ref=e26]:
+                  - img
+                  - generic [ref=e27]: U
+              - button [ref=e29] [cursor=pointer]:
+                - generic [ref=e30]:
+                  - img
+                  - generic [ref=e31]: U
+              - button [ref=e33] [cursor=pointer]:
+                - generic [ref=e34]:
+                  - img
+                  - generic [ref=e35]: U
+              - button [ref=e37] [cursor=pointer]:
+                - generic [ref=e38]:
+                  - img
+                  - generic [ref=e39]: U
+              - button [ref=e41] [cursor=pointer]:
+                - generic [ref=e42]:
+                  - img
+                  - generic [ref=e43]: U
+        - navigation "Network sections" [ref=e46]:
+          - 'button "Computers: 1 connected · 1 ready" [ref=e47] [cursor=pointer]':
+            - img [ref=e48]
+          - button "Settings" [ref=e53] [cursor=pointer]:
+            - img [ref=e54]
+    - text: ↔ ↔ + + + + +
+    - region "Current conversation" [ref=e59]:
+      - log "Messages" [ref=e60]:
+        - article [ref=e61]:
+          - generic "Your message" [ref=e62]:
+            - generic [ref=e63]: Use only this fictional movie catalog. Fields are title | tone | genre | minutes | format | rating | audio | subtitles. Cedar | calm | comedy | 84 | live-action | PG-13 | English | English Clover | calm | comedy | 96 | animated | PG | English | English, Spanish Harbor | tense | thriller | 91 | live-action | R | Spanish | English Orbit | calm | comedy | 122 | live-action | PG | English | Spanish Lantern | calm | drama | 98 | live-action | PG | English | English Meadow | calm | comedy | 89 | live-action | PG-13 | French | English Pine | calm | comedy | 81 | animated | PG | English | French Atlas | calm | documentary | 85 | live-action | G | German | English Streaming services and release years are not supplied. Never invent missing facts. For each request, reply with only the matching title; reply NONE if no title satisfies every constraint, or UNKNOWN if the requested fact is missing.
+            - generic [ref=e64]: Choose a comedy with French audio and English subtitles.
+          - button "Copy message" [ref=e67] [cursor=pointer]:
+            - img [ref=e68]
+        - article [ref=e71]:
+          - generic "Model output" [ref=e72]:
+            - generic [ref=e73]: Meadow
+          - generic [ref=e74]:
+            - generic [ref=e75]:
+              - 'generic "Model: Qwen 3.5 2B" [ref=e76]':
+                - img [ref=e77]
+              - generic "Generation average including prompt processing; excludes queue and model loading" [ref=e79]:
+                - img [ref=e80]
+                - generic [ref=e82]: 1.0 tok/s
+              - generic "4 generated tokens" [ref=e83]:
+                - img [ref=e84]
+                - generic [ref=e86]: "4"
+              - generic "Generation time including prompt processing" [ref=e87]:
+                - img [ref=e88]
+                - generic [ref=e91]: 4.0 s
+            - button "Complete · 1 computer · Mesh. Execution details" [ref=e93] [cursor=pointer]:
+              - img [ref=e94]
+              - generic [ref=e99]: "1"
+              - generic [ref=e100]: Complete · 1 computer · Mesh
+            - button "Copy response" [ref=e102] [cursor=pointer]:
+              - img [ref=e103]
+        - article [ref=e106]:
+          - generic "Your message" [ref=e107]:
+            - generic [ref=e108]: Now choose a comedy with English audio and French subtitles instead.
+          - button "Copy message" [ref=e111] [cursor=pointer]:
+            - img [ref=e112]
+        - article [ref=e115]:
+          - generic "Model output" [ref=e116]:
+            - generic [ref=e117]: Pine
+          - generic [ref=e118]:
+            - generic [ref=e119]:
+              - 'generic "Model: Qwen 3.5 2B" [ref=e120]':
+                - img [ref=e121]
+              - generic "Generation average including prompt processing; excludes queue and model loading" [ref=e123]:
+                - img [ref=e124]
+                - generic [ref=e126]: 0.7 tok/s
+              - generic "3 generated tokens" [ref=e127]:
+                - img [ref=e128]
+                - generic [ref=e130]: "3"
+              - generic "Generation time including prompt processing" [ref=e131]:
+                - img [ref=e132]
+                - generic [ref=e135]: 4.1 s
+            - button "Complete · 1 computer · Mesh. Execution details" [ref=e137] [cursor=pointer]:
+              - img [ref=e138]
+              - generic [ref=e143]: "1"
+              - generic [ref=e144]: Complete · 1 computer · Mesh
+            - button "Copy response" [ref=e146] [cursor=pointer]:
+              - img [ref=e147]
+      - generic [ref=e151]:
+        - generic [ref=e152]: Message
+        - generic [ref=e153]:
+          - textbox "Message" [ref=e154]:
+            - /placeholder: Ask a question…
+          - generic "Attach files" [ref=e155] [cursor=pointer]:
+            - img [ref=e156]
+            - generic [ref=e158]: Attach files
+            - button "Attach files" [ref=e159]
+          - button "Send" [ref=e161] [cursor=pointer]:
+            - img [ref=e162]
+        - generic [ref=e164]:
+          - 'button "Choose model: Qwen 3.5 2B" [ref=e165] [cursor=pointer]':
+            - img [ref=e166]
+            - generic [ref=e168]: Qwen 3.5 2B
+          - button "<1% of model context. Last answer used 319 tokens (316 input, 3 output) of the model’s 262,144-token advertised context window. Unsent draft is not counted; the execution limit may be smaller. Last execution on Computer 1. Working KV-cache residency is not reported." [ref=e169] [cursor=pointer]:
+            - img
+            - generic [ref=e170]: <1%
+            - img [ref=e171]
+```

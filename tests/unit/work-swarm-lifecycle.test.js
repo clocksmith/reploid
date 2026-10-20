@@ -86,7 +86,7 @@ it.each(['qwen-3-5-0-8b-q4k-ehaf16', 'qwen-3-5-2b-q4k-ehaf16'])(
     const service = { open: vi.fn(), close: vi.fn() }, contribute = vi.fn();
     const swarm = fixture(service, { contribute });
     await swarm.share(modelId, true, [], { mode: 'partition' });
-    expect(contribute).toHaveBeenCalledExactlyOnceWith(modelId, true);
+    expect(contribute).toHaveBeenCalledExactlyOnceWith(modelId, true, []);
     expect(service.open).not.toHaveBeenCalled();
     await swarm.close();
   });
@@ -145,6 +145,11 @@ it('advertises loading without slots, prepares once and reuses reset resident we
   const f = await supplierFixture('qwen-3-5-2b-q4k-ehaf16');
   expect(f.ads.at(-1)).toMatchObject({ hasInference: false, readiness: 'loading', availableSlots: 0 });
   expect(f.swarm.getState().contribution.phase).toBe('loading');
+  f.service.open.mock.calls[0][0].options.onProgress({ kind: 'receiving', receivedBytes: 25, totalBytes: 100,
+    message: 'private file location must not be advertised' });
+  expect(f.ads.at(-1)).toMatchObject({ readiness: 'loading', availableSlots: 0,
+    preparation: { kind: 'receiving', receivedBytes: 25, totalBytes: 100 } });
+  expect(f.ads.at(-1).preparation).not.toHaveProperty('message');
   await f.request('too-early', 'not executed');
   expect(f.sent).toEqual([]);
   f.load.resolve(f.session); await f.share;

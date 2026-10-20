@@ -10,7 +10,6 @@ import { createFixedSearchProvider, createRetrieval, renderSourceContext } from 
 import { orderedPartitionDisclosure } from '../../packages/reploid/src/mesh/partitions/partition-grants.js';
 import { createChatSession, SEARCH_ROUTE } from '../../self/host/chat-session.js';
 import { createServerSearch } from '../../self/host/server-search.js';
-import { createWebSearch } from '../../self/host/web-search.js';
 import { renderConversationWorkspace, bindConversationWorkspace } from '../../self/ui/pool-home/conversation-workspace.js';
 import { remotePermissionWording } from '../../self/ui/pool-home/remote-permission.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
@@ -67,6 +66,10 @@ describe('permission records, schema v3', () => {
     for (const text of [APPROVED.replace('Brave', 'brave'), APPROVED + ' ', APPROVED.slice(0, -1)]) {
       expect(() => createSearchPermission({ ...grant, wording: { ...wording(), text } })).toThrow('not the approved text');
     }
+    const sent = createSearchPermission({ ...grant, source: 'send' });
+    expect(validateSearchPermission(sent).source).toBe('send');
+    expect(validateSearchPermission(grant).source).toBeUndefined();
+    expect(() => validateSearchPermission({ ...sent, source: 'unknown' })).toThrow('Invalid search permission');
     expect(() => createSearchPermission({ ...grant, searchProvider: 'searxng' })).toThrow('not the approved text');
     expect(() => validateSearchPermission({ ...grant, recipients: [STAGES[0], STAGES[0]] })).toThrow('Invalid search permission');
   });
@@ -126,6 +129,31 @@ describe('search-backed answers in the workspace', () => {
     expect(app.getState().threads[0].messages.filter(message => message.role === 'user')).toHaveLength(1);
   });
 
+  it('binds a contextual query and an edited retry to fresh grants without adding unrelated history', async () => {
+    let fail = true;
+    const { app, executed } = workspace({ execute: async request => {
+      if (fail) throw new Error('Contributor disconnected');
+      executed.push(structuredClone(request));
+      return { threadId: request.threadId, attemptId: request.attemptId, modelId: request.model.id,
+        modelIdentity: request.model.identity, adapterIdentities: [], content: ANSWER };
+    } });
+    const thread = app.createThread({ model: { id: 'm', name: 'M', identity: digest('a') }, purpose: 'Private purpose' });
+    const query = 'Eiffel Tower Paris completion date';
+    const first = await app.send(thread, 'What year?', { retrieval: { route: SEARCH_ROUTE, query }, searchPermission: grant(thread, { query }) });
+    expect(first.status).toBe('failed');
+    const revised = 'Eiffel Tower completed 1889';
+    expect(() => app.retry(thread, first.id, { retrievalQuery: revised })).toThrow('fresh search permission');
+    expect(() => app.retry(thread, first.id, { retrievalQuery: revised, searchPermission: grant(thread, { query }) })).toThrow('does not cover');
+    fail = false;
+    const done = await app.retry(thread, first.id, { retrievalQuery: revised, searchPermission: grant(thread, { query: revised }) });
+    expect(done).toMatchObject({ status: 'completed', retryOf: first.id, retrieval: { query: revised }, searchPermission: { query: revised } });
+    expect(executed[0].messages).toHaveLength(1);
+    expect(executed[0].messages[0].content).toContain(revised);
+    expect(executed[0].messages[0].content).toContain('Question: What year?');
+    expect(JSON.stringify(executed)).not.toContain('Private purpose');
+    expect(app.getState().threads[0].messages[0].content).toBe('What year?');
+  });
+
   it('shares passages only with listed contributors; a changed route sends nothing and a retry needs a new grant', async () => {
     const partitions = orderedRoute();
     const app = createChatWorkspace({ meshId: 'mesh', participantId: REQUESTER, store: { load: () => null, save() {} },
@@ -182,10 +210,48 @@ describe('host session and conversation view', () => {
     await session.grantRemotePermission(need, { wording: remotePermissionWording(need) });
   };
 
+  it('binds whole-model search consent to verified identity across transport changes, but refuses a new identity', async () => {
+    const single = { id: 'single', name: 'Single', provider: 'doppler', identity: digest('c'), adapters: [] };
+    let connection = 'connection-before', recipient = peer('5');
+    const disclosed = [], verifyPeerIdentity = vi.fn(async id => id === connection ? recipient : null);
+    const swarm = {
+      getState: () => ({ consumer: { peers: [{ peerId: connection, model: single.id, modelIdentity: single.identity,
+        readiness: 'ready', hasInference: true, availableSlots: 1 }] } }),
+      verifyPeerIdentity, connect: async () => {}, hasProvider: () => true,
+      async generate(messages, controls) {
+        const preview = { id: 'preview', operation: 'generate', disclosure: 'public', providerId: connection,
+          recipientIdentity: recipient, modelId: single.id, modelIdentity: single.identity, adapterIdentities: [], expiresAt: Date.now() + 60000 };
+        if (!await controls.approve(preview)) throw Error('Declined');
+        disclosed.push(messages); controls.onPartial(ANSWER);
+        return { model: single.id, modelIdentity: single.identity, provider: 'doppler', peerId: connection, adapterIdentities: [], content: ANSWER };
+      }
+    };
+    const session = createChatSession({ storage: memory(), service: createChatTestService(), models: [single], swarm,
+      retrieval: { routes: { [SEARCH_ROUTE]: searchPorts() } } });
+    cleanups.push(() => session.close());
+    session.setRemoteAnswersEnabled(false);
+    const need = session.remotePermissionNeeded({ model: single, sharingScope: 'mesh' });
+    await session.grantRemotePermission(need, { wording: remotePermissionWording(need) });
+    const thread = session.createThread({ model: single });
+    const allowed = await session.searchPermissionRequest({ model: single });
+    expect(verifyPeerIdentity).toHaveBeenCalledWith('connection-before', undefined);
+    expect(allowed.recipients).toEqual([peer('5')]);
+    connection = 'connection-after';
+    const done = await session.send(thread, QUESTION, [], { search: allowed });
+    expect(done.status).toBe('completed');
+    expect(done.authorization.recipients).toEqual([peer('5')]);
+    recipient = peer('6');
+    const failed = await session.send(thread, QUESTION, [], { search: allowed });
+    expect(failed).toMatchObject({ status: 'failed', error: SEARCH_RECIPIENTS_CHANGED });
+    expect(disclosed).toHaveLength(1);
+    verifyPeerIdentity.mockResolvedValue(null);
+    await expect(session.searchPermissionRequest({ model: single })).rejects.toThrow('No execution contributors');
+  });
+
   it('lists the route contributors, records the shown wording, and keeps files out of search answers', async () => {
     const { session, partitions } = open();
     await grantContributors(session);
-    const request = session.searchPermissionRequest({ model, sharingScope: 'mesh' });
+    const request = await session.searchPermissionRequest({ model, sharingScope: 'mesh' });
     expect(request).toEqual({ route: SEARCH_ROUTE, searchProvider: 'brave', searchServer: null, wording: wording(), recipients: STAGES });
     const thread = session.createThread({ model });
     expect(() => session.send(thread, QUESTION, [{ name: 'notes.txt', text: 'My private notes' }], { search: request }))
@@ -198,42 +264,42 @@ describe('host session and conversation view', () => {
     // The remote-contributor permission and the search grant stay separate records.
     expect(session.getState().remotePermissions.map(permission => permission.kind)).toEqual(['remote-contributors']);
     const unapproved = open({ retrieval: { routes: { [SEARCH_ROUTE]: searchPorts('searxng') } } });
-    expect(() => unapproved.session.searchPermissionRequest({ model })).toThrow('Search is not available');
+    await expect(unapproved.session.searchPermissionRequest({ model })).rejects.toThrow('Search is not available');
   });
 
-  it('asks with the exact text and contributors each time; Don\'t search sends nothing; Allow sends the answer', async () => {
+  it('Send and Retry run search without dialogs, bind fresh recipients, and exclude unrelated history', async () => {
     const { session, partitions } = open();
-    await grantContributors(session);
-    const search = { provider: {}, extractor: {}, available: () => true, state: () => ({ state: 'ready' }), subscribe: listener => { listener(); return () => {}; }, refresh() {} };
+    const generate = partitions.generate;
+    let fail = true;
+    partitions.generate = async (...args) => { if (fail) { fail = false; throw Error('Provider disconnected'); } return generate(...args); };
+    const search = { available: () => true, state: () => ({ state: 'ready' }), subscribe: listener => { listener(); return () => {}; }, refresh() {} };
     const root = document.createElement('div'); root.innerHTML = renderConversationWorkspace(); document.body.append(root);
-    const webSearch = createWebSearch({ storage: memory() });
-    const dispose = bindConversationWorkspace(root, session, { search, webSearch }); cleanups.push(async () => dispose());
-    const find = selector => root.querySelector(selector), dialog = find('[data-search-permission]');
+    const dispose = bindConversationWorkspace(root, session, { search }); cleanups.push(async () => dispose());
+    const find = selector => root.querySelector(selector);
     const submit = text => { find('[data-composer-input]').value = text; find('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); };
-    expect(find('[data-search-toggle]').hidden).toBe(false);
-    expect(find('[data-web-search-toggle]').disabled).toBe(false);
-    find('[data-web-search-toggle]').click();
-    expect(find('[data-search-toggle]').getAttribute('aria-pressed')).toBe('true');
-    submit(QUESTION);
-    await vi.waitFor(() => expect(dialog.open).toBe(true));
-    expect(find('[data-search-permission-text]').textContent).toBe(APPROVED);
-    expect([...find('[data-search-permission-recipients]').children].map(item => item.textContent)).toHaveLength(3);
-    find('[data-search-permission-decline]').click();
-    await new Promise(resolve => setTimeout(resolve, 30));
-    expect(session.getState().threads).toEqual([]); expect(partitions.disclosed).toEqual([]);
-    expect(find('[data-composer-input]').value).toBe(QUESTION);
-
-    submit(QUESTION);
-    await vi.waitFor(() => expect(dialog.open).toBe(true));
-    find('[data-search-permission-allow]').click();
-    await vi.waitFor(() => expect(session.getState().threads[0]?.attempts.at(-1)?.status).toBe('completed'));
-    expect(session.getState().threads[0].attempts[0].searchPermission.wording.text).toBe(APPROVED);
+    expect(find('[data-search-permission]')).toBeNull();
+    expect(find('[data-remote-permission]')).toBeNull();
+    find('[data-search-toggle]').click(); submit(QUESTION);
+    await vi.waitFor(() => expect(session.getState().activeThread?.attempts.at(-1)?.status).toBe('failed'));
+    const first = session.getState().activeThread.attempts[0];
+    expect(first.searchPermission).toMatchObject({ source: 'send', query: QUESTION, recipients: STAGES });
+    find('[data-retry-attempt]').click();
+    await vi.waitFor(() => expect(session.getState().activeThread?.attempts.at(-1)?.status).toBe('completed'));
+    const retried = session.getState().activeThread.attempts.at(-1);
+    expect(retried.retryOf).toBe(first.id);
+    expect(retried.searchPermission).toMatchObject({ source: 'send', query: QUESTION, recipients: STAGES });
+    expect(retried.searchPermission.id).not.toBe(first.searchPermission.id);
+    expect(session.getState().remotePermissions[0].wording.id).toBe('reploid.remote-contributor-setting');
     expect(find('[data-search-toggle]').getAttribute('aria-pressed')).toBe('false');
-    // The answer's [1] marker links to its numbered source.
-    const marker = find('.chat-message-row.is-assistant [data-source-reference]');
-    expect(marker.textContent).toBe('[1]');
-    expect(find(marker.getAttribute('href')).textContent).toContain('[1] Eiffel Tower');
+    expect(find('.chat-message-row.is-assistant [data-source-reference]').textContent).toBe('[1]');
+    await session.send(session.getState().selectedId, 'Private notes', [{ name: 'private.txt', text: 'Private attachment contents' }]);
+    find('[data-search-toggle]').click(); submit('What year was the Eiffel Tower completed?');
+    await vi.waitFor(() => expect(session.getState().activeThread?.attempts.at(-1)?.searchPermission?.query).toBe('What year was the Eiffel Tower completed?'));
+    await vi.waitFor(() => expect(session.getState().activeThread?.attempts.at(-1)?.status).toBe('completed'));
+    expect(partitions.disclosed.at(-1)).toHaveLength(1);
+    expect(partitions.disclosed.at(-1)[0].content).not.toContain('Private');
   });
+
 });
 
 describe('server search port', () => {

@@ -11,7 +11,7 @@ import orderedPolicy from '../../self/config/ordered-participation.json' with { 
 let swarm, chat;
 beforeEach(() => {
   vi.resetAllMocks();
-  swarm = { partitions: {}, close: vi.fn(async () => {}), connect: vi.fn(), autoConnectEnabled: () => false };
+  swarm = { partitions: {}, shareCachedModels: vi.fn(async () => {}), close: vi.fn(async () => {}), connect: vi.fn(), autoConnectEnabled: () => false };
   chat = { setCachedModels: vi.fn(), close: vi.fn(async () => {}) };
   ports.swarm.mockReturnValue(swarm); ports.legacy.mockReturnValue(chat);
   ports.autoconnect.mockReturnValue({ close() {} });

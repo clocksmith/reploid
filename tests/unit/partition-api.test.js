@@ -7,7 +7,6 @@ import { createPartitionGrantAuthority, createResidentPartition, createPartition
 import { createPartitionEntry, createPartitionRequester } from '../../packages/reploid/src/mesh/partitions/partition-entry.js';
 import { disclosureScope, matchingThreadGrant } from '../../packages/reploid/src/chat/thread-grants.js';
 import { createChatSession } from '../../self/host/chat-session.js';
-import { remotePermissionWording } from '../../self/ui/pool-home/remote-permission.js';
 import { createPartitionRuntimeFixture } from '../fixtures/partition-runtime.js';
 
 const policy = { maxTokens: 4, maxPromptTokens: 32, maxActivationBytes: 4096, maxOutputCharacters: 1024,
@@ -57,13 +56,6 @@ function host(f, storage = null) {
   cleanup.push(() => session.close());
   return session;
 }
-// The host holds a remote request until its one-time contributor permission exists; granting it continues
-// every held request the permission covers. Later covered requests never wait.
-function approve(session, threadId) {
-  const attempt = session.getState().threads.find(t => t.id === threadId).attempts.at(-1);
-  if (attempt.approval?.permissionNeed) return session.grantRemotePermission(attempt.approval.permissionNeed, { wording: remotePermissionWording(attempt.approval.permissionNeed) });
-}
-
 describe('Reploid partition APIs with injected Doppler sessions', () => {
   it('advertises a signed model over bounded control without copying its local opening closure', async () => {
     const privateClosure = 'qualification-evidence-'.repeat(10000);
@@ -106,8 +98,6 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
       await f.chat.refresh();
       const session = host(f), thread = session.createThread({ model: f.chat.getModels()[0] });
       const pending = session.send(thread, '1');
-      await vi.waitFor(() => expect(session.getState().threads.find(t => t.id === thread).attempts.at(-1)?.approval).toBeTruthy());
-      approve(session, thread);
       await pending.catch(() => {});
       const state = session.getState().threads.find(t => t.id === thread);
       expect(JSON.stringify(state)).not.toContain('private prompt and device detail');
@@ -131,8 +121,6 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
     await f.chat.refresh();
     const session = host(f), thread = session.createThread({ model: f.chat.getModels()[0] });
     const pending = session.send(thread, '1');
-    await vi.waitFor(() => expect(session.getState().threads.find(t => t.id === thread).attempts.at(-1)?.approval).toBeTruthy());
-    approve(session, thread);
     expect((await pending).status).toBe('failed');
     const state = session.getState().threads.find(t => t.id === thread);
     expect(state.messages.at(-1).content).toBe('2 3 4 ');
@@ -244,9 +232,6 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
     const selection = f.chat.getModels()[0];
     const a = session.createThread({ model: selection }), b = session.createThread({ model: selection });
     const pending = [session.send(a, '1'), session.send(b, '10')];
-    await vi.waitFor(() => expect(session.getState().threads.every(t => t.attempts[0].approval)).toBe(true));
-    expect(f.factory.log.steps).toEqual([]);
-    approve(session, a); approve(session, b);
     expect((await Promise.all(pending)).map(r => r.status)).toEqual(['completed', 'completed']);
     expect(session.getState().threads.map(t => t.messages.at(-1).content)).toEqual(['2 3 4 ', '11 12 13 ']);
     expect(f.factory.log.opens.sort()).toEqual([0, 1]);
@@ -259,7 +244,7 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
     expect(statuses).not.toContain('approval');
     expect(session.getState().threads[0].attempts[1].authorization).toMatchObject({ kind: 'permission', source: 'permission',
       permissionId: session.getState().remotePermissions[0].id, recipients: [f.a.peerId, f.b.peerId] });
-    expect(f.factory.log.tokenizations.at(-1)).toEqual([{ role: 'user', content: '1' }, { role: 'assistant', content: '2 3 4 ' }, { role: 'user', content: '20' }]);
+    expect(f.factory.log.tokenizations.at(-1)).toEqual([{ role: 'system', content: "You're Reploid. Answer briefly and directly; expand when asked. Model: Injected partition model." }, { role: 'user', content: '1' }, { role: 'assistant', content: '2 3 4 ' }, { role: 'user', content: '20' }]);
     expect(f.factory.log.closes).toEqual([]);
     expect(f.remote.getState().receipt.sentFrames).toBeGreaterThan(9);
   });
@@ -315,7 +300,7 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
     expect(f.factory.log.steps).toEqual([]);
   });
 
-  it('revoking leaves a live answer running; Stop settles it remotely and the next request waits for permission', async () => {
+  it('revoking leaves a live answer running; Stop settles it and network-off rejects the next request', async () => {
     const entered = gate(), release = gate();
     let held = true;
     cleanup.push(() => release.resolve());
@@ -325,8 +310,7 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
     await Promise.all([f.local.prepare({ approved: true }), f.supplier.prepare({ approved: true })]);
     await f.chat.refresh(); const session = host(f), id = session.createThread({ model: f.chat.getModels()[0] });
     const first = session.send(id, '1');
-    await vi.waitFor(() => expect(session.getState().activeThread.attempts[0].approval).toBeTruthy());
-    await approve(session, id); await entered.promise;
+    await entered.promise;
     session.revokeRemotePermission(session.getState().remotePermissions[0].id);
     await new Promise(resolve => setTimeout(resolve, 20));
     expect(session.getState().activeThread.attempts[0].status).toBe('executing');
@@ -334,10 +318,12 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
     await vi.waitFor(() => expect(session.getState().activeThread.attempts[0].status).toBe('cancelling'));
     release.resolve(); expect((await first).status).toBe('cancelled');
     expect(f.factory.log.settlements.filter(s => s.index === 1)).toHaveLength(1);
-    const steps = f.factory.log.steps.length, next = session.send(id, '10');
-    await vi.waitFor(() => expect(session.getState().activeThread.attempts[1].approval?.permissionNeed).toBeTruthy());
+    const steps = f.factory.log.steps.length;
+    expect(() => session.send(id, '10')).toThrow('Network answers are off');
     expect(f.factory.log.steps).toHaveLength(steps);
-    await approve(session, id); expect((await next).status).toBe('completed');
+    expect(session.getState().activeThread.attempts).toHaveLength(1);
+    session.setRemoteAnswersEnabled(true);
+    expect((await session.send(id, '10')).status).toBe('completed');
     expect(session.getState().activeThread.messages.at(-1).content).toBe('11 12 13 ');
   });
 

@@ -1,0 +1,44 @@
+{
+  "schema": "reploid.movie-request-comparison/v1",
+  "qualified": false,
+  "originalScore": "5/12 rejected, unchanged",
+  "gpuReceiptSha256": "dbf2dba2f27e0288039060ca4a46f212f5a8e8b6909b4df4690668b588b774d6",
+  "referenceContractSha256": "46cc73f092abc6fc838951973f3b6a763f9f270fdfc34433c086e81a76fb36fc",
+  "cases": [
+    {
+      "id": "format-followup/2",
+      "expected": "Pine",
+      "original": "Clover",
+      "doppler": "Clover",
+      "independent": "Clover",
+      "inputTokens": 321,
+      "generatedTokenIds": [
+        49512,
+        415,
+        248046
+      ],
+      "inputIdsMatch": true,
+      "generatedIdsMatch": true,
+      "referenceSha256": "9edd02e27e02034168636d53be90b3eb1603ada8f9a840ceacf1f97f744e8e11",
+      "taskPassed": false
+    },
+    {
+      "id": "missing-availability/1",
+      "expected": "UNKNOWN",
+      "original": "Cedar",
+      "doppler": "Cedar",
+      "independent": "Cedar",
+      "inputTokens": 290,
+      "generatedTokenIds": [
+        34,
+        32112,
+        248046
+      ],
+      "inputIdsMatch": true,
+      "generatedIdsMatch": true,
+      "referenceSha256": "08c93bbac0ee1ed9fffc97f5fceeca0a02d6092e6714f5476d48ff346a06dec0",
+      "taskPassed": false
+    }
+  ],
+  "conclusion": "Both selected quality failures reproduce with independent Transformers CPU equations over the exact retained quantized tensor bytes. This does not establish general runtime correctness or distinguish base-model from quantization effects."
+}

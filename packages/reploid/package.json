@@ -11,6 +11,14 @@
   },
   "sideEffects": false,
   "exports": {
+    "./training": {
+      "types": "./src/training/index.d.ts",
+      "import": "./src/training/index.js"
+    },
+    "./plugins": {
+      "types": "./src/plugins/index.d.ts",
+      "import": "./src/plugins/index.js"
+    },
     "./chat": {
       "types": "./src/chat/index.d.ts",
       "import": "./src/chat/index.js"

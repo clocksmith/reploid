@@ -1,0 +1,56 @@
+[1A[2K[2m[WebServer] [22m(node:23448) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1A[2K[2m[WebServer] [22m(node:23474) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1A[2K[2m[WebServer] [22m(node:23475) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1A[2K[2m[WebServer] [22m(node:23475) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1A[2K[2m[WebServer] [22m[Proxy] Config loader not available, using environment variables
+
+[1A[2K[2m[WebServer] [22m(node:23517) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 1 test using 1 worker
+
+[1A[2K(node:23525) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:23525) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] [chromium] › tests/e2e/boot.spec.js:95:3 › Route Entry Points › verifies product entry scripts in the Verification Worker
+[1A[2K  1) [chromium] › tests/e2e/boot.spec.js:95:3 › Route Entry Points › verifies product entry scripts in the Verification Worker 
+
+    Error: ["Security Violation in /index.html.1.js: sessionStorage access forbidden","Security Violation in /pool-entry.html.1.js: Direct localStorage access forbidden - use StateManager","Security Violation in /pool-entry.html.1.js: sessionStorage access forbidden"]
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mtrue[39m
+    Received: [31mfalse[39m
+
+      112 |       });
+      113 |     });
+    > 114 |     expect(verification.passed, JSON.stringify(verification.errors)).toBe(true);
+          |                                                                      ^
+      115 |     expect(verification.stats.filesAnalyzed).toBeGreaterThan(0);
+      116 |   });
+      117 |   for (const path of [PRODUCT_HOME_PATH, '/pool-entry.html']) {
+        at /Users/xyz/deco/reploid/tests/e2e/boot.spec.js:114:70
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/boot-Route-Entry-Points-ve-21562--in-the-Verification-Worker-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/boot-Route-Entry-Points-ve-21562--in-the-Verification-Worker-chromium/error-context.md
+
+
+[1A[2K  1 failed
+    [chromium] › tests/e2e/boot.spec.js:95:3 › Route Entry Points › verifies product entry scripts in the Verification Worker 

@@ -1,0 +1,41 @@
+{
+  "command": [
+    "/home/x/deco/gamma/.venv_rocm/bin/python",
+    "/tmp/reploid-search-answer-control-20261018/qwen35-deployed-reference.py",
+    "--model",
+    "/home/x/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
+    "--source-config",
+    "/tmp/reploid-search-answer-control-20261018/source-config.json",
+    "--capture",
+    "/tmp/reploid-search-answer-control-20261018/capture.json",
+    "--piece-index",
+    "/tmp/reploid-search-answer-control-20261018/pieces.json",
+    "--piece-index-identity",
+    "sha256:fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+    "--reference",
+    "/tmp/reploid-search-answer-control-20261018/control.json",
+    "--generation-control",
+    "/tmp/reploid-search-answer-control-20261018/control.json",
+    "--prefixes",
+    "1",
+    "--threads",
+    "4",
+    "--linear-prefill",
+    "source-chunk",
+    "--normalization",
+    "source",
+    "--out",
+    "/tmp/reploid-search-answer-control-20261018/reference.json"
+  ],
+  "environment": {
+    "PYTHONPATH": "/tmp/reploid-movie-control-20261017/python-deps",
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1"
+  },
+  "memoryBeforeBytes": {
+    "MemTotal": 131891146752,
+    "MemAvailable": 83924910080
+  },
+  "exitCode": 0,
+  "elapsedSeconds": 20.758223421988077
+}

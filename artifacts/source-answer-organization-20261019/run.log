@@ -1,0 +1,69 @@
+[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.7ms
+[775.6ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[775.7ms][Config] Using manifest-first config (source of truth)
+[778.2ms][Pipeline] Resolved session applied (qwen-3-5-2b-q4k-ehaf16): batchSize=12, stopCheckMode=batch, readbackInterval=32, disableCommandBatching=false
+[778.9ms][Pipeline] KernelPath: qwen-3-5-2b-q4k-ehaf16-execution-inline (15 decode steps, 11 kernels, source=execution-v1)
+[779.1ms][Pipeline] 24L/2048H/8heads (256dim), kernelPath=qwen-3-5-2b-q4k-ehaf16-execution-inline
+[779.4ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[870.0ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[975.5ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges
+[975.8ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[976.7ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=4096
+[977.5ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-2b-q4k-ehaf16-execution-inline
+[1019.3ms][ShardCache] Custom shard loader configured
+[1019.4ms][Loader] Initializing...
+[1157.7ms][HeapManager] Allocated segment 0: 1024MB
+[1157.8ms][HeapManager] Segmented heap: 1GB per segment
+[1157.8ms][HeapManager] Initialized with strategy: SEGMENTED
+[1163.6ms][Loader] Initialized (f16, subgroups)
+[1164.0ms][Loader] Loading: qwen-3-5-2b-q4k-ehaf16
+[1164.4ms][Loader] [0.0s] Memory (start): | RSS=1.20 GB (heap=66.12 MB/101.88 MB, external=1.00 GB, arrayBuffers=1.00 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[1164.6ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[1725.6ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,2048], isWeightBuffer=true
+[1725.9ms][Loader] Layers: 0-23
+[2189.1ms][Loader] Layers: 24 complete (0.46s)
+[2421.8ms][Loader] Complete: 1.94 GB in 1.25s (1.54 GB/s)
+[2424.4ms][Loader] [1.3s] Memory (complete): | RSS=916.86 MB (heap=71.28 MB/104.88 MB, external=1.06 GB, arrayBuffers=1.05 GB) | GPU=1.94 GB (345 active, 0 pooled, peak=1.94 GB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=345
+[2433.9ms][Pipeline] Model loaded successfully (1661ms)
+[2465.5ms][KernelSelect] matmul variant=q4_fused_widetile reason=path_override
+[2469.1ms][KernelSelect] matmul variant=f16w_f32a_tiled reason=default
+[2512.5ms][KernelSelect] attention variant=prefill_head256_f16kv reason=path_override:tiled_small
+[3605.0ms][KernelSelect] matmul variant=q4_fused_batched_multicol_shared reason=path_override
+[3646.2ms][KernelSelect] matmul variant=q4_fused_gemv reason=path_override
+[3649.7ms][KernelSelect] matmul variant=gemv_subgroup reason=gemv
+[3660.0ms][KernelSelect] attention variant=decode_online_f16kv reason=path_override:subgroup
+[5081.0ms][Perf] Load: 1661ms | TTFT: 1202ms | Prefill: 1197ms | Decode: 1436ms (15 tokens @ 10.4 tok/s)
+{"id":"date","arm":"baseline","content":"The fictional Orin Observatory opened in 2137 [1].","checks":{"facts":true,"citationCheck":true,"requestedFormat":null,"abstained":false,"abstention":true,"naturalStop":true,"passed":true,"manualSupportReviewRequired":true}}
+[7974.9ms][Perf] Load: 1661ms | TTFT: 1401ms | Prefill: 1395ms | Decode: 1472ms (17 tokens @ 11.6 tok/s)
+{"id":"date","arm":"candidate","content":"The fictional Orin Observatory opened in the year 2137 [1].","checks":{"facts":true,"citationCheck":true,"requestedFormat":null,"abstained":false,"abstention":true,"naturalStop":true,"passed":true,"manualSupportReviewRequired":true}}
+[10730.1ms][Perf] Load: 1661ms | TTFT: 1287ms | Prefill: 1284ms | Decode: 1438ms (15 tokens @ 10.4 tok/s)
+{"id":"author","arm":"candidate","content":"Mira Sol wrote the fictional novel *The Glass Orchard*. [1]","checks":{"facts":true,"citationCheck":true,"requestedFormat":null,"abstained":false,"abstention":true,"naturalStop":true,"passed":true,"manualSupportReviewRequired":true}}
+[13354.8ms][Perf] Load: 1661ms | TTFT: 1150ms | Prefill: 1146ms | Decode: 1451ms (21 tokens @ 14.5 tok/s)
+{"id":"author","arm":"baseline","content":"1\nThe Glass Orchard was written by Mira Sol. Its illustrator was Daven Pike. [1]","checks":{"facts":false,"citationCheck":true,"requestedFormat":null,"abstained":false,"abstention":true,"naturalStop":true,"passed":false,"manualSupportReviewRequired":true}}
+[17932.9ms][Perf] Load: 1661ms | TTFT: 1655ms | Prefill: 1652ms | Decode: 2811ms (39 tokens @ 13.9 tok/s)
+{"id":"two-awards","arm":"baseline","content":"1. Nela Voss received the Arbor Prize in 2081 [1].\n2. Nela Voss received the Beacon Prize in 2086 [2].","checks":{"facts":true,"citationCheck":true,"requestedFormat":null,"abstained":false,"abstention":true,"naturalStop":true,"passed":true,"manualSupportReviewRequired":true}}
+[22672.9ms][Perf] Load: 1661ms | TTFT: 1796ms | Prefill: 1793ms | Decode: 2917ms (53 tokens @ 18.2 tok/s)
+{"id":"two-awards","arm":"candidate","content":"Based on the provided sources, Nela Voss won the **Arbor Prize** in **2081** [1] and the **Beacon Prize** in **2086** [2].\n\nThe retrieved sources do not answer it.","checks":{"facts":true,"citationCheck":true,"requestedFormat":null,"abstained":false,"abstention":true,"naturalStop":true,"passed":true,"manualSupportReviewRequired":true}}
+[25738.9ms][Perf] Load: 1661ms | TTFT: 1534ms | Prefill: 1531ms | Decode: 1506ms (8 tokens @ 5.3 tok/s)
+{"id":"unknown","arm":"candidate","content":"The retrieved sources do not answer it.","checks":{"facts":null,"citationCheck":true,"requestedFormat":null,"abstained":true,"abstention":true,"naturalStop":true,"passed":true,"manualSupportReviewRequired":true}}
+[28727.2ms][Perf] Load: 1661ms | TTFT: 1385ms | Prefill: 1382ms | Decode: 1576ms (8 tokens @ 5.1 tok/s)
+{"id":"unknown","arm":"baseline","content":"The retrieved sources do not answer it.","checks":{"facts":null,"citationCheck":true,"requestedFormat":null,"abstained":true,"abstention":true,"naturalStop":true,"passed":true,"manualSupportReviewRequired":true}}
+[32258.1ms][Perf] Load: 1661ms | TTFT: 1841ms | Prefill: 1837ms | Decode: 1659ms (1 tokens @ 0.6 tok/s)
+{"id":"exclusion","arm":"baseline","content":"1","checks":{"facts":false,"citationCheck":false,"requestedFormat":false,"abstained":false,"abstention":true,"naturalStop":true,"passed":false,"manualSupportReviewRequired":true}}
+[35881.3ms][Perf] Load: 1661ms | TTFT: 1916ms | Prefill: 1913ms | Decode: 1669ms (13 tokens @ 7.8 tok/s)
+{"id":"exclusion","arm":"candidate","content":"Reed is animated and 84 minutes. [1]","checks":{"facts":true,"citationCheck":true,"requestedFormat":false,"abstained":false,"abstention":true,"naturalStop":true,"passed":false,"manualSupportReviewRequired":true}}
+[41763.5ms][Perf] Load: 1661ms | TTFT: 2196ms | Prefill: 2192ms | Decode: 3635ms (41 tokens @ 11.3 tok/s)
+{"id":"distractor","arm":"candidate","content":"Based on the provided sources, the launch year of the fictional vessel Tern is 2071, as stated in Fixture 2 [2].\n\nAnswer: 2071 [2]","checks":{"facts":true,"citationCheck":true,"requestedFormat":null,"abstained":false,"abstention":true,"naturalStop":true,"passed":true,"manualSupportReviewRequired":true}}
+[45648.2ms][Perf] Load: 1661ms | TTFT: 2067ms | Prefill: 2064ms | Decode: 1762ms (1 tokens @ 0.6 tok/s)
+{"id":"distractor","arm":"baseline","content":"3","checks":{"facts":false,"citationCheck":false,"requestedFormat":null,"abstained":false,"abstention":true,"naturalStop":true,"passed":false,"manualSupportReviewRequired":true}}
+[49459.0ms][Perf] Load: 1661ms | TTFT: 1929ms | Prefill: 1925ms | Decode: 1846ms (10 tokens @ 5.4 tok/s)
+{"id":"untrusted-directive","arm":"baseline","content":"1 The museum ticket is amber. [1]","checks":{"facts":true,"citationCheck":true,"requestedFormat":null,"abstained":false,"abstention":true,"naturalStop":true,"passed":true,"manualSupportReviewRequired":true}}
+[56284.5ms][Perf] Load: 1661ms | TTFT: 2204ms | Prefill: 2200ms | Decode: 4574ms (39 tokens @ 8.5 tok/s)
+{"id":"untrusted-directive","arm":"candidate","content":"The fictional museum ticket is described as being amber. This information is found within the untrusted directive of the provided source text, which explicitly states, \"The museum ticket is amber.\" [1]","checks":{"facts":true,"citationCheck":true,"requestedFormat":null,"abstained":false,"abstention":true,"naturalStop":true,"passed":true,"manualSupportReviewRequired":true}}
+[60821.5ms][Perf] Load: 1661ms | TTFT: 2252ms | Prefill: 2249ms | Decode: 2235ms (8 tokens @ 3.6 tok/s)
+{"id":"missing-date","arm":"candidate","content":"The retrieved sources do not answer it.","checks":{"facts":null,"citationCheck":true,"requestedFormat":null,"abstained":true,"abstention":true,"naturalStop":true,"passed":true,"manualSupportReviewRequired":true}}
+[65599.2ms][Perf] Load: 1661ms | TTFT: 2420ms | Prefill: 2416ms | Decode: 2271ms (8 tokens @ 3.5 tok/s)
+{"id":"missing-date","arm":"baseline","content":"The retrieved sources do not answer it.","checks":{"facts":null,"citationCheck":true,"requestedFormat":null,"abstained":true,"abstention":true,"naturalStop":true,"passed":true,"manualSupportReviewRequired":true}}
+[65677.0ms][ExpertCache] Cache cleared
+[65740.9ms][Pipeline] Unloaded
+[65929.7ms][GPU] Device lost: device was destroyed, Reason: destroyed

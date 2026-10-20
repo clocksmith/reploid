@@ -224,8 +224,13 @@ describe.each(['memory', 'firestore'])('settlement from signed evidence (%s stor
     const K = MAX_UNACKNOWLEDGED_OUTPUTS;
     const steps = 8;
     const waitMs = 150;
+    let executionStartedAt;
     const firstOnly = (generate) => (request, controls) => {
       const view = Object.create(controls);
+      Object.defineProperty(view, 'onState', { value: event => {
+        if (event.status === 'executing') executionStartedAt = Date.now();
+        controls.onState?.(event);
+      } });
       Object.defineProperty(view, 'onOutput', { get: () => controls.onOutput && ((record) => (record.step === 0 ? controls.onOutput(record) : null)) });
       return generate(request, view);
     };
@@ -237,7 +242,10 @@ describe.each(['memory', 'firestore'])('settlement from signed evidence (%s stor
     expect(attempt).toMatchObject({ status: 'failed' });
     const [receipt] = route.runner.getState().attempts;
     expect(receipt).toMatchObject({ phase: 'failed', acknowledgments: { bound: K, waits: 1 } });
-    expect(receipt.acknowledgments.waitedMs).toBeGreaterThanOrEqual(waitMs - 20);
+    // The deadline starts at execution, before signing/output work. Queue wait is only the remaining budget.
+    expect(executionStartedAt).toBeTypeOf('number');
+    expect(Date.now() - executionStartedAt).toBeGreaterThanOrEqual(waitMs - 1);
+    expect(receipt.acknowledgments.waitedMs).toBeGreaterThan(0);
     // Every stage stopped within K + 1 outputs of the one acknowledged output, and closed its receipt.
     const acknowledged = 1;
     for (const index of [0, 1]) {

@@ -1,0 +1,15 @@
+
+Running 6 tests using 1 worker
+
+(node:99026) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:99026) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/e2e/boot.spec.js:96:5 › Route Entry Points › opens public-route history while inference module downloads are stalled: / (1.9s)
+  ✓  2 [chromium] › tests/e2e/boot.spec.js:107:5 › Route Entry Points › bounds public-route initialization after the bundle has loaded: / (982ms)
+  ✓  3 [chromium] › tests/e2e/boot.spec.js:96:5 › Route Entry Points › opens public-route history while inference module downloads are stalled: /pool-entry.html (1.5s)
+  ✓  4 [chromium] › tests/e2e/boot.spec.js:107:5 › Route Entry Points › bounds public-route initialization after the bundle has loaded: /pool-entry.html (1.3s)
+  ✓  5 [chromium] › tests/e2e/boot.spec.js:123:3 › Route Entry Points › recovers once from a transient public-route module failure (800ms)
+  ✓  6 [chromium] › tests/e2e/boot.spec.js:146:3 › Route Entry Points › stops after one public-route recovery when the product bundle stays unavailable (650ms)
+
+  6 passed (8.4s)

@@ -43,3 +43,16 @@ it('pagehide retires pending opening and reports a failed admission without bind
   await expect(opening).rejects.toThrow('history writer unavailable');
   expect(mount.querySelector('[data-composer-form]')).toBeNull();
 });
+
+it('a startup deadline retires the opening and closes a late host without replacing the failure view', async () => {
+  const { mount, host } = fixture(); let resolve;
+  ports.create.mockReturnValue(new Promise(done => { resolve = done; }));
+  const controller = new AbortController();
+  const opening = initPoolHome(mount, { canonical: {}, signal: controller.signal });
+  controller.abort(Error('startup timed out'));
+  mount.textContent = 'Reploid could not load';
+  resolve(host); await opening;
+  expect(host.close).toHaveBeenCalledOnce();
+  expect(mount.textContent).toBe('Reploid could not load');
+  expect(mount.querySelector('[data-composer-form]')).toBeNull();
+});

@@ -55,7 +55,7 @@ describe('Hosting dependency projection', () => {
     const root = await fixture();
     const selfDir = path.join(root, 'self');
     const prefix = 'vendor/doppler/0.0.1/';
-    for (const entry of ['src/index.js', 'src/partitions.js', 'src/tooling-exports.browser.js', 'src/tooling-exports/storage.js']) {
+    for (const entry of ['src/index.js', 'src/partitions.js', 'src/training-browser.js', 'src/tooling-exports.browser.js', 'src/tooling-exports/storage.js']) {
       await put(selfDir, prefix + entry, 'export const ready = true;');
       await put(path.join(root, 'archive'), 'package/' + entry, 'export const ready = true;');
     }

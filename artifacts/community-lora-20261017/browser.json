@@ -1,0 +1,18 @@
+{
+  "at": "2026-10-17T19:08:53.183Z",
+  "route": "/improve",
+  "views": [
+    {
+      "width": 390,
+      "overflow": false,
+      "panels": 1
+    },
+    {
+      "width": 1280,
+      "overflow": false,
+      "panels": 1
+    }
+  ],
+  "emptyInputRejected": true,
+  "scope": "Real Chrome, shipped product view and Verification Worker; no browser GPU training or deployment claim"
+}

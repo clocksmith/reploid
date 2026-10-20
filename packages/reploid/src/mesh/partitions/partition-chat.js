@@ -1,3 +1,4 @@
+import { partitionAdapterIdentities, samePartitionAdapters } from './partition-contract.js';
 import { TEXT_GENERATION_CAPABILITY, requireGenerationCapability, boundedGeneration, tokenUsage } from './partition-generation-request.js';
 import { createOrderedPartitionChat } from './partition-ordered-chat.js';
 import { createCanonicalChatBinding } from './partition-chat-canonical.js';
@@ -16,8 +17,9 @@ export function createPartitionChat({ runtime, local, remote, authority, model, 
   // Requesters select a prepared route; opening artifacts and execution policy
   // remain with its contributor. Signed Capsule evidence can exceed the control
   // frame budget and must not be copied into capability advertisements/history.
+  assert(canonicalPartitionJson(plan.adapterIdentities || []) === canonicalPartitionJson(partitionAdapterIdentities(model)), 'Partition plan adapter binding mismatch');
   const selection = { id: model.id, name: model.name, identity: model.identity,
-    adapters: [], selectionId: model.id + '/partition/' + planId,
+    adapters: structuredClone(model.adapters || []), selectionId: model.id + '/partition/' + planId,
     partition: { planId, participantA: local.id, participantB: remote.id } };
   for (const key of ['provider', 'contextLength', 'quantization', 'size', 'recommended']) {
     if (model[key] !== undefined) selection[key] = structuredClone(model[key]);
@@ -54,7 +56,7 @@ export function createPartitionChat({ runtime, local, remote, authority, model, 
       const delegated = request.participantId !== local.id;
       assert(!!canonicalBinding === (request.canonical !== undefined), 'Explicit canonical chat context required');
       assert(!closed && request.meshId === authority.meshId && request.model.id === selection.id
-        && request.model.identity === selection.identity && !(request.model.adapters || []).length
+        && request.model.identity === selection.identity && samePartitionAdapters(request.model, selection)
         && request.model.partition && canonicalPartitionJson(request.model.partition) === canonicalPartitionJson(selection.partition), 'Partition chat selection mismatch');
       if (delegated) assert(typeof authorizeRequester === 'function'
         && await authorizeRequester(request, controls.signal) === true
@@ -70,7 +72,7 @@ export function createPartitionChat({ runtime, local, remote, authority, model, 
       const context = canonicalBinding?.check(request.canonical, identity, controls.publication);
       const approved = await controls.requestApproval({ id: crypto.randomUUID(), threadId: request.threadId,
         attemptId: request.attemptId, peerId: remote.id, recipientIdentity: remote.id,
-        modelId: selection.id, modelIdentity: selection.identity, adapterIdentities: [],
+        modelId: selection.id, modelIdentity: selection.identity, adapterIdentities: partitionAdapterIdentities(selection),
         operation: 'generate-partition', disclosure: 'partition-activations-and-tokens', ...selection.partition,
         expiresAt: now() + grantTtlMs,
         input: { messages: structuredClone(request.messages), ...(requested ? {generationRequest: requested} : {}),
@@ -109,7 +111,7 @@ export function createPartitionChat({ runtime, local, remote, authority, model, 
             publication: controls.publication, deadlineAt: context.deadlineAt } })
           : await runner.execute({ ...run, generation, maxTokens: generation.maxTokens });
         return { threadId: request.threadId, attemptId: request.attemptId, modelId: result.execution.modelId,
-          modelIdentity: result.execution.modelIdentity, adapterIdentities: [], content: result.content,
+          modelIdentity: result.execution.modelIdentity, adapterIdentities: partitionAdapterIdentities(selection), content: result.content,
           ...(requested ? {usage: tokenUsage(input.tokenIds.length, result.tokenIds.length, requested)} : {}),
           execution: { ...result.execution, provider: 'peer', transport: remote.getState().receipt } };
       } finally {

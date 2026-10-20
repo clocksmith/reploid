@@ -1,0 +1,37 @@
+[1A[2K[2m[WebServer] [22m(node:23107) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1A[2K[2m[WebServer] [22m(node:23133) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1A[2K[2m[WebServer] [22m(node:23134) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1A[2K[2m[WebServer] [22m(node:23134) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1A[2K[2m[WebServer] [22m[Proxy] Config loader not available, using environment variables
+
+[1A[2K[2m[WebServer] [22m(node:23176) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 8 tests using 1 worker
+
+[1A[2K(node:23184) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:23184) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/8] [chromium] › tests/e2e/boot.spec.js:96:5 › Route Entry Points › bounds public-route recovery when session storage is unavailable: /
+[1A[2K[2/8] [chromium] › tests/e2e/boot.spec.js:112:5 › Route Entry Points › opens public-route history while inference module downloads are stalled: /
+[1A[2K[3/8] [chromium] › tests/e2e/boot.spec.js:123:5 › Route Entry Points › bounds public-route initialization after the bundle has loaded: /
+[1A[2K[4/8] [chromium] › tests/e2e/boot.spec.js:96:5 › Route Entry Points › bounds public-route recovery when session storage is unavailable: /pool-entry.html
+[1A[2K[5/8] [chromium] › tests/e2e/boot.spec.js:112:5 › Route Entry Points › opens public-route history while inference module downloads are stalled: /pool-entry.html
+[1A[2K[6/8] [chromium] › tests/e2e/boot.spec.js:123:5 › Route Entry Points › bounds public-route initialization after the bundle has loaded: /pool-entry.html
+[1A[2K[7/8] [chromium] › tests/e2e/boot.spec.js:139:3 › Route Entry Points › recovers once from a transient public-route module failure
+[1A[2K[8/8] [chromium] › tests/e2e/boot.spec.js:162:3 › Route Entry Points › stops after one public-route recovery when the product bundle stays unavailable
+[1A[2K  8 passed (6.3s)

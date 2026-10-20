@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
+import { readChatWorkspace } from '../fixtures/chat-workspace-history.js';
 
 // An operator prepares the exact native model separately. This test neither
 // starts a contributor nor downloads weights or changes its resource limits.
@@ -19,10 +20,7 @@ test('native whole-model chat streams, follows up, cancels, reuses and reloads',
   page.on('request', request => {
     if (/shard_\d+\.bin|tokenizer\.json/.test(request.url())) weightRequests.push(new URL(request.url()).pathname);
   });
-  const history = () => page.evaluate(() => {
-    const key = Object.keys(localStorage).find(value => value.endsWith('reploid.chat-workspace:v1'));
-    return key ? JSON.parse(localStorage.getItem(key)) : null;
-  });
+  const history = () => readChatWorkspace(page);
   const current = async () => (await history())?.threads.at(-1);
   const send = async prompt => {
     await page.locator('[data-composer-input]').fill(prompt);
@@ -50,7 +48,7 @@ test('native whole-model chat streams, follows up, cancels, reuses and reloads',
     await page.goto(url);
     await page.locator('[data-chat-workspace]').waitFor();
     await page.locator('[data-open-model]').click();
-    await page.locator('[data-active-model-select]').selectOption(modelId);
+    await page.locator(`.chat-model-choices input[value="${modelId}"]`).filter({ visible: true }).check();
     await page.locator('[data-close-inspector]').click();
     await send('What is 17 + 25? Answer with the number only.');
     // Current default network permission may already admit the request. Older
@@ -82,11 +80,14 @@ test('native whole-model chat streams, follows up, cancels, reuses and reloads',
     expect(restored.attempts.map(attempt => attempt.status)).toEqual(['completed', 'completed', 'cancelled', 'completed']);
     expect(weightRequests).toEqual([]);
     expect(errors).toEqual([]);
-    await info.attach('whole-model-chat.json', { contentType: 'application/json', body: JSON.stringify({
+    const receiptPath = info.outputPath('whole-model-chat.json');
+    await writeFile(receiptPath, JSON.stringify({
       modelId, modelIdentity: model.identity, browser: browser.version(), at: new Date().toISOString(),
       turns, cancelled: true, reusedAfterCancellation: true, historyPreserved: true, weightRequests, errors
-    }, null, 2) });
+    }, null, 2));
+    await info.attach('whole-model-chat.json', { contentType: 'application/json', path: receiptPath });
   } finally {
+    await info.attach('retained-history.json', { contentType: 'application/json', body: JSON.stringify({ turns, history: await history().catch(() => null), errors, weightRequests }) });
     await context.close();
   }
 });

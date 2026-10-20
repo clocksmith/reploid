@@ -1,0 +1,31 @@
+{
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "baseManifestHash": "sha256:cf20c690cc397a4bd8e64ee4b00158114947ee75568c0ae8f2df8a9ebc052965",
+  "vocabSize": 248320,
+  "layerIdx": 23,
+  "module": "down_proj",
+  "trainer": {
+    "rank": 2,
+    "alpha": 4,
+    "optimizer": { "type": "adamw", "lr": 0.0001, "beta1": 0.9, "beta2": 0.999, "eps": 1e-8, "weightDecay": 0 },
+    "gradient": { "maxNorm": 1 },
+    "precision": { "activations": "f32", "gradients": "f32", "loraParams": "f32" }
+  },
+  "maxSamples": 8,
+  "maxTokensPerSample": 128,
+  "maxInputBytes": 65536,
+  "maxParticipants": 4,
+  "timeoutMs": 300000,
+  "connectTimeoutMs": 30000,
+  "channel": {
+    "maxFrameBytes": 16384,
+    "maxControlBytes": 4096,
+    "maxPayloadBytes": 2097152,
+    "maxPendingBytes": 4194304,
+    "maxPendingRequests": 2,
+    "maxRequestsPerChannel": 64,
+    "maxBufferedBytes": 1048576,
+    "maxTransferBytes": 33554432,
+    "timeoutMs": 300000
+  }
+}

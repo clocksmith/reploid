@@ -1,0 +1,2031 @@
+{
+  "at": "2026-10-17T16:21:12.892Z",
+  "scope": "Frozen supplied-list movie selection: six independent conversations, twelve exact constraint/follow-up answers, reload between turns. This does not establish general model quality, real streaming availability, preference or retention.",
+  "suiteDigest": "ba41d5e6f3338d30fe7da4a1643db2a346874d2aef5c6c9ecfd84961c2da7c71",
+  "modelId": "qwen-3-5-2b-q4k-ehaf16",
+  "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+  "browser": "155.0.8059.80",
+  "results": [
+    {
+      "id": "format-followup/1",
+      "prompt": "Use only this fictional movie catalog. Fields are title | tone | genre | minutes | format | rating | audio | subtitles.\nCedar | calm | comedy | 84 | live-action | PG-13 | English | English\nClover | calm | comedy | 96 | animated | PG | English | English, Spanish\nHarbor | tense | thriller | 91 | live-action | R | Spanish | English\nOrbit | calm | comedy | 122 | live-action | PG | English | Spanish\nLantern | calm | drama | 98 | live-action | PG | English | English\nMeadow | calm | comedy | 89 | live-action | PG-13 | French | English\nPine | calm | comedy | 81 | animated | PG | English | French\nAtlas | calm | documentary | 85 | live-action | G | German | English\nStreaming services and release years are not supplied. Never invent missing facts. For each request, reply with only the matching title; reply NONE if no title satisfies every constraint, or UNKNOWN if the requested fact is missing.\n\nPick a calm English-audio live-action comedy shorter than 90 minutes.",
+      "expected": "Cedar",
+      "answer": "Cedar",
+      "firstOutputMs": 2811.220625,
+      "elapsedMs": 4274.331792,
+      "attempt": {
+        "approval": null,
+        "authorization": {
+          "adapterIdentities": [],
+          "disclosure": "public",
+          "expiresAt": 1792254049591,
+          "grantId": null,
+          "kind": "permission",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+          "permissionId": "4afa9db9-e6fb-443d-b9d3-30dc17ae1a53",
+          "recipientIdentity": "peer:e6e831f00bac1b1da938fb05",
+          "recipients": [
+            "peer:e6e831f00bac1b1da938fb05"
+          ],
+          "sharingScope": "mesh",
+          "source": "permission"
+        },
+        "createdAt": 1792254019571,
+        "error": null,
+        "execution": {
+          "adapterIdentities": [],
+          "completion": {
+            "generatedTokenCount": 3,
+            "promptTokenCount": 297,
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "stop-token"
+          },
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+          "placement": "peer-whole-request",
+          "provider": "peer",
+          "stopReason": "stop-token",
+          "timing": {
+            "decodeMs": 1460.318333000003,
+            "firstTokenMs": 2656.1258329999982,
+            "generatedTokenCount": 3,
+            "prefillMs": 2651.2139580000003,
+            "totalMs": 4117.671999999999
+          }
+        },
+        "finishedAt": 1792254023729,
+        "id": "79ad5f24-bb98-418b-9014-4a46fa992ce8",
+        "provenance": {
+          "attemptId": "79ad5f24-bb98-418b-9014-4a46fa992ce8",
+          "classes": [
+            "mesh"
+          ],
+          "earlierAttempts": [],
+          "execution": {
+            "classes": [
+              "mesh"
+            ],
+            "participants": [
+              {
+                "participantId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+                "role": "whole-request",
+                "stage": null,
+                "supply": "mesh"
+              }
+            ],
+            "placement": "peer-whole-request",
+            "supply": "mesh"
+          },
+          "retrieval": {
+            "supply": "none"
+          },
+          "schema": "reploid.answer-provenance/v1",
+          "supply": "mesh"
+        },
+        "publicationMode": "whole-model",
+        "request": {
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+              "role": "system"
+            },
+            {
+              "content": "Use only this fictional movie catalog. Fields are title | tone | genre | minutes | format | rating | audio | subtitles.\nCedar | calm | comedy | 84 | live-action | PG-13 | English | English\nClover | calm | comedy | 96 | animated | PG | English | English, Spanish\nHarbor | tense | thriller | 91 | live-action | R | Spanish | English\nOrbit | calm | comedy | 122 | live-action | PG | English | Spanish\nLantern | calm | drama | 98 | live-action | PG | English | English\nMeadow | calm | comedy | 89 | live-action | PG-13 | French | English\nPine | calm | comedy | 81 | animated | PG | English | French\nAtlas | calm | documentary | 85 | live-action | G | German | English\nStreaming services and release years are not supplied. Never invent missing facts. For each request, reply with only the matching title; reply NONE if no title satisfies every constraint, or UNKNOWN if the requested fact is missing.\n\nPick a calm English-audio live-action comedy shorter than 90 minutes.",
+              "role": "user"
+            }
+          ],
+          "model": {
+            "adapters": [],
+            "availability": "ready",
+            "contextLength": 262144,
+            "id": "qwen-3-5-2b-q4k-ehaf16",
+            "identity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "name": "Qwen 3.5 2B",
+            "networkAvailability": "ready",
+            "packageName": "doppler-gpu",
+            "packageVersion": "0.6.31",
+            "partitionSplitLayer": 4,
+            "provider": "doppler",
+            "providerIds": [
+              "66f7a6b5-96eb-4b27-800a-48e6d8ded835"
+            ],
+            "quantization": "q4k",
+            "recommended": true,
+            "size": "Q4K",
+            "source": {
+              "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+              "files": [
+                {
+                  "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                  "hashAlgorithm": "sha256",
+                  "path": "manifest.json",
+                  "role": "model-manifest",
+                  "sizeBytes": 183803,
+                  "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+                },
+                {
+                  "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+                  "hashAlgorithm": "sha256",
+                  "path": "tokenizer.json",
+                  "role": "tokenizer",
+                  "sizeBytes": 9088480
+                },
+                {
+                  "hash": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+                  "hashAlgorithm": "sha256",
+                  "path": "qwen-2b-pieces.json",
+                  "role": "model-piece-index",
+                  "sizeBytes": 111108,
+                  "url": "/config/model-pieces/qwen-2b-pieces.json"
+                }
+              ]
+            }
+          },
+          "permissions": {
+            "executionLocation": "auto",
+            "sharingScope": "mesh"
+          }
+        },
+        "responseId": "fa0a760a-0bff-4988-9d0d-3c0cdfb73a6e",
+        "retryOf": null,
+        "status": "completed",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        },
+        "threadId": "7b4ddecb-c3af-4c7f-8aa9-9e18f110ad21",
+        "userMessageId": "a4b89320-0c31-4fd2-8b0c-d08f1b6719bb"
+      }
+    },
+    {
+      "id": "format-followup/2",
+      "prompt": "Keep those requirements except make it animated instead of live-action.",
+      "expected": "Pine",
+      "answer": "Clover",
+      "firstOutputMs": 2565.997875000001,
+      "elapsedMs": 3945.748667,
+      "attempt": {
+        "approval": null,
+        "authorization": {
+          "adapterIdentities": [],
+          "disclosure": "public",
+          "expiresAt": 1792254054011,
+          "grantId": null,
+          "kind": "permission",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+          "permissionId": "4afa9db9-e6fb-443d-b9d3-30dc17ae1a53",
+          "recipientIdentity": "peer:e6e831f00bac1b1da938fb05",
+          "recipients": [
+            "peer:e6e831f00bac1b1da938fb05"
+          ],
+          "sharingScope": "mesh",
+          "source": "permission"
+        },
+        "createdAt": 1792254023981,
+        "error": null,
+        "execution": {
+          "adapterIdentities": [],
+          "completion": {
+            "generatedTokenCount": 3,
+            "promptTokenCount": 321,
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "stop-token"
+          },
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+          "placement": "peer-whole-request",
+          "provider": "peer",
+          "stopReason": "stop-token",
+          "timing": {
+            "decodeMs": 1406.6339169999992,
+            "firstTokenMs": 2456.5513750000027,
+            "generatedTokenCount": 3,
+            "prefillMs": 2451.9224170000016,
+            "totalMs": 3863.707457999997
+          }
+        },
+        "finishedAt": 1792254027893,
+        "id": "cb104db3-64e2-4eeb-add5-b2f087df9cc9",
+        "provenance": {
+          "attemptId": "cb104db3-64e2-4eeb-add5-b2f087df9cc9",
+          "classes": [
+            "mesh"
+          ],
+          "earlierAttempts": [],
+          "execution": {
+            "classes": [
+              "mesh"
+            ],
+            "participants": [
+              {
+                "participantId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+                "role": "whole-request",
+                "stage": null,
+                "supply": "mesh"
+              }
+            ],
+            "placement": "peer-whole-request",
+            "supply": "mesh"
+          },
+          "retrieval": {
+            "supply": "none"
+          },
+          "schema": "reploid.answer-provenance/v1",
+          "supply": "mesh"
+        },
+        "publicationMode": "whole-model",
+        "request": {
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+              "role": "system"
+            },
+            {
+              "content": "Use only this fictional movie catalog. Fields are title | tone | genre | minutes | format | rating | audio | subtitles.\nCedar | calm | comedy | 84 | live-action | PG-13 | English | English\nClover | calm | comedy | 96 | animated | PG | English | English, Spanish\nHarbor | tense | thriller | 91 | live-action | R | Spanish | English\nOrbit | calm | comedy | 122 | live-action | PG | English | Spanish\nLantern | calm | drama | 98 | live-action | PG | English | English\nMeadow | calm | comedy | 89 | live-action | PG-13 | French | English\nPine | calm | comedy | 81 | animated | PG | English | French\nAtlas | calm | documentary | 85 | live-action | G | German | English\nStreaming services and release years are not supplied. Never invent missing facts. For each request, reply with only the matching title; reply NONE if no title satisfies every constraint, or UNKNOWN if the requested fact is missing.\n\nPick a calm English-audio live-action comedy shorter than 90 minutes.",
+              "role": "user"
+            },
+            {
+              "content": "Cedar",
+              "role": "assistant"
+            },
+            {
+              "content": "Keep those requirements except make it animated instead of live-action.",
+              "role": "user"
+            }
+          ],
+          "model": {
+            "adapters": [],
+            "availability": "ready",
+            "contextLength": 262144,
+            "id": "qwen-3-5-2b-q4k-ehaf16",
+            "identity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "name": "Qwen 3.5 2B",
+            "networkAvailability": "ready",
+            "packageName": "doppler-gpu",
+            "packageVersion": "0.6.31",
+            "partitionSplitLayer": 4,
+            "provider": "doppler",
+            "providerIds": [
+              "66f7a6b5-96eb-4b27-800a-48e6d8ded835"
+            ],
+            "quantization": "q4k",
+            "recommended": true,
+            "size": "Q4K",
+            "source": {
+              "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+              "files": [
+                {
+                  "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                  "hashAlgorithm": "sha256",
+                  "path": "manifest.json",
+                  "role": "model-manifest",
+                  "sizeBytes": 183803,
+                  "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+                },
+                {
+                  "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+                  "hashAlgorithm": "sha256",
+                  "path": "tokenizer.json",
+                  "role": "tokenizer",
+                  "sizeBytes": 9088480
+                },
+                {
+                  "hash": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+                  "hashAlgorithm": "sha256",
+                  "path": "qwen-2b-pieces.json",
+                  "role": "model-piece-index",
+                  "sizeBytes": 111108,
+                  "url": "/config/model-pieces/qwen-2b-pieces.json"
+                }
+              ]
+            }
+          },
+          "permissions": {
+            "executionLocation": "auto",
+            "sharingScope": "mesh"
+          }
+        },
+        "responseId": "2f2fb5fb-f74f-4de5-bade-dada7aa2d8a4",
+        "retryOf": null,
+        "status": "completed",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        },
+        "threadId": "7b4ddecb-c3af-4c7f-8aa9-9e18f110ad21",
+        "userMessageId": "29da53e4-cc43-4dba-a9c1-bd3ecfb98013"
+      }
+    },
+    {
+      "id": "group-hard-constraints/1",
+      "prompt": "Use only this fictional movie catalog. Fields are title | tone | genre | minutes | format | rating | audio | subtitles.\nCedar | calm | comedy | 84 | live-action | PG-13 | English | English\nClover | calm | comedy | 96 | animated | PG | English | English, Spanish\nHarbor | tense | thriller | 91 | live-action | R | Spanish | English\nOrbit | calm | comedy | 122 | live-action | PG | English | Spanish\nLantern | calm | drama | 98 | live-action | PG | English | English\nMeadow | calm | comedy | 89 | live-action | PG-13 | French | English\nPine | calm | comedy | 81 | animated | PG | English | French\nAtlas | calm | documentary | 85 | live-action | G | German | English\nStreaming services and release years are not supplied. Never invent missing facts. For each request, reply with only the matching title; reply NONE if no title satisfies every constraint, or UNKNOWN if the requested fact is missing.\n\nAlice refuses R-rated movies, Bob needs under 100 minutes, and Cara requires Spanish audio. Pick a movie satisfying all three.",
+      "expected": "NONE",
+      "answer": "None",
+      "firstOutputMs": 2731.2428340000006,
+      "elapsedMs": 4123.453667,
+      "attempt": {
+        "approval": null,
+        "authorization": {
+          "adapterIdentities": [],
+          "disclosure": "public",
+          "expiresAt": 1792254058136,
+          "grantId": null,
+          "kind": "permission",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+          "permissionId": "4afa9db9-e6fb-443d-b9d3-30dc17ae1a53",
+          "recipientIdentity": "peer:e6e831f00bac1b1da938fb05",
+          "recipients": [
+            "peer:e6e831f00bac1b1da938fb05"
+          ],
+          "sharingScope": "mesh",
+          "source": "permission"
+        },
+        "createdAt": 1792254028117,
+        "error": null,
+        "execution": {
+          "adapterIdentities": [],
+          "completion": {
+            "generatedTokenCount": 2,
+            "promptTokenCount": 309,
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "stop-token"
+          },
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+          "placement": "peer-whole-request",
+          "provider": "peer",
+          "stopReason": "stop-token",
+          "timing": {
+            "decodeMs": 1397.8862920000029,
+            "firstTokenMs": 2557.2732090000063,
+            "generatedTokenCount": 2,
+            "prefillMs": 2551.667042000001,
+            "totalMs": 3955.6440000000002
+          }
+        },
+        "finishedAt": 1792254032112,
+        "id": "c6218920-a84b-4677-afba-5b7520f5dec6",
+        "provenance": {
+          "attemptId": "c6218920-a84b-4677-afba-5b7520f5dec6",
+          "classes": [
+            "mesh"
+          ],
+          "earlierAttempts": [],
+          "execution": {
+            "classes": [
+              "mesh"
+            ],
+            "participants": [
+              {
+                "participantId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+                "role": "whole-request",
+                "stage": null,
+                "supply": "mesh"
+              }
+            ],
+            "placement": "peer-whole-request",
+            "supply": "mesh"
+          },
+          "retrieval": {
+            "supply": "none"
+          },
+          "schema": "reploid.answer-provenance/v1",
+          "supply": "mesh"
+        },
+        "publicationMode": "whole-model",
+        "request": {
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+              "role": "system"
+            },
+            {
+              "content": "Use only this fictional movie catalog. Fields are title | tone | genre | minutes | format | rating | audio | subtitles.\nCedar | calm | comedy | 84 | live-action | PG-13 | English | English\nClover | calm | comedy | 96 | animated | PG | English | English, Spanish\nHarbor | tense | thriller | 91 | live-action | R | Spanish | English\nOrbit | calm | comedy | 122 | live-action | PG | English | Spanish\nLantern | calm | drama | 98 | live-action | PG | English | English\nMeadow | calm | comedy | 89 | live-action | PG-13 | French | English\nPine | calm | comedy | 81 | animated | PG | English | French\nAtlas | calm | documentary | 85 | live-action | G | German | English\nStreaming services and release years are not supplied. Never invent missing facts. For each request, reply with only the matching title; reply NONE if no title satisfies every constraint, or UNKNOWN if the requested fact is missing.\n\nAlice refuses R-rated movies, Bob needs under 100 minutes, and Cara requires Spanish audio. Pick a movie satisfying all three.",
+              "role": "user"
+            }
+          ],
+          "model": {
+            "adapters": [],
+            "availability": "ready",
+            "contextLength": 262144,
+            "id": "qwen-3-5-2b-q4k-ehaf16",
+            "identity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "name": "Qwen 3.5 2B",
+            "networkAvailability": "ready",
+            "packageName": "doppler-gpu",
+            "packageVersion": "0.6.31",
+            "partitionSplitLayer": 4,
+            "provider": "doppler",
+            "providerIds": [
+              "66f7a6b5-96eb-4b27-800a-48e6d8ded835"
+            ],
+            "quantization": "q4k",
+            "recommended": true,
+            "size": "Q4K",
+            "source": {
+              "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+              "files": [
+                {
+                  "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                  "hashAlgorithm": "sha256",
+                  "path": "manifest.json",
+                  "role": "model-manifest",
+                  "sizeBytes": 183803,
+                  "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+                },
+                {
+                  "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+                  "hashAlgorithm": "sha256",
+                  "path": "tokenizer.json",
+                  "role": "tokenizer",
+                  "sizeBytes": 9088480
+                },
+                {
+                  "hash": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+                  "hashAlgorithm": "sha256",
+                  "path": "qwen-2b-pieces.json",
+                  "role": "model-piece-index",
+                  "sizeBytes": 111108,
+                  "url": "/config/model-pieces/qwen-2b-pieces.json"
+                }
+              ]
+            }
+          },
+          "permissions": {
+            "executionLocation": "auto",
+            "sharingScope": "mesh"
+          }
+        },
+        "responseId": "090bcb33-158d-41a7-addb-79aeb93a2a95",
+        "retryOf": null,
+        "status": "completed",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        },
+        "threadId": "221da394-92db-4c08-ab12-4b97eb051c89",
+        "userMessageId": "58ab3365-53b8-46b1-af3b-a7fd76779b0a"
+      }
+    },
+    {
+      "id": "group-hard-constraints/2",
+      "prompt": "Alice now accepts an R rating. Keep Bob's and Cara's requirements.",
+      "expected": "Harbor",
+      "answer": "Bob: Under 100 minutes.\nCara: Spanish audio.\nResult: Harbor (91 min, Spanish audio, tense/thriller) satisfies all three.",
+      "firstOutputMs": 2686.7261670000007,
+      "elapsedMs": 5564.5712920000005,
+      "attempt": {
+        "approval": null,
+        "authorization": {
+          "adapterIdentities": [],
+          "disclosure": "public",
+          "expiresAt": 1792254062469,
+          "grantId": null,
+          "kind": "permission",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+          "permissionId": "4afa9db9-e6fb-443d-b9d3-30dc17ae1a53",
+          "recipientIdentity": "peer:e6e831f00bac1b1da938fb05",
+          "recipients": [
+            "peer:e6e831f00bac1b1da938fb05"
+          ],
+          "sharingScope": "mesh",
+          "source": "permission"
+        },
+        "createdAt": 1792254032433,
+        "error": null,
+        "execution": {
+          "adapterIdentities": [],
+          "completion": {
+            "generatedTokenCount": 37,
+            "promptTokenCount": 335,
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "stop-token"
+          },
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+          "placement": "peer-whole-request",
+          "provider": "peer",
+          "stopReason": "stop-token",
+          "timing": {
+            "decodeMs": 2828.0237500000003,
+            "firstTokenMs": 2564.5642920000028,
+            "generatedTokenCount": 37,
+            "prefillMs": 2562.243792000001,
+            "totalMs": 5393.8007080000025
+          }
+        },
+        "finishedAt": 1792254037894,
+        "id": "06d3006c-f9d6-499c-8bac-e72a1b7a69cb",
+        "provenance": {
+          "attemptId": "06d3006c-f9d6-499c-8bac-e72a1b7a69cb",
+          "classes": [
+            "mesh"
+          ],
+          "earlierAttempts": [],
+          "execution": {
+            "classes": [
+              "mesh"
+            ],
+            "participants": [
+              {
+                "participantId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+                "role": "whole-request",
+                "stage": null,
+                "supply": "mesh"
+              }
+            ],
+            "placement": "peer-whole-request",
+            "supply": "mesh"
+          },
+          "retrieval": {
+            "supply": "none"
+          },
+          "schema": "reploid.answer-provenance/v1",
+          "supply": "mesh"
+        },
+        "publicationMode": "whole-model",
+        "request": {
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+              "role": "system"
+            },
+            {
+              "content": "Use only this fictional movie catalog. Fields are title | tone | genre | minutes | format | rating | audio | subtitles.\nCedar | calm | comedy | 84 | live-action | PG-13 | English | English\nClover | calm | comedy | 96 | animated | PG | English | English, Spanish\nHarbor | tense | thriller | 91 | live-action | R | Spanish | English\nOrbit | calm | comedy | 122 | live-action | PG | English | Spanish\nLantern | calm | drama | 98 | live-action | PG | English | English\nMeadow | calm | comedy | 89 | live-action | PG-13 | French | English\nPine | calm | comedy | 81 | animated | PG | English | French\nAtlas | calm | documentary | 85 | live-action | G | German | English\nStreaming services and release years are not supplied. Never invent missing facts. For each request, reply with only the matching title; reply NONE if no title satisfies every constraint, or UNKNOWN if the requested fact is missing.\n\nAlice refuses R-rated movies, Bob needs under 100 minutes, and Cara requires Spanish audio. Pick a movie satisfying all three.",
+              "role": "user"
+            },
+            {
+              "content": "None",
+              "role": "assistant"
+            },
+            {
+              "content": "Alice now accepts an R rating. Keep Bob's and Cara's requirements.",
+              "role": "user"
+            }
+          ],
+          "model": {
+            "adapters": [],
+            "availability": "ready",
+            "contextLength": 262144,
+            "id": "qwen-3-5-2b-q4k-ehaf16",
+            "identity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "name": "Qwen 3.5 2B",
+            "networkAvailability": "ready",
+            "packageName": "doppler-gpu",
+            "packageVersion": "0.6.31",
+            "partitionSplitLayer": 4,
+            "provider": "doppler",
+            "providerIds": [
+              "66f7a6b5-96eb-4b27-800a-48e6d8ded835"
+            ],
+            "quantization": "q4k",
+            "recommended": true,
+            "size": "Q4K",
+            "source": {
+              "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+              "files": [
+                {
+                  "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                  "hashAlgorithm": "sha256",
+                  "path": "manifest.json",
+                  "role": "model-manifest",
+                  "sizeBytes": 183803,
+                  "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+                },
+                {
+                  "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+                  "hashAlgorithm": "sha256",
+                  "path": "tokenizer.json",
+                  "role": "tokenizer",
+                  "sizeBytes": 9088480
+                },
+                {
+                  "hash": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+                  "hashAlgorithm": "sha256",
+                  "path": "qwen-2b-pieces.json",
+                  "role": "model-piece-index",
+                  "sizeBytes": 111108,
+                  "url": "/config/model-pieces/qwen-2b-pieces.json"
+                }
+              ]
+            }
+          },
+          "permissions": {
+            "executionLocation": "auto",
+            "sharingScope": "mesh"
+          }
+        },
+        "responseId": "7136045a-fc2e-4820-9f28-15d00f3e3eed",
+        "retryOf": null,
+        "status": "completed",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        },
+        "threadId": "221da394-92db-4c08-ab12-4b97eb051c89",
+        "userMessageId": "564d25ab-6073-45f7-a87b-6ff215c751e4"
+      }
+    },
+    {
+      "id": "subtitles-and-time/1",
+      "prompt": "Use only this fictional movie catalog. Fields are title | tone | genre | minutes | format | rating | audio | subtitles.\nCedar | calm | comedy | 84 | live-action | PG-13 | English | English\nClover | calm | comedy | 96 | animated | PG | English | English, Spanish\nHarbor | tense | thriller | 91 | live-action | R | Spanish | English\nOrbit | calm | comedy | 122 | live-action | PG | English | Spanish\nLantern | calm | drama | 98 | live-action | PG | English | English\nMeadow | calm | comedy | 89 | live-action | PG-13 | French | English\nPine | calm | comedy | 81 | animated | PG | English | French\nAtlas | calm | documentary | 85 | live-action | G | German | English\nStreaming services and release years are not supplied. Never invent missing facts. For each request, reply with only the matching title; reply NONE if no title satisfies every constraint, or UNKNOWN if the requested fact is missing.\n\nChoose a calm comedy with Spanish subtitles under 100 minutes.",
+      "expected": "Clover",
+      "answer": "Clover",
+      "firstOutputMs": 2504.3460410000007,
+      "elapsedMs": 3936.6571250000015,
+      "attempt": {
+        "approval": null,
+        "authorization": {
+          "adapterIdentities": [],
+          "disclosure": "public",
+          "expiresAt": 1792254068284,
+          "grantId": null,
+          "kind": "permission",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+          "permissionId": "4afa9db9-e6fb-443d-b9d3-30dc17ae1a53",
+          "recipientIdentity": "peer:e6e831f00bac1b1da938fb05",
+          "recipients": [
+            "peer:e6e831f00bac1b1da938fb05"
+          ],
+          "sharingScope": "mesh",
+          "source": "permission"
+        },
+        "createdAt": 1792254038167,
+        "error": null,
+        "execution": {
+          "adapterIdentities": [],
+          "completion": {
+            "generatedTokenCount": 3,
+            "promptTokenCount": 295,
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "stop-token"
+          },
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+          "placement": "peer-whole-request",
+          "provider": "peer",
+          "stopReason": "stop-token",
+          "timing": {
+            "decodeMs": 1399.4979170000006,
+            "firstTokenMs": 2289.303791999999,
+            "generatedTokenCount": 3,
+            "prefillMs": 2286.730582999997,
+            "totalMs": 3689.303374999996
+          }
+        },
+        "finishedAt": 1792254042018,
+        "id": "20abb5c8-4892-472b-b8c8-4f0b56cb53e4",
+        "provenance": {
+          "attemptId": "20abb5c8-4892-472b-b8c8-4f0b56cb53e4",
+          "classes": [
+            "mesh"
+          ],
+          "earlierAttempts": [],
+          "execution": {
+            "classes": [
+              "mesh"
+            ],
+            "participants": [
+              {
+                "participantId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+                "role": "whole-request",
+                "stage": null,
+                "supply": "mesh"
+              }
+            ],
+            "placement": "peer-whole-request",
+            "supply": "mesh"
+          },
+          "retrieval": {
+            "supply": "none"
+          },
+          "schema": "reploid.answer-provenance/v1",
+          "supply": "mesh"
+        },
+        "publicationMode": "whole-model",
+        "request": {
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+              "role": "system"
+            },
+            {
+              "content": "Use only this fictional movie catalog. Fields are title | tone | genre | minutes | format | rating | audio | subtitles.\nCedar | calm | comedy | 84 | live-action | PG-13 | English | English\nClover | calm | comedy | 96 | animated | PG | English | English, Spanish\nHarbor | tense | thriller | 91 | live-action | R | Spanish | English\nOrbit | calm | comedy | 122 | live-action | PG | English | Spanish\nLantern | calm | drama | 98 | live-action | PG | English | English\nMeadow | calm | comedy | 89 | live-action | PG-13 | French | English\nPine | calm | comedy | 81 | animated | PG | English | French\nAtlas | calm | documentary | 85 | live-action | G | German | English\nStreaming services and release years are not supplied. Never invent missing facts. For each request, reply with only the matching title; reply NONE if no title satisfies every constraint, or UNKNOWN if the requested fact is missing.\n\nChoose a calm comedy with Spanish subtitles under 100 minutes.",
+              "role": "user"
+            }
+          ],
+          "model": {
+            "adapters": [],
+            "availability": "ready",
+            "contextLength": 262144,
+            "id": "qwen-3-5-2b-q4k-ehaf16",
+            "identity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "name": "Qwen 3.5 2B",
+            "networkAvailability": "ready",
+            "packageName": "doppler-gpu",
+            "packageVersion": "0.6.31",
+            "partitionSplitLayer": 4,
+            "provider": "doppler",
+            "providerIds": [
+              "66f7a6b5-96eb-4b27-800a-48e6d8ded835"
+            ],
+            "quantization": "q4k",
+            "recommended": true,
+            "size": "Q4K",
+            "source": {
+              "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+              "files": [
+                {
+                  "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                  "hashAlgorithm": "sha256",
+                  "path": "manifest.json",
+                  "role": "model-manifest",
+                  "sizeBytes": 183803,
+                  "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+                },
+                {
+                  "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+                  "hashAlgorithm": "sha256",
+                  "path": "tokenizer.json",
+                  "role": "tokenizer",
+                  "sizeBytes": 9088480
+                },
+                {
+                  "hash": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+                  "hashAlgorithm": "sha256",
+                  "path": "qwen-2b-pieces.json",
+                  "role": "model-piece-index",
+                  "sizeBytes": 111108,
+                  "url": "/config/model-pieces/qwen-2b-pieces.json"
+                }
+              ]
+            }
+          },
+          "permissions": {
+            "executionLocation": "auto",
+            "sharingScope": "mesh"
+          }
+        },
+        "responseId": "ee61fcc7-fbde-44f4-866a-b1ccfbf68cc7",
+        "retryOf": null,
+        "status": "completed",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        },
+        "threadId": "5faa0b37-9fbf-42e4-8edf-979fc1d928a3",
+        "userMessageId": "b42a5049-2f34-4584-9fb0-8dcd8b850b9f"
+      }
+    },
+    {
+      "id": "subtitles-and-time/2",
+      "prompt": "Keep the same requirements but reduce the limit to under 90 minutes.",
+      "expected": "NONE",
+      "answer": "Clover",
+      "firstOutputMs": 2684.1324590000004,
+      "elapsedMs": 4150.923833999997,
+      "attempt": {
+        "approval": null,
+        "authorization": {
+          "adapterIdentities": [],
+          "disclosure": "public",
+          "expiresAt": 1792254072386,
+          "grantId": null,
+          "kind": "permission",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+          "permissionId": "4afa9db9-e6fb-443d-b9d3-30dc17ae1a53",
+          "recipientIdentity": "peer:e6e831f00bac1b1da938fb05",
+          "recipients": [
+            "peer:e6e831f00bac1b1da938fb05"
+          ],
+          "sharingScope": "mesh",
+          "source": "permission"
+        },
+        "createdAt": 1792254042348,
+        "error": null,
+        "execution": {
+          "adapterIdentities": [],
+          "completion": {
+            "generatedTokenCount": 3,
+            "promptTokenCount": 322,
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "stop-token"
+          },
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+          "placement": "peer-whole-request",
+          "provider": "peer",
+          "stopReason": "stop-token",
+          "timing": {
+            "decodeMs": 1539.1927500000093,
+            "firstTokenMs": 2504.161917000005,
+            "generatedTokenCount": 3,
+            "prefillMs": 2500.9839999999967,
+            "totalMs": 4044.4442500000005
+          }
+        },
+        "finishedAt": 1792254046452,
+        "id": "9bb46fc6-5f5c-494a-b1d7-1c1b8655d5ad",
+        "provenance": {
+          "attemptId": "9bb46fc6-5f5c-494a-b1d7-1c1b8655d5ad",
+          "classes": [
+            "mesh"
+          ],
+          "earlierAttempts": [],
+          "execution": {
+            "classes": [
+              "mesh"
+            ],
+            "participants": [
+              {
+                "participantId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+                "role": "whole-request",
+                "stage": null,
+                "supply": "mesh"
+              }
+            ],
+            "placement": "peer-whole-request",
+            "supply": "mesh"
+          },
+          "retrieval": {
+            "supply": "none"
+          },
+          "schema": "reploid.answer-provenance/v1",
+          "supply": "mesh"
+        },
+        "publicationMode": "whole-model",
+        "request": {
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+              "role": "system"
+            },
+            {
+              "content": "Use only this fictional movie catalog. Fields are title | tone | genre | minutes | format | rating | audio | subtitles.\nCedar | calm | comedy | 84 | live-action | PG-13 | English | English\nClover | calm | comedy | 96 | animated | PG | English | English, Spanish\nHarbor | tense | thriller | 91 | live-action | R | Spanish | English\nOrbit | calm | comedy | 122 | live-action | PG | English | Spanish\nLantern | calm | drama | 98 | live-action | PG | English | English\nMeadow | calm | comedy | 89 | live-action | PG-13 | French | English\nPine | calm | comedy | 81 | animated | PG | English | French\nAtlas | calm | documentary | 85 | live-action | G | German | English\nStreaming services and release years are not supplied. Never invent missing facts. For each request, reply with only the matching title; reply NONE if no title satisfies every constraint, or UNKNOWN if the requested fact is missing.\n\nChoose a calm comedy with Spanish subtitles under 100 minutes.",
+              "role": "user"
+            },
+            {
+              "content": "Clover",
+              "role": "assistant"
+            },
+            {
+              "content": "Keep the same requirements but reduce the limit to under 90 minutes.",
+              "role": "user"
+            }
+          ],
+          "model": {
+            "adapters": [],
+            "availability": "ready",
+            "contextLength": 262144,
+            "id": "qwen-3-5-2b-q4k-ehaf16",
+            "identity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "name": "Qwen 3.5 2B",
+            "networkAvailability": "ready",
+            "packageName": "doppler-gpu",
+            "packageVersion": "0.6.31",
+            "partitionSplitLayer": 4,
+            "provider": "doppler",
+            "providerIds": [
+              "66f7a6b5-96eb-4b27-800a-48e6d8ded835"
+            ],
+            "quantization": "q4k",
+            "recommended": true,
+            "size": "Q4K",
+            "source": {
+              "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+              "files": [
+                {
+                  "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                  "hashAlgorithm": "sha256",
+                  "path": "manifest.json",
+                  "role": "model-manifest",
+                  "sizeBytes": 183803,
+                  "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+                },
+                {
+                  "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+                  "hashAlgorithm": "sha256",
+                  "path": "tokenizer.json",
+                  "role": "tokenizer",
+                  "sizeBytes": 9088480
+                },
+                {
+                  "hash": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+                  "hashAlgorithm": "sha256",
+                  "path": "qwen-2b-pieces.json",
+                  "role": "model-piece-index",
+                  "sizeBytes": 111108,
+                  "url": "/config/model-pieces/qwen-2b-pieces.json"
+                }
+              ]
+            }
+          },
+          "permissions": {
+            "executionLocation": "auto",
+            "sharingScope": "mesh"
+          }
+        },
+        "responseId": "cff79b94-c554-49d0-912a-c76ef9a7c198",
+        "retryOf": null,
+        "status": "completed",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        },
+        "threadId": "5faa0b37-9fbf-42e4-8edf-979fc1d928a3",
+        "userMessageId": "7c82e681-f439-4394-aa21-7996184a271d"
+      }
+    },
+    {
+      "id": "rank-and-exclude/1",
+      "prompt": "Use only this fictional movie catalog. Fields are title | tone | genre | minutes | format | rating | audio | subtitles.\nCedar | calm | comedy | 84 | live-action | PG-13 | English | English\nClover | calm | comedy | 96 | animated | PG | English | English, Spanish\nHarbor | tense | thriller | 91 | live-action | R | Spanish | English\nOrbit | calm | comedy | 122 | live-action | PG | English | Spanish\nLantern | calm | drama | 98 | live-action | PG | English | English\nMeadow | calm | comedy | 89 | live-action | PG-13 | French | English\nPine | calm | comedy | 81 | animated | PG | English | French\nAtlas | calm | documentary | 85 | live-action | G | German | English\nStreaming services and release years are not supplied. Never invent missing facts. For each request, reply with only the matching title; reply NONE if no title satisfies every constraint, or UNKNOWN if the requested fact is missing.\n\nChoose the shortest calm comedy.",
+      "expected": "Pine",
+      "answer": "Cedar",
+      "firstOutputMs": 2394.3127920000006,
+      "elapsedMs": 3883.3242089999985,
+      "attempt": {
+        "approval": null,
+        "authorization": {
+          "adapterIdentities": [],
+          "disclosure": "public",
+          "expiresAt": 1792254076693,
+          "grantId": null,
+          "kind": "permission",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+          "permissionId": "4afa9db9-e6fb-443d-b9d3-30dc17ae1a53",
+          "recipientIdentity": "peer:e6e831f00bac1b1da938fb05",
+          "recipients": [
+            "peer:e6e831f00bac1b1da938fb05"
+          ],
+          "sharingScope": "mesh",
+          "source": "permission"
+        },
+        "createdAt": 1792254046667,
+        "error": null,
+        "execution": {
+          "adapterIdentities": [],
+          "completion": {
+            "generatedTokenCount": 3,
+            "promptTokenCount": 287,
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "stop-token"
+          },
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+          "placement": "peer-whole-request",
+          "provider": "peer",
+          "stopReason": "stop-token",
+          "timing": {
+            "decodeMs": 1416.821499999991,
+            "firstTokenMs": 2282.9326250000013,
+            "generatedTokenCount": 3,
+            "prefillMs": 2280.262374999991,
+            "totalMs": 3700.500500000009
+          }
+        },
+        "finishedAt": 1792254050426,
+        "id": "7f5df6ae-2c5b-4588-8b90-3c8d65d808cf",
+        "provenance": {
+          "attemptId": "7f5df6ae-2c5b-4588-8b90-3c8d65d808cf",
+          "classes": [
+            "mesh"
+          ],
+          "earlierAttempts": [],
+          "execution": {
+            "classes": [
+              "mesh"
+            ],
+            "participants": [
+              {
+                "participantId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+                "role": "whole-request",
+                "stage": null,
+                "supply": "mesh"
+              }
+            ],
+            "placement": "peer-whole-request",
+            "supply": "mesh"
+          },
+          "retrieval": {
+            "supply": "none"
+          },
+          "schema": "reploid.answer-provenance/v1",
+          "supply": "mesh"
+        },
+        "publicationMode": "whole-model",
+        "request": {
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+              "role": "system"
+            },
+            {
+              "content": "Use only this fictional movie catalog. Fields are title | tone | genre | minutes | format | rating | audio | subtitles.\nCedar | calm | comedy | 84 | live-action | PG-13 | English | English\nClover | calm | comedy | 96 | animated | PG | English | English, Spanish\nHarbor | tense | thriller | 91 | live-action | R | Spanish | English\nOrbit | calm | comedy | 122 | live-action | PG | English | Spanish\nLantern | calm | drama | 98 | live-action | PG | English | English\nMeadow | calm | comedy | 89 | live-action | PG-13 | French | English\nPine | calm | comedy | 81 | animated | PG | English | French\nAtlas | calm | documentary | 85 | live-action | G | German | English\nStreaming services and release years are not supplied. Never invent missing facts. For each request, reply with only the matching title; reply NONE if no title satisfies every constraint, or UNKNOWN if the requested fact is missing.\n\nChoose the shortest calm comedy.",
+              "role": "user"
+            }
+          ],
+          "model": {
+            "adapters": [],
+            "availability": "ready",
+            "contextLength": 262144,
+            "id": "qwen-3-5-2b-q4k-ehaf16",
+            "identity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "name": "Qwen 3.5 2B",
+            "networkAvailability": "ready",
+            "packageName": "doppler-gpu",
+            "packageVersion": "0.6.31",
+            "partitionSplitLayer": 4,
+            "provider": "doppler",
+            "providerIds": [
+              "66f7a6b5-96eb-4b27-800a-48e6d8ded835"
+            ],
+            "quantization": "q4k",
+            "recommended": true,
+            "size": "Q4K",
+            "source": {
+              "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+              "files": [
+                {
+                  "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                  "hashAlgorithm": "sha256",
+                  "path": "manifest.json",
+                  "role": "model-manifest",
+                  "sizeBytes": 183803,
+                  "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+                },
+                {
+                  "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+                  "hashAlgorithm": "sha256",
+                  "path": "tokenizer.json",
+                  "role": "tokenizer",
+                  "sizeBytes": 9088480
+                },
+                {
+                  "hash": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+                  "hashAlgorithm": "sha256",
+                  "path": "qwen-2b-pieces.json",
+                  "role": "model-piece-index",
+                  "sizeBytes": 111108,
+                  "url": "/config/model-pieces/qwen-2b-pieces.json"
+                }
+              ]
+            }
+          },
+          "permissions": {
+            "executionLocation": "auto",
+            "sharingScope": "mesh"
+          }
+        },
+        "responseId": "53f5c964-9bf4-4eee-bff6-0660240f34e0",
+        "retryOf": null,
+        "status": "completed",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        },
+        "threadId": "2c2361c0-de8c-4326-86f2-4c1204ceb87d",
+        "userMessageId": "c96b7022-22b5-468f-b1c9-c6a47d57feb8"
+      }
+    },
+    {
+      "id": "rank-and-exclude/2",
+      "prompt": "We already watched that one. Exclude it and choose the next shortest calm comedy.",
+      "expected": "Cedar",
+      "answer": "Clover",
+      "firstOutputMs": 2675.4039580000026,
+      "elapsedMs": 4129.217791000003,
+      "attempt": {
+        "approval": null,
+        "authorization": {
+          "adapterIdentities": [],
+          "disclosure": "public",
+          "expiresAt": 1792254080826,
+          "grantId": null,
+          "kind": "permission",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+          "permissionId": "4afa9db9-e6fb-443d-b9d3-30dc17ae1a53",
+          "recipientIdentity": "peer:e6e831f00bac1b1da938fb05",
+          "recipients": [
+            "peer:e6e831f00bac1b1da938fb05"
+          ],
+          "sharingScope": "mesh",
+          "source": "permission"
+        },
+        "createdAt": 1792254050783,
+        "error": null,
+        "execution": {
+          "adapterIdentities": [],
+          "completion": {
+            "generatedTokenCount": 3,
+            "promptTokenCount": 315,
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "stop-token"
+          },
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+          "placement": "peer-whole-request",
+          "provider": "peer",
+          "stopReason": "stop-token",
+          "timing": {
+            "decodeMs": 1472.031999999992,
+            "firstTokenMs": 2496.5598330000066,
+            "generatedTokenCount": 3,
+            "prefillMs": 2493.4672909999936,
+            "totalMs": 3969.5883750000066
+          }
+        },
+        "finishedAt": 1792254054832,
+        "id": "717d0f83-5a2c-426f-ac6c-ad5b1e0b2698",
+        "provenance": {
+          "attemptId": "717d0f83-5a2c-426f-ac6c-ad5b1e0b2698",
+          "classes": [
+            "mesh"
+          ],
+          "earlierAttempts": [],
+          "execution": {
+            "classes": [
+              "mesh"
+            ],
+            "participants": [
+              {
+                "participantId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+                "role": "whole-request",
+                "stage": null,
+                "supply": "mesh"
+              }
+            ],
+            "placement": "peer-whole-request",
+            "supply": "mesh"
+          },
+          "retrieval": {
+            "supply": "none"
+          },
+          "schema": "reploid.answer-provenance/v1",
+          "supply": "mesh"
+        },
+        "publicationMode": "whole-model",
+        "request": {
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+              "role": "system"
+            },
+            {
+              "content": "Use only this fictional movie catalog. Fields are title | tone | genre | minutes | format | rating | audio | subtitles.\nCedar | calm | comedy | 84 | live-action | PG-13 | English | English\nClover | calm | comedy | 96 | animated | PG | English | English, Spanish\nHarbor | tense | thriller | 91 | live-action | R | Spanish | English\nOrbit | calm | comedy | 122 | live-action | PG | English | Spanish\nLantern | calm | drama | 98 | live-action | PG | English | English\nMeadow | calm | comedy | 89 | live-action | PG-13 | French | English\nPine | calm | comedy | 81 | animated | PG | English | French\nAtlas | calm | documentary | 85 | live-action | G | German | English\nStreaming services and release years are not supplied. Never invent missing facts. For each request, reply with only the matching title; reply NONE if no title satisfies every constraint, or UNKNOWN if the requested fact is missing.\n\nChoose the shortest calm comedy.",
+              "role": "user"
+            },
+            {
+              "content": "Cedar",
+              "role": "assistant"
+            },
+            {
+              "content": "We already watched that one. Exclude it and choose the next shortest calm comedy.",
+              "role": "user"
+            }
+          ],
+          "model": {
+            "adapters": [],
+            "availability": "ready",
+            "contextLength": 262144,
+            "id": "qwen-3-5-2b-q4k-ehaf16",
+            "identity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "name": "Qwen 3.5 2B",
+            "networkAvailability": "ready",
+            "packageName": "doppler-gpu",
+            "packageVersion": "0.6.31",
+            "partitionSplitLayer": 4,
+            "provider": "doppler",
+            "providerIds": [
+              "66f7a6b5-96eb-4b27-800a-48e6d8ded835"
+            ],
+            "quantization": "q4k",
+            "recommended": true,
+            "size": "Q4K",
+            "source": {
+              "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+              "files": [
+                {
+                  "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                  "hashAlgorithm": "sha256",
+                  "path": "manifest.json",
+                  "role": "model-manifest",
+                  "sizeBytes": 183803,
+                  "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+                },
+                {
+                  "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+                  "hashAlgorithm": "sha256",
+                  "path": "tokenizer.json",
+                  "role": "tokenizer",
+                  "sizeBytes": 9088480
+                },
+                {
+                  "hash": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+                  "hashAlgorithm": "sha256",
+                  "path": "qwen-2b-pieces.json",
+                  "role": "model-piece-index",
+                  "sizeBytes": 111108,
+                  "url": "/config/model-pieces/qwen-2b-pieces.json"
+                }
+              ]
+            }
+          },
+          "permissions": {
+            "executionLocation": "auto",
+            "sharingScope": "mesh"
+          }
+        },
+        "responseId": "2455a5d5-955e-453e-8760-f80eb8642452",
+        "retryOf": null,
+        "status": "completed",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        },
+        "threadId": "2c2361c0-de8c-4326-86f2-4c1204ceb87d",
+        "userMessageId": "7aea46c8-803c-45dc-b962-ddbc6604dfa5"
+      }
+    },
+    {
+      "id": "missing-availability/1",
+      "prompt": "Use only this fictional movie catalog. Fields are title | tone | genre | minutes | format | rating | audio | subtitles.\nCedar | calm | comedy | 84 | live-action | PG-13 | English | English\nClover | calm | comedy | 96 | animated | PG | English | English, Spanish\nHarbor | tense | thriller | 91 | live-action | R | Spanish | English\nOrbit | calm | comedy | 122 | live-action | PG | English | Spanish\nLantern | calm | drama | 98 | live-action | PG | English | English\nMeadow | calm | comedy | 89 | live-action | PG-13 | French | English\nPine | calm | comedy | 81 | animated | PG | English | French\nAtlas | calm | documentary | 85 | live-action | G | German | English\nStreaming services and release years are not supplied. Never invent missing facts. For each request, reply with only the matching title; reply NONE if no title satisfies every constraint, or UNKNOWN if the requested fact is missing.\n\nWhich catalog movie is available on Netflix tonight?",
+      "expected": "UNKNOWN",
+      "answer": "Cedar",
+      "firstOutputMs": 2791.8564160000024,
+      "elapsedMs": 4279.1419160000005,
+      "attempt": {
+        "approval": null,
+        "authorization": {
+          "adapterIdentities": [],
+          "disclosure": "public",
+          "expiresAt": 1792254085133,
+          "grantId": null,
+          "kind": "permission",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+          "permissionId": "4afa9db9-e6fb-443d-b9d3-30dc17ae1a53",
+          "recipientIdentity": "peer:e6e831f00bac1b1da938fb05",
+          "recipients": [
+            "peer:e6e831f00bac1b1da938fb05"
+          ],
+          "sharingScope": "mesh",
+          "source": "permission"
+        },
+        "createdAt": 1792254055101,
+        "error": null,
+        "execution": {
+          "adapterIdentities": [],
+          "completion": {
+            "generatedTokenCount": 3,
+            "promptTokenCount": 290,
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "stop-token"
+          },
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+          "placement": "peer-whole-request",
+          "provider": "peer",
+          "stopReason": "stop-token",
+          "timing": {
+            "decodeMs": 1416.2647920000018,
+            "firstTokenMs": 2637.79237499999,
+            "generatedTokenCount": 3,
+            "prefillMs": 2634.678249999997,
+            "totalMs": 4054.5844579999975
+          }
+        },
+        "finishedAt": 1792254059249,
+        "id": "c7d7aaf6-e86f-407a-93ac-6ca7091cd9dc",
+        "provenance": {
+          "attemptId": "c7d7aaf6-e86f-407a-93ac-6ca7091cd9dc",
+          "classes": [
+            "mesh"
+          ],
+          "earlierAttempts": [],
+          "execution": {
+            "classes": [
+              "mesh"
+            ],
+            "participants": [
+              {
+                "participantId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+                "role": "whole-request",
+                "stage": null,
+                "supply": "mesh"
+              }
+            ],
+            "placement": "peer-whole-request",
+            "supply": "mesh"
+          },
+          "retrieval": {
+            "supply": "none"
+          },
+          "schema": "reploid.answer-provenance/v1",
+          "supply": "mesh"
+        },
+        "publicationMode": "whole-model",
+        "request": {
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+              "role": "system"
+            },
+            {
+              "content": "Use only this fictional movie catalog. Fields are title | tone | genre | minutes | format | rating | audio | subtitles.\nCedar | calm | comedy | 84 | live-action | PG-13 | English | English\nClover | calm | comedy | 96 | animated | PG | English | English, Spanish\nHarbor | tense | thriller | 91 | live-action | R | Spanish | English\nOrbit | calm | comedy | 122 | live-action | PG | English | Spanish\nLantern | calm | drama | 98 | live-action | PG | English | English\nMeadow | calm | comedy | 89 | live-action | PG-13 | French | English\nPine | calm | comedy | 81 | animated | PG | English | French\nAtlas | calm | documentary | 85 | live-action | G | German | English\nStreaming services and release years are not supplied. Never invent missing facts. For each request, reply with only the matching title; reply NONE if no title satisfies every constraint, or UNKNOWN if the requested fact is missing.\n\nWhich catalog movie is available on Netflix tonight?",
+              "role": "user"
+            }
+          ],
+          "model": {
+            "adapters": [],
+            "availability": "ready",
+            "contextLength": 262144,
+            "id": "qwen-3-5-2b-q4k-ehaf16",
+            "identity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "name": "Qwen 3.5 2B",
+            "networkAvailability": "ready",
+            "packageName": "doppler-gpu",
+            "packageVersion": "0.6.31",
+            "partitionSplitLayer": 4,
+            "provider": "doppler",
+            "providerIds": [
+              "66f7a6b5-96eb-4b27-800a-48e6d8ded835"
+            ],
+            "quantization": "q4k",
+            "recommended": true,
+            "size": "Q4K",
+            "source": {
+              "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+              "files": [
+                {
+                  "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                  "hashAlgorithm": "sha256",
+                  "path": "manifest.json",
+                  "role": "model-manifest",
+                  "sizeBytes": 183803,
+                  "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+                },
+                {
+                  "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+                  "hashAlgorithm": "sha256",
+                  "path": "tokenizer.json",
+                  "role": "tokenizer",
+                  "sizeBytes": 9088480
+                },
+                {
+                  "hash": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+                  "hashAlgorithm": "sha256",
+                  "path": "qwen-2b-pieces.json",
+                  "role": "model-piece-index",
+                  "sizeBytes": 111108,
+                  "url": "/config/model-pieces/qwen-2b-pieces.json"
+                }
+              ]
+            }
+          },
+          "permissions": {
+            "executionLocation": "auto",
+            "sharingScope": "mesh"
+          }
+        },
+        "responseId": "92fa2ed0-e161-44c6-a737-5dfb622f5374",
+        "retryOf": null,
+        "status": "completed",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        },
+        "threadId": "8784beda-3e52-487f-b20c-7dabb986c044",
+        "userMessageId": "6fd6791e-72ce-4acf-9ae5-5863896ecc5f"
+      }
+    },
+    {
+      "id": "missing-availability/2",
+      "prompt": "We checked: only Cedar and Harbor are available to us. Pick the calm comedy from those available titles.",
+      "expected": "Cedar",
+      "answer": "Cedar",
+      "firstOutputMs": 2894.359000000004,
+      "elapsedMs": 4383.369625000007,
+      "attempt": {
+        "approval": null,
+        "authorization": {
+          "adapterIdentities": [],
+          "disclosure": "public",
+          "expiresAt": 1792254089694,
+          "grantId": null,
+          "kind": "permission",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+          "permissionId": "4afa9db9-e6fb-443d-b9d3-30dc17ae1a53",
+          "recipientIdentity": "peer:e6e831f00bac1b1da938fb05",
+          "recipients": [
+            "peer:e6e831f00bac1b1da938fb05"
+          ],
+          "sharingScope": "mesh",
+          "source": "permission"
+        },
+        "createdAt": 1792254059649,
+        "error": null,
+        "execution": {
+          "adapterIdentities": [],
+          "completion": {
+            "generatedTokenCount": 3,
+            "promptTokenCount": 323,
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "stop-token"
+          },
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+          "placement": "peer-whole-request",
+          "provider": "peer",
+          "stopReason": "stop-token",
+          "timing": {
+            "decodeMs": 1454.1157079999975,
+            "firstTokenMs": 2687.948833000002,
+            "generatedTokenCount": 3,
+            "prefillMs": 2684.8311250000115,
+            "totalMs": 4143.2693750000035
+          }
+        },
+        "finishedAt": 1792254063896,
+        "id": "567bdc22-3a57-4521-a8c0-6d9a28ac2c2c",
+        "provenance": {
+          "attemptId": "567bdc22-3a57-4521-a8c0-6d9a28ac2c2c",
+          "classes": [
+            "mesh"
+          ],
+          "earlierAttempts": [],
+          "execution": {
+            "classes": [
+              "mesh"
+            ],
+            "participants": [
+              {
+                "participantId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+                "role": "whole-request",
+                "stage": null,
+                "supply": "mesh"
+              }
+            ],
+            "placement": "peer-whole-request",
+            "supply": "mesh"
+          },
+          "retrieval": {
+            "supply": "none"
+          },
+          "schema": "reploid.answer-provenance/v1",
+          "supply": "mesh"
+        },
+        "publicationMode": "whole-model",
+        "request": {
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+              "role": "system"
+            },
+            {
+              "content": "Use only this fictional movie catalog. Fields are title | tone | genre | minutes | format | rating | audio | subtitles.\nCedar | calm | comedy | 84 | live-action | PG-13 | English | English\nClover | calm | comedy | 96 | animated | PG | English | English, Spanish\nHarbor | tense | thriller | 91 | live-action | R | Spanish | English\nOrbit | calm | comedy | 122 | live-action | PG | English | Spanish\nLantern | calm | drama | 98 | live-action | PG | English | English\nMeadow | calm | comedy | 89 | live-action | PG-13 | French | English\nPine | calm | comedy | 81 | animated | PG | English | French\nAtlas | calm | documentary | 85 | live-action | G | German | English\nStreaming services and release years are not supplied. Never invent missing facts. For each request, reply with only the matching title; reply NONE if no title satisfies every constraint, or UNKNOWN if the requested fact is missing.\n\nWhich catalog movie is available on Netflix tonight?",
+              "role": "user"
+            },
+            {
+              "content": "Cedar",
+              "role": "assistant"
+            },
+            {
+              "content": "We checked: only Cedar and Harbor are available to us. Pick the calm comedy from those available titles.",
+              "role": "user"
+            }
+          ],
+          "model": {
+            "adapters": [],
+            "availability": "ready",
+            "contextLength": 262144,
+            "id": "qwen-3-5-2b-q4k-ehaf16",
+            "identity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "name": "Qwen 3.5 2B",
+            "networkAvailability": "ready",
+            "packageName": "doppler-gpu",
+            "packageVersion": "0.6.31",
+            "partitionSplitLayer": 4,
+            "provider": "doppler",
+            "providerIds": [
+              "66f7a6b5-96eb-4b27-800a-48e6d8ded835"
+            ],
+            "quantization": "q4k",
+            "recommended": true,
+            "size": "Q4K",
+            "source": {
+              "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+              "files": [
+                {
+                  "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                  "hashAlgorithm": "sha256",
+                  "path": "manifest.json",
+                  "role": "model-manifest",
+                  "sizeBytes": 183803,
+                  "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+                },
+                {
+                  "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+                  "hashAlgorithm": "sha256",
+                  "path": "tokenizer.json",
+                  "role": "tokenizer",
+                  "sizeBytes": 9088480
+                },
+                {
+                  "hash": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+                  "hashAlgorithm": "sha256",
+                  "path": "qwen-2b-pieces.json",
+                  "role": "model-piece-index",
+                  "sizeBytes": 111108,
+                  "url": "/config/model-pieces/qwen-2b-pieces.json"
+                }
+              ]
+            }
+          },
+          "permissions": {
+            "executionLocation": "auto",
+            "sharingScope": "mesh"
+          }
+        },
+        "responseId": "eb302848-e411-4a5b-94e7-ae6dbbc7470a",
+        "retryOf": null,
+        "status": "completed",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        },
+        "threadId": "8784beda-3e52-487f-b20c-7dabb986c044",
+        "userMessageId": "eb84891f-6d82-4e8b-afbc-cb779831ec51"
+      }
+    },
+    {
+      "id": "audio-is-not-subtitles/1",
+      "prompt": "Use only this fictional movie catalog. Fields are title | tone | genre | minutes | format | rating | audio | subtitles.\nCedar | calm | comedy | 84 | live-action | PG-13 | English | English\nClover | calm | comedy | 96 | animated | PG | English | English, Spanish\nHarbor | tense | thriller | 91 | live-action | R | Spanish | English\nOrbit | calm | comedy | 122 | live-action | PG | English | Spanish\nLantern | calm | drama | 98 | live-action | PG | English | English\nMeadow | calm | comedy | 89 | live-action | PG-13 | French | English\nPine | calm | comedy | 81 | animated | PG | English | French\nAtlas | calm | documentary | 85 | live-action | G | German | English\nStreaming services and release years are not supplied. Never invent missing facts. For each request, reply with only the matching title; reply NONE if no title satisfies every constraint, or UNKNOWN if the requested fact is missing.\n\nChoose a comedy with French audio and English subtitles.",
+      "expected": "Meadow",
+      "answer": "Meadow",
+      "firstOutputMs": 2818.6932920000036,
+      "elapsedMs": 4186.2197090000045,
+      "attempt": {
+        "approval": null,
+        "authorization": {
+          "adapterIdentities": [],
+          "disclosure": "public",
+          "expiresAt": 1792254094239,
+          "grantId": null,
+          "kind": "permission",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+          "permissionId": "4afa9db9-e6fb-443d-b9d3-30dc17ae1a53",
+          "recipientIdentity": "peer:e6e831f00bac1b1da938fb05",
+          "recipients": [
+            "peer:e6e831f00bac1b1da938fb05"
+          ],
+          "sharingScope": "mesh",
+          "source": "permission"
+        },
+        "createdAt": 1792254064204,
+        "error": null,
+        "execution": {
+          "adapterIdentities": [],
+          "completion": {
+            "generatedTokenCount": 4,
+            "promptTokenCount": 291,
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "stop-token"
+          },
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+          "placement": "peer-whole-request",
+          "provider": "peer",
+          "stopReason": "stop-token",
+          "timing": {
+            "decodeMs": 1407.1865420000104,
+            "firstTokenMs": 2610.7344169999997,
+            "generatedTokenCount": 4,
+            "prefillMs": 2607.5115839999926,
+            "totalMs": 4018.6256670000002
+          }
+        },
+        "finishedAt": 1792254068312,
+        "id": "8e6762ba-c0df-4998-86b8-5a2c9325df59",
+        "provenance": {
+          "attemptId": "8e6762ba-c0df-4998-86b8-5a2c9325df59",
+          "classes": [
+            "mesh"
+          ],
+          "earlierAttempts": [],
+          "execution": {
+            "classes": [
+              "mesh"
+            ],
+            "participants": [
+              {
+                "participantId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+                "role": "whole-request",
+                "stage": null,
+                "supply": "mesh"
+              }
+            ],
+            "placement": "peer-whole-request",
+            "supply": "mesh"
+          },
+          "retrieval": {
+            "supply": "none"
+          },
+          "schema": "reploid.answer-provenance/v1",
+          "supply": "mesh"
+        },
+        "publicationMode": "whole-model",
+        "request": {
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+              "role": "system"
+            },
+            {
+              "content": "Use only this fictional movie catalog. Fields are title | tone | genre | minutes | format | rating | audio | subtitles.\nCedar | calm | comedy | 84 | live-action | PG-13 | English | English\nClover | calm | comedy | 96 | animated | PG | English | English, Spanish\nHarbor | tense | thriller | 91 | live-action | R | Spanish | English\nOrbit | calm | comedy | 122 | live-action | PG | English | Spanish\nLantern | calm | drama | 98 | live-action | PG | English | English\nMeadow | calm | comedy | 89 | live-action | PG-13 | French | English\nPine | calm | comedy | 81 | animated | PG | English | French\nAtlas | calm | documentary | 85 | live-action | G | German | English\nStreaming services and release years are not supplied. Never invent missing facts. For each request, reply with only the matching title; reply NONE if no title satisfies every constraint, or UNKNOWN if the requested fact is missing.\n\nChoose a comedy with French audio and English subtitles.",
+              "role": "user"
+            }
+          ],
+          "model": {
+            "adapters": [],
+            "availability": "ready",
+            "contextLength": 262144,
+            "id": "qwen-3-5-2b-q4k-ehaf16",
+            "identity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "name": "Qwen 3.5 2B",
+            "networkAvailability": "ready",
+            "packageName": "doppler-gpu",
+            "packageVersion": "0.6.31",
+            "partitionSplitLayer": 4,
+            "provider": "doppler",
+            "providerIds": [
+              "66f7a6b5-96eb-4b27-800a-48e6d8ded835"
+            ],
+            "quantization": "q4k",
+            "recommended": true,
+            "size": "Q4K",
+            "source": {
+              "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+              "files": [
+                {
+                  "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                  "hashAlgorithm": "sha256",
+                  "path": "manifest.json",
+                  "role": "model-manifest",
+                  "sizeBytes": 183803,
+                  "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+                },
+                {
+                  "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+                  "hashAlgorithm": "sha256",
+                  "path": "tokenizer.json",
+                  "role": "tokenizer",
+                  "sizeBytes": 9088480
+                },
+                {
+                  "hash": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+                  "hashAlgorithm": "sha256",
+                  "path": "qwen-2b-pieces.json",
+                  "role": "model-piece-index",
+                  "sizeBytes": 111108,
+                  "url": "/config/model-pieces/qwen-2b-pieces.json"
+                }
+              ]
+            }
+          },
+          "permissions": {
+            "executionLocation": "auto",
+            "sharingScope": "mesh"
+          }
+        },
+        "responseId": "98c0ddf3-ee9a-4f4f-b6f8-c91f40cd22ed",
+        "retryOf": null,
+        "status": "completed",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        },
+        "threadId": "0ef8602a-a214-41e5-83a3-165a512aa35f",
+        "userMessageId": "0c614fbe-adfd-4374-815b-ce16e050a882"
+      }
+    },
+    {
+      "id": "audio-is-not-subtitles/2",
+      "prompt": "Now choose a comedy with English audio and French subtitles instead.",
+      "expected": "Pine",
+      "answer": "Pine",
+      "firstOutputMs": 2836.301707999999,
+      "elapsedMs": 4302.915332999997,
+      "attempt": {
+        "approval": null,
+        "authorization": {
+          "adapterIdentities": [],
+          "disclosure": "public",
+          "expiresAt": 1792254098665,
+          "grantId": null,
+          "kind": "permission",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+          "permissionId": "4afa9db9-e6fb-443d-b9d3-30dc17ae1a53",
+          "recipientIdentity": "peer:e6e831f00bac1b1da938fb05",
+          "recipients": [
+            "peer:e6e831f00bac1b1da938fb05"
+          ],
+          "sharingScope": "mesh",
+          "source": "permission"
+        },
+        "createdAt": 1792254068616,
+        "error": null,
+        "execution": {
+          "adapterIdentities": [],
+          "completion": {
+            "generatedTokenCount": 3,
+            "promptTokenCount": 316,
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "stop-token"
+          },
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "peerId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+          "placement": "peer-whole-request",
+          "provider": "peer",
+          "stopReason": "stop-token",
+          "timing": {
+            "decodeMs": 1488.9973330000066,
+            "firstTokenMs": 2641.2194170000002,
+            "generatedTokenCount": 3,
+            "prefillMs": 2638.157250000004,
+            "totalMs": 4130.841709
+          }
+        },
+        "finishedAt": 1792254072837,
+        "id": "5898a44a-e2ab-4e55-87e3-9bd757a734c2",
+        "provenance": {
+          "attemptId": "5898a44a-e2ab-4e55-87e3-9bd757a734c2",
+          "classes": [
+            "mesh"
+          ],
+          "earlierAttempts": [],
+          "execution": {
+            "classes": [
+              "mesh"
+            ],
+            "participants": [
+              {
+                "participantId": "66f7a6b5-96eb-4b27-800a-48e6d8ded835",
+                "role": "whole-request",
+                "stage": null,
+                "supply": "mesh"
+              }
+            ],
+            "placement": "peer-whole-request",
+            "supply": "mesh"
+          },
+          "retrieval": {
+            "supply": "none"
+          },
+          "schema": "reploid.answer-provenance/v1",
+          "supply": "mesh"
+        },
+        "publicationMode": "whole-model",
+        "request": {
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+              "role": "system"
+            },
+            {
+              "content": "Use only this fictional movie catalog. Fields are title | tone | genre | minutes | format | rating | audio | subtitles.\nCedar | calm | comedy | 84 | live-action | PG-13 | English | English\nClover | calm | comedy | 96 | animated | PG | English | English, Spanish\nHarbor | tense | thriller | 91 | live-action | R | Spanish | English\nOrbit | calm | comedy | 122 | live-action | PG | English | Spanish\nLantern | calm | drama | 98 | live-action | PG | English | English\nMeadow | calm | comedy | 89 | live-action | PG-13 | French | English\nPine | calm | comedy | 81 | animated | PG | English | French\nAtlas | calm | documentary | 85 | live-action | G | German | English\nStreaming services and release years are not supplied. Never invent missing facts. For each request, reply with only the matching title; reply NONE if no title satisfies every constraint, or UNKNOWN if the requested fact is missing.\n\nChoose a comedy with French audio and English subtitles.",
+              "role": "user"
+            },
+            {
+              "content": "Meadow",
+              "role": "assistant"
+            },
+            {
+              "content": "Now choose a comedy with English audio and French subtitles instead.",
+              "role": "user"
+            }
+          ],
+          "model": {
+            "adapters": [],
+            "availability": "ready",
+            "contextLength": 262144,
+            "id": "qwen-3-5-2b-q4k-ehaf16",
+            "identity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "name": "Qwen 3.5 2B",
+            "networkAvailability": "ready",
+            "packageName": "doppler-gpu",
+            "packageVersion": "0.6.31",
+            "partitionSplitLayer": 4,
+            "provider": "doppler",
+            "providerIds": [
+              "66f7a6b5-96eb-4b27-800a-48e6d8ded835"
+            ],
+            "quantization": "q4k",
+            "recommended": true,
+            "size": "Q4K",
+            "source": {
+              "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+              "files": [
+                {
+                  "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                  "hashAlgorithm": "sha256",
+                  "path": "manifest.json",
+                  "role": "model-manifest",
+                  "sizeBytes": 183803,
+                  "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+                },
+                {
+                  "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+                  "hashAlgorithm": "sha256",
+                  "path": "tokenizer.json",
+                  "role": "tokenizer",
+                  "sizeBytes": 9088480
+                },
+                {
+                  "hash": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+                  "hashAlgorithm": "sha256",
+                  "path": "qwen-2b-pieces.json",
+                  "role": "model-piece-index",
+                  "sizeBytes": 111108,
+                  "url": "/config/model-pieces/qwen-2b-pieces.json"
+                }
+              ]
+            }
+          },
+          "permissions": {
+            "executionLocation": "auto",
+            "sharingScope": "mesh"
+          }
+        },
+        "responseId": "e05c0279-c751-4a26-80b4-e1e7bfeb0b8a",
+        "retryOf": null,
+        "status": "completed",
+        "systemContext": {
+          "content": "You're Reploid. Answer briefly and directly; expand when asked. Model: Qwen 3.5 2B.",
+          "metadata": {
+            "enabled": true,
+            "maxWords": 16,
+            "mode": null,
+            "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "policyId": "reploid.compact-context/v2",
+            "wordCount": 13
+          }
+        },
+        "threadId": "0ef8602a-a214-41e5-83a3-165a512aa35f",
+        "userMessageId": "ded0afa8-7b6b-490e-99e2-b505ef7feeb3"
+      }
+    }
+  ],
+  "errors": [],
+  "weightRequests": [],
+  "permissionDialogs": [
+    "Answer with contributors' computers?\n\nTo answer, this conversation is sent to contributors' computers on this network: your message, earlier messages in the thread, and the context prompt when it is on.\n\nOne computer receives the text and returns the answer.\n\nYou are asked once. Later questions and follow-ups are sent the same way until you turn this off in Settings.\n\nKeep answers local\nAllow"
+  ]
+}

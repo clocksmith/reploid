@@ -1,0 +1,17 @@
+{
+  "startedAt": "2026-10-19T00:14:12.323Z",
+  "passed": true,
+  "pages": [
+    {
+      "url": "https://replo.id/",
+      "readiness": "4 connected · 1 ready · 0 working · 0 unavailable",
+      "authenticated": 1
+    },
+    {
+      "url": "https://replo.id/",
+      "readiness": "4 connected · 1 ready · 0 working · 0 unavailable",
+      "authenticated": 3
+    }
+  ],
+  "finishedAt": "2026-10-19T00:14:20.031Z"
+}

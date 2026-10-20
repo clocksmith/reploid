@@ -1,0 +1,23 @@
+{
+  "scope": "One independent CPU generation diagnostic; no GPU execution, no runtime or model change",
+  "files": {
+    "control.json": "eba8cba7223b6a3727c9df50f8e3ad8c6771a4a40b66d40966923217a4f9929f",
+    "capture.json": "528c22fcb325616698efe9ff9b1e32fdc75e8177b75c7e2230bc5740bd38cd75",
+    "source-config.json": "ed1c1723241f23f7f4e23430759cbd7dcfb4103cbdfe052bfe7626b57c2615b4",
+    "pieces.json": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+    "qwen35-deployed-reference.py": "53efd11870619ee5aa6c5c24d378269100672ad999a0f0e1c47939c18d63d0a0"
+  },
+  "threads": 4,
+  "perCaseTimeoutSeconds": 600,
+  "maxAddressSpaceGiB": 40,
+  "minimumHostAvailableGiB": 48,
+  "maxRuns": 1,
+  "linearPrefill": "source-chunk",
+  "normalization": "source",
+  "weights": "exact retained Q4_K pieces",
+  "arithmetic": "float32",
+  "kvStorage": "float16",
+  "python": "/home/x/deco/gamma/.venv_rocm/bin/python",
+  "pythonPath": "/tmp/reploid-movie-control-20261017/python-deps",
+  "comparison": "Exact input and output IDs through stop token; no quality acceptance or general numerical gate"
+}

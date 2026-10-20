@@ -1,0 +1,14 @@
+{
+  "startedAt": "2026-10-19T00:07:22.193Z",
+  "passed": false,
+  "checks": [
+    "public discovery"
+  ],
+  "health": {
+    "service": "reploid-swarm",
+    "release": "cloudflare-swarm-20261019-lease-recovery",
+    "discoveryOnly": true
+  },
+  "error": "Expiry deadline missed",
+  "finishedAt": "2026-10-19T00:09:22.998Z"
+}

@@ -24,14 +24,13 @@ vi.mock('../../self/vendor/reploid/mesh/index.js', async original => ({ ...await
   createAutomaticPartitions: options => { ports.bound.push(options.identity.peerId); return ports.partitions; }
 }));
 vi.mock('../../self/vendor/reploid/transport/index.js', async original => ({ ...await original(),
-  createSwarmTransport: () => ({ disconnect() {}, _getPeerId: () => 'transport-requester', getConnectedPeers: () => [] }) }));
+  createSwarmTransport: () => ({ disconnect() {}, onMessage() {}, offMessage() {}, sendToPeer() {}, _getPeerId: () => 'transport-requester', getConnectedPeers: () => [] }) }));
 vi.mock('../../self/host/work-model-files.js', async original => ({ ...await original(),
   createWorkModelFiles: () => ({ async attach() {}, async close() {}, announce() {}, getState: () => ({ sharing: false, preparing: false }) }) }));
 vi.mock('../../self/host/work-peer-offers.js', () => ({ createWorkPeerOffers: () => ({
   acquire: async () => 'transport-requester', attach: async () => {}, close() {}, getState: () => null }) }));
 import { createProductSession } from '../../self/host/product-session.js';
 import { createChatSession } from '../../self/host/chat-session.js';
-import { remotePermissionWording } from '../../self/ui/pool-home/remote-permission.js';
 import { resolveConfig } from '../../self/vendor/reploid/config/index.js';
 
 const DISCLOSURE_MISMATCH = 'Peer disclosure does not match the selected model and verified recipients';
@@ -47,8 +46,7 @@ const memoryStorage = () => {
   return { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, String(value)), removeItem: key => values.delete(key) };
 };
 // The arguments initPoolHome passes (self/ui/pool-home/index.js:36). swarmNetworkOptions only names the
-// fixture room; the swarm still connects through the product autoconnect owner. The pinned package
-// (0.6.27) exposes no metadataDigest, so ordered sessions here keep ordinary history.
+// fixture room; the swarm still connects through the product autoconnect owner.
 async function openProduct(ordered) {
   const host = await createProductSession({ storage: memoryStorage(), operationNetwork: null, canonical: null, ordered,
     historyPorts: { loadRuntime: async () => runtime },
@@ -58,17 +56,15 @@ async function openProduct(ordered) {
   return host;
 }
 const weightlessRequester = { stage: null, ...orderedPolicy.limits };
-// A fresh profile has no remote contributor permission, so the first remote request is held and sends
-// nothing; the one-time grant (self/ui/pool-home/remote-permission.js Allow) releases it. `held` runs meanwhile.
-async function sendPermitted(chat, threadId, text, held = () => {}) {
-  const completion = chat.send(threadId, text);
-  const waiting = await vi.waitFor(() => {
-    const attempt = chat.getState().threads.find(thread => thread.id === threadId).attempts.at(-1);
-    expect(attempt.status).toBe('approval'); return attempt;
-  }, { timeout: 5000 });
-  held(waiting);
-  const permission = await chat.grantRemotePermission(waiting.approval.permissionNeed, { wording: remotePermissionWording(waiting.approval.permissionNeed) });
-  return { permission, attempt: await completion };
+// The product grants the exact verified route under its network preference, without a popup.
+async function sendConfigured(chat, threadId, text) {
+  const statuses = [];
+  const unsubscribe = chat.subscribe(state => statuses.push(state.threads.find(thread => thread.id === threadId)?.attempts.at(-1)?.status));
+  try {
+    const attempt = await chat.send(threadId, text);
+    expect(statuses).not.toContain('approval');
+    return attempt;
+  } finally { unsubscribe(); }
 }
 const readyModel = (chat, match) => vi.waitFor(() => {
   const model = chat.getState().models.find(row => match(row) && row.availability === 'ready');
@@ -86,11 +82,10 @@ it('admits ordered Send from the shipped product session under the authenticated
   const dispatched = () => f.states.filter(state => state.resident)
     .reduce((total, state) => total + state.resident.tokenize.mock.calls.length + state.resident.reserve.mock.calls.length, 0);
   const before = dispatched(), stages = model.partition.route.stages.map(stage => stage.participantId);
-  // No stage tokenizes or reserves until the one-time permission exists.
-  const { permission, attempt } = await sendPermitted(host.chat, threadId, tasks[0].prompt, pending => {
-    expect(pending.approval.permissionNeed).toMatchObject({ disclosure: 'ordered-partition-activations-and-tokens', modelIdentity: model.identity });
-    expect(pending.authorization).toBeNull(); expect(dispatched()).toBe(before);
-  });
+  const attempt = await sendConfigured(host.chat, threadId, tasks[0].prompt);
+  expect(dispatched()).toBeGreaterThan(before);
+  const permission = host.chat.getState().remotePermissions.find(item => item.id === attempt.authorization?.permissionId);
+  expect(permission).toBeTruthy();
   expect(attempt.error).toBeNull();
   expect(attempt.status).toBe('completed');
   expect(attempt.authorization).toMatchObject({ kind: 'permission', source: 'permission', permissionId: permission.id, recipients: stages,
@@ -239,7 +234,7 @@ it('keeps two-stage Send working from the product session; it never relied on a 
   const placeholder = createChatSession({ storage: null, swarm: host.swarm, partitions: host.swarm.partitions });
   cleanups.push(() => placeholder.close());
   for (const chat of [host.chat, placeholder]) {
-    const { attempt } = await sendPermitted(chat, chat.createThread({ model }), '10');
+    const attempt = await sendConfigured(chat, chat.createThread({ model }), '10');
     expect(attempt.error).toBeNull();
     expect(attempt.status).toBe('completed');
     expect(attempt.authorization).toMatchObject({ source: 'permission', disclosure: 'partition-activations-and-tokens',

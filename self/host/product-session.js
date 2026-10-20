@@ -1,3 +1,4 @@
+import { createBrowserTraining } from './lora-training.js';
 import { createDopplerRuntime } from '../pool/doppler-runtime.js';
 /** Application lifetime. Detaching a route never stops an owned conversation or document task. */
 import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
@@ -14,7 +15,7 @@ import { createServerSearch } from './server-search.js';
 import { getPoolAuthToken } from '../pool/identity.js';
 import { createDeviceSearch } from './device-search.js';
 import { acquireChatHistoryOwner, refusedChatHistory } from './chat-history.js';
-import { DOPPLER_PARTITIONS_MODULE_URL } from '../config/doppler-local-models.js';
+import { metadataDigest } from '../config/doppler-metadata-contract.js';
 import orderedPolicy from '../config/ordered-participation.json' with { type: 'json' };
 import { startSwarmAutoconnect } from './swarm-autoconnect.js';
 import swarmPolicy from '../config/swarm-bootstrap.json' with { type: 'json' };
@@ -33,7 +34,7 @@ const ordinaryReason = cause => `History stays ordinary: ${cause}; ordered answe
  * Doppler's metadataDigest; without it, or without Web Locks to keep one history
  * owner per browser profile, history stays ordinary and says so in state. */
 async function openOrderedRequesterChat({ chatOptions, requesterIdentity, ports }) {
-  const { loadRuntime = () => import(DOPPLER_PARTITIONS_MODULE_URL), locks = globalThis.navigator?.locks, openStore } = ports;
+  const { loadRuntime = () => ({ metadataDigest }), locks = globalThis.navigator?.locks, openStore } = ports;
   const ordinary = reason => createChatSession({ ...chatOptions, requesterIdentity,
     history: { mode: 'ordinary', publication: null, reason: ordinaryReason(reason) } });
   let runtime;
@@ -49,7 +50,7 @@ async function openOrderedRequesterChat({ chatOptions, requesterIdentity, ports 
   // The existing localStorage workspace and drafts migrate once through the legacy import.
   return openCanonicalChatSession({ ...chatOptions, ...LOCAL_HISTORY_IDENTITY, requesterIdentity,
     history: { mode: 'transactional', publication: 'ordered',
-      reason: 'Only prepared ordered routes publish into this history; local and whole-request models are unavailable.' },
+      reason: 'Split answers retain verified publication records; whole-model answers retain their own request and response records.' },
     canonical: { name: database, ...bounds, runtime, publication: 'ordered', expectedWriterEpoch: 'stored', release,
       ...(openStore ? { openStore } : {}) } });
 }
@@ -59,7 +60,7 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
   historyPorts = {}, earning = null, participantIdentity = null, webAccess = null, webContribution = null,
   search = createServerSearch({ authorization: getPoolAuthToken }) }) {
   let notifySearch = () => {};
-  let runtime, work, chat, modelCache, documents, operationSharing, closed = false, closing, ownsNetwork = false;
+  let training, runtime, work, chat, modelCache, documents, operationSharing, closed = false, closing, ownsNetwork = false;
   const service = createReploidDopplerRuntimeService();
   // Local execution uses the same pinned, verified artifacts as contribution.
   // This owner never attaches a transport or offers cached files to peers.
@@ -89,7 +90,7 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
   const searchListeners = new Set();
   const searchStatus = Object.freeze({ ...search,
     available: () => contributorSearch.available() || search.available(),
-    state: () => contributorSearch.available() ? { state: 'ready', provider: 'contributor-bing', message: 'A contributor can search Bing and fetch public pages. Each answer asks permission.' } : search.state(),
+    state: () => contributorSearch.available() ? { state: 'ready', provider: contributorSearch.provider.searchProvider, message: 'A contributor can search the web and read public pages. Send runs the selected tools.' } : search.state(),
     subscribe(listener) { searchListeners.add(listener); const stop = search.subscribe(() => listener(searchStatus.state()));
       return () => { stop(); searchListeners.delete(listener); }; }
   });
@@ -135,6 +136,7 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
     const assertOpen = () => { if (closed) throw new Error('Application session is closed'); };
     return {
       chat, swarm, evolution, webSearch, search: searchStatus, deviceSearch, contributorSearch,
+      get training() { assertOpen(); return training ??= createBrowserTraining({ swarm }); },
       get runtime() { assertOpen(); return runtime ??= globalThis.REPLOID_DOPPLER_RUNTIME || createDopplerRuntime(); },
       get work() { assertOpen(); return work ??= createWorkSession({ service, storage, swarm, evolution, peers: createWorkPeerJobs({ getNetwork }) }); },
       get documents() { assertOpen(); return documents ??= createDocumentAssistant({ executor: createLocalPackExecutor(), network: getNetwork(), onChange: onDocuments }); },
@@ -143,14 +145,14 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
       resume() { if (!closed) autoconnect.resume(); },
       async pause() {
         autoconnect.pause(); work?.cancelAll(); chat.cancelAll(); documents?.cancel();
-        return Promise.allSettled([swarm.disconnect({ automatic: true }), operationSharing?.stop()]);
+        return Promise.allSettled([training?.disconnect(), swarm.disconnect({ automatic: true }), operationSharing?.stop()]);
       },
       close() {
         if (closing) return closing;
         closed = true; autoconnect.close(); modelCache.close();
         // Requester-owned history must report unsettled cleanup; ordinary history never did.
         const requesterOwned = !!canonical || chat.getState?.().history?.mode === 'transactional';
-        const owners = [() => localFiles.close(), () => swarm.close(), () => work?.close(), () => chat.close(), () => documents?.close(),
+        const owners = [() => training?.close(), () => localFiles.close(), () => swarm.close(), () => work?.close(), () => chat.close(), () => documents?.close(),
           () => operationSharing?.stop(), () => ownsNetwork ? operationNetwork?.close?.() : undefined];
         closing = Promise.allSettled(owners.map(close => Promise.resolve().then(close))).then(results => {
           const failures = results.filter(result => result.status === 'rejected').map(result => result.reason);

@@ -1,0 +1,101 @@
+[1A[2K[2m[WebServer] [22m(node:22926) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1A[2K[2m[WebServer] [22m(node:22957) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1A[2K[2m[WebServer] [22m(node:22958) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1A[2K[2m[WebServer] [22m(node:22958) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1A[2K[2m[WebServer] [22m[Proxy] Config loader not available, using environment variables
+
+[1A[2K[2m[WebServer] [22m(node:23001) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 2 tests using 1 worker
+
+[1A[2K(node:23010) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:23010) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/2] [chromium] › tests/e2e/boot.spec.js:96:5 › Route Entry Points › bounds public-route recovery when session storage is unavailable: /
+[1A[2K  1) [chromium] › tests/e2e/boot.spec.js:96:5 › Route Entry Points › bounds public-route recovery when session storage is unavailable: / 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('.pool-boot-failure')
+    Expected: visible
+    Timeout: 3000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 3000ms[22m
+    [2m  - waiting for locator('.pool-boot-failure')[22m
+    [2m    2 × waiting for" http://localhost:8000/?reploidBootRetry=2026091901" navigation to finish...[22m
+    [2m      - navigated to "http://localhost:8000/?reploidBootRetry=2026091901"[22m
+
+
+      105 |       });
+      106 |       await page.goto(path, { waitUntil: 'domcontentloaded' });
+    > 107 |       await expect(page.locator('.pool-boot-failure')).toBeVisible({ timeout: 3000 });
+          |                                                        ^
+      108 |       expect(requests).toBe(2);
+      109 |       await expect(page.locator('[data-chat-workspace]')).toHaveCount(0);
+      110 |     });
+        at /Users/xyz/deco/reploid/tests/e2e/boot.spec.js:107:56
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/boot-Route-Entry-Points-bo-b95a5-ion-storage-is-unavailable--chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K(node:23024) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:23024) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[2/2] [chromium] › tests/e2e/boot.spec.js:96:5 › Route Entry Points › bounds public-route recovery when session storage is unavailable: /pool-entry.html
+[1A[2K  2) [chromium] › tests/e2e/boot.spec.js:96:5 › Route Entry Points › bounds public-route recovery when session storage is unavailable: /pool-entry.html 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('.pool-boot-failure')
+    Expected: visible
+    Timeout: 3000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 3000ms[22m
+    [2m  - waiting for locator('.pool-boot-failure')[22m
+    [2m    - waiting for" http://localhost:8000/pool-entry.html?reploidBootRetry=2026091901" navigation to finish...[22m
+    [2m    - navigated to "http://localhost:8000/pool-entry.html?reploidBootRetry=2026091901"[22m
+
+
+      105 |       });
+      106 |       await page.goto(path, { waitUntil: 'domcontentloaded' });
+    > 107 |       await expect(page.locator('.pool-boot-failure')).toBeVisible({ timeout: 3000 });
+          |                                                        ^
+      108 |       expect(requests).toBe(2);
+      109 |       await expect(page.locator('[data-chat-workspace]')).toHaveCount(0);
+      110 |     });
+        at /Users/xyz/deco/reploid/tests/e2e/boot.spec.js:107:56
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/boot-Route-Entry-Points-bo-b23e0-unavailable-pool-entry-html-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K  2 failed
+    [chromium] › tests/e2e/boot.spec.js:96:5 › Route Entry Points › bounds public-route recovery when session storage is unavailable: / 
+    [chromium] › tests/e2e/boot.spec.js:96:5 › Route Entry Points › bounds public-route recovery when session storage is unavailable: /pool-entry.html 

@@ -1,0 +1,246 @@
+{
+  "passed": true,
+  "errors": [],
+  "warnings": [
+    "Warning in /host/product-session.js: Path traversal pattern detected (../) - potential security risk",
+    "Nesting depth of 6 exceeds 5 - refactor nested code",
+    "Warning in /ui/pool-home/index.js: Path traversal pattern detected (../) - potential security risk",
+    "Warning in /ui/pool-home/index.js: innerHTML assignment is risky - consider textContent",
+    "Warning in /ui/pool-home/index.js: insertAdjacentHTML is risky - potential XSS",
+    "File has 21 functions (max 20) - consider modularizing",
+    "Nesting depth of 7 exceeds 5 - refactor nested code",
+    "Warning in /config/doppler-metadata-contract.js:19: Dynamic property write detected: [index] - verify input sanitization",
+    "Warning in /config/doppler-metadata-contract.js:54: Dynamic property write detected: [tailLength] - verify input sanitization",
+    "Warning in /config/doppler-metadata-contract.js:57: Dynamic property write detected: [padding.length - 8 + index] - verify input sanitization",
+    "Warning in /config/doppler-metadata-contract.js:73: Dynamic property write detected: [index] - verify input sanitization",
+    "Warning in /config/doppler-metadata-contract.js:84: Dynamic property write detected: [index] - verify input sanitization",
+    "File exceeds 500 lines (501) - consider splitting",
+    "File has 35 functions (max 20) - consider modularizing",
+    "Nesting depth of 6 exceeds 5 - refactor nested code"
+  ],
+  "events": [
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792366791890,
+      "path": "/host/product-session.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1792366791893,
+      "metric": "nesting",
+      "value": 6,
+      "threshold": 5,
+      "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "path": "/host/product-session.js"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792366791896,
+      "path": "/ui/pool-home/index.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792366791896,
+      "path": "/ui/pool-home/index.js",
+      "patternId": "innerhtml_assign",
+      "category": "dom",
+      "message": "innerHTML assignment is risky - consider textContent",
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792366791896,
+      "path": "/ui/pool-home/index.js",
+      "patternId": "insertadjacenthtml",
+      "category": "dom",
+      "message": "insertAdjacentHTML is risky - potential XSS",
+      "severity": "warning"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1792366791897,
+      "metric": "functions",
+      "value": 21,
+      "threshold": 20,
+      "message": "File has 21 functions (max 20) - consider modularizing",
+      "path": "/ui/pool-home/index.js"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1792366791897,
+      "metric": "nesting",
+      "value": 7,
+      "threshold": 5,
+      "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+      "path": "/ui/pool-home/index.js"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792366791902,
+      "path": "/config/doppler-metadata-contract.js",
+      "patternId": "dynamic_property_write",
+      "category": "structural",
+      "message": "Dynamic property write detected: [index] - verify input sanitization",
+      "line": 19,
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792366791902,
+      "path": "/config/doppler-metadata-contract.js",
+      "patternId": "dynamic_property_write",
+      "category": "structural",
+      "message": "Dynamic property write detected: [tailLength] - verify input sanitization",
+      "line": 54,
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792366791902,
+      "path": "/config/doppler-metadata-contract.js",
+      "patternId": "dynamic_property_write",
+      "category": "structural",
+      "message": "Dynamic property write detected: [padding.length - 8 + index] - verify input sanitization",
+      "line": 57,
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792366791902,
+      "path": "/config/doppler-metadata-contract.js",
+      "patternId": "dynamic_property_write",
+      "category": "structural",
+      "message": "Dynamic property write detected: [index] - verify input sanitization",
+      "line": 73,
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792366791902,
+      "path": "/config/doppler-metadata-contract.js",
+      "patternId": "dynamic_property_write",
+      "category": "structural",
+      "message": "Dynamic property write detected: [index] - verify input sanitization",
+      "line": 84,
+      "severity": "warning"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1792366791902,
+      "metric": "lines",
+      "value": 501,
+      "threshold": 500,
+      "message": "File exceeds 500 lines (501) - consider splitting",
+      "path": "/config/doppler-metadata-contract.js"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1792366791902,
+      "metric": "functions",
+      "value": 35,
+      "threshold": 20,
+      "message": "File has 35 functions (max 20) - consider modularizing",
+      "path": "/config/doppler-metadata-contract.js"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1792366791902,
+      "metric": "nesting",
+      "value": 6,
+      "threshold": 5,
+      "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "path": "/config/doppler-metadata-contract.js"
+    }
+  ],
+  "details": {
+    "patternViolations": [
+      {
+        "path": "/host/product-session.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "path": "/ui/pool-home/index.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "path": "/ui/pool-home/index.js",
+        "patternId": "innerhtml_assign",
+        "category": "dom",
+        "message": "innerHTML assignment is risky - consider textContent",
+        "severity": "warning"
+      },
+      {
+        "path": "/ui/pool-home/index.js",
+        "patternId": "insertadjacenthtml",
+        "category": "dom",
+        "message": "insertAdjacentHTML is risky - potential XSS",
+        "severity": "warning"
+      }
+    ],
+    "complexityWarnings": [
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/host/product-session.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "functions",
+        "value": 21,
+        "threshold": 20,
+        "message": "File has 21 functions (max 20) - consider modularizing",
+        "path": "/ui/pool-home/index.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/ui/pool-home/index.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "lines",
+        "value": 501,
+        "threshold": 500,
+        "message": "File exceeds 500 lines (501) - consider splitting",
+        "path": "/config/doppler-metadata-contract.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "functions",
+        "value": 35,
+        "threshold": 20,
+        "message": "File has 35 functions (max 20) - consider modularizing",
+        "path": "/config/doppler-metadata-contract.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/config/doppler-metadata-contract.js"
+      }
+    ],
+    "filesAnalyzed": 3
+  }
+}

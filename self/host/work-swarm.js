@@ -11,7 +11,7 @@ import { LOCAL_DOPPLER_MODELS } from '../config/doppler-local-models.js';
 import profile from '../config/work-profile.json' with { type: 'json' };
 import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
 import { createWorkResidentProvider } from '../providers/work-resident-provider.js';
-import { createWorkAdapterResolver } from '../providers/work-adapter.js';
+import { createWorkAdapterResolver, selectWorkAdapters } from '../providers/work-adapter.js';
 import { createWorkPeerOffers } from './work-peer-offers.js';
 import { createWorkModelFiles, getFileContributionLimits } from './work-model-files.js';
 import { loadWorkPartition } from './work-partitions.js';
@@ -42,7 +42,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   let computeEnabled = storage?.getItem('REPLOID_CACHED_COMPUTE_ENABLED') !== 'false';
   let filesEnabled = storage?.getItem('REPLOID_CACHED_FILES_ENABLED') !== 'false';
   let cachedSharing = null;
-  let connectionFailure = null;
+
   let disconnecting = null, sharingConnection = null, generation = 0, paused = false;
   let automaticAllowed = options.autoConnect !== false;
   const requests = new Map(), cleanupDebt = new Set(), contributionDebt = new Set(), closingOwners = new WeakMap(), settledOwners = new WeakSet();
@@ -87,9 +87,12 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       return partitionMesh.generate(request, controls);
     }
   });
+  let connectionFailure = null, retainedConnections = [];
   let contributor = null, stoppingContribution = null, contributionEpoch = 0;
   let contribution = { phase: 'idle', completed: 0, modelId: null, modelIdentity: null, progress: null };
   const getState = () => ({ introductionAssistance, sharing, computeEnabled, filesEnabled, stopping, connecting, paused,
+    connections: consumerTransport?.getPeerStates?.() || retainedConnections,
+    connectionFailure: connectionFailure ? { ...connectionFailure } : null,
     error: error || connectionFailure?.message || '', unsettledOwners: cleanupDebt.size, models: LOCAL_DOPPLER_MODELS,
     discoveryScope: options.discoveryScope,
     webContributors: webNetwork?.getOffers() || [],
@@ -100,7 +103,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   const notify = () => onChange(getState());
   for (const event of ['swarm:bootstrap-error', 'swarm:connection-failed']) eventBus.on(event, detail => {
     if (!closed && !paused) {
-      connectionFailure = { message: detail.message, peerId: event === 'swarm:connection-failed' ? detail.peerId : null };
+      connectionFailure = { message: detail.message, attemptId: detail.attemptId || null, peerId: event === 'swarm:connection-failed' ? detail.peerId : null };
       notify();
     }
   });
@@ -127,6 +130,8 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       getExecutionState: () => {
         const state = execution?.getState();
         return { phase: sharing && state?.ready ? 'ready' : state?.phase || 'idle',
+          activity: { phase: state?.phase || 'idle', completed: state?.completed || 0, error: state?.error || null },
+          progress: state?.progress || null,
           modelIdentity: state?.modelIdentity || null, adapterIdentities: state?.adapterIdentities || [] };
       },
       createTransport: () => {
@@ -330,6 +335,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     const partitionStop = closeOwner(partitionMesh); partitionMesh = null; partitionRequester = null;
     const fileStop = closeOwner(modelFiles); modelFiles = null;
     const previousConsumer = consumer, previousTransport = consumerTransport;
+    retainedConnections = (previousTransport?.getPeerStates?.() || []).map(peer => ({ ...peer, phase: 'disconnected', channelState: 'closed' }));
     consumer = null; consumerTransport = null;
     const transportStop = Promise.resolve().then(() => previousTransport?.disconnect());
     peerOffers?.close();
@@ -354,6 +360,14 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       return partitionNetworks.open({ createEndpoint, maxPeers, timeoutMs, onPeer, label, ...(ordered ? { ordered } : {}) });
     }
   const api = Object.freeze({ getState, connect, disconnect, partitions, getWebNetwork: () => webNetwork,
+    getTrainingPeers: () => (consumerTransport?.getConnectedPeers() || []).map(peer => ({ id: peer.id, name: peer.id })),
+    async verifyPeerIdentity(peerId, signal) {
+      const active = consumer;
+      if (closed || paused || !active) throw new Error('Connect before verifying a contributor');
+      const identity = await active.verifyPeerIdentity(peerId, signal);
+      if (closed || paused || consumer !== active) throw new Error('Contributor connection changed during verification');
+      return identity;
+    },
     allowIntroductions(allowed) {
       if (closed) throw new Error('Network is closed');
       introductionAssistance = allowed === true;
@@ -400,7 +414,6 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       if (!base) throw new Error('Select an available local model');
       // A piece index describes available artifacts; it does not assign this device a stage.
       if (mode === 'partition') {
-        if (adapters.length) throw new Error('This partition plan does not support adapters');
         if (!navigator.gpu) throw new Error('This browser does not support WebGPU');
         const version = generation, epoch = contributionEpoch;
         sharingConnection = Promise.resolve().then(async () => {
@@ -408,16 +421,11 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
           await connect({ automatic: true });
           if (closed || paused || version !== generation || epoch !== contributionEpoch) throw new Error('Contribution stopped');
           if (!partitionMesh) throw new Error('Connect before contributing compute');
-          await partitionMesh.contribute(modelId, approved);
+          await partitionMesh.contribute(modelId, approved, selectWorkAdapters(base, adapters));
         }).finally(() => { sharingConnection = null; notify(); });
         return sharingConnection;
       }
-      if (!Array.isArray(adapters) || adapters.length > 1) throw new Error('Select at most one adapter');
-      const model = { ...base, adapters: adapters.map(selected => {
-        const entry = base.availableAdapters?.find(adapter => adapter.identity === selected.identity);
-        if (!entry) throw new Error('Adapter is not in the contributor catalog');
-        return structuredClone(entry);
-      }) };
+      const model = { ...base, adapters: selectWorkAdapters(base, adapters) };
       if (!navigator.gpu) throw new Error('This browser does not support WebGPU');
       if (disconnecting || paused) throw new Error('Connect before contributing compute');
       const version = generation;

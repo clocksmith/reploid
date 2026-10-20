@@ -5,14 +5,20 @@ import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 import { assertSignedPreparation } from '../../artifacts/cleanup-failure-20261012/signed-preflight.js';
 const ports = vi.hoisted(() => ({ models: [], createStorage: vi.fn(), computeHash: vi.fn(), exchange: vi.fn() }));
+// A four-file inventory fits the three metadata files and only one of two cached pieces.
+vi.mock('../../self/config/chat-files.json', async original => ({ default: { ...(await original()).default, maxInventoryFiles: 4 } }));
+vi.mock('../../self/infrastructure/custody-supply-budget.js', () => ({
+  openBrowserSupplyBudget: async ({ maxBytes }) => ({ getState: () => ({ maxBytes, reservedBytes: 0 }), close() {} }),
+  openBrowserAcquisitionBudget: vi.fn(() => { throw Error('Cached-only sharing must not open a download allowance'); })
+}));
 vi.mock('../../self/config/doppler-local-models.js', () => ({
   LOCAL_DOPPLER_MODELS: ports.models, DOPPLER_BROWSER_RUNTIME_VERSION: '0.6.27',
-  DOPPLER_PARTITIONS_MODULE_URL: '../vendor/doppler/0.6.27/src/partitions.js',
-  DOPPLER_STORAGE_TOOLING_URL: '../vendor/doppler/0.6.27/src/tooling-exports/storage.js',
+  DOPPLER_PARTITIONS_MODULE_URL: 'doppler-gpu/partitions',
+  DOPPLER_STORAGE_TOOLING_URL: 'doppler-gpu/tooling/storage',
   DOPPLER_MODULE_URL: '/vendor/doppler/0.6.27/src/index.js',
 }));
-vi.mock('../../self/vendor/doppler/0.6.27/src/partitions.js', () => ({ createVerifiedPieceStorage: ports.createStorage }));
-vi.mock('../../self/vendor/doppler/0.6.27/src/tooling-exports/storage.js', () => ({ computeHash: ports.computeHash }));
+vi.mock('doppler-gpu/partitions', () => ({ createVerifiedPieceStorage: ports.createStorage }));
+vi.mock('doppler-gpu/tooling/storage', () => ({ computeHash: ports.computeHash }));
 vi.mock('../../self/vendor/reploid/artifacts/custody/exchange.js', () => ({ createCustodyExchange: ports.exchange }));
 vi.mock('../../self/infrastructure/pack-transfer-storage.js', () => ({ openPeerPackFileCheckpoints: async () => ({ close: async () => {} }) }));
 import { createWorkModelFiles } from '../../self/host/work-model-files.js';
@@ -40,7 +46,7 @@ beforeEach(() => {
   storage = { close: vi.fn().mockResolvedValue() };
   ports.createStorage.mockResolvedValue({ manifest, storage, getReceipt: () => ({ verifiedBytes: 0 }) });
   ports.computeHash.mockImplementation(async payload => hash(payload));
-  const folder = { async getFileHandle(name) {
+  const folder = { async *entries() {}, async getFileHandle(name) {
     if (!cache.has(name)) throw new DOMException('missing', 'NotFoundError');
     const payload = cache.get(name);
     return { async getFile() { return { size: payload.length, arrayBuffer: async () => payload.slice().buffer }; } };
@@ -138,4 +144,19 @@ it.skipIf(!process.env.DOPPLER_SIGNED_READER_PACKAGE)('uses actual signed-reader
     expect(() => assertSignedPreparation({ ...actual, capsuleVerification: { ...actual.capsuleVerification,
       pieceVerification: { ...actual.capsuleVerification.pieceVerification, verifiedBytes: 0 } } }, model)).toThrow();
   } finally { await signedStore.close(); await source.storage.close(); await files.close(); }
+});
+
+it('offers only the bounded verified subset when cached pieces exceed the inventory allowance', async () => {
+  cache.set('sha256-' + hash(weight.slice(2)), weight.slice(2));
+  const offer = vi.fn();
+  ports.exchange.mockReturnValue({ announce() {}, has: () => false, offer, stopSupply() {}, getState: () => ({}), close: async () => {} });
+  files = createWorkModelFiles({ getTransport: () => ({ onDataChannel() {}, _getPeerId: () => 'synthetic-peer' }),
+    fetchImpl: vi.fn(() => { throw Error('Cached-only sharing cannot download'); }) });
+  try {
+    await files.share(model, true, { mode: 'cached-only' });
+    expect(offer).toHaveBeenCalledOnce();
+    const inventory = offer.mock.calls[0][0];
+    expect(inventory.map(item => item.path)).toEqual(['manifest.json', 'pieces.json', 'tokenizer.json', `piece-${hash(weight.slice(0, 2))}.bin`]);
+    expect(cache.has('sha256-' + hash(weight.slice(2)))).toBe(true);
+  } finally { await files.close(); }
 });

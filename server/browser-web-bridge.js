@@ -28,7 +28,7 @@ export async function attachBrowserWebBridge({ page, origin, worker = createPubl
     } finally { clearTimeout(timer); pending.delete(message.id); }
   });
   await page.addInitScript(({ binding, origin }) => {
-    if (location.origin !== origin || window !== window.top) return;
+    if (globalThis.location.origin !== origin || globalThis !== globalThis.top) return;
     const request = async (operation, args, { signal, requester }) => {
       signal?.throwIfAborted();
       const id = crypto.randomUUID();

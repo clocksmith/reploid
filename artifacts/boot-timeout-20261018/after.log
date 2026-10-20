@@ -1,0 +1,33 @@
+
+> reploid@0.1.0 test:e2e:smoke
+> playwright test --config tests/playwright.config.js tests/e2e/boot.spec.js --project=chromium --workers=1 --grep "loads with product modes|has Reploid selected by default|shows all three product modes|recovers once from a transient public-route module failure|stops after one public-route recovery|opens public-route history|bounds public-route initialization"
+
+[2m[WebServer] [22m(node:98601) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:98626) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:98627) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:98627) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m[Proxy] Config loader not available, using environment variables
+[2m[WebServer] [22m(node:98668) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 9 tests using 1 worker
+
+(node:98677) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:98677) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/e2e/boot.spec.js:37:3 › Boot Screen › loads with product modes and no duplicate mode heading (599ms)
+  ✓  2 [chromium] › tests/e2e/boot.spec.js:49:3 › Boot Screen › has Reploid selected by default (493ms)
+  ✓  3 [chromium] › tests/e2e/boot.spec.js:73:3 › Boot Screen › shows all three product modes (477ms)
+  ✓  4 [chromium] › tests/e2e/boot.spec.js:96:3 › Route Entry Points › opens public-route history while inference module downloads are stalled: / (339ms)
+  ✓  5 [chromium] › tests/e2e/boot.spec.js:107:3 › Route Entry Points › bounds public-route initialization after the bundle has loaded: / (568ms)
+  ✓  6 [chromium] › tests/e2e/boot.spec.js:96:3 › Route Entry Points › opens public-route history while inference module downloads are stalled: /pool-entry.html (326ms)
+  ✓  7 [chromium] › tests/e2e/boot.spec.js:107:3 › Route Entry Points › bounds public-route initialization after the bundle has loaded: /pool-entry.html (572ms)
+  ✓  8 [chromium] › tests/e2e/boot.spec.js:123:3 › Route Entry Points › recovers once from a transient public-route module failure (309ms)
+  ✓  9 [chromium] › tests/e2e/boot.spec.js:146:3 › Route Entry Points › stops after one public-route recovery when the product bundle stays unavailable (329ms)
+
+  9 passed (6.2s)

@@ -1,0 +1,6 @@
+{
+  "server/browser-web-bridge.js": "bfb5ecd37f57a087c50aa24b494789c48eff8695ca7b051c836b30a3d966caa1",
+  "tests/e2e/research-plugin-smoke.js": "26a61f732bc5d51de5bc99cb33bec9b1c585d7ad1dd61f1d1e7aeae602f0465f",
+  "tests/e2e/chat-rail-layout.spec.js": "47baedfa44feb541e4a4399e9718c342d7b1446c065b718a8d032b1c6799bac0",
+  "tests/unit/swarm-signaling-independence.test.js": "6e370f54c8d58d283f7435afb8e0b0a6ad3ac78de707fd3b7836e109de93fbab"
+}

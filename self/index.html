@@ -57,6 +57,7 @@
       const PRODUCT_BOOT_RECOVERY_KEY = `REPLOID_PRODUCT_BOOT_RECOVERY:${window.REPLOID_BUILD_VERSION}`;
       const PRODUCT_BOOT_TIMEOUT_MS = 10000;
       const readProductBootRecovery = () => {
+        if (new URL(window.location.href).searchParams.get('reploidBootRetry') === String(window.REPLOID_BUILD_VERSION)) return true;
         try {
           return sessionStorage.getItem(PRODUCT_BOOT_RECOVERY_KEY) === 'true';
         } catch {
@@ -68,7 +69,7 @@
           if (active) sessionStorage.setItem(PRODUCT_BOOT_RECOVERY_KEY, 'true');
           else sessionStorage.removeItem(PRODUCT_BOOT_RECOVERY_KEY);
         } catch {
-          // Storage is optional. The visible terminal error still prevents a blank page.
+          // The URL marker bounds recovery when storage is unavailable.
         }
       };
       const showProductBootFailure = (appRoot) => {
@@ -90,14 +91,23 @@
         currentUrl.searchParams.delete('reploidBootRetry');
         window.history.replaceState(window.history.state, '', `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`);
       };
-      const loadProductRouteModule = async () => {
+      const loadProductRoute = async (appRoot) => {
         let timeoutId;
+        const controller = new AbortController();
         try {
           return await Promise.race([
-            import('/ui/pool-home/app.bundle.js'),
+            (async () => {
+              await releaseGlobalReploidServiceWorker(controller.signal);
+              controller.signal.throwIfAborted();
+              const { initPoolHome } = await import('/ui/pool-home/app.bundle.js');
+              controller.signal.throwIfAborted();
+              return initPoolHome(appRoot, { signal: controller.signal });
+            })(),
             new Promise((_, reject) => {
               timeoutId = window.setTimeout(() => {
-                reject(new Error('Reploid product route module load timed out'));
+                const error = new Error('Reploid startup timed out');
+                controller.abort(error);
+                reject(error);
               }, PRODUCT_BOOT_TIMEOUT_MS);
             })
           ]);
@@ -107,8 +117,7 @@
       };
       const bootProductRoute = async (appRoot) => {
         try {
-          const { initPoolHome } = await loadProductRouteModule();
-          await initPoolHome(appRoot);
+          await loadProductRoute(appRoot);
           writeProductBootRecovery(false);
           clearProductBootRecoveryUrl();
         } catch (error) {
@@ -122,10 +131,11 @@
           throw error;
         }
       };
-      const releaseGlobalReploidServiceWorker = async () => {
+      const releaseGlobalReploidServiceWorker = async (signal) => {
         if (!('serviceWorker' in navigator)) return false;
         try {
           const registrations = await navigator.serviceWorker.getRegistrations?.();
+          signal.throwIfAborted();
           const rootRegistrations = (registrations || []).filter((registration) => {
             const scopeUrl = new URL(registration.scope);
             return scopeUrl.origin === window.location.origin && scopeUrl.pathname === '/';
@@ -136,6 +146,7 @@
           }
           const controlsCurrentPage = !!navigator.serviceWorker.controller;
           await Promise.all(rootRegistrations.map((registration) => registration.unregister()));
+          signal.throwIfAborted();
           if (controlsCurrentPage && sessionStorage.getItem(ROOT_SW_RELEASE_RELOAD_KEY) !== 'true') {
             sessionStorage.setItem(ROOT_SW_RELEASE_RELOAD_KEY, 'true');
             window.location.reload();
@@ -158,7 +169,6 @@
       }
       if (productRoute) {
         ensurePooldayStylesheet();
-        await releaseGlobalReploidServiceWorker();
         const appRoot = document.getElementById('app');
         if (!appRoot) {
           throw new Error('Missing app root');

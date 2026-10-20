@@ -1,3 +1,4 @@
+import { samePartitionAdapters } from './partition-contract.js';
 import { assertPartition as assert, canonicalPartitionJson, canonicalPartitionRoute, partitionActivationContract, validatePartitionRoute, PARTITION_ROUTE_SCHEMA, validateOrderedPartitionCapability, isOrderedPartitionEntryModel } from './partition-contract.js';
 export { validateOrderedPartitionCapability, isOrderedPartitionEntryModel } from './partition-contract.js';
 
@@ -6,7 +7,7 @@ export function selectPartitionPlacement({ participantId, offer, localIndex, pre
   const eligibility = capabilities.map(peer => ({ participantId: peer.participantId, transportId: peer.transportId,
     observedAt: peer.observedAt, expiresAt: peer.expiresAt,
     reason: !peer.available ? peer.reason : peer.description.phase === 'failed' ? 'contributor-failed'
-      : peer.description.offer?.id !== offer.id || peer.description.offer?.identity !== offer.identity
+      : peer.description.offer?.id !== offer.id || peer.description.offer?.identity !== offer.identity || !samePartitionAdapters(peer.description.offer, offer)
         ? 'model-mismatch' : 'approved-model-contribution',
     index: peer.description?.index ?? null, indexes: peer.description?.eligibleIndexes ?? [0, 1] }));
   const candidates = [{ id: participantId, index: localIndex, indexes: offer.partitionContributionIndexes ?? [0, 1] },
@@ -42,7 +43,7 @@ export function selectPartitionExecution({ model, capabilities, ordered = false 
   const waits = new Set();
   const eligibility = capabilities.map(peer => {
     const prepared = peer.description?.models?.find(candidate => candidate.id === model.id
-      && candidate.identity === model.identity && candidate.availability === 'ready'
+      && candidate.identity === model.identity && samePartitionAdapters(candidate, model) && candidate.availability === 'ready'
       && (ordered ? isOrderedPartitionEntryModel(candidate, peer)
         : peer.description?.schema !== 'reploid.partition-capability/v2'
           && candidate.partition?.schema !== 'reploid.partition-selection/v2'));

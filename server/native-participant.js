@@ -28,6 +28,7 @@ import { createSwarmTransport, createRoomIntroductionAdmission } from '../packag
 import { createSigningIdentity, createPeerIdFromPublicJwk } from '../packages/reploid/src/artifacts/identity.js';
 import { createAttemptEvidenceSigner } from '../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { resolveConfig } from '../packages/reploid/src/config/index.js';
+import { createWorkAdapterResolver } from '../self/providers/work-adapter.js';
 import models from '../self/config/chat-models.json' with { type: 'json' };
 import custodyPolicy from '../self/config/chat-files.json' with { type: 'json' };
 import policy from '../self/config/partition-policy.json' with { type: 'json' };
@@ -353,7 +354,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
         openCapsule, model: configured, artifactStore: source.artifactStore, release,
         assertSession: assertWorkResidentCapsule, closeSources, trackSession, canonical: !!canonical,
         onVerification: value => { capsuleVerification = value; }, onLoadProgress });
-    } else factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: selected.identity, onLoadProgress,
+    } else factory = runtime.createManifestResidentPartitionFactory({ resolveAdapter: createWorkAdapterResolver({ models: [selected], acquire: files?.acquireAdapter }), manifest, manifestIdentity: selected.identity, onLoadProgress,
       runtimeConfig: selected.partitionRuntime?.runtimeConfig ?? { shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: policy.profileGpu } } },
         inference: { session: { kvcache: { maxSeqLen: configured.generation.maxSeqLen },
           prefillChunkLayers: policy.prefillChunkLayers, prefillTokenChunkSize: policy.prefillTokenChunkSize } } },
@@ -436,10 +437,11 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   let transport, partitions, files, webNetwork, closePromise, closed = false, gpuPromise;
   const networks = new Set();
   const whole = wholeMode ? createNativeWholeModel({ model, modelDirectory, nativeGpu, owner: ownerGate,
+    resolveAdapter: createWorkAdapterResolver({ models: [model], ...(cacheDirectory ? { acquire: (artifact, controls) => files.acquireAdapter(artifact, controls) } : {}) }),
     onChange: state => { onChange(state); mesh.refreshAdvertisement(); } }) : null;
   const mesh = createLegacyGenerationMesh({ config, ports: {
     instanceId: 'node:' + identity.peerId, modelConfig: wholeMode ? model : null, utils, eventBus, events: bridge,
-    getExecutionState: () => { const state = whole?.getState(); return { ...state, phase: state?.ready ? state.phase : state?.phase === 'ready' || state?.phase === 'executing' ? 'idle' : state?.phase || 'idle' }; },
+    getExecutionState: () => whole?.getExecutionState() || { phase: 'idle' },
     identity: { ensure: async () => identity, save: async () => {}, sync: async () => {},
       rotate: async () => { throw new Error('Stop the native participant before rotating its identity'); } },
     authorize: async request => !closed && (request.action === 'mesh.connect'
@@ -602,8 +604,8 @@ export async function resolveNativeRoomToken(values, { warn = message => console
 
 async function main() {
   const { values } = parseArgs({ options: Object.fromEntries(['model', 'model-directory', 'identity-file', 'rtc-module',
-    'ws-module', 'gpu-module', 'execution-mode', 'partition-index', 'ordered-config', 'signaling-url', 'room', 'room-token', 'room-token-file', 'origin', 'cache-directory',
-    'owner-policy', 'shader-cache-root', 'earning-config', 'readiness-log'].map(key => [key, { type: 'string' }]).concat([
+    'ws-module', 'gpu-module', 'adapter', 'execution-mode', 'partition-index', 'ordered-config', 'signaling-url', 'room', 'room-token', 'room-token-file', 'origin', 'cache-directory',
+    'owner-policy', 'shader-cache-root', 'earning-config', 'readiness-log', 'browser-search-profile'].map(key => [key, { type: 'string' }]).concat([
       ['web-search', { type: 'boolean', default: false }], ['help', { type: 'boolean', default: false }], ['canonical', { type: 'boolean', default: false }], ['share-files', { type: 'boolean', default: false }], ['contribute', { type: 'boolean', default: false }], ['connect-only', { type: 'boolean', default: false }]])) });
   if (values.help) {
     console.log(`Reploid native participant (Node 22.13 or newer)
@@ -611,9 +613,11 @@ Usage: reploid-participant --connect-only|--share-files|--contribute
   --model <catalog id> --model-directory <read-only weights directory>
   --identity-file <private state/identity.json>
   --web-search (opt in to public Bing search and page extraction; no browser sign-ins)
+  --browser-search-profile <dedicated absolute directory> (Google in owned Chrome; human checks stay manual)
   --rtc-module @roamhq/wrtc --ws-module ws [--gpu-module webgpu]
   [--cache-directory <verified piece cache>] [--signaling-url <ws(s) URL>]
   [--room <namespace>] [--room-token-file <absolute path>] [--origin <allowed origin>]
+  [--adapter <catalog adapter id>] (prepare this exact adapter with its base model)
   [--execution-mode partition|whole-model] (default: partition; never falls back)
   [--partition-index 0|1] (explicit eligible stage for a two-stage route)
   [--ordered-config <absolute JSON path>] (explicit stage assignment and ordered limits)
@@ -639,6 +643,7 @@ is separate from backend selection; --help opens no provider.`);
     return;
   }
   requireValue(values.contribute || values['share-files'] || values['connect-only'], 'Choose --contribute, --share-files or --connect-only explicitly');
+  requireValue(!values['web-search'] || !values['browser-search-profile'], 'Choose one search service');
   if (values.contribute) requireValue(values['gpu-module'], '--gpu-module is required for compute');
   requireValue(values['readiness-log'] === undefined || values.contribute && path.isAbsolute(values['readiness-log']),
     '--readiness-log requires --contribute and an absolute file path');
@@ -665,6 +670,11 @@ is separate from backend selection; --help opens no provider.`);
     && !values['ordered-config'] && values['execution-mode'] !== 'whole-model', 'Partition index requires a two-stage partition contributor');
   const identityFile = path.resolve(values['identity-file']);
   let model = models.find(row => row.id === values.model); requireValue(model, 'Model is absent from the application catalog');
+  if (values.adapter) {
+    const adapter = model.availableAdapters?.find(entry => entry.id === values.adapter);
+    requireValue(adapter && adapter.baseModelIdentity === model.identity, 'Adapter is not authorized for this exact base artifact');
+    model = { ...model, adapters: [structuredClone(adapter)] };
+  }
   if (values['partition-index'] !== undefined) model = { ...model, partitionContributionIndexes: [Number(values['partition-index'])] };
   const moduleSpecifier = value => {
     requireValue(path.isAbsolute(value) || ['@roamhq/wrtc', 'ws', 'webgpu'].includes(value),
@@ -712,12 +722,16 @@ is separate from backend selection; --help opens no provider.`);
     .catch(async error => { owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); throw error; }) : null;
   // Status lines only when their content changes, plus a periodic heartbeat (policy.statusHeartbeatMs).
   const statusLog = createChangeOnlyLog({ heartbeatMs: policy.statusHeartbeatMs, write: line => console.log(line) });
+  const webWorker = values['browser-search-profile']
+    ? await import('./browser-web-worker.js').then(module => module.openBrowserWebWorker({ profileDirectory: values['browser-search-profile'] }))
+      .catch(async error => { owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); throw error; })
+    : values['web-search'] ? createPublicWebWorker() : null;
   const participant = await createNativeParticipant({ model, modelDirectory: values['model-directory'], identity, rtc,
     WebSocket: HostWebSocket, signalingUrl: values['signaling-url'] || bootstrap.signalingUrl,
     roomId: values.room || bootstrap.publicRoomId, roomToken: roomToken || bootstrap.publicJoinMarker,
     cacheDirectory: values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
     executionMode: values['execution-mode'] || 'partition',
-    webWorker: values['web-search'] ? createPublicWebWorker() : null,
+    webWorker,
     ordered, canonical: values.canonical ? { epochDirectory: path.join(path.dirname(identityFile), 'canonical-epochs',
       createHash('sha256').update(values.room || bootstrap.publicRoomId).digest('hex')) } : null,
     nativeGpu: () => gpuHost.open(), owner, shaderCache, earning, readiness,
@@ -727,7 +741,7 @@ is separate from backend selection; --help opens no provider.`);
       // A prepared stage is offered for before any route admits it.
       if (earning && state.descriptor?.planId) earning.ensureOffer(state.descriptor).catch(error => console.error('Earning offer deferred:', error.code || error.message));
     } })
-    .catch(async error => { owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); throw error; });
+    .catch(async error => { owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); await webWorker?.close?.(); throw error; });
   logNetwork = () => statusLog('network', { event: 'network', at: new Date().toISOString(), ...participant.getNetworkState(),
     files: participant.getFileState({ includeReceipts: false }), owner: participant.getOwnerState() });
   if (readiness) observeReadiness = () => readiness.observe(participant.getState());
@@ -737,7 +751,7 @@ is separate from backend selection; --help opens no provider.`);
   const shutdown = createNativeShutdown(participant, gpuHost);
   // Readiness ends when shutdown begins and admission closes; admissions settled by shutdown are still recorded.
   const stop = () => { clearInterval(timer); logNetwork = () => {}; observeReadiness = () => {}; readiness?.end('shutdown');
-    return shutdown().finally(async () => { owner?.close(); await shaderCache?.close(); await closeReadiness('shutdown'); }); };
+    return shutdown().finally(async () => { owner?.close(); await shaderCache?.close(); await closeReadiness('shutdown'); await webWorker?.close?.(); }); };
   const completion = new Promise((resolve, reject) => {
     const signalStop = () => stop().then(resolve, reject);
     process.once('SIGINT', signalStop); process.once('SIGTERM', signalStop);

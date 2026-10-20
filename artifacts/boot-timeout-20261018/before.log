@@ -1,0 +1,85 @@
+[2m[WebServer] [22m(node:98317) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:98345) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:98346) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:98346) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m[Proxy] Config loader not available, using environment variables
+[2m[WebServer] [22m(node:98392) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 2 tests using 1 worker
+
+(node:98400) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:98400) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [chromium] › tests/e2e/boot.spec.js:95:3 › Route Entry Points › opens public-route history while inference module downloads are stalled (5.3s)
+(node:98416) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:98416) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  2 [chromium] › tests/e2e/boot.spec.js:106:3 › Route Entry Points › bounds public-route initialization after the bundle has loaded (3.3s)
+
+
+  1) [chromium] › tests/e2e/boot.spec.js:95:3 › Route Entry Points › opens public-route history while inference module downloads are stalled 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('[data-chat-workspace]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('[data-chat-workspace]')[22m
+
+
+       99 |     try {
+      100 |       await page.goto(PRODUCT_HOME_PATH, { waitUntil: 'domcontentloaded' });
+    > 101 |       await expect(page.locator('[data-chat-workspace]')).toBeVisible({ timeout: 5000 });
+          |                                                           ^
+      102 |       expect(await page.evaluate(() => location.search)).not.toContain('reploidBootRetry');
+      103 |     } finally { release(); }
+      104 |   });
+        at /Users/xyz/deco/reploid/tests/e2e/boot.spec.js:101:59
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/boot-Route-Entry-Points-op-a9209-odule-downloads-are-stalled-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/boot-Route-Entry-Points-op-a9209-odule-downloads-are-stalled-chromium/error-context.md
+
+  2) [chromium] › tests/e2e/boot.spec.js:106:3 › Route Entry Points › bounds public-route initialization after the bundle has loaded 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('.pool-boot-failure')
+    Expected: visible
+    Timeout: 3000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 3000ms[22m
+    [2m  - waiting for locator('.pool-boot-failure')[22m
+
+
+      115 |     });
+      116 |     await page.goto(PRODUCT_HOME_PATH, { waitUntil: 'domcontentloaded' });
+    > 117 |     await expect(page.locator('.pool-boot-failure')).toBeVisible({ timeout: 3000 });
+          |                                                      ^
+      118 |     expect(requests).toBe(2);
+      119 |   });
+      120 |
+        at /Users/xyz/deco/reploid/tests/e2e/boot.spec.js:117:54
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/boot-Route-Entry-Points-bo-3a593-after-the-bundle-has-loaded-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    [chromium] › tests/e2e/boot.spec.js:95:3 › Route Entry Points › opens public-route history while inference module downloads are stalled 
+    [chromium] › tests/e2e/boot.spec.js:106:3 › Route Entry Points › bounds public-route initialization after the bundle has loaded 

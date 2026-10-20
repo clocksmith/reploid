@@ -154,7 +154,7 @@ describe('authorization', () => {
       [DEVICE_SEARCH_ROUTE]: { provider: device.provider, extractor: device.extractor, permission: 'search-answer', available: device.available } } } });
     cleanups.push(() => session.close());
     expect(session.preferredSearchRoute()).toBe(DEVICE_SEARCH_ROUTE);
-    const request = session.searchPermissionRequest({ model, sharingScope: 'local', route: DEVICE_SEARCH_ROUTE });
+    const request = await session.searchPermissionRequest({ model, sharingScope: 'local', route: DEVICE_SEARCH_ROUTE });
     expect(request).toMatchObject({ route: DEVICE_SEARCH_ROUTE, searchProvider: DEVICE_SEARCH_PROVIDER, searchServer: 'search.example.net', recipients: [] });
     const thread = session.createThread({ model, sharingScope: 'local' });
     expect(() => session.send(thread, QUESTION, [], { search: { ...request, searchServer: 'elsewhere.example.org' } }))
@@ -162,7 +162,7 @@ describe('authorization', () => {
     // Changing the server in Settings turns the route off until the person turns it on again.
     web.configure({ url: 'https://other.example.org/mcp' });
     expect(session.preferredSearchRoute()).toBe(SEARCH_ROUTE);
-    expect(() => session.searchPermissionRequest({ model, sharingScope: 'local', route: DEVICE_SEARCH_ROUTE })).toThrow('Search is not available');
+    await expect(session.searchPermissionRequest({ model, sharingScope: 'local', route: DEVICE_SEARCH_ROUTE })).rejects.toThrow('Search is not available');
     web.configure({ url: 'https://search.example.net/mcp' }); web.setEnabled(true);
 
     // The workspace accepts only a grant for this route's service and its current server.
@@ -193,7 +193,7 @@ describe('search permission dialog', () => {
     const view = bindSearchPermissionDialog(dialog, { getState: () => ({ peers: [] }) });
     cleanups.push(() => { view.dispose(); document.body.replaceChildren(); });
     const host = dialog.querySelector('[data-search-permission-server]');
-    let answer = view.ask({ wording: searchPermissionWording(DEVICE_SEARCH_PROVIDER), recipients: [], searchServer: 'search.example.net' });
+    let answer = view.ask({ wording: searchPermissionWording(DEVICE_SEARCH_PROVIDER), recipients: [], searchServer: 'search.example.net', query: QUESTION });
     expect(host.hidden).toBe(false);
     expect(host.textContent).toBe('Search server: search.example.net');
     expect(dialog.querySelector('[data-search-permission-text]').textContent).toBe(searchPermissionWording(DEVICE_SEARCH_PROVIDER).text);

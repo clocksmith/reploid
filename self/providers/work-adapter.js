@@ -1,3 +1,14 @@
+/** Resolve selections through the authorized catalog, never caller-supplied URLs. */
+export function selectWorkAdapters(model, selections = model.adapters || []) {
+  if (!Array.isArray(selections) || selections.length > 1) throw new Error('Select at most one adapter');
+  return selections.map(selection => {
+    const entry = model.availableAdapters?.find(adapter => adapter.identity === selection.identity
+      && adapter.baseModelIdentity === model.identity);
+    if (!entry) throw new Error('Adapter is not authorized for this exact base artifact');
+    return structuredClone(entry);
+  });
+}
+
 /** Acquire catalog-pinned adapter bytes; Doppler owns compatibility and tensor identity. */
 export function createWorkAdapterResolver({ models, acquire, fetchImpl = globalThis.fetch }) {
   const catalog = structuredClone(models).flatMap(model => model.availableAdapters || []);
@@ -11,22 +22,7 @@ export function createWorkAdapterResolver({ models, acquire, fetchImpl = globalT
     if (!bytes) {
       if (acquire) bytes = new Uint8Array(await acquire(entry.artifact, { signal })).slice();
       else {
-        const response = await fetchImpl(entry.artifact.url, { signal });
-        if (!response.ok) throw new Error(`Adapter acquisition HTTP ${response.status}`);
-        const chunks = []; let size = 0;
-        const reader = response.body.getReader();
-        try {
-          while (size <= entry.artifact.sizeBytes) {
-            const { value, done } = await reader.read();
-            if (done) break;
-            if (!value?.byteLength) throw new Error('Adapter stream made no progress');
-            signal.throwIfAborted(); size += value.byteLength;
-            if (size > entry.artifact.sizeBytes) throw new Error('Adapter exceeds its declared file size');
-            chunks.push(value);
-          }
-        } finally { await reader.cancel(); reader.releaseLock(); }
-        bytes = new Uint8Array(size); let offset = 0;
-        for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+        bytes = await fetchAdapterFile(entry.artifact, { signal, fetchImpl });
       }
       signal.throwIfAborted();
       const digest = [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))]
@@ -45,4 +41,27 @@ export function createWorkAdapterResolver({ models, acquire, fetchImpl = globalT
       }
     } };
   };
+}
+
+/** Bounded origin delivery; the resolver or custody owner verifies the resulting digest. */
+export async function fetchAdapterFile(artifact, { signal, fetchImpl = globalThis.fetch }) {
+  signal.throwIfAborted();
+  if (!Number.isSafeInteger(artifact.sizeBytes) || artifact.sizeBytes <= 0) throw new Error('Invalid adapter file size');
+  const response = await fetchImpl(artifact.url, { signal });
+  if (!response.ok) throw new Error(`Adapter acquisition HTTP ${response.status}`);
+  const chunks = []; let size = 0;
+  const reader = response.body.getReader();
+  try {
+    while (size <= artifact.sizeBytes) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      if (!value?.byteLength) throw new Error('Adapter stream made no progress');
+      signal.throwIfAborted(); size += value.byteLength;
+      if (size > artifact.sizeBytes) throw new Error('Adapter exceeds its declared file size');
+      chunks.push(value);
+    }
+  } finally { await reader.cancel(); reader.releaseLock(); }
+  const bytes = new Uint8Array(size); let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  return bytes;
 }

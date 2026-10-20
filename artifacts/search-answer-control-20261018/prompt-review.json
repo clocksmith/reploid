@@ -1,0 +1,20 @@
+{
+  "scope": "Development and fresh fixed-document checks; no protected quality acceptance",
+  "mechanicalChecks": {
+    "totalPerArm": 8,
+    "baseline": 5,
+    "candidate": 7
+  },
+  "candidateAccepted": false,
+  "productionChanged": false,
+  "reasons": [
+    "Candidate returned [M1] instead of Mira Sol on fresh author task.",
+    "On exposed Austen request, candidate incorrectly attributed composing throughout the 19th century to a source describing reviews.",
+    "The exclusion answer was factually supported but did not obey the requested name-only format."
+  ],
+  "earlierCandidates": {
+    "penalty1.0": "Rejected: failed Eiffel answer remains 3.",
+    "longInstructions": "Not promoted: two answers reached the 64-token diagnostic cap; production cap is 256, so this alone does not establish truncation there."
+  },
+  "next": "Do not tune the frozen candidate on these confirmation outcomes. Original-weight control separates quantization from source-model/prompt behavior; another candidate requires a new frozen confirmation set."
+}

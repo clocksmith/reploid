@@ -160,3 +160,29 @@ export function validateOrderedPartitionCapability(description, participantId, m
       && ['ready', 'unavailable'].includes(model.availability), 'Invalid ordered partition offer');
   }
 }
+
+/** Exact adapter selection travels in the plan digest, separate from the base manifest. */
+export function partitionAdapterIdentities(model) {
+  const adapters = model?.adapters ?? [];
+  assertPartition(Array.isArray(adapters) && adapters.length <= 1 && adapters.every(adapter =>
+    /^sha256:[a-f0-9]{64}$/.test(adapter.identity) && adapter.baseModelIdentity === model.identity),
+  'Partition adapter must target the exact base artifact');
+  return adapters.map(adapter => adapter.identity);
+}
+export function samePartitionAdapters(left, right) {
+  return canonicalPartitionJson(partitionAdapterIdentities(left)) === canonicalPartitionJson(partitionAdapterIdentities(right));
+}
+export function selectPartitionContribution(model, adapters = model.adapters ?? []) {
+  const selection = { ...model, adapters };
+  partitionAdapterIdentities(selection);
+  selection.adapters = adapters.map(adapter => {
+    const pinned = model.availableAdapters?.find(entry => entry.identity === adapter.identity
+      && entry.baseModelIdentity === model.identity);
+    assertPartition(pinned, 'Partition adapter is absent from the authorized catalog');
+    return structuredClone(pinned);
+  });
+  if (selection.partitionPlan && adapters.length) selection.partitionPlan = {
+    ...selection.partitionPlan, adapterIdentities: partitionAdapterIdentities(selection)
+  };
+  return structuredClone(selection);
+}

@@ -1,0 +1,373 @@
+{
+  "passed": true,
+  "errors": [],
+  "warnings": [
+    "Warning in /host/chat-session.js: Path traversal pattern detected (../) - potential security risk",
+    "Warning in /host/chat-session.js:117: Suspicious variable name: execution - may indicate code execution",
+    "Warning in /host/chat-session.js:552: Suspicious variable name: authorizeExecution - may indicate code execution",
+    "File exceeds 500 lines (561) - consider splitting",
+    "File has 64 functions (max 20) - consider modularizing",
+    "Nesting depth of 6 exceeds 5 - refactor nested code",
+    "Warning in /ui/pool-home/conversation-workspace.js: Path traversal pattern detected (../) - potential security risk",
+    "Warning in /ui/pool-home/conversation-workspace.js: innerHTML assignment is risky - consider textContent",
+    "Warning in /ui/pool-home/conversation-workspace.js:102: Suspicious variable name: executionLocation - may indicate code execution",
+    "Warning in /ui/pool-home/conversation-workspace.js:124: Suspicious variable name: executionSettings - may indicate code execution",
+    "File exceeds 500 lines (548) - consider splitting",
+    "File has 45 functions (max 20) - consider modularizing",
+    "Nesting depth of 6 exceeds 5 - refactor nested code",
+    "17 lines exceed 200 characters",
+    "Warning in /ui/pool-home/execution-activity.js: Path traversal pattern detected (../) - potential security risk",
+    "Warning in /ui/pool-home/execution-activity.js: innerHTML assignment is risky - consider textContent",
+    "Warning in /ui/pool-home/execution-activity.js:44: Suspicious variable name: retrieval - may indicate code execution",
+    "Warning in /ui/pool-home/message-list.js: Path traversal pattern detected (../) - potential security risk",
+    "Warning in /ui/pool-home/message-list.js: innerHTML assignment is risky - consider textContent",
+    "Warning in /ui/pool-home/message-list.js:31: Suspicious variable name: execution - may indicate code execution",
+    "Warning in /ui/pool-home/message-list.js:112: Suspicious variable name: retrieval - may indicate code execution",
+    "Nesting depth of 7 exceeds 5 - refactor nested code",
+    "7 lines exceed 200 characters"
+  ],
+  "events": [
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792259170333,
+      "path": "/host/chat-session.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792259170334,
+      "path": "/host/chat-session.js",
+      "patternId": "suspicious_variable_name",
+      "category": "structural",
+      "message": "Suspicious variable name: execution - may indicate code execution",
+      "line": 117,
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792259170334,
+      "path": "/host/chat-session.js",
+      "patternId": "suspicious_variable_name",
+      "category": "structural",
+      "message": "Suspicious variable name: authorizeExecution - may indicate code execution",
+      "line": 552,
+      "severity": "warning"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1792259170335,
+      "metric": "lines",
+      "value": 561,
+      "threshold": 500,
+      "message": "File exceeds 500 lines (561) - consider splitting",
+      "path": "/host/chat-session.js"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1792259170335,
+      "metric": "functions",
+      "value": 64,
+      "threshold": 20,
+      "message": "File has 64 functions (max 20) - consider modularizing",
+      "path": "/host/chat-session.js"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1792259170335,
+      "metric": "nesting",
+      "value": 6,
+      "threshold": 5,
+      "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "path": "/host/chat-session.js"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792259170339,
+      "path": "/ui/pool-home/conversation-workspace.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792259170339,
+      "path": "/ui/pool-home/conversation-workspace.js",
+      "patternId": "innerhtml_assign",
+      "category": "dom",
+      "message": "innerHTML assignment is risky - consider textContent",
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792259170340,
+      "path": "/ui/pool-home/conversation-workspace.js",
+      "patternId": "suspicious_variable_name",
+      "category": "structural",
+      "message": "Suspicious variable name: executionLocation - may indicate code execution",
+      "line": 102,
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792259170340,
+      "path": "/ui/pool-home/conversation-workspace.js",
+      "patternId": "suspicious_variable_name",
+      "category": "structural",
+      "message": "Suspicious variable name: executionSettings - may indicate code execution",
+      "line": 124,
+      "severity": "warning"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1792259170342,
+      "metric": "lines",
+      "value": 548,
+      "threshold": 500,
+      "message": "File exceeds 500 lines (548) - consider splitting",
+      "path": "/ui/pool-home/conversation-workspace.js"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1792259170342,
+      "metric": "functions",
+      "value": 45,
+      "threshold": 20,
+      "message": "File has 45 functions (max 20) - consider modularizing",
+      "path": "/ui/pool-home/conversation-workspace.js"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1792259170342,
+      "metric": "nesting",
+      "value": 6,
+      "threshold": 5,
+      "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "path": "/ui/pool-home/conversation-workspace.js"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1792259170342,
+      "metric": "line_length",
+      "value": 17,
+      "threshold": 5,
+      "message": "17 lines exceed 200 characters",
+      "path": "/ui/pool-home/conversation-workspace.js"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792259170343,
+      "path": "/ui/pool-home/execution-activity.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792259170343,
+      "path": "/ui/pool-home/execution-activity.js",
+      "patternId": "innerhtml_assign",
+      "category": "dom",
+      "message": "innerHTML assignment is risky - consider textContent",
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792259170344,
+      "path": "/ui/pool-home/execution-activity.js",
+      "patternId": "suspicious_variable_name",
+      "category": "structural",
+      "message": "Suspicious variable name: retrieval - may indicate code execution",
+      "line": 44,
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792259170346,
+      "path": "/ui/pool-home/message-list.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792259170346,
+      "path": "/ui/pool-home/message-list.js",
+      "patternId": "innerhtml_assign",
+      "category": "dom",
+      "message": "innerHTML assignment is risky - consider textContent",
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792259170346,
+      "path": "/ui/pool-home/message-list.js",
+      "patternId": "suspicious_variable_name",
+      "category": "structural",
+      "message": "Suspicious variable name: execution - may indicate code execution",
+      "line": 31,
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1792259170346,
+      "path": "/ui/pool-home/message-list.js",
+      "patternId": "suspicious_variable_name",
+      "category": "structural",
+      "message": "Suspicious variable name: retrieval - may indicate code execution",
+      "line": 112,
+      "severity": "warning"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1792259170346,
+      "metric": "nesting",
+      "value": 7,
+      "threshold": 5,
+      "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+      "path": "/ui/pool-home/message-list.js"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1792259170346,
+      "metric": "line_length",
+      "value": 7,
+      "threshold": 5,
+      "message": "7 lines exceed 200 characters",
+      "path": "/ui/pool-home/message-list.js"
+    }
+  ],
+  "details": {
+    "patternViolations": [
+      {
+        "path": "/host/chat-session.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "path": "/ui/pool-home/conversation-workspace.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "path": "/ui/pool-home/conversation-workspace.js",
+        "patternId": "innerhtml_assign",
+        "category": "dom",
+        "message": "innerHTML assignment is risky - consider textContent",
+        "severity": "warning"
+      },
+      {
+        "path": "/ui/pool-home/execution-activity.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "path": "/ui/pool-home/execution-activity.js",
+        "patternId": "innerhtml_assign",
+        "category": "dom",
+        "message": "innerHTML assignment is risky - consider textContent",
+        "severity": "warning"
+      },
+      {
+        "path": "/ui/pool-home/message-list.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "path": "/ui/pool-home/message-list.js",
+        "patternId": "innerhtml_assign",
+        "category": "dom",
+        "message": "innerHTML assignment is risky - consider textContent",
+        "severity": "warning"
+      }
+    ],
+    "complexityWarnings": [
+      {
+        "type": "complexity",
+        "metric": "lines",
+        "value": 561,
+        "threshold": 500,
+        "message": "File exceeds 500 lines (561) - consider splitting",
+        "path": "/host/chat-session.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "functions",
+        "value": 64,
+        "threshold": 20,
+        "message": "File has 64 functions (max 20) - consider modularizing",
+        "path": "/host/chat-session.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/host/chat-session.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "lines",
+        "value": 548,
+        "threshold": 500,
+        "message": "File exceeds 500 lines (548) - consider splitting",
+        "path": "/ui/pool-home/conversation-workspace.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "functions",
+        "value": 45,
+        "threshold": 20,
+        "message": "File has 45 functions (max 20) - consider modularizing",
+        "path": "/ui/pool-home/conversation-workspace.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/ui/pool-home/conversation-workspace.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "line_length",
+        "value": 17,
+        "threshold": 5,
+        "message": "17 lines exceed 200 characters",
+        "path": "/ui/pool-home/conversation-workspace.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/ui/pool-home/message-list.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "line_length",
+        "value": 7,
+        "threshold": 5,
+        "message": "7 lines exceed 200 characters",
+        "path": "/ui/pool-home/message-list.js"
+      }
+    ],
+    "filesAnalyzed": 6
+  }
+}

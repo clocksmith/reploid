@@ -392,8 +392,8 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
             assert(selectedBytes <= policy.maxStoredBytes, 'File contribution exceeds retained storage allowance');
             inventory.push(file); pinned.add(fileKey(file));
           };
+          files.push(...(model.adapters || []).map(adapterFile));
           if (mode === 'full-model') {
-            files.push(...(model.adapters || []).map(adapterFile));
             assert(files.length <= policy.maxInventoryFiles && files.reduce((n, f) => n + f.sizeBytes, 0) <= policy.maxStoredBytes,
               'Full-model seeding exceeds storage allowance');
             let needed = 0;

@@ -149,3 +149,49 @@ it.each([
   const state = { network: { consumer: { peers: [{ peerId: 'remote', model: 'qwen', readiness: 'loading', preparation }] } } };
   expect(projectNetworkPeers(state)[0]).toMatchObject({ status, detail: expect.stringContaining(detail) });
 });
+
+
+it('keeps transport attempts visible before advertisements and never treats interruption as ready', () => {
+  const state = { network: { consumer: { peerId: 'local', connections: [
+    { id: 'local', phase: 'connected' }, { id: 'remote', phase: 'preparing' }
+  ], peers: [] } } };
+  expect(projectNetworkPeers(state)).toMatchObject([{ id: 'remote', status: 'Preparing connection', connectionPhase: 'preparing' }]);
+  const connection = state.network.consumer.connections[1];
+  connection.phase = 'connected';
+  expect(projectNetworkPeers(state)[0]).toMatchObject({ status: 'Connected', detail: expect.stringContaining('Waiting') });
+  state.network.consumer.peers = [{ peerId: 'remote', model: 'Qwen', readiness: 'loading', preparation: { kind: 'receiving', receivedBytes: 50, totalBytes: 100 } }];
+  expect(projectNetworkPeers(state)[0]).toMatchObject({ status: 'Receiving files', progress: { value: 50, max: 100 } });
+  state.network.consumer.peers[0].readiness = 'ready';
+  expect(projectNetworkPeers(state)[0].status).toBe('Ready');
+  connection.phase = 'interrupted';
+  expect(projectNetworkPeers(state)[0]).toMatchObject({ status: 'Connection interrupted', phase: 'interrupted' });
+  state.network.consumer.connections = []; state.network.consumer.peers = [];
+  state.network.connectionFailure = { peerId: 'remote', message: 'Timed out' };
+  expect(projectNetworkPeers(state)[0].status).toBe('Connection failed');
+});
+
+
+it('preserves one DOM row, its details and attempt identity through delayed observations and reconnect', () => {
+  const state = { models: [], network: { connections: [{ id: 'peer', attemptId: 'first', phase: 'preparing' }], consumer: { peers: [] } } };
+  let update;
+  const session = { getState: () => state, subscribe(listener) { update = listener; listener(state); return () => {}; } };
+  const root = document.createElement('div'); root.innerHTML = renderConnectionControl() + renderSharingControls()
+    + '<ul data-insp-device-list></ul><span data-network-message></span><button data-mesh-invite></button><span data-mesh-peers></span>';
+  const dispose = bindNetworkControls(root, session);
+  try {
+    const row = root.querySelector('[data-computer-id]'), details = row.querySelector('details'); details.open = true;
+    expect(row.dataset.attemptId).toBe('first');
+    state.network.connections[0].phase = 'connected'; update(state);
+    expect(row.dataset.computerState).toBe('awaiting-advertisement');
+    expect(row.textContent).toContain('Waiting for this computer');
+    state.network.consumer.peers = [{ peerId: 'peer', attemptId: 'first', model: 'Qwen', readiness: 'ready', activity: { phase: 'executing' } }]; update(state);
+    expect(row.dataset.computerState).toBe('executing'); expect(row.textContent).toContain('Working');
+    state.network.connections[0].phase = 'disconnected'; update(state);
+    expect(row.textContent).toContain('cleanup state are unknown'); expect(row.textContent).toContain('Last model: Qwen');
+    state.network.connections[0] = { id: 'peer', attemptId: 'second', phase: 'connected' }; update(state);
+    expect(row.dataset.computerState).toBe('awaiting-advertisement');
+    expect(row.dataset.attemptId).toBe('second'); expect(row.textContent).not.toContain('Working');
+    expect(root.querySelectorAll('[data-computer-id]').length).toBe(1); expect(root.querySelector('[data-computer-id]')).toBe(row);
+    expect(row.querySelector('details')).toBe(details); expect(details.open).toBe(true);
+  } finally { dispose(); }
+});

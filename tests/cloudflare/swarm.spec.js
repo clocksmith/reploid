@@ -2,6 +2,7 @@ import { env, exports } from 'cloudflare:workers';
 import { reset, evictDurableObject, runInDurableObject, runDurableObjectAlarm } from 'cloudflare:test';
 import { afterEach, expect, it } from 'vitest';
 import bootstrap from '../../self/config/swarm-bootstrap.json';
+import policy from '../../server/cloudflare/policy.json';
 import { generateKeyPair, SignJWT } from 'jose';
 import { handleTurn, normalizeIceServers, verifyFirebase } from '../../server/cloudflare/turn.js';
 
@@ -119,6 +120,99 @@ it('applies the shared peer cap independently of connection admission', async ()
   const pending = await admission.reserve('room'); expect(pending).toBeTruthy();
   expect(await admission.activate(pending)).toBe(false);
   await admission.release('lease-0'); expect(await admission.activate(pending)).toBe(true);
+});
+
+it('retains fresh leases without writes across eviction, renews due leases, and never revives expired ones', async () => {
+  const admission = env.ADMISSION.getByName('bounded-admission-v1');
+  const id = await admission.reserve('room');
+  expect(await admission.activate(id)).toBe(true);
+  await evictDurableObject(admission);
+  await runInDurableObject(admission, (instance, state) => {
+    const sql = state.storage.sql;
+    const initial = sql.exec('SELECT expires FROM leases WHERE id = ?', id).one().expires;
+    const before = sql.exec('SELECT total_changes() AS n').one().n;
+    expect(instance.renew([id])).toEqual([id]);
+    expect(sql.exec('SELECT total_changes() AS n').one().n).toBe(before);
+    expect(sql.exec('SELECT expires FROM leases WHERE id = ?', id).one().expires).toBe(initial);
+    sql.exec('UPDATE leases SET expires = ? WHERE id = ?', Date.now() + 1000, id);
+    expect(instance.renew([id])).toEqual([id]);
+    expect(sql.exec('SELECT expires FROM leases WHERE id = ?', id).one().expires).toBeGreaterThan(Date.now() + policy.leaseMs - 1000);
+    sql.exec('UPDATE leases SET expires = ? WHERE id = ?', Date.now() - 1, id);
+    expect(instance.renew([id, 'missing'])).toEqual([]);
+    expect(instance.activate(id)).toBe(false);
+  });
+});
+
+it('bounds lease write amplification for eleven healthy peers over an hour', async () => {
+  const admission = env.ADMISSION.getByName('write-budget');
+  const result = await runInDurableObject(admission, (instance, state) => {
+    const sql = state.storage.sql, originalNow = Date.now, start = originalNow();
+    const ids = Array.from({ length: 11 }, (_, i) => `healthy-${i}`);
+    for (const id of ids) sql.exec('INSERT INTO leases VALUES (?, ?, ?, 1)', id, 'room', start + policy.leaseMs);
+    const before = sql.exec('SELECT total_changes() AS n').one().n;
+    try {
+      for (let elapsed = 30000; elapsed <= 3600000; elapsed += 30000) {
+        Date.now = () => start + elapsed;
+        expect(instance.renew(ids)).toEqual(ids);
+      }
+    } finally { Date.now = originalNow; }
+    return { peers: ids.length, simulatedSeconds: 3600, leaseRowChanges: sql.exec('SELECT total_changes() AS n').one().n - before };
+  });
+  console.log(JSON.stringify({ event: 'lease-write-budget', ...result }));
+  // At most one write per minute per peer; setup and alarm writes are separate.
+  expect(result.leaseRowChanges).toBeLessThanOrEqual(result.peers * 60);
+});
+
+it('schedules healthy rooms less often while retaining earlier unjoined and inactive deadlines', async () => {
+  const a = await connect(); a.send(join('scheduled-peer')); await a.wait('joined');
+  const stub = env.ROOMS.getByName(`public:${bootstrap.publicRoomId}`);
+  await runDurableObjectAlarm(stub);
+  await runInDurableObject(stub, async (instance, state) => {
+    expect(await state.storage.getAlarm()).toBeGreaterThan(Date.now() + bootstrap.server.joinTimeoutMs);
+  });
+  await connect();
+  await runInDurableObject(stub, async (instance, state) => {
+    const now = Date.now();
+    expect(await state.storage.getAlarm()).toBeLessThanOrEqual(now + bootstrap.server.joinTimeoutMs);
+    for (const ws of state.getWebSockets()) {
+      const meta = ws.deserializeAttachment();
+      if (meta.peerId) meta.lastSeen = now - bootstrap.server.peerTimeout + 1000;
+      else meta.connectedAt = now - bootstrap.server.joinTimeoutMs + 2000;
+      ws.serializeAttachment(meta);
+    }
+  });
+  await runDurableObjectAlarm(stub);
+  await runInDurableObject(stub, async (instance, state) => {
+    expect(await state.storage.getAlarm()).toBeLessThanOrEqual(Date.now() + 1000);
+  });
+});
+
+it('rearms overdue room and admission alarms after failed delivery', async () => {
+  for (const stub of [env.ROOMS.getByName(`public:${bootstrap.publicRoomId}`), env.ADMISSION.getByName('bounded-admission-v1')]) {
+    await runInDurableObject(stub, async (instance, state) => {
+      await state.storage.setAlarm(Date.now() - 60000);
+      await instance.arm(bootstrap.server.joinTimeoutMs);
+      expect(await state.storage.getAlarm()).toBeGreaterThan(Date.now());
+      const next = await state.storage.getAlarm();
+      await instance.arm(bootstrap.server.heartbeatInterval);
+      expect(await state.storage.getAlarm()).toBe(next);
+    });
+  }
+});
+
+it('a heartbeat restores missing cleanup without postponing an earlier alarm', async () => {
+  const a = await connect(); a.send(join('heartbeat-recovery')); await a.wait('joined');
+  const stub = env.ROOMS.getByName(`public:${bootstrap.publicRoomId}`);
+  await runInDurableObject(stub, async (instance, state) => {
+    const ws = state.getWebSockets().find(socket => socket.deserializeAttachment().peerId === 'heartbeat-recovery');
+    await state.storage.deleteAlarm();
+    await instance.webSocketMessage(ws, JSON.stringify({ type: 'heartbeat', peerId: 'heartbeat-recovery' }));
+    expect(await state.storage.getAlarm()).toBeGreaterThan(Date.now());
+    const earlier = Date.now() + 1000;
+    await state.storage.setAlarm(earlier);
+    await instance.webSocketMessage(ws, JSON.stringify({ type: 'heartbeat', peerId: 'heartbeat-recovery' }));
+    expect(await state.storage.getAlarm()).toBe(earlier);
+  });
 });
 
 it('requires Firebase authentication for TURN and keeps failures uncached', async () => {

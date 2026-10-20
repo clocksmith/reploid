@@ -25,7 +25,7 @@ const state = overrides => ({ phase: 'ready', offering: true, descriptor: { read
 it('stores readiness spans for the CLI and closes them when the swarm disconnects', async () => {
   vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(T0);
   ports.ensure.mockResolvedValue({ peerId: 'browser-participant', contribution: {} });
-  ports.createTransport.mockReturnValue({ init: async () => true, disconnect: vi.fn(), onMessage: vi.fn(), broadcast: vi.fn() });
+  ports.createTransport.mockReturnValue({ init: async () => true, disconnect: vi.fn(), onMessage: vi.fn(), offMessage() {}, getConnectedPeers: () => [], sendToPeer() {}, broadcast: vi.fn() });
   const swarm = createWorkSwarm({ service: {}, storage: { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) },
     createPartitions: options => { owner = { options, state: { phase: 'idle', offering: false } };
       return { getModels: () => [], getState: () => owner.state, stop: async () => {}, close: async () => {} }; },

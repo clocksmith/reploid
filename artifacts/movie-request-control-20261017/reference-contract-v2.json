@@ -1,0 +1,42 @@
+{
+  "schema": "reploid.movie-reference-contract/v1",
+  "referenceTool": "qwen35-deployed-reference.py",
+  "referenceToolSha256": "53efd11870619ee5aa6c5c24d378269100672ad999a0f0e1c47939c18d63d0a0",
+  "sourceConfigSha256": "ed1c1723241f23f7f4e23430759cbd7dcfb4103cbdfe052bfe7626b57c2615b4",
+  "sourceRevision": "15852e8c16360a2fea060d615a32b45270f8a8fc",
+  "sourceConfigUrl": "https://huggingface.co/Qwen/Qwen3.5-2B/resolve/15852e8c16360a2fea060d615a32b45270f8a8fc/config.json",
+  "pieceIndexIdentity": "sha256:fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+  "gpuReceiptSha256": "dbf2dba2f27e0288039060ca4a46f212f5a8e8b6909b4df4690668b588b774d6",
+  "controls": [
+    {
+      "file": "control-0.json",
+      "sha256": "a3ef30b6085440a2dfc68560b2d93d2d29799c200c2ec49645ca2c2e92c4c2d3",
+      "caseId": "format-followup/2"
+    },
+    {
+      "file": "control-1.json",
+      "sha256": "85bc11d4101529407561dc9901e60bb0657cec91a3b21270c22cc476d9119648",
+      "caseId": "missing-availability/1"
+    }
+  ],
+  "threads": 4,
+  "perCaseTimeoutSeconds": 600,
+  "maxAddressSpaceGiB": 40,
+  "maxRuns": 2,
+  "linearPrefill": "source-chunk",
+  "normalization": "source",
+  "arithmetic": "float32",
+  "kvStorage": "float16",
+  "packages": {
+    "torch": "2.12.1+rocm7.2",
+    "transformers": "5.13.1",
+    "gguf": "0.19.0",
+    "blake3": "1.0.11"
+  },
+  "scope": "CPU only; exact captured token IDs and retained tensor bytes; independent equations, not GPU numerical qualification",
+  "supersedesSha256": "97a5d3d3f7c4dab9802e207f8cdddec02bd18d5b2bd83a06a140e79d3910fade",
+  "revision": 2,
+  "maxTotalLoadAttempts": 4,
+  "minimumHostAvailableGiB": 48,
+  "reason": "Both v1 attempts failed in Q4 weight dequantization before inference at the 24 GiB virtual-address limit. Retain those failures. Raise process address-space cap only; numerical and task comparison rules unchanged."
+}

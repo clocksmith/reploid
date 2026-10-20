@@ -250,3 +250,18 @@ it('shares approved local files without duplicating their weights into the artif
   try { expect(new Uint8Array(await source.storage.loadShardRange(0, 0, 4))).toEqual(new Uint8Array(f.chunks[0])); }
   finally { await source.storage.close(); }
 });
+
+it('shares verified adapter bytes separately from compute and reuses them after the supplier leaves', async () => {
+  const f = await fixture();
+  const bytes = new Uint8Array([11, 17, 23]);
+  const artifact = { artifactId: 'adapter', role: 'adapter', path: 'adapter.safetensors',
+    sizeBytes: bytes.length, hash: 'sha256:' + hash(bytes), url: 'https://invalid.example/adapter' };
+  f.model.adapters = [{ identity: 'sha256:' + 'b'.repeat(64), baseModelIdentity: f.model.identity, artifact }];
+  await fs.writeFile(path.join(f.directories[1], artifact.path), bytes);
+  await f.share();
+  expect(await f.owners[0].acquireAdapter(artifact, { signal: new AbortController().signal })).toEqual(bytes);
+  f.owners[1].stopSupply();
+  expect(await f.owners[0].acquireAdapter(artifact, { signal: new AbortController().signal })).toEqual(bytes);
+  const cancelled = new AbortController(); cancelled.abort(new Error('stopped'));
+  await expect(f.owners[0].acquireAdapter(artifact, { signal: cancelled.signal })).rejects.toThrow('stopped');
+});

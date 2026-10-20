@@ -1,0 +1,46 @@
+{
+  "queriedAt": "2026-10-18T23:56:32.433Z",
+  "dataset": "durableObjectsPeriodicGroups",
+  "filter": {
+    "datetime_geq": "2026-10-18T00:00:00Z",
+    "datetime_lt": "2026-10-19T00:00:00Z"
+  },
+  "namespaceOwners": {
+    "d023f57defdf48f584b841d31a1598f5": "reploid-swarm_SwarmAdmission",
+    "504896735dd04e7db493164ae5930ae3": "reploid-swarm_SwarmRoom"
+  },
+  "response": {
+    "success": true,
+    "status": 200,
+    "result": {
+      "viewer": {
+        "accounts": [
+          {
+            "durableObjectsPeriodicGroups": [
+              {
+                "dimensions": {
+                  "namespaceId": "d023f57defdf48f584b841d31a1598f5"
+                },
+                "sum": {
+                  "rowsRead": 534801,
+                  "rowsWritten": 101591
+                }
+              },
+              {
+                "dimensions": {
+                  "namespaceId": "504896735dd04e7db493164ae5930ae3"
+                },
+                "sum": {
+                  "rowsRead": 14087,
+                  "rowsWritten": 0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "errors": [],
+    "messages": []
+  }
+}
