@@ -105,3 +105,13 @@ it.each(['adapter', 'import'])('bounds a stalled %s setup before any model downl
   await vi.advanceTimersByTimeAsync(101); await rejected;
   expect(owner.getState().phase).toBe('failed'); expect(acquire).not.toHaveBeenCalled();
 });
+
+it('adapts catalog directory URLs to Doppler’s base URL contract so tokenizer delivery does not use a double slash', async () => {
+  const { owner } = setup(async (_id, base) => {
+    // The pinned Doppler downloader appends /tokenizer.json after the shards.
+    expect(new URL(base + '/tokenizer.json').pathname).toBe('/fixture/tokenizer.json');
+    return source();
+  });
+  await owner.start({ ...model, source: { baseUrl: model.source.baseUrl + '/' } }, true, 100);
+  expect(owner.getState().phase).toBe('complete');
+});
