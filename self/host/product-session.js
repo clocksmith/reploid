@@ -144,7 +144,7 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
       connectOperations(network) { assertOpen(); if (ownsNetwork) void operationNetwork?.close?.(); ownsNetwork = false; operationNetwork = network; documents?.connectNetwork(network); },
       resume() { if (!closed) autoconnect.resume(); },
       async pause() {
-        autoconnect.pause(); work?.cancelAll(); chat.cancelAll(); documents?.cancel();
+        autoconnect.pause(); work?.cancelAll(); chat.cancelAll(); chat.cancelModelDownload(); documents?.cancel();
         return Promise.allSettled([training?.disconnect(), swarm.disconnect({ automatic: true }), operationSharing?.stop()]);
       },
       close() {

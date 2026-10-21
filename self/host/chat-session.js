@@ -7,6 +7,7 @@ import { createChatWorkspace, createRemotePermission, createSearchPermission, re
   searchPermissionWording, validPermissionWording, validateRemotePermission } from '../vendor/reploid/chat/index.js';
 import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
 import { ROUTE_ENVELOPE_POLICY } from '../vendor/reploid/mesh/partitions/partition-route-envelope.js';
+import { createModelAcquisition } from './model-acquisition.js';
 import { createChatExecution } from './chat-execution.js';
 import { createRemoteAccessPreference } from './chat-remote-permission.js';
 import { projectChatCatalog, projectChatPlacements, selectAvailableChatModel } from './chat-view.js';
@@ -101,10 +102,14 @@ export function createChatSession({
   const assertOpen = () => assert(!closed, 'Chat session is closed');
 
   let peerModels = [];
-  let cachedModels = [];
-  const isCached = model => !model.partition && !model.adapters?.length
+  let cachedModels = [], failedLocalModel = null;
+  const downloadSizes = new Map();
+  const isCached = model => failedLocalModel !== model.id && !model.partition && !model.adapters?.length
     && cachedModels.some(item => item.id === model.id && item.identity === model.identity);
-  let discovering = false;
+  let discovering = false, peerDiscoveryTimedOut = false;
+  const discoveryDeadline = setTimeout(() => { peerDiscoveryTimedOut = true; notifyAll(); }, 8000);
+  discoveryDeadline.unref?.();
+  const acquisition = createModelAcquisition({ onChange: () => notifyAll() });
   let remotePermissions = loadPermissions(storage);
   // The room this session's swarm joins; without a swarm, the history mesh.
   const currentNetwork = () => swarm?.getNetworkId?.() || meshId;
@@ -115,7 +120,12 @@ export function createChatSession({
   };
 
   const execution = createChatExecution({ service, swarm, partitions, scheduler, models, earning, resolveLocalSource, isCached,
-    getModels: () => [...models, ...peerModels, ...(partitions?.getModels() || [])], profile, onChange: () => notifyAll() });
+    getModels: () => [...models, ...peerModels, ...(partitions?.getModels() || [])], profile, onChange: () => {
+      const local = execution.getLocalState();
+      if (local?.phase === 'failed') failedLocalModel = local.modelId;
+      else if (local?.ready) failedLocalModel = null;
+      notifyAll();
+    } });
 
   const workspace = createChatWorkspace({
     meshId,
@@ -236,7 +246,7 @@ export function createChatSession({
       })).filter(entry => entry.cells.length),
       defaultModels,
       defaultModel: defaultModels.auto || preferred(catalog) || null,
-      discovering,
+      discovering, peerDiscoveryTimedOut, acquisition: acquisition.getState(), localDownloadIssue: acquisition.supportError(),
       localModel: execution.getLocalState(),
       network: copy({ ...(swarm?.getState?.() || { sharing: false, consumer: null }), files: swarm?.getFileState?.() || null }),
       scheduler: execution.getState(),
@@ -283,11 +293,22 @@ export function createChatSession({
       assert(model, 'Choose a catalog model');
       try { await execution.prepareLocal(model); } finally { notifyAll(); }
     },
+    downloadLocalModel(modelId, approved) {
+      assertOpen();
+      const model = models.find(item => item.id === modelId && !item.partition && !item.adapters?.length);
+      assert(model?.source, 'Choose a catalog model');
+      assert(downloadSizes.has(model.id), 'Check the model download size first');
+      return acquisition.start(model, approved, downloadSizes.get(model.id)).then(cached => {
+        if (!closed) { failedLocalModel = null; cachedModels = [...cachedModels.filter(item => item.id !== cached.id), cached]; notifyAll(); }
+      });
+    },
+    cancelModelDownload: () => acquisition.cancel(),
     async getModelDownload(modelId, { signal } = {}) {
       assertOpen();
       const model = getCatalogModels().find(item => (item.selectionId || item.id) === modelId);
       assert(model?.source, 'Choose a catalog model');
       const file = model.source.files.find(item => item.role === 'model-manifest');
+      signal = AbortSignal.any([...(signal ? [signal] : []), AbortSignal.timeout(15000)]);
       const response = await fetch(file.url ? new URL(file.url, location.href) : new URL(file.path, model.source.baseUrl), { signal });
       assert(response.ok, 'Could not check the model download');
       const bytes = await response.arrayBuffer();
@@ -300,6 +321,7 @@ export function createChatSession({
         + model.source.files.filter(item => item.role !== 'model-piece-index').reduce((total, item) => total + item.sizeBytes, 0)
         + (model.adapters || []).reduce((total, adapter) => total + adapter.artifact.sizeBytes, 0);
       assert(Number.isSafeInteger(sizeBytes) && sizeBytes > 0, 'Model download size is unavailable');
+      downloadSizes.set(model.id, sizeBytes);
       return { id: model.id, name: model.name, sizeBytes };
     },
     getDraft: drafts.get,
@@ -529,12 +551,12 @@ export function createChatSession({
     },
     close() {
       if (closing) return closing;
-      closed = true;
+      closed = true; clearTimeout(discoveryDeadline); acquisition.cancel();
       for (const operation of comparisons.values()) operation.controller.abort();
       discovering = false;
       closing = Promise.resolve().then(async () => {
         const failures = [];
-        for (const owner of [workspace, execution, drafts, canonicalHistory]) {
+        for (const owner of [acquisition, workspace, execution, drafts, canonicalHistory]) {
           try { await owner?.close(); } catch (error) { failures.push(error); }
         }
         unsubscribeWorkspace(); unsubscribePartitions?.(); listeners.clear();

@@ -1,3 +1,4 @@
+import { retainedModelSource } from './model-acquisition.js';
 import { announceModelCacheChange } from './work-model-cache.js';
 import { resolvePartitionArtifactSource } from './work-partition-artifact-source.js';
 /** Host grants and pinned catalog composition for the library's signed artifact custody. */
@@ -120,6 +121,23 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
     return directory;
   };
   const fileKey = file => file.hashAlgorithm + '-' + file.hash;
+  // Doppler acquisition and mesh custody share the same pinned artifact identities.
+  // Read the existing model store directly; never copy weights into a second cache.
+  const dopplerCached = async file => {
+    const model = LOCAL_DOPPLER_MODELS.find(model => model.source.files.some(entry => entry.path === file.path && entry.hash === file.hash)
+      || file.url === new URL(file.path, model.source.baseUrl).href);
+    if (!model) return null;
+    let reader;
+    try {
+      const storage = await tools(); await storage.listModels();
+      reader = await storage.openModelReadSession(model.id);
+      const manifest = await reader.readManifest();
+      assert(await sha256Hex(new TextEncoder().encode(manifest)) === model.identity, 'Cached Doppler manifest identity mismatch');
+      const bytes = new Uint8Array(await reader.readFile(file.path));
+      await check(file, bytes); return bytes;
+    } catch (cause) { if (cause.name === 'NotFoundError') return null; throw cause; }
+    finally { await reader?.close(); }
+  };
   const cached = async file => {
     assert(Number.isSafeInteger(file.sizeBytes) && file.sizeBytes > 0 && file.sizeBytes <= policy.maxArtifactBytes, 'Invalid cached file allowance');
     try {
@@ -127,7 +145,7 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
       const blob = await handle.getFile();
       assert(blob.size === file.sizeBytes, 'Cached model file size mismatch');
       const bytes = new Uint8Array(await blob.arrayBuffer()); await check(file, bytes); return bytes;
-    } catch (cause) { if (cause.name === 'NotFoundError') return null; throw cause; }
+    } catch (cause) { if (cause.name === 'NotFoundError') return dopplerCached(file); throw cause; }
   };
   const persist = (file, bytes, signal) => navigator.locks.request('reploid-chat-artifacts-v1:write', { signal }, async () => {
     signal.throwIfAborted();
@@ -331,6 +349,11 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
       return { manifest, storage: { ...opened.storage, async close() { sourceClosed = true; await opened.storage.close(); } }, artifactStore, getReceipt: () => ({ ...opened.getReceipt(), custody: { ...custody } }) };
     },
     async prepareSource(model, { signal, onProgress, cacheOnly = false } = {}) {
+      if (cacheOnly) {
+        const source = await retainedModelSource(model);
+        if (signal?.aborted || closed) { await source?.storageContext?.close?.(); throw signal?.reason || Error('File exchange is closed'); }
+        if (source) return source;
+      }
       const acquisition = new AbortController();
       signal = AbortSignal.any([lifetime.signal, acquisition.signal, ...(signal ? [signal] : [])]);
       const reads = new Map();

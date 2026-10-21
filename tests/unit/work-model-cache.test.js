@@ -50,3 +50,20 @@ it('refreshes another open tab on cache notification and stops observing after c
   watcher.close(); onChange.mockClear(); target.dispatchEvent(new Event('focus'));
   await Promise.resolve(); expect(onChange).not.toHaveBeenCalled();
 });
+
+it('inspects a model-bound Doppler cache and refuses partial files after reload without acquiring bytes', async () => {
+  const f = await fixture(), file = f.model.source.files[0];
+  const text = await f.files.get(`sha256-${file.hash}`).text();
+  let shardBytes = 7;
+  const close = vi.fn(async () => {}), readManifest = vi.fn(async () => text);
+  const tools = { listModels: async () => [f.model.id], openModelReadSession: vi.fn(async id => {
+    expect(id).toBe(f.model.id);
+    return { readManifest, getFileSize: async path => path === 'tokenizer.json' ? 4 : shardBytes, close };
+  }) };
+  const scan = () => findCachedModels({ models: [f.model], storage: { getDirectory: async () => { throw Error('No custody cache'); } }, loadTooling: async () => tools });
+  expect(await scan()).toEqual([]);
+  shardBytes = 8; expect(await scan()).toEqual([{ id: f.model.id, identity: f.model.identity }]);
+  expect(close).toHaveBeenCalledTimes(2);
+  readManifest.mockResolvedValue(text.replace('cached-test', 'cached-evil'));
+  expect(await scan()).toEqual([]); expect(close).toHaveBeenCalledTimes(3);
+});
