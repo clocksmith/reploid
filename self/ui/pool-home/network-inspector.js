@@ -41,9 +41,9 @@ export function renderNetworkInspector() {
     <p data-network-message role="status" hidden></p><p data-inspector-error role="alert" hidden></p>
   </dialog></aside>
   <dialog class="chat-model-setup pool-surface pool-small" data-model-dialog aria-labelledby="model-setup-title">
-    <h2 class="pool-heading" id="model-setup-title">Contribute answers</h2>
+    <h2 class="pool-heading" id="model-setup-title" data-download-title>Contribute answers</h2>
     <label>Model<select class="pool-input" data-download-model aria-label="Model to download"></select></label>
-    <p data-download-size role="status">Checking download size…</p><p class="pool-muted">This downloads the model and lets this device answer others’ public prompts. File sharing is controlled separately. You can stop contributing at any time.</p><p data-download-compute-limits></p>
+    <p data-download-size role="status">Checking download size…</p><button class="pool-button btn-ghost" type="button" data-retry-download-check hidden>Retry checking download</button><p class="pool-muted" data-download-explanation>This downloads the model and lets this device answer others’ public prompts. File sharing is controlled separately. You can stop contributing at any time.</p><p data-download-compute-limits></p>
     <div class="chat-network-actions"><button class="pool-button" type="button" data-download-cancel>Cancel</button><button class="pool-button btn-primary" type="button" data-download-confirm disabled>Download and contribute</button></div>
   </dialog>`;
 }
@@ -160,27 +160,40 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
         <button class="pool-button" type="button" data-revoke-grant="${escape(grant.id)}">Revoke</button></li>`).join('');
     }
   });
+  let downloadMode = 'contribute', downloadInfo = null;
   const checkDownload = async () => {
-    metadataController?.abort(); const request = metadataController = new AbortController();
+    find('[data-retry-download-check]').hidden = true;
+    downloadInfo = null; metadataController?.abort(); const request = metadataController = new AbortController();
     find('[data-download-confirm]').disabled = true; find('[data-download-size]').textContent = 'Checking download size…';
     try {
       if (!find('[data-download-model]').value) throw new Error('No model is available to download.');
       const info = await session.getModelDownload(find('[data-download-model]').value, { signal: request.signal });
       if (request.signal.aborted || disposed) return;
+      downloadInfo = info;
       find('[data-download-size]').textContent = Math.ceil(info.sizeBytes / 1e6) + ' MB download'; find('[data-download-confirm]').disabled = false;
-    } catch (cause) { if (!request.signal.aborted && !disposed) find('[data-download-size]').textContent = cause.message; }
+    } catch (cause) { if (!request.signal.aborted && !disposed) { find('[data-download-size]').textContent = cause.message; find('[data-retry-download-check]').hidden = false; } }
   };
-  const openModelSetup = (opener, modelId) => {
-    const models = session.getState().models.filter(model => !model.partition);
+  const openModelSetup = (opener, modelId, mode = 'contribute') => {
+    downloadMode = mode;
+    find('[data-download-title]').textContent = mode === 'local' ? 'Download model' : 'Contribute answers';
+    find('[data-download-confirm]').textContent = mode === 'local' ? 'Download model' : 'Download and contribute';
+    find('[data-download-explanation]').textContent = mode === 'local'
+      ? 'Store this model on this device to answer when network capacity is unavailable. Retry reuses verified files where supported. Your current sharing settings in Computers also apply to this model.'
+      : 'This downloads the model and lets this device answer others’ public prompts. File sharing is controlled separately. You can stop contributing at any time.';
+    const models = session.getState().models.filter(model => !model.partition && (mode !== 'local' || !model.adapters?.length));
     updateModelSelect(find('[data-download-model]'), models, { value: modelId });
     find('[data-download-compute-limits]').textContent = find('[data-contribution-limits]').textContent;
     modelDialog.open(find('[data-download-model]'), opener); void checkDownload();
   };
   on('[data-download-model]', 'change', () => void checkDownload());
+  on('[data-retry-download-check]', 'click', () => void checkDownload());
   on('[data-download-cancel]', 'click', () => modelDialog.close());
   on('[data-model-dialog]', 'close', () => metadataController?.abort());
   on('[data-download-confirm]', 'click', () => {
+    if (find('[data-download-confirm]').disabled || !downloadInfo) return;
+    find('[data-download-confirm]').disabled = true;
     const modelId = find('[data-download-model]').value; modelDialog.close();
+    if (downloadMode === 'local') { void act(() => session.downloadLocalModel(modelId, true)); return; }
     find('[data-contribution-model]').value = modelId;
     void act(async () => {
       if (session.getState().network?.paused) await session.connect();
@@ -214,6 +227,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
         railParent.insertBefore(rail, railNext?.parentNode === railParent ? railNext : null);
       };
     },
+    downloadModel(modelId, opener) { openModelSetup(opener, modelId, 'local'); },
     toggle(section = 'settings', opener) {
       if (panel.open && !panel.querySelector(`[data-inspector-pane="${section}"]`).hidden) dialog.close();
       else { select(section); dialog.open(opener); }

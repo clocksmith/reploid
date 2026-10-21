@@ -2206,7 +2206,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:3e30a211713289f020cd1da23696277a31ae2afcbafdcf948a3a7a552131a188",
+      "sha256": "sha256:d4e2ed5583712d8f71b09d0e98f6fad2da3fd8f0af560842097a37a47f290620",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -2220,6 +2220,7 @@
         "./chat-remote-permission.js",
         "./chat-view.js",
         "./document-comparison.js",
+        "./model-acquisition.js",
         "./readonly-view.js"
       ]
     },
@@ -2341,6 +2342,16 @@
       "imports": []
     },
     {
+      "path": "self/host/model-acquisition.js",
+      "owner": "self",
+      "sha256": "sha256:0a32eae1d211a6660bdebf752e4d2a071f4ea12a6059f9365962abbf286d9286",
+      "imports": [
+        "../config/chat-files.json",
+        "../config/doppler-local-models.js",
+        "./work-model-cache.js"
+      ]
+    },
+    {
       "path": "self/host/product-context.js",
       "owner": "self",
       "sha256": "sha256:4aa524454a6d80ed1be948d7bf417222c3a4b89deb1a1cb6f8e0daa24a39ca72",
@@ -2356,7 +2367,7 @@
     {
       "path": "self/host/product-session.js",
       "owner": "self",
-      "sha256": "sha256:9614b62f181227653fe48a5748ace30e33bfa8ec3b876b02d11fc8cb78ab2136",
+      "sha256": "sha256:69b063aeb791a66fb88877d36e7c908a14ff1ecc216e586b2ff564f39dda6aaa",
       "imports": [
         "../config/doppler-metadata-contract.js",
         "../config/ordered-participation.json",
@@ -2529,7 +2540,7 @@
     {
       "path": "self/host/work-model-cache.js",
       "owner": "self",
-      "sha256": "sha256:ec683ed37b57dd2a4ae1e24cdb688307e70b0ce410f475d172a05c304a98cef4",
+      "sha256": "sha256:1ad8ff2b47f7b9629bc5e1d337dec3d8c6405309770c4808dfc4d36ae6e29cf6",
       "imports": [
         "../config/doppler-local-models.js"
       ]
@@ -2537,7 +2548,7 @@
     {
       "path": "self/host/work-model-files.js",
       "owner": "self",
-      "sha256": "sha256:628de3543a8f6d435e81f134d71211573633533a6c52dbd0310163e52942cf69",
+      "sha256": "sha256:47b50c83ff6ee66d5674366bdd5ba5db9c79f41063996d4d67d86003f1f6b54e",
       "imports": [
         "../config/chat-files.json",
         "../config/doppler-local-models.js",
@@ -2549,6 +2560,7 @@
         "../pool/peer-pack-data-channel.js",
         "../vendor/reploid/artifacts/custody-certificate.js",
         "../vendor/reploid/artifacts/custody/exchange.js",
+        "./model-acquisition.js",
         "./work-model-cache.js",
         "./work-partition-artifact-source.js"
       ]
@@ -3395,7 +3407,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:bd0638d85e5c91299041cfae7f398ecbccfe9f71e55c5512587a74da3c664188",
+      "sha256": "sha256:5ddccfb9b5365995fc6a1f16bd1fdd4bbb9a7ebf3b516f0a1faa1e3a37c14b9f",
       "imports": []
     },
     {
@@ -3466,7 +3478,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:13258bac8fceac68012f301babdffe3eae88870e873df81a5cb5cf47a1510b79",
+      "sha256": "sha256:678bf638154e48bb99b8d46b6cfabd0cf961ee876e869a014160a22334dde7a4",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -3572,7 +3584,7 @@
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:e4af432b6f6493a9a47f994bc83ebd988838cfdf0ec1284ef76a53eaa3d2d8c6",
+      "sha256": "sha256:81b7ec502a0840e99d3045369c9f848c7c60aac688b8f1197fc842a302a500a0",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",

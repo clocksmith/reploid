@@ -11,6 +11,7 @@ import { bindDisclosure } from '../components/disclosure.js';
 import { bindDialog } from '../components/dialog.js';
 import { createMessageList } from './message-list.js';
 
+const busyAcquisition = state => state.acquisition?.phase === 'downloading';
 const selectable = model => ['ready', 'busy', 'cached', 'loading', 'preparing'].includes(model.availability);
 const startingPrompts = [
   'Suggest 3 clever sci-fi movies under two hours.',
@@ -69,6 +70,7 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
           </div>
         </div>
         <div class="chat-composer-notices"><button class="pool-button chat-composer-model btn-ghost" type="button" data-open-model aria-label="Choose model" title="Choose model">${interfaceIcon('model')}<small class="pool-muted" data-model-digest></small></button>${renderContextIndicator()}<button class="pool-button btn-ghost pool-caption" type="button" data-open-limits hidden></button><span class="pool-chip" data-web-search-on hidden>Search on</span><button class="pool-button btn-ghost pool-caption" type="button" data-composer-status hidden></button><button class="pool-button btn-ghost pool-caption" type="button" data-retry-connection aria-label="Retry connection" hidden>Retry</button></div>
+        <p class="pool-small pool-muted" data-acquisition-status role="status" hidden></p><progress class="pool-progress" data-acquisition-progress aria-label="Model download" hidden></progress><button class="pool-button btn-ghost pool-caption" type="button" data-download-local hidden>Download model</button><button class="pool-button btn-ghost pool-caption" type="button" data-cancel-download hidden>Cancel download</button>
         <p class="chat-attachment-help pool-small pool-muted" data-attachment-help hidden>Text files: up to 8, 64 KB each, 128 KB total.</p>
       </form></footer>
       <dialog class="chat-model-setup pool-surface pool-small" data-rename-dialog aria-labelledby="chat-rename-title">
@@ -270,6 +272,26 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const selectedPreparing = catalogModels.some(model => keyFor(model) === current
       && ['loading', 'preparing'].includes(model.availability));
     const preparing = localPreparing || remotePreparing || selectedPreparing;
+    const acquiring = state.acquisition?.phase === 'downloading';
+    const exhausted = state.peerDiscoveryTimedOut === true;
+    const canAcquire = !!session.downloadLocalModel && !state.localDownloadIssue && !usable && !localPreparing && !busyAcquisition(state)
+      && location !== 'network' && !requestedModel?.partition && !requestedModel?.adapters?.length && (exhausted || location === 'local');
+    const acquisition = state.acquisition;
+    const acquisitionText = find('[data-acquisition-status]');
+    acquisitionText.textContent = acquiring ? acquisition.progress?.message || 'Checking model files.'
+      : ['failed', 'cancelled'].includes(acquisition?.phase) ? acquisition.error + ' Retry reuses verified files where supported.'
+      : !usable && exhausted && location !== 'network' ? state.localDownloadIssue || (requestedModel?.partition || requestedModel?.adapters?.length
+        ? 'No usable network capacity for this model. Choose a whole base model to download.' : 'No usable network capacity. Download a model to use this device.') : '';
+    if (acquiring && usable) acquisitionText.textContent += ' Network capacity is available; you can send now or cancel this download.';
+    acquisitionText.hidden = !acquisitionText.textContent;
+    const meter = find('[data-acquisition-progress]');
+    meter.hidden = !acquiring;
+    if (acquisition?.progress?.totalBytes && acquisition.progress.receivedBytes !== null) {
+      meter.max = acquisition.progress.totalBytes; meter.value = acquisition.progress.receivedBytes;
+    } else meter.removeAttribute('value');
+    find('[data-cancel-download]').hidden = !acquiring;
+    find('[data-download-local]').hidden = !canAcquire || !!thread?.closed;
+    find('[data-download-local]').textContent = ['failed', 'cancelled'].includes(acquisition?.phase) ? 'Retry download' : 'Download model';
     const attempt = thread?.attempts.at(-1);
     const busy = state.runningIds.includes(thread?.id) || !!state.comparisonPhase;
     // The collapsed rails hide the header status. Explain a disabled composer
@@ -277,7 +299,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     modelStatus.textContent = busy ? '' : thread?.closed ? 'Restore this thread to continue.'
       : state.localModel?.error && !usable ? 'Model preparation failed: ' + state.localModel.error
       : !usable && location === 'network' ? 'No network capacity for this model. Local execution will not be used.'
-      : !usable && location === 'local' ? 'Download this model in Sharing to run it on this device.'
+      : !usable && location === 'local' ? 'Download this model to run it on this device.'
+      : !usable && exhausted ? state.localDownloadIssue || (requestedModel?.partition || requestedModel?.adapters?.length
+        ? 'No usable network capacity for this model. Choose a whole base model to download.' : 'No usable network capacity. Download a model to use this device.')
       : !usable && current && !preparing && catalogModels.some(model => ['ready', 'busy', 'cached'].includes(model.availability))
         ? 'Choose an available model.'
       : !usable ? preparing ? state.localModel?.progress?.message || 'Model preparing…' : state.network?.paused ? 'Reconnect to continue.'
@@ -327,7 +351,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       find('[data-context-preview]').textContent = context.content || 'Off. No app context is added.';
     }
     find('[data-composer-send]').hidden = busy;
-    find('[data-retry-connection]').hidden = busy || usable || preparing || state.network?.connecting || ['connecting', 'retrying'].includes(networkState); find('[data-composer-send]').disabled = reading || !usable || !!thread?.closed || !!state.storageError;
+    find('[data-retry-connection]').hidden = busy || usable || localPreparing || preparing && !exhausted || (state.network?.connecting || ['connecting', 'retrying'].includes(networkState)) && !exhausted; find('[data-composer-send]').disabled = reading || !usable || !!thread?.closed || !!state.storageError;
     statusButton.hidden ||= !find('[data-retry-connection]').hidden;
     find('[data-composer-stop]').hidden = !busy;
     find('[data-conversation-download]').hidden = !thread?.messages.length;
@@ -396,7 +420,19 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     try { observe(after(newThread(), () => { chosenModel = model; viewState.chosenModel = chosenModel;
       modelSelect.value = next; render(session.getState()); input.focus(); })); } catch (cause) { error(cause); }
   });
-  on('[data-retry-connection]', 'click', () => act(() => session.connect()));
+  on('[data-retry-connection]', 'click', event => {
+    const button = event.currentTarget;
+    button.disabled = true;
+    const retryDeadline = setTimeout(() => { if (!controller.signal.aborted) button.disabled = false; }, 8000);
+    void Promise.resolve().then(() => session.connect()).catch(cause => error(cause.message))
+      .finally(() => { clearTimeout(retryDeadline); if (!controller.signal.aborted) button.disabled = false; });
+  });
+  on('[data-download-local]', 'click', event => {
+    const state = session.getState();
+    const model = state.activeThread?.model || state.models.find(item => (item.selectionId || item.id) === modelSelect.value) || chosenModel || state.defaultModel;
+    inspector.downloadModel(model?.id, event.currentTarget);
+  });
+  on('[data-cancel-download]', 'click', () => session.cancelModelDownload());
   on('[data-show-archived]', 'click', event => {
     archived = !archived; event.currentTarget.setAttribute('aria-pressed', String(archived));
     event.currentTarget.textContent = archived ? 'Back to threads' : 'Archived threads';

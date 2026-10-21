@@ -1360,8 +1360,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 576203,
-      "sha256": "sha256:2b6bd0705f1fa77a808fb487c1d8e28e23269bcf1554c51058f46dfe5b9aa8c4"
+      "byteLength": 576587,
+      "sha256": "sha256:6128897bda042a8109b46b791d8e632388385e1715d7c59d23ad28fabad48f04"
     },
     {
       "path": "config/module-registry.json",
@@ -1750,8 +1750,8 @@
     },
     {
       "path": "host/chat-session.js",
-      "byteLength": 32087,
-      "sha256": "sha256:3e30a211713289f020cd1da23696277a31ae2afcbafdcf948a3a7a552131a188"
+      "byteLength": 33601,
+      "sha256": "sha256:d4e2ed5583712d8f71b09d0e98f6fad2da3fd8f0af560842097a37a47f290620"
     },
     {
       "path": "host/chat-view.js",
@@ -1829,14 +1829,19 @@
       "sha256": "sha256:39344af84701486e529a4b2527c960af7023de7ad9346f22557851f8a18c4aa9"
     },
     {
+      "path": "host/model-acquisition.js",
+      "byteLength": 7011,
+      "sha256": "sha256:0a32eae1d211a6660bdebf752e4d2a071f4ea12a6059f9365962abbf286d9286"
+    },
+    {
       "path": "host/product-context.js",
       "byteLength": 2652,
       "sha256": "sha256:4aa524454a6d80ed1be948d7bf417222c3a4b89deb1a1cb6f8e0daa24a39ca72"
     },
     {
       "path": "host/product-session.js",
-      "byteLength": 12959,
-      "sha256": "sha256:9614b62f181227653fe48a5748ace30e33bfa8ec3b876b02d11fc8cb78ab2136"
+      "byteLength": 12987,
+      "sha256": "sha256:69b063aeb791a66fb88877d36e7c908a14ff1ecc216e586b2ff564f39dda6aaa"
     },
     {
       "path": "host/readonly-view.js",
@@ -1920,13 +1925,13 @@
     },
     {
       "path": "host/work-model-cache.js",
-      "byteLength": 3768,
-      "sha256": "sha256:ec683ed37b57dd2a4ae1e24cdb688307e70b0ce410f475d172a05c304a98cef4"
+      "byteLength": 5594,
+      "sha256": "sha256:1ad8ff2b47f7b9629bc5e1d337dec3d8c6405309770c4808dfc4d36ae6e29cf6"
     },
     {
       "path": "host/work-model-files.js",
-      "byteLength": 32240,
-      "sha256": "sha256:628de3543a8f6d435e81f134d71211573633533a6c52dbd0310163e52942cf69"
+      "byteLength": 33612,
+      "sha256": "sha256:47b50c83ff6ee66d5674366bdd5ba5db9c79f41063996d4d67d86003f1f6b54e"
     },
     {
       "path": "host/work-partition-artifact-source.js",
@@ -3315,8 +3320,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2107562,
-      "sha256": "sha256:bd0638d85e5c91299041cfae7f398ecbccfe9f71e55c5512587a74da3c664188"
+      "byteLength": 2117668,
+      "sha256": "sha256:5ddccfb9b5365995fc6a1f16bd1fdd4bbb9a7ebf3b516f0a1faa1e3a37c14b9f"
     },
     {
       "path": "ui/pool-home/computer-labels.js",
@@ -3350,8 +3355,8 @@
     },
     {
       "path": "ui/pool-home/conversation-workspace.js",
-      "byteLength": 41943,
-      "sha256": "sha256:13258bac8fceac68012f301babdffe3eae88870e873df81a5cb5cf47a1510b79"
+      "byteLength": 45385,
+      "sha256": "sha256:678bf638154e48bb99b8d46b6cfabd0cf961ee876e869a014160a22334dde7a4"
     },
     {
       "path": "ui/pool-home/document-search.js",
@@ -3400,8 +3405,8 @@
     },
     {
       "path": "ui/pool-home/network-inspector.js",
-      "byteLength": 18509,
-      "sha256": "sha256:e4af432b6f6493a9a47f994bc83ebd988838cfdf0ec1284ef76a53eaa3d2d8c6"
+      "byteLength": 20037,
+      "sha256": "sha256:81b7ec502a0840e99d3045369c9f848c7c60aac688b8f1197fc842a302a500a0"
     },
     {
       "path": "ui/pool-home/network-projection.js",
@@ -10764,5 +10769,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:0c42eb0f3cb1c0dfdee8435c67a42f01676f735584e55ed31f8691db6a0ce599"
+  "bundleHash": "sha256:e6b4fb10c68b83e1ff5de36e284dff447b34e9b77d551485dbb0ec50aaa44218"
 }
