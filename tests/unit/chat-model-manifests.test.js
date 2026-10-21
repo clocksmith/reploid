@@ -32,4 +32,22 @@ describe('chat model manifest delivery', () => {
       }
     }
   });
+  it('binds Doppler acquisition URLs to the shipped manifest and immutable weight origin', async () => {
+    const models = JSON.parse(await readFile(resolve('self/config/chat-models.json')));
+    const config = JSON.parse(await readFile(resolve('firebase.json')));
+    const routes = config.hosting.find(item => item.target === 'reploid').redirects;
+    for (const model of models.filter(model => model.source.baseUrl)) {
+      const base = new URL(model.source.baseUrl);
+      const manifest = model.source.files.find(file => file.role === 'model-manifest');
+      const requestPath = new URL('manifest.json', base).pathname;
+      const delivery = routes.find(route => route.source === requestPath);
+      expect(delivery?.destination).toBe(manifest.url);
+      const bytes = await readFile(resolve('self', delivery.destination.slice(1)));
+      expect('sha256:' + createHash('sha256').update(bytes).digest('hex')).toBe(model.identity);
+      const files = routes.find(route => route.source === base.pathname.slice(0, -1) + '/:file');
+      expect(files?.destination).toMatch(/^https:\/\/huggingface\.co\/clocksmith\/rdrr\/resolve\/[a-f0-9]{40}\/models\//);
+      expect(files.destination.endsWith('//:file')).toBe(false);
+    }
+  });
+
 });

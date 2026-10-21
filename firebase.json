@@ -92,7 +92,10 @@
       "rewrites": [
         {
           "source": "/api/retrieval/**",
-          "run": { "serviceId": "reploid-pool", "region": "us-central1" }
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
         },
         {
           "source": "/styles/rd-tokens.css",
@@ -360,6 +363,28 @@
         {
           "source": "/x",
           "destination": "/index.html"
+        }
+      ],
+      "redirects": [
+        {
+          "source": "/model-files/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
+          "destination": "/config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json",
+          "type": 302
+        },
+        {
+          "source": "/model-files/qwen-3-5-0-8b-q4k-ehaf16/:file",
+          "destination": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16/:file",
+          "type": 302
+        },
+        {
+          "source": "/model-files/qwen-3-5-2b-q4k-ehaf16/manifest.json",
+          "destination": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json",
+          "type": 302
+        },
+        {
+          "source": "/model-files/qwen-3-5-2b-q4k-ehaf16/:file",
+          "destination": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/:file",
+          "type": 302
         }
       ]
     }
