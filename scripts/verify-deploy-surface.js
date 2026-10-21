@@ -121,20 +121,28 @@ const checkRouteLayout = async () => {
   fs.mkdirSync(screenshotDir, { recursive: true });
   // Layout qualification needs the supported browser defaults, not a GPU override.
   const browser = await chromium.launch();
+  // Route checks represent navigation by one visitor, not a burst of new
+  // anonymous Firebase accounts for every viewport and retry.
+  const context = await browser.newContext();
   try {
     for (const { route, viewport } of SCREENSHOT_ROUTES.flatMap((route) =>
       VIEWPORTS.map((viewport) => ({ route, viewport })))) {
       let routeFailure = null;
       for (let attempt = 1; attempt <= 3; attempt += 1) {
-        const page = await browser.newPage({ viewport: { width: viewport.width, height: viewport.height } });
+        const page = await context.newPage();
+        await page.setViewportSize({ width: viewport.width, height: viewport.height });
         const browserIssues = [];
         const diagnostics = new Set();
+        let authenticationFailure = null;
         page.on('pageerror', (error) => browserIssues.push(error.message));
         page.on('response', (response) => {
           if (response.status() < 400) return;
           const failure = httpResponseFailure({ url: response.url(), status: response.status(),
             method: response.request().method() }, baseUrl);
           if (failure) browserIssues.push(failure);
+          const responseUrl = new URL(response.url());
+          if (failure && responseUrl.hostname === 'identitytoolkit.googleapis.com'
+            && responseUrl.pathname.endsWith('/accounts:signUp')) authenticationFailure = failure;
           else diagnostics.add('Optional earning service is not published (GET /v1/client: HTTP 404)');
         });
         page.on('requestfailed', (request) => {
@@ -194,6 +202,9 @@ const checkRouteLayout = async () => {
           routeFailure = null;
           break;
         } catch (error) {
+          // A provider refusal must stop the campaign, not create more fresh
+          // anonymous sign-ups through route and viewport retries.
+          if (authenticationFailure) throw new Error(`Authentication unavailable; qualification stopped: ${authenticationFailure}`);
           routeFailure = `${route} (${viewport.label}): attempt ${attempt} failed: ${error.message}`;
         } finally {
           await page.close();
