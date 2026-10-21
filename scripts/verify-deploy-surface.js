@@ -13,6 +13,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { rectanglesOverlap } from './deploy-surface-layout.js';
+import { consoleFailure, httpResponseFailure } from './deploy-surface-diagnostics.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const repoRoot = path.resolve(path.dirname(__filename), '..');
@@ -118,13 +119,8 @@ const checkPooldayModuleBytes = async (version) => {
 
 const checkRouteLayout = async () => {
   fs.mkdirSync(screenshotDir, { recursive: true });
-  const browser = await chromium.launch({
-    args: [
-      '--enable-unsafe-webgpu',
-      '--use-angle=swiftshader',
-      '--disable-gpu-sandbox'
-    ]
-  });
+  // Layout qualification needs the supported browser defaults, not a GPU override.
+  const browser = await chromium.launch();
   try {
     for (const { route, viewport } of SCREENSHOT_ROUTES.flatMap((route) =>
       VIEWPORTS.map((viewport) => ({ route, viewport })))) {
@@ -132,30 +128,53 @@ const checkRouteLayout = async () => {
       for (let attempt = 1; attempt <= 3; attempt += 1) {
         const page = await browser.newPage({ viewport: { width: viewport.width, height: viewport.height } });
         const browserIssues = [];
+        const diagnostics = new Set();
         page.on('pageerror', (error) => browserIssues.push(error.message));
+        page.on('response', (response) => {
+          if (response.status() < 400) return;
+          const failure = httpResponseFailure({ url: response.url(), status: response.status(),
+            method: response.request().method() }, baseUrl);
+          if (failure) browserIssues.push(failure);
+          else diagnostics.add('Optional earning service is not published (GET /v1/client: HTTP 404)');
+        });
+        page.on('requestfailed', (request) => {
+          const url = new URL(request.url());
+          browserIssues.push(`${request.method()} ${url.origin}${url.pathname}: ${request.failure()?.errorText || 'request failed'}`);
+        });
         page.on('console', (message) => {
           if (message.type() === 'error' || message.type() === 'warning') {
-            browserIssues.push(`${message.type()}: ${message.text()}`);
+            const failure = consoleFailure(message.type(), message.text());
+            if (failure) browserIssues.push(failure);
+            else if (!message.text().startsWith('Failed to load resource:')) diagnostics.add(message.text());
           }
         });
         try {
           await page.goto(`${baseUrl}${route}`, { waitUntil: 'domcontentloaded', timeout: 45000 });
           await page.waitForSelector('.pool-home', { timeout: 20000 });
           await page.waitForTimeout(1500);
+          for (const diagnostic of diagnostics) console.log(`[deploy-surface] ${route} (${viewport.label}) diagnostic: ${diagnostic}`);
           if (browserIssues.length) {
             throw new Error(`browser issues: ${browserIssues.join(' | ')}`);
           }
           const name = `${route === '/' ? 'home' : route.slice(1)}${viewport.label === 'mobile' ? '-mobile' : ''}`;
           await page.screenshot({ path: path.join(screenshotDir, `${name}.png`) });
           if (LAYOUT_ROUTES.includes(route)) {
-            const probe = await page.evaluate(() => {
+            const probe = await page.evaluate(async () => {
               const main = document.querySelector('.pool-home');
               const rail = document.querySelector('.pool-nav-rail');
               const shell = document.querySelector('.pool-route-shell');
               if (!main || !rail || !shell) {
                 return { missing: [!main && '.pool-home', !rail && '.pool-nav-rail', !shell && '.pool-route-shell'].filter(Boolean) };
               }
-              const railRect = rail.getBoundingClientRect();
+              let railRect = rail.getBoundingClientRect();
+              // The mobile dock intentionally overlays a scrolling document.
+              // Its contract is that the final content can scroll clear of it,
+              // not that the entire long document fits above the viewport dock.
+              if (getComputedStyle(rail).position === 'fixed' && railRect.top > innerHeight / 2) {
+                window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
+                await new Promise(requestAnimationFrame);
+                railRect = rail.getBoundingClientRect();
+              }
               const shellRect = shell.getBoundingClientRect();
               return {
                 missing: [],
