@@ -1357,7 +1357,7 @@
     {
       "path": "pool/identity.js",
       "owner": "pool",
-      "sha256": "sha256:b2d5c550381b9755b3e04589fe3ac9a572a7bcc45c78b74aca940968a7200d67",
+      "sha256": "sha256:fb0ebc15d5bad8a6124a8a60346acb673744b0b2aaecbaba1a91791af272c0e6",
       "imports": [
         "./device-identity.js",
         "./firebase-auth.js",
@@ -2004,7 +2004,7 @@
     {
       "path": "pool/sdk.js",
       "owner": "pool",
-      "sha256": "sha256:2b55d03b818376ba682eec7a75e4b1cf3148c383831983b6d2d026f1fa61f433",
+      "sha256": "sha256:016aef56737d20793e448fc4c73050ca952f3872b0a3ce2ffa8dcb397aeb6f56",
       "imports": [
         "../config/swarm-bootstrap.json",
         "./identity.js",
@@ -3407,7 +3407,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:483ab2ff2cab70125bcc2cd74f25ab23a45c5411a303c8e5dd24efffd2444958",
+      "sha256": "sha256:a2192e7bf0ca2c869b3453909f28c710d5cc15f4d2b09967193533eca14e5bf5",
       "imports": []
     },
     {

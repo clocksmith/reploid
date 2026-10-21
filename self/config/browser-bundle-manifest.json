@@ -1361,7 +1361,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 576587,
-      "sha256": "sha256:e44d27af0bc772cb93ee29e2300b2ac673ec4d2f9d53a27656d7824dc4387c71"
+      "sha256": "sha256:3a8fd69d2668044a1b4eb76a4ea3cb351e2179d444e7ccc33317b068a1b497ec"
     },
     {
       "path": "config/module-registry.json",
@@ -2425,8 +2425,8 @@
     },
     {
       "path": "pool/identity.js",
-      "byteLength": 10813,
-      "sha256": "sha256:b2d5c550381b9755b3e04589fe3ac9a572a7bcc45c78b74aca940968a7200d67"
+      "byteLength": 11496,
+      "sha256": "sha256:fb0ebc15d5bad8a6124a8a60346acb673744b0b2aaecbaba1a91791af272c0e6"
     },
     {
       "path": "pool/inference-receipt.js",
@@ -2720,8 +2720,8 @@
     },
     {
       "path": "pool/sdk.js",
-      "byteLength": 14253,
-      "sha256": "sha256:2b55d03b818376ba682eec7a75e4b1cf3148c383831983b6d2d026f1fa61f433"
+      "byteLength": 14505,
+      "sha256": "sha256:016aef56737d20793e448fc4c73050ca952f3872b0a3ce2ffa8dcb397aeb6f56"
     },
     {
       "path": "pool/sequence-result.js",
@@ -3320,8 +3320,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2117555,
-      "sha256": "sha256:483ab2ff2cab70125bcc2cd74f25ab23a45c5411a303c8e5dd24efffd2444958"
+      "byteLength": 2117921,
+      "sha256": "sha256:a2192e7bf0ca2c869b3453909f28c710d5cc15f4d2b09967193533eca14e5bf5"
     },
     {
       "path": "ui/pool-home/computer-labels.js",
@@ -10769,5 +10769,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:025fa268a6cf9bc2a8f368b3c31aeb78dcaa21bd2e7770dce830acfe39bc0771"
+  "bundleHash": "sha256:1453ef18131e467664d7ceeecb3f4aa0af5b42282ece94d08a2368215c269435"
 }

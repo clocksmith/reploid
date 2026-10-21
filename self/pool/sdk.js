@@ -64,7 +64,8 @@ async function requestJson(path, {
   body = null,
   authTokenProvider = null,
   clientId = null,
-  redirect = 'follow'
+  redirect = 'follow',
+  requireAuth = false
 } = {}) {
   const headers = body ? { 'Content-Type': 'application/json' } : {};
   const effectiveClientId = normalizeClientId(
@@ -72,6 +73,11 @@ async function requestJson(path, {
   ) || getDefaultPoolClientId();
   if (effectiveClientId) headers['X-Reploid-Client-Id'] = effectiveClientId;
   const token = typeof authTokenProvider === 'function' ? await authTokenProvider() : null;
+  if (requireAuth && !token) {
+    const error = new Error('Firebase sign-in is unavailable. Retry when authentication is available.');
+    error.code = 'auth_required';
+    throw error;
+  }
   if (token) headers.Authorization = `Bearer ${token}`;
   const response = await fetch(`${baseUrl}${path}`, {
     method,
@@ -123,8 +129,8 @@ export function createPoolSdk({
       // Only credential issuance moves hosts. All other Poolday APIs stay put.
       // A configured issuer failure must not fall back to another relay provider.
       return rtcConfigUrl
-        ? request('', { baseUrl: rtcConfigUrl, redirect: 'error' })
-        : request('/rtc-config', { redirect: 'error' });
+        ? request('', { baseUrl: rtcConfigUrl, redirect: 'error', requireAuth: true })
+        : request('/rtc-config', { redirect: 'error', requireAuth: true });
     },
     publishAdapter(publication) {
       return request('/adapters', { method: 'POST', body: { publication } });

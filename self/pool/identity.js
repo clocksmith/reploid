@@ -24,6 +24,29 @@ import {
 
 const ID_PREFIX = 'REPLOID_POOL';
 const SIGNING_KEY_VERSION = 'v1';
+const firebaseSignIns = new WeakMap();
+
+// Auth restoration and anonymous registration are shared by every caller on
+// this page. Concurrent role/RTC requests must not create separate accounts.
+async function resolveFirebaseUser(auth, signIn) {
+  const existing = firebaseSignIns.get(auth);
+  if (existing) return existing;
+  const pending = (async () => {
+    await auth.authStateReady?.();
+    if (auth.currentUser?.uid) return auth.currentUser;
+    return typeof signIn === 'function' ? (await signIn())?.user || auth.currentUser || null : null;
+  })();
+  firebaseSignIns.set(auth, pending);
+  try { return await pending; }
+  finally {
+    // Keep a failed attempt for a bounded cooldown; peer discovery must not
+    // amplify a provider throttle into a stream of new registration attempts.
+    pending.then(() => firebaseSignIns.delete(auth), () => {
+      const timer = setTimeout(() => firebaseSignIns.delete(auth), 60000);
+      timer.unref?.();
+    });
+  }
+}
 
 const hasStorage = () => {
   try {
@@ -180,27 +203,16 @@ async function resolveCompatFirebaseUser() {
   if (!firebase?.auth) return null;
   const auth = typeof firebase.auth === 'function' ? firebase.auth() : firebase.auth;
   if (!auth) return null;
-  if (auth.currentUser?.uid) return auth.currentUser;
-  if (typeof auth.signInAnonymously === 'function') {
-    const result = await auth.signInAnonymously();
-    return result?.user || auth.currentUser || null;
-  }
-  return null;
+  return resolveFirebaseUser(auth, typeof auth.signInAnonymously === 'function'
+    ? () => auth.signInAnonymously() : null);
 }
 
 async function resolveInjectedFirebaseUser() {
   const auth = globalThis.REPLOID_FIREBASE_AUTH || globalThis.REPLOID_POOL_FIREBASE_AUTH;
   if (!auth) return null;
-  if (auth.currentUser?.uid) return auth.currentUser;
-  if (typeof auth.signInAnonymously === 'function') {
-    const result = await auth.signInAnonymously();
-    return result?.user || auth.currentUser || null;
-  }
-  if (typeof globalThis.REPLOID_FIREBASE_SIGN_IN_ANONYMOUSLY === 'function') {
-    const result = await globalThis.REPLOID_FIREBASE_SIGN_IN_ANONYMOUSLY(auth);
-    return result?.user || auth.currentUser || null;
-  }
-  return null;
+  return resolveFirebaseUser(auth, typeof auth.signInAnonymously === 'function'
+    ? () => auth.signInAnonymously() : typeof globalThis.REPLOID_FIREBASE_SIGN_IN_ANONYMOUSLY === 'function'
+      ? () => globalThis.REPLOID_FIREBASE_SIGN_IN_ANONYMOUSLY(auth) : null);
 }
 
 export async function resolveFirebaseIdentity() {

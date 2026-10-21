@@ -65,7 +65,7 @@ describe('Pool SDK client identity', () => {
   it('does not silently fall back after RTC issuer failure', async () => {
     const fetchMock = vi.fn(async () => ({ ok: false, status: 503, json: async () => ({ error: 'Unavailable' }) }));
     vi.stubGlobal('fetch', fetchMock);
-    const sdk = createPoolSdk({ rtcConfigUrl: 'https://worker.test/rtc-config', authTokenProvider: null });
+    const sdk = createPoolSdk({ rtcConfigUrl: 'https://worker.test/rtc-config', authTokenProvider: async () => 'test-token' });
     await expect(sdk.rtcConfig()).rejects.toMatchObject({ status: 503 });
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0][0]).toBe('https://worker.test/rtc-config');
@@ -74,8 +74,18 @@ describe('Pool SDK client identity', () => {
   it('preserves an explicitly supplied Pool API base', async () => {
     const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({}) }));
     vi.stubGlobal('fetch', fetchMock);
-    await createPoolSdk({ baseUrl: 'https://custom.test', authTokenProvider: null }).rtcConfig();
+    await createPoolSdk({ baseUrl: 'https://custom.test', authTokenProvider: async () => 'test-token' }).rtcConfig();
     expect(fetchMock.mock.calls[0][0]).toBe('https://custom.test/rtc-config');
+  });
+
+  it('does not send credential requests when Firebase sign-in is unavailable', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    for (const options of [{ rtcConfigUrl: 'https://worker.test/rtc-config' }, { baseUrl: 'https://custom.test' }]) {
+      await expect(createPoolSdk({ ...options, authTokenProvider: async () => null }).rtcConfig())
+        .rejects.toMatchObject({ code: 'auth_required' });
+    }
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('uses the isolated adapter-canary publication routes', async () => {
