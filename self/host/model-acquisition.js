@@ -74,7 +74,7 @@ export function createModelAcquisition({ onChange = () => {}, load = loadModelCa
         const cache = await awaitSetup(load(), controller.signal); controller.signal.throwIfAborted();
         let source;
         try {
-          source = await cache.ensureModelCachedSource(model.id, model.source.baseUrl, value => {
+          source = await cache.ensureModelCachedSource(model.id, model.source.baseUrl.replace(/\/+$/, ''), value => {
             if (active !== operation || controller.signal.aborted || closed) return;
             touch(); publish({ progress: acquisitionProgress(value) });
           }, { signal: controller.signal, expectedManifestHash: model.identity });
