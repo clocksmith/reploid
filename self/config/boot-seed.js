@@ -128,8 +128,9 @@ export function isLockedHomeBootProfile(profile = getBootSeedProfile()) {
 
 export function getBootSourceManifest(profile = getBootSeedProfile()) {
   if (profile !== 'x_home' && profile !== 'zero_home') return null;
-  const level = getLabUpgradeLevel(profile === 'zero_home' ? 'zero' : 'x');
-  return sourceCatalog.profiles[level];
+  const surface = profile === 'zero_home' ? 'zero' : 'x';
+  const level = getLabUpgradeLevel(surface);
+  return { ...sourceCatalog.profiles[level], surface };
 }
 
 export function pickBootSeedFiles(files, profile = getBootSeedProfile()) {

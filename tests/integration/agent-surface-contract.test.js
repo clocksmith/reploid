@@ -95,15 +95,15 @@ for (const surface of ['zero', 'x', 'work']) describe(`${surface} execution cont
   });
 });
 
-it('Zero can compose a coordinator while preserving cancellation and inherited authority ceilings', async () => {
+it('X can compose a coordinator while preserving cancellation and inherited authority ceilings', async () => {
   const started = deferred(), borrowed = deferred(), fallback = vi.fn();
-  const agent = surfaceAgent('zero', { generate: fallback, extension: { execute: async () => { started.resolve(); return borrowed.promise; } } });
+  const agent = surfaceAgent('x', { generate: fallback, extension: { execute: async () => { started.resolve(); return borrowed.promise; } } });
   const active = agent.run('Inspect the bounded experiment');
   await started.promise; agent.stop(); await active;
   const closing = agent.close();
   borrowed.resolve({ result: { content: 'DONE' } });
   await closing;
   expect(fallback).not.toHaveBeenCalled();
-  expect(requireSurfaceIntent('zero').extends).toBe('x');
-  expect(await authorizeSurfaceOperation(requireSurfaceIntent('zero'), { action: 'candidate.selfApprove' }, () => true)).toBe(false);
+  expect(requireSurfaceIntent('x').extends).toBe('zero');
+  expect(await authorizeSurfaceOperation(requireSurfaceIntent('x'), { action: 'candidate.selfApprove' }, () => true)).toBe(false);
 });

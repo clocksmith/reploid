@@ -1,4 +1,4 @@
-import { X_SEED_PREFIXES, ZERO_RUNTIME_UI } from './surface-resources.js';
+import { ZERO_SEED_PREFIXES, ZERO_RUNTIME_UI } from './surface-resources.js';
 /**
  * @fileoverview Canonical route intent for Reploid lab surfaces.
  */
@@ -67,19 +67,19 @@ export const defineSurfaceIntent = (intent, registry = createSurfaceIntentRegist
 
 const surfaceIntents = createSurfaceIntentRegistry();
 
-surfaceIntents.x = defineSurfaceIntent({
-    id: 'x',
-    seedPrefixes: X_SEED_PREFIXES,
+surfaceIntents.zero = defineSurfaceIntent({
+    id: 'zero',
+    seedPrefixes: ZERO_SEED_PREFIXES,
     runtimeSelfMirrorRules: [],
     runtimeUi: ZERO_RUNTIME_UI,
     authorityCeiling: ['candidate.selfApprove', 'candidate.modifyEvaluator', 'permissions.escalate'],
-    label: 'X',
-    route: '/x',
-    mode: 'x',
-    bootProfile: 'x_home',
+    label: 'Zero',
+    route: '/zero',
+    mode: 'zero',
+    bootProfile: 'zero_home',
     genesisLevel: 'spark',
     uiMode: 'zero',
-    surface: 'x',
+    surface: 'zero',
     summary: 'Minimal self-bootstrapping browser agent.',
     detail: 'Starts from its own source, a prompt, and CreateTool.',
     intent: 'Boot a complete minimal self-source image and grow tools from CreateTool without preloading optional upgrades.',
@@ -93,20 +93,20 @@ surfaceIntents.x = defineSurfaceIntent({
     requiresBrowserBrain: false
 });
 
-surfaceIntents.zero = defineSurfaceIntent({
-    id: 'zero',
-    extends: 'x',
-    label: 'Zero',
-    route: '/zero',
-    mode: 'zero',
-    bootProfile: 'zero_home',
+surfaceIntents.x = defineSurfaceIntent({
+    id: 'x',
+    extends: 'zero',
+    label: 'X',
+    route: '/x',
+    mode: 'x',
+    bootProfile: 'x_home',
     genesisLevel: 'spark',
     uiMode: 'zero',
-    surface: 'zero',
+    surface: 'x',
     runtimeUi: ZERO_RUNTIME_UI,
-    summary: 'X with optional upgrades.',
+    summary: 'Zero with optional upgrades.',
     detail: 'The same self-building core, with explicitly selected reflection, cognition, and substrate upgrades.',
-    intent: 'Extend X only with operator-selected upgrades while preserving its self-source and activation boundaries.',
+    intent: 'Extend Zero only with operator-selected upgrades while preserving its self-source and activation boundaries.',
     role: 'Opt-in extended browser research surface.',
     forbiddenModules: [],
     requiresBrowserBrain: false

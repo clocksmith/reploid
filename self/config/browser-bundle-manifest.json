@@ -955,8 +955,8 @@
     },
     {
       "path": "boot-helpers/config.js",
-      "byteLength": 6152,
-      "sha256": "sha256:779fd78517c7e21266ba7768a89c13a2a3529d0a1c1316661af5b098c2273494"
+      "byteLength": 6149,
+      "sha256": "sha256:3db9b263945268e74c9ce969c07a4b78a61dec701c91a75dedd2c1ee6d4076cf"
     },
     {
       "path": "boot-helpers/error-ui.js",
@@ -1190,13 +1190,13 @@
     },
     {
       "path": "config/boot-modes.js",
-      "byteLength": 2240,
-      "sha256": "sha256:3b417f8e4f9deddb5db7178df7617da5011d4909a6105aa00f49c396d2b5b697"
+      "byteLength": 2487,
+      "sha256": "sha256:3519335c0360e995bb0fc8a573c294d825fb83cd7f65f486c6033193ab4f69f0"
     },
     {
       "path": "config/boot-seed.js",
-      "byteLength": 5026,
-      "sha256": "sha256:489bbd1524641118256bc40ed19347af5e954fcc17debda81c13872fe73c2cfb"
+      "byteLength": 5069,
+      "sha256": "sha256:9a1c45cd0454182267d25bf399007d9d62515b7ab9007d233b913b45b7dee6d5"
     },
     {
       "path": "config/chat-context-policy.json",
@@ -1295,8 +1295,8 @@
     },
     {
       "path": "config/lab-upgrades.js",
-      "byteLength": 845,
-      "sha256": "sha256:1eb9095d773752131970e2f81fb8b854ee40686a480ab7216f29f4cac9234d0c"
+      "byteLength": 1078,
+      "sha256": "sha256:ae6829db4169fece14334234bca85d70085c6f6fe839a674655a912831d13a31"
     },
     {
       "path": "config/lora-adapters/doppler-wgsl-qwen35-9b-v12-external20-seed11.json",
@@ -1365,8 +1365,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 579024,
-      "sha256": "sha256:4a11c7310464bc316d246b6916caff4b24572fe780ad85c26e75c8fe6f6c026b"
+      "byteLength": 579064,
+      "sha256": "sha256:e9ea1d110728b549b6a0ee55a29adb1b87c2e307e3f2656a8b987b44885e8c1c"
     },
     {
       "path": "config/module-registry.json",
@@ -1415,8 +1415,8 @@
     },
     {
       "path": "config/surface-intents.js",
-      "byteLength": 4670,
-      "sha256": "sha256:b10a35b5fe367a905a811ff156cd999608f751a139c65d5efb3f1b5d5c6ccad1"
+      "byteLength": 4685,
+      "sha256": "sha256:47d19bc36cb98b59ba7420c028061aaff0397c93f4b1d8c5c076589ec1725e91"
     },
     {
       "path": "config/surface-resources.js",
@@ -1430,8 +1430,8 @@
     },
     {
       "path": "config/tool-surfaces.js",
-      "byteLength": 3277,
-      "sha256": "sha256:370c2a6859e129f1bf82b81a2b800e349fd7878b46f1c99080c33650f5558fd2"
+      "byteLength": 3313,
+      "sha256": "sha256:4b62da06ea1d9f19619395c281b0b461fb4980efc7d66a07dd59c8435c7a79e3"
     },
     {
       "path": "config/vfs-manifest.json",
@@ -1575,8 +1575,8 @@
     },
     {
       "path": "core/schema-registry.js",
-      "byteLength": 21120,
-      "sha256": "sha256:95370066938db80bf4ca98fdd3e9b80e8e53bca0a0468e903c5d3d707eecb5c3"
+      "byteLength": 21149,
+      "sha256": "sha256:4a60f3881af8c1f8e013889bd582260943cce5d810fa3947b6fd6d21da885723"
     },
     {
       "path": "core/schema-validator.js",
@@ -1605,8 +1605,8 @@
     },
     {
       "path": "core/tool-runner.js",
-      "byteLength": 27269,
-      "sha256": "sha256:f573e6d31860124ba6de86976c10bafa2c70814b386cd267ae106a1fbeb91c0e"
+      "byteLength": 28371,
+      "sha256": "sha256:cdd9a1c19c2defa321f8fa503f81863a754df060723d71840ba53fe53bebc476"
     },
     {
       "path": "core/tool-writer.js",
@@ -1670,8 +1670,8 @@
     },
     {
       "path": "core/zero-prompt.js",
-      "byteLength": 7860,
-      "sha256": "sha256:5aa92a71b34f2ee78062f5030dce125e563a23699d3b4632787496c19833ee7e"
+      "byteLength": 7868,
+      "sha256": "sha256:740edcdd895aa08d46d92cbd80bff75cb0f0b56eef007a0221f8540a3ccfb8c1"
     },
     {
       "path": "design.html",
@@ -1880,8 +1880,8 @@
     },
     {
       "path": "host/seed-vfs.js",
-      "byteLength": 27678,
-      "sha256": "sha256:b37c7e8ad6ecd39b98f7ebf0ba80f72ca3d5c507e3908d985af71e84076f9d7d"
+      "byteLength": 27900,
+      "sha256": "sha256:7635793ca8e388ca66c34ff018b1e50448da6f64392e978ab8b033447482f969"
     },
     {
       "path": "host/server-search.js",
@@ -1890,8 +1890,8 @@
     },
     {
       "path": "host/start-app.js",
-      "byteLength": 20196,
-      "sha256": "sha256:740ea88017cab5c586c34dfcd7045161a5d890c0dd0b9ca433b33ba3b5aa6c4a"
+      "byteLength": 22884,
+      "sha256": "sha256:8236dfaba69b9a90d66842bff2b50842d27f501f4a7468480c98ee0b00a879d7"
     },
     {
       "path": "host/start-reploid.js",
@@ -2025,8 +2025,8 @@
     },
     {
       "path": "image/export.js",
-      "byteLength": 9646,
-      "sha256": "sha256:4b33044a130ecd85048979733fd2add23939b7318df1fe461ed1fe4d3ce32418"
+      "byteLength": 10111,
+      "sha256": "sha256:a0c94a0a19ef2c45bce6c63087f03d7fe458e3f7e13f727a758709b23034ea2f"
     },
     {
       "path": "image/manifest.js",
@@ -2190,8 +2190,8 @@
     },
     {
       "path": "lab/profiles.js",
-      "byteLength": 3628,
-      "sha256": "sha256:c5d96f483dcec047555df11a55d44778e6d2d7727e03518b6613ee044a1195d9"
+      "byteLength": 3631,
+      "sha256": "sha256:a120caa3831b9212272d136d4277936588ebdf50c327963b7cd0516e6121f0e4"
     },
     {
       "path": "lab/runtime-ui.js",
@@ -3180,8 +3180,8 @@
     },
     {
       "path": "ui/boot-home/index.js",
-      "byteLength": 49908,
-      "sha256": "sha256:7b26351e9905e02e1cc94d0603cd44d100673309c1be887646cdc745aef939a0"
+      "byteLength": 49919,
+      "sha256": "sha256:855e70fb897dce329140dc794807dabc49d023f6a109c6f1b29232f8f8cd9cee"
     },
     {
       "path": "ui/boot-wizard/connection-tests.js",
@@ -3200,8 +3200,8 @@
     },
     {
       "path": "ui/boot-wizard/index.js",
-      "byteLength": 44385,
-      "sha256": "sha256:bac74cc42332e6434443a2a0c4762a9b16b4399c80976cb7acf74459d0e5d68e"
+      "byteLength": 44571,
+      "sha256": "sha256:68599fa05921a91910666b72be755590c4ce82325b5c9492b16a15aaa6561770"
     },
     {
       "path": "ui/boot-wizard/reploid-inference.js",
@@ -3220,8 +3220,8 @@
     },
     {
       "path": "ui/boot-wizard/steps/awaken.js",
-      "byteLength": 8744,
-      "sha256": "sha256:e529d55a3818b1af8f51334939b7ad33354f934e8face44179357744acdbd746"
+      "byteLength": 8775,
+      "sha256": "sha256:8d08ab94c20a072441024d9732cad8c78ffa7d7cb075371cd73a8fa34707fcef"
     },
     {
       "path": "ui/boot-wizard/steps/browser.js",
@@ -3345,8 +3345,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2202106,
-      "sha256": "sha256:f96e48b6799fcd7c509f63e1087820e8d4ec0218eb7d0562508840d8198c4b28"
+      "byteLength": 2202124,
+      "sha256": "sha256:7e9516c0ec5ffa19c65abd922d47d2e3a8558317dd774f515848c675f2c6e52e"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -3710,8 +3710,8 @@
     },
     {
       "path": "ui/zero-home/index.js",
-      "byteLength": 26778,
-      "sha256": "sha256:6c7b50e748e4687a59cbabd2bf3425d6d7d62656a7ecc4a0b1b286ccf4ad84e5"
+      "byteLength": 27911,
+      "sha256": "sha256:4221b089fa64744c05612dc18114a43ffa8b4b5455640f5a93f927c532a44c83"
     },
     {
       "path": "ui/zero/index.js",
@@ -10809,5 +10809,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:5efb6fc9ce10a93219aedd792cf11f603441fa8f3898c272c9dc7cebc95ec63f"
+  "bundleHash": "sha256:e0cc90338cb0b06fb69f508b6e31ec488ba1896632d8a252d21a271f6eb42040"
 }

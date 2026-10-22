@@ -4,7 +4,7 @@
     {
       "path": "boot-helpers/config.js",
       "owner": "boot-helpers",
-      "sha256": "sha256:779fd78517c7e21266ba7768a89c13a2a3529d0a1c1316661af5b098c2273494",
+      "sha256": "sha256:3db9b263945268e74c9ce969c07a4b78a61dec701c91a75dedd2c1ee6d4076cf",
       "imports": [
         "../config/boot-modes.js",
         "../config/lab-upgrades.js",
@@ -275,7 +275,7 @@
     {
       "path": "config/boot-modes.js",
       "owner": "config",
-      "sha256": "sha256:3b417f8e4f9deddb5db7178df7617da5011d4909a6105aa00f49c396d2b5b697",
+      "sha256": "sha256:3519335c0360e995bb0fc8a573c294d825fb83cd7f65f486c6033193ab4f69f0",
       "imports": [
         "./surface-intents.js"
       ]
@@ -283,7 +283,7 @@
     {
       "path": "config/boot-seed.js",
       "owner": "config",
-      "sha256": "sha256:489bbd1524641118256bc40ed19347af5e954fcc17debda81c13872fe73c2cfb",
+      "sha256": "sha256:9a1c45cd0454182267d25bf399007d9d62515b7ab9007d233b913b45b7dee6d5",
       "imports": [
         "./lab-upgrades.js",
         "./self-source-catalog.json",
@@ -335,7 +335,7 @@
     {
       "path": "config/lab-upgrades.js",
       "owner": "config",
-      "sha256": "sha256:1eb9095d773752131970e2f81fb8b854ee40686a480ab7216f29f4cac9234d0c",
+      "sha256": "sha256:ae6829db4169fece14334234bca85d70085c6f6fe839a674655a912831d13a31",
       "imports": [
         "../instance.js",
         "./self-source-manifest.json"
@@ -368,7 +368,7 @@
     {
       "path": "config/surface-intents.js",
       "owner": "config",
-      "sha256": "sha256:b10a35b5fe367a905a811ff156cd999608f751a139c65d5efb3f1b5d5c6ccad1",
+      "sha256": "sha256:47d19bc36cb98b59ba7420c028061aaff0397c93f4b1d8c5c076589ec1725e91",
       "imports": [
         "./immutability.js",
         "./surface-resources.js",
@@ -386,7 +386,7 @@
     {
       "path": "config/tool-surfaces.js",
       "owner": "config",
-      "sha256": "sha256:370c2a6859e129f1bf82b81a2b800e349fd7878b46f1c99080c33650f5558fd2",
+      "sha256": "sha256:4b62da06ea1d9f19619395c281b0b461fb4980efc7d66a07dd59c8435c7a79e3",
       "imports": []
     },
     {
@@ -572,7 +572,7 @@
     {
       "path": "core/schema-registry.js",
       "owner": "core",
-      "sha256": "sha256:95370066938db80bf4ca98fdd3e9b80e8e53bca0a0468e903c5d3d707eecb5c3",
+      "sha256": "sha256:4a60f3881af8c1f8e013889bd582260943cce5d810fa3947b6fd6d21da885723",
       "imports": [
         "../config/file-tool-schemas.json",
         "../config/tool-surfaces.js",
@@ -614,7 +614,7 @@
     {
       "path": "core/tool-runner.js",
       "owner": "core",
-      "sha256": "sha256:f573e6d31860124ba6de86976c10bafa2c70814b386cd267ae106a1fbeb91c0e",
+      "sha256": "sha256:cdd9a1c19c2defa321f8fa503f81863a754df060723d71840ba53fe53bebc476",
       "imports": [
         "../config/lab-upgrades.js",
         "../config/tool-surfaces.js",
@@ -712,7 +712,7 @@
     {
       "path": "core/zero-prompt.js",
       "owner": "core",
-      "sha256": "sha256:5aa92a71b34f2ee78062f5030dce125e563a23699d3b4632787496c19833ee7e",
+      "sha256": "sha256:740edcdd895aa08d46d92cbd80bff75cb0f0b56eef007a0221f8540a3ccfb8c1",
       "imports": [
         "../config/tool-surfaces.js"
       ]
@@ -952,7 +952,7 @@
     {
       "path": "lab/profiles.js",
       "owner": "lab",
-      "sha256": "sha256:c5d96f483dcec047555df11a55d44778e6d2d7727e03518b6613ee044a1195d9",
+      "sha256": "sha256:a120caa3831b9212272d136d4277936588ebdf50c327963b7cd0516e6121f0e4",
       "imports": [
         "../config/surface-intents.js",
         "../config/tool-surfaces.js",
@@ -2471,7 +2471,7 @@
     {
       "path": "self/host/seed-vfs.js",
       "owner": "self",
-      "sha256": "sha256:b37c7e8ad6ecd39b98f7ebf0ba80f72ca3d5c507e3908d985af71e84076f9d7d",
+      "sha256": "sha256:7635793ca8e388ca66c34ff018b1e50448da6f64392e978ab8b033447482f969",
       "imports": [
         "../boot-spec.js",
         "../config/boot-seed.js",
@@ -2490,7 +2490,7 @@
     {
       "path": "self/host/start-app.js",
       "owner": "self",
-      "sha256": "sha256:740ea88017cab5c586c34dfcd7045161a5d890c0dd0b9ca433b33ba3b5aa6c4a",
+      "sha256": "sha256:8236dfaba69b9a90d66842bff2b50842d27f501f4a7468480c98ee0b00a879d7",
       "imports": [
         "../boot-spec.js",
         "../config/doppler-local-models.js",
@@ -2784,7 +2784,7 @@
     {
       "path": "self/image/export.js",
       "owner": "self",
-      "sha256": "sha256:4b33044a130ecd85048979733fd2add23939b7318df1fe461ed1fe4d3ce32418",
+      "sha256": "sha256:a0c94a0a19ef2c45bce6c63087f03d7fe458e3f7e13f727a758709b23034ea2f",
       "imports": [
         "../boot-spec.js",
         "./manifest.js"
@@ -3164,7 +3164,7 @@
     {
       "path": "ui/boot-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:7b26351e9905e02e1cc94d0603cd44d100673309c1be887646cdc745aef939a0",
+      "sha256": "sha256:855e70fb897dce329140dc794807dabc49d023f6a109c6f1b29232f8f8cd9cee",
       "imports": [
         "../../boot-helpers/vfs-bootstrap.js",
         "../../config/boot-seed.js",
@@ -3222,12 +3222,13 @@
     {
       "path": "ui/boot-wizard/index.js",
       "owner": "ui",
-      "sha256": "sha256:bac74cc42332e6434443a2a0c4762a9b16b4399c80976cb7acf74459d0e5d68e",
+      "sha256": "sha256:68599fa05921a91910666b72be755590c4ce82325b5c9492b16a15aaa6561770",
       "imports": [
         "../../boot-helpers/vfs-bootstrap.js",
         "../../config/boot-modes.js",
         "../../config/boot-seed.js",
         "../../config/doppler-local-models.js",
+        "../../config/lab-upgrades.js",
         "../../config/module-resolution.js",
         "../../config/reploid-environments.js",
         "../../config/zero-inference.js",
@@ -3282,7 +3283,7 @@
     {
       "path": "ui/boot-wizard/steps/awaken.js",
       "owner": "ui",
-      "sha256": "sha256:e529d55a3818b1af8f51334939b7ad33354f934e8face44179357744acdbd746",
+      "sha256": "sha256:8d08ab94c20a072441024d9732cad8c78ffa7d7cb075371cd73a8fa34707fcef",
       "imports": [
         "../../../config/boot-modes.js",
         "../../../config/module-resolution.js"
@@ -3456,7 +3457,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:f96e48b6799fcd7c509f63e1087820e8d4ec0218eb7d0562508840d8198c4b28",
+      "sha256": "sha256:7e9516c0ec5ffa19c65abd922d47d2e3a8558317dd774f515848c675f2c6e52e",
       "imports": []
     },
     {
@@ -4162,7 +4163,7 @@
     {
       "path": "ui/zero-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:6c7b50e748e4687a59cbabd2bf3425d6d7d62656a7ecc4a0b1b286ccf4ad84e5",
+      "sha256": "sha256:4221b089fa64744c05612dc18114a43ffa8b4b5455640f5a93f927c532a44c83",
       "imports": [
         "../../boot-helpers/vfs-bootstrap.js",
         "../../config/boot-seed.js",

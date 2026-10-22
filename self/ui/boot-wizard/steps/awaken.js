@@ -115,7 +115,7 @@ export function renderAwakenStep(state) {
               <span class="type-label">Internal foundation</span>
               <span class="advanced-pill">${genesisLevel}</span>
             </div>
-            <span class="type-caption">Reploid maps to the capsule-shell foundation, Zero maps to spark, and X maps to full. Keep overrides for compatibility tests and custom boots.</span>
+            <span class="type-caption">Reploid maps to the capsule-shell foundation. Zero and X start at spark; only an explicit X selection adds upgrades. Keep overrides for compatibility tests and custom boots.</span>
           </div>
 
           <div class="advanced-setting">

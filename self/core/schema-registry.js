@@ -64,7 +64,7 @@ const SchemaRegistry = {
         }
       },
       WriteFile: {
-        description: 'Mutating. Write text or binary content to VFS/OPFS. Stage candidates under /shadow and evidence under /artifacts. JSON object content is serialized as JSON text. Use CreateTool for new Zero runtime tools; broader surfaces use Promote for evidence-gated /self changes.',
+        description: 'Mutating. Write text or binary content to VFS/OPFS. Stage candidates under /shadow and evidence under /artifacts. JSON object content is serialized as JSON text. Use CreateTool for new Zero/X runtime tools; broader surfaces use Promote for evidence-gated /self changes.',
         readOnly: false,
         parameters: structuredClone(fileToolSchemas.WriteFile)
       },
@@ -114,7 +114,7 @@ const SchemaRegistry = {
         }
       },
       CreateTool: {
-        description: 'Mutating. Create a CamelCase runtime tool from module source in code, or from structured description, activation, inputSchema, capabilities, and call fields. In Zero the exported tool.activation contract must contain fixture-backed checks with name, args, and expected fields. CreateTool executes the checks, re-imports and replays them in a fresh harness, requires matching transcripts, installs to /self/tools, loads the tool, and writes hash-bound evidence derived from those outcomes. Created tools that need substrate mutation declare capabilities such as vfs:write and tool:load in exported tool metadata.',
+        description: 'Mutating. Create a CamelCase runtime tool from module source in code, or from structured description, activation, inputSchema, capabilities, and call fields. In minimal Zero/X seeds the exported tool.activation contract must contain fixture-backed checks with name, args, and expected fields. CreateTool executes the checks, re-imports and replays them in a fresh harness, requires matching transcripts, installs to /self/tools, loads the tool, and writes hash-bound evidence derived from those outcomes. Created tools that need substrate mutation declare capabilities such as vfs:write and tool:load in exported tool metadata.',
         readOnly: false,
         parameters: {
           type: 'object',
@@ -128,7 +128,7 @@ const SchemaRegistry = {
             capabilities: { type: 'array', items: { type: 'string' }, description: 'Structured-source alternative: declared tool capabilities.' },
             call: { type: 'string', description: 'Structured-source alternative: async JavaScript function expression.' },
             root: { type: 'string', description: 'Optional staging root. Must be under /shadow/tools.' },
-            activate: { type: 'boolean', description: 'Zero only: set false to stage without installing and loading.' }
+            activate: { type: 'boolean', description: 'Minimal Zero/X seeds: set false to stage without installing and loading.' }
           }
         }
       },

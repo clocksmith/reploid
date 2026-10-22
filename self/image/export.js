@@ -52,6 +52,12 @@ export const validateSourceManifest = (value) => {
       || value.prerequisites.some((entry) => typeof entry !== 'string')))) {
     throw new Error('Invalid self-source manifest: aligned files and seedFiles are required');
   }
+  if (hasOwn(value, 'surface') && value.surface !== 'zero' && value.surface !== 'x') {
+    throw new Error('Invalid self-source surface: expected zero or x');
+  }
+  if (value.surface === 'zero' && value.level !== 'spark') {
+    throw new Error('Invalid self-source surface: Zero requires the spark level');
+  }
   const manifest = JSON.parse(JSON.stringify(value));
   const paths = new Set();
   const seedPaths = new Set();
@@ -166,7 +172,7 @@ export async function validateSelfImageExport(image) {
   }
   const sourceCatalog = readSourceCatalog(checked.files[SOURCE_CATALOG_IMAGE_PATH], sourceManifest);
   const selected = validateSourceManifest(sourceCatalog.profiles[sourceManifest.level]);
-  const descriptorKeys = ['schema', 'version', 'level', 'files', 'seedFiles', 'prerequisites'];
+  const descriptorKeys = ['schema', 'version', 'surface', 'level', 'files', 'seedFiles', 'prerequisites'];
   if (descriptorKeys.some((key) => JSON.stringify(selected[key]) !== JSON.stringify(sourceManifest[key]))) {
     throw new Error('Self-image catalog profile does not match the declared seed closure');
   }
@@ -178,7 +184,9 @@ export async function materializeSelfImage(image) {
   const files = Object.fromEntries(Object.entries(sourceFiles).map(([path, content]) => [path.slice('/self'.length), content]));
   const html = sourceFiles['/self/kernel/index.html'];
   // Enter the image's surface before the kernel reads the route, without copying browser state.
-  const route = sourceManifest.level === 'spark' ? '/x' : '/zero';
+  // Fieldless historical images retain their original level-to-route mapping.
+  const surface = sourceManifest.surface ?? (sourceManifest.level === 'spark' ? 'x' : 'zero');
+  const route = `/${surface}`;
   const routeWrapper = `<script>if (location.pathname === '/' || location.pathname === '/index.html') history.replaceState(null, '', '${route}' + location.search + location.hash);</script>`;
   if (!/<head(?:\s[^>]*)?>/i.test(html)) throw new Error('Kernel HTML is missing its head element');
   files['/index.html'] = html.replace(/<head(?:\s[^>]*)?>/i, (head) => `${head}\n    ${routeWrapper}`);
@@ -195,7 +203,7 @@ export async function materializeSelfImage(image) {
 
 export const tool = {
   name: 'ExportSelfImage',
-  description: 'Exports the declared source-only X image with verified hashes. Hosting and provider access remain separate prerequisites.',
+  description: 'Exports the declared source-only Zero/X image with verified hashes. Hosting and provider access remain separate prerequisites.',
   inputSchema: {
     type: 'object',
     properties: {

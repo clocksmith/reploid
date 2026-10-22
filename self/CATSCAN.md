@@ -28,7 +28,7 @@ Outputs:
 ## Invariants
 - A route must resolve to one declared surface and authority profile.
 - Recovery state and mutable state remain distinguishable.
-- X bootstraps from its minimal self-source; Zero adds only operator-selected upgrades. Existing instance work is preserved.
+- Zero bootstraps from its minimal self-source; X adds only operator-selected upgrades. Existing instances retain their owned source and work.
 - Browser-local claims remain bounded by verifiable records.
 
 ## Acceptance

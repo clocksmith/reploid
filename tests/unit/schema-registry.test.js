@@ -57,7 +57,7 @@ describe('SchemaRegistry', () => {
 
     expect(registry.getToolSchema('ReadFile').description).toContain('Batch with up to 8 independent read-only calls');
     expect(registry.getToolSchema('WriteFile').description).toContain('Stage candidates under /shadow');
-    expect(registry.getToolSchema('WriteFile').description).toContain('Use CreateTool for new Zero runtime tools');
+    expect(registry.getToolSchema('WriteFile').description).toContain('Use CreateTool for new Zero/X runtime tools');
     expect(registry.getToolSchema('WriteFile').description).not.toContain('ProposeSelfPatch');
     expect(registry.getToolSchema('WriteFile').description).toContain('JSON object content is serialized as JSON text');
     expect(registry.getToolSchema('Promote').description).toContain('replayPassed: true');

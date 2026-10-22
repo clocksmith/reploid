@@ -59,7 +59,9 @@ export function getDefaultGenesisLevelForMode(mode) {
   return getBootModeConfig(mode).genesisLevel;
 }
 
-export function inferBootModeFromGenesis(genesisLevel, fallback = DEFAULT_BOOT_MODE) {
+// Level-only preferences predate the corrected surface roles. Keep their mode
+// identity stable. Only a new user selection opts into the corrected roles.
+export function inferBootModeFromGenesis(genesisLevel, fallback = DEFAULT_BOOT_MODE, { explicitSelection = false } = {}) {
   const normalizedFallback = normalizeBootMode(fallback);
   if (BOOT_MODES[normalizedFallback]?.genesisLevel === genesisLevel) {
     return normalizedFallback;
@@ -70,12 +72,12 @@ export function inferBootModeFromGenesis(genesisLevel, fallback = DEFAULT_BOOT_M
     case 'tabula':
       return 'reploid';
     case 'spark':
-      return 'x';
+      return explicitSelection ? 'zero' : 'x';
     case 'reflection':
     case 'cognition':
     case 'substrate':
     case 'full':
-      return 'zero';
+      return explicitSelection ? 'x' : 'zero';
     default:
       return normalizedFallback;
   }

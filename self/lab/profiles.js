@@ -1,7 +1,7 @@
 /**
  * @fileoverview Canonical /zero and /x lab profile registry.
  *
- * Zero is defined as X plus explicitly selected optional upgrades. The boot substrate,
+ * X is defined as Zero plus explicitly selected optional upgrades. The boot substrate,
  * VFS, /self runtime semantics, promotion model, and tool contracts are shared.
  */
 
@@ -49,7 +49,7 @@ const makeBootSpec = (profile) => Object.freeze({
 const resolvedProfile = intent => defineLabProfile({
   ...intent,
   ...intentProfileFields(intent),
-  forbiddenTools: intent.id === 'x' ? ZERO_FORBIDDEN_TOOLS : []
+  forbiddenTools: intent.id === 'zero' ? ZERO_FORBIDDEN_TOOLS : []
 });
 export const ZERO_LAB_PROFILE = resolvedProfile(ZERO_INTENT);
 export const X_LAB_PROFILE = resolvedProfile(X_INTENT);

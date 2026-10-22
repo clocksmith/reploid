@@ -113,9 +113,9 @@ const ROUTE_HOME_CONFIG = Object.freeze({
   },
   x: {
     providerMode: 'choice',
-    providerCaption: 'Pick where reasoning runs before loading the prebuilt RSI surface.',
+    providerCaption: 'Choose inference before awakening X with its selected source.',
     goalTitle: 'Set the first objective',
-    goalCaption: 'Set the first goal the mature substrate should pursue.',
+    goalCaption: 'Set the first objective. Optional upgrades require explicit selection.',
     awakenCaption: 'Awaken X with the selected inference path and first goal.',
     hideBootInternals: true,
     goalActionMode: 'generate-only',

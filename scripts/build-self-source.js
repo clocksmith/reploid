@@ -67,7 +67,7 @@ async function build() {
   const catalog = { schema: 'reploid/self-source-catalog/v1', version: 1, profiles: {} };
   for (const level of levels) {
     const modules = resolveBaseModules(level, genesis).filter(id => level !== 'spark' || id !== 'ErrorStore');
-    const tools = getToolNamesForMode(level === 'spark' ? 'x' : 'zero', { upgradeLevel: level });
+    const tools = getToolNamesForMode(level === 'spark' ? 'zero' : 'x', { upgradeLevel: level });
     const files = await collectSelfSource([
       ...baseEntries, ...modules.flatMap(id => genesis.moduleFiles[id]), ...tools.map(name => `tools/${name}.js`)
     ]);
