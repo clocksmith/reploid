@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 const source = readFileSync(new URL('../../self/host/sw-module-loader.js', import.meta.url), 'utf8');
 const origin = 'https://reploid.test';
 
-function createLoader(files = {}) {
+function createLoader(files = {}, surface = 'zero') {
   const handlers = new Map();
   const read = vi.fn(async (path) => files[path] ?? null);
   const context = vm.createContext({
@@ -17,7 +17,7 @@ function createLoader(files = {}) {
     self: {
       location: { origin },
       addEventListener: (name, handler) => handlers.set(name, handler),
-      clients: { get: async () => ({ url: `${origin}/zero?instance=test` }) }
+      clients: { get: async () => ({ url: `${origin}/${surface}?instance=test` }) }
     }
   });
   vm.runInContext(source, context);
@@ -27,7 +27,7 @@ function createLoader(files = {}) {
     async request(path) {
       let response = null;
       handlers.get('fetch')({
-        request: new Request(new URL(path, origin), { referrer: `${origin}/zero?instance=test` }),
+        request: new Request(new URL(path, origin), { referrer: `${origin}/${surface}?instance=test` }),
         clientId: 'client',
         respondWith: (value) => { response = Promise.resolve(value); }
       });
@@ -37,6 +37,24 @@ function createLoader(files = {}) {
 }
 
 describe('lazy installed-library boot boundary', () => {
+  it.each(['x', 'zero'])('loads the shared startup helper from the trusted host on %s', async surface => {
+    const loader = createLoader({ '/self/host/reploid-launch.js': 'mutable VFS copy' }, surface);
+    expect(await loader.request('/host/reploid-launch.js')).toBeNull();
+    expect(loader.read).not.toHaveBeenCalled();
+    const undeclared = await loader.request('/host/undeclared.js');
+    expect(undeclared.status).toBe(404);
+    expect(undeclared.headers.get('x-vfs-miss')).toBe('true');
+  });
+
+  it.each(['x', 'zero'])('loads the declared file-tool dependency from its host source on %s', async surface => {
+    const loader = createLoader({}, surface);
+    const response = await loader.request('/host/file-access.js');
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe('export const loaded = true;');
+    const existing = createLoader({ '/host/file-access.js': 'export const fromVfs = true;' }, surface);
+    expect(await (await existing.request('/host/file-access.js')).text()).toBe('export const fromVfs = true;');
+  });
+
   it('redirects mirrored package imports without reading mutable VFS copies', async () => {
     const loader = createLoader({ '/self/vendor/reploid/index.js': 'untrusted override' });
     const response = await loader.request('/self/vendor/reploid/index.js?instance=test&v=release');

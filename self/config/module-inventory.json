@@ -2482,7 +2482,7 @@
     {
       "path": "self/host/sw-module-loader.js",
       "owner": "self",
-      "sha256": "sha256:9a844989f0f2da99a35b3d4246ab921f2272c74362aee265293a65fd856cc0f0",
+      "sha256": "sha256:20b4280f0fa6ce4d5ccbc80303ed6b6ed44e0ba6a20c3811d953bcb2153ca6c4",
       "imports": []
     },
     {

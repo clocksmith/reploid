@@ -1361,7 +1361,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 576839,
-      "sha256": "sha256:9d5600823148525e98e4be06822926d182258896786426bd8e65f9b7d0483046"
+      "sha256": "sha256:ec88e34d4b8a9a3339fabd657f3d39ff2223942aa1c783756f756d326464ae4d"
     },
     {
       "path": "config/module-registry.json",
@@ -1885,8 +1885,8 @@
     },
     {
       "path": "host/sw-module-loader.js",
-      "byteLength": 20480,
-      "sha256": "sha256:9a844989f0f2da99a35b3d4246ab921f2272c74362aee265293a65fd856cc0f0"
+      "byteLength": 20535,
+      "sha256": "sha256:20b4280f0fa6ce4d5ccbc80303ed6b6ed44e0ba6a20c3811d953bcb2153ca6c4"
     },
     {
       "path": "host/swarm-autoconnect.js",
@@ -10774,5 +10774,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:ac5cf4116e8ea27d3b9ba0dad399ba0b29eedac11a4b97a226e1be761c28ee96"
+  "bundleHash": "sha256:67d963d7f84f3a7aa36449cb465d954f07a926199d9255c285a2321ad5093f1c"
 }

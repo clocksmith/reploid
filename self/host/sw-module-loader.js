@@ -55,6 +55,7 @@ const SELF_BOOTSTRAP_PATHS = new Set([
   '/core/utils.js',
   '/entry/start-app.js',
   '/host/seed-vfs.js',
+  '/host/reploid-launch.js',
   '/host/start-app.js',
   '/host/start-reploid.js',
   '/host/vfs-bootstrap.js',
@@ -62,6 +63,7 @@ const SELF_BOOTSTRAP_PATHS = new Set([
   '/sw.js'
 ]);
 const NETWORK_FALLBACK_PATHS = new Set([
+  '/host/file-access.js',
   '/capsule/index.js',
   '/cloud-access.js',
   '/cloud-access-status.js',
