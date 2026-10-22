@@ -3,11 +3,122 @@
  * Unified append-only event log for audit, performance, and agent state changes.
  */
 
+import { RUN_TRACE_SCHEMA, RUN_TRACE_LIMITS, sanitizeRunTraceValue, validateRunTrace } from '../core/run-replay-bundle.js';
+
+export const SAVED_TRACE_ROOT = '/.logs/recordings';
+export const MAX_SAVED_TRACES = 8;
+const savedTracePath = path => typeof path === 'string' && /^\/\.logs\/recordings\/[a-z0-9-]+\.json$/.test(path);
+export async function listSavedRunTraces(VFS) {
+  if (!VFS?.list) return [];
+  const paths = await VFS.list(SAVED_TRACE_ROOT);
+  return paths.filter(savedTracePath).sort().reverse().slice(0, MAX_SAVED_TRACES);
+}
+export async function readSavedRunTrace(VFS, path) {
+  if (!savedTracePath(path)) throw new Error('Invalid saved recording path.');
+  return validateRunTrace(await VFS.read(path));
+}
+
+// The minimal shell persists bounded recordings through its existing per-instance VFS.
+// Records an ordered prefix; a full recorder never silently evicts earlier evidence.
+export function createRunTraceRecorder({ now = Date.now, VFS = null, onPersistenceError = () => {},
+  withLock = action => {
+    if (!globalThis.navigator?.locks?.request) throw new Error('Safe browser storage locking is unavailable. Export this run before leaving.');
+    return globalThis.navigator.locks.request('reploid:recordings:write', action);
+  },
+  makeId = () => globalThis.crypto?.randomUUID?.() || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}` } = {}) {
+  let trace;
+  let session;
+  let bytes = 0;
+  let timer = null;
+  let saving = Promise.resolve();
+  const pending = new Set();
+  const savePending = async () => {
+    for (const item of [...pending]) {
+      pending.delete(item);
+      if (!item.trace.events.length || item.blocked) continue;
+      try {
+        if (!VFS?.write || !VFS?.list || !VFS?.read) throw new Error('Persistent VFS unavailable. Export this in-memory recording before leaving.');
+        await withLock(async () => {
+          if (!item.path) {
+            const paths = await VFS.list(SAVED_TRACE_ROOT);
+            if (paths.filter(savedTracePath).length >= MAX_SAVED_TRACES) throw new Error('Saved recording limit reached. Existing recordings are preserved; export this run before leaving.');
+            const path = `${SAVED_TRACE_ROOT}/${Math.trunc(item.trace.startedAt)}-${makeId()}.json`;
+            if (!savedTracePath(path) || paths.includes(path)) throw new Error('Recording identity collision; existing recording was not overwritten.');
+            item.path = path;
+          } else if (item.savedText !== null && await VFS.read(item.path) !== item.savedText) {
+            throw new Error('Saved recording changed externally; it was not overwritten. Export the current in-memory run.');
+          }
+          const text = JSON.stringify(validateRunTrace(item.trace));
+          await VFS.write(item.path, text);
+          item.savedText = text;
+          item.error = null;
+        });
+      } catch (error) {
+        item.error = error.message;
+        item.blocked = true;
+        try { onPersistenceError(error.message); } catch { /* Persistence cannot fail the live run. */ }
+      }
+    }
+  };
+  const flush = () => {
+    if (timer !== null) clearTimeout(timer);
+    timer = null;
+    saving = saving.then(savePending);
+    return saving;
+  };
+  const scheduleSave = () => {
+    pending.add(session);
+    if (timer === null) timer = setTimeout(() => { void flush(); }, 250);
+  };
+  const reset = (provenance = {}) => {
+    trace = { schema: RUN_TRACE_SCHEMA, startedAt: now(), provenance: sanitizeRunTraceValue(provenance),
+      droppedEvents: 0, events: [] };
+    session = { trace, path: null, savedText: null, error: null, blocked: false };
+    bytes = new TextEncoder().encode(JSON.stringify(trace)).length;
+  };
+  const record = (type, data) => {
+    if (trace.droppedEvents) { trace.droppedEvents++; scheduleSave(); return; }
+    try {
+      const event = { seq: trace.events.length, ts: Math.max(now(), trace.events.at(-1)?.ts || trace.startedAt),
+        type, data: sanitizeRunTraceValue(data) };
+      const size = new TextEncoder().encode(JSON.stringify(event)).length;
+      if (trace.events.length >= RUN_TRACE_LIMITS.events || size > RUN_TRACE_LIMITS.eventBytes
+          || event.ts - trace.startedAt > RUN_TRACE_LIMITS.durationMs
+          || bytes + size > RUN_TRACE_LIMITS.bytes - 65536) { trace.droppedEvents++; scheduleSave(); return; }
+      trace.events.push(event);
+      bytes += size + 1;
+    } catch { trace.droppedEvents++; }
+    scheduleSave();
+  };
+  const recordEvent = (type, data = {}) => {
+    if (type === 'agent:history' && data.type === 'llm_response') {
+      record('model_text', { content: data.content || '', cycle: data.cycle ?? null,
+        model: data.model ?? data.modelUsed?.id ?? null, provider: data.provider ?? data.modelUsed?.provider ?? null,
+        revision: data.modelUsed?.revision ?? null });
+    } else if (type === 'agent:history' && data.type === 'tool_result') {
+      // The loop also observes calls rejected before the executor (policy, parsing,
+      // cooldown). Keep that evidence distinct from recorded execution attempts.
+      record('tool_observation', { tool: data.tool || '', args: data.args || {}, result: data.result,
+        cycle: data.cycle ?? null, model: data.model ?? null, provider: data.provider ?? null });
+    } else if (type === 'agent:status') {
+      record('status', { state: data.state || '', activity: data.activity || '', cycle: data.cycle ?? null });
+    } else if (type === 'agent:error' || type === 'agent:warning') {
+      record('error', { message: data.error || data.reason || data.message || '', cycle: data.cycle ?? null });
+    }
+  };
+  reset();
+  return { reset, record, recordEvent, flush, snapshot: () => validateRunTrace(trace),
+    getPersistenceStatus: () => ({ path: session.path, error: session.error,
+      saved: session.savedText !== null, pending: pending.has(session) }),
+    close: async () => { await flush(); }
+  };
+}
+
 const TelemetryTimeline = {
   metadata: {
     id: 'TelemetryTimeline',
     version: '1.0.0',
-    genesis: { introduced: 'spark' },
+    genesis: { introduced: 'reflection' },
     dependencies: ['Utils', 'VFS', 'EventBus?'],
     async: true,
     type: 'infrastructure'

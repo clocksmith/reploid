@@ -7,7 +7,7 @@ const DopplerToolbox = {
   metadata: {
     id: 'DopplerToolbox',
     version: '1.0.0',
-    genesis: { introduced: 'spark' },
+    genesis: { introduced: 'reflection' },
     dependencies: ['Utils', 'ProviderRegistry'],
     type: 'service'
   },

@@ -1,20 +1,22 @@
 /**
- * @fileoverview Minimal runtime shell for Zero modes.
+ * @fileoverview Compact runtime shell for X and Zero.
  */
 
 import { getCurrentReploidStorage as getReploidStorage } from '../../instance.js';
-import { formatRunReplayFilename } from '../../core/run-replay-bundle.js';
+import { createRunReplayPanel } from './replay-panel.js';
+import { exportSelfImage } from '../../image/export.js';
 import { createZeroTraceView } from './trace-view.js';
 
 const ZeroUI = {
   factory: (deps) => {
-    const { Utils, EventBus, AgentLoop, StateManager, mode } = deps;
+    const { Utils, EventBus, AgentLoop, StateManager, VFS, HITLController, initialGoal, mode } = deps;
     const { escapeHtml, trunc, logger } = Utils;
 
     const MAX_HISTORY_ENTRIES = 80;
     const traceView = createZeroTraceView({ escapeHtml, trunc });
     let _root = null;
     let _history = [];
+    let _conversation = [];
     let _subscriptions = [];
     let _status = {
       state: 'IDLE',
@@ -30,17 +32,7 @@ const ZeroUI = {
       error: 0
     };
     let _models = [];
-    let _epoch = {
-      active: false,
-      startCycle: 0,
-      targetBudget: 10,
-      completedCycles: 0
-    };
-    const SYNTHETIC_GOAL_PRESETS = Object.freeze({
-      'l1-tool': 'Synthesize and verify an AST code transformer tool in self/tools/',
-      'l2-repair': 'Inspect failing tests in tests/unit and patch runtime modules in VFS',
-      'l3-rsi': 'Run a bounded GEPA mutation episode with paired evaluation and hypothesis reflection'
-    });
+    const _approvals = new Map();
     const getModeLabel = () => {
       if (mode === 'reploid') return 'Reploid';
       if (mode === 'zero') return 'Zero';
@@ -86,9 +78,26 @@ const ZeroUI = {
       };
     };
 
+    const isConversationEntry = (entry) => ['decision', 'human'].includes(entry.kind)
+      || (entry.kind === 'request' && entry.title === 'User note');
+
+    const rememberConversation = (entry) => {
+      if (!isConversationEntry(entry)) return;
+      const index = entry.key ? _conversation.findIndex(item => item.key === entry.key) : -1;
+      if (index >= 0) _conversation[index] = { ..._conversation[index], ...entry };
+      else _conversation.unshift(entry);
+      _conversation = _conversation.slice(0, MAX_HISTORY_ENTRIES);
+    };
+
+    const getTraceHistory = () => {
+      const keys = new Set(_history.map(entry => entry.key));
+      return [..._history, ..._conversation.filter(entry => !keys.has(entry.key))];
+    };
+
     const pushHistory = (entry) => {
       if (!entry) return;
       const next = traceView.withHistoryKey(entry);
+      rememberConversation(next);
       const existingIndex = next.key
         ? _history.findIndex((item) => item.key === next.key)
         : -1;
@@ -103,7 +112,7 @@ const ZeroUI = {
       if (_history.length > MAX_HISTORY_ENTRIES) {
         _history = _history.slice(0, MAX_HISTORY_ENTRIES);
       }
-      traceView.pruneExpandedTraceKeys(_history);
+      traceView.pruneExpandedTraceKeys(getTraceHistory());
       renderHistory();
     };
 
@@ -123,7 +132,8 @@ const ZeroUI = {
       if (_history.length > MAX_HISTORY_ENTRIES) {
         _history = _history.slice(0, MAX_HISTORY_ENTRIES);
       }
-      traceView.pruneExpandedTraceKeys(_history);
+      rememberConversation(_history.find(item => item.key === key));
+      traceView.pruneExpandedTraceKeys(getTraceHistory());
       renderHistory();
     };
 
@@ -141,7 +151,7 @@ const ZeroUI = {
           return {
             kind: 'request',
             title: 'User note',
-            body: traceView.summarize(entry.content, 220),
+            body: String(entry.content || ''),
             meta: [entry.cycle ? `Cycle ${entry.cycle}` : '', entry.messageType === 'goal' ? 'Goal note' : 'Human note'].filter(Boolean).join(' | ')
           };
         case 'provider_context_envelope':
@@ -174,7 +184,7 @@ const ZeroUI = {
           return {
             kind: 'request',
             title: 'User note',
-            body: traceView.summarize(entry.content, 220),
+            body: String(entry.content || ''),
             meta: [entry.cycle ? `Cycle ${entry.cycle}` : '', entry.messageType === 'goal' ? 'Goal note' : 'Human note'].filter(Boolean).join(' | ')
           };
         case 'provider_context_envelope':
@@ -206,7 +216,10 @@ const ZeroUI = {
       const toolRateEl = _root.querySelector('#agent-tool-rate');
       const stopBtn = _root.querySelector('#btn-toggle');
 
-      if (stateEl) stateEl.textContent = traceView.formatAgentState(_status.state);
+      if (stateEl) {
+        stateEl.textContent = traceView.formatAgentState(_status.state);
+        stateEl.dataset.agentState = String(_status.state || 'IDLE').toUpperCase();
+      }
       if (activityEl) activityEl.textContent = _status.activity || 'Awaiting goal';
       if (cycleEl) cycleEl.textContent = String(_status.cycle || 0);
       if (tokenEl) {
@@ -215,7 +228,8 @@ const ZeroUI = {
           : String(_tokens.used || 0);
       }
       if (modelEl) {
-        const names = _models.map((item) => item.name || item.id).filter(Boolean);
+        const names = _models.map((item) => item.provider === 'external' || item.id === 'external-brain'
+          ? 'Connected agent' : item.name || item.id).filter(Boolean);
         modelEl.textContent = names.join(', ') || '-';
       }
       if (toolEl) {
@@ -224,14 +238,6 @@ const ZeroUI = {
       }
       if (toolRateEl) {
         toolRateEl.textContent = formatToolErrorRate();
-      }
-      const epochEl = _root.querySelector('#zero-epoch-status');
-      if (epochEl) {
-        if (_epoch.active) {
-          epochEl.textContent = `Epoch: ${_epoch.completedCycles} / ${_epoch.targetBudget} cycles`;
-        } else {
-          epochEl.textContent = 'Epoch: idle';
-        }
       }
       if (stopBtn) {
         const pendingResume = AgentLoop.hasPendingProviderResume?.() || _status.autoResume;
@@ -244,7 +250,27 @@ const ZeroUI = {
 
     const renderHistory = () => {
       if (!_root) return;
-      traceView.renderHistory(_root, _history);
+      traceView.renderHistory(_root, getTraceHistory());
+      const conversation = _root.querySelector('#zero-conversation');
+      if (conversation) {
+        const entries = _conversation.slice().reverse();
+        conversation.innerHTML = entries.map(entry => {
+          const raw = String(entry.body || '');
+          const technicalResponse = entry.kind === 'decision'
+            && /^\s*(?:REPLOID\/\d+(?:\s|$)|TOOL(?:_CALL)?:\s*[A-Za-z0-9_]+(?:\s|$))/m.test(raw);
+          const prose = technicalResponse
+            ? 'Technical response. Details in Inspect.'
+            : entry.kind === 'decision'
+              ? raw.replace(/```[\s\S]*?(?:```|$)/g, '[Code in Inspect]')
+              : raw;
+          return `<article class="zero-message"><span class="zero-label">${entry.kind === 'decision' ? escapeHtml(getModeLabel()) : 'You'}</span><p>${escapeHtml(prose)}</p></article>`;
+        }).join('') || '<p class="zero-label">Ready for the next response.</p>';
+      }
+      const notices = _root.querySelector('#zero-notices');
+      if (notices) notices.innerHTML = _history.filter(entry => ['error', 'warning'].includes(entry.kind))
+        .slice(0, 3).map(entry => `<p class="zero-notice" role="alert">${escapeHtml(entry.title || 'Error')}: ${escapeHtml(entry.body || '')}</p>`).join('');
+      const approvals = _root.querySelector('#zero-approvals');
+      if (approvals) approvals.innerHTML = [..._approvals.values()].map(item => `<section class="zero-approval" role="alert"><strong>Approval required: ${escapeHtml(item.action || item.capability || 'Operation')}</strong><pre>${escapeHtml(JSON.stringify(item.data || {}, null, 2))}</pre><button class="btn" data-zero-approval="${escapeHtml(item.id)}" data-zero-action="approve">Approve</button><button class="btn" data-zero-approval="${escapeHtml(item.id)}" data-zero-action="reject">Reject</button></section>`).join('');
     };
 
     const syncFromState = () => {
@@ -269,15 +295,15 @@ const ZeroUI = {
       pushHistory({
         kind: 'human',
         title: messageType === 'goal' ? 'Goal note' : 'Human note',
-        body: traceView.summarize(content, 220),
+        body: content,
         meta: 'Queued'
       });
 
       input.value = '';
     };
 
-    const downloadJson = (payload, filename) => {
-      const text = JSON.stringify(payload, null, 2);
+    const downloadJson = (payload, filename, { compact = false } = {}) => {
+      const text = JSON.stringify(payload, null, compact ? 0 : 2);
       const blob = new Blob([text], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -290,6 +316,8 @@ const ZeroUI = {
       URL.revokeObjectURL(url);
     };
 
+    const replayPanel = createRunReplayPanel({ escapeHtml, downloadJson, VFS });
+
     const exportRunJson = async () => {
       try {
         const bundle = await AgentLoop.exportReplayBundle?.({
@@ -299,14 +327,7 @@ const ZeroUI = {
         if (!bundle) {
           throw new Error('AgentLoop does not expose a replay export.');
         }
-        downloadJson(bundle, formatRunReplayFilename(bundle));
-        pushHistory(traceView.appendStatus({
-          kind: 'run_replay_export',
-          type: 'run_replay_export',
-          content: `Exported ${bundle.metadata?.cycleCount || 0} cycle(s), ${bundle.metadata?.activityCount || 0} trace event(s), and ${bundle.metadata?.fileCount || 0} replay file(s).`
-        }, {
-          label: 'Run JSON exported'
-        }));
+        replayPanel.preview(bundle);
       } catch (err) {
         logger.error('[ZeroUI] Run JSON export failed', err?.message || err);
         pushHistory(traceView.appendStatus({
@@ -319,25 +340,27 @@ const ZeroUI = {
       }
     };
 
-    const handleClick = (event) => {
-      const presetKey = event.target.closest('[data-zero-preset]')?.dataset.zeroPreset;
-      if (presetKey && SYNTHETIC_GOAL_PRESETS[presetKey]) {
-        event.preventDefault();
-        const input = _root?.querySelector('#zero-human-input');
-        if (input) {
-          input.value = SYNTHETIC_GOAL_PRESETS[presetKey];
-          input.focus();
-        }
-        return;
+    const exportSource = async () => {
+      try {
+        if (!VFS?.read || !VFS?.list) throw new Error('Source VFS is unavailable');
+        const image = await exportSelfImage({ includeTools: true }, {
+          VFS, readFile: async ({ path }) => ({ content: await VFS.read(path) })
+        });
+        downloadJson(image, `reploid-${String(mode || 'x')}-self-source.json`);
+      } catch (error) {
+        pushHistory(traceView.appendStatus({ content: error?.message || 'Source export failed' }, {
+          label: 'Source export failed', kind: 'error'
+        }));
       }
+    };
 
+    const handleClick = (event) => {
       const action = event.target.closest('[data-zero-action]')?.dataset.zeroAction;
       if (!action) return;
       event.preventDefault();
 
       switch (action) {
         case 'stop':
-          _epoch.active = false;
           AgentLoop.stop();
           _status = {
             ..._status,
@@ -357,23 +380,13 @@ const ZeroUI = {
         case 'send-note':
           sendHumanNote();
           break;
-        case 'run-epoch': {
-          const budgetSelect = _root?.querySelector('#zero-epoch-budget');
-          const budget = parseInt(budgetSelect?.value || '10', 10);
-          const currentCycle = _status.cycle || 0;
-          _epoch = {
-            active: true,
-            startCycle: currentCycle,
-            targetBudget: budget,
-            completedCycles: 0
-          };
-          const input = _root?.querySelector('#zero-human-input');
-          const content = input?.value?.trim() || SYNTHETIC_GOAL_PRESETS['l1-tool'];
-          EventBus.emit('human:message', { content, type: 'goal' });
-          if (!AgentLoop.isRunning()) {
-            AgentLoop.run?.(content);
-          }
-          renderSummary();
+        case 'export-self-source':
+          void exportSource();
+          break;
+        case 'approve':
+        case 'reject': {
+          const approvalId = event.target.closest('[data-zero-approval]')?.dataset.zeroApproval;
+          if (_approvals.has(approvalId)) EventBus.emit(`hitl:${action}`, { approvalId, reason: action === 'reject' ? 'Rejected by operator' : undefined });
           break;
         }
       }
@@ -386,23 +399,22 @@ const ZeroUI = {
     };
 
     const subscribeEvents = () => {
+      _subscriptions.push(EventBus.on('hitl:approval-pending', item => {
+        if (item?.id) _approvals.set(item.id, item);
+        renderHistory();
+      }));
+      for (const event of ['granted', 'rejected', 'timeout']) {
+        _subscriptions.push(EventBus.on(`hitl:approval-${event}`, entry => {
+          _approvals.delete(entry?.approvalId);
+          renderHistory();
+        }));
+      }
       _subscriptions.push(EventBus.on('agent:status', (status = {}) => {
         _status = {
           ..._status,
           ...status,
           cycle: status.cycle ?? _status.cycle
         };
-        if (_epoch.active && status.cycle !== undefined) {
-          _epoch.completedCycles = Math.max(0, _status.cycle - _epoch.startCycle);
-          if (_epoch.completedCycles >= _epoch.targetBudget) {
-            _epoch.active = false;
-            AgentLoop.stop?.();
-            EventBus.emit('agent:history', {
-              type: 'system',
-              content: `Epoch complete: ${_epoch.targetBudget} cycles executed.`
-            });
-          }
-        }
         renderSummary();
       }));
 
@@ -466,13 +478,10 @@ const ZeroUI = {
     const seedRecentActivity = () => {
       const recent = AgentLoop.getRecentActivities?.() || [];
       _toolStats = traceView.deriveToolStatsFromActivities(recent);
-      _history = recent
-        .slice(-20)
-        .reverse()
-        .map(mapActivityEntry)
-        .filter(Boolean)
-        .map(traceView.withHistoryKey);
-      traceView.pruneExpandedTraceKeys(_history);
+      const mapped = recent.map(mapActivityEntry).filter(Boolean).map(traceView.withHistoryKey);
+      _history = mapped.slice(-20).reverse();
+      _conversation = mapped.filter(isConversationEntry).slice(-MAX_HISTORY_ENTRIES).reverse();
+      traceView.pruneExpandedTraceKeys(getTraceHistory());
     };
 
     const render = () => {
@@ -481,90 +490,37 @@ const ZeroUI = {
       _root.innerHTML = `
         <div class="zero-shell">
           <header class="zero-header">
-            <div class="zero-title">
-              <div class="zero-kicker">tabula rasa runtime</div>
-              <h1 class="zero-shell-heading">${escapeHtml(getModeLabel())}</h1>
-            </div>
-            <div class="zero-actions">
-              <button class="btn" id="btn-toggle" data-zero-action="stop">Stop</button>
-              <details class="zero-more">
-                <summary class="btn">More</summary>
-                <div class="zero-more-menu">
-                  <button class="btn" data-zero-action="reload-ui">Reload UI</button>
-                  <button class="btn" data-zero-action="export-run-json">Export run JSON</button>
-                  <div class="zero-more-line">Activity: <span id="agent-activity">Awaiting goal</span></div>
-                </div>
-              </details>
-            </div>
+            <div class="zero-title"><h1 class="zero-shell-heading">${escapeHtml(getModeLabel())}</h1><span id="agent-model" class="zero-label">-</span></div>
+            <div class="zero-actions"><strong id="agent-state">IDLE</strong><button class="btn" id="btn-toggle" data-zero-action="stop">Stop</button></div>
           </header>
-
-          <section class="zero-runtime-strip" aria-label="Runtime status">
-            <div class="zero-runtime-item">
-              <span>State</span>
-              <strong id="agent-state">IDLE</strong>
-            </div>
-            <div class="zero-runtime-item">
-              <span>Cycle</span>
-              <strong id="agent-cycle">0</strong>
-            </div>
-            <div class="zero-runtime-item">
-              <span>Model</span>
-              <strong id="agent-model">-</strong>
-            </div>
-            <div class="zero-runtime-item">
-              <span>Tokens</span>
-              <strong id="agent-tokens">0</strong>
-            </div>
-            <div class="zero-runtime-item">
-              <span>Tools</span>
-              <strong id="agent-tools">0 ok / 0 err</strong>
-              <small id="agent-tool-rate">0% fail</small>
-            </div>
-          </section>
-
-          <section class="zero-epoch-panel" aria-label="Autonomous epoch execution">
-            <div class="zero-epoch-controls">
-              <div class="zero-epoch-presets">
-                <span class="zero-label">Synthetic Goal:</span>
-                <button class="btn btn-ghost" data-zero-preset="l1-tool" type="button">L1 Tool Synth</button>
-                <button class="btn btn-ghost" data-zero-preset="l2-repair" type="button">L2 Substrate Repair</button>
-                <button class="btn btn-ghost" data-zero-preset="l3-rsi" type="button">L3 Weak RSI</button>
+          <div id="zero-notices"></div><div id="zero-approvals"></div>
+          <section class="zero-goal"><span class="zero-label">Prompt</span><p class="zero-goal-text">${escapeHtml(initialGoal || getReploidStorage().getItem('REPLOID_GOAL') || '')}</p></section>
+          <main class="zero-main"><div id="zero-conversation" class="zero-conversation" aria-live="polite"></div></main>
+          <details class="zero-inspect">
+            <summary>Inspect</summary>
+            <div class="zero-inspect-content">
+              <div class="zero-actions"><button class="btn" data-zero-action="export-self-source">Export self-source</button><button class="btn" data-zero-action="export-run-json">Export run JSON</button><button class="btn" data-zero-action="reload-ui">Reload UI</button></div>
+              <div class="zero-runtime-strip" aria-label="Runtime details">
+                <div class="zero-runtime-item"><span>Cycle</span><strong id="agent-cycle">0</strong></div>
+                <div class="zero-runtime-item"><span>Tokens</span><strong id="agent-tokens">0</strong></div>
+                <div class="zero-runtime-item"><span>Tools</span><strong id="agent-tools">0 ok / 0 err</strong><small id="agent-tool-rate">0% fail</small></div>
               </div>
-              <div class="zero-epoch-run">
-                <label class="zero-label" for="zero-epoch-budget">Budget:</label>
-                <select id="zero-epoch-budget" class="zero-epoch-select">
-                  <option value="5">5 cycles</option>
-                  <option value="10" selected>10 cycles</option>
-                  <option value="25">25 cycles</option>
-                  <option value="50">50 cycles</option>
-                </select>
-                <button class="btn btn-primary" data-zero-action="run-epoch" type="button">Run Epoch</button>
-                <span id="zero-epoch-status" class="zero-epoch-status">Epoch: idle</span>
-              </div>
+              <div class="zero-more-line">Activity: <span id="agent-activity">Awaiting goal</span></div>
+              <section id="zero-replay-panel"></section>
+              <section class="zero-trace"><div class="zero-label">Trace</div><div id="history-container" class="zero-trace-list"></div></section>
             </div>
-          </section>
-
-          <main class="zero-main">
-            <section class="zero-trace">
-              <div class="zero-label">Trace</div>
-              <div id="history-container" class="zero-trace-list"></div>
-            </section>
-          </main>
-          <form id="zero-human-form" class="zero-input">
-            <label class="zero-label" for="zero-human-input">Add context or correction</label>
-            <div class="zero-input-row">
-              <textarea id="zero-human-input" class="zero-human-input" rows="3" placeholder="Add one concrete note for the next cycle."></textarea>
-              <button class="btn btn-prism" data-zero-action="send-note" type="submit">Send</button>
-            </div>
-          </form>
+          </details>
+          <form id="zero-human-form" class="zero-input"><label class="zero-label" for="zero-human-input">Add context or correction</label><div class="zero-input-row"><textarea id="zero-human-input" class="zero-human-input" rows="2" placeholder="Add a note for the next cycle."></textarea><button class="btn btn-prism" data-zero-action="send-note" type="submit">Send</button></div></form>
         </div>
       `;
 
+      replayPanel.mount(_root.querySelector('#zero-replay-panel'));
       renderSummary();
       renderHistory();
     };
 
     const cleanup = () => {
+      replayPanel.dispose();
       _subscriptions.forEach((unsubscribe) => {
         try { unsubscribe(); } catch { /* ignore */ }
       });
@@ -578,6 +534,10 @@ const ZeroUI = {
     const mount = async (root) => {
       _root = root;
       _models = readSelectedModels();
+      _approvals.clear();
+      for (const item of HITLController?.getApprovalQueue?.() || []) {
+        if (item?.id && item.status === 'pending') _approvals.set(item.id, item);
+      }
       seedRecentActivity();
       render();
       syncFromState();

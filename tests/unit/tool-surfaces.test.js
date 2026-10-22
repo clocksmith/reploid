@@ -14,6 +14,7 @@ describe('tool surfaces', () => {
     });
 
     expect(zeroTools).toEqual(['CreateTool']);
+    expect(getToolNamesForMode('x')).toEqual(['CreateTool']);
   });
 
   it('keeps Promote available to broader runtime surfaces', () => {
@@ -21,7 +22,8 @@ describe('tool surfaces', () => {
       hasToolWriter: true,
       hasSubstrateLoader: true
     })).toContain('Promote');
-    expect(getToolNamesForMode('x', {
+    expect(getToolNamesForMode('zero', {
+      upgradeLevel: 'full',
       hasToolWriter: true,
       hasSubstrateLoader: true
     })).toContain('Promote');

@@ -1,3 +1,4 @@
+import { getLabUpgradeLevel } from '../config/lab-upgrades.js';
 /**
  * @fileoverview Genesis Configuration Loader
  * Loads and validates genesis-levels.json, resolves module inheritance.
@@ -54,7 +55,8 @@ const readStoredModuleOverrides = () => {
  */
 export function getRouteModuleOverrides(pathname = '') {
   const routePath = pathname || (typeof window === 'undefined' ? '' : window.location.pathname || '');
-  const profile = getLabRouteProfileByPath(routePath);
+  let profile = getLabRouteProfileByPath(routePath);
+  if (profile?.mode === 'zero' && getLabUpgradeLevel('zero') === 'spark') profile = getLabRouteProfileByPath('/x');
   if (!profile?.forbiddenModules?.length) return {};
   return normalizeOverrides(Object.fromEntries(
     profile.forbiddenModules.map((moduleName) => [moduleName, 'off'])
@@ -66,8 +68,9 @@ export function getRouteModuleOverrides(pathname = '') {
  * @returns {Object} Normalized module overrides
  */
 export function getModuleOverrides() {
+  const route = typeof window === 'undefined' ? null : getLabRouteProfileByPath(window.location.pathname);
   return normalizeOverrides({
-    ...readStoredModuleOverrides(),
+    ...(route ? {} : readStoredModuleOverrides()),
     ...getRouteModuleOverrides()
   });
 }
@@ -82,7 +85,8 @@ export function getGenesisLevel(genesisConfig) {
   const configuredDefault = genesisConfig.defaultLevel || validLevels[0] || 'tabula';
   const routeGenesisLevel = typeof window === 'undefined'
     ? ''
-    : getLabRouteProfileByPath(window.location.pathname || '/')?.genesisLevel || '';
+    : (getLabRouteProfileByPath(window.location.pathname || '/')
+      ? getLabUpgradeLevel(getLabRouteProfileByPath(window.location.pathname || '/').mode) : '');
 
   if (routeGenesisLevel && validLevels.includes(routeGenesisLevel)) {
     if (localStorage.getItem('REPLOID_GENESIS_LEVEL') !== routeGenesisLevel) {

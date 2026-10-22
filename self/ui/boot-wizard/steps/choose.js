@@ -134,8 +134,8 @@ export function renderConnectionProviderOptions(
       <button class="panel connection-option ${connectionBorderClass('external')}"
               data-action="choose-external"
               aria-pressed="${connectionPressed('external')}">
-        <span class="type-h2">☍ External brain</span>
-        <span class="type-caption">Let an external responder reason through the local mailbox</span>
+        <span class="type-h2">☍ Connected agent</span>
+        <span class="type-caption">Use another agent through this local server</span>
         <div class="option-capabilities">
           <span class="tag">Local X only</span>
           <span class="tag">No API key</span>

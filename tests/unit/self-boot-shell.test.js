@@ -138,11 +138,13 @@ describe('self-first boot shell', () => {
     expect(telemetryPanel).toContain('requestAnimationFrame');
   });
 
-  it('mirrors the active locked-route runtime UI before awaken', () => {
+  it('seeds only the declared active self-source before awaken', () => {
     const bootHome = readRepoFile('self/ui/zero-home/index.js');
 
-    expect(bootHome).toContain('getRuntimeSelfMirrorsByBootProfile(bootProfile');
-    expect(bootHome).not.toContain("getRuntimeSelfMirrorsByBootProfile('zero_home'");
+    expect(bootHome).toContain('getBootSourceManifest(bootProfile)');
+    expect(bootHome).toContain('pickBootSeedFiles(manifest.files, bootProfile)');
+    expect(bootHome).toContain('seedVfsFromManifest({ files }');
+    expect(bootHome).not.toContain('seedVfsFromManifest(manifest,');
   });
 
   it('places the awaken action inside the goal editor on the boot home', () => {

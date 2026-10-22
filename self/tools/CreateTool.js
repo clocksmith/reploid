@@ -1,3 +1,4 @@
+import { isMinimalLabMode } from '../config/lab-upgrades.js';
 /**
  * @fileoverview CreateTool - Create runtime tool candidates.
  */
@@ -529,6 +530,7 @@ const createActivationEvidence = ({
   candidateHash,
   targetHash = null,
   validation = null,
+  verification = null,
   activation = null,
   replay = null,
   activated = false,
@@ -551,6 +553,7 @@ const createActivationEvidence = ({
     action: 'CreateTool.activate',
     toolName: name,
     checks: {
+      verification,
       validation,
       activation,
       replay
@@ -566,7 +569,7 @@ const getQuarantinePath = (name) => {
 };
 
 async function activateZeroTool(result = {}, deps = {}) {
-  const { VFS, ToolRunner, EventBus, AuditLogger } = deps;
+  const { VFS, ToolRunner, ToolWriter, EventBus, AuditLogger } = deps;
   if (!VFS?.read || !VFS?.write) {
     throw new Error('VFS not available for CreateTool activation');
   }
@@ -623,6 +626,10 @@ async function activateZeroTool(result = {}, deps = {}) {
     throw new Error(`CreateTool activation target already exists and requires promotion: ${targetPath}`);
   }
   const code = await VFS.read(result.path);
+  if (typeof ToolWriter?.assertVerified !== 'function') {
+    throw new Error('Verification Worker approval is required before CreateTool activation');
+  }
+  await ToolWriter.assertVerified(result, code);
   const candidateHash = await sha256(code);
   const logger = deps.Utils?.logger;
   let validation = { passed: false, executed: false, reason: 'not_run' };
@@ -653,6 +660,7 @@ async function activateZeroTool(result = {}, deps = {}) {
       evidencePath,
       candidateHash,
       targetHash,
+      verification: result.verification,
       validation,
       activation,
       replay,
@@ -854,6 +862,8 @@ async function activateZeroTool(result = {}, deps = {}) {
 
   try {
     stage = 'install';
+    await ToolWriter.assertVerified(result, await VFS.read(result.path));
+    await ToolWriter.assertVerified(result, code);
     await VFS.write(targetPath, code);
     targetWritten = true;
     const installedCode = await VFS.read(targetPath);
@@ -863,9 +873,10 @@ async function activateZeroTool(result = {}, deps = {}) {
       throw new Error(`CreateTool activation failed: installed bytes do not match ${result.path}`);
     }
 
+    await ToolWriter.assertVerified(result, installedCode);
     stage = 'runtime_load';
     runtimeLoadAttempted = true;
-    runtimeLoaded = await ToolRunner.loadPath(targetPath, result.name, { allow: true });
+    runtimeLoaded = await ToolRunner.loadPath(targetPath, result.name, { allow: true, expectedSha256: candidateHash });
     activation.runtimeLoaded = runtimeLoaded === true;
     activation.passed = activation.declaredChecksPassed === true
       && activation.installedBytesMatch === true
@@ -882,6 +893,7 @@ async function activateZeroTool(result = {}, deps = {}) {
       evidencePath,
       candidateHash,
       targetHash,
+      verification: result.verification,
       validation,
       activation,
       replay,
@@ -945,7 +957,7 @@ async function call(args = {}, deps = {}) {
     load: false
   });
 
-  const autoActivate = getRuntimeMode() === 'zero' && args.activate !== false;
+  const autoActivate = isMinimalLabMode(getRuntimeMode()) && args.activate !== false;
   if (autoActivate) {
     return activateZeroTool(result, deps);
   }
@@ -964,7 +976,7 @@ async function call(args = {}, deps = {}) {
 
 export const tool = {
   name: "CreateTool",
-  description: "Create a runtime tool from module source in code, or from structured description, activation, inputSchema, capabilities, and call fields. In Zero, tool.activation must declare fixture-backed checks. CreateTool runs the checks, re-imports and replays them in a fresh harness, requires matching transcripts, installs to /self/tools, loads the tool, and writes derived activation evidence. Created tools start read-only unless exported tool metadata declares capabilities such as vfs:write, tool:load, or self:write. In broader modes, stage for evidence-gated promotion.",
+  description: "Create a runtime tool from module source in code, or from structured description, activation, inputSchema, capabilities, and call fields. A successful, non-skipped static Verification Worker approval is required before staging or loading. In minimal X/Zero, tool.activation must declare fixture-backed checks. CreateTool runs the checks, re-imports and replays them in a fresh harness, requires matching transcripts, installs to /self/tools, loads the tool, and writes derived activation evidence. Created tools start read-only unless exported tool metadata declares capabilities such as vfs:write, tool:load, or self:write. In broader modes, stage for evidence-gated promotion.",
   inputSchema: {
     type: 'object',
     required: ['name'],
@@ -977,7 +989,7 @@ export const tool = {
       capabilities: { type: 'array', items: { type: 'string' }, description: 'Structured-source alternative: declared tool capabilities.' },
       call: { type: 'string', description: 'Structured-source alternative: async JavaScript function expression.' },
       root: { type: 'string', description: 'Optional staging root. Must be /shadow/tools or a child path.' },
-      activate: { type: 'boolean', description: 'Zero only: set false to stage without installing and loading.' }
+      activate: { type: 'boolean', description: 'Minimal X/Zero: set false to stage without installing and loading.' }
     }
   },
   call

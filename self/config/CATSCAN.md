@@ -4,7 +4,7 @@ Parent: [Browser Runtime](../CATSCAN.md)
 
 ## Target
 
-Declare reproducible boot, route, module, environment, and capability configuration for each Reploid surface.
+Declare reproducible per-surface boot, route, module, environment and capability configuration.
 
 ## Authority
 - Owns executable configuration schemas, defaults, registries, and surface profiles.
@@ -27,8 +27,9 @@ Outputs:
 ## Invariants
 - Configuration must fail closed when required identity or policy is absent.
 - Shared discovery policy selects public rendezvous, not execution authority; private invitations require room-scoped capabilities.
-- The shared policy may select a separate authenticated RTC credential URL; it cannot reroute other Poolday APIs or authorize a silent provider fallback.
+- Discovery may select authenticated RTC credentials, never reroute Poolday APIs or silently switch providers.
 - Doppler defaults are pinned origin-relative assets; Node synchronization never serializes file URLs.
+- X owns minimal complete self-source. Zero explicitly adds upgrades; neither auto-hydrates the repository.
 - Poolday, Zero, and X profiles cannot silently inherit one another's authority.
 - Ordered route limits and requester-history bounds are versioned here and apply only to catalogs declaring an ordered plan. Stage assignment is per-instance operator storage, never a default, link or discovery result.
 

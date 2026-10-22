@@ -178,6 +178,7 @@ async function call(args = {}, deps = {}) {
 }
 
 export const tool = {
+  capabilities: ['vfs:write', 'tool:load'],
   name: "EditFile",
   description: "Apply literal match/replacement edits to a writable candidate/evidence text file (VFS or OPFS).",
   inputSchema: structuredClone(fileToolSchemas.EditFile),

@@ -1930,3 +1930,40 @@ details[open] > .disclosure-summary:where(:not(.pool-home, .pool-home *))::befor
   }
 
 }
+
+/* X/Zero boot: one spacing owner per stack, compact objective settings. */
+.zero-boot-home .wizard-step:where(:not(.pool-home, .pool-home *)) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.zero-boot-home .wizard-step > :is(.type-caption, .config-form, .model-options, .wizard-actions-row):where(:not(.pool-home, .pool-home *)),
+.zero-boot-home .goal-header + .connection-options:where(:not(.pool-home, .pool-home *)),
+.zero-boot-home .goal-primary-action:where(:not(.pool-home, .pool-home *)) {
+  margin-top: 0;
+}
+
+.zero-boot-home .goal-label-row:where(:not(.pool-home, .pool-home *)),
+.zero-boot-home .zero-objective-settings:where(:not(.pool-home, .pool-home *)) {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.zero-boot-home .goal-label-row:where(:not(.pool-home, .pool-home *)) {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.zero-boot-home .zero-cycle-setting input:where(:not(.pool-home, .pool-home *)) {
+  width: 7rem;
+  max-width: 100%;
+}
+
+.zero-boot-home .zero-upgrade-setting:where(:not(.pool-home, .pool-home *)) {
+  flex: 1 1 12rem;
+  min-width: 0;
+  max-width: 100%;
+}

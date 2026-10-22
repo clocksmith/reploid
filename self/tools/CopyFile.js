@@ -46,6 +46,7 @@ async function call(args = {}, deps = {}) {
 }
 
 export const tool = {
+  capabilities: ['vfs:write'],
   name: 'CopyFile',
   description: 'Copy a VFS file into /shadow, /artifacts, or /cycles.',
   inputSchema: {

@@ -285,6 +285,7 @@ async function call(args = {}, deps = {}) {
 }
 
 export const tool = {
+  capabilities: ['vfs:write', 'tool:load'],
   name: "WriteFile",
   description: "Write content to VFS or OPFS. JSON object content is serialized as JSON text. Use opfs:/ for binary assets and mode: \"binary\" for tensor data.",
   inputSchema: structuredClone(fileToolSchemas.WriteFile),

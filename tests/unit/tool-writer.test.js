@@ -3,6 +3,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { sha256 } from '../../self/core/promotion-policy.js';
 import ToolWriterModule from '../../core/tool-writer.js';
 
 describe('ToolWriter', () => {
@@ -11,7 +12,8 @@ describe('ToolWriter', () => {
 
   beforeEach(() => {
     mockVFS = {
-      write: vi.fn().mockResolvedValue(true)
+      write: vi.fn().mockResolvedValue(true),
+      read: vi.fn(async () => mockVFS.write.mock.calls.at(-1)[1])
     };
     const ValidationError = class extends Error {
       constructor(message) {
@@ -21,6 +23,12 @@ describe('ToolWriter', () => {
     };
     toolWriter = ToolWriterModule.factory({
       VFS: mockVFS,
+      VerificationManager: { verifyProposal: vi.fn(async files => ({
+        passed: true, skipped: false,
+        verification: { kind: 'static-worker', fileHashes: Object.fromEntries(await Promise.all(
+          Object.entries(files).map(async ([path, code]) => [path, await sha256(code)])
+        )) }
+      })) },
       Utils: {
         logger: {
           info: vi.fn()

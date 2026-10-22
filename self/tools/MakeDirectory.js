@@ -30,6 +30,7 @@ async function call(args = {}, deps = {}) {
 }
 
 export const tool = {
+  capabilities: ['vfs:write'],
   name: 'MakeDirectory',
   description: 'Create a logical directory marker under /shadow, /artifacts, or /cycles.',
   inputSchema: {

@@ -9,7 +9,7 @@ const SubstrateLoader = {
   metadata: {
     id: 'SubstrateLoader',
     version: '1.0.0',
-    genesis: { introduced: 'spark' },
+    genesis: { introduced: 'reflection' },
     files: ['capabilities/system/substrate-loader.js', 'core/vfs-module-loader.js'],
     dependencies: ['Utils', 'VFS', 'VerificationManager?', 'VFSSandbox?', 'HITLController?'],
     type: 'capability'
@@ -74,7 +74,7 @@ const SubstrateLoader = {
       }
     };
 
-    const loadModule = async (path) => {
+    const loadModule = async (path, options = {}) => {
       if (!(await VFS.exists(path))) throw new Error(`Module not found: ${path}`);
 
       const code = await VFS.read(path);
@@ -103,6 +103,7 @@ const SubstrateLoader = {
         VerificationManager,
         path,
         code,
+        expectedSha256: options.expectedSha256,
         verify: !isCriticalPath(path)
       });
       logger.info(`[Substrate] Loaded module: ${path}`);

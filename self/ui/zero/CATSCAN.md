@@ -1,14 +1,14 @@
-# CATSCAN: Zero Proposal Interface
+# CATSCAN: Compact X/Zero Interface
 
 Parent: [Browser Interfaces](../CATSCAN.md)
 
 ## Target
 
-Give Zero operators a focused interface for objectives, tool-growing experiments, and candidate proposals.
+Give X/Zero operators a focused interface for objectives, tool-growing experiments, and candidate proposals.
 
 ## Authority
-- Owns Zero-specific presentation and proposal interactions.
-- Does not own X evaluation, promotion, Poolday evidence, or Research Room navigation.
+- Owns shared compact X/Zero presentation, explicit export and operator interactions.
+- Does not own evaluation, promotion, Poolday evidence, or Research Room navigation.
 
 ## Scope
 
@@ -17,18 +17,20 @@ Give Zero operators a focused interface for objectives, tool-growing experiments
 ## Contracts
 
 Inputs:
-- Zero runtime state through [index.js](index.js).
-- Zero surface boundaries from [surface intents](../../config/surface-intents.js).
+- X/Zero runtime state through [index.js](index.js).
+- X/Zero surface boundaries from [surface intents](../../config/surface-intents.js).
 
 Outputs:
-- Explicit operator requests and visible Zero state.
+- Explicit operator requests and visible X/Zero state.
 
 ## Invariants
 - Proposal status cannot be displayed as evaluation or promotion.
-- Zero failures and suspended state remain visible and resumable where supported.
+- Failures and suspended state remain visible and resumable where supported.
+
+- Conversation, prompt, state, Stop, errors and approval requests stay accessible; technical details use disclosure.
 
 ## Acceptance
-- The Zero interface renders the declared surface and survives state refresh without authority leakage.
+- The compact interface renders the declared surface and survives state refresh without authority leakage.
 - Evidence: [Zero UI tests](../../../tests/unit/zero-ui.test.js) and [Zero refresh journey](../../../tests/e2e/zero-ui-refresh.spec.js).
 
 ## Non-goals

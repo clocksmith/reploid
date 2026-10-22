@@ -1,7 +1,69 @@
 /**
- * @fileoverview Genesis Snapshot - Immutable kernel backups and rollback
- * Provides "Lifeboat" snapshots for recovery from bad mutations.
+ * @fileoverview Ordinary checkpoints and publication-only immutable source recovery.
+ * Publication pins are immutable through this service, not against browser-global
+ * storage access or a hostile host. Runtime tool installation has its own gate.
  */
+
+import { validateSourceManifest } from '../image/export.js';
+import { createSelfImageManifest, sha256Text, validateSelfImageManifest } from '../image/manifest.js';
+
+const PUBLICATION_SCHEMA = 'reploid/genesis-publication-baseline/v1';
+const PUBLICATION_DIR = '/.genesis/publication';
+const PUBLICATION_PIN = `${PUBLICATION_DIR}/pin.json`;
+const SOURCE_MANIFEST_PATH = '/config/self-source-manifest.json';
+const SOURCE_MANIFEST_IMAGE_PATH = '/self/config/self-source-manifest.json';
+const PUBLICATION_ID = /^genesis-sha256-[a-f0-9]{64}$/;
+let publicationQueue = Promise.resolve();
+const hasOwn = (value, key) => Object.prototype.hasOwnProperty.call(value, key);
+const clone = (value) => JSON.parse(JSON.stringify(value));
+
+const publicationIdentity = (manifest) => ({
+  schema: PUBLICATION_SCHEMA,
+  version: 1,
+  files: manifest.files.map(({ path, bytes, sha256 }) => ({ path, bytes, sha256 }))
+    .sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0)
+});
+
+const publicationId = async (manifest) =>
+  `genesis-sha256-${await sha256Text(JSON.stringify(publicationIdentity(manifest)))}`;
+
+/** Validate all bytes and the exact declared closure before reuse or recovery. */
+export async function validatePublicationBaseline(value, expectedId = value?.id) {
+  const baseline = clone(value);
+  if (baseline?.schema !== PUBLICATION_SCHEMA || baseline.version !== 1
+    || !PUBLICATION_ID.test(baseline.id) || baseline.id !== expectedId) {
+    throw new Error('Invalid Genesis publication baseline identity');
+  }
+  const checked = await validateSelfImageManifest(baseline);
+  const sourceManifest = validateSourceManifest(JSON.parse(checked.files[SOURCE_MANIFEST_IMAGE_PATH]));
+  const declared = new Set(sourceManifest.files.map((path) => `/self/${path}`));
+  if (declared.size !== checked.fileCount
+    || Object.keys(checked.files).some((path) => !declared.has(path))) {
+    throw new Error('Genesis baseline must contain exactly its declared self-source closure');
+  }
+  // The descriptor itself must be recovered at the canonical discovery path.
+  const descriptorIndex = sourceManifest.files.indexOf('config/self-source-manifest.json');
+  if (`/${sourceManifest.seedFiles[descriptorIndex]}` !== SOURCE_MANIFEST_PATH) {
+    throw new Error('Genesis source manifest has a noncanonical VFS destination');
+  }
+  if (sourceManifest.seedFiles.some((path) => path === '.genesis' || path.startsWith('.genesis/'))) {
+    throw new Error('Genesis recovery cannot target its protected snapshot storage');
+  }
+  if (await publicationId(baseline.manifest) !== baseline.id) {
+    throw new Error('Genesis publication baseline hash mismatch');
+  }
+  return { baseline, sourceManifest, fileCount: checked.fileCount, bytes: checked.bytes };
+}
+
+// Serialize all service writers in this realm, including separate VFS adapters.
+// Browser Web Locks also fence tabs; other hosts must provide a single writer.
+const withPublicationLock = (operation) => {
+  const pending = publicationQueue.catch(() => {}).then(() => globalThis.navigator?.locks?.request
+    ? globalThis.navigator.locks.request('reploid:genesis-publication', operation)
+    : operation());
+  publicationQueue = pending;
+  return pending;
+};
 
 const GenesisSnapshot = {
   metadata: {
@@ -20,6 +82,127 @@ const GenesisSnapshot = {
     const SNAPSHOT_DIR = '/.genesis/snapshots';
     const LIFEBOAT_KEY = 'REPLOID_LIFEBOAT';
     const MAX_SNAPSHOTS = 10;
+
+    const baselineMetadata = ({ baseline, fileCount, bytes }) => ({
+      id: baseline.id, path: `${PUBLICATION_DIR}/${baseline.id}.json`,
+      fileCount, bytes, pinned: true, scope: 'publication'
+    });
+
+    const readPublicationPin = async () => {
+      if (!await VFS.exists(PUBLICATION_PIN)) return null;
+      const pin = JSON.parse(await VFS.read(PUBLICATION_PIN));
+      if (pin?.schema !== PUBLICATION_SCHEMA || pin.version !== 1 || !PUBLICATION_ID.test(pin.id)) {
+        throw new Error('Invalid Genesis publication pin');
+      }
+      return pin;
+    };
+
+    const readPublicationBaseline = async () => {
+      const pin = await readPublicationPin();
+      if (!pin) throw new Error('No Genesis publication baseline is pinned');
+      return validatePublicationBaseline(
+        JSON.parse(await VFS.read(`${PUBLICATION_DIR}/${pin.id}.json`)), pin.id
+      );
+    };
+
+    const pinPublicationBaseline = async (checked) => {
+      const { baseline } = checked;
+      const pin = await readPublicationPin();
+      if (pin) {
+        // Never repair, overwrite or silently replace corrupt recovery evidence.
+        const existing = await readPublicationBaseline();
+        if (pin.id !== baseline.id) throw new Error('Genesis publication baseline is already pinned to different source bytes');
+        return baselineMetadata(existing);
+      }
+      const path = `${PUBLICATION_DIR}/${baseline.id}.json`;
+      if (await VFS.exists(path)) {
+        await validatePublicationBaseline(JSON.parse(await VFS.read(path)), baseline.id);
+      } else {
+        await VFS.write(path, JSON.stringify(baseline));
+      }
+      // Read back the persisted content before publishing a recovery pin.
+      const persisted = await validatePublicationBaseline(JSON.parse(await VFS.read(path)), baseline.id);
+      await VFS.write(PUBLICATION_PIN, JSON.stringify({
+        schema: PUBLICATION_SCHEMA, version: 1, id: baseline.id
+      }));
+      const confirmed = await readPublicationBaseline();
+      if (confirmed.baseline.id !== baseline.id) throw new Error('Genesis publication pin changed while being written');
+      EventBus.emit('genesis:publication_pinned', baselineMetadata(persisted));
+      return baselineMetadata(persisted);
+    };
+
+    /** Called by publication, never by CreateTool or a per-tool activation path. */
+    const createPublicationBaseline = async () => withPublicationLock(async () => {
+      const sourceText = await VFS.read(SOURCE_MANIFEST_PATH);
+      if (typeof sourceText !== 'string') throw new Error(`Missing text source: ${SOURCE_MANIFEST_PATH}`);
+      const sourceManifest = validateSourceManifest(JSON.parse(sourceText));
+      const files = {};
+      for (let index = 0; index < sourceManifest.files.length; index += 1) {
+        const sourcePath = `/self/${sourceManifest.files[index]}`;
+        const vfsPath = `/${sourceManifest.seedFiles[index]}`;
+        // No best-effort reads or export-time rewriting: preserve the exact bytes.
+        const content = await VFS.read(vfsPath);
+        if (typeof content !== 'string') throw new Error(`Missing text source: ${vfsPath}`);
+        files[sourcePath] = content;
+      }
+      if (files[SOURCE_MANIFEST_IMAGE_PATH] !== sourceText) {
+        throw new Error('Genesis source manifest changed during capture');
+      }
+      const manifest = await createSelfImageManifest({
+        paths: Object.keys(files).sort(), readText: async (path) => files[path]
+      });
+      const baseline = {
+        schema: PUBLICATION_SCHEMA, version: 1,
+        id: await publicationId(manifest), manifest, files
+      };
+      const checked = await validatePublicationBaseline(baseline);
+      for (let index = 0; index < sourceManifest.files.length; index += 1) {
+        const path = `/${sourceManifest.seedFiles[index]}`;
+        if (await VFS.read(path) !== files[`/self/${sourceManifest.files[index]}`]) {
+          throw new Error(`Genesis source changed during capture: ${path}`);
+        }
+      }
+      return pinPublicationBaseline(checked);
+    });
+
+    // Export/import the payload explicitly when carrying recovery into a descendant.
+    // A pin alone cannot recover bytes and never fetches from a hidden repository.
+    const exportPublicationBaseline = async () => (await readPublicationBaseline()).baseline;
+    const getPublicationBaseline = async () => baselineMetadata(await readPublicationBaseline());
+    const importPublicationBaseline = async (value) => {
+      const snapshot = clone(value);
+      return withPublicationLock(async () => pinPublicationBaseline(await validatePublicationBaseline(snapshot)));
+    };
+    const restorePublicationBaseline = async () => withPublicationLock(async () => {
+      const { baseline, sourceManifest, fileCount } = await readPublicationBaseline();
+      // Validate the entire payload before the first write, preserve unrelated work,
+      // and fail visibly on partial writes rather than report a successful recovery.
+      for (let index = 0; index < sourceManifest.files.length; index += 1) {
+        const path = `/${sourceManifest.seedFiles[index]}`;
+        const content = baseline.files[`/self/${sourceManifest.files[index]}`];
+        await VFS.write(path, content);
+        if (await VFS.read(path) !== content) throw new Error(`Genesis recovery write mismatch: ${path}`);
+      }
+      EventBus.emit('genesis:publication_restored', { id: baseline.id, fileCount });
+      return { success: true, id: baseline.id, restored: fileCount, deleted: 0 };
+    });
+
+    const snapshotPathFor = (id) => {
+      if (typeof id !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(id)) throw new Error('Invalid snapshot ID');
+      if (id.startsWith('genesis-sha256-')) throw new Error('Publication baselines are immutable; use the publication recovery API');
+      return `${SNAPSHOT_DIR}/${id}.json`;
+    };
+
+    const assertSnapshotFiles = (files) => {
+      if (!files || typeof files !== 'object' || Array.isArray(files)) throw new Error('Invalid snapshot files');
+      for (const [path, content] of Object.entries(files)) {
+        if (!path.startsWith('/') || /[\\%?#\u0000-\u001f]/.test(path)
+          || path.split('/').slice(1).some((part) => !part || part === '.' || part === '..')
+          || path === '/.genesis' || path.startsWith('/.genesis/') || typeof content !== 'string') {
+          throw new Error(`Invalid or protected snapshot restore path: ${path}`);
+        }
+      }
+    };
 
     /**
      * Create a full VFS snapshot
@@ -78,7 +261,8 @@ const GenesisSnapshot = {
       };
 
       // Save snapshot to VFS
-      const snapshotPath = `${SNAPSHOT_DIR}/${snapshotId}.json`;
+      const snapshotPath = snapshotPathFor(snapshotId);
+      if (await VFS.exists(snapshotPath)) throw new Error(`Snapshot already exists: ${snapshotId}`);
       await VFS.write(snapshotPath, JSON.stringify(snapshot));
 
       // Update index
@@ -106,8 +290,8 @@ const GenesisSnapshot = {
     };
 
     /**
-     * Create a "Lifeboat" - immutable kernel backup stored in localStorage
-     * This survives VFS corruption and can restore the system from scratch.
+     * Legacy core-only localStorage backup, not the immutable publication baseline.
+     * Publication recovery uses restorePublicationBaseline and its complete payload.
      */
     const createLifeboat = async () => {
       logger.info('[Genesis] Creating Lifeboat backup...');
@@ -170,6 +354,7 @@ const GenesisSnapshot = {
         }
 
         const lifeboat = JSON.parse(json);
+        assertSnapshotFiles(lifeboat.files);
 
         for (const [path, content] of Object.entries(lifeboat.files)) {
           await VFS.write(path, content);
@@ -200,9 +385,10 @@ const GenesisSnapshot = {
 
       logger.warn(`[Genesis] Restoring snapshot: ${snapshotId}`);
 
-      const snapshotPath = `${SNAPSHOT_DIR}/${snapshotId}.json`;
+      const snapshotPath = snapshotPathFor(snapshotId);
       const snapshotJson = await VFS.read(snapshotPath);
       const snapshot = JSON.parse(snapshotJson);
+      assertSnapshotFiles(snapshot.files);
 
       let restored = 0;
       let deleted = 0;
@@ -223,7 +409,7 @@ const GenesisSnapshot = {
         for (const path of currentFiles) {
           if (path.startsWith('/.genesis/')) continue;
           if (path.startsWith('/.logs/')) continue;
-          if (!snapshot.files[path]) {
+          if (!hasOwn(snapshot.files, path)) {
             try {
               await VFS.delete(path);
               deleted++;
@@ -265,7 +451,7 @@ const GenesisSnapshot = {
      * Delete a snapshot
      */
     const deleteSnapshot = async (snapshotId) => {
-      const snapshotPath = `${SNAPSHOT_DIR}/${snapshotId}.json`;
+      const snapshotPath = snapshotPathFor(snapshotId);
       await VFS.delete(snapshotPath);
 
       // Update index
@@ -281,7 +467,7 @@ const GenesisSnapshot = {
      * Export snapshot as downloadable JSON
      */
     const exportSnapshot = async (snapshotId) => {
-      const snapshotPath = `${SNAPSHOT_DIR}/${snapshotId}.json`;
+      const snapshotPath = snapshotPathFor(snapshotId);
       const snapshotJson = await VFS.read(snapshotPath);
       const snapshot = JSON.parse(snapshotJson);
 
@@ -314,7 +500,9 @@ const GenesisSnapshot = {
             }
 
             // Save to VFS
-            const snapshotPath = `${SNAPSHOT_DIR}/${snapshot.id}.json`;
+            assertSnapshotFiles(snapshot.files);
+            const snapshotPath = snapshotPathFor(snapshot.id);
+            if (await VFS.exists(snapshotPath)) throw new Error(`Snapshot already exists: ${snapshot.id}`);
             await VFS.write(snapshotPath, JSON.stringify(snapshot));
 
             // Update index
@@ -403,6 +591,11 @@ const GenesisSnapshot = {
     };
 
     return {
+      createPublicationBaseline,
+      getPublicationBaseline,
+      exportPublicationBaseline,
+      importPublicationBaseline,
+      restorePublicationBaseline,
       createSnapshot,
       restoreSnapshot,
       listSnapshots,

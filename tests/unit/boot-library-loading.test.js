@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 const source = readFileSync(new URL('../../self/host/sw-module-loader.js', import.meta.url), 'utf8');
 const origin = 'https://reploid.test';
 
-function createLoader(files = {}, surface = 'zero') {
+function createLoader(files = {}, surface = 'zero', clients = null) {
   const handlers = new Map();
   const read = vi.fn(async (path) => files[path] ?? null);
   const context = vm.createContext({
@@ -17,17 +17,18 @@ function createLoader(files = {}, surface = 'zero') {
     self: {
       location: { origin },
       addEventListener: (name, handler) => handlers.set(name, handler),
-      clients: { get: async () => ({ url: `${origin}/${surface}?instance=test` }) }
+      clients: clients || { get: async () => ({ url: `${origin}/${surface}?instance=test` }) }
     }
   });
   vm.runInContext(source, context);
   context.readFromVFS = read;
   return {
     read,
-    async request(path) {
+    fetch: context.fetch,
+    async request(path, requestOptions = {}) {
       let response = null;
       handlers.get('fetch')({
-        request: new Request(new URL(path, origin), { referrer: `${origin}/${surface}?instance=test` }),
+        request: new Request(new URL(path, origin), { referrer: `${origin}/${surface}?instance=test`, ...requestOptions }),
         clientId: 'client',
         respondWith: (value) => { response = Promise.resolve(value); }
       });
@@ -63,10 +64,117 @@ describe('lazy installed-library boot boundary', () => {
     expect(loader.read).not.toHaveBeenCalled();
   });
 
-  it('leaves canonical package modules to native hosted loading', async () => {
+  it('reads canonical package source from the agent-owned VFS', async () => {
+    const loader = createLoader({ '/vendor/reploid/config/defaults.json': '{\"owned\":true}' });
+    const response = await loader.request('/vendor/reploid/config/defaults.json?instance=test');
+    expect(await response.json()).toEqual({ owned: true });
+    expect(response.headers.get('x-vfs-source')).toBe('true');
+  });
+
+  it.each(['export', 'manifest'])('loads the owned image %s module through its canonical browser alias', async name => {
+    const source = `export const ${name === 'export' ? 'exportSelfImage' : 'manifest'} = true;`;
+    const loader = createLoader({ [`/self/image/${name}.js`]: source }, 'x');
+    const response = await loader.request(`/image/${name}.js?instance=test&v=release`);
+    expect(response.status).toBe(200);
+    expect(response.headers.get('x-vfs-source')).toBe('true');
+    expect(response.headers.get('x-vfs-mirror-fallback')).toBe(`/self/image/${name}.js`);
+    expect(await response.text()).toBe(source);
+    const missing = await createLoader({}, 'x').request(`/image/${name}.js?instance=test`);
+    expect(missing.status).toBe(404);
+    expect(missing.headers.get('x-vfs-miss')).toBe('true');
+  });
+
+  it.each(['verification-worker.js', 'vendor/acorn.js'])('serves verifier %s only from its explicit instance VFS', async file => {
+    const path = `/core/${file}`;
+    const loader = createLoader({ [path]: '// VFS-owned verifier' }, 'zero');
+    const response = await loader.request(`${path}?surface=x&instance=descendant`, {
+      referrer: `${origin}/core/verification-worker.js?surface=x&instance=descendant`
+    });
+    expect(response.status).toBe(200);
+    expect(response.headers.get('x-vfs-source')).toBe('true');
+    expect(loader.read).toHaveBeenCalledWith(path, 'reploid-vfs-v0--x--descendant');
+    const missing = await createLoader({}, 'zero').request(`${path}?surface=x&instance=descendant`);
+    expect(missing.status).toBe(404);
+    expect(missing.headers.get('x-vfs-miss')).toBe('true');
+  });
+
+  it.each(['x', 'zero'])('keeps default and named %s verifier requests separate with both windows open', async surface => {
+    const clients = {
+      get: vi.fn(async () => ({ url: `${origin}/core/verification-worker.js?surface=${surface}` })),
+      matchAll: vi.fn(async () => [
+        { url: `${origin}/${surface}` }, { url: `${origin}/${surface}?instance=other` }
+      ])
+    };
+    const loader = createLoader({}, surface, clients);
+    loader.read.mockImplementation(async (_path, dbName) => `// ${dbName}`);
+    for (const path of ['/core/verification-worker.js', '/core/vendor/acorn.js']) {
+      const referrer = `${origin}/core/verification-worker.js?surface=${surface}`;
+      const [defaultResponse, namedResponse] = await Promise.all([
+        loader.request(`${path}?surface=${surface}`, { referrer }),
+        loader.request(`${path}?surface=${surface}&instance=other`, { referrer })
+      ]);
+      expect(await defaultResponse.text()).toBe(`// reploid-vfs-v0--${surface}`);
+      expect(await namedResponse.text()).toBe(`// reploid-vfs-v0--${surface}--other`);
+      const missing = await createLoader({}, surface, clients).request(`${path}?surface=${surface}`, { referrer });
+      expect(missing.status).toBe(404);
+      expect(missing.headers.get('x-vfs-miss')).toBe('true');
+    }
+    expect(clients.get).not.toHaveBeenCalled();
+    expect(clients.matchAll).not.toHaveBeenCalled();
+  });
+
+  it.each(['x', 'zero'])('serves only exact in-scope %s verifier aliases from default/named VFS', async surface => {
+    const clients = {
+      get: vi.fn(async () => ({ url: `${origin}/${surface}/__verifier__/worker.js` })),
+      matchAll: vi.fn(async () => [
+        { url: `${origin}/${surface}` }, { url: `${origin}/${surface}?instance=other` }
+      ])
+    };
+    const loader = createLoader({}, surface, clients);
+    loader.read.mockImplementation(async (path, dbName) => `// ${dbName}${path}`);
+    const assets = [['worker.js', '/core/verification-worker.js'], ['acorn.js', '/core/vendor/acorn.js']];
+    for (const [name, sourcePath] of assets) {
+      const alias = `/${surface}/__verifier__/${name}`;
+      for (const instance of [null, 'other']) {
+        // Route, not a contradictory query or unrelated referrer, owns surface.
+        const query = `?surface=${surface === 'x' ? 'zero' : 'x'}${instance ? `&instance=${instance}` : ''}`;
+        const options = { referrer: `${origin}/zero?instance=unrelated` };
+        const response = await loader.request(`${alias}${query}`, options);
+        const db = `reploid-vfs-v0--${surface}${instance ? `--${instance}` : ''}`;
+        expect(await response.text()).toBe(`// ${db}${sourcePath}`);
+        expect(response.headers.get('x-vfs-source')).toBe('true');
+        expect(loader.read).toHaveBeenCalledWith(sourcePath, db);
+        const missing = createLoader({}, surface, clients);
+        const miss = await missing.request(`${alias}${query}&bootstrapper=1`, {
+          ...options, headers: { 'x-reploid-vfs-bypass': '1' }
+        });
+        expect(miss.status).toBe(404);
+        expect(miss.headers.get('x-vfs-miss')).toBe('true');
+        expect(missing.fetch).not.toHaveBeenCalled();
+      }
+    }
+    expect(clients.get).not.toHaveBeenCalled();
+    expect(clients.matchAll).not.toHaveBeenCalled();
+    expect(loader.fetch).not.toHaveBeenCalled();
+  });
+
+  it.each(['/x/__verifier__/other.js', '/zero/__verifier__/acorn.js/extra.js', '/other/__verifier__/worker.js'])('does not create a general virtual route for %s', async path => {
     const loader = createLoader();
-    expect(await loader.request('/vendor/reploid/config/defaults.json?instance=test')).toBeNull();
+    expect(await loader.request(`${path}?surface=x&instance=other`)).toBeNull();
     expect(loader.read).not.toHaveBeenCalled();
+    expect(loader.fetch).not.toHaveBeenCalled();
+  });
+
+  it('does not grant explicit surface/default ownership to unrelated asset URLs', async () => {
+    const path = '/core/agent-context.js';
+    const loader = createLoader({ [path]: '// existing source' }, 'zero');
+    await loader.request(`${path}?surface=x`, { referrer: `${origin}/zero?instance=other` });
+    expect(loader.read).toHaveBeenCalledWith(path, 'reploid-vfs-v0--zero--other');
+  });
+
+  it('keeps an existing image URL VFS entry authoritative over the owned alias', async () => {
+    const loader = createLoader({ '/image/export.js': 'current', '/self/image/export.js': 'alias' }, 'x');
+    expect(await (await loader.request('/image/export.js?instance=test')).text()).toBe('current');
   });
 
   it('redirects only allowlisted missing application dependencies', async () => {

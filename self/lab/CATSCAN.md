@@ -4,7 +4,7 @@ Parent: [Browser Runtime](../CATSCAN.md)
 
 ## Target
 
-Compose minimal Zero and extended X from explicit profiles; assign experimental authority separately.
+Compose minimal X and optional Zero upgrades from explicit profiles; assign experimental authority separately.
 
 ## Authority
 - Owns lab route profiles, mirrors, runtime surface assembly, and operator-facing lab selection.
@@ -24,7 +24,7 @@ Outputs:
 - Composed lab surfaces through [surface.js](surface.js).
 
 ## Invariants
-- X extends Zero with explicit executable features and resources from one resolved surface.
+- Zero extends X only with operator-selected executable features and resources from one resolved surface.
 - A route grants no evaluation authority: evaluator ports, protected suites and host authorization establish separation.
 - Feature exclusions and immutable authority ceilings are separate; extensions cannot relax the ceiling.
 - Lab availability is not evidence of prospective product improvement.

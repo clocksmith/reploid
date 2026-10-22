@@ -1,6 +1,7 @@
 /**
  * @fileoverview Verification Worker v3.0
- * Runs in a Web Worker sandbox to safely test code.
+ * Runs static analysis in a disposable Web Worker without executing candidate code.
+ * This checker is not an arbitrary-JavaScript runtime sandbox.
  * Includes Static Analysis, AST-based Pattern Matching, Security Heuristics,
  * Capability Checks, and Complexity Analysis.
  *
@@ -17,7 +18,13 @@
 // executing candidate modules. Acorn is vendored with its MIT license under
 // /core/vendor; a missing parser is a verification failure, never a reason to
 // fall back to source rewriting or candidate execution.
-importScripts('/core/vendor/acorn.js');
+const workerUrl = new URL(self.location.href);
+const scopedEntry = /^\/(x|zero)\/__verifier__\/worker\.js$/.test(workerUrl.pathname);
+const parserUrl = new URL(scopedEntry ? './acorn.js' : '/core/vendor/acorn.js', workerUrl);
+for (const key of ['instance', 'surface']) {
+  if (workerUrl.searchParams.has(key)) parserUrl.searchParams.set(key, workerUrl.searchParams.get(key));
+}
+importScripts(parserUrl.href);
 
 // ============================================================================
 // CAPABILITY-BASED PERMISSIONS
@@ -846,6 +853,12 @@ self.onmessage = async (e) => {
           continue;
         }
 
+        if (options.toolCreation === true && syntax.body.some(node =>
+          node.type === 'ImportDeclaration'
+          || ((node.type === 'ExportNamedDeclaration' || node.type === 'ExportAllDeclaration') && node.source))) {
+          errors.push(`Tool ${path} must use injected dependencies, not unverified module imports`);
+        }
+
         // ----------------------------------------------------------------
         // B. DANGEROUS PATTERN DETECTION (regex-based)
         // ----------------------------------------------------------------
@@ -959,7 +972,15 @@ self.onmessage = async (e) => {
       // ----------------------------------------------------------------
       // EMIT RESULTS
       // ----------------------------------------------------------------
+      const fileHashes = Object.fromEntries(await Promise.all(
+        Object.entries(snapshot).map(async ([path, code]) => {
+          const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(code)));
+          return [path, Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('')];
+        })
+      ));
       const result = {
+        verification: { kind: 'static-worker', fileHashes },
+        skipped: false,
         passed: errors.length === 0,
         errors,
         warnings,

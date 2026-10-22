@@ -52,18 +52,14 @@ describe('surface intents', () => {
     }
   });
 
-  it('keeps X as an explicit extension of Zero', () => {
+  it('keeps Zero as an explicit opt-in extension of X', () => {
     const zero = getSurfaceIntent('zero');
     const x = getSurfaceIntent('x');
-    const expectedRequiredModules = uniqueSorted(zero.requiredModules, x.additionalRequiredModules);
-    const expectedToolSurfaceIds = uniqueSorted(zero.toolSurfaceIds, x.additionalToolSurfaceIds);
-
-    expect(x.extends).toBe(zero.id);
-    expect(LAB_ROUTE_PROFILES.x.extends).toBe(zero.id);
-    expect(sorted(x.requiredModules)).toEqual(expectedRequiredModules);
-    expect(sorted(x.toolSurfaceIds)).toEqual(expectedToolSurfaceIds);
-    expect(sorted(LAB_ROUTE_PROFILES.x.requiredModules)).toEqual(expectedRequiredModules);
-    expect(sorted(LAB_ROUTE_PROFILES.x.toolSurfaceIds)).toEqual(expectedToolSurfaceIds);
+    expect(zero.extends).toBe(x.id);
+    expect(LAB_ROUTE_PROFILES.zero.extends).toBe(x.id);
+    expect(x.extends).toBeUndefined();
+    expect(sorted(zero.requiredModules)).toEqual(sorted(x.requiredModules));
+    expect(sorted(zero.toolSurfaceIds)).toEqual(sorted(x.toolSurfaceIds));
   });
 
   it('does not expose /0 as a shadow boot route', () => {
@@ -80,7 +76,7 @@ describe('surface intents', () => {
 });
 
 describe('resolved extension authority', () => {
-  it('derives resources from Zero and preserves ceilings independently of feature availability', async () => {
+  it('derives resources from X and preserves ceilings independently of feature availability', async () => {
     const { SURFACE_INTENTS, authorizeSurfaceOperation } = await import('../../self/config/surface-intents.js');
     const { LAB_ROUTE_PROFILES } = await import('../../self/lab/profiles.js');
     const { BOOT_SEED_PROFILES } = await import('../../self/config/boot-seed.js');

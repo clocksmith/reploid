@@ -76,6 +76,7 @@ async function call(args = {}, deps = {}) {
 }
 
 export const tool = {
+  capabilities: ['tool:load'],
   name: "LoadModule",
   description: "Hot-reload a promoted /self module from the VFS into the running system. Includes timeout protection to prevent hangs from circular dependencies.",
   inputSchema: {

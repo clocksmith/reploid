@@ -47,6 +47,7 @@ async function call(args = {}, deps = {}) {
 }
 
 export const tool = {
+  capabilities: ['vfs:write'],
   name: 'MoveFile',
   description: 'Move a VFS file within /shadow, /artifacts, or /cycles.',
   inputSchema: {

@@ -1,3 +1,4 @@
+import sourceCatalog from './self-source-catalog.json' with { type: 'json' };
 /** Declarative resources composed once by surface-intents. */
 export const SHARED_BOOT_UI_PREFIXES = Object.freeze([
   'entry/',
@@ -41,116 +42,11 @@ export const SHARED_BOOT_UI_PREFIXES = Object.freeze([
   'styles/rd.css'
 ]);
 
-const ZERO_SEED_TOOL_FILES = Object.freeze([
-  'tools/CreateTool.js'
-]);
-
-export const ZERO_SEED_PREFIXES = Object.freeze([
-  // Canonical host entries are seeded below; compatibility entry URLs stay hosted.
-  'blueprint-index.json',
-  'blueprints/blueprint-index-contract.md',
-  'blueprints/tabula-rasa-runtime.md',
-  'blueprints/tool-contract.md',
-  'boot-helpers/config.js',
-  'boot-helpers/error-ui.js',
-  'boot-helpers/index.js',
-  'boot-helpers/modules.js',
-  'boot-helpers/services.js',
-  'boot-helpers/vfs-bootstrap.js',
-  'boot-helpers/vfs-hydrate.js',
-  'config/boot-modes.js',
-  'config/boot-seed.js',
-  'config/doppler-local-models.js',
-  'config/genesis-levels.json',
-  'config/immutability.js',
-  'config/module-registry.json',
-  'config/module-resolution.js',
-  'config/reploid-environments.js',
-  'config/surface-intents.js',
-  'config/surface-resources.js',
-  'config/tool-surfaces.js',
-  'config/file-tool-schemas.json',
-  'config/zero-goals.js',
-  'config/zero-inference.js',
-  'config/vfs-manifest.json',
-  'core/agent-loop.js',
-  'core/context-manager.js',
-  'core/cycle-artifacts.js',
-  'core/import-rewrite.js',
-  'core/llm-client.js',
-  'core/persona-manager.js',
-  'core/promotion-policy.js',
-  'core/provider-registry.js',
-  'core/response-parser.js',
-  'core/run-replay-bundle.js',
-  'core/zero-prompt.js',
-  'core/schema-registry.js',
-  'core/security-config.js',
-  'core/state-helpers-pure.js',
-  'core/state-manager.js',
-  'core/tool-runner.js',
-  'core/tool-writer.js',
-  'core/utils.js',
-  'core/vfs.js',
-  'core/vfs-module-loader.js',
-  'providers/doppler-reploid.js',
-  'infrastructure/circuit-breaker.js',
-  'infrastructure/di-container.js',
-  'infrastructure/event-bus.js',
-  'infrastructure/tool-executor.js',
-  'lab/mirrors.js',
-  'lab/profiles.js',
-  'lab/surface.js',
-  'personas/config.json',
-  'prompts/kernel.md',
-  'self/boot-spec.js',
-  'self/host/seed-vfs.js',
-  'self/host/start-app.js',
-  'self/host/reploid-launch.js',
-  'self/host/sw-module-loader.js',
-  'self/host/vfs-bootstrap.js',
-  'self/instance.js',
-  'styles/boot.css',
-  'styles/rd.css',
-  'styles/zero.css',
-  'ui/zero-home/index.js',
-  'ui/toast.js',
-  'ui/zero/index.js',
-  'ui/zero/trace-view.js',
-  ...ZERO_SEED_TOOL_FILES
-]);
-
-export const X_ADDITIONAL_SEED_PREFIXES = Object.freeze([
-  'providers/external-brain.js',
-  ...SHARED_BOOT_UI_PREFIXES,
-  'ui/zero/index.js',
-  'styles/zero.css',
-  'blueprints/rgr-runtime-contract.md',
-  'blueprints/promotion-contract.md',
-  'core/change-passport.js',
-  'core/change-passport-policy.js',
-  'core/change-passport-improvement-adapter.js',
-  'core/visual-change-passport.js',
-  'shared/change-passport/',
-  'core/improvement-episode.js',
-  'tools/Promote.js',
-  'tools/DopplerOptimize.js',
-  'capabilities/system/doppler-optimizer.js',
-  'styles/proto/',
-  'ui/proto/'
-]);
-
-export const ZERO_RUNTIME_SELF_MIRROR_RULES = Object.freeze([
-  { sourcePrefix: '/boot-helpers/', targetPrefix: '/self/boot-helpers/' },
-  { sourcePrefix: '/capabilities/', targetPrefix: '/self/capabilities/' },
-  { sourcePath: '/config/tool-surfaces.js', targetPath: '/self/config/tool-surfaces.js' },
-  { sourcePrefix: '/core/', targetPrefix: '/self/core/' },
-  { sourcePrefix: '/host/', targetPrefix: '/self/host/' },
-  { sourcePrefix: '/infrastructure/', targetPrefix: '/self/infrastructure/' },
-  { sourcePrefix: '/lab/', targetPrefix: '/self/lab/' },
-  { sourcePrefix: '/ui/zero/', targetPrefix: '/self/ui/zero/' },
-  { sourcePath: '/styles/zero.css', targetPath: '/self/styles/zero.css' }
-]);
+// Compatibility exports retain the existing seed API. The selected closure, not
+// a broad prefix directory, owns the minimal lab's source inventory.
+export const X_SEED_PREFIXES = Object.freeze([...sourceCatalog.profiles.spark.seedFiles]);
+export const ZERO_SEED_PREFIXES = X_SEED_PREFIXES;
+export const ZERO_RUNTIME_SELF_MIRROR_RULES = Object.freeze([]);
 
 export const PROTO_RUNTIME_SELF_MIRROR_RULES = Object.freeze([
   { sourcePath: '/ui/toast.js', targetPath: '/self/ui/toast.js' },
@@ -160,15 +56,10 @@ export const PROTO_RUNTIME_SELF_MIRROR_RULES = Object.freeze([
   { sourcePrefix: '/styles/proto/', targetPrefix: '/self/styles/proto/' }
 ]);
 
-export const X_RUNTIME_SELF_MIRROR_RULES = Object.freeze([
-  ...PROTO_RUNTIME_SELF_MIRROR_RULES,
-  { sourcePath: '/providers/external-brain.js', targetPath: '/self/providers/external-brain.js' }
-]);
-
 export const ZERO_RUNTIME_UI = Object.freeze({
   name: 'zero',
-  stylePath: '/self/styles/zero.css',
-  vfsModulePath: '/self/ui/zero/index.js',
+  stylePath: '/styles/zero.css',
+  vfsModulePath: '/ui/zero/index.js',
   sourceModulePath: '/ui/zero/index.js',
   allowSourceFallback: false
 });

@@ -13,6 +13,7 @@ describe('GenesisSnapshot - Integration Tests', () => {
   let mockLocalStorage;
 
   const createMocks = () => {
+    let nextSnapshotId = 0;
     mockUtils = {
       logger: {
         debug: vi.fn(),
@@ -20,7 +21,7 @@ describe('GenesisSnapshot - Integration Tests', () => {
         warn: vi.fn(),
         error: vi.fn()
       },
-      generateId: vi.fn().mockImplementation((prefix = 'id') => `${prefix}_${Date.now()}`),
+      generateId: vi.fn().mockImplementation((prefix = 'id') => `${prefix}_${++nextSnapshotId}`),
       trunc: (str, len) => (str?.length > len ? str.slice(0, len) : str)
     };
 

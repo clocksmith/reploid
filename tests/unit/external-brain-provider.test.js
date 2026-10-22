@@ -4,7 +4,6 @@ import { createExternalBrainProvider } from '../../self/providers/external-brain
 import ProviderRegistry from '../../self/core/provider-registry.js';
 import LLMClient from '../../self/core/llm-client.js';
 import manifest from '../../self/config/vfs-manifest.json' with { type: 'json' };
-import { getRuntimeSelfMirrorsByBootProfile } from '../../self/lab/profiles.js';
 import { pickBootSeedFiles } from '../../self/config/boot-seed.js';
 
 const model = { id: 'external-brain', provider: 'external', hostType: 'direct' };
@@ -24,11 +23,10 @@ const utils = () => ({
 describe('external reasoning provider', () => {
   it('delivers the registry-relative provider import into the actual X VFS profile', () => {
     const files = pickBootSeedFiles(manifest.files, 'x_home');
-    const targetPath = new URL('../providers/external-brain.js', 'https://local.invalid/self/core/provider-registry.js').pathname;
-    const mirror = getRuntimeSelfMirrorsByBootProfile('x_home', manifest.files).find(entry => entry.targetPath === targetPath);
-    expect(mirror).toBeDefined();
-    expect(files).toContain(mirror.sourcePath.slice(1));
-    expect(getRuntimeSelfMirrorsByBootProfile('zero_home', manifest.files).some(entry => entry.targetPath === targetPath)).toBe(false);
+    const registryPath = files.find(path => path.endsWith('/provider-registry.js'));
+    expect(registryPath).toBeDefined();
+    const targetPath = new URL('../providers/external-brain.js', `https://local.invalid/${registryPath}`).pathname;
+    expect(files).toContain(targetPath.slice(1));
   });
 
   it('preserves HTTP failure status when the disabled server returns HTML', async () => {

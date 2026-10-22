@@ -1,3 +1,4 @@
+import { getLabUpgradeLevel, isMinimalLabMode } from '../config/lab-upgrades.js';
 /**
  * @fileoverview Tool Runner
  * Execution engine for built-in and dynamic tools.
@@ -9,7 +10,7 @@ import { getCurrentReploidStorage as getReploidStorage } from '../instance.js';
 import { getToolNamesForMode } from '../config/tool-surfaces.js';
 
 export const filterToolDepsForMode = (deps = {}, mode = 'reploid') => {
-  if (mode !== 'zero') return deps;
+  if (mode !== 'x' && mode !== 'zero') return deps;
   const filtered = { ...deps };
   delete filtered.Shell;
   delete filtered.gitTools;
@@ -44,7 +45,7 @@ const createReadOnlyVfs = (VFS) => {
 
 export const filterToolDepsForTool = (deps = {}, mode = 'reploid', toolName = '', options = {}) => {
   const filtered = filterToolDepsForMode(deps, mode);
-  if (mode !== 'zero') return filtered;
+  if (mode !== 'x' && mode !== 'zero') return filtered;
   const isInternal = ZERO_INTERNAL_TOOL_NAMES.has(String(toolName || ''));
   const capabilities = normalizeToolCapabilities(options.capabilities);
   const canWriteVfs = isInternal
@@ -102,6 +103,7 @@ const ToolRunner = {
     };
 
     const getKernelToolNames = () => getToolNamesForMode(getBootMode(), {
+      upgradeLevel: getLabUpgradeLevel(getBootMode()),
       hasToolWriter: !!ToolWriter,
       hasSubstrateLoader: !!SubstrateLoader
     });
@@ -170,7 +172,33 @@ const ToolRunner = {
       }
     };
 
+    // A smaller source graph must not silently remove an instance's configured gates.
+    const assertConfiguredGates = () => {
+      const mode = getBootMode();
+      if (mode !== 'x' && mode !== 'zero') return;
+      if (isSecurityEnabled() && typeof PolicyEngine?.check !== 'function') {
+        throw new Errors.ToolError('Configured security requires PolicyEngine. Restore the gate before loading or executing tools.');
+      }
+      if (HITLController) return;
+      const configs = new Set([
+        getReploidStorage().getItem('REPLOID_HITL_CONFIG'),
+        globalThis.localStorage?.getItem('REPLOID_HITL_CONFIG')
+      ]);
+      for (const saved of configs) {
+        if (!saved) continue;
+        let config;
+        try { config = JSON.parse(saved); } catch {
+          throw new Errors.ToolError('Invalid saved approval configuration. Restore the approval gate before loading or executing tools.');
+        }
+        const modes = [config?.approvalMode, ...Object.values(config?.moduleOverrides || {})];
+        if (modes.some(value => value && value !== 'autonomous' && value !== 'inherit')) {
+          throw new Errors.ToolError('Configured approvals require HITLController. Restore the gate before loading or executing tools.');
+        }
+      }
+    };
+
     const loadToolModule = async (path, forcedName = null, options = {}) => {
+      assertConfiguredGates();
       try {
         const contents = await VFS.read(path);
         if (typeof contents === 'string' && contents.includes('ToolRunner.run')) {
@@ -181,7 +209,8 @@ const ToolRunner = {
           logger,
           VerificationManager,
           path,
-          code: contents
+          code: contents,
+          expectedSha256: options.expectedSha256
         });
         const handler = typeof mod.default === 'function'
           ? mod.default
@@ -226,7 +255,7 @@ const ToolRunner = {
       const cleanPath = normalizeLoadPath(path);
       assertInstallToolPath(cleanPath);
       const name = forcedName || cleanPath.split('/').pop()?.replace('.js', '');
-      const loaded = await loadToolModule(cleanPath, forcedName, { throwOnError: true });
+      const loaded = await loadToolModule(cleanPath, forcedName, { throwOnError: true, expectedSha256: options.expectedSha256 });
       if (loaded && options.allow && name) {
         allowTool(name);
       }
@@ -245,6 +274,7 @@ const ToolRunner = {
     // --- Dynamic Tool Loading ---
 
     const loadDynamicTools = async () => {
+      assertConfiguredGates();
       unloadDynamicTools();
       const allowlist = getInitialToolAllowlist();
 
@@ -267,7 +297,7 @@ const ToolRunner = {
           if (file.includes('.test.') || file.includes('.spec.') || file.includes('.integration.')) continue;
           const toolName = file.split('/').pop().replace('.js', '');
           if (root === '/tools/' && allowlist && !allowlist.has(toolName)) continue;
-          if (getBootMode() === 'zero' && toolName === 'Promote') continue;
+          if (isMinimalLabMode(getBootMode()) && toolName === 'Promote') continue;
           await loadToolModule(file);
           if (root === '/self/tools/') {
             allowTool(toolName);
@@ -315,6 +345,7 @@ const ToolRunner = {
      * @param {string} [options.workerId] - Worker ID for audit logging
      */
     const execute = async (name, args = {}, options = {}) => {
+      assertConfiguredGates();
       const { allowedTools, workerId } = options;
       const trace = options.trace || null;
       const traceSessionId = trace?.sessionId;

@@ -1,324 +1,76 @@
-# Zero/X substrate and provider compatibility setup
+# X and Zero setup
 
-This guide preserves the Direct / Proxy / Doppler wizard and Genesis/VFS
-setup for the Zero/X substrate and compatibility hosts. It is not the ordinary
-public-mesh entry flow. Start with the [network quick start](QUICK-START.md)
-for Reploid conversations. Check each route’s actual controls and support before
-following an older wizard-specific step.
+X is the minimal self-owning browser agent. Zero extends X with explicitly selected
+upgrades. Both are separate from the ordinary [conversation flow](QUICK-START.md).
 
-## Prerequisites
+## Start
 
-- Modern browser with ES modules
-- WebGPU-capable browser for Doppler local models
-- Node.js 22+ (the minimum declared by `package.json`) for the supported dev server path
-- `git` recommended
+From a repository checkout, install dependencies with `npm install`, then run
+`npm start` (Node.js 22+). Open `http://localhost:8000/x` for the minimal base, or
+`http://localhost:8000/zero` for optional upgrades.
 
----
+Use a modern browser with ES modules, IndexedDB and service workers, served on
+localhost or HTTPS. Source ownership does not supply inference: configure a
+reachable inference service separately.
 
-## Start locally
+## Choose inference
 
-### 1. Install dependencies
+- **Server proxy** uses the managed proxy configured in the boot form. Test the
+  endpoint before awakening. Server credentials are not part of a source export.
+- **Connected agent** is available on local X when the bounded loopback reasoning
+  mailbox is enabled. The connected agent proposes model output; it does not gain
+  shell access or execution authority. See the [connection contract](x/external-brain.md).
+- **Optional local Doppler** is a Zero-only choice. It installs its selected adapter
+  source and requires a separately available Doppler runtime, model assets and
+  WebGPU. The minimal X image does not preload that runtime or its models.
 
-```bash
-npm install
-```
+## Awaken X
 
-### 2. Start the supported server
+Enter an objective, choose the cycle interval and select **Awaken**. A fresh X
+exposes only `CreateTool`. For example:
 
-```bash
-npm start
-```
+> Create a tool called AddNumbers that takes two numbers and returns their sum.
+> Include fixtures, activate it, then use it with 2 and 3.
 
-`npm start` launches `server/proxy.js`, which serves the app at `http://localhost:8000`, proxies cloud APIs, and exposes local-model endpoints when configured.
+CreateTool stages the source, checks declared fixtures, re-imports it for replay,
+then activates a successful tool. Reading, writing and self-mutation helpers are
+created when needed, not assumed to be installed. The base includes validation,
+capability boundaries and runtime source even though it has only one initial tool.
 
-### 3. Open the app
+## Extend Zero
 
-Go to `http://localhost:8000`.
+Zero defaults to **None: minimal X core**. Its **Optional upgrades** selector adds
+only the chosen source closure when the operator awakens it:
 
-### 4. Pick a boot-wizard connection type
+- `reflection`: file/promotion tools and verification infrastructure.
+- `cognition`: memory and cognition tools.
+- `substrate`: worker/runtime infrastructure.
+- `full`: optimization and swarm tools.
 
-| Connection Type | What it means | Typical use |
-|-----------------|---------------|-------------|
-| `Direct` | Browser calls cloud APIs directly with keys stored in browser state | Quick experiments |
-| `Proxy` | Browser calls the Reploid proxy, which holds cloud keys or talks to Ollama | Safer local development |
-| `Doppler` | Local model path via WebGPU and the Doppler stack | Offline or local-first runs |
+These options add capabilities, not authority. Host shell/git dependencies remain
+unavailable to lab tools; VFS writes and tool loading remain capability-scoped.
+A model cannot approve its own candidate, change its evaluator or escalate grants.
+X ignores stored Zero upgrade selections and remains the base.
 
-### 5. Set advanced options if needed
+## Runtime and persistence
 
-Useful first-run options:
-- `Genesis Level`
-- `Preserve VFS on boot`
-- `HITL approval`
-- `Security enforcement`
-- `Module overrides`
+The compact screen prioritizes conversation, prompt, current state and Stop.
+Open **Inspect** for metrics, raw trace and source export. Errors and required
+approvals must remain visible, not hidden in inspection.
 
-See [CONFIGURATION.md](./CONFIGURATION.md) for the full surface.
+Ordinary reloads and build-version changes preserve browser VFS contents. Existing
+instances are not automatically pruned or rewritten. An older instance may retain
+its older source or installed tools; a reload is not a migration proof. Start a new
+named instance (`?instance=my-clean-x`) to get a clean base without deleting prior
+work. Do not use a reset to make an existing workspace look minimal.
 
-### 6. Enter a goal and awaken
+## Reproduce from source
 
-Example goals:
+Use **Export self-source** in Inspect. The JSON image contains declared source,
+hashes and the installed tool sources selected by this action, not arbitrary
+workspace artifacts, browser settings or credentials.
 
-```text
-Read the files in /core and explain what each module does
-```
-
-```text
-Create a tool called GreetUser that returns a friendly greeting
-```
-
-```text
-Inspect /tools and summarize the available capabilities
-```
-
----
-
-## Genesis Levels
-
-`self/config/genesis-levels.json` is the source of truth.
-
-| Level | Cumulative Modules | Best For |
-|-------|--------------------|----------|
-| `tabula` | 7 | Minimal substrate boot |
-| `spark` | 21 | Core agent loop and tools |
-| `reflection` | 27 | Verification and HITL |
-| `cognition` | 38 | Semantic and symbolic cognition |
-| `substrate` | 50 | Workers and runtime infrastructure |
-| `full` | 68 | Arena, swarm, signed improvement episodes, and the full research surface |
-
-If you are learning the codebase, start with `spark`, `reflection`, or `full`.
-
----
-
-## Connection Types
-
-### Direct
-
-Use this when you want the fastest path to a cloud-backed session.
-
-Boot-wizard flow:
-1. Choose `Direct`
-2. Select a provider
-3. Enter the API key
-4. Select a model
-5. Verify connection and model
-
-Notes:
-- Keys are stored in browser state under `REPLOID_KEY_<PROVIDER>`
-- The selected model is persisted in `SELECTED_MODELS`
-- This is the fastest setup path, but it keeps credentials in the browser
-
-### Proxy
-
-Use this when you want server-side key handling or Ollama-backed local inference.
-
-Typical `.env`:
-
-```env
-GEMINI_API_KEY=your_key_here
-OPENAI_API_KEY=your_key_here
-ANTHROPIC_API_KEY=your_key_here
-LOCAL_MODEL_ENDPOINT=http://localhost:11434
-```
-
-Boot-wizard flow:
-1. Start `npm start`
-2. Choose `Proxy`
-3. Point at the detected Reploid proxy or Ollama endpoint
-4. Pick the provider and model
-5. Verify connection and model
-
-Useful proxy endpoints:
-- `GET /api/health`
-- `GET /api/proxy-status`
-- `GET /api/ollama/models`
-
-### Doppler
-
-Use this when you want local inference through Doppler.
-
-Requirements:
-- Browser with WebGPU enabled
-- Doppler assets available through the configured Doppler base
-
-Boot-wizard flow:
-1. Choose `Doppler`
-2. Wait for Doppler capability detection
-3. Pick the detected model
-4. Verify and awaken
-
-If you need a non-default Doppler asset root, open the app with:
-
-```text
-http://localhost:8000/?dopplerBase=http://localhost:9000/doppler
-```
-
----
-
-## Supported First-Run Paths
-
-| Goal | Recommended Path |
-|------|------------------|
-| Fastest setup | `Direct` |
-| Safer local development | `Proxy` |
-| Offline or local-first experiments | `Doppler` |
-
----
-
-## Proto UI
-
-Main areas after boot:
-
-| Area | Purpose |
-|------|---------|
-| Workspace header | Goal, state, token usage, worker count |
-| History | LLM responses, tool calls, streaming output |
-| Reflections | Stored lessons and outcomes |
-| Status | Model info, errors, runtime state |
-| Workers | Active and completed worker runs |
-| Debug | System prompt, config, context snapshots |
-| VFS panel | File browser, preview, diffs, snapshots |
-
-Common actions:
-- `Ctrl+K` or `Cmd+K`: command palette
-- `Ctrl+Enter`: submit goal
-- `Escape`: close modal or stop current focused action
-
----
-
-## Example Workflows
-
-### Codebase orientation
-
-Goal:
-
-```text
-Read the files in /core and explain what each one does
-```
-
-Typical tool path:
-- `ListFiles`
-- `ReadFile`
-- `FileOutline`
-
-### Create a tool
-
-Goal:
-
-```text
-Create a tool called AddNumbers that takes two numbers and returns their sum
-```
-
-Typical tool path:
-- `CreateTool`
-- `WriteFile`
-- `LoadModule`
-
-### Parallel exploration
-
-Goal:
-
-```text
-Spawn workers to inspect /core, /tools, and /infrastructure in parallel
-```
-
-Typical tool path:
-- `SpawnWorker`
-- `AwaitWorkers`
-- synthesis in the main loop
-
-### Controlled self-modification
-
-Goal:
-
-```text
-Read /core/tool-runner.js and propose a safe optimization
-```
-
-Typical path:
-- read and analyze current module
-- propose edits
-- verification before write
-- optional arena gating for higher-risk changes
-- hot reload after commit
-
----
-
-## Key Concepts
-
-### VFS
-
-- IndexedDB-backed virtual file system
-- Holds source modules, tools, logs, memories, and snapshots
-- Keeps agent mutation inside the browser boundary
-
-### Genesis Snapshot
-
-- Captured before agent action during boot
-- Lets you diff or restore the runtime to a known clean state
-
-### Arena Gating
-
-- Multi-model validation layer for risky changes
-- Controlled by `REPLOID_ARENA_GATING`
-- Off by default
-
-### HITL
-
-- Human approval modes: `autonomous`, `hitl`, `every_n`
-- Stored in `REPLOID_HITL_CONFIG`
-
----
-
-## Troubleshooting
-
-### Module load failures
-
-- Hard refresh the page
-- Clear cached VFS state if needed
-- Check the browser console for service-worker or import errors
-
-### App boots but agent does not run
-
-- Verify a model is selected in the boot wizard
-- Check API key or proxy verification state
-- Confirm `SELECTED_MODELS` is present and valid
-
-### Proxy connection refused
-
-- Confirm `npm start` is running
-- Check port `8000`
-- Inspect `server/proxy.js` logs
-
-### Ollama not detected
-
-- Start Ollama: `ollama serve`
-- Confirm the endpoint responds at `http://localhost:11434/api/tags`
-- Set `LOCAL_MODEL_ENDPOINT` if you are not using the default port
-
-### Browser-local model unavailable
-
-- Confirm WebGPU support in the browser
-- Check that Doppler assets are reachable from the configured base URL
-- Try again with a smaller model or a clean browser profile
-
-### IndexedDB quota issues
-
-- Export anything important
-- Clear VFS state
-- Disable `REPLOID_PRESERVE_ON_BOOT` for the next run if you want a clean seed
-
-For deeper validation guidance, see [TESTING.md](./TESTING.md).
-
----
-
-## Next Steps
-
-1. Read [system-architecture.md](./system-architecture.md)
-2. Read [CONFIGURATION.md](./CONFIGURATION.md)
-3. Read [SECURITY.md](./SECURITY.md)
-4. Read [local-models.md](./local-models.md)
-5. Read [API.md](./API.md)
-
----
-
-*Last updated: March 2026*
+The exported materializer emits a static host tree. Boot that tree on a new origin
+with the same explicit browser/hosting prerequisites and configure inference anew.
+A repository checkout is not a runtime prerequisite for the descendant. See the
+[self-source contract and acceptance checks](x/self-source.md).

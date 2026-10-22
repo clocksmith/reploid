@@ -16,11 +16,13 @@ import {
   seedVfsFromManifest,
   clearVfsStore,
   readVfsFile,
+  writeVfsFile,
   ensureVfsFileMirrors,
   pruneVfsStoreToPaths
 } from './vfs-bootstrap.js';
 import {
   getBootSeedProfile,
+  getBootSourceManifest,
   isLockedHomeBootProfile,
   pickBootSeedFiles,
   shouldAwaitFullManifestBeforeStart,
@@ -217,8 +219,8 @@ const SW_LEGACY_ROOT_RELEASE_RELOAD_KEY = 'REPLOID_SW_LEGACY_ROOT_RELEASE_RELOAD
 const BOOT_SEED_READY_PREFIX = 'REPLOID_BOOT_SEED_READY';
 const FULL_SEED_READY_PREFIX = 'REPLOID_FULL_SEED_READY';
 const WARM_BOOT_PROBE_PATHS = Object.freeze([
-  '/boot-spec.js',
-  '/host/start-app.js',
+  '/self/boot-spec.js',
+  '/self/host/start-app.js',
   '/lab/profiles.js',
   '/lab/mirrors.js',
   '/config/boot-seed.js'
@@ -310,10 +312,11 @@ const isLikelyWarmBoot = (bootProfile) => {
   return isSeedReady(BOOT_SEED_READY_PREFIX, bootProfile);
 };
 
-const hasWarmBootProbeFiles = async (bootProfile, runtimeSelfMirrors = []) => {
+const hasWarmBootProbeFiles = async (bootProfile, runtimeSelfMirrors = [], bootFiles = []) => {
   if (!isLikelyWarmBoot(bootProfile)) return false;
   const probePaths = [
     ...WARM_BOOT_PROBE_PATHS,
+    ...bootFiles.map(path => normalizeVfsPath(path)),
     ...runtimeSelfMirrors.map((mirror) => mirror.targetPath)
   ].filter(Boolean);
   const uniquePaths = [...new Set(probePaths)];
@@ -526,13 +529,10 @@ const ensureVfsVersion = async () => {
   if (!expected) return false;
   const current = storage.getItem(VFS_VERSION_KEY);
   if (current === expected) return false;
-  try {
-    await clearVfsStore();
-  } catch (err) {
-    warn('Failed to clear VFS store:', err?.message || err);
-  }
+  // A build is not permission to erase an agent's tools, work, or source.
+  // Missing seed files are added below; existing bytes remain authoritative.
   storage.setItem(VFS_VERSION_KEY, expected);
-  return true;
+  return false;
 };
 
 const shouldPreserveBootVfs = ({ bootProfile, vfsReset }) => {
@@ -605,11 +605,7 @@ const recoverFromStaleNetworkVersion = async (bootProfile) => {
   setBootstrapStage('version_recovery');
   warn(`Refreshing stale boot substrate: loaded ${expected}, network has ${networkVersion}.`);
   scopedSessionStorage.setItem(NETWORK_VERSION_RELOAD_KEY, marker);
-  try {
-    await clearVfsStore();
-  } catch (err) {
-    warn('Failed to clear stale VFS during version recovery:', err?.message || err);
-  }
+  // Release the stale shell without deleting the instance's live self.
   try {
     getScopedLocalStorage().removeItem(VFS_VERSION_KEY);
   } catch {
@@ -648,6 +644,7 @@ const recoverFromStaleNetworkVersion = async (bootProfile) => {
     setBootstrapStage('manifest');
     const { manifest, text } = await loadVfsManifest();
     const preserveOnBoot = shouldPreserveBootVfs({ bootProfile, vfsReset });
+    const sourceManifest = getBootSourceManifest(bootProfile);
     const bootFiles = pickBootSeedFiles(manifest?.files || [], bootProfile);
     if (bootFiles.length === 0) {
       throw new Error('Boot seed manifest is empty');
@@ -655,7 +652,7 @@ const recoverFromStaleNetworkVersion = async (bootProfile) => {
     const runtimeSelfMirrors = getRuntimeSelfMirrorsByBootProfile(bootProfile, manifest?.files || []);
     const bootVfsPaths = new Set(bootFiles.map((path) => normalizeVfsPath(path)));
     const bootRuntimeSelfMirrors = runtimeSelfMirrors.filter((mirror) => bootVfsPaths.has(mirror.sourcePath));
-    const warmBootReady = !vfsReset && await hasWarmBootProbeFiles(bootProfile, runtimeSelfMirrors);
+    const warmBootReady = !vfsReset && await hasWarmBootProbeFiles(bootProfile, runtimeSelfMirrors, bootFiles);
     const fullHydrationReady = warmBootReady && isSeedReady(FULL_SEED_READY_PREFIX, bootProfile);
     if (!warmBootReady) {
       prepareBootstrapVisibility(bootProfile);
@@ -715,7 +712,7 @@ const recoverFromStaleNetworkVersion = async (bootProfile) => {
         {
           preserveOnBoot,
           logger: console,
-          manifestText: text,
+          manifestText: sourceManifest ? JSON.stringify({ version: 1, files: bootFiles }) : text,
           fetchConcurrency: 16,
           progressScope: 'boot',
           progressLabel: 'Boot VFS seed',
@@ -737,6 +734,9 @@ const recoverFromStaleNetworkVersion = async (bootProfile) => {
             logger: console
           });
         }
+      }
+      if (sourceManifest && await readVfsFile('/config/self-source-manifest.json') === null) {
+        await writeVfsFile('/config/self-source-manifest.json', JSON.stringify(sourceManifest));
       }
       markSeedReady(BOOT_SEED_READY_PREFIX, bootProfile);
     }

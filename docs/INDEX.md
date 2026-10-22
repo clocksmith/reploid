@@ -27,7 +27,9 @@ Typed model operations: [Doppler decisions in Reploid](doppler-choice-scoring.md
 
 1. **[/README.md](../README.md)** - Project overview, quick start, RSI concepts
 2. **[docs/QUICK-START.md](./QUICK-START.md)** - Ordinary network conversations, prepared capacity, disclosure and contribution
-   - [Zero/X compatibility setup](zero-x-quick-start.md) preserves the provider wizard and Genesis/VFS workflow.
+   - [X/Zero setup](zero-x-quick-start.md) starts with the minimal X base and explicit Zero upgrades.
+   - [Recorded run playback](x/run-replay.md) covers bounded trace export, review, import and side-effect-free accelerated playback.
+   - [Self-source contract](x/self-source.md) separates the exported source closure from hosting and inference prerequisites.
    - [Local X external reasoning](x/external-brain.md) connects a same-machine responder without a model API key.
 3. **[docs/CONFIGURATION.md](./CONFIGURATION.md)** - Connection modes and boot configuration
 4. **[Scoped helpers, private peers, and tool improvement](./work-collaboration.md)** - Compatibility-host tool evaluation and private candidate delivery; separate from public-mesh onboarding

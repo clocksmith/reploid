@@ -52,6 +52,8 @@ const createMockSchemaRegistry = () => ({
   unregisterToolSchema: vi.fn()
 });
 
+import { setSecurityEnabled } from '../../self/core/security-config.js';
+import { getCurrentReploidStorage } from '../../self/instance.js';
 import ToolRunnerModule, { filterToolDepsForMode, filterToolDepsForTool } from '../../core/tool-runner.js';
 
 describe('ToolRunner', () => {
@@ -80,6 +82,9 @@ describe('ToolRunner', () => {
 
   afterEach(() => {
     delete global.window;
+    getCurrentReploidStorage().removeItem('REPLOID_HITL_CONFIG');
+    getCurrentReploidStorage().removeItem('REPLOID_SECURITY_MODE');
+    setSecurityEnabled(false, { persist: false });
   });
 
   // NOTE: In RSI mode, there are NO built-in tools
@@ -87,7 +92,7 @@ describe('ToolRunner', () => {
   // This enables full self-modification capability
 
   describe('mode dependency filtering', () => {
-    it('removes host shell and git dependencies in Zero only', () => {
+    it.each(['x', 'zero'])('removes host shell and git dependencies in %s', (mode) => {
       const deps = {
         VFS: {},
         Shell: {},
@@ -95,14 +100,14 @@ describe('ToolRunner', () => {
         ToolRunner: {}
       };
 
-      expect(filterToolDepsForMode(deps, 'zero')).toEqual({
+      expect(filterToolDepsForMode(deps, mode)).toEqual({
         VFS: {},
         ToolRunner: {}
       });
-      expect(filterToolDepsForMode(deps, 'x')).toBe(deps);
+      expect(filterToolDepsForMode(deps, 'reploid')).toBe(deps);
     });
 
-    it('gives Zero-created tools read-only deps until capabilities are declared', () => {
+    it.each(['x', 'zero'])('gives %s-created tools read-only deps until capabilities are declared', (mode) => {
       const deps = {
         VFS: {
           read: vi.fn(),
@@ -123,7 +128,7 @@ describe('ToolRunner', () => {
         gitTools: {}
       };
 
-      const readonly = filterToolDepsForTool(deps, 'zero', 'CreatedReader');
+      const readonly = filterToolDepsForTool(deps, mode, 'CreatedReader');
       expect(readonly.Shell).toBeUndefined();
       expect(readonly.gitTools).toBeUndefined();
       expect(typeof readonly.VFS.read).toBe('function');
@@ -131,12 +136,51 @@ describe('ToolRunner', () => {
       expect(readonly.ToolRunner.execute).toBe(deps.ToolRunner.execute);
       expect(readonly.ToolRunner.loadPath).toBeUndefined();
 
-      const writer = filterToolDepsForTool(deps, 'zero', 'CreatedWriter', {
+      const writer = filterToolDepsForTool(deps, mode, 'CreatedWriter', {
         capabilities: ['vfs:write', 'tool:load']
       });
       expect(writer.VFS).toBe(deps.VFS);
       expect(writer.ToolRunner.loadPath).toBe(deps.ToolRunner.loadPath);
       expect(writer.ToolRunner.refresh).toBe(deps.ToolRunner.refresh);
+    });
+  });
+
+  describe('configured lab gates', () => {
+    it.each(['x', 'zero'])('blocks %s tool import and execution when saved security lacks PolicyEngine', async mode => {
+      global.window = { getReploidMode: () => mode };
+      setSecurityEnabled(true);
+      expect(getCurrentReploidStorage().getItem('REPLOID_SECURITY_MODE')).toBe('on');
+      await expect(toolRunner.init()).rejects.toThrow('requires PolicyEngine');
+      await expect(toolRunner.loadPath('/self/tools/Unsafe.js')).rejects.toThrow('requires PolicyEngine');
+      await expect(toolRunner.execute('CreateTool')).rejects.toThrow('requires PolicyEngine');
+      expect(mockVFS.read).not.toHaveBeenCalled();
+    });
+
+    it.each(['hitl', 'every_n'])('blocks saved %s approval requirements without HITLController', async approvalMode => {
+      global.window = { getReploidMode: () => 'x' };
+      getCurrentReploidStorage().setItem('REPLOID_HITL_CONFIG', JSON.stringify({ approvalMode }));
+      await expect(toolRunner.init()).rejects.toThrow('require HITLController');
+      await expect(toolRunner.loadPath('/self/tools/Unsafe.js')).rejects.toThrow('require HITLController');
+      await expect(toolRunner.execute('CreateTool')).rejects.toThrow('require HITLController');
+      expect(mockVFS.read).not.toHaveBeenCalled();
+    });
+
+    it('checks both scoped and legacy HITL requirements for named instances', async () => {
+      global.window = { getReploidMode: () => 'x', REPLOID_INSTANCE_ID: 'named-security-test' };
+      const storage = getCurrentReploidStorage();
+      storage.setItem('REPLOID_HITL_CONFIG', JSON.stringify({ approvalMode: 'autonomous' }));
+      localStorage.setItem('REPLOID_HITL_CONFIG', JSON.stringify({ approvalMode: 'hitl' }));
+      expect(storage.getItem('REPLOID_HITL_CONFIG')).not.toBe(localStorage.getItem('REPLOID_HITL_CONFIG'));
+      await expect(toolRunner.execute('CreateTool')).rejects.toThrow('require HITLController');
+      storage.removeItem('REPLOID_HITL_CONFIG');
+      localStorage.removeItem('REPLOID_HITL_CONFIG');
+      expect(mockVFS.read).not.toHaveBeenCalled();
+    });
+
+    it('keeps an unconfigured fresh X boot unchanged', async () => {
+      global.window = { getReploidMode: () => 'x' };
+      setSecurityEnabled(false, { persist: false });
+      await expect(toolRunner.init()).resolves.toBe(true);
     });
   });
 
@@ -201,7 +245,7 @@ describe('ToolRunner', () => {
       });
 
       it('should skip test files when loading tools', async () => {
-        global.window = { getReploidMode: () => 'x' };
+        global.window = { getReploidMode: () => 'reploid' };
         mockVFS.list.mockResolvedValue([
           '/tools/ReadFile.js',
           '/tools/ReadFile.test.js',

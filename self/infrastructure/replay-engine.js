@@ -1,8 +1,74 @@
 /**
  * @fileoverview Replay Engine
- * Re-executes agent sessions from audit logs with deterministic LLM mocking.
- * Supports: timeline visualization, session re-execution, comparison testing.
+ * Imported traces have passive, namespaced playback only.
+ * Explicit internal audit-session re-execution remains a separate legacy API.
  */
+
+import { importRunTrace } from '../core/run-replay-bundle.js';
+
+export const REPLAY_SPEEDS = Object.freeze([1, 8, 64, 256]);
+
+// Playback has no execution ports and never dispatches imported event names.
+// Advance every event in order, then render once per scheduling frame.
+export function createTimelinePlayback({ onEvent = () => {}, onReset = () => {}, onUpdate = () => {},
+  now = () => performance.now(), schedule = callback => setTimeout(callback, 16), cancel = clearTimeout } = {}) {
+  let trace = null;
+  let index = 0;
+  let speed = 1;
+  let playing = false;
+  let elapsed = 0;
+  let anchor = 0;
+  let timer = null;
+  const duration = () => trace?.events.length ? trace.events.at(-1).ts - trace.startedAt : 0;
+  const position = () => Math.min(duration(), elapsed + (playing ? Math.max(0, now() - anchor) * speed : 0));
+  const getState = () => ({ isPlaying: playing, isPaused: !!trace && !playing, speed,
+    currentIndex: index, totalEvents: trace?.events.length || 0,
+    elapsedMs: position(), durationMs: duration(), replay: true,
+    percent: trace?.events.length ? Math.round(index / trace.events.length * 100) : 0,
+    metadata: trace ? { eventCount: trace.events.length, droppedEvents: trace.droppedEvents,
+      provenance: structuredClone(trace.provenance) } : null });
+  const update = () => onUpdate(getState());
+  const cancelTimer = () => { if (timer !== null) cancel(timer); timer = null; };
+  const apply = () => { const event = trace.events[index++]; onEvent(structuredClone(event)); };
+  const tick = () => {
+    timer = null;
+    if (!playing) return;
+    const target = position();
+    while (index < trace.events.length && trace.events[index].ts - trace.startedAt <= target) apply();
+    if (index === trace.events.length) { elapsed = duration(); playing = false; }
+    update();
+    if (playing) timer = schedule(tick);
+  };
+  const pause = () => { elapsed = position(); playing = false; cancelTimer(); update(); };
+  const seek = next => {
+    if (!trace || !Number.isInteger(next) || next < 0 || next > trace.events.length) throw new Error('Invalid replay position.');
+    pause();
+    index = 0;
+    onReset();
+    while (index < next) apply();
+    elapsed = index ? trace.events[index - 1].ts - trace.startedAt : 0;
+    update();
+  };
+  const play = () => {
+    if (!trace || playing || index === trace.events.length) return;
+    anchor = now(); playing = true; tick();
+  };
+  const loadRun = input => {
+    const next = importRunTrace(input); // Validate before replacing a currently loaded trace.
+    pause(); trace = next; index = 0; elapsed = 0; onReset(); update();
+    return { events: structuredClone(trace.events), metadata: getState().metadata };
+  };
+  return { loadRun, play, pause, seek, getState,
+    stop: () => { if (trace) seek(0); },
+    step: () => { pause(); if (trace && index < trace.events.length) { apply(); elapsed = trace.events[index - 1].ts - trace.startedAt; update(); } },
+    setSpeed(next) {
+      if (!REPLAY_SPEEDS.includes(next)) throw new Error('Unsupported replay speed.');
+      elapsed = position(); anchor = now(); speed = next; update();
+    },
+    getSpeeds: () => [...REPLAY_SPEEDS],
+    dispose: () => { cancelTimer(); playing = false; trace = null; }
+  };
+}
 
 const ReplayEngine = {
   metadata: {
@@ -21,14 +87,19 @@ const ReplayEngine = {
     const { Utils, EventBus, VFS, AuditLogger, VFSSandbox, ToolRunner, LLMClient } = deps;
     const { logger, generateId } = Utils;
 
-    // Timeline playback state
-    let _isPlaying = false;
-    let _isPaused = false;
-    let _speed = 1;
-    let _currentIndex = 0;
     let _events = [];
     let _runMetadata = null;
-    let _playbackTimeout = null;
+    let _currentIndex = 0;
+    let _importedSession = false;
+    const playback = createTimelinePlayback({
+      onEvent: event => EventBus.emit('replay:event', event),
+      onReset: () => EventBus.emit('replay:reset'),
+      onUpdate: state => {
+        _currentIndex = state.currentIndex;
+        EventBus.emit('replay:progress', state);
+        if (!state.isPlaying && state.totalEvents && state.currentIndex === state.totalEvents) EventBus.emit('replay:completed');
+      }
+    });
 
     // Re-execution state
     let _isExecuting = false;
@@ -38,231 +109,21 @@ const ReplayEngine = {
     let _vfsCheckpoints = []; // { index, snapshot }
     let _comparisonResults = []; // { iteration, expected, actual, match }
 
-    // Speed presets
-    const SPEEDS = [1, 2, 5, 10, 50];
-
-    /**
-     * Load a run file and extract timeline events
-     * @param {Object} runData - Exported run JSON
-     * @returns {Object} { events, metadata }
-     */
-    const loadRun = (runData) => {
-      if (!runData?.vfs) {
-        throw new Error('Invalid run data: missing vfs');
-      }
-
-      // Find timeline files
-      const timelineFiles = Object.keys(runData.vfs)
-        .filter(path => path.startsWith('/.logs/timeline/') && path.endsWith('.jsonl'))
-        .sort();
-
-      // Parse all timeline events
-      _events = [];
-      for (const path of timelineFiles) {
-        const content = runData.vfs[path];
-        if (!content) continue;
-
-        for (const line of content.split('\n').filter(Boolean)) {
-          try {
-            _events.push(JSON.parse(line));
-          } catch {
-            // Skip malformed lines
-          }
-        }
-      }
-
-      // Sort by timestamp
-      _events.sort((a, b) => a.ts - b.ts);
-
-      // Extract metadata
-      _runMetadata = {
-        exportedAt: runData.exportedAt,
-        state: runData.state,
-        totalCycles: runData.metadata?.totalCycles || runData.state?.totalCycles || 0,
-        eventCount: _events.length,
-        fileCount: Object.keys(runData.vfs).length,
-        duration: _events.length > 1
-          ? _events[_events.length - 1].ts - _events[0].ts
-          : 0
-      };
-
-      _currentIndex = 0;
-      _isPlaying = false;
-      _isPaused = false;
-
-      logger.info(`[ReplayEngine] Loaded run: ${_events.length} events, ${_runMetadata.totalCycles} cycles`);
-
+    const loadRun = runData => {
+      if (_isExecuting) throw new Error('Stop session execution before importing a trace.');
+      importRunTrace(runData);
+      _importedSession = true;
+      _recordedResponses.clear();
+      _recordedToolResults.clear();
+      _vfsCheckpoints = [];
+      const result = playback.loadRun(runData);
+      _events = result.events;
+      _runMetadata = result.metadata;
+      _importedSession = true;
       EventBus.emit('replay:loaded', _runMetadata);
-
-      return { events: _events, metadata: _runMetadata };
+      return result;
     };
-
-    /**
-     * Start or resume playback
-     */
-    const play = () => {
-      if (_events.length === 0) {
-        logger.warn('[ReplayEngine] No events loaded');
-        return;
-      }
-
-      _isPlaying = true;
-      _isPaused = false;
-
-      EventBus.emit('replay:started', { index: _currentIndex, speed: _speed });
-      _scheduleNext();
-    };
-
-    /**
-     * Pause playback
-     */
-    const pause = () => {
-      _isPaused = true;
-      _isPlaying = false;
-
-      if (_playbackTimeout) {
-        clearTimeout(_playbackTimeout);
-        _playbackTimeout = null;
-      }
-
-      EventBus.emit('replay:paused', { index: _currentIndex });
-    };
-
-    /**
-     * Stop playback and reset to beginning
-     */
-    const stop = () => {
-      _isPlaying = false;
-      _isPaused = false;
-      _currentIndex = 0;
-
-      if (_playbackTimeout) {
-        clearTimeout(_playbackTimeout);
-        _playbackTimeout = null;
-      }
-
-      EventBus.emit('replay:stopped');
-    };
-
-    /**
-     * Step forward one event (manual stepping)
-     */
-    const step = () => {
-      if (_currentIndex >= _events.length) {
-        logger.info('[ReplayEngine] Reached end of events');
-        return;
-      }
-
-      _emitEvent(_events[_currentIndex]);
-      _currentIndex++;
-
-      EventBus.emit('replay:progress', {
-        index: _currentIndex,
-        total: _events.length,
-        percent: Math.round((_currentIndex / _events.length) * 100)
-      });
-
-      if (_currentIndex >= _events.length) {
-        EventBus.emit('replay:completed');
-      }
-    };
-
-    /**
-     * Set playback speed
-     * @param {number} speed - Speed multiplier (1, 2, 5, 10, 50)
-     */
-    const setSpeed = (speed) => {
-      if (!SPEEDS.includes(speed)) {
-        logger.warn(`[ReplayEngine] Invalid speed: ${speed}. Valid: ${SPEEDS.join(', ')}`);
-        return;
-      }
-      _speed = speed;
-      EventBus.emit('replay:speed', { speed });
-    };
-
-    /**
-     * Seek to specific position
-     * @param {number} index - Event index to seek to
-     */
-    const seek = (index) => {
-      if (index < 0 || index >= _events.length) {
-        logger.warn(`[ReplayEngine] Invalid seek index: ${index}`);
-        return;
-      }
-      _currentIndex = index;
-
-      EventBus.emit('replay:seek', {
-        index: _currentIndex,
-        percent: Math.round((_currentIndex / _events.length) * 100)
-      });
-    };
-
-    /**
-     * Schedule next event emission
-     */
-    const _scheduleNext = () => {
-      if (!_isPlaying || _isPaused || _currentIndex >= _events.length) {
-        if (_currentIndex >= _events.length) {
-          _isPlaying = false;
-          EventBus.emit('replay:completed');
-        }
-        return;
-      }
-
-      const event = _events[_currentIndex];
-      const nextEvent = _events[_currentIndex + 1];
-
-      // Emit current event
-      _emitEvent(event);
-      _currentIndex++;
-
-      // Emit progress
-      EventBus.emit('replay:progress', {
-        index: _currentIndex,
-        total: _events.length,
-        percent: Math.round((_currentIndex / _events.length) * 100)
-      });
-
-      // Schedule next if available
-      if (nextEvent) {
-        const delay = Math.max(10, (nextEvent.ts - event.ts) / _speed);
-        _playbackTimeout = setTimeout(_scheduleNext, delay);
-      } else {
-        _isPlaying = false;
-        EventBus.emit('replay:completed');
-      }
-    };
-
-    /**
-     * Emit a timeline event to the EventBus
-     */
-    const _emitEvent = (event) => {
-      // Re-emit the original event type with payload
-      EventBus.emit(event.type, event.payload);
-
-      // Also emit a replay-specific event for UI updates
-      EventBus.emit('replay:event', event);
-    };
-
-    /**
-     * Get current state
-     */
-    const getState = () => ({
-      isPlaying: _isPlaying,
-      isPaused: _isPaused,
-      speed: _speed,
-      currentIndex: _currentIndex,
-      totalEvents: _events.length,
-      metadata: _runMetadata,
-      percent: _events.length > 0
-        ? Math.round((_currentIndex / _events.length) * 100)
-        : 0
-    });
-
-    /**
-     * Get available speed presets
-     */
-    const getSpeeds = () => [...SPEEDS];
+    const { play, pause, stop, step, setSpeed, seek, getState, getSpeeds } = playback;
 
     // =========================================================================
     // SESSION RE-EXECUTION (New in v2.0)
@@ -284,6 +145,7 @@ const ReplayEngine = {
         throw new Error(`No audit entries found for ${startDate}`);
       }
 
+      _importedSession = false;
       // Extract LLM responses and tool results
       _recordedResponses.clear();
       _recordedToolResults.clear();
@@ -418,6 +280,7 @@ const ReplayEngine = {
      * @param {number} checkpointIndex - Checkpoint to restore
      */
     const restoreCheckpoint = async (checkpointIndex) => {
+      if (_importedSession) throw new Error('Imported traces are read-only playback, not execution.');
       if (!VFSSandbox) {
         throw new Error('VFSSandbox not available for checkpoint restore');
       }
@@ -451,6 +314,7 @@ const ReplayEngine = {
      * @returns {Promise<Object>} Response object
      */
     const executeIteration = async (iteration, context, modelConfig) => {
+      if (_importedSession) throw new Error('Imported traces are read-only playback, not execution.');
       const recorded = getMockedResponse(iteration);
 
       if (recorded) {
@@ -531,6 +395,7 @@ const ReplayEngine = {
      * @returns {Promise<Object>} Execution report
      */
     const executeSession = async (options = {}) => {
+      if (_importedSession) throw new Error('Imported traces are read-only playback, not execution.');
       const {
         mode = 'mocked',
         compareResults = true,

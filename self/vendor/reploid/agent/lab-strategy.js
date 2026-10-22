@@ -2216,7 +2216,7 @@ const AgentLoop = {
     const getRuntimeMode = () => runtimeMode ?? deps.getRuntimeMode();
 
     const getMutationProgressToolList = () => (
-      getRuntimeMode() === 'zero'
+      ['zero', 'x'].includes(getRuntimeMode())
         ? 'CreateTool or a created mutation tool'
         : 'WriteFile, CreateTool, EditFile, Promote, or LoadModule'
     );

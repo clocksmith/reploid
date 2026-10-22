@@ -1,9 +1,8 @@
 /**
  * @fileoverview Route/tool surface composition.
  *
- * /zero starts with only the tool writer. Reploid uses the complete file
- * substrate. /x is a strict superset with cognition, worker, and swarm tools
- * enabled by default.
+ * /x starts with only CreateTool. /zero extends the same seed with explicitly
+ * selected upgrades. Reploid keeps its separate file substrate.
  */
 
 export const TOOL_SURFACES = Object.freeze({
@@ -61,13 +60,15 @@ export const REPLOID_TOOL_SURFACE_IDS = Object.freeze([
   'extendedFile',
   'promotion'
 ]);
-export const X_TOOL_SURFACE_IDS = Object.freeze([
+export const UPGRADED_TOOL_SURFACE_IDS = Object.freeze([
   ...REPLOID_TOOL_SURFACE_IDS,
   'optimization',
   'cognition',
   'workers',
   'swarm'
 ]);
+
+export const X_TOOL_SURFACE_IDS = ZERO_TOOL_SURFACE_IDS;
 
 export const TOOL_SURFACE_IDS_BY_MODE = Object.freeze({
   zero: ZERO_TOOL_SURFACE_IDS,
@@ -92,12 +93,21 @@ export function getToolNamesForSurfaceIds(surfaceIds = [], options = {}) {
   return tools;
 }
 
-export function getToolSurfaceIdsForMode(mode = 'reploid') {
+export function getToolSurfaceIdsForMode(mode = 'reploid', options = {}) {
+  if (mode === 'zero' && options.upgradeLevel && options.upgradeLevel !== 'spark') {
+    const surfaces = ['sharedFile', 'extendedFile', 'promotion'];
+    if (['cognition', 'substrate', 'full'].includes(options.upgradeLevel)) surfaces.push('cognition');
+    if (['substrate', 'full'].includes(options.upgradeLevel)) surfaces.push('workers');
+    if (options.upgradeLevel === 'full') surfaces.push('optimization', 'swarm');
+    return surfaces;
+  }
   return TOOL_SURFACE_IDS_BY_MODE[mode] || ZERO_TOOL_SURFACE_IDS;
 }
 
 export function getToolNamesForMode(mode = 'reploid', options = {}) {
-  return getToolNamesForSurfaceIds(getToolSurfaceIdsForMode(mode), options);
+  const tools = getToolNamesForSurfaceIds(getToolSurfaceIdsForMode(mode, options), options);
+  // Lab extensions never receive the host git dependency. Do not advertise it.
+  return mode === 'zero' ? tools.filter(name => name !== 'git') : tools;
 }
 
 export function getVisibleToolsByMode(options = {}) {

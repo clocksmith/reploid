@@ -5,6 +5,82 @@
 export const RUN_REPLAY_SCHEMA = 'reploid.run-replay.v1';
 export const RUN_REPLAY_STORAGE_KEY = 'REPLOID_IMPORTED_RUN_REPLAY';
 
+export const RUN_TRACE_SCHEMA = 'reploid.run-trace.v1';
+export const RUN_TRACE_LIMITS = Object.freeze({ events: 4096, eventBytes: 128 * 1024, bytes: 4 * 1024 * 1024, durationMs: 7 * 86400000 });
+export const RUN_TRACE_EVENT_TYPES = Object.freeze([
+  'model_text', 'tool_call', 'tool_result', 'tool_observation', 'status', 'error'
+]);
+const jsonBytes = (value) => new TextEncoder().encode(typeof value === 'string' ? value : JSON.stringify(value)).length;
+const PRIVATE_KEY_RE = /api.?key|auth|bearer|token|secret|passw|credential|cookie|private.?key|system.?prompt|context|reasoning|thought/i;
+const redactText = (text) => text
+  .replace(/<(think|analysis|reasoning)\b[^>]*>[\s\S]*?(?:<\/\1>|$)/gi, '[reasoning omitted]')
+  .replace(/-----BEGIN [^-]*PRIVATE KEY-----[\s\S]*?-----END [^-]*PRIVATE KEY-----/g, '[redacted]')
+  .replace(/\b(?:sk-[a-z0-9_-]{8,}|gh[pousr]_[a-z0-9_]{12,}|eyJ[a-z0-9_-]+\.[a-z0-9_-]+\.[a-z0-9_-]+)\b/gi, '[redacted]')
+  .replace(/\b(Bearer\s+)\S+/gi, '$1[redacted]')
+  .replace(/((?:api[_-]?key|access[_-]?token|refresh[_-]?token|password|secret|authorization|cookie)["']?\s*[:=]\s*["']?)[^\s,"';}]+/gi, '$1[redacted]')
+  .replace(/(https?:\/\/)[^\s/@]+:[^\s/@]+@/gi, '$1[redacted]@');
+
+// A reviewable export, not a guarantee that arbitrary prose contains no private data.
+export function sanitizeRunTraceValue(value, depth = 0) {
+  if (depth > 12) throw new Error('Run trace nesting exceeds the limit.');
+  if (typeof value === 'string') return redactText(value);
+  if (value === null || typeof value === 'boolean' || (typeof value === 'number' && Number.isFinite(value))) return value;
+  if (Array.isArray(value)) return value.map(item => sanitizeRunTraceValue(item, depth + 1));
+  if (!value || typeof value !== 'object') return null;
+  const out = {};
+  for (const [key, item] of Object.entries(value)) {
+    if (['__proto__', 'prototype', 'constructor'].includes(key)) throw new Error('Unsafe run trace key.');
+    out[key] = PRIVATE_KEY_RE.test(key) ? '[redacted]' : sanitizeRunTraceValue(item, depth + 1);
+  }
+  return out;
+}
+
+export function validateRunTrace(input) {
+  if (jsonBytes(input) > RUN_TRACE_LIMITS.bytes) throw new Error('Run trace exceeds the size limit.');
+  const trace = typeof input === 'string' ? JSON.parse(input) : input;
+  if (!trace || trace.schema !== RUN_TRACE_SCHEMA || !Array.isArray(trace.events)
+      || trace.events.length > RUN_TRACE_LIMITS.events) throw new Error('Unsupported or oversized run trace.');
+  if (!Number.isSafeInteger(trace.droppedEvents) || trace.droppedEvents < 0
+      || typeof trace.startedAt !== 'number' || !Number.isFinite(trace.startedAt) || trace.startedAt < 0
+      || !trace.provenance || typeof trace.provenance !== 'object' || Array.isArray(trace.provenance)) {
+    throw new Error('Invalid run trace metadata.');
+  }
+  let previous = trace.startedAt;
+  const calls = new Map();
+  const events = trace.events.map((event, index) => {
+    if (!event || event.seq !== index || !RUN_TRACE_EVENT_TYPES.includes(event.type)
+        || !Number.isFinite(event.ts) || event.ts < previous
+        || event.ts - trace.startedAt > RUN_TRACE_LIMITS.durationMs || !event.data || typeof event.data !== 'object'
+        || Array.isArray(event.data) || jsonBytes(event) > RUN_TRACE_LIMITS.eventBytes) {
+      throw new Error(`Invalid run trace event or order at ${index}.`);
+    }
+    if (event.type === 'tool_observation' && typeof event.data.tool !== 'string') throw new Error('Observed tool name is required.');
+    if (event.type === 'model_text' && typeof event.data.content !== 'string') throw new Error('Model text is required.');
+    if (['tool_call', 'tool_result'].includes(event.type) && (typeof event.data.callId !== 'string' || typeof event.data.tool !== 'string')) {
+      throw new Error('Tool trace identity is required.');
+    }
+    if (event.type === 'tool_call') {
+      if (calls.has(event.data.callId)) throw new Error('Duplicate tool trace identity.');
+      calls.set(event.data.callId, { tool: event.data.tool, settled: false });
+    }
+    if (event.type === 'tool_result') {
+      const call = calls.get(event.data.callId);
+      if (!call || call.settled || call.tool !== event.data.tool) throw new Error('Unmatched tool trace result.');
+      call.settled = true;
+    }
+    previous = event.ts;
+    return sanitizeRunTraceValue(event);
+  });
+  return { schema: RUN_TRACE_SCHEMA, startedAt: trace.startedAt,
+    provenance: sanitizeRunTraceValue(trace.provenance), droppedEvents: trace.droppedEvents, events };
+}
+
+export function importRunTrace(input) {
+  if (jsonBytes(input) > RUN_TRACE_LIMITS.bytes) throw new Error('Run trace exceeds the size limit.');
+  const value = typeof input === 'string' ? JSON.parse(input) : input;
+  return validateRunTrace(value?.schema === RUN_TRACE_SCHEMA ? value : value?.trace);
+}
+
 const COMPATIBLE_SCHEMAS = new Set([
   RUN_REPLAY_SCHEMA,
   'reploid-run-replay/v1',
@@ -96,6 +172,7 @@ const getBundleModels = (bundle = {}) => {
 };
 
 export function validateRunReplayBundle(input) {
+  if (jsonBytes(input) > RUN_TRACE_LIMITS.bytes) throw new Error('Run replay exceeds the size limit.');
   const bundle = typeof input === 'string' ? JSON.parse(input) : input;
   if (!bundle || typeof bundle !== 'object' || Array.isArray(bundle)) {
     throw new Error('Run replay JSON must be an object.');
@@ -122,7 +199,8 @@ export function validateRunReplayBundle(input) {
     route: normalizeText(bundle.route) || `/${mode}`,
     goal,
     model: models[0] || null,
-    models
+    models,
+    ...(bundle.trace ? { trace: validateRunTrace(bundle.trace) } : {})
   };
 }
 
@@ -151,14 +229,14 @@ export function deriveBootStateFromRunReplayBundle(bundle, currentState = {}, op
         || model?.provider !== 'external'
         || model.id !== 'external-brain'
         || model.hostType !== 'direct') {
-      throw new Error('External brain replay must select one external-brain model with the direct host type.');
+      throw new Error('Connected agent replay must select one external-brain model with the direct host type.');
     }
     // The host supplies current availability; a replay cannot grant local access.
     if (options.externalBrainAvailable !== true
         || normalized.mode !== 'x'
         || currentState.mode !== 'x'
         || (currentState.routeLockedMode && currentState.routeLockedMode !== 'x')) {
-      throw new Error('External brain replay is available only on local X.');
+      throw new Error('Connected agent replay is available only on local X.');
     }
     stateUpdates.connectionType = 'external';
     stateUpdates.externalConfig = {
@@ -168,7 +246,7 @@ export function deriveBootStateFromRunReplayBundle(bundle, currentState = {}, op
     };
     storageModels.push({
       id: 'external-brain',
-      name: 'External brain',
+      name: 'Connected agent',
       provider: 'external',
       hostType: 'direct'
     });
@@ -387,13 +465,13 @@ export function buildRunReplayBundle(options = {}) {
   const route = normalizeText(options.route) || `/${mode}`;
   const goal = normalizeText(options.goal || options.state?.currentGoal?.text || options.state?.goal?.text);
   const modelConfigs = normalizeModelList(options.modelConfigs || options.models || options.modelConfig);
-  const activities = safeJsonClone(options.activities || []) || [];
-  const context = safeJsonClone(options.context || []) || [];
-  const messageQueue = safeJsonClone(options.messageQueue || []) || [];
-  const vfs = safeJsonClone(options.vfsFiles || options.vfs || {}) || {};
+  const activities = sanitizeRunTraceValue((options.trace ? [] : options.activities || []).filter(entry => ['llm_response', 'tool_result'].includes(entry.kind || entry.type))) || [];
+  const context = [];
+  const messageQueue = [];
+  const vfs = {}; // Raw files can contain credentials, prompts and unrelated private context.
   const cycles = extractCyclesFromVfs(vfs);
   const replay = extractReplayRecords(activities, cycles);
-  const state = safeJsonClone(options.state || {}) || {};
+  const state = { totalCycles: options.state?.totalCycles || 0 };
   const importedReplay = options.importedReplay ? safeJsonClone(options.importedReplay) : null;
 
   return {
@@ -404,7 +482,8 @@ export function buildRunReplayBundle(options = {}) {
     goal,
     model: modelConfigs[0] || redactModelConfig(options.modelConfig) || null,
     models: modelConfigs,
-    systemPrompt: normalizeText(options.systemPrompt),
+    systemPrompt: '',
+    ...(options.trace ? { trace: validateRunTrace(options.trace) } : {}),
     context,
     messageQueue,
     history: activities,
