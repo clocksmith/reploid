@@ -645,6 +645,10 @@ const recoverFromStaleNetworkVersion = async (bootProfile) => {
     const { manifest, text } = await loadVfsManifest();
     const preserveOnBoot = shouldPreserveBootVfs({ bootProfile, vfsReset });
     const sourceManifest = getBootSourceManifest(bootProfile);
+    // Capture before hydration installs the stock descriptor. Returning instances
+    // keep their exact owned source, including legacy role metadata.
+    const initializeSourceManifest = sourceManifest
+      && await readVfsFile('/config/self-source-manifest.json') === null;
     const bootFiles = pickBootSeedFiles(manifest?.files || [], bootProfile);
     if (bootFiles.length === 0) {
       throw new Error('Boot seed manifest is empty');
@@ -735,7 +739,7 @@ const recoverFromStaleNetworkVersion = async (bootProfile) => {
           });
         }
       }
-      if (sourceManifest && await readVfsFile('/config/self-source-manifest.json') === null) {
+      if (initializeSourceManifest) {
         await writeVfsFile('/config/self-source-manifest.json', JSON.stringify(sourceManifest));
       }
       markSeedReady(BOOT_SEED_READY_PREFIX, bootProfile);

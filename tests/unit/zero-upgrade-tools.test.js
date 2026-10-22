@@ -30,7 +30,7 @@ afterEach(() => {
 });
 
 it('runs explicitly upgraded built-ins with declared capabilities, not unrestricted host dependencies', async () => {
-  window.getReploidMode = () => 'zero';
+  window.getReploidMode = () => 'x';
   getCurrentReploidStorage().setItem(LAB_UPGRADE_STORAGE_KEY, 'reflection');
   setSecurityEnabled(false, { persist: false });
   const files = new Map([

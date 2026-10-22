@@ -38,6 +38,7 @@ import {
   seedVfsFromManifest,
   writeVfsFile,
   readVfsFile,
+  deleteVfsFile,
   listVfsKeys
 } from '../../boot-helpers/vfs-bootstrap.js';
 import { getCurrentReploidStorage as getReploidStorage } from '../../instance.js';
@@ -329,7 +330,7 @@ const renderGoalStep = () => {
                  step="0.1"
                  value="${escapeText(state.cycleIntervalSeconds)}" />
         </div>
-        ${getMode() === 'zero' ? `<div class="form-row zero-upgrade-setting"><label class="type-label" for="zero-upgrade-level">Optional upgrades</label><select id="zero-upgrade-level">${LAB_UPGRADE_LEVELS.map(level => `<option value="${level}" ${state.upgradeLevel === level ? 'selected' : ''}>${level === 'spark' ? 'None: minimal X core' : level}</option>`).join('')}</select><span class="type-caption">Only the selected source closure is installed on Awaken. Existing work is kept.</span></div>` : ''}
+        ${getMode() === 'x' ? `<div class="form-row zero-upgrade-setting"><label class="type-label" for="zero-upgrade-level">Optional upgrades</label><select id="zero-upgrade-level">${LAB_UPGRADE_LEVELS.map(level => `<option value="${level}" ${state.upgradeLevel === level ? 'selected' : ''}>${level === 'spark' ? 'None: Zero core' : level}</option>`).join('')}</select><span class="type-caption">Only the selected source closure is installed on Awaken. Existing work is kept.</span></div>` : ''}
       </div>
       <div class="goal-primary-action">
         ${ready ? renderAwakenButton() : ''}
@@ -490,7 +491,7 @@ const saveZeroConfig = () => {
   }
 
   storage.setItem('REPLOID_MODE', getMode());
-  if (getMode() === 'zero') storage.setItem(LAB_UPGRADE_STORAGE_KEY, state.upgradeLevel);
+  if (getMode() === 'x') storage.setItem(LAB_UPGRADE_STORAGE_KEY, state.upgradeLevel);
   storage.setItem('REPLOID_GENESIS_LEVEL', getLabUpgradeLevel(getMode()));
   storage.setItem('REPLOID_CYCLE_INTERVAL_SECONDS', String(cycleIntervalSeconds));
   storage.setItem('REPLOID_GOAL', String(state.goal || '').trim());
@@ -499,7 +500,7 @@ const saveZeroConfig = () => {
   }
 };
 
-async function prepareVfsForAwaken() {
+async function prepareVfsForAwaken(captureRollback) {
   const fullSeed = window.REPLOID_VFS_FULL_SEED_PROMISE;
   if (fullSeed && typeof fullSeed.then === 'function') {
     setVfsProgress({
@@ -523,6 +524,16 @@ async function prepareVfsForAwaken() {
   const files = includeDoppler
     ? [...selectedFiles, ...manifest.files.filter(file => file.startsWith('/doppler/'))]
     : selectedFiles;
+  // Snapshot only selection metadata, after any pending hydration. Never prune
+  // newly hydrated source or user work when a later write/activation fails.
+  const previous = await Promise.all(['/config/self-source-manifest.json', '/config/vfs-manifest.json']
+    .map(async path => [path, await readVfsFile(path)]));
+  captureRollback(async () => {
+    const results = await Promise.allSettled(previous.map(([path, content]) =>
+      content === null ? deleteVfsFile(path) : writeVfsFile(path, content)));
+    const failed = results.find(result => result.status === 'rejected');
+    if (failed) throw failed.reason;
+  });
   await seedVfsFromManifest({ files }, {
     preserveOnBoot: true, logger: console,
     manifestText: JSON.stringify({ version: 1, files }),
@@ -539,8 +550,8 @@ async function handleAwaken() {
   const goalPacket = formatGoalPacket(state.goal);
   if (!goalPacket) return;
   const storage = getReploidStorage();
-  const previousLevels = [LAB_UPGRADE_STORAGE_KEY, 'REPLOID_GENESIS_LEVEL']
-    .map(key => [key, storage.getItem(key)]);
+  const previousLevels = ['REPLOID_GENESIS_LEVEL', ...(getMode() === 'x' ? [LAB_UPGRADE_STORAGE_KEY] : [])]
+    .map(key => [key, storage.getItem(key, { legacyFallback: false })]);
 
   setState({
     isAwakening: true,
@@ -555,14 +566,23 @@ async function handleAwaken() {
     }
   });
 
+  let rollbackSelection = null;
   try {
     pauseRecordings();
     saveZeroConfig();
-    await prepareVfsForAwaken();
+    await prepareVfsForAwaken(rollback => { rollbackSelection = rollback; });
     if (typeof window.triggerAwaken === 'function') {
-      await window.triggerAwaken(goalPacket);
+      const result = await window.triggerAwaken(goalPacket);
+      if (result?.success === false) throw new Error(result.error || 'Awaken failed');
     }
   } catch (error) {
+    let message = error?.message || 'Failed to prepare Zero awaken';
+    if (rollbackSelection) {
+      try { await rollbackSelection(); }
+      catch (rollbackError) {
+        message += `; could not restore prior source selection: ${rollbackError?.message || rollbackError}`;
+      }
+    }
     // A missing optional source must not make the next reload unbootable.
     for (const [key, value] of previousLevels) {
       if (value === null) storage.removeItem(key);
@@ -571,7 +591,7 @@ async function handleAwaken() {
     console.error('[ZeroHome] Failed to prepare awaken:', error);
     setState({
       isAwakening: false,
-      error: error?.message || 'Failed to prepare Zero awaken'
+      error: message
     });
   }
 }

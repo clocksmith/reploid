@@ -255,7 +255,7 @@ const normalizeAwakenGoal = (goal) => {
   return String(goal ?? '').trim();
 };
 
-async function completeAwaken(bootResult, goal, wizardContainer) {
+async function completeAwaken(bootResult, goal, wizardContainer, captureCleanup) {
   const { agent, vfs, container, genesisConfig } = bootResult;
   const goalText = normalizeAwakenGoal(goal);
   const utils = Utils.factory();
@@ -306,11 +306,28 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
   }
 
   let runtimeUI = null;
+  let disposed = false;
+  const subscriptions = [];
+  let documentReloadTimer = null;
   let reloadTimer = null;
   let reloadInProgress = false;
   let reloadPending = false;
   let documentReloadRequested = false;
   const handledVfsChangeDetails = new WeakSet();
+  captureCleanup(async () => {
+    disposed = true;
+    clearTimeout(reloadTimer);
+    clearTimeout(documentReloadTimer);
+    for (const unsubscribe of subscriptions.splice(0)) {
+      try { unsubscribe?.(); }
+      catch (error) { logger.warn('[Boot] UI subscription cleanup failed', error); }
+    }
+    try { await runtimeUI?.cleanup?.(); }
+    finally {
+      appEl?.replaceChildren();
+      appEl?.classList.remove('active');
+    }
+  });
 
   const getRuntimeUiSpec = () => (
     getRuntimeUiSpecByMode(runtimeMode)
@@ -387,6 +404,7 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
   };
 
   const mountRuntimeUi = async (reason = '') => {
+    if (disposed) return;
     if (!appEl) throw new Error('Missing #app container');
     if (runtimeUI?.cleanup) {
       try { runtimeUI.cleanup(); } catch (e) { logger.debug('[Boot] Runtime UI cleanup failed', e?.message || e); }
@@ -400,11 +418,14 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
     ensureRuntimeStyles(version, spec);
 
     runtimeUI = await buildRuntimeUi(version, spec);
+    if (disposed) { await runtimeUI?.cleanup?.(); return; }
     await runtimeUI.mount(appEl);
+    if (disposed) { await runtimeUI?.cleanup?.(); return; }
     logger.info(`[Boot] ${spec.name} UI mounted${reason ? ` (${reason})` : ''}.`);
   };
 
   const reloadUI = async (reason = 'reload') => {
+    if (disposed) return;
     if (reloadInProgress) {
       reloadPending = true;
       return;
@@ -432,7 +453,7 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
   };
 
   const scheduleDocumentReload = (reason, path) => {
-    if (documentReloadRequested) return;
+    if (disposed || documentReloadRequested) return;
     documentReloadRequested = true;
     postServiceWorkerMessage('INVALIDATE_ALL', {
       instanceId: getCurrentReploidInstanceLabel(),
@@ -440,11 +461,14 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
       reason,
       path
     }).finally(() => {
-      setTimeout(() => window.location.reload(), 50);
+      if (!disposed) documentReloadTimer = setTimeout(() => {
+        if (!disposed) window.location.reload();
+      }, 50);
     });
   };
 
   const handleVfsChange = (data = {}) => {
+    if (disposed) return;
     if (data && typeof data === 'object') {
       if (handledVfsChangeDetails.has(data)) return;
       handledVfsChangeDetails.add(data);
@@ -480,9 +504,9 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
   // Hot-reload UI on VFS changes
   if (eventBus?.on) {
     VFS_FILE_CHANGED_EVENTS.forEach((eventName) => {
-      eventBus.on(eventName, handleVfsChange);
+      subscriptions.push(eventBus.on(eventName, handleVfsChange));
     });
-    eventBus.on('promotion:accepted', (data = {}) => {
+    subscriptions.push(eventBus.on('promotion:accepted', (data = {}) => {
       const path = getChangedPath(data);
       if (isActiveSubstratePath(path)) {
         scheduleDocumentReload('promotion-substrate', path);
@@ -491,7 +515,7 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
       if (isRuntimeUiPath(path)) {
         scheduleReload('promotion');
       }
-    });
+    }));
   }
 
   window.REPLOID_UI = {
@@ -592,6 +616,11 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
 
     // Expose awaken trigger - this runs boot() when user clicks Awaken
     window.triggerAwaken = async (goal) => {
+      let bootContainer = null;
+      let cleanupCompletion = null;
+      const runtimeGlobals = ['REPLOID', 'REPLOID_DI', '__REPLOID_CONTAINER__', 'REPLOID_UI', 'REPLOID_UI_VERSION',
+        'downloadReploid', 'downloadTraces', 'importREPLOID'];
+      const previousGlobals = runtimeGlobals.map(key => [key, Object.hasOwn(window, key), window[key]]);
       try {
         const runtimeMode = typeof window.getReploidMode === 'function'
           ? window.getReploidMode()
@@ -616,16 +645,44 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
         }
 
         // NOW run the boot sequence
-        const { boot, renderErrorUI, DIContainer } = await loadSharedBootModules();
-        const bootResult = await boot(Utils, DIContainer);
-        await completeAwaken(bootResult, goal, wizardContainer);
+        const { boot, DIContainer } = await loadSharedBootModules();
+        const bootResult = await boot(Utils, { ...DIContainer, factory: (...args) => {
+          bootContainer = DIContainer.factory(...args);
+          return bootContainer;
+        } });
+        await completeAwaken(bootResult, goal, wizardContainer, cleanup => { cleanupCompletion = cleanup; });
       } catch (err) {
-        const shared = await loadSharedBootModules().catch(() => null);
-        if (shared?.renderErrorUI) {
-          shared.renderErrorUI(err);
-          return;
+        if (bootContainer) {
+          // Revoke only this failed boot's in-memory capabilities, never files
+          // or a previously running instance. Do not instantiate new services.
+          try {
+            const runner = bootContainer.hasInstance('ToolRunner')
+              ? await bootContainer.resolve('ToolRunner') : null;
+            if (runner?.dispose) runner.dispose();
+            else for (const name of runner?.list() || []) runner.unload(name);
+          } catch (cleanupError) {
+            console.error('[Boot] Failed tool cleanup:', cleanupError);
+          }
+          try { await cleanupCompletion?.(); }
+          catch (cleanupError) { console.error('[Boot] Failed UI cleanup:', cleanupError); }
+          try {
+            const agent = bootContainer.hasInstance('AgentLoop')
+              ? await bootContainer.resolve('AgentLoop') : null;
+            await agent?.close?.();
+          } catch (cleanupError) {
+            console.error('[Boot] Failed runtime cleanup:', cleanupError);
+          } finally {
+            bootContainer.clearInstances();
+            for (const [key, existed, value] of previousGlobals) {
+              if (existed) window[key] = value;
+              else delete window[key];
+            }
+          }
         }
-        await renderBootFailure(err);
+        const shared = await loadSharedBootModules().catch(() => null);
+        if (shared?.renderErrorUI) shared.renderErrorUI(err);
+        else await renderBootFailure(err);
+        return { success: false, error: err?.message || String(err) };
       }
     };
 

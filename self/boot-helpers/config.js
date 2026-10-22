@@ -56,7 +56,7 @@ const readStoredModuleOverrides = () => {
 export function getRouteModuleOverrides(pathname = '') {
   const routePath = pathname || (typeof window === 'undefined' ? '' : window.location.pathname || '');
   let profile = getLabRouteProfileByPath(routePath);
-  if (profile?.mode === 'zero' && getLabUpgradeLevel('zero') === 'spark') profile = getLabRouteProfileByPath('/x');
+  if (profile?.mode === 'x' && getLabUpgradeLevel('x') === 'spark') profile = getLabRouteProfileByPath('/zero');
   if (!profile?.forbiddenModules?.length) return {};
   return normalizeOverrides(Object.fromEntries(
     profile.forbiddenModules.map((moduleName) => [moduleName, 'off'])

@@ -314,7 +314,12 @@ describe('Publication-only Genesis source baseline', () => {
     const bytes = fixture.files.get(baselinePath(meta.id));
     const pin = fixture.files.get(PIN);
     let newest;
-    for (let index = 0; index < 12; index += 1) newest = await fixture.service.createSnapshot(`ordinary-${index}`);
+    // This assertion concerns protected-baseline retention, not timestamp ties.
+    let timestamp = Date.now();
+    const clock = vi.spyOn(Date, 'now').mockImplementation(() => ++timestamp);
+    try {
+      for (let index = 0; index < 12; index += 1) newest = await fixture.service.createSnapshot(`ordinary-${index}`);
+    } finally { clock.mockRestore(); }
     expect(await fixture.service.listSnapshots()).toHaveLength(10);
     await fixture.service.restoreSnapshot(newest.id, { deleteExtra: true });
     expect(fixture.files.get(baselinePath(meta.id))).toBe(bytes);

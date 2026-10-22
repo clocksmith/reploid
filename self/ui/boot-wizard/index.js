@@ -19,6 +19,7 @@ import {
   normalizeBootMode
 } from '../../config/boot-modes.js';
 import { pickBootSeedFiles } from '../../config/boot-seed.js';
+import { LAB_UPGRADE_LEVELS, LAB_UPGRADE_STORAGE_KEY } from '../../config/lab-upgrades.js';
 import { serializeModuleOverrides } from '../../config/module-resolution.js';
 import { setSecurityEnabled } from '../../core/security-config.js';
 import {
@@ -1108,9 +1109,10 @@ function handleChange(e) {
       setNestedState('advancedConfig', { genesisLevel: value });
       {
         const currentMode = getState().mode;
-        const inferredMode = getBootModeConfig(currentMode).genesisLevel === value
-          ? currentMode
-          : inferBootModeFromGenesis(value, currentMode);
+        const inferredMode = inferBootModeFromGenesis(value, currentMode, { explicitSelection: true });
+        if (inferredMode === 'x' && LAB_UPGRADE_LEVELS.includes(value)) {
+          getReploidStorage().setItem(LAB_UPGRADE_STORAGE_KEY, value);
+        }
         getReploidStorage().setItem('REPLOID_MODE', inferredMode);
         setState({ mode: inferredMode });
       }

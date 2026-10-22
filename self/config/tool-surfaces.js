@@ -1,7 +1,7 @@
 /**
  * @fileoverview Route/tool surface composition.
  *
- * /x starts with only CreateTool. /zero extends the same seed with explicitly
+ * /zero starts with only CreateTool. /x extends the same seed with explicitly
  * selected upgrades. Reploid keeps its separate file substrate.
  */
 
@@ -94,7 +94,7 @@ export function getToolNamesForSurfaceIds(surfaceIds = [], options = {}) {
 }
 
 export function getToolSurfaceIdsForMode(mode = 'reploid', options = {}) {
-  if (mode === 'zero' && options.upgradeLevel && options.upgradeLevel !== 'spark') {
+  if (mode === 'x' && ['reflection', 'cognition', 'substrate', 'full'].includes(options.upgradeLevel)) {
     const surfaces = ['sharedFile', 'extendedFile', 'promotion'];
     if (['cognition', 'substrate', 'full'].includes(options.upgradeLevel)) surfaces.push('cognition');
     if (['substrate', 'full'].includes(options.upgradeLevel)) surfaces.push('workers');
@@ -107,7 +107,7 @@ export function getToolSurfaceIdsForMode(mode = 'reploid', options = {}) {
 export function getToolNamesForMode(mode = 'reploid', options = {}) {
   const tools = getToolNamesForSurfaceIds(getToolSurfaceIdsForMode(mode, options), options);
   // Lab extensions never receive the host git dependency. Do not advertise it.
-  return mode === 'zero' ? tools.filter(name => name !== 'git') : tools;
+  return mode === 'zero' || mode === 'x' ? tools.filter(name => name !== 'git') : tools;
 }
 
 export function getVisibleToolsByMode(options = {}) {

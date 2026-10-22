@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { exportSelfImage, materializeSelfImage, validateSelfImageExport } from '../../self/image/export.js';
+import { exportSelfImage, materializeSelfImage, validateSelfImageExport, validateSourceManifest } from '../../self/image/export.js';
 import { createSelfImageManifest, sha256Text, validateSelfImageManifest } from '../../self/image/manifest.js';
 
 const sourceManifestPath = '/config/self-source-manifest.json';
@@ -20,21 +20,22 @@ const fixtureSources = {
   '/config/vfs-manifest.json': '{"version":1,"files":["config/credentials.json","artifacts/session.json"]}'
 };
 
-function makeFixture() {
+function makeFixture({ level = 'spark', surface } = {}) {
   const seedFiles = [...Object.keys(fixtureSources), sourceManifestPath].map((path) => path.slice(1));
   const sourceManifest = {
     schema: 'reploid/self-source/v1',
     version: 1,
-    level: 'spark',
+    level,
     files: seedFiles.map((path) => path.startsWith('self/') ? path.slice('self/'.length) : path),
     seedFiles,
     prerequisites: ['Serve these assets over HTTPS or localhost.', 'Configure a model provider separately.']
   };
+  if (surface !== undefined) sourceManifest.surface = surface;
   return new Map([
     ...Object.entries(fixtureSources),
     [sourceManifestPath, JSON.stringify(sourceManifest)],
     ['/config/self-source-catalog.json', JSON.stringify({
-      schema: 'reploid/self-source-catalog/v1', version: 1, profiles: { spark: sourceManifest }
+      schema: 'reploid/self-source-catalog/v1', version: 1, profiles: { [level]: sourceManifest }
     })],
     ['/self/identity.json', '{"privateKey":"not source"}'],
     ['/config/credentials.json', '{"apiKey":"not source"}'],
@@ -117,7 +118,7 @@ describe('Source-only self-image export', () => {
     expect(host.prerequisites).toContain('Configure a model provider separately.');
   });
 
-  it('projects an explicitly upgraded image to Zero without copying browser settings', async () => {
+  it('preserves the historical fieldless upgraded image route to Zero without copying browser settings', async () => {
     const files = makeFixture();
     const source = JSON.parse(files.get(sourceManifestPath));
     source.level = 'reflection';
@@ -134,6 +135,30 @@ describe('Source-only self-image export', () => {
     new Function('location', 'history', page.querySelector('script').textContent)(location, history);
     expect(history.call).toEqual([null, '', '/zero?instance=upgraded#source']);
     expect(JSON.parse(host.files['/config/self-source-manifest.json']).level).toBe('reflection');
+  });
+
+  it.each([
+    ['zero', 'spark', '/zero'],
+    ['x', 'spark', '/x'],
+    ['x', 'reflection', '/x'],
+    ['x', 'cognition', '/x'],
+    ['x', 'substrate', '/x'],
+    ['x', 'full', '/x']
+  ])('materializes the declared %s surface at %s level', async (surface, level, route) => {
+    const image = await exportFixture(makeFixture({ surface, level }));
+    // Route identity belongs to hashed source, never unbound export metadata.
+    image.surface = surface === 'zero' ? 'x' : 'zero';
+    const host = await materializeSelfImage(image);
+    const descriptor = JSON.parse(host.files['/config/self-source-manifest.json']);
+    expect(descriptor).toMatchObject({ surface, level });
+    expect(JSON.parse(host.files['/config/self-source-catalog.json']).profiles[level]).toEqual(descriptor);
+    const page = new DOMParser().parseFromString(host.files['/index.html'], 'text/html');
+    for (const pathname of ['/', '/index.html']) {
+      const location = { pathname, search: '?instance=copy', hash: '#source' };
+      const history = { replaceState: vi.fn() };
+      new Function('location', 'history', page.querySelector('script').textContent)(location, history);
+      expect(history.replaceState).toHaveBeenCalledExactlyOnceWith(null, '', `${route}?instance=copy#source`);
+    }
   });
 
   it('includes installed source tools only when explicitly requested, and keeps them after reseeding', async () => {
@@ -167,13 +192,14 @@ describe('Source-only self-image export', () => {
 
   it.each([
     ['CreateTool', 'spark', 'x_home'],
-    ['WriteFile', 'reflection', 'zero_home']
+    ['WriteFile', 'reflection', 'x_home']
   ])('exports the active installed %s replacement and preserves it through descendant reseeding', async (name, level, bootProfile) => {
     const original = 'export default () => "inactive original";\n';
     const replacement = 'export default () => "active installed replacement";\n';
     const files = makeFixture();
     const source = JSON.parse(files.get(sourceManifestPath));
     source.level = level;
+    source.surface = 'x';
     const logicalPath = `tools/${name}.js`;
     if (!source.files.includes(logicalPath)) {
       source.files.push(logicalPath);
@@ -235,6 +261,15 @@ describe('Source-only self-image export', () => {
     await expect(validateSelfImageExport(wrongSize)).rejects.toThrow('byte length mismatch');
   });
 
+  it('rejects tampered source surface bytes before using their route', async () => {
+    const image = await exportFixture(makeFixture({ surface: 'zero' }));
+    const path = '/self/config/self-source-manifest.json';
+    image.files[path] = image.files[path].replace('"surface":"zero"', '"surface":"x"   ');
+    const entry = image.manifest.files.find(file => file.path === path);
+    expect(new TextEncoder().encode(image.files[path]).length).toBe(entry.bytes);
+    await expect(materializeSelfImage(image)).rejects.toThrow('hash mismatch');
+  });
+
   it('rejects a missing declared dependency even when its hash entry is also removed', async () => {
     const image = await exportFixture();
     delete image.files['/self/core/tool-runner.js'];
@@ -270,6 +305,24 @@ describe('Source-only self-image export', () => {
     await expect(exportFixture(files)).rejects.toThrow(message);
   });
 
+  it.each([null, '', 'Zero', 'X', 'other', '/x', 0, false, [], {}])(
+    'rejects an invalid explicit source surface %j', async (surface) => {
+      await expect(exportFixture(makeFixture({ surface }))).rejects.toThrow('Invalid self-source surface');
+    }
+  );
+
+  it('rejects an explicitly undefined surface instead of treating it as absent', () => {
+    const source = JSON.parse(makeFixture().get(sourceManifestPath));
+    source.surface = undefined;
+    expect(() => validateSourceManifest(source)).toThrow('Invalid self-source surface');
+  });
+
+  it.each(['reflection', 'cognition', 'substrate', 'full'])(
+    'rejects a new Zero source with the upgraded %s level', async (level) => {
+      await expect(exportFixture(makeFixture({ surface: 'zero', level }))).rejects.toThrow('Zero requires the spark level');
+    }
+  );
+
   it('rejects unmanifested or undeclared extra content and a broadened seed inventory', async () => {
     const image = await exportFixture();
     image.files['/self/private.json'] = '{}';
@@ -289,6 +342,21 @@ describe('Source-only self-image export', () => {
     const catalog = JSON.parse(image.files['/self/config/self-source-catalog.json']);
     catalog.profiles.spark = JSON.parse(makeFixture().get(sourceManifestPath));
     image.files['/self/config/self-source-catalog.json'] = JSON.stringify(catalog);
+    await rehash(image);
+    await expect(materializeSelfImage(image)).rejects.toThrow('catalog profile does not match');
+  });
+
+  it.each([
+    ['zero', 'x'],
+    ['x', 'zero'],
+    ['x', undefined],
+    [undefined, 'x']
+  ])('rejects a source/catalog surface mismatch (%s / %s) after rehashing', async (surface, catalogSurface) => {
+    const image = await exportFixture(makeFixture({ surface }));
+    const path = '/self/config/self-source-catalog.json';
+    const catalog = JSON.parse(image.files[path]);
+    catalog.profiles.spark.surface = catalogSurface;
+    image.files[path] = JSON.stringify(catalog);
     await rehash(image);
     await expect(materializeSelfImage(image)).rejects.toThrow('catalog profile does not match');
   });

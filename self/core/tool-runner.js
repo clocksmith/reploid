@@ -119,6 +119,7 @@ const ToolRunner = {
       _arenaGatingEnabled = saved === 'true';
     } catch (e) { /* ignore */ }
 
+    let disposed = false;
     const _tools = new Map();
     const _dynamicTools = new Set();
     const _toolCapabilities = new Map();
@@ -137,7 +138,12 @@ const ToolRunner = {
     // All tools are now dynamic (loaded from /tools/)
     // No hardcoded built-ins - full RSI capability
 
+    const assertActive = () => {
+      if (disposed) throw new Errors.ToolError('ToolRunner is disposed');
+    };
+
     const allowTool = (name) => {
+      assertActive();
       const cleanName = String(name || '').trim();
       if (!cleanName) return false;
       _runtimeAllowedTools.add(cleanName);
@@ -145,6 +151,7 @@ const ToolRunner = {
     };
 
     const unloadTool = (name) => {
+      assertActive();
       const cleanName = String(name || '').trim();
       if (!cleanName) return false;
       const existed = _tools.delete(cleanName);
@@ -154,6 +161,24 @@ const ToolRunner = {
       SchemaRegistry.unregisterToolSchema(cleanName);
       if (existed) invalidateSchemaCache();
       return existed;
+    };
+
+    // Disposal is terminal for this instance, including retained tool handles.
+    // Saved source stays intact so an explicit retry can create a fresh runner.
+    const dispose = () => {
+      if (disposed) return;
+      disposed = true;
+      const names = [..._tools.keys()];
+      _tools.clear();
+      _toolCapabilities.clear();
+      _dynamicTools.clear();
+      _runtimeAllowedTools.clear();
+      _workerManager = null;
+      invalidateSchemaCache();
+      for (const name of names) {
+        try { SchemaRegistry.unregisterToolSchema(name); }
+        catch (error) { logger.warn(`[ToolRunner] Schema cleanup failed: ${name}`, error); }
+      }
     };
 
     const normalizeLoadPath = (rawPath) => {
@@ -174,6 +199,7 @@ const ToolRunner = {
 
     // A smaller source graph must not silently remove an instance's configured gates.
     const assertConfiguredGates = () => {
+      assertActive();
       const mode = getBootMode();
       if (mode !== 'x' && mode !== 'zero') return;
       if (isSecurityEnabled() && typeof PolicyEngine?.check !== 'function') {
@@ -201,6 +227,7 @@ const ToolRunner = {
       assertConfiguredGates();
       try {
         const contents = await VFS.read(path);
+        assertActive();
         if (typeof contents === 'string' && contents.includes('ToolRunner.run')) {
           throw new Errors.ToolError(`Tool uses ToolRunner.run (unsupported): ${path}`);
         }
@@ -212,6 +239,7 @@ const ToolRunner = {
           code: contents,
           expectedSha256: options.expectedSha256
         });
+        assertActive();
         const handler = typeof mod.default === 'function'
           ? mod.default
           : typeof mod.tool?.call === 'function'
@@ -244,7 +272,7 @@ const ToolRunner = {
         return true;
       } catch (e) {
         logger.error(`[ToolRunner] Failed to load ${path}`, e);
-        if (options.throwOnError) {
+        if (options.throwOnError || disposed) {
           throw e;
         }
         return false;
@@ -304,6 +332,7 @@ const ToolRunner = {
           }
         }
       }
+      assertActive();
       return true;
     };
 
@@ -324,6 +353,7 @@ const ToolRunner = {
     };
 
     const loadToolByName = async (name, options = {}) => {
+      assertActive();
       const cleanName = String(name || '').trim();
       if (!cleanName) return false;
       if (options.allow) {
@@ -479,6 +509,7 @@ const ToolRunner = {
             unload: unloadTool
           }
         }, getBootMode(), name, { capabilities: _toolCapabilities.get(name) });
+        assertActive();
         let result = await toolFn(args, toolDeps);
 
         // Validate tool output if SchemaValidator is available and enabled
@@ -624,6 +655,7 @@ const ToolRunner = {
 
     // Arena gating control
     const setArenaGating = (enabled) => {
+      assertActive();
       _arenaGatingEnabled = !!enabled;
       try {
         getReploidStorage().setItem('REPLOID_ARENA_GATING', String(_arenaGatingEnabled));
@@ -703,6 +735,7 @@ const ToolRunner = {
      * @param {boolean} enabled - Whether to enable validation
      */
     const setOutputValidation = (enabled) => {
+      assertActive();
       if (SchemaValidator) {
         SchemaValidator.setValidationEnabled(enabled);
         logger.info(`[ToolRunner] Output validation ${enabled ? 'enabled' : 'disabled'}`);
@@ -716,6 +749,7 @@ const ToolRunner = {
      * @param {boolean} strict - Whether to enable strict mode
      */
     const setStrictValidation = (strict) => {
+      assertActive();
       if (SchemaValidator) {
         SchemaValidator.setStrictMode(strict);
         logger.info(`[ToolRunner] Strict validation ${strict ? 'enabled' : 'disabled'}`);
@@ -732,6 +766,7 @@ const ToolRunner = {
 
     return {
       init: loadDynamicTools,
+      dispose,
       execute,
       refresh: loadDynamicTools,
       allow: allowTool,
@@ -751,6 +786,7 @@ const ToolRunner = {
       isOutputValidationEnabled,
       // Setter for late-bound WorkerManager (circular dependency workaround)
       setWorkerManager: (wm) => {
+        assertActive();
         _workerManager = wm;
         logger.debug('[ToolRunner] WorkerManager reference updated');
       }

@@ -19,18 +19,20 @@ afterEach(() => {
 });
 
 describe('X/Zero objective settings layout', () => {
-  it('places the labeled interval field and optional upgrades in one settings row after the goal editor', () => {
+  it('places X interval settings and explicit optional upgrades after the goal editor', () => {
+    window.getReploidMode = () => 'x';
     initZeroBootHome(document.querySelector('#home'));
     const interval = document.querySelector('#cycle-interval-seconds');
     const settings = interval.closest('.zero-objective-settings');
     expect(settings).toBeTruthy();
     expect(document.querySelector('#zero-upgrade-level').closest('.zero-objective-settings')).toBe(settings);
+    expect(document.querySelector('#zero-upgrade-level').value).toBe('spark');
+    expect(document.querySelector('#zero-upgrade-level').selectedOptions[0].textContent).toBe('None: Zero core');
     expect(document.querySelector('[for="cycle-interval-seconds"]').control).toBe(interval);
     expect(settings.previousElementSibling.querySelector('#goal-input')).toBeTruthy();
   });
 
-  it('keeps X interval settings available without exposing Zero upgrades', () => {
-    window.getReploidMode = () => 'x';
+  it('keeps Zero interval settings available without exposing optional upgrades', () => {
     initZeroBootHome(document.querySelector('#home'));
     expect(document.querySelector('.zero-objective-settings #cycle-interval-seconds')).toBeTruthy();
     expect(document.querySelector('#zero-upgrade-level')).toBeNull();

@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { collectSelfSource } from '../../scripts/build-self-source.js';
 import { getLabUpgradeLevel, isMinimalLabMode, LAB_UPGRADE_STORAGE_KEY } from '../../self/config/lab-upgrades.js';
 import { getBootSourceManifest, getOptionalBootSource, pickBootSeedFiles } from '../../self/config/boot-seed.js';
-import { getCurrentReploidStorage } from '../../self/instance.js';
+import { createScopedReploidStorage, getCurrentReploidStorage } from '../../self/instance.js';
 import { resetSession } from '../../self/boot-helpers/vfs-hydrate.js';
 import { filterToolDepsForTool } from '../../self/core/tool-runner.js';
 import { buildAgentInitialContext } from '../../self/core/agent-context.js';
@@ -21,24 +21,49 @@ describe('minimal self-source boundary', () => {
     await expect(collectSelfSource(['kernel.js'], read)).rejects.toThrow('Missing tools/create.js');
   });
 
-  it('never inherits an old expanded X or invalid Zero upgrade selection', () => {
-    expect(getLabUpgradeLevel('x', memory({ [LAB_UPGRADE_STORAGE_KEY]: 'full' }))).toBe('spark');
-    expect(getLabUpgradeLevel('zero', memory({ [LAB_UPGRADE_STORAGE_KEY]: 'full' }))).toBe('full');
-    expect(getLabUpgradeLevel('zero', memory({ [LAB_UPGRADE_STORAGE_KEY]: 'unknown' }))).toBe('spark');
+  it('keeps Zero minimal and accepts only valid explicit X upgrade selections', () => {
+    expect(getLabUpgradeLevel('zero', memory({ [LAB_UPGRADE_STORAGE_KEY]: 'full' }))).toBe('spark');
+    expect(getLabUpgradeLevel('x', memory({ [LAB_UPGRADE_STORAGE_KEY]: 'full' }))).toBe('full');
+    expect(getLabUpgradeLevel('x', memory({ [LAB_UPGRADE_STORAGE_KEY]: 'unknown' }))).toBe('spark');
   });
 
-  it('adds optional source only after an explicit Zero upgrade selection', () => {
-    const base = pickBootSeedFiles(vfsManifest.files, 'x_home');
-    expect(pickBootSeedFiles(vfsManifest.files, 'zero_home')).toEqual(base);
+  it('never inherits an old Zero choice or another instance global preference', () => {
+    localStorage.setItem('REPLOID_ZERO_UPGRADE_LEVEL', 'full');
+    localStorage.setItem(LAB_UPGRADE_STORAGE_KEY, 'full');
+    const storage = createScopedReploidStorage(localStorage, 'new-x');
+    storage.setItem('REPLOID_ZERO_UPGRADE_LEVEL', 'cognition');
+    expect(getLabUpgradeLevel('x', storage)).toBe('spark');
+    storage.setItem(LAB_UPGRADE_STORAGE_KEY, 'reflection');
+    expect(getLabUpgradeLevel('x', storage)).toBe('reflection');
+    expect(getLabUpgradeLevel('x', createScopedReploidStorage(localStorage, 'other-x'))).toBe('spark');
+    expect(storage.getItem('REPLOID_ZERO_UPGRADE_LEVEL')).toBe('cognition');
+    expect(localStorage.getItem('REPLOID_ZERO_UPGRADE_LEVEL')).toBe('full');
+  });
+
+  it('resumes an exported upgrade only when its source descriptor explicitly binds X', () => {
+    const storage = memory({});
+    expect(getLabUpgradeLevel('x', storage, { level: 'full' })).toBe('spark');
+    expect(getLabUpgradeLevel('x', storage, { level: 'full', surface: 'zero' })).toBe('spark');
+    expect(getLabUpgradeLevel('x', storage, { level: 'full', surface: 'x' })).toBe('full');
+    expect(getLabUpgradeLevel('zero', storage, { level: 'full', surface: 'x' })).toBe('spark');
+    expect(getLabUpgradeLevel('x', storage, { level: 'unknown', surface: 'x' })).toBe('spark');
+    expect(getLabUpgradeLevel('x', memory({ [LAB_UPGRADE_STORAGE_KEY]: 'spark' }),
+      { level: 'full', surface: 'x' })).toBe('spark');
+  });
+
+  it('adds optional source only after an explicit X upgrade selection', () => {
+    const base = pickBootSeedFiles(vfsManifest.files, 'zero_home');
+    expect(pickBootSeedFiles(vfsManifest.files, 'x_home')).toEqual(base);
     getCurrentReploidStorage().setItem(LAB_UPGRADE_STORAGE_KEY, 'full');
-    const upgraded = pickBootSeedFiles(vfsManifest.files, 'zero_home');
+    const upgraded = pickBootSeedFiles(vfsManifest.files, 'x_home');
     expect(upgraded).toContain('tools/Promote.js');
     expect(upgraded).toContain('core/worker-manager.js');
     expect(upgraded.length).toBeGreaterThan(base.length);
     expect(upgraded.length).toBeLessThan(vfsManifest.files.length);
-    expect(pickBootSeedFiles(vfsManifest.files, 'x_home')).toEqual(base);
-    expect(isMinimalLabMode('x')).toBe(true);
-    expect(isMinimalLabMode('zero')).toBe(false);
+    expect(pickBootSeedFiles(vfsManifest.files, 'zero_home')).toEqual(base);
+    expect(isMinimalLabMode('zero')).toBe(true);
+    expect(isMinimalLabMode('x')).toBe(false);
+    expect(upgraded).not.toContain('tools/git.js');
   });
 
   it('keeps optional local inference source outside the base image', () => {
@@ -47,10 +72,10 @@ describe('minimal self-source boundary', () => {
     expect(getOptionalBootSource('unknown')).toBeNull();
   });
 
-  it('does not expand tool authority when Zero upgrades are selected', () => {
+  it.each(['zero', 'x'])('does not expand %s tool authority when X upgrades are selected', mode => {
     getCurrentReploidStorage().setItem(LAB_UPGRADE_STORAGE_KEY, 'full');
     const deps = { Shell: {}, gitTools: {}, VFS: { read: vi.fn(), write: vi.fn() }, ToolRunner: { load: vi.fn() } };
-    const scoped = filterToolDepsForTool(deps, 'zero', 'CreatedReader');
+    const scoped = filterToolDepsForTool(deps, mode, 'CreatedReader');
     expect(scoped.Shell).toBeUndefined();
     expect(scoped.gitTools).toBeUndefined();
     expect(scoped.VFS.write).toBeUndefined();
@@ -71,9 +96,9 @@ describe('minimal self-source boundary', () => {
     expect(vfs.delete).not.toHaveBeenCalled();
   });
 
-  it('tells X to grow from CreateTool rather than assuming preinstalled file tools', () => {
-    const context = buildAgentInitialContext({ goal: 'Inspect yourself', personaPrompt: '', runtimeMode: 'x' });
-    expect(context[0].content).toContain('You are X,');
+  it.each(['zero', 'x'])('tells minimal %s to grow from CreateTool rather than assuming preinstalled file tools', mode => {
+    const context = buildAgentInitialContext({ goal: 'Inspect yourself', personaPrompt: '', runtimeMode: mode });
+    expect(context[0].content).toContain(`You are ${mode === 'x' ? 'X' : 'Zero'},`);
     expect(context[0].content).toContain('CreateTool');
     expect(context[0].content).toContain('First create a directory-aware reader/lister');
     expect(context[0].content).not.toContain('- ListTools:');

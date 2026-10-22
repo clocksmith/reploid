@@ -1,7 +1,8 @@
-# X self-source contract
+# Zero/X self-source contract
 
-X is the minimal base; Zero is its optional extension. This replaces the earlier
-route inversion that called Zero minimal and X the fully loaded workbench.
+Zero is the minimal, tabula-rasa base. X defaults to that base and may add
+operator-selected upgrades. These corrected roles apply to fresh baseline
+instances; existing owned source and historical exports are not rewritten.
 
 ## Source, capabilities and prerequisites
 
@@ -16,11 +17,11 @@ static imports plus explicitly selected dynamic entry points and DI modules.
 - `self/config/boot-seed.js` seeds the exact selected closure and fails when a source
   dependency is missing. Neither X nor Zero hydrates the full repository in the
   background. Unselected tools, blueprints, UI and vendor packages are not seeded.
-- Zero's explicit upgrade selection changes the selected source/tool inventory.
+- X's explicit upgrade selection changes the selected source/tool inventory.
   The source catalog itself describes available levels; it is not their source code.
 - Browser ES modules, IndexedDB and a same-origin static HTTP(S) host are explicit
   platform prerequisites. Inference is separately configured. Optional local model
-  runtimes and weights require an explicit installation and are not hidden X code.
+  runtimes and weights require an explicit installation and are not hidden base-agent code.
 
 ## Export and materialization
 
@@ -35,7 +36,11 @@ tool sources rather than silently dropping them. Validation rejects incomplete
 inventories, malformed paths, source size/hash mismatches and catalog divergence.
 
 `materializeSelfImage` validates the image and emits a static host map, including
-`/x`, the bootstrap and service-worker entry. It does not fetch the repository or
+`/zero`, `/x`, the bootstrap and service-worker entry. New descriptors bind an
+explicit `surface` (`zero` or `x`) within the hashed source. Explicit Zero
+descriptors require the minimal `spark` level. The selected catalog profile must
+match that surface. For legacy descriptors without a surface, the historical
+level-based default route remains unchanged; old source is not reinterpreted. It does not fetch the repository or
 external runtime helpers. The exported exporter/materializer is itself in the
 source closure, so materializing the next generation does not need repository code.
 
@@ -95,7 +100,7 @@ the supported Genesis service APIs and the pinned artifact, not tamper-proof
 storage against direct VFS, browser-global or hostile host access. Browser Web Locks
 fence publication writers; other hosts must use a single publication writer.
 
-GenesisSnapshot remains optional host/recovery tooling, not mandatory minimal-X
+GenesisSnapshot remains optional host/recovery tooling, not mandatory minimal-lab
 runtime machinery. A descendant that needs recovery must receive both the explicit
 exported baseline payload and a compatible recovery implementation. The compact
 shell does not claim that source export alone contains a workspace backup or a
@@ -107,11 +112,14 @@ Build-version changes and ordinary warm starts do not clear the VFS. Existing
 source and user-created work remain owned by the instance. No automatic source
 migration, pruning or full-repository deletion is performed. A new named instance
 is the clean-start path. A warm start of a new image does not prove migration of a
-pre-change instance; those are separate cases.
+pre-change instance; those are separate cases. Returning instances keep their
+version-pinned role logic, including earlier Zero/X ownership. New X selections
+use a separate instance-scoped key without legacy global fallback; old Zero
+selection values remain untouched and never become an X upgrade grant.
 
 ## Acceptance evidence
 
-Focused tests cover source import closure, minimal tool inventory, explicit Zero
+Focused tests cover source import closure, minimal tool inventory, explicit X
 upgrades, unchanged capability boundaries, missing-source rejection, preservation,
 export integrity, installed-tool seeding and deterministic descendant re-export:
 
