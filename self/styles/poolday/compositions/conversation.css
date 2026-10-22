@@ -365,7 +365,8 @@
 .chat-message-row.is-user .chat-message-footer { justify-content: flex-end; }
 .pool-home .chat-inspector-slot:has([data-inspector-pane='model']:not([hidden])) {
   position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  width: min(var(--pool-size-480), calc(100vw - var(--pool-size-32))); height: auto; max-height: 70dvh;
+  /* A fixed height: switching models changes the details below the list, never the dialog. */
+  width: min(var(--pool-size-480), calc(100vw - var(--pool-size-32))); height: min(var(--pool-size-720), 70dvh);
   z-index: var(--pool-z-8);
 }
 .pool-home[data-network-panel-open]:has([data-inspector-pane='model']:not([hidden])) .chat-conversation-area { display: flex; }
