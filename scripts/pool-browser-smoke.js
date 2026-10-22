@@ -54,11 +54,14 @@ for (const route of routes) {
     if (route === '/network') {
       const inspector = routePage.locator('[data-network-workspace]');
       await expect(inspector).toBeVisible();
-      await expect(inspector.locator('[data-inspector-pane="participants"]')).toBeVisible();
-      await inspector.locator('[data-inspector-section="device"]').click();
+      const participants = inspector.locator('[data-inspector-pane="participants"]');
+      await expect(participants).toBeVisible();
+      // This device's sharing controls sit in a disclosure under Computers. Cached sharing
+      // defaults on, but an idle visitor has nothing cached to share.
+      await participants.locator('details:has([data-toggle-contribution]) > summary').click();
       for (const selector of ['[data-toggle-contribution]', '[data-toggle-file-contribution]']) {
         await expect(inspector.locator(selector)).toBeVisible();
-        await expect(inspector.locator(selector)).toHaveAttribute('aria-checked', 'false');
+        await expect(inspector.locator(selector)).toHaveAttribute('aria-checked', 'true');
       }
       await inspector.locator('[data-close-inspector]').click();
       await expect(inspector).toBeHidden();
@@ -108,11 +111,12 @@ try {
   await expect(page.locator('[data-chat-approval]')).toBeHidden();
   await expect(page.locator('[data-mesh-invite]')).toBeHidden();
   await page.locator('[data-toggle-inspector]').click();
+  // Cached compute and file sharing default on; an idle visitor waits with nothing to share.
   for (const selector of ['[data-toggle-contribution]', '[data-toggle-file-contribution]']) {
-    await expect(page.locator(selector)).toHaveAttribute('aria-checked', 'false');
+    await expect(page.locator(selector)).toHaveAttribute('aria-checked', 'true');
   }
-  await expect(page.locator('[data-contrib-label]')).toHaveText('Not sharing');
-  await expect(page.locator('[data-file-contribution-label]')).toHaveText('Not sharing');
+  await expect(page.locator('[data-contrib-label]')).toHaveText('On · waiting for a downloaded model');
+  await expect(page.locator('[data-file-contribution-label]')).toHaveText('On · waiting for cached files');
   await expect(page.locator('[data-contribution-model] option')).not.toHaveCount(0);
   await page.locator('[data-close-inspector]').click();
   const draft = 'Unsent deployment check: retain this draft across reload and navigation.';

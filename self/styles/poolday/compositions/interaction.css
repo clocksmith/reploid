@@ -119,7 +119,8 @@
 .pool-home:not([data-pool-route-id='home']):not([data-pool-route-id='network']) .chat-network-rail > :is(.chat-rail-heading, .chat-network-toggle) { display: none; }
 /* Built-in activities reuse surface/control primitives; rules live in plugins. */
 .pool-home > .pool-route-content > .pool-plugin-shell { max-width: var(--pool-size-960); margin: var(--pool-size-32) auto; display: grid; gap: var(--pool-size-24); }
-.pool-home[data-pool-route-id='experiments'] [data-inspector-navigation] { display: none; }
+/* Outside the conversation, the top bar's status and app menu open Computers and Settings. */
+.pool-home:not([data-pool-route-id='home']):not([data-pool-route-id='network']) [data-inspector-navigation] { display: none; }
 .pool-plugin-shell > .pool-button { justify-self: start; }
 .pool-plugin-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--pool-size-24); }
 .pool-plugin-grid > label { display: grid; gap: var(--pool-size-8); }

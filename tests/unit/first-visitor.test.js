@@ -29,22 +29,50 @@ it('bounds the host discovery window even when signaling never connects, without
   expect(session.getState().peerDiscoveryTimedOut).toBe(true); expect(session.getState().acquisition.phase).toBe('idle');
   await session.close();
 });
-it('downloads the smallest whole model automatically when no computer can answer, and Cancel stops further automatic downloads', async () => {
+it('downloads only after a message that no computer can answer, then sends it on this device', async () => {
   const f = fixture({ automatic: true }), model = CANONICAL_CHAT_MODELS[0];
+  const send = vi.fn(() => Object.assign(Promise.resolve(), { admitted: Promise.resolve() }));
+  f.api.send = send;
   expect(f.find('[data-auto-download-toggle]').getAttribute('aria-checked')).toBe('true');
-  await Promise.resolve();
-  expect(f.api.downloadLocalModel).not.toHaveBeenCalled();
   f.publish({ peerDiscoveryTimedOut: true });
+  await new Promise(resolve => setTimeout(resolve, 0));
+  // Visiting and waiting never download.
+  expect(f.api.downloadLocalModel).not.toHaveBeenCalled();
+  expect(f.find('[data-model-status]').textContent).toBe('No computer can answer. Send downloads a model to this device first.');
+  expect(f.find('[data-acquisition-status]').hidden).toBe(true);
+  expect(f.find('[data-composer-send]').disabled).toBe(false);
+  f.find('[data-composer-input]').value = 'Hello';
+  f.find('[data-composer-form]').requestSubmit();
   await vi.waitFor(() => expect(f.api.downloadLocalModel).toHaveBeenCalledWith(model.id, true));
+  expect(send).not.toHaveBeenCalled();
   f.publish({ acquisition: { phase: 'downloading', modelId: model.id, progress: { message: 'Downloading model files.', receivedBytes: 1, totalBytes: 2 } } });
   expect(f.find('[data-acquisition-status]').textContent)
-    .toBe(`${model.name} is downloading to this device because no computer can answer. Downloading model files.`);
+    .toBe(`${model.name} is downloading to this device because no computer can answer. Your message sends when it is ready. Downloading model files.`);
   expect(f.find('[data-acquisition-progress]').hidden).toBe(false);
+  expect(f.find('[data-composer-send]').disabled).toBe(true);
+  expect(f.find('[data-composer-input]').value).toBe('Hello');
+  f.publish({ acquisition: { phase: 'idle', modelId: null, progress: null },
+    models: f.state().models.map(entry => entry.id === model.id ? { ...entry, availability: 'cached', localCached: true } : entry) });
+  await vi.waitFor(() => expect(send).toHaveBeenCalledOnce());
+  expect(send.mock.calls[0][1]).toBe('Hello');
+  expect(f.api.downloadLocalModel).toHaveBeenCalledOnce();
+});
+it('Cancel releases the waiting message and stops further automatic downloads', async () => {
+  const f = fixture({ automatic: true }), model = CANONICAL_CHAT_MODELS[0];
+  f.api.send = vi.fn();
+  f.publish({ peerDiscoveryTimedOut: true });
+  f.find('[data-composer-input]').value = 'Hello';
+  f.find('[data-composer-form]').requestSubmit();
+  await vi.waitFor(() => expect(f.api.downloadLocalModel).toHaveBeenCalledWith(model.id, true));
+  f.publish({ acquisition: { phase: 'downloading', modelId: model.id, progress: { message: 'Downloading model files.', receivedBytes: 1, totalBytes: 2 } } });
   f.find('[data-cancel-download]').click(); expect(f.api.cancelModelDownload).toHaveBeenCalledOnce();
   f.publish({ acquisition: { phase: 'cancelled', modelId: model.id, error: 'Download cancelled.', progress: null } });
-  f.publish({ peerDiscoveryTimedOut: true });
-  await Promise.resolve();
+  expect(f.find('[data-composer-input]').value).toBe('Hello');
+  expect(f.find('[data-composer-send]').disabled).toBe(true);
+  f.find('[data-composer-form]').requestSubmit();
+  await new Promise(resolve => setTimeout(resolve, 0));
   expect(f.api.downloadLocalModel).toHaveBeenCalledOnce();
+  expect(f.api.send).not.toHaveBeenCalled();
   expect(f.find('[data-download-local]').textContent).toBe('Retry download');
 });
 it('offers explicit local download after no usable peers and reuses the existing size-and-consent dialog', async () => {
