@@ -10,6 +10,7 @@ import { escapeHtml as escape, renderAttachments, readTextAttachments } from '..
 import { bindDisclosure } from '../components/disclosure.js';
 import { bindDialog } from '../components/dialog.js';
 import { createMessageList } from './message-list.js';
+import { renderHistoryHandover, bindHistoryHandover } from './history-handover-view.js';
 
 const busyAcquisition = state => state.acquisition?.phase === 'downloading';
 const selectable = model => ['ready', 'busy', 'cached', 'loading', 'preparing'].includes(model.availability);
@@ -57,6 +58,7 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
         ${startingPrompts.map(prompt => `<button class="pool-button btn-ghost" type="button" data-starting-prompt>${escape(prompt)}</button>`).join('')}
       </div>
       <p class="chat-error pool-well" role="alert" data-chat-error hidden></p>
+      ${renderHistoryHandover()}
       <footer class="chat-composer-area" data-composer-area><form data-composer-form>
         <label class="chat-visually-hidden" for="chat-message">Message</label>
         <div class="chat-composer-field pool-input pool-glass pool-glass-focus pool-activity-edge pool-focus-within" data-composer-field>
@@ -90,7 +92,7 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
   </section>`;
 }
 
-export function bindConversationWorkspace(root, session, { getInviteUrl, viewState = {}, inspector: sharedInspector, webSearch = null, search = null } = {}) {
+export function bindConversationWorkspace(root, session, { getInviteUrl, viewState = {}, inspector: sharedInspector, webSearch = null, search = null, historyHandover = null } = {}) {
   const container = root.querySelector('[data-chat-workspace]');
   if (!container || !session) return () => {};
   const find = selector => container.querySelector(selector);
@@ -119,6 +121,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     railToggle?.setAttribute('aria-controls', 'chat-threads');
     if (!open) actionsPanel.setOpen(false);
   };
+  const detachHandover = bindHistoryHandover(container, historyHandover);
   const detachInspector = inspector.mountRail?.(find('[data-chat-inspector-slot]'), find('[data-network-trigger-slot]'), () => setThreads(false));
   const modelControl = find('[data-model-control]'), modelHome = modelControl.parentElement;
   const modelButton = find('[data-open-model]'), modelButtonHome = modelButton.parentElement;
@@ -153,9 +156,12 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     drafts.set(selectedId, structuredClone(value)); return session.saveDraft?.(selectedId, value);
   };
   let selectedId = session.getState().selectedId, submitting = false;
+  // While another tab holds the history, the handover notice replaces its refusal.
+  const history = session.getState().history;
+  const refusal = history?.mode === 'refused' && historyHandover ? history.reason : null;
   const error = cause => {
-    const node = find('[data-chat-error]');
-    node.textContent = String(cause?.message || cause || ''); node.hidden = !node.textContent;
+    const node = find('[data-chat-error]'), text = String(cause?.message || cause || '');
+    node.textContent = refusal && text.includes(refusal) ? '' : text; node.hidden = !node.textContent;
   };
   const act = operation => Promise.resolve().then(operation).catch(error);
   const after = (pending, next) => pending?.then ? pending.then(next) : next();
@@ -576,7 +582,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     surface?.removeAttribute('data-chat-compact');
     surface?.removeAttribute('data-left-rail-open');
     if (railToggle && brandParent) brandParent.prepend(railToggle);
-    controller.abort(); fileRevision++; unsubscribe(); unsubscribeWebSearch(); unsubscribeSearch(); if (!sharedInspector) inspector.dispose();
+    controller.abort(); detachHandover(); fileRevision++; unsubscribe(); unsubscribeWebSearch(); unsubscribeSearch(); if (!sharedInspector) inspector.dispose();
     find('[data-composer-field]').dataset.activity = 'idle';
     find('[data-model-control]').dataset.activity = 'idle';
   };
