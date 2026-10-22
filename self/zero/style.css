@@ -1,0 +1,27 @@
+:root { color-scheme: light dark; font-family: system-ui, sans-serif; background: light-dark(#f8f9fa, #101214); color: light-dark(#202428, #e1e5e8); }
+body { margin: 0; }
+.zero-capsule { max-width: 46rem; margin: auto; padding: 2rem 1.25rem; }
+.zero-capsule header, .zero-controls { display: flex; align-items: center; gap: .75rem; }
+.zero-capsule h1 { font-size: 1.15rem; margin-right: auto; }
+.zero-state { display: flex; align-items: center; gap: .5rem; font-size: .8rem; text-transform: uppercase; opacity: .75; }
+.zero-state::before { content: ''; width: .45rem; height: .45rem; border-radius: 50%; background: currentColor; }
+.zero-state[data-state="thinking"]::before { animation: zero-think 1.8s ease-in-out infinite; }
+.zero-state[data-state="running"]::before { animation: zero-run 2.4s ease-in-out infinite; }
+.zero-messages { min-height: 10rem; margin: 2rem 0; }
+.zero-message { margin: 1.5rem 0; line-height: 1.6; }
+.zero-message strong { font-size: .8rem; opacity: .65; }
+.zero-message p { margin: .3rem 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.zero-capsule label { display: block; font-size: .9rem; margin-bottom: .5rem; }
+.zero-capsule textarea { display: block; box-sizing: border-box; width: 100%; padding: .8rem; font: inherit; resize: vertical; border: 1px solid #8885; border-radius: .75rem; background: transparent; color: inherit; }
+.zero-controls { justify-content: flex-end; margin-top: .6rem; }
+.zero-capsule button { font: inherit; color: inherit; background: transparent; border: 1px solid #8886; border-radius: .6rem; padding: .5rem .9rem; cursor: pointer; }
+.zero-capsule button:disabled { opacity: .45; cursor: default; }
+.zero-capsule :focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.zero-capsule details { font-size: .85rem; margin-top: 1.25rem; }
+.zero-capsule summary { cursor: pointer; }
+.zero-capsule pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 18rem; overflow: auto; }
+.zero-error:empty { display: none; }
+.zero-error { border-left: 2px solid currentColor; padding-left: .7rem; }
+@keyframes zero-think { 50% { opacity: .35; } }
+@keyframes zero-run { 50% { transform: scale(.75); opacity: .65; } }
+@media (prefers-reduced-motion: reduce) { .zero-state::before { animation: none !important; } }

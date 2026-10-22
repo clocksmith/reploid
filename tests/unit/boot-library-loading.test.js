@@ -38,6 +38,24 @@ function createLoader(files = {}, surface = 'zero', clients = null) {
 }
 
 describe('lazy installed-library boot boundary', () => {
+  it.each(['boot', 'store', 'image'])('pins versioned Zero %s imports while keeping the unversioned cold nucleus available', async name => {
+    const path = `/zero/${name}.js`;
+    const loader = createLoader({ [path]: 'export const saved = true;' });
+    expect(await loader.request(path)).toBeNull();
+    const response = await loader.request(`${path}?instance=test&v=saved-hash`);
+    expect(await response.text()).toBe('export const saved = true;');
+    expect(response.headers.get('x-vfs-source')).toBe('true');
+    expect(loader.fetch).not.toHaveBeenCalled();
+    const missing = await createLoader().request(`${path}?instance=test&v=saved-hash`);
+    expect(missing.status).toBe(404);
+  });
+
+  it('does not intercept the managed Zero API or alter versioned legacy kernel bootstrap', async () => {
+    const loader = createLoader();
+    expect(await loader.request('/zero/gemini', { method: 'POST', body: '{}' })).toBeNull();
+    expect(await loader.request('/kernel/boot.js?v=legacy')).toBeNull();
+    expect(loader.read).not.toHaveBeenCalled();
+  });
   it.each(['x', 'zero'])('loads the shared startup helper from the trusted host on %s', async surface => {
     const loader = createLoader({ '/self/host/reploid-launch.js': 'mutable VFS copy' }, surface);
     expect(await loader.request('/host/reploid-launch.js')).toBeNull();

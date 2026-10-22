@@ -1,0 +1,238 @@
+{
+  "schema": "reploid.zero.source/v1",
+  "version": 1,
+  "files": [
+    {
+      "path": "config/clockwork-gamma-receipts.js",
+      "bytes": 895,
+      "sha256": "d28d8b76a3e170071cea8987e49e57144be2c1b93521bd0569b58b6e3f4c9555"
+    },
+    {
+      "path": "config/file-tool-schemas.json",
+      "bytes": 3084,
+      "sha256": "f23dfa769b5364188b9f280e6a2be438ebd271195730a9ecab57cd2d64a48e05"
+    },
+    {
+      "path": "config/service-worker.js",
+      "bytes": 132,
+      "sha256": "406a6b3abcdf443754656226b2883fdf8ecf9e438e4ffc10b647f2ff4c5f56e5"
+    },
+    {
+      "path": "config/tool-surfaces.js",
+      "bytes": 3313,
+      "sha256": "4b62da06ea1d9f19619395c281b0b461fb4980efc7d66a07dd59c8435c7a79e3"
+    },
+    {
+      "path": "config/vfs-policy.js",
+      "bytes": 2618,
+      "sha256": "56c02deed07ae8fea94f85100e3fda81c6088fce259b3bfd71d12abdd7307a67"
+    },
+    {
+      "path": "config/zero-inference.js",
+      "bytes": 6879,
+      "sha256": "30d5edc4fc554d7699edc45706ad0cd0124ed13e7eca52b91a3830419f8745a2"
+    },
+    {
+      "path": "core/create-tool.js",
+      "bytes": 34884,
+      "sha256": "06cd6e3ac74d89ed8fed9909df56a7fb2007a40c1ab3d04964c3872ddcfdb468"
+    },
+    {
+      "path": "core/import-rewrite.js",
+      "bytes": 3065,
+      "sha256": "e5bca0c0129d1461a19f3967bcb767518e2f01452850a08033fec5080ebf667b"
+    },
+    {
+      "path": "core/promotion-policy.js",
+      "bytes": 9248,
+      "sha256": "d8030f5faef58b6e28791dfe3db116d469dd76626c2d80d6b63d30604fc05706"
+    },
+    {
+      "path": "core/schema-registry.js",
+      "bytes": 21149,
+      "sha256": "4a60f3881af8c1f8e013889bd582260943cce5d810fa3947b6fd6d21da885723"
+    },
+    {
+      "path": "core/security-config.js",
+      "bytes": 1806,
+      "sha256": "08605065d0d0e78c4244d95d8f4e897c7c7b46c59bed7078a8b7df5e5a3e244d"
+    },
+    {
+      "path": "core/tool-capabilities.js",
+      "bytes": 2301,
+      "sha256": "603a075c079995f5b461f28cdafc45a092df3ef5bb4dd714ffb81536b359efb4"
+    },
+    {
+      "path": "core/tool-writer.js",
+      "bytes": 5362,
+      "sha256": "4bd1b59dafca9ae9e18eb29e1a4a8f7457706b5252633a4681caa1c18c638f51"
+    },
+    {
+      "path": "core/vendor/ACORN-LICENSE.txt",
+      "bytes": 1099,
+      "sha256": "76a876cf886ff9be2a8b5e2e86514fed06223c8c9f0c1e9ee9606e93841e00b7"
+    },
+    {
+      "path": "core/vendor/acorn.js",
+      "bytes": 241575,
+      "sha256": "fdb08546776ec6228b03e8d02b40d4ab3255bae5f401adba7ff5dad927ac5c9c"
+    },
+    {
+      "path": "core/verification-manager.js",
+      "bytes": 10870,
+      "sha256": "006e1ca2ede8d92d8f983b6b5743dcce94b1ef96d3be5e6e03c5af014814393f"
+    },
+    {
+      "path": "core/verification-worker.js",
+      "bytes": 32155,
+      "sha256": "f3385dce7954eeb248a99847ffbd383e7fec4be0ed1a1cc72fd4beaef82dc935"
+    },
+    {
+      "path": "core/vfs-module-loader.js",
+      "bytes": 8654,
+      "sha256": "74b01e94cc2b14580d7904f88c3e2b6f098b92c8b494cee34d1e21ec431d039b"
+    },
+    {
+      "path": "host/sw-module-loader.js",
+      "bytes": 22584,
+      "sha256": "861a66e7b95d9ad50d848fbf0579f1983546b037c440bac1d5460cc3c2b39ef3"
+    },
+    {
+      "path": "instance.js",
+      "bytes": 11239,
+      "sha256": "de48aa1d83156b84df2f84c9513a6f532963caa522393216e613798ca1bcc659"
+    },
+    {
+      "path": "providers/external-brain.js",
+      "bytes": 3510,
+      "sha256": "ade590e379d094d08a6bddf75abce95ca590a804ca7ccd815b06f813cfb49fa4"
+    },
+    {
+      "path": "sw.js",
+      "bytes": 188,
+      "sha256": "2b4aabf6249a54b11022523ee79efa0652024c41217f8f90117108d74c62c86c"
+    },
+    {
+      "path": "vendor/reploid/agent/cancellation.js",
+      "bytes": 621,
+      "sha256": "078cf6c78f3a26a107b3f38a58a3919ce70e6e367bc2aa739a922f4a4f577199"
+    },
+    {
+      "path": "vendor/reploid/agent/engine.js",
+      "bytes": 10735,
+      "sha256": "95d3efd7b679162026872697528f299ee772915c52486ef072192e6ffc9fec2f"
+    },
+    {
+      "path": "vendor/reploid/agent/lifecycle.js",
+      "bytes": 2656,
+      "sha256": "9fffc98a8e6870d50bea18e09bba805c4dc9fe2e4b94c8900fd859e465f18c80"
+    },
+    {
+      "path": "vendor/reploid/agent/provider-recovery.js",
+      "bytes": 2654,
+      "sha256": "7d71a53341d6b103c1aa7dc0301865a883e941bee83e3b826e6e954a07eed3d5"
+    },
+    {
+      "path": "vendor/reploid/agent/tool-dispatch.js",
+      "bytes": 980,
+      "sha256": "5d6715a209e26493c3ff4aeb009f24304b249d211e5cb928d5be0be51a6113ec"
+    },
+    {
+      "path": "vendor/reploid/agent/tool-retry.js",
+      "bytes": 994,
+      "sha256": "2ae0f2aa04a4d21e7be003e70f6d152fcdb159a89fb8a447389aac23fd01fb83"
+    },
+    {
+      "path": "vendor/reploid/agent/tool-runner.js",
+      "bytes": 3182,
+      "sha256": "f0bb92bc1932b0807173d1e8d1ede9b6b6bedb9f3b727b7414f9e614fa871c2a"
+    },
+    {
+      "path": "vendor/reploid/config/defaults.json",
+      "bytes": 2465,
+      "sha256": "be33034450522fc660312d2f177286e58c50002ec40b193837f7be423d56b6f4"
+    },
+    {
+      "path": "vendor/reploid/config/index.js",
+      "bytes": 11638,
+      "sha256": "4f4b3494d4fff00021a3dd9c5b1710f903fe5fa7b6ac80a1abbe5955e481d1c9"
+    },
+    {
+      "path": "vendor/reploid/config/request-overrides.json",
+      "bytes": 166,
+      "sha256": "6e80c26a4c07d317eae530199e86634356b8cb94e2d140087ed2e4e6be12306a"
+    },
+    {
+      "path": "vendor/reploid/rules/routing.rules.json",
+      "bytes": 313,
+      "sha256": "9eb2ed7ffc1bc7c00a7a1435392f7539873e7ac1462611f77dbc92f3bfeff779"
+    },
+    {
+      "path": "zero/agent.js",
+      "bytes": 9827,
+      "sha256": "cc16035fcf077f02829bd9b107b76a179a908e129f8cd5db088257b596c21d89"
+    },
+    {
+      "path": "zero/boot.js",
+      "bytes": 4354,
+      "sha256": "1d4d22de642fad593bc79312372738e912ea48c78fa682ee6aa2b8034f4c4c7b"
+    },
+    {
+      "path": "zero/config.json",
+      "bytes": 732,
+      "sha256": "658cf4617e45790300fc73ae9576001967281c44b9377446e66a1c4278504171"
+    },
+    {
+      "path": "zero/image.js",
+      "bytes": 8023,
+      "sha256": "394abff6457286ebd4448d4926640daeb60cd84dce010e06df9e0054cd64ddc0"
+    },
+    {
+      "path": "zero/index.html",
+      "bytes": 541,
+      "sha256": "b187d02ac1a720d14ca08d85c378cb165d60313e5567ec48f32b0d9b84098b3b"
+    },
+    {
+      "path": "zero/main.js",
+      "bytes": 1490,
+      "sha256": "f44a14d053a60eac89355145e6e57f5b95b9534094725e0cd5d4e33863efd0bc"
+    },
+    {
+      "path": "zero/provider.js",
+      "bytes": 9811,
+      "sha256": "eba841f8cb065bea154623e524da0e3f9bb3fe859fb11c0b497627b71f90f87a"
+    },
+    {
+      "path": "zero/store.js",
+      "bytes": 3923,
+      "sha256": "0b96f2ea30d69f461b6b3aed7498f5980329a66718bd2edea1c8c377460fdb21"
+    },
+    {
+      "path": "zero/style.css",
+      "bytes": 2291,
+      "sha256": "fbcdd9eda47606a641bc92a71abcc570c79893cb2170e73a4639166c3ebc8ed1"
+    },
+    {
+      "path": "zero/tools.js",
+      "bytes": 16334,
+      "sha256": "fc82cd09dafde8adf1cba20f379bbd090117f1451e7e8c77a968a0541a21936b"
+    },
+    {
+      "path": "zero/ui.js",
+      "bytes": 5125,
+      "sha256": "abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
+    }
+  ],
+  "boot": {
+    "main": "zero/main.js",
+    "agent": "zero/agent.js",
+    "ui": "zero/ui.js",
+    "config": "zero/config.json"
+  },
+  "prerequisites": [
+    "A browser with IndexedDB, Web Workers and ES modules on an HTTPS or localhost static host.",
+    "Hosted inference requires the existing /zero/gemini backend, Firebase Auth and App Check, and their external gstatic Firebase 10.14.1 SDKs; these are not exported browser source.",
+    "Local inference requires the existing external-brain mailbox server and a separately connected reasoning controller; these are not exported browser source.",
+    "Imported tool sources require fresh verification and activation before execution."
+  ]
+}

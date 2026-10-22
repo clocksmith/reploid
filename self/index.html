@@ -14,8 +14,14 @@
       window.REPLOID_SW_VERSION = window.REPLOID_BUILD_VERSION;
       window.REPLOID_VFS_VERSION = window.REPLOID_BUILD_VERSION;
     </script>
-    <link rel="stylesheet" href="/styles/rd.css" />
-    <link rel="stylesheet" href="/styles/boot.css" />
+    <script>
+      if (location.pathname.replace(/\/+$/, '') !== '/zero') {
+        for (const href of ['/styles/rd.css', '/styles/boot.css']) {
+          const link = document.createElement('link');
+          link.rel = 'stylesheet'; link.href = href; document.head.appendChild(link);
+        }
+      }
+    </script>
   </head>
   <body>
     <div id="wizard-container" class="wizard-container" style="display: none"></div>
@@ -174,6 +180,9 @@
           throw new Error('Missing app root');
         }
         await bootProductRoute(appRoot);
+      } else if (pathname === '/zero') {
+        const { bootZero } = await import('/zero/boot.js');
+        await bootZero();
       } else {
         const bootPath = `/kernel/boot.js?v=${window.REPLOID_BUILD_VERSION}`;
         await import(bootPath);

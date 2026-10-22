@@ -3,7 +3,9 @@
  * Covers the current wizard homepage and product mode switch.
  */
 import { test, expect } from '@playwright/test';
+import { createHash } from 'node:crypto';
 import { DEFAULT_DOPPLER_MODEL_ID } from '../../self/config/doppler-local-models.js';
+import { bootLegacyZeroInstance, bootRouteWithServiceWorker, readInstanceVfs, sanitizeInstanceId } from './reploid-lab-helpers.js';
 
 const APP_PATH = '/index.html';
 const HOME_PATH = '/index.html?profile=reploid-home';
@@ -598,11 +600,71 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('.wizard-awaken')).toHaveCount(0);
   });
 
-  test('/zero locks the boot mode to Zero', async ({ page }) => {
+  test('fresh /zero boots its hash-bound capsules without the legacy graph', async ({ page }, testInfo) => {
+    const instanceId = sanitizeInstanceId(`fresh-zero-${testInfo.project.name}-${Date.now()}`);
+    const pageErrors = [], legacyRequests = [], providerRequests = [];
+    page.on('pageerror', error => pageErrors.push(error.message));
+    page.on('request', request => {
+      const { pathname } = new URL(request.url());
+      if (/^\/(?:self\/)?(?:lab\/|infrastructure\/di-container\.js|kernel\/boot\.js)/.test(pathname)) {
+        legacyRequests.push(request.url());
+      }
+      if (request.method() === 'POST' || /^\/(?:zero\/gemini|api\/external-brain)(?:\/|$)/.test(pathname)) {
+        providerRequests.push(request.url());
+      }
+    });
+
+    await bootRouteWithServiceWorker(page, '/zero', instanceId);
+    await expect(page).toHaveTitle('Zero');
+    await expect(page.locator('.zero-capsule')).toBeVisible();
+    await expect(page.locator('.zero-state')).toHaveText('idle');
+    await expect(page.getByLabel('What should Zero build?')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Awaken', exact: true })).toBeEnabled();
+    await expect(page.getByRole('button', { name: 'Stop', exact: true })).toBeDisabled();
+    await expect(page.locator('.zero-message')).toHaveCount(0);
+    await expect(page.locator('.zero-error')).toBeEmpty();
+    await expect(page.locator('.wizard-home-provider, .boot-mode-btn, .zero-shell')).toHaveCount(0);
+    expect(await page.evaluate(() => ({
+      mode: window.getReploidMode(),
+      instance: window.REPLOID_INSTANCE_ID,
+      controlled: !!navigator.serviceWorker.controller,
+      hasLegacyContainer: !!window.REPLOID?.container,
+      hasLegacyAwaken: typeof window.triggerAwaken === 'function'
+    }))).toEqual({ mode: 'zero', instance: instanceId, controlled: true,
+      hasLegacyContainer: false, hasLegacyAwaken: false });
+
+    const files = await readInstanceVfs(page, 'zero', instanceId);
+    const source = JSON.parse(files['/zero/source.json']);
+    expect(source.schema).toBe('reploid.zero.source/v1');
+    expect(source.files.length).toBeGreaterThan(0);
+    expect(Object.keys(files).sort()).toEqual(['/zero/source.json', ...source.files.map(file => `/${file.path}`)].sort());
+    for (const entry of source.files) {
+      const content = files[`/${entry.path}`];
+      expect(typeof content, entry.path).toBe('string');
+      expect(Buffer.byteLength(content, 'utf8'), entry.path).toBe(entry.bytes);
+      expect(createHash('sha256').update(content).digest('hex'), entry.path).toBe(entry.sha256);
+      expect(entry.path, 'fresh source excludes the legacy graph').not.toMatch(/^(?:self\/)?(?:lab\/|infrastructure\/di-container\.js|kernel\/boot\.js)/);
+    }
+    const config = JSON.parse(files[`/${source.boot.config}`]);
+    expect(config.schema).toBe('reploid.zero.boot/v1');
+    for (const key of ['main', 'agent', 'ui']) {
+      expect(config[key], key).toBe(source.boot[key]);
+      expect(files[`/${config[key]}`], key).toEqual(expect.any(String));
+    }
+    expect(legacyRequests).toEqual([]);
+    expect(providerRequests).toEqual([]);
+    expect(pageErrors).toEqual([]);
+  });
+
+  test('saved legacy /zero locks the boot mode to Zero (sentinel fixture)', async ({ page }, testInfo) => {
+    const instanceId = sanitizeInstanceId(`legacy-zero-mode-${testInfo.project.name}-${Date.now()}`);
     const startupDiscoveryRequests = [];
     await page.addInitScript(() => {
       window.__zeroPreHydrationBootVisible = false;
-      const hydrationDone = () => window.REPLOID_VFS_FULL_SEED_PROGRESS?.phase === 'mirror:done';
+      // Minimal legacy boot seeds its complete selected closure without a full
+      // hydration/mirror pass. The wizard must still wait for that seed to finish.
+      const hydrationDone = () => window.REPLOID_VFS_SEED_PROGRESS?.scope === 'boot'
+        && window.REPLOID_VFS_SEED_PROGRESS?.phase === 'done';
       const inspectBootContainer = () => {
         if (hydrationDone()) return;
         const el = document.getElementById('wizard-container');
@@ -634,7 +696,7 @@ test.describe('Route Entry Points', () => {
         startupDiscoveryRequests.push(url);
       }
     });
-    await page.goto('/zero');
+    await bootLegacyZeroInstance(page, instanceId);
     await page.waitForSelector('.wizard-home-provider [data-action="choose-proxy"]', { timeout: 20000 });
     expect(await page.evaluate(() => window.__zeroPreHydrationBootVisible)).toBe(false);
 
@@ -674,7 +736,8 @@ test.describe('Route Entry Points', () => {
     expect(verification.passed, JSON.stringify(verification.errors)).toBe(true);
   });
 
-  test('/zero awakens with the complete DI dependency closure', async ({ page }) => {
+  test('saved legacy /zero awakens with the complete DI dependency closure (sentinel fixture)', async ({ page }, testInfo) => {
+    const instanceId = sanitizeInstanceId(`legacy-zero-di-${testInfo.project.name}-${Date.now()}`);
     const pageErrors = [];
     const selfVfsMisses = [];
     page.on('pageerror', (error) => pageErrors.push(error.message));
@@ -685,7 +748,7 @@ test.describe('Route Entry Points', () => {
       }
     });
 
-    await page.goto('/zero');
+    await bootLegacyZeroInstance(page, instanceId);
     await page.waitForSelector('.wizard-home-provider [data-action="choose-proxy"]', { timeout: 20000 });
     await page.locator('#goal-input').fill('Inspect the live seed and stop after the first observation.');
     await page.locator('#awaken-btn').click();

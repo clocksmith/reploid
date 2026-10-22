@@ -27,6 +27,7 @@ const LAB_RUNTIME_ASSET_PATHS = new Set([
   '/ui/toast.js'
 ]);
 const LAB_RUNTIME_ASSET_PREFIXES = [
+  '/zero/',
   '/boot-helpers/',
   '/blueprints/',
   '/capabilities/',
@@ -55,6 +56,9 @@ const LAB_RUNTIME_ASSET_PREFIXES = [
   '/ui/zero-home/'
 ];
 const SELF_BOOTSTRAP_PATHS = new Set([
+  '/zero/boot.js',
+  '/zero/store.js',
+  '/zero/image.js',
   '/index.html',
   '/kernel/index.html',
   '/kernel/boot.js',
@@ -168,6 +172,7 @@ function isLabRuntimeUrl(value) {
 function shouldHandleLabRuntimeFetch(request, url) {
   if (url.origin !== self.location.origin) return false;
   if (isLabRuntimeRoutePath(url.pathname) || VERIFIER_ASSETS.has(url.pathname)) return true;
+  if (url.pathname.startsWith('/zero/__verifier__/')) return false;
   if (!isLabRuntimeAssetPath(url.pathname)) return false;
   if (isLabRuntimeUrl(request.referrer)) return true;
   return url.searchParams.has(INSTANCE_QUERY_PARAM)
@@ -520,7 +525,8 @@ self.addEventListener('fetch', (event) => {
 
   // Keep the cold-boot nucleus on an immutable network path so an empty VFS
   // can still hydrate itself from the canonical /self namespace.
-  if (SELF_BOOTSTRAP_PATHS.has(url.pathname)) {
+  if (SELF_BOOTSTRAP_PATHS.has(url.pathname)
+    && !(url.pathname.startsWith('/zero/') && url.searchParams.get('v'))) {
     return;
   }
 

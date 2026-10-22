@@ -1,5 +1,5 @@
 /**
- * E2E Test: /zero and /x boot contract
+ * E2E Test: saved legacy /zero and current /x lab boot contracts
  * Verifies route, genesis, DI, tools, VFS, and service-worker readiness.
  */
 import { test, expect } from '@playwright/test';
@@ -7,6 +7,7 @@ import {
   LAB_ROUTE_CASES,
   assertRouteContract,
   awakenWithoutGoal,
+  bootLegacyZeroInstance,
   bootRouteWithServiceWorker,
   collectBootProbe,
   sanitizeInstanceId
@@ -14,7 +15,8 @@ import {
 
 test.describe('Lab route boot contract', () => {
   for (const routeCase of LAB_ROUTE_CASES) {
-    test(`${routeCase.route} resolves expected lab contract and awakened surface`, async ({ page }, testInfo) => {
+    const label = routeCase.mode === 'zero' ? 'saved legacy /zero (sentinel fixture)' : routeCase.route;
+    test(`${label} resolves expected lab contract and awakened surface`, async ({ page }, testInfo) => {
       const instanceId = sanitizeInstanceId(`boot-contract-${routeCase.label}-${testInfo.project.name}-${Date.now()}`);
 
       await page.addInitScript(() => {
@@ -22,7 +24,8 @@ test.describe('Lab route boot contract', () => {
         localStorage.setItem('REPLOID_GENESIS_LEVEL', 'capsule');
       });
 
-      await bootRouteWithServiceWorker(page, routeCase.route, instanceId);
+      if (routeCase.mode === 'zero') await bootLegacyZeroInstance(page, instanceId);
+      else await bootRouteWithServiceWorker(page, routeCase.route, instanceId);
       await assertRouteContract(page, routeCase);
       await awakenWithoutGoal(page);
 

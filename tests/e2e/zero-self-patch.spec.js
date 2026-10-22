@@ -1,5 +1,6 @@
 /**
- * E2E Test: Zero grows read and self-write tools from the CreateTool seed.
+ * E2E Test: saved legacy Zero grows read and self-write tools from CreateTool.
+ * A nonempty saved-work fixture selects legacy boot; this is not a historical image.
  */
 
 import { test, expect } from '@playwright/test';
@@ -7,7 +8,7 @@ import { test, expect } from '@playwright/test';
 import {
   DB_PREFIX,
   awakenWithoutGoal,
-  bootRouteWithServiceWorker,
+  bootLegacyZeroInstance,
   executeToolResult,
   sanitizeInstanceId
 } from './reploid-lab-helpers.js';
@@ -185,10 +186,10 @@ async function readIndexedDbVfsFile(page, instanceId, path) {
   });
 }
 
-test('/zero boots with CreateTool only, then creates and uses ReadFile', async ({ page }, testInfo) => {
+test('saved legacy /zero boots with CreateTool only, then creates and uses ReadFile', async ({ page }, testInfo) => {
   const instanceId = sanitizeInstanceId(`zero-created-reader-${testInfo.project.name}-${Date.now()}`);
 
-  await bootRouteWithServiceWorker(page, '/zero', instanceId);
+  await bootLegacyZeroInstance(page, instanceId);
   await awakenWithoutGoal(page);
 
   const initialTools = await page.evaluate(() => window.REPLOID.toolRunner.list());
@@ -205,7 +206,7 @@ test('/zero boots with CreateTool only, then creates and uses ReadFile', async (
   expect(rootRead.value.entries).toContain('/self/boot-spec.js');
 });
 
-test('/zero creates a self-writer and loads a patched tool through it', async ({ page }, testInfo) => {
+test('saved legacy /zero creates a self-writer and loads a patched tool through it', async ({ page }, testInfo) => {
   const instanceId = sanitizeInstanceId(`zero-created-self-tool-${testInfo.project.name}-${Date.now()}`);
   const toolName = `CreatedPatchSmoke${Date.now().toString(36)}`;
   const targetPath = `/self/tools/${toolName}.js`;
@@ -221,7 +222,7 @@ export default async function() {
 }
 `;
 
-  await bootRouteWithServiceWorker(page, '/zero', instanceId);
+  await bootLegacyZeroInstance(page, instanceId);
   await awakenWithoutGoal(page);
   await installTool(page, 'ReadFile', ZERO_READ_FILE_TOOL_CODE);
   await installTool(page, 'SelfWrite', SELF_WRITE_TOOL_CODE);
@@ -270,13 +271,13 @@ export default async function() {
   });
 });
 
-test('/zero created self-writer applies a UI self patch and hot-reloads the runtime shell', async ({ page }, testInfo) => {
+test('saved legacy /zero created self-writer applies a UI self patch and hot-reloads the runtime shell', async ({ page }, testInfo) => {
   const instanceId = sanitizeInstanceId(`zero-created-ui-self-patch-${testInfo.project.name}-${Date.now()}`);
   const marker = `ui-created-self-patch-${Date.now().toString(36)}`;
   const targetPath = '/self/ui/zero/index.js';
   const activeTargetPath = '/ui/zero/index.js';
 
-  await bootRouteWithServiceWorker(page, '/zero', instanceId);
+  await bootLegacyZeroInstance(page, instanceId);
   await awakenWithoutGoal(page);
   await installTool(page, 'ReadFile', ZERO_READ_FILE_TOOL_CODE);
   await installTool(page, 'SelfWrite', SELF_WRITE_TOOL_CODE);
@@ -319,13 +320,13 @@ test('/zero created self-writer applies a UI self patch and hot-reloads the runt
   expect(activeRead.value.content).toContain(marker);
 });
 
-test('/zero created self-writer applies a core patch, mirrors it, and reloads cleanly', async ({ page }, testInfo) => {
+test('saved legacy /zero created self-writer applies a core patch, mirrors it, and reloads cleanly', async ({ page }, testInfo) => {
   const instanceId = sanitizeInstanceId(`zero-created-core-self-patch-${testInfo.project.name}-${Date.now()}`);
   const marker = `zero-created-core-self-patch-${Date.now().toString(36)}`;
   const targetPath = '/self/core/utils.js';
   const activeTargetPath = '/core/utils.js';
 
-  await bootRouteWithServiceWorker(page, '/zero', instanceId);
+  await bootLegacyZeroInstance(page, instanceId);
   await awakenWithoutGoal(page);
   await installTool(page, 'ReadFile', ZERO_READ_FILE_TOOL_CODE);
   await installTool(page, 'SelfWrite', SELF_WRITE_TOOL_CODE);

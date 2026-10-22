@@ -12,6 +12,59 @@ export const sanitizeInstanceId = (value) => String(value || '')
   .replace(/^-+|-+$/g, '')
   .slice(0, 64);
 
+export async function readInstanceVfs(page, surface, instanceId) {
+  return page.evaluate(async (dbName) => {
+    const db = await new Promise((resolve, reject) => {
+      const request = indexedDB.open(dbName, 1);
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+    });
+    try {
+      return await new Promise((resolve, reject) => {
+        const request = db.transaction('files', 'readonly').objectStore('files').getAll();
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve(Object.fromEntries(request.result.map(({ path, content }) => [path, content])));
+      });
+    } finally { db.close(); }
+  }, `${DB_PREFIX}--${surface}--${instanceId}`);
+}
+
+// A saved-work sentinel exercises the nonempty legacy branch, not restoration of
+// a complete historical image. Boot and tool verification remain unmodified.
+export async function bootLegacyZeroInstance(page, instanceId) {
+  const fixturePath = '/__e2e__/legacy-zero-instance';
+  const savedPath = '/artifacts/legacy-saved-work.txt';
+  const savedText = `Saved before compact Zero: ${instanceId}`;
+  const renderFixture = route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Legacy instance fixture</title>' });
+  await page.route(`**${fixturePath}`, renderFixture);
+  try {
+    await page.goto(fixturePath);
+    await page.evaluate(async ({ dbName, path, content }) => {
+      const db = await new Promise((resolve, reject) => {
+        const request = indexedDB.open(dbName, 1);
+        request.onupgradeneeded = () => request.result.createObjectStore('files', { keyPath: 'path' });
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve(request.result);
+      });
+      try {
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction('files', 'readwrite');
+          tx.objectStore('files').add({ path, content, size: content.length, updated: Date.now(), type: 'file' });
+          tx.oncomplete = resolve;
+          tx.onerror = tx.onabort = () => reject(tx.error);
+        });
+      } finally { db.close(); }
+    }, { dbName: `${DB_PREFIX}--zero--${instanceId}`, path: savedPath, content: savedText });
+  } finally { await page.unroute(`**${fixturePath}`, renderFixture); }
+
+  await bootRouteWithServiceWorker(page, '/zero', instanceId);
+  await expect(page.locator('.wizard-home-provider')).toBeVisible();
+  const files = await readInstanceVfs(page, 'zero', instanceId);
+  expect(files[savedPath]).toBe(savedText);
+  expect(files['/zero/source.json']).toBeUndefined();
+  await expect(page.locator('.zero-capsule')).toHaveCount(0);
+}
+
 export async function bootRouteWithServiceWorker(page, route, instanceId) {
   await page.goto(`${route}?instance=${encodeURIComponent(instanceId)}`);
   await page.evaluate(async () => {
