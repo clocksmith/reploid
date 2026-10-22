@@ -19,6 +19,8 @@
   background: var(--pool-color-raised);
   color: var(--pool-color-ink);
   box-shadow: var(--pool-shadow-raised);
+  -webkit-backdrop-filter: var(--pool-surface-backdrop);
+  backdrop-filter: var(--pool-surface-backdrop);
 }
 .pool-home .pool-card {
   padding: var(--pool-size-24);
@@ -27,6 +29,8 @@
   background: var(--pool-color-raised);
   color: var(--pool-color-ink);
   box-shadow: var(--pool-shadow-raised);
+  -webkit-backdrop-filter: var(--pool-surface-backdrop);
+  backdrop-filter: var(--pool-surface-backdrop);
 }
 .pool-home .pool-well {
   padding: var(--pool-size-16);

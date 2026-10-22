@@ -193,7 +193,8 @@ Use markdown checkboxes instead of emoji:
 Poolday is built in three layers, and each layer uses only the one below it:
 
 - **Tokens** (`self/styles/poolday/tokens.css`) are every value: one neutral gray
-  ramp named by lightness (`--pool-gray-13` is `#202020`), alpha steps, and scales for
+  ramp named by lightness (`--pool-gray-13` is `#202020`), the prism palette (obsidian
+  void for dark, silica for light, one spectrum), alpha steps, and scales for
   size, radius, border, text, line height, weight and tracking. Semantic tokens
   (`--pool-color-page`, `--pool-color-ink-48`, `--pool-shadow-raised`) map them per
   theme. Every Poolday custom property is a token.
@@ -216,7 +217,7 @@ its root carries `class="pool-page"` so the page shell uses the same tokens.
 | Controls | `pool-button` with `btn-primary`, `btn-ghost`, `pool-icon`; `pool-input`, `pool-bare`, `pool-file`, `pool-switch`, `pool-segmented` + `pool-segment`, `pool-chip`, `pool-badge`, `pool-disclosure` |
 | Layout | `pool-stack`, `pool-row` (`pool-row-between`, `pool-row-end`), `pool-columns`, `pool-gap-xs` to `pool-gap-xl`, `pool-grow` |
 | Text | `pool-title`, `pool-heading`, `pool-subheading`, `pool-body`, `pool-small`, `pool-caption`, `pool-label`, `pool-muted`, `pool-mono`, `pool-mark`, `pool-facts`, `pool-plain`, `pool-prose` |
-| Feedback | `pool-bar`, `pool-dot`, `pool-reveal` with `pool-reveal-host`, `pool-glass`, `pool-glass-focus`, `pool-activity-edge` |
+| Feedback | `pool-bar`, `pool-dot`, `pool-reveal` with `pool-reveal-host`, `pool-glass`, `pool-glass-focus`, `pool-activity-edge`, `pool-particle-field` |
 
 ```html
 <section class="pool-card pool-stack pool-gap-sm">
@@ -228,6 +229,13 @@ its root carries `class="pool-page"` so the page shell uses the same tokens.
   </div>
 </section>
 ```
+
+The look is Chroma-Prism in dark and Dichroic-Silica in light: translucent glass
+surfaces (`--pool-surface-backdrop`), a 1px chromatic split in `--pool-shadow-raised`,
+spectral glass edges, and the page's dot grid over an ambient spectrum
+(`--pool-surface-page`). `particle-field.js` draws the viewport particle field from the
+`--pool-particle-*` tokens; observed execution and contribution brighten it, and
+reduced motion holds a still frame.
 
 When a screen needs a look no primitive has, use the nearest primitive. Add a
 primitive or variant only when several screens need the same new look. Scripts write

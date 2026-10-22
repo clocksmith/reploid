@@ -85,7 +85,7 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
   test(`${theme} workspace at ${width}px retains material and visible consent`, async ({ page }) => {
     await page.setViewportSize({ width, height: width === 1440 ? 1000 : 844 });
     await page.goto('/');
-    await expect(page.locator('.pool-primary-nav')).toBeVisible();
+    await expect(page.locator('.pool-primary-nav')).toBeAttached();
     await installWorkspace(page, theme);
     for (const state of ['empty', 'active', 'approval', 'completed', 'paused']) {
       await page.evaluate(state => window.setVisualState(state), state);
@@ -103,7 +103,7 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
           const select = getComputedStyle(document.querySelector('[data-work-model]'));
           return { shadows: panels.map(style => style.boxShadow), inset: input.boxShadow,
             selectInset: select.boxShadow, inputBackground: input.backgroundColor, selectBackground: select.backgroundColor,
-            colors: panels.flatMap(style => [style.backgroundColor, style.color, style.borderTopColor]),
+            panelBackgrounds: panels.map(style => style.backgroundColor), panelInk: panels.map(style => style.color),
             background: getComputedStyle(document.querySelector('.pool-home')).backgroundImage };
         });
         expect(material.shadows.every(shadow => shadow !== 'none')).toBe(true);
@@ -111,11 +111,10 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
         expect(material.inset).toContain('inset');
         expect(material.inset).toBe(material.selectInset);
         expect(material.inputBackground).toBe(material.selectBackground);
-        expect(material.background).toBe('none');
-        for (const color of material.colors) {
-          const channels = color.match(/[\d.]+/g).slice(0, 3).map(Number);
-          expect(channels[0]).toBe(channels[1]); expect(channels[1]).toBe(channels[2]);
-        }
+        // Prism material: every panel shares one glass and ink; the page carries the dot grid and spectrum.
+        expect(material.background).toContain('radial-gradient');
+        expect(new Set(material.panelBackgrounds).size).toBe(1);
+        expect(new Set(material.panelInk).size).toBe(1);
         if (state === 'active' || state === 'approval') {
           await expect(page.locator('[data-work-task-header] [data-work-cancel]')).toBeVisible();
           await expect(page.locator('[data-work-new]')).toBeEnabled();

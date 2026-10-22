@@ -3416,7 +3416,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:9ad509172666b991e73865250edc13b4d447b4422f7437de910b5e63c903456c",
+      "sha256": "sha256:5b125dec17d6399e5c1fb7543a190164a6a0c0e3fdd7f3256a8a535f7f63de6d",
       "imports": []
     },
     {
@@ -3533,7 +3533,7 @@
     {
       "path": "ui/pool-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:a5348adfb94ed25870771a0b150ce27fb90c832967612192cefe4fe4cfac119a",
+      "sha256": "sha256:8205bb8cdc395474496d7e6079ef3d5be278b69b1d3bbd3676309f7627275371",
       "imports": [
         "../../host/credits/browser.js",
         "../../host/product-context.js",
@@ -3545,6 +3545,7 @@
         "./execution-ribbon.js",
         "./navigation.js",
         "./network-inspector.js",
+        "./particle-field.js",
         "./shell-view.js",
         "./theme.js"
       ]
@@ -3624,6 +3625,15 @@
         "../../pool/operation-model.js",
         "../../pool/pool-config.json",
         "../components/html.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/particle-field.js",
+      "owner": "ui",
+      "sha256": "sha256:f8e9d4a5e04ea0107044dcf0d36f1567f13cc4665bfc65792dfd551b0a155050",
+      "imports": [
+        "./contribution-state.js",
+        "./execution-ribbon.js"
       ]
     },
     {

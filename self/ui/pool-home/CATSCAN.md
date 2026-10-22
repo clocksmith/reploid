@@ -20,7 +20,7 @@ Outputs: [conversations](conversation-workspace.js), [markup](view.js), [Room-1]
 
 ## Invariants
 
-- Monochrome, shallow depth; prismatic accents. Animate observed events, never idle readiness; discovery implies no execution. Respect reduced motion; concise controls; no banners/slogans/preset-prompt grids.
+- Prism glass, spectral edges, ambient particles; observed events brighten them, discovery implies no execution. Reduced motion stills particles; concise controls; no banners/slogans/preset-prompt grids.
 - Preserve Reploid/Poolday identities, shared components/tokens, gutters,
   accessible themes/responsive scrolling. Activities prescribe no hierarchy.
 - Link tasks/helpers/jobs/results/candidates; show observations and missing admission/evaluators.
