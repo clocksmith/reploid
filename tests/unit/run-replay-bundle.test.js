@@ -88,6 +88,81 @@ describe('run replay bundle helpers', () => {
     expect(exported['/self/runtime.js']).toBeUndefined();
   });
 
+  it('round-trips an external run into an unverified credential-free selection', () => {
+    const bundle = buildRunReplayBundle({
+      mode: 'x',
+      route: '/x',
+      goal: 'Inspect the current workspace.',
+      modelConfigs: [{
+        id: 'external-brain',
+        name: 'External brain',
+        provider: 'external',
+        hostType: 'direct',
+        endpoint: 'https://untrusted.example/ignored',
+        apiKey: 'ignored-secret'
+      }],
+      state: { externalConfig: { enabled: true, verifyState: 'verified' } }
+    });
+    const { stateUpdates, storageModels } = deriveBootStateFromRunReplayBundle(bundle, {
+      mode: 'x',
+      routeLockedMode: 'x',
+      externalConfig: { enabled: true, verifyState: 'verified' }
+    }, { externalBrainAvailable: true });
+
+    expect(stateUpdates).toMatchObject({
+      goal: 'Inspect the current workspace.',
+      connectionType: 'external',
+      externalConfig: { enabled: false, verifyState: 'unverified', verifyError: null }
+    });
+    expect(stateUpdates.directConfig).toBeUndefined();
+    expect(stateUpdates.proxyConfig).toBeUndefined();
+    expect(storageModels).toEqual([{
+      id: 'external-brain', name: 'External brain', provider: 'external', hostType: 'direct'
+    }]);
+  });
+
+  it.each([
+    [{ id: 'another-model', provider: 'external', hostType: 'direct' }],
+    [{ id: 'external-brain', provider: 'openai', hostType: 'direct' }],
+    [{ id: 'external-brain', provider: 'external', hostType: 'proxy-cloud' }],
+    [
+      { id: 'external-brain', provider: 'external', hostType: 'direct' },
+      { id: 'paid-model', provider: 'openai', hostType: 'browser-cloud' }
+    ],
+    [
+      { id: 'paid-model', provider: 'openai', hostType: 'browser-cloud' },
+      { id: 'external-brain', provider: 'external', hostType: 'direct' }
+    ]
+  ].map((models) => [models]))('rejects malformed or mixed external replay selections: %j', (models) => {
+    expect(() => deriveBootStateFromRunReplayBundle({
+      schema: RUN_REPLAY_SCHEMA,
+      mode: 'x',
+      goal: 'Inspect the workspace.',
+      models
+    }, { mode: 'x' }, { externalBrainAvailable: true })).toThrow('must select one');
+  });
+
+  it.each([
+    ['zero', 'x', 'x', true],
+    ['x', 'zero', 'zero', true],
+    ['x', 'reploid', 'reploid', true],
+    ['x', 'x', 'zero', true],
+    ['x', 'x', 'x', false],
+    ['x', 'x', 'x', undefined]
+  ])('rejects external replay outside local X: bundle=%s, mode=%s, route=%s, available=%s', (
+    mode, currentMode, routeLockedMode, externalBrainAvailable
+  ) => {
+    expect(() => deriveBootStateFromRunReplayBundle({
+      schema: RUN_REPLAY_SCHEMA,
+      mode,
+      goal: 'Inspect the workspace.',
+      models: [{ id: 'external-brain', provider: 'external', hostType: 'direct' }]
+    }, {
+      mode: currentMode,
+      routeLockedMode
+    }, { externalBrainAvailable })).toThrow('only on local X');
+  });
+
   it('builds a replay-engine-compatible flat VFS bundle', () => {
     const bundle = buildRunReplayBundle({
       mode: 'zero',

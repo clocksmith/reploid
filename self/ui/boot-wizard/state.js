@@ -47,6 +47,10 @@ export const VERIFY_STATE = {
   FAILED: 'failed'
 };
 
+export const isExternalBrainAvailable = (mode, hostname = globalThis.location?.hostname) => (
+  mode === 'x' && ['localhost', '127.0.0.1', '[::1]'].includes(hostname)
+);
+
 export const DEFAULT_CYCLE_INTERVAL_SECONDS = 7.7;
 export const MAX_CYCLE_INTERVAL_SECONDS = 3600;
 
@@ -237,7 +241,13 @@ const createDefaultState = () => ({
   },
 
   // Selected connection type
-  connectionType: null, // 'browser' | 'direct' | 'proxy'
+  connectionType: null, // 'browser' | 'direct' | 'proxy' | 'external'
+
+  externalConfig: {
+    enabled: false,
+    verifyState: VERIFY_STATE.UNVERIFIED,
+    verifyError: null
+  },
 
   // Direct API configuration (keys in browser)
   directConfig: {
@@ -434,6 +444,19 @@ export function hydrateSavedConfig(saved, apiKey = null) {
   const primary = saved.models[0];
   const hostType = primary.hostType || '';
 
+  if (primary.provider === 'external') {
+    if (!isExternalBrainAvailable(state.mode)) return;
+    setState({
+      connectionType: 'external',
+      externalConfig: {
+        enabled: false,
+        verifyState: VERIFY_STATE.UNVERIFIED,
+        verifyError: null
+      }
+    });
+    return;
+  }
+
   // Determine connection type from hostType
   let connectionType = 'direct';
   if (hostType === 'browser-local' || primary.provider === 'doppler') {
@@ -482,6 +505,7 @@ export function hydrateSavedConfig(saved, apiKey = null) {
  */
 export function saveConfig() {
   const { directConfig, proxyConfig, dopplerConfig, connectionType, mode, advancedConfig } = state;
+  if (connectionType === 'external' && !canAwaken()) return false;
   const storage = getReploidStorage();
   const cycleIntervalSeconds = normalizeCycleIntervalSeconds(state.cycleIntervalSeconds);
 
@@ -501,6 +525,15 @@ export function saveConfig() {
   );
 
   // Build model list based on connection type
+  if (connectionType === 'external') {
+    models.push(withCycleThrottle({
+      id: 'external-brain',
+      name: 'External brain',
+      provider: 'external',
+      hostType: 'direct'
+    }));
+  }
+
   if (connectionType === 'direct' && directConfig.model) {
     const model = {
       id: directConfig.model,
@@ -612,12 +645,13 @@ export function forgetDevice() {
  * Get the primary connection's verify state
  */
 export function getPrimaryVerifyState() {
-  const { connectionType, directConfig, proxyConfig, dopplerConfig } = state;
+  const { connectionType, directConfig, proxyConfig, dopplerConfig, externalConfig } = state;
 
   switch (connectionType) {
     case 'direct': return directConfig.verifyState;
     case 'proxy': return proxyConfig.verifyState;
     case 'browser': return dopplerConfig.verifyState;
+    case 'external': return externalConfig.verifyState;
     default: return VERIFY_STATE.UNVERIFIED;
   }
 }
@@ -627,6 +661,12 @@ export function getPrimaryVerifyState() {
  */
 export function canAwaken() {
   const { mode, routeLockedMode, connectionType, directConfig, proxyConfig, dopplerConfig } = state;
+
+  if (connectionType === 'external') {
+    return isExternalBrainAvailable(mode)
+      && state.externalConfig.enabled === true
+      && state.externalConfig.verifyState === VERIFY_STATE.VERIFIED;
+  }
 
   if (mode === 'reploid' && routeLockedMode === 'reploid') {
     return getReploidLaunchState(state).canAwaken;

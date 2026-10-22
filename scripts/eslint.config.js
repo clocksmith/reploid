@@ -9,6 +9,8 @@ const browserHarnesses = ['evaluate-document-answers', 'pool-actual-browser-smok
   'verify-poolday-forecast-sdk', 'verify-swarm-runtime',
   'verify-visual-change-passport-dogfood'].map(name => `scripts/${name}.js`);
 const cleanedModules = [
+  'self/providers/external-brain.js',
+  'server/external-brain.js',
   'packages/reploid/src/training/**/*.js',
   'self/host/lora-training*.js',
   'self/ui/pool-home/lora-training.js',

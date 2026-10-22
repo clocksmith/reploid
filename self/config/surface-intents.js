@@ -1,5 +1,5 @@
 import { ZERO_SEED_PREFIXES, X_ADDITIONAL_SEED_PREFIXES, ZERO_RUNTIME_SELF_MIRROR_RULES,
-  PROTO_RUNTIME_SELF_MIRROR_RULES, ZERO_RUNTIME_UI, PROTO_RUNTIME_UI } from './surface-resources.js';
+  X_RUNTIME_SELF_MIRROR_RULES, ZERO_RUNTIME_UI, PROTO_RUNTIME_UI } from './surface-resources.js';
 /**
  * @fileoverview Canonical route intent for Reploid lab surfaces.
  */
@@ -103,7 +103,7 @@ surfaceIntents.zero = defineSurfaceIntent({
 surfaceIntents.x = defineSurfaceIntent({
     id: 'x',
     seedPrefixes: X_ADDITIONAL_SEED_PREFIXES,
-    runtimeSelfMirrorRules: PROTO_RUNTIME_SELF_MIRROR_RULES,
+    runtimeSelfMirrorRules: X_RUNTIME_SELF_MIRROR_RULES,
     runtimeUi: PROTO_RUNTIME_UI,
     label: 'X',
     route: '/x',

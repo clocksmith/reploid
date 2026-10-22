@@ -21,6 +21,8 @@ const chromiumGpuArgs = process.platform === 'darwin'
 
 export default defineConfig({
   testDir: './e2e',
+  // The local external mailbox is default-off and has its own opt-in server fixture.
+  testIgnore: ['**/external-brain.spec.js'],
   outputDir: '../test-results',
   fullyParallel: false, // Run tests serially for GPU resource sharing
   forbidOnly: !!process.env.CI,

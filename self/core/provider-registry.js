@@ -148,6 +148,10 @@ const ProviderRegistry = {
     };
 
     registerProviderLoader('doppler', loadDopplerProvider);
+    registerProviderLoader('external', async () => {
+      const { createExternalBrainProvider } = await import('../providers/external-brain.js');
+      return createExternalBrainProvider();
+    });
 
     return {
       registerProvider,

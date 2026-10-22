@@ -24,6 +24,7 @@ const LLMClient = {
     // Streaming requires StreamParser - disable if not available
     const _canStream = !!StreamParser;
     const _activeRequests = new Map();
+    const _activeProviders = new Map();
     // WebLLM State
     let _webLlmEngine = null;
     let _currentWebModelId = null;
@@ -131,6 +132,8 @@ const LLMClient = {
       if (!modelConfig?.id) return false;
       const model = modelConfig.id.toLowerCase();
       const provider = modelConfig.provider?.toLowerCase();
+
+      if (provider === 'external') return true;
 
       if (provider === 'openai' || model.startsWith('gpt-')) {
         return true;
@@ -992,7 +995,9 @@ const LLMClient = {
      * @param {Array} options.tools - Tool schemas for native tool calling
      */
     const chat = async (messages, modelConfig, onUpdate = null, options = {}) => {
+      options.signal?.throwIfAborted();
       await _limiter.waitForToken();
+      options.signal?.throwIfAborted();
 
       if (!modelConfig) {
         throw new Errors.ConfigError('Model config required');
@@ -1016,11 +1021,18 @@ const LLMClient = {
         throw new Errors.ConfigError(`Provider not available: ${providerId}`);
       }
 
-      const response = onUpdate && typeof provider.stream === 'function'
-        ? await provider.stream(messages, configWithTools, onUpdate, requestId)
-        : await provider.chat(messages, configWithTools, requestId);
-
-      return normalizeResponse(response, providerId, configWithTools, requestId);
+      options.signal?.throwIfAborted();
+      _activeProviders.set(requestId, provider);
+      try {
+        const control = { signal: options.signal };
+        const response = onUpdate && typeof provider.stream === 'function'
+          ? await provider.stream(messages, configWithTools, onUpdate, requestId, control)
+          : await provider.chat(messages, configWithTools, requestId, control);
+        options.signal?.throwIfAborted();
+        return normalizeResponse(response, providerId, configWithTools, requestId);
+      } finally {
+        _activeProviders.delete(requestId);
+      }
     };
 
     const abortRequest = (requestId) => {
@@ -1029,7 +1041,7 @@ const LLMClient = {
         controller.abort();
         return true;
       }
-      return false;
+      return _activeProviders.get(requestId)?.abort?.(requestId) === true;
     };
 
     const getWebLLMStatus = () => {
