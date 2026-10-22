@@ -15,8 +15,8 @@
   transition: background var(--pool-transition-fast), box-shadow var(--pool-transition-fast);
 }
 .pool-home :is(.pool-button, :where(.pool-work-shell .btn)).btn-primary {
-  background: var(--pool-color-ink);
-  color: var(--pool-color-page);
+  background: var(--pool-surface-primary);
+  color: var(--pool-color-on-primary);
 }
 /* Controls carry no outline; hover lifts the surface tone instead. */
 .pool-home :is(.pool-button, :where(.pool-work-shell .btn)):hover:not(:disabled, .btn-primary) { background: var(--pool-color-line); }

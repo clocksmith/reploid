@@ -10,6 +10,7 @@ import { renderConversationWorkspace, bindConversationWorkspace } from './conver
 import { renderNetworkInspector, bindNetworkInspector } from './network-inspector.js';
 import { bindExecutionRibbon } from './execution-ribbon.js';
 import { bindThemeSelector } from './theme.js';
+import { bindParticleField } from './particle-field.js';
 import { bindPoolRouteControls } from './navigation.js';
 
 let disposeWorkspace;
@@ -21,7 +22,7 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
   if (ordered === undefined) ordered = getOrderedParticipation(storage);
   disposeWorkspace?.();
   let disposed = false, revision = 0, changesRevision = 0;
-  let detachView = () => {}, detachRibbon = () => {}, disposeSpecialists = () => {};
+  let detachView = () => {}, detachRibbon = () => {}, disposeSpecialists = () => {}, detachParticles = null;
   let specialists, sharingView, inspector, host;
   const viewState = {}, documentViewState = {};
   const theme = bindThemeSelector(mount);
@@ -88,6 +89,7 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
       document.title = window.location.pathname === '/' ? POOLDAY_NAME : `${POOLDAY_NAME} - ${ROUTE_COPY[routeId]?.title || 'Work'}`;
       if (!mount.querySelector('.pool-route-content')) mount.innerHTML = '<main class="pool-home"><div class="pool-route-content"></div></main>';
       mount.querySelector('.pool-home').dataset.poolRouteId = routeId;
+      detachParticles ??= bindParticleField(mount.querySelector('.pool-home'), { chat: host.chat });
       mount.querySelector('.pool-primary-nav')?.remove();
       mount.querySelector('.pool-home').insertAdjacentHTML('afterbegin', renderNav(routeId));
       const inspectorRoot = document.createElement('div'); inspectorRoot.dataset.shellInspector = '';
@@ -163,7 +165,7 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
     const dispose = () => {
       if (disposed) return;
       disposed = true; revision++; changesRevision++;
-      detachView(); detachRibbon(); inspector?.dispose(); theme.dispose(); disposeSpecialists();
+      detachView(); detachRibbon(); detachParticles?.(); inspector?.dispose(); theme.dispose(); disposeSpecialists();
       window.removeEventListener('popstate', render); window.removeEventListener('pagehide', onPageHide); window.removeEventListener('pageshow', onPageShow);
       if (window.REPLOID_POOL_CONNECT_OPERATIONS === connectOperations) delete window.REPLOID_POOL_CONNECT_OPERATIONS;
       void host.close();

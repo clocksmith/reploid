@@ -18,11 +18,10 @@
 :root.pool-page body { margin: 0; }
 :root.pool-page #app { display: block; }
 :where(.pool-home).pool-boot-failure { justify-content: center; align-items: center; text-align: center; }
+/* Isolation keeps the particle field above the page material and below every surface. */
 .pool-home {
-  background-color: var(--pool-color-page);
-  background-image: var(--pool-surface-ambient-mesh), var(--pool-surface-pattern);
-  background-repeat: no-repeat, repeat;
-  background-attachment: fixed, scroll;
+  isolation: isolate;
+  background: var(--pool-surface-page);
   color: var(--pool-color-ink);
   font-family: var(--pool-font-ui);
 }
@@ -145,8 +144,8 @@
 }
 :where(.pool-home) .btn:hover:not(:disabled) { background: var(--pool-color-line); }
 :where(.pool-home) .btn:active:not(:disabled) { transform: translateY(var(--pool-size-1)); box-shadow: var(--pool-shadow-inset); }
-:where(.pool-home) .btn-primary { background: var(--pool-color-ink); color: var(--pool-color-page); }
-:where(.pool-home) .btn-primary:hover:not(:disabled) { background: var(--pool-color-ink); }
+:where(.pool-home) .btn-primary { background: var(--pool-surface-primary); color: var(--pool-color-on-primary); }
+:where(.pool-home) .btn-primary:hover:not(:disabled) { background: var(--pool-surface-primary); }
 :where(.pool-home) .btn-ghost { opacity: var(--pool-alpha-80); }
 :where(.pool-home) .btn-ghost:hover { opacity: 1; }
 :where(.pool-home) .btn:disabled { opacity: var(--pool-alpha-48); cursor: not-allowed; }
