@@ -26,7 +26,9 @@ export function createTimelinePlayback({ onEvent = () => {}, onReset = () => {},
     elapsedMs: position(), durationMs: duration(), replay: true,
     percent: trace?.events.length ? Math.round(index / trace.events.length * 100) : 0,
     metadata: trace ? { eventCount: trace.events.length, droppedEvents: trace.droppedEvents,
-      provenance: structuredClone(trace.provenance) } : null });
+      provenance: structuredClone(trace.provenance), duration: duration(),
+      ...(trace.provenance.source === 'legacy-vfs-timeline' ? { exportedAt: trace.provenance.exportedAt,
+        totalCycles: trace.provenance.totalCycles, fileCount: trace.provenance.fileCount } : {}) } : null });
   const update = () => onUpdate(getState());
   const cancelTimer = () => { if (timer !== null) cancel(timer); timer = null; };
   const apply = () => { const event = trace.events[index++]; onEvent(structuredClone(event)); };
@@ -111,12 +113,12 @@ const ReplayEngine = {
 
     const loadRun = runData => {
       if (_isExecuting) throw new Error('Stop session execution before importing a trace.');
-      importRunTrace(runData);
+      const trace = importRunTrace(runData);
       _importedSession = true;
       _recordedResponses.clear();
       _recordedToolResults.clear();
       _vfsCheckpoints = [];
-      const result = playback.loadRun(runData);
+      const result = playback.loadRun(trace);
       _events = result.events;
       _runMetadata = result.metadata;
       _importedSession = true;
@@ -209,36 +211,34 @@ const ReplayEngine = {
       // Also load timeline events for visualization
       loadRun(runData);
 
-      // Extract agent history from timeline
+      // Summarize sanitized imported evidence; the read-only guard stays set.
       _recordedResponses.clear();
       _recordedToolResults.clear();
       _comparisonResults = [];
 
       let iteration = 0;
       for (const event of _events) {
-        if (event.type === 'agent:history') {
-          if (event.payload?.type === 'llm_response') {
-            iteration++;
-            _recordedResponses.set(iteration, {
-              content: event.payload.content,
-              cycle: event.payload.cycle,
-              ts: event.ts
-            });
-          }
-          if (event.payload?.type === 'tool_result') {
-            const key = `${iteration}:${event.payload.tool}`;
-            _recordedToolResults.set(key, {
-              result: event.payload.result,
-              args: event.payload.args,
-              ts: event.ts
-            });
-          }
+        if (event.type === 'model_text') {
+          iteration++;
+          _recordedResponses.set(iteration, {
+            content: event.data.content,
+            cycle: event.data.cycle,
+            ts: event.ts
+          });
+        }
+        if (event.type === 'tool_observation' || event.type === 'tool_result') {
+          const key = `${iteration}:${event.data.tool}`;
+          _recordedToolResults.set(key, {
+            result: event.data.result,
+            args: event.data.args,
+            ts: event.ts
+          });
         }
       }
 
       const sessionData = {
         id: generateId('session'),
-        goal: runData.state?.goal || 'Unknown goal',
+        goal: _runMetadata.provenance.goal || 'Unknown goal',
         totalIterations: iteration,
         llmResponses: _recordedResponses.size,
         toolResults: _recordedToolResults.size,

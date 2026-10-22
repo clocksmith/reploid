@@ -2,6 +2,8 @@
  * Proto Template - HTML template for the main UI
  */
 
+import { REPLAY_SPEEDS } from '../../infrastructure/replay-engine.js';
+
 export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
   <!-- Sidebar Navigation -->
   <nav class="sidebar">
@@ -426,11 +428,7 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
               <div class="replay-speed">
                 <span>Speed:</span>
                 <select id="replay-speed-select">
-                  <option value="1">1x</option>
-                  <option value="2">2x</option>
-                  <option value="5" selected>5x</option>
-                  <option value="10">10x</option>
-                  <option value="50">50x</option>
+                  ${REPLAY_SPEEDS.map(speed => `<option value="${speed}">${speed}x</option>`).join('')}
                 </select>
               </div>
             </div>

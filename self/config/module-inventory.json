@@ -566,7 +566,7 @@
     {
       "path": "core/run-replay-bundle.js",
       "owner": "core",
-      "sha256": "sha256:2aab0ed57a6f1bbd2ff57fc34798c04f9c33d95275dd00ed065bd19360906bf4",
+      "sha256": "sha256:ea7ee341c475d386a384941dde5d3081a42f5d5e359c8ef6ea05cc1847de30b0",
       "imports": []
     },
     {
@@ -908,7 +908,7 @@
     {
       "path": "infrastructure/replay-engine.js",
       "owner": "infrastructure",
-      "sha256": "sha256:8748950a68fc7ddae3104220c0e4a12e75c99e9f92c64c51910dd646227a1942",
+      "sha256": "sha256:35f1f94055d1071e4401ffe5fcc1697ea54786a62e436421e40d074debf352ab",
       "imports": [
         "../core/run-replay-bundle.js"
       ]
@@ -4093,7 +4093,7 @@
     {
       "path": "ui/proto/replay.js",
       "owner": "ui",
-      "sha256": "sha256:021f16e38f7924bd1a9af493d911dbfc9c6bcee230398e5893d27b84a3717370",
+      "sha256": "sha256:f50b53ff44a5df77dc8eb8252974efe45de7d03b89c00060572be4add5f1b123",
       "imports": [
         "./utils.js"
       ]
@@ -4109,8 +4109,10 @@
     {
       "path": "ui/proto/template.js",
       "owner": "ui",
-      "sha256": "sha256:f93e88db34e44c59b5dc6d8c113fd85450367cca2bd7bbc9cca545aa6a98e3db",
-      "imports": []
+      "sha256": "sha256:23c12965a8ba1363cf4c33bba4a1f7f8e18ad6988b5504aff68bde9c81b36972",
+      "imports": [
+        "../../infrastructure/replay-engine.js"
+      ]
     },
     {
       "path": "ui/proto/utils.js",

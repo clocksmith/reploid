@@ -137,5 +137,5 @@ and repeat-click protection, verified by focused tests rather than a repeat of
 that browser run. Its separately frozen 115-source publication baseline passed
 exact restoration with unrelated saved work preserved in a local VFS harness.
 That recovery check is not browser-import evidence. Fresh-file import remains
-unverified through a physical-browser file picker. L1, L2 and L3 have not passed;
-source publication does not qualify recursive improvement.
+unverified through a physical-browser file picker. This source checkpoint is not
+qualified at L1, L2 or L3; source publication does not qualify recursive improvement.

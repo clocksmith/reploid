@@ -29,6 +29,9 @@ export const createReplayManager = (deps) => {
     const progressText = document.getElementById('replay-progress-text');
     const playBtn = document.getElementById('replay-play');
     const pauseBtn = document.getElementById('replay-pause');
+    const speedSelect = document.getElementById('replay-speed-select');
+
+    if (speedSelect) speedSelect.value = String(state.speed);
 
     if (statusEl) {
       if (!state.metadata) {
@@ -103,17 +106,20 @@ export const createReplayManager = (deps) => {
     }
 
     const html = _eventLogEntries.slice().reverse().map(event => {
-      const typeClass = event.type.startsWith('agent:') ? 'agent'
-        : event.type.startsWith('tool:') ? 'tool'
-        : event.severity === 'error' ? 'error' : '';
-
-      const activity = event.payload?.activity || event.payload?.state || '';
+      const data = event.data || event.payload || {};
+      const payload = data.payload || data;
+      const type = typeof data.legacyType === 'string' ? data.legacyType : event.type;
+      const typeClass = event.type === 'error' || event.severity === 'error' ? 'error'
+        : type.startsWith('agent:') || event.type === 'model_text' ? 'agent'
+        : type.startsWith('tool:') || event.type.startsWith('tool_') ? 'tool' : '';
+      const activity = payload.activity || payload.state || payload.content || payload.message || payload.tool || data.omittedPayload || '';
+      const activityText = typeof activity === 'string' ? activity : JSON.stringify(activity);
 
       return `
         <div class="replay-event ${typeClass}">
           <span class="replay-event-time">${formatTimestamp(event.ts)}</span>
-          <span class="replay-event-type">${escapeHtml(event.type)}</span>
-          <span class="replay-event-content">${escapeHtml(activity)}</span>
+          <span class="replay-event-type">${escapeHtml(type)}</span>
+          <span class="replay-event-content">${escapeHtml(activityText)}</span>
         </div>
       `;
     }).join('');

@@ -5,6 +5,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import ReplayEngineModule from '../../infrastructure/replay-engine.js';
+import { RUN_REPLAY_SCHEMA, RUN_TRACE_SCHEMA, RUN_TRACE_LIMITS, importRunTrace, validateRunTrace } from '../../self/core/run-replay-bundle.js';
 
 describe('ReplayEngine - Integration Tests', () => {
   let replayEngine;
@@ -137,6 +138,167 @@ describe('ReplayEngine - Integration Tests', () => {
     });
   });
 
+  describe('legacy import boundary', () => {
+    const record = (ts = 1000, type = 'agent:status', payload = { state: 'running' }) => ({
+      id: `evt_${ts}`, ts, type, severity: 'info', tags: ['agent'], payload
+    });
+    const legacy = (events = [record()]) => ({ version: '1.1', exportedAt: '2024-01-01T00:00:00Z',
+      state: { totalCycles: 2, goal: 'Inspect saved work' },
+      vfs: { '/.logs/timeline/2024-01-01.jsonl': events.map(event => JSON.stringify(event)).join('\n') + '\n' }
+    });
+
+    it.each([undefined, RUN_REPLAY_SCHEMA, 'reploid-run-replay/v1', 'reploid/run-replay/v1'])(
+      'normalizes supported exporter envelopes (%s) without importing state or files', schema => {
+        const run = legacy();
+        if (schema) run.schema = schema;
+        run.vfs['/private.txt'] = 'unrelated private file';
+        run.state.context = 'private request';
+        const trace = importRunTrace(JSON.stringify(run));
+        expect(trace).toMatchObject({ schema: RUN_TRACE_SCHEMA, droppedEvents: 0,
+          provenance: { source: 'legacy-vfs-timeline', totalCycles: 2, fileCount: 2 },
+          events: [{ seq: 0, ts: 1000, type: 'status', data: { legacyType: 'agent:status', payload: { state: 'running' } } }] });
+        expect(JSON.stringify(trace)).not.toMatch(/unrelated private file|private request/);
+      }
+    );
+
+    it('merges dated files deterministically and snapshots sanitized visible evidence', () => {
+      const run = legacy([record(2000)]);
+      run.vfs['/.logs/timeline/2023-12-31.jsonl'] = JSON.stringify(record(1000, 'agent:history', {
+        type: 'llm_response', content: '<think>hidden</think>Visible sk-secretvalue0123', reasoning: 'private reasoning'
+      }));
+      const trace = importRunTrace(run);
+      run.vfs['/.logs/timeline/2023-12-31.jsonl'] = '';
+      expect(trace.events.map(event => [event.seq, event.ts])).toEqual([[0, 1000], [1, 2000]]);
+      expect(trace.events[0]).toMatchObject({ type: 'model_text', data: { content: '[reasoning omitted]Visible [redacted]' } });
+      expect(JSON.stringify(trace)).not.toMatch(/hidden|private reasoning|secretvalue0123/);
+    });
+
+    it('omits request history and never upgrades legacy observations into executable calls', async () => {
+      const run = legacy([
+        record(1000, 'agent:history', { type: 'model_request', content: 'private prompt' }),
+        record(2000, 'agent:history', { type: 'llm_response', content: 'Visible output', toolCalls: [{ name: 'WriteFile', args: {} }] }),
+        record(3000, 'agent:history', { type: 'tool_result', tool: 'WriteFile', args: { apiKey: 'secret' }, result: 'observed result' }),
+        record(4000, 'hitl:approve', { approved: true })
+      ]);
+      const session = replayEngine.loadSessionFromRun(run);
+      expect(session).toMatchObject({ goal: 'Inspect saved work', llmResponses: 1, toolResults: 1 });
+      replayEngine.seek(4);
+      const events = emittedEvents.filter(({ event }) => event === 'replay:event').map(({ data }) => data);
+      expect(events.map(event => event.type)).toEqual(['status', 'model_text', 'tool_observation', 'status']);
+      expect(events[2].data.args.apiKey).toBe('[redacted]');
+      expect(JSON.stringify(events)).not.toMatch(/private prompt|toolCalls/);
+      await expect(replayEngine.executeSession()).rejects.toThrow('read-only');
+      await expect(replayEngine.executeIteration(1, [], {})).rejects.toThrow('read-only');
+      await expect(replayEngine.restoreCheckpoint(0)).rejects.toThrow('read-only');
+      expect(emittedEvents.every(({ event }) => event.startsWith('replay:'))).toBe(true);
+      expect(mockToolRunner.execute).not.toHaveBeenCalled();
+      expect(mockLLMClient.chat).not.toHaveBeenCalled();
+      expect(mockVFS.write).not.toHaveBeenCalled();
+      expect(mockVFSSandbox.restoreSnapshot).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['llm:request', {}],
+      ['agent:system_prompt', {}],
+      ['agent:context', {}],
+      ['agent:reasoning', {}],
+      ['audit:AGENT_ACTION', { action: 'model_request' }],
+      ['audit:AGENT_ACTION', { kind: 'system_prompt' }],
+      ['audit:AGENT_ACTION', { type: 'llm_request' }]
+    ])('omits known private legacy event or action labels: %s', (type, labels) => {
+      const trace = importRunTrace(legacy([record(1000, type, { ...labels, content: 'private text', messages: ['private message'] })]));
+      expect(trace.events[0].data).toMatchObject({ legacyType: type, omittedPayload: expect.any(String) });
+      expect(JSON.stringify(trace)).not.toMatch(/private text|private message/);
+    });
+
+    it.each([
+      run => { run.schema = 'unknown'; },
+      run => { run.version = '2.0'; },
+      run => { run.trace = { schema: RUN_TRACE_SCHEMA, events: [] }; },
+      run => { run.schema = RUN_TRACE_SCHEMA; },
+      run => { run.vfs = []; },
+      run => { run.state = []; },
+      run => { run.state.totalCycles = -1; },
+      run => { run.vfs['/.logs/timeline/2024-01-01.jsonl'] = JSON.stringify(record(1000, 'agent:history', { type: 'llm_response', content: 1 })); },
+      run => { run.vfs['/.logs/timeline/2024-01-01.jsonl'] = JSON.stringify(record(1000, 'agent:history', { type: 'tool_result', result: 'missing name' })); },
+      run => { run.vfs['/.logs/timeline/2024-01-01.jsonl'] = JSON.stringify(record(1000, 'event', Array.from({ length: 14 }).reduce(value => ({ nested: value }), {}))); },
+      run => { run.vfs['/.logs/timeline/2024-01-01.jsonl'] = {}; },
+      run => { run.vfs['/.logs/timeline/2024-01-01.jsonl'] += '{bad json}'; },
+      run => { run.vfs['/.logs/timeline/2024-01-01.jsonl'] = JSON.stringify(record(-1)); },
+      run => { run.vfs['/.logs/timeline/2024-01-01.jsonl'] = JSON.stringify(record(1000, 'event', [])); },
+      run => { run.vfs['/.logs/timeline/2024-01-01.jsonl'] += JSON.stringify(record(999)); },
+      run => { run.vfs['/.logs/timeline/2024-01-01.jsonl'] += JSON.stringify(record(1001 + RUN_TRACE_LIMITS.durationMs)); },
+      run => { run.vfs['/.logs/timeline/2024-01-01.jsonl'] = JSON.stringify(record(1000, 'event', JSON.parse('{"__proto__":{"polluted":true}}'))); },
+      run => { run.vfs['/.logs/timeline/2024-01-01.jsonl'] = JSON.stringify(record(1000, 'event', { text: 'é'.repeat(RUN_TRACE_LIMITS.eventBytes / 2) })); },
+      run => { run.vfs['/.logs/timeline/2024-01-01.jsonl'] = (JSON.stringify(record()) + '\n').repeat(RUN_TRACE_LIMITS.events + 1); },
+      run => { run.vfs['/large.txt'] = 'é'.repeat(RUN_TRACE_LIMITS.bytes / 2); }
+    ])('rejects malformed legacy replacement transactionally', mutate => {
+      replayEngine.loadRun(legacy());
+      replayEngine.step();
+      const state = replayEngine.getState();
+      const emitted = emittedEvents.length;
+      const run = legacy(); mutate(run);
+      expect(() => replayEngine.loadRun(run)).toThrow();
+      expect(replayEngine.getState()).toEqual(state);
+      expect(emittedEvents).toHaveLength(emitted);
+      expect({}.polluted).toBeUndefined();
+    });
+
+    it('preserves uppercase audit ERROR severity as passive error evidence', () => {
+      const trace = importRunTrace(legacy([{ ...record(1000, 'audit:TOOL_EXEC', { error: 'retained failure' }), severity: 'ERROR' }]));
+      expect(trace.events[0]).toMatchObject({ type: 'error', data: {
+        legacyType: 'audit:TOOL_EXEC', payload: { error: 'retained failure' }
+      } });
+    });
+
+    const expandingTrace = (eventCount = 1, keys = 8000) => ({ schema: RUN_TRACE_SCHEMA,
+      startedAt: 0, provenance: {}, droppedEvents: 0,
+      events: Array.from({ length: eventCount }, (_, seq) => ({ seq, ts: seq, type: 'status',
+        data: Object.fromEntries(Array.from({ length: keys }, (_, index) => [`token${index}`, ''])) }))
+    });
+
+    it.each(['audit', 'trace'])('preserves prior %s state when sanitization expands an event beyond the limit', async mode => {
+      if (mode === 'audit') {
+        mockAuditLogger.getEntries.mockResolvedValue([
+          { type: 'AGENT_ACTION', data: { action: 'llm_response', content: 'retained response' }, ts: '2024-01-01T00:00:00Z' }
+        ]);
+        await replayEngine.loadSession('2024-01-01');
+      } else {
+        replayEngine.loadRun(legacy());
+        replayEngine.step();
+      }
+      await replayEngine.createCheckpoint();
+      const playbackState = replayEngine.getState();
+      const executionState = replayEngine.getExecutionState();
+      const emitted = emittedEvents.length;
+      const oversized = expandingTrace();
+      expect(new TextEncoder().encode(JSON.stringify(oversized.events[0])).length).toBeLessThan(RUN_TRACE_LIMITS.eventBytes);
+      expect(() => replayEngine.loadRun(oversized)).toThrow('size limit');
+      expect(replayEngine.getState()).toEqual(playbackState);
+      expect(replayEngine.getExecutionState()).toEqual(executionState);
+      expect(emittedEvents).toHaveLength(emitted);
+      if (mode === 'audit') {
+        await expect(replayEngine.executeIteration(1, [], {})).resolves.toMatchObject({ content: 'retained response', mocked: true });
+      } else {
+        await expect(replayEngine.executeIteration(1, [], {})).rejects.toThrow('read-only');
+      }
+      expect(mockToolRunner.execute).not.toHaveBeenCalled();
+      expect(mockLLMClient.chat).not.toHaveBeenCalled();
+      expect(mockVFS.write).not.toHaveBeenCalled();
+    });
+
+    it('bounds the canonical total when individually bounded events expand during redaction', () => {
+      const trace = expandingTrace(48, 4000);
+      expect(new TextEncoder().encode(JSON.stringify(trace)).length).toBeLessThan(RUN_TRACE_LIMITS.bytes);
+      expect(() => validateRunTrace(trace)).toThrow('size limit');
+    });
+
+    it('rejects an unknown wrapper schema even when it contains a valid trace', () => {
+      const trace = importRunTrace(legacy());
+      expect(() => importRunTrace({ ...legacy(), schema: 'unknown', trace })).toThrow('Unsupported');
+    });
+  });
+
   describe('playback controls', () => {
     beforeEach(() => {
       const runData = {
@@ -152,37 +314,43 @@ describe('ReplayEngine - Integration Tests', () => {
     it('should step through events', () => {
       replayEngine.step();
 
-      expect(mockEventBus.emit).toHaveBeenCalledWith('event1', { data: 1 });
-      expect(mockEventBus.emit).toHaveBeenCalledWith('replay:event', expect.objectContaining({ type: 'event1' }));
+      expect(mockEventBus.emit).not.toHaveBeenCalledWith('event1', expect.anything());
+      expect(mockEventBus.emit).toHaveBeenCalledWith('replay:event', expect.objectContaining({
+        type: 'status', data: { legacyType: 'event1', payload: { data: 1 } }
+      }));
+      expect(emittedEvents.every(({ event }) => event.startsWith('replay:'))).toBe(true);
+      expect(mockToolRunner.execute).not.toHaveBeenCalled();
+      expect(mockLLMClient.chat).not.toHaveBeenCalled();
+      expect(mockVFS.write).not.toHaveBeenCalled();
     });
 
     it('should track playback state', () => {
       const state = replayEngine.getState();
 
       expect(state.isPlaying).toBe(false);
-      expect(state.isPaused).toBe(false);
+      expect(state.isPaused).toBe(true);
       expect(state.currentIndex).toBe(0);
       expect(state.totalEvents).toBe(2);
     });
 
     it('should set speed', () => {
-      replayEngine.setSpeed(5);
+      replayEngine.setSpeed(256);
 
-      expect(replayEngine.getState().speed).toBe(5);
-      expect(mockEventBus.emit).toHaveBeenCalledWith('replay:speed', { speed: 5 });
+      expect(replayEngine.getState().speed).toBe(256);
+      expect(replayEngine.getSpeeds()).toEqual([1, 8, 64, 256]);
+      expect(mockEventBus.emit).toHaveBeenCalledWith('replay:progress', expect.objectContaining({ speed: 256 }));
     });
 
     it('should reject invalid speed', () => {
-      replayEngine.setSpeed(3); // Invalid
-
-      expect(mockUtils.logger.warn).toHaveBeenCalledWith(expect.stringContaining('Invalid speed'));
+      expect(() => replayEngine.setSpeed(3)).toThrow('Unsupported replay speed');
+      expect(replayEngine.getState().speed).toBe(1);
     });
 
     it('should seek to position', () => {
       replayEngine.seek(1);
 
       expect(replayEngine.getState().currentIndex).toBe(1);
-      expect(mockEventBus.emit).toHaveBeenCalledWith('replay:seek', expect.objectContaining({ index: 1 }));
+      expect(mockEventBus.emit).toHaveBeenCalledWith('replay:progress', expect.objectContaining({ currentIndex: 1 }));
     });
 
     it('should stop playback', () => {
@@ -190,7 +358,7 @@ describe('ReplayEngine - Integration Tests', () => {
       replayEngine.stop();
 
       expect(replayEngine.getState().currentIndex).toBe(0);
-      expect(mockEventBus.emit).toHaveBeenCalledWith('replay:stopped');
+      expect(mockEventBus.emit).toHaveBeenCalledWith('replay:reset');
     });
   });
 

@@ -33,8 +33,8 @@ describe('SchemaRegistry', () => {
     vi.unstubAllGlobals();
   });
 
-  it('registers only CreateTool as a built-in Zero tool schema', async () => {
-    const registry = await createRegistry('zero');
+  it.each(['zero', 'x'])('registers only CreateTool as a built-in minimal %s tool schema', async (mode) => {
+    const registry = await createRegistry(mode);
 
     expect(registry.getToolSchema('CreateTool').description).toContain('tool.activation');
     expect(registry.getToolSchema('CreateTool').description).toContain('re-imports and replays');
@@ -52,8 +52,8 @@ describe('SchemaRegistry', () => {
     expect(registry.getToolSchema('ProposeSelfPatch')).toBeNull();
   });
 
-  it('keeps broader file and promotion schemas registered outside Zero', async () => {
-    const registry = await createRegistry('x');
+  it('keeps broader file and promotion schemas registered in Reploid', async () => {
+    const registry = await createRegistry('reploid');
 
     expect(registry.getToolSchema('ReadFile').description).toContain('Batch with up to 8 independent read-only calls');
     expect(registry.getToolSchema('WriteFile').description).toContain('Stage candidates under /shadow');
@@ -64,8 +64,8 @@ describe('SchemaRegistry', () => {
     expect(registry.getToolSchema('ProposeSelfPatch')).toBeNull();
   });
   it('keeps file-tool parameter schemas isolated across registry instances', async () => {
-    const first = await createRegistry('x');
-    const second = await createRegistry('x');
+    const first = await createRegistry('reploid');
+    const second = await createRegistry('reploid');
     first.getToolSchema('WriteFile').parameters.properties.path.type = 'number';
     expect(second.getToolSchema('WriteFile').parameters.properties.path.type).toBe('string');
   });
