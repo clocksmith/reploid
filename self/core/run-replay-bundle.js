@@ -69,16 +69,29 @@ export function validateRunTrace(input) {
       call.settled = true;
     }
     previous = event.ts;
-    return sanitizeRunTraceValue(event);
+    const sanitized = sanitizeRunTraceValue(event);
+    if (jsonBytes(sanitized) > RUN_TRACE_LIMITS.eventBytes) throw new Error(`Sanitized run trace event exceeds the size limit at ${index}.`);
+    return sanitized;
   });
-  return { schema: RUN_TRACE_SCHEMA, startedAt: trace.startedAt,
+  const normalized = { schema: RUN_TRACE_SCHEMA, startedAt: trace.startedAt,
     provenance: sanitizeRunTraceValue(trace.provenance), droppedEvents: trace.droppedEvents, events };
+  // Redaction can enlarge values. Bound the canonical output before a caller
+  // replaces retained playback or execution state with this validated trace.
+  if (jsonBytes(normalized) > RUN_TRACE_LIMITS.bytes) throw new Error('Sanitized run trace exceeds the size limit.');
+  return normalized;
 }
 
 export function importRunTrace(input) {
   if (jsonBytes(input) > RUN_TRACE_LIMITS.bytes) throw new Error('Run trace exceeds the size limit.');
   const value = typeof input === 'string' ? JSON.parse(input) : input;
-  return validateRunTrace(value?.schema === RUN_TRACE_SCHEMA ? value : value?.trace);
+  if (value?.schema === RUN_TRACE_SCHEMA) return validateRunTrace(value);
+  // A declared trace must pass its own validator, never fall back to legacy data.
+  if (value && Object.hasOwn(value, 'trace')) {
+    if ((value.schema !== undefined && !COMPATIBLE_SCHEMAS.has(value.schema))
+        || (value.type !== undefined && !COMPATIBLE_SCHEMAS.has(value.type))) throw new Error('Unsupported run replay schema.');
+    return validateRunTrace(value.trace);
+  }
+  return importLegacyRunTimeline(value);
 }
 
 const COMPATIBLE_SCHEMAS = new Set([
@@ -86,6 +99,84 @@ const COMPATIBLE_SCHEMAS = new Set([
   'reploid-run-replay/v1',
   'reploid/run-replay/v1'
 ]);
+
+const isRecord = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+const PRIVATE_LEGACY_EVENT_RE = /(^|[:_-])((?:model|llm)[:_-]request|prompt|context|reasoning|thought|analysis)($|[:_-])/i;
+
+// The version 1.1 state exporter and pre-trace run-replay bundles stored the
+// TelemetryTimeline { ts, type, payload } records in VFS JSONL files. Normalize
+// evidence only: never restore those files, infer tool-call authority, or dispatch
+// their event names. Native traces still pass the stricter trace contract above.
+const importLegacyRunTimeline = bundle => {
+  if (!isRecord(bundle) || !isRecord(bundle.vfs)) throw new Error('Invalid run data: missing vfs');
+  if ((bundle.schema !== undefined && !COMPATIBLE_SCHEMAS.has(bundle.schema))
+      || (bundle.type !== undefined && !COMPATIBLE_SCHEMAS.has(bundle.type))
+      || (bundle.version !== undefined && bundle.version !== '1.1')) {
+    throw new Error('Unsupported legacy run schema.');
+  }
+  for (const key of ['state', 'metadata']) {
+    if (bundle[key] !== undefined && !isRecord(bundle[key])) throw new Error('Invalid legacy run metadata.');
+  }
+  const totalCycles = bundle.metadata?.totalCycles ?? bundle.state?.totalCycles ?? 0;
+  if (!Number.isSafeInteger(totalCycles) || totalCycles < 0) throw new Error('Invalid legacy run cycle count.');
+  const exportedAt = bundle.exportedAt ?? null;
+  if (exportedAt !== null && !(typeof exportedAt === 'string' && Number.isFinite(Date.parse(exportedAt)))
+      && !(typeof exportedAt === 'number' && Number.isFinite(exportedAt) && exportedAt >= 0)) {
+    throw new Error('Invalid legacy run export timestamp.');
+  }
+  const goal = bundle.state?.currentGoal?.text ?? bundle.state?.goal?.text ?? bundle.state?.goal ?? bundle.goal ?? null;
+  if (goal !== null && typeof goal !== 'string') throw new Error('Invalid legacy run goal.');
+  const records = [];
+  const paths = Object.keys(bundle.vfs).filter(path => /^\/\.logs\/timeline\/[^/]+\.jsonl$/.test(path)).sort();
+  for (const path of paths) {
+    const content = bundle.vfs[path];
+    if (typeof content !== 'string') throw new Error('Invalid legacy timeline file.');
+    let previous = 0;
+    for (const line of content.split('\n')) {
+      if (!line.trim()) continue;
+      if (records.length >= RUN_TRACE_LIMITS.events || jsonBytes(line) > RUN_TRACE_LIMITS.eventBytes) {
+        throw new Error('Legacy timeline exceeds the event limit.');
+      }
+      const event = JSON.parse(line);
+      if (!isRecord(event) || !Number.isFinite(event.ts) || event.ts < previous
+          || typeof event.type !== 'string' || !event.type.trim() || !isRecord(event.payload)) {
+        throw new Error('Invalid legacy timeline event or order.');
+      }
+      previous = event.ts;
+      records.push(sanitizeRunTraceValue(event));
+    }
+  }
+  // Legacy records have no sequence numbers. Merge dated files chronologically,
+  // retaining their append order for equal timestamps.
+  records.sort((a, b) => a.ts - b.ts);
+  const events = records.map((event, seq) => {
+    const payload = event.payload;
+    let type = event.severity === 'error' || event.severity === 'ERROR' ? 'error' : 'status';
+    let data = { legacyType: event.type, payload };
+    if ([event.type, payload.type, payload.kind, payload.action].some(label =>
+      typeof label === 'string' && PRIVATE_LEGACY_EVENT_RE.test(label))) {
+      data = { legacyType: event.type, omittedPayload: 'Private request or reasoning evidence is not imported.' };
+    } else if (event.type === 'agent:history') {
+      if (payload.type === 'llm_response') {
+        type = 'model_text';
+        data = { legacyType: event.type, content: payload.content, cycle: payload.cycle ?? null,
+          model: payload.model ?? payload.modelUsed?.id ?? null, provider: payload.provider ?? payload.modelUsed?.provider ?? null };
+      } else if (payload.type === 'tool_result') {
+        // Legacy observations have no paired call identity. Do not manufacture one.
+        type = 'tool_observation';
+        data = { legacyType: event.type, tool: payload.tool, args: payload.args ?? {},
+          result: payload.result ?? null, cycle: payload.cycle ?? null };
+      } else {
+        data = { legacyType: event.type, omittedPayload: 'Non-output history is not imported.' };
+      }
+    }
+    return { seq, ts: event.ts, type, data };
+  });
+  return validateRunTrace({ schema: RUN_TRACE_SCHEMA, startedAt: events[0]?.ts ?? 0,
+    droppedEvents: 0, events, provenance: { source: 'legacy-vfs-timeline',
+      importedSchema: bundle.schema ?? bundle.type ?? 'reploid-state/1.1',
+      exportedAt, totalCycles, fileCount: Object.keys(bundle.vfs).length, goal } });
+};
 
 const EXPORT_ROOTS = Object.freeze([
   '/cycles',

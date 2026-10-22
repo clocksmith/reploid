@@ -109,7 +109,7 @@ describe('Poolday audit boundaries', () => {
     });
     expect(SELF_BOOT_SPEC.routes['/x']).toMatchObject({
       mode: 'x',
-      genesisLevel: 'full',
+      genesisLevel: 'spark',
       surface: 'x',
       productFacing: false
     });

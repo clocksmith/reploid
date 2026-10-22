@@ -1365,8 +1365,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 578969,
-      "sha256": "sha256:1dfc16af4573e426d2485f7939eb4f5a7898cf6c8f8b8b468c7379c67212b7b9"
+      "byteLength": 579024,
+      "sha256": "sha256:4a11c7310464bc316d246b6916caff4b24572fe780ad85c26e75c8fe6f6c026b"
     },
     {
       "path": "config/module-registry.json",
@@ -1570,8 +1570,8 @@
     },
     {
       "path": "core/run-replay-bundle.js",
-      "byteLength": 19846,
-      "sha256": "sha256:2aab0ed57a6f1bbd2ff57fc34798c04f9c33d95275dd00ed065bd19360906bf4"
+      "byteLength": 25416,
+      "sha256": "sha256:ea7ee341c475d386a384941dde5d3081a42f5d5e359c8ef6ea05cc1847de30b0"
     },
     {
       "path": "core/schema-registry.js",
@@ -2140,8 +2140,8 @@
     },
     {
       "path": "infrastructure/replay-engine.js",
-      "byteLength": 20399,
-      "sha256": "sha256:8748950a68fc7ddae3104220c0e4a12e75c99e9f92c64c51910dd646227a1942"
+      "byteLength": 20593,
+      "sha256": "sha256:35f1f94055d1071e4401ffe5fcc1697ea54786a62e436421e40d074debf352ab"
     },
     {
       "path": "infrastructure/stream-parser.js",
@@ -3665,8 +3665,8 @@
     },
     {
       "path": "ui/proto/replay.js",
-      "byteLength": 7087,
-      "sha256": "sha256:021f16e38f7924bd1a9af493d911dbfc9c6bcee230398e5893d27b84a3717370"
+      "byteLength": 7641,
+      "sha256": "sha256:f50b53ff44a5df77dc8eb8252974efe45de7d03b89c00060572be4add5f1b123"
     },
     {
       "path": "ui/proto/telemetry.js",
@@ -3675,8 +3675,8 @@
     },
     {
       "path": "ui/proto/template.js",
-      "byteLength": 20505,
-      "sha256": "sha256:f93e88db34e44c59b5dc6d8c113fd85450367cca2bd7bbc9cca545aa6a98e3db"
+      "byteLength": 20428,
+      "sha256": "sha256:23c12965a8ba1363cf4c33bba4a1f7f8e18ad6988b5504aff68bde9c81b36972"
     },
     {
       "path": "ui/proto/utils.js",
@@ -10809,5 +10809,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:350ed93024c9b83694332fac87597e5d01397c11a5b23a4ad2a8d5f9b69e060b"
+  "bundleHash": "sha256:5efb6fc9ce10a93219aedd792cf11f603441fa8f3898c272c9dc7cebc95ec63f"
 }

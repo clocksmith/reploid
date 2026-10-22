@@ -44,9 +44,9 @@ describe('PersonaManager', () => {
     expect(prompt).not.toContain('all Web APIs');
   });
 
-  it('uses Zero filesystem discovery rules when booted in /zero mode', async () => {
+  it.each([['zero', 'Zero'], ['x', 'X']])('uses minimal filesystem discovery rules in /%s mode', async (mode, label) => {
     vi.stubGlobal('window', {
-      getReploidMode: () => 'zero'
+      getReploidMode: () => mode
     });
 
     const manager = PersonaManager.factory({
@@ -57,10 +57,12 @@ describe('PersonaManager', () => {
 
     const prompt = await manager.getSystemPrompt();
 
-    expect(prompt).toContain('You are Zero');
+    expect(prompt).toContain(`You are ${label}`);
     expect(prompt).toContain('Start fresh filesystem discovery by using CreateTool to make a directory-aware reader or lister.');
-    expect(prompt).toContain('If /blueprint-index.json is absent');
-    expect(prompt).toContain('The Zero seed tool surface includes CreateTool.');
+    expect(prompt).toContain('The complete declared self-source is listed in /config/self-source-manifest.json.');
+    expect(prompt).toContain('Do not assume optional upgrades or blueprints exist.');
+    expect(prompt).toContain('The minimal seed tool surface includes CreateTool.');
+    expect(prompt).toContain('Verification Worker approves the exact code bytes');
     expect(prompt).toContain('tool.activation');
     expect(prompt).toContain('requires matching transcripts');
     expect(prompt).toContain('vfs:write');

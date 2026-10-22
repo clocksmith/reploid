@@ -59,7 +59,7 @@ describe('CATSCAN component charters', () => {
       'Reploid Product Interface',
       'Poolday Evidence Runtime',
       'X Operator Workbench',
-      'Zero Proposal Interface'
+      'Compact X/Zero Interface'
     ]));
   });
 

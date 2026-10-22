@@ -47,6 +47,14 @@ types and tool call/result identities before replacing the current recording. A
 malformed import leaves the previously loaded trace intact. No import is evaluated
 as JavaScript or dispatched as a live runtime event.
 
+Existing version 1.1 state exports and earlier run-replay VFS timeline bundles
+also normalize to this passive trace format. Only timeline evidence is read;
+other saved files are not restored. Known request/context/reasoning records are
+omitted, unpaired tool results remain observations, and other event names become
+inert attributed evidence. The same bounds apply before replacing loaded state,
+including after redaction expands values. Oversized legacy exports are rejected,
+not silently truncated.
+
 ## Focused evidence
 
 - `tests/unit/run-trace-playback.test.js`: validation, redaction, bounded omission,
@@ -54,6 +62,9 @@ as JavaScript or dispatched as a live runtime event.
   preview, durable roundtrip, bounded saved-run preservation and imported re-execution rejection.
 - `tests/unit/zero-boot-recordings.test.js`: import and playback before awakening,
   without provider, goal or storage changes.
+- `tests/integration/replay-engine.test.js` and `tests/unit/proto-replay.test.js`:
+  bounded legacy normalization, retained-state rejection, and the existing
+  workbench caller using supported speeds and escaped passive event text.
 - `tests/integration/agent-loop.test.js`: mocked model response and real adapter
   recording of tool attempts, results and provenance. These are synthetic tests,
   not live model or RSI qualification runs.
