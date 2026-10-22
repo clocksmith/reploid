@@ -18,9 +18,7 @@
 :root.pool-page body { margin: 0; }
 :root.pool-page #app { display: block; }
 :where(.pool-home).pool-boot-failure { justify-content: center; align-items: center; text-align: center; }
-/* Isolation keeps the particle field above the page material and below every surface. */
 .pool-home {
-  isolation: isolate;
   background: var(--pool-surface-page);
   color: var(--pool-color-ink);
   font-family: var(--pool-font-ui);

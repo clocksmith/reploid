@@ -217,7 +217,7 @@ its root carries `class="pool-page"` so the page shell uses the same tokens.
 | Controls | `pool-button` with `btn-primary`, `btn-ghost`, `pool-icon`; `pool-input`, `pool-bare`, `pool-file`, `pool-switch`, `pool-segmented` + `pool-segment`, `pool-chip`, `pool-badge`, `pool-disclosure` |
 | Layout | `pool-stack`, `pool-row` (`pool-row-between`, `pool-row-end`), `pool-columns`, `pool-gap-xs` to `pool-gap-xl`, `pool-grow` |
 | Text | `pool-title`, `pool-heading`, `pool-subheading`, `pool-body`, `pool-small`, `pool-caption`, `pool-label`, `pool-muted`, `pool-mono`, `pool-mark`, `pool-facts`, `pool-plain`, `pool-prose` |
-| Feedback | `pool-bar`, `pool-dot`, `pool-reveal` with `pool-reveal-host`, `pool-glass`, `pool-glass-focus`, `pool-activity-edge`, `pool-particle-field` |
+| Feedback | `pool-bar`, `pool-dot`, `pool-reveal` with `pool-reveal-host`, `pool-glass`, `pool-glass-focus`, `pool-activity-edge` |
 
 ```html
 <section class="pool-card pool-stack pool-gap-sm">
@@ -233,9 +233,7 @@ its root carries `class="pool-page"` so the page shell uses the same tokens.
 The look is Chroma-Prism in dark and Dichroic-Silica in light: translucent glass
 surfaces (`--pool-surface-backdrop`), a 1px chromatic split in `--pool-shadow-raised`,
 spectral glass edges, and the page's dot grid over an ambient spectrum
-(`--pool-surface-page`). `particle-field.js` draws the viewport particle field from the
-`--pool-particle-*` tokens; observed execution and contribution brighten it, and
-reduced motion holds a still frame.
+(`--pool-surface-page`). Nothing moves while idle; motion marks observed activity.
 
 When a screen needs a look no primitive has, use the nearest primitive. Add a
 primitive or variant only when several screens need the same new look. Scripts write

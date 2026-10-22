@@ -14,7 +14,7 @@ approaches to accomplish more and improve their individual and collective method
 Independent operation remains possible; the collaborating network remains the
 product. Use uncluttered workflows, brief copy, shared components
 and tokens, accessible light/dark themes, responsive scrolling, and futuristic
-optical styling: glass, spectral edges and particles.
+optical styling: glass, spectral edges and a dot grid.
 
 The service target is dependable access to an exact model through a stable network
 address while prepared providers and routes change. Conversations remain independent;

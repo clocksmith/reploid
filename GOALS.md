@@ -65,9 +65,9 @@ browser library without inheriting a particular interface or credential system.
    execution, results, and evaluated changes should stay connected. Keep default
    screens uncluttered, copy brief, and detailed settings progressively disclosed.
    Use shared components and design tokens, consistent spacing, accessible light
-   and dark themes, responsive scrolling, and futuristic optical styling: glass
-   surfaces, spectral edges and an ambient particle field that observed execution
-   brightens, stilled under reduced motion and never obstructing content.
+   and dark themes, responsive scrolling, and futuristic optical styling (glass
+   surfaces, spectral edges, a dot-grid page) rather than decorative activity or
+   obstructive motion.
    Conversations are concurrent and independently owned: each thread retains its
    purpose, history, permissions and execution state. No global objective owns
    the workspace. Participants use models supplied by the mesh without needing
