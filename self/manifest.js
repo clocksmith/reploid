@@ -72,6 +72,7 @@ export const SELF_SOURCE_MIRRORS = Object.freeze([
   { webPath: '/core/llm-client.js', vfsPath: '/self/core/llm-client.js' },
   { webPath: '/core/provider-registry.js', vfsPath: '/self/provider-registry.js' },
   { webPath: '/core/provider-registry.js', vfsPath: '/self/core/provider-registry.js' },
+  { webPath: '/providers/external-brain.js', vfsPath: '/self/providers/external-brain.js' },
   { webPath: '/core/response-parser.js', vfsPath: '/self/response-parser.js' },
   { webPath: '/core/response-parser.js', vfsPath: '/self/core/response-parser.js' },
   { webPath: '/core/vfs-module-loader.js', vfsPath: '/self/vfs-module-loader.js' },

@@ -16,6 +16,7 @@ import AgentBridge from './agent-bridge.js';
 import fetch from 'node-fetch';
 import createPoolRouter from './pool/routes.js';
 import { installJsonBodyMiddleware } from './json-body-middleware.js';
+import { createExternalBrainRouter } from './external-brain.js';
 import { mountEarningRoutes } from './earning-routes/mount.js';
 import { mountSearchRoutes } from './search/mount.js';
 import { createFirebaseStore } from './pool/firebase-store.js';
@@ -660,6 +661,13 @@ try {
   console.error(`[Earning routes] Refusing to start: ${error.message}`);
   process.exit(1);
 }
+
+// This opt-in mailbox owns its small body parser and must precede generic CORS.
+// Enabling it also binds this process to loopback; it is not a remote inference API.
+const externalBrain = process.env.REPLOID_EXTERNAL_BRAIN === 'true'
+  ? createExternalBrainRouter()
+  : null;
+if (externalBrain) app.use('/api/external-brain', externalBrain.router);
 
 // Middleware to parse JSON bodies
 installJsonBodyMiddleware(app, {
@@ -1840,7 +1848,7 @@ server.on('upgrade', (req, socket, head) => {
 });
 
 // Start server
-server.listen(PORT, () => {
+server.listen({ port: PORT, ...(externalBrain ? { host: '127.0.0.1' } : {}) }, () => {
   const providers = [];
   if (GEMINI_API_KEY) providers.push('Gemini');
   if (OPENAI_API_KEY) providers.push('OpenAI');
@@ -1868,6 +1876,7 @@ const gracefulShutdown = (signal) => {
   console.log(`${signal} received, shutting down gracefully...`);
 
   stopGPUMonitoring();
+  externalBrain?.close();
   publicSwarmServer.close();
 
   if (ollamaProcess) {

@@ -3,6 +3,7 @@
  */
 
 import { BOOT_MODE_ORDER, getBootModeConfig } from '../../../config/boot-modes.js';
+import { isExternalBrainAvailable } from '../state.js';
 
 const buildProviderCopy = (state) => {
   const { detection, connectionType } = state;
@@ -58,7 +59,7 @@ export function renderConnectionProviderOptions(
     standalone = false,
     title = 'Choose inference provider',
     caption = 'Pick where reasoning runs.',
-    allowedConnectionTypes = ['browser', 'direct', 'proxy']
+    allowedConnectionTypes = ['browser', 'direct', 'proxy', 'external']
   } = {}
 ) {
   const {
@@ -129,14 +130,27 @@ export function renderConnectionProviderOptions(
         ${localBlocked ? '<span class="type-caption">△ Local auto-detect blocked. Enter address manually.</span>' : ''}
       </button>
   `;
+  const externalOption = isExternalBrainAvailable(state.mode) ? `
+      <button class="panel connection-option ${connectionBorderClass('external')}"
+              data-action="choose-external"
+              aria-pressed="${connectionPressed('external')}">
+        <span class="type-h2">☍ External brain</span>
+        <span class="type-caption">Let an external responder reason through the local mailbox</span>
+        <div class="option-capabilities">
+          <span class="tag">Local X only</span>
+          <span class="tag">No API key</span>
+        </div>
+      </button>
+  ` : '';
   const optionsByType = {
     browser: browserOption,
     direct: directOption,
-    proxy: proxyOption
+    proxy: proxyOption,
+    external: externalOption
   };
   const orderedTypes = proxyRecommended
     ? ['proxy', 'browser', 'direct']
-    : ['browser', 'direct', 'proxy'];
+    : ['browser', 'direct', 'proxy', 'external'];
 
   return `
     ${header}

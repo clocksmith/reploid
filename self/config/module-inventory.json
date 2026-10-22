@@ -356,7 +356,7 @@
     {
       "path": "config/surface-intents.js",
       "owner": "config",
-      "sha256": "sha256:5fe37f8c2940a4f096ffd0050daa1317f5a70b4d039c757d5a4a3f77d19e4cc8",
+      "sha256": "sha256:d5c161cfea56b753a1e29289b9bb5a89b0e41edc826a558f094cdf855a9189f8",
       "imports": [
         "./immutability.js",
         "./surface-resources.js",
@@ -366,7 +366,7 @@
     {
       "path": "config/surface-resources.js",
       "owner": "config",
-      "sha256": "sha256:1b20f25d0fbb8ad42fdcb3b95f3346b6ced14433883766cd4076eb635171ca95",
+      "sha256": "sha256:7aac4cd63ed60bfda38b8862d993059e543eef7e8b76094c3326262071602470",
       "imports": []
     },
     {
@@ -497,7 +497,7 @@
     {
       "path": "core/llm-client.js",
       "owner": "core",
-      "sha256": "sha256:9a2cab0ce150dcd519dd5ab4e86e65e6fcacc32829fc24dabae036aa2fc42a84",
+      "sha256": "sha256:a8076cea8744d2108f79092ffe49657f9d1883c2d1001f7664b84d8c5d4662bd",
       "imports": [
         "../instance.js"
       ]
@@ -535,7 +535,7 @@
     {
       "path": "core/provider-registry.js",
       "owner": "core",
-      "sha256": "sha256:cecc4ee3036fac36a108c1e15965b2082e48e0b922f4afec3c8026e837242505",
+      "sha256": "sha256:2391b8042d209260bba091e9a436651f8b45f3d638da80d5f736b6aa421a1c99",
       "imports": []
     },
     {
@@ -549,7 +549,7 @@
     {
       "path": "core/run-replay-bundle.js",
       "owner": "core",
-      "sha256": "sha256:0d6b94b403ac0e1f5332e1e7e617784dd93f4e64914949f0e59a559152f50ec1",
+      "sha256": "sha256:de10c3792d599029bf344fcef256e0b9dd9007ae93e8d0da82613ba6e07d05a0",
       "imports": []
     },
     {
@@ -2036,6 +2036,14 @@
       ]
     },
     {
+      "path": "providers/external-brain.js",
+      "owner": "providers",
+      "sha256": "sha256:ade590e379d094d08a6bddf75abce95ca590a804ca7ccd815b06f813cfb49fa4",
+      "imports": [
+        "../instance.js"
+      ]
+    },
+    {
       "path": "providers/work-adapter.js",
       "owner": "providers",
       "sha256": "sha256:36b09fedbab647fe7695b5d893c329556c44a9dc91cd5d35ed268410a66f938b",
@@ -2777,7 +2785,7 @@
     {
       "path": "self/manifest.js",
       "owner": "self",
-      "sha256": "sha256:1b4c3688042b7b74d172e1e022394f5d8195fcbe2a10e8457d2a4269757f8f12",
+      "sha256": "sha256:2b911c481287c4feb455e61f14bd8ea55137ed67ce4248c4f55929e9cc89f208",
       "imports": [
         "./boot-spec.js",
         "./config/tool-surfaces.js",
@@ -3116,7 +3124,7 @@
     {
       "path": "ui/boot-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:5c9270d6435022d945810299790b26896f12e5315048eb3d92f8d344aa970bc9",
+      "sha256": "sha256:9c0283e508bcea255a5b34421ecabd83bad77314cd61266f87dec7418c6ebfe3",
       "imports": [
         "../../boot-helpers/vfs-bootstrap.js",
         "../../config/boot-seed.js",
@@ -3219,7 +3227,7 @@
     {
       "path": "ui/boot-wizard/state.js",
       "owner": "ui",
-      "sha256": "sha256:f3c9683fcbde3fe2324de6f7f1afe0cf846b662767d5af78932895fdafdec4a9",
+      "sha256": "sha256:582591feab77944c2d30141540e1e3b499eabb44a502e1367a77ae54005bc99e",
       "imports": [
         "../../config/boot-modes.js",
         "../../config/doppler-local-models.js",
@@ -3251,9 +3259,10 @@
     {
       "path": "ui/boot-wizard/steps/choose.js",
       "owner": "ui",
-      "sha256": "sha256:0bc731989a1f134c4aed02e840d4d37d30e6ab20444964dd93d4a6f8cc4129e5",
+      "sha256": "sha256:42251e7bb55dddf4e6ef3498ff836b12edd529505177cb65f2a2347fdcd6159e",
       "imports": [
-        "../../../config/boot-modes.js"
+        "../../../config/boot-modes.js",
+        "../state.js"
       ]
     },
     {
@@ -3407,7 +3416,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:a2192e7bf0ca2c869b3453909f28c710d5cc15f4d2b09967193533eca14e5bf5",
+      "sha256": "sha256:9ad509172666b991e73865250edc13b4d447b4422f7437de910b5e63c903456c",
       "imports": []
     },
     {

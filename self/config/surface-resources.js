@@ -121,6 +121,7 @@ export const ZERO_SEED_PREFIXES = Object.freeze([
 ]);
 
 export const X_ADDITIONAL_SEED_PREFIXES = Object.freeze([
+  'providers/external-brain.js',
   ...SHARED_BOOT_UI_PREFIXES,
   'ui/zero/index.js',
   'styles/zero.css',
@@ -157,6 +158,11 @@ export const PROTO_RUNTIME_SELF_MIRROR_RULES = Object.freeze([
   { sourcePrefix: '/ui/panels/', targetPrefix: '/self/ui/panels/' },
   { sourcePrefix: '/ui/proto/', targetPrefix: '/self/ui/proto/' },
   { sourcePrefix: '/styles/proto/', targetPrefix: '/self/styles/proto/' }
+]);
+
+export const X_RUNTIME_SELF_MIRROR_RULES = Object.freeze([
+  ...PROTO_RUNTIME_SELF_MIRROR_RULES,
+  { sourcePath: '/providers/external-brain.js', targetPath: '/self/providers/external-brain.js' }
 ]);
 
 export const ZERO_RUNTIME_UI = Object.freeze({

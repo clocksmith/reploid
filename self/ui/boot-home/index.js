@@ -15,6 +15,7 @@ import {
   getStoredSwarmEnabled,
   getState,
   hydrateSavedConfig,
+  isExternalBrainAvailable,
   normalizeCycleIntervalSeconds,
   resetWizard,
   saveConfig,
@@ -130,6 +131,86 @@ let sponsorAccessExpanded = false;
 let isInitialRender = true;
 let lastRenderSignature = null;
 let pendingDeferredRender = false;
+let externalBrainProbe = null;
+
+const cancelExternalBrainProbe = () => {
+  externalBrainProbe?.abort();
+  externalBrainProbe = null;
+};
+
+async function checkExternalBrain() {
+  const state = getState();
+  if (state.connectionType !== 'external' || !isExternalBrainAvailable(state.mode)) return false;
+  cancelExternalBrainProbe();
+  const controller = new AbortController();
+  externalBrainProbe = controller;
+  const timeout = setTimeout(() => controller.abort(), 3000);
+  setNestedState('externalConfig', {
+    enabled: false,
+    verifyState: VERIFY_STATE.TESTING,
+    verifyError: null
+  });
+  const stillSelected = () => externalBrainProbe === controller
+    && getState().connectionType === 'external'
+    && isExternalBrainAvailable(getState().mode);
+
+  try {
+    const response = await fetch('/api/external-brain/status', {
+      method: 'GET',
+      headers: { 'X-Reploid-External-Brain': '1' },
+      credentials: 'omit',
+      cache: 'no-store',
+      redirect: 'error',
+      signal: controller.signal
+    });
+    if (!response.ok) throw new Error(`Mailbox unavailable (HTTP ${response.status}).`);
+    const status = await response.json();
+    if (!stillSelected()) return false;
+    const enabled = status?.enabled === true;
+    setNestedState('externalConfig', {
+      enabled,
+      verifyState: enabled ? VERIFY_STATE.VERIFIED : VERIFY_STATE.FAILED,
+      verifyError: enabled ? null : 'The local mailbox is disabled.'
+    });
+    return enabled;
+  } catch (error) {
+    if (stillSelected()) {
+      setNestedState('externalConfig', {
+        enabled: false,
+        verifyState: VERIFY_STATE.FAILED,
+        verifyError: controller.signal.aborted
+          ? 'The local mailbox check timed out.'
+          : (error?.message || 'The local mailbox is unavailable.')
+      });
+    }
+    return false;
+  } finally {
+    clearTimeout(timeout);
+    if (externalBrainProbe === controller) externalBrainProbe = null;
+  }
+}
+
+const renderExternalBrainConfig = (state) => {
+  const config = state.externalConfig;
+  const testing = config.verifyState === VERIFY_STATE.TESTING;
+  const ready = canAwaken();
+  const status = testing
+    ? 'Checking the local mailbox...'
+    : ready
+      ? 'Mailbox ready. This does not mean dot is connected.'
+      : (config.verifyError || 'Check the local mailbox before continuing.');
+  return `
+    <div class="wizard-step wizard-external">
+      <div class="goal-header">
+        <h2 class="type-h2">External brain</h2>
+        <p class="type-caption" role="status">${escapeHtml(status)}</p>
+        <p class="type-caption">Requests wait at /api/external-brain for an external responder. No API key is needed. Existing approval controls still apply.</p>
+        ${!ready ? '<p class="type-caption">Start the local server with <code>REPLOID_EXTERNAL_BRAIN=true npm start</code>, then check again.</p>' : ''}
+      </div>
+      <button class="btn" type="button" data-action="test-external-brain" ${testing || state.isAwakening ? 'disabled' : ''}>Check mailbox</button>
+    </div>
+  `;
+};
 
 
 const renderVfsProgress = (state) => {
@@ -462,6 +543,7 @@ const getHomeRenderSignature = (state) => {
     directConfig: state.directConfig,
     proxyConfig: state.proxyConfig,
     dopplerConfig: state.dopplerConfig,
+    externalConfig: state.externalConfig,
     goalGenerator: state.goalGenerator,
     cycleIntervalSeconds: normalizeCycleIntervalSeconds(state.cycleIntervalSeconds),
     selectedGoalCategory: state.selectedGoalCategory,
@@ -669,7 +751,8 @@ async function handleImportRunReplayFile(file) {
     const currentState = getState();
     const { bundle, stateUpdates, storageModels, summary } = deriveBootStateFromRunReplayBundle(
       JSON.parse(text),
-      currentState
+      currentState,
+      { externalBrainAvailable: isExternalBrainAvailable(currentState.mode) }
     );
     const storage = getReploidStorage();
     writeImportedRunReplaySummary(storage, bundle);
@@ -685,6 +768,7 @@ async function handleImportRunReplayFile(file) {
         summary
       }
     });
+    if (stateUpdates.connectionType === 'external') await checkExternalBrain();
   } catch (err) {
     console.warn('[BootHome] Run JSON import failed:', err?.message || err);
     getReploidStorage().removeItem(RUN_REPLAY_STORAGE_KEY, { removeLegacy: true });
@@ -702,7 +786,7 @@ async function handleImportRunReplayFile(file) {
 async function doAwaken() {
   const state = getState();
   const goalPacket = formatGoalPacket(state.goal);
-  if (!goalPacket) return;
+  if (!goalPacket || state.isAwakening || !canAwaken()) return;
   let modelConfig = null;
 
   setState({
@@ -718,6 +802,10 @@ async function doAwaken() {
   });
 
   try {
+    if (state.connectionType === 'external' && !await checkExternalBrain()) {
+      setState({ isAwakening: false });
+      return;
+    }
     modelConfig = state.mode === 'reploid'
       ? await resolveReploidModelConfig(state)
       : null;
@@ -771,7 +859,15 @@ async function doAwaken() {
     return;
   }
 
-  saveConfig();
+  if (state.connectionType === 'external'
+      && (getState().connectionType !== 'external' || !canAwaken())) {
+    setState({ isAwakening: false });
+    return;
+  }
+  if (saveConfig() === false) {
+    setState({ isAwakening: false });
+    return;
+  }
   if (window.triggerAwaken) {
     if (state.mode === 'reploid') {
       window.triggerAwaken({
@@ -933,6 +1029,7 @@ async function handleClick(event) {
 
   switch (action) {
     case 'choose-browser':
+      cancelExternalBrainProbe();
       setState({ connectionType: 'browser' });
       if (!state.dopplerConfig?.model) {
         setNestedState('dopplerConfig', { model: DEFAULT_DOPPLER_MODEL });
@@ -940,10 +1037,12 @@ async function handleClick(event) {
       break;
 
     case 'choose-direct':
+      cancelExternalBrainProbe();
       setState({ connectionType: 'direct' });
       break;
 
     case 'choose-proxy': {
+      cancelExternalBrainProbe();
       const detection = getState().detection;
       const currentProxyConfig = getState().proxyConfig;
       const proxyDetected = detection.proxy?.detected;
@@ -988,6 +1087,17 @@ async function handleClick(event) {
       setState({ connectionType: 'proxy' });
       break;
     }
+
+    case 'choose-external':
+      if (isExternalBrainAvailable(state.mode)) {
+        setState({ connectionType: 'external' });
+        await checkExternalBrain();
+      }
+      break;
+
+    case 'test-external-brain':
+      await checkExternalBrain();
+      break;
 
     case 'toggle-own-inference': {
       const currentlyByok = isUsingOwnInference(getState());
@@ -1265,6 +1375,8 @@ function render() {
       html += `<div class="wizard-proxy">${renderProxyConfigStep(state)}</div>`;
     } else if (state.connectionType === 'browser') {
       html += `<div class="wizard-browser">${renderBrowserConfigStep(state)}</div>`;
+    } else if (state.connectionType === 'external') {
+      html += renderExternalBrainConfig(state);
     }
 
     if (!canAwaken()) {
@@ -1320,6 +1432,7 @@ function render() {
 }
 
 export function initLockedBootHome(containerEl, mode = 'reploid') {
+  cancelExternalBrainProbe();
   container = containerEl;
   listenersAttached = false;
   renderScheduled = false;
@@ -1376,11 +1489,13 @@ export function initLockedBootHome(containerEl, mode = 'reploid') {
   unsubscribeState = subscribe(scheduleRender);
 
   const saved = checkSavedConfig();
-  if (useOwnInference && saved?.hasSavedKey) {
+  if ((useOwnInference && saved?.hasSavedKey)
+      || (isExternalBrainAvailable(routeMode) && saved?.primaryProvider === 'external')) {
     hydrateSavedConfig(saved);
   }
   setState({ savedConfig: saved });
   scheduleRender();
+  if (getState().connectionType === 'external') void checkExternalBrain();
 
   const skipStartupDiscovery = routeMode === 'zero' || routeMode === 'x';
   runDetection({

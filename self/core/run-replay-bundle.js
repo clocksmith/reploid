@@ -129,7 +129,7 @@ export function validateRunReplayBundle(input) {
 const getModelId = (model = {}) => normalizeText(model.id || model.model || model.modelId || model.name);
 const getModelName = (model = {}) => normalizeText(model.name || model.id || model.model || model.modelId);
 
-export function deriveBootStateFromRunReplayBundle(bundle, currentState = {}) {
+export function deriveBootStateFromRunReplayBundle(bundle, currentState = {}, options = {}) {
   const normalized = validateRunReplayBundle(bundle);
   const stateUpdates = {
     goal: normalized.goal,
@@ -141,8 +141,40 @@ export function deriveBootStateFromRunReplayBundle(bundle, currentState = {}) {
   };
   const model = normalized.models[0] || null;
   const storageModels = [];
+  const hasExternalModel = normalized.models.some((entry) => (
+    normalizeText(entry.provider).toLowerCase() === 'external'
+      || getModelId(entry) === 'external-brain'
+  ));
 
-  if (model) {
+  if (hasExternalModel) {
+    if (normalized.models.length !== 1
+        || model?.provider !== 'external'
+        || model.id !== 'external-brain'
+        || model.hostType !== 'direct') {
+      throw new Error('External brain replay must select one external-brain model with the direct host type.');
+    }
+    // The host supplies current availability; a replay cannot grant local access.
+    if (options.externalBrainAvailable !== true
+        || normalized.mode !== 'x'
+        || currentState.mode !== 'x'
+        || (currentState.routeLockedMode && currentState.routeLockedMode !== 'x')) {
+      throw new Error('External brain replay is available only on local X.');
+    }
+    stateUpdates.connectionType = 'external';
+    stateUpdates.externalConfig = {
+      enabled: false,
+      verifyState: 'unverified',
+      verifyError: null
+    };
+    storageModels.push({
+      id: 'external-brain',
+      name: 'External brain',
+      provider: 'external',
+      hostType: 'direct'
+    });
+  }
+
+  if (model && !hasExternalModel) {
     const provider = normalizeText(model.provider).toLowerCase();
     const hostType = normalizeText(model.hostType).toLowerCase();
     const modelId = getModelId(model);
