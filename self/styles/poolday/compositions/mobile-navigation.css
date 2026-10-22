@@ -69,21 +69,7 @@
     padding: 0;
   }
   .pool-mobile-app-bar .chat-rail-label { display: block; }
-  .pool-home[data-left-rail-open] .pool-mobile-app-bar .chat-rail-digest,
   .pool-mobile-app-bar .chat-rail-digest { display: none; }
-  .pool-mobile-app-bar :is(.chat-thread-panel, .chat-rail-controls) { display: none; }
-  .pool-home[data-left-rail-open] .pool-mobile-app-bar .chat-thread-panel {
-    display: flex;
-    grid-column: 1 / -1;
-    grid-row: 1;
-    height: min(45dvh, var(--pool-size-480));
-    max-height: calc(var(--pool-param-workspace-height) - var(--pool-metric-app-bar) * 3);
-  }
-  .pool-home[data-left-rail-open] .pool-mobile-app-bar .chat-rail-controls {
-    display: grid;
-    grid-column: 1 / -1;
-    grid-row: 2;
-  }
-  .pool-mobile-app-bar .chat-conversation-actions > div { top: auto; bottom: 100%; max-height: 40dvh; }
-  .pool-mobile-app-bar .chat-thread-info:empty { display: none; }
+  .pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network']),
+  .pool-home[data-chat-compact]:is([data-pool-route-id='home'], [data-pool-route-id='network']) { padding-top: var(--pool-size-8); }
 }

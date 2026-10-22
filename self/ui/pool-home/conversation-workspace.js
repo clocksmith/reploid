@@ -25,16 +25,18 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
   return `<section class="reploid-chat-workspace" data-chat-workspace aria-label="Conversation workspace">
     <aside id="chat-threads" class="chat-thread-sidebar pool-mobile-app-bar" data-thread-sidebar aria-label="Conversation controls">
       <div class="chat-rail-toolbar pool-surface" data-chat-rail-toolbar>
-      <div class="chat-rail-primary">
       <div class="chat-rail-heading">
       <span class="chat-thread-brand" data-thread-rail-brand></span>
       <button class="pool-button chat-new-thread" type="button" data-new-thread aria-label="New thread" title="New thread">${interfaceIcon('newThread')}<span class="chat-rail-label">New thread</span></button>
       </div>
+      <footer class="chat-rail-footer"><div data-network-trigger-slot></div></footer>
+      </div>
+    </aside>
+    <dialog class="chat-threads-dialog pool-surface" data-threads-dialog aria-labelledby="chat-threads-title">
+      <header class="chat-network-heading"><h2 class="pool-subheading" id="chat-threads-title" tabindex="-1">Threads</h2><button class="pool-button" type="button" data-close-threads aria-label="Back to chat" title="Back to chat">${interfaceIcon('close')}</button></header>
       <section class="chat-thread-panel" data-thread-panel aria-labelledby="chat-threads-title">
-      <h2 class="pool-subheading" id="chat-threads-title">Threads</h2>
       <div class="chat-thread-list" data-thread-list></div>
       </section>
-      </div><footer class="chat-rail-footer">
       <div class="chat-rail-controls" data-network-header><div class="chat-thread-info">
           <span class="chat-model-control pool-activity-edge" data-model-control><select class="pool-input pool-glass" id="chat-model" data-active-model-select aria-label="Model"></select><button class="pool-button" type="button" data-current-model aria-haspopup="dialog" hidden></button></span>
           </div>
@@ -49,9 +51,7 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
           </fieldset>
         </div></details>
       </div>
-      <div data-network-trigger-slot></div>
-      </footer></div>
-    </aside>
+    </dialog>
     <aside class="chat-inspector-slot pool-surface" data-chat-inspector-slot aria-label="Selected controls"></aside>
     <section class="chat-conversation-area" data-conversation-area aria-label="Current conversation">
       <div class="chat-transcript chat-message-stream" data-chat-transcript data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
@@ -114,14 +114,17 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const railToggle = surface?.querySelector('[data-toggle-thread-rail]');
   const brandParent = railToggle?.parentElement;
   if (railToggle) find('[data-thread-rail-brand]').append(railToggle);
+  // The brand opens the conversation list as a dialog; the bar keeps only its four controls.
+  const threadsDialogNode = find('[data-threads-dialog]'), threadsDialog = bindDialog(threadsDialogNode);
   const setThreads = open => {
     if (open) inspector.close({ restoreFocus: false });
     viewState.threadsOpen = open; container.toggleAttribute('data-threads-open', open);
-    surface?.toggleAttribute('data-left-rail-open', open);
     railToggle?.setAttribute('aria-expanded', String(open));
-    railToggle?.setAttribute('aria-controls', 'chat-threads');
-    if (!open) actionsPanel.setOpen(false);
+    railToggle?.setAttribute('aria-controls', 'chat-threads-title');
+    if (open) threadsDialog.open(find('[data-thread-item-id][aria-current="true"]') || find('[data-thread-item-id]') || find('#chat-threads-title'), railToggle);
+    else { actionsPanel.setOpen(false); if (threadsDialogNode.open) threadsDialog.close(); }
   };
+  threadsDialogNode.addEventListener('close', () => { if (container.hasAttribute('data-threads-open')) setThreads(false); }, options);
   const detachHandover = bindHistoryHandover(container, historyHandover);
   const detachInspector = inspector.mountRail?.(find('[data-chat-inspector-slot]'), find('[data-network-trigger-slot]'), () => setThreads(false));
   const modelControl = find('[data-model-control]'), modelHome = modelControl.parentElement;
@@ -134,13 +137,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const toggle = event.target.closest?.('[data-auto-download-toggle]');
     if (toggle) autoDownload.setEnabled(toggle.getAttribute('aria-checked') !== 'true');
   }, options);
-  setThreads(viewState.threadsOpen ?? false);
+  setThreads(false);
   railToggle?.addEventListener('click', () => setThreads(!container.hasAttribute('data-threads-open')), options);
-  surface?.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && container.hasAttribute('data-threads-open')) {
-      event.preventDefault(); setThreads(false); railToggle?.focus();
-    }
-  }, options);
+  find('[data-close-threads]').addEventListener('click', () => setThreads(false), options);
   onResize();
   function onResize() {
     resizeInput();
@@ -430,7 +429,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     input.dispatchEvent(new Event('input', { bubbles: true }));
     input.focus();
   });
-  const newThread = () => after(saveDraft(), () => after(session.select(null), () => { inspector.close({ restoreFocus: false }); chosenModel = null; viewState.chosenModel = null; archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-archived]').textContent = 'Archived threads'; actionsPanel.setOpen(false); if (globalThis.innerWidth <= 760) setThreads(false); render(session.getState()); input.focus(); }));
+  const newThread = () => after(saveDraft(), () => after(session.select(null), () => { inspector.close({ restoreFocus: false }); chosenModel = null; viewState.chosenModel = null; archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-archived]').textContent = 'Archived threads'; actionsPanel.setOpen(false); setThreads(false); render(session.getState()); input.focus(); }));
   on('[data-new-thread]', 'click', () => { try { observe(newThread()); } catch (cause) { error(cause); } });
   on('[data-active-model-select]', 'change', () => { chosenModel = session.getState().models.find(model => (model.selectionId || model.id) === modelSelect.value); viewState.chosenModel = chosenModel; render(session.getState()); });
   on('[data-change-model]', 'click', () => {
@@ -478,7 +477,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         (find('[data-thread-item-id][aria-current="true"]') || find('[data-new-thread]')).focus();
       }); return;
     }
-    const button = event.target.closest('[data-thread-item-id]'); if (button) { try { observe(after(saveDraft(), () => { const selected = session.select(button.dataset.threadItemId); inspector.close({ restoreFocus: false }); if (globalThis.innerWidth <= 760) setThreads(false); return selected; })); } catch (cause) { error(cause); } } });
+    const button = event.target.closest('[data-thread-item-id]'); if (button) { try { observe(after(saveDraft(), () => { const selected = session.select(button.dataset.threadItemId); inspector.close({ restoreFocus: false }); setThreads(false); return selected; })); } catch (cause) { error(cause); } } });
   on('[data-context-indicator]', 'click', event => inspector.open('conversation', event.currentTarget));
   on('[data-execution-location]', 'click', event => {
     const button = event.target.closest('[data-execution-choice]');
@@ -591,11 +590,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (executionSettings) executionSettings.hidden = true;
     modelHome.append(modelControl); modelButtonHome.prepend(modelButton);
     detachInspector?.();
-    messages.dispose(); threads.dispose(); actionsPanel.dispose(); picker.dispose(); renameDialog.dispose();
+    messages.dispose(); threads.dispose(); actionsPanel.dispose(); threadsDialog.dispose(); picker.dispose(); renameDialog.dispose();
     const surface = container.closest('.pool-home');
     surface?.style.removeProperty('--pool-param-workspace-height');
     surface?.removeAttribute('data-chat-compact');
-    surface?.removeAttribute('data-left-rail-open');
     if (railToggle && brandParent) brandParent.prepend(railToggle);
     controller.abort(); detachHandover(); autoDownload.dispose(); fileRevision++; unsubscribe(); unsubscribeWebSearch(); unsubscribeSearch(); if (!sharedInspector) inspector.dispose();
     find('[data-composer-field]').dataset.activity = 'idle';

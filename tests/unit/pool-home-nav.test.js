@@ -90,7 +90,7 @@ describe('poolday home navigation', () => {
     for (const route of ['home', 'compute', 'records']) {
       const host = document.createElement('div');
       host.innerHTML = renderNav(route) + renderRoutePanel(route) + renderRouteDetail(route);
-      expect(host.querySelector('.pool-primary-brand').getAttribute('aria-label')).toBe(route === 'home' ? 'Toggle threads' : 'Reploid home');
+      expect(host.querySelector('.pool-primary-brand').getAttribute('aria-label')).toBe(route === 'home' ? 'Threads' : 'Reploid home');
       expect(host.querySelector('.pool-primary-brand .pool-power-tower')).not.toBeNull();
       expect(host.textContent).not.toMatch(/\bpoolday\b/i);
       for (const node of host.querySelectorAll('[aria-label]')) expect(node.getAttribute('aria-label')).not.toMatch(/poolday/i);
@@ -285,7 +285,7 @@ describe('poolday home navigation', () => {
 
     expect(html).toContain('class="pool-nav-rail pool-primary-nav"');
     expect((html.match(/class="pool-nav-link/g) || [])).toHaveLength(1);
-    expect(html).toContain('aria-label="Toggle threads"');
+    expect(html).toContain('aria-label="Threads" aria-haspopup="dialog"');
     const host = document.createElement('div'); host.innerHTML = html;
     expect(host.querySelector('[data-open-network]')).toBeNull();
     host.innerHTML = renderNav('records');
