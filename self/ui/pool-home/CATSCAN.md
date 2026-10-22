@@ -21,14 +21,14 @@ Outputs: [conversations](conversation-workspace.js), [markup](view.js), [Room-1]
 ## Invariants
 
 - Glass, spectral edges, dot grid; animate observed events, never idle readiness; discovery implies no execution. Respect reduced motion; concise controls; no banners/slogans/preset-prompt grids.
-- Preserve Reploid/Poolday identities, shared components/tokens, gutters,
+- Preserve Reploid/Poolday identities, shared components/tokens/gutters,
   accessible themes/responsive scrolling. Activities prescribe no hierarchy.
-- Link tasks/helpers/jobs/results/candidates; show observations and missing admission/evaluators.
+- Link tasks/helpers/jobs/results/candidates; show observations, missing admission/evaluators.
 - Preserve execution in protein/document examples and request/execution/comparison/acceptance/receipt lifecycles. Recovery requires valid state.
-- Disclose execution location and conversation sharing. Default-on network answers authorize Send/Retry without popups; loader shows tools. Preserve opt-outs with inline explanations; local-only stays local. Viewing/restoring/selection grants nothing.
+- Disclose execution location, conversation sharing. Default-on network answers authorize Send/Retry without popups; loader shows tools. Preserve opt-outs with inline explanations; local-only stays local. Viewing/restoring/selection grants nothing.
 - Keep failures/Stop visible; selection never stops threads.
-- Connection/cached sharing default on; downloads require opt-in.
-- Training exposes consent, bounded rounds, Stop and unevaluated exports.
+- Connection/cached sharing default on; downloads auto-start only when no computer answers (progress/Cancel/opt-out).
+- Training exposes consent, bounded rounds, Stop, unevaluated exports.
 - Include compatible adapters in model selection. Compute/file controls;
   discovery/thread grants imply neither.
 - Inspect Pack/runtime/provider/hardware/fallback/timing/output/agreement. Review grants no evaluation/promotion; receipts prove no hardware attestation; acceptance names policy.

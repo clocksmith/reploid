@@ -11,6 +11,7 @@ import { bindDisclosure } from '../components/disclosure.js';
 import { bindDialog } from '../components/dialog.js';
 import { createMessageList } from './message-list.js';
 import { renderHistoryHandover, bindHistoryHandover } from './history-handover-view.js';
+import { createAutoDownload, updateAutoDownloadSetting } from './auto-download.js';
 
 const busyAcquisition = state => state.acquisition?.phase === 'downloading';
 const selectable = model => ['ready', 'busy', 'cached', 'loading', 'preparing'].includes(model.availability);
@@ -128,6 +129,11 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   find('[data-model-picker-slot]').append(modelControl);
   const executionSettings = find('[data-execution-settings]');
   if (executionSettings) executionSettings.hidden = false;
+  const autoDownload = createAutoDownload(session, { onChange: () => render(session.getState()) });
+  (surface || container).addEventListener('click', event => {
+    const toggle = event.target.closest?.('[data-auto-download-toggle]');
+    if (toggle) autoDownload.setEnabled(toggle.getAttribute('aria-checked') !== 'true');
+  }, options);
   setThreads(viewState.threadsOpen ?? false);
   railToggle?.addEventListener('click', () => setThreads(!container.hasAttribute('data-threads-open')), options);
   surface?.addEventListener('keydown', event => {
@@ -283,9 +289,18 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const canAcquire = !!session.downloadLocalModel && !state.localDownloadIssue && !usable && !localPreparing && !busyAcquisition(state)
       && location !== 'network' && !requestedModel?.partition && !requestedModel?.adapters?.length && (exhausted || location === 'local');
     const acquisition = state.acquisition;
+    // Automatic download never substitutes an explicit choice; without one it takes the smallest whole model.
+    const explicitModel = thread?.model || chosenModel;
+    autoDownload.consider({ eligible: canAcquire && !thread?.closed, models: catalogModels,
+      explicit: explicitModel ? catalogModels.find(model => keyFor(model) === keyFor(explicitModel)) || explicitModel : null });
+    updateAutoDownloadSetting(surface || container, autoDownload.enabled());
+    const automatic = acquiring && autoDownload.started()?.id === acquisition.modelId ? autoDownload.started() : null;
+    const autoNotice = canAcquire && !acquiring && !['failed', 'cancelled'].includes(acquisition?.phase) ? autoDownload.notice() : null;
     const acquisitionText = find('[data-acquisition-status]');
-    acquisitionText.textContent = acquiring ? acquisition.progress?.message || 'Checking model files.'
+    acquisitionText.textContent = acquiring ? (automatic ? `${automatic.name} is downloading to this device`
+      + (location === 'local' ? '. ' : ' because no computer can answer. ') : '') + (acquisition.progress?.message || 'Checking model files.')
       : ['failed', 'cancelled'].includes(acquisition?.phase) ? acquisition.error + ' Retry reuses verified files where supported.'
+      : autoNotice ? autoNotice
       : !usable && exhausted && location !== 'network' ? state.localDownloadIssue || (requestedModel?.partition || requestedModel?.adapters?.length
         ? 'No usable network capacity for this model. Choose a whole base model to download.' : 'No usable network capacity. Download a model to use this device.') : '';
     if (acquiring && usable) acquisitionText.textContent += ' Network capacity is available; you can send now or cancel this download.';
@@ -438,7 +453,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const model = state.activeThread?.model || state.models.find(item => (item.selectionId || item.id) === modelSelect.value) || chosenModel || state.defaultModel;
     inspector.downloadModel(model?.id, event.currentTarget);
   });
-  on('[data-cancel-download]', 'click', () => session.cancelModelDownload());
+  on('[data-cancel-download]', 'click', () => { autoDownload.cancelled(); session.cancelModelDownload(); });
   on('[data-show-archived]', 'click', event => {
     archived = !archived; event.currentTarget.setAttribute('aria-pressed', String(archived));
     event.currentTarget.textContent = archived ? 'Back to threads' : 'Archived threads';
@@ -582,7 +597,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     surface?.removeAttribute('data-chat-compact');
     surface?.removeAttribute('data-left-rail-open');
     if (railToggle && brandParent) brandParent.prepend(railToggle);
-    controller.abort(); detachHandover(); fileRevision++; unsubscribe(); unsubscribeWebSearch(); unsubscribeSearch(); if (!sharedInspector) inspector.dispose();
+    controller.abort(); detachHandover(); autoDownload.dispose(); fileRevision++; unsubscribe(); unsubscribeWebSearch(); unsubscribeSearch(); if (!sharedInspector) inspector.dispose();
     find('[data-composer-field]').dataset.activity = 'idle';
     find('[data-model-control]').dataset.activity = 'idle';
   };

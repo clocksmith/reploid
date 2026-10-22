@@ -1,6 +1,9 @@
 import { test, expect } from '@playwright/test';
 
+// These specs exercise the manual size-and-consent path, so automatic download is off;
+// tests/unit/first-visitor.test.js covers the automatic path.
 async function localOnly(page) {
+  await page.addInitScript(() => localStorage.setItem('reploid.auto-download.v1', 'off'));
   await page.route('**/*', route => new URL(route.request().url()).origin === 'http://127.0.0.1:8769' ? route.continue() : route.abort());
   await page.routeWebSocket('**/*', socket => socket.close());
   await page.goto('/');

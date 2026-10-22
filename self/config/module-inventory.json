@@ -3423,8 +3423,16 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:8614d682aefe84bcf208a5e2dc338e0a288a55aec1d4553732133677aeb951af",
+      "sha256": "sha256:5cff479cc9e1d9a17a49bcbc6dcd462c5accc509d34778d993c3f40e0ab350bb",
       "imports": []
+    },
+    {
+      "path": "ui/pool-home/auto-download.js",
+      "owner": "ui",
+      "sha256": "sha256:08da9d38f963507c351daccd886b8ef0a63331b412518215eefcfb9f5b906407",
+      "imports": [
+        "../../config/chat-files.json"
+      ]
     },
     {
       "path": "ui/pool-home/computer-labels.js",
@@ -3494,13 +3502,14 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:ae6a4c91115caf96b9842d96001d95862a5933942950cc78f569e123d3d563cd",
+      "sha256": "sha256:67cbc76c8a8b0475350cbbcebf09faf24be9a1d0d8b573bdaefc5600ce9f4412",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
         "../components/disclosure.js",
         "../components/interface-icons.js",
         "../components/model-select.js",
+        "./auto-download.js",
         "./computer-labels.js",
         "./context-indicator.js",
         "./conversation-list.js",
@@ -3608,13 +3617,14 @@
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:81b7ec502a0840e99d3045369c9f848c7c60aac688b8f1197fc842a302a500a0",
+      "sha256": "sha256:54efb8922a36e1d697f3db335d8adffe2971aec7af685c1d28e240e807934024",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
         "../components/interface-icons.js",
         "../components/model-select.js",
         "./account-panel.js",
+        "./auto-download.js",
         "./computer-labels.js",
         "./execution-ribbon.js",
         "./network-controls.js",

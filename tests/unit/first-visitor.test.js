@@ -2,9 +2,12 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { createChatSession, CANONICAL_CHAT_MODELS } from '../../self/host/chat-session.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 import { renderConversationWorkspace, bindConversationWorkspace } from '../../self/ui/pool-home/conversation-workspace.js';
+import { AUTO_DOWNLOAD_STORAGE_KEY } from '../../self/ui/pool-home/auto-download.js';
 const cleanups = [];
-afterEach(async () => { for (const cleanup of cleanups.splice(0).reverse()) await cleanup(); vi.useRealTimers(); });
-function fixture() {
+afterEach(async () => { for (const cleanup of cleanups.splice(0).reverse()) await cleanup(); vi.useRealTimers(); localStorage.removeItem(AUTO_DOWNLOAD_STORAGE_KEY); });
+// The manual size-and-consent path applies when automatic download is off.
+function fixture({ automatic = false } = {}) {
+  localStorage.setItem(AUTO_DOWNLOAD_STORAGE_KEY, automatic ? 'on' : 'off');
   const session = createChatSession({ storage: null, service: createChatTestService(), models: [CANONICAL_CHAT_MODELS[0]] });
   cleanups.push(() => session.close());
   let state = { ...session.getState(), localDownloadIssue: null, peerDiscoveryTimedOut: false,
@@ -25,6 +28,24 @@ it('bounds the host discovery window even when signaling never connects, without
   await vi.advanceTimersByTimeAsync(8000);
   expect(session.getState().peerDiscoveryTimedOut).toBe(true); expect(session.getState().acquisition.phase).toBe('idle');
   await session.close();
+});
+it('downloads the smallest whole model automatically when no computer can answer, and Cancel stops further automatic downloads', async () => {
+  const f = fixture({ automatic: true }), model = CANONICAL_CHAT_MODELS[0];
+  expect(f.find('[data-auto-download-toggle]').getAttribute('aria-checked')).toBe('true');
+  await Promise.resolve();
+  expect(f.api.downloadLocalModel).not.toHaveBeenCalled();
+  f.publish({ peerDiscoveryTimedOut: true });
+  await vi.waitFor(() => expect(f.api.downloadLocalModel).toHaveBeenCalledWith(model.id, true));
+  f.publish({ acquisition: { phase: 'downloading', modelId: model.id, progress: { message: 'Downloading model files.', receivedBytes: 1, totalBytes: 2 } } });
+  expect(f.find('[data-acquisition-status]').textContent)
+    .toBe(`${model.name} is downloading to this device because no computer can answer. Downloading model files.`);
+  expect(f.find('[data-acquisition-progress]').hidden).toBe(false);
+  f.find('[data-cancel-download]').click(); expect(f.api.cancelModelDownload).toHaveBeenCalledOnce();
+  f.publish({ acquisition: { phase: 'cancelled', modelId: model.id, error: 'Download cancelled.', progress: null } });
+  f.publish({ peerDiscoveryTimedOut: true });
+  await Promise.resolve();
+  expect(f.api.downloadLocalModel).toHaveBeenCalledOnce();
+  expect(f.find('[data-download-local]').textContent).toBe('Retry download');
 });
 it('offers explicit local download after no usable peers and reuses the existing size-and-consent dialog', async () => {
   const f = fixture(); expect(f.find('[data-download-local]').hidden).toBe(true);
