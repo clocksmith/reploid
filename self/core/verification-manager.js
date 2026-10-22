@@ -10,7 +10,7 @@
  * - Returns detailed results with warnings array
  */
 
-import { SELF_BOOT_SPEC } from '../boot-spec.js';
+import { SERVICE_WORKER_ENTRY } from '../config/service-worker.js';
 import { sha256 } from './promotion-policy.js';
 import { getCurrentReploidInstanceId, getSurfaceIdFromUrl } from '../instance.js';
 import { isSecurityEnabled } from './security-config.js';
@@ -53,7 +53,7 @@ const VerificationManager = {
         const scope = new URL(registration?.scope || '', location.href);
         const script = new URL(controller.scriptURL || '', location.href);
         const expectedScript = new URL(
-          SELF_BOOT_SPEC.host.serviceWorkerBootstrapEntry || SELF_BOOT_SPEC.host.serviceWorkerEntry,
+          SERVICE_WORKER_ENTRY,
           location.href
         );
         if (serviceWorker.controller !== controller || registration?.active !== controller

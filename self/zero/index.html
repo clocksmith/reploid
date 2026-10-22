@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <base href="/">
+  <title>Zero</title>
+</head>
+<body>
+  <main id="app" aria-live="polite">Opening Zero…</main>
+  <script type="module">
+    if (location.pathname === '/' || location.pathname === '/index.html') {
+      location.replace('/zero' + location.search + location.hash);
+    } else {
+      const { bootZero } = await import('/zero/boot.js');
+      bootZero();
+    }
+  </script>
+</body>
+</html>

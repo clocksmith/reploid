@@ -366,6 +366,12 @@
       ]
     },
     {
+      "path": "config/service-worker.js",
+      "owner": "config",
+      "sha256": "sha256:406a6b3abcdf443754656226b2883fdf8ecf9e438e4ffc10b647f2ff4c5f56e5",
+      "imports": []
+    },
+    {
       "path": "config/surface-intents.js",
       "owner": "config",
       "sha256": "sha256:47d19bc36cb98b59ba7420c028061aaff0397c93f4b1d8c5c076589ec1725e91",
@@ -469,6 +475,15 @@
       "owner": "core",
       "sha256": "sha256:8dd3be5751c97a6783e49756a6bf82ee229ea9cd078fe85e0046546048c8c298",
       "imports": []
+    },
+    {
+      "path": "core/create-tool.js",
+      "owner": "core",
+      "sha256": "sha256:06cd6e3ac74d89ed8fed9909df56a7fb2007a40c1ab3d04964c3872ddcfdb468",
+      "imports": [
+        "./promotion-policy.js",
+        "./vfs-module-loader.js"
+      ]
     },
     {
       "path": "core/cycle-artifacts.js",
@@ -612,14 +627,21 @@
       "imports": []
     },
     {
+      "path": "core/tool-capabilities.js",
+      "owner": "core",
+      "sha256": "sha256:603a075c079995f5b461f28cdafc45a092df3ef5bb4dd714ffb81536b359efb4",
+      "imports": []
+    },
+    {
       "path": "core/tool-runner.js",
       "owner": "core",
-      "sha256": "sha256:cdd9a1c19c2defa321f8fa503f81863a754df060723d71840ba53fe53bebc476",
+      "sha256": "sha256:0b99411f670110a95ad3dc0936571bf0001f485d24a14e1c55f5b2e852253a96",
       "imports": [
         "../config/lab-upgrades.js",
         "../config/tool-surfaces.js",
         "../instance.js",
         "./security-config.js",
+        "./tool-capabilities.js",
         "./vfs-module-loader.js"
       ]
     },
@@ -655,9 +677,9 @@
     {
       "path": "core/verification-manager.js",
       "owner": "core",
-      "sha256": "sha256:fee2878b15baaf0ce3a4a38a6a030ad702ce22c243e4694fa6bd8933c0b03026",
+      "sha256": "sha256:006e1ca2ede8d92d8f983b6b5743dcce94b1ef96d3be5e6e03c5af014814393f",
       "imports": [
-        "../boot-spec.js",
+        "../config/service-worker.js",
         "../instance.js",
         "./promotion-policy.js",
         "./security-config.js"
@@ -2125,8 +2147,9 @@
     {
       "path": "self/boot-spec.js",
       "owner": "self",
-      "sha256": "sha256:1e5f550aa87ae23467ca169ecbbc25237ad1194366e98db5ac76a84fafb81804",
+      "sha256": "sha256:5e3ef3b5e34cfdb78f70f129c570614760d695d00564f31e95f35e81ac7970b3",
       "imports": [
+        "./config/service-worker.js",
         "./config/vfs-policy.js",
         "./lab/profiles.js"
       ]
@@ -2520,7 +2543,7 @@
     {
       "path": "self/host/sw-module-loader.js",
       "owner": "self",
-      "sha256": "sha256:fcb4dbcfe79e8607a2324519c9607043d219a9b4c40667bf08bab05d32595296",
+      "sha256": "sha256:861a66e7b95d9ad50d848fbf0579f1983546b037c440bac1d5460cc3c2b39ef3",
       "imports": []
     },
     {
@@ -2972,11 +2995,10 @@
     {
       "path": "tools/CreateTool.js",
       "owner": "tools",
-      "sha256": "sha256:2e132f81d8b084b6827a783d904df0b2b4f5c7233b69bf0e71e216d54db07975",
+      "sha256": "sha256:9b5c82c3f2836dd844ee58601b3bd5bc507ea7b2b18f31d79d48911eb91d0063",
       "imports": [
         "../config/lab-upgrades.js",
-        "../core/promotion-policy.js",
-        "../core/vfs-module-loader.js"
+        "../core/create-tool.js"
       ]
     },
     {
@@ -3457,7 +3479,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:7e9516c0ec5ffa19c65abd922d47d2e3a8558317dd774f515848c675f2c6e52e",
+      "sha256": "sha256:542d49903887c5d529214822ffc6413d190e195665b67e02f5755ab156e2c0c9",
       "imports": []
     },
     {
@@ -17109,6 +17131,83 @@
       "imports": [
         "../artifacts/canonical-json.js"
       ]
+    },
+    {
+      "path": "zero/agent.js",
+      "owner": "zero",
+      "sha256": "sha256:cc16035fcf077f02829bd9b107b76a179a908e129f8cd5db088257b596c21d89",
+      "imports": [
+        "../vendor/reploid/agent/engine.js",
+        "../vendor/reploid/config/index.js"
+      ]
+    },
+    {
+      "path": "zero/boot.js",
+      "owner": "zero",
+      "sha256": "sha256:1d4d22de642fad593bc79312372738e912ea48c78fa682ee6aa2b8034f4c4c7b",
+      "imports": [
+        "../instance.js",
+        "./image.js",
+        "./store.js"
+      ]
+    },
+    {
+      "path": "zero/image.js",
+      "owner": "zero",
+      "sha256": "sha256:394abff6457286ebd4448d4926640daeb60cd84dce010e06df9e0054cd64ddc0",
+      "imports": []
+    },
+    {
+      "path": "zero/main.js",
+      "owner": "zero",
+      "sha256": "sha256:f44a14d053a60eac89355145e6e57f5b95b9534094725e0cd5d4e33863efd0bc",
+      "imports": [
+        "./image.js",
+        "./provider.js",
+        "./tools.js"
+      ]
+    },
+    {
+      "path": "zero/provider.js",
+      "owner": "zero",
+      "sha256": "sha256:eba841f8cb065bea154623e524da0e3f9bb3fe859fb11c0b497627b71f90f87a",
+      "imports": [
+        "../config/zero-inference.js",
+        "../instance.js",
+        "../providers/external-brain.js"
+      ]
+    },
+    {
+      "path": "zero/store.js",
+      "owner": "zero",
+      "sha256": "sha256:0b96f2ea30d69f461b6b3aed7498f5980329a66718bd2edea1c8c377460fdb21",
+      "imports": [
+        "../instance.js"
+      ]
+    },
+    {
+      "path": "zero/tools.js",
+      "owner": "zero",
+      "sha256": "sha256:fc82cd09dafde8adf1cba20f379bbd090117f1451e7e8c77a968a0541a21936b",
+      "imports": [
+        "../config/vfs-policy.js",
+        "../core/create-tool.js",
+        "../core/promotion-policy.js",
+        "../core/schema-registry.js",
+        "../core/security-config.js",
+        "../core/tool-capabilities.js",
+        "../core/tool-writer.js",
+        "../core/verification-manager.js",
+        "../core/vfs-module-loader.js",
+        "../instance.js",
+        "../vendor/reploid/agent/tool-runner.js"
+      ]
+    },
+    {
+      "path": "zero/ui.js",
+      "owner": "zero",
+      "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a",
+      "imports": []
     }
   ]
 }

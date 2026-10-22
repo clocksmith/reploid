@@ -1,7 +1,8 @@
 # Zero and X setup
 
-Zero is the tabula-rasa, self-owning browser agent. X starts from the same minimal
-base and may add explicitly selected upgrades. Both are separate from the ordinary [conversation flow](QUICK-START.md).
+Zero is the tabula-rasa, self-owning browser agent. Fresh Zero uses compact UI and
+agent capsules; X retains its existing minimal profile and explicitly selected
+upgrades. Both are separate from the ordinary [conversation flow](QUICK-START.md).
 
 ## Start
 
@@ -15,27 +16,33 @@ reachable inference service separately.
 
 ## Choose inference
 
-- **Server proxy** uses the managed proxy configured in the boot form. Test the
-  endpoint before awakening. Server credentials are not part of a source export.
-- **Connected agent** is available on local X when the bounded loopback reasoning
-  mailbox is enabled. The connected agent proposes model output; it does not gain
-  shell access or execution authority. See the [connection contract](x/external-brain.md).
-- **Optional local Doppler** is a Zero-only choice. It installs its selected adapter
-  source and requires a separately available Doppler runtime, model assets and
-  WebGPU. The minimal base does not preload that runtime or its models.
+- **Fresh Zero on loopback** uses Connected agent when the bounded reasoning mailbox
+  is enabled and a controller is present. The connected agent proposes model output;
+  it does not gain shell access or execution authority. See the
+  [connection contract](x/external-brain.md). A disabled host fails clearly; it does
+  not silently switch to a paid provider.
+- **Fresh Zero on a public origin** uses the existing managed Gemini endpoint with
+  Firebase Auth and App Check. The host must supply valid access configuration and
+  its deployed inference function. The checked-in App Check site key is unset;
+  this source release does not create credentials or establish live inference.
+- **X and returning legacy instances** retain their provider setup interfaces,
+  including supported proxy/local Doppler choices. The fresh capsule seed does not
+  preload Doppler, models or a general provider picker. Credentials are not exported.
 
 ## Awaken Zero
 
-Enter an objective, choose the cycle interval and select **Awaken**. A fresh Zero,
-and X with no upgrades selected, expose only `CreateTool`. For example:
+Enter an objective and select **Awaken**. A fresh Zero, and X with no upgrades
+selected, expose only `CreateTool`. For example:
 
 > Create a tool called AddNumbers that takes two numbers and returns their sum.
 > Include fixtures, activate it, then use it with 2 and 3.
 
 CreateTool stages the source, checks declared fixtures, re-imports it for replay,
-then activates a successful tool. Reading, writing and self-mutation helpers are
-created when needed, not assumed to be installed. The base includes validation,
-capability boundaries and runtime source even though it has only one initial tool.
+then activates a successful tool. Fresh Zero tools have scoped reads and artifact
+writes; they cannot rewrite `/self` or `/zero` sources. Source/UI self-patching
+remains a legacy-runtime capability, not an implied fresh-capsule permission.
+Helpers are created when needed, not assumed to be installed. The base includes
+validation and capability boundaries even though it has only one initial tool.
 
 ## Extend X
 
@@ -52,14 +59,16 @@ unavailable to lab tools; VFS writes and tool loading remain capability-scoped.
 A model cannot approve its own candidate, change its evaluator or escalate grants.
 Zero has no upgrade selector. X uses its own instance-scoped selection and does
 not inherit old Zero settings or another instance's global upgrade preference.
-The technical baseline level remains `spark`; “tabula rasa” describes Zero's role,
-not the older, incomplete `tabula` genesis preset.
+X's technical baseline level remains `spark`; fresh Zero's capsule configuration
+is separate from those genesis profiles. “Tabula rasa” describes its role, not the
+older, incomplete `tabula` genesis preset.
 
 ## Runtime and persistence
 
 The compact screen prioritizes conversation, prompt, current state and Stop.
-Open **Inspect** for metrics, raw trace and source export. Errors and required
-approvals must remain visible, not hidden in inspection.
+Open **Inspect** for provider prerequisites and source export; X's retained runtime
+also provides its existing metrics and trace controls. Errors and required approvals
+remain visible, not hidden in inspection.
 
 Ordinary reloads and build-version changes preserve browser VFS contents. Existing
 instances are not automatically pruned or rewritten. An older instance may retain
@@ -76,9 +85,11 @@ Use **Export self-source** in Inspect. The JSON image contains declared source,
 hashes and the installed tool sources selected by this action, not arbitrary
 workspace artifacts, browser settings or credentials.
 
-New exports bind the chosen Zero/X surface in the hashed source descriptor.
-Older fieldless exports retain their historical routing; they are not silently
-relabelled. The exported materializer emits a static host tree. Boot that tree on a new origin
-with the same explicit browser/hosting prerequisites and configure inference anew.
+Fresh Zero uses the distinct `reploid.zero.image/v1` envelope and
+`materializeZeroImage` in `self/zero/image.js`. X and returning legacy instances
+retain their existing self-image format. Older fieldless exports retain historical
+routing; they are not silently relabelled. Materialize the matching format and boot
+its static host tree on a new origin with explicit browser/provider prerequisites.
 A repository checkout is not a runtime prerequisite for the descendant. See the
-[self-source contract and acceptance checks](x/self-source.md).
+[compact Zero contract](zero-capsules.md) and the
+[legacy/X self-source contract](x/self-source.md).

@@ -277,6 +277,7 @@
     "config/reploid-library.json",
     "config/self-source-catalog.json",
     "config/self-source-manifest.json",
+    "config/service-worker.js",
     "config/surface-intents.js",
     "config/surface-resources.js",
     "config/swarm-bootstrap.json",
@@ -296,6 +297,7 @@
     "core/change-passport-policy.js",
     "core/change-passport.js",
     "core/context-manager.js",
+    "core/create-tool.js",
     "core/cycle-artifacts.js",
     "core/doppler-runtime-service.js",
     "core/functiongemma-orchestrator.js",
@@ -315,6 +317,7 @@
     "core/state-helpers-pure.js",
     "core/state-manager.js",
     "core/tool-argument-validation.js",
+    "core/tool-capabilities.js",
     "core/tool-runner.js",
     "core/tool-writer.js",
     "core/transformers-client.js",
@@ -2161,6 +2164,18 @@
     "vendor/reploid/transport/room.js",
     "vendor/reploid/transport/signaling.js",
     "vendor/reploid/transport/swarm.js",
-    "vendor/reploid/transport/tool-offer-channel.js"
+    "vendor/reploid/transport/tool-offer-channel.js",
+    "zero/agent.js",
+    "zero/boot.js",
+    "zero/config.json",
+    "zero/image.js",
+    "zero/index.html",
+    "zero/main.js",
+    "zero/provider.js",
+    "zero/source.json",
+    "zero/store.js",
+    "zero/style.css",
+    "zero/tools.js",
+    "zero/ui.js"
   ]
 }

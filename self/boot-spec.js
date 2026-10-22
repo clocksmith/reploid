@@ -4,6 +4,7 @@
 
 import { LAB_ROUTE_BOOT_SPECS } from './lab/profiles.js';
 import { OPFS_ARTIFACT_ROOTS, WRITABLE_VFS_ROOTS } from './config/vfs-policy.js';
+import { SERVICE_WORKER_ENTRY } from './config/service-worker.js';
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -39,7 +40,7 @@ export const SELF_BOOT_SPEC = Object.freeze({
     reploidStartEntry: '/self/host/start-reploid.js',
     vfsBootstrapEntry: '/self/host/vfs-bootstrap.js',
     serviceWorkerEntry: '/self/host/sw-module-loader.js',
-    serviceWorkerBootstrapEntry: '/sw.js'
+    serviceWorkerBootstrapEntry: SERVICE_WORKER_ENTRY
   },
   runtime: {
     runtimeEntry: '/self/runtime.js',

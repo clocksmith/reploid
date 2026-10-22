@@ -22,7 +22,7 @@ cited web search exist in source and are tested locally only. Per-surface status
 | **Doppler** | Separate repository. Loads signed model packages (Capsules), opens whole models or layer ranges as residents, runs WebGPU kernels, samples tokens | [clocksmith/doppler](https://github.com/clocksmith/doppler), pinned in [`self/config/doppler-package.json`](self/config/doppler-package.json) |
 | **Native participant** | Node host that contributes storage and computation from a desktop GPU (Linux/Vulkan is the qualified path) | [`server/native-participant.js`](server/native-participant.js), [guide](docs/native-participant.md) |
 | **Server** | `npm start` serves the app, proxies cloud model APIs for Zero/X, and optionally mounts search and earning routes | [`server/proxy.js`](server/proxy.js), [`server/`](server) |
-| **Zero and X** | Agent workspaces at `/zero` and `/x` on a separate agent/VFS substrate (below) | [`self/core/`](self/core), [`self/tools/`](self/tools), [`self/ui/zero/`](self/ui/zero) |
+| **Zero and X** | Agent workspaces at `/zero` and `/x` on a separate agent/VFS substrate (below) | [`self/zero/`](self/zero), [`self/core/`](self/core), [`self/tools/`](self/tools) |
 
 Reploid coordinates, Doppler computes, Poolday carries the bytes. Reploid never implements
 model mathematics; Doppler never decides who may run what.
@@ -121,17 +121,17 @@ fixture model.
 
 ## Zero and X
 
-X and Zero share a self-owning browser agent/VFS substrate, separate from the
-conversation path above. Browser storage keeps source and user work across reloads.
+Zero and X are self-owning browser agents, separate from the conversation path
+above. Browser storage keeps source and user work across reloads.
 
-- **X** (`/x`) is the minimal base. Its complete selected source image includes the
-  bootstrap, loop, prompt, tool validation and browser UI. It initially exposes only
-  `CreateTool`, not the repository's file, cognition, worker or swarm tools. New tools
-  must pass declared fixtures and fresh-import replay before activation.
-- **Zero** (`/zero`) extends X. It starts with the same base; optional reflection,
-  cognition, substrate and full tool/source upgrades are installed only when the
-  operator selects them. More capabilities do not grant more authority: independent
-  evaluation, explicit adoption grants and rollback requirements remain in force.
+- **Zero** (`/zero`) is tabula rasa. Fresh instances save a small boot/config/VFS
+  nucleus and load explicit UI and agent capsules, without the legacy lab/DI boot.
+  Only `CreateTool` is initially exposed. Real verification, hash-bound approval,
+  declared fixtures and fresh-import replay remain mandatory before installation.
+- **X** (`/x`) keeps its existing selected-source runtime. It defaults to a minimal
+  profile and may install reflection, cognition, substrate and full upgrades only
+  when the operator selects them. More capabilities do not grant more authority:
+  independent evaluation, explicit adoption grants and rollback remain distinct.
 
 The runtime keeps conversation, prompt and state in front; inspection details and
 self-source export are in a disclosure. An exported image contains the selected
@@ -140,7 +140,7 @@ configured inference endpoint remain explicit prerequisites.
 
 Existing browser work is preserved, not silently rewritten into a minimal instance.
 Use a new named instance to start clean. See [X/Zero setup](docs/zero-x-quick-start.md)
-and the [self-source contract and validation](docs/x/self-source.md).
+and the [compact Zero contract and measured footprint](docs/zero-capsules.md).
 
 ## Run it
 
