@@ -299,6 +299,7 @@ async function call(args = {}, deps = {}) {
 }
 
 export const tool = {
+  capabilities: ['vfs:write'],
   name: 'Promote',
   description: 'Promote a /shadow candidate into an allowlisted /self target when replay evidence passes. Doppler improvement claims also require a valid signed improvement episode; Clockwork-tagged candidates require a trusted accepted Gamma receipt.',
   inputSchema: {

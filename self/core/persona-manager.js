@@ -1,3 +1,4 @@
+import { isMinimalLabMode } from '../config/lab-upgrades.js';
 /**
  * @fileoverview Persona Manager
  * dynamic system prompt construction based on config.
@@ -63,7 +64,6 @@ All tools live in /tools/. Tools receive a \`deps\` object: { VFS, EventBus, Too
 - Tool names MUST use CamelCase (e.g., ReadFile, InspectCore)
 - Blob-loaded tools must use injected deps instead of relative imports`;
 
-    const ZERO_CORE_INSTRUCTIONS = buildZeroCoreInstructions();
 
     let _config = null;
     let _overrides = null;
@@ -117,7 +117,7 @@ All tools live in /tools/. Tools receive a \`deps\` object: { VFS, EventBus, Too
         || 'default';
     };
 
-    const getCoreInstructions = () => getBootMode() === 'zero' ? ZERO_CORE_INSTRUCTIONS : CORE_INSTRUCTIONS;
+    const getCoreInstructions = () => isMinimalLabMode(getBootMode()) ? buildZeroCoreInstructions({ mode: getBootMode() }) : CORE_INSTRUCTIONS;
 
     const buildSystemPrompt = (personaDef, override = {}) => {
       const coreInstructions = getCoreInstructions();

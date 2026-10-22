@@ -59,6 +59,7 @@ async function call(args = {}, deps = {}) {
 }
 
 export const tool = {
+  capabilities: ['vfs:write'],
   name: "DeleteFile",
   description: "Delete a file from the virtual filesystem",
   inputSchema: {

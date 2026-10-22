@@ -40,7 +40,7 @@ const toWebPath = (file) => {
  */
 export async function resetSession(vfs, genesisConfig, genesisLevel, logger) {
   const resetSetting = localStorage.getItem('REPLOID_RESET_VFS');
-  const shouldReset = resetSetting === null || resetSetting === 'true';
+  const shouldReset = resetSetting === 'true';
 
   if (!shouldReset) return;
 

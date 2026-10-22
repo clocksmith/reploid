@@ -11,6 +11,12 @@ const INSTANCE_QUERY_PARAM = 'instance';
 const INSTANCE_ID_MAX_LENGTH = 64;
 const DEFAULT_SURFACE_ID = 'poolday';
 const LAB_RUNTIME_ROUTES = new Set(['/zero', '/x']);
+// Worker entry URLs must be within their existing lab registration scope.
+// These four virtual URLs are delivery aliases, never new source or host routes.
+const VERIFIER_ASSETS = new Map(['x', 'zero'].flatMap(surface => [
+  [`/${surface}/__verifier__/worker.js`, { surface, path: '/core/verification-worker.js' }],
+  [`/${surface}/__verifier__/acorn.js`, { surface, path: '/core/vendor/acorn.js' }]
+]));
 const LAB_RUNTIME_ASSET_PATHS = new Set([
   '/blueprint-index.json',
   '/index.html',
@@ -29,6 +35,10 @@ const LAB_RUNTIME_ASSET_PREFIXES = [
   '/entry/',
   '/host/',
   '/infrastructure/',
+  '/image/',
+  '/kernel/',
+  '/providers/',
+  '/vendor/reploid/',
   '/lab/',
   '/personas/',
   '/prompts/',
@@ -41,7 +51,8 @@ const LAB_RUNTIME_ASSET_PREFIXES = [
   '/ui/panels/',
   '/ui/proto/',
   '/ui/shared/',
-  '/ui/zero/'
+  '/ui/zero/',
+  '/ui/zero-home/'
 ];
 const SELF_BOOTSTRAP_PATHS = new Set([
   '/index.html',
@@ -156,7 +167,7 @@ function isLabRuntimeUrl(value) {
 
 function shouldHandleLabRuntimeFetch(request, url) {
   if (url.origin !== self.location.origin) return false;
-  if (isLabRuntimeRoutePath(url.pathname)) return true;
+  if (isLabRuntimeRoutePath(url.pathname) || VERIFIER_ASSETS.has(url.pathname)) return true;
   if (!isLabRuntimeAssetPath(url.pathname)) return false;
   if (isLabRuntimeUrl(request.referrer)) return true;
   return url.searchParams.has(INSTANCE_QUERY_PARAM)
@@ -224,9 +235,22 @@ function markInvalidated(dbName, path = null) {
   return token;
 }
 
+function getExplicitVerifierSurface(url) {
+  if (url?.origin === self.location.origin && VERIFIER_ASSETS.has(url.pathname)) {
+    return VERIFIER_ASSETS.get(url.pathname).surface;
+  }
+  return url?.origin === self.location.origin
+    && ['/core/verification-worker.js', '/core/vendor/acorn.js'].includes(url.pathname)
+    && ['x', 'zero'].includes(url.searchParams.get('surface'))
+    ? url.searchParams.get('surface') : null;
+}
+
 async function resolveRequestInstanceId(event, request, url) {
   const direct = getInstanceIdFromUrl(url?.href || url);
   if (direct) return direct;
+  // For these exact verifier URLs, an explicit lab surface with no named
+  // instance means its default VFS. Never discover another open window's code.
+  if (getExplicitVerifierSurface(url)) return null;
 
   const referrerId = getInstanceIdFromUrl(request?.referrer);
   if (referrerId) return referrerId;
@@ -268,6 +292,10 @@ async function resolveRequestInstanceId(event, request, url) {
 }
 
 async function resolveRequestSurfaceId(event, request, url) {
+  // A classic verifier's importScripts request has a worker client, not the
+  // initiating window. Carry only its explicit lab namespace to parser loads.
+  const verifierSurface = getExplicitVerifierSurface(url);
+  if (verifierSurface) return verifierSurface;
   const directPath = getUrlPath(url?.href || url);
   if (directPath && isLabRuntimeRoutePath(directPath)) {
     return getSurfaceIdFromUrl(url?.href || url);
@@ -365,6 +393,7 @@ function closeVFS(dbName = null) {
 }
 
 function shouldFallbackToNetwork(path) {
+  if (['/core/verification-worker.js', '/core/vendor/acorn.js'].includes(path)) return false;
   return NETWORK_FALLBACK_PATHS.has(path)
     || NETWORK_FALLBACK_PREFIXES.some((prefix) => path.startsWith(prefix));
 }
@@ -381,7 +410,10 @@ async function readFromVFSWithMirrorFallback(path, dbName) {
     return { content, path, mirrorFallback: false };
   }
 
-  const sourcePath = getSelfMirrorSourcePath(path);
+  // Image modules are stored under their owned /self paths, while relative UI
+  // imports use /image URLs. Resolve the declared alias within VFS, not network.
+  const sourcePath = path.startsWith('/image/')
+    ? `/self${path}` : getSelfMirrorSourcePath(path);
   if (!sourcePath || sourcePath === path) return null;
   const sourceContent = await readFromVFS(sourcePath, dbName);
   if (sourceContent === null) return null;
@@ -452,8 +484,8 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // VFS mirrors keep application imports relative to /self/. The installed
-  // library is a separate hosted dependency, never an implicit VFS override.
+  // Project compatibility imports onto the same declared source URL. Lab
+  // images include this library closure in their own VFS and export.
   if (url.origin === self.location.origin && url.pathname.startsWith('/self/vendor/reploid/')) {
     const target = new URL(url.href);
     target.pathname = url.pathname.slice('/self'.length);
@@ -492,12 +524,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (url.searchParams.get('bootstrapper') === '1') {
+  if (!VERIFIER_ASSETS.has(url.pathname) && url.searchParams.get('bootstrapper') === '1') {
     return;
   }
 
   // Allow explicit bypass for VFS seeding and diagnostics.
-  if (event.request.headers.get('x-reploid-vfs-bypass') === '1') {
+  if (!VERIFIER_ASSETS.has(url.pathname) && event.request.headers.get('x-reploid-vfs-bypass') === '1') {
     return;
   }
 
@@ -524,7 +556,7 @@ async function handleModuleRequest(request, url, event) {
   const dbName = getVfsDbName(instanceId, surfaceId);
 
   // Convert URL path to VFS path
-  let vfsPath = pathname;
+  let vfsPath = VERIFIER_ASSETS.get(pathname)?.path || pathname;
   if (vfsPath.startsWith('/reploid/')) {
     vfsPath = vfsPath.substring(8); // Remove /reploid prefix
   }

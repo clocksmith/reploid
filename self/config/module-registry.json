@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-16T03:28:50.389Z",
+  "generatedAt": "2026-10-22T02:43:38.716Z",
   "modules": {
     "AgentLoop": {
       "id": "AgentLoop",
@@ -381,7 +381,7 @@
       "files": [
         "capabilities/system/doppler-toolbox.js"
       ],
-      "introduced": "spark",
+      "introduced": "reflection",
       "dependencies": [
         {
           "id": "Utils",
@@ -1393,7 +1393,7 @@
         "capabilities/system/substrate-loader.js",
         "core/vfs-module-loader.js"
       ],
-      "introduced": "spark",
+      "introduced": "reflection",
       "dependencies": [
         {
           "id": "Utils",
@@ -1501,7 +1501,7 @@
       "files": [
         "infrastructure/telemetry-timeline.js"
       ],
-      "introduced": "spark",
+      "introduced": "reflection",
       "dependencies": [
         {
           "id": "Utils",
@@ -1679,6 +1679,10 @@
         {
           "id": "SubstrateLoader",
           "optional": true
+        },
+        {
+          "id": "VerificationManager",
+          "optional": true
         }
       ],
       "blueprint": "blueprints/0x000015-dynamic-tool-creation.md"
@@ -1779,7 +1783,7 @@
       "files": [
         "core/verification-manager.js"
       ],
-      "introduced": "reflection",
+      "introduced": "spark",
       "dependencies": [
         {
           "id": "Utils",

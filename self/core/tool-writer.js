@@ -3,17 +3,20 @@
  * Manages creation and validation of dynamic tools.
  */
 
+import { sha256 } from './promotion-policy.js';
+
 const ToolWriter = {
   metadata: {
     id: 'ToolWriter',
     version: '1.0.0',
     genesis: { introduced: 'spark' },
-    dependencies: ['Utils', 'VFS', 'SubstrateLoader?'],
+    dependencies: ['Utils', 'VFS', 'SubstrateLoader?', 'VerificationManager?'],
     type: 'service'
   },
 
   factory: (deps) => {
-    const { Utils, VFS, SubstrateLoader } = deps;
+    const { Utils, VFS, SubstrateLoader, VerificationManager } = deps;
+    const approvals = new WeakMap();
     const { logger, Errors } = Utils;
 
     const normalizeCode = (code) => {
@@ -38,7 +41,7 @@ const ToolWriter = {
         throw new Errors.ValidationError('Tool call function must be async');
       }
       // Note: Removed new Function(code) check - incompatible with ES module syntax
-      // Actual syntax validation happens when ToolRunner does import(blobUrl)
+      // The required Worker parses syntax before any candidate import.
     };
 
     const normalizeRoot = (root) => {
@@ -51,6 +54,16 @@ const ToolWriter = {
         throw new Errors.ValidationError('Tool candidates must be staged under /shadow/tools');
       }
       return path.replace(/\/+$/, '');
+    };
+
+    // Receipts are scoped to this trusted writer instance, not caller-authored
+    // booleans. This binds static approval to bytes; it is not a JS sandbox.
+    const assertVerified = async (result, code) => {
+      const approval = approvals.get(result?.verification);
+      if (!approval || approval.path !== result.path || approval.hash !== await sha256(code)) {
+        throw new Errors.ValidationError('Verification approval missing or candidate bytes changed');
+      }
+      return result.verification;
     };
 
     const create = async (name, code, options = {}) => {
@@ -69,13 +82,32 @@ const ToolWriter = {
       const root = normalizeRoot(options.root);
       const path = `${root}/${trimmedName}.js`;
 
+      if (typeof VerificationManager?.verifyProposal !== 'function') {
+        throw new Errors.ValidationError('Verification Worker is required before creating tools');
+      }
+      // Always analyze as a restricted tool, not as a privileged staging path.
+      const verificationPath = `/tools/${trimmedName}.js`;
+      const hash = await sha256(normalizedCode);
+      const checked = await VerificationManager.verifyProposal(
+        { [verificationPath]: normalizedCode },
+        { quickMode: true, requireVerification: true, toolCreation: true }
+      );
+      if (checked?.passed !== true || checked.skipped !== false
+          || checked.verification?.kind !== 'static-worker'
+          || checked.verification?.fileHashes?.[verificationPath] !== hash) {
+        throw new Errors.ValidationError(`Verification Worker refused tool: ${checked?.reason || 'missing, skipped, failed, or mismatched approval'}${checked?.errors?.length ? `: ${checked.errors.join('; ')}` : ''}`);
+      }
+      const verification = Object.freeze({ kind: 'static-worker', passed: true, skipped: false, hash });
+      approvals.set(verification, { path, hash });
+      const candidate = { path, verification };
       await VFS.write(path, normalizedCode);
+      await assertVerified(candidate, await VFS.read(path));
 
       let toolLoaded = false;
       let toolLoadError = null;
       if (options.load === true && SubstrateLoader) {
         try {
-          await SubstrateLoader.loadModule(path);
+          await SubstrateLoader.loadModule(path, { expectedSha256: hash });
           toolLoaded = true;
         } catch (err) {
           toolLoadError = err.message;
@@ -88,13 +120,14 @@ const ToolWriter = {
         name: trimmedName,
         path,
         staged: true,
+        verification,
         toolLoaded,
         toolLoadError,
         message: `Tool candidate ${trimmedName} staged at ${path}`
       };
     };
 
-    return { create };
+    return { create, assertVerified };
   }
 };
 

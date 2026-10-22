@@ -1,3 +1,4 @@
+import { getLabUpgradeLevel } from '../config/lab-upgrades.js';
 /**
  * @fileoverview Self-owned kernel boot for the browser shell.
  */
@@ -209,16 +210,16 @@ const installRuntimeGlobals = () => {
 
     const storedGenesis = scopedLocalStorage.getItem('REPLOID_GENESIS_LEVEL');
     if (storedGenesis === 'capsule' || storedGenesis === 'tabula') return 'reploid';
-    if (storedGenesis === 'spark') return 'zero';
+    if (storedGenesis === 'spark') return 'x';
     if (storedGenesis === 'full' || storedGenesis === 'substrate' || storedGenesis === 'cognition' || storedGenesis === 'reflection') {
-      return 'x';
+      return 'zero';
     }
     return 'reploid';
   };
 
   window.getGenesisLevel = () => {
     const route = getRouteBootSpec(window.location.pathname || '/');
-    if (route?.genesisLevel) return route.genesisLevel;
+    if (route?.genesisLevel) return getLabUpgradeLevel(route.mode);
     const stored = scopedLocalStorage.getItem('REPLOID_GENESIS_LEVEL');
     if (stored) return stored;
     return 'capsule';

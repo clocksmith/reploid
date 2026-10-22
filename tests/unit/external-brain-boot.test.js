@@ -145,7 +145,12 @@ describe('local X external brain selection', () => {
       credentials: 'omit',
       redirect: 'error'
     }));
-    expect(root.textContent).toContain('Mailbox ready. This does not mean dot is connected.');
+    expect(root.textContent).toContain('Local server ready. Agent connection is not verified.');
+    expect(root.textContent).toContain('Connected agent');
+    expect(root.textContent).not.toContain('dot');
+    const connectionDetails = root.querySelector('.wizard-external details');
+    expect(connectionDetails.open).toBe(false);
+    expect(connectionDetails.textContent).toContain('/api/external-brain');
     expect(root.querySelector('input[type="password"]')).toBeNull();
     expect(root.querySelector('#direct-base-url')).toBeNull();
     expect(root.querySelector('#awaken-btn').disabled).toBe(true);
@@ -224,7 +229,7 @@ describe('local X external brain selection', () => {
     const models = JSON.parse(localStorage.getItem('SELECTED_MODELS'));
     expect(models).toEqual([{
       id: 'external-brain',
-      name: 'External brain',
+      name: 'Connected agent',
       provider: 'external',
       hostType: 'direct',
       agentCycleThrottle: { cycleIntervalMs: 11000, cycleIntervalSeconds: 11 }
@@ -289,7 +294,9 @@ describe('local X external brain selection', () => {
     expect(state.getState().directConfig.provider).toBeNull();
     expect(state.canAwaken()).toBe(false);
     expect(window.triggerAwaken).not.toHaveBeenCalled();
-    expect(JSON.parse(localStorage.getItem('SELECTED_MODELS'))).toEqual(externalReplay().models);
+    expect(JSON.parse(localStorage.getItem('SELECTED_MODELS'))).toEqual([{
+      ...externalReplay().models[0], name: 'Connected agent'
+    }]);
     pending.resolve(enabledResponse());
     await vi.waitFor(() => expect(state.canAwaken()).toBe(true));
     expect(window.triggerAwaken).not.toHaveBeenCalled();

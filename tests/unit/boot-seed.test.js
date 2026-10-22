@@ -62,12 +62,12 @@ describe('boot seed manifest', () => {
     expect(shouldHydrateFullManifest('zero_home')).toBe(false);
     expect(shouldHydrateFullManifest('pool_home')).toBe(false);
     expect(shouldHydrateFullManifest('substrate_console')).toBe(false);
-    expect(shouldHydrateFullManifest('x_home')).toBe(true);
+    expect(shouldHydrateFullManifest('x_home')).toBe(false);
     expect(shouldHydrateFullManifest('wizard')).toBe(true);
   });
 
-  it('awaits full VFS hydration before start only for the mature workspace', () => {
-    expect(shouldAwaitFullManifestBeforeStart('x_home')).toBe(true);
+  it('never gates a lab boot on full-repository hydration', () => {
+    expect(shouldAwaitFullManifestBeforeStart('x_home')).toBe(false);
     expect(shouldAwaitFullManifestBeforeStart('zero_home')).toBe(false);
     expect(shouldAwaitFullManifestBeforeStart('reploid_home')).toBe(false);
     expect(shouldAwaitFullManifestBeforeStart('pool_home')).toBe(false);
@@ -77,12 +77,12 @@ describe('boot seed manifest', () => {
   it('hydrates the Zero runtime UI files in the locked boot seed', () => {
     const bootFiles = pickBootSeedFiles(manifest.files, 'zero_home');
 
-    expect(bootFiles).toContain('blueprint-index.json');
+    expect(bootFiles).not.toContain('blueprint-index.json');
     expect(bootFiles).toContain('config/doppler-local-models.js');
     expect(bootFiles).toContain('config/immutability.js');
     expect(bootFiles).toContain('config/surface-intents.js');
-    expect(bootFiles).toContain('blueprints/blueprint-index-contract.md');
-    expect(bootFiles).toContain('blueprints/tool-contract.md');
+    expect(bootFiles).not.toContain('blueprints/blueprint-index-contract.md');
+    expect(bootFiles).not.toContain('blueprints/tool-contract.md');
     expect(bootFiles).not.toContain('blueprints/promotion-contract.md');
     expect(bootFiles).not.toContain('blueprints/rgr-runtime-contract.md');
     expect(bootFiles).toContain('ui/zero/index.js');
@@ -101,7 +101,9 @@ describe('boot seed manifest', () => {
     expect(bootFiles).not.toContain('capabilities/system/doppler-toolbox.js');
     expect(bootFiles).not.toContain('capabilities/system/substrate-loader.js');
     expect(bootFiles).not.toContain('infrastructure/error-store.js');
-    expect(bootFiles).not.toContain('infrastructure/telemetry-timeline.js');
+    expect(bootFiles).toContain('infrastructure/telemetry-timeline.js');
+    expect(bootFiles).toContain('ui/zero/replay-panel.js');
+    expect(bootFiles).toContain('infrastructure/replay-engine.js');
     expect(bootFiles).not.toContain('self/cloud-access.js');
     expect(bootFiles).not.toContain('self/cloud-access-status.js');
     expect(bootFiles).not.toContain('self/identity.js');
@@ -146,24 +148,26 @@ describe('boot seed manifest', () => {
     }
   });
 
-  it('hydrates the Doppler provider adapter for Zero and X', () => {
+  it('hydrates the configured external provider adapter for Zero and X', () => {
     for (const profile of ['zero_home', 'x_home']) {
       const files = pickBootSeedFiles(manifest.files, profile);
-      expect(files, profile).toContain('providers/doppler-reploid.js');
+      expect(files, profile).toContain('providers/external-brain.js');
     }
   });
 
-  it('keeps Zero lightweight while X absorbs the Zero boot surface', () => {
+  it('starts Zero from the same complete minimal source as X', () => {
     const zeroBootFiles = pickBootSeedFiles(manifest.files, 'zero_home');
     const xBootFiles = pickBootSeedFiles(manifest.files, 'x_home');
     const xBootSet = new Set(xBootFiles);
 
-    // Prior 69-file seed plus replay export, shared Zero prompts, and trace rendering.
-    expect(zeroBootFiles.length).toBeLessThanOrEqual(72);
-    for (const profile of Object.keys(BOOT_SEED_PROFILES)) {
-      expect(pickBootSeedFiles(manifest.files, profile).some((file) => file.startsWith('vendor/reploid/')), profile)
-        .toBe(false);
-    }
+    // The image must contain the actual shared runtime source, not rely on an
+    // installed package outside its exported self.
+    expect(xBootFiles).toContain('vendor/reploid/agent/lab-strategy.js');
+    expect(xBootFiles).toContain('self/kernel/boot.js');
+    expect(xBootFiles).toContain('self/image/export.js');
+    expect(xBootFiles).toContain('config/self-source-manifest.json');
+    expect(xBootFiles.some(file => file.startsWith('pool/'))).toBe(false);
+    expect(xBootFiles.some(file => file.startsWith('vendor/reploid/mesh/'))).toBe(false);
     expect(zeroBootFiles).not.toContain('tools/DeleteFile.js');
     expect(zeroBootFiles).not.toContain('tools/CopyFile.js');
     expect(zeroBootFiles).not.toContain('tools/git.js');
@@ -184,12 +188,10 @@ describe('boot seed manifest', () => {
     expect(zeroBootFiles).not.toContain('core/README.md');
     expect(zeroBootFiles).not.toContain('infrastructure/README.md');
     expect(zeroBootFiles.every((file) => xBootSet.has(file))).toBe(true);
-    expect(xBootFiles).toContain('core/improvement-episode.js');
-    expect(xBootFiles).toContain('blueprints/promotion-contract.md');
-    expect(xBootFiles).toContain('blueprints/rgr-runtime-contract.md');
-    expect(xBootFiles).toContain('tools/Promote.js');
-    expect(xBootFiles).toContain('ui/proto/index.js');
-    expect(xBootFiles).toContain('styles/proto/index.css');
+    expect(xBootFiles).not.toContain('core/improvement-episode.js');
+    expect(xBootFiles).not.toContain('tools/Promote.js');
+    expect(xBootFiles).not.toContain('ui/proto/index.js');
+    expect(xBootFiles).toEqual(zeroBootFiles);
   });
 
   it('routes /zero to the Zero tabula-rasa profile', () => {
@@ -247,6 +249,6 @@ describe('boot seed manifest', () => {
       'SubstrateLoader',
       'TelemetryTimeline'
     ]));
-    expect(getRouteModuleOverrides('/x')).toEqual({});
+    expect(getRouteModuleOverrides('/x')).toEqual(overrides);
   });
 });

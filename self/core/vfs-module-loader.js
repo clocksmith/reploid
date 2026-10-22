@@ -4,6 +4,7 @@
  * Supports caching, verification, retry logic, and import rewriting.
  */
 
+import { sha256 } from './promotion-policy.js';
 import { isSecurityEnabled } from './security-config.js';
 import './import-rewrite.js';
 
@@ -141,6 +142,7 @@ export async function loadVfsModule(options) {
     code,
     verify = false,
     forceReload = false,
+    expectedSha256 = null,
     retries = 0,
     retryDelay = 100
   } = options || {};
@@ -152,7 +154,7 @@ export async function loadVfsModule(options) {
   stats.loads++;
 
   // Prevent duplicate concurrent loads of same module
-  if (loadingPromises.has(path) && !forceReload) {
+  if (loadingPromises.has(path) && !forceReload && !expectedSha256) {
     return loadingPromises.get(path);
   }
 
@@ -166,6 +168,12 @@ export async function loadVfsModule(options) {
 
         if (contents === null || contents === undefined) {
           throw new Error(`Module not found: ${path}`);
+        }
+
+        // Bind approval at the actual bytes-to-import boundary. Never reuse a
+        // path-only pending import for an approval-bound load.
+        if (expectedSha256 && await sha256(contents) !== expectedSha256) {
+          throw new Error(`Approved module source hash mismatch: ${path}`);
         }
 
         // Check cache
@@ -230,7 +238,7 @@ export async function loadVfsModule(options) {
   try {
     return await loadPromise;
   } finally {
-    loadingPromises.delete(path);
+    if (loadingPromises.get(path) === loadPromise) loadingPromises.delete(path);
   }
 }
 

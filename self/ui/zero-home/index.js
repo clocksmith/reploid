@@ -1,7 +1,9 @@
+import { createRunReplayPanel } from '../zero/replay-panel.js';
+import { getLabUpgradeLevel, LAB_UPGRADE_LEVELS, LAB_UPGRADE_STORAGE_KEY } from '../../config/lab-upgrades.js';
 const { setVfsProgress, attachVfsProgressListener } = createVfsProgressBinding(progress => setState({ vfsProgress: progress }));
 import { normalizeVfsProgress, getCurrentFullSeedProgress, createVfsProgressBinding } from '../components/vfs-progress.js';
 /**
- * @fileoverview Zero-only locked boot shell.
+ * @fileoverview Compact X / Zero boot shell.
  */
 
 import {
@@ -27,16 +29,17 @@ import {
 } from '../../config/doppler-local-models.js';
 import {
   getBootSeedProfile,
-  pickBootSeedFiles,
-  shouldHydrateFullManifest
+  getBootSourceManifest,
+  getOptionalBootSource,
+  pickBootSeedFiles
 } from '../../config/boot-seed.js';
 import {
-  ensureVfsFileMirrors,
   loadVfsManifest,
-  seedVfsFromManifest
+  seedVfsFromManifest,
+  writeVfsFile,
+  readVfsFile,
+  listVfsKeys
 } from '../../boot-helpers/vfs-bootstrap.js';
-import { getRuntimeSelfMirrorsByBootProfile } from '../../lab/profiles.js';
-import { normalizeVfsPath } from '../../lab/mirrors.js';
 import { getCurrentReploidStorage as getReploidStorage } from '../../instance.js';
 
 const VERIFY_STATE = Object.freeze({
@@ -54,8 +57,10 @@ let listenersAttached = false;
 let renderScheduled = false;
 
 let state = null;
+let replayPanel = null;
+const pauseRecordings = () => replayPanel?.pause();
 
-const escapeText = (value) => String(value || '')
+const escapeText = (value) => String(value ?? '')
   .replace(/&/g, '&amp;')
   .replace(/</g, '&lt;')
   .replace(/>/g, '&gt;')
@@ -93,8 +98,15 @@ const withProxyState = (current = {}) => ({
   modelVerifyError: current.modelVerifyError || null
 });
 
+const getMode = () => window.getReploidMode?.() === 'x' ? 'x' : 'zero';
+const externalAvailable = () => getMode() === 'x' && ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
+const savedExternal = () => {
+  try { return externalAvailable() && JSON.parse(getReploidStorage().getItem('SELECTED_MODELS') || '[]')[0]?.provider === 'external'; } catch { return false; }
+};
 const createInitialState = () => ({
-  connectionType: 'proxy',
+  connectionType: savedExternal() ? 'external' : 'proxy',
+  externalReady: false,
+  upgradeLevel: getLabUpgradeLevel(getMode()),
   detection: {
     webgpu: { supported: false, checked: false }
   },
@@ -138,6 +150,7 @@ const setDopplerConfig = (updates, options = {}) => {
 };
 
 const canAwaken = () => {
+  if (state.connectionType === 'external') return externalAvailable() && state.externalReady;
   if (state.connectionType === 'proxy') {
     return !!(state.proxyConfig.url && state.proxyConfig.model);
   }
@@ -174,7 +187,7 @@ const renderConnectionOptions = () => {
     <div class="wizard-step wizard-home-provider">
       <div class="goal-header">
         <h2 class="type-h1">Choose inference</h2>
-        <p class="type-caption">Default: server proxy. Local Doppler is optional.</p>
+        <p class="type-caption">Start with the minimal self-source. Inference is configured separately.</p>
       </div>
       <div class="connection-options connection-options-compact">
         <button class="panel connection-option ${optionClass('proxy')}"
@@ -187,7 +200,8 @@ const renderConnectionOptions = () => {
             <span class="tag">Server proxy</span>
           </div>
         </button>
-        <button class="panel connection-option ${optionClass('browser')} ${browserUnavailable ? 'disabled' : ''}"
+        ${externalAvailable() ? `<button class="panel connection-option ${optionClass('external')}" type="button" data-action="choose-external" aria-pressed="${pressed('external')}"><span class="type-h2">Connected agent</span><span class="type-caption">Use the local reasoning mailbox</span></button>` : ''}
+        ${getMode() === 'zero' ? `<button class="panel connection-option ${optionClass('browser')} ${browserUnavailable ? 'disabled' : ''}"
                 type="button"
                 data-action="choose-browser"
                 aria-pressed="${pressed('browser')}"
@@ -198,7 +212,7 @@ const renderConnectionOptions = () => {
             <span class="tag">Private</span>
             <span class="tag">WebGPU local</span>
           </div>
-        </button>
+        </button>` : ''}
       </div>
     </div>
   `;
@@ -305,14 +319,17 @@ const renderGoalStep = () => {
           <span class="type-caption">☒ ${escapeText(state.goalGenerator.error)}</span>
         ` : ''}
       </div>
-      <div class="form-row">
-        <label class="type-label" for="cycle-interval-seconds">Cycle interval</label>
-        <input type="number"
-               id="cycle-interval-seconds"
-               min="0"
-               max="${MAX_CYCLE_INTERVAL_SECONDS}"
-               step="0.1"
-               value="${escapeText(state.cycleIntervalSeconds)}" />
+      <div class="zero-objective-settings">
+        <div class="form-row zero-cycle-setting">
+          <label class="type-label" for="cycle-interval-seconds">Cycle interval</label>
+          <input type="number"
+                 id="cycle-interval-seconds"
+                 min="0"
+                 max="${MAX_CYCLE_INTERVAL_SECONDS}"
+                 step="0.1"
+                 value="${escapeText(state.cycleIntervalSeconds)}" />
+        </div>
+        ${getMode() === 'zero' ? `<div class="form-row zero-upgrade-setting"><label class="type-label" for="zero-upgrade-level">Optional upgrades</label><select id="zero-upgrade-level">${LAB_UPGRADE_LEVELS.map(level => `<option value="${level}" ${state.upgradeLevel === level ? 'selected' : ''}>${level === 'spark' ? 'None: minimal X core' : level}</option>`).join('')}</select><span class="type-caption">Only the selected source closure is installed on Awaken. Existing work is kept.</span></div>` : ''}
       </div>
       <div class="goal-primary-action">
         ${ready ? renderAwakenButton() : ''}
@@ -365,9 +382,10 @@ function render() {
   const focusSelStart = activeEl?.selectionStart;
   const focusSelEnd = activeEl?.selectionEnd;
   const scrollTop = container.scrollTop;
+  const recordings = container.querySelector('[data-boot-recordings]');
 
   const hasConnectionType = !!state.connectionType;
-  let html = '<div class="wizard-sections wizard-sections-home">';
+  let html = '<div class="wizard-sections wizard-sections-home zero-boot-home">';
   html += renderConnectionOptions();
   if (!hasConnectionType) {
     html += renderLockedSection('Configure inference', 'Choose an inference provider to unlock this section.');
@@ -375,6 +393,8 @@ function render() {
     html += renderProxyConfig();
   } else if (state.connectionType === 'browser') {
     html += renderBrowserConfig();
+  } else if (state.connectionType === 'external') {
+    html += renderLockedSection('Connected agent', state.externalReady ? 'Local mailbox ready. Approval controls still apply.' : 'Checking local mailbox. Start it with REPLOID_EXTERNAL_BRAIN=true.');
   }
   if (!canAwaken()) {
     html += renderLockedSection(
@@ -388,9 +408,12 @@ function render() {
   }
   html += renderVfsProgress();
   html += renderError();
+  html += '<details class="wizard-step zero-inspect" data-boot-recordings><summary>Recordings</summary><div class="zero-inspect-content" data-boot-replay-panel></div></details>';
   html += '</div>';
 
   container.innerHTML = html;
+  if (recordings) container.querySelector('[data-boot-recordings]').replaceWith(recordings);
+  else replayPanel.mount(container.querySelector('[data-boot-replay-panel]'));
   container.scrollTop = scrollTop;
   if (focusId) {
     const el = document.getElementById(focusId);
@@ -436,6 +459,10 @@ const saveZeroConfig = () => {
   });
   const models = [];
 
+  if (state.connectionType === 'external' && externalAvailable() && state.externalReady) {
+    models.push(withCycleThrottle({ id: 'external-brain', name: 'Connected agent', provider: 'external', hostType: 'direct' }));
+  }
+
   if (state.connectionType === 'proxy' && state.proxyConfig.model) {
     models.push(withCycleThrottle({
       id: state.proxyConfig.model,
@@ -462,8 +489,9 @@ const saveZeroConfig = () => {
     }
   }
 
-  storage.setItem('REPLOID_MODE', 'zero');
-  storage.setItem('REPLOID_GENESIS_LEVEL', 'spark');
+  storage.setItem('REPLOID_MODE', getMode());
+  if (getMode() === 'zero') storage.setItem(LAB_UPGRADE_STORAGE_KEY, state.upgradeLevel);
+  storage.setItem('REPLOID_GENESIS_LEVEL', getLabUpgradeLevel(getMode()));
   storage.setItem('REPLOID_CYCLE_INTERVAL_SECONDS', String(cycleIntervalSeconds));
   storage.setItem('REPLOID_GOAL', String(state.goal || '').trim());
   if (models.length > 0) {
@@ -484,36 +512,35 @@ async function prepareVfsForAwaken() {
   }
 
   const bootProfile = getBootSeedProfile();
-  const shouldHydrateRouteFully = shouldHydrateFullManifest(bootProfile);
+  const baseSource = getBootSourceManifest(bootProfile);
   const includeDoppler = state.connectionType === 'browser';
-  const { manifest, text } = await loadVfsManifest({ includeDoppler });
-  if (includeDoppler || (shouldHydrateRouteFully && !fullSeed)) {
-    await seedVfsFromManifest(manifest, {
-      preserveOnBoot: true,
-      logger: console,
-      manifestText: text,
-      progressScope: 'full',
-      progressLabel: includeDoppler ? 'VFS hydration with Doppler files' : 'Full VFS hydration',
-      onProgress: setVfsProgress
-    });
-  }
-  const mirroredFiles = includeDoppler || shouldHydrateRouteFully
-    ? manifest?.files || []
-    : pickBootSeedFiles(manifest?.files || [], bootProfile);
-  const seededPaths = new Set(mirroredFiles.map(normalizeVfsPath));
-  const mirrors = getRuntimeSelfMirrorsByBootProfile(bootProfile, mirroredFiles)
-    .filter((mirror) => seededPaths.has(mirror.sourcePath));
-  await ensureVfsFileMirrors(mirrors, {
-    overwrite: false,
-    logger: console,
-    progressScope: includeDoppler || shouldHydrateRouteFully ? 'full' : 'boot',
-    onProgress: setVfsProgress
+  const { manifest } = await loadVfsManifest({ includeDoppler });
+  const optional = includeDoppler ? getOptionalBootSource('doppler') : null;
+  const sourceEntries = new Map(baseSource.files.map((file, index) => [file, baseSource.seedFiles[index]]));
+  optional?.files.forEach((file, index) => sourceEntries.set(file, optional.seedFiles[index]));
+  const source = { ...baseSource, files: [...sourceEntries.keys()], seedFiles: [...sourceEntries.values()] };
+  const selectedFiles = [...new Set([...pickBootSeedFiles(manifest.files, bootProfile), ...(optional?.seedFiles || [])])];
+  const files = includeDoppler
+    ? [...selectedFiles, ...manifest.files.filter(file => file.startsWith('/doppler/'))]
+    : selectedFiles;
+  await seedVfsFromManifest({ files }, {
+    preserveOnBoot: true, logger: console,
+    manifestText: JSON.stringify({ version: 1, files }),
+    progressScope: 'boot', progressLabel: 'Selected self-source', onProgress: setVfsProgress
   });
+  // This is an explicit operator selection, never a background migration.
+  await writeVfsFile('/config/self-source-manifest.json', JSON.stringify(source, null, 2) + '\n');
+  await writeVfsFile('/config/vfs-manifest.json', JSON.stringify({ version: 1, files }));
+
 }
 
 async function handleAwaken() {
+  if (state.isAwakening) return;
   const goalPacket = formatGoalPacket(state.goal);
   if (!goalPacket) return;
+  const storage = getReploidStorage();
+  const previousLevels = [LAB_UPGRADE_STORAGE_KEY, 'REPLOID_GENESIS_LEVEL']
+    .map(key => [key, storage.getItem(key)]);
 
   setState({
     isAwakening: true,
@@ -529,12 +556,18 @@ async function handleAwaken() {
   });
 
   try {
-    await prepareVfsForAwaken();
+    pauseRecordings();
     saveZeroConfig();
+    await prepareVfsForAwaken();
     if (typeof window.triggerAwaken === 'function') {
       await window.triggerAwaken(goalPacket);
     }
   } catch (error) {
+    // A missing optional source must not make the next reload unbootable.
+    for (const [key, value] of previousLevels) {
+      if (value === null) storage.removeItem(key);
+      else storage.setItem(key, value);
+    }
     console.error('[ZeroHome] Failed to prepare awaken:', error);
     setState({
       isAwakening: false,
@@ -590,11 +623,27 @@ function handleInput(event) {
         modelVerifyError: null
       }, { render: false });
       break;
+    case 'zero-upgrade-level':
+      if (LAB_UPGRADE_LEVELS.includes(value)) setState({ upgradeLevel: value }, { render: false });
+      break;
     case 'cycle-interval-seconds':
       setState({
         cycleIntervalSeconds: normalizeCycleIntervalSeconds(value)
       }, { render: false });
       break;
+  }
+}
+
+async function checkExternalBrain() {
+  try {
+    const response = await fetch('/api/external-brain/status', {
+      headers: { 'X-Reploid-External-Brain': '1' }, credentials: 'omit',
+      cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(3000)
+    });
+    const status = response.ok ? await response.json() : null;
+    if (state.connectionType === 'external') setState({ externalReady: status?.enabled === true });
+  } catch (error) {
+    if (state.connectionType === 'external') setState({ externalReady: false, error: error.message });
   }
 }
 
@@ -605,6 +654,11 @@ async function handleClick(event) {
 
   event.preventDefault();
   switch (action) {
+    case 'choose-external':
+      if (!externalAvailable()) break;
+      setState({ connectionType: 'external', externalReady: false });
+      await checkExternalBrain();
+      break;
     case 'choose-proxy':
       setState({
         connectionType: 'proxy',
@@ -665,10 +719,16 @@ async function probeBrowserCapabilities() {
 export function initZeroBootHome(containerEl) {
   globalThis.REPLOID_ZERO_ACCESS_HEADERS = getZeroAccessHeaders;
   detachEventListeners();
+  replayPanel?.dispose();
+  containerEl.querySelector('[data-boot-recordings]')?.remove();
+  replayPanel = createRunReplayPanel({ escapeHtml: escapeText, VFS: { read: path => readVfsFile(path), list: () => listVfsKeys() } });
+  window.removeEventListener('pagehide', pauseRecordings);
+  window.addEventListener('pagehide', pauseRecordings);
   container = containerEl;
   listenersAttached = false;
   renderScheduled = false;
   state = createInitialState();
+  if (state.connectionType === 'external') void checkExternalBrain();
   attachVfsProgressListener();
   render();
   probeBrowserCapabilities().catch((error) => {

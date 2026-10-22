@@ -1,6 +1,6 @@
 /**
  * @fileoverview Verification Manager v3.0
- * Pre-flight safety checks via Web Worker with event emissions.
+ * Static pre-flight checks via a lazy Web Worker, not a runtime JS sandbox.
  *
  * @version 3.0.0
  * Features:
@@ -10,13 +10,16 @@
  * - Returns detailed results with warnings array
  */
 
+import { SELF_BOOT_SPEC } from '../boot-spec.js';
+import { sha256 } from './promotion-policy.js';
+import { getCurrentReploidInstanceId, getSurfaceIdFromUrl } from '../instance.js';
 import { isSecurityEnabled } from './security-config.js';
 
 const VerificationManager = {
   metadata: {
     id: 'VerificationManager',
     version: '3.0.0',
-    genesis: { introduced: 'reflection' },
+    genesis: { introduced: 'spark' },
     dependencies: ['Utils', 'VFS', 'EventBus'],
     optionalDependencies: ['EventBus'],
     async: true,
@@ -30,6 +33,38 @@ const VerificationManager = {
 
     const WORKER_PATH = '/core/verification-worker.js';
     const DEFAULT_TIMEOUT = 10000; // 10 seconds
+
+    const getWorkerUrl = async (required) => {
+      const surface = getSurfaceIdFromUrl();
+      const lab = surface === 'x' || surface === 'zero';
+      const params = new URLSearchParams({ surface });
+      const instance = getCurrentReploidInstanceId();
+      if (instance) params.set('instance', instance);
+      const entry = lab ? `/${surface}/__verifier__/worker.js` : WORKER_PATH;
+      const url = `${entry}?${params}`;
+      if (required && lab) {
+        const serviceWorker = globalThis.navigator?.serviceWorker;
+        const controller = serviceWorker?.controller;
+        if (!controller || typeof serviceWorker.getRegistration !== 'function') {
+          throw new Error('Required verification needs the controlling VFS Service Worker');
+        }
+        const location = globalThis.location;
+        const registration = await serviceWorker.getRegistration(new URL(url, location.href).href);
+        const scope = new URL(registration?.scope || '', location.href);
+        const script = new URL(controller.scriptURL || '', location.href);
+        const expectedScript = new URL(
+          SELF_BOOT_SPEC.host.serviceWorkerBootstrapEntry || SELF_BOOT_SPEC.host.serviceWorkerEntry,
+          location.href
+        );
+        if (serviceWorker.controller !== controller || registration?.active !== controller
+            || controller.state !== 'activated' || scope.origin !== location.origin
+            || scope.pathname.replace(/\/$/, '') !== `/${surface}`
+            || script.origin !== expectedScript.origin || script.pathname !== expectedScript.pathname) {
+          throw new Error('Required verification needs the matching active lab VFS Service Worker');
+        }
+      }
+      return url;
+    };
 
     /**
      * Emit an event if EventBus is available
@@ -102,13 +137,14 @@ const VerificationManager = {
      * @param {Object} options - Verification options
      * @param {number} options.timeout - Timeout in ms (default 10000)
      * @param {boolean} options.quickMode - Skip full snapshot, only verify changes
+     * @param {boolean} options.requireVerification - Require a Worker even when optional security is off
      * @returns {Promise<Object>} Verification result
      */
     const verifyProposal = async (changes, options = {}) => {
       // Default to quickMode=true: only verify the changed files, not entire VFS
       const { timeout = DEFAULT_TIMEOUT, quickMode = true } = options;
 
-      if (!isSecurityEnabled()) {
+      if (!options.requireVerification && !isSecurityEnabled()) {
         return processResult({
           passed: true,
           reason: 'Security disabled',
@@ -150,8 +186,23 @@ const VerificationManager = {
       const fileCount = Object.keys(snapshot).length;
       logger.info(`[Verifier] Analyzing ${fileCount} files...`);
 
+      const fileHashes = Object.fromEntries(await Promise.all(
+        Object.entries(snapshot).map(async ([path, code]) => [path, await sha256(code)])
+      ));
+      let workerUrl;
+      try {
+        workerUrl = await getWorkerUrl(options.requireVerification === true);
+      } catch (error) {
+        return processResult({ passed: false, reason: 'VFS delivery unavailable', errors: [error.message], warnings: [] });
+      }
       return new Promise((resolve) => {
-        const worker = new Worker(WORKER_PATH);
+        let worker;
+        try {
+          worker = new Worker(workerUrl);
+        } catch (error) {
+          resolve(processResult({ passed: false, reason: 'Worker unavailable', errors: [error.message], warnings: [] }));
+          return;
+        }
 
         const timeoutId = setTimeout(() => {
           worker.terminate();
@@ -168,7 +219,14 @@ const VerificationManager = {
         worker.onmessage = (e) => {
           clearTimeout(timeoutId);
           worker.terminate();
-          resolve(processResult(e.data));
+          const result = e.data;
+          const actual = result?.verification?.fileHashes;
+          const bound = result?.verification?.kind === 'static-worker'
+            && actual && Object.keys(actual).length === Object.keys(fileHashes).length
+            && Object.entries(fileHashes).every(([path, hash]) => actual[path] === hash);
+          resolve(processResult(bound ? result : {
+            passed: false, reason: 'Worker source hash mismatch', errors: ['Unbound verification result'], warnings: []
+          }));
         };
 
         worker.onerror = (e) => {
@@ -185,7 +243,13 @@ const VerificationManager = {
           resolve(processResult(result));
         };
 
-        worker.postMessage({ type: 'VERIFY', snapshot, options });
+        try {
+          worker.postMessage({ type: 'VERIFY', snapshot, options });
+        } catch (error) {
+          clearTimeout(timeoutId);
+          worker.terminate();
+          resolve(processResult({ passed: false, reason: 'Worker dispatch failed', errors: [error.message], warnings: [] }));
+        }
       });
     };
 

@@ -28,30 +28,30 @@
       ]
     },
     "spark": {
-      "name": "ZERO",
+      "name": "X",
       "description": "Minimal self-building core with tool creation and VFS module loading",
       "extends": "capsule",
       "modules": [
         "CircuitBreaker",
         "ContextManager",
-        "DopplerToolbox",
         "PersonaManager",
-        "SubstrateLoader",
-        "TelemetryTimeline",
-        "ToolWriter"
+        "ToolWriter",
+        "VerificationManager"
       ]
     },
     "reflection": {
       "name": "REFLECTION",
-      "description": "Zero + self-awareness - 6 additional modules",
+      "description": "Opt-in self-awareness and module-loading upgrade",
       "extends": "spark",
       "modules": [
+        "DopplerToolbox",
         "HITLController",
         "RateLimiter",
         "ReflectionAnalyzer",
         "ReflectionStore",
         "StreamParser",
-        "VerificationManager"
+        "SubstrateLoader",
+        "TelemetryTimeline"
       ]
     },
     "cognition": {

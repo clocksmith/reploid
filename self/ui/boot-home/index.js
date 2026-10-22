@@ -197,17 +197,21 @@ const renderExternalBrainConfig = (state) => {
   const status = testing
     ? 'Checking the local mailbox...'
     : ready
-      ? 'Mailbox ready. This does not mean dot is connected.'
+      ? 'Local server ready. Agent connection is not verified.'
       : (config.verifyError || 'Check the local mailbox before continuing.');
   return `
     <div class="wizard-step wizard-external">
       <div class="goal-header">
-        <h2 class="type-h2">External brain</h2>
+        <h2 class="type-h2">Connected agent</h2>
         <p class="type-caption" role="status">${escapeHtml(status)}</p>
-        <p class="type-caption">Requests wait at /api/external-brain for an external responder. No API key is needed. Existing approval controls still apply.</p>
-        ${!ready ? '<p class="type-caption">Start the local server with <code>REPLOID_EXTERNAL_BRAIN=true npm start</code>, then check again.</p>' : ''}
+        <p class="type-caption">Use another agent without an API key. Your approval controls still apply.</p>
+        <details>
+          <summary class="type-caption">Connection details</summary>
+          <p class="type-caption">Requests wait at <code>/api/external-brain</code> for an agent to respond.</p>
+          ${!ready ? '<p class="type-caption">Start the local server with <code>REPLOID_EXTERNAL_BRAIN=true npm start</code>, then check again.</p>' : ''}
+        </details>
       </div>
-      <button class="btn" type="button" data-action="test-external-brain" ${testing || state.isAwakening ? 'disabled' : ''}>Check mailbox</button>
+      <button class="btn" type="button" data-action="test-external-brain" ${testing || state.isAwakening ? 'disabled' : ''}>Check local server</button>
     </div>
   `;
 };
@@ -287,7 +291,7 @@ const renderRunReplayImportControl = (state) => {
               data-op="☋"
               data-action="import-run-json"
               type="button">
-        Import run JSON
+        Import setup JSON
       </button>
       ${statusHtml}
     </span>
@@ -297,8 +301,8 @@ const renderRunReplayImportControl = (state) => {
 const renderRunReplayImportPanel = (state) => `
   <div class="wizard-step wizard-run-replay-import">
     <div class="goal-header">
-      <h2 class="type-h2">Run JSON</h2>
-      <p class="type-caption">Import a replayable run JSON to refill the objective and compatible model settings.</p>
+      <h2 class="type-h2">Rerun setup</h2>
+      <p class="type-caption">Import prior run settings to refill the objective and model. This is setup, not recorded playback. Awaken starts a new run.</p>
     </div>
     <div class="goal-primary-action">
       ${renderRunReplayImportControl(state)}

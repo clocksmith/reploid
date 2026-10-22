@@ -121,22 +121,26 @@ fixture model.
 
 ## Zero and X
 
-Zero and X run on a separate agent/VFS substrate, not the conversation path above. Files live in
-an IndexedDB virtual file system; a Genesis snapshot allows rollback; inference uses a
-cloud model through the server proxy, a direct API key, or local Doppler.
+X and Zero share a self-owning browser agent/VFS substrate, separate from the
+conversation path above. Browser storage keeps source and user work across reloads.
 
-- **Zero** (`/zero`) is a minimal research agent. It starts with exactly one tool, `CreateTool`.
-  Each cycle the model can write a new tool; activation runs the tool's declared fixtures,
-  re-imports it in a fresh harness and replays them before installing. A created `self:write`
-  tool can patch live tools, UI or mirrored core code with rollback evidence. The operator sets
-  an objective and cycle interval and sees model input/output, tool runs, state and failures.
-  [Journeys and status](docs/zero/critical-user-journeys.md).
-- **X** (`/x`) is a governed superset of Zero with prebuilt file, promotion, optimization,
-  cognition, worker and swarm tools. Changes are adopted only after independent evaluation
-  under explicit, reversible operator grants; a model's own judgment never grants permission.
-  [Journeys and status](docs/x/critical-user-journeys.md).
+- **X** (`/x`) is the minimal base. Its complete selected source image includes the
+  bootstrap, loop, prompt, tool validation and browser UI. It initially exposes only
+  `CreateTool`, not the repository's file, cognition, worker or swarm tools. New tools
+  must pass declared fixtures and fresh-import replay before activation.
+- **Zero** (`/zero`) extends X. It starts with the same base; optional reflection,
+  cognition, substrate and full tool/source upgrades are installed only when the
+  operator selects them. More capabilities do not grant more authority: independent
+  evaluation, explicit adoption grants and rollback requirements remain in force.
 
-Setup for both: [Zero/X substrate and provider setup](docs/zero-x-quick-start.md).
+The runtime keeps conversation, prompt and state in front; inspection details and
+self-source export are in a disclosure. An exported image contains the selected
+source, not the whole repository or credentials. Browser/static hosting and a
+configured inference endpoint remain explicit prerequisites.
+
+Existing browser work is preserved, not silently rewritten into a minimal instance.
+Use a new named instance to start clean. See [X/Zero setup](docs/zero-x-quick-start.md)
+and the [self-source contract and validation](docs/x/self-source.md).
 
 ## Run it
 

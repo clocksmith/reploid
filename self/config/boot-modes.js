@@ -70,12 +70,12 @@ export function inferBootModeFromGenesis(genesisLevel, fallback = DEFAULT_BOOT_M
     case 'tabula':
       return 'reploid';
     case 'spark':
-      return 'zero';
+      return 'x';
     case 'reflection':
     case 'cognition':
     case 'substrate':
     case 'full':
-      return 'x';
+      return 'zero';
     default:
       return normalizedFallback;
   }

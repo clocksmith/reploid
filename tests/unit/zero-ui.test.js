@@ -65,6 +65,8 @@ describe('ZeroUI', () => {
         mode: 'zero',
         route: '/zero',
         goal: 'Build something',
+        trace: { schema: 'reploid.run-trace.v1', startedAt: 1000, droppedEvents: 0, provenance: {},
+          events: [{ seq: 0, ts: 1000, type: 'model_text', data: { content: 'visible answer' } }] },
         metadata: {
           cycleCount: 1,
           activityCount: 2,
@@ -450,30 +452,57 @@ describe('ZeroUI', () => {
     expect(root.querySelector('#agent-state').textContent).toBe('Parked');
   });
 
-  it('populates synthetic goal presets on click and supports epoch execution', () => {
-    const l1PresetBtn = root.querySelector('[data-zero-preset="l1-tool"]');
-    expect(l1PresetBtn).toBeTruthy();
-    l1PresetBtn.click();
-
-    const input = root.querySelector('#zero-human-input');
-    expect(input.value).toContain('Synthesize and verify an AST code transformer');
-
-    const runEpochBtn = root.querySelector('[data-zero-action="run-epoch"]');
-    const epochStatus = root.querySelector('#zero-epoch-status');
-    expect(runEpochBtn).toBeTruthy();
-    expect(epochStatus.textContent).toBe('Epoch: idle');
-
-    runEpochBtn.click();
-    expect(epochStatus.textContent).toContain('Epoch: 0 / 10 cycles');
-
-    eventBus.emit('agent:status', { cycle: 3 });
-    expect(epochStatus.textContent).toContain('Epoch: 3 / 10 cycles');
-
-    eventBus.emit('agent:status', { cycle: 10 });
-    expect(epochStatus.textContent).toBe('Epoch: idle');
+  it('keeps conversation and controls visible while technical details are collapsed', () => {
+    const inspect = root.querySelector('.zero-inspect');
+    expect(inspect.open).toBe(false);
+    expect(root.querySelector('#history-container').closest('details')).toBe(inspect);
+    expect(root.querySelector('#agent-cycle').closest('details')).toBe(inspect);
+    expect(root.querySelector('#btn-toggle').closest('details')).toBeNull();
+    expect(root.querySelector('[data-zero-preset]')).toBeNull();
+    expect(root.querySelector('[data-zero-action="run-epoch"]')).toBeNull();
+    expect(root.querySelector('[data-zero-action="export-self-source"]')).toBeTruthy();
+    eventBus.emit('agent:history', { type: 'llm_response', content: 'A useful reply.\n```js\nconst verbose = true;\n```' });
+    expect(root.querySelector('#zero-conversation').textContent).toContain('A useful reply.');
+    expect(root.querySelector('#zero-conversation').textContent).not.toContain('const verbose');
+    expect(root.querySelector('#history-container').textContent).toContain('const verbose');
   });
 
-  it('exports a replayable run JSON from the More menu', async () => {
+  it('keeps errors and actual pending approval controls outside Inspect', () => {
+    eventBus.emit('agent:error', { message: 'Tool failed', error: 'Missing configured gate' });
+    expect(root.querySelector('#zero-notices').textContent).toContain('Missing configured gate');
+    expect(root.querySelector('#zero-notices').closest('details')).toBeNull();
+    const approve = vi.fn();
+    eventBus.on('hitl:approve', approve);
+    eventBus.emit('hitl:approval-pending', { id: 'approval-one', action: 'CreateTool', data: { name: 'SafeTool' } });
+    const button = root.querySelector('[data-zero-action="approve"]');
+    expect(button.closest('details')).toBeNull();
+    button.click();
+    expect(approve).toHaveBeenCalledWith(expect.objectContaining({ approvalId: 'approval-one' }));
+    eventBus.emit('hitl:approval-granted', { approvalId: 'approval-one' });
+    expect(root.querySelector('[data-zero-action="approve"]')).toBeNull();
+  });
+
+  it('rehydrates pending approval controls from the controller after UI reload', async () => {
+    ui.cleanup();
+    const pending = { id: 'still-pending', action: 'Promote', status: 'pending', data: { path: '/self/tool.js' } };
+    ui = ZeroUI.factory({ Utils: createUtils(), EventBus: eventBus, AgentLoop: agentLoop,
+      HITLController: { getApprovalQueue: () => [pending] }, mode: 'zero' });
+    await ui.mount(root);
+    expect(root.querySelector('[data-zero-approval="still-pending"]')).toBeTruthy();
+    expect(root.querySelector('#zero-approvals').textContent).toContain('Promote');
+    expect(root.querySelector('#zero-approvals').closest('details')).toBeNull();
+  });
+
+  it('normalizes a legacy external model label and projects authoritative states', () => {
+    ui.setModels([{ id: 'external-brain', provider: 'external', name: 'External brain' }]);
+    expect(root.querySelector('#agent-model').textContent).toBe('Connected agent');
+    for (const state of ['THINKING', 'ACTING', 'RUNNING', 'PAUSED', 'ERROR', 'IDLE', 'UNKNOWN']) {
+      eventBus.emit('agent:status', { state });
+      expect(root.querySelector('#agent-state').dataset.agentState).toBe(state);
+    }
+  });
+
+  it('exports a replayable run JSON from Inspect', async () => {
     const urls = [];
     globalThis.URL.createObjectURL = vi.fn((blob) => {
       urls.push(blob);
@@ -490,6 +519,9 @@ describe('ZeroUI', () => {
       root.querySelector('[data-zero-action="export-run-json"]').click();
       await Promise.resolve();
       await Promise.resolve();
+      expect(clicked).toEqual([]);
+      expect(root.querySelector('[data-replay-preview]').hidden).toBe(false);
+      root.querySelector('[data-replay-action="confirm-export"]').click();
     } finally {
       HTMLAnchorElement.prototype.click = originalClick;
     }
@@ -498,10 +530,97 @@ describe('ZeroUI', () => {
       route: expect.any(String),
       mode: 'zero'
     });
-    expect(clicked[0]).toMatch(/^reploid-zero-build-something-/);
+    expect(clicked[0]).toMatch(/^reploid-zero-run-/);
     expect(URL.createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:run-json');
-    expect(root.textContent).toContain('Run JSON exported');
-    expect(root.textContent).toContain('1 cycle(s), 2 trace event(s), and 3 replay file(s)');
+    expect(root.querySelector('[data-replay-preview]').hidden).toBe(true);
+  });
+
+  it('keeps model request and tool result telemetry outside conversation', () => {
+    eventBus.emit('agent:history', { type: 'llm_response', cycle: 1, content: 'Useful ordinary reply.' });
+    eventBus.emit('agent:history', {
+      type: 'model_request', cycle: 2, content: '## Message 1 / 1 [SYSTEM]\nPRIVATE_ENVELOPE',
+      messageCount: 1, inputChars: 45
+    });
+    eventBus.emit('agent:history', { type: 'tool_result', cycle: 2, tool: 'ReadFile', result: 'TOOL_RESULT_MARKER' });
+    expect(root.querySelector('#zero-conversation').textContent).toBe('ZeroUseful ordinary reply.');
+    expect(root.querySelector('#history-container').textContent).toContain('PRIVATE_ENVELOPE');
+    expect(root.querySelector('#history-container').textContent).toContain('TOOL_RESULT_MARKER');
+  });
+
+  it('retains conversation through telemetry-only churn', () => {
+    eventBus.emit('agent:history', { type: 'llm_response', cycle: 1, content: 'Keep this user-facing reply.' });
+    for (let cycle = 2; cycle < 83; cycle++) {
+      eventBus.emit('agent:history', { type: 'cycle_throttle', cycle, content: 'Inspect-only telemetry.' });
+    }
+    expect(root.querySelector('#zero-conversation').textContent).toContain('Keep this user-facing reply.');
+  });
+
+  it('keeps unfinished streaming code fences in Inspect', () => {
+    eventBus.emit('agent:stream', { cycle: 1, content: 'Helpful prose.\n```js\nconst STREAM_PRIVATE_CODE = true;' });
+    expect(root.querySelector('#zero-conversation').textContent).toContain('Helpful prose.');
+    expect(root.querySelector('#zero-conversation').textContent).not.toContain('STREAM_PRIVATE_CODE');
+    expect(root.querySelector('#history-container').textContent).toContain('STREAM_PRIVATE_CODE');
+  });
+
+  it('explicitly places a mixed technical response in Inspect without changing its raw text', () => {
+    const raw = 'I will prepare the requested helper.\n\nREPLOID/0\n\nTOOL: CreateTool\nname: Example\ncode <<EOF\nexport default async function() { return "RAW_TOOL_CODE"; }\nEOF';
+    eventBus.emit('agent:history', { type: 'llm_response', cycle: 1, content: raw });
+    expect(root.querySelector('#zero-conversation').textContent).toContain('Details in Inspect.');
+    expect(root.querySelector('#zero-conversation').textContent).not.toMatch(/RAW_TOOL_CODE|TOOL: CreateTool|REPLOID\/0/);
+    expect(root.querySelector('.zero-trace-body').textContent).toBe(raw);
+  });
+
+  it('keeps complete local human notes in conversation', () => {
+    const note = `Keep this exact input.\n${'A'.repeat(240)}\nFINAL_MEANINGFUL_CONSTRAINT`;
+    root.querySelector('#zero-human-input').value = note;
+    root.querySelector('[data-zero-action="send-note"]').click();
+    expect(root.querySelector('.zero-message p').textContent).toBe(note);
+  });
+
+  it('rehydrates available conversation independently of the recent telemetry limit', async () => {
+    agentLoop.getRecentActivities.mockReturnValue([
+      { kind: 'llm_response', cycle: 1, content: 'Retained reply before telemetry.' },
+      ...Array.from({ length: 25 }, (_, index) => ({
+        kind: 'cycle_throttle', cycle: index + 2, content: 'Inspect-only.'
+      }))
+    ]);
+    ui.cleanup();
+    await ui.mount(root);
+    expect(root.querySelector('#zero-conversation').textContent).toContain('Retained reply before telemetry.');
+  });
+
+  it('replaces streaming text with one final response and preserves ordinary trust prose', () => {
+    const raw = 'Proposal status does not establish evaluation or promotion.\nThis is ordinary recorded prose, not telemetry.';
+    eventBus.emit('agent:stream', { cycle: 1, content: 'Proposal status' });
+    eventBus.emit('agent:history', { type: 'llm_response', cycle: 1, content: raw });
+    expect(root.querySelectorAll('.zero-message')).toHaveLength(1);
+    expect(root.querySelector('.zero-message p').textContent).toBe(raw);
+    expect(root.querySelector('.zero-trace-body').textContent).toBe(raw);
+  });
+
+  it('does not classify ordinary inline protocol mentions as technical responses', () => {
+    const raw = 'The words REPLOID/0 and TOOL: CreateTool are mentioned in this sentence.\nNo request is made.';
+    eventBus.emit('agent:history', { type: 'llm_response', cycle: 1, content: raw });
+    expect(root.querySelector('.zero-message p').textContent).toBe(raw);
+  });
+
+  it('preserves prose surrounding closed code fences and retains the raw response', () => {
+    const raw = 'Before code.\n```js\nconst hidden = true;\n```\nAfter code.';
+    eventBus.emit('agent:history', { type: 'llm_response', cycle: 1, content: raw });
+    expect(root.querySelector('.zero-message p').textContent).toBe('Before code.\n[Code in Inspect]\nAfter code.');
+    expect(root.querySelector('.zero-trace-body').textContent).toBe(raw);
+  });
+
+  it('keeps retained technical response disclosures backed by exact raw Inspect text after telemetry churn', () => {
+    const raw = 'Useful context.\nREPLOID/0\nTOOL: CreateTool\ncode <<EOF\nconst retainedRaw = true;\nEOF';
+    eventBus.emit('agent:history', { type: 'llm_response', cycle: 1, content: raw });
+    for (let cycle = 2; cycle < 83; cycle++) {
+      eventBus.emit('agent:history', { type: 'cycle_throttle', cycle, content: 'Inspect-only telemetry.' });
+    }
+    expect(root.querySelector('#zero-conversation').textContent).toContain('Details in Inspect.');
+    const rows = [...root.querySelectorAll('.zero-trace-entry')];
+    expect(rows.filter(row => row.querySelector('.zero-trace-body')?.textContent === raw)).toHaveLength(1);
+    expect(rows.length).toBeLessThanOrEqual(160);
   });
 });

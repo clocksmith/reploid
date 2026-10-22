@@ -28,27 +28,19 @@
       ]
     },
     "spark": {
-      "name": "ZERO",
+      "name": "X",
       "description": "Minimal self-building core with tool creation and VFS module loading",
       "extends": "capsule",
       "modules": [
-        "AgentLoop",
         "CircuitBreaker",
         "ContextManager",
-        "LLMClient",
         "PersonaManager",
-        "ResponseParser",
-        "SchemaRegistry",
-        "SubstrateLoader",
-        "TelemetryTimeline",
-        "ToolExecutor",
-        "ToolRunner",
         "ToolWriter"
       ]
     },
     "reflection": {
       "name": "REFLECTION",
-      "description": "Zero + self-awareness - 6 additional modules",
+      "description": "Opt-in self-awareness and module-loading upgrade",
       "extends": "spark",
       "modules": [
         "HITLController",
@@ -56,7 +48,10 @@
         "ReflectionAnalyzer",
         "ReflectionStore",
         "StreamParser",
-        "VerificationManager"
+        "VerificationManager",
+        "DopplerToolbox",
+        "SubstrateLoader",
+        "TelemetryTimeline"
       ]
     },
     "cognition": {
@@ -210,7 +205,7 @@
     },
     "reflection": {
       "name": "Path to Reflection",
-      "description": "Zero → Reflection: +6 modules for self-awareness and streaming",
+      "description": "Zero \u2192 Reflection: +6 modules for self-awareness and streaming",
       "modules": {
         "RateLimiter": "blueprints/0x000029-rate-limiting-strategies.md",
         "StreamParser": "blueprints/0x000039-streaming-response-handler.md",
@@ -222,7 +217,7 @@
     },
     "full": {
       "name": "Path to Full Substrate",
-      "description": "Reflection → Full: +13 modules for cognition and infrastructure",
+      "description": "Reflection \u2192 Full: +13 modules for cognition and infrastructure",
       "modules": {
         "GenesisSnapshot": "blueprints/0x00003C-genesis-snapshot-system.md",
         "AuditLogger": "blueprints/0x00002B-audit-logging-policy.md",

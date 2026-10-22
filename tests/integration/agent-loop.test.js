@@ -279,8 +279,41 @@ describe('AgentLoop - Integration Tests', () => {
           apiKey: '[redacted]'
         }
       });
-      expect(bundle.context.some((message) => message.content.includes('Export this run'))).toBe(true);
-      expect(bundle.history.some((entry) => entry.kind === 'llm_response')).toBe(true);
+      expect(bundle.context).toEqual([]);
+      expect(bundle.systemPrompt).toBe('');
+      expect(bundle.trace.events.some(event => event.type === 'model_text' && event.data.content === 'DONE')).toBe(true);
+      expect(bundle.trace.provenance.models).toEqual([{ id: 'test-model', provider: 'test', revision: null }]);
+    });
+
+    it('flushes a completed real adapter recording into the instance VFS before run returns', async () => {
+      vi.stubGlobal('navigator', { locks: { request: (_name, action) => action() } });
+      const files = new Map();
+      let releaseSave;
+      const saving = new Promise(resolve => { releaseSave = resolve; });
+      const VFS = { list: async prefix => [...files.keys()].filter(path => path.startsWith(prefix)),
+        read: async path => files.get(path), write: async (path, text) => {
+          if (path.startsWith('/.logs/recordings/')) await saving;
+          files.set(path, text);
+        } };
+      const recorded = AgentLoopModule.factory({ VFS, Utils: mockUtils, EventBus: mockEventBus,
+        LLMClient: mockLLMClient, ToolRunner: mockToolRunner, ContextManager: mockContextManager,
+        ResponseParser: mockResponseParser, StateManager: mockStateManager, PersonaManager: mockPersonaManager,
+        ReflectionStore: mockReflectionStore, ReflectionAnalyzer: mockReflectionAnalyzer, CircuitBreaker: mockCircuitBreaker });
+      recorded.setModel({ id: 'fixture', provider: 'synthetic' });
+      mockLLMClient.chat.mockResolvedValue({ content: 'DONE' }); mockResponseParser.isDone.mockReturnValue(true);
+      const completion = recorded.run('Synthetic persistence fixture');
+      await vi.waitFor(() => expect(recorded.getRecordingStatus().path).not.toBeNull());
+      await expect(recorded.run('Must not overlap the settling recording')).rejects.toThrow('recording is settling');
+      releaseSave();
+      await completion;
+      const status = recorded.getRecordingStatus();
+      expect(status).toMatchObject({ saved: true, error: null, pending: false });
+      const first = files.get(status.path);
+      expect(JSON.parse(first).events.some(event => event.type === 'model_text' && event.data.content === 'DONE')).toBe(true);
+      await recorded.run('Second synthetic fixture');
+      expect(files.get(status.path)).toBe(first);
+      expect([...files.keys()].filter(path => path.startsWith('/.logs/recordings/'))).toHaveLength(2);
+      await recorded.close();
     });
 
     it('builds Zero context with discovery-first VFS rules', async () => {
@@ -304,7 +337,8 @@ describe('AgentLoop - Integration Tests', () => {
       expect(prompt).toContain('No host shell/filesystem/process claims');
       expect(prompt).toContain('## Writable boundary');
       expect(prompt).toContain('Candidate edits go to /shadow, evidence to /artifacts.');
-      expect(prompt).toContain('## Zero tool creation workflow');
+      expect(prompt).toContain('## Tool creation workflow');
+      expect(prompt).toContain('Verification Worker approval is required before staging and activation');
       expect(prompt).toContain('Use CreateTool for new runtime tools.');
       expect(prompt).toContain('stages /shadow/tools/MyTool.js');
       expect(prompt).toContain('runs declared activation checks');
@@ -317,7 +351,7 @@ describe('AgentLoop - Integration Tests', () => {
       expect(prompt).toContain('Created tools start read-only');
       expect(prompt).toContain('vfs:write');
       expect(prompt).toContain('self-write tool');
-      expect(prompt).toContain('do not use Promote in Zero');
+      expect(prompt).toContain('do not use Promote in the minimal seed');
       expect(prompt).toContain(`${ZERO_SEED_TOOLS.join(', ')}.`);
       expect(prompt).toContain('Canonical CreateTool syntax');
       expect(prompt).toContain('code <<EOF');
@@ -344,7 +378,7 @@ describe('AgentLoop - Integration Tests', () => {
       expect(prompt).toContain('Improve the mature substrate');
       expect(prompt).toContain('Do this goal first. Then improve forever.');
       expect(prompt).toContain('Treat every working result as the baseline for the next evidence-backed improvement.');
-      expect(prompt).toContain('Never say DONE after a working result.');
+      expect(prompt).toContain('Treat every working result as the baseline for the next evidence-backed improvement.');
       expect(prompt).not.toContain('When complete, summarize what you accomplished, then say DONE');
       expect(prompt).not.toContain('until it is truly complete');
     });
@@ -536,7 +570,7 @@ describe('AgentLoop - Integration Tests', () => {
       agentLoop.setModel({ id: 'test-model', provider: 'test' });
     });
 
-    it('should execute tool calls from response', async () => {
+    it.each(['File content', null, false, 0])('should execute tool calls and preserve raw result %j', async rawResult => {
       let iteration = 0;
       mockLLMClient.chat.mockImplementation(() => {
         iteration++;
@@ -551,11 +585,16 @@ describe('AgentLoop - Integration Tests', () => {
         return Promise.resolve({ content: 'DONE' });
       });
 
-      mockToolRunner.execute.mockResolvedValue('File content');
+      mockToolRunner.execute.mockResolvedValue(rawResult);
 
       await agentLoop.run('Read a file');
 
       expect(mockToolRunner.execute).toHaveBeenCalledWith('ReadFile', { path: '/test.txt' });
+      const { trace } = await agentLoop.exportReplayBundle();
+      const toolEvents = trace.events.filter(event => ['tool_call', 'tool_result'].includes(event.type));
+      expect(toolEvents.map(event => event.type)).toEqual(['tool_call', 'tool_result']);
+      expect(toolEvents[0].data).toMatchObject({ callId: 'call-1', tool: 'ReadFile', args: { path: '/test.txt' } });
+      expect(toolEvents[1].data).toMatchObject({ callId: 'call-1', tool: 'ReadFile', result: rawResult, error: null });
     });
 
     it('executes the full 8-call read-only native batch when available', async () => {
@@ -1015,6 +1054,11 @@ describe('AgentLoop - Integration Tests', () => {
         tool: 'DeleteFile',
         error: 'File not found'
       }));
+      const { trace } = await agentLoop.exportReplayBundle();
+      const failures = trace.events.filter(event => event.type === 'tool_result');
+      expect(failures.length).toBeGreaterThan(0);
+      expect(failures.every(event => event.data.error === 'File not found')).toBe(true);
+      expect(new Set(failures.map(event => event.data.callId)).size).toBe(failures.length);
     });
 
     it('should retry ReadFile when the tool returns a safe near-miss path hint', async () => {

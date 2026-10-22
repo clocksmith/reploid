@@ -26,6 +26,7 @@ const getWrittenEvidence = (deps) => {
 
 const makeDeps = () => ({
   ToolWriter: {
+    assertVerified: vi.fn().mockResolvedValue(true),
     create: vi.fn().mockResolvedValue({
       success: true,
       name: 'KatamariEngine',
@@ -60,9 +61,9 @@ describe('CreateTool', () => {
     vi.unstubAllGlobals();
   });
 
-  it('installs and loads created tools in Zero', async () => {
+  it.each(['x', 'zero'])('installs and loads created tools in minimal %s', async (mode) => {
     vi.stubGlobal('window', {
-      getReploidMode: () => 'zero'
+      getReploidMode: () => mode
     });
     const deps = makeDeps();
 
@@ -96,7 +97,7 @@ describe('CreateTool', () => {
     expect(deps.ToolRunner.loadPath).toHaveBeenCalledWith(
       '/self/tools/KatamariEngine.js',
       'KatamariEngine',
-      { allow: true }
+      { allow: true, expectedSha256: expect.stringMatching(/^[a-f0-9]{64}$/) }
     );
     expect(result).toMatchObject({
       success: true,
@@ -407,9 +408,9 @@ export default async function() {
     });
   });
 
-  it('keeps staged-only behavior outside Zero', async () => {
+  it('keeps staged-only behavior outside the minimal lab', async () => {
     vi.stubGlobal('window', {
-      getReploidMode: () => 'x'
+      getReploidMode: () => 'reploid'
     });
     const deps = makeDeps();
 

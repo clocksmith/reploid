@@ -17,7 +17,7 @@ npm ci
 REPLOID_EXTERNAL_BRAIN=true REPLOID_SKIP_CLOUD_ACCESS_BUILD=true npm start
 ```
 
-Open `http://127.0.0.1:8000/x`, choose **External brain**, enter a goal, and awaken.
+Open `http://127.0.0.1:8000/x`, choose **Connected agent**, enter a goal, and awaken.
 The option is available only on local X. Readiness means the mailbox is enabled,
 not that a responder is connected. No goal starts automatically. Only the
 external model is selected; there is no paid-provider fallback.

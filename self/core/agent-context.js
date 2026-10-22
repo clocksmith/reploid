@@ -1,3 +1,4 @@
+import { isMinimalLabMode } from '../config/lab-upgrades.js';
 import { buildZeroSystemPrompt } from './zero-prompt.js';
 
 export function buildAgentInitialContext({ goal, personaPrompt, runtimeMode, maxToolCalls, discoveryLimit }) {
@@ -8,8 +9,8 @@ export function buildAgentInitialContext({ goal, personaPrompt, runtimeMode, max
 
     const build = () => {
 
-      const systemPrompt = runtimeMode === 'zero'
-        ? buildZeroSystemPrompt({ personaPrompt, goal })
+      const systemPrompt = isMinimalLabMode(runtimeMode)
+        ? buildZeroSystemPrompt({ personaPrompt, goal, mode: runtimeMode })
         : `
 ${personaPrompt}
 

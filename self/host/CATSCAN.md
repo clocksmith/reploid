@@ -4,15 +4,15 @@ Parent: [Browser Runtime](../CATSCAN.md)
 
 ## Target
 
-Boot from trusted seeds.
+Boot trusted seeds.
 
 ## Authority
-- Owns seeding/startup/tools, independent threads, opt-in [earning client](earning/CATSCAN.md).
+- Owns seeding/startup/tools, threads, optional [earning client](earning/CATSCAN.md).
 - Disclosure requires revocable contributor/thread/search grants.
 - Network answers default on. Send/Retry bind host-policy grants without dialogs.
   Persist opt-outs; distinguish legacy consent; preserve local-only/search boundaries.
 - Separates helpers/swarms/previews/isolation/evaluation/activation from Packs.
-- Composes separately authorized training in isolated workers; export never activates.
+- Separately authorizes isolated training; export never activates.
 - Tasks validate; repositories version; providers execute; views remain immutable.
 - Excludes policy/module semantics/recovery-root mutation.
 
@@ -28,11 +28,12 @@ Outputs: [VFS](seed-vfs.js), [startup](start-reploid.js).
 
 ## Invariants
 - Explicit seeds; no missing/unverified module substitutions.
-- Disconnect prevents rejoin. Discovery grants no compute/disclosure/files/improvement/stage authority;
+- Lab images export complete self-source; builds never delete existing work.
+- Disconnect prevents rejoin. Discovery grants no authority;
   only operator configuration assigns stages or chooses own-policy `auto`.
 - Partition network owners expose open/close; closure requires settled channels.
 - Files grant no permissions/correctness.
-- Viewing/stopping threads cannot change another's objective/grants/execution.
+- Viewing/stopping preserves others' objectives/grants/execution.
 - Candidate delivery grants no evaluation/adoption authority.
 - Peers require authorization/exact identities/evidence. Uncovered requests wait;
   revocation spares admitted answers; never reroute them.
@@ -43,10 +44,10 @@ Outputs: [VFS](seed-vfs.js), [startup](start-reploid.js).
 - Doppler storage verifies files; inventories cannot select code.
   Resident leases include adapter application/evidence/removal/cancellation settlement.
 - Candidates cannot read protected tests or self-activate; attempts pin versions, retaining rollback sources.
-- Version objectives/measures externally; changed objectives require reevaluation.
+- Version objectives/measures externally; changes require reevaluation.
 
 ## Acceptance
-- Seeded modules complete; VFS round-trips succeed.
+- Complete seeds; VFS round-trips.
 - Evidence: [boot](../../tests/unit/boot-seed.test.js), [VFS](../../tests/integration/vfs.test.js),
   [chat](../../tests/e2e/chat-real-adapter.spec.js), [races](../../tests/unit/work-swarm-lifecycle.test.js),
   [history](../../tests/unit/ordered-requester-history.test.js), [search](../../tests/unit/search-answer-permission.test.js).

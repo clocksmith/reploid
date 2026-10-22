@@ -162,8 +162,8 @@
     },
     {
       "path": "agent/lab-strategy.js",
-      "bytes": 96461,
-      "sha256": "e95de8316f750911123cdaa3a8325d035c8f41bff923bb2ce69b8dc160ff4010"
+      "bytes": 96474,
+      "sha256": "509967e61ed1037f25134960d3ca34ee748739347e3a8fd5070f5c7befd7f7c4"
     },
     {
       "path": "agent/legacy-loop.d.ts",

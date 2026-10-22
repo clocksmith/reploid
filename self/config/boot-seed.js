@@ -1,12 +1,13 @@
+import sourceCatalog from './self-source-catalog.json' with { type: 'json' };
+import { getLabUpgradeLevel } from './lab-upgrades.js';
 import { requireSurfaceIntent } from './surface-intents.js';
 import { SHARED_BOOT_UI_PREFIXES } from './surface-resources.js';
 /**
  * @fileoverview Route-aware boot seed selection for VFS bootstrap.
  */
 
-// Installed library modules load through their hosted package URLs. The host
-// loader resolves mirrored URLs and allowlisted dependency misses on demand;
-// declarations and unrelated library capabilities are not eager VFS seeds.
+// Lab images declare their complete selected source closure. Other routes
+// retain their existing seed contracts; optional lab dependencies are opt-in.
 
 const REPLOID_MINIMAL_HOME_BOOT_SEED_PREFIXES = Object.freeze([
   'blueprint-index.json',
@@ -110,21 +111,35 @@ export function getBootSeedProfile() {
 }
 
 export function shouldHydrateFullManifest(profile = getBootSeedProfile()) {
-  return profile !== 'zero_home'
+  return profile !== 'x_home'
+    && profile !== 'zero_home'
     && profile !== 'reploid_home'
     && profile !== 'pool_home'
     && profile !== 'substrate_console';
 }
 
 export function shouldAwaitFullManifestBeforeStart(profile = getBootSeedProfile()) {
-  return profile === 'x_home';
+  return false;
 }
 
 export function isLockedHomeBootProfile(profile = getBootSeedProfile()) {
   return profile === 'zero_home' || profile === 'x_home';
 }
 
+export function getBootSourceManifest(profile = getBootSeedProfile()) {
+  if (profile !== 'x_home' && profile !== 'zero_home') return null;
+  const level = getLabUpgradeLevel(profile === 'zero_home' ? 'zero' : 'x');
+  return sourceCatalog.profiles[level];
+}
+
 export function pickBootSeedFiles(files, profile = getBootSeedProfile()) {
+  const source = getBootSourceManifest(profile);
+  if (source) {
+    const available = new Set(files || []);
+    const missing = source.seedFiles.filter(file => !available.has(file));
+    if (missing.length) throw new Error(`Self-source image is incomplete: ${missing.join(', ')}`);
+    return [...source.seedFiles];
+  }
   const prefixes = BOOT_SEED_PROFILES[profile] || WIZARD_BOOT_SEED_PREFIXES;
   const out = [];
   const seen = new Set();
@@ -137,4 +152,8 @@ export function pickBootSeedFiles(files, profile = getBootSeedProfile()) {
   }
   out.sort();
   return out;
+}
+
+export function getOptionalBootSource(name) {
+  return sourceCatalog.optionalSources?.[name] || null;
 }

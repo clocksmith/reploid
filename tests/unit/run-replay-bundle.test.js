@@ -117,7 +117,7 @@ describe('run replay bundle helpers', () => {
     expect(stateUpdates.directConfig).toBeUndefined();
     expect(stateUpdates.proxyConfig).toBeUndefined();
     expect(storageModels).toEqual([{
-      id: 'external-brain', name: 'External brain', provider: 'external', hostType: 'direct'
+      id: 'external-brain', name: 'Connected agent', provider: 'external', hostType: 'direct'
     }]);
   });
 
@@ -163,7 +163,7 @@ describe('run replay bundle helpers', () => {
     }, { externalBrainAvailable })).toThrow('only on local X');
   });
 
-  it('builds a replay-engine-compatible flat VFS bundle', () => {
+  it('excludes private prompt, context and raw VFS from a replay export', () => {
     const bundle = buildRunReplayBundle({
       mode: 'zero',
       route: '/zero',
@@ -179,8 +179,11 @@ describe('run replay bundle helpers', () => {
     });
 
     expect(bundle.schema).toBe(RUN_REPLAY_SCHEMA);
-    expect(bundle.vfs['/cycles/cycle-000001/toolcalls.json']).toContain('calls');
-    expect(bundle.cycles['cycle-000001'].toolcalls).toEqual({ calls: [], results: [] });
+    expect(bundle.vfs).toEqual({});
+    expect(bundle.cycles).toEqual({});
+    expect(bundle.systemPrompt).toBe('');
+    expect(bundle.context).toEqual([]);
+    expect(bundle.messageQueue).toEqual([]);
     expect(bundle.model.apiKey).toBe('[redacted]');
     expect(bundle.replay.llmResponses[0]).toMatchObject({ cycle: 1, content: 'DONE' });
     expect(formatRunReplayFilename(bundle)).toMatch(/^reploid-zero-build-a-probe-/);

@@ -28,30 +28,46 @@ test.describe('Zero runtime UI refresh', () => {
     await bootRouteWithServiceWorker(page, '/zero', instanceId);
     await awakenWithoutGoal(page);
 
-    await expect(page.locator('.zero-runtime-strip')).toBeVisible();
-    await expect(page.locator('.zero-trace')).toBeVisible();
-    await expect(page.locator('.zero-goal-text')).toHaveCount(0);
+    await expect(page.locator('.zero-inspect')).not.toHaveAttribute('open', '');
+    await expect(page.locator('.zero-runtime-strip')).toBeHidden();
+    await expect(page.locator('.zero-trace')).toBeHidden();
+    await expect(page.locator('.zero-goal')).toBeVisible();
+    await expect(page.locator('.zero-goal-text')).toHaveCount(1);
+    await expect(page.locator('#zero-conversation')).toBeVisible();
     await expect(page.locator('#zero-human-input')).toBeVisible();
     await expect(page.locator('#zero-human-input')).toBeInViewport();
+    await page.locator('.zero-inspect > summary').click();
+    await expect(page.locator('.zero-runtime-strip')).toBeVisible();
+    await expect(page.locator('.zero-trace')).toBeVisible();
+    await page.locator('.zero-trace').scrollIntoViewIfNeeded();
     await expect(page.locator('.zero-trace')).toBeInViewport();
-    const traceHeight = await page.locator('.zero-trace').evaluate((node) => node.getBoundingClientRect().height);
-    expect(traceHeight).toBeGreaterThan(120);
     const initialWidths = await page.evaluate(() => {
-      const main = document.querySelector('.zero-main').getBoundingClientRect();
-      const trace = document.querySelector('.zero-trace').getBoundingClientRect();
-      const list = document.querySelector('.zero-trace-list').getBoundingClientRect();
-      return { main: main.width, trace: trace.width, list: list.width };
+      const contentWidth = (node) => {
+        const style = getComputedStyle(node);
+        return node.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+      };
+      const inspect = document.querySelector('.zero-inspect-content');
+      const trace = document.querySelector('.zero-trace');
+      const list = document.querySelector('.zero-trace-list');
+      return {
+        inspectContent: contentWidth(inspect),
+        trace: trace.getBoundingClientRect().width,
+        traceContent: contentWidth(trace),
+        list: list.getBoundingClientRect().width
+      };
     });
-    expect(initialWidths.trace).toBeGreaterThanOrEqual(initialWidths.main * 0.98);
-    expect(initialWidths.list).toBeGreaterThanOrEqual(initialWidths.trace * 0.98);
+    expect(initialWidths.trace).toBeCloseTo(initialWidths.inspectContent, 0);
+    expect(initialWidths.list).toBeCloseTo(initialWidths.traceContent, 0);
 
     const beforeVersion = await page.evaluate(() => window.REPLOID_UI?.getVersion?.() || null);
-    await page.locator('.zero-more summary').click();
     await page.locator('[data-zero-action="reload-ui"]').click();
 
     await expect.poll(async () => page.evaluate(() => window.REPLOID_UI?.getVersion?.() || null), {
       timeout: 30000
     }).not.toBe(beforeVersion);
+    await expect(page.locator('.zero-inspect')).not.toHaveAttribute('open', '');
+    await expect(page.locator('#zero-human-input')).toBeVisible();
+    await page.locator('.zero-inspect > summary').click();
     await expect(page.locator('.zero-runtime-strip')).toBeVisible();
     await expect(page.locator('.zero-trace')).toBeVisible();
     await expect(page.locator('body')).not.toContainText(/Boot Failure|UI reload failed/i);
@@ -90,6 +106,9 @@ TOOL: MissingCounterProbe`;
       'DONE: tool metrics observed'
     ], { maxIterations: 2 });
 
+    await expect(page.locator('.zero-goal-text')).toHaveText('Exercise tool metrics.');
+    await expect(page.locator('.zero-runtime-strip')).toBeHidden();
+    await page.locator('.zero-inspect > summary').click();
     await expect(page.locator('.zero-runtime-strip')).toBeVisible();
     await expect.poll(async () => page.locator('#agent-tools').textContent(), {
       timeout: 30000
@@ -97,11 +116,12 @@ TOOL: MissingCounterProbe`;
     await expect(page.locator('#agent-tool-rate')).toHaveText('33% fail');
 
     const beforeVersion = await page.evaluate(() => window.REPLOID_UI?.getVersion?.() || null);
-    await page.locator('.zero-more summary').click();
     await page.locator('[data-zero-action="reload-ui"]').click();
     await expect.poll(async () => page.evaluate(() => window.REPLOID_UI?.getVersion?.() || null), {
       timeout: 30000
     }).not.toBe(beforeVersion);
+    await expect(page.locator('.zero-inspect')).not.toHaveAttribute('open', '');
+    await page.locator('.zero-inspect > summary').click();
     await expect(page.locator('#agent-tools')).toHaveText('2 ok / 1 err');
     await expect(page.locator('#agent-tool-rate')).toHaveText('33% fail');
     const traceWidths = await page.evaluate(() => {

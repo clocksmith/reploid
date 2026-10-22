@@ -282,6 +282,8 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
     logger.debug('[Boot] ArenaHarness not available');
   }
 
+  const hitlController = container.hasModule?.('HITLController')
+    ? await container.resolve('HITLController') : null;
   const stateManager = await container.resolve('StateManager');
   const appEl = document.getElementById('app');
 
@@ -291,7 +293,7 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
 
   let dopplerOptimizer = null;
   let toolRunner = null;
-  if (runtimeMode === 'x') {
+  if (container.hasModule?.('DopplerOptimizer')) {
     try {
       [dopplerOptimizer, toolRunner] = await Promise.all([
         container.resolve('DopplerOptimizer'),
@@ -373,6 +375,7 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
       AgentLoop: agent,
       StateManager: stateManager,
       ErrorStore: errorStore,
+      HITLController: hitlController,
       VFS: vfs,
       WorkerManager: workerManager,
       ArenaHarness: arenaHarness,
@@ -566,7 +569,7 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
           loadReploidModules().catch((err) => {
             console.warn('[Boot] Failed to prewarm Reploid modules:', err?.message || err);
           });
-        } else if (runtimeMode === 'zero' || routeMode === 'zero') {
+        } else if (runtimeMode === 'zero' || runtimeMode === 'x' || routeMode === 'zero' || routeMode === 'x') {
           const { initZeroBootHome } = await import(withQuery('/ui/zero-home/index.js', getCurrentReploidPeerQuery()));
           initZeroBootHome(wizardContainer);
           loadSharedBootModules().catch((err) => {

@@ -1,16 +1,14 @@
-import { ZERO_SEED_PREFIXES, X_ADDITIONAL_SEED_PREFIXES, ZERO_RUNTIME_SELF_MIRROR_RULES,
-  X_RUNTIME_SELF_MIRROR_RULES, ZERO_RUNTIME_UI, PROTO_RUNTIME_UI } from './surface-resources.js';
+import { X_SEED_PREFIXES, ZERO_RUNTIME_UI } from './surface-resources.js';
 /**
  * @fileoverview Canonical route intent for Reploid lab surfaces.
  */
 
 import { extendIds, freezeArray } from './immutability.js';
 import {
-  X_TOOL_SURFACE_IDS,
   ZERO_TOOL_SURFACE_IDS
 } from './tool-surfaces.js';
 
-const ZERO_REQUIRED_MODULES = Object.freeze([
+const MINIMAL_LAB_REQUIRED_MODULES = Object.freeze([
   'AgentLoop',
   'CircuitBreaker',
   'ContextManager',
@@ -20,7 +18,7 @@ const ZERO_REQUIRED_MODULES = Object.freeze([
   'VFS'
 ]);
 
-const X_ADDITIONAL_REQUIRED_MODULES = Object.freeze([
+const OPTIONAL_LAB_MODULES = Object.freeze([
   'ArenaHarness',
   'DopplerToolbox',
   'DopplerOptimizer',
@@ -33,14 +31,9 @@ const X_ADDITIONAL_REQUIRED_MODULES = Object.freeze([
   'SwarmTransport',
   'TelemetryTimeline',
   'VFSSandbox',
-  'VerificationManager',
   'WebRTCSwarm',
   'WorkerManager'
 ]);
-
-const X_ADDITIONAL_TOOL_SURFACE_IDS = Object.freeze(
-  X_TOOL_SURFACE_IDS.filter((id) => !ZERO_TOOL_SURFACE_IDS.includes(id))
-);
 
 const createSurfaceIntentRegistry = () => Object.create(null);
 
@@ -74,12 +67,35 @@ export const defineSurfaceIntent = (intent, registry = createSurfaceIntentRegist
 
 const surfaceIntents = createSurfaceIntentRegistry();
 
-surfaceIntents.zero = defineSurfaceIntent({
-    id: 'zero',
-    seedPrefixes: ZERO_SEED_PREFIXES,
-    runtimeSelfMirrorRules: ZERO_RUNTIME_SELF_MIRROR_RULES,
+surfaceIntents.x = defineSurfaceIntent({
+    id: 'x',
+    seedPrefixes: X_SEED_PREFIXES,
+    runtimeSelfMirrorRules: [],
     runtimeUi: ZERO_RUNTIME_UI,
     authorityCeiling: ['candidate.selfApprove', 'candidate.modifyEvaluator', 'permissions.escalate'],
+    label: 'X',
+    route: '/x',
+    mode: 'x',
+    bootProfile: 'x_home',
+    genesisLevel: 'spark',
+    uiMode: 'zero',
+    surface: 'x',
+    summary: 'Minimal self-bootstrapping browser agent.',
+    detail: 'Starts from its own source, a prompt, and CreateTool.',
+    intent: 'Boot a complete minimal self-source image and grow tools from CreateTool without preloading optional upgrades.',
+    role: 'Tabula-rasa self-loading browser surface.',
+    toolSurfaceIds: ZERO_TOOL_SURFACE_IDS,
+    requiredModules: MINIMAL_LAB_REQUIRED_MODULES,
+    forbiddenModules: [
+      ...OPTIONAL_LAB_MODULES,
+      'HITLController'
+    ],
+    requiresBrowserBrain: false
+});
+
+surfaceIntents.zero = defineSurfaceIntent({
+    id: 'zero',
+    extends: 'x',
     label: 'Zero',
     route: '/zero',
     mode: 'zero',
@@ -87,38 +103,12 @@ surfaceIntents.zero = defineSurfaceIntent({
     genesisLevel: 'spark',
     uiMode: 'zero',
     surface: 'zero',
-    summary: 'Tabula-rasa browser RSI agent.',
-    detail: 'Self-contained RSI agent with server proxy inference by default and optional local Doppler execution.',
-    intent: 'Awaken the smallest self-loading browser RSI loop that starts from CreateTool and grows the reader, writer, loader, and self-mutation tools it needs.',
-    role: 'Minimal self-loading browser research surface.',
-    toolSurfaceIds: ZERO_TOOL_SURFACE_IDS,
-    requiredModules: ZERO_REQUIRED_MODULES,
-    forbiddenModules: [
-      ...X_ADDITIONAL_REQUIRED_MODULES,
-      'HITLController'
-    ],
-    requiresBrowserBrain: false
-});
-
-surfaceIntents.x = defineSurfaceIntent({
-    id: 'x',
-    seedPrefixes: X_ADDITIONAL_SEED_PREFIXES,
-    runtimeSelfMirrorRules: X_RUNTIME_SELF_MIRROR_RULES,
-    runtimeUi: PROTO_RUNTIME_UI,
-    label: 'X',
-    route: '/x',
-    mode: 'x',
-    bootProfile: 'x_home',
-    genesisLevel: 'full',
-    uiMode: 'proto',
-    surface: 'x',
-    extends: 'zero',
-    summary: 'Prebuilt full-stack substrate.',
-    detail: 'Starts with the mature RSI surface already assembled.',
-    intent: 'Run Zero plus arena, sandbox, worker, memory, swarm, verification, and promotion lanes as the mature self-evolution workspace.',
-    role: 'Mature governed substrate surface.',
-    additionalToolSurfaceIds: X_ADDITIONAL_TOOL_SURFACE_IDS,
-    additionalRequiredModules: X_ADDITIONAL_REQUIRED_MODULES,
+    runtimeUi: ZERO_RUNTIME_UI,
+    summary: 'X with optional upgrades.',
+    detail: 'The same self-building core, with explicitly selected reflection, cognition, and substrate upgrades.',
+    intent: 'Extend X only with operator-selected upgrades while preserving its self-source and activation boundaries.',
+    role: 'Opt-in extended browser research surface.',
+    forbiddenModules: [],
     requiresBrowserBrain: false
 }, surfaceIntents);
 

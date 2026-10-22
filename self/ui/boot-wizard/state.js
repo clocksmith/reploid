@@ -528,7 +528,7 @@ export function saveConfig() {
   if (connectionType === 'external') {
     models.push(withCycleThrottle({
       id: 'external-brain',
-      name: 'External brain',
+      name: 'Connected agent',
       provider: 'external',
       hostType: 'direct'
     }));
