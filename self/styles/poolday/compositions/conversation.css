@@ -67,7 +67,7 @@
   gap: var(--pool-size-32);
   padding-block: var(--pool-size-16);
 }
-.chat-message-stream, .chat-composer-area, .chat-error { width: min(100%, var(--pool-size-720)); align-self: center; margin-inline: auto; }
+.chat-message-stream, .chat-composer-area, .chat-error, .chat-history-handover { width: min(100%, var(--pool-size-720)); align-self: center; margin-inline: auto; }
 .chat-transcript.chat-message-stream { width: min(100%, calc(var(--pool-size-720) + var(--pool-size-32))); padding-inline: var(--pool-size-16); }
 .chat-message-row { min-width: 0; width: 100%; display: grid; gap: var(--pool-size-8); }
 .chat-message-row.is-user { width: fit-content; max-width: 85%; align-self: flex-end; }

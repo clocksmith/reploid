@@ -15,6 +15,7 @@ import { createServerSearch } from './server-search.js';
 import { getPoolAuthToken } from '../pool/identity.js';
 import { createDeviceSearch } from './device-search.js';
 import { acquireChatHistoryOwner, refusedChatHistory } from './chat-history.js';
+import { createHistoryHandover } from './history-handover.js';
 import { metadataDigest } from '../config/doppler-metadata-contract.js';
 import orderedPolicy from '../config/ordered-participation.json' with { type: 'json' };
 import { startSwarmAutoconnect } from './swarm-autoconnect.js';
@@ -134,8 +135,16 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
       }, policy: swarmPolicy, eventTarget,
       onError: error => console.warn('[Reploid Swarm] Discovery connection failed', error) });
     const assertOpen = () => { if (closed) throw new Error('Application session is closed'); };
-    return {
-      chat, swarm, evolution, webSearch, search: searchStatus, deviceSearch, contributorSearch,
+    // Ordered history has one owner tab per profile; the others can ask it to hand over.
+    // The handover outlives this session so a tab that handed over can ask for it back.
+    const historyMode = chat.getState?.().history?.mode;
+    const historyHandover = ordered && ['transactional', 'refused'].includes(historyMode)
+      ? createHistoryHandover({ name: orderedPolicy.requesterHistory.database, owner: historyMode === 'transactional',
+        release: () => host.close(), ...(historyPorts.locks ? { locks: historyPorts.locks } : {}),
+        ...(historyPorts.Channel ? { Channel: historyPorts.Channel } : {}), ...(historyPorts.reload ? { reload: historyPorts.reload } : {}) })
+      : null;
+    const host = {
+      chat, swarm, evolution, webSearch, search: searchStatus, deviceSearch, contributorSearch, historyHandover,
       get training() { assertOpen(); return training ??= createBrowserTraining({ swarm }); },
       get runtime() { assertOpen(); return runtime ??= globalThis.REPLOID_DOPPLER_RUNTIME || createDopplerRuntime(); },
       get work() { assertOpen(); return work ??= createWorkSession({ service, storage, swarm, evolution, peers: createWorkPeerJobs({ getNetwork }) }); },
@@ -162,5 +171,6 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
         return closing;
       }
     };
+    return host;
   }
 }

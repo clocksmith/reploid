@@ -2319,6 +2319,12 @@
       ]
     },
     {
+      "path": "self/host/history-handover.js",
+      "owner": "self",
+      "sha256": "sha256:21d83d17937e522d6daadcd1ad71c3809baab5eb1da1cb5b090e5290272f155a",
+      "imports": []
+    },
+    {
       "path": "self/host/lora-training-executor.js",
       "owner": "self",
       "sha256": "sha256:6f080f8a5211a7a85200dc9c25e2a16821aa5e4f2350fd2e99351671217748cd",
@@ -2375,7 +2381,7 @@
     {
       "path": "self/host/product-session.js",
       "owner": "self",
-      "sha256": "sha256:69b063aeb791a66fb88877d36e7c908a14ff1ecc216e586b2ff564f39dda6aaa",
+      "sha256": "sha256:f1a5f926f83125e39cb2cf8e8ed2edcca454d8384314aca690e7abd4e3a381c5",
       "imports": [
         "../config/doppler-metadata-contract.js",
         "../config/ordered-participation.json",
@@ -2393,6 +2399,7 @@
         "./chat-session.js",
         "./contributor-search.js",
         "./device-search.js",
+        "./history-handover.js",
         "./lora-training.js",
         "./server-search.js",
         "./swarm-autoconnect.js",
@@ -3416,7 +3423,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:9ad509172666b991e73865250edc13b4d447b4422f7437de910b5e63c903456c",
+      "sha256": "sha256:8614d682aefe84bcf208a5e2dc338e0a288a55aec1d4553732133677aeb951af",
       "imports": []
     },
     {
@@ -3487,7 +3494,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:678bf638154e48bb99b8d46b6cfabd0cf961ee876e869a014160a22334dde7a4",
+      "sha256": "sha256:ae6a4c91115caf96b9842d96001d95862a5933942950cc78f569e123d3d563cd",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -3497,6 +3504,7 @@
         "./computer-labels.js",
         "./context-indicator.js",
         "./conversation-list.js",
+        "./history-handover-view.js",
         "./message-list.js",
         "./network-controls.js",
         "./network-inspector.js"
@@ -3531,9 +3539,15 @@
       ]
     },
     {
+      "path": "ui/pool-home/history-handover-view.js",
+      "owner": "ui",
+      "sha256": "sha256:a1cfa837762f2ecd388c875ee59ccdb2b0ac36b5e3e0a97a6258251a3a5edb7f",
+      "imports": []
+    },
+    {
       "path": "ui/pool-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:a5348adfb94ed25870771a0b150ce27fb90c832967612192cefe4fe4cfac119a",
+      "sha256": "sha256:23505387220738295829260437e8535f65d6a143acefbfd574e20ee93fada19e",
       "imports": [
         "../../host/credits/browser.js",
         "../../host/product-context.js",
@@ -3543,6 +3557,7 @@
         "./constants.js",
         "./conversation-workspace.js",
         "./execution-ribbon.js",
+        "./history-handover-view.js",
         "./navigation.js",
         "./network-inspector.js",
         "./shell-view.js",

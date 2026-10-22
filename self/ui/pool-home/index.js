@@ -11,6 +11,7 @@ import { renderNetworkInspector, bindNetworkInspector } from './network-inspecto
 import { bindExecutionRibbon } from './execution-ribbon.js';
 import { bindThemeSelector } from './theme.js';
 import { bindPoolRouteControls } from './navigation.js';
+import { renderHandedOver } from './history-handover-view.js';
 
 let disposeWorkspace;
 export function initPoolHome(mount, { operationNetwork = null, canonical = null, ordered, signal } = {}) {
@@ -122,7 +123,7 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
       try {
         if (routeId === 'home' || routeId === 'network') {
           content.innerHTML = renderConversationWorkspace({ inspector: false });
-          detachView = bindConversationWorkspace(content, host.chat, { viewState, inspector, webSearch: host.webSearch, search: host.search });
+          detachView = bindConversationWorkspace(content, host.chat, { viewState, inspector, webSearch: host.webSearch, search: host.search, historyHandover: host.historyHandover });
           if (routeId === 'network') inspector.open();
         } else {
           content.innerHTML = '<p role="status">Loading…</p>';
@@ -160,9 +161,20 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
     };
     const onPageHide = event => { if (event.persisted) void host.pause(); else dispose(); };
     const onPageShow = event => { if (event.persisted) host.resume(); };
-    const dispose = () => {
+    // A tab that hands its history to another tab closes its session and keeps only the
+    // handover, so it can ask for the history back.
+    const handover = host.historyHandover;
+    const unsubscribeHandover = handover?.subscribe(({ state }) => {
+      if (state !== 'moved' || disposed) return;
+      const appearance = document.documentElement.dataset.reploidTheme;
+      dispose({ keepHandover: true });
+      const detachHandedOver = renderHandedOver(mount, handover, appearance);
+      disposeWorkspace = () => { detachHandedOver(); handover.close(); disposeWorkspace = null; };
+    }) || (() => {});
+    const dispose = ({ keepHandover = false } = {}) => {
       if (disposed) return;
       disposed = true; revision++; changesRevision++;
+      unsubscribeHandover(); if (!keepHandover) handover?.close();
       detachView(); detachRibbon(); inspector?.dispose(); theme.dispose(); disposeSpecialists();
       window.removeEventListener('popstate', render); window.removeEventListener('pagehide', onPageHide); window.removeEventListener('pageshow', onPageShow);
       if (window.REPLOID_POOL_CONNECT_OPERATIONS === connectOperations) delete window.REPLOID_POOL_CONNECT_OPERATIONS;
