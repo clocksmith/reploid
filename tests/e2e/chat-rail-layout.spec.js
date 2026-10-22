@@ -47,8 +47,8 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-// Rendered contract: four >=44px controls form a desktop column or a mobile row.
-// Compact desktop threads retain icons; model selection lives in its own panel.
+// Rendered contract: four >=44px controls form one row, a top bar on desktop and a bottom bar on
+// phones. The brand opens the conversation list as a dialog; model selection lives in its own panel.
 // Panel changes preserve draft and focus. Pending computer rows stay visible before ads.
 const railButtons = ['[data-toggle-thread-rail]', '[data-new-thread]', '[data-toggle-inspector]', '[data-inspector-section="settings"]'];
 const contrastRatio = (first, second) => {
@@ -74,12 +74,12 @@ async function measureControls(page) {
 }
 
 for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
-  test(`${theme} one rail centers all four controls and opens each panel at ${width}px`, async ({ page }, info) => {
+  test(`${theme} one bar aligns all four controls and opens each panel at ${width}px`, async ({ page }, info) => {
     await page.setViewportSize({ width, height: 844 });
     await page.evaluate(theme => { document.querySelector('.pool-home').dataset.poolTheme = theme; }, theme);
     const rail = page.locator('[data-thread-sidebar]');
     await expect(page.locator('.chat-thread-title').first()).toBeHidden();
-    if (width <= 760) await expect(page.locator('[data-thread-list]')).toBeHidden();
+    await expect(page.locator('[data-thread-list]')).toBeHidden();
     await expect(page.locator('[data-conversation-actions]')).toBeHidden();
     await expect(page.locator('.pool-power-tower:visible')).toHaveCount(1);
     await expect(page.locator('[data-pool-settings] > summary')).toBeHidden();
@@ -89,12 +89,13 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     for (const item of controls) {
       expect(contrastRatio(item.background,item.color), item.selector).toBeGreaterThanOrEqual(3);
       expect(item.box.width, item.selector).toBeGreaterThanOrEqual(44); expect(item.box.height, item.selector).toBeGreaterThanOrEqual(44);
-      if (width > 760) expect(item.box.width, item.selector).toBe(44);
-      expect(Math.abs(item.centerX), item.selector).toBeLessThanOrEqual(0.5);
+      // Desktop labels sit beside their icons; phone labels sit below them.
+      if (width <= 760) expect(Math.abs(item.centerX), item.selector).toBeLessThanOrEqual(0.5);
       expect(Math.abs(item.centerY), item.selector).toBeLessThanOrEqual(0.5);
-      if (width > 760) expect(item.box.x).toBe(controls[0].box.x);
-      else expect(item.box.y).toBe(controls[0].box.y);
+      expect(item.box.y).toBe(controls[0].box.y);
     }
+    const bar = await rail.boundingBox();
+    if (width > 760) expect(bar.y).toBeLessThan(844 / 2); else expect(bar.y).toBeGreaterThan(844 / 2);
     // Check the graphic itself, not only the wrapper around the logo.
     const brand = await page.locator('[data-toggle-thread-rail]').evaluate(node => {
       const box=node.getBoundingClientRect(), parts=[...node.querySelectorAll('.pool-power-tower > *')].map(glyph=>glyph.getBoundingClientRect());
@@ -105,13 +106,16 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     await page.locator('[data-composer-input]').fill('Keep this draft.');
     await page.screenshot({path:info.outputPath('collapsed.png')});
     await page.locator('[data-toggle-thread-rail]').click();
+    await expect(page.locator('[data-threads-dialog]')).toHaveJSProperty('open', true);
     await expect(page.locator('[data-thread-list]')).toBeVisible();
     await expect(page.locator('[data-conversation-actions]')).toBeVisible();
     await expect(page.locator('[data-open-model]')).toBeVisible();
     await page.screenshot({path:info.outputPath('threads.png')});
+    await page.keyboard.press('Escape');
+    await expect(page.locator('[data-toggle-thread-rail]')).toBeFocused();
     await page.locator('[data-toggle-inspector]').click();
     await expect(page.locator('.chat-thread-title').first()).toBeHidden();
-    if (width <= 760) await expect(page.locator('[data-thread-list]')).toBeHidden();
+    await expect(page.locator('[data-thread-list]')).toBeHidden();
     await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
     await expect(page.locator('.network-peer-row strong')).toHaveText(['Computer 1','Computer 2','Computer 3','Computer 4']);
     await page.screenshot({path:info.outputPath('network.png')});
@@ -123,7 +127,8 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     await page.locator('[data-conversation-actions] > summary').click();
     await page.locator('[data-show-archived]').click();
     await expect(page.locator('[data-chat-workspace]')).toHaveAttribute('data-threads-open','');
-    await page.locator('[data-toggle-thread-rail]').click();
+    await page.locator('[data-close-threads]').click();
+    await expect(page.locator('[data-threads-dialog]')).toHaveJSProperty('open', false);
     await page.locator('[data-open-model]').click();
     await expect(page.locator('[data-inspector-pane="model"]')).toBeVisible();
     await expect(page.locator('#network-inspector-title')).toBeFocused();
@@ -132,10 +137,9 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     await expect(page.locator('[data-open-model]')).toBeFocused();
     await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft.');
     for (const item of await measureControls(page)) {
-      expect(Math.abs(item.centerX),item.selector).toBeLessThanOrEqual(0.5);
+      if (width <= 760) expect(Math.abs(item.centerX),item.selector).toBeLessThanOrEqual(0.5);
       expect(Math.abs(item.centerY),item.selector).toBeLessThanOrEqual(0.5);
-      if (width > 760) expect(item.box.x).toBe(controls[0].box.x);
-      else expect(item.box.y).toBe(controls[0].box.y);
+      expect(item.box.y).toBe(controls[0].box.y);
     }
     expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
     await expect(rail).toBeVisible();
@@ -165,7 +169,7 @@ for (const width of [1440, 900, 390, 320]) for (const theme of ['light', 'dark']
       expect(Math.abs(result.stream.x-result.composer.x)).toBeLessThanOrEqual(1);
       expect(Math.abs(result.stream.width-result.composer.width)).toBeLessThanOrEqual(1);
       expect(Math.abs(result.composer.x+result.composer.width/2-result.area.x-result.area.width/2)).toBeLessThanOrEqual(1);
-      if(width>760)expect(result.composer.x).toBeGreaterThanOrEqual(result.rail.right+8);
+      if(width>760)expect(result.area.y).toBeGreaterThanOrEqual(result.rail.bottom+8);
       expect(result.composer.right).toBeLessThanOrEqual(width-8);
       await expect(input).toHaveValue('A draft that wraps when the available chat column becomes narrow.');
       await expect.poll(()=>input.evaluate(node=>Math.min(node.scrollHeight,innerHeight*.22)-node.clientHeight)).toBeLessThanOrEqual(1);
@@ -173,6 +177,7 @@ for (const width of [1440, 900, 390, 320]) for (const theme of ['light', 'dark']
       await page.screenshot({path:info.outputPath(state+'.png')});
     };
     await check('collapsed');await page.locator('[data-toggle-thread-rail]').click();await check('threads');
+    await page.locator('[data-close-threads]').click();
     await page.locator('[data-toggle-inspector]').click();await check('network');
     await page.locator('[data-close-inspector]').click();await check('closed');
   });

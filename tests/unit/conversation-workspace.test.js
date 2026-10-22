@@ -401,10 +401,12 @@ describe('Conversation workspace', () => {
     expect(session.getState().threads).toHaveLength(0);
     expect(find('[data-message-stream]').childElementCount).toBe(0);
     expect(find('[data-conversation-actions] [data-show-archived]')).not.toBeNull();
-    expect(find('[data-thread-sidebar] [data-conversation-actions] [data-show-archived]')).not.toBeNull();
+    // The bar holds four controls; conversation actions live in the Threads dialog.
+    expect(find('[data-threads-dialog] [data-conversation-actions] [data-show-archived]')).not.toBeNull();
+    expect(find('[data-thread-sidebar] [data-conversation-actions]')).toBeNull();
   });
 
-  it('opens archived threads from conversation actions in the phone rail without losing the draft', () => {
+  it('opens archived threads from conversation actions in the Threads dialog without losing the draft', () => {
     const previous = globalThis.innerWidth;
     Object.defineProperty(globalThis, 'innerWidth', { value: 390, configurable: true });
     try {
@@ -415,7 +417,8 @@ describe('Conversation workspace', () => {
       find('[data-show-archived]').click();
       expect(find('[data-conversation-actions]').open).toBe(false);
       expect(find('[data-chat-workspace]').hasAttribute('data-threads-open')).toBe(true);
-      expect(find('[data-thread-sidebar] [data-thread-item-id]').dataset.threadItemId).toBe(id);
+      expect(find('[data-threads-dialog]').open).toBe(true);
+      expect(find('[data-threads-dialog] [data-thread-item-id]').dataset.threadItemId).toBe(id);
       expect(find('[data-composer-input]').value).toBe('Keep my phone draft');
     } finally { Object.defineProperty(globalThis, 'innerWidth', { value: previous, configurable: true }); }
   });
