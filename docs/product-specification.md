@@ -189,6 +189,17 @@ Stopping contribution MUST preserve history and MUST NOT directly cancel
 unrelated requests. Loss of indispensable capacity may require waiting or explicit
 retry. Saved history MUST NOT be represented as recovered inference state.
 
+**Automatic local download (updated 2026-10-22).** Send/Retry never authorize a
+download. A separate per-browser setting, on by default, MAY download one whole model
+to this device's browser storage when no computer can answer the selected model:
+the model the person chose, or the smallest suitable whole model when they made no
+choice. The download MUST name the model, show progress, offer Cancel and stay inside
+the device's storage limit. It MUST NOT start without WebGPU, while the browser asks
+to save data, or when browser storage cannot hold the model; the reason appears
+inline. Cancel stops automatic downloads until the setting is turned on again or the
+page reloads. The download sends no conversation input, and existing sharing
+settings apply to the stored model as to any downloaded model.
+
 **Search tools (updated 2026-10-17).** Sending with search enabled, or explicitly
 retrying a search answer, starts the selected search tool without a permission popup.
 The thinking loader shows observed search, page-reading and result-preparation activity.
