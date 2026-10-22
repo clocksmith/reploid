@@ -73,15 +73,3 @@
 }
 
 [data-context-peers] { fill: none; stroke: currentColor; stroke-width: var(--pool-border-thin); }
-
-/* Particle field: a viewport canvas between the page material and every surface.
-   particle-field.js draws it from the --pool-particle-* tokens; it never takes input. */
-.pool-home .pool-particle-field {
-  position: fixed;
-  inset: 0;
-  z-index: var(--pool-z-under);
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-@media (forced-colors: active) { .pool-home .pool-particle-field { display: none; } }
