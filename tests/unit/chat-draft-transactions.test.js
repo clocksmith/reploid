@@ -27,3 +27,31 @@ it('validates attachments before calling async persistence', () => {
   expect(() => drafts.save('a', { text: 'ok', files: [{ name: 'large', text: 'x'.repeat(101) }] })).toThrow('allowance');
   expect(writes).toBe(0);
 });
+const journalStorage = (initial = {}) => {
+  const values = new Map(Object.entries(initial));
+  return { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, String(value)), removeItem: key => values.delete(key), values };
+};
+it('journals the latest draft synchronously until the async store confirms it', async () => {
+  let release;
+  const gate = new Promise(resolve => { release = resolve; }), journal = journalStorage();
+  const drafts = createChatDrafts({ ...options, storage: { getItem: () => '{}' }, journal, async persist() { await gate; } });
+  const saved = drafts.save('new', { text: 'typed then reloaded', files: [] });
+  expect(JSON.parse(journal.getItem('drafts:journal')).new.text).toBe('typed then reloaded');
+  release(); await saved;
+  expect(journal.getItem('drafts:journal')).toBeNull();
+});
+it('replays a journal left by an unloaded page into the store', async () => {
+  const writes = [], journal = journalStorage({ 'drafts:journal': '{"new":{"text":"unsaved","files":[]}}' });
+  const drafts = createChatDrafts({ ...options, storage: { getItem: () => '{"new":{"text":"older","files":[]}}' }, journal,
+    async persist(raw) { writes.push(raw); } });
+  expect(drafts.get('new').text).toBe('unsaved');
+  await drafts.close();
+  expect(writes).toEqual(['{"new":{"text":"unsaved","files":[]}}']);
+  expect(journal.getItem('drafts:journal')).toBeNull();
+});
+it('keeps drafts out of the journal when none is supplied', async () => {
+  const journal = journalStorage();
+  const drafts = createChatDrafts({ ...options, storage: { getItem: () => '{}' }, async persist() {} });
+  await drafts.save('new', { text: 'x', files: [] });
+  expect(journal.values.size).toBe(0);
+});

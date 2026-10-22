@@ -14,8 +14,9 @@
     position: fixed;
     top: auto;
     bottom: calc(max(0px, 100dvh - var(--pool-param-workspace-height, 100dvh)) + var(--pool-param-app-bar-inset));
-    left: max(var(--pool-param-app-bar-gap), env(safe-area-inset-left));
-    right: max(var(--pool-param-app-bar-gap), env(safe-area-inset-right));
+    /* The dock shares the page gutter so it lines up with the content above it. */
+    left: max(var(--pool-size-16), env(safe-area-inset-left));
+    right: max(var(--pool-size-16), env(safe-area-inset-right));
     width: auto;
     height: auto;
     min-height: var(--pool-metric-app-bar);
@@ -36,7 +37,8 @@
   .pool-mobile-app-bar .execution-ribbon-route { display: none; }
   .pool-mobile-app-bar .execution-ribbon-trigger { padding: 0; }
   .pool-mobile-app-bar .pool-settings > summary { width: var(--pool-size-44); min-width: 0; height: var(--pool-size-44); padding: 0; }
-  .pool-mobile-app-bar .pool-settings-panel { top: auto; bottom: calc(100% + var(--pool-size-16)); max-height: 65dvh; overflow-y: auto; }
+  /* On phones the app menu spans the page gutter so its theme and app choices fit. */
+  .pool-mobile-app-bar .pool-settings-panel { top: auto; bottom: calc(100% + var(--pool-size-16)); right: calc(var(--pool-size-16) * -1); width: calc(100vw - var(--pool-space-page-gutter) * 2); max-height: 65dvh; overflow-y: auto; }
   .pool-home-toolbar,
   .pool-home-stage--focused .pool-home-toolbar { padding-inline: var(--pool-size-8); }
   .pool-home-task { width: 100%; margin-right: 0; }

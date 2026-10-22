@@ -83,16 +83,25 @@ export async function openCanonicalChatHistory({ name, maxWorkspaceBytes, maxThr
 
 /** One history writer per browser profile, matching the one-connected-tab
  * contract: a second tab is refused instead of fencing the owner's writer.
+ * A tab that is closing or reloading can still hold the lock for a moment, so a
+ * busy lock is awaited for up to `waitMs` before this tab is refused.
  * Resolves to a release function, or null when another tab holds it. */
-export async function acquireChatHistoryOwner({ name, locks }) {
+export async function acquireChatHistoryOwner({ name, locks, waitMs = 2000 }) {
   let release;
   const held = new Promise(resolve => { release = resolve; });
-  const acquired = await new Promise((resolve, reject) => {
-    locks.request(`reploid:chat-history:${name}`, { ifAvailable: true }, lock => {
+  const request = options => new Promise((resolve, reject) => {
+    locks.request(`reploid:chat-history:${name}`, options, lock => {
       resolve(!!lock);
       return lock ? held : undefined;
     }).catch(reject);
   });
+  let acquired = await request({ ifAvailable: true });
+  if (!acquired && waitMs > 0) {
+    acquired = await request({ signal: AbortSignal.timeout(waitMs) }).catch(error => {
+      if (['AbortError', 'TimeoutError'].includes(error?.name)) return false;
+      throw error;
+    });
+  }
   return acquired ? () => release() : null;
 }
 

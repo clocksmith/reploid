@@ -160,6 +160,8 @@ export function createChatSession({
   const allowances = workspace.getState().limits;
   const drafts = createChatDrafts({ storage: canonicalHistory ? { getItem: () => canonicalHistory.drafts } : storage,
     persist: canonicalHistory ? raw => canonicalHistory.saveDrafts(raw) : null, key: `${STORAGE_KEY}:drafts`, maxThreads: allowances.maxThreads,
+    // Only the owning tab journals drafts; a refused tab never writes the owner's records.
+    journal: canonicalHistory && historyState.mode === 'transactional' ? storage : null,
     maxCharacters: allowances.maxMessageCharacters, maxFiles: profile.files.maxInputs,
     maxFileBytes: profile.files.maxFileBytes, maxInputBytes: profile.files.maxInputBytes });
 

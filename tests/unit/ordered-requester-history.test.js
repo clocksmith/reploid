@@ -54,7 +54,12 @@ function profileHistory(partitions = { ...runtime, metadataDigest }) {
     workspace: () => durable.get(entry('workspace')) ?? null,
     records: threadId => durable.get(entry('workspace'))?.publications?.[threadId]?.records ?? [],
     locks: { async request(name, options, callback) {
-      if (held.has(name)) { if (options.ifAvailable) return callback(null); throw Error('Blocking lock waits are not modeled'); }
+      if (held.has(name)) {
+        if (options.ifAvailable) return callback(null);
+        // A blocking wait on a lock the owner keeps: only the caller's signal ends it.
+        if (!options.signal) throw Error('Unbounded lock waits are not modeled');
+        await new Promise((resolve, reject) => options.signal.addEventListener('abort', () => reject(options.signal.reason), { once: true }));
+      }
       held.add(name);
       try { return await callback({ name }); } finally { held.delete(name); }
     } },

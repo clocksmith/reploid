@@ -2178,7 +2178,7 @@
     {
       "path": "self/host/chat-drafts.js",
       "owner": "self",
-      "sha256": "sha256:55c49b3d0a7a2c4be3f0390decb1851ffe4728f58ad1ee61d2fe58e9061fd98f",
+      "sha256": "sha256:198e1c5232bb527f11f0d5ca583394c3d1ba936bcbf7c1ef49c3429c15804bb8",
       "imports": []
     },
     {
@@ -2196,7 +2196,7 @@
     {
       "path": "self/host/chat-history.js",
       "owner": "self",
-      "sha256": "sha256:daeed4705e84c43bbd16e388406aed716e5f93823dcc63df67bf9cb4ae07d94a",
+      "sha256": "sha256:5f0d5945f1aec80e40fc5a6fa70dd46f7b8029dceede39949d94da1be23eb8ca",
       "imports": [
         "../vendor/reploid/adapters/browser.js",
         "../vendor/reploid/chat/index.js",
@@ -2214,7 +2214,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:d4e2ed5583712d8f71b09d0e98f6fad2da3fd8f0af560842097a37a47f290620",
+      "sha256": "sha256:db429d6d6413f2637dcf1aa79bb06492ed7d8f7d9b6c064d6cec568e94e92c62",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -3423,13 +3423,13 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:b430df61c8bc3d3f7fa1272800a70e1ba0606f71f6022f0ae72e2fd50aaf9d99",
+      "sha256": "sha256:0d796629db58a68c173e23247d29badbaa08fde68c5d0d4c65308ddeaeec8387",
       "imports": []
     },
     {
       "path": "ui/pool-home/auto-download.js",
       "owner": "ui",
-      "sha256": "sha256:08da9d38f963507c351daccd886b8ef0a63331b412518215eefcfb9f5b906407",
+      "sha256": "sha256:380ec6f31667f93f747bd24c17784e709034d234b94c5a519c290ae317cfa706",
       "imports": [
         "../../config/chat-files.json"
       ]
@@ -3502,7 +3502,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:d63c3ec32b6c2d1c11b9aea46278e79817a305ca095ffbef00161a2b8e0d67d2",
+      "sha256": "sha256:5042acb49715c9244450e3ce72aa0d5c5fbd5088dea461375967aae9932586c1",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",

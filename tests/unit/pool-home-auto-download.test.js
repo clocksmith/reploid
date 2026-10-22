@@ -88,6 +88,22 @@ describe('automatic model download', () => {
     expect(autoFull.notice()).toMatch(/Not enough browser storage/);
   });
 
+  it('reports whether a sent message may start a download for this choice', async () => {
+    const host = session();
+    const auto = createAutoDownload(host, { storage: memory(), connection: () => null, estimate: async () => null });
+    expect(auto.available()).toBe(true);
+    auto.consider({ eligible: true, models: [small] });
+    expect(auto.available()).toBe(false);
+    await settle(); await settle();
+    expect(auto.available()).toBe(false);
+    expect(auto.available(large)).toBe(true);
+    auto.cancelled();
+    expect(auto.available(large)).toBe(false);
+    auto.setEnabled(false);
+    auto.setEnabled(true);
+    expect(auto.available()).toBe(true);
+  });
+
   it('stays stopped after Cancel until the setting is turned on again', async () => {
     const host = session();
     const storage = memory();

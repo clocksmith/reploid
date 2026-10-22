@@ -133,10 +133,15 @@ const checkRouteLayout = async () => {
         await page.setViewportSize({ width: viewport.width, height: viewport.height });
         const browserIssues = [];
         const diagnostics = new Set();
-        let authenticationFailure = null;
+        let authenticationFailure = null, retryAfterMs = 0;
         page.on('pageerror', (error) => browserIssues.push(error.message));
         page.on('response', (response) => {
           if (response.status() < 400) return;
+          // This check's own page loads share one visitor's rate budget; a refusal says when to retry.
+          if (response.status() === 429) {
+            const seconds = Number(response.headers()['retry-after']);
+            retryAfterMs = Math.max(retryAfterMs, Math.min(60000, Number.isFinite(seconds) && seconds > 0 ? seconds * 1000 : 10000));
+          }
           const failure = httpResponseFailure({ url: response.url(), status: response.status(),
             method: response.request().method() }, baseUrl);
           if (failure) browserIssues.push(failure);
@@ -209,8 +214,8 @@ const checkRouteLayout = async () => {
         } finally {
           await page.close();
         }
-        if (attempt < 3) {
-          await new Promise((resolve) => setTimeout(resolve, 250));
+        if (attempt < 3 && routeFailure) {
+          await new Promise((resolve) => setTimeout(resolve, retryAfterMs || 250));
         }
       }
       if (routeFailure) failures.push(routeFailure);

@@ -27,7 +27,7 @@ Outputs: [conversations](conversation-workspace.js), [markup](view.js), [Room-1]
 - Preserve execution in protein/document examples and request/execution/comparison/acceptance/receipt lifecycles. Recovery requires valid state.
 - Disclose execution location, conversation sharing. Default-on network answers authorize Send/Retry without popups; loader shows tools. Preserve opt-outs with inline explanations; local-only stays local. Viewing/restoring/selection grants nothing.
 - Keep failures/Stop visible; selection never stops threads.
-- Connection/cached sharing default on; downloads auto-start only when no computer answers (progress/Cancel/opt-out).
+- Connection/cached sharing default on; only unanswerable sends auto-start downloads (progress/Cancel/opt-out).
 - Training exposes consent, bounded rounds, Stop, unevaluated exports.
 - Include compatible adapters in model selection. Compute/file controls;
   discovery/thread grants imply neither.

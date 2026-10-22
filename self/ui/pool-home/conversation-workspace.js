@@ -161,6 +161,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     drafts.set(selectedId, structuredClone(value)); return session.saveDraft?.(selectedId, value);
   };
   let selectedId = session.getState().selectedId, submitting = false;
+  // A message sent while no computer can answer waits here for its automatic download.
+  let queued = null, canQueue = false, lastUsable = false;
   // While another tab holds the history, the handover notice replaces its refusal.
   const history = session.getState().history;
   const refusal = history?.mode === 'refused' && historyHandover ? history.reason : null;
@@ -220,6 +222,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const state = withComputerLabels(snapshot, session);
     if (controller.signal.aborted) return;
     if (selectedId !== state.selectedId) {
+      queued = null;
       drafts.set(selectedId, { text: input.value, files }); selectedId = state.selectedId; fileRevision++;
       const draft = drafts.get(selectedId) || session.getDraft?.(selectedId); input.value = draft?.text || ''; files = draft?.files || []; showFiles();
     }
@@ -288,19 +291,31 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const canAcquire = !!session.downloadLocalModel && !state.localDownloadIssue && !usable && !localPreparing && !busyAcquisition(state)
       && location !== 'network' && !requestedModel?.partition && !requestedModel?.adapters?.length && (exhausted || location === 'local');
     const acquisition = state.acquisition;
-    // Automatic download never substitutes an explicit choice; without one it takes the smallest whole model.
+    // Only a sent message starts an automatic download. It never substitutes an explicit
+    // choice; without one it takes the smallest whole model and selects it for the message.
     const explicitModel = thread?.model || chosenModel;
-    autoDownload.consider({ eligible: canAcquire && !thread?.closed, models: catalogModels,
-      explicit: explicitModel ? catalogModels.find(model => keyFor(model) === keyFor(explicitModel)) || explicitModel : null });
+    const explicitChoice = explicitModel ? catalogModels.find(model => keyFor(model) === keyFor(explicitModel)) || explicitModel : null;
+    canQueue = canAcquire && !thread?.closed && autoDownload.available(explicitChoice);
+    // One waiting message starts at most one automatic download.
+    if (queued && canAcquire && !queued.considered) { queued.considered = true; autoDownload.consider({ eligible: true, models: catalogModels, explicit: explicitChoice }); }
+    const started = autoDownload.started();
+    if (queued && !explicitModel && started) {
+      chosenModel = catalogModels.find(model => model.id === started.id && !model.partition && !model.adapters?.length) || null;
+      viewState.chosenModel = chosenModel;
+    }
     updateAutoDownloadSetting(surface || container, autoDownload.enabled());
-    const automatic = acquiring && autoDownload.started()?.id === acquisition.modelId ? autoDownload.started() : null;
+    const automatic = acquiring && started?.id === acquisition.modelId ? started : null;
     const autoNotice = canAcquire && !acquiring && !['failed', 'cancelled'].includes(acquisition?.phase) ? autoDownload.notice() : null;
+    // A failed, cancelled or skipped download releases the waiting message back to the composer.
+    if (queued && (['failed', 'cancelled'].includes(acquisition?.phase) || autoNotice && !autoDownload.pending())) queued = null;
     const acquisitionText = find('[data-acquisition-status]');
     acquisitionText.textContent = acquiring ? (automatic ? `${automatic.name} is downloading to this device`
-      + (location === 'local' ? '. ' : ' because no computer can answer. ') : '') + (acquisition.progress?.message || 'Checking model files.')
+      + (location === 'local' ? '. ' : ' because no computer can answer. ') + (queued ? 'Your message sends when it is ready. ' : '') : '')
+      + (acquisition.progress?.message || 'Checking model files.')
+      : queued && !autoNotice ? 'Choosing a model to download to this device.'
       : ['failed', 'cancelled'].includes(acquisition?.phase) ? acquisition.error + ' Retry reuses verified files where supported.'
       : autoNotice ? autoNotice
-      : !usable && exhausted && location !== 'network' ? state.localDownloadIssue || (requestedModel?.partition || requestedModel?.adapters?.length
+      : !usable && exhausted && location !== 'network' && !canQueue ? state.localDownloadIssue || (requestedModel?.partition || requestedModel?.adapters?.length
         ? 'No usable network capacity for this model. Choose a whole base model to download.' : 'No usable network capacity. Download a model to use this device.') : '';
     if (acquiring && usable) acquisitionText.textContent += ' Network capacity is available; you can send now or cancel this download.';
     acquisitionText.hidden = !acquisitionText.textContent;
@@ -320,6 +335,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       : state.localModel?.error && !usable ? 'Model preparation failed: ' + state.localModel.error
       : !usable && location === 'network' ? 'No network capacity for this model. Local execution will not be used.'
       : !usable && location === 'local' ? 'Download this model to run it on this device.'
+      : !usable && exhausted && canQueue && !queued ? 'No computer can answer. Send downloads a model to this device first.'
       : !usable && exhausted ? state.localDownloadIssue || (requestedModel?.partition || requestedModel?.adapters?.length
         ? 'No usable network capacity for this model. Choose a whole base model to download.' : 'No usable network capacity. Download a model to use this device.')
       : !usable && current && !preparing && catalogModels.some(model => ['ready', 'busy', 'cached'].includes(model.availability))
@@ -371,7 +387,12 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       find('[data-context-preview]').textContent = context.content || 'Off. No app context is added.';
     }
     find('[data-composer-send]').hidden = busy;
-    find('[data-retry-connection]').hidden = busy || usable || localPreparing || preparing && !exhausted || (state.network?.connecting || ['connecting', 'retrying'].includes(networkState)) && !exhausted; find('[data-composer-send]').disabled = reading || !usable || !!thread?.closed || !!state.storageError;
+    find('[data-retry-connection]').hidden = busy || usable || localPreparing || preparing && !exhausted || (state.network?.connecting || ['connecting', 'retrying'].includes(networkState)) && !exhausted; find('[data-composer-send]').disabled = reading || !(usable || canQueue && !queued) || !!thread?.closed || !!state.storageError;
+    lastUsable = usable;
+    // Once a model can answer, the waiting message sends as if Send were pressed again.
+    if (queued && usable && !busy && !submitting && !reading && !thread?.closed) {
+      queued = null; queueMicrotask(() => find('[data-composer-form]').requestSubmit());
+    }
     statusButton.hidden ||= !find('[data-retry-connection]').hidden;
     find('[data-composer-stop]').hidden = !busy;
     find('[data-conversation-download]').hidden = !thread?.messages.length;
@@ -492,6 +513,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const content = input.value.trim(), state = session.getState();
     if (!content || reading || submitting || state.runningIds.includes(state.selectedId)) return;
     if (find('[data-composer-send]').disabled) return;
+    if (!lastUsable && canQueue && !queued) { queued = { threadId: state.selectedId }; render(session.getState()); return; }
     const searched = searching();
     if (searched && files.length) { error("Search-backed answers don't include files. Remove the files or turn off search for this answer."); return; }
     submitting = true;
