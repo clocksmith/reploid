@@ -197,7 +197,7 @@ describe('poolday home navigation', () => {
     expect(links.every(link => link.hasAttribute('data-pool-route-link'))).toBe(true);
     expect(host.querySelector('.pool-primary-brand').getAttribute('href')).toBe('/');
     host.insertAdjacentHTML('beforeend', renderRoutePanel('home'));
-    expect(host.querySelector('[data-production-test]')).not.toBeNull();
+    expect(host.querySelector('[data-production-chat]').getAttribute('href')).toBe('/network');
     expect(host.querySelector('[data-production-settings]')).not.toBeNull();
   });
 
