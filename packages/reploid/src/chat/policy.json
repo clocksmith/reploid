@@ -6,6 +6,7 @@
   "maxResponseCharacters": 32768,
   "maxConcurrentAttempts": 8,
   "attemptTimeoutMs": 900000,
+  "streamCheckpointDeltas": 8,
   "maxQueuedRequests": 32,
   "maxRecordedAttempts": 4096,
   "maxRequestsPerParticipant": 2,

@@ -37,6 +37,8 @@ export interface ChatPolicy {
   maxResponseCharacters: number;
   maxConcurrentAttempts: number;
   attemptTimeoutMs: number;
+  /** Deltas per history checkpoint; omitted older policies use the JSON default. Terminal paths always flush. */
+  streamCheckpointDeltas?: number;
   maxQueuedRequests: number;
   maxRecordedAttempts: number;
   maxRequestsPerParticipant: number;
@@ -45,6 +47,8 @@ export interface ChatPolicy {
   budgetWindowMs: number;
 }
 export interface ChatMessage {
+  /** Live whole-model preview beyond its latest durable history checkpoint. Never persisted as a marker. */
+  durability?: 'checkpoint-pending';
   id: string;
   role: 'user' | 'assistant';
   content: string;

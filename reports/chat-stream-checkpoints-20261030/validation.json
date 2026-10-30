@@ -1,0 +1,56 @@
+{
+  "schema": "reploid.chat-stream-checkpoint-review.v1",
+  "baselineCommit": "807a7da2914ccc30f25352433472e5a81834db30",
+  "component": "reploid.browser-library.chat",
+  "intent": "preserved",
+  "sourceHashes": {
+    "packages/reploid/src/chat/workspace.js": "2e2d5321811d4b2825dcd099804fc0a06350c336f98c4c440a64521101d4bf21",
+    "packages/reploid/src/chat/policy.json": "6bab3b44ed67ab2b7414af0e7f8a4eab3b6b27f0b8ab57b00ea71947565b1a99",
+    "packages/reploid/src/chat/index.d.ts": "be5e23a240fe9c9cb10bc9a790535f14c5780bf712f08c7213eeddaf34e8eb63"
+  },
+  "before": "A 25-delta stream calls full-history save 25 times inside execution.",
+  "after": {
+    "fixturePolicy": {
+      "streamCheckpointDeltas": 8
+    },
+    "wholeModelSavesDuring25Deltas": 4,
+    "canonicalFullHistorySavesPerPublication": 0,
+    "durability": "First whole-model delta and periodic checkpoints commit; terminal/cancel/failure flush. Canonical projections still require journal verification.",
+    "preview": "An active whole-model suffix beyond the last checkpoint carries durability=checkpoint-pending. Failed/unknown storage hides it and fences further writes."
+  },
+  "passed": [
+    "61 focused Vitest tests: chat-workspace, ordered-publication, chat-retrieval, search-answer-permission",
+    "verify:library-types",
+    "sync:library",
+    "build:browser-bundle",
+    "git diff --check"
+  ],
+  "regressions": [
+    "bounded stream writes with live text",
+    "failed later checkpoint preserves only last committed partial",
+    "refresh and retry retain committed partials without resending",
+    "whole-model preview differs explicitly from its durable checkpoint",
+    "canonical records commit before visible output with zero duplicate full-history saves",
+    "cancellation, superseded writers, journal integrity and authorization tests remain passing"
+  ],
+  "layersCheck": {
+    "status": "fails on unchanged baseline files",
+    "pathsByteIdenticalToBaseline": {
+      "self/host/model-acquisition.js": true,
+      "self/host/work-model-cache.js": true,
+      "self/zero/boot.js": true,
+      "self/zero/main.js": true
+    },
+    "reason": "Five undeclared dynamic loader expressions in those four existing files. The stale product bundle failure was fixed by regeneration."
+  },
+  "boundaryEffects": [
+    "optional ChatPolicy.streamCheckpointDeltas",
+    "optional ChatMessage.durability preview marker",
+    "generated application library and product bundle refreshed"
+  ],
+  "limits": [
+    "Unit fixtures establish persistence/stream ordering, not real inference throughput or deployment",
+    "The public snapshot listener API still clones complete snapshots; this change removes duplicate persistence copies and writes, not every UI copy",
+    "Canonical project still verifies retained journal records; authorization/signing contracts are unchanged"
+  ]
+}

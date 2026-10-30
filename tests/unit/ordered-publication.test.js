@@ -48,9 +48,12 @@ it('persists whole-model streams alongside ordered history without inventing pub
     expect(workspace.getState().threads[0].attempts).toHaveLength(3);
     expect(workspace.getState().threads[0].messages.at(-1).content).toBe('Forty two');
   });
+  expect(workspace.getState().threads[0].messages.at(-1).durability).toBe('checkpoint-pending');
+  expect(store.durable.get('workspace').workspace.threads[0].messages.at(-1).content).toBe('Forty ');
   await workspace.cancel(id);
   expect((await cancellation).status).toBe('cancelled');
   const snapshot = workspace.getState().threads;
+  expect(snapshot[0].messages.at(-1).durability).toBeUndefined();
   expect(snapshot[0].attempts.every(attempt => attempt.publicationMode === 'whole-model')).toBe(true);
   expect(store.durable.get('workspace').publications).toEqual({});
   // Inspect current durable metadata for rejection tests.
@@ -136,12 +139,13 @@ async function requester(c, store, { writerEpoch = epochA, expectedWriterEpoch =
     // and an ordered record carries no stage commitment to authenticate.
     publicationOptions: () => ({ doppler: { metadataDigest }, authenticateCommit: async () => false, policy,
       authorize: scope => ['writer', 'read', 'replay'].includes(scope.action) || authorizeExecution(scope) === true }) });
+  const historyPort = { ...history, save: vi.fn(snapshot => history.save(snapshot)) };
   const pair = channels();
   const server = createPartitionEntry({ channel: pair[1], localParticipantId: c.signer.peerId, remoteParticipantId: requesterId,
     service, ordered: true, authorize: async () => true, limits: channelLimits, inputLimits });
   const client = createPartitionEntry({ channel: pair[0], localParticipantId: requesterId, remoteParticipantId: c.signer.peerId,
     ordered: true, authorize: async () => true, limits: channelLimits, inputLimits });
-  const projected = [], deltas = [], writerErrors = [];
+  const projected = [], deltas = [], writerErrors = [], publicationHistoryWrites = [];
   // Records the requester writer's own rejection reasons; the coordinator only
   // sees the channel's generic refusal.
   const observed = owner => Object.freeze(Object.fromEntries(Object.entries(owner).map(([key, value]) => [key,
@@ -167,19 +171,25 @@ async function requester(c, store, { writerEpoch = epochA, expectedWriterEpoch =
       disclosureExpiresAt: expiresAt, messages: request.messages,
       publication: { schema: 'reploid.ordered-publication-context/v1', publisherEpoch: controls.publisherEpoch, deadlineAt: expiresAt } },
     { signal: controls.signal, publication: observed(controls.publication), onDelta: delta => deltas.push(delta),
-      onPublished: async record => { projected.push(record.receipt.publicationDigest); return controls.onPublished(record); } });
+      onPublished: async record => {
+        projected.push(record.receipt.publicationDigest);
+        const before = historyPort.save.mock.calls.length;
+        const result = await controls.onPublished(record);
+        publicationHistoryWrites.push(historyPort.save.mock.calls.length - before);
+        return result;
+      } });
     return { ...result, threadId: request.threadId, attemptId: request.attemptId, modelId: request.model.id,
       modelIdentity: request.model.identity, adapterIdentities: [] };
   });
   const workspace = createChatWorkspace({ meshId: 'mesh', participantId: requesterId, requesterIdentity: () => requesterId,
-    store: history, execute });
+    store: historyPort, execute });
   authorizeExecution = workspace.authorizePublication;
   const thread = () => workspace.getState().threads[0];
   // Transactional state shows only durable history: wait for the restore save
   // that marks unfinished attempts interrupted.
   await vi.waitFor(() => expect(workspace.getState().threads.flatMap(row => row.attempts)
     .some(row => ['queued', 'loading', 'executing', 'approval', 'cancelling'].includes(row.status))).toBe(false));
-  return { history, workspace, client, server, execute, projected, deltas, writerErrors, thread,
+  return { history, workspace, client, server, execute, projected, deltas, writerErrors, publicationHistoryWrites, thread,
     attempt: () => thread().attempts.at(-1), response: () => thread().messages.at(-1),
     send: (threadId, content = 'Hello') => workspace.send(threadId, content, { authorizeDisclosure: () => true }),
     async newThread() {
@@ -222,6 +232,7 @@ describe('three-stage ordered route publishing through the requester-owned trans
       expect(attempt.error).toBeNull();
       expect(attempt.status).toBe('completed');
       expect(t.r.response()).toMatchObject({ content: '012', status: 'completed' });
+      expect(t.r.publicationHistoryWrites).toEqual([0, 0, 0]);
       const rows = records(t.store, t.threadId, attempt.id);
       expect(rows.map(row => row.publication.sequence)).toEqual([0, 1, 2]);
       expect(rows.every(row => row.publication.schema === 'reploid.ordered-publication/v1'

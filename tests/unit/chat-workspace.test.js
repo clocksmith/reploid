@@ -1,18 +1,58 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
+import policy from '../../packages/reploid/src/chat/policy.json';
 
 const model = { id: 'model-a', name: 'Model A', identity: 'sha256:' + 'a'.repeat(64) };
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
-const fixture = execute => {
+const fixture = (execute, overrides = {}) => {
   let data;
   const store = { load: () => data, save: value => { data = structuredClone(value); } };
-  const options = { meshId: 'invited-mesh', participantId: 'alice', store, execute };
+  const options = { meshId: 'invited-mesh', participantId: 'alice', store, execute, ...overrides };
   return { options, app: createChatWorkspace(options), store };
 };
 const result = (request, content) => ({ threadId: request.threadId, attemptId: request.attemptId, modelId: request.model.id,
   modelIdentity: request.model.identity, adapterIdentities: (request.model.adapters || []).map(adapter => adapter.identity), content });
 
 describe('conversation workspace', () => {
+  it('checkpoints a stream without saving all history on every token, and flushes terminal text', async () => {
+    let writes, during;
+    const holder = fixture(async (request, controls) => {
+      const before = writes.mock.calls.length;
+      for (let sequence = 0; sequence < 25; sequence++) {
+        controls.onDelta({ ...result(request, ''), text: 'a', sequence });
+      }
+      during = { live: holder.app.getState().threads[0].messages.at(-1).content,
+        writes: writes.mock.calls.length - before, durableLength: holder.store.load().threads[0].messages.at(-1).content.length };
+      return result(request, 'a'.repeat(25));
+    }, { policy: { ...policy, streamCheckpointDeltas: 8 } });
+    writes = vi.spyOn(holder.store, 'save');
+    const thread = holder.app.createThread({ model });
+    expect((await holder.app.send(thread, 'Question')).status).toBe('completed');
+    expect(during.live).toBe('a'.repeat(25));
+    expect(during.writes).toBeLessThanOrEqual(4);
+    expect(during.durableLength).toBeGreaterThanOrEqual(17);
+    expect(holder.store.load().threads[0].messages.at(-1).content).toBe('a'.repeat(25));
+    await holder.app.close();
+  });
+
+  it('fences a failed later stream checkpoint and exposes only the last committed partial', async () => {
+    const holder = fixture(async (request, controls) => {
+      for (let sequence = 0; sequence < 8; sequence++) controls.onDelta({ ...result(request, ''), text: 'a', sequence });
+      return result(request, 'a'.repeat(8));
+    }, { policy: { ...policy, streamCheckpointDeltas: 8 } });
+    const save = holder.store.save;
+    holder.store.save = snapshot => {
+      if (snapshot.threads[0]?.messages.at(-1)?.content.length === 8) throw Error('Checkpoint write outcome unknown');
+      return save(snapshot);
+    };
+    const thread = holder.app.createThread({ model });
+    await expect(holder.app.send(thread, 'Question')).rejects.toThrow('History storage failed');
+    expect(holder.app.getState().storageError).toBe('Checkpoint write outcome unknown');
+    expect(holder.app.getState().threads[0].messages.at(-1).content).toBe('a');
+    expect(holder.store.load().threads[0].messages.at(-1).content).toBe('a');
+    await holder.app.close();
+  });
+
   it('authorizes a verified peer only for this explicit Send and records the exact attempt', async () => {
     const peer = 'peer:' + 'b'.repeat(24), seen = [], authorize = vi.fn(() => true);
     const { app, store, options } = fixture(async (request, controls) => {

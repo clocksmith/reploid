@@ -77,6 +77,10 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
     assert(Number.isSafeInteger(policy[name]) && policy[name] > 0, `Invalid ${name}`);
   }
   assert(policy.attemptTimeoutMs <= 2147483647, 'Attempt timeout exceeds timer range');
+  // Older complete policies predate this scheduling field. JSON remains its default owner.
+  const checkpointDeltas = Object.hasOwn(policy, 'streamCheckpointDeltas')
+    ? policy.streamCheckpointDeltas : defaults.streamCheckpointDeltas;
+  assert(Number.isSafeInteger(checkpointDeltas) && checkpointDeltas > 0, 'Invalid streamCheckpointDeltas');
   const transactional = store.mode === 'transactional';
   if (transactional) assert(['assertCurrentWriter', 'publication', 'project'].every(name => typeof store[name] === 'function'),
     'Transactional workspace publication ports required');
@@ -119,8 +123,27 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       attempt.provenance = answerProvenance(thread, attempt, { localIds: [loadedRequester, participantId].filter(Boolean) });
     }
   }
+  // Canonical text is already durable in the publication journal. Keep its verified
+  // projection separate from full-history save acknowledgements, which may arrive later.
+  const publishedResponses = new Map();
+  const durableView = () => durableThreads.map(thread => {
+    let response = publishedResponses.get(thread.id);
+    if (!response && !storageError && runs.has(thread.id)) {
+      const liveThread = threads.find(item => item.id === thread.id);
+      const attempt = liveThread?.attempts.at(-1);
+      const saved = thread.messages.find(message => message.id === attempt?.responseId);
+      const preview = liveThread?.messages.find(message => message.id === attempt?.responseId);
+      // The first checkpoint must commit before a whole-model stream is visible.
+      // Later accepted deltas can be previewed, explicitly short of durable history.
+      if (attempt?.publicationMode === 'whole-model' && saved?.content && preview
+          && preview.content.startsWith(saved.content) && preview.content !== saved.content) {
+        response = { ...preview, durability: 'checkpoint-pending' };
+      }
+    }
+    return response ? { ...thread, messages: thread.messages.map(message => message.id === response.id ? response : message) } : thread;
+  });
   const snapshot = () => copy({ schema: 'reploid.chat-workspace/v1', meshId, participantId,
-    selectedId, threads: transactional || storageError ? durableThreads : threads, runningIds: [...runs.keys()], storageError,
+    selectedId, threads: transactional || storageError ? durableView() : threads, runningIds: [...runs.keys()], storageError,
     ...(transactional ? { ephemeralExecutions: [...runs.keys()].flatMap(threadId => {
       const attempt = threads.find(thread => thread.id === threadId)?.attempts.at(-1);
       return attempt && activeStatuses.has(attempt.status) ? [{ threadId, attemptId: attempt.id, status: attempt.status,
@@ -260,7 +283,8 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
               response.content = projection.content; response.publicationDigests = copy(projection.publicationDigests);
               response.status = 'streaming'; attempt.status = 'executing';
               run.publicationTerminal = projection.terminal;
-              await persist(); controller.signal.throwIfAborted();
+              publishedResponses.set(thread.id, { ...response });
+              notify(); controller.signal.throwIfAborted();
             } } : {}),
           onDelta(envelope) {
             if (!live() || !matches(envelope)) return;
@@ -271,7 +295,9 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
             assert(typeof envelope.text === 'string', 'Invalid response delta');
             assert(response.content.length + envelope.text.length <= limits.maxResponseCharacters, 'Response exceeds the conversation limit');
             run.nextSequence++;
-            response.content += envelope.text; response.status = 'streaming'; attempt.status = 'executing'; persist();
+            response.content += envelope.text; response.status = 'streaming'; attempt.status = 'executing';
+            if (run.nextSequence === 1 || run.nextSequence % checkpointDeltas === 0) persist();
+            else notify();
           },
           onActivity(envelope) {
             // Ephemeral execution metadata only; never persisted and never output text.
@@ -403,6 +429,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         run.approval?.(false); attempt.approval = null; attempt.finishedAt = now();
         attempt.provenance = answerProvenance(thread, attempt, { localIds: localIds() });
         runs.delete(thread.id); await persist();
+        if (publishedResponses.delete(thread.id)) notify();
       }
       return copy(attempt);
     })();
