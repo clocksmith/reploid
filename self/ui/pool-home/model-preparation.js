@@ -19,4 +19,3 @@ export function preparationStatus(progress) {
   const maximum = step.totalBytes || step.total || null;
   return { status, detail, progress: maximum ? { value: step.receivedBytes ?? step.prepared ?? 0, max: maximum, workId: step.workId || null, sequence: step.sequence ?? null } : null };
 }
-

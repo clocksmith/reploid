@@ -3675,7 +3675,7 @@
     {
       "path": "ui/pool-home/model-preparation.js",
       "owner": "ui",
-      "sha256": "sha256:a3e617d228c7633f1f0db03441f247262d234f1fde9e3a3dc43243be41b0c443",
+      "sha256": "sha256:ed752bc3fdffc9c6827568fe091011901666a12c253e53c10af7d147ebcabfe3",
       "imports": [
         "../../vendor/reploid/mesh/preparation-progress.js"
       ]
