@@ -27,6 +27,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
       <div class="chat-rail-toolbar pool-surface" data-chat-rail-toolbar>
       <div class="chat-rail-heading">
       <span class="chat-thread-brand" data-thread-rail-brand></span>
+      <a class="pool-button chat-rail-icon" href="/" data-pool-route-link="/" aria-label="Production" title="Production">${interfaceIcon('device')}<span class="chat-rail-label">Production</span></a>
       <button class="pool-button chat-new-thread" type="button" data-new-thread aria-label="New thread" title="New thread">${interfaceIcon('newThread')}<span class="chat-rail-label">New thread</span></button>
       </div>
       <footer class="chat-rail-footer"><div data-network-trigger-slot></div></footer>
@@ -73,7 +74,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
           </div>
         </div>
         <div class="chat-composer-notices"><button class="pool-button chat-composer-model btn-ghost" type="button" data-open-model aria-label="Choose model" title="Choose model">${interfaceIcon('model')}<small class="pool-muted" data-model-digest></small></button>${renderContextIndicator()}<button class="pool-button btn-ghost pool-caption" type="button" data-open-limits hidden></button><span class="pool-chip" data-web-search-on hidden>Search on</span><button class="pool-button btn-ghost pool-caption" type="button" data-composer-status hidden></button><button class="pool-button btn-ghost pool-caption" type="button" data-retry-connection aria-label="Retry connection" hidden>Retry</button></div>
-        <p class="pool-small pool-muted" data-acquisition-status role="status" hidden></p><progress class="pool-progress" data-acquisition-progress aria-label="Model download" hidden></progress><button class="pool-button btn-ghost pool-caption" type="button" data-download-local hidden>Download model</button><button class="pool-button btn-ghost pool-caption" type="button" data-cancel-download hidden>Cancel download</button>
+        <p class="pool-small pool-muted" data-capacity-status role="status" hidden></p><p class="pool-small pool-muted" data-acquisition-status role="status" hidden></p><progress class="pool-progress" data-acquisition-progress aria-label="Model download" hidden></progress><button class="pool-button btn-ghost pool-caption" type="button" data-download-local hidden>Download model</button><button class="pool-button btn-ghost pool-caption" type="button" data-cancel-download hidden>Cancel download</button>
         <p class="chat-attachment-help pool-small pool-muted" data-attachment-help hidden>Text files: up to 8, 64 KB each, 128 KB total.</p>
       </form></footer>
       <dialog class="chat-model-setup pool-surface pool-small" data-rename-dialog aria-labelledby="chat-rename-title">
@@ -343,6 +344,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       : !usable ? preparing ? state.localModel?.progress?.message || 'Model preparing…' : state.network?.paused ? 'Reconnect to continue.'
         : state.network?.connecting || ['connecting', 'retrying'].includes(networkState) ? 'Finding capacity…' : 'Model unavailable.' : '';
     modelStatus.hidden = !modelStatus.textContent;
+    const capacityStatus = find('[data-capacity-status]');
+    capacityStatus.textContent = modelStatus.textContent || (!busy && location === 'network' && selectedModel?.networkAvailability === 'busy'
+      ? 'Contributors are busy. Sending waits for capacity.' : '');
+    capacityStatus.hidden = !capacityStatus.textContent;
     const answerLimit = find('[data-answer-limit]');
     const cells = state.answerLimits?.find(entry => entry.selectionId === keyFor(requestedModel || {}))?.cells || [];
     const bounds = [...new Map(cells.map(cell => [cell.maxPromptTokens + '/' + cell.maxAnswerTokens, cell])).values()]

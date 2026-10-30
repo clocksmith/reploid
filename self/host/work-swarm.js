@@ -20,6 +20,7 @@ import { snapshotWorkOrderedParticipation, bindWorkOrderedParticipation } from '
 import { createWorkPartitionNetworks } from './work-partition-networks.js';
 import { createReadinessRecorder, createReadinessRecordStore } from '../vendor/reploid/measurement/index.js';
 import partitionPolicy from '../config/partition-policy.json' with { type: 'json' };
+import { createContributionHistory } from './contribution-history.js';
 
 /** Storage key of this browser's readiness records. Its value is a reploid.capacity-utilization-input/v1
  * document (bounded, latest copy per span or admission) that scripts/capacity-utilization.js reads as is;
@@ -90,6 +91,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   let connectionFailure = null, retainedConnections = [];
   let contributor = null, stoppingContribution = null, contributionEpoch = 0, contributionKey = null;
   let contribution = { phase: 'idle', completed: 0, modelId: null, modelIdentity: null, progress: null };
+  const contributionHistory = createContributionHistory({ storage });
   const getState = () => ({ introductionAssistance, sharing, computeEnabled, filesEnabled, stopping, connecting, paused,
     connections: consumerTransport?.getPeerStates?.() || retainedConnections,
     connectionFailure: connectionFailure ? { ...connectionFailure } : null,
@@ -97,7 +99,8 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     discoveryScope: options.discoveryScope,
     webContributors: webNetwork?.getOffers() || [],
     partitionPeers: partitionMesh?.getState?.()?.capabilities || [],
-    contribution: { ...contribution }, limits: { maxInboundJobs: contribution.partition ? partitionPolicy.limits.maxConcurrentAttempts : 1, maxOutputTokens: profile.generation.maxTokens },
+    contribution: { ...contribution }, contributionHistory: contributionHistory.getState(),
+    limits: { maxInboundJobs: contribution.partition ? partitionPolicy.limits.maxConcurrentAttempts : 1, maxOutputTokens: profile.generation.maxTokens },
     consumer: consumer?.getSwarmSnapshot() || null, supplier: supplier?.getSwarmSnapshot() || null,
     offers: peerOffers?.getState() || null });
   const notify = () => onChange(getState());
@@ -447,6 +450,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
           if (closed || paused || version !== generation || epoch !== contributionEpoch) throw new Error('Contribution stopped');
           const files = modelFiles;
           execution = createWorkResidentProvider({ model, service, generation: profile.generation,
+            onComplete: completion => contributionHistory.record(completion),
             resolveSource: (selected, controls) => files.prepareSource(selected, { ...controls, cacheOnly }),
             resolveAdapter: createWorkAdapterResolver({ models: [base], acquire: files.acquireAdapter }),
             maxOutcomeCharacters: profile.maxOutcomeCharacters, onChange(state) {

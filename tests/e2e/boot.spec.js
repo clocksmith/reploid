@@ -22,6 +22,16 @@ async function openHome(page) {
   await page.waitForSelector('.inference-bar', { timeout: 20000 });
 }
 
+async function expectProductionReady(page) {
+  await expect(page.locator('[data-production-surface]')).toBeVisible({ timeout: 5000 });
+  // Exercise a bound control to distinguish a
+  // usable production view from markup left behind by incomplete initialization.
+  await expect(page.getByRole('link', { name: 'Chat', exact: true })).toBeVisible();
+  await page.locator('[data-production-settings]').click();
+  await expect(page.locator('[data-inspector-pane="settings"]')).toBeVisible({ timeout: 5000 });
+  await page.locator('[data-close-inspector]').click();
+}
+
 async function unlockGoalSection(page) {
   await openBoot(page);
   await page.click('[data-action="choose-browser"]');
@@ -111,13 +121,22 @@ test.describe('Route Entry Points', () => {
       await expect(page.locator('[data-chat-workspace]')).toHaveCount(0);
     });
 
-    test(`opens public-route history while inference module downloads are stalled: ${path}`, async ({ page }) => {
+    test(`opens public-route history from production while inference module downloads are stalled: ${path}`, async ({ page }) => {
       let release;
       const pending = new Promise(resolve => { release = resolve; });
       await page.route('**/vendor/doppler/**', async route => { await pending; await route.abort().catch(() => {}); });
       try {
         await page.goto(path, { waitUntil: 'domcontentloaded' });
+        await expectProductionReady(page);
+        expect(await page.evaluate(() => location.search)).not.toContain('reploidBootRetry');
+        // Follow the real requester entry point while inference is unavailable.
+        await page.getByRole('link', { name: 'Chat', exact: true }).click();
         await expect(page.locator('[data-chat-workspace]')).toBeVisible({ timeout: 5000 });
+        await expect(page.locator('[data-contextual-inspector]')).not.toBeVisible();
+        const draft = 'Keep this question while inference is unavailable';
+        await page.locator('[data-composer-input]').fill(draft);
+        await page.reload({ waitUntil: 'domcontentloaded' });
+        await expect(page.locator('[data-composer-input]')).toHaveValue(draft, { timeout: 5000 });
         expect(await page.evaluate(() => location.search)).not.toContain('reploidBootRetry');
       } finally { release(); }
     });
@@ -154,7 +173,7 @@ test.describe('Route Entry Points', () => {
     });
 
     await page.goto(PRODUCT_HOME_PATH);
-    await page.locator('[data-chat-workspace]').waitFor({ timeout: 30000 });
+    await expectProductionReady(page);
 
     expect(failedRequests).toBe(1);
     expect(new URL(page.url()).searchParams.has('reploidBootRetry')).toBe(false);

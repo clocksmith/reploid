@@ -2137,7 +2137,7 @@
     {
       "path": "providers/work-resident-provider.js",
       "owner": "providers",
-      "sha256": "sha256:152aa278acf8757753d798b6ebf451bbe24771369981b04ea88a46471df6c8fd",
+      "sha256": "sha256:a994c1d1b57b9dd8735feaf69ab04aaceecba39a84088537d39571359372a0a9",
       "imports": [
         "../vendor/reploid/mesh/preparation-progress.js",
         "./work-device.js",
@@ -2290,6 +2290,12 @@
       "path": "self/host/chat-view.js",
       "owner": "self",
       "sha256": "sha256:471393fb05a9ffd7ae9a04266418994b6bcf0bedd8fcee629367c54673a05b71",
+      "imports": []
+    },
+    {
+      "path": "self/host/contribution-history.js",
+      "owner": "self",
+      "sha256": "sha256:8405d1cde67645f69600aa72400e1e5d5b0778e269790bc241deac798e51193e",
       "imports": []
     },
     {
@@ -2752,7 +2758,7 @@
     {
       "path": "self/host/work-swarm.js",
       "owner": "self",
-      "sha256": "sha256:89b14d7d8536ee4ac969c53c1046b1c9345036e84dba9762a525d8b8ebcaf8aa",
+      "sha256": "sha256:0345fbef8eb0a1a70e2854c80bc5c4e042caf1dfb7c625c28c7cc604e0ba840a",
       "imports": [
         "../capabilities/communication/library-adapter.js",
         "../config/doppler-local-models.js",
@@ -2770,6 +2776,7 @@
         "../vendor/reploid/mesh/partitions/partition-attempt-evidence.js",
         "../vendor/reploid/mesh/web-access-network.js",
         "../vendor/reploid/transport/index.js",
+        "./contribution-history.js",
         "./work-model-files.js",
         "./work-partition-networks.js",
         "./work-partition-plan.js",
@@ -3491,7 +3498,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:c634298760177c239bc73731df51a774790e3014e664dba6614cb3e10dc089d2",
+      "sha256": "sha256:a93a9de1d4b176790c37f2c0dbcedd1cf15a8de801547765d341bc2e4a457733",
       "imports": []
     },
     {
@@ -3576,7 +3583,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:d37c51acff9e62deeffafcb109e754db93ad2c821ab7146da8c12af6c26e26ae",
+      "sha256": "sha256:e5506728e61bd4e9f51bf090f50848c81d5ed9b690826e6179a0023e69ef4d14",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -3631,7 +3638,7 @@
     {
       "path": "ui/pool-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:09d7b8f0e69355e08a5cdbde6ee37447eca77a4fa1ab58b87d1b9d0c0298bf3b",
+      "sha256": "sha256:a9da08c2eec66354cac5760bd9ec9ea730e2184998a39f303ea3209526d33f14",
       "imports": [
         "../../host/credits/browser.js",
         "../../host/product-context.js",
@@ -3751,14 +3758,13 @@
     {
       "path": "ui/pool-home/production.js",
       "owner": "ui",
-      "sha256": "sha256:8ea21c4b49d0c5d15d8d50298e94e0355e7ece8855cfd554954155924352c389",
+      "sha256": "sha256:963bea0d5bd87d0d5480c92ac91112cc00217e555135c7ed2dba87474597ece6",
       "imports": [
         "../components/dialog.js",
         "../components/html.js",
         "../components/interface-icons.js",
         "../components/mathematical-background.js",
         "./contribution-models.js",
-        "./conversation-workspace.js",
         "./model-preparation.js",
         "./shell-view.js"
       ]

@@ -16,12 +16,16 @@ it('does not confuse a ready network model with local preparation', () => {
   expect(view.configured).toBe(false);
 });
 
-it('only offers testing with reported local readiness or ready remote capacity', () => {
+it('keeps chat reachable with no capacity, downloaded models and busy peers', () => {
   const cold = { ...model, networkAvailability: 'unavailable' };
-  expect(projectProduction({ models: [cold], network: {} }).canTest).toBe(false);
-  expect(projectProduction({ models: [{ ...cold, localCached: true }], network: {} }).canTest).toBe(false);
-  expect(projectProduction({ models: [{ ...cold, localReady: true }], network: {} }).canTest).toBe(true);
-  expect(projectProduction({ models: [model], network: {} }).canTest).toBe(true);
+  for (const models of [[], [cold], [{ ...cold, localCached: true }], [{ ...model, networkAvailability: 'busy' }]]) {
+    const snapshot = { models, network: {} };
+    const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; } };
+    const detach = bindProductionSurface(document.body, session);
+    expect(document.querySelector('[data-production-chat]').getAttribute('href')).toBe('/network');
+    expect(document.querySelector('[data-production-chat]').hidden).toBe(false);
+    expect(document.querySelector('.production-utilities').hidden).toBe(false); detach();
+  }
 });
 
 it('shows starter choices for saved sharing preferences with no downloaded models', () => {
@@ -92,7 +96,7 @@ it('starts with model actions and hides empty production counters', () => {
   expect(document.querySelector('[data-production-metrics]').hidden).toBe(true);
   expect(document.querySelector('[data-production-local]').hidden).toBe(true);
   expect(document.querySelector('[data-production-pause]').hidden).toBe(true);
-  expect(document.querySelector('[data-production-available]')).toBeNull(); detach();
+  expect(document.querySelector('[data-production-available]').textContent).toContain('Model · Ready'); detach();
 });
 
 it('loads model sizes without starting work and confirms the exact selected model', async () => {
@@ -152,11 +156,28 @@ it('resumes only the previously selected model after an explicit pause', async (
   expect(session.setSharing).toHaveBeenLastCalledWith(true, 'm', true); detach();
 });
 
-it('renders measured values and leaves the chat demo collapsed', () => {
+it('renders session measurements and keeps requester navigation available', () => {
   const snapshot = state(), session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; } };
   const detach = bindProductionSurface(document.body, session, { inspector: {} });
   expect(document.querySelector('[data-production-tokens]').textContent).toBe('14');
   expect(document.querySelector('[data-production-completed]').textContent).toBe('2');
-  expect(document.querySelector('[data-production-demo]').open).toBe(false);
-  expect(document.querySelector('[data-production-surface]').textContent).not.toMatch(/earnings|\$/i); detach();
+  expect(document.querySelector('[data-production-chat]').textContent).toBe('Chat');
+  expect(document.querySelector('[data-production-metrics]').textContent).not.toMatch(/earnings|\$/i); detach();
+});
+
+it('distinguishes downloaded idle files from an explicit sharing opt-out', () => {
+  const cached = { ...model, localCached: true, networkAvailability: 'unavailable' };
+  expect(projectProduction({ models: [cached], network: {} }).status).toBe('Downloaded · not sharing');
+  expect(projectProduction({ models: [cached], network: { computeEnabled: false, files: { enabled: false } } }).status).toBe('Paused');
+});
+
+it('shows retained executions while inactive without inventing earnings or token counts', () => {
+  const snapshot = { models: [model], network: { contributionHistory: { records: [
+    { id: 'saved', modelId: 'm', modelIdentity: model.identity, completedAt: 1000, outputTokens: null }
+  ] } } };
+  const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; } };
+  const detach = bindProductionSurface(document.body, session);
+  expect(document.querySelector('[data-production-history-records]').textContent).toContain('Model');
+  expect(document.querySelector('[data-production-history-records]').textContent).toContain('Token count unavailable');
+  expect(document.querySelector('[data-production-history-count]').textContent).toBe('1'); detach();
 });

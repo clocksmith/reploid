@@ -174,10 +174,22 @@ it('captures runtime timing before cleanup resets it, without counting text chun
 });
 
 it('marks output counts missing when a completed result carries no token measurement', async () => {
-  const f = fixture(); await f.owner.prepare();
+  const onComplete = vi.fn(), f = fixture({}, { onComplete }); await f.owner.prepare();
   await f.owner.generate([{ content: 'not a token count' }], () => {}, { signal: signal() });
   expect(f.owner.getState()).toMatchObject({ completed: 1, production: { outputTokens: 0, missingTokenCounts: 1 } });
+  expect(onComplete).toHaveBeenCalledExactlyOnceWith({ modelId: 'fixture', modelIdentity: 'sha256:' + 'a'.repeat(64), outputTokens: null });
   await f.owner.close();
+});
+
+it('does not record failed or cancelled execution as completed contribution', async () => {
+  const onComplete = vi.fn();
+  const f = fixture({ async *stream() { throw Error('execution failed'); } }, { onComplete });
+  await f.owner.prepare();
+  await expect(f.owner.generate([], () => {}, { signal: signal() })).rejects.toThrow('execution failed');
+  expect(onComplete).not.toHaveBeenCalled(); await f.owner.close();
+  const cancelled = fixture({}, { onComplete }); await cancelled.owner.prepare();
+  await expect(cancelled.owner.generate([], () => {}, { signal: AbortSignal.abort() })).rejects.toThrow();
+  expect(onComplete).not.toHaveBeenCalled(); await cancelled.owner.close();
 });
 
 

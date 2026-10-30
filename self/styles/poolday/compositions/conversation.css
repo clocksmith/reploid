@@ -331,6 +331,7 @@
 .chat-conversation-actions > summary { display: flex; align-items: center; justify-content: center; list-style: none; }
 .chat-conversation-actions > summary::-webkit-details-marker { display: none; }
 @media (max-width: 760px) {
+  .pool-home .chat-rail-toolbar .chat-rail-label { display: none; }
   .chat-thread-header .chat-thread-info { flex: 1; min-width: 0; }
   .chat-thread-header :is([data-toggle-inspector], .chat-conversation-actions > summary) { padding-inline: var(--pool-size-8); }
   .chat-thread-header [data-mesh-peers] { display: none; }

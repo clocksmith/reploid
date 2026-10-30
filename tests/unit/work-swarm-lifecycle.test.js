@@ -170,7 +170,12 @@ it('advertises loading without slots, prepares once and reuses reset resident we
   const results = f.sent.filter(row => row.name === 'reploid:generation-result');
   expect(results.map(row => row.payload.response.content)).toEqual(['First', 'Second']);
   expect(results.every(row => row.payload.response.modelIdentity === wholeModelIdentity)).toBe(true);
+  expect(f.swarm.getState().contributionHistory.records).toHaveLength(2);
+  expect(f.swarm.getState().contributionHistory.records.every(row => row.modelIdentity === wholeModelIdentity && row.outputTokens === null)).toBe(true);
   await f.swarm.stop(); expect(f.service.close).toHaveBeenCalledOnce(); await f.swarm.close();
+  const reopened = fixture();
+  expect(reopened.getState().contributionHistory.records).toHaveLength(2);
+  await reopened.close();
 });
 
 it('stop during preparation cannot publish late readiness and waits for load cleanup', async () => {
@@ -192,6 +197,7 @@ it('cancellation holds the slot through settlement, ignores duplicates and suppr
   expect(f.ads.at(-1).availableSlots).toBe(0);
   f.settlement.resolve(); await active;
   expect(f.sent.filter(row => row.name === 'reploid:generation-result')).toHaveLength(0);
+  expect(f.swarm.getState().contributionHistory.records).toHaveLength(0);
   expect(f.ads.at(-1).availableSlots).toBe(1);
   const resets = f.session.resetGenerationState.mock.calls.length;
   await f.request('one', 'replay cancelled');

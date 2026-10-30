@@ -4,7 +4,7 @@ import { openWorkProvider } from './work-provider.js';
 import { withWorkDevice } from './work-device.js';
 
 export function createWorkResidentProvider({ service, model, generation, maxOutcomeCharacters,
-  onChange = () => {}, scope = 'work-resident:' + crypto.randomUUID(), resolveAdapter, resolveSource, source, loadOptions }) {
+  onChange = () => {}, onComplete = () => {}, scope = 'work-resident:' + crypto.randomUUID(), resolveAdapter, resolveSource, source, loadOptions }) {
   model = structuredClone(model);
   generation = structuredClone(generation);
   const lifetime = new AbortController(), operations = new Set();
@@ -71,6 +71,11 @@ export function createWorkResidentProvider({ service, model, generation, maxOutc
         const tokens = result.completion?.generatedTokenCount ?? result.timing?.generatedTokenCount;
         if (Number.isSafeInteger(tokens) && tokens >= 0) production.outputTokens += tokens;
         else production.missingTokenCounts++;
+        // Retain only completed, identity-checked execution metadata. Reporting
+        // failure must not turn a completed answer into an inference failure.
+        try { onComplete({ modelId: model.id, modelIdentity: identity.modelIdentity,
+          outputTokens: Number.isSafeInteger(tokens) && tokens >= 0 ? tokens : null }); }
+        catch (cause) { console.error('[Resident] completion observer failed', cause); }
         return result;
       } catch (cause) {
         // Cancellation may reuse a clean session; runtime or reset failures may not.
