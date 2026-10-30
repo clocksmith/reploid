@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { participantLabel } from '../../self/ui/pool-home/computer-labels.js';
 
 // Isolated presentation fixtures: no discovery, inference, model loading or GPU work.
 test.beforeEach(async ({ page }) => {
@@ -117,7 +118,7 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     await expect(page.locator('.chat-thread-title').first()).toBeHidden();
     await expect(page.locator('[data-thread-list]')).toBeHidden();
     await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
-    await expect(page.locator('.network-peer-row strong')).toHaveText(['Computer 1','Computer 2','Computer 3','Computer 4']);
+    await expect(page.locator('.network-peer-row strong')).toHaveText(['a', 'b', 'c', 'd'].map(id => participantLabel('participant-' + id)));
     await page.screenshot({path:info.outputPath('network.png')});
     await page.locator('[data-inspector-section="settings"]').click();
     await expect(page.locator('[data-inspector-pane="settings"]')).toBeVisible();

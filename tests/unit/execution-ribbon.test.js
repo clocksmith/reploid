@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { projectExecutionRibbon, renderExecutionRibbon, bindExecutionRibbon } from '../../self/ui/pool-home/execution-ribbon.js';
+import { participantLabel } from '../../self/ui/pool-home/computer-labels.js';
 
 function snapshot(execution = null, status = 'executing', response = '') {
   return { participantId: 'requester', network: { consumer: { connectionState: 'connected', peers: [{ peerId: 'unrelated-peer' }] } },
@@ -79,7 +80,7 @@ describe('Execution ribbon interactions', () => {
     const inspect = vi.fn(); mount(inspect); binding.update(snapshot(split));
     const trigger = root.querySelector('[data-ribbon-trigger]');
     expect(root.querySelector('[data-ribbon-status]').textContent).toBe('Executing');
-    expect(trigger.getAttribute('aria-label')).toContain('Test model on Computer 1 and Computer 2');
+    expect(trigger.getAttribute('aria-label')).toContain(`Test model on ${participantLabel('executor-A')} and ${participantLabel('executor-B')}`);
     expect(root.querySelectorAll('.execution-ribbon-node')).toHaveLength(0);
     trigger.focus(); expect(inspect).not.toHaveBeenCalled();
     trigger.click(); expect(inspect).toHaveBeenCalledWith('conversation', trigger);

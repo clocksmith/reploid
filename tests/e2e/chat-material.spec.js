@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { openParticipantControls } from '../fixtures/signaling-interruption.js';
+import { participantLabel } from '../../self/ui/pool-home/computer-labels.js';
 
 // Explicit host-state fixtures exercise presentation, not model inference.
 async function installConversation(page, theme) {
@@ -297,7 +298,7 @@ test('bounded inspector and reduced viewport preserve a long conversation and co
   for (let i = 0; i < 3; i++) {
     await page.locator('[data-toggle-inspector]').click();
     await page.locator('[data-inspector-section=conversation]').click();
-    await expect(page.locator('[data-inspector-route]')).toContainText('Computer 1');
+    await expect(page.locator('[data-inspector-route]')).toContainText(participantLabel('fixture-A'));
     await page.keyboard.press('Escape'); await expect(page.locator('[data-inspector-section=conversation]')).toBeFocused();
   }
   expect(await page.locator('[data-composer-area]').boundingBox()).toEqual(before);
@@ -369,7 +370,7 @@ test('answer activity shows observed shares and preserves its disclosure during 
   await expect(activity.locator('.chat-distribution')).toHaveCount(0);
   await page.evaluate(() => window.setVisualMetrics({ localStepMs: { count: 4, total: 1000 }, remoteStepMs: { count: 4, total: 3000 } }));
   await expect(activity.locator('[data-activity-detail]')).toBeVisible();
-  await expect(activity.getByRole('img')).toHaveAttribute('aria-label', 'Recorded step time share: Computer 1 25%, Computer 2 75%');
+  await expect(activity.getByRole('img')).toHaveAttribute('aria-label', `Recorded step time share: ${participantLabel('fixture-A')} 25%, ${participantLabel('fixture-B')} 75%`);
   await expect(activity).toContainText('25% · 4.0 steps/s');
   await expect(activity).toContainText('75% · 1.3 steps/s');
   const panel = await activity.locator('[data-activity-detail]').boundingBox();

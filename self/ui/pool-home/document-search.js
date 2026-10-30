@@ -1,5 +1,6 @@
 import { renderPermissionSummary, updatePermissionSummary } from '../components/permission-card.js';
 import { readTextAttachments } from '../components/attachments.js';
+import { participantLabel } from './computer-labels.js';
 import policy from '../../pool/document-search-policy.json' with { type: 'json' };
 
 export const renderDocumentSearch = () => `
@@ -124,7 +125,7 @@ export function refreshDocumentSearch(root, state) {
   preview.hidden = !sharing?.preview;
   if (sharing?.preview) {
     preview.dataset.previewId = sharing.preview.id;
-    updatePermissionSummary(preview, { recipient: `Recipient: Computer ${sharing.preview.providerId} · ${sharing.preview.modelId}`,
+    updatePermissionSummary(preview, { recipient: `Recipient: ${participantLabel(sharing.preview.providerId)} · ${sharing.preview.modelId}`,
       scope: 'Only this approved task leaves your device. Source documents stay here.', input: sharing.preview.text, technical: sharing.preview });
   }
   surface.querySelector('[data-document-send-share]').disabled = state.busy || !sharing?.preview

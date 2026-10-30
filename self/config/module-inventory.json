@@ -3491,7 +3491,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:d5405fc1388630cd39736fe45ed34ae0e4dcdee0fc733cb224dc3e8ccf9e00a0",
+      "sha256": "sha256:c634298760177c239bc73731df51a774790e3014e664dba6614cb3e10dc089d2",
       "imports": []
     },
     {
@@ -3505,7 +3505,7 @@
     {
       "path": "ui/pool-home/computer-labels.js",
       "owner": "ui",
-      "sha256": "sha256:c558f4503f049070a1a0bfdb84de53eac91bd8d856601c3e1b2fb8ce1e0fabf6",
+      "sha256": "sha256:c53dc0a9913e4224526ae65cdda5dd2a2d6723b2d701637741a2cfe5d5bea2c6",
       "imports": []
     },
     {
@@ -3596,11 +3596,12 @@
     {
       "path": "ui/pool-home/document-search.js",
       "owner": "ui",
-      "sha256": "sha256:2d95dca62a59357672010ae257b03a48a50c5e036db9b4f15984bf3dac5a9767",
+      "sha256": "sha256:7441e5d55e0715b6a689a5e2c2b8b802da85ea0e0e85e410d5aeba97874a8960",
       "imports": [
         "../../pool/document-search-policy.json",
         "../components/attachments.js",
-        "../components/permission-card.js"
+        "../components/permission-card.js",
+        "./computer-labels.js"
       ]
     },
     {
@@ -4098,11 +4099,12 @@
     {
       "path": "ui/pool-home/work.js",
       "owner": "ui",
-      "sha256": "sha256:977b1fe48d21f1cc45ee215df03106ee022bdaafc33e3b1b4620d49e1b56415b",
+      "sha256": "sha256:acf407fed73fabcfc59ec63a9b0c401edfb4336287d1f0f94a484893739034a8",
       "imports": [
         "../../config/work-profile.json",
         "../../host/work-session.js",
         "../components/permission-card.js",
+        "./computer-labels.js",
         "./lora-training.js",
         "./network-inspector.js",
         "./work-activity-list.js",

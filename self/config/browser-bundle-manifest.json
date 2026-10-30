@@ -1365,8 +1365,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 583909,
-      "sha256": "sha256:497cb647862b8a21db6906aa3ca2a3419d9c61742b9746fec092ed8d91499a5a"
+      "byteLength": 583973,
+      "sha256": "sha256:02a486df9d73694fe8876d9ff7ce539d9a3c28e7aba5cbe2d5c610e96b4f8ef1"
     },
     {
       "path": "config/module-registry.json",
@@ -3370,8 +3370,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2224285,
-      "sha256": "sha256:d5405fc1388630cd39736fe45ed34ae0e4dcdee0fc733cb224dc3e8ccf9e00a0"
+      "byteLength": 2225067,
+      "sha256": "sha256:c634298760177c239bc73731df51a774790e3014e664dba6614cb3e10dc089d2"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -3380,8 +3380,8 @@
     },
     {
       "path": "ui/pool-home/computer-labels.js",
-      "byteLength": 2395,
-      "sha256": "sha256:c558f4503f049070a1a0bfdb84de53eac91bd8d856601c3e1b2fb8ce1e0fabf6"
+      "byteLength": 3508,
+      "sha256": "sha256:c53dc0a9913e4224526ae65cdda5dd2a2d6723b2d701637741a2cfe5d5bea2c6"
     },
     {
       "path": "ui/pool-home/constants.js",
@@ -3420,8 +3420,8 @@
     },
     {
       "path": "ui/pool-home/document-search.js",
-      "byteLength": 17140,
-      "sha256": "sha256:2d95dca62a59357672010ae257b03a48a50c5e036db9b4f15984bf3dac5a9767"
+      "byteLength": 17206,
+      "sha256": "sha256:7441e5d55e0715b6a689a5e2c2b8b802da85ea0e0e85e410d5aeba97874a8960"
     },
     {
       "path": "ui/pool-home/execution-activity.js",
@@ -3675,8 +3675,8 @@
     },
     {
       "path": "ui/pool-home/work.js",
-      "byteLength": 25388,
-      "sha256": "sha256:977b1fe48d21f1cc45ee215df03106ee022bdaafc33e3b1b4620d49e1b56415b"
+      "byteLength": 25454,
+      "sha256": "sha256:acf407fed73fabcfc59ec63a9b0c401edfb4336287d1f0f94a484893739034a8"
     },
     {
       "path": "ui/poolday-design/index.js",
@@ -10914,5 +10914,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:f0b6dcfd2990dba6f17d0dfa59bf942cc1356be5c78004be839de5378e69bc3e"
+  "bundleHash": "sha256:275d656331b75d2633024a0580be7696b0d18ae3fb4e5e0da5706f34495954f7"
 }

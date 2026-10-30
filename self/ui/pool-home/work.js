@@ -1,5 +1,6 @@
 import { renderTraining, bindTraining } from './lora-training.js';
 import { updatePermissionSummary } from '../components/permission-card.js';
+import { participantLabel } from './computer-labels.js';
 /**
  * Views request host actions; task execution and disclosure enforcement live in the host.
  * Refactored into decomposed sub-components within a centered reading layout.
@@ -198,7 +199,7 @@ export function bindWorkSurface(root, application, services = {}) {
       if (pending && nextApproval !== approvalIdentity) {
         approvalId = pending.id;
         find('[data-work-public]').checked = false;
-        updatePermissionSummary(approvalPanel, { recipient: `Recipient: Computer ${pending.providerId} · ${pending.modelId}`,
+        updatePermissionSummary(approvalPanel, { recipient: `Recipient: ${participantLabel(pending.providerId)} · ${pending.modelId}`,
           scope: `This exact input will be shared as public data. Approval expires ${new Date(pending.expiresAt).toLocaleString()}.`,
           input: pending.input, technical: pending });
       }
