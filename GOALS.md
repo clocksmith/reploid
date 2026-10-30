@@ -40,6 +40,10 @@ Reploid coordinates; Doppler defines and executes model computations. Poolday
 supplies participation and authorized data-transfer infrastructure. Zero and X retain
 their research scope. Research capabilities below do not select customer workloads.
 
+Poolday's purpose is generating tokens on consumer hardware and exchanging them.
+The form of exchange and its counterparties are not fixed. Efficient distributed
+token production must be proven first; any exchange depends on that proof.
+
 ## Intended Beneficiaries
 
 Humans and agents pursuing objectives should gain access to complementary
