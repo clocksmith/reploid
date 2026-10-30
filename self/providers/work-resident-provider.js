@@ -10,8 +10,9 @@ export function createWorkResidentProvider({ service, model, generation, maxOutc
   const lifetime = new AbortController(), operations = new Set();
   let adapter = null, identity = null, preparing = null, closing = null, cleanup = null;
   let closed = false, phase = 'idle', error = null, progress = null, completed = 0;
+  const production = { outputTokens: 0, missingTokenCounts: 0 };
   let adapterIdentities = [];
-  const getState = () => ({ phase, error, progress: structuredClone(progress), completed,
+  const getState = () => ({ phase, error, progress: structuredClone(progress), completed, production: { ...production },
     modelId: model.id, modelIdentity: identity?.modelIdentity || null,
     adapterIdentities: [...adapterIdentities],
     ready: !closed && !!adapter && adapter.isReady() && ['ready', 'executing'].includes(phase) });
@@ -66,6 +67,10 @@ export function createWorkResidentProvider({ service, model, generation, maxOutc
       try {
         const result = await current.generate(input, onUpdate, { signal: combined, adapters: selectedAdapters, maxOutputTokens });
         combined.throwIfAborted(); completed++;
+        // Count runtime-reported tokens, never text deltas or estimated words.
+        const tokens = result.completion?.generatedTokenCount ?? result.timing?.generatedTokenCount;
+        if (Number.isSafeInteger(tokens) && tokens >= 0) production.outputTokens += tokens;
+        else production.missingTokenCounts++;
         return result;
       } catch (cause) {
         // Cancellation may reuse a clean session; runtime or reset failures may not.

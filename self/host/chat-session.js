@@ -110,6 +110,12 @@ export function createChatSession({
   const discoveryDeadline = setTimeout(() => { peerDiscoveryTimedOut = true; notifyAll(); }, 8000);
   discoveryDeadline.unref?.();
   const acquisition = createModelAcquisition({ onChange: () => notifyAll() });
+  const acquireApprovedModel = model => {
+    assert(downloadSizes.has(model.id), 'Check the model download size first');
+    return acquisition.start(model, true, downloadSizes.get(model.id)).then(cached => {
+      if (!closed) { failedLocalModel = null; cachedModels = [...cachedModels.filter(item => item.id !== cached.id), cached]; notifyAll(); }
+    });
+  };
   let remotePermissions = loadPermissions(storage);
   // The room this session's swarm joins; without a swarm, the history mesh.
   const currentNetwork = () => swarm?.getNetworkId?.() || meshId;
@@ -299,10 +305,8 @@ export function createChatSession({
       assertOpen();
       const model = models.find(item => item.id === modelId && !item.partition && !item.adapters?.length);
       assert(model?.source, 'Choose a catalog model');
-      assert(downloadSizes.has(model.id), 'Check the model download size first');
-      return acquisition.start(model, approved, downloadSizes.get(model.id)).then(cached => {
-        if (!closed) { failedLocalModel = null; cachedModels = [...cachedModels.filter(item => item.id !== cached.id), cached]; notifyAll(); }
-      });
+      assert(approved === true, 'Approve the model download first');
+      return acquireApprovedModel(model);
     },
     cancelModelDownload: () => acquisition.cancel(),
     async getModelDownload(modelId, { signal } = {}) {
@@ -536,6 +540,10 @@ export function createChatSession({
           assert(approved === true, 'Approve public prompt execution before sharing');
           const model = getCatalogModels().find(item => (item.selectionId || item.id) === selectionId);
           assert(model, 'Select a catalog model before contributing');
+          if (!model.partition && !model.adapters?.length && !isCached(model)) await acquireApprovedModel(model);
+          assertOpen();
+          const current = swarm.getState?.().contribution;
+          if (current?.modelId && current.modelId !== model.id) await swarm.stop();
           await swarm.share(model.id, true, model.adapters || [], { mode: model.partition ? 'partition' : 'whole-model' });
         } else await swarm.stop();
       } finally { notifyAll(); }

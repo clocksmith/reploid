@@ -7,11 +7,13 @@ import { resolveRtcConfig } from '../../pool/p2p-transport.js';
 import { POOLDAY_NAME, ROUTE_COPY } from './constants.js';
 import { getRouteId, renderNav, updateChangesControl } from './shell-view.js';
 import { renderConversationWorkspace, bindConversationWorkspace } from './conversation-workspace.js';
+import { renderProductionSurface, bindProductionSurface } from './production.js';
 import { renderNetworkInspector, bindNetworkInspector } from './network-inspector.js';
 import { bindExecutionRibbon } from './execution-ribbon.js';
 import { bindThemeSelector } from './theme.js';
 import { bindPoolRouteControls } from './navigation.js';
 import { renderHandedOver } from './history-handover-view.js';
+import { bindButtonFeedback } from '../components/button-feedback.js';
 
 let disposeWorkspace;
 export function initPoolHome(mount, { operationNetwork = null, canonical = null, ordered, signal } = {}) {
@@ -26,6 +28,7 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
   let specialists, sharingView, inspector, host;
   const viewState = {}, documentViewState = {};
   const theme = bindThemeSelector(mount);
+  const disposeButtonFeedback = bindButtonFeedback(mount);
   const refreshChanges = async () => {
     const current = ++changesRevision;
     try {
@@ -51,7 +54,7 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
   if (openedHost?.then) {
     const cancelOpening = () => {
       if (disposed) return;
-      disposed = true; theme.dispose();
+      disposed = true; theme.dispose(); disposeButtonFeedback();
       signal?.removeEventListener('abort', cancelOpening);
       window.removeEventListener('pagehide', cancelOpening);
       if (disposeWorkspace === cancelOpening) disposeWorkspace = null;
@@ -121,7 +124,10 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
       const bindNavigation = () => bindPoolRouteControls(mount, render);
       bindNavigation();
       try {
-        if (routeId === 'home' || routeId === 'network') {
+        if (routeId === 'home') {
+          content.innerHTML = renderProductionSurface();
+          detachView = bindProductionSurface(content, host.chat, { viewState, inspector, webSearch: host.webSearch, search: host.search, historyHandover: host.historyHandover });
+        } else if (routeId === 'network') {
           content.innerHTML = renderConversationWorkspace({ inspector: false });
           detachView = bindConversationWorkspace(content, host.chat, { viewState, inspector, webSearch: host.webSearch, search: host.search, historyHandover: host.historyHandover });
           if (routeId === 'network') inspector.open();
@@ -175,7 +181,7 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
       if (disposed) return;
       disposed = true; revision++; changesRevision++;
       unsubscribeHandover(); if (!keepHandover) handover?.close();
-      detachView(); detachRibbon(); inspector?.dispose(); theme.dispose(); disposeSpecialists();
+      detachView(); detachRibbon(); inspector?.dispose(); theme.dispose(); disposeButtonFeedback(); disposeSpecialists();
       window.removeEventListener('popstate', render); window.removeEventListener('pagehide', onPageHide); window.removeEventListener('pageshow', onPageShow);
       if (window.REPLOID_POOL_CONNECT_OPERATIONS === connectOperations) delete window.REPLOID_POOL_CONNECT_OPERATIONS;
       void host.close();

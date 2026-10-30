@@ -2137,7 +2137,7 @@
     {
       "path": "providers/work-resident-provider.js",
       "owner": "providers",
-      "sha256": "sha256:2ea5305d079ee7b3d715f549d8378deb798c6fb8311ef216456a792a8688eefa",
+      "sha256": "sha256:152aa278acf8757753d798b6ebf451bbe24771369981b04ea88a46471df6c8fd",
       "imports": [
         "../vendor/reploid/mesh/preparation-progress.js",
         "./work-device.js",
@@ -2268,7 +2268,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:db429d6d6413f2637dcf1aa79bb06492ed7d8f7d9b6c064d6cec568e94e92c62",
+      "sha256": "sha256:6165ebd5a53e5eb4318f795b09884da54891b3b921791609af11b16a6a61f847",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -2752,7 +2752,7 @@
     {
       "path": "self/host/work-swarm.js",
       "owner": "self",
-      "sha256": "sha256:5bd63ab7a6db95772858ee629a06bb1c2835529dbce7465d0ed12b7e765aea84",
+      "sha256": "sha256:89b14d7d8536ee4ac969c53c1046b1c9345036e84dba9762a525d8b8ebcaf8aa",
       "imports": [
         "../capabilities/communication/library-adapter.js",
         "../config/doppler-local-models.js",
@@ -3380,6 +3380,12 @@
       ]
     },
     {
+      "path": "ui/components/button-feedback.js",
+      "owner": "ui",
+      "sha256": "sha256:a872469004570ecbda02562ac31e0b8d6ef8c2874d6daac453abf4771d6a1c8f",
+      "imports": []
+    },
+    {
       "path": "ui/components/dialog.js",
       "owner": "ui",
       "sha256": "sha256:c3232a7af82939c68d6bb08f9f8ed789735d912043b052f00f28a4ba5aac3ea7",
@@ -3419,6 +3425,12 @@
       "path": "ui/components/interface-icons.js",
       "owner": "ui",
       "sha256": "sha256:9e8e208c14cadc32f82bc4b80ed257c5e798d0dd5e5fda1d2cc480d9a62a64e0",
+      "imports": []
+    },
+    {
+      "path": "ui/components/mathematical-background.js",
+      "owner": "ui",
+      "sha256": "sha256:d2957d53f3a882ad0bb82b2e66084df0da02ab0574b8b0bc33cb4802fe7097ab",
       "imports": []
     },
     {
@@ -3479,7 +3491,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:6c9161c4607ae9380011ae7423a850b0f545efd68b6765928c54e9a5b1da702f",
+      "sha256": "sha256:d5405fc1388630cd39736fe45ed34ae0e4dcdee0fc733cb224dc3e8ccf9e00a0",
       "imports": []
     },
     {
@@ -3499,7 +3511,7 @@
     {
       "path": "ui/pool-home/constants.js",
       "owner": "ui",
-      "sha256": "sha256:d15edb5a756f7c71f551a993406ee71106630329d1e94ad945f43e783bd1f67e",
+      "sha256": "sha256:3f0be3cb4a302ab009b9996e45b057c563cb21def611caa2b6f549b156727d2c",
       "imports": []
     },
     {
@@ -3510,6 +3522,12 @@
         "./computer-labels.js",
         "./execution-ribbon.js"
       ]
+    },
+    {
+      "path": "ui/pool-home/contribution-models.js",
+      "owner": "ui",
+      "sha256": "sha256:41b77e6e306b5df48bd649701198d8ab123aaf40ee904a4ff96cc70a38c74de0",
+      "imports": []
     },
     {
       "path": "ui/pool-home/contribution-state.js",
@@ -3558,7 +3576,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:5042acb49715c9244450e3ce72aa0d5c5fbd5088dea461375967aae9932586c1",
+      "sha256": "sha256:d37c51acff9e62deeffafcb109e754db93ad2c821ab7146da8c12af6c26e26ae",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -3612,19 +3630,21 @@
     {
       "path": "ui/pool-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:23505387220738295829260437e8535f65d6a143acefbfd574e20ee93fada19e",
+      "sha256": "sha256:09d7b8f0e69355e08a5cdbde6ee37447eca77a4fa1ab58b87d1b9d0c0298bf3b",
       "imports": [
         "../../host/credits/browser.js",
         "../../host/product-context.js",
         "../../host/product-session.js",
         "../../instance.js",
         "../../pool/p2p-transport.js",
+        "../components/button-feedback.js",
         "./constants.js",
         "./conversation-workspace.js",
         "./execution-ribbon.js",
         "./history-handover-view.js",
         "./navigation.js",
         "./network-inspector.js",
+        "./production.js",
         "./shell-view.js",
         "./theme.js"
       ]
@@ -3653,6 +3673,14 @@
       ]
     },
     {
+      "path": "ui/pool-home/model-preparation.js",
+      "owner": "ui",
+      "sha256": "sha256:a3e617d228c7633f1f0db03441f247262d234f1fde9e3a3dc43243be41b0c443",
+      "imports": [
+        "../../vendor/reploid/mesh/preparation-progress.js"
+      ]
+    },
+    {
       "path": "ui/pool-home/navigation.js",
       "owner": "ui",
       "sha256": "sha256:5ce4ed8fe057bdba359ca6bf18df48acedc9762cea3fb1d4048a0a0140bedc20",
@@ -3663,17 +3691,18 @@
     {
       "path": "ui/pool-home/network-controls.js",
       "owner": "ui",
-      "sha256": "sha256:4f556d3d8c84f2a32d42ce503f5fdcd49c5101d389a346a224397f21e30ed200",
+      "sha256": "sha256:9f8fe6c0ab7a07173fcabb9636209164e15fab64e5882e1f5a3f1e9e29abc8fd",
       "imports": [
         "../../vendor/reploid/mesh/preparation-progress.js",
         "../components/model-select.js",
-        "./computer-labels.js"
+        "./computer-labels.js",
+        "./model-preparation.js"
       ]
     },
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:54efb8922a36e1d697f3db335d8adffe2971aec7af685c1d28e240e807934024",
+      "sha256": "sha256:4c9f55e0b5bae9b4c9bad12875c38198cded9f1a3d1d69bf10959eff4d2061c3",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -3685,6 +3714,7 @@
         "./execution-ribbon.js",
         "./network-controls.js",
         "./remote-permission.js",
+        "./theme.js",
         "./web-search-settings.js"
       ]
     },
@@ -3715,6 +3745,21 @@
         "../components/diamond-renderer.js",
         "./constants.js",
         "./contribution-state.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/production.js",
+      "owner": "ui",
+      "sha256": "sha256:8ea21c4b49d0c5d15d8d50298e94e0355e7ece8855cfd554954155924352c389",
+      "imports": [
+        "../components/dialog.js",
+        "../components/html.js",
+        "../components/interface-icons.js",
+        "../components/mathematical-background.js",
+        "./contribution-models.js",
+        "./conversation-workspace.js",
+        "./model-preparation.js",
+        "./shell-view.js"
       ]
     },
     {
@@ -3850,7 +3895,7 @@
     {
       "path": "ui/pool-home/shell-view.js",
       "owner": "ui",
-      "sha256": "sha256:56273c5ebb5bc05c56205421857efb9de507c98f1325a85bf0d5aac4a590ac1f",
+      "sha256": "sha256:54294753fbd0e88b0e30ae0ad3ac6cff14790d3378f990b6bc4449abb09e1675",
       "imports": [
         "../../host/product-context.js",
         "../../pool/peer-room.js",
@@ -3949,7 +3994,7 @@
     {
       "path": "ui/pool-home/view.js",
       "owner": "ui",
-      "sha256": "sha256:36142e7a196927c548790f8c3f83a6c4706fab9480db840184d2037d09b12ba8",
+      "sha256": "sha256:339c184d4023c7a7e8e2206c5cf20b6de161f0e1f6a33ff22139dd59dcc148f2",
       "imports": [
         "../../config/surface-intents.js",
         "../../host/product-context.js",
@@ -3969,6 +4014,7 @@
         "./ledger-store.js",
         "./network-projection.js",
         "./operation-sharing.js",
+        "./production.js",
         "./record-persistence.js",
         "./requester-controls.js",
         "./research-store.js",
@@ -4072,8 +4118,9 @@
     {
       "path": "ui/poolday-design/index.js",
       "owner": "ui",
-      "sha256": "sha256:3dcd494ccefa0a7fba5c9a29751f477e57dab24134a33fcf21008e3cdc243adf",
+      "sha256": "sha256:f322685005cfce09b7bbb7fefaaa7f53399683a50834a646e18433fe2c817a77",
       "imports": [
+        "../components/button-feedback.js",
         "./model.js",
         "./specimens.js"
       ]
@@ -4085,9 +4132,20 @@
       "imports": []
     },
     {
+      "path": "ui/poolday-design/production-simulation.js",
+      "owner": "ui",
+      "sha256": "sha256:d9ddae903458f5f413c437013c48944693ba893c376959140636144b4fc5cb1d",
+      "imports": [
+        "../components/mathematical-background.js",
+        "../pool-home/network-inspector.js",
+        "../pool-home/production.js",
+        "../pool-home/theme.js"
+      ]
+    },
+    {
       "path": "ui/poolday-design/specimens.js",
       "owner": "ui",
-      "sha256": "sha256:b4e3e3fdd16b54b0e9c89d9fef2c3bda6af0f1c7dc031d3845b6183c482ed2b4",
+      "sha256": "sha256:a4b42556909471edcdca3e9a873e03c900393e94649844ad451c78b5ef52759e",
       "imports": []
     },
     {

@@ -21,9 +21,9 @@ const startingPrompts = [
   'Recommend 3 terrible ’80s movies.'
 ];
 
-export function renderConversationWorkspace({ inspector = true } = {}) {
-  return `<section class="reploid-chat-workspace" data-chat-workspace aria-label="Conversation workspace">
-    <aside id="chat-threads" class="chat-thread-sidebar pool-mobile-app-bar" data-thread-sidebar aria-label="Conversation controls">
+export function renderConversationWorkspace({ inspector = true, compact = false } = {}) {
+  return `<section class="reploid-chat-workspace" data-chat-workspace ${compact ? 'data-compact' : ''} aria-label="Conversation workspace">
+    <aside id="chat-threads" class="chat-thread-sidebar pool-mobile-app-bar" data-thread-sidebar aria-label="Conversation controls" ${compact ? 'hidden' : ''}>
       <div class="chat-rail-toolbar pool-surface" data-chat-rail-toolbar>
       <div class="chat-rail-heading">
       <span class="chat-thread-brand" data-thread-rail-brand></span>
@@ -198,7 +198,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   inputResize?.observe(input);
   const refreshStartingPrompts = () => {
     const state = session.getState(), thread = state.activeThread;
-    find('[data-starting-prompts]').hidden = !!(thread?.messages.length || thread?.closed
+    find('[data-starting-prompts]').hidden = container.hasAttribute('data-compact') || !!(thread?.messages.length || thread?.closed
       || state.runningIds.includes(thread?.id) || state.comparisonPhase || input.value.trim() || files.length);
   };
   const showFiles = () => { refreshStartingPrompts(); resizeInput(); renderAttachments(find('[data-attachments-preview]'), files); find('[data-attachment-help]').hidden = !files.length; };

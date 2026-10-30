@@ -148,6 +148,8 @@ describe('Chat host with injected execution, not actual inference', () => {
     await expect(session.setSharing(true, 'model', false)).rejects.toThrow('Approve');
     expect(swarm.share).not.toHaveBeenCalled();
     await expect(session.setSharing(true, 'unknown-model', true)).rejects.toThrow('catalog');
+    await expect(session.setSharing(true, CANONICAL_CHAT_MODELS[1].id, true)).rejects.toThrow('download size');
+    session.setCachedModels([CANONICAL_CHAT_MODELS[1]]);
     await session.setSharing(true, CANONICAL_CHAT_MODELS[1].id, true);
     expect(session.getState().network.sharing).toBe(true);
     await session.setSharing(false);

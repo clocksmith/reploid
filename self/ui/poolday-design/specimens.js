@@ -2,6 +2,7 @@
 // rendered by the product modules themselves, so the page shows the markup the app ships.
 
 const loaders = {
+  'production.js': () => import('../pool-home/production.js'),
   'shell-view.js': () => import('../pool-home/shell-view.js'),
   'execution-ribbon.js': () => import('../pool-home/execution-ribbon.js'),
   'conversation-workspace.js': () => import('../pool-home/conversation-workspace.js'),
@@ -23,6 +24,12 @@ const strip = (items) => `<div class="pool-row pool-gap-md">${items.join('')}</d
 // Every specimen names its class the same way: lowercase, monospace, as written in markup.
 const name = (text) => `<code class="pool-mono pool-caption pool-muted">${text}</code>`;
 const PRIMITIVES = [
+  { id: 'mathematical-background', title: 'Mathematical background: residues and Gaussian', page: true, route: 'home',
+    render: async () => '<section class="production-surface pool-stack"><h1 class="pool-title">Mathematical backgrounds</h1></section>',
+    bind: async root => {
+      const dispose = (await import('../components/mathematical-background.js')).bindMathematicalBackground(root);
+      window.addEventListener('pagehide', dispose, { once: true });
+    } },
   { id: 'diamond', title: 'Diamond: idle, loading, measured progress and completion', render: async () => {
     const { renderDiamond } = await import('../components/diamond.js');
     return `<div class="pool-columns">${['idle', 'loading', 'progress', 'complete'].map(state => `<section class="pool-stack pool-gap-sm"><span class="pool-caption pool-muted">${state}</span>${renderDiamond({ id: `specimen-${state}`, state, progress: state === 'progress' ? 0.42 : null, label: state === 'loading' ? 'Loading' : 'Model download' })}</section>`).join('')}</div>`;
@@ -41,16 +48,19 @@ const PRIMITIVES = [
     <div class="pool-stack pool-gap-sm">${name('pool-list')}<ul class="pool-list pool-small"><li>First</li><li>Second</li><li>Third</li></ul>${name('pool-divider')}<hr class="pool-divider"></div>
     <div class="pool-stack pool-gap-sm"><p class="pool-edge-top pool-small">${name('pool-edge-top')} A hairline above.</p><p class="pool-edge-bottom pool-small">${name('pool-edge-bottom')} A hairline below.</p></div>
   </div>` },
-  { id: 'buttons', title: 'Buttons: pool-button + btn-primary, btn-ghost, pool-icon', render: async () => strip([
-    '<button class="pool-button" type="button">Button</button>',
-    '<button class="pool-button btn-primary" type="button">Primary</button>',
-    '<button class="pool-button btn-ghost" type="button">Ghost</button>',
-    '<button class="pool-button" type="button" aria-pressed="true">Pressed</button>',
-    '<button class="pool-button btn-ghost" type="button" aria-current="true">Current</button>',
-    '<button class="pool-button pool-icon" type="button" aria-label="Add">+</button>',
-    '<button class="pool-button btn-primary pool-icon" type="button" aria-label="Send">↑</button>',
-    '<button class="pool-button" type="button" disabled>Disabled</button>'
-  ]) },
+  { id: 'buttons', title: 'Buttons: one row per type', render: async () => `<div class="pool-table"><table>
+    <thead><tr><th>Type</th><th>Interactive</th><th>Disabled</th></tr></thead><tbody>
+    ${[
+      ['Default', '', 'Button'], ['Primary', 'btn-primary', 'Primary'],
+      ['Ghost', 'btn-ghost', 'Ghost'], ['Icon', 'pool-icon', '+'],
+      ['Primary icon', 'btn-primary pool-icon', '↑'], ['Toggle', '', 'Toggle']
+    ].map(([label, classes, content]) => `<tr><th scope="row">${label}</th>
+      <td><button class="pool-button ${classes}" type="button" aria-label="${label}" ${label === 'Toggle' ? 'data-pds-button-toggle aria-pressed="false"' : ''}>${content}</button></td>
+      <td><button class="pool-button ${classes}" type="button" disabled aria-label="${label} disabled">${content}</button></td>
+    </tr>`).join('')}</tbody></table></div>`, bind: async root => {
+      const toggle = root.querySelector('[data-pds-button-toggle]');
+      toggle.addEventListener('click', () => toggle.setAttribute('aria-pressed', String(toggle.getAttribute('aria-pressed') !== 'true')));
+    } },
   { id: 'fields', title: 'Fields: pool-input, pool-bare, pool-file, pool-switch', render: async () => `<div class="pool-columns">
     <input class="pool-input pds-pad-sm" type="text" placeholder="pool-input" aria-label="pool-input">
     <select aria-label="Select"><option>Select</option><option>Second</option></select>
@@ -92,6 +102,11 @@ const PRIMITIVES = [
 
 export const PRIMITIVE_GROUPS = [{ id: 'primitives', title: 'Primitives', specimens: PRIMITIVES }];
 export const COMPOSITION_GROUPS = [
+  { id: 'production', title: 'Production', specimens: [
+    { id: 'production', title: 'Production: local simulation', page: true, route: 'home',
+      render: async () => (await loaders['production.js']()).renderProductionSurface({ homeHref: location.pathname + location.search }),
+      bind: async root => (await import('./production-simulation.js')).bindProductionSimulation(root) },
+  ] },
   { id: 'shell', title: 'Shell', specimens: [
     { id: 'nav', title: 'Navigation', page: true, render: from('shell-view.js', 'renderNav', 'work') },
     { id: 'ribbon', title: 'Execution ribbon', render: from('execution-ribbon.js', 'renderExecutionRibbon') }
@@ -157,6 +172,7 @@ export async function renderSpecimen(id, theme) {
   const specimen = SPECIMENS.find((item) => item.id === id);
   const html = document.documentElement;
   const root = document.querySelector('.pool-home');
+  root.classList.remove('pds-page');
   html.classList.add('pds-frame');
   if (!specimen?.page) html.classList.add('pds-frame-fit');
   html.dataset.reploidTheme = theme; root.dataset.poolTheme = theme;

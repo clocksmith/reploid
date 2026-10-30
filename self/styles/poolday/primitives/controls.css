@@ -2,6 +2,9 @@
    pool-button (+ btn-primary, btn-ghost, pool-icon), pool-input, pool-segmented + pool-segment,
    pool-chip, pool-badge, pool-disclosure. Focus rings are shared. */
 .pool-home :is(.pool-button, :where(.pool-work-shell .btn)) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   min-height: var(--pool-size-44);
   padding: var(--pool-size-8) var(--pool-size-16);
   border: var(--pool-border-hairline) solid transparent;
@@ -11,15 +14,32 @@
   box-shadow: var(--pool-shadow-raised);
   font: inherit;
   font-size: var(--pool-text-sm);
+  font-weight: var(--pool-weight-medium);
   cursor: pointer;
   transition: background var(--pool-transition-fast), box-shadow var(--pool-transition-fast);
 }
 .pool-home :is(.pool-button, :where(.pool-work-shell .btn)).btn-primary {
   background: var(--pool-surface-primary);
   color: var(--pool-color-on-primary);
+  box-shadow: var(--pool-shadow-primary);
+  font-weight: var(--pool-weight-semibold);
 }
-/* Controls carry no outline; hover lifts the surface tone instead. */
-.pool-home :is(.pool-button, :where(.pool-work-shell .btn)):hover:not(:disabled, .btn-primary) { background: var(--pool-color-line); }
+.pool-home :is(.pool-button, :where(.pool-work-shell .btn))::before {
+  content: ''; position: absolute; inset: 0; z-index: var(--pool-z-background);
+  border-radius: inherit; pointer-events: none;
+  background: radial-gradient(circle at var(--pool-param-pointer-x, var(--pool-percent-center)) var(--pool-param-pointer-y, var(--pool-percent-center)), var(--pool-color-button-fill), var(--pool-color-button-fill-edge));
+  clip-path: circle(0 at var(--pool-param-pointer-x, var(--pool-percent-center)) var(--pool-param-pointer-y, var(--pool-percent-center)));
+  transition: clip-path var(--pool-motion-time-160) ease-out;
+}
+.pool-home :is(.pool-button, :where(.pool-work-shell .btn)):hover:not(:disabled)::before { clip-path: circle(var(--pool-radius-button-fill) at var(--pool-param-pointer-x, var(--pool-percent-center)) var(--pool-param-pointer-y, var(--pool-percent-center))); }
+.pool-home .pool-button-ripple {
+  position: absolute; pointer-events: none; z-index: var(--pool-z-background);
+  width: var(--pool-param-ripple-size); height: var(--pool-param-ripple-size);
+  left: var(--pool-param-ripple-x); top: var(--pool-param-ripple-y);
+  margin-left: calc(-1 * var(--pool-param-ripple-size) / 2); margin-top: calc(-1 * var(--pool-param-ripple-size) / 2);
+  border-radius: var(--pool-radius-round); background: var(--pool-surface-button-ripple);
+}
+/* Hover feedback fills the surface without moving the control. */
 .pool-home :is(.pool-button, :where(.pool-work-shell .btn)):is(:active, [aria-pressed='true'], [aria-current='true'], [aria-expanded='true']):not(:disabled) { box-shadow: var(--pool-shadow-inset); }
 .pool-home details[open] > summary.pool-button { box-shadow: var(--pool-shadow-inset); }
 .pool-home :is(.pool-button, :where(.pool-work-shell .btn)):disabled { opacity: var(--pool-alpha-48); cursor: not-allowed; }
@@ -44,13 +64,25 @@
   outline-offset: calc(-1 * var(--pool-size-4));
   box-shadow: var(--pool-shadow-inset);
 }
+.pool-home .pool-button.btn-primary:focus-visible {
+  outline: var(--pool-border-thick) solid var(--pool-color-on-primary);
+  box-shadow: var(--pool-shadow-primary);
+}
+/* Primary text and icon controls share material; the control itself never moves. */
+.pool-home :is(.pool-button, :where(.pool-work-shell .btn)).btn-primary:hover:not(:disabled) {
+  box-shadow: var(--pool-shadow-primary-hover);
+}
+.pool-home :is(.pool-button, :where(.pool-work-shell .btn)).btn-primary:is(:active, [aria-pressed='true']):not(:disabled) {
+  background: var(--pool-surface-primary-pressed);
+  box-shadow: var(--pool-shadow-primary-pressed);
+}
 @media (prefers-reduced-motion: reduce) {
   .pool-home :is(.pool-button, :where(.pool-work-shell .btn)) { transition: none; }
+  .pool-home :is(.pool-button, :where(.pool-work-shell .btn))::before { transition: none; }
 }
 /* A square icon button at the touch-target size. */
 .pool-home .pool-button.pool-icon { display: inline-grid; place-items: center; width: var(--pool-size-44); padding: 0; }
 .pool-home .pool-button.btn-ghost { background: transparent; box-shadow: none; }
-.pool-home .pool-button.btn-ghost:hover:not(:disabled) { background: var(--pool-color-inset); }
 .pool-home .pool-button.btn-ghost:is([aria-pressed='true'], [aria-current='true']) { background: var(--pool-color-inset); box-shadow: var(--pool-shadow-inset); }
 .pool-home .pool-choice:has(input:checked) { background: var(--pool-color-inset); box-shadow: var(--pool-shadow-inset); }
 .pool-home .pool-choice:has(input:focus-visible) { outline: var(--pool-border-thick) solid var(--pool-color-focus); outline-offset: var(--pool-border-thick); }

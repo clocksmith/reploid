@@ -25,10 +25,10 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     id: 'home',
     primary: false,
     path: '/',
-    label: 'Work',
+    label: 'Production',
     eyebrow: POOLDAY_PROTOCOL,
-    title: 'Agent network',
-    body: 'Pursue goals with local intelligence and explicitly shared compute.'
+    title: 'Production',
+    body: 'Share compute or storage. See what this computer produces.'
   }),
   createPooldayRoute({
     id: 'ask',

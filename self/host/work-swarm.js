@@ -88,7 +88,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     }
   });
   let connectionFailure = null, retainedConnections = [];
-  let contributor = null, stoppingContribution = null, contributionEpoch = 0;
+  let contributor = null, stoppingContribution = null, contributionEpoch = 0, contributionKey = null;
   let contribution = { phase: 'idle', completed: 0, modelId: null, modelIdentity: null, progress: null };
   const getState = () => ({ introductionAssistance, sharing, computeEnabled, filesEnabled, stopping, connecting, paused,
     connections: consumerTransport?.getPeerStates?.() || retainedConnections,
@@ -309,6 +309,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   };
   const stopContribution = () => {
     contributionEpoch++;
+    contributionKey = null;
     if (stoppingContribution) return stoppingContribution;
     sharing = false; stopping = true;
     contribution = { ...contribution, phase: 'stopping' };
@@ -406,12 +407,18 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     async share(modelId, approved, adapters = [], { mode = ordered || canonical ? 'partition' : 'whole-model', cacheOnly = false } = {}) {
       if (!['partition', 'whole-model'].includes(mode)) throw new Error('Unknown contribution mode');
       if ((ordered || canonical) && mode !== 'partition') throw new Error('Configured stages require partition contribution');
-      if (closed || supplier || stopping || sharingConnection) throw new Error('Stop existing sharing first');
       if (approved !== true) throw new Error('Approve public prompt execution before sharing');
+      const requestKey = JSON.stringify([modelId, mode, adapters]);
+      if (!closed && !stopping && requestKey === contributionKey) {
+        if (sharingConnection) return sharingConnection;
+        if (supplier && contributor?.getState().ready) return;
+      }
+      if (closed || supplier || stopping || sharingConnection) throw new Error('Stop existing sharing first');
       computeEnabled = true; storage?.setItem('REPLOID_CACHED_COMPUTE_ENABLED', 'true');
       if (ordered && modelId !== ordered.stage?.modelId) throw new Error('Model differs from assigned ordered stage');
       const base = LOCAL_DOPPLER_MODELS.find(item => item.id === modelId);
       if (!base) throw new Error('Select an available local model');
+      contributionKey = requestKey;
       // A piece index describes available artifacts; it does not assign this device a stage.
       if (mode === 'partition') {
         if (!navigator.gpu) throw new Error('This browser does not support WebGPU');
@@ -430,6 +437,8 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       if (disconnecting || paused) throw new Error('Connect before contributing compute');
       const version = generation;
       const epoch = contributionEpoch;
+      contribution = { phase: 'connecting', modelId: model.id, modelIdentity: model.identity, ready: false, completed: 0 };
+      notify();
       sharingConnection = Promise.resolve().then(async () => {
         let execution, active;
         try {
@@ -458,6 +467,10 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
           if (active && supplier === active) {
             supplier = null; contributor = null; sharing = false;
             contribution = { ...execution.getState(), phase: 'failed' }; error = cause.message;
+          }
+          if (!active && !closed && version === generation && epoch === contributionEpoch) {
+            contribution = { ...contribution, phase: 'failed', ready: false, error: cause.message };
+            error = cause.message;
           }
           if (cleanupFailure) throw new AggregateError([cause, cleanupFailure], 'Contribution opening and cleanup failed');
           throw cause;

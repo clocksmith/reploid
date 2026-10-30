@@ -2,6 +2,10 @@
 // Edits apply to this page and every specimen frame; the Changes panel gives the CSS to keep them.
 import { TOKEN_GROUPS, loadModel, groupOf, previewKind, composition } from './model.js';
 import { PRIMITIVE_GROUPS, COMPOSITION_GROUPS, renderSpecimen } from './specimens.js';
+import { bindButtonFeedback } from '../components/button-feedback.js';
+
+const disposeButtonFeedback = bindButtonFeedback(document);
+window.addEventListener('pagehide', disposeButtonFeedback, { once: true });
 
 const escape = (value) => String(value).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
 const store = {

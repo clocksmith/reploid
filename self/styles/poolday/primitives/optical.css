@@ -1,4 +1,6 @@
 /* Optical accents stay on model choice and the composer. */
+.pool-home.pool-math-surface { isolation: isolate; background: var(--pool-surface-ambient-mesh), var(--pool-color-page); }
+.pool-math-surface > .pool-math-background { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: var(--pool-z-background); }
 .pool-home .pool-glass,
 .pool-home .pool-glass-focus:focus {
   border: var(--pool-border-hairline) solid transparent;

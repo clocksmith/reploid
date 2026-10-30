@@ -3,46 +3,35 @@
 Parent: [Browser Interfaces](../CATSCAN.md)
 
 ## Target
-Present conversations/agents/models/results/evaluated changes.
+Present device capacity, contribution and measured production; keep inference testing secondary.
 
 ## Authority
-Presents product/Room-1; requests transfer/evaluation/adoption/rollback.
-Owns no execution/review, validation/admission, transport or scientific interpretation.
+Owns presentation/actions, never execution, admission, promotion or scientific/financial truth.
 
 ## Scope
 This tree.
 
 ## Contracts
-Inputs: [conversation/execution state](../../../packages/reploid/src/chat/CATSCAN.md),
-[host composition](../../host/CATSCAN.md), [runtime](../../pool/CATSCAN.md),
-deterministic [room state](room-projection.js).
-Outputs: [conversations](conversation-workspace.js), [markup](view.js), [Room-1](room-view.js).
+Inputs: [conversation state](../../../packages/reploid/src/chat/CATSCAN.md), [host](../../host/CATSCAN.md), [runtime](../../pool/CATSCAN.md), [room projection](room-projection.js).
+Outputs: [production](production.js), [conversations](conversation-workspace.js), [Room-1](room-view.js).
 
 ## Invariants
-
-- Glass, spectral edges, dot grid; animate observed events, never idle readiness; discovery implies no execution. Respect reduced motion; concise controls; no banners/slogans/preset-prompt grids.
-- Preserve Reploid/Poolday identities, shared components/tokens/gutters,
-  accessible themes/responsive scrolling. Activities prescribe no hierarchy.
-- Link tasks/helpers/jobs/results/candidates; show observations, missing admission/evaluators.
-- Preserve execution in protein/document examples and request/execution/comparison/acceptance/receipt lifecycles. Recovery requires valid state.
-- Disclose execution location, conversation sharing. Default-on network answers authorize Send/Retry without popups; loader shows tools. Preserve opt-outs with inline explanations; local-only stays local. Viewing/restoring/selection grants nothing.
-- Keep failures/Stop visible; selection never stops threads.
-- Connection/cached sharing default on; only unanswerable sends auto-start downloads (progress/Cancel/opt-out).
-- Training exposes consent, bounded rounds, Stop, unevaluated exports.
-- Include compatible adapters in model selection. Compute/file controls;
-  discovery/thread grants imply neither.
-- Inspect Pack/runtime/provider/hardware/fallback/timing/output/agreement. Review grants no evaluation/promotion; receipts prove no hardware attestation; acceptance names policy.
-- Research administration stays in Room-1; generic Packs exclude research fields.
-- Archive/decision memory remain distinct; Zero/X grant no mutation authority.
+- Production first. Reviewed setup enables sharing while open; Pause remains secondary.
+- Cached files, loaded models, readiness, execution, completion and settlement remain distinct. Earnings require accounting; simulations prove no production.
+- Brief labels, values, actions and necessary status. Explain through setup, tooltips or details.
+- Reuse catalog components, tokens, gutters, accessible themes and responsive scrolling. Charcoal, prism, grids; mathematical decoration never signals execution. Respect reduced motion.
+- Reploid header; aligned actions. Centered setup/testing dialogs, right settings/storage panel; no left rail or nested Options.
+- Storage belongs in Settings. Testing requires observed local readiness or ready remote capacity.
+- Independent threads retain history, permissions and attempts. Selection never cancels work. Keep failures, Stop and incomplete cleanup visible.
+- Discovery, cached files and viewing grant nothing. Compute, file, training and remote disclosures retain separate permissions. Preserve local-only boundaries and opt-outs.
+- Connection/cached sharing default on; downloads require approval. Preserve training consent, bounded rounds and unadopted results.
+- Preserve execution provenance, budgets, adapter compatibility and research lifecycles. Keep Room-1 administration separate; generic Packs exclude research fields.
 
 ## Acceptance
-
-- Measure benefit/cost against local/centralized baselines. Fixtures prove no inference.
-- Desktop/mobile, light/dark: empty/active/interrupted/completed screenshots.
-- Evidence: [conversations](../../../tests/e2e/chat-material.spec.js), [CSS](../../../scripts/verify-poolday-css-layers.js), [visuals](../../../tests/e2e/workspace-material.spec.js), [navigation](../../../tests/unit/pool-home-nav.test.js), [requests](../../../tests/unit/pool-home-ask-controls.test.js), [records](../../../tests/unit/pool-home-record.test.js), [peers](../../../tests/e2e/p2p-mesh.spec.js), [search](../../../tests/unit/search-answer-permission.test.js).
+Evidence: [UI](../../../tests/unit/production-surface.test.js), [conversations](../../../tests/e2e/chat-material.spec.js), [CSS](../../../scripts/verify-poolday-css-layers.js), desktop/mobile checks. Qualification remains separate.
 
 ## Non-goals
-Primary scientific administration, reputation, protocol internals.
+Primary research administration, reputation or protocol internals.
 
 ## Freedom
 Preserve contracts.

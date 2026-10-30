@@ -99,12 +99,22 @@ it('reserves contribution startup before connecting and stop prevents a late mod
   const service = { open: vi.fn(), close: vi.fn() }, swarm = fixture(service);
   const first = swarm.share('qwen-3-5-2b-q4k-ehaf16', true);
   const failure = expect(first).rejects.toThrow('stopped');
-  await expect(swarm.share('qwen-3-5-2b-q4k-ehaf16', true)).rejects.toThrow('existing sharing');
+  const duplicate = swarm.share('qwen-3-5-2b-q4k-ehaf16', true);
+  const duplicateFailure = expect(duplicate).rejects.toThrow('stopped');
   await vi.waitFor(() => expect(ports.ensure).toHaveBeenCalledOnce());
   const stop = swarm.stop(); identity.resolve({ peerId: 'fixture', contribution: {} });
-  await stop; await failure;
+  await stop; await failure; await duplicateFailure;
   expect(service.open).not.toHaveBeenCalled(); expect(swarm.getState().sharing).toBe(false);
   await swarm.close();
+});
+
+it('reports contribution setup failure even when the connection fails before a resident exists', async () => {
+  vi.stubGlobal('navigator', { gpu: {} });
+  ports.ensure.mockRejectedValue(new Error('Signaling unavailable'));
+  const service = { open: vi.fn(), close: vi.fn() }, swarm = fixture(service);
+  await expect(swarm.share('qwen-3-5-2b-q4k-ehaf16', true)).rejects.toThrow('Signaling unavailable');
+  expect(swarm.getState().contribution).toMatchObject({ phase: 'failed', ready: false, error: 'Signaling unavailable' });
+  expect(service.open).not.toHaveBeenCalled(); await swarm.close();
 });
 
 it('disconnect immediately after share cannot deadlock or create a late contributor', async () => {

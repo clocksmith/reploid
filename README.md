@@ -1,10 +1,14 @@
 # Reploid
 
-Reploid answers questions with open models that run on the requester's device, on another
-participant's computer, or split by layers across several participants' computers. Model
-computation is done by [Doppler](https://github.com/clocksmith/doppler), a WebGPU inference
-library; Reploid does discovery, placement, admission, permissions, transport, conversation
-history and accounting. The same repository also hosts two agent workspaces, Zero and X.
+Reploid turns participating computers into shared AI inference capacity, with the goal
+of exchanging or selling the tokens they produce. Contribute compute or storage, inspect
+measured production, or request inference from available participants without downloading
+a whole model. Chat is a small test/demo rather than the main workspace.
+
+[Doppler](https://github.com/clocksmith/doppler) runs the models. Reploid coordinates
+models, devices, requests, permissions and accounting. One capable computer handles a
+request when possible; distribution has separate eligibility and acceptance. Zero and X
+remain separate experimental agent workspaces.
 
 **Status:** early and not production. Conversations run today on a small engineering model
 (Qwen 3.5 0.8B) through test-signed packages on a few machines. Credits, Community Access and

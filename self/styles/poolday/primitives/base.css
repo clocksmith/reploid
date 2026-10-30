@@ -97,6 +97,10 @@
 :where(.pool-home) ::placeholder { color: var(--pool-color-muted); opacity: 1; }
 :where(.pool-home) dialog { border: 0; color: var(--pool-color-ink); }
 :where(.pool-home) dialog::backdrop { background: color-mix(in srgb, var(--pool-gray-0) var(--pool-alpha-48), transparent); }
+.pool-home dialog:not([open]) { display: none; }
+.pool-home dialog[open] { animation: pool-dialog-enter var(--pool-motion-time-180) ease-out; }
+@keyframes pool-dialog-enter { from { opacity: 0; transform: translateY(var(--pool-size-4)); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .pool-home dialog[open] { animation: none; } }
 :where(.pool-home) select { cursor: pointer; padding-right: var(--pool-size-24); }
 :where(.pool-home) input:is([type='checkbox'], [type='radio']) {
   appearance: auto;
@@ -141,7 +145,7 @@
   transition: background var(--pool-transition-fast), box-shadow var(--pool-transition-fast), transform var(--pool-transition-fast);
 }
 :where(.pool-home) .btn:hover:not(:disabled) { background: var(--pool-color-line); }
-:where(.pool-home) .btn:active:not(:disabled) { transform: translateY(var(--pool-size-1)); box-shadow: var(--pool-shadow-inset); }
+:where(.pool-home) .btn:active:not(:disabled) { box-shadow: var(--pool-shadow-inset); }
 :where(.pool-home) .btn-primary { background: var(--pool-surface-primary); color: var(--pool-color-on-primary); }
 :where(.pool-home) .btn-primary:hover:not(:disabled) { background: var(--pool-surface-primary); }
 :where(.pool-home) .btn-ghost { opacity: var(--pool-alpha-80); }
@@ -183,8 +187,7 @@
   transform-origin: left center;
   transition: transform var(--pool-transition-normal);
 }
-:where(.pool-home) .btn-op:hover { --pool-param-op-progress: 1; transform: translateY(calc(-1 * var(--pool-size-1))); }
-:where(.pool-home) .btn-op:active { transform: translateY(0); }
+:where(.pool-home) .btn-op:hover { --pool-param-op-progress: 1; }
 
 /* Panels and status strips */
 :where(.pool-home) .panel {

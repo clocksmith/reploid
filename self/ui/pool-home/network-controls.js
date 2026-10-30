@@ -1,3 +1,4 @@
+import { preparationStatus } from './model-preparation.js';
 import { publicPreparationProgress } from '../../vendor/reploid/mesh/preparation-progress.js';
 import { computerLabel, withComputerLabels } from './computer-labels.js';
 import { updateModelSelect } from '../components/model-select.js';
@@ -12,7 +13,7 @@ export const renderConnectionControl = () => `<div class="network-sharing-row">
 export const renderSharingControls = ({ introductory = true } = {}) => `<div class="pool-stack pool-gap-md">
   ${introductory ? '<div class="pool-stack pool-gap-xs"><h3 class="pool-subheading">Contribute</h3><p class="pool-small pool-muted">Choose what this device shares. You don’t need to download a model to ask questions.</p></div>' : ''}
   <p class="pool-small" data-tab-sharing-summary role="status" hidden></p>
-  <div class="network-sharing-row">
+  <div class="network-sharing-row" data-compute-sharing-row>
     <div class="pool-stack pool-gap-xs"><strong>Answer requests</strong>
       <p class="pool-muted">Download a model and run others’ public prompts.</p>
       <span class="pool-small pool-muted" data-contrib-label>Not sharing</span>
@@ -20,14 +21,14 @@ export const renderSharingControls = ({ introductory = true } = {}) => `<div cla
       <button type="button" class="pool-button" data-retry-contribution-stop hidden>Retry stopping</button></div>
     <button class="network-switch pool-switch" type="button" role="switch" aria-label="Help answer requests" aria-checked="false" data-toggle-contribution><span></span></button>
   </div>
-  <div class="network-sharing-row">
+  <div class="network-sharing-row" data-file-sharing-row>
     <div class="pool-stack pool-gap-xs"><strong>Share model files</strong>
       <p class="pool-muted">Let others download files stored on this device.</p>
       <span class="pool-small pool-muted" data-file-contribution-label>Not sharing</span>
       <p data-file-progress role="status" hidden></p></div>
     <button class="network-switch pool-switch" type="button" role="switch" aria-label="Store and share model files" aria-checked="false" data-toggle-file-contribution><span></span></button>
   </div>
-  <details class="pool-disclosure"><summary>Model and limits</summary><div class="pool-stack pool-gap-md">
+  <details class="pool-disclosure" data-model-sharing-limits><summary>Model and limits</summary><div class="pool-stack pool-gap-md">
     <label>Model<select class="pool-input" data-contribution-model aria-label="Model to share"></select></label>
     <p data-contribution-limits></p>
     <label>Files to share<select class="pool-input" data-file-mode aria-label="File participation">
@@ -44,21 +45,6 @@ export const renderSharingControls = ({ introductory = true } = {}) => `<div cla
   </div></details>
 </div>`;
 
-function preparationStatus(progress) {
-  const step = publicPreparationProgress(progress);
-  if (!step) return { status: 'Preparing', detail: 'Preparing the model; this computer has not reported the current step.' };
-  const count = step.totalBytes ? ` ${Math.floor(step.receivedBytes / step.totalBytes * 100)}% of the current file.` : '';
-  const labels = {
-    downloading: ['Downloading', 'Downloading model files.' + count],
-    receiving: ['Receiving files', 'Receiving model files from another computer.' + count],
-    cached: ['Loading cache', 'Loading model files already stored on this computer.'],
-    pipelines: ['Preparing GPU', 'Preparing GPU pipelines' + (step.total ? `: ${step.prepared} of ${step.total}.` : '.')],
-    loading: ['Preparing', 'Loading the model into memory.']
-  };
-  const [status, detail] = labels[step.kind];
-  const maximum = step.totalBytes || step.total || null;
-  return { status, detail, progress: maximum ? { value: step.receivedBytes ?? step.prepared ?? 0, max: maximum, workId: step.workId || null, sequence: step.sequence ?? null } : null };
-}
 
 export function projectNetworkPeers(state) {
   const network = state.network || {};
@@ -259,7 +245,10 @@ export function bindNetworkControls(container, session, { getInviteUrl, requestC
     find('[data-file-progress]').textContent = network.files?.progress?.message || '';
     find('[data-file-progress]').hidden = !find('[data-file-progress]').textContent;
     find('[data-toggle-file-contribution]').setAttribute('aria-checked', String(network.files?.enabled ?? !!sharingFiles));
-    find('[data-toggle-file-contribution]').disabled = !!network.files?.stopping;
+    const cachedFiles = network.files?.verifiedFiles?.length > 0 || (state.models || []).some(model => model.localCached);
+    const needsCachedFiles = (modeSelect?.value || 'cached-only') === 'cached-only' && !cachedFiles && !network.files?.enabled;
+    find('[data-toggle-file-contribution]').disabled = !!network.files?.stopping || needsCachedFiles;
+    find('[data-toggle-file-contribution]').title = needsCachedFiles ? 'Download a model first, or choose a download option.' : '';
     const contribution = network.contribution || {};
     const sharedId = contribution.modelId || contribution.descriptor?.modelId;
     const sharedName = catalogModels.find(model => model.id === sharedId)?.name || sharedId;

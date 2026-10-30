@@ -12,6 +12,9 @@
 .pool-home {
   /* Palette: one neutral ramp, named by lightness, and the alpha steps. */
   --pool-gray-0: #000000;
+  --pool-charcoal-page: #141619;
+  --pool-charcoal-inset: #101215;
+  --pool-charcoal-raised: rgb(28 30 34 / 82%);
   --pool-gray-11: #1b1b1b;
   --pool-gray-13: #202020;
   --pool-gray-14: #242424;
@@ -107,10 +110,10 @@
   --pool-tracking-wide: 0.05em;
   --pool-tracking-label: 0.1em;
 
-  /* Semantic colors, dark theme (Chroma-Prism: smoked crystal over an obsidian void). */
-  --pool-color-page: var(--pool-void-2);
-  --pool-color-raised: rgb(13 17 29 / 72%);
-  --pool-color-inset: var(--pool-void-4);
+  /* Dark theme: charcoal, prism edges, and restrained raised/inset surfaces. */
+  --pool-color-page: var(--pool-charcoal-page);
+  --pool-color-raised: var(--pool-charcoal-raised);
+  --pool-color-inset: var(--pool-charcoal-inset);
   --pool-color-line: rgb(255 255 255 / 9%);
   --pool-color-muted: var(--pool-void-muted);
   --pool-color-ink: var(--pool-void-ink);
@@ -119,6 +122,15 @@
   --pool-color-switch-on: color-mix(in srgb, var(--pool-spectrum-cyan) var(--pool-alpha-64), transparent);
   --pool-color-on-primary: var(--pool-spectrum-on-light);
   --pool-surface-primary: linear-gradient(135deg, var(--pool-spectrum-cyan), var(--pool-spectrum-violet));
+  --pool-surface-primary-pressed: linear-gradient(135deg, color-mix(in srgb, var(--pool-spectrum-cyan) 96%, black), color-mix(in srgb, var(--pool-spectrum-violet) 96%, black));
+  --pool-shadow-primary: 0 3px 10px rgb(0 0 0 / 24%), inset 0 1px 0 rgb(255 255 255 / 24%), inset 0 -1px 0 rgb(0 0 0 / 12%);
+  --pool-shadow-primary-hover: 0 5px 14px rgb(0 0 0 / 28%), inset 0 1px 0 rgb(255 255 255 / 40%), inset 0 -1px 0 rgb(0 0 0 / 12%);
+  --pool-shadow-primary-pressed: inset 0 2px 4px rgb(0 0 0 / 25%), inset 0 -1px 0 rgb(255 255 255 / 16%);
+  --pool-color-button-fill: rgb(255 255 255 / 12%);
+  --pool-color-button-fill-edge: rgb(56 189 248 / 5%);
+  --pool-percent-center: 50%;
+  --pool-radius-button-fill: 150%;
+  --pool-surface-button-ripple: radial-gradient(circle, transparent 38%, rgb(255 255 255 / 25%) 42%, rgb(192 132 252 / 20%) 45%, transparent 49%), radial-gradient(circle at 35% 32%, rgb(255 255 255 / 65%) 0.7%, transparent 1.8%), radial-gradient(circle at 67% 38%, rgb(56 189 248 / 65%) 0.6%, transparent 1.5%), radial-gradient(circle at 56% 69%, rgb(192 132 252 / 60%) 0.8%, transparent 1.8%);
   --pool-surface-backdrop: blur(20px) saturate(180%);
 
   /* Semantic surfaces, shadows, motion and layout. */
@@ -167,19 +179,21 @@
   --pool-shadow-raised: 0 20px 50px -12px rgb(0 0 0 / 85%), -1px -1px 0 rgb(56 189 248 / 35%), 1px 1px 0 rgb(251 113 133 / 35%), inset 0 1px 1px rgb(255 255 255 / 14%);
   --pool-space-page-gap: var(--pool-size-24);
   --pool-space-page-gutter: var(--pool-size-32);
-  --pool-surface-ambient-mesh: radial-gradient(circle at 18% 20%, rgb(56 189 248 / 12%), transparent 45%), radial-gradient(circle at 82% 75%, rgb(168 85 247 / 13%), transparent 50%), radial-gradient(circle at 50% 50%, rgb(244 63 94 / 5%), transparent 60%);
+  --pool-surface-ambient-mesh: radial-gradient(ellipse at 12% 8%, rgb(56 189 248 / 7%), transparent 48%), radial-gradient(ellipse at 90% 84%, rgb(168 85 247 / 8%), transparent 52%);
   --pool-surface-marble: radial-gradient(circle at 30% 24%, var(--pool-gray-37), var(--pool-gray-19) 45%, var(--pool-gray-14) 85%);
   --pool-surface-optical-edge: linear-gradient(135deg, rgb(56 189 248 / 34%), rgb(192 132 252 / 29%) 45%, rgb(251 113 133 / 32%) 75%, rgb(52 211 153 / 27%));
   --pool-surface-optical-focus: linear-gradient(135deg, rgb(56 189 248 / 75%), rgb(192 132 252 / 65%) 45%, rgb(251 113 133 / 70%) 75%, rgb(52 211 153 / 60%));
   --pool-surface-optical-signal: linear-gradient(90deg, transparent, rgb(56 189 248 / 80%), rgb(192 132 252 / 75%), rgb(251 113 133 / 70%), transparent);
-  --pool-surface-pattern: radial-gradient(rgb(255 255 255 / 7%) 1px, transparent 1px);
-  --pool-surface-pattern-size: 24px 24px;
-  /* The page: dot grid over the ambient spectrum, fixed to the viewport, on the page color. */
-  --pool-surface-page: var(--pool-surface-pattern) 0 0 / var(--pool-surface-pattern-size) repeat fixed, var(--pool-surface-ambient-mesh), var(--pool-color-page);
+  --pool-surface-pattern: radial-gradient(rgb(177 196 215 / 15%) 0.65px, transparent 1px);
+  --pool-surface-pattern-size: 18px 18px;
+  --pool-surface-hex: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='216' height='216' viewBox='0 0 216 216'%3E%3Cpath d='M108 81 131.4 94.5V121.5L108 135 84.6 121.5V94.5Z' fill='none' stroke='%2395abc2' stroke-opacity='.09' stroke-width='.7'/%3E%3C/svg%3E");
+  /* Fine grid and sparse hexagons recede into charcoal; prism light stays peripheral. */
+  --pool-surface-page: radial-gradient(ellipse at 50% 32%, transparent 12%, color-mix(in srgb, var(--pool-color-page) 75%, transparent) 100%) fixed, var(--pool-surface-hex) 0 0 / 216px 216px repeat fixed, var(--pool-surface-pattern) 0 0 / var(--pool-surface-pattern-size) repeat fixed, var(--pool-surface-ambient-mesh), var(--pool-color-page);
   --pool-text-p62: 62%;
   --pool-transition-fast: 0.15s;
   --pool-transition-normal: 0.3s;
   --pool-z-2: 2;
+  --pool-z-background: -1;
   --pool-z-3: 3;
   --pool-z-4: 4;
   --pool-z-5: 5;
@@ -202,8 +216,7 @@
   --pool-color-ink: var(--pool-silica-ink);
   --pool-color-focus: var(--pool-spectrum-indigo);
   --pool-color-switch-on: color-mix(in srgb, var(--pool-spectrum-indigo) var(--pool-alpha-64), transparent);
-  --pool-color-on-primary: var(--pool-gray-100);
-  --pool-surface-primary: linear-gradient(135deg, var(--pool-spectrum-indigo), var(--pool-spectrum-teal));
+  /* The bright prism primary and dark label retain their contrast in both themes. */
   --pool-surface-backdrop: blur(24px) saturate(180%);
   --pool-shadow-inset: inset 0 1px 3px rgb(15 23 42 / 10%), inset 0 0 0 1px rgb(15 23 42 / 6%);
   --pool-shadow-raised: 0 18px 40px -15px rgb(30 41 59 / 16%), -1.5px -1.5px 0 rgb(56 189 248 / 55%), 1.5px 1.5px 0 rgb(244 114 182 / 55%), inset 0 1px 2px rgb(255 255 255 / 95%);
@@ -212,9 +225,8 @@
   --pool-surface-optical-edge: linear-gradient(125deg, rgb(56 189 248 / 55%), rgb(129 140 248 / 50%) 32%, rgb(244 114 182 / 50%) 66%, rgb(45 212 191 / 50%));
   --pool-surface-optical-focus: linear-gradient(125deg, var(--pool-spectrum-cyan), rgb(129 140 248) 32%, rgb(244 114 182) 66%, rgb(45 212 191));
   --pool-surface-optical-signal: linear-gradient(90deg, transparent, rgb(79 70 229 / 70%), rgb(8 145 178 / 65%), rgb(219 39 119 / 55%), transparent);
-  --pool-surface-pattern: radial-gradient(rgb(15 23 42 / 8%) 1px, transparent 1px);
-  --pool-surface-pattern-size: 20px 20px;
-  --pool-surface-page: var(--pool-surface-pattern) 0 0 / var(--pool-surface-pattern-size) repeat fixed, var(--pool-surface-ambient-mesh), var(--pool-color-page);
+  --pool-surface-pattern: radial-gradient(rgb(51 65 85 / 16%) 0.65px, transparent 1px);
+  --pool-surface-pattern-size: 18px 18px;
 }
 
 @media (max-width: 760px) {

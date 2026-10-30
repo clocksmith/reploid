@@ -169,6 +169,14 @@ it('captures runtime timing before cleanup resets it, without counting text chun
   const result = await f.owner.generate([], () => {}, { signal: signal() });
   expect(stats).toBeNull();
   expect(result.timing).toEqual({ totalMs: 400, prefillMs: 100, decodeMs: 300, firstTokenMs: 110, generatedTokenCount: 7 });
+  expect(f.owner.getState().production).toEqual({ outputTokens: 7, missingTokenCounts: 0 });
+  await f.owner.close();
+});
+
+it('marks output counts missing when a completed result carries no token measurement', async () => {
+  const f = fixture(); await f.owner.prepare();
+  await f.owner.generate([{ content: 'not a token count' }], () => {}, { signal: signal() });
+  expect(f.owner.getState()).toMatchObject({ completed: 1, production: { outputTokens: 0, missingTokenCounts: 1 } });
   await f.owner.close();
 });
 

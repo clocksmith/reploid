@@ -2,6 +2,16 @@
 
 ## Operating mission
 
+Owner clarification, October 30, 2026: replo.id turns participating computers
+into shared AI inference capacity, with the goal of exchanging or selling the
+tokens they produce. The main view shows what this computer can run and its
+measured production. Contribution of compute or storage is primary; chat is a
+small inference demo. After reviewed initial setup, sharing stays on while the
+site is open. Pause is secondary. Resource limits and technical detail stay in
+disclosures. Earnings appear only when accounting records support them.
+Use the shared UI catalog for every element and clearly separate local UI
+simulations from real production. Keep product copy brief.
+
 Reploid coordinates access to exact models through authorized participating
 computers. A model has a stable service identity while prepared providers, model
 pieces and execution routes may change. Users retain independent conversations;
@@ -79,7 +89,7 @@ browser library without inheriting a particular interface or credential system.
    and dark themes, responsive scrolling, and futuristic optical styling (glass
    surfaces, spectral edges, a dot-grid page) rather than decorative activity or
    obstructive motion.
-   Conversations are concurrent and independently owned: each thread retains its
+   The secondary demo's conversations are concurrent and independently owned: each thread retains its
    purpose, history, permissions and execution state. No global objective owns
    the workspace. Participants use models supplied by the mesh without needing
    a complete model on every requesting device. Using an available prepared

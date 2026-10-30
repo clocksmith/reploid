@@ -1,0 +1,162 @@
+import { beforeEach, expect, it, vi } from 'vitest';
+import { renderProductionSurface, bindProductionSurface, projectProduction } from '../../self/ui/pool-home/production.js';
+
+const model = { id: 'm', name: 'Model', identity: 'fixture:model', provider: 'doppler', source: { baseUrl: 'fixture:' }, networkAvailability: 'ready' };
+const state = () => ({ models: [model], network: { sharing: true, computeEnabled: true,
+  contribution: { modelId: 'm', ready: true, phase: 'ready', completed: 2,
+    production: { outputTokens: 14, missingTokenCounts: 0 } },
+  files: { enabled: true, sharing: true, suppliedBytes: 394 } } });
+
+beforeEach(() => { document.body.innerHTML = '<main class="pool-home">' + renderProductionSurface() + '</main>'; });
+
+it('does not confuse a ready network model with local preparation', () => {
+  const view = projectProduction({ models: [model], network: {} });
+  expect(view.available).toHaveLength(1);
+  expect(view.local).toHaveLength(0);
+  expect(view.configured).toBe(false);
+});
+
+it('only offers testing with reported local readiness or ready remote capacity', () => {
+  const cold = { ...model, networkAvailability: 'unavailable' };
+  expect(projectProduction({ models: [cold], network: {} }).canTest).toBe(false);
+  expect(projectProduction({ models: [{ ...cold, localCached: true }], network: {} }).canTest).toBe(false);
+  expect(projectProduction({ models: [{ ...cold, localReady: true }], network: {} }).canTest).toBe(true);
+  expect(projectProduction({ models: [model], network: {} }).canTest).toBe(true);
+});
+
+it('shows starter choices for saved sharing preferences with no downloaded models', () => {
+  const snapshot = { models: [model], network: { sharing: false, computeEnabled: true,
+    error: 'Peer connection timed out; check the invitation and network.',
+    contribution: { modelId: 'm', ready: false, phase: 'idle', completed: 0 },
+    files: { enabled: true, sharing: false, verifiedFiles: [], suppliedBytes: 0 } } };
+  expect(projectProduction(snapshot).configured).toBeFalsy();
+  expect(projectProduction(snapshot).local).toHaveLength(0);
+  const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; } };
+  const detach = bindProductionSurface(document.body, session, { inspector: {} });
+  expect(document.querySelector('[data-production-status]').textContent).toBe('Put this device to work');
+  expect(document.querySelector('[data-production-setup-actions]').hidden).toBe(false);
+  expect(document.querySelector('[data-production-metrics]').hidden).toBe(true);
+  expect(document.querySelector('[data-production-error]').hidden).toBe(true); detach();
+});
+
+it('uses shared preparation progress without treating a selected model as cached', () => {
+  const snapshot = { models: [model], network: { contribution: { modelId: 'm', phase: 'loading',
+    progress: { kind: 'downloading', receivedBytes: 50, totalBytes: 100 } } } };
+  const view = projectProduction(snapshot);
+  expect(view.local).toHaveLength(0);
+  expect(view.status).toBe('Preparing');
+  expect(view.progress).toMatchObject({ received: 50, total: 100 });
+});
+
+it('cancels an incoming model download without stopping existing sharing', async () => {
+  const snapshot = { ...state(), acquisition: { phase: 'downloading', modelId: 'second', progress: { receivedBytes: 10, totalBytes: 100 } } };
+  const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; },
+    cancelModelDownload: vi.fn(), setSharing: vi.fn(), setFileSharing: vi.fn() };
+  const detach = bindProductionSurface(document.body, session, { inspector: {} });
+  document.querySelector('[data-production-cancel]').click();
+  await vi.waitFor(() => expect(session.cancelModelDownload).toHaveBeenCalledOnce());
+  expect(session.setSharing).not.toHaveBeenCalled(); expect(session.setFileSharing).not.toHaveBeenCalled(); detach();
+});
+
+it('shows waiting contribution capacity separately from completed work', () => {
+  const snapshot = state(); snapshot.network.contribution.completed = 0;
+  snapshot.network.contribution.production.outputTokens = 0;
+  const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; } };
+  const detach = bindProductionSurface(document.body, session, { inspector: {} });
+  expect(document.querySelector('[data-production-work]').textContent).toBe('Waiting for requests');
+  expect(document.querySelector('[data-production-tokens]').textContent).toBe('0');
+  expect(document.querySelector('[data-production-completed]').textContent).toBe('0'); detach();
+});
+
+it('keeps missing output measurements unknown instead of reporting a partial total', () => {
+  const snapshot = state(); snapshot.network.contribution.production.missingTokenCounts = 1;
+  expect(projectProduction(snapshot).outputTokens).toBeNull();
+});
+
+it('opens reviewed setup without silently authorizing computation', () => {
+  const snapshot = { models: [model], network: {} };
+  const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; }, setSharing: vi.fn() };
+  const inspector = { contribute: vi.fn() };
+  const detach = bindProductionSurface(document.body, session, { inspector });
+  document.querySelector('[data-production-model]').click();
+  expect(inspector.contribute).toHaveBeenCalledOnce();
+  expect(session.setSharing).not.toHaveBeenCalled(); detach();
+});
+
+it('starts with model actions and hides empty production counters', () => {
+  const snapshot = { models: [model], network: {} };
+  const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; } };
+  const detach = bindProductionSurface(document.body, session, { inspector: {} });
+  expect(document.querySelector('[data-production-model]').textContent).toBe('Model');
+  expect(document.querySelector('[data-production-status]').textContent).toBe('Put this device to work');
+  expect(document.querySelector('[data-production-metrics]').hidden).toBe(true);
+  expect(document.querySelector('[data-production-local]').hidden).toBe(true);
+  expect(document.querySelector('[data-production-pause]').hidden).toBe(true);
+  expect(document.querySelector('[data-production-available]')).toBeNull(); detach();
+});
+
+it('loads model sizes without starting work and confirms the exact selected model', async () => {
+  const snapshot = { models: [model, { ...model, id: 'second', name: 'Second' },
+    { id: 'remote', name: 'Remote only', networkAvailability: 'ready' }], network: {} };
+  const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; },
+    getModelDownload: vi.fn(async id => ({ sizeBytes: id === 'm' ? 512000000 : 1200000000 })), setSharing: vi.fn() };
+  const inspector = { contribute: vi.fn() };
+  const detach = bindProductionSurface(document.body, session, { inspector });
+  await vi.waitFor(() => expect(document.querySelector('[data-production-model="second"]').textContent).toContain('1.2 GB'));
+  expect(document.querySelectorAll('[data-production-model]')).toHaveLength(2);
+  const button = document.querySelector('[data-production-model="second"]'); button.click();
+  expect(inspector.contribute).toHaveBeenCalledWith('second', button);
+  expect(session.setSharing).not.toHaveBeenCalled(); detach();
+});
+
+it('blocks local model actions when the host reports missing browser support', () => {
+  const snapshot = { models: [model], network: {}, localDownloadIssue: 'WebGPU unavailable' };
+  const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; }, getModelDownload: vi.fn() };
+  const inspector = { contribute: vi.fn() };
+  const detach = bindProductionSurface(document.body, session, { inspector });
+  const button = document.querySelector('[data-production-model]'); button.click();
+  expect(button.disabled).toBe(true);
+  expect(inspector.contribute).not.toHaveBeenCalled(); expect(session.getModelDownload).not.toHaveBeenCalled(); detach();
+});
+
+it('keeps pause available for storage-only sharing', () => {
+  const snapshot = { models: [], network: { files: { enabled: true, sharing: true, suppliedBytes: 10, verifiedFiles: [{ artifactId: 'file' }] } } };
+  const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; } };
+  const detach = bindProductionSurface(document.body, session, { inspector: {} });
+  expect(document.querySelector('[data-production-pause]').hidden).toBe(false);
+  expect(document.querySelector('[data-production-file-metric]').hidden).toBe(false); detach();
+});
+
+it('attempts to stop files even when compute cleanup fails and keeps the failure visible', async () => {
+  const snapshot = state();
+  const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; },
+    setSharing: vi.fn(async () => { throw new Error('Unsettled GPU owner'); }), setFileSharing: vi.fn(async () => {}) };
+  const detach = bindProductionSurface(document.body, session, { inspector: {} });
+  document.querySelector('[data-production-pause]').click();
+  await vi.waitFor(() => expect(document.querySelector('[data-production-error]').textContent).toContain('Could not pause all sharing'));
+  expect(session.setSharing).toHaveBeenCalledWith(false, 'm', false);
+  expect(session.setFileSharing).toHaveBeenCalledWith(false, 'm', false);
+  expect(document.querySelector('[data-production-tokens]').textContent).toBe('14'); detach();
+});
+
+it('resumes only the previously selected model after an explicit pause', async () => {
+  const snapshot = state(), listeners = new Set();
+  const emit = () => listeners.forEach(fn => fn(snapshot));
+  const session = { getState: () => snapshot, subscribe(fn) { listeners.add(fn); fn(snapshot); return () => listeners.delete(fn); },
+    setSharing: vi.fn(async enabled => { snapshot.network.sharing = enabled; snapshot.network.computeEnabled = enabled; emit(); }),
+    setFileSharing: vi.fn(async enabled => { snapshot.network.files.sharing = enabled; snapshot.network.files.enabled = enabled; emit(); }) };
+  const detach = bindProductionSurface(document.body, session, { inspector: {} });
+  const pause = document.querySelector('[data-production-pause]'); pause.click();
+  await vi.waitFor(() => expect(pause.disabled).toBe(false)); expect(pause.textContent).toBe('Resume');
+  pause.click(); await vi.waitFor(() => expect(pause.textContent).toBe('Pause'));
+  expect(session.setSharing).toHaveBeenLastCalledWith(true, 'm', true); detach();
+});
+
+it('renders measured values and leaves the chat demo collapsed', () => {
+  const snapshot = state(), session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; } };
+  const detach = bindProductionSurface(document.body, session, { inspector: {} });
+  expect(document.querySelector('[data-production-tokens]').textContent).toBe('14');
+  expect(document.querySelector('[data-production-completed]').textContent).toBe('2');
+  expect(document.querySelector('[data-production-demo]').open).toBe(false);
+  expect(document.querySelector('[data-production-surface]').textContent).not.toMatch(/earnings|\$/i); detach();
+});

@@ -10,6 +10,7 @@ export { getRouteId, isProductPath, renderNav, updateChangesControl };
 import { renderOperationSharing } from './operation-sharing.js';
 import { renderWorkSurface, renderNetworkSurface, renderImproveSurface } from './work.js';
 import { renderConversationWorkspace } from './conversation-workspace.js';
+import { renderProductionSurface } from './production.js';
 
 import {
   LAUNCH_MODEL,
@@ -1919,7 +1920,7 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
 };
 
 export const renderRoutePanel = (routeId, options = {}) => {
-  if (routeId === 'home') return renderConversationWorkspace();
+  if (routeId === 'home') return renderProductionSurface();
   if (routeId === 'network') return renderNetworkSurface();
   if (routeId === 'improve') return renderImproveSurface();
   if (routeId === 'examples') return renderHomeSimulation(options);
