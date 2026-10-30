@@ -40,9 +40,16 @@ Reploid coordinates; Doppler defines and executes model computations. Poolday
 supplies participation and authorized data-transfer infrastructure. Zero and X retain
 their research scope. Research capabilities below do not select customer workloads.
 
-Poolday's purpose is generating tokens on consumer hardware and exchanging them.
-The form of exchange and its counterparties are not fixed. Efficient distributed
-token production must be proven first; any exchange depends on that proof.
+Poolday turns available consumer hardware into useful inference capacity that
+people can exchange or sell. When one machine runs a model efficiently, it handles
+the whole request. Machines combine only when that unlocks capacity or improves
+measured economics. Production is proven before monetization. On a few models
+and representative machines, measure output quality, prompt processing, delivered
+tokens per second, memory, loading cost and recovery after a contributor leaves.
+Compare whole-machine and distributed execution against credible alternatives.
+Keep peak capacity, sustained throughput and customer demand separate. Exchange
+and payment follow that proof. The interface shows what each machine runs, shares,
+produces and earns.
 
 ## Intended Beneficiaries
 
