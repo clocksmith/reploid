@@ -3,47 +3,45 @@
 Parent: [Hosted Services](../CATSCAN.md)
 
 ## Target
-
-Authenticate and relay immutable Poolday records while maintaining rebuildable hosted projections and bounded coordination.
+Authenticate immutable records; maintain rebuildable projections and bounded coordination.
 
 ## Authority
-- Owns Poolday routes, server-side contract validation, relay storage, scheduling, and reputation projections.
-- Does not execute the claimed browser model, establish biological truth, or make final room decisions.
+Owns routes, validation, relay storage, scheduling and reputation projections.
+Excludes browser computation, biological truth and final room decisions.
 
 ## Scope
-
-- Includes this directory and unchartered descendants.
+Directory and unchartered descendants.
 
 ## Contracts
-
-Inputs:
-- HTTP contracts from [routes.js](routes.js).
-- Record persistence through [store-contract.js](store-contract.js).
-
-Outputs:
-- Validated immutable records and rebuildable projections through [firebase-store.js](firebase-store.js).
+Inputs: [HTTP](routes.js), [persistence](store-contract.js).
+Outputs: [validated records and projections](firebase-store.js).
 
 ## Invariants
-- Delivery is bounded at-least-once and duplicate handling remains explicit.
-- Projections are rebuildable from accepted immutable records.
-- Server receipt cannot substitute for provider execution evidence.
-- Requester acceptance and rejection settle atomically with receipt, ledger and
-  reputation effects. Identical signed decisions replay the persisted result;
-  conflicting decisions cannot overwrite it. Legacy partial settlements require
-  explicit reconciliation, never blind replay.
-- Settlement rechecks current evidence and reputation revisions before commit.
-  Transaction retries have no external side effects or unbounded history reads.
-- Discovery Contract publication fails closed unless the checkpoint exactly
-  replays the coordinator's current room snapshot.
+- Delivery is bounded at-least-once; duplicate handling stays explicit.
+- Projections rebuild from accepted immutable records.
+- Server receipt never substitutes for provider execution evidence.
+- Acceptance/rejection atomically settle receipts, ledger and reputation.
+  Identical decisions replay persisted results; conflicts cannot overwrite them.
+  Legacy partial settlements require reconciliation, never blind replay.
+- Commit rechecks current evidence and reputation revisions. Transaction retries
+  have neither external effects nor unbounded history reads.
+- V2 signs closed current-attempt agreement terms. Member selectors/timestamps
+  remain signed but do not change semantic identity. Replay authenticates current
+  membership and returns original terms without repricing.
+- Existing v1 identities remain v1; peer/forecast retain explicit v1.
+- Deploy matching v2 server before browser. Retain v1 compatibility; verification
+  rejection never triggers downgrade.
+- Discovery publication requires exact checkpoint replay of current room state.
 
 ## Acceptance
-- Research routes and hosted authentication enforce identity, immutability, and policy boundaries.
-- Evidence: [research route tests](../../tests/unit/pool-research-routes.test.js) and [Firebase auth tests](../../tests/unit/pool-firebase-auth.test.js).
-
-- Atomic settlement evidence: [settlement tests](../../tests/unit/pool-acceptance-settlement.test.js).
+Identity, immutability and policy boundaries hold.
+Evidence: [research](../../tests/unit/pool-research-routes.test.js),
+[authentication](../../tests/unit/pool-firebase-auth.test.js),
+[settlement](../../tests/unit/pool-acceptance-settlement.test.js),
+[versioned replay](../../tests/unit/pool-acceptance-v2.test.js).
 
 ## Non-goals
-- Becoming the authority for browser computation or scientific closure.
+Authority over browser computation or scientific closure.
 
 ## Freedom
-Any mechanism is permitted if it preserves these boundaries and passes the acceptance evidence.
+Preserve boundaries and acceptance.

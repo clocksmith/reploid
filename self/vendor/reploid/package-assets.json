@@ -247,13 +247,13 @@
     },
     {
       "path": "artifacts/acceptance.d.ts",
-      "bytes": 135,
-      "sha256": "7bf636c6ff35c48d5ecaf2cb1dcc8882909a1e96aea9c222e0d5f977b230ef11"
+      "bytes": 615,
+      "sha256": "da52d1662b64f41a079bb3db624aa9218fcb2fd313e3e42a823e07d50a4c9712"
     },
     {
       "path": "artifacts/acceptance.js",
-      "bytes": 669,
-      "sha256": "2cf1048b5b5da647274163bf2ecbe11e66d360668f9cc574eb7915f35ef04b53"
+      "bytes": 2398,
+      "sha256": "71832c23e47b03afab9881b121f57e769ec1a7fed9562e5784dba86ddd8b4ca5"
     },
     {
       "path": "artifacts/binary.d.ts",
@@ -437,8 +437,8 @@
     },
     {
       "path": "chat/scheduler.js",
-      "bytes": 10993,
-      "sha256": "d3d4fa5d735dd26ca56a79f0fdcdef64345f2df579a7ad4f17abd5325236575e"
+      "bytes": 10842,
+      "sha256": "2ca7f740e5792dd81f752c36ed412e51306b3e537aa84a76c6c3a5b949c1a636"
     },
     {
       "path": "chat/search-permission.d.ts",

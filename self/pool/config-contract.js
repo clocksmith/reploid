@@ -147,8 +147,32 @@ const validateSequenceModelContract = (model, index, reasons, { isLaunchModel = 
   }
 };
 
+/** Admission budgets are policy, shared by the host and its diagnostic consumers. */
+export function resolvePoolRateLimits(value) {
+  const limits = cloneValue(value);
+  for (const scope of ['address', 'principal']) {
+    for (const kind of ['control', 'realtime']) {
+      for (const field of ['maxRequests', 'windowMs']) {
+        const setting = limits?.[scope]?.[kind]?.[field];
+        if (!Number.isSafeInteger(setting) || setting <= 0) {
+          throw new TypeError(`admission.rateLimits.${scope}.${kind}.${field} must be a positive safe integer`);
+        }
+      }
+      if (limits[scope][kind].windowMs > 2147483647) {
+        throw new TypeError(`admission.rateLimits.${scope}.${kind}.windowMs exceeds the supported window`);
+      }
+    }
+  }
+  if (typeof limits.qualification !== 'string' || !limits.qualification.trim()) {
+    throw new TypeError('admission.rateLimits.qualification is required');
+  }
+  return deepFreeze(limits);
+}
+
 export function validatePoolConfigValue(config = {}) {
   const reasons = [];
+  try { resolvePoolRateLimits(config.admission?.rateLimits); }
+  catch (error) { reasons.push(error.message); }
   try {
     if (resolvePackJobPolicy(config.peerJobs).version !== 3) reasons.push('current peer job policy version required');
   }

@@ -26,6 +26,9 @@ const cleanedModules = [
   'self/pool/p2p-transport.js',
   'self/pool/p2p-artifact-transfer.js',
   'self/pool/inference-receipt.js',
+  'self/pool/config-contract.js',
+  'self/pool/requester-client.js',
+  'self/pool/complete-forecast.js',
   'self/infrastructure/browser-apis.js',
   'self/core/zero-prompt.js',
   'self/core/worker-agent.js',
@@ -68,6 +71,7 @@ const cleanedModules = [
   'server/pool/services/acceptance.js',
   'server/pool/services/acceptance-settlement.js',
   'server/pool/reputation.js',
+  'server/pool/verifier.js',
   'server/pool/coordinator-transitions.js',
   'server/pool/store-contract.js'
 ];

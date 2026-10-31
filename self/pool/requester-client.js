@@ -3,7 +3,7 @@
  */
 
 import { createPoolSdk } from './sdk.js';
-import { buildAcceptanceSummary, countersignReceipt, createSigningKeyPair, exportPublicKey, hashJson, sha256Hex } from './inference-receipt.js';
+import { ACCEPTANCE_V2, canonicalAcceptanceTerms, acceptanceSigningPayload, verifyCanonicalSignature, buildAcceptanceSummary, countersignReceipt, createSigningKeyPair, exportPublicKey, hashJson, sha256Hex } from './inference-receipt.js';
 import { buildLaunchModelRequirements } from './model-contract.js';
 import { DETERMINISTIC_GENERATION_CONFIG, FASTEST_RECEIPT_POLICY_ID, getPolicy } from './policy-router.js';
 import { createPoolIdentity } from './identity.js';
@@ -261,6 +261,7 @@ export function createRequesterClient({ requesterId, sdk = createPoolSdk(), keyP
       const resolvedRequesterId = await ensureRequesterId();
       const acceptedReceiptHashes = receiptHashes || agreement?.receiptHashes || (receiptHash ? [receiptHash] : []);
       return countersignReceipt({
+        version: 1,
         receiptHash: receiptHash || agreement?.receiptHash,
         requesterId: resolvedRequesterId,
         accepted,
@@ -307,22 +308,40 @@ export function createRequesterClient({ requesterId, sdk = createPoolSdk(), keyP
     async acceptReceipt(receiptHash, accepted = true) {
       const keys = await ensureKeys();
       const resolvedRequesterId = await ensureRequesterId();
-      let acceptanceSummary = null;
-      if (accepted === true) {
-        const receiptRecord = await sdk.getReceipt(receiptHash);
-        const jobResponse = await sdk.pollJob(receiptRecord.jobId);
-        const job = jobResponse.job || jobResponse;
+      const receiptRecord = await sdk.getReceipt(receiptHash);
+      const jobResponse = await sdk.pollJob(receiptRecord.jobId);
+      const job = jobResponse.job || jobResponse;
+      const settledAcceptance = job.settlement?.result?.acceptance;
+      let acceptanceSummary;
+      if (settledAcceptance && !settledAcceptance.schema
+        && settledAcceptance.signatureDomain === 'poolday.requester_acceptance.v1') {
+        if (settledAcceptance.accepted !== accepted || settledAcceptance.receiptHash !== receiptHash) {
+          throw new Error('Legacy settlement replay requires its original receipt and decision');
+        }
+        // v1 binds its original selector and timestamp. Replay that signed request
+        // through its original URL; never reinterpret it as a v2 agreement.
+        const { createdAt, ...originalAcceptance } = settledAcceptance;
+        if (!await verifyCanonicalSignature(acceptanceSigningPayload(originalAcceptance), job.requesterPublicKey,
+          originalAcceptance.requesterSignature, { domain: originalAcceptance.signatureDomain })) {
+          throw new Error('Legacy settlement signed payload requires reconciliation');
+        }
+        return sdk.acceptReceipt(originalAcceptance.receiptHash, originalAcceptance);
+      }
+      if (settledAcceptance?.schema === ACCEPTANCE_V2) {
+        // Re-sign the committed terms, never reprice a retry from later reputation.
+        acceptanceSummary = canonicalAcceptanceTerms(settledAcceptance);
+      } else {
         const receiptHashes = Array.isArray(job?.agreement?.receiptHashes) && job.agreement.status === 'accepted'
           ? job.agreement.receiptHashes
-          : [receiptHash];
+          : Array.isArray(job?.receiptHashes) && job.receiptHashes.length > 0 ? job.receiptHashes : [receiptHash];
         const receiptRecords = await Promise.all(receiptHashes.map((currentReceiptHash) => sdk.getReceipt(currentReceiptHash)));
-        acceptanceSummary = await buildAcceptanceSummary({ job, receiptHash, receiptRecords });
+        acceptanceSummary = await buildAcceptanceSummary({ job, receiptHash, receiptRecords, version: 2 });
       }
       const acceptance = await countersignReceipt({
+        ...acceptanceSummary,
         receiptHash,
         requesterId: resolvedRequesterId,
-        accepted,
-        ...(acceptanceSummary || {})
+        accepted
       }, keys.privateKey);
       return sdk.acceptReceipt(receiptHash, {
         ...acceptance

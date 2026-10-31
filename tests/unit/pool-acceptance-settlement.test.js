@@ -6,7 +6,7 @@ import { validateSettlementStorageBudget } from '../../server/pool/services/acce
 import { buildAcceptanceSummary } from '../../server/pool/services/acceptance.js';
 import {
   acceptanceSigningPayload, countersignReceipt, createSigningKeyPair, exportPublicKey,
-  signCanonical, SIGNATURE_DOMAINS
+  signCanonical
 } from '../../self/pool/inference-receipt.js';
 import { createSettlementFirestore } from '../helpers/pool-settlement-firestore.js';
 
@@ -30,7 +30,7 @@ async function fixture(kind) {
     receiptHashes: ['receipt_settlement'], assignmentIds: ['assignment_settlement'], assignmentAttemptId: 1 });
   const sign = async accepted => {
     const job = await store.getJob('job_settlement');
-    const summary = accepted ? await buildAcceptanceSummary({ store, job, receiptHash: 'receipt_settlement' }) : {};
+    const summary = await buildAcceptanceSummary({ store, job, receiptHash: 'receipt_settlement' });
     return countersignReceipt({ ...summary, receiptHash: 'receipt_settlement', requesterId: job.requesterId, accepted }, keys.privateKey);
   };
   return { store, fake, keys, sign, settle: acceptance => store.settleReceiptAcceptance({ receiptHash: 'receipt_settlement', acceptance }) };
@@ -50,7 +50,7 @@ for (const kind of ['memory', 'firestore']) {
       expect(ledger.find(event => event.eventType === 'points_spent').points).toBe(-8);
       expect(await settle(structuredClone(acceptance))).toEqual(result);
       const resigned = { ...acceptance, requesterSignature: await signCanonical(acceptanceSigningPayload(acceptance), keys.privateKey,
-        { domain: SIGNATURE_DOMAINS.requesterAcceptance }) };
+        { domain: acceptance.signatureDomain }) };
       expect(await settle(resigned)).toEqual(result);
       expect(await store.listLedger('requester_settlement')).toEqual(ledger);
       expect((await store.getReputation('provider_settlement')).acceptedReceipts).toBe(1);

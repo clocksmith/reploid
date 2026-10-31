@@ -1,6 +1,6 @@
 {
   "schema": "reploid.pool.config/v1",
-  "configVersion": "2026-09-06.remote-adapters.v1.doppler-0.6.32.esm2-capsule-v2",
+  "configVersion": "2026-09-06.remote-adapters.v1.doppler-0.6.32.esm2-capsule-v2.http-admission-v1",
   "claim": "receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference",
   "forbiddenClaims": [
     "trustless",
@@ -9,6 +9,32 @@
     "proof of honest browser execution",
     "decentralized AI compute marketplace at launch"
   ],
+  "admission": {
+    "rateLimits": {
+      "qualification": "starter-unqualified",
+      "rationale": "Conservative ingress allowance for ten simultaneous principals behind one address; individual budgets unchanged. Not operational capacity qualification.",
+      "address": {
+        "control": {
+          "maxRequests": 300,
+          "windowMs": 10000
+        },
+        "realtime": {
+          "maxRequests": 2400,
+          "windowMs": 10000
+        }
+      },
+      "principal": {
+        "control": {
+          "maxRequests": 30,
+          "windowMs": 10000
+        },
+        "realtime": {
+          "maxRequests": 240,
+          "windowMs": 10000
+        }
+      }
+    }
+  },
   "trustTiers": {
     "T1_signed_receipt": {
       "label": "Signed receipt",

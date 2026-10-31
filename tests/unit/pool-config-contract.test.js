@@ -2,12 +2,38 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   POLICY_IDS,
+  resolvePoolRateLimits,
   createPoolConfigContract,
   validatePoolConfigValue
 } from '../../self/pool/config-contract.js';
 import poolConfig from '../../self/pool/pool-config.json' with { type: 'json' };
 
 describe('Poolday configuration contract', () => {
+  it.each([0, -1, 1.5, null, undefined, Number.MAX_SAFE_INTEGER + 1])('rejects invalid admission budgets: %s', value => {
+    const invalid = structuredClone(poolConfig);
+    invalid.admission.rateLimits.address.control.maxRequests = value;
+    expect(validatePoolConfigValue(invalid)).toMatchObject({ ok: false });
+    expect(() => resolvePoolRateLimits(invalid.admission.rateLimits)).toThrow('positive safe integer');
+  });
+
+  it('rejects missing admission policy and out-of-range windows', () => {
+    const invalid = structuredClone(poolConfig);
+    delete invalid.admission;
+    expect(validatePoolConfigValue(invalid)).toMatchObject({ ok: false });
+    const windows = structuredClone(poolConfig.admission.rateLimits);
+    windows.principal.realtime.windowMs = 2147483648;
+    expect(() => resolvePoolRateLimits(windows)).toThrow('supported window');
+  });
+
+  it('snapshots resolved admission policy rather than retaining mutable caller settings', () => {
+    const input = structuredClone(poolConfig.admission.rateLimits);
+    const resolved = resolvePoolRateLimits(input);
+    const original = resolved.address.control.maxRequests;
+    input.address.control.maxRequests += 1;
+    expect(resolved.address.control.maxRequests).toBe(original);
+    expect(Object.isFrozen(resolved.address.control)).toBe(true);
+  });
+
   it.each(['pollIntervalMs', 'maxWaitMs'])('requires a bounded reveal wait %s', (field) => {
     const invalid = structuredClone(poolConfig);
     invalid.ringPhaseProtocols.protocols.commit_reveal_v1.revealWait[field] = 0;

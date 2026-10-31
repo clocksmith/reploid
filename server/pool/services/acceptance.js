@@ -1,4 +1,4 @@
-import { compactAgreementForAcceptance } from '../../../packages/reploid/src/artifacts/acceptance.js';
+import { compactAgreementForAcceptance, canonicalAcceptanceAgreement } from '../../../packages/reploid/src/artifacts/acceptance.js';
 export { compactAgreementForAcceptance } from '../../../packages/reploid/src/artifacts/acceptance.js';
 /**
  * @fileoverview Requester-acceptance summary construction for verified Pool receipts.
@@ -10,10 +10,11 @@ import { calculateReceiptPoints } from '../points.js';
 import { getPolicy } from '../policy-router.js';
 import { hashJson } from '../hash.js';
 
-export async function buildAcceptanceSummary({ store, job, receiptHash } = {}) {
-  const receiptHashes = Array.isArray(job?.agreement?.receiptHashes) && job.agreement.status === 'accepted'
+export async function buildAcceptanceSummary({ store, job, receiptHash, version = 2 } = {}) {
+  const selectedHashes = Array.isArray(job?.agreement?.receiptHashes) && job.agreement.status === 'accepted'
     ? job.agreement.receiptHashes
-    : [receiptHash];
+    : version === 2 && job?.receiptHashes?.length ? job.receiptHashes : [receiptHash];
+  const receiptHashes = version === 2 ? [...selectedHashes].sort() : selectedHashes;
   const agreedRecords = [];
   for (const currentReceiptHash of receiptHashes) {
     const agreedRecord = await store.getReceipt(currentReceiptHash);
@@ -38,7 +39,7 @@ export async function buildAcceptanceSummary({ store, job, receiptHash } = {}) {
     });
   }
   const pointSpend = providerPoints.reduce((sum, entry) => sum + entry.points, 0);
-  const payload = {
+  const legacyPayload = {
     jobId: job?.jobId || null,
     requesterId: job?.requesterId || null,
     policyId: job?.policyId || null,
@@ -50,8 +51,11 @@ export async function buildAcceptanceSummary({ store, job, receiptHash } = {}) {
     pointSpend,
     providerPoints
   };
+  const payload = version === 2 ? canonicalAcceptanceAgreement({ ...legacyPayload,
+    assignmentAttemptId: job?.assignmentAttemptId ?? null, ringAttemptId: job?.ringAttemptId ?? null }) : legacyPayload;
   return {
     ...payload,
+    receiptHash,
     agreementHash: hashJson(payload),
     agreedRecords,
     multiplier,

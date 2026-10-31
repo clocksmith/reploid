@@ -1,5 +1,6 @@
 /** Atomic settlement preparation. Historical reputation reads stay outside storage transactions. */
 import { hashJson } from '../hash.js';
+import { ACCEPTANCE_V2, canonicalAcceptanceTerms } from '../../../packages/reploid/src/artifacts/acceptance.js';
 import { POOL_SETTLEMENT_STORAGE_BUDGET } from '../store-contract.js';
 import { getPolicy } from '../policy-router.js';
 import { verifyRequesterAcceptance } from '../verifier.js';
@@ -14,6 +15,9 @@ const fail = (status, message, code = 'settlement_invalid') => Object.assign(new
 const clone = value => structuredClone(value ?? null);
 const effectId = (kind, identity) => `${kind}_${hashJson(identity).slice(7)}`;
 const same = (left, right) => hashJson(left ?? null) === hashJson(right ?? null);
+const hasCurrentAttemptEvidence = (record, job, v2) => assignmentIsCurrent(record, job)
+  && (!v2 || (record.assignmentAttemptId === job.assignmentAttemptId
+    && (record.ringAttemptId ?? null) === (job.ringAttemptId ?? null)));
 
 /** Bound serialized evidence and effects before either adapter can mutate storage. */
 export function validateSettlementStorageBudget(plan) {
@@ -37,13 +41,16 @@ export function validateSettlementSnapshot(plan, actualValues) {
 
 /** The signed payload, not a particular ECDSA signature encoding, identifies the decision. */
 export function receiptSettlementDecisionId(jobId, receiptHash, acceptance) {
+  if (acceptance.schema === ACCEPTANCE_V2) return effectId('settlement_v2', canonicalAcceptanceTerms(acceptance));
+  // Persisted v1 IDs include selector and signed metadata. Never reinterpret them.
   const { requesterSignature, ...payload } = acceptance;
   return effectId('settlement', { jobId, receiptHash, payload });
 }
 
 export async function prepareReceiptSettlement({ store, receiptHash, acceptance: suppliedAcceptance, boundRequesterId }) {
   const acceptance = clone(suppliedAcceptance);
-  if (!acceptance || typeof acceptance.accepted !== 'boolean' || acceptance.receiptHash !== receiptHash) {
+  const v2 = acceptance?.schema === ACCEPTANCE_V2;
+  if (!acceptance || typeof acceptance.accepted !== 'boolean' || (!v2 && acceptance.receiptHash !== receiptHash)) {
     throw fail(400, 'acceptance must bind the requested receipt and a boolean decision');
   }
   const reads = new Map();
@@ -63,22 +70,8 @@ export async function prepareReceiptSettlement({ store, receiptHash, acceptance:
     if (boundRequesterId !== undefined && job.requesterId !== boundRequesterId) {
       throw fail(403, 'authenticated requester binding no longer matches the job', 'settlement_requester_binding_changed');
     }
-    const decisionId = receiptSettlementDecisionId(job.jobId, receiptHash, acceptance);
-    const authentication = await verifyRequesterAcceptance({ job, acceptance });
-    if (!authentication.accepted) {
-      const error = fail(400, 'requester acceptance rejected');
-      error.verifierDecision = authentication;
-      throw error;
-    }
-    if (job.settlement) {
-      if (job.settlement.decisionId !== decisionId) throw fail(409, 'job already has a different settlement decision', 'settlement_conflict');
-      return validateSettlementStorageBudget({ replay: true, reads: [...reads.values()], writes: [], result: clone(job.settlement.result) });
-    }
-    if (['acceptance_processing', 'accepted', 'rejected_by_requester'].includes(job.status)) {
-      throw fail(409, 'legacy job settlement requires explicit reconciliation', 'settlement_legacy_reconciliation_required');
-    }
     if (!receipt.verifierDecision?.accepted) throw fail(400, 'receipt is not verifier-accepted');
-    if (!assignmentIsCurrent(receipt, job)) throw fail(409, 'receipt does not belong to the current job attempt');
+    if (!hasCurrentAttemptEvidence(receipt, job, v2)) throw fail(409, 'receipt does not belong to the current job attempt');
     const currentHashes = job.agreement?.status === 'accepted' ? job.agreement.receiptHashes : job.receiptHashes || [job.receiptHash];
     if (!Array.isArray(currentHashes) || !currentHashes.includes(receiptHash)) throw fail(409, 'receipt is not in the current agreement');
     const policy = getPolicy(job.policyId);
@@ -87,8 +80,41 @@ export async function prepareReceiptSettlement({ store, receiptHash, acceptance:
     if (!Number.isSafeInteger(limit) || limit < 1 || currentHashes.length > limit || new Set(currentHashes).size !== currentHashes.length) {
       throw fail(400, 'settlement receipt set exceeds its policy or contains duplicates');
     }
+    const authentication = await verifyRequesterAcceptance({ job, acceptance });
+    if (!authentication.accepted) {
+      const error = fail(400, 'requester acceptance rejected');
+      error.verifierDecision = authentication;
+      throw error;
+    }
+    const decisionId = receiptSettlementDecisionId(job.jobId, receiptHash, acceptance);
+    if (job.settlement) {
+      if ((job.settlement.version || 1) !== (v2 ? 2 : 1) || job.settlement.decisionId !== decisionId) {
+        throw fail(409, 'job already has a different settlement decision', 'settlement_conflict');
+      }
+      if (v2) {
+        // Replay does not re-price. It still authenticates and snapshots every
+        // member of the current attempt, including either URL selector.
+        for (const hash of acceptance.receiptHashes) {
+          const member = await read('receipts', hash);
+          const allocation = acceptance.providerPoints.find(entry => entry.receiptHash === hash);
+          if (!member?.verifierDecision?.accepted || member.jobId !== job.jobId
+            || member.requesterId !== job.requesterId || !hasCurrentAttemptEvidence(member, job, v2)
+            || member.providerId !== allocation?.providerId) throw fail(409, 'settled agreement evidence is missing or changed');
+          if (!member.assignmentId) throw fail(409, 'settled assignment identity is missing');
+          if (member.assignmentId) {
+            const assignment = await read('assignments', member.assignmentId);
+            if (!assignment || assignment.jobId !== job.jobId || assignment.providerId !== member.providerId
+              || !hasCurrentAttemptEvidence(assignment, job, v2)) throw fail(409, 'settled assignment evidence is missing or changed');
+          }
+        }
+      }
+      return validateSettlementStorageBudget({ replay: true, reads: [...reads.values()], writes: [], result: clone(job.settlement.result) });
+    }
+    if (['acceptance_processing', 'accepted', 'rejected_by_requester'].includes(job.status)) {
+      throw fail(409, 'legacy job settlement requires explicit reconciliation', 'settlement_legacy_reconciliation_required');
+    }
     const at = new Date().toISOString();
-    const savedAcceptance = { ...acceptance, receiptHash, createdAt: at };
+    const savedAcceptance = { ...acceptance, createdAt: at };
     const reputationSnapshots = new Map();
     const reputation = async providerId => {
       if (!reputationSnapshots.has(providerId)) {
@@ -109,35 +135,39 @@ export async function prepareReceiptSettlement({ store, receiptHash, acceptance:
     };
     let result;
     let jobPatch;
-    if (!acceptance.accepted) {
-      result = { acceptance: savedAcceptance, ledgerEvent: null, reputation: await reputation(receipt.providerId) };
-      write('receipts', receiptHash, { ...receipt, requesterAcceptance: savedAcceptance, ledgerEvent: null, updatedAt: at });
-      jobPatch = { status: 'rejected_by_requester', requesterAcceptance: savedAcceptance };
-    } else {
-      if (job.agreement && job.agreement.status !== 'accepted') throw fail(409, 'selected policy has not reached an accepted final state');
-      const summary = await buildAcceptanceSummary({ store: snapshotStore, job, receiptHash });
+    let summary;
+    if (v2 || acceptance.accepted) {
+      summary = await buildAcceptanceSummary({ store: snapshotStore, job, receiptHash, version: v2 ? 2 : 1 });
       if (summary.agreedRecords.length !== summary.receiptHashes.length || !summary.receiptHashes.includes(receiptHash)) {
         throw fail(409, 'accepted agreement set is missing verifier-accepted receipts');
       }
       const providerIds = new Set();
       for (const record of summary.agreedRecords) {
-        if (record.jobId !== job.jobId || record.requesterId !== job.requesterId || !assignmentIsCurrent(record, job)
+        if (record.jobId !== job.jobId || record.requesterId !== job.requesterId || !hasCurrentAttemptEvidence(record, job, v2)
           || providerIds.has(record.providerId)) throw fail(409, 'agreement receipt ownership or current attempt mismatch');
         providerIds.add(record.providerId);
+        if (v2 && !record.assignmentId) throw fail(409, 'agreement assignment identity is missing');
         if (record.assignmentId) {
           const assignment = await read('assignments', record.assignmentId);
           if (!assignment || assignment.jobId !== job.jobId || assignment.providerId !== record.providerId
-            || !assignmentIsCurrent(assignment, job)) throw fail(409, 'agreement assignment is missing or stale');
+            || !hasCurrentAttemptEvidence(assignment, job, v2)) throw fail(409, 'agreement assignment is missing or stale');
         }
       }
-      const reasons = await ensureAgreementCommitRevealReady({ store: snapshotStore, job, agreedRecords: summary.agreedRecords });
-      if (reasons.length) throw fail(409, 'accepted agreement set is missing required commit-reveal evidence');
       const decision = await verifyRequesterAcceptance({ job, acceptance, expectedAcceptance: summary });
       if (!decision.accepted) {
         const error = fail(400, 'requester acceptance rejected');
         error.verifierDecision = decision;
         throw error;
       }
+    }
+    if (!acceptance.accepted) {
+      result = { acceptance: savedAcceptance, ledgerEvent: null, reputation: await reputation(receipt.providerId) };
+      write('receipts', receiptHash, { ...receipt, requesterAcceptance: savedAcceptance, ledgerEvent: null, updatedAt: at });
+      jobPatch = { status: 'rejected_by_requester', requesterAcceptance: savedAcceptance };
+    } else {
+      if (job.agreement && job.agreement.status !== 'accepted') throw fail(409, 'selected policy has not reached an accepted final state');
+      const reasons = await ensureAgreementCommitRevealReady({ store: snapshotStore, job, agreedRecords: summary.agreedRecords });
+      if (reasons.length) throw fail(409, 'accepted agreement set is missing required commit-reveal evidence');
       if (job.maxPointSpend != null && summary.totalProviderPoints > Number(job.maxPointSpend)) {
         throw fail(402, 'accepted result exceeds requester maxPointSpend');
       }
@@ -183,7 +213,7 @@ export async function prepareReceiptSettlement({ store, receiptHash, acceptance:
         acceptedReceiptHashes: summary.receiptHashes };
     }
     write('receiptAcceptances', receiptHash, savedAcceptance);
-    write('jobs', job.jobId, { ...job, ...jobPatch, settlement: { decisionId, result }, updatedAt: at });
+    write('jobs', job.jobId, { ...job, ...jobPatch, settlement: { version: v2 ? 2 : 1, decisionId, result }, updatedAt: at });
     // Include effect absence in the transaction read set. Historical partial effects must not be overwritten.
     for (const entry of writes.values()) {
       const prior = await read(entry.collection, entry.id);

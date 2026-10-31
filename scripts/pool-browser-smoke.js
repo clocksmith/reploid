@@ -144,7 +144,11 @@ try {
   } else {
     if (deployment.ok !== true) failures.push('/pool/deployment/check did not return ok=true');
     if (deployment.store?.commitReveal?.supported !== true) failures.push('commit-reveal support missing from deployment check');
-    if (deployment.identity?.serverAuth?.required !== true) failures.push('server auth is not required in deployment check');
+    const auth = deployment.identity?.serverAuth;
+    if (auth?.protectedDefault !== 'authentication-required' || auth.verifierConfigured !== true
+      || !Array.isArray(auth.publicExceptions) || auth.localDevelopment?.configured !== false) {
+      failures.push('deployment auth policy lacks protected authentication, explicit exceptions, or permits hosted local bypass');
+    }
   }
   console.log('[pool-smoke] deployment check passed');
 } catch (error) {

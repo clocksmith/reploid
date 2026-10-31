@@ -1146,7 +1146,7 @@
     {
       "path": "pool/complete-forecast.js",
       "owner": "pool",
-      "sha256": "sha256:483192344e399c005f1a15835801b4cd16abab609c3fad93dc97ec30f5e1d143",
+      "sha256": "sha256:a6fc16a576ed096a07bb01863ba65769e72a68128c7f188d867e1f34d5e801b7",
       "imports": [
         "./artifact-router.js",
         "./executable-pack.js",
@@ -1161,7 +1161,7 @@
     {
       "path": "pool/config-contract.js",
       "owner": "pool",
-      "sha256": "sha256:1da0786384a24072a5bc7629a4bce5c2ab2c593228ed5a45453b300b23b9026d",
+      "sha256": "sha256:01570c21d1550b1de39baf8bb0456c3d6f3df955373cdead6f638d6528e7892a",
       "imports": [
         "./executable-pack.js",
         "./pack-operation-policy.js",
@@ -1421,7 +1421,7 @@
     {
       "path": "pool/inference-receipt.js",
       "owner": "pool",
-      "sha256": "sha256:3b985dac8fe39adcb7b157deaa1d01ca5b8550eee0af0e39bf6b0839a87d652b",
+      "sha256": "sha256:e933b25c8fcba6ff3e4de05726d74076398374feb44266a34448ebfcc87afde9",
       "imports": [
         "../vendor/reploid/artifacts/acceptance.js",
         "../vendor/reploid/artifacts/signatures.js",
@@ -1974,7 +1974,7 @@
     {
       "path": "pool/requester-client.js",
       "owner": "pool",
-      "sha256": "sha256:706330a2fa72fc5b2e4d768e1baf92740b69d302487408e4d529e840344d0b07",
+      "sha256": "sha256:d21f55bf381ad3fe045774ea4a970300f98fa68dbb91927c2630c207e3a710ae",
       "imports": [
         "./adapter-pack.js",
         "./adapter-publication.js",
@@ -3498,7 +3498,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:676420e8b8d29e18983e30c678049fdce6c08e8f67183d7c2e5314e325dd86d4",
+      "sha256": "sha256:88269410585d1a581f48155dde15e72e5bd8b034514b9edc38ba24791b6ed3e9",
       "imports": []
     },
     {
@@ -16098,7 +16098,7 @@
     {
       "path": "vendor/reploid/artifacts/acceptance.js",
       "owner": "vendor",
-      "sha256": "sha256:2cf1048b5b5da647274163bf2ecbe11e66d360668f9cc574eb7915f35ef04b53",
+      "sha256": "sha256:71832c23e47b03afab9881b121f57e769ec1a7fed9562e5784dba86ddd8b4ca5",
       "imports": []
     },
     {
@@ -16266,7 +16266,7 @@
     {
       "path": "vendor/reploid/chat/scheduler.js",
       "owner": "vendor",
-      "sha256": "sha256:d3d4fa5d735dd26ca56a79f0fdcdef64345f2df579a7ad4f17abd5325236575e",
+      "sha256": "sha256:2ca7f740e5792dd81f752c36ed412e51306b3e537aa84a76c6c3a5b949c1a636",
       "imports": [
         "./policy.json"
       ]

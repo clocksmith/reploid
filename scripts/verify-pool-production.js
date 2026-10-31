@@ -32,6 +32,10 @@ const valueArg = (name) => {
 const allowPlaceholders = args.has('--allow-placeholders');
 const deploymentUrl = valueArg('--url') || process.env.REPLOID_POOL_DEPLOYMENT_URL || null;
 const verifyArtifact = args.has('--verify-artifact') || !!deploymentUrl;
+// Active aggregate-quota exhaustion is a separate, bounded operator opt-in.
+const probeAddressRateLimit = args.has('--probe-address-rate-limit');
+const MAX_ADDRESS_PROBE_REQUESTS = 1000;
+const MAX_ADDRESS_PROBE_WINDOW_MS = 60000;
 const envPath = valueArg('--env')
   ? path.resolve(valueArg('--env'))
   : path.join(repoRoot, 'deploy', 'env.production.json');
@@ -359,7 +363,11 @@ const checkDeploymentUrl = async (baseUrl) => {
     if (deployment.release?.runtimeBundleHash !== localRuntimeBundle.runtimeBundleHash) reasons.push('deployed backend runtime bytes differ from local runtime bytes');
     if (!deployment.release?.platformRevision) reasons.push('deployed backend platform revision is missing');
     if (deployment.store?.mode !== 'firestore') reasons.push('deployed store mode is not firestore');
-    if (deployment.identity?.serverAuth?.required !== true) reasons.push('deployed server auth is not required');
+    const auth = deployment.identity?.serverAuth;
+    if (auth?.protectedDefault !== 'authentication-required' || auth.verifierConfigured !== true
+      || !Array.isArray(auth.publicExceptions) || auth.localDevelopment?.configured !== false) {
+      reasons.push('deployed auth policy must protect default routes, describe public exceptions, and disable local bypass');
+    }
     if (deployment.store?.commitReveal?.supported !== true) reasons.push('deployed commit-reveal store support is not true');
     if (deployment.store?.adapterDelivery?.configured !== true) reasons.push('deployed private adapter signer is not configured');
     if (deployment.store?.rateLimit?.distributed !== true) reasons.push('deployed rate limiting is not Firestore-backed');
@@ -373,27 +381,40 @@ const checkDeploymentUrl = async (baseUrl) => {
   } catch (error) {
     reasons.push(`deployment config fetch failed: ${error.message}`);
   }
+  if (!probeAddressRateLimit) {
+    console.log('Address rate-limit exhaustion probe not run; opt in with --probe-address-rate-limit. Reported policy is not runtime qualification.');
+    return reasons;
+  }
   try {
-    const clientId = `production-verifier-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    const bucketMs = 10000;
+    // Anonymous status requests consume aggregate address admission, not the
+    // individual authenticated quota. Caller labels must not create new buckets.
+    const { maxRequests, windowMs: bucketMs } = POOL_CONFIG.admission.rateLimits.address.control;
+    if (!Number.isSafeInteger(maxRequests) || maxRequests < 1 || maxRequests + 1 > MAX_ADDRESS_PROBE_REQUESTS
+      || !Number.isSafeInteger(bucketMs) || bucketMs < 1 || bucketMs > MAX_ADDRESS_PROBE_WINDOW_MS) {
+      throw new Error('configured address quota exceeds the bounded manual probe allowance');
+    }
     const bucketPhase = Date.now() % bucketMs;
     if (bucketPhase > 1000) {
-      await new Promise((resolve) => setTimeout(resolve, bucketMs + 50 - bucketPhase));
+      await new Promise(resolve => setTimeout(resolve, bucketMs + 50 - bucketPhase));
     }
+    const startedWindow = Math.floor(Date.now() / bucketMs);
     const responses = await Promise.all(
-      Array.from({ length: 31 }, () => fetch(`${normalized}/pool/status`, {
-        headers: { 'x-reploid-client-id': clientId }
+      Array.from({ length: maxRequests + 1 }, (_, index) => fetch(`${normalized}/pool/status`, {
+        headers: { 'x-reploid-client-id': `untrusted-probe-${index}` },
+        signal: AbortSignal.timeout(bucketMs)
       }))
     );
-    const accepted = responses.filter((response) => response.ok).length;
-    const limited = responses.filter((response) => response.status === 429).length;
-    const unexpected = responses.filter((response) => !response.ok && response.status !== 429);
-    if (accepted !== 30 || limited !== 1 || unexpected.length > 0) {
-      reasons.push(
-        'deployed rate-limit probe expected 30 accepted requests and one 429 '
-        + `(received ${accepted} accepted, ${limited} limited, ${unexpected.length} unexpected)`
-      );
+    const accepted = responses.filter(response => response.ok).length;
+    const limited = responses.filter(response => response.status === 429).length;
+    const unexpected = responses.filter(response => !response.ok && response.status !== 429);
+    if (Math.floor(Date.now() / bucketMs) !== startedWindow) {
+      reasons.push('deployment address-limit probe crossed its window; boundedness observation is inconclusive');
+    } else if (accepted > maxRequests || limited < 1 || unexpected.length > 0) {
+      reasons.push(`deployed address-limit probe exceeded its declared bound or lacked a 429 (${accepted} accepted, ${limited} limited, ${unexpected.length} unexpected)`);
     }
+    // Other callers can consume this shared address allowance. This probe checks
+    // its upper bound, not availability, ten-user capacity or operational tuning.
+
   } catch (error) {
     reasons.push(`deployment rate-limit probe failed: ${error.message}`);
   }

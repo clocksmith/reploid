@@ -18,7 +18,10 @@ export function createChatScheduler({ open, observe, policy = defaults, now = Da
     if (!resident) return Promise.resolve();
     const previous = resident;
     cleanup = { status: 'pending', modelIdentity: residentIdentity, error: null };
-    retirement = Promise.resolve().then(() => previous.close()).then(() => {
+    retirement = Promise.resolve().then(() => {
+      assert(typeof previous.close === 'function', 'Resident cleanup port is unavailable');
+      return previous.close();
+    }).then(() => {
       // The device owner remains retained until its cleanup positively settles.
       resident = null;
       residentIdentity = null;
@@ -28,6 +31,22 @@ export function createChatScheduler({ open, observe, policy = defaults, now = Da
       throw error;
     }).finally(() => { retirement = null; });
     return retirement;
+  };
+  const acquireResident = async (model, signal) => {
+    const opened = await open(structuredClone(model), { signal });
+    // Ownership begins when open returns, before validation can reject its contract.
+    resident = opened;
+    residentIdentity = opened ? model.identity : null;
+    try {
+      assert(typeof opened?.run === 'function' && typeof opened?.reset === 'function'
+        && typeof opened?.setAdapters === 'function' && typeof opened?.close === 'function', 'Resident execution contract is incomplete');
+      signal.throwIfAborted();
+    } catch (error) {
+      // An unvalidated session must never receive reset, adapter changes or execution.
+      try { await retire(); }
+      catch (cleanupError) { throw new AggregateError([error, cleanupError], 'Resident acquisition and cleanup failed'); }
+      throw error;
+    }
   };
   const queued = () => [...queues.values()].reduce((sum, list) => sum + list.length, 0);
   const rejectQueued = async (entry, error, status = 'cancelled') => {
@@ -67,10 +86,7 @@ export function createChatScheduler({ open, observe, policy = defaults, now = Da
             await retire();
             entry.signal.throwIfAborted();
             entry.onState('loading');
-            resident = await open(structuredClone(entry.request.model), { signal: entry.signal });
-            assert(typeof resident?.run === 'function' && typeof resident?.reset === 'function'
-              && typeof resident?.setAdapters === 'function' && typeof resident?.close === 'function', 'Resident execution contract is incomplete');
-            residentIdentity = entry.request.model.identity;
+            await acquireResident(entry.request.model, entry.signal);
           }
           loadedAt = now();
           entry.signal.throwIfAborted();
@@ -85,9 +101,6 @@ export function createChatScheduler({ open, observe, policy = defaults, now = Da
           // Reset is mandatory even after abort. Never lend a dirty session to another conversation.
           try { if (resident && !cleanup) { await resident.reset(); await resident.setAdapters([], {}); } }
           catch (error) { failure ||= error; try { await retire(); } catch (cleanup) { failure = new AggregateError([failure, cleanup]); } }
-          if (resident && residentIdentity === null && !cleanup) {
-            try { await retire(); } catch (error) { failure ||= error; }
-          }
           try {
             await observe({ schema: 'reploid.chat-execution-observation/v1', id: entry.key,
               participantId: entry.request.participantId, threadId: entry.request.threadId, attemptId: entry.request.attemptId,
@@ -118,18 +131,7 @@ export function createChatScheduler({ open, observe, policy = defaults, now = Da
       preparing = (async () => {
         await retire();
         lifetime.signal.throwIfAborted();
-        const opened = await open(structuredClone(model), { signal: lifetime.signal });
-        resident = opened;
-        residentIdentity = opened ? model.identity : null;
-        try {
-          lifetime.signal.throwIfAborted();
-          assert(typeof opened?.run === 'function' && typeof opened?.reset === 'function'
-            && typeof opened?.setAdapters === 'function' && typeof opened?.close === 'function', 'Resident execution contract is incomplete');
-        } catch (error) {
-          try { await retire(); }
-          catch (cleanupError) { throw new AggregateError([error, cleanupError], 'Preparation and cleanup failed'); }
-          throw error;
-        }
+        await acquireResident(model, lifetime.signal);
       })().finally(() => { preparing = null; preparingIdentity = null; });
       return preparing;
     },

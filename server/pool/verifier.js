@@ -3,6 +3,7 @@
  */
 
 import { webcrypto } from 'crypto';
+import { ACCEPTANCE_V2, ACCEPTANCE_V2_DOMAIN, canonicalAcceptanceAgreement, acceptanceV2SigningPayload, compactAgreementForAcceptance } from '../../packages/reploid/src/artifacts/acceptance.js';
 import { canonicalize, hashJson, sha256Hex } from './hash.js';
 import { PROVIDER_RECEIPT_TRUST_TIER, RECEIPT_VERSION } from './receipt-contract.js';
 import { getRingPhaseProtocol } from './config.js';
@@ -292,11 +293,71 @@ const sameStringArray = (left = [], right = []) => (
   && left.every((value, index) => value === right[index])
 );
 
+const acceptanceV2Keys = new Set([
+  'schema', 'signatureDomain', 'jobId', 'requesterId', 'assignmentAttemptId', 'ringAttemptId',
+  'policyId', 'policyConfigVersion', 'policyConfigHash', 'agreement', 'receiptHashes',
+  'providerPoints', 'pointSpend', 'agreementHash', 'accepted', 'receiptHash', 'acceptedAt', 'requesterSignature'
+]);
+
+function validateV2Acceptance(job, acceptance) {
+  const reasons = [];
+  if (Object.keys(acceptance).some(key => !acceptanceV2Keys.has(key))
+    || [...acceptanceV2Keys].some(key => !Object.hasOwn(acceptance, key))) {
+    reasons.push('acceptance v2 fields must match its closed schema');
+  }
+  for (const field of ['jobId', 'requesterId', 'policyId', 'policyConfigVersion', 'policyConfigHash', 'agreementHash', 'receiptHash']) {
+    if (typeof acceptance[field] !== 'string' || !acceptance[field]) reasons.push(`acceptance ${field} must be a nonempty string`);
+  }
+  if (!Number.isSafeInteger(acceptance.assignmentAttemptId) || acceptance.assignmentAttemptId < 1
+    || acceptance.assignmentAttemptId !== job?.assignmentAttemptId) reasons.push('acceptance assignmentAttemptId mismatch or missing evidence');
+  if (acceptance.ringAttemptId !== (job?.ringAttemptId ?? null)) reasons.push('acceptance ringAttemptId mismatch');
+  if (acceptance.ringAttemptId !== null && (typeof acceptance.ringAttemptId !== 'string' || !acceptance.ringAttemptId)) {
+    reasons.push('acceptance ringAttemptId must be null or a nonempty string');
+  }
+  if (acceptance.jobId !== job?.jobId) reasons.push('acceptance jobId mismatch');
+  if (acceptance.policyId !== job?.policyId) reasons.push('acceptance policyId mismatch');
+  for (const field of ['policyConfigVersion', 'policyConfigHash']) {
+    if (job?.[field] && acceptance[field] !== job[field]) reasons.push(`acceptance ${field} mismatch`);
+  }
+  if (typeof acceptance.acceptedAt !== 'string' || !Number.isFinite(Date.parse(acceptance.acceptedAt))) {
+    reasons.push('acceptance acceptedAt must be a signed timestamp');
+  }
+  const hashes = acceptance.receiptHashes;
+  const current = job?.agreement?.status === 'accepted' ? job.agreement.receiptHashes : job?.receiptHashes || [job?.receiptHash];
+  if (!Array.isArray(hashes) || !hashes.length || hashes.some(value => typeof value !== 'string' || !value)
+    || new Set(hashes).size !== hashes.length || !Array.isArray(current)
+    || hashJson([...hashes].sort()) !== hashJson([...current].sort()) || !hashes.includes(acceptance.receiptHash)) {
+    reasons.push('acceptance receiptHashes must bind the unique current agreement set');
+  }
+  const allocations = acceptance.providerPoints;
+  if (!Array.isArray(allocations) || !Array.isArray(hashes) || allocations.length !== hashes.length
+    || allocations.some(entry => !entry || Object.keys(entry).sort().join(',') !== 'points,providerId,receiptHash'
+      || typeof entry.providerId !== 'string' || !entry.providerId || !hashes.includes(entry.receiptHash)
+      || !Number.isSafeInteger(entry.points) || entry.points < 0)
+    || new Set(allocations.map(entry => entry?.receiptHash)).size !== allocations.length
+    || new Set(allocations.map(entry => entry?.providerId)).size !== allocations.length
+    || !Number.isSafeInteger(acceptance.pointSpend) || acceptance.pointSpend < 0
+    || allocations.reduce((sum, entry) => sum + (entry?.points || 0), 0) !== acceptance.pointSpend) {
+    reasons.push('acceptance providerPoints and pointSpend must bind one valid allocation per receipt');
+  }
+  if (hashJson(acceptance.agreement ?? null) !== hashJson(compactAgreementForAcceptance(job?.agreement ?? null))) {
+    reasons.push('acceptance agreement mismatch');
+  }
+  if (!reasons.length && acceptance.agreementHash !== hashJson(canonicalAcceptanceAgreement(acceptance))) {
+    reasons.push('acceptance agreementHash mismatch');
+  }
+  return reasons;
+}
+
 export async function verifyRequesterAcceptance({ job, acceptance, expectedAcceptance = null }) {
   const reasons = [];
   if (!job) reasons.push('job not found');
   if (!acceptance) reasons.push('acceptance missing');
-  if (acceptance?.signatureDomain !== SIGNATURE_DOMAINS.requesterAcceptance) reasons.push('acceptance signature domain mismatch');
+  const v2 = acceptance?.schema === ACCEPTANCE_V2;
+  const domain = v2 ? ACCEPTANCE_V2_DOMAIN : SIGNATURE_DOMAINS.requesterAcceptance;
+  if (acceptance?.schema !== undefined && !v2) reasons.push('unsupported acceptance schema');
+  if (acceptance?.signatureDomain !== domain) reasons.push('acceptance signature domain mismatch');
+  if (v2) reasons.push(...validateV2Acceptance(job, acceptance));
   if (typeof acceptance?.accepted !== 'boolean') reasons.push('acceptance accepted flag must be boolean');
   if (!acceptance?.receiptHash) reasons.push('acceptance receiptHash is required');
   if (!acceptance?.requesterSignature) reasons.push('requester signature missing');
@@ -312,19 +373,19 @@ export async function verifyRequesterAcceptance({ job, acceptance, expectedAccep
   if (allowedReceiptHashes.size > 0 && !allowedReceiptHashes.has(acceptance?.receiptHash)) {
     reasons.push('acceptance receiptHash mismatch');
   }
-  if (acceptance?.accepted === true && expectedAcceptance) {
+  if ((v2 || acceptance?.accepted === true) && expectedAcceptance && (!v2 || reasons.length === 0)) {
     if (acceptance.jobId !== expectedAcceptance.jobId) reasons.push('acceptance jobId mismatch');
     if (acceptance.policyId !== expectedAcceptance.policyId) reasons.push('acceptance policyId mismatch');
     if (acceptance.policyConfigVersion !== expectedAcceptance.policyConfigVersion) reasons.push('acceptance policyConfigVersion mismatch');
     if (acceptance.policyConfigHash !== expectedAcceptance.policyConfigHash) reasons.push('acceptance policyConfigHash mismatch');
     if (acceptance.agreementHash !== expectedAcceptance.agreementHash) reasons.push('acceptance agreementHash mismatch');
-    if (!sameStringArray(acceptance.receiptHashes, expectedAcceptance.receiptHashes)) {
+    if (!sameStringArray(v2 ? [...acceptance.receiptHashes].sort() : acceptance.receiptHashes, expectedAcceptance.receiptHashes)) {
       reasons.push('acceptance receiptHashes mismatch');
     }
     if (Number(acceptance.pointSpend) !== Number(expectedAcceptance.pointSpend)) {
       reasons.push('acceptance pointSpend mismatch');
     }
-    if (hashJson(acceptance.providerPoints || []) !== hashJson(expectedAcceptance.providerPoints || [])) {
+    if (hashJson(v2 && Array.isArray(acceptance.providerPoints) ? canonicalAcceptanceAgreement(acceptance).providerPoints : acceptance.providerPoints || []) !== hashJson(expectedAcceptance.providerPoints || [])) {
       reasons.push('acceptance providerPoints mismatch');
     }
   }
@@ -343,8 +404,8 @@ export async function verifyRequesterAcceptance({ job, acceptance, expectedAccep
         publicKey,
         base64ToBuffer(acceptance.requesterSignature),
         textEncoder.encode(canonicalize(domainSeparatedPayload(
-          SIGNATURE_DOMAINS.requesterAcceptance,
-          acceptanceSigningPayload(acceptance)
+          domain,
+          v2 ? acceptanceV2SigningPayload(acceptance) : acceptanceSigningPayload(acceptance)
         )))
       );
       if (!signatureOk) reasons.push('requester signature invalid');

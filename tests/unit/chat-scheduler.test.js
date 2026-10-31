@@ -165,7 +165,7 @@ it('retains an owner whose preparation was cancelled and whose cleanup still fai
   const open = vi.fn(async () => { await opening.promise; return { run() {}, reset() {}, setAdapters() {}, close }; });
   const scheduler = createChatScheduler({ open, observe() {} });
   const preparation = scheduler.prepare(model);
-  const preparationRejected = expect(preparation).rejects.toThrow('Preparation and cleanup failed');
+  const preparationRejected = expect(preparation).rejects.toThrow('Resident acquisition and cleanup failed');
   await vi.waitFor(() => expect(open).toHaveBeenCalledTimes(1));
   const stopping = scheduler.close();
   const stopRejected = expect(stopping).rejects.toThrow('Preparation cleanup failed');
@@ -193,3 +193,67 @@ it('shares preparation while the previous model retires and snapshots the replac
   expect(open.mock.calls[1][0].identity).toBe('sha256:' + 'b'.repeat(64));
   await scheduler.close();
 });
+
+for (const acquisition of ['prepare', 'schedule']) {
+  const start = (scheduler, attempt = 'malformed') => acquisition === 'prepare'
+    ? scheduler.prepare(model)
+    : scheduler.schedule(request('alice', attempt), { signal: new AbortController().signal });
+
+  it.each(['run', 'reset', 'setAdapters'])(`${acquisition} retires a resident missing %s without invoking execution ports`, async missing => {
+    const ports = { run: vi.fn(), reset: vi.fn(), setAdapters: vi.fn(), close: vi.fn() };
+    const malformed = { ...ports, [missing]: undefined };
+    const scheduler = createChatScheduler({ observe() {}, open: async () => malformed });
+    await expect(start(scheduler)).rejects.toThrow('Resident execution contract is incomplete');
+    expect(ports.close).toHaveBeenCalledTimes(1);
+    expect(ports.run).not.toHaveBeenCalled();
+    expect(ports.reset).not.toHaveBeenCalled();
+    expect(ports.setAdapters).not.toHaveBeenCalled();
+    expect(scheduler.getState()).toMatchObject({ residentIdentity: null, cleanup: null });
+    await scheduler.close();
+    expect(ports.close).toHaveBeenCalledTimes(1);
+  });
+
+  it(`${acquisition} retains malformed acquisition identity, fences the same model, and retries failed close`, async () => {
+    const opening = deferred();
+    const reset = vi.fn(), setAdapters = vi.fn();
+    const close = vi.fn().mockRejectedValueOnce(new Error('Malformed owner still allocated')).mockResolvedValue(undefined);
+    const open = vi.fn(async () => { await opening.promise; return { reset, setAdapters, close }; });
+    const scheduler = createChatScheduler({ open, observe() {} });
+    const first = start(scheduler);
+    const rejected = expect(first).rejects.toThrow('Resident acquisition and cleanup failed');
+    await vi.waitFor(() => expect(open).toHaveBeenCalledTimes(1));
+    const queued = scheduler.schedule(request('bob', 'same-model-queued'), { signal: new AbortController().signal });
+    const queuedRejected = expect(queued).rejects.toThrow('cleanup remains unsettled');
+    opening.resolve();
+    await rejected;
+    await queuedRejected;
+    expect(scheduler.getState()).toMatchObject({ residentIdentity: model.identity,
+      cleanup: { status: 'failed', modelIdentity: model.identity, error: 'Malformed owner still allocated' } });
+    expect(() => scheduler.prepare(model)).toThrow('cleanup remains unsettled');
+    expect(() => scheduler.schedule(request('carol', 'same-model-new'), { signal: new AbortController().signal }))
+      .toThrow('cleanup remains unsettled');
+    expect(reset).not.toHaveBeenCalled();
+    expect(setAdapters).not.toHaveBeenCalled();
+    expect(open).toHaveBeenCalledTimes(1);
+    await scheduler.close();
+    expect(close).toHaveBeenCalledTimes(2);
+    expect(scheduler.getState()).toMatchObject({ residentIdentity: null, cleanup: null });
+  });
+
+  it(`${acquisition} keeps a missing cleanup port visibly blocked rather than claiming retirement`, async () => {
+    const run = vi.fn(), reset = vi.fn(), setAdapters = vi.fn();
+    const scheduler = createChatScheduler({ observe() {}, open: async () => ({ run, reset, setAdapters }) });
+    await expect(start(scheduler)).rejects.toThrow('Resident acquisition and cleanup failed');
+    expect(scheduler.getState()).toMatchObject({ residentIdentity: model.identity,
+      cleanup: { status: 'failed', modelIdentity: model.identity, error: 'Resident cleanup port is unavailable' } });
+    expect(() => scheduler.prepare(model)).toThrow('cleanup remains unsettled');
+    expect(() => scheduler.schedule(request('bob', 'blocked'), { signal: new AbortController().signal }))
+      .toThrow('cleanup remains unsettled');
+    await expect(scheduler.close()).rejects.toThrow('Resident cleanup port is unavailable');
+    await expect(scheduler.close()).rejects.toThrow('Resident cleanup port is unavailable');
+    expect(run).not.toHaveBeenCalled();
+    expect(reset).not.toHaveBeenCalled();
+    expect(setAdapters).not.toHaveBeenCalled();
+    expect(scheduler.getState().cleanup.status).toBe('failed');
+  });
+}

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import createPoolRouter from '../../server/pool/routes.js';
 import { createPoolStore } from '../../server/pool/store.js';
 import { LAUNCH_MODEL } from '../../server/pool/model-contract.js';
+import { POOL_CONFIG } from '../../server/pool/config.js';
 import { DETERMINISTIC_GENERATION_CONFIG, getPolicy } from '../../server/pool/policy-router.js';
 import { assignJob } from '../../server/pool/scheduler.js';
 import { runtimeProfileHash as serverRuntimeProfileHash } from '../../server/pool/runtime-profile.js';
@@ -483,7 +484,15 @@ describe('pool coordinator routes', () => {
     expect((await dispatchJson(router, '/status')).body.auth).toMatchObject({ required: true, localDevelopmentAllowed: false });
     const deployment = await dispatchJson(router, '/deployment/check');
     expect(deployment.body.store.authRequired).toBe(true);
-    expect(deployment.body.identity.serverAuth.required).toBe(true);
+    expect(deployment.body.identity.serverAuth).toMatchObject({
+      required: true, protectedDefault: 'authentication-required',
+      localDevelopment: { configured: false, eligibleForRequest: false, appliedToRequest: false },
+      request: { authenticationRequired: false, roleAuthorization: 'public-read' }
+    });
+    expect(deployment.body.identity.serverAuth.publicExceptions).toEqual(expect.arrayContaining([
+      expect.objectContaining({ method: 'GET', path: '/status' }),
+      expect.objectContaining({ method: '*', prefix: '/peer/rooms/', authorization: 'signed-peer-protocol' })
+    ]));
     expect((await dispatchJson(router, '/jobs', { method: 'POST', body: {} })).status).toBe(401);
   });
 
@@ -498,16 +507,17 @@ describe('pool coordinator routes', () => {
   });
 
   it('does not let caller headers or body identities reset the address quota', async () => {
+    const limit = POOL_CONFIG.admission.rateLimits.address.control.maxRequests;
     router = createPoolRouter({ store });
     const responses = [];
-    for (let index = 0; index < 31; index += 1) {
+    for (let index = 0; index <= limit; index += 1) {
       responses.push(await dispatchJson(router, '/status', {
         ip: '203.0.113.4',
         headers: { 'x-reploid-client-id': `rotated-${index}`, 'x-forwarded-for': `198.51.100.${index}` },
         body: { requesterId: `requester_${index}`, providerId: `provider_${index}` }
       }));
     }
-    expect(responses.slice(0, 30).every(response => response.status === 200)).toBe(true);
+    expect(responses.slice(0, limit).every(response => response.status === 200)).toBe(true);
     expect(responses.at(-1).status).toBe(429);
   });
 
@@ -518,8 +528,18 @@ describe('pool coordinator routes', () => {
         ip: `198.51.100.${index}`, headers: { authorization: 'Bearer alice', 'x-reploid-client-id': `client-${index}` }
       })).status).toBe(200);
     }
-    expect((await dispatchJson(router, '/status', { ip: '203.0.113.8', headers: { authorization: 'Bearer alice' } })).status).toBe(429);
+    expect(await dispatchJson(router, '/status', { ip: '203.0.113.8', headers: { authorization: 'Bearer alice' } })).toMatchObject({ status: 429, headers: { 'x-ratelimit-scope': 'principal' } });
     expect((await dispatchJson(router, '/status', { ip: '203.0.113.9', headers: { authorization: 'Bearer bob' } })).status).toBe(200);
+  });
+
+  it('does not let one principal exhaust the shared-address allowance for another', async () => {
+    router = createPoolRouter({ store, verifyAuthToken: async token => ({ uid: token }) });
+    const limit = POOL_CONFIG.admission.rateLimits.principal.control.maxRequests;
+    for (let index = 0; index < limit; index += 1) {
+      expect((await dispatchJson(router, '/status', { headers: { authorization: 'Bearer alice' } })).status).toBe(200);
+    }
+    expect((await dispatchJson(router, '/status', { headers: { authorization: 'Bearer alice' } })).status).toBe(429);
+    expect((await dispatchJson(router, '/status', { headers: { authorization: 'Bearer bob' } })).status).toBe(200);
   });
 
   it('rejects verifier results without an authenticated subject', async () => {
@@ -533,34 +553,36 @@ describe('pool coordinator routes', () => {
 
   it('rate limits repeated requests from the same trusted address', async () => {
     store.kind = 'memory';
+    const limit = POOL_CONFIG.admission.rateLimits.address.control.maxRequests;
     router = createPoolRouter({ store });
     const headers = { 'x-reploid-client-id': 'client_rate_limit_test' };
 
     const responses = [];
-    for (let index = 0; index < 31; index += 1) {
+    for (let index = 0; index <= limit; index += 1) {
       responses.push(await dispatchJson(router, '/status', { headers }));
     }
 
-    expect(responses.slice(0, 30).every((response) => response.status === 200)).toBe(true);
-    expect(responses[30]).toMatchObject({
+    expect(responses.slice(0, limit).every((response) => response.status === 200)).toBe(true);
+    expect(responses[limit]).toMatchObject({
       status: 429,
       body: {
         error: 'pool rate limit exceeded',
         retryable: true,
         retryAfter: expect.any(Number)
       },
-      headers: { 'retry-after': expect.any(String) }
+      headers: { 'retry-after': expect.any(String), 'x-ratelimit-scope': 'address' }
     });
   });
 
   it('gives realtime relay traffic an independent burst budget', async () => {
     store.kind = 'memory';
+    const limit = POOL_CONFIG.admission.rateLimits.address.control.maxRequests;
     router = createPoolRouter({ store });
     const headers = { 'x-reploid-client-id': 'client_realtime_rate_limit_test' };
 
     const controlResponses = [];
     const relayResponses = [];
-    for (let index = 0; index < 31; index += 1) {
+    for (let index = 0; index <= limit; index += 1) {
       controlResponses.push(await dispatchJson(router, '/status', { headers }));
       relayResponses.push(await dispatchJson(
         router,
@@ -569,9 +591,9 @@ describe('pool coordinator routes', () => {
       ));
     }
 
-    expect(controlResponses[30].status).toBe(429);
+    expect(controlResponses[limit].status).toBe(429);
     expect(relayResponses.every((response) => response.status === 200)).toBe(true);
-    expect(relayResponses[30].body).toEqual({ messages: [] });
+    expect(relayResponses[limit].body).toEqual({ messages: [] });
   });
 
   it('rejects providers that do not advertise the exact launch model identity', async () => {

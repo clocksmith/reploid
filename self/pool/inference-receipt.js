@@ -1,5 +1,5 @@
-import { compactAgreementForAcceptance } from '../vendor/reploid/artifacts/acceptance.js';
-export { compactAgreementForAcceptance } from '../vendor/reploid/artifacts/acceptance.js';
+import { compactAgreementForAcceptance, ACCEPTANCE_V2, ACCEPTANCE_V2_DOMAIN, canonicalAcceptanceAgreement, acceptanceV2SigningPayload } from '../vendor/reploid/artifacts/acceptance.js';
+export { compactAgreementForAcceptance, ACCEPTANCE_V2, ACCEPTANCE_V2_DOMAIN, canonicalAcceptanceAgreement, canonicalAcceptanceTerms, acceptanceV2SigningPayload } from '../vendor/reploid/artifacts/acceptance.js';
 /**
  * @fileoverview Canonical receipt helpers for Reploid browser inference pool.
  */
@@ -17,6 +17,7 @@ const TRUST_TIER_SIGNED_RECEIPT = POOL_CONFIG.policies.fastest_receipt.trustTier
 export const SIGNATURE_DOMAINS = Object.freeze({
   providerReceipt: 'poolday.provider_receipt.v1',
   requesterAcceptance: 'poolday.requester_acceptance.v1',
+  requesterAcceptanceV2: ACCEPTANCE_V2_DOMAIN,
   peerMessage: 'poolday.peer_message.v1',
   deviceRoleDelegation: 'poolday.device_role_delegation.v1',
   participationProfile: 'poolday.participation_profile.v1',
@@ -53,6 +54,7 @@ export function receiptSigningPayload(receipt) {
 }
 
 export function acceptanceSigningPayload(acceptance) {
+  if (acceptance?.schema === ACCEPTANCE_V2) return acceptanceV2SigningPayload(acceptance);
   const { requesterSignature, ...payload } = acceptance || {};
   return payload;
 }
@@ -222,10 +224,12 @@ export function calculateReceiptPoints(receiptRecord, { multiplier = 1 } = {}) {
   return Math.max(1, Math.floor(basePoints * multiplier));
 }
 
-export async function buildAcceptanceSummary({ job, receiptHash, receiptRecords = [] } = {}) {
-  const receiptHashes = Array.isArray(job?.agreement?.receiptHashes) && job.agreement.status === 'accepted'
+export async function buildAcceptanceSummary({ job, receiptHash, receiptRecords = [], version = 2 } = {}) {
+  const selectedHashes = Array.isArray(job?.agreement?.receiptHashes) && job.agreement.status === 'accepted'
     ? job.agreement.receiptHashes
-    : [receiptHash];
+    : version === 2 && Array.isArray(job?.receiptHashes) && job.receiptHashes.length > 0
+      ? job.receiptHashes : [receiptHash];
+  const receiptHashes = version === 2 ? [...selectedHashes].sort() : selectedHashes;
   const recordByHash = new Map(receiptRecords.map((record) => [record.receiptHash, record]));
   const agreedRecords = receiptHashes
     .map((currentReceiptHash) => recordByHash.get(currentReceiptHash))
@@ -244,7 +248,7 @@ export async function buildAcceptanceSummary({ job, receiptHash, receiptRecords 
   const pointSpend = providerPoints.reduce((sum, entry) => sum + entry.points, 0);
   const policyConfigVersion = job?.policyConfigVersion || POOL_CONFIG_VERSION;
   const policyConfigHash = job?.policyConfigHash || await hashJson(POOL_CONFIG);
-  const payload = {
+  const legacyPayload = {
     jobId: job?.jobId || null,
     requesterId: job?.requesterId || null,
     policyId: job?.policyId || null,
@@ -256,8 +260,11 @@ export async function buildAcceptanceSummary({ job, receiptHash, receiptRecords 
     pointSpend,
     providerPoints
   };
+  const payload = version === 2 ? canonicalAcceptanceAgreement({ ...legacyPayload,
+    assignmentAttemptId: job?.assignmentAttemptId ?? null, ringAttemptId: job?.ringAttemptId ?? null }) : legacyPayload;
   return {
     ...payload,
+    receiptHash,
     agreementHash: await hashJson(payload),
     agreedRecords,
     multiplier,
@@ -266,6 +273,12 @@ export async function buildAcceptanceSummary({ job, receiptHash, receiptRecords 
 }
 
 export async function countersignReceipt({
+  schema = null,
+  version = schema === ACCEPTANCE_V2 ? 2 : 1,
+  assignmentAttemptId = null,
+  ringAttemptId = null,
+  agreement = null,
+  acceptedAt = new Date().toISOString(),
   receiptHash,
   requesterId,
   accepted,
@@ -278,14 +291,16 @@ export async function countersignReceipt({
   pointSpend = null,
   providerPoints = null
 } = {}, privateKey) {
+  if (version !== 1 && version !== 2) throw new Error('Unsupported requester acceptance version');
   const acceptance = {
-    signatureDomain: SIGNATURE_DOMAINS.requesterAcceptance,
+    signatureDomain: version === 2 ? ACCEPTANCE_V2_DOMAIN : SIGNATURE_DOMAINS.requesterAcceptance,
     receiptHash,
     requesterId,
     accepted: accepted === true,
-    acceptedAt: new Date().toISOString(),
+    acceptedAt,
     requesterSignature: null
   };
+  if (version === 2) Object.assign(acceptance, { schema: ACCEPTANCE_V2, assignmentAttemptId, ringAttemptId, agreement });
   if (jobId) acceptance.jobId = jobId;
   if (policyId) acceptance.policyId = policyId;
   if (policyConfigVersion) acceptance.policyConfigVersion = policyConfigVersion;
@@ -294,12 +309,9 @@ export async function countersignReceipt({
   if (agreementHash) acceptance.agreementHash = agreementHash;
   if (pointSpend !== null && pointSpend !== undefined) acceptance.pointSpend = Number(pointSpend);
   if (Array.isArray(providerPoints)) acceptance.providerPoints = providerPoints;
+  const payload = acceptanceSigningPayload(acceptance);
   return {
-    ...acceptance,
-    requesterSignature: await signCanonical(
-      acceptanceSigningPayload(acceptance),
-      privateKey,
-      { domain: SIGNATURE_DOMAINS.requesterAcceptance }
-    )
+    ...payload,
+    requesterSignature: await signCanonical(payload, privateKey, { domain: acceptance.signatureDomain })
   };
 }

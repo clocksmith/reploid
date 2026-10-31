@@ -240,7 +240,7 @@ export async function acceptForecastAgreement({ identity, intent, executions, ex
   if (identity.keyId !== intent.fromPeerId) throw new Error('Only the requester can accept this forecast');
   const compared = await compareForecastExecutions({ intent, executions, expectedModel });
   const { agreement } = compared, policy = intent.body.policy, receiptHashes = agreement.receiptHashes;
-  const acceptance = await countersignReceipt({ requesterId: identity.keyId, receiptHash: receiptHashes[0], receiptHashes,
+  const acceptance = await countersignReceipt({ version: 1, requesterId: identity.keyId, receiptHash: receiptHashes[0], receiptHashes,
     accepted: true, jobId: executions[0].assignment.jobId, policyId: policy.id, policyConfigVersion: policy.schema,
     policyConfigHash: intent.body.policyConfigHash, agreementHash: await hashJson(agreement) }, identity.privateKey);
   return { ...compared, acceptance, acceptanceHash: await hashJson(acceptance) };

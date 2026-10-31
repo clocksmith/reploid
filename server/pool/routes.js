@@ -4,6 +4,7 @@
 
 import express from 'express';
 import poolStore from './store.js';
+import { resolvePoolRateLimits } from '../../self/pool/config-contract.js';
 import { DETERMINISTIC_GENERATION_CONFIG, getPolicy, listPolicies } from './policy-router.js';
 import { LAUNCH_MODEL } from './model-contract.js';
 import { verifyReceipt } from './verifier.js';
@@ -54,9 +55,6 @@ const relayPageResponse = (messages, idField) => {
   return nextCursor ? { messages, nextCursor } : { messages };
 };
 
-const POOL_RATE_LIMIT_MAX_REQUESTS = 30;
-const POOL_RATE_LIMIT_BUCKET_MS = 10000;
-const POOL_REALTIME_RATE_LIMIT_MAX_REQUESTS = 240;
 
 const isRealtimeRelayRequest = (req) => (
   /\/(?:signal\/sessions|peer\/rooms)\/[^/]+\/messages(?:\/|$)/.test(String(req.path || req.url || ''))
@@ -65,9 +63,7 @@ const isRealtimeRelayRequest = (req) => (
 const createPoolRateLimiter = ({
   store,
   scope,
-  maxRequests = POOL_RATE_LIMIT_MAX_REQUESTS,
-  bucketMs = POOL_RATE_LIMIT_BUCKET_MS,
-  realtimeMaxRequests = POOL_REALTIME_RATE_LIMIT_MAX_REQUESTS
+  limits
 } = {}) => {
   if (typeof store?.consumeRateLimit !== 'function') {
     throw new TypeError('Pool admission requires the store rate-limit contract');
@@ -80,10 +76,11 @@ const createPoolRateLimiter = ({
       : req.ip || req.socket?.remoteAddress || 'unknown';
     if (identity === null) return next();
     const realtime = isRealtimeRelayRequest(req);
-    const requestLimit = realtime ? realtimeMaxRequests : maxRequests;
+    const { maxRequests, windowMs } = limits[realtime ? 'realtime' : 'control'];
     const rateClass = realtime ? 'realtime-relay' : 'control';
     const key = JSON.stringify([scope, identity, rateClass]);
-    const result = await store.consumeRateLimit({ key, maxRequests: requestLimit, bucketMs });
+    const result = await store.consumeRateLimit({ key, maxRequests, bucketMs: windowMs });
+    res.setHeader('X-RateLimit-Scope', scope);
     res.setHeader('X-RateLimit-Limit', String(result.limit));
     res.setHeader('X-RateLimit-Remaining', String(Math.max(0, result.limit - result.count)));
     res.setHeader('X-RateLimit-Reset', String(result.resetAt));
@@ -136,30 +133,45 @@ const isLoopbackRequest = (req) => {
     || address === '::ffff:127.0.0.1';
 };
 
-const isPublicDiscoveryRoute = (req) => (
-  req.path === '/peer/rooms'
-  || req.path.startsWith('/peer/rooms/')
-  || (req.method === 'GET'
-    && (req.path === '/deployment/check'
-      || req.path === '/status'
-      || req.path === '/policies'
-      || req.path === '/config'
-      || req.path.startsWith('/research/')
-      || req.path === '/adapter-canaries'
-      || req.path.startsWith('/adapter-canaries/')))
-);
+const PUBLIC_AUTH_EXCEPTIONS = Object.freeze([
+  { method: '*', path: '/peer/rooms', authorization: 'signed-peer-protocol' },
+  { method: '*', prefix: '/peer/rooms/', authorization: 'signed-peer-protocol' },
+  ...['/deployment/check', '/status', '/policies', '/config', '/adapter-canaries']
+    .map(path => ({ method: 'GET', path, authorization: 'public-read' })),
+  ...['/research/', '/adapter-canaries/']
+    .map(prefix => ({ method: 'GET', prefix, authorization: 'public-read' }))
+].map(Object.freeze));
 
-// Protected routes always require authentication. The legacy requireAuth option
-// records host intent; false never grants anonymous access to protected routes.
-const effectivePoolAuthPolicy = ({ allowUnauthenticatedLocal }, req = null) => {
-  const publicDiscovery = req !== null && isPublicDiscoveryRoute(req);
-  const localDevelopment = req !== null && !publicDiscovery
-    && allowUnauthenticatedLocal === true && isLoopbackRequest(req);
+// Reporting and enforcement use the same exceptions. The legacy requireAuth
+// option records host intent; false never makes protected routes anonymous.
+const effectivePoolAuthPolicy = ({ allowUnauthenticatedLocal, verifierConfigured }, req = null) => {
+  const publicException = req === null ? null : PUBLIC_AUTH_EXCEPTIONS.find(rule => (
+    (rule.method === '*' || rule.method === req.method)
+    && (rule.path ? req.path === rule.path : req.path.startsWith(rule.prefix))
+  )) || null;
+  const localAddress = req !== null && isLoopbackRequest(req);
+  const localDevelopment = !publicException && localAddress && allowUnauthenticatedLocal === true;
   return {
-    required: !publicDiscovery && !localDevelopment,
-    publicDiscovery,
-    localDevelopment,
-    localDevelopmentAllowed: allowUnauthenticatedLocal === true
+    schema: 'poolday.http-auth-policy/v1',
+    // Compatibility: this describes the protected-route default, not every route.
+    required: true,
+    protectedDefault: 'authentication-required',
+    publicExceptions: PUBLIC_AUTH_EXCEPTIONS,
+    localDevelopmentAllowed: allowUnauthenticatedLocal === true,
+    localDevelopment: {
+      configured: allowUnauthenticatedLocal === true,
+      allowedAtRequestAddress: allowUnauthenticatedLocal === true && localAddress,
+      eligibleForRequest: localDevelopment,
+      appliedToRequest: req?.poolAuth?.localDevelopment === true
+    },
+    verifierConfigured: verifierConfigured === true,
+    roleBinding: true,
+    roleBindingExceptions: ['verified-coordinator-claim', 'explicit-loopback-development'],
+    request: {
+      publicException,
+      authenticationRequired: !publicException && !localDevelopment,
+      roleAuthorization: req?.poolAuth?.localDevelopment === true ? 'local-development-bypass' : publicException ? publicException.authorization : 'route-specific-role-binding'
+    }
   };
 };
 
@@ -306,7 +318,8 @@ export function createPoolRouter({
   runtimeBundleIdentity = null
 } = {}) {
   const router = express.Router();
-  const authOptions = Object.freeze({ allowUnauthenticatedLocal });
+  const rateLimits = resolvePoolRateLimits(POOL_CONFIG.admission?.rateLimits);
+  const authOptions = Object.freeze({ allowUnauthenticatedLocal, verifierConfigured: typeof verifyAuthToken === 'function' });
   const authPolicy = effectivePoolAuthPolicy(authOptions);
   let runtimeBundlePromise = null;
   const resolveRuntimeBundleIdentity = () => {
@@ -314,9 +327,11 @@ export function createPoolRouter({
     if (!runtimeBundlePromise) runtimeBundlePromise = buildCoordinatorRuntimeBundle();
     return runtimeBundlePromise;
   };
-  router.use(asyncRoute(createPoolRateLimiter({ store, scope: 'address' })));
+  router.use(asyncRoute(createPoolRateLimiter({ store, scope: 'address', limits: rateLimits.address })));
   router.use(asyncRoute(async (req, res, next) => {
-    const { required: routeRequiresAuth, localDevelopment } = effectivePoolAuthPolicy(authOptions, req);
+    const requestPolicy = effectivePoolAuthPolicy(authOptions, req);
+    const routeRequiresAuth = requestPolicy.request.authenticationRequired;
+    const localDevelopment = requestPolicy.localDevelopment.eligibleForRequest;
     const token = extractBearerToken(req);
     if (!token) {
       if (routeRequiresAuth) return res.status(401).json({ error: 'Firebase auth token required' });
@@ -348,7 +363,7 @@ export function createPoolRouter({
     }
   }));
 
-  router.use(asyncRoute(createPoolRateLimiter({ store, scope: 'principal' })));
+  router.use(asyncRoute(createPoolRateLimiter({ store, scope: 'principal', limits: rateLimits.principal })));
 
   router.get('/policies', asyncRoute(async (req, res) => {
     return res.json({
@@ -390,7 +405,6 @@ export function createPoolRouter({
 
   router.get('/status', asyncRoute(async (req, res) => {
     const storageMode = store.kind || 'unknown';
-    const authVerifierConfigured = typeof verifyAuthToken === 'function';
     return res.json({
       product: 'reploid_browser_inference_pool',
       claim: 'receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference',
@@ -408,12 +422,7 @@ export function createPoolRouter({
         modelArtifactBaseConfigured: Boolean(process.env.REPLOID_POOL_MODEL_BASE_URL || process.env.POOL_MODEL_BASE_URL),
         turn: getPublicTurnServiceStatus(turnEnv)
       },
-      auth: {
-        required: authPolicy.required,
-        localDevelopmentAllowed: authPolicy.localDevelopmentAllowed,
-        verifierConfigured: authVerifierConfigured,
-        roleBinding: true
-      },
+      auth: effectivePoolAuthPolicy(authOptions, req),
       policies: listPolicies().map(publicPolicy),
       launchModel: LAUNCH_MODEL,
       canaryCreation: {
@@ -577,19 +586,21 @@ export function createPoolRouter({
         rateLimit: {
           supported: distributedRateLimitSupported,
           distributed: storageMode === 'firestore' && distributedRateLimitSupported,
-          maxRequests: POOL_RATE_LIMIT_MAX_REQUESTS,
-          bucketMs: POOL_RATE_LIMIT_BUCKET_MS
+          address: rateLimits.address,
+          principal: rateLimits.principal,
+          qualification: rateLimits.qualification,
+          rationale: rateLimits.rationale,
+          // Compatibility fields identify the individual control budget.
+          maxRequests: rateLimits.principal.control.maxRequests,
+          bucketMs: rateLimits.principal.control.windowMs
         },
         metricsAvailable: !!metrics
       },
       identity: {
         serverAuth: {
-          required: authPolicy.required,
-          localDevelopmentAllowed: authPolicy.localDevelopmentAllowed,
+          ...effectivePoolAuthPolicy(authOptions, req),
           explicitRequired: requireAuth,
-          requiredByPersistentStore: storageMode === 'firestore',
-          verifierConfigured: authVerifierConfigured,
-          roleBinding: true
+          requiredByPersistentStore: storageMode === 'firestore'
         },
         canaryCreation: {
           browserEnabled: allowCanaryCreation,
