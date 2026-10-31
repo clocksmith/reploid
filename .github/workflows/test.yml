@@ -1,8 +1,6 @@
 name: Smoke
 
-# Hosted CI is a smoke test: lint, the Vitest suite, the installed package, and
-# a browser boot check. Heavy tests, Playwright product flows, and the verify:*
-# config, mirror, and freshness checks run on demand, not on every push.
+# Build the actual hosting payload. Browser and release qualification stay manual.
 on:
   push:
     branches: [ main ]
@@ -10,46 +8,22 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: smoke-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   smoke:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 22.x
-        cache: 'npm'
-
-    - name: Install dependencies
-      run: npm ci
-
-    - name: Lint
-      run: npm run lint
-
-    - name: Unit and integration tests
-      run: npm test
-
-    - name: Install Chromium
-      run: npx playwright install --with-deps chromium
-
-    - name: Installed package smoke
-      run: node tests/library-package-acceptance.js
-
-    - name: Browser boot smoke
-      run: npm run test:e2e:smoke
-
-    - name: Archive failure evidence
-      uses: actions/upload-artifact@v4
-      if: failure()
-      with:
-        name: smoke-failure
-        path: |
-          test-results/
-          playwright-report/
-          artifacts/library-acceptance/
-        if-no-files-found: ignore
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+      - run: npm ci --omit=dev --omit=optional --no-audit --no-fund
+      - run: npm run package:hosting

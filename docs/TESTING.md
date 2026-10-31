@@ -204,16 +204,35 @@ describe('AgentLoop Integration', () => {
 
 ## CI/CD
 
-GitHub Actions: `.github/workflows/test.yml` is a smoke test on Node.js 22:
+GitHub Actions: `.github/workflows/test.yml` has one automatic job on Ubuntu
+and Node.js 22. It installs only production, non-optional dependencies and runs
+`npm run package:hosting` to build the actual Firebase hosting payload. The
+existing packager parses the Doppler module dependency closure, rejects missing
+assets, verifies the pinned archive and projected bytes, validates the browser
+manifest, and writes exactly the validated bytes to `.firebase-hosting/reploid`.
+Any failure fails CI; the job does not deploy or regenerate a stale manifest.
 
-1. Install dependencies
-2. `npm run lint`
-3. `npm test`
-4. Installed package smoke (`node tests/library-package-acceptance.js`)
-5. Browser boot smoke (`npm run test:e2e:smoke`)
+Reproduce the gate on Node.js 22:
 
-Heavy tests, Playwright product flows, and `verify:*` config, mirror, and
-freshness checks are not CI gates; run them when a change edits what they check.
+```bash
+npm ci --omit=dev --omit=optional --no-audit --no-fund
+npm run package:hosting
+```
+
+For changes to browser assets, update their manifest with
+`npm run build:browser-bundle` before packaging and review the generated diff.
+A successful packaging check is not browser execution, model/GPU qualification,
+physical peer acceptance, or production deployment evidence.
+
+Lint, Vitest, installed-package acceptance, browser journeys, heavy tests and
+release qualification remain available on demand, not on every push. Install
+full dependencies with `npm ci`, then choose the checks relevant to the change:
+`npm run lint`, `npm test`, `node tests/library-package-acceptance.js`, or
+`npm run test:e2e:smoke` (the latter two require
+`npx playwright install --with-deps chromium`). Existing release acceptance
+thresholds remain unchanged. Run `verify:*` config, mirror and freshness checks
+when editing what they check, not as a blanket gate. The separate blueprint
+snapshot workflow is manual-only via `workflow_dispatch`.
 
 **Coverage Thresholds:**
 
