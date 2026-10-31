@@ -2238,7 +2238,7 @@
     {
       "path": "self/host/chat-execution.js",
       "owner": "self",
-      "sha256": "sha256:189e2b1467cc561e6c1ea135acf1775c1ae04e89ab66cb97cd70f7a777b72dd6",
+      "sha256": "sha256:7f6dcc1237ef01df8977056d8b3ac255e77757ff79369a5100f747af999c8c35",
       "imports": [
         "../providers/work-adapter.js",
         "../providers/work-generation-completion.js",
@@ -3498,7 +3498,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:a93a9de1d4b176790c37f2c0dbcedd1cf15a8de801547765d341bc2e4a457733",
+      "sha256": "sha256:676420e8b8d29e18983e30c678049fdce6c08e8f67183d7c2e5314e325dd86d4",
       "imports": []
     },
     {
@@ -16266,7 +16266,7 @@
     {
       "path": "vendor/reploid/chat/scheduler.js",
       "owner": "vendor",
-      "sha256": "sha256:413f233f4df3be5975434b3c45fa4aa4507e387650dfd349006d51a40bbf105e",
+      "sha256": "sha256:d3d4fa5d735dd26ca56a79f0fdcdef64345f2df579a7ad4f17abd5325236575e",
       "imports": [
         "./policy.json"
       ]

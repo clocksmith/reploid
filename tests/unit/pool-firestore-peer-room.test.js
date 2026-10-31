@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { createFirestorePoolStore } from '../../server/pool/firebase-store.js';
 import { createPoolStore } from '../../server/pool/store.js';
-import { POOL_STORE_OPERATIONS, validatePoolStoreContract } from '../../server/pool/store-contract.js';
+import { validatePoolStoreContract } from '../../server/pool/store-contract.js';
 
 const createQueryableFirestore = () => {
   const records = new Map();
@@ -70,7 +70,13 @@ const createQueryableFirestore = () => {
       }
       if (resultLimit !== null) values = values.slice(0, resultLimit);
       return {
-        docs: values.map((value) => snapshotFor(value)),
+        docs: values.map(value => {
+          const id = Array.from(recordsFor(name).entries()).find(([, record]) => record === value)[0];
+          return { ...snapshotFor(value), ref: {
+            get: async () => snapshotFor(recordsFor(name).get(id)),
+            set: async next => recordsFor(name).set(id, structuredClone(next))
+          } };
+        }),
         empty: values.length === 0
       };
     }
@@ -113,11 +119,11 @@ const createQueryableFirestore = () => {
 describe('Firestore-backed peer-room relay', () => {
   it('keeps the memory and Firestore stores on one coordinator operation contract', async () => {
     const fake = createQueryableFirestore();
-    const firestoreApi = { ...fake.firestore };
-    delete firestoreApi.runTransaction;
-    const firestore = createFirestorePoolStore({ firestore: firestoreApi });
+    const firestore = createFirestorePoolStore({ firestore: fake.firestore });
     const memory = createPoolStore();
-    expect(POOL_STORE_OPERATIONS).toHaveLength(58);
+    const incomplete = { ...memory };
+    delete incomplete.settleReceiptAcceptance;
+    expect(validatePoolStoreContract(incomplete)).toEqual({ ok: false, missing: ['settleReceiptAcceptance'] });
     expect(validatePoolStoreContract(memory)).toEqual({ ok: true, missing: [] });
     expect(validatePoolStoreContract(firestore)).toEqual({ ok: true, missing: [] });
 
@@ -219,7 +225,7 @@ describe('Firestore-backed peer-room relay', () => {
     ]);
   });
 
-  it('applies the same assignment and acceptance claim transitions in both adapters', async () => {
+  it('applies the same assignment claim transitions in both adapters', async () => {
     const fake = createQueryableFirestore();
     const stores = [createPoolStore(), createFirestorePoolStore({ firestore: fake.firestore })];
     const exerciseClaims = async (store) => {
@@ -229,15 +235,10 @@ describe('Firestore-backed peer-room relay', () => {
       const assignmentStatus = assignmentClaim?.status;
       const assignmentAttempts = assignmentClaim?.assignmentAttempts;
       const repeatedAssignmentClaim = await store.claimJobForAssignment('job_claim');
-      const acceptanceClaim = await store.claimJobForAcceptance('job_claim');
-      const acceptanceStatus = acceptanceClaim?.status;
-      const repeatedAcceptanceClaim = await store.claimJobForAcceptance('job_claim');
       return {
         assignmentStatus,
         assignmentAttempts,
-        repeatedAssignmentClaim,
-        acceptanceStatus,
-        repeatedAcceptanceClaim
+        repeatedAssignmentClaim
       };
     };
 
@@ -245,16 +246,12 @@ describe('Firestore-backed peer-room relay', () => {
       {
         assignmentStatus: 'assignment_processing',
         assignmentAttempts: 0,
-        repeatedAssignmentClaim: null,
-        acceptanceStatus: 'acceptance_processing',
-        repeatedAcceptanceClaim: null
+        repeatedAssignmentClaim: null
       },
       {
         assignmentStatus: 'assignment_processing',
         assignmentAttempts: 0,
-        repeatedAssignmentClaim: null,
-        acceptanceStatus: 'acceptance_processing',
-        repeatedAcceptanceClaim: null
+        repeatedAssignmentClaim: null
       }
     ]);
   });
@@ -499,4 +496,121 @@ describe('Firestore-backed peer-room relay', () => {
     });
     expect(nextPage.map((message) => message.relayId)).toContain('fresh-nonce-response');
   });
+});
+
+
+describe('reputation evidence revisions', () => {
+  for (const kind of ['memory', 'firestore']) {
+    it(`${kind} advances revisions once per immutable event and rejects stale projection patches`, async () => {
+      const store = kind === 'memory' ? createPoolStore()
+        : createFirestorePoolStore({ firestore: createQueryableFirestore().firestore });
+      const event = { eventId: 'accepted_event', category: 'reputation', type: 'requester_accepted',
+        providerId: 'provider_revision', receiptHash: 'receipt_revision', points: 3 };
+      await store.appendPoolEvent(event);
+      const prior = await store.getSettlementRecord('reputationState', event.providerId);
+      await store.appendPoolEvent(event);
+      expect(await store.getSettlementRecord('reputationState', event.providerId)).toEqual(prior);
+      await expect(Promise.resolve().then(() => store.appendPoolEvent({ ...event, category: 'other' })))
+        .rejects.toThrow('Pool event identity conflict');
+      await store.appendPoolEvent({ ...event, eventId: 'second_event', receiptHash: 'second_receipt' });
+      await expect(Promise.resolve().then(() => store.updateReputation(event.providerId,
+        { points: 999 }, { expectedEvidenceRevision: prior.evidenceRevision })))
+        .rejects.toMatchObject({ status: 409, code: 'settlement_evidence_changed' });
+      expect((await store.getReputation(event.providerId)).points).toBe(6);
+      const latest = await store.getSettlementRecord('reputationState', event.providerId);
+      expect(latest.evidenceRevision).toBe(prior.evidenceRevision + 1);
+    });
+  }
+});
+
+
+describe('memory reputation snapshot ownership', () => {
+  it('isolates submitted, returned and listed evidence and projection objects from stored authority', () => {
+    const store = createPoolStore();
+    const event = { eventId: 'isolated_event', jobId: 'isolated_job', category: 'reputation',
+      type: 'requester_accepted', providerId: 'isolated_provider', receiptHash: 'isolated_receipt',
+      points: 3, metadata: { label: 'original' } };
+    const returned = store.appendPoolEvent(event);
+    const expected = structuredClone(returned);
+    const revision = store.getSettlementRecord('reputationState', event.providerId).evidenceRevision;
+    event.metadata.label = 'caller mutation';
+    returned.metadata.label = 'return mutation';
+    store.listPoolEventsForJob(event.jobId)[0].metadata.label = 'job list mutation';
+    store.listPoolEventsForProvider(event.providerId)[0].metadata.label = 'provider list mutation';
+    const replay = store.appendPoolEvent(expected);
+    replay.metadata.label = 'replay mutation';
+    expect(store.listPoolEventsForProvider(event.providerId)).toEqual([expected]);
+    expect(store.getSettlementRecord('reputationState', event.providerId).evidenceRevision).toBe(revision);
+    const patch = { custom: { label: 'projection' } };
+    const updated = store.updateReputation(event.providerId, patch);
+    patch.custom.label = 'patch mutation';
+    updated.custom.label = 'update return mutation';
+    store.getReputation(event.providerId).custom.label = 'projection return mutation';
+    expect(store.getReputation(event.providerId).custom.label).toBe('projection');
+  });
+});
+
+
+describe('committed job finality', () => {
+  for (const kind of ['memory', 'firestore']) {
+    it(`${kind} rejects late provenance and decision writes but permits identical replay`, async () => {
+      const store = kind === 'memory' ? createPoolStore()
+        : createFirestorePoolStore({ firestore: createQueryableFirestore().firestore });
+      await store.createJob({ jobId: 'settled_job' });
+      const settled = { status: 'accepted', settlement: { decisionId: 'decision', result: {} },
+        requesterAcceptance: { accepted: true }, ledgerEvents: [{ ledgerId: 'award' }],
+        acceptedReceiptHashes: ['receipt'], requesterSpendEvent: { ledgerId: 'spend' } };
+      await store.updateJob('settled_job', settled);
+      for (const patch of [{ status: 'receipt_verified' }, { settlement: null },
+        { requesterAcceptance: { accepted: false } }, { ledgerEvents: [] },
+        { acceptedReceiptHashes: [] }, { requesterSpendEvent: null },
+        { requesterId: 'other' }, { requesterPublicKey: 'other' }, { agreement: {} },
+        { receiptHash: 'other' }, { policyId: 'other' }, { assignmentAttemptId: 999 },
+        { prompt: 'changed' }, { inputHash: 'changed' }, { modelRequirements: {} },
+        { generationConfig: {} }, { note: 'new late metadata' }]) {
+        await expect(Promise.resolve().then(() => store.updateJob('settled_job', patch)))
+          .rejects.toMatchObject({ status: 409, code: 'settlement_conflict' });
+      }
+      const result = await store.updateJob('settled_job', settled);
+      expect(result).toMatchObject(settled);
+      if (kind === 'memory') {
+        result.settlement.decisionId = 'mutated';
+        store.getJob('settled_job').settlement.decisionId = 'mutated read';
+        store.listJobs()[0].settlement.decisionId = 'mutated list';
+      }
+      expect((await store.getJob('settled_job')).settlement.decisionId).toBe('decision');
+    });
+  }
+});
+
+
+describe('settled receipt snapshots', () => {
+  for (const kind of ['memory', 'firestore']) {
+    it(`${kind} preserves settlement enrichment and isolates receipt inputs and outputs`, async () => {
+      const store = kind === 'memory' ? createPoolStore()
+        : createFirestorePoolStore({ firestore: createQueryableFirestore().firestore });
+      const input = { jobId: 'receipt_job', receipt: { outputHash: 'original' },
+        requesterAcceptance: { accepted: true }, ledgerEvent: { ledgerId: 'award' },
+        reputation: { points: 3 } };
+      const returned = await store.saveReceipt('settled_receipt', input);
+      input.receipt.outputHash = 'input mutation';
+      returned.receipt.outputHash = 'return mutation';
+      const listed = await store.listReceiptsForJob('receipt_job');
+      listed[0].reputation.points = 999;
+      const read = await store.getReceipt('settled_receipt');
+      read.requesterAcceptance.accepted = false;
+      expect(await store.getReceipt('settled_receipt')).toMatchObject({
+        receipt: { outputHash: 'original' }, requesterAcceptance: { accepted: true },
+        ledgerEvent: { ledgerId: 'award' }, reputation: { points: 3 }
+      });
+      const metadata = await store.saveReceipt('settled_receipt', { note: 'late metadata' });
+      expect(metadata).toMatchObject({ requesterAcceptance: { accepted: true },
+        ledgerEvent: { ledgerId: 'award' }, reputation: { points: 3 }, note: 'late metadata' });
+      for (const patch of [{ requesterAcceptance: null }, { ledgerEvent: null }, { reputation: {} },
+        { receipt: { outputHash: 'replacement' } }, { jobId: 'replacement' }]) {
+        await expect(Promise.resolve().then(() => store.saveReceipt('settled_receipt', patch)))
+          .rejects.toMatchObject({ status: 409, code: 'settlement_conflict' });
+      }
+    });
+  }
 });

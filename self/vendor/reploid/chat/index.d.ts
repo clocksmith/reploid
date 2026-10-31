@@ -215,7 +215,9 @@ export function createChatScheduler(options: {
   observe(observation: Record<string, unknown>): void | Promise<void>;
   policy?: ChatPolicy; now?: () => number;
 }): {
-  getState(): { queued: number; activeAttemptId: string | null; residentIdentity: string | null; closed: boolean };
+  getState(): { queued: number; activeAttemptId: string | null; residentIdentity: string | null; closed: boolean;
+    /** Retained device ownership; no replacement is admitted until cleanup succeeds. */
+    cleanup: { status: 'pending' | 'failed'; modelIdentity: string | null; error: string | null } | null };
   schedule(request: ScheduledChatRequest, controls: {
     signal: AbortSignal; onDelta?(delta: string): void; onState?(status: string): void;
   }): Promise<unknown>;

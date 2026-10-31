@@ -6,13 +6,20 @@
  * on whether a deployment uses memory or Firestore.
  */
 
+// Conservative application storage bounds, not a claim about backend maximums.
+export const POOL_SETTLEMENT_STORAGE_BUDGET = Object.freeze({
+  maxRecords: 256,
+  maxRecordBytes: 512 * 1024,
+  maxPlanBytes: 4 * 1024 * 1024
+});
+
 export const POOL_STORE_OPERATIONS = Object.freeze([
-  'consumeRateLimit',
+  'consumeRateLimit', 'getSettlementRecord', 'settleReceiptAcceptance',
   'registerProvider', 'heartbeat', 'listProviders', 'getProvider',
-  'createJob', 'updateJob', 'listJobs', 'claimJobForAssignment', 'claimJobForAcceptance', 'getJob',
+  'createJob', 'updateJob', 'listJobs', 'claimJobForAssignment', 'getJob',
   'createAssignment', 'updateAssignment', 'getAssignment', 'nextAssignmentForProvider',
   'nextPendingAssignmentForProvider', 'setProviderStatus', 'expireStaleAssignments',
-  'saveReceipt', 'getReceipt', 'listReceiptsForJob', 'saveAcceptance',
+  'saveReceipt', 'getReceipt', 'listReceiptsForJob',
   'saveAssignmentCommitment', 'getAssignmentCommitment', 'listCommitmentsForJob',
   'saveAssignmentReveal', 'getAssignmentReveal', 'listRevealsForJob',
   'appendPoolEvent', 'listPoolEventsForJob', 'listPoolEventsForProvider', 'appendReputationEvent',

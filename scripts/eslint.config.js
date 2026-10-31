@@ -58,7 +58,18 @@ const cleanedModules = [
   'packages/reploid/src/artifacts/event-signature.js',
   'server/input-validation.js',
   'server/token-auth.js',
-  'server/pool/routes/assignment-entry.js'
+  'server/pool/routes/assignment-entry.js',
+  'packages/reploid/src/chat/scheduler.js',
+  'self/host/chat-execution.js',
+  'server/pool/routes.js',
+  'server/pool/routes/receipts.js',
+  'server/pool/store.js',
+  'server/pool/firebase-store.js',
+  'server/pool/services/acceptance.js',
+  'server/pool/services/acceptance-settlement.js',
+  'server/pool/reputation.js',
+  'server/pool/coordinator-transitions.js',
+  'server/pool/store-contract.js'
 ];
 
 export default [

@@ -108,3 +108,88 @@ it('closing during preparation settles cleanup and never publishes the resident'
   expect(close).toHaveBeenCalledTimes(1);
   expect(scheduler.getState().residentIdentity).toBe(null);
 });
+
+it('retains failed cleanup, rejects queued replacements, and retries the same owner on close', async () => {
+  const gate = deferred();
+  let resets = 0;
+  const close = vi.fn().mockRejectedValueOnce(new Error('GPU cleanup failed')).mockResolvedValue(undefined);
+  const open = vi.fn(async () => ({
+    reset() { if (++resets === 2) throw new Error('Dirty state'); },
+    setAdapters() {}, close,
+    async run() { await gate.promise; return 'answer'; }
+  }));
+  const observed = [];
+  const scheduler = createChatScheduler({ open, observe: value => observed.push(value) });
+  const signal = new AbortController().signal;
+  const first = scheduler.schedule(request('alice', 'first'), { signal });
+  const firstRejected = expect(first).rejects.toBeInstanceOf(AggregateError);
+  await vi.waitFor(() => expect(resets).toBe(1));
+  const queued = scheduler.schedule(request('bob', 'second'), { signal });
+  const queuedRejected = expect(queued).rejects.toThrow('cleanup remains unsettled');
+  gate.resolve();
+  await firstRejected;
+  await queuedRejected;
+  expect(scheduler.getState()).toMatchObject({ residentIdentity: model.identity,
+    cleanup: { status: 'failed', modelIdentity: model.identity, error: 'GPU cleanup failed' } });
+  expect(() => scheduler.schedule(request('carol', 'third'), { signal })).toThrow('cleanup remains unsettled');
+  expect(() => scheduler.prepare(model)).toThrow('cleanup remains unsettled');
+  expect(open).toHaveBeenCalledTimes(1);
+  expect(observed.at(-1).status).toBe('failed');
+  await scheduler.close();
+  expect(close).toHaveBeenCalledTimes(2);
+  expect(scheduler.getState()).toMatchObject({ residentIdentity: null, cleanup: null, closed: true });
+});
+
+it('shares concurrent close, retains failure state, then retries rather than forgetting the resident', async () => {
+  const cleanupGate = deferred();
+  const close = vi.fn().mockImplementationOnce(async () => { await cleanupGate.promise; throw new Error('Release failed'); })
+    .mockResolvedValue(undefined);
+  const scheduler = createChatScheduler({ observe() {}, open: async () => ({ run() {}, reset() {}, setAdapters() {}, close }) });
+  await scheduler.prepare(model);
+  const first = scheduler.close();
+  expect(scheduler.close()).toBe(first);
+  const rejected = expect(first).rejects.toThrow('Release failed');
+  await vi.waitFor(() => expect(scheduler.getState().cleanup?.status).toBe('pending'));
+  expect(scheduler.getState().residentIdentity).toBe(model.identity);
+  cleanupGate.resolve();
+  await rejected;
+  expect(scheduler.getState().cleanup.status).toBe('failed');
+  await scheduler.close();
+  await scheduler.close();
+  expect(close).toHaveBeenCalledTimes(2);
+});
+
+it('retains an owner whose preparation was cancelled and whose cleanup still fails', async () => {
+  const opening = deferred();
+  const close = vi.fn().mockRejectedValue(new Error('Preparation cleanup failed'));
+  const open = vi.fn(async () => { await opening.promise; return { run() {}, reset() {}, setAdapters() {}, close }; });
+  const scheduler = createChatScheduler({ open, observe() {} });
+  const preparation = scheduler.prepare(model);
+  const preparationRejected = expect(preparation).rejects.toThrow('Preparation and cleanup failed');
+  await vi.waitFor(() => expect(open).toHaveBeenCalledTimes(1));
+  const stopping = scheduler.close();
+  const stopRejected = expect(stopping).rejects.toThrow('Preparation cleanup failed');
+  opening.resolve();
+  await preparationRejected;
+  await stopRejected;
+  expect(scheduler.getState()).toMatchObject({ residentIdentity: model.identity, cleanup: { status: 'failed' } });
+  close.mockResolvedValue(undefined);
+  await scheduler.close();
+  expect(scheduler.getState().cleanup).toBe(null);
+});
+
+it('shares preparation while the previous model retires and snapshots the replacement', async () => {
+  const retired = deferred();
+  const close = vi.fn().mockImplementationOnce(() => retired.promise).mockResolvedValue(undefined);
+  const open = vi.fn(async () => ({ run() {}, reset() {}, setAdapters() {}, close }));
+  const scheduler = createChatScheduler({ open, observe() {} });
+  await scheduler.prepare(model);
+  const next = { id: 'next', identity: 'sha256:' + 'b'.repeat(64) };
+  const preparation = scheduler.prepare(next);
+  expect(scheduler.prepare(next)).toBe(preparation);
+  next.identity = 'sha256:' + 'c'.repeat(64);
+  retired.resolve();
+  await preparation;
+  expect(open.mock.calls[1][0].identity).toBe('sha256:' + 'b'.repeat(64));
+  await scheduler.close();
+});

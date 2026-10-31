@@ -20,12 +20,10 @@ export async function recordAcceptedReceipt({ store, providerId, receiptHash = n
     policy: getPolicy('ring_quorum_receipt') || {}
   });
   return store.updateReputation(providerId, {
-    acceptedReceipts: nextBase.acceptedReceipts,
-    points: nextBase.points,
     admissionPolicyId: admission.policyId,
     admissionLane: admission.laneId,
     ringEligible: admission.ringEligible
-  });
+  }, { expectedEvidenceRevision: nextBase.evidenceRevision });
 }
 
 export async function recordRejectedReceipt({
@@ -51,7 +49,7 @@ export async function recordRejectedReceipt({
   return store.updateReputation(providerId, {
     admissionLane: routingBlocked ? 'quarantined_provider' : reputation.admissionLane,
     ringEligible: routingBlocked ? false : reputation.ringEligible
-  });
+  }, { expectedEvidenceRevision: reputation.evidenceRevision });
 }
 
 export default {

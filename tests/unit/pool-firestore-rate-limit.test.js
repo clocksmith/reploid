@@ -36,6 +36,19 @@ const createFakeFirestore = () => {
 };
 
 describe('Firestore-backed pool rate limits', () => {
+  it('shares principal quotas across independent store instances without combining address and principal keys', async () => {
+    const firestore = createFakeFirestore();
+    const first = createFirestorePoolStore({ firestore });
+    const second = createFirestorePoolStore({ firestore });
+    const inputs = { key: JSON.stringify(['principal', 'alice', 'control']), maxRequests: 2, bucketMs: 1000, now: 5000 };
+    expect(await first.consumeRateLimit(inputs)).toMatchObject({ allowed: true, count: 1 });
+    expect(await second.consumeRateLimit(inputs)).toMatchObject({ allowed: true, count: 2 });
+    expect(await first.consumeRateLimit(inputs)).toMatchObject({ allowed: false, count: 3 });
+    expect(await second.consumeRateLimit({ ...inputs, key: JSON.stringify(['address', 'alice', 'control']) }))
+      .toMatchObject({ allowed: true, count: 1 });
+    expect(await second.consumeRateLimit({ ...inputs, now: 6000 })).toMatchObject({ allowed: true, count: 1 });
+  });
+
   it('shares a fixed-window quota through the persistent store', async () => {
     const store = createFirestorePoolStore({ firestore: createFakeFirestore() });
     const inputs = {

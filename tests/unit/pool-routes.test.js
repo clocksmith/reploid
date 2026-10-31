@@ -477,7 +477,61 @@ describe('pool coordinator routes', () => {
     expect(JSON.stringify(authenticated.body)).not.toContain(turnEnv.REPLOID_TURN_SHARED_SECRET);
   });
 
-  it('rate limits repeated requests from the same client identity', async () => {
+  it.each(['memory', 'firestore'])('reports effective protected-route authentication for %s storage', async kind => {
+    store.kind = kind;
+    router = createPoolRouter({ store, requireAuth: false, runtimeBundleIdentity: { runtimeBundleHash: exactHash('a'), files: [] } });
+    expect((await dispatchJson(router, '/status')).body.auth).toMatchObject({ required: true, localDevelopmentAllowed: false });
+    const deployment = await dispatchJson(router, '/deployment/check');
+    expect(deployment.body.store.authRequired).toBe(true);
+    expect(deployment.body.identity.serverAuth.required).toBe(true);
+    expect((await dispatchJson(router, '/jobs', { method: 'POST', body: {} })).status).toBe(401);
+  });
+
+  it('reports the explicit local exception without granting remote anonymous access', async () => {
+    router = createPoolRouter({ store, allowUnauthenticatedLocal: true });
+    expect((await dispatchJson(router, '/status')).body.auth).toMatchObject({ required: true, localDevelopmentAllowed: true });
+    const local = await dispatchJson(router, '/providers/heartbeat', { method: 'POST', body: { providerId: 'missing' } });
+    expect(local.status).not.toBe(401);
+    expect((await dispatchJson(router, '/providers/heartbeat', {
+      method: 'POST', body: { providerId: 'missing' }, ip: '203.0.113.2'
+    })).status).toBe(401);
+  });
+
+  it('does not let caller headers or body identities reset the address quota', async () => {
+    router = createPoolRouter({ store });
+    const responses = [];
+    for (let index = 0; index < 31; index += 1) {
+      responses.push(await dispatchJson(router, '/status', {
+        ip: '203.0.113.4',
+        headers: { 'x-reploid-client-id': `rotated-${index}`, 'x-forwarded-for': `198.51.100.${index}` },
+        body: { requesterId: `requester_${index}`, providerId: `provider_${index}` }
+      }));
+    }
+    expect(responses.slice(0, 30).every(response => response.status === 200)).toBe(true);
+    expect(responses.at(-1).status).toBe(429);
+  });
+
+  it('shares the verified-principal quota across changed addresses and caller labels', async () => {
+    router = createPoolRouter({ store, verifyAuthToken: async token => ({ uid: token }) });
+    for (let index = 0; index < 30; index += 1) {
+      expect((await dispatchJson(router, '/status', {
+        ip: `198.51.100.${index}`, headers: { authorization: 'Bearer alice', 'x-reploid-client-id': `client-${index}` }
+      })).status).toBe(200);
+    }
+    expect((await dispatchJson(router, '/status', { ip: '203.0.113.8', headers: { authorization: 'Bearer alice' } })).status).toBe(429);
+    expect((await dispatchJson(router, '/status', { ip: '203.0.113.9', headers: { authorization: 'Bearer bob' } })).status).toBe(200);
+  });
+
+  it('rejects verifier results without an authenticated subject', async () => {
+    router = createPoolRouter({ store, verifyAuthToken: async () => ({}) });
+    expect((await dispatchJson(router, '/status', { headers: { authorization: 'Bearer invalid' } })).status).toBe(401);
+  });
+
+  it('requires the store admission contract instead of an independent fallback quota', () => {
+    expect(() => createPoolRouter({ store: { ...store, consumeRateLimit: undefined } })).toThrow('store rate-limit contract');
+  });
+
+  it('rate limits repeated requests from the same trusted address', async () => {
     store.kind = 'memory';
     router = createPoolRouter({ store });
     const headers = { 'x-reploid-client-id': 'client_rate_limit_test' };

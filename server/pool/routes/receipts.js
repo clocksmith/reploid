@@ -25,14 +25,6 @@ export function registerReceiptRoutes(router, {
   statusForRejectedAgreement,
   assignQueuedJobs,
   recoverHostedAssignments,
-  buildAcceptanceSummary,
-  ensureAgreementCommitRevealReady,
-  verifyRequesterAcceptance,
-  awardAcceptedReceipt,
-  recordAcceptedReceipt,
-  chargeRequester,
-  acceptedLedgerReasonForJob,
-  spendLedgerReasonForJob,
   hasCoordinatorClaim,
   authMatchesRoleId,
   authMatchesAnyRoleId,
@@ -56,14 +48,6 @@ export function registerReceiptRoutes(router, {
     statusForRejectedAgreement,
     assignQueuedJobs,
     recoverHostedAssignments,
-    buildAcceptanceSummary,
-    ensureAgreementCommitRevealReady,
-    verifyRequesterAcceptance,
-    awardAcceptedReceipt,
-    recordAcceptedReceipt,
-    chargeRequester,
-    acceptedLedgerReasonForJob,
-    spendLedgerReasonForJob,
     hasCoordinatorClaim,
     authMatchesRoleId,
     authMatchesAnyRoleId
@@ -416,143 +400,26 @@ export function registerReceiptRoutes(router, {
   }));
 
   router.post('/receipts/:receiptHash/accept', asyncRoute(async (req, res) => {
-    const receiptRecord = await store.getReceipt(req.params.receiptHash);
-    if (!receiptRecord) return res.status(404).json({ error: 'receipt not found' });
-    if (!receiptRecord.verifierDecision?.accepted) {
-      return res.status(400).json({ error: 'receipt is not verifier-accepted' });
-    }
-    const job = await store.getJob(receiptRecord.jobId);
-    if (job?.requesterId && !requireBoundAnyRole(req, res, ['requester', 'agent'], job.requesterId)) return null;
-    if (job?.status === 'accepted' || job?.status === 'acceptance_processing' || job?.status === 'rejected_by_requester') {
-      return res.status(409).json({ error: 'job already finalized', job });
-    }
-    const acceptancePayload = {
-      ...req.body,
-      accepted: req.body?.accepted === true,
-      requesterId: req.body?.requesterId || receiptRecord.requesterId
-    };
-    let acceptanceSummary = null;
-    if (acceptancePayload.accepted === true) {
-      if (job?.agreement && job.agreement.status !== 'accepted') {
-        return res.status(409).json({
-          error: 'selected policy has not reached an accepted final state',
-          agreement: job.agreement
-        });
-      }
-      acceptanceSummary = await buildAcceptanceSummary({
-        store,
-        job,
-        receiptHash: req.params.receiptHash
+    const receipt = await store.getReceipt(req.params.receiptHash);
+    if (!receipt) return res.status(404).json({ error: 'receipt not found' });
+    const job = await store.getJob(receipt.jobId);
+    if (!job) return res.status(404).json({ error: 'job not found' });
+    if (!requireBoundAnyRole(req, res, ['requester', 'agent'], job.requesterId)) return null;
+    try {
+      const result = await store.settleReceiptAcceptance({
+        receiptHash: req.params.receiptHash,
+        boundRequesterId: job.requesterId,
+        acceptance: req.body
       });
-      if (!acceptanceSummary.receiptHashes.includes(req.params.receiptHash)) {
-        return res.status(400).json({ error: 'receipt is not part of the accepted agreement set' });
-      }
-      if (acceptanceSummary.agreedRecords.length !== acceptanceSummary.receiptHashes.length) {
-        return res.status(409).json({
-          error: 'accepted agreement set is missing verifier-accepted receipts',
-          receiptHashes: acceptanceSummary.receiptHashes
-        });
-      }
-      const commitRevealReasons = await ensureAgreementCommitRevealReady({
-        store,
-        job,
-        agreedRecords: acceptanceSummary.agreedRecords
-      });
-      if (commitRevealReasons.length > 0) {
-        return res.status(409).json({
-          error: 'accepted agreement set is missing required commit-reveal evidence',
-          reasons: commitRevealReasons
-        });
-      }
-    }
-    const acceptanceDecision = await verifyRequesterAcceptance({
-      job,
-      acceptance: acceptancePayload,
-      expectedAcceptance: acceptanceSummary
-    });
-    if (!acceptanceDecision.accepted) {
-      return res.status(400).json({
-        error: 'requester acceptance rejected',
-        verifierDecision: acceptanceDecision
+      return res.json(result);
+    } catch (error) {
+      if (!error.status) throw error;
+      return res.status(error.status).json({
+        error: error.message,
+        code: error.code,
+        ...(error.verifierDecision ? { verifierDecision: error.verifierDecision } : {})
       });
     }
-    if (acceptancePayload.accepted !== true) {
-      const acceptance = await store.saveAcceptance(req.params.receiptHash, acceptancePayload);
-      await store.saveReceipt(req.params.receiptHash, {
-        ...receiptRecord,
-        requesterAcceptance: acceptance,
-        ledgerEvent: null
-      });
-      await store.updateJob(receiptRecord.jobId, {
-        status: 'rejected_by_requester',
-        requesterAcceptance: acceptance
-      });
-      return res.json({ acceptance, ledgerEvent: null, reputation: await store.getReputation(receiptRecord.providerId) });
-    }
-
-    const {
-      receiptHashes,
-      agreedRecords,
-      multiplier,
-      totalProviderPoints
-    } = acceptanceSummary;
-    if (job?.maxPointSpend !== null && job?.maxPointSpend !== undefined && totalProviderPoints > Number(job.maxPointSpend)) {
-      return res.status(402).json({
-        error: 'accepted result exceeds requester maxPointSpend',
-        maxPointSpend: job.maxPointSpend,
-        requiredPoints: totalProviderPoints
-      });
-    }
-    if (typeof store.claimJobForAcceptance === 'function') {
-      const claimedJob = await store.claimJobForAcceptance(job.jobId);
-      if (!claimedJob) {
-        return res.status(409).json({ error: 'job acceptance was already claimed', job: await store.getJob(job.jobId) });
-      }
-    }
-    const acceptance = await store.saveAcceptance(req.params.receiptHash, acceptancePayload);
-    const ledgerEvents = [];
-    const reputations = [];
-    for (const agreedRecord of agreedRecords) {
-      const ledgerEvent = await awardAcceptedReceipt({
-        store,
-        receiptRecord: agreedRecord,
-        acceptance,
-        multiplier,
-        points: acceptanceSummary.providerPoints.find((entry) => entry.receiptHash === agreedRecord.receiptHash)?.points,
-        reason: acceptedLedgerReasonForJob(job, receiptHashes.length)
-      });
-      const reputation = await recordAcceptedReceipt({
-        store,
-        providerId: agreedRecord.providerId,
-        receiptHash: agreedRecord.receiptHash,
-        points: ledgerEvent.points
-      });
-      await store.saveReceipt(agreedRecord.receiptHash, {
-        ...agreedRecord,
-        requesterAcceptance: acceptance,
-        ledgerEvent,
-        reputation
-      });
-      ledgerEvents.push(ledgerEvent);
-      reputations.push(reputation);
-    }
-    const requesterSpendEvent = await chargeRequester({
-      store,
-      requesterId: job.requesterId,
-      receiptHash: req.params.receiptHash,
-      receiptHashes,
-      points: totalProviderPoints,
-      acceptance,
-      reason: spendLedgerReasonForJob(job, receiptHashes.length)
-    });
-    await store.updateJob(receiptRecord.jobId, {
-      status: 'accepted',
-      requesterAcceptance: acceptance,
-      ledgerEvents,
-      requesterSpendEvent,
-      acceptedReceiptHashes: receiptHashes
-    });
-    return res.json({ acceptance, ledgerEvents, requesterSpendEvent, reputations });
   }));
 
   router.get('/receipts/:receiptHash', asyncRoute(async (req, res) => {

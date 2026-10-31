@@ -5,6 +5,32 @@
  * different assignment or agreement outcomes from the same records.
  */
 
+import { hashJson } from './hash.js';
+
+/** Ordinary late writes cannot revise a committed acceptance decision. */
+export function assertSettledJobPatch(job = {}, patch = {}) {
+  if (!job.settlement) return;
+  for (const field of Object.keys(patch).filter(field => field !== 'updatedAt')) {
+    if (Object.hasOwn(patch, field)
+      && hashJson({ value: patch[field] }) !== hashJson({ value: job[field] })) {
+      throw Object.assign(new Error(`Settled job field cannot change: ${field}`),
+        { status: 409, code: 'settlement_conflict' });
+    }
+  }
+}
+
+/** Preserve the committed enrichment when a delayed receipt writer completes. */
+export function assertSettledReceiptPatch(receipt = {}, patch = {}) {
+  if (!receipt.requesterAcceptance) return;
+  for (const field of Object.keys(receipt).filter(field => field !== 'updatedAt')) {
+    if (Object.hasOwn(patch, field)
+      && hashJson({ value: patch[field] }) !== hashJson({ value: receipt[field] })) {
+      throw Object.assign(new Error(`Settled receipt field cannot change: ${field}`),
+        { status: 409, code: 'settlement_conflict' });
+    }
+  }
+}
+
 export const EXPIRABLE_ASSIGNMENT_STATUSES = Object.freeze([
   'assigned', 'running', 'commit_submitted', 'reveal_open', 'reveal_submitted'
 ]);
@@ -54,14 +80,6 @@ export const buildAssignmentExpirationPatch = (
     failureReason: assignmentExpirationReason(assignment),
     expiredAt: now
   };
-};
-
-export const canClaimJobForAcceptance = (job = {}) => Boolean(job)
-  && !['accepted', 'acceptance_processing', 'rejected_by_requester'].includes(job.status);
-
-export const buildAcceptanceClaimPatch = (job = {}) => {
-  if (!canClaimJobForAcceptance(job)) return null;
-  return { status: 'acceptance_processing' };
 };
 
 /**

@@ -3,10 +3,13 @@
  */
 
 import crypto from 'crypto';
+import { prepareReceiptSettlement, validateSettlementSnapshot } from './services/acceptance-settlement.js';
+import { hashJson } from './hash.js';
 import { assertPoolStoreContract } from './store-contract.js';
 import { resolveIdempotentRelay } from './relay-identity.js';
 import {
-  buildAcceptanceClaimPatch,
+  assertSettledJobPatch,
+  assertSettledReceiptPatch,
   buildAssignmentClaimPatch,
   buildAssignmentExpirationPatch,
   buildAssignmentStartPatch,
@@ -60,8 +63,48 @@ export function createPoolStore() {
   const researchRecords = new Map();
   const rateLimits = new Map();
 
+  const settlementMaps = { providers, jobs, assignments, receipts, receiptAcceptances,
+    commitmentEvents, revealEvents, reputationState };
+  const settlementArrays = { poolEvents: { values: poolEvents, key: 'eventId' },
+    pointsLedger: { values: pointsLedger, key: 'ledgerId' } };
+  const readSettlementRecord = (collection, id) => {
+    if (Object.hasOwn(settlementMaps, collection)) return settlementMaps[collection].get(id) || null;
+    const array = settlementArrays[collection];
+    if (array) return array.values.find(value => value[array.key] === id) || null;
+    throw new TypeError('Unsupported settlement collection');
+  };
   const api = {
     kind: 'memory',
+    getSettlementRecord(collection, id) {
+      return structuredClone(readSettlementRecord(collection, id));
+    },
+    async settleReceiptAcceptance(input) {
+      const request = structuredClone(input);
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+          const plan = await prepareReceiptSettlement({ store: api, ...request });
+          const actual = plan.reads.map(({ collection, id }) => readSettlementRecord(collection, id));
+          validateSettlementSnapshot(plan, actual);
+          // Validate and clone every write before changing any owned record.
+          const writes = plan.writes.map(write => {
+            readSettlementRecord(write.collection, write.id);
+            return structuredClone(write);
+          });
+          for (const { collection, id, value } of writes) {
+            if (Object.hasOwn(settlementMaps, collection)) settlementMaps[collection].set(id, value);
+            else {
+              const array = settlementArrays[collection];
+              const index = array.values.findIndex(record => record[array.key] === id);
+              if (index < 0) array.values.push(value);
+              else array.values[index] = value;
+            }
+          }
+          return structuredClone(plan.result);
+        } catch (error) {
+          if (error.code !== 'settlement_evidence_changed' || attempt === 2) throw error;
+        }
+      }
+    },
     consumeRateLimit({
       key,
       maxRequests = 30,
@@ -71,17 +114,16 @@ export function createPoolStore() {
       const normalizedKey = String(key || 'unknown');
       const bucketStart = Math.floor(Number(now) / bucketMs) * bucketMs;
       const bucketKey = `${normalizedKey}:${bucketStart}`;
-      const previous = rateLimits.get(bucketKey) || {
-        count: 0,
-        resetAt: bucketStart + bucketMs
-      };
+      for (const [candidateKey, candidate] of rateLimits) {
+        if (candidate.resetAt <= now) rateLimits.delete(candidateKey);
+      }
+      if (!rateLimits.has(bucketKey) && rateLimits.size >= 10000) {
+        return { allowed: false, count: maxRequests + 1, limit: maxRequests,
+          resetAt: bucketStart + bucketMs };
+      }
+      const previous = rateLimits.get(bucketKey) || { count: 0, resetAt: bucketStart + bucketMs };
       const count = previous.count + 1;
       rateLimits.set(bucketKey, { count, resetAt: previous.resetAt });
-      if (rateLimits.size > 10000) {
-        for (const [candidateKey, candidate] of rateLimits) {
-          if (candidate.resetAt <= now) rateLimits.delete(candidateKey);
-        }
-      }
       return {
         allowed: count <= maxRequests,
         count,
@@ -141,6 +183,7 @@ export function createPoolStore() {
       return providers.get(providerId) || null;
     },
     createJob(input = {}) {
+      input = structuredClone(input);
       const jobId = input.jobId || makeId('job');
       const record = {
         ...input,
@@ -149,17 +192,20 @@ export function createPoolStore() {
         createdAt: nowIso(),
         updatedAt: nowIso()
       };
+      assertSettledJobPatch(jobs.get(jobId) || {}, record);
       jobs.set(jobId, record);
-      return record;
+      return structuredClone(record);
     },
     updateJob(jobId, patch = {}) {
       const job = jobs.get(jobId);
       if (!job) return null;
-      Object.assign(job, patch, { updatedAt: nowIso() });
-      return job;
+      const changes = structuredClone(patch);
+      assertSettledJobPatch(job, changes);
+      Object.assign(job, changes, { updatedAt: nowIso() });
+      return structuredClone(job);
     },
     listJobs() {
-      return Array.from(jobs.values());
+      return structuredClone(Array.from(jobs.values()));
     },
     claimJobForAssignment(jobId) {
       const job = jobs.get(jobId);
@@ -168,15 +214,8 @@ export function createPoolStore() {
       Object.assign(job, patch, { updatedAt: nowIso() });
       return job;
     },
-    claimJobForAcceptance(jobId) {
-      const job = jobs.get(jobId);
-      const patch = buildAcceptanceClaimPatch(job);
-      if (!patch) return null;
-      Object.assign(job, patch, { updatedAt: nowIso() });
-      return job;
-    },
     getJob(jobId) {
-      return jobs.get(jobId) || null;
+      return structuredClone(jobs.get(jobId) || null);
     },
     createAssignment(input = {}) {
       const assignmentId = input.assignmentId || makeId('assignment');
@@ -269,29 +308,19 @@ export function createPoolStore() {
       return expired;
     },
     saveReceipt(receiptHash, record = {}) {
-      const saved = {
-        ...record,
-        receiptHash,
-        createdAt: record.createdAt || nowIso(),
-        updatedAt: nowIso()
-      };
+      const supplied = structuredClone(record);
+      const prior = receipts.get(receiptHash) || {};
+      assertSettledReceiptPatch(prior, supplied);
+      const saved = { ...prior, ...supplied, receiptHash,
+        createdAt: supplied.createdAt || prior.createdAt || nowIso(), updatedAt: nowIso() };
       receipts.set(receiptHash, saved);
-      return saved;
+      return structuredClone(saved);
     },
     getReceipt(receiptHash) {
-      return receipts.get(receiptHash) || null;
+      return structuredClone(receipts.get(receiptHash) || null);
     },
     listReceiptsForJob(jobId) {
-      return Array.from(receipts.values()).filter((receipt) => receipt.jobId === jobId);
-    },
-    saveAcceptance(receiptHash, acceptance = {}) {
-      const saved = {
-        ...acceptance,
-        receiptHash,
-        createdAt: nowIso()
-      };
-      receiptAcceptances.set(receiptHash, saved);
-      return saved;
+      return structuredClone(Array.from(receipts.values()).filter(receipt => receipt.jobId === jobId));
     },
     saveAssignmentCommitment(assignmentId, commitment = {}) {
       const saved = {
@@ -328,19 +357,30 @@ export function createPoolStore() {
       return Array.from(revealEvents.values()).filter((reveal) => reveal.jobId === jobId);
     },
     appendPoolEvent(event = {}) {
-      const saved = {
-        eventId: event.eventId || makeId('pool_event'),
-        ...event,
-        createdAt: event.createdAt || nowIso()
-      };
+      event = structuredClone(event);
+      const eventId = event.eventId || makeId('pool_event');
+      const prior = poolEvents.find(value => value.eventId === eventId);
+      if (prior) {
+        const comparable = value => { const { createdAt, ...content } = value; return content; };
+        if (hashJson(comparable(prior)) !== hashJson(comparable({ ...event, eventId }))) {
+          throw Object.assign(new Error('Pool event identity conflict'), { status: 409 });
+        }
+        return structuredClone(prior);
+      }
+      const saved = { ...event, eventId, createdAt: event.createdAt || nowIso() };
       poolEvents.push(saved);
-      return saved;
+      if (event.category === 'reputation' && event.providerId) {
+        const current = reputationState.get(event.providerId) || { providerId: event.providerId };
+        reputationState.set(event.providerId, { ...current,
+          evidenceRevision: Number(current.evidenceRevision || 0) + 1 });
+      }
+      return structuredClone(saved);
     },
     listPoolEventsForJob(jobId) {
-      return poolEvents.filter((event) => event.jobId === jobId);
+      return structuredClone(poolEvents.filter((event) => event.jobId === jobId));
     },
     listPoolEventsForProvider(providerId) {
-      return poolEvents.filter((event) => event.providerId === providerId && event.category === 'reputation');
+      return structuredClone(poolEvents.filter((event) => event.providerId === providerId && event.category === 'reputation'));
     },
     appendReputationEvent(event = {}) {
       const providerId = event.providerId;
@@ -356,8 +396,10 @@ export function createPoolStore() {
         ...(eventId ? { eventId } : {}),
         category: 'reputation'
       });
+      const latest = this.getReputation(providerId);
       events = this.listPoolEventsForProvider(providerId);
-      return this.updateReputation(providerId, projectProviderReputation(providerId, events, current));
+      return this.updateReputation(providerId, projectProviderReputation(providerId, events, latest),
+        { expectedEvidenceRevision: Number(latest.evidenceRevision || 0) });
     },
     createSignalingSession(input = {}) {
       const sessionId = input.sessionId || makeId('signal_session');
@@ -583,19 +625,21 @@ export function createPoolStore() {
         updatedAt: nowIso()
       };
       const events = this.listPoolEventsForProvider(providerId);
-      return events.length > 0
+      return structuredClone(events.length > 0
         ? projectProviderReputation(providerId, events, current)
-        : current;
+        : current);
     },
-    updateReputation(providerId, patch = {}) {
+    updateReputation(providerId, patch = {}, { expectedEvidenceRevision } = {}) {
       const current = this.getReputation(providerId);
-      const next = {
-        ...current,
-        ...patch,
-        updatedAt: nowIso()
-      };
+      const changes = structuredClone(patch);
+      if (expectedEvidenceRevision !== undefined
+        && expectedEvidenceRevision !== Number(current.evidenceRevision || 0)) {
+        throw Object.assign(new Error('Reputation evidence changed'), { status: 409, code: 'settlement_evidence_changed' });
+      }
+      const next = { ...current, ...changes,
+        evidenceRevision: Number(current.evidenceRevision || 0) + 1, updatedAt: nowIso() };
       reputationState.set(providerId, next);
-      return next;
+      return structuredClone(next);
     },
     createAuditChallenge(input = {}) {
       const auditId = input.auditId || makeId('audit');

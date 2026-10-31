@@ -27,12 +27,20 @@ Outputs:
 - Delivery is bounded at-least-once and duplicate handling remains explicit.
 - Projections are rebuildable from accepted immutable records.
 - Server receipt cannot substitute for provider execution evidence.
+- Requester acceptance and rejection settle atomically with receipt, ledger and
+  reputation effects. Identical signed decisions replay the persisted result;
+  conflicting decisions cannot overwrite it. Legacy partial settlements require
+  explicit reconciliation, never blind replay.
+- Settlement rechecks current evidence and reputation revisions before commit.
+  Transaction retries have no external side effects or unbounded history reads.
 - Discovery Contract publication fails closed unless the checkpoint exactly
   replays the coordinator's current room snapshot.
 
 ## Acceptance
 - Research routes and hosted authentication enforce identity, immutability, and policy boundaries.
 - Evidence: [research route tests](../../tests/unit/pool-research-routes.test.js) and [Firebase auth tests](../../tests/unit/pool-firebase-auth.test.js).
+
+- Atomic settlement evidence: [settlement tests](../../tests/unit/pool-acceptance-settlement.test.js).
 
 ## Non-goals
 - Becoming the authority for browser computation or scientific closure.

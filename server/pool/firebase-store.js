@@ -3,11 +3,14 @@
  */
 
 import crypto from 'crypto';
+import { prepareReceiptSettlement, validateSettlementSnapshot } from './services/acceptance-settlement.js';
+import { hashJson } from './hash.js';
 import poolStore from './store.js';
 import { assertPoolStoreContract } from './store-contract.js';
 import { resolveIdempotentRelay } from './relay-identity.js';
 import {
-  buildAcceptanceClaimPatch,
+  assertSettledJobPatch,
+  assertSettledReceiptPatch,
   buildAssignmentClaimPatch,
   buildAssignmentExpirationPatch,
   buildAssignmentStartPatch,
@@ -109,8 +112,47 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
     return snapshots.some((snapshot) => !snapshot.empty);
   };
 
+  const settlementCollections = new Set(['providers', 'jobs', 'assignments', 'receipts',
+    'receiptAcceptances', 'commitmentEvents', 'revealEvents', 'reputationState', 'poolEvents', 'pointsLedger']);
+  const settlementRef = (collection, id) => {
+    if (!settlementCollections.has(collection)) throw new TypeError('Unsupported settlement collection');
+    return doc(COLLECTIONS[collection], id);
+  };
+  const requireTransactions = () => {
+    if (typeof firestore.runTransaction !== 'function') {
+      throw new Error('Firestore transactions are required for atomic Pool settlement and reputation');
+    }
+  };
+  const evidenceChanged = () => Object.assign(new Error('Reputation evidence changed'),
+    { status: 409, code: 'settlement_evidence_changed' });
   const api = {
     kind: 'firestore',
+    async getSettlementRecord(collection, id) {
+      const snapshot = await settlementRef(collection, id).get();
+      return snapshot.exists ? snapshot.data() : null;
+    },
+    async settleReceiptAcceptance(input) {
+      const request = structuredClone(input);
+      requireTransactions();
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+          const plan = await prepareReceiptSettlement({ store: api, ...request });
+          const writes = plan.writes.map(({ collection, id, value }) => ({
+            ref: settlementRef(collection, id), value: stripUndefined(value)
+          }));
+          return await firestore.runTransaction(async transaction => {
+            const snapshots = await Promise.all(plan.reads.map(({ collection, id }) => (
+              transaction.get(settlementRef(collection, id))
+            )));
+            validateSettlementSnapshot(plan, snapshots.map(snapshot => snapshot.exists ? snapshot.data() : null));
+            for (const write of writes) transaction.set(write.ref, write.value);
+            return plan.result;
+          });
+        } catch (error) {
+          if (error.code !== 'settlement_evidence_changed' || attempt === 2) throw error;
+        }
+      }
+    },
     async consumeRateLimit({
       key,
       maxRequests = 30,
@@ -176,8 +218,8 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
         writeDoc(COLLECTIONS.providers, providerId, record),
         writeDoc(COLLECTIONS.providerSessions, sessionId, session)
       ]);
-      const reputation = await readDoc(COLLECTIONS.reputationState, providerId);
-      if (!reputation) await writeDoc(COLLECTIONS.reputationState, providerId, defaultReputation(providerId));
+      // Absent reputation reads as the default. Do not race an event append by
+      // publishing a default projection after a nontransactional existence read.
       return record;
     },
     async heartbeat({ providerId, sessionId, timestamp = nowIso() } = {}) {
@@ -200,24 +242,36 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
       return readDoc(COLLECTIONS.providers, providerId);
     },
     async createJob(input = {}) {
-      const jobId = input.jobId || makeId('job');
-      const record = {
-        ...input,
-        jobId,
-        status: 'queued',
-        createdAt: nowIso(),
-        updatedAt: nowIso()
-      };
-      return writeDoc(COLLECTIONS.jobs, jobId, record);
+      requireTransactions();
+      const supplied = structuredClone(input);
+      const jobId = supplied.jobId || makeId('job');
+      const at = nowIso();
+      const record = stripUndefined({ ...supplied, jobId, status: 'queued', createdAt: at, updatedAt: at });
+      const jobRef = doc(COLLECTIONS.jobs, jobId);
+      return firestore.runTransaction(async transaction => {
+        const prior = await transaction.get(jobRef);
+        if (prior.exists) assertSettledJobPatch(prior.data(), record);
+        transaction.set(jobRef, record);
+        return structuredClone(record);
+      });
     },
     async updateJob(jobId, patch = {}) {
-      const job = await readDoc(COLLECTIONS.jobs, jobId);
-      if (!job) return null;
-      const next = { ...job, ...patch, updatedAt: nowIso() };
-      return writeDoc(COLLECTIONS.jobs, jobId, next, { merge: true });
+      requireTransactions();
+      const changes = structuredClone(patch);
+      const at = nowIso();
+      const jobRef = doc(COLLECTIONS.jobs, jobId);
+      return firestore.runTransaction(async transaction => {
+        const snapshot = await transaction.get(jobRef);
+        if (!snapshot.exists) return null;
+        const job = snapshot.data();
+        assertSettledJobPatch(job, changes);
+        const next = stripUndefined({ ...job, ...changes, updatedAt: at });
+        transaction.set(jobRef, next);
+        return next;
+      });
     },
     async listJobs() {
-      return listDocs(COLLECTIONS.jobs);
+      return structuredClone(await listDocs(COLLECTIONS.jobs));
     },
     async claimJobForAssignment(jobId) {
       const jobRef = doc(COLLECTIONS.jobs, jobId);
@@ -245,34 +299,8 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
       await writeDoc(COLLECTIONS.jobs, jobId, next, { merge: true });
       return next;
     },
-    async claimJobForAcceptance(jobId) {
-      const jobRef = doc(COLLECTIONS.jobs, jobId);
-      const claim = async (snapshot, writer = null) => {
-        const job = snapshot.exists ? snapshot.data() : null;
-        const patch = buildAcceptanceClaimPatch(job);
-        if (!patch) return null;
-        const next = {
-          ...job,
-          ...patch,
-          updatedAt: nowIso()
-        };
-        if (writer) writer.set(jobRef, stripUndefined(next), { merge: true });
-        return next;
-      };
-      if (typeof firestore.runTransaction === 'function') {
-        return firestore.runTransaction(async (transaction) => {
-          const snapshot = await transaction.get(jobRef);
-          return claim(snapshot, transaction);
-        });
-      }
-      const snapshot = await jobRef.get();
-      const next = await claim(snapshot);
-      if (!next) return null;
-      await writeDoc(COLLECTIONS.jobs, jobId, next, { merge: true });
-      return next;
-    },
     async getJob(jobId) {
-      return readDoc(COLLECTIONS.jobs, jobId);
+      return structuredClone(await readDoc(COLLECTIONS.jobs, jobId));
     },
     async createAssignment(input = {}) {
       const assignmentId = input.assignmentId || makeId('assignment');
@@ -436,30 +464,28 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
       return expired;
     },
     async saveReceipt(receiptHash, record = {}) {
-      const saved = {
-        ...record,
-        receiptHash,
-        createdAt: record.createdAt || nowIso(),
-        updatedAt: nowIso()
-      };
-      return writeDoc(COLLECTIONS.receipts, receiptHash, saved, { merge: true });
+      requireTransactions();
+      const supplied = structuredClone(record);
+      const at = nowIso();
+      const receiptRef = doc(COLLECTIONS.receipts, receiptHash);
+      return firestore.runTransaction(async transaction => {
+        const snapshot = await transaction.get(receiptRef);
+        const prior = snapshot.exists ? snapshot.data() : {};
+        assertSettledReceiptPatch(prior, supplied);
+        const saved = stripUndefined({ ...prior, ...supplied, receiptHash,
+          createdAt: supplied.createdAt || prior.createdAt || at, updatedAt: at });
+        transaction.set(receiptRef, saved);
+        return structuredClone(saved);
+      });
     },
     async getReceipt(receiptHash) {
-      return readDoc(COLLECTIONS.receipts, receiptHash);
+      return structuredClone(await readDoc(COLLECTIONS.receipts, receiptHash));
     },
     async listReceiptsForJob(jobId) {
       const snapshot = await collection(COLLECTIONS.receipts)
         .where('jobId', '==', jobId)
         .get();
-      return snapshot.docs.map((entry) => entry.data());
-    },
-    async saveAcceptance(receiptHash, acceptance = {}) {
-      const saved = {
-        ...acceptance,
-        receiptHash,
-        createdAt: nowIso()
-      };
-      return writeDoc(COLLECTIONS.receiptAcceptances, receiptHash, saved, { merge: true });
+      return structuredClone(snapshot.docs.map((entry) => entry.data()));
     },
     async saveAssignmentCommitment(assignmentId, commitment = {}) {
       const saved = {
@@ -500,13 +526,30 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
       return snapshot.docs.map((entry) => entry.data());
     },
     async appendPoolEvent(event = {}) {
+      event = structuredClone(event);
       const eventId = event.eventId || makeId('pool_event');
-      const saved = {
-        eventId,
-        ...event,
-        createdAt: event.createdAt || nowIso()
-      };
-      return writeDoc(COLLECTIONS.poolEvents, eventId, saved);
+      const saved = { ...event, eventId, createdAt: event.createdAt || nowIso() };
+      requireTransactions();
+      const eventRef = doc(COLLECTIONS.poolEvents, eventId);
+      const reputationRef = event.category === 'reputation' && event.providerId
+        ? doc(COLLECTIONS.reputationState, event.providerId) : null;
+      return firestore.runTransaction(async transaction => {
+        const [existing, reputation] = await Promise.all([
+          transaction.get(eventRef), reputationRef ? transaction.get(reputationRef) : Promise.resolve(null)
+        ]);
+        if (existing.exists) {
+          const comparable = value => { const { createdAt, ...content } = value; return content; };
+          if (hashJson(comparable(existing.data())) !== hashJson(comparable(saved))) {
+            throw Object.assign(new Error('Pool event identity conflict'), { status: 409 });
+          }
+          return existing.data();
+        }
+        const current = reputation?.exists ? reputation.data() : { providerId: event.providerId };
+        transaction.set(eventRef, stripUndefined(saved));
+        if (reputationRef) transaction.set(reputationRef, stripUndefined({ ...current,
+          evidenceRevision: Number(current.evidenceRevision || 0) + 1 }));
+        return saved;
+      });
     },
     async listPoolEventsForJob(jobId) {
       const snapshot = await collection(COLLECTIONS.poolEvents)
@@ -536,8 +579,10 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
         ...(eventId ? { eventId } : {}),
         category: 'reputation'
       });
+      const latest = (await readDoc(COLLECTIONS.reputationState, providerId)) || defaultReputation(providerId);
       events = await api.listPoolEventsForProvider(providerId);
-      return api.updateReputation(providerId, projectProviderReputation(providerId, events, current));
+      return api.updateReputation(providerId, projectProviderReputation(providerId, events, latest),
+        { expectedEvidenceRevision: Number(latest.evidenceRevision || 0) });
     },
     async createSignalingSession(input = {}) {
       const sessionId = input.sessionId || makeId('signal_session');
@@ -817,14 +862,24 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
         ? projectProviderReputation(providerId, events, current)
         : current;
     },
-    async updateReputation(providerId, patch = {}) {
+    async updateReputation(providerId, patch = {}, { expectedEvidenceRevision } = {}) {
+      const changes = structuredClone(patch);
+      requireTransactions();
+      const reputationRef = doc(COLLECTIONS.reputationState, providerId);
+      // History is projected outside retrying transactions; the revision guards it.
+      const before = await reputationRef.get();
+      const prior = before.exists ? before.data() : null;
       const current = await api.getReputation(providerId);
-      const next = {
-        ...current,
-        ...patch,
-        updatedAt: nowIso()
-      };
-      return writeDoc(COLLECTIONS.reputationState, providerId, next, { merge: true });
+      const revision = Number(prior?.evidenceRevision || 0);
+      if (expectedEvidenceRevision !== undefined && expectedEvidenceRevision !== revision) throw evidenceChanged();
+      const next = stripUndefined({ ...current, ...changes,
+        evidenceRevision: revision + 1, updatedAt: nowIso() });
+      return firestore.runTransaction(async transaction => {
+        const snapshot = await transaction.get(reputationRef);
+        if (hashJson(snapshot.exists ? snapshot.data() : null) !== hashJson(prior)) throw evidenceChanged();
+        transaction.set(reputationRef, next);
+        return next;
+      });
     },
     async createAuditChallenge(input = {}) {
       const auditId = input.auditId || makeId('audit');

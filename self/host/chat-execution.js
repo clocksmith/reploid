@@ -127,7 +127,10 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
     getState: () => structuredClone(sessionScheduler.getState()),
     close() {
       // Injected schedulers are borrowed and may serve other conversation owners.
-      closing ??= Promise.resolve().then(() => scheduler ? undefined : sessionScheduler.close());
+      closing ??= Promise.resolve().then(() => scheduler ? undefined : sessionScheduler.close()).catch(error => {
+        closing = null;
+        throw error;
+      });
       return closing;
     }
   });
