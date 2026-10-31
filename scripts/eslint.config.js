@@ -9,6 +9,10 @@ const browserHarnesses = ['evaluate-document-answers', 'pool-actual-browser-smok
   'verify-poolday-forecast-sdk', 'verify-swarm-runtime',
   'verify-visual-change-passport-dogfood'].map(name => `scripts/${name}.js`);
 const cleanedModules = [
+  'tests/fixtures/installed-package-identity.js',
+  'tests/fixtures/qwen-partition-control.js',
+  'tests/fixtures/qwen-partition-cross-host.js',
+  'tests/fixtures/qwen-partition-worker.js',
   'self/providers/external-brain.js',
   'server/external-brain.js',
   'packages/reploid/src/training/**/*.js',

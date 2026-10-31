@@ -5,15 +5,17 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import readline from 'node:readline';
 import { createHash, randomUUID } from 'node:crypto';
+import { inspectPackageArchive, preflightInstalledWorkers } from './installed-package-identity.js';
 
 const [configPath, contractPath, outputPath] = process.argv.slice(2);
 await fs.mkdir(outputPath);
 const contractBytes = await fs.readFile(contractPath), configBytes = await fs.readFile(configPath);
 const contract = JSON.parse(contractBytes);
+const config = JSON.parse(configBytes);
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const report = { schema: 'reploid.q4-partition-control/v1', startedAt: new Date().toISOString(),
   scope: 'Native same-device control; not public or cross-host qualification',
-  configSha256: hash(configBytes), contractSha256: hash(contractBytes), opens: [], cases: [], cleanup: [], passed: false };
+  configSha256: hash(configBytes), contractSha256: hash(contractBytes), packages: [], opens: [], cases: [], cleanup: [], passed: false };
 const save = () => fs.writeFile(path.join(outputPath, 'report.json'), JSON.stringify(report, null, 2) + '\n');
 let child, childExited, pending = new Map(), serial = 0;
 async function start() {
@@ -51,7 +53,11 @@ async function retireWorker() {
 }
 const decode = text => new Float32Array(Uint8Array.from(Buffer.from(text, 'base64')).buffer);
 try {
+  const archiveCheckStarted = performance.now();
+  const expectedPackage = await inspectPackageArchive(config.packageArchive);
+  report.packageArchiveInspectionMs = performance.now() - archiveCheckStarted;
   await start();
+  await preflightInstalledWorkers([{ rpc }], expectedPackage, report.packages);
   report.opens.push({ mode: 'whole', ...await rpc({ op: 'open', indices: null }) });
   console.log('whole opened'); await save();
   for (const item of contract.cases) {
@@ -62,6 +68,7 @@ try {
     console.log(`whole ${item.id}: ${baseline.rows.length} tokens`); await save();
   }
   await retireWorker(); await start();
+  await preflightInstalledWorkers([{ rpc }], expectedPackage, report.packages);
   const opened = await rpc({ op: 'open', indices: [0, 1] });
   report.opens.push({ mode: 'local-split', ...opened }); console.log('local partitions opened'); await save();
   for (const item of contract.cases) {

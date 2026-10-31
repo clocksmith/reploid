@@ -123,4 +123,53 @@ that model pieces and activations use a direct WebRTC path. Record their actual
 transport separately. Keep raw logs private until machine identifiers and
 credentials have been removed.
 
+## Archive identity before private numerical diagnostics
+
+The existing `qwen-partition-control.js` and `qwen-partition-cross-host.js`
+fixtures under `tests/fixtures/` require an explicit `packageArchive` in each
+controller and worker configuration:
+
+```json
+{
+  "packageArchive": {
+    "path": "/path/on/this/host/doppler-gpu-exact.tgz",
+    "sha256": "REPLACE_WITH_REVIEWED_64_CHARACTER_LOWERCASE_SHA256"
+  },
+  "installedPackage": "/path/on/this/host/node_modules/doppler-gpu"
+}
+```
+
+Use the reviewed archive digest from the frozen run contract on every host;
+archive paths can differ. The controller needs its own copy of that archive.
+`installedPackage` belongs to worker configs (including the same-host control).
+Keep the remaining model, manifest, generation, baseline, resource limits and
+worker command fields from the frozen diagnostic configuration. These fields do
+not create a complete run contract or authorize a GPU campaign.
+
+Before importing Doppler or opening a GPU model, each worker hashes the archive,
+derives a sorted file inventory from its captured bytes, and checks its installed
+package against that inventory. Missing, changed, additional source files, links
+and bundled dependencies fail. The controller requires matching identity receipts
+from both workers before opening either stage; the same-host control verifies
+each fresh worker too. Workers recheck immediately before opening. Keep these
+dedicated installations unchanged for the entire run.
+
+Reports retain `packages` receipts with archive SHA-256, installed file-tree
+SHA-256, package name/version, file count and byte count. Rejected runs retain
+partial receipts and cleanup outcomes. Preflight is setup work outside the
+fixtures' model-open and generation timing windows; count it separately when
+comparing total setup costs. `packageArchiveInspectionMs`, each package receipt's
+`elapsedMs`, and each open result's `packageRecheckMs` record those checks.
+
+The `node_modules` subtree is explicitly excluded: external dependencies, native
+provider binaries, the Node executable and the OS/driver need separate identity
+evidence. Archive equality is neither a signature check nor remote attestation.
+This remains a private SSH/stdin diagnostic, not public WebRTC, signed-release
+qualification, or proof of a current two-physical-device journey. Focused tests
+exercise admission and failure handling without acquiring a GPU:
+
+```bash
+npx vitest run --config tests/vitest.config.js tests/unit/installed-package-identity.test.js
+```
+
 *Last updated: October 2026*

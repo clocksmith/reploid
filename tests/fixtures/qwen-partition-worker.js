@@ -6,26 +6,34 @@ import path from 'node:path';
 import readline from 'node:readline';
 import { createHash } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
+import { verifyInstalledPackage } from './installed-package-identity.js';
 
 const config = JSON.parse(await fs.readFile(process.argv[2]));
 const mod = file => import(pathToFileURL(path.join(config.installedPackage, 'src', file)).href);
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
-const runtime = await mod('partitions.js');
-const { resolveGenerationOptions } = await mod('config/generation-contract.js');
-const { bootstrapNodeWebGPU, releaseNodeWebGPU } = await mod('tooling/node-webgpu.js');
-const { installNodeFileFetchShim } = await mod('tooling/node-file-fetch.js');
-const { getDevice, destroyDevice } = await mod('gpu/device.js');
-const { getBufferPool, destroyBufferPool } = await mod('memory/buffer-pool.js');
-const { createNodeFileArtifactStorageContext, createHttpArtifactStorageContext } = await mod('storage/artifact-storage-context.js');
-const { load } = await mod('index.js');
-const manifestBytes = await fs.readFile(config.manifestPath);
-assert.equal(sha(manifestBytes), config.manifestSha256);
-const manifest = JSON.parse(manifestBytes);
-const generation = resolveGenerationOptions(config.generation);
-const plan = runtime.createOrderedLayerPartitionPlan({ modelId: manifest.modelId,
-  ...manifest.architecture, splitLayers: [1], activationDtype: 'f32' });
-const planId = runtime.hashLayerPartitionPlan(plan);
-const model = { id: manifest.modelId, identity: 'sha256:' + config.manifestSha256, generation };
+let runtime, bootstrapNodeWebGPU, releaseNodeWebGPU, installNodeFileFetchShim;
+let getDevice, destroyDevice, getBufferPool, destroyBufferPool;
+let createNodeFileArtifactStorageContext, createHttpArtifactStorageContext, load;
+let manifest, generation, plan, planId, model, verifiedIdentity;
+async function initializeRuntime() {
+  const candidateRuntime = await mod('partitions.js');
+  const { resolveGenerationOptions } = await mod('config/generation-contract.js');
+  ({ bootstrapNodeWebGPU, releaseNodeWebGPU } = await mod('tooling/node-webgpu.js'));
+  ({ installNodeFileFetchShim } = await mod('tooling/node-file-fetch.js'));
+  ({ getDevice, destroyDevice } = await mod('gpu/device.js'));
+  ({ getBufferPool, destroyBufferPool } = await mod('memory/buffer-pool.js'));
+  ({ createNodeFileArtifactStorageContext, createHttpArtifactStorageContext } = await mod('storage/artifact-storage-context.js'));
+  ({ load } = await mod('index.js'));
+  const manifestBytes = await fs.readFile(config.manifestPath);
+  assert.equal(sha(manifestBytes), config.manifestSha256);
+  manifest = JSON.parse(manifestBytes);
+  generation = resolveGenerationOptions(config.generation);
+  plan = candidateRuntime.createOrderedLayerPartitionPlan({ modelId: manifest.modelId,
+    ...manifest.architecture, splitLayers: [1], activationDtype: 'f32' });
+  planId = candidateRuntime.hashLayerPartitionPlan(plan);
+  model = { id: manifest.modelId, identity: 'sha256:' + config.manifestSha256, generation };
+  runtime = candidateRuntime;
+}
 const residents = new Map();
 let whole;
 const memory = () => ({ process: process.memoryUsage(), pool: getBufferPool().getStats(), device: runtime.inspectDeviceMemory() });
@@ -37,7 +45,11 @@ async function close() {
   for (const resident of residents.values()) await resident.close();
   residents.clear();
   await whole?.unload(); whole = null;
-  if (getDevice()) await getDevice().queue.onSubmittedWorkDone();
+  if (!getDevice?.()) {
+    await releaseNodeWebGPU?.();
+    return { gpuOpened: false };
+  }
+  await getDevice().queue.onSubmittedWorkDone();
   const settled = memory();
   assert.equal(settled.pool.resources.active.bytes, 0);
   assert.equal(settled.pool.resources.retainedModel.bytes, 0);
@@ -46,8 +58,17 @@ async function close() {
   return settled;
 }
 async function invoke(request) {
+  if (request.op === 'identity') {
+    verifiedIdentity = await verifyInstalledPackage(config);
+    return verifiedIdentity;
+  }
   if (request.op === 'open') {
     assert(!whole && residents.size === 0);
+    assert(verifiedIdentity, 'Installed package preflight is required before model opening');
+    const packageCheckStarted = performance.now();
+    assert.deepEqual(await verifyInstalledPackage(config), verifiedIdentity, 'Package changed after preflight');
+    const packageRecheckMs = performance.now() - packageCheckStarted;
+    if (!runtime) await initializeRuntime();
     if (process.platform === 'linux') {
       const available = Number((await fs.readFile('/proc/meminfo', 'utf8')).match(/^MemAvailable:\s+(\d+)/m)[1]) * 1024;
       const base = '/sys/class/drm/card1/device/';
@@ -71,7 +92,7 @@ async function invoke(request) {
           participantId: 'q4-stage-' + index, limits: config.limits, signal: AbortSignal.timeout(config.limits.maxPreparationMs) }));
       }
     }
-    return { plan, planId, generation, model, generationDigest: runtime.hashPartitionGeneration(generation),
+    return { plan, planId, generation, model, packageRecheckMs, generationDigest: runtime.hashPartitionGeneration(generation),
       provider: bootstrap.receipt, elapsedMs: performance.now() - start, memory: memory(),
       descriptors: [...residents].map(([index, resident]) => ({ index, descriptor: resident.getDescriptor() })) };
   }

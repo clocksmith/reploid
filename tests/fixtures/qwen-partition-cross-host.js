@@ -5,6 +5,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import readline from 'node:readline';
 import { createHash, randomUUID } from 'node:crypto';
+import { inspectPackageArchive, preflightInstalledWorkers } from './installed-package-identity.js';
 
 const [configPath, outputPath] = process.argv.slice(2);
 const configBytes = await fs.readFile(configPath), config = JSON.parse(configBytes);
@@ -15,7 +16,7 @@ const baseline = JSON.parse(baselineBytes);
 await fs.mkdir(outputPath);
 const report = { schema: 'reploid.q4-cross-host/v1', startedAt: new Date().toISOString(),
   scope: 'Doppler resident execution across Mac Metal and AMD Vulkan over private SSH; not Reploid WebRTC or signed release',
-  configSha256: sha(configBytes), baselineSha256: sha(baselineBytes), opens: [], rows: [], cleanup: [], passed: false };
+  configSha256: sha(configBytes), baselineSha256: sha(baselineBytes), packages: [], opens: [], rows: [], cleanup: [], passed: false };
 const save = () => fs.writeFile(path.join(outputPath, 'report.json'), JSON.stringify(report, null, 2) + '\n');
 const workers = [];
 async function start(spec, index) {
@@ -51,8 +52,16 @@ async function start(spec, index) {
 const decode = text => new Float32Array(Uint8Array.from(Buffer.from(text, 'base64')).buffer);
 let identity;
 try {
+  assert.equal(config.workers.length, 2, 'This diagnostic requires exactly two workers');
+  const archiveCheckStarted = performance.now();
+  const expectedPackage = await inspectPackageArchive(config.packageArchive);
+  report.packageArchiveInspectionMs = performance.now() - archiveCheckStarted;
   for (const [index, spec] of config.workers.entries()) {
     const worker = await start(spec, index); workers.push(worker);
+  }
+  await preflightInstalledWorkers(workers, expectedPackage, report.packages);
+  await save();
+  for (const [index, worker] of workers.entries()) {
     const opened = await worker.rpc({ op: 'open', indices: [index] });
     report.opens.push(opened); await save(); console.log(`Stage ${index} ready, weights ${opened.descriptors[0].descriptor.residentWeightBytes}`);
   }
