@@ -230,16 +230,16 @@ Use a separately qualified prepared route; connection alone is not readiness.
 | Termination | Stop token/sequence/EOS maps to `stop`; token/context limit maps to `length`; unknown reason fails |
 | Cancellation | HTTP disconnect aborts the existing requester; unresolved HTTP calls remain charged until their promises settle |
 | Unsupported parameters | Explicit 400 for sampling overrides including `temperature`, `top_p`, `seed`, `max_tokens`, `n`, tools, structured outputs and other unrecognized fields |
-| `POST /v1/responses` | Explicit `store:false`, `model`, string `input` or an array of the text messages above; optional string `instructions` and boolean `stream` |
+| `POST /v1/responses` | Explicit `store:false`, `model`, string `input` or an array of the text messages above; optional string `instructions`, boolean `stream`, caller `max_output_tokens`, and `text.format.type=json_object` |
 | Responses streaming | Typed SSE events with contiguous sequence numbers, stable response/item identities, and one completed or incomplete response |
 | Responses termination | Stop/EOS completes; output-token limit is `incomplete/max_output_tokens` with `completed_at:null`; context-limit and unknown termination fail explicitly |
-| Responses unsupported state | Rejects omitted/true `store`, previous response IDs, conversations, background, tools, structured output, sampling and `max_output_tokens`; no lookup or response persistence |
+| Responses unsupported state | Rejects omitted/true `store`, previous response IDs, conversations, background, tools, `json_schema`, sampling and unknown fields; no lookup or response persistence |
 | `POST /v1/messages` | Text Messages wire adapter: `model`, alternating user/assistant string `messages` ending in user, optional string `system`, positive `max_tokens`, optional `stream` |
 | Messages limits | Requires a route advertising caller-limit and raw-token usage support; the requested ceiling must fit its prepared allocation. Zero/cache-only, prefill, content blocks, tools, thinking, structured output, sampling and custom stop sequences are rejected |
 | Messages streaming | Actual tokenization observation produces `message_start` before numerical dispatch; typed content deltas and final cumulative sampled count end with `message_stop` |
 | Messages termination | EOS/stop token → `end_turn`; output ceiling → `max_tokens`; context-limit or unmatched stop-sequence metadata fails explicitly |
 | Other paths | Unimplemented routes return 404 |
-| Usage | Chat Completions/Responses omit counts. Messages uses explicit `raw-model-tokens/v1` local accounting described below |
+| Usage | Chat Completions omits counts. Responses with a caller ceiling and Messages use actual `raw-model-tokens/v1` local accounting described below; missing counts remain absent |
 
 The adapter uses existing input/output/admission limits from
 `self/config/partition-policy.json`. Adapters borrowing the same participant share
@@ -259,9 +259,45 @@ Stateless Responses requires the caller to resend its intended text history.
 Instructions are included in the exact messages presented for authorization and
 disclosure. There is no prior-response lookup or hidden continuation state, and
 no token counts are invented. Generation
-uses the prepared route's declared policy; this adapter cannot override its token
-limit. Only the explicit Messages request ceiling is supported; general sampling
-overrides remain unsupported.
+uses the prepared route's declared policy. Responses `max_output_tokens` and
+Messages `max_tokens` enter the existing signed generation request and must fit
+the prepared allocation and policy ceiling. A route without caller-limit/usage
+capability rejects the request. General sampling overrides remain unsupported.
+
+Responses JSON-object mode adds an explicit JSON instruction to the authorized
+messages and validates that final text parses as an object. It does not supply
+constrained decoding or JSON-schema guarantees. Invalid output cannot publish a
+successful terminal event; streamed text remains provisional.
+
+An optional namespaced `reploid` field narrows, without replacing, the host's
+existing authorization:
+
+```json
+{
+  "pool_id": "valera-private-pool-v1",
+  "expected_model_identity": "sha256:REPLACE-WITH-READY-MODEL-IDENTITY",
+  "expected_adapter_identities": [],
+  "expected_plan_identity": null,
+  "allowed_recipients": ["REPLACE-WITH-ADMITTED-PEER-THUMBPRINT"],
+  "include_execution": true
+}
+```
+
+The native host exposes its authoritative `roomId` and `executionClass`. Public-pool
+or unknown classes, changed pools, model/adapter/plan mismatches and undeclared
+recipients fail closed. Checks span execution authorization, disclosure authorization
+and completion. Actual recipients include `preview.input.recipients`, route stage
+participant IDs and pair participants; a room name is not a recipient identity.
+Expected adapters must be active on the selected route, not merely available.
+
+The completed Responses object then includes `reploid.http-execution/v1` metadata:
+thread/attempt, model, pool/class, selected adapters/plan, approved recipients and
+the existing native execution result. Headers retain request/attempt/model identity
+and the raw-token usage schema when admitted. This is provider-reported evidence;
+HTTP compatibility does not independently attest remote hardware or model quality.
+The request field grants neither admission nor disclosure rights. Source integration
+tests cover these bindings with injected computation; no physical inference is
+implied by those tests. Mounting remains an explicit host operation.
 
 The [Responses installed consumer evidence](https://github.com/clocksmith/reploid/tree/main/artifacts/stateless-responses-20261013)
 uses OpenAI SDK 7.32.0 for nonstreaming, streaming, terminal errors and cancellation

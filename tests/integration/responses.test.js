@@ -15,7 +15,7 @@ async function boot(overrides={}){
     for(const [sequence,text] of ['hel','lo'].entries())controls.onDelta({threadId:request.threadId,attemptId:request.attemptId,sequence,text});
     return result(request);
   });
-  const participant={getState:()=>({models:[model]}),generate,...overrides.participant};
+  const participant={roomId:'valera-private-pool-v1',executionClass:'private-pool',getState:()=>({models:[model]}),generate,...overrides.participant};
   const authenticate=vi.fn(async req=>req.headers.authorization==='Bearer local-token'?{subject:'local-user'}:null);
   const authorize=vi.fn(async()=>true), options={authenticate,authorize,...overrides,participant};
   const api=createResponses(options),chat=createChatCompletions(options);
@@ -27,7 +27,7 @@ async function boot(overrides={}){
   return{api,chat,participant,generate,authenticate,authorize,post,url};
 }
 const events=text=>text.trim().split('\n\n').map(frame=>{const [event,data]=frame.split('\n');const row=JSON.parse(data.slice(6));expect(event).toBe(`event: ${row.type}`);return row;});
-it.each(['previous_response_id','conversation','background','tools','tool_choice','text','response_format','temperature','top_p','seed','max_output_tokens','metadata','stream_options'])('rejects unsupported %s without executing',param=>{
+it.each(['previous_response_id','conversation','background','tools','tool_choice','response_format','temperature','top_p','seed','metadata','stream_options'])('rejects unsupported %s without executing',param=>{
   expect(()=>parseTextResponse({...input,[param]:null})).toThrow(`Unsupported parameter: ${param}`);
 });
 it.each([undefined,true,null])('requires explicit store:false, rejects %s',store=>expect(()=>parseTextResponse({...input,store})).toThrow('store:false'));
@@ -93,4 +93,66 @@ it('authentication failure, unsupported input and wrong output identity never be
   const f=await boot();expect((await f.post(input,{headers:{'content-type':'application/json'}})).status).toBe(401);
   expect((await f.post({...input,tools:[]})).status).toBe(400);expect(f.generate).not.toHaveBeenCalled();
   f.participant.generate=async request=>({...result(request),attemptId:'different'});expect((await f.post()).status).toBe(502);
+});
+
+it('binds a caller token ceiling, JSON output and private recipients to the actual requester, preserving usage and execution', async()=>{
+  const ready={...model,textGeneration:{schema:'reploid.text-generation/v1',usage:'raw-model-tokens/v1'}};
+  const f=await boot({participant:{getState:()=>({models:[ready]}),generate:async(request,controls)=>{
+    expect(request.generationRequest.maxOutputTokens).toBe(2);
+    expect(request.messages[0].content).toContain('valid JSON object');
+    await controls.requestApproval(preview(request,['actual-stage']));
+    controls.onUsage({threadId:request.threadId,attemptId:request.attemptId,schema:'raw-model-tokens/v1',inputTokens:7,outputTokens:0});
+    controls.onDelta({threadId:request.threadId,attemptId:request.attemptId,sequence:0,text:'{"ok":true}'});
+    return {...result(request,'{"ok":true}'),usage:{schema:'raw-model-tokens/v1',inputTokens:7,outputTokens:2},execution:{stopReason:'eos-token',stepSummary:{count:2},receipt:{identity:'retained-provider-evidence'}}};
+  }}});
+  const response=await f.post({...input,stream:true,max_output_tokens:2,text:{format:{type:'json_object'}},reploid:{pool_id:'valera-private-pool-v1',expected_model_identity:model.identity,allowed_recipients:['actual-stage'],include_execution:true}});
+  expect(response.status).toBe(200);const rows=events(await response.text()),final=rows.at(-1).response;
+  expect(final.status).toBe('completed');expect(final.usage).toEqual({input_tokens:7,output_tokens:2,total_tokens:9});
+  expect(final.reploid).toMatchObject({schema:'reploid.http-execution/v1',modelIdentity:model.identity,recipients:['actual-stage'],execution:{receipt:{identity:'retained-provider-evidence'}}});
+});
+it('refuses a changed model binding before generation and recipients outside the private grant before disclosure', async()=>{
+  const f=await boot();
+  const binding={pool_id:'valera-private-pool-v1',expected_model_identity:'changed-model',allowed_recipients:['actual-stage'],include_execution:true};
+  expect((await f.post({...input,reploid:binding})).status).toBe(409);expect(f.generate).not.toHaveBeenCalled();
+  const response=await f.post({...input,reploid:{...binding,expected_model_identity:model.identity,allowed_recipients:['another-stage']}});
+  expect(response.status).toBe(403);expect(f.authorize.mock.calls.map(([r])=>r.action)).toEqual(['chat.execute']);
+});
+it('never publishes successful JSON completion for invalid or non-object output', async()=>{
+  for(const content of ['not JSON','[]']){
+    const f=await boot({participant:{generate:async(request,controls)=>{await controls.requestApproval(preview(request));controls.onDelta({threadId:request.threadId,attemptId:request.attemptId,sequence:0,text:content});return result(request,content);}}});
+    const text=await(await f.post({...input,stream:true,text:{format:{type:'json_object'}}})).text();
+    expect(text).toContain('event: error');expect(text).not.toContain('event: response.completed');
+  }
+});
+it.each([null,0,-1,1.5,100000])('rejects invalid caller output ceiling %s',max_output_tokens=>expect(()=>parseTextResponse({...input,max_output_tokens})).toThrow('max_output_tokens'));
+it.each([null,{}, {format:{type:'json_schema'}},{format:{type:'json_object',schema:{}}}])('rejects unsupported structured output %j',text=>expect(()=>parseTextResponse({...input,text})).toThrow('text.format'));
+it('checks recipients in native input and route stages, including activation-only recipients',async()=>{
+  const f=await boot({participant:{generate:async(request,controls)=>{
+    const p=preview(request);delete p.recipients;p.input.recipients=['token-owner'];p.route={stages:[{participantId:'token-owner'},{participantId:'activation-owner'}]};
+    await controls.requestApproval(p);return result(request);
+  }}});
+  const binding={pool_id:'valera-private-pool-v1',expected_model_identity:model.identity,allowed_recipients:['token-owner'],include_execution:true};
+  expect((await f.post({...input,reploid:binding})).status).toBe(403);
+  const response=await f.post({...input,reploid:{...binding,allowed_recipients:['token-owner','activation-owner']}});
+  expect(response.status).toBe(200);expect((await response.json()).reploid.recipients).toEqual(['token-owner','activation-owner']);
+});
+it('does not substitute an unadapted or differently planned model for a pinned adapter/plan',async()=>{
+  const f=await boot();
+  for(const extra of [{expected_adapter_identities:['sha256:'+'b'.repeat(64)]},{expected_plan_identity:'sha256:'+'c'.repeat(64)}]){
+    const response=await f.post({...input,reploid:{pool_id:'valera-private-pool-v1',expected_model_identity:model.identity,allowed_recipients:['actual-stage'],include_execution:true,...extra}});
+    expect(response.status).toBe(409);
+  }
+  expect(f.generate).not.toHaveBeenCalled();
+});
+it.each(['public-pool','unknown'])('refuses a requester whose execution class is %s before disclosure',async executionClass=>{
+ const f=await boot({participant:{executionClass}});
+ const response=await f.post({...input,reploid:{pool_id:'valera-private-pool-v1',expected_model_identity:model.identity,allowed_recipients:['actual-stage'],include_execution:true}});
+ expect(response.status).toBe(403);expect(f.generate).not.toHaveBeenCalled();
+});
+it.each(['chat.execute','chat.disclose'])('rejects private-pool drift while %s authorization awaits',async action=>{
+  let f;
+  f=await boot({authorize:async request=>{if(request.action===action)f.participant.executionClass='public-pool';return true;}});
+  const response=await f.post({...input,reploid:{pool_id:'valera-private-pool-v1',expected_model_identity:model.identity,allowed_recipients:['actual-stage'],include_execution:true}});
+  expect(response.status).toBe(403);
+  if(action==='chat.execute')expect(f.generate).not.toHaveBeenCalled();
 });

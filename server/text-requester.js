@@ -1,4 +1,4 @@
-import { canonicalPartitionJson } from '../packages/reploid/src/mesh/partitions/partition-contract.js';
+import { canonicalPartitionJson, partitionAdapterIdentities } from '../packages/reploid/src/mesh/partitions/partition-contract.js';
 import { requireGenerationCapability, tokenUsage } from '../packages/reploid/src/mesh/partitions/partition-generation-request.js';
 /** Text-only HTTP projection of the existing partition requester. No provider fallback. */
 import { randomUUID } from 'node:crypto';
@@ -58,6 +58,7 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
     req.once('aborted', cancel); res.once('close', cancel);
     const timer = setTimeout(() => controller.abort(fail(408, 'Request admission deadline exceeded')), policy.controlChannel.timeoutMs);
     let streaming = false, emitted = '', sequence = 0, observedUsage = null, disclosureApproved = false, acceptingCallbacks = true;
+    let approvedRecipients = [];
     const id = protocol.idPrefix + randomUUID().replaceAll('-', ''), created = Math.floor(Date.now() / 1000);
     const threadId = randomUUID().replaceAll('-', ''), attemptId = randomUUID().replaceAll('-', '');
     let model, output;
@@ -77,15 +78,28 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
       if (!object(authenticated) || typeof authenticated.subject !== 'string' || !authenticated.subject || authenticated.subject.length > 512) throw fail(401, 'Authentication required');
       const principal = freeze({ subject: authenticated.subject });
       const input = await readBody(req, signal, protocol.parse); signal.throwIfAborted();
+      const requirePrivateScope = () => {
+        if (input.reploid && (participant.roomId !== input.reploid.pool_id
+          || !['private-pool', 'local-only'].includes(participant.executionClass))) throw fail(403, 'Requester is not in the permitted private pool');
+      };
+      requirePrivateScope();
       const models = participant.getState().models || [];
-      const eligible = models.filter(value => value.id === input.model && value.partition && !value.canonical);
+      let eligible = models.filter(value => value.id === input.model && value.partition && !value.canonical);
       if (!eligible.length) throw fail(503, 'No ready ordinary partition route for this model', 'model');
+      if (input.reploid) {
+        eligible = eligible.filter(value => value.identity === input.reploid.expected_model_identity
+          && (input.reploid.expected_adapter_identities === undefined || canonicalPartitionJson(partitionAdapterIdentities(value)) === canonicalPartitionJson(input.reploid.expected_adapter_identities))
+          && (!input.reploid.expected_plan_identity || value.partition.planId === input.reploid.expected_plan_identity));
+        if (!eligible.length) throw fail(409, 'Requested model identity changed');
+      }
       if (new Set(eligible.map(value => value.identity)).size !== 1) throw fail(409, 'Model id has ambiguous execution identity', 'model');
       model = freeze(structuredClone(eligible[0]));
       assert(typeof model.identity === 'string' && model.identity.length > 0, 'Requester model identity missing');
+      if (input.reploid && input.reploid.expected_model_identity !== model.identity) throw fail(409, 'Requested model identity changed');
       const requested = requireGenerationCapability(model, input.generationRequest);
       const request = freeze({ threadId, attemptId, model, messages: input.messages, ...(requested ? {generationRequest:requested} : {}) });
       if (await authorize({ action: 'chat.execute', principal, request, signal }) !== true) throw fail(403, 'Request execution denied');
+      requirePrivateScope();
       signal.throwIfAborted(); clearTimeout(timer);
       res.setHeader('x-request-id', id); res.setHeader('x-reploid-attempt-id', attemptId);
       res.setHeader('x-reploid-model-identity', model.identity);
@@ -110,6 +124,14 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
           try {
             signal.throwIfAborted();
             preview = freeze(structuredClone(preview));
+            const recipients = [...new Set([...(preview.recipients || []), ...(preview.input?.recipients || []),
+              ...(preview.route?.stages?.map(stage => stage.participantId) || []),
+              ...[preview.participantA, preview.participantB].filter(Boolean)])];
+            if (input.reploid && (!recipients.length || recipients.some(id => !input.reploid.allowed_recipients.includes(id)))) {
+              throw fail(403, 'Actual route recipients exceed the permitted private pool');
+            }
+            if (input.reploid && ((input.reploid.expected_plan_identity && preview.planId !== input.reploid.expected_plan_identity)
+              || canonicalPartitionJson(preview.adapterIdentities || []) !== canonicalPartitionJson(partitionAdapterIdentities(model)))) throw fail(409, 'Disclosure execution identity changed');
             assert(preview?.threadId === threadId && preview.attemptId === attemptId
               && preview.modelId === model.id && preview.modelIdentity === model.identity
               && canonicalPartitionJson(preview.input?.messages ?? null) === canonicalPartitionJson(request.messages)
@@ -119,8 +141,10 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
               preview, signal });
             signal.throwIfAborted();
             if (approved !== true) throw fail(403, 'Recipient disclosure denied');
+            requirePrivateScope();
             assert(acceptingCallbacks, 'Requester callback after completion');
             disclosureApproved = true;
+            approvedRecipients = recipients;
             return true;
           } catch (error) { controller.abort(error); throw error; }
         },
@@ -141,6 +165,7 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
       acceptingCallbacks = false;
       signal.throwIfAborted();
       assert(disclosureApproved, 'Recipient disclosure must precede completion');
+      requirePrivateScope();
       assert(result?.threadId === threadId && result.attemptId === attemptId && result.modelId === model.id
         && result.modelIdentity === model.identity, 'Requester result identity mismatch');
       assert(typeof result.content === 'string' && result.content.length <= policy.inputLimits.maxOutputCharacters, 'Invalid requester text result');
@@ -158,7 +183,11 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
         assert(!requested || observedUsage, 'Provider token usage must precede text');
         output.delta(result.content);
       }
-      output.complete(result.content, finishReason, reason, usage);
+      const evidence = input.reploid?.include_execution ? { schema: 'reploid.http-execution/v1',
+        threadId, attemptId, poolId: participant.roomId, executionClass: participant.executionClass,
+        modelIdentity: model.identity, adapterIdentities: partitionAdapterIdentities(model), planIdentity: model.partition?.planId || null, recipients: approvedRecipients,
+        execution: structuredClone(result.execution) } : undefined;
+      output.complete(result.content, finishReason, reason, usage, evidence);
     } catch (cause) {
       const error = cause instanceof Error ? cause : fail(502, 'Requester failed');
       controller.abort(error);

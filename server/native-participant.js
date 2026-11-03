@@ -531,7 +531,8 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
         return prepared;
       }, onChange: earning || readiness ? state => { onChange(state); readiness?.observe(state); if (earning) observeEarning(); } : onChange
     });
-    return Object.freeze({ identity: identity.peerId, getState: () => whole ? whole.getState() : partitions.getState(),
+    return Object.freeze({ identity: identity.peerId, roomId, executionClass: roomId === bootstrap.publicRoomId ? 'public-pool' : 'private-pool',
+      getState: () => whole ? whole.getState() : partitions.getState(),
       generate(request, controls) {
         requireValue(!closed && !canonical && partitions, 'Native ordinary requester is unavailable');
         requireValue(typeof controls?.requestApproval === 'function', 'Explicit requester disclosure authorization required');
