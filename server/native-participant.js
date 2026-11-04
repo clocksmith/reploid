@@ -208,9 +208,8 @@ export async function openNativeModelSource({ model, modelDirectory, signal, run
 /** The standalone host owns the Node provider and the only device in this
  * process. Final close follows resident settlement; stopping contribution alone
  * keeps the provider reusable. No private Doppler imports are needed. */
-export function createNativeGpuHost(loadProvider, { platform = process.platform,
-  backend = platform === 'darwin' ? 'metal' : platform === 'win32' ? 'd3d12' : 'vulkan' } = {}) {
-  requireValue(['metal', 'vulkan', 'd3d12'].includes(backend), 'Native GPU backend must be metal, vulkan or d3d12');
+export function createNativeGpuHost(loadProvider, { backend = process.platform === 'darwin' ? 'metal' : 'vulkan' } = {}) {
+  requireValue(['metal', 'vulkan'].includes(backend), 'Native GPU backend must be metal or vulkan');
   let opening = null, closing = null, restore = null, retirement = null, stopped = false;
   let ownedDevice = null, lost = null, queueSettled = false, queueRejected = false, lossResolved = false, poolDestroyed = false, deviceDestroyed = false;
   const retire = () => retirement ||= (async () => {

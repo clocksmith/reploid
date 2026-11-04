@@ -42,10 +42,8 @@ it with `--contribute`. Neither mode grants disclosure of requester messages.
 The native delivery requires `@roamhq/wrtc` and `ws`; `webgpu` is optional for
 connections and file supply. For a host with no compute, installation may use
 `npm ci --omit=optional`. Compute must have an installed compatible WebGPU
-provider, driver and adapter. The host selects Metal on macOS, Direct3D 12 on
-Windows and Vulkan elsewhere; it does not retry another backend on failure.
-Optional dependency installation failure does not qualify compute; selecting an
-unavailable provider fails explicitly.
+provider, Vulkan driver and adapter. Optional dependency installation failure
+does not qualify compute; selecting an unavailable provider fails explicitly.
 
 Public discovery uses the application's existing bootstrap configuration.
 Private deployments can supply `--signaling-url`, `--room`, `--room-token-file`
