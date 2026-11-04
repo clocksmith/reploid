@@ -3014,6 +3014,8 @@ body[data-pool-route-id='home'] #app {
 .pool-home[data-pool-route-id="home"] > .pool-primary-nav .execution-ribbon { display: none; }
 .pool-home .production-demo-content { position: relative; height: var(--pool-size-640); overflow: hidden; }
 .pool-home .production-header { margin-bottom: var(--pool-size-24); }
+.pool-home [data-production-available] { list-style: none; margin: 0; padding: 0; }
+.pool-home [data-production-use] { width: 100%; text-align: left; }
 .pool-home [data-production-model-buttons], .pool-home .production-utilities { justify-content: center; }
 .pool-home [data-production-surface] > section > header:has([data-production-pause][hidden]) { justify-content: center; }
 .pool-home:has(.production-header) > .pool-primary-nav { display: none; }

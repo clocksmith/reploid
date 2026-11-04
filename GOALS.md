@@ -2,11 +2,16 @@
 
 ## Operating mission
 
+Owner clarification, November 4, 2026: show available shared models first and
+let visitors choose and use them before downloading anything. Model selection
+prioritizes mesh capacity, with the same presentation on desktop and mobile.
+Local downloads and contribution remain separate, secondary choices; selection
+does not authorize a download or disclose a message.
+
 Owner clarification, October 30, 2026: replo.id turns participating computers
 into shared AI inference capacity, with the goal of exchanging or selling the
-tokens they produce. The main view shows what this computer can run and its
-measured production. Contribution of compute or storage is primary; chat is a
-small inference demo. After reviewed initial setup, sharing stays on while the
+tokens they produce. Device contribution shows what this computer can run and
+its measured production, below the shared model choices. After reviewed initial setup, sharing stays on while the
 site is open. Pause is secondary. Resource limits and technical detail stay in
 disclosures. Earnings appear only when accounting records support them.
 Use the shared UI catalog for every element and clearly separate local UI

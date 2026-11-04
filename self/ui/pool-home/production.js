@@ -5,6 +5,7 @@ import { interfaceIcon } from '../components/interface-icons.js';
 import { bindDialog } from '../components/dialog.js';
 import { preparationStatus } from './model-preparation.js';
 import { bindMathematicalBackground } from '../components/mathematical-background.js';
+import { modelChoiceGroups } from '../components/model-select.js';
 
 const number = value => Number.isFinite(value) && value >= 0 ? value.toLocaleString() : '—';
 const bytes = value => Number.isFinite(value) && value >= 0
@@ -41,8 +42,16 @@ export function projectProduction(state) {
 export function renderProductionSurface({ homeHref = '/' } = {}) {
   return `<section class="production-surface pool-stack pool-gap-lg" data-production-surface aria-label="AI production">
     <header class="production-header pool-row pool-row-between"><a class="pool-primary-brand pool-heading pool-plain" href="${escape(homeHref)}" aria-label="Reploid home">${renderPowerTower()}<span class="pool-primary-wordmark">Reploid</span></a><button class="pool-button btn-ghost pool-icon" type="button" data-production-settings aria-label="Settings" title="Settings">${interfaceIcon('settings')}</button></header>
+    <section class="pool-card pool-stack pool-gap-md" aria-label="Shared models" data-production-shared>
+      <header class="pool-row pool-row-between"><h1 class="pool-title">Choose a model</h1><button class="pool-button btn-ghost pool-small" type="button" data-production-network>Computers</button></header>
+      <p class="pool-small pool-muted" data-production-network-status role="status"></p>
+      <p class="pool-small" data-production-shared-error role="alert" hidden></p>
+      <ul class="pool-list pool-stack pool-gap-sm" data-production-available></ul>
+      <div class="pool-row"><button class="pool-button btn-ghost pool-small" type="button" data-production-retry>Retry</button><a class="pool-button btn-ghost pool-small" href="/network" data-pool-route-link="/network" data-production-chat>Chat</a></div>
+    </section>
+    <details class="pool-disclosure" data-production-device><summary>Run on this device</summary>
     <section class="pool-card pool-stack pool-gap-md" aria-label="Production">
-      <header class="pool-row pool-row-between"><h1 class="pool-title" data-production-status>Put this device to work</h1></header>
+      <header class="pool-row pool-row-between"><h2 class="pool-subheading" data-production-status>Put this device to work</h2></header>
       <p class="pool-small" data-production-error role="alert" hidden></p>
       <div class="pool-row pool-small" data-production-local aria-label="Models" hidden></div>
       <p class="pool-small pool-muted" data-production-work hidden></p>
@@ -54,9 +63,9 @@ export function renderProductionSurface({ homeHref = '/' } = {}) {
       <div class="pool-stack pool-gap-xs" data-production-preparing hidden><p class="pool-small" data-production-progress-label role="status"></p><progress class="pool-progress" data-production-progress aria-label="Model preparation"></progress><button class="pool-button btn-ghost pool-small" type="button" data-production-cancel>Cancel</button></div>
       <p class="pool-caption pool-muted" data-production-settlement hidden>Waiting for cleanup</p>
       <div data-production-setup-actions><div class="pool-row pool-gap-md" data-production-model-buttons></div><p class="pool-small pool-muted" data-production-model-empty hidden>No models available</p></div>
-      <footer class="production-utilities pool-row"><a class="pool-button pool-small" href="/network" data-pool-route-link="/network" data-production-chat>Chat</a><button class="pool-button btn-ghost pool-small" type="button" data-production-model-options hidden>Change model</button><button class="pool-button btn-ghost pool-small" type="button" data-production-pause hidden>Pause</button></footer>
+      <footer class="production-utilities pool-row"><button class="pool-button btn-ghost pool-small" type="button" data-production-model-options hidden>Change model</button><button class="pool-button btn-ghost pool-small" type="button" data-production-pause hidden>Pause</button></footer>
     </section>
-    <section class="pool-stack pool-gap-sm" aria-label="Network models"><div class="pool-row pool-row-between"><h2 class="pool-subheading">Network models</h2><div class="pool-row"><button class="pool-button btn-ghost pool-small" type="button" data-production-retry>Retry</button><button class="pool-button btn-ghost pool-small" type="button" data-production-network>Computers</button></div></div><p class="pool-small pool-muted" data-production-network-status role="status"></p><ul class="pool-list pool-small" data-production-available></ul></section>
+    </details>
     <details class="pool-disclosure" data-production-history><summary>Contributions <span class="pool-muted" data-production-history-count></span></summary><div class="pool-stack pool-gap-sm"><p class="pool-caption pool-muted">Recent whole-model executions on this device. Session counters above reset when a model restarts. These records do not establish delivery or earnings.</p><p class="pool-small pool-muted" data-production-history-status role="status"></p><ol class="pool-list pool-small" data-production-history-records></ol></div></details>
     <dialog class="chat-model-setup pool-surface pool-stack pool-gap-md" data-production-model-dialog aria-labelledby="production-model-title"><header class="pool-row pool-row-between"><h2 class="pool-heading" id="production-model-title">Change model</h2><button class="pool-button btn-ghost pool-icon" type="button" data-production-close-models aria-label="Close">${interfaceIcon('close')}</button></header><div data-production-more-models></div></dialog>
   </section>`;
@@ -70,6 +79,8 @@ export function bindProductionSurface(root, session, { inspector } = {}) {
   const detachBackground = backgroundRoot && document.documentElement.classList.contains('pool-page') && !backgroundRoot.querySelector('.pool-math-background')
     ? bindMathematicalBackground(backgroundRoot) : () => {};
   let last, pending = false, actionError = '', resumeCompute = false, resumeFiles = false;
+  let sharedPending = false, sharedError = '', attention = false;
+  const sharedRows = new Map();
   const modelsDialog = bindDialog(find('[data-production-model-dialog]'));
   const modelButtons = find('[data-production-model-buttons]');
   const modelActions = bindContributionModels(modelButtons, session, { onChoose: (id, opener) => { modelsDialog.close(); inspector?.contribute(id, opener); } });
@@ -77,6 +88,9 @@ export function bindProductionSurface(root, session, { inspector } = {}) {
   const render = state => {
     last = projectProduction(state);
     const preparing = ['loading', 'connecting'].includes(last.phase);
+    const needsAttention = preparing || !!last.error || last.cancellationPending;
+    if (needsAttention && !attention) find('[data-production-device]').open = true;
+    attention = needsAttention;
     text('[data-production-status]', last.configured || last.active || preparing || last.stopping ? last.status : 'Put this device to work');
     text('[data-production-tokens]', number(last.outputTokens));
     text('[data-production-completed]', number(last.completed));
@@ -112,10 +126,28 @@ export function bindProductionSurface(root, session, { inspector } = {}) {
     const connection = state.network?.consumer?.connectionState;
     text('[data-production-network-status]', state.network?.error || (state.network?.paused ? 'Disconnected'
       : state.network?.connecting || ['connecting', 'retrying'].includes(connection) ? 'Finding computers…'
-      : last.available.length ? `${last.available.length} ${last.available.length === 1 ? 'model' : 'models'} available`
-      : 'No ready network models. Chat can use downloaded models or wait for a contributor.'));
-    find('[data-production-available]').innerHTML = (state.models || []).filter(model => model.providerIds?.length
-      || ['ready', 'busy', 'loading'].includes(model.networkAvailability)).map(model => `<li>${escape(model.name || model.id)} · ${escape(model.networkAvailability === 'ready' ? 'Ready' : model.networkAvailability === 'busy' ? 'Busy' : 'Preparing')}</li>`).join('');
+      : last.available.length ? `${last.available.length} shared ${last.available.length === 1 ? 'model' : 'models'}`
+      : 'Waiting for shared models. You can also run a model on this device.'));
+    text('[data-production-shared-error]', sharedError); find('[data-production-shared-error]').hidden = !sharedError;
+    const shared = modelChoiceGroups(state.models || []).find(group => group.id === 'shared')?.models || [];
+    const ids = new Set(shared.map(model => model.selectionId || model.id));
+    for (const [id, row] of sharedRows) if (!ids.has(id)) { row.remove(); sharedRows.delete(id); }
+    shared.forEach((model, index) => {
+      const id = model.selectionId || model.id;
+      let row = sharedRows.get(id);
+      if (!row) {
+        row = document.createElement('li');
+        row.innerHTML = '<button type="button" class="chat-model-choice pool-button pool-choice pool-row-between"><span><span data-shared-model-name></span><small class="pool-muted" data-shared-model-status></small></span><span class="pool-caption">Use model</span></button>';
+        row.firstElementChild.dataset.productionUse = id;
+        sharedRows.set(id, row);
+      }
+      row.querySelector('[data-shared-model-name]').textContent = model.name || model.id;
+      row.querySelector('[data-shared-model-status]').textContent = model.networkAvailability === 'ready' ? 'Ready'
+        : model.networkAvailability === 'busy' ? 'Busy · waits for capacity' : 'Preparing';
+      row.firstElementChild.disabled = sharedPending || !['ready', 'busy'].includes(model.networkAvailability);
+      const list = find('[data-production-available]');
+      if (list.children[index] !== row) list.insertBefore(row, list.children[index] || null);
+    });
     find('[data-production-retry]').hidden = last.available.length > 0 && !state.network?.error;
     find('[data-production-retry]').disabled = pending || !!state.network?.connecting || ['connecting', 'retrying'].includes(connection);
     const records = last.history.records;
@@ -130,6 +162,18 @@ export function bindProductionSurface(root, session, { inspector } = {}) {
       else progress.removeAttribute('value');
     }
   };
+  find('[data-production-available]').addEventListener('click', event => {
+    const button = event.target.closest('[data-production-use]');
+    if (!button || button.disabled || sharedPending) return;
+    const model = session.getState().models.find(model => (model.selectionId || model.id) === button.dataset.productionUse
+      && ['ready', 'busy'].includes(model.networkAvailability));
+    if (!model) return;
+    sharedPending = true; sharedError = ''; render(session.getState());
+    void Promise.resolve().then(() => session.createThread({ model, sharingScope: 'mesh', executionLocation: 'network' }))
+      .then(() => { if (!controller.signal.aborted) find('[data-production-chat]').click(); })
+      .catch(error => { sharedError = error.message; })
+      .finally(() => { sharedPending = false; if (!controller.signal.aborted) render(session.getState()); });
+  }, options);
   const act = async operation => {
     if (pending) return;
     pending = true; actionError = ''; render(session.getState());

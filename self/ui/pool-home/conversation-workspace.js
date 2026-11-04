@@ -2,7 +2,7 @@ import { renderContextIndicator, updateContextIndicator } from './context-indica
 import { withComputerLabels } from './computer-labels.js';
 import { interfaceIcon } from '../components/interface-icons.js';
 import { createConversationList } from './conversation-list.js';
-import { updateModelSelect, modelSelectionLabel, bindModelChoices } from '../components/model-select.js';
+import { updateModelSelect, modelSelectionLabel, bindModelChoices, isSharedModelChoice } from '../components/model-select.js';
 /** Conversation presentation; the host owns execution and disclosure. */
 import { projectNetworkPeers } from './network-controls.js';
 import { renderNetworkInspector, bindNetworkInspector } from './network-inspector.js';
@@ -83,11 +83,11 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
         </form>
       </dialog>
       <dialog class="chat-model-setup pool-surface pool-small" data-model-picker aria-labelledby="chat-model-picker-title">
-        <h2 class="pool-heading" id="chat-model-picker-title">Conversation model</h2><p data-current-model-description></p>
+        <h2 class="pool-heading" id="chat-model-picker-title">Choose a model</h2><p data-current-model-description></p>
         <p>A new model starts a new thread.</p>
         <div><select class="pool-input" data-next-model aria-label="Model"></select></div>
         <p data-next-model-status role="status" hidden></p>
-        <div class="chat-network-actions"><button class="pool-button" type="button" data-model-picker-close>Cancel</button><button class="pool-button" type="button" data-change-model>New thread with this model</button></div>
+        <div class="chat-network-actions"><button class="pool-button" type="button" data-model-picker-close>Cancel</button><button class="pool-button" type="button" data-change-model>Use model</button></div>
       </dialog>
     </section>
     ${inspector ? renderNetworkInspector() : ''}
@@ -103,6 +103,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const modelChoices = bindModelChoices(modelSelect), nextModelChoices = bindModelChoices(find('[data-next-model]'));
   const inspector = sharedInspector || bindNetworkInspector(container, session, { getInviteUrl, webSearch, search });
   let archived = false, renameId = null, chosenModel = viewState.chosenModel || null, pickerModel = null;
+  let changingModel = false;
   let files = [], fileRevision = 0, composerRevision = 0, reading = false;
   let contextPrompt = viewState.contextPrompt || null;
   let executionLocation = viewState.executionLocation || 'auto';
@@ -210,10 +211,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (pickerModel && !models.some(model => keyFor(model) === keyFor(pickerModel))) {
       models.push(selected || { ...pickerModel, availability: 'unavailable' });
     }
-    updateModelSelect(find('[data-next-model]'), models, { value: keyFor(pickerModel), showAvailability: true });
-    nextModelChoices.update(models);
+    const preferNetwork = state.activeThread?.permissions?.sharingScope !== 'local'
+      && (state.activeThread?.permissions?.executionLocation ?? executionLocation) !== 'local';
+    find('[data-next-model]').disabled = changingModel;
+    updateModelSelect(find('[data-next-model]'), models, { value: keyFor(pickerModel), showAvailability: true, grouped: true, preferNetwork });
+    nextModelChoices.update(models, { grouped: true, preferNetwork });
     const available = selected && selectable(selected);
-    find('[data-change-model]').disabled = !available;
+    find('[data-change-model]').disabled = changingModel || !available;
     const status = find('[data-next-model-status]');
     status.textContent = !pickerModel ? 'No model is available right now.'
       : !available ? 'This model is unavailable. Choose another model or wait for capacity.' : '';
@@ -241,9 +245,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const current = keyFor(thread?.model) || keyFor(chosenModel)
       || keyFor(models.find(model => keyFor(model) === keyFor(defaultModel) && selectable(model)))
       || keyFor(models.find(selectable)) || keyFor(models[0]);
-    updateModelSelect(modelSelect, models, { value: current, showAvailability: true });
+    updateModelSelect(modelSelect, models, { value: current, showAvailability: true, grouped: true, preferNetwork: location !== 'local' });
     modelSelect.value = current || ''; modelSelect.disabled = !models.length; modelSelect.hidden = !!thread;
-    modelChoices.update(models);
+    modelChoices.update(models, { grouped: true, preferNetwork: location !== 'local' });
     const currentModel = find('[data-current-model]'); currentModel.hidden = !thread;
     currentModel.textContent = thread?.model ? modelSelectionLabel(thread.model) : 'Model';
     currentModel.setAttribute('aria-label', `${thread?.model.name || 'Model'}. Choose a model for a new thread`);
@@ -431,17 +435,20 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   showFiles();
   const renameDialog = bindDialog(find('[data-rename-dialog]'));
   const picker = bindDialog(find('[data-model-picker]'));
-  for (const selector of ['[data-open-model]', '[data-open-limits]', '[data-composer-status]']) {
+  for (const selector of ['[data-open-limits]', '[data-composer-status]']) {
     on(selector, 'click', event => inspector.open('model', event.currentTarget));
   }
-  on('[data-current-model]', 'click', event => {
+  const openPicker = event => {
     const state = session.getState();
+    inspector.close({ restoreFocus: false });
     find('[data-current-model-description]').textContent = state.activeThread?.model.name || '';
-    pickerModel = state.activeThread?.model || state.models.find(selectable) || null;
+    pickerModel = state.activeThread?.model || chosenModel || state.defaultModel || state.models.find(selectable) || null;
     updatePicker(state);
     picker.open(find('[data-next-model]'), event.currentTarget);
     nextModelChoices.focus();
-  });
+  };
+  on('[data-current-model]', 'click', openPicker);
+  on('[data-open-model]', 'click', openPicker);
   on('[data-model-picker-close]', 'click', () => picker.close());
   on('[data-next-model]', 'change', () => {
     pickerModel = session.getState().models.find(model => (model.selectionId || model.id) === find('[data-next-model]').value) || pickerModel;
@@ -459,12 +466,27 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   on('[data-new-thread]', 'click', () => { try { observe(newThread()); } catch (cause) { error(cause); } });
   on('[data-active-model-select]', 'change', () => { chosenModel = session.getState().models.find(model => (model.selectionId || model.id) === modelSelect.value); viewState.chosenModel = chosenModel; render(session.getState()); });
   on('[data-change-model]', 'click', () => {
+    if (changingModel) return;
     const next = find('[data-next-model]').value;
-    const model = session.getState().models.find(model => (model.selectionId || model.id) === next && selectable(model));
+    const state = session.getState();
+    const model = state.models.find(model => (model.selectionId || model.id) === next && selectable(model));
     if (!model) { updatePicker(session.getState()); return; }
-    picker.close();
-    try { observe(after(newThread(), () => { chosenModel = model; viewState.chosenModel = chosenModel;
-      modelSelect.value = next; render(session.getState()); input.focus(); })); } catch (cause) { error(cause); }
+    const location = state.activeThread?.permissions?.sharingScope === 'local' ? 'local'
+      : state.activeThread?.permissions?.executionLocation ?? executionLocation;
+    changingModel = true; updatePicker(state);
+    void act(async () => {
+      try {
+        await newThread();
+        if (controller.signal.aborted) return;
+        chosenModel = model; viewState.chosenModel = chosenModel;
+        executionLocation = location === 'local' ? 'local' : isSharedModelChoice(model) ? 'network' : location;
+        viewState.executionLocation = executionLocation;
+        modelSelect.value = next; render(session.getState()); picker.close(); input.focus();
+      } finally {
+        changingModel = false;
+        if (!controller.signal.aborted) render(session.getState());
+      }
+    });
   });
   on('[data-retry-connection]', 'click', event => {
     const button = event.currentTarget;

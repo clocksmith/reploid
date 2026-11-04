@@ -29,8 +29,9 @@
   padding: var(--pool-size-24); overflow-y: auto;
 }
 .chat-model-setup[open] { display: grid; gap: var(--pool-size-16); }
+.pool-home [data-model-picker] { width: min(var(--pool-size-480), calc(100vw - var(--pool-space-page-gutter) * 2)); }
 .chat-model-setup h2, .chat-model-setup p { margin: 0; }
-.chat-model-setup label { display: grid; gap: var(--pool-size-8); }
+.chat-model-setup label:not(.chat-model-choice) { display: grid; gap: var(--pool-size-8); }
 .chat-model-setup select { width: 100%; padding: var(--pool-size-8); }
 .chat-model-setup .chat-network-actions { justify-content: flex-end; }
 

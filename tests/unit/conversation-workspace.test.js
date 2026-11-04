@@ -123,8 +123,9 @@ describe('Conversation workspace', () => {
     expect([...navigation.querySelectorAll('[data-inspector-section]')].map(node => node.dataset.inspectorSection)).toEqual(['participants', 'settings']);
     expect(find('[data-composer-area] [data-open-model]')).not.toBeNull();
     find('[data-open-model]').click();
-    expect(find('#network-inspector-title').textContent).toBe('Model');
-    find('[data-close-inspector]').click();
+    expect(find('[data-model-picker]').open).toBe(true);
+    expect(find('#chat-model-picker-title').textContent).toBe('Choose a model');
+    find('[data-model-picker-close]').click();
     for (const [section, title] of [['participants', 'Computers'], ['settings', 'Settings']]) {
       navigation.querySelector(`[data-inspector-section="${section}"]`).click();
       expect(find('[data-contextual-inspector]').open).toBe(true);
@@ -138,7 +139,7 @@ describe('Conversation workspace', () => {
 
   it('keeps the composer and draft while network capacity is unavailable', () => {
     expect(find('[data-composer-send]').disabled).toBe(true);
-    expect(find('[data-active-model-select]').textContent).toBe(`${CANONICAL_CHAT_MODELS[1].name} · Unavailable`);
+    expect(find('[data-active-model-select]').textContent).toBe(`${CANONICAL_CHAT_MODELS[1].name} · Download required`);
     expect(find('[data-model-status]').hidden).toBe(false);
     expect(find('[data-model-status]').textContent).toBe('Model unavailable.');
     expect(find('[data-model-digest]').textContent).toBe(CANONICAL_CHAT_MODELS[1].name);
@@ -330,9 +331,45 @@ describe('Conversation workspace', () => {
     expect(find('[data-model-picker]').open).toBe(true);
     expect(session.getState().selectedId).toBe(id);
     find('[data-change-model]').click();
-    expect(session.getState().selectedId).toBeNull();
+    await vi.waitFor(() => expect(session.getState().selectedId).toBeNull());
     expect(session.getState().threads[0].model.id).toBe(CANONICAL_CHAT_MODELS[1].id);
     session.select(id); expect(find('[data-composer-input]').value).toBe('Keep this draft');
+  });
+
+  it('keeps the picker blocking edits until a pending model switch has saved the current draft', async () => {
+    await session.prepareLocalModel(CANONICAL_CHAT_MODELS[1].id);
+    dispose();
+    let finish;
+    const saved = new Promise(resolve => { finish = resolve; });
+    const saveDraft = vi.fn().mockImplementationOnce(() => saved).mockResolvedValue(undefined);
+    dispose = bindConversationWorkspace(root, { ...session, saveDraft });
+    session.createThread({ sharingScope: 'local' });
+    find('[data-open-model]').click(); find('[data-change-model]').click();
+    await vi.waitFor(() => expect(saveDraft).toHaveBeenCalled());
+    expect(find('[data-model-picker]').open).toBe(true);
+    expect(find('[data-change-model]').disabled).toBe(true);
+    expect(find('[data-next-model]').disabled).toBe(true);
+    finish();
+    await vi.waitFor(() => expect(find('[data-model-picker]').open).toBe(false));
+    expect(document.activeElement).toBe(find('[data-composer-input]'));
+  });
+
+  it('preserves a local-only grant when choosing a model that also has shared capacity', async () => {
+    const model = CANONICAL_CHAT_MODELS[1];
+    dispose(); await session.close();
+    session = createChatSession({ storage: null, service, models: [model], swarm: { getState: () => ({ consumer: {
+      peers: [{ peerId: 'peer', model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }]
+    } }) } });
+    await session.prepareLocalModel(model.id);
+    dispose = bindConversationWorkspace(root, session);
+    const original = session.createThread({ model, sharingScope: 'local' });
+    find('[data-open-model]').click(); find('[data-change-model]').click();
+    await vi.waitFor(() => expect(find('[data-model-picker]').open).toBe(false));
+    find('[data-composer-input]').value = 'Keep this answer local';
+    find('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    await vi.waitFor(() => expect(session.getState().activeThread?.id).not.toBe(original));
+    expect(session.getState().activeThread.permissions.executionLocation).toBe('local');
+    expect(session.getState().activeThread.permissions.sharingScope).toBe('local');
   });
 
   it('refreshes an open model picker without replacing a choice whose capacity disappears', async () => {
@@ -359,7 +396,7 @@ describe('Conversation workspace', () => {
     expect(next.value).toBe(second.id);
     expect(find('[data-change-model]').disabled).toBe(false);
     find('[data-change-model]').click();
-    expect(session.getState().selectedId).toBeNull();
+    await vi.waitFor(() => expect(session.getState().selectedId).toBeNull());
     expect(find('[data-active-model-select]').value).toBe(second.id);
     session.select(id);
     expect(session.getState().activeThread.model.id).toBe(first.id);
