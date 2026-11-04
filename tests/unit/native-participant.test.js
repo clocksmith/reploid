@@ -37,7 +37,7 @@ async function fixture() {
 }
 
 describe('native host boundary', () => {
-  it.each(['metal', 'vulkan'])('selects the explicit %s backend without substituting another provider', async backend => {
+  it.each(['metal', 'vulkan', 'd3d12'])('selects the explicit %s backend without substituting another provider', async backend => {
     const create = vi.fn(() => ({ requestAdapter() {} }));
     const navigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
     const host = createNativeGpuHost(async () => ({ globals: {}, create }), { backend });
@@ -47,6 +47,15 @@ describe('native host boundary', () => {
     } finally { await host.close(); }
     expect(Object.getOwnPropertyDescriptor(globalThis, 'navigator')).toEqual(navigator);
   });
+  it.each([['darwin', 'metal'], ['linux', 'vulkan'], ['win32', 'd3d12']])(
+    'opens the native %s backend without trying other backends', async (platform, backend) => {
+      const create = vi.fn(() => ({ requestAdapter() {} }));
+      const host = createNativeGpuHost(async () => ({ globals: {}, create }), { platform });
+      try {
+        await host.open();
+        expect(create).toHaveBeenCalledExactlyOnceWith(['backend=' + backend]);
+      } finally { await host.close(); }
+    });
   it('rejects unsupported native backends before loading a provider', () => {
     const load = vi.fn();
     expect(() => createNativeGpuHost(load, { backend: 'fallback' })).toThrow('backend');
