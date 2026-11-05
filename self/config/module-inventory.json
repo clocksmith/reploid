@@ -3518,7 +3518,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:66185bde31b1e5d6dfcee1c2caad4933d4b8060e8f48f0ed300218d56096299e",
+      "sha256": "sha256:9d0454e56f1be5e283c70711c77be62b9de0e0912471fea521b464400b1cd1f4",
       "imports": []
     },
     {
@@ -3553,7 +3553,7 @@
     {
       "path": "ui/pool-home/contribution-models.js",
       "owner": "ui",
-      "sha256": "sha256:595e2a0bc14e8edcc85235d58d203caba3ecffda65992a0d3d4b110d23958cd3",
+      "sha256": "sha256:a9358a83b441b12efc33f35e5e8004b586ee2be7e733c0fe8970f94653fcb402",
       "imports": [
         "../components/dialog.js",
         "../components/html.js",

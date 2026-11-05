@@ -176,6 +176,20 @@ it('loads model sizes without starting work and confirms the exact selected mode
   expect(session.setSharing).not.toHaveBeenCalled(); detach();
 });
 
+it('offers a catalog adapter for this device to serve with its base model, by its exact selection', async () => {
+  const adapted = { ...model, selectionId: 'm/specialist', name: 'Specialist', adapters: [{ identity: 'sha256:' + 'b'.repeat(64) }] };
+  const snapshot = { models: [model, adapted], network: {} };
+  const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; },
+    getModelDownload: vi.fn(async id => ({ sizeBytes: id === 'm' ? 512000000 : 555000000 })), setSharing: vi.fn() };
+  const inspector = { contribute: vi.fn() };
+  const detach = bindProductionSurface(document.body, session, { inspector });
+  await vi.waitFor(() => expect(document.querySelector('[data-production-model="m/specialist"]').textContent).toContain('Specialist'));
+  expect([...document.querySelectorAll('[data-production-model]')].map(node => node.dataset.productionModel)).toEqual(['m', 'm/specialist']);
+  const button = document.querySelector('[data-production-model="m/specialist"]'); button.click();
+  expect(inspector.contribute).toHaveBeenCalledWith('m/specialist', button);
+  expect(session.setSharing).not.toHaveBeenCalled(); detach();
+});
+
 it('blocks local model actions when the host reports missing browser support', () => {
   const snapshot = { models: [model], network: {}, localDownloadIssue: 'WebGPU unavailable' };
   const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; }, getModelDownload: vi.fn() };

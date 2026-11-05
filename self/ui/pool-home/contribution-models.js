@@ -13,7 +13,8 @@ const bytes = value => Number.isFinite(value) && value >= 0
 export function bindContributionModels(container, session, { onChoose }) {
   const entries = new Map();
   let disposed = false;
-  const eligible = model => !model.partition && !model.adapters?.length && model.source && model.provider === 'doppler';
+  // Whole models and their catalog adapters; an adapter choice prepares its base model with that exact adapter.
+  const eligible = model => !model.partition && model.source && model.provider === 'doppler';
   const size = value => value >= 1e9 ? `${(value / 1e9).toFixed(1)} GB ↓` : `${Math.ceil(value / 1e6)} MB ↓`;
   const paint = (entry, issue) => {
     const { model, button, detail, metadata } = entry;

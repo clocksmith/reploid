@@ -71,9 +71,9 @@ Neither is held-out evaluation, so it shows "No evaluation evidence".
 
 ## Serve an adapter
 
-- Browser: Settings › Storage › Download options › Model, choose the adapter; then
-  Computers › Answer requests. The device prepares the base model and the
-  adapter, then advertises the adapter identity.
+- Browser: Run on this device lists each catalog adapter beside the whole models.
+  Choosing it reviews the download (base model and adapter) and shares it; the
+  device prepares both, runs the readiness check, then advertises the adapter identity.
 - Native participant: add `--adapter <adapter id>` to
   `--contribute --execution-mode whole-model --model <base id>`. A readiness
   probe runs the adapter before it is advertised.
