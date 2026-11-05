@@ -3,6 +3,12 @@ import { escapeHtml } from './attachments.js';
 let choiceId = 0;
 export const isSharedModelChoice = model => ['ready', 'busy', 'loading', 'preparing'].includes(model.networkAvailability);
 
+/** Catalog facts shown beside a choice: declared weights and advertised context, nothing inferred. */
+export const modelFacts = model => [
+  model?.quantization ? String(model.quantization).toUpperCase() : null,
+  Number.isSafeInteger(model?.contextLength) && model.contextLength > 0 ? `${model.contextLength.toLocaleString()} tokens` : null
+].filter(Boolean).join(' · ');
+
 /** Presentation groups never change model identities or execution permissions. */
 export function modelChoiceGroups(models, { preferNetwork = true } = {}) {
   const shared = [], local = [], downloads = [], unavailable = [];
@@ -68,7 +74,7 @@ export function bindModelChoices(select) {
           if (!input) {
             const label = document.createElement('label');
             label.className = 'chat-model-choice pool-button btn-ghost pool-choice';
-            label.innerHTML = '<input type="radio"><span><span data-choice-name></span><small class="pool-muted" data-choice-status></small></span>';
+            label.innerHTML = '<input type="radio"><span><span data-choice-name></span><small class="pool-muted" data-choice-status></small><small class="pool-muted" data-choice-facts hidden></small></span>';
             input = label.querySelector('input'); input.name = name; input.value = id;
             parent.append(label);
           }
@@ -77,6 +83,8 @@ export function bindModelChoices(select) {
           const label = input.closest('label');
           label.querySelector('[data-choice-name]').textContent = modelSelectionLabel(model);
           label.querySelector('[data-choice-status]').textContent = grouped ? choiceStatus(model, section.id) : availabilityLabel(model);
+          const facts = modelFacts(model), factsNode = label.querySelector('[data-choice-facts]');
+          factsNode.textContent = facts; factsNode.hidden = !facts;
           const position = parent.querySelectorAll(':scope > label')[index];
           if (position !== label) parent.insertBefore(label, position || null);
         });

@@ -5,7 +5,7 @@ const models = [
   { id: 'local', name: 'Local', localCached: true, availability: 'cached' },
   { id: 'download', name: 'Download', source: {}, availability: 'unavailable' },
   { id: 'busy', name: 'Busy', networkAvailability: 'busy', availability: 'busy' },
-  { id: 'ready', name: 'Ready', networkAvailability: 'ready', availability: 'ready' }
+  { id: 'ready', name: 'Ready', networkAvailability: 'ready', availability: 'ready', quantization: 'q4k', contextLength: 4096 }
 ];
 beforeEach(() => { document.body.innerHTML = '<select></select>'; });
 
@@ -16,7 +16,12 @@ it('presents ready shared models before busy peers, local files and downloads in
   expect([...document.querySelectorAll('input')].map(input => input.value)).toEqual(['ready', 'busy', 'local', 'download']);
   expect([...document.querySelectorAll('[data-choice-group]')].map(group => group.getAttribute('aria-label')))
     .toEqual(['Shared models', 'On this device', 'Download to this device']);
-  expect(select.value).toBe('ready'); choices.dispose();
+  expect(select.value).toBe('ready');
+  // Declared facts sit beside the choice; a model without them shows no facts line.
+  const facts = document.querySelector('input[value="ready"]').closest('label').querySelector('[data-choice-facts]');
+  expect(facts.hidden).toBe(false); expect(facts.textContent).toBe(`Q4K · ${(4096).toLocaleString()} tokens`);
+  expect(document.querySelector('input[value="local"]').closest('label').querySelector('[data-choice-facts]').hidden).toBe(true);
+  choices.dispose();
 });
 
 it('moves an existing choice when discovery changes without losing its selection or keyboard focus', () => {
