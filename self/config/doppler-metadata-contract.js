@@ -10,18 +10,9 @@ var __esm = (fn, res, err) => function __init() {
 };
 
 // node_modules/doppler-gpu/src/formats/sha256.js
-function rotateRight32(value, bits) {
-  return value >>> bits | value << 32 - bits;
-}
-function appendWordsFromBytes(words, bytes, offset) {
-  for (let index = 0; index < 16; index += 1) {
-    const byteOffset = offset + index * 4;
-    words[index] = (bytes[byteOffset] << 24 | bytes[byteOffset + 1] << 16 | bytes[byteOffset + 2] << 8 | bytes[byteOffset + 3]) >>> 0;
-  }
-}
 function createSha256Hasher() {
-  const hashState = new Uint32Array(INITIAL_STATE);
-  const schedule = new Uint32Array(64);
+  const hashState = new Int32Array(INITIAL_STATE);
+  const schedule = new Int32Array(64);
   const tail = new Uint8Array(64);
   let tailLength = 0;
   let byteLength = 0n;
@@ -48,7 +39,7 @@ function createSha256Hasher() {
     }
   }
   function finalState() {
-    const result = new Uint32Array(hashState);
+    const result = new Int32Array(hashState);
     const padding = new Uint8Array(tailLength < 56 ? 64 : 128);
     padding.set(tail.subarray(0, tailLength));
     padding[tailLength] = 128;
@@ -64,7 +55,7 @@ function createSha256Hasher() {
   return Object.freeze({
     update,
     digestHex() {
-      return Array.from(finalState(), (value) => value.toString(16).padStart(8, "0")).join("");
+      return Array.from(finalState(), (value) => (value >>> 0).toString(16).padStart(8, "0")).join("");
     },
     digest() {
       const state = finalState();
@@ -77,38 +68,43 @@ function createSha256Hasher() {
   });
 }
 function compressBlock(hashState, schedule, bytes, offset) {
-  appendWordsFromBytes(schedule, bytes, offset);
-  for (let index = 16; index < 64; index += 1) {
-    const s0 = (rotateRight32(schedule[index - 15], 7) ^ rotateRight32(schedule[index - 15], 18) ^ schedule[index - 15] >>> 3) >>> 0;
-    const s1 = (rotateRight32(schedule[index - 2], 17) ^ rotateRight32(schedule[index - 2], 19) ^ schedule[index - 2] >>> 10) >>> 0;
-    schedule[index] = schedule[index - 16] + s0 + schedule[index - 7] + s1 >>> 0;
+  for (let index = 0; index < 16; index++) {
+    const byteOffset = offset + index * 4;
+    schedule[index] = bytes[byteOffset] << 24 | bytes[byteOffset + 1] << 16 | bytes[byteOffset + 2] << 8 | bytes[byteOffset + 3];
+  }
+  for (let index = 16; index < 64; index++) {
+    const x = schedule[index - 15];
+    const y = schedule[index - 2];
+    const s0 = (x >>> 7 | x << 25) ^ (x >>> 18 | x << 14) ^ x >>> 3;
+    const s1 = (y >>> 17 | y << 15) ^ (y >>> 19 | y << 13) ^ y >>> 10;
+    schedule[index] = schedule[index - 16] + s0 + schedule[index - 7] + s1 | 0;
   }
   let a = hashState[0], b = hashState[1], c = hashState[2], d = hashState[3];
   let e = hashState[4], f = hashState[5], g = hashState[6], h = hashState[7];
-  for (let index = 0; index < 64; index += 1) {
-    const sigma1 = (rotateRight32(e, 6) ^ rotateRight32(e, 11) ^ rotateRight32(e, 25)) >>> 0;
-    const choose = (e & f ^ ~e & g) >>> 0;
-    const temp1 = h + sigma1 + choose + ROUND_CONSTANTS[index] + schedule[index] >>> 0;
-    const sigma0 = (rotateRight32(a, 2) ^ rotateRight32(a, 13) ^ rotateRight32(a, 22)) >>> 0;
-    const majority = (a & b ^ a & c ^ b & c) >>> 0;
-    const temp2 = sigma0 + majority >>> 0;
+  for (let index = 0; index < 64; index++) {
+    const sigma1 = (e >>> 6 | e << 26) ^ (e >>> 11 | e << 21) ^ (e >>> 25 | e << 7);
+    const choose = e & f ^ ~e & g;
+    const temp1 = h + sigma1 + choose + ROUND_CONSTANTS[index] + schedule[index] | 0;
+    const sigma0 = (a >>> 2 | a << 30) ^ (a >>> 13 | a << 19) ^ (a >>> 22 | a << 10);
+    const majority = a & b ^ a & c ^ b & c;
+    const temp2 = sigma0 + majority | 0;
     h = g;
     g = f;
     f = e;
-    e = d + temp1 >>> 0;
+    e = d + temp1 | 0;
     d = c;
     c = b;
     b = a;
-    a = temp1 + temp2 >>> 0;
+    a = temp1 + temp2 | 0;
   }
-  hashState[0] = hashState[0] + a >>> 0;
-  hashState[1] = hashState[1] + b >>> 0;
-  hashState[2] = hashState[2] + c >>> 0;
-  hashState[3] = hashState[3] + d >>> 0;
-  hashState[4] = hashState[4] + e >>> 0;
-  hashState[5] = hashState[5] + f >>> 0;
-  hashState[6] = hashState[6] + g >>> 0;
-  hashState[7] = hashState[7] + h >>> 0;
+  hashState[0] = hashState[0] + a | 0;
+  hashState[1] = hashState[1] + b | 0;
+  hashState[2] = hashState[2] + c | 0;
+  hashState[3] = hashState[3] + d | 0;
+  hashState[4] = hashState[4] + e | 0;
+  hashState[5] = hashState[5] + f | 0;
+  hashState[6] = hashState[6] + g | 0;
+  hashState[7] = hashState[7] + h | 0;
 }
 var INITIAL_STATE, ROUND_CONSTANTS;
 var init_sha256 = __esm({
@@ -123,7 +119,7 @@ var init_sha256 = __esm({
       528734635,
       1541459225
     ]);
-    ROUND_CONSTANTS = Object.freeze([
+    ROUND_CONSTANTS = new Int32Array([
       1116352408,
       1899447441,
       3049323471,

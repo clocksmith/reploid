@@ -368,7 +368,7 @@
       "redirects": [
         {
           "source": "/model-files/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
-          "destination": "/config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json",
+          "destination": "/config/model-manifests/6788ca6b95e2fe3dd27a057042cd3b543e4b8d2fcdc433bcfe218148feb82a4e.json",
           "type": 302
         },
         {
@@ -378,7 +378,7 @@
         },
         {
           "source": "/model-files/qwen-3-5-2b-q4k-ehaf16/manifest.json",
-          "destination": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json",
+          "destination": "/config/model-manifests/a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b.json",
           "type": 302
         },
         {

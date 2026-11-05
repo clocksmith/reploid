@@ -1,0 +1,173 @@
+{
+  "id": "profiles/qwen-3-5-0-8b-vulkan-subgroup8",
+  "name": "qwen-3-5-0-8b-vulkan-subgroup8",
+  "description": "Qwen3.5 0.8B Radeon 8060S tuning candidate: eight-lane Q4_K projections/gate-up, sixteen-lane vocabulary head and prefill attention, session-owned F32 decode storage, register recurrent decode and sliced register prefill with parallel convolution, asynchronous prefill chunks and sequential2x32 decode. No weight/dtype changes. Qualification is recorded separately; opt-in only.",
+  "intent": "calibrate",
+  "compatibleIntents": [
+    "calibrate"
+  ],
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-10-29T00:00:00Z",
+  "extends": "profiles/qwen-3-5-0-8b-vulkan-throughput",
+  "model": "qwen-3-5-0-8b-q4k-ehaf16",
+  "runtime": {
+    "shared": {
+      "bufferPool": {
+        "limits": {
+          "maxBuffersPerBucket": 16384,
+          "maxTotalPooledBuffers": 65536
+        }
+      },
+      "gpuCache": {
+        "uniformCacheMaxEntries": 4096
+      }
+    },
+    "inference": {
+      "executionPatch": {
+        "addKernels": [
+          {
+            "key": "attn_decode_head256",
+            "kernel": {
+              "kernel": "attention_decode_online_head256_f16kv_output_gate.wgsl",
+              "entry": "main",
+              "digest": "sha256:275a1f7cfdd40ab95c467bb4744a1509dd6eadb39ec8fdd0d1e1ba80eb34f9c5",
+              "precision": {
+                "kvDtype": "f16"
+              }
+            }
+          },
+          {
+            "key": "q4_subgroup8",
+            "kernel": {
+              "kernel": "fused_matmul_q4_subgroup.wgsl",
+              "entry": "main",
+              "digest": "sha256:d0aa5474d8b82b918f6f214f85eb35d39513feb1ab4ff52e7e3cfb8eefc4049e",
+              "constants": {
+                "WORKGROUP_SIZE": 256,
+                "COLS_PER_WG": 32,
+                "THREADS_PER_COL_GEMV": 8,
+                "USE_FULL_BLOCK_FAST_PATH": true
+              }
+            }
+          },
+          {
+            "key": "partition_prefill_attention",
+            "kernel": {
+              "kernel": "attention_prefill_partitioned_head256_f16kv.wgsl",
+              "entry": "main",
+              "digest": "sha256:d127387e02482ecd6390bca3f1bf82f988868b580c5dd7255a84acd0028588f8",
+              "precision": {
+                "kvDtype": "f16"
+              }
+            }
+          },
+          {
+            "key": "head_subgroup16",
+            "kernel": {
+              "kernel": "fused_matmul_q4_subgroup.wgsl",
+              "entry": "main",
+              "digest": "sha256:d0aa5474d8b82b918f6f214f85eb35d39513feb1ab4ff52e7e3cfb8eefc4049e",
+              "constants": {
+                "WORKGROUP_SIZE": 256,
+                "COLS_PER_WG": 16,
+                "THREADS_PER_COL_GEMV": 16,
+                "USE_FULL_BLOCK_FAST_PATH": true
+              }
+            }
+          }
+        ],
+        "set": [
+          {
+            "section": "decode",
+            "op": "attention",
+            "kernelKey": "attn_decode_head256"
+          },
+          {
+            "section": "decode",
+            "op": "q_proj",
+            "kernelKey": "q4_subgroup8"
+          },
+          {
+            "section": "decode",
+            "op": "k_proj",
+            "kernelKey": "q4_subgroup8"
+          },
+          {
+            "section": "decode",
+            "op": "v_proj",
+            "kernelKey": "q4_subgroup8"
+          },
+          {
+            "section": "decode",
+            "op": "o_proj",
+            "kernelKey": "q4_subgroup8"
+          },
+          {
+            "section": "decode",
+            "op": "gate_proj",
+            "kernelKey": "q4_subgroup8"
+          },
+          {
+            "section": "decode",
+            "op": "up_proj",
+            "kernelKey": "q4_subgroup8"
+          },
+          {
+            "section": "decode",
+            "op": "down_proj",
+            "kernelKey": "q4_subgroup8"
+          },
+          {
+            "section": "prefill",
+            "op": "attention",
+            "kernelKey": "partition_prefill_attention"
+          },
+          {
+            "section": "postLayer",
+            "op": "lm_head",
+            "kernelKey": "head_subgroup16"
+          },
+          {
+            "section": "postLayer",
+            "op": "lm_head_prefill",
+            "kernelKey": "head_subgroup16"
+          }
+        ]
+      },
+      "batching": {
+        "batchSize": 2,
+        "readbackInterval": 32
+      },
+      "session": {
+        "useGreedyLmHeadArgmaxFusion": false,
+        "decodeLoop": {
+          "batchSize": 2,
+          "readbackInterval": 32
+        },
+        "speculation": {
+          "mode": "none",
+          "tokens": 1,
+          "verify": "greedy",
+          "threshold": null,
+          "rollbackOnReject": true
+        },
+        "fusedFfnQ4K": {
+          "decode": {
+            "variant": "q4k_subgroup8",
+            "pipelineConstants": {
+              "WORKGROUP_SIZE": 256,
+              "COLS_PER_WG": 32,
+              "THREADS_PER_COL": 8,
+              "USE_FULL_BLOCK_FAST_PATH": true
+            }
+          }
+        },
+        "usePreparedDecodeWorkspace": true,
+        "useLinearAttentionRegisterPrefill": true,
+        "prefillChunkSubmitMode": "async",
+        "useLinearAttentionRegisterDecode": true
+      }
+    }
+  }
+}

@@ -1,0 +1,166 @@
+
+import { getKernelCapabilities } from '../device.js';
+import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
+import { createTensor } from '../tensor.js';
+import { unifiedKernelWrapper } from './kernel-execution.js';
+import { createPipeline, getPipelineBindGroupLayout } from './pipeline-cache.js';
+import { createUniformBufferWithView } from './uniform-utils.js';
+import { createBindGroupWithValidation } from './bind-group-validation.js';
+import { dispatchKernel } from './dispatch.js';
+import { trace, isTraceEnabled } from '../../debug/index.js';
+import { getKernelThresholdSnapshot } from '../../config/schema/index.js';
+import { selectRuleValue } from './rule-registry.js';
+import { getDevice } from '../device.js';
+
+function selectSoftmaxVariant(innerSize) {
+  const caps = getKernelCapabilities();
+  const hasSubgroups = caps?.hasSubgroups ?? false;
+  const { smallThreshold } = getKernelThresholdSnapshot().softmax;
+  const isSmall = innerSize <= smallThreshold;
+  return selectRuleValue('softmax', 'variant', { hasSubgroups, isSmall });
+}
+
+async function _softmax(target, input, axis, options = {}) {
+  const { batchSize = 1, size, seqLen, temperature = 1.0, outputBuffer = null } = options;
+  if (input.dtype !== 'f32') {
+    throw new Error(`Softmax requires f32 input, got ${input.dtype}.`);
+  }
+
+  const bytesPerElement = 4;
+  const inferredSize = size || seqLen || (input.buffer.size / (batchSize * bytesPerElement));
+  const variant = selectSoftmaxVariant(inferredSize);
+  trace.kernels(`Softmax: size=${inferredSize}, variant=${variant}`);
+
+  const outputSize = batchSize * inferredSize * bytesPerElement;
+  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'softmax_output');
+  const ownedOutput = outputBuffer ? null : output;
+
+  try {
+    await unifiedKernelWrapper(
+      'softmax', target, variant,
+      [input, output],
+      { inner_size: inferredSize, outer_size: batchSize, temperature },
+      batchSize
+    );
+  } catch (error) {
+    if (ownedOutput) {
+      releaseBuffer(ownedOutput);
+    }
+    throw error;
+  }
+
+  return createTensor(output, 'f32', [batchSize, inferredSize], 'softmax_output');
+}
+
+export async function runSoftmax(input, axis, options = {}) {
+  return _softmax(null, input, axis, options);
+}
+
+export async function recordSoftmax(recorder, input, axis, options = {}) {
+  return _softmax(recorder, input, axis, options);
+}
+
+async function softmaxTopK(target, logits, numTokens, numExperts, topK, options = {}) {
+  const device = target?.device ?? getDevice();
+  const {
+    normalize = true,
+    modelType = null,
+  } = options;
+  const inputDtype = options.inputDtype;
+  const weightsDtype = options.weightsDtype;
+
+  if (inputDtype !== 'f16' && inputDtype !== 'f32') {
+    throw new Error(`SoftmaxTopK requires options.inputDtype to be "f16" or "f32", got ${String(inputDtype)}.`);
+  }
+  if (weightsDtype !== 'f16' && weightsDtype !== 'f32') {
+    throw new Error(`SoftmaxTopK requires options.weightsDtype to be "f16" or "f32", got ${String(weightsDtype)}.`);
+  }
+
+  if (weightsDtype === 'f16' && inputDtype !== 'f16') {
+    throw new Error('SoftmaxTopK f16 weights require f16 logits');
+  }
+
+  const caps = getKernelCapabilities();
+  // A declared kernel-path step names its variant; otherwise the rules select one.
+  const variant = options.variant ?? selectRuleValue('softmax', 'topkVariant', {
+    modelType,
+    inputDtype,
+    weightsDtype,
+    hasF16: caps?.hasF16 ?? false,
+    hasSubgroups: caps?.hasSubgroups ?? false,
+  });
+  if (variant === 'fused_logit_rank') {
+    if (normalize !== true || inputDtype !== 'f32' || weightsDtype !== 'f32') {
+      throw new Error('SoftmaxTopK fused_logit_rank covers renormalized F32 routing only.');
+    }
+    // Its second stage keeps one pick per lane of one subgroup.
+    const minSubgroup = caps?.hasSubgroups ? caps.adapterInfo?.subgroupMinSize : null;
+    if (typeof minSubgroup !== 'number' || minSubgroup < topK) {
+      throw new Error(`SoftmaxTopK fused_logit_rank needs subgroups of at least top-${topK} lanes; got ${minSubgroup}.`);
+    }
+  }
+  const pipeline = await createPipeline('topk', variant);
+  if ((variant === 'fused_ranked' || variant === 'fused_logit_rank') && (numExperts > 256 || topK > 64 || topK > numExperts)) {
+    throw new Error(`SoftmaxTopK ${variant} supports at most 256 experts and top-64; got experts=${numExperts} topK=${topK}.`);
+  }
+
+  const indicesSize = numTokens * topK * 4;
+  const weightsBytesPerElement = weightsDtype === 'f16' ? 2 : 4;
+  const weightsSize = numTokens * topK * weightsBytesPerElement;
+
+  let indices = null, weights = null, uniformBuffer = null;
+  let completed = false;
+
+  try {
+    indices = options.indicesBuffer ?? acquireBuffer(indicesSize, undefined, 'softmax_topk_indices');
+    weights = options.weightsBuffer ?? acquireBuffer(weightsSize, undefined, 'softmax_topk_weights');
+    if (indices.size < indicesSize || weights.size < weightsSize) throw new Error('SoftmaxTopK supplied output is too small.');
+    if (indices === weights || indices === logits || weights === logits) throw new Error('SoftmaxTopK outputs must not alias each other or logits.');
+    uniformBuffer = createUniformBufferWithView(
+    'softmax_topk_uniforms', 16,
+    (view) => {
+      view.setUint32(0, numTokens, true);
+      view.setUint32(4, numExperts, true);
+      view.setUint32(8, topK, true);
+      view.setUint32(12, normalize ? 1 : 0, true);
+    },
+    target, device
+  );
+
+    const descriptor = {
+      label: 'softmax_topk_bind_group',
+      layout: getPipelineBindGroupLayout(pipeline, 0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: logits } },
+        { binding: 2, resource: { buffer: indices } },
+        { binding: 3, resource: { buffer: weights } },
+      ],
+    };
+    const workspace = target?.decodeWorkspace;
+    const bindGroup = workspace && !isTraceEnabled('buffers')
+      ? workspace.getBindGroupForOutputs(`topk:${variant}`, [indices, weights], descriptor)
+      : await createBindGroupWithValidation(device, descriptor, `topk:${variant}`);
+
+    dispatchKernel(target, pipeline, bindGroup, numTokens, 'softmax_topk');
+    completed = true;
+    return { indices, weights };
+  } finally {
+    if (!target && uniformBuffer) uniformBuffer.destroy();
+    if (!completed) {
+      const owned = [options.indicesBuffer == null ? indices : null, options.weightsBuffer == null ? weights : null];
+      for (const buffer of owned) if (buffer) {
+        if (target) target.trackTemporaryBuffer(buffer);
+        else releaseBuffer(buffer);
+      }
+    }
+  }
+}
+
+export async function runSoftmaxTopK(logits, numTokens, numExperts, topK, options = {}) {
+  return softmaxTopK(null, logits, numTokens, numExperts, topK, options);
+}
+
+export async function recordSoftmaxTopK(recorder, logits, numTokens, numExperts, topK, options = {}) {
+  return softmaxTopK(recorder, logits, numTokens, numExperts, topK, options);
+}
