@@ -1,24 +1,20 @@
 #!/usr/bin/env node
 /**
- * Generates self/config/vfs-manifest.json from the browser tree under self/.
+ * Generates config/vfs-manifest.json from the served browser tree.
  */
 
 import { promises as fs } from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { toCanonicalBrowserPath } from './browser-tree-paths.js';
-import { buildHostingFileSet } from './hosting-file-set.js';
+import { buildHostingFileSet, resolveBrowserTree } from './hosting-file-set.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const ROOT = path.resolve(__dirname, '..');
-const SELF_DIR = path.join(ROOT, 'self');
-const OUTPUT_PATH = path.join(SELF_DIR, 'config', 'vfs-manifest.json');
+const OUTPUT_SERVED_PATH = 'config/vfs-manifest.json';
 
 async function main() {
-  const files = await buildHostingFileSet({ selfDir: SELF_DIR });
+  const tree = await resolveBrowserTree();
+  const files = await buildHostingFileSet({ tree });
   const relFiles = files.map(toCanonicalBrowserPath);
-  const outputRel = toCanonicalBrowserPath(path.relative(SELF_DIR, OUTPUT_PATH));
+  const outputRel = toCanonicalBrowserPath(OUTPUT_SERVED_PATH);
+  const outputPath = tree.writable(OUTPUT_SERVED_PATH);
   if (!relFiles.includes(outputRel)) {
     relFiles.push(outputRel);
   }
@@ -29,8 +25,8 @@ async function main() {
     files: relFiles
   };
 
-  await fs.writeFile(OUTPUT_PATH, JSON.stringify(output, null, 2) + '\n', 'utf8');
-  console.log(`[vfs-manifest] Wrote ${OUTPUT_PATH}`);
+  await fs.writeFile(outputPath, JSON.stringify(output, null, 2) + '\n', 'utf8');
+  console.log(`[vfs-manifest] Wrote ${outputPath}`);
 }
 
 main().catch((err) => {

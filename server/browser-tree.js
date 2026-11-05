@@ -11,12 +11,10 @@
  */
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { parse } from 'acorn';
+import { BROWSER_ROOTS, REPOSITORY_ROOT, rootOf } from './browser-roots.js';
 
-export const REPOSITORY_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-/** Agent substrate, code both surfaces load, and the Poolday product. */
-export const BROWSER_ROOTS = Object.freeze(['self', 'shared', 'apps/poolday']);
+export { BROWSER_ROOTS, REPOSITORY_ROOT, rootOf, servedPathOf, resolveServedFile } from './browser-roots.js';
 
 const posix = path.posix;
 const toPosix = value => String(value).split(path.sep).join('/');
@@ -34,20 +32,6 @@ async function walk(root, relative = '') {
     else throw new Error(`Browser assets must be regular files: ${name}`);
   }
   return files;
-}
-
-/** The root that contains a repository-relative path, or null. */
-export function rootOf(sourcePath, roots = BROWSER_ROOTS) {
-  const normalized = toPosix(sourcePath).replace(/^\.\//, '');
-  return [...roots].sort((a, b) => b.length - a.length)
-    .find(root => normalized.startsWith(root + '/')) || null;
-}
-
-/** The served path of a repository-relative source path, or null outside the roots. */
-export function servedPathOf(sourcePath, roots = BROWSER_ROOTS) {
-  const normalized = toPosix(sourcePath).replace(/^\.\//, '');
-  const root = rootOf(normalized, roots);
-  return root ? normalized.slice(root.length + 1) : null;
 }
 
 const SPECIFIER_SUFFIX = /[?#].*$/;
@@ -129,6 +113,8 @@ export async function openBrowserTree({ repoRoot = REPOSITORY_ROOT, roots = BROW
       return path.join(repoRoot, source);
     },
     owner: served => (sources.has(served) ? rootOf(sources.get(served), roots) : null),
+    /** Where to write a served path: its source, or the first root for a new file. */
+    writable: served => (sources.has(served) ? path.join(repoRoot, sources.get(served)) : path.join(repoRoot, roots[0], served)),
     /** The bytes served for a path. */
     async read(served) {
       const bytes = await fs.readFile(this.absolute(served));
@@ -149,37 +135,51 @@ export function openDirectoryTree(directory) {
 /**
  * Express-compatible static serving for the composed tree. Files resolve per
  * request, so files added during development are served without a restart;
- * module sources are rewritten as Hosting packages them.
+ * module sources are rewritten as Hosting packages them. Directory requests
+ * serve their index document, as express.static does.
  */
-export function serveBrowserTree({ repoRoot = REPOSITORY_ROOT, roots = BROWSER_ROOTS, prefix = '', setHeaders } = {}) {
+export function serveBrowserTree({ repoRoot = REPOSITORY_ROOT, roots = BROWSER_ROOTS, prefix = '', index = 'index.html', setHeaders } = {}) {
   const cache = new Map();
-  return async (req, res, next) => {
-    if (req.method !== 'GET' && req.method !== 'HEAD') return next();
-    let served;
-    try { served = decodeURIComponent(req.path).replace(/^\/+/, ''); }
-    catch { return next(); }
-    if (prefix) served = posix.join(prefix, served);
-    if (!served || served.endsWith('/') || served.split('/').some(part => part === '..' || part.startsWith('.'))) return next();
+  const locate = async served => {
     for (const root of roots) {
       const absolute = path.join(repoRoot, root, served);
-      let stat;
-      try { stat = await fs.stat(absolute); } catch { continue; }
-      if (!stat.isFile()) return next();
-      if (!isModuleSource(served)) {
-        setHeaders?.(res, absolute);
-        return res.sendFile(absolute, error => { if (error && !res.headersSent) next(error.status === 404 ? undefined : error); });
-      }
-      const key = `${absolute}:${stat.mtimeMs}:${stat.size}`;
-      let body = cache.get(absolute)?.key === key ? cache.get(absolute).body : null;
-      if (!body) {
-        const code = await fs.readFile(absolute, 'utf8');
-        body = Buffer.from(toServedModuleSource(code, `${root}/${served}`, roots), 'utf8');
-        cache.set(absolute, { key, body });
-      }
-      res.type('text/javascript');
-      setHeaders?.(res, absolute);
-      return req.method === 'HEAD' ? res.end() : res.send(body);
+      try { return { root, absolute, stat: await fs.stat(absolute) }; } catch { /* Try the next root. */ }
     }
-    return next();
+    return null;
+  };
+  return async (req, res, next) => {
+    if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+    let requested;
+    try { requested = decodeURIComponent(req.path); }
+    catch { return next(); }
+    let served = posix.join(prefix, requested.replace(/^\/+/, ''));
+    if (served === '.' ) served = '';
+    if (served.split('/').some(part => part === '..' || (part.startsWith('.') && part !== ''))) return next();
+    if (!served || requested.endsWith('/')) {
+      if (!index) return next();
+      served = posix.join(served, index);
+    }
+    let found = await locate(served);
+    if (found?.stat.isDirectory()) {
+      if (!index) return next();
+      const query = req.originalUrl.slice(req.originalUrl.split('?')[0].length);
+      return res.redirect(301, `${req.originalUrl.split('?')[0]}/${query}`);
+    }
+    if (!found?.stat.isFile()) return next();
+    const { root, absolute, stat } = found;
+    if (!isModuleSource(served)) {
+      setHeaders?.(res, absolute);
+      return res.sendFile(absolute, error => { if (error && !res.headersSent) next(error.status === 404 ? undefined : error); });
+    }
+    const key = `${stat.mtimeMs}:${stat.size}`;
+    let body = cache.get(absolute)?.key === key ? cache.get(absolute).body : null;
+    if (!body) {
+      const code = await fs.readFile(absolute, 'utf8');
+      body = Buffer.from(toServedModuleSource(code, `${root}/${served}`, roots), 'utf8');
+      cache.set(absolute, { key, body });
+    }
+    res.type('text/javascript');
+    setHeaders?.(res, absolute);
+    return res.send(body);
   };
 }

@@ -223,7 +223,7 @@ it('loads nested signed metadata from its pinned native bundle without treating 
     { artifactId: 'manifest', role: 'manifest', path: 'artifacts/model/manifest.json', hash: f.model.identity, sizeBytes: manifest.sizeBytes }, artifact] };
   const original = fs.readFile.bind(fs);
   const read = vi.spyOn(fs, 'readFile').mockImplementation((file, ...args) =>
-    file instanceof URL && file.pathname.endsWith('/self' + metadata.url) ? Promise.resolve(bytes) : original(file, ...args));
+    String(file instanceof URL ? file.pathname : file).endsWith(metadata.url) ? Promise.resolve(bytes) : original(file, ...args));
   const source = await f.owners[0].preparePartitionSource(f.model);
   try {
     await f.owners[0].share(f.model, true);

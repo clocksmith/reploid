@@ -13,7 +13,7 @@ import {
 } from '../self/pool/browser-release-identity.js';
 import { toBrowserSourcePath, toCanonicalBrowserPath } from './browser-tree-paths.js';
 import { createModuleMetadataResolver } from './module-metadata.js';
-import { buildHostingFileSet } from './hosting-file-set.js';
+import { buildHostingFileSet, resolveBrowserTree } from './hosting-file-set.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,22 +24,7 @@ const GENESIS_PATH = path.join(SELF_DIR, 'config', 'genesis-levels.json');
 const MANIFEST_PATH = path.join(SELF_DIR, 'config', 'vfs-manifest.json');
 const BLUEPRINT_REGISTRY_PATH = path.join(SELF_DIR, 'config', 'blueprint-registry.json');
 const MODULE_INVENTORY_PATH = path.join(SELF_DIR, 'config', 'module-inventory.json');
-const BROWSER_BUNDLE_MANIFEST_PATH = path.join(SELF_DIR, BROWSER_BUNDLE_DESCRIPTOR_PATH);
 const BLUEPRINT_DIR = path.join(SELF_DIR, 'blueprints');
-
-async function walkFiles(dir) {
-  const entries = await fs.readdir(dir, { withFileTypes: true });
-  const files = [];
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...await walkFiles(fullPath));
-    } else if (entry.isFile()) {
-      files.push(fullPath);
-    }
-  }
-  return files;
-}
 
 function extractMetadataId(content) {
   const match = content.match(/\bmetadata\b\s*[:=]\s*\{/);
@@ -73,18 +58,20 @@ const sha256 = (content) => `sha256:${crypto.createHash('sha256').update(content
 async function main() {
   const errors = [];
 
-  const allFiles = await walkFiles(SELF_DIR);
-  const allRelFiles = allFiles.map((file) => toCanonicalBrowserPath(path.relative(SELF_DIR, file)));
+  const tree = await resolveBrowserTree();
+  const allRelFiles = tree.files.map(toCanonicalBrowserPath);
   const allRelSet = new Set(allRelFiles);
+  // Served bytes of a canonical browser path, wherever its source root is.
+  const readServed = async (file) => (await tree.read(toBrowserSourcePath(file))).toString('utf8');
 
-  const browserBundleManifest = JSON.parse(await fs.readFile(BROWSER_BUNDLE_MANIFEST_PATH, 'utf8'));
+  const browserBundleManifest = JSON.parse(await tree.read(BROWSER_BUNDLE_DESCRIPTOR_PATH));
   // Served and VFS files come from the same selection the manifest builders use.
-  const hostingFiles = await buildHostingFileSet({ selfDir: SELF_DIR });
+  const hostingFiles = await buildHostingFileSet({ tree });
   const browserBundleEntries = await Promise.all(hostingFiles
     .filter((file) => file !== BROWSER_BUNDLE_DESCRIPTOR_PATH)
     .map(async (file) => ({
       path: file,
-      bytes: new Uint8Array(await fs.readFile(path.join(SELF_DIR, file)))
+      bytes: new Uint8Array(await tree.read(file))
     })));
   const browserBundleValidation = await validateBrowserBundleManifest(browserBundleManifest, {
     entries: browserBundleEntries
@@ -165,7 +152,7 @@ async function main() {
       errors.push(`Module inventory lists file multiple times: ${file}`);
       continue;
     }
-    const content = await fs.readFile(path.join(SELF_DIR, toBrowserSourcePath(file)), 'utf8');
+    const content = await readServed(file);
     if (typeof entry.owner !== 'string' || !entry.owner) {
       errors.push(`Module inventory owner is missing: ${file}`);
     }
@@ -187,7 +174,7 @@ async function main() {
   const levels = genesis.levels || {};
   const moduleFiles = genesis.moduleFiles || {};
 
-  const resolveMetadata = createModuleMetadataResolver({ rootDir: SELF_DIR });
+  const resolveMetadata = createModuleMetadataResolver({ rootDir: tree.repoRoot, rootDirs: tree.roots.map(root => path.join(tree.repoRoot, root)) });
   const moduleToLevel = new Map();
   for (const [levelName, level] of Object.entries(levels)) {
     const modules = Array.isArray(level.modules) ? level.modules : [];
@@ -211,11 +198,11 @@ async function main() {
       errors.push(`Module entry file missing: ${moduleName} -> ${entryFile}`);
       continue;
     }
-    const content = await fs.readFile(path.join(SELF_DIR, toBrowserSourcePath(entryFile)), 'utf8');
+    const content = await fs.readFile(tree.absolute(toBrowserSourcePath(entryFile)), 'utf8');
     let metadataId = extractMetadataId(content);
     let genesisLevel = extractGenesisLevel(content);
     if (!metadataId || !genesisLevel) {
-      const metadata = await resolveMetadata(path.join(SELF_DIR, toBrowserSourcePath(entryFile)), content);
+      const metadata = await resolveMetadata(tree.absolute(toBrowserSourcePath(entryFile)), content);
       metadataId = metadata.id;
       genesisLevel = metadata.introduced;
     }

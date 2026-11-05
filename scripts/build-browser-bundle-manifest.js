@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Generates the deterministic byte manifest for the Firebase-served self/ tree.
+ * Generates the deterministic byte manifest for the Firebase-served browser tree.
  */
 
 import { promises as fs } from 'fs';
@@ -8,7 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { buildProductEntry } from './build-product-entry.js';
 import { synchronizeInventory } from './build-module-inventory.js';
-import { buildHostingFileSet } from './hosting-file-set.js';
+import { buildHostingFileSet, resolveBrowserTree } from './hosting-file-set.js';
 
 import {
   BROWSER_BUNDLE_DESCRIPTOR_PATH,
@@ -16,20 +16,17 @@ import {
   validateBrowserBundleManifest
 } from '../self/pool/browser-release-identity.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const ROOT = path.resolve(__dirname, '..');
-const SELF_DIR = path.join(ROOT, 'self');
-const OUTPUT_PATH = path.join(SELF_DIR, BROWSER_BUNDLE_DESCRIPTOR_PATH);
 const checkOnly = process.argv.includes('--check');
 
 async function main() {
-  await buildProductEntry({ checkOnly });
+  const tree = await resolveBrowserTree();
+  await buildProductEntry({ checkOnly, tree });
   // Hash the emitted product bytes before the descriptor includes the inventory.
-  await synchronizeInventory({ selfDir: SELF_DIR, checkOnly });
-  const files = await buildHostingFileSet({ selfDir: SELF_DIR });
+  await synchronizeInventory({ tree, checkOnly });
+  const files = await buildHostingFileSet({ tree });
+  const OUTPUT_PATH = tree.writable(BROWSER_BUNDLE_DESCRIPTOR_PATH);
   const entries = await Promise.all(files.filter(file => file !== BROWSER_BUNDLE_DESCRIPTOR_PATH)
-    .map(async file => ({ path: file, bytes: new Uint8Array(await fs.readFile(path.join(SELF_DIR, file))) })));
+    .map(async file => ({ path: file, bytes: new Uint8Array(await tree.read(file)) })));
   const manifest = await buildBrowserBundleManifest(entries);
   if (checkOnly) {
     let existing;

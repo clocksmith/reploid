@@ -3,12 +3,15 @@ import { build } from 'esbuild';
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
+import { resolveBrowserTree } from './hosting-file-set.js';
+
 const root = fileURLToPath(new URL('../', import.meta.url));
-export async function buildProductEntry({ checkOnly = false } = {}) {
+export async function buildProductEntry({ checkOnly = false, tree } = {}) {
+  const source = await resolveBrowserTree({ tree });
   const result = await build({
     absWorkingDir: root,
-    entryPoints: ['self/ui/pool-home/index.js'],
-    outfile: 'self/ui/pool-home/app.bundle.js',
+    entryPoints: [source.source('ui/pool-home/index.js')],
+    outfile: source.source('ui/pool-home/app.bundle.js'),
     bundle: true, format: 'esm', platform: 'browser', target: 'es2022',
     minify: true, legalComments: 'eof', write: false,
     external: ['https://*', 'http://*']

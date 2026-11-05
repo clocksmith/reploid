@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 import { toBrowserSourcePath, toCanonicalBrowserPath, toPosix } from './browser-tree-paths.js';
 import { writeGeneratedRegistry } from './generated-registry-output.js';
 import { createModuleMetadataResolver } from './module-metadata.js';
+import { resolveBrowserTree } from './hosting-file-set.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -102,14 +103,15 @@ export async function buildModuleRegistry({ selfDir = SELF_DIR, genesis, bluepri
   }
 
   const blueprintMap = loadBlueprintMap(blueprintRegistry);
-  const resolveMetadata = createModuleMetadataResolver({ rootDir: selfDir, includeDependencies: true });
+  const tree = await resolveBrowserTree(selfDir === SELF_DIR ? {} : { selfDir });
+  const resolveMetadata = createModuleMetadataResolver({ rootDir: tree.repoRoot, rootDirs: tree.roots.map(root => path.join(tree.repoRoot, root)), includeDependencies: true });
   const modules = {};
 
   for (const [moduleName, files] of Object.entries(moduleFiles)) {
     if (!files || files.length === 0) throw new Error(`Module has no source files: ${moduleName}`);
     const entryFile = files[0];
     const normalizedEntry = toCanonicalBrowserPath(stripLegacyBrowserPrefix(entryFile));
-    const entryPath = path.join(selfDir, toBrowserSourcePath(normalizedEntry));
+    const entryPath = tree.absolute(toBrowserSourcePath(normalizedEntry));
 
     const content = await fs.readFile(entryPath, 'utf8');
     const block = extractMetadataBlock(content);

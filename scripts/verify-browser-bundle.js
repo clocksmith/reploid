@@ -12,12 +12,12 @@ import {
   buildBrowserBundleManifest,
   validateBrowserBundleManifest
 } from '../self/pool/browser-release-identity.js';
+import { resolveServedFile } from '../server/browser-roots.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
-const SELF_DIR = path.join(ROOT, 'self');
-const MANIFEST_PATH = path.join(SELF_DIR, BROWSER_BUNDLE_DESCRIPTOR_PATH);
+const MANIFEST_PATH = resolveServedFile(BROWSER_BUNDLE_DESCRIPTOR_PATH);
 const args = process.argv.slice(2);
 
 const valueArg = (name) => {

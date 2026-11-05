@@ -12,6 +12,7 @@ import {
   buildSourceReleaseIdentity,
   validateBrowserBundleManifest
 } from '../self/pool/browser-release-identity.js';
+import { resolveServedFile } from '../server/browser-roots.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
@@ -104,7 +105,7 @@ const deriveCleanSourceReleaseIdentity = async () => {
 };
 
 const readBrowserBundleManifest = async () => {
-  const manifestPath = path.join(repoRoot, 'self', BROWSER_BUNDLE_DESCRIPTOR_PATH);
+  const manifestPath = resolveServedFile(BROWSER_BUNDLE_DESCRIPTOR_PATH);
   const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
   const validation = await validateBrowserBundleManifest(manifest);
   if (!validation.ok) {

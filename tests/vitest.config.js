@@ -1,7 +1,28 @@
 import { configDefaults, defineConfig } from 'vitest/config';
-import { resolve } from 'path';
+import { resolve, sep } from 'path';
+import { existsSync } from 'fs';
+import { BROWSER_ROOTS } from '../server/browser-roots.js';
 
-const selfRoot = resolve(import.meta.dirname, '../self');
+const repositoryRoot = resolve(import.meta.dirname, '..');
+const testsRoot = resolve(import.meta.dirname) + sep;
+
+// Older tests import ../../core/ and similar as if the served browser tree sat at
+// the repository root. Map those test imports to the root that serves the path;
+// browser sources resolve their own relative imports unchanged.
+const servedTreeTestImports = {
+  name: 'reploid-served-tree-test-imports',
+  enforce: 'pre',
+  resolveId(source, importer) {
+    if (!importer || !resolve(importer.split('?')[0]).startsWith(testsRoot)) return null;
+    const match = /^(?:\.\.\/)+((?:core|infrastructure|capabilities|testing|tools|ui)\/.*)$/.exec(source);
+    if (!match) return null;
+    for (const root of BROWSER_ROOTS) {
+      const candidate = resolve(repositoryRoot, root, match[1]);
+      if (existsSync(candidate)) return candidate;
+    }
+    return null;
+  }
+};
 
 // Kept out of the default run; `npm run test:heavy` (tests/vitest.heavy.config.js) runs them.
 // Each one decompresses or hashes multi-megabyte retained archives, or starts node/npm/git child processes.
@@ -21,14 +42,8 @@ export const heavyTests = [
 ];
 
 export default defineConfig({
-  root: resolve(import.meta.dirname, '..'),
-  resolve: {
-    alias: [
-      // Tests import ../../core/ etc. which resolves to <root>/core/
-      // while the browser tree now lives under <root>/self/.
-      { find: /^(\.\.\/)+(?=(core|infrastructure|capabilities|testing|tools|ui)\/)/, replacement: selfRoot + '/' },
-    ]
-  },
+  root: repositoryRoot,
+  plugins: [servedTreeTestImports],
   test: {
     reporters: process.env.CI ? ['default', 'github-actions', ['json', { outputFile: 'test-results/vitest-results.json' }]] : ['default'],
     include: ['tests/**/*.test.js'],

@@ -2,6 +2,7 @@
 import { tokensEqual } from './token-auth.js';
 
 import express from 'express';
+import { resolveServedFile, serveBrowserTree } from './browser-tree.js';
 import http from 'http';
 import path from 'path';
 import fs from 'fs';
@@ -110,7 +111,9 @@ dotenv.config();
 
 // Physical acceptance may serve an owned snapshot of the ordinary Hosting
 // payload. All browser entry points and assets must use that same directory.
-const selfRootDir = path.resolve(process.env.REPLOID_STATIC_ROOT || path.join(__dirname, '..', 'self'));
+// Otherwise the composed browser tree is served from its source roots.
+const staticRootDir = process.env.REPLOID_STATIC_ROOT ? path.resolve(process.env.REPLOID_STATIC_ROOT) : null;
+const browserFile = (servedPath) => (staticRootDir ? path.join(staticRootDir, servedPath) : resolveServedFile(servedPath));
 
 // Load unified configuration
 let appConfig = null;
@@ -704,10 +707,9 @@ app.use((req, res, next) => {
 const searchRoutes = mountSearchRoutes(app, { env: process.env, authorize: requireServerAccess });
 console.log(searchRoutes.mounted ? `[Search] Serving ${searchRoutes.provider} search` : `[Search] Off: ${searchRoutes.reason}`);
 
-app.use('/pool', express.static(path.join(selfRootDir, 'pool'), {
-  index: false,
-  fallthrough: true
-}));
+app.use('/pool', staticRootDir
+  ? express.static(path.join(staticRootDir, 'pool'), { index: false, fallthrough: true })
+  : serveBrowserTree({ prefix: 'pool', index: false }));
 
 app.use('/pool', createPoolRouter({
   ...(configuredPoolStore ? { store: configuredPoolStore } : {}),
@@ -1700,17 +1702,17 @@ const sendUiFile = async (res, filePath) => {
 // Main routes
 app.get(PRODUCT_ROUTES, async (req, res) => {
   res.setHeader('X-Reploid-Experience', 'browser-inference-pool');
-  await sendUiFile(res, path.join(selfRootDir, 'pool-entry.html'));
+  await sendUiFile(res, browserFile('pool-entry.html'));
 });
 
 app.get(CHANGE_PASSPORT_ROUTES, async (req, res) => {
   res.setHeader('X-Reploid-Experience', 'change-passport');
-  await sendUiFile(res, path.join(selfRootDir, 'change-passport-entry.html'));
+  await sendUiFile(res, browserFile('change-passport-entry.html'));
 });
 
 app.get(SUBSTRATE_ROUTES, async (req, res) => {
   res.setHeader('X-Reploid-Experience', req.path === '/zero' ? 'zero' : 'x');
-  await sendUiFile(res, path.join(selfRootDir, 'index.html'));
+  await sendUiFile(res, browserFile('index.html'));
 });
 
 app.get(['/doppler', '/doppler/'], (req, res) => {
@@ -1718,12 +1720,12 @@ app.get(['/doppler', '/doppler/'], (req, res) => {
 });
 
 app.get('/design', (req, res) => {
-  res.sendFile(path.join(selfRootDir, 'design.html'));
+  res.sendFile(browserFile('design.html'));
 });
 
 // Poolday tokens, primitives and live component specimens, read from styles/poolday.
 app.get(['/design/poolday', '/design/poolday/'], (req, res) => {
-  res.sendFile(path.join(selfRootDir, 'poolday-design.html'));
+  res.sendFile(browserFile('poolday-design.html'));
 });
 
 app.get('/SECURITY_AUDIT.md', (req, res) => {
@@ -1732,11 +1734,11 @@ app.get('/SECURITY_AUDIT.md', (req, res) => {
 });
 
 app.get(['/audit', '/audit/'], (req, res) => {
-  res.sendFile(path.join(selfRootDir, 'audit.html'));
+  res.sendFile(browserFile('audit.html'));
 });
 
 app.get('/reset', (req, res) => {
-  res.sendFile(path.join(selfRootDir, 'reset.html'));
+  res.sendFile(browserFile('reset.html'));
 });
 
 // Serve DOPPLER assets from the local runtime source of truth.
@@ -1763,11 +1765,9 @@ app.use('/gpu/kernels', express.static(dopplerKernelDir, {
   }
 }));
 
-app.use(express.static(selfRootDir, {
-  setHeaders: (res, filePath) => {
-    setStaticHeaders(res, filePath);
-  }
-}));
+app.use(staticRootDir
+  ? express.static(staticRootDir, { setHeaders: (res, filePath) => setStaticHeaders(res, filePath) })
+  : serveBrowserTree({ setHeaders: setStaticHeaders }));
 
 // 404 handler
 app.use((req, res) => {

@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
 import { buildInventory } from './build-module-inventory.js';
+import { resolveBrowserTree } from './hosting-file-set.js';
 import { writeGeneratedRegistry } from './generated-registry-output.js';
 import { toBrowserSourcePath } from './browser-tree-paths.js';
 
@@ -27,7 +28,8 @@ function paths(value, label) {
 }
 
 export async function buildBlueprintRegistry({ selfDir = SELF_DIR, inventory } = {}) {
-  const source = inventory || await buildInventory({ selfDir });
+  const tree = await resolveBrowserTree(selfDir === SELF_DIR ? {} : { selfDir });
+  const source = inventory || await buildInventory({ tree });
   const sourcePaths = new Set(source.modules.map((entry) => entry.path));
   const blueprintDir = path.join(selfDir, 'blueprints');
   const declarations = [];
@@ -51,7 +53,7 @@ export async function buildBlueprintRegistry({ selfDir = SELF_DIR, inventory } =
         throw new Error(file + ': invalid owned path: ' + owned);
       }
       const exists = owned.endsWith('.js') ? sourcePaths.has(owned)
-        : await fs.stat(path.join(selfDir, relative)).then((stat) => stat.isFile(), () => false);
+        : tree.has(relative);
       if (!exists) throw new Error(file + ': owned source does not exist: ' + owned);
       if (owners.has(owned)) throw new Error('Duplicate owner for ' + owned + ': ' + owners.get(owned) + ' and ' + id);
       owners.set(owned, id);

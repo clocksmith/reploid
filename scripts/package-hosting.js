@@ -7,18 +7,18 @@ import { promisify } from 'node:util';
 import { execFile } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
-import { buildHostingFileSet, walkFiles } from './hosting-file-set.js';
+import { buildHostingFileSet, resolveBrowserTree, walkFiles } from './hosting-file-set.js';
 import { BROWSER_BUNDLE_DESCRIPTOR_PATH, validateBrowserBundleManifest } from '../self/pool/browser-release-identity.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const exec = promisify(execFile);
-async function verifyArchiveProjection(selfDir, files) {
-  const pin = JSON.parse(await fs.readFile(path.join(selfDir, 'config/doppler-package.json'), 'utf8'));
+async function verifyArchiveProjection(tree, files) {
+  const pin = JSON.parse(await fs.readFile(tree.absolute('config/doppler-package.json'), 'utf8'));
   const versions = [...new Set(files.filter(name => name.startsWith('vendor/doppler/')).map(name => name.split('/')[2]))];
   const staging = await fs.mkdtemp(path.join(tmpdir(), 'reploid-hosting-integrity-'));
   try {
     for (const version of versions) {
-      const archive = path.join(path.dirname(selfDir), 'deploy/artifacts', `doppler-gpu-${version}.tgz`);
+      const archive = path.join(tree.repoRoot, 'deploy/artifacts', `doppler-gpu-${version}.tgz`);
       const bytes = await fs.readFile(archive);
       const integrity = `sha512-${createHash('sha512').update(bytes).digest('base64')}`;
       if (version === pin.version && integrity !== pin.integrity) throw new Error('Pinned Doppler archive integrity mismatch');
@@ -32,27 +32,32 @@ async function verifyArchiveProjection(selfDir, files) {
       const prefix = `vendor/doppler/${version}/`;
       for (const name of files.filter(name => name.startsWith(prefix))) {
         const original = await fs.readFile(path.join(directory, name.slice(prefix.length)));
-        const projected = await fs.readFile(path.join(selfDir, name));
+        const projected = await tree.read(name);
         if (!original.equals(projected)) throw new Error(`Doppler asset differs from its archive: ${name}`);
       }
     }
   } finally { await fs.rm(staging, { recursive: true, force: true }); }
 }
-export async function verifyHostingSource(selfDir) {
-  const files = await buildHostingFileSet({ selfDir });
-  await verifyArchiveProjection(selfDir, files);
-  const descriptor = await fs.readFile(path.join(selfDir, BROWSER_BUNDLE_DESCRIPTOR_PATH));
+/** Verify the served bytes of a tree, or of one public directory a caller supplies. */
+export async function verifyHostingSource(source) {
+  const tree = await resolveBrowserTree(typeof source === 'string' ? { selfDir: source } : source || {});
+  const files = await buildHostingFileSet({ tree });
+  await verifyArchiveProjection(tree, files);
+  const descriptor = await tree.read(BROWSER_BUNDLE_DESCRIPTOR_PATH);
   const manifest = JSON.parse(descriptor);
   const entries = await Promise.all(files.filter(name => name !== BROWSER_BUNDLE_DESCRIPTOR_PATH)
-    .map(async name => ({ path: name, bytes: new Uint8Array(await fs.readFile(path.join(selfDir, name))) })));
+    .map(async name => ({ path: name, bytes: new Uint8Array(await tree.read(name)) })));
   const validation = await validateBrowserBundleManifest(manifest, { entries });
   if (!validation.ok) throw new Error(`Hosting manifest is stale: ${validation.reasons.join('; ')}`);
   return { files, manifest, entries, descriptor };
 }
-export async function packageHosting({ selfDir = path.join(root, 'self'), outputDir = path.join(root, '.firebase-hosting/reploid') } = {}) {
-  if (path.resolve(outputDir) === path.resolve(selfDir)
-    || path.resolve(selfDir).startsWith(path.resolve(outputDir) + path.sep)) throw new Error('Hosting output cannot replace source');
-  const { files, manifest, entries, descriptor } = await verifyHostingSource(selfDir);
+export async function packageHosting({ selfDir, tree, outputDir = path.join(root, '.firebase-hosting/reploid') } = {}) {
+  const source = await resolveBrowserTree({ selfDir, tree });
+  for (const sourceRoot of source.roots.map(name => path.resolve(source.repoRoot, name))) {
+    if (path.resolve(outputDir) === sourceRoot || sourceRoot.startsWith(path.resolve(outputDir) + path.sep)
+      || path.resolve(outputDir).startsWith(sourceRoot + path.sep)) throw new Error('Hosting output cannot replace source');
+  }
+  const { files, manifest, entries, descriptor } = await verifyHostingSource({ tree: source });
   await fs.rm(outputDir, { recursive: true, force: true });
   // Write the bytes we validated. Rereading the checkout here could silently
   // mix revisions when another process edits it during packaging.

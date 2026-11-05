@@ -7,9 +7,11 @@ import { parse } from 'acorn';
 import { resolveBaseModules } from '../self/config/module-resolution.js';
 import { getToolNamesForMode } from '../self/config/tool-surfaces.js';
 import { toCanonicalBrowserPath } from './browser-tree-paths.js';
+import { openBrowserTree } from '../server/browser-tree.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const selfRoot = path.join(root, 'self');
+let treeOpening;
+const tree = () => (treeOpening ||= openBrowserTree());
 const levels = ['spark', 'reflection', 'cognition', 'substrate', 'full'];
 const baseEntries = [
   'kernel/index.html', 'kernel/boot.js', 'favicon.svg',
@@ -24,7 +26,8 @@ const baseEntries = [
   'core/verification-worker.js', 'core/vendor/acorn.js', 'core/vendor/ACORN-LICENSE.txt',
   'styles/rd.css', 'styles/boot.css', 'styles/zero.css'
 ];
-const readSource = source => readFile(path.join(selfRoot, source), 'utf8');
+// The lab receives served bytes; its specifiers resolve in the served namespace.
+const readSource = async source => (await (await tree()).read(source)).toString('utf8');
 
 export async function collectSelfSource(entries, read = readSource) {
   const pending = [...entries], seen = new Set();
@@ -88,7 +91,7 @@ async function build() {
     const text = JSON.stringify(value, null, 2) + '\n';
     if (process.argv.includes('--check')) {
       if (await readSource(file) !== text) throw new Error(`Stale self-source closure: ${file}`);
-    } else await writeFile(path.join(selfRoot, file), text);
+    } else await writeFile((await tree()).writable(file), text);
   }
   console.log(`[self-source] ${Object.entries(catalog.profiles).map(([name, profile]) => `${name}: ${profile.files.length}`).join(', ')}`);
 }

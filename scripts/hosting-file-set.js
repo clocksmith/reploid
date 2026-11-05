@@ -1,7 +1,8 @@
-/** Select byte-preserving browser assets from the canonical self/ tree. */
+/** Select the browser assets Hosting serves from the composed browser tree. */
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { parse } from 'acorn';
+import { openBrowserTree, openDirectoryTree } from '../server/browser-tree.js';
 
 export async function walkFiles(root, relative = '') {
   const files = [];
@@ -58,12 +59,16 @@ export async function collectModuleClosure({ root, entries, available }) {
   return selected;
 }
 
-export async function buildHostingFileSet({ selfDir }) {
-  const allFiles = await walkFiles(selfDir);
+/** The served tree: the repository's composed roots, or one directory a caller supplies. */
+export const resolveBrowserTree = async ({ selfDir, tree } = {}) => tree || (selfDir ? openDirectoryTree(selfDir) : openBrowserTree());
+
+export async function buildHostingFileSet(options = {}) {
+  const tree = await resolveBrowserTree(options);
+  const allFiles = tree.files;
   const selected = new Set(allFiles.filter(name => !name.startsWith('vendor/doppler/')
     && !name.endsWith('.d.ts') && path.posix.basename(name) !== 'CATSCAN.md'));
-  const pin = JSON.parse(await fs.readFile(path.join(selfDir, 'config/doppler-package.json'), 'utf8'));
-  const pool = JSON.parse(await fs.readFile(path.join(selfDir, 'pool/pool-config.json'), 'utf8'));
+  const pin = JSON.parse(await fs.readFile(tree.absolute('config/doppler-package.json'), 'utf8'));
+  const pool = JSON.parse(await fs.readFile(tree.absolute('pool/pool-config.json'), 'utf8'));
   const entriesByVersion = new Map();
   const addEntry = url => {
     const match = /^\/vendor\/doppler\/([^/]+)\/(.+)$/.exec(url);
@@ -80,7 +85,10 @@ export async function buildHostingFileSet({ selfDir }) {
   addEntry(pool.browserRuntime.dopplerStorageModuleUrl);
   for (const [version, entries] of entriesByVersion) {
     const prefix = `vendor/doppler/${version}/`;
-    const root = path.join(selfDir, prefix);
+    // A package version lives in one source root; select within that directory.
+    const sample = allFiles.find(name => name.startsWith(prefix));
+    if (!sample) throw new Error(`Missing Doppler package assets: ${prefix}`);
+    const root = tree.absolute(sample).slice(0, -(sample.length - prefix.length));
     const files = await walkFiles(root);
     // Kernel and policy selection is dynamic and hardware-dependent. Retain its
     // complete data and implementation family, rather than one machine's trace.

@@ -11,6 +11,7 @@ import { createSigningKeyPair, exportPublicKey, sha256Hex, signCanonical, verify
 import { createPeerPackDataChannel } from '../self/pool/peer-pack-data-channel.js';
 import { hashDopplerEvidence, validateExecutablePack, executablePacksMatch } from '../self/pool/executable-pack.js';
 import policy from '../self/config/chat-files.json' with { type: 'json' };
+import { resolveServedFile } from './browser-roots.js';
 
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -126,7 +127,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
     // Capsule metadata paths are logical names, not paths inside the weight directory.
     if (!bytes && /^[a-zA-Z0-9_.-]+$/.test(file.path)) bytes = await readLocal(file.path, { signal });
     if (!bytes && /^\/config\/model-(manifests|pieces|artifacts)\/[a-zA-Z0-9_.-]+$/.test(file.url || '')) {
-      bytes = new Uint8Array(await fs.readFile(new URL('../self' + file.url, import.meta.url)));
+      bytes = new Uint8Array(await fs.readFile(resolveServedFile(file.url)));
     }
     return bytes;
   };

@@ -13,29 +13,12 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import { toCanonicalBrowserPath } from './browser-tree-paths.js';
+import { resolveBrowserTree } from './hosting-file-set.js';
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const ROOT = path.resolve(__dirname, '..');
-const SELF_DIR = path.join(ROOT, 'self');
 const checkOnly = process.argv.includes('--check');
 
 const sha256 = (content) => `sha256:${crypto.createHash('sha256').update(content).digest('hex')}`;
-
-async function walkFiles(directory) {
-  const entries = await fs.readdir(directory, { withFileTypes: true });
-  const files = [];
-  for (const entry of entries) {
-    const filePath = path.join(directory, entry.name);
-    if (entry.isDirectory()) {
-      if (entry.name === 'blueprints' || entry.name === 'node_modules') continue;
-      files.push(...await walkFiles(filePath));
-    } else if (entry.isFile() && entry.name.endsWith('.js')) {
-      files.push(filePath);
-    }
-  }
-  return files;
-}
 
 function importSpecifiers(content) {
   const specifiers = new Set();
@@ -50,12 +33,14 @@ function ownerFor(pathname) {
   return owner;
 }
 
-export async function buildInventory({ selfDir = SELF_DIR } = {}) {
-  const files = await walkFiles(selfDir);
+export async function buildInventory({ selfDir, tree } = {}) {
+  const source = await resolveBrowserTree({ selfDir, tree });
   const modules = [];
-  for (const filePath of files) {
-    const content = await fs.readFile(filePath, 'utf8');
-    const relativePath = toCanonicalBrowserPath(path.relative(selfDir, filePath));
+  // Served bytes and served-relative specifiers: the inventory does not depend on source roots.
+  for (const served of source.files) {
+    if (!served.endsWith('.js') || served.split('/').slice(0, -1).includes('blueprints')) continue;
+    const content = (await source.read(served)).toString('utf8');
+    const relativePath = toCanonicalBrowserPath(served);
     modules.push({
       path: relativePath,
       owner: ownerFor(relativePath),
@@ -67,9 +52,10 @@ export async function buildInventory({ selfDir = SELF_DIR } = {}) {
   return { version: 1, modules };
 }
 
-export async function synchronizeInventory({ selfDir = SELF_DIR, checkOnly = false } = {}) {
-  const inventory = await buildInventory({ selfDir });
-  const outputPath = path.join(selfDir, 'config', 'module-inventory.json');
+export async function synchronizeInventory({ selfDir, tree, checkOnly = false } = {}) {
+  const source = await resolveBrowserTree({ selfDir, tree });
+  const inventory = await buildInventory({ tree: source });
+  const outputPath = source.writable('config/module-inventory.json');
   if (checkOnly) {
     let existing;
     try {

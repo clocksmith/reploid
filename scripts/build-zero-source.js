@@ -6,7 +6,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'acorn';
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../self');
+import { openBrowserTree } from '../server/browser-tree.js';
+
+let treeOpening;
+const tree = () => (treeOpening ||= openBrowserTree());
 export const ZERO_SOURCE_ENTRIES = Object.freeze([
   'zero/index.html', 'zero/boot.js', 'zero/store.js', 'zero/main.js', 'zero/ui.js',
   'zero/style.css', 'zero/config.json', 'zero/agent.js', 'zero/provider.js', 'zero/tools.js', 'zero/image.js',
@@ -14,7 +17,8 @@ export const ZERO_SOURCE_ENTRIES = Object.freeze([
   'core/verification-worker.js', 'core/vendor/acorn.js', 'core/vendor/ACORN-LICENSE.txt',
   'host/sw-module-loader.js', 'core/import-rewrite.js', 'sw.js'
 ]);
-const readSource = source => readFile(path.join(root, source), 'utf8');
+// Zero receives served bytes; its specifiers resolve in the served namespace.
+const readSource = async source => (await (await tree()).read(source)).toString('utf8');
 
 function resolveSource(specifier, source) {
   if (typeof specifier !== 'string' || (!specifier.startsWith('.') && !specifier.startsWith('/'))
@@ -102,7 +106,7 @@ async function main() {
   const descriptor = await buildZeroSource(), text = `${JSON.stringify(descriptor, null, 2)}\n`;
   if (process.argv.includes('--check')) {
     if (await readSource('zero/source.json') !== text) throw new Error('Stale compact Zero source: zero/source.json');
-  } else await writeFile(path.join(root, 'zero/source.json'), text);
+  } else await writeFile((await tree()).writable('zero/source.json'), text);
   console.log(`[zero-source] ${descriptor.files.length} files, ${descriptor.files.reduce((sum, entry) => sum + entry.bytes, 0)} bytes`);
 }
 

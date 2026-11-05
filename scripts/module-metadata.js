@@ -9,16 +9,18 @@ import { parse } from 'acorn';
 
 const UNKNOWN = Symbol('unknown metadata');
 
-export function createModuleMetadataResolver({ rootDir, includeDependencies = false, readSource = (file) => readFile(file, 'utf8') }) {
-  const root = path.resolve(rootDir);
+export function createModuleMetadataResolver({ rootDir, rootDirs = [rootDir], includeDependencies = false, readSource = (file) => readFile(file, 'utf8') }) {
+  // Browser sources may live in several roots of the served tree.
+  const roots = rootDirs.map(directory => path.resolve(directory));
   const modules = new Map();
 
   function bounded(file) {
     const absolute = path.resolve(file);
-    const relative = path.relative(root, absolute);
-    if (relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
-      throw new Error('Metadata import escapes browser source root');
-    }
+    const inside = roots.some(root => {
+      const relative = path.relative(root, absolute);
+      return !(relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative));
+    });
+    if (!inside) throw new Error('Metadata import escapes browser source root');
     return absolute;
   }
 

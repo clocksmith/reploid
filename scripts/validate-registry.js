@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
 import { buildInventory } from './build-module-inventory.js';
-import { buildHostingFileSet } from './hosting-file-set.js';
+import { buildHostingFileSet, resolveBrowserTree } from './hosting-file-set.js';
 import { toCanonicalBrowserPath } from './browser-tree-paths.js';
 import { buildBlueprintRegistry, renderBlueprintInventory } from './build-blueprint-registry.js';
 import { buildModuleRegistry } from './build-module-registry.js';
@@ -109,13 +109,14 @@ export function registryExitCode(report) {
 }
 
 export async function auditRegistry({ selfDir = SELF_DIR, hostingFiles } = {}) {
+  const tree = await resolveBrowserTree(selfDir === SELF_DIR ? {} : { selfDir });
   hostingFiles ||= selfDir === SELF_DIR
-    ? (await buildHostingFileSet({ selfDir })).map(toCanonicalBrowserPath)
+    ? (await buildHostingFileSet({ tree })).map(toCanonicalBrowserPath)
     : null;
   const load = async (name) => JSON.parse(await fs.readFile(path.join(selfDir, 'config', name + '.json'), 'utf8'));
   const [genesis, blueprints, registry, vfs, inventory, actual] = await Promise.all([
     load('genesis-levels'), load('blueprint-registry'), load('module-registry'),
-    load('vfs-manifest'), load('module-inventory'), buildInventory({ selfDir })
+    load('vfs-manifest'), load('module-inventory'), buildInventory({ tree })
   ]);
   const modules = registry.modules;
   const issues = [
@@ -138,9 +139,7 @@ export async function auditRegistry({ selfDir = SELF_DIR, hostingFiles } = {}) {
     ];
     for (const [scope, files] of groups) {
       for (const file of files || []) {
-        const resolved = path.resolve(selfDir, file);
-        const inside = resolved.startsWith(path.resolve(selfDir) + path.sep);
-        if (!inside || !await fs.stat(resolved).then(stat => stat.isFile(), () => false)) {
+        if (!tree.has(path.posix.normalize(file)) || path.posix.normalize(file).startsWith('../')) {
           add('missing_genesis_file', { source, scope, file }, 'high');
         }
       }

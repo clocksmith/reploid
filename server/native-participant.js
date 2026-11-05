@@ -42,6 +42,7 @@ import { snapshotWorkPartitionSelection, createWorkPartitionPlan,
   snapshotWorkPartitionStage, workOrderedResidentOptions, snapshotWorkOrderedParticipation, bindWorkOrderedParticipation } from '../self/host/work-partition-plan.js';
 import { assertWorkResidentCapsule } from '../self/host/work-partition-capsule.js';
 import { createPartitionTokenizerGuard } from '../self/host/work-partition-tokenizer-guard.js';
+import { resolveServedFile } from './browser-roots.js';
 
 const hash = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
 const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
@@ -198,7 +199,7 @@ export async function openNativeModelSource({ model, modelDirectory, signal, run
   // Catalog metadata is bundled with the application; the weight directory need
   // not contain a second hand-maintained copy of it.
   const indexBytes = descriptor.url?.startsWith('/config/model-pieces/')
-    ? new Uint8Array(await fs.readFile(new URL('../self' + descriptor.url, import.meta.url)))
+    ? new Uint8Array(await fs.readFile(resolveServedFile(descriptor.url)))
     : await read(descriptor.path);
   requireValue(hash(indexBytes) === 'sha256:' + descriptor.hash, 'Native piece index differs from the approved catalog');
   return runtime.createVerifiedPieceStorage({ manifestBytes, indexBytes, indexIdentity: 'sha256:' + descriptor.hash,

@@ -8,6 +8,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { toCanonicalBrowserPath, toPosix } from './browser-tree-paths.js';
+import { openBrowserTree } from '../server/browser-tree.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,31 +17,20 @@ const SELF_ROOT = path.join(ROOT, 'self');
 
 const TEMPLATE_PATH = path.join(SELF_ROOT, 'config', 'genesis-template.json');
 const OUTPUT_PATH = path.join(SELF_ROOT, 'config', 'genesis-levels.json');
-const SEARCH_ROOTS = ['core', 'infrastructure', 'capabilities', 'experimental', 'testing'].map((dir) =>
-  path.join(SELF_ROOT, dir)
-);
+const SEARCH_ROOTS = ['core', 'infrastructure', 'capabilities', 'experimental', 'testing'];
 
-async function walkFiles(dir) {
-  const entries = await fs.readdir(dir, { withFileTypes: true });
-  const files = [];
-
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...await walkFiles(fullPath));
-    } else if (entry.isFile() && entry.name.endsWith('.js')) {
-      files.push(fullPath);
-    }
-  }
-
-  return files;
+/** Served paths of modules under the search roots, wherever their source root is. */
+async function walkFiles() {
+  const tree = await openBrowserTree();
+  return tree.files.filter(served => served.endsWith('.js') && SEARCH_ROOTS.some(dir => served.startsWith(dir + '/')))
+    .map(served => ({ served, absolute: tree.absolute(served) }));
 }
 
 const SKIP_BASENAMES = new Set(['verification-worker.js', 'worker-agent.js']);
 
 const shouldSkipFile = (filePath) => SKIP_BASENAMES.has(path.basename(filePath));
 
-async function loadModuleMetadata(filePath) {
+async function loadModuleMetadata({ served, absolute: filePath }) {
   if (shouldSkipFile(filePath)) return null;
   try {
     const mod = await import(pathToFileURL(filePath).href);
@@ -50,7 +40,7 @@ async function loadModuleMetadata(filePath) {
       return null;
     }
 
-    const relativePath = toCanonicalBrowserPath(path.relative(SELF_ROOT, filePath));
+    const relativePath = toCanonicalBrowserPath(served);
     const files = Array.isArray(metadata.files) && metadata.files.length > 0
       ? metadata.files.map(toPosix)
       : [relativePath];
@@ -68,25 +58,10 @@ async function loadModuleMetadata(filePath) {
 
 async function collectModules() {
   const modules = [];
-
-  for (const root of SEARCH_ROOTS) {
-    const dir = root;
-    let files = [];
-    try {
-      files = await walkFiles(dir);
-    } catch (err) {
-      console.warn(`[genesis-manifest] Unable to walk ${dir}: ${err.message}`);
-      continue;
-    }
-
-    for (const file of files) {
-      const metadata = await loadModuleMetadata(file);
-      if (metadata) {
-        modules.push(metadata);
-      }
-    }
+  for (const file of await walkFiles()) {
+    const metadata = await loadModuleMetadata(file);
+    if (metadata) modules.push(metadata);
   }
-
   return modules;
 }
 

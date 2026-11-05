@@ -3,15 +3,12 @@
  */
 
 import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
 import { createPoolConfigContract } from '../../self/pool/config-contract.js';
 import { hashJson } from './hash.js';
+import { resolveServedFile } from '../browser-roots.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const configPath = path.join(__dirname, '..', '..', 'self', 'pool', 'pool-config.json');
+const configPath = resolveServedFile('pool/pool-config.json');
 const poolConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 const contract = createPoolConfigContract(poolConfig, { hashJson });
 

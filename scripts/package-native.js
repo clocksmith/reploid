@@ -6,7 +6,9 @@ import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { promisify } from 'node:util';
 import { execFile } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { collectModuleClosure, walkFiles } from './hosting-file-set.js';
+import { BROWSER_ROOTS, resolveServedFile } from '../server/browser-roots.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const exec = promisify(execFile);
@@ -37,12 +39,17 @@ export function nativePackageManifest(application) {
 
 export async function collectNativeFiles(sourceRoot) {
   const available = new Set();
-  for (const directory of ['server', 'packages/reploid/src', 'self']) {
-    for (const file of await walkFiles(path.join(sourceRoot, directory))) available.add(`${directory}/${file}`);
+  for (const directory of ['server', 'packages/reploid/src', ...BROWSER_ROOTS]) {
+    const absolute = path.join(sourceRoot, directory);
+    if (!existsSync(absolute)) continue;
+    for (const file of await walkFiles(absolute)) available.add(`${directory}/${file}`);
   }
   const selected = await collectModuleClosure({ root: sourceRoot, available, entries: ['server/native-participant.js'] });
-  const catalogBytes = await fs.readFile(path.join(sourceRoot, 'self/config/chat-models.json'));
-  const retained = new Map([['self/config/chat-models.json', catalogBytes]]);
+  // Served URLs resolve to whichever browser root holds the file.
+  const servedSource = served => path.relative(sourceRoot, resolveServedFile(served, { repoRoot: sourceRoot })).split(path.sep).join('/');
+  const catalogName = servedSource('config/chat-models.json');
+  const catalogBytes = await fs.readFile(path.join(sourceRoot, catalogName));
+  const retained = new Map([[catalogName, catalogBytes]]);
   const catalog = JSON.parse(catalogBytes);
   for (const model of catalog) {
     for (const file of model.source?.files || []) {
@@ -52,7 +59,7 @@ export async function collectNativeFiles(sourceRoot) {
         && artifact.hash === 'sha256:' + file.hash && artifact.sizeBytes === file.sizeBytes);
       if (signedMetadata && !bundled) throw new Error('Native signed metadata must be a bundled catalog file');
       if (!bundled) continue;
-      const name = `self${file.url}`;
+      const name = servedSource(file.url);
       const bytes = await fs.readFile(path.join(sourceRoot, name));
       if (file.hashAlgorithm !== 'sha256' || digest(bytes) !== file.hash || bytes.length !== file.sizeBytes) {
         throw new Error(`Native catalog metadata differs: ${name}`);
@@ -61,8 +68,9 @@ export async function collectNativeFiles(sourceRoot) {
       retained.set(name, bytes);
     }
   }
-  const pinBytes = await fs.readFile(path.join(sourceRoot, 'self/config/doppler-package.json'));
-  retained.set('self/config/doppler-package.json', pinBytes);
+  const pinName = servedSource('config/doppler-package.json');
+  const pinBytes = await fs.readFile(path.join(sourceRoot, pinName));
+  retained.set(pinName, pinBytes);
   const pin = JSON.parse(pinBytes);
   const archive = `deploy/artifacts/doppler-gpu-${pin.version}.tgz`;
   if (pin.spec !== `file:${archive}`) throw new Error('Native delivery requires the accepted application archive');
