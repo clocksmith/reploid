@@ -114,10 +114,12 @@ it('puts usable shared models above the composer and collapsed contribution belo
   expect(composer.compareDocumentPosition(device) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   expect(device.open).toBe(false);
   expect(document.querySelector('[data-production-summary-status]').textContent).toBe('Not set up');
-  expect(shared.querySelector('[data-model-facts]')).not.toBeNull();
-  expect(shared.querySelector('[data-model-facts]').textContent).toBe(document.querySelector('[data-inspector-pane="model"] [data-model-facts]').textContent);
+  // The chooser is a heading, one status line and the rows; facts, limits and execution location are read in the picker.
+  expect(shared.querySelector('[data-model-facts]')).toBeNull();
   expect(shared.querySelector('[data-execution-location]')).toBeNull();
-  expect(document.querySelector('[data-inspector-pane="model"] [data-execution-location]')).not.toBeNull();
+  expect(shared.querySelector('button:not([data-production-use])')).toBeNull();
+  expect(document.querySelector('[data-model-picker] [data-model-facts]')).not.toBeNull();
+  expect(document.querySelector('[data-model-picker] [data-execution-location]')).not.toBeNull();
   const input = document.querySelector('[data-composer-input]');
   input.value = 'Draft question';
   input.dispatchEvent(new Event('input', { bubbles: true }));

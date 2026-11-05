@@ -2187,13 +2187,13 @@
     {
       "path": "self/cloud-access-status.js",
       "owner": "self",
-      "sha256": "sha256:23692a77ca845e52c639681e41b5908f702bbfbd679b0fecd50f6042c937a0b5",
+      "sha256": "sha256:3239e3e4d032aba35a117c85dc95589c4b21af5bdb4e075916acc18a23c50782",
       "imports": []
     },
     {
       "path": "self/cloud-access-windows.js",
       "owner": "self",
-      "sha256": "sha256:7e4ee89f74f117a48d97a33b2873c5be70b9de00e02a8daf599c469d4b44406a",
+      "sha256": "sha256:039798be5b749502852e2ae365ef929e059cbb1c6de8525ef38958233fd4ec72",
       "imports": []
     },
     {
@@ -3431,7 +3431,7 @@
     {
       "path": "ui/components/interface-icons.js",
       "owner": "ui",
-      "sha256": "sha256:9e8e208c14cadc32f82bc4b80ed257c5e798d0dd5e5fda1d2cc480d9a62a64e0",
+      "sha256": "sha256:a4d852f51ab01aecbdcde71cbaa2640e993c451d92b1994a4fee1c4cf2d5d22b",
       "imports": []
     },
     {
@@ -3498,7 +3498,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:f6043333c42347c9cc77b0b034c5ce1b6f24aab369ee4ced9feb41054322ac62",
+      "sha256": "sha256:23093e3e8654e26679dd7107952ed45d65e5eeb9c061d3ebc649fdfe89ed658c",
       "imports": []
     },
     {
@@ -3533,7 +3533,7 @@
     {
       "path": "ui/pool-home/contribution-models.js",
       "owner": "ui",
-      "sha256": "sha256:8527be202edd1228b93cea0860428ed4f87a0ccb41d799fbfed127dc1768acb9",
+      "sha256": "sha256:2817de99850361883fe2b3e49e4b3b7bca9e5561c9c1b582100ea7fd14fca579",
       "imports": [
         "../components/dialog.js",
         "../components/html.js",
@@ -3590,7 +3590,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:541b262ec137c278c51282f4fc0125d22ebd783e4fb3ebde3d9cb0f24d0c75f6",
+      "sha256": "sha256:d18ff42d80bd0cb08a3ca01581c4569f7db844a015de5c552317b3b87c904824",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -3647,7 +3647,7 @@
     {
       "path": "ui/pool-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:86f362d0e40c8f5f97ce7a4470b2da211c930fa7ef6ba534edd1cdc1b153e4fa",
+      "sha256": "sha256:03e7d07199783eb0d7860d13b93b7a7c1b6d8d3631a11094bde6c11f338d83ed",
       "imports": [
         "../../host/credits/browser.js",
         "../../host/product-context.js",
@@ -3718,7 +3718,7 @@
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:93e3c8670c9e9306181a0da34c30baa0a5dc3171285782aa65914d1ece210379",
+      "sha256": "sha256:6f7e2277e25137cf858655667d185ec342aaed47ddbe019c52639003976c0e3e",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",

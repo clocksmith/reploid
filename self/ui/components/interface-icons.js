@@ -7,6 +7,7 @@ export function interfaceIcon(name) {
     send: '<path d="M12 20V4m-6 6 6-6 6 6"/>',
     stop: '<rect x="6" y="6" width="12" height="12" rx="2"/>',
     more: '<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',
+    threads: '<circle cx="5" cy="6" r="1"/><circle cx="5" cy="12" r="1"/><circle cx="5" cy="18" r="1"/><path d="M10 6h10M10 12h10M10 18h10"/>',
     model: '<path d="m12 3 9 5v8l-9 5-9-5V8l9-5Zm0 10v8M3 8l9 5 9-5M7.5 5.5l9 5"/>',
     check: '<path d="m5 12 4 4L19 6"/>',
     retry: '<path d="M20 7v5h-5M4 17v-5h5M6 7a7 7 0 0 1 12-1l2 6M4 12l2 6a7 7 0 0 0 12-1"/>',

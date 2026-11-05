@@ -99,14 +99,12 @@ export function projectProduction(state) {
     cancellationPending: contribution.unsettledOwners > 0 || network.unsettledOwners > 0 };
 }
 
-export function renderSharedModelChooser(selectionDetails = '') {
+/** Shared models first: a heading, one line of network status and the rows. Facts and retry live with the composer and the picker. */
+export function renderSharedModelChooser() {
   return `<section class="pool-card pool-stack pool-gap-md" aria-label="Shared models" data-production-shared>
-    <header class="pool-row pool-row-between"><h1 class="pool-title">Choose a model</h1><button class="pool-button btn-ghost pool-small" type="button" data-production-network>Computers</button></header>
+    <h1 class="pool-heading">Choose a model</h1>
     <p class="pool-small pool-muted" data-production-network-status role="status"></p>
-    <p class="pool-small" data-production-shared-error role="alert" hidden></p>
     <ul class="pool-list pool-stack pool-gap-sm" data-production-available></ul>
-    <div class="pool-stack pool-gap-xs" data-shared-selection-slot>${selectionDetails}</div>
-    <div class="pool-row"><button class="pool-button btn-ghost pool-small" type="button" data-production-retry>Retry</button></div>
   </section>`;
 }
 
@@ -190,7 +188,6 @@ export function bindProductionControls(container, session, { inspector, onSelect
       : state.network?.connecting || ['connecting', 'retrying'].includes(connection) ? 'Finding computers…'
       : last.available.length ? `${last.available.length} shared ${last.available.length === 1 ? 'model' : 'models'}`
       : 'Waiting for shared models. You can also run a model on this device.'));
-    find('[data-production-shared-error]').hidden = true;
     const shared = modelChoiceGroups(state.models || []).find(group => group.id === 'shared')?.models || [];
     const ids = new Set(shared.map(model => model.selectionId || model.id));
     for (const [id, row] of sharedRows) if (!ids.has(id)) { row.remove(); sharedRows.delete(id); }
@@ -212,8 +209,6 @@ export function bindProductionControls(container, session, { inspector, onSelect
       const list = find('[data-production-available]');
       if (list.children[index] !== row) list.insertBefore(row, list.children[index] || null);
     });
-    find('[data-production-retry]').hidden = last.available.length > 0 && !state.network?.error;
-    find('[data-production-retry]').disabled = pending || !!state.network?.connecting || ['connecting', 'retrying'].includes(connection);
     const records = last.history.records;
     text('[data-production-history-count]', records.length ? String(records.length) : '');
     text('[data-production-history-status]', last.history.error || (records.length ? `Latest ${records.length} saved executions` : 'No saved executions yet'));
@@ -260,8 +255,6 @@ export function bindProductionControls(container, session, { inspector, onSelect
     if (session.getState().acquisition?.phase === 'downloading') await session.cancelModelDownload?.();
     else await session.setSharing(false, last.selection, false);
   }), options);
-  find('[data-production-network]').addEventListener('click', event => inspector?.open?.('participants', event.currentTarget), options);
-  find('[data-production-retry]').addEventListener('click', () => void act(() => session.connect()), options);
   find('[data-production-model-options]').addEventListener('click', event => modelsDialog.open(modelButtons.querySelector('button'), event.currentTarget), options);
   find('[data-production-close-models]').addEventListener('click', () => modelsDialog.close(), options);
   return { update: render, dispose() { controller.abort(); detachBackground(); modelActions.dispose(); modelsDialog.dispose(); } };

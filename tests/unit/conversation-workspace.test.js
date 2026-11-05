@@ -17,23 +17,27 @@ describe('Conversation workspace', () => {
   });
   afterEach(async () => { dispose(); await session.close(); root.remove(); });
 
-  it('keeps every configured model visible before discovery and selects through themed choices', async () => {
+  it('keeps every configured model visible in the picker before discovery without offering an unavailable one', async () => {
     dispose(); await session.close();
     session = createChatSession({ storage: null, service, swarm: { getState: () => ({ consumer: { peers: [] } }) } });
     dispose = bindConversationWorkspace(root, session);
     const select = find('[data-active-model-select]');
-    const choices = select.nextElementSibling;
+    find('[data-open-model]').click();
+    expect(find('[data-model-picker]').open).toBe(true);
+    const choices = find('[data-next-model]').nextElementSibling;
     for (const model of CANONICAL_CHAT_MODELS) {
       expect([...select.options].some(option => option.value === model.id)).toBe(true);
       expect(choices.textContent).toContain(model.name);
     }
     const small = [...choices.querySelectorAll('input')].find(input => input.value === CANONICAL_CHAT_MODELS[0].id);
     small.click();
-    expect(select.value).toBe(small.value);
+    expect(find('[data-next-model]').value).toBe(small.value);
     expect(small.checked).toBe(true);
-    expect(find('[data-composer-send]').disabled).toBe(true);
+    expect(find('[data-change-model]').disabled).toBe(true);
+    expect(find('[data-next-model-status]').textContent).toContain('unavailable');
     session.refreshNetwork();
     expect(choices.querySelector('input:checked')).toBe(small);
+    expect(find('[data-composer-send]').disabled).toBe(true);
     expect(service.calls).toHaveLength(0);
   });
 
@@ -124,7 +128,10 @@ describe('Conversation workspace', () => {
     expect(find('[data-chat-rail-toolbar] [data-network-trigger-slot] [data-inspector-navigation]')).not.toBeNull();
     expect(find('[data-chat-inspector-slot] > [data-network-rail][data-mounted]')).not.toBeNull();
     expect(find('[data-network-rail] [data-inspector-navigation]')).toBeNull();
-    expect(find('[data-inspector-pane="model"] > [data-model-control] [data-active-model-select]')).toBe(find('[data-active-model-select]'));
+    // The selected model's value port and its details live in the workspace's own picker; the inspector has no Model pane.
+    expect(find('[data-model-picker] [data-model-control] [data-active-model-select]')).toBe(find('[data-active-model-select]'));
+    expect(find('[data-model-picker] [data-model-selection-details] [data-execution-location]')).not.toBeNull();
+    expect(find('[data-inspector-pane="model"]')).toBeNull();
     expect(find('[data-threads-dialog] [data-model-control]')).toBeNull();
     expect(find('[data-inspector-pane="settings"] [data-settings-storage-controls] [data-toggle-file-contribution]')).not.toBeNull();
     expect(find('[data-inspector-pane="settings"] [data-settings-sharing-limits] [data-contribution-limits]')).not.toBeNull();
@@ -137,7 +144,7 @@ describe('Conversation workspace', () => {
     expect(find('[data-threads-dialog]').open).toBe(false);
     dispose();
     expect(find('[data-thread-rail-brand] > .pool-primary-brand')).not.toBeNull();
-    expect(find('[data-inspector-pane="model"] [data-active-model-select]')).not.toBeNull();
+    expect(find('[data-model-picker] [data-active-model-select]')).not.toBeNull();
   });
 
   it('keeps only Computers and Settings in the rail, with model and answer details in context', () => {
@@ -197,8 +204,9 @@ describe('Conversation workspace', () => {
     dispose = bindConversationWorkspace(root, { ...session,
       getState: () => project(session.getState()), subscribe: fn => session.subscribe(state => fn(project(state))) });
     expect(find('[data-open-limits]').textContent).toBe('63–255 max');
+    // The limit opens the same model dialog as the model name; the limit is read there.
     find('[data-open-limits]').click();
-    expect(find('[data-inspector-pane="model"]').hidden).toBe(false);
+    expect(find('[data-model-picker]').open).toBe(true);
     expect(find('[data-answer-limit]').hidden).toBe(false);
     expect(find('[data-answer-limit]').textContent).toContain('255 answer tokens for up to 512 input tokens');
     expect(find('[data-answer-limit]').textContent).toContain('63 answer tokens for up to 1024 input tokens');
@@ -349,8 +357,9 @@ describe('Conversation workspace', () => {
     await session.prepareLocalModel(CANONICAL_CHAT_MODELS[1].id);
     const id = session.createThread({ sharingScope: 'local' });
     find('[data-composer-input]').value = 'Keep this draft';
-    find('[data-current-model]').click();
+    find('[data-open-model]').click();
     expect(find('[data-model-picker]').open).toBe(true);
+    expect(find('[data-picker-thread-note]').hidden).toBe(false);
     expect(session.getState().selectedId).toBe(id);
     find('[data-change-model]').click();
     await vi.waitFor(() => expect(session.getState().selectedId).toBeNull());
@@ -403,7 +412,7 @@ describe('Conversation workspace', () => {
     dispose = bindConversationWorkspace(root, session);
     const id = session.createThread({ model: first });
     find('[data-composer-input]').value = 'Keep this draft';
-    find('[data-current-model]').click();
+    find('[data-open-model]').click();
     const next = find('[data-next-model]');
     next.value = second.id; next.dispatchEvent(new Event('change'));
     peers = peers.slice(0, 1); session.refreshNetwork();
@@ -540,7 +549,7 @@ describe('Conversation workspace', () => {
     } finally { release(); await completion; }
     expect(find('[data-composer-field]').dataset.activity).toBe('idle');
     dispose();
-    expect(find('[data-model-control]').dataset.activity).toBe('idle');
+    expect(find('[data-open-model]').dataset.activity).toBe('idle');
   });
 
   it('retries a failed response as a new attempt and preserves its partial text', async () => {
@@ -588,16 +597,16 @@ describe('Conversation workspace', () => {
     dispose = bindConversationWorkspace(root, { ...session,
       getModelDownload: async id => ({ id, sizeBytes: 123000000 }) });
     expect(find('[data-composer-send]').disabled).toBe(true);
-    expect(find('[data-model-control]').dataset.activity).toBe('idle');
+    expect(find('[data-open-model]').dataset.activity).toBe('idle');
     peers = [{ peerId: 'ready-peer', model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }];
     session.refreshNetwork();
     expect(find('[data-active-model-select]').value).toBe(model.id);
     expect(find('[data-composer-send]').disabled).toBe(false);
     expect(find('[data-mesh-invite]').hidden).toBe(true);
-    expect(find('[data-model-control]').dataset.activity).toBe('ready');
+    expect(find('[data-open-model]').dataset.activity).toBe('ready');
     session.createThread();
     peers = []; session.refreshNetwork();
-    expect(find('[data-model-control]').dataset.activity).toBe('idle');
+    expect(find('[data-open-model]').dataset.activity).toBe('idle');
     expect(find('[data-active-model-select]').value).toBe(model.id);
     expect(find('[data-active-model-select]').hidden).toBe(true);
     expect(find('[data-composer-send]').disabled).toBe(true);

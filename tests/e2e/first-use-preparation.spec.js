@@ -30,7 +30,6 @@ for (const theme of ['light', 'dark']) for (const width of [390, 1440]) {
       }
       const { createChatSession, CANONICAL_CHAT_MODELS } = await import('/host/chat-session.js');
       const { renderConversationWorkspace, bindConversationWorkspace } = await import('/ui/pool-home/conversation-workspace.js');
-      const { bindExecutionRibbon } = await import('/ui/pool-home/execution-ribbon.js');
       const { renderNav } = await import('/ui/pool-home/shell-view.js');
       const root = document.createElement('main'); root.className = 'pool-home'; root.dataset.poolRouteId = 'home'; root.dataset.poolTheme = theme;
       root.innerHTML = renderNav('home') + '<div class="pool-route-content">' + renderConversationWorkspace() + '</div>'; document.body.append(root);
@@ -40,22 +39,19 @@ for (const theme of ['light', 'dark']) for (const width of [390, 1440]) {
       const session = createChatSession({ storage: null, models: [model], swarm: {
         getState: () => ({ consumer: { connectionState: 'connected', peers: [peer] } }), async connect() { connections++; }
       } });
-      const dispose = bindConversationWorkspace(root, session), ribbon = bindExecutionRibbon(root);
-      const unsubscribe = session.subscribe(state => ribbon.update(state));
+      // Home renders no app bar, so there is no execution ribbon; the composer's status line carries preparation.
+      const dispose = bindConversationWorkspace(root, session);
       window.firstUse = {
         state: () => session.getState(), connections: () => connections,
         phase(value) { peer.readiness = value; peer.hasInference = value === 'ready'; peer.availableSlots = value === 'ready' ? 1 : 0; session.refreshNetwork(); },
-        async close() { unsubscribe(); dispose(); ribbon.dispose(); await session.close(); }
+        async close() { dispose(); await session.close(); }
       };
     }, { theme, layerFiles });
     const draft = 'Can you explain a closure?';
     await page.locator('[data-composer-input]').fill(draft);
-    await expect(page.locator('[data-ribbon-status]')).toHaveText('Preparing model');
     await expect(page.locator('[data-composer-send]')).toBeDisabled();
     const evidence = process.env.REPLOID_FIRST_USE_EVIDENCE;
     const observe = async () => snapshots.push(await page.evaluate(() => ({
-      status: document.querySelector('[data-ribbon-status]').textContent,
-      statusVisible: document.querySelector('[data-ribbon-status]').checkVisibility(),
       composerStatus: document.querySelector('[data-model-status]').textContent,
       composerStatusVisible: document.querySelector('[data-model-status]').checkVisibility(),
       retryVisible: !document.querySelector('[data-retry-connection]').hidden,
@@ -69,14 +65,12 @@ for (const theme of ['light', 'dark']) for (const width of [390, 1440]) {
       await expect(page.locator('[data-model-status]')).toBeVisible();
       await expect(page.locator('[data-model-status]')).toHaveText('Model preparing…');
       await page.evaluate(() => window.firstUse.phase('ready'));
-      await expect(page.locator('[data-ribbon-status]')).toHaveText('1 model ready');
       await expect(page.locator('[data-composer-send]')).toBeEnabled();
       await expect(page.locator('[data-retry-connection]')).toBeHidden();
       await expect(page.locator('[data-model-status]')).toBeHidden();
       await expect(page.locator('[data-composer-input]')).toHaveValue(draft);
       await observe();
       await page.evaluate(() => window.firstUse.phase('unavailable'));
-      await expect(page.locator('[data-ribbon-status]')).toHaveText('No model ready');
       await expect(page.locator('[data-composer-send]')).toBeDisabled();
       await expect(page.locator('[data-retry-connection]')).toBeVisible();
       await expect(page.locator('[data-model-status]')).toBeVisible();

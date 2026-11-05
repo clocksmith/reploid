@@ -19,21 +19,19 @@ export function renderInspectorNavigation() {
     </nav>`;
 }
 
-export const renderModelSelectionDetails = ({ copy = false, execution = false } = {}) => `<div data-model-selection-details${copy ? ' data-model-details-copy' : ''}><p class="pool-small pool-muted" data-model-empty hidden>No models are available. Connect to the network or prepare a model in Computers.</p><dl class="chat-model-facts pool-small" data-model-facts hidden></dl><p class="pool-small pool-muted" data-answer-limit hidden></p><p class="pool-small pool-muted" ${copy ? '' : 'id="chat-model-status"'} data-model-status role="status" hidden></p>${execution ? `<div data-execution-settings hidden><div class="chat-execution-location" data-execution-location role="group" aria-label="Execution location"><button class="pool-button btn-ghost" type="button" data-execution-choice="auto" aria-pressed="true">Automatic</button><button class="pool-button btn-ghost" type="button" data-execution-choice="local" aria-pressed="false">This device</button><button class="pool-button btn-ghost" type="button" data-execution-choice="network" aria-pressed="false">Network</button></div></div>` : ''}</div>`;
-
 /**
  * The inspector dialog with every pane's content rendered in its final place. Route
- * content that belongs to a pane (the active-model control, the Settings menu's app
- * shortcuts) arrives as markup; nothing is moved after render. A mounted rail sits
- * inside the conversation workspace, whose toolbar renders the navigation.
+ * content that belongs to a pane (the Settings menu's app shortcuts) arrives as
+ * markup; nothing is moved after render. A mounted rail sits inside the conversation
+ * workspace, whose toolbar renders the navigation. Model choice and its details are
+ * the conversation workspace's own dialog.
  */
-export function renderInspectorRail({ mounted = false, navigation = !mounted, apps = '', modelControl = '' } = {}) {
+export function renderInspectorRail({ mounted = false, navigation = !mounted, apps = '' } = {}) {
   const material = mounted ? '' : ' pool-surface';
   return `<aside class="chat-network-rail${material}" data-network-rail${mounted ? ' data-mounted' : ''} aria-label="Network and settings">
     ${navigation ? renderInspectorNavigation() : ''}
     <dialog class="network-inspector${material} pool-small" data-contextual-inspector data-network-workspace aria-labelledby="network-inspector-title">
     <header class="chat-network-heading"><h2 class="pool-subheading" id="network-inspector-title" tabindex="-1">Network</h2><button class="pool-button" type="button" data-close-inspector aria-label="Close" title="Close">${interfaceIcon('close')}</button></header>
-    <section data-inspector-pane="model" aria-label="Model" hidden>${modelControl}${renderModelSelectionDetails({ execution: true })}</section>
     <section data-inspector-pane="conversation" aria-label="This conversation">
       <div class="execution-ribbon-route" data-inspector-route></div>
       <p data-inspector-status role="status"></p><p class="pool-caption pool-muted" data-context-detail></p>
@@ -128,7 +126,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   const select = section => {
     if (section === 'device') section = 'participants';
     for (const pane of panel.querySelectorAll('[data-inspector-pane]')) pane.hidden = pane.dataset.inspectorPane !== section;
-    find('#network-inspector-title').textContent = { model: 'Model', conversation: 'This conversation', participants: 'Computers', device: 'Sharing', settings: 'Settings' }[section];
+    find('#network-inspector-title').textContent = { conversation: 'This conversation', participants: 'Computers', device: 'Sharing', settings: 'Settings' }[section];
     for (const button of navigation.querySelectorAll('[data-inspector-section]')) button.setAttribute('aria-pressed', String(button.dataset.inspectorSection === section));
   };
   panel.addEventListener('click', event => {

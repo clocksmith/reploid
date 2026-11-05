@@ -242,7 +242,7 @@ for (const width of [1440,320]) test(`shared shell inspector keeps fixed ownersh
   await page.setViewportSize({width,height:844});
   await page.evaluate(async()=>{
     const {renderNav,renderAppShortcuts}=await import('/ui/pool-home/shell-view.js');
-    const {renderConversationWorkspace,bindConversationWorkspace,renderModelControl}=await import('/ui/pool-home/conversation-workspace.js');
+    const {renderConversationWorkspace,bindConversationWorkspace}=await import('/ui/pool-home/conversation-workspace.js');
     const {renderNetworkInspector,renderInspectorNavigation,renderInspectorRail,renderModelSetupDialog,bindNetworkInspector}=await import('/ui/pool-home/network-inspector.js');
     const {bindThemeSelector}=await import('/ui/pool-home/theme.js');
     const root=document.querySelector('.pool-home'),session=window.railSession;
@@ -255,7 +255,7 @@ for (const width of [1440,320]) test(`shared shell inspector keeps fixed ownersh
       if(route==='home'){
         content.innerHTML=renderConversationWorkspace({inspector:false});
         content.querySelector('[data-network-trigger-slot]').innerHTML=renderInspectorNavigation();
-        content.querySelector('[data-chat-inspector-slot]').innerHTML=renderInspectorRail({mounted:true,apps:renderAppShortcuts(route),modelControl:renderModelControl()});
+        content.querySelector('[data-chat-inspector-slot]').innerHTML=renderInspectorRail({mounted:true,apps:renderAppShortcuts(route)});
         shell.innerHTML=renderModelSetupDialog();
       }else{shell.innerHTML=renderNetworkInspector();content.textContent='Changes';}
       inspector=bindNetworkInspector(root,session);

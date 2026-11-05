@@ -5,7 +5,7 @@ import { createConversationList } from './conversation-list.js';
 import { updateModelSelect, modelSelectionLabel, bindModelChoices, isSharedModelChoice } from '../components/model-select.js';
 /** Conversation presentation; the host owns execution and disclosure. */
 import { projectNetworkPeers } from './network-controls.js';
-import { renderInspectorNavigation, renderInspectorRail, renderModelSelectionDetails, renderModelSetupDialog, bindNetworkInspector } from './network-inspector.js';
+import { renderInspectorNavigation, renderInspectorRail, renderModelSetupDialog, bindNetworkInspector } from './network-inspector.js';
 import { renderBrandLink } from './shell-view.js';
 import { escapeHtml as escape, renderAttachments, readTextAttachments } from '../components/attachments.js';
 import { bindDisclosure } from '../components/disclosure.js';
@@ -23,10 +23,11 @@ const startingPrompts = [
   'Recommend 3 terrible ’80s movies.'
 ];
 
-/** The active-model control. It renders inside the inspector's Model pane, wherever the shell places that pane. */
-export function renderModelControl() {
-  return '<span class="chat-model-control pool-activity-edge" data-model-control><select class="pool-input pool-glass" id="chat-model" data-active-model-select aria-label="Model"></select><button class="pool-button" type="button" data-current-model aria-haspopup="dialog" hidden></button></span>';
-}
+/** The selected model's value port. The picker's choices and the chooser's rows set it; nothing renders it. */
+const renderModelControl = () => '<span data-model-control><select class="pool-input pool-glass chat-model-value" id="chat-model" data-active-model-select aria-label="Model"></select></span>';
+
+/** Declared facts for the highlighted model, its answer limit and where the answer runs. One place: the picker. */
+const renderModelSelectionDetails = () => `<div class="pool-stack pool-gap-xs" data-model-selection-details><dl class="chat-model-facts pool-small" data-model-facts hidden></dl><p class="pool-small pool-muted" data-answer-limit hidden></p><div class="chat-execution-location" data-execution-location role="group" aria-label="Execution location"><button class="pool-button btn-ghost" type="button" data-execution-choice="auto" aria-pressed="true">Automatic</button><button class="pool-button btn-ghost" type="button" data-execution-choice="local" aria-pressed="false">This device</button><button class="pool-button btn-ghost" type="button" data-execution-choice="network" aria-pressed="false">Network</button></div></div>`;
 
 export function renderConversationWorkspace({ inspector = true, compact = false } = {}) {
   return `<section class="reploid-chat-workspace" data-chat-workspace ${compact ? 'data-compact' : ''} aria-label="Conversation workspace">
@@ -34,7 +35,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
       <div class="chat-rail-toolbar pool-surface" data-chat-rail-toolbar>
       <div class="chat-rail-heading">
       <span class="chat-thread-brand" data-thread-rail-brand>${renderBrandLink({ toolbar: true })}</span>
-      <button class="pool-button chat-rail-icon" type="button" data-toggle-thread-rail aria-label="Threads" title="Threads" aria-haspopup="dialog" aria-expanded="false">${interfaceIcon('more')}<span class="chat-rail-label">Threads</span></button>
+      <button class="pool-button chat-rail-icon" type="button" data-toggle-thread-rail aria-label="Threads" title="Threads" aria-haspopup="dialog" aria-expanded="false">${interfaceIcon('threads')}<span class="chat-rail-label">Threads</span></button>
       <button class="pool-button chat-new-thread" type="button" data-new-thread aria-label="New thread" title="New thread">${interfaceIcon('newThread')}<span class="chat-rail-label">New thread</span></button>
       </div>
       <footer class="chat-rail-footer"><div data-network-trigger-slot>${inspector ? renderInspectorNavigation() : ''}</div></footer>
@@ -57,10 +58,10 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
         </div></details>
       </div>
     </dialog>
-    <aside class="chat-inspector-slot pool-surface" data-chat-inspector-slot aria-label="Selected controls">${inspector ? renderInspectorRail({ mounted: true, modelControl: renderModelControl() }) : ''}</aside>
+    <aside class="chat-inspector-slot pool-surface" data-chat-inspector-slot aria-label="Selected controls">${inspector ? renderInspectorRail({ mounted: true }) : ''}</aside>
     <section class="chat-conversation-area" data-conversation-area aria-label="Current conversation">
       <div class="chat-transcript chat-message-stream" data-chat-transcript data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
-      ${renderSharedModelChooser(renderModelSelectionDetails({ copy: true }))}
+      ${renderSharedModelChooser()}
       <div class="chat-starting-prompts" data-starting-prompts role="group" aria-label="Movie and show suggestions" hidden>
         ${startingPrompts.map(prompt => `<button class="pool-button btn-ghost" type="button" data-starting-prompt>${escape(prompt)}</button>`).join('')}
       </div>
@@ -78,8 +79,8 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
             <button class="pool-button btn-primary pool-icon" type="button" data-composer-stop aria-label="Stop" title="Stop" hidden>${interfaceIcon('stop')}</button>
           </div>
         </div>
-        <div class="chat-composer-notices"><button class="pool-button chat-composer-model btn-ghost" type="button" data-open-model aria-label="Choose model" title="Choose model">${interfaceIcon('model')}<small class="pool-muted" data-model-digest></small></button>${renderContextIndicator()}<button class="pool-button btn-ghost pool-caption" type="button" data-open-limits hidden></button><span class="pool-chip" data-web-search-on hidden>Search on</span><button class="pool-button btn-ghost pool-caption" type="button" data-composer-status hidden></button><button class="pool-button btn-ghost pool-caption" type="button" data-retry-connection aria-label="Retry connection" hidden>Retry</button></div>
-        <p class="pool-small pool-muted" data-capacity-status role="status" hidden></p><p class="pool-small pool-muted" data-acquisition-status role="status" hidden></p><progress class="pool-progress" data-acquisition-progress aria-label="Model download" hidden></progress><button class="pool-button btn-ghost pool-caption" type="button" data-download-local hidden>Download model</button><button class="pool-button btn-ghost pool-caption" type="button" data-cancel-download hidden>Cancel download</button>
+        <div class="chat-composer-notices"><button class="pool-button chat-composer-model btn-ghost pool-activity-edge" type="button" data-open-model aria-label="Choose model" title="Choose model">${interfaceIcon('model')}<small class="pool-muted" data-model-digest></small></button>${renderContextIndicator()}<button class="pool-button btn-ghost pool-caption" type="button" data-open-limits hidden></button><span class="pool-chip" data-web-search-on hidden>Search on</span><button class="pool-button btn-ghost pool-caption" type="button" data-composer-status hidden></button><button class="pool-button btn-ghost pool-caption" type="button" data-retry-connection aria-label="Retry connection" hidden>Retry</button></div>
+        <p class="pool-small pool-muted" id="chat-model-status" data-model-status role="status" hidden></p><p class="pool-small pool-muted" data-acquisition-status role="status" hidden></p><progress class="pool-progress" data-acquisition-progress aria-label="Model download" hidden></progress><button class="pool-button btn-ghost pool-caption" type="button" data-download-local hidden>Download model</button><button class="pool-button btn-ghost pool-caption" type="button" data-cancel-download hidden>Cancel download</button>
         <p class="chat-attachment-help pool-small pool-muted" data-attachment-help hidden>Text files: up to 8, 64 KB each, 128 KB total.</p>
       </form></footer>
       ${renderProductionContribution()}
@@ -90,10 +91,10 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
       </dialog>
       <dialog class="chat-model-setup pool-surface pool-small" data-model-picker aria-labelledby="chat-model-picker-title">
         <h2 class="pool-heading" id="chat-model-picker-title">Choose a model</h2><p data-current-model-description></p>
-        <p>A new model starts a new thread.</p>
-        <div><select class="pool-input" data-next-model aria-label="Model"></select></div>
+        <p data-picker-thread-note hidden>A new model starts a new thread.</p>
+        ${renderModelControl()}<div><select class="pool-input" data-next-model aria-label="Model"></select></div>
         <p data-next-model-status role="status" hidden></p>
-        <div class="pool-stack pool-gap-xs" data-picker-selection-slot>${renderModelSelectionDetails({ copy: true })}</div>
+        ${renderModelSelectionDetails()}
         <div class="chat-network-actions"><button class="pool-button" type="button" data-model-picker-close>Cancel</button><button class="pool-button" type="button" data-change-model>Use model</button></div>
       </dialog>
     </section>
@@ -108,7 +109,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const find = selector => container.querySelector(selector) || surface?.querySelector(selector);
   const controller = new AbortController(), options = { signal: controller.signal };
   const input = find('[data-composer-input]'), modelSelect = find('[data-active-model-select]');
-  const modelChoices = bindModelChoices(modelSelect), nextModelChoices = bindModelChoices(find('[data-next-model]'));
+  const nextModelChoices = bindModelChoices(find('[data-next-model]'));
   const inspector = sharedInspector || bindNetworkInspector(container, session, { getInviteUrl, webSearch, search });
   let archived = false, renameId = null, chosenModel = viewState.chosenModel || null, pickerModel = null;
   let changingModel = false;
@@ -135,8 +136,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const detachHandover = bindHistoryHandover(container, historyHandover);
   // Opening the inspector closes the conversation list; both live in this surface.
   const detachInspector = inspector.onOpen?.(() => setThreads(false));
-  const executionSettings = find('[data-execution-settings]');
-  if (executionSettings) executionSettings.hidden = false;
   const production = bindProductionControls(container, session, {
     inspector,
     getSelectedModelId: () => modelSelect.value,
@@ -263,10 +262,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       || keyFor(models.find(selectable)) || keyFor(models[0]);
     updateModelSelect(modelSelect, models, { value: current, showAvailability: true, grouped: true, preferNetwork: location !== 'local' });
     modelSelect.value = current || ''; modelSelect.disabled = !models.length; modelSelect.hidden = !!thread;
-    modelChoices.update(models, { grouped: true, preferNetwork: location !== 'local' });
-    const currentModel = find('[data-current-model]'); currentModel.hidden = !thread;
-    currentModel.textContent = thread?.model ? modelSelectionLabel(thread.model) : 'Model';
-    currentModel.setAttribute('aria-label', `${thread?.model.name || 'Model'}. Choose a model for a new thread`);
     const peerCount = projectNetworkPeers(state).length;
     for (const node of surface?.querySelectorAll('[data-mesh-peers]') || []) node.textContent = `${peerCount} ${peerCount === 1 ? 'computer' : 'computers'}`;
     for (const button of (surface || container).querySelectorAll('[data-execution-choice]')) {
@@ -295,7 +290,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       ['Active adapters', requestedModel?.adapters?.length ? requestedModel.adapters.length : null]
     ].filter(([, value]) => value != null && value !== '');
     const modelFacts = find('[data-model-facts]');
-    find('[data-model-empty]').hidden = !!catalogModel;
     const factMarkup = facts.map(([label, value]) => `<div><dt class="pool-muted">${escape(label)}</dt><dd>${escape(value)}</dd></div>`).join('');
     modelFacts.hidden = !facts.length;
     if (modelFacts.dataset.markup !== factMarkup) { modelFacts.innerHTML = factMarkup; modelFacts.dataset.markup = factMarkup; }
@@ -350,9 +344,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     find('[data-download-local]').textContent = ['failed', 'cancelled'].includes(acquisition?.phase) ? 'Retry download' : 'Download model';
     const attempt = thread?.attempts.at(-1);
     const busy = runningIds.includes(thread?.id) || !!state.comparisonPhase;
-    // The collapsed rails hide the header status. Explain a disabled composer
-    // here, including before the first attempt, without adding another panel.
-    modelStatus.textContent = busy ? '' : thread?.closed ? 'Restore this thread to continue.'
+    // One status line under the composer explains a disabled Send, including before
+    // the first attempt, without adding another panel.
+    const statusText = busy ? '' : thread?.closed ? 'Restore this thread to continue.'
       : state.localModel?.error && !usable ? 'Model preparation failed: ' + state.localModel.error
       : !usable && location === 'network' ? 'No network capacity for this model. Local execution will not be used.'
       : !usable && location === 'local' ? 'Download this model to run it on this device.'
@@ -363,11 +357,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         ? 'Choose an available model.'
       : !usable ? preparing ? state.localModel?.progress?.message || 'Model preparing…' : state.network?.paused ? 'Reconnect to continue.'
         : state.network?.connecting || ['connecting', 'retrying'].includes(networkState) ? 'Finding capacity…' : 'Model unavailable.' : '';
-    modelStatus.hidden = !modelStatus.textContent;
-    const capacityStatus = find('[data-capacity-status]');
-    capacityStatus.textContent = modelStatus.textContent || (!busy && location === 'network' && selectedModel?.networkAvailability === 'busy'
+    // A busy contributor still answers later; that notice takes the line only when nothing blocks Send.
+    modelStatus.textContent = statusText || (!busy && location === 'network' && selectedModel?.networkAvailability === 'busy'
       ? 'Contributors are busy. Sending waits for capacity.' : '');
-    capacityStatus.hidden = !capacityStatus.textContent;
+    modelStatus.hidden = !modelStatus.textContent;
     const answerLimit = find('[data-answer-limit]');
     const cells = state.answerLimits?.find(entry => entry.selectionId === keyFor(requestedModel || {}))?.cells || [];
     const bounds = [...new Map(cells.map(cell => [cell.maxPromptTokens + '/' + cell.maxAnswerTokens, cell])).values()]
@@ -386,13 +379,14 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     limitButton.title = answerLimit.textContent;
     limitButton.setAttribute('aria-label', answerLimit.textContent + ' View model limits.');
     const statusButton = find('[data-composer-status]');
-    statusButton.hidden = modelStatus.hidden;
+    statusButton.hidden = !statusText;
     statusButton.textContent = thread?.closed ? 'Archived' : preparing ? 'Preparing' : 'Unavailable';
-    statusButton.title = modelStatus.textContent;
-    statusButton.setAttribute('aria-label', modelStatus.textContent + ' View model details.');
-    find('[data-retry-connection]').title = modelStatus.textContent;
+    statusButton.title = statusText;
+    statusButton.setAttribute('aria-label', statusText + ' View model details.');
+    find('[data-retry-connection]').title = statusText;
     find('[data-model-control]').hidden = !models.length;
-    find('[data-model-control]').dataset.activity = models.some(model => keyFor(model) === current && model.availability === 'ready') ? 'ready' : 'idle';
+    find('[data-open-model]').dataset.activity = models.some(model => keyFor(model) === current && model.availability === 'ready') ? 'ready' : 'idle';
+    find('[data-picker-thread-note]').hidden = !thread;
     const activeModel = thread?.model || chosenModel || models.find(model => keyFor(model) === current)
       || catalogModels.find(model => keyFor(model) === current) || requestedModel;
     const modelDigest = activeModel ? modelSelectionLabel(activeModel) : '';
@@ -404,15 +398,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     refreshStartingPrompts();
     find('[data-production-shared]').hidden = container.hasAttribute('data-compact') || !!thread;
     find('[data-production-surface]').hidden = container.hasAttribute('data-compact');
-    for (const copy of container.querySelectorAll('[data-model-details-copy]')) {
-      const pickerCopy = !!copy.closest('[data-model-picker]');
-      copy.hidden = !pickerCopy && (!!thread || !find('[data-inspector-pane="model"]').hidden || find('[data-model-picker]').open);
-      for (const selector of ['[data-model-empty]', '[data-model-facts]', '[data-answer-limit]', '[data-model-status]']) {
-        const original = find('[data-inspector-pane="model"] ' + selector), target = copy.querySelector(selector);
-        target.hidden = original.hidden;
-        if (target.innerHTML !== original.innerHTML) target.innerHTML = original.innerHTML;
-      }
-    }
     production.update(state);
     const contextControls = find('[data-context-controls]');
     contextControls.hidden = !session.previewContextPrompt;
@@ -465,9 +450,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   showFiles();
   const renameDialog = bindDialog(find('[data-rename-dialog]'));
   const picker = bindDialog(find('[data-model-picker]'));
-  for (const selector of ['[data-open-limits]', '[data-composer-status]']) {
-    on(selector, 'click', event => inspector.open?.('model', event.currentTarget));
-  }
   const openPicker = event => {
     const state = session.getState();
     inspector.close?.({ restoreFocus: false });
@@ -478,8 +460,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     render(state);
     nextModelChoices.focus();
   };
-  on('[data-current-model]', 'click', openPicker);
-  on('[data-open-model]', 'click', openPicker);
+  // The model name, its answer limit and its status all open the same dialog.
+  for (const selector of ['[data-open-model]', '[data-open-limits]', '[data-composer-status]']) on(selector, 'click', openPicker);
   on('[data-model-picker-close]', 'click', () => picker.close());
   on('[data-model-picker]', 'close', () => render(session.getState()));
   on('[data-next-model]', 'change', () => {
@@ -675,8 +657,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   return () => {
     try { observe(saveDraft()); } catch (cause) { error(cause); }
     inputResize?.disconnect();
-    modelChoices.dispose(); nextModelChoices.dispose();
-    if (executionSettings) executionSettings.hidden = true;
+    nextModelChoices.dispose();
     production.dispose();
     detachInspector?.();
     messages.dispose(); threads.dispose(); actionsPanel.dispose(); threadsDialog.dispose(); picker.dispose(); renameDialog.dispose();
@@ -685,6 +666,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     surface?.removeAttribute('data-chat-compact');
     controller.abort(); detachHandover(); autoDownload.dispose(); fileRevision++; unsubscribe(); unsubscribeWebSearch(); unsubscribeSearch(); if (!sharedInspector) inspector.dispose?.();
     find('[data-composer-field]').dataset.activity = 'idle';
-    find('[data-model-control]').dataset.activity = 'idle';
+    find('[data-open-model]').dataset.activity = 'idle';
   };
 }

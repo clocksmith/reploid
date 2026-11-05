@@ -25,13 +25,16 @@ for (const width of [1440, 390]) test(`model picker retains unavailable choices 
   });
   const { first, second } = await page.evaluate(() => ({ first: window.modelPickerFixture.first, second: window.modelPickerFixture.second }));
   await page.locator('[data-composer-input]').fill('Keep this original draft');
-  await page.locator('[data-current-model]').click();
+  await page.locator('[data-open-model]').click();
   await expect(page.locator('[data-model-picker]')).toBeVisible();
   await expect(page.locator('[data-next-model]')).toHaveValue(first);
-  await page.locator('[data-next-model]').selectOption(second);
+  // The picker shows its choices as radios; the select behind them is the value port.
+  const choice = page.locator(`[data-model-picker] .chat-model-choice:has(input[value="${second}"])`);
+  await choice.locator('input').check();
   await page.evaluate(() => window.modelPickerFixture.setCapacity(false));
   await expect(page.locator('[data-next-model]')).toHaveValue(second);
-  await expect(page.locator('[data-next-model]')).toContainText('Unavailable');
+  // With its shared capacity gone, the choice stays listed under its download group and cannot be used.
+  await expect(choice.locator('[data-choice-status]')).toHaveText('Download required');
   await expect(page.locator('[data-next-model-status]')).toBeVisible();
   await expect(page.locator('[data-change-model]')).toBeDisabled();
   await page.evaluate(() => window.modelPickerFixture.setCapacity(true));
@@ -104,12 +107,14 @@ test('phone thread drawer preserves drafts, streaming nodes, and isolated Stop',
       cancel(id) { state.runningIds = state.runningIds.filter(value => value !== id); threads.find(thread => thread.id === id).attempts[0].status = 'cancelled'; emit(); }
     });
   });
-  await expect(page.locator('[data-thread-sidebar]')).toBeHidden();
+  // Threads open as a dialog from the toolbar, which itself stays in place.
+  const threads = page.locator('[data-threads-dialog]');
+  await expect(threads).toHaveJSProperty('open', false);
   await page.locator('[data-composer-input]').fill('Draft one');
   await page.locator('[data-toggle-thread-rail]').click();
-  await expect(page.locator('[data-thread-sidebar]')).toBeVisible();
+  await expect(threads).toHaveJSProperty('open', true);
   await page.locator('[data-thread-item-id="two"]').click();
-  await expect(page.locator('[data-thread-sidebar]')).toBeHidden();
+  await expect(threads).toHaveJSProperty('open', false);
   await page.locator('[data-composer-input]').fill('Draft two');
   await page.locator('[data-toggle-thread-rail]').click();
   await page.locator('[data-thread-item-id="one"]').click();
@@ -127,6 +132,6 @@ test('phone thread drawer preserves drafts, streaming nodes, and isolated Stop',
   expect(await page.evaluate(() => window.conversationState.runningIds)).toEqual(['two']);
   await page.locator('[data-toggle-thread-rail]').click();
   await page.keyboard.press('Escape');
-  await expect(page.locator('[data-thread-sidebar]')).toBeHidden();
+  await expect(threads).toHaveJSProperty('open', false);
   await expect(page.locator('[data-toggle-thread-rail]')).toBeFocused();
 });

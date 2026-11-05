@@ -139,8 +139,8 @@ test('compact chat keeps attempt status reachable and composer visible', async (
       await expect(status).toBeInViewport();
     }
     if (mode === 'empty') {
-      // Model details render as synced copies (pane, picker, chooser); one is visible here.
-      await expect(page.locator('[data-capacity-status]')).toHaveText('Model unavailable.');
+      // One status line under the composer explains a disabled Send.
+      await expect(page.locator('[data-model-status]')).toHaveText('Model unavailable.');
       await expect(page.locator('[data-message-stream]')).toBeEmpty();
       await expect(page.locator('[data-composer-input]')).toHaveAttribute('placeholder', 'Ask a question…');
     }
@@ -232,7 +232,8 @@ test('activity settles, stops on cancel and respects accessibility settings', as
   await page.goto('/');
   await expect(page.locator('[data-chat-workspace]')).toBeVisible();
   await installConversation(page, 'light');
-  const model = page.locator('[data-model-control]'), field = page.locator('[data-composer-field]');
+  // The ready pulse plays on the visible model button under the composer.
+  const model = page.locator('[data-open-model]'), field = page.locator('[data-composer-field]');
   await page.evaluate(() => window.setVisualState('completed'));
   expect(await animation(model)).toBe('pool-optical-ready');
   await expect.poll(() => model.evaluate(node => getComputedStyle(node, '::after').opacity)).toBe('0');

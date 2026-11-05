@@ -34,7 +34,6 @@
   padding: var(--pool-size-4) var(--pool-size-16);
 }
 .chat-thread-info { min-width: 0; flex: 1; display: grid; gap: var(--pool-size-4); }
-.chat-model-control { max-width: 100%; justify-self: start; }
 .pool-home .chat-model-value { display: none !important; }
 .chat-model-choices { display: grid; gap: var(--pool-size-8); min-width: 0; margin: 0; padding: 0; }
 .chat-model-choice { display: flex; align-items: center; gap: var(--pool-size-12); min-height: var(--pool-size-56); padding: var(--pool-size-12) var(--pool-size-16); }
@@ -69,7 +68,11 @@
   padding-block: var(--pool-size-16);
 }
 .chat-message-stream, .chat-composer-area, .chat-error, .chat-history-handover, .chat-conversation-area > :is([data-production-shared], .production-surface) { width: min(100%, var(--pool-size-720)); align-self: center; margin-inline: auto; }
-.chat-conversation-area > :is([data-production-shared], .production-surface) { flex-shrink: 0; }
+.chat-conversation-area > .production-surface { flex-shrink: 0; }
+/* The chooser yields height before the composer does: its heading and status stay, its rows scroll. */
+.chat-conversation-area > [data-production-shared] { flex: 0 1 auto; min-height: 0; }
+.chat-conversation-area > [data-production-shared] > [data-production-available] { flex: 0 1 auto; min-height: 0; overflow-y: auto; }
+.chat-conversation-area > [data-production-shared] > [data-production-available]:empty { display: none; }
 .pool-home .chat-conversation-area > .production-surface { padding: 0; }
 .chat-transcript.chat-message-stream { width: min(100%, calc(var(--pool-size-720) + var(--pool-size-32))); padding-inline: var(--pool-size-16); }
 .chat-message-row { min-width: 0; width: 100%; display: grid; gap: var(--pool-size-8); }
@@ -139,6 +142,8 @@
 @media (max-width: 760px) {
   .reploid-chat-workspace { grid-template-columns: minmax(0, 1fr); gap: var(--pool-size-16); }
   .chat-thread-sidebar, .chat-conversation-area { padding: var(--pool-size-16); }
+  .chat-conversation-area { gap: var(--pool-size-16); }
+  .pool-home .chat-conversation-area > [data-production-shared] { padding: var(--pool-size-16); }
   .chat-thread-sidebar { gap: var(--pool-size-8); }
   .chat-thread-list { display: grid; overflow-y: auto; }
   .chat-thread-list:empty { display: none; }
@@ -197,7 +202,6 @@
 .chat-table-scroll { overflow-x: auto; max-width: 100%; }
 .chat-message-content table { border-collapse: collapse; }
 .chat-message-content :is(th, td) { padding: var(--pool-size-8); text-align: left; }
-[data-current-model] { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .pool-home > [data-shell-inspector] { display: contents; }
 .chat-attachments { max-height: 12dvh; overflow-y: auto; }
@@ -276,7 +280,6 @@
 .chat-threads-dialog .chat-rail-controls { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--pool-size-8); min-width: 0; flex: none; }
 .chat-threads-dialog .chat-conversation-actions > summary { display: flex; align-items: center; justify-content: flex-start; gap: var(--pool-size-8); width: 100%; min-width: 0; min-height: var(--pool-size-44); padding: var(--pool-size-8); }
 .chat-threads-dialog .chat-conversation-actions > div { position: static; width: 100%; max-width: 100%; max-height: 40dvh; margin-top: var(--pool-size-8); overflow-y: auto; }
-.chat-inspector-slot .chat-model-control, .chat-inspector-slot :is([data-active-model-select], [data-current-model]) { display: block; width: 100%; }
 .chat-thread-row { position: relative; display: block; width: 100%; min-width: 0; }
 .pool-home .chat-thread-row .chat-thread-item {
   display: grid; grid-template-columns: var(--pool-size-32) minmax(0, 1fr) auto; align-items: center; column-gap: var(--pool-size-8); row-gap: 0;
@@ -338,13 +341,6 @@
 .chat-composer-model svg { width: var(--pool-size-16); height: var(--pool-size-16); flex: none; }
 .chat-composer-model [data-model-digest] { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chat-message-row.is-user .chat-message-footer { justify-content: flex-end; }
-.pool-home .chat-inspector-slot:has([data-inspector-pane='model']:not([hidden])) {
-  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  /* A fixed height: switching models changes the details below the list, never the dialog. */
-  width: min(var(--pool-size-480), calc(100vw - var(--pool-size-32))); height: min(var(--pool-size-720), 70dvh);
-  z-index: var(--pool-z-8);
-}
-.pool-home[data-network-panel-open]:has([data-inspector-pane='model']:not([hidden])) .chat-conversation-area { display: flex; }
 
 .chat-message-system { display: block; margin: 0; }
 .chat-message-row[data-system-only="true"] .chat-message-footer { justify-content: flex-start; }
