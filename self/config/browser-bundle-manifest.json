@@ -1396,7 +1396,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 584994,
-      "sha256": "sha256:27ef4820ce79b9cab201f0049e2b89892fdc50591432f2e23c015c64b64bc5d1"
+      "sha256": "sha256:ba94f1c00ac4dd220073491ec663301adf1f31a38945b6ba45345fb2c3e56ef2"
     },
     {
       "path": "config/module-registry.json",
@@ -2005,8 +2005,8 @@
     },
     {
       "path": "host/work-model-files.js",
-      "byteLength": 33612,
-      "sha256": "sha256:47b50c83ff6ee66d5674366bdd5ba5db9c79f41063996d4d67d86003f1f6b54e"
+      "byteLength": 33934,
+      "sha256": "sha256:0b19cae1699d5e5e9ffdad7dcb18ed930dfc6515a97e86ad61d5de5f5c89ecec"
     },
     {
       "path": "host/work-partition-artifact-source.js",
@@ -3415,8 +3415,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2350066,
-      "sha256": "sha256:fa2815735d0c4a1acd22e2dad8b975af5752dfdec5e42e0b9c1e842fa9814a4b"
+      "byteLength": 2350109,
+      "sha256": "sha256:0d25cd8639fd09e76aab591c30d307d92b27db5c18f6ce93e3a35d85829e58db"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -11154,5 +11154,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:1a30efbdd3c8047bbcefb00e6a78d4192fd70608fe9f1fb73a85dedb63e15602"
+  "bundleHash": "sha256:0a783b59d16e2c24da828300ee1562960109a803dd2403106cf422616157e323"
 }

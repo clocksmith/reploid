@@ -66,3 +66,13 @@ it('leaves custody keys uncertified without a persistent identity', async () => 
   expect(await files.custodyCertificate()).toBeNull();
   await files.close();
 });
+
+it('finds no catalog store for an adapter artifact, even beside models whose files carry their own URLs', async () => {
+  const { catalogModelForFile } = await import('../../self/host/work-model-files.js');
+  const { LOCAL_DOPPLER_MODELS } = await import('../../self/config/doppler-local-models.js');
+  expect(LOCAL_DOPPLER_MODELS.some(model => model.source && !model.source.baseUrl)).toBe(true);
+  const adapter = LOCAL_DOPPLER_MODELS.flatMap(model => model.availableAdapters || [])[0].artifact;
+  expect(catalogModelForFile(adapter)).toBeNull();
+  const base = LOCAL_DOPPLER_MODELS.find(model => model.source?.baseUrl), manifest = base.source.files[0];
+  expect(catalogModelForFile({ ...manifest, url: new URL(manifest.path, base.source.baseUrl).href })?.id).toBe(base.id);
+});

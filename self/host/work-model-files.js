@@ -33,6 +33,12 @@ const decoder = new TextDecoder('utf-8', { fatal: true });
 /** `getIdentity` returns the persistent participant identity bundle. When present it certifies each
  * per-attach custody key (renewed at half-life), so this browser's deliveries are attributable;
  * without it custody keys stay unattributable. */
+/** The catalog model whose Doppler store holds this file. Models without a base URL (their files carry
+ * their own URLs) match only by path and hash; an adapter or other artifact matches none. */
+export const catalogModelForFile = (file, models = LOCAL_DOPPLER_MODELS) => models.find(model =>
+  model.source?.files.some(entry => entry.path === file.path && entry.hash === file.hash)
+  || !!model.source?.baseUrl && file.url === new URL(file.path, model.source.baseUrl).href) || null;
+
 export function createWorkModelFiles({ getTransport, getIdentity = () => null, onChange = () => {}, fetchImpl = globalThis.fetch }) {
   let exchange = null, checkpoints = null, attaching = null, closed = false, preparing = false, stopping = false;
   let directory = null, tooling = null, storageFactory = null, lastFile = null, error = '', progress = null;
@@ -124,8 +130,7 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
   // Doppler acquisition and mesh custody share the same pinned artifact identities.
   // Read the existing model store directly; never copy weights into a second cache.
   const dopplerCached = async file => {
-    const model = LOCAL_DOPPLER_MODELS.find(model => model.source.files.some(entry => entry.path === file.path && entry.hash === file.hash)
-      || file.url === new URL(file.path, model.source.baseUrl).href);
+    const model = catalogModelForFile(file);
     if (!model) return null;
     let reader;
     try {

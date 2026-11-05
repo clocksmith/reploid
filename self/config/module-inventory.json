@@ -2643,7 +2643,7 @@
     {
       "path": "self/host/work-model-files.js",
       "owner": "self",
-      "sha256": "sha256:47b50c83ff6ee66d5674366bdd5ba5db9c79f41063996d4d67d86003f1f6b54e",
+      "sha256": "sha256:0b19cae1699d5e5e9ffdad7dcb18ed930dfc6515a97e86ad61d5de5f5c89ecec",
       "imports": [
         "../config/chat-files.json",
         "../config/doppler-local-models.js",
@@ -3518,7 +3518,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:fa2815735d0c4a1acd22e2dad8b975af5752dfdec5e42e0b9c1e842fa9814a4b",
+      "sha256": "sha256:0d25cd8639fd09e76aab591c30d307d92b27db5c18f6ce93e3a35d85829e58db",
       "imports": []
     },
     {
