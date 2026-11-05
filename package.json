@@ -52,6 +52,8 @@
     "build:genesis": "node scripts/build-genesis-manifest.js",
     "build:blueprints": "node scripts/build-module-inventory.js && node scripts/build-blueprint-registry.js",
     "build:module-inventory": "node scripts/build-module-inventory.js",
+    "build:ownership-inventory": "node scripts/build-ownership-inventory.js",
+    "verify:ownership-inventory": "node scripts/build-ownership-inventory.js --check",
     "build:module-registry": "node scripts/build-module-registry.js",
     "build:vfs-manifest": "node scripts/build-vfs-manifest.js",
     "build:zero-source": "node scripts/build-zero-source.js",

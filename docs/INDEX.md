@@ -123,6 +123,9 @@ Typed model operations: [Doppler decisions in Reploid](doppler-choice-scoring.md
 
 ## Code Organization
 
+The [browser ownership inventory](./ownership-inventory.md) assigns every served browser file to
+`apps/poolday` (the Poolday product), `self` (the agent/VFS substrate) or `shared`, from its references.
+
 ```
 reploid/
 ├── self/                       # Browser application and public root
