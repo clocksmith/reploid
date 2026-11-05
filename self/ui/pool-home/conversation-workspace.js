@@ -15,6 +15,7 @@ import { renderHistoryHandover, bindHistoryHandover } from './history-handover-v
 import { createAutoDownload, updateAutoDownloadSetting } from './auto-download.js';
 import { renderSharedModelChooser, renderProductionContribution, bindProductionControls } from './contribution-models.js';
 import { renderModelProviders, updateModelProviders } from './model-providers.js';
+import { renderAdapterDetails, updateAdapterDetails, describeModelChoice } from './model-adapters.js';
 
 const busyAcquisition = state => state.acquisition?.phase === 'downloading';
 const selectable = model => ['ready', 'busy', 'cached', 'loading', 'preparing'].includes(model.availability);
@@ -27,9 +28,9 @@ const startingPrompts = [
 /** The selected model's value port. The picker's choices and the chooser's rows set it; nothing renders it. */
 const renderModelControl = () => '<span data-model-control><select class="pool-input pool-glass chat-model-value" id="chat-model" data-active-model-select aria-label="Model"></select></span>';
 
-/** The highlighted variant's routes and providers, its answer limit and where the answer runs. One place: the picker.
+/** The highlighted variant's adapter facts, routes and providers, its answer limit and where the answer runs. One place: the picker.
  * Declared weights, context and availability are read once, on the variant's own choice. */
-const renderModelSelectionDetails = () => `<div class="pool-stack pool-gap-xs" data-model-selection-details>${renderModelProviders()}<p class="pool-small pool-muted" data-answer-limit hidden></p><div class="chat-execution-location" data-execution-location role="group" aria-label="Execution location"><button class="pool-button btn-ghost" type="button" data-execution-choice="auto" aria-pressed="true">Automatic</button><button class="pool-button btn-ghost" type="button" data-execution-choice="local" aria-pressed="false">This device</button><button class="pool-button btn-ghost" type="button" data-execution-choice="network" aria-pressed="false">Network</button></div></div>`;
+const renderModelSelectionDetails = () => `<div class="pool-stack pool-gap-xs" data-model-selection-details><div class="chat-model-variant pool-stack pool-gap-xs" data-model-variant-details>${renderAdapterDetails()}${renderModelProviders()}</div><p class="pool-small pool-muted" data-answer-limit hidden></p><div class="chat-execution-location" data-execution-location role="group" aria-label="Execution location"><button class="pool-button btn-ghost" type="button" data-execution-choice="auto" aria-pressed="true">Automatic</button><button class="pool-button btn-ghost" type="button" data-execution-choice="local" aria-pressed="false">This device</button><button class="pool-button btn-ghost" type="button" data-execution-choice="network" aria-pressed="false">Network</button></div></div>`;
 
 export function renderConversationWorkspace({ inspector = true, compact = false } = {}) {
   return `<section class="reploid-chat-workspace" data-chat-workspace ${compact ? 'data-compact' : ''} aria-label="Conversation workspace">
@@ -112,8 +113,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const controller = new AbortController(), options = { signal: controller.signal };
   const input = find('[data-composer-input]'), modelSelect = find('[data-active-model-select]');
   const nextModelChoices = bindModelChoices(find('[data-next-model]'));
-  // The highlighted variant's routes and providers sit directly beneath its choice.
-  const providers = find('[data-model-picker] [data-model-providers]'), selectionDetails = find('[data-model-picker] [data-model-selection-details]');
+  // The highlighted variant's adapter facts, routes and providers sit directly beneath its choice.
+  const providers = find('[data-model-picker] [data-model-variant-details]'), selectionDetails = find('[data-model-picker] [data-model-selection-details]');
   const placeProviders = () => {
     const anchor = nextModelChoices.checkedChoice();
     if (anchor) { if (anchor.nextElementSibling !== providers) anchor.after(providers); }
@@ -240,8 +241,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       && (state.activeThread?.permissions?.executionLocation ?? executionLocation) !== 'local';
     find('[data-next-model]').disabled = changingModel;
     updateModelSelect(find('[data-next-model]'), models, { value: keyFor(pickerModel), showAvailability: true, grouped: true, preferNetwork });
-    nextModelChoices.update(models, { grouped: true, preferNetwork, variants: true });
-    // One entry per exact model/adapter variant; its whole-model and distributed routes and their providers sit below it.
+    nextModelChoices.update(models, { grouped: true, preferNetwork, variants: true, describe: describeModelChoice(state) });
+    // One entry per exact model/adapter variant, adapters beneath their base; the highlighted variant's adapter facts,
+    // whole-model and distributed routes and their providers sit below it.
+    updateAdapterDetails(find('[data-model-picker]'), state, selected || pickerModel);
     updateModelProviders(find('[data-model-picker]'), state, selected || pickerModel, { selectedId: keyFor(pickerModel), disabled: changingModel });
     placeProviders();
     const available = selected && selectable(selected);
@@ -348,6 +351,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     // the first attempt, without adding another panel.
     const statusText = busy ? '' : thread?.closed ? 'Restore this thread to continue.'
       : state.localModel?.error && !usable ? 'Model preparation failed: ' + state.localModel.error
+      : !usable && (selectedModel || models.find(model => keyFor(model) === current))?.adapters?.length && location !== 'local' ? 'No computer serves this adapter now. The base model is not used instead.'
       : !usable && location === 'network' ? 'No network capacity for this model. Local execution will not be used.'
       : !usable && location === 'local' ? 'Download this model to run it on this device.'
       : !usable && exhausted && canQueue && !queued ? 'No computer can answer. Send downloads a model to this device first.'

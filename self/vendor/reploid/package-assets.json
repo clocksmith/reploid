@@ -492,8 +492,8 @@
     },
     {
       "path": "chat/workspace.js",
-      "bytes": 45496,
-      "sha256": "2e2d5321811d4b2825dcd099804fc0a06350c336f98c4c440a64521101d4bf21"
+      "bytes": 45699,
+      "sha256": "076beb52b36ee17f5e2fe612ad8fd8c2b02a062d059c6f8e6a76f90433ca2dcc"
     },
     {
       "path": "config/defaults.json",
@@ -782,8 +782,8 @@
     },
     {
       "path": "mesh/legacy-generation.js",
-      "bytes": 29122,
-      "sha256": "4a948db452c7796b75ecc00f2eb5640192eec5aff1d7fd1a7f087058d51198ec"
+      "bytes": 29318,
+      "sha256": "cf93621bba6feea50b0c252b8ad270c2ae708e3ef5223b6322de2b32478d57b7"
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.d.ts",

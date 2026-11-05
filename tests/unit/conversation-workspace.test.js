@@ -295,8 +295,15 @@ describe('Conversation workspace', () => {
     expect(find('[data-next-model]').value).toBe(route.selectionId);
     expect(variantChoice().value).toBe(route.selectionId);
     expect(choices.querySelectorAll('.chat-model-choice input')).toHaveLength(2);
-    // The routes and providers sit directly beneath the highlighted variant's choice.
-    expect(variantChoice().closest('label').nextElementSibling).toBe(providers);
+    // The variant's adapter facts, routes and providers sit directly beneath the highlighted variant's choice.
+    expect(variantChoice().closest('label').nextElementSibling).toBe(find('[data-model-picker] [data-model-variant-details]'));
+    expect(variantChoice().closest('label').nextElementSibling.contains(providers)).toBe(true);
+    expect(find('[data-model-adapter-details]').textContent).toContain('1 adapter for this model');
+    // The adapter is nested beneath its base, with its own status, version and evidence.
+    const adapterChoice = choices.querySelector(`input[value="${adapted.selectionId}"]`).closest('label');
+    expect(adapterChoice.hasAttribute('data-choice-adapter')).toBe(true);
+    expect(adapterChoice.querySelector('[data-choice-status]').textContent).toBe('No computer serves it now');
+    expect(adapterChoice.querySelector('[data-choice-note]').textContent).toBe('No evaluation evidence');
     expect(find('[data-change-model]').disabled).toBe(false);
     find('[data-change-model]').click();
     return vi.waitFor(() => expect(find('[data-model-digest]').textContent).toBe(`${base.name} · Distributed layers`));

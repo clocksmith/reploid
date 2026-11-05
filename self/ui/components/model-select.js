@@ -59,8 +59,28 @@ export function modelVariants(models, { value = null, preferNetwork = true } = {
   });
 }
 
+/** An adapter variant's base is the variant of the same exact model artifact with no adapter. Entries are grouped
+ * into families: a base model followed by its adapter variants, placed in the group of the family's most usable member.
+ * An adapter whose base variant is absent stands alone. Compatibility was settled by the catalog's declared identity. */
+const familyRank = model => isSharedModelChoice(model) ? ({ ready: 0, busy: 1 }[model.networkAvailability] ?? 2)
+  : model.localReady || model.localCached || model.availability === 'cached' ? 3 : model.source && !model.partition && !model.adapters?.length ? 4 : 5;
+export function modelFamilies(entries) {
+  const bases = new Map(entries.filter(entry => !entry.model.adapters?.length)
+    .map(entry => [JSON.stringify([entry.model.id, entry.model.identity ?? null]), { base: entry, adapters: [] }]));
+  const families = [...bases.values()];
+  for (const entry of entries) {
+    if (!entry.model.adapters?.length) continue;
+    const family = bases.get(JSON.stringify([entry.model.id, entry.model.identity ?? null]));
+    if (family) family.adapters.push(entry); else families.push({ base: entry, adapters: [] });
+  }
+  return families.map(family => ({ ...family, members: [family.base, ...family.adapters],
+    lead: [family.base, ...family.adapters].reduce((best, entry) => familyRank(entry.model) < familyRank(best.model) ? entry : best).model }));
+}
+const ownGroup = (model, preferNetwork) => modelChoiceGroups([model], { preferNetwork })[0]?.id;
+
 /** Native radios keep keyboard selection; the select remains the caller's value port.
- * With `variants`, one radio stands for an exact model/adapter variant and its routes stay with the caller. */
+ * With `variants`, one radio stands for an exact model/adapter variant and its routes stay with the caller;
+ * adapter variants sit directly beneath their base model. `describe(model)` may return { status, facts, note } for a choice. */
 export function bindModelChoices(select) {
   const group = document.createElement('fieldset');
   group.className = 'chat-model-choices pool-bare';
@@ -75,13 +95,14 @@ export function bindModelChoices(select) {
   };
   group.addEventListener('change', change);
   return {
-    update(models, { grouped = false, preferNetwork = true, variants = false } = {}) {
+    update(models, { grouped = false, preferNetwork = true, variants = false, describe = null } = {}) {
       group.hidden = select.hidden;
       const active = group.contains(document.activeElement) ? document.activeElement : null;
       const entries = variants ? modelVariants(models, { value: select.value, preferNetwork })
         : models.map(model => ({ key: model.selectionId || model.id, model, ids: [model.selectionId || model.id], value: model.selectionId || model.id }));
-      const byModel = new Map(entries.map(entry => [entry.model, entry]));
-      const sections = grouped ? modelChoiceGroups(entries.map(entry => entry.model), { preferNetwork }) : [{ id: 'all', models: entries.map(entry => entry.model) }];
+      const families = variants ? modelFamilies(entries) : entries.map(entry => ({ base: entry, adapters: [], members: [entry], lead: entry.model }));
+      const byLead = new Map(families.map(family => [family.lead, family]));
+      const sections = grouped ? modelChoiceGroups(families.map(family => family.lead), { preferNetwork }) : [{ id: 'all', models: families.map(family => family.lead) }];
       const keys = new Set(entries.map(entry => entry.key));
       // Only this group's own choices; a caller may place other controls beneath a choice.
       for (const label of [...group.querySelectorAll('label[data-choice-key]')]) {
@@ -102,25 +123,31 @@ export function bindModelChoices(select) {
           const position = group.querySelectorAll(':scope > [data-choice-group]')[sectionIndex];
           if (position !== parent) group.insertBefore(parent, position || null);
         }
-        section.models.forEach((model, index) => {
-          const entry = byModel.get(model);
+        section.models.flatMap(lead => byLead.get(lead).members.map(entry => [entry, byLead.get(lead).base !== entry])).forEach(([entry, nested], index) => {
+          const model = entry.model;
           let label = [...group.querySelectorAll('label[data-choice-key]')].find(item => item.dataset.choiceKey === entry.key);
           if (!label) {
             label = document.createElement('label');
             label.className = 'chat-model-choice pool-button btn-ghost pool-choice';
             label.dataset.choiceKey = entry.key;
-            label.innerHTML = '<input type="radio"><span><span data-choice-name></span><small class="pool-muted" data-choice-status></small><small class="pool-muted" data-choice-facts hidden></small></span>';
+            label.innerHTML = '<input type="radio"><span><span data-choice-name></span><small class="pool-muted" data-choice-status></small><small class="pool-muted" data-choice-facts hidden></small><small class="pool-muted" data-choice-note hidden></small></span>';
             label.querySelector('input').name = name;
             parent.append(label);
           }
+          label.toggleAttribute('data-choice-adapter', nested);
           const input = label.querySelector('input');
           input.value = entry.value;
           input.checked = entry.ids.includes(select.value);
           input.disabled = select.disabled;
           label.querySelector('[data-choice-name]').textContent = variants ? modelVariantLabel(model) : modelSelectionLabel(model);
-          label.querySelector('[data-choice-status]').textContent = grouped ? choiceStatus(model, section.id) : availabilityLabel(model);
-          const facts = modelFacts(model), factsNode = label.querySelector('[data-choice-facts]');
+          // Each family member reports its own availability, which may differ from its family's group.
+          const described = describe?.(model) || {};
+          label.querySelector('[data-choice-status]').textContent = described.status
+            ?? (grouped ? choiceStatus(model, ownGroup(model, preferNetwork)) : availabilityLabel(model));
+          const facts = described.facts ?? modelFacts(model), factsNode = label.querySelector('[data-choice-facts]');
           factsNode.textContent = facts; factsNode.hidden = !facts;
+          const noteNode = label.querySelector('[data-choice-note]');
+          noteNode.textContent = described.note || ''; noteNode.hidden = !described.note;
           const position = parent.querySelectorAll(':scope > label[data-choice-key]')[index];
           if (position !== label) parent.insertBefore(label, position || null);
         });

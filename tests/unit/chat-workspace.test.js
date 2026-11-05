@@ -242,6 +242,28 @@ describe('conversation workspace', () => {
     await app.close();
   });
 
+  it('records the checked adapter on the answer and retries with the same adapter after no provider served it', async () => {
+    const adapter = { id: 'specialist', identity: 'sha256:' + 'c'.repeat(64) };
+    const requests = [];
+    const { app, store } = fixture(async request => {
+      requests.push(request.model.adapters.map(item => item.identity));
+      if (requests.length === 1) throw new Error('No contributor serves the requested adapter. The base model was not used.');
+      // A distributed route reports placement without adapter identities; the workspace records the checked ones.
+      return { ...result(request, 'Adapted answer'), execution: { provider: 'peer', placement: 'peer-whole-request', peerId: 'peer:provider' } };
+    });
+    const thread = app.createThread({ model: { ...model, adapters: [adapter] } });
+    const failed = await app.send(thread, 'Use my selected specialist');
+    expect(failed).toMatchObject({ status: 'failed', error: 'No contributor serves the requested adapter. The base model was not used.' });
+    expect(app.getState().threads[0].messages.at(-1).content).toBe('');
+    const retried = await app.retry(thread, failed.id);
+    expect(retried.status).toBe('completed');
+    expect(requests).toEqual([[adapter.identity], [adapter.identity]]);
+    const saved = store.load().threads[0].attempts;
+    expect(saved.at(-1)).toMatchObject({ retryOf: failed.id, execution: { adapterIdentities: [adapter.identity] } });
+    expect(saved.at(-1).request.model.adapters).toEqual([adapter]);
+    await app.close();
+  });
+
   it.each(['max-tokens', 'length', 'context-limit'])('retains %s output as incomplete instead of declaring success', async stopReason => {
     const { app, store } = fixture(async (request, controls) => {
       controls.onDelta({ ...result(request, ''), text: 'unfinished answer', sequence: 0 });

@@ -16,6 +16,17 @@ export function hardwareText(value) {
   return identity.length ? identity.join(' · ') : reported(hardware?.description) ? hardware.description : null;
 }
 export const RECORDED_GPU_TITLE = 'Reported by the computer that produced this answer and saved with it. Not verified.';
+/** The adapter a completed answer records as executed, named from the request it was checked against.
+ * Null when neither the request nor the record names an adapter. */
+export function recordedAdapterText(attempt, model) {
+  if (attempt?.status !== 'completed') return null;
+  const requested = model?.adapters || [], recorded = attempt.execution?.adapterIdentities;
+  if (!Array.isArray(recorded)) return requested.length ? 'Adapter not recorded' : null;
+  return recorded.map(identity => {
+    const adapter = requested.find(item => item.identity === identity);
+    return [adapter?.name || 'Unnamed adapter', adapter?.manifest?.version ? `v${adapter.manifest.version}` : null, identity].filter(Boolean).join(' · ');
+  }).join('; ') || (requested.length ? 'No adapter recorded' : null);
+}
 const orderedTiming = (execution, index) => {
   const summary = execution?.stepSummary;
   if (summary) {
@@ -68,7 +79,7 @@ export function projectExecutionRibbon(state) {
   return { key: attempt ? `${thread.id}:${attempt.id}` : null, thread, attempt, execution, requester, local, split, ordered: !!ordered, executors,
     planId: ordered?.planId || execution?.planId,
     requesterExecutes: executors.some(node => node.id === requester),
-    model: executors.length ? thread.model.name : null, status, statusLabel: labels[status] || status,
+    model: executors.length ? thread.model.name : null, adapter: recordedAdapterText(attempt, thread?.model), status, statusLabel: labels[status] || status,
     response, active: !!active, totalMs: measured(attempt?.finishedAt) && measured(attempt?.createdAt) ? attempt.finishedAt - attempt.createdAt : null,
     transferMs: sum(execution?.steps, 'transferMs'), activationBytes: measured(execution?.activationBytes) ? execution.activationBytes : null };
 }
@@ -96,7 +107,7 @@ export function detailMarkup(view) {
   const { attempt, execution, executors } = view;
   return `${attempt?.error ? `<p role="alert">${escape(attempt.error)}</p>` : ''}
     <dl><dt>Requester / output recipient</dt><dd>${escape(view.requester)}</dd>
-    <dt>Model</dt><dd>${escape(view.model || 'No executor assigned')}</dd>
+    <dt>Model</dt><dd>${escape(view.model || 'No executor assigned')}</dd>${view.adapter ? `<dt>Recorded adapter</dt><dd>${escape(view.adapter)}</dd>` : ''}
     <dt>Attempt duration</dt><dd>${ms(view.totalMs)}${view.totalMs === null && view.active ? ' · in progress' : ''}</dd>
     <dt>Activation transfer</dt><dd>${view.activationBytes === null ? 'Not reported' : `${view.activationBytes.toLocaleString()} bytes`} · ${ms(view.transferMs)}</dd></dl>
     ${executors.length ? `<ul>${executors.map(node => `<li><strong>${escape(node.label)}</strong><code>${escape(node.id)}</code><dl>

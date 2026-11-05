@@ -135,3 +135,46 @@ test('phone thread drawer preserves drafts, streaming nodes, and isolated Stop',
   await expect(threads).toHaveJSProperty('open', false);
   await expect(page.locator('[data-toggle-thread-rail]')).toBeFocused();
 });
+
+test('picker lists the catalog adapter beneath its base with purpose, version, availability and evidence', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/'); await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+  const adapter = await page.evaluate(async () => {
+    window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: false }));
+    document.querySelector('[data-shell-inspector]')?.remove();
+    const { createChatSession, CANONICAL_CHAT_MODELS } = await import('/host/chat-session.js');
+    const { renderConversationWorkspace, bindConversationWorkspace } = await import('/ui/pool-home/conversation-workspace.js');
+    const base = CANONICAL_CHAT_MODELS.find(model => model.availableAdapters?.length), entry = base.availableAdapters[0];
+    let peers = [];
+    const session = createChatSession({ storage: null, swarm: { getState: () => ({ consumer: { peers } }) } });
+    const root = document.querySelector('.pool-route-content'); root.innerHTML = renderConversationWorkspace();
+    const dispose = bindConversationWorkspace(root, session);
+    window.adapterPickerFixture = {
+      serve(on) { peers = on ? [{ peerId: 'fixture-adapter', model: base.id, modelIdentity: base.identity, readiness: 'ready', hasInference: true,
+        availableSlots: 1, adapterIdentities: [entry.identity] }] : []; session.refreshNetwork(); },
+      async close() { dispose(); await session.close(); }
+    };
+    return { selectionId: base.id + '/' + entry.id, name: entry.name, version: entry.manifest.version, purpose: entry.purpose.statement };
+  });
+  await page.locator('[data-open-model]').click();
+  const choice = page.locator(`[data-model-picker] .chat-model-choice:has(input[value="${adapter.selectionId}"])`);
+  await expect(choice).toHaveAttribute('data-choice-adapter', '');
+  await expect(choice.locator('[data-choice-status]')).toHaveText('No computer serves it now');
+  await expect(choice.locator('[data-choice-facts]')).toHaveText(`Adapter · v${adapter.version}`);
+  await expect(choice.locator('[data-choice-note]')).toHaveText('No evaluation evidence');
+  await choice.locator('input').check();
+  const details = page.locator('[data-model-picker] [data-model-adapter-details]');
+  await expect(details.locator('[data-adapter-purpose]')).toContainText(adapter.purpose);
+  await expect(details.locator('[data-adapter-evidence]')).toHaveText('Evaluation: No evaluation evidence');
+  await expect(details.locator('[data-adapter-availability]')).toContainText('the base model is not used instead');
+  await expect(page.locator('[data-change-model]')).toBeDisabled();
+  await page.evaluate(() => window.adapterPickerFixture.serve(true));
+  await expect(choice.locator('[data-choice-status]')).toHaveText('Ready');
+  await expect(details.locator('[data-adapter-availability]')).toHaveText('Served now by 1 computer');
+  await page.locator('[data-model-picker] [data-model-providers] summary').click();
+  await expect(page.locator('[data-model-picker] [data-provider-list]')).toContainText('Whole model');
+  await expect(page.locator('[data-change-model]')).toBeEnabled();
+  await page.locator('[data-change-model]').click();
+  await expect(page.locator('[data-model-digest]')).toHaveText(adapter.name);
+  await page.evaluate(() => window.adapterPickerFixture.close());
+});

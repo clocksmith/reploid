@@ -13,6 +13,7 @@ import { createRemoteAccessPreference } from './chat-remote-permission.js';
 import { projectChatCatalog, projectChatPlacements, selectAvailableChatModel } from './chat-view.js';
 import { createChatDrafts } from './chat-drafts.js';
 import { createChatContext } from './chat-context.js';
+import { createAdapterEvidence } from './adapter-evidence.js';
 import { attachmentInput, comparisonInput, comparisonSources, comparisonExport, COMPARISON_CHECK } from './document-comparison.js';
 import { readonlyView } from './readonly-view.js';
 import profile from '../config/work-profile.json' with { type: 'json' };
@@ -73,6 +74,8 @@ export function createChatSession({
   retrieval = null,
   // Spending for partition attempts (earning/attempts.js); none unless the host configures an earning client.
   earning = null,
+  // Reads declared adapter evaluation files; only verified passing receipts label an adapter evaluated.
+  fetchEvidence = globalThis.fetch?.bind(globalThis),
   now = Date.now,
   id = () => crypto.randomUUID()
 } = {}) {
@@ -102,6 +105,7 @@ export function createChatSession({
   const assertOpen = () => assert(!closed, 'Chat session is closed');
 
   let peerModels = [];
+  const adapterEvidence = createAdapterEvidence({ models, fetchImpl: fetchEvidence, onChange: () => notifyAll() });
   let cachedModels = [], failedLocalModel = null;
   const downloadSizes = new Map();
   const isCached = model => failedLocalModel !== model.id && !model.partition && !model.adapters?.length
@@ -260,7 +264,8 @@ export function createChatSession({
       scheduler: execution.getState(),
       placements: projectChatPlacements(wsState.threads),
       history: historyState,
-      remotePermissions: copy(remotePermissions), remoteNetworkId: currentNetwork(), remoteAnswersEnabled: remoteAccess.enabled()
+      remotePermissions: copy(remotePermissions), remoteNetworkId: currentNetwork(), remoteAnswersEnabled: remoteAccess.enabled(),
+      adapterEvidence: adapterEvidence.snapshot()
     });
   };
 
@@ -561,7 +566,7 @@ export function createChatSession({
     },
     close() {
       if (closing) return closing;
-      closed = true; clearTimeout(discoveryDeadline); acquisition.cancel();
+      closed = true; clearTimeout(discoveryDeadline); acquisition.cancel(); adapterEvidence.close();
       for (const operation of comparisons.values()) operation.controller.abort();
       discovering = false;
       closing = Promise.resolve().then(async () => {

@@ -15,8 +15,12 @@ export function selectAvailableChatModel(models, preference, location = 'auto') 
   return null;
 }
 
+/** A base model's compatible adapters: those declaring its exact artifact identity. Names never decide compatibility. */
+export const compatibleAdapters = model => (model.availableAdapters || []).filter(adapter => typeof adapter?.id === 'string' && adapter.id
+  && /^sha256:[a-f0-9]{64}$/.test(adapter.identity) && /^sha256:[a-f0-9]{64}$/.test(model.identity || '') && adapter.baseModelIdentity === model.identity);
+
 export function projectChatCatalog({ models, peers, partitionModels }) {
-  const selections = models.flatMap(model => [model, ...(model.availableAdapters || []).map(adapter => ({
+  const selections = models.flatMap(model => [model, ...compatibleAdapters(model).map(adapter => ({
     ...model, name: adapter.name, selectionId: model.id + '/' + adapter.id, adapters: [adapter]
   }))]);
   const routes = [...partitionModels];

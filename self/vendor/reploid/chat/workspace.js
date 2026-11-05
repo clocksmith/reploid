@@ -391,6 +391,8 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
           : !response.content || result.content === response.content, 'Completed response differs from its stream');
         if (transactional) await store.assertCurrentWriter();
         attempt.execution = copy(result.execution || attempt.execution);
+        // The answer record names the exact adapters that ran, as checked against the request above.
+        if (attempt.execution) attempt.execution.adapterIdentities = copy(result.adapterIdentities);
         const refusal = refusalOf(attempt.execution);
         assert(!refusal, refusal);
         response.content = result.content;

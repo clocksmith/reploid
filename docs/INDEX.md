@@ -107,6 +107,7 @@ Typed model operations: [Doppler decisions in Reploid](doppler-choice-scoring.md
 - **[docs/poolday/participation-identity-routing.md](./poolday/participation-identity-routing.md)** - Request/contribute modes, device identity, artifact authority, and deterministic routing
 - **[docs/poolday/reputation-ledger.md](./poolday/reputation-ledger.md)** - Event-sourced reputation reducer contract
 - **[docs/multi-model-evaluation.md](./multi-model-evaluation.md)** - Generic LLM evaluation harness, not Poolday promotion evidence
+- **[docs/adapters.md](./adapters.md)** - Catalog adapters: picker facts, identity through an answer, preparation, serving and held-out evaluation
 - **[docs/intent-bundle-lora.md](./intent-bundle-lora.md)** - Intent bundle LoRA workflow
 - **[docs/trained-adapter-promotion.md](./trained-adapter-promotion.md)** - Tinker adapter evidence, Shadow staging, and human-only promotion
 - **[docs/archive/reploid-descriptor-peer-orchestration.md](./archive/reploid-descriptor-peer-orchestration.md)** - Archived layer-pipelining research; not the current Poolday execution contract

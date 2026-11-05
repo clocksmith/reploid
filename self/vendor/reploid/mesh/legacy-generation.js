@@ -517,7 +517,9 @@ export function createLegacyGenerationMesh({ config, ports }) {
     await initialize();
     const provider = await chooseProvider(modelId, signal, modelIdentity, adapterIdentities);
     if (!provider?.peerId || !swarmTransport || !identityBundle) {
-      throw new Error('No remote host slot available');
+      // An adapter request never falls back to the base model or another adapter.
+      throw new Error(adapterIdentities.length ? 'No contributor serves the requested adapter. The base model was not used.'
+        : 'No remote host slot available');
     }
 
     // Bind automatic selection to the selected advertisement, not an open-ended request.

@@ -394,3 +394,15 @@ it('does not regress observed preparation or execution on delayed advertisements
   expect(f.mesh.getSwarmSnapshot().peers[0]).toMatchObject({ readiness: 'ready', activity: { phase: 'executing', completed: 2 } });
   await f.mesh.close();
 });
+
+it('fails visibly when no peer serves the requested adapter instead of dispatching to a base-model peer', async () => {
+  const adapter = 'sha256:' + 'd'.repeat(64);
+  const f = fixture({ generationTimeoutMs: 1000 });
+  await f.mesh.connect();
+  try {
+    f.advertise('base-only', 'qwen', { modelIdentity: 'sha256:' + 'e'.repeat(64), adapterIdentities: [] });
+    await expect(f.mesh.generate([], null, { modelId: 'qwen', adapterIdentities: [adapter] }))
+      .rejects.toThrow('No contributor serves the requested adapter. The base model was not used.');
+    expect(f.sent).toEqual([]);
+  } finally { await f.mesh.close(); }
+});

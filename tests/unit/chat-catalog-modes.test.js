@@ -20,3 +20,15 @@ it('replaces the declared route with prepared discovery while preserving whole-m
   expect(catalog).toHaveLength(2); expect(catalog[0].availability).toBe('unavailable');
   expect(catalog[1]).toEqual(route);
 });
+it('offers an adapter only under the base artifact it declares, whatever its name says', () => {
+  const identity = letter => 'sha256:' + letter.repeat(64);
+  const base = { id: 'base', name: 'Base model', identity: identity('a'), adapters: [], availableAdapters: [
+    { id: 'declared', name: 'Base model specialist', identity: identity('b'), baseModelIdentity: identity('a') },
+    { id: 'other-base', name: 'Base model specialist too', identity: identity('c'), baseModelIdentity: identity('d') },
+    { id: 'unidentified', name: 'Base model helper', identity: 'unknown', baseModelIdentity: identity('a') }] };
+  const peers = [{ peerId: 'peer', model: 'base', modelIdentity: identity('a'), readiness: 'ready', hasInference: true, availableSlots: 1,
+    adapterIdentities: [identity('b'), identity('c')] }];
+  const catalog = projectChatCatalog({ models: [base], peers, partitionModels: [] });
+  expect(catalog.map(row => row.selectionId || row.id)).toEqual(['base', 'base/declared']);
+  expect(catalog[1]).toMatchObject({ availability: 'ready', providerIds: ['peer'], adapters: [{ id: 'declared' }] });
+});

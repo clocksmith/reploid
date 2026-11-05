@@ -43,6 +43,12 @@
         "identity": "sha256:dc0248f45553e69defd8a1846619443f1ac5902a118548c70a7254c21f66f64b",
         "baseModelIdentity": "sha256:6788ca6b95e2fe3dd27a057042cd3b543e4b8d2fcdc433bcfe218148feb82a4e",
         "weightsLayout": "peft",
+        "purpose": {
+          "statement": "Extracts people, places and dates from one sentence as strict JSON.",
+          "source": "publisher",
+          "url": "https://huggingface.co/Mike0021/qwen35-0.8b-ner-json-lora/blob/6d4e4cf3ebe7d8df10897b9f44cbf1e647386bcb/README.md"
+        },
+        "evaluation": null,
         "artifact": {
           "artifactId": "qwen35-0-8b-ner-json-lora",
           "role": "adapter",

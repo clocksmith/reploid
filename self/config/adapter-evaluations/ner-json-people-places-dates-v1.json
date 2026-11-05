@@ -1,0 +1,142 @@
+{
+  "schema": "reploid.adapter-evaluation-spec/v1",
+  "id": "ner-json-people-places-dates/v1",
+  "frozenAt": "2026-11-05",
+  "task": {
+    "id": "ner-json-people-places-dates",
+    "description": "Extract people, places and dates from one English sentence as strict JSON. This is the task the catalog's Qwen 3.5 0.8B adapter's publisher states; the spec applies to an adapter for any base model.",
+    "prompt": {
+      "system": "Extract named entities from the sentence. Return strict JSON only with keys people, places, dates. Each value must be an array of strings. Use [] when empty.",
+      "user": "Sentence: {input}"
+    },
+    "output": {
+      "format": "json-object",
+      "keys": [
+        "people",
+        "places",
+        "dates"
+      ]
+    }
+  },
+  "data": {
+    "source": {
+      "dataset": "tner/ontonotes5",
+      "revision": "cf9ef57ad260810be1298ba795d83c09a915e959",
+      "url": "https://huggingface.co/datasets/tner/ontonotes5/tree/cf9ef57ad260810be1298ba795d83c09a915e959/dataset",
+      "license": "OntoNotes Release 5.0 (LDC2013T19) terms; the Hugging Face card declares license 'other'. Training and evaluation operators must hold the LDC terms. Item lists here carry digests only, never text."
+    },
+    "labelMapping": {
+      "PERSON": "people",
+      "GPE": "places",
+      "LOC": "places",
+      "FAC": "places",
+      "DATE": "dates"
+    },
+    "training": {
+      "use": "Adapter training only.",
+      "files": [
+        {
+          "path": "dataset/train00.json",
+          "sha256": "sha256:17fc5d11878f40da8a8c9541817a6d51e9ecbedb551fa97b386651e20574976b",
+          "rows": 15000
+        },
+        {
+          "path": "dataset/train01.json",
+          "sha256": "sha256:ab856c076c56d90720d5a109ef3ab1162aab84b71a917947e72d9cfd85550335",
+          "rows": 15000
+        },
+        {
+          "path": "dataset/train02.json",
+          "sha256": "sha256:0e0536853905feea3b71e5e6ae7556fed63b2ccf1441b667dbaf85175d344af4",
+          "rows": 15000
+        },
+        {
+          "path": "dataset/train03.json",
+          "sha256": "sha256:53052ea6a342dfb5ac24706bc0e8ffc39abfb39136d7895c43ebb36a6ac13269",
+          "rows": 14924
+        }
+      ]
+    },
+    "selection": {
+      "use": "Checkpoint and hyperparameter selection only; never scored here.",
+      "files": [
+        {
+          "path": "dataset/valid.json",
+          "sha256": "sha256:c4d1f34256d7a5607b1620db5dfda9333330c4ddc53a8362441c6825a116e010",
+          "rows": 8528
+        }
+      ]
+    },
+    "heldOut": {
+      "use": "Scored once per receipt. Sentences whose normalized text appears in training or selection files are excluded.",
+      "files": [
+        {
+          "path": "dataset/test.json",
+          "sha256": "sha256:9e588e1b8f41fa718790d93379c94f950961add088fd22ac6b8a809940bf43c1",
+          "rows": 8262
+        }
+      ],
+      "method": "dedupe-normalized-sentences-then-seeded-stratified-sample",
+      "seed": 20261105,
+      "withEntities": 850,
+      "withoutEntities": 150,
+      "items": {
+        "count": 1000,
+        "sha256": "sha256:54ac901145d231de43bb404b96b1b58e71a4d22c2f12c5b13081cf873fa715d7"
+      }
+    }
+  },
+  "retention": {
+    "use": "General capability the adapter must not lose: grade-school arithmetic word problems.",
+    "source": {
+      "dataset": "openai/grade-school-math (GSM8K)",
+      "revision": "3101c7d5072418e28b9008a6636bde82a006892c",
+      "url": "https://github.com/openai/grade-school-math/tree/3101c7d5072418e28b9008a6636bde82a006892c/grade_school_math/data",
+      "license": "MIT"
+    },
+    "files": [
+      {
+        "path": "grade_school_math/data/test.jsonl",
+        "sha256": "sha256:3730d312f6e3440559ace48831e51066acaca737f6eabec99bccb9e4b3c39d14",
+        "rows": 1319
+      }
+    ],
+    "method": "seeded-sample",
+    "seed": 20261106,
+    "prompt": "Solve the problem. Show brief working, then end with the final number on its own line.\n\n{input}",
+    "metric": "final-number-exact-match",
+    "maximumRegression": 0.02,
+    "items": {
+      "count": 500,
+      "sha256": "sha256:7e082242567b112c7742c9ad29b135704e5f007c4488b3f0e002c71623325869"
+    }
+  },
+  "metrics": {
+    "task": {
+      "id": "entity-micro-f1",
+      "definition": "Micro F1 over people, places and dates. An output counts only if the whole reply (optionally inside one Markdown code fence) parses as a JSON object with exactly those three keys, each an array of strings; otherwise every gold entity is a miss. Entities match per key by case-folded NFKC text with whitespace removed, as multisets.",
+      "minimumCandidate": 0.85,
+      "minimumGain": 0.05,
+      "bootstrap": {
+        "resamples": 2000,
+        "seed": 7,
+        "level": 0.95,
+        "minimumLowerBound": 0
+      }
+    },
+    "validity": {
+      "id": "json-valid-rate",
+      "minimumCandidate": 0.99
+    }
+  },
+  "generation": {
+    "temperature": 0,
+    "topK": 1,
+    "maxTokens": 512,
+    "useChatTemplate": true
+  },
+  "independence": {
+    "evaluatorDistinctFromTrainer": true,
+    "note": "The evaluator runs the frozen prompts through Doppler for the base model and the exact adapter identity, then scores with scripts/adapter-evaluation.js. Training never reads held-out or retention files."
+  }
+}

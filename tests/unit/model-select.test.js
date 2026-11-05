@@ -42,3 +42,22 @@ it('keeps on-device choices first when the caller has an explicit local executio
   expect([...select.options].map(option => option.value)).toEqual(['local', 'ready', 'busy', 'download']);
   expect([...document.querySelectorAll('input')].map(input => input.value)).toEqual(['local', 'ready', 'busy', 'download']); choices.dispose();
 });
+
+it('places a model family in its most usable member’s group, with each adapter beneath its base', () => {
+  const select = document.querySelector('select'), choices = bindModelChoices(select);
+  const identity = 'sha256:' + 'a'.repeat(64);
+  const family = [
+    { id: 'base', name: 'Base', identity, source: {}, availability: 'unavailable', adapters: [] },
+    { id: 'base', selectionId: 'base/adapter', name: 'Base adapter', identity, adapters: [{ identity: 'sha256:' + 'b'.repeat(64) }],
+      networkAvailability: 'ready', availability: 'ready' }
+  ];
+  choices.update([...models, ...family], { grouped: true, variants: true });
+  expect([...document.querySelectorAll('input')].map(input => input.value)).toEqual(['ready', 'base', 'base/adapter', 'busy', 'local', 'download']);
+  const adapter = document.querySelector('input[value="base/adapter"]').closest('label');
+  expect(adapter.hasAttribute('data-choice-adapter')).toBe(true);
+  expect(adapter.closest('[data-choice-group]').dataset.choiceGroup).toBe('shared');
+  expect(adapter.querySelector('[data-choice-status]').textContent).toBe('Ready');
+  // The base keeps its own status inside its family's group.
+  expect(document.querySelector('input[value="base"]').closest('label').querySelector('[data-choice-status]').textContent).toBe('Download required');
+  choices.dispose();
+});

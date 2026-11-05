@@ -352,3 +352,6 @@ label.chat-model-route-heading { cursor: pointer; }
 
 .chat-message-system { display: block; margin: 0; }
 .chat-message-row[data-system-only="true"] .chat-message-footer { justify-content: flex-start; }
+/* An adapter choice sits beneath its base model's choice. */
+.chat-model-choice[data-choice-adapter] { margin-left: var(--pool-size-24); }
+.chat-model-adapter > p { margin: 0; overflow-wrap: anywhere; }
