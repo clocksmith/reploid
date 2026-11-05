@@ -99,13 +99,13 @@ export function projectProduction(state) {
     cancellationPending: contribution.unsettledOwners > 0 || network.unsettledOwners > 0 };
 }
 
-export function renderSharedModelChooser() {
+export function renderSharedModelChooser(selectionDetails = '') {
   return `<section class="pool-card pool-stack pool-gap-md" aria-label="Shared models" data-production-shared>
     <header class="pool-row pool-row-between"><h1 class="pool-title">Choose a model</h1><button class="pool-button btn-ghost pool-small" type="button" data-production-network>Computers</button></header>
     <p class="pool-small pool-muted" data-production-network-status role="status"></p>
     <p class="pool-small" data-production-shared-error role="alert" hidden></p>
     <ul class="pool-list pool-stack pool-gap-sm" data-production-available></ul>
-    <div class="pool-stack pool-gap-xs" data-shared-selection-slot></div>
+    <div class="pool-stack pool-gap-xs" data-shared-selection-slot>${selectionDetails}</div>
     <div class="pool-row"><button class="pool-button btn-ghost pool-small" type="button" data-production-retry>Retry</button></div>
   </section>`;
 }

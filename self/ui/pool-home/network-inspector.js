@@ -19,6 +19,8 @@ export function renderInspectorNavigation() {
     </nav>`;
 }
 
+export const renderModelSelectionDetails = ({ copy = false, execution = false } = {}) => `<div data-model-selection-details${copy ? ' data-model-details-copy' : ''}><p class="pool-small pool-muted" data-model-empty hidden>No models are available. Connect to the network or prepare a model in Computers.</p><dl class="chat-model-facts pool-small" data-model-facts hidden></dl><p class="pool-small pool-muted" data-answer-limit hidden></p><p class="pool-small pool-muted" ${copy ? '' : 'id="chat-model-status"'} data-model-status role="status" hidden></p>${execution ? `<div data-execution-settings hidden><div class="chat-execution-location" data-execution-location role="group" aria-label="Execution location"><button class="pool-button btn-ghost" type="button" data-execution-choice="auto" aria-pressed="true">Automatic</button><button class="pool-button btn-ghost" type="button" data-execution-choice="local" aria-pressed="false">This device</button><button class="pool-button btn-ghost" type="button" data-execution-choice="network" aria-pressed="false">Network</button></div></div>` : ''}</div>`;
+
 /**
  * The inspector dialog with every pane's content rendered in its final place. Route
  * content that belongs to a pane (the active-model control, the Settings menu's app
@@ -31,7 +33,7 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
     ${navigation ? renderInspectorNavigation() : ''}
     <dialog class="network-inspector${material} pool-small" data-contextual-inspector data-network-workspace aria-labelledby="network-inspector-title">
     <header class="chat-network-heading"><h2 class="pool-subheading" id="network-inspector-title" tabindex="-1">Network</h2><button class="pool-button" type="button" data-close-inspector aria-label="Close" title="Close">${interfaceIcon('close')}</button></header>
-    <section data-inspector-pane="model" aria-label="Model" hidden>${modelControl}<div data-model-selection-details><p class="pool-small pool-muted" data-model-empty hidden>No models are available. Connect to the network or prepare a model in Computers.</p><dl class="chat-model-facts pool-small" data-model-facts hidden></dl><p class="pool-small pool-muted" data-answer-limit hidden></p><p class="pool-small pool-muted" id="chat-model-status" data-model-status role="status" hidden></p><div data-execution-settings hidden><div class="chat-execution-location" data-execution-location role="group" aria-label="Execution location"><button class="pool-button btn-ghost" type="button" data-execution-choice="auto" aria-pressed="true">Automatic</button><button class="pool-button btn-ghost" type="button" data-execution-choice="local" aria-pressed="false">This device</button><button class="pool-button btn-ghost" type="button" data-execution-choice="network" aria-pressed="false">Network</button></div></div></div></section>
+    <section data-inspector-pane="model" aria-label="Model" hidden>${modelControl}${renderModelSelectionDetails({ execution: true })}</section>
     <section data-inspector-pane="conversation" aria-label="This conversation">
       <div class="execution-ribbon-route" data-inspector-route></div>
       <p data-inspector-status role="status"></p><p class="pool-caption pool-muted" data-context-detail></p>

@@ -132,10 +132,9 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     await page.locator('[data-close-threads]').click();
     await expect(page.locator('[data-threads-dialog]')).toHaveJSProperty('open', false);
     await page.locator('[data-open-model]').click();
-    await expect(page.locator('[data-inspector-pane="model"]')).toBeVisible();
-    await expect(page.locator('#network-inspector-title')).toBeFocused();
-    await expect(page.locator('[data-current-model]')).toBeVisible();
-    await page.locator('[data-close-inspector]').click();
+    await expect(page.locator('[data-model-picker]')).toBeVisible();
+    await expect(page.locator('[data-model-picker] input[type="radio"]:checked')).toBeFocused();
+    await page.locator('[data-model-picker-close]').click();
     await expect(page.locator('[data-open-model]')).toBeFocused();
     await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft.');
     for (const item of await measureControls(page)) {
@@ -216,7 +215,7 @@ for (const theme of ['light','dark']) for (const width of [1440,320]) {
 
 test('Verification Worker accepts changed presentation modules',async({page})=>{
   const result=await page.evaluate(async()=>{
-    const files=['conversation-workspace','network-inspector','shell-view','index'];
+    const files=['conversation-workspace','network-inspector','shell-view','index','contribution-models'];
     const snapshot=Object.fromEntries(await Promise.all(files.map(async file=>['/self/ui/pool-home/'+file+'.js',await(await fetch('/ui/pool-home/'+file+'.js')).text()])));
     return new Promise((resolve,reject)=>{
       const worker=new Worker('/core/verification-worker.js');const timeout=setTimeout(()=>{worker.terminate();reject(Error('Worker timeout'));},10000);
@@ -227,27 +226,28 @@ test('Verification Worker accepts changed presentation modules',async({page})=>{
   expect(result.passed,JSON.stringify(result)).toBe(true);
 });
 
-for (const width of [1440,320]) test(`shared shell inspector survives mounting and route return at ${width}px`,async({page},info)=>{
+for (const width of [1440,320]) test(`shared shell inspector keeps fixed ownership across route return at ${width}px`,async({page},info)=>{
   await page.setViewportSize({width,height:844});
   await page.evaluate(async()=>{
-    const {renderNav}=await import('/ui/pool-home/shell-view.js');
-    const {renderConversationWorkspace,bindConversationWorkspace}=await import('/ui/pool-home/conversation-workspace.js');
-    const {renderNetworkInspector,bindNetworkInspector}=await import('/ui/pool-home/network-inspector.js');
+    const {renderNav,renderAppShortcuts}=await import('/ui/pool-home/shell-view.js');
+    const {renderConversationWorkspace,bindConversationWorkspace,renderModelControl}=await import('/ui/pool-home/conversation-workspace.js');
+    const {renderNetworkInspector,renderInspectorNavigation,renderInspectorRail,renderModelSetupDialog,bindNetworkInspector}=await import('/ui/pool-home/network-inspector.js');
     const {bindThemeSelector}=await import('/ui/pool-home/theme.js');
     const root=document.querySelector('.pool-home'),session=window.railSession;
     let disposeView=window.disposeRails,inspector,theme;
     window.mountSharedRoute=route=>{
       disposeView?.();inspector?.dispose();theme?.dispose?.();
       root.dataset.poolRouteId=route;
-      root.innerHTML=renderNav(route)+'<div class="pool-route-content"></div><div data-shell-inspector>'+renderNetworkInspector()+'</div>';
-      const shell=root.querySelector('[data-shell-inspector]');inspector=bindNetworkInspector(shell,session);
-      const content=root.querySelector('.pool-route-content');
+      root.innerHTML=renderNav(route)+'<div class="pool-route-content"></div><div data-shell-inspector></div>';
+      const shell=root.querySelector('[data-shell-inspector]'),content=root.querySelector('.pool-route-content');
       if(route==='home'){
-        const settings=root.querySelector('[data-pool-settings]');settings.dataset.railSettings='';
-        const section=settings.querySelector('section');shell.querySelector('[data-inspector-pane="settings"]').append(...section.childNodes);section.hidden=true;
-        settings.querySelector('summary').onclick=event=>{event.preventDefault();inspector.toggle('settings',event.currentTarget);};
-        content.innerHTML=renderConversationWorkspace({inspector:false});disposeView=bindConversationWorkspace(content,session,{inspector});
-      }else{disposeView=null;content.textContent='Changes';}
+        content.innerHTML=renderConversationWorkspace({inspector:false});
+        content.querySelector('[data-network-trigger-slot]').innerHTML=renderInspectorNavigation();
+        content.querySelector('[data-chat-inspector-slot]').innerHTML=renderInspectorRail({mounted:true,apps:renderAppShortcuts(route),modelControl:renderModelControl()});
+        shell.innerHTML=renderModelSetupDialog();
+      }else{shell.innerHTML=renderNetworkInspector();content.textContent='Changes';}
+      inspector=bindNetworkInspector(root,session);
+      disposeView=route==='home'?bindConversationWorkspace(content,session,{inspector}):null;
       theme=bindThemeSelector(document.body);window.sharedInspector=inspector;
     };
     window.mountSharedRoute('home');
@@ -265,7 +265,7 @@ for (const width of [1440,320]) test(`shared shell inspector survives mounting a
   await page.evaluate(()=>window.mountSharedRoute('improve'));
   await expect(page.locator('[data-pool-settings] > summary')).toBeVisible();
   await page.locator('[data-pool-settings] > summary').click();
-  await expect(page.locator('[data-pool-theme-choice="light"]')).toBeVisible();
+  await expect(page.locator('.pool-primary-nav [data-pool-theme-choice="light"]')).toBeVisible();
   await page.evaluate(()=>window.mountSharedRoute('home'));
   await expect(page.locator('[data-composer-input]')).toHaveValue('Preserve my draft across navigation.');
   await expect(page.locator('.pool-power-tower:visible')).toHaveCount(1);

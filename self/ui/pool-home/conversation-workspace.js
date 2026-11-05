@@ -5,7 +5,7 @@ import { createConversationList } from './conversation-list.js';
 import { updateModelSelect, modelSelectionLabel, bindModelChoices, isSharedModelChoice } from '../components/model-select.js';
 /** Conversation presentation; the host owns execution and disclosure. */
 import { projectNetworkPeers } from './network-controls.js';
-import { renderInspectorNavigation, renderInspectorRail, renderModelSetupDialog, bindNetworkInspector } from './network-inspector.js';
+import { renderInspectorNavigation, renderInspectorRail, renderModelSelectionDetails, renderModelSetupDialog, bindNetworkInspector } from './network-inspector.js';
 import { renderBrandLink } from './shell-view.js';
 import { escapeHtml as escape, renderAttachments, readTextAttachments } from '../components/attachments.js';
 import { bindDisclosure } from '../components/disclosure.js';
@@ -60,7 +60,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
     <aside class="chat-inspector-slot pool-surface" data-chat-inspector-slot aria-label="Selected controls">${inspector ? renderInspectorRail({ mounted: true, modelControl: renderModelControl() }) : ''}</aside>
     <section class="chat-conversation-area" data-conversation-area aria-label="Current conversation">
       <div class="chat-transcript chat-message-stream" data-chat-transcript data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
-      ${renderSharedModelChooser()}
+      ${renderSharedModelChooser(renderModelSelectionDetails({ copy: true }))}
       <div class="chat-starting-prompts" data-starting-prompts role="group" aria-label="Movie and show suggestions" hidden>
         ${startingPrompts.map(prompt => `<button class="pool-button btn-ghost" type="button" data-starting-prompt>${escape(prompt)}</button>`).join('')}
       </div>
@@ -93,7 +93,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
         <p>A new model starts a new thread.</p>
         <div><select class="pool-input" data-next-model aria-label="Model"></select></div>
         <p data-next-model-status role="status" hidden></p>
-        <div class="pool-stack pool-gap-xs" data-picker-selection-slot></div>
+        <div class="pool-stack pool-gap-xs" data-picker-selection-slot>${renderModelSelectionDetails({ copy: true })}</div>
         <div class="chat-network-actions"><button class="pool-button" type="button" data-model-picker-close>Cancel</button><button class="pool-button" type="button" data-change-model>Use model</button></div>
       </dialog>
     </section>
@@ -135,14 +135,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const detachHandover = bindHistoryHandover(container, historyHandover);
   // Opening the inspector closes the conversation list; both live in this surface.
   const detachInspector = inspector.onOpen?.(() => setThreads(false));
-  const selectionDetails = find('[data-model-selection-details]');
-  const modelPane = find('[data-inspector-pane="model"]');
-  const mountSelectionDetails = thread => {
-    if (!selectionDetails) return;
-    const target = find('[data-model-picker]')?.open ? find('[data-picker-selection-slot]')
-      : !modelPane?.hidden || thread ? modelPane : find('[data-shared-selection-slot]');
-    if (target && selectionDetails.parentElement !== target) target.append(selectionDetails);
-  };
   const executionSettings = find('[data-execution-settings]');
   if (executionSettings) executionSettings.hidden = false;
   const production = bindProductionControls(container, session, {
@@ -412,7 +404,15 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     refreshStartingPrompts();
     find('[data-production-shared]').hidden = container.hasAttribute('data-compact') || !!thread;
     find('[data-production-surface]').hidden = container.hasAttribute('data-compact');
-    mountSelectionDetails(thread);
+    for (const copy of container.querySelectorAll('[data-model-details-copy]')) {
+      const pickerCopy = !!copy.closest('[data-model-picker]');
+      copy.hidden = !pickerCopy && (!!thread || !find('[data-inspector-pane="model"]').hidden || find('[data-model-picker]').open);
+      for (const selector of ['[data-model-empty]', '[data-model-facts]', '[data-answer-limit]', '[data-model-status]']) {
+        const original = find('[data-inspector-pane="model"] ' + selector), target = copy.querySelector(selector);
+        target.hidden = original.hidden;
+        if (target.innerHTML !== original.innerHTML) target.innerHTML = original.innerHTML;
+      }
+    }
     production.update(state);
     const contextControls = find('[data-context-controls]');
     contextControls.hidden = !session.previewContextPrompt;
@@ -466,7 +466,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const renameDialog = bindDialog(find('[data-rename-dialog]'));
   const picker = bindDialog(find('[data-model-picker]'));
   for (const selector of ['[data-open-limits]', '[data-composer-status]']) {
-    on(selector, 'click', event => { inspector.open?.('model', event.currentTarget); mountSelectionDetails(session.getState().activeThread); });
+    on(selector, 'click', event => inspector.open?.('model', event.currentTarget));
   }
   const openPicker = event => {
     const state = session.getState();
@@ -677,7 +677,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     inputResize?.disconnect();
     modelChoices.dispose(); nextModelChoices.dispose();
     if (executionSettings) executionSettings.hidden = true;
-    if (selectionDetails && modelPane && selectionDetails.parentElement !== modelPane) modelPane.append(selectionDetails);
     production.dispose();
     detachInspector?.();
     messages.dispose(); threads.dispose(); actionsPanel.dispose(); threadsDialog.dispose(); picker.dispose(); renameDialog.dispose();
