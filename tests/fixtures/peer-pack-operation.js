@@ -1,10 +1,10 @@
-import { dopplerExecutionAdapterSet } from '../../self/pool/adapter-execution.js';
+import { dopplerExecutionAdapterSet } from '../../apps/poolday/pool/adapter-execution.js';
 import { DOPPLER_GENERATION_CONTRACT } from '../../shared/infrastructure/doppler-runtime-service.js';
 import { resolveDopplerExecutionContract } from '../../shared/config/doppler-execution-contracts.js';
 /** Synthetic operation outputs for protocol tests, never model qualification. */
 import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../../shared/pool/inference-receipt.js';
-import { runPackOperation } from '../../self/pool/pack-operation.js';
+import { runPackOperation } from '../../apps/poolday/pool/pack-operation.js';
 import { createPackOperationRegistry } from '../../shared/pool/pack-operation-adapters.js';
 
 export async function packPeerIdentity() {

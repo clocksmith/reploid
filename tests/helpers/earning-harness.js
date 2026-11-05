@@ -14,10 +14,10 @@ import { createFirestoreRouteBackend, createMemoryRouteBackend, createRouteIdemp
 import { mountEarningRoutes } from '../../server/earning-routes/mount.js';
 import { installJsonBodyMiddleware } from '../../server/json-body-middleware.js';
 import { EVIDENCE_RULES_ID } from '../../server/ledger/attempt-evidence.js';
-import { createChatExecution } from '../../self/host/chat-execution.js';
-import { createEarningAttempts } from '../../self/host/earning/attempts.js';
-import { EARNING_CLIENT_SCHEMA, createEarningClient } from '../../self/host/earning/client.js';
-import { createEarningContribution } from '../../self/host/earning/contribution.js';
+import { createChatExecution } from '../../apps/poolday/host/chat-execution.js';
+import { createEarningAttempts } from '../../apps/poolday/host/earning/attempts.js';
+import { EARNING_CLIENT_SCHEMA, createEarningClient } from '../../apps/poolday/host/earning/client.js';
+import { createEarningContribution } from '../../apps/poolday/host/earning/contribution.js';
 import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { newIdentity, openAccountFixture } from './account-fixture.js';
 import { STEPS, residentRoute } from './resident-route.js';

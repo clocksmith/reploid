@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { projectExecutionActivity, projectSupplyLabel, updateExecutionActivity } from '../../self/ui/pool-home/execution-activity.js';
+import { projectExecutionActivity, projectSupplyLabel, updateExecutionActivity } from '../../apps/poolday/ui/pool-home/execution-activity.js';
 
 it('uses only reported step counts and durations, never text length or peer count as throughput', () => {
   const execution = { placement: 'two-device-layer-partition', participantA: 'A', participantB: 'B' };

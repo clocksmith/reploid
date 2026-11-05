@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest';
-import { planOperationProviders, operationPlacementContext } from '../../self/pool/peer-planning.js';
+import { planOperationProviders, operationPlacementContext } from '../../apps/poolday/pool/peer-planning.js';
 import { placementBeliefPolicy } from '../fixtures/placement-beliefs.js';
 import { resolveProviderCapabilitySchema, resolvePeerAssignmentPolicy, validateProviderCapabilities } from '../../shared/pool/peer-capabilities.js';
 import { PACK_JOB_POLICY } from '../../shared/pool/peer-pack-job-policy.js';

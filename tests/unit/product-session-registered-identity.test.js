@@ -23,12 +23,12 @@ vi.mock('../../shared/vendor/reploid/mesh/index.js', async original => ({ ...awa
 }));
 vi.mock('../../shared/vendor/reploid/transport/index.js', async original => ({ ...await original(),
   createSwarmTransport: () => ({ disconnect() {}, onMessage() {}, offMessage() {}, sendToPeer() {}, _getPeerId: () => 'transport-requester', getConnectedPeers: () => [] }) }));
-vi.mock('../../self/host/work-model-files.js', async original => ({ ...await original(),
+vi.mock('../../apps/poolday/host/work-model-files.js', async original => ({ ...await original(),
   createWorkModelFiles: () => ({ async attach() {}, async close() {}, announce() {}, getState: () => ({ sharing: false, preparing: false }) }) }));
-vi.mock('../../self/host/work-peer-offers.js', () => ({ createWorkPeerOffers: () => ({
+vi.mock('../../apps/poolday/host/work-peer-offers.js', () => ({ createWorkPeerOffers: () => ({
   acquire: async () => 'transport-requester', attach: async () => {}, close() {}, getState: () => null }) }));
-import { createProductSession } from '../../self/host/product-session.js';
-import { createBrowserWebAccess } from '../../self/host/web-access.js';
+import { createProductSession } from '../../apps/poolday/host/product-session.js';
+import { createBrowserWebAccess } from '../../apps/poolday/host/web-access.js';
 
 const cleanups = [];
 afterEach(async () => {

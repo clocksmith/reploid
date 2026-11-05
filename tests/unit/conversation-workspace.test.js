@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { renderConversationWorkspace, bindConversationWorkspace } from '../../self/ui/pool-home/conversation-workspace.js';
-import { createChatSession, CANONICAL_CHAT_MODELS } from '../../self/host/chat-session.js';
+import { renderConversationWorkspace, bindConversationWorkspace } from '../../apps/poolday/ui/pool-home/conversation-workspace.js';
+import { createChatSession, CANONICAL_CHAT_MODELS } from '../../apps/poolday/host/chat-session.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
-import { updateModelSelect } from '../../self/ui/components/model-select.js';
+import { updateModelSelect } from '../../apps/poolday/ui/components/model-select.js';
 
 describe('Conversation workspace', () => {
   let root, session, dispose, service;

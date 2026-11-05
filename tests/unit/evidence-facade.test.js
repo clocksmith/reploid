@@ -2,8 +2,9 @@
 import { describe, expect, it } from 'vitest';
 import { readFile } from 'node:fs/promises';
 import { parse } from 'acorn';
-import * as evidence from '../../self/pool/evidence-network.js';
-import * as admission from '../../self/pool/evidence-admission.js';
+import * as evidence from '../../apps/poolday/pool/evidence-network.js';
+import * as admission from '../../apps/poolday/pool/evidence-admission.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
 
 // Public surface captured before extracting the implementation owners.
 const publicNames = [
@@ -169,7 +170,7 @@ describe('evidence public facade', () => {
   it('keeps implementation owners acyclic and independent of the compatibility facade', async () => {
     const graph = new Map();
     for (const file of owners) {
-      const source = await readFile(new URL('../../self/pool/' + file, import.meta.url), 'utf8');
+      const source = await readFile(resolveServedFile('pool/' + file), 'utf8');
       const ast = parse(source, { ecmaVersion: 'latest', sourceType: 'module' });
       const imports = ast.body.filter((node) => node.type === 'ImportDeclaration').map((node) => node.source.value.replace(/^\.\//, ''));
       expect(imports).not.toContain('evidence-network.js');

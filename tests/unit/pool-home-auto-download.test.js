@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   AUTO_DOWNLOAD_STORAGE_KEY, readAutoDownload, autoDownloadCandidates, smallestDownload,
   autoDownloadBlocker, createAutoDownload
-} from '../../self/ui/pool-home/auto-download.js';
+} from '../../apps/poolday/ui/pool-home/auto-download.js';
 
 const memory = (initial = {}) => {
   const values = new Map(Object.entries(initial));

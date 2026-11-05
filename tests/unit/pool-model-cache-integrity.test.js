@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   MODEL_CACHE_INTEGRITY_SCHEMA,
   verifyDopplerPersistentModelCache
-} from '../../self/pool/model-cache-integrity.js';
+} from '../../apps/poolday/pool/model-cache-integrity.js';
 import { sha256Hex } from '../../shared/pool/inference-receipt.js';
 
 const bytes = (value) => new TextEncoder().encode(value);

@@ -8,11 +8,11 @@ import {
   ADJUDICATION_NORTH_STAR_OBJECTIVE,
   ADJUDICATION_NORTH_STAR_POLICY_VERSION,
   ADJUDICATION_OPERATIONAL_METRICS
-} from '../../self/pool/adjudication-north-star.js';
+} from '../../apps/poolday/pool/adjudication-north-star.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const manifestPath = path.resolve(__dirname, '../../self/pool/adjudication-pilot-manifest.json');
+const manifestPath = path.resolve(__dirname, '../../apps/poolday/pool/adjudication-pilot-manifest.json');
 
 describe('Reploid Room-1 Pilot Cohort & Charter Compliance', () => {
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));

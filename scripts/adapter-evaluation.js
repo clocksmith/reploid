@@ -20,7 +20,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   ADAPTER_EVALUATION_RECEIPT_SCHEMA, computeAdapterEvaluation, itemListDigest, seededRandom,
   validateAdapterEvaluationSpec, verifyAdapterEvaluationReceipt
-} from '../self/pool/adapter-evaluation.js';
+} from '../apps/poolday/pool/adapter-evaluation.js';
 import { resolveServedFile } from '../server/browser-roots.js';
 
 const root = () => path.resolve(fileURLToPath(new URL('..', import.meta.url)));
@@ -176,7 +176,7 @@ async function runPrompts({ spec, prompts, adapterId, arm, modelDirectory, adapt
   if (!engine) throw new Error('DOPPLER_SOURCE_URL must identify the tested Doppler checkout URL');
   const { adapter, baseModel } = await catalogAdapter(adapterId);
   const [{ createNativeWholeModel }, { createWorkAdapterResolver }, { createReploidDopplerRuntimeService }] = await Promise.all([
-    import('../server/native-whole-model.js'), import('../self/providers/work-adapter.js'), import('../shared/infrastructure/doppler-runtime-service.js')]);
+    import('../server/native-whole-model.js'), import('../apps/poolday/providers/work-adapter.js'), import('../shared/infrastructure/doppler-runtime-service.js')]);
   const { probeNodeGPU } = await import(new URL('tests/helpers/gpu-probe.js', engine));
   const { destroyDevice } = await import(new URL('src/gpu/device.js', engine));
   const { releaseNodeWebGPU } = await import(new URL('src/tooling/node-webgpu.js', engine));

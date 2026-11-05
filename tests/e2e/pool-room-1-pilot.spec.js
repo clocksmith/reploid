@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const manifestPath = path.resolve(__dirname, '../../self/pool/adjudication-pilot-manifest.json');
+const manifestPath = path.resolve(__dirname, '../../apps/poolday/pool/adjudication-pilot-manifest.json');
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
 
 test.describe('Reploid Room-1 Pilot E2E Journey', () => {

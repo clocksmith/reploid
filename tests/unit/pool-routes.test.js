@@ -17,7 +17,7 @@ import {
 } from '../../shared/pool/inference-receipt.js';
 import {
   buildRuntimeProfile
-} from '../../self/pool/runtime-profile.js';
+} from '../../apps/poolday/pool/runtime-profile.js';
 import {
   buildAssignmentCommitmentPayload,
   buildAssignmentRevealPayload
@@ -26,7 +26,7 @@ import {
   createSignedCandidateAction,
   createSignedResearchHypothesis,
   createSignedResearchSubmission
-} from '../../self/pool/evidence-network.js';
+} from '../../apps/poolday/pool/evidence-network.js';
 import {
   makePublicProteinJobFields,
   makeSequenceExecution

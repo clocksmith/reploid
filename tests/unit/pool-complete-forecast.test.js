@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createSigningKeyPair, exportPublicKey, sha256Hex, hashJson, canonicalize } from '../../shared/pool/inference-receipt.js';
 import { createForecastIntent, createForecastProviderAdvert, assignForecastJob, validateForecastAssignment,
-  createForecastReceipt, verifyForecastReceipt, acceptForecastAgreement, verifyForecastEpisode } from '../../self/pool/complete-forecast.js';
+  createForecastReceipt, verifyForecastReceipt, acceptForecastAgreement, verifyForecastEpisode } from '../../apps/poolday/pool/complete-forecast.js';
 import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { validateEnabledPoolModelContract } from '../../shared/pool/model-contract.js';
-import { sealPeerAssignmentIdentity } from '../../self/pool/peer-assignment.js';
+import { sealPeerAssignmentIdentity } from '../../apps/poolday/pool/peer-assignment.js';
 
 const hash = c => 'sha256:' + c.repeat(64);
 async function identity() {

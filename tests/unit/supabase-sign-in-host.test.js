@@ -3,8 +3,8 @@
 // supabase-js and the earning service are fakes; addresses and tokens are test-only.
 import { describe, expect, it, vi } from 'vitest';
 
-import { SUPABASE_AUTH_STORAGE_KEY, createSupabaseSignIn } from '../../self/host/supabase-sign-in.js';
-import { bindAccountSignIn, renderAccountSignIn } from '../../self/ui/pool-home/account-sign-in.js';
+import { SUPABASE_AUTH_STORAGE_KEY, createSupabaseSignIn } from '../../apps/poolday/host/supabase-sign-in.js';
+import { bindAccountSignIn, renderAccountSignIn } from '../../apps/poolday/ui/pool-home/account-sign-in.js';
 
 const BASE = 'https://reploid.test/v1';
 const SETTINGS = { providerId: 'supabase', flow: 'supabase_magic_link', url: 'https://projectreftest.supabase.co', publishableKey: 'sb_publishable_test_only', metadataKey: 'reploid_sign_in_state' };

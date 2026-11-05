@@ -13,7 +13,7 @@ import { createDocumentTransactions } from '../document-transactions.js';
 import { createKnownKeyValidator } from '../input-validation.js';
 import { randomInt, randomUUID } from 'node:crypto';
 
-import custodyPolicy from '../../self/config/chat-files.json' with { type: 'json' };
+import custodyPolicy from '../../apps/poolday/config/chat-files.json' with { type: 'json' };
 import {
   assertId,
   assertIdempotencyKey,

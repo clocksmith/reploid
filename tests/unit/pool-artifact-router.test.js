@@ -5,7 +5,7 @@ import {
   deriveAdapterLifecycle,
   evaluateProviderRouteCandidate,
   sealArtifactRouteDecision
-} from '../../self/pool/artifact-router.js';
+} from '../../apps/poolday/pool/artifact-router.js';
 import { LAUNCH_MODEL } from '../../shared/pool/model-contract.js';
 
 const hash = (character) => `sha256:${character.repeat(64)}`;

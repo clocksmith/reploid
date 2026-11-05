@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createWorkSession, DEFAULT_WORK_MODELS } from '../../self/host/work-session.js';
-import { createWorkNetworkProvider, withWorkDevice } from '../../self/providers/work-network-provider.js';
+import { createWorkSession, DEFAULT_WORK_MODELS } from '../../apps/poolday/host/work-session.js';
+import { createWorkNetworkProvider, withWorkDevice } from '../../apps/poolday/providers/work-network-provider.js';
 
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
 const store = () => {

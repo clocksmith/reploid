@@ -12,7 +12,7 @@ import { createSearchRouter } from '../../server/search/router.js';
 import { answerCostTotals, createSearchUsage } from '../../server/search/usage.js';
 import { readSearchConfig } from '../../server/search/config.js';
 import { createConfiguredSupportReviewer, readSupportReviewerConfig } from '../../server/search/support-reviewer.js';
-import { createServerSearch } from '../../self/host/server-search.js';
+import { createServerSearch } from '../../apps/poolday/host/server-search.js';
 
 const SECRET = 'cost-test-secret-0123456789abcdef', AT = 1760500000000;
 const PAGES = {

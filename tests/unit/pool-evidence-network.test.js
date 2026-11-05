@@ -24,14 +24,14 @@ import {
   proposeDiscoveryTasks,
   validateResearchRecordLinks,
   verifyResearchRecord
-} from '../../self/pool/evidence-network.js';
+} from '../../apps/poolday/pool/evidence-network.js';
 import {
   SIGNATURE_DOMAINS,
   createSigningKeyPair,
   hashJson,
   signCanonical
 } from '../../shared/pool/inference-receipt.js';
-import { hashSequenceFloat32Values, reduceDopplerSequenceResult } from '../../self/pool/sequence-result.js';
+import { hashSequenceFloat32Values, reduceDopplerSequenceResult } from '../../apps/poolday/pool/sequence-result.js';
 import { createVerifiedResearchAgreement } from '../helpers/pool-research-receipt.js';
 
 const fakeHash = (character) => `sha256:${character.repeat(64)}`;

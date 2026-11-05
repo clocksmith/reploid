@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { itemListDigest } from '../../self/pool/adapter-evaluation.js';
+import { itemListDigest } from '../../apps/poolday/pool/adapter-evaluation.js';
 import { buildReceipt } from '../../scripts/adapter-evaluation.js';
 
 /** Synthetic held-out evaluation fixtures. They prove verifier mechanics only, never an adapter's quality. */

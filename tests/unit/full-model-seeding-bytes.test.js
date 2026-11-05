@@ -1,5 +1,5 @@
 import { it, expect } from 'vitest';
-import { fullModelSeedingBytes } from '../../self/host/work-model-files.js';
+import { fullModelSeedingBytes } from '../../apps/poolday/host/work-model-files.js';
 
 const model = { source: { files: [{ path: 'manifest.json', sizeBytes: 222286 }, { path: 'tokenizer.json', sizeBytes: 9088480 }] },
   capsule: { artifacts: [{ role: 'weight-shard', sizeBytes: 67108864 }, { role: 'weight-shard', sizeBytes: 1000 }, { role: 'wgsl-source', sizeBytes: 5 }] },

@@ -18,9 +18,9 @@ vi.mock('../../packages/reploid/src/mesh/index.js', async original => ({ ...awai
 vi.mock('../../shared/vendor/reploid/transport/index.js', async original => ({ ...await original(), createSwarmTransport: () => ports.transport }));
 vi.mock('../../packages/reploid/src/transport/index.js', async original => ({ ...await original(), createSwarmTransport: () => ports.transport }));
 import { resolveConfig } from '../../shared/vendor/reploid/config/index.js';
-import { createWorkSwarm } from '../../self/host/work-swarm.js';
-import { getOrderedParticipation } from '../../self/host/product-context.js';
-import orderedPolicy from '../../self/config/ordered-participation.json' with { type: 'json' };
+import { createWorkSwarm } from '../../apps/poolday/host/work-swarm.js';
+import { getOrderedParticipation } from '../../apps/poolday/host/product-context.js';
+import orderedPolicy from '../../apps/poolday/config/ordered-participation.json' with { type: 'json' };
 import { createNativeParticipant } from '../../server/native-participant.js';
 const cleanups = [];
 afterEach(async () => { await Promise.allSettled(cleanups.splice(0).map(fn => fn())); });

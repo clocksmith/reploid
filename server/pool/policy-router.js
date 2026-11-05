@@ -22,7 +22,7 @@ import {
   classifyPooldayPrompt,
   validateGenerationConfig,
   validatePooldayPolicyClasses
-} from '../../self/pool/policy-validation.js';
+} from '../../apps/poolday/pool/policy-validation.js';
 
 export {
   DETERMINISTIC_GENERATION_CONFIG,

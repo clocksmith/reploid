@@ -1,0 +1,735 @@
+/**
+ * @fileoverview Browser provider client for fastest-receipt pool jobs.
+ */
+
+import { createPoolSdk } from '../../../shared/pool/sdk.js';
+import { buildPoolReceipt, createSigningKeyPair, exportPublicKey, hashJson, sha256Hex, signProviderReceipt } from '../../../shared/pool/inference-receipt.js';
+import { createDopplerRuntime } from './doppler-runtime.js';
+import {
+  POOLDAY_MODEL_WORKLOADS,
+  buildLaunchProviderModel,
+  exactModelContractKey,
+  getPoolModelWorkload,
+  modelSupportsPoolWorkload
+} from '../../../shared/pool/model-contract.js';
+import {
+  runtimeHasActiveAdapterRequirement,
+  validateAdapterRequirement
+} from '../../../shared/pool/adapter-pack.js';
+import { validatePublishedAdapterRequirement, verifyAdapterUseApproval } from './adapter-publication.js';
+import { acquireAdapterForAssignment, createAdapterRegistry } from './adapter-registry.js';
+import { createPoolIdentity } from '../../../shared/pool/identity.js';
+import { createSignedPeerMessage, PEER_MESSAGE_TYPES } from './peer-protocol.js';
+import {
+  PARTICIPATION_CAPABILITIES,
+  participationAllows
+} from '../../../shared/pool/participation-profile.js';
+import { listPolicies } from './policy-router.js';
+import { collectRuntimeProfile } from './runtime-profile.js';
+import {
+  createSignedProviderAdvert,
+  validateInputPayloadForAssignment
+} from './peer-control-plane.js';
+import { isSequenceWorkload, normalizeSequenceInput } from '../../../shared/pool/sequence-workload.js';
+import {
+  buildAssignmentCommitmentPayload,
+  buildAssignmentRevealPayload
+} from '../../../shared/pool/p2p-payload.js';
+import { createPackPeerProvider } from './peer-pack-provider.js';
+import { getRingPhaseProtocol } from '../../../shared/pool/config.js';
+
+export function createProviderClient({
+  providerId,
+  sdk = createPoolSdk(),
+  runtime = createDopplerRuntime(),
+  keyPair = null,
+  identity = createPoolIdentity('provider'),
+  adapterRegistry = createAdapterRegistry(),
+  fetchAdapterFromPeer = null,
+  fetchAdapterFromOrigin = null,
+  revealWait = getRingPhaseProtocol().revealWait,
+  revealPolling = null
+} = {}) {
+  const revealWaitPolicy = { ...revealWait };
+  if (revealPolling !== null) {
+    const { maxPolls, intervalMs } = revealPolling;
+    if (!Number.isSafeInteger(maxPolls) || maxPolls < 1 || !Number.isSafeInteger(intervalMs) || intervalMs < 1) {
+      throw new Error('Reveal polling requires positive bounded poll count and interval');
+    }
+    revealWaitPolicy.pollIntervalMs = intervalMs;
+  }
+  for (const field of ['pollIntervalMs', 'maxWaitMs']) {
+    if (!Number.isSafeInteger(revealWaitPolicy[field]) || revealWaitPolicy[field] <= 0) {
+      throw new Error(`Positive reveal wait ${field} required`);
+    }
+  }
+  let activeKeyPair = keyPair;
+  let publicKey = null;
+  let registration = null;
+  let activeProviderId = providerId;
+  const history = [];
+
+  const recordHistory = (event) => {
+    const saved = {
+      ...event,
+      recordedAt: new Date().toISOString()
+    };
+    history.unshift(saved);
+    history.splice(50);
+    return saved;
+  };
+
+  const ensureKeys = async () => {
+    if (!activeKeyPair) activeKeyPair = identity ? await identity.getSigningKeyPair() : await createSigningKeyPair();
+    if (!publicKey) publicKey = await exportPublicKey(activeKeyPair.publicKey);
+    return activeKeyPair;
+  };
+
+  const ensureProviderId = async () => {
+    if (!activeProviderId) activeProviderId = identity ? await identity.getRoleId() : null;
+    if (!activeProviderId) throw new Error('providerId is required');
+    return activeProviderId;
+  };
+  const ensureIdentityClaims = async () => {
+    if (!identity?.getParticipationProfile || !identity?.getRoleProof) return {
+      participationProfile: null,
+      identityProof: null
+    };
+    const participationProfile = await identity.getParticipationProfile();
+    return {
+      participationProfile,
+      identityProof: await identity.getRoleProof({ participationProfile })
+    };
+  };
+
+  const modelMatchesRuntime = (model = {}, runtimeModel = {}) => (
+    exactModelContractKey(model) === exactModelContractKey(runtimeModel)
+    && modelSupportsPoolWorkload(runtimeModel, getPoolModelWorkload(model))
+  );
+
+  const assignmentMatchesRuntime = (assignmentModel = {}, runtimeModel = {}, {
+    requireAdapterActive = true
+  } = {}) => {
+    const expectedKey = assignmentModel.exactModelContractKey;
+    const workload = assignmentModel.workload
+      || assignmentModel.requirements?.workload
+      || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding;
+    return Boolean(expectedKey)
+      && exactModelContractKey(assignmentModel) === expectedKey
+      && exactModelContractKey(runtimeModel) === expectedKey
+      && modelSupportsPoolWorkload(runtimeModel, workload)
+      && (!requireAdapterActive || runtimeHasActiveAdapterRequirement(
+        runtimeModel,
+        assignmentModel.requirements?.adapter || assignmentModel.adapter || null
+      ));
+  };
+
+  const resolveRuntimeProfile = async () => {
+    if (typeof runtime?.getRuntimeProfile === 'function') {
+      return runtime.getRuntimeProfile();
+    }
+    return collectRuntimeProfile({ runtime });
+  };
+
+  const validateAdvertisedAdapterPacks = async (models = [], runtimeModel = {}) => {
+    for (const model of models) {
+      for (const adapter of model.adapterPacks || []) {
+        const validation = validateAdapterRequirement(adapter);
+        if (!validation.ok) throw new Error(`Invalid advertised adapter: ${validation.reasons.join('; ')}`);
+        if (adapter.publicationHash || adapter.publisherId || adapter.state !== 'active') {
+          const published = validatePublishedAdapterRequirement(adapter);
+          if (!published.ok) throw new Error(`Invalid published adapter advert: ${published.reasons.join('; ')}`);
+        }
+        if (adapter.state === 'active' && !runtimeHasActiveAdapterRequirement(runtimeModel, adapter)) {
+          throw new Error('Provider cannot advertise an active adapter that is not active in Doppler');
+        }
+        if (adapter.state === 'cached' && !await adapterRegistry.hasCached(adapter.packHash)) {
+          throw new Error('Provider cannot advertise an adapter as cached without verified local bytes');
+        }
+        if (adapter.state === 'fetchable'
+          && typeof fetchAdapterFromPeer !== 'function'
+          && typeof fetchAdapterFromOrigin !== 'function'
+          && !await adapterRegistry.hasCached(adapter.packHash)) {
+          throw new Error('Provider cannot advertise a fetchable adapter without a peer, origin, or cached source');
+        }
+      }
+    }
+  };
+
+  const prepareAssignmentAdapter = async (assignment = {}) => {
+    const requirement = assignment.adapter || assignment.model?.requirements?.adapter || null;
+    const active = typeof runtime?.getActiveAdapterPack === 'function'
+      ? runtime.getActiveAdapterPack()
+      : null;
+    if (!requirement) {
+      if (active && typeof runtime?.deactivateAdapterPack === 'function') await runtime.deactivateAdapterPack();
+      return null;
+    }
+    const approval = await verifyAdapterUseApproval(assignment.adapterUseApproval, {
+      adapterRequirement: requirement,
+      requesterId: assignment.requesterId,
+      inputHash: assignment.inputHash,
+      modelRequirements: assignment.model?.requirements || assignment.model
+    });
+    if (!approval.ok) throw new Error(`Adapter use approval rejected: ${approval.reasons.join('; ')}`);
+    if (active && runtimeHasActiveAdapterRequirement(runtime.getModelInfo(), requirement)) {
+      return {
+        ...requirement,
+        state: 'active',
+        adapterUseApprovalHash: approval.approvalHash,
+        artifactSources: active.artifactSources || []
+      };
+    }
+    const artifact = await acquireAdapterForAssignment({
+      assignment,
+      registry: adapterRegistry,
+      fetchFromPeer: fetchAdapterFromPeer,
+      fetchFromOrigin: fetchAdapterFromOrigin
+    });
+    if (!artifact?.pack || !artifact?.bytes) throw new Error('Adapter acquisition returned no verified pack or bytes');
+    const bytes = artifact.bytes;
+    const fetchUrl = async () => bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+    const activated = await runtime.activateAdapterPack(artifact.pack, {
+      source: artifact.pack.runtimeManifest,
+      loadOptions: { fetchUrl },
+      artifactSources: artifact.acquisition ? [artifact.acquisition] : []
+    });
+    return {
+      ...requirement,
+      ...activated,
+      state: 'active',
+      publicationHash: requirement.publicationHash,
+      publisherId: requirement.publisherId,
+      adapterUseApprovalHash: approval.approvalHash,
+      artifactSources: artifact.acquisition ? [artifact.acquisition] : []
+    };
+  };
+
+  const resolveAssignmentInput = async (assignment = {}, {
+    inputPayload = null,
+    promptPayload = null,
+    prompt = null,
+    sequence = null
+  } = {}) => {
+    const workload = assignment.workload || assignment.model?.requirements?.workload || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding;
+    const payload = inputPayload || promptPayload;
+    if (payload) {
+      const validation = await validateInputPayloadForAssignment(payload, assignment);
+      if (!validation.ok) throw new Error(`invalid WebRTC input payload: ${validation.reasons.join('; ')}`);
+      return {
+        kind: validation.inputKind,
+        value: validation.sequence || validation.prompt
+      };
+    }
+    if (isSequenceWorkload(workload) && sequence !== null && sequence !== undefined) {
+      const normalized = normalizeSequenceInput(sequence, assignment.sequenceRequest?.alphabet);
+      if (assignment.inputHash && await sha256Hex(normalized) !== assignment.inputHash) {
+        throw new Error('assignment inputHash mismatch');
+      }
+      return { kind: 'sequence', value: normalized };
+    }
+    if (prompt !== null && prompt !== undefined) {
+      const promptText = String(prompt);
+      if (assignment.inputHash && await sha256Hex(promptText) !== assignment.inputHash) {
+        throw new Error('assignment inputHash mismatch');
+      }
+      return { kind: 'prompt', value: promptText };
+    }
+    if (assignment.prompt) return { kind: 'prompt', value: assignment.prompt };
+    throw new Error('assignment input must be supplied over a WebRTC input payload');
+  };
+
+  const enforceAssignmentParticipation = async (assignment = {}) => {
+    const requestedTokens = Math.max(0, Number(
+      assignment.generationConfig?.maxOutputTokens
+        ?? assignment.generationConfig?.maxTokens
+        ?? 0
+    ));
+    const assignedTokenLimit = Number(assignment.providerLimits?.maxTokensPerJob || 0);
+    if (assignedTokenLimit > 0 && requestedTokens > assignedTokenLimit) {
+      throw new Error('Assignment exceeds the provider token limit');
+    }
+    if (assignment.schema === 'reploid.peer.assignment/v1' && !assignment.routeDecisionHash) {
+      throw new Error('Peer assignment routeDecisionHash is required');
+    }
+    if (!identity?.getParticipationProfile) return;
+    const profile = await identity.getParticipationProfile();
+    if (!participationAllows(profile, PARTICIPATION_CAPABILITIES.provideInference)) {
+      throw new Error('Current participation mode does not allow provider execution');
+    }
+    if (assignment.providerParticipationProfileHash
+      && assignment.providerParticipationProfileHash !== profile.profileHash) {
+      throw new Error('Assignment participation profile is no longer active');
+    }
+    if (assignedTokenLimit > Number(profile.limits.maxTokensPerJob)) {
+      throw new Error('Assignment token limit exceeds the signed participation profile');
+    }
+    if (requestedTokens > Number(profile.limits.maxTokensPerJob)) {
+      throw new Error('Assignment exceeds the signed participation token limit');
+    }
+  };
+
+  const runLocalAssignment = async (assignment, options = {}) => {
+    let runtimeModel = typeof runtime?.getModelInfo === 'function' ? runtime.getModelInfo() : null;
+    const boundWorkload = getPoolModelWorkload(assignment.model || {});
+    const workload = assignment.workload || assignment.model?.requirements?.workload || boundWorkload;
+    if (!Object.values(POOLDAY_MODEL_WORKLOADS).includes(workload)) {
+      throw new Error(`Unsupported assignment workload: ${workload}`);
+    }
+    if (workload !== boundWorkload || !modelSupportsPoolWorkload(runtimeModel || {}, workload)) {
+      throw new Error('Assignment workload does not match its exact model contract and loaded runtime');
+    }
+    await ensureKeys();
+    await enforceAssignmentParticipation(assignment);
+    recordHistory({
+      eventType: 'assignment_execution_started',
+      assignmentId: assignment.assignmentId,
+      jobId: assignment.jobId,
+      policyId: assignment.policyId
+    });
+    if (!assignmentMatchesRuntime(assignment.model || {}, runtimeModel || {}, {
+      requireAdapterActive: false
+    })) {
+      throw new Error('Assignment exact model contract does not match the loaded Doppler runtime');
+    }
+    const adapter = await prepareAssignmentAdapter(assignment);
+    runtimeModel = typeof runtime?.getModelInfo === 'function' ? runtime.getModelInfo() : runtimeModel;
+    if (!assignmentMatchesRuntime(assignment.model || {}, runtimeModel || {})) {
+      throw new Error('Assignment exact model or adapter contract does not match the active Doppler runtime');
+    }
+    const input = await resolveAssignmentInput(assignment, options);
+    let runtimeExecution;
+    if (workload === POOLDAY_MODEL_WORKLOADS.embedding) {
+      runtimeExecution = await runtime.embed({ prompt: input.value, assignment });
+    } else if (isSequenceWorkload(workload)) {
+      runtimeExecution = await runtime.encodeSequence({
+        sequence: input.value,
+        request: assignment.sequenceRequest,
+        assignment
+      });
+    } else if (workload === POOLDAY_MODEL_WORKLOADS.generation) {
+      runtimeExecution = await runtime.generate({
+        prompt: input.value,
+        generationConfig: assignment.generationConfig,
+        assignment
+      });
+    } else {
+      throw new Error(`Unsupported assignment workload: ${workload}`);
+    }
+    const execution = {
+      ...runtimeExecution,
+      adapter
+    };
+    const receipt = await buildPoolReceipt({
+      assignment,
+      provider: registration || {
+        providerId: assignment.providerId,
+        publicKey,
+        runtimeProfileHash: assignment.runtimeProfileHash || null
+      },
+      model: assignment.model || runtime.getModelInfo(),
+      runtime: runtime.getRuntimeInfo(),
+      execution
+    });
+    return {
+      inputKind: input.kind,
+      ...(input.kind === 'prompt' ? { prompt: input.value } : {}),
+      execution,
+      receipt: await signProviderReceipt(receipt, activeKeyPair.privateKey)
+    };
+  };
+
+  const commitRevealModeFor = (assignment = {}, mode = 'auto') => {
+    if (mode === false || mode === 'disabled') return { enabled: false, required: false };
+    const coordinatorRequired = assignment.commitRevealRequired === true
+      || assignment.phaseProtocol === 'commit_reveal_v1'
+      || assignment.ring?.commitRevealRequired === true
+      || assignment.ring?.phaseProtocol === 'commit_reveal_v1';
+    const ringPolicy = assignment.policyId === 'ring_quorum_receipt' || !!assignment.ring;
+    return {
+      enabled: mode === 'required' || coordinatorRequired || ringPolicy,
+      required: mode === 'required' || coordinatorRequired
+    };
+  };
+
+  const waitForRevealGate = async ({ assignment, commitmentResult, signal }) => {
+    signal?.throwIfAborted();
+    if (commitmentResult?.revealOpen === true
+      || commitmentResult?.phase === 'reveal_open'
+      || commitmentResult?.ringPhase === 'reveal_open') {
+      return {
+        revealOpen: true,
+        source: 'commitment_response',
+        commitmentResult
+      };
+    }
+    const expiresAt = assignment.expiresAt == null ? Infinity : Date.parse(assignment.expiresAt);
+    if (Number.isNaN(expiresAt)) throw new Error('Invalid assignment reveal deadline');
+    const deadlineAt = Math.min(expiresAt, Date.now() + revealWaitPolicy.maxWaitMs);
+    let rejectStopped, delayTimer;
+    const stopped = new Promise((_resolve, reject) => { rejectStopped = reject; });
+    const abort = () => rejectStopped(signal.reason);
+    const timeout = () => rejectStopped(Object.assign(new Error('Coordinator did not open reveal phase before the assignment wait deadline'),
+      { code: 'REVEAL_GATE_TIMEOUT' }));
+    const timer = setTimeout(timeout, Math.max(0, deadlineAt - Date.now()));
+    signal?.addEventListener('abort', abort, { once: true });
+    if (signal?.aborted) abort();
+    let poll = 0;
+    try {
+      while (Date.now() < deadlineAt && (!revealPolling || poll < revealPolling.maxPolls)) {
+        signal?.throwIfAborted();
+        if (Date.now() >= deadlineAt) { timeout(); await stopped; }
+        const jobResponse = await Promise.race([Promise.resolve().then(() => sdk.pollJob(assignment.jobId)), stopped]);
+        signal?.throwIfAborted();
+        if (Date.now() >= deadlineAt) { timeout(); await stopped; }
+        const job = jobResponse?.job || jobResponse;
+        recordHistory({ eventType: 'reveal_gate_observed', assignmentId: assignment.assignmentId,
+          jobId: assignment.jobId, poll: ++poll, ringPhase: job?.ringPhase ?? null, deadlineAt });
+        if (job?.ringPhase === 'reveal_open' || job?.ringPhase === 'reveal_submitted') {
+          return {
+            revealOpen: true,
+            source: 'job_ring_phase',
+            job
+          };
+        }
+        const phase = job?.assignmentPhases?.[assignment.assignmentId]
+          || job?.commitReveal?.assignments?.[assignment.assignmentId]
+          || null;
+        if (phase?.revealOpen === true || phase?.phase === 'reveal_open') {
+          return {
+            revealOpen: true,
+            source: 'job_phase',
+            phase,
+            job
+          };
+        }
+        await Promise.race([new Promise(resolve => { delayTimer = setTimeout(resolve, revealWaitPolicy.pollIntervalMs); }), stopped]);
+      }
+      timeout();
+      return await stopped;
+    } finally {
+      clearTimeout(timer); clearTimeout(delayTimer); signal?.removeEventListener('abort', abort);
+    }
+  };
+
+  const runCommitReveal = async ({ assignment, execution, receipt, mode = 'auto', signal }) => {
+    signal?.throwIfAborted();
+    const commitReveal = commitRevealModeFor(assignment, mode);
+    if (!commitReveal.enabled) {
+      return {
+        enabled: false,
+        required: false
+      };
+    }
+    const providerId = registration?.providerId || assignment.providerId;
+    const salt = globalThis.crypto?.randomUUID
+      ? `salt_${globalThis.crypto.randomUUID()}`
+      : `salt_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
+    const commitment = await buildAssignmentCommitmentPayload({
+      assignment,
+      providerId,
+      execution,
+      receipt,
+      salt
+    });
+    let commitmentResult = null;
+    try {
+      commitmentResult = await sdk.submitAssignmentCommitment(assignment.assignmentId, commitment);
+    } catch (error) {
+      if (!commitReveal.required && (error.status === 404 || error.status === 501)) {
+        return {
+          enabled: true,
+          required: false,
+          unsupported: true,
+          commitment,
+          error: error.message,
+          payload: error.payload || null
+        };
+      }
+      throw error;
+    }
+    const revealGate = await waitForRevealGate({ assignment, commitmentResult, signal });
+    const reveal = await buildAssignmentRevealPayload({
+      assignment,
+      providerId,
+      execution,
+      receipt,
+      salt,
+      commitmentHash: commitment.commitmentHash
+    });
+    signal?.throwIfAborted();
+    const revealResult = await sdk.submitAssignmentReveal(assignment.assignmentId, reveal);
+    return {
+      enabled: true,
+      required: commitReveal.required,
+      commitment,
+      commitmentResult,
+      revealGate,
+      reveal,
+      revealResult
+    };
+  };
+
+  return {
+    async createPeerPackProvider(options) {
+      await ensureKeys();
+      const authorize = options?.authorize;
+      if (typeof authorize !== 'function') throw new Error('Application admission for complete Pack jobs is required');
+      const keyId = await sha256Hex(Uint8Array.from(atob(publicKey), value => value.charCodeAt(0)));
+      return createPackPeerProvider({ ...options, identity: { keyId, publicKey, privateKey: activeKeyPair.privateKey },
+        authorize: async job => {
+          if (identity?.getParticipationProfile && !participationAllows(await identity.getParticipationProfile(), PARTICIPATION_CAPABILITIES.provideInference)) return false;
+          return authorize(job);
+        } });
+    },
+    async register({ models, device = {}, availability = {} }) {
+      await ensureKeys();
+      const resolvedProviderId = await ensureProviderId();
+      if (typeof runtime?.isReady === 'function' && !runtime.isReady()) {
+        throw new Error('Doppler browser model must be loaded before provider registration');
+      }
+      const runtimeModel = typeof runtime?.getModelInfo === 'function' ? runtime.getModelInfo() : null;
+      const advertisedModels = Array.isArray(models) && models.length > 0
+        ? models
+        : [runtimeModel || buildLaunchProviderModel()];
+      const advertisedModel = advertisedModels[0] || {};
+      if (!runtimeModel?.modelId || !runtimeModel?.modelHash || !runtimeModel?.manifestHash) {
+        throw new Error('Loaded Doppler runtime must expose modelId, modelHash, and manifestHash before registration');
+      }
+      if (!advertisedModel.modelId || !modelMatchesRuntime(advertisedModel, runtimeModel)) {
+        throw new Error('Loaded Doppler model identity does not match advertised provider model');
+      }
+      const mismatchedModel = advertisedModels.find((model) => !modelMatchesRuntime(model, runtimeModel));
+      if (mismatchedModel) throw new Error('Provider registration cannot advertise models that differ from the loaded Doppler runtime');
+      await validateAdvertisedAdapterPacks(advertisedModels, runtimeModel);
+      const runtimeDevice = typeof runtime?.getDeviceInfo === 'function'
+        ? await runtime.getDeviceInfo()
+        : {};
+      const { runtimeProfile, runtimeProfileHash } = await resolveRuntimeProfile();
+      const identityClaims = await ensureIdentityClaims();
+      registration = await sdk.registerProvider({
+        providerId: resolvedProviderId,
+        models: advertisedModels,
+        runtimeProfile,
+        runtimeProfileHash,
+        device: {
+          ...runtimeDevice,
+          ...device,
+          runtimeProfileHash
+        },
+        availability: {
+          maxConcurrentJobs: 1,
+          maxTokensPerJob: 128,
+          acceptedPolicies: listPolicies().map((policy) => policy.policyId),
+          ...availability
+        },
+        publicKey,
+        ...identityClaims,
+        timestamp: new Date().toISOString()
+      });
+      return registration;
+    },
+    async createPeerProviderAdvert({ models, availability = {}, reputationEvidence = {} } = {}) {
+      await ensureKeys();
+      const resolvedProviderId = await ensureProviderId();
+      if (typeof runtime?.isReady === 'function' && !runtime.isReady()) {
+        throw new Error('Doppler browser model must be loaded before provider advert');
+      }
+      const runtimeModel = typeof runtime?.getModelInfo === 'function' ? runtime.getModelInfo() : null;
+      const advertisedModels = Array.isArray(models) && models.length > 0
+        ? models
+        : [runtimeModel || buildLaunchProviderModel()];
+      const advertisedModel = advertisedModels[0] || {};
+      if (!runtimeModel?.modelId || !runtimeModel?.modelHash || !runtimeModel?.manifestHash) {
+        throw new Error('Loaded Doppler runtime must expose modelId, modelHash, and manifestHash before provider advert');
+      }
+      if (!advertisedModel.modelId || !modelMatchesRuntime(advertisedModel, runtimeModel)) {
+        throw new Error('Loaded Doppler model identity does not match advertised provider model');
+      }
+      const mismatchedModel = advertisedModels.find((model) => !modelMatchesRuntime(model, runtimeModel));
+      if (mismatchedModel) throw new Error('Provider advert cannot advertise models that differ from the loaded Doppler runtime');
+      await validateAdvertisedAdapterPacks(advertisedModels, runtimeModel);
+      const { runtimeProfile, runtimeProfileHash } = await resolveRuntimeProfile();
+      const identityClaims = await ensureIdentityClaims();
+      return createSignedProviderAdvert({
+        providerId: resolvedProviderId,
+        providerPublicKey: publicKey,
+        privateKey: activeKeyPair.privateKey,
+        ...identityClaims,
+        models: advertisedModels,
+        runtimeProfile,
+        runtimeProfileHash,
+        availability: {
+          maxConcurrentJobs: 1,
+          maxTokensPerJob: 128,
+          acceptedPolicies: listPolicies().map((policy) => policy.policyId),
+          ...availability
+        },
+        reputationEvidence
+      });
+    },
+    heartbeat() {
+      if (!registration?.providerId || !registration?.sessionId) {
+        throw new Error('Provider is not registered');
+      }
+      return sdk.heartbeatProvider({
+        providerId: registration.providerId,
+        sessionId: registration.sessionId,
+        timestamp: new Date().toISOString()
+      });
+    },
+    nextAssignment() {
+      if (!registration?.providerId) throw new Error('Provider is not registered');
+      return sdk.nextAssignment(registration.providerId);
+    },
+    async executePeerAssignment(assignment, options = {}) {
+      const result = await runLocalAssignment(assignment, options);
+      const receiptHash = await hashJson(result.receipt);
+      recordHistory({
+        eventType: 'peer_receipt_created',
+        assignmentId: assignment.assignmentId,
+        jobId: assignment.jobId,
+        policyId: assignment.policyId,
+        receiptHash
+      });
+      return {
+        ...result,
+        receiptHash,
+        transport: 'webrtc_peer_control'
+      };
+    },
+    async executeAssignment(assignment, { commitReveal = 'auto', ...inputOptions } = {}) {
+      try {
+        const { execution, receipt: signedReceipt } = await runLocalAssignment(assignment, inputOptions);
+        const commitRevealResult = await runCommitReveal({
+          assignment,
+          execution,
+          receipt: signedReceipt,
+          mode: commitReveal,
+          signal: inputOptions.signal
+        });
+        inputOptions.signal?.throwIfAborted();
+        const result = await sdk.submitReceipt(assignment.assignmentId, {
+          outputText: execution.outputText,
+          tokenIds: execution.tokenIds || [],
+          outputKind: execution.outputKind || assignment.workload || null,
+          vectorHash: execution.vectorHash || null,
+          embeddingDimensions: execution.embeddingDimensions || null,
+          embeddingStats: execution.embeddingStats || null,
+          transcript: execution.transcript || {
+            outputText: execution.outputText,
+            tokenIds: execution.tokenIds || []
+          },
+          sequenceResultHash: execution.sequenceResultHash || null,
+          sequenceResult: execution.sequenceResult || null,
+          receipt: signedReceipt
+        });
+        result.commitReveal = commitRevealResult;
+        recordHistory({
+          eventType: result?.verifierDecision?.accepted ? 'receipt_verified' : 'receipt_rejected',
+          assignmentId: assignment.assignmentId,
+          jobId: assignment.jobId,
+          policyId: assignment.policyId,
+          receiptHash: result?.verifierDecision?.receiptHash || result?.receipt?.receiptHash || null,
+          commitReveal: commitRevealResult,
+          verifierDecision: result?.verifierDecision || null
+        });
+        return result;
+      } catch (error) {
+        if (error.status) {
+          recordHistory({
+            eventType: 'receipt_submission_failed',
+            assignmentId: assignment.assignmentId,
+            jobId: assignment.jobId,
+            policyId: assignment.policyId,
+            status: error.status,
+            payload: error.payload || null
+          });
+          throw error;
+        }
+        let failureReport = null;
+        try {
+          failureReport = await sdk.reportAssignmentFailure(assignment.assignmentId, {
+            providerId: registration?.providerId || assignment.providerId,
+            reason: error.message,
+            providerFault: error.code !== 'REVEAL_GATE_TIMEOUT' && !inputOptions.signal?.aborted
+          });
+        } catch (reportError) {
+          failureReport = {
+            error: reportError.message,
+            payload: reportError.payload || null
+          };
+        }
+        recordHistory({
+          eventType: 'assignment_execution_failed',
+          assignmentId: assignment.assignmentId,
+          jobId: assignment.jobId,
+          policyId: assignment.policyId,
+          reason: error.message,
+          failureReport
+        });
+        throw error;
+      }
+    },
+    async runWorkerStep(inputOptions = {}) {
+      if (!registration?.providerId) throw new Error('Provider is not registered');
+      const heartbeat = await this.heartbeat();
+      const next = await this.nextAssignment();
+      if (!next?.assignment) {
+        return {
+          status: 'idle',
+          heartbeat,
+          assignment: null,
+          history
+        };
+      }
+      const receiptResult = await this.executeAssignment(next.assignment, inputOptions);
+      return {
+        status: 'executed_assignment',
+        heartbeat,
+        assignment: next.assignment,
+        receiptResult,
+        history
+      };
+    },
+    getRegistration() {
+      return registration;
+    },
+    getHistory() {
+      return [...history];
+    },
+    getPublicKey() {
+      return publicKey;
+    },
+    async createRelayAcknowledgement({ roomId, relayId, relaySequence } = {}) {
+      const keys = await ensureKeys();
+      const resolvedProviderId = await ensureProviderId();
+      return createSignedPeerMessage({
+        type: PEER_MESSAGE_TYPES.HEARTBEAT,
+        fromPeerId: resolvedProviderId,
+        publicKey,
+        body: {
+          schema: 'reploid.peer.relay_ack/v1',
+          roomId,
+          relayId,
+          relaySequence
+        },
+        expiresAt: new Date(Date.now() + 2 * 60 * 1000).toISOString(),
+        privateKey: keys.privateKey
+      });
+    },
+    publishAdapter(publication) {
+      return adapterRegistry.publish(publication);
+    },
+    cacheAdapterArtifact(artifact) {
+      return adapterRegistry.cache(artifact);
+    },
+    getAdapterRegistry() {
+      return adapterRegistry;
+    }
+  };
+}
+
+export default {
+  createProviderClient
+};

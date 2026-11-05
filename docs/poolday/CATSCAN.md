@@ -18,7 +18,7 @@ This directory and unchartered descendants.
 
 ## Contracts
 
-Inputs: [goals](../../GOALS.md) and [runtime charter](../../self/pool/CATSCAN.md).
+Inputs: [goals](../../GOALS.md) and [runtime charter](../../apps/poolday/pool/CATSCAN.md).
 Outputs: [product direction](product-intent.md) and [bounded claims](claims-and-nonclaims.md).
 
 ## Invariants

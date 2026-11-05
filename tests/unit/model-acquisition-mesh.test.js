@@ -2,12 +2,12 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { readFile } from 'node:fs/promises';
 const ports = vi.hoisted(() => ({ retained: vi.fn(async () => null) }));
-vi.mock('../../self/host/model-acquisition.js', () => ({ retainedModelSource: ports.retained }));
-vi.mock('../../self/infrastructure/custody-supply-budget.js', () => ({
+vi.mock('../../apps/poolday/host/model-acquisition.js', () => ({ retainedModelSource: ports.retained }));
+vi.mock('../../apps/poolday/infrastructure/custody-supply-budget.js', () => ({
   openBrowserSupplyBudget: async () => ({ getState: () => ({}), close() {} }),
   openBrowserAcquisitionBudget: async () => { throw Object.assign(Error('No allowance'), { code: 'CUSTODY_BUDGET_MISSING' }); }
 }));
-import { createWorkModelFiles } from '../../self/host/work-model-files.js';
+import { createWorkModelFiles } from '../../apps/poolday/host/work-model-files.js';
 import { LOCAL_DOPPLER_MODELS } from '../../shared/config/doppler-local-models.js';
 import { resolveServedFile } from '../../server/browser-roots.js';
 afterEach(() => { vi.unstubAllGlobals(); ports.retained.mockReset(); ports.retained.mockResolvedValue(null); });

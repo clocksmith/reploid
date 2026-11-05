@@ -8,7 +8,7 @@ import { execFile } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
 import { buildHostingFileSet, resolveBrowserTree, walkFiles } from './hosting-file-set.js';
-import { BROWSER_BUNDLE_DESCRIPTOR_PATH, validateBrowserBundleManifest } from '../self/pool/browser-release-identity.js';
+import { BROWSER_BUNDLE_DESCRIPTOR_PATH, validateBrowserBundleManifest } from '../apps/poolday/pool/browser-release-identity.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const exec = promisify(execFile);

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { PEER_MESSAGE_TYPES } from '../../self/pool/peer-control-plane.js';
+import { PEER_MESSAGE_TYPES } from '../../apps/poolday/pool/peer-control-plane.js';
 import {
   addReceiptLedgerRow,
   findReceiptLedgerRecord,
@@ -21,7 +21,7 @@ import {
   isEmbeddingPublicationPermitted,
   updateProviderNotice,
   updateProviderStatus
-} from '../../self/ui/pool-home/view.js';
+} from '../../apps/poolday/ui/pool-home/view.js';
 
 const createMemoryStorage = () => {
   const store = new Map();

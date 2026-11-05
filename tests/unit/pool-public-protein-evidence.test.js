@@ -11,7 +11,7 @@ import {
   searchEvidence,
   validateResearchRecordLinks,
   verifyResearchRecord
-} from '../../self/pool/evidence-network.js';
+} from '../../apps/poolday/pool/evidence-network.js';
 import { createSigningKeyPair } from '../../shared/pool/inference-receipt.js';
 import { buildLaunchProviderModel } from '../../shared/pool/model-contract.js';
 

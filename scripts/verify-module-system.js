@@ -10,7 +10,7 @@ import { fileURLToPath } from 'url';
 import {
   BROWSER_BUNDLE_DESCRIPTOR_PATH,
   validateBrowserBundleManifest
-} from '../self/pool/browser-release-identity.js';
+} from '../apps/poolday/pool/browser-release-identity.js';
 import { toBrowserSourcePath, toCanonicalBrowserPath } from './browser-tree-paths.js';
 import { createModuleMetadataResolver } from './module-metadata.js';
 import { buildHostingFileSet, resolveBrowserTree } from './hosting-file-set.js';

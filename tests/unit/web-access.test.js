@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createProviderWebAccess, createBrowserWebAccess } from '../../self/host/web-access.js';
-import { createDeviceSearch } from '../../self/host/device-search.js';
+import { createProviderWebAccess, createBrowserWebAccess } from '../../apps/poolday/host/web-access.js';
+import { createDeviceSearch } from '../../apps/poolday/host/device-search.js';
 import { createRetrieval, sha256Text } from '../../packages/reploid/src/retrieval/index.js';
 
 // Injected providers and attached-browser ports; these tests establish the interface, not live search access.

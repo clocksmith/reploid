@@ -14,6 +14,7 @@ import {
   DOPPLER_PACKAGE_TARBALL_URL,
   DOPPLER_PACKAGE_VERSION
 } from '../shared/config/doppler-local-models.js';
+import { resolveServedFile } from '../server/browser-roots.js';
 
 const RUNTIME_ENV_KEYS = Object.freeze({
   REPLOID_POOL_MODEL_BASE_URL: 'modelBaseUrl',
@@ -153,7 +154,7 @@ const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPat
 if (isMain) {
   const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const filePaths = {
-    poolConfig: path.join(repoRoot, 'self', 'pool', 'pool-config.json'),
+    poolConfig: resolveServedFile('pool/pool-config.json', { repoRoot }),
     deploymentConfig: path.join(repoRoot, 'deploy', 'env.production.json'),
     cloudRunYaml: path.join(repoRoot, 'deploy', 'cloud-run-service.yaml'),
     packageManifest: path.join(repoRoot, 'package.json'),

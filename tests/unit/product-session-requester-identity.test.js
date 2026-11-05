@@ -10,7 +10,7 @@ import { createAutomaticPartitions } from '../../packages/reploid/src/mesh/parti
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 import { createPartitionRuntimeFixture } from '../fixtures/partition-runtime.js';
 import { automaticOrderedMesh, tasks } from '../fixtures/automatic-ordered-mesh.js';
-import orderedPolicy from '../../self/config/ordered-participation.json' with { type: 'json' };
+import orderedPolicy from '../../apps/poolday/config/ordered-participation.json' with { type: 'json' };
 
 const ports = vi.hoisted(() => ({ identity: null, partitions: null, bound: [] }));
 vi.mock('../../shared/identity.js', async original => ({ ...await original(), ensureIdentityBundle: async () => ports.identity }));
@@ -25,12 +25,12 @@ vi.mock('../../shared/vendor/reploid/mesh/index.js', async original => ({ ...awa
 }));
 vi.mock('../../shared/vendor/reploid/transport/index.js', async original => ({ ...await original(),
   createSwarmTransport: () => ({ disconnect() {}, onMessage() {}, offMessage() {}, sendToPeer() {}, _getPeerId: () => 'transport-requester', getConnectedPeers: () => [] }) }));
-vi.mock('../../self/host/work-model-files.js', async original => ({ ...await original(),
+vi.mock('../../apps/poolday/host/work-model-files.js', async original => ({ ...await original(),
   createWorkModelFiles: () => ({ async attach() {}, async close() {}, announce() {}, getState: () => ({ sharing: false, preparing: false }) }) }));
-vi.mock('../../self/host/work-peer-offers.js', () => ({ createWorkPeerOffers: () => ({
+vi.mock('../../apps/poolday/host/work-peer-offers.js', () => ({ createWorkPeerOffers: () => ({
   acquire: async () => 'transport-requester', attach: async () => {}, close() {}, getState: () => null }) }));
-import { createProductSession } from '../../self/host/product-session.js';
-import { createChatSession } from '../../self/host/chat-session.js';
+import { createProductSession } from '../../apps/poolday/host/product-session.js';
+import { createChatSession } from '../../apps/poolday/host/chat-session.js';
 import { resolveConfig } from '../../shared/vendor/reploid/config/index.js';
 
 const DISCLOSURE_MISMATCH = 'Peer disclosure does not match the selected model and verified recipients';

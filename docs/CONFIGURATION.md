@@ -6,12 +6,12 @@ All configurable settings exposed in the boot UI and their corresponding localSt
 
 ## Web search and page access
 
-The host [WebAccess interface](../self/host/web-access.d.ts) separates
+The host [WebAccess interface](../apps/poolday/host/web-access.d.ts) separates
 `search(query, limits, signal)` from `fetch(url, options)`. Search returns the
 existing `SearchProvider` results; page reads return a Fetch-compatible response.
 Known URLs can be read without issuing a search.
 
-[Implementations](../self/host/web-access.js):
+[Implementations](../apps/poolday/host/web-access.js):
 
 - `createProviderWebAccess({ provider, fetch })` composes an API or MCP search
   provider with a page reader. The default reader is ordinary browser Fetch,

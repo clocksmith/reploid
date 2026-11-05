@@ -4,12 +4,12 @@ import {
   createSignedResearchResult,
   createSignedResearchSubmission,
   projectCrossRoomSequenceEvidence
-} from '../../self/pool/evidence-network.js';
-import { createDiscoveryContractCheckpoint } from '../../self/pool/discovery-contract.js';
+} from '../../apps/poolday/pool/evidence-network.js';
+import { createDiscoveryContractCheckpoint } from '../../apps/poolday/pool/discovery-contract.js';
 import { createSigningKeyPair } from '../../shared/pool/inference-receipt.js';
 import { buildLaunchProviderModel, getPoolModelContract } from '../../shared/pool/model-contract.js';
-import { projectProteinUncertaintyCampaignQueue } from '../../self/pool/protein-uncertainty-campaign.js';
-import { hashSequenceFloat32Values } from '../../self/pool/sequence-result.js';
+import { projectProteinUncertaintyCampaignQueue } from '../../apps/poolday/pool/protein-uncertainty-campaign.js';
+import { hashSequenceFloat32Values } from '../../apps/poolday/pool/sequence-result.js';
 import {
   appendResearchRecord,
   getCrossRoomSequenceEvidence,
@@ -22,7 +22,7 @@ import {
   loadResearchRecords,
   publishResearchRecord,
   resetResearchStore
-} from '../../self/ui/pool-home/research-store.js';
+} from '../../apps/poolday/ui/pool-home/research-store.js';
 
 const storage = () => {
   const values = new Map();

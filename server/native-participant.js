@@ -28,20 +28,20 @@ import { createSwarmTransport, createRoomIntroductionAdmission } from '../packag
 import { createSigningIdentity, createPeerIdFromPublicJwk } from '../packages/reploid/src/artifacts/identity.js';
 import { createAttemptEvidenceSigner } from '../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { resolveConfig } from '../packages/reploid/src/config/index.js';
-import { createWorkAdapterResolver } from '../self/providers/work-adapter.js';
+import { createWorkAdapterResolver } from '../apps/poolday/providers/work-adapter.js';
 import models from '../shared/config/chat-models.json' with { type: 'json' };
-import custodyPolicy from '../self/config/chat-files.json' with { type: 'json' };
-import policy from '../self/config/partition-policy.json' with { type: 'json' };
+import custodyPolicy from '../apps/poolday/config/chat-files.json' with { type: 'json' };
+import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
 import profile from '../shared/config/reploid-library.json' with { type: 'json' };
 import bootstrap from '../shared/config/swarm-bootstrap.json' with { type: 'json' };
 import dopplerPin from '../shared/config/doppler-package.json' with { type: 'json' };
-import { resolvePartitionGeneration } from '../self/config/partition-generation.js';
-import { prepareLocalPackRelease } from '../self/pool/pack-release-policy.js';
+import { resolvePartitionGeneration } from '../apps/poolday/config/partition-generation.js';
+import { prepareLocalPackRelease } from '../apps/poolday/pool/pack-release-policy.js';
 import { createChangeOnlyLog } from './native-change-log.js';
 import { snapshotWorkPartitionSelection, createWorkPartitionPlan,
-  snapshotWorkPartitionStage, workOrderedResidentOptions, snapshotWorkOrderedParticipation, bindWorkOrderedParticipation } from '../self/host/work-partition-plan.js';
-import { assertWorkResidentCapsule } from '../self/host/work-partition-capsule.js';
-import { createPartitionTokenizerGuard } from '../self/host/work-partition-tokenizer-guard.js';
+  snapshotWorkPartitionStage, workOrderedResidentOptions, snapshotWorkOrderedParticipation, bindWorkOrderedParticipation } from '../apps/poolday/host/work-partition-plan.js';
+import { assertWorkResidentCapsule } from '../apps/poolday/host/work-partition-capsule.js';
+import { createPartitionTokenizerGuard } from '../apps/poolday/host/work-partition-tokenizer-guard.js';
 import { resolveServedFile } from './browser-roots.js';
 
 const hash = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('hex');

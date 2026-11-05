@@ -9,7 +9,7 @@
 import { hashJson, sha256Hex } from '../../shared/pool/inference-receipt.js';
 import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { resolveDopplerExecutionContract } from '../../shared/config/doppler-execution-contracts.js';
-import { reduceDopplerSequenceResult } from '../../self/pool/sequence-result.js';
+import { reduceDopplerSequenceResult } from '../../apps/poolday/pool/sequence-result.js';
 import {
   SEQUENCE_ALPHABETS,
   SEQUENCE_WORKLOADS,

@@ -9,7 +9,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createEarningComposition } from '../../server/earning-composition/index.js';
 import { mountEarningRoutes } from '../../server/earning-routes/mount.js';
 import { installJsonBodyMiddleware } from '../../server/json-body-middleware.js';
-import { chooseSignInFlow, deferredEarning, loadEarningService, openBrowserEarning } from '../../self/host/credits/browser.js';
+import { chooseSignInFlow, deferredEarning, loadEarningService, openBrowserEarning } from '../../apps/poolday/host/credits/browser.js';
 import { QUOTE_REQUEST, earningPolicy, writeOutsideRepository } from '../helpers/earning-policy-fixture.js';
 import { START, clock, fx } from '../helpers/reward-fixture.js';
 

@@ -4,7 +4,7 @@
 
 import { getPolicy } from './config.js';
 import { deriveProviderAdmission } from './runtime-profile.js';
-import { REPUTATION_EVENT_TYPES } from '../../self/pool/reputation.js';
+import { REPUTATION_EVENT_TYPES } from '../../apps/poolday/pool/reputation.js';
 
 export async function recordAcceptedReceipt({ store, providerId, receiptHash = null, points = 0 }) {
   const provider = await store.getProvider?.(providerId);

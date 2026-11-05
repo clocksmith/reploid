@@ -1,9 +1,9 @@
 // Installed Doppler, real Reploid signatures and verification; synthetic execution and message bus.
 import assert from 'node:assert/strict';
-import { createPackPeerProvider } from '../../self/pool/peer-pack-provider.js';
-import { createPackPeerRequester } from '../../self/pool/peer-pack-requester.js';
-import { verifyPackPeerEpisode } from '../../self/pool/peer-pack-episode.js';
-import { runPackOperation } from '../../self/pool/pack-operation.js';
+import { createPackPeerProvider } from '../../apps/poolday/pool/peer-pack-provider.js';
+import { createPackPeerRequester } from '../../apps/poolday/pool/peer-pack-requester.js';
+import { verifyPackPeerEpisode } from '../../apps/poolday/pool/peer-pack-episode.js';
+import { runPackOperation } from '../../apps/poolday/pool/pack-operation.js';
 import { createPackOperationRegistry } from '../../shared/pool/pack-operation-adapters.js';
 import { operationCapabilities, operationResources, packPeerIdentity } from './peer-pack-operation.js';
 

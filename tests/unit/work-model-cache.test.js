@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, expect, it, vi } from 'vitest';
-import { findCachedModels, watchModelCache, MODEL_CACHE_EVENT } from '../../self/host/work-model-cache.js';
+import { findCachedModels, watchModelCache, MODEL_CACHE_EVENT } from '../../apps/poolday/host/work-model-cache.js';
 
 afterEach(() => vi.unstubAllGlobals());
 async function fixture() {

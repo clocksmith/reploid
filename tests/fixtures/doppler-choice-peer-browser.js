@@ -2,11 +2,11 @@
 import * as api from 'doppler-gpu';
 import { createDopplerChoiceScoringAdapter } from 'reploid/doppler';
 import { createReploidDopplerRuntimeService } from '../../shared/infrastructure/doppler-runtime-service.js';
-import { createPackPeerProvider } from '../../self/pool/peer-pack-provider.js';
-import { createPackPeerRequester } from '../../self/pool/peer-pack-requester.js';
-import { createPackJobDataChannel } from '../../self/pool/peer-pack-job-channel.js';
-import { createPackPeerJob } from '../../self/pool/peer-pack-job.js';
-import { runPackOperation } from '../../self/pool/pack-operation.js';
+import { createPackPeerProvider } from '../../apps/poolday/pool/peer-pack-provider.js';
+import { createPackPeerRequester } from '../../apps/poolday/pool/peer-pack-requester.js';
+import { createPackJobDataChannel } from '../../apps/poolday/pool/peer-pack-job-channel.js';
+import { createPackPeerJob } from '../../apps/poolday/pool/peer-pack-job.js';
+import { runPackOperation } from '../../apps/poolday/pool/pack-operation.js';
 import { createPackOperationRegistry, PACK_OPERATION_IMPLEMENTATIONS } from '../../shared/pool/pack-operation-adapters.js';
 import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { packPeerIdentity } from './peer-pack-operation.js';

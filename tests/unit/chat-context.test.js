@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { createChatContext } from '../../self/host/chat-context.js';
+import { createChatContext } from '../../apps/poolday/host/chat-context.js';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
-import { createChatSession, CANONICAL_CHAT_MODELS } from '../../self/host/chat-session.js';
+import { createChatSession, CANONICAL_CHAT_MODELS } from '../../apps/poolday/host/chat-session.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 
 const model = { id: 'verified-model', name: 'Verified model', identity: 'sha256:' + 'a'.repeat(64) };

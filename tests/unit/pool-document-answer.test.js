@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { inspectDocumentAnswer } from '../../self/pool/document-answer.js';
-import { createDocumentSearch } from '../../self/pool/document-search.js';
-import { createLocalPackExecutor } from '../../self/pool/local-pack-executor.js';
+import { inspectDocumentAnswer } from '../../apps/poolday/pool/document-answer.js';
+import { createDocumentSearch } from '../../apps/poolday/pool/document-search.js';
+import { createLocalPackExecutor } from '../../apps/poolday/pool/local-pack-executor.js';
 import { createDocumentPackFixture } from '../fixtures/document-packs.js';
-import policy from '../../self/pool/document-search-policy.json' with { type: 'json' };
+import policy from '../../apps/poolday/pool/document-search-policy.json' with { type: 'json' };
 
 const passages = [{ id: 'a', text: 'Apple trees grow fruit.' }, { id: 'b', text: 'Whales live in the sea.' }];
 const inspect = text => inspectDocumentAnswer({ text, passages, abstention: policy.answerAbstention });

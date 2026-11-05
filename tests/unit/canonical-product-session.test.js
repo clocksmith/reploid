@@ -1,13 +1,13 @@
 import { beforeEach, expect, it, vi } from 'vitest';
 const ports = vi.hoisted(() => ({ swarm: vi.fn(), open: vi.fn(), legacy: vi.fn(), autoconnect: vi.fn(), service: vi.fn() }));
-vi.mock('../../self/host/work-swarm.js', () => ({ createWorkSwarm: ports.swarm }));
-vi.mock('../../self/host/chat-session.js', async original => ({ ...await original(), createChatSession: ports.legacy, openCanonicalChatSession: ports.open }));
-vi.mock('../../self/host/swarm-autoconnect.js', () => ({ startSwarmAutoconnect: ports.autoconnect }));
+vi.mock('../../apps/poolday/host/work-swarm.js', () => ({ createWorkSwarm: ports.swarm }));
+vi.mock('../../apps/poolday/host/chat-session.js', async original => ({ ...await original(), createChatSession: ports.legacy, openCanonicalChatSession: ports.open }));
+vi.mock('../../apps/poolday/host/swarm-autoconnect.js', () => ({ startSwarmAutoconnect: ports.autoconnect }));
 vi.mock('../../shared/infrastructure/doppler-runtime-service.js', async original => ({ ...await original(), createReploidDopplerRuntimeService: ports.service }));
-vi.mock('../../self/host/work-evolution.js', () => ({ createWorkEvolution: () => ({}) }));
-import { createProductSession } from '../../self/host/product-session.js';
-import { LOCAL_HISTORY_IDENTITY } from '../../self/host/chat-session.js';
-import orderedPolicy from '../../self/config/ordered-participation.json' with { type: 'json' };
+vi.mock('../../apps/poolday/host/work-evolution.js', () => ({ createWorkEvolution: () => ({}) }));
+import { createProductSession } from '../../apps/poolday/host/product-session.js';
+import { LOCAL_HISTORY_IDENTITY } from '../../apps/poolday/host/chat-session.js';
+import orderedPolicy from '../../apps/poolday/config/ordered-participation.json' with { type: 'json' };
 let swarm, chat;
 beforeEach(() => {
   vi.resetAllMocks();

@@ -1,11 +1,11 @@
 // Installed public Doppler with injected logits, real WebRTC, signatures and IndexedDB.
 import * as api from 'doppler-gpu';
 import { createReploidDopplerRuntimeService } from '../../shared/infrastructure/doppler-runtime-service.js';
-import { createPackPeerProvider } from '../../self/pool/peer-pack-provider.js';
-import { createPackPeerRequester } from '../../self/pool/peer-pack-requester.js';
-import { createPackJobDataChannel } from '../../self/pool/peer-pack-job-channel.js';
-import { verifyPackPeerEpisode } from '../../self/pool/peer-pack-episode.js';
-import { runPackOperation } from '../../self/pool/pack-operation.js';
+import { createPackPeerProvider } from '../../apps/poolday/pool/peer-pack-provider.js';
+import { createPackPeerRequester } from '../../apps/poolday/pool/peer-pack-requester.js';
+import { createPackJobDataChannel } from '../../apps/poolday/pool/peer-pack-job-channel.js';
+import { verifyPackPeerEpisode } from '../../apps/poolday/pool/peer-pack-episode.js';
+import { runPackOperation } from '../../apps/poolday/pool/pack-operation.js';
 import { createPackOperationRegistry } from '../../shared/pool/pack-operation-adapters.js';
 import { operationCapabilities, operationResources, packPeerIdentity } from './peer-pack-operation.js';
 import { createP2PTransport } from '../../shared/pool/p2p-transport.js';

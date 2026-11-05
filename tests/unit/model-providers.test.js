@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
-import { hardwareLabel, projectModelProviders, renderModelProviders, updateModelProviders } from '../../self/ui/pool-home/model-providers.js';
-import { withComputerLabels } from '../../self/ui/pool-home/computer-labels.js';
+import { hardwareLabel, projectModelProviders, renderModelProviders, updateModelProviders } from '../../apps/poolday/ui/pool-home/model-providers.js';
+import { withComputerLabels } from '../../apps/poolday/ui/pool-home/computer-labels.js';
 
 const model = { id: 'qwen', name: 'Qwen', identity: 'sha256:model', providerIds: ['a', 'b'], networkAvailability: 'ready' };
 const peer = id => ({ peerId: id, model: model.id, modelIdentity: model.identity, readiness: 'ready',

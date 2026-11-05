@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createMessageList } from '../../self/ui/pool-home/message-list.js';
+import { createMessageList } from '../../apps/poolday/ui/pool-home/message-list.js';
 
 function conversation() {
   return { id: 'one', messages: [

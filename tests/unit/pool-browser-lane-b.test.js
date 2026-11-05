@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createProviderClient } from '../../self/pool/provider-client.js';
+import { createProviderClient } from '../../apps/poolday/pool/provider-client.js';
 import { buildCommitmentHash } from '../../server/pool/commit-reveal.js';
 import { createSigningKeyPair } from '../../shared/pool/inference-receipt.js';
 import {
@@ -16,7 +16,7 @@ import {
   RUNTIME_PROFILE_VERSION,
   buildRuntimeProfile,
   hashRuntimeProfile
-} from '../../self/pool/runtime-profile.js';
+} from '../../apps/poolday/pool/runtime-profile.js';
 import {
   TEST_PUBLIC_PROTEIN_SEQUENCE,
   makePublicProteinJobFields,

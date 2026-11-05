@@ -6,8 +6,8 @@ import {
   ADAPTER_RUNTIME_CANARY_RECEIPT_SCHEMA,
   createSignedAdapterCanaryPublication,
   verifyAdapterCanaryPublication
-} from '../../self/pool/adapter-canary-publication.js';
-import { verifyAdapterPublication } from '../../self/pool/adapter-publication.js';
+} from '../../apps/poolday/pool/adapter-canary-publication.js';
+import { verifyAdapterPublication } from '../../apps/poolday/pool/adapter-publication.js';
 import {
   createSigningKeyPair,
   exportPublicKey

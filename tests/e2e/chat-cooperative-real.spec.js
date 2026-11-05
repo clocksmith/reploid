@@ -1,6 +1,6 @@
 import { QUOTE_CASES, extractQuoteCode, evaluateQuoteCode } from '../fixtures/quote-code-evaluation.js';
 import { allowRemoteOnce } from '../fixtures/remote-permission.js';
-import { comparisonInput, COMPARISON_CHECK } from '../../self/host/document-comparison.js';
+import { comparisonInput, COMPARISON_CHECK } from '../../apps/poolday/host/document-comparison.js';
 import { test, expect, chromium } from '@playwright/test';
 import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';

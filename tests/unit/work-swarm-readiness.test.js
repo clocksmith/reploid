@@ -13,7 +13,7 @@ vi.mock('../../shared/identity.js', () => ({ ensureIdentityBundle: ports.ensure,
 vi.mock('../../shared/vendor/reploid/transport/index.js', () => ({
   createSwarmTransport: ports.createTransport, createToolOfferChannel: vi.fn(), TOOL_OFFER_MESSAGE: 'offer', TOOL_OFFER_ACK: 'ack'
 }));
-import { createWorkSwarm, READINESS_RECORDS_KEY } from '../../self/host/work-swarm.js';
+import { createWorkSwarm, READINESS_RECORDS_KEY } from '../../apps/poolday/host/work-swarm.js';
 
 const S = 1000, T0 = Date.UTC(2026, 9, 15, 22, 0, 0), M = 'sha256:' + 'a'.repeat(64), PLAN = 'sha256:' + 'b'.repeat(64);
 let values, owner;

@@ -3,7 +3,7 @@ import config from '../../shared/pool/pool-config.json' with { type: 'json' };
 import { createPackOperationRegistry } from '../../shared/pool/pack-operation-adapters.js';
 import { validatePoolConfigValue } from '../../shared/pool/config-contract.js';
 import { operationFixture } from '../fixtures/peer-pack-operation.js';
-import { runPackOperation } from '../../self/pool/pack-operation.js';
+import { runPackOperation } from '../../apps/poolday/pool/pack-operation.js';
 
 describe('configured operation policy', () => {
   it('rejects missing definitions, unknown implementations, fields, comparisons and contract versions', () => {

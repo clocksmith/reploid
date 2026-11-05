@@ -15,6 +15,7 @@ COPY deploy/Dockerfile ./deploy/Dockerfile
 COPY server ./server
 COPY self ./self
 COPY shared ./shared
+COPY apps/poolday ./apps/poolday
 COPY packages/reploid/package.json ./packages/reploid/package.json
 COPY packages/reploid/src ./packages/reploid/src
 

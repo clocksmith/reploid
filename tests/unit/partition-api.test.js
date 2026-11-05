@@ -6,7 +6,7 @@ import { createPartitionGrantAuthority, createResidentPartition, createPartition
   createPartitionChat, createPartitionNetwork, partitionFingerprint } from '../../packages/reploid/src/mesh/index.js';
 import { createPartitionEntry, createPartitionRequester } from '../../packages/reploid/src/mesh/partitions/partition-entry.js';
 import { disclosureScope, matchingThreadGrant } from '../../packages/reploid/src/chat/thread-grants.js';
-import { createChatSession } from '../../self/host/chat-session.js';
+import { createChatSession } from '../../apps/poolday/host/chat-session.js';
 import { createPartitionRuntimeFixture } from '../fixtures/partition-runtime.js';
 
 const policy = { maxTokens: 4, maxPromptTokens: 32, maxActivationBytes: 4096, maxOutputCharacters: 1024,

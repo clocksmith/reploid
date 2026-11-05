@@ -7,9 +7,9 @@ import {
   createSdkPeerRoomRelayBus,
   parsePeerRoomInviteUrl,
   peerRoomMessageFromPeerId
-} from '../../self/pool/peer-rendezvous.js';
+} from '../../apps/poolday/pool/peer-rendezvous.js';
 import { createSigningKeyPair, exportPublicKey } from '../../shared/pool/inference-receipt.js';
-import { createSignedPeerMessage, PEER_MESSAGE_TYPES } from '../../self/pool/peer-protocol.js';
+import { createSignedPeerMessage, PEER_MESSAGE_TYPES } from '../../apps/poolday/pool/peer-protocol.js';
 
 describe('pool peer rendezvous', () => {
   it('reports bounded local BroadcastChannel delivery counters', async () => {

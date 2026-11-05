@@ -7,6 +7,7 @@ import os from 'node:os';
 import * as installed from 'doppler-gpu/partitions';
 import pin from '../../shared/config/doppler-package.json' with { type: 'json' };
 import { DOPPLER_PARTITIONS_MODULE_URL } from '../../shared/config/doppler-local-models.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
 
 const archive = path.resolve(`deploy/artifacts/doppler-gpu-${pin.version}.tgz`);
 const sha512 = bytes => 'sha512-' + createHash('sha512').update(bytes).digest('base64');
@@ -14,7 +15,7 @@ const sha512 = bytes => 'sha512-' + createHash('sha512').update(bytes).digest('b
 describe('partition candidate delivery', () => {
   it('ships identical installed and hosted contract bytes from the pinned archive', async () => {
     expect(sha512(readFileSync(archive))).toBe(pin.integrity);
-    const hosted = path.resolve('self' + DOPPLER_PARTITIONS_MODULE_URL);
+    const hosted = resolveServedFile(DOPPLER_PARTITIONS_MODULE_URL);
     const modulePath = 'src/partitions.js';
     const packed = execFileSync('tar', ['-xOf', archive, 'package/' + modulePath]);
     expect(readFileSync(hosted)).toEqual(packed);
@@ -55,7 +56,7 @@ describe('partition candidate delivery', () => {
     const fixture = mkdtempSync(path.join(os.tmpdir(), 'reploid-doppler-delivery-'));
     try {
       mkdirSync(path.join(fixture, 'scripts'));
-      mkdirSync(path.join(fixture, 'self/config'), { recursive: true });
+      mkdirSync(path.join(fixture, 'shared/config'), { recursive: true });
       cpSync('scripts/vendor-doppler.js', path.join(fixture, 'scripts/vendor-doppler.js'));
       writeFileSync(path.join(fixture, 'package.json'), JSON.stringify({ type: 'module',
         dependencies: { 'doppler-gpu': pin.spec } }));

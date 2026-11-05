@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createPeerPackArtifactStore } from '../../self/pool/peer-pack-custody.js';
+import { createPeerPackArtifactStore } from '../../apps/poolday/pool/peer-pack-custody.js';
 import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { sha256Hex, signCanonical } from '../../shared/pool/inference-receipt.js';
 import { createCustodyFixture } from '../fixtures/peer-pack-custody.js';

@@ -14,7 +14,7 @@ import {
   BROWSER_BUNDLE_DESCRIPTOR_PATH,
   buildBrowserBundleManifest,
   validateBrowserBundleManifest
-} from '../self/pool/browser-release-identity.js';
+} from '../apps/poolday/pool/browser-release-identity.js';
 
 const checkOnly = process.argv.includes('--check');
 

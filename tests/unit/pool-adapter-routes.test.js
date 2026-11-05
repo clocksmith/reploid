@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import createPoolRouter from '../../server/pool/routes.js';
 import { createPoolStore } from '../../server/pool/store.js';
 import { DETERMINISTIC_GENERATION_CONFIG } from '../../server/pool/policy-router.js';
-import { adapterRequirementFromPublication, createAdapterUseApproval, createAdapterRevocation, createSignedAdapterPublication } from '../../self/pool/adapter-publication.js';
+import { adapterRequirementFromPublication, createAdapterUseApproval, createAdapterRevocation, createSignedAdapterPublication } from '../../apps/poolday/pool/adapter-publication.js';
 import { modelSupportsAdapterRequirement, sealAdapterPack } from '../../shared/pool/adapter-pack.js';
 import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../../shared/pool/inference-receipt.js';
 import { LAUNCH_MODEL } from '../../shared/pool/model-contract.js';

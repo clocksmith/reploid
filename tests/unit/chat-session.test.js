@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createChatSession, CANONICAL_CHAT_MODELS } from '../../self/host/chat-session.js';
+import { createChatSession, CANONICAL_CHAT_MODELS } from '../../apps/poolday/host/chat-session.js';
 import { createChatScheduler } from '../../shared/vendor/reploid/chat/index.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 const storage = () => {

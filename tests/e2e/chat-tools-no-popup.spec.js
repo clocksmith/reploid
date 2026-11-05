@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { readServedText } from '../helpers/served-browser-files.js';
 import { resolveServedFile } from '../../server/browser-roots.js';
+import { readServedHarnessFile } from '../helpers/served-browser-files.js';
 
 // Real browser presentation with an injected session; no network search or model execution.
 const origin = 'http://127.0.0.1:8131';
@@ -17,9 +18,9 @@ test.beforeEach(async ({ page }) => {
         + '<link rel="stylesheet" href="/styles/rd.css">' + files.map(file => `<link rel="stylesheet" href="/styles/poolday/${file}">`).join('')
         + '<main class="pool-home" id="fixture"></main>' });
     }
-    const file = path.resolve(root, '.' + name);
-    if (!file.startsWith(root + path.sep)) return route.abort();
-    try { return route.fulfill({ contentType: name.endsWith('.js') ? 'text/javascript' : name.endsWith('.json') ? 'application/json' : name.endsWith('.css') ? 'text/css' : 'application/octet-stream', body: await readFile(file) }); }
+    const body = await readServedHarnessFile('/self' + name);
+    if (!body) return route.fulfill({ status: 404, body: '' });
+    try { return route.fulfill({ contentType: name.endsWith('.js') ? 'text/javascript' : name.endsWith('.json') ? 'application/json' : name.endsWith('.css') ? 'text/css' : 'application/octet-stream', body }); }
     catch { return route.fulfill({ status: 404, body: '' }); }
   });
   await page.goto(origin);

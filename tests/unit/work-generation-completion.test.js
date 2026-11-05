@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createChatExecution } from '../../self/host/chat-execution.js';
+import { createChatExecution } from '../../apps/poolday/host/chat-execution.js';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
-import { openWorkProvider } from '../../self/providers/work-provider.js';
-import { readWorkGenerationCompletion } from '../../self/providers/work-generation-completion.js';
-import { consumeWorkGenerationStream } from '../../self/providers/work-generation-completion.js';
+import { openWorkProvider } from '../../apps/poolday/providers/work-provider.js';
+import { readWorkGenerationCompletion } from '../../apps/poolday/providers/work-generation-completion.js';
+import { consumeWorkGenerationStream } from '../../apps/poolday/providers/work-generation-completion.js';
 import { createScopedModelSession } from '../../node_modules/doppler-gpu/src/client/runtime/scoped-session.js';
 
 const model = { id: 'fixture', name: 'Fixture', provider: 'doppler', identity: 'sha256:' + 'a'.repeat(64), adapters: [] };

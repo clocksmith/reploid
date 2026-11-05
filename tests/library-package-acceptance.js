@@ -109,7 +109,7 @@ try {
       "self/core/response-parser.js",
       "shared/pool/p2p-transport.js",
       "shared/pool/p2p-signaling.js",
-      "self/pool/retry-policy.js",
+      "apps/poolday/pool/retry-policy.js",
       "self/receipt.js",
       "shared/identity.js",
       "self/core/improvement-episode.js",
@@ -266,7 +266,7 @@ try {
           '<script type="importmap">' + JSON.stringify({ imports: crossOriginImports }) + '</script>'));
       for (const file of ['verification-worker.js', 'vendor/acorn.js']) {
         await mkdir(path.dirname(path.join(consumer, 'core', file)), { recursive: true });
-        await writeFile(path.join(consumer, 'core', file), await readFile(path.join(root, 'self/core', file)));
+        await writeFile(path.join(consumer, 'core', file), await readFile(resolveServedFile('core/' + file)));
       }
       browser = await chromium.launch({
         headless: true, timeout: 20000, args: ['--enable-unsafe-webgpu'],
@@ -340,8 +340,8 @@ try {
         const context = await browser.newContext({ acceptDownloads: true });
         const results = [];
         const namespace = 'installed-work-' + Date.now();
-        const sourceFiles = ['self/host/work-session.js', 'self/host/work-inputs.js',
-          'self/ui/pool-home/work.js', 'self/config/work-profile.json',
+        const sourceFiles = ['apps/poolday/host/work-session.js', 'apps/poolday/host/work-inputs.js',
+          'apps/poolday/ui/pool-home/work.js', 'apps/poolday/config/work-profile.json',
           'tests/fixtures/work-goal-journey.js', 'tests/fixtures/work-goal-cases.json'];
         const sourceHashes = {};
         for (const file of sourceFiles) sourceHashes[file] = createHash('sha256').update(await readFile(path.join(root, file))).digest('hex');

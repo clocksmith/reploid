@@ -25,10 +25,10 @@ const adapterRegistryMocks = vi.hoisted(() => ({
   createPublishedAdapterOriginFetcher: vi.fn(() => vi.fn())
 }));
 
-vi.mock('../../self/pool/peer-room.js', () => peerRoomMocks);
+vi.mock('../../apps/poolday/pool/peer-room.js', () => peerRoomMocks);
 const localExecutorMocks = vi.hoisted(() => ({ run: vi.fn(), close: vi.fn(async () => {}), cancel: vi.fn() }));
-vi.mock('../../self/pool/local-pack-executor.js', () => ({ createLocalPackExecutor: () => localExecutorMocks }));
-vi.mock('../../self/pool/adapter-registry.js', async (importOriginal) => ({
+vi.mock('../../apps/poolday/pool/local-pack-executor.js', () => ({ createLocalPackExecutor: () => localExecutorMocks }));
+vi.mock('../../apps/poolday/pool/adapter-registry.js', async (importOriginal) => ({
   ...(await importOriginal()),
   ...adapterRegistryMocks
 }));
@@ -47,14 +47,14 @@ import {
   resetProviderContributionControllerForTests,
   resolveCapabilityAvailabilityLimits,
   scorePoolDeviceCapability
-} from '../../self/ui/pool-home/controls.js';
+} from '../../apps/poolday/ui/pool-home/controls.js';
 import {
   findReceiptLedgerRecord,
   getPeerSessionAcceptWindowMs,
   getPeerTransportConnectWindowMs,
   renderRouteDetail,
   renderRoutePanel
-} from '../../self/ui/pool-home/view.js';
+} from '../../apps/poolday/ui/pool-home/view.js';
 import { LAUNCH_MODEL, getEnabledPoolModelContract } from '../../shared/pool/model-contract.js';
 import {
   normalizeParticipationPreferences,

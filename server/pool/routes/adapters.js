@@ -8,8 +8,8 @@
 import {
   verifyAdapterPublication,
   verifyAdapterRevocation
-} from '../../../self/pool/adapter-publication.js';
-import { verifyAdapterCanaryPublication } from '../../../self/pool/adapter-canary-publication.js';
+} from '../../../apps/poolday/pool/adapter-publication.js';
+import { verifyAdapterCanaryPublication } from '../../../apps/poolday/pool/adapter-canary-publication.js';
 
 export function registerAdapterRoutes(router, {
   store,

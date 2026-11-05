@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { normalizeNativeDataChannel } from '../../server/native-participant.js';
-import { createPeerPackDataChannel } from '../../self/pool/peer-pack-data-channel.js';
+import { createPeerPackDataChannel } from '../../apps/poolday/pool/peer-pack-data-channel.js';
 
 // Installed wrtc shape: bufferedAmount exists, low-water threshold/events do not.
 class NativeEvents {

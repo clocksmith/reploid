@@ -2,6 +2,8 @@ import { QUOTE_CASES, extractQuoteCode, evaluateQuoteCode } from '../fixtures/qu
 import { test, expect } from '@playwright/test';
 const evidenceDir = process.env.REPLOID_E2E_ARTIFACT_DIR || 'artifacts/network-home-2026-09-19';
 import { readFile } from 'node:fs/promises';
+import { servedPathOf } from '../../server/browser-roots.js';
+import { readServedText } from '../helpers/served-browser-files.js';
 
 const candidateCode = '({text}) => { let s = text.replace(/^\\uFEFF/, "").trim(); if(s.startsWith("```json\\n") && s.endsWith("\\n```")) s=s.slice(8,-4); return JSON.stringify(JSON.parse(s),null,2); }';
 
@@ -95,12 +97,12 @@ test('candidate isolation blocks network and storage and terminates looping work
 });
 
 test('new integration modules pass the Verification Worker',async({page})=>{
-  const paths=['self/host/work-model-files.js','self/host/work-session.js','self/host/work-helpers.js','self/host/work-swarm.js','self/host/work-evolution.js',
-    'self/infrastructure/code-sandbox.js','self/ui/pool-home/work-capabilities.js','self/ui/pool-home/work.js','self/ui/pool-home/index.js',
-    'self/ui/pool-home/view.js','self/host/work-view.js','packages/reploid/src/improvement/code-evolution.js',
-    'self/providers/work-network-provider.js','self/ui/pool-home/work-goal-composer.js',
-    'self/ui/pool-home/work-task-header.js','self/ui/pool-home/agent-network.js','packages/reploid/src/mesh/legacy-generation.js'];
-  const snapshot=Object.fromEntries(await Promise.all(paths.map(async path=>[path.replace(/^self/,''),await readFile(path,'utf8')])));
+  const paths=['apps/poolday/host/work-model-files.js','apps/poolday/host/work-session.js','apps/poolday/host/work-helpers.js','apps/poolday/host/work-swarm.js','apps/poolday/host/work-evolution.js',
+    'apps/poolday/infrastructure/code-sandbox.js','apps/poolday/ui/pool-home/work-capabilities.js','apps/poolday/ui/pool-home/work.js','apps/poolday/ui/pool-home/index.js',
+    'apps/poolday/ui/pool-home/view.js','apps/poolday/host/work-view.js','packages/reploid/src/improvement/code-evolution.js',
+    'apps/poolday/providers/work-network-provider.js','apps/poolday/ui/pool-home/work-goal-composer.js',
+    'apps/poolday/ui/pool-home/work-task-header.js','apps/poolday/ui/pool-home/agent-network.js','packages/reploid/src/mesh/legacy-generation.js'];
+  const snapshot=Object.fromEntries(await Promise.all(paths.map(async path=>servedPathOf(path)===null?[path,await readFile(path,'utf8')]:['/'+servedPathOf(path),await readServedText(servedPathOf(path))])));
   await page.goto('/');
   const result=await page.evaluate(snapshot=>new Promise((resolve,reject)=>{
     const worker=new Worker('/core/verification-worker.js');const timer=setTimeout(()=>{worker.terminate();reject(new Error('Timeout'));},10000);

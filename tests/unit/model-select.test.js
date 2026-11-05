@@ -1,5 +1,5 @@
 import { beforeEach, expect, it } from 'vitest';
-import { bindModelChoices, updateModelSelect } from '../../self/ui/components/model-select.js';
+import { bindModelChoices, updateModelSelect } from '../../apps/poolday/ui/components/model-select.js';
 
 const models = [
   { id: 'local', name: 'Local', localCached: true, availability: 'cached' },

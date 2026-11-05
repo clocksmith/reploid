@@ -2,7 +2,7 @@ import { canonicalPartitionJson, partitionAdapterIdentities } from '../packages/
 import { requireGenerationCapability, tokenUsage } from '../packages/reploid/src/mesh/partitions/partition-generation-request.js';
 /** Text-only HTTP projection of the existing partition requester. No provider fallback. */
 import { randomUUID } from 'node:crypto';
-import policy from '../self/config/partition-policy.json' with { type: 'json' };
+import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
 
 export const fail = (status, message, param = null) => Object.assign(new Error(message), { status, param });
 export const assert = (ok, message) => { if (!ok) throw fail(502, message); };

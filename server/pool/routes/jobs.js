@@ -15,8 +15,8 @@ import {
   validatePublishedAdapterRequirement,
   verifyAdapterPublication,
   verifyAdapterUseApproval
-} from '../../../self/pool/adapter-publication.js';
-import { verifyPoolIdentityClaims } from '../../../self/pool/identity-claims.js';
+} from '../../../apps/poolday/pool/adapter-publication.js';
+import { verifyPoolIdentityClaims } from '../../../apps/poolday/pool/identity-claims.js';
 import { PARTICIPATION_CAPABILITIES } from '../../../shared/pool/participation-profile.js';
 
 export function registerJobRoutes(router, {

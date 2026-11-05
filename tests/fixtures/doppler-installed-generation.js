@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { createReploidDopplerRuntimeService, DOPPLER_GENERATION_CONTRACT } from '../../shared/infrastructure/doppler-runtime-service.js';
-import { runPackOperation } from '../../self/pool/pack-operation.js';
+import { runPackOperation } from '../../apps/poolday/pool/pack-operation.js';
 import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { checkInstalledAdapters } from './doppler-installed-adapters.js';
 import { checkInstalledPeerStreaming } from './doppler-installed-peer-streaming.js';

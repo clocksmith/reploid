@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { getPoolModelContract } from '../../shared/pool/model-contract.js';
-import { validateDopplerBrowserProteinObservation } from '../../self/pool/doppler-browser-observation.js';
+import { validateDopplerBrowserProteinObservation } from '../../apps/poolday/pool/doppler-browser-observation.js';
 
 const observation = JSON.parse(await readFile(
   resolve('docs/status/esm2-35m-browser-protein-observation-2026-08-02.json'),

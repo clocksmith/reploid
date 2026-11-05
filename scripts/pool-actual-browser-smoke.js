@@ -7,7 +7,7 @@ import {
   acceptanceSigningPayload,
   verifyCanonicalSignature
 } from '../shared/pool/inference-receipt.js';
-import { verifyPeerMessage } from '../self/pool/peer-control-plane.js';
+import { verifyPeerMessage } from '../apps/poolday/pool/peer-control-plane.js';
 
 const args = process.argv.slice(2);
 const positionalUrl = args.find((arg) => !arg.startsWith('--'));

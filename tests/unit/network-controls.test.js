@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { projectNetworkPeers, bindNetworkControls, renderConnectionControl,
-  renderSharingControls } from '../../self/ui/pool-home/network-controls.js';
+  renderSharingControls } from '../../apps/poolday/ui/pool-home/network-controls.js';
 
 it('offers cleanup retry instead of enabling contribution while an owner remains unsettled', async () => {
   const state = { models: [], network: { sharing: false, stopping: false,

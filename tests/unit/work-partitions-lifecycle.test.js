@@ -12,8 +12,8 @@ vi.mock('../../shared/config/doppler-local-models.js', () => ({
   DOPPLER_PARTITIONS_MODULE_URL: 'doppler-gpu/partitions',
   DOPPLER_KERNEL_BASE_URL: '/vendor/doppler/0.6.31/src/gpu/kernels',
 }));
-vi.mock('../../self/host/work-partition-capsule.js', () => ({ assertWorkResidentCapsule: async () => {} }));
-vi.mock('../../self/pool/pack-release-policy.js', () => ({ prepareLocalPackRelease: ports.release }));
+vi.mock('../../apps/poolday/host/work-partition-capsule.js', () => ({ assertWorkResidentCapsule: async () => {} }));
+vi.mock('../../apps/poolday/pool/pack-release-policy.js', () => ({ prepareLocalPackRelease: ports.release }));
 vi.mock('../../shared/vendor/reploid/mesh/index.js', () => ({ createResidentPartition: ports.resident }));
 vi.mock('doppler-gpu/partitions', () => ({
   get ORDERED_LAYER_PARTITION_SCHEMA() { return ports.orderedSchema; },
@@ -30,7 +30,7 @@ vi.mock('doppler-gpu/host', () => ({ openCapsule: ports.openCapsule }));
 vi.mock('../../packages/reploid/src/mesh/index.js', async importOriginal => ({
   ...await importOriginal(), createResidentPartition: ports.resident,
 }));
-import { loadWorkPartition as loadBrowserPartition } from '../../self/host/work-partitions.js';
+import { loadWorkPartition as loadBrowserPartition } from '../../apps/poolday/host/work-partitions.js';
 import { openNativePartition } from '../../server/native-participant.js';
 import { createSignedResidentFactory } from '../../packages/reploid/src/mesh/partitions/signed-resident-factory.js';
 

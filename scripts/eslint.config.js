@@ -1,7 +1,7 @@
 import globals from 'globals';
 
 const workerFiles = ['shared/core/verification-worker.js', 'self/sw.js',
-  'self/sw-module-loader.js', 'self/host/sw-module-loader.js', 'self/host/lora-training-worker.js'];
+  'self/sw-module-loader.js', 'self/host/sw-module-loader.js', 'apps/poolday/host/lora-training-worker.js'];
 // These Node harnesses execute serialized callbacks inside Playwright pages.
 const browserHarnesses = ['evaluate-document-answers', 'pool-actual-browser-smoke',
   'pool-browser-smoke', 'verify-cloudflare-swarm', 'verify-deploy-surface',
@@ -16,19 +16,19 @@ const cleanedModules = [
   'self/providers/external-brain.js',
   'server/external-brain.js',
   'packages/reploid/src/training/**/*.js',
-  'self/host/lora-training*.js',
-  'self/ui/pool-home/lora-training.js',
+  'apps/poolday/host/lora-training*.js',
+  'apps/poolday/ui/pool-home/lora-training.js',
   'self/capabilities/cognition/vector-math.js',
   'self/capabilities/cognition/jsonl.js',
   'packages/reploid/src/artifacts/binary.js',
   'self/shared/change-passport/policy.js',
-  'self/pool/policy-router.js',
+  'apps/poolday/pool/policy-router.js',
   'shared/pool/p2p-transport.js',
-  'self/pool/p2p-artifact-transfer.js',
+  'apps/poolday/pool/p2p-artifact-transfer.js',
   'shared/pool/inference-receipt.js',
   'shared/pool/config-contract.js',
-  'self/pool/requester-client.js',
-  'self/pool/complete-forecast.js',
+  'apps/poolday/pool/requester-client.js',
+  'apps/poolday/pool/complete-forecast.js',
   'self/infrastructure/browser-apis.js',
   'self/core/zero-prompt.js',
   'self/core/worker-agent.js',
@@ -63,7 +63,7 @@ const cleanedModules = [
   'server/token-auth.js',
   'server/pool/routes/assignment-entry.js',
   'packages/reploid/src/chat/scheduler.js',
-  'self/host/chat-execution.js',
+  'apps/poolday/host/chat-execution.js',
   'server/pool/routes.js',
   'server/pool/routes/receipts.js',
   'server/pool/store.js',
@@ -78,7 +78,7 @@ const cleanedModules = [
 
 export default [
   { ignores: ['.cache/**', 'output/**', 'node_modules/**', 'artifacts/**', 'coverage/**', 'test-results/**', 'playwright-report/**',
-    'shared/vendor/**', 'self/core/vendor/**', 'shared/core/vendor/**', '**/dist/**', 'packages/poolday-forecast/source/**', 'self/ui/pool-home/app.bundle.js',
+    'shared/vendor/**', 'self/core/vendor/**', 'shared/core/vendor/**', '**/dist/**', 'packages/poolday-forecast/source/**', 'apps/poolday/ui/pool-home/app.bundle.js',
     'self/lib/**', 'doppler/**', '.firebase-hosting/**'] },
   {
     files: ['**/*.js', '**/*.mjs'],
@@ -111,7 +111,7 @@ export default [
   { files: ['packages/reploid/src/**/*.js'], languageOptions: { globals: globals.worker } },
   // These codecs deliberately support optional Node Buffer and browser encodings.
   { files: ['packages/reploid/src/artifacts/identity.js', 'packages/reploid/src/artifacts/signatures.js',
-    'shared/pool/device-identity.js', 'self/pool/p2p-artifact-transfer.js',
+    'shared/pool/device-identity.js', 'apps/poolday/pool/p2p-artifact-transfer.js',
     'packages/reploid/src/artifacts/binary.js',
     'self/bridge.js', 'self/tools/ReadFile.js', 'self/tools/WriteFile.js', 'self/key-unsealer.js'],
     languageOptions: { globals: { Buffer: 'readonly' } } },

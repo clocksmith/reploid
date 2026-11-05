@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { createDopplerRuntime } from '../../self/pool/doppler-runtime.js';
+import { createDopplerRuntime } from '../../apps/poolday/pool/doppler-runtime.js';
 import {
   buildPoolReceipt,
   createSigningKeyPair,
@@ -17,9 +17,9 @@ import {
   buildPeerReceiptAgreement,
   createPeerSequencePayload,
   validateSequencePayloadForAssignment
-} from '../../self/pool/peer-control-plane.js';
+} from '../../apps/poolday/pool/peer-control-plane.js';
 import { createReceiptPayload, hashP2PPayload } from '../../shared/pool/p2p-payload.js';
-import { createProviderClient } from '../../self/pool/provider-client.js';
+import { createProviderClient } from '../../apps/poolday/pool/provider-client.js';
 import {
   SEQUENCE_ALPHABETS,
   SEQUENCE_EXECUTION_MODE,

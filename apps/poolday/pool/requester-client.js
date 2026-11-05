@@ -1,0 +1,355 @@
+/**
+ * @fileoverview Browser requester client for fastest-receipt pool jobs.
+ */
+
+import { createPoolSdk } from '../../../shared/pool/sdk.js';
+import { ACCEPTANCE_V2, canonicalAcceptanceTerms, acceptanceSigningPayload, verifyCanonicalSignature, buildAcceptanceSummary, countersignReceipt, createSigningKeyPair, exportPublicKey, hashJson, sha256Hex } from '../../../shared/pool/inference-receipt.js';
+import { buildLaunchModelRequirements } from '../../../shared/pool/model-contract.js';
+import { DETERMINISTIC_GENERATION_CONFIG, FASTEST_RECEIPT_POLICY_ID, getPolicy } from './policy-router.js';
+import { createPoolIdentity } from '../../../shared/pool/identity.js';
+import { createSignedPeerMessage, PEER_MESSAGE_TYPES } from './peer-protocol.js';
+import { createAdapterUseApproval } from './adapter-publication.js';
+import { createPackPeerRequester } from './peer-pack-requester.js';
+import { createPackPeerJob, createPackPeerConnection } from './peer-pack-job.js';
+import { snapshotPackOperationData } from './pack-operation.js';
+import { PACK_JOB_POLICY, resolvePackJobPolicy } from '../../../shared/pool/peer-pack-job-policy.js';
+import {
+  createPeerLedgerEvents,
+  createPeerPromptPayload,
+  createPeerSequencePayload,
+  createSignedJobIntent
+} from './peer-control-plane.js';
+import {
+  adapterRequirementFromPack,
+  verifyAdapterPack
+} from '../../../shared/pool/adapter-pack.js';
+import {
+  SEQUENCE_DISCLOSURE,
+  isSequenceWorkload,
+  normalizeSequenceInput,
+  normalizeSequenceRequest
+} from '../../../shared/pool/sequence-workload.js';
+
+export function createRequesterClient({ requesterId, sdk = createPoolSdk(), keyPair = null, identity = createPoolIdentity('requester') } = {}) {
+  let activeKeyPair = keyPair;
+  let requesterPublicKey = null;
+  let activeRequesterId = requesterId;
+  const ensureKeys = async () => {
+    if (!activeKeyPair) activeKeyPair = identity ? await identity.getSigningKeyPair() : await createSigningKeyPair();
+    if (!requesterPublicKey) requesterPublicKey = await exportPublicKey(activeKeyPair.publicKey);
+    return activeKeyPair;
+  };
+  const ensureRequesterId = async () => {
+    if (!activeRequesterId) activeRequesterId = identity ? await identity.getRoleId() : null;
+    if (!activeRequesterId) throw new Error('requesterId is required');
+    return activeRequesterId;
+  };
+  const ensureIdentityClaims = async () => {
+    if (!identity?.getParticipationProfile || !identity?.getRoleProof) return {
+      participationProfile: null,
+      identityProof: null
+    };
+    const participationProfile = await identity.getParticipationProfile();
+    return {
+      participationProfile,
+      identityProof: await identity.getRoleProof({ participationProfile })
+    };
+  };
+  return {
+    async createPeerOperationConnection({ assignment, policy = PACK_JOB_POLICY }) {
+      await ensureKeys();
+      const keyId = await sha256Hex(Uint8Array.from(atob(requesterPublicKey), value => value.charCodeAt(0)));
+      return createPackPeerConnection({ assignment, policy, identity: { keyId, publicKey: requesterPublicKey, privateKey: activeKeyPair.privateKey } });
+    },
+    async createPeerOperationJob({ registry, policy = PACK_JOB_POLICY, ...options }) {
+      const request = snapshotPackOperationData(options), resolvedPolicy = resolvePackJobPolicy(policy);
+      await ensureKeys();
+      const keyId = await sha256Hex(Uint8Array.from(atob(requesterPublicKey), value => value.charCodeAt(0)));
+      return createPackPeerJob({ ...request, registry, policy: resolvedPolicy,
+        identity: { keyId, publicKey: requesterPublicKey, privateKey: activeKeyPair.privateKey } });
+    },
+    async createPeerPackRequester(options) {
+      await ensureKeys();
+      const keyId = await sha256Hex(Uint8Array.from(atob(requesterPublicKey), value => value.charCodeAt(0)));
+      return createPackPeerRequester({ ...options,
+        identity: { keyId, publicKey: requesterPublicKey, privateKey: activeKeyPair.privateKey } });
+    },
+    async submitAdapterJob({ adapterPack, modelRequirements = {}, ...request } = {}) {
+      const verification = await verifyAdapterPack(adapterPack, { requirePromoted: true });
+      if (!verification.ok) throw new Error(`Adapter pack rejected: ${verification.reasons.join('; ')}`);
+      const submit = request.sequence !== undefined && request.sequence !== null
+        ? this.submitSequenceJob
+        : this.submitJob;
+      return submit.call(this, {
+        ...request,
+        modelRequirements: {
+          ...modelRequirements,
+          modelId: adapterPack.baseModel.modelId,
+          modelHash: adapterPack.baseModel.modelHash,
+          manifestHash: adapterPack.baseModel.manifestHash,
+          adapter: adapterRequirementFromPack(adapterPack)
+        }
+      });
+    },
+    async createPeerAdapterJobIntent({ adapterPack, modelRequirements = {}, ...request } = {}) {
+      const verification = await verifyAdapterPack(adapterPack, { requirePromoted: true });
+      if (!verification.ok) throw new Error(`Adapter pack rejected: ${verification.reasons.join('; ')}`);
+      return this.createPeerJobIntent({
+        ...request,
+        modelRequirements: {
+          ...modelRequirements,
+          modelId: adapterPack.baseModel.modelId,
+          modelHash: adapterPack.baseModel.modelHash,
+          manifestHash: adapterPack.baseModel.manifestHash,
+          adapter: adapterRequirementFromPack(adapterPack)
+        }
+      });
+    },
+    async submitJob({ prompt, policyId = FASTEST_RECEIPT_POLICY_ID, modelRequirements = {}, generationConfig = {}, maxPointSpend = null }) {
+      const keys = await ensureKeys();
+      const resolvedRequesterId = await ensureRequesterId();
+      const policy = getPolicy(policyId);
+      const resolvedModelRequirements = buildLaunchModelRequirements(modelRequirements);
+      if (isSequenceWorkload(resolvedModelRequirements.workload)) {
+        throw new Error('Use submitSequenceJob() so raw sequence input remains on the WebRTC data channel');
+      }
+      const inputHash = await sha256Hex(prompt);
+      const adapterUseApproval = resolvedModelRequirements.adapter
+        ? await createAdapterUseApproval({
+          adapterRequirement: resolvedModelRequirements.adapter,
+          requesterId: resolvedRequesterId,
+          requesterPublicKey,
+          privateKey: keys.privateKey,
+          inputHash,
+          modelRequirements: resolvedModelRequirements
+        })
+        : null;
+      const identityClaims = await ensureIdentityClaims();
+      return sdk.submitJob({
+        requesterId: resolvedRequesterId,
+        requesterPublicKey,
+        prompt,
+        policyId,
+        modelRequirements: resolvedModelRequirements,
+        adapterUseApproval,
+        ...identityClaims,
+        generationConfig: {
+          ...DETERMINISTIC_GENERATION_CONFIG,
+          ...generationConfig
+        },
+        maxPointSpend,
+        verificationLevel: policy?.verificationLevel || 'signed_receipt'
+      });
+    },
+    async submitSequenceJob({
+      sequence,
+      sequenceRequest = null,
+      policyId = FASTEST_RECEIPT_POLICY_ID,
+      modelRequirements = {},
+      generationConfig = {},
+      maxPointSpend = null
+    } = {}) {
+      const keys = await ensureKeys();
+      const resolvedRequesterId = await ensureRequesterId();
+      const policy = getPolicy(policyId);
+      let resolvedModelRequirements = buildLaunchModelRequirements(modelRequirements);
+      if (!isSequenceWorkload(resolvedModelRequirements.workload)) {
+        throw new Error('submitSequenceJob() requires a biological sequence model workload');
+      }
+      const normalizedSequence = normalizeSequenceInput(
+        sequence,
+        sequenceRequest?.alphabet || resolvedModelRequirements.sequence?.alphabet
+      );
+      const inputHash = await sha256Hex(normalizedSequence);
+      const resolvedSequenceRequest = normalizeSequenceRequest(sequenceRequest || {}, {
+        workload: resolvedModelRequirements.workload,
+        sequenceHash: inputHash,
+        sequenceLength: normalizedSequence.length,
+        model: resolvedModelRequirements
+      });
+      resolvedModelRequirements = {
+        ...resolvedModelRequirements,
+        sequenceRequest: resolvedSequenceRequest
+      };
+      const adapterUseApproval = resolvedModelRequirements.adapter
+        ? await createAdapterUseApproval({
+          adapterRequirement: resolvedModelRequirements.adapter,
+          requesterId: resolvedRequesterId,
+          requesterPublicKey,
+          privateKey: keys.privateKey,
+          inputHash,
+          modelRequirements: resolvedModelRequirements
+        })
+        : null;
+      const identityClaims = await ensureIdentityClaims();
+      return sdk.submitJob({
+        requesterId: resolvedRequesterId,
+        requesterPublicKey,
+        prompt: null,
+        inputKind: 'sequence',
+        inputHash,
+        inputTransport: 'webrtc_datachannel',
+        inputDisclosure: SEQUENCE_DISCLOSURE,
+        sequenceRequest: resolvedSequenceRequest,
+        sequenceRequestHash: await hashJson(resolvedSequenceRequest),
+        policyId,
+        modelRequirements: resolvedModelRequirements,
+        adapterUseApproval,
+        ...identityClaims,
+        generationConfig: {
+          ...DETERMINISTIC_GENERATION_CONFIG,
+          ...generationConfig
+        },
+        maxPointSpend,
+        verificationLevel: policy?.verificationLevel || 'signed_receipt'
+      });
+    },
+    async createPeerJobIntent({
+      prompt,
+      sequence,
+      sequenceRequest = null,
+      policyId = FASTEST_RECEIPT_POLICY_ID,
+      modelRequirements = {},
+      generationConfig = {},
+      maxPointSpend = null
+    } = {}) {
+      const keys = await ensureKeys();
+      const resolvedRequesterId = await ensureRequesterId();
+      const identityClaims = await ensureIdentityClaims();
+      return createSignedJobIntent({
+        requesterId: resolvedRequesterId,
+        requesterPublicKey,
+        privateKey: keys.privateKey,
+        ...identityClaims,
+        prompt,
+        sequence,
+        sequenceRequest,
+        policyId,
+        modelRequirements: buildLaunchModelRequirements(modelRequirements),
+        generationConfig: {
+          ...DETERMINISTIC_GENERATION_CONFIG,
+          ...generationConfig
+        },
+        maxPointSpend
+      });
+    },
+    createPeerSequenceJobIntent(options = {}) {
+      return this.createPeerJobIntent(options);
+    },
+    async createPeerPromptPayload({ assignment, prompt, toPeerId = assignment?.providerId } = {}) {
+      await ensureKeys();
+      const resolvedRequesterId = await ensureRequesterId();
+      return createPeerPromptPayload({
+        assignment,
+        prompt,
+        fromPeerId: resolvedRequesterId,
+        toPeerId
+      });
+    },
+    async createPeerSequencePayload({ assignment, sequence, toPeerId = assignment?.providerId } = {}) {
+      await ensureKeys();
+      const resolvedRequesterId = await ensureRequesterId();
+      return createPeerSequencePayload({
+        assignment,
+        sequence,
+        fromPeerId: resolvedRequesterId,
+        toPeerId
+      });
+    },
+    async createPeerReceiptAcceptance({ receiptHash, accepted = true, agreement = null, receiptHashes = null } = {}) {
+      const keys = await ensureKeys();
+      const resolvedRequesterId = await ensureRequesterId();
+      const acceptedReceiptHashes = receiptHashes || agreement?.receiptHashes || (receiptHash ? [receiptHash] : []);
+      return countersignReceipt({
+        version: 1,
+        receiptHash: receiptHash || agreement?.receiptHash,
+        requesterId: resolvedRequesterId,
+        accepted,
+        jobId: agreement?.jobId || null,
+        policyId: agreement?.policyId || null,
+        policyConfigVersion: agreement?.policyConfigVersion || null,
+        policyConfigHash: agreement?.policyConfigHash || null,
+        agreementHash: agreement?.agreementHash || null,
+        pointSpend: agreement?.pointSpend ?? null,
+        providerPoints: agreement?.providerPoints || null,
+        receiptHashes: acceptedReceiptHashes
+      }, keys.privateKey);
+    },
+    async createRelayAcknowledgement({ roomId, relayId, relaySequence } = {}) {
+      const keys = await ensureKeys();
+      const resolvedRequesterId = await ensureRequesterId();
+      return createSignedPeerMessage({
+        type: PEER_MESSAGE_TYPES.HEARTBEAT,
+        fromPeerId: resolvedRequesterId,
+        publicKey: requesterPublicKey,
+        body: {
+          schema: 'reploid.peer.relay_ack/v1',
+          roomId,
+          relayId,
+          relaySequence
+        },
+        expiresAt: new Date(Date.now() + 2 * 60 * 1000).toISOString(),
+        privateKey: keys.privateKey
+      });
+    },
+    async createPeerLedgerEvents({ agreement } = {}) {
+      const keys = await ensureKeys();
+      const resolvedRequesterId = await ensureRequesterId();
+      return createPeerLedgerEvents({
+        agreement,
+        requesterId: resolvedRequesterId,
+        requesterPublicKey,
+        privateKey: keys.privateKey
+      });
+    },
+    pollJob(jobId) {
+      return sdk.pollJob(jobId);
+    },
+    async acceptReceipt(receiptHash, accepted = true) {
+      const keys = await ensureKeys();
+      const resolvedRequesterId = await ensureRequesterId();
+      const receiptRecord = await sdk.getReceipt(receiptHash);
+      const jobResponse = await sdk.pollJob(receiptRecord.jobId);
+      const job = jobResponse.job || jobResponse;
+      const settledAcceptance = job.settlement?.result?.acceptance;
+      let acceptanceSummary;
+      if (settledAcceptance && !settledAcceptance.schema
+        && settledAcceptance.signatureDomain === 'poolday.requester_acceptance.v1') {
+        if (settledAcceptance.accepted !== accepted || settledAcceptance.receiptHash !== receiptHash) {
+          throw new Error('Legacy settlement replay requires its original receipt and decision');
+        }
+        // v1 binds its original selector and timestamp. Replay that signed request
+        // through its original URL; never reinterpret it as a v2 agreement.
+        const { createdAt, ...originalAcceptance } = settledAcceptance;
+        if (!await verifyCanonicalSignature(acceptanceSigningPayload(originalAcceptance), job.requesterPublicKey,
+          originalAcceptance.requesterSignature, { domain: originalAcceptance.signatureDomain })) {
+          throw new Error('Legacy settlement signed payload requires reconciliation');
+        }
+        return sdk.acceptReceipt(originalAcceptance.receiptHash, originalAcceptance);
+      }
+      if (settledAcceptance?.schema === ACCEPTANCE_V2) {
+        // Re-sign the committed terms, never reprice a retry from later reputation.
+        acceptanceSummary = canonicalAcceptanceTerms(settledAcceptance);
+      } else {
+        const receiptHashes = Array.isArray(job?.agreement?.receiptHashes) && job.agreement.status === 'accepted'
+          ? job.agreement.receiptHashes
+          : Array.isArray(job?.receiptHashes) && job.receiptHashes.length > 0 ? job.receiptHashes : [receiptHash];
+        const receiptRecords = await Promise.all(receiptHashes.map((currentReceiptHash) => sdk.getReceipt(currentReceiptHash)));
+        acceptanceSummary = await buildAcceptanceSummary({ job, receiptHash, receiptRecords, version: 2 });
+      }
+      const acceptance = await countersignReceipt({
+        ...acceptanceSummary,
+        receiptHash,
+        requesterId: resolvedRequesterId,
+        accepted
+      }, keys.privateKey);
+      return sdk.acceptReceipt(receiptHash, {
+        ...acceptance
+      });
+    }
+  };
+}
+
+export default {
+  createRequesterClient
+};

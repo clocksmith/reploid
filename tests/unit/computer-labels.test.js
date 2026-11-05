@@ -1,6 +1,6 @@
 import { it, expect } from 'vitest';
-import { computerLabel, participantLabel, withComputerLabels } from '../../self/ui/pool-home/computer-labels.js';
-import { projectExecutionRibbon } from '../../self/ui/pool-home/execution-ribbon.js';
+import { computerLabel, participantLabel, withComputerLabels } from '../../apps/poolday/ui/pool-home/computer-labels.js';
+import { projectExecutionRibbon } from '../../apps/poolday/ui/pool-home/execution-ribbon.js';
 
 it('keeps names consistent across reloads and different discovery orders', () => {
   const first = { network: { consumer: { peers: [{ peerId: 'peer-a' }, { peerId: 'peer-b' }] } } };

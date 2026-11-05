@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { projectResearchRoom } from '../../self/ui/pool-home/room-projection.js';
-import { renderResearchRoom } from '../../self/ui/pool-home/room-view.js';
+import { projectResearchRoom } from '../../apps/poolday/ui/pool-home/room-projection.js';
+import { renderResearchRoom } from '../../apps/poolday/ui/pool-home/room-view.js';
 
 const hash = (character) => {
   const hex = String(character).codePointAt(0).toString(16).padStart(2, '0');

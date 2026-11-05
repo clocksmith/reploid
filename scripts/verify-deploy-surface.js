@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { rectanglesOverlap } from './deploy-surface-layout.js';
 import { consoleFailure, httpResponseFailure } from './deploy-surface-diagnostics.js';
+import { openBrowserTree, resolveServedFile } from '../server/browser-tree.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const repoRoot = path.resolve(path.dirname(__filename), '..');
@@ -65,12 +66,15 @@ const VIEWPORTS = [
 ];
 const screenshotDir = path.join(repoRoot, 'artifacts', 'deploy-surface');
 
+let treeOpening;
+const browserTree = () => (treeOpening ||= openBrowserTree({ repoRoot }));
+
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 
 const localBuildVersion = () => {
-  const html = fs.readFileSync(path.join(repoRoot, 'self', 'index.html'), 'utf8');
+  const html = fs.readFileSync(resolveServedFile('index.html', { repoRoot }), 'utf8');
   const match = html.match(/REPLOID_BUILD_VERSION = '([^']+)'/);
-  if (!match) throw new Error('self/index.html does not declare REPLOID_BUILD_VERSION');
+  if (!match) throw new Error('index.html does not declare REPLOID_BUILD_VERSION');
   return match[1];
 };
 
@@ -95,7 +99,8 @@ const checkBuildVersion = async () => {
 
 const checkStylesheetBytes = async (version) => {
   for (const relative of STYLE_FILES) {
-    const localHash = sha256(fs.readFileSync(path.join(repoRoot, 'self', relative)));
+    // Compare the bytes Hosting serves for this path, from whichever source root holds it.
+    const localHash = sha256(await (await browserTree()).read(relative));
     const servedHash = sha256(await fetchBytes(`${baseUrl}/${relative}?v=${encodeURIComponent(version)}`));
     if (localHash !== servedHash) {
       failures.push(`stylesheet drift: ${relative} served sha256:${servedHash.slice(0, 16)} does not match local sha256:${localHash.slice(0, 16)}`);
@@ -105,7 +110,7 @@ const checkStylesheetBytes = async (version) => {
 
 const checkPooldayModuleBytes = async (version) => {
   for (const relative of POOLDAY_MODULE_FILES) {
-    const localHash = sha256(fs.readFileSync(path.join(repoRoot, 'self', relative)));
+    const localHash = sha256(await (await browserTree()).read(relative));
     try {
       const servedHash = sha256(await fetchBytes(`${baseUrl}/${relative}?v=${encodeURIComponent(version)}&deploy-surface=1`));
       if (localHash !== servedHash) {

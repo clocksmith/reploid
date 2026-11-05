@@ -5,8 +5,8 @@ import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 import { createReploidDopplerRuntimeService } from '../../shared/infrastructure/doppler-runtime-service.js';
 import { assertPackSession, assertPackReceipt, hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
-import { runPackOperation } from '../../self/pool/pack-operation.js';
-import { createPeerPackArtifactStore } from '../../self/pool/peer-pack-custody.js';
+import { runPackOperation } from '../../apps/poolday/pool/pack-operation.js';
+import { createPeerPackArtifactStore } from '../../apps/poolday/pool/peer-pack-custody.js';
 import { createCustodyFixture } from './peer-pack-custody.js';
 import { resolveDopplerExecutionContract } from '../../shared/config/doppler-execution-contracts.js';
 

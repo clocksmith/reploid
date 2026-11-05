@@ -3,13 +3,13 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 
 const ports = vi.hoisted(() => ({ exchange: vi.fn() }));
 vi.mock('../../shared/vendor/reploid/artifacts/custody/exchange.js', () => ({ createCustodyExchange: ports.exchange }));
-vi.mock('../../self/infrastructure/pack-transfer-storage.js', () => ({ openPeerPackFileCheckpoints: async () => ({ close: async () => {} }) }));
+vi.mock('../../apps/poolday/infrastructure/pack-transfer-storage.js', () => ({ openPeerPackFileCheckpoints: async () => ({ close: async () => {} }) }));
 
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import {
   CUSTODY_CERTIFICATE_LIFETIME_MS, checkCustodyKeyCertificate
 } from '../../shared/vendor/reploid/artifacts/custody-certificate.js';
-import { createWorkModelFiles } from '../../self/host/work-model-files.js';
+import { createWorkModelFiles } from '../../apps/poolday/host/work-model-files.js';
 
 let captured;
 beforeEach(() => {
@@ -68,7 +68,7 @@ it('leaves custody keys uncertified without a persistent identity', async () => 
 });
 
 it('finds no catalog store for an adapter artifact, even beside models whose files carry their own URLs', async () => {
-  const { catalogModelForFile } = await import('../../self/host/work-model-files.js');
+  const { catalogModelForFile } = await import('../../apps/poolday/host/work-model-files.js');
   const { LOCAL_DOPPLER_MODELS } = await import('../../shared/config/doppler-local-models.js');
   expect(LOCAL_DOPPLER_MODELS.some(model => model.source && !model.source.baseUrl)).toBe(true);
   const adapter = LOCAL_DOPPLER_MODELS.flatMap(model => model.availableAdapters || [])[0].artifact;

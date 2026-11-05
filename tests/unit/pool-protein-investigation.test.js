@@ -11,7 +11,7 @@ import {
   partitionSequenceWorkload,
   projectProteinInvestigation,
   validateProteinInvestigation
-} from '../../self/pool/protein-investigation.js';
+} from '../../apps/poolday/pool/protein-investigation.js';
 
 describe('protein investigation and modality separation', () => {
   const sampleSequenceA = 'MAPLALLLLGLVAGA';

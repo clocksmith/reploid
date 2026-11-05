@@ -1,5 +1,5 @@
 import { expect, it, vi } from 'vitest';
-import { createOperationParticipation } from '../../self/pool/operation-participation.js';
+import { createOperationParticipation } from '../../apps/poolday/pool/operation-participation.js';
 import { createDocumentPackFixture } from '../fixtures/document-packs.js';
 
 const deferred = () => {

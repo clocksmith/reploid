@@ -1,9 +1,9 @@
 /** Physical extension of the same signed-job and IndexedDB fixture, one GPU/operator. */
 import { start, storagePolicy } from './independent-units-browser.js';
-import { prepareLocalPackRelease } from '../../self/pool/pack-release-policy.js';
+import { prepareLocalPackRelease } from '../../apps/poolday/pool/pack-release-policy.js';
 import { hashDopplerEvidence, assertPackSession } from '../../shared/pool/executable-pack.js';
-import { runPackOperation } from '../../self/pool/pack-operation.js';
-import { packPeerModel } from '../../self/pool/peer-pack-job.js';
+import { runPackOperation } from '../../apps/poolday/pool/pack-operation.js';
+import { packPeerModel } from '../../apps/poolday/pool/peer-pack-job.js';
 import { openCapsule } from '/src/client/doppler-api.browser.js';
 import { getCapsuleIdentity } from '/src/capsule.js';
 import { resolveEmbeddingBatchSemantics } from '/src/capsule-runtime.js';

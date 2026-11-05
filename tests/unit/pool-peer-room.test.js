@@ -7,26 +7,26 @@ import {
   sha256Hex
 } from '../../shared/pool/inference-receipt.js';
 import { buildLaunchProviderModel, LAUNCH_MODEL } from '../../shared/pool/model-contract.js';
-import { createProviderClient } from '../../self/pool/provider-client.js';
-import { createRequesterClient } from '../../self/pool/requester-client.js';
+import { createProviderClient } from '../../apps/poolday/pool/provider-client.js';
+import { createRequesterClient } from '../../apps/poolday/pool/requester-client.js';
 import {
   createSignedResearchResult,
   createSignedResearchSubmission,
   projectResearchExecutionIndependence,
   verifyResearchRecord
-} from '../../self/pool/evidence-network.js';
+} from '../../apps/poolday/pool/evidence-network.js';
 import {
   createPeerProviderNode,
   runPeerJob as executePeerJob
-} from '../../self/pool/peer-room.js';
+} from '../../apps/poolday/pool/peer-room.js';
 import {
   buildRuntimeProfile,
   hashRuntimeProfile
-} from '../../self/pool/runtime-profile.js';
+} from '../../apps/poolday/pool/runtime-profile.js';
 import {
   createInMemoryPeerRoomBusNetwork,
   createPeerRoomBusFactory
-} from '../../self/pool/peer-rendezvous.js';
+} from '../../apps/poolday/pool/peer-rendezvous.js';
 
 const originalBroadcastChannel = globalThis.BroadcastChannel;
 

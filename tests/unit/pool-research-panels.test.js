@@ -6,9 +6,9 @@ import {
   renderParticipationQualityPanel,
   recordLabel,
   renderReviewPanel
-} from '../../self/ui/pool-home/research-panels.js';
-import { renderLifecycleForms } from '../../self/ui/pool-home/research-lifecycle-panel.js';
-import { renderSequenceDisclosure, renderTechnicalEvidencePanel } from '../../self/ui/pool-home/research-technical-panel.js';
+} from '../../apps/poolday/ui/pool-home/research-panels.js';
+import { renderLifecycleForms } from '../../apps/poolday/ui/pool-home/research-lifecycle-panel.js';
+import { renderSequenceDisclosure, renderTechnicalEvidencePanel } from '../../apps/poolday/ui/pool-home/research-technical-panel.js';
 
 const hash = (character) => `sha256:${character.repeat(64)}`;
 

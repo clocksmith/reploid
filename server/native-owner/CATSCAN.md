@@ -21,7 +21,7 @@ This directory.
 ## Contracts
 
 Inputs: an explicit [owner policy](policy.js) file, the
-[custody policy](../../self/config/chat-files.json) and host sensors.
+[custody policy](../../apps/poolday/config/chat-files.json) and host sensors.
 
 Outputs: admission decisions for preparation, new stage attempts and piece
 supply; paced custody channels; declared controls, readings and measurements in

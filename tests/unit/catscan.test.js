@@ -80,14 +80,13 @@ describe('CATSCAN component charters', () => {
 
   it('resolves the complete root-to-file charter chain in order', async () => {
     const charters = await loadCatscans();
-    const chain = catscanChainForPath('self/ui/pool-home/view.js', charters)
+    const chain = catscanChainForPath('apps/poolday/ui/pool-home/view.js', charters)
       .map((charter) => path.relative(PROJECT_ROOT, charter.filePath).split(path.sep).join('/'));
 
     expect(chain).toEqual([
       'CATSCAN.md',
-      'self/CATSCAN.md',
-      'self/ui/CATSCAN.md',
-      'self/ui/pool-home/CATSCAN.md'
+      'apps/poolday/CATSCAN.md',
+      'apps/poolday/ui/pool-home/CATSCAN.md'
     ]);
   });
 

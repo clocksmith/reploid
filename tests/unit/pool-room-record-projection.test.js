@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { projectRoomRecordRows } from '../../self/ui/pool-home/room-record-projection.js';
+import { projectRoomRecordRows } from '../../apps/poolday/ui/pool-home/room-record-projection.js';
 
 describe('Poolday room record projection', () => {
   it('retains an unmatched model request as a recoverable request record', () => {

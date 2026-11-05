@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import { describe, expect, it } from 'vitest';
 
 import { SELF_BOOT_SPEC } from '../../self/boot-spec.js';
-import { PRODUCT_ROUTES } from '../../self/ui/pool-home/constants.js';
+import { PRODUCT_ROUTES } from '../../apps/poolday/ui/pool-home/constants.js';
 import { LAUNCH_MODEL } from '../../shared/pool/model-contract.js';
 import {
   SIGNATURE_DOMAINS,
@@ -21,7 +21,7 @@ import { verifyReceipt } from '../../shared/pool/sdk.js';
 import {
   DETERMINISTIC_GENERATION_CONFIG,
   validatePolicyRequest
-} from '../../self/pool/policy-router.js';
+} from '../../apps/poolday/pool/policy-router.js';
 import { validateJobRequest } from '../../server/pool/policy-router.js';
 import { createPoolStore } from '../../server/pool/store.js';
 import {
@@ -33,12 +33,12 @@ import {
   createPeerControlPlane,
   createSignedPeerMessage,
   verifyPeerMessage
-} from '../../self/pool/peer-control-plane.js';
+} from '../../apps/poolday/pool/peer-control-plane.js';
 import { verifyModelArtifactPackage } from '../../shared/pool/model-artifacts.js';
 import {
   REPUTATION_EVENT_TYPES,
   reduceReputationEvents
-} from '../../self/pool/reputation.js';
+} from '../../apps/poolday/pool/reputation.js';
 import {
   makePublicProteinJobFields,
   makeSequenceExecution
@@ -119,10 +119,10 @@ describe('Poolday audit boundaries', () => {
 
   it('keeps forbidden trust claims out of public Poolday UI copy', () => {
     const publicFiles = [
-      'self/ui/pool-home/constants.js',
-      'self/ui/pool-home/view.js',
-      'self/ui/pool-home/index.js',
-      'self/index.html',
+      'apps/poolday/ui/pool-home/constants.js',
+      'apps/poolday/ui/pool-home/view.js',
+      'apps/poolday/ui/pool-home/index.js',
+      'apps/poolday/index.html',
       'README.md'
     ];
     const forbidden = /\b(trustless|hardware-attested|guaranteed honest GPU execution|verified GPU execution|tamper-proof|proof of execution|hardware proof)\b/i;

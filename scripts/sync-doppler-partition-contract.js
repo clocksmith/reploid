@@ -5,6 +5,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { build } from 'esbuild';
+import { resolveServedFile } from '../server/browser-roots.js';
 
 const root = resolve(import.meta.dirname, '..');
 const packageRoot = resolve(root, 'node_modules/doppler-gpu');
@@ -87,7 +88,7 @@ const digestProvenance = JSON.stringify({ schema: 'reploid.doppler-metadata-cont
   packageVersion: metadata.version, publicExport: './partitions', exports: ['metadataDigest'],
   sha256: createHash('sha256').update(digestOutput).digest('hex') }, null, 2) + '\n';
 for (const [name, content] of [['doppler-metadata-contract.js', digestOutput], ['doppler-metadata-contract.provenance.json', digestProvenance]]) {
-  const file = resolve(root, 'self/config', name);
+  const file = resolveServedFile('config/' + name);
   if (process.argv.includes('--check')) {
     if (await readFile(file, 'utf8') !== content) throw new Error(`${name} differs from installed public Doppler metadata API`);
   } else await writeFile(file, content);

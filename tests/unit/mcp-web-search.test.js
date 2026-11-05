@@ -1,9 +1,9 @@
 // Web search through a remote MCP server: the Streamable HTTP exchange, tool choice, result parsing and
 // the permission rules, with results run through the library's retrieval. The server here is a fake.
 import { describe, expect, it } from 'vitest';
-import { createWebSearch, parseSearchResults, chooseSearchTool } from '../../self/host/web-search.js';
+import { createWebSearch, parseSearchResults, chooseSearchTool } from '../../apps/poolday/host/web-search.js';
 import { createRetrieval } from '../../packages/reploid/src/retrieval/index.js';
-import { bindWebSearchSettings, renderWebSearchSettings } from '../../self/ui/pool-home/web-search-settings.js';
+import { bindWebSearchSettings, renderWebSearchSettings } from '../../apps/poolday/ui/pool-home/web-search-settings.js';
 
 const SEARCH_TOOL = { name: 'web_search', inputSchema: { type: 'object', properties: { query: { type: 'string' }, numResults: { type: 'number' } }, required: ['query'] } };
 const EXA_TEXT = 'Title: Doppler WebGPU\nURL: https://example.org/doppler\nText: Doppler runs models in the browser with WebGPU.\n\n'

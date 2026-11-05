@@ -4,9 +4,9 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import { createReploidDopplerRuntimeService } from '../shared/infrastructure/doppler-runtime-service.js';
-import { createWorkResidentProvider } from '../self/providers/work-resident-provider.js';
-import { createWorkAdapterResolver, selectWorkAdapters } from '../self/providers/work-adapter.js';
-import profile from '../self/config/work-profile.json' with { type: 'json' };
+import { createWorkResidentProvider } from '../apps/poolday/providers/work-resident-provider.js';
+import { createWorkAdapterResolver, selectWorkAdapters } from '../apps/poolday/providers/work-adapter.js';
+import profile from '../apps/poolday/config/work-profile.json' with { type: 'json' };
 
 export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner = null, onChange = () => {},
   resolveAdapter = createWorkAdapterResolver({ models: [model] }),

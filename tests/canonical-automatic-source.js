@@ -2,7 +2,7 @@
 // canonical runner -> signatures -> requester transactions -> host projection.
 // Numerical operators and tokenization are injected, not physical qualification.
 import assert from './fixtures/canonical-assert.js';
-import { openChatHistory } from '../self/host/chat-history.js';
+import { openChatHistory } from '../apps/poolday/host/chat-history.js';
 import { createSigningIdentity } from '../packages/reploid/src/artifacts/identity.js';
 import { createAutomaticPartitions } from '../packages/reploid/src/mesh/partitions/automatic-partitions.js';
 import { createPartitionChat } from '../packages/reploid/src/mesh/partitions/partition-chat.js';
@@ -10,8 +10,8 @@ import { createPartitionEntry } from '../packages/reploid/src/mesh/partitions/pa
 import { createPartitionDataChannel } from '../packages/reploid/src/transport/partition-data-channel.js';
 import { verifyPartitionStageCommit } from '../packages/reploid/src/mesh/partitions/partition-stage-commit.js';
 import { openCanonicalWorkspaceHistory } from '../packages/reploid/src/chat/workspace-history.js';
-import { createChatSession } from '../self/host/chat-session.js';
-import { remotePermissionWording } from '../self/ui/pool-home/remote-permission.js';
+import { createChatSession } from '../apps/poolday/host/chat-session.js';
+import { remotePermissionWording } from '../apps/poolday/ui/pool-home/remote-permission.js';
 import { fixture, runtime, plan, planId, limits, hash, epoch } from './canonical-runner-fixture.js';
 const requester = await createSigningIdentity({ algorithm: 'ECDSA' });
 let root = null, tail = Promise.resolve(), authorize = () => false;
@@ -89,7 +89,7 @@ try {
   const thread = await session.createThread({ model: mesh.getModels()[0] });
   let result;
   if (database) {
-    const { renderConversationWorkspace, bindConversationWorkspace } = await import('../self/ui/pool-home/conversation-workspace.js');
+    const { renderConversationWorkspace, bindConversationWorkspace } = await import('../apps/poolday/ui/pool-home/conversation-workspace.js');
     document.body.innerHTML = renderConversationWorkspace();
     let resolve, reject;
     const completion = new Promise((done, failed) => { resolve = done; reject = failed; });

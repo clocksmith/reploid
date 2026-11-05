@@ -49,7 +49,7 @@ test('a fully correct tool can improve measured latency, require approval, survi
 
 test('continuing objective modules pass Verification Worker', async ({ page }) => {
   const paths = ['packages/reploid/src/improvement/tool-objective.js', 'packages/reploid/src/improvement/code-evolution.js',
-    'self/ui/pool-home/work-capabilities.js'];
+    'apps/poolday/ui/pool-home/work-capabilities.js'];
   const snapshot = Object.fromEntries(await Promise.all(paths.map(async path => [path, await readFile(path, 'utf8')])));
   await page.goto('/');
   const result = await page.evaluate(snapshot => new Promise((resolve, reject) => {

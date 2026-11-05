@@ -4,7 +4,7 @@ import pin from '../../shared/config/doppler-package.json' with { type: 'json' }
 import policy from '../../shared/config/swarm-bootstrap.json' with { type: 'json' };
 import { resolveSwarmJoin, resolveSwarmSignalingUrl } from '../../shared/capabilities/communication/swarm-join-policy.js';
 import { resolveDopplerBrowserAssets, DOPPLER_MODULE_URL } from '../../shared/config/doppler-local-models.js';
-import { startSwarmAutoconnect } from '../../self/host/swarm-autoconnect.js';
+import { startSwarmAutoconnect } from '../../apps/poolday/host/swarm-autoconnect.js';
 import { createWebRTCSwarm } from '../../packages/reploid/src/transport/swarm.js';
 import { resolveConfig } from '../../packages/reploid/src/config/index.js';
 

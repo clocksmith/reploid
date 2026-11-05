@@ -22,7 +22,7 @@ Inputs:
 - Runtime modules from the [manifest](manifest.js).
 
 Outputs:
-- The browser entry surface in [index.html](index.html).
+- The browser entry surface in [index.html](../apps/poolday/index.html).
 - Seeded runtime state through [boot seed](config/boot-seed.js).
 
 ## Invariants

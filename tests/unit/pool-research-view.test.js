@@ -10,10 +10,10 @@ import {
   projectAcceptedResearchMemory,
   validateResearchRecordLinks,
   verifyResearchRecord
-} from '../../self/pool/evidence-network.js';
+} from '../../apps/poolday/pool/evidence-network.js';
 import { createSigningKeyPair } from '../../shared/pool/inference-receipt.js';
 import { buildLaunchProviderModel } from '../../shared/pool/model-contract.js';
-import { hashSequenceFloat32Values } from '../../self/pool/sequence-result.js';
+import { hashSequenceFloat32Values } from '../../apps/poolday/pool/sequence-result.js';
 import {
   bindResearchWorkspace,
   createContextualReviewRecord,
@@ -21,14 +21,14 @@ import {
   createLifecycleRecordFromForm,
   hydrateAndBindResearchWorkspace,
   renderResearchWorkspace
-} from '../../self/ui/pool-home/research-view.js';
+} from '../../apps/poolday/ui/pool-home/research-view.js';
 import {
   appendResearchRecord,
   hydrateResearchRecords,
   loadResearchRecords,
   publishResearchRecord,
   resetResearchStore
-} from '../../self/ui/pool-home/research-store.js';
+} from '../../apps/poolday/ui/pool-home/research-store.js';
 
 const fakeHash = (character) => `sha256:${character.repeat(64)}`;
 const model = {

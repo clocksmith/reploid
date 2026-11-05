@@ -5,8 +5,8 @@ import { spawnSync } from 'node:child_process';
 import { describe, it, expect } from 'vitest';
 import { sha256Hex } from '../../shared/pool/inference-receipt.js';
 import { hashDopplerEvidence, assertPackExecutionEvidence } from '../../shared/pool/executable-pack.js';
-import { assertPackOperationReceipt } from '../../self/pool/pack-operation.js';
-import { verifyPackPeerEpisode } from '../../self/pool/peer-pack-episode.js';
+import { assertPackOperationReceipt } from '../../apps/poolday/pool/pack-operation.js';
+import { verifyPackPeerEpisode } from '../../apps/poolday/pool/peer-pack-episode.js';
 
 describe.each(['esm2-peer-pack-2026-09-05', 'esm2-pack-operation-2026-09-05', 'esm2-durable-peer-2026-09-06',
   'esm2-process-restart-2026-09-06', 'esm2-remote-operation-2026-09-06', 'esm2-durable-job-2026-09-06',

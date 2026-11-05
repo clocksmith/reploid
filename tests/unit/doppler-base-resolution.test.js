@@ -12,7 +12,7 @@ const readRepoFile = (relativePath) =>
 
 describe('Pinned Doppler asset resolution', () => {
   it('pool-entry uses the shared resolver before importing the application', () => {
-    const html = readRepoFile('self/pool-entry.html');
+    const html = readRepoFile('apps/poolday/pool-entry.html');
     expect(html).toContain('resolveDopplerBrowserAssets({');
     expect(html).toContain("['reset', 'clear', 'default', 'local'].includes(queryBase)");
     expect(html).toContain("localStorage.removeItem('DOPPLER_BASE_URL')");

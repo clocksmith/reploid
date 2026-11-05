@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { expect, it } from 'vitest';
 import { createChangeOnlyLog, statusContentKey } from '../../server/native-change-log.js';
-import policy from '../../self/config/partition-policy.json' with { type: 'json' };
+import policy from '../../apps/poolday/config/partition-policy.json' with { type: 'json' };
 
 it('writes a status kind only when its content changes, plus a heartbeat when idle', () => {
   let clock = 0;

@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createLocalPackExecutor } from '../../self/pool/local-pack-executor.js';
+import { createLocalPackExecutor } from '../../apps/poolday/pool/local-pack-executor.js';
 import { createReploidDopplerRuntimeService } from '../../shared/infrastructure/doppler-runtime-service.js';
 import { createDocumentPackFixture } from '../fixtures/document-packs.js';
-import defaults from '../../self/pool/local-session-policy.json' with { type: 'json' };
+import defaults from '../../apps/poolday/pool/local-session-policy.json' with { type: 'json' };
 
 async function fixture(policy = defaults, prepareRelease) {
   const f = await createDocumentPackFixture({ schema: 'doppler.capsule/v2', runtimeVersion: '0.6.0' });

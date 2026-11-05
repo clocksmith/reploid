@@ -3,7 +3,7 @@
  */
 
 import { hashJson, sha256Hex } from './hash.js';
-import { REPUTATION_EVENT_TYPES } from '../../self/pool/reputation.js';
+import { REPUTATION_EVENT_TYPES } from '../../apps/poolday/pool/reputation.js';
 
 export const CANARY_AUDIT_KIND = 'deterministic_canary';
 export const CHALLENGE_AUDIT_KIND = 'delayed_challenge_rerun';

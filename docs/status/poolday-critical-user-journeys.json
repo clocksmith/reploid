@@ -54,9 +54,9 @@
         "ring_quorum_receipt"
       ],
       "implementationPaths": [
-        "self/ui/pool-home/controls.js",
-        "self/pool/requester-client.js",
-        "self/pool/peer-room.js"
+        "apps/poolday/ui/pool-home/controls.js",
+        "apps/poolday/pool/requester-client.js",
+        "apps/poolday/pool/peer-room.js"
       ],
       "testPaths": [
         "tests/unit/pool-home-ask-controls.test.js",
@@ -93,9 +93,9 @@
         "The user explicitly chooses Download and run here."
       ],
       "implementationPaths": [
-        "self/ui/pool-home/controls.js",
-        "self/pool/doppler-runtime.js",
-        "self/pool/peer-room.js"
+        "apps/poolday/ui/pool-home/controls.js",
+        "apps/poolday/pool/doppler-runtime.js",
+        "apps/poolday/pool/peer-room.js"
       ],
       "testPaths": [
         "tests/unit/pool-home-ask-controls.test.js",
@@ -125,9 +125,9 @@
         "The tab remains open and reachable in the selected room."
       ],
       "implementationPaths": [
-        "self/ui/pool-home/controls.js",
-        "self/pool/provider-client.js",
-        "self/pool/peer-room.js"
+        "apps/poolday/ui/pool-home/controls.js",
+        "apps/poolday/pool/provider-client.js",
+        "apps/poolday/pool/peer-room.js"
       ],
       "testPaths": [
         "tests/unit/pool-home-ask-controls.test.js",
@@ -162,9 +162,9 @@
         "Compared contributors share the required exact model and runtime profile."
       ],
       "implementationPaths": [
-        "self/pool/peer-control-plane.js",
-        "self/pool/peer-planning.js",
-        "self/pool/peer-room.js",
+        "apps/poolday/pool/peer-control-plane.js",
+        "apps/poolday/pool/peer-planning.js",
+        "apps/poolday/pool/peer-room.js",
         "shared/pool/inference-receipt.js"
       ],
       "testPaths": [
@@ -196,9 +196,9 @@
         "Authenticated coordinator access is available for hosted receipt lookup."
       ],
       "implementationPaths": [
-        "self/ui/pool-home/record-persistence.js",
-        "self/ui/pool-home/view.js",
-        "self/ui/pool-home/controls.js"
+        "apps/poolday/ui/pool-home/record-persistence.js",
+        "apps/poolday/ui/pool-home/view.js",
+        "apps/poolday/ui/pool-home/controls.js"
       ],
       "testPaths": [
         "tests/unit/pool-home-record.test.js"
@@ -236,9 +236,9 @@
         "ring_quorum_receipt"
       ],
       "implementationPaths": [
-        "self/ui/pool-home/controls.js",
+        "apps/poolday/ui/pool-home/controls.js",
         "shared/pool/sequence-workload.js",
-        "self/pool/peer-room.js"
+        "apps/poolday/pool/peer-room.js"
       ],
       "testPaths": [
         "tests/unit/pool-home-ask-controls.test.js",
@@ -269,9 +269,9 @@
         "The contributor can fetch, verify, and load the adapter bytes."
       ],
       "implementationPaths": [
-        "self/pool/adapter-registry.js",
-        "self/pool/adapter-publication.js",
-        "self/ui/pool-home/controls.js"
+        "apps/poolday/pool/adapter-registry.js",
+        "apps/poolday/pool/adapter-publication.js",
+        "apps/poolday/ui/pool-home/controls.js"
       ],
       "testPaths": [
         "tests/unit/pool-home-ask-controls.test.js",
@@ -301,9 +301,9 @@
         "The participating peers retain the signed ledger events."
       ],
       "implementationPaths": [
-        "self/pool/peer-control-plane.js",
-        "self/pool/peer-ledger.js",
-        "self/ui/pool-home/record-persistence.js"
+        "apps/poolday/pool/peer-control-plane.js",
+        "apps/poolday/pool/peer-ledger.js",
+        "apps/poolday/ui/pool-home/record-persistence.js"
       ],
       "testPaths": [
         "tests/unit/pool-peer-control-plane.test.js",

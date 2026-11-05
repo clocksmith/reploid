@@ -1,10 +1,10 @@
 /** Synthetic bytes and promotion evidence for protocol tests only. */
 import { sealAdapterPack } from '../../shared/pool/adapter-pack.js';
-import { createSignedAdapterPublication } from '../../self/pool/adapter-publication.js';
+import { createSignedAdapterPublication } from '../../apps/poolday/pool/adapter-publication.js';
 import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { sha256Hex } from '../../shared/pool/inference-receipt.js';
 import { packPeerIdentity } from './peer-pack-operation.js';
-import { packPeerModel } from '../../self/pool/peer-pack-job.js';
+import { packPeerModel } from '../../apps/poolday/pool/peer-pack-job.js';
 export async function peerAdapterFixture(modelInput) {
   modelInput.runtimeVersion = '0.6.0';
   const h = char => `sha256:${char.repeat(64)}`;

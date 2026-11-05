@@ -1,7 +1,7 @@
 /** Internally operated test keys and byte suppliers; no independent-operator claim. */
 import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../../shared/pool/inference-receipt.js';
 import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
-import { createPeerPackSupplier } from '../../self/pool/peer-pack-custody.js';
+import { createPeerPackSupplier } from '../../apps/poolday/pool/peer-pack-custody.js';
 
 export async function createCustodyFixture(pack, artifactBytes, chunkSize = 2, limits = {}, envelopeArtifact = undefined) {
   const keys = await Promise.all(Array.from({ length: 4 }, () => createSigningKeyPair()));

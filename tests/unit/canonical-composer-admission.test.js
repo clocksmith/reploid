@@ -1,6 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest';
-import { renderConversationWorkspace, bindConversationWorkspace } from '../../self/ui/pool-home/conversation-workspace.js';
-import { createChatSession, CANONICAL_CHAT_MODELS } from '../../self/host/chat-session.js';
+import { renderConversationWorkspace, bindConversationWorkspace } from '../../apps/poolday/ui/pool-home/conversation-workspace.js';
+import { createChatSession, CANONICAL_CHAT_MODELS } from '../../apps/poolday/host/chat-session.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 const owned = [];
 afterEach(async () => { for (const close of owned.splice(0)) await close(); });

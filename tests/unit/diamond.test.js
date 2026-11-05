@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { renderDiamond, bindDiamond } from '../../self/ui/components/diamond.js';
+import { renderDiamond, bindDiamond } from '../../apps/poolday/ui/components/diamond.js';
 describe('Diamond progress component', () => {
   it('keeps multiple SVG gradient references independent', () => {
     const root = document.createElement('div'); root.innerHTML = renderDiamond() + renderDiamond();

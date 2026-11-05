@@ -6,9 +6,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createRetrieval, extractDocumentText, selectPassage, sha256Text, PAGE_FETCH_POLICY } from '../../packages/reploid/src/retrieval/index.js';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 import { createSearchPermission, searchPermissionWording } from '../../packages/reploid/src/chat/search-permission.js';
-import { createDeviceSearch, devicePageUrl, DEVICE_SEARCH_PROVIDER } from '../../self/host/device-search.js';
-import { createWebSearch } from '../../self/host/web-search.js';
-import { createChatSession, DEVICE_SEARCH_ROUTE, SEARCH_ROUTE } from '../../self/host/chat-session.js';
+import { createDeviceSearch, devicePageUrl, DEVICE_SEARCH_PROVIDER } from '../../apps/poolday/host/device-search.js';
+import { createWebSearch } from '../../apps/poolday/host/web-search.js';
+import { createChatSession, DEVICE_SEARCH_ROUTE, SEARCH_ROUTE } from '../../apps/poolday/host/chat-session.js';
 import { LOCAL_DOPPLER_MODELS } from '../../shared/config/doppler-local-models.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 
@@ -185,7 +185,7 @@ describe('authorization', () => {
 
 describe('search permission dialog', () => {
   it('names the person-chosen search server with the approved text, and shows no server for Brave', async () => {
-    const { renderSearchPermissionDialog, bindSearchPermissionDialog } = await import('../../self/ui/pool-home/search-permission.js');
+    const { renderSearchPermissionDialog, bindSearchPermissionDialog } = await import('../../apps/poolday/ui/pool-home/search-permission.js');
     document.body.innerHTML = renderSearchPermissionDialog();
     const dialog = document.querySelector('[data-search-permission]');
     dialog.showModal ??= function () { this.open = true; };

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { acquisitionProgress, createModelAcquisition, retainedModelSource } from '../../self/host/model-acquisition.js';
+import { acquisitionProgress, createModelAcquisition, retainedModelSource } from '../../apps/poolday/host/model-acquisition.js';
 
 const model = { id: 'fixture', identity: 'sha256:' + 'a'.repeat(64), source: { baseUrl: 'https://models.invalid/fixture' } };
 const source = () => ({ manifest: { modelId: model.id }, manifestHash: 'a'.repeat(64), storageContext: { close: vi.fn(async () => {}) } });

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { projectExecutionRibbon, renderExecutionRibbon, bindExecutionRibbon } from '../../self/ui/pool-home/execution-ribbon.js';
-import { participantLabel } from '../../self/ui/pool-home/computer-labels.js';
+import { projectExecutionRibbon, renderExecutionRibbon, bindExecutionRibbon } from '../../apps/poolday/ui/pool-home/execution-ribbon.js';
+import { participantLabel } from '../../apps/poolday/ui/pool-home/computer-labels.js';
 
 function snapshot(execution = null, status = 'executing', response = '') {
   return { participantId: 'requester', network: { consumer: { connectionState: 'connected', peers: [{ peerId: 'unrelated-peer' }] } },

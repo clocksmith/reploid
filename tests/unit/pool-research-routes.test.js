@@ -7,8 +7,8 @@ import {
   createSignedHumanClaim,
   createSignedPriorEvidence,
   createSignedResearchSubmission
-} from '../../self/pool/evidence-network.js';
-import { createDiscoveryContractCheckpoint } from '../../self/pool/discovery-contract.js';
+} from '../../apps/poolday/pool/evidence-network.js';
+import { createDiscoveryContractCheckpoint } from '../../apps/poolday/pool/discovery-contract.js';
 import { createSigningKeyPair } from '../../shared/pool/inference-receipt.js';
 import { buildLaunchProviderModel, getPoolModelContract } from '../../shared/pool/model-contract.js';
 

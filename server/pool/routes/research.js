@@ -14,9 +14,9 @@ import {
   validateResearchRecordModelAdmission,
   validateResearchRecordLinks,
   verifyResearchRecord
-} from '../../../self/pool/evidence-network.js';
-import { validateDiscoveryContractCheckpoint } from '../../../self/pool/discovery-contract.js';
-import { projectProteinUncertaintyCampaignQueue } from '../../../self/pool/protein-uncertainty-campaign.js';
+} from '../../../apps/poolday/pool/evidence-network.js';
+import { validateDiscoveryContractCheckpoint } from '../../../apps/poolday/pool/discovery-contract.js';
+import { projectProteinUncertaintyCampaignQueue } from '../../../apps/poolday/pool/protein-uncertainty-campaign.js';
 
 const MAX_RESEARCH_RECORD_BYTES = 1_000_000;
 

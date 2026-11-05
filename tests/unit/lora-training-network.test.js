@@ -2,7 +2,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { createTrainingNetwork } from '../../packages/reploid/src/training/network.js';
 import { createTrainingSession } from '../../packages/reploid/src/training/session.js';
 import { createPartitionNetwork } from '../../packages/reploid/src/mesh/partitions/partition-network.js';
-import policy from '../../self/config/lora-training.json';
+import policy from '../../apps/poolday/config/lora-training.json';
 const closers = [];
 afterEach(async () => { await Promise.all(closers.splice(0).map(close => close())); });
 function fixture({ allowed = () => true, receive = async input => ({ data: input.body, participant: input.remoteParticipantId }) } = {}) {

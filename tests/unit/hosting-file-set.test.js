@@ -9,7 +9,7 @@ import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { collectModuleClosure, buildHostingFileSet, walkFiles } from '../../scripts/hosting-file-set.js';
 import { packageHosting, verifyHostingSource } from '../../scripts/package-hosting.js';
-import { buildBrowserBundleManifest, BROWSER_BUNDLE_DESCRIPTOR_PATH } from '../../self/pool/browser-release-identity.js';
+import { buildBrowserBundleManifest, BROWSER_BUNDLE_DESCRIPTOR_PATH } from '../../apps/poolday/pool/browser-release-identity.js';
 import { resolveServedFile } from '../../server/browser-roots.js';
 
 const fixtures = [];

@@ -35,7 +35,7 @@
 
 The pilot cohort consists of **24 public, family-disjoint protein sequences** with documented annotation ambiguities (e.g. conflicting domain boundaries, low-confidence automated HMM matches, fragmented domains, or conflicting family classifications).
 
-Each case record in [`self/pool/adjudication-pilot-manifest.json`](../../self/pool/adjudication-pilot-manifest.json) binds:
+Each case record in [`self/pool/adjudication-pilot-manifest.json`](../../apps/poolday/pool/adjudication-pilot-manifest.json) binds:
 1. `accession`: Public UniProtKB accession (e.g. `P0DTC2`, `Q9BYF1`).
 2. `sequenceHash`: SHA-256 hash of the canonical amino-acid sequence.
 3. `catalogAnnotation`: Existing catalog family/domain coordinates.

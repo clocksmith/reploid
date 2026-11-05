@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createTrainingSession } from '../../packages/reploid/src/training/session.js';
-import policy from '../../self/config/lora-training.json';
+import policy from '../../apps/poolday/config/lora-training.json';
 const samples = [{ inputIds: [100, 200], targetIds: [200, 300], supervisedTokenCount: 2 }];
 const adapter = { id: 'tested', name: 'Tested', version: '0.0.1' };
 const cleanups = [];

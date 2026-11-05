@@ -1,10 +1,10 @@
 /** Existing signed job protocol carried by an authenticated introduced channel. */
 import { swarm } from './peer-introductions-browser.js';
 import { packPeerIdentity, operationCapabilities } from './peer-pack-operation.js';
-import { createPackJobDataChannel } from '../../self/pool/peer-pack-job-channel.js';
-import { createPackPeerProvider } from '../../self/pool/peer-pack-provider.js';
-import { createPackPeerRequester } from '../../self/pool/peer-pack-requester.js';
-import { packPeerModel } from '../../self/pool/peer-pack-job.js';
+import { createPackJobDataChannel } from '../../apps/poolday/pool/peer-pack-job-channel.js';
+import { createPackPeerProvider } from '../../apps/poolday/pool/peer-pack-provider.js';
+import { createPackPeerRequester } from '../../apps/poolday/pool/peer-pack-requester.js';
+import { packPeerModel } from '../../apps/poolday/pool/peer-pack-job.js';
 import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 
 let identity, physical, provider, requester, bus, execution, unregister;

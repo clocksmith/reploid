@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest';
-import { createPackJobDataChannel } from '../../self/pool/peer-pack-job-channel.js';
+import { createPackJobDataChannel } from '../../apps/poolday/pool/peer-pack-job-channel.js';
 
 class Channel extends EventTarget {
   ordered = true;

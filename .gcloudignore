@@ -19,6 +19,11 @@ server/logs/**
 
 !self/
 !self/**
+!shared/
+!shared/**
+!apps/
+!apps/poolday/
+!apps/poolday/**
 
 !scripts/
 !scripts/print-pool-env.js

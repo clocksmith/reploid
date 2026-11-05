@@ -1,6 +1,6 @@
 import { it, expect, vi } from 'vitest';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
-import { projectExecutionActivity } from '../../self/ui/pool-home/execution-activity.js';
+import { projectExecutionActivity } from '../../apps/poolday/ui/pool-home/execution-activity.js';
 import { automaticOrderedMesh, tasks } from '../fixtures/automatic-ordered-mesh.js';
 
 it('projects authenticated measured stage timing in the actual requester workspace before generation finishes',async()=>{

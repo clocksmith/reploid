@@ -1,9 +1,9 @@
 /** Synthetic vectors, actual signed jobs and native IndexedDB. No model qualification. */
 import { openIndependentUnitJournal, createIndependentUnitCoordinator } from 'reploid/jobs';
 import { operationFixture, operationCapabilities, operationResources, packPeerIdentity } from './peer-pack-operation.js';
-import { createPackPeerProvider } from '../../self/pool/peer-pack-provider.js';
-import { createPackPeerRequester } from '../../self/pool/peer-pack-requester.js';
-import { createPackPeerJob, packPeerModel } from '../../self/pool/peer-pack-job.js';
+import { createPackPeerProvider } from '../../apps/poolday/pool/peer-pack-provider.js';
+import { createPackPeerRequester } from '../../apps/poolday/pool/peer-pack-requester.js';
+import { createPackPeerJob, packPeerModel } from '../../apps/poolday/pool/peer-pack-job.js';
 import { createPackOperationRegistry } from '../../shared/pool/pack-operation-adapters.js';
 import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 

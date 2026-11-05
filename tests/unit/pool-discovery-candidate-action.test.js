@@ -9,12 +9,12 @@ import {
   rankProposedCandidateActions,
   validateResearchRecordLinks,
   verifyResearchRecord
-} from '../../self/pool/evidence-network.js';
+} from '../../apps/poolday/pool/evidence-network.js';
 import {
   DISCOVERY_COST_COMPONENTS,
   normalizeDiscoveryCandidateAction,
   rankSignedCandidateActions
-} from '../../self/pool/discovery-candidate-action.js';
+} from '../../apps/poolday/pool/discovery-candidate-action.js';
 import { createSigningKeyPair } from '../../shared/pool/inference-receipt.js';
 
 const fakeHash = (character) => `sha256:${character.repeat(64)}`;

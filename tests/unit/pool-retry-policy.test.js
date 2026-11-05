@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { boundedRetryDelay, retryAfterMsFromError } from '../../self/pool/retry-policy.js';
+import { boundedRetryDelay, retryAfterMsFromError } from '../../apps/poolday/pool/retry-policy.js';
 
 describe('Poolday retry policy', () => {
   it('uses exponential retry with a hard upper bound', () => {

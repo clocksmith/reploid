@@ -1,8 +1,8 @@
 import { operationFixture, operationCapabilities, operationResources, packPeerIdentity } from './peer-pack-operation.js';
 import { placementBeliefPolicy } from './placement-beliefs.js';
 import { PACK_JOB_POLICY } from '../../shared/pool/peer-pack-job-policy.js';
-import { createPackPeerJob, createPackProviderAdvert, verifyPackPeerJob, signPackPeerMessage } from '../../self/pool/peer-pack-job.js';
-import { operationPlacementContext } from '../../self/pool/peer-planning.js';
+import { createPackPeerJob, createPackProviderAdvert, verifyPackPeerJob, signPackPeerMessage } from '../../apps/poolday/pool/peer-pack-job.js';
+import { operationPlacementContext } from '../../apps/poolday/pool/peer-planning.js';
 
 /** Real signatures and planner replay, synthetic execution/outcome identities. */
 export async function bayesianPeerJobFixture() {

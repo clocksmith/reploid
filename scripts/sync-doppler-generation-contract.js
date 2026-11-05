@@ -5,6 +5,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { build } from 'esbuild';
+import { resolveServedFile } from '../server/browser-roots.js';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const packageArgument = process.argv.find(value => value.startsWith('--package-root='));
@@ -23,7 +24,7 @@ const provenance = `${JSON.stringify({ schema: 'reploid.doppler-generation-contr
   bundleSha256: createHash('sha256').update(output).digest('hex') }, null, 2)}\n`;
 const declarations = await readFile(resolve(packageRoot, metadata.exports['./generation-contract'].types), 'utf8');
 for (const [name, content] of [['doppler-generation-contract.js', output], ['doppler-generation-contract.d.ts', declarations], ['doppler-generation-contract.provenance.json', provenance]]) {
-  const path = resolve(root, 'self/config', name);
+  const path = resolveServedFile('config/' + name);
   if (process.argv.includes('--check')) {
     if (await readFile(path, 'utf8') !== content) throw new Error(`${name} differs from the installed public generation API.`);
   } else await writeFile(path, content);

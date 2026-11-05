@@ -1,5 +1,5 @@
 /** Stateless Anthropic-shaped text Messages over declared local token semantics. */
-import policy from '../self/config/partition-policy.json' with { type: 'json' };
+import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
 import { parseTextChatCompletion } from './chat-completions.js';
 import { createTextRequester, fail, object, freeze } from './text-requester.js';
 

@@ -8,7 +8,7 @@ import { createHash } from 'node:crypto';
 import * as runtime from 'doppler-gpu/partitions';
 import { canonicalPartitionJson } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
 import { automaticOrderedMesh, tasks } from '../fixtures/automatic-ordered-mesh.js';
-import orderedPolicy from '../../self/config/ordered-participation.json' with { type: 'json' };
+import orderedPolicy from '../../apps/poolday/config/ordered-participation.json' with { type: 'json' };
 
 const ports = vi.hoisted(() => ({ identity: null, partitions: null, peers: [] }));
 vi.mock('../../shared/identity.js', async original => ({ ...await original(), ensureIdentityBundle: async () => ports.identity }));
@@ -22,13 +22,13 @@ vi.mock('../../shared/vendor/reploid/mesh/index.js', async original => ({ ...awa
 }));
 vi.mock('../../shared/vendor/reploid/transport/index.js', async original => ({ ...await original(),
   createSwarmTransport: () => ({ disconnect() {}, onMessage() {}, offMessage() {}, sendToPeer() {}, _getPeerId: () => 'transport-requester', getConnectedPeers: () => [] }) }));
-vi.mock('../../self/host/work-model-files.js', async original => ({ ...await original(),
+vi.mock('../../apps/poolday/host/work-model-files.js', async original => ({ ...await original(),
   createWorkModelFiles: () => ({ async attach() {}, async close() {}, announce() {}, getState: () => ({ sharing: false, preparing: false }) }) }));
-vi.mock('../../self/host/work-peer-offers.js', () => ({ createWorkPeerOffers: () => ({
+vi.mock('../../apps/poolday/host/work-peer-offers.js', () => ({ createWorkPeerOffers: () => ({
   acquire: async () => 'transport-requester', attach: async () => {}, close() {}, getState: () => null }) }));
-import { createProductSession } from '../../self/host/product-session.js';
-import { LOCAL_HISTORY_IDENTITY } from '../../self/host/chat-session.js';
-import { remotePermissionWording } from '../../self/ui/pool-home/remote-permission.js';
+import { createProductSession } from '../../apps/poolday/host/product-session.js';
+import { LOCAL_HISTORY_IDENTITY } from '../../apps/poolday/host/chat-session.js';
+import { remotePermissionWording } from '../../apps/poolday/ui/pool-home/remote-permission.js';
 import { resolveConfig } from '../../shared/vendor/reploid/config/index.js';
 
 const metadataDigest = (schema, body) => 'sha256:' + createHash('sha256').update(schema + '\0' + canonicalPartitionJson(body)).digest('hex');

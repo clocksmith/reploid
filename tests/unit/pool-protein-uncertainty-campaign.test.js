@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   PROTEIN_UNCERTAINTY_CAMPAIGN_QUEUE_VERSION,
   projectProteinUncertaintyCampaignQueue
-} from '../../self/pool/protein-uncertainty-campaign.js';
+} from '../../apps/poolday/pool/protein-uncertainty-campaign.js';
 
 const fakeHash = (character) => `sha256:${character.repeat(64)}`;
 const at = (minute) => `2026-08-15T12:${String(minute).padStart(2, '0')}:00.000Z`;

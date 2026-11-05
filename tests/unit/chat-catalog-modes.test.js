@@ -1,6 +1,6 @@
 import { it, expect } from 'vitest';
-import { projectChatCatalog } from '../../self/host/chat-view.js';
-import { updateModelSelect } from '../../self/ui/components/model-select.js';
+import { projectChatCatalog } from '../../apps/poolday/host/chat-view.js';
+import { updateModelSelect } from '../../apps/poolday/ui/components/model-select.js';
 const model = { id: 'large', name: 'Large model', identity: 'sha256:model', adapters: [],
   executionModes: ['whole-model', 'partition'], partitionPlanId: 'sha256:plan' };
 it('keeps whole and distributed selection identities distinct without inventing ready capacity', () => {

@@ -28,14 +28,14 @@ export async function observeCooperativePage(cdp, evidence, { captureCustody = f
   const installFileProbes = async () => {
     if (fileProbesInstalled) return;
     const sources = [
-      { file: 'self/host/work-model-files.js', urlRegex: '/host/work-model-files\\.js$', probes: [
+      { file: 'apps/poolday/host/work-model-files.js', urlRegex: '/host/work-model-files\\.js$', probes: [
         { kind: 'cache-read', marker: 'const handle = await (await root()).getFileHandle(fileKey(file));', expression: '({file, key:fileKey(file), directory:directory?.name, activePieces, operations:operations.size, retainedPieces:retainedPieces.size, pinned:pinned.size, sharing:exchange?.getState().sharing})' },
         { kind: 'cache-handle', marker: 'const blob = await handle.getFile();', condition: 'file.role !== "model-weights"', expression: '({file,key:fileKey(file),name:handle.name})' },
         { kind: 'cache-blob', marker: "assert(blob.size === file.sizeBytes, 'Cached model file size mismatch');", condition: 'file.role !== "model-weights"', expression: '({file,key:fileKey(file),name:blob.name,size:blob.size,lastModified:blob.lastModified})' },
         { kind: 'cache-miss', marker: "} catch (cause) { if (cause.name === 'NotFoundError') return null; throw cause; }", expression: '({file, error:{name:cause.name,message:cause.message,stack:cause.stack}})' },
         { kind: 'cache-enumerate', marker: 'const stored = await handle.getFile(); used += stored.size;', condition: 'file.role !== "model-weights"', expression: '({file,key,name,used})' }
       ] },
-      { file: 'self/infrastructure/pack-transfer-storage.js', urlRegex: '/infrastructure/pack-transfer-storage\\.js$', probes: [
+      { file: 'apps/poolday/infrastructure/pack-transfer-storage.js', urlRegex: '/infrastructure/pack-transfer-storage\\.js$', probes: [
         { kind: 'staging-read', marker: "try { return JSON.parse(await (await (await directory.getFileHandle('index.json')).getFile()).text()); }", expression: '({directory:directory.name,closed})' }
       ] },
       { file: 'shared/vendor/reploid/mesh/partitions/automatic-partitions.js', urlRegex: '/mesh/partitions/automatic-partitions\\.js$', probes: [

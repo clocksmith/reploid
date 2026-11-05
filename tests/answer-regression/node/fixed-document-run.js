@@ -22,8 +22,8 @@ assert(modelDirectory, 'Set REPLOID_COMPARISON_MODEL_DIRECTORY to already-provis
 const profile = JSON.parse(await fs.readFile(resolveServedFile('config/work-profile.json')));
 assert.equal(digest(model.generation ?? profile.generation), contract.generationHash, 'Generation settings changed');
 const paths = ['node_modules/doppler-gpu/package.json', 'package-lock.json', 'shared/config/doppler-package.json',
-  'self/config/work-profile.json', 'server/native-whole-model.js', 'server/native-participant.js',
-  'self/providers/work-resident-provider.js', 'shared/infrastructure/doppler-runtime-service.js',
+  'apps/poolday/config/work-profile.json', 'server/native-whole-model.js', 'server/native-participant.js',
+  'apps/poolday/providers/work-resident-provider.js', 'shared/infrastructure/doppler-runtime-service.js',
   'packages/reploid/src/retrieval/sources.js', 'tests/answer-regression/node/fixed-document-comparison.js',
   'tests/answer-regression/node/fixed-document-run.js'];
 const files = {};

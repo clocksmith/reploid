@@ -14,7 +14,7 @@ import {
   BROWSER_RUNTIME_CONFIG as BROWSER_BROWSER_RUNTIME_CONFIG,
   DETERMINISTIC_GENERATION_CONFIG as BROWSER_GENERATION_CONFIG
 } from '../../shared/pool/config.js';
-import { validatePolicyRequest } from '../../self/pool/policy-router.js';
+import { validatePolicyRequest } from '../../apps/poolday/pool/policy-router.js';
 import {
   LAUNCH_MODEL as BROWSER_LAUNCH_MODEL,
   POOLDAY_MODEL_WORKLOADS,

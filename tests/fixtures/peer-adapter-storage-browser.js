@@ -2,10 +2,10 @@ import config from '../../shared/pool/pool-config.json' with { type: 'json' };
 import { operationFixture } from './peer-pack-operation.js';
 import { peerAdapterFixture } from './peer-adapter.js';
 import { adapterCustodyFixture } from './peer-adapter-custody.js';
-import { createPeerAdapterResolver } from '../../self/pool/peer-adapter-execution.js';
-import { createAdapterRegistry } from '../../self/pool/adapter-registry.js';
-import { executionAdapterArtifact } from '../../self/pool/adapter-execution.js';
-import { packPeerModel } from '../../self/pool/peer-pack-job.js';
+import { createPeerAdapterResolver } from '../../apps/poolday/pool/peer-adapter-execution.js';
+import { createAdapterRegistry } from '../../apps/poolday/pool/adapter-registry.js';
+import { executionAdapterArtifact } from '../../apps/poolday/pool/adapter-execution.js';
+import { packPeerModel } from '../../apps/poolday/pool/peer-pack-job.js';
 
 export async function transfer(saved = null) {
   const f = saved || await peerAdapterFixture((await operationFixture('generate')).model);

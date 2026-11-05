@@ -83,10 +83,10 @@ describe('layer verification', () => {
     ['packages/reploid/src/transport/peer.js', '../adapters/doppler.js'],
     ['self/ui/page.js', '../../packages/functions/index.js'],
     ['packages/reploid/src/transport/peer.js', '../chat/index.js'],
-    ['self/host/chat-session.js', '../providers/work-network-provider.js'],
-    ['self/host/chat-execution.js', '../../shared/vendor/reploid/chat/scheduler.js'],
-    ['self/host/chat-view.js', './chat-execution.js'],
-    ['self/host/readonly-view.js', '../infrastructure/storage.js']
+    ['apps/poolday/host/chat-session.js', '../providers/work-network-provider.js'],
+    ['apps/poolday/host/chat-execution.js', '../../../shared/vendor/reploid/chat/scheduler.js'],
+    ['apps/poolday/host/chat-view.js', './chat-execution.js'],
+    ['apps/poolday/host/readonly-view.js', '../infrastructure/storage.js']
   ])('rejects the boundary crossing from %s', (source, target) => {
     expect(findLayerViolations({ repoRoot, sourcePath: path.join(repoRoot, source),
       source: `export * from '${target}';` })).toHaveLength(1);

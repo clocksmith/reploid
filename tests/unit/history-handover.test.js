@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createHistoryHandover } from '../../self/host/history-handover.js';
+import { createHistoryHandover } from '../../apps/poolday/host/history-handover.js';
 
 /** BroadcastChannel stand-in: delivers to every other instance with the same name. */
 function channels() {

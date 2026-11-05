@@ -1,5 +1,5 @@
 import { beforeEach, expect, it, vi } from 'vitest';
-import { renderProductionSurface, bindProductionSurface, projectProduction } from '../../self/ui/pool-home/production.js';
+import { renderProductionSurface, bindProductionSurface, projectProduction } from '../../apps/poolday/ui/pool-home/production.js';
 
 const model = { id: 'm', name: 'Model', identity: 'fixture:model', provider: 'doppler', source: { baseUrl: 'fixture:' }, networkAvailability: 'ready' };
 const state = () => ({ models: [model], network: { sharing: true, computeEnabled: true,

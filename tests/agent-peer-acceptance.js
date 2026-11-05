@@ -40,8 +40,8 @@ for (const name of ['reploid', 'doppler-gpu']) {
   if (entry.resolved.startsWith('file:')) report.packages[name].archiveSha256 = hash(
     await readFile(path.resolve(consumer, entry.resolved.slice(5))));
 }
-for (const name of ['self/pool/peer-room.js', 'self/pool/peer-pack-requester.js', 'self/pool/provider-client.js', 'shared/pool/config-contract.js',
-  'shared/pool/pool-config.json', 'self/infrastructure/pack-job-storage.js', 'tests/agent-peer-acceptance.js',
+for (const name of ['apps/poolday/pool/peer-room.js', 'apps/poolday/pool/peer-pack-requester.js', 'apps/poolday/pool/provider-client.js', 'shared/pool/config-contract.js',
+  'shared/pool/pool-config.json', 'apps/poolday/infrastructure/pack-job-storage.js', 'tests/agent-peer-acceptance.js',
   'tests/fixtures/agent-peer-browser.js']) report.sourceFiles[name] = hash(await readFile(path.join(root, name)));
 const profile = await mkdtemp(path.join(tmpdir(), 'agent-peer-provider-'));
 let server, requesterBrowser, requesterContext, providerContext, requester, provider;

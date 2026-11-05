@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { mkdir, writeFile, readFile } from 'node:fs/promises';
 import { createBeliefPlanner } from '../packages/reploid/src/agent/diagnostic-strategy.js';
-import { rankSignedCandidateActions, DISCOVERY_COST_COMPONENTS } from '../self/pool/discovery-candidate-action.js';
+import { rankSignedCandidateActions, DISCOVERY_COST_COMPONENTS } from '../apps/poolday/pool/discovery-candidate-action.js';
 import { diagnosticModel as model, diagnosticPolicy as basePolicy, states, causes, observeSynthetic } from './fixtures/diagnostic-model.js';
 
 const digest = value => 'sha256:' + createHash('sha256').update(value).digest('hex');
@@ -61,7 +61,7 @@ for (const objective of ['task-value', 'existing-heuristic', 'decision-value', '
 assert.equal(results.find(row => row.objective === 'decision-value').accuracy, 1);
 assert.equal(results.find(row => row.objective === 'task-value').accuracy, 0.25);
 const sources = ['packages/reploid/src/agent/belief-planner.js', 'packages/reploid/src/agent/diagnostic-strategy.js',
-  'self/pool/discovery-candidate-action.js', 'tests/fixtures/diagnostic-model.js', 'tests/diagnostic-planning-comparison.js'];
+  'apps/poolday/pool/discovery-candidate-action.js', 'tests/fixtures/diagnostic-model.js', 'tests/diagnostic-planning-comparison.js'];
 const sourceHashes = Object.fromEntries(await Promise.all(sources.map(async file => [file, digest(await readFile(file))])));
 const report = {
   schema: 'reploid.synthetic-diagnostic-comparison/v1',

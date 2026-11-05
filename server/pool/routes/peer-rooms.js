@@ -6,7 +6,7 @@
  * that relay record, not delivery of a computation or scientific result.
  */
 
-import { verifyPeerMessage } from '../../../self/pool/peer-protocol.js';
+import { verifyPeerMessage } from '../../../apps/poolday/pool/peer-protocol.js';
 
 const peerRoomMessageFromPeerId = (message = {}) => {
   const body = message.body || {};

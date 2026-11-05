@@ -1,6 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest';
-import { bindTraining, renderTraining } from '../../self/ui/pool-home/lora-training.js';
-import { createTrainingWorker } from '../../self/host/lora-training.js';
+import { bindTraining, renderTraining } from '../../apps/poolday/ui/pool-home/lora-training.js';
+import { createTrainingWorker } from '../../apps/poolday/host/lora-training.js';
 
 const cleanup = [];
 afterEach(() => { cleanup.splice(0).forEach(fn => fn()); document.body.replaceChildren(); });

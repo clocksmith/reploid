@@ -7,7 +7,7 @@ import {
   buildSourceReleaseIdentity,
   validateBrowserBundleManifest,
   validateSourceReleaseIdentity
-} from '../../self/pool/browser-release-identity.js';
+} from '../../apps/poolday/pool/browser-release-identity.js';
 
 const entries = () => [
   { path: 'pool/runtime.js', bytes: new TextEncoder().encode('runtime') },

@@ -4,13 +4,16 @@ import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { chromium } from 'playwright';
 import { resolveServedFile } from '../server/browser-roots.js';
+import { readServedHarnessFile } from '../tests/helpers/served-browser-files.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const names = ['artifact-router', 'executable-pack', 'inference-receipt', 'model-contract', 'peer-control-plane',
   'peer-protocol', 'complete-forecast', 'forecast-workload', 'peer-assignment'].map(name => 'self/pool/' + name + '.js');
 names.push('packages/poolday-forecast/index.js', 'scripts/build-poolday-forecast-sdk.js', 'scripts/verify-poolday-forecast-sdk.js',
   'tests/unit/pool-complete-forecast.test.js');
-const entries = await Promise.all(names.map(async name => [name, await fs.readFile(path.join(root, name), 'utf8')]));
+// self/<path> names the browser file served at <path>; read it as served.
+const entries = await Promise.all(names.map(async name => [name, name.startsWith('self/')
+  ? (await readServedHarnessFile('/' + name)).toString('utf8') : await fs.readFile(path.join(root, name), 'utf8')]));
 const snapshot = Object.fromEntries(entries.map(([name, source]) => ['/' + name.replace(/^self\//, ''), source]));
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 try {

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { openParticipantControls } from '../fixtures/signaling-interruption.js';
-import { participantLabel } from '../../self/ui/pool-home/computer-labels.js';
+import { participantLabel } from '../../apps/poolday/ui/pool-home/computer-labels.js';
 
 // Explicit host-state fixtures exercise presentation, not model inference.
 async function installConversation(page, theme) {

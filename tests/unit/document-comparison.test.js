@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { attachmentInput, comparisonInput, comparisonSources, comparisonExport } from '../../self/host/document-comparison.js';
-import { createChatSession } from '../../self/host/chat-session.js';
+import { attachmentInput, comparisonInput, comparisonSources, comparisonExport } from '../../apps/poolday/host/document-comparison.js';
+import { createChatSession } from '../../apps/poolday/host/chat-session.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
-import sample from '../../self/config/document-comparison-sample.json' with { type: 'json' };
+import sample from '../../apps/poolday/config/document-comparison-sample.json' with { type: 'json' };
 const storage = () => { const values = new Map(); return { getItem: key => values.get(key), setItem: (key, value) => values.set(key, value) }; };
 
 describe('Document workflow ownership', () => {

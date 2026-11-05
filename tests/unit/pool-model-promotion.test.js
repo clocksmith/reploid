@@ -5,12 +5,12 @@ import {
   BROWSER_QUALIFICATION_SCHEMA,
   buildBrowserQualificationCheckEvidence,
   buildBrowserQualificationPlan
-} from '../../self/pool/browser-qualification.js';
+} from '../../apps/poolday/pool/browser-qualification.js';
 import { MODEL_CATALOG, exactModelContractKey, getPoolModelContract } from '../../shared/pool/model-contract.js';
-import { validateModelPromotionEvidence } from '../../self/pool/model-promotion.js';
-import { DNA_LANE_ADMISSION_SCHEMA } from '../../self/pool/dna-lane-admission.js';
-import { SCIENTIFIC_FITNESS_SCHEMA, buildScientificFitnessPlan } from '../../self/pool/scientific-fitness.js';
-import { SCIENTIFIC_EVALUATION_SCHEMA, buildScientificEvaluationPlan } from '../../self/pool/scientific-evaluation.js';
+import { validateModelPromotionEvidence } from '../../apps/poolday/pool/model-promotion.js';
+import { DNA_LANE_ADMISSION_SCHEMA } from '../../apps/poolday/pool/dna-lane-admission.js';
+import { SCIENTIFIC_FITNESS_SCHEMA, buildScientificFitnessPlan } from '../../apps/poolday/pool/scientific-fitness.js';
+import { SCIENTIFIC_EVALUATION_SCHEMA, buildScientificEvaluationPlan } from '../../apps/poolday/pool/scientific-evaluation.js';
 
 const fakeHash = (character) => `sha256:${character.repeat(64)}`;
 const candidate = getPoolModelContract('amplify-120m-f16-af32');

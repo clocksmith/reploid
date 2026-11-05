@@ -1,9 +1,9 @@
 import { beforeEach, expect, it } from 'vitest';
-import { ADAPTER_GUIDE_URL, adapterAvailability, describeModelChoice, updateAdapterDetails } from '../../self/ui/pool-home/model-adapters.js';
-import { recordedAdapterText } from '../../self/ui/pool-home/execution-ribbon.js';
-import { bindModelChoices } from '../../self/ui/components/model-select.js';
-import { CANONICAL_CHAT_MODELS } from '../../self/host/chat-session.js';
-import { projectChatCatalog } from '../../self/host/chat-view.js';
+import { ADAPTER_GUIDE_URL, adapterAvailability, describeModelChoice, updateAdapterDetails } from '../../apps/poolday/ui/pool-home/model-adapters.js';
+import { recordedAdapterText } from '../../apps/poolday/ui/pool-home/execution-ribbon.js';
+import { bindModelChoices } from '../../apps/poolday/ui/components/model-select.js';
+import { CANONICAL_CHAT_MODELS } from '../../apps/poolday/host/chat-session.js';
+import { projectChatCatalog } from '../../apps/poolday/host/chat-view.js';
 
 const catalogBase = CANONICAL_CHAT_MODELS.find(model => model.availableAdapters?.length);
 const catalogAdapter = catalogBase.availableAdapters[0];

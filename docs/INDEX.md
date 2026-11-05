@@ -128,8 +128,10 @@ The [browser ownership inventory](./ownership-inventory.md) assigns every served
 
 ```
 reploid/
-├── self/                       # Browser application and public root
-│   ├── index.html              # Entry point
+├── apps/poolday/               # Poolday product, served at the same URLs (index.html, ui/pool-home/, pool/, host/)
+├── shared/                     # Browser code both surfaces load (vendor/, config/, identity.js, ...)
+├── self/                       # Agent/VFS substrate; with the two roots above, one served tree
+│   ├── kernel/index.html       # Substrate boot entry
 │   ├── entry/seed-vfs.js       # VFS hydration compatibility shim
 │   ├── entry/start-app.js      # Bootstrapper compatibility shim
 │   ├── sw-module-loader.js     # Service worker for VFS modules

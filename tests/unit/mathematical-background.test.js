@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { mathematicalFields, classificationBlend, primeSieve } from '../../self/ui/components/mathematical-background.js';
+import { mathematicalFields, classificationBlend, primeSieve } from '../../apps/poolday/ui/components/mathematical-background.js';
 
 it('sieves primes and excludes one and composite squares', () => {
   expect([...primeSieve(25)].flatMap((value, index) => value ? [index] : []))

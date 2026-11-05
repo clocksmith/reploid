@@ -206,8 +206,8 @@ test('competing host tabs cannot overspend one acquisition allowance', async ({p
 });
 
 test('storage contribution changes pass the real Verification Worker', async ({page}) => {
- const paths=['self/host/work-model-files.js','self/host/work-swarm.js','self/host/chat-session.js',
-  'self/infrastructure/custody-supply-budget.js','self/ui/pool-home/network-controls.js',
+ const paths=['apps/poolday/host/work-model-files.js','apps/poolday/host/work-swarm.js','apps/poolday/host/chat-session.js',
+  'apps/poolday/infrastructure/custody-supply-budget.js','apps/poolday/ui/pool-home/network-controls.js',
   'packages/reploid/src/artifacts/custody/exchange.js','packages/reploid/src/artifacts/custody/supply-budget.js'];
  const snapshot=Object.fromEntries(await Promise.all(paths.map(async path=>[path.replace(/^self/,''),await readFile(path,'utf8')])));
  await page.goto('/config/chat-files.json');

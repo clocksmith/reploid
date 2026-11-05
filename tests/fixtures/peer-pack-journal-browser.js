@@ -1,8 +1,8 @@
 /** Synthetic computation with real signatures and native IndexedDB. Test keys stay in the harness. */
 import { operationFixture, operationCapabilities, operationResources, packPeerIdentity } from './peer-pack-operation.js';
-import { createPackPeerProvider } from '../../self/pool/peer-pack-provider.js';
-import { createPackPeerJob, signPackPeerMessage, PACK_CANCEL_SCHEMA } from '../../self/pool/peer-pack-job.js';
-import { PEER_MESSAGE_TYPES } from '../../self/pool/peer-protocol.js';
+import { createPackPeerProvider } from '../../apps/poolday/pool/peer-pack-provider.js';
+import { createPackPeerJob, signPackPeerMessage, PACK_CANCEL_SCHEMA } from '../../apps/poolday/pool/peer-pack-job.js';
+import { PEER_MESSAGE_TYPES } from '../../apps/poolday/pool/peer-protocol.js';
 
 let provider, fixture, listener, seed, release;
 const responses = [], errors = [];

@@ -1,11 +1,11 @@
 /** Two-browser-context WebRTC protocol fixture. Model outputs are synthetic. */
 import { operationFixture, operationCapabilities, operationResources, packPeerIdentity } from './peer-pack-operation.js';
-import { createPackPeerProvider } from '../../self/pool/peer-pack-provider.js';
-import { createPackPeerRequester } from '../../self/pool/peer-pack-requester.js';
-import { createPackJobDataChannel } from '../../self/pool/peer-pack-job-channel.js';
+import { createPackPeerProvider } from '../../apps/poolday/pool/peer-pack-provider.js';
+import { createPackPeerRequester } from '../../apps/poolday/pool/peer-pack-requester.js';
+import { createPackJobDataChannel } from '../../apps/poolday/pool/peer-pack-job-channel.js';
 import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
-import { createPackPeerJob } from '../../self/pool/peer-pack-job.js';
-import { runPeerOperationJob } from '../../self/pool/peer-room.js';
+import { createPackPeerJob } from '../../apps/poolday/pool/peer-pack-job.js';
+import { runPeerOperationJob } from '../../apps/poolday/pool/peer-room.js';
 
 let pc, bus, provider, requester, fixture, identity, ready;
 const errors = [];

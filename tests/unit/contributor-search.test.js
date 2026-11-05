@@ -1,7 +1,7 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { createWebAccessNetwork } from '../../packages/reploid/src/mesh/web-access-network.js';
 import { createPublicWebWorker } from '../../server/public-web-worker.js';
-import { createContributorSearch } from '../../self/host/contributor-search.js';
+import { createContributorSearch } from '../../apps/poolday/host/contributor-search.js';
 import { createRetrieval } from '../../packages/reploid/src/retrieval/index.js';
 import { createSearchPermission, searchPermissionWording, validateSearchPermission } from '../../packages/reploid/src/chat/search-permission.js';
 

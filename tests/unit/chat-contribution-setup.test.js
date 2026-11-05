@@ -1,10 +1,10 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { webcrypto } from 'node:crypto';
 const ports = vi.hoisted(() => ({ start: vi.fn() }));
-vi.mock('../../self/host/model-acquisition.js', async original => ({ ...await original(),
+vi.mock('../../apps/poolday/host/model-acquisition.js', async original => ({ ...await original(),
   createModelAcquisition: () => ({ start: ports.start, getState: () => ({ phase: 'idle' }), supportError: () => null,
     cancel() {}, async close() {} }) }));
-import { createChatSession } from '../../self/host/chat-session.js';
+import { createChatSession } from '../../apps/poolday/host/chat-session.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 const sessions = [];
 afterEach(async () => { await Promise.all(sessions.splice(0).map(session => session.close())); vi.unstubAllGlobals(); vi.clearAllMocks(); });

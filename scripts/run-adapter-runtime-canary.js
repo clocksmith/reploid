@@ -13,7 +13,7 @@ import {
   DOPPLER_PACKAGE_VERSION
 } from '../shared/config/doppler-local-models.js';
 import { LAUNCH_MODEL } from '../shared/pool/model-contract.js';
-import { ADAPTER_RUNTIME_CANARY_RECEIPT_SCHEMA } from '../self/pool/adapter-canary-publication.js';
+import { ADAPTER_RUNTIME_CANARY_RECEIPT_SCHEMA } from '../apps/poolday/pool/adapter-canary-publication.js';
 
 const packageLock = JSON.parse(await fs.readFile(new URL('../package-lock.json', import.meta.url), 'utf8'));
 const lockedDoppler = packageLock.packages?.['node_modules/doppler-gpu'];

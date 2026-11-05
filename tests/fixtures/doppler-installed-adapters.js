@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { runPackOperation } from '../../self/pool/pack-operation.js';
+import { runPackOperation } from '../../apps/poolday/pool/pack-operation.js';
 import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 
 export async function checkInstalledAdapters({ consumer, service, api, makeRequest, runOperation = runPackOperation }) {

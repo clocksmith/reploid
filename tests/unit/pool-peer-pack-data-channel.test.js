@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createPeerPackDataChannel } from '../../self/pool/peer-pack-data-channel.js';
+import { createPeerPackDataChannel } from '../../apps/poolday/pool/peer-pack-data-channel.js';
 
 const limits = { maxFrameBytes: 32, maxControlBytes: 2048, maxChunkBytes: 1024,
   maxBufferedBytes: 4096, maxPendingRequests: 2, maxTransferBytes: 16384, timeoutMs: 1000 };

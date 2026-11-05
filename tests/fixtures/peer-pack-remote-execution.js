@@ -2,9 +2,9 @@
 import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../../shared/pool/inference-receipt.js';
 import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { resolveDopplerExecutionContract } from '../../shared/config/doppler-execution-contracts.js';
-import { createPackPeerProvider } from '../../self/pool/peer-pack-provider.js';
-import { createPackPeerRequester } from '../../self/pool/peer-pack-requester.js';
-import { createPackJobDataChannel } from '../../self/pool/peer-pack-job-channel.js';
+import { createPackPeerProvider } from '../../apps/poolday/pool/peer-pack-provider.js';
+import { createPackPeerRequester } from '../../apps/poolday/pool/peer-pack-requester.js';
+import { createPackJobDataChannel } from '../../apps/poolday/pool/peer-pack-job-channel.js';
 
 let pc, bus, provider, requester, identity, model, fixture, ready, release, completed;
 let calls = 0, dropped = 0, providerReplacements = 0, replacing = Promise.resolve();

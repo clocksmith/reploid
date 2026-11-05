@@ -26,6 +26,7 @@ Outputs:
 - Shared files load only shared files.
 - A file keeps its served path and bytes when it moves between source roots.
 - A file used by only one side belongs to that side.
+- Modules under `pool/` keep the [Poolday Evidence Runtime](../apps/poolday/pool/CATSCAN.md) contracts.
 
 ## Acceptance
 - Evidence: [boundary check](../scripts/verify-browser-boundaries.js), its [tests](../tests/unit/browser-boundaries.test.js) and `npm run verify:ownership-inventory`.

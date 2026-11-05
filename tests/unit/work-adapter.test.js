@@ -1,5 +1,5 @@
 import { it, expect, vi } from 'vitest';
-import { createWorkAdapterResolver } from '../../self/providers/work-adapter.js';
+import { createWorkAdapterResolver } from '../../apps/poolday/providers/work-adapter.js';
 
 const signal = () => new AbortController().signal;
 async function fixture(acquire) {

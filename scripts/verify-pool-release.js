@@ -11,7 +11,7 @@ import {
   BROWSER_BUNDLE_DESCRIPTOR_PATH,
   buildSourceReleaseIdentity,
   validateBrowserBundleManifest
-} from '../self/pool/browser-release-identity.js';
+} from '../apps/poolday/pool/browser-release-identity.js';
 import { resolveServedFile } from '../server/browser-roots.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

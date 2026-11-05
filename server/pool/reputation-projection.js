@@ -1,7 +1,7 @@
 import {
   REPUTATION_EVENT_TYPES,
   reduceReputationEvents
-} from '../../self/pool/reputation.js';
+} from '../../apps/poolday/pool/reputation.js';
 
 const evidenceFields = [
   'acceptedReceipts',

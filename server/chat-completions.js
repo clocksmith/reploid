@@ -1,5 +1,5 @@
 /** Text Chat Completions protocol over the existing authenticated HTTP requester. */
-import policy from '../self/config/partition-policy.json' with { type: 'json' };
+import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
 import { createTextRequester, fail, object, freeze } from './text-requester.js';
 
 export function parseTextChatCompletion(body) {

@@ -9,7 +9,7 @@ import { buildAcceptanceSummary } from './acceptance.js';
 import { acceptedLedgerReasonForJob, spendLedgerReasonForJob, ensureAgreementCommitRevealReady } from './agreement-lifecycle.js';
 import { createReputationSeedEvent, hasLegacyReputationEvidence, projectProviderReputation } from '../reputation-projection.js';
 import { deriveProviderAdmission } from '../runtime-profile.js';
-import { REPUTATION_EVENT_TYPES } from '../../../self/pool/reputation.js';
+import { REPUTATION_EVENT_TYPES } from '../../../apps/poolday/pool/reputation.js';
 
 const fail = (status, message, code = 'settlement_invalid') => Object.assign(new Error(message), { status, code });
 const clone = value => structuredClone(value ?? null);

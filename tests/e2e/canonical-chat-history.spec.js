@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { resolveServedFile } from '../../server/browser-roots.js';
+import { readServedText } from '../helpers/served-browser-files.js';
 
 test.beforeEach(async ({ page }) => {
   await page.route('http://127.0.0.1:5199/**', async route => {
@@ -123,7 +124,7 @@ test('two connections serialize atomic history updates, retain aborted heads and
 });
 
 test('Verification Worker accepts the transactional adapter', async ({ page }) => {
-  const snapshot = { '/host/chat-history.js': await readFile(resolveServedFile('host/chat-history.js'), 'utf8'),
+  const snapshot = { '/host/chat-history.js': await readServedText('host/chat-history.js'),
     '/vendor/reploid/adapters/browser.js': await readFile('packages/reploid/src/adapters/browser.js', 'utf8'),
     '/vendor/reploid/chat/workspace-publication.js': await readFile('packages/reploid/src/chat/workspace-publication.js', 'utf8') };
   const result = await page.evaluate(snapshot => new Promise((resolve, reject) => {

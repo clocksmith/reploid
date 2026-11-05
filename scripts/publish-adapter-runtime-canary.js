@@ -6,7 +6,7 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { chromium } from '@playwright/test';
 
-import { verifyAdapterCanaryPublication } from '../self/pool/adapter-canary-publication.js';
+import { verifyAdapterCanaryPublication } from '../apps/poolday/pool/adapter-canary-publication.js';
 import { LAUNCH_MODEL } from '../shared/pool/model-contract.js';
 
 const baseUrl = String(process.argv[2] || process.env.REPLOID_POOL_DEPLOYMENT_URL || 'https://replo.id').replace(/\/+$/, '');

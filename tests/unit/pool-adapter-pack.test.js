@@ -6,19 +6,19 @@ import {
   sealAdapterPack,
   verifyAdapterPack
 } from '../../shared/pool/adapter-pack.js';
-import { buildPromotedAdapterPack } from '../../self/pool/adapter-pack-publisher.js';
+import { buildPromotedAdapterPack } from '../../apps/poolday/pool/adapter-pack-publisher.js';
 import {
   adapterRequirementFromPublication,
   createAdapterUseApproval,
   createSignedAdapterPublication
-} from '../../self/pool/adapter-publication.js';
+} from '../../apps/poolday/pool/adapter-publication.js';
 import {
   acquireAdapterForAssignment,
   createAdapterRegistry,
   createPublishedAdapterOriginFetcher,
   listFetchableAdapterPublications
-} from '../../self/pool/adapter-registry.js';
-import { createDopplerRuntime } from '../../self/pool/doppler-runtime.js';
+} from '../../apps/poolday/pool/adapter-registry.js';
+import { createDopplerRuntime } from '../../apps/poolday/pool/doppler-runtime.js';
 import {
   buildPoolReceipt,
   createSigningKeyPair,
@@ -32,13 +32,13 @@ import {
   assembleAdapterArtifact,
   createAdapterArtifactChunks,
   createAdapterArtifactRequest
-} from '../../self/pool/p2p-artifact-transfer.js';
+} from '../../apps/poolday/pool/p2p-artifact-transfer.js';
 import {
   buildPeerAssignmentPlan,
   createSignedJobIntent,
   createSignedProviderAdvert
-} from '../../self/pool/peer-control-plane.js';
-import { createProviderClient } from '../../self/pool/provider-client.js';
+} from '../../apps/poolday/pool/peer-control-plane.js';
+import { createProviderClient } from '../../apps/poolday/pool/provider-client.js';
 import { DETERMINISTIC_GENERATION_CONFIG, getPolicy } from '../../server/pool/config.js';
 import { assignJob } from '../../server/pool/scheduler.js';
 import { createPoolStore } from '../../server/pool/store.js';

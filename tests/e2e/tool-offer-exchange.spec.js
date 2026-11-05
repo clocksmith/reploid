@@ -68,7 +68,7 @@ test('another browser imports code, evaluates locally, approves separately and c
 });
 
 test('candidate handoff modules pass Verification Worker', async ({ page }) => {
-  const paths = ['self/ui/pool-home/work-tool-offers.js', 'self/ui/pool-home/work-capabilities.js', 'packages/reploid/src/improvement/code-evolution.js'];
+  const paths = ['apps/poolday/ui/pool-home/work-tool-offers.js', 'apps/poolday/ui/pool-home/work-capabilities.js', 'packages/reploid/src/improvement/code-evolution.js'];
   const snapshot = Object.fromEntries(await Promise.all(paths.map(async path => [path, await readFile(path, 'utf8')])));
   await page.goto('/');
   const result = await page.evaluate(snapshot => new Promise((resolve, reject) => {

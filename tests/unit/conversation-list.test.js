@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createConversationList } from '../../self/ui/pool-home/conversation-list.js';
-import { attachmentInput, comparisonSources } from '../../self/host/document-comparison.js';
+import { createConversationList } from '../../apps/poolday/ui/pool-home/conversation-list.js';
+import { attachmentInput, comparisonSources } from '../../apps/poolday/host/document-comparison.js';
 
 describe('Conversation list', () => {
   it('labels attached-document threads with the question while retaining the complete input', () => {

@@ -10,7 +10,7 @@ import {
   finalizeBrowserQualificationObservation,
   recordBrowserQualificationCheck,
   validateBrowserQualificationRecord
-} from '../../self/pool/browser-qualification.js';
+} from '../../apps/poolday/pool/browser-qualification.js';
 
 const fakeHash = (character) => `sha256:${character.repeat(64)}`;
 const candidate = getPoolModelContract('amplify-120m-f16-af32');

@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { gunzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
 import { it, expect } from 'vitest';
-import { assertPackOperationReceipt } from '../../self/pool/pack-operation.js';
+import { assertPackOperationReceipt } from '../../apps/poolday/pool/pack-operation.js';
 import { assertPackExecutionEvidence, hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 
 const hash = bytes => `sha256:${createHash('sha256').update(bytes).digest('hex')}`;

@@ -10,7 +10,7 @@ import {
   validateScientificPolicyShadowEvaluation,
   validatePooldayScientificPolicyActivation,
   validateZeroScientificPolicyCandidate
-} from '../../self/pool/scientific-policy-promotion.js';
+} from '../../apps/poolday/pool/scientific-policy-promotion.js';
 
 const hash = (character) => `sha256:${character.repeat(64)}`;
 const methodKinds = [

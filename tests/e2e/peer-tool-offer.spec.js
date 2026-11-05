@@ -72,7 +72,7 @@ test('WebRTC delivers a refused offer then a preview that survives restart and n
 });
 
 test('peer candidate modules pass Verification Worker', async ({ page }) => {
-  const paths = ['self/host/work-peer-offers.js', 'self/host/work-swarm.js', 'self/ui/pool-home/work-tool-offers.js', 'self/ui/pool-home/index.js',
+  const paths = ['apps/poolday/host/work-peer-offers.js', 'apps/poolday/host/work-swarm.js', 'apps/poolday/ui/pool-home/work-tool-offers.js', 'apps/poolday/ui/pool-home/index.js',
     'packages/reploid/src/transport/tool-offer-channel.js', 'packages/reploid/src/improvement/code-evolution.js',
     'packages/reploid/src/agent/index.js', 'packages/reploid/src/agent/engine.js', 'packages/reploid/src/agent/task-strategy.js'];
   const snapshot = Object.fromEntries(await Promise.all(paths.map(async path => [path, await readFile(path, 'utf8')])));

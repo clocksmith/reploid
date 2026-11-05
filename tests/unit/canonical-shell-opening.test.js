@@ -1,8 +1,8 @@
 import { afterEach, expect, it, vi } from 'vitest';
-import { createChatSession } from '../../self/host/chat-session.js';
+import { createChatSession } from '../../apps/poolday/host/chat-session.js';
 const ports = vi.hoisted(() => ({ create: vi.fn() }));
-vi.mock('../../self/host/product-session.js', () => ({ createProductSession: ports.create }));
-import { initPoolHome } from '../../self/ui/pool-home/index.js';
+vi.mock('../../apps/poolday/host/product-session.js', () => ({ createProductSession: ports.create }));
+import { initPoolHome } from '../../apps/poolday/ui/pool-home/index.js';
 const owners = [];
 afterEach(async () => { for (const close of owners.splice(0)) await close(); ports.create.mockReset(); });
 function fixture() {

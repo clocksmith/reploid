@@ -1,5 +1,5 @@
 import { it, expect, vi } from 'vitest';
-import { bindResearchPlugins, renderResearchPlugins } from '../../self/ui/pool-home/research-plugins.js';
+import { bindResearchPlugins, renderResearchPlugins } from '../../apps/poolday/ui/pool-home/research-plugins.js';
 
 function fixture(lock = {}) {
   const models = [

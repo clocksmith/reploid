@@ -1,5 +1,5 @@
 import { it, expect, vi } from 'vitest';
-import { createResearchPlugins } from '../../self/host/research-plugins.js';
+import { createResearchPlugins } from '../../apps/poolday/host/research-plugins.js';
 
 it('requires consent, pins exact models and recipients, and refuses substituted responses', async () => {
   const models = [{ id: 'small', name: 'Small', identity: 's', provider: 'doppler' }, { id: 'large', name: 'Large', identity: 'l', provider: 'doppler' }];

@@ -1,6 +1,6 @@
 import { expect, it, vi } from 'vitest';
-import { createWorkResidentProvider } from '../../self/providers/work-resident-provider.js';
-import { withWorkDevice } from '../../self/providers/work-device.js';
+import { createWorkResidentProvider } from '../../apps/poolday/providers/work-resident-provider.js';
+import { withWorkDevice } from '../../apps/poolday/providers/work-device.js';
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
 const signal = () => new AbortController().signal;
 const fixture = (overrides = {}, options = {}) => {

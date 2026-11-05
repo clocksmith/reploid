@@ -13,8 +13,8 @@ import {
   adapterRequirementFromPublication,
   publishedAdapterRequirementsEqual,
   validatePublishedAdapterRequirement
-} from '../../../self/pool/adapter-publication.js';
-import { verifyPoolIdentityClaims, verifyAdvertisedLimitsAgainstProfile } from '../../../self/pool/identity-claims.js';
+} from '../../../apps/poolday/pool/adapter-publication.js';
+import { verifyPoolIdentityClaims, verifyAdvertisedLimitsAgainstProfile } from '../../../apps/poolday/pool/identity-claims.js';
 import { PARTICIPATION_CAPABILITIES } from '../../../shared/pool/participation-profile.js';
 
 const providerHasLaunchModel = (provider) => (provider?.models || []).find((model) => isLaunchModelRequirement(model));

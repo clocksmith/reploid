@@ -15,13 +15,13 @@ import { createFirestoreRouteBackend, createMemoryRouteBackend, createRouteIdemp
 import { mountEarningRoutes } from '../../server/earning-routes/mount.js';
 import { installJsonBodyMiddleware } from '../../server/json-body-middleware.js';
 import { billableEventIdFor } from '../../server/ledger/attempt-outcomes.js';
-import { createChatExecution } from '../../self/host/chat-execution.js';
-import { createEarningAttempts } from '../../self/host/earning/attempts.js';
-import { EARNING_CLIENT_SCHEMA, createEarningClient } from '../../self/host/earning/client.js';
-import { createEarningContribution } from '../../self/host/earning/contribution.js';
+import { createChatExecution } from '../../apps/poolday/host/chat-execution.js';
+import { createEarningAttempts } from '../../apps/poolday/host/earning/attempts.js';
+import { EARNING_CLIENT_SCHEMA, createEarningClient } from '../../apps/poolday/host/earning/client.js';
+import { createEarningContribution } from '../../apps/poolday/host/earning/contribution.js';
 import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { createSessionBinding } from '../../packages/reploid/src/artifacts/participant-proofs.js';
-import { remotePermissionWording } from '../../self/ui/pool-home/remote-permission.js';
+import { remotePermissionWording } from '../../apps/poolday/ui/pool-home/remote-permission.js';
 import { ACCOUNT_POLICY, newIdentity, openAccountFixture } from '../helpers/account-fixture.js';
 import { PIECE_BYTES, transferPiece } from '../helpers/custody-transfer.js';
 import { PROMPT_TOKENS, STEPS, residentRoute } from '../helpers/resident-route.js';

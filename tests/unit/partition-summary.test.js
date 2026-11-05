@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { summarizePartitionExecution } from '../../packages/reploid/src/mesh/partitions/partition-summary.js';
-import policy from '../../self/config/partition-policy.json' with { type: 'json' };
+import policy from '../../apps/poolday/config/partition-policy.json' with { type: 'json' };
 
 describe('bounded partition completion receipt', () => {
   it('fits a maximum-length generation without raising channel limits or losing aggregate measurements', () => {

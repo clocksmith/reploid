@@ -5,8 +5,8 @@ import {
   recordContributionReceipt,
   resetContributionStateForTests,
   updateContributionState
-} from '../../self/ui/pool-home/contribution-state.js';
-import { renderContributionStatusBar } from '../../self/ui/pool-home/view.js';
+} from '../../apps/poolday/ui/pool-home/contribution-state.js';
+import { renderContributionStatusBar } from '../../apps/poolday/ui/pool-home/view.js';
 
 const createMemoryStorage = () => {
   const store = new Map();

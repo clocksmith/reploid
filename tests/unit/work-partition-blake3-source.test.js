@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { resolvePartitionArtifactSource } from '../../self/host/work-partition-artifact-source.js';
+import { resolvePartitionArtifactSource } from '../../apps/poolday/host/work-partition-artifact-source.js';
 
 const digest = value => value.repeat(64);
 function fixture() {

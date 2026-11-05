@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
-import custody from '../../self/config/chat-files.json' with { type: 'json' };
+import custody from '../../apps/poolday/config/chat-files.json' with { type: 'json' };
 import failureMessages from '../../packages/reploid/src/transport/partition-errors.json' with { type: 'json' };
 import { createResidentPartition } from '../../packages/reploid/src/mesh/partitions/resident-partition.js';
 import { canonicalPartitionJson } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';

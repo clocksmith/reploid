@@ -3,7 +3,6 @@ import { readFileSync, existsSync, mkdirSync, copyFileSync, mkdtempSync, renameS
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
-import { resolveServedFile } from '../server/browser-roots.js';
 
 const root = path.resolve(import.meta.dirname, '..');
 const pin = JSON.parse(readFileSync(path.join(root, 'package-lock.json'))).packages['node_modules/doppler-gpu'];
@@ -47,7 +46,8 @@ mkdirSync(archiveDirectory, { recursive: true });
 const archived = path.join(archiveDirectory, `doppler-gpu-${pin.version}.tgz`);
 if (path.resolve(archive) !== archived) copyFileSync(archive, archived);
 const packageJson = JSON.parse(readFileSync(path.join(root, 'package.json')));
-writeFileSync(resolveServedFile('config/doppler-package.json'), JSON.stringify({
+// The pin is shared browser configuration; this script runs standalone, so it names its root.
+writeFileSync(path.join(root, 'shared/config/doppler-package.json'), JSON.stringify({
   name: manifest.name, version: pin.version, spec: packageJson.dependencies[manifest.name],
   resolved: pin.resolved, integrity: pin.integrity,
 }, null, 2) + '\n');

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { participantLabel } from '../../self/ui/pool-home/computer-labels.js';
+import { participantLabel } from '../../apps/poolday/ui/pool-home/computer-labels.js';
 import { readServedText, readServedHarnessFile } from '../helpers/served-browser-files.js';
 
 // Isolated presentation fixtures: no discovery, inference, model loading or GPU work.

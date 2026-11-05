@@ -18,7 +18,8 @@ export const DEFAULT_COORDINATOR_RUNTIME_SCOPE = Object.freeze([
   'packages/reploid/src',
   'server',
   'self',
-  'shared'
+  'shared',
+  'apps/poolday'
 ]);
 
 const __filename = fileURLToPath(import.meta.url);

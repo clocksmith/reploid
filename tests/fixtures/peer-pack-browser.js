@@ -1,9 +1,9 @@
 /** Physical-browser proof plumbing. All identities here have one internal operator. */
 import { createSigningKeyPair, exportPublicKey, exportPrivateKey, importSigningKeyPair } from '../../shared/pool/inference-receipt.js';
-import { createPeerPackSupplier, createPeerPackArtifactStore } from '../../self/pool/peer-pack-custody.js';
-import { openPeerPackFileCheckpoints } from '../../self/infrastructure/pack-transfer-storage.js';
-import { openPeerPack } from '../../self/pool/peer-pack-session.js';
-import { createPeerPackDataChannel } from '../../self/pool/peer-pack-data-channel.js';
+import { createPeerPackSupplier, createPeerPackArtifactStore } from '../../apps/poolday/pool/peer-pack-custody.js';
+import { openPeerPackFileCheckpoints } from '../../apps/poolday/infrastructure/pack-transfer-storage.js';
+import { openPeerPack } from '../../apps/poolday/pool/peer-pack-session.js';
+import { createPeerPackDataChannel } from '../../apps/poolday/pool/peer-pack-data-channel.js';
 import { createReploidDopplerRuntimeService } from '../../shared/infrastructure/doppler-runtime-service.js';
 import { resolveDopplerExecutionContract } from '../../shared/config/doppler-execution-contracts.js';
 

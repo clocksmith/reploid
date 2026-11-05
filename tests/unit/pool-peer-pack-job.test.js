@@ -1,20 +1,20 @@
 import { peerAdapterFixture } from '../fixtures/peer-adapter.js';
-import { createAdapterRegistry } from '../../self/pool/adapter-registry.js';
-import { createAdapterRevocation } from '../../self/pool/adapter-publication.js';
-import { createPeerAdapterResolver } from '../../self/pool/peer-adapter-execution.js';
+import { createAdapterRegistry } from '../../apps/poolday/pool/adapter-registry.js';
+import { createAdapterRevocation } from '../../apps/poolday/pool/adapter-publication.js';
+import { createPeerAdapterResolver } from '../../apps/poolday/pool/peer-adapter-execution.js';
 // @vitest-environment node
 import { describe, it, expect, vi } from 'vitest';
 import { operationFixture, operationCapabilities, operationResources, packPeerIdentity } from '../fixtures/peer-pack-operation.js';
 import fifthDefinition from '../fixtures/pack-operation-fifth.json' with { type: 'json' };
 import poolConfig from '../../shared/pool/pool-config.json' with { type: 'json' };
 import { createPackOperationRegistry, PACK_OPERATION_IMPLEMENTATIONS } from '../../shared/pool/pack-operation-adapters.js';
-import { createPackPeerProvider } from '../../self/pool/peer-pack-provider.js';
-import { createPackPeerRequester } from '../../self/pool/peer-pack-requester.js';
-import { createPackPeerJob, createPackProviderAdvert, verifyPackPeerJob, signPackPeerMessage, verifyPackPeerMessage, PACK_CANCEL_SCHEMA } from '../../self/pool/peer-pack-job.js';
-import { PEER_MESSAGE_TYPES } from '../../self/pool/peer-protocol.js';
+import { createPackPeerProvider } from '../../apps/poolday/pool/peer-pack-provider.js';
+import { createPackPeerRequester } from '../../apps/poolday/pool/peer-pack-requester.js';
+import { createPackPeerJob, createPackProviderAdvert, verifyPackPeerJob, signPackPeerMessage, verifyPackPeerMessage, PACK_CANCEL_SCHEMA } from '../../apps/poolday/pool/peer-pack-job.js';
+import { PEER_MESSAGE_TYPES } from '../../apps/poolday/pool/peer-protocol.js';
 import { createDopplerChoiceScoringAdapter } from '../../packages/reploid/src/adapters/doppler.js';
-import { verifyPackPeerEpisode } from '../../self/pool/peer-pack-episode.js';
-import { runPeerOperationJob, resumePeerOperationJob } from '../../self/pool/peer-room.js';
+import { verifyPackPeerEpisode } from '../../apps/poolday/pool/peer-pack-episode.js';
+import { runPeerOperationJob, resumePeerOperationJob } from '../../apps/poolday/pool/peer-room.js';
 
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
 const until = async check => { for (let i = 0; i < 500; i++) { if (check()) return; await new Promise(resolve => setTimeout(resolve, 2)); } throw new Error('condition did not settle'); };

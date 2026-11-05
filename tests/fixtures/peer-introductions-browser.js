@@ -44,7 +44,7 @@ export const close = () => swarm.disconnect();
 
 let host;
 export async function startHost(bootstrapContact) {
-  const { createProductSession } = await import('../../self/host/product-session.js');
+  const { createProductSession } = await import('../../apps/poolday/host/product-session.js');
   host = createProductSession({ storage: localStorage,
     networkOptions: () => { throw new Error('Signed job networking must remain separate'); },
     swarmNetworkOptions: deps => ({ ...deps,

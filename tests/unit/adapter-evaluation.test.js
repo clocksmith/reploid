@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { AdapterEvaluationError, validateAdapterEvaluationSpec, verifyAdapterEvaluationReceipt } from '../../self/pool/adapter-evaluation.js';
+import { AdapterEvaluationError, validateAdapterEvaluationSpec, verifyAdapterEvaluationReceipt } from '../../apps/poolday/pool/adapter-evaluation.js';
 import { buildReceipt, goldEntities, scoreEntities, scoreFinalNumber, selectTaskItems } from '../../scripts/adapter-evaluation.js';
 import { adapter, baseModel, fixtureReceipt, json, keys, sha } from '../fixtures/adapter-evaluation.js';
 import { resolveServedFile } from '../../server/browser-roots.js';

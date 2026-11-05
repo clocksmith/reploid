@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { bindDocumentSearch, renderDocumentSearch } from '../../self/ui/pool-home/document-search.js';
+import { bindDocumentSearch, renderDocumentSearch } from '../../apps/poolday/ui/pool-home/document-search.js';
 
 describe('Document view lifetime', () => {
   it('detaches without cancelling, restores the draft, and displays work still in progress', () => {

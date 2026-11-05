@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createWorkRepository } from '../../self/host/work-repository.js';
-import { createWorkSession } from '../../self/host/work-session.js';
-import { selectWorkModel, openWorkProvider } from '../../self/providers/work-provider.js';
-import policy from '../../self/config/work-profile.json' with { type: 'json' };
-import { resolveWorkTask } from '../../self/host/work-task.js';
+import { createWorkRepository } from '../../apps/poolday/host/work-repository.js';
+import { createWorkSession } from '../../apps/poolday/host/work-session.js';
+import { selectWorkModel, openWorkProvider } from '../../apps/poolday/providers/work-provider.js';
+import policy from '../../apps/poolday/config/work-profile.json' with { type: 'json' };
+import { resolveWorkTask } from '../../apps/poolday/host/work-task.js';
 
 const row = () => ({ id: 'a', goal: 'Repair the input', modelId: 'cloud', revision: 0,
   output: 'result', inputs: [], artifacts: [], events: [{ tool: 'ReadInput', status: 'completed' }], peerJobs: [] });

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   renderRequesterConsentRows,
   renderRequesterIntentFields
-} from '../../self/ui/pool-home/requester-controls.js';
+} from '../../apps/poolday/ui/pool-home/requester-controls.js';
 
 describe('Research Room requester controls', () => {
   it('renders the same consent contract for home and /ask prefixes', () => {

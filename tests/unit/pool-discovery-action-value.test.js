@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   DISCOVERY_ACTION_VALUE_POLICY,
   rankDiscoveryActions
-} from '../../self/pool/discovery-action-value.js';
+} from '../../apps/poolday/pool/discovery-action-value.js';
 
 const fakeHash = (character) => `sha256:${character.repeat(64)}`;
 

@@ -15,7 +15,7 @@ import {
   buildBrowserQualificationCheckEvidence,
   buildBrowserQualificationObservation,
   recordBrowserQualificationCheck
-} from '../../self/pool/browser-qualification.js';
+} from '../../apps/poolday/pool/browser-qualification.js';
 import { buildModelArtifactUrls } from '../../shared/pool/model-artifacts.js';
 
 const BASE_URL = 'http://localhost:8000';

@@ -8,10 +8,10 @@ import { REMOTE_PERMISSION_SCHEMA, createRemotePermission, remotePermissionCover
 import { SEARCH_RECIPIENTS_CHANGED, createSearchPermission, searchPermissionWording, validateSearchPermission } from '../../packages/reploid/src/chat/search-permission.js';
 import { createFixedSearchProvider, createRetrieval, renderSourceContext } from '../../packages/reploid/src/retrieval/index.js';
 import { orderedPartitionDisclosure } from '../../packages/reploid/src/mesh/partitions/partition-grants.js';
-import { createChatSession, SEARCH_ROUTE } from '../../self/host/chat-session.js';
-import { createServerSearch } from '../../self/host/server-search.js';
-import { renderConversationWorkspace, bindConversationWorkspace } from '../../self/ui/pool-home/conversation-workspace.js';
-import { remotePermissionWording } from '../../self/ui/pool-home/remote-permission.js';
+import { createChatSession, SEARCH_ROUTE } from '../../apps/poolday/host/chat-session.js';
+import { createServerSearch } from '../../apps/poolday/host/server-search.js';
+import { renderConversationWorkspace, bindConversationWorkspace } from '../../apps/poolday/ui/pool-home/conversation-workspace.js';
+import { remotePermissionWording } from '../../apps/poolday/ui/pool-home/remote-permission.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 
 const APPROVED = 'Allow Reploid to send this search query to Brave and share retrieved passages with the listed execution contributors for this answer. Your files and unrelated conversation history are excluded.';

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { prepareLocalPackRelease } from '../../self/pool/pack-release-policy.js';
+import { prepareLocalPackRelease } from '../../apps/poolday/pool/pack-release-policy.js';
 
 // Synthetic verification objects isolate application checkpoint ownership.
 const digest = letter => `sha256:${letter.repeat(64)}`;

@@ -4,31 +4,33 @@ import http from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { chromium } from 'playwright';
+import { readServedHarnessFile } from '../helpers/served-browser-files.js';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const files = [
   "packages/reploid/src/mesh/partitions/partition-network.js",
   "packages/reploid/src/transport/swarm.js",
   "shared/config/doppler-local-models.js",
-  "self/host/product-session.js",
-  "self/host/work-swarm.js",
-  "self/ui/pool-home/index.js",
-  "self/ui/pool-home/work.js",
+  "apps/poolday/host/product-session.js",
+  "apps/poolday/host/work-swarm.js",
+  "apps/poolday/ui/pool-home/index.js",
+  "apps/poolday/ui/pool-home/work.js",
   "packages/reploid/src/training/index.js",
   "packages/reploid/src/training/network.js",
   "packages/reploid/src/training/session.js",
-  "self/host/lora-training-executor.js",
-  "self/host/lora-training-worker.js",
-  "self/host/lora-training.js",
-  "self/ui/pool-home/lora-training.js"
+  "apps/poolday/host/lora-training-executor.js",
+  "apps/poolday/host/lora-training-worker.js",
+  "apps/poolday/host/lora-training.js",
+  "apps/poolday/ui/pool-home/lora-training.js"
 ];
 const sources=await Promise.all(files.map(async name=>[name,await fs.readFile(path.join(root,name),'utf8')]));
 const server=http.createServer(async(req,res)=>{
  const name=new URL(req.url,'http://localhost').pathname;
  try {
-  const file=path.resolve(root,'self','.'+(name==='/'||name==='/improve'?'/index.html':name));
-  if(!file.startsWith(root+'/self/'))throw Error('path');
+  const file=name==='/'||name==='/improve'?'/index.html':name;
+  const body=await readServedHarnessFile('/self'+file);
+  if(!body)throw Error('path');
   res.setHeader('Content-Type',file.endsWith('.js')?'text/javascript':file.endsWith('.json')?'application/json':file.endsWith('.css')?'text/css':file.endsWith('.svg')?'image/svg+xml':'text/html');
-  res.end(await fs.readFile(file));
+  res.end(body);
  }catch {res.statusCode=404;res.end('Missing');}
 });
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));

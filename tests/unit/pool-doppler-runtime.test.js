@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   createDopplerRuntime,
   resetDopplerModuleCacheForTests
-} from '../../self/pool/doppler-runtime.js';
+} from '../../apps/poolday/pool/doppler-runtime.js';
 import { BROWSER_RUNTIME_CONFIG } from '../../shared/pool/config.js';
 import { DOPPLER_BROWSER_RUNTIME_VERSION } from '../../shared/config/doppler-local-models.js';
 import { hashJson, sha256Hex } from '../../shared/pool/inference-receipt.js';

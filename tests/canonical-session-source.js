@@ -1,8 +1,8 @@
 // The actual host session uses transactional history and real signed publication.
 // Numerical steps are injected; this is not a GPU acceptance claim.
 import assert from 'node:assert/strict';
-import { createChatSession } from '../self/host/chat-session.js';
-import { remotePermissionWording } from '../self/ui/pool-home/remote-permission.js';
+import { createChatSession } from '../apps/poolday/host/chat-session.js';
+import { remotePermissionWording } from '../apps/poolday/ui/pool-home/remote-permission.js';
 import { openCanonicalWorkspaceHistory } from '../packages/reploid/src/chat/workspace-history.js';
 import { verifyPartitionStageCommit } from '../packages/reploid/src/mesh/partitions/partition-stage-commit.js';
 import { fixture, runtime, plan, planId, hash, epoch } from './canonical-runner-fixture.js';

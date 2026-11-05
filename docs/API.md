@@ -20,7 +20,7 @@ session.stream([{ role: 'user', content: 'Question' }], {
 ```
 
 `consumeWorkGenerationStream` in
-[`work-generation-completion.js`](../self/providers/work-generation-completion.js)
+[`work-generation-completion.js`](../apps/poolday/providers/work-generation-completion.js)
 accepts only that schema and those event types. Text additions are bounded and
 delivered in order, awaiting each consumer. Exactly one completion must follow;
 its output must equal the accumulated text. Missing completion, unknown events,
@@ -33,7 +33,7 @@ unknown. Chunk count and text length never stand in for token usage. Adapter
 generation additionally checks Doppler's model and adapter evidence. Signed
 Capsule operations retain their separate verified event and receipt contracts.
 
-[`chat-execution.js`](../self/host/chat-execution.js) attaches `threadId`,
+[`chat-execution.js`](../apps/poolday/host/chat-execution.js) attaches `threadId`,
 `attemptId` and an increasing `sequence` to text additions. Local and whole-model
 peer results share one mapper for `content`, model and adapter identities,
 completion, stop reason and reported timing. The local request's

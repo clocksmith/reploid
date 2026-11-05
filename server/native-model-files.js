@@ -1,5 +1,5 @@
-import { fetchAdapterFile } from '../self/providers/work-adapter.js';
-import { resolvePartitionArtifactSource } from '../self/host/work-partition-artifact-source.js';
+import { fetchAdapterFile } from '../apps/poolday/providers/work-adapter.js';
+import { resolvePartitionArtifactSource } from '../apps/poolday/host/work-partition-artifact-source.js';
 /** Filesystem host ports for the existing signed custody protocol. Model weights remain peer-only; explicit adapter acquisition permits its pinned origin. */
 import fs from 'node:fs/promises';
 import { openNativeSupplyBudget } from './native-supply-budget.js';
@@ -8,9 +8,9 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { createCustodyExchange, createCustodyContracts, createPieceAcquisition } from '../packages/reploid/src/artifacts/custody/runtime.js';
 import { createSigningKeyPair, exportPublicKey, sha256Hex, signCanonical, verifyCanonicalSignature } from '../packages/reploid/src/artifacts/signatures.js';
-import { createPeerPackDataChannel } from '../self/pool/peer-pack-data-channel.js';
+import { createPeerPackDataChannel } from '../apps/poolday/pool/peer-pack-data-channel.js';
 import { hashDopplerEvidence, validateExecutablePack, executablePacksMatch } from '../shared/pool/executable-pack.js';
-import policy from '../self/config/chat-files.json' with { type: 'json' };
+import policy from '../apps/poolday/config/chat-files.json' with { type: 'json' };
 import { resolveServedFile } from './browser-roots.js';
 
 const assert = (ok, message) => { if (!ok) throw new Error(message); };

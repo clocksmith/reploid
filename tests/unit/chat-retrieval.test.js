@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 import { createFixedSearchProvider, createLexicalSupportChecker, renderSourceContext } from '../../packages/reploid/src/retrieval/index.js';
-import { createChatSession } from '../../self/host/chat-session.js';
+import { createChatSession } from '../../apps/poolday/host/chat-session.js';
 import { orderedPartitionDisclosure } from '../../packages/reploid/src/mesh/partitions/partition-grants.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 

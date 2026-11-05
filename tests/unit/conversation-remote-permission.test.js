@@ -2,8 +2,8 @@
 // and settings. Only the ordered route's execution is injected: it builds the real ordered disclosure
 // (partition-grants.js) and records what would leave the device. Presentation and authorization, not inference.
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createChatSession } from '../../self/host/chat-session.js';
-import { renderConversationWorkspace, bindConversationWorkspace } from '../../self/ui/pool-home/conversation-workspace.js';
+import { createChatSession } from '../../apps/poolday/host/chat-session.js';
+import { renderConversationWorkspace, bindConversationWorkspace } from '../../apps/poolday/ui/pool-home/conversation-workspace.js';
 import { orderedPartitionDisclosure } from '../../packages/reploid/src/mesh/partitions/partition-grants.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 

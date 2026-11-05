@@ -7,7 +7,7 @@ import {
   renderThemeSelector,
   renderSettings,
   THEME_STORAGE_KEY
-} from '../../self/ui/pool-home/theme.js';
+} from '../../apps/poolday/ui/pool-home/theme.js';
 
 describe('Reploid appearance selector', () => {
   it('uses a stored choice before the system preference', () => {

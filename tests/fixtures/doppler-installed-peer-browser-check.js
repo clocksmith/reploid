@@ -6,6 +6,7 @@ import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { chromium } from 'playwright';
+import { readServedHarnessFile } from '../helpers/served-browser-files.js';
 
 assert(process.env.DOPPLER_TEST_CONSUMER, 'DOPPLER_TEST_CONSUMER must name an installed candidate.');
 const consumer = path.resolve(process.env.DOPPLER_TEST_CONSUMER);
@@ -32,13 +33,14 @@ const server = createServer(async (request, response) => {
       } })}</script>`); return;
     }
     const installed = pathname.startsWith('/installed/');
+    const served = installed ? null : await readServedHarnessFile(pathname);
     const file = path.resolve(installed ? consumer : root, pathname.slice(installed ? '/installed/'.length : 1));
     const allowed = installed
       ? file === path.join(consumer, 'generation-fixture.json') || file.startsWith(path.join(consumer, 'node_modules/doppler-gpu') + path.sep)
-      : ['self', 'tests/fixtures'].some(directory => file.startsWith(path.join(root, directory) + path.sep));
+      : !!served || file.startsWith(path.join(root, 'tests/fixtures') + path.sep);
     if (!allowed) { response.writeHead(403).end(); return; }
     response.setHeader('Content-Type', file.endsWith('.json') ? 'application/json' : 'text/javascript');
-    response.end(await readFile(file));
+    response.end(served || await readFile(file));
   } catch { response.writeHead(404).end(); }
 });
 let browser;

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { extractProposedCriteria, deriveOutcomeTags, createWorkSession } from '../../self/host/work-session.js';
-import { resolveWorkTask } from '../../self/host/work-task.js';
+import { extractProposedCriteria, deriveOutcomeTags, createWorkSession } from '../../apps/poolday/host/work-session.js';
+import { resolveWorkTask } from '../../apps/poolday/host/work-task.js';
 
 describe('work-session helpers', () => {
   it('extracts proposed criteria from a non-empty goal', () => {

@@ -1,16 +1,16 @@
 /** Synthetic model outputs; real discovery, signaling, WebRTC and IndexedDB. */
 import config from '../../shared/pool/pool-config.json' with { type: 'json' };
-import { createOperationRoomNetwork } from '../../self/pool/operation-room-network.js';
-import { createOperationParticipation } from '../../self/pool/operation-participation.js';
-import { createBroadcastPeerRoomBus } from '../../self/pool/peer-rendezvous.js';
-import { createRequesterClient } from '../../self/pool/requester-client.js';
-import { createDocumentAssistant } from '../../self/pool/document-delegation.js';
-import { createLocalPackExecutor } from '../../self/pool/local-pack-executor.js';
-import { packPeerModel } from '../../self/pool/peer-pack-job.js';
+import { createOperationRoomNetwork } from '../../apps/poolday/pool/operation-room-network.js';
+import { createOperationParticipation } from '../../apps/poolday/pool/operation-participation.js';
+import { createBroadcastPeerRoomBus } from '../../apps/poolday/pool/peer-rendezvous.js';
+import { createRequesterClient } from '../../apps/poolday/pool/requester-client.js';
+import { createDocumentAssistant } from '../../apps/poolday/pool/document-delegation.js';
+import { createLocalPackExecutor } from '../../apps/poolday/pool/local-pack-executor.js';
+import { packPeerModel } from '../../apps/poolday/pool/peer-pack-job.js';
 import { createDocumentPackFixture } from './document-packs.js';
 import { packPeerIdentity, operationCapabilities } from './peer-pack-operation.js';
-import { renderDocumentSearch, bindDocumentSearch, refreshDocumentSearch } from '../../self/ui/pool-home/document-search.js';
-import { renderOperationSharing, bindOperationSharing, refreshOperationSharing } from '../../self/ui/pool-home/operation-sharing.js';
+import { renderDocumentSearch, bindDocumentSearch, refreshDocumentSearch } from '../../apps/poolday/ui/pool-home/document-search.js';
+import { renderOperationSharing, bindOperationSharing, refreshOperationSharing } from '../../apps/poolday/ui/pool-home/operation-sharing.js';
 
 let provider, workflow, fixture, unbind;
 const relay = [], errors = [];

@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { createWorkPeerOffers } from '../../self/host/work-peer-offers.js';
+import { createWorkPeerOffers } from '../../apps/poolday/host/work-peer-offers.js';
 
 const storage = () => {
   const data = new Map();

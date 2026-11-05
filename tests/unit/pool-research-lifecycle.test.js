@@ -21,7 +21,7 @@ import {
   projectResearchResolutionCriteria,
   validateResearchRecordLinks,
   verifyResearchRecord
-} from '../../self/pool/evidence-network.js';
+} from '../../apps/poolday/pool/evidence-network.js';
 import { createSigningKeyPair } from '../../shared/pool/inference-receipt.js';
 
 const fakeHash = (character) => `sha256:${character.repeat(64)}`;

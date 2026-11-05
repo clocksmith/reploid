@@ -6,8 +6,8 @@ import path from 'node:path';
 import { assertSignedPreparation } from '../../artifacts/cleanup-failure-20261012/signed-preflight.js';
 const ports = vi.hoisted(() => ({ models: [], createStorage: vi.fn(), computeHash: vi.fn(), exchange: vi.fn() }));
 // A four-file inventory fits the three metadata files and only one of two cached pieces.
-vi.mock('../../self/config/chat-files.json', async original => ({ default: { ...(await original()).default, maxInventoryFiles: 4 } }));
-vi.mock('../../self/infrastructure/custody-supply-budget.js', () => ({
+vi.mock('../../apps/poolday/config/chat-files.json', async original => ({ default: { ...(await original()).default, maxInventoryFiles: 4 } }));
+vi.mock('../../apps/poolday/infrastructure/custody-supply-budget.js', () => ({
   openBrowserSupplyBudget: async ({ maxBytes }) => ({ getState: () => ({ maxBytes, reservedBytes: 0 }), close() {} }),
   openBrowserAcquisitionBudget: vi.fn(() => { throw Error('Cached-only sharing must not open a download allowance'); })
 }));
@@ -20,8 +20,8 @@ vi.mock('../../shared/config/doppler-local-models.js', () => ({
 vi.mock('doppler-gpu/partitions', () => ({ createVerifiedPieceStorage: ports.createStorage }));
 vi.mock('doppler-gpu/tooling/storage', () => ({ computeHash: ports.computeHash }));
 vi.mock('../../shared/vendor/reploid/artifacts/custody/exchange.js', () => ({ createCustodyExchange: ports.exchange }));
-vi.mock('../../self/infrastructure/pack-transfer-storage.js', () => ({ openPeerPackFileCheckpoints: async () => ({ close: async () => {} }) }));
-import { createWorkModelFiles } from '../../self/host/work-model-files.js';
+vi.mock('../../apps/poolday/infrastructure/pack-transfer-storage.js', () => ({ openPeerPackFileCheckpoints: async () => ({ close: async () => {} }) }));
+import { createWorkModelFiles } from '../../apps/poolday/host/work-model-files.js';
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const bytes = value => new TextEncoder().encode(JSON.stringify(value));
 let model, files, cache, weight, artifact, storage;

@@ -1,7 +1,7 @@
 import { it, expect } from 'vitest';
 import { openPluginSession } from '../../packages/reploid/src/plugins/session.js';
-import { modelImitationPlugin } from '../../self/plugins/model-imitation/plugin.js';
-import protocol from '../../self/plugins/model-imitation/protocol.json';
+import { modelImitationPlugin } from '../../apps/poolday/plugins/model-imitation/plugin.js';
+import protocol from '../../apps/poolday/plugins/model-imitation/protocol.json';
 
 const config = { protocol, target: { id: 'small', identity: 'small-hash', name: 'Small' },
   imitator: { id: 'large', identity: 'large-hash', name: 'Large' }, order: [0, 1, 2, 3], conditionOrder: [0, 1, 2, 3], sides: [1, 0, 1, 0] };

@@ -11,7 +11,7 @@
 
 import { randomBytes } from 'node:crypto';
 
-import custodyPolicy from '../../self/config/chat-files.json' with { type: 'json' };
+import custodyPolicy from '../../apps/poolday/config/chat-files.json' with { type: 'json' };
 import { nativeOwnerPolicyDigest, validateNativeOwnerPolicy } from '../native-owner/policy.js';
 import {
   CHALLENGE_SCHEMA,

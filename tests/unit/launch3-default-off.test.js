@@ -2,9 +2,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createAutomaticPartitions } from '../../packages/reploid/src/mesh/partitions/automatic-partitions.js';
 import { createResidentPartition } from '../../packages/reploid/src/mesh/partitions/resident-partition.js';
-import { snapshotWorkOrderedParticipation, bindWorkOrderedParticipation } from '../../self/host/work-partition-plan.js';
-import { getOrderedParticipation } from '../../self/host/product-context.js';
-import orderedPolicy from '../../self/config/ordered-participation.json' with { type: 'json' };
+import { snapshotWorkOrderedParticipation, bindWorkOrderedParticipation } from '../../apps/poolday/host/work-partition-plan.js';
+import { getOrderedParticipation } from '../../apps/poolday/host/product-context.js';
+import orderedPolicy from '../../apps/poolday/config/ordered-participation.json' with { type: 'json' };
 import { fixture as stagesFixture } from '../fixtures/ordered-partition-ports.js';
 import { coordinatorFixture } from '../fixtures/automatic-ordered-coordinator.js';
 

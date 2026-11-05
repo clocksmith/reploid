@@ -6,7 +6,7 @@ import { createCustodyKeyCertifier } from '../../packages/reploid/src/artifacts/
 import { createCustodyExchange } from '../../packages/reploid/src/artifacts/custody/exchange.js';
 import { createCustodyContracts } from '../../packages/reploid/src/artifacts/custody/runtime.js';
 import { createSigningKeyPair, exportPublicKey, sha256Hex, signCanonical, verifyCanonicalSignature } from '../../packages/reploid/src/artifacts/signatures.js';
-import { createPeerPackDataChannel } from '../../self/pool/peer-pack-data-channel.js';
+import { createPeerPackDataChannel } from '../../apps/poolday/pool/peer-pack-data-channel.js';
 import { executablePacksMatch, hashDopplerEvidence, validateExecutablePack } from '../../shared/pool/executable-pack.js';
 import { MIN, fx } from './reward-fixture.js';
 

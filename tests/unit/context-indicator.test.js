@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { projectContextIndicator } from '../../self/ui/pool-home/context-indicator.js';
+import { projectContextIndicator } from '../../apps/poolday/ui/pool-home/context-indicator.js';
 
 const model = { id: 'model', identity: 'sha256:model', name: 'Model', contextLength: 1000 };
 const state = execution => ({ models: [model], participantId: 'self', activeThread: { model, messages: [], attempts: [{ status: 'completed', execution }] } });

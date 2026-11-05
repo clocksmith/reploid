@@ -31,7 +31,8 @@ import { fileURLToPath } from 'node:url';
 import { resolveServedFile } from '../server/browser-roots.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const STYLES = path.join(ROOT, 'self', 'styles');
+// The Poolday stylesheets live wherever the served tree's styles/poolday/ is.
+const STYLES = path.dirname(path.dirname(resolveServedFile('styles/poolday/layers.json')));
 const WARN_ONLY = process.argv.includes('--warn');
 
 const JS_CONTRACT_VARS = new Set(['--tooltip-x', '--tooltip-y', '--pool-label-x', '--pool-label-y',
@@ -190,14 +191,17 @@ const VISUAL_PROPERTY = /^(color|background(-color|-image)?|border(-(top|bottom|
 /* Product UI scripts, and the shared components they import, may write only custom
    properties inline; component rules decide how those values render. */
 const checkInlineStyles = () => {
-  const uiDir = path.join(ROOT, 'self/ui/pool-home');
+  const uiDir = path.dirname(resolveServedFile('ui/pool-home/index.js'));
   const files = readdirSync(uiDir).filter((file) => file.endsWith('.js')).map((file) => path.join(uiDir, file));
   const shared = new Set();
   for (const file of files) {
-    for (const match of readFileSync(file, 'utf8').matchAll(/from ['"](\.\.\/components\/[\w-]+\.js)['"]/g)) shared.add(path.resolve(uiDir, match[1]));
+    // Components resolve through the served tree, whichever root holds them.
+    for (const match of readFileSync(file, 'utf8').matchAll(/from ['"](?:\.\.\/)+(?:[\w/]+\/)?(ui\/components\/[\w-]+\.js|components\/[\w-]+\.js)['"]/g)) {
+      shared.add(resolveServedFile(match[1].startsWith('ui/') ? match[1] : 'ui/' + match[1]));
+    }
   }
   for (const file of [...files, ...shared]) {
-    const relative = path.relative(path.join(ROOT, 'self'), file);
+    const relative = path.relative(ROOT, file);
     readFileSync(file, 'utf8').split('\n').forEach((text, index) => {
       for (const match of text.matchAll(/\bstyle=\\?["']([^"']*)["']/g)) {
         const declarations = match[1].split(';').map((part) => part.trim()).filter(Boolean);

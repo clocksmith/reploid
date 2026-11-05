@@ -61,4 +61,15 @@ describe('Cloud Run build context', () => {
     expect(dockerIgnore).toContain('**');
     expect(dockerIgnore).toContain('server/logs/**');
   });
+
+  it('admits every directory the image copies to both build contexts', async () => {
+    const dockerfile = await readRootFile('deploy/Dockerfile');
+    const copied = [...dockerfile.matchAll(/^COPY\s+(\S+)\s+\.\/\S+$/gm)].map(match => match[1])
+      .filter(source => !/\.[a-z]+$/.test(source) && !source.startsWith('deploy/'));
+    expect(copied).toEqual(expect.arrayContaining(['server', 'self', 'shared', 'apps/poolday']));
+    for (const ignorePath of ['.gcloudignore', '.dockerignore']) {
+      const lines = (await readRootFile(ignorePath)).split('\n');
+      for (const source of copied) expect(lines, `${ignorePath} admits ${source}`).toContain(`!${source}/**`);
+    }
+  });
 });

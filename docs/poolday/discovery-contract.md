@@ -51,9 +51,9 @@ strict subset of this target contract:
   checkpoint control inside the Research Room history disclosure.
 
 The projection is defined by
-[`discovery-contract.js`](../../self/pool/discovery-contract.js) and
-[`research-cycle.js`](../../self/pool/research-cycle.js), with record and link
-invariants in [`evidence-network.js`](../../self/pool/evidence-network.js).
+[`discovery-contract.js`](../../apps/poolday/pool/discovery-contract.js) and
+[`research-cycle.js`](../../apps/poolday/pool/research-cycle.js), with record and link
+invariants in [`evidence-network.js`](../../apps/poolday/pool/evidence-network.js).
 Calibrated information gain, complete laboratory independence, closure, and
 policy promotion remain target work. A signed checkpoint freezes a replayable
 evidence state. It does not close the scientific question or certify truth.
@@ -354,7 +354,7 @@ Poolday-owned configuration and user contracts, prospective operational proof,
 and a tested revocation and rollback path.
 
 The implemented internal contract in
-[`scientific-policy-promotion.js`](../../self/pool/scientific-policy-promotion.js)
+[`scientific-policy-promotion.js`](../../apps/poolday/pool/scientific-policy-promotion.js)
 hash-binds the Zero proposal, family-disjoint historical and prospective
 cohort, X evaluator, paired raw observations, full seven-role metric vector,
 safety and rollback exercises, human approval, Poolday admission artifacts,

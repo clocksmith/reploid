@@ -52,7 +52,7 @@ test('new web execution modules pass the browser Verification Worker', async ({ 
     if (!body) return route.abort();
     await route.fulfill({ contentType: 'text/javascript', body });
   });
-  const files = ['packages/reploid/src/mesh/web-access-network.js', 'self/host/contributor-search.js',
+  const files = ['packages/reploid/src/mesh/web-access-network.js', 'apps/poolday/host/contributor-search.js',
     'server/public-web-worker.js', 'server/browser-web-bridge.js'];
   const snapshot = Object.fromEntries(await Promise.all(files.map(async file => ['/' + file.replace(/^self\//, ''), await readFile(file, 'utf8')])));
   await page.goto(origin);

@@ -128,7 +128,7 @@ Other library hosts retain explicit review and revocable thread-grant support.
 
 | Category | Boundary |
 | --- | --- |
-| Implemented | Conversation lifecycle, automatic partition discovery/placement, resident admission, selectively acquired pieces and two-partition step execution through public Doppler contracts. See [chat](../packages/reploid/src/chat/), [partitions](../packages/reploid/src/mesh/partitions/) and [host composition](../self/host/work-partitions.js). |
+| Implemented | Conversation lifecycle, automatic partition discovery/placement, resident admission, selectively acquired pieces and two-partition step execution through public Doppler contracts. See [chat](../packages/reploid/src/chat/), [partitions](../packages/reploid/src/mesh/partitions/) and [host composition](../apps/poolday/host/work-partitions.js). |
 | Tested under identified configurations | Retained physical cooperative answers and bounded restart/capacity controls. Their exact package, model, placements and budget matter; two tabs are not two physical machines. |
 | Qualification open | Both-direction frozen numerical parity at 0.001, repeatable ordinary application acceptance, lifecycle/capacity evidence and separate answer-quality evaluation. |
 | Planned or separately scoped | Additional qualified native hosts, generalized continuations, adapter/catalog expansion and independently evaluated network improvement. Source existence establishes none of these outcomes. |

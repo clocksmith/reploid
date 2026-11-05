@@ -1,7 +1,7 @@
 import { expect, it, vi } from 'vitest';
 const source = vi.hoisted(() => ({ create: vi.fn() }));
 vi.mock('../../shared/vendor/reploid/mesh/index.js', () => ({ createPartitionNetwork: source.create }));
-import { createWorkPartitionNetworks } from '../../self/host/work-partition-networks.js';
+import { createWorkPartitionNetworks } from '../../apps/poolday/host/work-partition-networks.js';
 it('retains failed endpoint owners for explicit host-close retry while settling independent networks', async () => {
   const failed = { close: vi.fn().mockRejectedValueOnce(Error('unknown retirement')).mockResolvedValue() };
   const healthy = { close: vi.fn().mockResolvedValue() };

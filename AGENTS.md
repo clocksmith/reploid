@@ -81,11 +81,10 @@ reploid/
 │   ├── transport/            ← Authenticated, bounded peer delivery
 │   ├── artifacts/custody/    ← Authorized piece acquisition and retention
 │   └── agent/                ← Goal-directed agent execution
-├── self/host/                ← Browser service composition and host ports
-├── self/ui/                  ← Renders authoritative state and user actions
-├── self/core/                ← Agent/VFS substrate and compatibility forwarding
-├── self/config/              ← Browser profiles, catalog and package pins
-├── server/                   ← Optional server/proxy adapters
+├── apps/poolday/             ← Poolday product: routes, interface, runtime, host composition
+├── self/                     ← Agent/VFS substrate: Zero, X, kernel, core, tools, boot host
+├── shared/                   ← Browser code both load: package mirrors, catalog, identity, transport
+├── server/                   ← Optional server/proxy adapters; browser-tree.js composes the served tree
 ├── tests/                    ← Contract, integration and physical-run harnesses
 └── docs/                     ← Intent, architecture and evidence navigation
 ```
@@ -100,7 +99,10 @@ reploid/
 - `packages/reploid/src/mesh/partitions/` owns discovery, placement, admission,
   sequencing and settlement through injected Doppler contracts.
 - `transport/` and `artifacts/custody/` never define model mathematics.
-- `self/host/` supplies identity, catalog, policy, storage and runtime ports.
+- `apps/poolday/host/` supplies the product's identity, catalog, policy, storage and runtime ports.
+- One served URL namespace overlays `self/`, `shared/` and `apps/poolday/`; ownership and
+  boundaries are in [docs/ownership-inventory.md](docs/ownership-inventory.md) and
+  `npm run verify:boundaries`.
 - `self/core/`, `self/tools/`, and `self/infrastructure/` support the agent/VFS
   substrate. Check the nearest charter before modifying compatibility forwarding.
 - `shared/config/doppler-package.json` pins one standard Doppler dependency.

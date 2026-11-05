@@ -1,9 +1,9 @@
 /** Same-profile integration fixture. Test bytes and responses are not model/LoRA qualification. */
 import { createChatWorkspace, createChatScheduler } from '../../shared/vendor/reploid/chat/index.js';
-import { createPeerPackSupplier, createPeerPackArtifactStore } from '../../self/pool/peer-pack-custody.js';
-import { createPeerPackDataChannel } from '../../self/pool/peer-pack-data-channel.js';
-import { createPackJobDataChannel } from '../../self/pool/peer-pack-job-channel.js';
-import { openPeerPackCheckpoints } from '../../self/infrastructure/pack-transfer-storage.js';
+import { createPeerPackSupplier, createPeerPackArtifactStore } from '../../apps/poolday/pool/peer-pack-custody.js';
+import { createPeerPackDataChannel } from '../../apps/poolday/pool/peer-pack-data-channel.js';
+import { createPackJobDataChannel } from '../../apps/poolday/pool/peer-pack-job-channel.js';
+import { openPeerPackCheckpoints } from '../../apps/poolday/infrastructure/pack-transfer-storage.js';
 import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../../shared/pool/inference-receipt.js';
 import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 

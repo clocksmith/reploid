@@ -8,12 +8,12 @@ import {
   createSignedAdapterPublication,
   verifyAdapterPublication,
   verifyAdapterUseApproval
-} from '../../self/pool/adapter-publication.js';
+} from '../../apps/poolday/pool/adapter-publication.js';
 import {
   acquireAdapterForAssignment,
   createPublishedAdapterOriginFetcher,
   createAdapterRegistry
-} from '../../self/pool/adapter-registry.js';
+} from '../../apps/poolday/pool/adapter-registry.js';
 import {
   createSigningKeyPair,
   exportPublicKey,

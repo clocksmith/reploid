@@ -10,8 +10,8 @@ import {
   sha256Hex,
   signProviderReceipt
 } from '../../shared/pool/inference-receipt.js';
-import { createProviderClient } from '../../self/pool/provider-client.js';
-import { createRequesterClient } from '../../self/pool/requester-client.js';
+import { createProviderClient } from '../../apps/poolday/pool/provider-client.js';
+import { createRequesterClient } from '../../apps/poolday/pool/requester-client.js';
 import {
   LAUNCH_MODEL,
   buildLaunchProviderModel,
@@ -31,12 +31,12 @@ import {
   createSignedProviderAdvert,
   validatePeerAssignmentForIntentAndAdvert,
   verifyPeerMessage
-} from '../../self/pool/peer-control-plane.js';
+} from '../../apps/poolday/pool/peer-control-plane.js';
 import { createReceiptPayload } from '../../shared/pool/p2p-payload.js';
 import {
   buildRuntimeProfile,
   hashRuntimeProfile
-} from '../../self/pool/runtime-profile.js';
+} from '../../apps/poolday/pool/runtime-profile.js';
 import {
   TEST_PUBLIC_PROTEIN_SEQUENCE,
   makePublicProteinJobFields,

@@ -8,7 +8,7 @@ import { POOL_CONFIG, POOL_CONFIG_HASH, POOL_CONFIG_VERSION, validatePoolConfig 
 import { buildCoordinatorRuntimeBundle } from '../server/pool/release-identity.js';
 import { hashJson } from '../server/pool/hash.js';
 import { LAUNCH_MODEL, MODEL_CATALOG } from '../shared/pool/model-contract.js';
-import { validateModelPromotionEvidence } from '../self/pool/model-promotion.js';
+import { validateModelPromotionEvidence } from '../apps/poolday/pool/model-promotion.js';
 import {
   validateDopplerExecutionManifestShape,
   validateModelArtifactCorsPolicy,

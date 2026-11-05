@@ -1,0 +1,176 @@
+import { createBrowserTraining } from './lora-training.js';
+import { createDopplerRuntime } from '../pool/doppler-runtime.js';
+/** Application lifetime. Detaching a route never stops an owned conversation or document task. */
+import { createReploidDopplerRuntimeService } from '../../../shared/infrastructure/doppler-runtime-service.js';
+import { watchModelCache } from './work-model-cache.js';
+import { createWorkModelFiles } from './work-model-files.js';
+import { createWorkSession } from './work-session.js';
+import { createWorkEvolution } from './work-evolution.js';
+import { createWorkSwarm } from './work-swarm.js';
+import { createWorkPeerJobs } from './work-peer-jobs.js';
+import { createChatSession, openCanonicalChatSession, LOCAL_HISTORY_IDENTITY, SEARCH_ROUTE, DEVICE_SEARCH_ROUTE, CONTRIBUTOR_SEARCH_ROUTE } from './chat-session.js';
+import { createWebSearch } from './web-search.js';
+import { createContributorSearch } from './contributor-search.js';
+import { createServerSearch } from './server-search.js';
+import { getPoolAuthToken } from '../../../shared/pool/identity.js';
+import { createDeviceSearch } from './device-search.js';
+import { acquireChatHistoryOwner, refusedChatHistory } from './chat-history.js';
+import { createHistoryHandover } from './history-handover.js';
+import { metadataDigest } from '../config/doppler-metadata-contract.js';
+import orderedPolicy from '../config/ordered-participation.json' with { type: 'json' };
+import { startSwarmAutoconnect } from './swarm-autoconnect.js';
+import swarmPolicy from '../../../shared/config/swarm-bootstrap.json' with { type: 'json' };
+import { createOperationParticipation } from '../pool/operation-participation.js';
+import { createOperationRoomNetwork } from '../pool/operation-room-network.js';
+import { createRequesterClient } from '../pool/requester-client.js';
+import { createPoolIdentity } from '../../../shared/pool/identity.js';
+import { createLocalPackExecutor } from '../pool/local-pack-executor.js';
+import { createDocumentAssistant } from '../pool/document-delegation.js';
+import poolConfiguration from '../../../shared/pool/pool-config.json' with { type: 'json' };
+
+const HISTORY_OWNED_ELSEWHERE = 'Another tab owns this conversation history';
+const ordinaryReason = cause => `History stays ordinary: ${cause}; ordered answers are not published to requester-owned storage.`;
+
+/** Requester-owned history for ordered sessions. Ordered publication needs only
+ * Doppler's metadataDigest; without it, or without Web Locks to keep one history
+ * owner per browser profile, history stays ordinary and says so in state. */
+async function openOrderedRequesterChat({ chatOptions, requesterIdentity, ports }) {
+  const { loadRuntime = () => ({ metadataDigest }), locks = globalThis.navigator?.locks, openStore } = ports;
+  const ordinary = reason => createChatSession({ ...chatOptions, requesterIdentity,
+    history: { mode: 'ordinary', publication: null, reason: ordinaryReason(reason) } });
+  let runtime;
+  try { runtime = await loadRuntime(); }
+  catch (error) { return ordinary(`the Doppler partitions runtime did not load (${error?.message || error})`); }
+  if (typeof runtime?.metadataDigest !== 'function') return ordinary('the installed Doppler runtime exposes no metadataDigest');
+  if (typeof locks?.request !== 'function') return ordinary('this browser cannot lock one history owner per profile');
+  const { database, ...bounds } = orderedPolicy.requesterHistory;
+  const release = await acquireChatHistoryOwner({ name: database, locks });
+  if (!release) return createChatSession({ ...chatOptions, requesterIdentity,
+    canonicalHistory: refusedChatHistory({ ...LOCAL_HISTORY_IDENTITY, reason: HISTORY_OWNED_ELSEWHERE }),
+    history: { mode: 'refused', publication: 'ordered', reason: HISTORY_OWNED_ELSEWHERE } });
+  // The existing localStorage workspace and drafts migrate once through the legacy import.
+  return openCanonicalChatSession({ ...chatOptions, ...LOCAL_HISTORY_IDENTITY, requesterIdentity,
+    history: { mode: 'transactional', publication: 'ordered',
+      reason: 'Split answers retain verified publication records; whole-model answers retain their own request and response records.' },
+    canonical: { name: database, ...bounds, runtime, publication: 'ordered', expectedWriterEpoch: 'stored', release,
+      ...(openStore ? { openStore } : {}) } });
+}
+
+export function createProductSession({ storage, networkOptions, swarmNetworkOptions, operationNetwork = null,
+  canonical = null, ordered = null, eventTarget = window, onChanges = () => {}, onDocuments = () => {}, onSharing = () => {},
+  historyPorts = {}, earning = null, participantIdentity = null, webAccess = null, webContribution = null,
+  search = createServerSearch({ authorization: getPoolAuthToken }) }) {
+  let notifySearch = () => {};
+  let training, runtime, work, chat, modelCache, documents, operationSharing, closed = false, closing, ownsNetwork = false;
+  const service = createReploidDopplerRuntimeService();
+  // Local execution uses the same pinned, verified artifacts as contribution.
+  // This owner never attaches a transport or offers cached files to peers.
+  const localFiles = createWorkModelFiles({ getTransport: () => null });
+  const evolution = createWorkEvolution({ storage, isBusy: () => work?.getState().anyBusy === true, onChange: onChanges });
+  // Bootstrap and ICE belong to the swarm host, independently of signed job routing.
+  // A host with an earning account requests as its registered participant (credits/browser.js); canonical
+  // participation keeps its own configured identity.
+  const swarm = createWorkSwarm({ storage, evolution, service, networkOptions: swarmNetworkOptions, canonical, ordered, webWorker: webContribution,
+    ...(participantIdentity && !canonical ? { participantIdentity } : {}), onChange: () => { chat?.refreshNetwork(); notifySearch(); } });
+  const getNetwork = () => {
+    if (!operationNetwork) {
+      operationNetwork = createOperationRoomNetwork({ ...networkOptions(),
+        requesterClient: createRequesterClient({ sdk: null, identity: createPoolIdentity('requester', {
+          localOnly: true, namespace: poolConfiguration.operationNetwork.identityNamespace }) }) });
+      ownsNetwork = true;
+    }
+    return operationNetwork;
+  };
+  // The person's MCP search server, used only for sends made while web search is on (Settings).
+  const webSearch = createWebSearch({ storage });
+  // Hosts may supply an authorized browser adapter for the same disclosed service. No browser is attached
+  // implicitly, and this injection does not enable search or replace its per-answer permission.
+  const deviceSearch = createDeviceSearch({ ...(webAccess ? { access: webAccess.access, accessServer: webAccess.server } : { source: webSearch.provider }), enabled: () => webSearch.enabled(),
+    server: () => webSearch.state().recipient });
+  const contributorSearch = createContributorSearch({ network: () => swarm.getWebNetwork?.() });
+  const searchListeners = new Set();
+  const searchStatus = Object.freeze({ ...search,
+    available: () => contributorSearch.available() || search.available(),
+    state: () => contributorSearch.available() ? { state: 'ready', provider: contributorSearch.provider.searchProvider, message: 'A contributor can search the web and read public pages. Send runs the selected tools.' } : search.state(),
+    subscribe(listener) { searchListeners.add(listener); const stop = search.subscribe(() => listener(searchStatus.state()));
+      return () => { stop(); searchListeners.delete(listener); }; }
+  });
+  notifySearch = () => { for (const listener of searchListeners) listener(searchStatus.state()); };
+  // `earning` (earning/attempts.js) is off unless the embedding host composes an explicitly configured client.
+  const chatOptions = { service, storage, swarm,
+    resolveLocalSource: (model, controls) => localFiles.prepareSource(model, { ...controls, cacheOnly: true }),
+    partitions: swarm.partitions, peers: createWorkPeerJobs({ getNetwork }),
+    // Search-backed answers use the server's Brave route or the device-side route, each answer under its own
+    // per-answer search permission; the device-side route's permission names the person's search server.
+    retrieval: { routes: { [CONTRIBUTOR_SEARCH_ROUTE]: { ...contributorSearch, permission: 'search-answer' }, default: { provider: webSearch.provider },
+      [SEARCH_ROUTE]: { provider: search.provider, extractor: search.extractor, permission: 'search-answer' },
+      [DEVICE_SEARCH_ROUTE]: { provider: deviceSearch.provider, extractor: deviceSearch.extractor, permission: 'search-answer',
+        available: deviceSearch.available } } }, earning };
+  const failOpening = async error => {
+    modelCache?.close();
+    const settled = await Promise.allSettled([() => swarm.close(), () => chat?.close(), () => localFiles.close()].map(close => Promise.resolve().then(close)));
+    const failures = settled.filter(result => result.status === 'rejected').map(result => result.reason);
+    if (failures.length) throw new AggregateError([error, ...failures], 'Canonical application opening failed');
+    throw error;
+  };
+  if (canonical) return openCanonicalChatSession({ ...chatOptions, canonical,
+    meshId: canonical.meshId, participantId: canonical.participantId }).then(finish).catch(failOpening);
+  // Canonical participants are the authenticated swarm peer (work-swarm.js refuses another). Local
+  // history keeps its stable owner; ordered disclosure binds the identity the swarm's partition owner uses.
+  const requesterIdentity = () => swarm.partitions.requesterIdentity();
+  if (ordered) return openOrderedRequesterChat({ chatOptions, requesterIdentity, ports: historyPorts }).then(finish).catch(failOpening);
+  return finish(createChatSession({ ...chatOptions, requesterIdentity }));
+  function finish(openedChat) {
+    chat = openedChat;
+    let cachedModels = [];
+    modelCache = watchModelCache({ eventTarget, onChange: models => {
+      cachedModels = models;
+      chat.setCachedModels(globalThis.navigator?.gpu ? models : []);
+      void swarm.shareCachedModels(models);
+    } });
+    const autoconnect = startSwarmAutoconnect({ connect: async options => { await swarm.connect(options); void swarm.shareCachedModels(cachedModels); },
+      enabled: () => swarm.autoConnectEnabled(), isConnected: () => {
+        const state = swarm.getState();
+        return state.connecting || ['connected', 'connecting', 'retrying'].includes(state.consumer?.connectionState);
+      }, policy: swarmPolicy, eventTarget,
+      onError: error => console.warn('[Reploid Swarm] Discovery connection failed', error) });
+    const assertOpen = () => { if (closed) throw new Error('Application session is closed'); };
+    // Ordered history has one owner tab per profile; the others can ask it to hand over.
+    // The handover outlives this session so a tab that handed over can ask for it back.
+    const historyMode = chat.getState?.().history?.mode;
+    const historyHandover = ordered && ['transactional', 'refused'].includes(historyMode)
+      ? createHistoryHandover({ name: orderedPolicy.requesterHistory.database, owner: historyMode === 'transactional',
+        release: () => host.close(), ...(historyPorts.locks ? { locks: historyPorts.locks } : {}),
+        ...(historyPorts.Channel ? { Channel: historyPorts.Channel } : {}), ...(historyPorts.reload ? { reload: historyPorts.reload } : {}) })
+      : null;
+    const host = {
+      chat, swarm, evolution, webSearch, search: searchStatus, deviceSearch, contributorSearch, historyHandover,
+      get training() { assertOpen(); return training ??= createBrowserTraining({ swarm }); },
+      get runtime() { assertOpen(); return runtime ??= globalThis.REPLOID_DOPPLER_RUNTIME || createDopplerRuntime(); },
+      get work() { assertOpen(); return work ??= createWorkSession({ service, storage, swarm, evolution, peers: createWorkPeerJobs({ getNetwork }) }); },
+      get documents() { assertOpen(); return documents ??= createDocumentAssistant({ executor: createLocalPackExecutor(), network: getNetwork(), onChange: onDocuments }); },
+      get operationSharing() { assertOpen(); return operationSharing ??= createOperationParticipation({ networkOptions, onChange: onSharing }); },
+      connectOperations(network) { assertOpen(); if (ownsNetwork) void operationNetwork?.close?.(); ownsNetwork = false; operationNetwork = network; documents?.connectNetwork(network); },
+      resume() { if (!closed) autoconnect.resume(); },
+      async pause() {
+        autoconnect.pause(); work?.cancelAll(); chat.cancelAll(); chat.cancelModelDownload(); documents?.cancel();
+        return Promise.allSettled([training?.disconnect(), swarm.disconnect({ automatic: true }), operationSharing?.stop()]);
+      },
+      close() {
+        if (closing) return closing;
+        closed = true; autoconnect.close(); modelCache.close();
+        // Requester-owned history must report unsettled cleanup; ordinary history never did.
+        const requesterOwned = !!canonical || chat.getState?.().history?.mode === 'transactional';
+        const owners = [() => training?.close(), () => localFiles.close(), () => swarm.close(), () => work?.close(), () => chat.close(), () => documents?.close(),
+          () => operationSharing?.stop(), () => ownsNetwork ? operationNetwork?.close?.() : undefined];
+        closing = Promise.allSettled(owners.map(close => Promise.resolve().then(close))).then(results => {
+          const failures = results.filter(result => result.status === 'rejected').map(result => result.reason);
+          if (requesterOwned && failures.length) throw new AggregateError(failures, 'Canonical application cleanup failed');
+          return results;
+        }).catch(error => { closing = null; throw error; });
+        return closing;
+      }
+    };
+    return host;
+  }
+}

@@ -5,13 +5,13 @@ import {
   SCIENTIFIC_FITNESS_SCHEMA,
   buildScientificFitnessPlan,
   validateScientificFitnessRecord
-} from '../../self/pool/scientific-fitness.js';
+} from '../../apps/poolday/pool/scientific-fitness.js';
 import {
   SCIENTIFIC_EVALUATION_SCHEMA,
   buildScientificEvaluationPlan,
   validateScientificEvaluationRecord,
   validateScientificFitnessEvaluationBinding
-} from '../../self/pool/scientific-evaluation.js';
+} from '../../apps/poolday/pool/scientific-evaluation.js';
 
 const fakeHash = (character) => `sha256:${character.repeat(64)}`;
 const candidate = getPoolModelContract('amplify-120m-f16-af32');

@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-import { BROWSER_QUALIFICATION_CHECKS } from '../../self/pool/browser-qualification.js';
+import { BROWSER_QUALIFICATION_CHECKS } from '../../apps/poolday/pool/browser-qualification.js';
 import { exactModelContractKey, getPoolModelContract } from '../../shared/pool/model-contract.js';
 
 const status = JSON.parse(await readFile(

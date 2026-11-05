@@ -1,8 +1,8 @@
 import { afterEach, expect, it, vi } from 'vitest';
-import { createChatSession, CANONICAL_CHAT_MODELS } from '../../self/host/chat-session.js';
+import { createChatSession, CANONICAL_CHAT_MODELS } from '../../apps/poolday/host/chat-session.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
-import { renderConversationWorkspace, bindConversationWorkspace } from '../../self/ui/pool-home/conversation-workspace.js';
-import { AUTO_DOWNLOAD_STORAGE_KEY } from '../../self/ui/pool-home/auto-download.js';
+import { renderConversationWorkspace, bindConversationWorkspace } from '../../apps/poolday/ui/pool-home/conversation-workspace.js';
+import { AUTO_DOWNLOAD_STORAGE_KEY } from '../../apps/poolday/ui/pool-home/auto-download.js';
 const cleanups = [];
 afterEach(async () => { for (const cleanup of cleanups.splice(0).reverse()) await cleanup(); vi.useRealTimers(); localStorage.removeItem(AUTO_DOWNLOAD_STORAGE_KEY); });
 // The manual size-and-consent path applies when automatic download is off.

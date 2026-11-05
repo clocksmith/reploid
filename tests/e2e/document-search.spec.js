@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { createDocumentPackFixture } from '../fixtures/document-packs.js';
-import documentPolicy from '../../self/pool/document-search-policy.json' with { type: 'json' };
+import documentPolicy from '../../apps/poolday/pool/document-search-policy.json' with { type: 'json' };
 import { readServedText } from '../helpers/served-browser-files.js';
 
 // Real browser/UI and public operation consumer; injected model outputs, not GPU qualification.

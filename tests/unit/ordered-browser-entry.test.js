@@ -1,14 +1,14 @@
 import { afterEach, expect, it, vi } from 'vitest';
-import orderedPolicy from '../../self/config/ordered-participation.json' with { type: 'json' };
-import { createChatSession } from '../../self/host/chat-session.js';
-import { isWorkOrderedModel } from '../../self/host/work-partition-plan.js';
+import orderedPolicy from '../../apps/poolday/config/ordered-participation.json' with { type: 'json' };
+import { createChatSession } from '../../apps/poolday/host/chat-session.js';
+import { isWorkOrderedModel } from '../../apps/poolday/host/work-partition-plan.js';
 const ports = vi.hoisted(() => ({ create: vi.fn(), models: null, actual: null }));
-vi.mock('../../self/host/product-session.js', () => ({ createProductSession: ports.create }));
+vi.mock('../../apps/poolday/host/product-session.js', () => ({ createProductSession: ports.create }));
 vi.mock('../../shared/config/doppler-local-models.js', async original => {
   const actual = await original(); ports.actual = actual.LOCAL_DOPPLER_MODELS;
   return { ...actual, get LOCAL_DOPPLER_MODELS() { return ports.models ?? actual.LOCAL_DOPPLER_MODELS; } };
 });
-import { initPoolHome } from '../../self/ui/pool-home/index.js';
+import { initPoolHome } from '../../apps/poolday/ui/pool-home/index.js';
 const ordered = { id: 'ordered', identity: 'sha256:' + 'a'.repeat(64), partitionPlan: { schema: 'doppler.layer-partition-contract/v3', stageCount: 3 } };
 const stage = { modelId: 'ordered', index: 0, residentId: 'resident', executionId: 'execution' };
 const owners = [];

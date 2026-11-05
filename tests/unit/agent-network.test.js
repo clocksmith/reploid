@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { projectAgents } from '../../self/ui/pool-home/agent-network.js';
+import { projectAgents } from '../../apps/poolday/ui/pool-home/agent-network.js';
 const model = { id: 'local', name: 'Local model', provider: 'doppler' };
 const work = { models: [model, { id: 'cloud', name: 'Cloud model', provider: 'gemini' }], records: [], available: true };
 describe('observed agent network', () => {

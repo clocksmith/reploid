@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
-import { createAdapterEvidence } from '../../self/host/adapter-evidence.js';
+import { createAdapterEvidence } from '../../apps/poolday/host/adapter-evidence.js';
 import { adapter as fixtureAdapter, baseModel as fixtureBase, fixtureReceipt, json } from '../fixtures/adapter-evaluation.js';
 
 const sha = text => 'sha256:' + createHash('sha256').update(text).digest('hex');

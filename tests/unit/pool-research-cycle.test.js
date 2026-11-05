@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { projectGovernedResearchCycle } from '../../self/pool/research-cycle.js';
+import { projectGovernedResearchCycle } from '../../apps/poolday/pool/research-cycle.js';
 
 const hash = (character) => `sha256:${character.repeat(64)}`;
 const createdAt = (minute) => `2026-08-09T12:${String(minute).padStart(2, '0')}:00.000Z`;

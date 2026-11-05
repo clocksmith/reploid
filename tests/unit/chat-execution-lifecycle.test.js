@@ -5,7 +5,7 @@ vi.mock('../../shared/vendor/reploid/chat/index.js', () => ({
   createChatScheduler: createScheduler,
   remoteDisclosureKind: () => null
 }));
-import { createChatExecution } from '../../self/host/chat-execution.js';
+import { createChatExecution } from '../../apps/poolday/host/chat-execution.js';
 
 const options = () => ({ service: {}, models: [], getModels: () => [], profile: {} });
 afterEach(() => { createScheduler.mockReset(); });

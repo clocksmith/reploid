@@ -2,7 +2,7 @@
 import { randomUUID } from 'node:crypto';
 import { parseTextChatCompletion } from './chat-completions.js';
 import { createTextRequester, fail, object, freeze } from './text-requester.js';
-import policy from '../self/config/partition-policy.json' with { type: 'json' };
+import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
 import { parseRequesterBinding } from './text-request-options.js';
 
 export function parseTextResponse(body) {

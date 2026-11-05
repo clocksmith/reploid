@@ -1,9 +1,9 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { LAB_SURFACE_IDS, SURFACE_INTENTS } from '../../shared/config/surface-intents.js';
-import { bindPoolRouteControls } from '../../self/ui/pool-home/navigation.js';
-import { renderAppShortcuts } from '../../self/ui/pool-home/shell-view.js';
-import { renderNetworkInspector } from '../../self/ui/pool-home/network-inspector.js';
+import { bindPoolRouteControls } from '../../apps/poolday/ui/pool-home/navigation.js';
+import { renderAppShortcuts } from '../../apps/poolday/ui/pool-home/shell-view.js';
+import { renderNetworkInspector } from '../../apps/poolday/ui/pool-home/network-inspector.js';
 
 import {
   POOLDAY_NAV_ROUTES,
@@ -15,7 +15,7 @@ import {
   ROUTE_COPY,
   choosePooldayAskPlaceholder,
   choosePooldayAskPlaceholderForLane
-} from '../../self/ui/pool-home/constants.js';
+} from '../../apps/poolday/ui/pool-home/constants.js';
 import {
   renderContributionStatusBar,
   renderNav,
@@ -25,7 +25,7 @@ import {
   renderRouteDetail,
   renderRoutePanel,
   setPoolRunVisualState
-} from '../../self/ui/pool-home/view.js';
+} from '../../apps/poolday/ui/pool-home/view.js';
 
 describe('poolday home navigation', () => {
   it('keeps the default room implicit while preserving custom rooms and URL context', () => {

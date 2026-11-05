@@ -1,7 +1,7 @@
 // Shared contribution-reward test fixture. Test-only values; no product decisions.
 import { expect } from 'vitest';
 
-import custody from '../../self/config/chat-files.json' with { type: 'json' };
+import custody from '../../apps/poolday/config/chat-files.json' with { type: 'json' };
 import { PRODUCT_ECONOMICS_CONTRACT_ID } from '../../server/ledger/domain.js';
 import { createFirestoreLedgerStore } from '../../server/ledger/firestore-store.js';
 import { createMemoryLedgerState, createMemoryLedgerStore } from '../../server/ledger/memory-store.js';

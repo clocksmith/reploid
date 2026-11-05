@@ -9,7 +9,8 @@
  * entries and from the substrate entries is shared; otherwise it belongs to the
  * side that reaches it. Product traversal stops at the documented substrate entry
  * points. Files no entry reaches are assigned by the explicit rules below, each
- * with its reason. Writes docs/ownership-inventory.{json,md}; --check verifies them.
+ * with its reason. Writes docs/ownership-inventory.{json,md}; --check verifies them and
+ * that every file lives in its owner's root.
  */
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
@@ -328,6 +329,11 @@ async function main() {
       if (await fs.readFile(path.join(ROOT, file), 'utf8').catch(() => null) !== content) stale.push(file);
     }
     if (stale.length) throw new Error(`Ownership inventory is stale: ${stale.join(', ')}; run npm run build:ownership-inventory`);
+    // Every file lives in the root of the owner its references give it.
+    const misplaced = inventory.files.filter(entry => rootOf(entry.source) !== entry.owner);
+    if (misplaced.length) {
+      throw new Error(`Files outside their owner's root: ${misplaced.slice(0, 20).map(entry => `${entry.source} -> ${entry.owner}`).join(', ')}`);
+    }
     console.log(`[ownership] ${inventory.files.length} served files: ${Object.entries(inventory.counts).map(([o, n]) => `${o} ${n}`).join(', ')}`);
     return;
   }

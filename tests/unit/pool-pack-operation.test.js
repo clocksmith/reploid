@@ -4,7 +4,7 @@ import { DOPPLER_GENERATION_CONTRACT } from '../../shared/infrastructure/doppler
 import fifthDefinition from '../fixtures/pack-operation-fifth.json' with { type: 'json' };
 import poolConfig from '../../shared/pool/pool-config.json' with { type: 'json' };
 import { createPackOperationRegistry, PACK_OPERATION_IMPLEMENTATIONS } from '../../shared/pool/pack-operation-adapters.js';
-import { runPackOperation, assessPackOperation, assertPackOperationReceipt } from '../../self/pool/pack-operation.js';
+import { runPackOperation, assessPackOperation, assertPackOperationReceipt } from '../../apps/poolday/pool/pack-operation.js';
 
 const digest = (value) => `sha256:${value.repeat(64)}`;
 async function fixture(name = 'encodeSequence') {

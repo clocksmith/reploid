@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import { createNativeWholeModel } from '../../server/native-whole-model.js';
-import { createWorkAdapterResolver } from '../../self/providers/work-adapter.js';
+import { createWorkAdapterResolver } from '../../apps/poolday/providers/work-adapter.js';
 import { createReploidDopplerRuntimeService } from '../../shared/infrastructure/doppler-runtime-service.js';
 import { resolveServedFile } from '../../server/browser-roots.js';
 const engine = process.env.DOPPLER_SOURCE_URL;

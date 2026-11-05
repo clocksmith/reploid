@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { acquireChatHistoryOwner } from '../../self/host/chat-history.js';
+import { acquireChatHistoryOwner } from '../../apps/poolday/host/chat-history.js';
 
 // A minimal Web Locks stand-in: one exclusive lock per name, queued waiters, abortable.
 function fakeLocks() {

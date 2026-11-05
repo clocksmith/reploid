@@ -21,7 +21,7 @@ import { CAPACITY_EVIDENCE_SCHEMA as COMMUNITY_CAPACITY_SCHEMA } from '../../ser
 import { OPERATORS_SCHEMA } from '../../server/earning-composition/index.js';
 import { EVIDENCE_RULES_ID } from '../../server/ledger/domain.js';
 import { CAPACITY_EVIDENCE_SCHEMA } from '../../server/rewards/domain.js';
-import { openBrowserEarning } from '../../self/host/credits/browser.js';
+import { openBrowserEarning } from '../../apps/poolday/host/credits/browser.js';
 import { newIdentity } from '../helpers/account-fixture.js';
 import { earningPolicy, writeOutsideRepository } from '../helpers/earning-policy-fixture.js';
 import { STEPS, residentRoute } from '../helpers/resident-route.js';

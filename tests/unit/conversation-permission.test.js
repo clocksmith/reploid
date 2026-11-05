@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
-import { renderConversationWorkspace, bindConversationWorkspace } from '../../self/ui/pool-home/conversation-workspace.js';
-import { attachmentInput, comparisonSources } from '../../self/host/document-comparison.js';
-import { renderPermissionSummary, updatePermissionSummary } from '../../self/ui/components/permission-card.js';
-import { createWebSearch } from '../../self/host/web-search.js';
+import { renderConversationWorkspace, bindConversationWorkspace } from '../../apps/poolday/ui/pool-home/conversation-workspace.js';
+import { attachmentInput, comparisonSources } from '../../apps/poolday/host/document-comparison.js';
+import { renderPermissionSummary, updatePermissionSummary } from '../../apps/poolday/ui/components/permission-card.js';
+import { createWebSearch } from '../../apps/poolday/host/web-search.js';
 
 describe('Conversation Send authorization', () => {
   it('renders attachment passages safely without hiding the exact approved payload', () => {

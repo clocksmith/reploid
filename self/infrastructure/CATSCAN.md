@@ -24,7 +24,7 @@ Inputs:
 Outputs:
 - Append-only audit material through [audit-logger.js](audit-logger.js).
 - Recovery checkpoints through [genesis-snapshot.js](genesis-snapshot.js).
-- Bounded atomic attempt claims and signed response storage through [pack-job-storage.js](pack-job-storage.js).
+- Bounded atomic attempt claims and signed response storage through [pack-job-storage.js](../../apps/poolday/infrastructure/pack-job-storage.js).
 
 ## Invariants
 - Audit, replay, and rollback records cannot silently rewrite the events they describe.

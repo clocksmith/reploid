@@ -17,7 +17,7 @@ vi.mock('../../shared/config/doppler-local-models.js', async importOriginal => {
     files: base.source.files.filter(file => file.role !== 'model-piece-index') } };
   return { ...actual, LOCAL_DOPPLER_MODELS: [...actual.LOCAL_DOPPLER_MODELS, wholeRequest] };
 });
-import { createWorkSwarm } from '../../self/host/work-swarm.js';
+import { createWorkSwarm } from '../../apps/poolday/host/work-swarm.js';
 import { LOCAL_DOPPLER_MODELS } from '../../shared/config/doppler-local-models.js';
 const wholeModelIdentity = LOCAL_DOPPLER_MODELS.find(model => model.id === 'whole-model-lifecycle-fixture').identity;
 

@@ -2,7 +2,7 @@
 // account's balance, journal, top-ups, spending limit and last quote rendered from its state.
 import { describe, expect, it, vi } from 'vitest';
 
-import { bindAccountPanel, renderAccountPanel } from '../../self/ui/pool-home/account-panel.js';
+import { bindAccountPanel, renderAccountPanel } from '../../apps/poolday/ui/pool-home/account-panel.js';
 
 const store = (initial) => {
   let state = initial;

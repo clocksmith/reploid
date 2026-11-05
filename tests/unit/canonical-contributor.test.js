@@ -13,7 +13,7 @@ vi.mock('doppler-gpu/partitions', () => ({ canonicalGenerationIdentity: ports.ge
 vi.mock('../../packages/reploid/src/mesh/index.js', async original => ({ ...await original(),
   createResidentPartition: ports.resident, createPartitionStageCommitAuthority: ports.signer }));
 import { openNativePartition } from '../../server/native-participant.js';
-import { loadWorkPartition } from '../../self/host/work-partitions.js';
+import { loadWorkPartition } from '../../apps/poolday/host/work-partitions.js';
 let files, resident, signer;
 const selected = { id: 'fixture', identity: 'sha256:' + 'a'.repeat(64), partitionSplitLayer: 2,
   canonicalGeneration: { policy: { explicit: true }, executionIdentity: 'execution' } };

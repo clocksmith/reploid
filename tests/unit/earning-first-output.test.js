@@ -3,7 +3,7 @@
 // a recording double; the route is a stand-in for the ordered requester port.
 import { describe, expect, it } from 'vitest';
 
-import { createEarningAttempts } from '../../self/host/earning/attempts.js';
+import { createEarningAttempts } from '../../apps/poolday/host/earning/attempts.js';
 
 const storage = () => {
   const map = new Map();

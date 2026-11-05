@@ -1,5 +1,5 @@
 import { expect, it, vi } from 'vitest';
-import { createContributionHistory, CONTRIBUTION_HISTORY_KEY } from '../../self/host/contribution-history.js';
+import { createContributionHistory, CONTRIBUTION_HISTORY_KEY } from '../../apps/poolday/host/contribution-history.js';
 
 const completion = { modelId: 'model', modelIdentity: 'sha256:fixture', outputTokens: 7 };
 const memory = () => {

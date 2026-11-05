@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import createPoolRouter from '../../server/pool/routes.js';
 import { createPoolStore } from '../../server/pool/store.js';
-import { createProviderClient } from '../../self/pool/provider-client.js';
-import { createRequesterClient } from '../../self/pool/requester-client.js';
+import { createProviderClient } from '../../apps/poolday/pool/provider-client.js';
+import { createRequesterClient } from '../../apps/poolday/pool/requester-client.js';
 import {
   buildLaunchProviderModel,
   LAUNCH_MODEL
@@ -22,7 +22,7 @@ import {
 import {
   buildRuntimeProfile,
   hashRuntimeProfile
-} from '../../self/pool/runtime-profile.js';
+} from '../../apps/poolday/pool/runtime-profile.js';
 import {
   TEST_PUBLIC_PROTEIN_SEQUENCE,
   makePublicProteinJobFields,

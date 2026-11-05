@@ -1,7 +1,7 @@
 import { expect, it, vi } from 'vitest';
-import { createDocumentAssistant } from '../../self/pool/document-delegation.js';
-import { createLocalPackExecutor } from '../../self/pool/local-pack-executor.js';
-import { createPackProviderAdvert, packPeerModel } from '../../self/pool/peer-pack-job.js';
+import { createDocumentAssistant } from '../../apps/poolday/pool/document-delegation.js';
+import { createLocalPackExecutor } from '../../apps/poolday/pool/local-pack-executor.js';
+import { createPackProviderAdvert, packPeerModel } from '../../apps/poolday/pool/peer-pack-job.js';
 import { createDocumentPackFixture } from '../fixtures/document-packs.js';
 import { operationCapabilities, operationResources, packPeerIdentity } from '../fixtures/peer-pack-operation.js';
 import config from '../../shared/pool/pool-config.json' with { type: 'json' };

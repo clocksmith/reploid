@@ -6,7 +6,7 @@ import {
   acceptanceSigningPayload, buildAcceptanceSummary, countersignReceipt, createSigningKeyPair,
   exportPublicKey, hashJson, verifyCanonicalSignature, SIGNATURE_DOMAINS
 } from '../../shared/pool/inference-receipt.js';
-import { createRequesterClient } from '../../self/pool/requester-client.js';
+import { createRequesterClient } from '../../apps/poolday/pool/requester-client.js';
 
 const fixture = () => {
   const job = { jobId: 'job', requesterId: 'requester', assignmentAttemptId: 3, ringAttemptId: 'ring3',

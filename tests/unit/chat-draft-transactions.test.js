@@ -1,5 +1,5 @@
 import { it, expect } from 'vitest';
-import { createChatDrafts } from '../../self/host/chat-drafts.js';
+import { createChatDrafts } from '../../apps/poolday/host/chat-drafts.js';
 const options = { key: 'drafts', maxThreads: 4, maxCharacters: 100, maxFiles: 2, maxFileBytes: 100, maxInputBytes: 100 };
 it('keeps queued drafts invisible until persisted and merges concurrent thread writes', async () => {
   let release, began;

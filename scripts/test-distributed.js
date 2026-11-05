@@ -145,7 +145,7 @@ const memory = [];
 // with files that a developer may change while diagnosing its failure.
 const [packageIdentity, bundle, profile, policy] = await Promise.all([
   'doppler-package.json', 'browser-bundle-manifest.json', 'work-profile.json', 'partition-policy.json'
-].map(async file => JSON.parse(await readFile(resolve(root, 'self/config', file)))));
+].map(async file => JSON.parse(await readFile(resolveServedFile('config/' + file)))));
 const browserIdentity = bundle.bundleHash;
 try {
   const stored = await readFile(referenceSource);

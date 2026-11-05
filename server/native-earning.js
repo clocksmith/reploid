@@ -22,8 +22,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 import { hashDopplerEvidence } from '../shared/pool/executable-pack.js';
-import { EARNING_CLIENT_SCHEMA, createEarningClient, readEarningClientConfig } from '../self/host/earning/client.js';
-import { createEarningContribution } from '../self/host/earning/contribution.js';
+import { EARNING_CLIENT_SCHEMA, createEarningClient, readEarningClientConfig } from '../apps/poolday/host/earning/client.js';
+import { createEarningContribution } from '../apps/poolday/host/earning/contribution.js';
 
 export const NATIVE_EARNING_SCHEMA = 'reploid.native-earning/v1';
 const STAGE_SHARE = 'demanded_inference';
