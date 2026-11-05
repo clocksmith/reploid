@@ -114,11 +114,13 @@ it('puts usable shared models above the composer and collapsed contribution belo
   expect(composer.compareDocumentPosition(device) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   expect(device.open).toBe(false);
   expect(document.querySelector('[data-production-summary-status]').textContent).toBe('Not set up');
-  // The chooser is a heading, one status line and the rows; facts, limits and execution location are read in the picker.
-  expect(shared.querySelector('[data-model-facts]')).toBeNull();
+  // The chooser is a heading, one status line and the rows; routes, providers, limits and execution location are read in the picker.
+  expect(shared.querySelector('[data-model-providers]')).toBeNull();
   expect(shared.querySelector('[data-execution-location]')).toBeNull();
   expect(shared.querySelector('button:not([data-production-use])')).toBeNull();
-  expect(document.querySelector('[data-model-picker] [data-model-facts]')).not.toBeNull();
+  // Weights, context and availability are read once, on each choice; the picker repeats none of them below the list.
+  expect(document.querySelector('[data-model-facts]')).toBeNull();
+  expect(document.querySelector('[data-model-picker] [data-model-providers]')).not.toBeNull();
   expect(document.querySelector('[data-model-picker] [data-execution-location]')).not.toBeNull();
   const input = document.querySelector('[data-composer-input]');
   input.value = 'Draft question';
@@ -145,6 +147,19 @@ it('removes departed shared models and hides the shared chooser when a thread is
   expect(document.querySelector('[data-production-use]')).toBeNull();
   snapshot.activeThread = { id: 'thread-1', model, messages: [], attempts: [] }; update(snapshot);
   expect(document.querySelector('[data-production-shared]').hidden).toBe(true); detach();
+});
+
+it('shows one shared row per exact model variant, using its ready route', () => {
+  const route = { ...model, selectionId: 'm/route', networkAvailability: 'ready', partition: { planId: 'plan' } };
+  const snapshot = { models: [{ ...model, networkAvailability: 'unavailable' }, route], network: {} }; let update;
+  const session = { getState: () => snapshot, subscribe(fn) { update = fn; fn(snapshot); return () => {}; } };
+  const detach = bindProductionSurface(document.body, session);
+  expect([...document.querySelectorAll('[data-production-use]')].map(node => node.dataset.productionUse)).toEqual(['m/route']);
+  expect(document.querySelector('[data-production-network-status]').textContent).toBe('1 shared model');
+  // With the whole model ready too, the same row stands for both routes and prefers the whole model.
+  snapshot.models = [model, route]; update(snapshot);
+  expect([...document.querySelectorAll('[data-production-use]')].map(node => node.dataset.productionUse)).toEqual(['m']);
+  expect(document.querySelector('[data-production-network-status]').textContent).toBe('1 shared model'); detach();
 });
 
 it('loads model sizes without starting work and confirms the exact selected model', async () => {

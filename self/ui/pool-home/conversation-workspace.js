@@ -14,6 +14,7 @@ import { createMessageList } from './message-list.js';
 import { renderHistoryHandover, bindHistoryHandover } from './history-handover-view.js';
 import { createAutoDownload, updateAutoDownloadSetting } from './auto-download.js';
 import { renderSharedModelChooser, renderProductionContribution, bindProductionControls } from './contribution-models.js';
+import { renderModelProviders, updateModelProviders } from './model-providers.js';
 
 const busyAcquisition = state => state.acquisition?.phase === 'downloading';
 const selectable = model => ['ready', 'busy', 'cached', 'loading', 'preparing'].includes(model.availability);
@@ -26,8 +27,9 @@ const startingPrompts = [
 /** The selected model's value port. The picker's choices and the chooser's rows set it; nothing renders it. */
 const renderModelControl = () => '<span data-model-control><select class="pool-input pool-glass chat-model-value" id="chat-model" data-active-model-select aria-label="Model"></select></span>';
 
-/** Declared facts for the highlighted model, its answer limit and where the answer runs. One place: the picker. */
-const renderModelSelectionDetails = () => `<div class="pool-stack pool-gap-xs" data-model-selection-details><dl class="chat-model-facts pool-small" data-model-facts hidden></dl><p class="pool-small pool-muted" data-answer-limit hidden></p><div class="chat-execution-location" data-execution-location role="group" aria-label="Execution location"><button class="pool-button btn-ghost" type="button" data-execution-choice="auto" aria-pressed="true">Automatic</button><button class="pool-button btn-ghost" type="button" data-execution-choice="local" aria-pressed="false">This device</button><button class="pool-button btn-ghost" type="button" data-execution-choice="network" aria-pressed="false">Network</button></div></div>`;
+/** The highlighted variant's routes and providers, its answer limit and where the answer runs. One place: the picker.
+ * Declared weights, context and availability are read once, on the variant's own choice. */
+const renderModelSelectionDetails = () => `<div class="pool-stack pool-gap-xs" data-model-selection-details>${renderModelProviders()}<p class="pool-small pool-muted" data-answer-limit hidden></p><div class="chat-execution-location" data-execution-location role="group" aria-label="Execution location"><button class="pool-button btn-ghost" type="button" data-execution-choice="auto" aria-pressed="true">Automatic</button><button class="pool-button btn-ghost" type="button" data-execution-choice="local" aria-pressed="false">This device</button><button class="pool-button btn-ghost" type="button" data-execution-choice="network" aria-pressed="false">Network</button></div></div>`;
 
 export function renderConversationWorkspace({ inspector = true, compact = false } = {}) {
   return `<section class="reploid-chat-workspace" data-chat-workspace ${compact ? 'data-compact' : ''} aria-label="Conversation workspace">
@@ -63,7 +65,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
       <div class="chat-transcript chat-message-stream" data-chat-transcript data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
       ${renderSharedModelChooser()}
       <div class="chat-starting-prompts" data-starting-prompts role="group" aria-label="Movie and show suggestions" hidden>
-        ${startingPrompts.map(prompt => `<button class="pool-button btn-ghost" type="button" data-starting-prompt>${escape(prompt)}</button>`).join('')}
+        ${startingPrompts.map(prompt => `<button class="pool-button" type="button" data-starting-prompt>${escape(prompt)}</button>`).join('')}
       </div>
       <p class="chat-error pool-well" role="alert" data-chat-error hidden></p>
       ${renderHistoryHandover()}
@@ -110,6 +112,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const controller = new AbortController(), options = { signal: controller.signal };
   const input = find('[data-composer-input]'), modelSelect = find('[data-active-model-select]');
   const nextModelChoices = bindModelChoices(find('[data-next-model]'));
+  // The highlighted variant's routes and providers sit directly beneath its choice.
+  const providers = find('[data-model-picker] [data-model-providers]'), selectionDetails = find('[data-model-picker] [data-model-selection-details]');
+  const placeProviders = () => {
+    const anchor = nextModelChoices.checkedChoice();
+    if (anchor) { if (anchor.nextElementSibling !== providers) anchor.after(providers); }
+    else if (providers.parentElement !== selectionDetails) selectionDetails.prepend(providers);
+  };
   const inspector = sharedInspector || bindNetworkInspector(container, session, { getInviteUrl, webSearch, search });
   let archived = false, renameId = null, chosenModel = viewState.chosenModel || null, pickerModel = null;
   let changingModel = false;
@@ -219,7 +228,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       || (state.runningIds || []).includes(thread?.id) || state.comparisonPhase || input.value.trim() || files.length);
   };
   const showFiles = () => { refreshStartingPrompts(); resizeInput(); renderAttachments(find('[data-attachments-preview]'), files); find('[data-attachment-help]').hidden = !files.length; };
-  const updatePicker = state => {
+  const updatePicker = snapshot => {
+    const state = snapshot.computerLabels ? snapshot : withComputerLabels(snapshot, session);
     const keyFor = model => model?.selectionId || model?.id;
     const models = [...(state.models || [])];
     const selected = (state.models || []).find(model => keyFor(model) === keyFor(pickerModel));
@@ -230,7 +240,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       && (state.activeThread?.permissions?.executionLocation ?? executionLocation) !== 'local';
     find('[data-next-model]').disabled = changingModel;
     updateModelSelect(find('[data-next-model]'), models, { value: keyFor(pickerModel), showAvailability: true, grouped: true, preferNetwork });
-    nextModelChoices.update(models, { grouped: true, preferNetwork });
+    nextModelChoices.update(models, { grouped: true, preferNetwork, variants: true });
+    // One entry per exact model/adapter variant; its whole-model and distributed routes and their providers sit below it.
+    updateModelProviders(find('[data-model-picker]'), state, selected || pickerModel, { selectedId: keyFor(pickerModel), disabled: changingModel });
+    placeProviders();
     const available = selected && selectable(selected);
     find('[data-change-model]').disabled = changingModel || !available;
     const status = find('[data-next-model-status]');
@@ -280,19 +293,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       || catalogModels.find(model => keyFor(model) === current)
       || catalogModels.find(model => keyFor(model) === keyFor(state.defaultModel))
       || catalogModels[0];
-    const catalogModel = catalogModels.find(model => keyFor(model) === keyFor(requestedModel)) || requestedModel;
-    const facts = [
-      ['Weights', catalogModel?.quantization?.toUpperCase()],
-      ['Advertised context', Number.isSafeInteger(catalogModel?.contextLength) && catalogModel.contextLength > 0
-        ? `${catalogModel.contextLength.toLocaleString()} tokens` : null],
-      ['Availability', catalogModel?.availability],
-      ['Execution', catalogModel ? catalogModel.partition ? 'Layer partitioning' : 'Whole model' : null],
-      ['Active adapters', requestedModel?.adapters?.length ? requestedModel.adapters.length : null]
-    ].filter(([, value]) => value != null && value !== '');
-    const modelFacts = find('[data-model-facts]');
-    const factMarkup = facts.map(([label, value]) => `<div><dt class="pool-muted">${escape(label)}</dt><dd>${escape(value)}</dd></div>`).join('');
-    modelFacts.hidden = !facts.length;
-    if (modelFacts.dataset.markup !== factMarkup) { modelFacts.innerHTML = factMarkup; modelFacts.dataset.markup = factMarkup; }
     const remotePreparing = (state.network?.partitionPeers || []).some(peer => peer.available
       && peer.description?.phase === 'loading' && catalogModels.some(model => model.id === peer.description.offer?.id
         && model.identity === peer.description.offer?.identity)
@@ -464,6 +464,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   for (const selector of ['[data-open-model]', '[data-open-limits]', '[data-composer-status]']) on(selector, 'click', openPicker);
   on('[data-model-picker-close]', 'click', () => picker.close());
   on('[data-model-picker]', 'close', () => render(session.getState()));
+  // A route radio under the providers selects that route of the highlighted variant.
+  on('[data-model-picker]', 'change', event => {
+    const route = event.target.closest?.('[data-model-route-choice]');
+    if (!route || route.disabled) return;
+    const next = find('[data-next-model]');
+    next.value = route.value; next.dispatchEvent(new Event('change', { bubbles: true }));
+  });
   on('[data-next-model]', 'change', () => {
     pickerModel = (session.getState().models || []).find(model => (model.selectionId || model.id) === find('[data-next-model]').value) || pickerModel;
     updatePicker(session.getState());
@@ -657,7 +664,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   return () => {
     try { observe(saveDraft()); } catch (cause) { error(cause); }
     inputResize?.disconnect();
-    nextModelChoices.dispose();
+    selectionDetails.prepend(providers); nextModelChoices.dispose();
     production.dispose();
     detachInspector?.();
     messages.dispose(); threads.dispose(); actionsPanel.dispose(); threadsDialog.dispose(); picker.dispose(); renameDialog.dispose();

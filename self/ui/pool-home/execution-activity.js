@@ -1,4 +1,4 @@
-import { projectExecutionRibbon } from './execution-ribbon.js';
+import { projectExecutionRibbon, RECORDED_GPU_TITLE } from './execution-ribbon.js';
 import { escapeHtml as escape } from '../components/attachments.js';
 import { interfaceIcon } from '../components/interface-icons.js';
 
@@ -95,7 +95,7 @@ export function updateExecutionActivity(root, state) {
   if (Number.isSafeInteger(view.activationBytes) && view.activationBytes >= 0) facts.push(['Activation data', `${view.activationBytes.toLocaleString()} bytes`]);
   // A hosted or unreported executor has no computers to list; only its supply label is shown.
   const markup = `<p>${escape(summary)}</p>` + (!view.nodes.length ? '' : (measured && view.split ? `<div class="chat-distribution pool-bar" role="img" aria-label="Recorded step time share: ${escape(view.nodes.map(node => `${node.label} ${Math.round(node.share * 100)}%`).join(', '))}">${view.nodes.map(node => `<span style="--pool-param-share: ${node.share}"></span>`).join('')}</div>` : '')
-    + `<ul>${view.nodes.map(node => `<li><span>${escape(node.label)}${view.split ? ` · ${escape(node.layers)}` : ''}</span><span>${measured && view.split ? `${Math.round(node.share * 100)}% · ` : ''}${node.speed === null ? view.split ? 'Timing not recorded' : escape(node.layers) : `${node.speed.toFixed(1)} ${view.split ? 'steps/s' : 'tok/s'}`}</span></li>`).join('')}</ul>`
+    + `<ul>${view.nodes.map(node => `<li><span>${escape(node.label)}${view.split ? ` · ${escape(node.layers)}` : ''}</span><span>${measured && view.split ? `${Math.round(node.share * 100)}% · ` : ''}${node.speed === null ? view.split ? 'Timing not recorded' : escape(node.layers) : `${node.speed.toFixed(1)} ${view.split ? 'steps/s' : 'tok/s'}`}</span>${node.recordedGpu ? `<small class="pool-muted" data-recorded-hardware title="${escape(RECORDED_GPU_TITLE)}">${escape(node.recordedGpu)}</small>` : ''}</li>`).join('')}</ul>`
     + (measured && !view.split ? '<small>Generation average · includes prompt processing</small>' : measured ? '<small title="Includes runtime and transport overhead, not GPU-only speed or completion progress.">Step-time share · includes overhead</small>' : `<small>${view.active ? 'Timing pending' : 'Timing not recorded'}</small>`))
     + (supply.attempt ? `<small data-attempt-supply>This attempt: ${escape(supply.attempt)}</small>` : '')
     + (facts.length ? `<dl class="chat-execution-facts">${facts.map(([label, value]) => `<div><dt>${escape(label)}</dt><dd>${escape(value)}</dd></div>`).join('')}</dl>` : '')

@@ -302,12 +302,20 @@
 .chat-execution-activity { min-width: 0; max-width: 100%; }
 .chat-execution-activity ul { display: grid; gap: var(--pool-size-8); padding: 0; margin: 0; list-style: none; }
 .chat-execution-activity li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--pool-size-4) var(--pool-size-16); }
+.chat-execution-activity li > [data-recorded-hardware] { flex-basis: 100%; overflow-wrap: anywhere; }
 .chat-execution-facts { display: flex; flex-direction: column; gap: var(--pool-size-8); margin: 0; }
 .chat-execution-facts > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--pool-size-4) var(--pool-size-16); }
 .chat-execution-facts dd { margin: 0; }
-.chat-model-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(var(--pool-size-160), 1fr)); gap: var(--pool-size-24); margin: var(--pool-size-8) 0; }
-.chat-model-facts > div { display: flex; flex-direction: column; gap: var(--pool-size-4); min-width: 0; }
-.chat-model-facts dd { margin: 0; overflow-wrap: anywhere; }
+/* A variant's routes, each with its computers and their reported GPUs. */
+.chat-model-providers [data-provider-list] { margin-top: var(--pool-size-8); }
+.pool-home .chat-model-setup .chat-model-route-heading { display: flex; align-items: center; gap: var(--pool-size-8); min-height: var(--pool-size-44); }
+.chat-model-route-heading > .pool-muted { margin-left: auto; text-align: end; }
+.chat-model-route-heading input { flex: none; margin: 0; }
+label.chat-model-route-heading { cursor: pointer; }
+.chat-model-route-people { display: grid; gap: var(--pool-size-8); margin: 0; padding: 0 0 0 var(--pool-size-24); list-style: none; }
+.chat-model-route-people > li { display: grid; gap: var(--pool-size-2); min-width: 0; }
+.chat-model-route-people small { overflow-wrap: anywhere; }
+.chat-model-route > p { margin: 0; padding-left: var(--pool-size-24); }
 .network-inspector :is([data-inspector-error], [data-network-message]) { margin-top: var(--pool-size-24); }
 .chat-distribution { display: flex; gap: var(--pool-size-2); height: var(--pool-size-8); overflow: hidden; margin-top: var(--pool-size-8); }
 .pool-home .pool-power-tower { display: inline-flex; align-items: center; justify-content: center; width: max-content; height: var(--pool-size-32); gap: var(--pool-size-2); }

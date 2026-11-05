@@ -1,5 +1,6 @@
 /** Host-selected compatibility providers. Signed Pack providers remain separate. */
 import profile from '../config/work-profile.json' with { type: 'json' };
+import { publicProviderHardware } from '../vendor/reploid/mesh/provider-hardware.js';
 import { consumeWorkGenerationStream, readWorkGenerationCompletion, readWorkGenerationTiming } from './work-generation-completion.js';
 const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
 
@@ -73,6 +74,7 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
   };
   return Object.freeze({
     getIdentity: executionIdentity,
+    getHardware: () => publicProviderHardware(session?.deviceInfo),
     isReady: () => healthy && session?.loaded === true,
     reset,
     async prepareAdapters(adapters) {
@@ -166,7 +168,7 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
       combined.throwIfAborted();
       requireValue(text.trim() || completion?.stopReason === 'max-tokens', 'Provider returned no text');
       return { content: text, raw: text, requestedModel: model.id, model: actualModel,
-        ...(session ? { ...actualIdentity, completion, timing } : {}),
+        ...(session ? { ...actualIdentity, completion, timing, hardware: publicProviderHardware(session.deviceInfo) } : {}),
         provider: model.provider, execution: session ? 'local-scoped-session' : 'cloud-proxy-session' };
     }
   });

@@ -4,6 +4,7 @@ import { createWorkResidentProvider } from '../providers/work-resident-provider.
 import { createWorkAdapterResolver } from '../providers/work-adapter.js';
 import { createWorkNetworkProvider } from '../providers/work-network-provider.js';
 import { readWorkGenerationCompletion } from '../providers/work-generation-completion.js';
+import { publicProviderHardware } from '../vendor/reploid/mesh/provider-hardware.js';
 
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 
@@ -14,7 +15,7 @@ function chatResult({ threadId, attemptId }, result, placement) {
     adapterIdentities: result.adapterIdentities, content: result.content,
     execution: { ...placement, modelId: result.model, modelIdentity: result.modelIdentity,
       adapterIdentities: result.adapterIdentities, completion, stopReason: completion?.stopReason ?? null,
-      timing: result.timing ?? null } };
+      timing: result.timing ?? null, hardware: publicProviderHardware(result.hardware) } };
 }
 
 export function createChatExecution({ service, swarm, partitions, scheduler, models, getModels, profile, earning = null, resolveLocalSource, isCached = () => false, onChange = () => {} }) {

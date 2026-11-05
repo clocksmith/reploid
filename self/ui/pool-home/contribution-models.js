@@ -3,7 +3,7 @@ import { interfaceIcon } from '../components/interface-icons.js';
 import { bindDialog } from '../components/dialog.js';
 import { preparationStatus } from './model-preparation.js';
 import { bindMathematicalBackground } from '../components/mathematical-background.js';
-import { modelChoiceGroups } from '../components/model-select.js';
+import { modelChoiceGroups, modelVariants, modelVariantLabel } from '../components/model-select.js';
 
 const number = value => Number.isFinite(value) && value >= 0 ? value.toLocaleString() : '—';
 const bytes = value => Number.isFinite(value) && value >= 0
@@ -183,29 +183,35 @@ export function bindProductionControls(container, session, { inspector, onSelect
     find('[data-production-file-metric]').hidden = !state.network?.files?.enabled && !(last.suppliedBytes > 0);
     find('[data-production-local]').hidden = last.local.length === 0 || last.phase === 'loading';
     find('[data-production-local]').innerHTML = last.local.map(model => `<span>${escape(model.name || model.id)} · ${model.localReady || state.network?.contribution?.ready && model.id === state.network.contribution.modelId ? 'Prepared' : 'Downloaded'}</span>`).join('');
+    // One row per exact model/adapter variant; the picker lists its routes and providers.
+    const selectedId = getSelectedModelId?.();
+    const variants = modelVariants(state.models || [], { value: selectedId });
+    const byModel = new Map(variants.map(variant => [variant.model, variant]));
+    const shared = (modelChoiceGroups(variants.map(variant => variant.model)).find(group => group.id === 'shared')?.models || [])
+      .map(model => byModel.get(model));
+    const usable = shared.filter(variant => ['ready', 'busy'].includes(variant.model.networkAvailability)).length;
     const connection = state.network?.consumer?.connectionState;
     text('[data-production-network-status]', state.network?.error || (state.network?.paused ? 'Disconnected'
       : state.network?.connecting || ['connecting', 'retrying'].includes(connection) ? 'Finding computers…'
-      : last.available.length ? `${last.available.length} shared ${last.available.length === 1 ? 'model' : 'models'}`
+      : usable ? `${usable} shared ${usable === 1 ? 'model' : 'models'}`
       : 'Waiting for shared models. You can also run a model on this device.'));
-    const shared = modelChoiceGroups(state.models || []).find(group => group.id === 'shared')?.models || [];
-    const ids = new Set(shared.map(model => model.selectionId || model.id));
-    for (const [id, row] of sharedRows) if (!ids.has(id)) { row.remove(); sharedRows.delete(id); }
-    const selectedId = getSelectedModelId?.();
-    shared.forEach((model, index) => {
-      const id = model.selectionId || model.id;
-      let row = sharedRows.get(id);
+    const keys = new Set(shared.map(variant => variant.key));
+    for (const [key, row] of sharedRows) if (!keys.has(key)) { row.remove(); sharedRows.delete(key); }
+    shared.forEach((variant, index) => {
+      const { model } = variant;
+      let row = sharedRows.get(variant.key);
       if (!row) {
         row = document.createElement('li');
         row.innerHTML = '<button type="button" class="chat-model-choice pool-button pool-choice pool-row-between"><span><span data-shared-model-name></span><small class="pool-muted" data-shared-model-status></small></span><span class="pool-caption">Use model</span></button>';
-        row.firstElementChild.dataset.productionUse = id;
-        sharedRows.set(id, row);
+        sharedRows.set(variant.key, row);
       }
-      row.querySelector('[data-shared-model-name]').textContent = model.name || model.id;
+      const chosen = variant.routes.find(route => (route.selectionId || route.id) === variant.value) || model;
+      row.firstElementChild.dataset.productionUse = ['ready', 'busy'].includes(chosen.networkAvailability) ? variant.value : model.selectionId || model.id;
+      row.querySelector('[data-shared-model-name]').textContent = modelVariantLabel(model) || model.id;
       row.querySelector('[data-shared-model-status]').textContent = model.networkAvailability === 'ready' ? 'Ready'
         : model.networkAvailability === 'busy' ? 'Busy · waits for capacity' : 'Preparing';
       row.firstElementChild.disabled = !['ready', 'busy'].includes(model.networkAvailability);
-      row.firstElementChild.setAttribute('aria-pressed', String(id === selectedId));
+      row.firstElementChild.setAttribute('aria-pressed', String(variant.ids.includes(selectedId)));
       const list = find('[data-production-available]');
       if (list.children[index] !== row) list.insertBefore(row, list.children[index] || null);
     });

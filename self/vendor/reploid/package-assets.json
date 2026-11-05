@@ -548,7 +548,7 @@
     {
       "path": "contracts/doppler-partitions.provenance.json",
       "bytes": 1666,
-      "sha256": "ad91727b6a7a22cc9a96eaa901b9c97378e29725c7d85d4b749e8b36afc8d5fe"
+      "sha256": "fd558f9bee50a25bc298eda10fc1f8abae635d1b76564a63762f1ea4774c2bfe"
     },
     {
       "path": "contracts/host-ports.d.ts",
@@ -777,13 +777,13 @@
     },
     {
       "path": "mesh/legacy-generation.d.ts",
-      "bytes": 2137,
-      "sha256": "cfb786c8e4f3d7a1c0d30df45b6f7df3ff7794bdb96198bac4dc869b26583ae8"
+      "bytes": 2206,
+      "sha256": "ff72e014b5df804b03d9092adf75935059599daf0ad2e4e687aeeab8f10fec7b"
     },
     {
       "path": "mesh/legacy-generation.js",
-      "bytes": 28913,
-      "sha256": "e4424baddc4d3f7be0ba9cd36ea3f90b8f9bdee082162ecc127addaaeea781af"
+      "bytes": 29122,
+      "sha256": "4a948db452c7796b75ecc00f2eb5640192eec5aff1d7fd1a7f087058d51198ec"
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.d.ts",
@@ -1174,6 +1174,16 @@
       "path": "mesh/preparation-progress.js",
       "bytes": 2668,
       "sha256": "e96c88f01937c04990a4519e7ee67b4c033e51dc9e83026d4821d3f0d6410edd"
+    },
+    {
+      "path": "mesh/provider-hardware.d.ts",
+      "bytes": 191,
+      "sha256": "26cf75a233c93d5b9b9689725298312985157d40e574117e5c30927fc07d6d6f"
+    },
+    {
+      "path": "mesh/provider-hardware.js",
+      "bytes": 540,
+      "sha256": "a1826bad43e22c0b71b17b59db6bee5d9b33fed78f4719c7aabc171269c4321f"
     },
     {
       "path": "mesh/remote-generation-requests.js",

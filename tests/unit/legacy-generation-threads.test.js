@@ -3,7 +3,7 @@ import { createLegacyGenerationMesh } from '../../packages/reploid/src/mesh/lega
 import { resolveConfig } from '../../packages/reploid/src/config/index.js';
 
 function fixture(meshOverrides = {}, execution = {}) {
-  const handlers = new Map(), listeners = new Map(), sent = [];
+  const handlers = new Map(), listeners = new Map(), sent = [], broadcasts = [];
   const events = {
     on(name, fn) { if (!listeners.has(name)) listeners.set(name, new Set()); listeners.get(name).add(fn); return () => listeners.get(name).delete(fn); },
     emit(name, value) { for (const fn of listeners.get(name) || []) fn(value); }
@@ -14,7 +14,7 @@ function fixture(meshOverrides = {}, execution = {}) {
     getExecutionState: execution.getExecutionState, generate: execution.generate || (async () => {}),
     utils: { generateId: () => crypto.randomUUID() }, events, eventBus: events,
     identity: { ensure: async () => ({ peerId: 'requester' }), sync: async () => {}, save: async () => {} },
-    createTransport: () => ({ init: async () => true, disconnect() {}, broadcast() {},
+    createTransport: () => ({ init: async () => true, disconnect() {}, broadcast(name, payload) { broadcasts.push({ name, payload }); },
       onMessage(name, fn) { handlers.set(name, fn); },
       sendToPeer(peer, name, payload) { sent.push({ peer, name, payload }); return true; } })
   } });
@@ -22,9 +22,23 @@ function fixture(meshOverrides = {}, execution = {}) {
     { hasInference: true, swarmEnabled: true, readiness: 'ready', availableSlots: 1, model, updatedAt: Date.now(), ...overrides });
   const respond = (request, model = request.payload.model) => handlers.get('reploid:generation-result')(request.peer,
     { requestId: request.payload.requestId, response: { model, content: 'response' } });
-  return { mesh, sent, advertise, respond, authorize, events, handlers,
+  return { mesh, sent, broadcasts, advertise, respond, authorize, events, handlers,
     update: (request, chunk) => handlers.get('reploid:generation-update')(request.peer, { requestId: request.payload.requestId, chunk }) };
 }
+
+it('transports bounded reported GPU metadata and clears it when a peer no longer reports it', async () => {
+  const f = fixture({}, { getExecutionState: () => ({ phase: 'ready', modelIdentity: 'fixture',
+    hardware: { vendor: 'AMD', description: 'GPU', hostname: 'private-host' } }) });
+  await f.mesh.connect();
+  try {
+    f.mesh.refreshAdvertisement();
+    expect(f.broadcasts.at(-1).payload.hardware).toEqual({ vendor: 'AMD', description: 'GPU' });
+    f.advertise('remote', 'qwen', { hardware: { vendor: 'Intel', description: 'GPU', hostname: 'private-host' }, updatedAt: 100 });
+    expect(f.mesh.getSwarmSnapshot().peers[0].hardware).toEqual({ vendor: 'Intel', description: 'GPU' });
+    f.advertise('remote', 'qwen', { updatedAt: 101 });
+    expect(f.mesh.getSwarmSnapshot().peers[0].hardware).toBeNull();
+  } finally { await f.mesh.close(); }
+});
 
 it('reserves separate compatible peers during concurrent approval and binds host context without putting it on the wire', async () => {
   const f = fixture(); await f.mesh.connect();

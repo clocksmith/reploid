@@ -1,4 +1,5 @@
 import { publicPreparationProgress } from './preparation-progress.js';
+import { publicProviderHardware } from './provider-hardware.js';
 import { createRemoteGenerationRequests } from './remote-generation-requests.js';
 import { createMeshPeerIdentity } from './peer-identity.js';
 import { requireResolvedConfig, snapshotJson } from '../config/index.js';
@@ -144,6 +145,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
       failure: activity.error ? { phase: activity.phase, message: 'Model preparation or execution failed on this computer.' } : null } : null;
     advertisement.preparation = advertisement.readiness === 'loading' ? publicPreparationProgress(executionState().progress) : null;
     advertisement.modelIdentity = executionState().modelIdentity;
+    advertisement.hardware = publicProviderHardware(executionState().hardware);
     advertisement.adapterIdentities = executionState().adapterIdentities || [];
     advertisement.availableSlots = ready() ? Math.max(0, policy.mesh.maxInboundJobs - inbound.size) : 0;
     advertisement.modelContract = policy.models.contract;
@@ -225,6 +227,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
       next.readiness = ['loading', 'ready', 'executing', 'idle', 'failed', 'stopping'].includes(payload.readiness) ? payload.readiness : 'unavailable';
       next.preparation = next.readiness === 'loading' ? publicPreparationProgress(payload.preparation) : null;
       next.modelIdentity = payload.modelIdentity || null;
+      next.hardware = publicProviderHardware(payload.hardware);
       next.adapterIdentities = payload.adapterIdentities || [];
       next.availableSlots = Number.isSafeInteger(payload.availableSlots) && payload.availableSlots > 0 ? payload.availableSlots : 0;
       next.modelContract = payload.modelContract || null;

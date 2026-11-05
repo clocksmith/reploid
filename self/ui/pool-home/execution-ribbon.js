@@ -1,10 +1,17 @@
 import { computerLabel, withComputerLabels } from './computer-labels.js';
+import { publicProviderHardware } from '../../vendor/reploid/mesh/provider-hardware.js';
 /** Selected-attempt presentation only. Discovery never establishes an execution path. */
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const measured = value => Number.isFinite(value) && value >= 0;
 const ms = value => measured(value) ? `${Math.round(value)} ms` : 'Not reported';
 const sum = (steps, key) => steps?.length && steps.every(step => measured(step[key])) ? steps.reduce((n, step) => n + step[key], 0) : null;
 const terminal = new Set(['completed', 'failed', 'cancelled', 'interrupted']);
+/** Self-reported GPU text, or null when nothing usable was reported. Never an attestation. */
+export function hardwareText(value) {
+  const hardware = publicProviderHardware(value);
+  return hardware ? hardware.description || [...new Set([hardware.vendor, hardware.architecture, hardware.device].filter(Boolean))].join(' · ') : null;
+}
+export const RECORDED_GPU_TITLE = 'Reported by the computer that produced this answer and saved with it. Not verified.';
 const orderedTiming = (execution, index) => {
   const summary = execution?.stepSummary;
   if (summary) {
@@ -28,7 +35,11 @@ export function projectExecutionRibbon(state) {
   const ids = ordered ? ordered.stages.map(stage => stage.participantId) : local ? [requester] : split ? [execution.participantA, execution.participantB].filter(Boolean)
     : execution?.peerId ? [execution.peerId] : [];
   const layer = Number.isSafeInteger(execution?.splitLayer) ? execution.splitLayer : null;
-  const executors = ids.map((id, i) => ({ id, label: id === requester ? 'This device' : computerLabel(state, id),
+  // What ran, as saved with a completed answer; current providers are read in the model picker.
+  // A whole-model answer saves its executor's reported GPU; distributed stages save none.
+  const recorded = hardwareText(!split && ids.length === 1 ? execution?.hardware : null);
+  const recordedGpu = attempt?.status === 'completed' ? recorded ? `Recorded GPU · ${recorded}` : 'GPU not recorded' : null;
+  const executors = ids.map((id, i) => ({ id, label: id === requester ? 'This device' : computerLabel(state, id), recordedGpu,
     layers: ordered ? `Stage ${i + 1} of ${ids.length}` : split ? layer === null ? 'Not reported' : i === 0 ? `0–${layer - 1}` : `${layer} onward` : 'Whole model',
     contribution: ordered ? i === 0 ? 'Initial layers; relays output' : i === ids.length - 1 ? 'Final layers; produces output' : 'Intermediate layers'
       : split ? i === 0 ? 'Initial layers; relays output' : 'Final layers; produces output' : 'Whole-model execution',
@@ -85,7 +96,8 @@ export function detailMarkup(view) {
     <dt>Attempt duration</dt><dd>${ms(view.totalMs)}${view.totalMs === null && view.active ? ' · in progress' : ''}</dd>
     <dt>Activation transfer</dt><dd>${view.activationBytes === null ? 'Not reported' : `${view.activationBytes.toLocaleString()} bytes`} · ${ms(view.transferMs)}</dd></dl>
     ${executors.length ? `<ul>${executors.map(node => `<li><strong>${escape(node.label)}</strong><code>${escape(node.id)}</code><dl>
-      <dt>Assigned layers</dt><dd>${escape(node.layers)}</dd><dt>Contribution</dt><dd>${escape(node.contribution)}</dd>
+      <dt>Assigned layers</dt><dd>${escape(node.layers)}</dd><dt>Contribution</dt><dd>${escape(node.contribution)}</dd>${node.recordedGpu
+        ? `<dt>GPU</dt><dd title="${escape(RECORDED_GPU_TITLE)}">${escape(node.recordedGpu)}</dd>` : ''}
       <dt>${view.split ? 'Recorded step time' : 'Compute time'}</dt><dd>${ms(node.duration)}</dd></dl></li>`).join('')}</ul>` : '<p>No executing participant has been assigned to this attempt.</p>'}
     ${view.split ? '<p>Output returns through the first executor. Step times include runtime and transport overhead; they are not GPU-only measurements.</p>' : ''}
     ${!view.requesterExecutes && executors.length ? '<p>Receiving the answer does not require model weights on this device.</p>' : ''}

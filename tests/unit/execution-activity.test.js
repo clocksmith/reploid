@@ -133,3 +133,27 @@ it('shows completed whole-model timing and never leaves a finished answer pendin
   updateExecutionActivity(root, state);
   expect(root.textContent).toContain('Timing pending');
 });
+
+it('shows the GPU saved with a completed answer, never the providers reported now', () => {
+  const attempt = { id: 'attempt', status: 'executing', execution: { provider: 'peer', placement: 'peer-whole-request', peerId: 'peer',
+    hardware: { vendor: 'AMD', description: '<b>Recorded GPU</b>' } } };
+  // A provider now reporting different hardware does not change what this answer recorded.
+  const state = { activeThread: { id: 'thread', model: { name: 'Model' }, messages: [], attempts: [attempt] },
+    network: { consumer: { peers: [{ peerId: 'peer', hardware: { description: 'Current GPU' } }] } } };
+  const root = document.createElement('div');
+  root.innerHTML = '<button data-execution-trigger></button><div data-activity-detail></div>';
+  updateExecutionActivity(root, state);
+  expect(root.querySelector('[data-recorded-hardware]')).toBeNull();
+  attempt.status = 'completed';
+  updateExecutionActivity(root, state);
+  expect(root.querySelector('[data-recorded-hardware]').textContent).toBe('Recorded GPU · <b>Recorded GPU</b>');
+  expect(root.querySelector('b')).toBeNull();
+  expect(root.textContent).not.toContain('Current GPU');
+  delete attempt.execution.hardware;
+  updateExecutionActivity(root, state);
+  expect(root.querySelector('[data-recorded-hardware]').textContent).toBe('GPU not recorded');
+  // Distributed stages record no per-stage GPU, so none is attributed to them.
+  attempt.execution = { placement: 'two-device-layer-partition', participantA: 'A', participantB: 'B', hardware: { description: 'Requester GPU' } };
+  updateExecutionActivity(root, state);
+  expect([...root.querySelectorAll('[data-recorded-hardware]')].map(node => node.textContent)).toEqual(['GPU not recorded', 'GPU not recorded']);
+});

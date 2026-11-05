@@ -15,6 +15,7 @@ export function createWorkResidentProvider({ service, model, generation, maxOutc
   const getState = () => ({ phase, error, progress: structuredClone(progress), completed, production: { ...production },
     modelId: model.id, modelIdentity: identity?.modelIdentity || null,
     adapterIdentities: [...adapterIdentities],
+    hardware: adapter?.getHardware() || null,
     ready: !closed && !!adapter && adapter.isReady() && ['ready', 'executing'].includes(phase) });
   const notify = () => {
     try { onChange(getState()); } catch (cause) { console.error('[Resident] state observer failed', cause); }

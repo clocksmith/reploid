@@ -13,7 +13,7 @@ export interface LegacyGenerationMesh extends GenerationProvider {
 }
 export interface LegacyMeshPorts {
   instanceId: string; modelConfig: Record<string, unknown> | null; utils: SwarmOptions['Utils'];
-  getExecutionState?(): { phase: string; modelIdentity: string | null; adapterIdentities?: string[]; progress?: unknown };
+  getExecutionState?(): { phase: string; modelIdentity: string | null; adapterIdentities?: string[]; progress?: unknown; hardware?: import('./provider-hardware.js').ProviderHardware | null };
   authorize: Authorize; createTransport(): SwarmTransport; generate: GenerationProvider['generate'];
   transport?: SwarmTransport | null; forceFreshIdentity?: boolean;
   events: { emit(event: string, data: unknown): void; on(event: string, handler: (event: unknown) => void): () => void };

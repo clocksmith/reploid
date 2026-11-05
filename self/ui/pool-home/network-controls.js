@@ -124,7 +124,9 @@ export function projectNetworkPeers(state) {
     const prep = publicPreparationProgress(partition?.preparation || peer.preparation);
     const observedState = phase === 'loading' ? (['receiving', 'downloading', 'cached'].includes(prep?.kind) ? 'acquiring-files' : 'preparing-model')
       : phase || 'awaiting-advertisement';
-    peers.set(peer.peerId, { id: peer.peerId, model, phase, state: observedState, attemptId: connection?.attemptId || null,
+    peers.set(peer.peerId, { id: peer.peerId, model, modelId, executionType: partition ? 'partition' : 'whole-model',
+      adapterIdentities: peer.adapterIdentities || [], hardware: peer.hardware || null,
+      phase, state: observedState, attemptId: connection?.attemptId || null,
       authenticated: connection?.authenticated === true || !!capability?.available, modelIdentity: offered?.identity || peer.modelIdentity || null, connectionPhase: 'connected', partitionIndex: index, status, detail, progress });
   }
   return [...peers.values()];

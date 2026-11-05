@@ -19,6 +19,18 @@ const fixture = (overrides = {}, options = {}) => {
   return { owner, service, session };
 };
 
+it('reports the loaded session GPU without opening another device and clears it on retirement', async () => {
+  const f = fixture({ deviceInfo: { vendor: 'AMD', description: 'Reported GPU', hostname: 'private-host' } });
+  expect(f.owner.getState().hardware).toBeNull();
+  await f.owner.prepare();
+  expect(f.owner.getState().hardware).toEqual({ vendor: 'AMD', description: 'Reported GPU' });
+  const result = await f.owner.generate([{ content: 'hello' }], () => {}, { signal: signal() });
+  expect(result.hardware).toEqual(f.owner.getState().hardware);
+  expect(f.service.open).toHaveBeenCalledOnce();
+  await f.owner.close();
+  expect(f.owner.getState().hardware).toBeNull();
+});
+
 it('coalesces preparation and retirement while preserving a resident between requests', async () => {
   const f = fixture(); await Promise.all([f.owner.prepare(), f.owner.prepare()]);
   const results = await Promise.all(['A', 'B'].map(content => f.owner.generate([{ role: 'user', content }], () => {}, { signal: signal() })));

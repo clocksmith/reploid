@@ -135,6 +135,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
         return { phase: sharing && state?.ready ? 'ready' : state?.phase || 'idle',
           activity: { phase: state?.phase || 'idle', completed: state?.completed || 0, error: state?.error || null },
           progress: state?.progress || null,
+          hardware: state?.hardware || null,
           modelIdentity: state?.modelIdentity || null, adapterIdentities: state?.adapterIdentities || [] };
       },
       createTransport: () => {
