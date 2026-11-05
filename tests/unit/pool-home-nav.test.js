@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { LAB_SURFACE_IDS, SURFACE_INTENTS } from '../../self/config/surface-intents.js';
 import { bindPoolRouteControls } from '../../self/ui/pool-home/navigation.js';
+import { renderAppShortcuts } from '../../self/ui/pool-home/shell-view.js';
+import { renderNetworkInspector } from '../../self/ui/pool-home/network-inspector.js';
 
 import {
   POOLDAY_NAV_ROUTES,
@@ -45,7 +47,7 @@ describe('poolday home navigation', () => {
   });
   it('owns the execution ribbon in the app bar, outside the conversation', () => {
     const host = document.createElement('div');
-    host.innerHTML = renderNav('home') + renderRoutePanel('home');
+    host.innerHTML = renderNav('examples') + renderRoutePanel('examples');
     expect(host.querySelectorAll('[data-execution-ribbon]')).toHaveLength(1);
     const ribbon = host.querySelector('[data-execution-ribbon]');
     expect(ribbon.parentElement.classList.contains('pool-primary-nav')).toBe(true);
@@ -190,15 +192,20 @@ describe('poolday home navigation', () => {
   });
 
   it('keeps the workspace and its network and change controls reachable', () => {
-    const host = document.createElement('div'); host.innerHTML = renderNav('home');
-    const links = [...host.querySelectorAll('.pool-nav-link')];
+    // Home and the conversation render no app bar: the workspace toolbar carries the
+    // brand and the inspector's Settings pane carries the Settings menu.
+    expect(renderNav('home')).toBe(''); expect(renderNav('network')).toBe('');
+    const host = document.createElement('div');
+    host.innerHTML = renderNetworkInspector({ apps: renderAppShortcuts('home') }) + renderRoutePanel('home');
+    const links = [...host.querySelectorAll('[data-inspector-pane="settings"] .pool-nav-link')];
     expect(links.map(link => link.textContent)).toEqual(['Changes']);
     expect(links.map(link => new URL(link.href).pathname)).toEqual(['/improve']);
     expect(links.every(link => link.hasAttribute('data-pool-route-link'))).toBe(true);
-    expect(host.querySelector('.pool-primary-brand').getAttribute('href')).toBe('/');
-    expect(renderNav('network')).toContain('aria-label="Reploid home"');
-    host.insertAdjacentHTML('beforeend', renderRoutePanel('home'));
+    expect(host.querySelector('[data-inspector-pane="settings"] [data-open-network]')).toBeNull();
     expect(host.querySelector('[data-chat-workspace]')).not.toBeNull();
+    const brand = host.querySelector('[data-chat-rail-toolbar] .pool-primary-brand');
+    expect(brand.getAttribute('aria-label')).toBe('Reploid home');
+    expect(brand.getAttribute('href')).toBe('/');
     expect(host.querySelector('[data-toggle-thread-rail]').textContent).toContain('Threads');
     expect(host.querySelector('[data-inspector-section="settings"]')).not.toBeNull();
   });
@@ -286,14 +293,12 @@ describe('poolday home navigation', () => {
   });
 
   it('keeps the dashboard option on the same minimal primary navigation', () => {
-    const html = renderNav('home', { dashboard: true, dashboardView: 'compute' });
+    const html = renderNav('records', { dashboard: true, dashboardView: 'compute' });
 
-    expect(html).toContain('class="pool-nav-rail pool-primary-nav"');
+    expect(html).toContain('class="pool-nav-rail pool-primary-nav');
     expect((html.match(/class="pool-nav-link/g) || [])).toHaveLength(1);
     expect(html).toContain('aria-label="Reploid home"');
     const host = document.createElement('div'); host.innerHTML = html;
-    expect(host.querySelector('[data-open-network]')).toBeNull();
-    host.innerHTML = renderNav('records');
     expect(host.querySelector('[data-open-network]').closest('[data-pool-settings]')).not.toBeNull();
     expect(html).toContain('data-pool-changes');
     expect(html).not.toContain('pool-control-drawer');
@@ -470,7 +475,7 @@ describe('poolday home navigation', () => {
 });
 
 it('shows only changes awaiting approval and clears the review indicator after decisions', () => {
-  const root = document.createElement('div'); root.innerHTML = renderNav('home');
+  const root = document.createElement('div'); root.innerHTML = renderNav('records');
   expect(root.querySelector('.pool-nav-menu')).toBeNull();
   expect(root.querySelector('.pool-primary-network')).toBeNull();
   expect(root.querySelector('[data-pool-changes]').closest('[data-pool-settings]')).not.toBeNull();
@@ -483,4 +488,16 @@ it('shows only changes awaiting approval and clears the review indicator after d
   expect(root.querySelector('[data-pool-change-count]').hidden).toBe(true);
   expect(root.querySelector('[data-pool-settings-review]').hidden).toBe(true);
   expect(root.querySelector('[data-pool-changes]').dataset.reviewNeeded).toBe('false');
+});
+
+it('updates the review indicator inside the inspector settings pane where the workspace routes keep it', () => {
+  const root = document.createElement('div'); root.innerHTML = renderNetworkInspector({ apps: renderAppShortcuts('network') });
+  expect(root.querySelector('[data-pool-settings]')).toBeNull();
+  updateChangesControl(root, [{ status: 'awaiting-approval' }, { status: 'evaluating' }]);
+  const control = root.querySelector('[data-inspector-pane="settings"] [data-pool-changes]');
+  expect(control.querySelector('[data-pool-change-count]').textContent).toBe('1');
+  expect(control.querySelector('[data-pool-change-count]').hidden).toBe(false);
+  expect(control.getAttribute('aria-label')).toBe('Changes: 1 awaiting review');
+  updateChangesControl(root, []);
+  expect(control.querySelector('[data-pool-change-count]').hidden).toBe(true);
 });

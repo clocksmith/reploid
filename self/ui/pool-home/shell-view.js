@@ -32,17 +32,32 @@ export const isProductPath = (path) => Object.prototype.hasOwnProperty.call(PROD
 
 export const renderPowerTower = (inverse = false) => `<span class="pool-power-tower pool-mark"${inverse ? ' data-inverse' : ''} aria-hidden="true"><span class="pool-seven-main">7</span><sup class="pool-seven-small">7</sup></span>`;
 
-export const renderNav = (activeRoute) => {
+// Routes whose own toolbar carries the brand and whose Settings menu lives in the
+// inspector's Settings pane. They render no app bar.
+export const INSPECTOR_SETTINGS_ROUTES = Object.freeze(['home', 'network']);
+
+/** The home link with the brand mark; a toolbar sizes it as one of its buttons. */
+export const renderBrandLink = ({ toolbar = false } = {}) => {
   const home = escapeHtml(roomHref('/', getPeerRoomId()));
+  return `<a class="pool-primary-brand${toolbar ? ' pool-button' : ''} pool-heading pool-plain" aria-label="${escapeHtml(POOLDAY_NAME)} home" href="${home}" data-pool-route-link="${home}">${renderPowerTower()}<span class="pool-primary-wordmark">${escapeHtml(POOLDAY_NAME)}</span></a>`;
+};
+
+/** The Settings menu's app shortcuts, rendered once wherever the route shows its menu. */
+export const renderAppShortcuts = (activeRoute) => {
   const changes = POOLDAY_NAV_ROUTES.find(route => route.id === 'improve');
   const changesPath = escapeHtml(roomHref(changes.path, getPeerRoomId()));
-  const networkAction = ['home', 'network'].includes(activeRoute) ? '' : `<button class="pool-button" type="button" data-open-network>${interfaceIcon('peers')}<span>Network</span></button>`;
+  const networkAction = INSPECTOR_SETTINGS_ROUTES.includes(activeRoute) ? '' : `<button class="pool-button" type="button" data-open-network>${interfaceIcon('peers')}<span>Network</span></button>`;
+  return `<nav class="pool-app-shortcuts" aria-label="Apps"><a class="pool-nav-link pool-button" href="${changesPath}" data-pool-route-link="${changesPath}" data-pool-nav-id="improve" data-pool-changes aria-label="Changes"${activeRoute === 'improve' ? ' aria-current="page"' : ''}>${interfaceIcon('activity')}<span>Changes</span><span class="pool-change-count pool-small pool-well" data-pool-change-count aria-hidden="true" hidden></span></a>${networkAction}<a class="pool-button" href="/examples" data-pool-route-link="/examples">${interfaceIcon('copy')}<span>Examples</span></a><a class="pool-button" href="/experiments" data-pool-route-link="/experiments">${interfaceIcon('model')}<span>Experiments</span></a></nav>`;
+};
+
+export const renderNav = (activeRoute) => {
+  if (INSPECTOR_SETTINGS_ROUTES.includes(activeRoute)) return '';
   return `
-    <nav class="pool-nav-rail pool-primary-nav${['home', 'network'].includes(activeRoute) ? '' : ' pool-surface pool-mobile-app-bar'}" aria-label="${escapeHtml(POOLDAY_NAME)}">
-      <a class="pool-primary-brand pool-heading pool-plain" aria-label="${escapeHtml(POOLDAY_NAME)} home"${['home', 'network'].includes(activeRoute) ? ' aria-current="page"' : ''} href="${home}" data-pool-route-link="${home}">${renderPowerTower()}<span class="pool-primary-wordmark">${escapeHtml(POOLDAY_NAME)}</span></a>
+    <nav class="pool-nav-rail pool-primary-nav pool-surface pool-mobile-app-bar" aria-label="${escapeHtml(POOLDAY_NAME)}">
+      ${renderBrandLink()}
       ${renderExecutionRibbon()}
       <div class="pool-primary-actions">
-        ${renderSettings(renderPowerTower(true), `<nav class="pool-app-shortcuts" aria-label="Apps"><a class="pool-nav-link pool-button" href="${changesPath}" data-pool-route-link="${changesPath}" data-pool-nav-id="improve" data-pool-changes aria-label="Changes"${activeRoute === 'improve' ? ' aria-current="page"' : ''}>${interfaceIcon('activity')}<span>Changes</span><span class="pool-change-count pool-small pool-well" data-pool-change-count aria-hidden="true" hidden></span></a>${networkAction}<a class="pool-button" href="/examples" data-pool-route-link="/examples">${interfaceIcon('copy')}<span>Examples</span></a><a class="pool-button" href="/experiments" data-pool-route-link="/experiments">${interfaceIcon('model')}<span>Experiments</span></a></nav>`)}
+        ${renderSettings(renderPowerTower(true), renderAppShortcuts(activeRoute))}
       </div>
     </nav>
   `;

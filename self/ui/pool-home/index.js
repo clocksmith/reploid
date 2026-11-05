@@ -5,9 +5,9 @@ import { getPeerRoomId, getPeerRoomBusFactory, getOrderedParticipation } from '.
 import { getCurrentReploidStorage } from '../../instance.js';
 import { resolveRtcConfig } from '../../pool/p2p-transport.js';
 import { POOLDAY_NAME, ROUTE_COPY } from './constants.js';
-import { getRouteId, renderNav, updateChangesControl } from './shell-view.js';
-import { renderConversationWorkspace, bindConversationWorkspace } from './conversation-workspace.js';
-import { renderNetworkInspector, bindNetworkInspector } from './network-inspector.js';
+import { getRouteId, renderNav, renderAppShortcuts, updateChangesControl } from './shell-view.js';
+import { renderConversationWorkspace, bindConversationWorkspace, renderModelControl } from './conversation-workspace.js';
+import { renderNetworkInspector, renderInspectorNavigation, renderInspectorRail, renderModelSetupDialog, bindNetworkInspector } from './network-inspector.js';
 import { bindExecutionRibbon } from './execution-ribbon.js';
 import { bindThemeSelector } from './theme.js';
 import { bindPoolRouteControls } from './navigation.js';
@@ -90,44 +90,52 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
       document.body.dataset.poolRouteId = routeId;
       document.title = window.location.pathname === '/' ? POOLDAY_NAME : `${POOLDAY_NAME} - ${ROUTE_COPY[routeId]?.title || 'Work'}`;
       if (!mount.querySelector('.pool-route-content')) mount.innerHTML = '<main class="pool-home"><div class="pool-route-content"></div></main>';
-      mount.querySelector('.pool-home').dataset.poolRouteId = routeId;
+      const surface = mount.querySelector('.pool-home');
+      surface.dataset.poolRouteId = routeId;
       mount.querySelector('.pool-primary-nav')?.remove();
-      mount.querySelector('.pool-home').insertAdjacentHTML('afterbegin', renderNav(routeId));
+      const appBar = renderNav(routeId);
+      if (appBar) surface.insertAdjacentHTML('afterbegin', appBar);
+      const content = mount.querySelector('.pool-route-content');
+      const workspaceRoute = ['home', 'network'].includes(routeId);
+      // Each route renders the inspector's parts where its layout shows them. The
+      // conversation workspace takes the section buttons in its toolbar and the panel
+      // in its slot; every other route keeps both beside its content. Nothing moves later.
       const inspectorRoot = document.createElement('div'); inspectorRoot.dataset.shellInspector = '';
-      inspectorRoot.innerHTML = renderNetworkInspector(); mount.querySelector('.pool-home').append(inspectorRoot);
-      inspector = bindNetworkInspector(inspectorRoot, host.chat, { getInviteUrl: () => host.swarm.getInviteUrl(), webSearch: host.webSearch, search: host.search, earning: earningOpening,
+      if (workspaceRoute) {
+        content.innerHTML = renderConversationWorkspace({ inspector: false });
+        content.querySelector('[data-network-trigger-slot]').innerHTML = renderInspectorNavigation();
+        content.querySelector('[data-chat-inspector-slot]').innerHTML = renderInspectorRail({ mounted: true, apps: renderAppShortcuts(routeId), modelControl: renderModelControl() });
+        inspectorRoot.innerHTML = renderModelSetupDialog();
+      } else {
+        content.innerHTML = '<p role="status">Loading…</p>';
+        inspectorRoot.innerHTML = renderNetworkInspector();
+      }
+      surface.append(inspectorRoot);
+      inspector = bindNetworkInspector(surface, host.chat, { getInviteUrl: () => host.swarm.getInviteUrl(), webSearch: host.webSearch, search: host.search, earning: earningOpening,
         loadSpecialized: async target => {
           const operations = await import('./operation-sharing.js'); sharingView = operations;
           target.innerHTML = operations.renderOperationSharing();
           return operations.bindOperationSharing(target, host.operationSharing);
         }
       });
-      const ribbon = bindExecutionRibbon(mount.querySelector('.pool-primary-nav'), { onInspect: (section, opener) => inspector.open(section, opener), labelSession: host.chat });
-      const networkAction = mount.querySelector('[data-open-network]');
-      if (networkAction) networkAction.onclick = event => {
-        const settings = event.currentTarget.closest('details'); if (settings) settings.open = false;
-        inspector.open('participants', settings?.querySelector('summary') || event.currentTarget);
-      };
-      const unsubscribeRibbon = host.chat.subscribe(state => ribbon.update(state));
-      detachRibbon = () => { unsubscribeRibbon(); ribbon.dispose(); };
-      if (['home', 'network'].includes(routeId)) {
-        const settings = mount.querySelector('[data-pool-settings]');
-        settings.dataset.railSettings = '';
-        const section = settings.querySelector('section');
-        inspectorRoot.querySelector('[data-inspector-pane="settings"]').append(...section.childNodes);
-        section.hidden = true;
-        settings.querySelector('summary').onclick = event => { event.preventDefault(); inspector.toggle('settings', event.currentTarget); };
+      const appBarNode = mount.querySelector('.pool-primary-nav');
+      if (appBarNode) {
+        const ribbon = bindExecutionRibbon(appBarNode, { onInspect: (section, opener) => inspector.open(section, opener), labelSession: host.chat });
+        const networkAction = appBarNode.querySelector('[data-open-network]');
+        if (networkAction) networkAction.onclick = event => {
+          const settings = event.currentTarget.closest('details'); if (settings) settings.open = false;
+          inspector.open('participants', settings?.querySelector('summary') || event.currentTarget);
+        };
+        const unsubscribeRibbon = host.chat.subscribe(state => ribbon.update(state));
+        detachRibbon = () => { unsubscribeRibbon(); ribbon.dispose(); };
       }
       theme.sync(); void refreshChanges();
-      const content = mount.querySelector('.pool-route-content');
       const bindNavigation = () => bindPoolRouteControls(mount, render);
       bindNavigation();
       try {
-        if (['home', 'network'].includes(routeId)) {
-          content.innerHTML = renderConversationWorkspace({ inspector: false });
+        if (workspaceRoute) {
           detachView = bindConversationWorkspace(content, host.chat, { viewState, inspector, webSearch: host.webSearch, search: host.search, historyHandover: host.historyHandover });
         } else {
-          content.innerHTML = '<p role="status">Loading…</p>';
           if (routeId === 'experiments') {
             const plugins = await import('./research-plugins.js');
             if (disposed || current !== revision) return;

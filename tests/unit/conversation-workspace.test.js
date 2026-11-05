@@ -118,6 +118,28 @@ describe('Conversation workspace', () => {
     expect(find('[data-execution-choice=network]').getAttribute('aria-pressed')).toBe('false');
   });
 
+  it('renders its brand link, the inspector and the model control in place, with nothing moved from the shell', () => {
+    expect(find('[data-chat-rail-toolbar] [data-thread-rail-brand] > .pool-primary-brand[href="/"]')).not.toBeNull();
+    expect(find('[data-chat-rail-toolbar] [data-toggle-thread-rail]')).not.toBeNull();
+    expect(find('[data-chat-rail-toolbar] [data-network-trigger-slot] [data-inspector-navigation]')).not.toBeNull();
+    expect(find('[data-chat-inspector-slot] > [data-network-rail][data-mounted]')).not.toBeNull();
+    expect(find('[data-network-rail] [data-inspector-navigation]')).toBeNull();
+    expect(find('[data-inspector-pane="model"] > [data-model-control] [data-active-model-select]')).toBe(find('[data-active-model-select]'));
+    expect(find('[data-threads-dialog] [data-model-control]')).toBeNull();
+    expect(find('[data-inspector-pane="settings"] [data-settings-storage-controls] [data-toggle-file-contribution]')).not.toBeNull();
+    expect(find('[data-inspector-pane="settings"] [data-settings-sharing-limits] [data-contribution-limits]')).not.toBeNull();
+    expect(find('[data-inspector-pane="participants"] [data-toggle-contribution]')).not.toBeNull();
+    find('[data-toggle-thread-rail]').click();
+    expect(find('[data-threads-dialog]').open).toBe(true);
+    expect(find('[data-toggle-thread-rail]').getAttribute('aria-expanded')).toBe('true');
+    find('[data-toggle-inspector]').click();
+    expect(find('[data-contextual-inspector]').open).toBe(true);
+    expect(find('[data-threads-dialog]').open).toBe(false);
+    dispose();
+    expect(find('[data-thread-rail-brand] > .pool-primary-brand')).not.toBeNull();
+    expect(find('[data-inspector-pane="model"] [data-active-model-select]')).not.toBeNull();
+  });
+
   it('keeps only Computers and Settings in the rail, with model and answer details in context', () => {
     const navigation = find('[data-chat-rail-toolbar] [data-inspector-navigation]');
     expect([...navigation.querySelectorAll('[data-inspector-section]')].map(node => node.dataset.inspectorSection)).toEqual(['participants', 'settings']);

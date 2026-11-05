@@ -211,24 +211,14 @@
 .pool-home[data-chat-compact] .chat-composer-area textarea { min-height: var(--pool-size-44); }
 .pool-home[data-chat-compact] .execution-ribbon-node small { display: none; }
 .pool-home[data-chat-compact] .execution-ribbon-node { grid-template-rows: auto; }
-.pool-home[data-chat-compact] .pool-nav-rail.pool-primary-nav { grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--pool-size-8); min-height: var(--pool-size-44); padding: var(--pool-size-8); }
-.pool-home[data-chat-compact] .pool-primary-nav .pool-primary-wordmark { display: none; }
-.pool-home[data-chat-compact] .pool-primary-nav .execution-ribbon { grid-column: 1 / -1; grid-row: 2; }
-.pool-home[data-chat-compact] .pool-primary-nav .pool-primary-actions { grid-column: 3; grid-row: 1; }
-.pool-home[data-chat-compact] .pool-primary-nav .execution-ribbon-status { display: flex; min-height: 0; max-width: 100%; }
-.pool-home[data-chat-compact] .pool-primary-nav .execution-ribbon-trigger { gap: 0; }
-.pool-home[data-chat-compact] .pool-primary-nav .execution-ribbon-wire { height: var(--pool-size-24); }
-.pool-home[data-chat-compact] .pool-primary-nav .execution-ribbon-node { grid-template-rows: var(--pool-size-24); }
 .pool-home[data-chat-compact] .chat-composer-toolbar .chat-composer-submit { flex-basis: auto; margin-left: 0; }
 
 /* One quiet status, with the assigned route available in the existing inspector. */
-.pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network']) .pool-primary-nav { min-height: var(--pool-size-44); }
 .pool-home .pool-primary-nav .execution-ribbon-trigger { justify-content: flex-end; }
 .pool-home .pool-primary-nav .execution-ribbon-status { max-width: 100%; min-height: var(--pool-size-44); gap: var(--pool-size-8); }
 .pool-home .pool-primary-nav .execution-ribbon-status::before { content: ''; flex: none; width: var(--pool-size-8); height: var(--pool-size-8); }
 @media (max-width: 760px) {
   .pool-home[data-chat-compact] .chat-thread-header { display: flex; }
-  .pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network']) .pool-primary-nav { grid-template-columns: auto minmax(0, 1fr) auto; column-gap: var(--pool-size-8); }
   .pool-home .pool-primary-nav > .execution-ribbon { grid-column: 2; grid-row: 1; }
   .pool-home .pool-primary-nav .pool-primary-actions { grid-column: 3; grid-row: 1; }
   .chat-message-footer .chat-message-meta { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr); width: 100%; }
@@ -245,8 +235,6 @@
   padding-top: calc(var(--pool-param-bar-height) + var(--pool-param-chat-gutter) * 2);
   gap: 0;
 }
-.pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network']) .pool-primary-nav { height: 0; min-height: 0; padding: 0; }
-.pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network']) .pool-primary-nav :is(.execution-ribbon, .pool-primary-actions) { display: none; }
 .reploid-chat-workspace, .reploid-chat-workspace[data-threads-open] { grid-template-columns: minmax(0, 1fr); gap: 0; }
 .pool-home .reploid-chat-workspace > .chat-thread-sidebar {
   position: fixed; top: var(--pool-param-chat-gutter); left: var(--pool-param-chat-gutter); right: var(--pool-param-chat-gutter);
@@ -284,7 +272,6 @@
 .chat-threads-dialog .chat-thread-panel { display: flex; flex: 1; flex-direction: column; min-width: 0; min-height: 0; }
 .chat-threads-dialog .chat-thread-list { width: 100%; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 0; }
 .chat-threads-dialog .chat-rail-controls { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--pool-size-8); min-width: 0; flex: none; }
-.chat-threads-dialog .chat-thread-info { display: none; }
 .chat-threads-dialog .chat-conversation-actions > summary { display: flex; align-items: center; justify-content: flex-start; gap: var(--pool-size-8); width: 100%; min-width: 0; min-height: var(--pool-size-44); padding: var(--pool-size-8); }
 .chat-threads-dialog .chat-conversation-actions > div { position: static; width: 100%; max-width: 100%; max-height: 40dvh; margin-top: var(--pool-size-8); overflow-y: auto; }
 .chat-inspector-slot .chat-model-control, .chat-inspector-slot :is([data-active-model-select], [data-current-model]) { display: block; width: 100%; }

@@ -10,8 +10,8 @@ export const renderConnectionControl = () => `<div class="network-sharing-row">
   <button class="network-switch pool-switch" type="button" role="switch" aria-label="Connect to network" aria-checked="false" data-mesh-connect><span></span></button>
 </div><p class="pool-small pool-muted" data-connection-detail role="status"></p>`;
 
-export const renderSharingControls = ({ introductory = true } = {}) => `<div class="pool-stack pool-gap-md">
-  ${introductory ? '<div class="pool-stack pool-gap-xs"><h3 class="pool-subheading">Contribute</h3><p class="pool-small pool-muted">Choose what this device shares. You don’t need to download a model to ask questions.</p></div>' : ''}
+/** Compute contribution: the Computers pane's "This device" controls. */
+export const renderComputeSharingControls = () => `<div class="pool-stack pool-gap-md">
   <p class="pool-small" data-tab-sharing-summary role="status" hidden></p>
   <div class="network-sharing-row" data-compute-sharing-row>
     <div class="pool-stack pool-gap-xs"><strong>Answer requests</strong>
@@ -21,16 +21,22 @@ export const renderSharingControls = ({ introductory = true } = {}) => `<div cla
       <button type="button" class="pool-button" data-retry-contribution-stop hidden>Retry stopping</button></div>
     <button class="network-switch pool-switch" type="button" role="switch" aria-label="Help answer requests" aria-checked="false" data-toggle-contribution><span></span></button>
   </div>
-  <div class="network-sharing-row" data-file-sharing-row>
+  <details class="pool-disclosure"><summary>Connection assistance</summary><div class="network-sharing-row">
+    <div><strong>Help peers connect</strong><p class="pool-muted">Forward invitations without sharing conversations, model files, or compute.</p></div>
+    <button class="network-switch pool-switch" type="button" role="switch" aria-label="Help peers connect" aria-checked="false" data-toggle-introductions><span></span></button>
+  </div></details>
+</div>`;
+
+/** File sharing and its download options: the Settings pane's Storage controls. */
+export const renderFileSharingControls = () => `<div class="network-sharing-row" data-file-sharing-row>
     <div class="pool-stack pool-gap-xs"><strong>Share model files</strong>
       <p class="pool-muted">Let others download files stored on this device.</p>
       <span class="pool-small pool-muted" data-file-contribution-label>Not sharing</span>
       <p data-file-progress role="status" hidden></p></div>
     <button class="network-switch pool-switch" type="button" role="switch" aria-label="Store and share model files" aria-checked="false" data-toggle-file-contribution><span></span></button>
   </div>
-  <details class="pool-disclosure" data-model-sharing-limits><summary>Model and limits</summary><div class="pool-stack pool-gap-md">
+  <details class="pool-disclosure" data-model-sharing-limits><summary>Download options</summary><div class="pool-stack pool-gap-md">
     <label>Model<select class="pool-input" data-contribution-model aria-label="Model to share"></select></label>
-    <p data-contribution-limits></p>
     <label>Files to share<select class="pool-input" data-file-mode aria-label="File participation">
       <option value="cached-only">Already downloaded</option><option value="bounded-acquisition">Download within a limit</option>
       <option value="full-model">Download the full model</option></select></label>
@@ -38,11 +44,17 @@ export const renderSharingControls = ({ introductory = true } = {}) => `<div cla
       <input class="pool-input" data-file-download type="number" min="1" step="1" aria-label="Total download allowance in MiB"></label>
     <p class="pool-muted" data-file-download-policy>No downloads in cached-only mode. Acquiring modes charge metadata and failed attempts; restarting does not renew the allowance.</p>
     <p data-file-limits></p>
-  </div></details>
-  <details class="pool-disclosure"><summary>Connection assistance</summary><div class="network-sharing-row">
-    <div><strong>Help peers connect</strong><p class="pool-muted">Forward invitations without sharing conversations, model files, or compute.</p></div>
-    <button class="network-switch pool-switch" type="button" role="switch" aria-label="Help peers connect" aria-checked="false" data-toggle-introductions><span></span></button>
-  </div></details>
+  </div></details>`;
+
+/** The compute limits line, shown with the inference settings. */
+export const renderContributionLimits = () => '<p data-contribution-limits></p>';
+
+/** Every sharing control in one block, for a surface that does not split them across panes. */
+export const renderSharingControls = ({ introductory = true } = {}) => `<div class="pool-stack pool-gap-md">
+  ${introductory ? '<div class="pool-stack pool-gap-xs"><h3 class="pool-subheading">Contribute</h3><p class="pool-small pool-muted">Choose what this device shares. You don’t need to download a model to ask questions.</p></div>' : ''}
+  ${renderComputeSharingControls()}
+  ${renderFileSharingControls()}
+  ${renderContributionLimits()}
 </div>`;
 
 
