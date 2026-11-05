@@ -1,0 +1,39 @@
+{
+  "url": "https://replo.id/",
+  "selection": "qwen-3-5-0-8b-q4k-ehaf16/qwen35-0-8b-ner-json-lora",
+  "identity": "sha256:dc0248f45553e69defd8a1846619443f1ac5902a118548c70a7254c21f66f64b",
+  "errors": [],
+  "build": "sha256:0a783b59d16e2c24da828300ee1562960109a803dd2403106cf422616157e323",
+  "contributorButton": "Qwen 3.5 0.8B NER JSON LoRA\n1.2 GB ↓",
+  "contributorDownload": "1199 MB download",
+  "contributorStatus": "Ready",
+  "contributorMessage": "",
+  "picker": {
+    "nested": true,
+    "choice": "Qwen 3.5 0.8B NER JSON LoRA\nReady\nAdapter · v1.0.0\nNo evaluation evidence",
+    "details": "Qwen 3.5 0.8B NER JSON LoRA · v1.0.0\n\nPurpose: Extracts people, places and dates from one sentence as strict JSON. Publisher’s description\n\nEvaluation: No evaluation evidence\n\nServed now by 1 computer\n\nFor Qwen 3.5 0.8B sha256:6788ca6b… · Adapter sha256:dc0248f4…\n\nPrepare or serve an adapter"
+  },
+  "executionSummary": "Complete · 1 computer · Mesh. Execution details",
+  "executionLabel": "Qwen 3.5 0.8B NER JSON LoRA · Shared computer",
+  "recordedAdapter": "Adapter · Qwen 3.5 0.8B NER JSON LoRA · v1.0.0 · sha256:dc0248f45553e69defd8a1846619443f1ac5902a118548c70a7254c21f66f64b",
+  "answer": "{\"people\":[\"Maya Lin\"],\"places\":[\"Paris\",\"Tokyo\"],\"dates\":[\"March 3, 2024\"]}",
+  "history": [
+    {
+      "database": "reploid-requester-history",
+      "store": "conversations",
+      "status": "completed",
+      "requestedModel": "qwen-3-5-0-8b-q4k-ehaf16/qwen35-0-8b-ner-json-lora",
+      "requestedAdapters": [
+        "sha256:dc0248f45553e69defd8a1846619443f1ac5902a118548c70a7254c21f66f64b"
+      ],
+      "execution": {
+        "placement": "peer-whole-request",
+        "peerId": "peer_mw3qmh0p_qmkys6ww",
+        "modelIdentity": "sha256:6788ca6b95e2fe3dd27a057042cd3b543e4b8d2fcdc433bcfe218148feb82a4e",
+        "adapterIdentities": [
+          "sha256:dc0248f45553e69defd8a1846619443f1ac5902a118548c70a7254c21f66f64b"
+        ]
+      }
+    }
+  ]
+}
