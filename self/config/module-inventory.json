@@ -3500,7 +3500,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:a40d10722a1784e27befa05262d452aead680506d8f829ab06019fea72556270",
+      "sha256": "sha256:9560529627eab4fb1f2089c938e9809da17839fd56128d1bb09a7a1044b5ce6a",
       "imports": []
     },
     {
@@ -3636,7 +3636,7 @@
     {
       "path": "ui/pool-home/execution-ribbon.js",
       "owner": "ui",
-      "sha256": "sha256:4e82e993e2728e93e9c7df685951d672b9f67aa34172b74de2a66b70854574d9",
+      "sha256": "sha256:ac3618e08ec40d9e9fe7b11f09b01748c9a4e0015411274ead243855f443f2c8",
       "imports": [
         "../../vendor/reploid/mesh/provider-hardware.js",
         "./computer-labels.js"

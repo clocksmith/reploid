@@ -1391,7 +1391,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 584123,
-      "sha256": "sha256:b81cbb6162cf3ddb0ff152dfdc29e8fa771ac307ad8e2bbfc3ac006365f09b31"
+      "sha256": "sha256:7e7043ab122481e0db9554fb51caacd17af9df82918ead78144adddad1eb9eb2"
     },
     {
       "path": "config/module-registry.json",
@@ -3400,8 +3400,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2332623,
-      "sha256": "sha256:a40d10722a1784e27befa05262d452aead680506d8f829ab06019fea72556270"
+      "byteLength": 2332686,
+      "sha256": "sha256:9560529627eab4fb1f2089c938e9809da17839fd56128d1bb09a7a1044b5ce6a"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -3460,8 +3460,8 @@
     },
     {
       "path": "ui/pool-home/execution-ribbon.js",
-      "byteLength": 11746,
-      "sha256": "sha256:4e82e993e2728e93e9c7df685951d672b9f67aa34172b74de2a66b70854574d9"
+      "byteLength": 12069,
+      "sha256": "sha256:ac3618e08ec40d9e9fe7b11f09b01748c9a4e0015411274ead243855f443f2c8"
     },
     {
       "path": "ui/pool-home/history-handover-view.js",
@@ -11134,5 +11134,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:69f4d527ac1f7a1215556195b80741ffa16ea9f5499b76ffffcef57400ecfa82"
+  "bundleHash": "sha256:2f9823bb62f2f9950f72e8dea22155a7bace256d604ef3b0acbfaf4b7df7a4db"
 }

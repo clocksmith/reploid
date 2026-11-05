@@ -270,7 +270,7 @@ describe('Conversation workspace', () => {
     const adapted = { ...whole, selectionId: base.id + '/adapter', name: 'Named adapter', adapters: [{ id: 'adapter', identity: 'sha256:adapter', name: 'Named adapter' }],
       availability: 'unavailable', networkAvailability: 'unavailable', providerIds: [] };
     const peers = [{ peerId: 'peer-a', model: base.id, modelIdentity: base.identity, readiness: 'ready', hasInference: true, availableSlots: 1,
-      hardware: { vendor: 'AMD', description: 'Reported GPU A' } }];
+      hardware: { vendor: 'AMD', device: 'Reported GPU A', description: 'Driver string' } }];
     const project = state => ({ ...state, models: [whole, route, adapted], network: { consumer: { peers }, connections: [{ id: 'peer-a', phase: 'connected' }] } });
     dispose = bindConversationWorkspace(root, { ...session,
       getState: () => project(session.getState()), subscribe: fn => session.subscribe(state => fn(project(state))) });
@@ -286,7 +286,8 @@ describe('Conversation workspace', () => {
     const providers = find('[data-model-picker] [data-model-providers]');
     expect(providers.hidden).toBe(false);
     expect([...providers.querySelectorAll('[data-model-route]')].map(node => node.dataset.modelRoute)).toEqual([base.id, route.selectionId]);
-    expect(providers.querySelector(`[data-model-route="${base.id}"]`).textContent).toContain('Reported GPU A');
+    expect(providers.querySelector(`[data-model-route="${base.id}"]`).textContent).toContain('AMD · Reported GPU A');
+    expect(providers.textContent).not.toContain('Driver string');
     expect(providers.querySelector(`[data-model-route="${route.selectionId}"]`).textContent).toContain('Stage 1 of 2 · GPU not reported');
     // Choosing the distributed route keeps the same variant entry checked and changes only the route.
     const distributed = providers.querySelector(`[data-model-route-choice][value="${route.selectionId}"]`);

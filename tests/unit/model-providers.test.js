@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { projectModelProviders, renderModelProviders, updateModelProviders } from '../../self/ui/pool-home/model-providers.js';
+import { hardwareLabel, projectModelProviders, renderModelProviders, updateModelProviders } from '../../self/ui/pool-home/model-providers.js';
 import { withComputerLabels } from '../../self/ui/pool-home/computer-labels.js';
 
 const model = { id: 'qwen', name: 'Qwen', identity: 'sha256:model', providerIds: ['a', 'b'], networkAvailability: 'ready' };
@@ -14,7 +14,7 @@ it('lists separate providers by existing pseudonyms without inventing distribute
   expect(rows).toHaveLength(2);
   expect(rows.map(row => row.type)).toEqual(['Whole model', 'Whole model']);
   expect(rows.map(row => row.participants[0].label)).toEqual([snapshot.computerLabels.get('a'), snapshot.computerLabels.get('b')]);
-  expect(rows[0].participants[0].hardware).toBe('Reported GPU');
+  expect(rows[0].participants[0].hardware).toBe('AMD');
 });
 
 it('excludes different model artifacts, incompatible adapters and stale connection attempts', () => {
@@ -65,10 +65,17 @@ it('renders one block per route of the variant, with route radios only when ther
   expect(root.querySelector('[data-model-route-choice]')).toBeNull();
   expect(root.querySelector('[data-provider-count]').textContent).toBe('2');
   // A provider's status is not repeated when it matches its route's.
-  expect(root.querySelector('li small').textContent).toBe('Reported GPU');
+  expect(root.querySelector('li small').textContent).toBe('AMD');
   updateModelProviders(root, state([model, route]), model, { selectedId: 'qwen/route' });
   expect([...root.querySelectorAll('[data-model-route]')].map(node => node.dataset.modelRoute)).toEqual(['qwen', 'qwen/route']);
   expect([...root.querySelectorAll('[data-model-route-choice]')].map(input => [input.value, input.checked])).toEqual([['qwen', false], ['qwen/route', true]]);
   expect(root.querySelector('[data-model-route="qwen/route"]').textContent).toContain('Stage 2 of 2 · GPU not reported');
   expect(root.querySelector('[data-model-route="qwen/route"]').textContent).toContain('Unavailable');
+});
+
+it('labels a GPU by its reported identity, not its driver, and drops placeholder values', () => {
+  expect(hardwareLabel({ vendor: 'amd', architecture: 'rdna-3', device: 'radeon-8060s-graphics', description: 'radv: Mesa 26.0.3' }))
+    .toBe('amd · rdna-3 · radeon-8060s-graphics');
+  expect(hardwareLabel({ vendor: 'unknown', architecture: 'unknown', device: 'unknown', description: 'Reported adapter' })).toBe('Reported adapter');
+  expect(hardwareLabel({ vendor: 'unknown', architecture: 'unknown', device: 'unknown', description: '' })).toBe('GPU not reported');
 });

@@ -6,10 +6,14 @@ const measured = value => Number.isFinite(value) && value >= 0;
 const ms = value => measured(value) ? `${Math.round(value)} ms` : 'Not reported';
 const sum = (steps, key) => steps?.length && steps.every(step => measured(step[key])) ? steps.reduce((n, step) => n + step[key], 0) : null;
 const terminal = new Set(['completed', 'failed', 'cancelled', 'interrupted']);
-/** Self-reported GPU text, or null when nothing usable was reported. Never an attestation. */
+/** Self-reported GPU text, or null when nothing usable was reported. Never an attestation.
+ * The adapter's vendor, architecture and device name identify the GPU; a native adapter's
+ * description is often its driver, so it is shown only when nothing else was reported. */
 export function hardwareText(value) {
   const hardware = publicProviderHardware(value);
-  return hardware ? hardware.description || [...new Set([hardware.vendor, hardware.architecture, hardware.device].filter(Boolean))].join(' · ') : null;
+  const reported = text => !!text && text.toLowerCase() !== 'unknown';
+  const identity = [...new Set([hardware?.vendor, hardware?.architecture, hardware?.device].filter(reported))];
+  return identity.length ? identity.join(' · ') : reported(hardware?.description) ? hardware.description : null;
 }
 export const RECORDED_GPU_TITLE = 'Reported by the computer that produced this answer and saved with it. Not verified.';
 const orderedTiming = (execution, index) => {

@@ -136,7 +136,7 @@ it('shows completed whole-model timing and never leaves a finished answer pendin
 
 it('shows the GPU saved with a completed answer, never the providers reported now', () => {
   const attempt = { id: 'attempt', status: 'executing', execution: { provider: 'peer', placement: 'peer-whole-request', peerId: 'peer',
-    hardware: { vendor: 'AMD', description: '<b>Recorded GPU</b>' } } };
+    hardware: { vendor: 'AMD', device: '<b>Recorded GPU</b>', description: 'Driver string' } } };
   // A provider now reporting different hardware does not change what this answer recorded.
   const state = { activeThread: { id: 'thread', model: { name: 'Model' }, messages: [], attempts: [attempt] },
     network: { consumer: { peers: [{ peerId: 'peer', hardware: { description: 'Current GPU' } }] } } };
@@ -146,7 +146,7 @@ it('shows the GPU saved with a completed answer, never the providers reported no
   expect(root.querySelector('[data-recorded-hardware]')).toBeNull();
   attempt.status = 'completed';
   updateExecutionActivity(root, state);
-  expect(root.querySelector('[data-recorded-hardware]').textContent).toBe('Recorded GPU · <b>Recorded GPU</b>');
+  expect(root.querySelector('[data-recorded-hardware]').textContent).toBe('Recorded GPU · AMD · <b>Recorded GPU</b>');
   expect(root.querySelector('b')).toBeNull();
   expect(root.textContent).not.toContain('Current GPU');
   delete attempt.execution.hardware;
