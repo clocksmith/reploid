@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { physicalEmbeddingAssets } from '../fixtures/physical-embedding-assets.js';
 import { connectPhysicalBrowser } from '../fixtures/physical-webgpu-browser.js';
+import { readServedHarnessFile } from '../helpers/served-browser-files.js';
 let server, origin, remoteBrowser, physicalConfig;
 const hostScope = process.env.REPLOID_EXECUTOR_WS ? 'two-physical-hosts' : 'one-host';
 const createContext = (browser, index) => (index === 1 && remoteBrowser ? remoteBrowser : browser).newContext();
@@ -16,9 +17,10 @@ test.beforeAll(async () => {
       const pathname = new URL(request.url, 'http://localhost').pathname;
       if (assets.serve(pathname, response)) return;
       if (pathname === '/') { response.setHeader('Content-Type', 'text/html'); response.end('<!doctype html><title>Introductions</title><script type="importmap">{"imports":{"reploid/jobs":"/self/vendor/reploid/mesh/jobs/index.js"}}</script>'); return; }
+      const served = await readServedHarnessFile(pathname);
       const file = path.resolve(root, pathname.slice(1));
-      if (![path.join(root, 'self') + path.sep, path.join(root, 'tests/fixtures') + path.sep].some(prefix => file.startsWith(prefix))) { response.writeHead(403).end(); return; }
-      response.setHeader('Content-Type', file.endsWith('.json') ? 'application/json' : 'text/javascript'); response.end(await readFile(file));
+      if (!served && !file.startsWith(path.join(root, 'tests/fixtures') + path.sep)) { response.writeHead(403).end(); return; }
+      response.setHeader('Content-Type', file.endsWith('.json') ? 'application/json' : 'text/javascript'); response.end(served || await readFile(file));
     } catch { response.writeHead(404).end(); }
   });
   await new Promise(resolve => server.listen(Number(process.env.REPLOID_INTRODUCTIONS_PORT || 0), '127.0.0.1', resolve));

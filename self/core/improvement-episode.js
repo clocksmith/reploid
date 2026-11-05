@@ -1,8 +1,8 @@
-import { ImprovementEpisodeLedger } from '../vendor/reploid/improvement/index.js';
+import { ImprovementEpisodeLedger } from '../../shared/vendor/reploid/improvement/index.js';
 import { ensureIdentityBundle } from '../identity.js';
 import { getCurrentReploidInstanceId } from '../instance.js';
 
-export * from '../vendor/reploid/improvement/index.js';
+export * from '../../shared/vendor/reploid/improvement/index.js';
 export default {
   ...ImprovementEpisodeLedger,
   factory: deps => ImprovementEpisodeLedger.factory({

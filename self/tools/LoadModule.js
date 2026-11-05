@@ -1,4 +1,4 @@
-import { withTimeoutAndRetry, TimeoutError, RetryExhaustedError } from '../vendor/reploid/agent/tool-operation-retry.js';
+import { withTimeoutAndRetry, TimeoutError, RetryExhaustedError } from '../../shared/vendor/reploid/agent/tool-operation-retry.js';
 /**
  * @fileoverview LoadModule - Hot-reload a module from VFS
  */

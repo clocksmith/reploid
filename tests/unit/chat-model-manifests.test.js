@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { buildHostingFileSet } from '../../scripts/hosting-file-set.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
 
 describe('chat model manifest delivery', () => {
   it('ships every pinned manifest in the ordinary browser bundle with unchanged bytes', async () => {
@@ -42,7 +43,7 @@ describe('chat model manifest delivery', () => {
       const requestPath = new URL('manifest.json', base).pathname;
       const delivery = routes.find(route => route.source === requestPath);
       expect(delivery?.destination).toBe(manifest.url);
-      const bytes = await readFile(resolve('self', delivery.destination.slice(1)));
+      const bytes = await readFile(resolveServedFile(delivery.destination));
       expect('sha256:' + createHash('sha256').update(bytes).digest('hex')).toBe(model.identity);
       const files = routes.find(route => route.source === base.pathname.slice(0, -1) + '/:file');
       expect(files?.destination).toMatch(/^https:\/\/huggingface\.co\/clocksmith\/rdrr\/resolve\/[a-f0-9]{40}\/models\//);

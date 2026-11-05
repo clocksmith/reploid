@@ -41,7 +41,7 @@ const testDelivery = process.env.REPLOID_TEST_DELIVERY_BINDING ? await verifyNum
   root: resolve(import.meta.dirname, '../..'), bindingPath: process.env.REPLOID_TEST_DELIVERY_BINDING,
   bindingSha256: process.env.REPLOID_TEST_DELIVERY_SHA256,
   archivePath: resolve(import.meta.dirname, '../..', packageIdentity.spec.replace(/^file:/, '')),
-  runtimeDirectory: resolve(import.meta.dirname, '../../self/vendor/doppler', packageIdentity.version)
+  runtimeDirectory: resolve(import.meta.dirname, '../../shared/vendor/doppler', packageIdentity.version)
 }) : null;
 const policy = JSON.parse(await readFile(new URL('../../self/config/partition-policy.json', import.meta.url)));
 const profile = JSON.parse(await readFile(new URL('../../self/config/work-profile.json', import.meta.url)));
@@ -138,8 +138,8 @@ try {
         const config = await import('/config/doppler-local-models.js');
         return new URL('./', new URL(config.DOPPLER_PARTITIONS_MODULE_URL, location.href)).href;
       }),
-      factorySource: await readFile(new URL(`../../self/vendor/doppler/${packageIdentity.version}/src/client/resident-partitions.js`, import.meta.url), 'utf8'),
-      identitySource: await readFile(new URL(`../../self/vendor/doppler/${packageIdentity.version}/src/config/initial-execution-identity.js`, import.meta.url), 'utf8')
+      factorySource: await readFile(new URL(`../../shared/vendor/doppler/${packageIdentity.version}/src/client/resident-partitions.js`, import.meta.url), 'utf8'),
+      identitySource: await readFile(new URL(`../../shared/vendor/doppler/${packageIdentity.version}/src/config/initial-execution-identity.js`, import.meta.url), 'utf8')
     }) : null;
     let prepared;
     const preparationStartedAt = new Date().toISOString();

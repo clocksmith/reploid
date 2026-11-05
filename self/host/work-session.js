@@ -3,9 +3,9 @@
  * objective grants, network placement, local records and per-thread lifetime.
  * Whole-request compatibility execution does not imply signed Pack admission.
  */
-import { createReploid } from '../vendor/reploid/agent/index.js';
-import { resolveConfig } from '../vendor/reploid/config/index.js';
-import protocol from '../vendor/reploid/agent/protocol.json' with { type: 'json' };
+import { createReploid } from '../../shared/vendor/reploid/agent/index.js';
+import { resolveConfig } from '../../shared/vendor/reploid/config/index.js';
+import protocol from '../../shared/vendor/reploid/agent/protocol.json' with { type: 'json' };
 import policy from '../config/work-profile.json' with { type: 'json' };
 import { LOCAL_DOPPLER_MODELS, DOPPLER_BROWSER_RUNTIME_VERSION } from '../config/doppler-local-models.js';
 import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';

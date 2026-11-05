@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto';
 import { resolve, dirname, sep } from 'node:path';
 import { chromium } from 'playwright';
 import { physicalWebGpuBrowserOptions } from './physical-webgpu-browser.js';
+import { readServedHarnessFile } from '../helpers/served-browser-files.js';
 
 const [dopplerArg, reploidArg, capsuleArg, referencePath, archivePath, outputPath] = process.argv.slice(2);
 assert(outputPath, 'Expected installed Doppler/Reploid roots, qualified Capsule directory, reference, archive and output');
@@ -57,6 +58,14 @@ const server = createServer((request, response) => {
     return;
   }
   if (pathname === '/') { response.setHeader('Content-Type', 'text/html'); response.end('<!doctype html><title>Real peer decisions</title><script type="importmap">' + JSON.stringify({ imports }) + '</script>'); return; }
+  if (pathname.startsWith('/self/')) {
+    // The browser tree is served as Hosting serves it, from whichever root holds a file.
+    void readServedHarnessFile(pathname).then(bytes => {
+      if (!bytes) { response.writeHead(404).end(); return; }
+      response.setHeader('Content-Type', pathname.endsWith('.json') ? 'application/json' : 'text/javascript'); response.end(bytes);
+    }, () => response.destroy());
+    return;
+  }
   const mapping = mappings.find(([prefix]) => pathname.startsWith(prefix));
   if (!mapping) { response.writeHead(404).end(); return; }
   const file = resolve(mapping[1], pathname.slice(mapping[0].length));

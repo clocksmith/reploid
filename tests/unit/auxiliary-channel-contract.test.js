@@ -1,7 +1,7 @@
 import { it, expect } from 'vitest';
 import { SWARM_AUXILIARY_CHANNELS } from '../../packages/reploid/src/transport/swarm.js';
 import { ORDERED_PARTITION_CHANNEL } from '../../packages/reploid/src/mesh/partitions/partition-route-network.js';
-import { SWARM_AUXILIARY_CHANNELS as VENDORED_CHANNELS } from '../../self/vendor/reploid/transport/swarm.js';
+import { SWARM_AUXILIARY_CHANNELS as VENDORED_CHANNELS } from '../../shared/vendor/reploid/transport/swarm.js';
 
 // Fake transports in other tests accept any label, which hid an ordered-route channel the
 // real swarm rejected. Every label a partition network opens must be admitted by the transport.

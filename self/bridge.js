@@ -29,7 +29,7 @@ import {
 } from './identity.js';
 import { getCurrentReploidInstanceId } from './instance.js';
 import { verifyReceipt } from './receipt.js';
-import { createLegacyGenerationMesh } from './vendor/reploid/mesh/index.js';
+import { createLegacyGenerationMesh } from '../shared/vendor/reploid/mesh/index.js';
 import { createLegacyNetworkOptions } from './capabilities/communication/library-adapter.js';
 import { createSelfToolRunner } from './tool-runner.js';
 import { promoteShadowCandidate } from './tools/Promote.js';

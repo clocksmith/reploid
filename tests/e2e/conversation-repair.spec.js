@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
+import { readServedText } from '../helpers/served-browser-files.js';
 
 async function installFixture(page) {
   // State-only screenshots: no peer connection, model download or inference.
@@ -153,7 +154,7 @@ test('Verification Worker accepts repaired application modules', async ({ page }
       .map(name => `ui/pool-home/${name}.js`),
     ...['chat-session', 'document-comparison', 'product-context', 'product-session', 'work-model-files', 'work-swarm'].map(name => `host/${name}.js`)
   ];
-  const snapshot = Object.fromEntries(await Promise.all(paths.map(async path => ['/' + path, await readFile('self/' + path, 'utf8')])));
+  const snapshot = Object.fromEntries(await Promise.all(paths.map(async path => ['/' + path, await readServedText(path)])));
   await page.goto('/');
   const result = await page.evaluate(snapshot => new Promise((resolve, reject) => {
     const worker = new Worker('/core/verification-worker.js');

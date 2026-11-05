@@ -17,7 +17,8 @@ export const DEFAULT_COORDINATOR_RUNTIME_SCOPE = Object.freeze([
   'packages/reploid/package.json',
   'packages/reploid/src',
   'server',
-  'self'
+  'self',
+  'shared'
 ]);
 
 const __filename = fileURLToPath(import.meta.url);

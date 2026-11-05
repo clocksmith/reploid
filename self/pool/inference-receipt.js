@@ -1,5 +1,5 @@
-import { compactAgreementForAcceptance, ACCEPTANCE_V2, ACCEPTANCE_V2_DOMAIN, canonicalAcceptanceAgreement, acceptanceV2SigningPayload } from '../vendor/reploid/artifacts/acceptance.js';
-export { compactAgreementForAcceptance, ACCEPTANCE_V2, ACCEPTANCE_V2_DOMAIN, canonicalAcceptanceAgreement, canonicalAcceptanceTerms, acceptanceV2SigningPayload } from '../vendor/reploid/artifacts/acceptance.js';
+import { compactAgreementForAcceptance, ACCEPTANCE_V2, ACCEPTANCE_V2_DOMAIN, canonicalAcceptanceAgreement, acceptanceV2SigningPayload } from '../../shared/vendor/reploid/artifacts/acceptance.js';
+export { compactAgreementForAcceptance, ACCEPTANCE_V2, ACCEPTANCE_V2_DOMAIN, canonicalAcceptanceAgreement, canonicalAcceptanceTerms, acceptanceV2SigningPayload } from '../../shared/vendor/reploid/artifacts/acceptance.js';
 /**
  * @fileoverview Canonical receipt helpers for Reploid browser inference pool.
  */
@@ -9,7 +9,7 @@ import { canonicalize } from './canonical-json.js';
 import { exactModelContractKey } from './model-contract.js';
 import { isSequenceWorkload } from './sequence-workload.js';
 
-import { sha256Hex, hashJson, createSigningKeyPair, exportPublicKey, exportPrivateKey, importPublicKey, importPrivateKey, importSigningKeyPair, domainSeparatedPayload, signCanonical, verifyCanonicalSignature } from '../vendor/reploid/artifacts/signatures.js';
+import { sha256Hex, hashJson, createSigningKeyPair, exportPublicKey, exportPrivateKey, importPublicKey, importPrivateKey, importSigningKeyPair, domainSeparatedPayload, signCanonical, verifyCanonicalSignature } from '../../shared/vendor/reploid/artifacts/signatures.js';
 export { sha256Hex, hashJson, createSigningKeyPair, exportPublicKey, exportPrivateKey, importPublicKey, importPrivateKey, importSigningKeyPair, domainSeparatedPayload, signCanonical, verifyCanonicalSignature };
 
 export const RECEIPT_VERSION = 'reploid_browser_inference/v1';

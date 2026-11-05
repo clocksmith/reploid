@@ -1,4 +1,4 @@
-import { createTrainingSession, createTrainingNetwork } from '../vendor/reploid/training/index.js';
+import { createTrainingSession, createTrainingNetwork } from '../../shared/vendor/reploid/training/index.js';
 import policy from '../config/lora-training.json' with { type: 'json' };
 
 export function createTrainingWorker({ WorkerClass = globalThis.Worker, onProgress = () => {} } = {}) {

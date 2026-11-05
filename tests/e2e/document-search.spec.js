@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { createDocumentPackFixture } from '../fixtures/document-packs.js';
 import documentPolicy from '../../self/pool/document-search-policy.json' with { type: 'json' };
+import { readServedText } from '../helpers/served-browser-files.js';
 
 // Real browser/UI and public operation consumer; injected model outputs, not GPU qualification.
 for (const answerText of ['Apple trees grow fruit. [1]', documentPolicy.answerAbstention]) {
@@ -105,7 +106,7 @@ test('changed Reploid modules pass the actual Verification Worker', async ({ pag
     'pool/document-search.js', 'pool/document-answer.js', 'pool/pack-release-policy.js', 'infrastructure/pack-release-storage.js',
     'pool/pack-operation-adapters.js', 'ui/pool-home/document-search.js', 'ui/pool-home/index.js', 'ui/pool-home/view.js', 'ui/pool-home/controls.js'];
   const snapshot = Object.fromEntries(await Promise.all(paths.map(async (path) => [
-    `/${path}`, await readFile(new URL(`../../self/${path}`, import.meta.url), 'utf8')
+    `/${path}`, await readServedText(path)
   ])));
   for (const path of ['unit/pool-document-search.test.js', 'unit/pool-pack-operation.test.js', 'unit/pool-home-nav.test.js', 'unit/pool-home-record.test.js', 'e2e/document-search.spec.js', 'fixtures/document-packs.js', 'fixtures/doppler-pack-handoff.js',
     'fixtures/doppler-installed-generation.js', 'fixtures/peer-pack-operation.js', 'integration/doppler-installed-generation.test.js']) {

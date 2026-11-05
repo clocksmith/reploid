@@ -28,6 +28,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { resolveServedFile } from '../server/browser-roots.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const STYLES = path.join(ROOT, 'self', 'styles');
@@ -162,7 +163,7 @@ const splitSelectors = (text) => {
 
 /* Every style rule in a non-Poolday stylesheet must exclude the Poolday subtree. */
 const checkIsolated = (file) => {
-  const clean = stripComments(readFileSync(path.join(ROOT, 'self', file), 'utf8'));
+  const clean = stripComments(readFileSync(resolveServedFile(file), 'utf8'));
   const stack = []; let buffer = '', line = 1;
   for (const ch of clean) {
     if (ch === '\n') line += 1;

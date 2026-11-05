@@ -25,7 +25,9 @@ async function walk(root, relative = '') {
   catch (error) { if (error.code === 'ENOENT' && !relative) return []; throw error; }
   const files = [];
   for (const entry of entries) {
-    if (entry.name.startsWith('.') || entry.name === 'node_modules') continue;
+    // Component charters govern source directories; they are never served, and
+    // each root keeps its own at the top.
+    if (entry.name.startsWith('.') || entry.name === 'node_modules' || entry.name === 'CATSCAN.md') continue;
     const name = posix.join(relative, entry.name);
     if (entry.isDirectory()) files.push(...await walk(root, name));
     else if (entry.isFile()) files.push(name);

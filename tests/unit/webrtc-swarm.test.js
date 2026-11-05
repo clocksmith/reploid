@@ -6,7 +6,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import UtilsModule from '../../core/utils.js';
 import EventBusModule from '../../infrastructure/event-bus.js';
 import WebRTCSwarmModule from '../../capabilities/communication/webrtc-swarm.js';
-import { resolveConfig } from '../../self/vendor/reploid/config/index.js';
+import { resolveConfig } from '../../shared/vendor/reploid/config/index.js';
 
 // Constants matching the module
 const PROTOCOL_VERSION = 1;

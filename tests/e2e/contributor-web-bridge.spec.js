@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { attachBrowserWebBridge } from '../../server/browser-web-bridge.js';
+import { readServedHarnessFile } from '../helpers/served-browser-files.js';
 
 const origin = 'http://127.0.0.1:5198';
 test('explicit browser bridge supplies only its top-level page and forwards cancellation', async ({ page, context }) => {
@@ -47,9 +48,9 @@ test('new web execution modules pass the browser Verification Worker', async ({ 
   await page.route(`${origin}/**`, async route => {
     const pathname = new URL(route.request().url()).pathname;
     if (pathname === '/') return route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Verification</title>' });
-    const filename = path.resolve('self', '.' + pathname);
-    if (!filename.startsWith(path.resolve('self') + '/')) return route.abort();
-    await route.fulfill({ contentType: 'text/javascript', body: await readFile(filename) });
+    const body = await readServedHarnessFile('/self' + pathname);
+    if (!body) return route.abort();
+    await route.fulfill({ contentType: 'text/javascript', body });
   });
   const files = ['packages/reploid/src/mesh/web-access-network.js', 'self/host/contributor-search.js',
     'server/public-web-worker.js', 'server/browser-web-bridge.js'];

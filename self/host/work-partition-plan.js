@@ -1,7 +1,7 @@
 /** Hosts carry an explicit Doppler plan; Doppler validates its geometry and storage. */
-import { freezeJson } from '../vendor/reploid/config/index.js';
-import { partitionActivationContract } from '../vendor/reploid/mesh/partitions/partition-contract.js';
-import { validateRouteCostPolicy } from '../vendor/reploid/mesh/partitions/partition-route-ranking.js';
+import { freezeJson } from '../../shared/vendor/reploid/config/index.js';
+import { partitionActivationContract } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
+import { validateRouteCostPolicy } from '../../shared/vendor/reploid/mesh/partitions/partition-route-ranking.js';
 import { selectWorkAdapters } from '../providers/work-adapter.js';
 import partitionPolicy from '../config/partition-policy.json' with { type: 'json' };
 

@@ -1,6 +1,6 @@
 import { createRunTraceRecorder } from '../infrastructure/telemetry-timeline.js';
-import AgentLoop from '../vendor/reploid/agent/legacy-loop.js';
-import { resolveConfig } from '../vendor/reploid/config/index.js';
+import AgentLoop from '../../shared/vendor/reploid/agent/legacy-loop.js';
+import { resolveConfig } from '../../shared/vendor/reploid/config/index.js';
 import { getCurrentReploidStorage } from '../instance.js';
 import * as Policies from './agent-loop-policies.js';
 import { buildAgentInitialContext } from './agent-context.js';

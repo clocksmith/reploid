@@ -1,10 +1,10 @@
 /** Adapt identified chat attempts to existing execution ports; own only the scheduler we create. */
-import { createChatScheduler, remoteDisclosureKind } from '../vendor/reploid/chat/index.js';
+import { createChatScheduler, remoteDisclosureKind } from '../../shared/vendor/reploid/chat/index.js';
 import { createWorkResidentProvider } from '../providers/work-resident-provider.js';
 import { createWorkAdapterResolver } from '../providers/work-adapter.js';
 import { createWorkNetworkProvider } from '../providers/work-network-provider.js';
 import { readWorkGenerationCompletion } from '../providers/work-generation-completion.js';
-import { publicProviderHardware } from '../vendor/reploid/mesh/provider-hardware.js';
+import { publicProviderHardware } from '../../shared/vendor/reploid/mesh/provider-hardware.js';
 
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 

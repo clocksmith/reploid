@@ -1,7 +1,7 @@
 /** Bounded requester-owned history over the existing browser storage owner. */
-import { openCanonicalWorkspaceHistory } from '../vendor/reploid/chat/index.js';
-import { verifyPartitionStageCommit } from '../vendor/reploid/mesh/index.js';
-import { createIndexedDbStore } from '../vendor/reploid/adapters/browser.js';
+import { openCanonicalWorkspaceHistory } from '../../shared/vendor/reploid/chat/index.js';
+import { verifyPartitionStageCommit } from '../../shared/vendor/reploid/mesh/index.js';
+import { createIndexedDbStore } from '../../shared/vendor/reploid/adapters/browser.js';
 
 const CANONICAL_VALIDATORS = ['validateResidentAttemptIdentity', 'canonicalGenerationIdentity',
   'validateExecutionPublication', 'validateAdmissionPublication'];

@@ -1,4 +1,4 @@
-import { bytesToBase64, base64ToBytes } from '../vendor/reploid/artifacts/binary.js';
+import { bytesToBase64, base64ToBytes } from '../../shared/vendor/reploid/artifacts/binary.js';
 /**
  * @fileoverview Assignment-scoped adapter byte transfer over Poolday WebRTC.
  */

@@ -9,6 +9,7 @@ vi.mock('../../self/infrastructure/custody-supply-budget.js', () => ({
 }));
 import { createWorkModelFiles } from '../../self/host/work-model-files.js';
 import { LOCAL_DOPPLER_MODELS } from '../../self/config/doppler-local-models.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
 afterEach(() => { vi.unstubAllGlobals(); ports.retained.mockReset(); ports.retained.mockResolvedValue(null); });
 
 it('reuses an acquired Doppler source for ordinary mesh compute preparation without another loader', async () => {
@@ -21,13 +22,13 @@ it('reuses an acquired Doppler source for ordinary mesh compute preparation with
 
 it('reads the pinned manifest from Doppler for mesh custody without copying or downloading bytes', async () => {
   const model = LOCAL_DOPPLER_MODELS[0], descriptor = model.source.files.find(file => file.role === 'model-manifest');
-  const text = await readFile(new URL('../../self' + descriptor.url, import.meta.url), 'utf8');
+  const text = await readFile(resolveServedFile(descriptor.url), 'utf8');
   const missing = () => { throw new DOMException('Not found', 'NotFoundError'); };
   vi.stubGlobal('navigator', { storage: { getDirectory: async () => ({ getDirectoryHandle: async () => ({
     async *entries() {}, getFileHandle: missing
   }) }) } });
   vi.stubGlobal('location', { href: 'http://localhost/' });
-  vi.stubGlobal('REPLOID_DOPPLER_MODULE_URL', new URL('../../self/vendor/doppler/0.6.32/src/index.js', import.meta.url).href);
+  vi.stubGlobal('REPLOID_DOPPLER_MODULE_URL', new URL('../../shared/vendor/doppler/0.6.32/src/index.js', import.meta.url).href);
   const close = vi.fn(async () => {}), read = vi.fn(async path => {
     expect(path).toBe('manifest.json'); return new TextEncoder().encode(text).buffer;
   });

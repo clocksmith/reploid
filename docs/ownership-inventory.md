@@ -18,12 +18,12 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 283 |
-| self | 465 |
-| shared | 2215 |
-| total | 2963 |
+| apps/poolday | 278 |
+| self | 448 |
+| shared | 2213 |
+| total | 2939 |
 
-2498 files still live outside their owner's root; the Source column shows where.
+358 files still live outside their owner's root; the Source column shows where.
 
 ## Package mirrors
 
@@ -31,15 +31,13 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 
 | Served tree | Files | Owner |
 | --- | ---: | --- |
-| `vendor/CATSCAN.md/` | 1 | shared |
-| `vendor/doppler/` | 1853 | shared |
+| `vendor/doppler/` | 1852 | shared |
 | `vendor/reploid/` | 281 | shared |
 
 ## Files
 
 | Served path | Source | Owner | Basis |
 | --- | --- | --- | --- |
-| `CATSCAN.md` | `self/CATSCAN.md` | self | Charter or note of a directory split among apps/poolday, self, shared; it stays with self and the other owners' root charters govern their files. |
 | `audit.html` | `self/audit.html` | self | Reached only from substrate entries. |
 | `blueprint-index.json` | `self/blueprint-index.json` | self | Reached only from substrate entries. |
 | `blueprints/0x000000-reploid-genesis.md` | `self/blueprints/0x000000-reploid-genesis.md` | self | Substrate design records and their index. |
@@ -218,8 +216,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `blueprints/0x0000AD-pool-scientific-fitness.md` | `self/blueprints/0x0000AD-pool-scientific-fitness.md` | self | Substrate design records and their index. |
 | `blueprints/0x0000AE-pool-model-promotion.md` | `self/blueprints/0x0000AE-pool-model-promotion.md` | self | Substrate design records and their index. |
 | `blueprints/0x0000AF-reploid-rooms-distributed-cognition.md` | `self/blueprints/0x0000AF-reploid-rooms-distributed-cognition.md` | self | Substrate design records and their index. |
-| `blueprints/CATSCAN.md` | `self/blueprints/CATSCAN.md` | self | Charter or note of a directory with one owner. |
-| `blueprints/README.md` | `self/blueprints/README.md` | self | Charter or note of a directory with one owner. |
+| `blueprints/README.md` | `self/blueprints/README.md` | self | Note of a directory with one owner. |
 | `blueprints/blueprint-index-contract.md` | `self/blueprints/blueprint-index-contract.md` | self | Reached only from substrate entries. |
 | `blueprints/canonical-inventory.md` | `self/blueprints/canonical-inventory.md` | self | Substrate design records and their index. |
 | `blueprints/deduplication-audit.md` | `self/blueprints/deduplication-audit.md` | self | Substrate design records and their index. |
@@ -240,9 +237,8 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `boot-helpers/vfs-hydrate.js` | `self/boot-helpers/vfs-hydrate.js` | self | Reached only from substrate entries. |
 | `boot-spec.js` | `self/boot-spec.js` | self | Reached only from substrate entries. |
 | `bridge.js` | `self/bridge.js` | self | Reached only from substrate entries. |
-| `capabilities/CATSCAN.md` | `self/capabilities/CATSCAN.md` | self | Charter or note of a directory split among self, shared; it stays with self and the other owners' root charters govern their files. |
-| `capabilities/README.md` | `self/capabilities/README.md` | self | Charter or note of a directory split among self, shared; it stays with self and the other owners' root charters govern their files. |
-| `capabilities/cognition/README.md` | `self/capabilities/cognition/README.md` | self | Charter or note of a directory with one owner. |
+| `capabilities/README.md` | `self/capabilities/README.md` | self | Note of a directory split among self, shared; it stays with self. |
+| `capabilities/cognition/README.md` | `self/capabilities/cognition/README.md` | self | Note of a directory with one owner. |
 | `capabilities/cognition/cognition-api.js` | `self/capabilities/cognition/cognition-api.js` | self | Reached only from substrate entries. |
 | `capabilities/cognition/episodic-memory.js` | `self/capabilities/cognition/episodic-memory.js` | self | Reached only from substrate entries. |
 | `capabilities/cognition/gepa-optimizer.js` | `self/capabilities/cognition/gepa-optimizer.js` | self | Reached only from substrate entries. |
@@ -268,7 +264,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `capabilities/reflection/prompt-score-map.js` | `self/capabilities/reflection/prompt-score-map.js` | self | Reached only from substrate entries. |
 | `capabilities/reflection/reflection-analyzer.js` | `self/capabilities/reflection/reflection-analyzer.js` | self | Reached only from substrate entries. |
 | `capabilities/reflection/reflection-store.js` | `self/capabilities/reflection/reflection-store.js` | self | Reached only from substrate entries. |
-| `capabilities/system/README.md` | `self/capabilities/system/README.md` | self | Charter or note of a directory with one owner. |
+| `capabilities/system/README.md` | `self/capabilities/system/README.md` | self | Note of a directory with one owner. |
 | `capabilities/system/doppler-optimizer.js` | `self/capabilities/system/doppler-optimizer.js` | self | Reached only from substrate entries. |
 | `capabilities/system/doppler-toolbox.js` | `self/capabilities/system/doppler-toolbox.js` | self | Reached only from substrate entries. |
 | `capabilities/system/substrate-loader.js` | `self/capabilities/system/substrate-loader.js` | self | Reached only from substrate entries. |
@@ -277,7 +273,6 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `cloud-access-status.js` | `self/cloud-access-status.js` | self | Reached only from substrate entries. |
 | `cloud-access-windows.js` | `self/cloud-access-windows.js` | self | Reached only from substrate entries. |
 | `cloud-access.js` | `self/cloud-access.js` | self | Reached only from substrate entries. |
-| `config/CATSCAN.md` | `self/config/CATSCAN.md` | self | Charter or note of a directory split among apps/poolday, self, shared; it stays with self and the other owners' root charters govern their files. |
 | `config/adapter-evaluations/ner-json-people-places-dates-v1.json` | `self/config/adapter-evaluations/ner-json-people-places-dates-v1.json` | apps/poolday | Held-out adapter evaluations read by product adapter evidence (host/adapter-evidence.js). |
 | `config/blueprint-registry.json` | `self/config/blueprint-registry.json` | self | Substrate design records and their index. |
 | `config/boot-modes.js` | `self/config/boot-modes.js` | self | Reached only from substrate entries. |
@@ -345,8 +340,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `config/zero-access.json` | `self/config/zero-access.json` | self | Reached only from substrate entries. |
 | `config/zero-goals.js` | `self/config/zero-goals.js` | self | Reached only from substrate entries. |
 | `config/zero-inference.js` | `self/config/zero-inference.js` | self | Reached only from substrate entries. |
-| `core/CATSCAN.md` | `self/core/CATSCAN.md` | self | Charter or note of a directory split among self, shared; it stays with self and the other owners' root charters govern their files. |
-| `core/README.md` | `self/core/README.md` | self | Charter or note of a directory split among self, shared; it stays with self and the other owners' root charters govern their files. |
+| `core/README.md` | `self/core/README.md` | self | Note of a directory split among self, shared; it stays with self. |
 | `core/agent-context.js` | `self/core/agent-context.js` | self | Reached only from substrate entries. |
 | `core/agent-loop-policies.js` | `self/core/agent-loop-policies.js` | self | Reached only from substrate entries. |
 | `core/agent-loop.js` | `self/core/agent-loop.js` | self | Reached only from substrate entries. |
@@ -402,7 +396,6 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `experimental/openclaw-audit/index.js` | `self/experimental/openclaw-audit/index.js` | self | Reached only from substrate entries. |
 | `experimental/openclaw-audit/self-audit.js` | `self/experimental/openclaw-audit/self-audit.js` | self | Reached only from substrate entries. |
 | `favicon.svg` | `self/favicon.svg` | shared | Reached from product and substrate entries. |
-| `host/CATSCAN.md` | `self/host/CATSCAN.md` | self | Charter or note of a directory split among apps/poolday, self; it stays with self and the other owners' root charters govern their files. |
 | `host/adapter-evidence.js` | `self/host/adapter-evidence.js` | apps/poolday | Reached only from product entries. |
 | `host/chat-context.js` | `self/host/chat-context.js` | apps/poolday | Reached only from product entries. |
 | `host/chat-drafts.js` | `self/host/chat-drafts.js` | apps/poolday | Reached only from product entries. |
@@ -413,13 +406,11 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `host/chat-view.js` | `self/host/chat-view.js` | apps/poolday | Reached only from product entries. |
 | `host/contribution-history.js` | `self/host/contribution-history.js` | apps/poolday | Reached only from product entries. |
 | `host/contributor-search.js` | `self/host/contributor-search.js` | apps/poolday | Reached only from product entries. |
-| `host/credits/CATSCAN.md` | `self/host/credits/CATSCAN.md` | apps/poolday | Charter or note of a directory with one owner. |
 | `host/credits/browser.js` | `self/host/credits/browser.js` | apps/poolday | Reached only from product entries. |
 | `host/credits/local-sign-in.js` | `self/host/credits/local-sign-in.js` | apps/poolday | Reached only from product entries. |
 | `host/device-search.js` | `self/host/device-search.js` | apps/poolday | Reached only from product entries. |
 | `host/document-comparison.js` | `self/host/document-comparison.js` | apps/poolday | Reached only from product entries. |
 | `host/document-study.js` | `self/host/document-study.js` | apps/poolday | Reached only from product entries. |
-| `host/earning/CATSCAN.md` | `self/host/earning/CATSCAN.md` | apps/poolday | Charter or note of a directory with one owner. |
 | `host/earning/attempts.js` | `self/host/earning/attempts.js` | apps/poolday | Reached only from product entries. |
 | `host/earning/client.js` | `self/host/earning/client.js` | apps/poolday | Reached only from product entries. |
 | `host/earning/contribution.js` | `self/host/earning/contribution.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
@@ -468,8 +459,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `image/export.js` | `self/image/export.js` | self | Reached only from substrate entries. |
 | `image/manifest.js` | `self/image/manifest.js` | self | Reached only from substrate entries. |
 | `index.html` | `self/index.html` | apps/poolday | Reached only from product entries. |
-| `infrastructure/CATSCAN.md` | `self/infrastructure/CATSCAN.md` | self | Charter or note of a directory split among apps/poolday, self, shared; it stays with self and the other owners' root charters govern their files. |
-| `infrastructure/README.md` | `self/infrastructure/README.md` | self | Charter or note of a directory split among apps/poolday, self, shared; it stays with self and the other owners' root charters govern their files. |
+| `infrastructure/README.md` | `self/infrastructure/README.md` | self | Note of a directory split among apps/poolday, self, shared; it stays with self. |
 | `infrastructure/audit-logger.js` | `self/infrastructure/audit-logger.js` | self | Reached only from substrate entries. |
 | `infrastructure/browser-apis.js` | `self/infrastructure/browser-apis.js` | self | Reached only from substrate entries. |
 | `infrastructure/capsule-artifact-storage.js` | `self/infrastructure/capsule-artifact-storage.js` | apps/poolday | Reached only from product entries. |
@@ -497,11 +487,9 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `infrastructure/tool-executor.js` | `self/infrastructure/tool-executor.js` | self | Reached only from substrate entries. |
 | `infrastructure/trace-store.js` | `self/infrastructure/trace-store.js` | self | Reached only from substrate entries. |
 | `instance.js` | `self/instance.js` | shared | Reached from product and substrate entries. |
-| `kernel/CATSCAN.md` | `self/kernel/CATSCAN.md` | self | Charter or note of a directory with one owner. |
 | `kernel/boot.js` | `self/kernel/boot.js` | self | Reached only from substrate entries. |
 | `kernel/index.html` | `self/kernel/index.html` | self | Reached only from substrate entries. |
 | `key-unsealer.js` | `self/key-unsealer.js` | self | Reached only from substrate entries. |
-| `lab/CATSCAN.md` | `self/lab/CATSCAN.md` | self | Charter or note of a directory with one owner. |
 | `lab/mirrors.js` | `self/lab/mirrors.js` | self | Reached only from substrate entries. |
 | `lab/profiles.js` | `self/lab/profiles.js` | self | Reached only from substrate entries. |
 | `lab/runtime-ui.js` | `self/lab/runtime-ui.js` | self | Reached only from substrate entries. |
@@ -509,12 +497,10 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `manifest.js` | `self/manifest.js` | self | Reached only from substrate entries. |
 | `personas/code-architect.md` | `self/personas/code-architect.md` | self | Reached only from substrate entries. |
 | `personas/config.json` | `self/personas/config.json` | self | Reached only from substrate entries. |
-| `plugins/CATSCAN.md` | `self/plugins/CATSCAN.md` | apps/poolday | Charter or note of a directory with one owner. |
 | `plugins/model-imitation/manifest.json` | `self/plugins/model-imitation/manifest.json` | apps/poolday | Reached only from product entries. |
 | `plugins/model-imitation/plugin.js` | `self/plugins/model-imitation/plugin.js` | apps/poolday | Reached only from product entries. |
 | `plugins/model-imitation/protocol.json` | `self/plugins/model-imitation/protocol.json` | apps/poolday | Reached only from product entries. |
 | `pool-entry.html` | `self/pool-entry.html` | apps/poolday | Reached only from product entries. |
-| `pool/CATSCAN.md` | `self/pool/CATSCAN.md` | apps/poolday | Charter or note of a directory split among apps/poolday, shared; it stays with apps/poolday and the other owners' root charters govern their files. |
 | `pool/adapter-canary-publication.js` | `self/pool/adapter-canary-publication.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `pool/adapter-evaluation.js` | `self/pool/adapter-evaluation.js` | apps/poolday | Reached only from product entries. |
 | `pool/adapter-execution-policy.d.ts` | `self/pool/adapter-execution-policy.d.ts` | shared | Describes pool/adapter-execution-policy.js. Reached from product and substrate entries. |
@@ -644,7 +630,6 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `pool/sequence-workload.js` | `self/pool/sequence-workload.js` | shared | Reached from product and substrate entries. |
 | `poolday-design.html` | `self/poolday-design.html` | apps/poolday | Reached only from product entries. |
 | `prompts/kernel.md` | `self/prompts/kernel.md` | self | Reached only from substrate entries. |
-| `providers/CATSCAN.md` | `self/providers/CATSCAN.md` | self | Charter or note of a directory split among apps/poolday, self; it stays with self and the other owners' root charters govern their files. |
 | `providers/doppler-reploid.js` | `self/providers/doppler-reploid.js` | self | Reached only from substrate entries. |
 | `providers/external-brain.js` | `self/providers/external-brain.js` | self | Reached only from substrate entries. |
 | `providers/work-adapter.js` | `self/providers/work-adapter.js` | apps/poolday | Reached only from product entries. |
@@ -658,7 +643,6 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `reset.html` | `self/reset.html` | shared | RD design-system specimen and storage reset page served for every surface; load only shared styles. |
 | `reward-policy.js` | `self/reward-policy.js` | shared | Reached from product and substrate entries. |
 | `runtime.js` | `self/runtime.js` | self | Reached only from substrate entries. |
-| `shared/change-passport/CATSCAN.md` | `self/shared/change-passport/CATSCAN.md` | self | Charter or note of a directory with one owner. |
 | `shared/change-passport/contract.js` | `self/shared/change-passport/contract.js` | self | Reached only from substrate entries. |
 | `shared/change-passport/improvement-adapter.js` | `self/shared/change-passport/improvement-adapter.js` | self | Reached only from substrate entries. |
 | `shared/change-passport/policy.js` | `self/shared/change-passport/policy.js` | self | Reached only from substrate entries. |
@@ -693,14 +677,13 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `sw-module-loader.js` | `self/sw-module-loader.js` | self | Reached only from substrate entries. |
 | `sw.js` | `self/sw.js` | self | Reached only from substrate entries. |
 | `swarm.js` | `self/swarm.js` | shared | Reached from product and substrate entries. |
-| `testing/arena/README.md` | `self/testing/arena/README.md` | self | Charter or note of a directory with one owner. |
+| `testing/arena/README.md` | `self/testing/arena/README.md` | self | Note of a directory with one owner. |
 | `testing/arena/arena-harness.js` | `self/testing/arena/arena-harness.js` | self | Reached only from substrate entries. |
 | `testing/arena/arena-metrics.js` | `self/testing/arena/arena-metrics.js` | self | Reached only from substrate entries. |
 | `testing/arena/competitor.js` | `self/testing/arena/competitor.js` | self | Reached only from substrate entries. |
 | `testing/arena/vfs-sandbox.js` | `self/testing/arena/vfs-sandbox.js` | self | Reached only from substrate entries. |
 | `tool-runner.js` | `self/tool-runner.js` | self | Reached only from substrate entries. |
 | `tools/AwaitWorkers.js` | `self/tools/AwaitWorkers.js` | self | Reached only from substrate entries. |
-| `tools/CATSCAN.md` | `self/tools/CATSCAN.md` | self | Charter or note of a directory with one owner. |
 | `tools/CopyFile.js` | `self/tools/CopyFile.js` | self | Reached only from substrate entries. |
 | `tools/CreateTool.js` | `self/tools/CreateTool.js` | self | Reached only from substrate entries. |
 | `tools/DeleteFile.js` | `self/tools/DeleteFile.js` | self | Reached only from substrate entries. |
@@ -719,7 +702,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `tools/MakeDirectory.js` | `self/tools/MakeDirectory.js` | self | Reached only from substrate entries. |
 | `tools/MoveFile.js` | `self/tools/MoveFile.js` | self | Reached only from substrate entries. |
 | `tools/Promote.js` | `self/tools/Promote.js` | self | Reached only from substrate entries. |
-| `tools/README.md` | `self/tools/README.md` | self | Charter or note of a directory with one owner. |
+| `tools/README.md` | `self/tools/README.md` | self | Note of a directory with one owner. |
 | `tools/ReadFile.js` | `self/tools/ReadFile.js` | self | Reached only from substrate entries. |
 | `tools/RunGEPA.js` | `self/tools/RunGEPA.js` | self | Reached only from substrate entries. |
 | `tools/SpawnWorker.js` | `self/tools/SpawnWorker.js` | self | Reached only from substrate entries. |
@@ -730,7 +713,6 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `tools/Tail.js` | `self/tools/Tail.js` | self | Reached only from substrate entries. |
 | `tools/WriteFile.js` | `self/tools/WriteFile.js` | self | Reached only from substrate entries. |
 | `tools/git.js` | `self/tools/git.js` | self | Reached only from substrate entries. |
-| `ui/CATSCAN.md` | `self/ui/CATSCAN.md` | self | Charter or note of a directory split among apps/poolday, self, shared; it stays with self and the other owners' root charters govern their files. |
 | `ui/boot-home/index.js` | `self/ui/boot-home/index.js` | self | Reached only from substrate entries. |
 | `ui/boot-wizard/connection-tests.js` | `self/ui/boot-wizard/connection-tests.js` | self | Reached only from substrate entries. |
 | `ui/boot-wizard/detection.js` | `self/ui/boot-wizard/detection.js` | self | Reached only from substrate entries. |
@@ -745,7 +727,6 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/boot-wizard/steps/direct.js` | `self/ui/boot-wizard/steps/direct.js` | self | Reached only from substrate entries. |
 | `ui/boot-wizard/steps/goal.js` | `self/ui/boot-wizard/steps/goal.js` | self | Reached only from substrate entries. |
 | `ui/boot-wizard/steps/proxy.js` | `self/ui/boot-wizard/steps/proxy.js` | self | Reached only from substrate entries. |
-| `ui/change-passport/CATSCAN.md` | `self/ui/change-passport/CATSCAN.md` | self | Charter or note of a directory with one owner. |
 | `ui/change-passport/client.js` | `self/ui/change-passport/client.js` | self | Reached only from substrate entries. |
 | `ui/change-passport/index.js` | `self/ui/change-passport/index.js` | self | Reached only from substrate entries. |
 | `ui/change-passport/styles.css` | `self/ui/change-passport/styles.css` | self | Reached only from substrate entries. |
@@ -764,7 +745,6 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/components/permission-card.js` | `self/ui/components/permission-card.js` | apps/poolday | Reached only from product entries. |
 | `ui/components/vfs-progress.js` | `self/ui/components/vfs-progress.js` | self | Reached only from substrate entries. |
 | `ui/panels/cognition-panel.js` | `self/ui/panels/cognition-panel.js` | self | Reached only from substrate entries. |
-| `ui/pool-home/CATSCAN.md` | `self/ui/pool-home/CATSCAN.md` | apps/poolday | Charter or note of a directory with one owner. |
 | `ui/pool-home/account-panel.js` | `self/ui/pool-home/account-panel.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/account-sign-in.js` | `self/ui/pool-home/account-sign-in.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/agent-network.js` | `self/ui/pool-home/agent-network.js` | apps/poolday | Reached only from product entries. |
@@ -837,7 +817,6 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/poolday-design/model.js` | `self/ui/poolday-design/model.js` | apps/poolday | Reached only from product entries. |
 | `ui/poolday-design/production-simulation.js` | `self/ui/poolday-design/production-simulation.js` | apps/poolday | Reached only from product entries. |
 | `ui/poolday-design/specimens.js` | `self/ui/poolday-design/specimens.js` | apps/poolday | Reached only from product entries. |
-| `ui/proto/CATSCAN.md` | `self/ui/proto/CATSCAN.md` | self | Charter or note of a directory with one owner. |
 | `ui/proto/index.js` | `self/ui/proto/index.js` | self | Reached only from substrate entries. |
 | `ui/proto/optimization.js` | `self/ui/proto/optimization.js` | self | Reached only from substrate entries. |
 | `ui/proto/replay.js` | `self/ui/proto/replay.js` | self | Reached only from substrate entries. |
@@ -850,11 +829,9 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/shared/reploid-contract.js` | `self/ui/shared/reploid-contract.js` | self | Reached only from substrate entries. |
 | `ui/toast.js` | `self/ui/toast.js` | self | Reached only from substrate entries. |
 | `ui/zero-home/index.js` | `self/ui/zero-home/index.js` | self | Reached only from substrate entries. |
-| `ui/zero/CATSCAN.md` | `self/ui/zero/CATSCAN.md` | self | Charter or note of a directory with one owner. |
 | `ui/zero/index.js` | `self/ui/zero/index.js` | self | Reached only from substrate entries. |
 | `ui/zero/replay-panel.js` | `self/ui/zero/replay-panel.js` | self | Reached only from substrate entries. |
 | `ui/zero/trace-view.js` | `self/ui/zero/trace-view.js` | self | Reached only from substrate entries. |
-| `zero/CATSCAN.md` | `self/zero/CATSCAN.md` | self | Charter or note of a directory with one owner. |
 | `zero/agent.js` | `self/zero/agent.js` | self | Reached only from substrate entries. |
 | `zero/boot.js` | `self/zero/boot.js` | self | Reached only from substrate entries. |
 | `zero/config.json` | `self/zero/config.json` | self | Reached only from substrate entries. |

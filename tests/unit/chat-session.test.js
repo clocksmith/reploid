@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createChatSession, CANONICAL_CHAT_MODELS } from '../../self/host/chat-session.js';
-import { createChatScheduler } from '../../self/vendor/reploid/chat/index.js';
+import { createChatScheduler } from '../../shared/vendor/reploid/chat/index.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 const storage = () => {
   const values = new Map();

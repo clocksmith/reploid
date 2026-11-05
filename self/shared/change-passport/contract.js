@@ -1,4 +1,4 @@
-import { verifyEventSignature } from '../../vendor/reploid/artifacts/event-signature.js';
+import { verifyEventSignature } from '../../../shared/vendor/reploid/artifacts/event-signature.js';
 /**
  * @fileoverview Canonical Change Passport event ledger and deterministic projection.
  */

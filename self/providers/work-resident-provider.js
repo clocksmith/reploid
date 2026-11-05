@@ -1,5 +1,5 @@
 /** One prepared model, reusable across requests until explicitly retired. */
-import { createPreparationProgressObserver } from '../vendor/reploid/mesh/preparation-progress.js';
+import { createPreparationProgressObserver } from '../../shared/vendor/reploid/mesh/preparation-progress.js';
 import { openWorkProvider } from './work-provider.js';
 import { withWorkDevice } from './work-device.js';
 

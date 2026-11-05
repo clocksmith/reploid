@@ -1,4 +1,4 @@
-import { openPluginSession } from '../vendor/reploid/plugins/index.js';
+import { openPluginSession } from '../../shared/vendor/reploid/plugins/index.js';
 import { modelImitationPlugin } from '../plugins/model-imitation/plugin.js';
 import protocol from '../plugins/model-imitation/protocol.json' with { type: 'json' };
 

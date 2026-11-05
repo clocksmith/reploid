@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
 import dopplerFixture from './library-doppler-fixture.json' with { type: 'json' };
 import workCases from './fixtures/work-goal-cases.json' with { type: 'json' };
+import { readServedHarnessFile } from './helpers/served-browser-files.js';
 
 const execute = promisify(execFile);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -84,11 +85,11 @@ try {
     const entries = Object.entries(manifest.exports).filter(([, target]) => typeof target === 'object');
     const names = entries.map(([key]) => key === '.' ? 'reploid' : 'reploid/' + key.slice(2));
     await check('published-assets-and-application-copy', async () => {
-      const assets = JSON.parse(await readFile(path.join(root, 'self/vendor/reploid/package-assets.json'), 'utf8'));
+      const assets = JSON.parse(await readFile(path.join(root, 'shared/vendor/reploid/package-assets.json'), 'utf8'));
       assert.deepEqual(assets.exports, manifest.exports);
       for (const file of assets.files) {
         const installed = await readFile(path.join(installedRoot, 'src', file.path));
-        const application = await readFile(path.join(root, 'self/vendor/reploid', file.path));
+        const application = await readFile(path.join(root, 'shared/vendor/reploid', file.path));
         assert.equal(createHash('sha256').update(installed).digest('hex'), file.sha256, file.path);
         assert.deepEqual(application, installed, file.path);
       }
@@ -229,12 +230,13 @@ try {
             return;
           }
           const application = pathname.startsWith(applicationPrefix);
-          const directory = application ? path.join(root, 'self') : consumer;
-          const relative = application ? '/' + pathname.slice(applicationPrefix.length)
-            : pathname === '/' ? '/index.html' : pathname;
-          const file = path.resolve(directory, '.' + decodeURIComponent(relative));
-          if (!file.startsWith(directory + path.sep)) { response.writeHead(403).end(); return; }
-          const bytes = await readFile(file);
+          const directory = consumer;
+          const relative = pathname === '/' ? '/index.html' : pathname;
+          const file = application ? decodeURIComponent(pathname) : path.resolve(directory, '.' + decodeURIComponent(relative));
+          if (!application && !file.startsWith(directory + path.sep)) { response.writeHead(403).end(); return; }
+          // The application is the served browser tree, as Hosting serves it.
+          const bytes = application ? await readServedHarnessFile('/self/' + pathname.slice(applicationPrefix.length)) : await readFile(file);
+          if (!bytes) { response.writeHead(404).end(); return; }
           response.writeHead(200, { 'content-type': mime[path.extname(file)] || 'application/octet-stream', 'access-control-allow-origin': '*' });
           response.end(bytes);
         } catch { response.writeHead(404).end(); }

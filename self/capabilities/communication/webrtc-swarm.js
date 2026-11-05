@@ -1,4 +1,4 @@
-import { createWebRTCSwarm } from '../../vendor/reploid/transport/index.js';
+import { createWebRTCSwarm } from '../../../shared/vendor/reploid/transport/index.js';
 import { createLegacyNetworkOptions } from './library-adapter.js';
 
 export default {

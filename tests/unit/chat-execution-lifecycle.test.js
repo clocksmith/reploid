@@ -1,7 +1,7 @@
 import { afterEach, expect, it, vi } from 'vitest';
 
 const { createScheduler } = vi.hoisted(() => ({ createScheduler: vi.fn() }));
-vi.mock('../../self/vendor/reploid/chat/index.js', () => ({
+vi.mock('../../shared/vendor/reploid/chat/index.js', () => ({
   createChatScheduler: createScheduler,
   remoteDisclosureKind: () => null
 }));

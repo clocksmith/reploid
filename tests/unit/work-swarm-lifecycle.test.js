@@ -1,10 +1,10 @@
 import { beforeEach, afterEach, expect, it, vi } from 'vitest';
-import { resolveConfig } from '../../self/vendor/reploid/config/index.js';
+import { resolveConfig } from '../../shared/vendor/reploid/config/index.js';
 
 const ports = vi.hoisted(() => ({ ensure: vi.fn(), createTransport: vi.fn() }));
 vi.mock('../../self/identity.js', () => ({ ensureIdentityBundle: ports.ensure,
   saveIdentityBundle: vi.fn(), rotateIdentityBundle: vi.fn() }));
-vi.mock('../../self/vendor/reploid/transport/index.js', () => ({
+vi.mock('../../shared/vendor/reploid/transport/index.js', () => ({
   createSwarmTransport: (...args) => Object.assign({ getConnectedPeers: () => [] }, ports.createTransport(...args)), createToolOfferChannel: vi.fn(),
   TOOL_OFFER_MESSAGE: 'offer', TOOL_OFFER_ACK: 'ack'
 }));

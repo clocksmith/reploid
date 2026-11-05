@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /** Create an isolated, reproducible Firebase payload from canonical assets. */
-import { promises as fs } from 'node:fs';
+import { promises as fs, rmSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
@@ -70,6 +70,16 @@ export async function packageHosting({ selfDir, tree, outputDir = path.join(root
   if (JSON.stringify(copied) !== JSON.stringify(files)) throw new Error('Hosting output file set differs');
   console.log(`[hosting] packaged ${files.length} files as ${manifest.bundleHash}`);
   return { files, bundleHash: manifest.bundleHash };
+}
+/**
+ * A temporary directory holding the served tree exactly as Hosting packages it,
+ * for harnesses whose static servers mount one directory. Removed at exit.
+ */
+export async function servedTreeSnapshot() {
+  const outputDir = await fs.mkdtemp(path.join(tmpdir(), 'reploid-served-tree-'));
+  process.once('exit', () => { rmSync(outputDir, { recursive: true, force: true }); });
+  await packageHosting({ outputDir });
+  return outputDir;
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   packageHosting().catch(error => { console.error('[hosting]', error.message); process.exitCode = 1; });

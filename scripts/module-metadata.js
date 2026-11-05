@@ -6,11 +6,15 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { parse } from 'acorn';
+import { BROWSER_ROOTS, REPOSITORY_ROOT } from '../server/browser-roots.js';
 
 const UNKNOWN = Symbol('unknown metadata');
 
-export function createModuleMetadataResolver({ rootDir, rootDirs = [rootDir], includeDependencies = false, readSource = (file) => readFile(file, 'utf8') }) {
-  // Browser sources may live in several roots of the served tree.
+export function createModuleMetadataResolver({ rootDir, rootDirs, includeDependencies = false, readSource = (file) => readFile(file, 'utf8') }) {
+  // Browser sources may live in several roots of the served tree; the repository's
+  // own self/ stands for all of them.
+  rootDirs ||= path.resolve(rootDir) === path.join(REPOSITORY_ROOT, 'self')
+    ? BROWSER_ROOTS.map(root => path.join(REPOSITORY_ROOT, root)) : [rootDir];
   const roots = rootDirs.map(directory => path.resolve(directory));
   const modules = new Map();
 

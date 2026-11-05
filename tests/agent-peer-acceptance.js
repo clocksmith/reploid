@@ -9,6 +9,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
+import { readServedText } from './helpers/served-browser-files.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 assert(process.env.DOPPLER_TEST_CONSUMER, 'DOPPLER_TEST_CONSUMER must name an installed Doppler + Reploid consumer with generation-fixture.json');
@@ -122,7 +123,7 @@ try {
   assert.equal(await requester.locator('#progress').textContent(), 'Saved peer answer.');
   assert.deepEqual(pageErrors, []); assert.deepEqual(report.beforeRestart.errors, []); assert.deepEqual(report.afterRestart.errors, []);
   const snapshot = Object.fromEntries(await Promise.all(['pool/peer-room.js', 'pool/peer-pack-requester.js', 'pool/provider-client.js', 'infrastructure/pack-job-storage.js']
-    .map(async name => ['/' + name, await readFile(path.join(root, 'self', name), 'utf8')])));
+    .map(async name => ['/' + name, await readServedText(name)])));
   report.verificationWorker = await requester.evaluate(snapshot => new Promise((resolve, reject) => {
     const worker = new Worker('/core/verification-worker.js');
     const timer = setTimeout(() => { worker.terminate(); reject(new Error('Verification Worker timeout')); }, 10000);

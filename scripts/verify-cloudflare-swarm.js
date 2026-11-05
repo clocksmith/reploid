@@ -3,6 +3,7 @@ import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
+import { readServedHarnessFile } from '../tests/helpers/served-browser-files.js';
 
 // Exercise the existing application, never a replacement inference/demo page.
 // Before cutover, override only the migration modules and policy in isolated contexts.
@@ -44,7 +45,7 @@ try {
           rtcConfigUrl: discoveryOnly ? null : endpoint + '/rtc-config' })
       }));
       for (const path of ['pool/sdk.js', 'capabilities/communication/swarm-join-policy.js', 'vendor/reploid/transport/swarm.js']) {
-        const body = await readFile('self/' + path, 'utf8');
+        const body = (await readServedHarnessFile('/self/' + path)).toString('utf8');
         await context.route(`**/${path}*`, route => route.fulfill({ contentType: 'text/javascript', body }));
       }
     } else {

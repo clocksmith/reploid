@@ -1,1 +1,1 @@
-export { openPackJobJournal } from '../vendor/reploid/artifacts/job-journal.js';
+export { openPackJobJournal } from '../../shared/vendor/reploid/artifacts/job-journal.js';

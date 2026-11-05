@@ -1,5 +1,5 @@
 /** One public preparation projection for setup, production and sharing controls. */
-import { publicPreparationProgress } from '../../vendor/reploid/mesh/preparation-progress.js';
+import { publicPreparationProgress } from '../../../shared/vendor/reploid/mesh/preparation-progress.js';
 
 export function preparationStatus(progress) {
   const normalized = progress && typeof progress === 'object' ? { ...progress,

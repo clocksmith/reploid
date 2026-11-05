@@ -1,4 +1,4 @@
-import { createSwarmTransport } from '../../vendor/reploid/transport/index.js';
+import { createSwarmTransport } from '../../../shared/vendor/reploid/transport/index.js';
 import { createLegacyNetworkOptions } from './library-adapter.js';
 
 export default {

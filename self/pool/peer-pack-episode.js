@@ -5,7 +5,7 @@ import { snapshotPackOperationData as snapshot, assertPackOperationEvent, create
 import { createPackOperationRegistry } from './pack-operation-adapters.js';
 import { PACK_JOB_POLICY, resolvePackJobPolicy } from './peer-pack-job-policy.js';
 import { PACK_UPDATE_SCHEMA, requirePackJob, verifyPackPeerMessage, verifyPackPeerJob, packJobBytes } from './peer-pack-job.js';
-import { createPackEpisodeVerifier } from '../vendor/reploid/mesh/jobs/episode.js';
+import { createPackEpisodeVerifier } from '../../shared/vendor/reploid/mesh/jobs/episode.js';
 
 // Host-owned policy and operation contracts; behavior lives in the package.
 export const { verifyPackPeerEpisode } = createPackEpisodeVerifier({ assessPeerOperation, PEER_MESSAGE_TYPES, hashDopplerEvidence, snapshot, assertPackOperationEvent, createPackOperationStream, createPackOperationRegistry, PACK_JOB_POLICY, resolvePackJobPolicy, PACK_UPDATE_SCHEMA, requirePackJob, verifyPackPeerMessage, verifyPackPeerJob, packJobBytes });

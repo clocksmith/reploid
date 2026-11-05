@@ -4,8 +4,10 @@ import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { buildZeroSource, collectZeroSource } from '../../scripts/build-zero-source.js';
 import { exportZeroImage, materializeZeroImage, validateZeroImage, validateZeroSource } from '../../self/zero/image.js';
+import { readServedText } from '../helpers/served-browser-files.js';
 
-const readSource = path => readFile(resolve(import.meta.dirname, '../../self', path), 'utf8');
+// Zero receives served bytes; read each path as Hosting serves it.
+const readSource = path => readServedText(path);
 const clone = value => JSON.parse(JSON.stringify(value));
 const digest = content => createHash('sha256').update(content).digest('hex');
 const vfs = files => ({ read: async path => files.get(path) ?? null,

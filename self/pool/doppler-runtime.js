@@ -1,4 +1,4 @@
-import { computeManifestShardSetHash } from '../vendor/reploid/artifacts/manifest-identity.js';
+import { computeManifestShardSetHash } from '../../shared/vendor/reploid/artifacts/manifest-identity.js';
 /**
  * @fileoverview Browser-only Doppler runtime adapter for pool providers.
  *

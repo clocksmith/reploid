@@ -1,7 +1,7 @@
 /** Helper agents use the same execution engine, with read-only inputs and no delegation or adoption authority. */
-import { createReploid } from '../vendor/reploid/agent/index.js';
-import { resolveConfig } from '../vendor/reploid/config/index.js';
-import protocol from '../vendor/reploid/agent/protocol.json' with { type: 'json' };
+import { createReploid } from '../../shared/vendor/reploid/agent/index.js';
+import { resolveConfig } from '../../shared/vendor/reploid/config/index.js';
+import protocol from '../../shared/vendor/reploid/agent/protocol.json' with { type: 'json' };
 import settings from '../config/work-evolution.json' with { type: 'json' };
 
 export async function runWorkHelper({ goal, inputs, provider, signal, onChange }) {

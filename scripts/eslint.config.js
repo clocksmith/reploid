@@ -78,7 +78,7 @@ const cleanedModules = [
 
 export default [
   { ignores: ['.cache/**', 'output/**', 'node_modules/**', 'artifacts/**', 'coverage/**', 'test-results/**', 'playwright-report/**',
-    'self/vendor/**', 'self/core/vendor/**', '**/dist/**', 'packages/poolday-forecast/source/**', 'self/ui/pool-home/app.bundle.js',
+    'shared/vendor/**', 'self/core/vendor/**', '**/dist/**', 'packages/poolday-forecast/source/**', 'self/ui/pool-home/app.bundle.js',
     'self/lib/**', 'doppler/**', '.firebase-hosting/**'] },
   {
     files: ['**/*.js', '**/*.mjs'],

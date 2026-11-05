@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { readServedHarnessFile } from '../helpers/served-browser-files.js';
 
 let server, origin;
 test.beforeAll(async () => {
@@ -10,12 +11,13 @@ test.beforeAll(async () => {
     try {
       const pathname = new URL(request.url, 'http://localhost').pathname;
       if (pathname === '/') { response.setHeader('Content-Type', 'text/html'); response.end('<!doctype html><title>Three-tab chat integration</title>'); return; }
+      const served = await readServedHarnessFile(pathname);
       const file = path.resolve(root, pathname.slice(1));
-      if (![path.join(root, 'self') + path.sep, path.join(root, 'tests/fixtures') + path.sep].some(prefix => file.startsWith(prefix))) {
+      if (!served && !file.startsWith(path.join(root, 'tests/fixtures') + path.sep)) {
         response.writeHead(403).end(); return;
       }
       response.setHeader('Content-Type', file.endsWith('.json') ? 'application/json' : 'text/javascript');
-      response.end(await readFile(file));
+      response.end(served || await readFile(file));
     } catch { response.writeHead(404).end(); }
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));

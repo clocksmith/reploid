@@ -84,7 +84,7 @@ describe('layer verification', () => {
     ['self/ui/page.js', '../../packages/functions/index.js'],
     ['packages/reploid/src/transport/peer.js', '../chat/index.js'],
     ['self/host/chat-session.js', '../providers/work-network-provider.js'],
-    ['self/host/chat-execution.js', '../vendor/reploid/chat/scheduler.js'],
+    ['self/host/chat-execution.js', '../../shared/vendor/reploid/chat/scheduler.js'],
     ['self/host/chat-view.js', './chat-execution.js'],
     ['self/host/readonly-view.js', '../infrastructure/storage.js']
   ])('rejects the boundary crossing from %s', (source, target) => {

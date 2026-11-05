@@ -14,6 +14,7 @@ RUN node --input-type=module -e "import fs from 'node:fs'; import crypto from 'n
 COPY deploy/Dockerfile ./deploy/Dockerfile
 COPY server ./server
 COPY self ./self
+COPY shared ./shared
 COPY packages/reploid/package.json ./packages/reploid/package.json
 COPY packages/reploid/src ./packages/reploid/src
 

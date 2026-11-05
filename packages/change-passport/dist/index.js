@@ -1,4 +1,4 @@
-// self/vendor/reploid/artifacts/binary.js
+// shared/vendor/reploid/artifacts/binary.js
 function base64ToBytes(value) {
   const text = String(value || "");
   if (typeof Buffer !== "undefined") return new Uint8Array(Buffer.from(text, "base64"));
@@ -9,7 +9,7 @@ function fromBase64Url(value) {
   return base64ToBytes(text.padEnd(Math.ceil(text.length / 4) * 4, "="));
 }
 
-// self/vendor/reploid/artifacts/canonical-json.js
+// shared/vendor/reploid/artifacts/canonical-json.js
 function canonicalize(value) {
   if (value === null || typeof value !== "object") return JSON.stringify(value);
   if (Array.isArray(value)) {
@@ -19,7 +19,7 @@ function canonicalize(value) {
   return `{${keys.map((key) => `${JSON.stringify(key)}:${canonicalize(value[key])}`).join(",")}}`;
 }
 
-// self/vendor/reploid/artifacts/identity.js
+// shared/vendor/reploid/artifacts/identity.js
 var encoder = new TextEncoder();
 var getCryptoApi = (cryptoApi) => {
   const api = cryptoApi || globalThis.crypto;
@@ -75,7 +75,7 @@ function encodeBytes(value) {
   return encoder.encode(String(value || ""));
 }
 
-// self/vendor/reploid/artifacts/event-signature.js
+// shared/vendor/reploid/artifacts/event-signature.js
 async function verifyEventSignature(event, cryptoApi = globalThis.crypto) {
   if (!event?.signature?.publicJwk || !event?.signature?.value) return false;
   try {
@@ -93,7 +93,7 @@ async function verifyEventSignature(event, cryptoApi = globalThis.crypto) {
   }
 }
 
-// self/vendor/reploid/rules/contribution.rules.json
+// shared/vendor/reploid/rules/contribution.rules.json
 var contribution_rules_default = {
   outputPointsPer1k: 1,
   inputPointsPer1k: 0.25,
@@ -103,10 +103,10 @@ var contribution_rules_default = {
   scoreHalfLifeMs: 2592e6
 };
 
-// self/vendor/reploid/mesh/contribution.js
+// shared/vendor/reploid/mesh/contribution.js
 var DEFAULT_REWARD_POLICY = Object.freeze(contribution_rules_default);
 
-// self/vendor/reploid/mesh/swarm-coordination.js
+// shared/vendor/reploid/mesh/swarm-coordination.js
 var SWARM_ROLES = Object.freeze({
   SOLO: "solo",
   PROVIDER: "provider",
@@ -114,7 +114,7 @@ var SWARM_ROLES = Object.freeze({
   DEAD: "dead"
 });
 
-// self/vendor/reploid/mesh/partitions/partition-contract.js
+// shared/vendor/reploid/mesh/partitions/partition-contract.js
 var partitionIdentityKeys = Object.freeze(["modelId", "modelIdentity", "planId", "threadId", "attemptId", "participantA", "participantB"]);
 var partitionActions = Object.freeze([
   "mesh.execute_partition_a",
@@ -127,12 +127,12 @@ var assertPartition = (value, message) => {
   if (!value) throw new Error(message);
 };
 
-// self/vendor/reploid/artifacts/participant-proofs.js
+// shared/vendor/reploid/artifacts/participant-proofs.js
 var DEVICE_HOSTS = Object.freeze(["browser", "native"]);
 var PROOF_KEYS = Object.freeze(["schema", "challengeId", "nonce", "accountId", "audience", "participantId", "publicJwk", "host", "signature"]);
 var SESSION_BINDING_KEYS = Object.freeze(["schema", "challengeId", "nonce", "accountId", "sessionId", "participantId", "signature"]);
 
-// self/vendor/reploid/mesh/partitions/partition-receiver-policy.json
+// shared/vendor/reploid/mesh/partitions/partition-receiver-policy.json
 var partition_receiver_policy_default = {
   maxControlBytes: 65536,
   maxCompletedSequences: 2,
@@ -141,7 +141,7 @@ var partition_receiver_policy_default = {
   maxUnacknowledgedOutputs: 2
 };
 
-// self/vendor/reploid/mesh/partitions/partition-attempt-evidence.js
+// shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js
 var STAGE_RECEIPT_STATUSES = Object.freeze(["executing", "settled", "failed"]);
 var MAX_UNACKNOWLEDGED_OUTPUTS = partition_receiver_policy_default.maxUnacknowledgedOutputs;
 if (!Number.isSafeInteger(MAX_UNACKNOWLEDGED_OUTPUTS) || MAX_UNACKNOWLEDGED_OUTPUTS < 0) {
@@ -167,13 +167,13 @@ var TIMING_KEYS = Object.freeze(["reservedAt", "firstStepAt", "lastStepAt", "clo
 var OUTPUT_KEYS = Object.freeze(["count", "chain", "done", "stopReason"]);
 var BUNDLE_KEYS = Object.freeze(["schema", "reservationId", "attemptId", "identity", "receipts", "acknowledged"]);
 
-// self/vendor/reploid/transport/partition-data-channel.js
+// shared/vendor/reploid/transport/partition-data-channel.js
 var encoder2 = new TextEncoder();
 
-// self/vendor/reploid/mesh/partitions/partition-generation-request.js
+// shared/vendor/reploid/mesh/partitions/partition-generation-request.js
 var TEXT_GENERATION_CAPABILITY = Object.freeze({ schema: "reploid.text-generation/v1", usage: "raw-model-tokens/v1" });
 
-// self/vendor/reploid/mesh/partitions/partition-attempt-queue-policy.json
+// shared/vendor/reploid/mesh/partitions/partition-attempt-queue-policy.json
 var partition_attempt_queue_policy_default = {
   schema: "reploid.partition-attempt-queue-policy/v1",
   maxQueuedAttempts: 4,
@@ -181,7 +181,7 @@ var partition_attempt_queue_policy_default = {
   maxQueueWaitMs: 3e5
 };
 
-// self/vendor/reploid/mesh/partitions/partition-attempt-queue.js
+// shared/vendor/reploid/mesh/partitions/partition-attempt-queue.js
 var ATTEMPT_QUEUE_POLICY_SCHEMA = "reploid.partition-attempt-queue-policy/v1";
 var POLICY_KEYS = Object.freeze(["schema", "maxQueuedAttempts", "maxQueuedPerRequester", "maxQueueWaitMs"]);
 var positive = (value) => Number.isSafeInteger(value) && value > 0;
@@ -195,7 +195,7 @@ function validateAttemptQueuePolicy(policy) {
 }
 var ATTEMPT_QUEUE_POLICY = validateAttemptQueuePolicy(partition_attempt_queue_policy_default);
 
-// self/vendor/reploid/mesh/partitions/partition-route-envelope-policy.json
+// shared/vendor/reploid/mesh/partitions/partition-route-envelope-policy.json
 var partition_route_envelope_policy_default = {
   schema: "reploid.route-envelope-policy/v1",
   undeclaredRoutes: "existing-limits",
@@ -213,7 +213,7 @@ var partition_route_envelope_policy_default = {
   ]
 };
 
-// self/vendor/reploid/mesh/partitions/partition-route-envelope.js
+// shared/vendor/reploid/mesh/partitions/partition-route-envelope.js
 var ROUTE_ENVELOPE_POLICY_SCHEMA = "reploid.route-envelope-policy/v1";
 var digest = (value) => typeof value === "string" && /^sha256:[a-f0-9]{64}$/.test(value);
 var positive2 = (value) => Number.isSafeInteger(value) && value > 0;
@@ -237,7 +237,7 @@ function validateRouteEnvelopePolicy(policy) {
 }
 var ROUTE_ENVELOPE_POLICY = validateRouteEnvelopePolicy(partition_route_envelope_policy_default);
 
-// self/vendor/reploid/mesh/partitions/partition-summary.js
+// shared/vendor/reploid/mesh/partitions/partition-summary.js
 var STAGE_RUNTIME_KEYS = Object.freeze([
   "executionMs",
   "inputUploadMs",
@@ -250,10 +250,10 @@ var STAGE_RUNTIME_KEYS = Object.freeze([
   "samplingMs"
 ]);
 
-// self/vendor/reploid/mesh/partitions/partition-entry.js
+// shared/vendor/reploid/mesh/partitions/partition-entry.js
 var ATTEMPT_STATES = Object.freeze(["queued", "executing"]);
 
-// self/vendor/reploid/config/transport-defaults.json
+// shared/vendor/reploid/config/transport-defaults.json
 var transport_defaults_default = {
   DEFAULT_SIGNAL_POLL_TIMEOUT_MS: 5e3,
   DEFAULT_SIGNAL_FAILURE_THRESHOLD: 3,
@@ -262,7 +262,7 @@ var transport_defaults_default = {
   pollIntervalMs: 1e3
 };
 
-// self/vendor/reploid/transport/signaling.js
+// shared/vendor/reploid/transport/signaling.js
 var SIGNAL_TYPES = Object.freeze({
   OFFER: "offer",
   ANSWER: "answer",
@@ -275,7 +275,7 @@ var DEFAULT_SIGNAL_FAILURE_THRESHOLD = transport_defaults_default.DEFAULT_SIGNAL
 var DEFAULT_SIGNAL_POLL_BACKOFF_BASE_MS = transport_defaults_default.DEFAULT_SIGNAL_POLL_BACKOFF_BASE_MS;
 var DEFAULT_SIGNAL_POLL_BACKOFF_MAX_MS = transport_defaults_default.DEFAULT_SIGNAL_POLL_BACKOFF_MAX_MS;
 
-// self/vendor/reploid/transport/assignment.js
+// shared/vendor/reploid/transport/assignment.js
 var P2P_TRANSPORT_STATES = Object.freeze({
   IDLE: "idle",
   CONNECTING: "connecting",
@@ -285,7 +285,7 @@ var P2P_TRANSPORT_STATES = Object.freeze({
   FAILED: "failed"
 });
 
-// self/vendor/reploid/mesh/partitions/partition-route-ranking.js
+// shared/vendor/reploid/mesh/partitions/partition-route-ranking.js
 var POLICY_GROUPS = Object.freeze({
   prices: ["latencyPerMs", "queueingPerMs", "transferPerMs", "preparationPerMs", "refundPerFailure", "retryPerFailure"],
   unknown: ["prefillMsPerToken", "decodeMsPerToken", "transferMsPerToken", "openingMs", "maxObservationAgeMs"],
@@ -295,7 +295,7 @@ var POLICY_GROUPS = Object.freeze({
 });
 var COMPONENTS = Object.freeze(["latency", "queueing", "transfer", "preparation", "readiness", "failure", "reserve"]);
 
-// self/vendor/reploid/mesh/partitions/partition-preparation-progress.js
+// shared/vendor/reploid/mesh/partitions/partition-preparation-progress.js
 var STATUSES = Object.freeze(["preparing", "prepared", "cancelling", "cancelled", "timed-out", "failed"]);
 
 // self/shared/change-passport/contract.js

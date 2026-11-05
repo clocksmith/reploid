@@ -1,5 +1,5 @@
-import { createExecutionEngine, TURN_RETURN } from '../vendor/reploid/agent/engine.js';
-import { freezeJson, snapshotJson } from '../vendor/reploid/config/index.js';
+import { createExecutionEngine, TURN_RETURN } from '../../shared/vendor/reploid/agent/engine.js';
+import { freezeJson, snapshotJson } from '../../shared/vendor/reploid/config/index.js';
 
 const PATH = '/state/zero.json';
 const SCHEMA = 'reploid.zero/v1';

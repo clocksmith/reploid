@@ -10,6 +10,7 @@ import { createHash } from 'node:crypto';
 import { physicalWebGpuBrowserOptions } from './physical-webgpu-browser.js';
 import { routeDiagnosticModel } from './capacity-observer.js';
 import { resolveGenerationOptions } from '../../self/config/doppler-generation-contract.js';
+import { readServedHarnessFile } from '../helpers/served-browser-files.js';
 
 const [destination, suitePath] = process.argv.slice(2);
 assert(destination && process.env.DOPPLER_CHAT_MODEL_DIR, 'Supply report path and DOPPLER_CHAT_MODEL_DIR');
@@ -41,10 +42,10 @@ const server = createServer(async (request, response) => {
   try {
     const pathname = new URL(request.url, 'http://localhost').pathname;
     if (pathname === '/') { response.setHeader('Content-Type', 'text/html'); response.end('<!doctype html>'); return; }
-    const file = resolve(root, 'self', '.' + pathname);
-    assert(file.startsWith(resolve(root, 'self') + '/'));
-    response.setHeader('Content-Type', { '.js': 'text/javascript', '.json': 'application/json', '.wgsl': 'text/plain' }[extname(file)] || 'application/octet-stream');
-    response.end(await readFile(file));
+    const bytes = await readServedHarnessFile('/self' + pathname);
+    assert(bytes, 'Not a served browser file');
+    response.setHeader('Content-Type', { '.js': 'text/javascript', '.json': 'application/json', '.wgsl': 'text/plain' }[extname(pathname)] || 'application/octet-stream');
+    response.end(bytes);
   } catch { response.writeHead(404).end(); }
 });
 let browser, modelServer;

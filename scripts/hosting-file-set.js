@@ -2,7 +2,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { parse } from 'acorn';
-import { openBrowserTree, openDirectoryTree } from '../server/browser-tree.js';
+import { openBrowserTree, openDirectoryTree, REPOSITORY_ROOT } from '../server/browser-tree.js';
 
 export async function walkFiles(root, relative = '') {
   const files = [];
@@ -59,8 +59,12 @@ export async function collectModuleClosure({ root, entries, available }) {
   return selected;
 }
 
-/** The served tree: the repository's composed roots, or one directory a caller supplies. */
-export const resolveBrowserTree = async ({ selfDir, tree } = {}) => tree || (selfDir ? openDirectoryTree(selfDir) : openBrowserTree());
+/**
+ * The served tree: the repository's composed roots, or one directory a caller
+ * supplies. The repository's own self/ means the composed tree it heads.
+ */
+export const resolveBrowserTree = async ({ selfDir, tree } = {}) => tree
+  || (selfDir && path.resolve(selfDir) !== path.join(REPOSITORY_ROOT, 'self') ? openDirectoryTree(selfDir) : openBrowserTree());
 
 export async function buildHostingFileSet(options = {}) {
   const tree = await resolveBrowserTree(options);

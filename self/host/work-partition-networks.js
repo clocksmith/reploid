@@ -1,4 +1,4 @@
-import { createPartitionNetwork } from '../vendor/reploid/mesh/index.js';
+import { createPartitionNetwork } from '../../shared/vendor/reploid/mesh/index.js';
 
 /** Owns authenticated partition channels for one connected transport lifetime. */
 export function createWorkPartitionNetworks({ transport, verifyPeer }) {

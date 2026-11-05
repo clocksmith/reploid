@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const packageRoot = path.join(root, 'packages/reploid');
 const sourceRoot = path.join(packageRoot, 'src');
-const outputRoot = path.join(root, 'self/vendor/reploid');
+const outputRoot = path.join(root, 'shared/vendor/reploid');
 const manifest = JSON.parse(await readFile(path.join(packageRoot, 'package.json'), 'utf8'));
 const records = [];
 

@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
+import { readServedText } from '../helpers/served-browser-files.js';
 
 for (const width of [1440, 390]) test(`production opens chat without prepared models at ${width}px`, async ({ page }, info) => {
   await page.setViewportSize({ width, height: 844 });
@@ -121,7 +122,7 @@ test('network chat uses a permitted peer even with downloaded weights and respec
 test('changed runtime modules pass the Verification Worker sandbox', async ({ page }) => {
   const paths = ['host/contribution-history.js', 'host/work-swarm.js', 'providers/work-resident-provider.js',
     ...['production', 'contribution-models', 'conversation-workspace', 'index', 'shell-view'].map(name => `ui/pool-home/${name}.js`)];
-  const snapshot = Object.fromEntries(await Promise.all(paths.map(async path => ['/' + path, await readFile('self/' + path, 'utf8')])));
+  const snapshot = Object.fromEntries(await Promise.all(paths.map(async path => ['/' + path, await readServedText(path)])));
   await page.goto('/');
   const result = await page.evaluate(snapshot => new Promise((resolve, reject) => {
     const worker = new Worker('/core/verification-worker.js');

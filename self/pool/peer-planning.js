@@ -11,7 +11,7 @@ import { POOLDAY_MODEL_WORKLOADS } from './model-contract.js';
 import { agreementFieldForWorkload } from './sequence-workload.js';
 import { freezeOperationPolicy as snapshot } from './pack-operation-policy.js';
 import { resolveProviderCapabilitySchema, resolvePeerAssignmentPolicy, validateProviderCapabilities, validateWorkRequirements } from './peer-capabilities.js';
-import { projectPlacementBeliefs } from '../vendor/reploid/mesh/placement-beliefs.js';
+import { projectPlacementBeliefs } from '../../shared/vendor/reploid/mesh/placement-beliefs.js';
 
 /** Host cohort scopes workload size/classification; pins and reported environment
  * prevent reusing a posterior for another execution context. This is not attestation. */

@@ -1,5 +1,5 @@
 import { preparationStatus } from './model-preparation.js';
-import { publicPreparationProgress } from '../../vendor/reploid/mesh/preparation-progress.js';
+import { publicPreparationProgress } from '../../../shared/vendor/reploid/mesh/preparation-progress.js';
 import { computerLabel, withComputerLabels } from './computer-labels.js';
 import { updateModelSelect } from '../components/model-select.js';
 /** Shared network controls consume host snapshots; they never grant permission on render. */

@@ -11,6 +11,7 @@ import { loadVfsModule, clearVfsModuleCache } from '../../self/core/vfs-module-l
 import CreateTool from '../../self/tools/CreateTool.js';
 import { exportSelfImage, materializeSelfImage } from '../../self/image/export.js';
 import { sha256 } from '../../self/core/promotion-policy.js';
+import { readServedTextSync } from '../helpers/served-browser-files.js';
 
 const source = readFileSync(new URL('../../self/core/verification-worker.js', import.meta.url), 'utf8');
 const parser = readFileSync(new URL('../../self/core/vendor/acorn.js', import.meta.url), 'utf8');
@@ -179,7 +180,7 @@ describe('required L0 static verification', () => {
   it('carries the complete verifier and license through export, reseed and descendant re-export', async () => {
     const descriptor = JSON.parse(readFileSync(new URL('../../self/config/self-source-manifest.json', import.meta.url), 'utf8'));
     const files = new Map(descriptor.files.map((file, index) => [
-      `/${descriptor.seedFiles[index]}`, readFileSync(new URL(`../../self/${file}`, import.meta.url), 'utf8')
+      `/${descriptor.seedFiles[index]}`, readServedTextSync(file)
     ]));
     const exportVfs = sourceFiles => exportSelfImage({}, {
       VFS: { list: async () => [...sourceFiles.keys()] },

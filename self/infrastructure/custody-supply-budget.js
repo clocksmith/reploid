@@ -1,5 +1,5 @@
 /** One cumulative allowance per browser origin; IndexedDB serializes competing tabs. */
-import { custodyBudgetError, reserveCustodyBudget } from '../vendor/reploid/artifacts/custody/supply-budget.js';
+import { custodyBudgetError, reserveCustodyBudget } from '../../shared/vendor/reploid/artifacts/custody/supply-budget.js';
 
 export async function openBrowserSupplyBudget({ maxBytes, allowInitialize, purpose = 'supply', existingOnly = false,
   name = purpose === 'supply' ? 'reploid-custody-budget-v1' : 'reploid-custody-acquisition-budget-v1', indexedDB = globalThis.indexedDB }) {

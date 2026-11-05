@@ -1,12 +1,12 @@
-import { createP2PTransport as createLibraryTransport, descriptionToPayload, candidateToPayload, defaultSerialize, defaultDeserialize } from '../vendor/reploid/transport/index.js';
-import { resolveConfig } from '../vendor/reploid/config/index.js';
+import { createP2PTransport as createLibraryTransport, descriptionToPayload, candidateToPayload, defaultSerialize, defaultDeserialize } from '../../shared/vendor/reploid/transport/index.js';
+import { resolveConfig } from '../../shared/vendor/reploid/config/index.js';
 import {
   createPoolSdkSignalingAdapter,
   createSignalingChannel
 } from './p2p-signaling.js';
 import { assertP2PPayload } from './p2p-payload.js';
 
-export { P2P_TRANSPORT_STATES } from '../vendor/reploid/transport/index.js';
+export { P2P_TRANSPORT_STATES } from '../../shared/vendor/reploid/transport/index.js';
 export const DEFAULT_RTC_CONFIG = Object.freeze({
   iceServers: Object.freeze([
     Object.freeze({ urls: 'stun:stun.l.google.com:19302' }),

@@ -1,8 +1,8 @@
 /** Explicit compatibility text swarm, separate from admitted signed Pack operations. */
-import { createWebAccessNetwork } from '../vendor/reploid/mesh/web-access-network.js';
-import { createLegacyGenerationMesh, createAutomaticPartitions } from '../vendor/reploid/mesh/index.js';
-import { createSwarmTransport, createRoomIntroductionAdmission } from '../vendor/reploid/transport/index.js';
-import { resolveConfig } from '../vendor/reploid/config/index.js';
+import { createWebAccessNetwork } from '../../shared/vendor/reploid/mesh/web-access-network.js';
+import { createLegacyGenerationMesh, createAutomaticPartitions } from '../../shared/vendor/reploid/mesh/index.js';
+import { createSwarmTransport, createRoomIntroductionAdmission } from '../../shared/vendor/reploid/transport/index.js';
+import { resolveConfig } from '../../shared/vendor/reploid/config/index.js';
 import { createLegacyNetworkOptions } from '../capabilities/communication/library-adapter.js';
 import { ensureIdentityBundle, saveIdentityBundle, rotateIdentityBundle } from '../identity.js';
 import Utils from '../core/utils.js';
@@ -15,10 +15,10 @@ import { createWorkAdapterResolver, selectWorkAdapters } from '../providers/work
 import { createWorkPeerOffers } from './work-peer-offers.js';
 import { createWorkModelFiles, getFileContributionLimits } from './work-model-files.js';
 import { loadWorkPartition } from './work-partitions.js';
-import { createAttemptEvidenceSigner } from '../vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
+import { createAttemptEvidenceSigner } from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
 import { snapshotWorkOrderedParticipation, bindWorkOrderedParticipation } from './work-partition-plan.js';
 import { createWorkPartitionNetworks } from './work-partition-networks.js';
-import { createReadinessRecorder, createReadinessRecordStore } from '../vendor/reploid/measurement/index.js';
+import { createReadinessRecorder, createReadinessRecordStore } from '../../shared/vendor/reploid/measurement/index.js';
 import partitionPolicy from '../config/partition-policy.json' with { type: 'json' };
 import { createContributionHistory } from './contribution-history.js';
 

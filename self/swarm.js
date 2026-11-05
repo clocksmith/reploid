@@ -1,1 +1,1 @@
-export { SWARM_ROLES, buildSwarmState, chooseProviderPeer, createGenerationRequest, createGenerationResult, createPeerAdvertisement, createSwarmController, deriveSwarmRole, swarmCoordination as default } from './vendor/reploid/mesh/index.js';
+export { SWARM_ROLES, buildSwarmState, chooseProviderPeer, createGenerationRequest, createGenerationResult, createPeerAdvertisement, createSwarmController, deriveSwarmRole, swarmCoordination as default } from '../shared/vendor/reploid/mesh/index.js';

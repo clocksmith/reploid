@@ -2,8 +2,8 @@ import { retainedModelSource } from './model-acquisition.js';
 import { announceModelCacheChange } from './work-model-cache.js';
 import { resolvePartitionArtifactSource } from './work-partition-artifact-source.js';
 /** Host grants and pinned catalog composition for the library's signed artifact custody. */
-import { createCustodyExchange } from '../vendor/reploid/artifacts/custody/exchange.js';
-import { createCustodyKeyCertifier } from '../vendor/reploid/artifacts/custody-certificate.js';
+import { createCustodyExchange } from '../../shared/vendor/reploid/artifacts/custody/exchange.js';
+import { createCustodyKeyCertifier } from '../../shared/vendor/reploid/artifacts/custody-certificate.js';
 import { createPeerPackSupplier, createPeerPackArtifactStore } from '../pool/peer-pack-custody.js';
 import { createPeerPackDataChannel } from '../pool/peer-pack-data-channel.js';
 import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../pool/inference-receipt.js';

@@ -96,7 +96,7 @@ output/
 *.ndjson
 
 # Pinned packages are complete archives, including shipped output helpers.
-!self/vendor/doppler/**
+!shared/vendor/doppler/**
 
 # Exported session runs (ignore most, keep showcase runs)
 examples/showcase/runs/*.json

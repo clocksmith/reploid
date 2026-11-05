@@ -5,7 +5,7 @@ import { canonicalPartitionJson, partitionFingerprint } from '../../packages/rep
 /** Passive debugger observations: never replace tensors, assign roles, or open a runtime. */
 export async function observeCooperativePage(cdp, evidence, { captureCustody = false, captureLogits = true, captureTokens = false, maxLogitSteps = 4, acceptStep = async () => true, onInput = null } = {}) {
   const host = (await readFile('self/host/work-partitions.js', 'utf8')).split('\n');
-  const peer = (await readFile('self/vendor/reploid/mesh/partitions/partition-peer.js', 'utf8')).split('\n');
+  const peer = (await readFile('shared/vendor/reploid/mesh/partitions/partition-peer.js', 'utf8')).split('\n');
   const scriptUrls = new Map();
   cdp.on('Debugger.scriptParsed', event => scriptUrls.set(event.scriptId, event.url));
   await cdp.send('Debugger.enable');
@@ -17,7 +17,7 @@ export async function observeCooperativePage(cdp, evidence, { captureCustody = f
   let step = captureLogits && await cdp.send('Debugger.setBreakpointByUrl', { urlRegex: '/mesh/partitions/partition-peer\\.js$',
     lineNumber: peer.findIndex(line => line.includes('const { logits: _logits')), condition: `result.step < ${maxLogitSteps}` });
   const custody = new Map();
-  const automatic = (await readFile('self/vendor/reploid/mesh/partitions/automatic-partitions.js', 'utf8')).split('\n');
+  const automatic = (await readFile('shared/vendor/reploid/mesh/partitions/automatic-partitions.js', 'utf8')).split('\n');
   const identityBoundary = automatic.findIndex(line => line.includes('const config = structuredClone(policy)'));
   if (identityBoundary < 0) throw Error('Partition identity observation boundary missing');
   const identityProbe = await cdp.send('Debugger.setBreakpointByUrl', {
@@ -37,7 +37,7 @@ export async function observeCooperativePage(cdp, evidence, { captureCustody = f
       { file: 'self/infrastructure/pack-transfer-storage.js', urlRegex: '/infrastructure/pack-transfer-storage\\.js$', probes: [
         { kind: 'staging-read', marker: "try { return JSON.parse(await (await (await directory.getFileHandle('index.json')).getFile()).text()); }", expression: '({directory:directory.name,closed})' }
       ] },
-      { file: 'self/vendor/reploid/mesh/partitions/automatic-partitions.js', urlRegex: '/mesh/partitions/automatic-partitions\\.js$', probes: [
+      { file: 'shared/vendor/reploid/mesh/partitions/automatic-partitions.js', urlRegex: '/mesh/partitions/automatic-partitions\\.js$', probes: [
         { kind: 'load-failed', marker: "catch (cause) { phase = 'failed'; error = cause.message; notify(); throw cause; }", expression: '({placement,model:selectedOffer.id,error:{name:cause.name,message:cause.message,stack:cause.stack}})' },
         { kind: 'retire', marker: 'const owners = [chat, execution, program?.resident];', target: 'lifecycle', expression: '({phase,placement,preparing:!!preparing,admissions:admissions.size,resident:program?.resident.getState(),approved:!!offer,aborted:contributionController?.signal.aborted})' },
         { kind: 'advertise-ready', marker: "phase = 'ready'; progress = null; notify();", target: 'lifecycle', expression: '({phase,placement,resident:program?.resident.getState(),approved:!!offer,aborted:contributionController?.signal.aborted})' }
@@ -58,7 +58,7 @@ export async function observeCooperativePage(cdp, evidence, { captureCustody = f
   if (captureCustody) {
     // Preserve the first transport retirement boundary without retaining SDP,
     // ICE addresses, credentials or application payloads.
-    const swarm = (await readFile('self/vendor/reploid/transport/swarm.js', 'utf8')).split('\n');
+    const swarm = (await readFile('shared/vendor/reploid/transport/swarm.js', 'utf8')).split('\n');
     const retirement = swarm.findIndex(line => line.includes('if (!preserveIntroduction) introductions?.retirePeer'));
     if (retirement < 0) throw Error('Transport retirement observation boundary missing');
     const retired = await cdp.send('Debugger.setBreakpointByUrl', {
@@ -70,7 +70,7 @@ export async function observeCooperativePage(cdp, evidence, { captureCustody = f
         iceState: peer.connection?.iceConnectionState ?? null,
         channelState: peer.dataChannel?.readyState ?? null,
         lastSeenAgeMs: Date.now() - peer.lastSeen })` });
-    const chat = (await readFile('self/vendor/reploid/mesh/partitions/partition-chat.js', 'utf8')).split('\n');
+    const chat = (await readFile('shared/vendor/reploid/mesh/partitions/partition-chat.js', 'utf8')).split('\n');
     const inputBoundary = chat.findIndex(line => line.includes('grant = await authority.issue(identity, policy'));
     if (inputBoundary < 0) throw Error('Partition input observation boundary missing');
     const inputProbe = await cdp.send('Debugger.setBreakpointByUrl', {
@@ -78,7 +78,7 @@ export async function observeCooperativePage(cdp, evidence, { captureCustody = f
       condition: 'request.messages.at(-1).content.includes("chooseQuote")' });
     custody.set(inputProbe.breakpointId, { kind: 'input-tokenized', target: 'inputs',
       expression: '({identity,messages:request.messages,modelIdentity:input.modelIdentity,tokenIds:Array.from(input.tokenIds),generation:input.generation})' });
-    const source = (await readFile('self/vendor/reploid/artifacts/custody/exchange.js', 'utf8')).split('\n');
+    const source = (await readFile('shared/vendor/reploid/artifacts/custody/exchange.js', 'utf8')).split('\n');
     const probes = [
       { kind: 'offer-received', marker: 'const first = !peers.has(peer);',
         expression: '({peer, artifacts:message.artifacts, connected:[...connected()]})' },

@@ -6,7 +6,7 @@ export const MAX_AGENT_ITERATIONS = 256;
 export const MANAGED_SERVER_PROXY_TYPE = 'firebase-function';
 export const MANAGED_SERVER_PROXY_MAX_ITERATIONS = 99;
 export const MANAGED_SERVER_PROXY_REJECT_STATUSES = new Set([400, 413]);
-export { TRANSIENT_PROVIDER_STATUSES, getProviderErrorStatus, getProviderRetryAfterMs } from '../vendor/reploid/agent/provider-recovery.js';
+export { TRANSIENT_PROVIDER_STATUSES, getProviderErrorStatus, getProviderRetryAfterMs } from '../../shared/vendor/reploid/agent/provider-recovery.js';
 
 export const DEFAULT_PROVIDER_THROTTLE = Object.freeze({
   minProviderRequestIntervalMs: 0,

@@ -1,4 +1,4 @@
-import { createIndexedDbStore, createVfs } from '../vendor/reploid/adapters/browser.js';
+import { createIndexedDbStore, createVfs } from '../../shared/vendor/reploid/adapters/browser.js';
 import { getScopedReploidVfsDbName } from '../instance.js';
 import profile from '../config/reploid-library.json' with { type: 'json' };
 

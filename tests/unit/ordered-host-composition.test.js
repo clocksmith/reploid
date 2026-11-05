@@ -7,7 +7,7 @@ const model = vi.hoisted(() => ({ id: 'ordered', identity: 'sha256:' + 'a'.repea
 vi.mock('../../self/config/doppler-local-models.js', async original => ({ ...await original(), LOCAL_DOPPLER_MODELS:[model] }));
 vi.mock('../../self/identity.js', () => ({ ensureIdentityBundle: async () => ports.identity, saveIdentityBundle() {}, rotateIdentityBundle() {} }));
 const meshFactory = ({ports: input}) => ({ async connect() { await input.identity.ensure({}); input.createTransport(); }, async close() {}, getSwarmSnapshot: () => ({peers:[]}) });
-vi.mock('../../self/vendor/reploid/mesh/index.js', async original => ({ ...await original(),
+vi.mock('../../shared/vendor/reploid/mesh/index.js', async original => ({ ...await original(),
   createLegacyGenerationMesh: (...args) => meshFactory(...args),
   createAutomaticPartitions: options => { ports.options = options; return ports.automatic; }, createPartitionNetwork(options) { ports.networkOptions = options; return ports.networkOwner; }
 }));
@@ -15,9 +15,9 @@ vi.mock('../../packages/reploid/src/mesh/index.js', async original => ({ ...awai
   createLegacyGenerationMesh: (...args) => meshFactory(...args),
   createAutomaticPartitions: options => { ports.options = options; return ports.automatic; }
 }));
-vi.mock('../../self/vendor/reploid/transport/index.js', async original => ({ ...await original(), createSwarmTransport: () => ports.transport }));
+vi.mock('../../shared/vendor/reploid/transport/index.js', async original => ({ ...await original(), createSwarmTransport: () => ports.transport }));
 vi.mock('../../packages/reploid/src/transport/index.js', async original => ({ ...await original(), createSwarmTransport: () => ports.transport }));
-import { resolveConfig } from '../../self/vendor/reploid/config/index.js';
+import { resolveConfig } from '../../shared/vendor/reploid/config/index.js';
 import { createWorkSwarm } from '../../self/host/work-swarm.js';
 import { getOrderedParticipation } from '../../self/host/product-context.js';
 import orderedPolicy from '../../self/config/ordered-participation.json' with { type: 'json' };

@@ -16,7 +16,7 @@
  * final-stage receipt commits to exactly the deltas it received; the report
  * carries the latest acknowledgment with its receipt.
  */
-import { openOutputAcknowledgments } from '../../vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
+import { openOutputAcknowledgments } from '../../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
 
 const REPORT_SCHEMA = 'reploid.attempt-report/v1';
 // The outcome rules read ordered route records; other partition paths are not charged through them.

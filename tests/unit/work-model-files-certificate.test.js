@@ -2,13 +2,13 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 
 const ports = vi.hoisted(() => ({ exchange: vi.fn() }));
-vi.mock('../../self/vendor/reploid/artifacts/custody/exchange.js', () => ({ createCustodyExchange: ports.exchange }));
+vi.mock('../../shared/vendor/reploid/artifacts/custody/exchange.js', () => ({ createCustodyExchange: ports.exchange }));
 vi.mock('../../self/infrastructure/pack-transfer-storage.js', () => ({ openPeerPackFileCheckpoints: async () => ({ close: async () => {} }) }));
 
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import {
   CUSTODY_CERTIFICATE_LIFETIME_MS, checkCustodyKeyCertificate
-} from '../../self/vendor/reploid/artifacts/custody-certificate.js';
+} from '../../shared/vendor/reploid/artifacts/custody-certificate.js';
 import { createWorkModelFiles } from '../../self/host/work-model-files.js';
 
 let captured;

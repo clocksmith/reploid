@@ -15,7 +15,7 @@
  * When the service offers Community Access and the account's available
  * credits cannot cover a quote, the answer asks for Community Access instead.
  */
-import { createSigningIdentity } from '../../vendor/reploid/artifacts/identity.js';
+import { createSigningIdentity } from '../../../shared/vendor/reploid/artifacts/identity.js';
 import { createEarningAttempts } from '../earning/attempts.js';
 import { EARNING_CLIENT_SCHEMA, createEarningClient, createWebStorageEarningStorage } from '../earning/client.js';
 import { createSupabaseSignIn } from '../supabase-sign-in.js';

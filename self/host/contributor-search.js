@@ -1,5 +1,5 @@
 /** Search/extraction through one disclosed contributor, pinned for the complete retrieval. */
-import policy from '../vendor/reploid/mesh/web-access-policy.json' with { type: 'json' };
+import policy from '../../shared/vendor/reploid/mesh/web-access-policy.json' with { type: 'json' };
 
 export function createContributorSearch({ network, service = 'google-browser' }) {
   const selected = () => network()?.getOffers().find(offer => offer.service === service && offer.version === policy.services[service]) || null;

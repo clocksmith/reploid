@@ -12,7 +12,7 @@ import { assertPackOperationRequest, snapshotPackOperationData as snapshot } fro
 import { hashDopplerEvidence } from './executable-pack.js';
 import { validateProviderCapabilities, validateWorkRequirements } from './peer-capabilities.js';
 import { planOperationProviders } from './peer-planning.js';
-import { createPackJobContracts } from '../vendor/reploid/mesh/jobs/contracts.js';
+import { createPackJobContracts } from '../../shared/vendor/reploid/mesh/jobs/contracts.js';
 
 // Host-owned policy and operation contracts; behavior lives in the package.
 export const { PACK_JOB_SCHEMA, PACK_UPDATE_SCHEMA, PACK_CANCEL_SCHEMA, PACK_JOB_MAX_WIRE_BYTES, requirePackJob, packJobBytes, packPeerModel, validatePackPeerLimits, signPackPeerMessage, verifyPackPeerMessage, createPackProviderAdvert, planPackPeerProviders, createPackPeerJob, verifyPackPeerJob, createPackPeerConnection } = createPackJobContracts({ resolveOperationAcceptance, resolveDopplerExecutionContract, normalizeExecutionAdapterSet, dopplerExecutionAdapterSet, PACK_JOB_POLICY, resolvePackJobPolicy, assertOperationLimits, hashJson, sha256Hex, createSignedPeerMessage, verifyPeerMessage, PEER_MESSAGE_TYPES, sealPeerAssignmentIdentity, validateOperationModel, createPackOperationRegistry, assertPackOperationRequest, snapshot, hashDopplerEvidence, validateProviderCapabilities, validateWorkRequirements, planOperationProviders });

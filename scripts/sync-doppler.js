@@ -56,7 +56,7 @@ try {
   retention.archivedVersions = retention.archivedVersions.filter(row => row.version !== packed.version);
   retention.expandedVersions = [{ version: packed.version, reason: 'Current standard package-lock and browser pin' }];
   await writeFile(retentionPath, JSON.stringify(retention, null, 2) + '\n');
-  const vendor = resolve(root, 'self/vendor/doppler');
+  const vendor = resolve(root, 'shared/vendor/doppler');
   for (const entry of await readdir(vendor, { withFileTypes: true })) {
     if (!entry.isDirectory() || entry.name === packed.version || !/^\d+\.\d+\.\d+(?:-[\w.-]+)?$/.test(entry.name)) continue;
     await access(resolve(artifacts, `doppler-gpu-${entry.name}.tgz`));

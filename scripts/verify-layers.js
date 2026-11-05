@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'acorn';
 import { SURFACE_INTENTS } from '../self/config/surface-intents.js';
+import { BROWSER_ROOTS, resolveServedFile } from '../server/browser-roots.js';
 
 const SOURCE_ROOTS = ['packages/reploid/src', 'self/core', 'self/pool', 'self/host', 'self/lab',
   'self/providers', 'self/ui', 'self/config', 'self/infrastructure', 'self/capabilities', 'packages/functions', 'server', 'self'];
@@ -40,7 +41,7 @@ export function moduleEdges(source) {
 export const extractModuleSpecifiers = source => [...new Set(moduleEdges(source).map(edge => edge.specifier).filter(Boolean))];
 const resolveEdge = (root, file, specifier) => {
   if (specifier.startsWith('.')) return path.resolve(path.dirname(file), specifier);
-  if (specifier.startsWith('/')) return path.join(root, 'self', specifier);
+  if (specifier.startsWith('/')) return resolveServedFile(specifier, { repoRoot: root });
   return null;
 };
 export function findLayerViolations({ repoRoot, sourcePath, source }) {
@@ -74,8 +75,8 @@ export function findLayerViolations({ repoRoot, sourcePath, source }) {
     if (['self/host/chat-view.js', 'self/host/readonly-view.js'].includes(relative)) {
       reason = 'conversation projections must remain independent of runtime owners';
     }
-    if (/^self\/host\/chat-[^/]+\.js$/.test(relative) && target.startsWith('self/vendor/reploid/chat/')
-      && target !== 'self/vendor/reploid/chat/index.js') reason = 'chat hosts must use the public chat entry';
+    if (/^self\/host\/chat-[^/]+\.js$/.test(relative) && target.startsWith('shared/vendor/reploid/chat/')
+      && target !== 'shared/vendor/reploid/chat/index.js') reason = 'chat hosts must use the public chat entry';
     return reason ? [{ source: relative, sourceLayer, specifier, target, targetLayer, reason }] : [];
   });
 }
@@ -133,7 +134,7 @@ export function verifyRepositoryLayers(repoRoot) {
   const violations = [], graph = new Map();
   const exceptionsFile = path.join(repoRoot, 'scripts/architecture-exceptions.json');
   const exceptions = fs.existsSync(exceptionsFile) ? JSON.parse(fs.readFileSync(exceptionsFile, 'utf8')) : { loaders: [], cycles: [] };
-  for (const sourceRoot of ['packages/reploid/src', 'self', 'packages/functions', 'server']) for (const file of filesUnder(path.join(repoRoot, sourceRoot))) {
+  for (const sourceRoot of ['packages/reploid/src', ...BROWSER_ROOTS, 'packages/functions', 'server']) for (const file of filesUnder(path.join(repoRoot, sourceRoot))) {
     const relative = posix(path.relative(repoRoot, file));
     // Inspect canonical inputs, not minified copies of their loader expressions.
     // The CLI separately rebuilds this exact output in memory and checks its bytes.
@@ -155,7 +156,7 @@ export function verifyRepositoryLayers(repoRoot) {
       violations.push({ source: cycle[0], reason: 'dependency cycle', cycle });
     }
   }
-  const sourceRoot = path.join(repoRoot, 'packages/reploid/src'), deliveryRoot = path.join(repoRoot, 'self/vendor/reploid');
+  const sourceRoot = path.join(repoRoot, 'packages/reploid/src'), deliveryRoot = path.join(repoRoot, 'shared/vendor/reploid');
   const checkDelivery = (directory, relative = '') => {
     if (!fs.existsSync(directory)) return;
     for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {

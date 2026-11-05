@@ -1,1 +1,1 @@
-export { ResponseParser as default } from '../vendor/reploid/index.js';
+export { ResponseParser as default } from '../../shared/vendor/reploid/index.js';

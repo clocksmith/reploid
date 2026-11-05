@@ -2,20 +2,21 @@ import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { participantLabel } from '../../self/ui/pool-home/computer-labels.js';
+import { readServedText, readServedHarnessFile } from '../helpers/served-browser-files.js';
 
 // Isolated presentation fixtures: no discovery, inference, model loading or GPU work.
 test.beforeEach(async ({ page }) => {
   await page.route('http://127.0.0.1:5198/**', async route => {
     const pathname = new URL(route.request().url()).pathname;
     if (pathname === '/') {
-      const manifest = JSON.parse(await readFile(path.resolve('self/styles/poolday/layers.json'), 'utf8'));
+      const manifest = JSON.parse(await readServedText('styles/poolday/layers.json'));
       const layers = [manifest.tokens, ...manifest.primitives, ...manifest.compositions];
       return route.fulfill({ contentType: 'text/html', body: '<!doctype html><html class="pool-page"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
         + layers.map(file => `<link rel="stylesheet" href="/styles/poolday/${file}">`).join('') + '<main class="pool-home" data-pool-route-id="home"></main>' });
     }
-    const filename = path.resolve('self', '.' + pathname);
-    if (!filename.startsWith(path.resolve('self') + '/')) return route.abort();
-    try { return route.fulfill({ contentType: pathname.endsWith('.css') ? 'text/css' : pathname.endsWith('.json') ? 'application/json' : 'text/javascript', body: await readFile(filename) }); }
+    const body = await readServedHarnessFile('/self' + pathname);
+    if (!body) return route.abort();
+    try { return route.fulfill({ contentType: pathname.endsWith('.css') ? 'text/css' : pathname.endsWith('.json') ? 'application/json' : 'text/javascript', body }); }
     catch { return route.abort(); }
   });
   await page.goto('http://127.0.0.1:5198/');
@@ -376,7 +377,7 @@ test('connection runtime passes the Verification Worker', async ({ page }, info)
     'vendor/reploid/mesh/partitions/automatic-partitions.js', 'vendor/reploid/mesh/partitions/automatic-ordered-partitions.js',
     'vendor/reploid/retrieval/sources.js', 'vendor/reploid/retrieval/retrieval.js', 'vendor/reploid/chat/workspace.js',
     'host/chat-session.js', 'ui/pool-home/conversation-workspace.js', 'ui/pool-home/search-permission.js'];
-  const snapshot = Object.fromEntries(await Promise.all(files.map(async file => ['/' + file, await readFile('self/' + file, 'utf8')])));
+  const snapshot = Object.fromEntries(await Promise.all(files.map(async file => ['/' + file, await readServedText(file)])));
   const result = await page.evaluate(snapshot => new Promise((resolve, reject) => {
     const worker = new Worker('/core/verification-worker.js');
     worker.onerror = event => { worker.terminate(); reject(Error(event.message)); };

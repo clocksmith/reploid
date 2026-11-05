@@ -7,6 +7,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { physicalWebGpuBrowserOptions } from './physical-webgpu-browser.js';
+import { readServedHarnessFile } from '../helpers/served-browser-files.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const modelRoot = path.resolve(process.argv[2] || '');
 assert(process.argv[2], 'Pass a provisioned model directory');
@@ -31,12 +33,18 @@ const server = http.createServer(async (request, response) => {
     const name = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
     if (name === '/') { response.setHeader('Content-Type', 'text/html'); response.end('<!doctype html><title>Bounded training check</title>'); return; }
     if (name === '/config/chat-models.json') {
-      const catalog = JSON.parse(await fs.readFile(path.join(root, 'self', name)));
+      const catalog = JSON.parse(await fs.readFile(resolveServedFile(name)));
       catalog.find(row => row.id === policy.modelId).source.baseUrl = origin + '/model/';
       response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify(catalog)); return;
     }
-    const base = name.startsWith('/model/') ? modelRoot : path.join(root, 'self');
-    const file = path.resolve(base, '.' + (name.startsWith('/model/') ? name.slice(6) : name));
+    if (!name.startsWith('/model/') && /\.m?js$/.test(name)) {
+      // Browser modules are served as Hosting serves them.
+      const bytes = await readServedHarnessFile('/self' + name);
+      if (!bytes) throw Error('Not a served browser file');
+      response.setHeader('Content-Type', 'text/javascript'); response.end(bytes); return;
+    }
+    const base = name.startsWith('/model/') ? modelRoot : path.dirname(resolveServedFile(name));
+    const file = path.resolve(base, '.' + (name.startsWith('/model/') ? name.slice(6) : '/' + path.basename(name)));
     if (!file.startsWith(base + '/')) throw Error('Invalid path');
     const stat = await fs.stat(file);
     response.setHeader('Content-Type', file.endsWith('.js') ? 'text/javascript' : file.endsWith('.json') ? 'application/json' : 'application/octet-stream');

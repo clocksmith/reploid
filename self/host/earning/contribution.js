@@ -16,7 +16,7 @@
  * once per closed receipt, so the requester's report is not the only record
  * of the work.
  */
-import { deliveryEvidenceFromRecord, deliveryEvidenceId } from '../../vendor/reploid/artifacts/delivery-attestation.js';
+import { deliveryEvidenceFromRecord, deliveryEvidenceId } from '../../../shared/vendor/reploid/artifacts/delivery-attestation.js';
 
 const LATER = new Set(['attempt_record_not_found', 'delivery_not_found', 'work_not_settled']);
 const DONE = 'done';

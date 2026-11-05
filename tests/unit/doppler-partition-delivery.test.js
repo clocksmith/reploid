@@ -23,7 +23,7 @@ describe('partition candidate delivery', () => {
     const versionPath = 'src/version.js';
     const packedVersion = execFileSync('tar', ['-xOf', archive, 'package/' + versionPath]);
     expect(readFileSync(path.join('node_modules/doppler-gpu', versionPath))).toEqual(packedVersion);
-    const version = await import(path.resolve('self/vendor/doppler', pin.version, versionPath));
+    const version = await import(path.resolve('shared/vendor/doppler', pin.version, versionPath));
     expect(version.DOPPLER_VERSION).toBe(pin.version);
     expect(Object.keys(browser).sort()).toEqual(Object.keys(installed).sort());
     const args = { modelId: 'delivery-contract', numLayers: 4, hiddenSize: 2,
@@ -47,7 +47,7 @@ describe('partition candidate delivery', () => {
       } }));
       expect(() => execFileSync(process.execPath, [path.join(fixture, 'scripts/vendor-doppler.js'), invalid],
         { stdio: 'pipe' })).toThrow(/runtime version differs/);
-      expect(existsSync(path.join(fixture, 'self/vendor/doppler'))).toBe(false);
+      expect(existsSync(path.join(fixture, 'shared/vendor/doppler'))).toBe(false);
     } finally { rmSync(fixture, { recursive: true, force: true }); }
   });
 
@@ -62,7 +62,7 @@ describe('partition candidate delivery', () => {
       writeFileSync(path.join(fixture, 'package-lock.json'), JSON.stringify({ packages: {
         'node_modules/doppler-gpu': pin,
       } }));
-      const target = path.join(fixture, 'self/vendor/doppler', pin.version);
+      const target = path.join(fixture, 'shared/vendor/doppler', pin.version);
       mkdirSync(target, { recursive: true });
       writeFileSync(path.join(target, 'removed-module.js'), 'stale');
       execFileSync(process.execPath, [path.join(fixture, 'scripts/vendor-doppler.js'), archive]);

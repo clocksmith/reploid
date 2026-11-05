@@ -1,5 +1,6 @@
 import {chromium} from 'playwright';
 import fs from 'node:fs/promises';
+import { readServedHarnessFile } from '../helpers/served-browser-files.js';
 const out=process.env.REPLOID_UI_OUTPUT || 'artifacts/plugin-imitation-ui';await fs.mkdir(out,{recursive:true});
 const layers=JSON.parse(await fs.readFile('self/styles/poolday/layers.json','utf8'));
 const styles=['/styles/rd.css',...[layers.tokens,...layers.primitives,...layers.compositions].map(p=>'/styles/poolday/'+p)];
@@ -33,7 +34,7 @@ try {
  await page.locator('[data-study-new]').click();await page.locator('[data-study-restore]').click();await page.getByRole('heading',{name:'Study complete'}).waitFor();
  const files=['self/host/research-plugins.js','self/ui/pool-home/research-plugins.js','self/plugins/model-imitation/plugin.js','self/vendor/reploid/plugins/session.js','self/ui/pool-home/index.js','self/ui/pool-home/shell-view.js','self/ui/pool-home/constants.js'];
  const base=process.cwd();
- const snapshot=Object.fromEntries(await Promise.all(files.map(async f=>['/'+f.replace('self/',''),await fs.readFile(base+'/'+f,'utf8')])));
+ const snapshot=Object.fromEntries(await Promise.all(files.map(async f=>['/'+f.replace('self/',''),(await readServedHarnessFile('/'+f)).toString()])));
  const verification=await page.evaluate(snapshot=>new Promise((resolve,reject)=>{const w=new Worker('/core/verification-worker.js');const timeout=setTimeout(()=>{w.terminate();reject(Error('Verification timed out'))},20000);w.onmessage=e=>{clearTimeout(timeout);w.terminate();resolve(e.data)};w.postMessage({type:'VERIFY',snapshot})}),snapshot);
  await fs.writeFile(out+'/verification.json',JSON.stringify(verification,null,2));
  console.log('Verification Worker:', verification.passed ? 'passed' : 'failed');if(!verification.passed)throw Error('Verification failed');

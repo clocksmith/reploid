@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
+import { readServedText } from '../helpers/served-browser-files.js';
 
 test('browser chat owner retains separate conversations across reload without redispatch', async ({ page }) => {
   await page.goto('/');
@@ -40,7 +41,7 @@ test('Verification Worker accepts the conversation and scheduler modules', async
   for (const file of ['host/chat-session.js', 'host/chat-execution.js', 'host/chat-view.js', 'host/readonly-view.js', 'host/work-view.js', 'host/work-model-files.js', 'providers/work-resident-provider.js',
     'providers/work-provider.js', 'providers/work-generation-completion.js',
     'infrastructure/pack-transfer-storage.js', 'ui/pool-home/conversation-workspace.js', 'vendor/reploid/artifacts/custody/exchange.js']) {
-    snapshot['/' + file] = await readFile('self/' + file, 'utf8');
+    snapshot['/' + file] = await readServedText(file);
   }
   await page.goto('/');
   const result = await page.evaluate(snapshot => new Promise((resolve, reject) => {

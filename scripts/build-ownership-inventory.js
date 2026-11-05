@@ -207,10 +207,10 @@ export async function buildOwnershipInventory({ repoRoot = ROOT, why = false } =
     if (subject !== served && owner) basis = `Describes ${subject}. ${basis}`;
     entries.push({ served, source: tree.source(served), owner, basis });
   }
-  // Charters and directory notes belong to the owner of their directory.
+  // Directory notes belong to the owner of their directory. Charters are not served; they move with their directory.
   const byDirectory = new Map();
   for (const entry of entries) {
-    if (/(^|\/)(CATSCAN|README)\.md$/.test(entry.served)) continue;
+    if (/(^|\/)README\.md$/.test(entry.served)) continue;
     const directory = posix.dirname(entry.served);
     for (let dir = directory; ; dir = posix.dirname(dir)) {
       if (!byDirectory.has(dir)) byDirectory.set(dir, new Set());
@@ -219,13 +219,13 @@ export async function buildOwnershipInventory({ repoRoot = ROOT, why = false } =
     }
   }
   for (const entry of entries) {
-    if (!/(^|\/)(CATSCAN|README)\.md$/.test(entry.served)) continue;
+    if (!/(^|\/)README\.md$/.test(entry.served)) continue;
     const owners = [...(byDirectory.get(posix.dirname(entry.served)) || [])].filter(Boolean);
-    if (owners.length === 1) { entry.owner = owners[0]; entry.basis = 'Charter or note of a directory with one owner.'; }
+    if (owners.length === 1) { entry.owner = owners[0]; entry.basis = 'Note of a directory with one owner.'; }
     else {
-      // A split directory's charter stays with the substrate when it owns files there, else with the product.
+      // A split directory's note stays with the substrate when it owns files there, else with the product.
       entry.owner = owners.includes('self') ? 'self' : owners.includes('apps/poolday') ? 'apps/poolday' : 'shared';
-      entry.basis = `Charter or note of a directory split among ${owners.sort().join(', ')}; it stays with ${entry.owner} and the other owners' root charters govern their files.`;
+      entry.basis = `Note of a directory split among ${owners.sort().join(', ')}; it stays with ${entry.owner}.`;
     }
   }
   const unassigned = entries.filter(entry => !OWNERS.includes(entry.owner));

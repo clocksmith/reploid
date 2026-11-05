@@ -7,6 +7,7 @@ import { getCurrentReploidStorage } from '../../self/instance.js';
 import { LAB_UPGRADE_STORAGE_KEY } from '../../self/config/lab-upgrades.js';
 import { pickBootSeedFiles } from '../../self/config/boot-seed.js';
 import { exportSelfImage, validateSelfImageExport } from '../../self/image/export.js';
+import { readServedText } from '../helpers/served-browser-files.js';
 
 const fixture = vi.hoisted(() => ({ files: new Map(), seed: null, available: null, seedError: null, seedAttempts: 0, failNextWritePath: null }));
 vi.mock('../../self/boot-helpers/vfs-bootstrap.js', () => ({
@@ -19,7 +20,7 @@ vi.mock('../../self/boot-helpers/vfs-bootstrap.js', () => ({
     for (const file of selected.files) {
       if (!fixture.files.has(`/${file}`)) {
         const source = file.replace(/^self\//, '');
-        fixture.files.set(`/${file}`, await readFile(`${process.cwd()}/self/${source}`, 'utf8'));
+        fixture.files.set(`/${file}`, await readServedText(source));
       }
     }
   },

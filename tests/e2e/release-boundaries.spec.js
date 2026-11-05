@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
+import { readServedText } from '../helpers/served-browser-files.js';
 
 test('generated mesh imports without an import map or loading Doppler', async ({ page }) => {
   const requests = [];
@@ -36,7 +37,7 @@ test('Verification Worker accepts mutable release boundary modules', async ({ pa
     'vendor/reploid/transport/room.js', 'vendor/reploid/transport/swarm.js',
     'config/doppler-local-models.js', 'providers/work-network-provider.js'];
   const snapshot = Object.fromEntries(await Promise.all(paths.map(async path =>
-    ['/' + path, await readFile('self/' + path, 'utf8')])));
+    ['/' + path, await readServedText(path)])));
   await page.goto('/');
   const result = await page.evaluate(snapshot => new Promise((resolve, reject) => {
     const worker = new Worker('/core/verification-worker.js');
@@ -53,7 +54,7 @@ test('Verification Worker still rejects bootstrap storage authority as mutable c
   // Bootstrap storage is intentionally outside candidate authority. The repair
   // must not grant those privileges to self-modifying code to pass this gate.
   const snapshot = Object.fromEntries(await Promise.all(['host/vfs-bootstrap.js', 'kernel/boot.js'].map(async path =>
-    ['/' + path, await readFile('self/' + path, 'utf8')])));
+    ['/' + path, await readServedText(path)])));
   await page.goto('/');
   const result = await page.evaluate(snapshot => new Promise((resolve, reject) => {
     const worker = new Worker('/core/verification-worker.js');

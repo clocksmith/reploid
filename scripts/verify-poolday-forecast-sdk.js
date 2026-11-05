@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { chromium } from 'playwright';
+import { resolveServedFile } from '../server/browser-roots.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const names = ['artifact-router', 'executable-pack', 'inference-receipt', 'model-contract', 'peer-control-plane',
@@ -18,7 +19,7 @@ try {
     const name = new URL(route.request().url()).pathname;
     if (name === '/') return route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Forecast SDK verification</title>' });
     if (!['/core/verification-worker.js', '/core/vendor/acorn.js'].includes(name)) return route.abort();
-    return route.fulfill({ contentType: 'text/javascript', body: await fs.readFile(path.join(root, 'self', name)) });
+    return route.fulfill({ contentType: 'text/javascript', body: await fs.readFile(resolveServedFile(name)) });
   });
   await page.goto('http://127.0.0.1:5199/');
   const result = await page.evaluate(snapshot => new Promise((resolve, reject) => {

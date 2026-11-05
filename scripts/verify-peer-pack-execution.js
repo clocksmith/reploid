@@ -9,6 +9,7 @@ import { execFileSync } from 'node:child_process';
 import { hashDopplerEvidence } from '../self/pool/executable-pack.js';
 import { sha256Hex } from '../self/pool/inference-receipt.js';
 import { resolveDopplerExecutionContract } from '../self/config/doppler-execution-contracts.js';
+import { servedTreeSnapshot } from './package-hosting.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
@@ -140,6 +141,7 @@ export async function verifyPeerPackExecution(config) {
   const allowedChunks = new Map();
   const pages = new Map();
   try {
+    const servedRoot = await servedTreeSnapshot();
     server = createServer(async (request, response) => {
       try {
         const url = new URL(request.url, 'http://localhost');
@@ -164,7 +166,7 @@ export async function verifyPeerPackExecution(config) {
           response.end(bytes);
           return;
         }
-        const roots = [['/self/', resolve(ROOT, 'self')], ['/tests/fixtures/', resolve(ROOT, 'tests/fixtures')], ['/doppler/src/', resolve(runtimeRoot, 'src')]];
+        const roots = [['/self/', servedRoot], ['/tests/fixtures/', resolve(ROOT, 'tests/fixtures')], ['/doppler/src/', resolve(runtimeRoot, 'src')]];
         const mount = roots.find(([prefix]) => url.pathname.startsWith(prefix));
         if (!mount || url.pathname.endsWith('.wgsl')) {
           report.origin.rejectedRequests.push(url.pathname);

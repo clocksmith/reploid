@@ -4,9 +4,9 @@
  * fair device scheduling, and truthful execution placement.
  */
 import { createChatWorkspace, createRemotePermission, createSearchPermission, remotePermissionCovers, remotePermissionNeed,
-  searchPermissionWording, validPermissionWording, validateRemotePermission } from '../vendor/reploid/chat/index.js';
+  searchPermissionWording, validPermissionWording, validateRemotePermission } from '../../shared/vendor/reploid/chat/index.js';
 import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
-import { ROUTE_ENVELOPE_POLICY } from '../vendor/reploid/mesh/partitions/partition-route-envelope.js';
+import { ROUTE_ENVELOPE_POLICY } from '../../shared/vendor/reploid/mesh/partitions/partition-route-envelope.js';
 import { createModelAcquisition } from './model-acquisition.js';
 import { createChatExecution } from './chat-execution.js';
 import { createRemoteAccessPreference } from './chat-remote-permission.js';

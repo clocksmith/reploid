@@ -1,5 +1,5 @@
 /** Same-profile integration fixture. Test bytes and responses are not model/LoRA qualification. */
-import { createChatWorkspace, createChatScheduler } from '../../self/vendor/reploid/chat/index.js';
+import { createChatWorkspace, createChatScheduler } from '../../shared/vendor/reploid/chat/index.js';
 import { createPeerPackSupplier, createPeerPackArtifactStore } from '../../self/pool/peer-pack-custody.js';
 import { createPeerPackDataChannel } from '../../self/pool/peer-pack-data-channel.js';
 import { createPackJobDataChannel } from '../../self/pool/peer-pack-job-channel.js';

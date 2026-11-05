@@ -1,5 +1,5 @@
 import { computerLabel, withComputerLabels } from './computer-labels.js';
-import { publicProviderHardware } from '../../vendor/reploid/mesh/provider-hardware.js';
+import { publicProviderHardware } from '../../../shared/vendor/reploid/mesh/provider-hardware.js';
 /** Selected-attempt presentation only. Discovery never establishes an execution path. */
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const measured = value => Number.isFinite(value) && value >= 0;

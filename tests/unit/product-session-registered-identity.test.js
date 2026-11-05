@@ -4,13 +4,13 @@
 // only the signaling mesh, transport, identity storage, model-file IO and peer-offer lock are injected.
 import { afterEach, expect, it, vi } from 'vitest';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
-import { resolveConfig } from '../../self/vendor/reploid/config/index.js';
+import { resolveConfig } from '../../shared/vendor/reploid/config/index.js';
 
 const ports = vi.hoisted(() => ({ connection: null, bound: [], saved: 0, meshes: [] }));
 vi.mock('../../self/pool/identity.js', async original => ({ ...await original(), getPoolAuthToken: async () => 'fixture-search-token' }));
 vi.mock('../../self/identity.js', async original => ({ ...await original(),
   ensureIdentityBundle: async () => ports.connection, saveIdentityBundle: async () => { ports.saved += 1; } }));
-vi.mock('../../self/vendor/reploid/mesh/index.js', async original => ({ ...await original(),
+vi.mock('../../shared/vendor/reploid/mesh/index.js', async original => ({ ...await original(),
   createLegacyGenerationMesh: ({ ports: input }) => {
     let identity = null;
     const mesh = { async connect() { identity = await input.identity.ensure({}); input.createTransport(); }, async close() {},
@@ -21,7 +21,7 @@ vi.mock('../../self/vendor/reploid/mesh/index.js', async original => ({ ...await
   },
   createAutomaticPartitions: options => { ports.bound.push(options.identity.peerId); return { getModels: () => [], subscribe: () => () => {}, close: async () => {}, getState: () => ({}) }; }
 }));
-vi.mock('../../self/vendor/reploid/transport/index.js', async original => ({ ...await original(),
+vi.mock('../../shared/vendor/reploid/transport/index.js', async original => ({ ...await original(),
   createSwarmTransport: () => ({ disconnect() {}, onMessage() {}, offMessage() {}, sendToPeer() {}, _getPeerId: () => 'transport-requester', getConnectedPeers: () => [] }) }));
 vi.mock('../../self/host/work-model-files.js', async original => ({ ...await original(),
   createWorkModelFiles: () => ({ async attach() {}, async close() {}, announce() {}, getState: () => ({ sharing: false, preparing: false }) }) }));

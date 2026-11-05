@@ -1,4 +1,4 @@
-import { createToolOfferChannel, TOOL_OFFER_MESSAGE, TOOL_OFFER_ACK } from '../vendor/reploid/transport/index.js';
+import { createToolOfferChannel, TOOL_OFFER_MESSAGE, TOOL_OFFER_ACK } from '../../shared/vendor/reploid/transport/index.js';
 import policy from '../config/work-evolution.json' with { type: 'json' };
 
 /** Application custody and consent; transport never gets an evaluation or adoption port. */

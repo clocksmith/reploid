@@ -19,7 +19,7 @@ vi.mock('../../self/config/doppler-local-models.js', () => ({
 }));
 vi.mock('doppler-gpu/partitions', () => ({ createVerifiedPieceStorage: ports.createStorage }));
 vi.mock('doppler-gpu/tooling/storage', () => ({ computeHash: ports.computeHash }));
-vi.mock('../../self/vendor/reploid/artifacts/custody/exchange.js', () => ({ createCustodyExchange: ports.exchange }));
+vi.mock('../../shared/vendor/reploid/artifacts/custody/exchange.js', () => ({ createCustodyExchange: ports.exchange }));
 vi.mock('../../self/infrastructure/pack-transfer-storage.js', () => ({ openPeerPackFileCheckpoints: async () => ({ close: async () => {} }) }));
 import { createWorkModelFiles } from '../../self/host/work-model-files.js';
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');

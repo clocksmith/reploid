@@ -1,5 +1,5 @@
 /** Zero's explicit L0 host. Static checking is not a runtime JavaScript sandbox. */
-import { createToolRunner } from '../vendor/reploid/agent/tool-runner.js';
+import { createToolRunner } from '../../shared/vendor/reploid/agent/tool-runner.js';
 import { filterToolDepsForTool } from '../core/tool-capabilities.js';
 import ToolWriter from '../core/tool-writer.js';
 import VerificationManager from '../core/verification-manager.js';

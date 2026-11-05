@@ -1,6 +1,6 @@
-import { createWebRTCSwarm } from '../../self/vendor/reploid/transport/swarm.js';
-import { resolveConfig } from '../../self/vendor/reploid/config/index.js';
-import { createSigningIdentity } from '../../self/vendor/reploid/artifacts/identity.js';
+import { createWebRTCSwarm } from '../../shared/vendor/reploid/transport/swarm.js';
+import { resolveConfig } from '../../shared/vendor/reploid/config/index.js';
+import { createSigningIdentity } from '../../shared/vendor/reploid/artifacts/identity.js';
 export let swarm;
 export const messages = [], errors = [], events = [];
 export async function start(peerId, bootstrapContact = null, restricted = false) {

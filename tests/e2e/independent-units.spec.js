@@ -5,6 +5,7 @@ import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { physicalEmbeddingAssets } from '../fixtures/physical-embedding-assets.js';
+import { readServedHarnessFile } from '../helpers/served-browser-files.js';
 
 let server, origin, physicalConfig;
 test.beforeAll(async () => {
@@ -22,15 +23,16 @@ test.beforeAll(async () => {
         return;
       }
       const installed = installedRoot && pathname.startsWith('/packages/reploid/src/');
+      const served = installed ? null : await readServedHarnessFile(pathname);
       const file = installed ? path.resolve(installedRoot, pathname.slice('/packages/reploid/'.length))
-        : path.resolve(root, pathname.startsWith('/core/') ? `self${pathname}` : pathname.slice(1));
+        : path.resolve(root, pathname.slice(1));
       const allowed = installed ? file.startsWith(path.join(installedRoot, 'src') + path.sep)
-        : ['self', 'tests/fixtures', 'packages/reploid/src'].some(directory => file.startsWith(path.join(root, directory) + path.sep));
+        : !!served || ['tests/fixtures', 'packages/reploid/src'].some(directory => file.startsWith(path.join(root, directory) + path.sep));
       if (!allowed) {
         response.writeHead(403).end(); return;
       }
       response.setHeader('Content-Type', file.endsWith('.json') ? 'application/json' : 'text/javascript');
-      response.end(await readFile(file));
+      response.end(served || await readFile(file));
     } catch { response.writeHead(404).end(); }
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));

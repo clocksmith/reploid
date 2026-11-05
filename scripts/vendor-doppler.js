@@ -21,7 +21,7 @@ if (manifest.name !== 'doppler-gpu' || manifest.version !== pin.version) throw n
 const versionSource = execFileSync('tar', ['-xOf', archive, 'package/src/version.js'], { encoding: 'utf8' });
 const runtimeVersion = versionSource.match(/export const DOPPLER_VERSION\s*=\s*['"]([^'"]+)['"]/u)?.[1];
 if (runtimeVersion !== pin.version) throw new Error('Archive runtime version differs from package identity');
-const target = path.join(root, 'self/vendor/doppler', pin.version);
+const target = path.join(root, 'shared/vendor/doppler', pin.version);
 if (!/^[0-9]+\.[0-9]+\.[0-9]+(?:-[a-zA-Z0-9.-]+)?$/.test(pin.version)) throw new Error('Invalid Doppler version');
 mkdirSync(path.dirname(target), { recursive: true });
 // Replace the complete generated tree: unpacking over an older tree leaves

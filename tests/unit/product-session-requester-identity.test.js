@@ -14,7 +14,7 @@ import orderedPolicy from '../../self/config/ordered-participation.json' with { 
 
 const ports = vi.hoisted(() => ({ identity: null, partitions: null, bound: [] }));
 vi.mock('../../self/identity.js', async original => ({ ...await original(), ensureIdentityBundle: async () => ports.identity }));
-vi.mock('../../self/vendor/reploid/mesh/index.js', async original => ({ ...await original(),
+vi.mock('../../shared/vendor/reploid/mesh/index.js', async original => ({ ...await original(),
   createLegacyGenerationMesh: ({ ports: input }) => {
     let identity = null;
     return { async connect() { identity = await input.identity.ensure({}); input.createTransport(); }, async close() {},
@@ -23,7 +23,7 @@ vi.mock('../../self/vendor/reploid/mesh/index.js', async original => ({ ...await
   // work-swarm.js passes its authenticated consumer identity; the fixture owner was built with that identity.
   createAutomaticPartitions: options => { ports.bound.push(options.identity.peerId); return ports.partitions; }
 }));
-vi.mock('../../self/vendor/reploid/transport/index.js', async original => ({ ...await original(),
+vi.mock('../../shared/vendor/reploid/transport/index.js', async original => ({ ...await original(),
   createSwarmTransport: () => ({ disconnect() {}, onMessage() {}, offMessage() {}, sendToPeer() {}, _getPeerId: () => 'transport-requester', getConnectedPeers: () => [] }) }));
 vi.mock('../../self/host/work-model-files.js', async original => ({ ...await original(),
   createWorkModelFiles: () => ({ async attach() {}, async close() {}, announce() {}, getState: () => ({ sharing: false, preparing: false }) }) }));
@@ -31,7 +31,7 @@ vi.mock('../../self/host/work-peer-offers.js', () => ({ createWorkPeerOffers: ()
   acquire: async () => 'transport-requester', attach: async () => {}, close() {}, getState: () => null }) }));
 import { createProductSession } from '../../self/host/product-session.js';
 import { createChatSession } from '../../self/host/chat-session.js';
-import { resolveConfig } from '../../self/vendor/reploid/config/index.js';
+import { resolveConfig } from '../../shared/vendor/reploid/config/index.js';
 
 const DISCLOSURE_MISMATCH = 'Peer disclosure does not match the selected model and verified recipients';
 const cleanups = [];

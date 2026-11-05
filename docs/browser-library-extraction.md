@@ -45,7 +45,7 @@ Simulatte is untouched.
 
 ## Asset and loader contract
 
-npm run sync:library copies package source into self/vendor/reploid and records
+npm run sync:library copies package source into shared/vendor/reploid and records
 byte hashes. That generated copy preserves relative package paths. It is not a
 hand-maintained fork. Importing the package does not register a service worker or
 take ownership of an embedding application's root.

@@ -6,6 +6,7 @@ import { resolve, dirname } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { validateOperationModel } from '../self/pool/operation-model.js';
+import { servedTreeSnapshot } from './package-hosting.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const hash = bytes => `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
@@ -41,7 +42,7 @@ export async function verifyDocumentSearch(config) {
   if (selected.generator) modes.push('answer');
   const roles = [['embedding', 'embed', 'embedding'], ['reranker', 'rerank', 'reranking']];
   if (selected.generator) roles.push(['generator', 'generate', 'text-generation']);
-  const mounts = [{ urlPrefix: '/self', rootDir: resolve(ROOT, 'self') }];
+  const mounts = [{ urlPrefix: '/self', rootDir: await servedTreeSnapshot() }];
   for (const [role, operation, workload] of roles) {
     const choice = selected[role];
     requireValue(choice?.packPath && choice.openOptions?.trustedSigners && choice.application, `${role} requires explicit Pack trust and application`);

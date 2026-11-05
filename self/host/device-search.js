@@ -12,7 +12,7 @@
  * cross-origin reads; others fail extraction and are omitted from the record. A host with separately authorized
  * broader fetch (an extension or native companion) supplies it as `fetch`. The requester bears this route's costs,
  * which have no configured price: they stay null, never zero. */
-import { PAGE_FETCH_POLICY, extractDocumentText, selectPassage, sha256Text } from '../vendor/reploid/retrieval/index.js';
+import { PAGE_FETCH_POLICY, extractDocumentText, selectPassage, sha256Text } from '../../shared/vendor/reploid/retrieval/index.js';
 import { createProviderWebAccess } from './web-access.js';
 
 /** The search service a per-answer permission for this route names, with the chosen server's host. */

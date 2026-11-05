@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { readServedText } from '../helpers/served-browser-files.js';
 
 // Real browser presentation with an injected session; no network search or model execution.
 const origin = 'http://127.0.0.1:8131';
@@ -81,7 +82,7 @@ test('Send, search progress, cancellation and Retry have no permission popups', 
 test('changed runtime passes the actual browser Verification Worker', async ({ page }, info) => {
   const paths = ['host/chat-session.js', 'ui/pool-home/conversation-workspace.js', 'ui/pool-home/execution-activity.js',
     'ui/pool-home/message-list.js', 'ui/pool-home/remote-permission.js', 'vendor/reploid/chat/search-permission.js'];
-  const snapshot = Object.fromEntries(await Promise.all(paths.map(async name => ['/' + name, await readFile('self/' + name, 'utf8')])));
+  const snapshot = Object.fromEntries(await Promise.all(paths.map(async name => ['/' + name, await readServedText(name)])));
   const result = await page.evaluate(snapshot => new Promise((resolve, reject) => {
     const worker = new Worker('/core/verification-worker.js');
     const timer = setTimeout(() => { worker.terminate(); reject(Error('Verification timeout')); }, 15000);

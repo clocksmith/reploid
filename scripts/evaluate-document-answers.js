@@ -6,6 +6,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
+import { servedTreeSnapshot } from './package-hosting.js';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const hash = bytes => `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
@@ -125,7 +126,7 @@ export async function evaluateDocumentAnswers(config) {
   const sources = new Map();
   try {
     server = await createStaticFileServer({ rootDir: packageRoot, host: '127.0.0.1', port: 0,
-      staticMounts: [{ urlPrefix: '/self', rootDir: resolve(root, 'self') },
+      staticMounts: [{ urlPrefix: '/self', rootDir: await servedTreeSnapshot() },
         { urlPrefix: '/capsule', rootDir: resolve(config.capsuleDirectory) }] });
     model.packSource = `${server.baseUrl}/capsule/capsule.json`;
     browser = await chromium.launch({ executablePath: config.browserExecutablePath, headless: true, args: config.browserArgs });

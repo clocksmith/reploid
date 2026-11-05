@@ -1,6 +1,6 @@
 /** Host-selected compatibility providers. Signed Pack providers remain separate. */
 import profile from '../config/work-profile.json' with { type: 'json' };
-import { publicProviderHardware } from '../vendor/reploid/mesh/provider-hardware.js';
+import { publicProviderHardware } from '../../shared/vendor/reploid/mesh/provider-hardware.js';
 import { consumeWorkGenerationStream, readWorkGenerationCompletion, readWorkGenerationTiming } from './work-generation-completion.js';
 const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
 

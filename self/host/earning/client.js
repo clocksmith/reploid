@@ -11,8 +11,8 @@
  * service reconciles it to its one effect. Nothing here decides prices,
  * outcomes or rewards, and conversation text never travels.
  */
-import { createDeviceRegistrationProof, createSessionBinding } from '../../vendor/reploid/artifacts/participant-proofs.js';
-import { createAttemptEvidenceSigner } from '../../vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
+import { createDeviceRegistrationProof, createSessionBinding } from '../../../shared/vendor/reploid/artifacts/participant-proofs.js';
+import { createAttemptEvidenceSigner } from '../../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
 
 export const EARNING_CLIENT_SCHEMA = 'reploid.earning-client/v1';
 const OUTBOX = 'outbox';
