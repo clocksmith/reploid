@@ -1396,7 +1396,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 584994,
-      "sha256": "sha256:ba94f1c00ac4dd220073491ec663301adf1f31a38945b6ba45345fb2c3e56ef2"
+      "sha256": "sha256:ad965af41fd6a3c8f8978fd02757995d17874f5c4cf0768113f85efda6e4b7c1"
     },
     {
       "path": "config/module-registry.json",
@@ -1945,13 +1945,13 @@
     },
     {
       "path": "host/start-app.js",
-      "byteLength": 22884,
-      "sha256": "sha256:8236dfaba69b9a90d66842bff2b50842d27f501f4a7468480c98ee0b00a879d7"
+      "byteLength": 23169,
+      "sha256": "sha256:5aad1b14a6aafe5fb2a6577d73f22d18db7c0f0a41b02d81cb7b3eaa3b449f92"
     },
     {
       "path": "host/start-reploid.js",
-      "byteLength": 2447,
-      "sha256": "sha256:ab3db71b79e518f70cde2dd2fd6a28ffc57c59e6d1d6ff26171b60094bd2e2f5"
+      "byteLength": 2487,
+      "sha256": "sha256:c7fab41dd6b498a344cd886ef97ebdee6e2b96ca52c52bdf74dd98de718ba1db"
     },
     {
       "path": "host/supabase-sign-in.js",
@@ -11154,5 +11154,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:0a783b59d16e2c24da828300ee1562960109a803dd2403106cf422616157e323"
+  "bundleHash": "sha256:02564255216e31c4045a2c0159e8e8e04d942bc345a2220aaf6b60c56b56e38c"
 }

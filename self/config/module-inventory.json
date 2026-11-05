@@ -2539,7 +2539,7 @@
     {
       "path": "self/host/start-app.js",
       "owner": "self",
-      "sha256": "sha256:8236dfaba69b9a90d66842bff2b50842d27f501f4a7468480c98ee0b00a879d7",
+      "sha256": "sha256:5aad1b14a6aafe5fb2a6577d73f22d18db7c0f0a41b02d81cb7b3eaa3b449f92",
       "imports": [
         "../boot-spec.js",
         "../config/doppler-local-models.js",
@@ -2553,7 +2553,7 @@
     {
       "path": "self/host/start-reploid.js",
       "owner": "self",
-      "sha256": "sha256:ab3db71b79e518f70cde2dd2fd6a28ffc57c59e6d1d6ff26171b60094bd2e2f5",
+      "sha256": "sha256:c7fab41dd6b498a344cd886ef97ebdee6e2b96ca52c52bdf74dd98de718ba1db",
       "imports": [
         "../boot-spec.js",
         "../instance.js",

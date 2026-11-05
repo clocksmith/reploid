@@ -89,6 +89,14 @@ const normalizeManagedServerProxyMaxIterations = (value) => {
 };
 
 
+/** The product route with this page's query, for a stored product mode on a substrate route. */
+const productEntryUrl = () => {
+  const url = new URL('/', window.location.href);
+  url.search = window.location.search;
+  url.hash = window.location.hash;
+  return url.href;
+};
+
 const withQuery = (path, query = {}) => {
   const url = new URL(toSourceWebPath(path), window.location.origin);
   Object.entries(query).forEach(([key, value]) => {
@@ -583,8 +591,9 @@ async function completeAwaken(bootResult, goal, wizardContainer, captureCleanup)
       wizardContainer.style.display = 'block';
       if (useLockedRouteHome) {
         if (runtimeMode === 'pool') {
-          const { initPoolHome } = await import(withQuery('/ui/pool-home/index.js', getCurrentReploidPeerQuery()));
-          initPoolHome(wizardContainer);
+          // The product boots from its own entry; the substrate never loads product modules.
+          window.location.replace(productEntryUrl());
+          return;
         } else if (runtimeMode === 'reploid') {
           const { initReploidHome } = await import(withQuery('/ui/reploid-home/index.js', getCurrentReploidPeerQuery()));
           initReploidHome(wizardContainer, {

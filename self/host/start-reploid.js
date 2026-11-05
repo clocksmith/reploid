@@ -46,11 +46,12 @@ const isProductSurface = () => {
   return profile === 'pool_home' || getRouteSurface() === 'pool';
 };
 
-const loadPoolHome = async () => {
-  const module = await import(withSourceQuery('/ui/pool-home/index.js', {
-    ...getCurrentReploidPeerQuery()
-  }));
-  return module.initPoolHome;
+/** The product boots from its own entry; the substrate never loads product modules. */
+const openProductEntry = () => {
+  const url = new URL('/', window.location.href);
+  url.search = window.location.search;
+  url.hash = window.location.hash;
+  window.location.replace(url.href);
 };
 
 const loadReploidHome = async () => {
@@ -67,8 +68,7 @@ const loadReploidHome = async () => {
     window.rotateReploidIdentity = launcher.rotateIdentity;
 
     if (isProductSurface()) {
-      const initPoolHome = await loadPoolHome();
-      initPoolHome(wizardContainer);
+      openProductEntry();
       return;
     }
 
