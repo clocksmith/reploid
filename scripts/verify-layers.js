@@ -192,10 +192,12 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     await buildProductEntry({ checkOnly: true });
   }
   catch (error) { violations.push({ source: 'self/ui/pool-home/app.bundle.js', reason: error.message }); }
+  const { findBoundaryViolations } = await import('./verify-browser-boundaries.js');
+  violations.push(...await findBoundaryViolations({ repoRoot: root }));
   const registry = JSON.parse(fs.readFileSync(path.join(root, 'self/config/module-registry.json'), 'utf8'));
   for (const chain of findRequiredModuleLeaks(SURFACE_INTENTS.zero, registry.modules)) {
     violations.push({ source: 'self/config/module-registry.json', reason: 'optional X capability is required by Zero', chain });
   }
   if (violations.length) { console.error(JSON.stringify(violations, null, 2)); process.exitCode = 1; }
-  else console.log('Layer, loader, cycle and canonical delivery verification passed.');
+  else console.log('Layer, ownership boundary, loader, cycle and canonical delivery verification passed.');
 }

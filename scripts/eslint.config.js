@@ -87,8 +87,15 @@ export default [
       'no-restricted-globals': ['error', 'parent', 'name', 'event'], 'no-unreachable': 'error', 'no-dupe-args': 'error',
       'no-dupe-keys': 'error', 'no-constant-binary-expression': 'error', 'valid-typeof': 'error' }
   },
-  { files: ['self/**/*.js', 'examples/library-consumer/**/*.js',
+  { files: ['self/**/*.js', 'shared/**/*.js', 'apps/poolday/**/*.js', 'examples/library-consumer/**/*.js',
     'docs/diagrams/reploid-diagram/source/**'], ignores: workerFiles, languageOptions: { globals: globals.browser } },
+  // Ownership boundaries for static imports; scripts/verify-browser-boundaries.js checks every reference form.
+  { files: ['self/**/*.js'], rules: { 'no-restricted-imports': ['error', { patterns: [
+    { group: ['**/apps/poolday/**'], message: 'The substrate does not load Poolday product code.' }] }] } },
+  { files: ['shared/**/*.js'], rules: { 'no-restricted-imports': ['error', { patterns: [
+    { group: ['**/self/**', '**/apps/**'], message: 'Shared browser code loads only shared code.' }] }] } },
+  { files: ['apps/poolday/**/*.js'], rules: { 'no-restricted-imports': ['error', { patterns: [
+    { group: ['**/self/**'], message: 'Poolday loads the substrate only through its documented entry points (scripts/verify-browser-boundaries.js).' }] }] } },
   { files: workerFiles, languageOptions: { globals: { ...globals.worker, ...globals.serviceworker } } },
   { files: ['server/**/*.js', 'scripts/**/*.js', 'scripts/**/*.mjs', 'tools/**/*.js', 'bin/**/*.js',
     'packages/functions/**/*.js', '.github/actions/**/*.js',

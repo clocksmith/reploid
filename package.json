@@ -86,6 +86,7 @@
     "verify:catscan": "node scripts/verify-catscan.js",
     "verify:planning-boundary": "node scripts/verify-planning-boundary.js",
     "verify:layers": "node scripts/verify-layers.js",
+    "verify:boundaries": "node scripts/verify-browser-boundaries.js",
     "verify:module-system": "node scripts/verify-module-system.js",
     "verify:registry": "node scripts/build-blueprint-registry.js --check && node scripts/validate-registry.js",
     "verify:browser-bundle:local": "node scripts/build-browser-bundle-manifest.js --check",

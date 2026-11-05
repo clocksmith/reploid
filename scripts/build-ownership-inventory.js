@@ -16,6 +16,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'acorn';
 import { openBrowserTree, servedPathOf, rootOf, BROWSER_ROOTS } from '../server/browser-tree.js';
+import { SELF_ENTRY_POINTS } from './verify-browser-boundaries.js';
+
+export { SELF_ENTRY_POINTS };
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const JSON_OUTPUT = 'docs/ownership-inventory.json';
@@ -27,8 +30,7 @@ export const PRODUCT_ENTRIES = Object.freeze([
   'index.html', 'pool-entry.html', 'poolday-design.html', 'document-study.html', 'repair-smoke.html',
   'ui/pool-home/index.js'
 ]);
-/** Substrate modules the product may load: index.html boots /zero and the other substrate routes through them. */
-export const SELF_ENTRY_POINTS = Object.freeze(['zero/boot.js', 'kernel/boot.js']);
+
 /** Substrate entry points beyond the module registry and Genesis file lists. */
 const SUBSTRATE_ENTRIES = Object.freeze([
   'sw.js', 'sw-module-loader.js', 'bridge.js', 'runtime.js', 'manifest.js', 'tool-runner.js', 'boot-spec.js',
