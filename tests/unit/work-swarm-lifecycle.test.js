@@ -349,3 +349,23 @@ it('defaults to cached sharing, prepares without downloads, and persists separat
   expect(restored.getState()).toMatchObject({ introductionAssistance: false, computeEnabled: false, filesEnabled: false });
   await restored.close();
 });
+
+it('lets a requester-only ordered browser share a whole model, while partition sharing still needs an assigned stage', async () => {
+  vi.stubGlobal('navigator', { gpu: {} });
+  const identity = deferred(); ports.ensure.mockReturnValue(identity.promise);
+  ports.createTransport.mockReturnValue({ init: async () => true, disconnect: vi.fn(), onMessage: vi.fn(), broadcast: vi.fn(), _getPeerId: () => 'rtc-fixture' });
+  const limits = { maxStages: 7, maxStageOffersPerPeer: 4, maxRouteBytes: 8192, maxSelectionSteps: 2000, maxRoutes: 4 };
+  const service = { open: vi.fn(), close: vi.fn() };
+  const swarm = createWorkSwarm({ service, ordered: { stage: null, ...limits },
+    createPartitions: () => ({ getModels: () => [], stop: async () => {}, close: async () => {} }),
+    storage: { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) },
+    createModelFiles: () => ({ attach: async () => {}, close: async () => {}, announce() {}, getState: () => ({}), prepareSource: async model => model.id }),
+    networkOptions: () => ({ autoConnect: true, discoveryScope: 'public', config: resolveConfig({ overrides: { mesh: { enabled: true, roomId: 'reploid-swarm-public' } } }) }) });
+  await expect(swarm.share('qwen-3-5-2b-q4k-ehaf16', true, [], { mode: 'partition' })).rejects.toThrow('Model differs from assigned ordered stage');
+  const whole = swarm.share('qwen-3-5-2b-q4k-ehaf16', true, [], { mode: 'whole-model' });
+  const stopped = expect(whole).rejects.toThrow('stopped');
+  await vi.waitFor(() => expect(ports.ensure).toHaveBeenCalled());
+  expect(swarm.getState().contribution).toMatchObject({ phase: 'connecting', modelId: 'qwen-3-5-2b-q4k-ehaf16' });
+  const stop = swarm.stop(); identity.resolve({ peerId: 'fixture', contribution: {} });
+  await stop; await stopped; await swarm.close();
+});

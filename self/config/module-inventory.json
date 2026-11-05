@@ -2778,7 +2778,7 @@
     {
       "path": "self/host/work-swarm.js",
       "owner": "self",
-      "sha256": "sha256:476646b249dc519baf31f841ab6ca1f85a51fba77d35ae5bd74f3e6c751aab5c",
+      "sha256": "sha256:12b80ae040e2e17cb780adc93f9e991f98a511f50be6a1fa16a7aa6f51a2d45e",
       "imports": [
         "../capabilities/communication/library-adapter.js",
         "../config/doppler-local-models.js",
@@ -3518,7 +3518,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:9d0454e56f1be5e283c70711c77be62b9de0e0912471fea521b464400b1cd1f4",
+      "sha256": "sha256:fa2815735d0c4a1acd22e2dad8b975af5752dfdec5e42e0b9c1e842fa9814a4b",
       "imports": []
     },
     {

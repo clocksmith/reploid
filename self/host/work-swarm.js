@@ -408,9 +408,11 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     previewCandidate: transferId => peerOffers.preview(transferId),
     dismissCandidate: transferId => peerOffers.dismiss(transferId),
     createPartitionNetwork: openPartitionNetwork,
-    async share(modelId, approved, adapters = [], { mode = ordered || canonical ? 'partition' : 'whole-model', cacheOnly = false } = {}) {
+    async share(modelId, approved, adapters = [], { mode = ordered?.stage || canonical ? 'partition' : 'whole-model', cacheOnly = false } = {}) {
       if (!['partition', 'whole-model'].includes(mode)) throw new Error('Unknown contribution mode');
-      if ((ordered || canonical) && mode !== 'partition') throw new Error('Configured stages require partition contribution');
+      // An assigned stage or canonical participation owns this device's compute. Ordered participation
+      // without a stage only lets this browser request ordered routes; it may still share a whole model.
+      if ((ordered?.stage || canonical) && mode !== 'partition') throw new Error('Configured stages require partition contribution');
       if (approved !== true) throw new Error('Approve public prompt execution before sharing');
       const requestKey = JSON.stringify([modelId, mode, adapters]);
       if (!closed && !stopping && requestKey === contributionKey) {
@@ -419,7 +421,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       }
       if (closed || supplier || stopping || sharingConnection) throw new Error('Stop existing sharing first');
       computeEnabled = true; storage?.setItem('REPLOID_CACHED_COMPUTE_ENABLED', 'true');
-      if (ordered && modelId !== ordered.stage?.modelId) throw new Error('Model differs from assigned ordered stage');
+      if (ordered && mode === 'partition' && modelId !== ordered.stage?.modelId) throw new Error('Model differs from assigned ordered stage');
       const base = LOCAL_DOPPLER_MODELS.find(item => item.id === modelId);
       if (!base) throw new Error('Select an available local model');
       contributionKey = requestKey;
