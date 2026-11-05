@@ -2232,7 +2232,7 @@
     {
       "path": "self/host/chat-drafts.js",
       "owner": "self",
-      "sha256": "sha256:198e1c5232bb527f11f0d5ca583394c3d1ba936bcbf7c1ef49c3429c15804bb8",
+      "sha256": "sha256:a1be12c5935f36cd32b02baf8259027685b0fd1b0c0466708f2d0f78b8f1df76",
       "imports": []
     },
     {
@@ -3498,7 +3498,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:d35ff314d064b982087720c1879439c70ab9cd84c0e546b94717c7f5f0e072d4",
+      "sha256": "sha256:f6043333c42347c9cc77b0b034c5ce1b6f24aab369ee4ced9feb41054322ac62",
       "imports": []
     },
     {

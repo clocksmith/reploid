@@ -165,15 +165,26 @@ for (const width of [1440, 900, 390, 320]) for (const theme of ['light', 'dark']
     const check=async state=>{
       const result=await page.evaluate(()=>{
         const box=s=>document.querySelector(s).getBoundingClientRect().toJSON();
-        return {stream:box('[data-message-stream]'),composer:box('[data-composer-area]'),area:box('[data-conversation-area]'),rail:box('[data-thread-sidebar]')};
+        const style=getComputedStyle(document.querySelector('[data-message-stream]'));
+        return {stream:box('[data-message-stream]'),gutter:parseFloat(style.paddingLeft)+parseFloat(style.paddingRight),composer:box('[data-composer-area]'),area:box('[data-conversation-area]'),rail:box('[data-thread-sidebar]'),panel:box('[data-chat-inspector-slot]')};
       });
-      expect(Math.abs(result.stream.x-result.composer.x)).toBeLessThanOrEqual(1);
-      expect(Math.abs(result.stream.width-result.composer.width)).toBeLessThanOrEqual(1);
-      expect(Math.abs(result.composer.x+result.composer.width/2-result.area.x-result.area.width/2)).toBeLessThanOrEqual(1);
-      if(width>760)expect(result.area.y).toBeGreaterThanOrEqual(result.rail.bottom+8);
-      expect(result.composer.right).toBeLessThanOrEqual(width-8);
+      if(state==='network'){
+        // The open inspector takes the conversation column; transcript and composer yield to it.
+        expect(result.area.width).toBe(0);
+        expect(result.panel.width).toBeGreaterThan(0);
+        expect(result.panel.right).toBeLessThanOrEqual(width-8);
+        if(width>760)expect(result.panel.y).toBeGreaterThanOrEqual(result.rail.bottom+8);
+      }else{
+        // One column: the transcript is centered on the composer and exceeds it by at most its own inline gutter.
+        expect(Math.abs((result.stream.x+result.stream.width/2)-(result.composer.x+result.composer.width/2))).toBeLessThanOrEqual(1);
+        expect(result.stream.width-result.composer.width).toBeGreaterThanOrEqual(-1);
+        expect(result.stream.width-result.composer.width).toBeLessThanOrEqual(result.gutter+1);
+        expect(Math.abs(result.composer.x+result.composer.width/2-result.area.x-result.area.width/2)).toBeLessThanOrEqual(1);
+        if(width>760)expect(result.area.y).toBeGreaterThanOrEqual(result.rail.bottom+8);
+        expect(result.composer.right).toBeLessThanOrEqual(width-8);
+      }
       await expect(input).toHaveValue('A draft that wraps when the available chat column becomes narrow.');
-      await expect.poll(()=>input.evaluate(node=>Math.min(node.scrollHeight,innerHeight*.22)-node.clientHeight)).toBeLessThanOrEqual(1);
+      if(state!=='network')await expect.poll(()=>input.evaluate(node=>Math.min(node.scrollHeight,innerHeight*.22)-node.clientHeight)).toBeLessThanOrEqual(1);
       expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
       await page.screenshot({path:info.outputPath(state+'.png')});
     };
@@ -199,13 +210,14 @@ for (const theme of ['light','dark']) for (const width of [1440,320]) {
     await page.keyboard.press('Escape');await expect(page.locator('[data-contextual-inspector]')).toBeHidden();
     await expect(network).toBeFocused();await page.keyboard.press('Enter');
     const toggle=page.locator('[data-mesh-connect]'),knob=toggle.locator('span');
-    const on=await knob.boundingBox(),image=await knob.evaluate(node=>getComputedStyle(node).backgroundImage);
-    expect(image).toContain('radial-gradient');expect(image).not.toContain('255, 255, 255');
+    // The thumb is a token-colored disc that changes side and color with the state.
+    const on=await knob.boundingBox(),onColor=await knob.evaluate(node=>getComputedStyle(node).backgroundColor);
+    expect(onColor).not.toBe('rgba(0, 0, 0, 0)');
     await page.emulateMedia({reducedMotion:'reduce'});await toggle.focus();
     expect(await toggle.evaluate(node=>getComputedStyle(node).outlineStyle)).toBe('solid');
     await page.keyboard.press('Space');await expect(toggle).toHaveAttribute('aria-checked','false');
     expect((await knob.boundingBox()).x).toBeLessThan(on.x);
-    expect(await knob.evaluate(node=>getComputedStyle(node).backgroundImage)).toBe(image);
+    expect(await knob.evaluate(node=>getComputedStyle(node).backgroundColor)).not.toBe(onColor);
     expect(await knob.evaluate(node=>getComputedStyle(node).transitionProperty)).toBe('none');
     await page.screenshot({path:info.outputPath('marble-off.png')});
     await page.keyboard.press('Escape');await expect(page.locator('[data-contextual-inspector]')).toBeHidden();
@@ -414,7 +426,8 @@ for (const width of [1440, 390]) test(`search progress, retry history and review
   });
   const row = page.locator('.is-assistant');
   await expect(row).toHaveCount(1);
-  await expect(row.locator('[data-system-status]')).toContainText('2 of 5 pages checked; 2 usable');
+  // Retrieval progress shows in the answer's loader while the retry is queued; the system line stays for outcomes.
+  await expect(row.locator('[data-tool-status]')).toContainText('Reading search results · 2 of 5 pages');
   await expect(row.locator('[aria-label="Model output"]')).toBeHidden();
   await row.locator('[data-previous-attempts] summary').click();
   await expect(row.locator('[data-previous-attempts]')).toContainText('the search provider failed');
@@ -431,19 +444,5 @@ for (const width of [1440, 390]) test(`search progress, retry history and review
   await expect(row.locator('[data-previous-attempts]')).toHaveAttribute('open', '');
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
   await page.screenshot({ path: info.outputPath('partial-search-answer.png') });
-  await page.evaluate(async () => {
-    const { bindSearchPermissionDialog } = await import('/ui/pool-home/search-permission.js');
-    window.queryReview = bindSearchPermissionDialog(document.querySelector('[data-search-permission]'), window.railSession);
-    window.queryReview.ask({ wording: { text: 'Allow this reviewed query for this answer.' }, recipients: [],
-      query: 'What about its price?', previousQuestion: 'Search for QCOM news' });
-  });
-  const dialog = page.locator('[data-search-permission]');
-  await expect(dialog).toBeVisible();
-  await expect(dialog.locator('[data-search-query]')).toHaveValue('What about its price?');
-  await expect(dialog.locator('[data-search-context]')).not.toBeChecked();
-  await dialog.locator('[data-search-context]').check();
-  await expect(dialog.locator('[data-search-query]')).toHaveValue('Search for QCOM news\nFollow-up: What about its price?');
-  await expect(dialog.locator('[data-search-permission-allow]')).toBeInViewport();
-  expect(await dialog.evaluate(node => node.scrollWidth - node.clientWidth)).toBeLessThanOrEqual(1);
-  await page.screenshot({ path: info.outputPath('query-review.png') });
+  // Search-backed answers run under Send without a per-answer dialog; the former query-review dialog is not rendered.
 });

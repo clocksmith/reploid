@@ -205,6 +205,8 @@
 /* Compact from the observed visual viewport, including keyboard-only resizes. */
 .pool-home[data-chat-compact]:is([data-pool-route-id='home'], [data-pool-route-id='network']) { gap: var(--pool-size-8); padding-top: calc(var(--pool-param-bar-height) + var(--pool-param-chat-gutter) + var(--pool-size-8)); }
 .pool-home[data-chat-compact] .chat-conversation-area { gap: var(--pool-size-8); padding: var(--pool-size-8); }
+/* While the keyboard holds the viewport short, the chooser and contribution blocks yield to the transcript and composer. */
+.pool-home[data-chat-compact] .chat-conversation-area > :is([data-production-shared], .production-surface) { display: none; }
 .pool-home[data-chat-compact] .chat-thread-header { display: flex; }
 .pool-home[data-chat-compact] .chat-thread-header [data-mesh-peers] { display: none; }
 .pool-home[data-chat-compact] .chat-composer-area form { gap: var(--pool-size-8); }
@@ -313,7 +315,7 @@
 .pool-home .pool-power-tower[data-inverse] .pool-seven-small { order: 1; }
 .pool-home :is(.pool-primary-brand, [data-pool-settings] > summary) { transition: background var(--pool-motion-nav), box-shadow var(--pool-motion-nav), border-color var(--pool-motion-nav); }
 @media (prefers-reduced-motion: reduce) {
-  .reploid-chat-workspace, .chat-thread-sidebar, .pool-home :is(.pool-primary-brand, [data-pool-settings] > summary), .chat-message-actions [data-copy-message] { transition: none !important; }
+  .reploid-chat-workspace, .chat-thread-sidebar, .pool-home :is(.pool-primary-brand, [data-pool-settings] > summary, .chat-rail-toolbar .pool-button), .chat-message-actions [data-copy-message] { transition: none !important; }
 }
 .pool-home .chat-thread-header [data-open-threads] { display: none; }
 

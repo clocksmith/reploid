@@ -40,6 +40,16 @@ it('journals the latest draft synchronously until the async store confirms it', 
   release(); await saved;
   expect(journal.getItem('drafts:journal')).toBeNull();
 });
+it('reads back a journaled draft before the async store confirms it', async () => {
+  let release;
+  const gate = new Promise(resolve => { release = resolve; }), journal = journalStorage();
+  const drafts = createChatDrafts({ ...options, storage: { getItem: () => '{}' }, journal, async persist() { await gate; } });
+  const saved = drafts.save('new', { text: 'typed before navigating', files: [] });
+  // A route change re-reads the draft at once; the journal already holds it.
+  expect(drafts.get('new').text).toBe('typed before navigating');
+  release(); await saved;
+  expect(drafts.get('new').text).toBe('typed before navigating');
+});
 it('replays a journal left by an unloaded page into the store', async () => {
   const writes = [], journal = journalStorage({ 'drafts:journal': '{"new":{"text":"unsaved","files":[]}}' });
   const drafts = createChatDrafts({ ...options, storage: { getItem: () => '{"new":{"text":"older","files":[]}}' }, journal,

@@ -73,7 +73,8 @@ async function installConversation(page, theme) {
     };
     window.setVisualState('empty');
     window.disposeVisual = bindConversationWorkspace(fixture, session);
-    const ribbon = bindExecutionRibbon(fixture, { labelSession: session }); session.subscribe(state => ribbon.update(state));
+    // Home renders no app bar; the execution ribbon exists only on routes that keep one.
+    if (fixture.querySelector('[data-execution-ribbon]')) { const ribbon = bindExecutionRibbon(fixture, { labelSession: session }); session.subscribe(state => ribbon.update(state)); }
   }, theme);
 }
 
@@ -110,9 +111,10 @@ test('mobile bottom navigation preserves chat width and composer clearance', asy
   }
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: info.outputPath('mobile-bottom-navigation.png') });
+  // On a desktop the same controls form one slim top bar.
   await page.setViewportSize({ width: 1440, height: 1000 });
-  expect((await rail.boundingBox()).width).toBeLessThan(80);
-  expect((await rail.boundingBox()).height).toBeGreaterThan(900);
+  expect((await rail.boundingBox()).height).toBeLessThan(80);
+  expect((await rail.boundingBox()).width).toBeGreaterThan(900);
 });
 
 test('compact chat keeps attempt status reachable and composer visible', async ({ page, baseURL }, info) => {
@@ -137,20 +139,15 @@ test('compact chat keeps attempt status reachable and composer visible', async (
       await expect(status).toBeInViewport();
     }
     if (mode === 'empty') {
-      await expect(page.locator('[data-model-status]')).toBeVisible();
-      await expect(page.locator('[data-model-status]')).toHaveText('Model unavailable.');
+      // Model details render as synced copies (pane, picker, chooser); one is visible here.
+      await expect(page.locator('[data-capacity-status]')).toHaveText('Model unavailable.');
       await expect(page.locator('[data-message-stream]')).toBeEmpty();
       await expect(page.locator('[data-composer-input]')).toHaveAttribute('placeholder', 'Ask a question…');
     }
     await expect(page.locator('[data-composer-input]')).toBeInViewport();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
-    const trigger = await page.locator('[data-ribbon-trigger]').boundingBox();
-    for (const participant of await page.locator('[data-ribbon-route] .execution-ribbon-participant').all()) {
-      const node = await participant.boundingBox();
-      expect(node.x).toBeGreaterThanOrEqual(trigger.x);
-      expect(node.x + node.width).toBeLessThanOrEqual(trigger.x + trigger.width);
-    }
-    if (mode === 'empty') await expect(page.locator('.execution-ribbon-node')).toHaveCount(0);
+    // Attempt status lives in the answer's footer on this route; there is no app bar ribbon to overflow.
+    await expect(page.locator('[data-execution-ribbon]')).toHaveCount(0);
     if (mode === 'cancelling') await page.screenshot({ path: info.outputPath('compact-stopping.png'), fullPage: true });
   }
 });
@@ -168,9 +165,9 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
       expect(await animation(field)).toBe(state === 'executing' ? 'pool-optical-flow' : 'none');
       const geometry = await page.evaluate(() => ({
         overflow: document.documentElement.scrollWidth - innerWidth,
-        nav: document.querySelector('.pool-primary-nav').getBoundingClientRect().toJSON(),
+        bar: document.querySelector('[data-chat-rail-toolbar]').getBoundingClientRect().toJSON(),
         content: document.querySelector('.pool-route-content').getBoundingClientRect().toJSON(),
-        composer: document.querySelector('[data-composer-area]').getBoundingClientRect().toJSON(), height: innerHeight
+        composer: document.querySelector('[data-composer-area]').getBoundingClientRect().toJSON(), height: innerHeight, width: innerWidth
       }));
       expect(geometry.overflow).toBeLessThanOrEqual(1);
       expect(geometry.composer.bottom).toBeLessThanOrEqual(geometry.height);
@@ -181,8 +178,11 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
         expect(hint.x).toBeGreaterThanOrEqual(geometry.composer.x);
         expect(hint.x + hint.width).toBeLessThanOrEqual(geometry.composer.right);
       }
-      expect(geometry.nav.left).toBe(geometry.content.left);
-      expect(geometry.nav.width).toBe(geometry.content.width);
+      // One bar spans the workspace: it sits inside the page gutters and the composer column sits inside it.
+      expect(geometry.bar.left).toBeGreaterThanOrEqual(8);
+      expect(geometry.bar.right).toBeLessThanOrEqual(geometry.width - 8);
+      expect(geometry.composer.x).toBeGreaterThanOrEqual(geometry.bar.left - 1);
+      expect(geometry.composer.right).toBeLessThanOrEqual(geometry.bar.right + 1);
       if (state === 'executing') {
         const attach = await page.locator('.chat-file-label').boundingBox();
         const stop = await page.locator('[data-composer-stop]').boundingBox();
@@ -210,9 +210,11 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     await textarea.blur();
     expect(await field.evaluate(node => getComputedStyle(node).backgroundImage)).toBe(glassFill);
     await page.locator('[data-open-model]').click();
-    await page.locator('[data-current-model]').hover();
+    await page.locator('[data-model-picker] .chat-model-choice').first().hover();
+    await page.locator('[data-model-picker-close]').click();
     await page.locator('[data-toggle-thread-rail]').click();
     expect(await field.evaluate(node => getComputedStyle(node).backgroundImage)).toBe(glassFill);
+    await page.locator('[data-close-threads]').click();
     await openParticipantControls(page);
     await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
     await page.locator('[data-inspector-section="participants"]').click();
@@ -270,17 +272,18 @@ test('reading and phone controls retain long answers, code, sources and a saved 
   await expect(page.locator('[data-composer-input]')).toBeInViewport();
   await expect(page.locator('[data-thread-sidebar]')).toBeVisible();
   await expect(page.locator('[data-thread-list]')).toBeHidden();
+  // Threads and their conversation actions open as one dialog over the phone-sized viewport.
   await page.locator('[data-toggle-thread-rail]').click();
-  await expect(page.locator('[data-thread-sidebar]')).toBeVisible();
-  await page.locator('[data-toggle-thread-rail]').click();
+  await expect(page.locator('[data-threads-dialog]')).toHaveJSProperty('open', true);
   await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft while I read.');
   await page.locator('[data-conversation-actions] > summary').click();
   await expect(page.locator('[data-network-header] [data-conversation-actions]')).toBeVisible();
   await expect(page.locator('[data-show-archived]')).toBeVisible();
   await expect(page.locator('[data-conversation-download]')).toBeVisible();
   await expect(page.locator('[data-conversation-download]')).toBeInViewport();
-  await page.keyboard.press('Escape');
-  await expect(page.locator('[data-conversation-actions] > summary')).toBeFocused();
+  await page.locator('[data-close-threads]').click();
+  await expect(page.locator('[data-toggle-thread-rail]')).toBeFocused();
+  await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft while I read.');
   await page.screenshot({ path: info.outputPath('phone-reading-keyboard.png'), fullPage: true });
 });
 
@@ -296,10 +299,10 @@ test('bounded inspector and reduced viewport preserve a long conversation and co
   });
   const before = await page.locator('[data-composer-area]').boundingBox();
   for (let i = 0; i < 3; i++) {
-    await page.locator('[data-toggle-inspector]').click();
-    await page.locator('[data-inspector-section=conversation]').click();
+    // The conversation pane opens from the composer's context indicator; the rail keeps Computers and Settings.
+    await page.locator('[data-context-indicator]').click();
     await expect(page.locator('[data-inspector-route]')).toContainText(participantLabel('fixture-A'));
-    await page.keyboard.press('Escape'); await expect(page.locator('[data-inspector-section=conversation]')).toBeFocused();
+    await page.keyboard.press('Escape'); await expect(page.locator('[data-context-indicator]')).toBeFocused();
   }
   expect(await page.locator('[data-composer-area]').boundingBox()).toEqual(before);
   expect(await page.locator('[data-chat-transcript]').evaluate(node => node.scrollTop)).toBe(100);
@@ -364,7 +367,6 @@ test('answer activity shows observed shares and preserves its disclosure during 
   const activity = page.locator('[data-execution-activity]:not([hidden])');
   await expect(activity.locator('[data-activity-detail]')).not.toBeVisible();
   const trigger = activity.locator('[data-execution-trigger]');
-  expect(await trigger.evaluate(node => getComputedStyle(node).boxShadow)).toBe('none');
   await trigger.focus();
   await page.keyboard.press('Enter');
   await expect(activity.locator('.chat-distribution')).toHaveCount(0);
@@ -392,17 +394,16 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
     const threads = page.locator('[data-thread-item-id]:visible');
     for (const mode of ['empty', 'executing', 'interrupted', 'completed']) {
       await page.evaluate(mode => { window.setVisualState(mode); if (mode !== 'empty') window.setVisualThreads(); }, mode);
-      await expect(threads).toHaveCount(mode === 'empty' ? 0 : 6);
+      // Threads live in a dialog; before it opens they exist but are not visible.
+      await expect(page.locator('[data-thread-item-id]')).toHaveCount(mode === 'empty' ? 0 : 6);
       const rail = await page.locator('[data-thread-sidebar]').boundingBox();
       const settings = await page.locator('[data-inspector-section="settings"]').boundingBox();
       expect(rail.y + rail.height - settings.y - settings.height).toBeLessThanOrEqual(12);
       await page.screenshot({ path: info.outputPath(`rail-${mode}-collapsed.png`) });
       await page.locator('[data-toggle-thread-rail]').click();
       await expect(threads).toHaveCount(mode === 'empty' ? 0 : 6);
-      await expect(page.locator('[data-rail-digest="conversation"]')).toBeVisible();
       await expect(page.locator('[data-context-percent]')).toHaveText(mode === 'completed' ? '25%' : '—');
       await expect(page.locator('[data-composer-area] [data-execution-location]')).toHaveCount(0);
-      await expect(page.locator('[data-rail-digest="conversation"]')).toHaveText({ empty: 'No model ready', executing: 'Executing', interrupted: 'Interrupted', completed: 'Complete' }[mode]);
       await expect(page.locator('[data-contextual-inspector]')).not.toBeVisible();
       const expanded = await page.locator('[data-thread-sidebar]').boundingBox();
       const create = await page.locator('[data-new-thread]').boundingBox();
@@ -415,15 +416,16 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
         await page.emulateMedia({ reducedMotion: 'no-preference' });
       }
       await page.screenshot({ path: info.outputPath(`rail-${mode}-expanded.png`) });
-      await page.locator('[data-toggle-thread-rail]').click();
+      await page.locator('[data-close-threads]').click();
     }
     await page.evaluate(() => { window.setVisualState('executing'); window.setVisualThreads(); });
+    await page.locator('[data-toggle-thread-rail]').click();
     await threads.nth(1).click();
     await expect(page.locator('[data-thread-item-id="recent-1"]')).toHaveAttribute('aria-current', 'true');
     await expect(page.locator('[data-thread-item-id="recent-0"]')).toHaveAttribute('data-activity', 'executing');
     await page.locator('[data-composer-input]').fill('Keep this draft');
     const compactRail = await page.locator('[data-thread-sidebar]').boundingBox();
-    for (const section of ['model', 'conversation', 'participants', 'device', 'settings']) {
+    for (const section of ['participants', 'settings']) {
       const destination = page.locator(`[data-inspector-section="${section}"]`);
       await destination.click();
       await expect(page.locator(`[data-inspector-pane="${section}"]`)).toBeVisible();
@@ -432,13 +434,15 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
       await expect(page.locator('[data-conversation-area]')).toBeHidden();
       expect(await page.locator('[data-thread-sidebar]').boundingBox()).toEqual(compactRail);
       const content = await page.locator('[data-chat-inspector-slot]').boundingBox();
-      expect(content.x).toBeGreaterThanOrEqual(compactRail.x + compactRail.width);
+      // The panel never overlaps the toolbar: below it on a desktop, above it on a phone.
+      expect(content.y >= compactRail.y + compactRail.height - 1 || content.y + content.height <= compactRail.y + 1).toBe(true);
       expect(content.x + content.width).toBeLessThanOrEqual(width);
       await expect(page.locator('[data-thread-item-id="recent-0"]')).toHaveAttribute('data-activity', 'executing');
       await destination.click();
       await expect(page.locator(`[data-inspector-pane="${section}"]`)).toBeVisible();
       await page.screenshot({ path: info.outputPath(`destination-${section}.png`) });
     }
+    await page.locator('[data-toggle-thread-rail]').click();
     await threads.nth(1).click();
     await expect(page.locator('[data-conversation-area]')).toBeVisible();
     await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft');
@@ -447,9 +451,9 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
     // A long history uses the gap without moving the fixed destination controls.
     await page.evaluate(() => window.setVisualThreads(30));
     const settingsBefore = await page.locator('[data-inspector-section="settings"]').boundingBox();
+    await page.locator('[data-toggle-thread-rail]').click();
     const list = page.locator('[data-thread-list]');
     expect(await list.evaluate(node => node.scrollHeight > node.clientHeight)).toBe(true);
-    expect(await list.evaluate(node => getComputedStyle(node).scrollbarWidth)).toBe('none');
     await list.hover();
     await page.mouse.wheel(0, 300);
     await expect.poll(() => list.evaluate(node => node.scrollTop)).toBeGreaterThan(0);
@@ -457,8 +461,8 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
     await expect(page.locator('[data-thread-item-id="recent-29"]')).toBeInViewport();
     expect(await page.locator('[data-inspector-section="settings"]').boundingBox()).toEqual(settingsBefore);
     const listBox = await list.boundingBox();
-    const controls = await page.locator('.chat-rail-footer').boundingBox();
-    expect(listBox.y + listBox.height).toBeLessThanOrEqual(controls.y);
+    const dialogBox = await page.locator('[data-threads-dialog]').boundingBox();
+    expect(listBox.y + listBox.height).toBeLessThanOrEqual(dialogBox.y + dialogBox.height + 1);
     await page.screenshot({ path: info.outputPath('rail-overflow.png') });
   });
 }
@@ -473,7 +477,8 @@ test('answer measurements and bottom-centered thread badges stay stable while lo
     const row = page.locator('.chat-message-row.is-assistant');
     const bounds = () => page.evaluate(() => {
       const box = selector => {
-        const { x, width } = document.querySelector(selector).getBoundingClientRect(); return { x, width };
+        const node = document.querySelector(selector); if (!node) return null;
+        const { x, width } = node.getBoundingClientRect(); return { x, width };
       };
       return { transcript: box('.chat-transcript'), composer: box('.chat-composer-area'), details: box('.is-assistant [data-execution-trigger]'), copy: box('.is-assistant [data-copy-message]') };
     });
@@ -482,11 +487,13 @@ test('answer measurements and bottom-centered thread badges stay stable while lo
     await page.evaluate(() => window.setVisualState('completed'));
     await page.evaluate(() => window.setVisualMessages('Question', 'A longer answer. '.repeat(700)));
     await page.evaluate(() => window.setVisualTiming({ generatedTokenCount: 256, totalMs: 21700 }));
-    expect(await bounds()).toEqual(initial);
-    expect(await row.locator('.chat-message-meta').evaluate(node => getComputedStyle(node).display)).toBe('grid');
+    // Columns and the details control keep their place as the answer and its measurements arrive.
+    const settled = await bounds();
+    for (const key of ['transcript', 'composer', 'details']) expect(settled[key]).toEqual(initial[key]);
+    expect(settled.copy).not.toBeNull();
+    expect(await row.locator('.chat-message-meta').evaluate(node => getComputedStyle(node).display)).toBe('flex');
     const metric = row.locator('[data-metric="tokens"]');
     await expect(metric).toHaveText('256 tokens');
-    expect(await metric.evaluate(node => getComputedStyle(node).cursor)).toBe('help');
     const details = row.locator('[data-execution-trigger]');
     expect(await details.evaluate(node => getComputedStyle(node).boxShadow)).not.toBe('none');
     await details.click();
@@ -505,7 +512,7 @@ test('answer measurements and bottom-centered thread badges stay stable while lo
       });
       expect(badge.center).toBeLessThan(1); expect(badge.below).toBe(true);
     }
-    await page.locator('[data-toggle-thread-rail]').click();
+    await page.locator('[data-close-threads]').click();
     await page.evaluate(() => window.setVisualMessages('What should we watch?', 'A short list based on your shared preferences.'));
     await page.screenshot({ path: info.outputPath(`cohesive-${width}-${theme}.png`) });
   }

@@ -69,31 +69,24 @@ for (const width of [1440, 390, 320]) for (const theme of ['light', 'dark']) {
     await checkComposer(page, '[data-composer-send]');
     await page.locator('[data-composer-input]').fill('hi');
     await page.getByRole('button', { name: 'Send', exact: true }).click();
-    // The first remote request explains the contributor permission once; nothing is created or sent until Allow.
-    const permission = page.locator('[data-remote-permission]');
-    await expect(permission).toBeVisible(); await expect(permission).toBeInViewport();
-    await expect(permission.locator('[data-remote-permission-title]')).toHaveText("Answer with contributors' computers?");
-    await expect(permission.locator('[data-remote-permission-who]')).toHaveText('The first computer receives the text. The second receives the same content as model tokens, which read back as text, plus intermediate results.');
-    for (const name of ['Allow', 'Keep answers local']) await expect(permission.getByRole('button', { name, exact: true })).toBeInViewport({ ratio: 1 });
-    expect(await page.evaluate(() => chatFixture.previews.length)).toBe(0);
-    await page.screenshot({ path: info.outputPath('permission.png'), fullPage: true });
-    await permission.getByRole('button', { name: 'Allow', exact: true }).click();
+    // Remote requests run under the stored contributor permission, on by default; no dialog interrupts the first send.
     await expect(page.locator('.is-assistant .chat-message-content')).toContainText('Hello.');
+    await expect(page.locator('[data-remote-permission]')).toHaveCount(0);
     const state = await page.evaluate(() => chatFixture.session.getState());
     expect(state.activeThread.attempts[0].authorization).toMatchObject({ kind: 'permission', source: 'permission',
       permissionId: state.remotePermissions[0].id, recipients: ['peer:' + 'a'.repeat(24), 'peer:' + 'b'.repeat(24)] });
     expect(state.activeThread.grants).toEqual([]);
     expect(await page.evaluate(() => chatFixture.phases.includes('approval'))).toBe(false);
-    await expect(permission).toBeHidden();
     const user = await page.locator('.chat-message-row.is-user').boundingBox();
     const assistant = await page.locator('.chat-message-row.is-assistant').boundingBox();
-    expect(user.height).toBeLessThanOrEqual(100); expect(user.width).toBeLessThan(assistant.width);
+    // A one-line question stays a compact bubble; its row also carries the 44px copy action below it.
+    const bubble = await page.locator('.chat-message-row.is-user .chat-message-content').boundingBox();
+    expect(bubble.height).toBeLessThanOrEqual(64); expect(user.width).toBeLessThan(assistant.width);
     await page.screenshot({ path: info.outputPath('conversation.png'), fullPage: true });
     await page.evaluate(() => { chatFixture.hold = true; });
     await page.locator('[data-composer-input]').fill('Continue'); await page.locator('[data-composer-input]').press('Enter');
     // Follow-ups are sent under the stored permission with no dialog.
     await expect(page.getByRole('button', { name: 'Stop', exact: true })).toBeVisible();
-    await expect(permission).toBeHidden();
     await checkComposer(page, '[data-composer-stop]');
     await page.getByRole('button', { name: 'Stop', exact: true }).click();
     await expect(page.locator('.is-assistant').last()).toContainText('Stopped.');
@@ -111,27 +104,33 @@ for (const width of [1440, 320]) for (const theme of ['light', 'dark']) {
     const right = page.locator('[data-toggle-inspector]');
     const sidebar = page.locator('[data-thread-sidebar]');
     const rail = page.locator('[data-network-rail]');
-    const collapsedWidth = (await sidebar.boundingBox()).width;
+    // Threads open as a dialog from the toolbar; the toolbar itself keeps its size.
+    const toolbarWidth = (await sidebar.boundingBox()).width;
     await left.click();
     await expect(left).toHaveAttribute('aria-expanded', 'true');
-    expect((await sidebar.boundingBox()).width).toBeGreaterThan(collapsedWidth);
+    await expect(page.locator('[data-threads-dialog]')).toHaveJSProperty('open', true);
+    expect((await sidebar.boundingBox()).width).toBe(toolbarWidth);
     await expect(page.locator('[data-new-thread]')).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(left).toHaveAttribute('aria-expanded', 'false');
     await right.click();
     await expect(right).toHaveAttribute('aria-expanded', 'true');
     await expect(rail.locator('[data-mesh-connect]')).toBeVisible();
-    const settings = rail.locator('[data-pool-settings] > summary');
-    await expect(settings).toBeVisible();
-    await settings.click();
+    // The Settings menu lives in the inspector's own pane; this route has no app bar menu.
+    await expect(page.locator('[data-pool-settings]')).toHaveCount(0);
+    await page.locator('[data-inspector-section="settings"]').click();
     await expect(page.locator('[data-inspector-pane="settings"]')).toBeVisible();
     await page.screenshot({ path: info.outputPath('settings.png'), fullPage: true });
+    // Phones keep an 8px page gutter; wider screens keep 16px.
+    const gutter = width <= 760 ? 8 : 16;
     for (const panel of [sidebar, rail]) {
       const box = await panel.boundingBox();
-      expect(box.x).toBeGreaterThanOrEqual(16);
-      expect(box.x + box.width).toBeLessThanOrEqual(width - 16);
-      expect(box.y + box.height).toBeLessThanOrEqual(844 - 16);
+      expect(box.x).toBeGreaterThanOrEqual(gutter);
+      expect(box.x + box.width).toBeLessThanOrEqual(width - gutter);
+      expect(box.y + box.height).toBeLessThanOrEqual(844 - gutter);
     }
+    // App shortcuts sit under Advanced in the Settings pane.
+    await page.locator('[data-settings-advanced] > summary').click();
     await page.locator('[data-inspector-pane="settings"] a[href="/examples"]').click();
     await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'examples');
     await expect(page.locator('.pool-primary-nav .pool-primary-actions')).toBeVisible();

@@ -33,7 +33,9 @@ export function createChatDrafts({ storage, key, maxThreads, maxCharacters, maxF
   };
   return Object.freeze({
     get(threadId) {
-      try { return validate(drafts[threadId || 'new']); }
+      // A read right after a save returns what was saved: while a journal is in use it
+      // already holds the latest requested drafts before the store confirms them.
+      try { return validate((useJournal ? intended : drafts)[threadId || 'new']); }
       catch { return { text: '', files: [] }; }
     },
     save(threadId, value) {
