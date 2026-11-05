@@ -1,12 +1,12 @@
 /** Complete operations reuse room rendezvous, signaling, transport and durable execution. */
-import config from './pool-config.json' with { type: 'json' };
+import config from '../../shared/pool/pool-config.json' with { type: 'json' };
 import { createRoomSignaling, runPeerOperationJob, PEER_ROOM_VERSION } from './peer-room.js';
-import { createP2PTransport } from './p2p-transport.js';
+import { createP2PTransport } from '../../shared/pool/p2p-transport.js';
 import { createPackJobDataChannel } from './peer-pack-job-channel.js';
 import { createPackPeerProvider } from './peer-pack-provider.js';
 import { verifyPackPeerMessage, packPeerModel } from './peer-pack-job.js';
 import { PEER_MESSAGE_TYPES } from './peer-protocol.js';
-import { hashDopplerEvidence } from './executable-pack.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { snapshotPackOperationData as snapshot } from './pack-operation.js';
 
 const assert = (ok, message) => { if (!ok) throw new Error(`Operation room: ${message}`); };

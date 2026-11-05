@@ -1,4 +1,4 @@
-import { escapeHtml } from '../components/html.js';
+import { escapeHtml } from '../../../shared/ui/components/html.js';
 /**
  * @fileoverview Shared requester consent and intent controls for Poolday request surfaces.
  */

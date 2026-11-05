@@ -13,7 +13,7 @@ import {
   DOPPLER_PACKAGE_SPEC,
   DOPPLER_PACKAGE_TARBALL_URL,
   DOPPLER_PACKAGE_VERSION
-} from '../self/config/doppler-local-models.js';
+} from '../shared/config/doppler-local-models.js';
 
 const RUNTIME_ENV_KEYS = Object.freeze({
   REPLOID_POOL_MODEL_BASE_URL: 'modelBaseUrl',

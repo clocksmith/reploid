@@ -6,5 +6,5 @@
  * requirement the browser would reject (or vice versa).
  */
 
-export * from '../../self/pool/model-contract.js';
-export { default } from '../../self/pool/model-contract.js';
+export * from '../../shared/pool/model-contract.js';
+export { default } from '../../shared/pool/model-contract.js';

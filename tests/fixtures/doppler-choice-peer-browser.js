@@ -1,16 +1,16 @@
 // Real signed decisions through the existing complete-request WebRTC protocol.
 import * as api from 'doppler-gpu';
 import { createDopplerChoiceScoringAdapter } from 'reploid/doppler';
-import { createReploidDopplerRuntimeService } from '../../self/infrastructure/doppler-runtime-service.js';
+import { createReploidDopplerRuntimeService } from '../../shared/infrastructure/doppler-runtime-service.js';
 import { createPackPeerProvider } from '../../self/pool/peer-pack-provider.js';
 import { createPackPeerRequester } from '../../self/pool/peer-pack-requester.js';
 import { createPackJobDataChannel } from '../../self/pool/peer-pack-job-channel.js';
 import { createPackPeerJob } from '../../self/pool/peer-pack-job.js';
 import { runPackOperation } from '../../self/pool/pack-operation.js';
-import { createPackOperationRegistry, PACK_OPERATION_IMPLEMENTATIONS } from '../../self/pool/pack-operation-adapters.js';
-import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
+import { createPackOperationRegistry, PACK_OPERATION_IMPLEMENTATIONS } from '../../shared/pool/pack-operation-adapters.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { packPeerIdentity } from './peer-pack-operation.js';
-import poolConfig from '../../self/pool/pool-config.json' with { type: 'json' };
+import poolConfig from '../../shared/pool/pool-config.json' with { type: 'json' };
 
 const scoring = createDopplerChoiceScoringAdapter(api);
 const registry = createPackOperationRegistry({ definitions: { ...poolConfig.operations, scoreChoices: scoring.definition },

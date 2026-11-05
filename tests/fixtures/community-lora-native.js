@@ -6,7 +6,7 @@ import * as training from 'doppler-gpu/training';
 import { createDopplerTrainingExecutor } from '../../self/host/lora-training-executor.js';
 import { createTrainingSession } from '../../packages/reploid/src/training/session.js';
 import policy from '../../self/config/lora-training.json' with { type: 'json' };
-import pin from '../../self/config/doppler-package.json' with { type: 'json' };
+import pin from '../../shared/config/doppler-package.json' with { type: 'json' };
 const directory = process.argv[2];
 assert(directory, 'Pass an already provisioned model directory');
 const started = Date.now();

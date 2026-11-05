@@ -1,6 +1,6 @@
 import { createIndexedDbStore, createVfs } from '../../shared/vendor/reploid/adapters/browser.js';
-import { getScopedReploidVfsDbName } from '../instance.js';
-import profile from '../config/reploid-library.json' with { type: 'json' };
+import { getScopedReploidVfsDbName } from '../../shared/instance.js';
+import profile from '../../shared/config/reploid-library.json' with { type: 'json' };
 
 export default {
   metadata: { id: 'VFS', version: '1.0.0', genesis: { introduced: 'tabula' },

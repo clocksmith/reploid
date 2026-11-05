@@ -1,9 +1,9 @@
 /** Local execution/evidence bridge. This module neither sends inputs nor authorizes delegation. */
-import { assertPackSession, assertPackExecutionEvidence, hashDopplerEvidence } from './executable-pack.js';
-import { createPackOperationRegistry } from './pack-operation-adapters.js';
-import { assertOperationLimits } from './pack-operation-policy.js';
-import { resolveDopplerOperationContract } from '../config/doppler-execution-contracts.js';
-import { assertDopplerGenerationContract, DopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
+import { assertPackSession, assertPackExecutionEvidence, hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
+import { createPackOperationRegistry } from '../../shared/pool/pack-operation-adapters.js';
+import { assertOperationLimits } from '../../shared/pool/pack-operation-policy.js';
+import { resolveDopplerOperationContract } from '../../shared/config/doppler-execution-contracts.js';
+import { assertDopplerGenerationContract, DopplerRuntimeService } from '../../shared/infrastructure/doppler-runtime-service.js';
 
 const requireValue = (value, message) => { if (!value) throw new Error(`Pack operation: ${message}`); };
 const equal = async (left, right) => await hashDopplerEvidence(left) === await hashDopplerEvidence(right);

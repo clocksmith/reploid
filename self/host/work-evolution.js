@@ -1,6 +1,6 @@
 /** Application-selected tools, protected suites, persistence and activation permission. */
 import { createCodeEvolution, createImprovementLedger } from '../../shared/vendor/reploid/improvement/index.js';
-import { ensureIdentityBundle } from '../identity.js';
+import { ensureIdentityBundle } from '../../shared/identity.js';
 import { runIsolatedCode, verifyCandidateCode } from '../infrastructure/code-sandbox.js';
 import policy from '../config/work-evolution.json' with { type: 'json' };
 

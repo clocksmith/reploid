@@ -1,4 +1,4 @@
-export { ZERO_RUNTIME_SELF_MIRROR_RULES, PROTO_RUNTIME_SELF_MIRROR_RULES } from '../config/surface-resources.js';
+export { ZERO_RUNTIME_SELF_MIRROR_RULES, PROTO_RUNTIME_SELF_MIRROR_RULES } from '../../shared/config/surface-resources.js';
 
 export const normalizeVfsPath = (path) => {
   const value = String(path || '').trim();

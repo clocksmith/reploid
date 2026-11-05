@@ -4,8 +4,8 @@ import { createPeerPackSupplier, createPeerPackArtifactStore } from '../../self/
 import { createPeerPackDataChannel } from '../../self/pool/peer-pack-data-channel.js';
 import { createPackJobDataChannel } from '../../self/pool/peer-pack-job-channel.js';
 import { openPeerPackCheckpoints } from '../../self/infrastructure/pack-transfer-storage.js';
-import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../../self/pool/inference-receipt.js';
-import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
+import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../../shared/pool/inference-receipt.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 
 const links = new Map(), buffers = new Map(), pending = new Map(), executing = new Map();
 const limits = { maxFrameBytes: 16384, maxControlBytes: 32768, maxChunkBytes: 64,

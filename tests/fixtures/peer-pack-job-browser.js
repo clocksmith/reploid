@@ -3,7 +3,7 @@ import { operationFixture, operationCapabilities, operationResources, packPeerId
 import { createPackPeerProvider } from '../../self/pool/peer-pack-provider.js';
 import { createPackPeerRequester } from '../../self/pool/peer-pack-requester.js';
 import { createPackJobDataChannel } from '../../self/pool/peer-pack-job-channel.js';
-import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { createPackPeerJob } from '../../self/pool/peer-pack-job.js';
 import { runPeerOperationJob } from '../../self/pool/peer-room.js';
 

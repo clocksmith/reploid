@@ -1,4 +1,4 @@
-import pin from '../../self/config/doppler-package.json' with { type: 'json' };
+import pin from '../../shared/config/doppler-package.json' with { type: 'json' };
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
@@ -17,12 +17,13 @@ import {
   buildLocalDopplerModelConfig,
   getDefaultLocalDopplerModel,
   getLocalDopplerModel
-} from '../../self/config/doppler-local-models.js';
+} from '../../shared/config/doppler-local-models.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
 
 describe('local Doppler model contract', () => {
   it('allows the streamed input transaction to remain open for the full conversation attempt', () => {
     const conversation = JSON.parse(readFileSync('packages/reploid/src/chat/policy.json', 'utf8'));
-    const partition = JSON.parse(readFileSync('self/config/partition-policy.json', 'utf8'));
+    const partition = JSON.parse(readFileSync(resolveServedFile('config/partition-policy.json'), 'utf8'));
     expect(partition.inputChannel.timeoutMs).toBeGreaterThanOrEqual(conversation.attemptTimeoutMs);
     expect(partition.grantMs).toBeGreaterThanOrEqual(conversation.attemptTimeoutMs);
   });

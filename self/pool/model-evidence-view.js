@@ -6,7 +6,7 @@
  * while keeping model vectors and tokenizer-local values out of cross-model logic.
  */
 
-import { exactModelContractKey } from './model-contract.js';
+import { exactModelContractKey } from '../../shared/pool/model-contract.js';
 
 const unique = (values) => [...new Set(values.filter(Boolean))];
 const sortedNumbers = (values) => [...new Set(values.filter(Number.isInteger))].sort((left, right) => left - right);

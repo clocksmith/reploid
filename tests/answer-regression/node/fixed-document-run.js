@@ -6,23 +6,24 @@ import { resolve } from 'node:path';
 import { createNativeGpuHost } from '../../../server/native-participant.js';
 import { createNativeWholeModel } from '../../../server/native-whole-model.js';
 import { compareDocuments, digest, validateComparison } from './fixed-document-comparison.js';
+import { resolveServedFile } from '../../../server/browser-roots.js';
 
 const [contractPath, destination] = process.argv.slice(2);
 assert(contractPath && destination, 'Supply contract and a new output directory');
 const contract = validateComparison(JSON.parse(await fs.readFile(contractPath, 'utf8')));
 const policy = JSON.parse(await fs.readFile(new URL('../../../packages/reploid/src/retrieval/policy.json', import.meta.url)));
 assert.equal(digest(policy), contract.policyHash, 'Source policy differs from frozen contract');
-const catalog = JSON.parse(await fs.readFile(new URL('../../../self/config/chat-models.json', import.meta.url)));
+const catalog = JSON.parse(await fs.readFile(new URL('../../../shared/config/chat-models.json', import.meta.url)));
 const model = catalog.find(row => row.id === contract.modelId);
 assert(model && model.identity === contract.modelIdentity, 'Exact model required');
 assert.equal(digest(model), contract.modelHash, 'Model configuration changed');
 const modelDirectory = process.env.REPLOID_COMPARISON_MODEL_DIRECTORY;
 assert(modelDirectory, 'Set REPLOID_COMPARISON_MODEL_DIRECTORY to already-provisioned weights');
-const profile = JSON.parse(await fs.readFile(new URL('../../../self/config/work-profile.json', import.meta.url)));
+const profile = JSON.parse(await fs.readFile(resolveServedFile('config/work-profile.json')));
 assert.equal(digest(model.generation ?? profile.generation), contract.generationHash, 'Generation settings changed');
-const paths = ['node_modules/doppler-gpu/package.json', 'package-lock.json', 'self/config/doppler-package.json',
+const paths = ['node_modules/doppler-gpu/package.json', 'package-lock.json', 'shared/config/doppler-package.json',
   'self/config/work-profile.json', 'server/native-whole-model.js', 'server/native-participant.js',
-  'self/providers/work-resident-provider.js', 'self/infrastructure/doppler-runtime-service.js',
+  'self/providers/work-resident-provider.js', 'shared/infrastructure/doppler-runtime-service.js',
   'packages/reploid/src/retrieval/sources.js', 'tests/answer-regression/node/fixed-document-comparison.js',
   'tests/answer-regression/node/fixed-document-run.js'];
 const files = {};

@@ -1,4 +1,4 @@
-import { sha256Hex } from '../pool/inference-receipt.js';
+import { sha256Hex } from '../../shared/pool/inference-receipt.js';
 
 /** Bounded OPFS acquisition bytes; the Capsule runtime owns final verification. */
 export async function openCapsuleOpfsCheckpoints({ name, maxBytes }) {

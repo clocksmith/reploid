@@ -7,18 +7,18 @@ import { computeManifestShardSetHash } from '../../shared/vendor/reploid/artifac
  * caller-provided public handle/session.
  */
 
-import { hashJson, sha256Hex } from './inference-receipt.js';
+import { hashJson, sha256Hex } from '../../shared/pool/inference-receipt.js';
 import { collectRuntimeProfile } from './runtime-profile.js';
-import { BROWSER_RUNTIME_CONFIG } from './config.js';
+import { BROWSER_RUNTIME_CONFIG } from '../../shared/pool/config.js';
 import {
   POOLDAY_MODEL_WORKLOADS,
   getPoolModelWorkload,
   validateModelRuntimeCapabilities
-} from './model-contract.js';
+} from '../../shared/pool/model-contract.js';
 import {
   isSequenceWorkload,
   validateSequenceRequest
-} from './sequence-workload.js';
+} from '../../shared/pool/sequence-workload.js';
 import {
   callDopplerSequence,
   reduceDopplerSequenceResult,
@@ -27,13 +27,13 @@ import {
 import {
   adapterRequirementFromPack,
   verifyAdapterPack
-} from './adapter-pack.js';
+} from '../../shared/pool/adapter-pack.js';
 import { verifyDopplerPersistentModelCache } from './model-cache-integrity.js';
-import { DopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
-import { assertPackSession, assertPackReceipt, executablePacksMatch } from './executable-pack.js';
+import { DopplerRuntimeService } from '../../shared/infrastructure/doppler-runtime-service.js';
+import { assertPackSession, assertPackReceipt, executablePacksMatch } from '../../shared/pool/executable-pack.js';
 import { openCapsuleArtifactCache } from './capsule-artifact-cache.js';
-import { resolveDopplerExecutionContract } from '../config/doppler-execution-contracts.js';
-import { SEQUENCE_WORKLOADS } from './sequence-workload.js';
+import { resolveDopplerExecutionContract } from '../../shared/config/doppler-execution-contracts.js';
+import { SEQUENCE_WORKLOADS } from '../../shared/pool/sequence-workload.js';
 
 const DOPPLER_IMPORTS = Object.freeze([
   '@simulatte/doppler',

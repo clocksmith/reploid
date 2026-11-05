@@ -5,7 +5,7 @@ import {
   modelSupportsAdapterRequirement,
   sealAdapterPack,
   verifyAdapterPack
-} from '../../self/pool/adapter-pack.js';
+} from '../../shared/pool/adapter-pack.js';
 import { buildPromotedAdapterPack } from '../../self/pool/adapter-pack-publisher.js';
 import {
   adapterRequirementFromPublication,
@@ -26,8 +26,8 @@ import {
   hashJson,
   sha256Hex,
   signProviderReceipt
-} from '../../self/pool/inference-receipt.js';
-import { exactModelContractKey, LAUNCH_MODEL } from '../../self/pool/model-contract.js';
+} from '../../shared/pool/inference-receipt.js';
+import { exactModelContractKey, LAUNCH_MODEL } from '../../shared/pool/model-contract.js';
 import {
   assembleAdapterArtifact,
   createAdapterArtifactChunks,

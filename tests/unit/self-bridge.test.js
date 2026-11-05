@@ -5,7 +5,7 @@ const mockChat = vi.fn();
 const mockLoadVfsModule = vi.fn();
 const mockFetch = vi.fn();
 
-vi.mock('../../self/core/utils.js', () => ({
+vi.mock('../../shared/core/utils.js', () => ({
   default: {
     factory: () => ({
       logger: {

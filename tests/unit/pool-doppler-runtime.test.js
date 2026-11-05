@@ -4,10 +4,10 @@ import {
   createDopplerRuntime,
   resetDopplerModuleCacheForTests
 } from '../../self/pool/doppler-runtime.js';
-import { BROWSER_RUNTIME_CONFIG } from '../../self/pool/config.js';
-import { DOPPLER_BROWSER_RUNTIME_VERSION } from '../../self/config/doppler-local-models.js';
-import { hashJson, sha256Hex } from '../../self/pool/inference-receipt.js';
-import { getEnabledPoolModelContract } from '../../self/pool/model-contract.js';
+import { BROWSER_RUNTIME_CONFIG } from '../../shared/pool/config.js';
+import { DOPPLER_BROWSER_RUNTIME_VERSION } from '../../shared/config/doppler-local-models.js';
+import { hashJson, sha256Hex } from '../../shared/pool/inference-receipt.js';
+import { getEnabledPoolModelContract } from '../../shared/pool/model-contract.js';
 import { operationFixture } from '../fixtures/peer-pack-operation.js';
 import {
   TEST_PUBLIC_PROTEIN_SEQUENCE,

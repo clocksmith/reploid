@@ -6,8 +6,8 @@ import { getLabUpgradeLevel, isMinimalLabMode } from '../config/lab-upgrades.js'
 
 import { loadVfsModule } from './vfs-module-loader.js';
 import { isSecurityEnabled } from './security-config.js';
-import { getCurrentReploidStorage as getReploidStorage } from '../instance.js';
-import { getToolNamesForMode } from '../config/tool-surfaces.js';
+import { getCurrentReploidStorage as getReploidStorage } from '../../shared/instance.js';
+import { getToolNamesForMode } from '../../shared/config/tool-surfaces.js';
 
 import { filterToolDepsForTool, normalizeToolCapabilities } from './tool-capabilities.js';
 export { filterToolDepsForMode, filterToolDepsForTool } from './tool-capabilities.js';

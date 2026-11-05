@@ -16,6 +16,7 @@ import { bindReferenceModel } from '../tests/fixtures/distributed-reference-mode
 import { assembleIndependentReference } from '../tests/fixtures/independent-numerical-reference.js';
 import referenceContract from '../tests/fixtures/distributed-reference-contract.json' with { type: 'json' };
 import { resolveNumericalPolicy, numericalEvidence, requireNumericalQualification } from '../tests/fixtures/distributed-numerical-policy.js';
+import { resolveServedFile } from '../server/browser-roots.js';
 
 const root = resolve(import.meta.dirname, '..');
 const modelArgument = process.argv.indexOf('--model');
@@ -169,7 +170,7 @@ try {
   if (frozenWorkloads) referenceBinding = await loadPairedPartitionFixture({ modelDirectory,
     archivePath: resolve(root, packageIdentity.spec.replace(/^file:/, '')), referenceIdentity: JSON.parse(bytes).modelIdentity })
       || await bindReferenceModel(model, JSON.parse(bytes).modelIdentity);
-  const catalog = JSON.parse(await readFile(resolve(root, 'self/config/chat-models.json'))).find(model => model.id === modelId);
+  const catalog = JSON.parse(await readFile(resolveServedFile('config/chat-models.json'))).find(model => model.id === modelId);
   if (!catalog) throw new Error('Selected model is not in the application catalog');
   if (numericalPolicy === 'required' && !frozenWorkloads) throw new Error('This workload has no applicable frozen numerical comparison');
   if (numericalDiagnostic && !frozenWorkloads) throw new Error('--numerical-only requires the pinned frozen-reference model');
@@ -204,7 +205,7 @@ try {
       if (snapshot) await rm(snapshot, { recursive: true, force: true });
     };
     try {
-      const bundle = JSON.parse(await readFile('self/config/browser-bundle-manifest.json'));
+      const bundle = JSON.parse(await readFile(resolveServedFile('config/browser-bundle-manifest.json')));
       if (bundle.bundleHash !== ${JSON.stringify(browserIdentity)}) throw Error('Physical peer browser package identity mismatch');
       const check = spawn(process.execPath, ['scripts/build-browser-bundle-manifest.js', '--check'], { stdio: 'inherit' });
       if ((await once(check, 'exit'))[0] !== 0) throw Error('Physical peer browser delivery differs from its standard package');

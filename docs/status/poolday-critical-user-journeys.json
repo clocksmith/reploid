@@ -165,7 +165,7 @@
         "self/pool/peer-control-plane.js",
         "self/pool/peer-planning.js",
         "self/pool/peer-room.js",
-        "self/pool/inference-receipt.js"
+        "shared/pool/inference-receipt.js"
       ],
       "testPaths": [
         "tests/unit/pool-peer-control-plane.test.js",
@@ -237,7 +237,7 @@
       ],
       "implementationPaths": [
         "self/ui/pool-home/controls.js",
-        "self/pool/sequence-workload.js",
+        "shared/pool/sequence-workload.js",
         "self/pool/peer-room.js"
       ],
       "testPaths": [

@@ -1,7 +1,7 @@
 /** Record kinds, shared primitives, and execution/context identity. */
 import {
   SIGNATURE_DOMAINS
-} from './inference-receipt.js';
+} from '../../shared/pool/inference-receipt.js';
 export const RESEARCH_RECORD_VERSION = 'poolday.research_evidence/v2';
 export const LEGACY_RESEARCH_RECORD_VERSION = 'poolday.research_evidence/v1';
 export const RESEARCH_RECORD_KINDS = Object.freeze({

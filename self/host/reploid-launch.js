@@ -1,5 +1,5 @@
 import { SELF_BOOT_SPEC, toSourceWebPath } from '../boot-spec.js';
-import { clearRequestedFreshIdentity, getCurrentReploidInstanceLabel, getCurrentReploidPeerQuery, hasRequestedFreshIdentity } from '../instance.js';
+import { clearRequestedFreshIdentity, getCurrentReploidInstanceLabel, getCurrentReploidPeerQuery, hasRequestedFreshIdentity } from '../../shared/instance.js';
 
 export const withSourceQuery = (path, query = {}) => {
   const url = new URL(toSourceWebPath(path), window.location.origin);
@@ -203,7 +203,7 @@ export function createReploidLauncher({ prepareInput = normalizeAwakenInput, get
   const rotateIdentity = async (options = {}) => {
     const runtime = window.REPLOID?.runtime;
     if (runtime && typeof runtime.rotateIdentity === 'function') return runtime.rotateIdentity(options);
-    const { rotateIdentityBundle } = await import('../identity.js');
+    const { rotateIdentityBundle } = await import('../../shared/identity.js');
     return rotateIdentityBundle({ ...options, instanceId: getCurrentReploidInstanceLabel(),
       retireLegacy: options.retireLegacy !== false, cryptoApi: globalThis.crypto });
   };

@@ -1,7 +1,7 @@
 /* global WebSocketPair */
 import { allowsSwarmOrigin } from '../swarm-origin-policy.js';
 import { DurableObject } from 'cloudflare:workers';
-import bootstrap from '../../self/config/swarm-bootstrap.json';
+import bootstrap from '../../shared/config/swarm-bootstrap.json';
 
 const peerPattern = /^[a-z0-9][a-z0-9_-]{2,127}$/i;
 export const roomPattern = /^reploid-swarm-[a-z0-9][a-z0-9_-]{0,127}$/i;

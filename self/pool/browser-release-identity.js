@@ -6,7 +6,7 @@
  * by the build script so the bundle identity is not recursively defined.
  */
 
-import { hashJson, sha256Hex } from './inference-receipt.js';
+import { hashJson, sha256Hex } from '../../shared/pool/inference-receipt.js';
 
 export const BROWSER_BUNDLE_MANIFEST_SCHEMA = 'poolday.browser_bundle_manifest/v1';
 export const SOURCE_RELEASE_IDENTITY_SCHEMA = 'poolday.source_release_identity/v1';

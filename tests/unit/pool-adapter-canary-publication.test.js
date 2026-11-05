@@ -11,8 +11,8 @@ import { verifyAdapterPublication } from '../../self/pool/adapter-publication.js
 import {
   createSigningKeyPair,
   exportPublicKey
-} from '../../self/pool/inference-receipt.js';
-import { LAUNCH_MODEL } from '../../self/pool/model-contract.js';
+} from '../../shared/pool/inference-receipt.js';
+import { LAUNCH_MODEL } from '../../shared/pool/model-contract.js';
 
 const fakeHash = (character) => `sha256:${character.repeat(64)}`;
 

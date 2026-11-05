@@ -6,15 +6,15 @@
  * prompt/token-only contract.
  */
 
-import { hashJson, sha256Hex } from '../../self/pool/inference-receipt.js';
-import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
-import { resolveDopplerExecutionContract } from '../../self/config/doppler-execution-contracts.js';
+import { hashJson, sha256Hex } from '../../shared/pool/inference-receipt.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
+import { resolveDopplerExecutionContract } from '../../shared/config/doppler-execution-contracts.js';
 import { reduceDopplerSequenceResult } from '../../self/pool/sequence-result.js';
 import {
   SEQUENCE_ALPHABETS,
   SEQUENCE_WORKLOADS,
   normalizeSequenceRequest
-} from '../../self/pool/sequence-workload.js';
+} from '../../shared/pool/sequence-workload.js';
 
 export const TEST_PUBLIC_PROTEIN_SEQUENCE = 'MKTAYIAKQRQISFVKSHFSRQ';
 

@@ -1,4 +1,4 @@
-import { escapeHtml } from '../components/html.js';
+import { escapeHtml } from '../../../shared/ui/components/html.js';
 /**
  * @fileoverview Reusable Research Room evidence, review, discovery, and quality panels.
  *

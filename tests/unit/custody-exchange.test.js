@@ -4,8 +4,8 @@ import { CUSTODY_CERTIFICATE_LIFETIME_MS, checkCustodyKeyCertificate, createCust
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createPeerPackSupplier, createPeerPackArtifactStore } from '../../self/pool/peer-pack-custody.js';
 import { createPeerPackDataChannel } from '../../self/pool/peer-pack-data-channel.js';
-import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../../self/pool/inference-receipt.js';
-import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
+import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../../shared/pool/inference-receipt.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { DELIVERY_ATTESTATION_SCHEMA } from '../../packages/reploid/src/artifacts/delivery-attestation.js';
 import { verifyCanonicalSignature } from '../../packages/reploid/src/artifacts/signatures.js';
 

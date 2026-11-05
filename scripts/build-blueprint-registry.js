@@ -60,8 +60,10 @@ export async function buildBlueprintRegistry({ selfDir = SELF_DIR, inventory } =
     }
     const verified = paths(field(content, 'Verified Artifacts', file), file);
     for (const artifact of verified) {
+      // /self/<path> names the browser file served at <path>, whichever source root holds it.
+      const browserPath = artifact.startsWith('/self/') ? artifact.slice('/self/'.length) : null;
       const target = path.join(path.dirname(selfDir), artifact.replace(/^\//, ''));
-      if (!await fs.stat(target).then(() => true, () => false)) {
+      if (!(browserPath && tree.has(browserPath)) && !await fs.stat(target).then(() => true, () => false)) {
         throw new Error(file + ': verified artifact does not exist: ' + artifact);
       }
     }

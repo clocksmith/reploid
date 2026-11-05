@@ -4,7 +4,7 @@ import { createReploid } from 'reploid';
 import { resolveConfig } from 'reploid/config';
 import { createDopplerProvider } from 'reploid/doppler';
 import { createIndexedDbStore } from 'reploid/browser';
-import { createReploidDopplerRuntimeService } from '../../self/infrastructure/doppler-runtime-service.js';
+import { createReploidDopplerRuntimeService } from '../../shared/infrastructure/doppler-runtime-service.js';
 import { createPackPeerProvider } from '../../self/pool/peer-pack-provider.js';
 import { createPackPeerRequester } from '../../self/pool/peer-pack-requester.js';
 import { createPackPeerJob } from '../../self/pool/peer-pack-job.js';
@@ -12,11 +12,11 @@ import { runPeerOperationJob, resumePeerOperationJob } from '../../self/pool/pee
 import { createPackJobDataChannel } from '../../self/pool/peer-pack-job-channel.js';
 import { runPackOperation } from '../../self/pool/pack-operation.js';
 import { verifyPackPeerEpisode } from '../../self/pool/peer-pack-episode.js';
-import { createPackOperationRegistry } from '../../self/pool/pack-operation-adapters.js';
+import { createPackOperationRegistry } from '../../shared/pool/pack-operation-adapters.js';
 import { operationCapabilities, operationResources, packPeerIdentity } from './peer-pack-operation.js';
-import { exportPrivateKey, importPrivateKey } from '../../self/pool/inference-receipt.js';
-import { createP2PTransport } from '../../self/pool/p2p-transport.js';
-import { SIGNAL_TYPES } from '../../self/pool/p2p-signaling.js';
+import { exportPrivateKey, importPrivateKey } from '../../shared/pool/inference-receipt.js';
+import { createP2PTransport } from '../../shared/pool/p2p-transport.js';
+import { SIGNAL_TYPES } from '../../shared/pool/p2p-signaling.js';
 
 const registry = createPackOperationRegistry();
 const limits = { maxInputBytes: 10000, maxOutputBytes: 10000, maxStreamBytes: 500000, maxEvents: 32, maxJobMs: 120000 };

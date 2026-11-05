@@ -2,12 +2,12 @@
  * @fileoverview Receipt-to-assignment agreement rules for Poolday peers.
  */
 
-import { SIGNATURE_DOMAINS } from './inference-receipt.js';
-import { LAUNCH_MODEL, POOLDAY_MODEL_WORKLOADS, exactModelContractKey } from './model-contract.js';
+import { SIGNATURE_DOMAINS } from '../../shared/pool/inference-receipt.js';
+import { LAUNCH_MODEL, POOLDAY_MODEL_WORKLOADS, exactModelContractKey } from '../../shared/pool/model-contract.js';
 import {
   agreementFieldForWorkload,
   isSequenceWorkload
-} from './sequence-workload.js';
+} from '../../shared/pool/sequence-workload.js';
 
 export function receiptAgreementValue(receipt = {}, agreementField = 'tokenIdsHash') {
   if (receipt[agreementField]) return receipt[agreementField];

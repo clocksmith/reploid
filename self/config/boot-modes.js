@@ -2,7 +2,7 @@
  * @fileoverview Product boot mode definitions and internal genesis mapping.
  */
 
-import { requireSurfaceIntent } from './surface-intents.js';
+import { requireSurfaceIntent } from '../../shared/config/surface-intents.js';
 
 export const DEFAULT_BOOT_MODE = 'reploid';
 

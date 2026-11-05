@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { BROWSER_QUALIFICATION_CHECKS } from '../../self/pool/browser-qualification.js';
-import { exactModelContractKey, getPoolModelContract } from '../../self/pool/model-contract.js';
+import { exactModelContractKey, getPoolModelContract } from '../../shared/pool/model-contract.js';
 
 const status = JSON.parse(await readFile(
   resolve('docs/status/esm2-35m-poolday-browser-smoke-2026-08-15.json'),

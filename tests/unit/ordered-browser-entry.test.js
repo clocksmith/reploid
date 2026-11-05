@@ -4,7 +4,7 @@ import { createChatSession } from '../../self/host/chat-session.js';
 import { isWorkOrderedModel } from '../../self/host/work-partition-plan.js';
 const ports = vi.hoisted(() => ({ create: vi.fn(), models: null, actual: null }));
 vi.mock('../../self/host/product-session.js', () => ({ createProductSession: ports.create }));
-vi.mock('../../self/config/doppler-local-models.js', async original => {
+vi.mock('../../shared/config/doppler-local-models.js', async original => {
   const actual = await original(); ports.actual = actual.LOCAL_DOPPLER_MODELS;
   return { ...actual, get LOCAL_DOPPLER_MODELS() { return ports.models ?? actual.LOCAL_DOPPLER_MODELS; } };
 });

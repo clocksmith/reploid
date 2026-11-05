@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createDopplerOperationProvider, createDopplerProvider } from '../../packages/reploid/src/adapters/doppler.js';
 import { resolveConfig } from '../../packages/reploid/src/config/index.js';
-import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 
 const contract = { modelId: 'model', capsuleId: 'capsule', semanticRoot: `sha256:${'1'.repeat(64)}`,
   selectedTargetPlanDigest: `sha256:${'2'.repeat(64)}` };

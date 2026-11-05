@@ -16,7 +16,7 @@ import {
   SEQUENCE_PUBLIC_SENSITIVITY,
   isSequenceWorkload,
   validateSequenceRequest
-} from '../../self/pool/sequence-workload.js';
+} from '../../shared/pool/sequence-workload.js';
 import {
   POOLDAY_POLICY_CLASSES,
   classifyPooldayPrompt,

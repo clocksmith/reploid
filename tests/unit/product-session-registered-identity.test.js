@@ -7,8 +7,8 @@ import { createSigningIdentity } from '../../packages/reploid/src/artifacts/iden
 import { resolveConfig } from '../../shared/vendor/reploid/config/index.js';
 
 const ports = vi.hoisted(() => ({ connection: null, bound: [], saved: 0, meshes: [] }));
-vi.mock('../../self/pool/identity.js', async original => ({ ...await original(), getPoolAuthToken: async () => 'fixture-search-token' }));
-vi.mock('../../self/identity.js', async original => ({ ...await original(),
+vi.mock('../../shared/pool/identity.js', async original => ({ ...await original(), getPoolAuthToken: async () => 'fixture-search-token' }));
+vi.mock('../../shared/identity.js', async original => ({ ...await original(),
   ensureIdentityBundle: async () => ports.connection, saveIdentityBundle: async () => { ports.saved += 1; } }));
 vi.mock('../../shared/vendor/reploid/mesh/index.js', async original => ({ ...await original(),
   createLegacyGenerationMesh: ({ ports: input }) => {

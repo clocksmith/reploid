@@ -95,7 +95,7 @@ Prompt, output, token, and full receipt payload envelopes can move over P2P Data
 ## Historical Doppler packages
 
 The current browser pin remains in `package-lock.json` and
-`self/config/doppler-package.json`. Expanded 0.6.2 and split.1 also remain because
+`shared/config/doppler-package.json`. Expanded 0.6.2 and split.1 also remain because
 checked-in deployment settings and regression fixtures reference them.
 
 Obsolete expanded copies are consolidated into their byte-identical archives in

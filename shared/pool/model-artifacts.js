@@ -1,10 +1,10 @@
-import { computeManifestShardSetHash } from '../../shared/vendor/reploid/artifacts/manifest-identity.js';
+import { computeManifestShardSetHash } from '../vendor/reploid/artifacts/manifest-identity.js';
 /**
  * @fileoverview Model artifact URL and manifest validation helpers.
  */
 
 import { BROWSER_RUNTIME_CONFIG } from './config.js';
-import { hashJson, sha256Hex } from '../../shared/vendor/reploid/artifacts/signatures.js';
+import { hashJson, sha256Hex } from '../vendor/reploid/artifacts/signatures.js';
 
 const trimSlashes = (value) => String(value || '').replace(/^\/+|\/+$/g, '');
 const pathJoin = (...parts) => parts

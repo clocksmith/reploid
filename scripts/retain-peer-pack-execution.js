@@ -4,7 +4,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { dirname, resolve, sep, basename, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { sha256Hex } from '../self/pool/inference-receipt.js';
+import { sha256Hex } from '../shared/pool/inference-receipt.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const assert = (condition, message) => { if (!condition) throw new Error(message); };

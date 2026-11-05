@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { allowRemoteOnce } from '../fixtures/remote-permission.js';
 import { readFile } from 'node:fs/promises';
+import { resolveServedFile } from '../../server/browser-roots.js';
 
 const history = page => page.evaluate(() => JSON.parse(localStorage.getItem('reploid.chat-workspace:v1')));
 const send = async (page, text) => {
@@ -20,7 +21,7 @@ test('real WebRTC binds each Send to verified recipients across refresh and repl
   const errors = [];
   const route = '/?swarm=grant-test-' + Date.now() + '&swarmToken=grant-test-capability-0123456789abcdef';
   for (const page of [supplier, requester, replacement]) page.setDefaultTimeout(15000);
-  const fixture = (await readFile('self/infrastructure/doppler-runtime-service.js', 'utf8')).replace('export function createReploidDopplerRuntimeService(', 'function unusedRuntimeService(')
+  const fixture = (await readFile(resolveServedFile('infrastructure/doppler-runtime-service.js'), 'utf8')).replace('export function createReploidDopplerRuntimeService(', 'function unusedRuntimeService(')
     + (await readFile('tests/fixtures/chat-service.js', 'utf8'))
     + '\nexport function createReploidDopplerRuntimeService() { return createChatTestService(); }';
   try {

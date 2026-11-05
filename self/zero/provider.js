@@ -1,5 +1,5 @@
 import { createExternalBrainProvider } from '../providers/external-brain.js';
-import { getCurrentReploidInstanceId } from '../instance.js';
+import { getCurrentReploidInstanceId } from '../../shared/instance.js';
 import { getZeroAccessHeaders, ZERO_GEMINI_FUNCTION_PATH, ZERO_GEMINI_PROVIDER,
   ZERO_GEMINI_MODEL, ZERO_GEMINI_SERVER_TYPE, ZERO_GEMINI_AGENT_THROTTLE } from '../config/zero-inference.js';
 

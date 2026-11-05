@@ -11,6 +11,7 @@ import { inspectExecutorMemory, measureStandaloneDenial, measureStandaloneGenera
 import { physicalWebGpuBrowserOptions, connectPhysicalBrowser } from '../fixtures/physical-webgpu-browser.js';
 import { controlSignaling, openParticipantControls } from '../fixtures/signaling-interruption.js';
 import { compareCountedLines } from '../fixtures/counted-lines.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
 
 // Exact catalog bytes may be supplied by a local seed. The requester/executor
 // still use the normal page, real WebRTC, signed custody and installed WebGPU.
@@ -18,7 +19,7 @@ const directory = process.env.DOPPLER_CHAT_MODEL_DIR;
 test('one model executes cooperatively on discovered physical peers from selectively acquired pieces', async ({ browser }, info) => {
   test.skip(!directory, 'DOPPLER_CHAT_MODEL_DIR must contain the exact selected catalog files');
   test.setTimeout(3600000);
-  const models = JSON.parse(await readFile('self/config/chat-models.json', 'utf8'));
+  const models = JSON.parse(await readFile(resolveServedFile('config/chat-models.json'), 'utf8'));
   const model = models.find(model => model.id === (process.env.REPLOID_TEST_MODEL || models[0].id));
   expect(model, 'Selected model must belong to the application catalog').toBeTruthy();
   const remote = process.env.REPLOID_EXECUTOR_WS
@@ -387,7 +388,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
     const runDocuments = async () => {
       await requester.locator('[data-new-thread]').click();
       // Preserve the exact long-prompt workload through the ordinary composer.
-      const sample = JSON.parse(await readFile('self/config/document-comparison-sample.json', 'utf8'));
+      const sample = JSON.parse(await readFile(resolveServedFile('config/document-comparison-sample.json'), 'utf8'));
       await requester.locator('[data-composer-input]').fill(comparisonInput(sample.question, sample.files));
       await requester.locator('[data-composer-send]').click();
       await approve(requester);

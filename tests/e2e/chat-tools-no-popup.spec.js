@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { readServedText } from '../helpers/served-browser-files.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
 
 // Real browser presentation with an injected session; no network search or model execution.
 const origin = 'http://127.0.0.1:8131';
@@ -10,7 +11,7 @@ test.beforeEach(async ({ page }) => {
   await page.route(origin + '/**', async route => {
     const name = new URL(route.request().url()).pathname;
     if (name === '/') {
-      const layers = JSON.parse(await readFile('self/styles/poolday/layers.json', 'utf8'));
+      const layers = JSON.parse(await readFile(resolveServedFile('styles/poolday/layers.json'), 'utf8'));
       const files = Object.values(layers).flat();
       return route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Tool activity fixture</title>'
         + '<link rel="stylesheet" href="/styles/rd.css">' + files.map(file => `<link rel="stylesheet" href="/styles/poolday/${file}">`).join('')

@@ -1,5 +1,5 @@
 /** Zero prompt construction under the current CreateTool-only seed policy. */
-import { ZERO_SEED_TOOLS } from '../config/tool-surfaces.js';
+import { ZERO_SEED_TOOLS } from '../../shared/config/tool-surfaces.js';
 
 export const ZERO_REQUIRED_TOOL_NAMES = ZERO_SEED_TOOLS;
 const CONTINUOUS_IMPROVEMENT_DIRECTIVE = [

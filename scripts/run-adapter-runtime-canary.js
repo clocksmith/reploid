@@ -11,8 +11,8 @@ import {
   DOPPLER_KERNEL_BASE_URL,
   DOPPLER_MODULE_URL,
   DOPPLER_PACKAGE_VERSION
-} from '../self/config/doppler-local-models.js';
-import { LAUNCH_MODEL } from '../self/pool/model-contract.js';
+} from '../shared/config/doppler-local-models.js';
+import { LAUNCH_MODEL } from '../shared/pool/model-contract.js';
 import { ADAPTER_RUNTIME_CANARY_RECEIPT_SCHEMA } from '../self/pool/adapter-canary-publication.js';
 
 const packageLock = JSON.parse(await fs.readFile(new URL('../package-lock.json', import.meta.url), 'utf8'));

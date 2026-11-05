@@ -5,8 +5,8 @@
  * derives and seals immutable pack identity from promotion evidence.
  */
 
-import { sealAdapterPack, verifyAdapterPack } from './adapter-pack.js';
-import { hashJson } from './inference-receipt.js';
+import { sealAdapterPack, verifyAdapterPack } from '../../shared/pool/adapter-pack.js';
+import { hashJson } from '../../shared/pool/inference-receipt.js';
 
 const prefixedHash = (value) => {
   const hash = String(value || '').trim().toLowerCase();

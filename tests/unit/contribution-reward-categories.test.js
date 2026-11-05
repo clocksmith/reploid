@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { createCustodyContracts } from '../../packages/reploid/src/artifacts/custody/runtime.js';
 import { createSigningKeyPair, exportPublicKey, sha256Hex, signCanonical, verifyCanonicalSignature } from '../../packages/reploid/src/artifacts/signatures.js';
 import { createResidentPartition } from '../../packages/reploid/src/mesh/partitions/resident-partition.js';
-import { executablePacksMatch, hashDopplerEvidence, validateExecutablePack } from '../../self/pool/executable-pack.js';
+import { executablePacksMatch, hashDopplerEvidence, validateExecutablePack } from '../../shared/pool/executable-pack.js';
 import { CHALLENGE_ANSWER_SCHEMA, DELIVERY_ATTESTATION_SCHEMA, deliveryAttestationBody } from '../../server/rewards/custody-evidence.js';
 import { validateIssuancePolicy } from '../../server/rewards/domain.js';
 import {

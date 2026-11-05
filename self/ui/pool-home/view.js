@@ -1,4 +1,4 @@
-import { escapeHtml } from '../components/html.js';
+import { escapeHtml } from '../../../shared/ui/components/html.js';
 import { renderDiamond } from '../components/diamond.js';
 import { getPeerRoomId, getPeerRelayMode, getPeerRelayLabel, getPeerRoomBusFactory } from '../../host/product-context.js';
 export { getPeerRoomId, getPeerRelayMode, getPeerRelayLabel, getPeerRoomBusFactory };
@@ -18,13 +18,13 @@ import {
   getEnabledPoolModelContract,
   getPoolModelWorkload,
   listPoolModels
-} from '../../pool/model-contract.js';
+} from '../../../shared/pool/model-contract.js';
 import { DETERMINISTIC_GENERATION_CONFIG, FASTEST_RECEIPT_POLICY_ID, getPolicy, listPolicies } from '../../pool/policy-router.js';
 import { DEFAULT_PEER_ROOM_ID } from '../../pool/peer-room.js';
 import { createPeerEventReducer } from '../../pool/peer-control-plane.js';
-import { createPoolSdk } from '../../pool/sdk.js';
-import { readParticipationPreferences } from '../../pool/participation-profile.js';
-import { LAB_SURFACE_IDS, SURFACE_INTENTS } from '../../config/surface-intents.js';
+import { createPoolSdk } from '../../../shared/pool/sdk.js';
+import { readParticipationPreferences } from '../../../shared/pool/participation-profile.js';
+import { LAB_SURFACE_IDS, SURFACE_INTENTS } from '../../../shared/config/surface-intents.js';
 import { renderDocumentSearch } from './document-search.js';
 import {
   createPeerRoomBusFactory,

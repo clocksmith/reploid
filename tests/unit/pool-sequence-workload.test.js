@@ -6,19 +6,19 @@ import {
   createSigningKeyPair,
   hashJson,
   sha256Hex
-} from '../../self/pool/inference-receipt.js';
+} from '../../shared/pool/inference-receipt.js';
 import {
   buildLaunchProviderModel,
   exactModelContractKey,
   getPoolModelExecutionMode,
   modelSupportsPoolWorkload
-} from '../../self/pool/model-contract.js';
+} from '../../shared/pool/model-contract.js';
 import {
   buildPeerReceiptAgreement,
   createPeerSequencePayload,
   validateSequencePayloadForAssignment
 } from '../../self/pool/peer-control-plane.js';
-import { createReceiptPayload, hashP2PPayload } from '../../self/pool/p2p-payload.js';
+import { createReceiptPayload, hashP2PPayload } from '../../shared/pool/p2p-payload.js';
 import { createProviderClient } from '../../self/pool/provider-client.js';
 import {
   SEQUENCE_ALPHABETS,
@@ -28,7 +28,7 @@ import {
   normalizeSequenceInput,
   normalizeSequenceRequest,
   validateSequenceRequest
-} from '../../self/pool/sequence-workload.js';
+} from '../../shared/pool/sequence-workload.js';
 import { verifyReceipt } from '../../server/pool/verifier.js';
 import {
   buildCommitmentHash,

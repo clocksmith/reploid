@@ -20,7 +20,7 @@ import {
   validateResearchRecordModelAdmission,
   verifyResearchRecord
 } from './evidence-network.js';
-import { hashJson } from './inference-receipt.js';
+import { hashJson } from '../../shared/pool/inference-receipt.js';
 import { RESEARCH_CYCLE_POLICY, projectGovernedResearchCycle } from './research-cycle.js';
 
 export const LEGACY_DISCOVERY_CONTRACT_PROJECTION_MANIFEST = Object.freeze({

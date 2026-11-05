@@ -57,16 +57,16 @@ import {
 } from './discovery-candidate-action.js';
 import {
   SEQUENCE_ALPHABETS
-} from './sequence-workload.js';
+} from '../../shared/pool/sequence-workload.js';
 import {
   SIGNATURE_DOMAINS,
   hashJson,
   receiptSigningPayload,
   verifyCanonicalSignature
-} from './inference-receipt.js';
+} from '../../shared/pool/inference-receipt.js';
 import {
   exactModelContractKey
-} from './model-contract.js';
+} from '../../shared/pool/model-contract.js';
 export const normalizeVerifiedReceiptEvidence = async ({
   receiptEvidence = null,
   receiptRecord,

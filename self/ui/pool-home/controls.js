@@ -4,8 +4,8 @@
 
 import { createDopplerRuntime } from '../../pool/doppler-runtime.js';
 import { createLocalPackExecutor } from '../../pool/local-pack-executor.js';
-import { createPackOperationRegistry } from '../../pool/pack-operation-adapters.js';
-import { hashDopplerEvidence } from '../../pool/executable-pack.js';
+import { createPackOperationRegistry } from '../../../shared/pool/pack-operation-adapters.js';
+import { hashDopplerEvidence } from '../../../shared/pool/executable-pack.js';
 import { createProviderClient } from '../../pool/provider-client.js';
 import { adapterRequirementFromPublication } from '../../pool/adapter-publication.js';
 import {
@@ -13,7 +13,7 @@ import {
   listFetchableAdapterPublications,
   resolveFetchableAdapterPublication
 } from '../../pool/adapter-registry.js';
-import { buildModelArtifactUrls, verifyModelArtifactManifest } from '../../pool/model-artifacts.js';
+import { buildModelArtifactUrls, verifyModelArtifactManifest } from '../../../shared/pool/model-artifacts.js';
 import { createRequesterClient } from '../../pool/requester-client.js';
 import {
   LAUNCH_MODEL,
@@ -23,24 +23,24 @@ import {
   getPoolModelWorkload,
   listPoolModels,
   validateModelRuntimeCapabilities
-} from '../../pool/model-contract.js';
-import { createPoolIdentity } from '../../pool/identity.js';
+} from '../../../shared/pool/model-contract.js';
+import { createPoolIdentity } from '../../../shared/pool/identity.js';
 import {
   PARTICIPATION_MODES,
   readParticipationPreferences,
   writeParticipationPreferences
-} from '../../pool/participation-profile.js';
+} from '../../../shared/pool/participation-profile.js';
 import { FASTEST_RECEIPT_POLICY_ID, listPolicies } from '../../pool/policy-router.js';
 import { createPeerProviderNode, runPeerJob } from '../../pool/peer-room.js';
-import { createPoolSdk, verifyReceiptRecord } from '../../pool/sdk.js';
-import { getPoolRtcConfig } from '../../pool/rtc-config.js';
+import { createPoolSdk, verifyReceiptRecord } from '../../../shared/pool/sdk.js';
+import { getPoolRtcConfig } from '../../../shared/pool/rtc-config.js';
 import {
   SEQUENCE_ALPHABETS,
   SEQUENCE_PUBLIC_SENSITIVITY,
   getMaxPublicSequenceLength,
   normalizeSequenceInput,
   isSequenceWorkload
-} from '../../pool/sequence-workload.js';
+} from '../../../shared/pool/sequence-workload.js';
 import {
   createSignedResearchResult,
   createSignedResearchSubmission

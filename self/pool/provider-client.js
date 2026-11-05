@@ -2,8 +2,8 @@
  * @fileoverview Browser provider client for fastest-receipt pool jobs.
  */
 
-import { createPoolSdk } from './sdk.js';
-import { buildPoolReceipt, createSigningKeyPair, exportPublicKey, hashJson, sha256Hex, signProviderReceipt } from './inference-receipt.js';
+import { createPoolSdk } from '../../shared/pool/sdk.js';
+import { buildPoolReceipt, createSigningKeyPair, exportPublicKey, hashJson, sha256Hex, signProviderReceipt } from '../../shared/pool/inference-receipt.js';
 import { createDopplerRuntime } from './doppler-runtime.js';
 import {
   POOLDAY_MODEL_WORKLOADS,
@@ -11,32 +11,32 @@ import {
   exactModelContractKey,
   getPoolModelWorkload,
   modelSupportsPoolWorkload
-} from './model-contract.js';
+} from '../../shared/pool/model-contract.js';
 import {
   runtimeHasActiveAdapterRequirement,
   validateAdapterRequirement
-} from './adapter-pack.js';
+} from '../../shared/pool/adapter-pack.js';
 import { validatePublishedAdapterRequirement, verifyAdapterUseApproval } from './adapter-publication.js';
 import { acquireAdapterForAssignment, createAdapterRegistry } from './adapter-registry.js';
-import { createPoolIdentity } from './identity.js';
+import { createPoolIdentity } from '../../shared/pool/identity.js';
 import { createSignedPeerMessage, PEER_MESSAGE_TYPES } from './peer-protocol.js';
 import {
   PARTICIPATION_CAPABILITIES,
   participationAllows
-} from './participation-profile.js';
+} from '../../shared/pool/participation-profile.js';
 import { listPolicies } from './policy-router.js';
 import { collectRuntimeProfile } from './runtime-profile.js';
 import {
   createSignedProviderAdvert,
   validateInputPayloadForAssignment
 } from './peer-control-plane.js';
-import { isSequenceWorkload, normalizeSequenceInput } from './sequence-workload.js';
+import { isSequenceWorkload, normalizeSequenceInput } from '../../shared/pool/sequence-workload.js';
 import {
   buildAssignmentCommitmentPayload,
   buildAssignmentRevealPayload
-} from './p2p-payload.js';
+} from '../../shared/pool/p2p-payload.js';
 import { createPackPeerProvider } from './peer-pack-provider.js';
-import { getRingPhaseProtocol } from './config.js';
+import { getRingPhaseProtocol } from '../../shared/pool/config.js';
 
 export function createProviderClient({
   providerId,

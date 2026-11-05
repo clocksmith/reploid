@@ -5,8 +5,8 @@ import fileToolSchemas from '../config/file-tool-schemas.json' with { type: 'jso
  * Integrates with SchemaValidator for runtime type safety.
  */
 
-import { getCurrentReploidStorage as getReploidStorage } from '../instance.js';
-import { getToolNamesForMode } from '../config/tool-surfaces.js';
+import { getCurrentReploidStorage as getReploidStorage } from '../../shared/instance.js';
+import { getToolNamesForMode } from '../../shared/config/tool-surfaces.js';
 
 const SchemaRegistry = {
   metadata: {

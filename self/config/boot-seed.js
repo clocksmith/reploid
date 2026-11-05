@@ -1,7 +1,7 @@
-import sourceCatalog from './self-source-catalog.json' with { type: 'json' };
+import sourceCatalog from '../../shared/config/self-source-catalog.json' with { type: 'json' };
 import { getLabUpgradeLevel } from './lab-upgrades.js';
-import { requireSurfaceIntent } from './surface-intents.js';
-import { SHARED_BOOT_UI_PREFIXES } from './surface-resources.js';
+import { requireSurfaceIntent } from '../../shared/config/surface-intents.js';
+import { SHARED_BOOT_UI_PREFIXES } from '../../shared/config/surface-resources.js';
 /**
  * @fileoverview Route-aware boot seed selection for VFS bootstrap.
  */

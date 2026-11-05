@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
-import pin from '../self/config/doppler-package.json' with { type: 'json' };
+import pin from '../shared/config/doppler-package.json' with { type: 'json' };
 
 const index = process.argv.indexOf('--url');
 const base = index >= 0 ? process.argv[index + 1] : 'http://localhost:8000';

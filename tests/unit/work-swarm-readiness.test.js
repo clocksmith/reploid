@@ -9,7 +9,7 @@ import { summarizeCapacityUtilization } from '../../packages/reploid/src/measure
 import { loadUtilizationInput } from '../../scripts/capacity-utilization.js';
 
 const ports = vi.hoisted(() => ({ ensure: vi.fn(), createTransport: vi.fn() }));
-vi.mock('../../self/identity.js', () => ({ ensureIdentityBundle: ports.ensure, saveIdentityBundle: vi.fn(), rotateIdentityBundle: vi.fn() }));
+vi.mock('../../shared/identity.js', () => ({ ensureIdentityBundle: ports.ensure, saveIdentityBundle: vi.fn(), rotateIdentityBundle: vi.fn() }));
 vi.mock('../../shared/vendor/reploid/transport/index.js', () => ({
   createSwarmTransport: ports.createTransport, createToolOfferChannel: vi.fn(), TOOL_OFFER_MESSAGE: 'offer', TOOL_OFFER_ACK: 'ack'
 }));

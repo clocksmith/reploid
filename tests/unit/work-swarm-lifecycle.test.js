@@ -2,13 +2,13 @@ import { beforeEach, afterEach, expect, it, vi } from 'vitest';
 import { resolveConfig } from '../../shared/vendor/reploid/config/index.js';
 
 const ports = vi.hoisted(() => ({ ensure: vi.fn(), createTransport: vi.fn() }));
-vi.mock('../../self/identity.js', () => ({ ensureIdentityBundle: ports.ensure,
+vi.mock('../../shared/identity.js', () => ({ ensureIdentityBundle: ports.ensure,
   saveIdentityBundle: vi.fn(), rotateIdentityBundle: vi.fn() }));
 vi.mock('../../shared/vendor/reploid/transport/index.js', () => ({
   createSwarmTransport: (...args) => Object.assign({ getConnectedPeers: () => [] }, ports.createTransport(...args)), createToolOfferChannel: vi.fn(),
   TOOL_OFFER_MESSAGE: 'offer', TOOL_OFFER_ACK: 'ack'
 }));
-vi.mock('../../self/config/doppler-local-models.js', async importOriginal => {
+vi.mock('../../shared/config/doppler-local-models.js', async importOriginal => {
   const actual = await importOriginal();
   const base = actual.LOCAL_DOPPLER_MODELS.find(model => model.id === 'qwen-3-5-2b-q4k-ehaf16');
   // Exercise the explicit whole-request compatibility contract independently
@@ -18,7 +18,7 @@ vi.mock('../../self/config/doppler-local-models.js', async importOriginal => {
   return { ...actual, LOCAL_DOPPLER_MODELS: [...actual.LOCAL_DOPPLER_MODELS, wholeRequest] };
 });
 import { createWorkSwarm } from '../../self/host/work-swarm.js';
-import { LOCAL_DOPPLER_MODELS } from '../../self/config/doppler-local-models.js';
+import { LOCAL_DOPPLER_MODELS } from '../../shared/config/doppler-local-models.js';
 const wholeModelIdentity = LOCAL_DOPPLER_MODELS.find(model => model.id === 'whole-model-lifecycle-fixture').identity;
 
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };

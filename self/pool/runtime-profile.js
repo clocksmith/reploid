@@ -2,8 +2,8 @@
  * @fileoverview Browser runtime profile evidence for pool provider routing.
  */
 
-import { hashJson } from './inference-receipt.js';
-import { LAUNCH_MODEL } from './model-contract.js';
+import { hashJson } from '../../shared/pool/inference-receipt.js';
+import { LAUNCH_MODEL } from '../../shared/pool/model-contract.js';
 
 export const RUNTIME_PROFILE_VERSION = 'reploid_pool_runtime_profile/v1';
 

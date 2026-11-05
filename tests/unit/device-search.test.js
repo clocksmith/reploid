@@ -9,7 +9,7 @@ import { createSearchPermission, searchPermissionWording } from '../../packages/
 import { createDeviceSearch, devicePageUrl, DEVICE_SEARCH_PROVIDER } from '../../self/host/device-search.js';
 import { createWebSearch } from '../../self/host/web-search.js';
 import { createChatSession, DEVICE_SEARCH_ROUTE, SEARCH_ROUTE } from '../../self/host/chat-session.js';
-import { LOCAL_DOPPLER_MODELS } from '../../self/config/doppler-local-models.js';
+import { LOCAL_DOPPLER_MODELS } from '../../shared/config/doppler-local-models.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 
 const AT = 1760500000000;

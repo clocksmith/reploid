@@ -1,5 +1,5 @@
 import { DurableObject } from 'cloudflare:workers';
-import bootstrap from '../../self/config/swarm-bootstrap.json';
+import bootstrap from '../../shared/config/swarm-bootstrap.json';
 import policy from './policy.json';
 
 // Coordinates bounded admission leases, not signaling traffic or conversation state.

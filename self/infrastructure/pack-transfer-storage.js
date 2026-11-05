@@ -1,5 +1,5 @@
 /** Durable transport staging only. Doppler still verifies the complete artifact and Pack. */
-import { sha256Hex } from '../pool/inference-receipt.js';
+import { sha256Hex } from '../../shared/pool/inference-receipt.js';
 
 const assert = (condition, message) => { if (!condition) throw new Error(`Pack checkpoints: ${message}`); };
 const request = (operation) => new Promise((resolve, reject) => {

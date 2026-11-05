@@ -1,6 +1,6 @@
 import { openCapsuleOpfsCheckpoints } from '../infrastructure/capsule-artifact-storage.js';
-import { executablePacksMatch } from './executable-pack.js';
-import { sha256Hex } from './inference-receipt.js';
+import { executablePacksMatch } from '../../shared/pool/executable-pack.js';
+import { sha256Hex } from '../../shared/pool/inference-receipt.js';
 
 /** Durable acquisition bytes. Doppler independently verifies signatures and every artifact. */
 export async function openCapsuleArtifactCache({ model, openCheckpoints = openCapsuleOpfsCheckpoints, fetchImpl = globalThis.fetch }) {

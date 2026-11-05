@@ -15,6 +15,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { resolveServedFile } from '../server/browser-roots.js';
 
 const root = () => path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const fail = message => { throw new Error(message); };
@@ -67,7 +68,7 @@ export async function prepareAdapterEntry({ models, base, bytes, weightsUrl, id,
 async function main() {
   const { values } = parseArgs({ options: Object.fromEntries(['base', 'file', 'weights-url', 'id', 'name', 'version', 'config', 'layout',
     'purpose', 'purpose-source', 'purpose-url', 'out'].map(key => [key, { type: 'string' }])) });
-  const models = JSON.parse(await readFile(path.join(root(), 'self/config/chat-models.json'), 'utf8'));
+  const models = JSON.parse(await readFile(resolveServedFile('config/chat-models.json'), 'utf8'));
   const bytes = new Uint8Array(await readFile(values.file ?? fail('--file is required')));
   const config = values.config ? JSON.parse(await readFile(values.config, 'utf8')) : null;
   if (values.purpose && !['publisher', 'owner'].includes(values['purpose-source'])) fail('--purpose-source must be publisher or owner');

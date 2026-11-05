@@ -11,8 +11,8 @@ import {
   validateResearchRecordLinks,
   verifyResearchRecord
 } from '../../self/pool/evidence-network.js';
-import { createSigningKeyPair } from '../../self/pool/inference-receipt.js';
-import { buildLaunchProviderModel } from '../../self/pool/model-contract.js';
+import { createSigningKeyPair } from '../../shared/pool/inference-receipt.js';
+import { buildLaunchProviderModel } from '../../shared/pool/model-contract.js';
 import { hashSequenceFloat32Values } from '../../self/pool/sequence-result.js';
 import {
   bindResearchWorkspace,

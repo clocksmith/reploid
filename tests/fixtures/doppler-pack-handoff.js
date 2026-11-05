@@ -3,12 +3,12 @@ import assert from 'node:assert/strict';
 import { generateKeyPairSync } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
-import { createReploidDopplerRuntimeService } from '../../self/infrastructure/doppler-runtime-service.js';
-import { assertPackSession, assertPackReceipt, hashDopplerEvidence } from '../../self/pool/executable-pack.js';
+import { createReploidDopplerRuntimeService } from '../../shared/infrastructure/doppler-runtime-service.js';
+import { assertPackSession, assertPackReceipt, hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { runPackOperation } from '../../self/pool/pack-operation.js';
 import { createPeerPackArtifactStore } from '../../self/pool/peer-pack-custody.js';
 import { createCustodyFixture } from './peer-pack-custody.js';
-import { resolveDopplerExecutionContract } from '../../self/config/doppler-execution-contracts.js';
+import { resolveDopplerExecutionContract } from '../../shared/config/doppler-execution-contracts.js';
 
 const checkout = process.env.DOPPLER_TEST_CHECKOUT;
 if (!checkout) throw new Error('DOPPLER_TEST_CHECKOUT is required');

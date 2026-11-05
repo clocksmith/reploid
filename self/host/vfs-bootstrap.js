@@ -4,8 +4,8 @@
  */
 
 import { toSourceWebPath } from '../boot-spec.js';
-import { getCurrentReploidInstanceId, getScopedReploidVfsDbName } from '../instance.js';
-import { resolveDopplerBrowserAssets } from '../config/doppler-local-models.js';
+import { getCurrentReploidInstanceId, getScopedReploidVfsDbName } from '../../shared/instance.js';
+import { resolveDopplerBrowserAssets } from '../../shared/config/doppler-local-models.js';
 
 const DB_NAME = 'reploid-vfs-v0';
 const STORE_FILES = 'files';

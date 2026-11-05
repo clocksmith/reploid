@@ -1,6 +1,6 @@
 /** Read-only, origin-wide inventory. Cached bytes are not a prepared GPU session.
  * The execution loader verifies every file again and refuses missing bytes. */
-import { DOPPLER_STORAGE_TOOLING_URL, LOCAL_DOPPLER_MODELS } from '../config/doppler-local-models.js';
+import { DOPPLER_STORAGE_TOOLING_URL, LOCAL_DOPPLER_MODELS } from '../../shared/config/doppler-local-models.js';
 
 export const MODEL_CACHE_EVENT = 'reploid:model-cache-changed';
 const namespace = 'reploid-chat-artifacts-v1';

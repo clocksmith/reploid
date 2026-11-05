@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import DopplerOptimizerModule from '../../self/capabilities/system/doppler-optimizer.js';
-import UtilsModule from '../../self/core/utils.js';
+import UtilsModule from '../../shared/core/utils.js';
 import ImprovementEpisodeLedgerModule from '../../self/core/improvement-episode.js';
 import { promoteShadowCandidate } from '../../self/tools/Promote.js';
 

@@ -5,7 +5,7 @@ import {
   buildImmutableArtifactOriginUrl,
   resolveArtifactDelivery,
   validateArtifactOrigin
-} from '../../self/pool/artifact-origin.js';
+} from '../../shared/pool/artifact-origin.js';
 import { createGcsAdapterOriginSigner } from '../../server/pool/adapter-origin-signer.js';
 
 describe('immutable Poolday artifact origins', () => {

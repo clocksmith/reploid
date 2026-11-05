@@ -1,7 +1,7 @@
 const { setVfsProgress, attachVfsProgressListener } = createVfsProgressBinding(progress => setState({ vfsProgress: progress }));
 import { createConnectionTestHandlers } from '../boot-wizard/connection-tests.js';
 import { normalizeVfsProgress, getCurrentFullSeedProgress, createVfsProgressBinding } from '../components/vfs-progress.js';
-import { escapeHtml as escapeHtmlValue } from '../components/html.js';
+import { escapeHtml as escapeHtmlValue } from '../../../shared/ui/components/html.js';
 const escapeHtml = value => escapeHtmlValue(value || '', '&#39;');
 /**
  * @fileoverview Minimal route-locked boot UI for /, /0, and /x.
@@ -40,7 +40,7 @@ import {
   createReploidPeerUrl,
   getCurrentReploidInstanceLabel,
   getCurrentReploidStorage as getReploidStorage
-} from '../../instance.js';
+} from '../../../shared/instance.js';
 import {
   clearVfsStore,
   ensureVfsFileMirrors,
@@ -68,7 +68,7 @@ import {
   getBootSeedProfile,
   shouldHydrateFullManifest
 } from '../../config/boot-seed.js';
-import { DEFAULT_DOPPLER_MODEL_ID } from '../../config/doppler-local-models.js';
+import { DEFAULT_DOPPLER_MODEL_ID } from '../../../shared/config/doppler-local-models.js';
 
 const { handleTestDirectKey, handleTestProxy, handleTestProxyModel, handleTestDirectModel } = createConnectionTestHandlers();
 

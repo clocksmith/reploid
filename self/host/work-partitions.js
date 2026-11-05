@@ -1,6 +1,6 @@
 /** Host composition of explicit manifest or signed Capsule residents and verified pieces. */
 import { createResidentPartition, createPartitionStageCommitAuthority } from '../../shared/vendor/reploid/mesh/index.js';
-import { DOPPLER_MODULE_URL, DOPPLER_PARTITIONS_MODULE_URL, DOPPLER_KERNEL_BASE_URL } from '../config/doppler-local-models.js';
+import { DOPPLER_MODULE_URL, DOPPLER_PARTITIONS_MODULE_URL, DOPPLER_KERNEL_BASE_URL } from '../../shared/config/doppler-local-models.js';
 import { resolvePartitionGeneration } from '../config/partition-generation.js';
 import { createWorkAdapterResolver } from '../providers/work-adapter.js';
 import policy from '../config/partition-policy.json' with { type: 'json' };

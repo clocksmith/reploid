@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   getToolNamesForMode,
   ZERO_SEED_TOOLS
-} from '../../self/config/tool-surfaces.js';
+} from '../../shared/config/tool-surfaces.js';
 import { LAB_UPGRADE_LEVELS } from '../../self/config/lab-upgrades.js';
 import { listReploidEnvironmentTemplates } from '../../self/config/reploid-environments.js';
 

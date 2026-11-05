@@ -2,7 +2,7 @@
  * @fileoverview Editable environment templates for the Reploid self.
  */
 
-import { ZERO_SEED_TOOLS } from './tool-surfaces.js';
+import { ZERO_SEED_TOOLS } from '../../shared/config/tool-surfaces.js';
 
 const ZERO_STARTER_TOOLS = Object.freeze([
   'CreateTool',

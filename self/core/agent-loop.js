@@ -1,11 +1,11 @@
 import { createRunTraceRecorder } from '../infrastructure/telemetry-timeline.js';
 import AgentLoop from '../../shared/vendor/reploid/agent/legacy-loop.js';
 import { resolveConfig } from '../../shared/vendor/reploid/config/index.js';
-import { getCurrentReploidStorage } from '../instance.js';
+import { getCurrentReploidStorage } from '../../shared/instance.js';
 import * as Policies from './agent-loop-policies.js';
 import { buildAgentInitialContext } from './agent-context.js';
-import { requireSurfaceIntent, authorizeSurfaceOperation } from '../config/surface-intents.js';
-import profile from '../config/reploid-library.json' with { type: 'json' };
+import { requireSurfaceIntent, authorizeSurfaceOperation } from '../../shared/config/surface-intents.js';
+import profile from '../../shared/config/reploid-library.json' with { type: 'json' };
 import { buildRunReplayBundle, readImportedRunReplaySummary } from './run-replay-bundle.js';
 
 export default {

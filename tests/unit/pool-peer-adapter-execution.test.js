@@ -1,7 +1,7 @@
 import { adapterCustodyFixture as custody } from '../fixtures/peer-adapter-custody.js';
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
-import config from '../../self/pool/pool-config.json' with { type: 'json' };
+import config from '../../shared/pool/pool-config.json' with { type: 'json' };
 import { peerAdapterFixture } from '../fixtures/peer-adapter.js';
 import { operationFixture, operationCapabilities, operationResources, packPeerIdentity } from '../fixtures/peer-pack-operation.js';
 import { normalizeExecutionAdapterSet, executionAdapterArtifact, executionAdapterArtifactSet } from '../../self/pool/adapter-execution.js';
@@ -9,7 +9,7 @@ import { createPackProviderAdvert, createPackPeerJob, verifyPackPeerJob, packPee
 import { createPeerAdapterResolver } from '../../self/pool/peer-adapter-execution.js';
 import { createAdapterRegistry } from '../../self/pool/adapter-registry.js';
 import { createPeerPackSupplier } from '../../self/pool/peer-pack-custody.js';
-import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 const policy = config.peerJobs.execution.adapters;
 const limits = { maxInputBytes: 10000, maxOutputBytes: 10000, maxStreamBytes: 200000, maxEvents: 32, maxJobMs: 30000 };
 

@@ -7,7 +7,7 @@ import {
   buildReploidCloudModelConfig,
   getReploidCloudAccessWindowStatus
 } from '../../cloud-access.js';
-import { deriveSwarmRole } from '../../swarm.js';
+import { deriveSwarmRole } from '../../../shared/swarm.js';
 
 const normalize = (value) => String(value || '').trim();
 

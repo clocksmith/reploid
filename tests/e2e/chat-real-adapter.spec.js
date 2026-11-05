@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { allowRemoteOnce } from '../fixtures/remote-permission.js';
 import { readFile } from 'node:fs/promises';
+import { resolveServedFile } from '../../server/browser-roots.js';
 
 test('three Chrome tabs supply files, execute Doppler and receive independent adapted and base conversations', async ({ browser }, testInfo) => {
   test.skip(process.env.REPLOID_E2E_ACTUAL_INFERENCE !== '1', 'Explicit real GPU/model-download opt-in required');
@@ -9,7 +10,7 @@ test('three Chrome tabs supply files, execute Doppler and receive independent ad
   const a = await requesterContext.newPage(), b = await supplierContext.newPage(), c = await filesContext.newPage();
   const errors = [], modelRequests = [], executorRequests = [];
   const base = 'qwen-3-5-0-8b-q4k-ehaf16', specialist = base + '/qwen35-0-8b-ner-json-lora';
-  const model = JSON.parse(await readFile('self/config/chat-models.json', 'utf8')).find(item => item.id === base);
+  const model = JSON.parse(await readFile(resolveServedFile('config/chat-models.json'), 'utf8')).find(item => item.id === base);
   b.on('console', message => {
     if (/LoRA|loaded|failed|Error|Memory \(loading\)/i.test(message.text())) console.log('[contributor]', message.text());
   });

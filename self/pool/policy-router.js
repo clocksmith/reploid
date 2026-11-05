@@ -9,8 +9,8 @@ import {
   POLICY_IDS,
   getPolicy,
   listPolicies
-} from './config.js';
-import { validateLaunchModelRequirement } from './model-contract.js';
+} from '../../shared/pool/config.js';
+import { validateLaunchModelRequirement } from '../../shared/pool/model-contract.js';
 import {
   POOLDAY_POLICY_CLASSES,
   classifyPooldayPrompt,

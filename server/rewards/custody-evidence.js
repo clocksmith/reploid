@@ -14,7 +14,7 @@
 
 import { DELIVERY_ATTESTATION_SCHEMA, deliveryAttestationBody as attestationBody } from '../../packages/reploid/src/artifacts/delivery-attestation.js';
 import { sha256Hex, verifyCanonicalSignature } from '../../packages/reploid/src/artifacts/signatures.js';
-import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { isIsoTime } from '../ledger/domain.js';
 
 const PREFIX = 'reploid.pool.pack-custody';

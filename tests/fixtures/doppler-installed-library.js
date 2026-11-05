@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { readFile, mkdir, copyFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 
 export async function createInstalledLibraryOperationRunner(consumer, api) {
   const entry = name => execFileSync(process.execPath, ['--input-type=module', '-e',

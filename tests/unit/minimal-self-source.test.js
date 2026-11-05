@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { collectSelfSource } from '../../scripts/build-self-source.js';
 import { getLabUpgradeLevel, isMinimalLabMode, LAB_UPGRADE_STORAGE_KEY } from '../../self/config/lab-upgrades.js';
 import { getBootSourceManifest, getOptionalBootSource, pickBootSeedFiles } from '../../self/config/boot-seed.js';
-import { createScopedReploidStorage, getCurrentReploidStorage } from '../../self/instance.js';
+import { createScopedReploidStorage, getCurrentReploidStorage } from '../../shared/instance.js';
 import { resetSession } from '../../self/boot-helpers/vfs-hydrate.js';
 import { filterToolDepsForTool } from '../../self/core/tool-runner.js';
 import { buildAgentInitialContext } from '../../self/core/agent-context.js';

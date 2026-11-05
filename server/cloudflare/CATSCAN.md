@@ -12,7 +12,7 @@ Owns the Cloudflare adapter for signaling and credential issuance. Does not exec
 This subtree; browser workspace and Firebase records remain with their existing owners.
 
 ## Contracts
-Inputs: [bootstrap policy](../../self/config/swarm-bootstrap.json), Firebase identity tokens, private namespace capabilities.
+Inputs: [bootstrap policy](../../shared/config/swarm-bootstrap.json), Firebase identity tokens, private namespace capabilities.
 Outputs: existing signaling envelopes and expiring RTC configuration.
 
 ## Invariants

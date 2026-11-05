@@ -1,9 +1,9 @@
 import { expect, it } from 'vitest';
 import { resolvePartitionGeneration } from '../../self/config/partition-generation.js';
-import { resolveGenerationOptions } from '../../self/config/doppler-generation-contract.js';
+import { resolveGenerationOptions } from '../../shared/config/doppler-generation-contract.js';
 import profile from '../../self/config/work-profile.json' with { type: 'json' };
 import policy from '../../self/config/partition-policy.json' with { type: 'json' };
-import catalog from '../../self/config/chat-models.json' with { type: 'json' };
+import catalog from '../../shared/config/chat-models.json' with { type: 'json' };
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 
 const explicit = () => ({ ...profile.generation, maxSeqLen: policy.maxSeqLen,

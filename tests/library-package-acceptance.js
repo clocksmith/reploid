@@ -13,6 +13,7 @@ import { chromium } from '@playwright/test';
 import dopplerFixture from './library-doppler-fixture.json' with { type: 'json' };
 import workCases from './fixtures/work-goal-cases.json' with { type: 'json' };
 import { readServedHarnessFile } from './helpers/served-browser-files.js';
+import { resolveServedFile } from '../server/browser-roots.js';
 
 const execute = promisify(execFile);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -106,16 +107,16 @@ try {
       const adapters = [
       "self/tool-runner.js",
       "self/core/response-parser.js",
-      "self/pool/p2p-transport.js",
-      "self/pool/p2p-signaling.js",
+      "shared/pool/p2p-transport.js",
+      "shared/pool/p2p-signaling.js",
       "self/pool/retry-policy.js",
       "self/receipt.js",
-      "self/identity.js",
+      "shared/identity.js",
       "self/core/improvement-episode.js",
-      "self/reward-policy.js",
-      "self/swarm.js",
+      "shared/reward-policy.js",
+      "shared/swarm.js",
       "self/core/vfs.js",
-      "self/capabilities/communication/library-adapter.js",
+      "shared/capabilities/communication/library-adapter.js",
       "self/capabilities/communication/webrtc-swarm.js",
       "self/capabilities/communication/swarm-transport.js",
       "self/bridge.js",
@@ -180,7 +181,7 @@ try {
     await check('doppler-fixture-install', async () => {
       const directory = await mkdtemp(path.join(tmpdir(), 'reploid-doppler-consumer-'));
       report.dopplerConsumer = directory;
-      const pin = JSON.parse(await readFile(path.join(root, 'self/config/doppler-package.json'), 'utf8'));
+      const pin = JSON.parse(await readFile(resolveServedFile('config/doppler-package.json'), 'utf8'));
       const expectedVersion = pin.version;
       const archive = path.resolve(root, pin.resolved.replace(/^file:/, ''));
       assert.equal('sha512-' + createHash('sha512').update(await readFile(archive)).digest('base64'), pin.integrity);

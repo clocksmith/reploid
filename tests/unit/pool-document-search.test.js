@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { ingestDocuments, rankDocumentVectors, createDocumentSearch } from '../../self/pool/document-search.js';
 import { createLocalPackExecutor } from '../../self/pool/local-pack-executor.js';
-import { createReploidDopplerRuntimeService } from '../../self/infrastructure/doppler-runtime-service.js';
-import { validateOperationModel } from '../../self/pool/operation-model.js';
-import { validateEnabledPoolModelContract } from '../../self/pool/model-contract.js';
+import { createReploidDopplerRuntimeService } from '../../shared/infrastructure/doppler-runtime-service.js';
+import { validateOperationModel } from '../../shared/pool/operation-model.js';
+import { validateEnabledPoolModelContract } from '../../shared/pool/model-contract.js';
 import { createDocumentPackFixture } from '../fixtures/document-packs.js';
 import policy from '../../self/pool/document-search-policy.json' with { type: 'json' };
 import sessionPolicy from '../../self/pool/local-session-policy.json' with { type: 'json' };

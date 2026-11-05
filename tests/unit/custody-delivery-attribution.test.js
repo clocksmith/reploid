@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { deliveryEvidenceFromRecord, deliveryEvidenceId } from '../../packages/reploid/src/artifacts/delivery-attestation.js';
 import { sha256Hex, signCanonical } from '../../packages/reploid/src/artifacts/signatures.js';
 import { DELIVERY_ATTESTATION_SCHEMA, deliveryAttestationBody } from '../../server/rewards/custody-evidence.js';
-import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { newIdentity, openAccountFixture, registerDevice, signInAs } from '../helpers/account-fixture.js';
 import { PIECE_BYTES as BYTES, transferPiece } from '../helpers/custody-transfer.js';
 import { MIN, advance, at, clock, codes, ownerAuthorization, rejectsWith } from '../helpers/reward-fixture.js';

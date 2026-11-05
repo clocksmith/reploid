@@ -1,8 +1,8 @@
 import policy from './document-search-policy.json' with { type: 'json' };
-import { hashDopplerEvidence } from './executable-pack.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { snapshotPackOperationData } from './pack-operation.js';
-import { validateOperationModel } from './operation-model.js';
-import { createPackOperationRegistry } from './pack-operation-adapters.js';
+import { validateOperationModel } from '../../shared/pool/operation-model.js';
+import { createPackOperationRegistry } from '../../shared/pool/pack-operation-adapters.js';
 import { buildDocumentAnswerPrompt, inspectDocumentAnswer } from './document-answer.js';
 
 const bytes = (text) => new TextEncoder().encode(text).length;

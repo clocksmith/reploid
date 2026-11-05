@@ -18,7 +18,7 @@ Supply auditable lifecycle, dependency, policy, recovery, telemetry, and human-a
 ## Contracts
 
 Inputs:
-- Runtime events through [event-bus.js](event-bus.js).
+- Runtime events through [event-bus.js](../../shared/infrastructure/event-bus.js).
 - Policy decisions through [policy-engine.js](policy-engine.js).
 
 Outputs:

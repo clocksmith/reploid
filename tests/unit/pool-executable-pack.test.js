@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { assertPackReceipt, assertPackSession, hashDopplerEvidence, validateExecutablePack, executablePacksMatch } from '../../self/pool/executable-pack.js';
-import { exactModelContractKey, LAUNCH_MODEL, validateProviderModelContract } from '../../self/pool/model-contract.js';
+import { assertPackReceipt, assertPackSession, hashDopplerEvidence, validateExecutablePack, executablePacksMatch } from '../../shared/pool/executable-pack.js';
+import { exactModelContractKey, LAUNCH_MODEL, validateProviderModelContract } from '../../shared/pool/model-contract.js';
 import { operationFixture } from '../fixtures/peer-pack-operation.js';
 import { assertPackOperationReceipt, assertPackOperationRequest } from '../../self/pool/pack-operation.js';
 

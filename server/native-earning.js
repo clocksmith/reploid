@@ -21,7 +21,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-import { hashDopplerEvidence } from '../self/pool/executable-pack.js';
+import { hashDopplerEvidence } from '../shared/pool/executable-pack.js';
 import { EARNING_CLIENT_SCHEMA, createEarningClient, readEarningClientConfig } from '../self/host/earning/client.js';
 import { createEarningContribution } from '../self/host/earning/contribution.js';
 

@@ -12,7 +12,7 @@ import {
   modelSupportsPoolWorkload,
   modelSupportsAdapterRequirement
 } from './model-contract.js';
-import { isSequenceWorkload } from '../../self/pool/sequence-workload.js';
+import { isSequenceWorkload } from '../../shared/pool/sequence-workload.js';
 import {
   deriveProviderAdmission,
   effectiveTrustTierForRingAdmissions,

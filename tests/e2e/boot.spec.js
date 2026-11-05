@@ -4,7 +4,7 @@
  */
 import { test, expect } from '@playwright/test';
 import { createHash } from 'node:crypto';
-import { DEFAULT_DOPPLER_MODEL_ID } from '../../self/config/doppler-local-models.js';
+import { DEFAULT_DOPPLER_MODEL_ID } from '../../shared/config/doppler-local-models.js';
 import { bootLegacyZeroInstance, bootRouteWithServiceWorker, readInstanceVfs, sanitizeInstanceId } from './reploid-lab-helpers.js';
 
 const APP_PATH = '/index.html';

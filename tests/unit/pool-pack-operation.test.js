@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
-import { DOPPLER_GENERATION_CONTRACT } from '../../self/infrastructure/doppler-runtime-service.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
+import { DOPPLER_GENERATION_CONTRACT } from '../../shared/infrastructure/doppler-runtime-service.js';
 import fifthDefinition from '../fixtures/pack-operation-fifth.json' with { type: 'json' };
-import poolConfig from '../../self/pool/pool-config.json' with { type: 'json' };
-import { createPackOperationRegistry, PACK_OPERATION_IMPLEMENTATIONS } from '../../self/pool/pack-operation-adapters.js';
+import poolConfig from '../../shared/pool/pool-config.json' with { type: 'json' };
+import { createPackOperationRegistry, PACK_OPERATION_IMPLEMENTATIONS } from '../../shared/pool/pack-operation-adapters.js';
 import { runPackOperation, assessPackOperation, assertPackOperationReceipt } from '../../self/pool/pack-operation.js';
 
 const digest = (value) => `sha256:${value.repeat(64)}`;

@@ -9,7 +9,7 @@
 
 import { test, expect } from '@playwright/test';
 
-import { LAUNCH_MODEL } from '../../self/pool/model-contract.js';
+import { LAUNCH_MODEL } from '../../shared/pool/model-contract.js';
 import {
   bootRouteWithServiceWorker,
   getCycleArtifactPath,

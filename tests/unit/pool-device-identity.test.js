@@ -3,9 +3,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   resetDeviceIdentityForTests,
   verifyRoleDelegation
-} from '../../self/pool/device-identity.js';
-import { createPoolIdentity } from '../../self/pool/identity.js';
-import { writeParticipationPreferences } from '../../self/pool/participation-profile.js';
+} from '../../shared/pool/device-identity.js';
+import { createPoolIdentity } from '../../shared/pool/identity.js';
+import { writeParticipationPreferences } from '../../shared/pool/participation-profile.js';
 
 const createStorage = () => {
   const values = new Map();

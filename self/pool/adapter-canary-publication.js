@@ -7,7 +7,7 @@ import {
   hashJson,
   signCanonical,
   verifyCanonicalSignature
-} from './inference-receipt.js';
+} from '../../shared/pool/inference-receipt.js';
 
 export const ADAPTER_CANARY_PUBLICATION_SCHEMA = 'reploid.pool.adapter-canary-publication/v1';
 export const ADAPTER_RUNTIME_CANARY_RECEIPT_SCHEMA = 'reploid.pool.adapter-runtime-canary-receipt/v1';

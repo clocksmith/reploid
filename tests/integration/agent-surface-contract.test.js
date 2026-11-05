@@ -4,7 +4,7 @@ import ToolExecutor from '../../self/infrastructure/tool-executor.js';
 import ResponseParser from '../../packages/reploid/src/agent/response-parser.js';
 import { createReploid } from '../../packages/reploid/src/agent/index.js';
 import { resolveConfig } from '../../packages/reploid/src/config/index.js';
-import { requireSurfaceIntent, authorizeSurfaceOperation } from '../../self/config/surface-intents.js';
+import { requireSurfaceIntent, authorizeSurfaceOperation } from '../../shared/config/surface-intents.js';
 
 const quiet = () => {};
 const utils = { logger: { debug: quiet, info: quiet, warn: quiet, error: quiet },

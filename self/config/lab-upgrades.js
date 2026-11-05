@@ -1,6 +1,6 @@
 /** Explicit optional X extensions of the minimal Zero source image. */
 import activeSource from './self-source-manifest.json' with { type: 'json' };
-import { getCurrentReploidStorage } from '../instance.js';
+import { getCurrentReploidStorage } from '../../shared/instance.js';
 
 export const LAB_UPGRADE_LEVELS = Object.freeze(['spark', 'reflection', 'cognition', 'substrate', 'full']);
 export const LAB_UPGRADE_STORAGE_KEY = 'REPLOID_X_UPGRADE_LEVEL';

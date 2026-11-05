@@ -6,8 +6,8 @@ import { createPeerAdapterResolver } from '../../self/pool/peer-adapter-executio
 import { describe, it, expect, vi } from 'vitest';
 import { operationFixture, operationCapabilities, operationResources, packPeerIdentity } from '../fixtures/peer-pack-operation.js';
 import fifthDefinition from '../fixtures/pack-operation-fifth.json' with { type: 'json' };
-import poolConfig from '../../self/pool/pool-config.json' with { type: 'json' };
-import { createPackOperationRegistry, PACK_OPERATION_IMPLEMENTATIONS } from '../../self/pool/pack-operation-adapters.js';
+import poolConfig from '../../shared/pool/pool-config.json' with { type: 'json' };
+import { createPackOperationRegistry, PACK_OPERATION_IMPLEMENTATIONS } from '../../shared/pool/pack-operation-adapters.js';
 import { createPackPeerProvider } from '../../self/pool/peer-pack-provider.js';
 import { createPackPeerRequester } from '../../self/pool/peer-pack-requester.js';
 import { createPackPeerJob, createPackProviderAdvert, verifyPackPeerJob, signPackPeerMessage, verifyPackPeerMessage, PACK_CANCEL_SCHEMA } from '../../self/pool/peer-pack-job.js';

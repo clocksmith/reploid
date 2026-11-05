@@ -1,7 +1,7 @@
 import { env, exports } from 'cloudflare:workers';
 import { reset, evictDurableObject, runInDurableObject, runDurableObjectAlarm } from 'cloudflare:test';
 import { afterEach, expect, it } from 'vitest';
-import bootstrap from '../../self/config/swarm-bootstrap.json';
+import bootstrap from '../../shared/config/swarm-bootstrap.json';
 import policy from '../../server/cloudflare/policy.json';
 import { generateKeyPair, SignJWT } from 'jose';
 import { handleTurn, normalizeIceServers, verifyFirebase } from '../../server/cloudflare/turn.js';

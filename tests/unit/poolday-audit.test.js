@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 import { SELF_BOOT_SPEC } from '../../self/boot-spec.js';
 import { PRODUCT_ROUTES } from '../../self/ui/pool-home/constants.js';
-import { LAUNCH_MODEL } from '../../self/pool/model-contract.js';
+import { LAUNCH_MODEL } from '../../shared/pool/model-contract.js';
 import {
   SIGNATURE_DOMAINS,
   buildPoolReceipt,
@@ -16,8 +16,8 @@ import {
   sha256Hex,
   signProviderReceipt,
   verifyCanonicalSignature
-} from '../../self/pool/inference-receipt.js';
-import { verifyReceipt } from '../../self/pool/sdk.js';
+} from '../../shared/pool/inference-receipt.js';
+import { verifyReceipt } from '../../shared/pool/sdk.js';
 import {
   DETERMINISTIC_GENERATION_CONFIG,
   validatePolicyRequest
@@ -34,7 +34,7 @@ import {
   createSignedPeerMessage,
   verifyPeerMessage
 } from '../../self/pool/peer-control-plane.js';
-import { verifyModelArtifactPackage } from '../../self/pool/model-artifacts.js';
+import { verifyModelArtifactPackage } from '../../shared/pool/model-artifacts.js';
 import {
   REPUTATION_EVENT_TYPES,
   reduceReputationEvents

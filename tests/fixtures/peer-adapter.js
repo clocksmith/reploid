@@ -1,8 +1,8 @@
 /** Synthetic bytes and promotion evidence for protocol tests only. */
-import { sealAdapterPack } from '../../self/pool/adapter-pack.js';
+import { sealAdapterPack } from '../../shared/pool/adapter-pack.js';
 import { createSignedAdapterPublication } from '../../self/pool/adapter-publication.js';
-import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
-import { sha256Hex } from '../../self/pool/inference-receipt.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
+import { sha256Hex } from '../../shared/pool/inference-receipt.js';
 import { packPeerIdentity } from './peer-pack-operation.js';
 import { packPeerModel } from '../../self/pool/peer-pack-job.js';
 export async function peerAdapterFixture(modelInput) {

@@ -1,12 +1,13 @@
 import { test, expect, chromium } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import { measureStandaloneDenial, routeDiagnosticModel } from '../fixtures/capacity-observer.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
 
 test('the unchanged whole model is rejected by each executor allocation ceiling', async ({ browser }, info) => {
   const directory = process.env.DOPPLER_CHAT_MODEL_DIR;
   test.skip(!directory, 'Exact catalog model bytes required');
   test.setTimeout(300000);
-  const model = JSON.parse(await readFile('self/config/chat-models.json', 'utf8'))[0];
+  const model = JSON.parse(await readFile(resolveServedFile('config/chat-models.json'), 'utf8'))[0];
   const remote = process.env.REPLOID_EXECUTOR_WS ? await chromium.connect(process.env.REPLOID_EXECUTOR_WS) : null;
   const denials = [];
   try {

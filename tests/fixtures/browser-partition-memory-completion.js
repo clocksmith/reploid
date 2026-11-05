@@ -19,6 +19,7 @@ import { chromium } from 'playwright';
 import referenceContract from './distributed-reference-contract.json' with { type: 'json' };
 import { decodeReferenceLogits } from './independent-numerical-reference.js';
 import { physicalWebGpuBrowserOptions, connectPhysicalBrowser } from './physical-webgpu-browser.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
 if (process.env.REPLOID_ORDERED_QUALIFICATION_CONFIG) {
   const { runOrderedPartitionReference } = await import('./ordered-partition-reference.js');
   await runOrderedPartitionReference(process.env.REPLOID_ORDERED_QUALIFICATION_CONFIG);
@@ -29,8 +30,8 @@ const requests = JSON.parse(raw), output = process.env.REPLOID_CAPTURE_OUT;
 const retainedModelIdentity = requests[0].model.identity;
 // The fixture freezes prompts and generation. Artifact and runtime identities
 // come from the same ordinary application package under test.
-const catalog = JSON.parse(await readFile(new URL('../../self/config/chat-models.json', import.meta.url)));
-const packageIdentity = JSON.parse(await readFile(new URL('../../self/config/doppler-package.json', import.meta.url)));
+const catalog = JSON.parse(await readFile(new URL('../../shared/config/chat-models.json', import.meta.url)));
+const packageIdentity = JSON.parse(await readFile(new URL('../../shared/config/doppler-package.json', import.meta.url)));
 for (const request of requests) {
   const selected = catalog.find(model => model.id === request.model.id);
   assert(selected, 'Retained request model must remain in the application catalog');
@@ -43,8 +44,8 @@ const testDelivery = process.env.REPLOID_TEST_DELIVERY_BINDING ? await verifyNum
   archivePath: resolve(import.meta.dirname, '../..', packageIdentity.spec.replace(/^file:/, '')),
   runtimeDirectory: resolve(import.meta.dirname, '../../shared/vendor/doppler', packageIdentity.version)
 }) : null;
-const policy = JSON.parse(await readFile(new URL('../../self/config/partition-policy.json', import.meta.url)));
-const profile = JSON.parse(await readFile(new URL('../../self/config/work-profile.json', import.meta.url)));
+const policy = JSON.parse(await readFile(resolveServedFile('config/partition-policy.json')));
+const profile = JSON.parse(await readFile(resolveServedFile('config/work-profile.json')));
 const phase = process.env.REPLOID_MEMORY_PHASE ?? 'repetition';
 const prefillObservationOnly = process.env.REPLOID_PREFILL_OBSERVATION_ONLY === '1';
 const profileImmediate = process.env.REPLOID_PROFILE_IMMEDIATE === '1';
@@ -70,7 +71,7 @@ const generation = reference?.generation || { ...requests[0].model.generation, .
 assert(generation.maxTokens <= policy.limits.maxTokens);
 assert(generation.maxSeqLen <= policy.maxSeqLen);
 assert(['reference', 'repetition', 'cancellation', 'cancel-only', 'capacity', 'concurrent'].includes(phase));
-const capacityModel = phase === 'capacity' ? JSON.parse(await readFile(new URL('../../self/config/chat-models.json', import.meta.url)))
+const capacityModel = phase === 'capacity' ? JSON.parse(await readFile(new URL('../../shared/config/chat-models.json', import.meta.url)))
   .find(model => model.id === process.env.REPLOID_TEST_MODEL) : null;
 if (phase === 'capacity') assert(capacityModel, 'Capacity diagnostic requires a catalog model');
 const cases = capacityModel ? [{ request: { ...requests[0], model: { ...capacityModel, generation } }, tokens: 494 }]

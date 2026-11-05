@@ -31,7 +31,7 @@ credentials, never the signing key. Credential failure remains explicit.
   requests enforce the bootstrap policy's exact origins.
 
 The browser cutover changes only `signalingUrl` and `rtcConfigUrl` in
-`self/config/swarm-bootstrap.json`, followed by inventory/bundle regeneration and
+`shared/config/swarm-bootstrap.json`, followed by inventory/bundle regeneration and
 Hosting deployment. Explicit private invitation endpoints remain explicit. A
 room ID in the WebSocket URL selects the object, not its admission capability.
 

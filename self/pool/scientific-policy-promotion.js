@@ -6,7 +6,7 @@
  * authority.
  */
 
-import { hashJson } from './inference-receipt.js';
+import { hashJson } from '../../shared/pool/inference-receipt.js';
 
 export const ZERO_SCIENTIFIC_POLICY_CANDIDATE_VERSION = 'poolday.zero_scientific_policy_candidate/v1';
 export const X_SCIENTIFIC_POLICY_SHADOW_COHORT_VERSION = 'poolday.x_scientific_policy_shadow_cohort/v1';

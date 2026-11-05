@@ -8,7 +8,7 @@ import { canonicalize, hashJson, sha256Hex } from './hash.js';
 import { PROVIDER_RECEIPT_TRUST_TIER, RECEIPT_VERSION } from './receipt-contract.js';
 import { getRingPhaseProtocol } from './config.js';
 import { revealMatchesCommitment } from './commit-reveal.js';
-import { isSequenceWorkload } from '../../self/pool/sequence-workload.js';
+import { isSequenceWorkload } from '../../shared/pool/sequence-workload.js';
 import { exactModelContractKey } from './model-contract.js';
 
 const textEncoder = new TextEncoder();

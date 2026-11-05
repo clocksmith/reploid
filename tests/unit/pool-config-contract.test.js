@@ -5,8 +5,8 @@ import {
   resolvePoolRateLimits,
   createPoolConfigContract,
   validatePoolConfigValue
-} from '../../self/pool/config-contract.js';
-import poolConfig from '../../self/pool/pool-config.json' with { type: 'json' };
+} from '../../shared/pool/config-contract.js';
+import poolConfig from '../../shared/pool/pool-config.json' with { type: 'json' };
 
 describe('Poolday configuration contract', () => {
   it.each([0, -1, 1.5, null, undefined, Number.MAX_SAFE_INTEGER + 1])('rejects invalid admission budgets: %s', value => {

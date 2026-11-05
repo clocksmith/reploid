@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { createPoolIdentity } from '../../self/pool/identity.js';
-import { exportPublicKey } from '../../self/pool/inference-receipt.js';
+import { createPoolIdentity } from '../../shared/pool/identity.js';
+import { exportPublicKey } from '../../shared/pool/inference-receipt.js';
 
 const storage = () => {
   const values = new Map();

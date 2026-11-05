@@ -6,7 +6,7 @@ import {
   buildBrowserQualificationCheckEvidence,
   buildBrowserQualificationPlan
 } from '../../self/pool/browser-qualification.js';
-import { MODEL_CATALOG, exactModelContractKey, getPoolModelContract } from '../../self/pool/model-contract.js';
+import { MODEL_CATALOG, exactModelContractKey, getPoolModelContract } from '../../shared/pool/model-contract.js';
 import { validateModelPromotionEvidence } from '../../self/pool/model-promotion.js';
 import { DNA_LANE_ADMISSION_SCHEMA } from '../../self/pool/dna-lane-admission.js';
 import { SCIENTIFIC_FITNESS_SCHEMA, buildScientificFitnessPlan } from '../../self/pool/scientific-fitness.js';

@@ -2,17 +2,17 @@
  * @fileoverview Evidence-first provider and artifact routing for Poolday.
  */
 
-import { modelSupportsAdapterRequirement } from './adapter-pack.js';
-import { hashJson } from './inference-receipt.js';
+import { modelSupportsAdapterRequirement } from '../../shared/pool/adapter-pack.js';
+import { hashJson } from '../../shared/pool/inference-receipt.js';
 import {
   POOLDAY_MODEL_WORKLOADS,
   getPoolModelWorkload,
   modelSupportsPoolWorkload
-} from './model-contract.js';
+} from '../../shared/pool/model-contract.js';
 import {
   PARTICIPATION_CAPABILITIES,
   participationAllows
-} from './participation-profile.js';
+} from '../../shared/pool/participation-profile.js';
 
 export const ARTIFACT_ROUTE_DECISION_SCHEMA = 'reploid.pool.artifact-route-decision/v1';
 export const ARTIFACT_LIFECYCLE = Object.freeze([

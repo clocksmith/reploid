@@ -16,7 +16,7 @@ import {
 } from './realized-action-value.js';
 import {
   SEQUENCE_ALPHABETS
-} from './sequence-workload.js';
+} from '../../shared/pool/sequence-workload.js';
 import {
   activeResearchRecords,
   invalidatedResearchHashes,
@@ -34,7 +34,7 @@ import {
 } from './evidence-normalization.js';
 import {
   exactModelContractKey
-} from './model-contract.js';
+} from '../../shared/pool/model-contract.js';
 import {
   rankDiscoveryActions
 } from './discovery-action-value.js';

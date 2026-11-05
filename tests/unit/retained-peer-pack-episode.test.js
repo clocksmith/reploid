@@ -3,8 +3,8 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { describe, it, expect } from 'vitest';
-import { sha256Hex } from '../../self/pool/inference-receipt.js';
-import { hashDopplerEvidence, assertPackExecutionEvidence } from '../../self/pool/executable-pack.js';
+import { sha256Hex } from '../../shared/pool/inference-receipt.js';
+import { hashDopplerEvidence, assertPackExecutionEvidence } from '../../shared/pool/executable-pack.js';
 import { assertPackOperationReceipt } from '../../self/pool/pack-operation.js';
 import { verifyPackPeerEpisode } from '../../self/pool/peer-pack-episode.js';
 

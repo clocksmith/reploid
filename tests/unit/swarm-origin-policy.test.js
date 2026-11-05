@@ -1,6 +1,6 @@
 import { it, expect } from 'vitest';
 import { allowsSwarmOrigin } from '../../server/swarm-origin-policy.js';
-import policy from '../../self/config/swarm-bootstrap.json' with { type: 'json' };
+import policy from '../../shared/config/swarm-bootstrap.json' with { type: 'json' };
 
 it('admits hosted pages and canonical loopback origins on any port', () => {
   for (const origin of ['https://replo.id', 'http://localhost', 'http://localhost:5173', 'https://localhost:4443', 'http://127.0.0.1:32123', 'http://[::1]:65535']) {

@@ -104,7 +104,7 @@ export const schema = {
 
 | Module | Path | Purpose |
 |--------|------|---------|
-| Utils | `self/core/utils.js` | Error classes, logging, helpers |
+| Utils | `shared/core/utils.js` | Error classes, logging, helpers |
 | StateManager | `self/core/state-manager.js` | Session and artifact state |
 | PersonaManager | `self/core/persona-manager.js` | System prompt composition, persona overrides |
 | AgentLoop | `self/core/agent-loop.js` | Main think -> act -> observe loop |
@@ -124,7 +124,7 @@ export const schema = {
 
 | Module | Path | Purpose |
 |--------|------|---------|
-| EventBus | `self/infrastructure/event-bus.js` | Pub/sub for runtime coordination |
+| EventBus | `shared/infrastructure/event-bus.js` | Pub/sub for runtime coordination |
 | DIContainer | `self/infrastructure/di-container.js` | Dependency resolution |
 | HITLController | `self/infrastructure/hitl-controller.js` | Approval-mode control |
 | AuditLogger | `self/infrastructure/audit-logger.js` | Audit log persistence |

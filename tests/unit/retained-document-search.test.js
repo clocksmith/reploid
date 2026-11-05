@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { gunzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
 import { describe, it, expect } from 'vitest';
-import { assertPackExecutionEvidence, hashDopplerEvidence } from '../../self/pool/executable-pack.js';
+import { assertPackExecutionEvidence, hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 
 const root = resolve('docs/status/document-search-2026-09-06');
 const hash = bytes => `sha256:${createHash('sha256').update(bytes).digest('hex')}`;

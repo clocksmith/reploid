@@ -1,5 +1,5 @@
 /** Download consent and lifetime; Doppler owns acquisition, verification and resume. */
-import { DOPPLER_MODULE_URL } from '../config/doppler-local-models.js';
+import { DOPPLER_MODULE_URL } from '../../shared/config/doppler-local-models.js';
 import { announceModelCacheChange } from './work-model-cache.js';
 import policy from '../config/chat-files.json' with { type: 'json' };
 

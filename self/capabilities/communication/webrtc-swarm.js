@@ -1,5 +1,5 @@
 import { createWebRTCSwarm } from '../../../shared/vendor/reploid/transport/index.js';
-import { createLegacyNetworkOptions } from './library-adapter.js';
+import { createLegacyNetworkOptions } from '../../../shared/capabilities/communication/library-adapter.js';
 
 export default {
   metadata: { id: 'WebRTCSwarm', version: '1.0.0', genesis: { introduced: 'full' },

@@ -1,12 +1,12 @@
 import { canonicalize, hashJson, sha256Hex, buildPoolReceipt, signProviderReceipt, countersignReceipt,
-  receiptSigningPayload, acceptanceSigningPayload, verifyCanonicalSignature, SIGNATURE_DOMAINS } from './inference-receipt.js';
+  receiptSigningPayload, acceptanceSigningPayload, verifyCanonicalSignature, SIGNATURE_DOMAINS } from '../../shared/pool/inference-receipt.js';
 import { createSignedPeerMessage, verifyPeerMessage, PEER_MESSAGE_TYPES } from './peer-protocol.js';
 import { sealPeerAssignmentIdentity } from './peer-assignment.js';
-import { exactModelContractKey } from './model-contract.js';
+import { exactModelContractKey } from '../../shared/pool/model-contract.js';
 import { evaluateProviderRouteCandidate, compareProviderRouteCandidates, sealArtifactRouteDecision } from './artifact-router.js';
 import { receiptMatchesAssignment } from './peer-agreement.js';
-import { assertPackExecutionEvidence, hashDopplerEvidence } from './executable-pack.js';
-import { FORECAST_WORKLOAD, validateForecastModelContract, validateForecastValues, validateForecastCosts } from './forecast-workload.js';
+import { assertPackExecutionEvidence, hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
+import { FORECAST_WORKLOAD, validateForecastModelContract, validateForecastValues, validateForecastCosts } from '../../shared/pool/forecast-workload.js';
 
 const digest = value => typeof value === 'string' && /^sha256:[0-9a-f]{64}$/.test(value);
 const copy = value => JSON.parse(canonicalize(value));

@@ -4,7 +4,7 @@
  * Supports Proxy (HTTP), Browser-Native (WebLLM/WebGPU), and Direct Cloud API execution.
  */
 
-import { getCurrentReploidStorage as getReploidStorage } from '../instance.js';
+import { getCurrentReploidStorage as getReploidStorage } from '../../shared/instance.js';
 
 const LLMClient = {
   metadata: {

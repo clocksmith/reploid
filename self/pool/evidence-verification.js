@@ -34,7 +34,7 @@ import {
   MAX_SEQUENCE_POSITIONS,
   getMaxPublicSequenceLength,
   normalizeSequenceInput
-} from './sequence-workload.js';
+} from '../../shared/pool/sequence-workload.js';
 import {
   REALIZED_ACTION_VALUE_VERSION,
   normalizeRealizedActionValue
@@ -60,12 +60,12 @@ import {
 } from './evidence-normalization.js';
 import {
   exactModelContractKey
-} from './model-contract.js';
+} from '../../shared/pool/model-contract.js';
 import {
   hashJson,
   sha256Hex,
   verifyCanonicalSignature
-} from './inference-receipt.js';
+} from '../../shared/pool/inference-receipt.js';
 import {
   hashSequenceFloat32Values
 } from './sequence-result.js';

@@ -10,7 +10,7 @@ import {
   getCurrentReploidSessionStorage as getScopedSessionStorage,
   getCurrentReploidStorage as getScopedLocalStorage,
   getSurfaceIdFromUrl
-} from '../instance.js';
+} from '../../shared/instance.js';
 import {
   loadVfsManifest,
   seedVfsFromManifest,

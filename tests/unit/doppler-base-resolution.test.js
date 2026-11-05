@@ -1,10 +1,10 @@
-import pin from '../../self/config/doppler-package.json' with { type: 'json' };
+import pin from '../../shared/config/doppler-package.json' with { type: 'json' };
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
-import { resolveDopplerBrowserAssets } from '../../self/config/doppler-local-models.js';
+import { resolveDopplerBrowserAssets } from '../../shared/config/doppler-local-models.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const readRepoFile = (relativePath) =>
@@ -40,7 +40,7 @@ describe('Pinned Doppler asset resolution', () => {
   });
 
   it('runtime preserves the import cause and never falls back to an unpinned local checkout', () => {
-    const runtimeJs = readRepoFile('self/infrastructure/doppler-runtime-service.js');
+    const runtimeJs = readRepoFile('shared/infrastructure/doppler-runtime-service.js');
     expect(runtimeJs).toContain('const defaultLoadModule = async () =>');
     expect(runtimeJs).toContain('Inspect the first failed module request.');
     expect(runtimeJs).toContain('{ cause }');

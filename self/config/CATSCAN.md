@@ -17,7 +17,7 @@ Declare reproducible per-surface boot, route, module, environment and capability
 ## Contracts
 
 Inputs:
-- Supported surface boundaries from [surface intents](surface-intents.js).
+- Supported surface boundaries from [surface intents](../../shared/config/surface-intents.js).
 - Seed requirements from [boot-seed.js](boot-seed.js).
 
 Outputs:

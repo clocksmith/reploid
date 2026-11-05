@@ -26,7 +26,7 @@ import {
   LOCAL_DOPPLER_MODELS,
   buildLocalDopplerModelConfig,
   getLocalDopplerModel
-} from '../../config/doppler-local-models.js';
+} from '../../../shared/config/doppler-local-models.js';
 import {
   getBootSeedProfile,
   getBootSourceManifest,
@@ -41,7 +41,7 @@ import {
   deleteVfsFile,
   listVfsKeys
 } from '../../boot-helpers/vfs-bootstrap.js';
-import { getCurrentReploidStorage as getReploidStorage } from '../../instance.js';
+import { getCurrentReploidStorage as getReploidStorage } from '../../../shared/instance.js';
 
 const VERIFY_STATE = Object.freeze({
   UNVERIFIED: 'unverified',

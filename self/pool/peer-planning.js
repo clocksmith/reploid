@@ -2,15 +2,15 @@
  * @fileoverview Deterministic provider selection and ring planning for Poolday peers.
  */
 
-import { hashJson } from './inference-receipt.js';
+import { hashJson } from '../../shared/pool/inference-receipt.js';
 import {
   effectiveTrustTierForRingSize,
   quorumForRingSize
-} from './config.js';
-import { POOLDAY_MODEL_WORKLOADS } from './model-contract.js';
-import { agreementFieldForWorkload } from './sequence-workload.js';
-import { freezeOperationPolicy as snapshot } from './pack-operation-policy.js';
-import { resolveProviderCapabilitySchema, resolvePeerAssignmentPolicy, validateProviderCapabilities, validateWorkRequirements } from './peer-capabilities.js';
+} from '../../shared/pool/config.js';
+import { POOLDAY_MODEL_WORKLOADS } from '../../shared/pool/model-contract.js';
+import { agreementFieldForWorkload } from '../../shared/pool/sequence-workload.js';
+import { freezeOperationPolicy as snapshot } from '../../shared/pool/pack-operation-policy.js';
+import { resolveProviderCapabilitySchema, resolvePeerAssignmentPolicy, validateProviderCapabilities, validateWorkRequirements } from '../../shared/pool/peer-capabilities.js';
 import { projectPlacementBeliefs } from '../../shared/vendor/reploid/mesh/placement-beliefs.js';
 
 /** Host cohort scopes workload size/classification; pins and reported environment

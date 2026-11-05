@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { openCapsuleArtifactCache } from '../../self/pool/capsule-artifact-cache.js';
-import { sha256Hex } from '../../self/pool/inference-receipt.js';
+import { sha256Hex } from '../../shared/pool/inference-receipt.js';
 
 async function fixture() {
   const envelopeBytes = new TextEncoder().encode('{"fixture":true}');

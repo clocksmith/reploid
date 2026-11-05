@@ -3,12 +3,12 @@ import { createReploidLauncher } from './reploid-launch.js';
  * @fileoverview Self-owned host launcher for Reploid and the legacy boot modes.
  */
 
-import Utils from '../core/utils.js';
+import Utils from '../../shared/core/utils.js';
 import { SELF_BOOT_SPEC, toSourceWebPath } from '../boot-spec.js';
 import { getRuntimeUiSpecByMode } from '../lab/profiles.js';
-import { buildDefaultLocalDopplerModelConfig } from '../config/doppler-local-models.js';
+import { buildDefaultLocalDopplerModelConfig } from '../../shared/config/doppler-local-models.js';
 import { ZERO_GEMINI_AGENT_THROTTLE } from '../config/zero-inference.js';
-import { getCurrentReploidInstanceLabel, getCurrentReploidPeerQuery, getCurrentReploidStorage as getReploidStorage, getSurfaceIdFromUrl } from '../instance.js';
+import { getCurrentReploidInstanceLabel, getCurrentReploidPeerQuery, getCurrentReploidStorage as getReploidStorage, getSurfaceIdFromUrl } from '../../shared/instance.js';
 
 let sharedBootModulesPromise = null;
 

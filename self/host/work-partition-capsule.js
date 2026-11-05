@@ -1,6 +1,6 @@
 /** Exact signed resident admission; complete-job receipt rules remain unchanged. */
-import { hashDopplerEvidence, validateExecutablePack } from '../pool/executable-pack.js';
-import { resolveDopplerExecutionContract } from '../config/doppler-execution-contracts.js';
+import { hashDopplerEvidence, validateExecutablePack } from '../../shared/pool/executable-pack.js';
+import { resolveDopplerExecutionContract } from '../../shared/config/doppler-execution-contracts.js';
 
 export async function assertWorkResidentCapsule(model, session) {
   const binding = model.executablePack, validation = validateExecutablePack(binding);

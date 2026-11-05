@@ -10,6 +10,7 @@ import { createHash } from 'node:crypto';
 import { collectModuleClosure, buildHostingFileSet, walkFiles } from '../../scripts/hosting-file-set.js';
 import { packageHosting, verifyHostingSource } from '../../scripts/package-hosting.js';
 import { buildBrowserBundleManifest, BROWSER_BUNDLE_DESCRIPTOR_PATH } from '../../self/pool/browser-release-identity.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
 
 const fixtures = [];
 afterEach(async () => { await Promise.all(fixtures.splice(0).map(root => rm(root, { recursive: true, force: true }))); });
@@ -41,7 +42,7 @@ describe('Hosting dependency projection', () => {
   it('excludes retired packages and declarations from the real runtime selection', async () => {
     const selfDir = path.resolve(import.meta.dirname, '../../self');
     const selected = await buildHostingFileSet({ selfDir });
-    const pin = JSON.parse(await readFile(path.join(selfDir, 'config/doppler-package.json')));
+    const pin = JSON.parse(await readFile(resolveServedFile('config/doppler-package.json')));
     expect(selected.some(name => name.startsWith(`vendor/doppler/${pin.version}/`))).toBe(true);
     expect([...new Set(selected.filter(name => name.startsWith('vendor/doppler/')).map(name => name.split('/')[2]))])
       .toEqual([pin.version]);

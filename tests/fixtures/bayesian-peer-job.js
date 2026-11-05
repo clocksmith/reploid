@@ -1,6 +1,6 @@
 import { operationFixture, operationCapabilities, operationResources, packPeerIdentity } from './peer-pack-operation.js';
 import { placementBeliefPolicy } from './placement-beliefs.js';
-import { PACK_JOB_POLICY } from '../../self/pool/peer-pack-job-policy.js';
+import { PACK_JOB_POLICY } from '../../shared/pool/peer-pack-job-policy.js';
 import { createPackPeerJob, createPackProviderAdvert, verifyPackPeerJob, signPackPeerMessage } from '../../self/pool/peer-pack-job.js';
 import { operationPlacementContext } from '../../self/pool/peer-planning.js';
 

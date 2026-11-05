@@ -16,9 +16,9 @@ const pooled = process.argv[3] === 'pooled';
 assert(!process.argv[3] || pooled, 'Only the declared pooled mode is supported');
 const receiptName = pooled ? 'browser-gpu-pooled' : 'browser-gpu';
 const directory = path.join(root, 'artifacts/community-lora-20261017');
-const policy = JSON.parse(await fs.readFile(path.join(root, 'self/config/lora-training.json')));
+const policy = JSON.parse(await fs.readFile(resolveServedFile('config/lora-training.json')));
 const native = JSON.parse(await fs.readFile(path.join(directory, 'native.json')));
-const pin = JSON.parse(await fs.readFile(path.join(root, 'self/config/doppler-package.json')));
+const pin = JSON.parse(await fs.readFile(resolveServedFile('config/doppler-package.json')));
 const reference = pooled
   ? { kind: 'supervised-token-weighted contribution loss', absoluteTolerance: 0.000001 }
   : { kind: 'native M3 step', loss: native.metrics[0].loss, absoluteTolerance: 0.0001 };

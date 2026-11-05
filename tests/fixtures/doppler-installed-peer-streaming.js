@@ -4,7 +4,7 @@ import { createPackPeerProvider } from '../../self/pool/peer-pack-provider.js';
 import { createPackPeerRequester } from '../../self/pool/peer-pack-requester.js';
 import { verifyPackPeerEpisode } from '../../self/pool/peer-pack-episode.js';
 import { runPackOperation } from '../../self/pool/pack-operation.js';
-import { createPackOperationRegistry } from '../../self/pool/pack-operation-adapters.js';
+import { createPackOperationRegistry } from '../../shared/pool/pack-operation-adapters.js';
 import { operationCapabilities, operationResources, packPeerIdentity } from './peer-pack-operation.js';
 
 export async function checkInstalledPeerStreaming({ api, service, session, binding, makeRequest }) {

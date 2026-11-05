@@ -173,7 +173,7 @@ describe('Source-only self-image export', () => {
     const catalog = JSON.parse(host.files['/config/self-source-catalog.json']);
     expect(catalog.profiles.spark).toEqual(sourceManifest);
     vi.resetModules();
-    vi.doMock('../../self/config/self-source-catalog.json', () => ({ default: catalog }));
+    vi.doMock('../../shared/config/self-source-catalog.json', () => ({ default: catalog }));
     try {
       // Exercise the real route-aware selector with the descendant's exported catalog.
       const { pickBootSeedFiles } = await import('../../self/config/boot-seed.js');
@@ -185,7 +185,7 @@ describe('Source-only self-image export', () => {
       const descendant = await exportFixture(freshVfs, { includeTools: true });
       expect(descendant.files).toEqual(image.files);
     } finally {
-      vi.doUnmock('../../self/config/self-source-catalog.json');
+      vi.doUnmock('../../shared/config/self-source-catalog.json');
       vi.resetModules();
     }
   });
@@ -224,7 +224,7 @@ describe('Source-only self-image export', () => {
     expect(catalog.profiles[level]).toEqual(exported);
 
     vi.resetModules();
-    vi.doMock('../../self/config/self-source-catalog.json', () => ({ default: catalog }));
+    vi.doMock('../../shared/config/self-source-catalog.json', () => ({ default: catalog }));
     vi.doMock('../../self/config/self-source-manifest.json', () => ({ default: exported }));
     try {
       const { pickBootSeedFiles } = await import('../../self/config/boot-seed.js');
@@ -240,7 +240,7 @@ describe('Source-only self-image export', () => {
       expect(descendant.files).toEqual(image.files);
       expect(descendant.manifest.files).toEqual(image.manifest.files);
     } finally {
-      vi.doUnmock('../../self/config/self-source-catalog.json');
+      vi.doUnmock('../../shared/config/self-source-catalog.json');
       vi.doUnmock('../../self/config/self-source-manifest.json');
       vi.resetModules();
     }

@@ -13,15 +13,15 @@ import {
   sha256Hex,
   SIGNATURE_DOMAINS,
   verifyCanonicalSignature
-} from './inference-receipt.js';
+} from '../../shared/pool/inference-receipt.js';
 import {
   DETERMINISTIC_GENERATION_CONFIG,
   FASTEST_RECEIPT_POLICY_ID,
   POOL_CONFIG_VERSION,
   getPolicy
-} from './config.js';
+} from '../../shared/pool/config.js';
 import { validatePooldayPolicyClasses } from './policy-router.js';
-import { executablePacksMatch, assertPackReceipt } from './executable-pack.js';
+import { executablePacksMatch, assertPackReceipt } from '../../shared/pool/executable-pack.js';
 import { sealPeerAssignmentIdentity } from './peer-assignment.js';
 import {
   LAUNCH_MODEL,
@@ -35,8 +35,8 @@ import {
   modelSupportsPoolWorkload,
   validateLaunchModelRequirement,
   validateProviderModelContract
-} from './model-contract.js';
-import { modelSupportsAdapterRequirement } from './adapter-pack.js';
+} from '../../shared/pool/model-contract.js';
+import { modelSupportsAdapterRequirement } from '../../shared/pool/adapter-pack.js';
 import {
   compareProviderRouteCandidates,
   evaluateProviderRouteCandidate,
@@ -44,7 +44,7 @@ import {
 } from './artifact-router.js';
 import {
   PARTICIPATION_CAPABILITIES
-} from './participation-profile.js';
+} from '../../shared/pool/participation-profile.js';
 import { verifyPoolIdentityClaims } from './identity-claims.js';
 import {
   createAdapterUseApproval,
@@ -54,14 +54,14 @@ import {
 import {
   P2P_PAYLOAD_TYPES,
   validateP2PPayload
-} from './p2p-payload.js';
+} from '../../shared/pool/p2p-payload.js';
 import {
   SEQUENCE_PUBLIC_SENSITIVITY,
   isSequenceWorkload,
   normalizeSequenceInput,
   normalizeSequenceRequest,
   validateSequenceRequest
-} from './sequence-workload.js';
+} from '../../shared/pool/sequence-workload.js';
 import { validateSequenceOutputIntegrity } from './sequence-result.js';
 import {
   PEER_CONTROL_NETWORK,

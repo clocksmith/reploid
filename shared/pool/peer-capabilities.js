@@ -1,6 +1,6 @@
 /** Capability observations and assignment policy. No discovery, execution or model-family rules. */
 import { freezeOperationPolicy as snapshot } from './pack-operation-policy.js';
-import { resolvePlacementBeliefPolicy } from '../../shared/vendor/reploid/mesh/placement-beliefs.js';
+import { resolvePlacementBeliefPolicy } from '../vendor/reploid/mesh/placement-beliefs.js';
 const assert = (ok, message) => { if (!ok) throw new Error(`Peer capabilities: ${message}`); };
 const integer = value => Number.isSafeInteger(value) && value >= 0;
 const digest = value => typeof value === 'string' && /^sha256:[0-9a-f]{64}$/.test(value);

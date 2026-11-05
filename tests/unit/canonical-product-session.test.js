@@ -3,7 +3,7 @@ const ports = vi.hoisted(() => ({ swarm: vi.fn(), open: vi.fn(), legacy: vi.fn()
 vi.mock('../../self/host/work-swarm.js', () => ({ createWorkSwarm: ports.swarm }));
 vi.mock('../../self/host/chat-session.js', async original => ({ ...await original(), createChatSession: ports.legacy, openCanonicalChatSession: ports.open }));
 vi.mock('../../self/host/swarm-autoconnect.js', () => ({ startSwarmAutoconnect: ports.autoconnect }));
-vi.mock('../../self/infrastructure/doppler-runtime-service.js', async original => ({ ...await original(), createReploidDopplerRuntimeService: ports.service }));
+vi.mock('../../shared/infrastructure/doppler-runtime-service.js', async original => ({ ...await original(), createReploidDopplerRuntimeService: ports.service }));
 vi.mock('../../self/host/work-evolution.js', () => ({ createWorkEvolution: () => ({}) }));
 import { createProductSession } from '../../self/host/product-session.js';
 import { LOCAL_HISTORY_IDENTITY } from '../../self/host/chat-session.js';

@@ -3,7 +3,7 @@ import http from 'node:http';
 import { once } from 'node:events';
 import WebSocket from 'ws';
 import { PublicSwarmServer } from '../../server/public-swarm-server.js';
-import policy from '../../self/config/swarm-bootstrap.json' with { type: 'json' };
+import policy from '../../shared/config/swarm-bootstrap.json' with { type: 'json' };
 
 async function fixture(limits = {}, localPort) {
   const signaling = new PublicSwarmServer({ localPort, policy: { ...policy, server: { ...policy.server, ...limits } }, logger: { log() {}, error() {} } });

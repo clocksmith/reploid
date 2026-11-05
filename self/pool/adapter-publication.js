@@ -7,13 +7,13 @@ import {
   adapterRequirementsEqual,
   validateAdapterRequirement,
   verifyAdapterPack
-} from './adapter-pack.js';
+} from '../../shared/pool/adapter-pack.js';
 import {
   SIGNATURE_DOMAINS,
   hashJson,
   signCanonical,
   verifyCanonicalSignature
-} from './inference-receipt.js';
+} from '../../shared/pool/inference-receipt.js';
 
 export const ADAPTER_PUBLICATION_SCHEMA = 'reploid.pool.adapter-publication/v2';
 export const ADAPTER_USE_APPROVAL_SCHEMA = 'reploid.pool.adapter-use-approval/v2';

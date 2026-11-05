@@ -12,7 +12,7 @@
 
 import { SERVICE_WORKER_ENTRY } from '../config/service-worker.js';
 import { sha256 } from './promotion-policy.js';
-import { getCurrentReploidInstanceId, getSurfaceIdFromUrl } from '../instance.js';
+import { getCurrentReploidInstanceId, getSurfaceIdFromUrl } from '../../shared/instance.js';
 import { isSecurityEnabled } from './security-config.js';
 
 const VerificationManager = {

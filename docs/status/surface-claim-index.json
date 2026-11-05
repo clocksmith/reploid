@@ -11,7 +11,7 @@
       "surface": "/",
       "status": "supported",
       "evidencePaths": [
-        "self/pool/pool-config.json",
+        "shared/pool/pool-config.json",
         "self/pool/research-cycle.js",
         "self/pool/discovery-candidate-action.js",
         "self/pool/discovery-contract.js",
@@ -46,7 +46,7 @@
       "surface": "/zero",
       "status": "supported",
       "evidencePaths": [
-        "self/config/surface-intents.js",
+        "shared/config/surface-intents.js",
         "tests/unit/surface-intents.test.js",
         "tests/e2e/boot.spec.js",
         "docs/status/zero-critical-user-journeys.json"
@@ -59,7 +59,7 @@
       "surface": "/x",
       "status": "supported",
       "evidencePaths": [
-        "self/config/surface-intents.js",
+        "shared/config/surface-intents.js",
         "tests/unit/surface-intents.test.js",
         "tests/e2e/boot.spec.js",
         "docs/status/x-critical-user-journeys.json"
@@ -160,7 +160,7 @@
       "surface": "local-execution",
       "status": "supported",
       "evidencePaths": [
-        "self/config/doppler-local-models.js",
+        "shared/config/doppler-local-models.js",
         "tests/e2e/boot.spec.js"
       ],
       "blockers": [],
@@ -245,7 +245,7 @@
       "surface": "public-mesh",
       "status": "blocked",
       "evidencePaths": [
-        "self/pool/p2p-transport.js",
+        "shared/pool/p2p-transport.js",
         "tests/integration/signaling-server.test.js",
         "docs/browser-inference-pool.md"
       ],

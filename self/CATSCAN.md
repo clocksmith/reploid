@@ -18,7 +18,7 @@ Boot the selected Reploid surface in a browser with explicit configuration, reco
 ## Contracts
 
 Inputs:
-- Surface selection from [surface intents](config/surface-intents.js).
+- Surface selection from [surface intents](../shared/config/surface-intents.js).
 - Runtime modules from the [manifest](manifest.js).
 
 Outputs:

@@ -5,10 +5,10 @@ import { FILE_TEXT_LIMIT_BYTES as TEXT_LIMIT_BYTES, FILE_BINARY_LIMIT_BYTES as B
  * @fileoverview Bridge between the live self and the browser substrate.
  */
 
-import Utils from './core/utils.js';
+import Utils from '../shared/core/utils.js';
 import ProviderRegistry from './core/provider-registry.js';
 import LLMClient from './core/llm-client.js';
-import EventBus from './infrastructure/event-bus.js';
+import EventBus from '../shared/infrastructure/event-bus.js';
 import StreamParser from './infrastructure/stream-parser.js';
 import SwarmTransportModule from './capabilities/communication/swarm-transport.js';
 import { readVfsFile, writeVfsFile, listVfsKeys } from './host/vfs-bootstrap.js';
@@ -26,11 +26,11 @@ import {
   ensureIdentityDocument,
   rotateIdentityBundle,
   saveIdentityBundle
-} from './identity.js';
-import { getCurrentReploidInstanceId } from './instance.js';
+} from '../shared/identity.js';
+import { getCurrentReploidInstanceId } from '../shared/instance.js';
 import { verifyReceipt } from './receipt.js';
 import { createLegacyGenerationMesh } from '../shared/vendor/reploid/mesh/index.js';
-import { createLegacyNetworkOptions } from './capabilities/communication/library-adapter.js';
+import { createLegacyNetworkOptions } from '../shared/capabilities/communication/library-adapter.js';
 import { createSelfToolRunner } from './tool-runner.js';
 import { promoteShadowCandidate } from './tools/Promote.js';
 

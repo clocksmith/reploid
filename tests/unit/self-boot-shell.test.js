@@ -7,13 +7,14 @@ import { describe, expect, it } from 'vitest';
 import { SELF_BOOT_SPEC, toSourceWebPath } from '../../self/boot-spec.js';
 import { PROTO_RUNTIME_SELF_MIRROR_RULES, buildRuntimeSelfMirrors } from '../../self/lab/mirrors.js';
 import { SELF_SOURCE_MIRRORS } from '../../self/manifest.js';
+import { readServedTextSync } from '../helpers/served-browser-files.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const readRepoFile = (relativePath) => readFileSync(
-  path.resolve(__dirname, '../../', relativePath),
-  'utf8'
-);
+// self/<path> names the browser file served at <path>; assertions read it as served.
+const readRepoFile = (relativePath) => (relativePath.startsWith('self/')
+  ? readServedTextSync(relativePath.slice('self/'.length))
+  : readFileSync(path.resolve(__dirname, '../../', relativePath), 'utf8'));
 
 describe('self-first boot shell', () => {
   it('publishes the root base href through the self boot spec', () => {

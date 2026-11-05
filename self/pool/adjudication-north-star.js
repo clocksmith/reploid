@@ -7,7 +7,7 @@
  */
 
 import { DISCOVERY_COST_COMPONENTS } from './discovery-candidate-action.js';
-import { hashJson } from './inference-receipt.js';
+import { hashJson } from '../../shared/pool/inference-receipt.js';
 
 export const ADJUDICATION_NORTH_STAR_POLICY_VERSION = 'poolday.adjudication_north_star_policy/v1';
 export const ADJUDICATION_NORTH_STAR_EVIDENCE_VERSION = 'poolday.adjudication_north_star_evidence/v1';

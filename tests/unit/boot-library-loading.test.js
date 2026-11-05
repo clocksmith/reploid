@@ -2,8 +2,9 @@
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { describe, expect, it, vi } from 'vitest';
+import { resolveServedFile } from '../../server/browser-roots.js';
 
-const source = readFileSync(new URL('../../self/host/sw-module-loader.js', import.meta.url), 'utf8');
+const source = readFileSync(resolveServedFile('host/sw-module-loader.js'), 'utf8');
 const origin = 'https://reploid.test';
 
 function createLoader(files = {}, surface = 'zero', clients = null) {

@@ -1,13 +1,13 @@
 /** Explicit product participation for an application-selected operation. */
-import config from './pool-config.json' with { type: 'json' };
-import { createPoolIdentity } from './identity.js';
-import { exportPublicKey, sha256Hex } from './inference-receipt.js';
+import config from '../../shared/pool/pool-config.json' with { type: 'json' };
+import { createPoolIdentity } from '../../shared/pool/identity.js';
+import { exportPublicKey, sha256Hex } from '../../shared/pool/inference-receipt.js';
 import { createLocalPackExecutor } from './local-pack-executor.js';
 import { createOperationRoomProvider } from './operation-room-network.js';
 import { packPeerModel } from './peer-pack-job.js';
-import { hashDopplerEvidence } from './executable-pack.js';
-import { validateOperationModel } from './operation-model.js';
-import { createPackOperationRegistry } from './pack-operation-adapters.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
+import { validateOperationModel } from '../../shared/pool/operation-model.js';
+import { createPackOperationRegistry } from '../../shared/pool/pack-operation-adapters.js';
 import { snapshotPackOperationData as snapshot } from './pack-operation.js';
 import { normalizeExecutionAdapterSet } from './adapter-execution.js';
 const assert = (ok, message) => { if (!ok) throw new Error(message); };

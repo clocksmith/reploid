@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { openZeroStore } from '../../self/zero/store.js';
-import { getScopedReploidVfsDbName } from '../../self/instance.js';
+import { getScopedReploidVfsDbName } from '../../shared/instance.js';
 
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
 

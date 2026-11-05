@@ -9,7 +9,7 @@ vi.mock('../../self/boot-helpers/vfs-bootstrap.js', async importOriginal => ({
   listVfsKeys: async () => { saved.lists(); return [...saved.files.keys()]; }
 }));
 import { initZeroBootHome } from '../../self/ui/zero-home/index.js';
-import { getCurrentReploidStorage } from '../../self/instance.js';
+import { getCurrentReploidStorage } from '../../shared/instance.js';
 
 afterEach(() => { saved.files.clear(); saved.reads.mockClear(); saved.lists.mockClear(); window.dispatchEvent(new Event('pagehide')); localStorage.clear(); document.body.innerHTML = ''; delete window.triggerAwaken; delete window.getReploidMode; vi.restoreAllMocks(); });
 

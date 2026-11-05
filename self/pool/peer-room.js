@@ -6,7 +6,7 @@ import {
   P2P_TRANSPORT_STATES,
   createP2PProviderTransport,
   createP2PRequesterTransport
-} from './p2p-transport.js';
+} from '../../shared/pool/p2p-transport.js';
 import {
   createBroadcastPeerRoomBus
 } from './peer-rendezvous.js';
@@ -15,18 +15,18 @@ import {
   createP2PPayload,
   createReceiptPayload,
   validateP2PPayload
-} from './p2p-payload.js';
+} from '../../shared/pool/p2p-payload.js';
 import {
   buildPeerAssignmentPlan,
   buildPeerReceiptAgreement,
   validatePeerAssignmentForIntentAndAdvert,
   validateInputPayloadForAssignment
 } from './peer-control-plane.js';
-import { getPolicy } from './config.js';
-import { modelSupportsAdapterRequirement, modelSupportsPoolWorkload } from './model-contract.js';
-import { executablePacksMatch } from './executable-pack.js';
+import { getPolicy } from '../../shared/pool/config.js';
+import { modelSupportsAdapterRequirement, modelSupportsPoolWorkload } from '../../shared/pool/model-contract.js';
+import { executablePacksMatch } from '../../shared/pool/executable-pack.js';
 import { snapshotPackOperationData } from './pack-operation.js';
-import { PACK_JOB_POLICY, resolvePackJobPolicy } from './peer-pack-job-policy.js';
+import { PACK_JOB_POLICY, resolvePackJobPolicy } from '../../shared/pool/peer-pack-job-policy.js';
 import { verifyPackPeerJob } from './peer-pack-job.js';
 
 /** Plan one normalized operation, then connect and deliver that exact signed job. */

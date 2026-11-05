@@ -4,8 +4,8 @@ import { operationFixture, operationCapabilities, operationResources, packPeerId
 import { createPackPeerProvider } from '../../self/pool/peer-pack-provider.js';
 import { createPackPeerRequester } from '../../self/pool/peer-pack-requester.js';
 import { createPackPeerJob, packPeerModel } from '../../self/pool/peer-pack-job.js';
-import { createPackOperationRegistry } from '../../self/pool/pack-operation-adapters.js';
-import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
+import { createPackOperationRegistry } from '../../shared/pool/pack-operation-adapters.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 
 export const storagePolicy = { maxRecords: 8, maxBytes: 2000000, maxUnits: 16, maxAttemptsPerUnit: 4,
   retentionMs: 60000, maxFutureMs: 180000, storageTimeoutMs: 5000 };

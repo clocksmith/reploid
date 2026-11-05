@@ -15,7 +15,7 @@ import {
   normalizeDiscoveryCandidateAction,
   rankSignedCandidateActions
 } from '../../self/pool/discovery-candidate-action.js';
-import { createSigningKeyPair } from '../../self/pool/inference-receipt.js';
+import { createSigningKeyPair } from '../../shared/pool/inference-receipt.js';
 
 const fakeHash = (character) => `sha256:${character.repeat(64)}`;
 const at = (minute) => `2026-08-15T12:${String(minute).padStart(2, '0')}:00.000Z`;

@@ -3,7 +3,7 @@ import {
   exportPublicKey,
   hashJson,
   signProviderReceipt
-} from '../../self/pool/inference-receipt.js';
+} from '../../shared/pool/inference-receipt.js';
 
 export async function createVerifiedResearchAgreement({
   model,

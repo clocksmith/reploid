@@ -18,7 +18,7 @@ Compose minimal Zero and optional X upgrades from explicit profiles; assign expe
 
 Inputs:
 - Route profiles from [profiles.js](profiles.js).
-- Surface boundaries from [surface intents](../config/surface-intents.js).
+- Surface boundaries from [surface intents](../../shared/config/surface-intents.js).
 
 Outputs:
 - Composed lab surfaces through [surface.js](surface.js).

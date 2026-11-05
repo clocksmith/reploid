@@ -9,7 +9,7 @@ import { createHash } from 'node:crypto';
 import { createCustodyExchange, createCustodyContracts, createPieceAcquisition } from '../packages/reploid/src/artifacts/custody/runtime.js';
 import { createSigningKeyPair, exportPublicKey, sha256Hex, signCanonical, verifyCanonicalSignature } from '../packages/reploid/src/artifacts/signatures.js';
 import { createPeerPackDataChannel } from '../self/pool/peer-pack-data-channel.js';
-import { hashDopplerEvidence, validateExecutablePack, executablePacksMatch } from '../self/pool/executable-pack.js';
+import { hashDopplerEvidence, validateExecutablePack, executablePacksMatch } from '../shared/pool/executable-pack.js';
 import policy from '../self/config/chat-files.json' with { type: 'json' };
 import { resolveServedFile } from './browser-roots.js';
 

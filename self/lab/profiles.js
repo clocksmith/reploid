@@ -7,8 +7,8 @@
 
 import {
   getToolNamesForSurfaceIds
-} from '../config/tool-surfaces.js';
-import { requireSurfaceIntent } from '../config/surface-intents.js';
+} from '../../shared/config/tool-surfaces.js';
+import { requireSurfaceIntent } from '../../shared/config/surface-intents.js';
 import { defineLabProfile } from './surface.js';
 import { buildRuntimeSelfMirrors } from './mirrors.js';
 

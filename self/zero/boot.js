@@ -1,4 +1,4 @@
-import { ensureReploidWindowInstance } from '../instance.js';
+import { ensureReploidWindowInstance } from '../../shared/instance.js';
 import { openZeroStore } from './store.js';
 import { validateZeroSource, hashZeroSource } from './image.js';
 

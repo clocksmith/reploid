@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mountZero } from '../../self/zero/ui.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
 
 const turn = () => new Promise(resolve => setTimeout(resolve, 0));
 function setup(overrides = {}) {
@@ -86,7 +87,7 @@ describe('compact Zero conversation surface', () => {
   });
 
   it('parses restrained state-only animations and the reduced-motion override', () => {
-    const css = readFileSync('self/zero/style.css', 'utf8');
+    const css = readFileSync(resolveServedFile('zero/style.css'), 'utf8');
     const style = document.createElement('style'); style.textContent = css; document.head.append(style);
     const rules = [...style.sheet.cssRules];
     const animated = rules.filter(rule => rule.style?.getPropertyValue('animation'));

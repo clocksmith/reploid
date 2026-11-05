@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import vm from 'node:vm';
 import { createCodeEvolution, createImprovementLedger } from '../../packages/reploid/src/improvement/index.js';
-import { ensureIdentityBundle } from '../../self/identity.js';
+import { ensureIdentityBundle } from '../../shared/identity.js';
 
 const candidate = '({value}) => value.trim().toLowerCase()';
 async function fixture() {

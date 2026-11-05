@@ -1,6 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { createWebRTCSwarm } from '../../packages/reploid/src/transport/swarm.js';
-import applicationProfile from '../../self/config/reploid-library.json' with { type: 'json' };
+import applicationProfile from '../../shared/config/reploid-library.json' with { type: 'json' };
 import { resolveConfig } from '../../packages/reploid/src/config/index.js';
 
 afterEach(() => vi.useRealTimers());

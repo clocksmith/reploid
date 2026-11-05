@@ -4,11 +4,11 @@
  */
 import { createReploid } from '../shared/vendor/reploid/agent/index.js';
 import { resolveConfig } from '../shared/vendor/reploid/config/index.js';
-import profile from './config/reploid-library.json' with { type: 'json' };
-import Utils from './core/utils.js';
+import profile from '../shared/config/reploid-library.json' with { type: 'json' };
+import Utils from '../shared/core/utils.js';
 import ResponseParser from './core/response-parser.js';
 import { createSelfBridge } from './bridge.js';
-import { getCurrentReploidInstanceId } from './instance.js';
+import { getCurrentReploidInstanceId } from '../shared/instance.js';
 import { SELF_BLUEPRINT_PATHS, SELF_PROMPT_PATHS } from './manifest.js';
 
 export function createSelfRuntime(options = {}) {

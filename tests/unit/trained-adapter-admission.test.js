@@ -4,8 +4,8 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import UtilsModule from '../../self/core/utils.js';
-import EventBusModule from '../../self/infrastructure/event-bus.js';
+import UtilsModule from '../../shared/core/utils.js';
+import EventBusModule from '../../shared/infrastructure/event-bus.js';
 import HITLControllerModule from '../../self/infrastructure/hitl-controller.js';
 import NeuralCompilerModule, {
   TRAINED_ADAPTER_ADMISSION_SCHEMA,

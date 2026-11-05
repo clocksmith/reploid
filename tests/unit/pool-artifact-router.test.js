@@ -6,7 +6,7 @@ import {
   evaluateProviderRouteCandidate,
   sealArtifactRouteDecision
 } from '../../self/pool/artifact-router.js';
-import { LAUNCH_MODEL } from '../../self/pool/model-contract.js';
+import { LAUNCH_MODEL } from '../../shared/pool/model-contract.js';
 
 const hash = (character) => `sha256:${character.repeat(64)}`;
 const adapter = (state = 'fetchable') => ({

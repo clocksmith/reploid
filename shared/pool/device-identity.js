@@ -1,4 +1,4 @@
-import { bytesToBase64, base64ToBytes, toBase64Url as bytesToBase64Url, fromBase64Url as base64UrlToBytes } from '../../shared/vendor/reploid/artifacts/binary.js';
+import { bytesToBase64, base64ToBytes, toBase64Url as bytesToBase64Url, fromBase64Url as base64UrlToBytes } from '../vendor/reploid/artifacts/binary.js';
 /**
  * @fileoverview Device-root identity, role delegation, and optional passkey binding.
  */

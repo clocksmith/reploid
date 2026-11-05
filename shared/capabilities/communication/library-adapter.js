@@ -1,4 +1,4 @@
-import { resolveConfig } from '../../../shared/vendor/reploid/config/index.js';
+import { resolveConfig } from '../../vendor/reploid/config/index.js';
 import profile from '../../config/reploid-library.json' with { type: 'json' };
 import { getCurrentReploidStorage } from '../../instance.js';
 import policy from '../../config/swarm-bootstrap.json' with { type: 'json' };

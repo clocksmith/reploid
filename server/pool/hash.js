@@ -3,7 +3,7 @@
  */
 
 import crypto from 'crypto';
-import { canonicalize } from '../../self/pool/canonical-json.js';
+import { canonicalize } from '../../shared/pool/canonical-json.js';
 
 export { canonicalize };
 

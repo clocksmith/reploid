@@ -7,7 +7,7 @@ import {
   hashJson,
   signCanonical,
   verifyCanonicalSignature
-} from './inference-receipt.js';
+} from '../../shared/pool/inference-receipt.js';
 
 export const PEER_CONTROL_VERSION = 'reploid_peer_control/v1';
 export const PEER_CONTROL_NETWORK = 'poolday';

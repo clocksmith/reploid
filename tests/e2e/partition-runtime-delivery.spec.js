@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import * as installed from 'doppler-gpu/partitions';
-import { DOPPLER_PARTITIONS_MODULE_URL } from '../../self/config/doppler-local-models.js';
+import { DOPPLER_PARTITIONS_MODULE_URL } from '../../shared/config/doppler-local-models.js';
 
 test('host retires acquired storage when partition admission fails before GPU loading', async ({ page }, testInfo) => {
   await page.route('**/partition-import-probe', route => route.fulfill({

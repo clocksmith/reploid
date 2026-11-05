@@ -1,5 +1,5 @@
 export { escapeHtml };
-import { escapeHtml as escapeHtmlValue } from './html.js';
+import { escapeHtml as escapeHtmlValue } from '../../../shared/ui/components/html.js';
 const escapeHtml = value => escapeHtmlValue(value, '&#39;');
 
 

@@ -1,4 +1,4 @@
-import pin from '../../self/config/doppler-package.json' with { type: 'json' };
+import pin from '../../shared/config/doppler-package.json' with { type: 'json' };
 import { describe, expect, it, vi } from 'vitest';
 
 import { createReploidDopplerRuntimeService } from '../../self/core/doppler-runtime-service.js';

@@ -232,9 +232,9 @@ const main = () => {
   if (JSON.stringify(discovered) !== JSON.stringify([...files].sort())) {
     report('layers.json', 1, 'every Poolday stylesheet must belong to exactly one layer');
   }
-  const entry = readFileSync(path.join(ROOT, 'self/pool-entry.html'), 'utf8');
+  const entry = readFileSync(resolveServedFile('pool-entry.html'), 'utf8');
   const linked = [...entry.matchAll(/href=["']\/styles\/poolday\/([^"'?]+)(?:\?[^"']*)?["']/g)].map(match => match[1]);
-  const fallback = readFileSync(path.join(ROOT, 'self/index.html'), 'utf8');
+  const fallback = readFileSync(resolveServedFile('index.html'), 'utf8');
   const fallbackFiles = JSON.parse(fallback.match(/const pooldayStylesheets = (\[[^;]+\]);/)?.[1] || '[]');
   for (const [name, actual] of [['pool-entry.html', linked], ['index.html', fallbackFiles]]) {
     if (JSON.stringify(actual) !== JSON.stringify(files)) report(name, 1, 'stylesheet load order differs from layers.json');

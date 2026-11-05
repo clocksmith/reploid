@@ -6,9 +6,9 @@ import { createServer } from 'node:http';
 import { basename, dirname, resolve, sep, extname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { execFileSync } from 'node:child_process';
-import { hashDopplerEvidence } from '../self/pool/executable-pack.js';
-import { sha256Hex } from '../self/pool/inference-receipt.js';
-import { resolveDopplerExecutionContract } from '../self/config/doppler-execution-contracts.js';
+import { hashDopplerEvidence } from '../shared/pool/executable-pack.js';
+import { sha256Hex } from '../shared/pool/inference-receipt.js';
+import { resolveDopplerExecutionContract } from '../shared/config/doppler-execution-contracts.js';
 import { servedTreeSnapshot } from './package-hosting.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');

@@ -4,7 +4,7 @@
 
 import fs from 'fs';
 
-import { createPoolConfigContract } from '../../self/pool/config-contract.js';
+import { createPoolConfigContract } from '../../shared/pool/config-contract.js';
 import { hashJson } from './hash.js';
 import { resolveServedFile } from '../browser-roots.js';
 

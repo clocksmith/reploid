@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const loadBootstrap = async () => {
   vi.resetModules();
-  return (await import('../../self/pool/firebase-auth.js')).bootstrapPoolFirebaseAuth;
+  return (await import('../../shared/pool/firebase-auth.js')).bootstrapPoolFirebaseAuth;
 };
 
 describe('Pool Firebase Auth bootstrap', () => {

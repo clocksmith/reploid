@@ -30,7 +30,7 @@ are independent gates. Cancelled provider work must settle before replacement
 execution begins, and closing waits for borrowed operations without claiming to
 terminate them.
 
-Zero and X resolve from `self/config/surface-intents.js`. Modules, tool surfaces,
+Zero and X resolve from `shared/config/surface-intents.js`. Modules, tool surfaces,
 resource seeds, mirror rules and UI specifications flow into their lab profiles.
 X adds executable capabilities to Zero. Feature absence differs from immutable
 authority ceilings and explicit host grants. A route cannot authorize independent

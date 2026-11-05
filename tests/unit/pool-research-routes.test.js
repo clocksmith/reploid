@@ -9,8 +9,8 @@ import {
   createSignedResearchSubmission
 } from '../../self/pool/evidence-network.js';
 import { createDiscoveryContractCheckpoint } from '../../self/pool/discovery-contract.js';
-import { createSigningKeyPair } from '../../self/pool/inference-receipt.js';
-import { buildLaunchProviderModel, getPoolModelContract } from '../../self/pool/model-contract.js';
+import { createSigningKeyPair } from '../../shared/pool/inference-receipt.js';
+import { buildLaunchProviderModel, getPoolModelContract } from '../../shared/pool/model-contract.js';
 
 const recordIdentity = async (kind = 'requester', id = 'route') => {
   const keyPair = await createSigningKeyPair();

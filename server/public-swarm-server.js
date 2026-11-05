@@ -1,6 +1,6 @@
 import { allowsSwarmOrigin } from './swarm-origin-policy.js';
 import SignalingServer from './signaling-server.js';
-import policy from '../self/config/swarm-bootstrap.json' with { type: 'json' };
+import policy from '../shared/config/swarm-bootstrap.json' with { type: 'json' };
 
 /** Bounded rendezvous only. The legacy endpoint retains its original access gates. */
 export class PublicSwarmServer extends SignalingServer {

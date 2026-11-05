@@ -2,7 +2,7 @@
 import { packPeerIdentity } from './peer-pack-operation.js';
 import { executionAdapterArtifactSet } from '../../self/pool/adapter-execution.js';
 import { createPeerPackSupplier } from '../../self/pool/peer-pack-custody.js';
-import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 export async function adapterCustodyFixture(f) {
   const supplierId = await packPeerIdentity(), receiver = await packPeerIdentity();
   const artifactSet = executionAdapterArtifactSet(f.entry), artifact = artifactSet.artifacts[0];

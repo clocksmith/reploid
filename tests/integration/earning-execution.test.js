@@ -19,7 +19,7 @@ import { createChatExecution } from '../../self/host/chat-execution.js';
 import { createEarningAttempts } from '../../self/host/earning/attempts.js';
 import { EARNING_CLIENT_SCHEMA, createEarningClient } from '../../self/host/earning/client.js';
 import { createEarningContribution } from '../../self/host/earning/contribution.js';
-import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { createSessionBinding } from '../../packages/reploid/src/artifacts/participant-proofs.js';
 import { remotePermissionWording } from '../../self/ui/pool-home/remote-permission.js';
 import { ACCOUNT_POLICY, newIdentity, openAccountFixture } from '../helpers/account-fixture.js';

@@ -1,8 +1,8 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest';
-import config from '../../self/pool/pool-config.json' with { type: 'json' };
-import { resolvePackJobPolicy } from '../../self/pool/peer-pack-job-policy.js';
-import { validatePoolConfigValue } from '../../self/pool/config-contract.js';
+import config from '../../shared/pool/pool-config.json' with { type: 'json' };
+import { resolvePackJobPolicy } from '../../shared/pool/peer-pack-job-policy.js';
+import { validatePoolConfigValue } from '../../shared/pool/config-contract.js';
 
 describe('explicit remote attempt policy', () => {
   it('requires storage, retry and numbering policy during configuration validation', () => {

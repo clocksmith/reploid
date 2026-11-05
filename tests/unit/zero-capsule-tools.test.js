@@ -12,8 +12,8 @@ import { sha256 } from '../../self/core/promotion-policy.js';
 import createToolCore from '../../self/core/create-tool.js';
 import { isSecurityEnabled, setSecurityEnabled } from '../../self/core/security-config.js';
 
-const workerSource = readFileSync(new URL('../../self/core/verification-worker.js', import.meta.url), 'utf8');
-const parserSource = readFileSync(new URL('../../self/core/vendor/acorn.js', import.meta.url), 'utf8');
+const workerSource = readFileSync(new URL('../../shared/core/verification-worker.js', import.meta.url), 'utf8');
+const parserSource = readFileSync(new URL('../../shared/core/vendor/acorn.js', import.meta.url), 'utf8');
 // Real unchanged verifier/parser in a separate Worker. Only browser transport is adapted.
 class ClassicWorker {
   constructor(url) {

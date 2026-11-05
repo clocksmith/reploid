@@ -1,4 +1,4 @@
-import config from '../../self/pool/pool-config.json' with { type: 'json' };
+import config from '../../shared/pool/pool-config.json' with { type: 'json' };
 import { operationFixture } from './peer-pack-operation.js';
 import { peerAdapterFixture } from './peer-adapter.js';
 import { adapterCustodyFixture } from './peer-adapter-custody.js';

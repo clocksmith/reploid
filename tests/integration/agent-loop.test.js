@@ -6,7 +6,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import AgentLoopModule from '../../core/agent-loop.js';
 import ToolExecutorModule from '../../infrastructure/tool-executor.js';
-import { ZERO_SEED_TOOLS } from '../../self/config/tool-surfaces.js';
+import { ZERO_SEED_TOOLS } from '../../shared/config/tool-surfaces.js';
 
 describe('AgentLoop - Integration Tests', () => {
   let agentLoop;

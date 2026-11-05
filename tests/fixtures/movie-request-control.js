@@ -15,14 +15,14 @@ const fromSnapshot = path => import(pathToFileURL(resolve(contract.snapshot, pat
 const retainedBytes = await readFile(contract.receipt);
 assert.equal(hash(retainedBytes), contract.receiptSha256);
 const retained = JSON.parse(retainedBytes);
-const model = (await load(resolve(contract.snapshot, 'self/config/chat-models.json')))
+const model = (await load(resolve(contract.snapshot, 'shared/config/chat-models.json')))
   .find(row => row.id === retained.modelId);
 assert.equal(model.identity, contract.modelIdentity);
 const manifestText = await readFile(resolve(contract.modelDirectory, 'manifest.json'), 'utf8');
 assert.equal('sha256:' + hash(manifestText), contract.modelIdentity);
 const manifest = JSON.parse(manifestText);
 const { createNativeGpuHost } = await fromSnapshot('server/native-participant.js');
-const { createReploidDopplerRuntimeService } = await fromSnapshot('self/infrastructure/doppler-runtime-service.js');
+const { createReploidDopplerRuntimeService } = await fromSnapshot('shared/infrastructure/doppler-runtime-service.js');
 const { openWorkProvider } = await fromSnapshot('self/providers/work-provider.js');
 const runtime = await fromSnapshot('node_modules/doppler-gpu/src/index.js');
 const profile = await load(resolve(contract.snapshot, 'self/config/work-profile.json'));

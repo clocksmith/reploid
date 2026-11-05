@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   createPoolSdk,
   getDefaultPoolClientId
-} from '../../self/pool/sdk.js';
+} from '../../shared/pool/sdk.js';
 
 describe('Pool SDK client identity', () => {
   afterEach(() => {

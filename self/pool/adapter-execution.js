@@ -1,13 +1,13 @@
 /** Exact adapter composition for complete jobs. No transport or model mathematics. */
-import { freezeOperationPolicy } from './pack-operation-policy.js';
-import { hashDopplerEvidence } from './executable-pack.js';
-import { adapterRequirementFromPack, modelIdentityMatchesAdapterRequirement } from './adapter-pack.js';
+import { freezeOperationPolicy } from '../../shared/pool/pack-operation-policy.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
+import { adapterRequirementFromPack, modelIdentityMatchesAdapterRequirement } from '../../shared/pool/adapter-pack.js';
 import { verifyAdapterPublication } from './adapter-publication.js';
-import { resolveDopplerExecutionContract } from '../config/doppler-execution-contracts.js';
+import { resolveDopplerExecutionContract } from '../../shared/config/doppler-execution-contracts.js';
 
 const assert = (ok, message) => { if (!ok) throw new Error(`Adapter execution: ${message}`); };
-import { resolveAdapterExecutionPolicy } from './adapter-execution-policy.js';
-export { resolveAdapterExecutionPolicy } from './adapter-execution-policy.js';
+import { resolveAdapterExecutionPolicy } from '../../shared/pool/adapter-execution-policy.js';
+export { resolveAdapterExecutionPolicy } from '../../shared/pool/adapter-execution-policy.js';
 
 /** Publication identity and every base-model compatibility field are retained. */
 export async function normalizeExecutionAdapterSet(input, { model, policy: policyInput }) {

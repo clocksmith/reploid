@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import ReplayEngine from '../../self/infrastructure/replay-engine.js';
 import { RUN_TRACE_SCHEMA } from '../../self/core/run-replay-bundle.js';
-import Utils from '../../self/core/utils.js';
+import Utils from '../../shared/core/utils.js';
 import { createReplayManager } from '../../self/ui/proto/replay.js';
 import { renderProtoTemplate } from '../../self/ui/proto/template.js';
 

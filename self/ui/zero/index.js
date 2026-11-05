@@ -2,7 +2,7 @@
  * @fileoverview Compact runtime shell for X and Zero.
  */
 
-import { getCurrentReploidStorage as getReploidStorage } from '../../instance.js';
+import { getCurrentReploidStorage as getReploidStorage } from '../../../shared/instance.js';
 import { createRunReplayPanel } from './replay-panel.js';
 import { exportSelfImage } from '../../image/export.js';
 import { createZeroTraceView } from './trace-view.js';

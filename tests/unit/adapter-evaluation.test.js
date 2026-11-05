@@ -5,6 +5,7 @@ import path from 'node:path';
 import { AdapterEvaluationError, validateAdapterEvaluationSpec, verifyAdapterEvaluationReceipt } from '../../self/pool/adapter-evaluation.js';
 import { buildReceipt, goldEntities, scoreEntities, scoreFinalNumber, selectTaskItems } from '../../scripts/adapter-evaluation.js';
 import { adapter, baseModel, fixtureReceipt, json, keys, sha } from '../fixtures/adapter-evaluation.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
 const verify = ({ spec, specSha256, receipt }, overrides = {}) => verifyAdapterEvaluationReceipt({ receipt, spec, specSha256, adapter, baseModel, ...overrides });
 
 describe('held-out adapter evaluation', () => {
@@ -91,7 +92,7 @@ describe('held-out adapter evaluation', () => {
   });
 
   it('keeps the published NER spec frozen, valid and disjoint from its training data', async () => {
-    const spec = JSON.parse(await readFile('self/config/adapter-evaluations/ner-json-people-places-dates-v1.json', 'utf8'));
+    const spec = JSON.parse(await readFile(resolveServedFile('config/adapter-evaluations/ner-json-people-places-dates-v1.json'), 'utf8'));
     expect(validateAdapterEvaluationSpec(spec)).toBe(spec);
     for (const items of [spec.data.heldOut.items, spec.retention.items]) expect(items.sha256).not.toBe('sha256:' + '0'.repeat(64));
   });

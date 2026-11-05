@@ -13,7 +13,7 @@ import { createWorkerManager } from './workers.js';
 import { createDopplerOptimizationManager } from './optimization.js';
 import { formatDuration, formatSince, formatTimestamp, summarizeText } from './utils.js';
 import CognitionPanel from '../panels/cognition-panel.js';
-import { getCurrentReploidStorage as getReploidStorage } from '../../instance.js';
+import { getCurrentReploidStorage as getReploidStorage } from '../../../shared/instance.js';
 import { createVFSManager } from './vfs.js';
 
 const Proto = {

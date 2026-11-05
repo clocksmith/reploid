@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { LAB_SURFACE_IDS, SURFACE_INTENTS } from '../../self/config/surface-intents.js';
+import { LAB_SURFACE_IDS, SURFACE_INTENTS } from '../../shared/config/surface-intents.js';
 import { bindPoolRouteControls } from '../../self/ui/pool-home/navigation.js';
 import { renderAppShortcuts } from '../../self/ui/pool-home/shell-view.js';
 import { renderNetworkInspector } from '../../self/ui/pool-home/network-inspector.js';

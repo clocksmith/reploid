@@ -6,11 +6,11 @@ import { createCustodyExchange } from '../../shared/vendor/reploid/artifacts/cus
 import { createCustodyKeyCertifier } from '../../shared/vendor/reploid/artifacts/custody-certificate.js';
 import { createPeerPackSupplier, createPeerPackArtifactStore } from '../pool/peer-pack-custody.js';
 import { createPeerPackDataChannel } from '../pool/peer-pack-data-channel.js';
-import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../pool/inference-receipt.js';
-import { hashDopplerEvidence } from '../pool/executable-pack.js';
+import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../../shared/pool/inference-receipt.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { openBrowserSupplyBudget, openBrowserAcquisitionBudget } from '../infrastructure/custody-supply-budget.js';
 import { openPeerPackFileCheckpoints } from '../infrastructure/pack-transfer-storage.js';
-import { DOPPLER_MODULE_URL, DOPPLER_PARTITIONS_MODULE_URL, DOPPLER_STORAGE_TOOLING_URL, LOCAL_DOPPLER_MODELS } from '../config/doppler-local-models.js';
+import { DOPPLER_MODULE_URL, DOPPLER_PARTITIONS_MODULE_URL, DOPPLER_STORAGE_TOOLING_URL, LOCAL_DOPPLER_MODELS } from '../../shared/config/doppler-local-models.js';
 import policy from '../config/chat-files.json' with { type: 'json' };
 
 export const getFileContributionLimits = () => ({ storedBytes: policy.maxStoredBytes, supplyBytes: policy.maxSupplyBytes, downloadBytes: policy.defaultAcquisitionBytes, maxDownloadBytes: policy.maxAcquisitionBytes, subsetBytes: policy.maxSubsetBytes });

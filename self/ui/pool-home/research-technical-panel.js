@@ -1,4 +1,4 @@
-import { escapeHtml } from '../components/html.js';
+import { escapeHtml } from '../../../shared/ui/components/html.js';
 /**
  * @fileoverview Consent-aware technical evidence disclosures for Research Room records.
  *

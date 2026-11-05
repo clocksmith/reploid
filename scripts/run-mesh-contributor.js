@@ -5,6 +5,7 @@ import { mkdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { chromium } from 'playwright';
 import { attachBrowserWebBridge } from '../server/browser-web-bridge.js';
+import { resolveServedFile } from '../server/browser-roots.js';
 
 const { values } = parseArgs({ options: {
   url: { type: 'string' }, profile: { type: 'string' }, model: { type: 'string' },
@@ -45,7 +46,7 @@ try {
   if (values.contribute === 'compute') {
     // Observe the completed host receipt after its timers stop. No exception or
     // token breakpoints: acquisition and generation timings remain unpaused.
-    const source = (await readFile(new URL('../self/host/work-partitions.js', import.meta.url), 'utf8')).split('\n');
+    const source = (await readFile(resolveServedFile('host/work-partitions.js'), 'utf8')).split('\n');
     const cdp = await context.newCDPSession(page);
     await cdp.send('Debugger.enable');
     const breakpoint = await cdp.send('Debugger.setBreakpointByUrl', {

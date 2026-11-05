@@ -1,8 +1,8 @@
 // Synthetic execution fixture. Exercises application plumbing, never model qualification.
-import { DOPPLER_GENERATION_CONTRACT } from '../../self/infrastructure/doppler-runtime-service.js';
-import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
-import { PACK_EXECUTION_MODE, PACK_OPERATION_WORKLOADS } from '../../self/pool/operation-model.js';
-import { resolveDopplerExecutionContract } from '../../self/config/doppler-execution-contracts.js';
+import { DOPPLER_GENERATION_CONTRACT } from '../../shared/infrastructure/doppler-runtime-service.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
+import { PACK_EXECUTION_MODE, PACK_OPERATION_WORKLOADS } from '../../shared/pool/operation-model.js';
+import { resolveDopplerExecutionContract } from '../../shared/config/doppler-execution-contracts.js';
 
 const digest = (value) => `sha256:${value.repeat(64)}`;
 export async function createDocumentPackFixture({ answerText = 'Apple trees grow fruit. [1]', schema = 'doppler.pack/v2', runtimeVersion = '0.5.1' } = {}) {

@@ -8,7 +8,7 @@
 import { DETERMINISTIC_GENERATION_CONFIG } from '../policy-router.js';
 import { LAUNCH_MODEL, isLaunchModelRequirement } from '../model-contract.js';
 import { createCanaryChallenge, createChallengeRerun } from '../audits.js';
-import { isSequenceWorkload } from '../../../self/pool/sequence-workload.js';
+import { isSequenceWorkload } from '../../../shared/pool/sequence-workload.js';
 
 const providerHasLaunchModel = (provider) => (provider?.models || []).find((model) => isLaunchModelRequirement(model));
 

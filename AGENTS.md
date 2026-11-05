@@ -103,7 +103,7 @@ reploid/
 - `self/host/` supplies identity, catalog, policy, storage and runtime ports.
 - `self/core/`, `self/tools/`, and `self/infrastructure/` support the agent/VFS
   substrate. Check the nearest charter before modifying compatibility forwarding.
-- `self/config/doppler-package.json` pins one standard Doppler dependency.
+- `shared/config/doppler-package.json` pins one standard Doppler dependency.
 
 ### Product architecture
 

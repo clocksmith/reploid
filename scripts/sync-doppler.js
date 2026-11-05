@@ -6,6 +6,7 @@ import { promisify } from 'node:util';
 import { readFile, writeFile, mkdir, mkdtemp, copyFile, readdir, access, rm } from 'node:fs/promises';
 import { resolve, relative } from 'node:path';
 import { tmpdir } from 'node:os';
+import { resolveServedFile } from '../server/browser-roots.js';
 
 const root = resolve(import.meta.dirname, '..');
 const exec = promisify(execFile);
@@ -36,7 +37,7 @@ try {
   await exec(process.execPath, ['scripts/vendor-doppler.js', archive], { cwd: root });
   await exec(process.execPath, ['scripts/sync-doppler-generation-contract.js'], { cwd: root });
   await exec(process.execPath, ['scripts/sync-doppler-partition-contract.js'], { cwd: root });
-  const configPath = resolve(root, 'self/pool/pool-config.json');
+  const configPath = resolveServedFile('pool/pool-config.json');
   const config = JSON.parse(await readFile(configPath));
   // This is an explicit dependency upgrade, not a qualification receipt. Every
   // active consumer uses that dependency; old receipts remain historical proof.

@@ -188,13 +188,14 @@ export async function buildOwnershipInventory({ repoRoot = ROOT, why = false } =
   const product = reach(PRODUCT_ENTRIES.filter(has), new Set(SELF_ENTRY_POINTS));
   const substrate = reach(substrateEntries);
   if (why) return { edges, productEntries: PRODUCT_ENTRIES.filter(has), substrateEntries: [...substrateEntries] };
-  // Declarations and provenance records describe one sibling module and follow its owner.
-  const declarationSibling = served => served.replace(/\.d\.ts$|\.provenance\.json$/, '.js');
+  // Declarations, provenance records and vendored licenses describe one sibling module and follow its owner.
+  const declarationSibling = served => served.replace(/\.d\.ts$|\.provenance\.json$/, '.js')
+    .replace(/([^/]+)-LICENSE\.txt$/, (match, name) => `${name.toLowerCase()}.js`);
 
   const entries = [];
   for (const served of files) {
     let owner, basis;
-    const subject = /\.d\.ts$|\.provenance\.json$/.test(served) && has(declarationSibling(served)) ? declarationSibling(served) : served;
+    const subject = /\.d\.ts$|\.provenance\.json$|-LICENSE\.txt$/.test(served) && has(declarationSibling(served)) ? declarationSibling(served) : served;
     const inProduct = product.has(subject), inSubstrate = substrate.has(subject);
     if (served.startsWith('vendor/')) { owner = 'shared'; basis = RULES[0].reason; }
     else if (inProduct && inSubstrate) { owner = 'shared'; basis = 'Reached from product and substrate entries.'; }

@@ -8,7 +8,7 @@
 
 import { validateBrowserQualificationRecord } from './browser-qualification.js';
 import { validateDnaLaneAdmissionRecord } from './dna-lane-admission.js';
-import { exactModelContractKey } from './model-contract.js';
+import { exactModelContractKey } from '../../shared/pool/model-contract.js';
 import { validateScientificFitnessRecord } from './scientific-fitness.js';
 
 const sameContract = (model, identity = {}) => (

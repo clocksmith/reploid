@@ -2,8 +2,8 @@
 import { readFile } from 'node:fs/promises';
 import { afterEach, expect, it, vi } from 'vitest';
 import manifest from '../../self/config/vfs-manifest.json' with { type: 'json' };
-import catalog from '../../self/config/self-source-catalog.json' with { type: 'json' };
-import { getCurrentReploidStorage } from '../../self/instance.js';
+import catalog from '../../shared/config/self-source-catalog.json' with { type: 'json' };
+import { getCurrentReploidStorage } from '../../shared/instance.js';
 import { LAB_UPGRADE_STORAGE_KEY } from '../../self/config/lab-upgrades.js';
 import { pickBootSeedFiles } from '../../self/config/boot-seed.js';
 import { exportSelfImage, validateSelfImageExport } from '../../self/image/export.js';
@@ -60,7 +60,7 @@ it('explicit X upgrade preserves live bytes and exports the newly selected closu
   storage.setItem(LAB_UPGRADE_STORAGE_KEY, 'spark');
   fixture.files.set('/config/self-source-manifest.json', JSON.stringify(catalog.profiles.spark));
   fixture.files.set('/notes/keep.txt', 'User work must stay');
-  const originalUtils = await readFile(`${process.cwd()}/self/core/utils.js`, 'utf8');
+  const originalUtils = await readServedText('core/utils.js');
   const ownedUtils = `// Existing instance edit.\n${originalUtils}`;
   fixture.files.set('/core/utils.js', ownedUtils);
   document.body.innerHTML = '<main id="home"></main>';

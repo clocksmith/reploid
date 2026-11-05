@@ -1,7 +1,7 @@
 /* @vitest-environment happy-dom */
 import { afterEach, expect, it, vi } from 'vitest';
-import catalog from '../../self/config/self-source-catalog.json' with { type: 'json' };
-import { getCurrentReploidStorage } from '../../self/instance.js';
+import catalog from '../../shared/config/self-source-catalog.json' with { type: 'json' };
+import { getCurrentReploidStorage } from '../../shared/instance.js';
 
 const fixture = vi.hoisted(() => ({ files: new Map(), seed: vi.fn(), write: vi.fn() }));
 vi.mock('../../self/host/vfs-bootstrap.js', () => ({

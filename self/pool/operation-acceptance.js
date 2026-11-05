@@ -1,5 +1,5 @@
 /** Requester acceptance is distinct from model correctness qualification. */
-import { hashDopplerEvidence } from './executable-pack.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { snapshotPackOperationData as snapshot, assessPackOperation, assertPackOperationReceipt } from './pack-operation.js';
 const assert = (ok, message) => { if (!ok) throw new Error(`Operation acceptance: ${message}`); };
 

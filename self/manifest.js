@@ -4,11 +4,11 @@
 
 import { cloneSelfBootSpec } from './boot-spec.js';
 import { OPFS_ARTIFACT_ROOTS, WRITABLE_VFS_ROOTS } from './config/vfs-policy.js';
-import { getVisibleToolsByMode } from './config/tool-surfaces.js';
+import { getVisibleToolsByMode } from '../shared/config/tool-surfaces.js';
 import { getDefaultReploidEnvironment } from './environment.js';
-import { buildIdentityDocument } from './identity.js';
-import { getCurrentReploidInstanceId } from './instance.js';
-import { deriveSwarmRole } from './swarm.js';
+import { buildIdentityDocument } from '../shared/identity.js';
+import { getCurrentReploidInstanceId } from '../shared/instance.js';
+import { deriveSwarmRole } from '../shared/swarm.js';
 
 export const SELF_VFS_WRITABLE_ROOTS = Object.freeze([
   '/self',

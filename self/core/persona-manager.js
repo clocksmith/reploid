@@ -4,7 +4,7 @@ import { isMinimalLabMode } from '../config/lab-upgrades.js';
  * dynamic system prompt construction based on config.
  */
 
-import { getCurrentReploidStorage as getReploidStorage } from '../instance.js';
+import { getCurrentReploidStorage as getReploidStorage } from '../../shared/instance.js';
 import { buildZeroCoreInstructions } from './zero-prompt.js';
 
 const PersonaManager = {

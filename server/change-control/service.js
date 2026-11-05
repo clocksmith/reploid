@@ -2,7 +2,7 @@
  * @fileoverview Change Passport application service over append-only storage.
  */
 
-import { ensureIdentityBundle } from '../../self/identity.js';
+import { ensureIdentityBundle } from '../../shared/identity.js';
 import {
   buildChangePassportExport,
   createSignedChangePassportEvent,

@@ -1,4 +1,4 @@
-import { escapeHtml } from '../components/html.js';
+import { escapeHtml } from '../../../shared/ui/components/html.js';
 /**
  * @fileoverview Research Room presentation over the pure room projection.
  */

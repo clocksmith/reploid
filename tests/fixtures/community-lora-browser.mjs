@@ -8,7 +8,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const files = [
   "packages/reploid/src/mesh/partitions/partition-network.js",
   "packages/reploid/src/transport/swarm.js",
-  "self/config/doppler-local-models.js",
+  "shared/config/doppler-local-models.js",
   "self/host/product-session.js",
   "self/host/work-swarm.js",
   "self/ui/pool-home/index.js",

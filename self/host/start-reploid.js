@@ -5,7 +5,7 @@ const launcher = createReploidLauncher();
  */
 
 import { getRouteBootSpec } from '../boot-spec.js';
-import { getCurrentReploidPeerQuery } from '../instance.js';
+import { getCurrentReploidPeerQuery } from '../../shared/instance.js';
 
 
 const renderInlineBootError = (mount, title, message) => {

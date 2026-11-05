@@ -7,18 +7,18 @@ import { createRequesterClient } from '../../self/pool/requester-client.js';
 import {
   buildLaunchProviderModel,
   LAUNCH_MODEL
-} from '../../self/pool/model-contract.js';
+} from '../../shared/pool/model-contract.js';
 import {
   createSigningKeyPair,
   exportPublicKey
-} from '../../self/pool/inference-receipt.js';
+} from '../../shared/pool/inference-receipt.js';
 import {
   createRoleDelegation,
   getDeviceRootIdentity
-} from '../../self/pool/device-identity.js';
+} from '../../shared/pool/device-identity.js';
 import {
   createSignedParticipationProfile
-} from '../../self/pool/participation-profile.js';
+} from '../../shared/pool/participation-profile.js';
 import {
   buildRuntimeProfile,
   hashRuntimeProfile

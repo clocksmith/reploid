@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { exactModelContractKey, getPoolModelContract } from '../../self/pool/model-contract.js';
+import { exactModelContractKey, getPoolModelContract } from '../../shared/pool/model-contract.js';
 import {
   SCIENTIFIC_FITNESS_SCHEMA,
   buildScientificFitnessPlan,

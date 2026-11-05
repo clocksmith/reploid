@@ -20,11 +20,11 @@ Coordinate authorized storage/compute and evaluated intelligence; adjudicate pub
 
 Inputs:
 - [Product intent](../../docs/poolday/product-intent.md).
-- [Runtime policy](pool-config.json).
+- [Runtime policy](../../shared/pool/pool-config.json).
 
 Outputs:
 - [Custody](peer-pack-custody.js), [retrieval](document-search.js).
-- [Receipts](inference-receipt.js), [state](research-cycle.js), [checkpoints](discovery-contract.js), [actions](discovery-candidate-action.js).
+- [Receipts](../../shared/pool/inference-receipt.js), [state](research-cycle.js), [checkpoints](discovery-contract.js), [actions](discovery-candidate-action.js).
 - [Records](evidence-network.js), [campaign](protein-uncertainty-campaign.js), [adjudication](adjudication-north-star.js), [promotion](scientific-policy-promotion.js), [value](realized-action-value.js).
 - Forecasts reuse [assignments](peer-assignment.js)/signatures/acceptance; applications review, never admit.
 - [Jobs](peer-pack-job.js), [acceptance](peer-pack-episode.js): pins, public consent, bounds.

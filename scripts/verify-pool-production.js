@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 import { POOL_CONFIG, POOL_CONFIG_HASH, POOL_CONFIG_VERSION, validatePoolConfig } from '../server/pool/config.js';
 import { buildCoordinatorRuntimeBundle } from '../server/pool/release-identity.js';
 import { hashJson } from '../server/pool/hash.js';
-import { LAUNCH_MODEL, MODEL_CATALOG } from '../self/pool/model-contract.js';
+import { LAUNCH_MODEL, MODEL_CATALOG } from '../shared/pool/model-contract.js';
 import { validateModelPromotionEvidence } from '../self/pool/model-promotion.js';
 import {
   validateDopplerExecutionManifestShape,
@@ -16,7 +16,7 @@ import {
   verifyModelArtifactCorsDelivery,
   verifyModelArtifactManifest,
   verifyModelArtifactRangeDelivery
-} from '../self/pool/model-artifacts.js';
+} from '../shared/pool/model-artifacts.js';
 import { verifyPoolCriticalUserJourneys } from './verify-pool-critical-user-journeys.js';
 
 const __filename = fileURLToPath(import.meta.url);

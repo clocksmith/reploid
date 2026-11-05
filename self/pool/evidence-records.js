@@ -27,14 +27,14 @@ import {
   SEQUENCE_ALPHABETS,
   getMaxPublicSequenceLength,
   normalizeSequenceInput
-} from './sequence-workload.js';
+} from '../../shared/pool/sequence-workload.js';
 import {
   SIGNATURE_DOMAINS,
   exportPublicKey,
   hashJson,
   sha256Hex,
   signCanonical
-} from './inference-receipt.js';
+} from '../../shared/pool/inference-receipt.js';
 import {
   adjudicationMetricResult,
   assessAdjudicationExperiment,
@@ -66,7 +66,7 @@ import {
 } from './evidence-normalization.js';
 import {
   exactModelContractKey
-} from './model-contract.js';
+} from '../../shared/pool/model-contract.js';
 import {
   hashSequenceFloat32Values,
   validateSequenceOutputIntegrity

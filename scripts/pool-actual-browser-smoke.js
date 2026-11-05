@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 import { chromium } from '@playwright/test';
 
-import { LAUNCH_MODEL, getEnabledPoolModelContract } from '../self/pool/model-contract.js';
+import { LAUNCH_MODEL, getEnabledPoolModelContract } from '../shared/pool/model-contract.js';
 import {
   SIGNATURE_DOMAINS,
   acceptanceSigningPayload,
   verifyCanonicalSignature
-} from '../self/pool/inference-receipt.js';
+} from '../shared/pool/inference-receipt.js';
 import { verifyPeerMessage } from '../self/pool/peer-control-plane.js';
 
 const args = process.argv.slice(2);

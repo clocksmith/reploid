@@ -2,7 +2,7 @@
  * @fileoverview Ledger-event creation and deterministic projection for Poolday peers.
  */
 
-import { getLedgerReasons } from './config.js';
+import { getLedgerReasons } from '../../shared/pool/config.js';
 import {
   PEER_MESSAGE_TYPES,
   createSignedPeerMessage,

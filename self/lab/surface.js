@@ -2,7 +2,7 @@
  * @fileoverview Shared helpers for defining lab profiles as explicit extensions.
  */
 
-import { extendIds, freezeArray } from '../config/immutability.js';
+import { extendIds, freezeArray } from '../../shared/config/immutability.js';
 
 export { extendIds, freezeArray };
 

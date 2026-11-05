@@ -49,7 +49,7 @@
         "self/ui/boot-wizard/state.js",
         "self/host/start-app.js",
         "self/lab/profiles.js",
-        "self/config/surface-intents.js"
+        "shared/config/surface-intents.js"
       ],
       "testPaths": [
         "tests/e2e/boot.spec.js",

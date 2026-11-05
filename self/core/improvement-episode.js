@@ -1,6 +1,6 @@
 import { ImprovementEpisodeLedger } from '../../shared/vendor/reploid/improvement/index.js';
-import { ensureIdentityBundle } from '../identity.js';
-import { getCurrentReploidInstanceId } from '../instance.js';
+import { ensureIdentityBundle } from '../../shared/identity.js';
+import { getCurrentReploidInstanceId } from '../../shared/instance.js';
 
 export * from '../../shared/vendor/reploid/improvement/index.js';
 export default {

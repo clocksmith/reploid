@@ -29,12 +29,12 @@ import { createSigningIdentity, createPeerIdFromPublicJwk } from '../packages/re
 import { createAttemptEvidenceSigner } from '../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { resolveConfig } from '../packages/reploid/src/config/index.js';
 import { createWorkAdapterResolver } from '../self/providers/work-adapter.js';
-import models from '../self/config/chat-models.json' with { type: 'json' };
+import models from '../shared/config/chat-models.json' with { type: 'json' };
 import custodyPolicy from '../self/config/chat-files.json' with { type: 'json' };
 import policy from '../self/config/partition-policy.json' with { type: 'json' };
-import profile from '../self/config/reploid-library.json' with { type: 'json' };
-import bootstrap from '../self/config/swarm-bootstrap.json' with { type: 'json' };
-import dopplerPin from '../self/config/doppler-package.json' with { type: 'json' };
+import profile from '../shared/config/reploid-library.json' with { type: 'json' };
+import bootstrap from '../shared/config/swarm-bootstrap.json' with { type: 'json' };
+import dopplerPin from '../shared/config/doppler-package.json' with { type: 'json' };
 import { resolvePartitionGeneration } from '../self/config/partition-generation.js';
 import { prepareLocalPackRelease } from '../self/pool/pack-release-policy.js';
 import { createChangeOnlyLog } from './native-change-log.js';

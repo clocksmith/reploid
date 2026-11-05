@@ -1,9 +1,9 @@
-import { escapeHtml } from '../components/html.js';
+import { escapeHtml } from '../../../shared/ui/components/html.js';
 /**
  * @fileoverview Evidence-network rendering and human review controls for Poolday.
  */
 
-import { createPoolIdentity } from '../../pool/identity.js';
+import { createPoolIdentity } from '../../../shared/pool/identity.js';
 import { createDiscoveryContractCheckpoint } from '../../pool/discovery-contract.js';
 import {
   ADJUDICATION_EXPERIMENT_VERSION,
@@ -39,7 +39,7 @@ import {
   rankProposedCandidateActions,
   searchEvidence
 } from '../../pool/evidence-network.js';
-import { getEnabledPoolModelContract } from '../../pool/model-contract.js';
+import { getEnabledPoolModelContract } from '../../../shared/pool/model-contract.js';
 import {
   getCrossRoomSequenceEvidence,
   hydrateCrossRoomSequenceEvidence,

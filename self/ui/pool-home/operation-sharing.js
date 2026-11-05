@@ -1,8 +1,8 @@
-import { escapeHtml as escapeHtmlValue } from '../components/html.js';
+import { escapeHtml as escapeHtmlValue } from '../../../shared/ui/components/html.js';
 const escapeHtml = value => escapeHtmlValue(value, '&#39;');
-import config from '../../pool/pool-config.json' with { type: 'json' };
-import { listPoolModels } from '../../pool/model-contract.js';
-import { validateOperationModel } from '../../pool/operation-model.js';
+import config from '../../../shared/pool/pool-config.json' with { type: 'json' };
+import { listPoolModels } from '../../../shared/pool/model-contract.js';
+import { validateOperationModel } from '../../../shared/pool/operation-model.js';
 
 const models = () => listPoolModels({ enabledOnly: true }).filter(model => validateOperationModel(model).ok);
 

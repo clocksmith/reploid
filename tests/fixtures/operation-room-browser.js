@@ -1,5 +1,5 @@
 /** Synthetic model outputs; real discovery, signaling, WebRTC and IndexedDB. */
-import config from '../../self/pool/pool-config.json' with { type: 'json' };
+import config from '../../shared/pool/pool-config.json' with { type: 'json' };
 import { createOperationRoomNetwork } from '../../self/pool/operation-room-network.js';
 import { createOperationParticipation } from '../../self/pool/operation-participation.js';
 import { createBroadcastPeerRoomBus } from '../../self/pool/peer-rendezvous.js';

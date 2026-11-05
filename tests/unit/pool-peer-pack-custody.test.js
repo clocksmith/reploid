@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createPeerPackArtifactStore } from '../../self/pool/peer-pack-custody.js';
-import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
-import { sha256Hex, signCanonical } from '../../self/pool/inference-receipt.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
+import { sha256Hex, signCanonical } from '../../shared/pool/inference-receipt.js';
 import { createCustodyFixture } from '../fixtures/peer-pack-custody.js';
 
 const digest = (digit) => `sha256:${digit.repeat(64)}`;

@@ -1,7 +1,7 @@
 import { beforeEach, expect, it, vi } from 'vitest';
 import { webcrypto } from 'node:crypto';
 import { assertWorkResidentCapsule } from '../../self/host/work-partition-capsule.js';
-import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 vi.stubGlobal('crypto', webcrypto);
 const digest = value => 'sha256:' + value.repeat(64);
 let model, session;

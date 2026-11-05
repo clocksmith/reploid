@@ -17,14 +17,14 @@ import {
 import {
   buildLocalDopplerModelConfig,
   getLocalDopplerModel
-} from '../../config/doppler-local-models.js';
+} from '../../../shared/config/doppler-local-models.js';
 import {
   ZERO_GEMINI_AGENT_THROTTLE,
   ZERO_GEMINI_SERVER_TYPE,
   ZERO_MANAGED_MAX_ITERATIONS
 } from '../../config/zero-inference.js';
 import { getSecurityState } from '../../core/security-config.js';
-import { getCurrentReploidStorage as getReploidStorage } from '../../instance.js';
+import { getCurrentReploidStorage as getReploidStorage } from '../../../shared/instance.js';
 import { getReploidLaunchState } from './reploid-inference.js';
 
 // Wizard steps in order

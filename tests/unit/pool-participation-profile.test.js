@@ -9,8 +9,8 @@ import {
   readParticipationPreferences,
   verifyParticipationProfile,
   writeParticipationPreferences
-} from '../../self/pool/participation-profile.js';
-import { createSigningKeyPair, exportPublicKey } from '../../self/pool/inference-receipt.js';
+} from '../../shared/pool/participation-profile.js';
+import { createSigningKeyPair, exportPublicKey } from '../../shared/pool/inference-receipt.js';
 
 const createStorage = () => {
   const values = new Map();

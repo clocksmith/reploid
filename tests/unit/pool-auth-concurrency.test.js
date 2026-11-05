@@ -5,7 +5,7 @@ afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 async function load(auth) {
   vi.resetModules();
   vi.stubGlobal('REPLOID_FIREBASE_AUTH', auth);
-  return (await import('../../self/pool/identity.js')).getPoolAuthToken;
+  return (await import('../../shared/pool/identity.js')).getPoolAuthToken;
 }
 
 it('shares one anonymous sign-in across concurrent RTC and identity callers', async () => {

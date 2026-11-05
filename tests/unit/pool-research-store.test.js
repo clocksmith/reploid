@@ -6,8 +6,8 @@ import {
   projectCrossRoomSequenceEvidence
 } from '../../self/pool/evidence-network.js';
 import { createDiscoveryContractCheckpoint } from '../../self/pool/discovery-contract.js';
-import { createSigningKeyPair } from '../../self/pool/inference-receipt.js';
-import { buildLaunchProviderModel, getPoolModelContract } from '../../self/pool/model-contract.js';
+import { createSigningKeyPair } from '../../shared/pool/inference-receipt.js';
+import { buildLaunchProviderModel, getPoolModelContract } from '../../shared/pool/model-contract.js';
 import { projectProteinUncertaintyCampaignQueue } from '../../self/pool/protein-uncertainty-campaign.js';
 import { hashSequenceFloat32Values } from '../../self/pool/sequence-result.js';
 import {

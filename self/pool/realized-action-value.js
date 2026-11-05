@@ -5,7 +5,7 @@
  * separate deterministic projection after independent acceptance.
  */
 
-import { hashJson } from './inference-receipt.js';
+import { hashJson } from '../../shared/pool/inference-receipt.js';
 
 export const REALIZED_ACTION_VALUE_VERSION = 'poolday.realized_action_value/v1';
 export const REALIZED_ACTION_VALUE_EFFECTS = Object.freeze([

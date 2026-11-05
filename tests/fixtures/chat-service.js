@@ -1,5 +1,5 @@
 /** Injected text execution for tests only; never claims model inference. */
-import { LOCAL_DOPPLER_MODELS } from '../../self/config/doppler-local-models.js';
+import { LOCAL_DOPPLER_MODELS } from '../../shared/config/doppler-local-models.js';
 
 export function createChatTestService() {
   const calls = [], closed = [];

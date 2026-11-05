@@ -2,6 +2,7 @@ import { test, expect, chromium } from '@playwright/test';
 import { allowRemoteOnce } from '../fixtures/remote-permission.js';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { resolveServedFile } from '../../server/browser-roots.js';
 
 // Exact catalog bytes may be supplied by a local seed. The requester/executor
 // still use the normal page, real WebRTC, signed custody and installed WebGPU.
@@ -9,7 +10,7 @@ const directory = process.env.DOPPLER_CHAT_MODEL_DIR;
 test('open chat discovers a real contributor, streams without requester weights, and retains history after departure', async ({ browser }, info) => {
   test.skip(!directory, 'DOPPLER_CHAT_MODEL_DIR must contain the exact catalog Qwen 0.8B files');
   test.setTimeout(1200000);
-  const model = JSON.parse(await readFile('self/config/chat-models.json', 'utf8'))[0];
+  const model = JSON.parse(await readFile(resolveServedFile('config/chat-models.json'), 'utf8'))[0];
   const remote = process.env.REPLOID_EXECUTOR_WS
     ? await chromium.connect(process.env.REPLOID_EXECUTOR_WS) : null;
   const contexts = await Promise.all([browser.newContext(), (remote || browser).newContext(), browser.newContext()]);

@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 
 const ports = vi.hoisted(() => ({ getPoolRtcConfig: vi.fn() }));
-vi.mock('../../self/pool/rtc-config.js', () => ports);
-import { createLegacyNetworkOptions } from '../../self/capabilities/communication/library-adapter.js';
+vi.mock('../../shared/pool/rtc-config.js', () => ports);
+import { createLegacyNetworkOptions } from '../../shared/capabilities/communication/library-adapter.js';
 
 beforeEach(() => {
   vi.clearAllMocks();

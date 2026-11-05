@@ -10,10 +10,10 @@ import {
   getCurrentReploidInstanceLabel,
   getCurrentReploidSessionStorage as getScopedSessionStorage,
   getCurrentReploidStorage as getScopedLocalStorage
-} from '../instance.js';
+} from '../../shared/instance.js';
 import {
   resolveDopplerBrowserAssets
-} from '../config/doppler-local-models.js';
+} from '../../shared/config/doppler-local-models.js';
 
 const BUILD_VERSION = '2026091901';
 const IMPORTMAP_ID = 'reploid-doppler-importmap';

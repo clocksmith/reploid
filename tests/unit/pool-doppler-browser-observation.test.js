@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-import { getPoolModelContract } from '../../self/pool/model-contract.js';
+import { getPoolModelContract } from '../../shared/pool/model-contract.js';
 import { validateDopplerBrowserProteinObservation } from '../../self/pool/doppler-browser-observation.js';
 
 const observation = JSON.parse(await readFile(

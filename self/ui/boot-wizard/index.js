@@ -26,7 +26,7 @@ import {
   createReploidPeerUrl,
   getCurrentReploidInstanceLabel,
   getCurrentReploidStorage as getReploidStorage
-} from '../../instance.js';
+} from '../../../shared/instance.js';
 import { readVfsFile, loadVfsManifest, seedVfsFromManifest, clearVfsStore } from '../../boot-helpers/vfs-bootstrap.js';
 import { ensureSelfPreviewLoaded } from './self-preview.js';
 
@@ -38,7 +38,7 @@ import { renderBrowserConfigStep } from './steps/browser.js';
 import { renderGoalStep } from './steps/goal.js';
 import { renderAwakenStep } from './steps/awaken.js';
 import { ZERO_GEMINI_MODEL, ZERO_GEMINI_PROVIDER, buildZeroGeminiProxyConfig } from '../../config/zero-inference.js';
-import { DEFAULT_DOPPLER_MODEL_ID } from '../../config/doppler-local-models.js';
+import { DEFAULT_DOPPLER_MODEL_ID } from '../../../shared/config/doppler-local-models.js';
 
 const { handleTestDirectKey, handleTestProxy, handleTestProxyModel, handleTestDirectModel } = createConnectionTestHandlers({ onTesting: () => render() });
 

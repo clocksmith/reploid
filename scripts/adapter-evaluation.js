@@ -21,6 +21,7 @@ import {
   ADAPTER_EVALUATION_RECEIPT_SCHEMA, computeAdapterEvaluation, itemListDigest, seededRandom,
   validateAdapterEvaluationSpec, verifyAdapterEvaluationReceipt
 } from '../self/pool/adapter-evaluation.js';
+import { resolveServedFile } from '../server/browser-roots.js';
 
 const root = () => path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const sha256 = value => 'sha256:' + createHash('sha256').update(value).digest('hex');
@@ -129,7 +130,7 @@ export const taskMessages = (spec, item) => [{ role: 'system', content: spec.tas
 export const retentionMessages = (spec, item) => [{ role: 'user', content: spec.retention.prompt.replace('{input}', item.question) }];
 
 const catalogAdapter = async adapterId => {
-  const models = JSON.parse(await readFile(path.join(root(), 'self/config/chat-models.json'), 'utf8'));
+  const models = JSON.parse(await readFile(resolveServedFile('config/chat-models.json'), 'utf8'));
   for (const baseModel of models) {
     const adapter = (baseModel.availableAdapters || []).find(entry => entry.id === adapterId);
     if (adapter) return { adapter, baseModel };
@@ -175,7 +176,7 @@ async function runPrompts({ spec, prompts, adapterId, arm, modelDirectory, adapt
   if (!engine) throw new Error('DOPPLER_SOURCE_URL must identify the tested Doppler checkout URL');
   const { adapter, baseModel } = await catalogAdapter(adapterId);
   const [{ createNativeWholeModel }, { createWorkAdapterResolver }, { createReploidDopplerRuntimeService }] = await Promise.all([
-    import('../server/native-whole-model.js'), import('../self/providers/work-adapter.js'), import('../self/infrastructure/doppler-runtime-service.js')]);
+    import('../server/native-whole-model.js'), import('../self/providers/work-adapter.js'), import('../shared/infrastructure/doppler-runtime-service.js')]);
   const { probeNodeGPU } = await import(new URL('tests/helpers/gpu-probe.js', engine));
   const { destroyDevice } = await import(new URL('src/gpu/device.js', engine));
   const { releaseNodeWebGPU } = await import(new URL('src/tooling/node-webgpu.js', engine));

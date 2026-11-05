@@ -9,15 +9,15 @@ import {
   SIGNATURE_DOMAINS,
   sha256Hex,
   signProviderReceipt
-} from '../../self/pool/inference-receipt.js';
+} from '../../shared/pool/inference-receipt.js';
 import { createProviderClient } from '../../self/pool/provider-client.js';
 import { createRequesterClient } from '../../self/pool/requester-client.js';
 import {
   LAUNCH_MODEL,
   buildLaunchProviderModel,
   getEnabledPoolModelContract
-} from '../../self/pool/model-contract.js';
-import { POOL_CONFIG_VERSION } from '../../self/pool/config.js';
+} from '../../shared/pool/model-contract.js';
+import { POOL_CONFIG_VERSION } from '../../shared/pool/config.js';
 import {
   PEER_MESSAGE_TYPES,
   buildPeerAssignmentPlan,
@@ -32,7 +32,7 @@ import {
   validatePeerAssignmentForIntentAndAdvert,
   verifyPeerMessage
 } from '../../self/pool/peer-control-plane.js';
-import { createReceiptPayload } from '../../self/pool/p2p-payload.js';
+import { createReceiptPayload } from '../../shared/pool/p2p-payload.js';
 import {
   buildRuntimeProfile,
   hashRuntimeProfile

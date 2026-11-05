@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { openPeerPack } from '../../self/pool/peer-pack-session.js';
-import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
-import { sha256Hex } from '../../self/pool/inference-receipt.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
+import { sha256Hex } from '../../shared/pool/inference-receipt.js';
 import { createCustodyFixture } from '../fixtures/peer-pack-custody.js';
-import { resolveDopplerExecutionContract } from '../../self/config/doppler-execution-contracts.js';
+import { resolveDopplerExecutionContract } from '../../shared/config/doppler-execution-contracts.js';
 
 // Real signed chunk custody; synthetic runtime isolates the composition contract.
 async function fixture(schema = 'doppler.pack/v3') {

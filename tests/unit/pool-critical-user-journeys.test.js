@@ -6,9 +6,10 @@ import {
   PROJECT_ROOT,
   validatePoolCriticalUserJourneys
 } from '../../scripts/verify-pool-critical-user-journeys.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
 
 const registry = JSON.parse(readFileSync(JOURNEY_REGISTRY_PATH, 'utf8'));
-const poolConfig = JSON.parse(readFileSync('self/pool/pool-config.json', 'utf8'));
+const poolConfig = JSON.parse(readFileSync(resolveServedFile('pool/pool-config.json'), 'utf8'));
 const clone = (value) => structuredClone(value);
 
 describe('Poolday critical user journey registry', () => {

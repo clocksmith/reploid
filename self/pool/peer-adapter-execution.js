@@ -3,7 +3,7 @@ import { openPeerPackCheckpoints } from '../infrastructure/pack-transfer-storage
 import { createPeerPackArtifactStore } from './peer-pack-custody.js';
 import { executionAdapterArtifact, executionAdapterArtifactSet, normalizeExecutionAdapterSet,
   resolveAdapterExecutionPolicy } from './adapter-execution.js';
-import { hashDopplerEvidence } from './executable-pack.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 
 const assert = (ok, message) => { if (!ok) throw new Error(`Peer adapter: ${message}`); };
 

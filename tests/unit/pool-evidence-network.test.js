@@ -30,7 +30,7 @@ import {
   createSigningKeyPair,
   hashJson,
   signCanonical
-} from '../../self/pool/inference-receipt.js';
+} from '../../shared/pool/inference-receipt.js';
 import { hashSequenceFloat32Values, reduceDopplerSequenceResult } from '../../self/pool/sequence-result.js';
 import { createVerifiedResearchAgreement } from '../helpers/pool-research-receipt.js';
 

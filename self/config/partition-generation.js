@@ -1,5 +1,5 @@
 /** Resolve host-selected resident policy through the pinned Doppler contract. */
-import { resolveGenerationOptions } from './doppler-generation-contract.js';
+import { resolveGenerationOptions } from '../../shared/config/doppler-generation-contract.js';
 import profile from './work-profile.json' with { type: 'json' };
 import policy from './partition-policy.json' with { type: 'json' };
 

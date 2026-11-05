@@ -2,19 +2,19 @@
  * @fileoverview Assignment-bound input payload creation and validation.
  */
 
-import { hashJson, sha256Hex } from './inference-receipt.js';
-import { POOLDAY_MODEL_WORKLOADS } from './model-contract.js';
+import { hashJson, sha256Hex } from '../../shared/pool/inference-receipt.js';
+import { POOLDAY_MODEL_WORKLOADS } from '../../shared/pool/model-contract.js';
 import {
   P2P_PAYLOAD_TYPES,
   createP2PPayload,
   hashP2PPayload,
   validateP2PPayload
-} from './p2p-payload.js';
+} from '../../shared/pool/p2p-payload.js';
 import {
   isSequenceWorkload,
   normalizeSequenceInput,
   validateSequenceRequest
-} from './sequence-workload.js';
+} from '../../shared/pool/sequence-workload.js';
 import { requirePeerString } from './peer-protocol.js';
 
 export async function createPeerPromptPayload({ assignment, prompt, fromPeerId, toPeerId } = {}) {

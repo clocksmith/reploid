@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { ensureIdentityBundle } from '../../self/identity.js';
+import { ensureIdentityBundle } from '../../shared/identity.js';
 import {
   CHANGE_PASSPORT_EVENT_SCHEMA,
   CHANGE_PASSPORT_SCHEMA,

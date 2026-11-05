@@ -1,6 +1,6 @@
 import globals from 'globals';
 
-const workerFiles = ['self/core/verification-worker.js', 'self/sw.js',
+const workerFiles = ['shared/core/verification-worker.js', 'self/sw.js',
   'self/sw-module-loader.js', 'self/host/sw-module-loader.js', 'self/host/lora-training-worker.js'];
 // These Node harnesses execute serialized callbacks inside Playwright pages.
 const browserHarnesses = ['evaluate-document-answers', 'pool-actual-browser-smoke',
@@ -23,10 +23,10 @@ const cleanedModules = [
   'packages/reploid/src/artifacts/binary.js',
   'self/shared/change-passport/policy.js',
   'self/pool/policy-router.js',
-  'self/pool/p2p-transport.js',
+  'shared/pool/p2p-transport.js',
   'self/pool/p2p-artifact-transfer.js',
-  'self/pool/inference-receipt.js',
-  'self/pool/config-contract.js',
+  'shared/pool/inference-receipt.js',
+  'shared/pool/config-contract.js',
   'self/pool/requester-client.js',
   'self/pool/complete-forecast.js',
   'self/infrastructure/browser-apis.js',
@@ -53,7 +53,7 @@ const cleanedModules = [
   'packages/reploid/src/artifacts/manifest-identity.js',
   'packages/reploid/src/agent/tool-operation-retry.js',
   'self/host/file-access.js',
-  'self/ui/components/html.js',
+  'shared/ui/components/html.js',
   'self/ui/components/vfs-progress.js',
   'self/host/reploid-launch.js',
   'self/ui/boot-wizard/connection-tests.js',
@@ -78,7 +78,7 @@ const cleanedModules = [
 
 export default [
   { ignores: ['.cache/**', 'output/**', 'node_modules/**', 'artifacts/**', 'coverage/**', 'test-results/**', 'playwright-report/**',
-    'shared/vendor/**', 'self/core/vendor/**', '**/dist/**', 'packages/poolday-forecast/source/**', 'self/ui/pool-home/app.bundle.js',
+    'shared/vendor/**', 'self/core/vendor/**', 'shared/core/vendor/**', '**/dist/**', 'packages/poolday-forecast/source/**', 'self/ui/pool-home/app.bundle.js',
     'self/lib/**', 'doppler/**', '.firebase-hosting/**'] },
   {
     files: ['**/*.js', '**/*.mjs'],
@@ -111,7 +111,7 @@ export default [
   { files: ['packages/reploid/src/**/*.js'], languageOptions: { globals: globals.worker } },
   // These codecs deliberately support optional Node Buffer and browser encodings.
   { files: ['packages/reploid/src/artifacts/identity.js', 'packages/reploid/src/artifacts/signatures.js',
-    'self/pool/device-identity.js', 'self/pool/p2p-artifact-transfer.js',
+    'shared/pool/device-identity.js', 'self/pool/p2p-artifact-transfer.js',
     'packages/reploid/src/artifacts/binary.js',
     'self/bridge.js', 'self/tools/ReadFile.js', 'self/tools/WriteFile.js', 'self/key-unsealer.js'],
     languageOptions: { globals: { Buffer: 'readonly' } } },

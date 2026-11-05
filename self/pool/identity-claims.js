@@ -2,11 +2,11 @@
  * @fileoverview Shared verification for signed Poolday participation and role claims.
  */
 
-import { verifyRoleDelegation } from './device-identity.js';
+import { verifyRoleDelegation } from '../../shared/pool/device-identity.js';
 import {
   participationAllows,
   verifyParticipationProfile
-} from './participation-profile.js';
+} from '../../shared/pool/participation-profile.js';
 
 export async function verifyPoolIdentityClaims({
   participationProfile = null,

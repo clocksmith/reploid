@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createLocalPackExecutor } from '../../self/pool/local-pack-executor.js';
-import { createReploidDopplerRuntimeService } from '../../self/infrastructure/doppler-runtime-service.js';
+import { createReploidDopplerRuntimeService } from '../../shared/infrastructure/doppler-runtime-service.js';
 import { createDocumentPackFixture } from '../fixtures/document-packs.js';
 import defaults from '../../self/pool/local-session-policy.json' with { type: 'json' };
 

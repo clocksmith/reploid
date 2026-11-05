@@ -5,8 +5,8 @@ import { readFileSync, mkdtempSync, mkdirSync, cpSync, writeFileSync, existsSync
 import path from 'node:path';
 import os from 'node:os';
 import * as installed from 'doppler-gpu/partitions';
-import pin from '../../self/config/doppler-package.json' with { type: 'json' };
-import { DOPPLER_PARTITIONS_MODULE_URL } from '../../self/config/doppler-local-models.js';
+import pin from '../../shared/config/doppler-package.json' with { type: 'json' };
+import { DOPPLER_PARTITIONS_MODULE_URL } from '../../shared/config/doppler-local-models.js';
 
 const archive = path.resolve(`deploy/artifacts/doppler-gpu-${pin.version}.tgz`);
 const sha512 = bytes => 'sha512-' + createHash('sha512').update(bytes).digest('base64');
@@ -67,7 +67,7 @@ describe('partition candidate delivery', () => {
       writeFileSync(path.join(target, 'removed-module.js'), 'stale');
       execFileSync(process.execPath, [path.join(fixture, 'scripts/vendor-doppler.js'), archive]);
       expect(existsSync(path.join(target, 'removed-module.js'))).toBe(false);
-      expect(JSON.parse(readFileSync(path.join(fixture, 'self/config/doppler-package.json')))).toEqual(pin);
+      expect(JSON.parse(readFileSync(path.join(fixture, 'shared/config/doppler-package.json')))).toEqual(pin);
       const prior = readFileSync(path.join(target, 'package.json'));
       const damaged = path.join(fixture, 'damaged.tgz');
       writeFileSync(damaged, Buffer.concat([readFileSync(archive), Buffer.from('changed')]));

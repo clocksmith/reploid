@@ -13,7 +13,7 @@ import {
 import {
   BROWSER_RUNTIME_CONFIG as BROWSER_BROWSER_RUNTIME_CONFIG,
   DETERMINISTIC_GENERATION_CONFIG as BROWSER_GENERATION_CONFIG
-} from '../../self/pool/config.js';
+} from '../../shared/pool/config.js';
 import { validatePolicyRequest } from '../../self/pool/policy-router.js';
 import {
   LAUNCH_MODEL as BROWSER_LAUNCH_MODEL,
@@ -27,8 +27,8 @@ import {
   validateEnabledPoolModelContract,
   validateLaunchModelRequirement,
   validateModelRuntimeCapabilities
-} from '../../self/pool/model-contract.js';
-import { verifyReceipt as verifyBrowserReceipt } from '../../self/pool/sdk.js';
+} from '../../shared/pool/model-contract.js';
+import { verifyReceipt as verifyBrowserReceipt } from '../../shared/pool/sdk.js';
 
 const PROTEIN_MODEL_ID = 'esm2-t12-35m-ur50d-f32-af32';
 const AMPLIFY_MODEL_ID = 'amplify-120m-f16-af32';

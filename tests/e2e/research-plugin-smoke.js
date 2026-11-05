@@ -1,8 +1,9 @@
 import {chromium} from 'playwright';
 import fs from 'node:fs/promises';
 import { readServedHarnessFile } from '../helpers/served-browser-files.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
 const out=process.env.REPLOID_UI_OUTPUT || 'artifacts/plugin-imitation-ui';await fs.mkdir(out,{recursive:true});
-const layers=JSON.parse(await fs.readFile('self/styles/poolday/layers.json','utf8'));
+const layers=JSON.parse(await fs.readFile(resolveServedFile('styles/poolday/layers.json'),'utf8'));
 const styles=['/styles/rd.css',...[layers.tokens,...layers.primitives,...layers.compositions].map(p=>'/styles/poolday/'+p)];
 const browser=await chromium.launch({channel:'chrome',headless:true,args:['--disable-gpu']});const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
 await page.route('**/plugin-fixture',route=>route.fulfill({contentType:'text/html',body:`<!doctype html><html class="pool-page"><head><meta name="viewport" content="width=device-width,initial-scale=1">${styles.map(s=>`<link rel="stylesheet" href="${s}">`).join('')}</head><body><main class="pool-home" data-pool-route-id="experiments"><div class="pool-route-content" id="fixture"></div></main></body></html>`}));

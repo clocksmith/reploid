@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { readServedHarnessFile } from '../tests/helpers/served-browser-files.js';
+import { resolveServedFile } from '../server/browser-roots.js';
 
 // Exercise the existing application, never a replacement inference/demo page.
 // Before cutover, override only the migration modules and policy in isolated contexts.
@@ -11,7 +12,7 @@ const args = new Set(process.argv.slice(2));
 const staged = !args.has('--deployed');
 const discoveryOnly = args.has('--discovery-only');
 const endpoint = 'https://reploid-swarm.reploid.workers.dev';
-const policy = JSON.parse(await readFile('self/config/swarm-bootstrap.json', 'utf8'));
+const policy = JSON.parse(await readFile(resolveServedFile('config/swarm-bootstrap.json'), 'utf8'));
 const browser = await chromium.launch({ headless: true });
 const contexts = [], pages = [], joins = [], unexpected = [], credentialChecks = [];
 const record = { staged, discoveryOnly, physicalDevices: 1, browserContexts: 3,

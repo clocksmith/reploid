@@ -6,7 +6,7 @@
  * and an accepted frozen evaluation cohort.
  */
 
-import { hashJson } from './inference-receipt.js';
+import { hashJson } from '../../shared/pool/inference-receipt.js';
 
 export const DISCOVERY_CANDIDATE_ACTION_VERSION = 'poolday.discovery_candidate_action/v1';
 export const DISCOVERY_CANDIDATE_ACTION_KINDS = Object.freeze([

@@ -4,7 +4,7 @@ import { createFirestorePoolStore } from '../../server/pool/firebase-store.js';
 import { buildAcceptanceSummary } from '../../server/pool/services/acceptance.js';
 import { hashJson } from '../../server/pool/hash.js';
 import { ACCEPTANCE_V2, canonicalAcceptanceAgreement } from '../../packages/reploid/src/artifacts/acceptance.js';
-import { countersignReceipt, createSigningKeyPair, exportPublicKey, signCanonical, acceptanceSigningPayload } from '../../self/pool/inference-receipt.js';
+import { countersignReceipt, createSigningKeyPair, exportPublicKey, signCanonical, acceptanceSigningPayload } from '../../shared/pool/inference-receipt.js';
 import { createSettlementFirestore } from '../helpers/pool-settlement-firestore.js';
 
 async function fixture(kind, { pending = false } = {}) {

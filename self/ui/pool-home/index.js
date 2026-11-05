@@ -2,8 +2,8 @@
 import { createProductSession } from '../../host/product-session.js';
 import { openBrowserEarning, deferredEarning } from '../../host/credits/browser.js';
 import { getPeerRoomId, getPeerRoomBusFactory, getOrderedParticipation } from '../../host/product-context.js';
-import { getCurrentReploidStorage } from '../../instance.js';
-import { resolveRtcConfig } from '../../pool/p2p-transport.js';
+import { getCurrentReploidStorage } from '../../../shared/instance.js';
+import { resolveRtcConfig } from '../../../shared/pool/p2p-transport.js';
 import { POOLDAY_NAME, ROUTE_COPY } from './constants.js';
 import { getRouteId, renderNav, renderAppShortcuts, updateChangesControl } from './shell-view.js';
 import { renderConversationWorkspace, bindConversationWorkspace } from './conversation-workspace.js';

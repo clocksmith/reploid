@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { adapterRequirementFromPack, sealAdapterPack } from '../../self/pool/adapter-pack.js';
+import { adapterRequirementFromPack, sealAdapterPack } from '../../shared/pool/adapter-pack.js';
 import {
   adapterRequirementFromPublication,
   createAdapterRevocation,
@@ -18,8 +18,8 @@ import {
   createSigningKeyPair,
   exportPublicKey,
   sha256Hex
-} from '../../self/pool/inference-receipt.js';
-import { LAUNCH_MODEL } from '../../self/pool/model-contract.js';
+} from '../../shared/pool/inference-receipt.js';
+import { LAUNCH_MODEL } from '../../shared/pool/model-contract.js';
 
 const fakeHash = (character) => `sha256:${character.repeat(64)}`;
 

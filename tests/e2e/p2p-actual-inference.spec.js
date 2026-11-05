@@ -9,14 +9,14 @@ import {
   LAUNCH_MODEL,
   exactModelContractKey,
   getEnabledPoolModelContract
-} from '../../self/pool/model-contract.js';
-import { BROWSER_RUNTIME_CONFIG } from '../../self/pool/config.js';
+} from '../../shared/pool/model-contract.js';
+import { BROWSER_RUNTIME_CONFIG } from '../../shared/pool/config.js';
 import {
   buildBrowserQualificationCheckEvidence,
   buildBrowserQualificationObservation,
   recordBrowserQualificationCheck
 } from '../../self/pool/browser-qualification.js';
-import { buildModelArtifactUrls } from '../../self/pool/model-artifacts.js';
+import { buildModelArtifactUrls } from '../../shared/pool/model-artifacts.js';
 
 const BASE_URL = 'http://localhost:8000';
 const ACTUAL_INFERENCE_TIMEOUT_MS = 300000;

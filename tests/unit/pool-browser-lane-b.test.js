@@ -2,16 +2,16 @@ import { describe, expect, it } from 'vitest';
 
 import { createProviderClient } from '../../self/pool/provider-client.js';
 import { buildCommitmentHash } from '../../server/pool/commit-reveal.js';
-import { createSigningKeyPair } from '../../self/pool/inference-receipt.js';
+import { createSigningKeyPair } from '../../shared/pool/inference-receipt.js';
 import {
   buildLaunchProviderModel,
   exactModelContractKey,
   LAUNCH_MODEL
-} from '../../self/pool/model-contract.js';
+} from '../../shared/pool/model-contract.js';
 import {
   buildAssignmentCommitmentPayload,
   buildAssignmentRevealPayload
-} from '../../self/pool/p2p-payload.js';
+} from '../../shared/pool/p2p-payload.js';
 import {
   RUNTIME_PROFILE_VERSION,
   buildRuntimeProfile,

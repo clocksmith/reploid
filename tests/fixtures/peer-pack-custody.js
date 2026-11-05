@@ -1,6 +1,6 @@
 /** Internally operated test keys and byte suppliers; no independent-operator claim. */
-import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../../self/pool/inference-receipt.js';
-import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
+import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../../shared/pool/inference-receipt.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { createPeerPackSupplier } from '../../self/pool/peer-pack-custody.js';
 
 export async function createCustodyFixture(pack, artifactBytes, chunkSize = 2, limits = {}, envelopeArtifact = undefined) {

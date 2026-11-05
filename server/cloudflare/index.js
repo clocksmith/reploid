@@ -1,5 +1,5 @@
 import { allowsSwarmOrigin } from '../swarm-origin-policy.js';
-import bootstrap from '../../self/config/swarm-bootstrap.json';
+import bootstrap from '../../shared/config/swarm-bootstrap.json';
 import { namespace } from './room.js';
 import { handleTurn } from './turn.js';
 export { SwarmRoom } from './room.js';

@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import { readChatWorkspace } from '../fixtures/chat-workspace-history.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
 
 // An operator prepares the exact native model separately. This test neither
 // starts a contributor nor downloads weights or changes its resource limits.
@@ -10,7 +11,7 @@ const modelId = process.env.REPLOID_NATIVE_CHAT_MODEL;
 test('native whole-model chat streams, follows up, cancels, reuses and reloads', async ({ browser }, info) => {
   test.skip(!url || !modelId, 'Set REPLOID_NATIVE_CHAT_URL and REPLOID_NATIVE_CHAT_MODEL for a prepared native provider');
   test.setTimeout(240000);
-  const models = JSON.parse(await readFile('self/config/chat-models.json', 'utf8'));
+  const models = JSON.parse(await readFile(resolveServedFile('config/chat-models.json'), 'utf8'));
   const model = models.find(candidate => candidate.id === modelId);
   expect(model, 'The exact model must be present in the tested catalog').toBeTruthy();
   const context = await browser.newContext();

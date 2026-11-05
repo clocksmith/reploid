@@ -2,7 +2,7 @@
  * @fileoverview Private governed adapter registry and verified local byte cache.
  */
 
-import { sha256Hex } from './inference-receipt.js';
+import { sha256Hex } from '../../shared/pool/inference-receipt.js';
 import {
   adapterRequirementFromPublication,
   publishedAdapterRequirementsEqual,
@@ -12,7 +12,7 @@ import {
 import {
   artifactOriginIdentity,
   resolveArtifactDelivery
-} from './artifact-origin.js';
+} from '../../shared/pool/artifact-origin.js';
 
 export const ADAPTER_ACQUISITION_SCHEMA = 'reploid.pool.adapter-acquisition/v1';
 

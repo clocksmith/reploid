@@ -3,7 +3,7 @@
  * Central toggle for verification and approval gates.
  */
 
-import { getCurrentReploidStorage as getReploidStorage } from '../instance.js';
+import { getCurrentReploidStorage as getReploidStorage } from '../../shared/instance.js';
 
 const STORAGE_KEY = 'REPLOID_SECURITY_MODE';
 const DEFAULT_ENABLED = false;

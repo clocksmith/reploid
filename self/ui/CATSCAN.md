@@ -17,7 +17,7 @@ Render each declared surface's authoritative state and actions without inventing
 ## Contracts
 
 Inputs:
-- Surface boundaries from [surface intents](../config/surface-intents.js).
+- Surface boundaries from [surface intents](../../shared/config/surface-intents.js).
 - State from the owning runtime component.
 
 Outputs:

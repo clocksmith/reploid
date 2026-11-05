@@ -10,14 +10,14 @@ import {
   getScopedReploidVfsDbName,
   REPLOID_TAB_INSTANCE_STORAGE_KEY,
   shouldHideAutoReploidInstanceInUrl
-} from '../../self/instance.js';
+} from '../../shared/instance.js';
 import {
   ensureIdentityBundle,
   getIdentityStorageKey,
   readStoredIdentityBundle,
   rotateIdentityBundle,
   saveIdentityBundle
-} from '../../self/identity.js';
+} from '../../shared/identity.js';
 
 const createMockStorage = () => {
   const values = new Map();

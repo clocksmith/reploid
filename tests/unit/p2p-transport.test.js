@@ -10,12 +10,12 @@ import {
   descriptionToPayload,
   normalizeRtcConfig,
   resolveRtcConfig
-} from '../../self/pool/p2p-transport.js';
+} from '../../shared/pool/p2p-transport.js';
 import {
   P2P_PAYLOAD_TYPES,
   createP2PPayload
-} from '../../self/pool/p2p-payload.js';
-import { SIGNAL_TYPES } from '../../self/pool/p2p-signaling.js';
+} from '../../shared/pool/p2p-payload.js';
+import { SIGNAL_TYPES } from '../../shared/pool/p2p-signaling.js';
 
 describe('pool p2p transport helpers', () => {
   it('resolves validated runtime STUN and TURN configuration', () => {

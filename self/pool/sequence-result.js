@@ -2,11 +2,11 @@
  * @fileoverview Fail-closed reduction of Doppler biological-sequence outputs.
  */
 
-import { hashJson, sha256Hex } from './inference-receipt.js';
+import { hashJson, sha256Hex } from '../../shared/pool/inference-receipt.js';
 import {
   SEQUENCE_RESULT_SCHEMA,
   SEQUENCE_WORKLOADS
-} from './sequence-workload.js';
+} from '../../shared/pool/sequence-workload.js';
 
 export const sequenceMethodName = (candidate) => (
   candidate && typeof candidate.encodeSequence === 'function'

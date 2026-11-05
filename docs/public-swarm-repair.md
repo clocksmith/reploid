@@ -13,7 +13,7 @@ reconnects, persists opt-out, and is distinct from Stop sharing.
 
 ## Owners
 
-- `self/config/swarm-bootstrap.json` owns public rendezvous policy and limits.
+- `shared/config/swarm-bootstrap.json` owns public rendezvous policy and limits.
 - `swarm-join-policy.js` selects public discovery unless a current private
   invitation supplies its room-scoped capability. Saved private rooms do not
   redirect ordinary startup. Public invitations contain no private capability.

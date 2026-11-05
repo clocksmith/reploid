@@ -1,4 +1,4 @@
-import { getScopedReploidVfsDbName } from '../instance.js';
+import { getScopedReploidVfsDbName } from '../../shared/instance.js';
 
 const key = path => {
   if (typeof path !== 'string' || !path.startsWith('/') || /[\\%?#\s\u0000-\u001f]/.test(path)

@@ -1,16 +1,16 @@
 import { resolveOperationAcceptance } from './operation-acceptance.js';
-import { resolveDopplerExecutionContract } from '../config/doppler-execution-contracts.js';
+import { resolveDopplerExecutionContract } from '../../shared/config/doppler-execution-contracts.js';
 import { normalizeExecutionAdapterSet, dopplerExecutionAdapterSet } from './adapter-execution.js';
-import { PACK_JOB_POLICY, resolvePackJobPolicy } from './peer-pack-job-policy.js';
-import { assertOperationLimits } from './pack-operation-policy.js';
-import { hashJson, sha256Hex } from './inference-receipt.js';
+import { PACK_JOB_POLICY, resolvePackJobPolicy } from '../../shared/pool/peer-pack-job-policy.js';
+import { assertOperationLimits } from '../../shared/pool/pack-operation-policy.js';
+import { hashJson, sha256Hex } from '../../shared/pool/inference-receipt.js';
 import { createSignedPeerMessage, verifyPeerMessage, PEER_MESSAGE_TYPES } from './peer-protocol.js';
 import { sealPeerAssignmentIdentity } from './peer-assignment.js';
-import { validateOperationModel } from './operation-model.js';
-import { createPackOperationRegistry } from './pack-operation-adapters.js';
+import { validateOperationModel } from '../../shared/pool/operation-model.js';
+import { createPackOperationRegistry } from '../../shared/pool/pack-operation-adapters.js';
 import { assertPackOperationRequest, snapshotPackOperationData as snapshot } from './pack-operation.js';
-import { hashDopplerEvidence } from './executable-pack.js';
-import { validateProviderCapabilities, validateWorkRequirements } from './peer-capabilities.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
+import { validateProviderCapabilities, validateWorkRequirements } from '../../shared/pool/peer-capabilities.js';
 import { planOperationProviders } from './peer-planning.js';
 import { createPackJobContracts } from '../../shared/vendor/reploid/mesh/jobs/contracts.js';
 

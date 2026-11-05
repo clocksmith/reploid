@@ -19,7 +19,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { DEFAULT_DOPPLER_MODEL_ID } from '../../self/config/doppler-local-models.js';
+import { DEFAULT_DOPPLER_MODEL_ID } from '../../shared/config/doppler-local-models.js';
 import { MockLLMProvider, injectMockProvider } from './rsi-mock-provider.js';
 
 const TEST_CONFIG = {

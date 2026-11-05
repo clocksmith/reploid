@@ -1,4 +1,4 @@
-import { escapeHtml as escapeHtmlValue } from '../components/html.js';
+import { escapeHtml as escapeHtmlValue } from '../../../shared/ui/components/html.js';
 const escapeHtml = value => escapeHtmlValue(value, '&#39;');
 /** Task-first input. Provider choice and disclosure remain explicit host decisions. */
 import policy from '../../config/work-profile.json' with { type: 'json' };

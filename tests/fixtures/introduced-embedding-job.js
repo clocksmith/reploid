@@ -5,7 +5,7 @@ import { createPackJobDataChannel } from '../../self/pool/peer-pack-job-channel.
 import { createPackPeerProvider } from '../../self/pool/peer-pack-provider.js';
 import { createPackPeerRequester } from '../../self/pool/peer-pack-requester.js';
 import { packPeerModel } from '../../self/pool/peer-pack-job.js';
-import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 
 let identity, physical, provider, requester, bus, execution, unregister;
 let permitted = false, calls = 0;

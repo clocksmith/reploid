@@ -2,7 +2,7 @@
  * @fileoverview Shared tabula-rasa Reploid boot contracts.
  */
 
-import { getVisibleToolsByMode } from '../../config/tool-surfaces.js';
+import { getVisibleToolsByMode } from '../../../shared/config/tool-surfaces.js';
 
 export const DEFAULT_REPLOID_HOME_GOAL = [
   'Start from the blueprint index.',

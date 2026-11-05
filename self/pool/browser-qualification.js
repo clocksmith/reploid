@@ -5,7 +5,7 @@
  * WebGPU receipt, a catalog entry, or a passing test as browser evidence.
  */
 
-import { exactModelContractKey as computeExactModelContractKey } from './model-contract.js';
+import { exactModelContractKey as computeExactModelContractKey } from '../../shared/pool/model-contract.js';
 
 export const BROWSER_QUALIFICATION_SCHEMA = 'poolday.browser_model_qualification/v1';
 

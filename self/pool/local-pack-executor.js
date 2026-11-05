@@ -1,11 +1,11 @@
 import { dopplerExecutionAdapterSet } from './adapter-execution.js';
-import { assertPackSession, hashDopplerEvidence } from './executable-pack.js';
-import { validateOperationModel } from './operation-model.js';
+import { assertPackSession, hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
+import { validateOperationModel } from '../../shared/pool/operation-model.js';
 import { assertPackOperationRequest, runPackOperation, snapshotPackOperationData } from './pack-operation.js';
-import { DopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
+import { DopplerRuntimeService } from '../../shared/infrastructure/doppler-runtime-service.js';
 import { prepareLocalPackRelease } from './pack-release-policy.js';
-import { createPackOperationRegistry } from './pack-operation-adapters.js';
-import { resolveDopplerExecutionContract } from '../config/doppler-execution-contracts.js';
+import { createPackOperationRegistry } from '../../shared/pool/pack-operation-adapters.js';
+import { resolveDopplerExecutionContract } from '../../shared/config/doppler-execution-contracts.js';
 import defaultSessionPolicy from './local-session-policy.json' with { type: 'json' };
 
 /** Application-selected sessions do not admit a model to the public peer catalog.

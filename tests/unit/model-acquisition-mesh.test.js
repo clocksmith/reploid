@@ -8,7 +8,7 @@ vi.mock('../../self/infrastructure/custody-supply-budget.js', () => ({
   openBrowserAcquisitionBudget: async () => { throw Object.assign(Error('No allowance'), { code: 'CUSTODY_BUDGET_MISSING' }); }
 }));
 import { createWorkModelFiles } from '../../self/host/work-model-files.js';
-import { LOCAL_DOPPLER_MODELS } from '../../self/config/doppler-local-models.js';
+import { LOCAL_DOPPLER_MODELS } from '../../shared/config/doppler-local-models.js';
 import { resolveServedFile } from '../../server/browser-roots.js';
 afterEach(() => { vi.unstubAllGlobals(); ports.retained.mockReset(); ports.retained.mockResolvedValue(null); });
 

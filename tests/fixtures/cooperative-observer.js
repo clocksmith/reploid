@@ -1,10 +1,11 @@
 import { readFile } from 'node:fs/promises';
 import { decodeReferenceLogits } from './independent-numerical-reference.js';
 import { canonicalPartitionJson, partitionFingerprint } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
 
 /** Passive debugger observations: never replace tensors, assign roles, or open a runtime. */
 export async function observeCooperativePage(cdp, evidence, { captureCustody = false, captureLogits = true, captureTokens = false, maxLogitSteps = 4, acceptStep = async () => true, onInput = null } = {}) {
-  const host = (await readFile('self/host/work-partitions.js', 'utf8')).split('\n');
+  const host = (await readFile(resolveServedFile('host/work-partitions.js'), 'utf8')).split('\n');
   const peer = (await readFile('shared/vendor/reploid/mesh/partitions/partition-peer.js', 'utf8')).split('\n');
   const scriptUrls = new Map();
   cdp.on('Debugger.scriptParsed', event => scriptUrls.set(event.scriptId, event.url));

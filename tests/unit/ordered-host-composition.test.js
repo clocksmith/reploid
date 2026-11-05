@@ -4,8 +4,8 @@ import { createSigningIdentity } from '../../packages/reploid/src/artifacts/iden
 const ports = vi.hoisted(() => ({ identity: null, transport: null, options: null, automatic: null, networkOptions: null, networkOwner: null }));
 const model = vi.hoisted(() => ({ id: 'ordered', identity: 'sha256:' + 'a'.repeat(64),
   partitionPlan: { schema: 'doppler.layer-partition-contract/v3', stageCount: 3 }, source: {files:[{role:'model-piece-index'}]} }));
-vi.mock('../../self/config/doppler-local-models.js', async original => ({ ...await original(), LOCAL_DOPPLER_MODELS:[model] }));
-vi.mock('../../self/identity.js', () => ({ ensureIdentityBundle: async () => ports.identity, saveIdentityBundle() {}, rotateIdentityBundle() {} }));
+vi.mock('../../shared/config/doppler-local-models.js', async original => ({ ...await original(), LOCAL_DOPPLER_MODELS:[model] }));
+vi.mock('../../shared/identity.js', () => ({ ensureIdentityBundle: async () => ports.identity, saveIdentityBundle() {}, rotateIdentityBundle() {} }));
 const meshFactory = ({ports: input}) => ({ async connect() { await input.identity.ensure({}); input.createTransport(); }, async close() {}, getSwarmSnapshot: () => ({peers:[]}) });
 vi.mock('../../shared/vendor/reploid/mesh/index.js', async original => ({ ...await original(),
   createLegacyGenerationMesh: (...args) => meshFactory(...args),

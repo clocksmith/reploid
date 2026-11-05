@@ -8,21 +8,21 @@ import { resolveServedFile } from '../../server/browser-roots.js';
 describe('chat model manifest delivery', () => {
   it('ships every pinned manifest in the ordinary browser bundle with unchanged bytes', async () => {
     const selfDir = resolve('self');
-    const models = JSON.parse(await readFile(resolve(selfDir, 'config/chat-models.json')));
+    const models = JSON.parse(await readFile(resolveServedFile('config/chat-models.json')));
     const hosted = new Set(await buildHostingFileSet({ selfDir }));
     for (const model of models) {
       const file = model.source.files.find(item => item.role === 'model-manifest');
       const relative = `config/model-manifests/${file.hash}.json`;
       expect(file.url).toBe(`/${relative}`);
       expect(hosted.has(relative)).toBe(true);
-      const bytes = await readFile(resolve(selfDir, relative));
+      const bytes = await readFile(resolveServedFile(relative));
       expect(bytes.length).toBe(file.sizeBytes);
       expect(createHash('sha256').update(bytes).digest('hex')).toBe(file.hash);
       expect(model.identity).toBe(`sha256:${file.hash}`);
       const manifest = JSON.parse(bytes);
       expect(manifest.modelId).toBe(model.id);
       const pieces = model.source.files.find(item => item.role === 'model-piece-index');
-      const indexBytes = await readFile(resolve(selfDir, pieces.url.slice(1)));
+      const indexBytes = await readFile(resolveServedFile(pieces.url));
       expect(hosted.has(pieces.url.slice(1))).toBe(true);
       expect(indexBytes.length).toBe(pieces.sizeBytes);
       expect(createHash('sha256').update(indexBytes).digest('hex')).toBe(pieces.hash);
@@ -34,7 +34,7 @@ describe('chat model manifest delivery', () => {
     }
   });
   it('binds Doppler acquisition URLs to the shipped manifest and immutable weight origin', async () => {
-    const models = JSON.parse(await readFile(resolve('self/config/chat-models.json')));
+    const models = JSON.parse(await readFile(resolve('shared/config/chat-models.json')));
     const config = JSON.parse(await readFile(resolve('firebase.json')));
     const routes = config.hosting.find(item => item.target === 'reploid').redirects;
     for (const model of models.filter(model => model.source.baseUrl)) {

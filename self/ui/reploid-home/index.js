@@ -1,4 +1,4 @@
-import { escapeHtml as escapeHtmlValue } from '../components/html.js';
+import { escapeHtml as escapeHtmlValue } from '../../../shared/ui/components/html.js';
 const escapeHtml = value => escapeHtmlValue(value || '');
 /**
  * @fileoverview Minimal home surface for the primary Reploid route.
@@ -9,7 +9,7 @@ import {
   createReploidPeerUrl,
   getCurrentReploidInstanceLabel,
   getCurrentReploidStorage
-} from '../../instance.js';
+} from '../../../shared/instance.js';
 import {
   DEFAULT_REPLOID_HOME_GOAL,
   RING_SLOTS,

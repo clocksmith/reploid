@@ -14,7 +14,7 @@ import {
 } from './evidence-record-contract.js';
 import {
   SEQUENCE_ALPHABETS
-} from './sequence-workload.js';
+} from '../../shared/pool/sequence-workload.js';
 import {
   adjudicationMetricResult,
   assessAdjudicationExperiment,
@@ -24,7 +24,7 @@ import {
 import {
   exactModelContractKey,
   validateEnabledPoolModelContract
-} from './model-contract.js';
+} from '../../shared/pool/model-contract.js';
 /**
  * Verify the publication boundary separately from signature and link checks.
  * Historical fixtures may be structurally valid with an unavailable contract,

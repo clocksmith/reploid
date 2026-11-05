@@ -1,7 +1,7 @@
 import { openPackReleaseCheckpoints } from '../infrastructure/pack-release-storage.js';
-import { hashDopplerEvidence } from './executable-pack.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { snapshotPackOperationData } from './pack-operation.js';
-import { resolveDopplerExecutionContract } from '../config/doppler-execution-contracts.js';
+import { resolveDopplerExecutionContract } from '../../shared/config/doppler-execution-contracts.js';
 
 const requireValue = (value, message) => { if (!value) throw new Error(`Pack release policy: ${message}`); };
 

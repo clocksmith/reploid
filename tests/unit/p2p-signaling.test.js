@@ -9,7 +9,7 @@ import {
   createSignalingChannel,
   isSignalForPeer,
   normalizeSignalMessage
-} from '../../self/pool/p2p-signaling.js';
+} from '../../shared/pool/p2p-signaling.js';
 
 describe('pool p2p signaling helpers', () => {
   it('normalizes signal messages into immutable typed records', () => {

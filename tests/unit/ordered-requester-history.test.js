@@ -11,7 +11,7 @@ import { automaticOrderedMesh, tasks } from '../fixtures/automatic-ordered-mesh.
 import orderedPolicy from '../../self/config/ordered-participation.json' with { type: 'json' };
 
 const ports = vi.hoisted(() => ({ identity: null, partitions: null, peers: [] }));
-vi.mock('../../self/identity.js', async original => ({ ...await original(), ensureIdentityBundle: async () => ports.identity }));
+vi.mock('../../shared/identity.js', async original => ({ ...await original(), ensureIdentityBundle: async () => ports.identity }));
 vi.mock('../../shared/vendor/reploid/mesh/index.js', async original => ({ ...await original(),
   createLegacyGenerationMesh: ({ ports: input }) => {
     let identity = null;

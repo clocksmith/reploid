@@ -4,6 +4,7 @@ import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import path from 'node:path';
 import { readChatWorkspace } from '../fixtures/chat-workspace-history.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
 
 // This campaign owns its contributor process and private room. Never stop an
 // operator's existing provider to simulate departure.
@@ -14,7 +15,7 @@ test('exact whole-model service survives overlap, cancellation and provider depa
   const config = JSON.parse(await readFile(configFile, 'utf8'));
   expect(config.schema).toBe('reploid.whole-model-service-campaign/v1');
   expect(config.maxConcurrentRequests).toBe(2);
-  const model = JSON.parse(await readFile('self/config/chat-models.json', 'utf8')).find(row => row.id === config.modelId);
+  const model = JSON.parse(await readFile(resolveServedFile('config/chat-models.json'), 'utf8')).find(row => row.id === config.modelId);
   expect(model).toBeTruthy();
   const tokenFile = path.join(config.stateDirectory, 'room-token');
   const url = new URL(config.baseUrl);

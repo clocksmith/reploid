@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import { readChatWorkspace } from '../fixtures/chat-workspace-history.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
 
 // Uses an already prepared provider. No downloads, service restarts or GPU limits change.
 const url = process.env.REPLOID_NATIVE_CHAT_URL;
@@ -9,7 +10,7 @@ const modelId = process.env.REPLOID_NATIVE_CHAT_MODEL;
 test('whole-model browser conversation preserves the qualified long prompt', async ({ browser }, info) => {
   test.skip(!url || !modelId, 'Set the prepared native chat URL and model');
   test.setTimeout(240000);
-  const models = JSON.parse(await readFile('self/config/chat-models.json', 'utf8'));
+  const models = JSON.parse(await readFile(resolveServedFile('config/chat-models.json'), 'utf8'));
   const model = models.find(row => row.id === modelId);
   const fixture = JSON.parse(await readFile('tests/fixtures/qwen27b-capacity-case.json', 'utf8'));
   expect(model).toBeTruthy();

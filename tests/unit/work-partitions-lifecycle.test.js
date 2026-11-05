@@ -1,12 +1,12 @@
 // @vitest-environment node
 // Both host adapters are exercised through injected ports; no DOM is required.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import pin from '../../self/config/doppler-package.json' with { type: 'json' };
+import pin from '../../shared/config/doppler-package.json' with { type: 'json' };
 
 const ports = vi.hoisted(() => ({
   orderedSchema: null, validateOrderedPlan: vi.fn(), generationHash: vi.fn(), validatePlan: vi.fn(), activationContract: vi.fn(), validateFrame: vi.fn(), signedFactory: vi.fn(), openCapsule: vi.fn(), release: vi.fn(), budget: vi.fn(), plan: vi.fn(), hash: vi.fn(), factory: vi.fn(), resident: vi.fn(), memory: vi.fn(),
 }));
-vi.mock('../../self/config/doppler-local-models.js', () => ({
+vi.mock('../../shared/config/doppler-local-models.js', () => ({
   DOPPLER_BROWSER_RUNTIME_VERSION: '0.6.31',
   DOPPLER_MODULE_URL: 'doppler-gpu/host',
   DOPPLER_PARTITIONS_MODULE_URL: 'doppler-gpu/partitions',

@@ -11,7 +11,7 @@ import { createResidentPartition } from '../../packages/reploid/src/mesh/index.j
 
 const fixture = JSON.parse(await fs.readFile(new URL('../../artifacts/partition-resident/20260927/signed-opening-fixture.json',
   import.meta.url), 'utf8'));
-const pin = JSON.parse(await fs.readFile(new URL('../../self/config/doppler-package.json', import.meta.url), 'utf8'));
+const pin = JSON.parse(await fs.readFile(new URL('../../shared/config/doppler-package.json', import.meta.url), 'utf8'));
 const archive = await fs.readFile(new URL('../../' + pin.resolved.replace(/^file:/, ''), import.meta.url));
 assert.equal('sha512-' + createHash('sha512').update(archive).digest('base64'), pin.integrity);
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.resolve('doppler-gpu'))), '..');

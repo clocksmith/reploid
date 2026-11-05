@@ -5,7 +5,7 @@ import {
 import {
   acceptanceSigningPayload, buildAcceptanceSummary, countersignReceipt, createSigningKeyPair,
   exportPublicKey, hashJson, verifyCanonicalSignature, SIGNATURE_DOMAINS
-} from '../../self/pool/inference-receipt.js';
+} from '../../shared/pool/inference-receipt.js';
 import { createRequesterClient } from '../../self/pool/requester-client.js';
 
 const fixture = () => {

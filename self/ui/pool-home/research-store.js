@@ -2,7 +2,7 @@
  * @fileoverview Room-scoped local-first persistence for signed Poolday research evidence.
  */
 
-import { createPoolSdk } from '../../pool/sdk.js';
+import { createPoolSdk } from '../../../shared/pool/sdk.js';
 import {
   RESEARCH_RECORD_KINDS,
   projectCrossRoomSequenceEvidence,

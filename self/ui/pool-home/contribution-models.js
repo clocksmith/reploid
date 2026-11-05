@@ -1,4 +1,4 @@
-import { escapeHtml as escape } from '../components/html.js';
+import { escapeHtml as escape } from '../../../shared/ui/components/html.js';
 import { interfaceIcon } from '../components/interface-icons.js';
 import { bindDialog } from '../components/dialog.js';
 import { preparationStatus } from './model-preparation.js';

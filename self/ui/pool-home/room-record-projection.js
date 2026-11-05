@@ -2,7 +2,7 @@
  * @fileoverview Pure projection of existing Poolday ledgers into room activity rows.
  */
 
-import { getEnabledPoolModelContract } from '../../pool/model-contract.js';
+import { getEnabledPoolModelContract } from '../../../shared/pool/model-contract.js';
 import { getPeerEventHash } from './record-persistence.js';
 
 const firstPresent = (...values) => values.find((value) => value !== undefined && value !== null && value !== '');

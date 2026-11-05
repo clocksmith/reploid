@@ -2,10 +2,10 @@
 import { describe, it, expect } from 'vitest';
 import { planOperationProviders, operationPlacementContext } from '../../self/pool/peer-planning.js';
 import { placementBeliefPolicy } from '../fixtures/placement-beliefs.js';
-import { resolveProviderCapabilitySchema, resolvePeerAssignmentPolicy, validateProviderCapabilities } from '../../self/pool/peer-capabilities.js';
-import { PACK_JOB_POLICY } from '../../self/pool/peer-pack-job-policy.js';
+import { resolveProviderCapabilitySchema, resolvePeerAssignmentPolicy, validateProviderCapabilities } from '../../shared/pool/peer-capabilities.js';
+import { PACK_JOB_POLICY } from '../../shared/pool/peer-pack-job-policy.js';
 import { operationFixture, operationCapabilities, operationResources } from '../fixtures/peer-pack-operation.js';
-import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 
 const hash = character => `sha256:${character.repeat(64)}`;
 async function fixture(operation = 'embed') {

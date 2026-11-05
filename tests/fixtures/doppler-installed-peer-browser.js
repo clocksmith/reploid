@@ -1,15 +1,15 @@
 // Installed public Doppler with injected logits, real WebRTC, signatures and IndexedDB.
 import * as api from 'doppler-gpu';
-import { createReploidDopplerRuntimeService } from '../../self/infrastructure/doppler-runtime-service.js';
+import { createReploidDopplerRuntimeService } from '../../shared/infrastructure/doppler-runtime-service.js';
 import { createPackPeerProvider } from '../../self/pool/peer-pack-provider.js';
 import { createPackPeerRequester } from '../../self/pool/peer-pack-requester.js';
 import { createPackJobDataChannel } from '../../self/pool/peer-pack-job-channel.js';
 import { verifyPackPeerEpisode } from '../../self/pool/peer-pack-episode.js';
 import { runPackOperation } from '../../self/pool/pack-operation.js';
-import { createPackOperationRegistry } from '../../self/pool/pack-operation-adapters.js';
+import { createPackOperationRegistry } from '../../shared/pool/pack-operation-adapters.js';
 import { operationCapabilities, operationResources, packPeerIdentity } from './peer-pack-operation.js';
-import { createP2PTransport } from '../../self/pool/p2p-transport.js';
-import { SIGNAL_TYPES } from '../../self/pool/p2p-signaling.js';
+import { createP2PTransport } from '../../shared/pool/p2p-transport.js';
+import { SIGNAL_TYPES } from '../../shared/pool/p2p-signaling.js';
 
 let pc, channelBus, provider, requester, session, service, model, identity, ready, replacement;
 let transport, signal, descriptionReady;

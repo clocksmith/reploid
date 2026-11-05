@@ -7,7 +7,7 @@
  */
 
 import { BROWSER_QUALIFICATION_CHECKS } from './browser-qualification.js';
-import { exactModelContractKey } from './model-contract.js';
+import { exactModelContractKey } from '../../shared/pool/model-contract.js';
 
 export const DOPPLER_BROWSER_PROTEIN_OBSERVATION_SCHEMA = 'poolday.doppler_browser_protein_observation/v1';
 

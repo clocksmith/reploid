@@ -3,8 +3,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'acorn';
-import { SURFACE_INTENTS } from '../self/config/surface-intents.js';
-import { BROWSER_ROOTS, resolveServedFile } from '../server/browser-roots.js';
+import { SURFACE_INTENTS } from '../shared/config/surface-intents.js';
+import { BROWSER_ROOTS, resolveServedFile, servedPathOf } from '../server/browser-roots.js';
 
 const SOURCE_ROOTS = ['packages/reploid/src', 'self/core', 'self/pool', 'self/host', 'self/lab',
   'self/providers', 'self/ui', 'self/config', 'self/infrastructure', 'self/capabilities', 'packages/functions', 'server', 'self'];
@@ -44,13 +44,22 @@ const resolveEdge = (root, file, specifier) => {
   if (specifier.startsWith('/')) return resolveServedFile(specifier, { repoRoot: root });
   return null;
 };
+/**
+ * Layers are named by browser path: a file in any browser source root is classified
+ * as self/<served path>, wherever its root, so owners keep their layer rules.
+ */
+export const toLayerPath = value => {
+  const normalized = posix(value).replace(/^\.\//, '');
+  const served = servedPathOf(normalized);
+  return served === null || normalized.startsWith('self/') ? normalized : `self/${served}`;
+};
 export function findLayerViolations({ repoRoot, sourcePath, source }) {
-  const relative = posix(path.relative(repoRoot, sourcePath)), sourceLayer = classifyLayer(relative);
+  const relative = toLayerPath(path.relative(repoRoot, sourcePath)), sourceLayer = classifyLayer(relative);
   if (!sourceLayer) return [];
   return moduleEdges(source).flatMap(({ specifier }) => {
     if (!specifier) return [];
     const resolved = resolveEdge(repoRoot, sourcePath, specifier);
-    const target = resolved ? posix(path.relative(repoRoot, resolved)) : specifier;
+    const target = resolved ? toLayerPath(path.relative(repoRoot, resolved)) : specifier;
     const targetLayer = classifyLayer(target);
     let reason = null;
     if (sourceLayer === 'packages/reploid/src' &&
@@ -75,8 +84,8 @@ export function findLayerViolations({ repoRoot, sourcePath, source }) {
     if (['self/host/chat-view.js', 'self/host/readonly-view.js'].includes(relative)) {
       reason = 'conversation projections must remain independent of runtime owners';
     }
-    if (/^self\/host\/chat-[^/]+\.js$/.test(relative) && target.startsWith('shared/vendor/reploid/chat/')
-      && target !== 'shared/vendor/reploid/chat/index.js') reason = 'chat hosts must use the public chat entry';
+    if (/^self\/host\/chat-[^/]+\.js$/.test(relative) && target.startsWith('self/vendor/reploid/chat/')
+      && target !== 'self/vendor/reploid/chat/index.js') reason = 'chat hosts must use the public chat entry';
     return reason ? [{ source: relative, sourceLayer, specifier, target, targetLayer, reason }] : [];
   });
 }
@@ -135,7 +144,7 @@ export function verifyRepositoryLayers(repoRoot) {
   const exceptionsFile = path.join(repoRoot, 'scripts/architecture-exceptions.json');
   const exceptions = fs.existsSync(exceptionsFile) ? JSON.parse(fs.readFileSync(exceptionsFile, 'utf8')) : { loaders: [], cycles: [] };
   for (const sourceRoot of ['packages/reploid/src', ...BROWSER_ROOTS, 'packages/functions', 'server']) for (const file of filesUnder(path.join(repoRoot, sourceRoot))) {
-    const relative = posix(path.relative(repoRoot, file));
+    const relative = toLayerPath(path.relative(repoRoot, file));
     // Inspect canonical inputs, not minified copies of their loader expressions.
     // The CLI separately rebuilds this exact output in memory and checks its bytes.
     if (relative === 'self/ui/pool-home/app.bundle.js') continue;
@@ -144,7 +153,7 @@ export function verifyRepositoryLayers(repoRoot) {
     violations.push(...findLayerViolations({ repoRoot, sourcePath: file, source }));
     const edges = moduleEdges(source);
     graph.set(relative, edges.filter(edge => edge.specifier).map(edge => resolveEdge(repoRoot, file, edge.specifier))
-      .filter(Boolean).map(target => posix(path.relative(repoRoot, target))));
+      .filter(Boolean).map(target => toLayerPath(path.relative(repoRoot, target))));
     for (const edge of edges.filter(edge => !edge.specifier)) {
       if (!exceptions.loaders.some(entry => entry.source === relative && entry.expression === edge.expression && entry.owner && entry.contract)) {
         violations.push({ source: relative, reason: 'undeclared dynamic loader', expression: edge.expression });
@@ -195,7 +204,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   catch (error) { violations.push({ source: 'self/ui/pool-home/app.bundle.js', reason: error.message }); }
   const { findBoundaryViolations } = await import('./verify-browser-boundaries.js');
   violations.push(...await findBoundaryViolations({ repoRoot: root }));
-  const registry = JSON.parse(fs.readFileSync(path.join(root, 'self/config/module-registry.json'), 'utf8'));
+  const registry = JSON.parse(fs.readFileSync(resolveServedFile('config/module-registry.json'), 'utf8'));
   for (const chain of findRequiredModuleLeaks(SURFACE_INTENTS.zero, registry.modules)) {
     violations.push({ source: 'self/config/module-registry.json', reason: 'optional X capability is required by Zero', chain });
   }

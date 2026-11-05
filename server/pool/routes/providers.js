@@ -15,7 +15,7 @@ import {
   validatePublishedAdapterRequirement
 } from '../../../self/pool/adapter-publication.js';
 import { verifyPoolIdentityClaims, verifyAdvertisedLimitsAgainstProfile } from '../../../self/pool/identity-claims.js';
-import { PARTICIPATION_CAPABILITIES } from '../../../self/pool/participation-profile.js';
+import { PARTICIPATION_CAPABILITIES } from '../../../shared/pool/participation-profile.js';
 
 const providerHasLaunchModel = (provider) => (provider?.models || []).find((model) => isLaunchModelRequirement(model));
 

@@ -1,4 +1,4 @@
-import { artifactOriginIdentity, validateArtifactOrigin } from '../../self/pool/artifact-origin.js';
+import { artifactOriginIdentity, validateArtifactOrigin } from '../../shared/pool/artifact-origin.js';
 
 export function createGcsAdapterOriginSigner({
   storage,

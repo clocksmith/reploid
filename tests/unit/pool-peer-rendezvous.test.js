@@ -8,7 +8,7 @@ import {
   parsePeerRoomInviteUrl,
   peerRoomMessageFromPeerId
 } from '../../self/pool/peer-rendezvous.js';
-import { createSigningKeyPair, exportPublicKey } from '../../self/pool/inference-receipt.js';
+import { createSigningKeyPair, exportPublicKey } from '../../shared/pool/inference-receipt.js';
 import { createSignedPeerMessage, PEER_MESSAGE_TYPES } from '../../self/pool/peer-protocol.js';
 
 describe('pool peer rendezvous', () => {

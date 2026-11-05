@@ -1,10 +1,10 @@
 /** Acquire authorized bytes and open a local runtime. Custody does not authorize delegation. */
 import { openPeerPackCheckpoints } from '../infrastructure/pack-transfer-storage.js';
-import { DopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
+import { DopplerRuntimeService } from '../../shared/infrastructure/doppler-runtime-service.js';
 import { createPeerPackArtifactStore } from './peer-pack-custody.js';
-import { assertPackSession } from './executable-pack.js';
+import { assertPackSession } from '../../shared/pool/executable-pack.js';
 import { runPackOperation, snapshotPackOperationData } from './pack-operation.js';
-import { resolveDopplerExecutionContract } from '../config/doppler-execution-contracts.js';
+import { resolveDopplerExecutionContract } from '../../shared/config/doppler-execution-contracts.js';
 
 export async function openPeerPack({ authorization, index, inventories, requesterPrivateKey, requestChunk,
   trustedSigners, runtimeVersion, maxCacheBytes, maxConcurrentChunks = 1, signal = null,

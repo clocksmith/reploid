@@ -1,4 +1,4 @@
-import { GENERATION_CONTRACT } from '../config/doppler-generation-contract.js';
+import { GENERATION_CONTRACT } from '../../shared/config/doppler-generation-contract.js';
 
 /** Consume Doppler's public scoped stream: ordered text, then exactly one completion.
  * A transport ending is not completion. Cancellation awaits iterator cleanup.

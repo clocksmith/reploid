@@ -7,7 +7,7 @@ import { buildAcceptanceSummary } from '../../server/pool/services/acceptance.js
 import {
   acceptanceSigningPayload, countersignReceipt, createSigningKeyPair, exportPublicKey,
   signCanonical
-} from '../../self/pool/inference-receipt.js';
+} from '../../shared/pool/inference-receipt.js';
 import { createSettlementFirestore } from '../helpers/pool-settlement-firestore.js';
 
 async function fixture(kind) {

@@ -5,8 +5,8 @@ import {
   createSigningKeyPair,
   hashJson,
   sha256Hex
-} from '../../self/pool/inference-receipt.js';
-import { buildLaunchProviderModel, LAUNCH_MODEL } from '../../self/pool/model-contract.js';
+} from '../../shared/pool/inference-receipt.js';
+import { buildLaunchProviderModel, LAUNCH_MODEL } from '../../shared/pool/model-contract.js';
 import { createProviderClient } from '../../self/pool/provider-client.js';
 import { createRequesterClient } from '../../self/pool/requester-client.js';
 import {

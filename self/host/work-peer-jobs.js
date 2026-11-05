@@ -1,13 +1,13 @@
 /** Exact, host-approved operations. Private task context is never passed to discovery. */
-import config from '../pool/pool-config.json' with { type: 'json' };
+import config from '../../shared/pool/pool-config.json' with { type: 'json' };
 import policy from '../config/work-profile.json' with { type: 'json' };
-import { listPoolModels } from '../pool/model-contract.js';
-import { validateOperationModel } from '../pool/operation-model.js';
-import { createPackOperationRegistry } from '../pool/pack-operation-adapters.js';
+import { listPoolModels } from '../../shared/pool/model-contract.js';
+import { validateOperationModel } from '../../shared/pool/operation-model.js';
+import { createPackOperationRegistry } from '../../shared/pool/pack-operation-adapters.js';
 import { packPeerModel, planPackPeerProviders } from '../pool/peer-pack-job.js';
-import { hashDopplerEvidence } from '../pool/executable-pack.js';
-import { validateWorkRequirements } from '../pool/peer-capabilities.js';
-import { resolvePackJobPolicy } from '../pool/peer-pack-job-policy.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
+import { validateWorkRequirements } from '../../shared/pool/peer-capabilities.js';
+import { resolvePackJobPolicy } from '../../shared/pool/peer-pack-job-policy.js';
 import { verifyPackPeerEpisode } from '../pool/peer-pack-episode.js';
 import { snapshotPackOperationData as snapshot } from '../pool/pack-operation.js';
 

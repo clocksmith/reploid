@@ -5,7 +5,7 @@
  * browser runtime remains responsible for cache layout and IO.
  */
 
-import { hashJson, sha256Hex } from './inference-receipt.js';
+import { hashJson, sha256Hex } from '../../shared/pool/inference-receipt.js';
 
 export const MODEL_CACHE_INTEGRITY_SCHEMA = 'reploid.pool.model_cache_integrity/v1';
 

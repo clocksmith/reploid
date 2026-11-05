@@ -17,7 +17,7 @@ import { mountEarningRoutes } from '../../server/earning-routes/mount.js';
 import { installJsonBodyMiddleware } from '../../server/json-body-middleware.js';
 import createPoolRouter from '../../server/pool/routes.js';
 import { createPoolStore } from '../../server/pool/store.js';
-import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { ACCOUNT_POLICY, newIdentity, openAccountFixture } from '../helpers/account-fixture.js';
 import { PIECE_BYTES, transferPiece } from '../helpers/custody-transfer.js';
 import {

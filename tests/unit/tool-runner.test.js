@@ -53,7 +53,7 @@ const createMockSchemaRegistry = () => ({
 });
 
 import { setSecurityEnabled } from '../../self/core/security-config.js';
-import { getCurrentReploidStorage } from '../../self/instance.js';
+import { getCurrentReploidStorage } from '../../shared/instance.js';
 import ToolRunnerModule, { filterToolDepsForMode, filterToolDepsForTool } from '../../core/tool-runner.js';
 
 describe('ToolRunner', () => {

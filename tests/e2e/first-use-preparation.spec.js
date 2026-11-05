@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
+import { resolveServedFile } from '../../server/browser-roots.js';
 
 // Production catalogue/session/UI with injected peer discovery only. No inference.
 for (const theme of ['light', 'dark']) for (const width of [390, 1440]) {
@@ -22,7 +23,7 @@ for (const theme of ['light', 'dark']) for (const width of [390, 1440]) {
     // A static JSON document provides the origin without booting discovery or providers.
     await page.goto('/config/chat-files.json');
     await page.setContent('<!doctype html><html class="pool-page"><head><meta charset="utf-8"></head><body></body></html>');
-    const manifest = JSON.parse(await readFile('self/styles/poolday/layers.json', 'utf8'));
+    const manifest = JSON.parse(await readFile(resolveServedFile('styles/poolday/layers.json'), 'utf8'));
     const layerFiles = [manifest.tokens, ...manifest.primitives, ...manifest.compositions];
     await page.evaluate(async ({ theme, layerFiles }) => {
       for (const file of layerFiles.map(name => `poolday/${name}`)) {

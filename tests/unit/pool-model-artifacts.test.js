@@ -8,8 +8,8 @@ import {
   verifyModelArtifactCorsDelivery,
   verifyModelArtifactManifest,
   verifyModelArtifactRangeDelivery
-} from '../../self/pool/model-artifacts.js';
-import { hashJson, sha256Hex } from '../../self/pool/inference-receipt.js';
+} from '../../shared/pool/model-artifacts.js';
+import { hashJson, sha256Hex } from '../../shared/pool/inference-receipt.js';
 
 describe('pool model artifact helpers', () => {
   it('uses the pinned Capsule manifest bytes separately from envelope identity', async () => {

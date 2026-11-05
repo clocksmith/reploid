@@ -62,7 +62,7 @@ Identity, and Routing](./poolday/participation-identity-routing.md).
 }
 ```
 
-`self/pool/pool-config.json` owns this exact selection through
+`shared/pool/pool-config.json` owns this exact selection through
 `launchModelId`; this block mirrors config version
 `2026-07-28.doppler-0.5.1.v2`. `dopplerLoadRef` is the public Doppler registry
 alias used by the browser runtime. It is not the receipt identity. Receipts
@@ -79,7 +79,7 @@ Model bytes should not be served from Firebase Hosting or the Cloud Run coordina
 | Tokenizer | `<artifactPolicy.baseUrl>/tokenizer.json` |
 | Shards | `<artifactPolicy.baseUrl>/*` |
 
-Browser providers derive artifact URLs from the selected model's `artifactPolicy`, with `window.REPLOID_POOL_MODEL_BASE_URL` as an override, through `self/pool/model-contract.js` and `self/pool/model-artifacts.js`. The storage backend can be object storage, a model hub, IPFS, or another CDN. The receipt identity does not include the storage URL; it includes the exact model id, model hash, manifest hash, runtime, and backend. Providers cache fetched model artifacts in OPFS after first load.
+Browser providers derive artifact URLs from the selected model's `artifactPolicy`, with `window.REPLOID_POOL_MODEL_BASE_URL` as an override, through `shared/pool/model-contract.js` and `shared/pool/model-artifacts.js`. The storage backend can be object storage, a model hub, IPFS, or another CDN. The receipt identity does not include the storage URL; it includes the exact model id, model hash, manifest hash, runtime, and backend. Providers cache fetched model artifacts in OPFS after first load.
 
 The ESM-2 launch artifact is an immutable, publicly readable mirror in
 `gs://reploid-model-artifacts`, sourced from the exact checkpoint revision
@@ -506,7 +506,7 @@ Requester and agent clients sign acceptance payloads with browser-generated ECDS
 
 ## Browser identity
 
-Pool browser clients use `self/pool/identity.js`. The browser SDK sends a Firebase bearer token when Firebase Auth is available. The identity module calls `self/pool/firebase-auth.js`, which can bootstrap Firebase Auth from Firebase Hosting `/__/firebase/init.json` or from an injected config.
+Pool browser clients use `shared/pool/identity.js`. The browser SDK sends a Firebase bearer token when Firebase Auth is available. The identity module calls `shared/pool/firebase-auth.js`, which can bootstrap Firebase Auth from Firebase Hosting `/__/firebase/init.json` or from an injected config.
 
 
 Browser Firebase configuration options:
@@ -854,8 +854,8 @@ Canonical config lives in:
 
 | File | Role |
 |------|------|
-| `self/pool/pool-config.json` | Product-owned source of truth for model identity, policies, trust tiers, transport modes, evidence requirements, ledger reasons, forbidden claims, and deployment readiness requirements. |
-| `self/pool/config.js` | Browser helper module that consumes the canonical JSON contract. |
+| `shared/pool/pool-config.json` | Product-owned source of truth for model identity, policies, trust tiers, transport modes, evidence requirements, ledger reasons, forbidden claims, and deployment readiness requirements. |
+| `shared/pool/config.js` | Browser helper module that consumes the canonical JSON contract. |
 | `server/pool/config.js` | Server helper module that consumes the canonical JSON contract and exposes the config hash. |
 | `deploy/env.production.json` | Deployment-owned source of truth for Cloud Run env and browser artifact base requirements. |
 
@@ -889,7 +889,7 @@ The UI now surfaces product evidence summaries: status, trust tier, agreement st
 
 The current hosted production line is:
 
-1. Keep config as code in `self/pool/pool-config.json`.
+1. Keep config as code in `shared/pool/pool-config.json`.
 2. Keep cloud authority for hosted diagnostic identity, policy, assignments, receipt anchoring, acceptance, points, and reputation.
 3. Keep model artifacts offloaded and content-addressed.
 4. Keep WebRTC as the primary prompt/output/receipt transit and ring consensus path.

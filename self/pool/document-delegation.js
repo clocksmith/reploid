@@ -1,13 +1,13 @@
 import { verifyPackPeerEpisode } from './peer-pack-episode.js';
 /** Product workflow. The network port receives only the reviewed public task. */
-import config from './pool-config.json' with { type: 'json' };
+import config from '../../shared/pool/pool-config.json' with { type: 'json' };
 import { createDocumentSearch } from './document-search.js';
 import { snapshotPackOperationData as snapshot } from './pack-operation.js';
-import { hashDopplerEvidence } from './executable-pack.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { packPeerModel, planPackPeerProviders } from './peer-pack-job.js';
-import { createPackOperationRegistry } from './pack-operation-adapters.js';
-import { validateWorkRequirements } from './peer-capabilities.js';
-import { resolvePackJobPolicy } from './peer-pack-job-policy.js';
+import { createPackOperationRegistry } from '../../shared/pool/pack-operation-adapters.js';
+import { validateWorkRequirements } from '../../shared/pool/peer-capabilities.js';
+import { resolvePackJobPolicy } from '../../shared/pool/peer-pack-job-policy.js';
 
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 

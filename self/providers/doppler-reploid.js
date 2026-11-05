@@ -8,7 +8,7 @@
 import {
   DOPPLER_MODULE_URL,
   DOPPLER_TOOLING_URL
-} from '../config/doppler-local-models.js';
+} from '../../shared/config/doppler-local-models.js';
 import { DopplerRuntimeService } from '../core/doppler-runtime-service.js';
 
 async function loadDopplerTooling() {

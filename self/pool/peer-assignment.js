@@ -1,4 +1,4 @@
-import { hashJson } from './inference-receipt.js';
+import { hashJson } from '../../shared/pool/inference-receipt.js';
 
 /** Shared identity for the existing complete-job assignment record. */
 export async function sealPeerAssignmentIdentity({

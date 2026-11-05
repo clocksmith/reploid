@@ -2,17 +2,17 @@
  * @fileoverview Browser requester client for fastest-receipt pool jobs.
  */
 
-import { createPoolSdk } from './sdk.js';
-import { ACCEPTANCE_V2, canonicalAcceptanceTerms, acceptanceSigningPayload, verifyCanonicalSignature, buildAcceptanceSummary, countersignReceipt, createSigningKeyPair, exportPublicKey, hashJson, sha256Hex } from './inference-receipt.js';
-import { buildLaunchModelRequirements } from './model-contract.js';
+import { createPoolSdk } from '../../shared/pool/sdk.js';
+import { ACCEPTANCE_V2, canonicalAcceptanceTerms, acceptanceSigningPayload, verifyCanonicalSignature, buildAcceptanceSummary, countersignReceipt, createSigningKeyPair, exportPublicKey, hashJson, sha256Hex } from '../../shared/pool/inference-receipt.js';
+import { buildLaunchModelRequirements } from '../../shared/pool/model-contract.js';
 import { DETERMINISTIC_GENERATION_CONFIG, FASTEST_RECEIPT_POLICY_ID, getPolicy } from './policy-router.js';
-import { createPoolIdentity } from './identity.js';
+import { createPoolIdentity } from '../../shared/pool/identity.js';
 import { createSignedPeerMessage, PEER_MESSAGE_TYPES } from './peer-protocol.js';
 import { createAdapterUseApproval } from './adapter-publication.js';
 import { createPackPeerRequester } from './peer-pack-requester.js';
 import { createPackPeerJob, createPackPeerConnection } from './peer-pack-job.js';
 import { snapshotPackOperationData } from './pack-operation.js';
-import { PACK_JOB_POLICY, resolvePackJobPolicy } from './peer-pack-job-policy.js';
+import { PACK_JOB_POLICY, resolvePackJobPolicy } from '../../shared/pool/peer-pack-job-policy.js';
 import {
   createPeerLedgerEvents,
   createPeerPromptPayload,
@@ -22,13 +22,13 @@ import {
 import {
   adapterRequirementFromPack,
   verifyAdapterPack
-} from './adapter-pack.js';
+} from '../../shared/pool/adapter-pack.js';
 import {
   SEQUENCE_DISCLOSURE,
   isSequenceWorkload,
   normalizeSequenceInput,
   normalizeSequenceRequest
-} from './sequence-workload.js';
+} from '../../shared/pool/sequence-workload.js';
 
 export function createRequesterClient({ requesterId, sdk = createPoolSdk(), keyPair = null, identity = createPoolIdentity('requester') } = {}) {
   let activeKeyPair = keyPair;

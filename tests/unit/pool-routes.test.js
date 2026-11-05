@@ -14,14 +14,14 @@ import {
   createSigningKeyPair,
   exportPublicKey,
   signProviderReceipt
-} from '../../self/pool/inference-receipt.js';
+} from '../../shared/pool/inference-receipt.js';
 import {
   buildRuntimeProfile
 } from '../../self/pool/runtime-profile.js';
 import {
   buildAssignmentCommitmentPayload,
   buildAssignmentRevealPayload
-} from '../../self/pool/p2p-payload.js';
+} from '../../shared/pool/p2p-payload.js';
 import {
   createSignedCandidateAction,
   createSignedResearchHypothesis,

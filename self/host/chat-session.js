@@ -5,7 +5,7 @@
  */
 import { createChatWorkspace, createRemotePermission, createSearchPermission, remotePermissionCovers, remotePermissionNeed,
   searchPermissionWording, validPermissionWording, validateRemotePermission } from '../../shared/vendor/reploid/chat/index.js';
-import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
+import { createReploidDopplerRuntimeService } from '../../shared/infrastructure/doppler-runtime-service.js';
 import { ROUTE_ENVELOPE_POLICY } from '../../shared/vendor/reploid/mesh/partitions/partition-route-envelope.js';
 import { createModelAcquisition } from './model-acquisition.js';
 import { createChatExecution } from './chat-execution.js';
@@ -17,7 +17,7 @@ import { createAdapterEvidence } from './adapter-evidence.js';
 import { attachmentInput, comparisonInput, comparisonSources, comparisonExport, COMPARISON_CHECK } from './document-comparison.js';
 import { readonlyView } from './readonly-view.js';
 import profile from '../config/work-profile.json' with { type: 'json' };
-import { LOCAL_DOPPLER_MODELS } from '../config/doppler-local-models.js';
+import { LOCAL_DOPPLER_MODELS } from '../../shared/config/doppler-local-models.js';
 import { openCanonicalChatHistory } from './chat-history.js';
 export { openChatHistory } from './chat-history.js';
 

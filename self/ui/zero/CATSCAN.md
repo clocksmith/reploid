@@ -18,7 +18,7 @@ Give X/Zero operators a focused interface for objectives, tool-growing experimen
 
 Inputs:
 - X/Zero runtime state through [index.js](index.js).
-- X/Zero surface boundaries from [surface intents](../../config/surface-intents.js).
+- X/Zero surface boundaries from [surface intents](../../../shared/config/surface-intents.js).
 
 Outputs:
 - Explicit operator requests and visible X/Zero state.

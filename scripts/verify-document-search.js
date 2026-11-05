@@ -5,7 +5,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
-import { validateOperationModel } from '../self/pool/operation-model.js';
+import { validateOperationModel } from '../shared/pool/operation-model.js';
 import { servedTreeSnapshot } from './package-hosting.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');

@@ -19,11 +19,11 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 | Owner | Files |
 | --- | ---: |
 | apps/poolday | 278 |
-| self | 448 |
-| shared | 2213 |
+| self | 447 |
+| shared | 2214 |
 | total | 2939 |
 
-358 files still live outside their owner's root; the Source column shows where.
+278 files still live outside their owner's root; the Source column shows where.
 
 ## Package mirrors
 
@@ -253,9 +253,9 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `capabilities/cognition/symbolic/symbol-grounder.js` | `self/capabilities/cognition/symbolic/symbol-grounder.js` | self | Reached only from substrate entries. |
 | `capabilities/cognition/vector-math.js` | `self/capabilities/cognition/vector-math.js` | self | Reached only from substrate entries. |
 | `capabilities/communication/consensus.js` | `self/capabilities/communication/consensus.js` | self | Reached only from substrate entries. |
-| `capabilities/communication/library-adapter.js` | `self/capabilities/communication/library-adapter.js` | shared | Reached from product and substrate entries. |
+| `capabilities/communication/library-adapter.js` | `shared/capabilities/communication/library-adapter.js` | shared | Reached from product and substrate entries. |
 | `capabilities/communication/signaling-config.js` | `self/capabilities/communication/signaling-config.js` | self | Optional agent capabilities (Optional Capabilities charter). |
-| `capabilities/communication/swarm-join-policy.js` | `self/capabilities/communication/swarm-join-policy.js` | shared | Reached from product and substrate entries. |
+| `capabilities/communication/swarm-join-policy.js` | `shared/capabilities/communication/swarm-join-policy.js` | shared | Reached from product and substrate entries. |
 | `capabilities/communication/swarm-sync.js` | `self/capabilities/communication/swarm-sync.js` | self | Reached only from substrate entries. |
 | `capabilities/communication/swarm-transport.js` | `self/capabilities/communication/swarm-transport.js` | self | Reached only from substrate entries. |
 | `capabilities/communication/webrtc-swarm.js` | `self/capabilities/communication/webrtc-swarm.js` | self | Reached only from substrate entries. |
@@ -280,44 +280,44 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `config/browser-bundle-manifest.json` | `self/config/browser-bundle-manifest.json` | apps/poolday | Reached only from product entries. |
 | `config/chat-context-policy.json` | `self/config/chat-context-policy.json` | apps/poolday | Reached only from product entries. |
 | `config/chat-files.json` | `self/config/chat-files.json` | apps/poolday | Reached only from product entries. |
-| `config/chat-models.json` | `self/config/chat-models.json` | shared | Reached from product and substrate entries. |
+| `config/chat-models.json` | `shared/config/chat-models.json` | shared | Reached from product and substrate entries. |
 | `config/chat-remote-permission.json` | `self/config/chat-remote-permission.json` | apps/poolday | Reached only from product entries. |
 | `config/clockwork-gamma-receipts.js` | `self/config/clockwork-gamma-receipts.js` | self | Reached only from substrate entries. |
 | `config/document-comparison-sample.json` | `self/config/document-comparison-sample.json` | apps/poolday | Fixture for the product document comparison. |
-| `config/doppler-execution-contracts.d.ts` | `self/config/doppler-execution-contracts.d.ts` | shared | Describes config/doppler-execution-contracts.js. Reached from product and substrate entries. |
-| `config/doppler-execution-contracts.js` | `self/config/doppler-execution-contracts.js` | shared | Reached from product and substrate entries. |
-| `config/doppler-execution-contracts.json` | `self/config/doppler-execution-contracts.json` | shared | Reached from product and substrate entries. |
-| `config/doppler-generation-contract.d.ts` | `self/config/doppler-generation-contract.d.ts` | shared | Describes config/doppler-generation-contract.js. Reached from product and substrate entries. |
-| `config/doppler-generation-contract.js` | `self/config/doppler-generation-contract.js` | shared | Reached from product and substrate entries. |
-| `config/doppler-generation-contract.provenance.json` | `self/config/doppler-generation-contract.provenance.json` | shared | Describes config/doppler-generation-contract.js. Reached from product and substrate entries. |
-| `config/doppler-local-models.js` | `self/config/doppler-local-models.js` | shared | Reached from product and substrate entries. |
+| `config/doppler-execution-contracts.d.ts` | `shared/config/doppler-execution-contracts.d.ts` | shared | Describes config/doppler-execution-contracts.js. Reached from product and substrate entries. |
+| `config/doppler-execution-contracts.js` | `shared/config/doppler-execution-contracts.js` | shared | Reached from product and substrate entries. |
+| `config/doppler-execution-contracts.json` | `shared/config/doppler-execution-contracts.json` | shared | Reached from product and substrate entries. |
+| `config/doppler-generation-contract.d.ts` | `shared/config/doppler-generation-contract.d.ts` | shared | Describes config/doppler-generation-contract.js. Reached from product and substrate entries. |
+| `config/doppler-generation-contract.js` | `shared/config/doppler-generation-contract.js` | shared | Reached from product and substrate entries. |
+| `config/doppler-generation-contract.provenance.json` | `shared/config/doppler-generation-contract.provenance.json` | shared | Describes config/doppler-generation-contract.js. Reached from product and substrate entries. |
+| `config/doppler-local-models.js` | `shared/config/doppler-local-models.js` | shared | Reached from product and substrate entries. |
 | `config/doppler-metadata-contract.js` | `self/config/doppler-metadata-contract.js` | apps/poolday | Reached only from product entries. |
 | `config/doppler-metadata-contract.provenance.json` | `self/config/doppler-metadata-contract.provenance.json` | apps/poolday | Describes config/doppler-metadata-contract.js. Reached only from product entries. |
-| `config/doppler-package.json` | `self/config/doppler-package.json` | shared | Reached from product and substrate entries. |
+| `config/doppler-package.json` | `shared/config/doppler-package.json` | shared | Reached from product and substrate entries. |
 | `config/file-tool-schemas.json` | `self/config/file-tool-schemas.json` | self | Reached only from substrate entries. |
-| `config/firebase-public.json` | `self/config/firebase-public.json` | shared | Reached from product and substrate entries. |
+| `config/firebase-public.json` | `shared/config/firebase-public.json` | shared | Reached from product and substrate entries. |
 | `config/genesis-levels.json` | `self/config/genesis-levels.json` | self | Reached only from substrate entries. |
 | `config/genesis-template.json` | `self/config/genesis-template.json` | self | Substrate module registry, Genesis levels and Zero configuration. |
-| `config/immutability.js` | `self/config/immutability.js` | shared | Reached from product and substrate entries. |
+| `config/immutability.js` | `shared/config/immutability.js` | shared | Reached from product and substrate entries. |
 | `config/lab-upgrades.js` | `self/config/lab-upgrades.js` | self | Reached only from substrate entries. |
 | `config/lora-adapters/doppler-wgsl-qwen35-9b-v12-external20-seed11.json` | `self/config/lora-adapters/doppler-wgsl-qwen35-9b-v12-external20-seed11.json` | self | Adapter manifests the substrate neural compiler reads from /config/lora-adapters. |
 | `config/lora-adapters/doppler-wgsl-qwen35-9b-v12-external20-seed29.json` | `self/config/lora-adapters/doppler-wgsl-qwen35-9b-v12-external20-seed29.json` | self | Adapter manifests the substrate neural compiler reads from /config/lora-adapters. |
 | `config/lora-adapters/doppler-wgsl-qwen35-9b-v12-external20-seed47.json` | `self/config/lora-adapters/doppler-wgsl-qwen35-9b-v12-external20-seed47.json` | self | Adapter manifests the substrate neural compiler reads from /config/lora-adapters. |
 | `config/lora-adapters/react-forms.json` | `self/config/lora-adapters/react-forms.json` | self | Adapter manifests the substrate neural compiler reads from /config/lora-adapters. |
 | `config/lora-training.json` | `self/config/lora-training.json` | apps/poolday | Reached only from product entries. |
-| `config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json` | `self/config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json` | shared | Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it. |
-| `config/model-manifests/19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d.json` | `self/config/model-manifests/19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d.json` | shared | Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it. |
-| `config/model-manifests/6788ca6b95e2fe3dd27a057042cd3b543e4b8d2fcdc433bcfe218148feb82a4e.json` | `self/config/model-manifests/6788ca6b95e2fe3dd27a057042cd3b543e4b8d2fcdc433bcfe218148feb82a4e.json` | shared | Reached from product and substrate entries. |
-| `config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json` | `self/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json` | shared | Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it. |
-| `config/model-manifests/a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b.json` | `self/config/model-manifests/a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b.json` | shared | Reached from product and substrate entries. |
-| `config/model-manifests/e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06.json` | `self/config/model-manifests/e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06.json` | shared | Reached from product and substrate entries. |
-| `config/model-manifests/e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59.json` | `self/config/model-manifests/e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59.json` | shared | Reached from product and substrate entries. |
-| `config/model-manifests/f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735.json` | `self/config/model-manifests/f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735.json` | shared | Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it. |
-| `config/model-pieces/qwen-0-8b-pieces.json` | `self/config/model-pieces/qwen-0-8b-pieces.json` | shared | Reached from product and substrate entries. |
-| `config/model-pieces/qwen-2b-pieces.json` | `self/config/model-pieces/qwen-2b-pieces.json` | shared | Reached from product and substrate entries. |
-| `config/model-pieces/qwen-3-8-27b-pieces.json` | `self/config/model-pieces/qwen-3-8-27b-pieces.json` | shared | Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it. |
-| `config/model-pieces/qwen27b-q4-pieces.json` | `self/config/model-pieces/qwen27b-q4-pieces.json` | shared | Reached from product and substrate entries. |
-| `config/model-pieces/qwen35b-q4_0-pieces.json` | `self/config/model-pieces/qwen35b-q4_0-pieces.json` | shared | Reached from product and substrate entries. |
+| `config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json` | `shared/config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json` | shared | Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it. |
+| `config/model-manifests/19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d.json` | `shared/config/model-manifests/19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d.json` | shared | Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it. |
+| `config/model-manifests/6788ca6b95e2fe3dd27a057042cd3b543e4b8d2fcdc433bcfe218148feb82a4e.json` | `shared/config/model-manifests/6788ca6b95e2fe3dd27a057042cd3b543e4b8d2fcdc433bcfe218148feb82a4e.json` | shared | Reached from product and substrate entries. |
+| `config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json` | `shared/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json` | shared | Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it. |
+| `config/model-manifests/a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b.json` | `shared/config/model-manifests/a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b.json` | shared | Reached from product and substrate entries. |
+| `config/model-manifests/e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06.json` | `shared/config/model-manifests/e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06.json` | shared | Reached from product and substrate entries. |
+| `config/model-manifests/e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59.json` | `shared/config/model-manifests/e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59.json` | shared | Reached from product and substrate entries. |
+| `config/model-manifests/f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735.json` | `shared/config/model-manifests/f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735.json` | shared | Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it. |
+| `config/model-pieces/qwen-0-8b-pieces.json` | `shared/config/model-pieces/qwen-0-8b-pieces.json` | shared | Reached from product and substrate entries. |
+| `config/model-pieces/qwen-2b-pieces.json` | `shared/config/model-pieces/qwen-2b-pieces.json` | shared | Reached from product and substrate entries. |
+| `config/model-pieces/qwen-3-8-27b-pieces.json` | `shared/config/model-pieces/qwen-3-8-27b-pieces.json` | shared | Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it. |
+| `config/model-pieces/qwen27b-q4-pieces.json` | `shared/config/model-pieces/qwen27b-q4-pieces.json` | shared | Reached from product and substrate entries. |
+| `config/model-pieces/qwen35b-q4_0-pieces.json` | `shared/config/model-pieces/qwen35b-q4_0-pieces.json` | shared | Reached from product and substrate entries. |
 | `config/module-inventory.json` | `self/config/module-inventory.json` | self | Generated VFS hydration list and module inventory read by the substrate loader. |
 | `config/module-registry.json` | `self/config/module-registry.json` | self | Reached only from substrate entries. |
 | `config/module-resolution.js` | `self/config/module-resolution.js` | self | Reached only from substrate entries. |
@@ -325,14 +325,14 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `config/partition-generation.js` | `self/config/partition-generation.js` | apps/poolday | Reached only from product entries. |
 | `config/partition-policy.json` | `self/config/partition-policy.json` | apps/poolday | Reached only from product entries. |
 | `config/reploid-environments.js` | `self/config/reploid-environments.js` | self | Reached only from substrate entries. |
-| `config/reploid-library.json` | `self/config/reploid-library.json` | shared | Reached from product and substrate entries. |
-| `config/self-source-catalog.json` | `self/config/self-source-catalog.json` | shared | Reached from product and substrate entries. |
+| `config/reploid-library.json` | `shared/config/reploid-library.json` | shared | Reached from product and substrate entries. |
+| `config/self-source-catalog.json` | `shared/config/self-source-catalog.json` | shared | Reached from product and substrate entries. |
 | `config/self-source-manifest.json` | `self/config/self-source-manifest.json` | self | Reached only from substrate entries. |
 | `config/service-worker.js` | `self/config/service-worker.js` | self | Reached only from substrate entries. |
-| `config/surface-intents.js` | `self/config/surface-intents.js` | shared | Reached from product and substrate entries. |
-| `config/surface-resources.js` | `self/config/surface-resources.js` | shared | Reached from product and substrate entries. |
-| `config/swarm-bootstrap.json` | `self/config/swarm-bootstrap.json` | shared | Reached from product and substrate entries. |
-| `config/tool-surfaces.js` | `self/config/tool-surfaces.js` | shared | Reached from product and substrate entries. |
+| `config/surface-intents.js` | `shared/config/surface-intents.js` | shared | Reached from product and substrate entries. |
+| `config/surface-resources.js` | `shared/config/surface-resources.js` | shared | Reached from product and substrate entries. |
+| `config/swarm-bootstrap.json` | `shared/config/swarm-bootstrap.json` | shared | Reached from product and substrate entries. |
+| `config/tool-surfaces.js` | `shared/config/tool-surfaces.js` | shared | Reached from product and substrate entries. |
 | `config/vfs-manifest.json` | `self/config/vfs-manifest.json` | self | Reached only from substrate entries. |
 | `config/vfs-policy.js` | `self/config/vfs-policy.js` | self | Reached only from substrate entries. |
 | `config/work-evolution.json` | `self/config/work-evolution.json` | apps/poolday | Reached only from product entries. |
@@ -372,18 +372,18 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `core/tool-runner.js` | `self/core/tool-runner.js` | self | Reached only from substrate entries. |
 | `core/tool-writer.js` | `self/core/tool-writer.js` | self | Reached only from substrate entries. |
 | `core/transformers-client.js` | `self/core/transformers-client.js` | self | Reached only from substrate entries. |
-| `core/utils.js` | `self/core/utils.js` | shared | Reached from product and substrate entries. |
-| `core/vendor/ACORN-LICENSE.txt` | `self/core/vendor/ACORN-LICENSE.txt` | self | Reached only from substrate entries. |
-| `core/vendor/acorn.js` | `self/core/vendor/acorn.js` | shared | Reached from product and substrate entries. |
+| `core/utils.js` | `shared/core/utils.js` | shared | Reached from product and substrate entries. |
+| `core/vendor/ACORN-LICENSE.txt` | `shared/core/vendor/ACORN-LICENSE.txt` | shared | Describes core/vendor/acorn.js. Reached from product and substrate entries. |
+| `core/vendor/acorn.js` | `shared/core/vendor/acorn.js` | shared | Reached from product and substrate entries. |
 | `core/verification-manager.js` | `self/core/verification-manager.js` | self | Reached only from substrate entries. |
-| `core/verification-worker.js` | `self/core/verification-worker.js` | shared | Reached from product and substrate entries. |
+| `core/verification-worker.js` | `shared/core/verification-worker.js` | shared | Reached from product and substrate entries. |
 | `core/vfs-module-loader.js` | `self/core/vfs-module-loader.js` | self | Reached only from substrate entries. |
 | `core/vfs.js` | `self/core/vfs.js` | self | Reached only from substrate entries. |
 | `core/visual-change-passport.js` | `self/core/visual-change-passport.js` | self | Reached only from substrate entries. |
 | `core/worker-agent.js` | `self/core/worker-agent.js` | self | Reached only from substrate entries. |
 | `core/worker-manager.js` | `self/core/worker-manager.js` | self | Reached only from substrate entries. |
 | `core/zero-prompt.js` | `self/core/zero-prompt.js` | self | Reached only from substrate entries. |
-| `design.html` | `self/design.html` | shared | RD design-system specimen and storage reset page served for every surface; load only shared styles. |
+| `design.html` | `shared/design.html` | shared | RD design-system specimen and storage reset page served for every surface; load only shared styles. |
 | `document-study.html` | `self/document-study.html` | apps/poolday | Reached only from product entries. |
 | `dream-instance.js` | `self/dream-instance.js` | self | Reached only from substrate entries. |
 | `entry/seed-vfs.js` | `self/entry/seed-vfs.js` | self | Reached only from substrate entries. |
@@ -395,7 +395,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `experimental/openclaw-audit/audit-mesh.js` | `self/experimental/openclaw-audit/audit-mesh.js` | self | Reached only from substrate entries. |
 | `experimental/openclaw-audit/index.js` | `self/experimental/openclaw-audit/index.js` | self | Reached only from substrate entries. |
 | `experimental/openclaw-audit/self-audit.js` | `self/experimental/openclaw-audit/self-audit.js` | self | Reached only from substrate entries. |
-| `favicon.svg` | `self/favicon.svg` | shared | Reached from product and substrate entries. |
+| `favicon.svg` | `shared/favicon.svg` | shared | Reached from product and substrate entries. |
 | `host/adapter-evidence.js` | `self/host/adapter-evidence.js` | apps/poolday | Reached only from product entries. |
 | `host/chat-context.js` | `self/host/chat-context.js` | apps/poolday | Reached only from product entries. |
 | `host/chat-drafts.js` | `self/host/chat-drafts.js` | apps/poolday | Reached only from product entries. |
@@ -455,7 +455,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `host/work-swarm.js` | `self/host/work-swarm.js` | apps/poolday | Reached only from product entries. |
 | `host/work-task.js` | `self/host/work-task.js` | apps/poolday | Reached only from product entries. |
 | `host/work-view.js` | `self/host/work-view.js` | apps/poolday | Reached only from product entries. |
-| `identity.js` | `self/identity.js` | shared | Reached from product and substrate entries. |
+| `identity.js` | `shared/identity.js` | shared | Reached from product and substrate entries. |
 | `image/export.js` | `self/image/export.js` | self | Reached only from substrate entries. |
 | `image/manifest.js` | `self/image/manifest.js` | self | Reached only from substrate entries. |
 | `index.html` | `self/index.html` | apps/poolday | Reached only from product entries. |
@@ -467,10 +467,10 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `infrastructure/code-sandbox.js` | `self/infrastructure/code-sandbox.js` | apps/poolday | Reached only from product entries. |
 | `infrastructure/custody-supply-budget.js` | `self/infrastructure/custody-supply-budget.js` | apps/poolday | Reached only from product entries. |
 | `infrastructure/di-container.js` | `self/infrastructure/di-container.js` | self | Reached only from substrate entries. |
-| `infrastructure/doppler-runtime-service.d.ts` | `self/infrastructure/doppler-runtime-service.d.ts` | shared | Describes infrastructure/doppler-runtime-service.js. Reached from product and substrate entries. |
-| `infrastructure/doppler-runtime-service.js` | `self/infrastructure/doppler-runtime-service.js` | shared | Reached from product and substrate entries. |
+| `infrastructure/doppler-runtime-service.d.ts` | `shared/infrastructure/doppler-runtime-service.d.ts` | shared | Describes infrastructure/doppler-runtime-service.js. Reached from product and substrate entries. |
+| `infrastructure/doppler-runtime-service.js` | `shared/infrastructure/doppler-runtime-service.js` | shared | Reached from product and substrate entries. |
 | `infrastructure/error-store.js` | `self/infrastructure/error-store.js` | self | Reached only from substrate entries. |
-| `infrastructure/event-bus.js` | `self/infrastructure/event-bus.js` | shared | Reached from product and substrate entries. |
+| `infrastructure/event-bus.js` | `shared/infrastructure/event-bus.js` | shared | Reached from product and substrate entries. |
 | `infrastructure/genesis-snapshot.js` | `self/infrastructure/genesis-snapshot.js` | self | Reached only from substrate entries. |
 | `infrastructure/hitl-controller.js` | `self/infrastructure/hitl-controller.js` | self | Reached only from substrate entries. |
 | `infrastructure/intent-bundle-gate.js` | `self/infrastructure/intent-bundle-gate.js` | self | Reached only from substrate entries. |
@@ -486,7 +486,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `infrastructure/telemetry-timeline.js` | `self/infrastructure/telemetry-timeline.js` | self | Reached only from substrate entries. |
 | `infrastructure/tool-executor.js` | `self/infrastructure/tool-executor.js` | self | Reached only from substrate entries. |
 | `infrastructure/trace-store.js` | `self/infrastructure/trace-store.js` | self | Reached only from substrate entries. |
-| `instance.js` | `self/instance.js` | shared | Reached from product and substrate entries. |
+| `instance.js` | `shared/instance.js` | shared | Reached from product and substrate entries. |
 | `kernel/boot.js` | `self/kernel/boot.js` | self | Reached only from substrate entries. |
 | `kernel/index.html` | `self/kernel/index.html` | self | Reached only from substrate entries. |
 | `key-unsealer.js` | `self/key-unsealer.js` | self | Reached only from substrate entries. |
@@ -503,27 +503,27 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `pool-entry.html` | `self/pool-entry.html` | apps/poolday | Reached only from product entries. |
 | `pool/adapter-canary-publication.js` | `self/pool/adapter-canary-publication.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `pool/adapter-evaluation.js` | `self/pool/adapter-evaluation.js` | apps/poolday | Reached only from product entries. |
-| `pool/adapter-execution-policy.d.ts` | `self/pool/adapter-execution-policy.d.ts` | shared | Describes pool/adapter-execution-policy.js. Reached from product and substrate entries. |
-| `pool/adapter-execution-policy.js` | `self/pool/adapter-execution-policy.js` | shared | Reached from product and substrate entries. |
+| `pool/adapter-execution-policy.d.ts` | `shared/pool/adapter-execution-policy.d.ts` | shared | Describes pool/adapter-execution-policy.js. Reached from product and substrate entries. |
+| `pool/adapter-execution-policy.js` | `shared/pool/adapter-execution-policy.js` | shared | Reached from product and substrate entries. |
 | `pool/adapter-execution.d.ts` | `self/pool/adapter-execution.d.ts` | apps/poolday | Describes pool/adapter-execution.js. Reached only from product entries. |
 | `pool/adapter-execution.js` | `self/pool/adapter-execution.js` | apps/poolday | Reached only from product entries. |
 | `pool/adapter-pack-publisher.js` | `self/pool/adapter-pack-publisher.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
-| `pool/adapter-pack.js` | `self/pool/adapter-pack.js` | shared | Reached from product and substrate entries. |
+| `pool/adapter-pack.js` | `shared/pool/adapter-pack.js` | shared | Reached from product and substrate entries. |
 | `pool/adapter-publication.js` | `self/pool/adapter-publication.js` | apps/poolday | Reached only from product entries. |
 | `pool/adapter-publisher-client.js` | `self/pool/adapter-publisher-client.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `pool/adapter-registry.js` | `self/pool/adapter-registry.js` | apps/poolday | Reached only from product entries. |
 | `pool/adjudication-north-star.js` | `self/pool/adjudication-north-star.js` | apps/poolday | Reached only from product entries. |
 | `pool/adjudication-pilot-manifest.json` | `self/pool/adjudication-pilot-manifest.json` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
-| `pool/artifact-origin.js` | `self/pool/artifact-origin.js` | shared | Reached from product and substrate entries. |
+| `pool/artifact-origin.js` | `shared/pool/artifact-origin.js` | shared | Reached from product and substrate entries. |
 | `pool/artifact-router.js` | `self/pool/artifact-router.js` | apps/poolday | Reached only from product entries. |
 | `pool/browser-qualification.js` | `self/pool/browser-qualification.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `pool/browser-release-identity.js` | `self/pool/browser-release-identity.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
-| `pool/canonical-json.js` | `self/pool/canonical-json.js` | shared | Reached from product and substrate entries. |
+| `pool/canonical-json.js` | `shared/pool/canonical-json.js` | shared | Reached from product and substrate entries. |
 | `pool/capsule-artifact-cache.js` | `self/pool/capsule-artifact-cache.js` | apps/poolday | Reached only from product entries. |
 | `pool/complete-forecast.js` | `self/pool/complete-forecast.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
-| `pool/config-contract.js` | `self/pool/config-contract.js` | shared | Reached from product and substrate entries. |
-| `pool/config.js` | `self/pool/config.js` | shared | Reached from product and substrate entries. |
-| `pool/device-identity.js` | `self/pool/device-identity.js` | shared | Reached from product and substrate entries. |
+| `pool/config-contract.js` | `shared/pool/config-contract.js` | shared | Reached from product and substrate entries. |
+| `pool/config.js` | `shared/pool/config.js` | shared | Reached from product and substrate entries. |
+| `pool/device-identity.js` | `shared/pool/device-identity.js` | shared | Reached from product and substrate entries. |
 | `pool/discovery-action-value.js` | `self/pool/discovery-action-value.js` | apps/poolday | Reached only from product entries. |
 | `pool/discovery-candidate-action.js` | `self/pool/discovery-candidate-action.js` | apps/poolday | Reached only from product entries. |
 | `pool/discovery-contract.js` | `self/pool/discovery-contract.js` | apps/poolday | Reached only from product entries. |
@@ -544,46 +544,46 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `pool/evidence-record-contract.js` | `self/pool/evidence-record-contract.js` | apps/poolday | Reached only from product entries. |
 | `pool/evidence-records.js` | `self/pool/evidence-records.js` | apps/poolday | Reached only from product entries. |
 | `pool/evidence-verification.js` | `self/pool/evidence-verification.js` | apps/poolday | Reached only from product entries. |
-| `pool/executable-pack.d.ts` | `self/pool/executable-pack.d.ts` | shared | Describes pool/executable-pack.js. Reached from product and substrate entries. |
-| `pool/executable-pack.js` | `self/pool/executable-pack.js` | shared | Reached from product and substrate entries. |
-| `pool/firebase-auth.js` | `self/pool/firebase-auth.js` | shared | Reached from product and substrate entries. |
-| `pool/forecast-workload.js` | `self/pool/forecast-workload.js` | shared | Reached from product and substrate entries. |
+| `pool/executable-pack.d.ts` | `shared/pool/executable-pack.d.ts` | shared | Describes pool/executable-pack.js. Reached from product and substrate entries. |
+| `pool/executable-pack.js` | `shared/pool/executable-pack.js` | shared | Reached from product and substrate entries. |
+| `pool/firebase-auth.js` | `shared/pool/firebase-auth.js` | shared | Reached from product and substrate entries. |
+| `pool/forecast-workload.js` | `shared/pool/forecast-workload.js` | shared | Reached from product and substrate entries. |
 | `pool/identity-claims.js` | `self/pool/identity-claims.js` | apps/poolday | Reached only from product entries. |
-| `pool/identity.js` | `self/pool/identity.js` | shared | Reached from product and substrate entries. |
-| `pool/inference-receipt.js` | `self/pool/inference-receipt.js` | shared | Reached from product and substrate entries. |
+| `pool/identity.js` | `shared/pool/identity.js` | shared | Reached from product and substrate entries. |
+| `pool/inference-receipt.js` | `shared/pool/inference-receipt.js` | shared | Reached from product and substrate entries. |
 | `pool/local-pack-executor.d.ts` | `self/pool/local-pack-executor.d.ts` | apps/poolday | Describes pool/local-pack-executor.js. Reached only from product entries. |
 | `pool/local-pack-executor.js` | `self/pool/local-pack-executor.js` | apps/poolday | Reached only from product entries. |
 | `pool/local-session-policy.json` | `self/pool/local-session-policy.json` | apps/poolday | Reached only from product entries. |
-| `pool/model-artifacts.js` | `self/pool/model-artifacts.js` | shared | Reached from product and substrate entries. |
+| `pool/model-artifacts.js` | `shared/pool/model-artifacts.js` | shared | Reached from product and substrate entries. |
 | `pool/model-cache-integrity.js` | `self/pool/model-cache-integrity.js` | apps/poolday | Reached only from product entries. |
-| `pool/model-contract.js` | `self/pool/model-contract.js` | shared | Reached from product and substrate entries. |
+| `pool/model-contract.js` | `shared/pool/model-contract.js` | shared | Reached from product and substrate entries. |
 | `pool/model-evidence-view.js` | `self/pool/model-evidence-view.js` | apps/poolday | Reached only from product entries. |
 | `pool/model-promotion.js` | `self/pool/model-promotion.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `pool/operation-acceptance.d.ts` | `self/pool/operation-acceptance.d.ts` | apps/poolday | Describes pool/operation-acceptance.js. Reached only from product entries. |
 | `pool/operation-acceptance.js` | `self/pool/operation-acceptance.js` | apps/poolday | Reached only from product entries. |
-| `pool/operation-model.js` | `self/pool/operation-model.js` | shared | Reached from product and substrate entries. |
+| `pool/operation-model.js` | `shared/pool/operation-model.js` | shared | Reached from product and substrate entries. |
 | `pool/operation-participation.d.ts` | `self/pool/operation-participation.d.ts` | apps/poolday | Describes pool/operation-participation.js. Reached only from product entries. |
 | `pool/operation-participation.js` | `self/pool/operation-participation.js` | apps/poolday | Reached only from product entries. |
 | `pool/operation-room-network.d.ts` | `self/pool/operation-room-network.d.ts` | apps/poolday | Describes pool/operation-room-network.js. Reached only from product entries. |
 | `pool/operation-room-network.js` | `self/pool/operation-room-network.js` | apps/poolday | Reached only from product entries. |
 | `pool/p2p-artifact-transfer.js` | `self/pool/p2p-artifact-transfer.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
-| `pool/p2p-payload.js` | `self/pool/p2p-payload.js` | shared | Reached from product and substrate entries. |
-| `pool/p2p-signaling.js` | `self/pool/p2p-signaling.js` | shared | Reached from product and substrate entries. |
-| `pool/p2p-transport.js` | `self/pool/p2p-transport.js` | shared | Reached from product and substrate entries. |
-| `pool/pack-operation-adapters.d.ts` | `self/pool/pack-operation-adapters.d.ts` | shared | Describes pool/pack-operation-adapters.js. Reached from product and substrate entries. |
-| `pool/pack-operation-adapters.js` | `self/pool/pack-operation-adapters.js` | shared | Reached from product and substrate entries. |
-| `pool/pack-operation-policy.d.ts` | `self/pool/pack-operation-policy.d.ts` | shared | Describes pool/pack-operation-policy.js. Reached from product and substrate entries. |
-| `pool/pack-operation-policy.js` | `self/pool/pack-operation-policy.js` | shared | Reached from product and substrate entries. |
+| `pool/p2p-payload.js` | `shared/pool/p2p-payload.js` | shared | Reached from product and substrate entries. |
+| `pool/p2p-signaling.js` | `shared/pool/p2p-signaling.js` | shared | Reached from product and substrate entries. |
+| `pool/p2p-transport.js` | `shared/pool/p2p-transport.js` | shared | Reached from product and substrate entries. |
+| `pool/pack-operation-adapters.d.ts` | `shared/pool/pack-operation-adapters.d.ts` | shared | Describes pool/pack-operation-adapters.js. Reached from product and substrate entries. |
+| `pool/pack-operation-adapters.js` | `shared/pool/pack-operation-adapters.js` | shared | Reached from product and substrate entries. |
+| `pool/pack-operation-policy.d.ts` | `shared/pool/pack-operation-policy.d.ts` | shared | Describes pool/pack-operation-policy.js. Reached from product and substrate entries. |
+| `pool/pack-operation-policy.js` | `shared/pool/pack-operation-policy.js` | shared | Reached from product and substrate entries. |
 | `pool/pack-operation.d.ts` | `self/pool/pack-operation.d.ts` | apps/poolday | Describes pool/pack-operation.js. Reached only from product entries. |
 | `pool/pack-operation.js` | `self/pool/pack-operation.js` | apps/poolday | Reached only from product entries. |
 | `pool/pack-release-policy.js` | `self/pool/pack-release-policy.js` | apps/poolday | Reached only from product entries. |
-| `pool/participation-profile.js` | `self/pool/participation-profile.js` | shared | Reached from product and substrate entries. |
+| `pool/participation-profile.js` | `shared/pool/participation-profile.js` | shared | Reached from product and substrate entries. |
 | `pool/peer-adapter-execution.d.ts` | `self/pool/peer-adapter-execution.d.ts` | apps/poolday | Describes pool/peer-adapter-execution.js. Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `pool/peer-adapter-execution.js` | `self/pool/peer-adapter-execution.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `pool/peer-agreement.js` | `self/pool/peer-agreement.js` | apps/poolday | Reached only from product entries. |
 | `pool/peer-assignment.js` | `self/pool/peer-assignment.js` | apps/poolday | Reached only from product entries. |
-| `pool/peer-capabilities.d.ts` | `self/pool/peer-capabilities.d.ts` | shared | Describes pool/peer-capabilities.js. Reached from product and substrate entries. |
-| `pool/peer-capabilities.js` | `self/pool/peer-capabilities.js` | shared | Reached from product and substrate entries. |
+| `pool/peer-capabilities.d.ts` | `shared/pool/peer-capabilities.d.ts` | shared | Describes pool/peer-capabilities.js. Reached from product and substrate entries. |
+| `pool/peer-capabilities.js` | `shared/pool/peer-capabilities.js` | shared | Reached from product and substrate entries. |
 | `pool/peer-control-plane.js` | `self/pool/peer-control-plane.js` | apps/poolday | Reached only from product entries. |
 | `pool/peer-ledger.js` | `self/pool/peer-ledger.js` | apps/poolday | Reached only from product entries. |
 | `pool/peer-pack-custody.d.ts` | `self/pool/peer-pack-custody.d.ts` | apps/poolday | Describes pool/peer-pack-custody.js. Reached only from product entries. |
@@ -591,8 +591,8 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `pool/peer-pack-data-channel.js` | `self/pool/peer-pack-data-channel.js` | apps/poolday | Reached only from product entries. |
 | `pool/peer-pack-episode.js` | `self/pool/peer-pack-episode.js` | apps/poolday | Reached only from product entries. |
 | `pool/peer-pack-job-channel.js` | `self/pool/peer-pack-job-channel.js` | apps/poolday | Reached only from product entries. |
-| `pool/peer-pack-job-policy.d.ts` | `self/pool/peer-pack-job-policy.d.ts` | shared | Describes pool/peer-pack-job-policy.js. Reached from product and substrate entries. |
-| `pool/peer-pack-job-policy.js` | `self/pool/peer-pack-job-policy.js` | shared | Reached from product and substrate entries. |
+| `pool/peer-pack-job-policy.d.ts` | `shared/pool/peer-pack-job-policy.d.ts` | shared | Describes pool/peer-pack-job-policy.js. Reached from product and substrate entries. |
+| `pool/peer-pack-job-policy.js` | `shared/pool/peer-pack-job-policy.js` | shared | Reached from product and substrate entries. |
 | `pool/peer-pack-job.d.ts` | `self/pool/peer-pack-job.d.ts` | apps/poolday | Describes pool/peer-pack-job.js. Reached only from product entries. |
 | `pool/peer-pack-job.js` | `self/pool/peer-pack-job.js` | apps/poolday | Reached only from product entries. |
 | `pool/peer-pack-provider.d.ts` | `self/pool/peer-pack-provider.d.ts` | apps/poolday | Describes pool/peer-pack-provider.js. Reached only from product entries. |
@@ -611,7 +611,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `pool/peer-transport.js` | `self/pool/peer-transport.js` | apps/poolday | Reached only from product entries. |
 | `pool/policy-router.js` | `self/pool/policy-router.js` | apps/poolday | Reached only from product entries. |
 | `pool/policy-validation.js` | `self/pool/policy-validation.js` | apps/poolday | Reached only from product entries. |
-| `pool/pool-config.json` | `self/pool/pool-config.json` | shared | Reached from product and substrate entries. |
+| `pool/pool-config.json` | `shared/pool/pool-config.json` | shared | Reached from product and substrate entries. |
 | `pool/protein-investigation.js` | `self/pool/protein-investigation.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `pool/protein-uncertainty-campaign.js` | `self/pool/protein-uncertainty-campaign.js` | apps/poolday | Reached only from product entries. |
 | `pool/provider-client.js` | `self/pool/provider-client.js` | apps/poolday | Reached only from product entries. |
@@ -620,14 +620,14 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `pool/requester-client.js` | `self/pool/requester-client.js` | apps/poolday | Reached only from product entries. |
 | `pool/research-cycle.js` | `self/pool/research-cycle.js` | apps/poolday | Reached only from product entries. |
 | `pool/retry-policy.js` | `self/pool/retry-policy.js` | apps/poolday | Reached only from product entries. |
-| `pool/rtc-config.js` | `self/pool/rtc-config.js` | shared | Reached from product and substrate entries. |
+| `pool/rtc-config.js` | `shared/pool/rtc-config.js` | shared | Reached from product and substrate entries. |
 | `pool/runtime-profile.js` | `self/pool/runtime-profile.js` | apps/poolday | Reached only from product entries. |
 | `pool/scientific-evaluation.js` | `self/pool/scientific-evaluation.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `pool/scientific-fitness.js` | `self/pool/scientific-fitness.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `pool/scientific-policy-promotion.js` | `self/pool/scientific-policy-promotion.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
-| `pool/sdk.js` | `self/pool/sdk.js` | shared | Reached from product and substrate entries. |
+| `pool/sdk.js` | `shared/pool/sdk.js` | shared | Reached from product and substrate entries. |
 | `pool/sequence-result.js` | `self/pool/sequence-result.js` | apps/poolday | Reached only from product entries. |
-| `pool/sequence-workload.js` | `self/pool/sequence-workload.js` | shared | Reached from product and substrate entries. |
+| `pool/sequence-workload.js` | `shared/pool/sequence-workload.js` | shared | Reached from product and substrate entries. |
 | `poolday-design.html` | `self/poolday-design.html` | apps/poolday | Reached only from product entries. |
 | `prompts/kernel.md` | `self/prompts/kernel.md` | self | Reached only from substrate entries. |
 | `providers/doppler-reploid.js` | `self/providers/doppler-reploid.js` | self | Reached only from substrate entries. |
@@ -640,8 +640,8 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `providers/work-resident-provider.js` | `self/providers/work-resident-provider.js` | apps/poolday | Reached only from product entries. |
 | `receipt.js` | `self/receipt.js` | self | Reached only from substrate entries. |
 | `repair-smoke.html` | `self/repair-smoke.html` | apps/poolday | Reached only from product entries. |
-| `reset.html` | `self/reset.html` | shared | RD design-system specimen and storage reset page served for every surface; load only shared styles. |
-| `reward-policy.js` | `self/reward-policy.js` | shared | Reached from product and substrate entries. |
+| `reset.html` | `shared/reset.html` | shared | RD design-system specimen and storage reset page served for every surface; load only shared styles. |
+| `reward-policy.js` | `shared/reward-policy.js` | shared | Reached from product and substrate entries. |
 | `runtime.js` | `self/runtime.js` | self | Reached only from substrate entries. |
 | `shared/change-passport/contract.js` | `self/shared/change-passport/contract.js` | self | Reached only from substrate entries. |
 | `shared/change-passport/improvement-adapter.js` | `self/shared/change-passport/improvement-adapter.js` | self | Reached only from substrate entries. |
@@ -672,11 +672,11 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `styles/proto/panels.css` | `self/styles/proto/panels.css` | self | Reached only from substrate entries. |
 | `styles/proto/responsive.css` | `self/styles/proto/responsive.css` | self | Reached only from substrate entries. |
 | `styles/proto/vfs.css` | `self/styles/proto/vfs.css` | self | Reached only from substrate entries. |
-| `styles/rd.css` | `self/styles/rd.css` | shared | Reached from product and substrate entries. |
+| `styles/rd.css` | `shared/styles/rd.css` | shared | Reached from product and substrate entries. |
 | `styles/zero.css` | `self/styles/zero.css` | self | Reached only from substrate entries. |
 | `sw-module-loader.js` | `self/sw-module-loader.js` | self | Reached only from substrate entries. |
 | `sw.js` | `self/sw.js` | self | Reached only from substrate entries. |
-| `swarm.js` | `self/swarm.js` | shared | Reached from product and substrate entries. |
+| `swarm.js` | `shared/swarm.js` | shared | Reached from product and substrate entries. |
 | `testing/arena/README.md` | `self/testing/arena/README.md` | self | Note of a directory with one owner. |
 | `testing/arena/arena-harness.js` | `self/testing/arena/arena-harness.js` | self | Reached only from substrate entries. |
 | `testing/arena/arena-metrics.js` | `self/testing/arena/arena-metrics.js` | self | Reached only from substrate entries. |
@@ -736,7 +736,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/components/diamond-renderer.js` | `self/ui/components/diamond-renderer.js` | apps/poolday | Reached only from product entries. |
 | `ui/components/diamond.js` | `self/ui/components/diamond.js` | apps/poolday | Reached only from product entries. |
 | `ui/components/disclosure.js` | `self/ui/components/disclosure.js` | apps/poolday | Reached only from product entries. |
-| `ui/components/html.js` | `self/ui/components/html.js` | shared | Reached from product and substrate entries. |
+| `ui/components/html.js` | `shared/ui/components/html.js` | shared | Reached from product and substrate entries. |
 | `ui/components/inline-chat.js` | `self/ui/components/inline-chat.js` | self | Reached only from substrate entries. |
 | `ui/components/interface-icons.js` | `self/ui/components/interface-icons.js` | apps/poolday | Reached only from product entries. |
 | `ui/components/mathematical-background.js` | `self/ui/components/mathematical-background.js` | apps/poolday | Reached only from product entries. |

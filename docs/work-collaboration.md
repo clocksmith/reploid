@@ -20,7 +20,7 @@ device when no matching peer is connected. Remote inference requires exact-paylo
 approval for each dispatch, including the conversation context. Refusal and peer
 failure never silently retry on another participant or model. The default model
 is selected by the host catalog. The checkout package pin lives in
-[`doppler-package.json`](../self/config/doppler-package.json); its version is
+[`doppler-package.json`](../shared/config/doppler-package.json); its version is
 not a qualification claim. Older 0.6.1 receipts retain their original identity.
 This device serializes its borrowed GPU operations across threads and contributions;
 concurrent agent threads do not promise simultaneous execution on one GPU.

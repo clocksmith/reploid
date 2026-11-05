@@ -55,12 +55,12 @@ import {
   renderRouteDetail,
   renderRoutePanel
 } from '../../self/ui/pool-home/view.js';
-import { LAUNCH_MODEL, getEnabledPoolModelContract } from '../../self/pool/model-contract.js';
+import { LAUNCH_MODEL, getEnabledPoolModelContract } from '../../shared/pool/model-contract.js';
 import {
   normalizeParticipationPreferences,
   readParticipationPreferences,
   writeParticipationPreferences
-} from '../../self/pool/participation-profile.js';
+} from '../../shared/pool/participation-profile.js';
 
 const clearStorage = () => {
   window.localStorage?.clear();

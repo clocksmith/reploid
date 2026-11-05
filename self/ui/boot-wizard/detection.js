@@ -5,7 +5,7 @@
 
 import { getGoalEntries } from './goals.js';
 import { getState, setNestedState } from './state.js';
-import { DOPPLER_MODULE_URL } from '../../config/doppler-local-models.js';
+import { DOPPLER_MODULE_URL } from '../../../shared/config/doppler-local-models.js';
 import { getProxyChatEndpoint, getProxyHealthEndpoint } from '../../config/zero-inference.js';
 
 const PROBE_TIMEOUT = 3000;

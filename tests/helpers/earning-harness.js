@@ -18,7 +18,7 @@ import { createChatExecution } from '../../self/host/chat-execution.js';
 import { createEarningAttempts } from '../../self/host/earning/attempts.js';
 import { EARNING_CLIENT_SCHEMA, createEarningClient } from '../../self/host/earning/client.js';
 import { createEarningContribution } from '../../self/host/earning/contribution.js';
-import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { newIdentity, openAccountFixture } from './account-fixture.js';
 import { STEPS, residentRoute } from './resident-route.js';
 import { FUNDING_ADMIN, ISSUANCE_POLICY, MIN, MODEL, OWNER_DIGEST, fund, fundingAuthority, fx, offerInput, ownerAuthorization, quoteInput } from './reward-fixture.js';

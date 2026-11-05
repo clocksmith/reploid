@@ -29,7 +29,7 @@ it.each([
   window.REPLOID_INSTANCE_ID = 'explicit-selection';
   window.getReploidRouteMode = () => null;
   vi.stubGlobal('fetch', vi.fn(() => { throw new Error('No network expected'); }));
-  const { getCurrentReploidStorage } = await import('../../self/instance.js');
+  const { getCurrentReploidStorage } = await import('../../shared/instance.js');
   const { LAB_UPGRADE_STORAGE_KEY } = await import('../../self/config/lab-upgrades.js');
   const storage = getCurrentReploidStorage();
   localStorage.setItem(LAB_UPGRADE_STORAGE_KEY, 'cognition');

@@ -1,7 +1,7 @@
 /** Internal physical-model episode plumbing; no substituted model outputs. */
-import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../../self/pool/inference-receipt.js';
-import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
-import { resolveDopplerExecutionContract } from '../../self/config/doppler-execution-contracts.js';
+import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../../shared/pool/inference-receipt.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
+import { resolveDopplerExecutionContract } from '../../shared/config/doppler-execution-contracts.js';
 import { createPackPeerProvider } from '../../self/pool/peer-pack-provider.js';
 import { createPackPeerRequester } from '../../self/pool/peer-pack-requester.js';
 import { createPackJobDataChannel } from '../../self/pool/peer-pack-job-channel.js';

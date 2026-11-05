@@ -113,7 +113,7 @@
       "implementationPaths": [
         "self/tools/CreateTool.js",
         "self/core/tool-runner.js",
-        "self/config/tool-surfaces.js"
+        "shared/config/tool-surfaces.js"
       ],
       "testPaths": [
         "tests/e2e/tool-calling-smoke.spec.js",
@@ -243,7 +243,7 @@
         "The hardware-qualified run completes within its bounded test timeout."
       ],
       "implementationPaths": [
-        "self/config/doppler-local-models.js",
+        "shared/config/doppler-local-models.js",
         "self/core/agent-loop.js",
         "self/tools/CreateTool.js"
       ],

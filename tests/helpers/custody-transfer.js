@@ -7,7 +7,7 @@ import { createCustodyExchange } from '../../packages/reploid/src/artifacts/cust
 import { createCustodyContracts } from '../../packages/reploid/src/artifacts/custody/runtime.js';
 import { createSigningKeyPair, exportPublicKey, sha256Hex, signCanonical, verifyCanonicalSignature } from '../../packages/reploid/src/artifacts/signatures.js';
 import { createPeerPackDataChannel } from '../../self/pool/peer-pack-data-channel.js';
-import { executablePacksMatch, hashDopplerEvidence, validateExecutablePack } from '../../self/pool/executable-pack.js';
+import { executablePacksMatch, hashDopplerEvidence, validateExecutablePack } from '../../shared/pool/executable-pack.js';
 import { MIN, fx } from './reward-fixture.js';
 
 const contracts = createCustodyContracts({ hashDopplerEvidence, validateExecutablePack, executablePacksMatch, sha256Hex, signCanonical, verifyCanonicalSignature });

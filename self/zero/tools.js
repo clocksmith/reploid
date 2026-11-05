@@ -9,7 +9,7 @@ import { loadVfsModule } from '../core/vfs-module-loader.js';
 import { sha256 } from '../core/promotion-policy.js';
 import { assertWritableVfsPath, assertNoPathTraversal, normalizeVfsPath } from '../config/vfs-policy.js';
 import { isSecurityEnabled } from '../core/security-config.js';
-import { getCurrentReploidStorage, getSurfaceIdFromUrl } from '../instance.js';
+import { getCurrentReploidStorage, getSurfaceIdFromUrl } from '../../shared/instance.js';
 
 const installedName = path => /^\/self\/tools\/([A-Z][A-Za-z0-9]*)\.js$/.exec(path)?.[1];
 const evidencePath = name => `/artifacts/${name}-evidence.json`;

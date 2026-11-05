@@ -8,7 +8,7 @@ Reploid calls it evaluated.
 
 ## What the picker shows
 
-Each base model in [`self/config/chat-models.json`](../self/config/chat-models.json)
+Each base model in [`shared/config/chat-models.json`](../shared/config/chat-models.json)
 lists `availableAdapters`. An adapter is offered only under the base whose exact
 artifact identity it declares (`baseModelIdentity`); names never decide
 compatibility. In the picker each adapter sits beneath its base model as its own

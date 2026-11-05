@@ -9,8 +9,9 @@ import { resolve, extname } from 'node:path';
 import { createHash } from 'node:crypto';
 import { physicalWebGpuBrowserOptions } from './physical-webgpu-browser.js';
 import { routeDiagnosticModel } from './capacity-observer.js';
-import { resolveGenerationOptions } from '../../self/config/doppler-generation-contract.js';
+import { resolveGenerationOptions } from '../../shared/config/doppler-generation-contract.js';
 import { readServedHarnessFile } from '../helpers/served-browser-files.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
 
 const [destination, suitePath] = process.argv.slice(2);
 assert(destination && process.env.DOPPLER_CHAT_MODEL_DIR, 'Supply report path and DOPPLER_CHAT_MODEL_DIR');
@@ -18,9 +19,9 @@ const root = resolve(new URL('../../', import.meta.url).pathname);
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const suiteBytes = await readFile(suitePath || new URL('./chat-task-quality.json', import.meta.url));
 const suite = JSON.parse(suiteBytes);
-const profile = JSON.parse(await readFile(resolve(root, 'self/config/work-profile.json')));
-const policy = JSON.parse(await readFile(resolve(root, 'self/config/partition-policy.json')));
-let selected = JSON.parse(await readFile(resolve(root, 'self/config/chat-models.json'))).find(m => m.id === suite.modelId);
+const profile = JSON.parse(await readFile(resolveServedFile('config/work-profile.json')));
+const policy = JSON.parse(await readFile(resolveServedFile('config/partition-policy.json')));
+let selected = JSON.parse(await readFile(resolveServedFile('config/chat-models.json'))).find(m => m.id === suite.modelId);
 if (suite.diagnosticManifestIdentity !== undefined) {
   assert(!selected, 'A diagnostic binding cannot replace an application catalog identity');
   assert(/^sha256:[a-f0-9]{64}$/.test(suite.diagnosticManifestIdentity), 'Pin the diagnostic manifest identity');
@@ -29,7 +30,7 @@ if (suite.diagnosticManifestIdentity !== undefined) {
 }
 assert(selected);
 const generation = resolveGenerationOptions({ ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen });
-const pin = JSON.parse(await readFile(resolve(root, 'self/config/doppler-package.json')));
+const pin = JSON.parse(await readFile(resolveServedFile('config/doppler-package.json')));
 const archive = await readFile(resolve(root, pin.spec.slice(5)));
 const manifestBytes = await readFile(resolve(process.env.DOPPLER_CHAT_MODEL_DIR, 'manifest.json'));
 assert.equal('sha256:' + hash(manifestBytes), selected.identity);

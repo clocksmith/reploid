@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import { readChatWorkspace } from '../fixtures/chat-workspace-history.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
 
 // One public query and one answer on an existing prepared whole-model provider.
 // No downloads, provider restarts or model-quality acceptance.
@@ -8,7 +9,7 @@ test('movie search reaches a whole-model contributor without approval dialogs', 
   const url = process.env.REPLOID_SEARCH_WHOLE_URL;
   test.skip(!url, 'Set REPLOID_SEARCH_WHOLE_URL for prepared search and whole-model contributors');
   test.setTimeout(240000);
-  const model = JSON.parse(await readFile('self/config/chat-models.json', 'utf8')).find(row => row.id === 'qwen3-8-27b-text-q4k-ehaf16');
+  const model = JSON.parse(await readFile(resolveServedFile('config/chat-models.json'), 'utf8')).find(row => row.id === 'qwen3-8-27b-text-q4k-ehaf16');
   const receipt = { at: new Date().toISOString(), browser: browser.version(), url, modelIdentity: model.identity,
     question: '2026 blockbuster movies', passed: false,
     errors: [], weights: [], thread: null, firstTextMs: null, completeMs: null };

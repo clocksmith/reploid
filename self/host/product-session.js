@@ -1,7 +1,7 @@
 import { createBrowserTraining } from './lora-training.js';
 import { createDopplerRuntime } from '../pool/doppler-runtime.js';
 /** Application lifetime. Detaching a route never stops an owned conversation or document task. */
-import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
+import { createReploidDopplerRuntimeService } from '../../shared/infrastructure/doppler-runtime-service.js';
 import { watchModelCache } from './work-model-cache.js';
 import { createWorkModelFiles } from './work-model-files.js';
 import { createWorkSession } from './work-session.js';
@@ -12,21 +12,21 @@ import { createChatSession, openCanonicalChatSession, LOCAL_HISTORY_IDENTITY, SE
 import { createWebSearch } from './web-search.js';
 import { createContributorSearch } from './contributor-search.js';
 import { createServerSearch } from './server-search.js';
-import { getPoolAuthToken } from '../pool/identity.js';
+import { getPoolAuthToken } from '../../shared/pool/identity.js';
 import { createDeviceSearch } from './device-search.js';
 import { acquireChatHistoryOwner, refusedChatHistory } from './chat-history.js';
 import { createHistoryHandover } from './history-handover.js';
 import { metadataDigest } from '../config/doppler-metadata-contract.js';
 import orderedPolicy from '../config/ordered-participation.json' with { type: 'json' };
 import { startSwarmAutoconnect } from './swarm-autoconnect.js';
-import swarmPolicy from '../config/swarm-bootstrap.json' with { type: 'json' };
+import swarmPolicy from '../../shared/config/swarm-bootstrap.json' with { type: 'json' };
 import { createOperationParticipation } from '../pool/operation-participation.js';
 import { createOperationRoomNetwork } from '../pool/operation-room-network.js';
 import { createRequesterClient } from '../pool/requester-client.js';
-import { createPoolIdentity } from '../pool/identity.js';
+import { createPoolIdentity } from '../../shared/pool/identity.js';
 import { createLocalPackExecutor } from '../pool/local-pack-executor.js';
 import { createDocumentAssistant } from '../pool/document-delegation.js';
-import poolConfiguration from '../pool/pool-config.json' with { type: 'json' };
+import poolConfiguration from '../../shared/pool/pool-config.json' with { type: 'json' };
 
 const HISTORY_OWNED_ELSEWHERE = 'Another tab owns this conversation history';
 const ordinaryReason = cause => `History stays ordinary: ${cause}; ordered answers are not published to requester-owned storage.`;

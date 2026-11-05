@@ -4,7 +4,7 @@ import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createProofSourceSnapshot, ownedBrowserPids, readRuntimeBootstrapShaders } from '../../scripts/verify-peer-pack-execution.js';
-import { sha256Hex } from '../../self/pool/inference-receipt.js';
+import { sha256Hex } from '../../shared/pool/inference-receipt.js';
 
 describe('peer Pack proof runtime bootstrap boundary', () => {
   it('identifies only owned browser processes on Linux and macOS', () => {

@@ -12,9 +12,10 @@ import CreateTool from '../../self/tools/CreateTool.js';
 import { exportSelfImage, materializeSelfImage } from '../../self/image/export.js';
 import { sha256 } from '../../self/core/promotion-policy.js';
 import { readServedTextSync } from '../helpers/served-browser-files.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
 
-const source = readFileSync(new URL('../../self/core/verification-worker.js', import.meta.url), 'utf8');
-const parser = readFileSync(new URL('../../self/core/vendor/acorn.js', import.meta.url), 'utf8');
+const source = readFileSync(new URL('../../shared/core/verification-worker.js', import.meta.url), 'utf8');
+const parser = readFileSync(new URL('../../shared/core/vendor/acorn.js', import.meta.url), 'utf8');
 const code = `export const tool = { name: 'Echo', activation: { checks: [{ name: 'echo', args: { value: 'ok' }, expected: { value: 'ok' } }] } };
 export default async function(args) { return args; }`;
 const Utils = { logger: { info() {}, warn() {}, error() {}, debug() {} }, Errors: { ValidationError: Error, ToolError: Error } };
@@ -178,7 +179,7 @@ describe('required L0 static verification', () => {
   });
 
   it('carries the complete verifier and license through export, reseed and descendant re-export', async () => {
-    const descriptor = JSON.parse(readFileSync(new URL('../../self/config/self-source-manifest.json', import.meta.url), 'utf8'));
+    const descriptor = JSON.parse(readFileSync(resolveServedFile('config/self-source-manifest.json'), 'utf8'));
     const files = new Map(descriptor.files.map((file, index) => [
       `/${descriptor.seedFiles[index]}`, readServedTextSync(file)
     ]));

@@ -2,7 +2,7 @@
  * @fileoverview Doppler configuration step renderer
  */
 
-import { LOCAL_DOPPLER_MODELS } from '../../../config/doppler-local-models.js';
+import { LOCAL_DOPPLER_MODELS } from '../../../../shared/config/doppler-local-models.js';
 
 /**
  * Render DOPPLER_CONFIG step

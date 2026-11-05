@@ -7,7 +7,7 @@ import {
   validateResearchRecordLinks,
   verifyResearchRecord
 } from '../../self/pool/evidence-network.js';
-import { createSigningKeyPair } from '../../self/pool/inference-receipt.js';
+import { createSigningKeyPair } from '../../shared/pool/inference-receipt.js';
 
 const hash = (character) => `sha256:${character.repeat(64)}`;
 

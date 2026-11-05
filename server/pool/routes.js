@@ -4,7 +4,7 @@
 
 import express from 'express';
 import poolStore from './store.js';
-import { resolvePoolRateLimits } from '../../self/pool/config-contract.js';
+import { resolvePoolRateLimits } from '../../shared/pool/config-contract.js';
 import { DETERMINISTIC_GENERATION_CONFIG, getPolicy, listPolicies } from './policy-router.js';
 import { LAUNCH_MODEL } from './model-contract.js';
 import { verifyReceipt } from './verifier.js';

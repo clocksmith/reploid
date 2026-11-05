@@ -6,7 +6,7 @@
  * Only a verified passing receipt bound to the exact adapter and base identities may label an
  * adapter evaluated. Anything else is a failed or invalid receipt, or no evaluation evidence.
  */
-import { canonicalize } from './canonical-json.js';
+import { canonicalize } from '../../shared/pool/canonical-json.js';
 
 export const ADAPTER_EVALUATION_SPEC_SCHEMA = 'reploid.adapter-evaluation-spec/v1';
 export const ADAPTER_EVALUATION_RECEIPT_SCHEMA = 'reploid.adapter-evaluation-receipt/v1';

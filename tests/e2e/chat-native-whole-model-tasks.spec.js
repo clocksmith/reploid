@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { readChatWorkspace } from '../fixtures/chat-workspace-history.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
 
 const url = process.env.REPLOID_NATIVE_CHAT_URL;
 const modelId = process.env.REPLOID_NATIVE_CHAT_MODEL;
@@ -11,7 +12,7 @@ test('prepared whole-model service completes frozen independent chat tasks', asy
   test.setTimeout(240000);
   const suiteBytes = await readFile(process.env.REPLOID_CHAT_TASK_SUITE || 'tests/fixtures/qwen27b-service-tasks.json');
   const suite = JSON.parse(suiteBytes);
-  const models = JSON.parse(await readFile('self/config/chat-models.json', 'utf8'));
+  const models = JSON.parse(await readFile(resolveServedFile('config/chat-models.json'), 'utf8'));
   const model = models.find(row => row.id === modelId);
   expect(model).toBeTruthy();
   const context = await browser.newContext();

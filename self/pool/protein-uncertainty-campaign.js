@@ -8,8 +8,8 @@ import {
   projectAcceptedResearchMemory,
   projectResearchReviewStates
 } from './evidence-network.js';
-import { canonicalize } from './canonical-json.js';
-import { exactModelContractKey } from './model-contract.js';
+import { canonicalize } from '../../shared/pool/canonical-json.js';
+import { exactModelContractKey } from '../../shared/pool/model-contract.js';
 
 export const PROTEIN_UNCERTAINTY_CAMPAIGN_QUEUE_VERSION = 'poolday.protein_uncertainty_campaign_queue/v1';
 export const PROTEIN_UNCERTAINTY_CAMPAIGN_POLICY = Object.freeze({

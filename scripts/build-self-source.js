@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'acorn';
 import { resolveBaseModules } from '../self/config/module-resolution.js';
-import { getToolNamesForMode } from '../self/config/tool-surfaces.js';
+import { getToolNamesForMode } from '../shared/config/tool-surfaces.js';
 import { toCanonicalBrowserPath } from './browser-tree-paths.js';
 import { openBrowserTree } from '../server/browser-tree.js';
 

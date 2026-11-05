@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { resolveServedFile } from '../../server/browser-roots.js';
 
 export async function openParticipantControls(page) {
   if (!await page.locator('[data-contextual-inspector]').isVisible()) {
@@ -9,7 +10,7 @@ export async function openParticipantControls(page) {
 
 /** Test-owned signaling faults; direct RTC channels and model execution stay untouched. */
 export async function controlSignaling(context) {
-  const bootstrap = JSON.parse(await readFile('self/config/swarm-bootstrap.json', 'utf8'));
+  const bootstrap = JSON.parse(await readFile(resolveServedFile('config/swarm-bootstrap.json'), 'utf8'));
   const configuredPath = new URL(bootstrap.signalingUrl).pathname;
   const sockets = [];
   const events = [];

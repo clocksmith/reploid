@@ -2,7 +2,7 @@
  * @fileoverview Dream instance manifest contract for browser RGR orchestration.
  */
 
-import { getCurrentReploidInstanceId } from './instance.js';
+import { getCurrentReploidInstanceId } from '../shared/instance.js';
 
 export const DREAM_INSTANCE_SCHEMA = 'reploid/dream-instance/v1';
 export const DEFAULT_DREAM_INSTANCE_ID = 'dream-default';

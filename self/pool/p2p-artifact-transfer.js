@@ -3,14 +3,14 @@ import { bytesToBase64, base64ToBytes } from '../../shared/vendor/reploid/artifa
  * @fileoverview Assignment-scoped adapter byte transfer over Poolday WebRTC.
  */
 
-import { verifyAdapterPack } from './adapter-pack.js';
-import { hashJson, sha256Hex } from './inference-receipt.js';
+import { verifyAdapterPack } from '../../shared/pool/adapter-pack.js';
+import { hashJson, sha256Hex } from '../../shared/pool/inference-receipt.js';
 import {
   P2P_PAYLOAD_TYPES,
   createP2PPayload,
   hashP2PPayload,
   validateP2PPayload
-} from './p2p-payload.js';
+} from '../../shared/pool/p2p-payload.js';
 
 export const ADAPTER_TRANSFER_RECEIPT_SCHEMA = 'reploid.pool.adapter-transfer-receipt/v1';
 

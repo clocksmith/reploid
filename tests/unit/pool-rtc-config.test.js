@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   clearPoolRtcConfigCache,
   getPoolRtcConfig
-} from '../../self/pool/rtc-config.js';
+} from '../../shared/pool/rtc-config.js';
 
 beforeEach(() => { clearPoolRtcConfigCache(); });
 

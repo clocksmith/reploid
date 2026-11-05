@@ -1,5 +1,5 @@
 /** Loopback-only request/reply adapter. The controller supplies reasoning, never execution authority. */
-import { getCurrentReploidInstanceId } from '../instance.js';
+import { getCurrentReploidInstanceId } from '../../shared/instance.js';
 
 const ROOT = '/api/external-brain';
 const HEADERS = { 'Content-Type': 'application/json', 'X-Reploid-External-Brain': '1' };

@@ -4,7 +4,7 @@
  */
 import { test, expect } from '@playwright/test';
 
-import { buildLaunchProviderModel } from '../../self/pool/model-contract.js';
+import { buildLaunchProviderModel } from '../../shared/pool/model-contract.js';
 import { makeSyntheticSequenceReceipt } from '../helpers/pool-sequence-fixture.js';
 
 const BASE_URL = 'http://localhost:8000';

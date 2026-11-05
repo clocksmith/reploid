@@ -3,7 +3,7 @@ import { verifyEventSignature } from '../../../shared/vendor/reploid/artifacts/e
  * @fileoverview Canonical Change Passport event ledger and deterministic projection.
  */
 
-import { encodeBytes, getIdentitySignAlgorithm, importSigningKey, toBase64Url } from '../../identity.js';
+import { encodeBytes, getIdentitySignAlgorithm, importSigningKey, toBase64Url } from '../../../shared/identity.js';
 
 export const CHANGE_PASSPORT_SCHEMA = 'change.passport/v1';
 export const CHANGE_PASSPORT_EVENT_SCHEMA = 'change.passport-event/v1';

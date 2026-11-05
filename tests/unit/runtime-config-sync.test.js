@@ -12,7 +12,7 @@ import {
   DOPPLER_PACKAGE_SPEC,
   DOPPLER_PACKAGE_VERSION,
   DOPPLER_BROWSER_RUNTIME_VERSION
-} from '../../self/config/doppler-local-models.js';
+} from '../../shared/config/doppler-local-models.js';
 
 const createFixture = () => ({
   poolConfig: {

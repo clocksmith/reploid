@@ -5,7 +5,7 @@
 import {
   DOPPLER_PACKAGE_INTEGRITY,
   DOPPLER_PACKAGE_VERSION
-} from '../../config/doppler-local-models.js';
+} from '../../../shared/config/doppler-local-models.js';
 import {
   ALGORITHM_MANIFEST_SCHEMA,
   hashImprovementValue

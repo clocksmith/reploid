@@ -8,6 +8,7 @@ import {
   getJourneyRegistryPath,
   validateCriticalUserJourneyRegistry
 } from './critical-user-journey-contract.js';
+import { resolveServedFile } from '../server/browser-roots.js';
 
 export { PROJECT_ROOT };
 export const JOURNEY_REGISTRY_PATH = getJourneyRegistryPath('poolday');
@@ -26,7 +27,7 @@ export async function validatePoolCriticalUserJourneys(registry, {
   });
 
   const config = poolConfig || JSON.parse(
-    await fs.readFile(path.join(root, 'self', 'pool', 'pool-config.json'), 'utf8')
+    await fs.readFile(resolveServedFile('pool/pool-config.json'), 'utf8')
   );
   const enabledModelIds = new Set(
     (config.modelCatalog || []).filter((model) => model.enabled !== false).map((model) => model.modelId)

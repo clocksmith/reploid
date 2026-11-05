@@ -1,7 +1,7 @@
 /* @vitest-environment happy-dom */
 import { afterEach, expect, it, vi } from 'vitest';
 import ToolRunner from '../../self/core/tool-runner.js';
-import { getCurrentReploidStorage } from '../../self/instance.js';
+import { getCurrentReploidStorage } from '../../shared/instance.js';
 import { LAB_UPGRADE_STORAGE_KEY } from '../../self/config/lab-upgrades.js';
 import { setSecurityEnabled } from '../../self/core/security-config.js';
 import * as WriteFile from '../../self/tools/WriteFile.js';

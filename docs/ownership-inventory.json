@@ -19,10 +19,10 @@
   ],
   "counts": {
     "apps/poolday": 278,
-    "self": 448,
-    "shared": 2213
+    "self": 447,
+    "shared": 2214
   },
-  "pendingMoves": 358,
+  "pendingMoves": 278,
   "violations": [],
   "packageMirrors": {
     "prefix": "vendor/",
@@ -1322,7 +1322,7 @@
     },
     {
       "served": "capabilities/communication/library-adapter.js",
-      "source": "self/capabilities/communication/library-adapter.js",
+      "source": "shared/capabilities/communication/library-adapter.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -1334,7 +1334,7 @@
     },
     {
       "served": "capabilities/communication/swarm-join-policy.js",
-      "source": "self/capabilities/communication/swarm-join-policy.js",
+      "source": "shared/capabilities/communication/swarm-join-policy.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -1484,7 +1484,7 @@
     },
     {
       "served": "config/chat-models.json",
-      "source": "self/config/chat-models.json",
+      "source": "shared/config/chat-models.json",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -1508,43 +1508,43 @@
     },
     {
       "served": "config/doppler-execution-contracts.d.ts",
-      "source": "self/config/doppler-execution-contracts.d.ts",
+      "source": "shared/config/doppler-execution-contracts.d.ts",
       "owner": "shared",
       "basis": "Describes config/doppler-execution-contracts.js. Reached from product and substrate entries."
     },
     {
       "served": "config/doppler-execution-contracts.js",
-      "source": "self/config/doppler-execution-contracts.js",
+      "source": "shared/config/doppler-execution-contracts.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
     {
       "served": "config/doppler-execution-contracts.json",
-      "source": "self/config/doppler-execution-contracts.json",
+      "source": "shared/config/doppler-execution-contracts.json",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
     {
       "served": "config/doppler-generation-contract.d.ts",
-      "source": "self/config/doppler-generation-contract.d.ts",
+      "source": "shared/config/doppler-generation-contract.d.ts",
       "owner": "shared",
       "basis": "Describes config/doppler-generation-contract.js. Reached from product and substrate entries."
     },
     {
       "served": "config/doppler-generation-contract.js",
-      "source": "self/config/doppler-generation-contract.js",
+      "source": "shared/config/doppler-generation-contract.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
     {
       "served": "config/doppler-generation-contract.provenance.json",
-      "source": "self/config/doppler-generation-contract.provenance.json",
+      "source": "shared/config/doppler-generation-contract.provenance.json",
       "owner": "shared",
       "basis": "Describes config/doppler-generation-contract.js. Reached from product and substrate entries."
     },
     {
       "served": "config/doppler-local-models.js",
-      "source": "self/config/doppler-local-models.js",
+      "source": "shared/config/doppler-local-models.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -1562,7 +1562,7 @@
     },
     {
       "served": "config/doppler-package.json",
-      "source": "self/config/doppler-package.json",
+      "source": "shared/config/doppler-package.json",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -1574,7 +1574,7 @@
     },
     {
       "served": "config/firebase-public.json",
-      "source": "self/config/firebase-public.json",
+      "source": "shared/config/firebase-public.json",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -1592,7 +1592,7 @@
     },
     {
       "served": "config/immutability.js",
-      "source": "self/config/immutability.js",
+      "source": "shared/config/immutability.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -1634,79 +1634,79 @@
     },
     {
       "served": "config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json",
-      "source": "self/config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json",
+      "source": "shared/config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json",
       "owner": "shared",
       "basis": "Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it."
     },
     {
       "served": "config/model-manifests/19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d.json",
-      "source": "self/config/model-manifests/19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d.json",
+      "source": "shared/config/model-manifests/19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d.json",
       "owner": "shared",
       "basis": "Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it."
     },
     {
       "served": "config/model-manifests/6788ca6b95e2fe3dd27a057042cd3b543e4b8d2fcdc433bcfe218148feb82a4e.json",
-      "source": "self/config/model-manifests/6788ca6b95e2fe3dd27a057042cd3b543e4b8d2fcdc433bcfe218148feb82a4e.json",
+      "source": "shared/config/model-manifests/6788ca6b95e2fe3dd27a057042cd3b543e4b8d2fcdc433bcfe218148feb82a4e.json",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
     {
       "served": "config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json",
-      "source": "self/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json",
+      "source": "shared/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json",
       "owner": "shared",
       "basis": "Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it."
     },
     {
       "served": "config/model-manifests/a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b.json",
-      "source": "self/config/model-manifests/a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b.json",
+      "source": "shared/config/model-manifests/a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b.json",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
     {
       "served": "config/model-manifests/e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06.json",
-      "source": "self/config/model-manifests/e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06.json",
+      "source": "shared/config/model-manifests/e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06.json",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
     {
       "served": "config/model-manifests/e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59.json",
-      "source": "self/config/model-manifests/e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59.json",
+      "source": "shared/config/model-manifests/e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59.json",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
     {
       "served": "config/model-manifests/f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735.json",
-      "source": "self/config/model-manifests/f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735.json",
+      "source": "shared/config/model-manifests/f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735.json",
       "owner": "shared",
       "basis": "Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it."
     },
     {
       "served": "config/model-pieces/qwen-0-8b-pieces.json",
-      "source": "self/config/model-pieces/qwen-0-8b-pieces.json",
+      "source": "shared/config/model-pieces/qwen-0-8b-pieces.json",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
     {
       "served": "config/model-pieces/qwen-2b-pieces.json",
-      "source": "self/config/model-pieces/qwen-2b-pieces.json",
+      "source": "shared/config/model-pieces/qwen-2b-pieces.json",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
     {
       "served": "config/model-pieces/qwen-3-8-27b-pieces.json",
-      "source": "self/config/model-pieces/qwen-3-8-27b-pieces.json",
+      "source": "shared/config/model-pieces/qwen-3-8-27b-pieces.json",
       "owner": "shared",
       "basis": "Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it."
     },
     {
       "served": "config/model-pieces/qwen27b-q4-pieces.json",
-      "source": "self/config/model-pieces/qwen27b-q4-pieces.json",
+      "source": "shared/config/model-pieces/qwen27b-q4-pieces.json",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
     {
       "served": "config/model-pieces/qwen35b-q4_0-pieces.json",
-      "source": "self/config/model-pieces/qwen35b-q4_0-pieces.json",
+      "source": "shared/config/model-pieces/qwen35b-q4_0-pieces.json",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -1754,13 +1754,13 @@
     },
     {
       "served": "config/reploid-library.json",
-      "source": "self/config/reploid-library.json",
+      "source": "shared/config/reploid-library.json",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
     {
       "served": "config/self-source-catalog.json",
-      "source": "self/config/self-source-catalog.json",
+      "source": "shared/config/self-source-catalog.json",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -1778,25 +1778,25 @@
     },
     {
       "served": "config/surface-intents.js",
-      "source": "self/config/surface-intents.js",
+      "source": "shared/config/surface-intents.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
     {
       "served": "config/surface-resources.js",
-      "source": "self/config/surface-resources.js",
+      "source": "shared/config/surface-resources.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
     {
       "served": "config/swarm-bootstrap.json",
-      "source": "self/config/swarm-bootstrap.json",
+      "source": "shared/config/swarm-bootstrap.json",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
     {
       "served": "config/tool-surfaces.js",
-      "source": "self/config/tool-surfaces.js",
+      "source": "shared/config/tool-surfaces.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -2036,19 +2036,19 @@
     },
     {
       "served": "core/utils.js",
-      "source": "self/core/utils.js",
+      "source": "shared/core/utils.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
     {
       "served": "core/vendor/ACORN-LICENSE.txt",
-      "source": "self/core/vendor/ACORN-LICENSE.txt",
-      "owner": "self",
-      "basis": "Reached only from substrate entries."
+      "source": "shared/core/vendor/ACORN-LICENSE.txt",
+      "owner": "shared",
+      "basis": "Describes core/vendor/acorn.js. Reached from product and substrate entries."
     },
     {
       "served": "core/vendor/acorn.js",
-      "source": "self/core/vendor/acorn.js",
+      "source": "shared/core/vendor/acorn.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -2060,7 +2060,7 @@
     },
     {
       "served": "core/verification-worker.js",
-      "source": "self/core/verification-worker.js",
+      "source": "shared/core/verification-worker.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -2102,7 +2102,7 @@
     },
     {
       "served": "design.html",
-      "source": "self/design.html",
+      "source": "shared/design.html",
       "owner": "shared",
       "basis": "RD design-system specimen and storage reset page served for every surface; load only shared styles."
     },
@@ -2174,7 +2174,7 @@
     },
     {
       "served": "favicon.svg",
-      "source": "self/favicon.svg",
+      "source": "shared/favicon.svg",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -2534,7 +2534,7 @@
     },
     {
       "served": "identity.js",
-      "source": "self/identity.js",
+      "source": "shared/identity.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -2606,13 +2606,13 @@
     },
     {
       "served": "infrastructure/doppler-runtime-service.d.ts",
-      "source": "self/infrastructure/doppler-runtime-service.d.ts",
+      "source": "shared/infrastructure/doppler-runtime-service.d.ts",
       "owner": "shared",
       "basis": "Describes infrastructure/doppler-runtime-service.js. Reached from product and substrate entries."
     },
     {
       "served": "infrastructure/doppler-runtime-service.js",
-      "source": "self/infrastructure/doppler-runtime-service.js",
+      "source": "shared/infrastructure/doppler-runtime-service.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -2624,7 +2624,7 @@
     },
     {
       "served": "infrastructure/event-bus.js",
-      "source": "self/infrastructure/event-bus.js",
+      "source": "shared/infrastructure/event-bus.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -2720,7 +2720,7 @@
     },
     {
       "served": "instance.js",
-      "source": "self/instance.js",
+      "source": "shared/instance.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -2822,13 +2822,13 @@
     },
     {
       "served": "pool/adapter-execution-policy.d.ts",
-      "source": "self/pool/adapter-execution-policy.d.ts",
+      "source": "shared/pool/adapter-execution-policy.d.ts",
       "owner": "shared",
       "basis": "Describes pool/adapter-execution-policy.js. Reached from product and substrate entries."
     },
     {
       "served": "pool/adapter-execution-policy.js",
-      "source": "self/pool/adapter-execution-policy.js",
+      "source": "shared/pool/adapter-execution-policy.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -2852,7 +2852,7 @@
     },
     {
       "served": "pool/adapter-pack.js",
-      "source": "self/pool/adapter-pack.js",
+      "source": "shared/pool/adapter-pack.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -2888,7 +2888,7 @@
     },
     {
       "served": "pool/artifact-origin.js",
-      "source": "self/pool/artifact-origin.js",
+      "source": "shared/pool/artifact-origin.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -2912,7 +2912,7 @@
     },
     {
       "served": "pool/canonical-json.js",
-      "source": "self/pool/canonical-json.js",
+      "source": "shared/pool/canonical-json.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -2930,19 +2930,19 @@
     },
     {
       "served": "pool/config-contract.js",
-      "source": "self/pool/config-contract.js",
+      "source": "shared/pool/config-contract.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
     {
       "served": "pool/config.js",
-      "source": "self/pool/config.js",
+      "source": "shared/pool/config.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
     {
       "served": "pool/device-identity.js",
-      "source": "self/pool/device-identity.js",
+      "source": "shared/pool/device-identity.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -3068,25 +3068,25 @@
     },
     {
       "served": "pool/executable-pack.d.ts",
-      "source": "self/pool/executable-pack.d.ts",
+      "source": "shared/pool/executable-pack.d.ts",
       "owner": "shared",
       "basis": "Describes pool/executable-pack.js. Reached from product and substrate entries."
     },
     {
       "served": "pool/executable-pack.js",
-      "source": "self/pool/executable-pack.js",
+      "source": "shared/pool/executable-pack.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
     {
       "served": "pool/firebase-auth.js",
-      "source": "self/pool/firebase-auth.js",
+      "source": "shared/pool/firebase-auth.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
     {
       "served": "pool/forecast-workload.js",
-      "source": "self/pool/forecast-workload.js",
+      "source": "shared/pool/forecast-workload.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -3098,13 +3098,13 @@
     },
     {
       "served": "pool/identity.js",
-      "source": "self/pool/identity.js",
+      "source": "shared/pool/identity.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
     {
       "served": "pool/inference-receipt.js",
-      "source": "self/pool/inference-receipt.js",
+      "source": "shared/pool/inference-receipt.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -3128,7 +3128,7 @@
     },
     {
       "served": "pool/model-artifacts.js",
-      "source": "self/pool/model-artifacts.js",
+      "source": "shared/pool/model-artifacts.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -3140,7 +3140,7 @@
     },
     {
       "served": "pool/model-contract.js",
-      "source": "self/pool/model-contract.js",
+      "source": "shared/pool/model-contract.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -3170,7 +3170,7 @@
     },
     {
       "served": "pool/operation-model.js",
-      "source": "self/pool/operation-model.js",
+      "source": "shared/pool/operation-model.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -3206,43 +3206,43 @@
     },
     {
       "served": "pool/p2p-payload.js",
-      "source": "self/pool/p2p-payload.js",
+      "source": "shared/pool/p2p-payload.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
     {
       "served": "pool/p2p-signaling.js",
-      "source": "self/pool/p2p-signaling.js",
+      "source": "shared/pool/p2p-signaling.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
     {
       "served": "pool/p2p-transport.js",
-      "source": "self/pool/p2p-transport.js",
+      "source": "shared/pool/p2p-transport.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
     {
       "served": "pool/pack-operation-adapters.d.ts",
-      "source": "self/pool/pack-operation-adapters.d.ts",
+      "source": "shared/pool/pack-operation-adapters.d.ts",
       "owner": "shared",
       "basis": "Describes pool/pack-operation-adapters.js. Reached from product and substrate entries."
     },
     {
       "served": "pool/pack-operation-adapters.js",
-      "source": "self/pool/pack-operation-adapters.js",
+      "source": "shared/pool/pack-operation-adapters.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
     {
       "served": "pool/pack-operation-policy.d.ts",
-      "source": "self/pool/pack-operation-policy.d.ts",
+      "source": "shared/pool/pack-operation-policy.d.ts",
       "owner": "shared",
       "basis": "Describes pool/pack-operation-policy.js. Reached from product and substrate entries."
     },
     {
       "served": "pool/pack-operation-policy.js",
-      "source": "self/pool/pack-operation-policy.js",
+      "source": "shared/pool/pack-operation-policy.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -3266,7 +3266,7 @@
     },
     {
       "served": "pool/participation-profile.js",
-      "source": "self/pool/participation-profile.js",
+      "source": "shared/pool/participation-profile.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -3296,13 +3296,13 @@
     },
     {
       "served": "pool/peer-capabilities.d.ts",
-      "source": "self/pool/peer-capabilities.d.ts",
+      "source": "shared/pool/peer-capabilities.d.ts",
       "owner": "shared",
       "basis": "Describes pool/peer-capabilities.js. Reached from product and substrate entries."
     },
     {
       "served": "pool/peer-capabilities.js",
-      "source": "self/pool/peer-capabilities.js",
+      "source": "shared/pool/peer-capabilities.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -3350,13 +3350,13 @@
     },
     {
       "served": "pool/peer-pack-job-policy.d.ts",
-      "source": "self/pool/peer-pack-job-policy.d.ts",
+      "source": "shared/pool/peer-pack-job-policy.d.ts",
       "owner": "shared",
       "basis": "Describes pool/peer-pack-job-policy.js. Reached from product and substrate entries."
     },
     {
       "served": "pool/peer-pack-job-policy.js",
-      "source": "self/pool/peer-pack-job-policy.js",
+      "source": "shared/pool/peer-pack-job-policy.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -3470,7 +3470,7 @@
     },
     {
       "served": "pool/pool-config.json",
-      "source": "self/pool/pool-config.json",
+      "source": "shared/pool/pool-config.json",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -3524,7 +3524,7 @@
     },
     {
       "served": "pool/rtc-config.js",
-      "source": "self/pool/rtc-config.js",
+      "source": "shared/pool/rtc-config.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -3554,7 +3554,7 @@
     },
     {
       "served": "pool/sdk.js",
-      "source": "self/pool/sdk.js",
+      "source": "shared/pool/sdk.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -3566,7 +3566,7 @@
     },
     {
       "served": "pool/sequence-workload.js",
-      "source": "self/pool/sequence-workload.js",
+      "source": "shared/pool/sequence-workload.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -3644,13 +3644,13 @@
     },
     {
       "served": "reset.html",
-      "source": "self/reset.html",
+      "source": "shared/reset.html",
       "owner": "shared",
       "basis": "RD design-system specimen and storage reset page served for every surface; load only shared styles."
     },
     {
       "served": "reward-policy.js",
-      "source": "self/reward-policy.js",
+      "source": "shared/reward-policy.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -3836,7 +3836,7 @@
     },
     {
       "served": "styles/rd.css",
-      "source": "self/styles/rd.css",
+      "source": "shared/styles/rd.css",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -3860,7 +3860,7 @@
     },
     {
       "served": "swarm.js",
-      "source": "self/swarm.js",
+      "source": "shared/swarm.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },
@@ -4220,7 +4220,7 @@
     },
     {
       "served": "ui/components/html.js",
-      "source": "self/ui/components/html.js",
+      "source": "shared/ui/components/html.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
     },

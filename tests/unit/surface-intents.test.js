@@ -5,11 +5,11 @@ import { BOOT_MODES, inferBootModeFromGenesis } from '../../self/config/boot-mod
 import {
   LAB_SURFACE_IDS,
   getSurfaceIntent
-} from '../../self/config/surface-intents.js';
+} from '../../shared/config/surface-intents.js';
 import { LAB_ROUTE_PROFILES } from '../../self/lab/profiles.js';
 import { getGenesisLevel, getModuleOverrides, resolveModules } from '../../self/boot-helpers/config.js';
 import { LAB_UPGRADE_STORAGE_KEY } from '../../self/config/lab-upgrades.js';
-import { getCurrentReploidStorage } from '../../self/instance.js';
+import { getCurrentReploidStorage } from '../../shared/instance.js';
 import genesisConfig from '../../self/config/genesis-levels.json' with { type: 'json' };
 import moduleRegistry from '../../self/config/module-registry.json' with { type: 'json' };
 
@@ -139,7 +139,7 @@ describe('surface intents', () => {
 
 describe('resolved extension authority', () => {
   it('derives resources from Zero and preserves ceilings independently of feature availability', async () => {
-    const { SURFACE_INTENTS, authorizeSurfaceOperation } = await import('../../self/config/surface-intents.js');
+    const { SURFACE_INTENTS, authorizeSurfaceOperation } = await import('../../shared/config/surface-intents.js');
     const { LAB_ROUTE_PROFILES } = await import('../../self/lab/profiles.js');
     const { BOOT_SEED_PROFILES } = await import('../../self/config/boot-seed.js');
     const zero = SURFACE_INTENTS.zero, x = SURFACE_INTENTS.x;

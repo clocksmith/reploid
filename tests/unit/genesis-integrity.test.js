@@ -4,10 +4,11 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolveBaseModules } from '../../self/config/module-resolution.js';
-import { SHARED_FILE_TOOLS } from '../../self/config/tool-surfaces.js';
+import { SHARED_FILE_TOOLS } from '../../shared/config/tool-surfaces.js';
 import { LAB_ROUTE_PROFILES } from '../../self/lab/profiles.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
 
-const genesisConfig = JSON.parse(readFileSync('self/config/genesis-levels.json', 'utf8'));
+const genesisConfig = JSON.parse(readFileSync(resolveServedFile('config/genesis-levels.json'), 'utf8'));
 
 describe('genesis integrity', () => {
   it('/zero spark resolves the minimal bootstrapping module tier', () => {

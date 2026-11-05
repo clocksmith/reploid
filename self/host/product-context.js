@@ -1,7 +1,7 @@
 import { DEFAULT_PEER_ROOM_ID } from '../pool/peer-room.js';
 import { createPeerRoomBusFactory } from '../pool/peer-rendezvous.js';
-import { createPoolSdk } from '../pool/sdk.js';
-import { LOCAL_DOPPLER_MODELS } from '../config/doppler-local-models.js';
+import { createPoolSdk } from '../../shared/pool/sdk.js';
+import { LOCAL_DOPPLER_MODELS } from '../../shared/config/doppler-local-models.js';
 import { isWorkOrderedModel } from './work-partition-plan.js';
 import orderedPolicy from '../config/ordered-participation.json' with { type: 'json' };
 

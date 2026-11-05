@@ -11,7 +11,7 @@ vi.mock('../../self/infrastructure/custody-supply-budget.js', () => ({
   openBrowserSupplyBudget: async ({ maxBytes }) => ({ getState: () => ({ maxBytes, reservedBytes: 0 }), close() {} }),
   openBrowserAcquisitionBudget: vi.fn(() => { throw Error('Cached-only sharing must not open a download allowance'); })
 }));
-vi.mock('../../self/config/doppler-local-models.js', () => ({
+vi.mock('../../shared/config/doppler-local-models.js', () => ({
   LOCAL_DOPPLER_MODELS: ports.models, DOPPLER_BROWSER_RUNTIME_VERSION: '0.6.27',
   DOPPLER_PARTITIONS_MODULE_URL: 'doppler-gpu/partitions',
   DOPPLER_STORAGE_TOOLING_URL: 'doppler-gpu/tooling/storage',

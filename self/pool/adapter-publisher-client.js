@@ -2,9 +2,9 @@
  * @fileoverview Publisher-facing client for the governed Poolday adapter registry.
  */
 
-import { createPoolIdentity } from './identity.js';
-import { createPoolSdk } from './sdk.js';
-import { createSigningKeyPair, exportPublicKey } from './inference-receipt.js';
+import { createPoolIdentity } from '../../shared/pool/identity.js';
+import { createPoolSdk } from '../../shared/pool/sdk.js';
+import { createSigningKeyPair, exportPublicKey } from '../../shared/pool/inference-receipt.js';
 import {
   createAdapterRevocation,
   createSignedAdapterPublication

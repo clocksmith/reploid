@@ -4,11 +4,11 @@ import createPoolRouter from '../../server/pool/routes.js';
 import { createPoolStore } from '../../server/pool/store.js';
 import { DETERMINISTIC_GENERATION_CONFIG } from '../../server/pool/policy-router.js';
 import { adapterRequirementFromPublication, createAdapterUseApproval, createAdapterRevocation, createSignedAdapterPublication } from '../../self/pool/adapter-publication.js';
-import { modelSupportsAdapterRequirement, sealAdapterPack } from '../../self/pool/adapter-pack.js';
-import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../../self/pool/inference-receipt.js';
-import { LAUNCH_MODEL } from '../../self/pool/model-contract.js';
-import { createRoleDelegation, getDeviceRootIdentity } from '../../self/pool/device-identity.js';
-import { createSignedParticipationProfile } from '../../self/pool/participation-profile.js';
+import { modelSupportsAdapterRequirement, sealAdapterPack } from '../../shared/pool/adapter-pack.js';
+import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../../shared/pool/inference-receipt.js';
+import { LAUNCH_MODEL } from '../../shared/pool/model-contract.js';
+import { createRoleDelegation, getDeviceRootIdentity } from '../../shared/pool/device-identity.js';
+import { createSignedParticipationProfile } from '../../shared/pool/participation-profile.js';
 import { validateLaunchModelRequirement } from '../../server/pool/model-contract.js';
 import { makePublicProteinJobFields } from '../helpers/pool-sequence-fixture.js';
 
