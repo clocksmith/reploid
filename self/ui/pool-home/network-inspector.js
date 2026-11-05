@@ -20,7 +20,7 @@ export function renderNetworkInspector() {
     </nav>
     <dialog class="network-inspector pool-surface pool-small" data-contextual-inspector data-network-workspace aria-labelledby="network-inspector-title">
     <header class="chat-network-heading"><h2 class="pool-subheading" id="network-inspector-title" tabindex="-1">Network</h2><button class="pool-button" type="button" data-close-inspector aria-label="Close" title="Close">${interfaceIcon('close')}</button></header>
-    <section data-inspector-pane="model" aria-label="Model" hidden><div data-model-picker-slot></div><p class="pool-small pool-muted" data-model-empty hidden>No models are available. Connect to the network or prepare a model in Computers.</p><dl class="chat-model-facts pool-small" data-model-facts hidden></dl><p class="pool-small pool-muted" data-answer-limit hidden></p><p class="pool-small pool-muted" id="chat-model-status" data-model-status role="status" hidden></p></section>
+    <section data-inspector-pane="model" aria-label="Model" hidden><div data-model-picker-slot></div><div data-model-selection-details><p class="pool-small pool-muted" data-model-empty hidden>No models are available. Connect to the network or prepare a model in Computers.</p><dl class="chat-model-facts pool-small" data-model-facts hidden></dl><p class="pool-small pool-muted" data-answer-limit hidden></p><p class="pool-small pool-muted" id="chat-model-status" data-model-status role="status" hidden></p><div data-execution-settings hidden><div class="chat-execution-location" data-execution-location role="group" aria-label="Execution location"><button class="pool-button btn-ghost" type="button" data-execution-choice="auto" aria-pressed="true">Automatic</button><button class="pool-button btn-ghost" type="button" data-execution-choice="local" aria-pressed="false">This device</button><button class="pool-button btn-ghost" type="button" data-execution-choice="network" aria-pressed="false">Network</button></div></div></div></section>
     <section data-inspector-pane="conversation" aria-label="This conversation">
       <div class="execution-ribbon-route" data-inspector-route></div>
       <p data-inspector-status role="status"></p><p class="pool-caption pool-muted" data-context-detail></p>
@@ -44,7 +44,7 @@ export function renderNetworkInspector() {
       <section data-settings-storage><h3 class="pool-subheading">Storage</h3><p class="pool-muted" data-settings-storage-summary>No downloaded models</p><div class="pool-stack pool-gap-md" data-settings-storage-controls></div></section>
       ${renderAccountPanel()}
       <details class="pool-disclosure" data-settings-advanced><summary>Advanced</summary><div class="pool-stack pool-gap-lg">
-        <section class="pool-stack pool-gap-md"><h3 class="pool-small">Inference</h3><div data-execution-settings hidden><div class="chat-execution-location" data-execution-location role="group" aria-label="Execution location"><button class="pool-button btn-ghost" type="button" data-execution-choice="auto" aria-pressed="true">Automatic</button><button class="pool-button btn-ghost" type="button" data-execution-choice="local" aria-pressed="false">This device</button><button class="pool-button btn-ghost" type="button" data-execution-choice="network" aria-pressed="false">Network</button></div></div>${renderRemotePermissionSettings()}${renderAutoDownloadSetting()}<div data-settings-sharing-limits></div></section>
+        <section class="pool-stack pool-gap-md"><h3 class="pool-small">Inference</h3>${renderRemotePermissionSettings()}${renderAutoDownloadSetting()}<div data-settings-sharing-limits></div></section>
         ${renderWebSearchSettings()}
         <button class="pool-button btn-ghost" type="button" data-settings-network>Connection details</button><div data-settings-apps></div>
       </div></details>
@@ -90,7 +90,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   };
   const dialog = {
     open(trigger) {
-      const standalone = !!surface?.querySelector('[data-production-surface]');
+      const standalone = !!surface?.querySelector('[data-production-surface]') && !surface?.querySelector('[data-chat-workspace]');
       if (!standalone) onRailOpen?.();
       opener = trigger || toggle;
       opener.setAttribute('aria-expanded', 'true');

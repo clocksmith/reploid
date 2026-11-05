@@ -12,6 +12,7 @@ import { bindDialog } from '../components/dialog.js';
 import { createMessageList } from './message-list.js';
 import { renderHistoryHandover, bindHistoryHandover } from './history-handover-view.js';
 import { createAutoDownload, updateAutoDownloadSetting } from './auto-download.js';
+import { renderSharedModelChooser, renderProductionContribution, bindProductionControls } from './contribution-models.js';
 
 const busyAcquisition = state => state.acquisition?.phase === 'downloading';
 const selectable = model => ['ready', 'busy', 'cached', 'loading', 'preparing'].includes(model.availability);
@@ -26,8 +27,8 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
     <aside id="chat-threads" class="chat-thread-sidebar pool-mobile-app-bar" data-thread-sidebar aria-label="Conversation controls" ${compact ? 'hidden' : ''}>
       <div class="chat-rail-toolbar pool-surface" data-chat-rail-toolbar>
       <div class="chat-rail-heading">
-      <span class="chat-thread-brand" data-thread-rail-brand></span>
-      <a class="pool-button chat-rail-icon" href="/" data-pool-route-link="/" aria-label="Production" title="Production">${interfaceIcon('device')}<span class="chat-rail-label">Production</span></a>
+      <span class="chat-thread-brand" data-thread-rail-brand><a class="pool-primary-brand pool-button pool-heading pool-plain" href="/" data-pool-route-link="/" aria-label="Reploid home"><span class="pool-power-tower pool-mark" aria-hidden="true"><span class="pool-seven-main">7</span><sup class="pool-seven-small">7</sup></span><span class="pool-primary-wordmark">Reploid</span></a></span>
+      <button class="pool-button chat-rail-icon" type="button" data-toggle-thread-rail aria-label="Threads" title="Threads" aria-haspopup="dialog" aria-expanded="false">${interfaceIcon('more')}<span class="chat-rail-label">Threads</span></button>
       <button class="pool-button chat-new-thread" type="button" data-new-thread aria-label="New thread" title="New thread">${interfaceIcon('newThread')}<span class="chat-rail-label">New thread</span></button>
       </div>
       <footer class="chat-rail-footer"><div data-network-trigger-slot></div></footer>
@@ -56,6 +57,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
     <aside class="chat-inspector-slot pool-surface" data-chat-inspector-slot aria-label="Selected controls"></aside>
     <section class="chat-conversation-area" data-conversation-area aria-label="Current conversation">
       <div class="chat-transcript chat-message-stream" data-chat-transcript data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
+      ${renderSharedModelChooser()}
       <div class="chat-starting-prompts" data-starting-prompts role="group" aria-label="Movie and show suggestions" hidden>
         ${startingPrompts.map(prompt => `<button class="pool-button btn-ghost" type="button" data-starting-prompt>${escape(prompt)}</button>`).join('')}
       </div>
@@ -77,6 +79,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
         <p class="pool-small pool-muted" data-capacity-status role="status" hidden></p><p class="pool-small pool-muted" data-acquisition-status role="status" hidden></p><progress class="pool-progress" data-acquisition-progress aria-label="Model download" hidden></progress><button class="pool-button btn-ghost pool-caption" type="button" data-download-local hidden>Download model</button><button class="pool-button btn-ghost pool-caption" type="button" data-cancel-download hidden>Cancel download</button>
         <p class="chat-attachment-help pool-small pool-muted" data-attachment-help hidden>Text files: up to 8, 64 KB each, 128 KB total.</p>
       </form></footer>
+      ${renderProductionContribution()}
       <dialog class="chat-model-setup pool-surface pool-small" data-rename-dialog aria-labelledby="chat-rename-title">
         <form data-rename-form><h2 class="pool-heading" id="chat-rename-title">Rename thread</h2><label>Name<input class="pool-input" data-thread-name required maxlength="256"></label>
           <div class="chat-network-actions"><button class="pool-button" type="button" data-rename-cancel>Cancel</button><button class="pool-button" type="submit">Save</button></div>
@@ -87,6 +90,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
         <p>A new model starts a new thread.</p>
         <div><select class="pool-input" data-next-model aria-label="Model"></select></div>
         <p data-next-model-status role="status" hidden></p>
+        <div class="pool-stack pool-gap-xs" data-picker-selection-slot></div>
         <div class="chat-network-actions"><button class="pool-button" type="button" data-model-picker-close>Cancel</button><button class="pool-button" type="button" data-change-model>Use model</button></div>
       </dialog>
     </section>
@@ -97,7 +101,8 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
 export function bindConversationWorkspace(root, session, { getInviteUrl, viewState = {}, inspector: sharedInspector, webSearch = null, search = null, historyHandover = null } = {}) {
   const container = root.querySelector('[data-chat-workspace]');
   if (!container || !session) return () => {};
-  const find = selector => container.querySelector(selector);
+  const surface = container.closest('.pool-home');
+  const find = selector => container.querySelector(selector) || surface?.querySelector(selector);
   const controller = new AbortController(), options = { signal: controller.signal };
   const input = find('[data-composer-input]'), modelSelect = find('[data-active-model-select]');
   const modelChoices = bindModelChoices(modelSelect), nextModelChoices = bindModelChoices(find('[data-next-model]'));
@@ -112,14 +117,14 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const messages = createMessageList(find('[data-message-stream]'), { getSources: session.getDocumentSources, positions: viewState.positions, scrollContainer: find('[data-chat-transcript]') });
   const actions = find('[data-conversation-actions]');
   const actionsPanel = bindDisclosure({ root: actions, trigger: actions.querySelector('summary'), panel: actions.querySelector('div'), native: true });
-  const surface = container.closest('.pool-home');
-  const railToggle = surface?.querySelector('[data-toggle-thread-rail]');
-  const brandParent = railToggle?.parentElement;
-  if (railToggle) find('[data-thread-rail-brand]').append(railToggle);
-  // The brand opens the conversation list as a dialog; the bar keeps only its four controls.
+  const brand = surface?.querySelector('.pool-primary-nav > .pool-primary-brand');
+  const brandParent = brand?.parentElement;
+  if (brand) find('[data-thread-rail-brand]').replaceChildren(brand);
+  const railToggle = find('[data-toggle-thread-rail]');
+  // The brand consistently goes home; Threads opens the conversation list as a dialog.
   const threadsDialogNode = find('[data-threads-dialog]'), threadsDialog = bindDialog(threadsDialogNode);
   const setThreads = open => {
-    if (open) inspector.close({ restoreFocus: false });
+    if (open) inspector.close?.({ restoreFocus: false });
     viewState.threadsOpen = open; container.toggleAttribute('data-threads-open', open);
     railToggle?.setAttribute('aria-expanded', String(open));
     railToggle?.setAttribute('aria-controls', 'chat-threads-title');
@@ -131,9 +136,30 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const detachInspector = inspector.mountRail?.(find('[data-chat-inspector-slot]'), find('[data-network-trigger-slot]'), () => setThreads(false));
   const modelControl = find('[data-model-control]'), modelHome = modelControl.parentElement;
   const modelButton = find('[data-open-model]'), modelButtonHome = modelButton.parentElement;
-  find('[data-model-picker-slot]').append(modelControl);
+  find('[data-model-picker-slot]')?.append(modelControl);
+  const selectionDetails = find('[data-model-selection-details]');
+  const modelPane = find('[data-inspector-pane="model"]');
+  const mountSelectionDetails = thread => {
+    if (!selectionDetails) return;
+    const target = find('[data-model-picker]')?.open ? find('[data-picker-selection-slot]')
+      : !modelPane?.hidden || thread ? modelPane : find('[data-shared-selection-slot]');
+    if (target && selectionDetails.parentElement !== target) target.append(selectionDetails);
+  };
   const executionSettings = find('[data-execution-settings]');
   if (executionSettings) executionSettings.hidden = false;
+  const production = bindProductionControls(container, session, {
+    inspector,
+    getSelectedModelId: () => modelSelect.value,
+    onSelectSharedModel(model) {
+      chosenModel = model;
+      viewState.chosenModel = chosenModel;
+      executionLocation = 'network';
+      viewState.executionLocation = executionLocation;
+      modelSelect.value = model.selectionId || model.id;
+      render(session.getState());
+      input.focus();
+    }
+  });
   const autoDownload = createAutoDownload(session, { onChange: () => render(session.getState()) });
   (surface || container).addEventListener('click', event => {
     const toggle = event.target.closest?.('[data-auto-download-toggle]');
@@ -201,13 +227,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const refreshStartingPrompts = () => {
     const state = session.getState(), thread = state.activeThread;
     find('[data-starting-prompts]').hidden = container.hasAttribute('data-compact') || !!(thread?.messages.length || thread?.closed
-      || state.runningIds.includes(thread?.id) || state.comparisonPhase || input.value.trim() || files.length);
+      || (state.runningIds || []).includes(thread?.id) || state.comparisonPhase || input.value.trim() || files.length);
   };
   const showFiles = () => { refreshStartingPrompts(); resizeInput(); renderAttachments(find('[data-attachments-preview]'), files); find('[data-attachment-help]').hidden = !files.length; };
   const updatePicker = state => {
     const keyFor = model => model?.selectionId || model?.id;
-    const models = [...state.models];
-    const selected = state.models.find(model => keyFor(model) === keyFor(pickerModel));
+    const models = [...(state.models || [])];
+    const selected = (state.models || []).find(model => keyFor(model) === keyFor(pickerModel));
     if (pickerModel && !models.some(model => keyFor(model) === keyFor(pickerModel))) {
       models.push(selected || { ...pickerModel, availability: 'unavailable' });
     }
@@ -231,7 +257,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       drafts.set(selectedId, { text: input.value, files }); selectedId = state.selectedId; fileRevision++;
       const draft = drafts.get(selectedId) || session.getDraft?.(selectedId); input.value = draft?.text || ''; files = draft?.files || []; showFiles();
     }
-    const thread = state.activeThread, catalogModels = state.models || [];
+    const thread = state.activeThread, catalogModels = state.models || [], runningIds = state.runningIds || [];
     const keyFor = model => model?.selectionId || model?.id;
     const models = [...catalogModels];
     if (!thread && chosenModel && !models.some(model => keyFor(model) === keyFor(chosenModel))) {
@@ -253,9 +279,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     currentModel.setAttribute('aria-label', `${thread?.model.name || 'Model'}. Choose a model for a new thread`);
     const peerCount = projectNetworkPeers(state).length;
     for (const node of surface?.querySelectorAll('[data-mesh-peers]') || []) node.textContent = `${peerCount} ${peerCount === 1 ? 'computer' : 'computers'}`;
-    for (const button of container.querySelectorAll('[data-execution-choice]')) {
+    for (const button of (surface || container).querySelectorAll('[data-execution-choice]')) {
       button.setAttribute('aria-pressed', String(button.dataset.executionChoice === location));
-      button.disabled = !!thread?.closed || state.runningIds.includes(state.selectedId) || submitting;
+      button.disabled = !!thread?.closed || runningIds.includes(state.selectedId) || submitting;
     }
     const selectedModel = catalogModels.find(model => keyFor(model) === current);
     const usable = location === 'network' ? ['ready', 'busy'].includes(selectedModel?.networkAvailability ?? selectedModel?.availability)
@@ -265,7 +291,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const modelStatus = find('[data-model-status]');
     const networkState = state.network?.consumer?.connectionState;
     const localPreparing = state.localModel?.phase === 'loading';
-    const requestedModel = thread?.model || chosenModel || models.find(model => keyFor(model) === current)
+    const requestedModel = (find('[data-model-picker]')?.open && pickerModel) || thread?.model || chosenModel || models.find(model => keyFor(model) === current)
       || catalogModels.find(model => keyFor(model) === current)
       || catalogModels.find(model => keyFor(model) === keyFor(state.defaultModel))
       || catalogModels[0];
@@ -333,7 +359,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     find('[data-download-local]').hidden = !canAcquire || !!thread?.closed;
     find('[data-download-local]').textContent = ['failed', 'cancelled'].includes(acquisition?.phase) ? 'Retry download' : 'Download model';
     const attempt = thread?.attempts.at(-1);
-    const busy = state.runningIds.includes(thread?.id) || !!state.comparisonPhase;
+    const busy = runningIds.includes(thread?.id) || !!state.comparisonPhase;
     // The collapsed rails hide the header status. Explain a disabled composer
     // here, including before the first attempt, without adding another panel.
     modelStatus.textContent = busy ? '' : thread?.closed ? 'Restore this thread to continue.'
@@ -377,13 +403,19 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     find('[data-retry-connection]').title = modelStatus.textContent;
     find('[data-model-control]').hidden = !models.length;
     find('[data-model-control]').dataset.activity = models.some(model => keyFor(model) === current && model.availability === 'ready') ? 'ready' : 'idle';
-    const modelDigest = requestedModel ? modelSelectionLabel(requestedModel) : '';
+    const activeModel = thread?.model || chosenModel || models.find(model => keyFor(model) === current)
+      || catalogModels.find(model => keyFor(model) === current) || requestedModel;
+    const modelDigest = activeModel ? modelSelectionLabel(activeModel) : '';
     find('[data-model-digest]').textContent = modelDigest;
     find('[data-open-model]').title = modelDigest ? `Choose model: ${modelDigest}` : 'Choose model';
     find('[data-open-model]').setAttribute('aria-label', modelDigest ? `Choose model: ${modelDigest}` : 'Choose model');
     updateContextIndicator(container, state, session);
-    threads.update(state.threads, state.selectedId, { archived, models: state.models });
+    threads.update(state.threads || [], state.selectedId, { archived, models: state.models });
     refreshStartingPrompts();
+    find('[data-production-shared]').hidden = container.hasAttribute('data-compact') || !!thread;
+    find('[data-production-surface]').hidden = container.hasAttribute('data-compact');
+    mountSelectionDetails(thread);
+    production.update(state);
     const contextControls = find('[data-context-controls]');
     contextControls.hidden = !session.previewContextPrompt;
     if (session.previewContextPrompt) {
@@ -436,23 +468,26 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const renameDialog = bindDialog(find('[data-rename-dialog]'));
   const picker = bindDialog(find('[data-model-picker]'));
   for (const selector of ['[data-open-limits]', '[data-composer-status]']) {
-    on(selector, 'click', event => inspector.open('model', event.currentTarget));
+    on(selector, 'click', event => { inspector.open?.('model', event.currentTarget); mountSelectionDetails(session.getState().activeThread); });
   }
   const openPicker = event => {
     const state = session.getState();
-    inspector.close({ restoreFocus: false });
+    inspector.close?.({ restoreFocus: false });
     find('[data-current-model-description]').textContent = state.activeThread?.model.name || '';
-    pickerModel = state.activeThread?.model || chosenModel || state.defaultModel || state.models.find(selectable) || null;
+    pickerModel = state.activeThread?.model || chosenModel || state.defaultModel || (state.models || []).find(selectable) || null;
     updatePicker(state);
     picker.open(find('[data-next-model]'), event.currentTarget);
+    render(state);
     nextModelChoices.focus();
   };
   on('[data-current-model]', 'click', openPicker);
   on('[data-open-model]', 'click', openPicker);
   on('[data-model-picker-close]', 'click', () => picker.close());
+  on('[data-model-picker]', 'close', () => render(session.getState()));
   on('[data-next-model]', 'change', () => {
-    pickerModel = session.getState().models.find(model => (model.selectionId || model.id) === find('[data-next-model]').value) || pickerModel;
+    pickerModel = (session.getState().models || []).find(model => (model.selectionId || model.id) === find('[data-next-model]').value) || pickerModel;
     updatePicker(session.getState());
+    render(session.getState());
   });
   on('[data-composer-input]', 'input', () => { composerRevision++; resizeInput(); refreshStartingPrompts(); try { observe(saveDraft()); } catch (cause) { error(cause); } });
   on('[data-starting-prompts]', 'click', event => {
@@ -462,26 +497,33 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     input.dispatchEvent(new Event('input', { bubbles: true }));
     input.focus();
   });
-  const newThread = () => after(saveDraft(), () => after(session.select(null), () => { inspector.close({ restoreFocus: false }); chosenModel = null; viewState.chosenModel = null; archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-archived]').textContent = 'Archived threads'; actionsPanel.setOpen(false); setThreads(false); render(session.getState()); input.focus(); }));
+  const newThread = () => after(saveDraft(), () => after(session.select(null), () => { inspector.close?.({ restoreFocus: false }); chosenModel = null; viewState.chosenModel = null; archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-archived]').textContent = 'Archived threads'; actionsPanel.setOpen(false); setThreads(false); render(session.getState()); input.focus(); }));
   on('[data-new-thread]', 'click', () => { try { observe(newThread()); } catch (cause) { error(cause); } });
-  on('[data-active-model-select]', 'change', () => { chosenModel = session.getState().models.find(model => (model.selectionId || model.id) === modelSelect.value); viewState.chosenModel = chosenModel; render(session.getState()); });
+  on('[data-active-model-select]', 'change', () => { chosenModel = (session.getState().models || []).find(model => (model.selectionId || model.id) === modelSelect.value); viewState.chosenModel = chosenModel; render(session.getState()); input.focus(); });
   on('[data-change-model]', 'click', () => {
     if (changingModel) return;
     const next = find('[data-next-model]').value;
     const state = session.getState();
-    const model = state.models.find(model => (model.selectionId || model.id) === next && selectable(model));
+    const model = (state.models || []).find(model => (model.selectionId || model.id) === next && selectable(model));
     if (!model) { updatePicker(session.getState()); return; }
     const location = state.activeThread?.permissions?.sharingScope === 'local' ? 'local'
       : state.activeThread?.permissions?.executionLocation ?? executionLocation;
     changingModel = true; updatePicker(state);
     void act(async () => {
       try {
+        const pendingDraft = input.value || files.length ? { text: input.value, files: [...files] } : null;
         await newThread();
         if (controller.signal.aborted) return;
+        if (pendingDraft) {
+          input.value = pendingDraft.text;
+          files = pendingDraft.files;
+          await saveDraft();
+          showFiles();
+        }
         chosenModel = model; viewState.chosenModel = chosenModel;
         executionLocation = location === 'local' ? 'local' : isSharedModelChoice(model) ? 'network' : location;
         viewState.executionLocation = executionLocation;
-        modelSelect.value = next; render(session.getState()); picker.close(); input.focus();
+        modelSelect.value = next; picker.close(); render(session.getState()); input.focus();
       } finally {
         changingModel = false;
         if (!controller.signal.aborted) render(session.getState());
@@ -497,8 +539,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   });
   on('[data-download-local]', 'click', event => {
     const state = session.getState();
-    const model = state.activeThread?.model || state.models.find(item => (item.selectionId || item.id) === modelSelect.value) || chosenModel || state.defaultModel;
-    inspector.downloadModel(model?.id, event.currentTarget);
+    const model = state.activeThread?.model || (state.models || []).find(item => (item.selectionId || item.id) === modelSelect.value) || chosenModel || state.defaultModel;
+    inspector.downloadModel?.(model?.id, event.currentTarget);
   });
   on('[data-cancel-download]', 'click', () => { autoDownload.cancelled(); session.cancelModelDownload(); });
   on('[data-show-archived]', 'click', event => {
@@ -525,8 +567,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         (find('[data-thread-item-id][aria-current="true"]') || find('[data-new-thread]')).focus();
       }); return;
     }
-    const button = event.target.closest('[data-thread-item-id]'); if (button) { try { observe(after(saveDraft(), () => { const selected = session.select(button.dataset.threadItemId); inspector.close({ restoreFocus: false }); setThreads(false); return selected; })); } catch (cause) { error(cause); } } });
-  on('[data-context-indicator]', 'click', event => inspector.open('conversation', event.currentTarget));
+    const button = event.target.closest('[data-thread-item-id]'); if (button) { try { observe(after(saveDraft(), () => { const selected = session.select(button.dataset.threadItemId); inspector.close?.({ restoreFocus: false }); setThreads(false); return selected; })); } catch (cause) { error(cause); } } });
+  on('[data-context-indicator]', 'click', event => inspector.open?.('conversation', event.currentTarget));
   on('[data-execution-location]', 'click', event => {
     const button = event.target.closest('[data-execution-choice]');
     if (!button || button.disabled || button.getAttribute('aria-pressed') === 'true') return;
@@ -538,7 +580,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   on('[data-composer-form]', 'submit', event => {
     event.preventDefault();
     const content = input.value.trim(), state = session.getState();
-    if (!content || reading || submitting || state.runningIds.includes(state.selectedId)) return;
+    if (!content || reading || submitting || (state.runningIds || []).includes(state.selectedId)) return;
     if (find('[data-composer-send]').disabled) return;
     if (!lastUsable && canQueue && !queued) { queued = { threadId: state.selectedId }; render(session.getState()); return; }
     const searched = searching();
@@ -637,14 +679,16 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     inputResize?.disconnect();
     modelChoices.dispose(); nextModelChoices.dispose();
     if (executionSettings) executionSettings.hidden = true;
+    if (selectionDetails && modelPane && selectionDetails.parentElement !== modelPane) modelPane.append(selectionDetails);
     modelHome.append(modelControl); modelButtonHome.prepend(modelButton);
+    production.dispose();
     detachInspector?.();
     messages.dispose(); threads.dispose(); actionsPanel.dispose(); threadsDialog.dispose(); picker.dispose(); renameDialog.dispose();
     const surface = container.closest('.pool-home');
     surface?.style.removeProperty('--pool-param-workspace-height');
     surface?.removeAttribute('data-chat-compact');
-    if (railToggle && brandParent) brandParent.prepend(railToggle);
-    controller.abort(); detachHandover(); autoDownload.dispose(); fileRevision++; unsubscribe(); unsubscribeWebSearch(); unsubscribeSearch(); if (!sharedInspector) inspector.dispose();
+    if (brand && brandParent) brandParent.prepend(brand);
+    controller.abort(); detachHandover(); autoDownload.dispose(); fileRevision++; unsubscribe(); unsubscribeWebSearch(); unsubscribeSearch(); if (!sharedInspector) inspector.dispose?.();
     find('[data-composer-field]').dataset.activity = 'idle';
     find('[data-model-control]').dataset.activity = 'idle';
   };

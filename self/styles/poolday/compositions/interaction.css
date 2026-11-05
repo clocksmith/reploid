@@ -92,7 +92,7 @@
 .permission-message p { margin-block: var(--pool-size-8); }
 .network-inspector { width: calc(var(--pool-size-480) * 0.75); height: calc(100dvh - var(--pool-size-64) - var(--pool-param-chat-gutter, var(--pool-size-16)) * 2); top: calc(var(--pool-size-64) + var(--pool-param-chat-gutter, var(--pool-size-16))); left: auto; right: var(--pool-param-chat-gutter, var(--pool-size-16)); bottom: var(--pool-param-chat-gutter, var(--pool-size-16)); padding: var(--pool-size-16); }
 .pool-home .network-inspector[open] { animation: pool-inspector-enter var(--pool-motion-time-180); }
-.pool-home:has([data-production-surface]) .network-inspector:modal {
+.pool-home:has([data-production-surface]):not(:has([data-chat-workspace])) .network-inspector:modal {
   position: fixed; inset: 0 0 0 auto; width: min(var(--pool-size-480), 100vw);
   height: 100dvh; max-height: 100dvh; margin: 0;
 }

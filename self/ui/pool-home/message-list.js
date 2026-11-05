@@ -33,9 +33,8 @@ function updateMessageMeta(root, thread, attempt, state) {
   const tokens = timing?.generatedTokenCount ?? execution?.completion?.generatedTokenCount;
   const view = projectExecutionActivity({ ...state, activeThread: { ...thread, attempts: attempt ? [attempt] : [] } });
   const measurements = [
-    ['model', '', thread.model?.name ? 'Model: ' + thread.model.name : null],
     ['activity', view.averageSpeed === null ? '' : `${view.averageSpeed.toFixed(1)} tok/s`, view.averageSpeed === null ? null : 'Generation average including prompt processing; excludes queue and model loading'],
-    ['tokens', Number.isSafeInteger(tokens) && tokens >= 0 ? `${tokens}` : '', Number.isSafeInteger(tokens) && tokens >= 0 ? `${tokens} generated tokens` : null],
+    ['tokens', Number.isSafeInteger(tokens) && tokens >= 0 ? `${tokens} ${tokens === 1 ? 'token' : 'tokens'}` : '', Number.isSafeInteger(tokens) && tokens >= 0 ? `${tokens} generated tokens` : null],
     ['clock', Number.isFinite(timing?.totalMs) && timing.totalMs > 0 ? `${(timing.totalMs / 1000).toFixed(1)} s` : '', Number.isFinite(timing?.totalMs) && timing.totalMs > 0 ? 'Generation time including prompt processing' : null]
   ];
   // Keep each slot and its focus target in place as recorded measurements arrive.
@@ -81,7 +80,7 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
           row = stream.ownerDocument.createElement('article'); row.dataset.messageId = messageId;
           row.className = message.role === 'user' ? 'chat-message-row is-user' : 'chat-message-row is-assistant';
           const popover = `chat-execution-${++nextPopover}`;
-          row.innerHTML = `<span class="chat-message-author pool-small pool-muted"></span><div class="chat-message-content pool-body pool-prose"></div><div class="chat-message-system pool-small" data-system-status role="status" aria-label="System status" hidden></div><div class="chat-message-footer pool-row pool-gap-sm pool-small pool-muted"><div class="chat-message-meta pool-caption" hidden></div><div class="chat-execution-activity pool-row pool-gap-sm" data-execution-activity hidden><span class="pool-small" data-tool-status role="status" hidden></span><button class="pool-button pool-icon" type="button" data-execution-trigger popovertarget="${popover}"></button><div class="chat-execution-popover pool-card pool-small" id="${popover}" popover data-activity-detail></div></div><div class="chat-message-actions"></div></div>`;
+          row.innerHTML = `<span class="chat-message-author pool-small pool-muted"></span><div class="chat-message-content pool-body pool-prose"></div><div class="chat-message-system pool-small" data-system-status role="status" aria-label="System status" hidden></div><div class="chat-message-footer pool-row pool-gap-sm pool-small pool-muted"><div class="chat-execution-activity pool-row pool-gap-sm" data-execution-activity hidden><span class="pool-small" data-tool-status role="status" hidden></span><button class="pool-button pool-icon" type="button" data-execution-trigger popovertarget="${popover}"></button><div class="chat-execution-popover pool-card pool-small" id="${popover}" popover data-activity-detail></div></div><div class="chat-message-meta pool-caption" hidden></div><div class="chat-message-actions"></div></div>`;
           if (message.role === 'user') row.querySelector('.chat-message-content').classList.add('pool-well');
           row.querySelector('.chat-message-author').textContent = message.role === 'user' ? 'You' : 'Assistant'; rows.set(id, row);
         }

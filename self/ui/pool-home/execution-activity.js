@@ -31,6 +31,10 @@ export function projectExecutionActivity(state) {
 const SUPPLY_LABELS = { local: 'This device', mesh: 'Mesh', hosted: 'Hosted', unknown: 'Executor not verified' };
 const supplyLabel = part => part?.supply === 'mixed' ? `Mixed: ${part.classes.map(name => SUPPLY_LABELS[name]).join(' + ')}`
   : SUPPLY_LABELS[part?.supply] ?? null;
+const supplyCaption = (view, supply) => view.local || supply.answer === 'This device' ? 'This device'
+  : supply.answer === 'Hosted' || view.attempt?.execution?.provider === 'hosted' ? 'Hosted'
+  : supply.answer === 'Executor not verified' ? 'Executor not verified'
+  : view.nodes.length || supply.answer === 'Mesh' || supply.answer?.startsWith('Mixed:') || view.attempt?.execution?.provider === 'peer' || view.attempt?.execution?.placement ? 'Shared computer' : '';
 
 /** The recorded answer-level supply label, and this attempt's own when earlier attempts of the answer differ. */
 export function projectSupplyLabel(attempt) {
@@ -54,12 +58,15 @@ export function updateExecutionActivity(root, state) {
   const summary = [toolStatus || (view.status === 'executing' ? 'Generating' : view.statusLabel),
     ...(view.nodes.length ? [`${view.computerCount} computer${view.computerCount === 1 ? '' : 's'}`] : []),
     ...(view.split ? ['Partitioned'] : []), ...(supply.answer ? [supply.answer] : [])].join(' · ');
+  const supplyText = supplyCaption(view, supply);
+  const readable = [view.model || (supplyText ? view.thread?.model?.name : ''), supplyText].filter(Boolean).join(' · ');
   const trigger = root.querySelector('[data-execution-trigger]');
   trigger.setAttribute('aria-label', summary + '. Execution details');
   trigger.title = summary + (view.nodes.length ? '\n' + view.nodes.map(node => node.label).join(' → ') : '')
     + (view.attempt.error ? '\n' + view.attempt.error : '') + '\nClick to inspect';
   const icon = interfaceIcon(toolStatus ? 'search' : view.local ? 'device' : view.nodes.length ? 'peers' : 'activity')
     + (view.computerCount ? `<span>${view.computerCount}</span>` : '')
+    + (readable ? `<span data-execution-label>${escape(readable)}</span>` : '')
     + `<span class="chat-visually-hidden">${escape(summary)}</span>`;
   if (trigger.dataset.markup !== icon) { trigger.innerHTML = icon; trigger.dataset.markup = icon; }
   const measured = view.nodes.length > 0 && view.nodes.every(node => node.share !== null);

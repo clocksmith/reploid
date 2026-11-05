@@ -585,4 +585,28 @@ describe('Conversation workspace', () => {
     expect(session.getState().activeThread.attempts).toEqual([]);
     expect(find('[data-model-dialog]').open).toBe(false);
   });
+
+  it('preserves drafts and attachments when selecting a shared model without initiating downloads or disclosing contents', async () => {
+    const [small, medium] = CANONICAL_CHAT_MODELS;
+    const peers = [small, medium].map((model, index) => ({ peerId: 'peer-' + index, model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }));
+    const downloadLocalModel = vi.fn();
+    dispose(); await session.close();
+    session = createChatSession({ storage: null, service, swarm: { getState: () => ({ discoveryScope: 'public', consumer: { peers } }) } });
+    dispose = bindConversationWorkspace(root, { ...session, downloadLocalModel });
+    const input = find('[data-composer-input]');
+    input.value = 'Draft with private notes';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    const fileInput = find('[data-composer-files]');
+    Object.defineProperty(fileInput, 'files', { value: [new File(['Private file body'], 'notes.txt', { type: 'text/plain' })], configurable: true });
+    fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+    await vi.waitFor(() => expect(find('[data-attachments-preview]').textContent).toContain('notes.txt'));
+    find(`[data-production-use="${small.id}"]`).click();
+    expect(document.activeElement).toBe(input);
+    expect(input.value).toBe('Draft with private notes');
+    expect(find('[data-attachments-preview]').textContent).toContain('notes.txt');
+    expect(find('[data-active-model-select]').value).toBe(small.id);
+    expect(downloadLocalModel).not.toHaveBeenCalled();
+    expect(service.calls).toHaveLength(0);
+    expect(session.getState().threads).toHaveLength(0);
+  });
 });

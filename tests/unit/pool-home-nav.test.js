@@ -196,9 +196,11 @@ describe('poolday home navigation', () => {
     expect(links.map(link => new URL(link.href).pathname)).toEqual(['/improve']);
     expect(links.every(link => link.hasAttribute('data-pool-route-link'))).toBe(true);
     expect(host.querySelector('.pool-primary-brand').getAttribute('href')).toBe('/');
+    expect(renderNav('network')).toContain('aria-label="Reploid home"');
     host.insertAdjacentHTML('beforeend', renderRoutePanel('home'));
-    expect(host.querySelector('[data-production-chat]').getAttribute('href')).toBe('/network');
-    expect(host.querySelector('[data-production-settings]')).not.toBeNull();
+    expect(host.querySelector('[data-chat-workspace]')).not.toBeNull();
+    expect(host.querySelector('[data-toggle-thread-rail]').textContent).toContain('Threads');
+    expect(host.querySelector('[data-inspector-section="settings"]')).not.toBeNull();
   });
 
   it('keeps a path back from focused routes without legacy drawer chrome', () => {

@@ -114,18 +114,22 @@ describe('Stable message presentation', () => {
 
 it('shows recorded answer metadata and omits unknown or invalid measurements', () => {
   const root = document.createElement('div'), thread = conversation();
-  thread.model = { name: 'Recorded model' };
+  thread.model = { name: 'Qwen 27B' };
   const view = createMessageList(root);
   view.update(thread, { usable: true, busy: false });
   const meta = root.querySelector('.is-assistant .chat-message-meta');
-  expect(meta.querySelector('[aria-label="Model: Recorded model"]')).not.toBeNull();
   expect(meta.textContent).toBe('');
-  thread.attempts[0].execution = { placement: 'local-webgpu', timing: { generatedTokenCount: 59, totalMs: 7900 } };
+  thread.attempts[0].execution = { placement: 'local-webgpu', timing: { generatedTokenCount: 92, totalMs: 5000 } };
   view.update(thread, { usable: true, busy: false });
-  expect(meta.querySelector('[title="59 generated tokens"]')).not.toBeNull();
-  expect(meta.textContent).toContain('7.9 s');
-  expect(meta.textContent).toContain('7.5 tok/s');
+  expect(root.querySelector('.is-assistant [data-execution-label]').textContent).toBe('Qwen 27B · This device');
+  expect(meta.querySelector('[title="92 generated tokens"]').textContent).toBe('92 tokens');
+  expect(meta.textContent).toContain('18.4 tok/s');
+  expect(meta.textContent).toContain('92 tokens');
+  expect(meta.textContent).toContain('5.0 s');
   expect(meta.querySelector('[title="Generation time including prompt processing"]')).not.toBeNull();
+  thread.attempts[0].execution = { peerId: 'peer-1', timing: { generatedTokenCount: 92, totalMs: 5000 } };
+  view.update(thread, { usable: true, busy: false });
+  expect(root.querySelector('.is-assistant [data-execution-label]').textContent).toBe('Qwen 27B · Shared computer');
   thread.attempts[0].execution.timing = { generatedTokenCount: -1, totalMs: NaN };
   view.update(thread, { usable: true, busy: false });
   expect(meta.textContent).toBe('');

@@ -7,7 +7,6 @@ import { resolveRtcConfig } from '../../pool/p2p-transport.js';
 import { POOLDAY_NAME, ROUTE_COPY } from './constants.js';
 import { getRouteId, renderNav, updateChangesControl } from './shell-view.js';
 import { renderConversationWorkspace, bindConversationWorkspace } from './conversation-workspace.js';
-import { renderProductionSurface, bindProductionSurface } from './production.js';
 import { renderNetworkInspector, bindNetworkInspector } from './network-inspector.js';
 import { bindExecutionRibbon } from './execution-ribbon.js';
 import { bindThemeSelector } from './theme.js';
@@ -124,10 +123,7 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
       const bindNavigation = () => bindPoolRouteControls(mount, render);
       bindNavigation();
       try {
-        if (routeId === 'home') {
-          content.innerHTML = renderProductionSurface();
-          detachView = bindProductionSurface(content, host.chat, { viewState, inspector, webSearch: host.webSearch, search: host.search, historyHandover: host.historyHandover });
-        } else if (routeId === 'network') {
+        if (['home', 'network'].includes(routeId)) {
           content.innerHTML = renderConversationWorkspace({ inspector: false });
           detachView = bindConversationWorkspace(content, host.chat, { viewState, inspector, webSearch: host.webSearch, search: host.search, historyHandover: host.historyHandover });
         } else {

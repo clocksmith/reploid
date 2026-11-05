@@ -22,8 +22,8 @@ it('keeps chat reachable with no capacity, downloaded models and busy peers', ()
     const snapshot = { models, network: {} };
     const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; } };
     const detach = bindProductionSurface(document.body, session);
-    expect(document.querySelector('[data-production-chat]').getAttribute('href')).toBe('/network');
-    expect(document.querySelector('[data-production-chat]').hidden).toBe(false);
+    expect(document.querySelector('[data-composer-input]')).not.toBeNull();
+    expect(document.querySelector('[data-chat-rail-toolbar]')).not.toBeNull();
     expect(document.querySelector('.production-utilities').hidden).toBe(false); detach();
   }
 });
@@ -100,34 +100,47 @@ it('starts with model actions and hides empty production counters', () => {
   expect(document.querySelector('[data-shared-model-status]').textContent).toBe('Ready'); detach();
 });
 
-it('puts usable shared models before the collapsed local downloads and opens the exact network model', async () => {
+it('puts usable shared models above the composer and collapsed contribution below, preserving drafts on selection', () => {
   const local = { ...model, id: 'local', name: 'Local', networkAvailability: 'unavailable' };
-  const snapshot = { models: [local, model], network: {} };
+  const snapshot = { models: [local, { ...model, quantization: 'q4f16_1', contextLength: 32768 }], network: {} };
   const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; },
-    createThread: vi.fn(async () => 'new-thread'), downloadLocalModel: vi.fn(), prepareLocalModel: vi.fn(), setSharing: vi.fn() };
+    createThread: vi.fn(async () => 'new-thread'), downloadLocalModel: vi.fn(), prepareLocalModel: vi.fn(), setSharing: vi.fn(),
+    getModelDownload: vi.fn(), saveDraft: vi.fn() };
   const detach = bindProductionSurface(document.body, session);
-  const shared = document.querySelector('[data-production-shared]'), device = document.querySelector('[data-production-device]');
-  expect(shared.compareDocumentPosition(device) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  const shared = document.querySelector('[data-production-shared]');
+  const composer = document.querySelector('[data-composer-area]');
+  const device = document.querySelector('[data-production-device]');
+  expect(shared.compareDocumentPosition(composer) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(composer.compareDocumentPosition(device) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   expect(device.open).toBe(false);
-  const chat = document.querySelector('[data-production-chat]');
-  const navigation = vi.fn(event => event.preventDefault()); chat.addEventListener('click', navigation);
+  expect(document.querySelector('[data-production-summary-status]').textContent).toBe('Not set up');
+  expect(shared.contains(document.querySelector('[data-model-facts]'))).toBe(true);
+  expect(shared.contains(document.querySelector('[data-execution-location]'))).toBe(true);
+  const input = document.querySelector('[data-composer-input]');
+  input.value = 'Draft question';
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+  session.getModelDownload.mockClear();
   document.querySelector('[data-production-use="m"]').click();
-  await vi.waitFor(() => expect(navigation).toHaveBeenCalledOnce());
-  expect(session.createThread).toHaveBeenCalledExactlyOnceWith({ model, sharingScope: 'mesh', executionLocation: 'network' });
-  expect(session.downloadLocalModel).not.toHaveBeenCalled(); expect(session.prepareLocalModel).not.toHaveBeenCalled();
+  expect(document.activeElement).toBe(input);
+  expect(input.value).toBe('Draft question');
+  expect(document.querySelector('[data-active-model-select]').value).toBe('m');
+  expect(document.querySelector('[data-execution-choice="network"]').getAttribute('aria-pressed')).toBe('true');
+  expect(session.createThread).not.toHaveBeenCalled();
+  expect(session.downloadLocalModel).not.toHaveBeenCalled();
+  expect(session.prepareLocalModel).not.toHaveBeenCalled();
+  expect(session.getModelDownload).not.toHaveBeenCalled();
   expect(session.setSharing).not.toHaveBeenCalled(); detach();
 });
 
-it('removes departed shared models and keeps thread creation errors above local setup', async () => {
+it('removes departed shared models and hides the shared chooser when a thread is active', () => {
   const snapshot = { models: [model], network: {} }; let update;
-  const session = { getState: () => snapshot, subscribe(fn) { update = fn; fn(snapshot); return () => {}; },
-    createThread: vi.fn(async () => { throw Error('Network answers are off'); }) };
+  const session = { getState: () => snapshot, subscribe(fn) { update = fn; fn(snapshot); return () => {}; } };
   const detach = bindProductionSurface(document.body, session);
-  document.querySelector('[data-production-use="m"]').click();
-  await vi.waitFor(() => expect(document.querySelector('[data-production-shared-error]').textContent).toBe('Network answers are off'));
-  expect(document.querySelector('[data-production-shared-error]').hidden).toBe(false);
+  expect(document.querySelector('[data-production-shared]').hidden).toBe(false);
   snapshot.models = [{ ...model, networkAvailability: 'unavailable' }]; update(snapshot);
-  expect(document.querySelector('[data-production-use]')).toBeNull(); detach();
+  expect(document.querySelector('[data-production-use]')).toBeNull();
+  snapshot.activeThread = { id: 'thread-1', model, messages: [], attempts: [] }; update(snapshot);
+  expect(document.querySelector('[data-production-shared]').hidden).toBe(true); detach();
 });
 
 it('loads model sizes without starting work and confirms the exact selected model', async () => {
@@ -192,7 +205,8 @@ it('renders session measurements and keeps requester navigation available', () =
   const detach = bindProductionSurface(document.body, session, { inspector: {} });
   expect(document.querySelector('[data-production-tokens]').textContent).toBe('14');
   expect(document.querySelector('[data-production-completed]').textContent).toBe('2');
-  expect(document.querySelector('[data-production-chat]').textContent).toBe('Chat');
+  expect(document.querySelector('[data-production-summary-status]').textContent).toBe('Sharing');
+  expect(document.querySelector('[data-composer-input]')).not.toBeNull();
   expect(document.querySelector('[data-production-metrics]').textContent).not.toMatch(/earnings|\$/i); detach();
 });
 

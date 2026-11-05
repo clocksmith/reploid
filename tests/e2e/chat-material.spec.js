@@ -485,7 +485,7 @@ test('answer measurements and bottom-centered thread badges stay stable while lo
     expect(await bounds()).toEqual(initial);
     expect(await row.locator('.chat-message-meta').evaluate(node => getComputedStyle(node).display)).toBe('grid');
     const metric = row.locator('[data-metric="tokens"]');
-    await expect(metric).toHaveText('256');
+    await expect(metric).toHaveText('256 tokens');
     expect(await metric.evaluate(node => getComputedStyle(node).cursor)).toBe('help');
     const details = row.locator('[data-execution-trigger]');
     expect(await details.evaluate(node => getComputedStyle(node).boxShadow)).not.toBe('none');

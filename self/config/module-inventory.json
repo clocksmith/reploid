@@ -3449,7 +3449,7 @@
     {
       "path": "ui/components/model-select.js",
       "owner": "ui",
-      "sha256": "sha256:1625807cfc347d20d52b2fd12bcd0ea12cb9e4f12dfa9c3c66683affc31370e8",
+      "sha256": "sha256:b628a47d9fc2137711ec04961283f704216fc5cf3b956bf8c9f7fcd18aa587ab",
       "imports": [
         "./attachments.js"
       ]
@@ -3498,7 +3498,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:519a2555817c12886ad9ce4a5b7d9e9846ce3ab54dc6f91531df24b41efb0d5a",
+      "sha256": "sha256:e875f06c0e589a0693e336c3d36d9cef7101768e034cd1c3455b58ed187e2595",
       "imports": []
     },
     {
@@ -3533,8 +3533,15 @@
     {
       "path": "ui/pool-home/contribution-models.js",
       "owner": "ui",
-      "sha256": "sha256:41b77e6e306b5df48bd649701198d8ab123aaf40ee904a4ff96cc70a38c74de0",
-      "imports": []
+      "sha256": "sha256:ac2a54f02130bef375d53133523e7977040e0dcadc6cafbec7c904e7e5db5c65",
+      "imports": [
+        "../components/dialog.js",
+        "../components/html.js",
+        "../components/interface-icons.js",
+        "../components/mathematical-background.js",
+        "../components/model-select.js",
+        "./model-preparation.js"
+      ]
     },
     {
       "path": "ui/pool-home/contribution-state.js",
@@ -3583,7 +3590,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:1471d84e1c56ecf2fac98b53828ecd9cfc85daefc7e860274b85f48b8169911c",
+      "sha256": "sha256:57b406800193fbccd2a23c4d28c68787afb652622d0498fb5cbc9c8d2fc23505",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -3593,6 +3600,7 @@
         "./auto-download.js",
         "./computer-labels.js",
         "./context-indicator.js",
+        "./contribution-models.js",
         "./conversation-list.js",
         "./history-handover-view.js",
         "./message-list.js",
@@ -3614,7 +3622,7 @@
     {
       "path": "ui/pool-home/execution-activity.js",
       "owner": "ui",
-      "sha256": "sha256:2390227fd3a7df0f4d7bde3ca397f5e986ba9d29f14d4da1d42a822909cf2e82",
+      "sha256": "sha256:5b5bebdab7ea69c03eeff4f4c84c9bbc035cb0a8aa9afbe02eaa5889cd172d6a",
       "imports": [
         "../components/attachments.js",
         "../components/interface-icons.js",
@@ -3638,7 +3646,7 @@
     {
       "path": "ui/pool-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:a9da08c2eec66354cac5760bd9ec9ea730e2184998a39f303ea3209526d33f14",
+      "sha256": "sha256:92bc33f8b3b106c4e7c013ff99335aee6e5ccc1f3cfb8ae1eee7100c71f359f2",
       "imports": [
         "../../host/credits/browser.js",
         "../../host/product-context.js",
@@ -3652,7 +3660,6 @@
         "./history-handover-view.js",
         "./navigation.js",
         "./network-inspector.js",
-        "./production.js",
         "./shell-view.js",
         "./theme.js"
       ]
@@ -3672,7 +3679,7 @@
     {
       "path": "ui/pool-home/message-list.js",
       "owner": "ui",
-      "sha256": "sha256:d11166203e767fad6b5dff0e1e626bbc1d3c45307f77b4001f87b070154712e8",
+      "sha256": "sha256:39b0ba3f7b427477aae972e52b2159d3f414accb9dd1c772ae523de6a512feec",
       "imports": [
         "../components/attachments.js",
         "../components/interface-icons.js",
@@ -3710,7 +3717,7 @@
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:4c9f55e0b5bae9b4c9bad12875c38198cded9f1a3d1d69bf10959eff4d2061c3",
+      "sha256": "sha256:40927b3978534e62e97842528f402ce6d1191eef19282d2d1a3cd46e9f525090",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -3758,16 +3765,10 @@
     {
       "path": "ui/pool-home/production.js",
       "owner": "ui",
-      "sha256": "sha256:89c1d6dacd3991fc3e4d147d9ee13f772e3d73a4ec3e3e6f7df6f5220d94b149",
+      "sha256": "sha256:1191069b6fb6b51d5c749f120877d2e0f6e01120f4582db75b25f5e1c902f6ff",
       "imports": [
-        "../components/dialog.js",
-        "../components/html.js",
-        "../components/interface-icons.js",
-        "../components/mathematical-background.js",
-        "../components/model-select.js",
         "./contribution-models.js",
-        "./model-preparation.js",
-        "./shell-view.js"
+        "./conversation-workspace.js"
       ]
     },
     {
@@ -3903,7 +3904,7 @@
     {
       "path": "ui/pool-home/shell-view.js",
       "owner": "ui",
-      "sha256": "sha256:54294753fbd0e88b0e30ae0ad3ac6cff14790d3378f990b6bc4449abb09e1675",
+      "sha256": "sha256:0fc66e4ddcbf5286019b64d0be092da0ab444c75c4a3e2933362f7a36220c67a",
       "imports": [
         "../../host/product-context.js",
         "../../pool/peer-room.js",

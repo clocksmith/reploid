@@ -98,10 +98,11 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     const bar = await rail.boundingBox();
     if (width > 760) expect(bar.y).toBeLessThan(844 / 2); else expect(bar.y).toBeGreaterThan(844 / 2);
     // Check the graphic itself, not only the wrapper around the logo.
-    const brand = await page.locator('[data-toggle-thread-rail]').evaluate(node => {
-      const box=node.getBoundingClientRect(), parts=[...node.querySelectorAll('.pool-power-tower > *')].map(glyph=>glyph.getBoundingClientRect());
-      return { dx:(Math.min(...parts.map(b=>b.x))+Math.max(...parts.map(b=>b.right)))/2-box.x-box.width/2,
-        dy:(Math.min(...parts.map(b=>b.y))+Math.max(...parts.map(b=>b.bottom)))/2-box.y-box.height/2 };
+    const brand = await page.locator('.pool-primary-brand').evaluate(node => {
+      const glyph = node.querySelector('.pool-power-tower');
+      const box = glyph.getBoundingClientRect(), parts = [...glyph.querySelectorAll(':scope > *')].map(part => part.getBoundingClientRect());
+      return { dx: (Math.min(...parts.map(b => b.x)) + Math.max(...parts.map(b => b.right))) / 2 - box.x - box.width / 2,
+        dy: (Math.min(...parts.map(b => b.y)) + Math.max(...parts.map(b => b.bottom))) / 2 - box.y - box.height / 2 };
     });
     expect(Math.abs(brand.dx)).toBeLessThanOrEqual(2); expect(Math.abs(brand.dy)).toBeLessThanOrEqual(2);
     await page.locator('[data-composer-input]').fill('Keep this draft.');

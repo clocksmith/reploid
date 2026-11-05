@@ -4,18 +4,23 @@ import { readFile } from 'node:fs/promises';
 for (const width of [1440, 390]) test(`production opens chat without prepared models at ${width}px`, async ({ page }, info) => {
   await page.setViewportSize({ width, height: 844 });
   await page.goto('/?instance=requester-journey&swarm=public');
-  await expect(page.getByRole('link', { name: 'Chat', exact: true })).toBeVisible();
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+  await expect(page.locator('[data-production-shared]')).toBeVisible();
+  await expect(page.locator('[data-composer-input]')).toBeVisible();
+  await expect(page.locator('[data-production-summary-status]')).toBeVisible();
   await expect(page.locator('[data-production-history]')).toBeVisible();
+  await expect(page.locator('[data-contextual-inspector]')).not.toBeVisible();
   await page.screenshot({ path: info.outputPath(`production-${width}.png`), fullPage: true });
-  await page.getByRole('link', { name: 'Chat', exact: true }).click();
+  await page.locator('[data-composer-input]').fill('Keep this draft while I view contributions');
+  await page.evaluate(() => {
+    window.history.pushState({}, '', '/network?instance=requester-journey&swarm=public');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  });
   await expect(page).toHaveURL(/\/network\?/);
   expect(new URL(page.url()).searchParams.get('instance')).toBe('requester-journey');
-  await expect(page.locator('[data-composer-input]')).toBeVisible();
-  await expect(page.locator('[data-contextual-inspector]')).not.toBeVisible();
-  await page.locator('[data-composer-input]').fill('Keep this draft while I view contributions');
-  await page.getByRole('link', { name: 'Production', exact: true }).click();
+  await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft while I view contributions');
+  await page.locator('.pool-primary-brand').click();
   await expect(page.locator('[data-production-surface]')).toBeVisible();
-  await page.getByRole('link', { name: 'Chat', exact: true }).click();
   await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft while I view contributions');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
   if (width < 760) {
@@ -115,7 +120,7 @@ test('network chat uses a permitted peer even with downloaded weights and respec
 
 test('changed runtime modules pass the Verification Worker sandbox', async ({ page }) => {
   const paths = ['host/contribution-history.js', 'host/work-swarm.js', 'providers/work-resident-provider.js',
-    ...['production', 'conversation-workspace', 'index', 'shell-view'].map(name => `ui/pool-home/${name}.js`)];
+    ...['production', 'contribution-models', 'conversation-workspace', 'index', 'shell-view'].map(name => `ui/pool-home/${name}.js`)];
   const snapshot = Object.fromEntries(await Promise.all(paths.map(async path => ['/' + path, await readFile('self/' + path, 'utf8')])));
   await page.goto('/');
   const result = await page.evaluate(snapshot => new Promise((resolve, reject) => {
