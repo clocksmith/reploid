@@ -261,6 +261,20 @@
       "owner": "apps/poolday/host/CATSCAN.md",
       "contract": "Host-selected pinned Doppler storage tooling; cache inspection returns inventory hints, not execution readiness or authority.",
       "removalCondition": "Remove when the loader is replaced or removed; changes to selected code authority require renewed review."
+    },
+    {
+      "source": "self/host/model-storage.js",
+      "expression": "globalThis.REPLOID_DOPPLER_STORAGE_MODULE_URL || DOPPLER_STORAGE_TOOLING_URL",
+      "owner": "apps/poolday/host/CATSCAN.md",
+      "contract": "Pinned host-selected Doppler storage tooling manages the browser model cache and verifies catalog bytes. The URL comes from host configuration; peers, requests and cached inventories cannot select runtime code or module URLs.",
+      "removalCondition": "Remove if model-storage.js stops loading Doppler storage tooling dynamically or the tooling becomes a static import."
+    },
+    {
+      "source": "server/text-api-mount.js",
+      "expression": "specifier",
+      "owner": "server/CATSCAN.md",
+      "contract": "Operator-composed HTTP inference loads one explicit external composition module named by REPLOID_TEXT_API_COMPOSITION, required to be an absolute path outside the repository; without it the mount stays disabled. Requests and peers cannot select the module, and production refuses test compositions.",
+      "removalCondition": "Remove if the text API composition becomes a static import or the mount is deleted."
     }
   ],
   "cycles": []

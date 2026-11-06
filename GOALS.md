@@ -12,11 +12,10 @@ Owner clarification, October 30, 2026: replo.id turns participating computers
 into shared AI inference capacity, with the goal of exchanging or selling the
 tokens they produce. Device contribution shows what this computer can run and
 its measured production. Owner clarification, November 6, 2026: contribution
-setup and history live under Computers, separate from chat; keep the compact
-top navigation and preferences in Settings. Further owner clarification, November 6:
-Reploid and Threads share a left drawer; Conversation, Computers and Settings share
-a right drawer. Preserve the center conversation, with symmetric 7⁷ transitions. After reviewed initial setup, sharing stays on while the
-site is open. Pause is secondary. Resource limits and technical detail stay in
+setup and history live under Computers, separate from chat; preferences live in
+Settings. Navigation, drawer and transition layout follow the
+[Poolday design system](docs/style-guide.md#poolday-design-system). After reviewed
+initial setup, sharing stays on while the site is open. Pause is secondary. Resource limits and technical detail stay in
 disclosures. Earnings appear only when accounting records support them.
 Use the shared UI catalog for every element and clearly separate local UI
 simulations from real production. Keep product copy brief.
@@ -187,4 +186,4 @@ Authority and qualification: [INTENT.md](INTENT.md), [CATSCAN.md](CATSCAN.md),
 the [product contract](docs/product-specification.md), and the
 [claim index](docs/status/surface-claim-index.json).
 
-*Last updated: October 2026*
+*Last updated: November 2026*
