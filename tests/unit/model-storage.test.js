@@ -32,10 +32,11 @@ it('refuses deletion while another tab owns storage, including acquisitions and 
   expect(() => withUnusedModelStorage(operation, null)).toThrow('unavailable');
 });
 
-async function fixture() {
+async function fixture({ firstShards, firstManifestModelId } = {}) {
   const files = new Map(), shared = 'b'.repeat(64), unique = 'c'.repeat(64);
   const models = await Promise.all(['first', 'second'].map(async (id, i) => {
-    const manifest = new TextEncoder().encode(JSON.stringify({ modelId: id, hashAlgorithm: 'sha256', shards: [{ hash: i ? shared : unique }] }));
+    const manifest = new TextEncoder().encode(JSON.stringify({ modelId: !i ? firstManifestModelId ?? id : id, hashAlgorithm: 'sha256',
+      shards: !i ? firstShards ?? [{ hash: unique }] : [{ hash: shared }] }));
     const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', manifest))].map(b => b.toString(16).padStart(2, '0')).join('');
     files.set('sha256-' + hash, manifest); files.set('sha256-' + shared, new Uint8Array(17)); files.set('sha256-' + unique, new Uint8Array(29));
     return { id, name: id, identity: 'sha256:' + hash, source: { files: [
@@ -86,52 +87,84 @@ it('invalidates cached availability even after a partial deletion fails', async 
   expect(f.onRemoved).toHaveBeenCalledWith('first'); expect(f.announce).toHaveBeenCalledOnce();
 });
 
-it('loads host-configured storage tooling by default and ignores unverified manifests, invalid shard digests and inventory module fields', async () => {
-  const f = await fixture();
-  const manifestKey = 'sha256-' + f.models[0].identity.slice(7);
-  const untrustedShard = 'd'.repeat(64);
-  f.files.set('sha256-' + untrustedShard, new Uint8Array(53));
-  f.files.set(manifestKey, new TextEncoder().encode(JSON.stringify({
-    modelId: 'first', hashAlgorithm: 'sha256', shards: [{ hash: untrustedShard }, { hash: '../escape' }]
-  })));
-  f.tools.listStorageInventory.mockResolvedValueOnce({
-    entries: [
-      { modelId: 'first', root: 'first-store', totalBytes: 41, moduleUrl: 'https://evil.example/storage.js' },
-      { modelId: 'peer-injected', root: 'peer-store', totalBytes: 999, moduleUrl: 'https://evil.example/peer.js' }
-    ]
-  });
+async function withDefaultTooling(f, run) {
   globalThis.__modelStorageTestTools = f.tools;
   vi.stubGlobal('REPLOID_DOPPLER_STORAGE_MODULE_URL',
     'data:text/javascript,export const listStorageInventory = (...a) => globalThis.__modelStorageTestTools.listStorageInventory(...a);export const deleteStorageEntry = (...a) => globalThis.__modelStorageTestTools.deleteStorageEntry(...a);');
   try {
-    const defaultPort = createModelStorage({
+    const port = createModelStorage({
       models: f.models,
       storage: { async getDirectory() { return { async getDirectoryHandle() { return f.directory; } }; } },
-      locks: lockManager(),
-      getState: () => f.state,
-      unload: f.unload,
-      onRemoved: f.onRemoved,
-      announce: f.announce
+      locks: lockManager(), getState: () => f.state, unload: f.unload, onRemoved: f.onRemoved, announce: f.announce
     });
-    const rows = await defaultPort.list();
-    expect(rows).toEqual([{
-      id: 'first',
-      name: 'first',
-      sizeBytes: 41 + 17 + f.files.get(manifestKey).byteLength
-    }, {
-      id: 'second',
-      name: 'second',
-      sizeBytes: 17 + f.files.get('sha256-' + f.models[1].identity.slice(7)).byteLength
-    }]);
-    await defaultPort.remove('first');
-    expect(f.files.has('sha256-' + untrustedShard)).toBe(true);
-    expect(f.tools.deleteStorageEntry).toHaveBeenCalledExactlyOnceWith({
-      modelId: 'first', root: 'first-store', totalBytes: 41
-    });
+    return await run(port);
   } finally {
     delete globalThis.__modelStorageTestTools;
     vi.unstubAllGlobals();
   }
+}
+
+it('uses host-selected tooling and strips injected inventory fields on every deletion re-read', async () => {
+  const f = await fixture(), executeInjected = vi.fn();
+  const moduleUrl = 'data:text/javascript,globalThis.__modelStorageInjected();';
+  vi.stubGlobal('__modelStorageInjected', executeInjected);
+  f.tools.listStorageInventory.mockResolvedValue({ entries: [
+    { modelId: 'first', backend: 'opfs', root: 'first-store', totalBytes: 41, moduleUrl, path: '../escape' },
+    { modelId: 'peer-injected', backend: 'opfs', root: 'peer-store', totalBytes: 999, moduleUrl }
+  ] });
+  await withDefaultTooling(f, async port => {
+    const rows = await port.list();
+    expect(rows.map(row => row.id)).toEqual(['first', 'second']);
+    await expect(port.remove('peer-injected')).rejects.toThrow('Unknown');
+    await port.remove('first');
+    expect(f.tools.listStorageInventory).toHaveBeenCalledTimes(2);
+    expect(f.tools.deleteStorageEntry).toHaveBeenCalledExactlyOnceWith({
+      modelId: 'first', backend: 'opfs', root: 'first-store', totalBytes: 41
+    });
+    expect(executeInjected).not.toHaveBeenCalled();
+    expect(f.files.has('sha256-' + f.shared)).toBe(true);
+  });
+});
+
+it('rejects invalid shard digests inside an identity-matching manifest before file access or deletion', async () => {
+  const validShard = 'c'.repeat(64), invalidDigests = ['../escape', 'not-a-digest'];
+  const f = await fixture({ firstShards: [{ hash: validShard }, ...invalidDigests.map(hash => ({ hash }))] });
+  const getFile = vi.spyOn(f.directory, 'getFileHandle');
+  for (const digest of invalidDigests)f.files.set('sha256-' + digest, new Uint8Array(53));
+  await withDefaultTooling(f, async port => {
+    const rows = await port.list();
+    expect(getFile).toHaveBeenCalledWith('sha256-' + validShard);
+    for (const digest of invalidDigests)expect(getFile).not.toHaveBeenCalledWith('sha256-' + digest);
+    const manifestKey = 'sha256-' + f.models[0].identity.slice(7);
+    expect(rows.find(row => row.id === 'first').sizeBytes).toBe(41 + 17 + 29 + f.files.get(manifestKey).byteLength);
+    await port.remove('first');
+    expect(f.files.has('sha256-' + validShard)).toBe(false);
+    for (const digest of invalidDigests) {
+      expect(getFile).not.toHaveBeenCalledWith('sha256-' + digest);
+      expect(f.directory.removeEntry).not.toHaveBeenCalledWith('sha256-' + digest);
+      expect(f.files.has('sha256-' + digest)).toBe(true);
+    }
+  });
+});
+
+it.each(['tampered identity', 'different model'])('does not trust manifest shard lists with %s', async kind => {
+  const untrustedShard = 'd'.repeat(64);
+  const f = await fixture(kind === 'different model'
+    ? { firstManifestModelId: 'peer-injected', firstShards: [{ hash: untrustedShard }] } : {});
+  const manifestKey = 'sha256-' + f.models[0].identity.slice(7);
+  if (kind === 'tampered identity')f.files.set(manifestKey, new TextEncoder().encode(JSON.stringify({
+    modelId: 'first', hashAlgorithm: 'sha256', shards: [{ hash: untrustedShard }]
+  })));
+  f.files.set('sha256-' + untrustedShard, new Uint8Array(53));
+  const getFile = vi.spyOn(f.directory, 'getFileHandle');
+  await withDefaultTooling(f, async port => {
+    const rows = await port.list();
+    expect(rows.find(row => row.id === 'first').sizeBytes).toBe(41 + 17 + f.files.get(manifestKey).byteLength);
+    await port.remove('first');
+    expect(getFile).not.toHaveBeenCalledWith('sha256-' + untrustedShard);
+    expect(f.directory.removeEntry).not.toHaveBeenCalledWith('sha256-' + untrustedShard);
+    expect(f.files.has('sha256-' + untrustedShard)).toBe(true);
+  });
 });
 
 it('requires a bounded confirmation and keeps removal failures visible', async () => {

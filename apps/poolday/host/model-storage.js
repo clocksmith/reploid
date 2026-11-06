@@ -14,7 +14,12 @@ export function createModelStorage({ models = LOCAL_DOPPLER_MODELS, storage = gl
   let tools;
   const inventory = async () => {
     tools ||= await loadTooling();
-    const entries = (await tools.listStorageInventory()).entries;
+    // Retain only storage descriptors; inventory extras never reach deletion.
+    const entries = (await tools.listStorageInventory()).entries.map(entry => ({
+      modelId: entry.modelId, totalBytes: entry.totalBytes,
+      ...(entry.backend === undefined ? {} : { backend: entry.backend }),
+      ...(entry.root === undefined ? {} : { root: entry.root })
+    }));
     let directory = null;
     try { directory = await (await storage.getDirectory()).getDirectoryHandle('reploid-chat-artifacts-v1'); }
     catch (error) { if (error.name !== 'NotFoundError' && storage?.getDirectory) throw error; }
