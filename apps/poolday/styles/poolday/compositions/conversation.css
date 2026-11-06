@@ -90,8 +90,8 @@
 .chat-message-content { white-space: pre-wrap; }
 .chat-message-content > [data-text-block] + [data-text-block] { margin-top: var(--pool-size-8); }
 /* One input surface; controls share its interior without covering the text. */
-.chat-composer-area form { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: var(--pool-size-8); }
-.chat-composer-feedback { display: grid; gap: var(--pool-size-8); min-width: 0; }
+.chat-composer-area form { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; max-height: inherit; min-width: 0; gap: var(--pool-size-8); }
+.chat-composer-feedback { display: grid; gap: var(--pool-size-8); min-width: 0; min-height: 0; overflow-y: auto; }
 .chat-composer-feedback p { margin: 0; }
 .chat-composer-status-line { display: flex; align-items: center; gap: var(--pool-size-8); height: var(--pool-size-44); min-width: 0; }
 .chat-composer-status-line > [data-model-status] { flex: 1; min-width: 0; max-height: 100%; overflow-y: auto; overflow-wrap: anywhere; }

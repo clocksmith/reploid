@@ -767,8 +767,8 @@ test('composer shrinks and rewraps after drawer changes without losing text', as
   await input.fill('Short'); await expect.poll(async () => (await input.boundingBox()).height).toBe(baseline);
 });
 
-test('download progress and attachment help preserve the composer bottom edge', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 }); await page.goto('/');
+for (const height of [844, 460]) test(`download progress and attachment help preserve the composer bottom edge at ${height}`, async ({ page }, info) => {
+  await page.setViewportSize({ width: 390, height }); await page.goto('/');
   await expect(page.locator('[data-chat-workspace]')).toBeVisible(); await installConversation(page, 'light');
   const field = page.locator('[data-composer-field]'), before = await field.boundingBox();
   for (const phase of ['downloading', 'failed', 'cancelled']) {
