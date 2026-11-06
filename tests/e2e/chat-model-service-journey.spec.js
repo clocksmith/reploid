@@ -108,9 +108,14 @@ test('exact whole-model service survives overlap, cancellation and provider depa
       await page.goto(url.href);
       await page.locator('[data-chat-workspace]').waitFor();
       await page.locator('[data-open-model]').click();
-      await page.locator(`.chat-model-choices input[value="${model.id}"]`).filter({ visible: true }).check();
-      await page.locator('[data-close-inspector]').click();
+      const choice = page.locator(`[data-model-picker] .chat-model-choices input[value="${model.id}"]`).filter({ visible: true });
+      await expect(choice).toBeVisible({ timeout: 60000 });
+      await choice.check();
+      await expect(page.locator('[data-change-model]')).toBeEnabled({ timeout: 60000 });
+      await page.locator('[data-change-model]').click();
       await page.locator('[data-inspector-section="settings"]').click();
+      const advanced = page.locator('[data-settings-advanced]');
+      if (!await advanced.evaluate(node => node.open)) await advanced.locator(':scope > summary').click();
       const permission = page.locator('[data-remote-answers-toggle]');
       if (await permission.getAttribute('aria-checked') !== 'true') await permission.click();
       await page.locator('[data-close-inspector]').click();
@@ -141,8 +146,9 @@ test('exact whole-model service survives overlap, cancellation and provider depa
     const beforeReload = await readChatWorkspace(a);
     await a.reload(); await a.locator('[data-chat-workspace]').waitFor();
     expect((await readChatWorkspace(a)).threads).toEqual(beforeReload.threads);
-    await a.locator(`[data-thread-item-id="${beforeReload.threads.at(-1).id}"]`).click();
+    await a.locator('[data-toggle-thread-rail]').click();
     await expect(a.locator(`[data-thread-item-id="${beforeReload.threads.at(-1).id}"]`)).toHaveAttribute('aria-current', 'true');
+    await a.locator(`[data-thread-item-id="${beforeReload.threads.at(-1).id}"]`).click();
 
     // Both callers must make progress without cancelling the first caller to
     // free capacity. This proves the bounded two-caller case, not flood fairness.

@@ -45,12 +45,23 @@ test('native whole-model chat streams, follows up, cancels, reuses and reloads',
     turns.push({ attempt, answer: thread.messages.at(-1).content });
     return thread;
   };
+  let providerHardware = null, recordedHardware = null, retriedFrom = null, draftPreserved = false;
   try {
+    await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto(url);
     await page.locator('[data-chat-workspace]').waitFor();
     await page.locator('[data-open-model]').click();
-    await page.locator(`.chat-model-choices input[value="${modelId}"]`).filter({ visible: true }).check();
-    await page.locator('[data-close-inspector]').click();
+    await expect(page.locator('[data-model-picker]')).toBeVisible();
+    const choice = page.locator(`[data-model-picker] .chat-model-choices input[value="${modelId}"]`).filter({ visible: true });
+    await expect(choice).toBeVisible({ timeout: 60000 });
+    await choice.check();
+    await page.locator('[data-model-picker] [data-model-providers] summary').click();
+    await expect(page.locator('[data-model-picker] [data-provider-list]')).toContainText('Whole model', { timeout: 60000 });
+    providerHardware = (await page.locator('[data-model-picker] .chat-model-route-people small').first().textContent())?.trim() || null;
+    await expect(page.locator('[data-change-model]')).toBeEnabled({ timeout: 60000 });
+    await page.locator('[data-change-model]').click();
+    await expect(page.locator('[data-model-picker]')).toBeHidden();
+    await expect(page.locator('[data-model-digest]')).toContainText(model.name);
     await send('What is 17 + 25? Answer with the number only.');
     // Current default network permission may already admit the request. Older
     // deployments ask once; neither case is a reason to bypass the normal UI.
@@ -62,7 +73,7 @@ test('native whole-model chat streams, follows up, cancels, reuses and reloads',
     expect((await completion(1)).messages.at(-1).content.trim()).toBe('42');
     await send('Subtract 2 from that result. Answer with the number only.');
     expect((await completion(2)).messages.at(-1).content.trim()).toBe('40');
-    await send('Count from one to one hundred, one number per line.');
+    await send('Count from 1 to 10, one number per line. Add nothing else.');
     await expect.poll(async () => {
       const thread = await current();
       const message = thread?.messages.at(-1);
@@ -70,21 +81,53 @@ test('native whole-model chat streams, follows up, cancels, reuses and reloads',
     }, { timeout: 90000 }).toBe(true);
     await page.locator('[data-composer-stop]').click();
     await expect.poll(async () => (await current())?.attempts.at(-1).status).toBe('cancelled');
-    await send('What is 6 times 7? Answer with the number only.');
+    const cancelledId = (await current()).attempts.at(-1).id;
+    const retryButton = page.locator(`[data-retry-attempt="${cancelledId}"]`);
+    await expect(retryButton).toBeEnabled({ timeout: 60000 });
+    await retryButton.click();
     const final = await completion(4);
-    expect(final.messages.at(-1).content.trim()).toBe('42');
+    retriedFrom = final.attempts.at(-1).retryOf;
+    expect(retriedFrom).toBe(cancelledId);
+    expect(final.messages.at(-1).content.match(/\d+/g)?.map(Number)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+
+    const lastAssistant = page.locator('.chat-message-row.is-assistant').last();
+    await lastAssistant.locator('[data-execution-trigger]').click();
+    const hardwareNode = lastAssistant.locator('[data-recorded-hardware]');
+    await expect(hardwareNode).toBeVisible();
+    recordedHardware = (await hardwareNode.textContent())?.trim() || null;
+    expect(recordedHardware).toMatch(/^Recorded GPU · .+/);
+    await page.locator('[data-context-indicator]').click();
+    await expect(page.locator('[data-chat-inspector-slot]')).toBeVisible();
+    await expect(page.locator('[data-conversation-area]')).toBeVisible();
+    await page.locator('[data-inspector-pane="conversation"] > details > summary').click();
+    await expect(page.locator('[data-ribbon-facts]')).toContainText(recordedHardware);
+    await page.locator('[data-close-inspector]').click();
+
+    const draftText = 'Keep this draft while switching threads and reloading';
+    await page.locator('[data-composer-input]').fill(draftText);
+    await page.locator('[data-new-thread]').click();
+    await expect(page.locator('[data-composer-input]')).toHaveValue('');
+    await page.locator('[data-toggle-thread-rail]').click();
+    await expect(page.locator('[data-threads-dialog]')).toBeVisible();
+    await page.locator(`[data-thread-item-id="${final.id}"]`).click();
+    await expect(page.locator('[data-threads-dialog]')).toBeHidden();
+    await expect(page.locator('[data-composer-input]')).toHaveValue(draftText);
     await page.screenshot({ path: info.outputPath('answer.png'), fullPage: true });
     await page.reload();
     await page.locator('[data-chat-workspace]').waitFor();
+    await expect(page.locator('[data-composer-input]')).toHaveValue(draftText);
+    draftPreserved = true;
     const restored = (await history()).threads.find(thread => thread.id === final.id);
     expect(restored.messages).toEqual(final.messages);
     expect(restored.attempts.map(attempt => attempt.status)).toEqual(['completed', 'completed', 'cancelled', 'completed']);
+    expect(restored.attempts.at(-1).retryOf).toBe(cancelledId);
     expect(weightRequests).toEqual([]);
     expect(errors).toEqual([]);
     const receiptPath = info.outputPath('whole-model-chat.json');
     await writeFile(receiptPath, JSON.stringify({
       modelId, modelIdentity: model.identity, browser: browser.version(), at: new Date().toISOString(),
-      turns, cancelled: true, reusedAfterCancellation: true, historyPreserved: true, weightRequests, errors
+      providerHardware, recordedHardware, turns, cancelled: true, retriedFrom, reusedAfterCancellation: true,
+      historyPreserved: true, draftPreserved, weightRequests, errors
     }, null, 2));
     await info.attach('whole-model-chat.json', { contentType: 'application/json', path: receiptPath });
   } finally {

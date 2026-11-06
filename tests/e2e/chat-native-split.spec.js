@@ -73,8 +73,18 @@ test('native split chat streams, follows up, cancels, reuses and reloads', async
     await page.goto(url);
     await page.locator('[data-chat-workspace]').waitFor();
     await page.locator('[data-open-model]').click();
-    await page.locator(`.chat-model-choices input[value="${modelId}/partition/${model.partitionPlanId}"]`).filter({ visible: true }).check();
-    await page.locator('[data-close-inspector]').click();
+    const variantChoice = page.locator(`[data-model-picker] .chat-model-choices input`).filter({ visible: true })
+      .filter({ has: page.locator(`xpath=self::input[@value="${modelId}" or @value="${modelId}/partition/${model.partitionPlanId}"]`) }).first();
+    await expect(variantChoice).toBeVisible({ timeout: 60000 });
+    await variantChoice.check();
+    const routeRadio = page.locator(`[data-model-picker] [data-model-route-choice][value="${modelId}/partition/${model.partitionPlanId}"]`);
+    if (await routeRadio.count()) {
+      const providers = page.locator('[data-model-picker] [data-model-providers]');
+      if (!await providers.evaluate(node => node.open)) await providers.locator(':scope > summary').click();
+      await routeRadio.check();
+    }
+    await expect(page.locator('[data-change-model]')).toBeEnabled({ timeout: 60000 });
+    await page.locator('[data-change-model]').click();
     await send('What is 17 + 25? Answer with the number only.');
     // Current default network permission may already admit the request. Older
     // deployments ask once; neither case is a reason to bypass the normal UI.

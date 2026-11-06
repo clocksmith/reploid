@@ -1,0 +1,115 @@
+{
+  "component": "Reploid live whole-model chat journey",
+  "intent": "preserved",
+  "baseCommit": "d5a1a1cd5c0392228f03b939fac673efc82096db",
+  "deployed": "https://replo.id/",
+  "bundleHash": "sha256:a444440af419e29f22d43dd138db64da68648d9c2301767d13849e551d8b2460",
+  "browser": "145.0.7632.6",
+  "at": "2026-11-06T15:07:58.701Z",
+  "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+  "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+  "providerHardware": "amd · rdna-3 · radeon-8060s-graphics-radv-strix-halo-",
+  "recordedHardware": "Recorded GPU · amd · rdna-3 · radeon-8060s-graphics-radv-strix-halo-",
+  "threadId": "3eaafbaf-db57-4122-b4ad-37aa23809d5f",
+  "attempts": [
+    {
+      "attemptId": "5f87af7d-7c10-4985-91f9-8912dca9881c",
+      "status": "completed",
+      "retryOf": null,
+      "recipientIdentity": "peer:94c531ea1c0809b6e2dec918",
+      "peerId": "702d074b-4cd4-4643-916c-c63739e5de75",
+      "placement": "peer-whole-request",
+      "hardware": {
+        "architecture": "rdna-3",
+        "description": "radv: Mesa 26.0.3-1ubuntu1",
+        "device": "radeon-8060s-graphics-radv-strix-halo-",
+        "vendor": "amd"
+      },
+      "completion": {
+        "generatedTokenCount": 3,
+        "promptTokenCount": 60,
+        "schema": "doppler.generation-completion/v1",
+        "stopReason": "stop-token"
+      },
+      "timing": {
+        "decodeMs": 286.0456920042634,
+        "firstTokenMs": 1100.4491150006652,
+        "generatedTokenCount": 3,
+        "prefillMs": 1094.2296600043774,
+        "totalMs": 1396.3049450069666
+      },
+      "answer": "42"
+    },
+    {
+      "attemptId": "02b6586b-e765-4615-9585-6b34cf6fd588",
+      "status": "completed",
+      "retryOf": null,
+      "recipientIdentity": "peer:94c531ea1c0809b6e2dec918",
+      "peerId": "702d074b-4cd4-4643-916c-c63739e5de75",
+      "placement": "peer-whole-request",
+      "hardware": {
+        "architecture": "rdna-3",
+        "description": "radv: Mesa 26.0.3-1ubuntu1",
+        "device": "radeon-8060s-graphics-radv-strix-halo-",
+        "vendor": "amd"
+      },
+      "completion": {
+        "generatedTokenCount": 3,
+        "promptTokenCount": 86,
+        "schema": "doppler.generation-completion/v1",
+        "stopReason": "stop-token"
+      },
+      "timing": {
+        "decodeMs": 463.101020000875,
+        "firstTokenMs": 1373.3063989952207,
+        "generatedTokenCount": 3,
+        "prefillMs": 1367.7758519947529,
+        "totalMs": 1837.1096619963646
+      },
+      "answer": "40"
+    },
+    {
+      "attemptId": "32515e3b-453f-4e25-bb21-f3e9d55aa582",
+      "status": "cancelled",
+      "retryOf": null
+    },
+    {
+      "attemptId": "d6daec8c-281b-4547-b667-b1832d4cc82c",
+      "status": "completed",
+      "retryOf": "32515e3b-453f-4e25-bb21-f3e9d55aa582",
+      "recipientIdentity": "peer:94c531ea1c0809b6e2dec918",
+      "peerId": "702d074b-4cd4-4643-916c-c63739e5de75",
+      "placement": "peer-whole-request",
+      "hardware": {
+        "architecture": "rdna-3",
+        "description": "radv: Mesa 26.0.3-1ubuntu1",
+        "device": "radeon-8060s-graphics-radv-strix-halo-",
+        "vendor": "amd"
+      },
+      "completion": {
+        "generatedTokenCount": 21,
+        "promptTokenCount": 116,
+        "schema": "doppler.generation-completion/v1",
+        "stopReason": "stop-token"
+      },
+      "timing": {
+        "decodeMs": 3164.977355003357,
+        "firstTokenMs": 1928.3512249961495,
+        "generatedTokenCount": 21,
+        "prefillMs": 1927.1711930036545,
+        "totalMs": 5093.879808999598
+      },
+      "answer": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10"
+    }
+  ],
+  "verified": [
+    "model picker lists ready whole-model provider and reported GPU before confirmation",
+    "live whole-model send and contextual follow-up complete without requester weight downloads",
+    "in-flight streaming stop settles as cancelled and enables explicit Retry on the stopped turn",
+    "clicking Retry links retryOf to the cancelled attempt and completes 1..10 on the same provider",
+    "recorded hardware is visible in both the answer execution popover and This conversation inspector while keeping the answer visible",
+    "switching to a new thread, reopening the thread from Threads, and reloading preserve both conversation history and composer draft"
+  ],
+  "weightRequests": [],
+  "errors": []
+}

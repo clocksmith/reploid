@@ -20,8 +20,11 @@ test('movie search reaches a whole-model contributor without approval dialogs', 
     await page.goto(url);
     receipt.bundle = await page.evaluate(async () => (await (await fetch('/config/browser-bundle-manifest.json')).json()).bundleHash);
     await page.locator('[data-open-model]').click();
-    await page.locator(`.chat-model-choices input[value="${model.id}"]`).filter({ visible: true }).check();
-    await page.locator('[data-close-inspector]').click();
+    const choice = page.locator(`[data-model-picker] .chat-model-choices input[value="${model.id}"]`).filter({ visible: true });
+    await expect(choice).toBeVisible({ timeout: 60000 });
+    await choice.check();
+    await expect(page.locator('[data-change-model]')).toBeEnabled({ timeout: 60000 });
+    await page.locator('[data-change-model]').click();
     await expect(page.locator('[data-search-toggle]')).toBeVisible({ timeout: 60000 });
     await page.locator('[data-search-toggle]').click();
     await expect(page.locator('[data-composer-send]')).toBeEnabled({ timeout: 90000 });

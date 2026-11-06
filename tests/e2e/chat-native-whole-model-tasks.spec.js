@@ -24,14 +24,19 @@ test('prepared whole-model service completes frozen independent chat tasks', asy
     await page.goto(url);
     await page.locator('[data-chat-workspace]').waitFor();
     await page.locator('[data-inspector-section="settings"]').click();
+    const advanced = page.locator('[data-settings-advanced]');
+    if (!await advanced.evaluate(node => node.open)) await advanced.locator(':scope > summary').click();
     const permission = page.locator('[data-remote-answers-toggle]');
     if (await permission.getAttribute('aria-checked') === 'true') await permission.click();
     await page.locator('[data-close-inspector]').click();
     for (const task of suite.tasks) {
-      if (results.length) await page.getByRole('button', { name: 'New thread', exact: true }).click();
+      if (results.length) await page.locator('[data-new-thread]').click();
       await page.locator('[data-open-model]').click();
-      await page.locator(`.chat-model-choices input[value="${modelId}"]`).filter({ visible: true }).check();
-      await page.locator('[data-close-inspector]').click();
+      const choice = page.locator(`[data-model-picker] .chat-model-choices input[value="${modelId}"]`).filter({ visible: true });
+      await expect(choice).toBeVisible({ timeout: 60000 });
+      await choice.check();
+      await expect(page.locator('[data-change-model]')).toBeEnabled({ timeout: 60000 });
+      await page.locator('[data-change-model]').click();
       let threadId = null;
       const expectedHistory = [];
       for (const [turnIndex, turn] of (task.turns || [task]).entries()) {

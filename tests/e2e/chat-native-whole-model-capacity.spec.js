@@ -26,8 +26,11 @@ test('whole-model browser conversation preserves the qualified long prompt', asy
     await page.goto(url);
     await page.locator('[data-chat-workspace]').waitFor();
     await page.locator('[data-open-model]').click();
-    await page.locator(`.chat-model-choices input[value="${modelId}"]`).filter({ visible: true }).check();
-    await page.locator('[data-close-inspector]').click();
+    const choice = page.locator(`[data-model-picker] .chat-model-choices input[value="${modelId}"]`).filter({ visible: true });
+    await expect(choice).toBeVisible({ timeout: 60000 });
+    await choice.check();
+    await expect(page.locator('[data-change-model]')).toBeEnabled({ timeout: 60000 });
+    await page.locator('[data-change-model]').click();
     await page.locator('[data-composer-input]').fill(fixture.messages[0].content);
     await expect(page.locator('[data-composer-send]')).toBeEnabled({ timeout: 60000 });
     const started = performance.now();

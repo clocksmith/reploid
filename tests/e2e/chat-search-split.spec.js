@@ -33,8 +33,18 @@ test('contributor search feeds a cited answer through the prepared 27B split', a
   try {
     await page.goto(url, { waitUntil: 'domcontentloaded' });
     await page.locator('[data-open-model]').click();
-    await page.locator(`.chat-model-choices input[value="${model.id}/partition/${model.partitionPlanId}"]`).filter({ visible: true }).check();
-    await page.locator('[data-close-inspector]').click();
+    const variantChoice = page.locator(`[data-model-picker] .chat-model-choices input`).filter({ visible: true })
+      .filter({ has: page.locator(`xpath=self::input[@value="${model.id}" or @value="${model.id}/partition/${model.partitionPlanId}"]`) }).first();
+    await expect(variantChoice).toBeVisible({ timeout: 60000 });
+    await variantChoice.check();
+    const routeRadio = page.locator(`[data-model-picker] [data-model-route-choice][value="${model.id}/partition/${model.partitionPlanId}"]`);
+    if (await routeRadio.count()) {
+      const providers = page.locator('[data-model-picker] [data-model-providers]');
+      if (!await providers.evaluate(node => node.open)) await providers.locator(':scope > summary').click();
+      await routeRadio.check();
+    }
+    await expect(page.locator('[data-change-model]')).toBeEnabled({ timeout: 60000 });
+    await page.locator('[data-change-model]').click();
     await expect(page.locator('[data-search-toggle]')).toBeVisible({ timeout: 60000 });
     await page.locator('[data-search-toggle]').click();
     await page.locator('[data-composer-input]').fill(question);
