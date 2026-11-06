@@ -10,6 +10,7 @@ import fs from 'node:fs/promises';
 import { createWebAccessNetwork } from '../packages/reploid/src/mesh/web-access-network.js';
 import { createPublicWebWorker } from './public-web-worker.js';
 import { createNativeWholeModel } from './native-whole-model.js';
+import { createWholeModelRequester } from './whole-model-requester.js';
 import { createNativeModelFiles } from './native-model-files.js';
 import { createCustodyKeyCertifier } from '../packages/reploid/src/artifacts/custody-certificate.js';
 import { openNativeOwnerControls, nativeOwnerStatus, NO_OWNER_POLICY } from './native-owner/controls.js';
@@ -435,7 +436,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   } });
   const eventBus = events(), bridge = events(), utils = { logger, generateId: () => crypto.randomUUID() };
   const admission = roomId === bootstrap.publicRoomId ? null : createRoomIntroductionAdmission({ roomId, token: roomToken });
-  let transport, partitions, files, webNetwork, closePromise, closed = false, gpuPromise;
+  let transport, partitions, files, webNetwork, wholeRequester, closePromise, closed = false, gpuPromise;
   const networks = new Set();
   const whole = wholeMode ? createNativeWholeModel({ model, modelDirectory, nativeGpu, owner: ownerGate,
     resolveAdapter: createWorkAdapterResolver({ models: [model], ...(cacheDirectory ? { acquire: (artifact, controls) => files.acquireAdapter(artifact, controls) } : {}) }),
@@ -446,7 +447,8 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     identity: { ensure: async () => identity, save: async () => {}, sync: async () => {},
       rotate: async () => { throw new Error('Stop the native participant before rotating its identity'); } },
     authorize: async request => !closed && (request.action === 'mesh.connect'
-      || request.action === 'mesh.execute' && whole?.getState().ready === true),
+      || request.action === 'mesh.execute' && whole?.getState().ready === true
+      || request.action === 'mesh.dispatch' && await wholeRequester?.authorize(request) === true),
     generate: (messages, onUpdate, controls) => {
       requireValue(!closed && whole, 'Native whole-model execution was not enabled');
       return whole.generate(messages, onUpdate, controls);
@@ -460,6 +462,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
           && (!admission || (!request.contact && !request.from) || await admission.verify(request.contact || request.from)) }
     })
   } });
+  if (!wholeMode && !canonical) wholeRequester = createWholeModelRequester({ mesh, models: [model] });
   // Claims read this host's own records only; they never change admission or settlement.
   const observeEarning = () => {
     if (!earning) return;
@@ -533,11 +536,15 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
       }, onChange: earning || readiness ? state => { onChange(state); readiness?.observe(state); if (earning) observeEarning(); } : onChange
     });
     return Object.freeze({ identity: identity.peerId, roomId, executionClass: roomId === bootstrap.publicRoomId ? 'public-pool' : 'private-pool',
-      getState: () => whole ? whole.getState() : partitions.getState(),
+      getState: () => {
+        if (whole) return whole.getState();
+        const state = partitions.getState();
+        return wholeRequester ? { ...state, models: [...wholeRequester.getModels(), ...(state.models || [])] } : state;
+      },
       generate(request, controls) {
         requireValue(!closed && !canonical && partitions, 'Native ordinary requester is unavailable');
         requireValue(typeof controls?.requestApproval === 'function', 'Explicit requester disclosure authorization required');
-        return partitions.generate(request, controls);
+        return request.model.partition ? partitions.generate(request, controls) : wholeRequester.generate(request, controls);
       },
       contribute: ownerGate ? async approved => {
         if (approved === true && !await ownerAdmission('contribute')) return;

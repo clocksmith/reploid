@@ -1,0 +1,36 @@
+{
+  "component": "Hosted HTTP requester and trial exposure admission",
+  "intent": "preserved",
+  "checks": {
+    "focusedTests": 113,
+    "testFiles": [
+      "tests/unit/native-participant.test.js",
+      "tests/unit/whole-model-requester.test.js",
+      "tests/unit/trial-admission.test.js",
+      "tests/integration/chat-completions.test.js",
+      "tests/integration/responses.test.js",
+      "tests/integration/text-api.test.js"
+    ],
+    "static": [
+      "eslint changed server modules",
+      "node --check server/proxy.js",
+      "git diff --check"
+    ]
+  },
+  "boundaries": [
+    "Native requester discovers ready exact whole-model variants without preparing local weights",
+    "Whole-model generation binds disclosure and result to model, adapter and provider",
+    "Explicitly mounted authenticated models, completions and responses; production requires accounting port",
+    "Transactional exposure gate retains uncertain reservations across restart, rejects duplicate admission and enforces lifetime account and total caps"
+  ],
+  "evidenceLayer": "Controlled execution and ledger fixtures; transactional memory backend with shared-state restart tests",
+  "notEstablished": [
+    "Live whole-model HTTP inference",
+    "Production Firestore trial qualification",
+    "Production accounting composition",
+    "Contributor reward and redemption loop",
+    "Cash settlement or inference quality"
+  ],
+  "publicApiActivated": false,
+  "configuration": "No composition configured; no approved production pricing terms supplied. No pricing defaults introduced."
+}

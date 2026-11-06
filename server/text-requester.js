@@ -1,6 +1,6 @@
 import { canonicalPartitionJson, partitionAdapterIdentities } from '../packages/reploid/src/mesh/partitions/partition-contract.js';
 import { requireGenerationCapability, tokenUsage } from '../packages/reploid/src/mesh/partitions/partition-generation-request.js';
-/** Text-only HTTP projection of the existing partition requester. No provider fallback. */
+/** Text-only HTTP projection of admitted whole-model and partition routes. No model fallback. */
 import { randomUUID } from 'node:crypto';
 import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
 
@@ -84,15 +84,17 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
       };
       requirePrivateScope();
       const models = participant.getState().models || [];
-      let eligible = models.filter(value => value.id === input.model && value.partition && !value.canonical);
-      if (!eligible.length) throw fail(503, 'No ready ordinary partition route for this model', 'model');
+      let eligible = models.filter(value => (value.selectionId === input.model || value.id === input.model && !partitionAdapterIdentities(value).length) && !value.canonical
+        && (value.partition || value.availability === 'ready' && value.providerIds?.length));
+      if (!eligible.length) throw fail(503, 'No ready route for this exact model variant', 'model');
       if (input.reploid) {
         eligible = eligible.filter(value => value.identity === input.reploid.expected_model_identity
           && (input.reploid.expected_adapter_identities === undefined || canonicalPartitionJson(partitionAdapterIdentities(value)) === canonicalPartitionJson(input.reploid.expected_adapter_identities))
-          && (!input.reploid.expected_plan_identity || value.partition.planId === input.reploid.expected_plan_identity));
+          && (!input.reploid.expected_plan_identity || value.partition?.planId === input.reploid.expected_plan_identity));
         if (!eligible.length) throw fail(409, 'Requested model identity changed');
       }
-      if (new Set(eligible.map(value => value.identity)).size !== 1) throw fail(409, 'Model id has ambiguous execution identity', 'model');
+      if (new Set(eligible.map(value => canonicalPartitionJson([value.identity, partitionAdapterIdentities(value)]))).size !== 1) throw fail(409, 'Model id has ambiguous execution identity', 'model');
+      eligible.sort((a, b) => Number(!!a.partition) - Number(!!b.partition));
       model = freeze(structuredClone(eligible[0]));
       assert(typeof model.identity === 'string' && model.identity.length > 0, 'Requester model identity missing');
       if (input.reploid && input.reploid.expected_model_identity !== model.identity) throw fail(409, 'Requested model identity changed');
@@ -106,7 +108,7 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
       if (requested) res.setHeader('x-reploid-token-usage', requested.usage);
       output = protocol.output({ id, created, model: model.id, input, write, end: value => res.end(value), json: value => json(res, 200, value) });
       const result = await participant.generate(request, {
-        signal, onState() {},
+        signal, principal, onState() {},
         onUsage(event) {
           try {
             signal.throwIfAborted();
@@ -126,7 +128,7 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
             preview = freeze(structuredClone(preview));
             const recipients = [...new Set([...(preview.recipients || []), ...(preview.input?.recipients || []),
               ...(preview.route?.stages?.map(stage => stage.participantId) || []),
-              ...[preview.participantA, preview.participantB].filter(Boolean)])];
+              ...[preview.participantA, preview.participantB, preview.providerId].filter(Boolean)])];
             if (input.reploid && (!recipients.length || recipients.some(id => !input.reploid.allowed_recipients.includes(id)))) {
               throw fail(403, 'Actual route recipients exceed the permitted private pool');
             }
@@ -168,6 +170,7 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
       requirePrivateScope();
       assert(result?.threadId === threadId && result.attemptId === attemptId && result.modelId === model.id
         && result.modelIdentity === model.identity, 'Requester result identity mismatch');
+      if (!model.partition) assert(canonicalPartitionJson(result.adapterIdentities || []) === canonicalPartitionJson(partitionAdapterIdentities(model)), 'Requester adapter identity mismatch');
       assert(typeof result.content === 'string' && result.content.length <= policy.inputLimits.maxOutputCharacters, 'Invalid requester text result');
       assert(!sequence || emitted === result.content, 'Requester final text differs from streamed text');
       const reason = result.execution?.stopReason;

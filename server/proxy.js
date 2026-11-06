@@ -19,6 +19,7 @@ import createPoolRouter from './pool/routes.js';
 import { installJsonBodyMiddleware } from './json-body-middleware.js';
 import { createExternalBrainRouter } from './external-brain.js';
 import { mountEarningRoutes } from './earning-routes/mount.js';
+import { mountTextApi } from './text-api-mount.js';
 import { mountSearchRoutes } from './search/mount.js';
 import { createFirebaseStore } from './pool/firebase-store.js';
 import { createGcsAdapterOriginSigner } from './pool/adapter-origin-signer.js';
@@ -655,6 +656,7 @@ if (!POOL_BACKEND_ONLY) {
 // Earning-loop routes (/v1) stay unmounted unless REPLOID_EARNING_ROUTES=enabled. They parse
 // their own bounded bodies, so they mount before the general JSON parser, and no loopback or
 // local-development bypass applies to them. An invalid or unsafe configuration stops startup.
+const textApi = await mountTextApi(app, { env: process.env });
 try {
   const earningRoutes = await mountEarningRoutes(app, { env: process.env });
   if (earningRoutes.mounted) {
@@ -1872,10 +1874,11 @@ server.listen({ port: PORT, ...(externalBrain ? { host: '127.0.0.1' } : {}) }, (
   `);
 });
 
-const gracefulShutdown = (signal) => {
+const gracefulShutdown = async (signal) => {
   console.log(`${signal} received, shutting down gracefully...`);
 
   stopGPUMonitoring();
+  try { await textApi.close(); } catch (error) { console.error('Text API cleanup remains unsettled:', error); }
   externalBrain?.close();
   publicSwarmServer.close();
 

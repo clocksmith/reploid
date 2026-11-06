@@ -3,6 +3,8 @@ import http from 'node:http';
 import { afterEach, expect, it, vi } from 'vitest';
 import { createStandaloneSignalingServer } from '../../server/reploid-signaling.js';
 import { createChatCompletions, parseTextChatCompletion } from '../../server/chat-completions.js';
+import { createWholeModelRequester } from '../../server/whole-model-requester.js';
+import { GENERATION_CONTRACT } from '../../shared/config/doppler-generation-contract.js';
 import { automaticOrderedMesh, tasks } from '../fixtures/automatic-ordered-mesh.js';
 const preview = (request, recipients=['stage']) => ({threadId:request.threadId,attemptId:request.attemptId,modelId:request.model.id,modelIdentity:request.model.identity,recipients,input:{messages:request.messages,...(request.generationRequest?{generationRequest:request.generationRequest}:{})}});
 const model = { id:'test-model',identity:'sha256:'+'a'.repeat(64),partition:{prepared:true} };
@@ -30,6 +32,31 @@ async function boot(overrides={}) {
 }
 it('requires explicit authentication and disclosure ports',()=>{
   expect(()=>createChatCompletions({participant:{generate(){},getState(){}}})).toThrow('authentication/authorization');
+});
+it('serves a whole-model request over HTTP with exact disclosure, streaming and no partition fallback', async () => {
+  const whole = { id: model.id, identity: model.identity };
+  let requester;
+  const mesh = {
+    getSwarmSnapshot: () => ({ peers: [{ peerId: 'whole-provider', model: whole.id, modelIdentity: whole.identity,
+      readiness: 'ready', hasInference: true, availableSlots: 1 }] }),
+    async generate(messages, onDelta, options) {
+      const allowed = await requester.authorize({ action: 'mesh.dispatch', requestContext: options.requestContext,
+        peerId: 'whole-provider', modelId: options.modelId, modelIdentity: options.modelIdentity,
+        adapterIdentities: options.adapterIdentities, messages });
+      if (!allowed) throw Error('Disclosure denied');
+      onDelta('hello');
+      return { model: whole.id, modelIdentity: whole.identity, adapterIdentities: [], content: 'hello',
+        completion: { schema: GENERATION_CONTRACT.completionSchema, stopReason: 'eos-token', promptTokenCount: 3, generatedTokenCount: 1 } };
+    }
+  };
+  requester = createWholeModelRequester({ mesh, models: [whole] });
+  const f = await boot({ participant: { getState: () => ({ models: [model, ...requester.getModels()] }), generate: requester.generate } });
+  const response = await f.post({ ...input, stream: true });
+  expect(response.status).toBe(200);
+  expect(await response.text()).toContain('"content":"hello"');
+  expect(f.authorize.mock.calls.map(([event]) => event.action)).toEqual(['chat.execute', 'chat.disclose']);
+  expect(f.authorize.mock.calls[1][0].preview.recipients).toEqual(['whole-provider']);
+  expect(f.authorize.mock.calls[0][0].request.model.partition).toBeUndefined();
 });
 it.each(['tools','tool_choice','response_format','temperature','seed','top_p','max_tokens','n','stream_options'])('rejects unsupported %s explicitly',parameter=>{
   expect(()=>parseTextChatCompletion({...input,[parameter]:null})).toThrow(`Unsupported parameter: ${parameter}`);

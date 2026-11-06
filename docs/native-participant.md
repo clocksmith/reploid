@@ -222,6 +222,47 @@ only for approved actions. `chat.execute` covers the immutable request;
 by the existing requester. Approval of execution does not approve disclosure.
 Use a separately qualified prepared route; connection alone is not readiness.
 
+An ordinary native requester now projects ready whole-model peers as well as its
+partition routes. It prefers a ready whole-model route for the exact base model;
+adapter variants use their catalog `selectionId`. Artifact and adapter identities
+remain bound through disclosure and completion. A whole-model contributor and an
+ordinary requester remain separate roles: the requester does not load weights.
+The current whole-model mesh does not support caller-selected token ceilings, so
+it refuses Responses `max_output_tokens` and cannot serve Messages' required
+`max_tokens`. Completion metadata is provider-reported, not validated billing evidence.
+
+The application server can mount `/v1/models`, `/v1/chat/completions` and
+`/v1/responses` before the earning router by setting
+`REPLOID_TEXT_API_COMPOSITION` to an absolute module outside this repository.
+That module exports `createTextApiComposition({env, production})`, returning
+`participant`, `authenticate`, `authorize`, an `accounting.run(request, controls,
+execute)` port, and optional `close()`. `controls.principal` is the authenticated
+caller. Model listing additionally requires authorization for `models.list`.
+Production refuses a `testOnly` composition and requires accounted execution.
+Controlled tests may explicitly opt into `allowUnbilledTest` outside production.
+Without the environment setting, these routes remain unmounted. Hosting rewrites
+and deployment of the configured server remain separate release actions.
+
+`server/trial-admission.js` supplies an exposure gate over the existing
+transactional backend interface, using `TRIAL_COLLECTIONS`. It creates no
+credits or prices. The accounting owner supplies an accepted reservation reader
+returning `{reservationId, accountId, quoteIdentity, accepted, currency,
+maxSubsidyMinor, expiresAt}` and a settlement reader returning
+`{reservationId, accountId, settlementId, currency, subsidyMinor,
+executionSettled}`. Amounts must come from the bound, approved ledger conversion
+and settlement; they must not come from client-supplied prices or text estimates.
+The gate reserves global and lifetime-account exposure atomically, admits a
+reservation once, and retains the slot across restarts until both execution and
+ledger settlement are confirmed. Cancellation or an expired quote does not
+release uncertain execution. Production requires shared Firestore storage.
+
+Evidence: [HTTP composition tests](../tests/integration/text-api.test.js),
+[whole-model requester tests](../tests/unit/whole-model-requester.test.js) and
+[trial admission tests](../tests/unit/trial-admission.test.js). These use controlled
+execution and ledger fixtures; they do not qualify live inference, contributor
+rewards, cash accounting, or a production earn-and-redeem loop. A production
+composition must still supply approved terms and those ledger/execution projections.
+
 | Surface | Implemented contract |
 | --- | --- |
 | `POST /v1/chat/completions` | `model`, `messages`, optional boolean `stream`; one text choice |
@@ -242,7 +283,7 @@ Use a separately qualified prepared route; connection alone is not readiness.
 | Usage | Chat Completions omits counts. Responses with a caller ceiling and Messages use actual `raw-model-tokens/v1` local accounting described below; missing counts remain absent |
 
 The adapter uses existing input/output/admission limits from
-`self/config/partition-policy.json`. Adapters borrowing the same participant share
+`apps/poolday/config/partition-policy.json`. Adapters borrowing the same participant share
 the HTTP admission limit; closing one adapter aborts only its own requests.
 `getState().active` counts that adapter's HTTP requests,
 not GPU ownership; remote cleanup debt remains with participant/resident owners.

@@ -27,6 +27,7 @@ Outputs:
 - Relay acknowledgement proves receipt, not acceptance.
 - Authentication and transport do not establish model/scientific validity.
 - Hosted failures remain explicit.
+- HTTP inference requires explicit authentication and exact disclosure. Production mounts require an accounting owner; unbilled execution is test-only. Trial admission limits exposure without defining prices or issuing credits, and retains unsettled reservations across restarts.
 - Native hosts reuse participant contracts. Doppler owns computation; adapters own provider lifetime, authorized files and settlement.
 - File supply needs separate consent. Signed custody and Doppler verification acquire requested pieces only. Bounded caches retain verified complete files; quarantine corruption; restart partial pieces.
 - Receipts retain opening/runtime/provider identities; native support qualifies separately.
@@ -36,6 +37,7 @@ Outputs:
 - Preserve admission boundaries.
 - Evidence: native lifecycle: [host tests](../tests/unit/native-participant.test.js).
 - Native custody: [native file tests](../tests/unit/native-model-files.test.js).
+- Whole-model HTTP routing: [requester tests](../tests/unit/whole-model-requester.test.js), [HTTP tests](../tests/integration/text-api.test.js). Durable trial exposure: [admission tests](../tests/unit/trial-admission.test.js). Controlled fixtures do not establish live inference, settlement or production accounting.
 - [public discovery tests](../tests/integration/public-swarm-server.test.js).
 - [signaling integration](../tests/integration/signaling-server.test.js) and [public inference admission](../tests/integration/public-inference-admission.test.js) tests.
 
