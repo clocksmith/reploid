@@ -85,6 +85,13 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
       </div>
       <footer class="chat-composer-area" data-composer-area><form data-composer-form>
         <label class="chat-visually-hidden" for="chat-message">Message</label>
+        <div class="chat-composer-feedback"><div class="chat-composer-status-line">
+        <p class="pool-small pool-muted" id="chat-model-status" data-model-status role="status" hidden></p>
+        <div class="chat-composer-notices"><button class="pool-button btn-ghost pool-caption" type="button" data-composer-status hidden></button><button class="pool-button btn-ghost pool-caption" type="button" data-retry-connection aria-label="Retry connection" hidden>Retry</button></div>
+        </div>
+        <p class="pool-small pool-muted" data-acquisition-status role="status" hidden></p><progress class="pool-progress" data-acquisition-progress aria-label="Model download" hidden></progress><button class="pool-button btn-ghost pool-caption" type="button" data-download-local hidden>Download model</button><button class="pool-button btn-ghost pool-caption" type="button" data-cancel-download hidden>Cancel download</button>
+        <p class="chat-attachment-help pool-small pool-muted" data-attachment-help hidden>Text files: up to 8, 64 KB each, 128 KB total.</p>
+        </div>
         <div class="chat-composer-field pool-input pool-glass pool-glass-focus pool-activity-edge pool-focus-within" data-composer-field>
           <div class="chat-attachments" data-attachments-preview hidden></div>
           <textarea class="pool-bare pool-body" id="chat-message" data-composer-input rows="1" required placeholder="Ask a question…"></textarea>
@@ -99,9 +106,6 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
           </div>
         </div>
         </div>
-        <div class="chat-composer-notices"><button class="pool-button btn-ghost pool-caption" type="button" data-composer-status hidden></button><button class="pool-button btn-ghost pool-caption" type="button" data-retry-connection aria-label="Retry connection" hidden>Retry</button></div>
-        <p class="pool-small pool-muted" id="chat-model-status" data-model-status role="status" hidden></p><p class="pool-small pool-muted" data-acquisition-status role="status" hidden></p><progress class="pool-progress" data-acquisition-progress aria-label="Model download" hidden></progress><button class="pool-button btn-ghost pool-caption" type="button" data-download-local hidden>Download model</button><button class="pool-button btn-ghost pool-caption" type="button" data-cancel-download hidden>Cancel download</button>
-        <p class="chat-attachment-help pool-small pool-muted" data-attachment-help hidden>Text files: up to 8, 64 KB each, 128 KB total.</p>
       </form></footer>
       <dialog class="chat-model-setup pool-surface pool-small" data-rename-dialog aria-labelledby="chat-rename-title">
         <form data-rename-form><h2 class="pool-heading" id="chat-rename-title">Rename thread</h2><label>Name<input class="pool-input" data-thread-name required maxlength="256"></label>
@@ -386,7 +390,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     // A busy contributor still answers later; that notice takes the line only when nothing blocks Send.
     modelStatus.textContent = statusText || (!busy && location === 'network' && selectedModel?.networkAvailability === 'busy'
       ? 'Contributors are busy. Sending waits for capacity.' : '');
-    modelStatus.hidden = !modelStatus.textContent;
+    modelStatus.hidden = !modelStatus.textContent; modelStatus.title = modelStatus.textContent;
     const answerLimit = find('[data-answer-limit]');
     const cells = state.answerLimits?.find(entry => entry.selectionId === keyFor(requestedModel || {}))?.cells || [];
     const bounds = [...new Map(cells.map(cell => [cell.maxPromptTokens + '/' + cell.maxAnswerTokens, cell])).values()]
@@ -472,7 +476,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const state = session.getState();
     inspector.close?.({ restoreFocus: false });
     find('[data-current-model-description]').textContent = state.activeThread?.model.name || '';
-    pickerModel = state.activeThread?.model || chosenModel || state.defaultModel || (state.models || []).find(selectable) || null;
+    pickerModel = (state.models || []).find(model => (model.selectionId || model.id) === modelSelect.value)
+      || state.activeThread?.model || chosenModel || state.defaultModel || null;
     updatePicker(state);
     picker.open(find('[data-next-model]'), event.currentTarget);
     render(state);

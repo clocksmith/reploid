@@ -35,6 +35,11 @@ async function installConversation(page, theme) {
       state.activeThread.messages[1].content = answer;
       listeners.forEach(callback => callback(state));
     };
+    window.setVisualSupply = count => {
+      state.models = Array.from({ length: count }, (_, i) => ({ ...model, id: 'ready-' + i, name: 'Ready model ' + i, availability: 'ready', networkAvailability: 'ready' }));
+      state.defaultModel = state.models[0] || model;
+      listeners.forEach(callback => callback(state));
+    };
     window.setVisualTiming = timing => {
       state.activeThread.attempts[0].execution.timing = timing;
       listeners.forEach(callback => callback(state));
@@ -348,7 +353,7 @@ test('keyboard-sized visual viewport compacts the workspace without resizing the
 test('Verification Worker accepts the conversation presentation module', async ({ page }, info) => {
   await page.goto('/');
   const verification = await page.evaluate(async () => {
-    const paths = ['pool-home/conversation-workspace.js', 'pool-home/index.js', 'pool-home/shell-view.js', 'pool-home/network-inspector.js', 'components/button-feedback.js', 'components/drawer.js', 'pool-home/workspace-navigation.js', 'pool-home/message-list.js', 'pool-home/execution-activity.js'];
+    const paths = ['pool-home/conversation-workspace.js', 'pool-home/index.js', 'pool-home/shell-view.js', 'pool-home/network-inspector.js', 'components/button-feedback.js', 'components/drawer.js', 'pool-home/workspace-navigation.js', 'pool-home/message-list.js', 'pool-home/execution-activity.js', 'pool-home/contribution-models.js'];
     const snapshot = Object.fromEntries(await Promise.all(paths.map(async path => {
       const response = await fetch('/ui/' + path);
       if (!response.ok) throw new Error(`Missing presentation module: ${path} ${response.status}`);
@@ -692,4 +697,56 @@ test('answer inspection stays bound to the selected receipt as later answers arr
   await expect(detail).toContainText('Selected answer used 168 tokens');
   await expect(page.locator('[data-inspected-activity]')).toContainText('123');
   await expect(page.locator('[popover]')).toHaveCount(0);
+});
+
+for (const width of [1280, 390, 320]) test(`composer stays anchored across discovery and loading at ${width}`, async ({ page }, info) => {
+  await page.setViewportSize({ width, height: 844 }); await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible(); await installConversation(page, 'light');
+  const input = page.locator('[data-composer-input]'), field = page.locator('[data-composer-field]');
+  await input.fill('Keep this draft');
+  const before = await field.boundingBox();
+  for (const mode of ['preparing', 'unavailable', 'completed', 'loading', 'executing']) {
+    await page.evaluate(mode => window.setVisualState(mode), mode);
+    const box = await field.boundingBox();
+    expect(box.height).toBe(before.height); expect(box.y + box.height).toBe(before.y + before.height);
+  }
+  await input.fill('A deliberately multiline draft\n'.repeat(6));
+  expect((await field.boundingBox()).height).toBeGreaterThan(before.height);
+  const expanded = await field.boundingBox();
+  await page.evaluate(() => window.setVisualMetrics({}));
+  expect(await field.boundingBox()).toEqual(expanded);
+  await page.screenshot({ path: info.outputPath(`stable-composer-${width}.png`) });
+});
+
+
+test('discovery selects a ready model and keeps the chooser and suggestions still', async ({ page }, info) => {
+  await page.setViewportSize({ width: 390, height: 844 }); await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible(); await installConversation(page, 'light');
+  const suggestions = page.locator('[data-starting-prompts]'), chooser = page.locator('[data-production-shared]');
+  const before = { prompts: await suggestions.boundingBox(), chooser: await chooser.boundingBox() };
+  for (const count of [1, 4, 2]) {
+    await page.evaluate(count => window.setVisualSupply(count), count);
+    await expect(page.locator('[data-active-model-select]')).toHaveValue('ready-0');
+    await expect(page.locator('[data-composer-send]')).toBeEnabled();
+    await expect(page.locator('[data-production-use="ready-0"] [data-shared-model-action]')).toHaveText('Selected');
+    expect((await suggestions.boundingBox()).y).toBe(before.prompts.y);
+    expect((await chooser.boundingBox()).height).toBe(before.chooser.height);
+  }
+  await page.screenshot({ path: info.outputPath('ready-default.png') });
+  await page.locator('[data-open-model]').click();
+  await expect(page.locator('[data-next-model]')).toHaveValue('ready-0');
+});
+
+
+test('unchanged provider updates preserve a reader near the transcript bottom', async ({ page }) => {
+  await page.goto('/'); await expect(page.locator('[data-chat-workspace]')).toBeVisible(); await installConversation(page, 'light');
+  await page.evaluate(async () => {
+    await document.fonts.ready; window.setVisualState('completed');
+    window.setVisualMessages('Question', 'A paragraph of the answer.\n\n'.repeat(100));
+  });
+  const stream = page.locator('[data-chat-transcript]');
+  const before = await stream.evaluate(node => { node.scrollTop = node.scrollHeight - node.clientHeight - 50; return node.scrollTop; });
+  expect(before).toBeGreaterThan(0);
+  for (let i = 0; i < 3; i++) await page.evaluate(() => window.setVisualMetrics({}));
+  expect(await stream.evaluate(node => node.scrollTop)).toBe(before);
 });

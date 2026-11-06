@@ -227,3 +227,14 @@ it('shows observed search tools in the thinking loader and clears them on comple
   thread.attempts[0].retrieval = { outcome: 'retrieved', sources: [] }; update();
   expect(tool.hidden).toBe(true); view.dispose();
 });
+
+
+it('does not pull a reader to the bottom on an unchanged state refresh', () => {
+  const root = document.createElement('div'), thread = conversation();
+  Object.defineProperties(root, { scrollHeight: { value: 1000, configurable: true }, clientHeight: { value: 400 } });
+  const view = createMessageList(root); view.update(thread, { usable: true, busy: false });
+  root.scrollTop = 550;
+  view.update(thread, { usable: true, busy: false });
+  expect(root.scrollTop).toBe(550);
+  view.dispose();
+});

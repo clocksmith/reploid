@@ -60,7 +60,8 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
         if (selected) positions.set(selected, scrollContainer.scrollTop);
         selected = thread?.id; stream.replaceChildren();
       }
-      const nearBottom = scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight < 80;
+      const previousHeight = scrollContainer.scrollHeight;
+      const nearBottom = previousHeight - scrollContainer.scrollTop - scrollContainer.clientHeight < 80;
       const selection = stream.ownerDocument.getSelection?.();
       const selecting = selection && !selection.isCollapsed && stream.contains(selection.anchorNode);
       let targets = new Map();
@@ -155,7 +156,7 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
       }
       for (const child of [...stream.children]) if (!visible.has(`${thread?.id}:${child.dataset.messageId}`)) child.remove();
       if (changed) scrollContainer.scrollTop = positions.get(selected) ?? scrollContainer.scrollHeight;
-      else if (nearBottom && !selecting) scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      else if (nearBottom && !selecting && scrollContainer.scrollHeight !== previousHeight) scrollContainer.scrollTop = scrollContainer.scrollHeight;
     },
     dispose() { if (selected) positions.set(selected, scrollContainer.scrollTop); rows.clear(); }
   };

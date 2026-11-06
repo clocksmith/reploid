@@ -104,6 +104,8 @@ describe('Conversation workspace', () => {
       session.setCachedModels([]);
     };
     publish([small]); expect(find('[data-active-model-select]').value).toBe(small.id);
+    expect(find('[data-composer-send]').disabled).toBe(false);
+    expect(find('[data-production-use] [data-shared-model-action]').textContent).toBe('Selected');
     publish([small, medium]); expect(find('[data-active-model-select]').value).toBe(medium.id);
     publish([small, medium, large]); expect(find('[data-active-model-select]').value).toBe(large.id);
     const select = find('[data-active-model-select]'); select.value = small.id;
@@ -129,6 +131,8 @@ describe('Conversation workspace', () => {
     expect(find('[data-active-model-select]').value).toBe(large.id);
     find('[data-execution-choice=local]').click();
     expect(find('[data-active-model-select]').value).toBe(small.id);
+    find('[data-open-model]').click();
+    expect(find('[data-next-model]').value).toBe(small.id);
     expect(service.calls).toHaveLength(0);
   });
 

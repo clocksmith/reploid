@@ -195,7 +195,7 @@ export function bindProductionControls(container, session, { inspector, onSelect
       let row = sharedRows.get(variant.key);
       if (!row) {
         row = document.createElement('li');
-        row.innerHTML = '<button type="button" class="chat-model-choice pool-button pool-choice pool-row-between"><span><span data-shared-model-name></span><small class="pool-muted" data-shared-model-status></small></span><span class="pool-caption">Use model</span></button>';
+        row.innerHTML = '<button type="button" class="chat-model-choice pool-button pool-choice pool-row-between"><span><span data-shared-model-name></span><small class="pool-muted" data-shared-model-status></small></span><span class="pool-caption" data-shared-model-action>Use model</span></button>';
         sharedRows.set(variant.key, row);
       }
       const chosen = variant.routes.find(route => (route.selectionId || route.id) === variant.value) || model;
@@ -204,7 +204,9 @@ export function bindProductionControls(container, session, { inspector, onSelect
       row.querySelector('[data-shared-model-status]').textContent = model.networkAvailability === 'ready' ? 'Ready'
         : model.networkAvailability === 'busy' ? 'Busy · waits for capacity' : 'Preparing';
       row.firstElementChild.disabled = !['ready', 'busy'].includes(model.networkAvailability);
-      row.firstElementChild.setAttribute('aria-pressed', String(variant.ids.includes(selectedId)));
+      const selected = variant.ids.includes(selectedId);
+      row.firstElementChild.setAttribute('aria-pressed', String(selected));
+      row.querySelector('[data-shared-model-action]').textContent = selected ? 'Selected' : 'Use model';
       const list = find('[data-production-available]');
       if (list.children[index] !== row) list.insertBefore(row, list.children[index] || null);
     });

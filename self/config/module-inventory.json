@@ -3544,7 +3544,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:a4850e0e80bbda347c60953612c8a675933b23a697a24c26378647968239c856",
+      "sha256": "sha256:b5a3b1d724fa3639ec1a7a9d7b896e2d6d24855d20e603b1282674f4a4752353",
       "imports": []
     },
     {
@@ -3579,7 +3579,7 @@
     {
       "path": "ui/pool-home/contribution-models.js",
       "owner": "ui",
-      "sha256": "sha256:96a78d24133568aade846286002fe83ca183fde94bb067d08f964efb33ca6a71",
+      "sha256": "sha256:e15d1f06bdf84bdd3e30c38b4ee3e6767153eaeeaf11b0aae170bf1734ee643a",
       "imports": [
         "../components/dialog.js",
         "../components/html.js",
@@ -3636,7 +3636,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:fba7ea2655f16f9458edb0ebccf65f2af730ca04a1ddd44d96e6d186a754d772",
+      "sha256": "sha256:21a63178b893fe30faf43054c15991d9932e9584dc0a359eb60b6e1cda479e37",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -3732,7 +3732,7 @@
     {
       "path": "ui/pool-home/message-list.js",
       "owner": "ui",
-      "sha256": "sha256:1091175915d716a824af59b8685cc48fbcf6acc50cd995c598df70e46e16ad1a",
+      "sha256": "sha256:091613348544bfe7e0c8e6d875f7d708932b1c62081541256239e4506a4eb6ea",
       "imports": [
         "../components/attachments.js",
         "../components/interface-icons.js",

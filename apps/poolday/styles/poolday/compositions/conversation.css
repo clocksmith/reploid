@@ -65,8 +65,8 @@
   padding-block: var(--pool-size-16);
 }
 .chat-message-stream, .chat-composer-area, .chat-error, .chat-history-handover, .chat-conversation-content > [data-production-shared] { width: min(100%, var(--pool-size-720)); align-self: center; margin-inline: auto; }
-/* The chooser yields height before the composer does: its heading and status stay, its rows scroll. */
-.chat-conversation-content > [data-production-shared] { flex: 0 1 auto; min-height: calc(var(--pool-size-160) + var(--pool-size-40)); max-height: 35dvh; overflow: hidden; }
+/* Discovery fills a stable chooser; only its rows scroll, so suggestions stay put. */
+.chat-conversation-content > [data-production-shared] { flex: 0 0 auto; height: var(--pool-size-240); min-height: calc(var(--pool-size-160) + var(--pool-size-40)); max-height: 35dvh; overflow: hidden; }
 .chat-conversation-content > [data-production-shared] > [data-production-available] { flex: 0 1 auto; min-height: 0; overflow-y: auto; }
 .chat-conversation-content > [data-production-shared] > [data-production-available]:empty { display: none; }
 .pool-home .chat-inspector-slot .production-surface { padding: 0; }
@@ -90,6 +90,11 @@
 .chat-message-content > [data-text-block] + [data-text-block] { margin-top: var(--pool-size-8); }
 /* One input surface; controls share its interior without covering the text. */
 .chat-composer-area form { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: var(--pool-size-8); }
+.chat-composer-feedback { display: grid; gap: var(--pool-size-8); min-width: 0; }
+.chat-composer-feedback p { margin: 0; }
+.chat-composer-status-line { display: flex; align-items: center; gap: var(--pool-size-8); height: var(--pool-size-44); min-width: 0; }
+.chat-composer-status-line > [data-model-status] { flex: 1; min-width: 0; max-height: 100%; overflow-y: auto; overflow-wrap: anywhere; }
+.chat-composer-status-line > .chat-composer-notices { flex: none; margin-left: auto; }
 .chat-composer-field { display: flex; flex-direction: column; min-width: 0; gap: var(--pool-size-8); position: relative; padding: var(--pool-size-8); }
 .pool-home .chat-composer-area textarea {
   display: block; box-sizing: border-box; width: 100%; height: var(--pool-param-composer-height, auto); min-height: var(--pool-size-44); max-height: 22dvh; min-width: 0;
