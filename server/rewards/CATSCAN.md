@@ -3,44 +3,33 @@
 Parent: [Hosted Services](../CATSCAN.md)
 
 ## Target
-
-Credit only for validated, demanded contribution under accepted offers, within capacity-bounded issuance bases.
+Credit only for validated, demanded contribution under accepted offers within capacity-bounded issuance bases.
 
 ## Authority
-- Owns offers, per-category validation, contract challenges, readiness probes, funding reservations, delivery evidence and the ledger's `issuanceAuthority`.
+- Owns offers, per-category validation, contract challenges, readiness probes, funding reservations, delivery evidence and ledger `issuanceAuthority`.
 - Excludes balances, prices, reward amounts, identity, capacity admission and quality adjudication.
 
 ## Scope
-
-- This directory.
+Directory.
 
 ## Contracts
-
-Inputs:
-- Explicit reward and issuance policy; offer terms.
-- [Ledger](../ledger/CATSCAN.md) settlements, route summaries or kept stage receipts, attested REP-5 receipts, certified custody keys, probe ports, capacity evidence.
-
-Outputs:
-- [Store operations](store-contract.js); earned or subsidized issuance decisions.
+Inputs: explicit reward/issuance policy and offer terms; [Ledger](../ledger/CATSCAN.md) settlements, route summaries or kept stage receipts, attested REP-5 receipts, certified custody keys, probe ports, capacity evidence.
+Outputs: [store operations](store-contract.js); earned/subsidized issuance decisions.
 
 ## Invariants
 - Only policy-enabled categories earn, never online time.
-- Evidence roots: ledger settlement, recipient-attested receipts (kept only from attesting devices), or store-run challenges and probes; signatures alone never suffice.
-- Whole-model inference uses an explicit whole-model offer, the accounting owner's kept measured receipt, a policy-bound quality decision and the settled requester quote. It never invents a partition stage. The receipt binds the contributing owner's accepted policy; missing evidence cannot earn.
-- Readiness requires real admission, execution, settlement probes, never stored bytes.
-- Storage is accessible delivery; byte responses cannot establish local custody.
-- Missed or failed obligations reduce or void rewards.
-- Funded-reservation credit is subsidized, never earned, from open, authority-approved [register](../ledger/funding/CATSCAN.md) allocations; bases stay within admitted capacity.
-- One reward per unit of work; same account, owner, participant or named link earns nothing.
-- Rejections, voids, declines persist.
-- Disputes earn after review.
+- Evidence roots: ledger settlement, recipient-attested receipts (from attesting devices only), or store-run challenges/probes; signatures alone never suffice.
+- Whole-model inference requires an explicit whole-model offer, the accounting owner's kept measured receipt, a policy-bound quality decision and the settled requester quote (never inventing a partition stage or earning on missing evidence).
+- Readiness requires admission/execution/settlement probes, never stored bytes; storage is accessible delivery, not local-custody proof.
+- Missed/failed obligations reduce or void rewards; rejections, voids and declines persist; disputes earn only after review.
+- Funded-reservation credit is subsidized, never earned, from open authority-approved [register](../ledger/funding/CATSCAN.md) allocations within admitted capacity.
+- One reward per work unit; same account, owner, participant or named link earns nothing.
 
 ## Acceptance
-- Evidence: memory and Firestore pass identical [inference](../../tests/unit/contribution-rewards.test.js), [category](../../tests/unit/contribution-reward-categories.test.js) and [delivery](../../tests/unit/custody-delivery-attribution.test.js) scenarios.
-- Limits: known-link rejection is incomplete collusion prevention; accounts are not shown independent; only `failureCompensation: none`.
+Evidence: memory and Firestore pass identical [inference](../../tests/unit/contribution-rewards.test.js), [category](../../tests/unit/contribution-reward-categories.test.js) and [delivery](../../tests/unit/custody-delivery-attribution.test.js) tests. Known-link rejection is partial collusion defense; only `failureCompensation: none`.
 
 ## Non-goals
-- Reward amounts, payments, clawback, local-retention proof or attested hardware.
+Reward amounts, payments, clawback, local-retention proof or attested hardware.
 
 ## Freedom
 Preserve boundaries and acceptance.

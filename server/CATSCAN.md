@@ -3,7 +3,6 @@
 Parent: [Reploid](../CATSCAN.md)
 
 ## Target
-
 Bounded authentication, discovery, relay, proxy and native participation without authority over browser claims.
 
 ## Authority
@@ -11,41 +10,25 @@ Bounded authentication, discovery, relay, proxy and native participation without
 - Excludes browser execution claims, exactly-once delivery, scientific validity and Research Room decisions.
 
 ## Scope
-
-- This directory and unchartered descendants.
+Directory and unchartered descendants.
 
 ## Contracts
-
-Inputs:
-- Requests accepted through [proxy.js](proxy.js) and [reploid-signaling.js](reploid-signaling.js).
-- Public inference gates from [public-inference-guard.js](public-inference-guard.js).
-
-Outputs:
-- Authenticated, bounded server responses and delivery records.
+Inputs: [proxy.js](proxy.js), [reploid-signaling.js](reploid-signaling.js), [public-inference-guard.js](public-inference-guard.js).
+Outputs: authenticated, bounded responses and delivery records.
 
 ## Invariants
-- Relay acknowledgement proves receipt, not acceptance.
-- Authentication and transport do not establish model/scientific validity.
-- Hosted failures remain explicit.
-- HTTP inference requires explicit authentication and exact disclosure. Production mounts require an accounting owner; unbilled execution is test-only. Trial admission limits exposure without defining prices or issuing credits, and retains unsettled reservations across restarts.
-- Recovery queries use the accepted account/device, input digest and original signing identities; they cannot dispatch replacement inference. Native generation journals retain bounded result bodies and durable admission fences, without prompt text. Missing or pruned evidence remains unresolved. Signed cleanup with unavailable meters settles only an accepted fixed terminal formula.
-- Native hosts reuse participant contracts. Doppler owns computation; adapters own provider lifetime, authorized files and settlement.
-- File supply needs separate consent. Signed custody and Doppler verification acquire requested pieces only. Bounded caches retain verified complete files; quarantine corruption; restart partial pieces.
-- Receipts retain opening/runtime/provider identities; native support qualifies separately.
-- `/swarm` is bounded discovery only: exact hosted origins or explicitly allowed HTTP(S) loopback origins on any port, namespace admission, destination membership, heartbeat and unjoined expiry. No application relay or virtual inference peers; origin is not authentication.
+- Relay acknowledgement proves receipt, not acceptance; auth/transport never prove model/scientific validity; failures stay explicit.
+- HTTP inference requires auth, exact disclosure and a production accounting owner (unbilled is test-only). Trial admission caps exposure without pricing/issuance and retains unsettled reservations across restarts.
+- Recovery queries bind account/device, input digest and signing identities without replacement inference. Native journals retain bounded results/fences without prompt text; missing evidence stays unresolved; signed cleanup without meters settles only fixed terminal formulas.
+- Native hosts reuse participant contracts: Doppler computes; adapters own provider lifetime, authorized files and settlement; receipts retain opening/runtime/provider identities.
+- File supply needs separate consent; signed custody/Doppler verification acquire requested pieces only, caching verified files, quarantining corruption and restarting partials.
+- `/swarm` is bounded discovery only (hosted/loopback origins, namespace/destination admission, heartbeat/expiry; no relay/virtual peers; origin is not auth).
 
 ## Acceptance
-- Preserve admission boundaries.
-- Evidence: native lifecycle: [host tests](../tests/unit/native-participant.test.js).
-- Native custody: [native file tests](../tests/unit/native-model-files.test.js).
-- Whole-model HTTP routing: [requester tests](../tests/unit/whole-model-requester.test.js), [HTTP tests](../tests/integration/text-api.test.js). Durable trial exposure: [admission tests](../tests/unit/trial-admission.test.js). Controlled fixtures do not establish live inference, settlement or production accounting.
-- Controlled measured whole-model settlement and earn/redemption: [accounting tests](../tests/integration/text-accounting.test.js), with actual ledger and reward engines on memory and Firestore doubles. [Mesh receipt tests](../tests/unit/whole-model-mesh-receipt.test.js) cover channel-bound identities and countersigning. These do not qualify live providers, production storage, answer quality or economic advantage.
-- Whole-model recovery: [mesh and SQLite restart tests](../tests/unit/generation-recovery.test.js) and authenticated HTTP recovery in the accounting tests. These use controlled execution, not physical GPU cancellation qualification.
-- [public discovery tests](../tests/integration/public-swarm-server.test.js).
-- [signaling integration](../tests/integration/signaling-server.test.js) and [public inference admission](../tests/integration/public-inference-admission.test.js) tests.
+Evidence: [native](../tests/unit/native-participant.test.js), [custody](../tests/unit/native-model-files.test.js), [requester](../tests/unit/whole-model-requester.test.js), [HTTP](../tests/integration/text-api.test.js), [trial](../tests/unit/trial-admission.test.js), [accounting](../tests/integration/text-accounting.test.js), [receipts](../tests/unit/whole-model-mesh-receipt.test.js), [recovery](../tests/unit/generation-recovery.test.js), [discovery](../tests/integration/public-swarm-server.test.js), [signaling](../tests/integration/signaling-server.test.js), [admission](../tests/integration/public-inference-admission.test.js). Live providers/GPUs qualify separately.
 
 ## Non-goals
-- Trustless compute marketplaces or centralized browser evidence authority.
+Trustless compute marketplaces or centralized browser evidence authority.
 
 ## Freedom
 Preserve boundaries; pass acceptance.
