@@ -41,6 +41,13 @@ async function installConversation(page, theme) {
       state.defaultModel = state.models[0] || model;
       listeners.forEach(callback => callback(state));
     };
+    window.setVisualSources = ({ local = false, shared = true } = {}) => {
+      const base = { ...model, name: 'Qwen 3.5 0.8B', localCached: local,
+        availability: local ? 'cached' : shared ? 'ready' : 'unavailable', networkAvailability: shared ? 'ready' : 'unavailable' };
+      state.models = [base]; state.defaultModel = base; state.peerDiscoveryTimedOut = true;
+      state.network = { consumer: { connectionState: 'connected', peers: [] } };
+      listeners.forEach(callback => callback(state));
+    };
     window.setVisualTiming = timing => {
       state.activeThread.attempts[0].execution.timing = timing;
       listeners.forEach(callback => callback(state));
@@ -354,11 +361,11 @@ test('keyboard-sized visual viewport compacts the workspace without resizing the
 test('Verification Worker accepts the conversation presentation module', async ({ page }, info) => {
   await page.goto('/');
   const verification = await page.evaluate(async () => {
-    const paths = ['pool-home/conversation-workspace.js', 'pool-home/index.js', 'pool-home/shell-view.js', 'pool-home/network-inspector.js', 'components/button-feedback.js', 'components/drawer.js', 'pool-home/workspace-navigation.js', 'pool-home/message-list.js', 'pool-home/execution-activity.js', 'pool-home/contribution-models.js'];
+    const paths = ['pool-home/conversation-workspace.js', 'pool-home/index.js', 'pool-home/shell-view.js', 'pool-home/network-inspector.js', 'components/button-feedback.js', 'components/drawer.js', 'pool-home/workspace-navigation.js', 'pool-home/message-list.js', 'pool-home/execution-activity.js', 'pool-home/contribution-models.js', 'components/model-select.js'].map(path => '/ui/' + path).concat('/host/chat-session.js');
     const snapshot = Object.fromEntries(await Promise.all(paths.map(async path => {
-      const response = await fetch('/ui/' + path);
+      const response = await fetch(path);
       if (!response.ok) throw new Error(`Missing presentation module: ${path} ${response.status}`);
-      return ['/ui/' + path, await response.text()];
+      return [path, await response.text()];
     })));
     return new Promise((resolve, reject) => {
       const worker = new Worker('/core/verification-worker.js');
@@ -816,4 +823,46 @@ test('typing and deleting preserve suggestion space without exposing draft-repla
   await expect(prompts).not.toBeVisible();
   await input.fill(''); expect(await bounds()).toEqual(before);
   await expect(prompts).toBeVisible();
+});
+
+
+for (const width of [1280, 390, 320]) test(`model source, selection and composer agree at ${width}`, async ({ page }, info) => {
+  await page.setViewportSize({ width, height: 844 }); await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible(); await installConversation(page, 'dark');
+  await page.evaluate(() => window.setVisualSources({ local: true }));
+  const input = page.locator('[data-composer-input]'), source = page.locator('[data-composer-model-source]');
+  await input.fill('hi'); const field = await page.locator('[data-composer-field]').boundingBox();
+  await expect(source).toHaveText(' · This device');
+  await expect(page.locator('[data-production-use]')).toHaveAttribute('aria-pressed', 'false');
+  await page.locator('[data-production-use]').click();
+  await expect(source).toHaveText(' · Shared');
+  await expect(page.locator('[data-production-use]')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('[data-composer-send]')).toBeEnabled();
+  await expect(page.locator('[data-model-status]')).toBeHidden();
+  await expect(page.locator('[data-download-local]')).toBeHidden();
+  await page.locator('[data-open-model]').click();
+  await page.locator('[data-execution-choice=local]').click();
+  await expect(source).toHaveText(' · Shared');
+  await page.locator('[data-model-picker-close]').click();
+  await expect(source).toHaveText(' · Shared');
+  await expect(input).toHaveValue('hi');
+  const bounds = await source.boundingBox(), button = await page.locator('[data-open-model]').boundingBox();
+  expect(bounds.x).toBeGreaterThanOrEqual(button.x); expect(bounds.x + bounds.width).toBeLessThanOrEqual(button.x + button.width);
+  await page.screenshot({ path: info.outputPath(`shared-ready-${width}.png`) });
+  await page.evaluate(() => window.setVisualSources({ local: true, shared: false }));
+  await expect(page.locator('[data-composer-send]')).toBeDisabled();
+  await expect(source).toHaveText(' · Shared');
+  await expect(page.locator('[data-model-status]')).toHaveText('No shared computer can answer with this model right now.');
+  await expect(page.locator('[data-download-local]')).toBeHidden();
+  await expect(page.locator('[data-retry-connection]')).toBeHidden();
+  expect(await page.locator('[data-composer-field]').boundingBox()).toEqual(field);
+  await page.screenshot({ path: info.outputPath(`shared-departed-${width}.png`) });
+  await page.locator('[data-open-model]').click();
+  await expect(page.locator('[data-execution-choice=network]')).toBeDisabled();
+  await page.locator('[data-execution-choice=local]').click();
+  await page.locator('[data-change-model]').click();
+  await expect(source).toHaveText(' · This device');
+  await expect(page.locator('[data-composer-send]')).toBeEnabled();
+  await expect(input).toHaveValue('hi');
+  await page.screenshot({ path: info.outputPath(`this-device-${width}.png`) });
 });

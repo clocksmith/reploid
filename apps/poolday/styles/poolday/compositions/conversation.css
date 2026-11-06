@@ -345,7 +345,9 @@ label.chat-model-route-heading { cursor: pointer; }
 
 .chat-composer-model { display: flex; align-items: center; gap: var(--pool-size-8); min-width: 0; max-width: 100%; }
 .chat-composer-model svg { width: var(--pool-size-16); height: var(--pool-size-16); flex: none; }
-.chat-composer-model [data-model-digest] { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-composer-model [data-model-digest] { display: flex; min-width: 0; white-space: nowrap; }
+.chat-composer-model [data-composer-model-name] { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.chat-composer-model [data-composer-model-source] { flex: none; white-space: pre; }
 .chat-message-row.is-user .chat-message-footer { justify-content: flex-end; }
 
 .chat-message-system { display: block; margin: 0; }

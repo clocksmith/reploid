@@ -3,6 +3,16 @@ import { escapeHtml } from './attachments.js';
 let choiceId = 0;
 export const isSharedModelChoice = model => ['ready', 'busy', 'loading', 'preparing'].includes(model.networkAvailability);
 
+/** The selected execution source, matching the host's local-cache reuse policy. */
+export function modelExecutionState(model, location = 'auto') {
+  const local = !model?.partition && (model?.localReady || model?.localCached || model?.availability === 'cached');
+  const source = location === 'local' || location === 'auto' && local ? 'local' : 'network';
+  const status = source === 'local' ? model?.partition ? 'unavailable' : model?.localReady ? 'ready' : local ? 'cached' : 'unavailable'
+    : model?.networkAvailability ?? (local ? 'unavailable' : model?.availability ?? 'unavailable');
+  return { source, status, usable: ['ready', 'busy', 'cached'].includes(status),
+    label: source === 'local' ? 'This device' : model?.partition ? 'Shared · Distributed' : 'Shared' };
+}
+
 /** Catalog facts shown beside a choice: declared weights and advertised context, nothing inferred. */
 export const modelFacts = model => [
   model?.quantization ? String(model.quantization).toUpperCase() : null,
@@ -124,7 +134,7 @@ export function bindModelChoices(select) {
           if (position !== parent) group.insertBefore(parent, position || null);
         }
         section.models.flatMap(lead => byLead.get(lead).members.map(entry => [entry, byLead.get(lead).base !== entry])).forEach(([entry, nested], index) => {
-          const model = entry.model;
+          const model = entry.routes?.find(route => (route.selectionId || route.id) === entry.value) || entry.model;
           let label = [...group.querySelectorAll('label[data-choice-key]')].find(item => item.dataset.choiceKey === entry.key);
           if (!label) {
             label = document.createElement('label');

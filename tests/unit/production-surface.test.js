@@ -97,7 +97,7 @@ it('starts with model actions and hides empty production counters', () => {
   expect(document.querySelector('[data-production-local]').hidden).toBe(true);
   expect(document.querySelector('[data-production-pause]')).toBeNull();
   expect(document.querySelector('[data-shared-model-name]').textContent).toBe('Model');
-  expect(document.querySelector('[data-shared-model-status]').textContent).toBe('Ready'); detach();
+  expect(document.querySelector('[data-shared-model-status]').textContent).toBe('Shared · Ready'); detach();
 });
 
 it('keeps shared models in chat and contribution in Computers, preserving drafts on selection', () => {
@@ -132,7 +132,7 @@ it('keeps shared models in chat and contribution in Computers, preserving drafts
   expect(document.activeElement).toBe(input);
   expect(input.value).toBe('Draft question');
   expect(document.querySelector('[data-active-model-select]').value).toBe('m');
-  expect(document.querySelector('[data-execution-choice="network"]').getAttribute('aria-pressed')).toBe('true');
+  expect(document.querySelector('[data-model-digest]').textContent).toContain('Shared');
   expect(session.createThread).not.toHaveBeenCalled();
   expect(session.downloadLocalModel).not.toHaveBeenCalled();
   expect(session.prepareLocalModel).not.toHaveBeenCalled();

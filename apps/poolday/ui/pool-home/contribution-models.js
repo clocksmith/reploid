@@ -199,14 +199,16 @@ export function bindProductionControls(container, session, { inspector, onSelect
         sharedRows.set(variant.key, row);
       }
       const chosen = variant.routes.find(route => (route.selectionId || route.id) === variant.value) || model;
-      row.firstElementChild.dataset.productionUse = ['ready', 'busy'].includes(chosen.networkAvailability) ? variant.value : model.selectionId || model.id;
+      const offered = ['ready', 'busy'].includes(chosen.networkAvailability) ? chosen : model;
+      row.firstElementChild.dataset.productionUse = offered.selectionId || offered.id;
       row.querySelector('[data-shared-model-name]').textContent = modelVariantLabel(model) || model.id;
-      row.querySelector('[data-shared-model-status]').textContent = model.networkAvailability === 'ready' ? 'Ready'
-        : model.networkAvailability === 'busy' ? 'Busy · waits for capacity' : 'Preparing';
-      row.firstElementChild.disabled = !['ready', 'busy'].includes(model.networkAvailability);
-      const selected = variant.ids.includes(selectedId);
+      row.querySelector('[data-shared-model-status]').textContent = offered.networkAvailability === 'ready' ? (offered.partition ? 'Shared · Distributed · Ready' : 'Shared · Ready')
+        : offered.networkAvailability === 'busy' ? 'Shared · Busy' : 'Shared · Preparing';
+      row.firstElementChild.disabled = !['ready', 'busy'].includes(offered.networkAvailability);
+      const selected = row.firstElementChild.dataset.productionUse === selectedId;
+      row.firstElementChild.setAttribute('aria-disabled', String(selected || row.firstElementChild.disabled));
       row.firstElementChild.setAttribute('aria-pressed', String(selected));
-      row.querySelector('[data-shared-model-action]').textContent = selected ? 'Selected' : 'Use model';
+      row.querySelector('[data-shared-model-action]').textContent = selected ? 'Selected' : 'Use shared';
       const list = find('[data-production-available]');
       if (list.children[index] !== row) list.insertBefore(row, list.children[index] || null);
     });
@@ -224,7 +226,7 @@ export function bindProductionControls(container, session, { inspector, onSelect
   };
   find('[data-production-available]').addEventListener('click', event => {
     const button = event.target.closest('[data-production-use]');
-    if (!button || button.disabled) return;
+    if (!button || button.disabled || button.getAttribute('aria-disabled') === 'true') return;
     const model = (session.getState().models || []).find(item => (item.selectionId || item.id) === button.dataset.productionUse
       && ['ready', 'busy'].includes(item.networkAvailability));
     if (!model) return;

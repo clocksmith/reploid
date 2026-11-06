@@ -501,3 +501,17 @@ it('pins the initial automatic fallback when that same model becomes ready', asy
   expect(session.getState().activeThread.model.id).toBe(initial.id);
   await session.close();
 });
+
+
+it('does not advertise or default to shared capacity that the history contract cannot admit', async () => {
+  const model = CANONICAL_CHAT_MODELS[1];
+  const session = createChatSession({ storage: null, service: createChatTestService(), models: [model],
+    canonicalHistory: { load: () => null, save: () => {}, close: () => {}, supportsWholeModel: false },
+    swarm: { getState: () => ({ consumer: { peers: [{ peerId: 'ready-but-ineligible', model: model.id,
+      modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }] } }) } });
+  try {
+    const state = session.getState();
+    expect(state.models[0]).toMatchObject({ availability: 'unavailable', networkAvailability: 'unavailable', localReady: false });
+    expect(state.defaultModels.auto).toBeNull(); expect(state.defaultModels.network).toBeNull();
+  } finally { await session.close(); }
+});

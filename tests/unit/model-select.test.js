@@ -1,5 +1,5 @@
 import { beforeEach, expect, it } from 'vitest';
-import { bindModelChoices, updateModelSelect } from '../../apps/poolday/ui/components/model-select.js';
+import { bindModelChoices, updateModelSelect, modelExecutionState } from '../../apps/poolday/ui/components/model-select.js';
 
 const models = [
   { id: 'local', name: 'Local', localCached: true, availability: 'cached' },
@@ -59,5 +59,21 @@ it('places a model family in its most usable member’s group, with each adapter
   expect(adapter.querySelector('[data-choice-status]').textContent).toBe('Ready');
   // The base keeps its own status inside its family's group.
   expect(document.querySelector('input[value="base"]').closest('label').querySelector('[data-choice-status]').textContent).toBe('Download required');
+  choices.dispose();
+});
+
+
+it('keeps cached local weights separate from shared capacity', () => {
+  expect(modelExecutionState(models[0], 'network')).toMatchObject({ source: 'network', usable: false });
+  expect(modelExecutionState(models[0], 'auto')).toMatchObject({ source: 'local', status: 'cached', usable: true });
+});
+
+it('does not use a different route readiness to label a pinned unavailable choice Ready', () => {
+  const select = document.querySelector('select'), choices = bindModelChoices(select);
+  const whole = { id: 'base', identity: 'same', name: 'Base', availability: 'unavailable', networkAvailability: 'unavailable' };
+  const route = { ...whole, selectionId: 'distributed', partition: {}, availability: 'ready', networkAvailability: 'ready' };
+  updateModelSelect(select, [whole, route], { value: 'base' }); choices.update([whole, route], { grouped: true, variants: true });
+  expect(document.querySelector('input:checked').value).toBe('base');
+  expect(document.querySelector('[data-choice-status]').textContent).toBe('Unavailable');
   choices.dispose();
 });

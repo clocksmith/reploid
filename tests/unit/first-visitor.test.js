@@ -38,7 +38,7 @@ it('downloads only after a message that no computer can answer, then sends it on
   await new Promise(resolve => setTimeout(resolve, 0));
   // Visiting and waiting never download.
   expect(f.api.downloadLocalModel).not.toHaveBeenCalled();
-  expect(f.find('[data-model-status]').textContent).toBe('No computer can answer. Send downloads a model to this device first.');
+  expect(f.find('[data-model-status]').textContent).toBe('This model is unavailable. Send downloads it to this device first.');
   expect(f.find('[data-acquisition-status]').hidden).toBe(true);
   expect(f.find('[data-composer-send]').disabled).toBe(false);
   f.find('[data-composer-input]').value = 'Hello';
@@ -91,7 +91,8 @@ it('offers explicit local download after no usable peers and reuses the existing
 it('does not let a perpetually preparing unusable peer hide the local fallback', () => {
   const f = fixture(); f.publish({ peerDiscoveryTimedOut: true, models: [{ ...f.state().models[0], availability: 'loading' }] });
   expect(f.find('[data-download-local]').hidden).toBe(false);
-  expect(f.find('[data-acquisition-status]').textContent).toContain('No usable network capacity');
+  expect(f.find('[data-model-status]').textContent).toContain('This model is unavailable');
+  expect(f.find('[data-acquisition-status]').hidden).toBe(true);
 });
 it('keeps downloads cancellable when a usable peer arrives and never fabricates unknown totals', () => {
   const f = fixture();
@@ -106,7 +107,8 @@ it('keeps downloads cancellable when a usable peer arrives and never fabricates 
 it('keeps capability failures actionable and checks failed metadata again without starting a download', async () => {
   const f = fixture(); f.publish({ peerDiscoveryTimedOut: true, localDownloadIssue: 'This browser needs WebGPU.' });
   expect(f.find('[data-download-local]').hidden).toBe(true);
-  expect(f.find('[data-acquisition-status]').textContent).toContain('WebGPU');
+  expect(f.find('[data-model-status]').textContent).toContain('WebGPU');
+  expect(f.find('[data-acquisition-status]').hidden).toBe(true);
   f.publish({ localDownloadIssue: null }); f.api.getModelDownload.mockRejectedValueOnce(Error('Network unavailable'));
   f.find('[data-download-local]').click();
   await vi.waitFor(() => expect(f.find('[data-retry-download-check]').hidden).toBe(false));

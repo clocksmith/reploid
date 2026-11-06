@@ -216,7 +216,7 @@ export function createChatSession({
   }).map(model => {
     model = { ...model, networkAvailability: model.availability };
     const local = execution.getLocalState();
-    if (canonicalHistory && !publishable(historyState.publication, model) && !(canonicalHistory.supportsWholeModel && !model.partition)) return { ...model, availability: 'unavailable', localReady: false };
+    if (canonicalHistory && !publishable(historyState.publication, model) && !(canonicalHistory.supportsWholeModel && !model.partition)) return { ...model, availability: 'unavailable', networkAvailability: 'unavailable', localReady: false, localCached: false };
     if (model.partition) return { ...model, localReady: false, localCached: false };
     return local?.ready && local.modelIdentity === model.identity && !(model.adapters?.length)
       ? { ...model, availability: 'ready', localReady: true }
