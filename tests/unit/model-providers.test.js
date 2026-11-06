@@ -35,6 +35,14 @@ it('uses only host-described complete routes, preserving ordered participants as
     participants: [{ id: 'a', role: 'Stage 1 of 3' }, { id: 'b', role: 'Stage 2 of 3' }, { id: 'c', role: 'Stage 3 of 3' }] });
 });
 
+it('never lists an adapter-only provider as the base model or a provider with extra adapters as an exact variant', () => {
+  const adapted = { ...model, adapters: [{ identity: 'adapter-a' }] };
+  const extra = { ...peer('a'), adapterIdentities: ['adapter-a', 'adapter-b'] };
+  expect(projectModelProviders(state([model], [{ ...peer('a'), adapterIdentities: ['adapter-a'] }]), model)).toEqual([]);
+  expect(projectModelProviders(state([adapted], [extra]), adapted)).toEqual([]);
+  expect(projectModelProviders(state([adapted], [{ ...peer('a'), adapterIdentities: ['adapter-a'] }]), adapted)).toHaveLength(1);
+});
+
 it('separates downloaded local files from ready capacity and keeps unknown GPU details explicit', () => {
   const local = { ...model, localCached: true };
   const snapshot = state([local], []);

@@ -1,0 +1,73 @@
+{
+  "schema": "reploid.development-receipt/v1",
+  "date": "2026-11-05",
+  "base": "55ae911c67712ddc6d518c32234c8a231d9aacbf",
+  "component": "Poolday conversation layout, provider projection and browser packaging",
+  "intent": "preserved",
+  "fixes": [
+    "Keep shared-model choices scrollable and clickable above the composer",
+    "Match provider adapter identities exactly",
+    "Keep network action feedback outside collapsed settings",
+    "Refresh served-source catalogs and record reviewed dynamic loaders",
+    "Make VFS --check verify without writing"
+  ],
+  "unit": {
+    "passed": 97,
+    "files": [
+      "model-providers",
+      "execution-ribbon",
+      "chat-workspace",
+      "model-adapters",
+      "adapter-evaluation",
+      "minimal-self-source",
+      "layer-verification",
+      "native-participant",
+      "browser-boundaries"
+    ]
+  },
+  "browser": {
+    "project": "chromium-swiftshader",
+    "passed": 86,
+    "specs": {
+      "chat-material": 22,
+      "chat-rail-layout": 30,
+      "chat-rails": 10,
+      "conversation-interactions": 6,
+      "first-use-preparation": 4,
+      "network-changes-material": 8,
+      "production-journey": 6
+    },
+    "chooserViewports": [
+      "1280x720",
+      "390x844",
+      "320x740"
+    ],
+    "fixtureBoundary": "Browser layout and interaction contracts; not physical GPU or inference qualification",
+    "retainedFailures": "Earlier runs reproduced the collapsed chooser and stale network selectors. During repair, two phone tests attempted dock navigation beneath an open modal; corrected to dismiss it first."
+  },
+  "checks": [
+    "changed-file ESLint",
+    "git diff --check",
+    "build-vfs-manifest.js --check",
+    "build-self-source.js --check",
+    "verify:layers",
+    "verify:module-system",
+    "verify:pool:css",
+    "verify:boundaries"
+  ],
+  "provider": {
+    "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+    "packageArchiveSha256": "e0189149c4d1f0e633061a771380176660e9f0ef7511179682cdae8af0d03fce",
+    "dopplerVersion": "0.6.33",
+    "readyObservedAt": "2026-11-05T23:58:39.660Z",
+    "livePickerReportedGpu": "amd \u00b7 rdna-3 \u00b7 radeon-8060s-graphics-radv-strix-halo-",
+    "qualification": "Self-reported hardware and serving readiness; no new inference quality measurement"
+  },
+  "boundaries": [
+    "No model mathematics changed",
+    "No training or benchmark campaign",
+    "No source ownership migration",
+    "Stopped providers remain stopped"
+  ],
+  "deployment": "Not established by this receipt; hosting deployment is verified separately"
+}

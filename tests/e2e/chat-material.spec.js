@@ -518,3 +518,25 @@ test('answer measurements and bottom-centered thread badges stay stable while lo
     await page.screenshot({ path: info.outputPath(`cohesive-${width}-${theme}.png`) });
   }
 });
+
+for (const viewport of [{ width: 1280, height: 720 }, { width: 390, height: 844 }, { width: 320, height: 740 }]) {
+  test(`shared model choices remain clickable above the composer at ${viewport.width}`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+    await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+    await installConversation(page, 'light');
+    await page.evaluate(() => {
+      const chooser = document.querySelector('[data-production-shared]'); chooser.hidden = false;
+      chooser.querySelector('[data-production-network-status]').textContent = '3 models ready';
+      chooser.querySelector('[data-production-available]').innerHTML = Array.from({ length: 3 }, (_, i) =>
+        `<li><button class="pool-button pool-row pool-row-between" style="width:100%;min-height:64px" data-test-shared="${i}"><span>Shared model ${i + 1}</span><span>Use model</span></button></li>`).join('');
+      window.sharedModelClicks = [];
+      chooser.addEventListener('click', event => { const button = event.target.closest('[data-test-shared]'); if (button) window.sharedModelClicks.push(button.dataset.testShared); });
+    });
+    const composer = await page.locator('[data-composer-area]').boundingBox();
+    expect(composer.y + composer.height).toBeLessThanOrEqual(viewport.height);
+    for (const choice of await page.locator('[data-test-shared]').all()) await choice.click({ timeout: 5000 });
+    expect(await page.evaluate(() => window.sharedModelClicks)).toEqual(['0', '1', '2']);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  });
+}

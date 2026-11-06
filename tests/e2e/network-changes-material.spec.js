@@ -7,7 +7,7 @@ async function networkFixture(page) {
     window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: false }));
     document.querySelector('[data-shell-inspector]')?.remove();
     const root = document.querySelector('.pool-route-content'); root.innerHTML = '<div>' + renderNetworkSurface() + '</div>';
-    let state = { models: [{ id: 'qwen', name: 'Qwen 3.5 0.8B' }], defaultModel: { id: 'qwen' }, network: {
+    let state = { models: [{ id: 'qwen', name: 'Qwen 3.5 0.8B', localCached: true }], defaultModel: { id: 'qwen' }, network: {
       sharing: true, contribution: { modelId: 'qwen', phase: 'ready', partition: true },
       limits: { maxInboundJobs: 2, maxOutputTokens: 1024 },
       files: { sharing: false }, consumer: { peerId: 'local', connectionState: 'connected',
@@ -28,7 +28,8 @@ async function networkFixture(page) {
       }
     };
     globalThis.networkFixture = { state, session, notify: () => listener(state) };
-    bindNetworkInspector(root, session).open('device');
+    bindNetworkInspector(root, session).open('participants');
+    root.querySelector('[data-toggle-contribution]').closest('details').open = true;
   });
 }
 
@@ -37,12 +38,12 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     const errors = []; page.on('pageerror', error => errors.push(error.message));
     await page.goto('/network?room=reploid-default&reploidBootRetry=2026091901');
-    await expect(page.locator('[data-network-workspace]')).toBeVisible();
+    await expect(page.locator('[data-chat-workspace]')).toBeVisible();
     await page.evaluate(theme => document.querySelector('.pool-home').dataset.poolTheme = theme, theme);
     await networkFixture(page);
     await expect(page.locator('[data-tab-sharing-summary]')).toHaveText('Qwen 3.5 0.8B · partition compute');
     await expect(page.locator('[data-insp-device-list] li')).toHaveCount(3);
-    await expect(page.locator('[data-insp-device-list]')).toContainText('Partition 2 · ready');
+    await expect(page.locator('[data-insp-device-list]')).toContainText('Model stage 2 · Ready');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: info.outputPath('network.png'), fullPage: true });
     const compute = page.getByRole('switch', { name: 'Help answer requests', exact: true, includeHidden: true });
@@ -54,19 +55,23 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     await expect(compute).toHaveAttribute('aria-checked', 'false');
     await expect(page.locator('[data-contrib-label]')).toHaveText('Not sharing');
     await compute.click();
+    await page.locator('[data-download-confirm]').click();
     await expect(page.locator('[data-contrib-label]')).toHaveText('Ready');
+    await page.keyboard.press('Escape');
+    await page.locator('[data-inspector-section=settings]').click();
     await expect(files).toHaveAttribute('aria-checked', 'false');
     await files.click();
     await expect(files).toHaveAttribute('aria-checked', 'true');
+    await page.keyboard.press('Escape');
+    await page.locator('[data-inspector-section=participants]').click();
     await compute.click();
     await expect(files).toHaveAttribute('aria-checked', 'true');
-    await page.locator('[data-inspector-section=participants]').click();
     await connection.click();
     await expect(connection).toHaveAttribute('aria-checked', 'false');
     await expect(files).toHaveAttribute('aria-checked', 'false');
-    await page.locator('[data-inspector-section=device]').click();
     // One explicit compute switch reconnects a deliberately disconnected tab.
     await compute.click();
+    await page.locator('[data-download-confirm]').click();
     await expect(connection).toHaveAttribute('aria-checked', 'true');
     await expect(compute).toHaveAttribute('aria-checked', 'true');
     await expect(files).toHaveAttribute('aria-checked', 'false');
@@ -96,7 +101,7 @@ test('Changes keeps old failures in cards and opens detail only on selection', a
 });
 
 test('failed sharing stays off and remains visible during peer updates', async ({ page }) => {
-  await page.goto('/network'); await expect(page.locator('[data-network-workspace]')).toBeVisible();
+  await page.goto('/network'); await expect(page.locator('[data-chat-workspace]')).toBeVisible();
   await networkFixture(page);
   await page.evaluate(() => {
     networkFixture.state.network.sharing = false;
@@ -105,9 +110,11 @@ test('failed sharing stays off and remains visible during peer updates', async (
   });
   const compute = page.getByRole('switch', { name: 'Help answer requests', exact: true, includeHidden: true });
   await compute.click();
-  await expect(page.locator('[data-network-message]')).toHaveText('GPU memory unavailable');
+  await page.locator('[data-download-confirm]').click();
+  await expect(page.locator('[data-inspector-error]')).toBeVisible();
+  await expect(page.locator('[data-inspector-error]')).toHaveText('GPU memory unavailable');
   await page.evaluate(() => networkFixture.notify());
   await expect(compute).toHaveAttribute('aria-checked', 'false');
-  await expect(page.locator('[data-network-message]')).toHaveText('GPU memory unavailable');
+  await expect(page.locator('[data-inspector-error]')).toHaveText('GPU memory unavailable');
   await expect(page.getByRole('switch', { name: 'Store and share model files', exact: true, includeHidden: true })).toHaveAttribute('aria-checked', 'false');
 });

@@ -54,7 +54,7 @@
 }
 .chat-thread-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chat-conversation-area { display: flex; flex-direction: column; min-height: 0; gap: var(--pool-size-24); overflow-y: auto; }
-.chat-starting-prompts { display: flex; flex-direction: column; flex-shrink: 0; gap: var(--pool-size-8); width: min(100%, var(--pool-size-720)); align-self: center; max-height: 35dvh; overflow-y: auto; }
+.chat-starting-prompts { display: flex; flex-direction: column; flex: 0 1 auto; min-height: var(--pool-size-44); gap: var(--pool-size-8); width: min(100%, var(--pool-size-720)); align-self: center; max-height: 35dvh; overflow-y: auto; }
 .chat-starting-prompts .pool-button { text-align: start; white-space: normal; }
 .chat-transcript.chat-message-stream { flex: 1; min-height: var(--pool-size-64); overflow-y: auto; overflow-x: hidden; scrollbar-gutter: stable both-edges; }
 .chat-transcript.chat-message-stream:empty { flex: 0; min-height: 0; padding-block: 0; }
@@ -70,7 +70,7 @@
 .chat-message-stream, .chat-composer-area, .chat-error, .chat-history-handover, .chat-conversation-area > :is([data-production-shared], .production-surface) { width: min(100%, var(--pool-size-720)); align-self: center; margin-inline: auto; }
 .chat-conversation-area > .production-surface { flex-shrink: 0; }
 /* The chooser yields height before the composer does: its heading and status stay, its rows scroll. */
-.chat-conversation-area > [data-production-shared] { flex: 0 1 auto; min-height: 0; }
+.chat-conversation-area > [data-production-shared] { flex: 0 1 auto; min-height: calc(var(--pool-size-160) + var(--pool-size-40)); max-height: 35dvh; overflow: hidden; }
 .chat-conversation-area > [data-production-shared] > [data-production-available] { flex: 0 1 auto; min-height: 0; overflow-y: auto; }
 .chat-conversation-area > [data-production-shared] > [data-production-available]:empty { display: none; }
 .pool-home .chat-conversation-area > .production-surface { padding: 0; }

@@ -25,8 +25,14 @@ async function main() {
     files: relFiles
   };
 
-  await fs.writeFile(outputPath, JSON.stringify(output, null, 2) + '\n', 'utf8');
-  console.log(`[vfs-manifest] Wrote ${outputPath}`);
+  const text = JSON.stringify(output, null, 2) + '\n';
+  if (process.argv.includes('--check')) {
+    if (await fs.readFile(outputPath, 'utf8') !== text) throw new Error('VFS manifest is stale');
+    console.log(`[vfs-manifest] ${relFiles.length} served paths are current`);
+  } else {
+    await fs.writeFile(outputPath, text, 'utf8');
+    console.log(`[vfs-manifest] Wrote ${outputPath}`);
+  }
 }
 
 main().catch((err) => {

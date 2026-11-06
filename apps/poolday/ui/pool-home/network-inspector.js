@@ -58,9 +58,9 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
         <section class="pool-stack pool-gap-md"><h3 class="pool-small">Inference</h3>${renderRemotePermissionSettings()}${renderAutoDownloadSetting()}<div data-settings-sharing-limits>${renderContributionLimits()}</div></section>
         ${renderWebSearchSettings()}
         <button class="pool-button btn-ghost" type="button" data-settings-network>Connection details</button><div data-settings-apps>${apps}</div>
-        <p data-network-message role="status" hidden></p>
       </div></details>
     </section>
+    <p data-network-message role="status" hidden></p>
     <p data-inspector-error role="alert" hidden></p>
   </dialog></aside>`;
 }

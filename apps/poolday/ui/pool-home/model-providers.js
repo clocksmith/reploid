@@ -24,7 +24,7 @@ export function projectModelProviders(state, selected) {
   const rows = [];
   if (whole) for (const peer of peers) {
     if (peer.executionType !== 'whole-model' || peer.modelId !== whole.id || peer.modelIdentity !== whole.identity
-      || !adapters(whole).every(identity => peer.adapterIdentities?.includes(identity))) continue;
+      || JSON.stringify(adapters(whole)) !== JSON.stringify([...(peer.adapterIdentities || [])].sort())) continue;
     const admitted = whole.providerIds?.includes(peer.id);
     rows.push({ id: peer.id, selectionId: keyFor(whole), type: 'Whole model',
       status: admitted ? peer.status : peer.phase === 'ready' ? 'Unavailable' : peer.status,

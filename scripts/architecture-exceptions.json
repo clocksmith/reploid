@@ -226,6 +226,41 @@
       "owner": "self/host/CATSCAN.md",
       "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile.",
       "removalCondition": "Remove when this loader is removed or replaced by static imports; changing host-selected runtime or UI authority requires renewed review."
+    },
+    {
+      "source": "self/zero/boot.js",
+      "expression": "url",
+      "owner": "self/zero/CATSCAN.md",
+      "contract": "Zero loads the hash-verified boot entry from its validated source descriptor, or the fixed legacy kernel entry for retained instances.",
+      "removalCondition": "Remove when the loader is replaced or removed; changes to selected code authority require renewed review."
+    },
+    {
+      "source": "self/zero/main.js",
+      "expression": "'/' + config.agent + query",
+      "owner": "self/zero/CATSCAN.md",
+      "contract": "Capsule entries come from the boot configuration checked against the hash-verified source descriptor by prepareZero; no peer-selected module.",
+      "removalCondition": "Remove when the loader is replaced or removed; changes to selected code authority require renewed review."
+    },
+    {
+      "source": "self/zero/main.js",
+      "expression": "'/' + config.ui + query",
+      "owner": "self/zero/CATSCAN.md",
+      "contract": "Capsule entries come from the boot configuration checked against the hash-verified source descriptor by prepareZero; no peer-selected module.",
+      "removalCondition": "Remove when the loader is replaced or removed; changes to selected code authority require renewed review."
+    },
+    {
+      "source": "self/host/model-acquisition.js",
+      "expression": "new URL('./storage/model-cache.js',\n  new URL(globalThis.REPLOID_DOPPLER_MODULE_URL || DOPPLER_MODULE_URL, location.href)).href",
+      "owner": "apps/poolday/host/CATSCAN.md",
+      "contract": "Host-selected Doppler storage module, derived from the pinned or explicitly overridden runtime entry. Used for consented acquisition and cache identity validation.",
+      "removalCondition": "Remove when the loader is replaced or removed; changes to selected code authority require renewed review."
+    },
+    {
+      "source": "self/host/work-model-cache.js",
+      "expression": "globalThis.REPLOID_DOPPLER_STORAGE_MODULE_URL || DOPPLER_STORAGE_TOOLING_URL",
+      "owner": "apps/poolday/host/CATSCAN.md",
+      "contract": "Host-selected pinned Doppler storage tooling; cache inspection returns inventory hints, not execution readiness or authority.",
+      "removalCondition": "Remove when the loader is replaced or removed; changes to selected code authority require renewed review."
     }
   ],
   "cycles": []
