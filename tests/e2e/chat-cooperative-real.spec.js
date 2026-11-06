@@ -306,6 +306,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
     const connections = await Promise.all([contributor, second].map(inspectConnections));
     const firstThreadId = completed.threads[0].id;
     const sendNew = async prompt => {
+      if (!await requester.locator('[data-new-thread]').isVisible()) await requester.locator('[data-toggle-thread-rail]').click();
       await requester.locator('[data-new-thread]').click();
       await requester.locator('[data-composer-input]').fill(prompt);
       await requester.locator('[data-composer-send]').click();
@@ -386,6 +387,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
       ]);
     };
     const runDocuments = async () => {
+      if (!await requester.locator('[data-new-thread]').isVisible()) await requester.locator('[data-toggle-thread-rail]').click();
       await requester.locator('[data-new-thread]').click();
       // Preserve the exact long-prompt workload through the ordinary composer.
       const sample = JSON.parse(await readFile(resolveServedFile('config/document-comparison-sample.json'), 'utf8'));

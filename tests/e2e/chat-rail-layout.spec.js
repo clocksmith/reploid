@@ -49,10 +49,10 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-// Rendered contract: four >=44px controls form one row, a top bar on desktop and a bottom bar on
-// phones. The brand opens the conversation list as a dialog; model selection lives in its own panel.
+// Rendered contract: three >=44px controls form one row, a top bar on desktop and a bottom bar on
+// phones. The brand opens the conversation list as a drawer; model selection lives in its own panel.
 // Panel changes preserve draft and focus. Pending computer rows stay visible before ads.
-const railButtons = ['[data-toggle-thread-rail]', '[data-new-thread]', '[data-toggle-inspector]', '[data-inspector-section="settings"]'];
+const railButtons = ['[data-toggle-thread-rail]', '[data-toggle-inspector]', '[data-inspector-section="settings"]'];
 const contrastRatio = (first, second) => {
   const luminance = css => css.match(/[\d.]+/g).slice(0,3).map(Number).map(value => {
     const channel=value/255;return channel<=0.04045?channel/12.92:((channel+0.055)/1.055)**2.4;
@@ -68,15 +68,22 @@ async function measureControls(page) {
     const label = node.querySelector('.chat-rail-label');
     const labelBox = label?.checkVisibility() ? label.getBoundingClientRect() : icon;
     const top = Math.min(icon.top, labelBox.top), bottom = Math.max(icon.bottom, labelBox.bottom);
+    // Ghost controls are transparent; measure their ink against the composed ancestor surface.
+    const ancestors = []; for (let parent = node; parent; parent = parent.parentElement) ancestors.unshift(parent);
+    let background = [255, 255, 255];
+    for (const parent of ancestors) {
+      const channels = getComputedStyle(parent).backgroundColor.match(/[\d.]+/g).map(Number), alpha = channels[3] ?? 1;
+      background = background.map((channel, index) => channels[index] * alpha + channel * (1 - alpha));
+    }
     return { selector, box: box.toJSON(), icon: icon.toJSON(), visible: node.checkVisibility(),
-      background: getComputedStyle(node).backgroundColor, color: getComputedStyle(node).color, radius: getComputedStyle(node).borderRadius,
+      background: `rgb(${background.join(',')})`, color: getComputedStyle(node).color, radius: getComputedStyle(node).borderRadius,
       centerX: icon.x + icon.width / 2 - box.x - box.width / 2,
       centerY: (top + bottom) / 2 - box.y - box.height / 2 };
   }), railButtons);
 }
 
 for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
-  test(`${theme} one bar aligns all four controls and opens each panel at ${width}px`, async ({ page }, info) => {
+  test(`${theme} one bar aligns all three controls and opens each panel at ${width}px`, async ({ page }, info) => {
     await page.setViewportSize({ width, height: 844 });
     await page.evaluate(theme => { document.querySelector('.pool-home').dataset.poolTheme = theme; }, theme);
     const rail = page.locator('[data-thread-sidebar]');
@@ -125,7 +132,8 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     await page.locator('[data-inspector-section="settings"]').click();
     await expect(page.locator('[data-inspector-pane="settings"]')).toBeVisible();
     await page.locator('[data-toggle-thread-rail]').click();
-    await expect(page.locator('[data-contextual-inspector]')).toBeHidden();
+    if (width >= 1200) await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
+    else await expect(page.locator('[data-contextual-inspector]')).toBeHidden();
     await expect(page.locator('[data-thread-list]')).toBeVisible();
     await page.locator('[data-conversation-actions] > summary').click();
     await page.locator('[data-show-archived]').click();
@@ -146,6 +154,7 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
     await expect(rail).toBeVisible();
     await page.locator('[data-toggle-inspector]').click();
+    await page.locator('[data-toggle-thread-rail]').click();
     await page.locator('[data-new-thread]').click();
     await expect(page.locator('[data-contextual-inspector]')).toBeHidden();
     await expect(page.locator('[data-composer-input]')).toBeFocused();

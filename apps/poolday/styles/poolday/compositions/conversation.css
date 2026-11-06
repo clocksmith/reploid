@@ -66,9 +66,8 @@
   padding-block: var(--pool-size-16);
 }
 .chat-message-stream, .chat-composer-area, .chat-error, .chat-history-handover, .chat-conversation-content > [data-production-shared] { width: min(100%, var(--pool-size-720)); align-self: center; margin-inline: auto; }
-/* Discovery fills a stable chooser; only its rows scroll, so suggestions stay put. */
-.chat-conversation-content > [data-production-shared] { flex: 0 0 auto; height: var(--pool-size-240); min-height: calc(var(--pool-size-160) + var(--pool-size-40)); max-height: 35dvh; overflow: hidden; }
-.chat-conversation-content > [data-production-shared] > [data-production-available] { flex: 0 1 auto; min-height: 0; overflow-y: auto; }
+/* Show complete model rows; the content column scrolls above the anchored composer. */
+.chat-conversation-content > [data-production-shared] { flex: 0 0 auto; }
 .chat-conversation-content > [data-production-shared] > [data-production-available]:empty { display: none; }
 .pool-home .chat-inspector-slot .production-surface { padding: 0; }
 .chat-transcript.chat-message-stream { width: min(100%, calc(var(--pool-size-720) + var(--pool-size-32))); padding-inline: var(--pool-size-16); }

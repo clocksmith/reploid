@@ -105,6 +105,7 @@ test('native whole-model chat streams, follows up, cancels, reuses and reloads',
 
     const draftText = 'Keep this draft while switching threads and reloading';
     await page.locator('[data-composer-input]').fill(draftText);
+    if (!await page.locator('[data-new-thread]').isVisible()) await page.locator('[data-toggle-thread-rail]').click();
     await page.locator('[data-new-thread]').click();
     await expect(page.locator('[data-composer-input]')).toHaveValue('');
     await page.locator('[data-toggle-thread-rail]').click();

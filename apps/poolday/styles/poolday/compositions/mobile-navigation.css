@@ -52,7 +52,7 @@
   }
   .pool-mobile-app-bar .chat-rail-toolbar {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     align-items: center;
     gap: var(--pool-size-8);
     padding: var(--pool-size-8);

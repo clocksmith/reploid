@@ -30,7 +30,10 @@ test('prepared whole-model service completes frozen independent chat tasks', asy
     if (await permission.getAttribute('aria-checked') === 'true') await permission.click();
     await page.locator('[data-close-inspector]').click();
     for (const task of suite.tasks) {
-      if (results.length) await page.locator('[data-new-thread]').click();
+      if (results.length) {
+        await page.locator('[data-toggle-thread-rail]').click();
+        await page.locator('[data-new-thread]').click();
+      }
       await page.locator('[data-open-model]').click();
       const choice = page.locator(`[data-model-picker] .chat-model-choices input[value="${modelId}"]`).filter({ visible: true });
       await expect(choice).toBeVisible({ timeout: 60000 });

@@ -8,7 +8,7 @@ import { updateModelSelect, modelSelectionLabel, bindModelChoices, isSharedModel
 import { projectNetworkPeers } from './network-controls.js';
 import { renderInspectorNavigation, renderInspectorRail, renderModelSetupDialog, bindNetworkInspector } from './network-inspector.js';
 import { bindDrawer } from '../components/drawer.js';
-import { renderBrandLink, renderPowerTower } from './shell-view.js';
+import { renderBrandLink } from './shell-view.js';
 import { escapeHtml as escape, renderAttachments, readTextAttachments } from '../components/attachments.js';
 import { bindDisclosure } from '../components/disclosure.js';
 import { bindDialog } from '../components/dialog.js';
@@ -47,18 +47,15 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
     <aside id="chat-threads" class="chat-thread-sidebar pool-mobile-app-bar" data-thread-sidebar aria-label="Conversation controls" ${compact ? 'hidden' : ''}>
       <div class="chat-rail-toolbar pool-surface" data-chat-rail-toolbar>
       <div class="chat-rail-heading">
-      <span class="chat-thread-brand" data-thread-rail-brand>${renderBrandLink({ toolbar: true, drawer: true, href: workspaceHref('threads') })}</span>
-
-      <button class="pool-button btn-ghost chat-new-thread" type="button" data-new-thread aria-label="New thread" title="New thread">${interfaceIcon('newThread')}<span class="chat-rail-label">New thread</span></button>
+      <span class="chat-thread-brand" data-thread-rail-brand data-drawer-mark>${renderBrandLink({ toolbar: true, drawer: true, href: workspaceHref('threads') })}</span>
       </div>
       <footer class="chat-rail-footer"><div data-network-trigger-slot>${inspector ? renderInspectorNavigation({ workspace: true }) : ''}</div></footer>
       </div>
     </aside>
-    <section class="chat-threads-dialog pool-surface" hidden data-drawer-side="left" data-threads-dialog aria-labelledby="chat-threads-title">
-      <header class="chat-network-heading"><h2 class="pool-subheading pool-row pool-gap-sm" id="chat-threads-title" tabindex="-1"><span data-drawer-mark>${renderPowerTower()}</span>Reploid</h2><button class="pool-button btn-ghost pool-icon" type="button" data-close-threads aria-label="Back to chat" title="Back to chat">${interfaceIcon('close')}</button></header>
-      <button class="pool-button btn-ghost pool-row pool-gap-sm" type="button" data-drawer-new-thread>${interfaceIcon('newThread')}New thread</button>
+    <section class="chat-threads-dialog pool-surface" hidden data-drawer-side="left" data-threads-dialog aria-label="Threads">
+      <header class="chat-network-heading"><button class="pool-button btn-ghost pool-row pool-gap-sm" type="button" data-new-thread>${interfaceIcon('newThread')}New thread</button><button class="pool-button btn-ghost pool-icon" type="button" data-close-threads aria-label="Back to chat" title="Back to chat">${interfaceIcon('close')}</button></header>
       <div class="pool-segmented" role="group" aria-label="Threads"><button class="pool-segment" type="button" data-show-active aria-pressed="true">Active</button><button class="pool-segment" type="button" data-show-archived aria-pressed="false">Archived</button></div>
-      <section class="chat-thread-panel" data-thread-panel aria-labelledby="chat-threads-title">
+      <section class="chat-thread-panel" data-thread-panel aria-label="Threads">
       <div class="chat-thread-list" data-thread-list></div>
       </section>
       <div class="chat-rail-controls" data-network-header>
@@ -154,7 +151,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const railToggle = find('[data-toggle-thread-rail]');
   let workspaceNavigation = null, applyingView = false;
   const threadsDialogNode = find('[data-threads-dialog]');
-  const leftDrawer = bindDrawer(threadsDialogNode, { side: 'left' });
+  const leftDrawer = bindDrawer(threadsDialogNode, { side: 'left', markRoot: find('[data-thread-rail-brand]') });
   const allowBoth = () => (globalThis.innerWidth || 0) >= 1200;
   const rightView = () => ({ participants: 'computers' }[inspector.section?.()] || inspector.section?.());
   const setThreads = (open, reflect = true) => {
@@ -163,7 +160,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     leftDrawer.setOpen(open);
     if (!open) actionsPanel.setOpen(false);
     if (reflect && !applyingView) workspaceNavigation?.reflect(inspector.isOpen?.() ? rightView() : open ? 'threads' : 'chat', { threads: open });
-    if (open) (find('[data-thread-item-id][aria-current="true"]') || find('[data-thread-item-id]') || find('#chat-threads-title')).focus({ preventScroll: true });
+    if (open) (find('[data-thread-item-id][aria-current="true"]') || find('[data-thread-item-id]') || find('[data-new-thread]')).focus({ preventScroll: true });
   };
   const detachHandover = bindHistoryHandover(container, historyHandover);
   const detachInspector = inspector.onOpen?.(section => {
@@ -511,7 +508,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     input.focus();
   });
   const newThread = () => after(saveDraft(), () => after(session.select(null), () => { inspector.close?.({ restoreFocus: false }); chosenModel = null; viewState.chosenModel = null; archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-active]').setAttribute('aria-pressed', 'true'); actionsPanel.setOpen(false); setThreads(false); render(session.getState()); input.focus(); }));
-  for (const selector of ['[data-new-thread]', '[data-drawer-new-thread]']) on(selector, 'click', () => { try { observe(newThread()); } catch (cause) { error(cause); } });
+  on('[data-new-thread]', 'click', () => { try { observe(newThread()); } catch (cause) { error(cause); } });
   on('[data-active-model-select]', 'change', () => { chosenModel = (session.getState().models || []).find(model => (model.selectionId || model.id) === modelSelect.value); viewState.chosenModel = chosenModel; render(session.getState()); input.focus(); });
   on('[data-change-model]', 'click', () => {
     if (changingModel) return;
@@ -561,7 +558,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     find('[data-show-active]').setAttribute('aria-pressed', String(!archived));
     actionsPanel.setOpen(false); render(session.getState());
     setThreads(true);
-    (find('[data-thread-item-id]') || find('[data-drawer-new-thread]')).focus();
+    (find('[data-thread-item-id]') || find('[data-new-thread]')).focus();
   };
   on('[data-show-archived]', 'click', () => showThreads(true));
   on('[data-show-active]', 'click', () => showThreads(false));

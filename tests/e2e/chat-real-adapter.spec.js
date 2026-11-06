@@ -19,6 +19,7 @@ test('three Chrome tabs supply files, execute Doppler and receive independent ad
   for (const page of [a, b, c]) page.on('pageerror', error => errors.push(error.message));
   const history = page => page.evaluate(() => JSON.parse(localStorage.getItem('reploid.chat-workspace:v1')));
   const send = async (selection, message) => {
+    if (!await a.locator('[data-new-thread]').isVisible()) await a.locator('[data-toggle-thread-rail]').click();
     await a.locator('[data-new-thread]').click();
     await a.locator('[data-active-model-select]').selectOption(selection);
     await a.locator('[data-composer-input]').fill(message);

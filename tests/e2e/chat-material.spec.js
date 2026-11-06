@@ -410,7 +410,7 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
     const threads = page.locator('[data-thread-item-id]:visible');
     for (const mode of ['empty', 'executing', 'interrupted', 'completed']) {
       await page.evaluate(mode => { window.setVisualState(mode); if (mode !== 'empty') window.setVisualThreads(); }, mode);
-      // Threads live in a dialog; before it opens they exist but are not visible.
+      // Threads live in a drawer; before it opens they exist but are not visible.
       await expect(page.locator('[data-thread-item-id]')).toHaveCount(mode === 'empty' ? 0 : 6);
       const rail = await page.locator('[data-thread-sidebar]').boundingBox();
       const settings = await page.locator('[data-inspector-section="settings"]').boundingBox();
@@ -421,7 +421,7 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
       await expect(page.locator('[data-context-percent]')).toHaveText(mode === 'completed' ? '25%' : '—');
       await expect(page.locator('[data-composer-area] [data-execution-location]')).toHaveCount(0);
       await expect(page.locator('[data-contextual-inspector]')).not.toBeVisible();
-      const expanded = await page.locator('[data-thread-sidebar]').boundingBox();
+      const expanded = await page.locator('[data-threads-dialog]').boundingBox();
       const create = await page.locator('[data-new-thread]').boundingBox();
       expect(create.x + create.width).toBeLessThanOrEqual(expanded.x + expanded.width);
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
@@ -652,9 +652,10 @@ test('drawer sevens mirror, reverse without stale hiding, and respect reduced mo
     document.querySelector('[data-toggle-thread-rail]').click();
     document.querySelector('[data-inspector-section="settings"]').click();
     return [...document.querySelectorAll('[data-drawer-side]')].map(node => {
-      const slide = node.getAnimations()[0], marks = [...node.querySelectorAll('[data-drawer-mark] .pool-seven-main, [data-drawer-mark] .pool-seven-small')];
+      const markRoot = node.dataset.drawerSide === 'left' ? document.querySelector('[data-thread-rail-brand]') : node.querySelector('[data-drawer-mark]');
+      const slide = node.getAnimations()[0], marks = [...markRoot.querySelectorAll('.pool-seven-main, .pool-seven-small')];
       const keyframes = marks.map(mark => mark.getAnimations()[0].effect.getKeyframes()[1].transform);
-      for (const animation of node.getAnimations({ subtree: true })) { animation.pause(); animation.currentTime = 168; }
+      for (const animation of [...node.getAnimations({ subtree: true }), ...markRoot.getAnimations({ subtree: true })]) { animation.pause(); animation.currentTime = 168; }
       return { side: node.dataset.drawerSide, start: slide.effect.getKeyframes()[0].transform, keyframes };
     });
   });
@@ -720,22 +721,46 @@ for (const width of [1280, 390, 320]) test(`composer stays anchored across disco
 });
 
 
-test('discovery selects a ready model and keeps the chooser and suggestions still', async ({ page }, info) => {
-  await page.setViewportSize({ width: 390, height: 844 }); await page.goto('/');
-  await expect(page.locator('[data-chat-workspace]')).toBeVisible(); await installConversation(page, 'light');
-  const suggestions = page.locator('[data-starting-prompts]'), chooser = page.locator('[data-production-shared]');
-  const before = { prompts: await suggestions.boundingBox(), chooser: await chooser.boundingBox() };
-  for (const count of [1, 4, 2]) {
+for (const width of [1440, 390, 320]) test(`discovered model rows are complete and scroll above the composer at ${width}`, async ({ page }, info) => {
+  await page.setViewportSize({ width, height: 844 }); await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible(); await installConversation(page, 'dark');
+  const field = page.locator('[data-composer-field]'), before = await field.boundingBox();
+  for (const count of [1, 3, 8, 2]) {
     await page.evaluate(count => window.setVisualSupply(count), count);
     await expect(page.locator('[data-active-model-select]')).toHaveValue('ready-0');
     await expect(page.locator('[data-composer-send]')).toBeEnabled();
     await expect(page.locator('[data-production-use="ready-0"] [data-shared-model-action]')).toHaveText('Selected');
-    expect((await suggestions.boundingBox()).y).toBe(before.prompts.y);
-    expect((await chooser.boundingBox()).height).toBe(before.chooser.height);
+    const list = page.locator('[data-production-available]');
+    expect(await list.evaluate(node => node.scrollHeight <= node.clientHeight + 1)).toBe(true);
+    const last = page.locator(`[data-production-use="ready-${count - 1}"]`);
+    await last.scrollIntoViewIfNeeded();
+    const row = await last.boundingBox(), card = await page.locator('[data-production-shared]').boundingBox();
+    expect(row.y + row.height).toBeLessThanOrEqual(card.y + card.height);
+    const viewport = await page.locator('.chat-conversation-content').boundingBox();
+    expect(row.y).toBeGreaterThanOrEqual(viewport.y - 1);
+    expect(row.y + row.height).toBeLessThanOrEqual(viewport.y + viewport.height + 1);
+    expect(await field.boundingBox()).toEqual(before);
+    if (count === 3) await page.screenshot({ path: info.outputPath(`complete-models-${width}.png`) });
   }
-  await page.screenshot({ path: info.outputPath('ready-default.png') });
   await page.locator('[data-open-model]').click();
   await expect(page.locator('[data-next-model]')).toHaveValue('ready-0');
+});
+
+for (const width of [1440, 390]) test(`one brand and one drawer new-thread action at ${width}`, async ({ page }, info) => {
+  await page.setViewportSize({ width, height: 844 }); await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible(); await installConversation(page, 'dark');
+  await page.evaluate(() => window.setVisualSupply(3));
+  await expect(page.locator('[data-new-thread]')).toHaveCount(1);
+  await expect(page.locator('[data-thread-sidebar] [data-new-thread]')).toHaveCount(0);
+  await page.locator('[data-toggle-thread-rail]').click();
+  await expect(page.locator('[data-threads-dialog]')).toHaveAccessibleName('Threads');
+  await expect(page.locator('[data-threads-dialog] h2, [data-threads-dialog] .pool-seven-main')).toHaveCount(0);
+  await expect(page.locator('[data-new-thread]')).toBeFocused();
+  await expect(page.locator('[data-drawer-moving]')).toHaveCount(0);
+  await page.screenshot({ path: info.outputPath(`single-drawer-header-${width}.png`) });
+  await page.locator('[data-new-thread]').click();
+  await expect(page.locator('[data-threads-dialog]')).toBeHidden();
+  await expect(page.locator('[data-composer-input]')).toBeFocused();
 });
 
 

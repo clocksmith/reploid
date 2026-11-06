@@ -1,5 +1,5 @@
 /** One reversible slide. A closing drawer is inert until its visual retirement settles. */
-export function bindDrawer(node, { side, onSettled = () => {} } = {}) {
+export function bindDrawer(node, { side, markRoot = node.querySelector('[data-drawer-mark]'), onSettled = () => {} } = {}) {
   const reduced = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)');
   const direction = side === 'left' ? -1 : 1;
   let opened = false, revision = 0, slide = null, marks = [], disposed = false;
@@ -10,7 +10,7 @@ export function bindDrawer(node, { side, onSettled = () => {} } = {}) {
     if (disposed || next === opened) return;
     const current = ++revision, wasHidden = node.hidden;
     const initial = wasHidden ? `translateX(${direction * 110}%)` : getComputedStyle(node).transform;
-    const glyphs = [...node.querySelectorAll('[data-drawer-mark] .pool-seven-main, [data-drawer-mark] .pool-seven-small')];
+    const glyphs = [...(markRoot?.querySelectorAll('.pool-seven-main, .pool-seven-small') || [])];
     const previous = glyphs.map(glyph => getComputedStyle(glyph).transform);
     cancel(); opened = next; node.hidden = false; node.inert = !next;
     node.dataset.drawerMoving = next ? 'opening' : 'closing';

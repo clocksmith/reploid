@@ -42,6 +42,7 @@ test('fresh public browser completes a distributed answer', async ({ browser }, 
     expect(completed.threads[0].attempts[0].execution.placement).toBe('two-device-layer-partition');
     const firstAnswerMs = Date.now() - sent;
     const sendNew = async prompt => {
+      if (!await page.locator('[data-new-thread]').isVisible()) await page.locator('[data-toggle-thread-rail]').click();
       await page.locator('[data-new-thread]').click();
       await page.locator('[data-composer-input]').fill(prompt);
       await page.locator('[data-composer-send]').click();

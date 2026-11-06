@@ -106,6 +106,7 @@ test('open chat discovers a real contributor, streams without requester weights,
     await requester.screenshot({ path: info.outputPath('answer.png'), fullPage: true });
     const firstThreadId = completed.threads[0].id;
     const sendNew = async prompt => {
+      if (!await requester.locator('[data-new-thread]').isVisible()) await requester.locator('[data-toggle-thread-rail]').click();
       await requester.locator('[data-new-thread]').click();
       await requester.locator('[data-composer-input]').fill(prompt);
       await requester.locator('[data-composer-send]').click();
