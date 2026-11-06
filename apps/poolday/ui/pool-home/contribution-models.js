@@ -111,9 +111,7 @@ export function renderSharedModelChooser() {
 
 export function renderProductionContribution() {
   return `<section class="production-surface pool-stack pool-gap-lg" data-production-surface aria-label="AI production">
-    <details class="pool-disclosure" data-production-device><summary>Run on this device <span class="pool-muted" data-production-summary-status></span></summary>
-    <section class="pool-card pool-stack pool-gap-md" aria-label="Production">
-      <header class="pool-row pool-row-between"><h2 class="pool-subheading" data-production-status>Put this device to work</h2></header>
+    <section class="pool-stack pool-gap-md" aria-label="Production">
       <p class="pool-small" data-production-error role="alert" hidden></p>
       <div class="pool-row pool-small" data-production-local aria-label="Models" hidden></div>
       <p class="pool-small pool-muted" data-production-work hidden></p>
@@ -125,9 +123,8 @@ export function renderProductionContribution() {
       <div class="pool-stack pool-gap-xs" data-production-preparing hidden><p class="pool-small" data-production-progress-label role="status"></p><progress class="pool-progress" data-production-progress aria-label="Model preparation"></progress><button class="pool-button btn-ghost pool-small" type="button" data-production-cancel>Cancel</button></div>
       <p class="pool-caption pool-muted" data-production-settlement hidden>Waiting for cleanup</p>
       <div data-production-setup-actions><div class="pool-row pool-gap-md" data-production-model-buttons></div><p class="pool-small pool-muted" data-production-model-empty hidden>No models available</p></div>
-      <footer class="production-utilities pool-row"><button class="pool-button btn-ghost pool-small" type="button" data-production-model-options hidden>Change model</button><button class="pool-button btn-ghost pool-small" type="button" data-production-pause hidden>Pause</button></footer>
+      <footer class="production-utilities pool-row"><button class="pool-button btn-ghost pool-small" type="button" data-production-model-options hidden>Change model</button></footer>
     </section>
-    </details>
     <details class="pool-disclosure" data-production-history><summary>Contributions <span class="pool-muted" data-production-history-count></span></summary><div class="pool-stack pool-gap-sm"><p class="pool-caption pool-muted">Recent whole-model executions on this device. Session counters above reset when a model restarts. These records do not establish delivery or earnings.</p><p class="pool-small pool-muted" data-production-history-status role="status"></p><ol class="pool-list pool-small" data-production-history-records></ol></div></details>
     <dialog class="chat-model-setup pool-surface pool-stack pool-gap-md" data-production-model-dialog aria-labelledby="production-model-title"><header class="pool-row pool-row-between"><h2 class="pool-heading" id="production-model-title">Change model</h2><button class="pool-button btn-ghost pool-icon" type="button" data-production-close-models aria-label="Close">${interfaceIcon('close')}</button></header><div data-production-more-models></div></dialog>
   </section>`;
@@ -139,7 +136,7 @@ export function bindProductionControls(container, session, { inspector, onSelect
   const backgroundRoot = container.closest('.pool-home');
   const detachBackground = backgroundRoot && document.documentElement.classList.contains('pool-page') && !backgroundRoot.querySelector('.pool-math-background')
     ? bindMathematicalBackground(backgroundRoot) : () => {};
-  let last, pending = false, actionError = '', resumeCompute = false, resumeFiles = false, attention = false;
+  let last, pending = false, actionError = '', attention = false;
   const sharedRows = new Map();
   const modelsDialog = bindDialog(find('[data-production-model-dialog]'));
   const modelButtons = find('[data-production-model-buttons]');
@@ -151,8 +148,6 @@ export function bindProductionControls(container, session, { inspector, onSelect
     const needsAttention = preparing || !!last.error || last.cancellationPending;
     if (needsAttention && !attention) find('[data-production-device]').open = true;
     attention = needsAttention;
-    text('[data-production-summary-status]', last.status);
-    text('[data-production-status]', last.configured || last.active || preparing || last.stopping ? last.status : 'Put this device to work');
     text('[data-production-tokens]', number(last.outputTokens));
     text('[data-production-completed]', number(last.completed));
     text('[data-production-supplied]', bytes(last.suppliedBytes));
@@ -160,9 +155,6 @@ export function bindProductionControls(container, session, { inspector, onSelect
     text('[data-production-work]', last.phase === 'executing' ? 'Working on a request' : 'Waiting for requests');
     const error = actionError || last.error;
     text('[data-production-error]', error); find('[data-production-error]').hidden = !error;
-    const pause = find('[data-production-pause]');
-    pause.hidden = !last.configured || preparing; pause.disabled = pending || !!last.stopping;
-    pause.textContent = last.stopping ? 'Pausing' : last.active ? 'Pause' : last.status === 'Paused' ? 'Resume' : 'Start sharing';
     find('[data-production-settlement]').hidden = !last.cancellationPending;
     find('[data-production-setup-actions]').hidden = last.configured || last.active || preparing;
     const modelSlot = find(last.configured || last.active ? '[data-production-more-models]' : '[data-production-setup-actions]');
@@ -242,22 +234,6 @@ export function bindProductionControls(container, session, { inspector, onSelect
     try { await operation(); } catch (error) { actionError = error.message; }
     finally { pending = false; if (!controller.signal.aborted) render(session.getState()); }
   };
-  const pause = () => act(async () => {
-    const state = session.getState(), network = state.network || {};
-    resumeCompute = !!network.computeEnabled; resumeFiles = !!network.files?.enabled;
-    const results = await Promise.allSettled([session.setSharing(false, last.selection, false), session.setFileSharing(false, last.selection, false)]);
-    const failed = results.filter(result => result.status === 'rejected');
-    if (failed.length) throw new AggregateError(failed.map(result => result.reason), 'Could not pause all sharing. Check Settings.');
-  });
-  find('[data-production-pause]').addEventListener('click', () => {
-    if (last.active) { void pause(); return; }
-    if (!resumeCompute && !resumeFiles) { inspector?.contribute?.(last.selection, find('[data-production-pause]')); return; }
-    void act(async () => {
-      if (session.getState().network?.paused) await session.connect();
-      if (resumeCompute) await session.setSharing(true, last.selection, true);
-      if (resumeFiles) await session.setFileSharing(true, last.selection, true, { mode: 'cached-only' });
-    });
-  }, options);
   find('[data-production-cancel]').addEventListener('click', () => void act(async () => {
     if (session.getState().acquisition?.phase === 'downloading') await session.cancelModelDownload?.();
     else await session.setSharing(false, last.selection, false);

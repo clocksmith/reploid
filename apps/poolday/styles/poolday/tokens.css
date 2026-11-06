@@ -158,6 +158,8 @@
   --pool-motion-nav: 320ms cubic-bezier(0.22, 1, 0.36, 1);
   --pool-motion-nav-duration: 320ms;
   --pool-motion-nav-easing: cubic-bezier(0.22, 1, 0.36, 1);
+  --pool-layout-inspector: 380px;
+  --pool-z-overlay: 100;
   --pool-motion-button-duration: 220ms;
   --pool-motion-button-hover-duration: 230ms;
   --pool-motion-button-press-duration: 460ms;

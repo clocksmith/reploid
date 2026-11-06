@@ -4,7 +4,7 @@ import { projectNetworkPeers, bindNetworkControls, renderConnectionControl,
 
 it('offers cleanup retry instead of enabling contribution while an owner remains unsettled', async () => {
   const state = { models: [], network: { sharing: false, stopping: false,
-    contribution: { phase: 'failed', unsettledOwners: 1 } } };
+    contribution: { modelId: 'resident', phase: 'failed', unsettledOwners: 1 } } };
   let update;
   const session = { getState: () => state, setSharing: vi.fn(),
     subscribe: listener => { update = listener; listener(state); return () => {}; } };
@@ -18,7 +18,7 @@ it('offers cleanup retry instead of enabling contribution while an owner remains
     expect(root.querySelector('[data-toggle-contribution]').disabled).toBe(true);
     const retry = root.querySelector('[data-retry-contribution-stop]');
     expect(retry.hidden).toBe(false); retry.click(); await Promise.resolve();
-    expect(session.setSharing).toHaveBeenCalledWith(false, '', false);
+    expect(session.setSharing).toHaveBeenCalledWith(false, 'resident', false);
     state.network.stopping = true; update(state); expect(retry.disabled).toBe(true);
     state.network.stopping = false; state.network.contribution = { phase: 'idle', unsettledOwners: 0 }; update(state);
     expect(retry.hidden).toBe(true);
@@ -194,4 +194,17 @@ it('preserves one DOM row, its details and attempt identity through delayed obse
     expect(root.querySelectorAll('[data-computer-id]').length).toBe(1); expect(root.querySelector('[data-computer-id]')).toBe(row);
     expect(row.querySelector('details')).toBe(details); expect(details.open).toBe(true);
   } finally { dispose(); }
+});
+
+it('shows reported peer hardware without leaking host metadata or inventing local hardware', () => {
+  const state = { models: [], network: { consumer: { peers: [{ peerId: 'peer-a', model: 'model', readiness: 'ready',
+    hardware: { vendor: 'AMD', description: 'Reported adapter', hostname: 'private-machine' } }] } } };
+  const session = { getState: () => state, subscribe(fn) { fn(state); return () => {}; } };
+  const root = document.createElement('div');
+  root.innerHTML = renderConnectionControl() + renderSharingControls() + '<ul data-insp-device-list></ul><span data-network-message></span>'
+    + '<button data-mesh-invite></button><span data-mesh-peers></span><p data-local-computer></p>';
+  const dispose = bindNetworkControls(root, session);
+  expect(root.querySelector('[data-computer-hardware]').textContent).toBe('Reported GPU: AMD');
+  expect(root.querySelector('[data-local-computer]').textContent).toBe('GPU not reported');
+  expect(root.textContent).not.toContain('private-machine'); dispose();
 });

@@ -13,7 +13,8 @@ into shared AI inference capacity, with the goal of exchanging or selling the
 tokens they produce. Device contribution shows what this computer can run and
 its measured production. Owner clarification, November 6, 2026: contribution
 setup and history live under Computers, separate from chat; keep the compact
-top navigation and preferences in Settings. After reviewed initial setup, sharing stays on while the
+top navigation and preferences in Settings. Conversation inspection stays alongside
+the answer on wide screens and in a dismissible sheet on narrow screens. After reviewed initial setup, sharing stays on while the
 site is open. Pause is secondary. Resource limits and technical detail stay in
 disclosures. Earnings appear only when accounting records support them.
 Use the shared UI catalog for every element and clearly separate local UI

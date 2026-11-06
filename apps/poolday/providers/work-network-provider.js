@@ -1,4 +1,5 @@
 /** Place whole text requests without changing model identity or disclosure grants. */
+import { retainModelStorage } from '../infrastructure/model-storage-lock.js';
 import { openWorkProvider } from './work-provider.js';
 
 import { withWorkDevice } from './work-device.js';
@@ -33,12 +34,13 @@ export function createWorkNetworkProvider(options) {
         throw new Error('This device cannot execute this model');
       }
       return withWorkDevice(service, combined, async () => {
+        const releaseStorage = await retainModelStorage({ signal: combined });
         onProgress?.('Executing on this device');
         try {
           const provider = await openWorkProvider({ ...options, signal: combined });
           const result = await provider.generate(messages, onUpdate, { signal: combined });
           return result;
-        } finally { await service.close(scope); }
+        } finally { await service.close(scope); await releaseStorage(); }
       }, onProgress);
     }
   });

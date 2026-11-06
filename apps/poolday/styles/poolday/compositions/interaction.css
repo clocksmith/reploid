@@ -144,3 +144,11 @@
 .network-peer-row progress { width: 100%; height: var(--pool-size-8); accent-color: var(--pool-color-ink); }
 .pool-app-shortcuts { display: flex; gap: var(--pool-size-8); }
 .pool-app-shortcuts > .pool-button { display: flex; flex: 1; flex-direction: column; gap: var(--pool-size-4); min-width: 0; min-height: var(--pool-size-44); padding: var(--pool-size-8) var(--pool-size-4); }
+
+/* The inspection column reads a route vertically, so long pseudonyms never clip. */
+[data-inspector-route], [data-inspector-route] .execution-ribbon-machines { display: flex; flex-direction: column; align-items: stretch; gap: var(--pool-size-4); }
+[data-inspector-route] .execution-ribbon-node { grid-template-rows: auto auto; }
+[data-inspector-route] .execution-ribbon-participant { white-space: normal; overflow-wrap: anywhere; }
+[data-inspector-route] .execution-ribbon-wire { flex: none; width: var(--pool-size-16); height: var(--pool-size-16); align-self: start; }
+[data-inspector-route] .execution-ribbon-wire::before { display: none; }
+[data-inspector-route] .execution-ribbon-wire::after { transform: rotate(calc(var(--pool-angle-45) * 2)); }

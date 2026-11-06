@@ -2,6 +2,7 @@ import { createBrowserTraining } from './lora-training.js';
 import { createDopplerRuntime } from '../pool/doppler-runtime.js';
 /** Application lifetime. Detaching a route never stops an owned conversation or document task. */
 import { createReploidDopplerRuntimeService } from '../../../shared/infrastructure/doppler-runtime-service.js';
+import { createModelStorage } from './model-storage.js';
 import { watchModelCache } from './work-model-cache.js';
 import { createWorkModelFiles } from './work-model-files.js';
 import { createWorkSession } from './work-session.js';
@@ -144,6 +145,8 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
         ...(historyPorts.Channel ? { Channel: historyPorts.Channel } : {}), ...(historyPorts.reload ? { reload: historyPorts.reload } : {}) })
       : null;
     const host = {
+      modelStorage: createModelStorage({ getState: () => chat.getState(), unload: () => chat.unloadLocalModel(),
+        onRemoved: id => { cachedModels = cachedModels.filter(model => model.id !== id); chat.setCachedModels(cachedModels); } }),
       chat, swarm, evolution, webSearch, search: searchStatus, deviceSearch, contributorSearch, historyHandover,
       get training() { assertOpen(); return training ??= createBrowserTraining({ swarm }); },
       get runtime() { assertOpen(); return runtime ??= globalThis.REPLOID_DOPPLER_RUNTIME || createDopplerRuntime(); },

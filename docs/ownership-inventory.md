@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 278 |
+| apps/poolday | 281 |
 | self | 447 |
 | shared | 2219 |
-| total | 2944 |
+| total | 2947 |
 
 Every file lives in its owner's root.
 
@@ -421,6 +421,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `host/lora-training.js` | `apps/poolday/host/lora-training.js` | apps/poolday | Reached only from product entries. |
 | `host/mcp-client.js` | `apps/poolday/host/mcp-client.js` | apps/poolday | Reached only from product entries. |
 | `host/model-acquisition.js` | `apps/poolday/host/model-acquisition.js` | apps/poolday | Reached only from product entries. |
+| `host/model-storage.js` | `apps/poolday/host/model-storage.js` | apps/poolday | Reached only from product entries. |
 | `host/product-context.js` | `apps/poolday/host/product-context.js` | apps/poolday | Reached only from product entries. |
 | `host/product-session.js` | `apps/poolday/host/product-session.js` | apps/poolday | Reached only from product entries. |
 | `host/readonly-view.js` | `apps/poolday/host/readonly-view.js` | apps/poolday | Reached only from product entries. |
@@ -474,6 +475,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `infrastructure/genesis-snapshot.js` | `self/infrastructure/genesis-snapshot.js` | self | Reached only from substrate entries. |
 | `infrastructure/hitl-controller.js` | `self/infrastructure/hitl-controller.js` | self | Reached only from substrate entries. |
 | `infrastructure/intent-bundle-gate.js` | `self/infrastructure/intent-bundle-gate.js` | self | Reached only from substrate entries. |
+| `infrastructure/model-storage-lock.js` | `apps/poolday/infrastructure/model-storage-lock.js` | apps/poolday | Reached only from product entries. |
 | `infrastructure/observability.js` | `self/infrastructure/observability.js` | self | Reached only from substrate entries. |
 | `infrastructure/pack-job-storage.d.ts` | `apps/poolday/infrastructure/pack-job-storage.d.ts` | apps/poolday | Describes infrastructure/pack-job-storage.js. Reached only from product entries. |
 | `infrastructure/pack-job-storage.js` | `apps/poolday/infrastructure/pack-job-storage.js` | apps/poolday | Reached only from product entries. |
@@ -769,6 +771,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/pool-home/model-adapters.js` | `apps/poolday/ui/pool-home/model-adapters.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/model-preparation.js` | `apps/poolday/ui/pool-home/model-preparation.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/model-providers.js` | `apps/poolday/ui/pool-home/model-providers.js` | apps/poolday | Reached only from product entries. |
+| `ui/pool-home/model-storage.js` | `apps/poolday/ui/pool-home/model-storage.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/navigation.js` | `apps/poolday/ui/pool-home/navigation.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/network-controls.js` | `apps/poolday/ui/pool-home/network-controls.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/network-inspector.js` | `apps/poolday/ui/pool-home/network-inspector.js` | apps/poolday | Reached only from product entries. |

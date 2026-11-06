@@ -888,6 +888,12 @@
       ]
     },
     {
+      "path": "infrastructure/model-storage-lock.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:61a3c54c243a18942dd1c3d7aa3f6798b2a9b6adef3a462f7df6bca18810f63d",
+      "imports": []
+    },
+    {
       "path": "infrastructure/observability.js",
       "owner": "infrastructure",
       "sha256": "sha256:4cf63d537362058055af54c9b71230fd334234759236fb17d8b48a170a865d2a",
@@ -2127,8 +2133,9 @@
     {
       "path": "providers/work-network-provider.js",
       "owner": "providers",
-      "sha256": "sha256:a4b5f7832f8bd84121005d0e13af9f82185369964fd1a73023e418b278507dd1",
+      "sha256": "sha256:7a9af862d4d4b84dd5585b299ab8f7e0a5708e8d67865312956ef76255b16524",
       "imports": [
+        "../infrastructure/model-storage-lock.js",
         "./work-device.js",
         "./work-provider.js"
       ]
@@ -2146,8 +2153,9 @@
     {
       "path": "providers/work-resident-provider.js",
       "owner": "providers",
-      "sha256": "sha256:4d6814416ec8df67c52507ab2092e475190d917ea29da30e32e114fe31000d2b",
+      "sha256": "sha256:970d69d8818cc5f6245b2d70a8e709540d254560da0209e7af29c544cb9c114a",
       "imports": [
+        "../infrastructure/model-storage-lock.js",
         "../vendor/reploid/mesh/preparation-progress.js",
         "./work-device.js",
         "./work-provider.js"
@@ -2256,7 +2264,7 @@
     {
       "path": "self/host/chat-execution.js",
       "owner": "self",
-      "sha256": "sha256:b2db80b9b5b1a8a2d81efafbfc0b3358899a576a6295b3dfa4d30fcb9656dc71",
+      "sha256": "sha256:36be260a6b28a79bfa64b176f5094b0a297d57b38dcbaa524abb62ad4a0433c4",
       "imports": [
         "../providers/work-adapter.js",
         "../providers/work-generation-completion.js",
@@ -2287,7 +2295,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:14120ba87104fe8dd5876885f712c7e95e84f22b54b76692ffdf233a393a3b08",
+      "sha256": "sha256:e6bcce297470f20b96e12548a8e762552146063c48eaca0b050c40d48a5f288e",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -2446,6 +2454,16 @@
       ]
     },
     {
+      "path": "self/host/model-storage.js",
+      "owner": "self",
+      "sha256": "sha256:b826dd1261592a0ad013fc195230cfd133a4c5c23fbc14a0021a46519ddcb686",
+      "imports": [
+        "../config/doppler-local-models.js",
+        "../infrastructure/model-storage-lock.js",
+        "./work-model-cache.js"
+      ]
+    },
+    {
       "path": "self/host/product-context.js",
       "owner": "self",
       "sha256": "sha256:4aa524454a6d80ed1be948d7bf417222c3a4b89deb1a1cb6f8e0daa24a39ca72",
@@ -2461,7 +2479,7 @@
     {
       "path": "self/host/product-session.js",
       "owner": "self",
-      "sha256": "sha256:f1a5f926f83125e39cb2cf8e8ed2edcca454d8384314aca690e7abd4e3a381c5",
+      "sha256": "sha256:8934b6346d3e96c876a9bc5b0e3bfbcc6f1f507427f3b2f078c98b913a5b3c50",
       "imports": [
         "../config/doppler-metadata-contract.js",
         "../config/ordered-participation.json",
@@ -2481,6 +2499,7 @@
         "./device-search.js",
         "./history-handover.js",
         "./lora-training.js",
+        "./model-storage.js",
         "./server-search.js",
         "./swarm-autoconnect.js",
         "./web-search.js",
@@ -2643,11 +2662,12 @@
     {
       "path": "self/host/work-model-files.js",
       "owner": "self",
-      "sha256": "sha256:0b19cae1699d5e5e9ffdad7dcb18ed930dfc6515a97e86ad61d5de5f5c89ecec",
+      "sha256": "sha256:e1e4ab7e3b35d2b85a866ba2d3e333e69f3d50e2c95216d236c7252f817731b9",
       "imports": [
         "../config/chat-files.json",
         "../config/doppler-local-models.js",
         "../infrastructure/custody-supply-budget.js",
+        "../infrastructure/model-storage-lock.js",
         "../infrastructure/pack-transfer-storage.js",
         "../pool/executable-pack.js",
         "../pool/inference-receipt.js",
@@ -3518,7 +3538,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:24c2db02d00f685d50f6ff6330e1f7a754d2a189b817e77931ec19c7863bcd04",
+      "sha256": "sha256:1516aa4e92fb81e325973700df125eafddb0326be7e58b8eeb9b522b5661a6d7",
       "imports": []
     },
     {
@@ -3553,7 +3573,7 @@
     {
       "path": "ui/pool-home/contribution-models.js",
       "owner": "ui",
-      "sha256": "sha256:a9358a83b441b12efc33f35e5e8004b586ee2be7e733c0fe8970f94653fcb402",
+      "sha256": "sha256:96a78d24133568aade846286002fe83ca183fde94bb067d08f964efb33ca6a71",
       "imports": [
         "../components/dialog.js",
         "../components/html.js",
@@ -3610,7 +3630,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:fac2fc8aeffd727488a1c869d173d2300d67d678b2053be0324d5a3c283d5c5a",
+      "sha256": "sha256:73735563eec137629fb31422aa03cc812e8add4a786a89d9b7232f97c2d1bd3e",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -3671,7 +3691,7 @@
     {
       "path": "ui/pool-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:f023a5d6bd53063d8d055afea924c97088d75f4c914c970f27fbdd83b29803be",
+      "sha256": "sha256:f0353fdcbdd984ae53e7a4660d556739b97f4de83c579a1184b15a418c8b8a7c",
       "imports": [
         "../../host/credits/browser.js",
         "../../host/product-context.js",
@@ -3743,6 +3763,14 @@
       ]
     },
     {
+      "path": "ui/pool-home/model-storage.js",
+      "owner": "ui",
+      "sha256": "sha256:53ebbf69f5ae7f7ada522afb8ddbb9912f0843287e415ac15e109e443c860474",
+      "imports": [
+        "../components/dialog.js"
+      ]
+    },
+    {
       "path": "ui/pool-home/navigation.js",
       "owner": "ui",
       "sha256": "sha256:5ce4ed8fe057bdba359ca6bf18df48acedc9762cea3fb1d4048a0a0140bedc20",
@@ -3753,18 +3781,19 @@
     {
       "path": "ui/pool-home/network-controls.js",
       "owner": "ui",
-      "sha256": "sha256:9eba4421e70ea3a5eba0fd404937c3742aabe4277901fcb2283a273fd25d0e99",
+      "sha256": "sha256:6a2fe211afd17dbf4cdc19a5a526dba77b8caa9d3db13ac284d1cd1776cfc483",
       "imports": [
         "../../vendor/reploid/mesh/preparation-progress.js",
         "../components/model-select.js",
         "./computer-labels.js",
+        "./execution-ribbon.js",
         "./model-preparation.js"
       ]
     },
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:e950ea2918f68841a8b87b5cd6df07bba2b01b19b635eeb376338b19bccf30dd",
+      "sha256": "sha256:d284b2e1172beabd94178fb6b6cdcaffaf2fc9d37244d2169f82facec3af79dd",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -3774,6 +3803,7 @@
         "./auto-download.js",
         "./computer-labels.js",
         "./execution-ribbon.js",
+        "./model-storage.js",
         "./network-controls.js",
         "./remote-permission.js",
         "./theme.js",
@@ -4201,7 +4231,7 @@
     {
       "path": "ui/poolday-design/specimens.js",
       "owner": "ui",
-      "sha256": "sha256:0bf769430b5b3988e097ddb644d340b1676783d0c97f425c9e0b9c8e5150cb3b",
+      "sha256": "sha256:7279f1d85ae4212e1eab64d27e15bef607070b9265ad008456fc48e115b0bfd4",
       "imports": []
     },
     {
@@ -16229,7 +16259,7 @@
     {
       "path": "vendor/reploid/chat/scheduler.js",
       "owner": "vendor",
-      "sha256": "sha256:2ca7f740e5792dd81f752c36ed412e51306b3e537aa84a76c6c3a5b949c1a636",
+      "sha256": "sha256:f41ca9345476bd7c2d6267022b4219ab18bf9c8da489db0288ebfc92a65cd499",
       "imports": [
         "./policy.json"
       ]

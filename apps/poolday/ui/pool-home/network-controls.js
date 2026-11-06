@@ -1,3 +1,4 @@
+import { hardwareText } from './execution-ribbon.js';
 import { preparationStatus } from './model-preparation.js';
 import { publicPreparationProgress } from '../../../../shared/vendor/reploid/mesh/preparation-progress.js';
 import { computerLabel, withComputerLabels } from './computer-labels.js';
@@ -46,8 +47,8 @@ export const renderFileSharingControls = () => `<div class="network-sharing-row"
     <p data-file-limits></p>
   </div></details>`;
 
-/** The compute limits line, shown with the inference settings. */
-export const renderContributionLimits = () => '<p data-contribution-limits></p>';
+/** The compute limits line, shown with This device. */
+export const renderContributionLimits = () => '<p class="pool-caption pool-muted" data-contribution-limits></p>';
 
 /** Every sharing control in one block, for a surface that does not split them across panes. */
 export const renderSharingControls = ({ introductory = true } = {}) => `<div class="pool-stack pool-gap-md">
@@ -142,8 +143,8 @@ function renderPeerRows(list, state) {
     let row = existing.get(peer.id);
     if (!row) {
       row = list.ownerDocument.createElement('li'); row.className = 'network-peer-row'; row.dataset.computerId = peer.id;
-      row.innerHTML = '<div><div class="network-peer-heading"><strong class="pool-small" data-computer-name></strong><span class="network-status pool-chip" data-computer-status></span></div>'
-        + '<span class="pool-small pool-muted" data-computer-model></span><p class="pool-small pool-muted" data-computer-detail></p>'
+      row.innerHTML = '<div><div class="network-peer-heading"><strong class="pool-small" data-computer-name></strong><span class="network-status pool-badge" data-computer-status></span></div>'
+        + '<span class="pool-small pool-muted" data-computer-model></span><p class="pool-caption pool-muted" data-computer-hardware></p><p class="pool-small pool-muted" data-computer-detail></p>'
         + '<progress class="pool-progress" hidden></progress><details><summary>Details</summary><p data-computer-auth></p><p data-computer-stage></p><code data-computer-attempt></code><code data-computer-identity></code></details></div>';
     }
     existing.delete(peer.id);
@@ -153,6 +154,7 @@ function renderPeerRows(list, state) {
     set('[data-computer-name]', computerLabel(state, peer.id)); set('[data-computer-status]', peer.status);
     if (peer.model !== 'Model status pending') row.dataset.lastModel = peer.model;
     set('[data-computer-model]', peer.model === 'Model status pending' && row.dataset.lastModel ? `Last model: ${row.dataset.lastModel}` : peer.model); set('[data-computer-detail]', peer.detail);
+    set('[data-computer-hardware]', hardwareText(peer.hardware) ? `Reported GPU: ${hardwareText(peer.hardware)}` : 'GPU not reported');
     set('[data-computer-auth]', peer.authenticated ? 'Authenticated identity observed on this connection.' : 'Identity authentication has not been observed on this connection.');
     set('[data-computer-stage]', peer.partitionIndex === null ? peer.status : `Model stage ${peer.partitionIndex + 1} · ${peer.status}`);
     set('[data-computer-attempt]', peer.attemptId ? `Connection attempt: ${peer.attemptId}` : 'Connection attempt identity unavailable');
@@ -191,7 +193,7 @@ export function bindNetworkControls(container, session, { getInviteUrl, requestC
     const network = state.network || {}, peers = projectNetworkPeers(state);
     find('[data-toggle-introductions]')?.setAttribute('aria-checked', String(!!network.introductionAssistance));
     find('[data-mesh-invite]').hidden = network.discoveryScope !== 'private';
-    contributionSelect.disabled = !!network.sharing || !!network.stopping || !!network.files?.sharing || !!network.files?.preparing;
+    contributionSelect.disabled = !!network.files?.sharing || !!network.files?.preparing || !!network.files?.stopping;
     for (const node of container.querySelectorAll('[data-mesh-peers]')) node.textContent = peers.length + (peers.length === 1 ? ' computer' : ' computers');
     renderPeerRows(find('[data-insp-device-list]'), state);
     const discoveryState = network.consumer?.connectionState;
@@ -213,6 +215,17 @@ export function bindNetworkControls(container, session, { getInviteUrl, requestC
     const message = find('[data-network-message]');
     message.textContent = network.error || actionError || ''; message.hidden = !message.textContent;
     const cleanupPending = network.contribution?.unsettledOwners > 0;
+    const local = find('[data-local-computer]');
+    if (local) {
+      const hardware = network.contribution?.hardware || state.localModel?.hardware;
+      const id = network.supplier?.peerId || network.consumer?.peerId;
+      local.textContent = [id ? computerLabel(state, id) : null, hardwareText(hardware) ? `Reported GPU: ${hardwareText(hardware)}` : 'GPU not reported'].filter(Boolean).join(' · ');
+    }
+    const filesSummary = find('[data-file-sharing-summary]');
+    if (filesSummary) filesSummary.textContent = network.files?.sharing ? 'Model file sharing is on. Manage it in Settings → Storage.'
+      : network.files?.stopping ? 'Model file sharing is stopping.'
+      : network.files?.preparing ? 'Preparing model file sharing.'
+      : network.files?.enabled ? 'File sharing is enabled; waiting for available files. Manage it in Settings → Storage.' : 'Model file sharing is off. Manage it in Settings → Storage.';
     const deviceSummary = find('[data-device-state-summary]');
     if (deviceSummary) deviceSummary.textContent = cleanupPending ? '· Cleanup not confirmed'
       : network.stopping ? '· Stopping' : network.contribution?.phase === 'loading' ? '· ' + preparationStatus(network.contribution.progress).status
@@ -224,7 +237,7 @@ export function bindNetworkControls(container, session, { getInviteUrl, requestC
     find('[data-toggle-contribution]').disabled = !!network.stopping || cleanupPending;
     find('[data-retry-contribution-stop]').hidden = !cleanupPending;
     find('[data-retry-contribution-stop]').disabled = !!network.stopping;
-    find('[data-contribution-limits]').textContent = network.limits ? network.limits.maxInboundJobs + (network.limits.maxInboundJobs === 1 ? ' request' : ' requests') + ' at a time · ' + network.limits.maxOutputTokens + ' output tokens per request' : '';
+    find('[data-contribution-limits]').textContent = network.limits ? 'Serving limits: ' + network.limits.maxInboundJobs + (network.limits.maxInboundJobs === 1 ? ' request' : ' requests') + ' at a time · ' + network.limits.maxOutputTokens + ' output tokens per request' : '';
     const progress = network.contribution?.progress;
     const progressText = network.contribution?.phase === 'loading' ? preparationStatus(progress).detail
       : typeof progress === 'string' ? progress : progress?.message || progress?.stage || progress?.phase || '';
@@ -286,15 +299,21 @@ export function bindNetworkControls(container, session, { getInviteUrl, requestC
   on('[data-toggle-introductions]', 'click', () => act(() =>
     session.setIntroductionAssistance(!session.getState().network?.introductionAssistance)));
   on('[data-toggle-contribution]', 'click', () => act(async () => {
-    const network = session.getState().network, enable = !(network?.computeEnabled ?? network?.sharing);
+    const state = session.getState(), network = state.network, enable = !(network?.computeEnabled ?? network?.sharing);
+    const contribution = network?.contribution;
+    const configured = state.models?.find(model => model.id === contribution?.modelId
+      && JSON.stringify((model.adapters || []).map(adapter => adapter.identity)) === JSON.stringify(contribution?.adapterIdentities || []));
+    if (enable && contribution?.adapterIdentities?.length && !configured) throw new Error('The configured adapter is unavailable. Choose a model to review its setup.');
+    const selected = configured || state.models?.find(model => !model.partition && model.source && model.provider === 'doppler');
+    const modelId = contribution?.selectionId || (enable ? selected?.selectionId || selected?.id : contribution?.modelId);
     if (enable) {
       if (!requestContribution) throw new Error('Review the model download before contributing');
-      return requestContribution(contributionSelect.value, find('[data-toggle-contribution]'));
+      return requestContribution(modelId, find('[data-toggle-contribution]'));
     }
-    return session.setSharing(false, contributionSelect.value, false);
+    return session.setSharing(false, modelId, false);
   }));
   on('[data-retry-contribution-stop]', 'click', () => act(() =>
-    session.setSharing(false, contributionSelect.value, false)));
+    session.setSharing(false, session.getState().network?.contribution?.modelId, false)));
   on('[data-file-mode]', 'change', () => render(session.getState()));
   on('[data-toggle-file-contribution]', 'click', () => act(async () => {
     const network = session.getState().network, files = network?.files;

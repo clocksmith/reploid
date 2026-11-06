@@ -257,3 +257,23 @@ for (const acquisition of ['prepare', 'schedule']) {
     expect(scheduler.getState().cleanup.status).toBe('failed');
   });
 }
+
+it('unloads idle residency without closing the scheduler and can prepare it again', async () => {
+  const close = vi.fn(), open = vi.fn(async () => ({ run() {}, reset() {}, setAdapters() {}, close }));
+  const scheduler = createChatScheduler({ open, observe() {} });
+  await scheduler.prepare(model); await scheduler.unload();
+  expect(close).toHaveBeenCalledOnce(); expect(scheduler.getState().residentIdentity).toBeNull();
+  await scheduler.prepare(model); expect(open).toHaveBeenCalledTimes(2); await scheduler.close();
+});
+
+it('refuses unloading active work and retains failed cleanup for a retry', async () => {
+  const gate = deferred(), run = vi.fn(async () => gate.promise), close = vi.fn().mockRejectedValueOnce(Error('Still in use')).mockResolvedValue(undefined);
+  const scheduler = createChatScheduler({ open: async () => ({ run, reset() {}, setAdapters() {}, close }), observe() {} });
+  const pending = scheduler.schedule(request('alice', 'active'), { signal: new AbortController().signal });
+  await vi.waitFor(() => expect(run).toHaveBeenCalledOnce());
+  expect(() => scheduler.unload()).toThrow('Wait'); expect(close).not.toHaveBeenCalled();
+  gate.resolve(); await pending;
+  await expect(scheduler.unload()).rejects.toThrow('Still in use');
+  expect(scheduler.getState().residentIdentity).toBe(model.identity);
+  await scheduler.unload(); expect(close).toHaveBeenCalledTimes(2); await scheduler.close();
+});

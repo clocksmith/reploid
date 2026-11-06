@@ -1,3 +1,4 @@
+import { retainModelStorage } from '../infrastructure/model-storage-lock.js';
 import { retainedModelSource } from './model-acquisition.js';
 import { announceModelCacheChange } from './work-model-cache.js';
 import { resolvePartitionArtifactSource } from './work-partition-artifact-source.js';
@@ -47,6 +48,7 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
   const pinned = new Set(), lastUsed = new Map();
   const storageOperations = new Set();
   let acquisitionBudget = null, acquisitionOpening = null, acquisitionRead = null, acquisitionError = null, sharingMode = null;
+  let releaseStorage = null;
   let supplyController = null, sharedModel = null, budget = null, budgetOpening = null, budgetError = null;
   const supplyBudget = { getState: () => budget?.getState() || null,
     reserve(bytes) { if (!budget) throw budgetError || new Error('Persistent file contribution budget unavailable'); return budget.reserve(bytes); } };
@@ -287,71 +289,75 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
     custodyCertificate: () => custodyCertificate(), getDeliveryEvidence: () => structuredClone(deliveries),
     async preparePartitionSource(model, { signal, onProgress }) {
       signal = AbortSignal.any([signal, lifetime.signal].filter(Boolean));
-      const custody = { queueMs: 0, peerTransferMs: 0, cacheReadMs: 0, peerBytes: 0, cacheBytes: 0, transfers: 0, failures: 0 };
-      const retained = async file => {
-        const started = performance.now();
-        try { const bytes = await cached(file); custody.cacheBytes += bytes?.byteLength || 0; return bytes; }
-        finally { custody.cacheReadMs += performance.now() - started; }
-      };
-      const { manifest, manifestText, files } = await modelFiles(model, signal, onProgress);
-      const descriptor = files.find(file => file.role === 'model-piece-index');
-      assert(descriptor, 'Model requires a pinned piece index for selective partition acquisition');
-      const indexBytes = await read(descriptor, { signal, onProgress });
-      const { createVerifiedPieceStorage } = await import(DOPPLER_PARTITIONS_MODULE_URL);
-      let opened, sourceClosed = false;
-      const acquire = async (piece, controls) => {
-        assert(!sourceClosed, 'Partition artifact source is closed');
-        const combined = AbortSignal.any([signal, controls.signal].filter(Boolean));
-        combined.throwIfAborted();
-        const file = files.find(file => file.path === piece.path);
-        assert(file, 'Piece source is not in the verified model');
-        const saved = { path: `piece-${piece.identity.slice(7)}.bin`, role: file.role,
-          sizeBytes: piece.size, hashAlgorithm: 'sha256', hash: piece.identity.slice(7) };
-        const existing = await retained(saved);
-        combined.throwIfAborted();
-        if (existing) return existing;
-        assert(exchange?.has(saved) || exchange?.has(file), 'No peer offers the required verified model piece');
-        const queuedAt = performance.now();
-        const release = await acquirePieceSlot(combined);
-        custody.queueMs += performance.now() - queuedAt;
-        try {
-          const present = await retained(saved);
-          combined.throwIfAborted();
-          if (present) return present;
-          onProgress?.({ stage: 'acquiring', path: piece.path,
-            message: 'Receiving required model pieces' });
+      const release = await retainModelStorage({ signal });
+      let opened;
+      try {
+        const custody = { queueMs: 0, peerTransferMs: 0, cacheReadMs: 0, peerBytes: 0, cacheBytes: 0, transfers: 0, failures: 0 };
+        const retained = async file => {
           const started = performance.now();
+          try { const bytes = await cached(file); custody.cacheBytes += bytes?.byteLength || 0; return bytes; }
+          finally { custody.cacheReadMs += performance.now() - started; }
+        };
+        const { manifest, manifestText, files } = await modelFiles(model, signal, onProgress);
+        const descriptor = files.find(file => file.role === 'model-piece-index');
+        assert(descriptor, 'Model requires a pinned piece index for selective partition acquisition');
+        const indexBytes = await read(descriptor, { signal, onProgress });
+        const { createVerifiedPieceStorage } = await import(DOPPLER_PARTITIONS_MODULE_URL);
+        let sourceClosed = false;
+        const acquire = async (piece, controls) => {
+          assert(!sourceClosed, 'Partition artifact source is closed');
+          const combined = AbortSignal.any([signal, controls.signal].filter(Boolean));
+          combined.throwIfAborted();
+          const file = files.find(file => file.path === piece.path);
+          assert(file, 'Piece source is not in the verified model');
+          const saved = { path: `piece-${piece.identity.slice(7)}.bin`, role: file.role,
+            sizeBytes: piece.size, hashAlgorithm: 'sha256', hash: piece.identity.slice(7) };
+          const existing = await retained(saved);
+          combined.throwIfAborted();
+          if (existing) return existing;
+          assert(exchange?.has(saved) || exchange?.has(file), 'No peer offers the required verified model piece');
+          const queuedAt = performance.now();
+          const release = await acquirePieceSlot(combined);
+          custody.queueMs += performance.now() - queuedAt;
           try {
-            const bytes = exchange.has(saved) ? await exchange.acquire(saved, { signal: combined })
-              : await exchange.acquire(file, { signal: combined,
-                range: { offset: piece.offset, size: piece.size, identity: piece.identity } });
-            custody.transfers++; custody.peerBytes += bytes.byteLength; return bytes;
-          } catch (cause) { custody.failures++; throw cause; }
-          finally { custody.peerTransferMs += performance.now() - started; }
-        } finally { release(); }
-      };
-      opened = await createVerifiedPieceStorage({ manifestBytes: new TextEncoder().encode(manifestText).buffer,
-        indexBytes: indexBytes.slice().buffer, indexIdentity: 'sha256:' + descriptor.hash, signal, acquire });
-      const pieceIndex = JSON.parse(decoder.decode(indexBytes));
-      const admittedFile = artifact => {
-        assert(!sourceClosed, 'Partition artifact source is closed');
-        return resolvePartitionArtifactSource(model, manifest, files, artifact);
-      };
-      const artifactStore = Object.freeze({
-        async readArtifact(artifact, controls = {}) {
-          const file = admittedFile(artifact);
-          assert(file.role !== 'model-weights', 'Resident weights require complete pinned piece ranges');
-          return read(file, { signal: AbortSignal.any([signal, controls.signal].filter(Boolean)), onProgress });
-        },
-        async readArtifactRange(artifact, offset, size, controls = {}) {
-          const file = admittedFile(artifact);
-          const piece = pieceIndex.files.find(row => row.path === file.path)?.pieces
-            .find(piece => piece.offset === offset && piece.size === size);
-          assert(piece, 'Capsule range is not a complete pinned piece');
-          return acquire({ ...piece, path: file.path }, controls);
-        }
-      });
-      return { manifest, storage: { ...opened.storage, async close() { sourceClosed = true; await opened.storage.close(); } }, artifactStore, getReceipt: () => ({ ...opened.getReceipt(), custody: { ...custody } }) };
+            const present = await retained(saved);
+            combined.throwIfAborted();
+            if (present) return present;
+            onProgress?.({ stage: 'acquiring', path: piece.path,
+              message: 'Receiving required model pieces' });
+            const started = performance.now();
+            try {
+              const bytes = exchange.has(saved) ? await exchange.acquire(saved, { signal: combined })
+                : await exchange.acquire(file, { signal: combined,
+                  range: { offset: piece.offset, size: piece.size, identity: piece.identity } });
+              custody.transfers++; custody.peerBytes += bytes.byteLength; return bytes;
+            } catch (cause) { custody.failures++; throw cause; }
+            finally { custody.peerTransferMs += performance.now() - started; }
+          } finally { release(); }
+        };
+        opened = await createVerifiedPieceStorage({ manifestBytes: new TextEncoder().encode(manifestText).buffer,
+          indexBytes: indexBytes.slice().buffer, indexIdentity: 'sha256:' + descriptor.hash, signal, acquire });
+        const pieceIndex = JSON.parse(decoder.decode(indexBytes));
+        const admittedFile = artifact => {
+          assert(!sourceClosed, 'Partition artifact source is closed');
+          return resolvePartitionArtifactSource(model, manifest, files, artifact);
+        };
+        const artifactStore = Object.freeze({
+          async readArtifact(artifact, controls = {}) {
+            const file = admittedFile(artifact);
+            assert(file.role !== 'model-weights', 'Resident weights require complete pinned piece ranges');
+            return read(file, { signal: AbortSignal.any([signal, controls.signal].filter(Boolean)), onProgress });
+          },
+          async readArtifactRange(artifact, offset, size, controls = {}) {
+            const file = admittedFile(artifact);
+            const piece = pieceIndex.files.find(row => row.path === file.path)?.pieces
+              .find(piece => piece.offset === offset && piece.size === size);
+            assert(piece, 'Capsule range is not a complete pinned piece');
+            return acquire({ ...piece, path: file.path }, controls);
+          }
+        });
+        return { manifest, storage: { ...opened.storage, async close() { sourceClosed = true; await opened.storage.close(); await release(); } }, artifactStore, getReceipt: () => ({ ...opened.getReceipt(), custody: { ...custody } }) };
+      } catch (error) { await opened?.storage.close(); await release(); throw error; }
     },
     async prepareSource(model, { signal, onProgress, cacheOnly = false } = {}) {
       if (cacheOnly) {
@@ -391,7 +397,7 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
       return ownStorage((async () => {
         assert(approved === true, 'Approve distributing model files separately from compute');
         assert(['cached-only', 'bounded-acquisition', 'full-model'].includes(mode), 'Unknown file contribution mode');
-        assert(!preparing && !stopping && !exchange?.getState().sharing, 'Stop file contribution before changing its mode');
+        assert(!releaseStorage && !preparing && !stopping && !exchange?.getState().sharing, 'Stop file contribution before changing its mode');
         assert(Number.isSafeInteger(downloadBytes) && downloadBytes > 0 && downloadBytes <= policy.maxAcquisitionBytes, 'Invalid approved download allowance');
         preparing = true; error = ''; sharingMode = mode;
         sharedModel = { id: model.id, name: model.name }; supplyController = new AbortController();
@@ -399,6 +405,7 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
         const onProgress = value => { progress = value; notify(); };
         const controls = mode === 'cached-only' ? { cacheOnly: true } : { reserveDownload };
         try {
+          releaseStorage = await retainModelStorage({ signal });
           await attach(); await root(); signal.throwIfAborted();
           if (budgetError) throw budgetError;
           if (mode !== 'cached-only') {
@@ -485,21 +492,26 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
             assert(inventory.some(file => file.path.startsWith('piece-')), 'No verified model pieces are available within the approved allowance');
           }
           signal.throwIfAborted(); exchange.offer(inventory);
-        } catch (cause) { pinned.clear(); exchange?.stopSupply(); error = cause.message; throw cause; }
+        } catch (cause) { pinned.clear(); await exchange?.stopSupply(); await releaseStorage?.(); releaseStorage = null; error = cause.message; throw cause; }
         finally { preparing = false; progress = null; notify(); }
       })());
     },
     async stop() {
       stopping = true; sharedModel = null; supplyController?.abort(new Error('File contribution stopped'));
       const supplySettlement = exchange?.stopSupply(); notify();
-      try { await Promise.allSettled([...storageOperations, supplySettlement]); pinned.clear(); }
+      try {
+        const settled = await Promise.allSettled([...storageOperations, supplySettlement]);
+        if (settled.at(-1).status === 'rejected') throw settled.at(-1).reason;
+        pinned.clear(); await releaseStorage?.(); releaseStorage = null;
+      }
+      catch (cause) { error = cause.message; throw cause; }
       finally { stopping = false; notify(); }
     },
     getReceipts: () => structuredClone(receipts),
     async close() {
       closed = true; lifetime.abort(new Error('File exchange closed')); const retiring = exchange?.close();
       await attaching?.catch(() => {}); await exchange?.close(); await retiring;
-      await Promise.allSettled([...operations]);
+      await Promise.allSettled([...operations]); await releaseStorage?.(); releaseStorage = null;
       await budgetOpening; await acquisitionOpening?.catch(() => {}); acquisitionBudget?.close(); budget?.close(); checkpoints?.close(); exchange = null; lastFile = null;
     }
   });

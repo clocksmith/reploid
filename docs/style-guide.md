@@ -192,7 +192,7 @@ Use markdown checkboxes instead of emoji:
 
 Poolday is built in three layers, and each layer uses only the one below it:
 
-- **Tokens** (`self/styles/poolday/tokens.css`) are every value: one neutral gray
+- **Tokens** (`apps/poolday/styles/poolday/tokens.css`) are every value: one neutral gray
   ramp named by lightness (`--pool-gray-13` is `#202020`), the prism palette (obsidian
   void for dark, silica for light, one spectrum), alpha steps, and scales for
   size, radius, border, text, line height, weight and tracking. Semantic tokens
@@ -206,7 +206,7 @@ Poolday is built in three layers, and each layer uses only the one below it:
   composition only arranges (grid, flex, position, size, gaps); every look comes from
   primitive classes in the markup.
 
-`self/pool-entry.html` loads only these layers, in the order `layers.json` lists, and
+`apps/poolday/pool-entry.html` loads only these layers, in the order `layers.json` lists, and
 its root carries `class="pool-page"` so the page shell uses the same tokens.
 `index.html` can host Poolday routes, so `rd.css` and `boot.css` exclude the
 `.pool-home` subtree from every selector. Keep Zero and X independent.
@@ -218,6 +218,28 @@ its root carries `class="pool-page"` so the page shell uses the same tokens.
 | Layout | `pool-stack`, `pool-row` (`pool-row-between`, `pool-row-end`), `pool-columns`, `pool-gap-xs` to `pool-gap-xl`, `pool-grow` |
 | Text | `pool-title`, `pool-heading`, `pool-subheading`, `pool-body`, `pool-small`, `pool-caption`, `pool-label`, `pool-muted`, `pool-mono`, `pool-mark`, `pool-facts`, `pool-plain`, `pool-prose` |
 | Feedback | `pool-bar`, `pool-dot`, `pool-reveal` with `pool-reveal-host`, `pool-glass`, `pool-glass-focus`, `pool-activity-edge` |
+
+
+Use links for URL-backed destinations (Threads, Computers, Settings); use buttons
+for actions (New thread, Send), toggles and opening bounded choices. Toolbar links
+and actions share the quiet `btn-ghost` treatment. Reserve `btn-primary` for the
+main commitment; a static status uses `pool-badge`, not an action chip. Starter
+prompts use `button.pool-chip`, with a subtle border and no raised button shadow.
+Legacy `.btn` and `.panel` markup aliases the control/card recipes; do not add
+another material definition or use those aliases in new components.
+
+Computers owns connection, reported hardware, answering requests, serving limits
+and contribution history. Settings owns preferences, storage and file sharing,
+permissions and account controls. Conversation inspection owns the answer's recorded
+route and usage; available computers are a separate observation. Keep the compact
+top navigation and mobile dock. Inspection sits beside the answer on wide screens
+and in a dismissible sheet on narrow screens; management destinations use the
+workspace. Model selection and destructive confirmation use dialogs.
+
+The bottom-centered composer contains one row of Attach, optional Search, Model,
+Context and Send/Stop controls beneath the text. Outside it, show only actionable
+status or progress. Reuse existing semantic tokens; token count alone is not a
+reason to rename the public CSS contract.
 
 ```html
 <section class="pool-card pool-stack pool-gap-sm">

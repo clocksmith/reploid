@@ -221,3 +221,28 @@ it('rejects loader callbacks after preparation settles without altering ready ex
   expect((await f.owner.generate([{ content: 'Still usable' }], () => {}, { signal: signal() })).content).toBe('Still usable');
   await f.owner.close();
 });
+
+it('keeps the cache lease through failed GPU cleanup and releases it only after successful retirement', async () => {
+  const { withUnusedModelStorage, MODEL_STORAGE_LOCK } = await import('../../apps/poolday/infrastructure/model-storage-lock.js');
+  let held = false;
+  const locks = { async request(name, options, operation) {
+    if (name !== MODEL_STORAGE_LOCK) return operation({ name });
+    if (held && options.ifAvailable) return operation(null);
+    held = true; try { return await operation({ name }); } finally { held = false; }
+  } };
+  const descriptor = Object.getOwnPropertyDescriptor(navigator, 'locks');
+  Object.defineProperty(navigator, 'locks', { configurable: true, value: locks });
+  const f = fixture();
+  try {
+    await f.owner.prepare();
+    await expect(withUnusedModelStorage(() => 'remove', locks)).rejects.toThrow('in use');
+    f.service.close.mockRejectedValueOnce(Error('GPU cleanup incomplete'));
+    await expect(f.owner.close()).rejects.toThrow('GPU cleanup incomplete');
+    await expect(withUnusedModelStorage(() => 'remove', locks)).rejects.toThrow('in use');
+    await f.owner.close();
+    expect(await withUnusedModelStorage(() => 'remove', locks)).toBe('remove');
+  } finally {
+    await f.owner.close();
+    if (descriptor) Object.defineProperty(navigator, 'locks', descriptor); else delete navigator.locks;
+  }
+});

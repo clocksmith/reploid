@@ -18,7 +18,7 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 278,
+    "apps/poolday": 281,
     "self": 447,
     "shared": 2219
   },
@@ -2329,6 +2329,12 @@
       "basis": "Reached only from product entries."
     },
     {
+      "served": "host/model-storage.js",
+      "source": "apps/poolday/host/model-storage.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
       "served": "host/product-context.js",
       "source": "apps/poolday/host/product-context.js",
       "owner": "apps/poolday",
@@ -2645,6 +2651,12 @@
       "source": "self/infrastructure/intent-bundle-gate.js",
       "owner": "self",
       "basis": "Reached only from substrate entries."
+    },
+    {
+      "served": "infrastructure/model-storage-lock.js",
+      "source": "apps/poolday/infrastructure/model-storage-lock.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
     },
     {
       "served": "infrastructure/observability.js",
@@ -4413,6 +4425,12 @@
     {
       "served": "ui/pool-home/model-providers.js",
       "source": "apps/poolday/ui/pool-home/model-providers.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "ui/pool-home/model-storage.js",
+      "source": "apps/poolday/ui/pool-home/model-storage.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },

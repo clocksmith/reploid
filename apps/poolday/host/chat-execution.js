@@ -124,6 +124,7 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
     /** The disclosure a request for this model would make, or null when it runs on this device. */
     remoteDisclosure: (model, sharingScope, location) => runsHere(model, sharingScope, location) ? null : remoteDisclosureKind(model),
     prepareLocal: model => sessionScheduler.prepare(model),
+    async unloadLocal() { assert(!scheduler, 'A borrowed scheduler cannot be unloaded here'); await sessionScheduler.unload(); local = null; onChange(); },
     getLocalState: () => local ? structuredClone(local) : null,
     getState: () => structuredClone(sessionScheduler.getState()),
     close() {

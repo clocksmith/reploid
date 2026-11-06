@@ -222,5 +222,7 @@ export function createChatScheduler(options: {
     signal: AbortSignal; onDelta?(delta: string): void; onState?(status: string): void;
   }): Promise<unknown>;
   prepare(model: ChatModel): Promise<void>;
+  /** Retire only an idle owned resident; retain the scheduler for later requests. */
+  unload(): Promise<void>;
   close(): Promise<void>;
 };

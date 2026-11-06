@@ -550,3 +550,54 @@ for (const viewport of [{ width: 1280, height: 720 }, { width: 390, height: 844 
     await page.screenshot({ path: info.outputPath('home-composer.png'), fullPage: true });
   });
 }
+
+for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }, { width: 320, height: 740 }]) {
+  test(`integrated composer and contextual inspection at ${viewport.width}`, async ({ page }, info) => {
+    await page.setViewportSize(viewport); await page.goto('/');
+    await expect(page.locator('[data-chat-workspace]')).toBeVisible(); await installConversation(page, 'dark');
+    await page.evaluate(() => window.setVisualState('completed'));
+    const input = page.locator('[data-composer-input]'); await input.fill('Keep my exact draft');
+    await input.evaluate(node => node.setSelectionRange(5, 9));
+    const field = await page.locator('[data-composer-field]').boundingBox();
+    const text = await input.boundingBox();
+    for (const selector of ['.chat-file-label', '[data-open-model]', '[data-context-indicator]', '[data-composer-send]']) {
+      const rect = await page.locator(selector).boundingBox();
+      expect(rect.y).toBeGreaterThanOrEqual(text.y + text.height);
+      expect(rect.x).toBeGreaterThanOrEqual(field.x); expect(rect.x + rect.width).toBeLessThanOrEqual(field.x + field.width);
+      expect(rect.height).toBeGreaterThanOrEqual(44);
+    }
+    await page.locator('[data-context-indicator]').click();
+    await expect(page.locator('[data-conversation-area]')).toBeVisible();
+    await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
+    const chat = await page.locator('[data-conversation-area]').boundingBox(), pane = await page.locator('[data-chat-inspector-slot]').boundingBox();
+    if (viewport.width >= 1100) expect(pane.x).toBeGreaterThanOrEqual(chat.x + chat.width);
+    else { expect(pane.y).toBeGreaterThan(chat.y); expect(pane.y + pane.height).toBeLessThanOrEqual(viewport.height); }
+    expect(await page.locator('[data-inspector-route]').evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
+    await page.screenshot({ path: info.outputPath('conversation-inspection.png') });
+    await page.keyboard.press('Escape');
+    await expect(page.locator('[data-context-indicator]')).toBeFocused();
+    await expect(input).toHaveValue('Keep my exact draft');
+    expect(await input.evaluate(node => [node.selectionStart, node.selectionEnd])).toEqual([5, 9]);
+    await page.locator('[data-open-model]').click();
+    await expect(page.locator('[data-model-picker-close]')).toBeInViewport();
+    await expect(page.locator('[data-change-model]')).toBeInViewport();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  });
+}
+
+test('browser storage leases prevent removal across tabs until every owner releases', async ({ page, context }) => {
+  await context.route('**/storage-proof.html', route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Storage lock proof</title>' }));
+  await page.goto('/storage-proof.html');
+  const other = await context.newPage(); await other.goto('/storage-proof.html');
+  for (const tab of [page, other]) await tab.evaluate(async () => {
+    const { retainModelStorage } = await import('/infrastructure/model-storage-lock.js');
+    window.releaseStorageProof = await retainModelStorage();
+  });
+  const attempt = () => page.evaluate(async () => {
+    const { withUnusedModelStorage } = await import('/infrastructure/model-storage-lock.js');
+    try { return await withUnusedModelStorage(() => 'unused'); } catch (error) { return error.message; }
+  });
+  expect(await attempt()).toContain('in use');
+  await page.evaluate(() => window.releaseStorageProof()); expect(await attempt()).toContain('in use');
+  await other.evaluate(() => window.releaseStorageProof()); expect(await attempt()).toBe('unused'); await other.close();
+});

@@ -22,7 +22,7 @@
   -webkit-backdrop-filter: var(--pool-surface-backdrop);
   backdrop-filter: var(--pool-surface-backdrop);
 }
-.pool-home .pool-card {
+.pool-home :is(.pool-card, :where(.panel)) {
   padding: var(--pool-size-24);
   border: var(--pool-border-hairline) solid var(--pool-color-line);
   border-radius: var(--pool-radius-panel);

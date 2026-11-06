@@ -71,13 +71,13 @@ const PRIMITIVES = [
   </div>` },
   { id: 'choices', title: 'Choices and labels: pool-segmented, pool-chip, pool-badge, pool-dot', render: async () => `<div class="pool-stack pool-gap-md">
     <div class="pool-segmented" role="group" aria-label="Segmented"><button class="pool-segment" type="button" aria-pressed="true">One</button><button class="pool-segment" type="button" aria-pressed="false">Two</button><button class="pool-segment" type="button" aria-pressed="false">Three</button></div>
-    <div class="pool-row"><span class="pool-chip">pool-chip</span><span class="pool-chip pool-dot">Ready</span><span class="pool-badge">pool-badge</span><span class="pool-dot pool-small">pool-dot</span><span class="pool-dot pool-dot-open pool-small">pool-dot-open</span></div>
+    <div class="pool-row"><button class="pool-chip" type="button">Suggested prompt</button><span class="pool-badge pool-dot">Ready</span><span class="pool-badge">pool-badge</span><span class="pool-dot pool-small">pool-dot</span><span class="pool-dot pool-dot-open pool-small">pool-dot-open</span></div>
   </div>` },
   { id: 'disclosure', title: 'Disclosure: pool-disclosure', render: async () => `<details class="pool-disclosure" open><summary>Options <span>2 set</span></summary><p class="pool-small">Disclosed content.</p></details>` },
   { id: 'layout', title: 'Layout: pool-stack, pool-row, pool-columns, pool-gap-*, pool-grow', render: async () => `<div class="pool-stack pool-gap-lg">
-    <div class="pool-row pool-row-between pds-outline"><span class="pool-chip">pool-row</span><span class="pool-chip">pool-row-between</span></div>
-    <div class="pool-row pds-outline"><span class="pool-chip">fixed</span><span class="pool-chip pool-grow">pool-grow</span><span class="pool-chip">fixed</span></div>
-    <div class="pool-stack pool-gap-xs pds-outline"><span class="pool-chip">pool-stack</span><span class="pool-chip">pool-gap-xs</span></div>
+    <div class="pool-row pool-row-between pds-outline"><span class="pool-badge">pool-row</span><span class="pool-badge">pool-row-between</span></div>
+    <div class="pool-row pds-outline"><span class="pool-badge">fixed</span><span class="pool-badge pool-grow">pool-grow</span><span class="pool-badge">fixed</span></div>
+    <div class="pool-stack pool-gap-xs pds-outline"><span class="pool-badge">pool-stack</span><span class="pool-badge">pool-gap-xs</span></div>
     <div class="pool-columns pds-outline">${['One', 'Two', 'Three'].map((label) => `<span class="pool-well pool-small">pool-columns: ${label}</span>`).join('')}</div>
   </div>` },
   { id: 'text', title: 'Text: pool-title, pool-heading, pool-subheading, pool-body, pool-small, pool-caption, pool-label, pool-muted, pool-mono, pool-mark, pool-wordmark', render: async () => `<div class="pool-stack pool-gap-sm">

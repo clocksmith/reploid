@@ -20,7 +20,7 @@ Outputs: [production](production.js), [conversations](conversation-workspace.js)
 - Cached files, loaded models, readiness, execution, completion and settlement remain distinct. Earnings require accounting; simulations prove no production.
 - Brief labels, values and actions; explanations through setup, tooltips or details.
 - Reuse catalog components, tokens, gutters, accessible themes and responsive scrolling. Charcoal, prism, grids; mathematical decoration never signals execution. Respect reduced motion.
-- Reploid header; aligned actions. Threads, Computers and Settings are URL-backed workspace destinations; bounded choices and confirmations use dialogs. No left rail or nested Options.
+- Reploid header; aligned actions. Threads, Computers and Settings are URL-backed workspace destinations; bounded choices and confirmations use dialogs. Conversation inspection stays alongside the answer on wide screens and in a dismissible sheet on narrow screens. No left rail or nested Options.
 - Storage belongs in Settings. Chat opens without capacity; sending enforces readiness and disclosure.
 - Independent threads retain history, permissions and attempts. Selection never cancels work. Keep failures, Stop and incomplete cleanup visible.
 - Discovery, cached files and viewing grant nothing. Compute, file, training and remote disclosures retain separate permissions. Preserve local-only boundaries and opt-outs.

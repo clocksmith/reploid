@@ -135,6 +135,12 @@ export function createChatScheduler({ open, observe, policy = defaults, now = Da
       })().finally(() => { preparing = null; preparingIdentity = null; });
       return preparing;
     },
+    unload() {
+      assert(!closed, 'Scheduler is closed');
+      assert(!active && !queued() && !preparing, 'Wait for current conversations before unloading the local model');
+      preparing = retire().finally(() => { preparing = null; preparingIdentity = null; });
+      return preparing;
+    },
     getState: () => ({ queued: queued(), activeAttemptId: active?.request.attemptId || null, residentIdentity, closed,
       cleanup: cleanup ? { ...cleanup } : null }),
     schedule(request, { signal, onDelta = () => {}, onState = () => {} }) {

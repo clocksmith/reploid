@@ -86,20 +86,24 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
         <div class="chat-composer-field pool-input pool-glass pool-glass-focus pool-activity-edge pool-focus-within" data-composer-field>
           <div class="chat-attachments" data-attachments-preview hidden></div>
           <textarea class="pool-bare pool-body" id="chat-message" data-composer-input rows="1" required placeholder="Ask a question…"></textarea>
+          <div class="chat-composer-toolbar">
           <label class="pool-button btn-ghost pool-icon pool-file chat-file-label pool-focus-within" title="Attach files">${interfaceIcon('attach')}<span class="chat-visually-hidden">Attach files</span><input type="file" multiple data-composer-files accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
+          <button class="pool-button btn-ghost chat-search-toggle" type="button" data-search-toggle aria-pressed="false" aria-label="Search for this answer" title="Search for this answer" hidden>${interfaceIcon('search')}<span class="pool-caption" data-web-search-on hidden>Search</span></button>
+          <button class="pool-button chat-composer-model btn-ghost pool-activity-edge" type="button" data-open-model aria-label="Choose model" title="Choose model">${interfaceIcon('model')}<small class="pool-muted" data-model-digest></small></button>
+          ${renderContextIndicator()}
           <div class="chat-composer-submit">
-          <button class="pool-button btn-ghost pool-icon" type="button" data-search-toggle aria-pressed="false" aria-label="Search for this answer" title="Search for this answer" hidden>${interfaceIcon('search')}</button>
             <button class="pool-button btn-primary pool-icon" type="submit" data-composer-send aria-label="Send" title="Send">${interfaceIcon('send')}</button>
             <button class="pool-button btn-primary pool-icon" type="button" data-composer-stop aria-label="Stop" title="Stop" hidden>${interfaceIcon('stop')}</button>
           </div>
         </div>
-        <div class="chat-composer-notices"><button class="pool-button chat-composer-model btn-ghost pool-activity-edge" type="button" data-open-model aria-label="Choose model" title="Choose model">${interfaceIcon('model')}<small class="pool-muted" data-model-digest></small></button>${renderContextIndicator()}<button class="pool-button btn-ghost pool-caption" type="button" data-open-limits hidden></button><span class="pool-chip" data-web-search-on hidden>Search on</span><button class="pool-button btn-ghost pool-caption" type="button" data-composer-status hidden></button><button class="pool-button btn-ghost pool-caption" type="button" data-retry-connection aria-label="Retry connection" hidden>Retry</button></div>
+        </div>
+        <div class="chat-composer-notices"><button class="pool-button btn-ghost pool-caption" type="button" data-composer-status hidden></button><button class="pool-button btn-ghost pool-caption" type="button" data-retry-connection aria-label="Retry connection" hidden>Retry</button></div>
         <p class="pool-small pool-muted" id="chat-model-status" data-model-status role="status" hidden></p><p class="pool-small pool-muted" data-acquisition-status role="status" hidden></p><progress class="pool-progress" data-acquisition-progress aria-label="Model download" hidden></progress><button class="pool-button btn-ghost pool-caption" type="button" data-download-local hidden>Download model</button><button class="pool-button btn-ghost pool-caption" type="button" data-cancel-download hidden>Cancel download</button>
         <p class="chat-attachment-help pool-small pool-muted" data-attachment-help hidden>Text files: up to 8, 64 KB each, 128 KB total.</p>
       </form></footer>
       <dialog class="chat-model-setup pool-surface pool-small" data-rename-dialog aria-labelledby="chat-rename-title">
         <form data-rename-form><h2 class="pool-heading" id="chat-rename-title">Rename thread</h2><label>Name<input class="pool-input" data-thread-name required maxlength="256"></label>
-          <div class="chat-network-actions"><button class="pool-button" type="button" data-rename-cancel>Cancel</button><button class="pool-button" type="submit">Save</button></div>
+          <div class="chat-network-actions"><button class="pool-button btn-ghost" type="button" data-rename-cancel>Cancel</button><button class="pool-button btn-primary" type="submit">Save</button></div>
         </form>
       </dialog>
       <dialog class="chat-model-setup pool-surface pool-small" data-model-picker aria-labelledby="chat-model-picker-title">
@@ -108,7 +112,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
         ${renderModelControl()}<div><select class="pool-input" data-next-model aria-label="Model"></select></div>
         <p data-next-model-status role="status" hidden></p>
         </div>${renderModelSelectionDetails()}
-        <div class="chat-network-actions"><button class="pool-button" type="button" data-model-picker-close>Cancel</button><button class="pool-button" type="button" data-change-model>Use model</button></div>
+        <div class="chat-network-actions"><button class="pool-button btn-ghost" type="button" data-model-picker-close>Cancel</button><button class="pool-button btn-primary" type="button" data-change-model>Use model</button></div>
       </dialog>
     </section>
     ${inspector ? renderModelSetupDialog() : ''}
@@ -215,7 +219,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const on = (selector, event, callback) => find(selector)?.addEventListener(event, callback, options);
   // Send and Retry authorize their selected tools; no separate approval dialog.
   const searchToggle = find('[data-search-toggle]');
-  const setSearch = on => { searchToggle.setAttribute('aria-pressed', String(on && !searchToggle.hidden)); };
+  const setSearch = on => { const active = on && !searchToggle.hidden; searchToggle.setAttribute('aria-pressed', String(active)); find('[data-web-search-on]').hidden = !active; };
   const searching = () => searchToggle.getAttribute('aria-pressed') === 'true';
   // The person's own search server when it is set up and on, otherwise the server's Brave route.
   const searchRouteNow = () => session.preferredSearchRoute?.() ?? undefined;
@@ -387,13 +391,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       + '. Input includes conversation history. Answers reaching the limit are incomplete.'
       : Number.isSafeInteger(configuredAnswerTokens) ? `Answer limit: ${configuredAnswerTokens} tokens. Answers reaching the limit are incomplete.` : '';
     answerLimit.hidden = !answerLimit.textContent;
-    const limitButton = find('[data-open-limits]');
-    const tokenLimits = bounds.length ? bounds.map(cell => cell.maxAnswerTokens) : [configuredAnswerTokens];
-    const minimum = Math.min(...tokenLimits), maximum = Math.max(...tokenLimits);
-    limitButton.hidden = answerLimit.hidden;
-    limitButton.textContent = minimum === maximum ? `${maximum} max` : `${minimum}–${maximum} max`;
-    limitButton.title = answerLimit.textContent;
-    limitButton.setAttribute('aria-label', answerLimit.textContent + ' View model limits.');
     const statusButton = find('[data-composer-status]');
     statusButton.hidden = !statusText;
     statusButton.textContent = thread?.closed ? 'Archived' : preparing ? 'Preparing' : 'Unavailable';
@@ -443,15 +440,14 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
 
   };
   const unsubscribe = session.subscribe(render);
-  const refreshSearchToggle = () => { searchToggle.hidden = !(search?.available() || deviceSearchOn()); if (searchToggle.hidden) setSearch(false); else if (webSearch?.state().enabled && !webSearch.state().url) setSearch(true); };
+  const refreshSearchToggle = () => { searchToggle.hidden = !(search?.available() || deviceSearchOn() || webSearch?.enabled()); if (searchToggle.hidden) setSearch(false); };
   const unsubscribeSearch = search && session.searchPermissionRequest ? search.subscribe(refreshSearchToggle) : () => {};
   if (search && search.state().state === 'unknown') void search.refresh();
   on('[data-search-toggle]', 'click', () => setSearch(!searching()));
   const webSearchOn = find('[data-web-search-on]');
   const unsubscribeWebSearch = webSearch ? webSearch.subscribe(state => {
-    if (webSearchOn) webSearchOn.hidden = !(state.enabled && state.url);
-    if (session.searchPermissionRequest) refreshSearchToggle();
-    if (!state.url) setSearch(state.enabled && !!search?.available());
+    refreshSearchToggle();
+    if (webSearchOn) setSearch(state.enabled && (!!state.url || !!search?.available() || deviceSearchOn()));
   }) : () => {};
   const changeContext = () => {
     const selection = { enabled: find('[data-context-enabled]').checked, maxWords: Number(find('[data-context-cap]').value) };
@@ -477,7 +473,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     nextModelChoices.focus();
   };
   // The model name, its answer limit and its status all open the same dialog.
-  for (const selector of ['[data-open-model]', '[data-open-limits]', '[data-composer-status]']) on(selector, 'click', openPicker);
+  for (const selector of ['[data-open-model]', '[data-composer-status]']) on(selector, 'click', openPicker);
   on('[data-model-picker-close]', 'click', () => picker.close());
   on('[data-model-picker]', 'close', () => render(session.getState()));
   // A route radio under the providers selects that route of the highlighted variant.
@@ -596,7 +592,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         const location = state.activeThread?.permissions?.executionLocation ?? (state.activeThread?.permissions?.sharingScope === 'local' ? 'local' : executionLocation);
         const sharingScope = location === 'local' ? 'local' : 'mesh';
         const target = state.activeThread || { model, permissions: { sharingScope, executionLocation: location } };
-        const allowed = searched ? await prepareSearch(target.model, target.permissions?.sharingScope, searchRouteNow(), location, content) : null;
+        const personalSearch = searched && webSearch?.enabled() && !!webSearch.state().url;
+        const allowed = searched && !personalSearch ? await prepareSearch(target.model, target.permissions?.sharingScope, searchRouteNow(), location, content) : null;
         const threadId = state.selectedId || await session.createThread({ model, sharingScope, executionLocation: location, contextPrompt: contextPrompt || undefined });
         if (selectedId === threadId) {
           const current = composerRevision === revision ? { text: content, files: attachments } : drafts.get(origin);
@@ -604,7 +601,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         }
         // An allowed search answer uses the search route; otherwise, with web search on, the send opts into the MCP server.
         const completion = session.send(threadId, content, attachments, ...(allowed ? [{ search: allowed }]
-          : webSearch?.enabled() ? [{ retrieval: {} }] : []));
+          : personalSearch ? [{ retrieval: {} }] : []));
         if (allowed) setSearch(false);
         // A second call cannot begin while asynchronous admission is pending.
         completion.catch(() => {});

@@ -18,6 +18,30 @@ describe('Conversation workspace', () => {
   });
   afterEach(async () => { dispose(); await session.close(); root.remove(); });
 
+  it('keeps personal search in the composer and respects turning it off for a single answer', async () => {
+    dispose();
+    session.createThread({ sharingScope: 'local' });
+    const webState = { enabled: true, url: 'https://search.example.test/mcp', status: { message: '' } };
+    const webSearch = { enabled: () => true, state: () => webState, subscribe(fn) { fn(webState); return () => {}; } };
+    const send = vi.fn(async () => {});
+    dispose = bindConversationWorkspace(root, { ...session, send }, { webSearch });
+    expect(find('[data-composer-field] [data-search-toggle]')).not.toBeNull();
+    expect(find('[data-search-toggle]').getAttribute('aria-pressed')).toBe('true');
+    find('[data-search-toggle]').click();
+    find('[data-composer-input]').value = 'Without search';
+    find('[data-composer-input]').dispatchEvent(new Event('input', { bubbles: true }));
+    find('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    await vi.waitFor(() => expect(send).toHaveBeenCalled());
+    expect(send.mock.calls[0]).toHaveLength(3);
+    await vi.waitFor(() => expect(find('[data-composer-input]').value).toBe(''));
+    find('[data-search-toggle]').click();
+    find('[data-composer-input]').value = 'With search';
+    find('[data-composer-input]').dispatchEvent(new Event('input', { bubbles: true }));
+    find('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    await vi.waitFor(() => expect(send).toHaveBeenCalledTimes(2));
+    expect(send.mock.calls[1][3]).toEqual({ retrieval: {} });
+  });
+
   it('uses linked workspace destinations and restores history without replacing the composer', () => {
     const input = find('[data-composer-input]');
     input.value = 'Keep this draft'; input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -161,7 +185,7 @@ describe('Conversation workspace', () => {
     expect(find('[data-inspector-pane="model"]')).toBeNull();
     expect(find('[data-threads-dialog] [data-model-control]')).toBeNull();
     expect(find('[data-inspector-pane="settings"] [data-settings-storage-controls] [data-toggle-file-contribution]')).not.toBeNull();
-    expect(find('[data-inspector-pane="settings"] [data-settings-sharing-limits] [data-contribution-limits]')).not.toBeNull();
+    expect(find('[data-inspector-pane="participants"] [data-production-device] [data-contribution-limits]')).not.toBeNull();
     expect(find('[data-inspector-pane="participants"] [data-toggle-contribution]')).not.toBeNull();
     find('[data-toggle-thread-rail]').click();
     expect(find('[data-threads-dialog]').hidden).toBe(false);
@@ -231,9 +255,8 @@ describe('Conversation workspace', () => {
         { maxConcurrency: 1, maxPromptTokens: 1024, maxAnswerTokens: 63 }] }] });
     dispose = bindConversationWorkspace(root, { ...session,
       getState: () => project(session.getState()), subscribe: fn => session.subscribe(state => fn(project(state))) });
-    expect(find('[data-open-limits]').textContent).toBe('63–255 max');
-    // The limit opens the same model dialog as the model name; the limit is read there.
-    find('[data-open-limits]').click();
+    expect(find('[data-open-limits]')).toBeNull();
+    find('[data-open-model]').click();
     expect(find('[data-model-picker]').open).toBe(true);
     expect(find('[data-answer-limit]').hidden).toBe(false);
     expect(find('[data-answer-limit]').textContent).toContain('255 answer tokens for up to 512 input tokens');

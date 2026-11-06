@@ -1,6 +1,7 @@
 /** One prepared model, reusable across requests until explicitly retired. */
 import { createPreparationProgressObserver } from '../../../shared/vendor/reploid/mesh/preparation-progress.js';
 import { openWorkProvider } from './work-provider.js';
+import { retainModelStorage } from '../infrastructure/model-storage-lock.js';
 import { withWorkDevice } from './work-device.js';
 
 export function createWorkResidentProvider({ service, model, generation, maxOutcomeCharacters,
@@ -8,7 +9,7 @@ export function createWorkResidentProvider({ service, model, generation, maxOutc
   model = structuredClone(model);
   generation = structuredClone(generation);
   const lifetime = new AbortController(), operations = new Set();
-  let adapter = null, identity = null, preparing = null, closing = null, cleanup = null;
+  let adapter = null, identity = null, preparing = null, closing = null, cleanup = null, releaseStorage = null;
   let closed = false, phase = 'idle', error = null, progress = null, completed = 0;
   const production = { outputTokens: 0, missingTokenCounts: 0 };
   let adapterIdentities = [];
@@ -22,7 +23,7 @@ export function createWorkResidentProvider({ service, model, generation, maxOutc
   };
   const dispose = () => {
     adapter = null;
-    cleanup ||= Promise.resolve().then(() => service.close(scope)).catch(cause => { cleanup = null; throw cause; });
+    cleanup ||= Promise.resolve().then(() => service.close(scope)).then(async () => { await releaseStorage?.(); releaseStorage = null; }).catch(cause => { cleanup = null; throw cause; });
     return cleanup;
   };
   const fail = async cause => {
@@ -41,6 +42,7 @@ export function createWorkResidentProvider({ service, model, generation, maxOutc
     let observingPreparation = true;
     preparing = Promise.resolve().then(() => withWorkDevice(service, lifetime.signal, async () => {
       const reportProgress = value => { if (observingPreparation) { progress = observeProgress(structuredClone(value)); notify(); } };
+      releaseStorage = await retainModelStorage({ signal: lifetime.signal });
       const resolvedSource = resolveSource ? await resolveSource(model, { signal: lifetime.signal, onProgress: reportProgress }) : source;
       const loaded = await openWorkProvider({ model, service, scope, signal: lifetime.signal,
         generation, maxOutcomeCharacters, resolveAdapter, source: resolvedSource, loadOptions, onProgress: reportProgress });

@@ -306,6 +306,7 @@ export function createChatSession({
       assert(model, 'Choose a catalog model');
       try { await execution.prepareLocal(model); } finally { notifyAll(); }
     },
+    unloadLocalModel() { assertOpen(); return execution.unloadLocal(); },
     downloadLocalModel(modelId, approved) {
       assertOpen();
       const model = models.find(item => item.id === modelId && !item.partition && !item.adapters?.length);

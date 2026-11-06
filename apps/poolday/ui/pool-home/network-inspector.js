@@ -11,6 +11,7 @@ import { renderRemotePermissionSettings, updateRemotePermissionSettings } from '
 import { renderAutoDownloadSetting } from './auto-download.js';
 import { renderWebSearchSettings, bindWebSearchSettings } from './web-search-settings.js';
 import { renderAccountPanel, bindAccountPanel } from './account-panel.js';
+import { renderModelStorage, bindModelStorage } from './model-storage.js';
 import { renderThemeSelector } from './theme.js';
 
 export function renderInspectorNavigation({ workspace = false } = {}) {
@@ -34,7 +35,7 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
   return `<aside class="chat-network-rail${material}" data-network-rail${mounted ? ' data-mounted' : ''} aria-label="Network and settings">
     ${navigation ? renderInspectorNavigation() : ''}
     <${mounted ? 'section hidden' : 'dialog'} class="network-inspector${material} pool-small" data-contextual-inspector data-network-workspace aria-labelledby="network-inspector-title">
-    <header class="chat-network-heading"><h2 class="pool-subheading" id="network-inspector-title" tabindex="-1">Network</h2><button class="pool-button" type="button" data-close-inspector aria-label="Close" title="Close">${interfaceIcon('close')}</button></header>
+    <header class="chat-network-heading"><h2 class="pool-subheading" id="network-inspector-title" tabindex="-1">Network</h2><button class="pool-button btn-ghost" type="button" data-close-inspector aria-label="Close" title="Close">${interfaceIcon('close')}</button></header>
     <section data-inspector-pane="conversation" aria-label="This conversation">
       <div class="execution-ribbon-route" data-inspector-route></div>
       <p data-inspector-status role="status"></p><p class="pool-caption pool-muted" data-context-detail></p>
@@ -45,23 +46,26 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
     <section class="pool-stack pool-gap-lg" data-inspector-pane="participants" aria-label="Computers" hidden>
       <section class="pool-stack pool-gap-sm" aria-label="Network computers"><h3 class="pool-subheading">Network</h3>
         ${renderConnectionControl()}<p class="network-readiness pool-small pool-muted" data-peer-readiness></p>
-        <details><summary>Current request route</summary><div class="execution-ribbon-route" data-computers-route></div></details><ul class="network-peer-list pool-list" data-insp-device-list></ul>
+        <ul class="network-peer-list pool-list" data-insp-device-list></ul>
         <button class="pool-button btn-ghost" type="button" data-mesh-invite hidden>Copy private invitation</button>
       </section>
-      <details class="pool-disclosure"><summary>This device <span class="pool-muted" data-device-state-summary></span></summary><div class="pool-stack pool-gap-md">
+      <details class="pool-disclosure" data-production-device><summary>This device <span class="pool-muted" data-device-state-summary></span></summary><div class="pool-stack pool-gap-md">
+        <p class="pool-caption pool-muted" data-local-computer></p>
         ${renderComputeSharingControls()}
+        ${contribution}
+        <p class="pool-caption pool-muted" data-file-sharing-summary></p>
+        ${renderContributionLimits()}
         <details class="pool-disclosure" data-specialized-jobs><summary>Specialized model jobs</summary><div data-specialized-content></div></details>
       </div></details>
-      ${contribution}
     </section>
     <section class="pool-stack pool-gap-lg" data-inspector-pane="settings" aria-label="Settings" hidden>
       <section><h3 class="pool-subheading">Appearance</h3><div data-settings-appearance>${renderThemeSelector()}</div></section>
-      <section data-settings-storage><h3 class="pool-subheading">Storage</h3><p class="pool-muted" data-settings-storage-summary>No downloaded models</p><div class="pool-stack pool-gap-md" data-settings-storage-controls>${renderFileSharingControls()}</div></section>
+      <section data-settings-storage><h3 class="pool-subheading">Storage</h3>${renderModelStorage()}<p class="pool-muted" data-settings-storage-summary>No downloaded models</p><div class="pool-stack pool-gap-md" data-settings-storage-controls>${renderFileSharingControls()}</div></section>
       ${renderAccountPanel()}
       <details class="pool-disclosure" data-settings-advanced><summary>Advanced</summary><div class="pool-stack pool-gap-lg">
-        <section class="pool-stack pool-gap-md"><h3 class="pool-small">Inference</h3>${renderRemotePermissionSettings()}${renderAutoDownloadSetting()}<div data-settings-sharing-limits>${renderContributionLimits()}</div></section>
+        <section class="pool-stack pool-gap-md"><h3 class="pool-small">Inference</h3>${renderRemotePermissionSettings()}${renderAutoDownloadSetting()}</section>
         ${renderWebSearchSettings()}
-        <button class="pool-button btn-ghost" type="button" data-settings-network>Connection details</button><div data-settings-apps>${apps}</div>
+        <div data-settings-apps>${apps}</div>
       </div></details>
     </section>
     <p data-network-message role="status" hidden></p>
@@ -74,7 +78,7 @@ export function renderModelSetupDialog() {
     <h2 class="pool-heading" id="model-setup-title" data-download-title>Start sharing</h2>
     <label>Model<select class="pool-input" data-download-model aria-label="Model to download"></select></label>
     <p data-download-size role="status">Checking download size…</p><button class="pool-button btn-ghost" type="button" data-retry-download-check hidden>Retry</button><p class="pool-muted" data-download-explanation>Download a model to answer public requests while this page is open. Pause anytime.</p><details class="pool-disclosure"><summary>Limits</summary><p data-download-compute-limits></p></details>
-    <div class="chat-network-actions"><button class="pool-button" type="button" data-download-cancel>Cancel</button><button class="pool-button btn-primary" type="button" data-download-confirm disabled>Download & share</button></div>
+    <div class="chat-network-actions"><button class="pool-button btn-ghost" type="button" data-download-cancel>Cancel</button><button class="pool-button btn-primary" type="button" data-download-confirm disabled>Download & share</button></div>
   </dialog>`;
 }
 
@@ -83,7 +87,7 @@ export function renderNetworkInspector(options = {}) {
   return renderInspectorRail({ ...options, navigation: true }) + renderModelSetupDialog();
 }
 
-export function bindNetworkInspector(root, session, { getInviteUrl, loadSpecialized, webSearch = null, search = null, earning = null } = {}) {
+export function bindNetworkInspector(root, session, { getInviteUrl, loadSpecialized, webSearch = null, search = null, earning = null, modelStorage = null } = {}) {
   // The navigation may sit outside the rail (in the conversation toolbar), so both
   // resolve from the root. Nothing here moves nodes between components.
   const rail = root.querySelector('[data-network-rail]');
@@ -111,7 +115,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
       if (standalone) {
         if (!panel.open) panel.showModal();
       } else {
-        surface?.setAttribute('data-network-panel-open', '');
+        surface?.setAttribute('data-network-panel-open', activeSection || '');
         if (mounted) panel.hidden = false; else if (!panel.open) panel.show();
       }
       rail.dataset.expanded = '';
@@ -132,9 +136,12 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   const on = (selector, event, fn) => find(selector)?.addEventListener(event, fn, options);
   const error = cause => { const node = find('[data-inspector-error]'); node.textContent = cause?.message || ''; node.hidden = !cause; };
   const act = operation => Promise.resolve().then(operation).catch(error);
+  const storagePanel = bindModelStorage(panel, modelStorage);
+  if (modelStorage) find('[data-settings-storage-summary]').hidden = true;
   let grantsKey = '', executionKey = '', metadataController, disposed = false, specialized;
   const select = section => {
     activeSection = section === 'device' ? 'participants' : section;
+    if (section === 'settings') void storagePanel.refresh();
     if (section === 'device') section = 'participants';
     for (const pane of panel.querySelectorAll('[data-inspector-pane]')) pane.hidden = pane.dataset.inspectorPane !== section;
     find('#network-inspector-title').textContent = { conversation: 'This conversation', participants: 'Computers', device: 'Sharing', settings: 'Settings' }[section];
@@ -164,7 +171,6 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   }, options);
   navigation.addEventListener('keydown', onEscape, options);
   on('[data-close-inspector]', 'click', () => dialog.close());
-  on('[data-settings-network]', 'click', event => { select('participants'); dialog.open(event.currentTarget); });
   const unsubscribe = session.subscribe(snapshot => {
     const state = withComputerLabels(snapshot, session);
     const stored = (state.models || []).filter(model => model.localCached);
@@ -172,7 +178,6 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     const view = projectExecutionRibbon(state), key = JSON.stringify([view.execution, view.status, view.model, view.attempt?.id, view.attempt?.createdAt, view.attempt?.error, view.totalMs, view.executors.map(node => node.label)]);
     if (key !== executionKey) {
       executionKey = key; find('[data-inspector-route]').innerHTML = routeMarkup(view);
-      find('[data-computers-route]').innerHTML = routeMarkup(view);
       find('[data-ribbon-facts]').innerHTML = detailMarkup(view);
       const events = [];
       if (Number.isFinite(view.attempt?.createdAt)) events.push(`Started ${new Date(view.attempt.createdAt).toLocaleTimeString()}`);
@@ -290,6 +295,6 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     },
     open(section = 'participants', opener) { select(section); dialog.open(opener || navigation.querySelector(`[data-inspector-section="${section}"]`)); },
     close: options => dialog.close(options),
-    dispose() { disposed = true; disposeWebSearch(); disposeAccount(); metadataController?.abort(); controller.abort(); unsubscribe(); network(); modelDialog.dispose(); dialog.dispose(); if (typeof specialized === 'function') specialized(); }
+    dispose() { disposed = true; storagePanel.dispose(); disposeWebSearch(); disposeAccount(); metadataController?.abort(); controller.abort(); unsubscribe(); network(); modelDialog.dispose(); dialog.dispose(); if (typeof specialized === 'function') specialized(); }
   };
 }

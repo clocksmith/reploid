@@ -1,7 +1,9 @@
 /* Control primitives: buttons, fields, choices and disclosures.
    pool-button (+ btn-primary, btn-ghost, pool-icon), pool-input, pool-segmented + pool-segment,
    pool-chip, pool-badge, pool-disclosure. Focus rings are shared. */
-.pool-home :is(.pool-button, :where(.pool-work-shell .btn)) {
+/* Legacy action markup shares the same recipe; no second button material. */
+.pool-home .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--pool-size-8); text-decoration: none; }
+.pool-home :is(.pool-button, :where(.btn)) {
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -18,20 +20,20 @@
   cursor: pointer;
   transition: background-color var(--pool-motion-button), box-shadow var(--pool-motion-button), border-color var(--pool-motion-button);
 }
-.pool-home :is(.pool-button, :where(.pool-work-shell .btn)).btn-primary {
+.pool-home :is(.pool-button, :where(.btn)).btn-primary {
   background: var(--pool-surface-primary);
   color: var(--pool-color-on-primary);
   box-shadow: var(--pool-shadow-primary);
   font-weight: var(--pool-weight-semibold);
 }
-.pool-home :is(.pool-button, :where(.pool-work-shell .btn))::before {
+.pool-home :is(.pool-button, :where(.btn))::before {
   content: ''; position: absolute; inset: 0; z-index: var(--pool-z-background);
   border-radius: inherit; pointer-events: none;
   background: radial-gradient(circle at var(--pool-param-pointer-x, var(--pool-percent-center)) var(--pool-param-pointer-y, var(--pool-percent-center)), var(--pool-color-button-fill), var(--pool-color-button-fill-edge));
   opacity: 0;
   transition: opacity var(--pool-motion-button-hover-duration) var(--pool-motion-button-easing);
 }
-.pool-home :is(.pool-button, :where(.pool-work-shell .btn)):hover:not(:disabled)::before { opacity: 1; }
+.pool-home :is(.pool-button, :where(.btn)):hover:not(:disabled)::before { opacity: 1; }
 .pool-home .pool-button-ripple {
   position: absolute; pointer-events: none; z-index: var(--pool-z-background);
   width: var(--pool-param-ripple-size); height: var(--pool-param-ripple-size);
@@ -40,9 +42,9 @@
   border-radius: var(--pool-radius-round); background: var(--pool-surface-button-ripple);
 }
 /* Hover feedback fills the surface without moving the control. */
-.pool-home :is(.pool-button, :where(.pool-work-shell .btn)):is(:active, [aria-pressed='true'], [aria-current='true'], [aria-expanded='true']):not(:disabled) { box-shadow: var(--pool-shadow-button-pressed); }
+.pool-home :is(.pool-button, :where(.btn)):is(:active, [aria-pressed='true'], [aria-current='true'], [aria-expanded='true']):not(:disabled) { box-shadow: var(--pool-shadow-button-pressed); }
 .pool-home details[open] > summary.pool-button { box-shadow: var(--pool-shadow-button-pressed); }
-.pool-home :is(.pool-button, :where(.pool-work-shell .btn)):disabled { opacity: var(--pool-alpha-48); cursor: not-allowed; }
+.pool-home :is(.pool-button, :where(.btn)):disabled { opacity: var(--pool-alpha-48); cursor: not-allowed; }
 .pool-home :is(.pool-input, :where(.pool-work-shell select, .pool-work-shell input[type='file'], .pool-work-composer textarea)) {
   background: var(--pool-color-inset);
   color: var(--pool-color-ink);
@@ -69,15 +71,15 @@
   box-shadow: var(--pool-shadow-primary);
 }
 /* Primary text and icon controls share material; the control itself never moves. */
-.pool-home :is(.pool-button, :where(.pool-work-shell .btn)).btn-primary:hover:not(:disabled) {
+.pool-home :is(.pool-button, :where(.btn)).btn-primary:hover:not(:disabled) {
   box-shadow: var(--pool-shadow-primary-hover);
 }
-.pool-home :is(.pool-button, :where(.pool-work-shell .btn)).btn-primary:is(:active, [aria-pressed='true']):not(:disabled) {
+.pool-home :is(.pool-button, :where(.btn)).btn-primary:is(:active, [aria-pressed='true']):not(:disabled) {
   box-shadow: 0 0 0 transparent, var(--pool-shadow-primary-pressed);
 }
 @media (prefers-reduced-motion: reduce) {
-  .pool-home :is(.pool-button, :where(.pool-work-shell .btn)) { transition: none; }
-  .pool-home :is(.pool-button, :where(.pool-work-shell .btn))::before { transition: none; }
+  .pool-home :is(.pool-button, :where(.btn)) { transition: none; }
+  .pool-home :is(.pool-button, :where(.btn))::before { transition: none; }
 }
 /* A square icon button at the touch-target size. */
 .pool-home .pool-button.pool-icon { display: inline-grid; place-items: center; width: var(--pool-size-44); padding: 0; }

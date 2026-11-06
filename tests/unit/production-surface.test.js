@@ -37,7 +37,7 @@ it('shows starter choices for saved sharing preferences with no downloaded model
   expect(projectProduction(snapshot).local).toHaveLength(0);
   const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; } };
   const detach = bindProductionSurface(document.body, session, { inspector: {} });
-  expect(document.querySelector('[data-production-status]').textContent).toBe('Put this device to work');
+  expect(document.querySelectorAll('[data-toggle-contribution]')).toHaveLength(1);
   expect(document.querySelector('[data-production-setup-actions]').hidden).toBe(false);
   expect(document.querySelector('[data-production-metrics]').hidden).toBe(true);
   expect(document.querySelector('[data-production-error]').hidden).toBe(true); detach();
@@ -92,10 +92,10 @@ it('starts with model actions and hides empty production counters', () => {
   const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; } };
   const detach = bindProductionSurface(document.body, session, { inspector: {} });
   expect(document.querySelector('[data-production-model]').textContent).toBe('Model');
-  expect(document.querySelector('[data-production-status]').textContent).toBe('Put this device to work');
+  expect(document.querySelectorAll('[data-toggle-contribution]')).toHaveLength(1);
   expect(document.querySelector('[data-production-metrics]').hidden).toBe(true);
   expect(document.querySelector('[data-production-local]').hidden).toBe(true);
-  expect(document.querySelector('[data-production-pause]').hidden).toBe(true);
+  expect(document.querySelector('[data-production-pause]')).toBeNull();
   expect(document.querySelector('[data-shared-model-name]').textContent).toBe('Model');
   expect(document.querySelector('[data-shared-model-status]').textContent).toBe('Ready'); detach();
 });
@@ -115,7 +115,7 @@ it('keeps shared models in chat and contribution in Computers, preserving drafts
   expect(document.querySelector('[data-conversation-area] [data-production-surface]')).toBeNull();
   expect(document.querySelectorAll('[data-production-surface]')).toHaveLength(1);
   expect(device.open).toBe(false);
-  expect(document.querySelector('[data-production-summary-status]').textContent).toBe('Not set up');
+  expect(document.querySelector('[data-device-state-summary]').textContent).toBe('');
   // The chooser is a heading, one status line and the rows; routes, providers, limits and execution location are read in the picker.
   expect(shared.querySelector('[data-model-providers]')).toBeNull();
   expect(shared.querySelector('[data-execution-location]')).toBeNull();
@@ -202,37 +202,40 @@ it('blocks local model actions when the host reports missing browser support', (
   expect(inspector.contribute).not.toHaveBeenCalled(); expect(session.getModelDownload).not.toHaveBeenCalled(); detach();
 });
 
-it('keeps pause available for storage-only sharing', () => {
+it('keeps storage-only sharing controls in Settings', () => {
   const snapshot = { models: [], network: { files: { enabled: true, sharing: true, suppliedBytes: 10, verifiedFiles: [{ artifactId: 'file' }] } } };
   const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; } };
   const detach = bindProductionSurface(document.body, session, { inspector: {} });
-  expect(document.querySelector('[data-production-pause]').hidden).toBe(false);
+  expect(document.querySelector('[data-inspector-pane="settings"] [data-toggle-file-contribution]')).not.toBeNull();
+  expect(document.querySelector('[data-production-pause]')).toBeNull();
   expect(document.querySelector('[data-production-file-metric]').hidden).toBe(false); detach();
 });
 
-it('attempts to stop files even when compute cleanup fails and keeps the failure visible', async () => {
+it('stops compute independently, keeps cleanup errors visible, and leaves file sharing controllable', async () => {
   const snapshot = state();
   const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; },
     setSharing: vi.fn(async () => { throw new Error('Unsettled GPU owner'); }), setFileSharing: vi.fn(async () => {}) };
-  const detach = bindProductionSurface(document.body, session, { inspector: {} });
-  document.querySelector('[data-production-pause]').click();
-  await vi.waitFor(() => expect(document.querySelector('[data-production-error]').textContent).toContain('Could not pause all sharing'));
+  const detach = bindProductionSurface(document.body, session);
+  document.querySelector('[data-toggle-contribution]').click();
+  await vi.waitFor(() => expect(document.querySelector('[data-network-message]').textContent).toContain('Unsettled GPU owner'));
   expect(session.setSharing).toHaveBeenCalledWith(false, 'm', false);
-  expect(session.setFileSharing).toHaveBeenCalledWith(false, 'm', false);
+  expect(session.setFileSharing).not.toHaveBeenCalled();
+  document.querySelector('[data-toggle-file-contribution]').click();
+  await vi.waitFor(() => expect(session.setFileSharing).toHaveBeenCalledWith(false, 'm', false, { mode: 'cached-only' }));
   expect(document.querySelector('[data-production-tokens]').textContent).toBe('14'); detach();
 });
 
-it('resumes only the previously selected model after an explicit pause', async () => {
-  const snapshot = state(), listeners = new Set();
-  const emit = () => listeners.forEach(fn => fn(snapshot));
-  const session = { getState: () => snapshot, subscribe(fn) { listeners.add(fn); fn(snapshot); return () => listeners.delete(fn); },
-    setSharing: vi.fn(async enabled => { snapshot.network.sharing = enabled; snapshot.network.computeEnabled = enabled; emit(); }),
-    setFileSharing: vi.fn(async enabled => { snapshot.network.files.sharing = enabled; snapshot.network.files.enabled = enabled; emit(); }) };
-  const detach = bindProductionSurface(document.body, session, { inspector: {} });
-  const pause = document.querySelector('[data-production-pause]'); pause.click();
-  await vi.waitFor(() => expect(pause.disabled).toBe(false)); expect(pause.textContent).toBe('Resume');
-  pause.click(); await vi.waitFor(() => expect(pause.textContent).toBe('Pause'));
-  expect(session.setSharing).toHaveBeenLastCalledWith(true, 'm', true); detach();
+it('reviews the configured adapter when enabling compute, independently of the file selection', async () => {
+  const adapted = { ...model, selectionId: 'm-adapted', adapters: [{ identity: 'adapter' }] };
+  const snapshot = { models: [model, adapted], network: { computeEnabled: false,
+    contribution: { modelId: 'm', adapterIdentities: ['adapter'] }, files: { enabled: true, sharing: true } } };
+  const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; },
+    getModelDownload: vi.fn(async () => ({ sizeBytes: 100 })), setSharing: vi.fn(), setFileSharing: vi.fn() };
+  const detach = bindProductionSurface(document.body, session);
+  document.querySelector('[data-toggle-contribution]').click();
+  await vi.waitFor(() => expect(session.getModelDownload).toHaveBeenCalledWith('m-adapted', expect.objectContaining({ signal: expect.any(AbortSignal) })));
+  expect(session.setSharing).not.toHaveBeenCalled();
+  expect(session.setFileSharing).not.toHaveBeenCalled(); detach();
 });
 
 it('renders session measurements and keeps requester navigation available', () => {
@@ -240,7 +243,7 @@ it('renders session measurements and keeps requester navigation available', () =
   const detach = bindProductionSurface(document.body, session, { inspector: {} });
   expect(document.querySelector('[data-production-tokens]').textContent).toBe('14');
   expect(document.querySelector('[data-production-completed]').textContent).toBe('2');
-  expect(document.querySelector('[data-production-summary-status]').textContent).toBe('Sharing');
+  expect(document.querySelector('[data-production-surface]').closest('[data-production-device]')).not.toBeNull();
   expect(document.querySelector('[data-composer-input]')).not.toBeNull();
   expect(document.querySelector('[data-production-metrics]').textContent).not.toMatch(/earnings|\$/i); detach();
 });

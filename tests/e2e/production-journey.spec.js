@@ -21,7 +21,8 @@ for (const width of [1440, 390]) test(`production opens chat without prepared mo
   await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft while I view contributions');
   await page.locator('.pool-primary-brand').click();
   await page.locator('[data-workspace-view=computers]').click();
-  await expect(page.locator('[data-production-summary-status]')).toBeVisible();
+  await expect(page.locator('[data-production-device] > summary')).toBeVisible();
+  await page.locator('[data-production-device] > summary').click();
   await expect(page.locator('[data-production-history]')).toBeVisible();
   await page.locator('.pool-primary-brand').click();
   await expect(page.locator('[data-production-surface]')).not.toBeVisible();
@@ -49,6 +50,7 @@ test('saved contributions remain available after reload without active sharing',
   });
   await page.reload();
   await page.locator('[data-workspace-view=computers]').click();
+  await page.locator('[data-production-device] > summary').click();
   await page.locator('[data-production-history] > summary').click();
   await expect(page.locator('[data-production-history-records]')).toContainText(name);
   await expect(page.locator('[data-production-history-records]')).toContainText('Token count unavailable');
@@ -124,7 +126,9 @@ test('network chat uses a permitted peer even with downloaded weights and respec
 });
 
 test('changed runtime modules pass the Verification Worker sandbox', async ({ page }) => {
-  const paths = ['host/contribution-history.js', 'host/work-swarm.js', 'providers/work-resident-provider.js',
+  const paths = ['ui/poolday-design/specimens.js', 'host/model-storage.js', 'host/work-model-files.js', 'host/chat-execution.js', 'host/chat-session.js', 'host/product-session.js',
+    'infrastructure/model-storage-lock.js', 'providers/work-network-provider.js', 'providers/work-resident-provider.js', 'vendor/reploid/chat/scheduler.js',
+    'ui/pool-home/network-controls.js', 'ui/pool-home/network-inspector.js', 'ui/pool-home/model-storage.js',
     ...['production', 'contribution-models', 'conversation-workspace', 'index', 'shell-view'].map(name => `ui/pool-home/${name}.js`)];
   const snapshot = Object.fromEntries(await Promise.all(paths.map(async path => ['/' + path, await readServedText(path)])));
   await page.goto('/');
@@ -136,4 +140,28 @@ test('changed runtime modules pass the Verification Worker sandbox', async ({ pa
     worker.postMessage({ type: 'VERIFY', snapshot });
   }), snapshot);
   expect(result.errors).toEqual([]); expect(result.passed).toBe(true);
+});
+
+test('Settings measures browser model storage and removal uses the installed storage API', async ({ page }) => {
+  await page.goto('/'); await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+  await page.locator('[data-workspace-view=settings]').click();
+  await expect(page.locator('[data-model-storage]')).toBeVisible();
+  await expect(page.locator('[data-storage-status]')).toHaveText('No model downloads stored.');
+  // This isolated browser context contains only tiny test files, never user model weights.
+  const proof = await page.evaluate(async () => {
+    const { createModelStorage } = await import('/host/model-storage.js');
+    const root = await navigator.storage.getDirectory();
+    const models = await root.getDirectoryHandle('models', { create: true });
+    for (const id of ['ui-storage-proof', 'unrelated-proof']) {
+      const dir = await models.getDirectoryHandle(id, { create: true });
+      const file = await dir.getFileHandle('shard_0.bin', { create: true });
+      const writer = await file.createWritable(); await writer.write(new Uint8Array(37)); await writer.close();
+    }
+    const port = createModelStorage({ models: [{ id: 'ui-storage-proof', name: 'Fixture partial download' }], announce() {} });
+    const before = await port.list(); await port.remove('ui-storage-proof');
+    let removed = false; try { await models.getDirectoryHandle('ui-storage-proof'); } catch (error) { removed = error.name === 'NotFoundError'; }
+    const kept = await (await (await models.getDirectoryHandle('unrelated-proof')).getFileHandle('shard_0.bin')).getFile();
+    return { before, removed, retainedBytes: kept.size, after: await port.list() };
+  });
+  expect(proof).toEqual({ before: [{ id: 'ui-storage-proof', name: 'Fixture partial download', sizeBytes: 37 }], removed: true, retainedBytes: 37, after: [] });
 });

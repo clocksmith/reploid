@@ -15,8 +15,8 @@
     top: auto;
     bottom: calc(max(0px, 100dvh - var(--pool-param-workspace-height, 100dvh)) + var(--pool-param-app-bar-inset));
     /* The dock shares the page gutter so it lines up with the content above it. */
-    left: max(var(--pool-size-16), env(safe-area-inset-left));
-    right: max(var(--pool-size-16), env(safe-area-inset-right));
+    left: max(var(--pool-param-chat-gutter, var(--pool-size-16)), env(safe-area-inset-left));
+    right: max(var(--pool-param-chat-gutter, var(--pool-size-16)), env(safe-area-inset-right));
     width: auto;
     height: auto;
     min-height: var(--pool-metric-app-bar);
@@ -44,6 +44,7 @@
   .pool-home-task { width: 100%; margin-right: 0; }
 
   .pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network']) {
+    --pool-param-chat-gutter: var(--pool-size-8);
     height: min(100dvh, var(--pool-param-workspace-height));
     padding-left: max(var(--pool-size-8), env(safe-area-inset-left));
     padding-right: max(var(--pool-size-8), env(safe-area-inset-right));
