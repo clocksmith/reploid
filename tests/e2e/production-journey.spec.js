@@ -8,8 +8,7 @@ for (const width of [1440, 390]) test(`production opens chat without prepared mo
   await expect(page.locator('[data-chat-workspace]')).toBeVisible();
   await expect(page.locator('[data-production-shared]')).toBeVisible();
   await expect(page.locator('[data-composer-input]')).toBeVisible();
-  await expect(page.locator('[data-production-summary-status]')).toBeVisible();
-  await expect(page.locator('[data-production-history]')).toBeVisible();
+  await expect(page.locator('[data-production-surface]')).not.toBeVisible();
   await expect(page.locator('[data-contextual-inspector]')).not.toBeVisible();
   await page.screenshot({ path: info.outputPath(`production-${width}.png`), fullPage: true });
   await page.locator('[data-composer-input]').fill('Keep this draft while I view contributions');
@@ -21,7 +20,11 @@ for (const width of [1440, 390]) test(`production opens chat without prepared mo
   expect(new URL(page.url()).searchParams.get('instance')).toBe('requester-journey');
   await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft while I view contributions');
   await page.locator('.pool-primary-brand').click();
-  await expect(page.locator('[data-production-surface]')).toBeVisible();
+  await page.locator('[data-workspace-view=computers]').click();
+  await expect(page.locator('[data-production-summary-status]')).toBeVisible();
+  await expect(page.locator('[data-production-history]')).toBeVisible();
+  await page.locator('.pool-primary-brand').click();
+  await expect(page.locator('[data-production-surface]')).not.toBeVisible();
   await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft while I view contributions');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
   if (width < 760) {
@@ -34,7 +37,7 @@ for (const width of [1440, 390]) test(`production opens chat without prepared mo
 
 test('saved contributions remain available after reload without active sharing', async ({ page }) => {
   await page.goto('/');
-  await expect(page.locator('[data-production-surface]')).toBeVisible();
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible();
   // A controlled completed-record fixture, not a claim of physical inference.
   const name = await page.evaluate(async () => {
     const { createContributionHistory } = await import('/host/contribution-history.js');
@@ -45,6 +48,7 @@ test('saved contributions remain available after reload without active sharing',
     return model.name;
   });
   await page.reload();
+  await page.locator('[data-workspace-view=computers]').click();
   await page.locator('[data-production-history] > summary').click();
   await expect(page.locator('[data-production-history-records]')).toContainText(name);
   await expect(page.locator('[data-production-history-records]')).toContainText('Token count unavailable');

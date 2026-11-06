@@ -29,7 +29,7 @@ export function renderInspectorNavigation({ workspace = false } = {}) {
  * workspace, whose toolbar renders the navigation. Model choice and its details are
  * the conversation workspace's own dialog.
  */
-export function renderInspectorRail({ mounted = false, navigation = !mounted, apps = '' } = {}) {
+export function renderInspectorRail({ mounted = false, navigation = !mounted, apps = '', contribution = '' } = {}) {
   const material = mounted ? '' : ' pool-surface';
   return `<aside class="chat-network-rail${material}" data-network-rail${mounted ? ' data-mounted' : ''} aria-label="Network and settings">
     ${navigation ? renderInspectorNavigation() : ''}
@@ -52,6 +52,7 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
         ${renderComputeSharingControls()}
         <details class="pool-disclosure" data-specialized-jobs><summary>Specialized model jobs</summary><div data-specialized-content></div></details>
       </div></details>
+      ${contribution}
     </section>
     <section class="pool-stack pool-gap-lg" data-inspector-pane="settings" aria-label="Settings" hidden>
       <section><h3 class="pool-subheading">Appearance</h3><div data-settings-appearance>${renderThemeSelector()}</div></section>

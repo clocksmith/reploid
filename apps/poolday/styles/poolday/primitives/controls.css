@@ -11,12 +11,12 @@
   border-radius: var(--pool-radius-control);
   background: var(--pool-color-raised);
   color: var(--pool-color-ink);
-  box-shadow: var(--pool-shadow-raised);
+  box-shadow: var(--pool-shadow-raised), inset 0 0 0 transparent;
   font: inherit;
   font-size: var(--pool-text-sm);
   font-weight: var(--pool-weight-medium);
   cursor: pointer;
-  transition: background var(--pool-transition-fast), box-shadow var(--pool-transition-fast);
+  transition: background-color var(--pool-motion-button), box-shadow var(--pool-motion-button), border-color var(--pool-motion-button);
 }
 .pool-home :is(.pool-button, :where(.pool-work-shell .btn)).btn-primary {
   background: var(--pool-surface-primary);
@@ -28,10 +28,10 @@
   content: ''; position: absolute; inset: 0; z-index: var(--pool-z-background);
   border-radius: inherit; pointer-events: none;
   background: radial-gradient(circle at var(--pool-param-pointer-x, var(--pool-percent-center)) var(--pool-param-pointer-y, var(--pool-percent-center)), var(--pool-color-button-fill), var(--pool-color-button-fill-edge));
-  clip-path: circle(0 at var(--pool-param-pointer-x, var(--pool-percent-center)) var(--pool-param-pointer-y, var(--pool-percent-center)));
-  transition: clip-path var(--pool-motion-time-160) ease-out;
+  opacity: 0;
+  transition: opacity var(--pool-motion-button-hover-duration) var(--pool-motion-button-easing);
 }
-.pool-home :is(.pool-button, :where(.pool-work-shell .btn)):hover:not(:disabled)::before { clip-path: circle(var(--pool-radius-button-fill) at var(--pool-param-pointer-x, var(--pool-percent-center)) var(--pool-param-pointer-y, var(--pool-percent-center))); }
+.pool-home :is(.pool-button, :where(.pool-work-shell .btn)):hover:not(:disabled)::before { opacity: 1; }
 .pool-home .pool-button-ripple {
   position: absolute; pointer-events: none; z-index: var(--pool-z-background);
   width: var(--pool-param-ripple-size); height: var(--pool-param-ripple-size);
@@ -40,8 +40,8 @@
   border-radius: var(--pool-radius-round); background: var(--pool-surface-button-ripple);
 }
 /* Hover feedback fills the surface without moving the control. */
-.pool-home :is(.pool-button, :where(.pool-work-shell .btn)):is(:active, [aria-pressed='true'], [aria-current='true'], [aria-expanded='true']):not(:disabled) { box-shadow: var(--pool-shadow-inset); }
-.pool-home details[open] > summary.pool-button { box-shadow: var(--pool-shadow-inset); }
+.pool-home :is(.pool-button, :where(.pool-work-shell .btn)):is(:active, [aria-pressed='true'], [aria-current='true'], [aria-expanded='true']):not(:disabled) { box-shadow: var(--pool-shadow-button-pressed); }
+.pool-home details[open] > summary.pool-button { box-shadow: var(--pool-shadow-button-pressed); }
 .pool-home :is(.pool-button, :where(.pool-work-shell .btn)):disabled { opacity: var(--pool-alpha-48); cursor: not-allowed; }
 .pool-home :is(.pool-input, :where(.pool-work-shell select, .pool-work-shell input[type='file'], .pool-work-composer textarea)) {
   background: var(--pool-color-inset);
@@ -62,7 +62,7 @@
 .pool-home .pool-button:focus-visible {
   outline: var(--pool-border-hairline) solid var(--pool-color-focus);
   outline-offset: calc(-1 * var(--pool-size-4));
-  box-shadow: var(--pool-shadow-inset);
+  box-shadow: var(--pool-shadow-button-pressed);
 }
 .pool-home .pool-button.btn-primary:focus-visible {
   outline: var(--pool-border-thick) solid var(--pool-color-on-primary);
@@ -73,8 +73,7 @@
   box-shadow: var(--pool-shadow-primary-hover);
 }
 .pool-home :is(.pool-button, :where(.pool-work-shell .btn)).btn-primary:is(:active, [aria-pressed='true']):not(:disabled) {
-  background: var(--pool-surface-primary-pressed);
-  box-shadow: var(--pool-shadow-primary-pressed);
+  box-shadow: 0 0 0 transparent, var(--pool-shadow-primary-pressed);
 }
 @media (prefers-reduced-motion: reduce) {
   .pool-home :is(.pool-button, :where(.pool-work-shell .btn)) { transition: none; }
@@ -154,6 +153,16 @@
   box-shadow: var(--pool-shadow-inset);
   font-size: var(--pool-text-xs);
 }
+/* Action chips suggest input without taking on a raised button surface. */
+.pool-home button.pool-chip {
+  min-height: var(--pool-size-44); padding: var(--pool-size-8) var(--pool-size-16);
+  border: var(--pool-border-hairline) solid var(--pool-color-line); box-shadow: none;
+  font: inherit; font-size: var(--pool-text-sm); cursor: pointer;
+  transition: background-color var(--pool-motion-button), border-color var(--pool-motion-button);
+}
+.pool-home button.pool-chip:hover { background: var(--pool-color-raised); border-color: var(--pool-color-muted); }
+.pool-home button.pool-chip:active { background: var(--pool-color-page); }
+@media (prefers-reduced-motion: reduce) { .pool-home button.pool-chip { transition: none; } }
 .pool-home .pool-badge {
   display: inline-flex;
   align-items: center;

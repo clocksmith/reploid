@@ -23,13 +23,16 @@ export function bindButtonFeedback(root) {
     if (!keyboard && event.button !== 0) return;
     const box = button.getBoundingClientRect();
     const x = keyboard ? box.width / 2 : event.clientX - box.left, y = keyboard ? box.height / 2 : event.clientY - box.top;
-    origin(button, x, y);
     if (reduced.matches || button.tagName === 'INPUT') return;
+    const style = getComputedStyle(button);
+    const duration = parseFloat(style.getPropertyValue('--pool-motion-button-press-duration'));
+    if (!Number.isFinite(duration)) return;
     const ripple = document.createElement('span'); ripple.className = 'pool-button-ripple'; ripple.setAttribute('aria-hidden', 'true');
     ripple.style.setProperty('--pool-param-ripple-size', `${Math.hypot(box.width, box.height) * 2.2}px`);
     ripple.style.setProperty('--pool-param-ripple-x', `${x}px`); ripple.style.setProperty('--pool-param-ripple-y', `${y}px`);
     button.append(ripple); ripples.add(ripple);
-    const animation = ripple.animate([{ transform: 'scale(.05)', opacity: .9 }, { transform: 'scale(1)', opacity: 0 }], { duration: 325, easing: 'cubic-bezier(.16,1,.3,1)' });
+    const animation = ripple.animate([{ transform: 'scale(.05)', opacity: .9 }, { transform: 'scale(1)', opacity: 0 }],
+      { duration, easing: style.getPropertyValue('--pool-motion-button-easing').trim() });
     const remove = () => { ripple.remove(); ripples.delete(ripple); };
     animation.onfinish = animation.oncancel = remove;
   };

@@ -16,7 +16,7 @@ Inputs: [conversation state](../../../../packages/reploid/src/chat/CATSCAN.md), 
 Outputs: [production](production.js), [conversations](conversation-workspace.js), [Room-1](room-view.js).
 
 ## Invariants
-- Shared models first across screens. Local contribution stays secondary; reviewed setup enables sharing while open.
+- Shared models first across screens. Local contribution setup and history live under Computers; reviewed setup enables sharing while open.
 - Cached files, loaded models, readiness, execution, completion and settlement remain distinct. Earnings require accounting; simulations prove no production.
 - Brief labels, values and actions; explanations through setup, tooltips or details.
 - Reuse catalog components, tokens, gutters, accessible themes and responsive scrolling. Charcoal, prism, grids; mathematical decoration never signals execution. Respect reduced motion.

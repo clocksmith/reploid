@@ -100,7 +100,7 @@ it('starts with model actions and hides empty production counters', () => {
   expect(document.querySelector('[data-shared-model-status]').textContent).toBe('Ready'); detach();
 });
 
-it('puts usable shared models above the composer and collapsed contribution below, preserving drafts on selection', () => {
+it('keeps shared models in chat and contribution in Computers, preserving drafts on selection', () => {
   const local = { ...model, id: 'local', name: 'Local', networkAvailability: 'unavailable' };
   const snapshot = { models: [local, { ...model, quantization: 'q4f16_1', contextLength: 32768 }], network: {} };
   const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; },
@@ -111,7 +111,9 @@ it('puts usable shared models above the composer and collapsed contribution belo
   const composer = document.querySelector('[data-composer-area]');
   const device = document.querySelector('[data-production-device]');
   expect(shared.compareDocumentPosition(composer) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-  expect(composer.compareDocumentPosition(device) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(device.closest('[data-inspector-pane="participants"]')).not.toBeNull();
+  expect(document.querySelector('[data-conversation-area] [data-production-surface]')).toBeNull();
+  expect(document.querySelectorAll('[data-production-surface]')).toHaveLength(1);
   expect(device.open).toBe(false);
   expect(document.querySelector('[data-production-summary-status]').textContent).toBe('Not set up');
   // The chooser is a heading, one status line and the rows; routes, providers, limits and execution location are read in the picker.

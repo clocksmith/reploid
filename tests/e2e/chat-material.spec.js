@@ -342,16 +342,18 @@ test('keyboard-sized visual viewport compacts the workspace without resizing the
 test('Verification Worker accepts the conversation presentation module', async ({ page }, info) => {
   await page.goto('/');
   const verification = await page.evaluate(async () => {
-    const file = '/self/ui/pool-home/conversation-workspace.js';
-    const response = await fetch('/ui/pool-home/conversation-workspace.js');
-    if (!response.ok) throw new Error(`Missing presentation module: ${response.status}`);
-    const code = await response.text();
+    const paths = ['pool-home/conversation-workspace.js', 'pool-home/index.js', 'pool-home/shell-view.js', 'pool-home/network-inspector.js', 'components/button-feedback.js'];
+    const snapshot = Object.fromEntries(await Promise.all(paths.map(async path => {
+      const response = await fetch('/ui/' + path);
+      if (!response.ok) throw new Error(`Missing presentation module: ${path} ${response.status}`);
+      return ['/ui/' + path, await response.text()];
+    })));
     return new Promise((resolve, reject) => {
       const worker = new Worker('/core/verification-worker.js');
       const timer = setTimeout(() => { worker.terminate(); reject(new Error('Verification Worker timeout')); }, 10000);
       worker.onmessage = event => { clearTimeout(timer); worker.terminate(); resolve(event.data); };
       worker.onerror = event => { clearTimeout(timer); worker.terminate(); reject(new Error(event.message)); };
-      worker.postMessage({ type: 'VERIFY', snapshot: { [file]: code } });
+      worker.postMessage({ type: 'VERIFY', snapshot });
     });
   });
   expect(verification.passed, JSON.stringify(verification)).toBe(true);
@@ -520,7 +522,7 @@ test('answer measurements and bottom-centered thread badges stay stable while lo
 });
 
 for (const viewport of [{ width: 1280, height: 720 }, { width: 390, height: 844 }, { width: 320, height: 740 }]) {
-  test(`shared model choices remain clickable above the composer at ${viewport.width}`, async ({ page }) => {
+  test(`shared model choices remain clickable above the composer at ${viewport.width}`, async ({ page }, info) => {
     await page.setViewportSize(viewport);
     await page.goto('/');
     await expect(page.locator('[data-chat-workspace]')).toBeVisible();
@@ -535,6 +537,9 @@ for (const viewport of [{ width: 1280, height: 720 }, { width: 390, height: 844 
     });
     const composer = await page.locator('[data-composer-area]').boundingBox();
     expect(composer.y + composer.height).toBeLessThanOrEqual(viewport.height);
+    const area = await page.locator('[data-conversation-area]').boundingBox();
+    expect(area.y + area.height - composer.y - composer.height).toBeLessThanOrEqual(24);
+    expect(Math.abs(composer.x + composer.width / 2 - viewport.width / 2)).toBeLessThanOrEqual(1);
     for (const choice of await page.locator('[data-test-shared]').all()) await choice.click({ timeout: 5000 });
     expect(await page.evaluate(() => window.sharedModelClicks)).toEqual(['0', '1', '2']);
     for (const prompt of await page.locator('[data-starting-prompt]').all()) {
@@ -542,5 +547,6 @@ for (const viewport of [{ width: 1280, height: 720 }, { width: 390, height: 844 
       expect(await prompt.evaluate(node => node.scrollHeight <= node.clientHeight)).toBe(true);
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({ path: info.outputPath('home-composer.png'), fullPage: true });
   });
 }

@@ -158,6 +158,12 @@
   --pool-motion-nav: 320ms cubic-bezier(0.22, 1, 0.36, 1);
   --pool-motion-nav-duration: 320ms;
   --pool-motion-nav-easing: cubic-bezier(0.22, 1, 0.36, 1);
+  --pool-motion-button-duration: 220ms;
+  --pool-motion-button-hover-duration: 230ms;
+  --pool-motion-button-press-duration: 460ms;
+  --pool-motion-button-easing: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --pool-motion-button: var(--pool-motion-button-duration) var(--pool-motion-button-easing);
+  --pool-shadow-button-pressed: 0 0 0 transparent, 0 0 0 transparent, 0 0 0 transparent, var(--pool-shadow-inset);
   --pool-diamond-path-length: 100;
   --pool-diamond-trace-length: 25;
   --pool-motion-optical-active: 2400ms;

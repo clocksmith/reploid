@@ -1395,8 +1395,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 586049,
-      "sha256": "sha256:9aaf75dec2378b0c897bb153ab62369ca462f576c2f44cadf3ac920dc2f3b2cd"
+      "byteLength": 586085,
+      "sha256": "sha256:4a4d5636a1adf91c38c9713a5e1ec1823b65e2ed091a0ba0c575f8c098f08433"
     },
     {
       "path": "config/module-registry.json",
@@ -2930,8 +2930,8 @@
     },
     {
       "path": "styles/poolday/compositions/conversation.css",
-      "byteLength": 28187,
-      "sha256": "sha256:84a1c8a23856fe5275167b66df7a47ba2deb6ce0a09e7944cf2f2d70a647d708"
+      "byteLength": 28214,
+      "sha256": "sha256:751a27b59c96033b2f41e34128d60ae60b5aedde4d48fea738259423ec674228"
     },
     {
       "path": "styles/poolday/compositions/interaction.css",
@@ -2960,8 +2960,8 @@
     },
     {
       "path": "styles/poolday/primitives/controls.css",
-      "byteLength": 11695,
-      "sha256": "sha256:be75b320f4720b5b5cdbddc8e40ed08a8c1223d7b205f0ed7801ca052d13856b"
+      "byteLength": 12239,
+      "sha256": "sha256:eb3701ece677413c939771ce910505978addc2debae06ff8b469ec3e9d40ecd8"
     },
     {
       "path": "styles/poolday/primitives/layout.css",
@@ -2985,8 +2985,8 @@
     },
     {
       "path": "styles/poolday/tokens.css",
-      "byteLength": 11700,
-      "sha256": "sha256:ef10c4f3629ef840f3a2353db6b24635a891decd39c436bd1e7da831915bff01"
+      "byteLength": 12106,
+      "sha256": "sha256:f0dca0bed5bebeade26fa0b49cf77bc8536d8c741b616efb0c73ce01ba856b59"
     },
     {
       "path": "styles/proto/components.css",
@@ -3330,8 +3330,8 @@
     },
     {
       "path": "ui/components/button-feedback.js",
-      "byteLength": 2689,
-      "sha256": "sha256:a872469004570ecbda02562ac31e0b8d6ef8c2874d6daac453abf4771d6a1c8f"
+      "byteLength": 2882,
+      "sha256": "sha256:65fa883978c2f1f6108a9a3a16c9630fb4b8caf31428ea94ff0d6ec878a61b2d"
     },
     {
       "path": "ui/components/dialog.js",
@@ -3415,8 +3415,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2360882,
-      "sha256": "sha256:c942dc09ce3196271beee6ebe2dc1626bfd41da1d226e4e0829a5a6ee896d29a"
+      "byteLength": 2361312,
+      "sha256": "sha256:566e835794c923249d8451140ddd39a4427209a94102ffc14cea84c5d92e5f28"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -3460,8 +3460,8 @@
     },
     {
       "path": "ui/pool-home/conversation-workspace.js",
-      "byteLength": 54743,
-      "sha256": "sha256:d112555d53b30b6d90f8c2ed7a860f165cc9341594b645994efe973a08b35cc8"
+      "byteLength": 55089,
+      "sha256": "sha256:b578b31d7a9c7f5c83f5a4a4dd9aee038178b77718dcbc7f33598a9d349f37a0"
     },
     {
       "path": "ui/pool-home/document-search.js",
@@ -3485,8 +3485,8 @@
     },
     {
       "path": "ui/pool-home/index.js",
-      "byteLength": 12747,
-      "sha256": "sha256:b3db38ee865bb94c34b14b99fdef79a3b1b4ce74a7a4be1eac5b1f6a4aa02af7"
+      "byteLength": 12866,
+      "sha256": "sha256:f023a5d6bd53063d8d055afea924c97088d75f4c914c970f27fbdd83b29803be"
     },
     {
       "path": "ui/pool-home/ledger-store.js",
@@ -3530,8 +3530,8 @@
     },
     {
       "path": "ui/pool-home/network-inspector.js",
-      "byteLength": 22518,
-      "sha256": "sha256:5e2bbaebfd9963932dc18706661cb69511d5e8afd2a2d31cd64710034769a061"
+      "byteLength": 22559,
+      "sha256": "sha256:e950ea2918f68841a8b87b5cd6df07bba2b01b19b635eeb376338b19bccf30dd"
     },
     {
       "path": "ui/pool-home/network-projection.js",
@@ -3620,8 +3620,8 @@
     },
     {
       "path": "ui/pool-home/shell-view.js",
-      "byteLength": 4880,
-      "sha256": "sha256:ac5277b553e9f1d1a85c5c90d0225c485b5b0995cdf69e5a650ecea90affaf2c"
+      "byteLength": 4890,
+      "sha256": "sha256:87fec14adac9720f6bbeb2e4319d8405c0cfe1e42067a0ee3d8c8f5626b74230"
     },
     {
       "path": "ui/pool-home/simulation-batches.js",
@@ -11169,5 +11169,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:8082b5068c337558278a516e09c76e6c8ed5a3cb89312201f60c93a9ab66422b"
+  "bundleHash": "sha256:27f0474c5b8d64e4fda6fb95cc19fdd13ddf09c0dbd992b545b955151292f94c"
 }

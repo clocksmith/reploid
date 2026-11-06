@@ -8,6 +8,7 @@ import { POOLDAY_NAME, ROUTE_COPY } from './constants.js';
 import { getRouteId, renderNav, renderAppShortcuts, updateChangesControl } from './shell-view.js';
 import { renderConversationWorkspace, bindConversationWorkspace } from './conversation-workspace.js';
 import { renderNetworkInspector, renderInspectorNavigation, renderInspectorRail, renderModelSetupDialog, bindNetworkInspector } from './network-inspector.js';
+import { renderProductionContribution } from './contribution-models.js';
 import { bindExecutionRibbon } from './execution-ribbon.js';
 import { bindThemeSelector } from './theme.js';
 import { bindPoolRouteControls } from './navigation.js';
@@ -109,7 +110,7 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
       if (workspaceRoute) {
         content.innerHTML = renderConversationWorkspace({ inspector: false });
         content.querySelector('[data-network-trigger-slot]').innerHTML = renderInspectorNavigation({ workspace: true });
-        content.querySelector('[data-chat-inspector-slot]').innerHTML = renderInspectorRail({ mounted: true, apps: renderAppShortcuts(routeId) });
+        content.querySelector('[data-chat-inspector-slot]').innerHTML = renderInspectorRail({ mounted: true, apps: renderAppShortcuts(routeId), contribution: renderProductionContribution() });
         inspectorRoot.innerHTML = renderModelSetupDialog();
       } else {
         content.innerHTML = '<p role="status">Loading…</p>';

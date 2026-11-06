@@ -25,6 +25,14 @@ const startingPrompts = [
   'Pick 3 light comedy shows with 30-minute episodes.',
   'Recommend 3 terrible ’80s movies.'
 ];
+const promptChoices = () => {
+  const choices = [...startingPrompts];
+  for (let i = choices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [choices[i], choices[j]] = [choices[j], choices[i]];
+  }
+  return choices;
+};
 
 /** The selected model's value port. The picker's choices and the chooser's rows set it; nothing renders it. */
 const renderModelControl = () => '<span data-model-control><select class="pool-input pool-glass chat-model-value" id="chat-model" data-active-model-select aria-label="Model"></select></span>';
@@ -40,7 +48,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
       <div class="chat-rail-heading">
       <span class="chat-thread-brand" data-thread-rail-brand>${renderBrandLink({ toolbar: true })}</span>
       <a class="pool-button btn-ghost chat-rail-icon" href="${escape(workspaceHref('threads'))}" data-workspace-view="threads" data-toggle-thread-rail aria-label="Threads" title="Threads">${interfaceIcon('threads')}<span class="chat-rail-label">Threads</span></a>
-      <button class="pool-button chat-new-thread" type="button" data-new-thread aria-label="New thread" title="New thread">${interfaceIcon('newThread')}<span class="chat-rail-label">New thread</span></button>
+      <button class="pool-button btn-ghost chat-new-thread" type="button" data-new-thread aria-label="New thread" title="New thread">${interfaceIcon('newThread')}<span class="chat-rail-label">New thread</span></button>
       </div>
       <footer class="chat-rail-footer"><div data-network-trigger-slot>${inspector ? renderInspectorNavigation({ workspace: true }) : ''}</div></footer>
       </div>
@@ -62,15 +70,17 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
         </div></details>
       </div>
     </section>
-    <aside class="chat-inspector-slot pool-surface" data-chat-inspector-slot aria-label="Selected controls">${inspector ? renderInspectorRail({ mounted: true }) : ''}</aside>
+    <aside class="chat-inspector-slot pool-surface" data-chat-inspector-slot aria-label="Selected controls">${inspector ? renderInspectorRail({ mounted: true, contribution: renderProductionContribution() }) : ''}</aside>
     <section class="chat-conversation-area" data-conversation-area aria-label="Current conversation">
+      <div class="chat-conversation-content">
       <div class="chat-transcript chat-message-stream" data-chat-transcript data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
       ${renderSharedModelChooser()}
       <div class="chat-starting-prompts" data-starting-prompts role="group" aria-label="Movie and show suggestions" hidden>
-        ${startingPrompts.map(prompt => `<button class="pool-button" type="button" data-starting-prompt>${escape(prompt)}</button>`).join('')}
+        ${promptChoices().map(prompt => `<button class="pool-chip chat-starting-prompt" type="button" data-starting-prompt>${escape(prompt)}</button>`).join('')}
       </div>
       <p class="chat-error pool-well" role="alert" data-chat-error hidden></p>
       ${renderHistoryHandover()}
+      </div>
       <footer class="chat-composer-area" data-composer-area><form data-composer-form>
         <label class="chat-visually-hidden" for="chat-message">Message</label>
         <div class="chat-composer-field pool-input pool-glass pool-glass-focus pool-activity-edge pool-focus-within" data-composer-field>
@@ -87,7 +97,6 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
         <p class="pool-small pool-muted" id="chat-model-status" data-model-status role="status" hidden></p><p class="pool-small pool-muted" data-acquisition-status role="status" hidden></p><progress class="pool-progress" data-acquisition-progress aria-label="Model download" hidden></progress><button class="pool-button btn-ghost pool-caption" type="button" data-download-local hidden>Download model</button><button class="pool-button btn-ghost pool-caption" type="button" data-cancel-download hidden>Cancel download</button>
         <p class="chat-attachment-help pool-small pool-muted" data-attachment-help hidden>Text files: up to 8, 64 KB each, 128 KB total.</p>
       </form></footer>
-      ${renderProductionContribution()}
       <dialog class="chat-model-setup pool-surface pool-small" data-rename-dialog aria-labelledby="chat-rename-title">
         <form data-rename-form><h2 class="pool-heading" id="chat-rename-title">Rename thread</h2><label>Name<input class="pool-input" data-thread-name required maxlength="256"></label>
           <div class="chat-network-actions"><button class="pool-button" type="button" data-rename-cancel>Cancel</button><button class="pool-button" type="submit">Save</button></div>

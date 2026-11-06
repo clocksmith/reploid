@@ -3409,7 +3409,7 @@
     {
       "path": "ui/components/button-feedback.js",
       "owner": "ui",
-      "sha256": "sha256:a872469004570ecbda02562ac31e0b8d6ef8c2874d6daac453abf4771d6a1c8f",
+      "sha256": "sha256:65fa883978c2f1f6108a9a3a16c9630fb4b8caf31428ea94ff0d6ec878a61b2d",
       "imports": []
     },
     {
@@ -3518,7 +3518,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:c942dc09ce3196271beee6ebe2dc1626bfd41da1d226e4e0829a5a6ee896d29a",
+      "sha256": "sha256:566e835794c923249d8451140ddd39a4427209a94102ffc14cea84c5d92e5f28",
       "imports": []
     },
     {
@@ -3610,7 +3610,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:d112555d53b30b6d90f8c2ed7a860f165cc9341594b645994efe973a08b35cc8",
+      "sha256": "sha256:b578b31d7a9c7f5c83f5a4a4dd9aee038178b77718dcbc7f33598a9d349f37a0",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -3671,7 +3671,7 @@
     {
       "path": "ui/pool-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:b3db38ee865bb94c34b14b99fdef79a3b1b4ce74a7a4be1eac5b1f6a4aa02af7",
+      "sha256": "sha256:f023a5d6bd53063d8d055afea924c97088d75f4c914c970f27fbdd83b29803be",
       "imports": [
         "../../host/credits/browser.js",
         "../../host/product-context.js",
@@ -3680,6 +3680,7 @@
         "../../pool/p2p-transport.js",
         "../components/button-feedback.js",
         "./constants.js",
+        "./contribution-models.js",
         "./conversation-workspace.js",
         "./execution-ribbon.js",
         "./history-handover-view.js",
@@ -3763,7 +3764,7 @@
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:5e2bbaebfd9963932dc18706661cb69511d5e8afd2a2d31cd64710034769a061",
+      "sha256": "sha256:e950ea2918f68841a8b87b5cd6df07bba2b01b19b635eeb376338b19bccf30dd",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -3943,7 +3944,7 @@
     {
       "path": "ui/pool-home/shell-view.js",
       "owner": "ui",
-      "sha256": "sha256:ac5277b553e9f1d1a85c5c90d0225c485b5b0995cdf69e5a650ecea90affaf2c",
+      "sha256": "sha256:87fec14adac9720f6bbeb2e4319d8405c0cfe1e42067a0ee3d8c8f5626b74230",
       "imports": [
         "../../host/product-context.js",
         "../../pool/peer-room.js",
