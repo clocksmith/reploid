@@ -35,6 +35,7 @@ async function installConversation(page, theme) {
       state.activeThread.messages[1].content = answer;
       listeners.forEach(callback => callback(state));
     };
+    window.setVisualAcquisition = acquisition => { state.acquisition = acquisition; listeners.forEach(callback => callback(state)); };
     window.setVisualSupply = count => {
       state.models = Array.from({ length: count }, (_, i) => ({ ...model, id: 'ready-' + i, name: 'Ready model ' + i, availability: 'ready', networkAvailability: 'ready' }));
       state.defaultModel = state.models[0] || model;
@@ -749,4 +750,45 @@ test('unchanged provider updates preserve a reader near the transcript bottom', 
   expect(before).toBeGreaterThan(0);
   for (let i = 0; i < 3; i++) await page.evaluate(() => window.setVisualMetrics({}));
   expect(await stream.evaluate(node => node.scrollTop)).toBe(before);
+});
+
+
+test('composer shrinks and rewraps after drawer changes without losing text', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 844 }); await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible(); await installConversation(page, 'light');
+  const input = page.locator('[data-composer-input]');
+  const baseline = (await input.boundingBox()).height;
+  await input.fill('Wrapped draft text with several words. '.repeat(6));
+  const wide = (await input.boundingBox()).height;
+  await page.locator('[data-toggle-thread-rail]').click(); await page.locator('[data-workspace-view=settings]').click();
+  await expect.poll(async () => (await input.boundingBox()).height).toBeGreaterThan(wide);
+  await page.locator('[data-close-inspector]').click(); await page.locator('[data-close-threads]').click();
+  await expect.poll(async () => (await input.boundingBox()).height).toBe(wide);
+  await input.fill('Short'); await expect.poll(async () => (await input.boundingBox()).height).toBe(baseline);
+});
+
+test('download progress and attachment help preserve the composer bottom edge', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 }); await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible(); await installConversation(page, 'light');
+  const field = page.locator('[data-composer-field]'), before = await field.boundingBox();
+  for (const phase of ['downloading', 'failed', 'cancelled']) {
+    await page.evaluate(phase => window.setVisualAcquisition({ phase, modelId: 'fixture-model', error: 'Download interrupted', progress: { message: 'Receiving model files', receivedBytes: 50, totalBytes: 100 } }), phase);
+    const box = await field.boundingBox(); expect(box.height).toBe(before.height); expect(box.y + box.height).toBe(before.y + before.height);
+  }
+  await page.locator('[data-composer-files]').focus();
+  await expect(page.locator('[data-attachment-help]')).toBeVisible();
+  const box = await field.boundingBox(); expect(box.height).toBe(before.height); expect(box.y + box.height).toBe(before.y + before.height);
+});
+
+
+test('typing and deleting preserve suggestion space without exposing draft-replacement actions', async ({ page }) => {
+  await page.goto('/'); await expect(page.locator('[data-chat-workspace]')).toBeVisible(); await installConversation(page, 'light');
+  const prompts = page.locator('[data-starting-prompts]'), input = page.locator('[data-composer-input]');
+  const bounds = () => prompts.evaluate(node => { const { y, height } = node.getBoundingClientRect(); return { y, height }; });
+  const before = await bounds();
+  await input.fill('a'); expect(await bounds()).toEqual(before);
+  await expect(prompts).toHaveAttribute('inert', '');
+  await expect(prompts).not.toBeVisible();
+  await input.fill(''); expect(await bounds()).toEqual(before);
+  await expect(prompts).toBeVisible();
 });

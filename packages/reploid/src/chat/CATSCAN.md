@@ -22,7 +22,7 @@ Compose custody/whole-request jobs/[retrieval](../retrieval/CATSCAN.md); file po
 - Streams bind thread/attempt; retries create distinct attempts/generations.
 - Restore unfinished attempts as interrupted; never silently resend.
 - One requester-owned transactional writer commits canonical/ordered records; known rejections never fence.
-- Permissions precede placement; model/adapter identity stays exact.
+- Permissions precede placement; model/adapter identity stays exact. Only explicitly marked automatic choices may resolve before any message, attempt or grant; unmarked and explicit choices stay pinned.
 - Disclosure, including passages, needs covering per-send/stored permission.
   Records bind wording/recipients and distinguish setting authorization from dialog consent.
 - Search binds query/service/recipients once. Send/Retry replace dialogs; distinguish consent. Exclude unrelated history; retries renew grants.

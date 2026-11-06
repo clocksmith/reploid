@@ -108,6 +108,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
   for (const thread of threads) {
     assert(typeof thread.id === 'string' && Array.isArray(thread.messages) && Array.isArray(thread.attempts)
       && Array.isArray(thread.members) && thread.messages.length <= limits.maxMessagesPerThread, 'Invalid stored conversation');
+    assert(thread.automaticModel === undefined || typeof thread.automaticModel === 'boolean', 'Invalid stored model selection');
     thread.grants ??= [];
     thread.systemContext = validateSystemContext(thread.systemContext);
     validateThreadGrants(thread.grants, thread.id, meshId, limits.maxThreadGrants, loadedRequester);
@@ -469,16 +470,27 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       return ['once', 'permission'].includes(auth.kind) && auth.expiresAt > now();
     },
     subscribe(listener) { listeners.add(listener); listener(snapshot()); return () => listeners.delete(listener); },
-    createThread({ model, purpose = '', members = [], permissions = {}, systemContext = null }) {
+    createThread({ model, purpose = '', members = [], permissions = {}, systemContext = null, automaticModel = false }) {
       current(); assert(threads.length < limits.maxThreads, 'Conversation limit reached');
+      assert(typeof automaticModel === 'boolean', 'Invalid automatic model selection');
       assert(typeof purpose === 'string' && purpose.length <= limits.maxMessageCharacters, 'Invalid conversation purpose');
       assert(Array.isArray(members) && members.every(member => typeof member === 'string' && member), 'Invalid conversation members');
-      const thread = { id: id(), model: modelIdentity(model), purpose, systemContext: validateSystemContext(systemContext), members: [...new Set([participantId, ...members])],
+      const thread = { id: id(), ...(automaticModel ? { automaticModel: true } : {}), model: modelIdentity(model), purpose, systemContext: validateSystemContext(systemContext), members: [...new Set([participantId, ...members])],
         permissions: copy(permissions), grants: [], messages: [], attempts: [], closed: false, createdAt: now() };
       threads.push(thread); selectedId = thread.id; const saved = persist();
       return transactional ? saved.then(() => thread.id) : thread.id;
     },
     select(threadId) { current(); if (threadId !== null) find(threadId); selectedId = threadId; const saved = persist(); if (transactional) notify(); return saved; },
+    resolveAutomaticModel(threadId, model, systemContext) {
+      current(); const thread = find(threadId);
+      assert(thread.automaticModel === true && !thread.closed && !runs.has(threadId)
+        && !thread.messages.length && !thread.attempts.length && !thread.grants.length, 'Only an unused automatic model may change');
+      assert(thread.permissions.executionLocation !== 'local' && thread.permissions.sharingScope !== 'local' || !model.partition, 'This model requires network execution');
+      const candidate = { model: modelIdentity(model), systemContext: validateSystemContext(systemContext), automaticModel: false };
+      const previous = { model: thread.model, systemContext: thread.systemContext, automaticModel: thread.automaticModel };
+      Object.assign(thread, candidate);
+      try { return persist(); } catch (error) { Object.assign(thread, previous); notify(); throw error; }
+    },
     setExecutionLocation(threadId, location) {
       current(); const thread = find(threadId);
       assert(['auto', 'local', 'network'].includes(location), 'Invalid execution location');

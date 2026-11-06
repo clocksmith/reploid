@@ -1,3 +1,4 @@
+import { selectAvailableChatModel } from '../../apps/poolday/host/chat-view.js';
 import { describe, it, expect, vi } from 'vitest';
 import { createChatSession, CANONICAL_CHAT_MODELS } from '../../apps/poolday/host/chat-session.js';
 import { createChatScheduler } from '../../shared/vendor/reploid/chat/index.js';
@@ -457,5 +458,46 @@ it('does not fall back to a cached model when Network has no capacity', async ()
   const attempt = await session.send(id, 'Do not run locally');
   expect(attempt).toMatchObject({ status: 'failed', error: 'No network capacity' });
   expect(service.calls).toHaveLength(0);
+  await session.close();
+});
+
+it('resolves an implicit empty thread after discovery and reload, preserving explicit choices', async () => {
+  const store = storage(), service = createChatTestService(); let peers = [];
+  const swarm = { getState: () => ({ consumer: { peers } }) };
+  const session = createChatSession({ storage: store, service, swarm });
+  const implicit = session.createThread(), initial = session.getState().activeThread.model;
+  const explicit = session.createThread({ model: initial });
+  session.saveDraft(implicit, { text: 'Keep my draft', files: [] });
+  await session.close();
+  const restored = createChatSession({ storage: store, service, swarm });
+  const ready = CANONICAL_CHAT_MODELS.find(model => model.id !== initial.id);
+  peers = [{ peerId: 'ready-peer', model: ready.id, modelIdentity: ready.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }];
+  restored.refreshNetwork();
+  await vi.waitFor(() => expect(restored.getState().threads.find(t => t.id === implicit).model.id).toBe(ready.id));
+  expect(restored.getState().threads.find(t => t.id === explicit).model.id).toBe(initial.id);
+  expect(restored.getDraft(implicit).text).toBe('Keep my draft');
+  expect(service.calls).toHaveLength(0); await restored.close();
+});
+
+
+it('defaults to an available adapter variant when no base model is ready', () => {
+  const base = { ...CANONICAL_CHAT_MODELS[0], availability: 'unavailable', networkAvailability: 'unavailable' };
+  const adapted = { ...base, selectionId: base.id + '/adapter', adapters: [{ identity: 'sha256:' + 'a'.repeat(64) }], availability: 'ready', networkAvailability: 'ready' };
+  expect(selectAvailableChatModel([base, adapted], [base.id], 'network')).toBe(adapted);
+  const readyBase = { ...base, availability: 'ready', networkAvailability: 'ready' };
+  expect(selectAvailableChatModel([adapted, readyBase], [base.id], 'network')).toBe(readyBase);
+  expect(selectAvailableChatModel([base, adapted], [base.id], 'local')).toBeNull();
+});
+
+
+it('pins the initial automatic fallback when that same model becomes ready', async () => {
+  let peers = []; const swarm = { getState: () => ({ consumer: { peers } }) };
+  const session = createChatSession({ storage: null, service: createChatTestService(), swarm });
+  session.createThread(); const initial = session.getState().activeThread.model;
+  const peer = model => ({ peerId: model.id, model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1 });
+  peers = [peer(initial)]; session.refreshNetwork();
+  await vi.waitFor(() => expect(session.getState().activeThread.automaticModel).toBe(false));
+  peers = [peer(CANONICAL_CHAT_MODELS.find(model => model.id !== initial.id))]; session.refreshNetwork();
+  expect(session.getState().activeThread.model.id).toBe(initial.id);
   await session.close();
 });

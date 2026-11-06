@@ -2,8 +2,8 @@
 export function selectAvailableChatModel(models, preference, location = 'auto') {
   // Application preference, not a quality claim or a priority advertised by peers.
   const rank = model => { const index = preference.indexOf(model.id); return index < 0 ? preference.length : index; };
-  const candidates = models.filter(model => !model.adapters?.length)
-    .slice().sort((a, b) => rank(a) - rank(b) || Number(!!a.partition) - Number(!!b.partition));
+  const candidates = models.slice().sort((a, b) => rank(a) - rank(b)
+    || Number(!!a.adapters?.length) - Number(!!b.adapters?.length) || Number(!!a.partition) - Number(!!b.partition));
   const availability = model => location === 'network' ? model.networkAvailability ?? model.availability
     : location === 'local' ? model.partition ? 'unavailable' : model.localReady ? 'ready' : model.localCached ? 'cached' : 'unavailable'
     : model.localReady || model.networkAvailability === 'ready' ? 'ready' : model.availability;

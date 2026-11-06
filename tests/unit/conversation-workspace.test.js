@@ -143,7 +143,7 @@ describe('Conversation workspace', () => {
     prompts.querySelector('button').click();
     expect(input.value).toBe(prompt);
     expect(document.activeElement).toBe(input);
-    expect(prompts.hidden).toBe(true);
+    expect(prompts.hidden).toBe(false); expect(prompts.inert).toBe(true);
     expect(service.calls).toHaveLength(0);
     expect(session.getDraft(null).text).toBe(prompt);
     input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true }));

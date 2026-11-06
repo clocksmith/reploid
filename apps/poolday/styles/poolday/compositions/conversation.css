@@ -52,6 +52,7 @@
 .chat-conversation-area { display: flex; flex-direction: column; min-height: 0; gap: var(--pool-size-24); overflow: hidden; }
 .chat-conversation-content { display: flex; flex-direction: column; flex: 1; min-height: 0; min-width: 0; gap: var(--pool-size-24); overflow-y: auto; }
 .chat-starting-prompts { display: flex; flex-wrap: wrap; align-content: start; flex: 0 0 auto; min-height: var(--pool-size-64); gap: var(--pool-size-8); width: min(100%, var(--pool-size-720)); align-self: center; max-height: 35dvh; overflow-y: auto; }
+.chat-starting-prompts[data-draft] { visibility: hidden; }
 .chat-starting-prompt { flex: 0 0 auto; max-width: 100%; text-align: start; white-space: normal; }
 .chat-transcript.chat-message-stream { flex: 1; min-height: var(--pool-size-64); overflow-y: auto; overflow-x: hidden; scrollbar-gutter: stable both-edges; }
 .chat-transcript.chat-message-stream:empty { display: none; }

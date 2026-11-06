@@ -308,3 +308,34 @@ it('restores the selected conversation and exact model, while preserving an expl
   expect(createChatWorkspace(options).getState().selectedId).toBeNull();
   await app.close(); await restored.close();
 });
+
+it('only resolves automatic models before any message, attempt or grant exists', async () => {
+  const { app } = fixture(async request => result(request, 'Answer'));
+  const next = { ...model, id: 'model-b', identity: 'sha256:' + 'b'.repeat(64) };
+  const explicit = app.createThread({ model });
+  expect(() => app.resolveAutomaticModel(explicit, next, null)).toThrow();
+  const automatic = app.createThread({ model, automaticModel: true });
+  app.resolveAutomaticModel(automatic, next, null);
+  expect(app.getState().threads.find(t => t.id === automatic).model.id).toBe(next.id);
+  await app.send(automatic, 'Pin this model');
+  expect(() => app.resolveAutomaticModel(automatic, model, null)).toThrow();
+  const used = app.createThread({ model, automaticModel: true });
+  await app.send(used, 'Pin the initial fallback');
+  expect(() => app.resolveAutomaticModel(used, next, null)).toThrow();
+  expect(app.getState().threads.find(t => t.id === automatic).model.id).toBe(next.id);
+  await app.close();
+});
+
+
+it('rejects an invalid automatic replacement without changing the model', async () => {
+  const { app, store } = fixture(async request => result(request, 'Answer'));
+  const thread = app.createThread({ model, automaticModel: true });
+  const next = { ...model, id: 'model-b', identity: 'sha256:' + 'b'.repeat(64) };
+  expect(() => app.resolveAutomaticModel(thread, next, { content: 42 })).toThrow();
+  expect(app.getState().threads[0].model.id).toBe(model.id);
+  vi.spyOn(store, 'save').mockImplementationOnce(() => { throw Error('Disk unavailable'); });
+  expect(() => app.resolveAutomaticModel(thread, next, null)).toThrow('Disk unavailable');
+  expect(app.getState().threads[0].model.id).toBe(model.id);
+  expect(app.getState().storageError).toContain('Disk unavailable');
+  await app.close();
+});

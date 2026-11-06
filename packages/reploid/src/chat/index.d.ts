@@ -113,6 +113,7 @@ export interface ChatAttempt {
   provenance?: AnswerProvenance;
 }
 export interface ChatThread {
+  automaticModel?: boolean;
   id: string; model: ChatModel; purpose: string; title?: string; members: string[];
   permissions: Record<string, unknown>; grants: ChatThreadGrant[]; messages: ChatMessage[];
   attempts: ChatAttempt[]; closed: boolean; createdAt: number;
@@ -169,7 +170,8 @@ export interface ChatWorkspace {
   schema?:string;threadId?:string;route?:PartitionRoute;stages?:readonly {participantId:string}[]} | null}):boolean;
   getState(): ChatState;
   subscribe(listener: (state: ChatState) => void): () => void;
-  createThread(options: { model: ChatModel; purpose?: string; members?: string[]; permissions?: Record<string, unknown>; systemContext?: ChatSystemContext | null }): string;
+  createThread(options: { model: ChatModel; automaticModel?: boolean; purpose?: string; members?: string[]; permissions?: Record<string, unknown>; systemContext?: ChatSystemContext | null }): string;
+  resolveAutomaticModel(threadId: string, model: ChatModel, systemContext: ChatSystemContext | null): void | Promise<void>;
   setExecutionLocation(threadId: string, location: 'auto' | 'local' | 'network'): void;
   setSystemContext(threadId: string, value: ChatSystemContext | null): void;
   select(threadId: string | null): void | Promise<void>;

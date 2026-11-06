@@ -251,8 +251,11 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   inputResize?.observe(input);
   const refreshStartingPrompts = () => {
     const state = session.getState(), thread = state.activeThread;
-    find('[data-starting-prompts]').hidden = container.hasAttribute('data-compact') || !!(thread?.messages.length || thread?.closed
-      || (state.runningIds || []).includes(thread?.id) || state.comparisonPhase || input.value.trim() || files.length);
+    const prompts = find('[data-starting-prompts]');
+    prompts.hidden = container.hasAttribute('data-compact') || !!(thread?.messages.length || thread?.closed
+      || (state.runningIds || []).includes(thread?.id) || state.comparisonPhase);
+    prompts.inert = !!(input.value.trim() || files.length);
+    prompts.toggleAttribute('data-draft', prompts.inert);
   };
   const showFiles = () => { refreshStartingPrompts(); resizeInput(); renderAttachments(find('[data-attachments-preview]'), files); find('[data-attachment-help]').hidden = !files.length; };
   const updatePicker = snapshot => {
@@ -502,7 +505,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   on('[data-composer-input]', 'input', () => { composerRevision++; resizeInput(); refreshStartingPrompts(); try { observe(saveDraft()); } catch (cause) { error(cause); } });
   on('[data-starting-prompts]', 'click', event => {
     const button = event.target.closest('[data-starting-prompt]');
-    if (!button || find('[data-starting-prompts]').hidden) return;
+    if (!button || find('[data-starting-prompts]').hidden || find('[data-starting-prompts]').inert) return;
     input.value = button.textContent;
     input.dispatchEvent(new Event('input', { bubbles: true }));
     input.focus();

@@ -223,9 +223,24 @@ export function createChatSession({
       : isCached(model) ? { ...model, availability: 'cached', localCached: true } : model;
   }));
 
+  const resolvingModels = new Set();
   const notifyAll = () => {
     if (closed) return;
     const st = getSessionState();
+    for (const thread of st.threads) {
+      if (st.storageError || thread.automaticModel !== true || thread.closed || thread.messages.length || thread.attempts.length || thread.grants.length || resolvingModels.has(thread.id)) continue;
+      const location = thread.permissions.executionLocation ?? (thread.permissions.sharingScope === 'local' ? 'local' : 'auto');
+      const key = model => model.selectionId || model.id;
+      const current = st.models.find(model => key(model) === key(thread.model));
+      const model = current && selectAvailableChatModel([current], profile.chatModelPreference, location) || st.defaultModels[location];
+      if (!model) continue;
+      resolvingModels.add(thread.id);
+      let saved;
+      try { saved = workspace.resolveAutomaticModel(thread.id, model, createChatContext(thread.systemContext?.metadata, model, models)); }
+      catch { resolvingModels.delete(thread.id); return; }
+      Promise.resolve(saved).then(() => { resolvingModels.delete(thread.id); notifyAll(); }, () => { resolvingModels.delete(thread.id); });
+      return;
+    }
     for (const listener of listeners) {
       try { listener(st); } catch (e) { console.error('[ChatSession] listener error', e); }
     }
@@ -357,13 +372,16 @@ export function createChatSession({
         return await workspace.send(threadId, COMPARISON_CHECK, { select: false });
       } finally { comparisons.delete(threadId); notifyAll(); } })();
     },
-    createThread({ model = getSessionState().defaultModel, purpose = '', sharingScope = 'mesh', executionLocation = 'auto', contextPrompt } = {}) {
+    createThread({ model, purpose = '', sharingScope = 'mesh', executionLocation = 'auto', contextPrompt } = {}) {
       assertOpen();
+      const state = getSessionState(), location = executionLocation === 'auto' && sharingScope === 'local' ? 'local' : executionLocation;
+      const automaticModel = model === undefined && !state.defaultModels[location];
+      if (model === undefined) model = state.defaultModels[location] || state.defaultModel;
       assert(model, 'Model required to create thread');
       assert(['auto', 'local', 'network'].includes(executionLocation), 'Invalid execution location');
       assert(executionLocation !== 'local' || !model.partition, 'This model requires network execution');
       return workspace.createThread({
-        model,
+        model, automaticModel,
         purpose,
         systemContext: createChatContext(contextPrompt, model, models),
         permissions: { sharingScope: executionLocation === 'local' ? 'local' : executionLocation === 'network' ? 'mesh' : sharingScope, executionLocation }
