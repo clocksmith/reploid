@@ -9,7 +9,8 @@
     "Match provider adapter identities exactly",
     "Keep network action feedback outside collapsed settings",
     "Refresh served-source catalogs and record reviewed dynamic loaders",
-    "Make VFS --check verify without writing"
+    "Make VFS --check verify without writing",
+    "Retain natural starting-prompt button height inside its scrolling list"
   ],
   "unit": {
     "passed": 97,
@@ -43,7 +44,12 @@
       "320x740"
     ],
     "fixtureBoundary": "Browser layout and interaction contracts; not physical GPU or inference qualification",
-    "retainedFailures": "Earlier runs reproduced the collapsed chooser and stale network selectors. During repair, two phone tests attempted dock navigation beneath an open modal; corrected to dismiss it first."
+    "retainedFailures": "Earlier runs reproduced the collapsed chooser and stale network selectors. During repair, two phone tests attempted dock navigation beneath an open modal; corrected to dismiss it first.",
+    "followUp": {
+      "passed": 8,
+      "scope": "Three chooser/prompt layouts, mobile composer clearance, four first-use preparation cases",
+      "regression": "A new unclipped-text assertion failed at 390px before the follow-up CSS fix; all eight focused checks passed afterward"
+    }
   },
   "checks": [
     "changed-file ESLint",

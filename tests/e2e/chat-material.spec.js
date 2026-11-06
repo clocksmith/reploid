@@ -537,6 +537,10 @@ for (const viewport of [{ width: 1280, height: 720 }, { width: 390, height: 844 
     expect(composer.y + composer.height).toBeLessThanOrEqual(viewport.height);
     for (const choice of await page.locator('[data-test-shared]').all()) await choice.click({ timeout: 5000 });
     expect(await page.evaluate(() => window.sharedModelClicks)).toEqual(['0', '1', '2']);
+    for (const prompt of await page.locator('[data-starting-prompt]').all()) {
+      await prompt.scrollIntoViewIfNeeded();
+      expect(await prompt.evaluate(node => node.scrollHeight <= node.clientHeight)).toBe(true);
+    }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
 }
