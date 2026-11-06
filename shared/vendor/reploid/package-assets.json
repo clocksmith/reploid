@@ -336,6 +336,16 @@
       "sha256": "6853df90feb1118a39f493375270f580da2549e6bf9ecb304f8b068342a39c2b"
     },
     {
+      "path": "artifacts/generation-terminal.d.ts",
+      "bytes": 768,
+      "sha256": "0c84bcbbab265af90d6628777a39b0a8480c8226a9704a763079b8b7e3eeb76d"
+    },
+    {
+      "path": "artifacts/generation-terminal.js",
+      "bytes": 2682,
+      "sha256": "930bcfa26ae43cd66980709bd3d69d69690b70fc786922b0b0723513d5d1fcf2"
+    },
+    {
       "path": "artifacts/identity.d.ts",
       "bytes": 1010,
       "sha256": "d758486d48c9e7de15ca18cdcf2bd455a03353e41a75f2794bfb00fab5408d74"
@@ -716,6 +726,11 @@
       "sha256": "653e256f8586cf2c5741abf9c12b3aec1a0d190e34ecc2905fdcc2fe97b210d5"
     },
     {
+      "path": "mesh/generation-recovery.js",
+      "bytes": 3200,
+      "sha256": "c60c165232a05ad0eff28701e3fc46f23d034a520a470b8d8adffeac4f1a9185"
+    },
+    {
       "path": "mesh/index.d.ts",
       "bytes": 2186,
       "sha256": "4a12689e619e2459f8030668314f42dfb5c6c946efaf71f8070494b35f018b33"
@@ -787,13 +802,13 @@
     },
     {
       "path": "mesh/legacy-generation.d.ts",
-      "bytes": 2294,
-      "sha256": "9a90e6e7cdc3af81e44f00f0369678ec7c2a802b8b8f3286223250f7af31875c"
+      "bytes": 2928,
+      "sha256": "6e6cbf9e1efc9d52e68f4b4eead40e909b3287a5ec1b302260b9ea249c0a493f"
     },
     {
       "path": "mesh/legacy-generation.js",
-      "bytes": 30349,
-      "sha256": "90596a618a2b5cdd9761d92d3e0495af165ce7cd8aeca047a3beb09b2fb63baf"
+      "bytes": 36189,
+      "sha256": "5659f68a43bd3ba2f8bbda1dd4dfbf2bdb6178ecb7ac151f0416e1e9c110d084"
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.d.ts",

@@ -6,7 +6,8 @@ import { assertLedgerBackend, assertLedgerStoreContract } from './ledger/store-c
 import { billableEventIdFor } from './ledger/attempt-outcomes.js';
 import { conversionHash } from './ledger/conversion/records.js';
 import { createTrialAdmission } from './trial-admission.js';
-import { verifyReceipt } from '../packages/reploid/src/artifacts/receipt.js';
+import { verifyGenerationTerminal } from '../packages/reploid/src/artifacts/generation-terminal.js';
+import { verifyReceipt, getReceiptPayload } from '../packages/reploid/src/artifacts/receipt.js';
 import { matchesWholeModelReceipt } from '../packages/reploid/src/artifacts/whole-model-receipt.js';
 import { hashJson } from '../packages/reploid/src/artifacts/signatures.js';
 import { partitionAdapterIdentities } from '../packages/reploid/src/mesh/partitions/partition-contract.js';
@@ -29,7 +30,9 @@ function exposure(record, credits) {
 
 /** resolveAcceptedRequest is the authenticated account/terms owner. It returns
  * { accountId, deviceId, requesterId, reservationId, conversionId } only after
- * accepting published terms. assessQuality returns an explicit policy-bound
+ * accepting published terms. With { recovery: true, reservationId }, it must
+ * authorize that existing acceptance without creating a quote or reservation.
+ * assessQuality returns an explicit policy-bound
  * { outcome, policyVersion, decisionId, reason? }; signatures are not quality. */
 export function createTextAccounting({ ledger, backend, trialBackend, trialPolicy, policyVersion,
   resolveAcceptedRequest, assessQuality, production = true, clock = () => new Date().toISOString() }) {
@@ -72,8 +75,85 @@ export function createTextAccounting({ ledger, backend, trialBackend, trialPolic
     await update(reservationId, current => ({ ...current, phase: 'settled' }));
     return { settled: true, settlement: reservation.settlement };
   }
+  async function complete(request, result, reservation) {
+    const reservationId = reservation.reservationId;
+    const kept = await read(reservationId), receipt = result.execution?.receipt;
+    const verified = receipt && await verifyReceipt(receipt);
+    assert(kept.providerIdentity && receipt?.version === 2 && verified?.providerValid && verified.consumerValid
+      && receipt.provider === kept.providerIdentity && receipt.consumer === kept.requesterId
+      && result.attemptId === request.attemptId && result.threadId === request.threadId
+      && (!kept.executionReference || receipt.jobHash === `request:${kept.executionReference.requestId}`)
+      && receipt.model === request.model.id && result.modelIdentity === request.model.identity
+      && same(result.adapterIdentities, partitionAdapterIdentities(request.model))
+      && await matchesWholeModelReceipt(receipt, request.messages, { ...result, completion: result.execution.completion })
+      && result.usage?.schema === receipt.usage && result.usage.inputTokens === receipt.inputTokens && result.usage.outputTokens === receipt.outputTokens,
+    'Measured countersigned execution receipt required');
+    const receiptKey = key(`${receipt.provider}|${receipt.jobHash}`);
+    await backend.runTransaction(async tx => {
+      const current = await tx.get('jobs', key(reservationId));
+      const existing = await tx.get('receipts', receiptKey);
+      assert(!existing || existing.reservationId === reservationId && existing.receiptId === receipt.receiptId, 'Execution receipt already used for another request');
+      assert(!current.terminal && (!current.receipt || same(getReceiptPayload(current.receipt), getReceiptPayload(receipt))), 'Conflicting execution evidence');
+      if (!existing) tx.create('receipts', receiptKey, { reservationId, receiptId: receipt.receiptId });
+      if (!current.settlementInput) tx.set('jobs', key(reservationId), { ...current, phase: 'observed', receipt });
+    });
+    if ((await read(reservationId)).settlementInput) return { ...result, accounting: await reconcile(reservationId) };
+    const quality = structuredClone(await assessQuality({ request: structuredClone(request), result: structuredClone(result),
+      reservation: structuredClone(reservation) }));
+    assert(quality?.policyVersion === reservation.service.qualityPolicyVersion && text(quality.decisionId)
+      && ['full', 'reduced', 'failed_quality'].includes(quality.outcome), 'Explicit quality decision required');
+    const completedAt = clock();
+    const settlementInput = { reservationId, billableEventId: billableEventIdFor(reservationId), attemptId: request.attemptId,
+      outcome: Date.parse(completedAt) > Date.parse(reservation.service.deadline) ? 'timeout' : quality.outcome,
+      metering: { context: receipt.inputTokens, output: receipt.outputTokens }, completedAt,
+      reason: quality.reason || quality.decisionId, evidenceRef: receipt.receiptId };
+    await update(reservationId, current => current.settlementInput ? current : ({ ...current, phase: 'validated', quality, settlementInput }));
+    const accounting = await reconcile(reservationId);
+    return { ...result, accounting };
+  }
   return Object.freeze({
     reconcile, getRecord: read, getTrialState: () => trial.getState(),
+    /** Reconcile retained work, never dispatch it. The requester supplies its
+     * original input so neither the accounting store nor a query carries prompts. */
+    async recover({ reservationId, messages, providerId }, controls, recoverExecution) {
+      assert(text(reservationId) && text(controls?.principal?.subject) && controls.signal
+        && typeof recoverExecution === 'function', 'Authenticated recovery required', 403);
+      const record = await read(reservationId);
+      assert(record?.executionReference && record.model && record.threadId, 'No recoverable execution reference');
+      assert(await hashJson(messages) === record.inputDigest, 'Recovery input differs from the accepted request');
+      const request = { threadId: record.threadId, attemptId: record.attemptId, model: structuredClone(record.model), messages: structuredClone(messages) };
+      const accepted = await resolveAcceptedRequest({ principal: controls.principal, request, reservationId, recovery: true, signal: controls.signal });
+      assert(accepted?.reservationId === reservationId && accepted.accountId === record.accountId && accepted.deviceId === record.deviceId
+        && accepted.requesterId === record.requesterId && accepted.conversionId === record.conversion.conversionId,
+      'Recovery belongs to another accepted account or device', 403);
+      if (record.settlementInput) return { status: 'settled', accounting: await reconcile(reservationId) };
+      const reservation = await ledger.getReservation(reservationId);
+      assert(reservation?.status === 'open' && reservation.attempts.some(attempt => attempt.attemptId === record.attemptId
+        && same(attempt.recipients, [record.providerIdentity])), 'Recovery attempt is not bound');
+      const reference = { ...record.executionReference, ...(providerId === undefined ? {} : { providerId }) };
+      assert(text(reference.providerId), 'Recovery peer required');
+      const outcome = structuredClone(await recoverExecution(request, reference, { signal: controls.signal }));
+      controls.signal.throwIfAborted();
+      if (outcome?.status === 'unresolved') return { status: 'unresolved', accounting: { settled: false } };
+      if (outcome?.status === 'completed') return { status: 'completed', ...await complete(request, outcome.result, reservation) };
+      const terminal = outcome?.terminal;
+      assert(await verifyGenerationTerminal(terminal, { requestId: reference.requestId, provider: record.providerIdentity,
+        consumer: record.requesterId, model: record.model.id, modelIdentity: record.model.identity,
+        adapterIdentities: partitionAdapterIdentities(record.model), inputDigest: record.inputDigest }), 'Unverified recovery cleanup');
+      // Cleanup proof is not a token meter. Only an accepted fixed terminal
+      // formula can settle without measurements; metered terms stay held.
+      const outcomeName = terminal.status === 'cancelled' ? 'cancellation' : 'provider_failure';
+      const term = terminal.status === 'cancelled' ? 'cancellationDispatched' : 'providerFailure';
+      const settle = reservation.terms.settlement[term]?.kind === 'fixed';
+      const settlementInput = { reservationId, attemptId: record.attemptId, billableEventId: billableEventIdFor(reservationId),
+        outcome: outcomeName, metering: {}, reason: 'Provider signed settled execution cleanup' };
+      await update(reservationId, current => {
+        assert(!current.receipt && (!current.terminal || same(current.terminal, terminal)), 'Conflicting execution evidence');
+        return current.settlementInput ? current : { ...current, terminal, phase: 'terminal', ...(settle ? { settlementInput } : {}) };
+      });
+      return { status: terminal.status, accounting: settle ? await reconcile(reservationId)
+        : { settled: false, reason: 'Accepted terminal charge requires unavailable measurements' } };
+    },
     /** Authenticated contribution routes resolve references against kept evidence;
      * the contributor never supplies a requester reservation or charge. */
     async resolveContribution({ participantId, receiptId, jobHash }) {
@@ -111,7 +191,9 @@ export function createTextAccounting({ ledger, backend, trialBackend, trialPolic
         'An effective pinned conversion from the approved policy is required');
       const inputDigest = await hashJson(request.messages);
       const record = { reservationId, accountId, deviceId, requesterId, quoteHash: quote.quoteHash,
-        attemptId: request.attemptId, inputDigest, conversion, phase: 'accepted', admitted: false,
+        attemptId: request.attemptId, threadId: request.threadId, model: { id: request.model.id, identity: request.model.identity,
+          adapters: partitionAdapterIdentities(request.model).map(identity => ({ identity, baseModelIdentity: request.model.identity })) },
+        inputDigest, conversion, phase: 'accepted', admitted: false,
         providerIdentity: null, receipt: null, quality: null, settlementInput: null };
       await backend.runTransaction(async tx => {
         assert(!await tx.get('jobs', key(reservationId)), 'Accepted request already claimed; reconcile without repeating inference');
@@ -135,42 +217,16 @@ export function createTextAccounting({ ledger, backend, trialBackend, trialPolic
             controls.signal.throwIfAborted();
             // From here an interrupted write/bind is uncertain, never queued cancellation.
             dispatched = true;
-            await update(reservationId, current => ({ ...current, phase: 'dispatching', providerIdentity: preview.recipientIdentity }));
+            const executionReference = text(preview.requestId) && text(preview.providerId) ? { requestId: preview.requestId,
+              providerId: preview.providerId, providerIdentity: preview.recipientIdentity } : null;
+            await update(reservationId, current => ({ ...current, phase: 'dispatching', providerIdentity: preview.recipientIdentity, executionReference }));
             await ledger.bindAttempt({ reservationId, attemptId: request.attemptId, recipients: [preview.recipientIdentity],
               idempotencyKey: `text-bind:${key(reservationId)}` });
             return true;
           }
         }));
         observed = true;
-        const kept = await read(reservationId), receipt = result.execution?.receipt;
-        const verified = receipt && await verifyReceipt(receipt);
-        assert(dispatched && receipt?.version === 2 && verified?.providerValid && verified.consumerValid
-          && receipt.provider === kept.providerIdentity && receipt.consumer === requesterId
-          && result.attemptId === request.attemptId && result.threadId === request.threadId
-          && receipt.model === request.model.id && result.modelIdentity === request.model.identity
-          && same(result.adapterIdentities, partitionAdapterIdentities(request.model))
-          && await matchesWholeModelReceipt(receipt, request.messages, { ...result, completion: result.execution.completion })
-          && result.usage?.schema === receipt.usage && result.usage.inputTokens === receipt.inputTokens && result.usage.outputTokens === receipt.outputTokens,
-        'Measured countersigned execution receipt required');
-        const receiptKey = key(`${receipt.provider}|${receipt.jobHash}`);
-        await backend.runTransaction(async tx => {
-          const current = await tx.get('jobs', key(reservationId));
-          assert(!await tx.get('receipts', receiptKey), 'Execution receipt already used for another request');
-          tx.create('receipts', receiptKey, { reservationId, receiptId: receipt.receiptId });
-          tx.set('jobs', key(reservationId), { ...current, phase: 'observed', receipt });
-        });
-        const quality = structuredClone(await assessQuality({ request: structuredClone(request), result: structuredClone(result),
-          reservation: structuredClone(reservation) }));
-        assert(quality?.policyVersion === reservation.service.qualityPolicyVersion && text(quality.decisionId)
-          && ['full', 'reduced', 'failed_quality'].includes(quality.outcome), 'Explicit quality decision required');
-        const completedAt = clock();
-        const settlementInput = { reservationId, billableEventId: billableEventIdFor(reservationId), attemptId: request.attemptId,
-          outcome: Date.parse(completedAt) > Date.parse(reservation.service.deadline) ? 'timeout' : quality.outcome,
-          metering: { context: receipt.inputTokens, output: receipt.outputTokens }, completedAt,
-          reason: quality.reason || quality.decisionId, evidenceRef: receipt.receiptId };
-        await update(reservationId, current => ({ ...current, phase: 'validated', quality, settlementInput }));
-        const accounting = await reconcile(reservationId);
-        return { ...result, accounting };
+        return complete(request, result, reservation);
       } catch (error) {
         // No output/dispatch means no GPU work. Persist the terminal intent before
         // calling the ledger, so failure after commit can reconcile on restart.

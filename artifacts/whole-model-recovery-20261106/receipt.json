@@ -1,0 +1,81 @@
+{
+  "component": "Reploid interrupted whole-model request recovery",
+  "intent": "preserved",
+  "baseCommit": "5c59b1889d2448b07108ed4fd4648e18488d39c4",
+  "scope": "Controlled HTTP, mesh and SQLite restart evidence; no live inference or billing activation",
+  "checks": {
+    "focusedTests": {
+      "uniquePassed": 133,
+      "uniqueFiles": 13,
+      "batches": [
+        {
+          "passed": 100,
+          "files": 10
+        },
+        {
+          "passed": 87,
+          "files": 5
+        }
+      ],
+      "overlappingBatches": true,
+      "storage": [
+        "memory",
+        "Firestore transaction double",
+        "native SQLite"
+      ]
+    },
+    "browser": {
+      "passed": 1,
+      "engine": "Chrome",
+      "checks": [
+        "Verification Worker for served runtime modules",
+        "WebCrypto receipt and terminal signing",
+        "rejection of forged cleanup state"
+      ]
+    },
+    "static": [
+      "changed-source ESLint",
+      "library TypeScript declarations",
+      "browser ownership boundaries",
+      "ownership inventory",
+      "browser bundle integrity",
+      "git diff whitespace"
+    ]
+  },
+  "verified": [
+    "mesh request reference retained before dispatch with exact provider signing identity",
+    "recover queries authenticate the original consumer without transmitting its prompt",
+    "provider admission persists before execution; replay and protocol downgrade cannot rerun it",
+    "provider result survives restart and a changed transport connection",
+    "signed cancellation follows executor drain and explicit host cleanup confirmation",
+    "unknown, unfinished, pruned or failed-cleanup records remain held",
+    "fixed accepted cancellation terms settle without fabricating token counts; metered terms with missing measurements stay held",
+    "HTTP recovery revalidates account, device, input, model, adapter, signatures and independent quality decision",
+    "controlled end-to-end HTTP and mesh lost-result recovery settles one charge and one contributor reward",
+    "result bodies have count and byte limits; retained admission metadata prevents replay after pruning"
+  ],
+  "boundaries": [
+    "no approved production pricing or activation configuration supplied",
+    "public API remains unmounted; provider services were not restarted",
+    "native code is source-delivered, not activated in existing provider processes",
+    "no physical GPU cancellation or production Firestore qualification",
+    "missing terminal evidence cannot be inferred from elapsed time or process absence",
+    "no automatic replacement inference or cross-provider fallback",
+    "native journals retain private output bodies within configured replay limits and admission metadata; they do not persist prompt text",
+    "current native default sign-in remains the explicitly enabled local test flow"
+  ],
+  "bundleHash": "sha256:8082b5068c337558278a516e09c76e6c8ed5a3cb89312201f60c93a9ab66422b",
+  "sourceSha256": {
+    "server/native-generation-journal.js": "d3ac8c4d307e2c47f8d7b7812afe725711e4e144efa9fac2919d883383d2487d",
+    "server/native-participant.js": "912aaf2927f3ff25ca4e10a5e200dac03d9ae27489872b8aaf2eaf1ef5f276dd",
+    "server/text-accounting.js": "f364b9dee48fd95a4ba078cdd6ffe0f7856b5f78f5ab81135eefaaa77db5c8fe",
+    "server/text-recovery.js": "61e7a076de97122e52d64d0e4dd9069e5271af8da6276c9faa06fd3f727288db",
+    "server/text-api.js": "35ca7a4c0c81af5f2a0fdba89c6a0c9d866e8e2810d8b6b0e463e6c9c96f738e",
+    "server/whole-model-requester.js": "4b0363bd9f50b5d9779bf955746285e2e5a98301e1dbcfd777d2fc6c10b47cce",
+    "packages/reploid/src/mesh/legacy-generation.js": "5659f68a43bd3ba2f8bbda1dd4dfbf2bdb6178ecb7ac151f0416e1e9c110d084",
+    "packages/reploid/src/mesh/generation-recovery.js": "c60c165232a05ad0eff28701e3fc46f23d034a520a470b8d8adffeac4f1a9185",
+    "packages/reploid/src/artifacts/generation-terminal.js": "930bcfa26ae43cd66980709bd3d69d69690b70fc786922b0b0723513d5d1fcf2",
+    "tests/integration/text-accounting.test.js": "737f315b90d82dca1aa477a49eeaa4f24063aace1b9100ef6da72566beb52ab9",
+    "tests/unit/generation-recovery.test.js": "382ae7e7d295d8bb1ab8b66ab97a2ae6549c77783b110054ead5cc8724913e67"
+  }
+}

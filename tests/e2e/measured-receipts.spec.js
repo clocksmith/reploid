@@ -5,7 +5,7 @@ test('measured receipt modules pass Verification Worker and browser signing', as
   const result = await page.evaluate(async () => {
     const snapshot = {};
     for (const file of ['vendor/reploid/artifacts/receipt.js', 'vendor/reploid/artifacts/whole-model-receipt.js', 'vendor/reploid/mesh/legacy-generation.js',
-      'host/earning/contribution.js']) {
+      'vendor/reploid/artifacts/generation-terminal.js', 'vendor/reploid/mesh/generation-recovery.js', 'host/earning/contribution.js']) {
       const response = await fetch('/' + file);
       if (!response.ok) throw Error('Module unavailable: ' + file);
       snapshot['/' + file] = await response.text();
@@ -26,9 +26,16 @@ test('measured receipt modules pass Verification Worker and browser signing', as
       completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: 7, generatedTokenCount: 3, stopReason: 'eos-token' } });
     const receipt = await countersignReceipt(await signReceiptDraft(await createReceiptDraft({ ...measured,
       provider: provider.peerId, consumer: consumer.peerId, model: 'fixture', jobHash: 'request:browser' }), provider), consumer);
-    return { verification, signatures: await verifyReceipt(receipt), counts: [receipt.inputTokens, receipt.outputTokens] };
+    const { signGenerationTerminal, verifyGenerationTerminal } = await import('/vendor/reploid/artifacts/generation-terminal.js');
+    const binding = { requestId: 'browser-terminal', provider: provider.peerId, consumer: consumer.peerId, model: 'fixture',
+      modelIdentity: measured.modelIdentity, adapterIdentities: [], inputDigest: measured.inputDigest };
+    const terminal = await signGenerationTerminal(binding, 'cancelled', provider);
+    return { verification, signatures: await verifyReceipt(receipt), counts: [receipt.inputTokens, receipt.outputTokens],
+      terminalValid: await verifyGenerationTerminal(terminal, binding), forgedValid: await verifyGenerationTerminal({ ...terminal, cleanup: 'pending' }, binding) };
   });
   expect(result.verification.passed, JSON.stringify(result.verification.errors)).toBe(true);
   expect(result.signatures).toEqual({ valid: true, providerValid: true, consumerValid: true });
   expect(result.counts).toEqual([7, 3]);
+  expect(result.terminalValid).toBe(true);
+  expect(result.forgedValid).toBe(false);
 });

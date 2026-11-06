@@ -15,7 +15,7 @@ const errorBody = error => ({ error: { message: error.message, type: error.statu
 // Each adapter still owns only its own request cancellation/settlement.
 const requesterAdmission = new WeakMap();
 
-async function readBody(req, signal, parse) {
+export async function readBody(req, signal, parse) {
   const chunks = []; let bytes = 0;
   const aborted = () => req.destroy();
   signal.addEventListener('abort', aborted, { once: true });

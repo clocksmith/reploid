@@ -3518,7 +3518,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:06ea546f630e971ce03a0b85b78eb89484b6aeccb2f1585897c7889975d1eb89",
+      "sha256": "sha256:c942dc09ce3196271beee6ebe2dc1626bfd41da1d226e4e0829a5a6ee896d29a",
       "imports": []
     },
     {
@@ -16119,6 +16119,15 @@
       ]
     },
     {
+      "path": "vendor/reploid/artifacts/generation-terminal.js",
+      "owner": "vendor",
+      "sha256": "sha256:930bcfa26ae43cd66980709bd3d69d69690b70fc786922b0b0723513d5d1fcf2",
+      "imports": [
+        "./canonical-json.js",
+        "./identity.js"
+      ]
+    },
+    {
       "path": "vendor/reploid/artifacts/identity.js",
       "owner": "vendor",
       "sha256": "sha256:fa29e7c78d199a3c9fcb9f28a71c0b771bfe8ce04b49af7dbe66f43b45feaaee",
@@ -16368,6 +16377,14 @@
       ]
     },
     {
+      "path": "vendor/reploid/mesh/generation-recovery.js",
+      "owner": "vendor",
+      "sha256": "sha256:c60c165232a05ad0eff28701e3fc46f23d034a520a470b8d8adffeac4f1a9185",
+      "imports": [
+        "./remote-generation-requests.js"
+      ]
+    },
+    {
       "path": "vendor/reploid/mesh/index.js",
       "owner": "vendor",
       "sha256": "sha256:02750682351b78101cb367d884d1b1983c8a71406a23ab63b49e0e3b56617ca5",
@@ -16445,12 +16462,15 @@
     {
       "path": "vendor/reploid/mesh/legacy-generation.js",
       "owner": "vendor",
-      "sha256": "sha256:90596a618a2b5cdd9761d92d3e0495af165ce7cd8aeca047a3beb09b2fb63baf",
+      "sha256": "sha256:5659f68a43bd3ba2f8bbda1dd4dfbf2bdb6178ecb7ac151f0416e1e9c110d084",
       "imports": [
+        "../artifacts/generation-terminal.js",
         "../artifacts/receipt.js",
+        "../artifacts/signatures.js",
         "../artifacts/whole-model-receipt.js",
         "../config/index.js",
         "./contribution.js",
+        "./generation-recovery.js",
         "./peer-identity.js",
         "./preparation-progress.js",
         "./provider-hardware.js",

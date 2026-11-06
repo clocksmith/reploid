@@ -7,6 +7,18 @@ import { canonicalPartitionJson, partitionAdapterIdentities } from '../packages/
 
 const requireValue = (ok, message) => { if (!ok) throw Error(message); };
 const same = (a, b) => canonicalPartitionJson(a) === canonicalPartitionJson(b);
+function projectResult(request, result, providerId, providerIdentity) {
+  const { model, threadId, attemptId } = request;
+  requireValue(providerId && result.model === model.id && result.modelIdentity === model.identity
+    && same(result.adapterIdentities || [], partitionAdapterIdentities(model)), 'Whole-model result identity changed');
+  const completion = readWorkGenerationCompletion(result);
+  requireValue(completion, 'Whole-model completion metadata missing');
+  return { threadId, attemptId, modelId: model.id, modelIdentity: model.identity,
+    adapterIdentities: partitionAdapterIdentities(model), content: result.content, ownerPolicyDigest: result.ownerPolicyDigest ?? null,
+    usage: { schema: 'raw-model-tokens/v1', inputTokens: completion.promptTokenCount, outputTokens: completion.generatedTokenCount },
+    execution: { placement: 'peer-whole-request', providerId, completion, providerIdentity: providerIdentity ?? null,
+      receipt: result.executionReceipt ?? null, stopReason: completion.stopReason, hardware: result.hardware ?? null, timing: result.timing ?? null } };
+}
 
 export function createWholeModelRequester({ mesh, models }) {
   models = structuredClone(models);
@@ -28,7 +40,7 @@ export function createWholeModelRequester({ mesh, models }) {
       requireValue(typeof dispatch.peerId === 'string' && dispatch.peerId, 'Whole-model recipient missing');
       const approved = await controls.requestApproval(structuredClone({ threadId, attemptId, modelId: model.id, modelIdentity: model.identity,
         adapterIdentities: partitionAdapterIdentities(model), providerId: dispatch.peerId, recipients: [dispatch.peerId],
-        recipientIdentity: dispatch.recipientIdentity, input: { messages: request.messages } }));
+        requestId: dispatch.requestId, recipientIdentity: dispatch.recipientIdentity, input: { messages: request.messages } }));
       controls.signal.throwIfAborted();
       if (approved === true) { item.providerId = dispatch.peerId; item.providerIdentity = dispatch.recipientIdentity; }
       return approved === true;
@@ -48,20 +60,17 @@ export function createWholeModelRequester({ mesh, models }) {
           requireValue(item.providerId, 'Whole-model output preceded disclosure');
           controls.onDelta?.({ threadId, attemptId, sequence: sequence++, text });
         }, { signal: controls.signal, modelId: model.id, modelIdentity: model.identity,
-          adapterIdentities: partitionAdapterIdentities(model), requestContext: { id } });
+          adapterIdentities: partitionAdapterIdentities(model), requestContext: { id, recoverable: true } });
         controls.signal.throwIfAborted();
-        requireValue(item.providerId && result.model === model.id && result.modelIdentity === model.identity
-          && same(result.adapterIdentities || [], partitionAdapterIdentities(model)), 'Whole-model result identity changed');
-        const completion = readWorkGenerationCompletion(result);
-        requireValue(completion, 'Whole-model completion metadata missing');
-        return { threadId, attemptId, modelId: model.id, modelIdentity: model.identity,
-          adapterIdentities: partitionAdapterIdentities(model), content: result.content, ownerPolicyDigest: result.ownerPolicyDigest ?? null,
-          usage: { schema: 'raw-model-tokens/v1', inputTokens: completion.promptTokenCount, outputTokens: completion.generatedTokenCount },
-          execution: { placement: 'peer-whole-request', providerId: item.providerId, completion,
-            providerIdentity: item.providerIdentity ?? null,
-            receipt: result.executionReceipt ?? null,
-            stopReason: completion.stopReason, hardware: result.hardware ?? null, timing: result.timing ?? null } };
+        return projectResult(request, result, item.providerId, item.providerIdentity);
       } finally { pending.delete(id); }
+    },
+    async recover(request, reference, controls) {
+      requireValue(controls?.signal && reference?.providerIdentity, 'Bound recovery and cancellation required');
+      const outcome = await mesh.recoverGeneration({ ...reference, modelId: request.model.id, modelIdentity: request.model.identity,
+        adapterIdentities: partitionAdapterIdentities(request.model) }, request.messages, controls.signal);
+      return outcome.status === 'completed' ? { status: 'completed', result: projectResult(request, outcome.response,
+        reference.providerId, reference.providerIdentity) } : outcome;
     }
   });
 }

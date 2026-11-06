@@ -20,7 +20,7 @@
   "counts": {
     "apps/poolday": 278,
     "self": 447,
-    "shared": 2216
+    "shared": 2219
   },
   "pendingMoves": 0,
   "violations": [],
@@ -14315,6 +14315,16 @@
       "owner": "shared"
     },
     {
+      "served": "vendor/reploid/artifacts/generation-terminal.d.ts",
+      "source": "shared/vendor/reploid/artifacts/generation-terminal.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/artifacts/generation-terminal.js",
+      "source": "shared/vendor/reploid/artifacts/generation-terminal.js",
+      "owner": "shared"
+    },
+    {
       "served": "vendor/reploid/artifacts/identity.d.ts",
       "source": "shared/vendor/reploid/artifacts/identity.d.ts",
       "owner": "shared"
@@ -14692,6 +14702,11 @@
     {
       "served": "vendor/reploid/mesh/contribution.js",
       "source": "shared/vendor/reploid/mesh/contribution.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/mesh/generation-recovery.js",
+      "source": "shared/vendor/reploid/mesh/generation-recovery.js",
       "owner": "shared"
     },
     {

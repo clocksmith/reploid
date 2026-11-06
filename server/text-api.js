@@ -2,10 +2,11 @@
  * must be wrapped by the accounting owner; test execution is explicitly unbilled. */
 import { createChatCompletions } from './chat-completions.js';
 import { createResponses } from './responses.js';
+import { createTextRecovery, TEXT_RECOVERY_PATH } from './text-recovery.js';
 import { partitionAdapterIdentities } from '../packages/reploid/src/mesh/partitions/partition-contract.js';
 import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
 
-export const TEXT_API_PATHS = Object.freeze(['/v1/chat/completions', '/v1/responses', '/v1/models']);
+export const TEXT_API_PATHS = Object.freeze(['/v1/chat/completions', '/v1/responses', '/v1/models', TEXT_RECOVERY_PATH]);
 export function createTextApi({ participant, authenticate, authorize, accounting, production = true, allowUnbilledTest = false }) {
   if (!participant || typeof authenticate !== 'function' || typeof authorize !== 'function') throw Error('Text API requires requester authentication and authorization');
   if (typeof accounting?.run !== 'function' && (production || !allowUnbilledTest)) throw Error('Text API requires accounted execution; unbilled tests must be explicit');
@@ -15,6 +16,7 @@ export function createTextApi({ participant, authenticate, authorize, accounting
       (nextRequest = request, nextControls = controls) => participant.generate(nextRequest, nextControls)) } : participant;
   const options = { participant: requester, authenticate, authorize };
   const completions = createChatCompletions(options), responses = createResponses(options);
+  const recovery = createTextRecovery({ participant, authenticate, authorize, accounting });
   const listing = new Set(); let closed = false;
   const json = (res, status, body) => { res.writeHead(status, { 'content-type': 'application/json' }); res.end(JSON.stringify(body)); };
   return Object.freeze({
@@ -24,6 +26,7 @@ export function createTextApi({ participant, authenticate, authorize, accounting
       catch { return json(res, 400, { error: { message: 'Invalid API route' } }); }
       if (path === '/v1/chat/completions') return completions.handle(req, res);
       if (path === '/v1/responses') return responses.handle(req, res);
+      if (path === TEXT_RECOVERY_PATH) return recovery.handle(req, res);
       if (path !== '/v1/models') return json(res, 404, { error: { message: 'Unsupported API route' } });
       if (closed) return json(res, 503, { error: { message: 'Text API is closed' } });
       if (listing.size >= policy.inputLimits.maxConcurrentAttempts) return json(res, 429, { error: { message: 'Model listing admission unavailable' } });
@@ -59,7 +62,7 @@ export function createTextApi({ participant, authenticate, authorize, accounting
     async close() {
       closed = true;
       for (const controller of listing) controller.abort(Error('Text API closing'));
-      await Promise.all([completions.close(), responses.close()]);
+      await Promise.all([completions.close(), responses.close(), recovery.close()]);
     }
   });
 }

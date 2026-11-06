@@ -7,6 +7,9 @@ import { createPeerAdvertisement, createSwarmController } from './swarm-coordina
 import { rankProviderPeers, applyReceiptToContribution } from './contribution.js';
 import { createReceiptDraft, countersignReceipt, signReceiptDraft, verifyReceipt } from '../artifacts/receipt.js';
 import { measureWholeModelReceipt, matchesWholeModelReceipt } from '../artifacts/whole-model-receipt.js';
+import { hashJson } from '../artifacts/signatures.js';
+import { signGenerationTerminal, verifyGenerationTerminal } from '../artifacts/generation-terminal.js';
+import { createGenerationRecovery, createMemoryGenerationJournal } from './generation-recovery.js';
 
 const adapterSet = value => {
   if (!Array.isArray(value) || value.length > 1 || value.some(id => !/^sha256:[a-f0-9]{64}$/.test(id))) {
@@ -48,6 +51,8 @@ export function createLegacyGenerationMesh({ config, ports }) {
   let closing = null;
   let closed = false, identityBundle = null, swarmTransport = ports.transport || null;
   let peerIdentity = null;
+  let recovery = null;
+  const generationJournal = ports.generationJournal || createMemoryGenerationJournal(policy.mesh.maxRetainedJobs);
   let pendingFreshIdentity = ports.forceFreshIdentity === true;
   const remoteRequests = createRemoteGenerationRequests({ timeoutMs: REMOTE_GENERATION_TIMEOUT_MS,
     maxPending: policy.mesh.maxPendingJobs,
@@ -328,7 +333,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
     const targetProvider = payload.provider ? String(payload.provider).trim() : null;
     const messages = Array.isArray(payload.messages) ? payload.messages : [];
 
-    if (!requestId || !messages.length) return;
+    if (!requestId || requestId.length > 512 || !messages.length) return;
     let adapters;
     try { adapters = adapterSet(payload.adapterIdentities || []); } catch { return; }
     if (targetProvider && targetProvider !== identityBundle.peerId && targetProvider !== swarmTransport._getPeerId?.()) return;
@@ -347,7 +352,14 @@ export function createLegacyGenerationMesh({ config, ports }) {
       return;
     }
     const key = `${remotePeerId}:${requestId}`;
-    if (completed.has(key)) {
+    // A replay cannot evade the durable fence by downgrading its protocol flag.
+    const earlierAdmission = !payload.recoverable && await generationJournal.get({ provider: identityBundle.peerId, consumer, requestId });
+    if (closed || !ready() || !bindingAvailable(binding, adapters)) return;
+    if (earlierAdmission) {
+      swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-error', { requestId, error: 'Previously admitted execution requires recovery' });
+      return;
+    }
+    if (!payload.recoverable && completed.has(key)) {
       const previous = completed.get(key);
       swarmTransport.sendToPeer(remotePeerId, previous.type, previous.payload);
       return;
@@ -364,7 +376,21 @@ export function createLegacyGenerationMesh({ config, ports }) {
     inboundSettlements.add(settlement);
     const deadline = setTimeout(() => controller.abort(new Error('Remote job deadline exceeded')), policy.mesh.generationTimeoutMs);
 
+    let recoveryBinding = null, claimedRecovery = false, retainedResult = false;
     try {
+      if (payload.recoverable === true) {
+        if (await peerIdentity.verify(remotePeerId, controller.signal) !== consumer) throw Error('Generation consumer identity changed');
+        recoveryBinding = { requestId, provider: identityBundle.peerId, consumer, model: binding.model,
+          modelIdentity: binding.modelIdentity, adapterIdentities: adapters, inputDigest: await hashJson(messages) };
+        claimedRecovery = await generationJournal.claim(recoveryBinding);
+        if (!claimedRecovery) {
+          const previous = await generationJournal.get(recoveryBinding);
+          if (JSON.stringify(previous?.binding) !== JSON.stringify(recoveryBinding)) throw Error('Generation replay binding changed');
+          if (previous?.outcome) swarmTransport.sendToPeer(remotePeerId, previous.outcome.type, previous.outcome.payload);
+          else swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-error', { requestId, error: 'Execution unresolved; query recovery without repeating it' });
+          return;
+        }
+      }
       advertiseSelf();
       const response = await generateBound(messages, (chunk) => {
         if (closed || controller.signal.aborted) return;
@@ -392,10 +418,25 @@ export function createLegacyGenerationMesh({ config, ports }) {
       if (closed) return;
 
       const result = { requestId, response, receipt };
+      if (recoveryBinding) {
+        await generationJournal.finish(recoveryBinding, { type: 'reploid:generation-result', payload: result });
+        retainedResult = true;
+      }
       completed.set(key, { type: 'reploid:generation-result', payload: result });
       swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-result', result);
     } catch (error) {
       const payload = { requestId, error: error?.message || String(error) };
+      if (claimedRecovery && !retainedResult && typeof ports.settleGeneration === 'function') {
+        try {
+          // A rejected promise alone cannot prove GPU cleanup. The owning host
+          // must confirm reset/disposal before this terminal record is signed.
+          if (await ports.settleGeneration() === true) {
+            payload.terminal = await signGenerationTerminal(recoveryBinding,
+              controller.signal.reason?.code === 'REQUESTER_CANCELLED' ? 'cancelled' : 'failed', identityBundle);
+            await generationJournal.finish(recoveryBinding, { type: 'reploid:generation-error', payload });
+          }
+        } catch { /* No terminal proof: retain the admission fence and uncertainty. */ }
+      }
       if (!closed) {
         completed.set(key, { type: 'reploid:generation-error', payload });
         swarmTransport?.sendToPeer(remotePeerId, 'reploid:generation-error', payload);
@@ -440,13 +481,16 @@ export function createLegacyGenerationMesh({ config, ports }) {
       if (!swarmHandlersRegistered) {
         peerIdentity = createMeshPeerIdentity({ transport: swarmTransport, getIdentity: () => identityBundle,
           roomId: policy.mesh.roomId, timeoutMs: REMOTE_GENERATION_TIMEOUT_MS, maxPending: policy.mesh.maxPendingJobs });
+        recovery = createGenerationRecovery({ transport: swarmTransport, getIdentity: () => identityBundle,
+          verifyPeer: (peer, signal) => peerIdentity.verify(peer, signal), journal: generationJournal,
+          timeoutMs: REMOTE_GENERATION_TIMEOUT_MS, maxPending: policy.mesh.maxPendingJobs });
         swarmTransport.onMessage('reploid:peer-advertisement', handlePeerAdvertisement);
         swarmTransport.onMessage('reploid:generation-request', handleGenerationRequest);
         swarmTransport.onMessage('reploid:generation-update', handleGenerationUpdate);
         swarmTransport.onMessage('reploid:generation-result', handleGenerationResult);
         swarmTransport.onMessage('reploid:generation-error', handleGenerationError);
         swarmTransport.onMessage('reploid:generation-cancel', (peerId, payload = {}) => {
-          inbound.get(`${peerId}:${String(payload.requestId || '')}`)?.abort(new Error('Requester stopped this job'));
+          inbound.get(`${peerId}:${String(payload.requestId || '')}`)?.abort(Object.assign(new Error('Requester stopped this job'), { code: 'REQUESTER_CANCELLED' }));
         });
         swarmTransport.onMessage('reploid:receipt', (peer, payload) => {
           if (closed) return;
@@ -546,8 +590,9 @@ export function createLegacyGenerationMesh({ config, ports }) {
       if (remoteRequests.size >= policy.mesh.maxPendingJobs) throw new Error('Pending remote job limit exceeded');
       const connectionBinding = JSON.stringify(swarmTransport.getPeerBinding?.(provider.peerId) || null);
       const recipientIdentity = provider.identityProtocol === 1 ? await peerIdentity.verify(provider.peerId, signal) : null;
+      const requestId = utils.generateId('swarmreq');
       if (await ports.authorize({ action: 'mesh.dispatch', peerId: provider.peerId, modelId, modelIdentity, messages: snapshotJson(messages),
-        recipientIdentity, adapterIdentities: [...adapterIdentities], requestContext: snapshotJson(requestContext) }) !== true) {
+        requestId, recipientIdentity, adapterIdentities: [...adapterIdentities], requestContext: snapshotJson(requestContext) }) !== true) {
         throw new Error('Host denied remote prompt disclosure');
       }
       signal?.throwIfAborted();
@@ -559,13 +604,12 @@ export function createLegacyGenerationMesh({ config, ports }) {
         || !supportsAdapters(currentProvider, adapterIdentities)) {
         throw new Error('Selected contributor is no longer ready; retry requires new placement');
       }
-      const requestId = utils.generateId('swarmreq');
       return await remoteRequests.start({ requestId, modelId, modelIdentity, adapterIdentities,
         providerPeerId: provider.peerId, providerIdentity: recipientIdentity, messages, onUpdate, signal }, () =>
         swarmTransport.sendToPeer(provider.peerId, 'reploid:generation-request', {
           requestId, consumer: identityBundle.peerId, provider: provider.peerId,
           model: modelId || provider.model || null, modelIdentity, adapterIdentities,
-          modelContract: policy.models.contract, messages
+          modelContract: policy.models.contract, messages, ...(requestContext?.recoverable === true ? { recoverable: true } : {})
         }));
     } finally {
       reservedProviders.delete(provider.peerId);
@@ -573,6 +617,37 @@ export function createLegacyGenerationMesh({ config, ports }) {
     }
   };
 
+  const recoverGeneration = async (reference, messages, signal) => {
+    await initialize(); signal?.throwIfAborted();
+    reference = snapshotJson(reference); messages = snapshotJson(messages);
+    if (!reference?.requestId || !reference.providerIdentity || !reference.providerId) throw Error('Bound recovery reference required');
+    const binding = { requestId: reference.requestId, provider: reference.providerIdentity, consumer: identityBundle.peerId,
+      model: reference.modelId, modelIdentity: reference.modelIdentity, adapterIdentities: adapterSet(reference.adapterIdentities),
+      inputDigest: await hashJson(messages) };
+    const outcome = await recovery.read(reference, signal);
+    signal?.throwIfAborted();
+    if (closed) throw Error('Mesh closed during recovery');
+    if (!outcome) return { status: 'unresolved' };
+    const payload = outcome.payload;
+    if (payload?.requestId !== reference.requestId) throw Error('Recovery request identity changed');
+    if (outcome.type === 'reploid:generation-error') {
+      if (!await verifyGenerationTerminal(payload.terminal, binding)) throw Error('Unverified recovery cleanup');
+      return { status: payload.terminal.status, terminal: payload.terminal };
+    }
+    const response = payload.response, receipt = payload.receipt;
+    const verified = receipt && await verifyReceipt(receipt);
+    if (outcome.type !== 'reploid:generation-result' || receipt?.version !== 2 || !verified?.providerValid
+      || !matchesRequestedModel(response, modelBinding(binding.model, binding.modelIdentity))
+      || receipt.provider !== binding.provider || receipt.consumer !== binding.consumer || receipt.model !== binding.model
+      || receipt.jobHash !== `request:${binding.requestId}` || receipt.modelIdentity !== binding.modelIdentity
+      || JSON.stringify(receipt.adapterIdentities) !== JSON.stringify(binding.adapterIdentities)
+      || !await matchesWholeModelReceipt(receipt, messages, response)) throw Error('Unverified recovered completion');
+    response.executionReceipt = await countersignReceipt(receipt, identityBundle);
+    signal?.throwIfAborted();
+    if (closed) throw Error('Mesh closed during recovery');
+    swarmTransport.sendToPeer(reference.providerId, 'reploid:receipt', { receipt: response.executionReceipt });
+    return { status: 'completed', response };
+  };
 
   const close = () => {
     if (closing) return closing;
@@ -581,6 +656,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
     closing = Promise.resolve().then(async () => {
       lifetime.abort(new Error('Mesh closed'));
       peerIdentity?.close();
+      const recoveryClose = recovery?.close();
       for (const finish of providerWaiters) finish(false);
       remoteRequests.close();
       for (const controller of inbound.values()) controller.abort(new Error('Mesh closed'));
@@ -588,14 +664,14 @@ export function createLegacyGenerationMesh({ config, ports }) {
       swarmTransport?.disconnect();
       // Keep every close caller waiting while an admitted executor drains, even
       // when its cancellation port cannot interrupt the current GPU operation.
-      await Promise.all([...inboundSettlements, ...receiptSettlements, ...[...executions].map(pending => pending.catch(() => {})),
+      await Promise.all([recoveryClose, ...inboundSettlements, ...receiptSettlements, ...[...executions].map(pending => pending.catch(() => {})),
         ...(swarmInitPromise ? [swarmInitPromise.catch(() => {})] : [])]);
       completed.clear();
       swarmTransport?.disconnect();
     });
     return closing;
   };
-  return Object.freeze({ connect: initialize, initialize, generate, rotateIdentity, getSwarmSnapshot,
+  return Object.freeze({ connect: initialize, initialize, generate, recoverGeneration, rotateIdentity, getSwarmSnapshot,
     verifyPeerIdentity: (peerId, signal) => {
       if (closed || !peerIdentity) throw new Error('Peer identity verification is unavailable');
       return peerIdentity.verify(peerId, signal);

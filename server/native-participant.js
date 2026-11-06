@@ -10,6 +10,7 @@ import fs from 'node:fs/promises';
 import { createWebAccessNetwork } from '../packages/reploid/src/mesh/web-access-network.js';
 import { createPublicWebWorker } from './public-web-worker.js';
 import { createNativeWholeModel } from './native-whole-model.js';
+import { openNativeGenerationJournal } from './native-generation-journal.js';
 import { createWholeModelRequester } from './whole-model-requester.js';
 import { createNativeModelFiles } from './native-model-files.js';
 import { createCustodyKeyCertifier } from '../packages/reploid/src/artifacts/custody-certificate.js';
@@ -402,7 +403,8 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
  * partition state and each prepared resident's admissions; the caller owns and ends it. */
 export async function createNativeParticipant({ model, modelDirectory, identity, rtc, WebSocket,
   signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
-  owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null, readiness = null, executionMode = 'partition', webWorker = null }) {
+  owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null, readiness = null, executionMode = 'partition', webWorker = null,
+  generationJournalFile = null }) {
   requireValue(['partition', 'whole-model'].includes(executionMode), 'Unknown native execution mode');
   const wholeMode = executionMode === 'whole-model';
   requireValue(!wholeMode || canonical === null && ordered === null && readiness === null,
@@ -438,6 +440,8 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   } });
   const eventBus = events(), bridge = events(), utils = { logger, generateId: () => crypto.randomUUID() };
   const admission = roomId === bootstrap.publicRoomId ? null : createRoomIntroductionAdmission({ roomId, token: roomToken });
+  const generationJournal = wholeMode && generationJournalFile ? await openNativeGenerationJournal({ file: generationJournalFile,
+    maxResults: config.mesh.maxRetainedJobs, maxResultBytes: config.webrtc.maxMessageBytes }) : null;
   let transport, partitions, files, webNetwork, wholeRequester, closePromise, closed = false, gpuPromise;
   const networks = new Set();
   const earningWrites = new Set();
@@ -448,6 +452,12 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     resolveAdapter: createWorkAdapterResolver({ models: [model], ...(cacheDirectory ? { acquire: (artifact, controls) => files.acquireAdapter(artifact, controls) } : {}) }),
     onChange: state => { onChange(state); mesh.refreshAdvertisement(); } }) : null;
   const mesh = createLegacyGenerationMesh({ config, ports: {
+    generationJournal,
+    settleGeneration: whole ? async () => {
+      // The resident returns ready only after generation-state reset succeeds.
+      if (!whole.getState().ready) await whole.stop();
+      return true;
+    } : undefined,
     instanceId: 'node:' + identity.peerId, modelConfig: wholeMode ? model : null, utils, eventBus, events: bridge,
     getExecutionState: () => whole ? { ...whole.getExecutionState(), ...(!wholeEarningReady ? { phase: 'idle' } : {}) } : { phase: 'idle' },
     identity: { ensure: async () => identity, save: async () => {}, sync: async () => {},
@@ -513,6 +523,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
       results.push(...await Promise.allSettled([Promise.resolve().then(() => closeOwner(owner))]));
     }
     results.push(...await Promise.allSettled([...earningWrites]));
+    if (settledOwners.has(mesh)) results.push(...await Promise.allSettled([Promise.resolve().then(() => generationJournal?.close())]));
     // Resident cleanup still needs its epoch journal on explicit retry. A failed
     // transport close does not revoke that ownership or clear its durable debt.
     if (!partitions || settledOwners.has(partitions)) {
@@ -563,6 +574,10 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
         requireValue(!closed && !canonical && partitions, 'Native ordinary requester is unavailable');
         requireValue(typeof controls?.requestApproval === 'function', 'Explicit requester disclosure authorization required');
         return request.model.partition ? partitions.generate(request, controls) : wholeRequester.generate(request, controls);
+      },
+      recoverGeneration(request, reference, controls) {
+        requireValue(!closed && wholeRequester, 'Native whole-model recovery unavailable');
+        return wholeRequester.recover(request, reference, controls);
       },
       contribute: ownerGate ? async approved => {
         if (approved === true && !await ownerAdmission('contribute')) return;
@@ -768,6 +783,7 @@ is separate from backend selection; --help opens no provider.`);
     roomId: values.room || bootstrap.publicRoomId, roomToken: roomToken || bootstrap.publicJoinMarker,
     cacheDirectory: values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
     executionMode: values['execution-mode'] || 'partition',
+    generationJournalFile: path.join(path.dirname(identityFile), 'generation-journal.sqlite'),
     webWorker,
     ordered, canonical: values.canonical ? { epochDirectory: path.join(path.dirname(identityFile), 'canonical-epochs',
       createHash('sha256').update(values.room || bootstrap.publicRoomId).digest('hex')) } : null,
