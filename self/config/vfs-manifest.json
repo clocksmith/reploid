@@ -673,6 +673,7 @@
     "ui/components/diamond-renderer.js",
     "ui/components/diamond.js",
     "ui/components/disclosure.js",
+    "ui/components/drawer.js",
     "ui/components/html.js",
     "ui/components/inline-chat.js",
     "ui/components/interface-icons.js",

@@ -146,8 +146,8 @@ it('shows each answer’s own route and latency, without borrowing metrics from 
   view.update(thread, { usable: true, busy: false });
   const first = root.querySelector('[data-message-id="reply"]'), second = root.querySelector('[data-message-id="later-reply"]');
   expect(first.querySelector('.chat-message-meta').textContent).toContain('10.0 tok/s');
-  expect(first.querySelector('[data-activity-detail]').textContent).toContain('First token0.25 s');
-  expect(first.textContent).toContain('Prompt processing');
+  expect(first.querySelector('[data-execution-trigger]').getAttribute('aria-label')).toContain('1 computer');
+  expect(root.querySelector('[popover]')).toBeNull();
   expect(second.querySelector('[data-execution-trigger]').getAttribute('aria-label')).toContain('2 computers · Partitioned');
   expect(second.textContent).not.toContain('tok/s');
   expect(second.textContent).not.toContain('First token');

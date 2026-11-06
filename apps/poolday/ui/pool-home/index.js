@@ -83,7 +83,7 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
     document.documentElement.classList.add('pool-page'); mount.replaceChildren();
     let renderedLocation = null;
     const render = async (options = {}) => {
-      const location = new URL(window.location.href); location.searchParams.delete('view');
+      const location = new URL(window.location.href); location.searchParams.delete('view'); location.searchParams.delete('threads');
       // Workspace history changes only the visible destination, retaining drafts and attachments.
       if (options.type === 'popstate' && renderedLocation === location.href && mount.querySelector('[data-chat-workspace]')) return;
       renderedLocation = location.href;

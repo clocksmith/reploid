@@ -159,6 +159,8 @@
   --pool-motion-nav-duration: 320ms;
   --pool-motion-nav-easing: cubic-bezier(0.22, 1, 0.36, 1);
   --pool-layout-inspector: 380px;
+  --pool-layout-threads: 300px;
+  --pool-motion-drawer-duration: 420ms;
   --pool-z-overlay: 100;
   --pool-motion-button-duration: 220ms;
   --pool-motion-button-hover-duration: 230ms;

@@ -7,7 +7,8 @@ import { updateModelSelect, modelSelectionLabel, bindModelChoices, isSharedModel
 /** Conversation presentation; the host owns execution and disclosure. */
 import { projectNetworkPeers } from './network-controls.js';
 import { renderInspectorNavigation, renderInspectorRail, renderModelSetupDialog, bindNetworkInspector } from './network-inspector.js';
-import { renderBrandLink } from './shell-view.js';
+import { bindDrawer } from '../components/drawer.js';
+import { renderBrandLink, renderPowerTower } from './shell-view.js';
 import { escapeHtml as escape, renderAttachments, readTextAttachments } from '../components/attachments.js';
 import { bindDisclosure } from '../components/disclosure.js';
 import { bindDialog } from '../components/dialog.js';
@@ -46,21 +47,22 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
     <aside id="chat-threads" class="chat-thread-sidebar pool-mobile-app-bar" data-thread-sidebar aria-label="Conversation controls" ${compact ? 'hidden' : ''}>
       <div class="chat-rail-toolbar pool-surface" data-chat-rail-toolbar>
       <div class="chat-rail-heading">
-      <span class="chat-thread-brand" data-thread-rail-brand>${renderBrandLink({ toolbar: true })}</span>
-      <a class="pool-button btn-ghost chat-rail-icon" href="${escape(workspaceHref('threads'))}" data-workspace-view="threads" data-toggle-thread-rail aria-label="Threads" title="Threads">${interfaceIcon('threads')}<span class="chat-rail-label">Threads</span></a>
+      <span class="chat-thread-brand" data-thread-rail-brand>${renderBrandLink({ toolbar: true, drawer: true, href: workspaceHref('threads') })}</span>
+
       <button class="pool-button btn-ghost chat-new-thread" type="button" data-new-thread aria-label="New thread" title="New thread">${interfaceIcon('newThread')}<span class="chat-rail-label">New thread</span></button>
       </div>
       <footer class="chat-rail-footer"><div data-network-trigger-slot>${inspector ? renderInspectorNavigation({ workspace: true }) : ''}</div></footer>
       </div>
     </aside>
-    <section class="chat-threads-dialog pool-surface" hidden data-threads-dialog aria-labelledby="chat-threads-title">
-      <header class="chat-network-heading"><h2 class="pool-subheading" id="chat-threads-title" tabindex="-1">Threads</h2><button class="pool-button" type="button" data-close-threads aria-label="Back to chat" title="Back to chat">${interfaceIcon('close')}</button></header>
+    <section class="chat-threads-dialog pool-surface" hidden data-drawer-side="left" data-threads-dialog aria-labelledby="chat-threads-title">
+      <header class="chat-network-heading"><h2 class="pool-subheading pool-row pool-gap-sm" id="chat-threads-title" tabindex="-1"><span data-drawer-mark>${renderPowerTower()}</span>Reploid</h2><button class="pool-button btn-ghost pool-icon" type="button" data-close-threads aria-label="Back to chat" title="Back to chat">${interfaceIcon('close')}</button></header>
+      <button class="pool-button btn-ghost pool-row pool-gap-sm" type="button" data-drawer-new-thread>${interfaceIcon('newThread')}New thread</button>
+      <div class="pool-segmented" role="group" aria-label="Threads"><button class="pool-segment" type="button" data-show-active aria-pressed="true">Active</button><button class="pool-segment" type="button" data-show-archived aria-pressed="false">Archived</button></div>
       <section class="chat-thread-panel" data-thread-panel aria-labelledby="chat-threads-title">
       <div class="chat-thread-list" data-thread-list></div>
       </section>
       <div class="chat-rail-controls" data-network-header>
         <details class="chat-conversation-actions" data-conversation-actions><summary class="pool-button" aria-label="Conversation actions" title="Conversation actions">${interfaceIcon('more')}<span class="chat-rail-label">Conversation</span></summary><div class="pool-surface">
-          <button class="pool-button" type="button" data-show-archived aria-pressed="false">Archived threads</button>
           <button class="pool-button btn-ghost" type="button" data-conversation-download hidden>Download conversation</button>
           <fieldset data-context-controls><legend>Context prompt</legend>
             <label><input type="checkbox" data-context-enabled> Include app context</label>
@@ -70,7 +72,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
         </div></details>
       </div>
     </section>
-    <aside class="chat-inspector-slot pool-surface" data-chat-inspector-slot aria-label="Selected controls">${inspector ? renderInspectorRail({ mounted: true, contribution: renderProductionContribution() }) : ''}</aside>
+    <aside class="chat-inspector-slot pool-surface" hidden data-drawer-side="right" data-chat-inspector-slot aria-label="Selected controls">${inspector ? renderInspectorRail({ mounted: true, contribution: renderProductionContribution() }) : ''}</aside>
     <section class="chat-conversation-area" data-conversation-area aria-label="Current conversation">
       <div class="chat-conversation-content">
       <div class="chat-transcript chat-message-stream" data-chat-transcript data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
@@ -148,20 +150,23 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const railToggle = find('[data-toggle-thread-rail]');
   let workspaceNavigation = null, applyingView = false;
   const threadsDialogNode = find('[data-threads-dialog]');
+  const leftDrawer = bindDrawer(threadsDialogNode, { side: 'left' });
+  const allowBoth = () => (globalThis.innerWidth || 0) >= 1200;
+  const rightView = () => ({ participants: 'computers' }[inspector.section?.()] || inspector.section?.());
   const setThreads = (open, reflect = true) => {
-    if (open) inspector.close?.({ restoreFocus: false });
+    if (open && !allowBoth()) { const previous = applyingView; applyingView = true; inspector.close?.({ restoreFocus: false }); applyingView = previous; }
     viewState.threadsOpen = open; container.toggleAttribute('data-threads-open', open);
-    threadsDialogNode.hidden = !open;
+    leftDrawer.setOpen(open);
     if (!open) actionsPanel.setOpen(false);
-    if (reflect && !applyingView) workspaceNavigation?.reflect(open ? 'threads' : 'chat');
+    if (reflect && !applyingView) workspaceNavigation?.reflect(inspector.isOpen?.() ? rightView() : open ? 'threads' : 'chat', { threads: open });
     if (open) (find('[data-thread-item-id][aria-current="true"]') || find('[data-thread-item-id]') || find('#chat-threads-title')).focus({ preventScroll: true });
   };
   const detachHandover = bindHistoryHandover(container, historyHandover);
   const detachInspector = inspector.onOpen?.(section => {
-    setThreads(false, false);
-    if (!applyingView) workspaceNavigation?.reflect(section === 'participants' ? 'computers' : section);
+    if (!allowBoth()) setThreads(false, false);
+    if (!applyingView) workspaceNavigation?.reflect(section === 'participants' ? 'computers' : section, { threads: viewState.threadsOpen });
   });
-  const detachInspectorClose = inspector.onClose?.(() => { if (!applyingView) workspaceNavigation?.reflect('chat'); });
+  const detachInspectorClose = inspector.onClose?.(() => { if (!applyingView) workspaceNavigation?.reflect(viewState.threadsOpen ? 'threads' : 'chat'); });
   const production = bindProductionControls(container, session, {
     inspector,
     getSelectedModelId: () => modelSelect.value,
@@ -186,6 +191,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   onResize();
   function onResize() {
     resizeInput();
+    if (!allowBoth() && viewState.threadsOpen && inspector.isOpen?.()) setThreads(false);
     const surface = container.closest('.pool-home');
     if (surface) {
       const height = globalThis.visualViewport?.height || globalThis.innerHeight;
@@ -496,8 +502,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     input.dispatchEvent(new Event('input', { bubbles: true }));
     input.focus();
   });
-  const newThread = () => after(saveDraft(), () => after(session.select(null), () => { inspector.close?.({ restoreFocus: false }); chosenModel = null; viewState.chosenModel = null; archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-archived]').textContent = 'Archived threads'; actionsPanel.setOpen(false); setThreads(false); render(session.getState()); input.focus(); }));
-  on('[data-new-thread]', 'click', () => { try { observe(newThread()); } catch (cause) { error(cause); } });
+  const newThread = () => after(saveDraft(), () => after(session.select(null), () => { inspector.close?.({ restoreFocus: false }); chosenModel = null; viewState.chosenModel = null; archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-active]').setAttribute('aria-pressed', 'true'); actionsPanel.setOpen(false); setThreads(false); render(session.getState()); input.focus(); }));
+  for (const selector of ['[data-new-thread]', '[data-drawer-new-thread]']) on(selector, 'click', () => { try { observe(newThread()); } catch (cause) { error(cause); } });
   on('[data-active-model-select]', 'change', () => { chosenModel = (session.getState().models || []).find(model => (model.selectionId || model.id) === modelSelect.value); viewState.chosenModel = chosenModel; render(session.getState()); input.focus(); });
   on('[data-change-model]', 'click', () => {
     if (changingModel) return;
@@ -542,13 +548,15 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     inspector.downloadModel?.(model?.id, event.currentTarget);
   });
   on('[data-cancel-download]', 'click', () => { autoDownload.cancelled(); session.cancelModelDownload(); });
-  on('[data-show-archived]', 'click', event => {
-    archived = !archived; event.currentTarget.setAttribute('aria-pressed', String(archived));
-    event.currentTarget.textContent = archived ? 'Back to threads' : 'Archived threads';
+  const showThreads = showArchived => {
+    archived = showArchived; find('[data-show-archived]').setAttribute('aria-pressed', String(archived));
+    find('[data-show-active]').setAttribute('aria-pressed', String(!archived));
     actionsPanel.setOpen(false); render(session.getState());
     setThreads(true);
-    (find('[data-thread-item-id]') || find('[data-new-thread]')).focus();
-  });
+    (find('[data-thread-item-id]') || find('[data-drawer-new-thread]')).focus();
+  };
+  on('[data-show-archived]', 'click', () => showThreads(true));
+  on('[data-show-active]', 'click', () => showThreads(false));
   on('[data-rename-cancel]', 'click', () => renameDialog.close());
   on('[data-rename-form]', 'submit', event => { event.preventDefault(); void act(async () => { await session.renameThread(renameId, find('[data-thread-name]').value); renameDialog.close(); }); });
   on('[data-thread-list]', 'click', event => {
@@ -561,7 +569,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const archive = event.target.closest('[data-archive-thread]');
     if (archive) {
       void act(async () => { await saveDraft();
-        if (archived) { archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-archived]').textContent = 'Archived threads'; await session.restoreThread(archive.dataset.threadId); }
+        if (archived) { archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-active]').setAttribute('aria-pressed', 'true'); await session.restoreThread(archive.dataset.threadId); }
         else await session.archiveThread(archive.dataset.threadId);
         (find('[data-thread-item-id][aria-current="true"]') || find('[data-new-thread]')).focus();
       }); return;
@@ -621,6 +629,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   });
   on('[data-composer-stop]', 'click', () => act(() => session.cancel(session.getState().selectedId)));
   on('[data-message-stream]', 'click', event => {
+    const receipt = event.target.closest('[data-execution-trigger]');
+    if (receipt) { const row = receipt.closest('[data-message-id]'); const message = session.getState().activeThread?.messages.find(item => item.id === row?.dataset.messageId); if (message?.attemptId) inspector.inspectAttempt?.(message.attemptId, receipt); return; }
     const copyError = event.target.closest('[data-copy-error]');
     if (copyError) act(async () => {
       const attempt = session.getState().activeThread?.attempts.find(item => item.id === copyError.dataset.copyError);
@@ -674,17 +684,17 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const target = document.getElementById(link.getAttribute('href').slice(1));
     if (target) { event.preventDefault(); target.closest('details').open = true; target.focus(); target.scrollIntoView({ block: 'nearest' }); }
   });
-  workspaceNavigation = bindWorkspaceNavigation(container, view => {
+  workspaceNavigation = bindWorkspaceNavigation(container, (view, routeState) => {
     applyingView = true;
     try {
-      setThreads(view === 'threads', false);
+      setThreads(view === 'threads' || !!routeState?.threads, false);
       if (['settings', 'computers', 'conversation'].includes(view)) inspector.open(view === 'computers' ? 'participants' : view);
       else inspector.close?.({ restoreFocus: false });
     } finally { applyingView = false; }
   });
   container.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && container.hasAttribute('data-threads-open')) {
-      event.preventDefault(); workspaceNavigation.navigate('chat'); railToggle?.focus();
+    if (event.key === 'Escape' && !event.defaultPrevented && !event.target.closest('dialog[open]') && container.hasAttribute('data-threads-open')) {
+      event.preventDefault(); setThreads(false); railToggle?.focus();
     }
   }, options);
   workspaceNavigation.restore();
@@ -693,7 +703,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     inputResize?.disconnect();
     selectionDetails.prepend(providers); nextModelChoices.dispose();
     production.dispose();
-    detachInspector?.();
+    detachInspector?.(); leftDrawer.dispose();
     messages.dispose(); threads.dispose(); actionsPanel.dispose(); workspaceNavigation.dispose(); detachInspectorClose?.(); picker.dispose(); renameDialog.dispose();
     const surface = container.closest('.pool-home');
     surface?.style.removeProperty('--pool-param-workspace-height');

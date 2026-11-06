@@ -232,9 +232,10 @@ Computers owns connection, reported hardware, answering requests, serving limits
 and contribution history. Settings owns preferences, storage and file sharing,
 permissions and account controls. Conversation inspection owns the answer's recorded
 route and usage; available computers are a separate observation. Keep the compact
-top navigation and mobile dock. Inspection sits beside the answer on wide screens
-and in a dismissible sheet on narrow screens; management destinations use the
-workspace. Model selection and destructive confirmation use dialogs.
+top navigation and mobile dock. The brand opens the left Threads drawer.
+Conversation, Computers and Settings share a tabbed right drawer. Neither replaces
+the conversation. Wide screens allow both; narrow screens allow one. Mirrored
+7⁷ transitions stop when settled and become immediate under reduced motion. Model selection and destructive confirmation use dialogs.
 
 The bottom-centered composer contains one row of Attach, optional Search, Model,
 Context and Send/Stop controls beneath the text. Outside it, show only actionable

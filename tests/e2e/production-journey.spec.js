@@ -19,12 +19,11 @@ for (const width of [1440, 390]) test(`production opens chat without prepared mo
   await expect(page).toHaveURL(/\/network\?/);
   expect(new URL(page.url()).searchParams.get('instance')).toBe('requester-journey');
   await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft while I view contributions');
-  await page.locator('.pool-primary-brand').click();
   await page.locator('[data-workspace-view=computers]').click();
   await expect(page.locator('[data-production-device] > summary')).toBeVisible();
   await page.locator('[data-production-device] > summary').click();
   await expect(page.locator('[data-production-history]')).toBeVisible();
-  await page.locator('.pool-primary-brand').click();
+  await page.locator('[data-close-inspector]').click();
   await expect(page.locator('[data-production-surface]')).not.toBeVisible();
   await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft while I view contributions');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);

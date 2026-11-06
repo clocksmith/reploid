@@ -69,6 +69,14 @@ export function updateExecutionActivity(root, state) {
     + (readable ? `<span data-execution-label>${escape(readable)}</span>` : '')
     + `<span class="chat-visually-hidden">${escape(summary)}</span>`;
   if (trigger.dataset.markup !== icon) { trigger.innerHTML = icon; trigger.dataset.markup = icon; }
+  const detail = root.querySelector('[data-activity-detail]');
+  if (detail) updateExecutionDetail(detail, state);
+}
+
+export function updateExecutionDetail(detail, state) {
+  const view = projectExecutionActivity(state), supply = projectSupplyLabel(view.attempt);
+  if (!view.attempt) { detail.replaceChildren(); delete detail.dataset.projection; return; }
+  const summary = [view.statusLabel, ...(view.nodes.length ? [`${view.computerCount} computer${view.computerCount === 1 ? '' : 's'}`] : []), ...(view.split ? ['Partitioned'] : []), ...(supply.answer ? [supply.answer] : [])].join(' · ');
   const measured = view.nodes.length > 0 && view.nodes.every(node => node.share !== null);
   const duration = value => `${(value / 1000).toFixed(2)} s`;
   const timings = view.execution?.timing;
@@ -101,6 +109,5 @@ export function updateExecutionActivity(root, state) {
     + (view.adapter ? `<small data-recorded-adapter title="The adapter this answer recorded as executed, checked against the request.">Adapter · ${escape(view.adapter)}</small>` : '')
     + (facts.length ? `<dl class="chat-execution-facts">${facts.map(([label, value]) => `<div><dt>${escape(label)}</dt><dd>${escape(value)}</dd></div>`).join('')}</dl>` : '')
     + (view.attempt.error ? `<pre>${escape(view.attempt.error)}</pre><button class="pool-button btn-ghost pool-icon" type="button" data-copy-error="${escape(view.attempt.id)}" title="Copy error" aria-label="Copy error">${interfaceIcon('copy')}</button>` : '');
-  const detail = root.querySelector('[data-activity-detail]');
   if (detail.dataset.projection !== markup) { detail.innerHTML = markup; detail.dataset.projection = markup; }
 }

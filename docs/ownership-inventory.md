@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 281 |
+| apps/poolday | 282 |
 | self | 447 |
 | shared | 2219 |
-| total | 2947 |
+| total | 2948 |
 
 Every file lives in its owner's root.
 
@@ -738,6 +738,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/components/diamond-renderer.js` | `apps/poolday/ui/components/diamond-renderer.js` | apps/poolday | Reached only from product entries. |
 | `ui/components/diamond.js` | `apps/poolday/ui/components/diamond.js` | apps/poolday | Reached only from product entries. |
 | `ui/components/disclosure.js` | `apps/poolday/ui/components/disclosure.js` | apps/poolday | Reached only from product entries. |
+| `ui/components/drawer.js` | `apps/poolday/ui/components/drawer.js` | apps/poolday | Reached only from product entries. |
 | `ui/components/html.js` | `shared/ui/components/html.js` | shared | Reached from product and substrate entries. |
 | `ui/components/inline-chat.js` | `self/ui/components/inline-chat.js` | self | Reached only from substrate entries. |
 | `ui/components/interface-icons.js` | `apps/poolday/ui/components/interface-icons.js` | apps/poolday | Reached only from product entries. |

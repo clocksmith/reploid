@@ -3457,6 +3457,12 @@
       "imports": []
     },
     {
+      "path": "ui/components/drawer.js",
+      "owner": "ui",
+      "sha256": "sha256:97164d4aa4600863ceef5714ac7970a41fb36382a0783c386975fa82e7a3b41d",
+      "imports": []
+    },
+    {
       "path": "ui/components/html.js",
       "owner": "ui",
       "sha256": "sha256:8c9d3ba33aeaf09ee96187b91afd9a72d28ee3377599f46f63fa64c33647c06c",
@@ -3538,7 +3544,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:1516aa4e92fb81e325973700df125eafddb0326be7e58b8eeb9b522b5661a6d7",
+      "sha256": "sha256:a4850e0e80bbda347c60953612c8a675933b23a697a24c26378647968239c856",
       "imports": []
     },
     {
@@ -3630,11 +3636,12 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:73735563eec137629fb31422aa03cc812e8add4a786a89d9b7232f97c2d1bd3e",
+      "sha256": "sha256:fba7ea2655f16f9458edb0ebccf65f2af730ca04a1ddd44d96e6d186a754d772",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
         "../components/disclosure.js",
+        "../components/drawer.js",
         "../components/interface-icons.js",
         "../components/model-select.js",
         "./auto-download.js",
@@ -3666,7 +3673,7 @@
     {
       "path": "ui/pool-home/execution-activity.js",
       "owner": "ui",
-      "sha256": "sha256:e67c9333df0f43850188f2a064d19ae23cb784fd44e1e0c5bad43654a3309c63",
+      "sha256": "sha256:a767123fb775174695e935858a8b44b23a43cbd8543f878e6e97e63ca913b93b",
       "imports": [
         "../components/attachments.js",
         "../components/interface-icons.js",
@@ -3691,7 +3698,7 @@
     {
       "path": "ui/pool-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:f0353fdcbdd984ae53e7a4660d556739b97f4de83c579a1184b15a418c8b8a7c",
+      "sha256": "sha256:c52f49c13e470e046f23013716657bdd5ae1667635ebea92260da1a4e9833b2f",
       "imports": [
         "../../host/credits/browser.js",
         "../../host/product-context.js",
@@ -3725,7 +3732,7 @@
     {
       "path": "ui/pool-home/message-list.js",
       "owner": "ui",
-      "sha256": "sha256:39b0ba3f7b427477aae972e52b2159d3f414accb9dd1c772ae523de6a512feec",
+      "sha256": "sha256:1091175915d716a824af59b8685cc48fbcf6acc50cd995c598df70e46e16ad1a",
       "imports": [
         "../components/attachments.js",
         "../components/interface-icons.js",
@@ -3793,19 +3800,23 @@
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:d284b2e1172beabd94178fb6b6cdcaffaf2fc9d37244d2169f82facec3af79dd",
+      "sha256": "sha256:0cb479c50bd087807c825bf96807fd0e3a6d8cde74fc0f843118b56899e674ab",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
+        "../components/drawer.js",
         "../components/interface-icons.js",
         "../components/model-select.js",
         "./account-panel.js",
         "./auto-download.js",
         "./computer-labels.js",
+        "./context-indicator.js",
+        "./execution-activity.js",
         "./execution-ribbon.js",
         "./model-storage.js",
         "./network-controls.js",
         "./remote-permission.js",
+        "./shell-view.js",
         "./theme.js",
         "./web-search-settings.js",
         "./workspace-navigation.js"
@@ -3974,7 +3985,7 @@
     {
       "path": "ui/pool-home/shell-view.js",
       "owner": "ui",
-      "sha256": "sha256:87fec14adac9720f6bbeb2e4319d8405c0cfe1e42067a0ee3d8c8f5626b74230",
+      "sha256": "sha256:ef27c08a5018abdce2ef07d11f51794079a2883564ad88532c959a6ced4b3d78",
       "imports": [
         "../../host/product-context.js",
         "../../pool/peer-room.js",
@@ -4198,7 +4209,7 @@
     {
       "path": "ui/pool-home/workspace-navigation.js",
       "owner": "ui",
-      "sha256": "sha256:69c1fc60ffcedc7efbd4411464c89ba0dd84d8e8ef9214a42f297a951bf79210",
+      "sha256": "sha256:7799a92ad5bb55fcfc66f4d0572113be287ff3e9f305892f6dbc0bfa84f89984",
       "imports": []
     },
     {

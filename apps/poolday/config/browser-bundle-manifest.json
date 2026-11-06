@@ -1395,8 +1395,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 587101,
-      "sha256": "sha256:43661603a5e1e546cc4b7fa45730d19a159dd3171a55cc9f34f473039883b964"
+      "byteLength": 587453,
+      "sha256": "sha256:f53c84decd71b3fe13563d97ee9944164df28b7fe8cef88a44ff2e2328ffc17d"
     },
     {
       "path": "config/module-registry.json",
@@ -1470,8 +1470,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 130348,
-      "sha256": "sha256:c462ccdc031c682ebc64829449953638dd57f4327babbaf09ecf39cdb6ff0e12"
+      "byteLength": 130379,
+      "sha256": "sha256:b8c4db4a71588cedd9a48b5d2f3ca3fbeb0a8bce3caaca514c35d7f221bdd94e"
     },
     {
       "path": "config/vfs-policy.js",
@@ -2940,8 +2940,8 @@
     },
     {
       "path": "styles/poolday/compositions/conversation.css",
-      "byteLength": 28963,
-      "sha256": "sha256:dacf396ab981c45501cff822d6aaa60073f15e9d0ceb5b400d346808b9135124"
+      "byteLength": 28866,
+      "sha256": "sha256:3729494e51cb20edc59e5430a77da37f880d33aded66595c9877fa5841a2621c"
     },
     {
       "path": "styles/poolday/compositions/interaction.css",
@@ -2951,7 +2951,7 @@
     {
       "path": "styles/poolday/compositions/mobile-navigation.css",
       "byteLength": 4209,
-      "sha256": "sha256:1bf3518df735cfa41b724580003559defbb783d563b440e6e041d529db63d508"
+      "sha256": "sha256:9a7ccd6045d2324ce59435bfadbdf8f1f407845ae26b6c77a1c870822e2bc43e"
     },
     {
       "path": "styles/poolday/compositions/screens.css",
@@ -2995,8 +2995,8 @@
     },
     {
       "path": "styles/poolday/tokens.css",
-      "byteLength": 12165,
-      "sha256": "sha256:fdba3b7065cb6a0695c91a321bf48a2278294d9a82b4e828e098b3a630c25393"
+      "byteLength": 12237,
+      "sha256": "sha256:f031de321c402215a566d69c12efa5a8ab563ad343e6162e14f98d1084530d78"
     },
     {
       "path": "styles/proto/components.css",
@@ -3364,6 +3364,11 @@
       "sha256": "sha256:4124879f37f9e409a7c481e1d468e9597d82f23a72facd43a45c12b833862514"
     },
     {
+      "path": "ui/components/drawer.js",
+      "byteLength": 2737,
+      "sha256": "sha256:97164d4aa4600863ceef5714ac7970a41fb36382a0783c386975fa82e7a3b41d"
+    },
+    {
       "path": "ui/components/html.js",
       "byteLength": 219,
       "sha256": "sha256:8c9d3ba33aeaf09ee96187b91afd9a72d28ee3377599f46f63fa64c33647c06c"
@@ -3425,8 +3430,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2367963,
-      "sha256": "sha256:1516aa4e92fb81e325973700df125eafddb0326be7e58b8eeb9b522b5661a6d7"
+      "byteLength": 2374157,
+      "sha256": "sha256:a4850e0e80bbda347c60953612c8a675933b23a697a24c26378647968239c856"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -3470,8 +3475,8 @@
     },
     {
       "path": "ui/pool-home/conversation-workspace.js",
-      "byteLength": 54646,
-      "sha256": "sha256:73735563eec137629fb31422aa03cc812e8add4a786a89d9b7232f97c2d1bd3e"
+      "byteLength": 56159,
+      "sha256": "sha256:fba7ea2655f16f9458edb0ebccf65f2af730ca04a1ddd44d96e6d186a754d772"
     },
     {
       "path": "ui/pool-home/document-search.js",
@@ -3480,8 +3485,8 @@
     },
     {
       "path": "ui/pool-home/execution-activity.js",
-      "byteLength": 9626,
-      "sha256": "sha256:e67c9333df0f43850188f2a064d19ae23cb784fd44e1e0c5bad43654a3309c63"
+      "byteLength": 10158,
+      "sha256": "sha256:a767123fb775174695e935858a8b44b23a43cbd8543f878e6e97e63ca913b93b"
     },
     {
       "path": "ui/pool-home/execution-ribbon.js",
@@ -3495,8 +3500,8 @@
     },
     {
       "path": "ui/pool-home/index.js",
-      "byteLength": 12899,
-      "sha256": "sha256:f0353fdcbdd984ae53e7a4660d556739b97f4de83c579a1184b15a418c8b8a7c"
+      "byteLength": 12940,
+      "sha256": "sha256:c52f49c13e470e046f23013716657bdd5ae1667635ebea92260da1a4e9833b2f"
     },
     {
       "path": "ui/pool-home/ledger-store.js",
@@ -3510,8 +3515,8 @@
     },
     {
       "path": "ui/pool-home/message-list.js",
-      "byteLength": 13382,
-      "sha256": "sha256:39b0ba3f7b427477aae972e52b2159d3f414accb9dd1c772ae523de6a512feec"
+      "byteLength": 13165,
+      "sha256": "sha256:1091175915d716a824af59b8685cc48fbcf6acc50cd995c598df70e46e16ad1a"
     },
     {
       "path": "ui/pool-home/model-adapters.js",
@@ -3545,8 +3550,8 @@
     },
     {
       "path": "ui/pool-home/network-inspector.js",
-      "byteLength": 22668,
-      "sha256": "sha256:d284b2e1172beabd94178fb6b6cdcaffaf2fc9d37244d2169f82facec3af79dd"
+      "byteLength": 26360,
+      "sha256": "sha256:0cb479c50bd087807c825bf96807fd0e3a6d8cde74fc0f843118b56899e674ab"
     },
     {
       "path": "ui/pool-home/network-projection.js",
@@ -3635,8 +3640,8 @@
     },
     {
       "path": "ui/pool-home/shell-view.js",
-      "byteLength": 4890,
-      "sha256": "sha256:87fec14adac9720f6bbeb2e4319d8405c0cfe1e42067a0ee3d8c8f5626b74230"
+      "byteLength": 5025,
+      "sha256": "sha256:ef27c08a5018abdce2ef07d11f51794079a2883564ad88532c959a6ced4b3d78"
     },
     {
       "path": "ui/pool-home/simulation-batches.js",
@@ -3745,8 +3750,8 @@
     },
     {
       "path": "ui/pool-home/workspace-navigation.js",
-      "byteLength": 1877,
-      "sha256": "sha256:69c1fc60ffcedc7efbd4411464c89ba0dd84d8e8ef9214a42f297a951bf79210"
+      "byteLength": 3026,
+      "sha256": "sha256:7799a92ad5bb55fcfc66f4d0572113be287ff3e9f305892f6dbc0bfa84f89984"
     },
     {
       "path": "ui/poolday-design/index.js",
@@ -11184,5 +11189,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:a444440af419e29f22d43dd138db64da68648d9c2301767d13849e551d8b2460"
+  "bundleHash": "sha256:5bdc5e64075bcedb2eca5de1333984f72d0a7b6d925a90eb896037bae6339f67"
 }

@@ -39,6 +39,12 @@ async function installConversation(page, theme) {
       state.activeThread.attempts[0].execution.timing = timing;
       listeners.forEach(callback => callback(state));
     };
+    window.addLaterAnswer = () => {
+      const earlier = state.activeThread.attempts[0];
+      state.activeThread.attempts.push({ ...structuredClone(earlier), id: 'later', execution: { ...earlier.execution, completion: { promptTokenCount: 123, generatedTokenCount: 45 } } });
+      state.activeThread.messages.push({ id: 'later-answer', role: 'assistant', attemptId: 'later', content: 'A later answer' });
+      listeners.forEach(callback => callback(state));
+    };
     window.setVisualMetrics = metrics => {
       state.activeThread.attempts[0].execution.stepSummary = { metrics };
       listeners.forEach(callback => callback(state));
@@ -342,7 +348,7 @@ test('keyboard-sized visual viewport compacts the workspace without resizing the
 test('Verification Worker accepts the conversation presentation module', async ({ page }, info) => {
   await page.goto('/');
   const verification = await page.evaluate(async () => {
-    const paths = ['pool-home/conversation-workspace.js', 'pool-home/index.js', 'pool-home/shell-view.js', 'pool-home/network-inspector.js', 'components/button-feedback.js'];
+    const paths = ['pool-home/conversation-workspace.js', 'pool-home/index.js', 'pool-home/shell-view.js', 'pool-home/network-inspector.js', 'components/button-feedback.js', 'components/drawer.js', 'pool-home/workspace-navigation.js', 'pool-home/message-list.js', 'pool-home/execution-activity.js'];
     const snapshot = Object.fromEntries(await Promise.all(paths.map(async path => {
       const response = await fetch('/ui/' + path);
       if (!response.ok) throw new Error(`Missing presentation module: ${path} ${response.status}`);
@@ -367,23 +373,24 @@ test('answer activity shows observed shares and preserves its disclosure during 
   await expect(page.locator('[data-chat-workspace]')).toBeVisible();
   await installConversation(page, 'dark');
   await page.evaluate(() => window.setVisualState('executing'));
-  const activity = page.locator('[data-execution-activity]:not([hidden])');
-  await expect(activity.locator('[data-activity-detail]')).not.toBeVisible();
-  const trigger = activity.locator('[data-execution-trigger]');
+  const activity = page.locator('[data-inspected-activity]');
+  await expect(activity).not.toBeVisible();
+  const trigger = page.locator('[data-execution-trigger]:visible');
   await trigger.focus();
   await page.keyboard.press('Enter');
   await expect(activity.locator('.chat-distribution')).toHaveCount(0);
   await page.evaluate(() => window.setVisualMetrics({ localStepMs: { count: 4, total: 1000 }, remoteStepMs: { count: 4, total: 3000 } }));
-  await expect(activity.locator('[data-activity-detail]')).toBeVisible();
+  await expect(activity).toBeVisible();
   await expect(activity.getByRole('img')).toHaveAttribute('aria-label', `Recorded step time share: ${participantLabel('fixture-A')} 25%, ${participantLabel('fixture-B')} 75%`);
   await expect(activity).toContainText('25% · 4.0 steps/s');
   await expect(activity).toContainText('75% · 1.3 steps/s');
-  const panel = await activity.locator('[data-activity-detail]').boundingBox();
-  expect(panel.width).toBeLessThanOrEqual(320);
+  await expect.poll(() => page.locator('[data-drawer-moving]').count()).toBe(0);
+  const panel = await activity.boundingBox();
+  expect(panel.width).toBeLessThanOrEqual(350);
   expect(panel.x + panel.width).toBeLessThanOrEqual(390);
   await page.screenshot({ path: info.outputPath('activity.png'), fullPage: true });
-  await trigger.press('Space');
-  await expect(activity.locator('[data-activity-detail]')).not.toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(activity).not.toBeVisible();
 });
 
 for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
@@ -432,10 +439,11 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
       const destination = page.locator(`[data-inspector-section="${section}"]`);
       await destination.click();
       await expect(page.locator(`[data-inspector-pane="${section}"]`)).toBeVisible();
-      await expect(destination).toHaveAttribute('aria-current', 'true');
+      await expect(destination).toHaveAttribute('aria-current', 'page');
       await expect(page.locator('#network-inspector-title')).toBeFocused();
-      await expect(page.locator('[data-conversation-area]')).toBeHidden();
+      await expect(page.locator('[data-conversation-area]')).toBeVisible();
       expect(await page.locator('[data-thread-sidebar]').boundingBox()).toEqual(compactRail);
+      await expect.poll(() => page.locator('[data-drawer-moving]').count()).toBe(0);
       const content = await page.locator('[data-chat-inspector-slot]').boundingBox();
       // The panel never overlaps the toolbar: below it on a desktop, above it on a phone.
       expect(content.y >= compactRail.y + compactRail.height - 1 || content.y + content.height <= compactRail.y + 1).toBe(true);
@@ -500,9 +508,9 @@ test('answer measurements and bottom-centered thread badges stay stable while lo
     const details = row.locator('[data-execution-trigger]');
     expect(await details.evaluate(node => getComputedStyle(node).boxShadow)).not.toBe('none');
     await details.click();
-    await expect(row.locator('[popover]')).toBeVisible();
+    await expect(page.locator('[data-inspected-activity]')).toBeVisible();
     await page.keyboard.press('Escape');
-    await expect(row.locator('[popover]')).not.toBeVisible();
+    await expect(page.locator('[data-inspected-activity]')).not.toBeVisible();
     await page.evaluate(() => window.setVisualThreads(4));
     const thread = page.locator('[data-thread-item-id="recent-1"]');
     await expect(thread.locator('[data-thread-monogram]')).toHaveText('R');
@@ -571,7 +579,7 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 
     await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
     const chat = await page.locator('[data-conversation-area]').boundingBox(), pane = await page.locator('[data-chat-inspector-slot]').boundingBox();
     if (viewport.width >= 1100) expect(pane.x).toBeGreaterThanOrEqual(chat.x + chat.width);
-    else { expect(pane.y).toBeGreaterThan(chat.y); expect(pane.y + pane.height).toBeLessThanOrEqual(viewport.height); }
+    else { expect(pane.x).toBeGreaterThanOrEqual(0); expect(pane.y + pane.height).toBeLessThanOrEqual(viewport.height); }
     expect(await page.locator('[data-inspector-route]').evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
     await page.screenshot({ path: info.outputPath('conversation-inspection.png') });
     await page.keyboard.press('Escape');
@@ -600,4 +608,88 @@ test('browser storage leases prevent removal across tabs until every owner relea
   expect(await attempt()).toContain('in use');
   await page.evaluate(() => window.releaseStorageProof()); expect(await attempt()).toContain('in use');
   await other.evaluate(() => window.releaseStorageProof()); expect(await attempt()).toBe('unused'); await other.close();
+});
+
+for (const width of [1280, 390, 320]) test(`two drawers preserve conversation and history at ${width}`, async ({ page }, info) => {
+  await page.setViewportSize({ width, height: 844 }); await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible(); await installConversation(page, width === 390 ? 'dark' : 'light');
+  await page.evaluate(() => { window.setVisualState('completed'); window.setVisualThreads(); });
+  const input = page.locator('[data-composer-input]'), left = page.locator('[data-threads-dialog]'), right = page.locator('[data-chat-inspector-slot]');
+  await input.fill('Preserve this draft'); await input.evaluate(node => { window.originalComposer = node; node.setSelectionRange(3, 7); });
+  await page.locator('[data-toggle-thread-rail]').click(); await expect(left).toBeVisible();
+  await expect(page.locator('[data-show-active]')).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('[data-inspector-section="settings"]').click(); await expect(right).toBeVisible();
+  if (width >= 1200) { await expect(left).toBeVisible(); await expect(page).toHaveURL(/view=settings&threads=open/); }
+  else { await expect(left).toBeHidden(); await expect(page).toHaveURL(/view=settings$/); }
+  await expect(page.locator('[data-conversation-area]')).toBeVisible();
+  await page.locator('[data-inspector-tab="settings"]').focus(); await page.keyboard.press('ArrowLeft');
+  await expect(page.locator('[data-inspector-pane="participants"]')).toBeVisible();
+  await expect(page.locator('[data-inspector-tab="participants"]')).toBeFocused();
+  await page.goBack(); await expect(page.locator('[data-inspector-pane="settings"]')).toBeVisible();
+  await page.goForward(); await expect(page.locator('[data-inspector-pane="participants"]')).toBeVisible();
+  await expect.poll(() => right.getAttribute('data-drawer-moving')).toBeNull();
+  const l = await left.boundingBox(), r = await right.boundingBox(), c = await page.locator('[data-conversation-area]').boundingBox();
+  expect(r.x).toBeGreaterThanOrEqual(0); expect(r.x + r.width).toBeLessThanOrEqual(width);
+  if (width >= 1200) { expect(c.x).toBeGreaterThanOrEqual(l.x + l.width); expect(c.x + c.width).toBeLessThanOrEqual(r.x); }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: info.outputPath(`two-drawers-${width}.png`) });
+  await page.locator('[data-close-inspector]').click();
+  if (width >= 1200) await page.locator('[data-close-threads]').click();
+  await expect(input).toHaveValue('Preserve this draft');
+  expect(await input.evaluate(node => [node === window.originalComposer, node.selectionStart, node.selectionEnd])).toEqual([true, 3, 7]);
+});
+
+test('drawer sevens mirror, reverse without stale hiding, and respect reduced motion', async ({ page }, info) => {
+  await page.setViewportSize({ width: 1440, height: 900 }); await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible(); await installConversation(page, 'light');
+  const motion = await page.evaluate(() => {
+    document.querySelector('[data-toggle-thread-rail]').click();
+    document.querySelector('[data-inspector-section="settings"]').click();
+    return [...document.querySelectorAll('[data-drawer-side]')].map(node => {
+      const slide = node.getAnimations()[0], marks = [...node.querySelectorAll('[data-drawer-mark] .pool-seven-main, [data-drawer-mark] .pool-seven-small')];
+      const keyframes = marks.map(mark => mark.getAnimations()[0].effect.getKeyframes()[1].transform);
+      for (const animation of node.getAnimations({ subtree: true })) { animation.pause(); animation.currentTime = 168; }
+      return { side: node.dataset.drawerSide, start: slide.effect.getKeyframes()[0].transform, keyframes };
+    });
+  });
+  expect(motion.map(item => item.start)).toEqual(['translateX(-110%)', 'translateX(110%)']);
+  expect(motion[0].keyframes).toEqual(['translate(12px, -8px) scale(0.85)', 'translate(-12px, 8px) scale(1.15)']);
+  expect(motion[1].keyframes).toEqual(['translate(-12px, -8px) scale(0.85)', 'translate(12px, 8px) scale(1.15)']);
+  await page.screenshot({ path: info.outputPath('mirrored-sevens-midpoint.png') });
+  await page.evaluate(() => {
+    for (let i = 0; i < 5; i++) {
+      document.querySelector('[data-close-threads]').click(); document.querySelector('[data-toggle-thread-rail]').click();
+      document.querySelector('[data-close-inspector]').click(); document.querySelector('[data-inspector-section="settings"]').click();
+    }
+  });
+  await expect.poll(() => page.locator('[data-drawer-moving]').count()).toBe(0);
+  await expect(page.locator('[data-threads-dialog]')).toBeVisible(); await expect(page.locator('[data-chat-inspector-slot]')).toBeVisible();
+  expect(await page.locator('[data-drawer-mark]').evaluateAll(nodes => nodes.flatMap(node => node.getAnimations({ subtree: true })).length)).toBe(0);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.evaluate(() => {
+    document.querySelector('[data-close-threads]').click(); document.querySelector('[data-toggle-thread-rail]').click();
+    document.querySelector('[data-close-inspector]').click(); document.querySelector('[data-inspector-section="settings"]').click();
+  });
+  expect(await page.locator('[data-drawer-moving]').count()).toBe(0);
+  expect(await page.locator('[data-drawer-side]').evaluateAll(nodes => nodes.flatMap(node => [...node.getAnimations(), ...[...node.querySelectorAll('[data-drawer-mark] span, [data-drawer-mark] sup')].flatMap(mark => mark.getAnimations())]).length)).toBe(0);
+  await page.evaluate(() => window.disposeVisual());
+  await expect(page.locator('[data-threads-dialog]')).toBeHidden(); await expect(page.locator('[data-chat-inspector-slot]')).toBeHidden();
+});
+
+
+test('answer inspection stays bound to the selected receipt as later answers arrive', async ({ page }) => {
+  await page.goto('/'); await expect(page.locator('[data-chat-workspace]')).toBeVisible(); await installConversation(page, 'light');
+  await page.evaluate(() => { window.setVisualState('completed'); window.setVisualTiming({ generatedTokenCount: 256, totalMs: 21700, firstTokenMs: 250, prefillMs: 200 }); });
+  await page.locator('[data-execution-trigger]:visible').click();
+  const detail = page.locator('[data-inspector-context-detail]');
+  await expect(detail).toContainText('Selected answer used 1,024 tokens');
+  await page.evaluate(() => window.addLaterAnswer());
+  await expect(detail).toContainText('Selected answer used 1,024 tokens');
+  await expect(page.locator('[data-inspected-activity]')).toContainText('768');
+  await expect(page.locator('[data-inspected-activity]')).toContainText('First token0.25 s');
+  await page.locator('[data-close-inspector]').click();
+  await page.locator('[data-execution-trigger]:visible').last().click();
+  await expect(detail).toContainText('Selected answer used 168 tokens');
+  await expect(page.locator('[data-inspected-activity]')).toContainText('123');
+  await expect(page.locator('[popover]')).toHaveCount(0);
 });

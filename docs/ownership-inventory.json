@@ -18,7 +18,7 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 281,
+    "apps/poolday": 282,
     "self": 447,
     "shared": 2219
   },
@@ -4227,6 +4227,12 @@
     {
       "served": "ui/components/disclosure.js",
       "source": "apps/poolday/ui/components/disclosure.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "ui/components/drawer.js",
+      "source": "apps/poolday/ui/components/drawer.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },

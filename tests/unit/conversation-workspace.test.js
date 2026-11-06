@@ -174,7 +174,7 @@ describe('Conversation workspace', () => {
   });
 
   it('renders its brand link, the inspector and the model control in place, with nothing moved from the shell', () => {
-    expect(find('[data-chat-rail-toolbar] [data-thread-rail-brand] > .pool-primary-brand[href="/"]')).not.toBeNull();
+    expect(find('[data-chat-rail-toolbar] [data-thread-rail-brand] > .pool-primary-brand[data-workspace-view="threads"]')).not.toBeNull();
     expect(find('[data-chat-rail-toolbar] [data-toggle-thread-rail]')).not.toBeNull();
     expect(find('[data-chat-rail-toolbar] [data-network-trigger-slot] [data-inspector-navigation]')).not.toBeNull();
     expect(find('[data-chat-inspector-slot] > [data-network-rail][data-mounted]')).not.toBeNull();
@@ -568,9 +568,9 @@ describe('Conversation workspace', () => {
     expect(find('[data-composer-input]').placeholder).toBe(previous);
     expect(session.getState().threads).toHaveLength(0);
     expect(find('[data-message-stream]').childElementCount).toBe(0);
-    expect(find('[data-conversation-actions] [data-show-archived]')).not.toBeNull();
+    expect(find('[data-threads-dialog] [data-show-archived]')).not.toBeNull();
     // The bar holds four controls; conversation actions live in the Threads dialog.
-    expect(find('[data-threads-dialog] [data-conversation-actions] [data-show-archived]')).not.toBeNull();
+    expect(find('[data-threads-dialog] [data-show-archived]')).not.toBeNull();
     expect(find('[data-thread-sidebar] [data-conversation-actions]')).toBeNull();
   });
 
@@ -596,7 +596,8 @@ describe('Conversation workspace', () => {
     const thread = session.createThread({ sharingScope: 'local' });
     await session.send(thread, 'Hello');
     expect(find('[data-message-stream]').textContent).toContain('This answer could not finish.');
-    expect(find('[data-message-stream] [data-activity-detail] pre').textContent).toContain('GPU unavailable');
+    find('[data-message-stream] [data-execution-trigger]').click();
+    expect(find('[data-inspected-activity] pre').textContent).toContain('GPU unavailable');
     expect(find('[data-copy-error]').getAttribute('aria-label')).toBe('Copy error');
     expect(find('[data-message-stream] .chat-message-actions details')).toBeNull();
     expect(find('[data-message-stream]').textContent).not.toContain('Executing via');
