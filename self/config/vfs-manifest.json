@@ -724,7 +724,6 @@
     "ui/pool-home/room-projection.js",
     "ui/pool-home/room-record-projection.js",
     "ui/pool-home/room-view.js",
-    "ui/pool-home/search-permission.js",
     "ui/pool-home/shell-view.js",
     "ui/pool-home/simulation-batches.js",
     "ui/pool-home/simulation-bind.js",

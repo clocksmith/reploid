@@ -182,26 +182,3 @@ describe('authorization', () => {
     expect(server.calls.length).toBeGreaterThan(0);
   });
 });
-
-describe('search permission dialog', () => {
-  it('names the person-chosen search server with the approved text, and shows no server for Brave', async () => {
-    const { renderSearchPermissionDialog, bindSearchPermissionDialog } = await import('../../apps/poolday/ui/pool-home/search-permission.js');
-    document.body.innerHTML = renderSearchPermissionDialog();
-    const dialog = document.querySelector('[data-search-permission]');
-    dialog.showModal ??= function () { this.open = true; };
-    dialog.close ??= function () { this.open = false; this.dispatchEvent(new Event('close')); };
-    const view = bindSearchPermissionDialog(dialog, { getState: () => ({ peers: [] }) });
-    cleanups.push(() => { view.dispose(); document.body.replaceChildren(); });
-    const host = dialog.querySelector('[data-search-permission-server]');
-    let answer = view.ask({ wording: searchPermissionWording(DEVICE_SEARCH_PROVIDER), recipients: [], searchServer: 'search.example.net', query: QUESTION });
-    expect(host.hidden).toBe(false);
-    expect(host.textContent).toBe('Search server: search.example.net');
-    expect(dialog.querySelector('[data-search-permission-text]').textContent).toBe(searchPermissionWording(DEVICE_SEARCH_PROVIDER).text);
-    dialog.querySelector('[data-search-permission-allow]').click();
-    expect(await answer).toBe(true);
-    answer = view.ask({ wording: searchPermissionWording('brave'), recipients: [] });
-    expect(host.hidden).toBe(true);
-    dialog.querySelector('[data-search-permission-decline]').click();
-    expect(await answer).toBe(false);
-  });
-});

@@ -376,7 +376,7 @@ test('connection runtime passes the Verification Worker', async ({ page }, info)
     'providers/work-resident-provider.js', 'vendor/reploid/mesh/preparation-progress.js', 'vendor/reploid/mesh/peer-identity.js',
     'vendor/reploid/mesh/partitions/automatic-partitions.js', 'vendor/reploid/mesh/partitions/automatic-ordered-partitions.js',
     'vendor/reploid/retrieval/sources.js', 'vendor/reploid/retrieval/retrieval.js', 'vendor/reploid/chat/workspace.js',
-    'host/chat-session.js', 'ui/pool-home/conversation-workspace.js', 'ui/pool-home/search-permission.js'];
+    'host/chat-session.js', 'ui/pool-home/conversation-workspace.js', 'ui/pool-home/web-search-settings.js'];
   const snapshot = Object.fromEntries(await Promise.all(files.map(async file => ['/' + file, await readServedText(file)])));
   const result = await page.evaluate(snapshot => new Promise((resolve, reject) => {
     const worker = new Worker('/core/verification-worker.js');

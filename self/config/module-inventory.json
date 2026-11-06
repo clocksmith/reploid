@@ -3828,7 +3828,7 @@
     {
       "path": "ui/pool-home/remote-permission.js",
       "owner": "ui",
-      "sha256": "sha256:d1097e49455a221ca99561f7c5c4306e4257fb5cf275c78e3a181bba276e7e9f",
+      "sha256": "sha256:928b9a3dadeca973595de7aeed5875243bbd5b8387854d503866baeabded867c",
       "imports": []
     },
     {
@@ -3936,14 +3936,6 @@
       "imports": [
         "../components/html.js",
         "./room-projection.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/search-permission.js",
-      "owner": "ui",
-      "sha256": "sha256:42255c9ef4892d32488761ec7dae6fba13f65bd3c9f9e0cbcf0abfcdb6718ab7",
-      "imports": [
-        "./computer-labels.js"
       ]
     },
     {
@@ -4200,7 +4192,7 @@
     {
       "path": "ui/poolday-design/specimens.js",
       "owner": "ui",
-      "sha256": "sha256:a4b42556909471edcdca3e9a873e03c900393e94649844ad451c78b5ef52759e",
+      "sha256": "sha256:0bf769430b5b3988e097ddb644d340b1676783d0c97f425c9e0b9c8e5150cb3b",
       "imports": []
     },
     {

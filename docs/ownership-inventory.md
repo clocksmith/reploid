@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 278 |
+| apps/poolday | 277 |
 | self | 447 |
 | shared | 2214 |
-| total | 2939 |
+| total | 2938 |
 
 Every file lives in its owner's root.
 
@@ -790,7 +790,6 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/pool-home/room-projection.js` | `apps/poolday/ui/pool-home/room-projection.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/room-record-projection.js` | `apps/poolday/ui/pool-home/room-record-projection.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/room-view.js` | `apps/poolday/ui/pool-home/room-view.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/search-permission.js` | `apps/poolday/ui/pool-home/search-permission.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `ui/pool-home/shell-view.js` | `apps/poolday/ui/pool-home/shell-view.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/simulation-batches.js` | `apps/poolday/ui/pool-home/simulation-batches.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `ui/pool-home/simulation-bind.js` | `apps/poolday/ui/pool-home/simulation-bind.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |

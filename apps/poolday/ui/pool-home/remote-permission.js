@@ -1,4 +1,4 @@
-/** Network-answer preference and the consent dialog used when it is off.
+/** Network-answer settings and retained permission-record wording.
  * The host stores and enforces authorization; this view reports the person's choice. */
 
 const WHO = {
@@ -17,47 +17,10 @@ export function remotePermissionText(need) {
     scope: 'You are asked once. Later questions and follow-ups are sent the same way until you turn this off in Settings.' };
 }
 
-/** The exact wording the dialog shows for `need`, as the permission record keeps it. */
+/** Retained wording for permission records; the current conversation uses Settings. */
 export function remotePermissionWording(need) {
   const text = remotePermissionText(need);
   return { ...REMOTE_PERMISSION_WORDING, text: ['title', 'what', 'who', 'scope'].map(key => text[key]).join('\n\n') };
-}
-
-export function renderRemotePermissionDialog() {
-  return `<dialog class="chat-model-setup pool-surface pool-small" data-remote-permission aria-labelledby="chat-remote-permission-title" aria-describedby="chat-remote-permission-body">
-    <h2 class="pool-heading" id="chat-remote-permission-title" data-remote-permission-title></h2>
-    <div id="chat-remote-permission-body"><p data-remote-permission-what></p><p data-remote-permission-who></p><p data-remote-permission-scope></p></div>
-    <div class="chat-network-actions"><button class="pool-button" type="button" data-remote-permission-local>Keep answers local</button>
-      <button class="pool-button btn-primary" type="button" data-remote-permission-allow>Allow</button></div>
-  </dialog>`;
-}
-
-/** Opens the explanation for `need`; resolves true after Allow stores the permission, false otherwise. */
-export function bindRemotePermissionDialog(dialog, session, { onError = () => {} } = {}) {
-  const find = selector => dialog.querySelector(selector), controller = new AbortController(), options = { signal: controller.signal };
-  let pending = null, opener = null;
-  const finish = value => { const done = pending; pending = null; if (dialog.open) dialog.close(); done?.(value); };
-  find('[data-remote-permission-local]').addEventListener('click', () => finish(false), options);
-  dialog.addEventListener('close', () => { opener?.isConnected && opener.focus({ preventScroll: true }); finish(false); }, options);
-  find('[data-remote-permission-allow]').addEventListener('click', () => {
-    const need = JSON.parse(dialog.dataset.need), allow = find('[data-remote-permission-allow]');
-    allow.disabled = true;
-    Promise.resolve().then(() => session.grantRemotePermission(need, { wording: remotePermissionWording(need) }))
-      .then(() => finish(true), error => { onError(error); finish(false); })
-      .finally(() => { allow.disabled = false; });
-  }, options);
-  return {
-    get open() { return dialog.open; },
-    ask(need) {
-      if (pending) return Promise.resolve(false);
-      const text = remotePermissionText(need);
-      for (const key of ['title', 'what', 'who', 'scope']) find(`[data-remote-permission-${key}]`).textContent = text[key];
-      dialog.dataset.need = JSON.stringify(need);
-      opener = dialog.ownerDocument.activeElement;
-      return new Promise(resolve => { pending = resolve; dialog.showModal(); find('[data-remote-permission-allow]').focus(); });
-    },
-    dispose() { controller.abort(); finish(false); }
-  };
 }
 
 export function renderRemotePermissionSettings() {

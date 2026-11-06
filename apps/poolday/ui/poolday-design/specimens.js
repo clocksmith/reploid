@@ -115,9 +115,7 @@ export const COMPOSITION_GROUPS = [
     { id: 'conversation', title: 'Conversation workspace', page: true, route: 'home',
       render: from('conversation-workspace.js', 'renderConversationWorkspace'), bind: bindConversation },
     { id: 'documents', title: 'Document search', render: from('document-search.js', 'renderDocumentSearch') },
-    { id: 'permission-settings', title: 'Remote permission settings', render: from('remote-permission.js', 'renderRemotePermissionSettings') },
-    { id: 'permission-dialog', title: 'Remote permission dialog', render: from('remote-permission.js', 'renderRemotePermissionDialog'),
-      bind: (root) => root.querySelector('dialog')?.show() }
+    { id: 'permission-settings', title: 'Remote permission settings', render: from('remote-permission.js', 'renderRemotePermissionSettings') }
   ] },
   { id: 'work', title: 'Work', specimens: [
     { id: 'work', title: 'Work surface', render: from('work.js', 'renderWorkSurface') },

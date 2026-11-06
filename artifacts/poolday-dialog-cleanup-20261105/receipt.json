@@ -1,0 +1,50 @@
+{
+  "schema": "reploid.development-receipt/v1",
+  "base": "01c58a058891c1350f04291ff16892fb555dd8ac",
+  "component": "Poolday permission presentation and source inventory",
+  "intent": "preserved",
+  "changes": [
+    "Remove unused remote permission dialog render/bind exports while retaining settings and recorded wording",
+    "Remove unused search permission dialog and its isolated test",
+    "Remove obsolete dialog design specimen",
+    "Regenerate source inventory, ownership documentation, VFS and bundle descriptor"
+  ],
+  "unit": {
+    "passed": 28,
+    "files": [
+      "device-search",
+      "conversation-remote-permission",
+      "search-answer-permission",
+      "model-select"
+    ]
+  },
+  "browser": {
+    "passed": 3,
+    "project": "chromium-swiftshader",
+    "scope": [
+      "Send, search progress, cancellation and Retry without permission popups",
+      "Connection runtime Verification Worker",
+      "Changed runtime Verification Worker"
+    ]
+  },
+  "checks": [
+    "changed-file ESLint",
+    "verify:layers",
+    "verify:boundaries",
+    "verify:ownership-inventory",
+    "verify:module-system",
+    "build-vfs-manifest.js --check",
+    "build-self-source.js --check",
+    "git diff --check"
+  ],
+  "liveAudit": {
+    "base": "01c58a058",
+    "pickerFacts": "Declared weights/context and adapter information; no repeated availability or Whole model text in facts"
+  },
+  "boundaries": [
+    "Existing host authorization and opt-out behavior preserved",
+    "No service state changes",
+    "No model execution or training qualification"
+  ],
+  "deployment": "Verified separately after commit"
+}

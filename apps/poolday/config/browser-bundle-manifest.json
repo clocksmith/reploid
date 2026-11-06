@@ -1395,8 +1395,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 584994,
-      "sha256": "sha256:01eaf650bb46c52d636cdde4af2f36bdbe1cf3643b54037ae7517e224a65123a"
+      "byteLength": 584760,
+      "sha256": "sha256:2452a1e2c41f5435dcb56c3b80e7586951056c162366aa42519c670e738aaa46"
     },
     {
       "path": "config/module-registry.json",
@@ -1470,8 +1470,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 130070,
-      "sha256": "sha256:a36aa7b11b85404dd123110264ab5335ffb25b24726b356e45d74dc773272a16"
+      "byteLength": 130029,
+      "sha256": "sha256:ad4225ee47b80226abce7612cead2c8638b574f1d93675ef465ce1a10c423e83"
     },
     {
       "path": "config/vfs-policy.js",
@@ -3560,8 +3560,8 @@
     },
     {
       "path": "ui/pool-home/remote-permission.js",
-      "byteLength": 5419,
-      "sha256": "sha256:d1097e49455a221ca99561f7c5c4306e4257fb5cf275c78e3a181bba276e7e9f"
+      "byteLength": 2900,
+      "sha256": "sha256:928b9a3dadeca973595de7aeed5875243bbd5b8387854d503866baeabded867c"
     },
     {
       "path": "ui/pool-home/requester-controls.js",
@@ -3617,11 +3617,6 @@
       "path": "ui/pool-home/room-view.js",
       "byteLength": 49215,
       "sha256": "sha256:9ed554b629bda25098e6854d676a1a074bf62259f337278618c1c23ae159e9d7"
-    },
-    {
-      "path": "ui/pool-home/search-permission.js",
-      "byteLength": 5079,
-      "sha256": "sha256:42255c9ef4892d32488761ec7dae6fba13f65bd3c9f9e0cbcf0abfcdb6718ab7"
     },
     {
       "path": "ui/pool-home/shell-view.js",
@@ -3750,8 +3745,8 @@
     },
     {
       "path": "ui/poolday-design/specimens.js",
-      "byteLength": 17832,
-      "sha256": "sha256:a4b42556909471edcdca3e9a873e03c900393e94649844ad451c78b5ef52759e"
+      "byteLength": 17634,
+      "sha256": "sha256:0bf769430b5b3988e097ddb644d340b1676783d0c97f425c9e0b9c8e5150cb3b"
     },
     {
       "path": "ui/proto/index.js",
@@ -11154,5 +11149,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:5c74c8551462c5ed49ee6cc44a0495ed63dc822651c4ac72bf7f4088edea8aa2"
+  "bundleHash": "sha256:ce6f0b8365c0548f74b7d2edcc89b37e2125e85adab5c8da000f723c4a62f9b0"
 }
