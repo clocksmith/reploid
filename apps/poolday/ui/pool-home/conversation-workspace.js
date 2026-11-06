@@ -178,7 +178,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   }, options);
   setThreads(false);
 
-  find('[data-close-threads]').addEventListener('click', () => setThreads(false), options);
+  find('[data-close-threads]').addEventListener('click', () => { setThreads(false); railToggle?.focus(); }, options);
   onResize();
   function onResize() {
     resizeInput();
