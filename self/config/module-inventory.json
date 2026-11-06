@@ -3518,7 +3518,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:59fd5cc035142cd38f905324a76c5320aa6792bfea9d8ed24edcd69b05a8a375",
+      "sha256": "sha256:697c337a0afd5d6cd2b552a91ebd699566867c365b640adbead5d271f57ccbc4",
       "imports": []
     },
     {
@@ -3763,7 +3763,7 @@
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:42c86858e37aef9ce26617d16b8d660bf5b4d66ae321dacba36e117d34af28f4",
+      "sha256": "sha256:5e2bbaebfd9963932dc18706661cb69511d5e8afd2a2d31cd64710034769a061",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",

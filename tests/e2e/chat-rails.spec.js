@@ -114,7 +114,7 @@ for (const width of [1440, 320]) for (const theme of ['light', 'dark']) {
     await page.keyboard.press('Escape');
     await expect(left).not.toHaveAttribute('aria-current');
     await right.click();
-    await expect(right).toHaveAttribute('aria-expanded', 'true');
+    await expect(right).toHaveAttribute('aria-current', 'page');
     await expect(rail.locator('[data-mesh-connect]')).toBeVisible();
     // The Settings menu lives in the inspector's own pane; this route has no app bar menu.
     await expect(page.locator('[data-pool-settings]')).toHaveCount(0);

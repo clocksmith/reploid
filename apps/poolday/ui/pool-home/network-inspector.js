@@ -94,6 +94,9 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   let onRailOpen = null, onRailClose = null, activeSection = null;
   const mounted = panel.tagName !== 'DIALOG';
   const isOpen = () => mounted ? !panel.hidden : panel.open;
+  const buttonState = (node, name, value) => {
+    if (node?.tagName === 'A') node.removeAttribute(name); else node?.setAttribute(name, String(value));
+  };
   const hide = () => { if (mounted) panel.hidden = true; else if (panel.open) panel.close(); };
   let opener;
   const dialog = {
@@ -103,7 +106,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
       const standalone = !!surface?.querySelector('[data-production-surface]') && !surface?.querySelector('[data-chat-workspace]');
       if (!standalone) onRailOpen?.(activeSection);
       opener = trigger || toggle;
-      opener?.setAttribute('aria-expanded', 'true');
+      buttonState(opener, 'aria-expanded', true);
       if (standalone) {
         if (!panel.open) panel.showModal();
       } else {
@@ -114,11 +117,11 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
       for (const button of navigation.querySelectorAll('[data-inspector-section]')) {
         const selected = !panel.querySelector(`[data-inspector-pane="${button.dataset.inspectorSection}"]`).hidden;
         if (selected) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');
-        button.setAttribute('aria-expanded', String(selected));
+        buttonState(button, 'aria-expanded', selected);
       }
       find('#network-inspector-title').focus({ preventScroll: true });
     },
-    close({ restoreFocus = true } = {}) { const wasOpen = isOpen(); opener?.setAttribute?.('aria-expanded', 'false'); hide(); surface?.removeAttribute('data-network-panel-open'); if (wasOpen) onRailClose?.(); delete rail.dataset.expanded; for (const button of navigation.querySelectorAll('[data-inspector-section]')) { button.setAttribute('aria-expanded', 'false'); button.removeAttribute('aria-current'); button.setAttribute('aria-pressed', 'false'); } if (wasOpen && restoreFocus) opener?.focus?.({ preventScroll: true }); },
+    close({ restoreFocus = true } = {}) { const wasOpen = isOpen(); buttonState(opener, 'aria-expanded', false); hide(); surface?.removeAttribute('data-network-panel-open'); if (wasOpen) onRailClose?.(); delete rail.dataset.expanded; for (const button of navigation.querySelectorAll('[data-inspector-section]')) { buttonState(button, 'aria-expanded', false); button.removeAttribute('aria-current'); buttonState(button, 'aria-pressed', false); } if (wasOpen && restoreFocus) opener?.focus?.({ preventScroll: true }); },
     dispose() { hide(); surface?.removeAttribute('data-network-panel-open'); }
   };
   const controller = new AbortController(), options = { signal: controller.signal };
@@ -134,7 +137,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     if (section === 'device') section = 'participants';
     for (const pane of panel.querySelectorAll('[data-inspector-pane]')) pane.hidden = pane.dataset.inspectorPane !== section;
     find('#network-inspector-title').textContent = { conversation: 'This conversation', participants: 'Computers', device: 'Sharing', settings: 'Settings' }[section];
-    for (const button of navigation.querySelectorAll('[data-inspector-section]')) button.setAttribute('aria-pressed', String(button.dataset.inspectorSection === section));
+    for (const button of navigation.querySelectorAll('[data-inspector-section]')) buttonState(button, 'aria-pressed', button.dataset.inspectorSection === section);
   };
   panel.addEventListener('click', event => {
     const toggle = event.target.closest('[data-remote-answers-toggle]');

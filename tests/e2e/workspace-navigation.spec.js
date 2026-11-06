@@ -13,6 +13,8 @@ for (const [width, height] of [[1280, 720], [390, 844], [320, 740]]) {
       await link.click();
       await expect(page).toHaveURL(new RegExp(`view=${view}`));
       await expect(link).toHaveAttribute('aria-current', 'page');
+      await expect(link).not.toHaveAttribute('aria-pressed');
+      await expect(link).not.toHaveAttribute('aria-expanded');
       await expect(page.locator('dialog[open]')).toHaveCount(0);
     }
     await page.goBack();

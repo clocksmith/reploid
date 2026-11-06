@@ -1,0 +1,14 @@
+{
+  "component": "Poolday workspace navigation",
+  "intent": "preserved",
+  "base": "6018606ca",
+  "bundleHash": "sha256:f78c42da3fb1784c6e89ee3503109a8873572d78bd8f411c34047623aae39a09",
+  "change": "Navigation links use aria-current without button pressed or expanded states; standalone action buttons retain their states.",
+  "checks": {
+    "conversationWorkspaceUnit": 35,
+    "browser320AndVerificationWorker": 2,
+    "eslint": "passed",
+    "diffCheck": "passed"
+  },
+  "scope": "Focused follow-up to receipt.json; no layout or execution change"
+}
