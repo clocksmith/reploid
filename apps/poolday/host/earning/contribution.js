@@ -3,7 +3,9 @@
  *
  * A stage share is claimed from this resident's own settled admission record;
  * the service finds the requester's reported route for it and validates the
- * share against that settlement. A delivery this host supplied is claimed by
+ * share against that settlement. Whole-model claims carry only receipt and job
+ * references, which the service resolves to its kept requester settlement.
+ * A delivery this host supplied is claimed by
  * the id both parties derive from the grant, once its acquirer submitted the
  * attested evidence; a delivery this host acquired has its evidence submitted.
  * Claims wait in the client's durable outbox with stable keys, so a restarted
@@ -18,14 +20,14 @@
  */
 import { deliveryEvidenceFromRecord, deliveryEvidenceId } from '../../../../shared/vendor/reploid/artifacts/delivery-attestation.js';
 
-const LATER = new Set(['attempt_record_not_found', 'delivery_not_found', 'work_not_settled']);
+const LATER = new Set(['attempt_record_not_found', 'delivery_not_found', 'work_not_settled', 'whole_model_record_not_found', 'whole_model_accounting_unavailable']);
 const DONE = 'done';
 const claimState = key => `claims:${key}`;
 
 /**
  * @param {object} options
  * @param {object} options.client createEarningClient(...) result for this contributor device
- * @param {object} options.offers explicit accepted offer ids: { stageShare?, delivery? }
+ * @param {object} options.offers explicit accepted offer ids: { stageShare?, wholeModel?, delivery? }
  * @param {string} options.ownerPolicyDigest digest of the owner policy this host contributes under
  * @param {Function} options.hashEvidence (authorization) -> its custody evidence hash (hashDopplerEvidence)
  */
@@ -140,6 +142,17 @@ export function createEarningContribution({ client, offers = {}, ownerPolicyDige
     },
     submitEvidence,
     claimStageShares,
+    async claimWholeModels(records = []) {
+      if (!offers.wholeModel) return [];
+      const results = [];
+      for (const record of records) {
+        const unitKey = `whole:${record.receiptId}`;
+        results.push({ unitKey, ...await claim(unitKey, offers.wholeModel, {
+          wholeModel: { receiptId: record.receiptId, jobHash: record.jobHash }
+        }) });
+      }
+      return results;
+    },
     settleDeliveries,
     /** Submit evidence, then claim everything new in the host's current records; calls run one at a time. */
     observe({ admissions = [], deliveries = [] } = {}) {

@@ -5,7 +5,7 @@ import { resolveConfig } from '../../packages/reploid/src/config/index.js';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { verifyReceipt } from '../../packages/reploid/src/artifacts/receipt.js';
 
-async function fixture(tamper = false, measured = true) {
+async function fixture(tamper = false, measured = true, onReceipt) {
   const identities = await Promise.all(['ECDSA', 'Ed25519'].map(algorithm => createSigningIdentity({ algorithm })));
   const handlers = [new Map(), new Map()], wire = [], failures = [];
   const modelIdentity = 'sha256:' + 'a'.repeat(64);
@@ -25,6 +25,7 @@ async function fixture(tamper = false, measured = true) {
       getExecutionState: () => ({ phase: i ? 'ready' : 'idle', modelIdentity, adapterIdentities: [] }),
       authorize: async () => true, events, eventBus: events, utils: { generateId: () => crypto.randomUUID() },
       identity: { ensure: async () => identities[i], sync: async () => {}, save: async () => {} },
+      onReceipt: i ? onReceipt : undefined,
       generate: async () => ({ model: 'model', modelIdentity, adapterIdentities: [], content: 'actual output',
         ...(measured ? { completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: 7, generatedTokenCount: 3, stopReason: 'eos-token' } } : {}) }),
       createTransport: () => ({ init: async () => true, disconnect() {}, _getPeerId: () => 'connection-' + i,
@@ -60,4 +61,15 @@ it('keeps a legacy response unmetered instead of estimating tokens from text', a
     const result = await f.meshes[0].generate([{ role: 'user', content: 'prompt' }], null, { modelId: 'model', modelIdentity: f.modelIdentity });
     expect(result.executionReceipt).toMatchObject({ version: 1, status: 'unmetered', inputTokens: 0, outputTokens: 0 });
   } finally { await f.close(); }
+});
+it('waits for admitted receipt persistence before closing the provider mesh', async () => {
+  const began = Promise.withResolvers(), release = Promise.withResolvers();
+  const f = await fixture(false, true, async () => { began.resolve(); await release.promise; });
+  try {
+    await f.meshes[0].generate([{ role: 'user', content: 'prompt' }], null, { modelId: 'model', modelIdentity: f.modelIdentity });
+    await began.promise;
+    let closed = false; const closing = f.meshes[1].close().then(() => { closed = true; });
+    await Promise.resolve(); expect(closed).toBe(false);
+    release.resolve(); await closing; expect(closed).toBe(true);
+  } finally { release.resolve(); await f.close(); }
 });

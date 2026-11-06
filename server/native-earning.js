@@ -4,11 +4,13 @@
  * reploid.native-earning/v1 file it signs this host in through the service's
  * sign-in flow, registers the host's persistent participant identity as a
  * native device, records the owner policy in force, asks the service for a
- * stage-share offer for the model and partition plan this host serves, accepts
- * it, and claims each settled stage share under the offer that covered it.
+ * stage-share or exact whole-model variant offer for the capacity this host
+ * serves, accepts it, and claims settled work under the offer that covered it.
  * Durable state (session, outbox, claims and accepted offers) lives in one
  * file beside the identity, so a restarted host neither loses nor doubles a
- * claim. Off unless the file is given; the repository ships none.
+ * claim. Whole-model execution records admission before dispatch and retains
+ * countersigned receipt references until the service settles and claims them.
+ * Off unless the file is given; the repository ships none.
  *
  * File: { schema: 'reploid.native-earning/v1',
  *         client: { schema: 'reploid.earning-client/v1', enabled: true, baseUrl, providerId },
@@ -20,6 +22,8 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { createNativeWholeEarning } from './native-whole-earning.js';
 
 import { hashDopplerEvidence } from '../shared/pool/executable-pack.js';
 import { EARNING_CLIENT_SCHEMA, createEarningClient, readEarningClientConfig } from '../apps/poolday/host/earning/client.js';
@@ -33,7 +37,11 @@ const SUBJECT = /^[a-z0-9][a-z0-9._-]{0,63}$/;
 
 const fail = (message) => { throw new Error(message); };
 const toMs = (value) => (typeof value === 'number' ? value : Date.parse(value));
-const modelKey = ({ modelId, modelIdentity, planId }) => `${modelId}|${modelIdentity}|${planId}`;
+const selectedModel = model => model.executionMode === 'whole-model'
+  ? { modelId: model.modelId, modelIdentity: model.modelIdentity, executionMode: 'whole-model', adapterIdentities: [...model.adapterIdentities] }
+  : { modelId: model.modelId, modelIdentity: model.modelIdentity, planId: model.planId };
+const modelKey = model => model.executionMode === 'whole-model' ? JSON.stringify(selectedModel(model))
+  : `${model.modelId}|${model.modelIdentity}|${model.planId}`;
 
 /** Read and check the native earning file: an absolute path to a regular JSON file. */
 export async function readNativeEarningFile(file) {
@@ -114,7 +122,7 @@ export async function openNativeEarning({ settings, identity, ownerAuthorization
   await base.recordOwnerAuthorization(ownerAuthorization);
   const contributions = new Map();
   const contributionFor = (offerId) => {
-    if (!contributions.has(offerId)) contributions.set(offerId, createEarningContribution({ client, offers: { stageShare: offerId }, ownerPolicyDigest, hashEvidence }));
+    if (!contributions.has(offerId)) contributions.set(offerId, createEarningContribution({ client, offers: { stageShare: offerId, wholeModel: offerId }, ownerPolicyDigest, hashEvidence }));
     return contributions.get(offerId);
   };
   const readOffers = async () => (await storage.get('offers')) ?? [];
@@ -125,13 +133,19 @@ export async function openNativeEarning({ settings, identity, ownerAuthorization
     const run = offering.then(async () => {
       const offers = await readOffers();
       const current = offers.find((offer) => offer.key === modelKey(model)
+        && (model.executionMode !== 'whole-model' || offer.ownerPolicyDigest === ownerPolicyDigest && now() >= toMs(offer.startsAt))
         && now() < toMs(offer.startsAt) + RENEW_AT * (toMs(offer.endsAt) - toMs(offer.startsAt)));
       if (current) return current;
-      const offered = await client.send({ opId: `offer:${modelKey(model)}:${now()}`, path: '/offers', durable: false,
-        body: { category: STAGE_SHARE, model: { modelId: model.modelId, modelIdentity: model.modelIdentity, planId: model.planId } } });
+      const offered = await client.send({ opId: `offer:${createHash('sha256').update(modelKey(model)).digest('hex')}:${now()}`, path: '/offers', durable: false,
+        body: { category: STAGE_SHARE, model: selectedModel(model) } });
+      if (model.executionMode === 'whole-model' && (offered.work?.participantId !== identity.peerId
+        || modelKey(offered.work.model) !== modelKey(model))) fail('Offered whole-model variant differs from this contributor');
       const accepted = await base.acceptOffer(offered.offerId, ownerAuthorization);
       const record = { offerId: offered.offerId, key: modelKey(model), acceptedAt: accepted.acceptedAt ?? new Date(now()).toISOString(),
-        startsAt: offered.duration.startsAt, endsAt: offered.duration.endsAt };
+        startsAt: offered.duration.startsAt, endsAt: offered.duration.endsAt, ownerPolicyDigest };
+      if (model.executionMode === 'whole-model' && !(now() >= toMs(record.startsAt) && now() < toMs(record.endsAt))) {
+        fail('Accepted whole-model offer is outside its execution window');
+      }
       await storage.set('offers', [...offers, record]);
       return record;
     });
@@ -139,19 +153,27 @@ export async function openNativeEarning({ settings, identity, ownerAuthorization
     return run;
   }
 
+  const whole = createNativeWholeEarning({ storage, participantId: identity.peerId, ownerPolicyDigest, contributionFor, now,
+    findOffer: async model => (await readOffers()).find(offer => offer.key === modelKey(model) && offer.ownerPolicyDigest === ownerPolicyDigest
+      && toMs(offer.acceptedAt) <= now() && toMs(offer.startsAt) <= now() && now() < toMs(offer.endsAt)) });
+
   return Object.freeze({
     client,
     session,
     participantId: identity.peerId,
     ensureOffer,
+    prepareWholeModel: whole.prepare,
+    recordWholeModelReceipt: whole.record,
     offers: readOffers,
     /**
      * The participant's earning port. `descriptor`, when the host passes its prepared stage, names the
      * model and plan to be offered for before any route admits it; admission records also name their
      * route's model, so a host that passes none still earns from later work.
      */
-    async observe({ admissions = [], deliveries = [], descriptor = null } = {}) {
-      const served = descriptor?.planId ? [descriptor] : [];
+    async observe({ admissions = [], deliveries = [], descriptor = null, wholeModels = [] } = {}) {
+      // Previously accepted work can still claim even if renewing supply fails.
+      const claimedWholeModels = await whole.flush();
+      const served = descriptor?.planId ? [descriptor, ...wholeModels] : [...wholeModels];
       for (const record of admissions) if (record?.identity?.route?.planId) served.push(record.identity.route);
       const seen = new Set();
       for (const model of served) {
@@ -170,7 +192,7 @@ export async function openNativeEarning({ settings, identity, ownerAuthorization
       }
       // Signed receipts of every closed charged attempt are submitted, offer or not: they settle the requester's charge.
       const { evidence, deliveries: delivered } = await base.observe({ admissions, deliveries });
-      const results = { evidence, stages: [], deliveries: delivered };
+      const results = { evidence, stages: [], deliveries: delivered, wholeModels: claimedWholeModels };
       for (const [offerId, records] of groups) results.stages.push(...await contributionFor(offerId).claimStageShares(records));
       return results;
     },

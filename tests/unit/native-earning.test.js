@@ -9,11 +9,18 @@ import os from 'node:os';
 import path from 'node:path';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 
-const ports = vi.hoisted(() => ({ onChange: null, records: [], deliveries: [] }));
+const ports = vi.hoisted(() => ({ onChange: null, records: [], deliveries: [], mesh: null, wholeGenerate: null }));
+vi.mock('../../server/native-whole-model.js', () => ({ createNativeWholeModel: () => {
+  let ready = false;
+  ports.wholeGenerate = vi.fn(async () => ({ content: 'fixture' }));
+  return { getState: () => ({ phase: ready ? 'ready' : 'idle', ready, adapterIdentities: [] }),
+    getExecutionState: () => ({ phase: ready ? 'ready' : 'idle', modelIdentity: 'sha256:' + 'a'.repeat(64) }),
+    generate: ports.wholeGenerate, contribute: async () => { ready = true; }, stop: async () => { ready = false; }, close: async () => { ready = false; } };
+} }));
 vi.mock('../../packages/reploid/src/transport/index.js', async original => ({ ...await original(),
   createSwarmTransport: () => ({ onMessage() {}, offMessage() {}, sendToPeer() {}, getConnectedPeers: () => [], disconnect() {} }) }));
 vi.mock('../../packages/reploid/src/mesh/index.js', async (original) => ({ ...await original(),
-  createLegacyGenerationMesh: ({ ports: input }) => ({ connect: async () => { input.createTransport(); }, close: async () => {}, getSwarmSnapshot: () => ({}) }),
+  createLegacyGenerationMesh: ({ ports: input }) => { ports.mesh = input; return { connect: async () => { input.createTransport(); }, close: async () => {}, refreshAdvertisement() {}, getSwarmSnapshot: () => ({}) }; },
   createAutomaticPartitions: ({ onChange }) => {
     ports.onChange = onChange;
     return { getState: () => ({ phase: 'ready', reservations: { active: 0, records: structuredClone(ports.records) } }),
@@ -71,4 +78,28 @@ it('observes nothing without an earning port', async () => {
   ports.onChange({ phase: 'ready' });
   participant.announceFiles();
   expect(changes).toEqual([{ phase: 'ready' }]);
+});
+
+it('accepts whole-model offers before advertising capacity and persists admission before executing', async () => {
+  const gate = Promise.withResolvers();
+  const earning = { ensureOffer: vi.fn(() => gate.promise), prepareWholeModel: vi.fn(async () => {}),
+    recordWholeModelReceipt: vi.fn(async () => {}), observe: vi.fn(async () => ({})) };
+  const participant = await open({ executionMode: 'whole-model', earning,
+    owner: { waitForAdmission: async () => {}, summary: () => ({}) } });
+  const opening = participant.contribute(true);
+  await vi.waitFor(() => expect(earning.ensureOffer).toHaveBeenCalled());
+  expect(participant.getState().ready).toBe(false);
+  expect(ports.mesh.getExecutionState().phase).toBe('idle');
+  gate.resolve({ offerId: 'fixture' }); await opening;
+  expect(participant.getState().ready).toBe(true);
+  const controls = { requestId: 'job', consumer: 'requester', adapterIdentities: [], signal: new AbortController().signal };
+  await ports.mesh.generate([], () => {}, controls);
+  expect(earning.prepareWholeModel).toHaveBeenCalledWith({ requestId: 'job', consumer: 'requester',
+    model: { modelId: 'fixture', modelIdentity: 'sha256:' + 'a'.repeat(64), executionMode: 'whole-model', adapterIdentities: [] } });
+  expect(earning.prepareWholeModel.mock.invocationCallOrder[0]).toBeLessThan(ports.wholeGenerate.mock.invocationCallOrder[0]);
+  await ports.mesh.onReceipt({ receiptId: 'receipt' });
+  expect(earning.recordWholeModelReceipt).toHaveBeenCalledWith({ receiptId: 'receipt' });
+  earning.prepareWholeModel.mockRejectedValueOnce(Error('no accepted offer'));
+  await expect(ports.mesh.generate([], () => {}, controls)).rejects.toThrow('no accepted offer');
+  expect(ports.wholeGenerate).toHaveBeenCalledTimes(1);
 });

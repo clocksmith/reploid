@@ -326,6 +326,7 @@ export async function createEarningComposition({ env = process.env, production =
     communityAccess,
     quoteTerms,
     offerTerms: policy.offers.length ? createOfferTerms({ offers: policy.offers, clock, policyVersion: policy.policyVersion }) : null,
+    resolveWholeModelContribution: ports.resolveWholeModelContribution ?? null,
     operatorAuthority,
     idempotencyBackend: stores.binding(),
     limits: policy.routes,

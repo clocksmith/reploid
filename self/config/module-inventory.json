@@ -2385,7 +2385,7 @@
     {
       "path": "self/host/earning/contribution.js",
       "owner": "self",
-      "sha256": "sha256:527d4e7c089162ca076d48ac3a44b6b39be0d323c7a6edd9a2f50e8266578228",
+      "sha256": "sha256:3cfd98882335243b5ddfe6f4b1a590ec730859134bcc47e2a5a8a4584934ac51",
       "imports": [
         "../../vendor/reploid/artifacts/delivery-attestation.js"
       ]
@@ -3518,7 +3518,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:02bfff9eee45196b340a4520116e28175994baeb67a7a37cec98d93f56f642a1",
+      "sha256": "sha256:06ea546f630e971ce03a0b85b78eb89484b6aeccb2f1585897c7889975d1eb89",
       "imports": []
     },
     {
@@ -16445,7 +16445,7 @@
     {
       "path": "vendor/reploid/mesh/legacy-generation.js",
       "owner": "vendor",
-      "sha256": "sha256:aa83f36f3c939457c16a3a4a46f721184289159ef7f92e8a08c0977e055dbfcc",
+      "sha256": "sha256:90596a618a2b5cdd9761d92d3e0495af165ce7cd8aeca047a3beb09b2fb63baf",
       "imports": [
         "../artifacts/receipt.js",
         "../artifacts/whole-model-receipt.js",

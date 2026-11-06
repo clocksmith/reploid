@@ -109,8 +109,13 @@ function checkOffers(offers, errors) {
     const label = `offers[${index}]`;
     unknown(entry, OFFER_KEYS, label, errors);
     if (!isText(entry?.category)) errors.push(`${label}.category is required`);
-    unknown(entry?.model, ['modelId', 'modelIdentity', 'planId'], `${label}.model`, errors);
-    checkModel(entry?.model, `${label}.model`, errors, { planId: true });
+    const whole = entry?.model?.executionMode === 'whole-model';
+    unknown(entry?.model, whole ? ['modelId', 'modelIdentity', 'executionMode', 'adapterIdentities'] : ['modelId', 'modelIdentity', 'planId'], `${label}.model`, errors);
+    checkModel(entry?.model, `${label}.model`, errors, { planId: !whole });
+    if (whole && (entry.category !== 'demanded_inference' || !Array.isArray(entry.model.adapterIdentities)
+      || entry.model.adapterIdentities.length > 1 || entry.model.adapterIdentities.some(value => !/^sha256:[a-f0-9]{64}$/.test(value)))) {
+      errors.push(`${label} must name demanded whole-model inference with exact adapter digests`);
+    }
     if (!Array.isArray(entry?.hosts) || entry.hosts.length === 0 || entry.hosts.some((host) => !HOSTS.includes(host))) {
       errors.push(`${label}.hosts must list browser and/or native`);
     }
@@ -124,7 +129,8 @@ function checkOffers(offers, errors) {
     if (isPositiveInteger(entry?.durationMs) && isPositiveInteger(entry?.validForMs) && entry.validForMs > entry.durationMs) {
       errors.push(`${label}.validForMs must not exceed durationMs`);
     }
-    const key = JSON.stringify([entry?.category, entry?.model?.modelId ?? null, entry?.model?.modelIdentity ?? null, entry?.model?.planId ?? null]);
+    const key = JSON.stringify([entry?.category, entry?.model?.modelId ?? null, entry?.model?.modelIdentity ?? null, entry?.model?.planId ?? null,
+      entry?.model?.executionMode ?? null, entry?.model?.adapterIdentities ?? []]);
     if (seen.has(key)) errors.push(`${label} repeats the category and model of an earlier template`);
     seen.add(key);
   });

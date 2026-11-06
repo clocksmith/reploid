@@ -74,6 +74,17 @@ export function createTextAccounting({ ledger, backend, trialBackend, trialPolic
   }
   return Object.freeze({
     reconcile, getRecord: read, getTrialState: () => trial.getState(),
+    /** Authenticated contribution routes resolve references against kept evidence;
+     * the contributor never supplies a requester reservation or charge. */
+    async resolveContribution({ participantId, receiptId, jobHash }) {
+      assert([participantId, receiptId, jobHash].every(text), 'Bound receipt reference required');
+      const index = await backend.get('receipts', key(`${participantId}|${jobHash}`));
+      if (!index || index.receiptId !== receiptId) return null;
+      const record = await read(index.reservationId);
+      if (!record || record.receipt?.provider !== participantId || record.receipt.receiptId !== receiptId
+        || record.receipt.jobHash !== jobHash) return null;
+      return { reservationId: record.reservationId, attemptId: record.attemptId, settled: record.phase === 'settled' };
+    },
     async run(request, controls, execute) {
       request = structuredClone(request);
       assert(!request.model.partition, 'Whole-model accounting cannot settle partition execution');

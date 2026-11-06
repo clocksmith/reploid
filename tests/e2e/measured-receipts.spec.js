@@ -4,10 +4,11 @@ test('measured receipt modules pass Verification Worker and browser signing', as
   await page.goto('/');
   const result = await page.evaluate(async () => {
     const snapshot = {};
-    for (const file of ['artifacts/receipt.js', 'artifacts/whole-model-receipt.js', 'mesh/legacy-generation.js']) {
-      const response = await fetch('/vendor/reploid/' + file);
+    for (const file of ['vendor/reploid/artifacts/receipt.js', 'vendor/reploid/artifacts/whole-model-receipt.js', 'vendor/reploid/mesh/legacy-generation.js',
+      'host/earning/contribution.js']) {
+      const response = await fetch('/' + file);
       if (!response.ok) throw Error('Module unavailable: ' + file);
-      snapshot['/vendor/reploid/' + file] = await response.text();
+      snapshot['/' + file] = await response.text();
     }
     const verification = await new Promise((resolve, reject) => {
       const worker = new Worker('/core/verification-worker.js');

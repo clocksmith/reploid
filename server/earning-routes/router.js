@@ -40,7 +40,7 @@ import { createRouteIdempotency } from './idempotency.js';
 
 const DELIVERY_EVIDENCE_KEYS = Object.freeze(['artifactId', 'authorization', 'index', 'receipt', 'attestation', 'supplierCertificate', 'acquirerCertificate']);
 const STAGE_SHARE_KEYS = Object.freeze(['contribution', 'stageIndex', 'reservationId', 'attemptId']);
-const CLAIM_KEYS = Object.freeze([...DELIVERY_EVIDENCE_KEYS, 'deliveryId', ...STAGE_SHARE_KEYS]);
+const CLAIM_KEYS = Object.freeze([...DELIVERY_EVIDENCE_KEYS, 'deliveryId', 'wholeModel', ...STAGE_SHARE_KEYS]);
 const SETTLEMENT_KEYS = Object.freeze(['billableEventId', 'outcome', 'attemptId', 'metering', 'completedAt', 'reason', 'evidenceRef']);
 const COMMITMENT_KEYS = Object.freeze(['commitmentId', 'funderKind', 'funderId', 'externalRef', 'amount', 'unit', 'validFrom', 'validUntil']);
 
@@ -80,7 +80,7 @@ const notFound = (code, what) => refuse(404, code, `no ${what} with this id belo
  *   afterComplete({ routeId }) once it is stored, before it is sent
  */
 export function createEarningRouter({
-  accounts, ledger, rewards, guards, communityAccess = null, quoteTerms = null, operatorAuthority = null,
+  accounts, ledger, rewards, guards, communityAccess = null, quoteTerms = null, operatorAuthority = null, resolveWholeModelContribution = null,
   limits, idempotencyBackend, rateLimiter = null, nowMs = () => Date.now(), log = console, faultHooks = {}
 } = {}) {
   for (const [name, port] of Object.entries({ accounts, ledger, rewards, guards, idempotencyBackend })) {
@@ -341,6 +341,11 @@ export function createEarningRouter({
    */
   define('post', '/offers/:offerId/claims', { auth: 'device', body: 'evidence' }, async (req, ctx) => {
     const body = bodyOf(req, CLAIM_KEYS);
+    if (body.wholeModel !== undefined && (Object.keys(body).length !== 1 || !body.wholeModel
+      || Object.keys(body.wholeModel).sort().join() !== 'jobHash,receiptId'
+      || !Object.values(body.wholeModel).every(value => typeof value === 'string' && value.length > 0 && value.length <= 512))) {
+      refuse(400, 'invalid_body', 'a whole-model claim names only its receiptId and jobHash');
+    }
     if (body.deliveryId !== undefined && Object.keys(body).length !== 1) {
       refuse(400, 'invalid_body', 'a claim names a deliveryId or carries its evidence, not both');
     }
@@ -348,8 +353,21 @@ export function createEarningRouter({
       refuse(400, 'invalid_body', 'a stage-share claim carries its admission record and stage index, not delivery evidence');
     }
     return keyed(req, ctx, body, async (idempotencyKey) => {
-      await ownOffer(req.params.offerId, ctx.accountId);
+      const offer = await ownOffer(req.params.offerId, ctx.accountId);
       let claim = body;
+      if (body.wholeModel !== undefined) {
+        const device = await accounts.getDevice(ctx.deviceId);
+        if (offer.work.model?.executionMode !== 'whole-model' || device?.participantId !== offer.work.participantId) {
+          refuse(403, 'contributor_identity_mismatch', 'only the offer participant may claim its whole-model work');
+        }
+        if (typeof resolveWholeModelContribution !== 'function') refuse(503, 'whole_model_accounting_unavailable', 'whole-model accounting is not composed');
+        const record = await resolveWholeModelContribution({ participantId: device.participantId, ...body.wholeModel });
+        if (!record) refuse(404, 'whole_model_record_not_found', 'no kept execution matches this participant receipt');
+        if (!record.settled) refuse(409, 'work_not_settled', 'whole-model execution is awaiting accounting settlement');
+        claim = { reservationId: record.reservationId, attemptId: record.attemptId };
+      } else if (offer.work.model?.executionMode === 'whole-model') {
+        refuse(400, 'invalid_body', 'whole-model claims require a receipt reference');
+      }
       if (body.deliveryId !== undefined) {
         const record = await rewards.getDeliveryEvidence(body.deliveryId);
         if (!record) refuse(404, 'delivery_not_found', 'no delivery evidence has this id');

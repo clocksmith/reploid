@@ -19,6 +19,7 @@ This directory.
 Inputs:
 - An explicit `reploid.earning-client/v1` configuration; provider, storage, fetch, spending-decision ports; the host's participant identity.
 - Route summaries, activity, receipts and failure codes of partition attempts; resident admission records; custody delivery records.
+- Whole-model claim references come from countersigned execution receipts; the service resolves them to its own kept settlement, never a contributor-authored charge.
 
 Outputs:
 - Requests to the [earning routes](../../../../server/earning-routes/CATSCAN.md).

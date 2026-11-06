@@ -39,6 +39,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
   let observationSequence = 0;
   const inbound = new Map(), completed = new Map();
   const inboundSettlements = new Set();
+  const receiptSettlements = new Set();
   const executions = new Set();
   const lifetime = new AbortController();
   const subscriptions = [];
@@ -311,8 +312,9 @@ export function createLegacyGenerationMesh({ config, ports }) {
   const handleReceipt = async (_remotePeerId, payload = {}) => {
     if (!payload?.receipt || !identityBundle) return;
     const verification = await verifyReceipt(payload.receipt);
-    if (!verification.valid) return;
+    if (!verification.valid || !verification.consumerValid) return;
     if (payload.receipt.provider !== identityBundle.peerId) return;
+    await ports.onReceipt?.(snapshotJson(payload.receipt));
     await updateProviderContribution(payload.receipt);
   };
 
@@ -370,7 +372,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
           requestId,
           chunk
         });
-      }, { signal: controller.signal, adapterIdentities: adapters }, binding);
+      }, { signal: controller.signal, adapterIdentities: adapters, requestId, consumer }, binding);
       controller.signal.throwIfAborted();
 
       const receipt = await signReceiptDraft(
@@ -446,7 +448,13 @@ export function createLegacyGenerationMesh({ config, ports }) {
         swarmTransport.onMessage('reploid:generation-cancel', (peerId, payload = {}) => {
           inbound.get(`${peerId}:${String(payload.requestId || '')}`)?.abort(new Error('Requester stopped this job'));
         });
-        swarmTransport.onMessage('reploid:receipt', handleReceipt);
+        swarmTransport.onMessage('reploid:receipt', (peer, payload) => {
+          if (closed) return;
+          const pending = handleReceipt(peer, payload);
+          receiptSettlements.add(pending);
+          pending.then(() => receiptSettlements.delete(pending), () => receiptSettlements.delete(pending));
+          return pending;
+        });
 
         subscriptions.push(eventBus.on('swarm:peer-connected', () => {
           advertiseSelf();
@@ -580,7 +588,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
       swarmTransport?.disconnect();
       // Keep every close caller waiting while an admitted executor drains, even
       // when its cancellation port cannot interrupt the current GPU operation.
-      await Promise.all([...inboundSettlements, ...[...executions].map(pending => pending.catch(() => {})),
+      await Promise.all([...inboundSettlements, ...receiptSettlements, ...[...executions].map(pending => pending.catch(() => {})),
         ...(swarmInitPromise ? [swarmInitPromise.catch(() => {})] : [])]);
       completed.clear();
       swarmTransport?.disconnect();

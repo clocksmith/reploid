@@ -405,9 +405,11 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null, readiness = null, executionMode = 'partition', webWorker = null }) {
   requireValue(['partition', 'whole-model'].includes(executionMode), 'Unknown native execution mode');
   const wholeMode = executionMode === 'whole-model';
-  requireValue(!wholeMode || canonical === null && ordered === null && earning === null && readiness === null,
-    'Whole-model execution cannot inherit ordered, canonical, earning or stage-readiness configuration');
+  requireValue(!wholeMode || canonical === null && ordered === null && readiness === null,
+    'Whole-model execution cannot inherit ordered, canonical or stage-readiness configuration');
   requireValue(earning === null || ownerGate && typeof earning.observe === 'function', 'Native earning requires the owner policy and an earning contribution port');
+  requireValue(!wholeMode || !earning || typeof earning.prepareWholeModel === 'function' && typeof earning.recordWholeModelReceipt === 'function',
+    'Whole-model earning requires admission and receipt persistence');
   requireValue(readiness === null || typeof readiness.observe === 'function' && typeof readiness.watchResident === 'function',
     'Native readiness recording requires a readiness recorder');
   if (ordered !== null) model = structuredClone(model);
@@ -438,20 +440,34 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   const admission = roomId === bootstrap.publicRoomId ? null : createRoomIntroductionAdmission({ roomId, token: roomToken });
   let transport, partitions, files, webNetwork, wholeRequester, closePromise, closed = false, gpuPromise;
   const networks = new Set();
+  const earningWrites = new Set();
+  let wholeEarningReady = !earning;
+  const wholeVariants = () => [[], ...(whole?.getState().adapterIdentities || []).map(value => [value])]
+    .map(adapterIdentities => ({ modelId: model.id, modelIdentity: model.identity, executionMode: 'whole-model', adapterIdentities }));
   const whole = wholeMode ? createNativeWholeModel({ model, modelDirectory, nativeGpu, owner: ownerGate,
     resolveAdapter: createWorkAdapterResolver({ models: [model], ...(cacheDirectory ? { acquire: (artifact, controls) => files.acquireAdapter(artifact, controls) } : {}) }),
     onChange: state => { onChange(state); mesh.refreshAdvertisement(); } }) : null;
   const mesh = createLegacyGenerationMesh({ config, ports: {
     instanceId: 'node:' + identity.peerId, modelConfig: wholeMode ? model : null, utils, eventBus, events: bridge,
-    getExecutionState: () => whole?.getExecutionState() || { phase: 'idle' },
+    getExecutionState: () => whole ? { ...whole.getExecutionState(), ...(!wholeEarningReady ? { phase: 'idle' } : {}) } : { phase: 'idle' },
     identity: { ensure: async () => identity, save: async () => {}, sync: async () => {},
       rotate: async () => { throw new Error('Stop the native participant before rotating its identity'); } },
     authorize: async request => !closed && (request.action === 'mesh.connect'
-      || request.action === 'mesh.execute' && whole?.getState().ready === true
+      || request.action === 'mesh.execute' && whole?.getState().ready === true && wholeEarningReady
       || request.action === 'mesh.dispatch' && await wholeRequester?.authorize(request) === true),
-    generate: (messages, onUpdate, controls) => {
+    generate: async (messages, onUpdate, controls) => {
       requireValue(!closed && whole, 'Native whole-model execution was not enabled');
+      if (earning) await earning.prepareWholeModel({ requestId: controls.requestId, consumer: controls.consumer,
+        model: { modelId: model.id, modelIdentity: model.identity, executionMode: 'whole-model', adapterIdentities: controls.adapterIdentities || [] } });
+      controls.signal.throwIfAborted();
       return whole.generate(messages, onUpdate, controls);
+    },
+    onReceipt: async receipt => {
+      if (!earning?.recordWholeModelReceipt) return;
+      const write = earning.recordWholeModelReceipt(receipt); earningWrites.add(write);
+      try { await write; observeEarning(); }
+      catch (error) { logger.warn('Earning receipt deferred', error?.code || error?.message); }
+      finally { earningWrites.delete(write); }
     },
     createTransport: () => transport = createSwarmTransport({ config, Utils: utils, EventBus: eventBus,
       WebSocket, RTCPeerConnection: rtc.RTCPeerConnection, RTCSessionDescription: rtc.RTCSessionDescription,
@@ -466,7 +482,8 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   // Claims read this host's own records only; they never change admission or settlement.
   const observeEarning = () => {
     if (!earning) return;
-    earning.observe({ admissions: partitions?.getState().reservations?.records ?? [], deliveries: files?.getDeliveryEvidence() ?? [] })
+    earning.observe({ admissions: partitions?.getState().reservations?.records ?? [], deliveries: files?.getDeliveryEvidence() ?? [],
+      ...(whole ? { wholeModels: wholeVariants() } : {}) })
       .catch(error => logger.warn('Earning claims deferred', error?.code || error?.message));
   };
   const settledOwners = new Set();
@@ -495,6 +512,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     for (const owner of [files, mesh]) {
       results.push(...await Promise.allSettled([Promise.resolve().then(() => closeOwner(owner))]));
     }
+    results.push(...await Promise.allSettled([...earningWrites]));
     // Resident cleanup still needs its epoch journal on explicit retry. A failed
     // transport close does not revoke that ownership or clear its durable debt.
     if (!partitions || settledOwners.has(partitions)) {
@@ -537,7 +555,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     });
     return Object.freeze({ identity: identity.peerId, roomId, executionClass: roomId === bootstrap.publicRoomId ? 'public-pool' : 'private-pool',
       getState: () => {
-        if (whole) return whole.getState();
+        if (whole) { const state = whole.getState(); return { ...state, ready: state.ready && wholeEarningReady }; }
         const state = partitions.getState();
         return wholeRequester ? { ...state, models: [...wholeRequester.getModels(), ...(state.models || [])] } : state;
       },
@@ -548,7 +566,17 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
       },
       contribute: ownerGate ? async approved => {
         if (approved === true && !await ownerAdmission('contribute')) return;
-        return whole ? whole.contribute(approved) : partitions.contribute(model.id, approved);
+        if (!whole) return partitions.contribute(model.id, approved);
+        if (earning && approved === true) {
+          wholeEarningReady = false;
+          await earning.ensureOffer(wholeVariants()[0]);
+          await whole.contribute(approved);
+          for (const variant of wholeVariants()) await earning.ensureOffer(variant);
+          requireValue(!closed, 'Native contribution closed during offer acceptance');
+          wholeEarningReady = true; mesh.refreshAdvertisement();
+          return whole.getState();
+        }
+        return whole.contribute(approved);
       } : approved => whole ? whole.contribute(approved) : partitions.contribute(model.id, approved),
       stop: ownerGate ? () => { endOwnerWait('contribute', 'Native contribution stopped'); return whole ? whole.stop() : partitions.stop(); } : () => whole ? whole.stop() : partitions.stop(), close,
       getNetworkState: () => mesh.getSwarmSnapshot(), getFileState: options => files?.getState(options) || null,
@@ -632,7 +660,7 @@ Usage: reploid-participant --connect-only|--share-files|--contribute
   [--ordered-config <absolute JSON path>] (explicit stage assignment and ordered limits)
   [--canonical] (requires explicit catalog generation and a capable installed runtime)
   [--owner-policy <absolute JSON path>] (owner schedule, memory, rate, power, temperature and foreground limits)
-  [--earning-config <absolute JSON path>] (reploid.native-earning/v1: earning service, sign-in and stage-share offers; needs --owner-policy)
+  [--earning-config <absolute JSON path>] (reploid.native-earning/v1: earning service, sign-in and contribution offers; needs --owner-policy)
   [--shader-cache-root <absolute directory>] (sealed Mesa shader cache; default: shader-cache beside the identity file)
   [--readiness-log <absolute JSONL path>] (appends readiness spans and stage admissions for scripts/capacity-utilization.js; needs --contribute)
 
@@ -658,8 +686,8 @@ is separate from backend selection; --help opens no provider.`);
     '--readiness-log requires --contribute and an absolute file path');
   for (const name of ['model', 'model-directory', 'identity-file', 'rtc-module', 'ws-module']) requireValue(values[name], '--' + name + ' is required');
   requireValue(values['execution-mode'] === undefined || ['partition', 'whole-model'].includes(values['execution-mode']), 'Unknown native execution mode');
-  requireValue(values['execution-mode'] !== 'whole-model' || !values.canonical && !values['ordered-config'] && !values['earning-config'] && !values['readiness-log'],
-    'Whole-model execution cannot inherit ordered, canonical, earning or stage-readiness configuration');
+  requireValue(values['execution-mode'] !== 'whole-model' || !values.canonical && !values['ordered-config'] && !values['readiness-log'],
+    'Whole-model execution cannot inherit ordered, canonical or stage-readiness configuration');
   // Before identity, module or connection side effects; read once.
   const roomToken = await resolveNativeRoomToken(values);
   let logNetwork = () => {}, observeReadiness = () => {};
@@ -723,7 +751,7 @@ is separate from backend selection; --help opens no provider.`);
   const readiness = readinessLog && createReadinessRecorder({ participantId: identity.peerId, host: 'node', write: readinessLog.write });
   const closeReadiness = async reason => { readiness?.close(reason); await readinessLog?.close(); };
   // Optional earning: signs this host in, registers its identity as a native device, records the owner policy
-  // and claims settled stage shares under service-authored offers (native-earning.js); state lives beside the identity.
+  // and claims settled work under service-authored offers (native-earning.js); state lives beside the identity.
   if (values['earning-config']) requireValue(owner, '--earning-config requires --owner-policy');
   const earning = values['earning-config'] ? await import('./native-earning.js').then(async native => native.openNativeEarning({
     settings: await native.readNativeEarningFile(values['earning-config']), identity, ownerAuthorization: { policy: owner.policy, digest: owner.digest },

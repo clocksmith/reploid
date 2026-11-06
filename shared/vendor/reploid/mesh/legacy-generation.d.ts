@@ -16,6 +16,7 @@ export interface LegacyMeshPorts {
   getExecutionState?(): { phase: string; modelIdentity: string | null; adapterIdentities?: string[]; progress?: unknown; hardware?: import('./provider-hardware.js').ProviderHardware | null };
   authorize: Authorize; createTransport(): SwarmTransport; generate: GenerationProvider['generate'];
   transport?: SwarmTransport | null; forceFreshIdentity?: boolean;
+  onReceipt?(receipt: import('../artifacts/receipt.js').Receipt): void | Promise<void>;
   events: { emit(event: string, data: unknown): void; on(event: string, handler: (event: unknown) => void): () => void };
   eventBus: { emit(event: string, data: unknown): void; on(event: string, handler: (event: unknown) => void, owner?: string): () => void };
   identity: { ensure(options: object): Promise<SigningIdentity>; save(identity: SigningIdentity): unknown | Promise<unknown>;

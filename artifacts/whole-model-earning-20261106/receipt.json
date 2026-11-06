@@ -1,0 +1,62 @@
+{
+  "component": "Reploid automatic whole-model contribution claims",
+  "intent": "preserved",
+  "baseCommit": "8a310e44b98e1285bee244b1ed3f5a9436d2cada",
+  "scope": "Controlled HTTP integration and native lifecycle doubles, not production billing or physical inference",
+  "checks": {
+    "focusedTests": {
+      "passed": 137,
+      "files": 9,
+      "storage": [
+        "memory",
+        "Firestore transaction double"
+      ]
+    },
+    "browser": {
+      "passed": 1,
+      "engine": "Chrome",
+      "checks": [
+        "Verification Worker for changed served runtime modules",
+        "WebCrypto signing and countersigning"
+      ]
+    },
+    "static": [
+      "changed-file ESLint",
+      "library TypeScript declarations",
+      "browser ownership boundaries",
+      "browser bundle integrity",
+      "git diff whitespace"
+    ]
+  },
+  "verified": [
+    "exact model and adapter offers accepted before native earning readiness",
+    "durable admission before execution and replay fence after contributor restart",
+    "countersigned receipts persisted before mesh close completes",
+    "receipt references resolved to settled accounting by authenticated contributor device",
+    "no prompt or generated text in contribution queue",
+    "lost claim response recovered after contributor restart without duplicate credit",
+    "same-account different-device and unrelated-account claim rejection",
+    "partition earning regression coverage"
+  ],
+  "boundaries": [
+    "approved prices and production configuration remain external; billing stays disabled",
+    "native default sign-in supports only the explicitly enabled local test flow",
+    "existing provider processes were not restarted or enrolled",
+    "no live inference, physical GPU qualification or production Firestore qualification",
+    "uncertain dispatched cancellation remains held; no terminal mesh cancellation acknowledgement added",
+    "server keeps the complete validated receipt; native contributor persists only its reference",
+    "uncompleted admissions retain replay tombstones; recovery and retention policy remain separate"
+  ],
+  "sourceSha256": {
+    "server/native-whole-earning.js": "aac7aed15b8517ac0678835dcbacba388f86d3ef51847b2bffbed3d62a630ff3",
+    "server/native-earning.js": "52d49e1d983d65febb37ce9a6086de9804d5ef6079ae1efcc64fd3a290cfddf1",
+    "server/native-participant.js": "8f1d828edb304d305fda920e18c55bf37e67a0ed35757984e3930fcb37708b30",
+    "server/text-accounting.js": "53b4ed4944cac7f38ffd045667ba1e389cd2ef985a336b216e3093f22ac171c5",
+    "server/earning-routes/router.js": "b48f620a12252c734959cad20a3fecbf2578178959a5c549ae1d06c424659ea8",
+    "server/earning-composition/policy.js": "94c59e86cda05c124cd940da929eb1beacd620e07699d8c7d3d6847eda44ca16",
+    "apps/poolday/host/earning/contribution.js": "db90d0344364ea5568cf668e9149545f214379997f6068fcbe0c0f50b08b043f",
+    "packages/reploid/src/mesh/legacy-generation.js": "90596a618a2b5cdd9761d92d3e0495af165ce7cd8aeca047a3beb09b2fb63baf",
+    "tests/integration/whole-model-earning.test.js": "ba3c2157d6e6431f8ce7bf2af7deb4967b3618ce6de4f5be93fbef034b432073"
+  },
+  "bundleHash": "sha256:9af05fc21d536e952a4c1591232e56f38986285f3a5a35defafbfb8fa3554734"
+}
