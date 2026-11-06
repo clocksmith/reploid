@@ -45,7 +45,9 @@ export function createOfferTerms({ offers, clock, policyVersion }) {
   requireVersion(policyVersion);
   return async function offerTerms({ accountId, participantId, host, request } = {}) {
     const template = offers.find((entry) => entry.category === request?.category && entry.hosts.includes(host)
-      && sameModel(entry.model, request.model) && entry.model.planId === request.model?.planId);
+      && sameModel(entry.model, request.model) && entry.model.planId === request.model?.planId
+      && entry.model.executionMode === request.model?.executionMode
+      && JSON.stringify(entry.model.adapterIdentities || []) === JSON.stringify(request.model?.adapterIdentities || []));
     if (!template) return null;
     const now = Date.parse(clock());
     const reward = structuredClone(template.reward);

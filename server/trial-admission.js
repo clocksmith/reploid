@@ -78,6 +78,7 @@ export function createTrialAdmission({ backend, policy, readReservation, readSet
         return { released: true, record: completed };
       });
     },
+    async getReservation(reservationId) { return backend.get('holds', key(policy.trialId, reservationId)); },
     async getState() { return structuredClone(totalsFor(await backend.get('totals', trialKey))); }
   });
 }

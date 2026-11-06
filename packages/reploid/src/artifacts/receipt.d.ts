@@ -3,6 +3,9 @@ export interface Receipt extends Record<string, unknown> {
   version: number; receiptId: string; provider: string; consumer: string; jobHash: string; model: string;
   inputTokens: number; outputTokens: number; status: string; timestamp: number;
   providerSignature?: string; providerKey?: JsonWebKey; consumerSignature?: string; consumerKey?: JsonWebKey;
+  modelIdentity?: string; adapterIdentities?: string[]; inputDigest?: string; outputDigest?: string;
+  usage?: 'raw-model-tokens/v1'; stopReason?: string; cleanup?: 'settled';
+  ownerPolicyDigest?: string | null;
 }
 export function getReceiptPayload(receipt?: Partial<Receipt>): Receipt;
 export function canonicalizeReceiptPayload(receipt?: Partial<Receipt>): string;

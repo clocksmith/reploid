@@ -11,7 +11,8 @@ export function createTextApi({ participant, authenticate, authorize, accounting
   if (typeof accounting?.run !== 'function' && (production || !allowUnbilledTest)) throw Error('Text API requires accounted execution; unbilled tests must be explicit');
   if (accounting && typeof accounting.run !== 'function') throw Error('Invalid text API accounting port');
   const requester = accounting ? { ...participant, getState: () => participant.getState(),
-    generate: (request, controls) => accounting.run(request, controls, () => participant.generate(request, controls)) } : participant;
+    generate: (request, controls) => accounting.run(request, controls,
+      (nextRequest = request, nextControls = controls) => participant.generate(nextRequest, nextControls)) } : participant;
   const options = { participant: requester, authenticate, authorize };
   const completions = createChatCompletions(options), responses = createResponses(options);
   const listing = new Set(); let closed = false;

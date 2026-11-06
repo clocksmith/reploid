@@ -16,6 +16,7 @@ import { summarizePartitionExecution } from '../../packages/reploid/src/mesh/par
 import { hashCanonical, isNonEmptyString, toMs } from '../ledger/domain.js';
 import { checkCounterparty } from './counterparty.js';
 import { CATEGORY_TERMS, computeReward } from './domain.js';
+import { evaluateWholeModelInference } from './whole-model-inference.js';
 
 /** Conditions disclosed in every demanded-inference offer and checked for every claim. */
 export const DEMANDED_INFERENCE_CONDITIONS = Object.freeze([
@@ -62,7 +63,10 @@ const routeSummary = (execution) => {
  * @param {object} options.ledger credit ledger store (read operations)
  * @param {object} options.identity { participantAccount(participantId), accountLinks(accountA, accountB) }
  */
-export async function evaluateDemandedInference({ claim, offer, ledger, identity, rewardPolicy, now }) {
+export async function evaluateDemandedInference({ claim, offer, ledger, identity, rewardPolicy, now, readWholeModelExecution }) {
+  if (offer.work.model.executionMode === 'whole-model') {
+    return evaluateWholeModelInference({ claim, offer, ledger, identity, rewardPolicy, now, readWholeModelExecution });
+  }
   const reasons = [];
   const reject = (code, message, details) => reasons.push(details ? { code, message, details } : { code, message });
   const evidence = { requester: null, settlement: null, route: null, contribution: null, links: [] };
@@ -244,9 +248,15 @@ export async function evaluateDemandedInference({ claim, offer, ledger, identity
 /** Claim fields a demanded-inference validation accepts besides offerId. */
 export const DEMANDED_INFERENCE_CLAIM_KEYS = Object.freeze(['reservationId', 'attemptId', 'stageIndex', 'execution', 'contribution']);
 
-export function assertDemandedInferenceClaim(claim, { assertId, fail }) {
+export function assertDemandedInferenceClaim(claim, { assertId, fail, offer }) {
   assertId(claim.reservationId, 'reservationId');
   assertId(claim.attemptId, 'attemptId');
+  if (offer?.work.model.executionMode === 'whole-model') {
+    if (['stageIndex', 'execution', 'contribution'].some(field => claim[field] !== undefined)) {
+      fail('invalid_input', 'whole-model claims reference kept accounting evidence, not caller-supplied execution');
+    }
+    return;
+  }
   if (!Number.isSafeInteger(claim.stageIndex) || claim.stageIndex < 0) fail('invalid_input', 'stageIndex must be a non-negative integer');
 }
 

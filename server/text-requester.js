@@ -177,6 +177,13 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
       assert(['length', 'max-tokens', 'stop', 'eos', 'eos-token', 'stop-token', 'stop-sequence', 'context-limit'].includes(reason), 'Requester termination reason unavailable');
       const finishReason = ['length', 'max-tokens', 'context-limit'].includes(reason) ? 'length' : 'stop';
       let usage;
+      if (!model.partition && result.usage !== undefined) {
+        assert(result.usage.schema === 'raw-model-tokens/v1'
+          && Number.isSafeInteger(result.usage.inputTokens) && result.usage.inputTokens >= 0
+          && Number.isSafeInteger(result.usage.outputTokens) && result.usage.outputTokens >= 0
+          && Number.isSafeInteger(result.usage.inputTokens + result.usage.outputTokens), 'Invalid whole-model token usage');
+        usage = Object.freeze({ schema: result.usage.schema, inputTokens: result.usage.inputTokens, outputTokens: result.usage.outputTokens });
+      }
       if (requested) {
         usage = tokenUsage(result.usage?.inputTokens, result.usage?.outputTokens, requested);
         assert(observedUsage && usage.inputTokens === observedUsage.inputTokens && result.usage.schema === usage.schema

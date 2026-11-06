@@ -288,7 +288,16 @@ const validateFormula = (formula, meters, path, errors) => {
 
 const DIGEST = /^sha256:[a-f0-9]{64}$/;
 
-const validateModel = (model, path, errors) => {
+const validateModel = (model, path, errors, wholeAllowed = false) => {
+  if (wholeAllowed && model?.executionMode === 'whole-model') {
+    unknownKeys(model, ['modelId', 'modelIdentity', 'executionMode', 'adapterIdentities'], path, errors);
+    requireString(model.modelId, `${path}.modelId`, errors);
+    if (!DIGEST.test(model.modelIdentity)) errors.push(`${path}.modelIdentity must be an artifact digest`);
+    if (!Array.isArray(model.adapterIdentities) || model.adapterIdentities.length > 1 || !model.adapterIdentities.every(value => DIGEST.test(value))) {
+      errors.push(`${path}.adapterIdentities must name the exact supported variant`);
+    }
+    return;
+  }
   unknownKeys(model, ['modelId', 'modelIdentity', 'planId'], path, errors);
   for (const field of ['modelId', 'modelIdentity', 'planId']) requireString(model?.[field], `${path}.${field}`, errors);
 };
@@ -369,7 +378,7 @@ export const CATEGORY_LIMITATIONS = Object.freeze({
 const validateWork = (category, work, errors) => {
   unknownKeys(work, WORK_KEYS[category], 'work', errors);
   requireString(work?.participantId, 'work.participantId', errors);
-  if (category === 'demanded_inference') validateModel(work?.model, 'work.model', errors);
+  if (category === 'demanded_inference') validateModel(work?.model, 'work.model', errors, true);
   if (category === 'verified_delivery') validatePieces(work?.pieces, { chunked: false }, errors);
   if (REWARD_CATEGORIES[category].contracted) requireString(work?.contractedBy, 'work.contractedBy', errors);
   if (category === 'contracted_storage') validatePieces(work?.pieces, { chunked: true }, errors);

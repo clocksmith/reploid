@@ -26,6 +26,7 @@ Outputs:
 ## Invariants
 - Only policy-enabled categories earn, never online time.
 - Evidence roots: ledger settlement, recipient-attested receipts (kept only from attesting devices), or store-run challenges and probes; signatures alone never suffice.
+- Whole-model inference uses an explicit whole-model offer, the accounting owner's kept measured receipt, a policy-bound quality decision and the settled requester quote. It never invents a partition stage. The receipt binds the contributing owner's accepted policy; missing evidence cannot earn.
 - Readiness requires real admission, execution, settlement probes, never stored bytes.
 - Storage is accessible delivery; byte responses cannot establish local custody.
 - Missed or failed obligations reduce or void rewards.

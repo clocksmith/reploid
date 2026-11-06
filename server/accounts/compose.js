@@ -142,7 +142,7 @@ export function createAccountGuards({ accounts, ledger, rewards }) {
  */
 export function composeAccountServices({
   accountBackend, accountPolicy, providers, rewardBackend, createLedger, rewardPolicy, issuancePolicy,
-  readAdmittedCapacity, otherProvenance = null, readinessProber = null, fundingAuthority = null, clock, createId, random,
+  readAdmittedCapacity, otherProvenance = null, readinessProber = null, fundingAuthority = null, readWholeModelExecution = null, clock, createId, random,
   communityPoolAccountIds = []
 } = {}) {
   let ledger = null;
@@ -155,7 +155,7 @@ export function composeAccountServices({
     backend: rewardBackend,
     createLedger: (ports) => createLedger({ ...ports, signerAuthority: createLedgerSignerAuthority(accounts),
       deviceAuthority: (tx, request) => ledgerDeviceAuthority(tx, request, { poolAccountIds: communityPoolAccountIds }) }),
-    rewardPolicy, issuancePolicy, identity, readAdmittedCapacity, otherProvenance, readinessProber, fundingAuthority, clock, createId, random
+    rewardPolicy, issuancePolicy, identity, readAdmittedCapacity, otherProvenance, readinessProber, fundingAuthority, readWholeModelExecution, clock, createId, random
   });
   ledger = composed.ledger;
   return { accounts, identity, ...composed, guards: createAccountGuards({ accounts, ledger, rewards: composed.rewards }) };

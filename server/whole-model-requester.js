@@ -30,7 +30,7 @@ export function createWholeModelRequester({ mesh, models }) {
         adapterIdentities: partitionAdapterIdentities(model), providerId: dispatch.peerId, recipients: [dispatch.peerId],
         recipientIdentity: dispatch.recipientIdentity, input: { messages: request.messages } }));
       controls.signal.throwIfAborted();
-      if (approved === true) item.providerId = dispatch.peerId;
+      if (approved === true) { item.providerId = dispatch.peerId; item.providerIdentity = dispatch.recipientIdentity; }
       return approved === true;
     },
     async generate(request, controls) {
@@ -55,9 +55,11 @@ export function createWholeModelRequester({ mesh, models }) {
         const completion = readWorkGenerationCompletion(result);
         requireValue(completion, 'Whole-model completion metadata missing');
         return { threadId, attemptId, modelId: model.id, modelIdentity: model.identity,
-          adapterIdentities: partitionAdapterIdentities(model), content: result.content,
+          adapterIdentities: partitionAdapterIdentities(model), content: result.content, ownerPolicyDigest: result.ownerPolicyDigest ?? null,
           usage: { schema: 'raw-model-tokens/v1', inputTokens: completion.promptTokenCount, outputTokens: completion.generatedTokenCount },
           execution: { placement: 'peer-whole-request', providerId: item.providerId, completion,
+            providerIdentity: item.providerIdentity ?? null,
+            receipt: result.executionReceipt ?? null,
             stopReason: completion.stopReason, hardware: result.hardware ?? null, timing: result.timing ?? null } };
       } finally { pending.delete(id); }
     }

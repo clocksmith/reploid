@@ -382,13 +382,13 @@
     },
     {
       "path": "artifacts/receipt.d.ts",
-      "bytes": 1372,
-      "sha256": "a0c02ccca2836b463fffb9a2224e32b18a70d89f93f390094ad9d9dd14c7fa8a"
+      "bytes": 1585,
+      "sha256": "8dc01b87c8f4bb2081601eff99b32ebb2373d8d35281c67794c235ede5b3aca5"
     },
     {
       "path": "artifacts/receipt.js",
-      "bytes": 3921,
-      "sha256": "5947a52e8816db9dcbe6adf11ca174b0b9877e608fbb780de17baedf8fa19eac"
+      "bytes": 4436,
+      "sha256": "9f4b625c942c6a7566b9a9f1cb2613b7f4fb91f8996737a8b82e29130df44aca"
     },
     {
       "path": "artifacts/signatures.js",
@@ -404,6 +404,16 @@
       "path": "artifacts/store.js",
       "bytes": 4707,
       "sha256": "79a72d7e22c6c6229714aa5c75de2de0ac006cd0ab47c85e66021f8e7af2b4c1"
+    },
+    {
+      "path": "artifacts/whole-model-receipt.d.ts",
+      "bytes": 389,
+      "sha256": "3eaa87345513aea841e03768783ce841069f2a5320f5c546e3bd3c6389760b2a"
+    },
+    {
+      "path": "artifacts/whole-model-receipt.js",
+      "bytes": 2848,
+      "sha256": "6b5f81fcd8280b246f822ae5b3e1c897c592727b873212c01f03311d5aea27e0"
     },
     {
       "path": "chat/index.d.ts",
@@ -782,8 +792,8 @@
     },
     {
       "path": "mesh/legacy-generation.js",
-      "bytes": 29318,
-      "sha256": "cf93621bba6feea50b0c252b8ad270c2ae708e3ef5223b6322de2b32478d57b7"
+      "bytes": 29894,
+      "sha256": "aa83f36f3c939457c16a3a4a46f721184289159ef7f92e8a08c0977e055dbfcc"
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.d.ts",

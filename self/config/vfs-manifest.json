@@ -2096,6 +2096,7 @@
     "vendor/reploid/artifacts/receipt.js",
     "vendor/reploid/artifacts/signatures.js",
     "vendor/reploid/artifacts/store.js",
+    "vendor/reploid/artifacts/whole-model-receipt.js",
     "vendor/reploid/chat/index.js",
     "vendor/reploid/chat/policy.json",
     "vendor/reploid/chat/publication-policy.json",

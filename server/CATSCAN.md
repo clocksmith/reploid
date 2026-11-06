@@ -38,6 +38,7 @@ Outputs:
 - Evidence: native lifecycle: [host tests](../tests/unit/native-participant.test.js).
 - Native custody: [native file tests](../tests/unit/native-model-files.test.js).
 - Whole-model HTTP routing: [requester tests](../tests/unit/whole-model-requester.test.js), [HTTP tests](../tests/integration/text-api.test.js). Durable trial exposure: [admission tests](../tests/unit/trial-admission.test.js). Controlled fixtures do not establish live inference, settlement or production accounting.
+- Controlled measured whole-model settlement and earn/redemption: [accounting tests](../tests/integration/text-accounting.test.js), with actual ledger and reward engines on memory and Firestore doubles. [Mesh receipt tests](../tests/unit/whole-model-mesh-receipt.test.js) cover channel-bound identities and countersigning. These do not qualify live providers, production storage, answer quality or economic advantage.
 - [public discovery tests](../tests/integration/public-swarm-server.test.js).
 - [signaling integration](../tests/integration/signaling-server.test.js) and [public inference admission](../tests/integration/public-inference-admission.test.js) tests.
 

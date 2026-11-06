@@ -1,0 +1,63 @@
+{
+  "component": "Reploid measured whole-model accounting",
+  "intent": "preserved",
+  "baseCommit": "7c45bae92",
+  "scope": "Controlled integration, not production billing or physical inference qualification",
+  "checks": {
+    "focusedTests": {
+      "passed": 161,
+      "files": 12,
+      "accountingCases": 38,
+      "storage": [
+        "memory",
+        "Firestore transaction double"
+      ]
+    },
+    "browser": {
+      "passed": 1,
+      "engine": "Chrome",
+      "checks": [
+        "Verification Worker",
+        "served receipt modules",
+        "WebCrypto signing and countersigning"
+      ]
+    },
+    "static": [
+      "changed-file eslint",
+      "library TypeScript declarations",
+      "browser ownership boundaries",
+      "ownership inventory",
+      "browser bundle integrity",
+      "git diff whitespace"
+    ]
+  },
+  "verified": [
+    "measured tokenizer/sampler counts, never text-length estimates",
+    "channel-bound provider identity and requester countersignature",
+    "tamper rejection for counts, model, input, output and identities",
+    "accepted quote and versioned conversion binding",
+    "one execution and one economic effect under concurrent claims and lost settlement responses",
+    "queued cancellation releases only before dispatch; uncertain dispatched work remains held",
+    "operational quality review before charge/reward eligibility",
+    "whole-model owner policy, identity, offer and capacity checks",
+    "single earned lot, duplicate rejection and redemption through another controlled provider",
+    "measured usage through completions and responses handlers"
+  ],
+  "boundaries": [
+    "prices, limits and policy approval remain external",
+    "public API activation and billing disabled without approved composition",
+    "no provider restart or live inference",
+    "Firestore production behavior not qualified by transaction doubles",
+    "controlled second provider is not a physical second machine",
+    "uncertain dispatched cancellation has no terminal mesh acknowledgement and is not automatically released or retried",
+    "native automatic whole-model offer enrollment/claim submission remains separate from the settlement-backed reward API"
+  ],
+  "bundleHash": "sha256:bcdadfe5c8e951d766add5a1547a21dffdd0382d7188030e34ee0f6ddd193194",
+  "sourceSha256": {
+    "server/text-accounting.js": "3c4be0cdefbf61f43eb4834a6666386dc936ed8793a02f13657860534eadbb59",
+    "server/rewards/whole-model-inference.js": "b8d278ba9406235b2ab8c42f41ce1bdf9962e34be2f2f7b3b51e1562bf02de20",
+    "packages/reploid/src/artifacts/receipt.js": "9f4b625c942c6a7566b9a9f1cb2613b7f4fb91f8996737a8b82e29130df44aca",
+    "packages/reploid/src/artifacts/whole-model-receipt.js": "6b5f81fcd8280b246f822ae5b3e1c897c592727b873212c01f03311d5aea27e0",
+    "packages/reploid/src/mesh/legacy-generation.js": "aa83f36f3c939457c16a3a4a46f721184289159ef7f92e8a08c0977e055dbfcc"
+  }
+}

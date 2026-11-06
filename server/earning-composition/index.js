@@ -276,7 +276,7 @@ export async function createEarningComposition({ env = process.env, production =
     }),
     rewardPolicy: policy.rewards, issuancePolicy: policy.issuance,
     readAdmittedCapacity: evidenceFile(read(env, 'REPLOID_EARNING_CAPACITY_FILE')),
-    otherProvenance, fundingAuthority, clock,
+    otherProvenance, fundingAuthority, readWholeModelExecution: ports.readWholeModelExecution ?? null, clock,
     // Community Access pools accept quotes for the requester devices they admit.
     communityPoolAccountIds: policy.communityAccess ? poolAccountIds(policy.communityAccess) : []
   });

@@ -36,14 +36,15 @@ it('requires consent, validates identity before GPU work, and advertises only a 
 });
 it('reuses the prepared model, enforces owner admission, and never substitutes another mode', async () => {
   let action = 'admit';
-  const f = await fixture({ owner: { decide: () => ({ action }), gpuBufferBytes: () => 700 } });
+  const ownerPolicyDigest = 'sha256:' + 'd'.repeat(64);
+  const f = await fixture({ owner: { digest: ownerPolicyDigest, decide: () => ({ action }), gpuBufferBytes: () => 700 } });
   await f.participant.contribute(true); await f.participant.contribute(true);
   expect(f.resident.prepare).toHaveBeenCalledTimes(1);
   expect(f.createResident.mock.calls[0][0].source).toMatchObject({ manifest: { modelId: 'model' }, manifestHash: f.model.identity.slice(7) });
   expect(f.participant.getState().ready).toBe(true);
   expect(f.createResident.mock.calls[0][0].loadOptions.runtimeConfig.shared.bufferPool.budget.maxTotalBytes).toBe(700);
   expect(f.model.loadOptions.runtimeConfig.shared.bufferPool.budget.maxTotalBytes).toBe(1000);
-  await expect(f.participant.generate([], () => {}, {})).resolves.toEqual({ content: 'answer' });
+  await expect(f.participant.generate([], () => {}, {})).resolves.toEqual({ content: 'answer', ownerPolicyDigest });
   action = 'defer'; expect(f.participant.getState().ready).toBe(false);
   expect(() => f.participant.generate([], () => {}, {})).toThrow('unavailable');
   await f.participant.close();

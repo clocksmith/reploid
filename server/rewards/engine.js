@@ -10,6 +10,7 @@
  */
 
 import { createDocumentTransactions } from '../document-transactions.js';
+import { WHOLE_MODEL_CONDITIONS } from './whole-model-inference.js';
 import { createKnownKeyValidator } from '../input-validation.js';
 import { randomInt, randomUUID } from 'node:crypto';
 
@@ -171,7 +172,7 @@ const issuanceResult = (validation) => ({
  * @param {Function} [options.random] random(n) -> integer in [0, n) for challenge targets
  */
 export function createRewardStore({
-  backend, ledger, policy, identity, issuance, readinessProber = null, fundingAuthority = null,
+  backend, ledger, policy, identity, issuance, readinessProber = null, fundingAuthority = null, readWholeModelExecution = null,
   clock = defaultClock, createId = defaultCreateId, random = defaultRandom
 } = {}) {
   assertRewardBackend(backend);
@@ -408,7 +409,9 @@ export function createRewardStore({
       }
       const now = clock();
       const offer = {
-        ...buildOffer({ ...request, offerId }, { ledgerPolicy: ledger.policy, rewardPolicy, conditions: VALIDATORS[category].conditions, now }),
+        ...buildOffer({ ...request, offerId }, { ledgerPolicy: ledger.policy, rewardPolicy,
+          conditions: category === 'demanded_inference' && request.work.model?.executionMode === 'whole-model'
+            ? WHOLE_MODEL_CONDITIONS : VALIDATORS[category].conditions, now }),
         status: 'offered',
         acceptedAt: null,
         acceptance: null
@@ -486,7 +489,7 @@ export function createRewardStore({
       const offer = await readOffer(offerId);
       const validator = VALIDATORS[offer.category];
       assertKnownKeys(input, ['offerId', ...validator.claimKeys, 'idempotencyKey'], 'validateWork');
-      validator.assertClaim(input, { assertId, fail });
+      validator.assertClaim(input, { assertId, fail, offer });
       assertIdempotencyKey(idempotencyKey);
       const request = pick(input, ['offerId', ...validator.claimKeys]);
       const operation = 'validateWork';
@@ -497,7 +500,7 @@ export function createRewardStore({
       const now = clock();
       const challenges = REWARD_CATEGORIES[offer.category].contracted
         ? await backend.list('challenges', { field: 'offerId', value: offerId }) : [];
-      const evaluation = await validator.evaluate({ claim: request, offer, ledger, identity, rewardPolicy, now, challenges });
+      const evaluation = await validator.evaluate({ claim: request, offer, ledger, identity, rewardPolicy, now, challenges, readWholeModelExecution });
       const units = (evaluation.unitKeys || []).map((unit) => ({ ...unit, id: claimId(unit.kind, unit.key) }));
       const pins = (evaluation.pins || []).map((pin) => ({ ...pin, id: claimId(pin.kind, pin.key) }));
       return mutate({
@@ -651,7 +654,7 @@ export function createRewardStore({
  */
 export function composeContributionRewards({
   backend, createLedger, rewardPolicy, issuancePolicy, identity, readAdmittedCapacity, otherProvenance = null, readinessProber = null,
-  fundingAuthority = null, clock = defaultClock, createId = defaultCreateId, random = defaultRandom
+  fundingAuthority = null, readWholeModelExecution = null, clock = defaultClock, createId = defaultCreateId, random = defaultRandom
 } = {}) {
   let ledger = null;
   const issuanceAuthority = createRewardIssuanceAuthority({
@@ -660,7 +663,7 @@ export function composeContributionRewards({
   });
   ledger = createLedger({ issuanceAuthority });
   const rewards = createRewardStore({
-    backend, ledger, policy: rewardPolicy, identity, issuance: issuanceAuthority, readinessProber, fundingAuthority, clock, createId, random
+    backend, ledger, policy: rewardPolicy, identity, issuance: issuanceAuthority, readinessProber, fundingAuthority, readWholeModelExecution, clock, createId, random
   });
   return { ledger, rewards, issuanceAuthority };
 }

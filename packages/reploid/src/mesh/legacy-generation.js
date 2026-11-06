@@ -6,8 +6,8 @@ import { requireResolvedConfig, snapshotJson } from '../config/index.js';
 import { createPeerAdvertisement, createSwarmController } from './swarm-coordination.js';
 import { rankProviderPeers, applyReceiptToContribution } from './contribution.js';
 import { createReceiptDraft, countersignReceipt, signReceiptDraft, verifyReceipt } from '../artifacts/receipt.js';
+import { measureWholeModelReceipt, matchesWholeModelReceipt } from '../artifacts/whole-model-receipt.js';
 
-const estimateTokens = text => Math.ceil((typeof text === 'string' ? text : JSON.stringify(text)).length / 4);
 const adapterSet = value => {
   if (!Array.isArray(value) || value.length > 1 || value.some(id => !/^sha256:[a-f0-9]{64}$/.test(id))) {
     throw new Error('Invalid adapter selection');
@@ -271,6 +271,8 @@ export function createLegacyGenerationMesh({ config, ports }) {
         ? payload.response
         : { content: String(payload.content || ''), raw: String(payload.raw || payload.content || ''),
             model: payload.model || null, provider: payload.provider || null, timestamp: payload.timestamp || Date.now() };
+      // Only this verifier may attach execution evidence to the returned result.
+      delete response.executionReceipt;
       if (!matchesRequestedModel(response, modelBinding(pending.modelId, pending.modelIdentity))) {
         throw new Error('Remote response substituted the requested model');
       }
@@ -284,10 +286,15 @@ export function createLegacyGenerationMesh({ config, ports }) {
           || payload.receipt.consumer !== identityBundle?.peerId || payload.receipt.model !== response.model) {
           throw new Error('Remote receipt is invalid or does not bind this request');
         }
+        if (Number(payload.receipt.version) === 2 && (!pending.providerIdentity || payload.receipt.provider !== pending.providerIdentity
+          || !await matchesWholeModelReceipt(payload.receipt, pending.messages, response))) {
+          throw new Error('Measured receipt differs from the admitted request or provider output');
+        }
         const countersigned = await countersignReceipt(payload.receipt, identityBundle);
         if (!current()) return;
         swarmTransport.sendToPeer(remotePeerId, 'reploid:receipt', { receipt: countersigned });
         await updateConsumerReceiptCount();
+        response.executionReceipt = countersigned;
       } else if (policy.models.contract !== null) {
         throw new Error('Remote execution receipt is missing');
       }
@@ -372,8 +379,10 @@ export function createLegacyGenerationMesh({ config, ports }) {
           consumer,
           jobHash: `request:${requestId}`,
           model: response.model,
-          inputTokens: estimateTokens(messages),
-          outputTokens: estimateTokens(response.raw || response.content || '')
+          inputTokens: 0,
+          outputTokens: 0,
+          status: 'unmetered',
+          ...await measureWholeModelReceipt(messages, response)
         }),
         identityBundle
       );
@@ -544,7 +553,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
       }
       const requestId = utils.generateId('swarmreq');
       return await remoteRequests.start({ requestId, modelId, modelIdentity, adapterIdentities,
-        providerPeerId: provider.peerId, onUpdate, signal }, () =>
+        providerPeerId: provider.peerId, providerIdentity: recipientIdentity, messages, onUpdate, signal }, () =>
         swarmTransport.sendToPeer(provider.peerId, 'reploid:generation-request', {
           requestId, consumer: identityBundle.peerId, provider: provider.peerId,
           model: modelId || provider.model || null, modelIdentity, adapterIdentities,

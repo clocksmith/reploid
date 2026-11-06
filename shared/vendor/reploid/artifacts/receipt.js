@@ -1,4 +1,5 @@
 import { canonicalize as stableJson } from './canonical-json.js';
+import { wholeModelReceiptFields } from './whole-model-receipt.js';
 /**
  * @fileoverview Signed receipt primitives for swarm contribution proof.
  */
@@ -9,7 +10,8 @@ import {
   importSigningKey,
   importVerificationKey,
   toBase64Url,
-  fromBase64Url
+  fromBase64Url,
+  createPeerIdFromPublicJwk
 } from './identity.js';
 
 
@@ -38,7 +40,8 @@ export function getReceiptPayload(receipt = {}) {
     inputTokens: Math.max(0, Number(receipt.inputTokens || 0)),
     outputTokens: Math.max(0, Number(receipt.outputTokens || 0)),
     status: String(receipt.status || 'completed'),
-    timestamp: Number(receipt.timestamp || Date.now())
+    timestamp: Number(receipt.timestamp || Date.now()),
+    ...(Number(receipt.version) === 2 ? wholeModelReceiptFields({ ...receipt, version: 2 }) : {})
   };
 }
 
@@ -101,6 +104,10 @@ export async function countersignReceipt(receipt, consumerBundle, cryptoApi = gl
 
 export async function verifyReceipt(receipt, cryptoApi = globalThis.crypto) {
   const payload = getReceiptPayload(receipt);
+  if (payload.version === 2 && (await createPeerIdFromPublicJwk(receipt.providerKey, cryptoApi) !== receipt.provider
+    || receipt.consumerSignature && await createPeerIdFromPublicJwk(receipt.consumerKey, cryptoApi) !== receipt.consumer)) {
+    return { providerValid: false, consumerValid: false, valid: false };
+  }
 
   const providerValid = receipt?.providerSignature && receipt?.providerKey
     ? await verifyPayload(payload, receipt.providerSignature, receipt.providerKey, cryptoApi)

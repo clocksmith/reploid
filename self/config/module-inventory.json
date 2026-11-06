@@ -3518,7 +3518,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:697c337a0afd5d6cd2b552a91ebd699566867c365b640adbead5d271f57ccbc4",
+      "sha256": "sha256:02bfff9eee45196b340a4520116e28175994baeb67a7a37cec98d93f56f642a1",
       "imports": []
     },
     {
@@ -16163,10 +16163,11 @@
     {
       "path": "vendor/reploid/artifacts/receipt.js",
       "owner": "vendor",
-      "sha256": "sha256:5947a52e8816db9dcbe6adf11ca174b0b9877e608fbb780de17baedf8fa19eac",
+      "sha256": "sha256:9f4b625c942c6a7566b9a9f1cb2613b7f4fb91f8996737a8b82e29130df44aca",
       "imports": [
         "./canonical-json.js",
-        "./identity.js"
+        "./identity.js",
+        "./whole-model-receipt.js"
       ]
     },
     {
@@ -16184,6 +16185,15 @@
       "sha256": "sha256:79a72d7e22c6c6229714aa5c75de2de0ac006cd0ab47c85e66021f8e7af2b4c1",
       "imports": [
         "../config/index.js"
+      ]
+    },
+    {
+      "path": "vendor/reploid/artifacts/whole-model-receipt.js",
+      "owner": "vendor",
+      "sha256": "sha256:6b5f81fcd8280b246f822ae5b3e1c897c592727b873212c01f03311d5aea27e0",
+      "imports": [
+        "./canonical-json.js",
+        "./signatures.js"
       ]
     },
     {
@@ -16435,9 +16445,10 @@
     {
       "path": "vendor/reploid/mesh/legacy-generation.js",
       "owner": "vendor",
-      "sha256": "sha256:cf93621bba6feea50b0c252b8ad270c2ae708e3ef5223b6322de2b32478d57b7",
+      "sha256": "sha256:aa83f36f3c939457c16a3a4a46f721184289159ef7f92e8a08c0977e055dbfcc",
       "imports": [
         "../artifacts/receipt.js",
+        "../artifacts/whole-model-receipt.js",
         "../config/index.js",
         "./contribution.js",
         "./peer-identity.js",

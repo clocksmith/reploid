@@ -27,13 +27,15 @@ export function createChatCompletions(options) {
   return createTextRequester(options, { path: '/v1/chat/completions', idPrefix: 'chatcmpl-', parse: parseTextChatCompletion,
     output({ id, created, model, input, write, end, json }) {
       let started = false;
-      const chunk = (delta, finishReason = null) => write(`data: ${JSON.stringify({ id, object: 'chat.completion.chunk', created, model,
+      const chunk = (delta, finishReason = null, usage = undefined) => write(`data: ${JSON.stringify({ id, object: 'chat.completion.chunk', created, model, ...(usage ? { usage } : {}),
         choices: [{ index: 0, delta, logprobs: null, finish_reason: finishReason }] })}\n\n`);
       return {
         delta(text) { chunk({ ...(started ? {} : { role: 'assistant' }), content: text }); started = true; },
-        complete(content, finishReason) {
-          if (input.stream) { chunk({}, finishReason); end('data: [DONE]\n\n'); }
-          else json({ id, object: 'chat.completion', created, model,
+        complete(content, finishReason, _reason, measured) {
+          const usage = measured ? { prompt_tokens: measured.inputTokens, completion_tokens: measured.outputTokens,
+            total_tokens: measured.inputTokens + measured.outputTokens } : undefined;
+          if (input.stream) { chunk({}, finishReason, usage); end('data: [DONE]\n\n'); }
+          else json({ id, object: 'chat.completion', created, model, ...(usage ? { usage } : {}),
             choices: [{ index: 0, message: { role: 'assistant', content, refusal: null }, logprobs: null, finish_reason: finishReason }] });
         },
         error(error) { end(`data: ${JSON.stringify({ error })}\n\n`); }

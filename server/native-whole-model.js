@@ -87,7 +87,9 @@ export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner
         }
         return structuredClone(selected);
       });
-      return resident.generate(messages, onUpdate, { ...controls, adapters });
+      const ownerPolicyDigest = owner?.digest ?? null;
+      return Promise.resolve(resident.generate(messages, onUpdate, { ...controls, adapters }))
+        .then(result => ({ ...result, ownerPolicyDigest }));
     },
     stop,
     async close() { closed = true; await stop(); }
