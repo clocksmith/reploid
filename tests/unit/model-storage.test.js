@@ -86,6 +86,54 @@ it('invalidates cached availability even after a partial deletion fails', async 
   expect(f.onRemoved).toHaveBeenCalledWith('first'); expect(f.announce).toHaveBeenCalledOnce();
 });
 
+it('loads host-configured storage tooling by default and ignores unverified manifests, invalid shard digests and inventory module fields', async () => {
+  const f = await fixture();
+  const manifestKey = 'sha256-' + f.models[0].identity.slice(7);
+  const untrustedShard = 'd'.repeat(64);
+  f.files.set('sha256-' + untrustedShard, new Uint8Array(53));
+  f.files.set(manifestKey, new TextEncoder().encode(JSON.stringify({
+    modelId: 'first', hashAlgorithm: 'sha256', shards: [{ hash: untrustedShard }, { hash: '../escape' }]
+  })));
+  f.tools.listStorageInventory.mockResolvedValueOnce({
+    entries: [
+      { modelId: 'first', root: 'first-store', totalBytes: 41, moduleUrl: 'https://evil.example/storage.js' },
+      { modelId: 'peer-injected', root: 'peer-store', totalBytes: 999, moduleUrl: 'https://evil.example/peer.js' }
+    ]
+  });
+  globalThis.__modelStorageTestTools = f.tools;
+  vi.stubGlobal('REPLOID_DOPPLER_STORAGE_MODULE_URL',
+    'data:text/javascript,export const listStorageInventory = (...a) => globalThis.__modelStorageTestTools.listStorageInventory(...a);export const deleteStorageEntry = (...a) => globalThis.__modelStorageTestTools.deleteStorageEntry(...a);');
+  try {
+    const defaultPort = createModelStorage({
+      models: f.models,
+      storage: { async getDirectory() { return { async getDirectoryHandle() { return f.directory; } }; } },
+      locks: lockManager(),
+      getState: () => f.state,
+      unload: f.unload,
+      onRemoved: f.onRemoved,
+      announce: f.announce
+    });
+    const rows = await defaultPort.list();
+    expect(rows).toEqual([{
+      id: 'first',
+      name: 'first',
+      sizeBytes: 41 + 17 + f.files.get(manifestKey).byteLength
+    }, {
+      id: 'second',
+      name: 'second',
+      sizeBytes: 17 + f.files.get('sha256-' + f.models[1].identity.slice(7)).byteLength
+    }]);
+    await defaultPort.remove('first');
+    expect(f.files.has('sha256-' + untrustedShard)).toBe(true);
+    expect(f.tools.deleteStorageEntry).toHaveBeenCalledExactlyOnceWith({
+      modelId: 'first', root: 'first-store', totalBytes: 41
+    });
+  } finally {
+    delete globalThis.__modelStorageTestTools;
+    vi.unstubAllGlobals();
+  }
+});
+
 it('requires a bounded confirmation and keeps removal failures visible', async () => {
   document.body.innerHTML = renderModelStorage();
   const storage = { list: vi.fn(async () => [{ id: 'one', name: 'Model one', sizeBytes: 1048576 }]), remove: vi.fn(async () => { throw Error('In use by another tab'); }) };

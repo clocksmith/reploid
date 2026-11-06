@@ -1,5 +1,9 @@
 // @vitest-environment node
+import fs from 'node:fs/promises';
 import http from 'node:http';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { afterEach, expect, it, vi } from 'vitest';
 import { mountTextApi } from '../../server/text-api-mount.js';
@@ -42,10 +46,21 @@ it('mounts authenticated models, completions and responses on the same borrowed 
   expect((await response.json()).output[0].content[0].text).toBe('fixture answer');
 });
 
-it('keeps production closed without an accounting owner and refuses test compositions', async () => {
+it('keeps production closed without an accounting owner and refuses in-repo, relative, invalid or test compositions', async () => {
   const app = express(), importModule = vi.fn();
   expect((await mountTextApi(app, { env: {}, importModule })).mounted).toBe(false);
+  for (const invalidPath of ['relative/composition.mjs', fileURLToPath(new URL('../../server/text-api.js', import.meta.url))]) {
+    await expect(mountTextApi(app, { env: { REPLOID_TEXT_API_COMPOSITION: invalidPath }, importModule }))
+      .rejects.toThrow('outside the repository');
+  }
   expect(importModule).not.toHaveBeenCalled();
+  const externalDir = await fs.mkdtemp(path.join(os.tmpdir(), 'reploid-text-api-'));
+  owners.push(() => fs.rm(externalDir, { recursive: true, force: true }));
+  const invalidModule = path.join(externalDir, 'invalid-composition.mjs');
+  await fs.writeFile(invalidModule, 'export const unused = true;\n');
+  await expect(mountTextApi(app, {
+    env: { REPLOID_TEXT_API_COMPOSITION: invalidModule }
+  })).rejects.toThrow('createTextApiComposition');
   const composition = { participant: { getState() {}, generate() {} }, authenticate, authorize: async () => true, allowUnbilledTest: true, close: vi.fn() };
   const options = { env: { NODE_ENV: 'production', REPLOID_TEXT_API_COMPOSITION: '/tmp/reploid-fixture-composition.mjs' },
     importModule: async () => ({ createTextApiComposition: async () => composition }) };

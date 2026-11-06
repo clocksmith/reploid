@@ -44,7 +44,7 @@ Outputs: [product session](product-session.js), [conversations](chat-session.js)
 
 ## Acceptance
 - Evidence: [chat](../../../tests/e2e/chat-real-adapter.spec.js), [races](../../../tests/unit/work-swarm-lifecycle.test.js),
-  [history](../../../tests/unit/ordered-requester-history.test.js), [search](../../../tests/unit/search-answer-permission.test.js).
+  [history](../../../tests/unit/ordered-requester-history.test.js), [search](../../../tests/unit/search-answer-permission.test.js), [storage](../../../tests/unit/model-storage.test.js).
 
 ## Non-goals
 - Scientific question/model policy/promotion.
