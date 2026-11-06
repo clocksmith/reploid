@@ -109,7 +109,7 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     await page.locator('[data-composer-input]').fill('Keep this draft.');
     await page.screenshot({path:info.outputPath('collapsed.png')});
     await page.locator('[data-toggle-thread-rail]').click();
-    await expect(page.locator('[data-threads-dialog]')).toHaveJSProperty('open', true);
+    await expect(page.locator('[data-threads-dialog]')).toBeVisible();
     await expect(page.locator('[data-thread-list]')).toBeVisible();
     await expect(page.locator('[data-conversation-actions]')).toBeVisible();
     await expect(page.locator('[data-open-model]')).toBeVisible();
@@ -131,7 +131,7 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     await page.locator('[data-show-archived]').click();
     await expect(page.locator('[data-chat-workspace]')).toHaveAttribute('data-threads-open','');
     await page.locator('[data-close-threads]').click();
-    await expect(page.locator('[data-threads-dialog]')).toHaveJSProperty('open', false);
+    await expect(page.locator('[data-threads-dialog]')).toBeHidden();
     await page.locator('[data-open-model]').click();
     await expect(page.locator('[data-model-picker]')).toBeVisible();
     await expect(page.locator('[data-model-picker] input[type="radio"]:checked')).toBeFocused();

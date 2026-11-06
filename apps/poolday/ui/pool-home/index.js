@@ -80,7 +80,12 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
     window.REPLOID_POOL_CONNECT_OPERATIONS = connectOperations;
     window.REPLOID_POOL_ATTACH_DOPPLER_HANDLE = (handle, model = null, runtimeInfo = null) => host.runtime.attachHandle(handle, model, runtimeInfo);
     document.documentElement.classList.add('pool-page'); mount.replaceChildren();
+    let renderedLocation = null;
     const render = async (options = {}) => {
+      const location = new URL(window.location.href); location.searchParams.delete('view');
+      // Workspace history changes only the visible destination, retaining drafts and attachments.
+      if (options.type === 'popstate' && renderedLocation === location.href && mount.querySelector('[data-chat-workspace]')) return;
+      renderedLocation = location.href;
       const current = ++revision;
       detachView(); detachView = () => {};
       detachRibbon(); detachRibbon = () => {}; inspector?.dispose();
@@ -103,7 +108,7 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
       const inspectorRoot = document.createElement('div'); inspectorRoot.dataset.shellInspector = '';
       if (workspaceRoute) {
         content.innerHTML = renderConversationWorkspace({ inspector: false });
-        content.querySelector('[data-network-trigger-slot]').innerHTML = renderInspectorNavigation();
+        content.querySelector('[data-network-trigger-slot]').innerHTML = renderInspectorNavigation({ workspace: true });
         content.querySelector('[data-chat-inspector-slot]').innerHTML = renderInspectorRail({ mounted: true, apps: renderAppShortcuts(routeId) });
         inspectorRoot.innerHTML = renderModelSetupDialog();
       } else {

@@ -746,6 +746,7 @@
     "ui/pool-home/work-task-history.js",
     "ui/pool-home/work-tool-offers.js",
     "ui/pool-home/work.js",
+    "ui/pool-home/workspace-navigation.js",
     "ui/poolday-design/index.js",
     "ui/poolday-design/model.js",
     "ui/poolday-design/production-simulation.js",

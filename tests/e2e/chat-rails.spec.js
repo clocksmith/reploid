@@ -104,15 +104,15 @@ for (const width of [1440, 320]) for (const theme of ['light', 'dark']) {
     const right = page.locator('[data-toggle-inspector]');
     const sidebar = page.locator('[data-thread-sidebar]');
     const rail = page.locator('[data-network-rail]');
-    // Threads open as a dialog from the toolbar; the toolbar itself keeps its size.
+    // Threads open as a workspace destination from the toolbar; the toolbar itself keeps its size.
     const toolbarWidth = (await sidebar.boundingBox()).width;
     await left.click();
-    await expect(left).toHaveAttribute('aria-expanded', 'true');
-    await expect(page.locator('[data-threads-dialog]')).toHaveJSProperty('open', true);
+    await expect(left).toHaveAttribute('aria-current', 'page');
+    await expect(page.locator('[data-threads-dialog]')).toBeVisible();
     expect((await sidebar.boundingBox()).width).toBe(toolbarWidth);
     await expect(page.locator('[data-new-thread]')).toBeVisible();
     await page.keyboard.press('Escape');
-    await expect(left).toHaveAttribute('aria-expanded', 'false');
+    await expect(left).not.toHaveAttribute('aria-current');
     await right.click();
     await expect(right).toHaveAttribute('aria-expanded', 'true');
     await expect(rail.locator('[data-mesh-connect]')).toBeVisible();

@@ -275,7 +275,7 @@ test('reading and phone controls retain long answers, code, sources and a saved 
   await expect(page.locator('[data-thread-list]')).toBeHidden();
   // Threads and their conversation actions open as one dialog over the phone-sized viewport.
   await page.locator('[data-toggle-thread-rail]').click();
-  await expect(page.locator('[data-threads-dialog]')).toHaveJSProperty('open', true);
+  await expect(page.locator('[data-threads-dialog]')).toBeVisible();
   await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft while I read.');
   await page.locator('[data-conversation-actions] > summary').click();
   await expect(page.locator('[data-network-header] [data-conversation-actions]')).toBeVisible();

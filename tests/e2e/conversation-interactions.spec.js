@@ -107,14 +107,14 @@ test('phone thread drawer preserves drafts, streaming nodes, and isolated Stop',
       cancel(id) { state.runningIds = state.runningIds.filter(value => value !== id); threads.find(thread => thread.id === id).attempts[0].status = 'cancelled'; emit(); }
     });
   });
-  // Threads open as a dialog from the toolbar, which itself stays in place.
+  // Threads open as a workspace destination from the toolbar, which itself stays in place.
   const threads = page.locator('[data-threads-dialog]');
-  await expect(threads).toHaveJSProperty('open', false);
+  await expect(threads).toBeHidden();
   await page.locator('[data-composer-input]').fill('Draft one');
   await page.locator('[data-toggle-thread-rail]').click();
-  await expect(threads).toHaveJSProperty('open', true);
+  await expect(threads).toBeVisible();
   await page.locator('[data-thread-item-id="two"]').click();
-  await expect(threads).toHaveJSProperty('open', false);
+  await expect(threads).toBeHidden();
   await page.locator('[data-composer-input]').fill('Draft two');
   await page.locator('[data-toggle-thread-rail]').click();
   await page.locator('[data-thread-item-id="one"]').click();
@@ -132,7 +132,7 @@ test('phone thread drawer preserves drafts, streaming nodes, and isolated Stop',
   expect(await page.evaluate(() => window.conversationState.runningIds)).toEqual(['two']);
   await page.locator('[data-toggle-thread-rail]').click();
   await page.keyboard.press('Escape');
-  await expect(threads).toHaveJSProperty('open', false);
+  await expect(threads).toBeHidden();
   await expect(page.locator('[data-toggle-thread-rail]')).toBeFocused();
 });
 

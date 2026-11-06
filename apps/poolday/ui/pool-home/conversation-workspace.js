@@ -1,3 +1,4 @@
+import { workspaceHref, bindWorkspaceNavigation } from './workspace-navigation.js';
 import { renderContextIndicator, updateContextIndicator } from './context-indicator.js';
 import { withComputerLabels } from './computer-labels.js';
 import { interfaceIcon } from '../components/interface-icons.js';
@@ -38,13 +39,13 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
       <div class="chat-rail-toolbar pool-surface" data-chat-rail-toolbar>
       <div class="chat-rail-heading">
       <span class="chat-thread-brand" data-thread-rail-brand>${renderBrandLink({ toolbar: true })}</span>
-      <button class="pool-button chat-rail-icon" type="button" data-toggle-thread-rail aria-label="Threads" title="Threads" aria-haspopup="dialog" aria-expanded="false">${interfaceIcon('threads')}<span class="chat-rail-label">Threads</span></button>
+      <a class="pool-button btn-ghost chat-rail-icon" href="${escape(workspaceHref('threads'))}" data-workspace-view="threads" data-toggle-thread-rail aria-label="Threads" title="Threads">${interfaceIcon('threads')}<span class="chat-rail-label">Threads</span></a>
       <button class="pool-button chat-new-thread" type="button" data-new-thread aria-label="New thread" title="New thread">${interfaceIcon('newThread')}<span class="chat-rail-label">New thread</span></button>
       </div>
-      <footer class="chat-rail-footer"><div data-network-trigger-slot>${inspector ? renderInspectorNavigation() : ''}</div></footer>
+      <footer class="chat-rail-footer"><div data-network-trigger-slot>${inspector ? renderInspectorNavigation({ workspace: true }) : ''}</div></footer>
       </div>
     </aside>
-    <dialog class="chat-threads-dialog pool-surface" data-threads-dialog aria-labelledby="chat-threads-title">
+    <section class="chat-threads-dialog pool-surface" hidden data-threads-dialog aria-labelledby="chat-threads-title">
       <header class="chat-network-heading"><h2 class="pool-subheading" id="chat-threads-title" tabindex="-1">Threads</h2><button class="pool-button" type="button" data-close-threads aria-label="Back to chat" title="Back to chat">${interfaceIcon('close')}</button></header>
       <section class="chat-thread-panel" data-thread-panel aria-labelledby="chat-threads-title">
       <div class="chat-thread-list" data-thread-list></div>
@@ -60,7 +61,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
           </fieldset>
         </div></details>
       </div>
-    </dialog>
+    </section>
     <aside class="chat-inspector-slot pool-surface" data-chat-inspector-slot aria-label="Selected controls">${inspector ? renderInspectorRail({ mounted: true }) : ''}</aside>
     <section class="chat-conversation-area" data-conversation-area aria-label="Current conversation">
       <div class="chat-transcript chat-message-stream" data-chat-transcript data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
@@ -93,11 +94,11 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
         </form>
       </dialog>
       <dialog class="chat-model-setup pool-surface pool-small" data-model-picker aria-labelledby="chat-model-picker-title">
-        <h2 class="pool-heading" id="chat-model-picker-title">Choose a model</h2><p data-current-model-description></p>
+        <h2 class="pool-heading" id="chat-model-picker-title">Choose a model</h2><div class="chat-model-picker-body"><p data-current-model-description></p>
         <p data-picker-thread-note hidden>A new model starts a new thread.</p>
         ${renderModelControl()}<div><select class="pool-input" data-next-model aria-label="Model"></select></div>
         <p data-next-model-status role="status" hidden></p>
-        ${renderModelSelectionDetails()}
+        </div>${renderModelSelectionDetails()}
         <div class="chat-network-actions"><button class="pool-button" type="button" data-model-picker-close>Cancel</button><button class="pool-button" type="button" data-change-model>Use model</button></div>
       </dialog>
     </section>
@@ -132,20 +133,22 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const actions = find('[data-conversation-actions]');
   const actionsPanel = bindDisclosure({ root: actions, trigger: actions.querySelector('summary'), panel: actions.querySelector('div'), native: true });
   const railToggle = find('[data-toggle-thread-rail]');
-  // The brand consistently goes home; Threads opens the conversation list as a dialog.
-  const threadsDialogNode = find('[data-threads-dialog]'), threadsDialog = bindDialog(threadsDialogNode);
-  const setThreads = open => {
+  let workspaceNavigation = null, applyingView = false;
+  const threadsDialogNode = find('[data-threads-dialog]');
+  const setThreads = (open, reflect = true) => {
     if (open) inspector.close?.({ restoreFocus: false });
     viewState.threadsOpen = open; container.toggleAttribute('data-threads-open', open);
-    railToggle?.setAttribute('aria-expanded', String(open));
-    railToggle?.setAttribute('aria-controls', 'chat-threads-title');
-    if (open) threadsDialog.open(find('[data-thread-item-id][aria-current="true"]') || find('[data-thread-item-id]') || find('#chat-threads-title'), railToggle);
-    else { actionsPanel.setOpen(false); if (threadsDialogNode.open) threadsDialog.close(); }
+    threadsDialogNode.hidden = !open;
+    if (!open) actionsPanel.setOpen(false);
+    if (reflect && !applyingView) workspaceNavigation?.reflect(open ? 'threads' : 'chat');
+    if (open) (find('[data-thread-item-id][aria-current="true"]') || find('[data-thread-item-id]') || find('#chat-threads-title')).focus({ preventScroll: true });
   };
-  threadsDialogNode.addEventListener('close', () => { if (container.hasAttribute('data-threads-open')) setThreads(false); }, options);
   const detachHandover = bindHistoryHandover(container, historyHandover);
-  // Opening the inspector closes the conversation list; both live in this surface.
-  const detachInspector = inspector.onOpen?.(() => setThreads(false));
+  const detachInspector = inspector.onOpen?.(section => {
+    setThreads(false, false);
+    if (!applyingView) workspaceNavigation?.reflect(section === 'participants' ? 'computers' : section);
+  });
+  const detachInspectorClose = inspector.onClose?.(() => { if (!applyingView) workspaceNavigation?.reflect('chat'); });
   const production = bindProductionControls(container, session, {
     inspector,
     getSelectedModelId: () => modelSelect.value,
@@ -165,7 +168,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (toggle) autoDownload.setEnabled(toggle.getAttribute('aria-checked') !== 'true');
   }, options);
   setThreads(false);
-  railToggle?.addEventListener('click', () => setThreads(!container.hasAttribute('data-threads-open')), options);
+
   find('[data-close-threads]').addEventListener('click', () => setThreads(false), options);
   onResize();
   function onResize() {
@@ -665,13 +668,27 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const target = document.getElementById(link.getAttribute('href').slice(1));
     if (target) { event.preventDefault(); target.closest('details').open = true; target.focus(); target.scrollIntoView({ block: 'nearest' }); }
   });
+  workspaceNavigation = bindWorkspaceNavigation(container, view => {
+    applyingView = true;
+    try {
+      setThreads(view === 'threads', false);
+      if (['settings', 'computers', 'conversation'].includes(view)) inspector.open(view === 'computers' ? 'participants' : view);
+      else inspector.close?.({ restoreFocus: false });
+    } finally { applyingView = false; }
+  });
+  container.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && container.hasAttribute('data-threads-open')) {
+      event.preventDefault(); workspaceNavigation.navigate('chat'); railToggle?.focus();
+    }
+  }, options);
+  workspaceNavigation.restore();
   return () => {
     try { observe(saveDraft()); } catch (cause) { error(cause); }
     inputResize?.disconnect();
     selectionDetails.prepend(providers); nextModelChoices.dispose();
     production.dispose();
     detachInspector?.();
-    messages.dispose(); threads.dispose(); actionsPanel.dispose(); threadsDialog.dispose(); picker.dispose(); renameDialog.dispose();
+    messages.dispose(); threads.dispose(); actionsPanel.dispose(); workspaceNavigation.dispose(); detachInspectorClose?.(); picker.dispose(); renameDialog.dispose();
     const surface = container.closest('.pool-home');
     surface?.style.removeProperty('--pool-param-workspace-height');
     surface?.removeAttribute('data-chat-compact');

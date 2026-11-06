@@ -26,9 +26,10 @@ it('shows the catalog adapter’s declared purpose and source, version, identiti
   expect(node.querySelector('[data-adapter-evidence]').textContent).toBe('Evaluation: No evaluation evidence');
   expect(node.querySelector('[data-adapter-evidence] a')).toBeNull();
   expect(node.querySelector('[data-adapter-availability]').textContent).toBe('No computer serves this adapter now. Requests wait; the base model is not used instead.');
-  expect(node.querySelector(`a[href="${ADAPTER_GUIDE_URL}"]`)).not.toBeNull();
+  expect(node.querySelector(`a[href="${ADAPTER_GUIDE_URL}"]`)).toBeNull();
   updateAdapterDetails(root, state, models.find(model => !model.adapters?.length));
-  expect(node.querySelector('[data-adapter-count]').textContent).toBe('1 adapter for this model, listed beneath it.');
+  expect(node.hidden).toBe(true);
+  expect(node.textContent).toBe('');
 });
 
 it('names the computers serving the adapter now and links only a verified receipt', () => {

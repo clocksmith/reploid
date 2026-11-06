@@ -66,7 +66,9 @@ export function projectModelRoutes(state, selected) {
   });
 }
 
-export const renderModelProviders = () => '<details class="pool-disclosure chat-model-providers" data-model-providers hidden><summary>Providers <span class="pool-muted" data-provider-count></span></summary><div class="pool-stack pool-gap-sm" data-provider-list></div><p class="pool-caption pool-muted">GPU details are reported by providers. The answer’s execution details show which computers were used.</p></details>';
+export const ADAPTER_GUIDE_URL = 'https://github.com/clocksmith/reploid/blob/main/docs/adapters.md';
+
+export const renderModelProviders = () => `<details class="pool-disclosure chat-model-providers" data-model-providers hidden><summary>Providers <span class="pool-muted" data-provider-count></span></summary><div class="pool-stack pool-gap-sm" data-provider-list></div><p class="pool-caption pool-muted">GPU details are reported by providers. The answer’s execution details show which computers were used.</p><p class="pool-caption"><a href="${ADAPTER_GUIDE_URL}" target="_blank" rel="noopener noreferrer">Prepare or serve an adapter</a></p></details>`;
 
 let routeGroup = 0;
 /** Update only the disclosure contents, keeping its open state and the surrounding controls.

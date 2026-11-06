@@ -8,6 +8,7 @@ describe('Conversation workspace', () => {
   let root, session, dispose, service;
   const find = selector => root.querySelector(selector);
   beforeEach(() => {
+    history.replaceState(null, '', '/');
     root = document.createElement('div'); document.body.append(root);
     service = createChatTestService();
     session = createChatSession({ storage: null, service, models: [CANONICAL_CHAT_MODELS[1]] });
@@ -16,6 +17,32 @@ describe('Conversation workspace', () => {
       getModelDownload: async id => ({ id, sizeBytes: 123000000 }) });
   });
   afterEach(async () => { dispose(); await session.close(); root.remove(); });
+
+  it('uses linked workspace destinations and restores history without replacing the composer', () => {
+    const input = find('[data-composer-input]');
+    input.value = 'Keep this draft'; input.dispatchEvent(new Event('input', { bubbles: true }));
+    for (const view of ['threads', 'computers', 'settings']) {
+      const link = find(`[data-workspace-view="${view}"]`);
+      expect(link.tagName).toBe('A');
+      expect(new URL(link.href).searchParams.get('view')).toBe(view);
+      link.click();
+      expect(new URL(location.href).searchParams.get('view')).toBe(view);
+      expect(link.getAttribute('aria-current')).toBe('page');
+      expect(find('[data-composer-input]')).toBe(input);
+      expect(input.value).toBe('Keep this draft');
+      expect(find('dialog[open]')).toBeNull();
+    }
+    history.replaceState(null, '', '/?view=threads'); window.dispatchEvent(new PopStateEvent('popstate'));
+    expect(find('[data-threads-dialog]').hidden).toBe(false);
+    expect(find('[data-contextual-inspector]').hidden).toBe(true);
+    find('[data-close-threads]').click();
+    expect(new URL(location.href).searchParams.has('view')).toBe(false);
+    expect(input.value).toBe('Keep this draft');
+    dispose(); history.replaceState(null, '', '/?view=settings');
+    dispose = bindConversationWorkspace(root, session);
+    expect(find('[data-contextual-inspector]').hidden).toBe(false);
+    expect(find('[data-inspector-pane="settings"]').hidden).toBe(false);
+  });
 
   it('keeps every configured model visible in the picker before discovery without offering an unavailable one', async () => {
     dispose(); await session.close();
@@ -137,11 +164,11 @@ describe('Conversation workspace', () => {
     expect(find('[data-inspector-pane="settings"] [data-settings-sharing-limits] [data-contribution-limits]')).not.toBeNull();
     expect(find('[data-inspector-pane="participants"] [data-toggle-contribution]')).not.toBeNull();
     find('[data-toggle-thread-rail]').click();
-    expect(find('[data-threads-dialog]').open).toBe(true);
-    expect(find('[data-toggle-thread-rail]').getAttribute('aria-expanded')).toBe('true');
+    expect(find('[data-threads-dialog]').hidden).toBe(false);
+    expect(find('[data-toggle-thread-rail]').getAttribute('aria-current')).toBe('page');
     find('[data-toggle-inspector]').click();
-    expect(find('[data-contextual-inspector]').open).toBe(true);
-    expect(find('[data-threads-dialog]').open).toBe(false);
+    expect(find('[data-contextual-inspector]').hidden).toBe(false);
+    expect(find('[data-threads-dialog]').hidden).toBe(true);
     dispose();
     expect(find('[data-thread-rail-brand] > .pool-primary-brand')).not.toBeNull();
     expect(find('[data-model-picker] [data-active-model-select]')).not.toBeNull();
@@ -157,12 +184,13 @@ describe('Conversation workspace', () => {
     find('[data-model-picker-close]').click();
     for (const [section, title] of [['participants', 'Computers'], ['settings', 'Settings']]) {
       navigation.querySelector(`[data-inspector-section="${section}"]`).click();
-      expect(find('[data-contextual-inspector]').open).toBe(true);
+      expect(find('[data-contextual-inspector]').hidden).toBe(false);
       expect(find('#network-inspector-title').textContent).toBe(title);
       expect(find(`[data-inspector-pane="${section}"]`).hidden).toBe(false);
     }
     find('[data-context-indicator]').click();
     expect(find('#network-inspector-title').textContent).toBe('This conversation');
+    expect(new URL(location.href).searchParams.get('view')).toBe('conversation');
     expect(find('[data-inspector-pane="participants"] [data-toggle-contribution]')).not.toBeNull();
   });
 
@@ -178,7 +206,7 @@ describe('Conversation workspace', () => {
     expect(find('[data-composer-send]').hidden).toBe(false);
     expect(find('[data-retry-connection]').hidden).toBe(false);
     expect(find('[data-contribution-model]').value).toBe(CANONICAL_CHAT_MODELS[1].id);
-    expect(find('[data-contextual-inspector]').open).toBe(false);
+    expect(find('[data-contextual-inspector]').hidden).toBe(true);
     expect(find('[data-composer-input]').placeholder).toBeTruthy();
     expect(root.textContent).not.toMatch(/Mesh Active|Distributed Intelligence|Contributing|Scope:|Recent Improvements|LoRA/);
   });
@@ -298,7 +326,8 @@ describe('Conversation workspace', () => {
     // The variant's adapter facts, routes and providers sit directly beneath the highlighted variant's choice.
     expect(variantChoice().closest('label').nextElementSibling).toBe(find('[data-model-picker] [data-model-variant-details]'));
     expect(variantChoice().closest('label').nextElementSibling.contains(providers)).toBe(true);
-    expect(find('[data-model-adapter-details]').textContent).toContain('1 adapter for this model');
+    expect(find('[data-model-adapter-details]').hidden).toBe(true);
+    expect(providers.textContent).toContain('Prepare or serve an adapter');
     // The adapter is nested beneath its base, with its own status, version and evidence.
     const adapterChoice = choices.querySelector(`input[value="${adapted.selectionId}"]`).closest('label');
     expect(adapterChoice.hasAttribute('data-choice-adapter')).toBe(true);
@@ -533,7 +562,7 @@ describe('Conversation workspace', () => {
       find('[data-show-archived]').click();
       expect(find('[data-conversation-actions]').open).toBe(false);
       expect(find('[data-chat-workspace]').hasAttribute('data-threads-open')).toBe(true);
-      expect(find('[data-threads-dialog]').open).toBe(true);
+      expect(find('[data-threads-dialog]').hidden).toBe(false);
       expect(find('[data-threads-dialog] [data-thread-item-id]').dataset.threadItemId).toBe(id);
       expect(find('[data-composer-input]').value).toBe('Keep my phone draft');
     } finally { Object.defineProperty(globalThis, 'innerWidth', { value: previous, configurable: true }); }
@@ -552,12 +581,12 @@ describe('Conversation workspace', () => {
 
   it('shows actual network state and removes its event handlers on teardown', () => {
     find('[data-toggle-inspector]').click();
-    expect(find('[data-contextual-inspector]').open).toBe(true);
+    expect(find('[data-contextual-inspector]').hidden).toBe(false);
     expect(find('[data-contrib-label]').textContent).toBe('Not sharing');
     find('[data-close-inspector]').click();
     dispose();
     find('[data-toggle-inspector]').click();
-    expect(find('[data-contextual-inspector]').open).toBe(false);
+    expect(find('[data-contextual-inspector]').hidden).toBe(true);
   });
 
   it('keeps another thread running when the selected thread is cancelled', async () => {

@@ -3,7 +3,7 @@ import { modelFacts } from '../components/model-select.js';
 import { sameModelVariant } from './model-providers.js';
 
 /** How to prepare a compatible adapter or serve one; the public guide, not an in-product service. */
-export const ADAPTER_GUIDE_URL = 'https://github.com/clocksmith/reploid/blob/main/docs/adapters.md';
+export { ADAPTER_GUIDE_URL } from './model-providers.js';
 const shortIdentity = identity => typeof identity === 'string' ? identity.slice(0, 15) + '…' : '';
 const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
 const adapterOf = model => model?.adapters?.length === 1 ? model.adapters[0] : null;
@@ -54,8 +54,8 @@ export const renderAdapterDetails = () => '<div class="chat-model-adapter pool-s
 
 const link = (url, text) => url ? `<a href="${escape(url)}" target="_blank" rel="noopener noreferrer">${escape(text)}</a>` : escape(text);
 
-/** The highlighted variant's adapter facts: purpose with its source, version, identities, evaluation and availability.
- * A base model lists how many compatible adapters it has. Both link the preparation guide. */
+/** The highlighted adapter's purpose, identities, evaluation and availability.
+ * Base models keep their adapter count in the choice list. */
 export function updateAdapterDetails(root, state, model) {
   const node = root.querySelector('[data-model-adapter-details]');
   if (!node) return;
@@ -70,11 +70,7 @@ export function updateAdapterDetails(root, state, model) {
       <p class="pool-small" data-adapter-evidence data-evidence-status="${evidence.status}">Evaluation: ${link(evidence.url, evidence.text)}${evidence.detail ? ` <small class="pool-muted">${escape(evidence.detail)}</small>` : ''}</p>
       <p class="pool-small" data-adapter-availability>${escape(availability.text)}</p>
       <p class="pool-caption pool-muted">For ${escape(base?.name || model.id)} <code title="${escape(model.identity)}">${escape(shortIdentity(model.identity))}</code> · Adapter <code title="${escape(adapter.identity)}">${escape(shortIdentity(adapter.identity))}</code></p>`;
-  } else if (model) {
-    const count = (state.models || []).filter(item => !item.partition && adapterOf(item) && sameBase(item, model)).length;
-    markup = `<p class="pool-small" data-adapter-count>${count ? `${plural(count, 'adapter')} for this model, listed beneath it.` : 'No adapters for this model yet.'}</p>`;
   }
-  if (markup) markup += `<p class="pool-caption">${link(ADAPTER_GUIDE_URL, 'Prepare or serve an adapter')}</p>`;
   node.hidden = !markup;
   if (node.dataset.projection !== markup) { node.innerHTML = markup; node.dataset.projection = markup; }
 }

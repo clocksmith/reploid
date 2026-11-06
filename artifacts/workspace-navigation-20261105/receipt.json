@@ -1,0 +1,54 @@
+{
+  "component": "Poolday workspace",
+  "intent": "deliberately changed: URL-backed workspace navigation; bounded choices remain dialogs",
+  "base": "65c298ede",
+  "bundleHash": "sha256:ba1f728dd7715b423de663eeb440f935b416b968ca331c34d18aaf53b5c1fa19",
+  "checks": {
+    "unit": {
+      "files": [
+        "conversation-workspace",
+        "model-adapters",
+        "model-providers"
+      ],
+      "passed": 47
+    },
+    "browser": {
+      "workspaceHistoryAndPicker": {
+        "sizes": [
+          [
+            1280,
+            720
+          ],
+          [
+            390,
+            844
+          ],
+          [
+            320,
+            740
+          ]
+        ],
+        "passed": 3
+      },
+      "conversationInteractions": 6,
+      "chatRails": 10,
+      "verificationWorker": 1
+    },
+    "static": [
+      "eslint changed UI modules",
+      "verify:pool:css",
+      "verify:boundaries",
+      "verify:layers"
+    ]
+  },
+  "observed": [
+    "Picker execution choices and actions fully visible",
+    "Back retains mounted composer and draft",
+    "Settings restored after reload",
+    "Base adapter notice removed; preparation guide inside Providers"
+  ],
+  "limits": [
+    "No physical GPU inference or billing qualification",
+    "API work is a separate server change"
+  ]
+}

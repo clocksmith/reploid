@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 277 |
+| apps/poolday | 278 |
 | self | 447 |
 | shared | 2214 |
-| total | 2938 |
+| total | 2939 |
 
 Every file lives in its owner's root.
 
@@ -812,6 +812,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/pool-home/work-task-history.js` | `apps/poolday/ui/pool-home/work-task-history.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/work-tool-offers.js` | `apps/poolday/ui/pool-home/work-tool-offers.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/work.js` | `apps/poolday/ui/pool-home/work.js` | apps/poolday | Reached only from product entries. |
+| `ui/pool-home/workspace-navigation.js` | `apps/poolday/ui/pool-home/workspace-navigation.js` | apps/poolday | Reached only from product entries. |
 | `ui/poolday-design/index.js` | `apps/poolday/ui/poolday-design/index.js` | apps/poolday | Reached only from product entries. |
 | `ui/poolday-design/model.js` | `apps/poolday/ui/poolday-design/model.js` | apps/poolday | Reached only from product entries. |
 | `ui/poolday-design/production-simulation.js` | `apps/poolday/ui/poolday-design/production-simulation.js` | apps/poolday | Reached only from product entries. |

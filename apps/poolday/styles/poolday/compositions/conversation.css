@@ -267,12 +267,12 @@
   min-width: 0; min-height: 0; padding: var(--pool-size-16);
 }
 .pool-home[data-network-panel-open] .chat-inspector-slot { display: flex; }
-.pool-home[data-network-panel-open] .chat-conversation-area { display: none; }
+.pool-home[data-network-panel-open] .chat-conversation-area, .reploid-chat-workspace[data-threads-open] .chat-conversation-area { display: none; }
 
 /* The conversation list: threads scroll, conversation actions stay at the foot. */
-.chat-threads-dialog[open] {
+.chat-threads-dialog:not([hidden]) {
   display: flex; flex-direction: column; gap: var(--pool-size-16);
-  width: min(var(--pool-size-480), calc(100vw - var(--pool-size-32))); height: min(var(--pool-size-720), 80dvh);
+  width: min(100%, var(--pool-size-720)); height: 100%; justify-self: center; min-height: 0;
   max-height: none; margin: auto; padding: var(--pool-size-16); overflow: hidden;
 }
 .chat-threads-dialog .chat-thread-panel { display: flex; flex: 1; flex-direction: column; min-width: 0; min-height: 0; }
@@ -342,7 +342,7 @@ label.chat-model-route-heading { cursor: pointer; }
 
 .pool-home[data-chat-compact]:is([data-pool-route-id='home'], [data-pool-route-id='network']) .pool-primary-nav { display: block; height: 0; min-height: 0; padding: 0; }
 
-.pool-home .chat-context-indicator { display: inline-flex; align-items: center; gap: var(--pool-size-8); padding: 0 var(--pool-size-4); margin-left: auto; order: 1; }
+.pool-home .chat-context-indicator { display: inline-flex; align-items: center; justify-content: center; min-width: var(--pool-size-44); gap: var(--pool-size-8); padding: 0 var(--pool-size-4); margin-left: auto; order: 1; }
 .chat-context-indicator svg { flex: none; }
 
 .chat-composer-model { display: flex; align-items: center; gap: var(--pool-size-8); min-width: 0; max-width: 100%; }
@@ -355,3 +355,9 @@ label.chat-model-route-heading { cursor: pointer; }
 /* An adapter choice sits beneath its base model's choice. */
 .chat-model-choice[data-choice-adapter] { margin-left: var(--pool-size-24); }
 .chat-model-adapter > p { margin: 0; overflow-wrap: anywhere; }
+
+/* Model choice scrolls independently; confirmation stays reachable on phones. */
+.pool-home [data-model-picker][open] { grid-template-rows: auto minmax(0, 1fr) auto auto; overflow: hidden; }
+.chat-model-picker-body { min-height: 0; overflow-y: auto; display: grid; gap: var(--pool-size-16); }
+.pool-home [data-model-picker] .chat-execution-location { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.pool-home [data-model-picker] .chat-execution-location button { min-width: 0; padding: var(--pool-size-8) var(--pool-size-4); white-space: normal; }

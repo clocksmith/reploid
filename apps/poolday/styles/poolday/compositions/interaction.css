@@ -112,7 +112,7 @@
   max-height: none; min-height: 0; margin: 0; padding: var(--pool-size-4);
   flex: 1; overflow-y: auto;
 }
-.pool-home .chat-network-rail[data-mounted] .network-inspector[open] { display: block; animation: none; }
+.pool-home .chat-network-rail[data-mounted] .network-inspector:not([hidden]) { display: block; animation: none; }
 .chat-network-rail .network-inspector-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .pool-home .network-inspector :is(.network-inspector-tabs > .pool-button, [data-close-inspector]) {
   display: grid; place-items: center; min-width: 0; height: var(--pool-size-44); padding: 0;

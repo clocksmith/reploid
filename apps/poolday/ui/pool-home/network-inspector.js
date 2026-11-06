@@ -1,3 +1,4 @@
+import { workspaceHref } from './workspace-navigation.js';
 import { withComputerLabels } from './computer-labels.js';
 import { interfaceIcon } from '../components/interface-icons.js';
 /** One projection of conversation execution, participant availability, and device contribution. */
@@ -12,10 +13,12 @@ import { renderWebSearchSettings, bindWebSearchSettings } from './web-search-set
 import { renderAccountPanel, bindAccountPanel } from './account-panel.js';
 import { renderThemeSelector } from './theme.js';
 
-export function renderInspectorNavigation() {
+export function renderInspectorNavigation({ workspace = false } = {}) {
+  const tag = workspace ? 'a' : 'button';
+  const destination = view => workspace ? `href="${escape(workspaceHref(view))}" data-workspace-view="${view}"` : 'type="button"';
   return `<nav class="pool-stack pool-gap-sm" data-inspector-navigation aria-label="Network sections">
-      <button class="pool-button chat-network-toggle" type="button" data-inspector-section="participants" data-toggle-inspector aria-haspopup="dialog" aria-expanded="false" aria-label="Computers" title="Computers">${interfaceIcon('peers')}<span class="chat-rail-label">Computers</span><small class="chat-rail-digest pool-muted" data-rail-digest="participants"></small></button>
-      <button class="pool-button chat-rail-icon" type="button" data-inspector-section="settings" aria-label="Settings" title="Settings">${interfaceIcon('settings')}<span class="chat-rail-label">Settings</span></button>
+      <${tag} class="pool-button btn-ghost chat-network-toggle" ${destination('computers')} data-inspector-section="participants" data-toggle-inspector aria-label="Computers" title="Computers">${interfaceIcon('peers')}<span class="chat-rail-label">Computers</span><small class="chat-rail-digest pool-muted" data-rail-digest="participants"></small></${tag}>
+      <${tag} class="pool-button btn-ghost chat-rail-icon" ${destination('settings')} data-inspector-section="settings" aria-label="Settings" title="Settings">${interfaceIcon('settings')}<span class="chat-rail-label">Settings</span></${tag}>
     </nav>`;
 }
 
@@ -30,7 +33,7 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
   const material = mounted ? '' : ' pool-surface';
   return `<aside class="chat-network-rail${material}" data-network-rail${mounted ? ' data-mounted' : ''} aria-label="Network and settings">
     ${navigation ? renderInspectorNavigation() : ''}
-    <dialog class="network-inspector${material} pool-small" data-contextual-inspector data-network-workspace aria-labelledby="network-inspector-title">
+    <${mounted ? 'section hidden' : 'dialog'} class="network-inspector${material} pool-small" data-contextual-inspector data-network-workspace aria-labelledby="network-inspector-title">
     <header class="chat-network-heading"><h2 class="pool-subheading" id="network-inspector-title" tabindex="-1">Network</h2><button class="pool-button" type="button" data-close-inspector aria-label="Close" title="Close">${interfaceIcon('close')}</button></header>
     <section data-inspector-pane="conversation" aria-label="This conversation">
       <div class="execution-ribbon-route" data-inspector-route></div>
@@ -62,7 +65,7 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
     </section>
     <p data-network-message role="status" hidden></p>
     <p data-inspector-error role="alert" hidden></p>
-  </dialog></aside>`;
+  </${mounted ? 'section' : 'dialog'}></aside>`;
 }
 
 export function renderModelSetupDialog() {
@@ -88,32 +91,35 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   const panel = find('[data-contextual-inspector]');
   const toggle = find('[data-toggle-inspector]');
   const surface = root.closest('.pool-home');
-  let onRailOpen = null;
+  let onRailOpen = null, onRailClose = null, activeSection = null;
+  const mounted = panel.tagName !== 'DIALOG';
+  const isOpen = () => mounted ? !panel.hidden : panel.open;
+  const hide = () => { if (mounted) panel.hidden = true; else if (panel.open) panel.close(); };
   let opener;
   const dialog = {
     open(trigger) {
       // A production surface without the workspace opens the inspector as a modal
       // sheet; the workspace and the other routes show it as a panel in their layout.
       const standalone = !!surface?.querySelector('[data-production-surface]') && !surface?.querySelector('[data-chat-workspace]');
-      if (!standalone) onRailOpen?.();
+      if (!standalone) onRailOpen?.(activeSection);
       opener = trigger || toggle;
-      opener.setAttribute('aria-expanded', 'true');
+      opener?.setAttribute('aria-expanded', 'true');
       if (standalone) {
         if (!panel.open) panel.showModal();
       } else {
         surface?.setAttribute('data-network-panel-open', '');
-        if (!panel.open) panel.show();
+        if (mounted) panel.hidden = false; else if (!panel.open) panel.show();
       }
       rail.dataset.expanded = '';
       for (const button of navigation.querySelectorAll('[data-inspector-section]')) {
         const selected = !panel.querySelector(`[data-inspector-pane="${button.dataset.inspectorSection}"]`).hidden;
-        button.setAttribute('aria-current', String(selected));
+        if (selected) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');
         button.setAttribute('aria-expanded', String(selected));
       }
       find('#network-inspector-title').focus({ preventScroll: true });
     },
-    close({ restoreFocus = true } = {}) { const wasOpen = panel.open; opener?.setAttribute?.('aria-expanded', 'false'); panel.close(); surface?.removeAttribute('data-network-panel-open'); delete rail.dataset.expanded; for (const button of navigation.querySelectorAll('[data-inspector-section]')) { button.setAttribute('aria-expanded', 'false'); button.setAttribute('aria-current', 'false'); button.setAttribute('aria-pressed', 'false'); } if (wasOpen && restoreFocus) opener?.focus?.({ preventScroll: true }); },
-    dispose() { if (panel.open) panel.close(); surface?.removeAttribute('data-network-panel-open'); }
+    close({ restoreFocus = true } = {}) { const wasOpen = isOpen(); opener?.setAttribute?.('aria-expanded', 'false'); hide(); surface?.removeAttribute('data-network-panel-open'); if (wasOpen) onRailClose?.(); delete rail.dataset.expanded; for (const button of navigation.querySelectorAll('[data-inspector-section]')) { button.setAttribute('aria-expanded', 'false'); button.removeAttribute('aria-current'); button.setAttribute('aria-pressed', 'false'); } if (wasOpen && restoreFocus) opener?.focus?.({ preventScroll: true }); },
+    dispose() { hide(); surface?.removeAttribute('data-network-panel-open'); }
   };
   const controller = new AbortController(), options = { signal: controller.signal };
   const network = bindNetworkControls(panel, session, { getInviteUrl,
@@ -124,6 +130,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   const act = operation => Promise.resolve().then(operation).catch(error);
   let grantsKey = '', executionKey = '', metadataController, disposed = false, specialized;
   const select = section => {
+    activeSection = section === 'device' ? 'participants' : section;
     if (section === 'device') section = 'participants';
     for (const pane of panel.querySelectorAll('[data-inspector-pane]')) pane.hidden = pane.dataset.inspectorPane !== section;
     find('#network-inspector-title').textContent = { conversation: 'This conversation', participants: 'Computers', device: 'Sharing', settings: 'Settings' }[section];
@@ -141,18 +148,19 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     const remote = event.target.closest('[data-revoke-remote-permission]');
     if (remote) void act(() => session.revokeRemotePermission(remote.dataset.revokeRemotePermission));
   }, options);
-  const onEscape = event => { if (event.key === 'Escape' && panel.open) { event.preventDefault(); event.stopPropagation(); dialog.close(); } };
+  const onEscape = event => { if (event.key === 'Escape' && isOpen()) { event.preventDefault(); event.stopPropagation(); dialog.close(); } };
   rail.addEventListener('keydown', onEscape, options);
   panel.addEventListener('keydown', onEscape, options);
   navigation.addEventListener('click', event => {
     const button = event.target.closest('[data-inspector-section]');
-    if (!button) return;
+    if (!button || mounted && button.hasAttribute('data-workspace-view')) return;
+    event.preventDefault();
     const section = button.dataset.inspectorSection;
     select(section); dialog.open(button);
   }, options);
   navigation.addEventListener('keydown', onEscape, options);
   on('[data-close-inspector]', 'click', () => dialog.close());
-  on('[data-settings-network]', 'click', () => select('participants'));
+  on('[data-settings-network]', 'click', event => { select('participants'); dialog.open(event.currentTarget); });
   const unsubscribe = session.subscribe(snapshot => {
     const state = withComputerLabels(snapshot, session);
     const stored = (state.models || []).filter(model => model.localCached);
@@ -261,6 +269,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   // Credits appear only when the page's server publishes an earning service (host/credits/browser.js).
   const disposeAccount = bindAccountPanel(rail, earning);
   return {
+    onClose(callback) { onRailClose = callback; return () => { if (onRailClose === callback) onRailClose = null; }; },
     onOpen(callback) {
       onRailOpen = callback;
       return () => { if (onRailOpen === callback) onRailOpen = null; };
@@ -272,7 +281,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
       find('[data-toggle-file-contribution]').focus();
     },
     toggle(section = 'settings', opener) {
-      if (panel.open && !panel.querySelector(`[data-inspector-pane="${section}"]`).hidden) dialog.close();
+      if (isOpen() && !panel.querySelector(`[data-inspector-pane="${section}"]`).hidden) dialog.close();
       else { select(section); dialog.open(opener); }
     },
     open(section = 'participants', opener) { select(section); dialog.open(opener || navigation.querySelector(`[data-inspector-section="${section}"]`)); },

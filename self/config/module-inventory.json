@@ -3518,7 +3518,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:3852e697babee48a4294d8d37ef8bdfd5344786029119aacbca3a9e5b9ff30df",
+      "sha256": "sha256:59fd5cc035142cd38f905324a76c5320aa6792bfea9d8ed24edcd69b05a8a375",
       "imports": []
     },
     {
@@ -3610,7 +3610,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:0a8ecd53556db261054d03af7abbbd5db38866baef0709868e0dddc657fc32ad",
+      "sha256": "sha256:d112555d53b30b6d90f8c2ed7a860f165cc9341594b645994efe973a08b35cc8",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -3628,7 +3628,8 @@
         "./model-providers.js",
         "./network-controls.js",
         "./network-inspector.js",
-        "./shell-view.js"
+        "./shell-view.js",
+        "./workspace-navigation.js"
       ]
     },
     {
@@ -3670,7 +3671,7 @@
     {
       "path": "ui/pool-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:03e7d07199783eb0d7860d13b93b7a7c1b6d8d3631a11094bde6c11f338d83ed",
+      "sha256": "sha256:b3db38ee865bb94c34b14b99fdef79a3b1b4ce74a7a4be1eac5b1f6a4aa02af7",
       "imports": [
         "../../host/credits/browser.js",
         "../../host/product-context.js",
@@ -3714,7 +3715,7 @@
     {
       "path": "ui/pool-home/model-adapters.js",
       "owner": "ui",
-      "sha256": "sha256:d710e19fd8802c9bbbda8789d61deae1c67e7645fabed1eb17e5acb4984bd64a",
+      "sha256": "sha256:5eacf58079142a6507f9c9da60462bd2e24f2c2ef5d2abea59cd7abea6d22d25",
       "imports": [
         "../components/attachments.js",
         "../components/model-select.js",
@@ -3732,7 +3733,7 @@
     {
       "path": "ui/pool-home/model-providers.js",
       "owner": "ui",
-      "sha256": "sha256:151fee18afee90eeefde66a7a7d4fb658b61e014abf6334efdff3ddc3db7fd9c",
+      "sha256": "sha256:441d5c1cbdcb93cfee9ba53d1feb0de5d96e449f0d8c73006e353cad021bfe8b",
       "imports": [
         "../components/attachments.js",
         "./computer-labels.js",
@@ -3762,7 +3763,7 @@
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:023a799c87ea109183d9defc40602418bfa4341fa1d3267cdbc3cc56514cda05",
+      "sha256": "sha256:42c86858e37aef9ce26617d16b8d660bf5b4d66ae321dacba36e117d34af28f4",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -3775,7 +3776,8 @@
         "./network-controls.js",
         "./remote-permission.js",
         "./theme.js",
-        "./web-search-settings.js"
+        "./web-search-settings.js",
+        "./workspace-navigation.js"
       ]
     },
     {
@@ -4161,6 +4163,12 @@
         "./work-task-header.js",
         "./work-task-history.js"
       ]
+    },
+    {
+      "path": "ui/pool-home/workspace-navigation.js",
+      "owner": "ui",
+      "sha256": "sha256:69c1fc60ffcedc7efbd4411464c89ba0dd84d8e8ef9214a42f297a951bf79210",
+      "imports": []
     },
     {
       "path": "ui/poolday-design/index.js",
