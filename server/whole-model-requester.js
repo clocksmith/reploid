@@ -67,8 +67,14 @@ export function createWholeModelRequester({ mesh, models }) {
     },
     async recover(request, reference, controls) {
       requireValue(controls?.signal && reference?.providerIdentity, 'Bound recovery and cancellation required');
+      const { signal } = controls;
+      signal.throwIfAborted();
+      request = structuredClone(request);
+      reference = structuredClone(reference);
+      // Keep the acceptance binding private from caller edits and transport callbacks.
       const outcome = await mesh.recoverGeneration({ ...reference, modelId: request.model.id, modelIdentity: request.model.identity,
-        adapterIdentities: partitionAdapterIdentities(request.model) }, request.messages, controls.signal);
+        adapterIdentities: partitionAdapterIdentities(request.model) }, structuredClone(request.messages), signal);
+      signal.throwIfAborted();
       return outcome.status === 'completed' ? { status: 'completed', result: projectResult(request, outcome.response,
         reference.providerId, reference.providerIdentity) } : outcome;
     }

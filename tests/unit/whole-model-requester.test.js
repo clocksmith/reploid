@@ -61,3 +61,61 @@ it('refuses unsupported caller token limits before dispatch', async () => {
   await expect(f.requester.generate({ ...request, generationRequest: { maxOutputTokens: 1 } }, f.controls)).rejects.toThrow('not supported');
   expect(f.mesh.generate).not.toHaveBeenCalled();
 });
+
+function recoveryFixture() {
+  const f = fixture();
+  let finish;
+  const response = { model: model.id, modelIdentity: model.identity, adapterIdentities: [], content: 'recovered answer',
+    completion: { schema: GENERATION_CONTRACT.completionSchema, stopReason: 'eos-token', promptTokenCount: 7, generatedTokenCount: 2 } };
+  f.mesh.recoverGeneration = vi.fn(() => new Promise(resolve => { finish = resolve; }));
+  return { ...f, input: structuredClone(request), reference: { requestId: 'original', providerId: 'peer-1', providerIdentity: 'signed-peer-1' },
+    finish: (outcome = { status: 'completed', response }) => finish(outcome) };
+}
+
+it('does not query recovery after cancellation', async () => {
+  const f = recoveryFixture();
+  f.controller.abort(Error('cancelled before recovery'));
+  // A pre-cancelled operation must reject without waiting for the transport.
+  f.mesh.recoverGeneration.mockResolvedValue({ status: 'unresolved' });
+  await expect(f.requester.recover(f.input, f.reference, f.controls)).rejects.toThrow('cancelled before recovery');
+  expect(f.mesh.recoverGeneration).not.toHaveBeenCalled();
+});
+
+it.each(['completed', 'unresolved', 'cancelled'])('rejects late %s recovery after cancellation', async status => {
+  const f = recoveryFixture();
+  const pending = f.requester.recover(f.input, f.reference, f.controls);
+  f.controller.abort(Error('cancelled during recovery'));
+  if (status === 'completed') f.finish();
+  else f.finish({ status });
+  await expect(pending).rejects.toThrow('cancelled during recovery');
+});
+
+it('retains original recovery provenance when the caller changes its inputs while waiting', async () => {
+  const f = recoveryFixture();
+  const pending = f.requester.recover(f.input, f.reference, f.controls);
+  f.input.threadId = 'different-thread';
+  f.input.attemptId = 'different-attempt';
+  f.input.model.identity = 'different-model';
+  f.input.messages[0].content = 'different prompt';
+  f.reference.providerId = 'different-peer';
+  f.reference.providerIdentity = 'different-signer';
+  expect(f.mesh.recoverGeneration.mock.calls[0][1]).toEqual(request.messages);
+  f.finish();
+  await expect(pending).resolves.toMatchObject({ status: 'completed', result: {
+    threadId: request.threadId, attemptId: request.attemptId, modelIdentity: model.identity,
+    execution: { providerId: 'peer-1', providerIdentity: 'signed-peer-1' }
+  } });
+});
+
+it('does not let the recovery port mutate the identity used to accept a result', async () => {
+  const f = recoveryFixture();
+  f.mesh.recoverGeneration.mockImplementation(async (reference, messages) => {
+    reference.providerId = 'different-peer';
+    messages[0].content = 'changed by port';
+    return { status: 'completed', response: { model: model.id, modelIdentity: model.identity, adapterIdentities: ['wrong-adapter'],
+      content: 'substitution', completion: { schema: GENERATION_CONTRACT.completionSchema, stopReason: 'eos-token', promptTokenCount: 7, generatedTokenCount: 2 } } };
+  });
+  await expect(f.requester.recover(f.input, f.reference, f.controls)).rejects.toThrow('result identity changed');
+  expect(f.input.messages).toEqual(request.messages);
+  expect(f.reference.providerId).toBe('peer-1');
+});
