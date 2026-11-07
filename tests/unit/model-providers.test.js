@@ -87,3 +87,14 @@ it('labels a GPU by its reported identity, not its driver, and drops placeholder
   expect(hardwareLabel({ vendor: 'unknown', architecture: 'unknown', device: 'unknown', description: 'Reported adapter' })).toBe('Reported adapter');
   expect(hardwareLabel({ vendor: 'unknown', architecture: 'unknown', device: 'unknown', description: '' })).toBe('GPU not reported');
 });
+
+it('lets a person explicitly switch from a withdrawn split to the sole whole-model route', () => {
+  const root = document.createElement('div'); root.innerHTML = renderModelProviders();
+  updateModelProviders(root, state([model]), model, { selectedId: 'qwen/withdrawn-split' });
+  const choice = root.querySelector('[data-model-route-choice]');
+  expect(choice.value).toBe('qwen');
+  expect(choice.checked).toBe(false);
+  expect(choice.disabled).toBe(false);
+  // Removing the old route must not silently select the surviving provider.
+  expect(root.textContent).not.toContain('Distributed');
+});

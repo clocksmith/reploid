@@ -3556,7 +3556,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:b2b6b44fe0d4501ce8372d8d1eff1e27a5a94f2bcf9e063c9825151c7bf86e5e",
+      "sha256": "sha256:89fb8de41470a41f9bda76290f1f722bc3c4941c57a40433c508d63f165774b9",
       "imports": []
     },
     {
@@ -3773,7 +3773,7 @@
     {
       "path": "ui/pool-home/model-providers.js",
       "owner": "ui",
-      "sha256": "sha256:441d5c1cbdcb93cfee9ba53d1feb0de5d96e449f0d8c73006e353cad021bfe8b",
+      "sha256": "sha256:b209535ef3bcee59725ac678b3dc8c084383a1945d66cc150d9043ada504ddb5",
       "imports": [
         "../components/attachments.js",
         "./computer-labels.js",

@@ -81,7 +81,7 @@ export function updateModelProviders(root, state, model, { selectedId = model ? 
     disclosure.dataset.routeName ||= `model-route-${++routeGroup}`;
     disclosure.querySelector('[data-provider-count]').textContent = count ? String(count) : '';
     const list = disclosure.querySelector('[data-provider-list]');
-    const choose = routes.length > 1;
+    const choose = routes.length > 1 || routes.length === 1 && routes[0].selectionId !== selectedId;
     // A provider's own status appears only where it differs from its route's.
     const people = route => route.participants.map(peer => `<li><span>${escape(peer.label)}</span><small class="pool-small pool-muted">${[peer.role, peer.hardware, peer.status === route.status ? '' : peer.status].filter(Boolean).map(escape).join(' · ')}</small></li>`).join('');
     const markup = count || routes.length > 1 ? routes.map(route => `<div class="chat-model-route pool-stack pool-gap-xs" data-model-route="${escape(route.selectionId)}">${choose
