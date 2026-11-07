@@ -46,16 +46,14 @@ const gotoRoute = async (targetPage, route) => {
 };
 
 // Home, /work and /network render the conversation workspace. It renders no app bar:
-// its own toolbar carries the brand, Threads, New thread, Computers and Settings, and
+// its own toolbar carries the brand/Threads link, Computers and Settings, and
 // the inspector stays closed until one of those opens it. On phones the toolbar docks
 // below the conversation. Every other route keeps the app bar above its content.
 const WORKSPACE_ROUTES = ['/', '/work', '/network'];
 const VIEWPORTS = [{ width: 1440, height: 1000 }, { width: 390, height: 844 }];
 const PHONE_MAX_WIDTH = 760;
 const workspaceToolbarControls = {
-  brand: '.pool-primary-brand[aria-label="Reploid home"]',
-  threads: '[data-toggle-thread-rail]',
-  newThread: '[data-new-thread]',
+  threads: '.pool-primary-brand[data-toggle-thread-rail]',
   computers: '[data-toggle-inspector][data-inspector-section="participants"]',
   settings: '[data-inspector-section="settings"]'
 };
@@ -67,19 +65,19 @@ const checkWorkspaceAtLoad = async (routePage, route) => {
   const toolbar = routePage.locator('[data-chat-rail-toolbar]');
   await expect(toolbar).toBeVisible();
   for (const selector of Object.values(workspaceToolbarControls)) await expect(toolbar.locator(selector)).toBeVisible();
-  await expect(toolbar.locator(workspaceToolbarControls.brand)).toHaveAttribute('href', '/');
+  await expect(toolbar.locator(workspaceToolbarControls.threads)).toHaveAttribute('href', /[?&]view=threads(?:&|$)/);
+  await expect(toolbar.locator('[data-new-thread]')).toHaveCount(0);
+  await expect(routePage.locator('[data-new-thread]')).toHaveCount(1);
+  await expect(routePage.locator('[data-threads-dialog]')).toBeHidden();
   await expect(routePage.locator('[data-network-workspace]')).toBeHidden();
   await expect(routePage.locator('.pool-home')).not.toHaveAttribute('data-network-panel-open', '');
-  await expect(routePage.locator('[data-toggle-inspector]')).toHaveAttribute('aria-expanded', 'false');
-  // Shared models come first; device contribution sits below the shared choices.
+  await expect(routePage.locator('[data-toggle-inspector]')).not.toHaveAttribute('aria-current', 'page');
+  // Shared choices precede the composer; contribution lives in the closed Computers drawer.
   const shared = routePage.locator('[data-production-shared]');
   await expect(shared).toBeVisible();
-  const order = await routePage.evaluate(() => {
-    const shared = document.querySelector('[data-production-shared]');
-    const follows = selector => Boolean(shared.compareDocumentPosition(document.querySelector(selector)) & Node.DOCUMENT_POSITION_FOLLOWING);
-    return { composer: follows('[data-composer-area]'), device: follows('[data-production-device]') };
-  });
-  if (!order.composer || !order.device) failures.push(`${route}: shared models do not precede the composer and device contribution: ${JSON.stringify(order)}`);
+  await expect(routePage.locator('[data-production-device]')).toBeHidden();
+  const precedesComposer = await shared.evaluate(node => Boolean(node.compareDocumentPosition(document.querySelector('[data-composer-area]')) & Node.DOCUMENT_POSITION_FOLLOWING));
+  if (!precedesComposer) failures.push(`${route}: shared models do not precede the composer`);
 };
 
 const workspaceFrameFailures = async (routePage, route, width) => {
@@ -134,21 +132,25 @@ const appBarFrameFailures = async (routePage, route, width) => {
 };
 
 // /network opens the same workspace; its Computers control opens the inspector,
-// which takes the conversation column until it closes.
+// which preserves the center conversation while the right drawer is open.
 const checkNetworkInspector = async (routePage) => {
   const inspector = routePage.locator('[data-network-workspace]');
   const computers = routePage.locator(`[data-chat-rail-toolbar] ${workspaceToolbarControls.computers}`);
   await computers.click();
   await expect(inspector).toBeVisible();
-  await expect(computers).toHaveAttribute('aria-expanded', 'true');
+  await expect(computers).toHaveAttribute('aria-current', 'page');
   await expect(routePage.locator('#network-inspector-title')).toHaveText('Computers');
   const participants = inspector.locator('[data-inspector-pane="participants"]');
   await expect(participants).toBeVisible();
+  await expect.poll(async () => {
+    const rect = await routePage.locator('[data-chat-inspector-slot]').boundingBox();
+    return rect ? rect.x + rect.width : Infinity;
+  }).toBeLessThanOrEqual(routePage.viewportSize().width);
   const panel = await routePage.evaluate(() => ({ area: document.querySelector('[data-conversation-area]').getBoundingClientRect().width,
     slot: document.querySelector('[data-chat-inspector-slot]').getBoundingClientRect().toJSON(), width: innerWidth,
     open: document.querySelector('.pool-home').hasAttribute('data-network-panel-open') }));
-  if (!panel.open || panel.area !== 0 || !(panel.slot.width > 0) || panel.slot.right > panel.width - 8) {
-    failures.push('/network: the open inspector does not take the conversation column: ' + JSON.stringify(panel));
+  if (!panel.open || !(panel.area > 0) || !(panel.slot.width > 0) || panel.slot.right > panel.width) {
+    failures.push('/network: the open inspector does not preserve the conversation within the viewport: ' + JSON.stringify(panel));
   }
   // This device's compute sharing sits in a disclosure under Computers; file sharing
   // sits with Storage in Settings. Both default on, but an idle visitor has nothing
@@ -204,7 +206,12 @@ try {
   await gotoRoute(page, '/');
   await expect(page.locator('[data-chat-workspace]')).toBeVisible();
   await expect(page.locator('[data-active-model-select]')).toBeAttached();
+  await page.locator('[data-toggle-thread-rail]').click();
+  await expect(page.locator('[data-threads-dialog]')).toBeVisible();
   await expect(page.locator('[data-new-thread]')).toBeVisible();
+  await page.locator('[data-new-thread]').click();
+  await expect(page.locator('[data-threads-dialog]')).toBeHidden();
+  await expect(page.locator('[data-composer-input]')).toBeFocused();
   await expect(page.locator('[data-chat-approval]')).toBeHidden();
   await expect(page.locator('[data-mesh-invite]')).toBeHidden();
   await page.locator('[data-toggle-inspector]').click();
