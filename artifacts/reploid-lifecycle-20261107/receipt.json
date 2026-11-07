@@ -1,0 +1,70 @@
+{
+  "schema": "reploid.controlled-lifecycle-evidence/v1",
+  "recordedAt": "2026-11-07T22:15:44.178418+00:00",
+  "sourceRevision": "9933bf8d93aa0aa9f8aa1f49abebf0eaa030bb80",
+  "component": "Reploid conversation, whole-model execution and recovery",
+  "intent": "preserved",
+  "status": "controlled-implementation-and-verification-complete",
+  "priorRepair": "9933bf8d93aa0aa9f8aa1f49abebf0eaa030bb80",
+  "environment": {
+    "node": "v22.20.0",
+    "lifecycle": "Node, three in-process signed peers",
+    "ui": "happy-dom component tests"
+  },
+  "verification": {
+    "success": true,
+    "passed": 234,
+    "failed": 0,
+    "files": 11,
+    "command": "npx vitest run --config tests/vitest.config.js tests/integration/chat-peer-lifecycle.test.js tests/integration/text-accounting.test.js tests/unit/chat-session.test.js tests/unit/chat-workspace.test.js tests/unit/conversation-workspace.test.js tests/unit/generation-recovery.test.js tests/unit/legacy-generation-threads.test.js tests/unit/message-list.test.js tests/unit/whole-model-mesh-receipt.test.js tests/unit/whole-model-requester.test.js tests/unit/work-swarm-lifecycle.test.js",
+    "lint": "passed for both added test files",
+    "diffCheck": "passed",
+    "rerunsExcludedFromCount": true
+  },
+  "integratedCases": [
+    "retains exact adapter, reported hardware and follow-up context through completed answers and reload",
+    "retains partial output on provider loss and requires an explicit newly authorized retry on the remaining peer",
+    "cancels one concurrent conversation, ignores late output and lets the other finish",
+    "rejects a provider that changes modelIdentity during execution",
+    "rejects a provider that changes adapterIdentities during execution",
+    "rejects changed modelIdentity during authorization without dispatch or silent fallback",
+    "rejects changed adapterIdentities during authorization without dispatch or silent fallback",
+    "leaves an unavailable adapter unavailable even when base-model peers are ready",
+    "refuses a replacement recipient when the explicit retry is not authorized"
+  ],
+  "boundaries": [
+    "Actual workspace, production chat execution adapter, mesh identity verification, signed provider receipts and requester countersigning; controlled transport and inference ports.",
+    "The test-owned swarm bridge implements preview/record wiring; this is not an end-to-end test of work-swarm discovery, the browser or a physical network.",
+    "work-swarm and rendered UI behavior have separate focused component tests in the stated run.",
+    "Provider loss preserves partial output; explicit retry starts a new inference attempt and authorizes its recipient. It is not continuation of GPU state.",
+    "Reported GPU metadata is preserved historical evidence, not hardware attestation.",
+    "No model-quality, physical GPU, production deployment, throughput, novelty or competitor-comparison qualification.",
+    "No provider services, Track B preparation files, pricing, billing activation or model qualification gates changed."
+  ],
+  "diagnostics": [
+    {
+      "suite": "tests/unit/conversation-workspace.test.js",
+      "message": "socket hang up (ECONNRESET)",
+      "outcome": "39 assertions passed; diagnostic also reproduced when this existing suite ran alone. Origin not traced further; not emitted by the new lifecycle suite."
+    }
+  ],
+  "sourceSha256": {
+    "tests/integration/chat-peer-lifecycle.test.js": "303942b47fa87cc86fd2ba1d01c93f9c389fa4fc7b9ca185dbc6ca0b01e83379",
+    "tests/integration/text-accounting.test.js": "737f315b90d82dca1aa477a49eeaa4f24063aace1b9100ef6da72566beb52ab9",
+    "tests/unit/chat-session.test.js": "688a4925e655b49ff87e03a25746a0912c0c9e75cbe263b4306e37f7fb217afd",
+    "tests/unit/chat-workspace.test.js": "14c1b0b93ab9a47cb6553377e589c515082c105ea272b409d28c77bf70b1bba3",
+    "tests/unit/conversation-workspace.test.js": "7d457061a638958dede1504889aab3b3812a80850d91e13dd203df749c58266b",
+    "tests/unit/generation-recovery.test.js": "382ae7e7d295d8bb1ab8b66ab97a2ae6549c77783b110054ead5cc8724913e67",
+    "tests/unit/legacy-generation-threads.test.js": "a30927cc04b01f9ff2788ac03a7b87aa99653438c964ee193939ac8443dd6011",
+    "tests/unit/message-list.test.js": "12c4bbdb20bdffb3f9873a34fed89e7cf0066ce8e745d0c5d3a0556396b91e53",
+    "tests/unit/whole-model-mesh-receipt.test.js": "1ba0799443fb828593772c38b0b1c66599a46e942944bbc4c5b3f8ef29d17b3a",
+    "tests/unit/whole-model-requester.test.js": "2c85484b3e0c40983afe81e8d295809a589ceb3de170c5aa8c4e549daa451543",
+    "tests/unit/work-swarm-lifecycle.test.js": "5e9fa8a39c760e30ce34656f6e6ddde0c1c48e77a18b9f217605f478cef80133",
+    "tests/fixtures/chat-peer-lifecycle.js": "8a28a90dd71f680e1ffdc8b205276052cc790c5b2487516135dedf9759358d8a",
+    "server/whole-model-requester.js": "767aa1460b1335d62b27ff4d4ae9dce1f4cb68afed7593e54d1930ea214d2b40",
+    "packages/reploid/src/chat/workspace.js": "cd279302e0352a5c991160b3aa83bc40ba53c73a6eb78f72f1941f879950d679",
+    "packages/reploid/src/mesh/legacy-generation.js": "5659f68a43bd3ba2f8bbda1dd4dfbf2bdb6178ecb7ac151f0416e1e9c110d084",
+    "apps/poolday/host/chat-execution.js": "5c1f2b621b21098f0276150d75c822bda588776eb7e90f50a913bc7b27a94f89",
+    "apps/poolday/providers/work-network-provider.js": "7a9af862d4d4b84dd5585b299ab8f7e0a5708e8d67865312956ef76255b16524"
+  }
+}
