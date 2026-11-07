@@ -1,3 +1,4 @@
+import { currentPartitionRoute } from './partition-release.js';
 /** Adapt identified chat attempts to existing execution ports; own only the scheduler we create. */
 import { createChatScheduler, remoteDisclosureKind } from '../../../shared/vendor/reploid/chat/index.js';
 import { createWorkResidentProvider } from '../providers/work-resident-provider.js';
@@ -64,9 +65,14 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
       'Canonical history requires a prepared canonical or ordered partition route');
 
     if (model.partition) {
+      assert(currentPartitionRoute(model, getModels()), 'Selected distributed route is unavailable or not qualified for public use');
       assert(partitions?.generate, 'Partition execution service is unavailable');
       // A configured earning client runs each partition attempt under an accepted quote and reports its route records.
-      return earning ? earning.run(request, controls, (req, ctl) => partitions.generate(req, ctl)) : partitions.generate(request, controls);
+      const generate = (req, ctl) => {
+        assert(currentPartitionRoute(req.model, getModels()), 'Selected distributed route is unavailable or not qualified for public use');
+        return partitions.generate(req, ctl);
+      };
+      return earning ? earning.run(request, controls, generate) : generate(request, controls);
     }
 
     if (runsHere(model, request.permissions?.sharingScope, request.permissions?.executionLocation)) {

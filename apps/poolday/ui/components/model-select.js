@@ -1,6 +1,9 @@
 import { escapeHtml } from './attachments.js';
 
 let choiceId = 0;
+/** Retain a saved choice's identity without retaining old capacity observations. */
+export const unavailableModelChoice = model => ({ ...model, availability: 'unavailable', networkAvailability: 'unavailable',
+  localReady: false, localCached: false, providerIds: [] });
 export const isSharedModelChoice = model => ['ready', 'busy', 'loading', 'preparing'].includes(model.networkAvailability);
 
 /** The selected execution source, matching the host's local-cache reuse policy. */
@@ -10,7 +13,7 @@ export function modelExecutionState(model, location = 'auto') {
   const status = source === 'local' ? model?.partition ? 'unavailable' : model?.localReady ? 'ready' : local ? 'cached' : 'unavailable'
     : model?.networkAvailability ?? (local ? 'unavailable' : model?.availability ?? 'unavailable');
   return { source, status, usable: ['ready', 'busy', 'cached'].includes(status),
-    label: source === 'local' ? 'This device' : model?.partition ? 'Shared · Distributed' : 'Shared' };
+    label: source === 'local' ? 'This device' : model?.partition && ['ready', 'busy'].includes(status) ? 'Shared · Distributed' : 'Shared' };
 }
 
 /** Catalog facts shown beside a choice: declared weights and advertised context, nothing inferred. */
@@ -182,7 +185,7 @@ const choiceStatus = (model, group) => group === 'shared'
 /** Options only: selection, availability policy and execution remain caller-owned. */
 /** The model and adapter names, without the execution route. */
 export const modelVariantLabel = model => [...new Set([model.name, ...(model.adapters || []).map(adapter => adapter.name || adapter.id)].filter(Boolean))].join(' + ');
-export const modelSelectionLabel = model => modelVariantLabel(model) + (model.executionModes?.length || model.partition ? (model.partition ? ' · Distributed layers' : ' · Whole model') : '');
+export const modelSelectionLabel = model => modelVariantLabel(model) + (model.executionModes?.length || model.partition ? (model.partition ? ['ready', 'busy'].includes(model.networkAvailability ?? model.availability) ? ' · Distributed layers' : ' · Unavailable route' : ' · Whole model') : '');
 
 export function updateModelSelect(select, models, { value = select.value, showAvailability = false, empty = 'No models available', grouped = false, preferNetwork = true } = {}) {
   const groups = grouped ? modelChoiceGroups(models, { preferNetwork }) : [{ id: 'all', models }];

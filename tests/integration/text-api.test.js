@@ -102,3 +102,16 @@ it('applies the same durable trial slot to both protocols before dispatch, then 
   expect(f.participant.generate).toHaveBeenCalledTimes(1);
   expect(await guard.getState()).toMatchObject({ active: 0, spentMinor: 3, reservedMinor: 0 });
 });
+
+it('hides unapproved distributed routes from the public API and refuses direct requests', async () => {
+  const f = await boot();
+  const split = { ...model, id: 'unapproved-split', partition: { planId: 'test-plan', participantA: 'a', participantB: 'b' }, qualified: true };
+  f.participant.getState = () => ({ models: [model, split] });
+  const listed = await (await f.send('/v1/models')).json();
+  expect(listed.data.map(row => row.id)).toEqual([model.id]);
+  for (const [path, body] of [
+    ['/v1/chat/completions', { model: split.id, messages: [{ role: 'user', content: 'hello' }] }],
+    ['/v1/responses', { model: split.id, input: 'hello', store: false }]
+  ]) expect((await f.send(path, body)).status).toBe(503);
+  expect(f.participant.generate).not.toHaveBeenCalled();
+});

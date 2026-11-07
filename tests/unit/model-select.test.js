@@ -1,3 +1,4 @@
+import { unavailableModelChoice, modelSelectionLabel } from '../../apps/poolday/ui/components/model-select.js';
 import { beforeEach, expect, it } from 'vitest';
 import { bindModelChoices, updateModelSelect, modelExecutionState } from '../../apps/poolday/ui/components/model-select.js';
 
@@ -76,4 +77,16 @@ it('does not use a different route readiness to label a pinned unavailable choic
   expect(document.querySelector('input:checked').value).toBe('base');
   expect(document.querySelector('[data-choice-status]').textContent).toBe('Unavailable');
   choices.dispose();
+});
+
+it('clears saved capacity when a selected route disappears without losing its identity', () => {
+  const saved = { id: 'base', name: 'Base', selectionId: 'base/route', identity: 'sha256:base',
+    partition: { participantA: 'a', participantB: 'b' }, availability: 'ready', networkAvailability: 'ready',
+    providerIds: ['a', 'b'], localCached: true };
+  const missing = unavailableModelChoice(saved);
+  expect(missing.selectionId).toBe(saved.selectionId);
+  expect(modelExecutionState(missing).usable).toBe(false);
+  expect(modelSelectionLabel(missing)).toBe('Base · Unavailable route');
+  expect(modelExecutionState(missing).label).not.toContain('Distributed');
+  expect(saved.networkAvailability).toBe('ready');
 });

@@ -1,3 +1,4 @@
+import { availablePartitionRoute, currentPartitionRoute } from '../apps/poolday/host/partition-release.js';
 /** One authenticated HTTP surface over a borrowed requester. Production execution
  * must be wrapped by the accounting owner; test execution is explicitly unbilled. */
 import { createChatCompletions } from './chat-completions.js';
@@ -11,9 +12,23 @@ export function createTextApi({ participant, authenticate, authorize, accounting
   if (!participant || typeof authenticate !== 'function' || typeof authorize !== 'function') throw Error('Text API requires requester authentication and authorization');
   if (typeof accounting?.run !== 'function' && (production || !allowUnbilledTest)) throw Error('Text API requires accounted execution; unbilled tests must be explicit');
   if (accounting && typeof accounting.run !== 'function') throw Error('Invalid text API accounting port');
-  const requester = accounting ? { ...participant, getState: () => participant.getState(),
-    generate: (request, controls) => accounting.run(request, controls,
-      (nextRequest = request, nextControls = controls) => participant.generate(nextRequest, nextControls)) } : participant;
+  const assertRoute = request => {
+    if (request.model.partition && !currentPartitionRoute(request.model, participant.getState().models || [])) {
+      throw Object.assign(Error('Selected distributed route is unavailable or not qualified for public use'), { status: 503 });
+    }
+  };
+  const execute = (request, controls) => { assertRoute(request); return participant.generate(request, controls); };
+  const requester = { ...participant,
+    getState() {
+      const state = participant.getState();
+      return { ...state, models: (state.models || []).filter(model => !model.partition || availablePartitionRoute(model)) };
+    },
+    generate(request, controls) {
+      assertRoute(request);
+      return accounting ? accounting.run(request, controls, (nextRequest = request, nextControls = controls) => execute(nextRequest, nextControls))
+        : execute(request, controls);
+    }
+  };
   const options = { participant: requester, authenticate, authorize };
   const completions = createChatCompletions(options), responses = createResponses(options);
   const recovery = createTextRecovery({ participant, authenticate, authorize, accounting });
@@ -44,7 +59,7 @@ export function createTextApi({ participant, authenticate, authorize, accounting
         }
         signal.throwIfAborted();
         const rows = (requester.getState().models || []).filter(model => !model.canonical
-          && (model.partition || model.availability === 'ready' && model.providerIds?.length));
+          && (model.partition ? availablePartitionRoute(model) : model.availability === 'ready' && model.providerIds?.length));
         const variants = new Map();
         for (const model of rows) {
           const value = { id: model.selectionId || model.id, object: 'model', owned_by: 'reploid',

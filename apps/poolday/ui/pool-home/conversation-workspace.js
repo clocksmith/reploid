@@ -3,7 +3,7 @@ import { renderContextIndicator, updateContextIndicator } from './context-indica
 import { withComputerLabels } from './computer-labels.js';
 import { interfaceIcon } from '../components/interface-icons.js';
 import { createConversationList } from './conversation-list.js';
-import { updateModelSelect, bindModelChoices, isSharedModelChoice, modelExecutionState, modelVariantLabel } from '../components/model-select.js';
+import { updateModelSelect, bindModelChoices, isSharedModelChoice, modelExecutionState, modelVariantLabel, unavailableModelChoice } from '../components/model-select.js';
 /** Conversation presentation; the host owns execution and disclosure. */
 import { projectNetworkPeers } from './network-controls.js';
 import { renderInspectorNavigation, renderInspectorRail, renderModelSetupDialog, bindNetworkInspector } from './network-inspector.js';
@@ -261,7 +261,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const models = [...(state.models || [])];
     const selected = (state.models || []).find(model => keyFor(model) === keyFor(pickerModel));
     if (pickerModel && !models.some(model => keyFor(model) === keyFor(pickerModel))) {
-      models.push(selected || { ...pickerModel, availability: 'unavailable' });
+      models.push(selected || unavailableModelChoice(pickerModel));
     }
     const preferNetwork = pickerLocation !== 'local';
     find('[data-next-model]').disabled = changingModel;
@@ -298,10 +298,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const keyFor = model => model?.selectionId || model?.id;
     const models = [...catalogModels];
     if (!thread && chosenModel && !models.some(model => keyFor(model) === keyFor(chosenModel))) {
-      models.push(catalogModels.find(model => keyFor(model) === keyFor(chosenModel)) || { ...chosenModel, availability: 'unavailable' });
+      models.push(catalogModels.find(model => keyFor(model) === keyFor(chosenModel)) || unavailableModelChoice(chosenModel));
     }
     if (thread && !models.some(model => keyFor(model) === keyFor(thread.model))) {
-      models.push(catalogModels.find(model => keyFor(model) === keyFor(thread.model)) || { ...thread.model, availability: 'unavailable' });
+      models.push(catalogModels.find(model => keyFor(model) === keyFor(thread.model)) || unavailableModelChoice(thread.model));
     }
     const location = thread?.permissions?.sharingScope === 'local' ? 'local' : thread?.permissions?.executionLocation ?? executionLocation;
     const defaultModel = state.defaultModels?.[location] || state.defaultModel;

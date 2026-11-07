@@ -2264,14 +2264,15 @@
     {
       "path": "self/host/chat-execution.js",
       "owner": "self",
-      "sha256": "sha256:36be260a6b28a79bfa64b176f5094b0a297d57b38dcbaa524abb62ad4a0433c4",
+      "sha256": "sha256:406909b928e9dd2c1259c406444f40a554aa3864089052d498d4e15c7bf25e86",
       "imports": [
         "../providers/work-adapter.js",
         "../providers/work-generation-completion.js",
         "../providers/work-network-provider.js",
         "../providers/work-resident-provider.js",
         "../vendor/reploid/chat/index.js",
-        "../vendor/reploid/mesh/provider-hardware.js"
+        "../vendor/reploid/mesh/provider-hardware.js",
+        "./partition-release.js"
       ]
     },
     {
@@ -2317,8 +2318,10 @@
     {
       "path": "self/host/chat-view.js",
       "owner": "self",
-      "sha256": "sha256:4e0f415236b52b773e32af20792b413d3e8722eca0d39a990cfdd92246238be6",
-      "imports": []
+      "sha256": "sha256:4e713013ad02a0d6c16bb66fb9e8d1e144c90d761968edafbef949ff000da842",
+      "imports": [
+        "./partition-release.js"
+      ]
     },
     {
       "path": "self/host/contribution-history.js",
@@ -2461,6 +2464,15 @@
         "../config/doppler-local-models.js",
         "../infrastructure/model-storage-lock.js",
         "./work-model-cache.js"
+      ]
+    },
+    {
+      "path": "self/host/partition-release.js",
+      "owner": "self",
+      "sha256": "sha256:b7f54a4cff95279f3846d0e45da2ee42ba5d494cd95f43c1cea8cd42364b4a6c",
+      "imports": [
+        "../config/partition-releases.json",
+        "../vendor/reploid/mesh/partitions/partition-contract.js"
       ]
     },
     {
@@ -3495,7 +3507,7 @@
     {
       "path": "ui/components/model-select.js",
       "owner": "ui",
-      "sha256": "sha256:304448dd320f9ce6e71f1e1235d2d19d250274837a09d9540e2611a28e8b72d3",
+      "sha256": "sha256:ff37a01a642a6f5764517293acbba503013c7b8c377f100027bff7c7b73106ae",
       "imports": [
         "./attachments.js"
       ]
@@ -3544,7 +3556,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:801543ec91e03498ffcf091c7a934b9a3f75f2252f7bd8c4272d4d14d5eb627d",
+      "sha256": "sha256:b2b6b44fe0d4501ce8372d8d1eff1e27a5a94f2bcf9e063c9825151c7bf86e5e",
       "imports": []
     },
     {
@@ -3636,7 +3648,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:6ebdab932d324aa19ba69fdddad39c7dd18515dbe5974ad053b8c06f59833edf",
+      "sha256": "sha256:4debbde473a4da7863de60114cce42c12bd818dbfe8a93febc1ceead8e5dcb3e",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",

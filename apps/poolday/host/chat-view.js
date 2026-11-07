@@ -1,3 +1,5 @@
+import { availablePartitionRoute } from './partition-release.js';
+
 /** Pure projections. Discovery describes availability; accepted attempts own history. */
 export function selectAvailableChatModel(models, preference, location = 'auto') {
   // Application preference, not a quality claim or a priority advertised by peers.
@@ -19,17 +21,12 @@ export function selectAvailableChatModel(models, preference, location = 'auto') 
 export const compatibleAdapters = model => (model.availableAdapters || []).filter(adapter => typeof adapter?.id === 'string' && adapter.id
   && /^sha256:[a-f0-9]{64}$/.test(adapter.identity) && /^sha256:[a-f0-9]{64}$/.test(model.identity || '') && adapter.baseModelIdentity === model.identity);
 
-export function projectChatCatalog({ models, peers, partitionModels }) {
-  const selections = models.flatMap(model => [model, ...compatibleAdapters(model).map(adapter => ({
+export function projectChatCatalog({ models, peers, partitionModels, partitionApprovals }) {
+  const selections = models.filter(model => !model.partition).flatMap(model => [model, ...compatibleAdapters(model).map(adapter => ({
     ...model, name: adapter.name, selectionId: model.id + '/' + adapter.id, adapters: [adapter]
   }))]);
-  const routes = [...partitionModels];
-  for (const model of models) {
-    if (!model.executionModes?.includes('partition') || !model.partitionPlanId) continue;
-    const selectionId = model.id + '/partition/' + model.partitionPlanId;
-    if (!routes.some(route => route.selectionId === selectionId)) routes.push({ ...model, selectionId,
-      partition: { planId: model.partitionPlanId }, availability: 'unavailable', providerIds: [] });
-  }
+  // A catalog mode or ready advertisement alone is not a public release.
+  const routes = partitionModels.filter(model => availablePartitionRoute(model, partitionApprovals));
   return selections.map(model => {
     const compatible = peers.filter(peer => peer.model === model.id && peer.modelIdentity === model.identity
       && (model.adapters || []).every(adapter => peer.adapterIdentities?.includes(adapter.identity)));

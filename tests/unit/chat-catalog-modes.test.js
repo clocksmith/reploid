@@ -3,22 +3,25 @@ import { projectChatCatalog } from '../../apps/poolday/host/chat-view.js';
 import { updateModelSelect } from '../../apps/poolday/ui/components/model-select.js';
 const model = { id: 'large', name: 'Large model', identity: 'sha256:model', adapters: [],
   executionModes: ['whole-model', 'partition'], partitionPlanId: 'sha256:plan' };
-it('keeps whole and distributed selection identities distinct without inventing ready capacity', () => {
-  const catalog = projectChatCatalog({ models: [model], peers: [], partitionModels: [] });
-  expect(catalog).toHaveLength(2);
-  expect(catalog.map(row => row.availability)).toEqual(['unavailable', 'unavailable']);
-  expect(catalog[0].partition).toBeUndefined();
-  expect(catalog[1].selectionId).toBe('large/partition/sha256:plan');
-  const select = document.createElement('select'); updateModelSelect(select, catalog, { showAvailability: true });
-  expect([...select.options].map(option => option.textContent)).toEqual([
-    'Large model · Whole model · Unavailable', 'Large model · Distributed layers · Unavailable']);
-});
-it('replaces the declared route with prepared discovery while preserving whole-model readiness separately', () => {
-  const route = { ...model, selectionId: 'large/partition/sha256:plan', partition: { planId: model.partitionPlanId,
-    participantA: 'first', participantB: 'last' }, availability: 'ready' };
+const route = { ...model, selectionId: 'large/partition/sha256:plan', partition: { planId: model.partitionPlanId,
+  participantA: 'first', participantB: 'last' }, availability: 'ready' };
+const approval = { modelId: route.id, modelIdentity: route.identity, adapterIdentities: [], partition: route.partition,
+  evidence: 'test-fixture://qualified-route' };
+it('does not turn catalog declarations or ready peer advertisements into public distributed support', () => {
   const catalog = projectChatCatalog({ models: [model], peers: [], partitionModels: [route] });
+  expect(catalog).toHaveLength(1);
+  expect(catalog[0].availability).toBe('unavailable');
+  const select = document.createElement('select'); updateModelSelect(select, catalog, { showAvailability: true });
+  expect(select.textContent).not.toContain('Distributed');
+});
+it('shows an explicitly approved available route without claiming whole-model readiness', () => {
+  const catalog = projectChatCatalog({ models: [model], peers: [], partitionModels: [route], partitionApprovals: [approval] });
   expect(catalog).toHaveLength(2); expect(catalog[0].availability).toBe('unavailable');
   expect(catalog[1]).toEqual(route);
+});
+it('withdraws distributed choices when approved capacity is lost', () => {
+  const catalog = projectChatCatalog({ models: [model], peers: [], partitionModels: [{ ...route, availability: 'unavailable' }], partitionApprovals: [approval] });
+  expect(catalog).toHaveLength(1);
 });
 it('offers an adapter only under the base artifact it declares, whatever its name says', () => {
   const identity = letter => 'sha256:' + letter.repeat(64);
