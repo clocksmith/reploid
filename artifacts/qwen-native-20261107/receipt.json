@@ -1,0 +1,18 @@
+{
+  "schema": "reploid.qwen-physical-suite/v1",
+  "passed": true,
+  "reploidSourceArchive": "78271fff40a5575835948c8bcc00729c768f0101",
+  "dopplerSourceArchive": "46aa1df32f2ff6278d01cbf1c4022a481c360f89",
+  "dopplerRuntimeDeltaCommitted": "019dec78",
+  "fixtureSha256": "886522e0d2e4c75ba527ede9eb06285294219e8bceed264e23b9ce51bba764b2",
+  "hardware": "AMD Radeon 8060S",
+  "scope": "Offline physical native-provider composition, supplied exact catalog artifacts, no network/public qualification",
+  "files": {
+    "reploid-catalog-27b.json": "cf9823724285eb1733cfe0b0e8e6a5b53c2c97a1752b5355bb54de2cd334549e",
+    "reploid-catalog-08.json": "ecb179e520f2ec8777a8d5befb80d0498f8bb21134cb3e118fe77f54fa9a52e9",
+    "reploid-catalog-2b.json": "5993e1f2cde9fccceb35a0fd1c8acdd1f4a521db0b8207d309ad177889d26a64",
+    "reploid-catalog-35b.json": "89b076d9ed87903d5be35229d3acf56439c1d4f3c36bd91bc74f856d486a5531"
+  },
+  "existingProviderRestarted": false,
+  "runtimePackagePublished": false
+}
