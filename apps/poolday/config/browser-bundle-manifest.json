@@ -1396,7 +1396,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 591018,
-      "sha256": "sha256:65164e00f68b643bb2af05fd2e8e5c880d72ce92767d47960ca94987a23bc4b9"
+      "sha256": "sha256:ea5097d1020ac9e123b91b8026c461c7c20c860b7bde21073661a1eeb503d51c"
     },
     {
       "path": "config/module-registry.json",
@@ -1720,8 +1720,8 @@
     },
     {
       "path": "core/worker-manager.js",
-      "byteLength": 21122,
-      "sha256": "sha256:0f751bf9174ca6d6d11346e1fd3bdb37e605f0b9df1aff3b81d2e41df0508fd2"
+      "byteLength": 21795,
+      "sha256": "sha256:448c913e5e5f9cf606ebd5eea4d117448ee39a06727f3d2b286e981249f0000d"
     },
     {
       "path": "core/zero-prompt.js",
@@ -11244,5 +11244,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:28e29cb9693519d2d96d95ffb4d9f595b6a6115a02606c5357ba68e7b5edbdf8"
+  "bundleHash": "sha256:0e8f6b782837c074fdaccaae39a4122dc805581f547c49f20d1870f11b259368"
 }

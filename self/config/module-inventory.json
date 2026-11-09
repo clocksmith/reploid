@@ -740,7 +740,7 @@
     {
       "path": "core/worker-manager.js",
       "owner": "core",
-      "sha256": "sha256:0f751bf9174ca6d6d11346e1fd3bdb37e605f0b9df1aff3b81d2e41df0508fd2",
+      "sha256": "sha256:448c913e5e5f9cf606ebd5eea4d117448ee39a06727f3d2b286e981249f0000d",
       "imports": []
     },
     {

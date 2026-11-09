@@ -91,7 +91,8 @@ const cleanedModules = [
 ];
 
 export default [
-  { ignores: ['.cache/**', 'output/**', 'node_modules/**', 'artifacts/**', 'coverage/**', 'test-results/**', 'playwright-report/**',
+  { ignores: ['.cache/**', '.tmp/**', '.claude/worktrees/**', '.deployment-checkouts/**',
+    'output/**', 'node_modules/**', 'artifacts/**', 'coverage/**', 'test-results/**', 'playwright-report/**',
     'shared/vendor/**', 'self/core/vendor/**', 'shared/core/vendor/**', '**/dist/**', 'packages/poolday-forecast/source/**', 'apps/poolday/ui/pool-home/app.bundle.js',
     'self/lib/**', 'doppler/**', '.firebase-hosting/**'] },
   {

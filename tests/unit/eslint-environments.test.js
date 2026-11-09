@@ -9,6 +9,13 @@ async function errors(filePath, source) {
 }
 
 describe('execution environment lint boundaries', () => {
+  it.each(['.tmp', '.claude/worktrees/review', '.deployment-checkouts/release'])(
+    'excludes local scratch or checkout copies under %s', async directory => {
+      expect(await eslint.isPathIgnored(`${directory}/server/example.js`)).toBe(true);
+      expect(await eslint.isPathIgnored('server/example.js')).toBe(false);
+    }
+  );
+
   it.each([
     ['self/ui/example.js', 'window.document; process.cwd();', 'process'],
     ['server/example.js', 'process.cwd(); window.document;', 'window'],

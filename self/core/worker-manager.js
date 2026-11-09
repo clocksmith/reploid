@@ -312,98 +312,114 @@ const WorkerManager = {
         });
       }
 
-      if (signal?.aborted) {
-        if (TraceStore && traceSessionId) await TraceStore.endSession(traceSessionId, { status: 'cancelled' });
-        signal.throwIfAborted();
-      }
-      // Async preparation can overlap another spawn; recheck admission before creation.
-      if (_activeWorkers.size >= _maxConcurrentWorkers) throw new Error(`Maximum concurrent workers (${_maxConcurrentWorkers}) reached`);
-      const worker = new Worker(WORKER_SCRIPT, { type: 'module' });
-      const workerPromise = new Promise((resolve, reject) => {
-        worker.onmessage = (e) => {
-          const message = e.data || {};
-          if (message.type === 'rpc') {
-            _handleWorkerRpc(workerId, worker, message);
-            return;
-          }
-
-          if (message.type === 'started') {
-            if (EventBus) {
-              EventBus.emit('worker:started', { workerId });
-            }
-            return;
-          }
-
-          if (message.type === 'progress') {
-            if (EventBus) {
-              EventBus.emit('worker:progress', {
-                workerId,
-                iteration: message.iteration,
-                maxIterations: message.maxIterations,
-                message: message.message
-              });
-            }
-            return;
-          }
-
-          if (message.type === 'log') {
-            addLog(workerId, message.message);
-            return;
-          }
-
-          if (message.type === 'complete') {
-            worker.terminate();
-            resolve(message.result);
-            return;
-          }
-
-          if (message.type === 'error') {
-            worker.terminate();
-            reject(new Error(message.error));
-          }
-        };
-
-        worker.onerror = (err) => {
-          worker.terminate();
-          reject(err);
-        };
-      });
-
-      // Track active worker
+      let worker;
+      let workerPromise;
       const startTime = Date.now();
-      const workerRecord = {
-        workerId,
-        type,
-        task,
-        startTime,
-        status: 'running',
-        logs: [],
-        worker,
-        allowedTools,
-        modelConfig: resolvedModelConfig,
-        traceSessionId
-      };
-      _activeWorkers.set(workerId, {
-        ...workerRecord,
-        promise: workerPromise
-      });
+      try {
+        signal?.throwIfAborted();
+        // Async preparation can overlap another spawn; recheck admission before creation.
+        if (_activeWorkers.size >= _maxConcurrentWorkers) throw new Error(`Maximum concurrent workers (${_maxConcurrentWorkers}) reached`);
+        worker = new Worker(WORKER_SCRIPT, { type: 'module' });
+        workerPromise = new Promise((resolve, reject) => {
+          worker.onmessage = (e) => {
+            const message = e.data || {};
+            if (message.type === 'rpc') {
+              _handleWorkerRpc(workerId, worker, message);
+              return;
+            }
 
-      // Emit event for UI
-      if (EventBus) {
-        EventBus.emit('worker:spawned', { workerId, type, task });
+            if (message.type === 'started') {
+              if (EventBus) {
+                EventBus.emit('worker:started', { workerId });
+              }
+              return;
+            }
+
+            if (message.type === 'progress') {
+              if (EventBus) {
+                EventBus.emit('worker:progress', {
+                  workerId,
+                  iteration: message.iteration,
+                  maxIterations: message.maxIterations,
+                  message: message.message
+                });
+              }
+              return;
+            }
+
+            if (message.type === 'log') {
+              addLog(workerId, message.message);
+              return;
+            }
+
+            if (message.type === 'complete') {
+              worker.terminate();
+              resolve(message.result);
+              return;
+            }
+
+            if (message.type === 'error') {
+              worker.terminate();
+              reject(new Error(message.error));
+            }
+          };
+
+          worker.onerror = (err) => {
+            worker.terminate();
+            reject(err);
+          };
+        });
+
+        // Track active worker
+        const workerRecord = {
+          workerId,
+          type,
+          task,
+          startTime,
+          status: 'running',
+          logs: [],
+          worker,
+          allowedTools,
+          modelConfig: resolvedModelConfig,
+          traceSessionId
+        };
+        _activeWorkers.set(workerId, {
+          ...workerRecord,
+          promise: workerPromise
+        });
+
+        worker.postMessage({
+          type: 'start',
+          workerId,
+          workerType: type,
+          task,
+          allowedTools,
+          maxIterations: maxIterations || 10
+        });
+
+        // Emit event for UI
+        if (EventBus) {
+          EventBus.emit('worker:spawned', { workerId, type, task });
+        }
+
+        // Persist initial worker state
+        _persistWorker(workerId, workerRecord);
+      } catch (error) {
+        // A failed spawn must release its acquisitions before another attempt can start.
+        worker?.terminate();
+        _activeWorkers.delete(workerId);
+        if (TraceStore && traceSessionId) {
+          try {
+            await TraceStore.endSession(traceSessionId, {
+              status: signal?.aborted ? 'cancelled' : 'error',
+              error: error.message
+            });
+          } catch (cleanupError) {
+            throw new AggregateError([error, cleanupError], 'Worker startup and trace cleanup failed', { cause: error });
+          }
+        }
+        throw error;
       }
-
-      // Persist initial worker state
-      _persistWorker(workerId, workerRecord);
-
-      worker.postMessage({
-        type: 'start',
-        workerId,
-        workerType: type,
-        task,
-        allowedTools,
-        maxIterations: maxIterations || 10
-      });
 
       // Handle completion
       workerPromise
