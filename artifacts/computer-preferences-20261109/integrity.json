@@ -3,8 +3,8 @@
   "files": [
     {
       "path": "README.md",
-      "bytes": 3723,
-      "sha256": "5caa53ea0247cdce6a7f741b92e3c33a1c66793b39485afad8228083c8795904"
+      "bytes": 4459,
+      "sha256": "d07252d690236bcbf367917bf61e20421f200c586d0b535dd7ee2f912296e138"
     },
     {
       "path": "checks.json",
@@ -20,6 +20,16 @@
       "path": "diagnostic-desktop.png",
       "bytes": 63391,
       "sha256": "69b6f1b6365e46148b938392ef2f566a7e1732ec45827af54c668aa6b39cadf4"
+    },
+    {
+      "path": "live-diagnostic-390.png",
+      "bytes": 30596,
+      "sha256": "3b7558f792994a5db9d01e1c729746a27f462c758d67586d9b7f0702f25b47c6"
+    },
+    {
+      "path": "live.json",
+      "bytes": 708,
+      "sha256": "2ac74c90f7c51b965fa41785929d1342e8c0265cb6b7ef6e5b30983c731ab205"
     },
     {
       "path": "nickname-390.png",

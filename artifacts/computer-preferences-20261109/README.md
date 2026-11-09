@@ -63,3 +63,17 @@ the same model, false-match/missed-match rates and fabricated-response recogniti
 resistance. Browser-process persistence is not those results. This single-device
 check supplies no basis for selecting recognition thresholds. Signing keys remain
 the basis for label continuity.
+
+## Production
+
+Published `25e7e04` to the existing `hosting:reploid` target. The actual replo.id
+manifest, app bundle and four computer-preferences modules match their packaged
+bytes. The deployed bundle is
+`sha256:1ce45956be438cefbb18361aa8638affe6402271ea7e0ce79114072e958be939`.
+
+[live.json](live.json) records the actual application drawer, not the isolated
+verifier fixture: Run GPU check, Save baseline, reload without an automatic
+measurement, a fresh uncertain comparison, Clear baseline and the 390px layout
+all pass on Chrome / Apple Metal with no page errors. No model execution or
+provider restart was required. This does not add physical remote-name verification
+or any of the recognition qualifications still open above.

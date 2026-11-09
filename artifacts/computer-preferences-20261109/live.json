@@ -1,0 +1,16 @@
+{
+  "origin": "https://replo.id/",
+  "commit": "25e7e04",
+  "matchedFiles": 6,
+  "scope": "Actual deployed Computers drawer and local GPU diagnostics. No model execution or provider restart.",
+  "firstResult": "Baseline saved from this measurement. Run another check to compare.",
+  "hardware": "Reported GPU for this check: apple · metal-3",
+  "savedBaseline": "Baseline saved: 2026-11-09T18:30:46.813Z",
+  "reloadRestoredWithoutAutomaticMeasurement": true,
+  "comparison": "Comparison uncertain. Distance 0.0957; observed variability 0.1934. Recognition thresholds have not been established.",
+  "cleared": true,
+  "mobileNoOverflow": true,
+  "browser": "157.0.8103.38",
+  "errors": [],
+  "passed": true
+}
