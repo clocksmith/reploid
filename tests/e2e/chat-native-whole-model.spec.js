@@ -54,8 +54,11 @@ test('native whole-model chat streams, follows up, cancels, reuses and reloads',
     await expect(page.locator('[data-model-picker]')).toBeVisible();
     const choice = page.locator(`[data-model-picker] .chat-model-choices input[value="${modelId}"]`).filter({ visible: true });
     await expect(choice).toBeVisible({ timeout: 60000 });
-    await choice.check();
-    await page.locator('[data-model-picker] [data-model-providers] summary').click();
+    await choice.click();
+    const details = page.locator('[data-model-picker] [data-model-details]');
+    if (!await details.evaluate(node => node.open)) await details.locator(':scope > summary').click();
+    const providers = page.locator('[data-model-picker] [data-model-providers]');
+    if (!await providers.evaluate(node => node.open)) await providers.locator(':scope > summary').click();
     await expect(page.locator('[data-model-picker] [data-provider-list]')).toContainText('Whole model', { timeout: 60000 });
     providerHardware = (await page.locator('[data-model-picker] .chat-model-route-people small').first().textContent())?.trim() || null;
     await expect(page.locator('[data-change-model]')).toBeEnabled({ timeout: 60000 });
@@ -79,7 +82,9 @@ test('native whole-model chat streams, follows up, cancels, reuses and reloads',
       const message = thread?.messages.at(-1);
       return thread?.attempts.length === 3 && message?.role === 'assistant' && message.content.length > 0;
     }, { timeout: 90000 }).toBe(true);
-    await page.locator('[data-composer-stop]').click();
+    // The visible answer owns Stop while its progress is in view; otherwise it
+    // stays in the composer. Exercise the offered control rather than a hidden copy.
+    await page.locator('[data-answer-stop]:visible, [data-composer-stop]:visible').first().click();
     await expect.poll(async () => (await current())?.attempts.at(-1).status).toBe('cancelled');
     const cancelledId = (await current()).attempts.at(-1).id;
     const retryButton = page.locator(`[data-retry-attempt="${cancelledId}"]`);
@@ -92,7 +97,7 @@ test('native whole-model chat streams, follows up, cancels, reuses and reloads',
 
     const lastAssistant = page.locator('.chat-message-row.is-assistant').last();
     await lastAssistant.locator('[data-execution-trigger]').click();
-    const hardwareNode = lastAssistant.locator('[data-recorded-hardware]');
+    const hardwareNode = page.locator('[data-inspector-pane="conversation"] [data-recorded-hardware]');
     await expect(hardwareNode).toBeVisible();
     recordedHardware = (await hardwareNode.textContent())?.trim() || null;
     expect(recordedHardware).toMatch(/^Recorded GPU · .+/);

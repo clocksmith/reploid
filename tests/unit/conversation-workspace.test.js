@@ -150,6 +150,30 @@ describe('Conversation workspace', () => {
     expect(next.value).toBe(ready.id);
   });
 
+  it('keeps a clicked automatic choice staged when another model is discovered before confirmation', async () => {
+    dispose(); await session.close();
+    const [small, medium] = CANONICAL_CHAT_MODELS;
+    const peer = model => ({ peerId: model.id, model: model.id, modelIdentity: model.identity,
+      readiness: 'ready', hasInference: true, availableSlots: 1 });
+    let peers = [peer(small)];
+    session = createChatSession({ storage: null, service, swarm: { getState: () => ({ consumer: { peers } }) } });
+    dispose = bindConversationWorkspace(root, session);
+    find('[data-open-model]').click();
+    const selected = find('[data-model-picker] input:checked');
+    expect(selected.value).toBe(small.id);
+    selected.click();
+    peers = [peer(small), peer(medium)];
+    session.refreshNetwork();
+    expect(find('[data-next-model]').value).toBe(small.id);
+    expect(selected.checked).toBe(true);
+    find('[data-change-model]').click();
+    await vi.waitFor(() => expect(find('[data-model-picker]').open).toBe(false));
+    expect(find('[data-active-model-select]').value).toBe(small.id);
+    session.refreshNetwork();
+    expect(find('[data-active-model-select]').value).toBe(small.id);
+    expect(service.calls).toHaveLength(0);
+  });
+
   it('stages local selection without changing the composer until confirmed', async () => {
     dispose(); await session.close();
     const [small, , large] = CANONICAL_CHAT_MODELS;

@@ -10,6 +10,18 @@ const models = [
 ];
 beforeEach(() => { document.body.innerHTML = '<select></select>'; });
 
+it('reports a deliberate click on the checked default and reports a different choice only once', () => {
+  const select = document.querySelector('select'), choices = bindModelChoices(select);
+  updateModelSelect(select, models, { value: 'ready' }); choices.update(models);
+  const selected = [];
+  select.addEventListener('change', () => selected.push(select.value));
+  document.querySelector('input[value="ready"]').click();
+  expect(selected).toEqual(['ready']);
+  document.querySelector('input[value="busy"]').click();
+  expect(selected).toEqual(['ready', 'busy']);
+  choices.dispose();
+});
+
 it('presents ready shared models before busy peers, local files and downloads in both picker representations', () => {
   const select = document.querySelector('select'), choices = bindModelChoices(select);
   updateModelSelect(select, models, { grouped: true }); choices.update(models, { grouped: true });

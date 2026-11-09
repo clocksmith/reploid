@@ -106,7 +106,20 @@ export function bindModelChoices(select) {
     select.value = event.target.value;
     select.dispatchEvent(new Event('change', { bubbles: true }));
   };
+  const reselect = event => {
+    const input = event.target;
+    // Native radios emit no change when the user chooses the checked default.
+    // The caller still needs that deliberate choice to stop following discovery.
+    if (input.name !== name || input.disabled || !input.checked || input.value !== select.value) return;
+    if (event.type === 'keydown') {
+      if (event.key !== ' ' || event.repeat) return;
+      event.preventDefault();
+    }
+    change(event);
+  };
   group.addEventListener('change', change);
+  group.addEventListener('click', reselect);
+  group.addEventListener('keydown', reselect);
   return {
     update(models, { grouped = false, preferNetwork = true, variants = false, describe = null, compact = false } = {}) {
       group.hidden = select.hidden;
@@ -173,7 +186,13 @@ export function bindModelChoices(select) {
     focus() { (group.querySelector(`input[name="${name}"]:checked`) || group.querySelector(`input[name="${name}"]`))?.focus(); },
     /** The checked choice's label, beneath which a caller may place that choice's details. */
     checkedChoice: () => [...group.querySelectorAll(`input[name="${name}"]`)].find(input => input.checked)?.closest('label') || null,
-    dispose() { group.removeEventListener('change', change); group.remove(); select.classList.remove('chat-model-value'); }
+    dispose() {
+      group.removeEventListener('change', change);
+      group.removeEventListener('click', reselect);
+      group.removeEventListener('keydown', reselect);
+      group.remove();
+      select.classList.remove('chat-model-value');
+    }
   };
 }
 
