@@ -112,7 +112,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       offer: offer && { id: offer.id, identity: offer.identity }, index: stage?.index ?? null,
       phase, preparation: phase === 'loading' ? publicPreparationProgress(progress) : null, models: inventory, capacity: { ...residentCapacity(),
         ...(coordinating ? { attemptQueue: { queued: waitingLine.queued, maxQueued: waitingLine.maxQueuedAttempts } } : {}) },
-      ...(auto && offer ? { assignment: { schema: STAGE_ASSIGNMENT_SCHEMA, modelId: offer.id, modelIdentity: offer.identity,
+      ...(auto && offer ? { assignment: { schema: STAGE_ASSIGNMENT_SCHEMA, modelId: offer.id, modelIdentity: offer.identity, planId: offer.partitionPlanId,
         index: stage?.index ?? null } } : {}),
       // A ranking coordinator shares its measured per-stage decode cost so automatic contributors can see bottlenecks.
       ...(route ? { stageCosts: { schema: STAGE_COSTS_SCHEMA, modelId: offer.id, modelIdentity: offer.identity, planId: route.planId,
@@ -433,7 +433,8 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       offer = selectPartitionContribution(selected, adapters);
       if (auto) {
         const count = offer.partitionPlan?.stageCount;
-        if (!Number.isSafeInteger(count) || count < 2 || count > config.limits.maxStages) {
+        if (!Number.isSafeInteger(count) || count < 2 || count > config.limits.maxStages
+          || typeof offer.partitionPlanId !== 'string' || !offer.partitionPlanId) {
           offer = null; throw new Error('Automatic stage assignment requires a declared ordered plan');
         }
       }

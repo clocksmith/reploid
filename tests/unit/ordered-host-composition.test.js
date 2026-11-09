@@ -173,7 +173,7 @@ it('native ordinary requester forwards approved controls to its existing automat
   const participant=await createNativeParticipant({ordered:orderedConfig(null),identity:ports.identity,model,modelDirectory:'/unused',nativeGpu:gpu,
     rtc:{RTCPeerConnection(){}},WebSocket(){},signalingUrl:'ws://localhost:1',roomId:'mesh',roomToken:'t'.repeat(32)});
   cleanups.push(()=>participant.close());
-  const request={attemptId:'request'}, controls={requestApproval:async()=>true,signal:new AbortController().signal};
+  const request={attemptId:'request',model:{...model,partition:{schema:'reploid.partition-selection/v2'}}}, controls={requestApproval:async()=>true,signal:new AbortController().signal};
   expect(()=>participant.generate(request,{})).toThrow('disclosure authorization');
   expect(await participant.generate(request,controls)).toEqual({attemptId:'request'});
   expect(ports.automatic.generate).toHaveBeenCalledWith(request,controls);expect(gpu).not.toHaveBeenCalled();

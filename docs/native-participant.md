@@ -52,6 +52,83 @@ regular file owned by the participant's user with mode `0600`; the token is read
 once at startup and one trailing newline is removed. Any other path, owner or
 mode stops startup before the identity, modules or network are touched.
 
+### Model and split JSON
+
+`--model-config /absolute/model.json` adds an operator-local model or replaces a
+catalog model's cuts in a private room. It is rejected in public discovery before
+identity creation or provider startup. This is configuration authority, not a
+public model release or signed partition qualification. It requires the matching
+Doppler package (0.6.36 or newer with the manifest-driven plan API).
+
+```json
+{
+  "schema": "reploid.native-model/v1",
+  "model": "qwen3-8-27b-text-q4k-ehaf16",
+  "partition": {
+    "splitLayers": [32],
+    "activationDtype": "f32",
+    "activationPrecision": "f32"
+  },
+  "partitionRuntime": {
+    "maxGpuBufferBytes": [17179869184, 17179869184],
+    "runtimeConfig": "model"
+  }
+}
+```
+
+`model` can be a catalog ID or a complete model descriptor with `id`, `name`,
+`provider: "doppler"`, exact manifest `identity`, explicit `generation`,
+`executionModes`, and the ordinary pinned `source.files` metadata. Local source
+files include the manifest and SHA-256-bound verified piece index; creating a
+descriptor does not download or copy weights. The actual manifest bytes and
+model ID must match before the runtime is imported. Geometry comes from that
+manifest, not an operator-supplied hidden width or layer count.
+
+`partitionRuntime.runtimeConfig` is a complete runtime overlay object, or the
+explicit string `"model"` to reuse `model.loadOptions.runtimeConfig`. One positive
+`maxGpuBufferBytes` value is required for each stage. A profile that runs
+whole-model warm generation must be copied and set
+`shared.kernelWarmup.warmGeneration` to `null` for partition execution. Unsupported
+precision, fusion or generator modes fail; selecting a split never changes them
+silently.
+
+Use the same model JSON on every contributor and requester. Supply a separate
+`--ordered-config /absolute/host.json` for each host's placement and limits:
+
+```json
+{
+  "stage": {
+    "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+    "index": 0,
+    "residentId": "operator-stage-zero",
+    "executionId": "operator-program-zero"
+  },
+  "maxStages": 4,
+  "maxStageOffersPerPeer": 4,
+  "maxRouteBytes": 32768,
+  "maxSelectionSteps": 2000,
+  "maxRoutes": 4
+}
+```
+
+The next host uses index 1 and its own allocation identities; a weightless
+requester uses `"stage": null`. For contributor-chosen placement use
+`"stage": { "modelId": "...", "assignment": "auto" }` together with
+`"orchestration": { "autoStage": { "dwellMs": 60000 } }`.
+[Additional orchestration controls](launch-3-orchestration.md) remain opt-in.
+Automatic assignment, replica demand and timing hints match the exact plan
+identity, so peers with different cuts of the same model are excluded. Byte
+admission cannot exceed the configured stage budget; an automatic contributor
+uses the smallest of its authorized stage budgets. Owner limits can reduce it.
+
+Qwen 35B can request `[10, 20, 30]` and Flash-Next `[16, 32]`, with matching
+runtime configuration, budgets and source metadata. Doppler's
+[retained AMD component checks](https://github.com/clocksmith/doppler/tree/main/reports/ordered-qwen-partitions-20261109)
+compare those splits against their unsplit GPU programs. They do not qualify
+cross-machine numerics or public availability. Flash-Next boundaries retain all
+four residual streams. Cuts cannot change during an active attempt; idle
+placement and new-request routing do not migrate conversation state.
+
 ```sh
 umask 077                              # new files are owner-only (0600)
 cat > /srv/reploid/state/room-token    # paste the token, then Ctrl-D

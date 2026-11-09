@@ -130,4 +130,19 @@ describe('explicit ordered host participation', () => {
     const policy = {};
     expect(bindWorkOrderedParticipation(null, null, null, policy)).toEqual({ ordered: null, policy });
   });
+  it('bounds admission by the explicitly configured model stage without raising legacy limits', () => {
+    const chosen = { ...model, partitionRuntime: { maxGpuBufferBytes: [2 ** 31, 2 ** 33, 2 ** 32] } };
+    const c = config();
+    c.orchestration = { admission: { maxBytes: 2 ** 32, maxConcurrentAttempts: 1, attemptBytes: 2 ** 30 } };
+    expect(snapshotWorkOrderedParticipation(c, null, [chosen]).orchestration.admission.maxBytes).toBe(2 ** 32);
+    expect(() => snapshotWorkOrderedParticipation(c, null, [model])).toThrow('orchestration');
+    c.orchestration.admission.maxBytes = 2 ** 34;
+    expect(() => snapshotWorkOrderedParticipation(c, null, [chosen])).toThrow('orchestration');
+    c.stage = { modelId: 'ordered', assignment: 'auto' };
+    c.orchestration.autoStage = { dwellMs: 0 };
+    c.orchestration.admission.maxBytes = 2 ** 32;
+    expect(() => snapshotWorkOrderedParticipation(c, null, [chosen])).toThrow('orchestration');
+    c.orchestration.admission.maxBytes = 2 ** 31;
+    expect(snapshotWorkOrderedParticipation(c, null, [chosen]).stage.assignment).toBe('auto');
+  });
 });

@@ -5,6 +5,8 @@ export const STAGE_ASSIGNMENT_SCHEMA = 'reploid.stage-assignment/v1';
 /** A ranking coordinator's measured decode cost per stage of its current route. A hint, never an assignment. */
 export const STAGE_COSTS_SCHEMA = 'reploid.stage-costs/v1';
 
+const matchesPlan = (model, planId) => typeof model.partitionPlanId === 'string' && model.partitionPlanId === planId;
+
 const observedPeers = (capabilities, now, maxOffersPerPeer) => capabilities.filter(peer => {
   if (peer?.available !== true || !(peer.expiresAt > now)) return false;
   try { validateOrderedPartitionCapability(peer.description, peer.participantId, maxOffersPerPeer); return true; } catch { return false; }
@@ -20,7 +22,7 @@ export function stageDemand({ model, stageCount, capabilities, now, maxOffersPer
   for (const peer of peers) {
     const waiting = peer.description.capacity.queued;
     if (peer.description.phase !== 'ready' || !Number.isSafeInteger(waiting) || waiting < 0) continue;
-    for (const offer of peer.description.models) if (offer.id === model.id && offer.identity === model.identity
+    for (const offer of peer.description.models) if (offer.id === model.id && offer.identity === model.identity && matchesPlan(model, offer.planId)
       && offer.availability === 'ready' && Number.isSafeInteger(offer.index) && offer.index < stageCount) {
       queued[offer.index] = Math.max(queued[offer.index], waiting);
     }
@@ -30,7 +32,7 @@ export function stageDemand({ model, stageCount, capabilities, now, maxOffersPer
   // Coordinators are read in participant-id order so every observer resolves the same claim.
   for (const peer of [...peers].sort((a, b) => a.participantId < b.participantId ? -1 : a.participantId > b.participantId ? 1 : 0)) {
     const costs = peer.description.stageCosts, decode = costs?.decodeMs;
-    if (costs?.schema !== STAGE_COSTS_SCHEMA || costs.modelId !== model.id || costs.modelIdentity !== model.identity
+    if (costs?.schema !== STAGE_COSTS_SCHEMA || costs.modelId !== model.id || costs.modelIdentity !== model.identity || !matchesPlan(model, costs.planId)
       || !Array.isArray(decode) || decode.length !== stageCount || !decode.every(value => typeof value === 'number' && Number.isFinite(value) && value >= 0)) continue;
     const slowest = decode.reduce((best, value, index) => value > decode[best] ? index : best, 0);
     const next = Math.max(...decode.filter((_, index) => index !== slowest));
@@ -48,7 +50,7 @@ export function stageDemand({ model, stageCount, capabilities, now, maxOffersPer
 export function planStageAssignment({ participantId, model, stageCount, capabilities, now, current = null,
   maxOffersPerPeer, demand = null }) {
   assert(typeof participantId === 'string' && participantId.length > 0 && typeof model?.id === 'string'
-    && /^sha256:[a-f0-9]{64}$/.test(model.identity) && Number.isSafeInteger(stageCount) && stageCount >= 2
+    && /^sha256:[a-f0-9]{64}$/.test(model.identity) && typeof model.partitionPlanId === 'string' && model.partitionPlanId.length > 0 && Number.isSafeInteger(stageCount) && stageCount >= 2
     && Array.isArray(capabilities) && Number.isSafeInteger(now) && Number.isSafeInteger(maxOffersPerPeer)
     && (current === null || Number.isSafeInteger(current) && current >= 0 && current < stageCount),
   'Explicit stage assignment input required');
@@ -61,11 +63,11 @@ export function planStageAssignment({ participantId, model, stageCount, capabili
     const description = peer.description;
     try { validateOrderedPartitionCapability(description, peer.participantId, maxOffersPerPeer); } catch { continue; }
     if (description.phase === 'ready') for (const offer of description.models) {
-      if (offer.id === model.id && offer.identity === model.identity && offer.availability === 'ready'
+      if (offer.id === model.id && offer.identity === model.identity && matchesPlan(model, offer.planId) && offer.availability === 'ready'
         && stageIndex(offer.index)) supply[offer.index].add(peer.participantId);
     }
     const claim = description.assignment;
-    if (claim?.schema === STAGE_ASSIGNMENT_SCHEMA && claim.modelId === model.id && claim.modelIdentity === model.identity
+    if (claim?.schema === STAGE_ASSIGNMENT_SCHEMA && claim.modelId === model.id && claim.modelIdentity === model.identity && matchesPlan(model, claim.planId)
       && ['waiting', 'loading', 'ready'].includes(description.phase)) {
       if (claim.index === null) joiners.add(peer.participantId);
       else if (stageIndex(claim.index)) {

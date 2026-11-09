@@ -562,13 +562,13 @@
     },
     {
       "path": "contracts/doppler-partitions.d.ts",
-      "bytes": 12761,
-      "sha256": "74737a5de50b084287bf44f5844c5132b5a800f9e951b46ac4d48f419232e7ea"
+      "bytes": 12946,
+      "sha256": "db950cf6a47e4cd08f0968a50253830bdcee1514e50867ce7100aba5a5ad609f"
     },
     {
       "path": "contracts/doppler-partitions.provenance.json",
       "bytes": 1666,
-      "sha256": "b6eb1cb32534c095dd341f34f992bb04f9054056906d235bc54f3bdd5db249fb"
+      "sha256": "8fd07a6dc8a9dc4b996106d8594e1e0dea7f5ca9e96b9cf09358b96fbcf79244"
     },
     {
       "path": "contracts/host-ports.d.ts",
@@ -862,8 +862,8 @@
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.js",
-      "bytes": 43606,
-      "sha256": "e3099e193e71a91555e4bcd83eee7664d3d0ee5468b6322454a71d00b7d0f267"
+      "bytes": 43718,
+      "sha256": "4221660db55a49a8ad6ed982c07e5a7e3c619a6fcea6aaa4aa6f1e12b1fdc675"
     },
     {
       "path": "mesh/partitions/automatic-partitions.d.ts",
@@ -1152,13 +1152,13 @@
     },
     {
       "path": "mesh/partitions/partition-stage-assignment.d.ts",
-      "bytes": 1838,
-      "sha256": "417c7173f54590251eb4fec90a31be1ea512f5296971ef2e092de468e342e9a1"
+      "bytes": 1904,
+      "sha256": "23ed3efe9b10486a6ef7c59d8e96c5c341d1e6994656ca4af7711bce5c648f01"
     },
     {
       "path": "mesh/partitions/partition-stage-assignment.js",
-      "bytes": 7843,
-      "sha256": "cc0d4b838277590d8230a47bd894f82f96b4f0a39f2cff0b701dfac5e84610b6"
+      "bytes": 8188,
+      "sha256": "93fcea8b35f7f4d1a632ed328668094e6db6eef744db4b63a8562d3b9d66bd0c"
     },
     {
       "path": "mesh/partitions/partition-stage-commit.d.ts",

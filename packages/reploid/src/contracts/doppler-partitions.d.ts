@@ -91,6 +91,8 @@ export interface OrderedLayerPartitionPlan extends Omit<LayerPartitionPlan, 'sch
   readonly activationPrecision: ActivationPrecision;
   readonly activationComponents: number;
   readonly activationElementStrideBytes: number;
+  /** Complete residual streams across boundaries, bound to manifest.inference.hyperConnections. */
+  readonly residualStreams?: Readonly<{ streamCount: number; streamWidth: number }>;
 }
 
 export declare const ORDERED_LAYER_PARTITION_SCHEMA: 'doppler.layer-partition-contract/v3';

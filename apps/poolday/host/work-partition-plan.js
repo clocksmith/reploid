@@ -81,9 +81,9 @@ const ORCHESTRATION_POLICIES = Object.freeze({
     && typeof value.smoothing === 'number' && value.smoothing > 0 && value.smoothing <= 1 && positiveInteger(value.maxObservations)
     && exactKeys(value.workload, ['promptTokens', 'expectedTokens']) && positiveInteger(value.workload.promptTokens)
     && positiveInteger(value.workload.expectedTokens) && validCostPolicy(value.costs),
-  // Never above the existing per-executor allocation ceiling.
-  admission: value => exactKeys(value, ['maxBytes', 'maxConcurrentAttempts', 'attemptBytes', ...(value?.queue === undefined ? [] : ['queue'])])
-    && positiveInteger(value.maxBytes) && value.maxBytes <= partitionPolicy.maxGpuBufferBytes
+  // Never above the operator's explicit stage budget (legacy hosts keep their ceiling).
+  admission: (value, maxGpuBufferBytes) => exactKeys(value, ['maxBytes', 'maxConcurrentAttempts', 'attemptBytes', ...(value?.queue === undefined ? [] : ['queue'])])
+    && positiveInteger(value.maxBytes) && value.maxBytes <= maxGpuBufferBytes
     && positiveInteger(value.maxConcurrentAttempts) && positiveInteger(value.attemptBytes) && value.attemptBytes <= value.maxBytes
     // A queued reservation must be answered before the execution channel's request timeout.
     && (value.queue === undefined || exactKeys(value.queue, ['maxQueued', 'maxQueuedPerRequester', 'maxWaitMs'])
@@ -99,13 +99,24 @@ export function snapshotWorkOrderedParticipation(ordered, canonical, models) {
   if (ordered === null) return null;
   if (!ordered || canonical) throw new Error('Ordered participation requires an explicit ordinary host configuration');
   const copy = structuredClone(ordered);
+  const selected = models.find(model => model.id === copy.stage?.modelId);
+  const budgets = selected?.partitionRuntime?.maxGpuBufferBytes;
+  let maxGpuBufferBytes = partitionPolicy.maxGpuBufferBytes;
+  if (budgets !== undefined) {
+    if (!Array.isArray(budgets) || budgets.length !== selected.partitionPlan?.stageCount || !budgets.every(positiveInteger)) {
+      throw new Error('Ordered model requires one explicit positive GPU budget per stage');
+    }
+    // Automatic reassignment may pick any stage, so its shared admission bound
+    // must fit the smallest of the authorized stage budgets.
+    maxGpuBufferBytes = isAutoStage(copy.stage) ? Math.min(...budgets) : budgets[copy.stage.index];
+  }
   for (const key of ['maxStages', 'maxStageOffersPerPeer', 'maxRouteBytes', 'maxSelectionSteps', 'maxRoutes']) {
     if (!Number.isSafeInteger(copy[key]) || copy[key] <= 0) throw new Error('Explicit ordered host limit required: ' + key);
   }
   if (copy.orchestration !== undefined) {
     const policy = copy.orchestration;
     if (!policy || typeof policy !== 'object' || Array.isArray(policy)
-      || Object.entries(policy).some(([key, value]) => !Object.hasOwn(ORCHESTRATION_POLICIES, key) || !ORCHESTRATION_POLICIES[key](value))) {
+      || Object.entries(policy).some(([key, value]) => !Object.hasOwn(ORCHESTRATION_POLICIES, key) || !ORCHESTRATION_POLICIES[key](value, maxGpuBufferBytes))) {
       throw new Error('Ordered orchestration policy must name known, explicitly bounded mechanisms');
     }
   }

@@ -10,6 +10,7 @@ const browserHarnesses = ['evaluate-document-answers', 'pool-actual-browser-smok
   'verify-visual-change-passport-dogfood'].map(name => `scripts/${name}.js`);
 const cleanedModules = [
   'packages/reploid/src/mesh/generation-context-cache.js',
+  'server/native-model-config.js',
   'packages/reploid/src/mesh/computer-identity.js',
   'packages/reploid/src/mesh/gpu-signature.js',
   'packages/reploid/src/mesh/gpu-signature-shader.js',

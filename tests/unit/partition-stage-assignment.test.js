@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { planStageAssignment, stageDemand, STAGE_ASSIGNMENT_SCHEMA, STAGE_COSTS_SCHEMA } from '../../packages/reploid/src/mesh/partitions/partition-stage-assignment.js';
 
-const model = { id: 'model', identity: 'sha256:' + 'a'.repeat(64) };
+const model = { id: 'model', partitionPlanId: 'plan', identity: 'sha256:' + 'a'.repeat(64) };
 const now = 1000;
 // Observed discovery rows: a ready stage offer, an auto claim while preparing, or an unassigned auto joiner.
 function peer(participantId, { ready = [], claim, phase = ready.length ? 'ready' : 'waiting', expiresAt = now + 10 } = {}) {
@@ -9,7 +9,7 @@ function peer(participantId, { ready = [], claim, phase = ready.length ? 'ready'
     description: { schema: 'reploid.partition-capability/v2', participantId, phase,
       capacity: { active: 0, availableSlots: 2, closed: false },
       models: ready.map(index => ({ ...model, index, planId: 'plan', residentId: 'r', executionId: 'e', availability: 'ready' })),
-      ...(claim === undefined ? {} : { assignment: { schema: STAGE_ASSIGNMENT_SCHEMA, modelId: model.id, modelIdentity: model.identity, index: claim } }) } };
+      ...(claim === undefined ? {} : { assignment: { schema: STAGE_ASSIGNMENT_SCHEMA, modelId: model.id, modelIdentity: model.identity, planId: model.partitionPlanId, index: claim } }) } };
 }
 const plan = (participantId, capabilities, current = null) => planStageAssignment({ participantId, model, stageCount: 3,
   capabilities, now, current, maxOffersPerPeer: 4 });
@@ -107,3 +107,16 @@ describe('useful replica demand (opt-in)', () => {
     expect(decide('z', [peer('coordinator', { ready: [0] }), peer('c', { ready: [2] })])).toMatchObject({ index: 1, move: false });
   });
 });
+
+ it('ignores ready supply, preparing claims, queues and cost hints for different cuts of the same model', () => {
+  const ready = peer('other-ready', { ready: [0, 1, 2] });
+  for (const offer of ready.description.models) offer.planId = 'other-cuts';
+  ready.description.capacity.queued = 8;
+  ready.description.stageCosts = { schema: STAGE_COSTS_SCHEMA, modelId: model.id, modelIdentity: model.identity,
+    planId: 'other-cuts', decodeMs: [1, 1, 100] };
+  const loading = peer('other-loading', { claim: 1, phase: 'loading' });
+  loading.description.assignment.planId = 'other-cuts';
+  expect(plan('m', [ready, loading])).toMatchObject({ index: null, supply: [0, 0, 0], joiners: 0 });
+  expect(stageDemand({ model, stageCount: 3, capabilities: [ready, loading], now, maxOffersPerPeer: 4,
+    queueBound: 1, bottleneckRatio: 2 })).toMatchObject({ index: null, queued: [0, 0, 0] });
+ });

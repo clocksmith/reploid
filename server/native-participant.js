@@ -8,6 +8,7 @@ export { createResponses } from './responses.js';
 export { createMessages } from './messages.js';
 
 import fs from 'node:fs/promises';
+import { readNativeModelConfiguration } from './native-model-config.js';
 import { createWebAccessNetwork } from '../packages/reploid/src/mesh/web-access-network.js';
 import { createPublicWebWorker } from './public-web-worker.js';
 import { createNativeWholeModel } from './native-whole-model.js';
@@ -637,7 +638,7 @@ export async function resolveNativeRoomToken(values, { warn = message => console
 
 async function main() {
   const { values } = parseArgs({ options: Object.fromEntries(['model', 'model-directory', 'identity-file', 'rtc-module',
-    'ws-module', 'gpu-module', 'adapter', 'execution-mode', 'partition-index', 'ordered-config', 'signaling-url', 'room', 'room-token', 'room-token-file', 'origin', 'cache-directory',
+    'ws-module', 'gpu-module', 'adapter', 'execution-mode', 'partition-index', 'ordered-config', 'model-config', 'signaling-url', 'room', 'room-token', 'room-token-file', 'origin', 'cache-directory',
     'owner-policy', 'shader-cache-root', 'earning-config', 'readiness-log', 'browser-search-profile'].map(key => [key, { type: 'string' }]).concat([
       ['web-search', { type: 'boolean', default: false }], ['help', { type: 'boolean', default: false }], ['canonical', { type: 'boolean', default: false }], ['share-files', { type: 'boolean', default: false }], ['contribute', { type: 'boolean', default: false }], ['connect-only', { type: 'boolean', default: false }]])) });
   if (values.help) {
@@ -654,6 +655,7 @@ Usage: reploid-participant --connect-only|--share-files|--contribute
   [--execution-mode partition|whole-model] (default: partition; never falls back)
   [--partition-index 0|1] (explicit eligible stage for a two-stage route)
   [--ordered-config <absolute JSON path>] (explicit stage assignment and ordered limits)
+  [--model-config <absolute JSON path>] (pinned operator model and partition request; private rooms only)
   [--canonical] (requires explicit catalog generation and a capable installed runtime)
   [--owner-policy <absolute JSON path>] (owner schedule, memory, rate, power, temperature and foreground limits)
   [--earning-config <absolute JSON path>] (reploid.native-earning/v1: earning service, sign-in and contribution offers; needs --owner-policy)
@@ -684,6 +686,14 @@ is separate from backend selection; --help opens no provider.`);
   requireValue(values['execution-mode'] === undefined || ['partition', 'whole-model'].includes(values['execution-mode']), 'Unknown native execution mode');
   requireValue(values['execution-mode'] !== 'whole-model' || !values.canonical && !values['ordered-config'] && !values['readiness-log'],
     'Whole-model execution cannot inherit ordered, canonical or stage-readiness configuration');
+  let configuredModels = models;
+  if (values['model-config'] !== undefined) {
+    requireValue(values.room && values.room !== bootstrap.publicRoomId,
+      'Operator model configuration requires an explicit private room; public routes require reviewed catalog/release approval');
+    configuredModels = [await readNativeModelConfiguration(values['model-config'], {
+      modelId: values.model, modelDirectory: values['model-directory'], models,
+    })];
+  }
   // Before identity, module or connection side effects; read once.
   const roomToken = await resolveNativeRoomToken(values);
   let logNetwork = () => {}, observeReadiness = () => {};
@@ -697,12 +707,12 @@ is separate from backend selection; --help opens no provider.`);
     requireValue(!values.canonical && path.isAbsolute(values['ordered-config']), 'Ordered config requires an absolute file path and ordinary execution');
     ordered = JSON.parse(await fs.readFile(values['ordered-config'], 'utf8'));
     requireValue(ordered && typeof ordered === 'object', 'Ordered config requires an explicit configuration object');
-    snapshotWorkOrderedParticipation(ordered, null, models);
+    snapshotWorkOrderedParticipation(ordered, null, configuredModels);
   }
   requireValue(values['partition-index'] === undefined || ['0', '1'].includes(values['partition-index'])
     && !values['ordered-config'] && values['execution-mode'] !== 'whole-model', 'Partition index requires a two-stage partition contributor');
   const identityFile = path.resolve(values['identity-file']);
-  let model = models.find(row => row.id === values.model); requireValue(model, 'Model is absent from the application catalog');
+  let model = configuredModels.find(row => row.id === values.model); requireValue(model, 'Model is absent from the application catalog');
   if (values.adapter) {
     const adapter = model.availableAdapters?.find(entry => entry.id === values.adapter);
     requireValue(adapter && adapter.baseModelIdentity === model.identity, 'Adapter is not authorized for this exact base artifact');

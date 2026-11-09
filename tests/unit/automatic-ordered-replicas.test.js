@@ -24,7 +24,7 @@ const costs = { schema: 'reploid.route-cost-policy/v1', id: 'test-replica-costs/
   readiness: { priorAttempts: 1, priorRefusals: 0 }, failure: { priorAttempts: 1, priorFailures: 0 }, reserve: { spareSlots: 0, perMissingSlot: 0 } };
 const routeRanking = { margin: 0.2, smoothing: 1, maxObservations: 32, workload: { promptTokens: 2, expectedTokens: 3 }, costs };
 const f = stagesFixture(3);
-const model = { id: f.route.modelId, identity: f.route.modelIdentity, name: 'Synthetic', partitionPlan: { stageCount: 3 } };
+const model = { id: f.route.modelId, identity: f.route.modelIdentity, name: 'Synthetic', partitionPlanId: f.route.planId, partitionPlan: { stageCount: 3 } };
 const ready = (participantId, index, capacity = {}, at = Date.now()) => ({ participantId, transportId: 'transport-' + participantId, available: true,
   observedAt: at, expiresAt: at + 600000, description: { schema: 'reploid.partition-capability/v2', participantId, phase: 'ready',
     capacity: { active: 0, availableSlots: 2, closed: false, ...capacity }, models: [{ ...model, index, planId: f.route.planId,

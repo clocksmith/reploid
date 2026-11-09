@@ -19,7 +19,7 @@ const cleanups = [];
 afterEach(async () => { await Promise.allSettled(cleanups.splice(0).map(fn => fn())); discoveryOwners.length = 0; vi.useRealTimers(); });
 
 const f = stagesFixture(3);
-const model = { id: f.route.modelId, identity: f.route.modelIdentity, name: 'Synthetic', partitionPlan: { stageCount: 3 } };
+const model = { id: f.route.modelId, identity: f.route.modelIdentity, name: 'Synthetic', partitionPlanId: f.route.planId, partitionPlan: { stageCount: 3 } };
 const policy = { pollMs: 60000, maxPeers: 8, connectTimeoutMs: 1000, grantMs: 60000, maxStageOffersPerPeer: 4,
   limits: f.limits, receiver: { maxAttempts: 32, maxSteps: 10 }, inputChannel: { maxControlBytes: 131072 },
   inputLimits: { maxInputCharacters: 4096, maxOutputCharacters: 128, maxAttempts: 32, maxConcurrentAttempts: 2, descriptorTtlMs: 60000 } };
@@ -67,7 +67,7 @@ describe('autonomous cold stage assignment (opt-in, injected discovery)', () => 
     expect(controls.ordered.stage).toMatchObject({ index: 2, participantId: c.identity.peerId, transportId: 'auto-transport' });
     expect(controls.ordered.stage.residentId).toMatch(/^auto-[a-f0-9]{32}$/);
     const described = c.discovery.options.describe();
-    expect(described.assignment).toEqual({ schema: 'reploid.stage-assignment/v1', modelId: 'model', modelIdentity: model.identity, index: 2 });
+    expect(described.assignment).toEqual({ schema: 'reploid.stage-assignment/v1', modelId: 'model', modelIdentity: model.identity, planId: model.partitionPlanId, index: 2 });
     expect(described.models[0]).toMatchObject({ index: 2, availability: 'ready' });
     expect(c.mesh.getState()).toMatchObject({ phase: 'ready', assignment: { index: 2, reason: 'cold-least-supplied', supply: [1, 1, 0] } });
     await c.mesh.stop();
