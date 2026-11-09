@@ -21,3 +21,11 @@ Acceptance evidence:
 Component: Poolday conversation interface.
 Intent: preserved; model selection remains a bounded choice in the composer.
 Boundary effects: browser presentation only. Provider processes and model runtime unchanged.
+
+## Public deployment
+
+Hosting-only deployment succeeded. Live https://replo.id/ serves bundle
+`sha256:0f63bb741aaede6f676debb5de1505ce588049d9f466d90b0bd21a008f8fbdd9`.
+At 1280, 390 and 320px, the public page has one composer chooser, no upper
+model card, five picker variants, no horizontal overflow and no browser errors.
+Opening and closing the picker works. No inference or provider restart was performed.

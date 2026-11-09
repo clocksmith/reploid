@@ -1,0 +1,45 @@
+{
+  "url": "https://replo.id/",
+  "checkedAt": "2026-11-09T11:57:04.633Z",
+  "bundleHash": "sha256:0f63bb741aaede6f676debb5de1505ce588049d9f466d90b0bd21a008f8fbdd9",
+  "results": [
+    {
+      "width": 1280,
+      "chooserCount": 1,
+      "topCardCount": 0,
+      "pickerChoices": 5,
+      "composer": {
+        "x": 280,
+        "y": 690,
+        "width": 720,
+        "height": 114
+      }
+    },
+    {
+      "width": 390,
+      "chooserCount": 1,
+      "topCardCount": 0,
+      "pickerChoices": 5,
+      "composer": {
+        "x": 8,
+        "y": 634,
+        "width": 374,
+        "height": 114
+      }
+    },
+    {
+      "width": 320,
+      "chooserCount": 1,
+      "topCardCount": 0,
+      "pickerChoices": 5,
+      "composer": {
+        "x": 8,
+        "y": 634,
+        "width": 304,
+        "height": 114
+      }
+    }
+  ],
+  "errors": [],
+  "modelExecuted": false
+}
