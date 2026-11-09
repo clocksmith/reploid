@@ -3644,7 +3644,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:b5256d7eb2aa1cc73cb994b6888eaa7452a7c8ed56c2685a288da4c2d83fdb20",
+      "sha256": "sha256:808c67daf515051b7429e0c2fb159afaeb28f2c6afa5e074dfc88b5825838f14",
       "imports": []
     },
     {
@@ -3658,8 +3658,10 @@
     {
       "path": "ui/pool-home/computer-labels.js",
       "owner": "ui",
-      "sha256": "sha256:c53dc0a9913e4224526ae65cdda5dd2a2d6723b2d701637741a2cfe5d5bea2c6",
-      "imports": []
+      "sha256": "sha256:7fb676acd96dd89a4bf52b9e3280e1b4dfbc2c92fc360d269bf79e3dc3cd4391",
+      "imports": [
+        "../../vendor/reploid/mesh/computer-identity.js"
+      ]
     },
     {
       "path": "ui/pool-home/constants.js",
@@ -16504,6 +16506,15 @@
       ]
     },
     {
+      "path": "vendor/reploid/mesh/computer-identity.js",
+      "owner": "vendor",
+      "sha256": "sha256:4f522078ebd178b1e4ca77e489f0428bc5543686fe5508d612f8abbc3082d2c9",
+      "imports": [
+        "./computer-identity.policy.json",
+        "./provider-hardware.js"
+      ]
+    },
+    {
       "path": "vendor/reploid/mesh/contribution.js",
       "owner": "vendor",
       "sha256": "sha256:653e256f8586cf2c5741abf9c12b3aec1a0d190e34ecc2905fdcc2fe97b210d5",
@@ -16520,13 +16531,33 @@
       ]
     },
     {
+      "path": "vendor/reploid/mesh/gpu-signature-shader.js",
+      "owner": "vendor",
+      "sha256": "sha256:d2fe8b9c0b1dcd5fe77433c02cb5385fab1bde1868c29f10ef1c5db7e099d1b0",
+      "imports": [
+        "./gpu-signature.policy.json"
+      ]
+    },
+    {
+      "path": "vendor/reploid/mesh/gpu-signature.js",
+      "owner": "vendor",
+      "sha256": "sha256:1b95ceff311a7a39444ea7c09709ae3194ba1e9d7bd36adf39f38d03962f2fb6",
+      "imports": [
+        "./gpu-signature-shader.js",
+        "./gpu-signature.policy.json",
+        "./provider-hardware.js"
+      ]
+    },
+    {
       "path": "vendor/reploid/mesh/index.js",
       "owner": "vendor",
-      "sha256": "sha256:02750682351b78101cb367d884d1b1983c8a71406a23ab63b49e0e3b56617ca5",
+      "sha256": "sha256:71d85d0a6f8199ca777a271ab5d7e2848237038cc23ed82cf93318c177486394",
       "imports": [
         "../config/index.js",
         "../rules/routing.rules.json",
+        "./computer-identity.js",
         "./contribution.js",
+        "./gpu-signature.js",
         "./legacy-generation.js",
         "./partitions/automatic-partitions.js",
         "./partitions/partition-attempt-evidence.js",
@@ -16597,13 +16628,15 @@
     {
       "path": "vendor/reploid/mesh/legacy-generation.js",
       "owner": "vendor",
-      "sha256": "sha256:5659f68a43bd3ba2f8bbda1dd4dfbf2bdb6178ecb7ac151f0416e1e9c110d084",
+      "sha256": "sha256:ba6c51b058e6e7a34827b716779c2c31a20a7e9cb77ada95ab99daf3a1e8c5c0",
       "imports": [
         "../artifacts/generation-terminal.js",
         "../artifacts/receipt.js",
         "../artifacts/signatures.js",
         "../artifacts/whole-model-receipt.js",
         "../config/index.js",
+        "./computer-identity.js",
+        "./computer-identity.policy.json",
         "./contribution.js",
         "./generation-recovery.js",
         "./peer-identity.js",
@@ -16982,9 +17015,10 @@
     {
       "path": "vendor/reploid/mesh/peer-identity.js",
       "owner": "vendor",
-      "sha256": "sha256:ff8d4df930c2bbb26f2b4dbdf5833d66dc7595eb3b9f7edff12e9848fe3f96e3",
+      "sha256": "sha256:9edfe930d23eb38076075d833119c41c11f7dcb392825aec4ce2022d16fbc5d2",
       "imports": [
         "../artifacts/identity.js",
+        "./computer-identity.policy.json",
         "./remote-generation-requests.js"
       ]
     },

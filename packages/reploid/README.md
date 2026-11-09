@@ -77,6 +77,47 @@ settle; it does not claim to terminate borrowed GPU or JavaScript execution.
 
 ## Configuration and ports
 
+### Computer labels and optional GPU measurements
+
+`mesh.identifyComputer(connectionId, { ownerLabel, storage, signal })` verifies
+the participant key on the current WebRTC connection. A supplied local storage
+port retains the name against that key across reconnects. An empty `ownerLabel`
+clears the custom name; blocked storage is reported in `persistence`. The standalone
+`identifyComputer` export accepts the same options plus a `verifyPeer` host port.
+Poolday's automatic computer names now use verified participant keys when available;
+an unauthenticated connection keeps a temporary name. Keys can be copied or reset,
+so these labels do not establish unique physical computers.
+
+```js
+import { captureGpuSignature, compareGpuSignatures } from 'reploid/mesh';
+
+const computer = await mesh.identifyComputer(connectionId, {
+  ownerLabel: 'Jupiter', storage: localStorage, signal
+});
+
+// Separately, on the contributing computer, after the owner opts in:
+const signature = await captureGpuSignature(device, { consent: true, signal });
+const comparison = compareGpuSignatures(previousSignature, signature);
+```
+
+The probe measures the **local** GPU, never the remote peer named by
+`connectionId`. Keep remote collection and disclosure under the host's explicit
+authorization; nothing automatically uploads, stores or advertises signatures.
+It records workgroup finishing orders for fixed arithmetic and memory workloads,
+using atomic tickets rather than timestamp queries. The versioned profile bounds
+dispatches and allocations. Calls can borrow a device or acquire and release their
+own; cancellation stops further dispatches without promising GPU preemption.
+
+Comparison returns distance and within-capture variability. Without explicit
+`{ calibrationId, consistentMax, changedMin }` thresholds it returns `uncertain`.
+Those thresholds must come from the caller's calibration, not an assumed match
+percentage. Different profiles and missing captures are not matches. No comparison
+changes names, merges computers, admits work or changes rewards. This is an
+experimental measurement primitive, not spoof-resistant hardware authentication;
+fixed workloads also provide no challenge freshness. The physical smoke checks
+numerical work and resource lifecycle on one GPU, not per-device recognition:
+`node tests/fixtures/computer-identity-browser.mjs` from the repository root.
+
 Diagnostic hosts can explicitly import `createBeliefPlanner` and
 `createDiagnosticInvestigation` from `reploid/diagnostics`. Models and policies
 are validated JSON; likelihoods and costs are host-supplied. The investigation

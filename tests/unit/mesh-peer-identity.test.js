@@ -25,10 +25,43 @@ it('verifies the signing identity on the bound channel using fresh proof each ti
   const f = await fixture();
   try {
     expect(await f.owners[0].verify('connection-1')).toBe(f.keys[1].peerId);
+    expect(f.owners[0].getVerified('connection-1')).toBe(f.keys[1].peerId);
     expect(await f.owners[1].verify('connection-0')).toBe(f.keys[0].peerId);
     expect(await f.owners[0].verify('connection-1')).toBe(f.keys[1].peerId);
     expect(new Set(f.messages.filter(m => m.type.endsWith('challenge')).map(m => m.payload.nonce)).size).toBe(3);
   } finally { f.close(); }
+});
+
+it('expires a verified label when its certificate changes, retires, or closes', async () => {
+  const f = await fixture();
+  try {
+    expect(f.owners[0].getVerified('connection-1')).toBeNull();
+    await f.owners[0].verify('connection-1');
+    f.bindings[0].remote = 'replacement';
+    expect(f.owners[0].getVerified('connection-1')).toBeNull();
+    f.bindings[0].remote = 'certificate-b';
+    f.owners[0].retirePeer('connection-1');
+    expect(f.owners[0].getVerified('connection-1')).toBeNull();
+    await f.owners[0].verify('connection-1');
+    f.owners[0].close();
+    expect(f.owners[0].getVerified('connection-1')).toBeNull();
+  } finally { f.close(); }
+});
+
+it('does not resurrect a label when verification finishes after the peer retires', async () => {
+  const f = await fixture(), started = Promise.withResolvers(), release = Promise.withResolvers();
+  const original = crypto.subtle.verify.bind(crypto.subtle);
+  const verifier = vi.spyOn(crypto.subtle, 'verify').mockImplementation(async (...args) => {
+    const result = await original(...args); started.resolve(); await release.promise; return result;
+  });
+  try {
+    const pending = f.owners[0].verify('connection-1');
+    const rejected = expect(pending).rejects.toThrow('peer disconnected');
+    await started.promise;
+    f.owners[0].retirePeer('connection-1'); await rejected;
+    release.resolve(); await new Promise(resolve => setTimeout(resolve, 10));
+    expect(f.owners[0].getVerified('connection-1')).toBeNull();
+  } finally { release.resolve(); verifier.mockRestore(); f.close(); }
 });
 
 it('answers concurrent fresh challenges from the same connection within the pending bound', async () => {
@@ -41,6 +74,28 @@ it('answers concurrent fresh challenges from the same connection within the pend
     expect(new Set(challenges.map(message => message.payload.nonce)).size).toBe(4);
     expect(proofs.map(message => message.payload.nonce).sort())
       .toEqual(challenges.map(message => message.payload.nonce).sort());
+  } finally { f.close(); }
+});
+
+it('does not let a pending background label proof take a foreground request slot', async () => {
+  const f = await fixture();
+  try {
+    f.hold();
+    const observation = f.owners[0].observe('connection-1');
+    const observed = expect(observation).rejects.toThrow('Mesh closed');
+    const foreground = Array.from({ length: 4 }, () => f.owners[0].verify('connection-1'));
+    const settled = foreground.map(request => expect(request).rejects.toThrow('Mesh closed'));
+    expect(f.messages.filter(message => message.type.endsWith('challenge'))).toHaveLength(5);
+    f.owners[0].close(); await Promise.all([observed, ...settled]);
+  } finally { f.close(); }
+});
+
+it('answers the foreground proof allowance while a label proof is also in flight', async () => {
+  const f = await fixture();
+  try {
+    const results = await Promise.all([f.owners[0].observe('connection-1'),
+      ...Array.from({ length: 4 }, () => f.owners[0].verify('connection-1'))]);
+    expect(results).toEqual(Array(5).fill(f.keys[1].peerId));
   } finally { f.close(); }
 });
 

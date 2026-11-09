@@ -1,30 +1,28 @@
 /** Stable UI pseudonyms, not authenticated owner names or hardware identity. */
 const sessions = new WeakMap();
-const colors = ['Amber', 'Azure', 'Bronze', 'Cobalt', 'Copper', 'Coral', 'Crimson', 'Emerald',
-  'Garnet', 'Golden', 'Indigo', 'Ivory', 'Jade', 'Lavender', 'Lilac', 'Lunar',
-  'Mint', 'Moss', 'Onyx', 'Opal', 'Pearl', 'Plum', 'Quartz', 'Ruby',
-  'Saffron', 'Sapphire', 'Scarlet', 'Silver', 'Slate', 'Teal', 'Violet', 'Viridian'];
-const animals = ['Badger', 'Crane', 'Dolphin', 'Falcon', 'Finch', 'Fox', 'Gecko', 'Heron',
-  'Ibis', 'Jaguar', 'Kestrel', 'Kingfisher', 'Lark', 'Lynx', 'Marten', 'Moth',
-  'Otter', 'Owl', 'Panda', 'Puffin', 'Raven', 'Robin', 'Seal', 'Sparrow',
-  'Starling', 'Swift', 'Tiger', 'Tern', 'Turtle', 'Whale', 'Wolf', 'Wren'];
-
-/** Versioned spelling/order: names must not depend on discovery order or randomness. */
-export function participantLabel(id) {
-  if (typeof id !== 'string' || !id) return 'Remote device';
-  let hash = 0x811c9dc5;
-  const input = 'reploid-label-v1:' + id;
-  for (let i = 0; i < input.length; i++) hash = Math.imul(hash ^ input.charCodeAt(i), 0x01000193) >>> 0;
-  return `${colors[hash & 31]} ${animals[(hash >>> 5) & 31]} · ${(hash >>> 16).toString(16).padStart(4, '0').toUpperCase()}`;
-}
+import { participantLabel } from '../../../../shared/vendor/reploid/mesh/computer-identity.js';
+export { participantLabel };
 
 function collect(state, registry) {
   const groups = [];
-  for (const peer of state.network?.partitionPeers || []) {
-    const aliases = [peer.participantId, peer.description?.participantId, peer.transportId].filter(Boolean);
+  const addAliases = aliases => {
     const existing = groups.find(group => aliases.some(id => group.includes(id)));
     if (existing) existing.push(...aliases.filter(id => !existing.includes(id)));
     else groups.push(aliases);
+  };
+  for (const peer of state.network?.partitionPeers || []) {
+    addAliases([peer.participantId, peer.description?.participantId, peer.transportId].filter(Boolean));
+  }
+  for (const source of [state.network, state.network?.consumer, state.network?.supplier]) {
+    for (const peer of source?.peers || []) {
+      // The mesh sets this only after a fresh, channel-bound signature check.
+      // A reported GPU or advertised participant name cannot create an alias.
+      if (peer.identityVerified === true && peer.participantId && peer.peerId) {
+        addAliases([peer.participantId, peer.peerId]);
+      }
+      // A reused transport ID must not inherit a previous occupant's name.
+      if (peer.peerId) registry.labels.set(peer.peerId, participantLabel(peer.peerId));
+    }
   }
   const ids = new Set();
   const own = new Set([state.participantId, state.network?.consumer?.peerId, state.network?.supplier?.peerId]);

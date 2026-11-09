@@ -1,5 +1,7 @@
 import { publicPreparationProgress } from './preparation-progress.js';
 import { publicProviderHardware } from './provider-hardware.js';
+import { identifyComputer } from './computer-identity.js';
+import computerPolicy from './computer-identity.policy.json' with { type: 'json' };
 import { createRemoteGenerationRequests } from './remote-generation-requests.js';
 import { createMeshPeerIdentity } from './peer-identity.js';
 import { requireResolvedConfig, snapshotJson } from '../config/index.js';
@@ -39,6 +41,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
   const REMOTE_GENERATION_TIMEOUT_MS = policy.mesh.generationTimeoutMs;
   const swarmController = createSwarmController();
   const receiptHistory = [], observedPeers = new Map();
+  const identificationAttempts = new Map(), identifying = new Set();
   let observationSequence = 0;
   const inbound = new Map(), completed = new Map();
   const inboundSettlements = new Set();
@@ -117,7 +120,11 @@ export function createLegacyGenerationMesh({ config, ports }) {
     }),
     ...getTransportState(),
     peerId: identityBundle?.peerId || null,
-    peers: snapshotJson(swarmController.listPeers().map(peer => observedPeers.get(peer.peerId) || peer))
+    peers: snapshotJson(swarmController.listPeers().map(peer => {
+      const participantId = peerIdentity?.getVerified(peer.peerId) || null;
+      // Never promote identity fields supplied by an advertisement into verified labels.
+      return { ...(observedPeers.get(peer.peerId) || peer), participantId, identityVerified: !!participantId };
+    }))
   });
 
   const emitSwarmState = () => {
@@ -220,6 +227,8 @@ export function createLegacyGenerationMesh({ config, ports }) {
     try { payload = snapshotJson(payload); } catch { return; }
     if (!payload || Array.isArray(payload) || typeof payload !== 'object') return;
     if (!Number.isFinite(payload.updatedAt)) return;
+    delete payload.participantId;
+    delete payload.identityVerified;
     try { adapterSet(payload.adapterIdentities || []); } catch { return; }
     const next = swarmController.upsertPeer({
       ...payload,
@@ -255,6 +264,17 @@ export function createLegacyGenerationMesh({ config, ports }) {
       bridgeEvents.emit('provider-ready', next);
     }
     emitSwarmState();
+    const channel = swarmTransport?.getPeerBinding?.(remotePeerId);
+    const attemptId = swarmTransport?.getPeerStates?.().find(peer => peer.id === remotePeerId)?.attemptId ?? null;
+    const identificationKey = JSON.stringify([attemptId, channel]);
+    if (!closed && next?.identityProtocol === 1 && channel && peerIdentity
+      && !peerIdentity.getVerified(remotePeerId) && identifying.size < computerPolicy.maxBackgroundProofs
+      && identificationAttempts.get(remotePeerId) !== identificationKey) {
+      identificationAttempts.set(remotePeerId, identificationKey);
+      const pending = peerIdentity.observe(remotePeerId, lifetime.signal).catch(() => null);
+      identifying.add(pending);
+      pending.finally(() => identifying.delete(pending));
+    }
   };
 
   const handleGenerationUpdate = (remotePeerId, payload = {}) => {
@@ -480,7 +500,8 @@ export function createLegacyGenerationMesh({ config, ports }) {
 
       if (!swarmHandlersRegistered) {
         peerIdentity = createMeshPeerIdentity({ transport: swarmTransport, getIdentity: () => identityBundle,
-          roomId: policy.mesh.roomId, timeoutMs: REMOTE_GENERATION_TIMEOUT_MS, maxPending: policy.mesh.maxPendingJobs });
+          roomId: policy.mesh.roomId, timeoutMs: REMOTE_GENERATION_TIMEOUT_MS, maxPending: policy.mesh.maxPendingJobs,
+          onVerified: () => { if (!closed) emitSwarmState(); } });
         recovery = createGenerationRecovery({ transport: swarmTransport, getIdentity: () => identityBundle,
           verifyPeer: (peer, signal) => peerIdentity.verify(peer, signal), journal: generationJournal,
           timeoutMs: REMOTE_GENERATION_TIMEOUT_MS, maxPending: policy.mesh.maxPendingJobs });
@@ -512,6 +533,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
           peerIdentity?.retirePeer(peerId);
           swarmController.removePeer(peerId);
           observedPeers.delete(peerId);
+          identificationAttempts.delete(peerId);
           remoteRequests.retirePeer(peerId);
           for (const [key, controller] of inbound) if (key.startsWith(`${peerId}:`)) controller.abort(new Error('Requester disconnected'));
           emitSwarmState();
@@ -664,14 +686,21 @@ export function createLegacyGenerationMesh({ config, ports }) {
       swarmTransport?.disconnect();
       // Keep every close caller waiting while an admitted executor drains, even
       // when its cancellation port cannot interrupt the current GPU operation.
-      await Promise.all([recoveryClose, ...inboundSettlements, ...receiptSettlements, ...[...executions].map(pending => pending.catch(() => {})),
+      await Promise.all([recoveryClose, ...identifying, ...inboundSettlements, ...receiptSettlements, ...[...executions].map(pending => pending.catch(() => {})),
         ...(swarmInitPromise ? [swarmInitPromise.catch(() => {})] : [])]);
       completed.clear();
+      identificationAttempts.clear();
       swarmTransport?.disconnect();
     });
     return closing;
   };
   return Object.freeze({ connect: initialize, initialize, generate, recoverGeneration, rotateIdentity, getSwarmSnapshot,
+    identifyComputer: (peerId, options = {}) => {
+      if (closed || !peerIdentity) throw new Error('Peer identity verification is unavailable');
+      return identifyComputer(peerId, { ...options,
+        hardware: swarmController.listPeers().find(peer => peer.peerId === peerId)?.hardware,
+        verifyPeer: (id, signal) => peerIdentity.verify(id, signal) });
+    },
     verifyPeerIdentity: (peerId, signal) => {
       if (closed || !peerIdentity) throw new Error('Peer identity verification is unavailable');
       return peerIdentity.verify(peerId, signal);

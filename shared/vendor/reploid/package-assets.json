@@ -716,6 +716,21 @@
       "sha256": "4b8156c8861260a3f4bc61fd1fb6a51fe4580758166e1fb558c5dbeda28264eb"
     },
     {
+      "path": "mesh/computer-identity.d.ts",
+      "bytes": 763,
+      "sha256": "e9e5b9bbfca017198cb71b9c6691cca82dd8524f2852e95a3ac2ef77b602d46e"
+    },
+    {
+      "path": "mesh/computer-identity.js",
+      "bytes": 2491,
+      "sha256": "4f522078ebd178b1e4ca77e489f0428bc5543686fe5508d612f8abbc3082d2c9"
+    },
+    {
+      "path": "mesh/computer-identity.policy.json",
+      "bytes": 774,
+      "sha256": "50c2e9e727246e1d7fd51b8899f45c78d7128be8e0946e56f4787d96fead190b"
+    },
+    {
       "path": "mesh/contribution.d.ts",
       "bytes": 1395,
       "sha256": "970ed6921387131a659d68ff039bda7908418c79fa63ef776228176c1010b2e0"
@@ -731,14 +746,34 @@
       "sha256": "c60c165232a05ad0eff28701e3fc46f23d034a520a470b8d8adffeac4f1a9185"
     },
     {
+      "path": "mesh/gpu-signature-shader.js",
+      "bytes": 1270,
+      "sha256": "d2fe8b9c0b1dcd5fe77433c02cb5385fab1bde1868c29f10ef1c5db7e099d1b0"
+    },
+    {
+      "path": "mesh/gpu-signature.d.ts",
+      "bytes": 1241,
+      "sha256": "c0420cbdba82ef948db2daa11ff2ced7af7f12eb8d7e9fd9ff5bf27a7ae01eba"
+    },
+    {
+      "path": "mesh/gpu-signature.js",
+      "bytes": 8601,
+      "sha256": "1b95ceff311a7a39444ea7c09709ae3194ba1e9d7bd36adf39f38d03962f2fb6"
+    },
+    {
+      "path": "mesh/gpu-signature.policy.json",
+      "bytes": 238,
+      "sha256": "0525dfcf9f58df07e9ce8b0e641eda9e0ca174eaab1bf3756a59ff9d3722f2b7"
+    },
+    {
       "path": "mesh/index.d.ts",
-      "bytes": 2186,
-      "sha256": "4a12689e619e2459f8030668314f42dfb5c6c946efaf71f8070494b35f018b33"
+      "bytes": 2262,
+      "sha256": "e1910db5574cca3cc7afdb61eb61d94d5da3089f77a992f6b6b11fb3b1d86b38"
     },
     {
       "path": "mesh/index.js",
-      "bytes": 3600,
-      "sha256": "02750682351b78101cb367d884d1b1983c8a71406a23ab63b49e0e3b56617ca5"
+      "bytes": 3757,
+      "sha256": "71d85d0a6f8199ca777a271ab5d7e2848237038cc23ed82cf93318c177486394"
     },
     {
       "path": "mesh/jobs/contracts.d.ts",
@@ -802,13 +837,13 @@
     },
     {
       "path": "mesh/legacy-generation.d.ts",
-      "bytes": 2928,
-      "sha256": "6e6cbf9e1efc9d52e68f4b4eead40e909b3287a5ec1b302260b9ea249c0a493f"
+      "bytes": 3214,
+      "sha256": "46558468417d4229598d6db1737da307ffcedf29ee63e32ab9283e80c570e980"
     },
     {
       "path": "mesh/legacy-generation.js",
-      "bytes": 36189,
-      "sha256": "5659f68a43bd3ba2f8bbda1dd4dfbf2bdb6178ecb7ac151f0416e1e9c110d084"
+      "bytes": 38021,
+      "sha256": "ba6c51b058e6e7a34827b716779c2c31a20a7e9cb77ada95ab99daf3a1e8c5c0"
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.d.ts",
@@ -1187,8 +1222,8 @@
     },
     {
       "path": "mesh/peer-identity.js",
-      "bytes": 4351,
-      "sha256": "ff8d4df930c2bbb26f2b4dbdf5833d66dc7595eb3b9f7edff12e9848fe3f96e3"
+      "bytes": 5788,
+      "sha256": "9edfe930d23eb38076075d833119c41c11f7dcb392825aec4ce2022d16fbc5d2"
     },
     {
       "path": "mesh/placement-beliefs.d.ts",

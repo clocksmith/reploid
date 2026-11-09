@@ -1,0 +1,40 @@
+{
+  "hardware": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "",
+    "description": "",
+    "isFallbackAdapter": false
+  },
+  "checked": 6144,
+  "cancelled": true,
+  "comparison": {
+    "status": "uncertain",
+    "distance": 0.13119541531560722,
+    "variability": 0.19541254681240836,
+    "reason": "calibration-required"
+  },
+  "ownedComparison": {
+    "status": "uncertain",
+    "distance": 0.109933367940348,
+    "variability": 0.21001850643761014,
+    "reason": "calibration-required"
+  },
+  "borrowedDeviceSurvived": true,
+  "gpuErrors": [],
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36",
+  "browser": "157.0.8103.38",
+  "launchArgs": [],
+  "elapsedMs": [
+    102.40000009536743,
+    13,
+    11.900000095367432
+  ],
+  "allocationBytes": 17432,
+  "scope": "Single physical GPU functional check. No cross-device recognition or spoof-resistance qualification.",
+  "probeSources": {
+    "packages/reploid/src/mesh/gpu-signature.js": "1b95ceff311a7a39444ea7c09709ae3194ba1e9d7bd36adf39f38d03962f2fb6",
+    "packages/reploid/src/mesh/gpu-signature-shader.js": "d2fe8b9c0b1dcd5fe77433c02cb5385fab1bde1868c29f10ef1c5db7e099d1b0",
+    "packages/reploid/src/mesh/gpu-signature.policy.json": "0525dfcf9f58df07e9ce8b0e641eda9e0ca174eaab1bf3756a59ff9d3722f2b7"
+  }
+}

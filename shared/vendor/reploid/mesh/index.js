@@ -1,4 +1,6 @@
 export { createLegacyGenerationMesh } from './legacy-generation.js';
+export { identifyComputer, participantLabel } from './computer-identity.js';
+export { captureGpuSignature, compareGpuSignatures } from './gpu-signature.js';
 export { projectPlacementBeliefs, resolvePlacementBeliefPolicy } from './placement-beliefs.js';
 export * from './swarm-coordination.js';
 export * from './partitions/partition-runner.js';

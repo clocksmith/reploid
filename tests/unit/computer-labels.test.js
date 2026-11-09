@@ -2,6 +2,20 @@ import { it, expect } from 'vitest';
 import { computerLabel, participantLabel, withComputerLabels } from '../../apps/poolday/ui/pool-home/computer-labels.js';
 import { projectExecutionRibbon } from '../../apps/poolday/ui/pool-home/execution-ribbon.js';
 
+it('keeps a verified whole-model computer name through reconnect and clears it on transport reuse', () => {
+  const session = {}, state = { network: { consumer: { peers: [
+    { peerId: 'wire-a', participantId: 'stable-key', identityVerified: true }
+  ] } } };
+  expect(computerLabel(withComputerLabels(state, session), 'wire-a')).toBe(participantLabel('stable-key'));
+  state.network.consumer.peers.push({ peerId: 'wire-b', participantId: 'stable-key', identityVerified: true });
+  expect(computerLabel(withComputerLabels(state, session), 'wire-b')).toBe(participantLabel('stable-key'));
+  state.network.consumer.peers = [{ peerId: 'wire-b', participantId: 'stable-key', identityVerified: true }];
+  expect(computerLabel(withComputerLabels(state, session), 'wire-b')).toBe(participantLabel('stable-key'));
+  expect(computerLabel(withComputerLabels(state, {}), 'wire-b')).toBe(participantLabel('stable-key'));
+  state.network.consumer.peers = [{ peerId: 'wire-b', participantId: 'forged-key', identityVerified: false }];
+  expect(computerLabel(withComputerLabels(state, session), 'wire-b')).toBe(participantLabel('wire-b'));
+});
+
 it('keeps names consistent across reloads and different discovery orders', () => {
   const first = { network: { consumer: { peers: [{ peerId: 'peer-a' }, { peerId: 'peer-b' }] } } };
   const reversed = { network: { consumer: { peers: [{ peerId: 'peer-b' }, { peerId: 'peer-a' }] } } };

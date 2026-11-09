@@ -38,6 +38,21 @@ async function fixture(tamper = false, measured = true, onReceipt) {
   await vi.waitFor(() => expect(meshes[0].getSwarmSnapshot().peers.some(peer => peer.readiness === 'ready')).toBe(true));
   return { identities, meshes, wire, failures, modelIdentity, close: () => Promise.all(meshes.map(mesh => mesh.close())) };
 }
+it('identifies whole-model peers for labels before any generation and does not repeat proofs on heartbeats', async () => {
+  const f = await fixture();
+  try {
+    await vi.waitFor(() => expect(f.meshes[0].getSwarmSnapshot().peers[0]).toMatchObject({
+      participantId: f.identities[1].peerId, identityVerified: true
+    }));
+    const count = f.wire.filter(message => message.type === 'reploid:identity-challenge').length;
+    for (let i = 0; i < 4; i++) f.meshes[1].refreshAdvertisement();
+    await new Promise(resolve => setTimeout(resolve, 20));
+    expect(f.wire.filter(message => message.type === 'reploid:identity-challenge')).toHaveLength(count);
+    expect(f.wire.some(message => message.type === 'reploid:generation-request')).toBe(false);
+    expect(await f.meshes[0].identifyComputer('connection-1', { ownerLabel: 'Jupiter' }))
+      .toMatchObject({ participantId: f.identities[1].peerId, label: 'Jupiter', identityBasis: 'signing-key' });
+  } finally { await f.close(); }
+});
 it('transports measured usage across identity proof, provider signing and requester countersigning', async () => {
   const f = await fixture();
   try {

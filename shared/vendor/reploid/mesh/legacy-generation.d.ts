@@ -5,6 +5,10 @@ import type { SwarmTransport, SwarmOptions } from '../transport/swarm.js';
 export interface LegacyGenerationMesh extends GenerationProvider {
   connect(): Promise<unknown>; initialize(): Promise<unknown>; close(): Promise<void>;
   verifyPeerIdentity(peerId: string, signal?: AbortSignal): Promise<string | null>;
+  identifyComputer(peerId: string, options?: {
+    ownerLabel?: string; signal?: AbortSignal;
+    storage?: { getItem(key: string): string | null | Promise<string | null>; setItem(key: string, value: string): unknown };
+  }): Promise<import('./computer-identity.js').ComputerIdentity>;
   recoverGeneration(reference: { requestId: string; providerId: string; providerIdentity: string; modelId: string; modelIdentity: string; adapterIdentities: string[] },
     messages: Message[], signal?: AbortSignal): Promise<{ status: string; response?: GenerationResult; terminal?: Record<string, unknown> }>;
   refreshAdvertisement(): Record<string, unknown>;

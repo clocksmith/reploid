@@ -1,4 +1,6 @@
 export { createLegacyGenerationMesh } from './legacy-generation.js';
+export * from './computer-identity.js';
+export * from './gpu-signature.js';
 export * from './placement-beliefs.js';
 export * from './swarm-coordination.js';
 export * from './contribution.js';

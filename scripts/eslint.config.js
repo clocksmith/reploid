@@ -9,6 +9,9 @@ const browserHarnesses = ['evaluate-document-answers', 'pool-actual-browser-smok
   'verify-poolday-forecast-sdk', 'verify-swarm-runtime',
   'verify-visual-change-passport-dogfood'].map(name => `scripts/${name}.js`);
 const cleanedModules = [
+  'packages/reploid/src/mesh/computer-identity.js',
+  'packages/reploid/src/mesh/gpu-signature.js',
+  'packages/reploid/src/mesh/gpu-signature-shader.js',
   'apps/poolday/host/contribution-resume.js',
   'apps/poolday/host/device-capability.js',
   'apps/poolday/host/model-artifact-probe.js',
@@ -124,6 +127,8 @@ export default [
   // Environment probe supports importing this adapter in Node tests.
   { files: ['self/core/vfs-module-loader.js'], languageOptions: { globals: { process: 'readonly' } } },
   { files: ['packages/reploid/src/**/*.js'], languageOptions: { globals: globals.worker } },
+  { files: ['packages/reploid/src/mesh/gpu-signature.js'],
+    languageOptions: { globals: { GPUBufferUsage: 'readonly', GPUMapMode: 'readonly' } } },
   // These codecs deliberately support optional Node Buffer and browser encodings.
   { files: ['packages/reploid/src/artifacts/identity.js', 'packages/reploid/src/artifacts/signatures.js',
     'shared/pool/device-identity.js', 'apps/poolday/pool/p2p-artifact-transfer.js',

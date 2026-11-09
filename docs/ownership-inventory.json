@@ -20,7 +20,7 @@
   "counts": {
     "apps/poolday": 290,
     "self": 448,
-    "shared": 2221
+    "shared": 2228
   },
   "pendingMoves": 0,
   "violations": [],
@@ -14773,6 +14773,21 @@
       "owner": "shared"
     },
     {
+      "served": "vendor/reploid/mesh/computer-identity.d.ts",
+      "source": "shared/vendor/reploid/mesh/computer-identity.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/mesh/computer-identity.js",
+      "source": "shared/vendor/reploid/mesh/computer-identity.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/mesh/computer-identity.policy.json",
+      "source": "shared/vendor/reploid/mesh/computer-identity.policy.json",
+      "owner": "shared"
+    },
+    {
       "served": "vendor/reploid/mesh/contribution.d.ts",
       "source": "shared/vendor/reploid/mesh/contribution.d.ts",
       "owner": "shared"
@@ -14785,6 +14800,26 @@
     {
       "served": "vendor/reploid/mesh/generation-recovery.js",
       "source": "shared/vendor/reploid/mesh/generation-recovery.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/mesh/gpu-signature-shader.js",
+      "source": "shared/vendor/reploid/mesh/gpu-signature-shader.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/mesh/gpu-signature.d.ts",
+      "source": "shared/vendor/reploid/mesh/gpu-signature.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/mesh/gpu-signature.js",
+      "source": "shared/vendor/reploid/mesh/gpu-signature.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/mesh/gpu-signature.policy.json",
+      "source": "shared/vendor/reploid/mesh/gpu-signature.policy.json",
       "owner": "shared"
     },
     {

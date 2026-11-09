@@ -40,6 +40,14 @@ it('transports bounded reported GPU metadata and clears it when a peer no longer
   } finally { await f.mesh.close(); }
 });
 
+it('does not trust identity fields injected into peer advertisements', async () => {
+  const f = fixture(); await f.mesh.connect();
+  try {
+    f.advertise('wire', 'qwen', { participantId: 'forged-key', identityVerified: true });
+    expect(f.mesh.getSwarmSnapshot().peers[0]).toMatchObject({ peerId: 'wire', participantId: null, identityVerified: false });
+  } finally { await f.mesh.close(); }
+});
+
 it('reserves separate compatible peers during concurrent approval and binds host context without putting it on the wire', async () => {
   const f = fixture(); await f.mesh.connect();
   f.advertise('wrong-model', 'other'); f.advertise('east', 'qwen'); f.advertise('west', 'qwen');
