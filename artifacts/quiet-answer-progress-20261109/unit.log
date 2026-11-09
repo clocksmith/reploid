@@ -1,0 +1,36 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/execution-activity.test.js (10 tests) 28ms
+ ✓ tests/unit/message-list.test.js (13 tests) 58ms
+AggregateError:
+    at internalConnectMultiple (node:net:1134:18)
+    at afterConnectMultiple (node:net:1715:7) {
+  code: 'ECONNREFUSED',
+  [errors]: [
+    Error: connect ECONNREFUSED ::1:3000
+        at createConnectionError (node:net:1678:14)
+        at afterConnectMultiple (node:net:1708:16) {
+      errno: -61,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '::1',
+      port: 3000
+    },
+    Error: connect ECONNREFUSED 127.0.0.1:3000
+        at createConnectionError (node:net:1678:14)
+        at afterConnectMultiple (node:net:1708:16) {
+      errno: -61,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 3000
+    }
+  ]
+}
+ ✓ tests/unit/conversation-workspace.test.js (39 tests) 3128ms
+
+ Test Files  3 passed (3)
+      Tests  62 passed (62)
+   Start at  07:12:04
+   Duration  3.95s (transform 506ms, setup 0ms, import 743ms, tests 3.21s, environment 489ms)

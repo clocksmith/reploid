@@ -1,0 +1,17 @@
+
+Running 8 tests using 1 worker
+
+(node:23717) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:23717) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium-swiftshader] › tests/e2e/chat-material.spec.js:140:1 › compact chat keeps attempt status reachable and composer visible (8.5s)
+  ✓  2 [chromium-swiftshader] › tests/e2e/chat-material.spec.js:251:1 › activity settles, stops on cancel and respects accessibility settings (7.1s)
+  ✓  3 [chromium-swiftshader] › tests/e2e/chat-material.spec.js:386:1 › answer activity shows observed shares and preserves its disclosure during updates (5.4s)
+  ✓  4 [chromium-swiftshader] › tests/e2e/chat-material.spec.js:497:1 › answer measurements and bottom-centered thread badges stay stable while loading (18.0s)
+  ✓  5 [chromium-swiftshader] › tests/e2e/chat-material.spec.js:690:1 › answer inspection stays bound to the selected receipt as later answers arrive (4.2s)
+  ✓  6 [chromium-swiftshader] › tests/e2e/chat-material.spec.js:864:34 › one quiet answer indicator at 1280px (4.4s)
+  ✓  7 [chromium-swiftshader] › tests/e2e/chat-material.spec.js:864:34 › one quiet answer indicator at 390px (3.9s)
+  ✓  8 [chromium-swiftshader] › tests/e2e/chat-tools-no-popup.spec.js:29:1 › Send, search progress, cancellation and Retry have no permission popups (1.2s)
+
+  8 passed (53.4s)

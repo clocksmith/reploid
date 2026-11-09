@@ -65,7 +65,9 @@ test('Send, search progress, cancellation and Retry have no permission popups', 
   await page.locator('[data-composer-input]').fill('Find movie recommendations');
   await page.locator('[data-composer-send]').click();
   const tool = page.locator('.is-assistant [data-tool-status]').last();
-  await expect(tool).toBeVisible(); await expect(tool).toHaveText('Searching the web…');
+  await expect(page.locator('.is-assistant [data-answer-progress]')).toBeVisible();
+  await expect(tool).toHaveText('Searching the web…');
+  await expect(page.locator('.is-assistant [data-execution-trigger]').last()).toHaveAccessibleName(/Searching the web/);
   await page.evaluate(() => window.progress({ stage: 'extraction', completed: 2, total: 4, available: 1 }));
   await expect(tool).toHaveText('Reading search results · 2 of 4 pages');
   await page.screenshot({ path: info.outputPath('tool-loader.png'), fullPage: true });

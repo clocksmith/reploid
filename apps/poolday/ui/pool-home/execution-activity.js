@@ -31,10 +31,6 @@ export function projectExecutionActivity(state) {
 const SUPPLY_LABELS = { local: 'This device', mesh: 'Mesh', hosted: 'Hosted', unknown: 'Executor not verified' };
 const supplyLabel = part => part?.supply === 'mixed' ? `Mixed: ${part.classes.map(name => SUPPLY_LABELS[name]).join(' + ')}`
   : SUPPLY_LABELS[part?.supply] ?? null;
-const supplyCaption = (view, supply) => view.local || supply.answer === 'This device' ? 'This device'
-  : supply.answer === 'Hosted' || view.attempt?.execution?.provider === 'hosted' ? 'Hosted'
-  : supply.answer === 'Executor not verified' ? 'Executor not verified'
-  : view.nodes.length || supply.answer === 'Mesh' || supply.answer?.startsWith('Mixed:') || view.attempt?.execution?.provider === 'peer' || view.attempt?.execution?.placement ? 'Shared computer' : '';
 
 /** The recorded answer-level supply label, and this attempt's own when earlier attempts of the answer differ. */
 export function projectSupplyLabel(attempt) {
@@ -52,22 +48,26 @@ export function updateExecutionActivity(root, state) {
       : progress?.stage === 'context' ? 'Preparing search results…' : 'Searching the web…'
     : '';
   const tool = root.querySelector('[data-tool-status]');
-  if (tool) { tool.hidden = !toolStatus; tool.textContent = toolStatus; }
-  root.hidden = !view.attempt || !toolStatus && !view.nodes.length && !supply.answer && !view.attempt.error;
+  if (tool) {
+    const announcement = view.active ? toolStatus || view.statusLabel : '';
+    tool.hidden = !announcement;
+    if (tool.textContent !== announcement) tool.textContent = announcement;
+  }
+  // One answer-level indicator owns progress, including before an executor is assigned.
+  root.hidden = !view.attempt || !view.active && !view.execution && !supply.answer && !view.attempt.error;
   if (root.hidden) return;
   const summary = [toolStatus || (view.status === 'executing' ? 'Generating' : view.statusLabel),
     ...(view.nodes.length ? [`${view.computerCount} computer${view.computerCount === 1 ? '' : 's'}`] : []),
     ...(view.split ? ['Partitioned'] : []), ...(supply.answer ? [supply.answer] : [])].join(' · ');
-  const supplyText = supplyCaption(view, supply);
-  const readable = [view.model || (supplyText ? view.thread?.model?.name : ''), supplyText].filter(Boolean).join(' · ');
   const trigger = root.querySelector('[data-execution-trigger]');
   trigger.setAttribute('aria-label', summary + '. Execution details');
   trigger.title = summary + (view.nodes.length ? '\n' + view.nodes.map(node => node.label).join(' → ') : '')
     + (view.attempt.error ? '\n' + view.attempt.error : '') + '\nClick to inspect';
-  const icon = interfaceIcon(toolStatus ? 'search' : view.local ? 'device' : view.nodes.length ? 'peers' : 'activity')
-    + (view.computerCount ? `<span>${view.computerCount}</span>` : '')
-    + (readable ? `<span data-execution-label>${escape(readable)}</span>` : '')
-    + `<span class="chat-visually-hidden">${escape(summary)}</span>`;
+  const moving = ['queued', 'loading', 'executing', 'recovering'].includes(view.status);
+  const action = view.status === 'approval' || view.status === 'cancelling' ? view.statusLabel : '';
+  const icon = view.active
+    ? `<span class="pool-dot${moving ? ' pool-dot-pulse' : ' pool-dot-open'}" data-answer-progress aria-hidden="true"></span>${action ? `<span>${escape(action)}</span>` : ''}`
+    : interfaceIcon('activity');
   if (trigger.dataset.markup !== icon) { trigger.innerHTML = icon; trigger.dataset.markup = icon; }
   const detail = root.querySelector('[data-activity-detail]');
   if (detail) updateExecutionDetail(detail, state);
@@ -80,11 +80,15 @@ export function updateExecutionDetail(detail, state) {
   const measured = view.nodes.length > 0 && view.nodes.every(node => node.share !== null);
   const duration = value => `${(value / 1000).toFixed(2)} s`;
   const timings = view.execution?.timing;
+  const tokens = timings?.generatedTokenCount ?? view.execution?.completion?.generatedTokenCount;
   const facts = [
     ['First token', timings?.firstTokenMs], ['Prompt processing', timings?.prefillMs],
     ['Decode', timings?.decodeMs], ['Generation total', timings?.totalMs],
     ['Admission wait', view.execution?.admission?.queuedMs], ['Attempt total', view.totalMs]
   ].filter(([, value]) => Number.isFinite(value) && value >= 0).map(([label, value]) => [label, duration(value)]);
+  if (view.thread?.model?.name) facts.unshift(['Model', view.thread.model.name]);
+  if (Number.isSafeInteger(tokens) && tokens >= 0) facts.push(['Generated tokens', tokens.toLocaleString()]);
+  if (view.averageSpeed !== null) facts.push(['Generation average (includes prompt processing)', `${view.averageSpeed.toFixed(1)} tok/s`]);
   const phases = view.execution?.stepSummary?.phases;
   const stageTotal = (stages, read) => view.ordered && stages?.length === view.nodes.length
     && view.nodes.every((_, index) => stages.filter(stage => stage.partitionIndex === index).length === 1)

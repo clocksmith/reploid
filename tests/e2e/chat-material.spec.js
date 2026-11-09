@@ -48,6 +48,7 @@ async function installConversation(page, theme) {
       state.network = { consumer: { connectionState: 'connected', peers: [] } };
       listeners.forEach(callback => callback(state));
     };
+    window.setVisualAttempt = fields => { Object.assign(state.activeThread.attempts[0], fields); listeners.forEach(callback => callback(state)); };
     window.setVisualTiming = timing => {
       state.activeThread.attempts[0].execution.timing = timing;
       listeners.forEach(callback => callback(state));
@@ -152,7 +153,7 @@ test('compact chat keeps attempt status reachable and composer visible', async (
     await page.evaluate(mode => window.setVisualState(mode), mode);
     const status = page.locator('[data-execution-activity]:not([hidden]) [data-execution-trigger]');
     if (mode !== 'empty') {
-      await expect(status).toContainText(mode === 'executing' ? 'Generating' : label);
+      await expect(status).toHaveAccessibleName(new RegExp(mode === 'executing' ? 'Generating' : label));
       await expect(status).toBeVisible();
       await status.scrollIntoViewIfNeeded();
       await expect(status).toBeInViewport();
@@ -181,7 +182,7 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     for (const state of ['empty', 'unavailable', 'preparing', 'queued', 'loading', 'executing', 'interrupted', 'completed']) {
       await page.evaluate(state => window.setVisualState(state), state);
       await expect(field).toHaveAttribute('data-activity', state === 'executing' ? 'executing' : 'idle');
-      expect(await animation(field)).toBe(state === 'executing' ? 'pool-optical-flow' : 'none');
+      expect(await animation(field)).toBe('none');
       const geometry = await page.evaluate(() => ({
         overflow: document.documentElement.scrollWidth - innerWidth,
         bar: document.querySelector('[data-chat-rail-toolbar]').getBoundingClientRect().toJSON(),
@@ -251,21 +252,23 @@ test('activity settles, stops on cancel and respects accessibility settings', as
   await page.goto('/');
   await expect(page.locator('[data-chat-workspace]')).toBeVisible();
   await installConversation(page, 'light');
-  // The ready pulse plays on the visible model button under the composer.
   const model = page.locator('[data-open-model]'), field = page.locator('[data-composer-field]');
+  const dot = page.locator('[data-answer-progress]');
   await page.evaluate(() => window.setVisualState('completed'));
-  expect(await animation(model)).toBe('pool-optical-ready');
-  await expect.poll(() => model.evaluate(node => getComputedStyle(node, '::after').opacity)).toBe('0');
+  expect(await animation(model)).toBe('none');
+  await expect(dot).toHaveCount(0);
   await page.evaluate(() => window.setVisualState('executing'));
-  expect(await animation(field)).toBe('pool-optical-flow');
-  await page.locator('[data-composer-stop]').click();
+  expect(await animation(dot, '::before')).toBe('pool-dot-pulse');
   expect(await animation(field)).toBe('none');
+  await page.locator('[data-composer-stop]').click();
+  await expect(dot).toHaveCount(0);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.evaluate(() => window.setVisualState('executing'));
+  expect(await animation(dot, '::before')).toBe('none');
   expect(await animation(field)).toBe('none');
   expect(await animation(model)).toBe('none');
   await page.emulateMedia({ forcedColors: 'active' });
-  expect(await field.evaluate(node => getComputedStyle(node, '::after').display)).toBe('none');
+  await expect(dot).toBeVisible();
   await page.evaluate(() => window.disposeVisual());
   await expect(field).toHaveAttribute('data-activity', 'idle');
 });
@@ -515,13 +518,13 @@ test('answer measurements and bottom-centered thread badges stay stable while lo
     const settled = await bounds();
     for (const key of ['transcript', 'composer', 'details']) expect(settled[key]).toEqual(initial[key]);
     expect(settled.copy).not.toBeNull();
-    expect(await row.locator('.chat-message-meta').evaluate(node => getComputedStyle(node).display)).toBe('flex');
-    const metric = row.locator('[data-metric="tokens"]');
-    await expect(metric).toHaveText('256 tokens');
+    await expect(row.locator('.chat-message-meta')).toHaveCount(0);
+    await expect(row).not.toContainText('256 tokens');
     const details = row.locator('[data-execution-trigger]');
-    expect(await details.evaluate(node => getComputedStyle(node).boxShadow)).not.toBe('none');
+    expect(await details.evaluate(node => getComputedStyle(node).boxShadow)).toBe('none');
     await details.click();
     await expect(page.locator('[data-inspected-activity]')).toBeVisible();
+    await expect(page.locator('[data-inspected-activity]')).toContainText('Generated tokens256');
     await page.keyboard.press('Escape');
     await expect(page.locator('[data-inspected-activity]')).not.toBeVisible();
     await page.evaluate(() => window.setVisualThreads(4));
@@ -856,4 +859,53 @@ for (const width of [1280, 390, 320]) test(`model source, selection and composer
   await expect(page.locator('[data-composer-send]')).toBeEnabled();
   await expect(input).toHaveValue('hi');
   await page.screenshot({ path: info.outputPath(`this-device-${width}.png`) });
+});
+
+for (const width of [1280, 390]) test(`one quiet answer indicator at ${width}px`, async ({ page }, info) => {
+  await page.setViewportSize({ width, height: 844 });
+  await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+  await installConversation(page, 'light');
+  const row = page.locator('.is-assistant'), dot = row.locator('[data-answer-progress]');
+  const field = page.locator('[data-composer-field]');
+  let composer;
+  for (const phase of ['queued', 'loading', 'executing']) {
+    await page.evaluate(phase => {
+      window.setVisualState(phase);
+      window.setVisualMessages('Explain the result.', phase === 'executing' ? 'The result is 42.' : '');
+      window.setVisualAttempt({ execution: null }); // No executor receipt yet: progress must still be visible.
+    }, phase);
+    await expect(dot).toHaveCount(1);
+    await expect(dot).toBeVisible();
+    expect(await animation(dot, '::before')).toBe('pool-dot-pulse');
+    expect(await animation(field)).toBe('none');
+    expect(await row.locator('[data-execution-trigger]').innerText()).toBe('');
+    expect(await row.locator('[data-tool-status]').evaluate(node => getComputedStyle(node).clipPath)).toBe('inset(50%)');
+    await expect(page.locator('[data-composer-stop]')).toBeVisible();
+    const box = await field.boundingBox();
+    if (composer) expect(box).toEqual(composer);
+    composer = box;
+  }
+  await page.evaluate(() => { window.indicatorBefore = document.querySelector('[data-answer-progress]'); });
+  await page.evaluate(() => {
+    window.setVisualAttempt({ execution: { placement: 'local-webgpu', timing: { generatedTokenCount: 32, totalMs: 4000 } } });
+    window.setVisualMessages('Explain the result.', 'The result is 42. Here is why.');
+  });
+  expect(await page.evaluate(() => window.indicatorBefore === document.querySelector('[data-answer-progress]'))).toBe(true);
+  await expect(row).not.toContainText('tok/s');
+  await page.screenshot({ path: info.outputPath('quiet-active.png') });
+  await row.locator('[data-execution-trigger]').click();
+  await expect(page.locator('[data-inspected-activity]')).toContainText('Generated tokens32');
+  await expect(page.locator('[data-inspected-activity]')).toContainText('8.0 tok/s');
+  await page.keyboard.press('Escape');
+  await page.evaluate(() => window.setVisualState('cancelling'));
+  expect(await animation(dot, '::before')).toBe('none');
+  await expect(row.locator('[data-execution-trigger]')).toHaveText('Stopping');
+  await page.evaluate(() => window.setVisualState('interrupted'));
+  await expect(dot).toHaveCount(0);
+  await expect(row.locator('[data-system-status]')).toContainText('interrupted');
+  await expect(row.locator('[data-retry-attempt]')).toBeVisible();
+  await page.evaluate(() => window.setVisualState('completed'));
+  await expect(dot).toHaveCount(0);
+  await page.screenshot({ path: info.outputPath('quiet-completed.png') });
 });

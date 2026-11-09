@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { updateExecutionDetail } from '../../apps/poolday/ui/pool-home/execution-activity.js';
 import { createMessageList } from '../../apps/poolday/ui/pool-home/message-list.js';
 
 function conversation() {
@@ -112,27 +113,30 @@ describe('Stable message presentation', () => {
 });
 
 
-it('shows recorded answer metadata and omits unknown or invalid measurements', () => {
-  const root = document.createElement('div'), thread = conversation();
+it('keeps recorded measurements in inspection rather than repeating them under the answer', () => {
+  const root = document.createElement('div'), detail = document.createElement('div'), thread = conversation();
   thread.model = { name: 'Qwen 27B' };
   const view = createMessageList(root);
-  view.update(thread, { usable: true, busy: false });
-  const meta = root.querySelector('.is-assistant .chat-message-meta');
-  expect(meta.textContent).toBe('');
+  const update = () => {
+    view.update(thread, { usable: true, busy: false });
+    updateExecutionDetail(detail, { activeThread: thread });
+  };
+  update();
+  expect(root.querySelector('.chat-message-meta')).toBeNull();
+  expect(detail.textContent).not.toContain('Generated tokens');
   thread.attempts[0].execution = { placement: 'local-webgpu', timing: { generatedTokenCount: 92, totalMs: 5000 } };
-  view.update(thread, { usable: true, busy: false });
-  expect(root.querySelector('.is-assistant [data-execution-label]').textContent).toBe('Qwen 27B · This device');
-  expect(meta.querySelector('[title="92 generated tokens"]').textContent).toBe('92 tokens');
-  expect(meta.textContent).toContain('18.4 tok/s');
-  expect(meta.textContent).toContain('92 tokens');
-  expect(meta.textContent).toContain('5.0 s');
-  expect(meta.querySelector('[title="Generation time including prompt processing"]')).not.toBeNull();
-  thread.attempts[0].execution = { peerId: 'peer-1', timing: { generatedTokenCount: 92, totalMs: 5000 } };
-  view.update(thread, { usable: true, busy: false });
-  expect(root.querySelector('.is-assistant [data-execution-label]').textContent).toBe('Qwen 27B · Shared computer');
+  update();
+  expect(root.querySelector('[data-execution-label]')).toBeNull();
+  expect(root.textContent).not.toMatch(/Qwen 27B|tok\/s|92 tokens|5.0 s/);
+  expect(detail.textContent).toContain('Qwen 27B');
+  expect(detail.textContent).toContain('This device');
+  expect(detail.textContent).toContain('18.4 tok/s');
+  expect(detail.textContent).toContain('Generated tokens92');
+  expect(detail.textContent).toContain('Generation total5.00 s');
   thread.attempts[0].execution.timing = { generatedTokenCount: -1, totalMs: NaN };
-  view.update(thread, { usable: true, busy: false });
-  expect(meta.textContent).toBe('');
+  update();
+  expect(detail.textContent).not.toContain('Generated tokens');
+  expect(detail.textContent).not.toContain('tok/s');
   view.dispose();
 });
 
@@ -145,7 +149,11 @@ it('shows each answer’s own route and latency, without borrowing metrics from 
   const view = createMessageList(root);
   view.update(thread, { usable: true, busy: false });
   const first = root.querySelector('[data-message-id="reply"]'), second = root.querySelector('[data-message-id="later-reply"]');
-  expect(first.querySelector('.chat-message-meta').textContent).toContain('10.0 tok/s');
+  const detail = document.createElement('div');
+  updateExecutionDetail(detail, { activeThread: { ...thread, attempts: [thread.attempts[0]] } });
+  expect(detail.textContent).toContain('10.0 tok/s');
+  updateExecutionDetail(detail, { activeThread: { ...thread, attempts: [thread.attempts[1]] } });
+  expect(detail.textContent).not.toContain('tok/s');
   expect(first.querySelector('[data-execution-trigger]').getAttribute('aria-label')).toContain('1 computer');
   expect(root.querySelector('[popover]')).toBeNull();
   expect(second.querySelector('[data-execution-trigger]').getAttribute('aria-label')).toContain('2 computers · Partitioned');
