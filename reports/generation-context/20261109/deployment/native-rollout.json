@@ -1,0 +1,16 @@
+{
+  "at": "2026-11-09T22:17:56.943436+00:00",
+  "sourceRevision": "549a801b0c5572c3cc22df9eca1c79f4483abb6c",
+  "unit": "reploid-qwen27b-0633-20261104.service",
+  "previousMainPid": 3399279,
+  "mainPid": 204246,
+  "active": true,
+  "runtimeVersion": "0.6.36",
+  "runtimeIntegrity": "sha512-0gqBQVBl6wVXZPBlRWyHmvGlcjSzGehk3wYMlXGp76tm2/VZWQvHW+Xqax+6Kc8M2DOw6AJicGvyZmy4YJTLog==",
+  "nativeFilesVerified": 206,
+  "sameSigningIdentity": true,
+  "sameOwnerPolicy": true,
+  "sameModelManifest": true,
+  "workingDirectoryIsRelease": true,
+  "rollbackRetained": true
+}

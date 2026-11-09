@@ -1,0 +1,115 @@
+{
+  "schema": "reploid.generation-context-hosted/v1",
+  "at": "2026-11-09T22:15:45.340Z",
+  "url": "https://replo.id",
+  "browser": "157.0.8103.38",
+  "passed": true,
+  "cases": [
+    {
+      "kind": "initial",
+      "answer": "red",
+      "execution": {
+        "adapterIdentities": [],
+        "completion": {
+          "generatedTokenCount": 2,
+          "promptTokenCount": 120,
+          "schema": "doppler.generation-completion/v1",
+          "stopReason": "stop-token"
+        },
+        "hardware": {
+          "architecture": "rdna-3",
+          "description": "radv: Mesa 26.0.3-1ubuntu1",
+          "device": "radeon-8060s-graphics-radv-strix-halo-",
+          "vendor": "amd"
+        },
+        "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+        "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+        "peerId": "a003bbd9-8428-413b-8bfb-d24d185bbf9c",
+        "placement": "peer-whole-request",
+        "provider": "peer",
+        "stopReason": "stop-token",
+        "timing": {
+          "decodeMs": 328.5785840000026,
+          "firstTokenMs": 3366.311572999999,
+          "generatedTokenCount": 2,
+          "prefillComputedTokens": 120,
+          "prefillMs": 3348.4128619999974,
+          "reusedPrefixTokens": 0,
+          "totalMs": 3697.267598999999
+        }
+      }
+    },
+    {
+      "kind": "followup",
+      "answer": "blue",
+      "execution": {
+        "adapterIdentities": [],
+        "completion": {
+          "generatedTokenCount": 2,
+          "promptTokenCount": 142,
+          "schema": "doppler.generation-completion/v1",
+          "stopReason": "stop-token"
+        },
+        "hardware": {
+          "architecture": "rdna-3",
+          "description": "radv: Mesa 26.0.3-1ubuntu1",
+          "device": "radeon-8060s-graphics-radv-strix-halo-",
+          "vendor": "amd"
+        },
+        "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+        "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+        "peerId": "a003bbd9-8428-413b-8bfb-d24d185bbf9c",
+        "placement": "peer-whole-request",
+        "provider": "peer",
+        "stopReason": "stop-token",
+        "timing": {
+          "decodeMs": 159.05039699999907,
+          "firstTokenMs": 930.4736259999918,
+          "generatedTokenCount": 2,
+          "prefillComputedTokens": 26,
+          "prefillMs": 925.1512089999887,
+          "reusedPrefixTokens": 116,
+          "totalMs": 1091.0788709999906
+        }
+      }
+    },
+    {
+      "kind": "after-cancel",
+      "answer": "42",
+      "execution": {
+        "adapterIdentities": [],
+        "completion": {
+          "generatedTokenCount": 3,
+          "promptTokenCount": 167,
+          "schema": "doppler.generation-completion/v1",
+          "stopReason": "stop-token"
+        },
+        "hardware": {
+          "architecture": "rdna-3",
+          "description": "radv: Mesa 26.0.3-1ubuntu1",
+          "device": "radeon-8060s-graphics-radv-strix-halo-",
+          "vendor": "amd"
+        },
+        "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+        "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+        "peerId": "a003bbd9-8428-413b-8bfb-d24d185bbf9c",
+        "placement": "peer-whole-request",
+        "provider": "peer",
+        "stopReason": "stop-token",
+        "timing": {
+          "decodeMs": 308.51788100000704,
+          "firstTokenMs": 3502.9494520000007,
+          "generatedTokenCount": 3,
+          "prefillComputedTokens": 167,
+          "prefillMs": 3490.460334999996,
+          "reusedPrefixTokens": 0,
+          "totalMs": 3813.4517129999876
+        }
+      }
+    }
+  ],
+  "pageErrors": [],
+  "weightRequests": [],
+  "historyPreserved": true,
+  "cancelled": true
+}

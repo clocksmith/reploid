@@ -72,12 +72,19 @@ const checkWorkspaceAtLoad = async (routePage, route) => {
   await expect(routePage.locator('[data-network-workspace]')).toBeHidden();
   await expect(routePage.locator('.pool-home')).not.toHaveAttribute('data-network-panel-open', '');
   await expect(routePage.locator('[data-toggle-inspector]')).not.toHaveAttribute('aria-current', 'page');
-  // Shared choices precede the composer; contribution lives in the closed Computers drawer.
-  const shared = routePage.locator('[data-production-shared]');
-  await expect(shared).toBeVisible();
+  // One chooser belongs to the composer; the removed model-card list must not return.
+  await expect(routePage.locator('[data-production-shared]')).toHaveCount(0);
   await expect(routePage.locator('[data-production-device]')).toBeHidden();
-  const precedesComposer = await shared.evaluate(node => Boolean(node.compareDocumentPosition(document.querySelector('[data-composer-area]')) & Node.DOCUMENT_POSITION_FOLLOWING));
-  if (!precedesComposer) failures.push(`${route}: shared models do not precede the composer`);
+  const chooser = routePage.locator('[data-open-model]');
+  await expect(chooser).toHaveCount(1);
+  await expect(routePage.locator('[data-composer-area] [data-open-model]')).toBeVisible();
+  await expect(routePage.locator('[data-model-picker]')).toBeHidden();
+  await chooser.focus();
+  await chooser.press('Enter');
+  await expect(routePage.locator('[data-model-picker]')).toBeVisible();
+  await routePage.keyboard.press('Escape');
+  await expect(routePage.locator('[data-model-picker]')).toBeHidden();
+  await expect(chooser).toBeFocused();
 };
 
 const workspaceFrameFailures = async (routePage, route, width) => {
@@ -87,21 +94,24 @@ const workspaceFrameFailures = async (routePage, route, width) => {
     const box = selector => document.querySelector(selector).getBoundingClientRect().toJSON();
     return { toolbar: box('[data-chat-rail-toolbar]'), page: document.querySelector('.pool-route-content').firstElementChild.getBoundingClientRect().toJSON(),
       area: box('[data-conversation-area]'), composer: box('[data-composer-area]'), input: box('[data-composer-input]'), send: box('[data-composer-send]'),
-      shared: box('[data-production-shared]'), viewport: { width: innerWidth, height: innerHeight }, overflowX: document.documentElement.scrollWidth - innerWidth };
+      model: box('[data-open-model]'), viewport: { width: innerWidth, height: innerHeight }, overflowX: document.documentElement.scrollWidth - innerWidth };
   });
   const found = [], at = `${route} at ${width}px`, center = rect => rect.x + rect.width / 2, detail = JSON.stringify(frame);
   if (frame.overflowX > 1) found.push(`${at}: page scrolls horizontally: ${detail}`);
   if (Math.abs(center(frame.toolbar) - center(frame.page)) > 1) found.push(`${at}: conversation is not centered under the workspace toolbar: ${detail}`);
   if (Math.abs(center(frame.composer) - center(frame.area)) > 1) found.push(`${at}: composer is not centered in the conversation: ${detail}`);
   if (frame.composer.right > frame.viewport.width - 8) found.push(`${at}: composer reaches the viewport edge: ${detail}`);
-  if (frame.shared.bottom > frame.composer.y + 1) found.push(`${at}: shared models do not sit above the composer: ${detail}`);
+  if (frame.model.left < frame.composer.left - 1 || frame.model.right > frame.composer.right + 1
+    || frame.model.top < frame.composer.top - 1 || frame.model.bottom > frame.composer.bottom + 1) {
+    found.push(`${at}: model chooser escapes the composer: ${detail}`);
+  }
   if (width > PHONE_MAX_WIDTH) {
     if (frame.toolbar.y > frame.area.y) found.push(`${at}: workspace toolbar is not above the conversation: ${detail}`);
     if (frame.area.y < frame.toolbar.bottom + 8) found.push(`${at}: conversation overlaps the workspace toolbar: ${detail}`);
   } else {
     // The phone dock sits at the bottom of the first screen, with the input and Send above it.
     if (frame.toolbar.bottom > frame.viewport.height + 1 || frame.toolbar.y < frame.area.bottom - 1) found.push(`${at}: workspace toolbar is not docked below the conversation: ${detail}`);
-    for (const name of ['input', 'send']) {
+    for (const name of ['input', 'send', 'model']) {
       if (frame[name].y < 0 || frame[name].bottom > frame.toolbar.y + 1) found.push(`${at}: ${name} is not on the first screen above the dock: ${detail}`);
     }
   }

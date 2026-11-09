@@ -1,0 +1,167 @@
+{
+  "schema": "reploid.generation-context-installed/v1",
+  "passed": true,
+  "runtimeVersion": "0.6.36",
+  "packageIntegrity": "sha512-0gqBQVBl6wVXZPBlRWyHmvGlcjSzGehk3wYMlXGp76tm2/VZWQvHW+Xqax+6Kc8M2DOw6AJicGvyZmy4YJTLog==",
+  "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+  "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+  "node": "v22.22.1",
+  "platform": "linux",
+  "configuration": {
+    "profile": "catalog",
+    "loadOptions": {
+      "runtimeConfig": {
+        "shared": {
+          "harness": {
+            "referenceTranscript": {
+              "enabled": false,
+              "captureLogits": true,
+              "captureKvBytes": true
+            }
+          },
+          "debug": {
+            "logLevel": {
+              "defaultLogLevel": "warn"
+            },
+            "trace": {
+              "enabled": false
+            },
+            "profiler": {
+              "enabled": false
+            }
+          },
+          "bufferPool": {
+            "budget": {
+              "maxTotalBytes": 25769803776,
+              "highWatermarkRatio": 0.94,
+              "emergencyTrimTargetRatio": 0.9,
+              "hardFailOnBudgetExceeded": true
+            }
+          }
+        },
+        "inference": {
+          "prompt": "The capital of France is",
+          "chatTemplate": {
+            "enabled": false,
+            "type": null,
+            "thinking": false
+          },
+          "generation": {
+            "maxTokens": 128,
+            "disableMultiTokenDecode": true
+          },
+          "batching": {
+            "maxTokens": 128,
+            "batchSize": 1,
+            "readbackInterval": 1,
+            "stopCheckMode": "per-token",
+            "readbackMode": "sequential",
+            "ringTokens": 1,
+            "ringStop": 1,
+            "ringStaging": 1
+          },
+          "sampling": {
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1,
+            "repetitionPenalty": 1,
+            "repetitionPenaltyWindow": 1,
+            "greedyThreshold": 0,
+            "suppressSpecialTokens": false,
+            "suppressSpecialLikeTokens": false,
+            "suppressTokenIds": []
+          },
+          "session": {
+            "decodeLoop": {
+              "batchSize": 1,
+              "readbackInterval": 1,
+              "stopCheckMode": "per-token",
+              "readbackMode": "sequential",
+              "submitLatencyThresholdMs": null,
+              "maxBatchDecodeTokens": 1,
+              "ringTokens": 1,
+              "ringStop": 1,
+              "ringStaging": 1,
+              "disableCommandBatching": false
+            },
+            "kvcache": {
+              "maxSeqLen": 4096
+            },
+            "prefillTokenChunkSize": 256
+          },
+          "kernelPathPolicy": {
+            "mode": "capability-aware",
+            "sourceScope": [
+              "manifest"
+            ],
+            "allowSources": [
+              "manifest"
+            ],
+            "onIncompatible": "error"
+          },
+          "kvcache": {
+            "maxSeqLen": 4096
+          }
+        }
+      }
+    },
+    "generation": {
+      "maxTokens": 256,
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1,
+      "repetitionPenalty": 1,
+      "maxSeqLen": 4096,
+      "useChatTemplate": true,
+      "repetitionPenaltyWindow": 1
+    },
+    "maxOutputTokens": 4
+  },
+  "scope": "Offline installed-package/native-provider development check; no public service or browser qualification",
+  "cases": [
+    {
+      "kind": "alternating-threads-followup",
+      "cached": {
+        "totalMs": 1238.6124940000009,
+        "generatedTokenCount": 4,
+        "prefillMs": 752.9478570000065,
+        "decodeMs": 478.11140900000464,
+        "firstTokenMs": 759.2637650000106,
+        "reusedPrefixTokens": 78,
+        "prefillComputedTokens": 23
+      },
+      "fresh": {
+        "totalMs": 2627.4061909999873,
+        "generatedTokenCount": 4,
+        "prefillMs": 2157.5159589999967,
+        "decodeMs": 468.45001899999625,
+        "firstTokenMs": 2158.684930999996,
+        "reusedPrefixTokens": 0,
+        "prefillComputedTokens": 101
+      },
+      "content": "The last color is"
+    },
+    {
+      "kind": "requester-isolation",
+      "otherReused": 0,
+      "originalReused": 97
+    },
+    {
+      "kind": "cancel-rebuild-reuse",
+      "reusedAfterCancel": 0
+    },
+    {
+      "kind": "edited-history",
+      "reused": 0
+    }
+  ],
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "radeon-8060s-graphics-radv-strix-halo-",
+    "description": "radv: Mesa 26.0.3-1ubuntu1",
+    "subgroupMinSize": 32,
+    "subgroupMaxSize": 64
+  },
+  "cleanup": "settled"
+}

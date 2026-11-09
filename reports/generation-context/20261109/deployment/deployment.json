@@ -1,0 +1,60 @@
+{
+  "schema": "reploid.context-deployment/v1",
+  "url": "https://replo.id",
+  "sourceRevision": "549a801b0c5572c3cc22df9eca1c79f4483abb6c",
+  "runtimeVersion": "0.6.36",
+  "cloudBuild": "3fc6fe11-e432-4e2a-b0cf-6a46d2ed89ec",
+  "cloudImageDigest": "sha256:4763615a4c61665adea349f5b2fe32dff7c152df1da43db33c69261789ae6d3e",
+  "previousBackend": {
+    "sourceRevision": "1ed54c5acc3bd61a3f4c2738d8ac73cd71346b92",
+    "sourceRevisionValid": true,
+    "image": "us-central1-docker.pkg.dev/reploid/reploid/reploid-pool:1ed54c5acc3bd61a3f4c2738d8ac73cd71346b92",
+    "imageBoundToSourceRevision": true,
+    "runtimeBundleHash": "sha256:4bbad51d8eace20974b3dc5e67e4b91caadb359d9152fbbfca0161d9e05e3cac",
+    "runtimeFileCount": 3468,
+    "platformRevision": "reploid-pool-00137-vdf",
+    "platformConfiguration": "reploid-pool",
+    "platformService": "reploid-pool"
+  },
+  "deployedBackend": {
+    "sourceRevision": "549a801b0c5572c3cc22df9eca1c79f4483abb6c",
+    "sourceRevisionValid": true,
+    "image": "us-central1-docker.pkg.dev/reploid/reploid/reploid-pool:549a801b0c5572c3cc22df9eca1c79f4483abb6c",
+    "imageBoundToSourceRevision": true,
+    "runtimeBundleHash": "sha256:546671f2b49f1c2a3eb10dc132f058add3e284959b32adf5a53647a9d1affb0a",
+    "runtimeFileCount": 3587,
+    "platformRevision": "reploid-pool-00138-qmp",
+    "platformConfiguration": "reploid-pool",
+    "platformService": "reploid-pool"
+  },
+  "configVersion": "2026-09-06.remote-adapters.v1.doppler-0.6.36.esm2-capsule-v2.http-admission-v1",
+  "configHash": "sha256:f75c0ee57f2e791f05973b5308710d68905db7a75fa700a6a62cd02a0789522f",
+  "productionTrafficPercent": 100,
+  "browserBundleHash": "sha256:5a618b33fa649468087195964f4a896fcbac67c878ecfda4f26a4e90eec24599",
+  "servedFilesVerified": 2311,
+  "initialReleaseCheck": {
+    "byteIdentity": "passed",
+    "backendIdentity": "passed",
+    "criticalJourneyContract": "passed",
+    "desktopMobileSurface": "passed",
+    "productionConfiguration": "passed",
+    "browserSmoke": "failed: obsolete data-production-shared assertion; repaired check rerun separately"
+  },
+  "diagnostics": "The many-route surface check emitted peer connection and TURN rate-limit warnings. Its layout checks passed. The separate generation check recorded zero page errors.",
+  "correctedBrowserSmoke": {
+    "passed": true,
+    "command": "node scripts/pool-browser-smoke.js https://replo.id --channel=chrome",
+    "logSha256": "2b389eb152ab0d8ece20e78a8571438482e9ef42bf0b5f6a1d25b7273651d482",
+    "checks": [
+      "one composer model chooser",
+      "keyboard open and Escape focus restoration",
+      "desktop and phone containment",
+      "all product routes",
+      "network drawer",
+      "unsent draft persistence",
+      "no idle weight downloads",
+      "no page errors",
+      "deployment auth policy"
+    ]
+  }
+}
