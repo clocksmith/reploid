@@ -1,12 +1,12 @@
 {
   "url": "https://replo.id",
-  "checkedAt": "2026-11-09T18:14:17.850Z",
-  "deploymentCommit": "8138cf464",
+  "checkedAt": "2026-11-09T18:18:12.752Z",
+  "deploymentCommit": "de21c8d6447854867864dae49210b9b2ca99a79d",
   "assets": [
     {
       "path": "ui/pool-home/app.bundle.js",
-      "sha256": "1f7f18ce0af3fcf693c1cae02c213d64bfefd428c43c5423980cf2f5a2ca7191",
-      "bytes": 2386162
+      "sha256": "7d8cd6cc10d4d7e79ea0636d51abc673c5f50c00b753211beb8b93a7718e6294",
+      "bytes": 2386245
     },
     {
       "path": "ui/components/control-help.js",
@@ -32,6 +32,7 @@
   "views": [
     {
       "viewport": "1440x844 desktop",
+      "initialModel": "Qwen 3.5 0.8B · Shared",
       "pickerRows": [
         "Qwen 3.5 0.8BDownload required",
         "Qwen 3.5 2BDownload required",
@@ -39,13 +40,22 @@
         "Qwen 3.6 35B A3BDownload required",
         "Qwen 3.5 0.8B NER JSON LoRANo computer serves it now"
       ],
-      "modelLabel": "Qwen 3.8 27B · Shared",
+      "settledModels": [
+        "Qwen 3.5 0.8BDownload required",
+        "Qwen 3.5 2BDownload required",
+        "Qwen 3.8 27BDownload required",
+        "Qwen 3.6 35B A3BDownload required",
+        "Qwen 3.5 0.8B NER JSON LoRANo computer serves it now"
+      ],
+      "pickerSelection": "qwen-3-5-0-8b-q4k-ehaf16",
+      "modelLabel": "Qwen 3.5 2B · Shared",
       "overflow": 0,
       "pageErrors": [],
       "passed": true
     },
     {
       "viewport": "390x844 with touch emulation",
+      "initialModel": "Qwen 3.5 0.8B · Shared",
       "pickerRows": [
         "Qwen 3.5 0.8BDownload required",
         "Qwen 3.5 2BDownload required",
@@ -53,12 +63,20 @@
         "Qwen 3.6 35B A3BDownload required",
         "Qwen 3.5 0.8B NER JSON LoRANo computer serves it now"
       ],
+      "settledModels": [
+        "Qwen 3.5 2BReady",
+        "Qwen 3.5 0.8BDownload required",
+        "Qwen 3.8 27BDownload required",
+        "Qwen 3.6 35B A3BDownload required",
+        "Qwen 3.5 0.8B NER JSON LoRANo computer serves it now"
+      ],
+      "pickerSelection": "qwen-3-5-2b-q4k-ehaf16",
       "modelLabel": "Qwen 3.8 27B · Shared",
       "overflow": 0,
       "pageErrors": [],
       "passed": true
     }
   ],
-  "bundleHash": "sha256:6d29acd31640cbe380806087ec41eca346180f09842695123d54b774c04653a1",
+  "bundleHash": "sha256:e70a8772d586b0b49b0f48c3edb681d1bfa33002a98c04c065a388ce835d97c5",
   "browser": "157.0.8103.38"
 }

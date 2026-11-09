@@ -1,0 +1,10 @@
+{
+  "sourceCommit": "de21c8d6447854867864dae49210b9b2ca99a79d",
+  "bundleHash": "sha256:e70a8772d586b0b49b0f48c3edb681d1bfa33002a98c04c065a388ce835d97c5",
+  "unitTests": {
+    "passed": 126,
+    "files": 6
+  },
+  "regression": "An untouched open picker follows ready capacity; a staged explicit row remains selected.",
+  "live": "live.json records matched active/picker selections on desktop and touch emulation; no inference request sent."
+}
