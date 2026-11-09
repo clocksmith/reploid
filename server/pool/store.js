@@ -1,3 +1,4 @@
+import { createPeerRoomRelayRecord } from './relay-record.js';
 /**
  * @fileoverview In-memory store for the Reploid pool coordinator.
  */
@@ -472,16 +473,7 @@ export function createPoolStore() {
       const prior = resolveIdempotentRelay(existing, message, 'peer room relay');
       if (prior) return prior;
       const relaySequence = (peerRoomRelaySequences.get(resolvedRoomId) || 0) + 1;
-      const saved = {
-        ...message,
-        roomId: resolvedRoomId,
-        relayId,
-        relaySequence,
-        fromPeerId: message.fromPeerId || null,
-        createdAt: Number(message.createdAt || Date.now()),
-        expiresAt: message.expiresAt || null,
-        receivedAt: nowIso()
-      };
+      const saved = createPeerRoomRelayRecord(message, { roomId: resolvedRoomId, relayId, relaySequence, now: Date.now(), receivedAt: nowIso() });
       const messages = peerRoomMessages.get(resolvedRoomId) || [];
       messages.push(saved);
       peerRoomMessages.set(resolvedRoomId, messages);

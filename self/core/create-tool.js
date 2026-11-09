@@ -1,10 +1,10 @@
+import { normalizeToolCapabilities } from './tool-capabilities.js';
 /**
  * @fileoverview CreateTool - Create runtime tool candidates.
  */
 
 import { defaultAllowTargetPath, isValidatorMutationTarget, sha256 } from './promotion-policy.js';
 import { loadVfsModule } from './vfs-module-loader.js';
-
 
 const getZeroTargetPath = (candidatePath) => {
   const cleanPath = String(candidatePath || '').trim();
@@ -24,19 +24,6 @@ const getToolHandler = (mod = {}) => (
 
 const MAX_ACTIVATION_CHECKS = 8;
 const ACTIVATION_CHECK_TIMEOUT_MS = 5000;
-
-const normalizeToolCapabilities = (capabilities = []) => {
-  if (capabilities instanceof Set) {
-    return new Set([...capabilities].map((capability) => String(capability || '').trim()).filter(Boolean));
-  }
-  if (Array.isArray(capabilities)) {
-    return new Set(capabilities.map((capability) => String(capability || '').trim()).filter(Boolean));
-  }
-  if (typeof capabilities === 'string') {
-    return new Set(capabilities.split(/[,\s]+/).map((capability) => capability.trim()).filter(Boolean));
-  }
-  return new Set();
-};
 
 const isRecord = (value) => (
   value !== null

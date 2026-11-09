@@ -1,3 +1,4 @@
+import { resolveRuntimeMode } from './runtime-mode.js';
 import { isMinimalLabMode } from '../config/lab-upgrades.js';
 /**
  * @fileoverview Persona Manager
@@ -20,12 +21,8 @@ const PersonaManager = {
   factory: (deps) => {
     const { Utils, VFS, EventBus } = deps;
     const { logger } = Utils;
-    const getBootMode = () => {
-      if (typeof window !== 'undefined' && typeof window.getReploidMode === 'function') {
-        return window.getReploidMode();
-      }
-      return getReploidStorage().getItem('REPLOID_MODE') || 'reploid';
-    };
+    const mode = resolveRuntimeMode({ mode: deps.mode });
+    const getBootMode = () => mode;
 
     const CORE_INSTRUCTIONS = `You are REPLOID, a browser-hosted Recursive GEPA Ring agent running inside a same-origin browser substrate.
 Your live self is explicit and file-backed. In the self-owned runtime, /self is canonical. In the full substrate runtime, the VFS root exposes /core/, /capabilities/, /tools/, /ui/, and /styles/. Treat these as browser VFS roots, not host operating-system paths.

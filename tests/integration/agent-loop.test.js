@@ -132,9 +132,8 @@ describe('AgentLoop - Integration Tests', () => {
     }
   };
 
-  beforeEach(() => {
-    createMocks();
-    agentLoop = AgentLoopModule.factory({
+  const createAgentLoop = mode => AgentLoopModule.factory({
+      mode,
       Utils: mockUtils,
       EventBus: mockEventBus,
       LLMClient: mockLLMClient,
@@ -155,7 +154,8 @@ describe('AgentLoop - Integration Tests', () => {
         }
       })
     });
-  });
+
+  beforeEach(() => { createMocks(); agentLoop = createAgentLoop(); });
 
   afterEach(() => {
     vi.clearAllMocks();
@@ -320,6 +320,9 @@ describe('AgentLoop - Integration Tests', () => {
       vi.stubGlobal('window', {
         getReploidMode: () => 'zero'
       });
+      await agentLoop.close();
+      agentLoop = createAgentLoop('zero');
+      agentLoop.setModel({ id: 'test-model', provider: 'test' });
       mockPersonaManager.getSystemPrompt.mockResolvedValue('You are Zero, a browser-local tabula-rasa RSI agent.');
       mockLLMClient.chat.mockResolvedValue({ content: 'DONE' });
       mockResponseParser.isDone.mockReturnValue(true);
@@ -369,6 +372,9 @@ describe('AgentLoop - Integration Tests', () => {
       vi.stubGlobal('window', {
         getReploidMode: () => 'x'
       });
+      await agentLoop.close();
+      agentLoop = createAgentLoop('x');
+      agentLoop.setModel({ id: 'test-model', provider: 'test' });
       mockLLMClient.chat.mockResolvedValue({ content: 'DONE' });
       mockResponseParser.isDone.mockReturnValue(true);
 

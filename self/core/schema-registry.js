@@ -1,3 +1,4 @@
+import { resolveRuntimeMode } from './runtime-mode.js';
 import fileToolSchemas from '../config/file-tool-schemas.json' with { type: 'json' };
 /**
  * @fileoverview Schema Registry
@@ -5,7 +6,6 @@ import fileToolSchemas from '../config/file-tool-schemas.json' with { type: 'jso
  * Integrates with SchemaValidator for runtime type safety.
  */
 
-import { getCurrentReploidStorage as getReploidStorage } from '../../shared/instance.js';
 import { getToolNamesForMode } from '../../shared/config/tool-surfaces.js';
 
 const SchemaRegistry = {
@@ -26,19 +26,8 @@ const SchemaRegistry = {
     const _toolSchemas = new Map();   // name -> { schema, builtin }
     const _workerSchemas = new Map(); // name -> { config, builtin }
 
-    const getBootMode = () => {
-      if (typeof window !== 'undefined' && typeof window.getReploidMode === 'function') {
-        return window.getReploidMode();
-      }
-      const storage = getReploidStorage();
-      if (storage.raw) {
-        const stored = storage.getItem('REPLOID_MODE');
-        if (stored === 'reploid' || stored === 'zero' || stored === 'x') {
-          return stored;
-        }
-      }
-      return 'reploid';
-    };
+    const mode = resolveRuntimeMode({ mode: deps.mode });
+    const getBootMode = () => mode;
 
     // Tool schemas with readOnly flag for parallel execution
     // readOnly: true = safe for parallel execution (no side effects)

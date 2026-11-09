@@ -8,68 +8,29 @@ export { getRouteId, isProductPath, renderNav, updateChangesControl };
  * @fileoverview Rendering and UI state helpers for the Poolday product home.
  */
 import { renderOperationSharing } from './operation-sharing.js';
-import { renderWorkSurface, renderNetworkSurface, renderImproveSurface } from './work.js';
+import { renderNetworkSurface, renderImproveSurface } from './work.js';
 import { renderConversationWorkspace } from './conversation-workspace.js';
 import { renderProductionSurface } from './production.js';
 
-import {
-  LAUNCH_MODEL,
-  POOLDAY_MODEL_WORKLOADS,
-  getEnabledPoolModelContract,
-  getPoolModelWorkload,
-  listPoolModels
-} from '../../../../shared/pool/model-contract.js';
-import { DETERMINISTIC_GENERATION_CONFIG, FASTEST_RECEIPT_POLICY_ID, getPolicy, listPolicies } from '../../pool/policy-router.js';
-import { DEFAULT_PEER_ROOM_ID } from '../../pool/peer-room.js';
+import { LAUNCH_MODEL, POOLDAY_MODEL_WORKLOADS, getEnabledPoolModelContract, getPoolModelWorkload, listPoolModels } from '../../../../shared/pool/model-contract.js';
+import { FASTEST_RECEIPT_POLICY_ID, getPolicy, listPolicies } from '../../pool/policy-router.js';
+
 import { createPeerEventReducer } from '../../pool/peer-control-plane.js';
-import { createPoolSdk } from '../../../../shared/pool/sdk.js';
+
 import { readParticipationPreferences } from '../../../../shared/pool/participation-profile.js';
 import { LAB_SURFACE_IDS, SURFACE_INTENTS } from '../../../../shared/config/surface-intents.js';
 import { renderDocumentSearch } from './document-search.js';
-import {
-  createPeerRoomBusFactory,
-  createPeerRoomInviteUrl
-} from '../../pool/peer-rendezvous.js';
-import {
-  PRODUCT_ROUTES,
-  POOLDAY_NAME,
-  POOLDAY_NAV_ROUTES,
-  POOLDAY_NETWORK_VISUAL_EVENT,
-  POOLDAY_RUN_VISUAL_EVENT,
-  POOLDAY_PEER_LEDGER_STORAGE_KEY,
-  POOLDAY_PROTOCOL,
-  POOLDAY_RECEIPT_LEDGER_LIMIT,
-  POOLDAY_STREAM_CHUNK_SIZE,
-  POOLDAY_STREAM_TICK_MS,
-  POOLDAY_VERSION_TAG,
-  ROUTE_COPY,
-  choosePooldayAskPlaceholderForLane
-} from './constants.js';
+import { createPeerRoomInviteUrl } from '../../pool/peer-rendezvous.js';
+import { POOLDAY_NAME, POOLDAY_NETWORK_VISUAL_EVENT, POOLDAY_RUN_VISUAL_EVENT, POOLDAY_PEER_LEDGER_STORAGE_KEY, POOLDAY_RECEIPT_LEDGER_LIMIT, POOLDAY_STREAM_CHUNK_SIZE, POOLDAY_STREAM_TICK_MS, POOLDAY_VERSION_TAG, ROUTE_COPY, choosePooldayAskPlaceholderForLane } from './constants.js';
 import { getContributionSnapshot } from './contribution-state.js';
 import { getPoolLedgerStore } from './ledger-store.js';
-import {
-  createPoolRecordPersistence,
-  getPeerEventHash,
-  getPooldayRecordStorageKeys as buildPooldayRecordStorageKeys
-} from './record-persistence.js';
+import { createPoolRecordPersistence, getPeerEventHash, getPooldayRecordStorageKeys as buildPooldayRecordStorageKeys } from './record-persistence.js';
 import { resolvePoolNetworkVisualState } from './network-projection.js';
 import { renderResearchWorkspace } from './research-view.js';
-import {
-  getCrossRoomSequenceEvidence,
-  getProteinUncertaintyCampaignQueue,
-  getResearchSyncState,
-  loadQuarantinedResearchRecords,
-  loadResearchRecords
-} from './research-store.js';
+import { getCrossRoomSequenceEvidence, getProteinUncertaintyCampaignQueue, getResearchSyncState, loadQuarantinedResearchRecords, loadResearchRecords } from './research-store.js';
 import { renderResearchRoom, roomHref } from './room-view.js';
 import { renderRequesterConsentRows, renderRequesterIntentFields } from './requester-controls.js';
-import {
-  formatContributionModel,
-  formatContributionTokens,
-  projectRoomRecordRows,
-  receiptOccurredAt,
-  recordTimeMs
-} from './room-record-projection.js';
+import { formatContributionModel, formatContributionTokens, projectRoomRecordRows, receiptOccurredAt, recordTimeMs } from './room-record-projection.js';
 
 export { resolvePoolNetworkVisualState, renderConversationWorkspace };
 
@@ -177,56 +138,8 @@ const ensureRecordLedgersLoaded = (roomId = getPeerRoomId()) => recordPersistenc
 const persistReceiptLedgerRows = (roomId = getPeerRoomId()) => recordPersistence.persistReceipts(roomId);
 const persistPeerLedgerEvents = (roomId = getPeerRoomId()) => recordPersistence.persistPeerEvents(roomId);
 
-export const getPeerDiscoveryWindowMs = () => {
-  const explicit = Number(window.REPLOID_POOL_DISCOVERY_WINDOW_MS || 0);
-  if (Number.isFinite(explicit) && explicit > 0) return explicit;
-  if (getPeerRelayMode() === 'server') return 8000;
-  return 1200;
-};
-
-export const getPeerReceiptWindowMs = () => {
-  const explicit = Number(window.REPLOID_POOL_RECEIPT_WINDOW_MS || 0);
-  if (Number.isFinite(explicit) && explicit > 0) return explicit;
-  return 60000;
-};
-
-export const getPeerQueueWindowMs = () => {
-  const explicit = Number(window.REPLOID_POOL_QUEUE_WINDOW_MS || 0);
-  if (Number.isFinite(explicit) && explicit > 0) return explicit;
-  return getPeerReceiptWindowMs();
-};
-
-export const getPeerSessionAcceptWindowMs = () => {
-  const explicit = Number(window.REPLOID_POOL_SESSION_ACCEPT_WINDOW_MS || 0);
-  if (Number.isFinite(explicit) && explicit > 0) return explicit;
-  if (getPeerRelayMode() === 'server') return 15000;
-  return 5000;
-};
-
-export const getPeerTransportConnectWindowMs = () => {
-  const explicit = Number(window.REPLOID_POOL_TRANSPORT_CONNECT_WINDOW_MS || 0);
-  if (Number.isFinite(explicit) && explicit > 0) return explicit;
-  if (getPeerRelayMode() === 'server') return 20000;
-  return 5000;
-};
-
-export const getPeerGenerationConfig = () => {
-  const override = window.REPLOID_POOL_GENERATION_CONFIG && typeof window.REPLOID_POOL_GENERATION_CONFIG === 'object'
-    ? window.REPLOID_POOL_GENERATION_CONFIG
-    : {};
-  const maxOutputTokens = Number(
-    window.REPLOID_POOL_MAX_OUTPUT_TOKENS
-    || override.maxOutputTokens
-    || DETERMINISTIC_GENERATION_CONFIG.maxOutputTokens
-  );
-  return {
-    ...DETERMINISTIC_GENERATION_CONFIG,
-    ...override,
-    maxOutputTokens: Number.isFinite(maxOutputTokens) && maxOutputTokens > 0
-      ? Math.floor(maxOutputTokens)
-      : DETERMINISTIC_GENERATION_CONFIG.maxOutputTokens
-  };
-};
+export { getPeerDiscoveryWindowMs, getPeerReceiptWindowMs, getPeerQueueWindowMs, getPeerSessionAcceptWindowMs,
+  getPeerTransportConnectWindowMs, getPeerGenerationConfig } from '../../host/peer-execution-config.js';
 
 export const getPeerInviteUrl = () => createPeerRoomInviteUrl({
   roomId: getPeerRoomId(),
@@ -880,8 +793,6 @@ const formatLedgerValue = (value, fallback = '—') => {
   if (typeof value === 'boolean') return value ? 'true' : 'false';
   return String(value);
 };
-
-const renderReceiptSummaryCell = (value, fallback = '—') => `<td>${escapeHtml(formatLedgerValue(value, fallback))}</td>`;
 
 const compactHex = (value) => {
   const normalized = formatLedgerValue(value, '—');

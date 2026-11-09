@@ -1,4 +1,4 @@
-import { createToolRunner } from '../shared/vendor/reploid/index.js';
+import { createToolRunner } from '../shared/vendor/reploid/agent/tool-runner.js';
 import { loadVfsModule } from './core/vfs-module-loader.js';
 
 export function createSelfToolRunner(options = {}) {

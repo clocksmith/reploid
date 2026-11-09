@@ -19,6 +19,6 @@ export interface ToolOperationRetryOptions {
 }
 
 export declare function withTimeoutAndRetry<T>(
-  operation: (attempt: number) => Promise<T>,
+  operation: (attempt: number, signal: AbortSignal) => Promise<T>,
   options?: ToolOperationRetryOptions
 ): Promise<T>;

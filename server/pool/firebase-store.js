@@ -1,3 +1,4 @@
+import { createPeerRoomRelayRecord } from './relay-record.js';
 /**
  * @fileoverview Firestore-backed pool store for Firebase deployment.
  */
@@ -669,16 +670,7 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
         if (prior) return prior;
         const sequenceSnapshot = await transaction.get(sequenceRef);
         const relaySequence = Number(sequenceSnapshot.data()?.nextSequence || 0) + 1;
-        const saved = {
-          ...message,
-          roomId: resolvedRoomId,
-          relayId,
-          relaySequence,
-          fromPeerId: message.fromPeerId || null,
-          createdAt: Number(message.createdAt || Date.now()),
-          expiresAt: message.expiresAt || null,
-          receivedAt: nowIso()
-        };
+        const saved = createPeerRoomRelayRecord(message, { roomId: resolvedRoomId, relayId, relaySequence, now: Date.now(), receivedAt: nowIso() });
         transaction.set(messageRef, stripUndefined(saved));
         transaction.set(sequenceRef, {
           roomId: resolvedRoomId,

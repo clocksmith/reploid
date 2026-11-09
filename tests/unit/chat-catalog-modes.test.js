@@ -1,3 +1,4 @@
+import { availablePartitionRoute } from '../../apps/poolday/host/partition-release.js';
 import { it, expect } from 'vitest';
 import { projectChatCatalog } from '../../apps/poolday/host/chat-view.js';
 import { updateModelSelect } from '../../apps/poolday/ui/components/model-select.js';
@@ -15,12 +16,12 @@ it('does not turn catalog declarations or ready peer advertisements into public 
   expect(select.textContent).not.toContain('Distributed');
 });
 it('shows an explicitly approved available route without claiming whole-model readiness', () => {
-  const catalog = projectChatCatalog({ models: [model], peers: [], partitionModels: [route], partitionApprovals: [approval] });
+  const catalog = projectChatCatalog({ models: [model], peers: [], releasedPartitionModels: [route].filter(model => availablePartitionRoute(model, [approval])) });
   expect(catalog).toHaveLength(2); expect(catalog[0].availability).toBe('unavailable');
   expect(catalog[1]).toEqual(route);
 });
 it('withdraws distributed choices when approved capacity is lost', () => {
-  const catalog = projectChatCatalog({ models: [model], peers: [], partitionModels: [{ ...route, availability: 'unavailable' }], partitionApprovals: [approval] });
+  const catalog = projectChatCatalog({ models: [model], peers: [], releasedPartitionModels: [{ ...route, availability: 'unavailable' }].filter(model => availablePartitionRoute(model, [approval])) });
   expect(catalog).toHaveLength(1);
 });
 it('offers an adapter only under the base artifact it declares, whatever its name says', () => {

@@ -222,18 +222,18 @@
     },
     {
       "path": "agent/tool-operation-retry.d.ts",
-      "bytes": 707,
-      "sha256": "c8d6449d2f657d5311597266c7431af627de17b0adba92b932ae6f020d4d5ef6"
+      "bytes": 728,
+      "sha256": "ca58b3f186314143b80dd8db4934974cbaf685b1ed5fee9f7ceb4154bc13f61a"
     },
     {
       "path": "agent/tool-operation-retry.js",
-      "bytes": 1575,
-      "sha256": "5f42a5be415d1ad887a20d4c648300ad1b4d6f596e9d8b80274915e1d74fe5f6"
+      "bytes": 1988,
+      "sha256": "066cd158722e60ffac1f8169cd9dae8ff13e36edbd944680e39dcababca53982"
     },
     {
       "path": "agent/tool-retry.js",
-      "bytes": 994,
-      "sha256": "2ae0f2aa04a4d21e7be003e70f6d152fcdb159a89fb8a447389aac23fd01fb83"
+      "bytes": 1165,
+      "sha256": "a21097d21ae622aa4c4c9a1837019268fc40f40b447decbcf9f0cc92e2e6a6b6"
     },
     {
       "path": "agent/tool-runner.d.ts",
@@ -1146,6 +1146,11 @@
       "sha256": "c5a5375aa292845fd22539f00dad29344f08e00eecde76b2220a57eed9ba8c9a"
     },
     {
+      "path": "mesh/partitions/preparation-owner.js",
+      "bytes": 1899,
+      "sha256": "6c174c6023ca3e57d5ab193bf0cfdb4ac51e250d03fb795c06faa41ffb021c4c"
+    },
+    {
       "path": "mesh/partitions/resident-error-codes.json",
       "bytes": 305,
       "sha256": "6740f7b64ef193c82e1f0d880f9993109ac2592b3dffe8752ace8c290446e506"
@@ -1432,8 +1437,8 @@
     },
     {
       "path": "transport/introductions.js",
-      "bytes": 12349,
-      "sha256": "7d659039e849b70367beb995d72c091343d05515337e8a4f9c3c8f620469ec1b"
+      "bytes": 12069,
+      "sha256": "9b36fc770991d0c1ab121e41b3dc8a7472387ed942851d5a457810ebff007c40"
     },
     {
       "path": "transport/partition-data-channel.d.ts",
@@ -1471,6 +1476,11 @@
       "sha256": "896993c8e363490831a089307b9e6a6632e4d26495c2b2c8d861bb5fcf1c99ab"
     },
     {
+      "path": "transport/sdp-fingerprint.js",
+      "bytes": 339,
+      "sha256": "a616be93464250662dcd0f07a7d9ee89f09919070e83a92926676370ae274229"
+    },
+    {
       "path": "transport/signaling.d.ts",
       "bytes": 2538,
       "sha256": "12e0c9224151c319f1b8a10da16e9c3bb713ba1471c8c58569a344ca5fd43751"
@@ -1487,8 +1497,8 @@
     },
     {
       "path": "transport/swarm.js",
-      "bytes": 49265,
-      "sha256": "e44566bdfcc4e9ffa64cf25842f434b31ea21c049954136676454e6ef3da0258"
+      "bytes": 48946,
+      "sha256": "07dbb6a969a6efd8bf76ad9c914c1d9efe54f95319d851e0fb8080d4fb48980f"
     },
     {
       "path": "transport/tool-offer-channel.d.ts",

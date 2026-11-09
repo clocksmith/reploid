@@ -18,9 +18,9 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 282,
-    "self": 447,
-    "shared": 2219
+    "apps/poolday": 290,
+    "self": 448,
+    "shared": 2221
   },
   "pendingMoves": 0,
   "violations": [],
@@ -1747,6 +1747,12 @@
       "basis": "Reached only from product entries."
     },
     {
+      "served": "config/partition-releases.json",
+      "source": "apps/poolday/config/partition-releases.json",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
       "served": "config/reploid-environments.js",
       "source": "self/config/reploid-environments.js",
       "owner": "self",
@@ -1971,6 +1977,12 @@
     {
       "served": "core/run-replay-bundle.js",
       "source": "self/core/run-replay-bundle.js",
+      "owner": "self",
+      "basis": "Reached only from substrate entries."
+    },
+    {
+      "served": "core/runtime-mode.js",
+      "source": "self/core/runtime-mode.js",
       "owner": "self",
       "basis": "Reached only from substrate entries."
     },
@@ -2233,6 +2245,12 @@
       "basis": "Reached only from product entries."
     },
     {
+      "served": "host/contribution-resume.js",
+      "source": "apps/poolday/host/contribution-resume.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
       "served": "host/contributor-search.js",
       "source": "apps/poolday/host/contributor-search.js",
       "owner": "apps/poolday",
@@ -2247,6 +2265,12 @@
     {
       "served": "host/credits/local-sign-in.js",
       "source": "apps/poolday/host/credits/local-sign-in.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "host/device-capability.js",
+      "source": "apps/poolday/host/device-capability.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },
@@ -2329,8 +2353,32 @@
       "basis": "Reached only from product entries."
     },
     {
+      "served": "host/model-artifact-probe.js",
+      "source": "apps/poolday/host/model-artifact-probe.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
       "served": "host/model-storage.js",
       "source": "apps/poolday/host/model-storage.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "host/partition-release.js",
+      "source": "apps/poolday/host/partition-release.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "host/peer-execution-config.js",
+      "source": "apps/poolday/host/peer-execution-config.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "host/peer-run-session.js",
+      "source": "apps/poolday/host/peer-run-session.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },
@@ -2343,6 +2391,12 @@
     {
       "served": "host/product-session.js",
       "source": "apps/poolday/host/product-session.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "host/provider-contribution-session.js",
+      "source": "apps/poolday/host/provider-contribution-session.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },
@@ -15149,6 +15203,11 @@
       "owner": "shared"
     },
     {
+      "served": "vendor/reploid/mesh/partitions/preparation-owner.js",
+      "source": "shared/vendor/reploid/mesh/partitions/preparation-owner.js",
+      "owner": "shared"
+    },
+    {
       "served": "vendor/reploid/mesh/partitions/resident-error-codes.json",
       "source": "shared/vendor/reploid/mesh/partitions/resident-error-codes.json",
       "owner": "shared"
@@ -15476,6 +15535,11 @@
     {
       "served": "vendor/reploid/transport/room.js",
       "source": "shared/vendor/reploid/transport/room.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/transport/sdp-fingerprint.js",
+      "source": "shared/vendor/reploid/transport/sdp-fingerprint.js",
       "owner": "shared"
     },
     {

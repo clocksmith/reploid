@@ -32,13 +32,14 @@ async function call(args = {}, deps = {}) {
 
   try {
     // Spawn the worker with timeout and retry (depth=0 since this is called from main agent)
-    const { workerId, promise } = await withTimeoutAndRetry(
-      async () => WorkerManager.spawn({
+    const { workerId } = await withTimeoutAndRetry(
+      async (_attempt, signal) => WorkerManager.spawn({
         type,
         task,
         model,
         maxIterations,
-        depth: 0
+        depth: 0,
+        signal
       }),
       {
         timeoutMs: spawnTimeoutMs,
@@ -62,7 +63,7 @@ async function call(args = {}, deps = {}) {
       throw new Error(`Worker spawn timed out after ${spawnTimeoutMs}ms. The worker pool may be overloaded.`);
     }
     if (error instanceof RetryExhaustedError) {
-      throw new Error(`Worker spawn failed after ${maxRetries + 1} attempts: ${error.lastError?.message || 'Unknown error'}`);
+      throw Object.assign(new Error(`Worker spawn failed after ${error.attempts} attempts: ${error.lastError?.message || 'Unknown error'}`, { cause: error }), { retryable: false, isTimeout: error.lastError instanceof TimeoutError });
     }
     throw error;
   }

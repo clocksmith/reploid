@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { createPartitionPreparationOwner } from '../packages/reploid/src/mesh/partitions/preparation-owner.js';
 /** Native Node host for the same authenticated partition protocol as the browser.
  * No browser, model arithmetic, or implicit execution fallback lives here.
  */
@@ -294,37 +295,13 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
   await nativeGpu(); signal.throwIfAborted();
   await runtime.configureDeviceMemoryBudget({ maxBytes: gpuBufferBytes ?? selected.partitionRuntime?.maxGpuBufferBytes?.[index] ?? policy.maxGpuBufferBytes });
   const source = await openNativeModelSource({ model: selected, modelDirectory, signal, runtime, files });
-  let resident, release = null, capsuleVerification = null, sourceSettled = false, releaseSettled = false, residentSettled = false, commitAuthority = null;
+  let resident, release = null, capsuleVerification = null, commitAuthority = null;
   const ownerId = canonical ? crypto.randomUUID().replaceAll('-', '') : null;
   let ownershipRecorded = false;
-  const sessions = new Set();
-  const trackSession = session => { sessions.add(session); return () => sessions.delete(session); };
-  const closeSources = async failures => {
-    if (!sourceSettled) {
-      try { await source.storage.close(); sourceSettled = true; } catch (error) { failures.push(error); }
-    }
-    if (release && !releaseSettled) {
-      try { await release.close(); releaseSettled = true; } catch (error) { failures.push(error); }
-    }
-  };
-  let cleaning = null;
-  const cleanupOwner = { close() {
-    return cleaning ||= (async () => {
-      const failures = []; commitAuthority?.close();
-      if (!residentSettled) {
-        try { await resident?.close(); residentSettled = true; } catch (error) { failures.push(error); }
-      }
-      for (const session of sessions) {
-        try { await session.close(); sessions.delete(session); } catch (error) { failures.push(error); }
-      }
-      await closeSources(failures);
-      if (failures.length === 1) throw failures[0];
-      if (failures.length) throw new AggregateError(failures, 'Native preparation cleanup failed');
-      if (ownershipRecorded) { canonical.epochs.settle(ownerId); ownershipRecorded = false; }
-      releaseCleanup?.();
-    })().catch(error => { cleaning = null; throw error; });
-  } };
-  const releaseCleanup = registerCleanup?.(cleanupOwner);
+  const cleanupOwner = createPartitionPreparationOwner({ source, registerCleanup,
+    errorMessage: 'Native preparation cleanup failed',
+    onSettled() { if (ownershipRecorded) { canonical.epochs.settle(ownerId); ownershipRecorded = false; } } });
+  const { closeSources, trackSession } = cleanupOwner;
   const tokenizer = createPartitionTokenizerGuard(source.storage);
   const onLoadProgress = event => { const progress = residentPreparationProgress(event); if (progress) onProgress(progress); };
   try {
@@ -342,6 +319,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
         executionId: generation.executionIdentity };
       stage.stageId = runtime.metadataDigest('reploid.partition-resident-stage/v1', { modelIdentity: selected.identity, planId, ...stage });
       commitAuthority = createPartitionStageCommitAuthority({ runtime, identity: canonical.identity, stage });
+      cleanupOwner.commitAuthority = commitAuthority;
       canonicalOptions = { canonicalGeneration: selected.canonicalGeneration, canonicalRuntime: runtime,
         canonicalCommitAuthority: { getStage: () => { canonical.epochs.assertCurrent(); return commitAuthority.getStage(); },
           async sign(request) { canonical.epochs.assertCurrent(); const result = await commitAuthority.sign(request); canonical.epochs.assertCurrent(); return result; },
@@ -352,6 +330,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
       requireValue(source.artifactStore, 'Signed native resident requires a pinned artifact source');
       release = await prepareLocalPackRelease({ model: configured,
         openCheckpoints: () => openNativeReleaseCheckpoints({ directory: releaseDirectory }) });
+      cleanupOwner.release = release;
       const { openCapsule } = await import('doppler-gpu/host');
       factory = createSignedResidentFactory({ createFactory: runtime.createResidentPartitionFactory,
         openCapsule, model: configured, artifactStore: source.artifactStore, release,
@@ -366,6 +345,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
       limits: policy.limits, ...canonicalOptions, ...orderedOptions, ...(device ? { device, attemptBytes } : {}),
       // Ordered stages sign receipts for charged attempts with this host's participant identity.
       ...(orderedOptions.ordered && evidenceSigner?.participantId === participantId ? { evidence: evidenceSigner } : {}) });
+    cleanupOwner.resident = resident;
     onProgress({ stage: 'opening', message: 'Opening native assigned partition' });
     if (canonical) { canonical.epochs.begin(ownerId); ownershipRecorded = true; }
     const prepared = await resident.prepare({ approved: true, signal });

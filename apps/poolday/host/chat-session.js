@@ -1,3 +1,4 @@
+import { availablePartitionRoute } from './partition-release.js';
 /**
  * @fileoverview Host chat session connecting createChatWorkspace to Doppler WebGPU
  * and Poolday peer execution. Manages multithreaded conversations, persistent scopes,
@@ -212,7 +213,7 @@ export function createChatSession({
 
   const getCatalogModels = () => copy(projectChatCatalog({
     models: [...models, ...peerModels], peers: swarm?.getState?.().consumer?.peers || [],
-    partitionModels: partitions?.getModels() || []
+    releasedPartitionModels: (partitions?.getModels() || []).filter(model => availablePartitionRoute(model))
   }).map(model => {
     model = { ...model, networkAvailability: model.availability };
     const local = execution.getLocalState();

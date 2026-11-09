@@ -69,7 +69,7 @@ async function call(args = {}, deps = {}) {
       throw new Error(`Module load timed out after ${timeoutMs}ms: ${cleanPath}. The module may have circular dependencies or be too large.`);
     }
     if (error instanceof RetryExhaustedError) {
-      throw new Error(`Module load failed after ${maxRetries + 1} attempts: ${error.lastError?.message || 'Unknown error'}`);
+      throw Object.assign(new Error(`Module load failed after ${error.attempts} attempts: ${error.lastError?.message || 'Unknown error'}`, { cause: error }), { retryable: false, isTimeout: error.lastError instanceof TimeoutError });
     }
     throw error;
   }

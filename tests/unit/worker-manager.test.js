@@ -49,6 +49,24 @@ describe('WorkerManager', () => {
     vi.unstubAllGlobals();
   });
 
+  it('does not construct a worker when cancellation occurs during spawn preparation', async () => {
+    const Worker = vi.fn();
+    vi.stubGlobal('Worker', Worker);
+    const deps = makeDeps();
+    const gate = Promise.withResolvers();
+    deps.AuditLogger.logEvent.mockReturnValue(gate.promise);
+    const manager = WorkerManagerModule.factory(deps);
+    await manager.init({ workerTypes: { explore: { tools: [], defaultModelRole: 'fast' } } }, { id: 'test', provider: 'test' });
+    const controller = new AbortController();
+    const pending = manager.spawn({ type: 'explore', task: 'cancel before creation', signal: controller.signal });
+    const assertion = expect(pending).rejects.toThrow('deadline');
+    controller.abort(Error('deadline'));
+    gate.resolve();
+    await assertion;
+    expect(Worker).not.toHaveBeenCalled();
+    expect(manager.list()).toEqual([]);
+  });
+
   it('preserves rawResult in worker tool RPC responses', async () => {
     let fakeWorker = null;
     class FakeWorker {

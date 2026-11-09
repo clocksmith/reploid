@@ -23,6 +23,8 @@ const NON_RETRYABLE_ERROR_PATTERNS = [
 
 /** @param {unknown} error */
 export const isRetryableToolError = error => {
+  if (error && typeof error === 'object' && (('retryable' in error && error.retryable === false)
+    || ('isTimeout' in error && error.isTimeout === true))) return false;
   const message = error instanceof Error ? error.message : String(error);
   if (/timeout/i.test(message)) return false;
   return !NON_RETRYABLE_ERROR_PATTERNS.some(pattern => pattern.test(message));

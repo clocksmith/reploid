@@ -1,3 +1,4 @@
+import { resolveRuntimeMode } from './runtime-mode.js';
 import { createRunTraceRecorder } from '../infrastructure/telemetry-timeline.js';
 import AgentLoop from '../../shared/vendor/reploid/agent/legacy-loop.js';
 import { resolveConfig } from '../../shared/vendor/reploid/config/index.js';
@@ -11,7 +12,8 @@ import { buildRunReplayBundle, readImportedRunReplaySummary } from './run-replay
 export default {
   ...AgentLoop,
   factory: deps => {
-    let attemptSurface = requireSurfaceIntent('zero');
+    const mode = resolveRuntimeMode({ mode: deps.mode });
+    let attemptSurface = requireSurfaceIntent(mode === 'x' ? 'x' : 'zero');
     let selectedModels = [];
     const trace = createRunTraceRecorder({ VFS: deps.VFS,
       onPersistenceError: message => deps.EventBus.emit('agent:warning', { message: `Recording not saved: ${message}` })
@@ -45,7 +47,6 @@ export default {
         () => deps.ToolRunner.has ? deps.ToolRunner.has(request.name) : deps.ToolRunner.list?.().includes(request.name) === true);
     },
     resolveAttemptConfig(model) {
-      const mode = typeof globalThis.window?.getReploidMode === 'function' ? globalThis.window.getReploidMode() : 'zero';
       attemptSurface = requireSurfaceIntent(mode === 'x' ? 'x' : 'zero');
       const state = deps.StateManager?.getState?.() || {};
       const config = state.config || {};
@@ -64,8 +65,7 @@ export default {
         }
       } } });
     },
-    getRuntimeMode: () => typeof globalThis.window?.getReploidMode === 'function'
-      ? globalThis.window.getReploidMode() : getCurrentReploidStorage().getItem('REPLOID_MODE') || 'reploid'
+    getRuntimeMode: () => mode
   });
     return {
       ...loop,

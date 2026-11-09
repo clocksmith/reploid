@@ -1,3 +1,4 @@
+import { createHttpRequestOwner } from './http-request-owner.js';
 import { canonicalPartitionJson, partitionAdapterIdentities } from '../packages/reploid/src/mesh/partitions/partition-contract.js';
 import { requireGenerationCapability, tokenUsage } from '../packages/reploid/src/mesh/partitions/partition-generation-request.js';
 /** Text-only HTTP projection of admitted whole-model and partition routes. No model fallback. */
@@ -37,7 +38,7 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
   if (!participant || typeof participant.generate !== 'function' || typeof participant.getState !== 'function'
     || typeof authenticate !== 'function' || typeof authorize !== 'function') throw Error('Text requester requires an actual requester and explicit authentication/authorization ports');
   const formatError = protocol.errorBody || errorBody;
-  const active = new Set(); let closed = false;
+  const requests = createHttpRequestOwner({ timeoutMs: policy.controlChannel.timeoutMs });
   if (!requesterAdmission.has(participant)) requesterAdmission.set(participant, new Set());
   const admitted = requesterAdmission.get(participant);
   const handle = async (req, res) => {
@@ -48,15 +49,16 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
       json(res, 404, formatError(fail(404, 'Unsupported API route'))); return;
     }
     if (req.method !== 'POST') { res.writeHead(405, { allow: 'POST' }); res.end(); return; }
-    if (closed || admitted.size >= policy.inputLimits.maxConcurrentAttempts) {
-      json(res, closed ? 503 : 429, formatError(fail(closed ? 503 : 429, 'Requester admission unavailable'))); return;
+    if (requests.closed || admitted.size >= policy.inputLimits.maxConcurrentAttempts) {
+      json(res, requests.closed ? 503 : 429, formatError(fail(requests.closed ? 503 : 429, 'Requester admission unavailable'))); return;
     }
-    const controller = new AbortController(), signal = controller.signal;
-    let settle;
-    const item = { controller, completion: new Promise(resolve => { settle = resolve; }) }; active.add(item); admitted.add(item);
-    const cancel = () => controller.abort(Error('HTTP requester disconnected'));
-    req.once('aborted', cancel); res.once('close', cancel);
-    const timer = setTimeout(() => controller.abort(fail(408, 'Request admission deadline exceeded')), policy.controlChannel.timeoutMs);
+    const scope = requests.begin(req, res, {
+      disconnectError: () => Error('HTTP requester disconnected'),
+      deadlineError: () => fail(408, 'Request admission deadline exceeded'),
+      onFinish: item => admitted.delete(item)
+    });
+    const { controller, signal } = scope;
+    admitted.add(scope.item);
     let streaming = false, emitted = '', sequence = 0, observedUsage = null, disclosureApproved = false, acceptingCallbacks = true;
     let approvedRecipients = [];
     const id = protocol.idPrefix + randomUUID().replaceAll('-', ''), created = Math.floor(Date.now() / 1000);
@@ -102,7 +104,7 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
       const request = freeze({ threadId, attemptId, model, messages: input.messages, ...(requested ? {generationRequest:requested} : {}) });
       if (await authorize({ action: 'chat.execute', principal, request, signal }) !== true) throw fail(403, 'Request execution denied');
       requirePrivateScope();
-      signal.throwIfAborted(); clearTimeout(timer);
+      signal.throwIfAborted(); scope.clearDeadline();
       res.setHeader('x-request-id', id); res.setHeader('x-reploid-attempt-id', attemptId);
       res.setHeader('x-reploid-model-identity', model.identity);
       if (requested) res.setHeader('x-reploid-token-usage', requested.usage);
@@ -208,17 +210,9 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
       }
     } finally {
       acceptingCallbacks = false;
-      clearTimeout(timer); req.removeListener('aborted', cancel); res.removeListener('close', cancel);
-      active.delete(item); admitted.delete(item); settle();
+      scope.finish();
     }
   };
-  return Object.freeze({ handle, getState: () => ({ closed, active: active.size, scope: 'http-requests' }),
-    async close() {
-      closed = true;
-      for (const item of active) item.controller.abort(Error('Text requester server closing'));
-      let timer;
-      try { await Promise.race([Promise.all([...active].map(item => item.completion)), new Promise((_, reject) => {
-        timer = setTimeout(() => reject(Error('HTTP requester cleanup remains unsettled')), policy.controlChannel.timeoutMs);
-      })]); } finally { clearTimeout(timer); }
-    } });
+  return Object.freeze({ handle, getState: () => ({ closed: requests.closed, active: requests.size, scope: 'http-requests' }),
+    close: () => requests.close(() => Error('Text requester server closing'), () => Error('HTTP requester cleanup remains unsettled')) });
 }

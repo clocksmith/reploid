@@ -1,3 +1,4 @@
+import { fingerprint } from './sdp-fingerprint.js';
 /**
  * @fileoverview WebRTC Swarm Transport
  * Peer-to-peer coordination via WebRTC with secure message validation,
@@ -1227,11 +1228,7 @@ const WebRTCSwarm = {
       getPeerBinding(remotePeerId) {
         const peer = _peers.get(remotePeerId);
         if (peer?.dataChannel?.readyState !== 'open') return null;
-        const fingerprint = description => {
-          const values = [...new Set((description?.sdp || '').split(/\r?\n/)
-            .filter(line => /^a=fingerprint:sha-256 /i.test(line)).map(line => line.slice(14).trim().toLowerCase()))];
-          return values.length === 1 && /^sha-256 (?:[a-f0-9]{2}:){31}[a-f0-9]{2}$/.test(values[0]) ? values[0] : null;
-        };
+
         const local = fingerprint(peer.connection?.localDescription), remote = fingerprint(peer.connection?.remoteDescription);
         return local && remote ? { local, remote } : null;
       },

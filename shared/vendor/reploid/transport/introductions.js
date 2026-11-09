@@ -1,3 +1,4 @@
+import { fingerprint } from './sdp-fingerprint.js';
 import defaults from './introduction-policy.json' with { type: 'json' };
 import { freezeJson } from '../config/index.js';
 import { boundedSnapshot, createContact, verifyContact, sealIntroduction,
@@ -6,11 +7,6 @@ import { boundedSnapshot, createContact, verifyContact, sealIntroduction,
 export const INTRODUCTION_CONTACT = 'reploid:introduction-contact';
 export const INTRODUCTION_SIGNAL = 'reploid:introduction-signal';
 const assert = (value, message) => { if (!value) throw new Error(message); };
-const fingerprint = description => {
-  const values = [...new Set((description?.sdp || '').split(/\r?\n/)
-    .filter(line => /^a=fingerprint:sha-256 /i.test(line)).map(line => line.slice(14).trim().toLowerCase()))];
-  return values.length === 1 && /^sha-256 (?:[a-f0-9]{2}:){31}[a-f0-9]{2}$/.test(values[0]) ? values[0] : null;
-};
 
 /** One-hop introductions. The host grants admission/forwarding independently of compute. */
 export async function createPeerIntroductions({ transport, identity, roomId, authorize, createAdmission, policy = defaults,

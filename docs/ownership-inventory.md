@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 282 |
-| self | 447 |
-| shared | 2219 |
-| total | 2948 |
+| apps/poolday | 290 |
+| self | 448 |
+| shared | 2221 |
+| total | 2959 |
 
 Every file lives in its owner's root.
 
@@ -32,7 +32,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | Served tree | Files | Owner |
 | --- | ---: | --- |
 | `vendor/doppler/` | 1852 | shared |
-| `vendor/reploid/` | 286 | shared |
+| `vendor/reploid/` | 288 | shared |
 
 ## Files
 
@@ -324,6 +324,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `config/ordered-participation.json` | `apps/poolday/config/ordered-participation.json` | apps/poolday | Reached only from product entries. |
 | `config/partition-generation.js` | `apps/poolday/config/partition-generation.js` | apps/poolday | Reached only from product entries. |
 | `config/partition-policy.json` | `apps/poolday/config/partition-policy.json` | apps/poolday | Reached only from product entries. |
+| `config/partition-releases.json` | `apps/poolday/config/partition-releases.json` | apps/poolday | Reached only from product entries. |
 | `config/reploid-environments.js` | `self/config/reploid-environments.js` | self | Reached only from substrate entries. |
 | `config/reploid-library.json` | `shared/config/reploid-library.json` | shared | Reached from product and substrate entries. |
 | `config/self-source-catalog.json` | `shared/config/self-source-catalog.json` | shared | Reached from product and substrate entries. |
@@ -362,6 +363,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `core/provider-registry.js` | `self/core/provider-registry.js` | self | Reached only from substrate entries. |
 | `core/response-parser.js` | `self/core/response-parser.js` | self | Reached only from substrate entries. |
 | `core/run-replay-bundle.js` | `self/core/run-replay-bundle.js` | self | Reached only from substrate entries. |
+| `core/runtime-mode.js` | `self/core/runtime-mode.js` | self | Reached only from substrate entries. |
 | `core/schema-registry.js` | `self/core/schema-registry.js` | self | Reached only from substrate entries. |
 | `core/schema-validator.js` | `self/core/schema-validator.js` | self | Reached only from substrate entries. |
 | `core/security-config.js` | `self/core/security-config.js` | self | Reached only from substrate entries. |
@@ -405,9 +407,11 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `host/chat-session.js` | `apps/poolday/host/chat-session.js` | apps/poolday | Reached only from product entries. |
 | `host/chat-view.js` | `apps/poolday/host/chat-view.js` | apps/poolday | Reached only from product entries. |
 | `host/contribution-history.js` | `apps/poolday/host/contribution-history.js` | apps/poolday | Reached only from product entries. |
+| `host/contribution-resume.js` | `apps/poolday/host/contribution-resume.js` | apps/poolday | Reached only from product entries. |
 | `host/contributor-search.js` | `apps/poolday/host/contributor-search.js` | apps/poolday | Reached only from product entries. |
 | `host/credits/browser.js` | `apps/poolday/host/credits/browser.js` | apps/poolday | Reached only from product entries. |
 | `host/credits/local-sign-in.js` | `apps/poolday/host/credits/local-sign-in.js` | apps/poolday | Reached only from product entries. |
+| `host/device-capability.js` | `apps/poolday/host/device-capability.js` | apps/poolday | Reached only from product entries. |
 | `host/device-search.js` | `apps/poolday/host/device-search.js` | apps/poolday | Reached only from product entries. |
 | `host/document-comparison.js` | `apps/poolday/host/document-comparison.js` | apps/poolday | Reached only from product entries. |
 | `host/document-study.js` | `apps/poolday/host/document-study.js` | apps/poolday | Reached only from product entries. |
@@ -421,9 +425,14 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `host/lora-training.js` | `apps/poolday/host/lora-training.js` | apps/poolday | Reached only from product entries. |
 | `host/mcp-client.js` | `apps/poolday/host/mcp-client.js` | apps/poolday | Reached only from product entries. |
 | `host/model-acquisition.js` | `apps/poolday/host/model-acquisition.js` | apps/poolday | Reached only from product entries. |
+| `host/model-artifact-probe.js` | `apps/poolday/host/model-artifact-probe.js` | apps/poolday | Reached only from product entries. |
 | `host/model-storage.js` | `apps/poolday/host/model-storage.js` | apps/poolday | Reached only from product entries. |
+| `host/partition-release.js` | `apps/poolday/host/partition-release.js` | apps/poolday | Reached only from product entries. |
+| `host/peer-execution-config.js` | `apps/poolday/host/peer-execution-config.js` | apps/poolday | Reached only from product entries. |
+| `host/peer-run-session.js` | `apps/poolday/host/peer-run-session.js` | apps/poolday | Reached only from product entries. |
 | `host/product-context.js` | `apps/poolday/host/product-context.js` | apps/poolday | Reached only from product entries. |
 | `host/product-session.js` | `apps/poolday/host/product-session.js` | apps/poolday | Reached only from product entries. |
+| `host/provider-contribution-session.js` | `apps/poolday/host/provider-contribution-session.js` | apps/poolday | Reached only from product entries. |
 | `host/readonly-view.js` | `apps/poolday/host/readonly-view.js` | apps/poolday | Reached only from product entries. |
 | `host/reploid-launch.js` | `self/host/reploid-launch.js` | self | Reached only from substrate entries. |
 | `host/research-plugins.js` | `apps/poolday/host/research-plugins.js` | apps/poolday | Reached only from product entries. |

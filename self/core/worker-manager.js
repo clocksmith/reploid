@@ -264,7 +264,8 @@ const WorkerManager = {
      * @param {number} [options.depth=0] - Current nesting depth (0 = main agent)
      * @returns {Promise<{workerId: string, promise: Promise}>}
      */
-    const spawn = async ({ type, task, model, maxIterations, depth = 0 }) => {
+    const spawn = async ({ type, task, model, maxIterations, depth = 0, signal }) => {
+      signal?.throwIfAborted();
       // Enforce flat hierarchy - workers cannot spawn workers
       if (depth > 0) {
         throw new Error('Workers cannot spawn other workers (flat hierarchy enforced)');
@@ -298,10 +299,7 @@ const WorkerManager = {
         });
       }
 
-      // Emit event for UI
-      if (EventBus) {
-        EventBus.emit('worker:spawned', { workerId, type, task });
-      }
+      signal?.throwIfAborted();
 
       let traceSessionId = null;
       if (TraceStore) {
@@ -314,6 +312,12 @@ const WorkerManager = {
         });
       }
 
+      if (signal?.aborted) {
+        if (TraceStore && traceSessionId) await TraceStore.endSession(traceSessionId, { status: 'cancelled' });
+        signal.throwIfAborted();
+      }
+      // Async preparation can overlap another spawn; recheck admission before creation.
+      if (_activeWorkers.size >= _maxConcurrentWorkers) throw new Error(`Maximum concurrent workers (${_maxConcurrentWorkers}) reached`);
       const worker = new Worker(WORKER_SCRIPT, { type: 'module' });
       const workerPromise = new Promise((resolve, reject) => {
         worker.onmessage = (e) => {
@@ -383,6 +387,11 @@ const WorkerManager = {
         ...workerRecord,
         promise: workerPromise
       });
+
+      // Emit event for UI
+      if (EventBus) {
+        EventBus.emit('worker:spawned', { workerId, type, task });
+      }
 
       // Persist initial worker state
       _persistWorker(workerId, workerRecord);

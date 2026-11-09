@@ -1,5 +1,3 @@
-import { availablePartitionRoute } from './partition-release.js';
-
 /** Pure projections. Discovery describes availability; accepted attempts own history. */
 export function selectAvailableChatModel(models, preference, location = 'auto') {
   // Application preference, not a quality claim or a priority advertised by peers.
@@ -21,12 +19,11 @@ export function selectAvailableChatModel(models, preference, location = 'auto') 
 export const compatibleAdapters = model => (model.availableAdapters || []).filter(adapter => typeof adapter?.id === 'string' && adapter.id
   && /^sha256:[a-f0-9]{64}$/.test(adapter.identity) && /^sha256:[a-f0-9]{64}$/.test(model.identity || '') && adapter.baseModelIdentity === model.identity);
 
-export function projectChatCatalog({ models, peers, partitionModels, partitionApprovals }) {
+export function projectChatCatalog({ models, peers, releasedPartitionModels = [] }) {
   const selections = models.filter(model => !model.partition).flatMap(model => [model, ...compatibleAdapters(model).map(adapter => ({
     ...model, name: adapter.name, selectionId: model.id + '/' + adapter.id, adapters: [adapter]
   }))]);
-  // A catalog mode or ready advertisement alone is not a public release.
-  const routes = partitionModels.filter(model => availablePartitionRoute(model, partitionApprovals));
+  // The host supplies only routes admitted by its release policy.
   return selections.map(model => {
     const compatible = peers.filter(peer => peer.model === model.id && peer.modelIdentity === model.identity
       && (model.adapters || []).every(adapter => peer.adapterIdentities?.includes(adapter.identity)));
@@ -34,7 +31,7 @@ export function projectChatCatalog({ models, peers, partitionModels, partitionAp
     const loading = compatible.some(peer => peer.readiness === 'loading');
     return { ...model, availability: ready.length ? (ready.some(peer => peer.availableSlots > 0) ? 'ready' : 'busy')
       : loading ? 'loading' : 'unavailable', providerIds: ready.map(peer => peer.peerId) };
-  }).concat(routes);
+  }).concat(releasedPartitionModels);
 }
 
 export function projectChatPlacements(threads) {

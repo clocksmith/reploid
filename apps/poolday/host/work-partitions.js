@@ -1,3 +1,4 @@
+import { createPartitionPreparationOwner } from '../../../shared/vendor/reploid/mesh/partitions/preparation-owner.js';
 /** Host composition of explicit manifest or signed Capsule residents and verified pieces. */
 import { createResidentPartition, createPartitionStageCommitAuthority } from '../../../shared/vendor/reploid/mesh/index.js';
 import { DOPPLER_MODULE_URL, DOPPLER_PARTITIONS_MODULE_URL, DOPPLER_KERNEL_BASE_URL } from '../../../shared/config/doppler-local-models.js';
@@ -30,32 +31,8 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
   const source = await files.preparePartitionSource(selected, { signal, onProgress });
   const manifest = source.manifest;
   let resident = null, release = null, capsuleVerification = null, commitAuthority = null;
-  let sourceSettled = false, releaseSettled = false;
-  const sessions = new Set();
-  const trackSession = session => { sessions.add(session); return () => sessions.delete(session); };
-  const closeSources = async failures => {
-    if (!sourceSettled) {
-      try { await source.storage.close(); sourceSettled = true; } catch (error) { failures.push(error); }
-    }
-    if (release && !releaseSettled) {
-      try { await release.close(); releaseSettled = true; } catch (error) { failures.push(error); }
-    }
-  };
-  let cleaning = null;
-  const cleanupOwner = { close() {
-    return cleaning ||= (async () => {
-      const failures = []; commitAuthority?.close();
-      try { await resident?.close(); } catch (error) { failures.push(error); }
-      for (const session of sessions) {
-        try { await session.close(); sessions.delete(session); } catch (error) { failures.push(error); }
-      }
-      await closeSources(failures);
-      if (failures.length === 1) throw failures[0];
-      if (failures.length) throw new AggregateError(failures, 'Partition preparation cleanup failed');
-      releaseCleanup?.();
-    })().catch(error => { cleaning = null; throw error; });
-  } };
-  const releaseCleanup = registerCleanup?.(cleanupOwner);
+  const cleanupOwner = createPartitionPreparationOwner({ source, registerCleanup });
+  const { closeSources, trackSession } = cleanupOwner;
   const tokenizer = createPartitionTokenizerGuard(source.storage);
   const onLoadProgress = event => { const progress = residentPreparationProgress(event); if (progress) onProgress?.(progress); };
   try {
@@ -71,6 +48,7 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
         executionId: generation.executionIdentity };
       stage.stageId = runtime.metadataDigest('reploid.partition-resident-stage/v1', { modelIdentity: model.identity, planId, ...stage });
       commitAuthority = createPartitionStageCommitAuthority({ runtime, identity: canonical.identity, stage });
+      cleanupOwner.commitAuthority = commitAuthority;
       canonicalOptions = { canonicalGeneration: selected.canonicalGeneration, canonicalRuntime: runtime, canonicalCommitAuthority: commitAuthority };
     }
     let factory;
@@ -79,6 +57,7 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
         throw new Error('Signed resident requires an explicit Capsule, release policy and pinned artifact source');
       }
       release = await prepareLocalPackRelease({ model });
+      cleanupOwner.release = release;
       const { openCapsule } = await import(DOPPLER_MODULE_URL);
       factory = createSignedResidentFactory({ createFactory: runtime.createResidentPartitionFactory,
         openCapsule, model, artifactStore: source.artifactStore, release,
@@ -93,6 +72,7 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
       participantId, limits: policy.limits, ...canonicalOptions, ...orderedOptions, ...(device ? { device, attemptBytes } : {}),
       // Ordered stages sign receipts for charged attempts with this host's participant identity.
       ...(orderedOptions.ordered && evidenceSigner?.participantId === participantId ? { evidence: evidenceSigner } : {}) });
+    cleanupOwner.resident = resident;
     await resident.prepare({ approved: true, signal });
     tokenizer.assertAvailable();
     const preparation = { openMs: performance.now() - openedAt,

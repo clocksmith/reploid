@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { withTimeoutAndRetry } from '../../packages/reploid/src/agent/tool-operation-retry.js';
+import { isRetryableToolError } from '../../packages/reploid/src/agent/tool-retry.js';
 import spawnWorker from '../../self/tools/SpawnWorker.js';
 import loadModule from '../../self/tools/LoadModule.js';
 
@@ -10,7 +11,7 @@ describe('tool operation retries', () => {
     const result = { workerId: 'worker-1' };
     const operation = vi.fn().mockResolvedValue(result);
     expect(await withTimeoutAndRetry(operation)).toBe(result);
-    expect(operation).toHaveBeenCalledExactlyOnceWith(1);
+    expect(operation).toHaveBeenCalledExactlyOnceWith(1, expect.any(AbortSignal));
   });
 
   it('retains attempt numbers, backoff and the retry callback', async () => {
@@ -21,7 +22,7 @@ describe('tool operation retries', () => {
     const result = withTimeoutAndRetry(operation, { initialDelayMs: 20, onRetry });
     await vi.advanceTimersByTimeAsync(20);
     expect(await result).toBe('ready');
-    expect(operation.mock.calls).toEqual([[1], [2]]);
+    expect(operation.mock.calls.map(([attempt]) => attempt)).toEqual([1, 2]);
     expect(onRetry).toHaveBeenCalledWith(error, 1, 20);
   });
 
@@ -43,6 +44,32 @@ describe('tool operation retries', () => {
     await vi.advanceTimersByTimeAsync(10);
     await assertion;
     expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('aborts timed-out work and never replays a pending side effect', async () => {
+    vi.useFakeTimers();
+    let signal;
+    const operation = vi.fn((_attempt, current) => { signal = current; return new Promise(() => {}); });
+    const pending = withTimeoutAndRetry(operation, { timeoutMs: 5, maxAttempts: 3 });
+    const assertion = expect(pending).rejects.toMatchObject({ attempts: 1, lastError: { isTimeout: true } });
+    await vi.advanceTimersByTimeAsync(10000);
+    await assertion;
+    expect(signal.aborted).toBe(true);
+    expect(operation).toHaveBeenCalledTimes(1);
+  });
+
+  it('marks a timed-out spawn non-retryable for the outer execution owner', async () => {
+    vi.useFakeTimers();
+    const spawn = vi.fn(({ signal }) => new Promise((resolve, reject) => {
+      signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+    }));
+    const pending = spawnWorker({ task: 'inspect', spawnTimeoutMs: 5, maxRetries: 2 }, { WorkerManager: { spawn } });
+    const error = pending.catch(error => error);
+    await vi.advanceTimersByTimeAsync(1000);
+    const failure = await error;
+    expect(failure.message).toContain('failed after 1 attempts');
+    expect(isRetryableToolError(failure)).toBe(false);
+    expect(spawn).toHaveBeenCalledTimes(1);
   });
 
   it('keeps SpawnWorker using its supplied manager and result shape', async () => {

@@ -1,23 +1,23 @@
+import { createHttpRequestOwner } from './http-request-owner.js';
 /** Authenticated recovery of an existing accepted request; this never generates. */
 import { readBody, fail, object } from './text-requester.js';
 import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
 
 export const TEXT_RECOVERY_PATH = '/v1/reploid/recover';
 export function createTextRecovery({ participant, accounting, authenticate, authorize }) {
-  const active = new Set(); let closed = false;
+  const requests = createHttpRequestOwner({ timeoutMs: policy.controlChannel.timeoutMs });
   const json = (res, status, body) => { res.writeHead(status, { 'content-type': 'application/json' }); res.end(JSON.stringify(body)); };
   return {
     async handle(req, res) {
       if (req.method !== 'POST') { res.writeHead(405, { allow: 'POST' }); res.end(); return; }
-      if (closed || typeof accounting?.recover !== 'function' || typeof participant.recoverGeneration !== 'function') {
+      if (requests.closed || typeof accounting?.recover !== 'function' || typeof participant.recoverGeneration !== 'function') {
         return json(res, 503, { error: { message: 'Request recovery unavailable' } });
       }
-      if (active.size >= policy.inputLimits.maxConcurrentAttempts) return json(res, 429, { error: { message: 'Recovery admission unavailable' } });
-      const controller = new AbortController(), { signal } = controller;
-      const done = Promise.withResolvers(), item = { controller, done: done.promise }; active.add(item);
-      const cancel = () => controller.abort(Error('Recovery disconnected'));
-      const timer = setTimeout(() => controller.abort(Error('Recovery deadline exceeded')), policy.controlChannel.timeoutMs);
-      req.once('aborted', cancel); res.once('close', cancel);
+      if (requests.size >= policy.inputLimits.maxConcurrentAttempts) return json(res, 429, { error: { message: 'Recovery admission unavailable' } });
+      const scope = requests.begin(req, res, {
+        disconnectError: () => Error('Recovery disconnected'), deadlineError: () => Error('Recovery deadline exceeded')
+      });
+      const { signal } = scope;
       try {
         if (!/^application\/json(?:;|$)/i.test(req.headers['content-type'] || '')) throw fail(415, 'application/json required');
         const principal = await authenticate(req, { signal }); signal.throwIfAborted();
@@ -37,16 +37,9 @@ export function createTextRecovery({ participant, accounting, authenticate, auth
       } catch (error) {
         if (!res.destroyed && !res.writableEnded) json(res, error.status || 502, { error: { message: error.message } });
       } finally {
-        clearTimeout(timer); req.removeListener('aborted', cancel); res.removeListener('close', cancel); active.delete(item); done.resolve();
+        scope.finish();
       }
     },
-    async close() {
-      closed = true;
-      for (const item of active) item.controller.abort(Error('Recovery closed'));
-      let timer;
-      try { await Promise.race([Promise.all([...active].map(item => item.done)), new Promise((_, reject) => {
-        timer = setTimeout(() => reject(Error('Recovery cleanup remains unsettled')), policy.controlChannel.timeoutMs);
-      })]); } finally { clearTimeout(timer); }
-    }
+    close: () => requests.close(() => Error('Recovery closed'), () => Error('Recovery cleanup remains unsettled'))
   };
 }

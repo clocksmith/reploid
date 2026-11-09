@@ -1,3 +1,4 @@
+import { resolveRuntimeMode } from './runtime-mode.js';
 import { getLabUpgradeLevel, isMinimalLabMode } from '../config/lab-upgrades.js';
 /**
  * @fileoverview Tool Runner
@@ -30,19 +31,8 @@ const ToolRunner = {
     // WorkerManager initializes AFTER ToolRunner, so we need to update the reference later
     let _workerManager = deps.WorkerManager || null;
 
-    const getBootMode = () => {
-      if (typeof window !== 'undefined' && typeof window.getReploidMode === 'function') {
-        return window.getReploidMode();
-      }
-      const storage = getReploidStorage();
-      if (storage.raw) {
-        const stored = storage.getItem('REPLOID_MODE');
-        if (stored === 'reploid' || stored === 'zero' || stored === 'x') {
-          return stored;
-        }
-      }
-      return 'reploid';
-    };
+    const mode = resolveRuntimeMode({ mode: deps.mode });
+    const getBootMode = () => mode;
 
     const getKernelToolNames = () => getToolNamesForMode(getBootMode(), {
       upgradeLevel: getLabUpgradeLevel(getBootMode()),
