@@ -1,5 +1,5 @@
 import { interfaceIcon } from '../components/interface-icons.js';
-import { updateExecutionActivity } from './execution-activity.js';
+import { projectExecutionActivity, updateExecutionActivity } from './execution-activity.js';
 import { escapeHtml as escape } from '../components/attachments.js';
 
 import { updateMessageMarkdown } from '../components/message-markdown.js';
@@ -24,6 +24,30 @@ function failureLabel(attempt) {
   if (/quoted (first-output )?deadline passed/i.test(attempt.error || '')) return 'Stopped at the quoted deadline.';
   if (attempt.status === 'interrupted') return 'This answer was interrupted.';
   return 'This answer could not finish.';
+}
+
+function updateMessageMeta(root, thread, attempt, state) {
+  const execution = attempt?.execution;
+  const timing = execution?.timing;
+  const tokens = timing?.generatedTokenCount ?? execution?.completion?.generatedTokenCount;
+  const view = projectExecutionActivity({ ...state, activeThread: { ...thread, attempts: attempt ? [attempt] : [] } });
+  const measurements = [
+    ['activity', view.averageSpeed === null ? '' : `${view.averageSpeed.toFixed(1)} tok/s`, view.averageSpeed === null ? null : 'Generation average including prompt processing; excludes queue and model loading'],
+    ['tokens', Number.isSafeInteger(tokens) && tokens >= 0 ? `${tokens} ${tokens === 1 ? 'token' : 'tokens'}` : '', Number.isSafeInteger(tokens) && tokens >= 0 ? `${tokens} generated tokens` : null],
+    ['clock', Number.isFinite(timing?.totalMs) && timing.totalMs > 0 ? `${(timing.totalMs / 1000).toFixed(1)} s` : '', Number.isFinite(timing?.totalMs) && timing.totalMs > 0 ? 'Generation time including prompt processing' : null]
+  ];
+  // Keep each slot and its focus target in place as recorded measurements arrive.
+  if (!root.children.length) root.innerHTML = measurements.map(([icon]) => `<span class="chat-message-metric pool-readout pool-row pool-gap-xs" data-metric="${icon}">${interfaceIcon(icon)}<span></span></span>`).join('');
+  measurements.forEach(([, text, title], index) => {
+    const slot = root.children[index];
+    slot.dataset.available = String(!!title);
+    slot.setAttribute('aria-hidden', String(!title));
+    slot.tabIndex = title ? 0 : -1;
+    slot.title = title || '';
+    slot.setAttribute('aria-label', title || '');
+    slot.lastElementChild.textContent = text;
+  });
+  root.hidden = false;
 }
 
 export function createMessageList(stream, { getSources, positions = new Map(), scrollContainer = stream } = {}) {
@@ -55,9 +79,9 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
         if (!row) {
           row = stream.ownerDocument.createElement('article'); row.dataset.messageId = messageId;
           row.className = message.role === 'user' ? 'chat-message-row is-user' : 'chat-message-row is-assistant';
-          row.innerHTML = `<div class="chat-message-content pool-body pool-prose"></div><div class="chat-message-system pool-small" data-system-status role="status" aria-label="System status" hidden></div><div class="chat-message-footer pool-row pool-gap-sm pool-small pool-muted"><div class="chat-execution-activity pool-row pool-gap-sm" data-execution-activity hidden><span class="chat-visually-hidden" data-tool-status role="status" hidden></span><button class="pool-button btn-ghost pool-icon" type="button" data-execution-trigger></button></div><div class="chat-message-actions"></div></div>`;
+          row.innerHTML = `<span class="chat-message-author pool-small pool-muted"></span><div class="chat-message-content pool-body pool-prose"></div><div class="chat-message-system pool-small" data-system-status role="status" aria-label="System status" hidden></div><div class="chat-message-footer pool-row pool-gap-sm pool-small pool-muted"><div class="chat-execution-activity pool-row pool-gap-sm" data-execution-activity hidden><span class="pool-small" data-tool-status role="status" hidden></span><button class="pool-button pool-icon" type="button" data-execution-trigger></button></div><div class="chat-message-meta pool-caption" hidden></div><div class="chat-message-actions"></div></div>`;
           if (message.role === 'user') row.querySelector('.chat-message-content').classList.add('pool-well');
-          rows.set(id, row);
+          row.querySelector('.chat-message-author').textContent = message.role === 'user' ? 'You' : 'Assistant'; rows.set(id, row);
         }
         const body = row.querySelector('.chat-message-content');
         const source = message.role === 'user' && getSources?.(message.content);
@@ -71,12 +95,16 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
           if (body.dataset.source !== markup) { body.innerHTML = markup; body.dataset.source = markup; }
         }
         const attempt = attempts.get(message.attemptId);
+        if (message.role === 'assistant') updateMessageMeta(row.querySelector('.chat-message-meta'), thread, attempt, state);
         const sources = message.role === 'assistant' && attempt?.retrieval?.outcome === 'retrieved' ? attempt.retrieval.sources : [];
         const anchor = number => `source-${message.id}-${number}`;
         // A search-backed answer's [n] markers link to its numbered sources below it.
         if (!source) updateMessageMarkdown(body, message.content, sources.length
           ? new Map(sources.map(item => [String(item.number), anchor(item.number)])) : targets);
         if (message.role === 'assistant') updateExecutionActivity(row.querySelector('[data-execution-activity]'), { ...state, activeThread: { ...thread, attempts: attempt ? [attempt] : [] } });
+        const author = row.querySelector('.chat-message-author');
+        author.hidden = message.role === 'user' || !!message.content || !row.querySelector('[data-execution-activity]').hidden;
+        if (!author.hidden) author.textContent = ({ queued: 'Waiting…', loading: 'Preparing…', executing: 'Thinking…', cancelling: 'Stopping…' })[attempt?.status] || '';
         const failed = message.role === 'assistant' && attempt && ['failed', 'cancelled', 'interrupted'].includes(attempt.status);
         const system = row.querySelector('[data-system-status]');
         const retrieval = attempt?.retrieval;
@@ -84,6 +112,7 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
         if (!failed && retrieval?.partial) systemText = `Using ${retrieval.sources.length} retrieved source${retrieval.sources.length === 1 ? '' : 's'}. Some pages were unavailable.`;
         system.hidden = !systemText;
         if (systemText) system.textContent = `System · ${systemText}`;
+        if (systemText) author.hidden = true;
         const earlier = [], visited = new Set();
         let ancestor = attempt?.retryOf;
         while (collapsed.has(ancestor) && !visited.has(ancestor)) {
@@ -110,6 +139,7 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
         body.hidden = !message.content && !source;
         body.setAttribute('aria-label', message.role === 'assistant' ? 'Model output' : 'Your message');
         row.dataset.systemOnly = String(message.role === 'assistant' && !message.content);
+        if (row.dataset.systemOnly === 'true') row.querySelector('.chat-message-meta').hidden = true;
         const retryable = failed && attempt.id === thread.attempts.at(-1)?.id && !busy;
         const actions = row.querySelector('.chat-message-actions');
         const actionKey = JSON.stringify([failed && attempt.status, attempt?.error, attempt?.retryOf, retryable, usable, !!message.content, sources.map(item => item.url)]);
@@ -120,17 +150,14 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
             ${retryable ? `<button type="button" class="pool-button" data-retry-attempt="${escape(attempt.id)}" aria-label="Retry response" title="Retry this request; keeps any earlier response."${usable ? '' : ' disabled'}>${interfaceIcon('retry')}<span>Retry</span></button>` : ''}
             ${message.content ? `<button type="button" class="pool-button pool-icon" data-copy-message aria-label="${message.role === 'user' ? 'Copy message' : 'Copy response'}" title="${message.role === 'user' ? 'Copy message' : 'Copy response'}">${interfaceIcon('copy')}</button>` : ''}`;
         }
-        row.querySelector('.chat-message-footer').hidden = row.querySelector('[data-execution-activity]').hidden && !actions.children.length;
+        row.querySelector('.chat-message-footer').hidden = row.querySelector('.chat-message-meta').hidden
+          && row.querySelector('[data-execution-activity]').hidden && !actions.children.length;
         if (row.parentElement !== stream) stream.append(row);
       }
       for (const child of [...stream.children]) if (!visible.has(`${thread?.id}:${child.dataset.messageId}`)) child.remove();
       if (changed) scrollContainer.scrollTop = positions.get(selected) ?? scrollContainer.scrollHeight;
       else if (nearBottom && !selecting && scrollContainer.scrollHeight !== previousHeight) scrollContainer.scrollTop = scrollContainer.scrollHeight;
     },
-    dispose() {
-      if (selected) positions.set(selected, scrollContainer.scrollTop);
-      for (const row of rows.values()) row.querySelector('[data-answer-progress]')?.classList.remove('pool-dot-pulse');
-      rows.clear();
-    }
+    dispose() { if (selected) positions.set(selected, scrollContainer.scrollTop); rows.clear(); }
   };
 }

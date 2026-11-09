@@ -1,6 +1,0 @@
-
-> reploid@0.1.0 verify:browser-bundle:local
-> node scripts/build-browser-bundle-manifest.js --check
-
-[module-inventory] 1610 source modules are current
-[browser-bundle] 2247 served files match sha256:12d4099668edec5615e4135485bf4d7819ea88a7e358aa466c477e7f695a051e
