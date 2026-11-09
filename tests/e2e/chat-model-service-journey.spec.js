@@ -110,7 +110,7 @@ test('exact whole-model service survives overlap, cancellation and provider depa
       await page.locator('[data-open-model]').click();
       const choice = page.locator(`[data-model-picker] .chat-model-choices input[value="${model.id}"]`).filter({ visible: true });
       await expect(choice).toBeVisible({ timeout: 60000 });
-      await choice.check();
+      await choice.click();
       await expect(page.locator('[data-change-model]')).toBeEnabled({ timeout: 60000 });
       await page.locator('[data-change-model]').click();
       await page.locator('[data-inspector-section="settings"]').click();
@@ -167,7 +167,7 @@ test('exact whole-model service survives overlap, cancellation and provider depa
     const unrelated = await send(b, 'What is 9 times 7? Answer with the number only.');
     expect(await observe(cancelled)).not.toBe('completed');
     await observe(unrelated);
-    await a.locator('[data-composer-stop]').click();
+    await a.locator('[data-answer-stop]:visible, [data-composer-stop]:visible').first().click();
     await expect.poll(() => observe(cancelled), { timeout: 30000 }).toBe('cancelled');
     cancelled.elapsedMs = performance.now() - cancelled.started;
     await complete(unrelated, '63');
