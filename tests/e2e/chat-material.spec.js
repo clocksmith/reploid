@@ -543,26 +543,19 @@ test('answer measurements and bottom-centered thread badges stay stable while lo
 });
 
 for (const viewport of [{ width: 1280, height: 720 }, { width: 390, height: 844 }, { width: 320, height: 740 }]) {
-  test(`shared model choices remain clickable above the composer at ${viewport.width}`, async ({ page }, info) => {
+  test(`one composer chooser stays reachable at ${viewport.width}`, async ({ page }, info) => {
     await page.setViewportSize(viewport);
     await page.goto('/');
     await expect(page.locator('[data-chat-workspace]')).toBeVisible();
     await installConversation(page, 'light');
-    await page.evaluate(() => {
-      const chooser = document.querySelector('[data-production-shared]'); chooser.hidden = false;
-      chooser.querySelector('[data-production-network-status]').textContent = '3 models ready';
-      chooser.querySelector('[data-production-available]').innerHTML = Array.from({ length: 3 }, (_, i) =>
-        `<li><button class="pool-button pool-row pool-row-between" style="width:100%;min-height:64px" data-test-shared="${i}"><span>Shared model ${i + 1}</span><span>Use model</span></button></li>`).join('');
-      window.sharedModelClicks = [];
-      chooser.addEventListener('click', event => { const button = event.target.closest('[data-test-shared]'); if (button) window.sharedModelClicks.push(button.dataset.testShared); });
-    });
+    await page.evaluate(() => window.setVisualSupply(3));
+    await expect(page.locator('[data-production-shared]')).toHaveCount(0);
+    await expect(page.locator('[data-open-model]')).toHaveCount(1);
     const composer = await page.locator('[data-composer-area]').boundingBox();
     expect(composer.y + composer.height).toBeLessThanOrEqual(viewport.height);
     const area = await page.locator('[data-conversation-area]').boundingBox();
     expect(area.y + area.height - composer.y - composer.height).toBeLessThanOrEqual(24);
     expect(Math.abs(composer.x + composer.width / 2 - viewport.width / 2)).toBeLessThanOrEqual(1);
-    for (const choice of await page.locator('[data-test-shared]').all()) await choice.click({ timeout: 5000 });
-    expect(await page.evaluate(() => window.sharedModelClicks)).toEqual(['0', '1', '2']);
     for (const prompt of await page.locator('[data-starting-prompt]').all()) {
       await prompt.scrollIntoViewIfNeeded();
       expect(await prompt.evaluate(node => node.scrollHeight <= node.clientHeight)).toBe(true);
@@ -728,7 +721,7 @@ for (const width of [1280, 390, 320]) test(`composer stays anchored across disco
 });
 
 
-for (const width of [1440, 390, 320]) test(`discovered model rows are complete and scroll above the composer at ${width}`, async ({ page }, info) => {
+for (const width of [1440, 390, 320]) test(`discovered models stay in the sole composer picker at ${width}`, async ({ page }, info) => {
   await page.setViewportSize({ width, height: 844 }); await page.goto('/');
   await expect(page.locator('[data-chat-workspace]')).toBeVisible(); await installConversation(page, 'dark');
   const field = page.locator('[data-composer-field]'), before = await field.boundingBox();
@@ -736,16 +729,14 @@ for (const width of [1440, 390, 320]) test(`discovered model rows are complete a
     await page.evaluate(count => window.setVisualSupply(count), count);
     await expect(page.locator('[data-active-model-select]')).toHaveValue('ready-0');
     await expect(page.locator('[data-composer-send]')).toBeEnabled();
-    await expect(page.locator('[data-production-use="ready-0"] [data-shared-model-action]')).toHaveText('Selected');
-    const list = page.locator('[data-production-available]');
-    expect(await list.evaluate(node => node.scrollHeight <= node.clientHeight + 1)).toBe(true);
-    const last = page.locator(`[data-production-use="ready-${count - 1}"]`);
+    await expect(page.locator('[data-production-shared]')).toHaveCount(0);
+    await page.locator('[data-open-model]').click();
+    await expect(page.locator('[data-next-model] + .chat-model-choices label[data-choice-key] > input[type=radio]')).toHaveCount(count);
+    const last = page.locator('[data-next-model] + .chat-model-choices label[data-choice-key] > input[type=radio]').last();
     await last.scrollIntoViewIfNeeded();
-    const row = await last.boundingBox(), card = await page.locator('[data-production-shared]').boundingBox();
-    expect(row.y + row.height).toBeLessThanOrEqual(card.y + card.height);
-    const viewport = await page.locator('.chat-conversation-content').boundingBox();
-    expect(row.y).toBeGreaterThanOrEqual(viewport.y - 1);
-    expect(row.y + row.height).toBeLessThanOrEqual(viewport.y + viewport.height + 1);
+    await last.click();
+    await expect(page.locator('[data-next-model]')).toHaveValue(`ready-${count - 1}`);
+    await page.locator('[data-model-picker-close]').click();
     expect(await field.boundingBox()).toEqual(before);
     if (count === 3) await page.screenshot({ path: info.outputPath(`complete-models-${width}.png`) });
   }
@@ -833,10 +824,10 @@ for (const width of [1280, 390, 320]) test(`model source, selection and composer
   const input = page.locator('[data-composer-input]'), source = page.locator('[data-composer-model-source]');
   await input.fill('hi'); const field = await page.locator('[data-composer-field]').boundingBox();
   await expect(source).toHaveText(' · This device');
-  await expect(page.locator('[data-production-use]')).toHaveAttribute('aria-pressed', 'false');
-  await page.locator('[data-production-use]').click();
+  await page.locator('[data-open-model]').click();
+  await page.locator('[data-execution-choice=network]').click();
+  await page.locator('[data-change-model]').click();
   await expect(source).toHaveText(' · Shared');
-  await expect(page.locator('[data-production-use]')).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('[data-composer-send]')).toBeEnabled();
   await expect(page.locator('[data-model-status]')).toBeHidden();
   await expect(page.locator('[data-download-local]')).toBeHidden();

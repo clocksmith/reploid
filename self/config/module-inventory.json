@@ -3644,7 +3644,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:8b5c02e59f5f576f147c0bf8d13379cbbbc8598bbafd7673f7195aa9968549f3",
+      "sha256": "sha256:108a30ab1f900e9fc69952803b82c133a7bfd3f1f327e845e95729bed065c1ef",
       "imports": []
     },
     {
@@ -3679,13 +3679,12 @@
     {
       "path": "ui/pool-home/contribution-models.js",
       "owner": "ui",
-      "sha256": "sha256:16786f087ea130b766bdd6b963c8e8375ae72a6bec3c2772a2c05c231f601af0",
+      "sha256": "sha256:2c6d6bea8223d670e0aaee2bd24b8481f9ec32b13537aa3b82b927ec5477899d",
       "imports": [
         "../components/dialog.js",
         "../components/html.js",
         "../components/interface-icons.js",
         "../components/mathematical-background.js",
-        "../components/model-select.js",
         "./model-preparation.js"
       ]
     },
@@ -3731,7 +3730,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:4debbde473a4da7863de60114cce42c12bd818dbfe8a93febc1ceead8e5dcb3e",
+      "sha256": "sha256:fcee8e8850f0c77c5867abf13bcabe964b5366abf84f083f553b41493f1d79a2",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",

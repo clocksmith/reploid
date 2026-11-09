@@ -65,10 +65,7 @@
   gap: var(--pool-size-32);
   padding-block: var(--pool-size-16);
 }
-.chat-message-stream, .chat-composer-area, .chat-error, .chat-history-handover, .chat-conversation-content > [data-production-shared] { width: min(100%, var(--pool-size-720)); align-self: center; margin-inline: auto; }
-/* Show complete model rows; the content column scrolls above the anchored composer. */
-.chat-conversation-content > [data-production-shared] { flex: 0 0 auto; }
-.chat-conversation-content > [data-production-shared] > [data-production-available]:empty { display: none; }
+.chat-message-stream, .chat-composer-area, .chat-error, .chat-history-handover { width: min(100%, var(--pool-size-720)); align-self: center; margin-inline: auto; }
 .pool-home .chat-inspector-slot .production-surface { padding: 0; }
 .chat-transcript.chat-message-stream { width: min(100%, calc(var(--pool-size-720) + var(--pool-size-32))); padding-inline: var(--pool-size-16); }
 .chat-message-row { min-width: 0; width: 100%; display: grid; gap: var(--pool-size-8); }
@@ -142,7 +139,6 @@
 }
 @media (max-width: 760px) {
   .chat-conversation-area { gap: var(--pool-size-16); }
-  .pool-home .chat-conversation-content > [data-production-shared] { padding: var(--pool-size-16); }
   .chat-thread-list { display: grid; overflow-y: auto; }
   .chat-thread-list:empty { display: none; }
   .chat-mobile-threads { display: inline-flex; }
@@ -207,7 +203,6 @@
 .pool-home[data-chat-compact]:is([data-pool-route-id='home'], [data-pool-route-id='network']) { gap: var(--pool-size-8); padding-top: calc(var(--pool-param-bar-height) + var(--pool-param-chat-gutter) + var(--pool-size-8)); }
 .pool-home[data-chat-compact] .chat-conversation-area { gap: var(--pool-size-8); padding: var(--pool-size-8); }
 /* While the keyboard holds the viewport short, the chooser yields to the transcript and composer. */
-.pool-home[data-chat-compact] .chat-conversation-content > [data-production-shared] { display: none; }
 .pool-home[data-chat-compact] .chat-thread-header { display: flex; }
 .pool-home[data-chat-compact] .chat-thread-header [data-mesh-peers] { display: none; }
 .pool-home[data-chat-compact] .chat-composer-area form { gap: var(--pool-size-8); }

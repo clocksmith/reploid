@@ -7,6 +7,13 @@ import { updateModelSelect } from '../../apps/poolday/ui/components/model-select
 describe('Conversation workspace', () => {
   let root, session, dispose, service;
   const find = selector => root.querySelector(selector);
+  const chooseShared = async id => {
+    find('[data-open-model]').click();
+    if (id) { const select = find('[data-next-model]'); select.value = id; select.dispatchEvent(new Event('change', { bubbles: true })); }
+    find('[data-execution-choice=network]').click();
+    find('[data-change-model]').click();
+    await vi.waitFor(() => expect(find('[data-model-picker]').open).toBe(false));
+  };
   beforeEach(() => {
     history.replaceState(null, '', '/');
     root = document.createElement('div'); document.body.append(root);
@@ -106,7 +113,7 @@ describe('Conversation workspace', () => {
     };
     publish([small]); expect(find('[data-active-model-select]').value).toBe(small.id);
     expect(find('[data-composer-send]').disabled).toBe(false);
-    expect(find('[data-production-use] [data-shared-model-action]').textContent).toBe('Selected');
+    expect(find('[data-model-digest]').textContent).toContain(small.name);
     publish([small, medium]); expect(find('[data-active-model-select]').value).toBe(medium.id);
     publish([small, medium, large]); expect(find('[data-active-model-select]').value).toBe(large.id);
     const select = find('[data-active-model-select]'); select.value = small.id;
@@ -372,7 +379,7 @@ describe('Conversation workspace', () => {
     return vi.waitFor(() => expect(find('[data-model-digest]').textContent).toBe(`${base.name} · Shared`));
   });
 
-  it('selects the ready shared route in one click without claiming an unavailable route is selected', async () => {
+  it('selects the ready shared route through the composer picker without claiming an unavailable route is selected', async () => {
     dispose();
     const base = { ...CANONICAL_CHAT_MODELS[1], availability: 'unavailable', networkAvailability: 'unavailable' };
     const route = { ...base, selectionId: base.id + '/distributed', partition: { planId: 'test' }, availability: 'ready', networkAvailability: 'ready' };
@@ -380,11 +387,8 @@ describe('Conversation workspace', () => {
     let emit; const download = vi.fn();
     dispose = bindConversationWorkspace(root, { ...session, downloadLocalModel: download,
       getState: () => state, subscribe(fn) { emit = fn; fn(state); return () => {}; } }, { viewState: { chosenModel: base } });
-    const row = find('[data-production-use]');
-    expect(row.dataset.productionUse).toBe(route.selectionId);
-    expect(row.getAttribute('aria-pressed')).toBe('false');
-    expect(row.textContent).toContain('Use shared');
-    find('[data-composer-input]').value = 'hi'; row.click();
+    find('[data-composer-input]').value = 'hi';
+    await chooseShared(route.selectionId);
     expect(find('[data-active-model-select]').value).toBe(route.selectionId);
     expect(find('[data-composer-send]').disabled).toBe(false);
     expect(find('[data-model-status]').textContent).toBe('');
@@ -414,15 +418,14 @@ describe('Conversation workspace', () => {
     expect(service.calls).toHaveLength(0);
   });
 
-  it('does not label shared capacity Selected when the selected model runs on this device', () => {
+  it('keeps the composer source local until shared execution is confirmed in the picker', async () => {
     dispose(); const model = { ...CANONICAL_CHAT_MODELS[1], localCached: true, availability: 'cached', networkAvailability: 'ready' };
     const state = { ...session.getState(), models: [model], defaultModel: model };
     dispose = bindConversationWorkspace(root, { ...session, getState: () => state, subscribe(fn) { fn(state); return () => {}; } });
     expect(find('[data-model-digest]').textContent).toContain('This device');
-    expect(find('[data-production-use]').getAttribute('aria-pressed')).toBe('false');
-    find('[data-production-use]').click();
+    await chooseShared(model.id);
     expect(find('[data-model-digest]').textContent).toContain('Shared');
-    expect(find('[data-production-use]').getAttribute('aria-pressed')).toBe('true');
+    expect(find('[data-open-model]').textContent).toContain('Shared');
     expect(service.calls).toHaveLength(0);
   });
 
@@ -812,7 +815,7 @@ describe('Conversation workspace', () => {
     Object.defineProperty(fileInput, 'files', { value: [new File(['Private file body'], 'notes.txt', { type: 'text/plain' })], configurable: true });
     fileInput.dispatchEvent(new Event('change', { bubbles: true }));
     await vi.waitFor(() => expect(find('[data-attachments-preview]').textContent).toContain('notes.txt'));
-    find(`[data-production-use="${small.id}"]`).click();
+    await chooseShared(small.id);
     expect(document.activeElement).toBe(input);
     expect(input.value).toBe('Draft with private notes');
     expect(find('[data-attachments-preview]').textContent).toContain('notes.txt');

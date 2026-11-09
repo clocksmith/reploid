@@ -96,30 +96,27 @@ it('starts with model actions and hides empty production counters', () => {
   expect(document.querySelector('[data-production-metrics]').hidden).toBe(true);
   expect(document.querySelector('[data-production-local]').hidden).toBe(true);
   expect(document.querySelector('[data-production-pause]')).toBeNull();
-  expect(document.querySelector('[data-shared-model-name]').textContent).toBe('Model');
-  expect(document.querySelector('[data-shared-model-status]').textContent).toBe('Shared · Ready'); detach();
+  expect(document.querySelector('[data-model-digest]').textContent).toContain('Model');
+  expect(document.querySelector('[data-production-shared]')).toBeNull(); detach();
 });
 
-it('keeps shared models in chat and contribution in Computers, preserving drafts on selection', () => {
+it('keeps one composer picker and contribution in Computers, preserving drafts on selection', async () => {
   const local = { ...model, id: 'local', name: 'Local', networkAvailability: 'unavailable' };
   const snapshot = { models: [local, { ...model, quantization: 'q4f16_1', contextLength: 32768 }], network: {} };
   const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; },
     createThread: vi.fn(async () => 'new-thread'), downloadLocalModel: vi.fn(), prepareLocalModel: vi.fn(), setSharing: vi.fn(),
-    getModelDownload: vi.fn(), saveDraft: vi.fn() };
+    getModelDownload: vi.fn(), saveDraft: vi.fn(), select: vi.fn() };
   const detach = bindProductionSurface(document.body, session);
-  const shared = document.querySelector('[data-production-shared]');
   const composer = document.querySelector('[data-composer-area]');
   const device = document.querySelector('[data-production-device]');
-  expect(shared.compareDocumentPosition(composer) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(document.querySelector('[data-production-shared]')).toBeNull();
+  expect(document.querySelectorAll('[data-open-model]')).toHaveLength(1);
+  expect(composer.querySelector('[data-open-model]')).not.toBeNull();
   expect(device.closest('[data-inspector-pane="participants"]')).not.toBeNull();
   expect(document.querySelector('[data-conversation-area] [data-production-surface]')).toBeNull();
   expect(document.querySelectorAll('[data-production-surface]')).toHaveLength(1);
   expect(device.open).toBe(false);
   expect(document.querySelector('[data-device-state-summary]').textContent).toBe('');
-  // The chooser is a heading, one status line and the rows; routes, providers, limits and execution location are read in the picker.
-  expect(shared.querySelector('[data-model-providers]')).toBeNull();
-  expect(shared.querySelector('[data-execution-location]')).toBeNull();
-  expect(shared.querySelector('button:not([data-production-use])')).toBeNull();
   // Weights, context and availability are read once, on each choice; the picker repeats none of them below the list.
   expect(document.querySelector('[data-model-facts]')).toBeNull();
   expect(document.querySelector('[data-model-picker] [data-model-providers]')).not.toBeNull();
@@ -128,40 +125,48 @@ it('keeps shared models in chat and contribution in Computers, preserving drafts
   input.value = 'Draft question';
   input.dispatchEvent(new Event('input', { bubbles: true }));
   session.getModelDownload.mockClear();
-  document.querySelector('[data-production-use="m"]').click();
-  expect(document.activeElement).toBe(input);
+  document.querySelector('[data-open-model]').click();
+  const next = document.querySelector('[data-next-model]'); next.value = 'm';
+  next.dispatchEvent(new Event('change', { bubbles: true }));
+  document.querySelector('[data-execution-choice=network]').click();
+  document.querySelector('[data-change-model]').click();
+  await vi.waitFor(() => expect(document.activeElement).toBe(input));
   expect(input.value).toBe('Draft question');
   expect(document.querySelector('[data-active-model-select]').value).toBe('m');
   expect(document.querySelector('[data-model-digest]').textContent).toContain('Shared');
   expect(session.createThread).not.toHaveBeenCalled();
   expect(session.downloadLocalModel).not.toHaveBeenCalled();
   expect(session.prepareLocalModel).not.toHaveBeenCalled();
-  expect(session.getModelDownload).not.toHaveBeenCalled();
   expect(session.setSharing).not.toHaveBeenCalled(); detach();
 });
 
-it('removes departed shared models and hides the shared chooser when a thread is active', () => {
+it('retains one picker when capacity disappears or a thread opens', () => {
   const snapshot = { models: [model], network: {} }; let update;
   const session = { getState: () => snapshot, subscribe(fn) { update = fn; fn(snapshot); return () => {}; } };
   const detach = bindProductionSurface(document.body, session);
-  expect(document.querySelector('[data-production-shared]').hidden).toBe(false);
+  expect(document.querySelector('[data-production-shared]')).toBeNull();
   snapshot.models = [{ ...model, networkAvailability: 'unavailable' }]; update(snapshot);
-  expect(document.querySelector('[data-production-use]')).toBeNull();
+  expect(document.querySelectorAll('[data-open-model]')).toHaveLength(1);
   snapshot.activeThread = { id: 'thread-1', model, messages: [], attempts: [] }; update(snapshot);
-  expect(document.querySelector('[data-production-shared]').hidden).toBe(true); detach();
+  expect(document.querySelector('[data-production-shared]')).toBeNull();
+  expect(document.querySelectorAll('[data-open-model]')).toHaveLength(1); detach();
 });
 
-it('shows one shared row per exact model variant, using its ready route', () => {
+it('the sole picker shows one shared row per exact model variant, using its ready route', () => {
   const route = { ...model, selectionId: 'm/route', networkAvailability: 'ready', partition: { planId: 'plan' } };
   const snapshot = { models: [{ ...model, networkAvailability: 'unavailable' }, route], network: {} }; let update;
   const session = { getState: () => snapshot, subscribe(fn) { update = fn; fn(snapshot); return () => {}; } };
   const detach = bindProductionSurface(document.body, session);
-  expect([...document.querySelectorAll('[data-production-use]')].map(node => node.dataset.productionUse)).toEqual(['m/route']);
-  expect(document.querySelector('[data-production-network-status]').textContent).toBe('1 shared model');
-  // With the whole model ready too, the same row stands for both routes and prefers the whole model.
+  document.querySelector('[data-open-model]').click();
+  expect(document.querySelectorAll('[data-next-model] + .chat-model-choices label[data-choice-key] > input[type=radio]')).toHaveLength(1);
+  const readyRoute = document.querySelector('[data-model-route-choice][value="m/route"]');
+  expect(readyRoute.disabled).toBe(false);
+  readyRoute.click();
+  expect(document.querySelector('[data-next-model]').value).toBe('m/route');
+  // Two ready execution routes still belong to one model variant.
   snapshot.models = [model, route]; update(snapshot);
-  expect([...document.querySelectorAll('[data-production-use]')].map(node => node.dataset.productionUse)).toEqual(['m']);
-  expect(document.querySelector('[data-production-network-status]').textContent).toBe('1 shared model'); detach();
+  expect(document.querySelectorAll('[data-next-model] + .chat-model-choices label[data-choice-key] > input[type=radio]')).toHaveLength(1);
+  expect(document.querySelector('[data-model-route-choice][value="m"]').disabled).toBe(false); detach();
 });
 
 it('loads model sizes without starting work and confirms the exact selected model', async () => {

@@ -15,7 +15,7 @@ import { bindDialog } from '../components/dialog.js';
 import { createMessageList } from './message-list.js';
 import { renderHistoryHandover, bindHistoryHandover } from './history-handover-view.js';
 import { createAutoDownload, updateAutoDownloadSetting } from './auto-download.js';
-import { renderSharedModelChooser, renderProductionContribution, bindProductionControls } from './contribution-models.js';
+import { renderProductionContribution, bindProductionControls } from './contribution-models.js';
 import { renderModelProviders, updateModelProviders } from './model-providers.js';
 import { renderAdapterDetails, updateAdapterDetails, describeModelChoice } from './model-adapters.js';
 
@@ -35,7 +35,7 @@ const promptChoices = () => {
   return choices;
 };
 
-/** The selected model's value port. The picker's choices and the chooser's rows set it; nothing renders it. */
+/** The selected model's value port. The picker's choices set it; nothing renders it. */
 const renderModelControl = () => '<span data-model-control><select class="pool-input pool-glass chat-model-value" id="chat-model" data-active-model-select aria-label="Model"></select></span>';
 
 /** The highlighted variant's adapter facts, routes and providers, its answer limit and where the answer runs. One place: the picker.
@@ -73,7 +73,6 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
     <section class="chat-conversation-area" data-conversation-area aria-label="Current conversation">
       <div class="chat-conversation-content">
       <div class="chat-transcript chat-message-stream" data-chat-transcript data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
-      ${renderSharedModelChooser()}
       <div class="chat-starting-prompts" data-starting-prompts role="group" aria-label="Movie and show suggestions" hidden>
         ${promptChoices().map(prompt => `<button class="pool-chip chat-starting-prompt" type="button" data-starting-prompt>${escape(prompt)}</button>`).join('')}
       </div>
@@ -168,19 +167,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (!applyingView) workspaceNavigation?.reflect(section === 'participants' ? 'computers' : section, { threads: viewState.threadsOpen });
   });
   const detachInspectorClose = inspector.onClose?.(() => { if (!applyingView) workspaceNavigation?.reflect(viewState.threadsOpen ? 'threads' : 'chat'); });
-  const production = bindProductionControls(container, session, {
-    inspector,
-    getSelectedModelId: () => find('[data-composer-field]').dataset.executionSource === 'network' ? modelSelect.value : null,
-    onSelectSharedModel(model) {
-      chosenModel = model;
-      viewState.chosenModel = chosenModel;
-      executionLocation = 'network';
-      viewState.executionLocation = executionLocation;
-      modelSelect.value = model.selectionId || model.id;
-      render(session.getState());
-      input.focus();
-    }
-  });
+  const production = bindProductionControls(container, session, { inspector });
   const autoDownload = createAutoDownload(session, { onChange: () => render(session.getState()) });
   (surface || container).addEventListener('click', event => {
     const toggle = event.target.closest?.('[data-auto-download-toggle]');
@@ -418,7 +405,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     updateContextIndicator(container, state, session);
     threads.update(state.threads || [], state.selectedId, { archived, models: state.models });
     refreshStartingPrompts();
-    find('[data-production-shared]').hidden = container.hasAttribute('data-compact') || !!thread;
     find('[data-production-surface]').hidden = container.hasAttribute('data-compact');
     production.update(state);
     const contextControls = find('[data-context-controls]');

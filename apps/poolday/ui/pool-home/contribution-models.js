@@ -3,7 +3,6 @@ import { interfaceIcon } from '../components/interface-icons.js';
 import { bindDialog } from '../components/dialog.js';
 import { preparationStatus } from './model-preparation.js';
 import { bindMathematicalBackground } from '../components/mathematical-background.js';
-import { modelChoiceGroups, modelVariants, modelVariantLabel } from '../components/model-select.js';
 
 const number = value => Number.isFinite(value) && value >= 0 ? value.toLocaleString() : '—';
 const bytes = value => Number.isFinite(value) && value >= 0
@@ -100,15 +99,6 @@ export function projectProduction(state) {
     cancellationPending: contribution.unsettledOwners > 0 || network.unsettledOwners > 0 };
 }
 
-/** Shared models first: a heading, one line of network status and the rows. Facts and retry live with the composer and the picker. */
-export function renderSharedModelChooser() {
-  return `<section class="pool-card pool-stack pool-gap-md" aria-label="Shared models" data-production-shared>
-    <h1 class="pool-heading">Choose a model</h1>
-    <p class="pool-small pool-muted" data-production-network-status role="status"></p>
-    <ul class="pool-list pool-stack pool-gap-sm" data-production-available></ul>
-  </section>`;
-}
-
 export function renderProductionContribution() {
   return `<section class="production-surface pool-stack pool-gap-lg" data-production-surface aria-label="AI production">
     <section class="pool-stack pool-gap-md" aria-label="Production">
@@ -130,14 +120,13 @@ export function renderProductionContribution() {
   </section>`;
 }
 
-export function bindProductionControls(container, session, { inspector, onSelectSharedModel, getSelectedModelId } = {}) {
+export function bindProductionControls(container, session, { inspector } = {}) {
   const find = selector => container.querySelector(selector);
   const controller = new AbortController(), options = { signal: controller.signal };
   const backgroundRoot = container.closest('.pool-home');
   const detachBackground = backgroundRoot && document.documentElement.classList.contains('pool-page') && !backgroundRoot.querySelector('.pool-math-background')
     ? bindMathematicalBackground(backgroundRoot) : () => {};
   let last, pending = false, actionError = '', attention = false;
-  const sharedRows = new Map();
   const modelsDialog = bindDialog(find('[data-production-model-dialog]'));
   const modelButtons = find('[data-production-model-buttons]');
   const modelActions = bindContributionModels(modelButtons, session, { onChoose: (id, opener) => { modelsDialog.close(); inspector?.contribute?.(id, opener); } });
@@ -176,42 +165,6 @@ export function bindProductionControls(container, session, { inspector, onSelect
     find('[data-production-file-metric]').hidden = !state.network?.files?.enabled && !(last.suppliedBytes > 0);
     find('[data-production-local]').hidden = last.local.length === 0 || last.phase === 'loading';
     find('[data-production-local]').innerHTML = last.local.map(model => `<span>${escape(model.name || model.id)} · ${model.localReady || state.network?.contribution?.ready && model.id === state.network.contribution.modelId ? 'Prepared' : 'Downloaded'}</span>`).join('');
-    // One row per exact model/adapter variant; the picker lists its routes and providers.
-    const selectedId = getSelectedModelId?.();
-    const variants = modelVariants(state.models || [], { value: selectedId });
-    const byModel = new Map(variants.map(variant => [variant.model, variant]));
-    const shared = (modelChoiceGroups(variants.map(variant => variant.model)).find(group => group.id === 'shared')?.models || [])
-      .map(model => byModel.get(model));
-    const usable = shared.filter(variant => ['ready', 'busy'].includes(variant.model.networkAvailability)).length;
-    const connection = state.network?.consumer?.connectionState;
-    text('[data-production-network-status]', state.network?.error || (state.network?.paused ? 'Disconnected'
-      : state.network?.connecting || ['connecting', 'retrying'].includes(connection) ? 'Finding computers…'
-      : usable ? `${usable} shared ${usable === 1 ? 'model' : 'models'}`
-      : 'Waiting for shared models. You can also run a model on this device.'));
-    const keys = new Set(shared.map(variant => variant.key));
-    for (const [key, row] of sharedRows) if (!keys.has(key)) { row.remove(); sharedRows.delete(key); }
-    shared.forEach((variant, index) => {
-      const { model } = variant;
-      let row = sharedRows.get(variant.key);
-      if (!row) {
-        row = document.createElement('li');
-        row.innerHTML = '<button type="button" class="chat-model-choice pool-button pool-choice pool-row-between"><span><span data-shared-model-name></span><small class="pool-muted" data-shared-model-status></small></span><span class="pool-caption" data-shared-model-action>Use model</span></button>';
-        sharedRows.set(variant.key, row);
-      }
-      const chosen = variant.routes.find(route => (route.selectionId || route.id) === variant.value) || model;
-      const offered = ['ready', 'busy'].includes(chosen.networkAvailability) ? chosen : model;
-      row.firstElementChild.dataset.productionUse = offered.selectionId || offered.id;
-      row.querySelector('[data-shared-model-name]').textContent = modelVariantLabel(model) || model.id;
-      row.querySelector('[data-shared-model-status]').textContent = offered.networkAvailability === 'ready' ? (offered.partition ? 'Shared · Distributed · Ready' : 'Shared · Ready')
-        : offered.networkAvailability === 'busy' ? 'Shared · Busy' : 'Shared · Preparing';
-      row.firstElementChild.disabled = !['ready', 'busy'].includes(offered.networkAvailability);
-      const selected = row.firstElementChild.dataset.productionUse === selectedId;
-      row.firstElementChild.setAttribute('aria-disabled', String(selected || row.firstElementChild.disabled));
-      row.firstElementChild.setAttribute('aria-pressed', String(selected));
-      row.querySelector('[data-shared-model-action]').textContent = selected ? 'Selected' : 'Use shared';
-      const list = find('[data-production-available]');
-      if (list.children[index] !== row) list.insertBefore(row, list.children[index] || null);
-    });
     const records = last.history.records;
     text('[data-production-history-count]', records.length ? String(records.length) : '');
     text('[data-production-history-status]', last.history.error || (records.length ? `Latest ${records.length} saved executions` : 'No saved executions yet'));
@@ -224,14 +177,6 @@ export function bindProductionControls(container, session, { inspector, onSelect
       else progress.removeAttribute('value');
     }
   };
-  find('[data-production-available]').addEventListener('click', event => {
-    const button = event.target.closest('[data-production-use]');
-    if (!button || button.disabled || button.getAttribute('aria-disabled') === 'true') return;
-    const model = (session.getState().models || []).find(item => (item.selectionId || item.id) === button.dataset.productionUse
-      && ['ready', 'busy'].includes(item.networkAvailability));
-    if (!model) return;
-    onSelectSharedModel?.(model);
-  }, options);
   const act = async operation => {
     if (pending) return;
     pending = true; actionError = ''; render(session.getState());

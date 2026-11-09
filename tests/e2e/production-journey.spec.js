@@ -6,7 +6,8 @@ for (const width of [1440, 390]) test(`production opens chat without prepared mo
   await page.setViewportSize({ width, height: 844 });
   await page.goto('/?instance=requester-journey&swarm=public');
   await expect(page.locator('[data-chat-workspace]')).toBeVisible();
-  await expect(page.locator('[data-production-shared]')).toBeVisible();
+  await expect(page.locator('[data-production-shared]')).toHaveCount(0);
+  await expect(page.locator('[data-composer-field] [data-open-model]')).toBeVisible();
   await expect(page.locator('[data-composer-input]')).toBeVisible();
   await expect(page.locator('[data-production-surface]')).not.toBeVisible();
   await expect(page.locator('[data-contextual-inspector]')).not.toBeVisible();
