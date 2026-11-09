@@ -1,0 +1,51 @@
+{
+  "checkedAt": "2026-11-09T12:15:59.185Z",
+  "origin": "https://replo.id/",
+  "sourceCommit": "50a622fb3",
+  "bundleHash": "sha256:12d4099668edec5615e4135485bf4d7819ea88a7e358aa466c477e7f695a051e",
+  "files": [
+    {
+      "path": "ui/pool-home/app.bundle.js",
+      "sha256": "sha256:7f206ddfa6b4406f503f046e762f8b3051ce0286bc65a03bcab74093425890a2"
+    },
+    {
+      "path": "ui/pool-home/message-list.js",
+      "sha256": "sha256:299756da9442ab281d6f4ed7d5282b34a03e926c6735908e384f5ef1c9f51d69"
+    },
+    {
+      "path": "ui/pool-home/execution-activity.js",
+      "sha256": "sha256:b4cc2cbf79e6b5940e8be7e478de9a4e0c05f933c17978de8d3566405e6c222e"
+    },
+    {
+      "path": "ui/pool-home/conversation-workspace.js",
+      "sha256": "sha256:2c507f4b4cb0668bc713d9e21ec20b27d234831dd39216dfe91f9243acd066f9"
+    },
+    {
+      "path": "styles/poolday/compositions/conversation.css",
+      "sha256": "sha256:40b2ef8e74ab9033696ae2c81a1e6eb4827d299a93d25dbba845b8f6b6224e43"
+    }
+  ],
+  "layouts": [
+    {
+      "width": 1280,
+      "overflow": 0,
+      "modelControls": 1,
+      "duplicateChooser": 0,
+      "composerAnimation": "none",
+      "composerBottom": 804,
+      "viewportHeight": 844,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "overflow": 0,
+      "modelControls": 1,
+      "duplicateChooser": 0,
+      "composerAnimation": "none",
+      "composerBottom": 748,
+      "viewportHeight": 844,
+      "errors": []
+    }
+  ],
+  "scope": "Production byte identity and desktop/mobile boot. Generation/cancel/search behaviors checked with local presentation fixtures; no inference requested."
+}

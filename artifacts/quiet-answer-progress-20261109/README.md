@@ -15,3 +15,8 @@ Model, generated token count, elapsed generation time and measured throughput li
 - CSS ownership, scoped lint, browser manifest and diff checks passed.
 - The first browser pass found a 26px to 38px details-button width change. The fixed minimum 44px target passed the unchanged geometry assertions on rerun.
 - Retained screenshots use explicit presentation fixtures, not inference. No model or GPU qualification is implied. Production byte identity and boot checks are recorded separately in live.json after deployment.
+
+## Deployment
+
+Implementation commit: `50a622fb3`. Firebase hosting-only deployment completed.
+Live `https://replo.id/` advertises bundle `sha256:12d4099668edec5615e4135485bf4d7819ea88a7e358aa466c477e7f695a051e`. All five checked changed public JS/CSS resources match their committed manifest hashes. Desktop 1280px and phone 390px boot with no page errors or horizontal overflow, one composer model selector, and no composer animation. No production request was sent. See `live.json`, `deploy.log` and live screenshots.
