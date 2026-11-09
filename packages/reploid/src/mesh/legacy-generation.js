@@ -41,6 +41,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
   const REMOTE_GENERATION_TIMEOUT_MS = policy.mesh.generationTimeoutMs;
   const swarmController = createSwarmController();
   const receiptHistory = [], observedPeers = new Map();
+  const contextProviders = new Map();
   const identificationAttempts = new Map(), identifying = new Set();
   let observationSequence = 0;
   const inbound = new Map(), completed = new Map();
@@ -101,10 +102,13 @@ export function createLegacyGenerationMesh({ config, ports }) {
     pending.then(settled, settled);
     return pending;
   };
-  const chooseCompatibleProvider = (modelId, includeBusy = false, modelIdentity = null, adapters = []) => rankProviderPeers(swarmController.listPeers())
-    .find(peer => supportsAdapters(peer, adapters) && peer.readiness === 'ready' && (!modelIdentity || peer.modelIdentity === modelIdentity) && (!modelId || peer.model === modelId) && (includeBusy || (!reservedProviders.has(peer.peerId) && peer.availableSlots !== 0))
+  const chooseCompatibleProvider = (modelId, includeBusy = false, modelIdentity = null, adapters = [], preferred = null) => {
+    const eligible = rankProviderPeers(swarmController.listPeers())
+    .filter(peer => supportsAdapters(peer, adapters) && peer.readiness === 'ready' && (!modelIdentity || peer.modelIdentity === modelIdentity) && (!modelId || peer.model === modelId) && (includeBusy || (!reservedProviders.has(peer.peerId) && peer.availableSlots !== 0))
       && (policy.models.contract === null
-      || JSON.stringify(snapshotJson(peer.modelContract ?? null)) === JSON.stringify(policy.models.contract))) || null;
+      || JSON.stringify(snapshotJson(peer.modelContract ?? null)) === JSON.stringify(policy.models.contract)));
+    return eligible.find(peer => peer.peerId === preferred) || eligible[0] || null;
+  };
 
   const getTransportState = () => ({
     connectionState: swarmTransport?.getConnectionState?.() || 'disconnected',
@@ -211,11 +215,11 @@ export function createLegacyGenerationMesh({ config, ports }) {
     });
   };
 
-  const chooseProvider = async (modelId, signal, modelIdentity, adapters) => {
+  const chooseProvider = async (modelId, signal, modelIdentity, adapters, preferred = null) => {
     const deadline = Date.now() + REMOTE_GENERATION_TIMEOUT_MS;
     while (!closed && Date.now() < deadline) {
       signal?.throwIfAborted();
-      const provider = chooseCompatibleProvider(modelId, false, modelIdentity, adapters);
+      const provider = chooseCompatibleProvider(modelId, false, modelIdentity, adapters, preferred);
       if (provider) { reservedProviders.add(provider.peerId); return snapshotJson(provider); }
       if (!await waitForProvider(modelId, signal, deadline - Date.now(), modelIdentity, adapters)) break;
     }
@@ -352,6 +356,8 @@ export function createLegacyGenerationMesh({ config, ports }) {
     const consumer = String(payload.consumer || remotePeerId).trim() || remotePeerId;
     const targetProvider = payload.provider ? String(payload.provider).trim() : null;
     const messages = Array.isArray(payload.messages) ? payload.messages : [];
+    const contextId = payload.contextId ?? null;
+    if (contextId !== null && (typeof contextId !== 'string' || !contextId || contextId.length > 256)) return;
 
     if (!requestId || requestId.length > 512 || !messages.length) return;
     let adapters;
@@ -398,6 +404,9 @@ export function createLegacyGenerationMesh({ config, ports }) {
 
     let recoveryBinding = null, claimedRecovery = false, retainedResult = false;
     try {
+      // An asserted consumer string cannot select somebody else's decoder memory.
+      const contextOwner = contextId ? await peerIdentity.verify(remotePeerId, controller.signal) : null;
+      if (contextId && (!contextOwner || contextOwner !== consumer)) throw Error('Generation context consumer identity changed');
       if (payload.recoverable === true) {
         if (await peerIdentity.verify(remotePeerId, controller.signal) !== consumer) throw Error('Generation consumer identity changed');
         recoveryBinding = { requestId, provider: identityBundle.peerId, consumer, model: binding.model,
@@ -418,7 +427,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
           requestId,
           chunk
         });
-      }, { signal: controller.signal, adapterIdentities: adapters, requestId, consumer }, binding);
+      }, { signal: controller.signal, adapterIdentities: adapters, requestId, consumer, contextOwner, contextId }, binding);
       controller.signal.throwIfAborted();
 
       const receipt = await signReceiptDraft(
@@ -583,6 +592,8 @@ export function createLegacyGenerationMesh({ config, ports }) {
     signal?.throwIfAborted();
     messages = snapshotJson(messages);
     requestContext = snapshotJson(requestContext);
+    const contextId = requestContext?.contextId ?? null;
+    if (contextId !== null && (typeof contextId !== 'string' || !contextId || contextId.length > 256)) throw Error('Invalid generation context ID');
     adapterIdentities = adapterSet(adapterIdentities);
     if (modelConfig) {
       const binding = currentModelBinding();
@@ -590,7 +601,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
         throw new Error('Requested model is unavailable');
       }
       if (!supportsAdapters(executionState(), adapterIdentities)) throw new Error('Requested adapter is unavailable');
-      return generateBound(messages, onUpdate, { signal, adapterIdentities }, binding);
+      return generateBound(messages, onUpdate, { signal, adapterIdentities, contextOwner: 'local', contextId }, binding);
     }
 
     if (!swarmEnabled) {
@@ -598,7 +609,8 @@ export function createLegacyGenerationMesh({ config, ports }) {
     }
 
     await initialize();
-    const provider = await chooseProvider(modelId, signal, modelIdentity, adapterIdentities);
+    const affinityKey = contextId ? JSON.stringify([contextId, modelId, modelIdentity, adapterIdentities]) : null;
+    const provider = await chooseProvider(modelId, signal, modelIdentity, adapterIdentities, contextProviders.get(affinityKey));
     if (!provider?.peerId || !swarmTransport || !identityBundle) {
       // An adapter request never falls back to the base model or another adapter.
       throw new Error(adapterIdentities.length ? 'No contributor serves the requested adapter. The base model was not used.'
@@ -626,13 +638,20 @@ export function createLegacyGenerationMesh({ config, ports }) {
         || !supportsAdapters(currentProvider, adapterIdentities)) {
         throw new Error('Selected contributor is no longer ready; retry requires new placement');
       }
-      return await remoteRequests.start({ requestId, modelId, modelIdentity, adapterIdentities,
+      const result = await remoteRequests.start({ requestId, modelId, modelIdentity, adapterIdentities,
         providerPeerId: provider.peerId, providerIdentity: recipientIdentity, messages, onUpdate, signal }, () =>
         swarmTransport.sendToPeer(provider.peerId, 'reploid:generation-request', {
           requestId, consumer: identityBundle.peerId, provider: provider.peerId,
+          ...(contextId && provider.identityProtocol === 1 ? { contextId } : {}),
           model: modelId || provider.model || null, modelIdentity, adapterIdentities,
           modelContract: policy.models.contract, messages, ...(requestContext?.recoverable === true ? { recoverable: true } : {})
         }));
+      if (affinityKey) {
+        contextProviders.delete(affinityKey);
+        contextProviders.set(affinityKey, provider.peerId);
+        while (contextProviders.size > policy.mesh.maxRetainedJobs) contextProviders.delete(contextProviders.keys().next().value);
+      }
+      return result;
     } finally {
       reservedProviders.delete(provider.peerId);
       emitSwarmState();

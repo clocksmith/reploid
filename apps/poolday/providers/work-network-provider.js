@@ -8,7 +8,7 @@ export { withWorkDevice } from './work-device.js';
 export function createWorkNetworkProvider(options) {
   const { model, service, scope, signal, swarm, controls, onProgress } = options;
   return Object.freeze({
-    async generate(messages, onUpdate, { signal: stepSignal } = {}) {
+    async generate(messages, onUpdate, { signal: stepSignal, contextId } = {}) {
       const combined = AbortSignal.any([signal, ...(stepSignal ? [stepSignal] : [])]);
       combined.throwIfAborted();
       // Cloud adapters can be injected by other hosts, never selected by this workspace.
@@ -23,7 +23,7 @@ export function createWorkNetworkProvider(options) {
         // Once a peer is selected, refusal or failure cannot trigger an undisclosed retry.
         const result = await swarm.generate(messages, { ...controls, modelId: model.id, modelIdentity: model.identity,
           adapterIdentities: (model.adapters || []).map(adapter => adapter.identity),
-          signal: combined, onPartial: onUpdate });
+          signal: combined, onPartial: onUpdate, contextId });
         if (result.model !== model.id || result.provider !== 'doppler') throw new Error('Peer returned an incompatible model identity');
         if (JSON.stringify(result.adapterIdentities || []) !== JSON.stringify((model.adapters || []).map(adapter => adapter.identity))) {
           throw new Error('Peer returned an incompatible adapter identity');

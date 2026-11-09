@@ -34,7 +34,8 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
       await resident.prepare();
       return {
         run: (req, { signal: runSignal, onDelta }) => resident.generate(req.messages, onDelta,
-          { signal: runSignal, adapters: req.model.adapters || [], maxOutputTokens: req.maxOutputTokens }),
+          { signal: runSignal, adapters: req.model.adapters || [], maxOutputTokens: req.maxOutputTokens,
+            contextOwner: 'local', contextId: req.threadId }),
         reset: async () => assert(resident.getState().ready, 'Resident session requires replacement'),
         // The resident applies and removes adapters inside the same device lease as generation.
         setAdapters: async () => {},
@@ -117,7 +118,7 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
     state('queued', null);
     const result = await provider.generate(request.messages, text => {
       controls.onDelta({ threadId, attemptId, sequence: sequence++, text });
-    }, { signal: controls.signal });
+    }, { signal: controls.signal, contextId: threadId });
     const execution = result.peerId
       ? { provider: 'peer', placement: 'peer-whole-request', peerId: result.peerId }
       : { provider: 'doppler', placement: 'local-webgpu' };

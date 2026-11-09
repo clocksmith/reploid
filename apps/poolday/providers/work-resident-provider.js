@@ -22,6 +22,7 @@ export function createWorkResidentProvider({ service, model, generation, maxOutc
     try { onChange(getState()); } catch (cause) { console.error('[Resident] state observer failed', cause); }
   };
   const dispose = () => {
+    adapter?.close();
     adapter = null;
     cleanup ||= Promise.resolve().then(() => service.close(scope)).then(async () => { await releaseStorage?.(); releaseStorage = null; }).catch(cause => { cleanup = null; throw cause; });
     return cleanup;
@@ -58,7 +59,7 @@ export function createWorkResidentProvider({ service, model, generation, maxOutc
     notify();
     return preparing;
   };
-  const generate = (messages, onUpdate, { signal, adapters = [], maxOutputTokens }) => {
+  const generate = (messages, onUpdate, { signal, adapters = [], maxOutputTokens, contextOwner, contextId }) => {
     if (!getState().ready) return Promise.reject(new Error('Contributor model is not ready'));
     const input = structuredClone(messages);
     const selectedAdapters = structuredClone(adapters);
@@ -68,7 +69,8 @@ export function createWorkResidentProvider({ service, model, generation, maxOutc
       if (adapter !== current || error) throw new Error('Resident session was retired before execution');
       phase = 'executing'; notify();
       try {
-        const result = await current.generate(input, onUpdate, { signal: combined, adapters: selectedAdapters, maxOutputTokens });
+        const result = await current.generate(input, onUpdate, { signal: combined, adapters: selectedAdapters,
+          maxOutputTokens, contextOwner, contextId });
         combined.throwIfAborted(); completed++;
         // Count runtime-reported tokens, never text deltas or estimated words.
         const tokens = result.completion?.generatedTokenCount ?? result.timing?.generatedTokenCount;

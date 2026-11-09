@@ -9,6 +9,7 @@ const browserHarnesses = ['evaluate-document-answers', 'pool-actual-browser-smok
   'verify-poolday-forecast-sdk', 'verify-swarm-runtime',
   'verify-visual-change-passport-dogfood'].map(name => `scripts/${name}.js`);
 const cleanedModules = [
+  'packages/reploid/src/mesh/generation-context-cache.js',
   'packages/reploid/src/mesh/computer-identity.js',
   'packages/reploid/src/mesh/gpu-signature.js',
   'packages/reploid/src/mesh/gpu-signature-shader.js',

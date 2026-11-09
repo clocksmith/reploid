@@ -1,5 +1,6 @@
 /** Host-selected compatibility providers. Signed Pack providers remain separate. */
 import profile from '../config/work-profile.json' with { type: 'json' };
+import { createGenerationContextCache } from '../../../shared/vendor/reploid/mesh/generation-context-cache.js';
 import { publicProviderHardware } from '../../../shared/vendor/reploid/mesh/provider-hardware.js';
 import { consumeWorkGenerationStream, readWorkGenerationCompletion, readWorkGenerationTiming } from './work-generation-completion.js';
 const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
@@ -23,6 +24,8 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
   if (session) requireValue(typeof session.stream === 'function', 'Configured Doppler session does not expose text streaming');
   else requireValue(typeof credentials === 'function', 'Firebase Auth and App Check credentials are required');
   let healthy = true;
+  const contexts = session?.supports?.('generationContext') === true
+    ? createGenerationContextCache({ policy: profile.contextCache, create: options => session.createGenerationContext(options) }) : null;
   const executionIdentity = () => {
     if (!session) return null;
     requireValue(healthy, 'Doppler session requires replacement after failed cleanup');
@@ -77,6 +80,7 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
     getHardware: () => publicProviderHardware(session?.deviceInfo),
     isReady: () => healthy && session?.loaded === true,
     reset,
+    close: () => contexts?.close(),
     async prepareAdapters(adapters) {
       try {
         await setAdapters(adapters);
@@ -90,7 +94,7 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
         catch (error) { healthy = false; throw error; }
       }
     },
-    async generate(messages, onUpdate = () => {}, { signal: attemptSignal, adapters = [], maxOutputTokens }) {
+    async generate(messages, onUpdate = () => {}, { signal: attemptSignal, adapters = [], maxOutputTokens, contextOwner, contextId }) {
       const combined = AbortSignal.any([signal, attemptSignal]);
       combined.throwIfAborted();
       requireValue(maxOutputTokens === undefined || Number.isSafeInteger(maxOutputTokens) && maxOutputTokens > 0,
@@ -108,10 +112,15 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
       if (session) {
         // Raw compatibility sessions cancel cooperatively; the host waits for settlement.
         await reset();
+        let lease = null, complete = false;
         try {
           await setAdapters(adapters, combined);
+          const contextKey = typeof contextOwner === 'string' && contextOwner && typeof contextId === 'string' && contextId
+            ? JSON.stringify([contextOwner, contextId, model.identity, adapters.map(item => item.identity)]) : null;
+          lease = contexts?.acquire(contextKey);
+          const cachedGeneration = lease ? { ...requestGeneration, generationContext: lease.context } : requestGeneration;
           if (adapters.length) {
-            const result = await session.generate(messages, { ...requestGeneration, signal: combined,
+            const result = await session.generate(messages, { ...cachedGeneration, signal: combined,
               onToken: (_token, delta) => { if (typeof delta === 'string') update(delta); } });
             // Doppler owns visible output. Older callbacks supply only token IDs;
             // those sessions deliver completion text without decoding IDs here.
@@ -124,7 +133,7 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
             requireValue(text === result.outputText, 'Doppler streamed text differs from generation evidence');
           } else {
             actualIdentity = executionIdentity();
-            const result = await consumeWorkGenerationStream(session.stream(messages, { ...requestGeneration, signal: combined }),
+            const result = await consumeWorkGenerationStream(session.stream(messages, { ...cachedGeneration, signal: combined }),
               { signal: combined, onDelta: update, maxOutcomeCharacters });
             completion = result.completion;
             timing = readWorkGenerationTiming(session.supports?.('advanced') === false
@@ -132,8 +141,10 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
             requireValue(JSON.stringify(executionIdentity()) === JSON.stringify(actualIdentity),
               'Doppler execution identity changed during generation');
           }
+          combined.throwIfAborted();
+          complete = true;
         } finally {
-          try { await reset(); await setAdapters([]); }
+          try { lease?.release({ discard: !complete }); await reset(); await setAdapters([]); }
           catch (error) { healthy = false; throw error; }
         }
         actualModel = actualIdentity.model;

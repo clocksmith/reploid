@@ -9,6 +9,22 @@ const cleanup = [];
 afterEach(async () => { for (const close of cleanup.splice(0).reverse()) await close(); });
 const fixture = options => createRecoveryMesh(cleanup, options);
 
+it('binds retained context selection to the verified requester and rejects impersonation', async () => {
+  const owners = [];
+  const f = await fixture({ execute: async (_messages, _update, controls) => {
+    owners.push([controls.contextOwner, controls.contextId]);
+    return { model: 'model', modelIdentity: 'sha256:' + 'a'.repeat(64), adapterIdentities: [], content: 'answer',
+      completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: 1, generatedTokenCount: 1, stopReason: 'eos-token' } };
+  } });
+  await f.requesterMesh.generate(f.messages, null, { modelId: 'model', modelIdentity: 'sha256:' + 'a'.repeat(64),
+    requestContext: { contextId: 'thread-a' } });
+  expect(owners).toEqual([[f.identities[0].peerId, 'thread-a']]);
+  await f.replay({ requestId: 'forged-consumer', consumer: 'someone-else' });
+  expect(owners).toHaveLength(1);
+  expect(f.wire).toContainEqual(expect.objectContaining({ type: 'reploid:generation-error',
+    payload: expect.objectContaining({ error: expect.stringContaining('consumer identity changed') }) }));
+});
+
 it('recovers a lost completion after provider restart, verifies it, and never executes the replay', async () => {
   const f = await fixture(); f.drop(); const controller = new AbortController();
   const running = f.run(controller.signal); const rejected = expect(running).rejects.toThrow('disconnected');

@@ -4,6 +4,12 @@
   "storageSchema": "reploid.work-history/v1",
   "maxSavedAttempts": 32,
   "maxConcurrentThreads": 8,
+  "contextCache": {
+    "maxEntries": 4,
+    "maxBytes": 2147483648,
+    "maxEntryBytes": 1073741824,
+    "idleMs": 300000
+  },
   "maxHistoryBytes": 4194304,
   "maxGoalCharacters": 4000,
   "maxOutcomeCharacters": 16000,

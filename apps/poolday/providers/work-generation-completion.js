@@ -47,5 +47,9 @@ export function readWorkGenerationTiming(stats) {
   const duration = value => Number.isFinite(value) && value >= 0 ? value : null;
   return { totalMs: stats.totalTimeMs, generatedTokenCount: stats.tokensGenerated,
     prefillMs: duration(stats.prefillTimeMs), decodeMs: duration(stats.decodeTimeMs),
-    firstTokenMs: duration(stats.ttftMs) };
+    firstTokenMs: duration(stats.ttftMs),
+    ...(Number.isSafeInteger(stats.reusedPrefixTokens) && stats.reusedPrefixTokens >= 0
+      ? { reusedPrefixTokens: stats.reusedPrefixTokens } : {}),
+    ...(Number.isSafeInteger(stats.prefillComputedTokens) && stats.prefillComputedTokens >= 0
+      ? { prefillComputedTokens: stats.prefillComputedTokens } : {}) };
 }

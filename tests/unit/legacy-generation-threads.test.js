@@ -26,6 +26,28 @@ function fixture(meshOverrides = {}, execution = {}) {
     update: (request, chunk) => handlers.get('reploid:generation-update')(request.peer, { requestId: request.payload.requestId, chunk }) };
 }
 
+it('prefers the successful conversation provider only while it remains eligible and available', async () => {
+  const f = fixture(); await f.mesh.connect();
+  try {
+    f.advertise('west', 'qwen');
+    const run = async () => {
+      const offset = f.sent.length;
+      const pending = f.mesh.generate([], null, { modelId: 'qwen', requestContext: { contextId: 'thread-a' } });
+      await vi.waitFor(() => expect(f.sent.length).toBeGreaterThan(offset));
+      const sent = f.sent.at(-1);
+      await f.respond(sent); await pending;
+      return sent.peer;
+    };
+    expect(await run()).toBe('west');
+    f.advertise('east', 'qwen', { availableSlots: 10 });
+    expect(await run()).toBe('west');
+    f.advertise('west', 'qwen', { availableSlots: 0 });
+    expect(await run()).toBe('east');
+    f.advertise('east', 'other'); f.advertise('west', 'qwen');
+    expect(await run()).toBe('west');
+  } finally { await f.mesh.close(); }
+});
+
 it('transports bounded reported GPU metadata and clears it when a peer no longer reports it', async () => {
   const f = fixture({}, { getExecutionState: () => ({ phase: 'ready', modelIdentity: 'fixture',
     hardware: { vendor: 'AMD', description: 'GPU', hostname: 'private-host' } }) });

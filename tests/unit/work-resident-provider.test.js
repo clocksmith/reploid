@@ -19,6 +19,27 @@ const fixture = (overrides = {}, options = {}) => {
   return { owner, service, session };
 };
 
+it('passes a bounded isolated context to each conversation and releases every context on close', async () => {
+  const seen = [], contexts = [];
+  const f = fixture({ supports: capability => capability === 'generationContext',
+    createGenerationContext: vi.fn(() => {
+      const context = { close: vi.fn(), getStats: () => ({ reusedTokens: 0 }) }; contexts.push(context); return context;
+    }),
+    async *stream(messages, options) {
+      seen.push(options.generationContext);
+      yield { schema: 'doppler.generation-event/v1', type: 'text-delta', text: messages[0].content };
+      yield { schema: 'doppler.generation-event/v1', type: 'complete', outputText: messages[0].content };
+    },
+  });
+  await f.owner.prepare();
+  for (const contextOwner of ['alice', 'bob', 'alice']) {
+    await f.owner.generate([{ content: 'hello' }], () => {}, { signal: signal(), contextOwner, contextId: 'same-thread-id' });
+  }
+  expect(seen[0]).toBe(seen[2]); expect(seen[0]).not.toBe(seen[1]);
+  await f.owner.close();
+  expect(contexts.every(context => context.close.mock.calls.length === 1)).toBe(true);
+});
+
 it('reports the loaded session GPU without opening another device and clears it on retirement', async () => {
   const f = fixture({ deviceInfo: { vendor: 'AMD', description: 'Reported GPU', hostname: 'private-host' } });
   expect(f.owner.getState().hardware).toBeNull();

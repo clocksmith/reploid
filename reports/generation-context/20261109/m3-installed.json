@@ -1,0 +1,66 @@
+{
+  "schema": "reploid.generation-context-installed/v1",
+  "passed": true,
+  "runtimeVersion": "0.6.35",
+  "packageIntegrity": "sha512-xt2UIZ8mRCWb9e8VoGyItsbE0pB+KcO1v/dV05mXOzbKuZo39t7U7uG3wGRkKOhzUcP/Op+UNXQRUmGRuEUixg==",
+  "modelIdentity": "sha256:c5fcf38e945f1c048faca9ccda8991f1494563317f46a6dd79e0714ad001c569",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "node": "v22.20.0",
+  "platform": "darwin",
+  "scope": "Offline installed-package/native-provider development check; no public service or browser qualification",
+  "cases": [
+    {
+      "kind": "alternating-threads-followup",
+      "cached": {
+        "totalMs": 239.91504199999963,
+        "generatedTokenCount": 4,
+        "prefillMs": 144.26745800000026,
+        "decodeMs": 92.60425000000032,
+        "firstTokenMs": 146.97854199999983,
+        "reusedPrefixTokens": 78,
+        "prefillComputedTokens": 23
+      },
+      "fresh": {
+        "totalMs": 510.4135839999999,
+        "generatedTokenCount": 4,
+        "prefillMs": 415.4210000000003,
+        "decodeMs": 93.3428329999997,
+        "firstTokenMs": 416.90541699999994,
+        "reusedPrefixTokens": 0,
+        "prefillComputedTokens": 101
+      },
+      "content": "The last color is"
+    },
+    {
+      "kind": "requester-isolation",
+      "otherReused": 0,
+      "originalReused": 97
+    },
+    {
+      "kind": "cancel-rebuild-reuse",
+      "reusedAfterCancel": 0
+    },
+    {
+      "kind": "edited-history",
+      "reused": 0
+    }
+  ],
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "apple-m3",
+    "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+    "subgroupMinSize": 32,
+    "subgroupMaxSize": 32
+  },
+  "cleanup": "settled",
+  "dopplerCommit": "fa18418b",
+  "reploidBase": "39e40c39f523b1bc4302b86fd44354ef68cf30ac",
+  "sourceSha256": {
+    "tests/fixtures/generation-context-installed-physical.js": "cdd977aa6bc859a5d8816169f08ea918e3dc2648c0113fd84ae10dfb795d179b",
+    "apps/poolday/providers/work-provider.js": "93797f3df3b83eee6b526407d0b07f6b6d18190a5f63a73a83d9aafacb02866b",
+    "apps/poolday/providers/work-resident-provider.js": "5e041959976f98e50ff75217dbc14555e23332396a3f76181089d4a8d4c72b78",
+    "packages/reploid/src/mesh/generation-context-cache.js": "297b9f5c85972a19e8324557e2c958fc3efdb4072ff82d61c5c33f83f352b584",
+    "packages/reploid/src/mesh/legacy-generation.js": "bf6ba21cabc418d4e5e53dfd03028f0a3cdbb5bb41645bb2f22a1c15298b8a54"
+  }
+}

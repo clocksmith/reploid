@@ -568,7 +568,7 @@
     {
       "path": "contracts/doppler-partitions.provenance.json",
       "bytes": 1666,
-      "sha256": "fd558f9bee50a25bc298eda10fc1f8abae635d1b76564a63762f1ea4774c2bfe"
+      "sha256": "b6eb1cb32534c095dd341f34f992bb04f9054056906d235bc54f3bdd5db249fb"
     },
     {
       "path": "contracts/host-ports.d.ts",
@@ -741,6 +741,16 @@
       "sha256": "653e256f8586cf2c5741abf9c12b3aec1a0d190e34ecc2905fdcc2fe97b210d5"
     },
     {
+      "path": "mesh/generation-context-cache.d.ts",
+      "bytes": 562,
+      "sha256": "459a88563d88d920843c9437f579af18f3026bc66bdfe88422052cc9ede84a31"
+    },
+    {
+      "path": "mesh/generation-context-cache.js",
+      "bytes": 3059,
+      "sha256": "297b9f5c85972a19e8324557e2c958fc3efdb4072ff82d61c5c33f83f352b584"
+    },
+    {
       "path": "mesh/generation-recovery.js",
       "bytes": 3200,
       "sha256": "c60c165232a05ad0eff28701e3fc46f23d034a520a470b8d8adffeac4f1a9185"
@@ -837,13 +847,13 @@
     },
     {
       "path": "mesh/legacy-generation.d.ts",
-      "bytes": 3214,
-      "sha256": "46558468417d4229598d6db1737da307ffcedf29ee63e32ab9283e80c570e980"
+      "bytes": 3460,
+      "sha256": "39426b20f3d7a9defa7e9898743cf722b7d425fa3d7897982301e28aeef5a207"
     },
     {
       "path": "mesh/legacy-generation.js",
-      "bytes": 38021,
-      "sha256": "ba6c51b058e6e7a34827b716779c2c31a20a7e9cb77ada95ab99daf3a1e8c5c0"
+      "bytes": 39487,
+      "sha256": "bf6ba21cabc418d4e5e53dfd03028f0a3cdbb5bb41645bb2f22a1c15298b8a54"
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.d.ts",
