@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
 const base = 'https://replo.id';
 const out = 'artifacts/chat-controls-20261109';
-const receipt = { url: base, checkedAt: new Date().toISOString(), deploymentCommit: '8138cf464', assets: [], views: [] };
+const receipt = { url: base, checkedAt: new Date().toISOString(), deploymentCommit: process.argv[2] || '8138cf464', assets: [], views: [] };
 const expected = JSON.parse(await readFile('apps/poolday/config/browser-bundle-manifest.json', 'utf8')).bundleHash;
 const response = await fetch(base + '/config/browser-bundle-manifest.json', { signal: AbortSignal.timeout(15000) });
 assert.equal(response.status, 200);
@@ -33,6 +33,7 @@ try {
     await expect(page.locator('[data-chat-workspace]')).toBeVisible();
     const opener = page.locator('[data-open-model]');
     await expect(opener).toBeEnabled();
+    const initialModel = await page.locator('[data-model-digest]').textContent();
     const interact = async locator => mobile ? locator.tap() : locator.click();
     if (!mobile) {
       await opener.focus();
@@ -47,6 +48,9 @@ try {
     const models = await page.locator('.chat-model-choice').allTextContents();
     // Allow the first backdrop composition to settle before retaining the screenshot.
     await page.waitForTimeout(1200);
+    const settledModels = await page.locator('.chat-model-choice').allTextContents();
+    const pickerSelection = await page.locator('[data-next-model]').inputValue();
+    assert.equal(pickerSelection, await page.locator('[data-active-model-select]').inputValue());
     await page.screenshot({ path: `${out}/live-${mobile ? 'phone' : 'desktop'}-picker.png`, fullPage: true });
     await interact(page.locator('[data-model-picker] [data-open-control-help]'));
     await expect(page.locator('[data-control-help]')).toBeVisible();
@@ -55,7 +59,7 @@ try {
     await expect(opener).toBeFocused();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     assert.ok(overflow <= 1); assert.deepEqual(errors, []);
-    receipt.views.push({ viewport: mobile ? '390x844 with touch emulation' : '1440x844 desktop', pickerRows: models.map(x => x.trim()), modelLabel: await page.locator('[data-model-digest]').textContent(), overflow, pageErrors: errors, passed: true });
+    receipt.views.push({ viewport: mobile ? '390x844 with touch emulation' : '1440x844 desktop', initialModel, pickerRows: models.map(x => x.trim()), settledModels: settledModels.map(x => x.trim()), pickerSelection, modelLabel: await page.locator('[data-model-digest]').textContent(), overflow, pageErrors: errors, passed: true });
     await context.close();
   }
 } finally { await browser.close(); }

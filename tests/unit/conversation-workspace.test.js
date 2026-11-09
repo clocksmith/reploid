@@ -128,6 +128,28 @@ describe('Conversation workspace', () => {
     expect(find('[data-model-digest]').textContent).toContain(large.name);
   });
 
+  it('updates an untouched open picker with discovered capacity but keeps a staged explicit choice', async () => {
+    dispose(); await session.close();
+    let peers = [];
+    session = createChatSession({ storage: null, service, swarm: { getState: () => ({ consumer: { peers } }) } });
+    dispose = bindConversationWorkspace(root, session);
+    find('[data-open-model]').click();
+    const fallback = find('[data-next-model]').value;
+    const ready = CANONICAL_CHAT_MODELS.find(model => model.id !== fallback);
+    peers = [{ peerId: 'ready', model: ready.id, modelIdentity: ready.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }];
+    session.refreshNetwork();
+    expect(find('[data-active-model-select]').value).toBe(ready.id);
+    expect(find('[data-next-model]').value).toBe(ready.id);
+    expect(find('[data-change-model]').disabled).toBe(false);
+    const next = find('[data-next-model]'); next.value = fallback;
+    next.dispatchEvent(new Event('change', { bubbles: true }));
+    session.refreshNetwork();
+    expect(next.value).toBe(fallback);
+    expect(find('[data-change-model]').disabled).toBe(true);
+    find('[data-model-picker-close]').click(); find('[data-open-model]').click();
+    expect(next.value).toBe(ready.id);
+  });
+
   it('stages local selection without changing the composer until confirmed', async () => {
     dispose(); await session.close();
     const [small, , large] = CANONICAL_CHAT_MODELS;

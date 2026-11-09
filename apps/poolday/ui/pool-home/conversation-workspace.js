@@ -133,7 +133,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const nextModelChoices = bindModelChoices(find('[data-next-model]'));
   const inspector = sharedInspector || bindNetworkInspector(container, session, { getInviteUrl, webSearch, search });
   let archived = false, renameId = null, chosenModel = viewState.chosenModel || null, pickerModel = null, pickerLocation = 'auto';
-  let changingModel = false;
+  let changingModel = false, pickerTouched = false;
   let files = [], fileRevision = 0, composerRevision = 0, reading = false;
   let contextPrompt = viewState.contextPrompt || null;
   let executionLocation = viewState.executionLocation || 'auto';
@@ -247,6 +247,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const updatePicker = snapshot => {
     const state = snapshot.computerLabels ? snapshot : withComputerLabels(snapshot, session);
     const keyFor = model => model?.selectionId || model?.id;
+    if (!pickerTouched) pickerModel = (state.models || []).find(model => keyFor(model) === modelSelect.value) || pickerModel;
     const models = [...(state.models || [])];
     const selected = (state.models || []).find(model => keyFor(model) === keyFor(pickerModel));
     if (pickerModel && !models.some(model => keyFor(model) === keyFor(pickerModel))) {
@@ -467,6 +468,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const renameDialog = bindDialog(find('[data-rename-dialog]'));
   const picker = bindDialog(find('[data-model-picker]'));
   const openPicker = event => {
+    pickerTouched = false;
     const state = session.getState();
     inspector.close?.({ restoreFocus: false });
     find('[data-current-model-description]').textContent = state.activeThread?.model.name || '';
@@ -490,6 +492,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     next.value = route.value; next.dispatchEvent(new Event('change', { bubbles: true }));
   });
   on('[data-next-model]', 'change', () => {
+    pickerTouched = true;
     pickerModel = (session.getState().models || []).find(model => (model.selectionId || model.id) === find('[data-next-model]').value) || pickerModel;
     if (pickerLocation !== 'local' && !modelExecutionState(pickerModel, pickerLocation).usable) pickerLocation = isSharedModelChoice(pickerModel) ? 'network' : 'auto';
     updatePicker(session.getState());
@@ -583,6 +586,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   on('[data-execution-location]', 'click', event => {
     const button = event.target.closest('[data-execution-choice]');
     if (!button || button.disabled || button.getAttribute('aria-pressed') === 'true') return;
+    pickerTouched = true;
     pickerLocation = button.dataset.executionChoice;
     updatePicker(session.getState());
   });

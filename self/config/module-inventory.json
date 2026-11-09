@@ -3653,7 +3653,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:1f7f18ce0af3fcf693c1cae02c213d64bfefd428c43c5423980cf2f5a2ca7191",
+      "sha256": "sha256:7d8cd6cc10d4d7e79ea0636d51abc673c5f50c00b753211beb8b93a7718e6294",
       "imports": []
     },
     {
@@ -3741,7 +3741,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:0357349414ce0b8d6b0caefc68a842a9811769377e0d397ae5837693479d8af3",
+      "sha256": "sha256:6964a2e144f5de2625f71aed90871490bb54553eaf05a7142c60f490f9ecb46a",
       "imports": [
         "../components/attachments.js",
         "../components/control-help.js",
