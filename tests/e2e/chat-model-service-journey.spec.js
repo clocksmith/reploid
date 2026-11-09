@@ -92,7 +92,9 @@ test('exact whole-model service survives overlap, cancellation and provider depa
   const complete = async (row, expected) => {
     await expect.poll(async () => {
       const status = await observe(row);
-      if (['failed', 'interrupted', 'cancelled'].includes(status)) throw new Error(JSON.stringify(row.attempt));
+      if (['failed', 'interrupted', 'cancelled'].includes(status)) {
+        throw new Error(`Attempt ${row.attemptId} ${status}: ${row.attempt.error || 'no completed answer'}`);
+      }
       return status;
     }, { timeout: 120000, intervals: [100] }).toBe('completed');
     row.elapsedMs = performance.now() - row.started;
@@ -174,7 +176,9 @@ test('exact whole-model service survives overlap, cancellation and provider depa
     const unrelatedHistory = await readChatWorkspace(b);
     await complete(await send(a, 'What is 6 times 7? Answer with the number only.'), '42');
 
-    const interrupted = await send(a, 'Count from one to one hundred, one number per line.');
+    // Unlike the cancellation-only request, the interrupted request must also
+    // finish within the selected model's output allowance when explicitly retried.
+    const interrupted = await send(a, 'Count from 1 to 20, one number per line. Add nothing else.');
     await expect.poll(async () => { await observe(interrupted); return interrupted.firstOutputMs !== null; }, { timeout: 90000, intervals: [100] }).toBe(true);
     await stopProvider('SIGKILL');
     await expect.poll(() => observe(interrupted), { timeout: 60000 }).toMatch(/failed|interrupted/);
@@ -191,6 +195,7 @@ test('exact whole-model service survives overlap, cancellation and provider depa
     restarted.attemptId = (await thread(a)).attempts.at(-1).id;
     receipt.observations.push(restarted);
     await complete(restarted);
+    expect(restarted.answer.match(/\d+/g)?.map(Number)).toEqual(Array.from({ length: 20 }, (_, index) => index + 1));
     expect(restarted.attempt.retryOf).toBe(interrupted.attemptId);
     const history = await readChatWorkspace(a);
     const preserved = history.threads.find(item => item.id === interrupted.threadId).messages.find(item => item.id === interrupted.attempt.responseId);
