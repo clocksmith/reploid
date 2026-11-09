@@ -1,0 +1,189 @@
+{
+  "schema": "reploid.owned-provider-lifecycle-evidence/v1",
+  "at": "2026-11-09T19:28:10.860654+00:00",
+  "sourceRevision": "df9770bf344db5dfc4c6fa0929e57caca826f55a",
+  "rawReceiptSha256": "961522dae72d988b549e3344d27c53712ac2078dc8d18516bd882721cd575c46",
+  "environment": {
+    "browser": "145.0.7632.6",
+    "requesters": "two isolated Chromium contexts, SwiftShader presentation",
+    "provider": "one physical AMD Radeon 8060S; replacement on the same host",
+    "runtime": "doppler-gpu 0.6.33",
+    "installedRuntimeFilesVerified": 1852
+  },
+  "scope": "Private loopback room; actual native inference. No public provider termination, remote adapter, model-quality, throughput or multiple-operator qualification.",
+  "passed": true,
+  "overlapWithoutCancellation": true,
+  "partialOutputPreserved": true,
+  "replacementSigningIdentityChanged": true,
+  "explicitRetry": true,
+  "historyPreservedAcrossReload": true,
+  "otherConversationPreserved": true,
+  "noRequesterWeightDownloads": true,
+  "pageErrors": [],
+  "publicProviderUnchanged": true,
+  "ownedRuntimeProcessesAfterTest": [],
+  "gpuLimitUnchanged": true,
+  "requests": [
+    {
+      "requester": 1,
+      "prompt": "What is 17 + 25? Answer with the number only.",
+      "answer": "42",
+      "status": "completed",
+      "error": null,
+      "retry": false,
+      "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+      "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+      "recipient": "peer:8fde20d135b60fffc4389003",
+      "completion": {
+        "generatedTokenCount": 3,
+        "promptTokenCount": 60,
+        "schema": "doppler.generation-completion/v1",
+        "stopReason": "stop-token"
+      }
+    },
+    {
+      "requester": 1,
+      "prompt": "Subtract 2 from that result. Answer with the number only.",
+      "answer": "40",
+      "status": "completed",
+      "error": null,
+      "retry": false,
+      "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+      "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+      "recipient": "peer:8fde20d135b60fffc4389003",
+      "completion": {
+        "generatedTokenCount": 3,
+        "promptTokenCount": 86,
+        "schema": "doppler.generation-completion/v1",
+        "stopReason": "stop-token"
+      }
+    },
+    {
+      "requester": 1,
+      "prompt": "Count from 1 to 20, one number per line. Add nothing else.",
+      "answer": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20",
+      "status": "completed",
+      "error": null,
+      "retry": false,
+      "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+      "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+      "recipient": "peer:8fde20d135b60fffc4389003",
+      "completion": {
+        "generatedTokenCount": 51,
+        "promptTokenCount": 116,
+        "schema": "doppler.generation-completion/v1",
+        "stopReason": "stop-token"
+      }
+    },
+    {
+      "requester": 2,
+      "prompt": "Choose from these fictional movies: Cedar, a calm comedy lasting 84 minutes; Harbor, a tense thriller lasting 91 minutes; Orbit, a calm comedy lasting 122 minutes. We want a calm comedy under 100 minutes. Reply with only the title.",
+      "answer": "Cedar",
+      "status": "completed",
+      "error": null,
+      "retry": false,
+      "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+      "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+      "recipient": "peer:8fde20d135b60fffc4389003",
+      "completion": {
+        "generatedTokenCount": 3,
+        "promptTokenCount": 102,
+        "schema": "doppler.generation-completion/v1",
+        "stopReason": "stop-token"
+      }
+    },
+    {
+      "requester": 1,
+      "prompt": "Count from one to one hundred, one number per line.",
+      "answer": "1\n",
+      "status": "cancelled",
+      "error": "Response stopped",
+      "retry": false,
+      "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+      "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+      "recipient": "peer:8fde20d135b60fffc4389003",
+      "completion": null
+    },
+    {
+      "requester": 2,
+      "prompt": "What is 9 times 7? Answer with the number only.",
+      "answer": "63",
+      "status": "completed",
+      "error": null,
+      "retry": false,
+      "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+      "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+      "recipient": "peer:8fde20d135b60fffc4389003",
+      "completion": {
+        "generatedTokenCount": 3,
+        "promptTokenCount": 128,
+        "schema": "doppler.generation-completion/v1",
+        "stopReason": "stop-token"
+      }
+    },
+    {
+      "requester": 1,
+      "prompt": "What is 6 times 7? Answer with the number only.",
+      "answer": "42",
+      "status": "completed",
+      "error": null,
+      "retry": false,
+      "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+      "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+      "recipient": "peer:8fde20d135b60fffc4389003",
+      "completion": {
+        "generatedTokenCount": 3,
+        "promptTokenCount": 190,
+        "schema": "doppler.generation-completion/v1",
+        "stopReason": "stop-token"
+      }
+    },
+    {
+      "requester": 1,
+      "prompt": "Count from 1 to 20, one number per line. Add nothing else.",
+      "answer": "1",
+      "status": "failed",
+      "error": "Execution peer disconnected; retry requires a new attempt",
+      "retry": false,
+      "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+      "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+      "recipient": "peer:8fde20d135b60fffc4389003",
+      "completion": null
+    },
+    {
+      "requester": 1,
+      "prompt": "Count from 1 to 20, one number per line. Add nothing else.",
+      "answer": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20",
+      "status": "completed",
+      "error": null,
+      "retry": true,
+      "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+      "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+      "recipient": "peer:a0c5ab5f0cedcddba700182f",
+      "completion": {
+        "generatedTokenCount": 51,
+        "promptTokenCount": 220,
+        "schema": "doppler.generation-completion/v1",
+        "stopReason": "stop-token"
+      }
+    }
+  ],
+  "retainedEarlierFailure": {
+    "rawReceiptSha256": "1685e1ddcedff13f1f3ca1ffa6e88c0ca735baee135814355fb958cd08be2974",
+    "request": "Count from one to one hundred, one number per line.",
+    "status": "failed",
+    "error": "The answer reached its generation limit and is incomplete. Its partial text is preserved; retry starts a new attempt.",
+    "completion": {
+      "generatedTokenCount": 256,
+      "promptTokenCount": 214,
+      "schema": "doppler.generation-completion/v1",
+      "stopReason": "max-tokens"
+    },
+    "disposition": "Correct incomplete-answer refusal at the unchanged 256-token ceiling. The lifecycle retry fixture now asks for 20 numbers and checks all 20."
+  },
+  "sourceSha256": {
+    "server/native-participant.js": "72f34a2f3273d729b7e9df82003a50f948fc458722244d10d7d5536e190c4244",
+    "tests/e2e/chat-model-service-journey.spec.js": "a0d496728946b2b0a27e0d24368d489d72ba1b6f33e87f4b8c47c2ee62af18cb",
+    "tests/unit/native-earning.test.js": "ba350cf8be4ba3eaeb0ed313eae3b3176e5615a214983a8332237efbd0067f7d"
+  }
+}

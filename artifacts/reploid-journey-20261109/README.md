@@ -49,9 +49,38 @@ All 21 tests across native earning, native participant and generation recovery
 pass. Existing public providers remain untouched; this is a source repair for
 new native processes, not a restart of a serving participant.
 
-Public-provider termination, a replacement provider, an actual remote adapter,
-GPU recognition accuracy and Flash-Next qualification are outside this receipt.
-The existing provider was not restarted. Reported hardware is not attestation.
+## Owned physical-provider journey
+
+[The final private-room run](owned-provider.json) passes nine actual inference
+attempts with two isolated Chromium requesters and one AMD native provider:
+follow-up, reload, overlapping requests, cancellation of one while the other
+finishes, reuse, provider process termination, preserved partial output, and
+explicit retry to a different signing identity. The replacement completes all
+20 requested numbers. The other conversation and both histories stay intact.
+Every request binds the same catalog model identity; requester weight requests
+and page errors are empty.
+
+An earlier run correctly refused the 100-number retry as incomplete at the
+unchanged 256-token cap. Its failed verdict, completion record and raw receipt
+digest remain in the final receipt. The lifecycle fixture now uses the existing
+20-number prompt, which fits that bound, and checks the entire answer. No
+production limit or quality threshold was changed to obtain a pass.
+
+The native runtime's 1,852 packaged files match Reploid's exact 0.6.33 archive.
+The test uses the shared GPU lock. Its processes and local web server are stopped;
+the existing public 27B process and TTM setting remain unchanged. Large original
+logs and private room configuration remain in operator-local test state.
+
+Reproduce with `tests/e2e/chat-model-service-journey.spec.js`, an operator-owned
+`REPLOID_SERVICE_CAMPAIGN`, prepared exact model files and private room token.
+The harness owns provider startup, termination and replacement. Never configure
+it with an existing provider's identity/state directory. SwiftShader supplies
+requester presentation only; native inference uses the physical AMD GPU.
+
+This does not test different physical providers/operators, an actual remote
+adapter, general answer quality, throughput, GPU recognition accuracy or
+Flash-Next qualification. The existing provider was not restarted. Reported
+hardware is not attestation. No billing was activated.
 
 Component: Poolday interface and verification evidence.
 Intent: preserved. Boundary effects: browser radio selection notification and
