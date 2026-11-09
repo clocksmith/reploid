@@ -281,7 +281,7 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
             if (stage === devices.length - 1) { final = result; break; }
             assert(!('tokenId' in result) && !('delta' in result), 'Only final stage may sample or publish tokens');
             const tensor = result.activationTensor;
-            assert(matchingPartitionActivation(tensor, tensorContract) && same(tensor.shape, [1, input.length, plan.hiddenSize])
+            assert(matchingPartitionActivation(tensor, tensorContract) && same(tensor.shape, [1, input.length, tensorContract.hiddenSize])
               && tensor.seqOffset === position && tensor.step === index && tensor.data?.byteLength <= policy.maxActivationBytes,
             'Ordered activation shape or allocation mismatch');
             const metadata = { identity: binding, ...step, fromStage: stage, toStage: stage + 1,

@@ -1,7 +1,20 @@
 import { describe, expect, it, vi } from 'vitest';
 import { fixture, another } from '../fixtures/ordered-partition-ports.js';
+import { createLayerPartitionRunner } from '../../packages/reploid/src/mesh/partitions/partition-runner.js';
 
 describe('ordered ordinary route (injected numerical execution)', () => {
+  it('transfers every residual stream using Doppler boundary width rather than model embedding width', async () => {
+    const f = fixture(3);
+    await f.runner.close();
+    f.plan.hiddenSize = 2;
+    f.plan.residualStreams = { streamCount: 4, streamWidth: 2 };
+    const runner = createLayerPartitionRunner(f);
+    try {
+      expect((await runner.execute(f.request)).content).toBe('012');
+      expect(f.transport.transferActivation).toHaveBeenCalledTimes(6);
+      expect(f.transport.transferActivation.mock.calls[0][0].shape).toEqual([1, 2, 8]);
+    } finally { await runner.close(); }
+  });
   it.each([2, 3, 4, 5, 6, 7, 16])('streams %i stages in order after complete reservation', async count => {
     const f = fixture(count), deltas = [];
     const result = await f.runner.execute({ ...f.request, onDelta: delta => deltas.push(delta) });
