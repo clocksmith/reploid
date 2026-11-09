@@ -1,0 +1,243 @@
+{
+  "schema": "reploid.native-model-throughput/v1",
+  "at": "2026-11-09T22:42:35.493Z",
+  "passed": true,
+  "platform": "linux",
+  "node": "v22.22.1",
+  "cpu": "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S",
+  "totalMemoryBytes": 131890814976,
+  "initialFreeMemoryBytes": 92658851840,
+  "runtimeVersion": "0.6.36",
+  "packageIntegrity": "sha512-0gqBQVBl6wVXZPBlRWyHmvGlcjSzGehk3wYMlXGp76tm2/VZWQvHW+Xqax+6Kc8M2DOw6AJicGvyZmy4YJTLog==",
+  "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+  "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+  "sourceWeightBytes": 16994352128,
+  "loadOptions": {
+    "runtimeConfig": {
+      "shared": {
+        "harness": {
+          "referenceTranscript": {
+            "enabled": false,
+            "captureLogits": true,
+            "captureKvBytes": true
+          }
+        },
+        "debug": {
+          "logLevel": {
+            "defaultLogLevel": "warn"
+          },
+          "trace": {
+            "enabled": false
+          },
+          "profiler": {
+            "enabled": false
+          }
+        },
+        "bufferPool": {
+          "budget": {
+            "maxTotalBytes": 25769803776,
+            "highWatermarkRatio": 0.94,
+            "emergencyTrimTargetRatio": 0.9,
+            "hardFailOnBudgetExceeded": true
+          }
+        }
+      },
+      "inference": {
+        "prompt": "The capital of France is",
+        "chatTemplate": {
+          "enabled": false,
+          "type": null,
+          "thinking": false
+        },
+        "generation": {
+          "maxTokens": 128,
+          "disableMultiTokenDecode": true
+        },
+        "batching": {
+          "maxTokens": 128,
+          "batchSize": 1,
+          "readbackInterval": 1,
+          "stopCheckMode": "per-token",
+          "readbackMode": "sequential",
+          "ringTokens": 1,
+          "ringStop": 1,
+          "ringStaging": 1
+        },
+        "sampling": {
+          "temperature": 0,
+          "topK": 1,
+          "topP": 1,
+          "repetitionPenalty": 1,
+          "repetitionPenaltyWindow": 1,
+          "greedyThreshold": 0,
+          "suppressSpecialTokens": false,
+          "suppressSpecialLikeTokens": false,
+          "suppressTokenIds": []
+        },
+        "session": {
+          "decodeLoop": {
+            "batchSize": 1,
+            "readbackInterval": 1,
+            "stopCheckMode": "per-token",
+            "readbackMode": "sequential",
+            "submitLatencyThresholdMs": null,
+            "maxBatchDecodeTokens": 1,
+            "ringTokens": 1,
+            "ringStop": 1,
+            "ringStaging": 1,
+            "disableCommandBatching": false
+          },
+          "kvcache": {
+            "maxSeqLen": 4096
+          },
+          "prefillTokenChunkSize": 256
+        },
+        "kernelPathPolicy": {
+          "mode": "capability-aware",
+          "sourceScope": [
+            "manifest"
+          ],
+          "allowSources": [
+            "manifest"
+          ],
+          "onIncompatible": "error"
+        },
+        "kvcache": {
+          "maxSeqLen": 4096
+        }
+      }
+    }
+  },
+  "generation": {
+    "maxTokens": 256,
+    "temperature": 0,
+    "topK": 1,
+    "topP": 1,
+    "repetitionPenalty": 1,
+    "maxSeqLen": 4096,
+    "useChatTemplate": true,
+    "repetitionPenaltyWindow": 1
+  },
+  "workload": {
+    "prompt": "Explain in detail how a computer executes a transformer language model. Describe tokenization, embeddings, attention, feed-forward layers, output logits and autoregressive decoding. Write at least six substantial paragraphs and do not stop after an introduction.",
+    "maxOutputTokens": 128,
+    "warmupRuns": 1,
+    "measuredRuns": 3,
+    "contextReuse": false
+  },
+  "scope": "Native resident application profile; transport/load time excluded from throughput. No full-logit or general quality qualification.",
+  "rows": [
+    {
+      "run": 0,
+      "warmup": true,
+      "wallMs": 22920.421560000003,
+      "timing": {
+        "totalMs": 22912.466216,
+        "generatedTokenCount": 128,
+        "prefillMs": 1526.3775900000037,
+        "decodeMs": 21378.181002000012,
+        "firstTokenMs": 1532.8700160000008,
+        "reusedPrefixTokens": 0,
+        "prefillComputedTokens": 58
+      },
+      "completion": {
+        "schema": "doppler.generation-completion/v1",
+        "stopReason": "max-tokens",
+        "promptTokenCount": 58,
+        "generatedTokenCount": 128
+      },
+      "answer": "The execution of a transformer language model begins with the preprocessing of raw text into a format that the neural network can process, a stage known as tokenization. Since computers operate on numerical data, the input string is broken down into smaller units called tokens, which can be words, subwords, or characters depending on the specific tokenizer used (such as Byte Pair Encoding or WordPiece). Each token is then mapped to a unique integer index based on a predefined vocabulary. This step is crucial because it determines the granularity of the model's understanding; for instance, a subword tokenizer might split the word \"unhappiness\" into \"un\", \"",
+      "answerSha256": "f6e8951d4201897e864bdea6ccc4374aa202bf2b4508cd6177b99e57d4fd4b98",
+      "decodeTokensPerSecond": 5.9406363894158565,
+      "prefillTokensPerSecond": 37.99846144229611,
+      "requestTokensPerSecond": 5.584539519263536
+    },
+    {
+      "run": 1,
+      "warmup": false,
+      "wallMs": 22070.10962599999,
+      "timing": {
+        "totalMs": 22060.27007099999,
+        "generatedTokenCount": 128,
+        "prefillMs": 1009.9279649999953,
+        "decodeMs": 21042.015863000008,
+        "firstTokenMs": 1017.7094019999931,
+        "reusedPrefixTokens": 0,
+        "prefillComputedTokens": 58
+      },
+      "completion": {
+        "schema": "doppler.generation-completion/v1",
+        "stopReason": "max-tokens",
+        "promptTokenCount": 58,
+        "generatedTokenCount": 128
+      },
+      "answer": "The execution of a transformer language model begins with the preprocessing of raw text into a format that the neural network can process, a stage known as tokenization. Since computers operate on numerical data, the input string is broken down into smaller units called tokens, which can be words, subwords, or characters depending on the specific tokenizer used (such as Byte Pair Encoding or WordPiece). Each token is then mapped to a unique integer index based on a predefined vocabulary. This step is crucial because it determines the granularity of the model's understanding; for instance, a subword tokenizer might split the word \"unhappiness\" into \"un\", \"",
+      "answerSha256": "f6e8951d4201897e864bdea6ccc4374aa202bf2b4508cd6177b99e57d4fd4b98",
+      "decodeTokensPerSecond": 6.03554340168116,
+      "prefillTokensPerSecond": 57.429838572694905,
+      "requestTokensPerSecond": 5.799699329504366
+    },
+    {
+      "run": 2,
+      "warmup": false,
+      "wallMs": 21983.68125699999,
+      "timing": {
+        "totalMs": 21975.337310000003,
+        "generatedTokenCount": 128,
+        "prefillMs": 1169.5074879999738,
+        "decodeMs": 20799.104055999982,
+        "firstTokenMs": 1175.782594999997,
+        "reusedPrefixTokens": 0,
+        "prefillComputedTokens": 58
+      },
+      "completion": {
+        "schema": "doppler.generation-completion/v1",
+        "stopReason": "max-tokens",
+        "promptTokenCount": 58,
+        "generatedTokenCount": 128
+      },
+      "answer": "The execution of a transformer language model begins with the preprocessing of raw text into a format that the neural network can process, a stage known as tokenization. Since computers operate on numerical data, the input string is broken down into smaller units called tokens, which can be words, subwords, or characters depending on the specific tokenizer used (such as Byte Pair Encoding or WordPiece). Each token is then mapped to a unique integer index based on a predefined vocabulary. This step is crucial because it determines the granularity of the model's understanding; for instance, a subword tokenizer might split the word \"unhappiness\" into \"un\", \"",
+      "answerSha256": "f6e8951d4201897e864bdea6ccc4374aa202bf2b4508cd6177b99e57d4fd4b98",
+      "decodeTokensPerSecond": 6.106032243411173,
+      "prefillTokensPerSecond": 49.5935259886094,
+      "requestTokensPerSecond": 5.822500722404832
+    },
+    {
+      "run": 3,
+      "warmup": false,
+      "wallMs": 21961.987926,
+      "timing": {
+        "totalMs": 21946.313223000005,
+        "generatedTokenCount": 128,
+        "prefillMs": 1216.8474129999813,
+        "decodeMs": 20727.329774000013,
+        "firstTokenMs": 1218.542237000016,
+        "reusedPrefixTokens": 0,
+        "prefillComputedTokens": 58
+      },
+      "completion": {
+        "schema": "doppler.generation-completion/v1",
+        "stopReason": "max-tokens",
+        "promptTokenCount": 58,
+        "generatedTokenCount": 128
+      },
+      "answer": "The execution of a transformer language model begins with the preprocessing of raw text into a format that the neural network can process, a stage known as tokenization. Since computers operate on numerical data, the input string is broken down into smaller units called tokens, which can be words, subwords, or characters depending on the specific tokenizer used (such as Byte Pair Encoding or WordPiece). Each token is then mapped to a unique integer index based on a predefined vocabulary. This step is crucial because it determines the granularity of the model's understanding; for instance, a subword tokenizer might split the word \"unhappiness\" into \"un\", \"",
+      "answerSha256": "f6e8951d4201897e864bdea6ccc4374aa202bf2b4508cd6177b99e57d4fd4b98",
+      "decodeTokensPerSecond": 6.12717611890879,
+      "prefillTokensPerSecond": 47.6641519555919,
+      "requestTokensPerSecond": 5.828251997555533
+    }
+  ],
+  "phase": "generation",
+  "loadMs": 104460.547537,
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "radeon-8060s-graphics-radv-strix-halo-",
+    "description": "radv: Mesa 26.0.3-1ubuntu1",
+    "subgroupMinSize": 32,
+    "subgroupMaxSize": 64
+  },
+  "repeatableOutput": true,
+  "cleanup": "settled"
+}

@@ -1,0 +1,133 @@
+{
+  "schema": "reploid.native-model-throughput/v1",
+  "at": "2026-11-09T22:43:50.991Z",
+  "passed": false,
+  "platform": "win32",
+  "node": "v22.23.4",
+  "cpu": "AMD Ryzen 7 6800H with Radeon Graphics         ",
+  "totalMemoryBytes": 30866845696,
+  "initialFreeMemoryBytes": 16326578176,
+  "runtimeVersion": "0.6.36",
+  "packageIntegrity": "sha512-0gqBQVBl6wVXZPBlRWyHmvGlcjSzGehk3wYMlXGp76tm2/VZWQvHW+Xqax+6Kc8M2DOw6AJicGvyZmy4YJTLog==",
+  "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+  "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+  "sourceWeightBytes": 16994352128,
+  "loadOptions": {
+    "runtimeConfig": {
+      "shared": {
+        "harness": {
+          "referenceTranscript": {
+            "enabled": false,
+            "captureLogits": true,
+            "captureKvBytes": true
+          }
+        },
+        "debug": {
+          "logLevel": {
+            "defaultLogLevel": "warn"
+          },
+          "trace": {
+            "enabled": false
+          },
+          "profiler": {
+            "enabled": false
+          }
+        },
+        "bufferPool": {
+          "budget": {
+            "maxTotalBytes": 25769803776,
+            "highWatermarkRatio": 0.94,
+            "emergencyTrimTargetRatio": 0.9,
+            "hardFailOnBudgetExceeded": true
+          }
+        }
+      },
+      "inference": {
+        "prompt": "The capital of France is",
+        "chatTemplate": {
+          "enabled": false,
+          "type": null,
+          "thinking": false
+        },
+        "generation": {
+          "maxTokens": 128,
+          "disableMultiTokenDecode": true
+        },
+        "batching": {
+          "maxTokens": 128,
+          "batchSize": 1,
+          "readbackInterval": 1,
+          "stopCheckMode": "per-token",
+          "readbackMode": "sequential",
+          "ringTokens": 1,
+          "ringStop": 1,
+          "ringStaging": 1
+        },
+        "sampling": {
+          "temperature": 0,
+          "topK": 1,
+          "topP": 1,
+          "repetitionPenalty": 1,
+          "repetitionPenaltyWindow": 1,
+          "greedyThreshold": 0,
+          "suppressSpecialTokens": false,
+          "suppressSpecialLikeTokens": false,
+          "suppressTokenIds": []
+        },
+        "session": {
+          "decodeLoop": {
+            "batchSize": 1,
+            "readbackInterval": 1,
+            "stopCheckMode": "per-token",
+            "readbackMode": "sequential",
+            "submitLatencyThresholdMs": null,
+            "maxBatchDecodeTokens": 1,
+            "ringTokens": 1,
+            "ringStop": 1,
+            "ringStaging": 1,
+            "disableCommandBatching": false
+          },
+          "kvcache": {
+            "maxSeqLen": 4096
+          },
+          "prefillTokenChunkSize": 256
+        },
+        "kernelPathPolicy": {
+          "mode": "capability-aware",
+          "sourceScope": [
+            "manifest"
+          ],
+          "allowSources": [
+            "manifest"
+          ],
+          "onIncompatible": "error"
+        },
+        "kvcache": {
+          "maxSeqLen": 4096
+        }
+      }
+    }
+  },
+  "generation": {
+    "maxTokens": 256,
+    "temperature": 0,
+    "topK": 1,
+    "topP": 1,
+    "repetitionPenalty": 1,
+    "maxSeqLen": 4096,
+    "useChatTemplate": true,
+    "repetitionPenaltyWindow": 1
+  },
+  "workload": {
+    "prompt": "Explain in detail how a computer executes a transformer language model. Describe tokenization, embeddings, attention, feed-forward layers, output logits and autoregressive decoding. Write at least six substantial paragraphs and do not stop after an introduction.",
+    "maxOutputTokens": 128,
+    "warmupRuns": 1,
+    "measuredRuns": 3,
+    "contextReuse": false
+  },
+  "scope": "Native resident application profile; transport/load time excluded from throughput. No full-logit or general quality qualification.",
+  "rows": [],
+  "phase": "loading",
+  "failure": "Error: [DOPPLER_GPU_UNSUPPORTED_ADAPTER] Failed to get WebGPU adapter",
+  "cleanup": "settled"
+}

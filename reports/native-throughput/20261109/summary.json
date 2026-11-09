@@ -1,0 +1,74 @@
+{
+  "schema": "reploid.native-throughput-comparison/v1",
+  "date": "2026-11-09",
+  "sourceRevision": "549a801b0c5572c3cc22df9eca1c79f4483abb6c",
+  "nativeArchiveSha256": "f66bf580b39884a200fb57a68837436763d4dadec8cb25cd3f28d08605b68a7f",
+  "fixtureSha256": "1c0591bdd9ed92df455a0ca39b7c47a9096373c407522bce5fd99ea38f750e2f",
+  "installedDopplerVersion": "0.6.36",
+  "measurements": {
+    "jupiter": {
+      "warmups": 1,
+      "measuredRuns": 3,
+      "outputTokensPerRun": 128,
+      "decodeTokensPerSecond": {
+        "median": 6.106032243411173,
+        "min": 6.03554340168116,
+        "max": 6.12717611890879
+      },
+      "prefillTokensPerSecondMedian": 49.5935259886094,
+      "requestMsMedian": 21983.68125699999,
+      "firstTokenMsMedian": 1175.782594999997
+    },
+    "miles": {
+      "outcome": "load_rejected",
+      "measuredRuns": 0,
+      "throughput": null,
+      "embeddingBytes": 2542796800,
+      "maxStorageBufferBindingSize": 2147483648,
+      "maxBufferSize": 2147483648
+    }
+  },
+  "milesEnvironment": {
+    "cpu": "AMD Ryzen 7 6800H",
+    "gpuReportedName": "AMD Radeon(TM) Graphics",
+    "os": "Windows",
+    "driver": "32.0.21030.2001",
+    "vulkanApi": "1.4.315",
+    "totalMemoryBytes": 30866845696,
+    "deviceLocalHeap0Bytes": 12257460224,
+    "deviceLocalHeap0BudgetBytes": 11644587008,
+    "heapBudgetScope": "vulkaninfo snapshot before stopping 2B; not additive to total RAM or a measured full-model requirement",
+    "nodeBinarySha256": "dccc52de28d8df2ee22d2062424f8c563070d95d8ad70c54c4bf01d590dec14f"
+  },
+  "restoration": {
+    "miles": {
+      "at": "2026-11-09T17:47:37.8699888-05:00",
+      "launchSha256": "696308922554cf4df8356f474e1d4a59438e8c6a04e8cd0e7fb9ad888ab7efab",
+      "launcherReturnValue": 0,
+      "providerPid": 21096,
+      "modelId": "qwen-3-5-2b-q4k-ehaf16",
+      "phase": "ready",
+      "offering": true,
+      "networkAt": "2026-11-09T22:49:15.159Z",
+      "connectionState": "connected",
+      "gpuLiveBytes": 2129965328,
+      "runtimeVersion": "0.6.33"
+    },
+    "jupiter": {
+      "public27BMainPid": 204246,
+      "public27BNodePid": 204252,
+      "public27BActive": true,
+      "flashNextPid": 1259994,
+      "flashNextReady": true,
+      "flashNextActiveRequest": false,
+      "ownedRangeServerPidStopped": 470588
+    }
+  },
+  "limits": [
+    "Three short resident repetitions, not peak hardware throughput or quality qualification.",
+    "Jupiter public 27B and Flash-Next remained resident; no exclusive GPU lock.",
+    "Miles rejected before generating; no cross-machine speed ratio or numerical equivalence result.",
+    "Model data served over private HTTP with catalog manifest identity and normal shard verification; load time excluded.",
+    "No changes to public model identity, sampling, context limits, driver, or memory allocation policy."
+  ]
+}
