@@ -1,0 +1,576 @@
+{
+  "schema": "reploid.native-ordered-physical-result/v1",
+  "scope": "Installed native loader and ordered resident composition on one physical GPU, with verified pieces; no peer transport or independent source qualification",
+  "configSha256": "de9d1aa2f2cabb8b22d7b0b6840cc38bc4f6215ec3c6b3fd34d97b078190f498",
+  "referenceSha256": "5e0465647b528ed08443eb93e3451737c5a6370000c559e29cb526b6d4ded43f",
+  "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+  "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+  "planId": "sha256:4588fa1962fcb53a8d8892dc9ea222755567eb0a45219ad782f407f641d5b003",
+  "rows": [
+    {
+      "step": 0,
+      "tokenId": 220,
+      "expectedTokenId": 220,
+      "logitsSha256": "fc1ab4948bdd522e7bcd2ffe27fb15a17ef04dfaa6aaab2285a6ff2e6357aad5",
+      "expectedLogitsSha256": "fc1ab4948bdd522e7bcd2ffe27fb15a17ef04dfaa6aaab2285a6ff2e6357aad5"
+    },
+    {
+      "step": 1,
+      "tokenId": 24,
+      "expectedTokenId": 24,
+      "logitsSha256": "4f2dd3700559607671f43823d0ba93c0a4cbd18135ab4f3b4f2613b3d2c42d65",
+      "expectedLogitsSha256": "4f2dd3700559607671f43823d0ba93c0a4cbd18135ab4f3b4f2613b3d2c42d65"
+    },
+    {
+      "step": 2,
+      "tokenId": 11,
+      "expectedTokenId": 11,
+      "logitsSha256": "c8a3c9f3a6d6879d63d21b1a0490496855d19068b19f97c779545683d158fb3e",
+      "expectedLogitsSha256": "c8a3c9f3a6d6879d63d21b1a0490496855d19068b19f97c779545683d158fb3e"
+    }
+  ],
+  "cleanupFailures": [],
+  "passed": true,
+  "descriptors": [
+    {
+      "schema": "doppler.resident-partition/v2",
+      "ready": true,
+      "stageCount": 2,
+      "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+      "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+      "planId": "sha256:4588fa1962fcb53a8d8892dc9ea222755567eb0a45219ad782f407f641d5b003",
+      "index": 0,
+      "layerRange": [
+        0,
+        31
+      ],
+      "residentWeightBytes": 9414666240,
+      "generationDigest": "sha256:59f2c29d933e0e4f0fb01ab679c7e722952378b56f4c5bb53c98f088595f9a33",
+      "pipelinePreparation": {
+        "schema": "doppler.resident-pipeline-preparation/v1",
+        "complete": false,
+        "count": 0,
+        "durationMs": 0.15693599999940488,
+        "pipelines": [],
+        "lazy": [
+          {
+            "scope": "program",
+            "reason": "Scalar resident programs select matmul, attention and normalization variants from token and KV lengths and fused-kernel policy; their pipelines are created on first use."
+          }
+        ]
+      }
+    },
+    {
+      "schema": "doppler.resident-partition/v2",
+      "ready": true,
+      "stageCount": 2,
+      "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+      "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+      "planId": "sha256:4588fa1962fcb53a8d8892dc9ea222755567eb0a45219ad782f407f641d5b003",
+      "index": 1,
+      "layerRange": [
+        32,
+        63
+      ],
+      "residentWeightBytes": 7587080192,
+      "generationDigest": "sha256:59f2c29d933e0e4f0fb01ab679c7e722952378b56f4c5bb53c98f088595f9a33",
+      "pipelinePreparation": {
+        "schema": "doppler.resident-pipeline-preparation/v1",
+        "complete": false,
+        "count": 0,
+        "durationMs": 0.17886799999905634,
+        "pipelines": [],
+        "lazy": [
+          {
+            "scope": "program",
+            "reason": "Scalar resident programs select matmul, attention and normalization variants from token and KV lengths and fused-kernel policy; their pipelines are created on first use."
+          }
+        ]
+      }
+    }
+  ],
+  "rawReceipt": {
+    "sha256": "5ee42ba571d746b3f4048ce1bc2e35ed2bf93cf1052d36c4d1aab6d56cc7a44b",
+    "bytes": 10988513,
+    "retention": "Operator-local qualification directory; raw full-logit and per-piece arrays are not embedded in this summary"
+  },
+  "result": {
+    "content": " 9,",
+    "tokenIds": [
+      220,
+      24,
+      11
+    ],
+    "stopReason": "max-tokens",
+    "execution": {
+      "schema": "reploid.mesh.partition-execution/v3",
+      "identity": {
+        "schema": "reploid.partition-attempt/v2",
+        "threadId": "native-control",
+        "attemptId": "native-attempt",
+        "requesterId": "native-requester",
+        "placementGeneration": 0,
+        "route": {
+          "schema": "reploid.partition-route/v1",
+          "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+          "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+          "planId": "sha256:4588fa1962fcb53a8d8892dc9ea222755567eb0a45219ad782f407f641d5b003",
+          "activation": {
+            "schema": "doppler.activation-tensor/v1",
+            "dtype": "f32",
+            "hiddenSize": 5120,
+            "precision": "f32",
+            "components": 1,
+            "elementStrideBytes": 4
+          },
+          "stages": [
+            {
+              "index": 0,
+              "participantId": "native-0",
+              "transportId": "local-0",
+              "residentId": "resident-0",
+              "executionId": "program-0"
+            },
+            {
+              "index": 1,
+              "participantId": "native-1",
+              "transportId": "local-1",
+              "residentId": "resident-1",
+              "executionId": "program-1"
+            }
+          ]
+        }
+      },
+      "activationBytes": 512000,
+      "steps": [
+        {
+          "step": 0,
+          "tokenPosition": 0,
+          "inputTokenCount": 23,
+          "maxTokens": 3,
+          "generationDigest": "sha256:59f2c29d933e0e4f0fb01ab679c7e722952378b56f4c5bb53c98f088595f9a33",
+          "tokenId": 220,
+          "stages": [
+            {
+              "partitionIndex": 0,
+              "elapsedMs": 505.2578160000012,
+              "metrics": {
+                "inputUploadMs": 0,
+                "encodeMs": 221.7235060000021,
+                "submitWaitMs": 276.5411729999978,
+                "activationReadbackMs": 0.544648999999481,
+                "logitsMs": 0,
+                "gpuKernelsMs": null,
+                "executionMs": 500.52600999999777,
+                "logitsReadbackMs": 0,
+                "samplingMs": 0,
+                "memory": {
+                  "maxBytes": 34359738368,
+                  "liveBytes": 17118558088,
+                  "peakBytes": 17135794056,
+                  "categories": {
+                    "weights": 17001746432,
+                    "attention": 851984,
+                    "recurrent": 80216064,
+                    "other": 35743608
+                  }
+                }
+              }
+            },
+            {
+              "partitionIndex": 1,
+              "elapsedMs": 381.29245900000024,
+              "metrics": {
+                "inputUploadMs": 0.045545999997557374,
+                "encodeMs": 122.75040900000022,
+                "submitWaitMs": 210.5174509999997,
+                "activationReadbackMs": 0,
+                "logitsMs": 19.825042000000394,
+                "gpuKernelsMs": null,
+                "executionMs": 353.81810100000075,
+                "logitsReadbackMs": 15.466420000000653,
+                "samplingMs": 7.94676900000195,
+                "memory": {
+                  "maxBytes": 34359738368,
+                  "liveBytes": 17206499240,
+                  "peakBytes": 17221638056,
+                  "categories": {
+                    "weights": 17001746432,
+                    "attention": 1703952,
+                    "recurrent": 160432128,
+                    "other": 42616728
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "step": 1,
+          "tokenPosition": 23,
+          "inputTokenCount": 1,
+          "maxTokens": 3,
+          "generationDigest": "sha256:59f2c29d933e0e4f0fb01ab679c7e722952378b56f4c5bb53c98f088595f9a33",
+          "tokenId": 24,
+          "stages": [
+            {
+              "partitionIndex": 0,
+              "elapsedMs": 115.42563599999994,
+              "metrics": {
+                "inputUploadMs": 0,
+                "encodeMs": 56.81006300000081,
+                "submitWaitMs": 54.16278299999976,
+                "activationReadbackMs": 0.8371310000002268,
+                "logitsMs": 0,
+                "gpuKernelsMs": null,
+                "executionMs": 112.88221300000077,
+                "logitsReadbackMs": 0,
+                "samplingMs": 0,
+                "memory": {
+                  "maxBytes": 34359738368,
+                  "liveBytes": 17207450840,
+                  "peakBytes": 17223853784,
+                  "categories": {
+                    "weights": 17001746432,
+                    "attention": 1703968,
+                    "recurrent": 160432128,
+                    "other": 43568312
+                  }
+                }
+              }
+            },
+            {
+              "partitionIndex": 1,
+              "elapsedMs": 116.30642900000021,
+              "metrics": {
+                "inputUploadMs": 0.04486499999984517,
+                "encodeMs": 32.76616300000023,
+                "submitWaitMs": 54.443372999998246,
+                "activationReadbackMs": 0,
+                "logitsMs": 14.948621999999887,
+                "gpuKernelsMs": null,
+                "executionMs": 102.8791799999999,
+                "logitsReadbackMs": 3.9220270000005257,
+                "samplingMs": 3.9428769999976794,
+                "memory": {
+                  "maxBytes": 34359738368,
+                  "liveBytes": 17207418104,
+                  "peakBytes": 17223853784,
+                  "categories": {
+                    "weights": 17001746432,
+                    "attention": 1703968,
+                    "recurrent": 160432128,
+                    "other": 43535576
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "step": 2,
+          "tokenPosition": 24,
+          "inputTokenCount": 1,
+          "maxTokens": 3,
+          "generationDigest": "sha256:59f2c29d933e0e4f0fb01ab679c7e722952378b56f4c5bb53c98f088595f9a33",
+          "tokenId": 11,
+          "stages": [
+            {
+              "partitionIndex": 0,
+              "elapsedMs": 89.57748800000263,
+              "metrics": {
+                "inputUploadMs": 0,
+                "encodeMs": 30.7073249999994,
+                "submitWaitMs": 55.634893000002194,
+                "activationReadbackMs": 0.76612699999896,
+                "logitsMs": 0,
+                "gpuKernelsMs": null,
+                "executionMs": 87.75828199999887,
+                "logitsReadbackMs": 0,
+                "samplingMs": 0,
+                "memory": {
+                  "maxBytes": 34359738368,
+                  "liveBytes": 17207450968,
+                  "peakBytes": 17223853912,
+                  "categories": {
+                    "weights": 17001746432,
+                    "attention": 1703984,
+                    "recurrent": 160432128,
+                    "other": 43568424
+                  }
+                }
+              }
+            },
+            {
+              "partitionIndex": 1,
+              "elapsedMs": 90.21823799999765,
+              "metrics": {
+                "inputUploadMs": 0.023976000000402564,
+                "encodeMs": 22.773980999998457,
+                "submitWaitMs": 57.58646900000167,
+                "activationReadbackMs": 0,
+                "logitsMs": 1.2515239999993355,
+                "gpuKernelsMs": null,
+                "executionMs": 82.21496299999853,
+                "logitsReadbackMs": 3.8780640000004496,
+                "samplingMs": 1.4528539999992063,
+                "memory": {
+                  "maxBytes": 34359738368,
+                  "liveBytes": 17223820952,
+                  "peakBytes": 17223853912,
+                  "categories": {
+                    "weights": 17001746432,
+                    "attention": 1703984,
+                    "recurrent": 160432128,
+                    "other": 59938408
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "stopReason": "max-tokens",
+      "settlement": {
+        "identity": {
+          "schema": "reploid.partition-attempt/v2",
+          "threadId": "native-control",
+          "attemptId": "native-attempt",
+          "requesterId": "native-requester",
+          "placementGeneration": 0,
+          "route": {
+            "schema": "reploid.partition-route/v1",
+            "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+            "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+            "planId": "sha256:4588fa1962fcb53a8d8892dc9ea222755567eb0a45219ad782f407f641d5b003",
+            "activation": {
+              "schema": "doppler.activation-tensor/v1",
+              "dtype": "f32",
+              "hiddenSize": 5120,
+              "precision": "f32",
+              "components": 1,
+              "elementStrideBytes": 4
+            },
+            "stages": [
+              {
+                "index": 0,
+                "participantId": "native-0",
+                "transportId": "local-0",
+                "residentId": "resident-0",
+                "executionId": "program-0"
+              },
+              {
+                "index": 1,
+                "participantId": "native-1",
+                "transportId": "local-1",
+                "residentId": "resident-1",
+                "executionId": "program-1"
+              }
+            ]
+          }
+        },
+        "phase": "completed",
+        "reservations": [
+          {
+            "identity": {
+              "schema": "reploid.partition-attempt/v2",
+              "threadId": "native-control",
+              "attemptId": "native-attempt",
+              "requesterId": "native-requester",
+              "placementGeneration": 0,
+              "route": {
+                "schema": "reploid.partition-route/v1",
+                "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+                "planId": "sha256:4588fa1962fcb53a8d8892dc9ea222755567eb0a45219ad782f407f641d5b003",
+                "activation": {
+                  "schema": "doppler.activation-tensor/v1",
+                  "dtype": "f32",
+                  "hiddenSize": 5120,
+                  "precision": "f32",
+                  "components": 1,
+                  "elementStrideBytes": 4
+                },
+                "stages": [
+                  {
+                    "index": 0,
+                    "participantId": "native-0",
+                    "transportId": "local-0",
+                    "residentId": "resident-0",
+                    "executionId": "program-0"
+                  },
+                  {
+                    "index": 1,
+                    "participantId": "native-1",
+                    "transportId": "local-1",
+                    "residentId": "resident-1",
+                    "executionId": "program-1"
+                  }
+                ]
+              }
+            },
+            "participantId": "native-0",
+            "index": 0,
+            "phase": "reserved",
+            "reservedAt": 1794262716350,
+            "settlingAt": null,
+            "settledAt": null,
+            "failure": null,
+            "resources": {
+              "attemptSlots": 1,
+              "maxPromptTokens": 4096,
+              "maxTokens": 4096,
+              "maxActivationBytes": 33554432,
+              "scope": "application-attempt-limits"
+            },
+            "partitionIndex": 0,
+            "status": "reserved"
+          },
+          {
+            "identity": {
+              "schema": "reploid.partition-attempt/v2",
+              "threadId": "native-control",
+              "attemptId": "native-attempt",
+              "requesterId": "native-requester",
+              "placementGeneration": 0,
+              "route": {
+                "schema": "reploid.partition-route/v1",
+                "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+                "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+                "planId": "sha256:4588fa1962fcb53a8d8892dc9ea222755567eb0a45219ad782f407f641d5b003",
+                "activation": {
+                  "schema": "doppler.activation-tensor/v1",
+                  "dtype": "f32",
+                  "hiddenSize": 5120,
+                  "precision": "f32",
+                  "components": 1,
+                  "elementStrideBytes": 4
+                },
+                "stages": [
+                  {
+                    "index": 0,
+                    "participantId": "native-0",
+                    "transportId": "local-0",
+                    "residentId": "resident-0",
+                    "executionId": "program-0"
+                  },
+                  {
+                    "index": 1,
+                    "participantId": "native-1",
+                    "transportId": "local-1",
+                    "residentId": "resident-1",
+                    "executionId": "program-1"
+                  }
+                ]
+              }
+            },
+            "participantId": "native-1",
+            "index": 1,
+            "phase": "reserved",
+            "reservedAt": 1794262716351,
+            "settlingAt": null,
+            "settledAt": null,
+            "failure": null,
+            "resources": {
+              "attemptSlots": 1,
+              "maxPromptTokens": 4096,
+              "maxTokens": 4096,
+              "maxActivationBytes": 33554432,
+              "scope": "application-attempt-limits"
+            },
+            "partitionIndex": 1,
+            "status": "reserved"
+          }
+        ],
+        "cleanup": [
+          {
+            "partitionIndex": 0,
+            "status": "settled",
+            "error": null
+          },
+          {
+            "partitionIndex": 1,
+            "status": "settled",
+            "error": null
+          }
+        ],
+        "cleanupSettledAt": 1794262717659,
+        "failure": null
+      }
+    }
+  },
+  "acquisition": [
+    {
+      "indexIdentity": "sha256:fb840db2365527a8e8551005c47527db9c54e2b407a4377e61ecc46b27b27af8",
+      "manifestIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+      "requestedBytes": 9420405580,
+      "verifiedBytes": 9420077900,
+      "acquisitionMs": 9588.817446000028,
+      "verificationMs": 8319.952272000053,
+      "copyMs": 466.8681799999765,
+      "activeReadBytes": 0,
+      "peakReadBytes": 14318592,
+      "host": "node",
+      "openingMode": "pinned-manifest",
+      "capsuleVerification": null,
+      "memory": {
+        "scope": "device-gpu-buffers",
+        "maxBytes": 34359738368,
+        "liveBytes": 17205681496,
+        "peakBytes": 17223853912,
+        "allocations": 3599,
+        "rejected": 0,
+        "categories": {
+          "weights": 17001746432,
+          "attention": 48,
+          "recurrent": 160432128,
+          "other": 43502888
+        }
+      },
+      "pieces": {
+        "count": 3003,
+        "jsonSha256": "61fc88e4b935aa943a11f6978aa8ab337564b582afcd21cbdfe70a757a9f7554"
+      },
+      "ranges": {
+        "count": 3003,
+        "jsonSha256": "3806e7b9f1a4f650f71d7dacfb863f8672950bd46beb14a1558aeb9d38577240"
+      }
+    },
+    {
+      "indexIdentity": "sha256:fb840db2365527a8e8551005c47527db9c54e2b407a4377e61ecc46b27b27af8",
+      "manifestIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+      "requestedBytes": 7583691264,
+      "verifiedBytes": 7583363584,
+      "acquisitionMs": 10179.277808999957,
+      "verificationMs": 6775.002891000035,
+      "copyMs": 387.1953619999458,
+      "activeReadBytes": 0,
+      "peakReadBytes": 14318592,
+      "host": "node",
+      "openingMode": "pinned-manifest",
+      "capsuleVerification": null,
+      "memory": {
+        "scope": "device-gpu-buffers",
+        "maxBytes": 34359738368,
+        "liveBytes": 17205681496,
+        "peakBytes": 17223853912,
+        "allocations": 3599,
+        "rejected": 0,
+        "categories": {
+          "weights": 17001746432,
+          "attention": 48,
+          "recurrent": 160432128,
+          "other": 43502888
+        }
+      },
+      "pieces": {
+        "count": 2512,
+        "jsonSha256": "e5de03aa2488161dea2d7f6cb6a40015e293996edd8e37f0611ea7216cd6db60"
+      },
+      "ranges": {
+        "count": 2512,
+        "jsonSha256": "33e2693ad09e1d1c4627d6ab2787d563e10d3ed8558da64f9909a7e7d3f46ab6"
+      }
+    }
+  ]
+}

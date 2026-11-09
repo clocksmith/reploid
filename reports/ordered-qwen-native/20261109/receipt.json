@@ -1,0 +1,34 @@
+{
+  "schema": "reploid.ordered-qwen-native-evidence/v1",
+  "runtime": {
+    "name": "doppler-gpu",
+    "version": "0.6.36",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.36.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.36.tgz",
+    "integrity": "sha512-0gqBQVBl6wVXZPBlRWyHmvGlcjSzGehk3wYMlXGp76tm2/VZWQvHW+Xqax+6Kc8M2DOw6AJicGvyZmy4YJTLog=="
+  },
+  "sourceBase": "e356f9e12",
+  "routeRepair": "f973020f3",
+  "harness": {
+    "path": "tests/fixtures/native-ordered-model-physical.js",
+    "sha256": "5a91662659f6add26d60ec865d8a0a81562feaa8f985f23ab19e49c42394b381"
+  },
+  "files": [
+    {
+      "path": "flash-next.json",
+      "sha256": "24b90cc69ac72e66d5a55b56819c0f9763019222144eeac341dc6b81e7e0e8ff",
+      "bytes": 29206
+    },
+    {
+      "path": "qwen27b.json",
+      "sha256": "9d917d257a41272a7d1d31403ca621a81e5748e5fa3b2f6d7e8207070d8a3c2b",
+      "bytes": 20511
+    },
+    {
+      "path": "qwen35b.json",
+      "sha256": "61d40b050ff0445e21d87cf182959ea5a280d9515c7c2ee3fd83b6f34bbf229e",
+      "bytes": 38267
+    }
+  ],
+  "scope": "Same-device installed native composition and verified artifact reads; no multi-host/public qualification"
+}
