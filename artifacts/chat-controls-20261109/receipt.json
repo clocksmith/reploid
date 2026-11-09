@@ -1,0 +1,42 @@
+{
+  "schema": "reploid.chat-controls-ui/v1",
+  "sourceCommit": "a5380be92bf6f5da577ddb109ed462c82e3020e1",
+  "bundleHash": "sha256:6d29acd31640cbe380806087ec41eca346180f09842695123d54b774c04653a1",
+  "unitTests": {
+    "passed": 125,
+    "files": 6
+  },
+  "browser": {
+    "project": "chromium",
+    "channel": "chrome",
+    "stats": {
+      "startTime": "2026-11-09T18:08:20.673Z",
+      "duration": 47775.424,
+      "expected": 12,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "viewports": [
+      1440,
+      390,
+      320
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "touch": "Chromium emulation; not physical-phone qualification"
+  },
+  "checks": [
+    "hover/focus help and Escape",
+    "touch help and measurement explanations",
+    "radio keyboard navigation and focus restoration",
+    "collapsed details and reachable confirmation with 24 choices",
+    "one animated answer status and Stop; offscreen Stop fallback",
+    "reduced motion and reduced viewport",
+    "automatic selection; explicit/model-history pins",
+    "library types, lint, CSS, ownership, boundaries and browser bundle"
+  ],
+  "scope": "Controlled host-state presentation; no model-inference qualification."
+}
