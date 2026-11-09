@@ -12,9 +12,10 @@ weights. Confirmation remains the commitment.
 
 - 50 tests pass across `model-select.test.js` and
   `conversation-workspace.test.js`, including discovery after deliberate
-  reselection. The existing conversation suite still emits a localhost:3000
-  connection-refused diagnostic; it exits successfully. This is not provider
-  evidence.
+  reselection. The original localhost:3000 diagnostic was traced to a download
+  metadata read in a presentation fixture. That fixture now supplies the same
+  explicit download-metadata port as the other component fixtures; no network
+  request or suppressed exception is needed. This is not provider evidence.
 - 29 controlled tests pass across `chat-peer-lifecycle.test.js` and
   `work-swarm-lifecycle.test.js`. These cover signed in-process peers and
   controlled execution, not physical inference.
@@ -30,6 +31,23 @@ weights. Confirmation remains the commitment.
 - Changed-file ESLint, CSS layers and exact hosting packaging pass. The existing
   physical browser test now opens the current Model details disclosure, uses
   the visible Stop control and inspects hardware in the conversation drawer.
+
+The [deployed check](deployed.json) matches the served bundle and model-control
+module byte for byte, then verifies deliberate reselection by desktop mouse,
+keyboard and touch at 390 pixels. No page errors or horizontal overflow.
+
+## Native startup repair
+
+The isolated provider journey exposed a startup crash before inference:
+`config.mesh.maxRetainedJobs` read the resolved configuration envelope as its
+settings. The journal now consumes the validated value from
+`requireResolvedConfig`, preserving the configured retention and message limits.
+The regression failed with the original TypeError and now opens a real SQLite
+journal, closes it with its participant, recovers its result after restart and
+rejects replay. Transport and inference remain doubles in that regression.
+All 21 tests across native earning, native participant and generation recovery
+pass. Existing public providers remain untouched; this is a source repair for
+new native processes, not a restart of a serving participant.
 
 Public-provider termination, a replacement provider, an actual remote adapter,
 GPU recognition accuracy and Flash-Next qualification are outside this receipt.

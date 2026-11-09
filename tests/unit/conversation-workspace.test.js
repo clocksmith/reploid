@@ -434,6 +434,7 @@ describe('Conversation workspace', () => {
     let state = { ...session.getState(), models: [base, route], defaultModel: base, defaultModels: null, peerDiscoveryTimedOut: true, localDownloadIssue: null };
     let emit; const download = vi.fn();
     dispose = bindConversationWorkspace(root, { ...session, downloadLocalModel: download,
+      getModelDownload: async id => ({ id, sizeBytes: 123000000 }),
       getState: () => state, subscribe(fn) { emit = fn; fn(state); return () => {}; } }, { viewState: { chosenModel: base } });
     find('[data-composer-input]').value = 'hi';
     await chooseShared(route.selectionId);

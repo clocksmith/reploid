@@ -49,6 +49,22 @@ async function open(options) {
   return participant;
 }
 
+it('opens the whole-model journal from resolved policy and recovers results after participant restart', async () => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'native-generation-restart-')); roots.push(directory);
+  const identity = await createSigningIdentity({ algorithm: 'Ed25519' });
+  const options = { identity, executionMode: 'whole-model', generationJournalFile: path.join(directory, 'generation.sqlite') };
+  const participant = await open(options);
+  const journal = ports.mesh.generationJournal;
+  const binding = { provider: identity.peerId, consumer: 'requester', requestId: 'recorded-request' };
+  expect(await journal.claim(binding)).toBe(true);
+  await journal.finish(binding, { content: 'retained result' });
+  await participant.close();
+  await expect(journal.get(binding)).rejects.toThrow(/closed|not open/);
+  await open(options);
+  expect(await ports.mesh.generationJournal.get(binding)).toEqual({ binding, outcome: { content: 'retained result' } });
+  expect(await ports.mesh.generationJournal.claim(binding)).toBe(false);
+});
+
 it('requires the owner policy before an earning port is accepted', async () => {
   await expect(open({ earning: { observe: async () => ({}) } })).rejects.toThrow('Native earning requires the owner policy');
 });

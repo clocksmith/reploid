@@ -1,0 +1,36 @@
+{
+  "at": "2026-11-09T19:07:37.304Z",
+  "sourceRevision": "98c07d1eb",
+  "bundleHash": "sha256:80e1b23c2d9c2e4c3549f6a8c4a163f9201730a45bc86c3ee72e0a88e3591272",
+  "assets": [
+    {
+      "path": "ui/pool-home/app.bundle.js",
+      "sha256": "ec74d6f6ecccd7603bd36bdd8d10a26330b9d875f5c5a56df57018956d005279"
+    },
+    {
+      "path": "ui/components/model-select.js",
+      "sha256": "1eca17b239f15ca1902935036ab69ec8244f16b805b634f82be402bd2349352d"
+    }
+  ],
+  "browser": "157.0.8103.38",
+  "views": [
+    {
+      "width": 1280,
+      "deliberateSelections": [
+        "qwen3-8-27b-text-q4k-ehaf16",
+        "qwen3-8-27b-text-q4k-ehaf16"
+      ],
+      "overflow": 0,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "deliberateSelections": [
+        "qwen-3-5-2b-q4k-ehaf16"
+      ],
+      "overflow": 0,
+      "errors": []
+    }
+  ],
+  "passed": true
+}

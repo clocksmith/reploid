@@ -30,7 +30,7 @@ import { createAutomaticPartitions, createLegacyGenerationMesh, createPartitionN
 import { createSwarmTransport, createRoomIntroductionAdmission } from '../packages/reploid/src/transport/index.js';
 import { createSigningIdentity, createPeerIdFromPublicJwk } from '../packages/reploid/src/artifacts/identity.js';
 import { createAttemptEvidenceSigner } from '../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
-import { resolveConfig } from '../packages/reploid/src/config/index.js';
+import { resolveConfig, requireResolvedConfig } from '../packages/reploid/src/config/index.js';
 import { createWorkAdapterResolver } from '../apps/poolday/providers/work-adapter.js';
 import models from '../shared/config/chat-models.json' with { type: 'json' };
 import custodyPolicy from '../apps/poolday/config/chat-files.json' with { type: 'json' };
@@ -418,10 +418,11 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     mesh: { enabled: true, executeJobs: wholeMode, maxInboundJobs: 1, roomId },
     webrtc: { signalingUrl: endpoint.href, broadcastRoomId: roomId, transportOrder: ['webrtc'] }
   } });
+  const resolvedConfig = requireResolvedConfig(config);
   const eventBus = events(), bridge = events(), utils = { logger, generateId: () => crypto.randomUUID() };
   const admission = roomId === bootstrap.publicRoomId ? null : createRoomIntroductionAdmission({ roomId, token: roomToken });
   const generationJournal = wholeMode && generationJournalFile ? await openNativeGenerationJournal({ file: generationJournalFile,
-    maxResults: config.mesh.maxRetainedJobs, maxResultBytes: config.webrtc.maxMessageBytes }) : null;
+    maxResults: resolvedConfig.mesh.maxRetainedJobs, maxResultBytes: resolvedConfig.webrtc.maxMessageBytes }) : null;
   let transport, partitions, files, webNetwork, wholeRequester, closePromise, closed = false, gpuPromise;
   const networks = new Set();
   const earningWrites = new Set();
