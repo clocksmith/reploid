@@ -67,3 +67,10 @@
 @media (prefers-reduced-motion: reduce) {
   .pool-home .pool-dot.pool-dot-pulse::before { animation: none; }
 }
+
+/* Viewport-positioned help, shared by hover, focus and tapped measurements. */
+.pool-home .pool-tooltip {
+  position: fixed; inset: auto; left: var(--pool-param-help-left); top: var(--pool-param-help-top);
+  margin: 0; padding: var(--pool-size-12); width: max-content; max-width: min(var(--pool-size-320), calc(100vw - var(--pool-size-16)));
+  overflow-wrap: anywhere; white-space: pre-line; pointer-events: none;
+}

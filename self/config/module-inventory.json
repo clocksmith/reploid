@@ -2308,7 +2308,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:9d6cd39bee9467035fc9179932abb36b2778943af4a6a2d2c6386d154a2c4b3f",
+      "sha256": "sha256:6f2054ecda0af88938116b8b22d34861022858f0e509464dad0f692afd6c6baf",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -2331,7 +2331,7 @@
     {
       "path": "self/host/chat-view.js",
       "owner": "self",
-      "sha256": "sha256:68b307b3dd7caaddec0429e22b87f7b3e27f9387824a47bb576329e79e4b1532",
+      "sha256": "sha256:723be5d9f03eaa37d9ec184404602e40fbe7a54cabe9542ca768b29f9fc7e9c1",
       "imports": []
     },
     {
@@ -3533,9 +3533,18 @@
       "imports": []
     },
     {
+      "path": "ui/components/control-help.js",
+      "owner": "ui",
+      "sha256": "sha256:0973485837397034bc3f6d0e78baa04e194b2bf27ab0f868aef6806a39225024",
+      "imports": [
+        "./dialog.js",
+        "./interface-icons.js"
+      ]
+    },
+    {
       "path": "ui/components/dialog.js",
       "owner": "ui",
-      "sha256": "sha256:c3232a7af82939c68d6bb08f9f8ed789735d912043b052f00f28a4ba5aac3ea7",
+      "sha256": "sha256:5432471cd6db3f1a7a4d1aa3065240bac1e1fcd4983ab12f1ac533f11e534051",
       "imports": []
     },
     {
@@ -3577,7 +3586,7 @@
     {
       "path": "ui/components/interface-icons.js",
       "owner": "ui",
-      "sha256": "sha256:a4d852f51ab01aecbdcde71cbaa2640e993c451d92b1994a4fee1c4cf2d5d22b",
+      "sha256": "sha256:adadf510dc8406d6aee846451f81a35d3476688a0ced68f50d872e2c1f95da36",
       "imports": []
     },
     {
@@ -3595,7 +3604,7 @@
     {
       "path": "ui/components/model-select.js",
       "owner": "ui",
-      "sha256": "sha256:ff37a01a642a6f5764517293acbba503013c7b8c377f100027bff7c7b73106ae",
+      "sha256": "sha256:f4adbdf2ef11f859f234175a35c5e40e135b7ac630d7ca82aaddff9de3d8e393",
       "imports": [
         "./attachments.js"
       ]
@@ -3644,7 +3653,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:808c67daf515051b7429e0c2fb159afaeb28f2c6afa5e074dfc88b5825838f14",
+      "sha256": "sha256:1f7f18ce0af3fcf693c1cae02c213d64bfefd428c43c5423980cf2f5a2ca7191",
       "imports": []
     },
     {
@@ -3732,9 +3741,10 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:fcee8e8850f0c77c5867abf13bcabe964b5366abf84f083f553b41493f1d79a2",
+      "sha256": "sha256:0357349414ce0b8d6b0caefc68a842a9811769377e0d397ae5837693479d8af3",
       "imports": [
         "../components/attachments.js",
+        "../components/control-help.js",
         "../components/dialog.js",
         "../components/disclosure.js",
         "../components/drawer.js",
@@ -3769,7 +3779,7 @@
     {
       "path": "ui/pool-home/execution-activity.js",
       "owner": "ui",
-      "sha256": "sha256:a767123fb775174695e935858a8b44b23a43cbd8543f878e6e97e63ca913b93b",
+      "sha256": "sha256:b7740f9e5440a8fab07aeb0946b35c6ce3a42f88bdf856e40323700d6aa9dc5c",
       "imports": [
         "../components/attachments.js",
         "../components/interface-icons.js",
@@ -3828,7 +3838,7 @@
     {
       "path": "ui/pool-home/message-list.js",
       "owner": "ui",
-      "sha256": "sha256:e880e419c6ab77877f4b1492e2ebb7b4e0bf8ff562357cdb21f5902ecd7f48e5",
+      "sha256": "sha256:3330fc9c51753548e97c9e70b281f2b97ab76860d68a412a0b59c3fb26011617",
       "imports": [
         "../components/attachments.js",
         "../components/interface-icons.js",
@@ -16414,7 +16424,7 @@
     {
       "path": "vendor/reploid/chat/workspace.js",
       "owner": "vendor",
-      "sha256": "sha256:cd279302e0352a5c991160b3aa83bc40ba53c73a6eb78f72f1941f879950d679",
+      "sha256": "sha256:e18597db1ec34221c2e40546fc558b6e491c095cb53f0ef9c6f4fb141b9e83c3",
       "imports": [
         "../mesh/partitions/partition-contract.js",
         "../mesh/partitions/partition-ordered-publication.js",

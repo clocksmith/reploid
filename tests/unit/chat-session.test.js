@@ -490,15 +490,20 @@ it('defaults to an available adapter variant when no base model is ready', () =>
 });
 
 
-it('pins the initial automatic fallback when that same model becomes ready', async () => {
+it('keeps unused automatic choices following ready capacity until explicitly confirmed', async () => {
   let peers = []; const swarm = { getState: () => ({ consumer: { peers } }) };
   const session = createChatSession({ storage: null, service: createChatTestService(), swarm });
   session.createThread(); const initial = session.getState().activeThread.model;
   const peer = model => ({ peerId: model.id, model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1 });
   peers = [peer(initial)]; session.refreshNetwork();
-  await vi.waitFor(() => expect(session.getState().activeThread.automaticModel).toBe(false));
-  peers = [peer(CANONICAL_CHAT_MODELS.find(model => model.id !== initial.id))]; session.refreshNetwork();
-  expect(session.getState().activeThread.model.id).toBe(initial.id);
+  expect(session.getState().activeThread.automaticModel).toBe(true);
+  const next = CANONICAL_CHAT_MODELS.find(model => model.id !== initial.id);
+  peers = [peer(next)]; session.refreshNetwork();
+  await vi.waitFor(() => expect(session.getState().activeThread.model.id).toBe(next.id));
+  await session.setExecutionLocation(session.getState().selectedId, 'auto');
+  peers = [peer(initial)]; session.refreshNetwork();
+  expect(session.getState().activeThread.automaticModel).toBe(false);
+  expect(session.getState().activeThread.model.id).toBe(next.id);
   await session.close();
 });
 
@@ -514,4 +519,12 @@ it('does not advertise or default to shared capacity that the history contract c
     expect(state.models[0]).toMatchObject({ availability: 'unavailable', networkAvailability: 'unavailable', localReady: false });
     expect(state.defaultModels.auto).toBeNull(); expect(state.defaultModels.network).toBeNull();
   } finally { await session.close(); }
+});
+
+
+it('prefers ready shared models over locally ready or cached defaults, respecting local-only', () => {
+  const local = { ...CANONICAL_CHAT_MODELS[0], localReady: true, availability: 'ready', networkAvailability: 'unavailable' };
+  const shared = { ...CANONICAL_CHAT_MODELS[1], availability: 'ready', networkAvailability: 'ready' };
+  expect(selectAvailableChatModel([local, shared], [local.id, shared.id])).toBe(shared);
+  expect(selectAvailableChatModel([local, shared], [local.id, shared.id], 'local')).toBe(local);
 });

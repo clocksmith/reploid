@@ -108,12 +108,12 @@ export function bindModelChoices(select) {
   };
   group.addEventListener('change', change);
   return {
-    update(models, { grouped = false, preferNetwork = true, variants = false, describe = null } = {}) {
+    update(models, { grouped = false, preferNetwork = true, variants = false, describe = null, compact = false } = {}) {
       group.hidden = select.hidden;
       const active = group.contains(document.activeElement) ? document.activeElement : null;
       const entries = variants ? modelVariants(models, { value: select.value, preferNetwork })
         : models.map(model => ({ key: model.selectionId || model.id, model, ids: [model.selectionId || model.id], value: model.selectionId || model.id }));
-      const families = variants ? modelFamilies(entries) : entries.map(entry => ({ base: entry, adapters: [], members: [entry], lead: entry.model }));
+      const families = variants && !compact ? modelFamilies(entries) : entries.map(entry => ({ base: entry, adapters: [], members: [entry], lead: entry.model }));
       const byLead = new Map(families.map(family => [family.lead, family]));
       const sections = grouped ? modelChoiceGroups(families.map(family => family.lead), { preferNetwork }) : [{ id: 'all', models: families.map(family => family.lead) }];
       const keys = new Set(entries.map(entry => entry.key));
@@ -157,10 +157,10 @@ export function bindModelChoices(select) {
           const described = describe?.(model) || {};
           label.querySelector('[data-choice-status]').textContent = described.status
             ?? (grouped ? choiceStatus(model, ownGroup(model, preferNetwork)) : availabilityLabel(model));
-          const facts = described.facts ?? modelFacts(model), factsNode = label.querySelector('[data-choice-facts]');
+          const facts = compact ? '' : described.facts ?? modelFacts(model), factsNode = label.querySelector('[data-choice-facts]');
           factsNode.textContent = facts; factsNode.hidden = !facts;
           const noteNode = label.querySelector('[data-choice-note]');
-          noteNode.textContent = described.note || ''; noteNode.hidden = !described.note;
+          noteNode.textContent = compact ? '' : described.note || ''; noteNode.hidden = compact || !described.note;
           const position = parent.querySelectorAll(':scope > label[data-choice-key]')[index];
           if (position !== label) parent.insertBefore(label, position || null);
         });

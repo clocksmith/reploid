@@ -122,7 +122,7 @@ describe('Conversation workspace', () => {
     find('[data-new-thread]').click();
     await vi.waitFor(() => expect(select.value).toBe(medium.id));
     publish([small, medium, large]); expect(select.value).toBe(large.id);
-    session.createThread();
+    session.createThread({ model: large });
     publish([small, medium]);
     expect(session.getState().activeThread.model.id).toBe(large.id);
     expect(find('[data-model-digest]').textContent).toContain(large.name);
@@ -350,8 +350,10 @@ describe('Conversation workspace', () => {
     expect([...choices.querySelectorAll('[data-choice-name]')].map(node => node.textContent).join()).not.toMatch(/Whole model|Distributed/);
     const variantChoice = () => choices.querySelector('.chat-model-choice input:checked');
     expect(variantChoice().value).toBe(base.id);
-    // The facts list is gone; the providers disclosure carries both routes and their computers.
-    expect(find('[data-model-facts]')).toBeNull();
+    // Technical facts and providers remain collapsed outside the simple choice list.
+    expect(find('[data-model-details]').open).toBe(false);
+    expect(find('[data-model-facts]').textContent).toContain('Q4K');
+    expect([...root.querySelectorAll('[data-choice-facts]')].every(item => item.hidden)).toBe(true);
     const providers = find('[data-model-picker] [data-model-providers]');
     expect(providers.hidden).toBe(false);
     expect([...providers.querySelectorAll('[data-model-route]')].map(node => node.dataset.modelRoute)).toEqual([base.id, route.selectionId]);
@@ -364,16 +366,16 @@ describe('Conversation workspace', () => {
     expect(find('[data-next-model]').value).toBe(route.selectionId);
     expect(variantChoice().value).toBe(route.selectionId);
     expect(choices.querySelectorAll('.chat-model-choice input')).toHaveLength(2);
-    // The variant's adapter facts, routes and providers sit directly beneath the highlighted variant's choice.
-    expect(variantChoice().closest('label').nextElementSibling).toBe(find('[data-model-picker] [data-model-variant-details]'));
-    expect(variantChoice().closest('label').nextElementSibling.contains(providers)).toBe(true);
+    // Provider details stay in one stable disclosure as selection changes.
+    expect(find('[data-model-details]').contains(providers)).toBe(true);
+    expect(choices.contains(providers)).toBe(false);
     expect(find('[data-model-adapter-details]').hidden).toBe(true);
     expect(providers.textContent).toContain('Prepare or serve an adapter');
-    // The adapter is nested beneath its base, with its own status, version and evidence.
+    // Each adapter has its own readiness; technical notes stay out of the row.
     const adapterChoice = choices.querySelector(`input[value="${adapted.selectionId}"]`).closest('label');
-    expect(adapterChoice.hasAttribute('data-choice-adapter')).toBe(true);
+    expect(adapterChoice.hasAttribute('data-choice-adapter')).toBe(false);
     expect(adapterChoice.querySelector('[data-choice-status]').textContent).toBe('No computer serves it now');
-    expect(adapterChoice.querySelector('[data-choice-note]').textContent).toBe('No evaluation evidence');
+    expect(adapterChoice.querySelector('[data-choice-note]').hidden).toBe(true);
     expect(find('[data-change-model]').disabled).toBe(false);
     find('[data-change-model]').click();
     return vi.waitFor(() => expect(find('[data-model-digest]').textContent).toBe(`${base.name} · Shared`));
@@ -722,11 +724,14 @@ describe('Conversation workspace', () => {
     const thread = session.createThread({ sharingScope: 'local' });
     const completion = session.send(thread, 'Hello');
     try {
-      await vi.waitFor(() => expect(find('[data-composer-field]').dataset.activity).toBe('executing'));
+      await vi.waitFor(() => expect(find('.is-assistant [data-execution-activity]').hasAttribute('data-active')).toBe(true));
+      expect(find('[data-composer-field]').dataset.activity).toBe('idle');
+      expect(find('.is-assistant [data-answer-stop]').hidden).toBe(false);
+      expect(find('[data-composer-stop]').hidden).toBe(true);
       session.select(null);
       expect(find('[data-composer-field]').dataset.activity).toBe('idle');
       session.select(thread);
-      expect(find('[data-composer-field]').dataset.activity).toBe('executing');
+      expect(find('.is-assistant [data-execution-activity]').hasAttribute('data-active')).toBe(true);
       session.cancel(thread);
       expect(find('[data-composer-field]').dataset.activity).toBe('idle');
     } finally { release(); await completion; }

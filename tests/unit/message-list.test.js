@@ -115,6 +115,7 @@ describe('Stable message presentation', () => {
 it('shows recorded answer metadata and omits unknown or invalid measurements', () => {
   const root = document.createElement('div'), thread = conversation();
   thread.model = { name: 'Qwen 27B' };
+  thread.attempts[0].status = 'completed';
   const view = createMessageList(root);
   view.update(thread, { usable: true, busy: false });
   const meta = root.querySelector('.is-assistant .chat-message-meta');

@@ -180,8 +180,8 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     const field = page.locator('[data-composer-field]');
     for (const state of ['empty', 'unavailable', 'preparing', 'queued', 'loading', 'executing', 'interrupted', 'completed']) {
       await page.evaluate(state => window.setVisualState(state), state);
-      await expect(field).toHaveAttribute('data-activity', state === 'executing' ? 'executing' : 'idle');
-      expect(await animation(field)).toBe(state === 'executing' ? 'pool-optical-flow' : 'none');
+      await expect(field).toHaveAttribute('data-activity', 'idle');
+      expect(await animation(field)).toBe('none');
       const geometry = await page.evaluate(() => ({
         overflow: document.documentElement.scrollWidth - innerWidth,
         bar: document.querySelector('[data-chat-rail-toolbar]').getBoundingClientRect().toJSON(),
@@ -203,10 +203,8 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
       expect(geometry.composer.x).toBeGreaterThanOrEqual(geometry.bar.left - 1);
       expect(geometry.composer.right).toBeLessThanOrEqual(geometry.bar.right + 1);
       if (state === 'executing') {
-        const attach = await page.locator('.chat-file-label').boundingBox();
-        const stop = await page.locator('[data-composer-stop]').boundingBox();
-        expect(stop.y).toBe(attach.y);
-        expect(stop.x).toBeGreaterThan(attach.x + attach.width);
+        await expect(page.locator('.is-assistant [data-answer-stop]')).toBeVisible();
+        await expect(page.locator('[data-composer-stop]')).toBeHidden();
       }
       if (['empty', 'unavailable', 'preparing', 'executing', 'interrupted', 'completed'].includes(state)) {
         await page.screenshot({ path: testInfo.outputPath(`${theme}-${width}-${state}.png`), fullPage: true });
@@ -251,19 +249,20 @@ test('activity settles, stops on cancel and respects accessibility settings', as
   await page.goto('/');
   await expect(page.locator('[data-chat-workspace]')).toBeVisible();
   await installConversation(page, 'light');
-  // The ready pulse plays on the visible model button under the composer.
+  // One animation belongs to the active answer; model choice and composer stay still.
   const model = page.locator('[data-open-model]'), field = page.locator('[data-composer-field]');
   await page.evaluate(() => window.setVisualState('completed'));
-  expect(await animation(model)).toBe('pool-optical-ready');
-  await expect.poll(() => model.evaluate(node => getComputedStyle(node, '::after').opacity)).toBe('0');
+  expect(await animation(model)).toBe('none');
   await page.evaluate(() => window.setVisualState('executing'));
-  expect(await animation(field)).toBe('pool-optical-flow');
-  await page.locator('[data-composer-stop]').click();
+  const status = page.locator('.is-assistant [data-tool-status]');
+  expect(await animation(status, '::before')).toBe('pool-dot-pulse');
+  await page.locator('.is-assistant [data-answer-stop]').click();
   expect(await animation(field)).toBe('none');
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.evaluate(() => window.setVisualState('executing'));
   expect(await animation(field)).toBe('none');
   expect(await animation(model)).toBe('none');
+  expect(await animation(status, '::before')).toBe('none');
   await page.emulateMedia({ forcedColors: 'active' });
   expect(await field.evaluate(node => getComputedStyle(node, '::after').display)).toBe('none');
   await page.evaluate(() => window.disposeVisual());
@@ -331,7 +330,9 @@ test('bounded inspector and reduced viewport preserve a long conversation and co
   const composer = await page.locator('[data-composer-area]').boundingBox();
   expect(composer.y + composer.height).toBeLessThanOrEqual(460);
   expect((await page.locator('[data-chat-transcript]').boundingBox()).height).toBeGreaterThanOrEqual(60);
-  await expect(page.locator('[data-composer-stop]')).toBeInViewport();
+  await expect.poll(() => page.locator('[data-composer-stop],.is-assistant [data-answer-stop]').evaluateAll(nodes => nodes.some(node => {
+    const box = node.getBoundingClientRect(); return box.width > 0 && box.top >= 0 && box.bottom <= innerHeight;
+  }))).toBe(true);
   await page.screenshot({ path: info.outputPath('reduced-viewport.png'), fullPage: true });
 });
 
@@ -856,4 +857,85 @@ for (const width of [1280, 390, 320]) test(`model source, selection and composer
   await expect(page.locator('[data-composer-send]')).toBeEnabled();
   await expect(input).toHaveValue('hi');
   await page.screenshot({ path: info.outputPath(`this-device-${width}.png`) });
+});
+
+for (const width of [1440, 390, 320]) test(`focused chat controls: help, picker and one answer status at ${width}`, async ({ page }, info) => {
+  await page.setViewportSize({ width, height: 844 });
+  await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+  await installConversation(page, 'light');
+  await page.evaluate(() => { window.setVisualState('executing'); window.setVisualMessages('Check the formatter.', ''); });
+  const status = page.locator('.is-assistant [data-tool-status]');
+  await expect(status).toHaveText('Generating');
+  await expect(page.locator('.is-assistant [data-answer-stop]')).toBeVisible();
+  await expect(page.locator('[data-composer-stop]')).toBeHidden();
+  expect(await status.evaluate(node => getComputedStyle(node, '::before').animationName)).toBe('pool-dot-pulse');
+  await page.screenshot({ path: info.outputPath(`progress-${width}.png`), fullPage: true });
+  await page.locator('.is-assistant [data-answer-stop]').click();
+  await expect(page.locator('.is-assistant [data-answer-stop]')).toBeHidden();
+  await expect(page.locator('.is-assistant [data-system-status]')).toContainText('Stopped');
+
+  await page.locator('.chat-composer-status-line [data-open-control-help]').click();
+  await expect(page.locator('[data-control-help]')).toBeVisible();
+  await expect(page.locator('[data-control-help]')).toContainText('Tap an answer’s speed');
+  await page.locator('[data-close-control-help]').click();
+  await expect(page.locator('.chat-composer-status-line [data-open-control-help]')).toBeFocused();
+
+  await page.evaluate(() => { window.setVisualState('empty'); window.setVisualSupply(24); });
+  const opener = page.locator('[data-open-model]');
+  await page.locator('[data-composer-input]').focus();
+  await opener.hover();
+  await expect(page.getByRole('tooltip')).toContainText('Choose model');
+  await page.mouse.move(1, 1);
+  await expect(page.getByRole('tooltip')).toBeHidden();
+  await opener.focus();
+  await expect(page.getByRole('tooltip')).toContainText('Choose model');
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('tooltip')).toBeHidden();
+  await opener.press('Enter');
+  const picker = page.locator('[data-model-picker]');
+  await expect(picker).toBeVisible();
+  await expect(picker.locator('[data-model-details]')).not.toHaveAttribute('open');
+  await expect(picker.locator('.chat-model-choice input:checked')).toBeFocused();
+  await page.keyboard.press('ArrowDown');
+  await expect(picker.locator('.chat-model-choice input:checked')).toBeFocused();
+  expect(await picker.locator('[data-choice-facts]:visible').count()).toBe(0);
+  await expect(picker.locator('[data-change-model]')).toBeInViewport();
+  await picker.locator('[data-model-details] > summary').click();
+  await expect(picker.locator('[data-execution-location]')).toBeVisible();
+  await expect(picker.locator('[data-change-model]')).toBeInViewport();
+  await page.screenshot({ path: info.outputPath(`picker-${width}.png`), fullPage: true });
+  await picker.locator('[data-model-details] > summary').click();
+  await picker.locator('[data-open-control-help]').click();
+  await expect(page.locator('[data-control-help]')).toBeVisible();
+  await page.locator('[data-close-control-help]').click();
+  await picker.locator('[data-model-picker-close]').click();
+  await expect(opener).toBeFocused();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.evaluate(() => window.setVisualState('executing'));
+  expect(await status.evaluate(node => getComputedStyle(node, '::before').animationName)).toBe('none');
+});
+
+
+test('touch help and model choices work without hover', async ({ browser }, info) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
+  const page = await context.newPage();
+  try {
+    await page.goto(process.env.REPLOID_E2E_BASE_URL || 'http://localhost:8000');
+    await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+    await installConversation(page, 'dark');
+    await page.evaluate(() => { window.setVisualState('completed'); window.setVisualTiming({ generatedTokenCount: 92, totalMs: 5000 }); });
+    await page.locator('.is-assistant [data-metric="tokens"]').tap();
+    await expect(page.getByRole('tooltip')).toHaveText('92 generated tokens');
+    await page.locator('.chat-composer-status-line [data-open-control-help]').tap();
+    await expect(page.locator('[data-control-help]')).toBeVisible();
+    await page.screenshot({ path: info.outputPath('touch-help.png'), fullPage: true });
+    await page.locator('[data-close-control-help]').tap();
+    await page.locator('[data-open-model]').tap();
+    await expect(page.locator('[data-model-picker]')).toBeVisible();
+    await expect(page.locator('[data-model-details]')).not.toHaveAttribute('open');
+    await page.locator('[data-model-picker-close]').tap();
+    await expect(page.locator('[data-open-model]')).toBeFocused();
+  } finally { await context.close(); }
 });

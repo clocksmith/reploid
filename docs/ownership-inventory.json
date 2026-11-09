@@ -18,7 +18,7 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 290,
+    "apps/poolday": 291,
     "self": 448,
     "shared": 2228
   },
@@ -4257,6 +4257,12 @@
     {
       "served": "ui/components/button-feedback.js",
       "source": "apps/poolday/ui/components/button-feedback.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "ui/components/control-help.js",
+      "source": "apps/poolday/ui/components/control-help.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },

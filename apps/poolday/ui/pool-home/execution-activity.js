@@ -52,8 +52,11 @@ export function updateExecutionActivity(root, state) {
       : progress?.stage === 'context' ? 'Preparing search results…' : 'Searching the web…'
     : '';
   const tool = root.querySelector('[data-tool-status]');
-  if (tool) { tool.hidden = !toolStatus; tool.textContent = toolStatus; }
-  root.hidden = !view.attempt || !toolStatus && !view.nodes.length && !supply.answer && !view.attempt.error;
+  if (tool) tool.hidden = !view.active;
+  const stop = root.querySelector('[data-answer-stop]');
+  if (stop) { stop.hidden = !view.active; stop.disabled = view.status === 'cancelling'; }
+  root.toggleAttribute('data-active', view.active);
+  root.hidden = !view.attempt || !view.active && !toolStatus && !view.nodes.length && !supply.answer && !view.attempt.error;
   if (root.hidden) return;
   const summary = [toolStatus || (view.status === 'executing' ? 'Generating' : view.statusLabel),
     ...(view.nodes.length ? [`${view.computerCount} computer${view.computerCount === 1 ? '' : 's'}`] : []),
@@ -64,11 +67,17 @@ export function updateExecutionActivity(root, state) {
   trigger.setAttribute('aria-label', summary + '. Execution details');
   trigger.title = summary + (view.nodes.length ? '\n' + view.nodes.map(node => node.label).join(' → ') : '')
     + (view.attempt.error ? '\n' + view.attempt.error : '') + '\nClick to inspect';
-  const icon = interfaceIcon(toolStatus ? 'search' : view.local ? 'device' : view.nodes.length ? 'peers' : 'activity')
+  const icon = view.active
+    ? '<span class="pool-dot pool-dot-pulse" data-tool-status role="status"></span>'
+    : interfaceIcon(toolStatus ? 'search' : view.local ? 'device' : view.nodes.length ? 'peers' : 'activity')
     + (view.computerCount ? `<span>${view.computerCount}</span>` : '')
     + (readable ? `<span data-execution-label>${escape(readable)}</span>` : '')
     + `<span class="chat-visually-hidden">${escape(summary)}</span>`;
   if (trigger.dataset.markup !== icon) { trigger.innerHTML = icon; trigger.dataset.markup = icon; }
+  if (view.active) {
+    const status = root.querySelector('[data-execution-trigger] [data-tool-status]');
+    status.hidden = false; status.textContent = toolStatus || (view.status === 'executing' ? 'Generating' : view.statusLabel);
+  }
   const detail = root.querySelector('[data-activity-detail]');
   if (detail) updateExecutionDetail(detail, state);
 }

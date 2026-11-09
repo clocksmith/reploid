@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 290 |
+| apps/poolday | 291 |
 | self | 448 |
 | shared | 2228 |
-| total | 2966 |
+| total | 2967 |
 
 Every file lives in its owner's root.
 
@@ -743,6 +743,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/change-passport/styles.css` | `self/ui/change-passport/styles.css` | self | Reached only from substrate entries. |
 | `ui/components/attachments.js` | `apps/poolday/ui/components/attachments.js` | apps/poolday | Reached only from product entries. |
 | `ui/components/button-feedback.js` | `apps/poolday/ui/components/button-feedback.js` | apps/poolday | Reached only from product entries. |
+| `ui/components/control-help.js` | `apps/poolday/ui/components/control-help.js` | apps/poolday | Reached only from product entries. |
 | `ui/components/dialog.js` | `apps/poolday/ui/components/dialog.js` | apps/poolday | Reached only from product entries. |
 | `ui/components/diamond-renderer.js` | `apps/poolday/ui/components/diamond-renderer.js` | apps/poolday | Reached only from product entries. |
 | `ui/components/diamond.js` | `apps/poolday/ui/components/diamond.js` | apps/poolday | Reached only from product entries. |

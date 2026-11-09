@@ -315,7 +315,10 @@ it('only resolves automatic models before any message, attempt or grant exists',
   const explicit = app.createThread({ model });
   expect(() => app.resolveAutomaticModel(explicit, next, null)).toThrow();
   const automatic = app.createThread({ model, automaticModel: true });
-  app.resolveAutomaticModel(automatic, next, null);
+  app.resolveAutomaticModel(automatic, next, null, { keepAutomatic: true });
+  expect(app.getState().threads.find(t => t.id === automatic).automaticModel).toBe(true);
+  app.resolveAutomaticModel(automatic, model, null, { keepAutomatic: true });
+  app.resolveAutomaticModel(automatic, next, null, { keepAutomatic: true });
   expect(app.getState().threads.find(t => t.id === automatic).model.id).toBe(next.id);
   await app.send(automatic, 'Pin this model');
   expect(() => app.resolveAutomaticModel(automatic, model, null)).toThrow();

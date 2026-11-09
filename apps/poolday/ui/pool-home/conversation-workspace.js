@@ -1,9 +1,10 @@
+import { bindControlHelp, renderControlHelp, renderHelpButton } from '../components/control-help.js';
 import { workspaceHref, bindWorkspaceNavigation } from './workspace-navigation.js';
 import { renderContextIndicator, updateContextIndicator } from './context-indicator.js';
 import { withComputerLabels } from './computer-labels.js';
 import { interfaceIcon } from '../components/interface-icons.js';
 import { createConversationList } from './conversation-list.js';
-import { updateModelSelect, bindModelChoices, isSharedModelChoice, modelExecutionState, modelVariantLabel, unavailableModelChoice } from '../components/model-select.js';
+import { updateModelSelect, bindModelChoices, isSharedModelChoice, modelExecutionState, modelFacts, modelVariantLabel, unavailableModelChoice } from '../components/model-select.js';
 /** Conversation presentation; the host owns execution and disclosure. */
 import { projectNetworkPeers } from './network-controls.js';
 import { renderInspectorNavigation, renderInspectorRail, renderModelSetupDialog, bindNetworkInspector } from './network-inspector.js';
@@ -40,7 +41,7 @@ const renderModelControl = () => '<span data-model-control><select class="pool-i
 
 /** The highlighted variant's adapter facts, routes and providers, its answer limit and where the answer runs. One place: the picker.
  * Declared weights, context and availability are read once, on the variant's own choice. */
-const renderModelSelectionDetails = () => `<div class="pool-stack pool-gap-xs" data-model-selection-details><div class="chat-model-variant pool-stack pool-gap-xs" data-model-variant-details>${renderAdapterDetails()}${renderModelProviders()}</div><p class="pool-small pool-muted" data-answer-limit hidden></p><div class="chat-execution-location" data-execution-location role="group" aria-label="Execution location"><button class="pool-button btn-ghost" type="button" data-execution-choice="auto" aria-pressed="true">Automatic</button><button class="pool-button btn-ghost" type="button" data-execution-choice="local" aria-pressed="false">This device</button><button class="pool-button btn-ghost" type="button" data-execution-choice="network" aria-pressed="false">Shared</button></div></div>`;
+const renderModelSelectionDetails = () => `<details class="pool-disclosure" data-model-details><summary>Model details</summary><div class="pool-stack pool-gap-xs" data-model-selection-details><p class="pool-small pool-muted" data-model-facts></p><div class="chat-model-variant pool-stack pool-gap-xs" data-model-variant-details>${renderAdapterDetails()}${renderModelProviders()}</div><p class="pool-small pool-muted" data-answer-limit hidden></p><div class="chat-execution-location" data-execution-location role="group" aria-label="Execution location"><button class="pool-button btn-ghost" type="button" data-execution-choice="auto" aria-pressed="true">Automatic</button><button class="pool-button btn-ghost" type="button" data-execution-choice="local" aria-pressed="false">This device</button><button class="pool-button btn-ghost" type="button" data-execution-choice="network" aria-pressed="false">Shared</button></div></div></details>`;
 
 export function renderConversationWorkspace({ inspector = true, compact = false } = {}) {
   return `<section class="reploid-chat-workspace" data-chat-workspace ${compact ? 'data-compact' : ''} aria-label="Conversation workspace">
@@ -83,7 +84,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
         <label class="chat-visually-hidden" for="chat-message">Message</label>
         <div class="chat-composer-feedback"><div class="chat-composer-status-line">
         <p class="pool-small pool-muted" id="chat-model-status" data-model-status role="status" hidden></p>
-        <div class="chat-composer-notices"><button class="pool-button btn-ghost pool-caption" type="button" data-retry-connection aria-label="Retry connection" hidden>Retry</button></div>
+        <div class="chat-composer-notices"><button class="pool-button btn-ghost pool-caption" type="button" data-retry-connection aria-label="Retry connection" hidden>Retry</button></div>${renderControlHelp()}
         </div>
         <p class="pool-small pool-muted" data-acquisition-status role="status" hidden></p><progress class="pool-progress" data-acquisition-progress aria-label="Model download" hidden></progress><button class="pool-button btn-ghost pool-caption" type="button" data-download-local hidden>Download model</button><button class="pool-button btn-ghost pool-caption" type="button" data-cancel-download hidden>Cancel download</button>
         <p class="chat-attachment-help pool-small pool-muted" data-attachment-help hidden>Text files: up to 8, 64 KB each, 128 KB total.</p>
@@ -94,7 +95,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
           <div class="chat-composer-toolbar">
           <label class="pool-button btn-ghost pool-icon pool-file chat-file-label pool-focus-within" title="Attach files">${interfaceIcon('attach')}<span class="chat-visually-hidden">Attach files</span><input type="file" multiple data-composer-files accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
           <button class="pool-button btn-ghost chat-search-toggle" type="button" data-search-toggle aria-pressed="false" aria-label="Search for this answer" title="Search for this answer" hidden>${interfaceIcon('search')}<span class="pool-caption" data-web-search-on hidden>Search</span></button>
-          <button class="pool-button chat-composer-model btn-ghost pool-activity-edge" type="button" data-open-model aria-label="Choose model" title="Choose model">${interfaceIcon('model')}<small class="pool-muted" data-model-digest><span data-composer-model-name></span><span data-composer-model-source></span></small></button>
+          <button class="pool-button chat-composer-model btn-ghost" type="button" data-open-model aria-label="Choose model" title="Choose model" aria-haspopup="dialog"><span class="pool-small" data-model-caption>Choose model</span><span class="pool-small" data-model-digest><span data-composer-model-name></span><span class="pool-caption pool-muted" data-composer-model-source></span></span><span data-model-chevron>${interfaceIcon('chevron')}</span></button>
           ${renderContextIndicator()}
           <div class="chat-composer-submit">
             <button class="pool-button btn-primary pool-icon" type="submit" data-composer-send aria-label="Send" title="Send">${interfaceIcon('send')}</button>
@@ -109,7 +110,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
         </form>
       </dialog>
       <dialog class="chat-model-setup pool-surface pool-small" data-model-picker aria-labelledby="chat-model-picker-title">
-        <h2 class="pool-heading" id="chat-model-picker-title">Choose a model</h2><div class="chat-model-picker-body"><p data-current-model-description></p>
+        <header class="chat-network-heading"><h2 class="pool-heading" id="chat-model-picker-title">Choose a model</h2>${renderHelpButton()}</header><div class="chat-model-picker-body"><p data-current-model-description></p>
         <p data-picker-thread-note hidden>A new model starts a new thread.</p>
         ${renderModelControl()}<div><select class="pool-input" data-next-model aria-label="Model"></select></div>
         <p data-next-model-status role="status" hidden></p>
@@ -128,14 +129,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const find = selector => container.querySelector(selector) || surface?.querySelector(selector);
   const controller = new AbortController(), options = { signal: controller.signal };
   const input = find('[data-composer-input]'), modelSelect = find('[data-active-model-select]');
+  const detachHelp = bindControlHelp(container);
   const nextModelChoices = bindModelChoices(find('[data-next-model]'));
-  // The highlighted variant's adapter facts, routes and providers sit directly beneath its choice.
-  const providers = find('[data-model-picker] [data-model-variant-details]'), selectionDetails = find('[data-model-picker] [data-model-selection-details]');
-  const placeProviders = () => {
-    const anchor = nextModelChoices.checkedChoice();
-    if (anchor) { if (anchor.nextElementSibling !== providers) anchor.after(providers); }
-    else if (providers.parentElement !== selectionDetails) selectionDetails.prepend(providers);
-  };
   const inspector = sharedInspector || bindNetworkInspector(container, session, { getInviteUrl, webSearch, search });
   let archived = false, renameId = null, chosenModel = viewState.chosenModel || null, pickerModel = null, pickerLocation = 'auto';
   let changingModel = false;
@@ -145,6 +140,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   viewState.positions ??= new Map(); viewState.seen ??= new Map();
   const threads = createConversationList(find('[data-thread-list]'), viewState.seen, { getSources: session.getDocumentSources });
   const messages = createMessageList(find('[data-message-stream]'), { getSources: session.getDocumentSources, positions: viewState.positions, scrollContainer: find('[data-chat-transcript]') });
+  let activeProgress = null, progressVisible = true, answerBusy = false;
+  const stopVisibility = typeof IntersectionObserver === 'function' ? new IntersectionObserver(entries => {
+    const entry = entries.find(item => item.target === activeProgress);
+    if (!entry) return;
+    progressVisible = entry.isIntersecting && entry.intersectionRatio >= 1;
+    find('[data-composer-stop]').hidden = !answerBusy || progressVisible;
+  }, { root: find('[data-chat-transcript]'), threshold: 1 }) : null;
   const actions = find('[data-conversation-actions]');
   const actionsPanel = bindDisclosure({ root: actions, trigger: actions.querySelector('summary'), panel: actions.querySelector('div'), native: true });
   const railToggle = find('[data-toggle-thread-rail]');
@@ -253,12 +255,11 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const preferNetwork = pickerLocation !== 'local';
     find('[data-next-model]').disabled = changingModel;
     updateModelSelect(find('[data-next-model]'), models, { value: keyFor(pickerModel), showAvailability: true, grouped: true, preferNetwork });
-    nextModelChoices.update(models, { grouped: true, preferNetwork, variants: true, describe: describeModelChoice(state) });
-    // One entry per exact model/adapter variant, adapters beneath their base; the highlighted variant's adapter facts,
-    // whole-model and distributed routes and their providers sit below it.
+    nextModelChoices.update(models, { grouped: true, preferNetwork, variants: true, compact: true, describe: describeModelChoice(state) });
+    // Exact variants remain selectable; provider and format facts stay in the disclosure.
     updateAdapterDetails(find('[data-model-picker]'), state, selected || pickerModel);
     updateModelProviders(find('[data-model-picker]'), state, selected || pickerModel, { selectedId: keyFor(pickerModel), disabled: changingModel });
-    placeProviders();
+    find('[data-model-facts]').textContent = (selected || pickerModel) ? describeModelChoice(state)(selected || pickerModel).facts || modelFacts(selected || pickerModel) : '';
     const preview = modelExecutionState(selected, pickerLocation);
     const available = selected && (preview.usable || pickerLocation === 'local' && state.activeThread?.permissions?.sharingScope === 'local' && !!selected.source && !selected.partition && !state.localDownloadIssue);
     for (const button of find('[data-execution-location]').querySelectorAll('[data-execution-choice]')) {
@@ -397,6 +398,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     find('[data-picker-thread-note]').hidden = !thread;
     const activeModel = selectedModel || thread?.model || chosenModel || models.find(model => keyFor(model) === current)
       || catalogModels.find(model => keyFor(model) === current) || requestedModel;
+    find('[data-model-caption]').hidden = !!activeModel;
     const modelDigest = activeModel ? `${modelVariantLabel(activeModel)} · ${execution.label}` : '';
     find('[data-composer-model-name]').textContent = activeModel ? modelVariantLabel(activeModel) : '';
     find('[data-composer-model-source]').textContent = activeModel ? ` · ${execution.source === 'local' ? 'This device' : 'Shared'}` : '';
@@ -425,10 +427,18 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (queued && usable && !busy && !submitting && !reading && !thread?.closed) {
       queued = null; queueMicrotask(() => find('[data-composer-form]').requestSubmit());
     }
-    find('[data-composer-stop]').hidden = !busy;
     find('[data-conversation-download]').hidden = !thread?.messages.length;
-    find('[data-composer-field]').dataset.activity = busy && attempt?.status === 'executing' ? 'executing' : 'idle';
+    find('[data-composer-field]').dataset.activity = 'idle';
     messages.update(thread, { usable: usable && !thread?.closed, busy, state });
+    answerBusy = busy;
+    const progress = find('.is-assistant [data-execution-activity][data-active]');
+    if (progress !== activeProgress) {
+      stopVisibility?.disconnect(); activeProgress = progress; progressVisible = !!progress;
+      if (progress) stopVisibility?.observe(progress);
+    }
+    // Keep Stop reachable when the reader scrolls away from the active answer.
+    find('[data-composer-stop]').hidden = !busy || !!progress && progressVisible;
+
     if (find('[data-model-picker]').open) updatePicker(state);
     error(state.storageError || '');
 
@@ -621,6 +631,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   });
   on('[data-composer-stop]', 'click', () => act(() => session.cancel(session.getState().selectedId)));
   on('[data-message-stream]', 'click', event => {
+    if (event.target.closest('[data-answer-stop]')) { act(() => session.cancel(session.getState().selectedId)); return; }
     const receipt = event.target.closest('[data-execution-trigger]');
     if (receipt) { const row = receipt.closest('[data-message-id]'); const message = session.getState().activeThread?.messages.find(item => item.id === row?.dataset.messageId); if (message?.attemptId) inspector.inspectAttempt?.(message.attemptId, receipt); return; }
     const copyError = event.target.closest('[data-copy-error]');
@@ -671,6 +682,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     link.click(); setTimeout(() => URL.revokeObjectURL(url), 0);
   }));
   on('[data-message-stream]', 'click', event => {
+    if (event.target.closest('[data-answer-stop]')) { act(() => session.cancel(session.getState().selectedId)); return; }
     const link = event.target.closest('[data-source-reference]');
     if (!link) return;
     const target = document.getElementById(link.getAttribute('href').slice(1));
@@ -692,8 +704,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   workspaceNavigation.restore();
   return () => {
     try { observe(saveDraft()); } catch (cause) { error(cause); }
-    inputResize?.disconnect();
-    selectionDetails.prepend(providers); nextModelChoices.dispose();
+    inputResize?.disconnect(); stopVisibility?.disconnect();
+    detachHelp(); nextModelChoices.dispose();
     production.dispose();
     detachInspector?.(); leftDrawer.dispose();
     messages.dispose(); threads.dispose(); actionsPanel.dispose(); workspaceNavigation.dispose(); detachInspectorClose?.(); picker.dispose(); renameDialog.dispose();

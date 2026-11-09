@@ -372,3 +372,12 @@ label.chat-model-route-heading { cursor: pointer; }
 }
 
 [data-inspected-activity] pre { max-height: 35dvh; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.chat-composer-model > [data-model-chevron] { flex: none; margin-left: auto; }
+.chat-composer-model > [data-model-chevron] svg { display: block; }
+.chat-execution-activity[data-active] { flex-wrap: wrap; }
+.chat-model-setup [data-model-details] { flex: none; max-height: 35dvh; overflow-y: auto; }
+.chat-model-setup [data-model-details] > div { padding-block: var(--pool-size-8); }
+[data-control-help] dd { margin: 0; }
+[data-control-help] dl { overflow-y: auto; }
+.chat-composer-status-line > [data-open-control-help] { margin-left: auto; flex: none; }

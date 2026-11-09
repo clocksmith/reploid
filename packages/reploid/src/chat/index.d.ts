@@ -171,7 +171,7 @@ export interface ChatWorkspace {
   getState(): ChatState;
   subscribe(listener: (state: ChatState) => void): () => void;
   createThread(options: { model: ChatModel; automaticModel?: boolean; purpose?: string; members?: string[]; permissions?: Record<string, unknown>; systemContext?: ChatSystemContext | null }): string;
-  resolveAutomaticModel(threadId: string, model: ChatModel, systemContext: ChatSystemContext | null): void | Promise<void>;
+  resolveAutomaticModel(threadId: string, model: ChatModel, systemContext: ChatSystemContext | null, options?: { keepAutomatic?: boolean }): void | Promise<void>;
   setExecutionLocation(threadId: string, location: 'auto' | 'local' | 'network'): void;
   setSystemContext(threadId: string, value: ChatSystemContext | null): void;
   select(threadId: string | null): void | Promise<void>;

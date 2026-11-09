@@ -481,12 +481,13 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       return transactional ? saved.then(() => thread.id) : thread.id;
     },
     select(threadId) { current(); if (threadId !== null) find(threadId); selectedId = threadId; const saved = persist(); if (transactional) notify(); return saved; },
-    resolveAutomaticModel(threadId, model, systemContext) {
+    resolveAutomaticModel(threadId, model, systemContext, { keepAutomatic = false } = {}) {
       current(); const thread = find(threadId);
+      assert(typeof keepAutomatic === 'boolean', 'Invalid automatic model selection');
       assert(thread.automaticModel === true && !thread.closed && !runs.has(threadId)
         && !thread.messages.length && !thread.attempts.length && !thread.grants.length, 'Only an unused automatic model may change');
       assert(thread.permissions.executionLocation !== 'local' && thread.permissions.sharingScope !== 'local' || !model.partition, 'This model requires network execution');
-      const candidate = { model: modelIdentity(model), systemContext: validateSystemContext(systemContext), automaticModel: false };
+      const candidate = { model: modelIdentity(model), systemContext: validateSystemContext(systemContext), automaticModel: keepAutomatic };
       const previous = { model: thread.model, systemContext: thread.systemContext, automaticModel: thread.automaticModel };
       Object.assign(thread, candidate);
       try { return persist(); } catch (error) { Object.assign(thread, previous); notify(); throw error; }
@@ -496,9 +497,10 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       assert(['auto', 'local', 'network'].includes(location), 'Invalid execution location');
       assert(!thread.closed && !runs.has(threadId), 'Change execution location only in an open idle conversation');
       assert(location !== 'local' || !thread.model.partition, 'This model requires network execution');
-      const previous = thread.permissions;
+      const previous = thread.permissions, automaticModel = thread.automaticModel;
+      thread.automaticModel = false;
       thread.permissions = { ...previous, executionLocation: location, sharingScope: location === 'local' ? 'local' : 'mesh' };
-      try { return persist(); } catch (error) { thread.permissions = previous; notify(); throw error; }
+      try { return persist(); } catch (error) { thread.permissions = previous; thread.automaticModel = automaticModel; notify(); throw error; }
     },
     setSystemContext(threadId, value) {
       current(); const thread = find(threadId);

@@ -90,3 +90,15 @@ it('clears saved capacity when a selected route disappears without losing its id
   expect(modelExecutionState(missing).label).not.toContain('Distributed');
   expect(saved.networkAvailability).toBe('ready');
 });
+
+it('keeps compact rows ready-first even when a ready adapter has an unavailable base', () => {
+  const base = { id: 'base', name: 'Base', identity: 'sha256:' + 'a'.repeat(64), availability: 'unavailable', networkAvailability: 'unavailable' };
+  const adapted = { ...base, selectionId: 'adapter', name: 'Adapted', adapters: [{ identity: 'sha256:' + 'b'.repeat(64) }], availability: 'ready', networkAvailability: 'ready' };
+  const select = document.querySelector('select'), choices = bindModelChoices(select);
+  updateModelSelect(select, [base, adapted], { value: base.id });
+  choices.update([base, adapted], { grouped: true, variants: true, compact: true, describe: () => ({ facts: 'Technical facts', note: 'Evidence note' }) });
+  expect([...document.querySelectorAll('input')].map(input => input.value)).toEqual(['adapter', 'base']);
+  expect(document.querySelector('input:checked').value).toBe(base.id);
+  expect([...document.querySelectorAll('[data-choice-facts],[data-choice-note]')].every(node => node.hidden)).toBe(true);
+  choices.dispose();
+});
