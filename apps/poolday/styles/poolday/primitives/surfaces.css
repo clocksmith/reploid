@@ -54,8 +54,10 @@
 .pool-home .pool-meter { width: var(--pool-size-16); height: var(--pool-size-16); pointer-events: none; }
 .pool-home .pool-meter-track { stroke: var(--pool-color-line); }
 .pool-home .pool-meter-value { stroke: currentColor; }
-.pool-home .pool-reveal-host .pool-reveal { opacity: 0; }
-.pool-home .pool-reveal-host:is(:hover, :focus-within) .pool-reveal { opacity: 1; }
+@media (hover: hover) and (pointer: fine) {
+  .pool-home .pool-reveal-host .pool-reveal { opacity: 0; pointer-events: none; }
+  .pool-home .pool-reveal-host:is(:hover, :focus-within) .pool-reveal { opacity: 1; pointer-events: auto; }
+}
 .pool-home .pool-edge-top { border-top: var(--pool-border-hairline) solid var(--pool-color-line); }
 .pool-home .pool-edge-bottom { border-bottom: var(--pool-border-hairline) solid var(--pool-color-line); }
 

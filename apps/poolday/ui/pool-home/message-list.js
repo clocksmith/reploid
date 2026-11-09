@@ -78,7 +78,7 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
         let row = rows.get(id);
         if (!row) {
           row = stream.ownerDocument.createElement('article'); row.dataset.messageId = messageId;
-          row.className = message.role === 'user' ? 'chat-message-row is-user' : 'chat-message-row is-assistant';
+          row.className = message.role === 'user' ? 'chat-message-row is-user pool-reveal-host' : 'chat-message-row is-assistant';
           row.innerHTML = `<span class="chat-message-author pool-small pool-muted"></span><div class="chat-message-content pool-body pool-prose"></div><div class="chat-message-system pool-small" data-system-status role="status" aria-label="System status" hidden></div><div class="chat-message-footer pool-row pool-gap-sm pool-small pool-muted"><div class="chat-execution-activity pool-row pool-gap-sm" data-execution-activity hidden><span class="pool-small" data-tool-status role="status" hidden></span><button class="pool-button pool-icon" type="button" data-execution-trigger></button></div><div class="chat-message-meta pool-caption" hidden></div><div class="chat-message-actions"></div></div>`;
           if (message.role === 'user') row.querySelector('.chat-message-content').classList.add('pool-well');
           row.querySelector('.chat-message-author').textContent = message.role === 'user' ? 'You' : 'Assistant'; rows.set(id, row);
@@ -148,7 +148,7 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
           actions.innerHTML = `
             ${sources.length ? `<details class="pool-small"><summary>Sources searched (${sources.length})</summary><ol class="pool-list">${sources.map(item => `<li id="${escape(anchor(item.number))}" tabindex="-1"><a href="${escape(item.url)}" target="_blank" rel="noopener noreferrer">[${item.number}] ${escape(item.title)}</a></li>`).join('')}</ol></details>` : ''}
             ${retryable ? `<button type="button" class="pool-button" data-retry-attempt="${escape(attempt.id)}" aria-label="Retry response" title="Retry this request; keeps any earlier response."${usable ? '' : ' disabled'}>${interfaceIcon('retry')}<span>Retry</span></button>` : ''}
-            ${message.content ? `<button type="button" class="pool-button pool-icon" data-copy-message aria-label="${message.role === 'user' ? 'Copy message' : 'Copy response'}" title="${message.role === 'user' ? 'Copy message' : 'Copy response'}">${interfaceIcon('copy')}</button>` : ''}`;
+            ${message.content ? `<button type="button" class="pool-button pool-icon${message.role === 'user' ? ' pool-reveal' : ''}" data-copy-message aria-label="${message.role === 'user' ? 'Copy message' : 'Copy response'}" title="${message.role === 'user' ? 'Copy message' : 'Copy response'}">${interfaceIcon('copy')}</button>` : ''}`;
         }
         row.querySelector('.chat-message-footer').hidden = row.querySelector('.chat-message-meta').hidden
           && row.querySelector('[data-execution-activity]').hidden && !actions.children.length;

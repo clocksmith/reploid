@@ -3644,7 +3644,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:108a30ab1f900e9fc69952803b82c133a7bfd3f1f327e845e95729bed065c1ef",
+      "sha256": "sha256:b5256d7eb2aa1cc73cb994b6888eaa7452a7c8ed56c2685a288da4c2d83fdb20",
       "imports": []
     },
     {
@@ -3826,7 +3826,7 @@
     {
       "path": "ui/pool-home/message-list.js",
       "owner": "ui",
-      "sha256": "sha256:091613348544bfe7e0c8e6d875f7d708932b1c62081541256239e4506a4eb6ea",
+      "sha256": "sha256:e880e419c6ab77877f4b1492e2ebb7b4e0bf8ff562357cdb21f5902ecd7f48e5",
       "imports": [
         "../components/attachments.js",
         "../components/interface-icons.js",
