@@ -10,13 +10,17 @@ import { createNativeGpuHost } from '../../server/native-participant.js';
 import { createNativeWholeModel } from '../../server/native-whole-model.js';
 import { createReploidDopplerRuntimeService } from '../../shared/infrastructure/doppler-runtime-service.js';
 
-const [directory, output] = process.argv.slice(2);
+const [directory, output, profile = 'bounded'] = process.argv.slice(2);
 assert(directory && output, 'Pass the local Qwen model directory and receipt path');
+assert(['bounded', 'catalog'].includes(profile), 'Choose bounded or catalog load configuration');
 assert.equal(process.env.REPLOID_CONTEXT_PHYSICAL, '1', 'Explicit physical test opt-in required');
 assert(import.meta.resolve('doppler-gpu/compat').includes('/node_modules/doppler-gpu/'), 'Use installed package bytes');
 const manifestBytes = await fs.readFile(directory + '/manifest.json'), manifest = JSON.parse(manifestBytes);
 const packagePin = JSON.parse(await fs.readFile(new URL('../../shared/config/doppler-package.json', import.meta.url)));
-const model = { id: manifest.modelId, provider: 'doppler',
+const catalog = JSON.parse(await fs.readFile(new URL('../../shared/config/chat-models.json', import.meta.url)));
+const catalogModel = catalog.find(row => row.id === manifest.modelId);
+assert(profile !== 'catalog' || catalogModel, 'Catalog configuration requires a registered model');
+const model = profile === 'catalog' ? structuredClone(catalogModel) : { id: manifest.modelId, provider: 'doppler',
   identity: 'sha256:' + createHash('sha256').update(manifestBytes).digest('hex'), adapters: [],
   loadOptions: { runtimeConfig: { inference: { session: { kvcache: { maxSeqLen: 256 } } } } },
   generation: { maxTokens: 4, temperature: 0, topK: 1, topP: 1, repetitionPenalty: 1, useChatTemplate: true } };
@@ -26,6 +30,7 @@ const provider = createNativeWholeModel({ model, modelDirectory: directory, serv
 const report = { schema: 'reploid.generation-context-installed/v1', passed: false,
   runtimeVersion: runtime.DOPPLER_VERSION, packageIntegrity: packagePin.integrity,
   modelIdentity: model.identity, modelId: model.id, node: process.version, platform: process.platform,
+  configuration: { profile, loadOptions: model.loadOptions, generation: model.generation, maxOutputTokens: 4 },
   scope: 'Offline installed-package/native-provider development check; no public service or browser qualification', cases: [] };
 const run = (messages, contextOwner, contextId, extra = {}) => provider.generate(messages, extra.onUpdate || (() => {}), {
   signal: extra.signal || new AbortController().signal, contextOwner, contextId, maxOutputTokens: 4 });
