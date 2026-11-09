@@ -18,7 +18,7 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 291,
+    "apps/poolday": 294,
     "self": 448,
     "shared": 2228
   },
@@ -1501,6 +1501,12 @@
       "basis": "Reached only from substrate entries."
     },
     {
+      "served": "config/computer-preferences.json",
+      "source": "apps/poolday/config/computer-preferences.json",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
       "served": "config/document-comparison-sample.json",
       "source": "apps/poolday/config/document-comparison-sample.json",
       "owner": "apps/poolday",
@@ -2235,6 +2241,12 @@
     {
       "served": "host/chat-view.js",
       "source": "apps/poolday/host/chat-view.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "host/computer-preferences.js",
+      "source": "apps/poolday/host/computer-preferences.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },
@@ -4383,6 +4395,12 @@
     {
       "served": "ui/pool-home/computer-labels.js",
       "source": "apps/poolday/ui/pool-home/computer-labels.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "ui/pool-home/computer-preferences.js",
+      "source": "apps/poolday/ui/pool-home/computer-preferences.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },

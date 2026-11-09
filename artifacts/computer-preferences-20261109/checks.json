@@ -1,0 +1,18 @@
+{
+  "tests": 87,
+  "suites": [
+    "computer-preferences",
+    "computer-preferences-ui",
+    "computer-labels",
+    "network-controls",
+    "canonical-product-session",
+    "product-session-registered-identity",
+    "conversation-workspace"
+  ],
+  "lint": "passed",
+  "cssLayers": "passed",
+  "browserBoundaries": "passed",
+  "ownershipInventory": "passed",
+  "hostingPackage": "passed",
+  "note": "The conversation workspace suite emits a local port-3000 ECONNREFUSED diagnostic; all assertions pass and the runner exits zero. This is not physical-provider evidence."
+}

@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 291 |
+| apps/poolday | 294 |
 | self | 448 |
 | shared | 2228 |
-| total | 2967 |
+| total | 2970 |
 
 Every file lives in its owner's root.
 
@@ -283,6 +283,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `config/chat-models.json` | `shared/config/chat-models.json` | shared | Reached from product and substrate entries. |
 | `config/chat-remote-permission.json` | `apps/poolday/config/chat-remote-permission.json` | apps/poolday | Reached only from product entries. |
 | `config/clockwork-gamma-receipts.js` | `self/config/clockwork-gamma-receipts.js` | self | Reached only from substrate entries. |
+| `config/computer-preferences.json` | `apps/poolday/config/computer-preferences.json` | apps/poolday | Reached only from product entries. |
 | `config/document-comparison-sample.json` | `apps/poolday/config/document-comparison-sample.json` | apps/poolday | Fixture for the product document comparison. |
 | `config/doppler-execution-contracts.d.ts` | `shared/config/doppler-execution-contracts.d.ts` | shared | Describes config/doppler-execution-contracts.js. Reached from product and substrate entries. |
 | `config/doppler-execution-contracts.js` | `shared/config/doppler-execution-contracts.js` | shared | Reached from product and substrate entries. |
@@ -406,6 +407,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `host/chat-remote-permission.js` | `apps/poolday/host/chat-remote-permission.js` | apps/poolday | Reached only from product entries. |
 | `host/chat-session.js` | `apps/poolday/host/chat-session.js` | apps/poolday | Reached only from product entries. |
 | `host/chat-view.js` | `apps/poolday/host/chat-view.js` | apps/poolday | Reached only from product entries. |
+| `host/computer-preferences.js` | `apps/poolday/host/computer-preferences.js` | apps/poolday | Reached only from product entries. |
 | `host/contribution-history.js` | `apps/poolday/host/contribution-history.js` | apps/poolday | Reached only from product entries. |
 | `host/contribution-resume.js` | `apps/poolday/host/contribution-resume.js` | apps/poolday | Reached only from product entries. |
 | `host/contributor-search.js` | `apps/poolday/host/contributor-search.js` | apps/poolday | Reached only from product entries. |
@@ -764,6 +766,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/pool-home/app.bundle.js` | `apps/poolday/ui/pool-home/app.bundle.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/auto-download.js` | `apps/poolday/ui/pool-home/auto-download.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/computer-labels.js` | `apps/poolday/ui/pool-home/computer-labels.js` | apps/poolday | Reached only from product entries. |
+| `ui/pool-home/computer-preferences.js` | `apps/poolday/ui/pool-home/computer-preferences.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/constants.js` | `apps/poolday/ui/pool-home/constants.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/context-indicator.js` | `apps/poolday/ui/pool-home/context-indicator.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/contribution-models.js` | `apps/poolday/ui/pool-home/contribution-models.js` | apps/poolday | Reached only from product entries. |

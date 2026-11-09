@@ -28,6 +28,7 @@ import { createPoolIdentity } from '../../../shared/pool/identity.js';
 import { createLocalPackExecutor } from '../pool/local-pack-executor.js';
 import { createDocumentAssistant } from '../pool/document-delegation.js';
 import poolConfiguration from '../../../shared/pool/pool-config.json' with { type: 'json' };
+import { createComputerPreferences } from './computer-preferences.js';
 
 const HISTORY_OWNED_ELSEWHERE = 'Another tab owns this conversation history';
 const ordinaryReason = cause => `History stays ordinary: ${cause}; ordered answers are not published to requester-owned storage.`;
@@ -73,6 +74,8 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
   // participation keeps its own configured identity.
   const swarm = createWorkSwarm({ storage, evolution, service, networkOptions: swarmNetworkOptions, canonical, ordered, webWorker: webContribution,
     ...(participantIdentity && !canonical ? { participantIdentity } : {}), onChange: () => { chat?.refreshNetwork(); notifySearch(); } });
+  const computers = createComputerPreferences({ storage,
+    verifyPeer: (id, signal) => swarm.verifyPeerIdentity(id, signal) });
   const getNetwork = () => {
     if (!operationNetwork) {
       operationNetwork = createOperationRoomNetwork({ ...networkOptions(),
@@ -109,7 +112,7 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
         available: deviceSearch.available } } }, earning };
   const failOpening = async error => {
     modelCache?.close();
-    const settled = await Promise.allSettled([() => swarm.close(), () => chat?.close(), () => localFiles.close()].map(close => Promise.resolve().then(close)));
+    const settled = await Promise.allSettled([() => computers.close(), () => swarm.close(), () => chat?.close(), () => localFiles.close()].map(close => Promise.resolve().then(close)));
     const failures = settled.filter(result => result.status === 'rejected').map(result => result.reason);
     if (failures.length) throw new AggregateError([error, ...failures], 'Canonical application opening failed');
     throw error;
@@ -147,7 +150,7 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
     const host = {
       modelStorage: createModelStorage({ getState: () => chat.getState(), unload: () => chat.unloadLocalModel(),
         onRemoved: id => { cachedModels = cachedModels.filter(model => model.id !== id); chat.setCachedModels(cachedModels); } }),
-      chat, swarm, evolution, webSearch, search: searchStatus, deviceSearch, contributorSearch, historyHandover,
+      chat, swarm, computers, evolution, webSearch, search: searchStatus, deviceSearch, contributorSearch, historyHandover,
       get training() { assertOpen(); return training ??= createBrowserTraining({ swarm }); },
       get runtime() { assertOpen(); return runtime ??= globalThis.REPLOID_DOPPLER_RUNTIME || createDopplerRuntime(); },
       get work() { assertOpen(); return work ??= createWorkSession({ service, storage, swarm, evolution, peers: createWorkPeerJobs({ getNetwork }) }); },
@@ -156,7 +159,7 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
       connectOperations(network) { assertOpen(); if (ownsNetwork) void operationNetwork?.close?.(); ownsNetwork = false; operationNetwork = network; documents?.connectNetwork(network); },
       resume() { if (!closed) autoconnect.resume(); },
       async pause() {
-        autoconnect.pause(); work?.cancelAll(); chat.cancelAll(); chat.cancelModelDownload(); documents?.cancel();
+        autoconnect.pause(); computers.cancel(); work?.cancelAll(); chat.cancelAll(); chat.cancelModelDownload(); documents?.cancel();
         return Promise.allSettled([training?.disconnect(), swarm.disconnect({ automatic: true }), operationSharing?.stop()]);
       },
       close() {
@@ -164,7 +167,7 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
         closed = true; autoconnect.close(); modelCache.close();
         // Requester-owned history must report unsettled cleanup; ordinary history never did.
         const requesterOwned = !!canonical || chat.getState?.().history?.mode === 'transactional';
-        const owners = [() => training?.close(), () => localFiles.close(), () => swarm.close(), () => work?.close(), () => chat.close(), () => documents?.close(),
+        const owners = [() => computers.close(), () => training?.close(), () => localFiles.close(), () => swarm.close(), () => work?.close(), () => chat.close(), () => documents?.close(),
           () => operationSharing?.stop(), () => ownsNetwork ? operationNetwork?.close?.() : undefined];
         closing = Promise.allSettled(owners.map(close => Promise.resolve().then(close))).then(results => {
           const failures = results.filter(result => result.status === 'rejected').map(result => result.reason);

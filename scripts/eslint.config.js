@@ -81,6 +81,8 @@ const cleanedModules = [
   'server/pool/routes/assignment-entry.js',
   'packages/reploid/src/chat/scheduler.js',
   'apps/poolday/host/chat-execution.js',
+  'apps/poolday/host/computer-preferences.js',
+  'apps/poolday/ui/pool-home/computer-preferences.js',
   'server/pool/routes.js',
   'server/pool/routes/receipts.js',
   'server/pool/store.js',

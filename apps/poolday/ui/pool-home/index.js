@@ -117,7 +117,7 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
         inspectorRoot.innerHTML = renderNetworkInspector();
       }
       surface.append(inspectorRoot);
-      inspector = bindNetworkInspector(surface, host.chat, { getInviteUrl: () => host.swarm.getInviteUrl(), webSearch: host.webSearch, search: host.search, earning: earningOpening, modelStorage: host.modelStorage,
+      inspector = bindNetworkInspector(surface, host.chat, { getInviteUrl: () => host.swarm.getInviteUrl(), webSearch: host.webSearch, search: host.search, earning: earningOpening, modelStorage: host.modelStorage, computers: host.computers,
         loadSpecialized: async target => {
           const operations = await import('./operation-sharing.js'); sharingView = operations;
           target.innerHTML = operations.renderOperationSharing();

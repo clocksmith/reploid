@@ -2335,6 +2335,16 @@
       "imports": []
     },
     {
+      "path": "self/host/computer-preferences.js",
+      "owner": "self",
+      "sha256": "sha256:462d715615feae88dc06e95a816dbe6ba3ea95ef36bef1e5fc67dabefd6a0f6a",
+      "imports": [
+        "../config/computer-preferences.json",
+        "../vendor/reploid/mesh/computer-identity.js",
+        "../vendor/reploid/mesh/gpu-signature.js"
+      ]
+    },
+    {
       "path": "self/host/contribution-history.js",
       "owner": "self",
       "sha256": "sha256:8405d1cde67645f69600aa72400e1e5d5b0778e269790bc241deac798e51193e",
@@ -2556,7 +2566,7 @@
     {
       "path": "self/host/product-session.js",
       "owner": "self",
-      "sha256": "sha256:8934b6346d3e96c876a9bc5b0e3bfbcc6f1f507427f3b2f078c98b913a5b3c50",
+      "sha256": "sha256:2426b56d36311487f46663ca2392c6825eecb7e70695672d035ab00a51a682f5",
       "imports": [
         "../config/doppler-metadata-contract.js",
         "../config/ordered-participation.json",
@@ -2572,6 +2582,7 @@
         "../pool/requester-client.js",
         "./chat-history.js",
         "./chat-session.js",
+        "./computer-preferences.js",
         "./contributor-search.js",
         "./device-search.js",
         "./history-handover.js",
@@ -3653,7 +3664,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:7d8cd6cc10d4d7e79ea0636d51abc673c5f50c00b753211beb8b93a7718e6294",
+      "sha256": "sha256:40610b60a999e8445f5d2fac670f7b62618aa12217f342b2786662cd2b2f033c",
       "imports": []
     },
     {
@@ -3667,9 +3678,19 @@
     {
       "path": "ui/pool-home/computer-labels.js",
       "owner": "ui",
-      "sha256": "sha256:7fb676acd96dd89a4bf52b9e3280e1b4dfbc2c92fc360d269bf79e3dc3cd4391",
+      "sha256": "sha256:e89a46d4ef0a16bed5d87c682c212ce552696db36add936ff1c85fa0f8a77246",
       "imports": [
         "../../vendor/reploid/mesh/computer-identity.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/computer-preferences.js",
+      "owner": "ui",
+      "sha256": "sha256:622fdb499acf5759c5f8b1be90bc0f80fab944346d445442d2c46d5088fcd850",
+      "imports": [
+        "../../config/computer-preferences.json",
+        "./computer-labels.js",
+        "./execution-ribbon.js"
       ]
     },
     {
@@ -3804,7 +3825,7 @@
     {
       "path": "ui/pool-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:c52f49c13e470e046f23013716657bdd5ae1667635ebea92260da1a4e9833b2f",
+      "sha256": "sha256:43edbe7ed60496da2b31a9bc1f3a27856ca4fd80a4cab5f9b35a4f81fe948352",
       "imports": [
         "../../host/credits/browser.js",
         "../../host/product-context.js",
@@ -3894,11 +3915,12 @@
     {
       "path": "ui/pool-home/network-controls.js",
       "owner": "ui",
-      "sha256": "sha256:6a2fe211afd17dbf4cdc19a5a526dba77b8caa9d3db13ac284d1cd1776cfc483",
+      "sha256": "sha256:bafd53de266a45a7aa510d023df33cb2651b4563c6adec9fe618aa0740df60fc",
       "imports": [
         "../../vendor/reploid/mesh/preparation-progress.js",
         "../components/model-select.js",
         "./computer-labels.js",
+        "./computer-preferences.js",
         "./execution-ribbon.js",
         "./model-preparation.js"
       ]
@@ -3906,7 +3928,7 @@
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:0cb479c50bd087807c825bf96807fd0e3a6d8cde74fc0f843118b56899e674ab",
+      "sha256": "sha256:06e170f2dedc50f59d3ccec1f93cc324def1b81a41cdfcbdd7c2313cd818c4b6",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -3916,6 +3938,7 @@
         "./account-panel.js",
         "./auto-download.js",
         "./computer-labels.js",
+        "./computer-preferences.js",
         "./context-indicator.js",
         "./execution-activity.js",
         "./execution-ribbon.js",

@@ -1,0 +1,52 @@
+{
+  "scope": "Controlled identity-verifier fixture; physical GPU UI captures; browser restart, not OS reboot.",
+  "browser": "157.0.8103.38",
+  "origin": "http://127.0.0.1:60957",
+  "bundleHash": "sha256:1ce45956be438cefbb18361aa8638affe6402271ea7e0ce79114072e958be939",
+  "sources": {
+    "host/computer-preferences.js": "462d715615feae88dc06e95a816dbe6ba3ea95ef36bef1e5fc67dabefd6a0f6a",
+    "ui/pool-home/computer-preferences.js": "622fdb499acf5759c5f8b1be90bc0f80fab944346d445442d2c46d5088fcd850",
+    "ui/pool-home/network-controls.js": "bafd53de266a45a7aa510d023df33cb2651b4563c6adec9fe618aa0740df60fc",
+    "vendor/reploid/mesh/gpu-signature.js": "1b95ceff311a7a39444ea7c09709ae3194ba1e9d7bd36adf39f38d03962f2fb6"
+  },
+  "noAutomaticCapture": true,
+  "renamePersisted": true,
+  "baselinePersistedAcrossBrowserRestart": true,
+  "baselineCleared": true,
+  "viewport390WithoutOverflow": true,
+  "measurements": [
+    {
+      "status": "measured",
+      "hardware": {
+        "vendor": "apple",
+        "architecture": "metal-3"
+      },
+      "elapsedMs": 29.59999990463257,
+      "allocationBytes": 17432
+    },
+    {
+      "status": "measured",
+      "hardware": {
+        "vendor": "apple",
+        "architecture": "metal-3"
+      },
+      "elapsedMs": 24.700000047683716,
+      "allocationBytes": 17432
+    }
+  ],
+  "comparison": {
+    "status": "uncertain",
+    "distance": 0.1458121892909369,
+    "variability": 0.18847307382022654,
+    "reason": "calibration-required"
+  },
+  "errors": [],
+  "unqualified": [
+    "Driver changes",
+    "Different GPUs of the same model",
+    "OS reboot",
+    "Controlled load variation",
+    "False-match and missed-match rates",
+    "Fabricated-response recognition resistance"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "schema": "poolday.computer-preferences/v1",
+  "storageKey": "REPLOID_COMPUTER_PREFERENCES_V1",
+  "maxNames": 128,
+  "maxLabelLength": 64,
+  "maxStoreBytes": 262144
+}

@@ -1,0 +1,35 @@
+{
+  "schema": "reploid.evidence-inventory/v1",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 3723,
+      "sha256": "5caa53ea0247cdce6a7f741b92e3c33a1c66793b39485afad8228083c8795904"
+    },
+    {
+      "path": "checks.json",
+      "bytes": 572,
+      "sha256": "0380c6782c31ef16b30cfdaca8126e4e835784845d3c13c30e4cf85df0fc82d5"
+    },
+    {
+      "path": "diagnostic-390.png",
+      "bytes": 50732,
+      "sha256": "ac7cdf1d836b0131515730ac702339c17f5277112cd2d832ca4c6c14f7daccd4"
+    },
+    {
+      "path": "diagnostic-desktop.png",
+      "bytes": 63391,
+      "sha256": "69b6f1b6365e46148b938392ef2f566a7e1732ec45827af54c668aa6b39cadf4"
+    },
+    {
+      "path": "nickname-390.png",
+      "bytes": 116463,
+      "sha256": "f7e5320365616ccbef0e2309de4732b7087751822a9ebd7e35cac2379fa01885"
+    },
+    {
+      "path": "receipt.json",
+      "bytes": 1728,
+      "sha256": "176410dc286a8be2596bcdd6bf73858bf2b003ce24f7e4ae0b26ef9102982e29"
+    }
+  ]
+}

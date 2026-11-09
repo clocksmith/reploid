@@ -7,6 +7,7 @@ import { withComputerLabels } from './computer-labels.js';
 import { interfaceIcon } from '../components/interface-icons.js';
 /** One projection of conversation execution, participant availability, and device contribution. */
 import { renderComputeSharingControls, renderFileSharingControls, renderContributionLimits, renderConnectionControl, bindNetworkControls, projectNetworkPeers } from './network-controls.js';
+import { renderComputerDiagnostic } from './computer-preferences.js';
 import { bindDialog } from '../components/dialog.js';
 import { updateModelSelect } from '../components/model-select.js';
 import { escapeHtml as escape } from '../components/attachments.js';
@@ -56,6 +57,7 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
       </section>
       <details class="pool-disclosure" data-production-device><summary>This device <span class="pool-muted" data-device-state-summary></span></summary><div class="pool-stack pool-gap-md">
         <p class="pool-caption pool-muted" data-local-computer></p>
+        ${renderComputerDiagnostic()}
         ${renderComputeSharingControls()}
         ${contribution}
         <p class="pool-caption pool-muted" data-file-sharing-summary></p>
@@ -92,7 +94,7 @@ export function renderNetworkInspector(options = {}) {
   return renderInspectorRail({ ...options, navigation: true }) + renderModelSetupDialog();
 }
 
-export function bindNetworkInspector(root, session, { getInviteUrl, loadSpecialized, webSearch = null, search = null, earning = null, modelStorage = null } = {}) {
+export function bindNetworkInspector(root, session, { getInviteUrl, loadSpecialized, webSearch = null, search = null, earning = null, modelStorage = null, computers = null } = {}) {
   // The navigation may sit outside the rail (in the conversation toolbar), so both
   // resolve from the root. Nothing here moves nodes between components.
   const rail = root.querySelector('[data-network-rail]');
@@ -137,7 +139,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   };
   const controller = new AbortController(), options = { signal: controller.signal };
   const network = bindNetworkControls(panel, session, { getInviteUrl,
-    requestContribution: (modelId, opener) => openModelSetup(opener, modelId) });
+    computers, requestContribution: (modelId, opener) => openModelSetup(opener, modelId) });
   const modelDialog = bindDialog(find('[data-model-dialog]'));
   const on = (selector, event, fn) => find(selector)?.addEventListener(event, fn, options);
   const error = cause => { const node = find('[data-inspector-error]'); node.textContent = cause?.message || ''; node.hidden = !cause; };

@@ -3,6 +3,7 @@ import { preparationStatus } from './model-preparation.js';
 import { publicPreparationProgress } from '../../../../shared/vendor/reploid/mesh/preparation-progress.js';
 import { computerLabel, withComputerLabels } from './computer-labels.js';
 import { updateModelSelect } from '../components/model-select.js';
+import { renderComputerRename, bindComputerPreferences } from './computer-preferences.js';
 /** Shared network controls consume host snapshots; they never grant permission on render. */
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
@@ -128,7 +129,7 @@ export function projectNetworkPeers(state) {
     peers.set(peer.peerId, { id: peer.peerId, model, modelId, executionType: partition ? 'partition' : 'whole-model',
       adapterIdentities: peer.adapterIdentities || [], hardware: peer.hardware || null,
       phase, state: observedState, attemptId: connection?.attemptId || null,
-      authenticated: connection?.authenticated === true || !!capability?.available, modelIdentity: offered?.identity || peer.modelIdentity || null, connectionPhase: 'connected', partitionIndex: index, status, detail, progress });
+      authenticated: peer.identityVerified === true || connection?.authenticated === true || !!capability?.available, modelIdentity: offered?.identity || peer.modelIdentity || null, connectionPhase: 'connected', partitionIndex: index, status, detail, progress });
   }
   return [...peers.values()];
 }
@@ -145,12 +146,14 @@ function renderPeerRows(list, state) {
       row = list.ownerDocument.createElement('li'); row.className = 'network-peer-row'; row.dataset.computerId = peer.id;
       row.innerHTML = '<div><div class="network-peer-heading"><strong class="pool-small" data-computer-name></strong><span class="network-status pool-badge" data-computer-status></span></div>'
         + '<span class="pool-small pool-muted" data-computer-model></span><p class="pool-caption pool-muted" data-computer-hardware></p><p class="pool-small pool-muted" data-computer-detail></p>'
-        + '<progress class="pool-progress" hidden></progress><details><summary>Details</summary><p data-computer-auth></p><p data-computer-stage></p><code data-computer-attempt></code><code data-computer-identity></code></details></div>';
+        + '<progress class="pool-progress" hidden></progress><details><summary>Details</summary><p data-computer-auth></p><p data-computer-stage></p><code data-computer-attempt></code><code data-computer-identity></code>'
+        + renderComputerRename() + '</details></div>';
     }
     existing.delete(peer.id);
     const set = (selector, value) => { const node = row.querySelector(selector); if (node.textContent !== String(value || '')) node.textContent = value || ''; };
     row.dataset.peerPhase = peer.phase || 'connected'; row.dataset.computerState = peer.state;
     row.dataset.attemptId = peer.attemptId || '';
+    row.dataset.computerParticipant = state.computerIdentities?.get(peer.id) || '';
     set('[data-computer-name]', computerLabel(state, peer.id)); set('[data-computer-status]', peer.status);
     if (peer.model !== 'Model status pending') row.dataset.lastModel = peer.model;
     set('[data-computer-model]', peer.model === 'Model status pending' && row.dataset.lastModel ? `Last model: ${row.dataset.lastModel}` : peer.model); set('[data-computer-detail]', peer.detail);
@@ -170,12 +173,13 @@ function renderPeerRows(list, state) {
 
 }
 
-export function bindNetworkControls(container, session, { getInviteUrl, requestContribution } = {}) {
+export function bindNetworkControls(container, session, { getInviteUrl, requestContribution, computers } = {}) {
   const find = selector => container.querySelector(selector);
   const controller = new AbortController(), options = { signal: controller.signal };
   const contributionSelect = find('[data-contribution-model]');
   const on = (selector, event, callback) => find(selector)?.addEventListener(event, callback, options);
   let actionError = '';
+  let computerPreferences;
   const act = operation => {
     actionError = ''; render(session.getState());
     return Promise.resolve().then(operation).catch(cause => {
@@ -285,8 +289,10 @@ export function bindNetworkControls(container, session, { getInviteUrl, requestC
     if (sharingFiles) sharing.push((network.files?.model?.name || network.files?.model?.id || 'Model files') + ' · files');
     find('[data-tab-sharing-summary]').textContent = sharing.join(' / ');
     find('[data-tab-sharing-summary]').hidden = !sharing.length;
+    computerPreferences?.update();
   };
   const unsubscribe = session.subscribe(render);
+  computerPreferences = bindComputerPreferences(container, computers, session, () => render(session.getState()));
   on('[data-mesh-connect]', 'click', () => {
     const disconnect = find('[data-mesh-connect]').dataset.disconnect === 'true';
     return act(() => disconnect ? session.disconnect() : session.connect());
@@ -324,5 +330,5 @@ export function bindNetworkControls(container, session, { getInviteUrl, requestC
       mode, ...(mode !== 'cached-only' ? { downloadBytes: Number(find('[data-file-download]')?.value) * 1048576 } : {})
     });
   }));
-  return () => { controller.abort(); unsubscribe(); };
+  return () => { controller.abort(); unsubscribe(); computerPreferences.dispose(); };
 }
