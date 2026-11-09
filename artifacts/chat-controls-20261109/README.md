@@ -16,3 +16,5 @@ Reproduce:
 npx vitest run --config tests/vitest.config.js tests/unit/chat-session.test.js tests/unit/chat-workspace.test.js tests/unit/conversation-workspace.test.js tests/unit/model-select.test.js tests/unit/message-list.test.js tests/unit/execution-activity.test.js
 REPLOID_E2E_BASE_URL=http://localhost:8017 REPLOID_E2E_CHROMIUM_CHANNEL=chrome npx playwright test tests/e2e/chat-material.spec.js --config=tests/playwright.config.js --project=chromium --timeout=45000 -g 'focused chat controls|touch help|activity settles|bounded inspector and reduced viewport|conversation materials'
 ```
+
+Deployment: hosting-only from isolated pushed revision `8138cf464`, containing implementation `a5380be92`. Live verification matched the manifest and five served assets byte-for-byte, then exercised the real page on desktop and touch emulation with no page errors. See [live.json](live.json), the live screenshots and `live-smoke.mjs` (run from repository root). No ready shared model appeared during these brief live checks; readiness transitions are covered by the controlled host tests, not claimed as a live inference result.

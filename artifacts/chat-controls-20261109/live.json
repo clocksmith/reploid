@@ -1,0 +1,64 @@
+{
+  "url": "https://replo.id",
+  "checkedAt": "2026-11-09T18:14:17.850Z",
+  "deploymentCommit": "8138cf464",
+  "assets": [
+    {
+      "path": "ui/pool-home/app.bundle.js",
+      "sha256": "1f7f18ce0af3fcf693c1cae02c213d64bfefd428c43c5423980cf2f5a2ca7191",
+      "bytes": 2386162
+    },
+    {
+      "path": "ui/components/control-help.js",
+      "sha256": "0973485837397034bc3f6d0e78baa04e194b2bf27ab0f868aef6806a39225024",
+      "bytes": 5910
+    },
+    {
+      "path": "styles/poolday/compositions/conversation.css",
+      "sha256": "e2ca8df0f60b890d175fba67ea3bc9ed24a5356334385dd0444fb2c7af6ca111",
+      "bytes": 29454
+    },
+    {
+      "path": "styles/poolday/primitives/surfaces.css",
+      "sha256": "18f9058ac49fe84481956a396efd89e395a405234bc7c9e7586a0f14b0e098e3",
+      "bytes": 5004
+    },
+    {
+      "path": "vendor/reploid/chat/workspace.js",
+      "sha256": "e18597db1ec34221c2e40546fc558b6e491c095cb53f0ef9c6f4fb141b9e83c3",
+      "bytes": 47146
+    }
+  ],
+  "views": [
+    {
+      "viewport": "1440x844 desktop",
+      "pickerRows": [
+        "Qwen 3.5 0.8BDownload required",
+        "Qwen 3.5 2BDownload required",
+        "Qwen 3.8 27BDownload required",
+        "Qwen 3.6 35B A3BDownload required",
+        "Qwen 3.5 0.8B NER JSON LoRANo computer serves it now"
+      ],
+      "modelLabel": "Qwen 3.8 27B · Shared",
+      "overflow": 0,
+      "pageErrors": [],
+      "passed": true
+    },
+    {
+      "viewport": "390x844 with touch emulation",
+      "pickerRows": [
+        "Qwen 3.5 0.8BDownload required",
+        "Qwen 3.5 2BDownload required",
+        "Qwen 3.8 27BDownload required",
+        "Qwen 3.6 35B A3BDownload required",
+        "Qwen 3.5 0.8B NER JSON LoRANo computer serves it now"
+      ],
+      "modelLabel": "Qwen 3.8 27B · Shared",
+      "overflow": 0,
+      "pageErrors": [],
+      "passed": true
+    }
+  ],
+  "bundleHash": "sha256:6d29acd31640cbe380806087ec41eca346180f09842695123d54b774c04653a1",
+  "browser": "157.0.8103.38"
+}
