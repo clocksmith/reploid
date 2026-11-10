@@ -8,6 +8,11 @@ import { createChatSession } from '../../apps/poolday/host/chat-session.js';
 import { orderedPartitionDisclosure } from '../../packages/reploid/src/mesh/partitions/partition-grants.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 
+// Public partition routes need an owner-reviewed release (apps/poolday/config/partition-releases.json, empty when
+// checked in; docs/partition-releases.md). The injected ordered route below is approved so the host admits it.
+const releases = vi.hoisted(() => []);
+vi.mock('../../apps/poolday/config/partition-releases.json', () => ({ default: { approvals: releases } }));
+
 const sha = text => 'sha256:' + createHash('sha256').update(text).digest('hex');
 const DOCUMENTS = [
   { id: 'fixed:eiffel', url: 'https://fixed.example/eiffel', title: 'Eiffel Tower', text: 'The Eiffel Tower in Paris was completed in 1889.' },
@@ -282,6 +287,8 @@ const route = { schema: 'reploid.partition-route/v1', modelId: 'ordered', modelI
   stages: STAGES.map((participantId, index) => ({ index, participantId, transportId: `transport-${index}`, residentId: `resident-${index}`, executionId: `execution-${index}` })) };
 const ordered = { id: 'ordered', name: 'Ordered model', identity: route.modelIdentity, provider: 'doppler', availability: 'ready', adapters: [],
   selectionId: 'ordered/partition/' + route.planId, partition: { schema: 'reploid.partition-selection/v2', planId: route.planId, coordinatorId: STAGES[0], route } };
+releases.push({ modelId: ordered.id, modelIdentity: ordered.identity, adapterIdentities: [], partition: ordered.partition,
+  evidence: 'test-fixture://chat-retrieval' });
 /** Injected ordered execution: the workspace authorizes first; only then is the disclosure recorded. */
 function orderedRoute() {
   const disclosed = [];

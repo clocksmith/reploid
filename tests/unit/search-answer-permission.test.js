@@ -14,6 +14,11 @@ import { renderConversationWorkspace, bindConversationWorkspace } from '../../ap
 import { remotePermissionWording } from '../../apps/poolday/ui/pool-home/remote-permission.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 
+// Public partition routes need an owner-reviewed release (apps/poolday/config/partition-releases.json, empty when
+// checked in; docs/partition-releases.md). The injected ordered route is approved so the host offers and admits it.
+const releases = vi.hoisted(() => []);
+vi.mock('../../apps/poolday/config/partition-releases.json', () => ({ default: { approvals: releases } }));
+
 const APPROVED = 'Allow Reploid to send this search query to Brave and share retrieved passages with the listed execution contributors for this answer. Your files and unrelated conversation history are excluded.';
 const peer = c => 'peer:' + c.repeat(24), digest = c => 'sha256:' + c.repeat(64);
 const REQUESTER = peer('d'), STAGES = [peer('0'), peer('1'), peer('2')];
@@ -25,6 +30,8 @@ const route = { schema: 'reploid.partition-route/v1', modelId: 'ordered', modelI
   stages: STAGES.map((participantId, index) => ({ index, participantId, transportId: `transport-${index}`, residentId: `resident-${index}`, executionId: `execution-${index}` })) };
 const model = { id: 'ordered', name: 'Ordered model', identity: route.modelIdentity, provider: 'doppler', availability: 'ready', adapters: [],
   selectionId: 'ordered/partition/' + route.planId, partition: { schema: 'reploid.partition-selection/v2', planId: route.planId, coordinatorId: STAGES[0], route } };
+releases.push({ modelId: model.id, modelIdentity: model.identity, adapterIdentities: [], partition: model.partition,
+  evidence: 'test-fixture://search-answer-permission' });
 const wording = () => searchPermissionWording('brave');
 const searchPorts = (searchProvider = 'brave') => {
   const fixed = createFixedSearchProvider({ documents: DOCUMENTS, now: () => 1760000000000 });

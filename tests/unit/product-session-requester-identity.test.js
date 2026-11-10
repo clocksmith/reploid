@@ -13,6 +13,10 @@ import { automaticOrderedMesh, tasks } from '../fixtures/automatic-ordered-mesh.
 import orderedPolicy from '../../apps/poolday/config/ordered-participation.json' with { type: 'json' };
 
 const ports = vi.hoisted(() => ({ identity: null, partitions: null, bound: [] }));
+// Public partition routes need an owner-reviewed release (apps/poolday/config/partition-releases.json, empty when
+// checked in; docs/partition-releases.md). Each test approves the exact fixture route it sends on.
+const releases = vi.hoisted(() => []);
+vi.mock('../../apps/poolday/config/partition-releases.json', () => ({ default: { approvals: releases } }));
 vi.mock('../../shared/identity.js', async original => ({ ...await original(), ensureIdentityBundle: async () => ports.identity }));
 vi.mock('../../shared/vendor/reploid/mesh/index.js', async original => ({ ...await original(),
   createLegacyGenerationMesh: ({ ports: input }) => {
@@ -37,7 +41,7 @@ const DISCLOSURE_MISMATCH = 'Peer disclosure does not match the selected model a
 const cleanups = [];
 afterEach(async () => {
   const results = await Promise.allSettled(cleanups.splice(0).reverse().map(close => close()));
-  Object.assign(ports, { identity: null, partitions: null, bound: [] });
+  Object.assign(ports, { identity: null, partitions: null, bound: [] }); releases.length = 0;
   const failures = results.filter(row => row.status === 'rejected').map(row => row.reason);
   if (failures.length) throw new AggregateError(failures, 'Product session cleanup failed');
 });
@@ -66,6 +70,8 @@ async function sendConfigured(chat, threadId, text) {
     return attempt;
   } finally { unsubscribe(); }
 }
+const approveRoute = model => releases.push({ modelId: model.id, modelIdentity: model.identity, adapterIdentities: [],
+  partition: model.partition, evidence: 'test-fixture://product-session-requester-identity' });
 const readyModel = (chat, match) => vi.waitFor(() => {
   const model = chat.getState().models.find(row => match(row) && row.availability === 'ready');
   expect(model).toBeTruthy(); return model;
@@ -75,6 +81,7 @@ it('admits ordered Send from the shipped product session under the authenticated
   const f = await automaticOrderedMesh({ modelFields: { provider: 'doppler' } }); cleanups.push(() => f.close());
   ports.identity = f.identities[5]; ports.partitions = f.meshes[5];
   await f.prepare(); await vi.waitFor(() => expect(f.select(5, 0)).toBeTruthy(), { timeout: 5000 });
+  approveRoute(f.select(5, 0));
   const host = await openProduct(weightlessRequester);
   const model = await readyModel(host.chat, row => row.partition?.coordinatorId === f.identities[0].peerId);
   expect(ports.bound).toEqual([f.identities[5].peerId]);
@@ -104,6 +111,7 @@ it('still rejects ordered Send for a placeholder, unauthenticated or different r
   // The partition owner binds requester 6 while the swarm authenticated requester 5.
   ports.identity = f.identities[5]; ports.partitions = f.meshes[6];
   await f.prepare(); await vi.waitFor(() => expect(f.select(6, 3)).toBeTruthy(), { timeout: 5000 });
+  approveRoute(f.select(6, 3));
   const host = await openProduct(weightlessRequester);
   const model = await readyModel(host.chat, row => row.partition?.coordinatorId === f.identities[3].peerId);
   const dispatched = () => f.states.filter(state => state.resident)
@@ -229,6 +237,10 @@ it('keeps two-stage Send working from the product session; it never relied on a 
   const f = await twoStageMesh(); cleanups.push(() => f.close());
   ports.identity = f.identities[0]; ports.partitions = f.meshes[0];
   await f.meshes[1].contribute(f.model.id, true); await f.meshes[2].contribute(f.model.id, true);
+  approveRoute(await vi.waitFor(() => {
+    const route = f.meshes[0].getModels().find(row => row.partition && row.partition.schema === undefined);
+    expect(route).toBeTruthy(); return route;
+  }, { timeout: 5000 }));
   const host = await openProduct(null);
   const model = await readyModel(host.chat, row => row.partition && row.partition.schema === undefined);
   const placeholder = createChatSession({ storage: null, swarm: host.swarm, partitions: host.swarm.partitions });

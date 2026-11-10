@@ -11,6 +11,10 @@ import { automaticOrderedMesh, tasks } from '../fixtures/automatic-ordered-mesh.
 import orderedPolicy from '../../apps/poolday/config/ordered-participation.json' with { type: 'json' };
 
 const ports = vi.hoisted(() => ({ identity: null, partitions: null, peers: [] }));
+// Public partition routes need an owner-reviewed release (apps/poolday/config/partition-releases.json, empty when
+// checked in; docs/partition-releases.md). The ordered fixture route is approved before the product offers it.
+const releases = vi.hoisted(() => []);
+vi.mock('../../apps/poolday/config/partition-releases.json', () => ({ default: { approvals: releases } }));
 vi.mock('../../shared/identity.js', async original => ({ ...await original(), ensureIdentityBundle: async () => ports.identity }));
 vi.mock('../../shared/vendor/reploid/mesh/index.js', async original => ({ ...await original(),
   createLegacyGenerationMesh: ({ ports: input }) => {
@@ -37,7 +41,7 @@ const weightlessRequester = { stage: null, ...orderedPolicy.limits };
 const cleanups = [];
 afterEach(async () => {
   const results = await Promise.allSettled(cleanups.splice(0).reverse().map(close => close()));
-  Object.assign(ports, { identity: null, partitions: null, peers: [] });
+  Object.assign(ports, { identity: null, partitions: null, peers: [] }); releases.length = 0;
   const failures = results.filter(row => row.status === 'rejected').map(row => row.reason);
   if (failures.length) throw new AggregateError(failures, 'Product session cleanup failed');
 });
@@ -108,6 +112,9 @@ async function orderedRoute() {
   f.runtime.metadataDigest = metadataDigest; // The coordinator's stage-zero runtime.
   ports.identity = f.identities[5]; ports.partitions = f.meshes[5];
   await f.prepare(); await vi.waitFor(() => expect(f.select(5, 0)).toBeTruthy(), { timeout: 5000 });
+  const selected = f.select(5, 0);
+  releases.push({ modelId: selected.id, modelIdentity: selected.identity, adapterIdentities: [], partition: selected.partition,
+    evidence: 'test-fixture://ordered-requester-history' });
   return f;
 }
 async function publishedSend(storage, history) {
