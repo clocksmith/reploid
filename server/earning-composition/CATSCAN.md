@@ -28,7 +28,7 @@ Outputs:
 - Real providers only when configured; test sign-in and processor only when enabled, outside production.
 - Production refuses memory stores; all stores share one database.
 - Quotes and offers come only from templates, naming their policy version.
-- Templates the ledger or Community Access would refuse refuse to start.
+- Templates the ledger, reward store or Community Access would refuse refuse to start; their own validators decide.
 - Published conversion ids never change; conflicting policy, or policy before its `effectiveFrom`, refuses to start.
 - Deferred work runs through the in-process or external scheduler, which production requires with evidence terms or Community Access.
 - Operator tokens match by SHA-256 digest; the file holds none.

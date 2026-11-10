@@ -202,6 +202,19 @@ describe.each(['memory', 'firestore'])('earning composition (%s store)', (kind) 
     const unbounded = earningPolicy();
     unbounded.services[0].terms.evidence = { rulesId: 'reploid.attempt-evidence-rules/1.1.0', windowMs: 5 * MIN, clockSkewMs: 30_000, maxUnacknowledgedOutputs: 99 };
     await expect(compose({ REPLOID_EARNING_POLICY_FILE: await writeOutsideRepository('policy.json', unbounded) })).rejects.toMatchObject({ code: 'quote_template_invalid' });
+    // The ledger and reward store decide template terms through their own validators.
+    const overdue = earningPolicy();
+    overdue.services[0].deadlines.completeMs = overdue.services[0].terms.validForMs;
+    await expect(compose({ REPLOID_EARNING_POLICY_FILE: await writeOutsideRepository('policy.json', overdue) }))
+      .rejects.toMatchObject({ code: 'quote_template_invalid', message: expect.stringContaining('service.deadline must follow terms.validUntil') });
+    const outlasting = earningPolicy();
+    outlasting.offers[0].validForMs = outlasting.offers[0].durationMs + 1;
+    await expect(compose({ REPLOID_EARNING_POLICY_FILE: await writeOutsideRepository('policy.json', outlasting) }))
+      .rejects.toMatchObject({ code: 'offer_template_invalid', message: expect.stringContaining('validUntil must not follow duration.endsAt') });
+    const compensating = earningPolicy();
+    compensating.offers[0].failureCompensation = { kind: 'refund' };
+    await expect(compose({ REPLOID_EARNING_POLICY_FILE: await writeOutsideRepository('policy.json', compensating) }))
+      .rejects.toMatchObject({ code: 'offer_template_invalid', message: expect.stringContaining('failureCompensation must be') });
     const late = earningPolicy();
     late.services[0].deadlines.firstOutputMs = late.services[0].deadlines.completeMs;
     await expect(compose({ REPLOID_EARNING_POLICY_FILE: await writeOutsideRepository('policy.json', late) })).rejects.toThrow('firstOutputMs must be');

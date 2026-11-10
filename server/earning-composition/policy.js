@@ -2,10 +2,11 @@
  * @fileoverview The operator's earning policy file: every price, rate, budget,
  * deadline and limit the composed earning routes use. The file lives outside
  * the repository (its path comes from REPLOID_EARNING_POLICY_FILE); this
- * module only reads and checks its envelope. Each component validates its own
+ * module reads and checks its envelope. Each component validates its own
  * section when it is constructed (accounts, ledger, rewards, issuance,
- * payments, Community Access, route limits), so nothing here restates their
- * rules or supplies a default.
+ * payments, Community Access, route limits), and checkEarningTemplates builds
+ * every quote and offer template through the ledger's and reward store's own
+ * validators, so nothing here restates their rules or supplies a default.
  *
  * Sections:
  *   schema, policyVersion   policyVersion names this record; quotes and offers carry it in pricing.basis and
@@ -25,6 +26,10 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { buildQuote, validateAccountingPolicy } from '../ledger/domain.js';
+import { buildOffer, validateRewardPolicy } from '../rewards/domain.js';
+import { offerConditions } from '../rewards/engine.js';
+import { offerFromTemplate, quoteFromTemplate } from './terms.js';
 
 export const EARNING_POLICY_SCHEMA = 'reploid.earning-policy/v1';
 
@@ -92,10 +97,6 @@ function checkServices(services, errors) {
     if (!isObject(entry?.terms)) errors.push(`${label}.terms is required`);
     if (entry?.terms && 'validUntil' in entry.terms) errors.push(`${label}.terms.validUntil comes from terms.validForMs at quote time`);
     if (!isPositiveInteger(entry?.terms?.validForMs)) errors.push(`${label}.terms.validForMs must be a positive integer of milliseconds`);
-    if (isPositiveInteger(entry?.terms?.validForMs) && isPositiveInteger(entry?.deadlines?.completeMs)
-      && entry.deadlines.completeMs <= entry.terms.validForMs) {
-      errors.push(`${label}.deadlines.completeMs must exceed terms.validForMs (the deadline follows acceptance)`);
-    }
   });
 }
 
@@ -109,13 +110,7 @@ function checkOffers(offers, errors) {
     const label = `offers[${index}]`;
     unknown(entry, OFFER_KEYS, label, errors);
     if (!isText(entry?.category)) errors.push(`${label}.category is required`);
-    const whole = entry?.model?.executionMode === 'whole-model';
-    unknown(entry?.model, whole ? ['modelId', 'modelIdentity', 'executionMode', 'adapterIdentities'] : ['modelId', 'modelIdentity', 'planId'], `${label}.model`, errors);
-    checkModel(entry?.model, `${label}.model`, errors, { planId: !whole });
-    if (whole && (entry.category !== 'demanded_inference' || !Array.isArray(entry.model.adapterIdentities)
-      || entry.model.adapterIdentities.length > 1 || entry.model.adapterIdentities.some(value => !/^sha256:[a-f0-9]{64}$/.test(value)))) {
-      errors.push(`${label} must name demanded whole-model inference with exact adapter digests`);
-    }
+    if (!isObject(entry?.model)) errors.push(`${label}.model is required`);
     if (!Array.isArray(entry?.hosts) || entry.hosts.length === 0 || entry.hosts.some((host) => !HOSTS.includes(host))) {
       errors.push(`${label}.hosts must list browser and/or native`);
     }
@@ -125,9 +120,6 @@ function checkOffers(offers, errors) {
     if (isObject(entry?.reward?.basis) && 'policyVersion' in entry.reward.basis) errors.push(`${label}.reward.basis.policyVersion comes from policy.policyVersion at offer time`);
     for (const field of ['durationMs', 'validForMs']) {
       if (!isPositiveInteger(entry?.[field])) errors.push(`${label}.${field} must be a positive integer of milliseconds`);
-    }
-    if (isPositiveInteger(entry?.durationMs) && isPositiveInteger(entry?.validForMs) && entry.validForMs > entry.durationMs) {
-      errors.push(`${label}.validForMs must not exceed durationMs`);
     }
     const key = JSON.stringify([entry?.category, entry?.model?.modelId ?? null, entry?.model?.modelIdentity ?? null, entry?.model?.planId ?? null,
       entry?.model?.executionMode ?? null, entry?.model?.adapterIdentities ?? []]);
@@ -171,6 +163,37 @@ export function validateEarningPolicy(policy) {
   return deepFreeze(structuredClone(policy));
 }
 
+const reasonOf = (error) => [error.message, ...(error.details?.errors ?? [])].join('; ');
+
+/**
+ * Build every quote and offer template at `now` through the ledger's and the
+ * reward store's own validators, as a device's request would, so a template
+ * either would refuse refuses to start instead of refusing each request.
+ * Placeholder ids stand in for the requesting account and participant.
+ */
+export function checkEarningTemplates(policy, { now }) {
+  const nowMs = Date.parse(now);
+  const ledgerPolicy = validateAccountingPolicy(policy.ledger);
+  const rewardPolicy = validateRewardPolicy(policy.rewards);
+  for (const template of policy.services) {
+    try {
+      buildQuote({ quoteId: 'policy_check', accountId: 'policy_check',
+        ...quoteFromTemplate(template, { now: nowMs, policyVersion: policy.policyVersion }) }, { policy: ledgerPolicy, now });
+    } catch (error) {
+      throw new EarningPolicyError('quote_template_invalid', `the quote template for ${template.request.modelId} is invalid: ${reasonOf(error)}`);
+    }
+  }
+  for (const template of policy.offers) {
+    const input = offerFromTemplate(template, { accountId: 'policy_check', participantId: 'policy_check', now: nowMs, policyVersion: policy.policyVersion });
+    try {
+      buildOffer({ offerId: 'policy_check', ...input }, { ledgerPolicy, rewardPolicy, conditions: offerConditions(input.work), now });
+    } catch (error) {
+      throw new EarningPolicyError('offer_template_invalid',
+        `the ${template.category} offer template for ${template.model.modelId ?? 'its model'} is invalid: ${reasonOf(error)}`);
+    }
+  }
+}
+
 function deepFreeze(value) {
   if (value && typeof value === 'object') {
     for (const child of Object.values(value)) deepFreeze(child);
@@ -212,4 +235,4 @@ export async function readEarningPolicyFile(file, { repositoryRoot, variable = '
   return validateEarningPolicy(await readOperatorJsonFile(file, { variable, repositoryRoot }));
 }
 
-export default { EARNING_POLICY_SCHEMA, validateEarningPolicy, readEarningPolicyFile, readOperatorJsonFile };
+export default { EARNING_POLICY_SCHEMA, validateEarningPolicy, checkEarningTemplates, readEarningPolicyFile, readOperatorJsonFile };

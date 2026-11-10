@@ -109,6 +109,10 @@ const VALIDATORS = Object.freeze({
   }
 });
 
+/** The validation conditions an offer for this work discloses. */
+export const offerConditions = (work) => (work?.category === 'demanded_inference' && work.model?.executionMode === 'whole-model'
+  ? WHOLE_MODEL_CONDITIONS : VALIDATORS[work?.category]?.conditions ?? []);
+
 // Every lot names its validated work, its issuance basis and the category's own references.
 const ledgerSource = (validation, allowance) => ({
   category: validation.ledgerCategory,
@@ -409,9 +413,7 @@ export function createRewardStore({
       }
       const now = clock();
       const offer = {
-        ...buildOffer({ ...request, offerId }, { ledgerPolicy: ledger.policy, rewardPolicy,
-          conditions: category === 'demanded_inference' && request.work.model?.executionMode === 'whole-model'
-            ? WHOLE_MODEL_CONDITIONS : VALIDATORS[category].conditions, now }),
+        ...buildOffer({ ...request, offerId }, { ledgerPolicy: ledger.policy, rewardPolicy, conditions: offerConditions(request.work), now }),
         status: 'offered',
         acceptedAt: null,
         acceptance: null

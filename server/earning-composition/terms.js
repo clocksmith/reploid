@@ -16,6 +16,33 @@ const requireVersion = (policyVersion) => {
   if (typeof policyVersion !== 'string' || !policyVersion.trim()) throw new TypeError('policyVersion must name the policy record the terms come from');
 };
 
+/** The quote terms one service template yields at `now` (milliseconds). */
+export function quoteFromTemplate(template, { now, policyVersion }) {
+  const { validForMs, ...terms } = structuredClone(template.terms);
+  const pricing = structuredClone(template.pricing);
+  return {
+    service: { ...structuredClone(template.service), deadline: iso(now + template.deadlines.completeMs),
+      ...(template.deadlines.firstOutputMs ? { firstOutputDeadline: iso(now + template.deadlines.firstOutputMs) } : {}) },
+    pricing: { ...pricing, basis: { ...pricing.basis, policyVersion } },
+    terms: { ...terms, validUntil: iso(now + validForMs) }
+  };
+}
+
+/** The offer input one offer template yields for a contributor's account and participant at `now` (milliseconds). */
+export function offerFromTemplate(template, { accountId, participantId, now, policyVersion }) {
+  const reward = structuredClone(template.reward);
+  return {
+    accountId,
+    work: { category: template.category, participantId, model: structuredClone(template.model) },
+    reward: { ...reward, basis: { ...reward.basis, policyVersion } },
+    resourceBounds: structuredClone(template.resourceBounds),
+    duration: { startsAt: iso(now), endsAt: iso(now + template.durationMs) },
+    validUntil: iso(now + template.validForMs),
+    paymentTiming: structuredClone(template.paymentTiming),
+    failureCompensation: structuredClone(template.failureCompensation)
+  };
+}
+
 /**
  * The router's quoteTerms port: ({ accountId, deviceId, request }) -> { service, pricing, terms } | null.
  * `request` is { modelId, modelIdentity, operation }; anything else in it is ignored.
@@ -25,15 +52,7 @@ export function createQuoteTerms({ services, clock, policyVersion }) {
   return async function quoteTerms({ request } = {}) {
     const template = services.find((entry) => sameModel(entry.request, request) && entry.request.operation === request?.operation);
     if (!template) return null;
-    const now = Date.parse(clock());
-    const { validForMs, ...terms } = structuredClone(template.terms);
-    const pricing = structuredClone(template.pricing);
-    return {
-      service: { ...structuredClone(template.service), deadline: iso(now + template.deadlines.completeMs),
-        ...(template.deadlines.firstOutputMs ? { firstOutputDeadline: iso(now + template.deadlines.firstOutputMs) } : {}) },
-      pricing: { ...pricing, basis: { ...pricing.basis, policyVersion } },
-      terms: { ...terms, validUntil: iso(now + validForMs) }
-    };
+    return quoteFromTemplate(template, { now: Date.parse(clock()), policyVersion });
   };
 }
 
@@ -49,19 +68,8 @@ export function createOfferTerms({ offers, clock, policyVersion }) {
       && entry.model.executionMode === request.model?.executionMode
       && JSON.stringify(entry.model.adapterIdentities || []) === JSON.stringify(request.model?.adapterIdentities || []));
     if (!template) return null;
-    const now = Date.parse(clock());
-    const reward = structuredClone(template.reward);
-    return {
-      accountId,
-      work: { category: template.category, participantId, model: structuredClone(template.model) },
-      reward: { ...reward, basis: { ...reward.basis, policyVersion } },
-      resourceBounds: structuredClone(template.resourceBounds),
-      duration: { startsAt: iso(now), endsAt: iso(now + template.durationMs) },
-      validUntil: iso(now + template.validForMs),
-      paymentTiming: structuredClone(template.paymentTiming),
-      failureCompensation: structuredClone(template.failureCompensation)
-    };
+    return offerFromTemplate(template, { accountId, participantId, now: Date.parse(clock()), policyVersion });
   };
 }
 
-export default { createQuoteTerms, createOfferTerms };
+export default { createQuoteTerms, createOfferTerms, quoteFromTemplate, offerFromTemplate };

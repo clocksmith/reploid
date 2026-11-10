@@ -45,7 +45,7 @@ import { createFirestoreCommunityAccessBackend, createMemoryCommunityAccessBacke
 import { EARNING_ROUTES_PREFIX } from '../earning-routes/mount.js';
 import { createFirestoreRouteBackend, createMemoryRouteBackend } from '../earning-routes/idempotency.js';
 import { OPERATOR_ROLES } from '../earning-routes/http.js';
-import { buildQuote, hashCanonical } from '../ledger/domain.js';
+import { hashCanonical } from '../ledger/domain.js';
 import { sha256Hex } from '../hashing.js';
 import { createLedgerStore } from '../ledger/engine.js';
 import { createFirestoreLedgerBackend } from '../ledger/firestore-store.js';
@@ -57,7 +57,7 @@ import { createStripeProcessorFromEnv, createSupabaseSignInFromEnv } from '../pr
 import { createFirestoreRewardBackend, createMemoryRewardBackend } from '../rewards/stores.js';
 import { createFirestoreSchedulerBackend, createMemorySchedulerBackend } from '../scheduler/stores.js';
 import { checkSchedulerHosting, composeEarningScheduler, hostSchedulerLoop, readSchedulerHosting } from './scheduler.js';
-import { EarningPolicyError, isInside, readEarningPolicyFile, readOperatorJsonFile } from './policy.js';
+import { EarningPolicyError, checkEarningTemplates, isInside, readEarningPolicyFile, readOperatorJsonFile } from './policy.js';
 import { createOfferTerms, createQuoteTerms } from './terms.js';
 
 export const OPERATORS_SCHEMA = 'reploid.earning-operators/v1';
@@ -281,16 +281,12 @@ export async function createEarningComposition({ env = process.env, production =
     communityPoolAccountIds: policy.communityAccess ? poolAccountIds(policy.communityAccess) : []
   });
   await publishConversions({ ledger: services.ledger, conversions: policy.conversions, clock });
-  // Every quote template must build a quote the ledger accepts (formulas within maxCharge, deadlines, evidence terms
-  // and their unacknowledged-output bound), so a misconfigured policy refuses to start rather than refuse each quote.
+  // Every quote and offer template must build terms the ledger and reward store accept (formulas within maxCharge,
+  // deadlines, evidence terms and their unacknowledged-output bound, offer models and validity), so a misconfigured
+  // policy refuses to start rather than refuse each request.
+  checkEarningTemplates(policy, { now: clock() });
   const quoteTerms = createQuoteTerms({ services: policy.services, clock, policyVersion: policy.policyVersion });
   for (const template of policy.services) {
-    const offered = await quoteTerms({ request: template.request });
-    try {
-      buildQuote({ quoteId: 'policy_check', accountId: 'policy_check', ...offered }, { policy: services.ledger.policy, now: clock() });
-    } catch (error) {
-      refuse('quote_template_invalid', `the quote template for ${template.request.modelId} is invalid: ${[error.message, ...(error.details?.errors ?? [])].join('; ')}`);
-    }
     // Community Access stamps its own evidence terms and refuses others, so the templates it uses must carry the same.
     if (policy.communityAccess && template.terms.evidence !== undefined
       && hashCanonical(template.terms.evidence) !== hashCanonical(policy.communityAccess.evidence)) {
