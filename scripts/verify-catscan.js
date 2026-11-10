@@ -256,6 +256,18 @@ export async function validateCatscanRepository({
     }
   }
 
+  // AGENTS.md routes each kind of change to its owning charters, so a missing
+  // target sends agents to an owner that does not exist.
+  const agentsPath = path.join(root, 'AGENTS.md');
+  const agents = await fs.readFile(agentsPath, 'utf8').catch(() => null);
+  for (const target of agents === null ? [] : extractLocalLinks(agents)) {
+    try {
+      await fs.access(path.resolve(root, linkPath(target)));
+    } catch {
+      errors.push(`AGENTS.md: local link is missing: ${target}`);
+    }
+  }
+
   if (checkIndex) {
     const expected = renderComponentIndex(charters, { root });
     let current = null;

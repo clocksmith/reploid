@@ -102,6 +102,7 @@ describe('CATSCAN component charters', () => {
         evidence: 'missing-evidence.test.js'
       }).replace(/## Invariants\n- Evidence and claims remain distinct\.\n\n/, '');
       await fs.writeFile(path.join(fixtureRoot, 'child', 'CATSCAN.md'), invalidChild);
+      await fs.writeFile(path.join(fixtureRoot, 'AGENTS.md'), '[Owner](child/CATSCAN.md) [Gone](gone/CATSCAN.md#target) [Web](https://example.com)\n');
 
       const { errors } = await validateCatscanRepository({
         root: fixtureRoot,
@@ -113,8 +114,10 @@ describe('CATSCAN component charters', () => {
         'child/CATSCAN.md: missing Invariants field',
         'child/CATSCAN.md: Parent must reference CATSCAN.md',
         'child/CATSCAN.md: local link is missing: ../missing/CATSCAN.md',
-        'child/CATSCAN.md: local link is missing: missing-evidence.test.js'
+        'child/CATSCAN.md: local link is missing: missing-evidence.test.js',
+        'AGENTS.md: local link is missing: gone/CATSCAN.md#target'
       ]));
+      expect(errors.filter((error) => error.startsWith('AGENTS.md'))).toHaveLength(1);
     } finally {
       await fs.rm(fixtureRoot, { recursive: true, force: true });
     }
