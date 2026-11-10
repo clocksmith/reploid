@@ -482,7 +482,7 @@ try {
 
       await check('provider-verification-worker', async () => {
         const snapshot = Object.fromEntries(await Promise.all([
-          'adapters/doppler.js', 'adapters/doppler-stream.js', 'agent/cancellation.js', 'cancellation.js'
+          'adapters/doppler.js', 'adapters/doppler-stream.js', 'cancellation.js'
         ].map(async file => ['/vendor/reploid/' + file, await readFile(path.join(installedRoot, 'src', file), 'utf8')])));
         const page = await browser.newPage();
         try {

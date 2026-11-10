@@ -1,6 +1,6 @@
 import { freezeJson, requireResolvedConfig, snapshotJson } from '../config/index.js';
 import { assertSessionCompletion, assertSessionIdentity, createV1Verifier } from './doppler-stream.js';
-import { abortable } from '../agent/cancellation.js';
+import { abortable } from '../cancellation.js';
 import choiceDefinition from './doppler-choice.json' with { type: 'json' };
 import { createDopplerStreamAccumulator, dopplerOperationEvents } from './doppler-session.js';
 

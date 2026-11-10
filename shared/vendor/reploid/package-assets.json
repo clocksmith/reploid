@@ -124,23 +124,13 @@
     },
     {
       "path": "adapters/doppler.js",
-      "bytes": 12639,
-      "sha256": "14b105b0b5fedef84084917098c1cbc25317781e47c5b9ca76b40a9b0a62c3c0"
+      "bytes": 12633,
+      "sha256": "badb0e6ec85ad5be1328ec401fa7292745a2ce09d01e989aca68ea344fee0477"
     },
     {
       "path": "agent/belief-planner.js",
       "bytes": 6875,
       "sha256": "377b69a5b291b8e7867abb265ef0bbdfc672fcc3854332c95ba9eb80225dd486"
-    },
-    {
-      "path": "agent/cancellation.d.ts",
-      "bytes": 48,
-      "sha256": "a38eab7e60730ab99b09c8bdf205bb71956fd1dec6e217ca11e6a1176666890c"
-    },
-    {
-      "path": "agent/cancellation.js",
-      "bytes": 162,
-      "sha256": "49c9b253af494be4bbbd4e60a14c90012d0707b828a069113f2ea00915602776"
     },
     {
       "path": "agent/cycle-artifacts.d.ts",
