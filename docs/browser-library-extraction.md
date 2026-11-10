@@ -17,7 +17,7 @@ instance translation is confined to application adapters.
 - Response parsing, cycle artifacts and tool execution with explicit loader ports.
 - VFS and explicit memory/IndexedDB persistence.
 - Assignment WebRTC/signaling and separate swarm WebRTC/BroadcastChannel protocols.
-- Legacy generation requests, streaming, receipt exchange and bounded in-memory duplicate handling.
+- Whole-request peer generation requests, streaming, receipt exchange and bounded in-memory duplicate handling.
 - Contribution heuristics and explicit local/remote placement.
 - Identity signature primitives and the signed improvement episode ledger.
 

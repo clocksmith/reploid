@@ -30,8 +30,8 @@ backend, and regenerate browser mirrors from their canonical source.
   inference and deployment claims separate from test-provider results.
 
 The whole-model binding checks in
-[legacy-generation.js](../packages/reploid/src/mesh/legacy-generation.js) and their
-[regression tests](../tests/unit/legacy-generation-threads.test.js) exercise these
+[peer-generation.js](../packages/reploid/src/mesh/peer-generation.js) and their
+[regression tests](../tests/unit/peer-generation-threads.test.js) exercise these
 rules. This guide adds no backend support or public service promise.
 
 ## Engineering checklist and enforcement

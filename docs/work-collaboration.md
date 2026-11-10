@@ -163,7 +163,7 @@ concurrent host threads, view switching, separate approvals, stopping one withou
 stopping the other, and retained results after reload. Inference is injected.
 The browser thread suite also runs primary inference through two real WebRTC
 participants with injected responses and no local requester model.
-`tests/unit/legacy-generation-threads.test.js` covers compatible-peer reservations,
+`tests/unit/peer-generation-threads.test.js` covers compatible-peer reservations,
 queued requests, model-substitution rejection, and request-scoped cancellation.
 
 `tests/e2e/work-integration.spec.js` exercises the Work helper/evaluation/adoption

@@ -13,15 +13,21 @@ these software contract checks.
 | reploid/agent | Minimal task agent entry and shared execution lifecycle |
 | reploid/diagnostics | Optional finite belief model, diagnostic action selection and shared-engine investigation |
 | reploid/legacy | Lab strategy compatibility adapter |
+| reploid/tool-runner | Minimal tool execution for the agent loop and its hosts |
+| reploid/response-parser | Tool-call extraction from model text using the REPLOID/0 line protocol |
+| reploid/cycle-artifacts | Recursive GEPA Ring cycle artifact writer |
 | reploid/jobs | Complete-job contracts, requester, provider, verification, durable journals and independent embedding units |
 | reploid/custody | Authorized artifact transfer and reconstruction |
 | reploid/config | Immutable configuration resolution and provenance |
 | reploid/webrtc | Assignment signaling/WebRTC and separate legacy swarm transport |
-| reploid/mesh | Placement policy and legacy generation coordination |
+| reploid/mesh | Placement policy and whole-request peer generation coordination |
 | reploid/browser | Explicit IndexedDB, memory stores and VFS adapters |
 | reploid/doppler | Optional public Doppler Capsule-session integration |
 | reploid/improve | Existing signed improvement episode ledger and promotion-readiness checks |
 | reploid/retrieval | Search provider, passage extractor and support checker interfaces; bounded provenance records, numbered source context and mechanical citation checks |
+| reploid/chat | Concurrent authorized conversations, threads, attempts and grants; no global objective |
+| reploid/training | Explicitly authorized individual training and one pooled gradient round |
+| reploid/plugins | Versioned research and game sessions through host-owned capabilities |
 | reploid/measurement | Capacity-weighted readiness utilization from exported readiness spans, admission records, attempt outcomes and readiness contracts; a host readiness recorder, its record fold and a bounded record store; unknown stays unknown |
 
 `reploid/retrieval` includes no search provider. Its fixed-document provider and
