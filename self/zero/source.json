@@ -34,8 +34,8 @@
     },
     {
       "path": "core/create-tool.js",
-      "bytes": 34884,
-      "sha256": "06cd6e3ac74d89ed8fed9909df56a7fb2007a40c1ab3d04964c3872ddcfdb468"
+      "bytes": 34424,
+      "sha256": "bd1290cf49197fff574c24f0ad230af49a1f12722e74ef91299b9bdd6bba4fcc"
     },
     {
       "path": "core/import-rewrite.js",
@@ -48,9 +48,14 @@
       "sha256": "d8030f5faef58b6e28791dfe3db116d469dd76626c2d80d6b63d30604fc05706"
     },
     {
+      "path": "core/runtime-mode.js",
+      "bytes": 732,
+      "sha256": "19b86df16f8f1b700540930e6e4a1aa619723fdaf21185e8e25bfbe57e7899c3"
+    },
+    {
       "path": "core/schema-registry.js",
-      "bytes": 21149,
-      "sha256": "4a60f3881af8c1f8e013889bd582260943cce5d810fa3947b6fd6d21da885723"
+      "bytes": 20776,
+      "sha256": "1a0b2c967dbb2d5c8466e93b1ba1ed8d1e591f68315a7db35a18498e83c57a1a"
     },
     {
       "path": "core/security-config.js",
@@ -139,8 +144,8 @@
     },
     {
       "path": "vendor/reploid/agent/tool-retry.js",
-      "bytes": 994,
-      "sha256": "2ae0f2aa04a4d21e7be003e70f6d152fcdb159a89fb8a447389aac23fd01fb83"
+      "bytes": 1165,
+      "sha256": "a21097d21ae622aa4c4c9a1837019268fc40f40b447decbcf9f0cc92e2e6a6b6"
     },
     {
       "path": "vendor/reploid/agent/tool-runner.js",
