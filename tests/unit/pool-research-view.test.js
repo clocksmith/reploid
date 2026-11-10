@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   createSignedHumanClaim,
-  createSignedPriorEvidence,
   createSignedPublicProteinEvidence,
   createSignedResearchHypothesis,
   createSignedResearchResult,

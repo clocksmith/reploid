@@ -104,7 +104,7 @@ export function routeMarkup(view) {
 }
 
 export function detailMarkup(view) {
-  const { attempt, execution, executors } = view;
+  const { attempt, executors } = view;
   return `${attempt?.error ? `<p role="alert">${escape(attempt.error)}</p>` : ''}
     <dl><dt>Requester / output recipient</dt><dd>${escape(view.requester)}</dd>
     <dt>Model</dt><dd>${escape(view.model || 'No executor assigned')}</dd>${view.adapter ? `<dt>Recorded adapter</dt><dd>${escape(view.adapter)}</dd>` : ''}

@@ -36,10 +36,11 @@ const setDrawerSummary = (sectionId, value) => {
   if (summary) summary.textContent = String(value || '');
 };
 
-const requestModelsForLane = (lane) => listPoolModels({
-  enabledOnly: true,
-  workload: POOLDAY_MODEL_WORKLOADS.sequenceEmbedding
-});
+// Each request lane lists only the models for its workload; an unknown lane lists none.
+const LANE_WORKLOADS = Object.freeze({ sequence: POOLDAY_MODEL_WORKLOADS.sequenceEmbedding });
+const requestModelsForLane = (lane) => LANE_WORKLOADS[lane]
+  ? listPoolModels({ enabledOnly: true, workload: LANE_WORKLOADS[lane] })
+  : [];
 
 const replaceRequestModelOptions = (modelSelect, lane, preferredModelId = null) => {
   if (!modelSelect) return null;

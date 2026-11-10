@@ -361,7 +361,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     find('[data-cancel-download]').hidden = !acquiring;
     find('[data-download-local]').hidden = !canAcquire || !!thread?.closed;
     find('[data-download-local]').textContent = ['failed', 'cancelled'].includes(acquisition?.phase) ? 'Retry download' : 'Download model';
-    const attempt = thread?.attempts.at(-1);
     const busy = runningIds.includes(thread?.id) || !!state.comparisonPhase;
     // One status line under the composer explains a disabled Send, including before
     // the first attempt, without adding another panel.
