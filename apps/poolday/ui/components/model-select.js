@@ -13,7 +13,7 @@ export function modelExecutionState(model, location = 'auto') {
   const status = source === 'local' ? model?.partition ? 'unavailable' : model?.localReady ? 'ready' : local ? 'cached' : 'unavailable'
     : model?.networkAvailability ?? (local ? 'unavailable' : model?.availability ?? 'unavailable');
   return { source, status, usable: ['ready', 'busy', 'cached'].includes(status),
-    label: source === 'local' ? 'This device' : model?.partition && ['ready', 'busy'].includes(status) ? 'Shared · Distributed' : 'Shared' };
+    label: !['ready', 'busy', 'cached'].includes(status) ? ['loading', 'preparing'].includes(status) ? 'Loading' : 'Unavailable' : source === 'local' ? 'This device' : model?.fleet ? 'Private computers' : model?.partition && ['ready', 'busy'].includes(status) ? 'Shared · Distributed' : 'Shared' };
 }
 
 /** Catalog facts shown beside a choice: declared weights and advertised context, nothing inferred. */
@@ -24,9 +24,10 @@ export const modelFacts = model => [
 
 /** Presentation groups never change model identities or execution permissions. */
 export function modelChoiceGroups(models, { preferNetwork = true } = {}) {
-  const shared = [], local = [], downloads = [], unavailable = [];
+  const privateModels = [], shared = [], local = [], downloads = [], unavailable = [];
   for (const model of models) {
-    if (isSharedModelChoice(model)) shared.push(model);
+    if (model.fleet) privateModels.push(model);
+    else if (isSharedModelChoice(model)) shared.push(model);
     else if (model.localReady || model.localCached || model.availability === 'cached') local.push(model);
     else if (model.source && !model.partition && !model.adapters?.length) downloads.push(model);
     else unavailable.push(model);
@@ -34,8 +35,9 @@ export function modelChoiceGroups(models, { preferNetwork = true } = {}) {
   const rank = model => model.networkAvailability === 'ready' ? 0 : model.networkAvailability === 'busy' ? 1 : 2;
   shared.sort((a, b) => rank(a) - rank(b));
   const groups = [
-    { id: 'shared', label: 'Shared models', models: shared },
+    { id: 'shared', label: 'Public network', models: shared },
     { id: 'local', label: 'On this device', models: local },
+    { id: 'private', label: 'Your private computers', models: privateModels },
     { id: 'download', label: 'Download to this device', models: downloads },
     { id: 'unavailable', label: 'Unavailable', models: unavailable }
   ];
@@ -44,7 +46,7 @@ export function modelChoiceGroups(models, { preferNetwork = true } = {}) {
 }
 
 /** One exact model artifact with its exact adapters. Whole-model and distributed routes are alternatives of it. */
-export const modelVariantKey = model => JSON.stringify([model.id, model.identity ?? null,
+export const modelVariantKey = model => JSON.stringify([model.id, model.identity ?? null, model.fleet?.requester.participantId ?? null,
   (model.adapters || []).map(adapter => adapter.identity ?? adapter.id ?? null).sort()]);
 
 /** Ready shared capacity first, then busy, on-device, preparing, downloadable and unavailable routes. */
@@ -79,11 +81,11 @@ const familyRank = model => isSharedModelChoice(model) ? ({ ready: 0, busy: 1 }[
   : model.localReady || model.localCached || model.availability === 'cached' ? 3 : model.source && !model.partition && !model.adapters?.length ? 4 : 5;
 export function modelFamilies(entries) {
   const bases = new Map(entries.filter(entry => !entry.model.adapters?.length)
-    .map(entry => [JSON.stringify([entry.model.id, entry.model.identity ?? null]), { base: entry, adapters: [] }]));
+    .map(entry => [JSON.stringify([entry.model.id, entry.model.identity ?? null, entry.model.fleet?.requester.participantId ?? null]), { base: entry, adapters: [] }]));
   const families = [...bases.values()];
   for (const entry of entries) {
     if (!entry.model.adapters?.length) continue;
-    const family = bases.get(JSON.stringify([entry.model.id, entry.model.identity ?? null]));
+    const family = bases.get(JSON.stringify([entry.model.id, entry.model.identity ?? null, entry.model.fleet?.requester.participantId ?? null]));
     if (family) family.adapters.push(entry); else families.push({ base: entry, adapters: [] });
   }
   return families.map(family => ({ ...family, members: [family.base, ...family.adapters],

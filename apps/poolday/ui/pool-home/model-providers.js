@@ -6,6 +6,7 @@ import { hardwareText } from './execution-ribbon.js';
 const keyFor = model => model.selectionId || model.id;
 const adapters = model => (model.adapters || []).map(adapter => adapter.identity).sort();
 export const sameModelVariant = (a, b) => !!a?.identity && a.id === b?.id && a.identity === b.identity
+  && (a.fleet?.requester.participantId ?? null) === (b.fleet?.requester.participantId ?? null)
   && JSON.stringify(adapters(a)) === JSON.stringify(adapters(b));
 
 /** What a provider reports now; an answer's execution details keep what ran. */
@@ -54,6 +55,8 @@ export function projectModelProviders(state, selected) {
  * distributed route with its ordered stages. A distributed route without assigned computers lists none. */
 export function projectModelRoutes(state, selected) {
   if (!selected?.identity) return [];
+  if (selected.fleet) return [{ selectionId: keyFor(selected), type: 'Private computers', status: routeStatus(selected),
+    participants: [{ id: selected.fleet.requester.participantId, label: selected.fleet.requester.name, role: 'Coordinates your enrolled computers', hardware: '', status: '' }] }];
   const variants = (state.models || []).filter(model => sameModelVariant(model, selected));
   const rows = projectModelProviders(state, selected);
   return variants.map(model => {

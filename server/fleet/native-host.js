@@ -14,6 +14,7 @@ import { createNativeParticipant, createNativeRtcAdapter, createNativeGpuHost, r
 import { openNativeOwnerControls } from '../native-owner/controls.js';
 import custodyPolicy from '../../apps/poolday/config/chat-files.json' with { type: 'json' };
 import bootstrap from '../../shared/config/swarm-bootstrap.json' with { type: 'json' };
+import { startFleetBrowserBridge } from './browser-bridge.js';
 import { createFleetClient } from './service.js';
 import { createFleetRequester } from './requester.js';
 import { createFleetExecutionAdmission } from './execution-admission.js';
@@ -127,6 +128,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     const activity = participant?.getState();
     const hardware = fleetHardwareSnapshot();
     observation.id = config.computerId; observation.participantId = identity.peerId; observation.observedAt = Date.now();
+    observation.preparing = preparing;
     observation.activeRequests = requests.size + activeProviderRequests(activity);
     observation.freeHostBytes = Math.min(observation.freeHostBytes, hardware.freeHostBytes);
     observation.capacityScope = 'owned-gpu-buffer-budget';
@@ -164,10 +166,30 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     await credits.call('demand', { id: config.computerId, requests: [...demand.values()] });
   }
   return Object.freeze({ identity, state, select, reconcile,
+    async browserState() {
+      assert(credits, 'Service credits are not configured');
+      const network = await credits.call('computers', {});
+      const poolIdentity = 'sha256:' + createHash('sha256').update(JSON.stringify(network.computers.map(row =>
+        [row.id, row.participantIds]))).digest('hex');
+      const available = participant?.getState()?.models || [];
+      const models = [...new Map(config.models.map(entry => [entry.model.id + entry.model.identity, entry.model])).values()].map(model => {
+        const routes = available.filter(row => row.id === model.id && row.identity === model.identity && !row.adapters?.length);
+        const status = routes.some(row => row.availability === 'ready') ? 'ready'
+          : routes.some(row => row.availability === 'busy') ? 'busy' : routes.some(row => ['loading', 'preparing'].includes(row.availability)) ? 'loading' : 'unavailable';
+        return { id: model.id, identity: model.identity, name: model.name || model.id, provider: 'doppler',
+          contextLength: model.contextLength, generation: model.generation, availability: status };
+      });
+      return { schema: 'reploid.fleet-browser/v1', poolIdentity, requester: { id: config.computerId, name: config.name, participantId: identity.peerId },
+        models, computers: network.computers, at: network.at };
+    },
+    async receipt(id) { assert(credits, 'Service credits are not configured'); return credits.call('request', { id }); },
     async balances() { assert(credits, 'Service credits are not configured'); await credits.reconcile(); return credits.call('snapshot', {}); },
-    async generate(request, onDelta = () => {}) {
+    async generate(request, onDelta = () => {}, onRoute = () => {}) {
       assert(participant && !closed && !preparing && !requests.has(request.attemptId), 'Requester unavailable or attempt already active');
       request = structuredClone(request);
+      const configured = config.models.find(entry => entry.model.id === request.model.id && entry.model.identity === request.model.identity);
+      assert(configured, 'Model is outside owner preferences');
+      request.model = { ...structuredClone(configured.model), ...(request.model.partition ? { partition: request.model.partition } : {}) };
       const controller = new AbortController(); requests.set(request.attemptId, { controller, request, since: Date.now() });
       try {
         await publishDemand();
@@ -190,6 +212,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
         const controls = { signal: controller.signal, onDelta,
           requestApproval: async disclosure => {
             assert(same(disclosure.input?.messages, request.messages), 'Changed prompt disclosure');
+            onRoute(disclosure);
             return true; // Explicit generate command is the local owner's disclosure instruction.
           } };
         const requester = credits ? createFleetRequester({ participant, identity, credits, maxOutputTokens: config.maxOutputTokens }) : participant;
@@ -209,7 +232,7 @@ if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === imp
   const host = await openFleetNativeHost({ configuration: config, onChange: value => process.stderr.write(JSON.stringify({ event: 'fleet-state', ...value }) + '\n') });
   console.log(JSON.stringify({ ready: true, computerId: config.computerId, participantId: host.identity.peerId, publicJwk: host.identity.publicJwk }));
   const pending = new Set(), lines = createInterface({ input: process.stdin });
-  let timer = null;
+  let timer = null, browserBridge = null;
   if (config.auto === true) {
     assert(Number.isSafeInteger(config.pollMs) && config.pollMs >= 1000, 'Explicit bounded placement interval required');
     let busy = false;
@@ -225,6 +248,8 @@ if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === imp
   process.once('SIGTERM', stop); process.once('SIGINT', stop);
   try {
     if (Number.isSafeInteger(config.initialModel)) await host.select(config.initialModel, config.initialContribution === true);
+    if (config.browserBridge) browserBridge = await startFleetBrowserBridge({ host, ...config.browserBridge,
+      token: (await readOwnFile(config.browserBridge.tokenFile)).trim() });
     for await (const line of lines) {
       const operation = (async () => {
         let command;
@@ -246,6 +271,6 @@ if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === imp
     }
   } finally {
     if (config.daemon === true && !stopped) await daemonStopped;
-    clearInterval(timer); await host.close(); await Promise.allSettled(pending);
+    clearInterval(timer); await browserBridge?.close(); await host.close(); await Promise.allSettled(pending);
   }
 }

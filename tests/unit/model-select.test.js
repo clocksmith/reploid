@@ -28,7 +28,7 @@ it('presents ready shared models before busy peers, local files and downloads in
   expect([...select.options].map(option => option.value)).toEqual(['ready', 'busy', 'local', 'download']);
   expect([...document.querySelectorAll('input')].map(input => input.value)).toEqual(['ready', 'busy', 'local', 'download']);
   expect([...document.querySelectorAll('[data-choice-group]')].map(group => group.getAttribute('aria-label')))
-    .toEqual(['Shared models', 'On this device', 'Download to this device']);
+    .toEqual(['Public network', 'On this device', 'Download to this device']);
   expect(select.value).toBe('ready');
   // Declared facts sit beside the choice; a model without them shows no facts line.
   const facts = document.querySelector('input[value="ready"]').closest('label').querySelector('[data-choice-facts]');
@@ -112,5 +112,17 @@ it('keeps compact rows ready-first even when a ready adapter has an unavailable 
   expect([...document.querySelectorAll('input')].map(input => input.value)).toEqual(['adapter', 'base']);
   expect(document.querySelector('input:checked').value).toBe(base.id);
   expect([...document.querySelectorAll('[data-choice-facts],[data-choice-note]')].every(node => node.hidden)).toBe(true);
+  choices.dispose();
+});
+
+it('keeps identical public and private model choices distinct and labels absent capacity unavailable', () => {
+  const publicModel = { ...models[3], identity: 'sha256:' + 'a'.repeat(64) };
+  const privateModel = { ...publicModel, selectionId: 'private:ready', fleet: { requester: { participantId: 'peer:private' } } };
+  const select = document.querySelector('select'), choices = bindModelChoices(select);
+  updateModelSelect(select, [publicModel, privateModel], { value: privateModel.selectionId, grouped: true });
+  choices.update([publicModel, privateModel], { grouped: true, variants: true });
+  expect([...document.querySelectorAll('input')].map(input => input.value)).toEqual(['ready', 'private:ready']);
+  expect(document.querySelector('[data-choice-group="private"]').textContent).toContain('Your private computers');
+  expect(modelExecutionState({ availability: 'unavailable' }).label).toBe('Unavailable');
   choices.dispose();
 });

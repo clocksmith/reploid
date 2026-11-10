@@ -19,7 +19,7 @@ function chatResult({ threadId, attemptId }, result, placement) {
       timing: result.timing ?? null, hardware: publicProviderHardware(result.hardware) } };
 }
 
-export function createChatExecution({ service, swarm, partitions, scheduler, models, getModels, profile, earning = null, resolveLocalSource, isCached = () => false, onChange = () => {} }) {
+export function createChatExecution({ service, swarm, partitions, scheduler, models, getModels, profile, earning = null, fleet = null, resolveLocalSource, isCached = () => false, onChange = () => {} }) {
   let local = null;
   // The same routing execute() applies: partitions always leave this device; local scope or a ready local copy stays.
   const runsHere = (model, sharingScope, location = 'auto') => !model.partition && location !== 'network'
@@ -51,6 +51,7 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
     assert(['auto', 'local', 'network'].includes(request.permissions?.executionLocation ?? 'auto'), 'Invalid execution location');
     assert(!(model.partition && (request.permissions?.executionLocation === 'local' || request.permissions?.sharingScope === 'local')), 'This model requires network execution');
     assert(model.provider === 'doppler', 'Chat requires a Doppler participant');
+    if (model.fleet) { assert(fleet, 'Private computers are not connected'); return fleet.execute(request, controls); }
     const catalogModel = getModels().find(m => m.id === model.id && m.identity === model.identity);
     assert(catalogModel, 'Selected model is not in the verified catalog');
     const allowedAdapters = catalogModel.availableAdapters || [];
@@ -129,7 +130,7 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
   return Object.freeze({
     execute,
     /** The disclosure a request for this model would make, or null when it runs on this device. */
-    remoteDisclosure: (model, sharingScope, location) => runsHere(model, sharingScope, location) ? null : remoteDisclosureKind(model),
+    remoteDisclosure: (model, sharingScope, location) => model.fleet ? 'public' : runsHere(model, sharingScope, location) ? null : remoteDisclosureKind(model),
     prepareLocal: model => sessionScheduler.prepare(model),
     async unloadLocal() { assert(!scheduler, 'A borrowed scheduler cannot be unloaded here'); await sessionScheduler.unload(); local = null; onChange(); },
     getLocalState: () => local ? structuredClone(local) : null,

@@ -25,6 +25,26 @@ describe('Conversation workspace', () => {
   });
   afterEach(async () => { dispose(); await session.close(); root.remove(); });
 
+  it('never turns Send into a download, even with the legacy automatic-download setting on', async () => {
+    localStorage.setItem('reploid.auto-download.v1', 'on');
+    dispose();
+    const downloadLocalModel = vi.fn(), send = vi.fn();
+    dispose = bindConversationWorkspace(root, { ...session, send, downloadLocalModel,
+      getState: () => ({ ...session.getState(), peerDiscoveryTimedOut: true }),
+      getModelDownload: async () => ({ sizeBytes: 123000000 }) });
+    find('[data-composer-input]').value = 'Keep this question';
+    find('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    expect(find('[data-composer-send]').disabled).toBe(true);
+    expect(find('[data-composer-model-source]').textContent).toContain('Unavailable');
+    expect(downloadLocalModel).not.toHaveBeenCalled(); expect(send).not.toHaveBeenCalled();
+    find('[data-download-local]').click();
+    await vi.waitFor(() => expect(find('[data-download-size]').textContent).toContain('123 MB'));
+    expect(downloadLocalModel).not.toHaveBeenCalled();
+    find('[data-download-cancel]').click();
+    expect(find('[data-composer-input]').value).toBe('Keep this question');
+    localStorage.removeItem('reploid.auto-download.v1');
+  });
+
   it('keeps personal search in the composer and respects turning it off for a single answer', async () => {
     dispose();
     session.setCachedModels([CANONICAL_CHAT_MODELS[1]]);
@@ -188,7 +208,7 @@ describe('Conversation workspace', () => {
     find('[data-execution-choice=local]').click();
     expect(find('[data-active-model-select]').value).toBe(large.id);
     find('[data-model-picker-close]').click();
-    expect(find('[data-model-digest]').textContent).toContain('Shared');
+    expect(find('[data-model-digest]').textContent).toContain('Public network');
     find('[data-open-model]').click(); next.value = small.id; next.dispatchEvent(new Event('change', { bubbles: true }));
     find('[data-execution-choice=local]').click(); find('[data-change-model]').click();
     await vi.waitFor(() => expect(find('[data-active-model-select]').value).toBe(small.id));
@@ -233,7 +253,7 @@ describe('Conversation workspace', () => {
     find('[data-change-model]').click();
     await vi.waitFor(() => expect(session.getState().activeThread.permissions.executionLocation).toBe('network'));
     expect(session.getState().activeThread.id).toBe(id);
-    expect(find('[data-model-digest]').textContent).toContain('Shared');
+    expect(find('[data-model-digest]').textContent).toContain('Public network');
     expect(service.calls).toHaveLength(0);
   });
 
@@ -287,8 +307,8 @@ describe('Conversation workspace', () => {
     expect(find('[data-active-model-select]').textContent).toBe(`${CANONICAL_CHAT_MODELS[1].name} · Download required`);
     expect(find('[data-model-status]').hidden).toBe(false);
     expect(find('[data-model-status]').textContent).toBe('Model unavailable.');
-    expect(find('[data-model-digest]').textContent).toBe(CANONICAL_CHAT_MODELS[1].name + ' · Shared');
-    expect(find('[data-open-model]').textContent).not.toContain('Unavailable');
+    expect(find('[data-model-digest]').textContent).toBe(CANONICAL_CHAT_MODELS[1].name + ' · Unavailable');
+    expect(find('[data-open-model]').textContent).toContain('Unavailable');
     expect(find('[data-model-control]').hidden).toBe(false);
     expect(find('[data-toggle-contribution]').disabled).toBe(false);
     expect(find('[data-composer-send]').hidden).toBe(false);
@@ -424,7 +444,7 @@ describe('Conversation workspace', () => {
     expect(adapterChoice.querySelector('[data-choice-note]').hidden).toBe(true);
     expect(find('[data-change-model]').disabled).toBe(false);
     find('[data-change-model]').click();
-    return vi.waitFor(() => expect(find('[data-model-digest]').textContent).toBe(`${base.name} · Shared`));
+    return vi.waitFor(() => expect(find('[data-model-digest]').textContent).toBe(`${base.name} · Public network`));
   });
 
   it('selects the ready shared route through the composer picker without claiming an unavailable route is selected', async () => {
@@ -473,8 +493,8 @@ describe('Conversation workspace', () => {
     dispose = bindConversationWorkspace(root, { ...session, getState: () => state, subscribe(fn) { fn(state); return () => {}; } });
     expect(find('[data-model-digest]').textContent).toContain('This device');
     await chooseShared(model.id);
-    expect(find('[data-model-digest]').textContent).toContain('Shared');
-    expect(find('[data-open-model]').textContent).toContain('Shared');
+    expect(find('[data-model-digest]').textContent).toContain('Public network');
+    expect(find('[data-open-model]').textContent).toContain('Public network');
     expect(service.calls).toHaveLength(0);
   });
 

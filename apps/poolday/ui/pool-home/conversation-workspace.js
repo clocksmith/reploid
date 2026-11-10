@@ -15,7 +15,6 @@ import { bindDisclosure } from '../components/disclosure.js';
 import { bindDialog } from '../components/dialog.js';
 import { createMessageList } from './message-list.js';
 import { renderHistoryHandover, bindHistoryHandover } from './history-handover-view.js';
-import { createAutoDownload, updateAutoDownloadSetting } from './auto-download.js';
 import { renderProductionContribution, bindProductionControls } from './contribution-models.js';
 import { renderModelProviders, updateModelProviders } from './model-providers.js';
 import { renderAdapterDetails, updateAdapterDetails, describeModelChoice } from './model-adapters.js';
@@ -170,11 +169,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   });
   const detachInspectorClose = inspector.onClose?.(() => { if (!applyingView) workspaceNavigation?.reflect(viewState.threadsOpen ? 'threads' : 'chat'); });
   const production = bindProductionControls(container, session, { inspector });
-  const autoDownload = createAutoDownload(session, { onChange: () => render(session.getState()) });
-  (surface || container).addEventListener('click', event => {
-    const toggle = event.target.closest?.('[data-auto-download-toggle]');
-    if (toggle) autoDownload.setEnabled(toggle.getAttribute('aria-checked') !== 'true');
-  }, options);
   setThreads(false);
 
   find('[data-close-threads]').addEventListener('click', () => { setThreads(false); railToggle?.focus(); }, options);
@@ -201,7 +195,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   };
   let selectedId = session.getState().selectedId, submitting = false;
   // A message sent while no computer can answer waits here for its automatic download.
-  let queued = null, canQueue = false, lastUsable = false;
   // While another tab holds the history, the handover notice replaces its refusal.
   const history = session.getState().history;
   const refusal = history?.mode === 'refused' && historyHandover ? history.reason : null;
@@ -279,7 +272,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const state = withComputerLabels(snapshot, session);
     if (controller.signal.aborted) return;
     if (selectedId !== state.selectedId) {
-      queued = null;
       drafts.set(selectedId, { text: input.value, files }); selectedId = state.selectedId; fileRevision++;
       const draft = drafts.get(selectedId) || session.getDraft?.(selectedId); input.value = draft?.text || ''; files = draft?.files || []; showFiles();
     }
@@ -303,7 +295,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     for (const node of surface?.querySelectorAll('[data-mesh-peers]') || []) node.textContent = `${peerCount} ${peerCount === 1 ? 'computer' : 'computers'}`;
     const selectedModel = catalogModels.find(model => keyFor(model) === current);
     const execution = modelExecutionState(selectedModel, location);
-    const prepareHere = location === 'local' && thread?.permissions?.sharingScope === 'local' && !selectedModel?.partition && !!selectedModel?.source && !state.localDownloadIssue;
+    const prepareHere = location === 'local' && selectedModel?.localCached === true;
     const usable = execution.usable || prepareHere;
     find('[data-composer-field]').dataset.executionSource = execution.source;
     const modelStatus = find('[data-model-status]');
@@ -324,33 +316,11 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const acquiring = state.acquisition?.phase === 'downloading';
     const exhausted = state.peerDiscoveryTimedOut === true;
     const canAcquire = !!session.downloadLocalModel && !state.localDownloadIssue && !usable && !localPreparing && !busyAcquisition(state)
-      && location !== 'network' && !requestedModel?.partition && !requestedModel?.adapters?.length && (exhausted || location === 'local');
+      && location !== 'network' && !requestedModel?.fleet && !!requestedModel?.source && !requestedModel?.partition && !requestedModel?.adapters?.length && (exhausted || location === 'local');
     const acquisition = state.acquisition;
-    // Only a sent message starts an automatic download. It never substitutes an explicit
-    // choice; without one it takes the smallest whole model and selects it for the message.
-    const explicitModel = thread?.model || chosenModel;
-    const explicitChoice = explicitModel ? catalogModels.find(model => keyFor(model) === keyFor(explicitModel)) || explicitModel : null;
-    canQueue = canAcquire && !thread?.closed && autoDownload.available(explicitChoice);
-    // One waiting message starts at most one automatic download.
-    if (queued && canAcquire && !queued.considered) { queued.considered = true; autoDownload.consider({ eligible: true, models: catalogModels, explicit: explicitChoice }); }
-    const started = autoDownload.started();
-    if (queued && !explicitModel && started) {
-      chosenModel = catalogModels.find(model => model.id === started.id && !model.partition && !model.adapters?.length) || null;
-      viewState.chosenModel = chosenModel;
-    }
-    updateAutoDownloadSetting(surface || container, autoDownload.enabled());
-    const automatic = acquiring && started?.id === acquisition.modelId ? started : null;
-    const autoNotice = canAcquire && !acquiring && !['failed', 'cancelled'].includes(acquisition?.phase) ? autoDownload.notice() : null;
-    // A failed, cancelled or skipped download releases the waiting message back to the composer.
-    if (queued && (['failed', 'cancelled'].includes(acquisition?.phase) || autoNotice && !autoDownload.pending())) queued = null;
     const acquisitionText = find('[data-acquisition-status]');
-    acquisitionText.textContent = acquiring ? (automatic ? `${automatic.name} is downloading to this device`
-      + (location === 'local' ? '. ' : ' because no computer can answer. ') + (queued ? 'Your message sends when it is ready. ' : '') : '')
-      + (acquisition.progress?.message || 'Checking model files.')
-      : queued && !autoNotice ? 'Choosing a model to download to this device.'
-      : ['failed', 'cancelled'].includes(acquisition?.phase) ? acquisition.error + ' Retry reuses verified files where supported.'
-      : autoNotice ? autoNotice
-      : '';
+    acquisitionText.textContent = acquiring ? acquisition.progress?.message || 'Checking model files.'
+      : ['failed', 'cancelled'].includes(acquisition?.phase) ? acquisition.error + ' Retry reuses verified files where supported.' : '';
     if (acquiring && usable) acquisitionText.textContent += ' Network capacity is available; you can send now or cancel this download.';
     acquisitionText.hidden = !acquisitionText.textContent;
     const meter = find('[data-acquisition-progress]');
@@ -370,7 +340,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       : !usable && (selectedModel || models.find(model => keyFor(model) === current))?.adapters?.length && location !== 'local' ? 'No computer serves this adapter now. The base model is not used instead.'
       : !usable && location === 'network' ? 'No shared computer can answer with this model right now.'
       : !usable && location === 'local' ? 'Download this model to run it on this device.'
-      : !usable && exhausted && canQueue && !queued ? 'This model is unavailable. Send downloads it to this device first.'
       : !usable && exhausted ? state.localDownloadIssue || (requestedModel?.partition || requestedModel?.adapters?.length
         ? 'This model has no available shared route.' : 'This model is unavailable. Choose a shared model or download it.')
       : !usable && current && !preparing && catalogModels.some(model => ['ready', 'busy', 'cached'].includes(model.availability))
@@ -401,7 +370,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     find('[data-model-caption]').hidden = !!activeModel;
     const modelDigest = activeModel ? `${modelVariantLabel(activeModel)} · ${execution.label}` : '';
     find('[data-composer-model-name]').textContent = activeModel ? modelVariantLabel(activeModel) : '';
-    find('[data-composer-model-source]').textContent = activeModel ? ` · ${execution.source === 'local' ? 'This device' : 'Shared'}` : '';
+    find('[data-composer-model-source]').textContent = activeModel ? ` · ${execution.usable ? execution.source === 'local' ? 'This device' : activeModel.fleet ? 'Private computers' : 'Public network' : execution.status === 'loading' || execution.status === 'preparing' ? 'Loading' : 'Unavailable'}` : '';
     find('[data-open-model]').title = modelDigest ? `Choose model: ${modelDigest}` : 'Choose model';
     find('[data-open-model]').setAttribute('aria-label', modelDigest ? `Choose model: ${modelDigest}` : 'Choose model');
     updateContextIndicator(container, state, session);
@@ -421,12 +390,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       find('[data-context-preview]').textContent = context.content || 'Off. No app context is added.';
     }
     find('[data-composer-send]').hidden = busy;
-    find('[data-retry-connection]').hidden = busy || usable || location === 'local' || !state.network?.paused && !state.network?.error && !['failed', 'disconnected'].includes(networkState) && !(exhausted && (state.network?.connecting || ['connecting', 'retrying'].includes(networkState))); find('[data-composer-send]').disabled = reading || !(usable || canQueue && !queued) || !!thread?.closed || !!state.storageError;
-    lastUsable = usable;
+    find('[data-retry-connection]').hidden = busy || usable || location === 'local' || !state.network?.paused && !state.network?.error && !['failed', 'disconnected'].includes(networkState) && !(exhausted && (state.network?.connecting || ['connecting', 'retrying'].includes(networkState))); find('[data-composer-send]').disabled = reading || !usable || !!thread?.closed || !!state.storageError;
     // Once a model can answer, the waiting message sends as if Send were pressed again.
-    if (queued && usable && !busy && !submitting && !reading && !thread?.closed) {
-      queued = null; queueMicrotask(() => find('[data-composer-form]').requestSubmit());
-    }
+
     find('[data-conversation-download]').hidden = !thread?.messages.length;
     find('[data-composer-field]').dataset.activity = 'idle';
     messages.update(thread, { usable: usable && !thread?.closed, busy, state });
@@ -553,7 +519,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const model = state.activeThread?.model || (state.models || []).find(item => (item.selectionId || item.id) === modelSelect.value) || chosenModel || state.defaultModel;
     inspector.downloadModel?.(model?.id, event.currentTarget);
   });
-  on('[data-cancel-download]', 'click', () => { autoDownload.cancelled(); session.cancelModelDownload(); });
+  on('[data-cancel-download]', 'click', () => session.cancelModelDownload());
   const showThreads = showArchived => {
     archived = showArchived; find('[data-show-archived]').setAttribute('aria-pressed', String(archived));
     find('[data-show-active]').setAttribute('aria-pressed', String(!archived));
@@ -594,7 +560,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const content = input.value.trim(), state = session.getState();
     if (!content || reading || submitting || (state.runningIds || []).includes(state.selectedId)) return;
     if (find('[data-composer-send]').disabled) return;
-    if (!lastUsable && canQueue && !queued) { queued = { threadId: state.selectedId }; render(session.getState()); return; }
     const searched = searching();
     if (searched && files.length) { error("Search-backed answers don't include files. Remove the files or turn off search for this answer."); return; }
     submitting = true;
@@ -715,7 +680,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const surface = container.closest('.pool-home');
     surface?.style.removeProperty('--pool-param-workspace-height');
     surface?.removeAttribute('data-chat-compact');
-    controller.abort(); detachHandover(); autoDownload.dispose(); fileRevision++; unsubscribe(); unsubscribeWebSearch(); unsubscribeSearch(); if (!sharedInspector) inspector.dispose?.();
+    controller.abort(); detachHandover(); fileRevision++; unsubscribe(); unsubscribeWebSearch(); unsubscribeSearch(); if (!sharedInspector) inspector.dispose?.();
     find('[data-composer-field]').dataset.activity = 'idle';
     find('[data-open-model]').dataset.activity = 'idle';
   };

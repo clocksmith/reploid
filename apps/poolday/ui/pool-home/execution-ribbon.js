@@ -54,7 +54,7 @@ export function projectExecutionRibbon(state) {
   // A whole-model answer saves its executor's reported GPU; distributed stages save none.
   const recorded = hardwareText(!split && ids.length === 1 ? execution?.hardware : null);
   const recordedGpu = attempt?.status === 'completed' ? recorded ? `Recorded GPU · ${recorded}` : 'GPU not recorded' : null;
-  const executors = ids.map((id, i) => ({ id, label: id === requester ? 'This device' : computerLabel(state, id), recordedGpu,
+  const executors = ids.map((id, i) => ({ id, label: execution?.privateDelegation?.computers?.[id] || (id === requester ? 'This device' : computerLabel(state, id)), recordedGpu,
     layers: ordered ? `Stage ${i + 1} of ${ids.length}` : split ? layer === null ? 'Not reported' : i === 0 ? `0–${layer - 1}` : `${layer} onward` : 'Whole model',
     contribution: ordered ? i === 0 ? 'Initial layers; relays output' : i === ids.length - 1 ? 'Final layers; produces output' : 'Intermediate layers'
       : split ? i === 0 ? 'Initial layers; relays output' : 'Final layers; produces output' : 'Whole-model execution',
@@ -116,6 +116,7 @@ export function detailMarkup(view) {
       <dt>${view.split ? 'Recorded step time' : 'Compute time'}</dt><dd>${ms(node.duration)}</dd></dl></li>`).join('')}</ul>` : '<p>No executing participant has been assigned to this attempt.</p>'}
     ${view.split ? '<p>Output returns through the first executor. Step times include runtime and transport overhead; they are not GPU-only measurements.</p>' : ''}
     ${!view.requesterExecutes && executors.length ? '<p>Receiving the answer does not require model weights on this device.</p>' : ''}
+    ${view.execution?.serviceCredit ? `<p>Service credits: ${view.execution.serviceCredit.settledAt ? `${escape(view.execution.serviceCredit.charge)} settled` : 'Pending · outcome not yet settled'}</p>` : ''}
     ${view.planId ? `<p>Plan <code>${escape(view.planId)}</code></p>` : ''}`;
 }
 

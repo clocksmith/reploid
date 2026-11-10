@@ -1,3 +1,4 @@
+import { renderPrivateComputers, bindPrivateComputers } from './private-computers-view.js';
 import { updateExecutionDetail } from './execution-activity.js';
 import { projectContextIndicator } from './context-indicator.js';
 import { bindDrawer } from '../components/drawer.js';
@@ -13,7 +14,6 @@ import { updateModelSelect } from '../components/model-select.js';
 import { escapeHtml as escape } from '../components/attachments.js';
 import { projectExecutionRibbon, routeMarkup, detailMarkup } from './execution-ribbon.js';
 import { renderRemotePermissionSettings, updateRemotePermissionSettings } from './remote-permission.js';
-import { renderAutoDownloadSetting } from './auto-download.js';
 import { renderWebSearchSettings, bindWebSearchSettings } from './web-search-settings.js';
 import { renderAccountPanel, bindAccountPanel } from './account-panel.js';
 import { renderModelStorage, bindModelStorage } from './model-storage-view.js';
@@ -50,12 +50,13 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
         <p>Revoking stops this thread’s sharing. It cannot recall data already sent.</p><ul data-thread-grants></ul></section>
     </section>
     <section class="pool-stack pool-gap-lg" data-inspector-pane="participants" ${mounted ? 'role="tabpanel" id="inspector-pane-participants" aria-labelledby="inspector-tab-participants"' : ''} aria-label="Computers" hidden>
-      <section class="pool-stack pool-gap-sm" aria-label="Network computers"><h3 class="pool-subheading">Network</h3>
+      <section class="pool-stack pool-gap-sm" aria-label="Network computers"><h3 class="pool-subheading">Public network</h3>
         ${renderConnectionControl()}<p class="network-readiness pool-small pool-muted" data-peer-readiness></p>
         <ul class="network-peer-list pool-list" data-insp-device-list></ul>
         <button class="pool-button btn-ghost" type="button" data-mesh-invite hidden>Copy private invitation</button>
       </section>
-      <details class="pool-disclosure" data-production-device><summary>This device <span class="pool-muted" data-device-state-summary></span></summary><div class="pool-stack pool-gap-md">
+      ${renderPrivateComputers()}
+      <details class="pool-disclosure" data-production-device><summary>Contribute this computer <span class="pool-muted" data-device-state-summary></span></summary><div class="pool-stack pool-gap-md">
         <p class="pool-caption pool-muted" data-local-computer></p>
         ${renderComputerDiagnostic()}
         ${renderComputeSharingControls()}
@@ -70,7 +71,7 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
       <section data-settings-storage><h3 class="pool-subheading">Storage</h3>${renderModelStorage()}<p class="pool-muted" data-settings-storage-summary>No downloaded models</p><div class="pool-stack pool-gap-md" data-settings-storage-controls>${renderFileSharingControls()}</div></section>
       ${renderAccountPanel()}
       <details class="pool-disclosure" data-settings-advanced><summary>Advanced</summary><div class="pool-stack pool-gap-lg">
-        <section class="pool-stack pool-gap-md"><h3 class="pool-small">Inference</h3>${renderRemotePermissionSettings()}${renderAutoDownloadSetting()}</section>
+        <section class="pool-stack pool-gap-md"><h3 class="pool-small">Inference</h3>${renderRemotePermissionSettings()}</section>
         ${renderWebSearchSettings()}
         <div data-settings-apps>${apps}</div>
       </div></details>
@@ -144,6 +145,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   const on = (selector, event, fn) => find(selector)?.addEventListener(event, fn, options);
   const error = cause => { const node = find('[data-inspector-error]'); node.textContent = cause?.message || ''; node.hidden = !cause; };
   const act = operation => Promise.resolve().then(operation).catch(error);
+  const privateComputers = bindPrivateComputers(panel, session);
   const storagePanel = bindModelStorage(panel, modelStorage);
   if (modelStorage) find('[data-settings-storage-summary]').hidden = true;
   let grantsKey = '', executionKey = '', metadataController, disposed = false, specialized;
@@ -192,6 +194,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   on('[data-close-inspector]', 'click', () => dialog.close());
   const render = snapshot => {
     const state = withComputerLabels(snapshot, session);
+    privateComputers.update(state);
     if (inspected?.threadId !== state.selectedId) inspected = null;
     const attempt = state.activeThread?.attempts?.find(item => item.id === inspected?.attemptId);
     const inspectedState = attempt ? { ...state, activeThread: { ...state.activeThread, attempts: [attempt] } } : state;
@@ -323,6 +326,6 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     },
     open(section = 'participants', opener) { if (section === 'conversation') { inspected = null; render(session.getState()); } select(section); dialog.open(opener || navigation.querySelector(`[data-inspector-section="${section}"]`)); },
     close: options => dialog.close(options),
-    dispose() { disposed = true; storagePanel.dispose(); disposeWebSearch(); disposeAccount(); metadataController?.abort(); controller.abort(); unsubscribe(); network(); modelDialog.dispose(); dialog.dispose(); if (typeof specialized === 'function') specialized(); }
+    dispose() { disposed = true; storagePanel.dispose(); disposeWebSearch(); disposeAccount(); metadataController?.abort(); controller.abort(); privateComputers.dispose(); unsubscribe(); network(); modelDialog.dispose(); dialog.dispose(); if (typeof specialized === 'function') specialized(); }
   };
 }

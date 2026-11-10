@@ -68,6 +68,15 @@ export async function startFleetService({ credits, models, placementPolicy, port
       }
       case 'recoverMine': return credits.recoverFor(signer);
       case 'snapshot': return credits.snapshot();
+      case 'computers': return { at: now(), computers: [...credits.enrollment.byId.values()].map(computer => {
+        const observation = observations.get(computer.id);
+        const online = !!observation && now() - observation.observedAt <= placementPolicy.maxObservationAgeMs;
+        return { id: computer.id, name: computer.name, participantIds: computer.providers.map(provider => provider.participantId),
+          online, observedAt: observation?.observedAt ?? null,
+          ...(online ? { activeRequests: observation.activeRequests, preparing: observation.preparing === true, resident: observation.resident,
+            preferences: observation.preferences, freeGpuBytes: observation.freeGpuBytes, freeHostBytes: observation.freeHostBytes,
+            maxStorageBufferBindingSize: observation.maxStorageBufferBindingSize } : {}) };
+      }) };
       case 'terms': {
         const model = models.find(row => row.id === payload.id && row.identity === payload.identity);
         assert(model, 'Model is not enabled for this service');

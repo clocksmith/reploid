@@ -1,3 +1,4 @@
+import { createPrivateComputers } from './private-computers.js';
 import { availablePartitionRoute } from './partition-release.js';
 /**
  * @fileoverview Host chat session connecting createChatWorkspace to Doppler WebGPU
@@ -75,6 +76,7 @@ export function createChatSession({
   retrieval = null,
   // Spending for partition attempts (earning/attempts.js); none unless the host configures an earning client.
   earning = null,
+  privateComputers = null,
   // Reads declared adapter evaluation files; only verified passing receipts label an adapter evaluated.
   fetchEvidence = globalThis.fetch?.bind(globalThis),
   now = Date.now,
@@ -130,7 +132,8 @@ export function createChatSession({
     remotePermissions = next;
   };
 
-  const execution = createChatExecution({ service, swarm, partitions, scheduler, models, earning, resolveLocalSource, isCached,
+  const fleet = privateComputers || createPrivateComputers({ onChange: () => notifyAll() });
+  const execution = createChatExecution({ service, swarm, partitions, scheduler, models, earning, fleet, resolveLocalSource, isCached,
     getModels: () => [...models, ...peerModels, ...(partitions?.getModels() || [])], profile, onChange: () => {
       const local = execution.getLocalState();
       if (local?.phase === 'failed') failedLocalModel = local.modelId;
@@ -222,7 +225,7 @@ export function createChatSession({
     return local?.ready && local.modelIdentity === model.identity && !(model.adapters?.length)
       ? { ...model, availability: 'ready', localReady: true }
       : isCached(model) ? { ...model, availability: 'cached', localCached: true } : model;
-  }));
+  }).concat(fleet.models()));
 
   const resolvingModels = new Set();
   const notifyAll = () => {
@@ -266,7 +269,7 @@ export function createChatSession({
       closed,
       activeThread,
       comparisonPhase: comparisons.get(wsState.selectedId)?.phase || null,
-      models: catalog,
+      models: catalog, privateComputers: fleet.state(),
       answerLimits: catalog.filter(model => model.partition).map(model => ({
         selectionId: model.selectionId || model.id,
         cells: ROUTE_ENVELOPE_POLICY.routes.find(row => row.modelIdentity === model.identity
@@ -352,6 +355,7 @@ export function createChatSession({
       downloadSizes.set(model.id, sizeBytes);
       return { id: model.id, name: model.name, sizeBytes };
     },
+    privateComputers: fleet,
     getDraft: drafts.get,
     saveDraft(threadId, value) { assertOpen(); return drafts.save(threadId, value); },
     getDocumentSources: comparisonSources,
@@ -586,7 +590,7 @@ export function createChatSession({
     },
     close() {
       if (closing) return closing;
-      closed = true; clearTimeout(discoveryDeadline); acquisition.cancel(); adapterEvidence.close();
+      closed = true; fleet.close(); clearTimeout(discoveryDeadline); acquisition.cancel(); adapterEvidence.close();
       for (const operation of comparisons.values()) operation.controller.abort();
       discovering = false;
       closing = Promise.resolve().then(async () => {
