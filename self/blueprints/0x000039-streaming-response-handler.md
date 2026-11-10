@@ -230,7 +230,7 @@ class StreamingHandlerWidget extends HTMLElement {
             <strong>Active Stream</strong>
             <div>${currentChunks.length} chunks received</div>
             <div>Total processed: ${_totalChunksProcessed}</div>
-            <button class="abort-stream-btn">⏹️ Abort Stream</button>
+            <button class="abort-stream-btn">■ Abort Stream</button>
           </div>
         ` : ''}
       </div>

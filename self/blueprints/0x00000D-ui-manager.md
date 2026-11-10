@@ -138,7 +138,7 @@ const UI = {
             .ws-disconnected { color: #f00; }
           </style>
           <div class="ui-panel">
-            <h4>⌨️ UI Manager</h4>
+            <h4>⌨ UI Manager</h4>
             <div>Session: ${sessionDuration}s</div>
             <div class="stats-grid">
               <div class="stat">Updates: ${totalUpdates}</div>
@@ -176,7 +176,7 @@ const UI = {
       widget: {
         element: elementName,
         displayName: 'UI Manager',
-        icon: '⌨️',
+        icon: '⌨',
         category: 'ui',
         order: 5,
         updateInterval: 5000
@@ -459,7 +459,7 @@ class UIManagerWidget extends HTMLElement {
         .stat { padding: 6px; background: rgba(255, 255, 255, 0.08); }
       </style>
       <div class="ui-panel">
-        <h4>⌨️ UI Manager</h4>
+        <h4>⌨ UI Manager</h4>
         <div>Session: ${sessionDuration}s</div>
         <div class="stats-grid">
           <div class="stat">Updates: ${totalUpdates}</div>
@@ -497,7 +497,7 @@ return {
   widget: {
     element: elementName,
     displayName: 'UI Manager',
-    icon: '⌨️',
+    icon: '⌨',
     category: 'ui',
     order: 5,
     updateInterval: 5000

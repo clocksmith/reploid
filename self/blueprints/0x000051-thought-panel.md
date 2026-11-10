@@ -189,7 +189,7 @@ const getControls = () => {
     {
       id: 'export-thoughts',
       label: 'Export',
-      icon: '📥',
+      icon: '☙',
       action: () => {
         const markdown = exportToMarkdown();
         Utils.downloadFile('thoughts.md', markdown);

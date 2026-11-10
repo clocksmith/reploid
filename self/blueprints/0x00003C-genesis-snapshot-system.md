@@ -64,7 +64,7 @@ Without genesis tracking, the agent cannot:
    ↓
 7. UI initialized, VFS initialized
    ↓
-8. ✨ GenesisSnapshot.saveGenesisSnapshot()
+8. ★ GenesisSnapshot.saveGenesisSnapshot()
    ↓
    Saves to VFS:
    /genesis/manifest.json
@@ -560,7 +560,7 @@ class GenesisSnapshotWidget extends HTMLElement {
       },
       {
         id: 'view-evolution',
-        label: '📊 View Evolution',
+        label: '☷ View Evolution',
         action: async () => {
           const summary = await getEvolutionSummary();
           console.log('Evolution Summary:', summary);
@@ -610,7 +610,7 @@ class GenesisSnapshotWidget extends HTMLElement {
       </style>
 
       <div class="genesis-panel">
-        <h3>🌱 Genesis Snapshot</h3>
+        <h3>☩ Genesis Snapshot</h3>
 
         <div class="stats">
           <div>Genesis: <span class="stat-value ${!summary.has_genesis ? 'warning' : ''}">
@@ -644,7 +644,7 @@ if (!customElements.get('genesis-snapshot-widget')) {
 const widget = {
   element: 'genesis-snapshot-widget',
   displayName: 'Genesis Snapshot',
-  icon: '🌱',
+  icon: '☩',
   category: 'rsi'
 };
 ```

@@ -313,7 +313,7 @@ class DiffUtilsWidget extends HTMLElement {
     this.shadowRoot.innerHTML = `
       <style>/* Shadow DOM styling */</style>
       <div class="widget-content">
-        <h3>📊 Diff Utilities</h3>
+        <h3>⇄ Diff Utilities</h3>
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-label">Total Diffs</div>
@@ -345,7 +345,7 @@ class DiffUtilsWidget extends HTMLElement {
           `).join('')}
         </div>
         <div class="info">
-          <strong>☛️ Diff Utilities</strong>
+          <strong>☛ Diff Utilities</strong>
           <div>Browser-native LCS algorithm for file comparison</div>
           <div>Supports unified, side-by-side, and JSON formats</div>
         </div>
@@ -362,7 +362,7 @@ if (!customElements.get('diff-utils-widget')) {
 const widget = {
   element: 'diff-utils-widget',
   displayName: 'Diff Utilities',
-  icon: '📊',
+  icon: '⇄',
   category: 'utility',
   updateInterval: null // Manual updates only
 };

@@ -544,7 +544,7 @@ The widget provides a complete proto interface for monitoring and controlling au
 **Recommended UI:**
 ```html
 <div class="curator-mode-panel">
-  <h3>🤖 Curator Mode</h3>
+  <h3>⚙ Curator Mode</h3>
 
   <!-- Status Indicator -->
   <div class="status-indicator">

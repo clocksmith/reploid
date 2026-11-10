@@ -583,7 +583,7 @@ class GoalDecompositionWidget extends HTMLElement {
 
     this.shadowRoot.innerHTML = `
       <div class="rgdp-panel">
-        <h4>🎯 Goal Decomposition</h4>
+        <h4>⚑ Goal Decomposition</h4>
 
         <div class="strategy-info">
           <strong>Strategy:</strong> ${decomposition.strategy}

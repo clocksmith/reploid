@@ -294,7 +294,7 @@ const run = (size, iter = 5) => {
   const t1 = performance.now(); for (let i = 0; i < iter; i++) Steamroller.sort(steamData[i]); const steamAvg = (performance.now() - t1) / iter;
   const t2 = performance.now(); for (let i = 0; i < iter; i++) nativeData[i].sort(); const nativeAvg = (performance.now() - t2) / iter;
 
-  console.log(`N=${size.toLocaleString().padStart(12)} | Steam: ${steamAvg.toFixed(1).padStart(6)}ms | Native: ${nativeAvg.toFixed(1).padStart(6)}ms | ${verify(steamData[0]) ? '✅' : '❌'}`);
+  console.log(`N=${size.toLocaleString().padStart(12)} | Steam: ${steamAvg.toFixed(1).padStart(6)}ms | Native: ${nativeAvg.toFixed(1).padStart(6)}ms | ${verify(steamData[0]) ? '✓' : '✗'}`);
 };
 
 console.log('Steamroller vs V8 Native Int32Array.sort()');

@@ -32,7 +32,7 @@ Without the ability to modify its own source code, an agent is fundamentally lim
 - **delete_artifact** - Remove obsolete code
 - ☷ **rename_artifact** - Refactor file structure
 - ⚿ **checkpoint** - Save state before risky changes
-- ⏮️ **rollback** - Undo failed modifications
+- ↩ **rollback** - Undo failed modifications
 
 **Why separate from read tools?**
 - **Security:** Write operations require extra validation and approval
@@ -455,10 +455,10 @@ Test the full Sentinel Agent flow:
 
 **Write tools are the KEY to true RSI.** Without them, the agent is read-only and cannot evolve. With them, the agent becomes:
 
-- 🔄 **Self-modifying** - Can improve its own code
-- 📚 **Self-documenting** - Creates blueprints of learned patterns
-- 🧪 **Self-experimenting** - Tests modifications safely
-- 🎯 **Self-optimizing** - Measures and improves performance
+- ♺ **Self-modifying** - Can improve its own code
+- ☐ **Self-documenting** - Creates blueprints of learned patterns
+- ⚗ **Self-experimenting** - Tests modifications safely
+- ★ **Self-optimizing** - Measures and improves performance
 
 The write tools manifest (`tools-write.json`) defines the **contract for self-evolution**, while the Sentinel Agent workflow (Project Sentinel) provides the **safety rails** to ensure humans maintain control.
 

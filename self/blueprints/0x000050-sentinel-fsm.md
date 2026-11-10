@@ -236,7 +236,7 @@ class SentinelFSMWidget extends HTMLElement {
         }
       </style>
       <div class="fsm-panel">
-        <h4>🔄 Sentinel FSM</h4>
+        <h4>♺ Sentinel FSM</h4>
         <div class="state-display">
           <div class="state-name">${currentState}</div>
           <div>${cycleContext ? cycleContext.goal : 'No active cycle'}</div>
@@ -258,7 +258,7 @@ if (!customElements.get(elementName)) {
 const widget = {
   element: elementName,
   displayName: 'Sentinel FSM',
-  icon: '🔄',
+  icon: '♺',
   category: 'agent'
 };
 ```

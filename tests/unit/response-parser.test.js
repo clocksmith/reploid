@@ -796,13 +796,13 @@ ARGS: { "path": "/big.txt", "content": "${longContent}" }`;
 
       it('should handle JSON with unicode characters', () => {
         const text = `TOOL_CALL: WriteFile
-ARGS: { "path": "/unicode.txt", "content": "Hello 世界 🌍 émojis" }`;
+ARGS: { "path": "/unicode.txt", "content": "Hello 世界 \u{1F30D} émojis" }`;
 
         const calls = responseParser.parseToolCalls(text);
 
         expect(calls).toHaveLength(1);
         expect(calls[0].args.content).toContain('世界');
-        expect(calls[0].args.content).toContain('🌍');
+        expect(calls[0].args.content).toContain('\u{1F30D}');
       });
 
       it('should handle mixed valid and invalid tool calls', () => {

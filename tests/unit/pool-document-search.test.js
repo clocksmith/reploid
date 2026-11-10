@@ -90,8 +90,8 @@ describe('local document search (synthetic Pack outputs)', () => {
     await expect(ingestDocuments(documents, { ...policy, maxCorpusBytes: 2 })).rejects.toThrow('size');
     await expect(ingestDocuments(documents, { ...policy, chunkCharacters: 1 })).rejects.toThrow('chunk');
     await expect(ingestDocuments(documents, { ...policy, maxChunks: 1 })).rejects.toThrow('passages');
-    const unicode = await ingestDocuments([{ name: 'text', text: 'ab😀cd' }], { ...policy, chunkCharacters: 3 });
-    expect(unicode.chunks.map((chunk) => chunk.text).join('')).toBe('ab😀cd');
+    const unicode = await ingestDocuments([{ name: 'text', text: 'ab\u{1F600}cd' }], { ...policy, chunkCharacters: 3 });
+    expect(unicode.chunks.map((chunk) => chunk.text).join('')).toBe('ab\u{1F600}cd');
     expect(unicode.chunks.every((chunk) => !/[\uD800-\uDBFF]$/u.test(chunk.text))).toBe(true);
   });
 

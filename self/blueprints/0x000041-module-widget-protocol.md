@@ -158,15 +158,15 @@ const ModuleProto = {
 **Compact View (Grid of Cards):**
 ```
 ┌──────────────────────┬──────────────────────┬──────────────────────┐
-│ ⛝ StateManager  ★  │ 📡 EventBus      ★  │ 🔧 ToolRunner    ★  │
+│ ⛝ StateManager  ★  │ ☍  EventBus      ★  │ ⚙  ToolRunner    ★  │
 │ 47 artifacts         │ 23 listeners         │ 3 active             │
 │ 3 checkpoints        │ 12.5/sec            │ Last: 2s ago         │
-│ [⚿] [☗]       [▼] │ [☇️] [✄]      [▼] │ [⏸️] [📊]      [▼] │
+│ [⚿] [☗]       [▼] │ [☇ ] [✄]      [▼] │ [⏾ ] [☷ ]      [▼] │
 ├──────────────────────┼──────────────────────┼──────────────────────┤
-│ ☗ VFSExplorer   ★  │ 📊 Metrics       ★  │ 🤖 Agent FSM     ★  │
+│ ☗ VFSExplorer   ★  │ ☷  Metrics       ★  │ ⚙  Agent FSM     ★  │
 │ 89 files             │ Mem: 45MB            │ State: IDLE          │
 │ Selected: app.js     │ CPU: 12%             │ Last cycle: 5s ago   │
-│ [↻] [⊞] [⊟]     [▼] │ [📈] [🔄]      [▼] │ [☇️] [⏹️]      [▼] │
+│ [↻] [⊞] [⊟]     [▼] │ [∑ ] [♺ ]      [▼] │ [☇ ] [■ ]      [▼] │
 └──────────────────────┴──────────────────────┴──────────────────────┘
 ```
 
@@ -178,7 +178,7 @@ const ModuleProto = {
 │ [⚿ Checkpoint] [☗ Explore]                                       │
 ├─────────────────────────────────────────────────────────────────────┤
 │ ┌─────────────────────────────────────────────────────────────────┐ │
-│ │ 📊 Statistics:                                                  │ │
+│ │ ∑ Statistics:                                                   │ │
 │ │   Artifacts: 47 | Size: 1.2 MB | Checkpoints: 3 | Uptime: 2h  │ │
 │ │                                                                 │ │
 │ │ ☰ Recent Checkpoints:                                          │ │
@@ -298,7 +298,7 @@ const ModuleProto = {
 3. Add CSS styling for widget cards and panels
 4. Create documentation
 
-**Phase 2: Core Infrastructure Widgets** 🔄 In Progress
+**Phase 2: Core Infrastructure Widgets** ○ In Progress
 1. Add widget to StateManager (artifacts, checkpoints, storage)
 2. Add widget to EventBus (listeners, event rate, stream)
 3. Add widget to DIContainer (modules, dependencies, status)
@@ -382,7 +382,7 @@ const YourModule = {
           {
             id: 'reset',
             label: 'Reset',
-            icon: '🔄',
+            icon: '♺',
             action: () => {
               itemCount = 0;
               state = 'idle';

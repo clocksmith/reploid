@@ -450,7 +450,7 @@ class MetaCognitiveWidget extends HTMLElement {
     this.shadowRoot.innerHTML = `
       <style>/* ... */</style>
       <div class="mcog-panel">
-        <h4>🧠 Meta-Cognitive Evaluator</h4>
+        <h4>⚖ Meta-Cognitive Evaluator</h4>
 
         <div class="current-strategy">
           <strong>Active Strategy:</strong> ${currentStrategy.name}

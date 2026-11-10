@@ -137,7 +137,7 @@ const StateManager = {
             .session.archived { opacity: 0.6; }
           </style>
           <div class="state-panel">
-            <h4>🗂 State Manager</h4>
+            <h4>☷ State Manager</h4>
             <div>Artifacts: ${artifactCount}</div>
             <div>Checkpoints: ${checkpoints.length}</div>
             <div class="sessions">
@@ -178,7 +178,7 @@ const StateManager = {
       widget: {
         element: 'state-manager-widget',
         displayName: 'State Manager',
-        icon: '🗂',
+        icon: '☷',
         category: 'core',
         updateInterval: null
       }
@@ -563,7 +563,7 @@ class StateManagerWidget extends HTMLElement {
         .checkpoint-list { margin-top: 8px; }
       </style>
       <div class="state-panel">
-        <h4>🗂 State Manager</h4>
+        <h4>☷ State Manager</h4>
         <div>Artifacts: ${artifactCount}</div>
         <div>Checkpoints: ${checkpoints.length}</div>
         <div class="sessions">
@@ -576,7 +576,7 @@ class StateManagerWidget extends HTMLElement {
         </div>
         <div class="checkpoint-list">
           ${checkpoints.map(cp => `
-            <div>📌 ${cp.note} (${new Date(cp.timestamp).toLocaleTimeString()})</div>
+            <div>⚑ ${cp.note} (${new Date(cp.timestamp).toLocaleTimeString()})</div>
           `).join('')}
         </div>
       </div>

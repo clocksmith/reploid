@@ -84,6 +84,7 @@
     "verify:change-passport:pilot": "node scripts/verify-change-passport-pilot.js",
     "verify:change-passport:pilot:frozen": "node scripts/verify-change-passport-pilot.js --require-frozen",
     "verify:catscan": "node scripts/verify-catscan.js",
+    "verify:emoji": "node scripts/verify-emoji.js",
     "verify:planning-boundary": "node scripts/verify-planning-boundary.js",
     "verify:layers": "node scripts/verify-layers.js",
     "verify:boundaries": "node scripts/verify-browser-boundaries.js",

@@ -118,7 +118,7 @@ class HybridLLMProviderWidget extends HTMLElement {
         .fallback-item { padding: 4px; margin: 2px 0; background: rgba(255, 165, 0, 0.1); font-size: 10px; }
       </style>
       <div class="hybrid-panel">
-        <h4>🔀 Hybrid LLM Provider</h4>
+        <h4>⇄ Hybrid LLM Provider</h4>
         <div class="mode-indicator">${modeIcon} Current: ${modeLabel}</div>
         <div>
           <button class="switch-btn ${mode === 'local' ? 'active' : ''}"

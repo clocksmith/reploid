@@ -115,7 +115,7 @@ class LocalLLMWidget extends HTMLElement {
     const controls = [];
 
     if (!isReady && !isLoading) {
-      controls.push({ id: 'load-model', label: '⚡ Load Model', action: async () => await init() });
+      controls.push({ id: 'load-model', label: '☇ Load Model', action: async () => await init() });
     }
 
     if (isReady && !isGenerating) {
@@ -145,7 +145,7 @@ class LocalLLMWidget extends HTMLElement {
         .error { color: #f00; padding: 8px; background: rgba(255, 0, 0, 0.1); }
       </style>
       <div class="llm-panel">
-        <h4>⚡ Local LLM Runtime</h4>
+        <h4>⚙ Local LLM Runtime</h4>
         <div class="status-badge">${statusBadge}</div>
         <div>Model: ${modelName}</div>
         ${isLoading ? `
@@ -225,7 +225,7 @@ The widget provides complete runtime visibility and control for local LLM operat
 
 **Step 4: Implement Interactive Controls**
 - `getControls()` as class method returning action buttons:
-  - "⚡ Load Model" button when not ready and not loading
+  - "☇ Load Model" button when not ready and not loading
   - "⛶ Unload Model" button when ready and not generating
 - Each control executes module API methods via closure access
 

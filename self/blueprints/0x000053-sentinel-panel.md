@@ -283,7 +283,7 @@ const SentinelPanel = {
       controls.push({
         id: 'toggle-auto-approve',
         label: autoApproveEnabled ? 'Disable Auto-Approve' : 'Enable Auto-Approve',
-        icon: autoApproveEnabled ? '🔓' : '🔒',
+        icon: autoApproveEnabled ? '✓' : '⚿',
         action: () => {
           autoApproveEnabled = !autoApproveEnabled;
           logger.info(`[SentinelPanel] Auto-approve: ${autoApproveEnabled}`);
@@ -405,7 +405,7 @@ const getControls = () => {
     {
       id: 'toggle-auto-approve',
       label: autoApproveEnabled ? 'Disable Auto-Approve' : 'Enable Auto-Approve',
-      icon: autoApproveEnabled ? '🔓' : '🔒',
+      icon: autoApproveEnabled ? '✓' : '⚿',
       action: () => {
         autoApproveEnabled = !autoApproveEnabled;
         return { success: true, message: `Auto-approve ${autoApproveEnabled ? 'enabled' : 'disabled'}` };

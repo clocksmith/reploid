@@ -758,7 +758,7 @@ class MultiModelArenaWidget extends HTMLElement {
         ` : ''}
 
         <button id="run-demo" ${active ? 'disabled' : ''}>
-          🎯 Run Demo Competition
+          ▶ Run Demo Competition
         </button>
       </div>
     `;

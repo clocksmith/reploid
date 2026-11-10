@@ -79,7 +79,7 @@ class AgentLogicPureHelpersWidget extends HTMLElement {
         .badge { background: #0a0; color: #000; padding: 2px 6px; border-radius: 4px; font-size: 10px; }
       </style>
       <div class="pure-helpers-panel">
-        <h4>🔧 Agent Logic Pure Helpers</h4>
+        <h4>ƒ Agent Logic Pure Helpers</h4>
         <div><span class="badge">PURE</span> No side effects, deterministic</div>
         <div class="function-list">
           <div class="function-item">

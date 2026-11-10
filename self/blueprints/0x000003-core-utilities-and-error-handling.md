@@ -95,7 +95,7 @@ const Utils = {
         this.shadowRoot.innerHTML = `
           <style>/* Styling for utility stats, error list */</style>
           <div class="widget-panel">
-            <h3>⚡ Core Utilities</h3>
+            <h3>ƒ Core Utilities</h3>
             <div class="stats-grid">
               <div class="stat-card">
                 <div class="stat-value">${totalLogs}</div>
@@ -127,7 +127,7 @@ const Utils = {
       widget: {
         element: elementName,
         displayName: 'Utilities',
-        icon: '⚡',
+        icon: 'ƒ',
         category: 'core'
       }
     };

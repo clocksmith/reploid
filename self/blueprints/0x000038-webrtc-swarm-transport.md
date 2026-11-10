@@ -863,7 +863,7 @@ class WebRTCSwarmWidget extends HTMLElement {
             <button class="reconnect-btn">↻ Reconnect</button>
           ` : ''}
           ${signalingConnected ? `
-            <button class="disconnect-btn">⏹️ Disconnect</button>
+            <button class="disconnect-btn">■ Disconnect</button>
             <button class="announce-btn">⚠ Announce Presence</button>
           ` : ''}
         </div>

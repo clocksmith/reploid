@@ -193,9 +193,9 @@ it('captures runtime timing before cleanup resets it, without counting text chun
     advanced: { getStats: () => stats },
     resetGenerationState() { stats = null; },
     async *stream() {
-      yield { schema: 'doppler.generation-event/v1', type: 'text-delta', text: 'One chunk, several tokens 🌍' };
+      yield { schema: 'doppler.generation-event/v1', type: 'text-delta', text: 'One chunk, several tokens \u{1F30D}' };
       stats = { totalTimeMs: 400, prefillTimeMs: 100, decodeTimeMs: 300, ttftMs: 110, tokensGenerated: 7 };
-      yield { schema: 'doppler.generation-event/v1', type: 'complete', outputText: 'One chunk, several tokens 🌍' };
+      yield { schema: 'doppler.generation-event/v1', type: 'complete', outputText: 'One chunk, several tokens \u{1F30D}' };
     }
   });
   await f.owner.prepare();

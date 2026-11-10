@@ -136,7 +136,7 @@ describe('document text extraction', () => {
     // A page that is all chrome keeps its text rather than returning nothing.
     expect(html('<body><nav>Only navigation text</nav></body>')).toBe('Only navigation text');
     expect(html('<body><script>unterminated')).toBe('');
-    expect(decodeEntities('&lt;a&gt; &amp &copy; &#x1F600; &#0; &bogus;')).toBe('<a> & © 😀 � &bogus;');
+    expect(decodeEntities('&lt;a&gt; &amp &copy; &#x1F600; &#0; &bogus;')).toBe('<a> & © \u{1F600} � &bogus;');
   });
 });
 

@@ -102,7 +102,7 @@ class CostTrackerWidget extends HTMLElement {
     return [
       {
         id: 'reset-session',
-        label: '🔄 Reset Session',
+        label: '☈ Reset Session',
         action: () => {
           resetSession();
           this.render();
@@ -111,7 +111,7 @@ class CostTrackerWidget extends HTMLElement {
       },
       {
         id: 'export-report',
-        label: '📊 Export Report',
+        label: '☷ Export Report',
         action: () => {
           const report = generateReport();
           return { success: true, message: 'Report generated', data: report };

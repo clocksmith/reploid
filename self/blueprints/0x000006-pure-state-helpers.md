@@ -70,7 +70,7 @@ class StateHelpersPureWidget extends HTMLElement {
     this.shadowRoot.innerHTML = `
       <style>/* Shadow DOM styling */</style>
       <div class="widget-content">
-        <h3>📐 Pure State Helpers</h3>
+        <h3>ƒ Pure State Helpers</h3>
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-label">Validations</div>
@@ -98,7 +98,7 @@ if (!customElements.get('state-helpers-pure-widget')) {
 const widget = {
   element: 'state-helpers-pure-widget',
   displayName: 'State Helpers',
-  icon: '📐',
+  icon: 'ƒ',
   category: 'core',
   updateInterval: 5000
 };

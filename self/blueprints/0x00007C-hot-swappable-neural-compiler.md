@@ -611,7 +611,7 @@ if (!customElements.get('neural-compiler-widget')) {
 const widget = {
   element: 'neural-compiler-widget',
   displayName: 'Neural Compiler',
-  icon: '⚡',
+  icon: '☖',
   category: 'intelligence',
   order: 50
 };

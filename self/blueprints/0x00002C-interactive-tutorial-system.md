@@ -112,7 +112,7 @@ class TutorialSystemWidget extends HTMLElement {
     if (isActive) {
       controls.push({
         id: 'stop-tutorial',
-        label: '⏹️ Stop Tutorial',
+        label: '■ Stop Tutorial',
         action: () => {
           wrappedStop();
           return { success: true, message: 'Tutorial stopped' };
@@ -139,7 +139,7 @@ class TutorialSystemWidget extends HTMLElement {
         }
       </style>
       <div class="tutorial-panel">
-        <h4>📚 Tutorial System</h4>
+        <h4>☛ Tutorial System</h4>
         ${isActive ? `
           <div class="active-tutorial">
             <h5>${currentTutorial.name}</h5>
@@ -164,7 +164,7 @@ if (!customElements.get(elementName)) {
 const widget = {
   element: elementName,
   displayName: 'Tutorial System',
-  icon: '📚',
+  icon: '☛',
   category: 'ui'
 };
 ```

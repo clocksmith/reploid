@@ -544,7 +544,7 @@ class InternalPatchFormatWidget extends HTMLElement {
       </style>
 
       <div class="ipat-panel">
-        <h4>⚡ Internal Patch Format</h4>
+        <h4>✎ Internal Patch Format</h4>
 
         <div class="stat-grid">
           <div class="stat-item">
@@ -573,8 +573,8 @@ class InternalPatchFormatWidget extends HTMLElement {
           ~10x faster parsing, ~5x smaller payload
         </div>
 
-        <button id="reset-stats">🔄 Reset Stats</button>
-        <button id="export-stats">📊 Export Stats</button>
+        <button id="reset-stats">☈ Reset Stats</button>
+        <button id="export-stats">☷ Export Stats</button>
       </div>
     `;
 
@@ -642,7 +642,7 @@ return {
   widget: {
     element: elementName,
     displayName: 'Internal Patch Format',
-    icon: '⚡',
+    icon: '✎',
     category: 'rsi',
     updateInterval: 2000,
     visible: true,

@@ -581,7 +581,7 @@ class DogsParserBrowserWidget extends HTMLElement {
           `).join('')}
         </div>
         <div class="info">
-          <strong>☛️ Browser-Native Parser</strong>
+          <strong>☛ Browser-Native Parser</strong>
           <div>Zero dependencies - fully self-contained</div>
           <div>Supports DOGS (changes) and CATS (context) bundles</div>
         </div>

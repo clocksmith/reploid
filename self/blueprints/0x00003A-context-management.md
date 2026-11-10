@@ -332,7 +332,7 @@ class ContextManagerWidget extends HTMLElement {
     this.shadowRoot.innerHTML = `
       <style>/* Shadow DOM styling */</style>
       <div class="widget-content">
-        <h3>🧠 Context Manager</h3>
+        <h3>☷ Context Manager</h3>
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-label">Messages</div>
@@ -356,7 +356,7 @@ class ContextManagerWidget extends HTMLElement {
           <button class="prune-btn">Prune Context Now</button>
         ` : ''}
         <div class="info">
-          <strong>☛️ Automatic Management</strong>
+          <strong>☛ Automatic Management</strong>
           <div>Context is automatically pruned before API calls when utilization exceeds 80%</div>
         </div>
       </div>
@@ -385,7 +385,7 @@ if (!customElements.get('context-manager-widget')) {
 const widget = {
   element: 'context-manager-widget',
   displayName: 'Context Manager',
-  icon: '🧠',
+  icon: '☷',
   category: 'intelligence',
   updateInterval: 3000
 };
