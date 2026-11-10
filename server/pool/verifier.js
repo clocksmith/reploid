@@ -3,31 +3,19 @@
  */
 
 import { webcrypto } from 'crypto';
-import { ACCEPTANCE_V2, ACCEPTANCE_V2_DOMAIN, canonicalAcceptanceAgreement, acceptanceV2SigningPayload, compactAgreementForAcceptance } from '../../packages/reploid/src/artifacts/acceptance.js';
+import { ACCEPTANCE_V2, ACCEPTANCE_V2_DOMAIN, canonicalAcceptanceAgreement, compactAgreementForAcceptance } from '../../packages/reploid/src/artifacts/acceptance.js';
 import { canonicalize, hashJson, sha256Hex } from './hash.js';
 import { PROVIDER_RECEIPT_TRUST_TIER, RECEIPT_VERSION } from './receipt-contract.js';
 import { getRingPhaseProtocol } from './config.js';
 import { revealMatchesCommitment } from './commit-reveal.js';
 import { isSequenceWorkload } from '../../shared/pool/sequence-workload.js';
+// The receipt shape's owner: the same signing payloads and domains the browser builder signs.
+import { SIGNATURE_DOMAINS, acceptanceSigningPayload, domainSeparatedPayload, receiptSigningPayload } from '../../shared/pool/inference-receipt.js';
 import { exactModelContractKey } from './model-contract.js';
 
 const textEncoder = new TextEncoder();
-const SIGNATURE_DOMAINS = Object.freeze({
-  providerReceipt: 'poolday.provider_receipt.v1',
-  requesterAcceptance: 'poolday.requester_acceptance.v1'
-});
 
 const base64ToBuffer = (value) => Buffer.from(String(value || ''), 'base64');
-
-const receiptSigningPayload = (receipt = {}) => {
-  const { providerSignature, requesterAcceptance, verifierDecision, ledgerEffects, ...payload } = receipt;
-  return payload;
-};
-
-const domainSeparatedPayload = (domain, payload) => ({
-  signatureDomain: domain,
-  payload
-});
 
 async function verifyProviderSignature(receipt, publicKeyBase64) {
   if (!publicKeyBase64 || !receipt.providerSignature) return false;
@@ -281,11 +269,6 @@ export async function verifyReceipt({
   };
 }
 
-const acceptanceSigningPayload = (acceptance = {}) => {
-  const { requesterSignature, ...payload } = acceptance;
-  return payload;
-};
-
 const sameStringArray = (left = [], right = []) => (
   Array.isArray(left)
   && Array.isArray(right)
@@ -405,7 +388,7 @@ export async function verifyRequesterAcceptance({ job, acceptance, expectedAccep
         base64ToBuffer(acceptance.requesterSignature),
         textEncoder.encode(canonicalize(domainSeparatedPayload(
           domain,
-          v2 ? acceptanceV2SigningPayload(acceptance) : acceptanceSigningPayload(acceptance)
+          acceptanceSigningPayload(acceptance)
         )))
       );
       if (!signatureOk) reasons.push('requester signature invalid');

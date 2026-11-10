@@ -3,8 +3,10 @@
  */
 
 import { POOL_CONFIG } from './config.js';
+import { RECEIPT_VERSION } from '../../shared/pool/inference-receipt.js';
 
-export const RECEIPT_VERSION = 'reploid_browser_inference/v1';
+// The browser receipt builder owns the receipt version the verifier checks.
+export { RECEIPT_VERSION };
 export const TRUST_TIERS = Object.freeze({
   signedReceipt: 'T1_signed_receipt',
   canaryAudited: 'T2_canary_audited',
