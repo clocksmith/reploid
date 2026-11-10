@@ -1,7 +1,7 @@
 /** Whole-request rewards reuse the contribution ledger and issuance authority.
  * Their evidence is a settled requester quote plus the accounting owner's kept,
  * countersigned execution and explicit quality decision, never a claimant report. */
-import { claimWindowClosed, computeReward } from './domain.js';
+import { acceptedQuoteBacks, claimWindowClosed, computeReward, settledAsCompleted } from './domain.js';
 import { checkCounterparty } from './counterparty.js';
 import { toMs } from '../ledger/domain.js';
 import { verifyReceipt } from '../../packages/reploid/src/artifacts/receipt.js';
@@ -26,13 +26,10 @@ export async function evaluateWholeModelInference({ claim, offer, ledger, identi
   const reservation = await ledger.getReservation(claim.reservationId);
   const record = await readWholeModelExecution(claim.reservationId);
   const settlement = reservation?.settlement, receipt = record?.receipt;
-  const disposition = settlement?.outcome === 'failed_quality' ? settlement.review?.disposition : settlement?.outcome;
   const quote = reservation && await ledger.getQuote(reservation.quoteId);
-  if (reservation?.status !== 'settled' || !['full', 'reduced'].includes(disposition)
+  if (!settledAsCompleted(reservation) || !acceptedQuoteBacks(quote, reservation)
     || record?.phase !== 'settled' || record.reservationId !== reservation.reservationId
-    || record.quoteHash !== reservation.quoteHash || quote?.status !== 'accepted'
-    || quote.reservationId !== reservation.reservationId || quote.quoteHash !== reservation.quoteHash
-    || quote.accountId !== reservation.accountId
+    || record.quoteHash !== reservation.quoteHash
     || record.quality?.policyVersion !== reservation.service.qualityPolicyVersion
     || record.quality.outcome !== settlement.outcome || !record.quality.decisionId) {
     reject('work_not_completed', 'no settled, quality-accepted whole-model demand matches'); return result();

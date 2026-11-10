@@ -501,6 +501,19 @@ export function buildOffer(input, { ledgerPolicy, rewardPolicy, conditions, now 
 }
 
 /**
+ * Settled demand behind inference rewards: the requester's reservation is
+ * settled as completed inference (full or reduced, directly or as a failed-
+ * quality review's disposition) and an accepted quote of the same account,
+ * quote hash and reservation backs it. Each validator keeps its own reason codes.
+ */
+const COMPLETED_OUTCOMES = new Set(['full', 'reduced']);
+export const completedSettlement = (settlement) => COMPLETED_OUTCOMES.has(settlement?.outcome)
+  || (settlement?.outcome === 'failed_quality' && COMPLETED_OUTCOMES.has(settlement.review?.disposition));
+export const settledAsCompleted = (reservation) => reservation?.status === 'settled' && completedSettlement(reservation.settlement);
+export const acceptedQuoteBacks = (quote, reservation) => quote?.status === 'accepted' && quote.quoteHash === reservation?.quoteHash
+  && quote.accountId === reservation.accountId && quote.reservationId === reservation.reservationId;
+
+/**
  * Whether a claim at `now` arrives after the accepted offer's claim window. The
  * window opens at `openedAtMs`, when the category's evidence completes:
  * settlement, attestation or the contract's close.

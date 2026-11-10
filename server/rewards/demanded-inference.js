@@ -15,7 +15,7 @@ import { canonicalRouteAttemptBinding, sameRouteAttemptIdentity } from '../../pa
 import { summarizePartitionExecution } from '../../packages/reploid/src/mesh/partitions/partition-summary.js';
 import { hashCanonical, isNonEmptyString, toMs } from '../ledger/domain.js';
 import { checkCounterparty } from './counterparty.js';
-import { CATEGORY_TERMS, claimWindowClosed, computeReward } from './domain.js';
+import { CATEGORY_TERMS, acceptedQuoteBacks, claimWindowClosed, computeReward, settledAsCompleted } from './domain.js';
 import { evaluateWholeModelInference } from './whole-model-inference.js';
 
 /** Conditions disclosed in every demanded-inference offer and checked for every claim. */
@@ -31,16 +31,12 @@ export const DEMANDED_INFERENCE_CONDITIONS = Object.freeze([
   'single_reward: one reward per stage share of a settled attempt'
 ]);
 
-const COMPLETED_OUTCOMES = new Set(['full', 'reduced']);
 const SUMMARY_SCHEMA = 'reploid.mesh.partition-summary/v2';
 const EXECUTION_SCHEMA = 'reploid.mesh.partition-execution/v3';
 
 export const stageShareKey = ({ reservationId, attemptId, stageIndex }) => `${reservationId}|${attemptId}|${stageIndex}`;
 export const participantShareKey = ({ reservationId, attemptId }, participantId) => `${reservationId}|${attemptId}|${participantId}`;
 export const routeKey = ({ reservationId, attemptId }) => `${reservationId}|${attemptId}`;
-
-const completedSettlement = (settlement) => COMPLETED_OUTCOMES.has(settlement?.outcome)
-  || (settlement?.outcome === 'failed_quality' && COMPLETED_OUTCOMES.has(settlement.review?.disposition));
 
 const routeSummary = (execution) => {
   try {
@@ -81,8 +77,7 @@ export async function evaluateDemandedInference({ claim, offer, ledger, identity
   }
   evidence.requester = { accountId: reservation.accountId, quoteId: reservation.quoteId, quoteHash: reservation.quoteHash };
   const quote = await ledger.getQuote(reservation.quoteId);
-  if (quote?.status !== 'accepted' || quote.quoteHash !== reservation.quoteHash
-    || quote.accountId !== reservation.accountId || quote.reservationId !== reservation.reservationId) {
+  if (!acceptedQuoteBacks(quote, reservation)) {
     reject('requester_quote_not_accepted', 'the reservation is not backed by the requester account\'s accepted inference quote');
   }
   if (['open', 'under_review', 'disputed'].includes(reservation.status)) {
@@ -90,7 +85,7 @@ export async function evaluateDemandedInference({ claim, offer, ledger, identity
     return result();
   }
   const settlement = reservation.settlement;
-  if (reservation.status !== 'settled' || !completedSettlement(settlement)) {
+  if (!settledAsCompleted(reservation)) {
     reject('work_not_completed', `settlement outcome ${settlement?.outcome ?? reservation.status} is not completed inference`);
     return result();
   }
