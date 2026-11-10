@@ -6,6 +6,7 @@ import type { PublicationReceipt } from '../../chat/workspace-publication.js';
 export const ORDERED_PUBLICATION_SCHEMA: 'reploid.ordered-publication/v1';
 export const ORDERED_PUBLICATION_ATTEMPT_SCHEMA: 'reploid.ordered-publication-attempt/v1';
 export const ORDERED_PUBLICATION_CONTEXT_SCHEMA: 'reploid.ordered-publication-context/v1';
+export const PUBLICATION_RECEIPT_SCHEMA: 'reploid.publication-receipt/v1';
 /** Requester-chosen context carried with an ordered input. */
 export interface OrderedPublicationContext {
   schema: 'reploid.ordered-publication-context/v1'; publisherEpoch: string; deadlineAt: number;

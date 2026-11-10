@@ -1,6 +1,7 @@
 import { assertPartition as assert, samePartitionIdentity, canonicalPartitionBinding,
   partitionActivationContract, matchingPartitionActivation } from './partition-contract.js';
 import { verifyPartitionStageCommit } from './partition-stage-commit.js';
+import { PUBLICATION_RECEIPT_SCHEMA } from './partition-ordered-publication.js';
 import { sha256Hex } from '../../artifacts/signatures.js';
 
 const SCHEMA = 'reploid.canonical-partition-request/v1';
@@ -155,7 +156,7 @@ export function createCanonicalPartitionContract({ runtime, plan, planId, modelI
         }
         exact(receipt, ['schema', 'conversationId', 'writerEpoch', 'index', 'coordinatorEpoch', 'attemptId', 'sequence', 'publicationDigest', 'receiptDigest']);
         const { receiptDigest, ...body } = receipt;
-        return body.schema === 'reploid.publication-receipt/v1' && body.conversationId === request.identity.threadId
+        return body.schema === PUBLICATION_RECEIPT_SCHEMA && body.conversationId === request.identity.threadId
           && body.writerEpoch === attempt.publisherEpoch && body.coordinatorEpoch === attempt.coordinatorEpoch
           && body.attemptId === attempt.attemptId && body.sequence === request.sequence
           && body.publicationDigest === publication.publicationDigest && Number.isSafeInteger(body.index) && body.index >= 0

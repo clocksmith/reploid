@@ -3,7 +3,7 @@
  * same transaction owner. The host authenticates commits and supplies a
  * genuinely transactional store. */
 import defaults from './publication-policy.json' with { type: 'json' };
-import { ORDERED_PUBLICATION_ATTEMPT_SCHEMA, ORDERED_PUBLICATION_SCHEMA, validateOrderedPublicationAttempt,
+import { ORDERED_PUBLICATION_ATTEMPT_SCHEMA, ORDERED_PUBLICATION_SCHEMA, PUBLICATION_RECEIPT_SCHEMA, validateOrderedPublicationAttempt,
   validateOrderedGenerationBounds, validateOrderedPublication } from '../mesh/partitions/partition-ordered-publication.js';
 
 const reject = message => { throw Object.assign(new Error(message), { code: 'PUBLICATION_REJECTED' }); };
@@ -197,7 +197,7 @@ export function createConversationPublication({ conversationId, writerEpoch, sto
           'Publication sequence or durable head mismatch');
         const validated = validatePublication(publication, current);
         assert(history.records.length < limits.maxPublications, 'Publication history is full');
-        const receipt = { schema: 'reploid.publication-receipt/v1', conversationId, writerEpoch,
+        const receipt = { schema: PUBLICATION_RECEIPT_SCHEMA, conversationId, writerEpoch,
           index: history.records.length, coordinatorEpoch: publication.coordinatorEpoch, attemptId: publication.attemptId,
           sequence: publication.sequence, publicationDigest };
         receipt.receiptDigest = doppler.metadataDigest(receipt.schema, receipt);

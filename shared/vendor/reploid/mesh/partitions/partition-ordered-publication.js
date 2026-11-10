@@ -8,6 +8,8 @@ import { assertPartition as assert, canonicalPartitionJson, canonicalRouteAttemp
 export const ORDERED_PUBLICATION_SCHEMA = 'reploid.ordered-publication/v1';
 export const ORDERED_PUBLICATION_ATTEMPT_SCHEMA = 'reploid.ordered-publication-attempt/v1';
 export const ORDERED_PUBLICATION_CONTEXT_SCHEMA = 'reploid.ordered-publication-context/v1';
+/** The durable writer's receipt for one accepted publication (chat/workspace-publication.js writes it). */
+export const PUBLICATION_RECEIPT_SCHEMA = 'reploid.publication-receipt/v1';
 const BOUNDS_SCHEMA = 'reploid.ordered-generation-bounds/v1';
 const CURSOR_SCHEMA = 'reploid.ordered-cursor/v1';
 const epoch = value => typeof value === 'string' && /^[a-f0-9]{32}$/.test(value);
