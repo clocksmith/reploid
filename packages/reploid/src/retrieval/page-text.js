@@ -24,7 +24,7 @@ const NAMED = {
   copy: '©', reg: '®', trade: '™', deg: '°', plusmn: '±', times: '×', divide: '÷', minus: '−', frac12: '½', frac14: '¼',
   frac34: '¾', sup1: '¹', sup2: '²', sup3: '³', micro: 'µ', para: '¶', sect: '§', cent: '¢', pound: '£', euro: '€', yen: '¥',
   curren: '¤', iexcl: '¡', iquest: '¿', ordf: 'ª', ordm: 'º', not: '¬', macr: '¯', acute: '´', cedil: '¸', uml: '¨', brvbar: '¦',
-  le: '≤', ge: '≥', ne: '≠', asymp: '≈', infin: '∞', larr: '←', rarr: '→', uarr: '↑', darr: '↓', harr: '↔', szlig: 'ß',
+  le: '≤', ge: '≥', ne: '≠', asymp: '≈', infin: '∞', larr: '←', rarr: '→', uarr: '↑', darr: '↓', harr: '\u2194', szlig: 'ß',
   alpha: 'α', beta: 'β', gamma: 'γ', delta: 'δ', epsilon: 'ε', lambda: 'λ', mu: 'μ', pi: 'π', sigma: 'σ', tau: 'τ', phi: 'φ',
   omega: 'ω', Delta: 'Δ', Sigma: 'Σ', Omega: 'Ω'
 };

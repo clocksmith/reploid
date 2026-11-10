@@ -1409,8 +1409,8 @@
     },
     {
       "path": "retrieval/page-text.js",
-      "bytes": 10192,
-      "sha256": "bdbb585e70c73db38edfdf4fcf4afe2cc7de70debadfd40ff0e2df770f761a0e"
+      "bytes": 10195,
+      "sha256": "9c59f046251d49cb73e8401698702140ed32fd72714aac8645eadaa087643a6e"
     },
     {
       "path": "retrieval/passage.js",
