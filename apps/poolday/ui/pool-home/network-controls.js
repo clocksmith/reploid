@@ -5,7 +5,6 @@ import { computerLabel, withComputerLabels } from './computer-labels.js';
 import { updateModelSelect } from '../components/model-select.js';
 import { renderComputerRename, bindComputerPreferences } from './computer-preferences-view.js';
 /** Shared network controls consume host snapshots; they never grant permission on render. */
-const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
 export const renderConnectionControl = () => `<div class="network-sharing-row">
   <div><strong class="pool-small">Network connection</strong><span class="pool-small pool-muted" data-connection-label>Disconnected</span></div>
