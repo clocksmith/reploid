@@ -323,6 +323,11 @@
       "sha256": "e8d4a74d087e4bc9a4bfdae8f4ba38e1e5e4b4a99bcc715ed5f4e6bb42b668cf"
     },
     {
+      "path": "artifacts/custody-certificate.js",
+      "bytes": 6059,
+      "sha256": "e8c2f8e1480f03cc33b4b0b3ac72b6a0f7bdda6a0db7de7a82e4ffd4f11d5945"
+    },
+    {
       "path": "artifacts/custody/exchange.d.ts",
       "bytes": 5462,
       "sha256": "4185d039a8b39698ad81d5e60d9d181e7eede3db1acce4392f1868976ed9ebcf"
@@ -356,11 +361,6 @@
       "path": "artifacts/custody/supply-budget.js",
       "bytes": 1429,
       "sha256": "9b59ab5aacbf1f55e3188d0c7fdfdd24c752df92f7140e43e675eaecd0f62a64"
-    },
-    {
-      "path": "artifacts/custody-certificate.js",
-      "bytes": 6059,
-      "sha256": "e8c2f8e1480f03cc33b4b0b3ac72b6a0f7bdda6a0db7de7a82e4ffd4f11d5945"
     },
     {
       "path": "artifacts/delivery-attestation.js",
@@ -444,8 +444,8 @@
     },
     {
       "path": "artifacts/signatures.js",
-      "bytes": 3857,
-      "sha256": "2ccac503833dd17eac861c99fff82f2720f1d3fed63d162c313a62f50b5c33b8"
+      "bytes": 2927,
+      "sha256": "8ef600bcc1c449c56189c59779b3dbd364068ddbe55fc496e077c22d88d1eac3"
     },
     {
       "path": "artifacts/store.d.ts",
@@ -579,8 +579,8 @@
     },
     {
       "path": "config/index.js",
-      "bytes": 11532,
-      "sha256": "bdbc9c5475d9f8491133a7167a51a3f64f739ae6741dca439a78bcfc0b19b16e"
+      "bytes": 11519,
+      "sha256": "b516347ee56b3ecee9ed57b2b5f3608d2359d9109af44ea304a1a4b8b94b4887"
     },
     {
       "path": "config/profiles/local.json",
@@ -711,6 +711,16 @@
       "path": "contracts/pool/peer-planning.d.ts",
       "bytes": 2474,
       "sha256": "0264f2b72073b15898e5ce2c2cca190cc62940c8ff9fbe426fb5f03bae504068"
+    },
+    {
+      "path": "hashing.d.ts",
+      "bytes": 333,
+      "sha256": "5a6fde8c01454190827d30808389db4a99ef6fc33b36c9f8ed23bc5074868c76"
+    },
+    {
+      "path": "hashing.js",
+      "bytes": 1351,
+      "sha256": "0cf5fe45851242b29ea696e1b39799327f35287d758f04f301f1b7c4b737e8b4"
     },
     {
       "path": "improvement/code-evolution.d.ts",

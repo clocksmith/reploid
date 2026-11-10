@@ -1,7 +1,7 @@
 import defaults from './defaults.json' with { type: 'json' };
 import requestPolicy from './request-overrides.json' with { type: 'json' };
 import routing from '../rules/routing.rules.json' with { type: 'json' };
-import { sha256Hex } from '../artifacts/signatures.js';
+import { sha256Hex } from '../hashing.js';
 
 const resolvedConfigurations = new WeakSet();
 const forbiddenKeys = new Set(['__proto__', 'prototype', 'constructor']);
