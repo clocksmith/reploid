@@ -9,6 +9,7 @@ import { startFleetService, createFleetClient } from '../../server/fleet/service
 import { createFleetRequester } from '../../server/fleet/requester.js';
 import { createFleetExecutionAdmission } from '../../server/fleet/execution-admission.js';
 import { startFleetTextApi } from '../../server/fleet/text-api.js';
+import tunnelWorker from '../../server/fleet/cloudflare-tunnel-worker.js';
 import { createWholeModelRequester } from '../../server/whole-model-requester.js';
 import { createRecoveryMesh } from '../helpers/generation-recovery-mesh.js';
 
@@ -220,4 +221,15 @@ it('propagates HTTP stream cancellation to the whole-model provider and releases
     release.resolve();
     for (const close of cleanup.reverse()) await close();
   }
+});
+
+it('rejects unauthenticated or unknown routes at the tunnel Worker before touching the VPC binding', async () => {
+  const fetchSpy = vi.fn(req => fetch(req));
+  const env = { FLEET_API: { fetch: fetchSpy } };
+  expect((await tunnelWorker.fetch(new Request('https://reploid-fleet-api.reploid.workers.dev/other'), env)).status).toBe(404);
+  expect((await tunnelWorker.fetch(new Request('https://reploid-fleet-api.reploid.workers.dev/v1/models'), env)).status).toBe(401);
+  expect((await tunnelWorker.fetch(new Request('https://reploid-fleet-api.reploid.workers.dev/v1/responses', {
+    method: 'GET', headers: { authorization: `Bearer ${token}` }
+  }), env)).status).toBe(405);
+  expect(fetchSpy).not.toHaveBeenCalled();
 });

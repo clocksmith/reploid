@@ -1,0 +1,18 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "reploid-fleet-api",
+  "account_id": "a83dfba998fd42d3dab5dc607e7c6b60",
+  "main": "../../server/fleet/cloudflare-tunnel-worker.js",
+  "compatibility_date": "2026-09-26",
+  "workers_dev": true,
+  "preview_urls": false,
+  "vpc_services": [
+    {
+      "binding": "FLEET_API",
+      "service_id": "01a1c742-f210-7091-a988-0caeb38a0b64"
+    }
+  ],
+  "observability": {
+    "enabled": false
+  }
+}
