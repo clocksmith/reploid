@@ -2,6 +2,7 @@ import { freezeJson, requireResolvedConfig, snapshotJson } from '../config/index
 import { assertSessionCompletion, assertSessionIdentity, createV1Verifier } from './doppler-stream.js';
 import { abortable } from '../agent/cancellation.js';
 import choiceDefinition from './doppler-choice.json' with { type: 'json' };
+import { createDopplerStreamAccumulator, dopplerOperationEvents } from './doppler-session.js';
 
 // Public session calls applications share; importable alone without the lazy runtime import below.
 export * from './doppler-session.js';
@@ -67,12 +68,9 @@ export function createDopplerProvider({ config, session, ownership, toGeneration
           throw new Error('Doppler runtime does not match the configured version');
         }
         const incremental = request.schema === 'doppler.capsule-operation-request/v2';
-        if (incremental && typeof api.createCapsuleStreamAccumulator !== 'function') {
-          throw new Error('Installed Doppler runtime does not support operation v2');
-        }
-        const accumulator = incremental ? api.createCapsuleStreamAccumulator(request) : await createV1Verifier(request);
+        const accumulator = incremental ? createDopplerStreamAccumulator(api, request) : await createV1Verifier(request);
         check();
-        for await (const event of session.executeOperation(request, { signal: controller.signal, adapterArtifactStore })) {
+        for await (const event of dopplerOperationEvents(session, request, { signal: controller.signal, adapterArtifactStore })) {
           check();
           await accumulator.accept(event);
           check();
@@ -190,11 +188,8 @@ export function createDopplerOperationProvider({ config, session, ownership, run
         if (!incremental && request.schema !== 'doppler.capsule-operation-request/v1') {
           throw new Error('Unsupported Doppler operation stream format');
         }
-        if (incremental && typeof api.createCapsuleStreamAccumulator !== 'function') {
-          throw new Error('Installed Doppler runtime does not support operation v2');
-        }
-        const accumulator = incremental ? api.createCapsuleStreamAccumulator(request) : await createV1Verifier(request);
-        for await (const event of session.executeOperation(request, { signal: controller.signal, adapterArtifactStore })) {
+        const accumulator = incremental ? createDopplerStreamAccumulator(api, request) : await createV1Verifier(request);
+        for await (const event of dopplerOperationEvents(session, request, { signal: controller.signal, adapterArtifactStore })) {
           controller.signal.throwIfAborted();
           await accumulator.accept(event);
           if (event.status === 'partial' && onPartial) await abortable(() => onPartial(event), controller.signal);

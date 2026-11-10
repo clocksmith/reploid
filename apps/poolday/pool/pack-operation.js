@@ -4,6 +4,7 @@ import { createPackOperationRegistry } from '../../../shared/pool/pack-operation
 import { assertOperationLimits } from '../../../shared/pool/pack-operation-policy.js';
 import { resolveDopplerOperationContract } from '../../../shared/config/doppler-execution-contracts.js';
 import { assertDopplerGenerationContract, DopplerRuntimeService } from '../../../shared/infrastructure/doppler-runtime-service.js';
+import { dopplerOperationEvents } from '../../../shared/vendor/reploid/adapters/doppler-session.js';
 
 const requireValue = (value, message) => { if (!value) throw new Error(`Pack operation: ${message}`); };
 const equal = async (left, right) => await hashDopplerEvidence(left) === await hashDopplerEvidence(right);
@@ -119,7 +120,7 @@ export async function runPackOperation({ binding: bindingInput, session, request
   let eventCount = 0;
   let streamBytes = 0;
   let completed = null;
-  for await (const received of session.executeOperation(request, { signal, ...(request.adapterSet?.length ? { adapterArtifactStore } : {}) })) {
+  for await (const received of dopplerOperationEvents(session, request, { signal, ...(request.adapterSet?.length ? { adapterArtifactStore } : {}) })) {
     await current();
     requireValue(!completed, 'output after completion');
     const event = snapshotPackOperationData(received);

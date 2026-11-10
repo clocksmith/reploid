@@ -11,6 +11,7 @@ import {
   DOPPLER_MODULE_URL
 } from '../config/doppler-local-models.js';
 import { resolveDopplerExecutionContract } from '../config/doppler-execution-contracts.js';
+import { createDopplerModuleLoader, createDopplerStreamAccumulator, resolveDopplerRuntime } from '../vendor/reploid/adapters/doppler-session.js';
 import { GENERATION_CONTRACT, validateGenerationInput, resolveGenerationOptions } from '../config/doppler-generation-contract.js';
 
 // This generated, validation-only bundle comes from Doppler's installed public
@@ -37,13 +38,6 @@ const normalizedScope = (value) => {
 const normalizedVersion = (module) => (
   module?.DOPPLER_VERSION
   || module?.default?.DOPPLER_VERSION
-  || null
-);
-
-const resolveRuntime = (module) => (
-  module?.dr
-  || module?.doppler
-  || module?.default
   || null
 );
 
@@ -120,22 +114,12 @@ export function createReploidDopplerRuntimeService({
   loadModule = defaultLoadModule,
   expectedVersion = DOPPLER_BROWSER_RUNTIME_VERSION
 } = {}) {
-  let modulePromise = null;
+  // The library's session contract memoizes the module and retries after a failed load.
+  const modules = createDopplerModuleLoader({ loadModule });
   const sessions = new Map();
   const inFlight = new Map();
 
-  const getModule = async (provided = null) => {
-    if (provided) return provided;
-    if (!modulePromise) {
-      modulePromise = Promise.resolve()
-        .then(() => loadModule())
-        .catch((error) => {
-          modulePromise = null;
-          throw error;
-        });
-    }
-    return modulePromise;
-  };
+  const getModule = async (provided = null) => provided || modules.load();
 
   const assertModule = (module) => {
     const version = normalizedVersion(module);
@@ -148,7 +132,7 @@ export function createReploidDopplerRuntimeService({
         `Reploid requires Doppler ${expectedVersion}; loaded ${version || 'unidentified'}`
       );
     }
-    const runtime = resolveRuntime(module);
+    const runtime = resolveDopplerRuntime(module);
     if (typeof runtime?.open !== 'function') {
       throw new Error('Doppler runtime does not expose the scoped dr.open API');
     }
@@ -208,7 +192,7 @@ export function createReploidDopplerRuntimeService({
   const signedRuntime = (module, contract) => {
     const version = normalizedVersion(module);
     if (expectedVersion && version !== expectedVersion) throw new Error(`Reploid requires Doppler ${expectedVersion}; loaded ${version || 'unidentified'}`);
-    const runtime = typeof module?.[contract.openMethod] === 'function' ? module : resolveRuntime(module);
+    const runtime = typeof module?.[contract.openMethod] === 'function' ? module : resolveDopplerRuntime(module);
     if (typeof runtime?.[contract.openMethod] !== 'function') throw new Error(`Doppler runtime does not expose public ${contract.openMethod}; signed model loading cannot fall back to dr.open`);
     return { runtime, version };
   };
@@ -244,10 +228,7 @@ export function createReploidDopplerRuntimeService({
       const module = await getModule();
       const { runtime, version } = signedRuntime(module, resolveDopplerExecutionContract(bindingSchema));
       if (version !== runtimeVersion) throw new Error('Stream consumer runtime version mismatch');
-      if (typeof runtime.createCapsuleStreamAccumulator !== 'function') {
-        throw new Error('This installed Doppler runtime does not support operation request v2');
-      }
-      return runtime.createCapsuleStreamAccumulator(request);
+      return createDopplerStreamAccumulator(runtime, request);
     },
     close,
     get(scope = DEFAULT_SCOPE) {
@@ -268,7 +249,7 @@ export function createReploidDopplerRuntimeService({
       return { ok: true, version };
     },
     resetModuleForTests() {
-      modulePromise = null;
+      modules.reset();
       const active = [...sessions.values()].map((entry) => entry.session);
       sessions.clear();
       inFlight.clear();

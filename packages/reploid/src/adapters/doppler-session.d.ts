@@ -35,6 +35,9 @@ export interface DopplerGenerationEvidenceComparison {
 
 export function resolveDopplerRuntime(module: unknown): Record<string, any> | null;
 export function createDopplerModuleLoader<T extends object = Record<string, any>>(options: {
+  /** One host loader; its own error surfaces unchanged. */
+  loadModule(): Promise<T> | T;
+} | {
   candidates(): unknown[];
   importModule(specifier: unknown): Promise<T>;
   prepare?(): void;
@@ -52,6 +55,13 @@ export function generateWithDopplerSession(session: DopplerPublicSession, prompt
   generationConfig?: DopplerGenerationConfig, assignment?: unknown): Promise<any>;
 export function embedWithDopplerSession(session: DopplerPublicSession, prompt: unknown, assignment?: unknown,
   options?: { workload?: string }): Promise<any>;
+export function dopplerSequenceMethod(session: DopplerPublicSession | null | undefined): 'encodeSequence' | null;
+export function encodeSequenceWithDopplerSession(session: DopplerPublicSession, sequence: string,
+  options?: Record<string, unknown>): Promise<any>;
+export function dopplerOperationEvents(session: DopplerPublicSession, request: unknown,
+  options?: { signal?: AbortSignal | null; adapterArtifactStore?: unknown }): AsyncIterable<any>;
+export function createDopplerStreamAccumulator(runtime: { createCapsuleStreamAccumulator?(request: unknown): unknown } | null | undefined,
+  request: unknown): any;
 export function streamDopplerText(session: DopplerPublicSession, input: unknown, options?: Record<string, unknown>): AsyncGenerator<string, void, void>;
 export function readDopplerOutputText(result: unknown): string;
 export function readDopplerTokenIds(result: unknown): number[];

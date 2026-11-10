@@ -3,16 +3,13 @@
  */
 
 import { hashJson, sha256Hex } from '../../../shared/pool/inference-receipt.js';
+import { dopplerSequenceMethod, encodeSequenceWithDopplerSession } from '../../../shared/vendor/reploid/adapters/doppler-session.js';
 import {
   SEQUENCE_RESULT_SCHEMA,
   SEQUENCE_WORKLOADS
 } from '../../../shared/pool/sequence-workload.js';
 
-export const sequenceMethodName = (candidate) => (
-  candidate && typeof candidate.encodeSequence === 'function'
-    ? 'encodeSequence'
-    : null
-);
+export const sequenceMethodName = dopplerSequenceMethod;
 
 const normalizeFloat32Values = (value) => {
   if (!(ArrayBuffer.isView(value) || Array.isArray(value))) return [];
@@ -237,10 +234,8 @@ export async function callDopplerSequence(
   assignment,
   { signal = null } = {}
 ) {
-  if (!sequenceMethodName(session)) {
-    throw new Error('Doppler public handle does not expose encodeSequence');
-  }
-  return session.encodeSequence(sequence, {
+  // Poolday chooses the requested outputs; the library makes the public call.
+  return encodeSequenceWithDopplerSession(session, sequence, {
     assignment,
     includeTokenEmbeddings: request.includeTokenEmbeddings,
     includeLogits: request.workload === SEQUENCE_WORKLOADS.maskedLogits,

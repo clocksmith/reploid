@@ -3,6 +3,9 @@ import {
   assertDopplerSessionIdentity,
   cancelDopplerSession,
   createDopplerModuleLoader,
+  createDopplerStreamAccumulator,
+  dopplerOperationEvents,
+  encodeSequenceWithDopplerSession,
   generateWithDopplerSession,
   streamDopplerText
 } from '../../packages/reploid/src/adapters/doppler.js';
@@ -23,6 +26,24 @@ describe('library Doppler session contract', () => {
     await expect(loader.load()).resolves.toBe(module);
     await loader.load();
     expect(importModule).toHaveBeenCalledTimes(4);
+  });
+
+  it('surfaces a single host loader error unchanged and retries it on the next load', async () => {
+    const cause = new Error('Doppler import failed at /pinned/index.js');
+    const loadModule = vi.fn().mockRejectedValueOnce(cause).mockResolvedValue({ DOPPLER_VERSION: 'test' });
+    const loader = createDopplerModuleLoader({ loadModule });
+    await expect(loader.load()).rejects.toBe(cause);
+    await expect(loader.load()).resolves.toEqual({ DOPPLER_VERSION: 'test' });
+    expect(loadModule).toHaveBeenCalledTimes(2);
+  });
+
+  it('refuses sessions and runtimes that lack the public operation, sequence or v2 stream API', async () => {
+    expect(() => dopplerOperationEvents({}, {}, {})).toThrow('public executeOperation');
+    expect(() => createDopplerStreamAccumulator({}, {})).toThrow('does not support operation v2');
+    await expect(encodeSequenceWithDopplerSession({}, 'MKV', {})).rejects.toThrow('does not expose encodeSequence');
+    const encodeSequence = vi.fn(async () => ({ tokens: [] }));
+    await encodeSequenceWithDopplerSession({ encodeSequence }, 'MKV', { includeLogits: true });
+    expect(encodeSequence).toHaveBeenCalledWith('MKV', { includeLogits: true });
   });
 
   it('rejects a session whose own identity differs from the request, and lets a signed identity replace manifest hashes', async () => {

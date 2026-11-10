@@ -2,9 +2,10 @@ import { hashJson } from '../artifacts/signatures.js';
 import { computeManifestShardSetHash } from '../artifacts/manifest-identity.js';
 
 // The one place application adapters call Doppler's public session surface:
-// module loading, runtime exports, identity, generation, embedding, reset and
-// cancellation. Doppler owns computation; hosts own module URLs, load policy,
-// scopes, work queues and closing. Importing this module has no side effects.
+// module loading, runtime exports, identity, generation, embedding, sequence
+// encoding, operation streams, reset and cancellation. Doppler owns computation;
+// hosts own module URLs, load policy, scopes, work queues, event verification
+// policy and closing. Importing this module has no side effects.
 
 const isObject = value => value && typeof value === 'object' && !Array.isArray(value);
 const hasIdentityValue = value => value !== undefined && value !== null && String(value).trim() !== '';
@@ -20,29 +21,31 @@ const identityValuesMatch = (field, expected, actual) => field === 'modelHash' |
 /** Doppler publishes one runtime object as `dr`, `doppler` and the default export. */
 export const resolveDopplerRuntime = module => module?.dr || module?.doppler || module?.default || null;
 
-/** Memoized ordered loading of host-chosen candidates. Objects are already-loaded
- * modules; `importModule` imports a specifier so the host keeps its declared loader.
- * A failed load is forgotten so the next call retries. */
-export function createDopplerModuleLoader({ candidates, importModule, prepare = () => {}, fallback = () => null,
+/** Memoized module loading; a failed load is forgotten so the next call retries.
+ * `loadModule` is one host loader whose own error surfaces unchanged. Otherwise
+ * host-chosen `candidates` are tried in order: objects are already-loaded modules
+ * and `importModule` imports a specifier, so the host keeps its declared loader. */
+export function createDopplerModuleLoader({ loadModule, candidates, importModule, prepare = () => {}, fallback = () => null,
   injectedLabel = 'injected Doppler module', unavailableMessage = 'Unable to load public Doppler module.' }) {
+  const loadCandidates = async () => {
+    prepare();
+    const errors = [];
+    for (const candidate of candidates()) {
+      const label = typeof candidate === 'string' ? candidate : injectedLabel;
+      try {
+        return candidate && typeof candidate === 'object' ? candidate : await importModule(candidate);
+      } catch (error) {
+        errors.push(`${label}: ${error.message}`);
+      }
+    }
+    const loaded = fallback();
+    if (loaded && typeof loaded === 'object') return loaded;
+    throw new Error(`${unavailableMessage} Attempts: ${errors.join('; ') || 'none'}`);
+  };
   let pending = null;
   return Object.freeze({
     load() {
-      pending ||= (async () => {
-        prepare();
-        const errors = [];
-        for (const candidate of candidates()) {
-          const label = typeof candidate === 'string' ? candidate : injectedLabel;
-          try {
-            return candidate && typeof candidate === 'object' ? candidate : await importModule(candidate);
-          } catch (error) {
-            errors.push(`${label}: ${error.message}`);
-          }
-        }
-        const loaded = fallback();
-        if (loaded && typeof loaded === 'object') return loaded;
-        throw new Error(`${unavailableMessage} Attempts: ${errors.join('; ') || 'none'}`);
-      })().catch(error => {
+      pending ||= (loadModule ? Promise.resolve().then(() => loadModule()) : loadCandidates()).catch(error => {
         pending = null;
         throw error;
       });
@@ -234,6 +237,28 @@ export async function embedWithDopplerSession(session, prompt, assignment, { wor
   if (typeof session.embedText === 'function') return session.embedText(prompt, { assignment });
   if (typeof session.run === 'function') return session.run({ prompt, input: prompt, assignment, workload });
   throw new Error('Doppler public handle does not expose embed, embedText, or run');
+}
+
+export const dopplerSequenceMethod = session => session && typeof session.encodeSequence === 'function' ? 'encodeSequence' : null;
+
+/** Biological-sequence encoding; the host chooses the outputs it requests. */
+export async function encodeSequenceWithDopplerSession(session, sequence, options) {
+  if (!dopplerSequenceMethod(session)) throw new Error('Doppler public handle does not expose encodeSequence');
+  return session.encodeSequence(sequence, options);
+}
+
+/** The one call into a session's operation event stream. Callers verify each event. */
+export function dopplerOperationEvents(session, request, options) {
+  if (typeof session?.executeOperation !== 'function') throw new Error('Doppler session does not expose public executeOperation');
+  return session.executeOperation(request, options);
+}
+
+/** Doppler's own reconstruction of an incremental (operation request v2) stream. */
+export function createDopplerStreamAccumulator(runtime, request) {
+  if (typeof runtime?.createCapsuleStreamAccumulator !== 'function') {
+    throw new Error('Installed Doppler runtime does not support operation v2');
+  }
+  return runtime.createCapsuleStreamAccumulator(request);
 }
 
 /** Text deltas from a scoped session stream; completion events carry no new text. */
